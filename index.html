@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Naruto — The Untold Story</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cinzel+Decorative:wght@700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#e7d6b2; --paper-hi:#f1e6ca; --paper-lo:#d2bc90; --edge:#b79d6c;
+    --ink:#2b1d0e; --ink-soft:#6a5231; --rule:#8a6f43;
+    --red:#a6321d; --red-deep:#7c2413;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Cormorant Garamond',Georgia,serif;color:var(--ink);background:var(--paper-lo);
+    min-height:100vh;-webkit-font-smoothing:antialiased}
+  .page{position:relative;min-height:100vh;display:flex;flex-direction:column;overflow:hidden;
+    background:
+      radial-gradient(120% 90% at 50% 22%, var(--paper-hi), var(--paper) 52%, var(--paper-lo) 100%);
+  }
+  /* aged texture */
+  .page::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background-image:radial-gradient(var(--ink) .6px, transparent .7px);background-size:4px 4px;opacity:.05}
+  .page::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(80% 60% at 15% 12%, rgba(120,90,40,.10), transparent 60%),
+      radial-gradient(70% 50% at 88% 85%, rgba(120,90,40,.12), transparent 60%),
+      radial-gradient(130% 120% at 50% 50%, transparent 52%, rgba(60,42,18,.30) 100%)}
+  /* ornamental frame */
+  .frame{position:absolute;inset:16px;z-index:4;pointer-events:none;border:1.5px solid var(--rule);opacity:.7}
+  .frame::before{content:"";position:absolute;inset:5px;border:1px solid var(--rule);opacity:.55}
+  .corner{position:absolute;width:16px;height:16px;color:var(--rule)}
+  .corner.tl{top:-9px;left:-9px}.corner.tr{top:-9px;right:-9px}.corner.bl{bottom:-9px;left:-9px}.corner.br{bottom:-9px;right:-9px}
+
+  /* central seal */
+  .seal{position:absolute;top:46%;left:50%;transform:translate(-50%,-50%);width:min(78vh,660px);aspect-ratio:1;z-index:0;pointer-events:none}
+  .seal svg{width:100%;height:100%}
+  .seal path{fill:none;stroke:var(--red);stroke-width:8;opacity:.12;stroke-linecap:round}
+
+  /* landscape */
+  .scape{position:absolute;left:0;right:0;bottom:0;height:34%;z-index:0;pointer-events:none}
+  .scape svg{width:100%;height:100%;display:block}
+  .fade{position:absolute;left:0;right:0;bottom:0;height:26%;z-index:1;pointer-events:none;background:linear-gradient(to top, var(--paper-lo) 14%, rgba(210,188,144,.5) 55%, transparent)}
+
+  .content{position:relative;z-index:3;display:flex;flex-direction:column;min-height:100vh;padding:0 clamp(22px,5vw,60px)}
+
+  /* NAV */
+  nav{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:26px 4px 22px;border-bottom:1px solid var(--rule)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .sw{width:30px;height:30px;color:var(--red)}
+  .brand b{font-family:'Cinzel',serif;font-weight:600;font-size:16px;letter-spacing:.16em;text-transform:uppercase}
+  .kyuubi{position:relative;z-index:5;width:46px;height:46px;border:none;background:none;padding:0;margin:-4px 0;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+  .kyuubi .kfox{width:100%;height:100%;overflow:visible;transform-origin:50% 78%;animation:kbob 3s ease-in-out infinite}
+  .kyuubi:hover .kfox{animation-duration:1.5s}
+  .kyuubi .tails{transform-box:view-box;transform-origin:100px 132px;animation:ksway 3.6s ease-in-out infinite}
+  @keyframes kbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
+  @keyframes ksway{0%,100%{transform:rotate(-3.2deg)}50%{transform:rotate(3.2deg)}}
+  .bijuu{position:absolute;top:52%;left:56%;width:12px;height:12px;margin-top:-6px;border-radius:50%;
+    background:radial-gradient(circle at 38% 34%, #4a3560, #0a0713 72%);
+    box-shadow:0 0 10px 4px rgba(230,100,40,.75),0 0 4px 1px rgba(150,70,220,.7);opacity:0;pointer-events:none}
+  .bijuu.fire{animation:kdama .78s ease-out}
+  @keyframes kdama{0%{opacity:0;transform:translate(0,0) scale(.25)}18%{opacity:1;transform:translate(4px,-2px) scale(1)}100%{opacity:0;transform:translate(60px,-20px) scale(1.25)}}
+  .tabs{display:flex;gap:26px;margin-left:auto;align-items:center}
+  .tabs a{font-family:'Cinzel',serif;font-weight:500;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);text-decoration:none;opacity:.82;transition:.2s}
+  .tabs a:hover{opacity:1;color:var(--red-deep)}
+  .authbar{display:flex;align-items:center;gap:16px;padding-left:24px;margin-left:22px;border-left:1px solid var(--rule)}
+  .llink{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);text-decoration:none}
+  .btn{font-family:'Cinzel',serif;font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;
+    padding:11px 22px;border:1.5px solid var(--ink);color:var(--ink);background:transparent;cursor:pointer;transition:.2s;display:inline-block;position:relative;overflow:visible}
+  .shuriken{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none;color:#34393e;z-index:6;
+    transform:translate(50px,-58px) rotate(0deg) scale(.5);opacity:0;
+    transition:transform .34s cubic-bezier(.12,.8,.24,1), opacity .12s linear}
+  .shuriken svg{width:100%;height:100%;display:block;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45))}
+  .shuriken.hit{opacity:1;transform:translate(0,0) rotate(800deg) scale(1)}
+  .shuriken.fade{opacity:0;transition:opacity .55s ease}
+  .btn:hover{background:var(--ink);color:var(--paper-hi)}
+  .btn-red{background:var(--red);border-color:var(--red-deep);color:#f6ead0}
+  .btn-red:hover{background:var(--red-deep);color:#fff}
+
+  /* HERO */
+  .hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:36px 0}
+  .kicker{display:flex;align-items:center;gap:16px;font-family:'Cinzel',serif;font-weight:600;font-size:clamp(13px,1.5vw,16px);letter-spacing:.52em;color:var(--red-deep);margin-bottom:16px;padding-left:.52em}
+  .kicker::before,.kicker::after{content:"";width:clamp(28px,6vw,66px);height:1px;background:var(--rule)}
+  h1{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;line-height:1.06;font-size:clamp(44px,7.6vw,100px);color:var(--ink);letter-spacing:.005em;
+    text-shadow:0 1px 0 rgba(255,250,235,.5)}
+  h1 .sub{display:block;font-size:.42em;letter-spacing:.12em;color:var(--red-deep);margin-top:.15em}
+  .quote{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:600;font-size:clamp(21px,3vw,32px);color:var(--ink);margin-top:24px;max-width:42ch;line-height:1.3}
+  .lore{font-size:clamp(16px,1.9vw,19px);color:var(--ink-soft);max-width:52ch;margin-top:18px;line-height:1.55}
+  .enter{margin-top:36px;display:flex;flex-direction:column;align-items:center;gap:14px}
+  .enter .label{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--ink-soft)}
+  .actions{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+  .actions .btn{padding:14px 30px;font-size:13px}
+  .meta{margin-top:26px;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft);opacity:.8}
+  .meta span{color:var(--red-deep)}
+
+  /* FOOTER */
+  footer{position:relative;z-index:3;text-align:center;padding:16px 0 26px;border-top:1px solid var(--rule);margin:0 4px}
+  .disc-txt{font-size:14px;line-height:1.55;color:var(--ink-soft);max-width:80ch;margin:0 auto;opacity:.9}
+  .fchip{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-deep);margin-bottom:8px}
+
+  @media(max-width:820px){
+    .tabs{display:none}
+    .authbar{border-left:none;padding-left:0;margin-left:0}
+    .scape{height:26%}
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <!-- central Uzumaki-style seal -->
+    <div class="seal">
+      <svg viewBox="0 0 600 600" aria-hidden="true"><path d="M304.0 300.0 L305.1 300.5 L306.1 301.1 L307.0 301.9 L307.8 302.9 L308.5 304.1 L309.0 305.4 L309.3 306.8 L309.5 308.3 L309.5 309.9 L309.2 311.6 L308.7 313.3 L308.0 315.0 L307.0 316.6 L305.8 318.2 L304.4 319.7 L302.8 321.1 L300.9 322.3 L298.8 323.4 L296.6 324.3 L294.2 324.9 L291.6 325.3 L289.0 325.5 L286.2 325.3 L283.4 324.9 L280.5 324.1 L277.7 323.0 L274.9 321.7 L272.2 319.9 L269.6 317.9 L267.1 315.6 L264.8 312.9 L262.8 310.0 L260.9 306.8 L259.4 303.3 L258.2 299.6 L257.3 295.8 L256.8 291.8 L256.7 287.6 L257.0 283.4 L257.7 279.1 L258.8 274.8 L260.4 270.6 L262.4 266.4 L264.8 262.4 L267.7 258.5 L270.9 254.9 L274.6 251.5 L278.6 248.4 L283.0 245.7 L287.8 243.3 L292.8 241.4 L298.1 239.9 L303.5 238.9 L309.2 238.4 L314.9 238.4 L320.7 238.9 L326.6 240.1 L332.4 241.8 L338.1 244.0 L343.7 246.8 L349.0 250.2 L354.1 254.1 L358.9 258.5 L363.3 263.5 L367.3 268.9 L370.9 274.7 L373.9 280.9 L376.4 287.4 L378.3 294.3 L379.6 301.3 L380.2 308.6 L380.2 316.0 L379.5 323.4 L378.0 330.9 L375.9 338.3 L373.1 345.5 L369.6 352.5 L365.4 359.3 L360.5 365.7 L355.0 371.7 L348.9 377.3 L342.2 382.4 L335.1 386.8 L327.4 390.7 L319.4 393.8 L311.0 396.3 L302.3 397.9 L293.5 398.8 L284.4 398.9 L275.4 398.2 L266.3 396.6 L257.3 394.1 L248.5 390.8 L239.9 386.7 L231.7 381.8 L223.8 376.1 L216.5 369.6 L209.6 362.5 L203.5 354.6 L198.0 346.2 L193.2 337.2 L189.2 327.7 L186.1 317.8 L183.9 307.5 L182.6 297.0 L182.3 286.4 L182.9 275.6 L184.6 264.9 L187.2 254.3 L190.8 243.8 L195.4 233.6 L200.9 223.9 L207.4 214.5 L214.7 205.7 L222.9 197.6 L231.8 190.2 L241.5 183.5 L251.8 177.7 L262.7 172.8 L274.0 168.9 L285.8 166.1 L297.9 164.3 L310.2 163.5 L322.6 163.9 L335.0 165.5 L347.3 168.1 L359.4 172.0 L371.2 176.9 L382.6 182.9 L393.5 190.0 L403.8 198.1 L413.4 207.1 L422.2 217.1 L430.1 227.9 L437.0 239.4 L442.9 251.6 L447.7 264.4 L451.4 277.7 L453.9 291.3 L455.1 305.2 L455.1 319.3 L453.8 333.4 L451.2 347.4 L447.3 361.2 L442.2 374.7 L435.8 387.7 L428.2 400.3 L419.5 412.1 L409.6 423.2 L398.8 433.4 L386.9 442.7 L374.2 450.9 L360.8 458.0 L346.6 463.8 L331.9 468.4 L316.7 471.7 L301.2 473.6 L285.6 474.0 L269.8 473.1 L254.1 470.7 L238.5 466.9 L223.3 461.7 L208.5 455.1 L194.3 447.1 L180.8 437.8 L168.2 427.3 L156.4 415.6 L145.7 402.9 L136.1 389.1 L127.8 374.4 L120.8 359.0 L115.1 342.9 L111.0 326.2 L108.3 309.2 L107.2 291.9 L107.6 274.4 L109.6 257.0 L113.2 239.8 L118.4 222.8 L125.1 206.3 L133.4 190.3 L143.1 175.1 L154.1 160.8 L166.5 147.4 L180.1 135.2 L194.9 124.1 L210.6 114.4 L227.3 106.1 L244.7 99.4 L262.8 94.1 L281.4 90.5 L300.3 88.6 L319.4 88.4 L338.5 90.0 L357.5 93.2 L376.2 98.2 L394.5 104.9 L412.2 113.3 L429.2 123.3 L445.3 134.8 L460.3 147.8 L474.2 162.1 L486.8 177.7 L498.0 194.5 L507.6 212.3 L515.7 231.0 L522.1 250.4 L526.7 270.5 L529.5 290.9 L530.5 311.6 L529.6 332.5 L526.8 353.2 L522.1 373.7 L515.6 393.8 L507.2 413.3 L497.1 432.1 L485.3 450.0 L471.8 466.8 L456.8 482.3 L440.4 496.6 L422.8 509.3 L403.9 520.5 L384.0 530.0 L363.3 537.6 L341.9 543.4 L319.9 547.3 L297.6 549.1 L275.1 549.0 L252.6 546.8 L230.3 542.6 L208.4 536.4 L187.1 528.1 L166.5 518.0 L146.8 506.0 L128.1 492.2 L110.8 476.7 L94.8 459.6"/></svg>
+    </div>
+
+    <!-- ink landscape -->
+    <div class="scape">
+      <svg viewBox="0 0 1440 340" preserveAspectRatio="xMidYMax slice" fill="#3a2a12">
+        <!-- distant range: cliff di Konoha (sx) + mesa di Suna (dx) -->
+        <path opacity=".12" d="M0 340 L0 128 L70 116 L150 124 L210 186 L250 156 L330 214 L440 182 L560 236 L780 250 L910 214 L1010 238 L1130 180 L1188 126 L1226 156 L1266 124 L1330 166 L1440 214 L1440 340 Z"/>
+        <!-- KONOHA: linea di foresta -->
+        <path opacity=".2" d="M120 340 L150 256 L184 280 L214 240 L256 274 L306 244 L368 272 L440 248 L520 278 L560 300 L560 340 Z"/>
+        <!-- grande albero -->
+        <g opacity=".28"><rect x="372" y="252" width="16" height="70"/><ellipse cx="380" cy="234" rx="72" ry="47"/><ellipse cx="326" cy="252" rx="40" ry="30"/><ellipse cx="434" cy="252" rx="40" ry="30"/></g>
+        <!-- pini -->
+        <g opacity=".34"><path d="M214 300 l18 -48 l18 48 z M214 288 l14 -34 l14 34 z"/><rect x="227" y="300" width="6" height="16"/><path d="M474 300 l16 -40 l16 40 z M474 290 l12 -30 l12 30 z"/><rect x="486" y="300" width="6" height="14"/></g>
+        <!-- tetti di Konoha -->
+        <g opacity=".4"><path d="M252 302 q26 -18 52 0 l-6 8 q-20 -13 -40 0 z"/><path d="M304 310 q22 -15 44 0 l-5 7 q-17 -11 -34 0 z"/></g>
+        <!-- foglia -->
+        <path opacity=".32" d="M150 108 C168 96 190 104 194 122 C176 130 156 124 150 108 Z"/>
+        <path opacity=".32" d="M154 111 L190 121" stroke="#3a2a12" stroke-width="1.6" fill="none"/>
+        <!-- torii di confine (centro) -->
+        <g opacity=".34"><path d="M662 234 q64 -14 128 0 l-6 12 q-58 -12 -116 0 z"/><rect x="684" y="260" width="84" height="8"/><rect x="690" y="246" width="9" height="94"/><rect x="753" y="246" width="9" height="94"/></g>
+        <!-- SUNA: dune -->
+        <path opacity=".2" d="M840 340 Q1000 252 1160 300 Q1300 336 1440 288 L1440 340 Z"/>
+        <path opacity=".3" d="M900 340 Q1060 288 1220 322 Q1340 342 1440 322 L1440 340 Z"/>
+        <!-- guglie di roccia -->
+        <g opacity=".3"><path d="M1252 322 L1258 212 L1270 207 L1278 212 L1286 322 Z"/><path d="M1300 322 L1306 252 L1316 322 Z"/></g>
+        <!-- cupole di Suna -->
+        <g opacity=".4"><rect x="980" y="300" width="60" height="24"/><path d="M980 302 a30 30 0 0 1 60 0 z"/><rect x="1030" y="306" width="44" height="18"/><path d="M1030 308 a22 22 0 0 1 44 0 z"/><rect x="948" y="308" width="36" height="16"/><path d="M948 310 a18 18 0 0 1 36 0 z"/></g>
+        <!-- turbine di sabbia -->
+        <path opacity=".24" d="M1316 118 q32 -6 32 18 q0 22 -28 22 q-22 0 -22 -18" fill="none" stroke="#3a2a12" stroke-width="2.4"/>
+        <!-- cresta in primo piano -->
+        <path opacity=".25" d="M0 318 L280 278 L560 318 L820 274 L1120 318 L1440 286 L1440 340 L0 340 Z"/>
+      </svg>
+    </div>
+    <div class="fade"></div>
+
+    <div class="content">
+      <!-- NAV -->
+      <nav>
+        <div class="brand">
+          <button class="kyuubi" id="kyuubi" type="button" aria-label="Kyuubi — cliccami">
+            <svg class="kfox" viewBox="0 0 200 200">
+              <g class="tails" fill="#e07b33">
+                <g transform="rotate(-72 100 132)"><path d="M100 132 C86 108 84 70 93 36 C102 62 110 104 100 132 Z"/><ellipse cx="94" cy="40" rx="5.5" ry="10" fill="#f4ddb8"/></g>
+                <g transform="rotate(-54 100 132)"><path d="M100 132 C86 108 84 70 93 36 C102 62 110 104 100 132 Z"/><ellipse cx="94" cy="40" rx="5.5" ry="10" fill="#f4ddb8"/></g>
+                <g transform="rotate(-36 100 132)"><path d="M100 132 C86 108 84 70 93 36 C102 62 110 104 100 132 Z"/><ellipse cx="94" cy="40" rx="5.5" ry="10" fill="#f4ddb8"/></g>
+                <g transform="rotate(-18 100 132)"><path d="M100 132 C86 108 84 70 93 36 C102 62 110 104 100 132 Z"/><ellipse cx="94" cy="40" rx="5.5" ry="10" fill="#f4ddb8"/></g>
+                <g transform="rotate(0 100 132)"><path d="M100 132 C86 108 84 70 93 36 C102 62 110 104 100 132 Z"/><ellipse cx="94" cy="40" rx="5.5" ry="10" fill="#f4ddb8"/></g>
+                <g transform="rotate(18 100 132)"><path d="M100 132 C86 108 84 70 93 36 C102 62 110 104 100 132 Z"/><ellipse cx="94" cy="40" rx="5.5" ry="10" fill="#f4ddb8"/></g>
+                <g transform="rotate(36 100 132)"><path d="M100 132 C86 108 84 70 93 36 C102 62 110 104 100 132 Z"/><ellipse cx="94" cy="40" rx="5.5" ry="10" fill="#f4ddb8"/></g>
+                <g transform="rotate(54 100 132)"><path d="M100 132 C86 108 84 70 93 36 C102 62 110 104 100 132 Z"/><ellipse cx="94" cy="40" rx="5.5" ry="10" fill="#f4ddb8"/></g>
+                <g transform="rotate(72 100 132)"><path d="M100 132 C86 108 84 70 93 36 C102 62 110 104 100 132 Z"/><ellipse cx="94" cy="40" rx="5.5" ry="10" fill="#f4ddb8"/></g>
+              </g>
+              <g class="kbody">
+                <ellipse cx="100" cy="150" rx="26" ry="24" fill="#e07b33"/>
+                <ellipse cx="100" cy="158" rx="15" ry="16" fill="#f4ddb8"/>
+                <ellipse cx="88" cy="176" rx="8" ry="6" fill="#f4ddb8"/>
+                <ellipse cx="112" cy="176" rx="8" ry="6" fill="#f4ddb8"/>
+                <path d="M74 92 L84 50 L104 82 Z" fill="#e07b33"/>
+                <path d="M126 92 L116 50 L96 82 Z" fill="#e07b33"/>
+                <path d="M82 82 L86 60 L98 80 Z" fill="#7c3d15"/>
+                <path d="M118 82 L114 60 L102 80 Z" fill="#7c3d15"/>
+                <ellipse cx="100" cy="104" rx="35" ry="31" fill="#e07b33"/>
+                <ellipse cx="100" cy="120" rx="19" ry="15" fill="#f4ddb8"/>
+                <circle cx="86" cy="102" r="6.5" fill="#241a10"/>
+                <circle cx="114" cy="102" r="6.5" fill="#241a10"/>
+                <circle cx="88.2" cy="99.6" r="2.1" fill="#fff"/>
+                <circle cx="116.2" cy="99.6" r="2.1" fill="#fff"/>
+                <path d="M95 114 h10 l-5 5.5 z" fill="#241a10"/>
+                <path d="M100 120 v4" stroke="#241a10" stroke-width="1.6" fill="none"/>
+                <g stroke="#b5591f" stroke-width="2" stroke-linecap="round">
+                  <path d="M70 112 l-12 -3"/><path d="M70 118 l-12 2"/>
+                  <path d="M130 112 l12 -3"/><path d="M130 118 l12 2"/>
+                </g>
+              </g>
+            </svg>
+            <span class="bijuu" aria-hidden="true"></span>
+          </button>
+          <b>The Untold Story</b>
+        </div>
+        <div class="tabs">
+          <a href="#storia">Storia</a>
+          <a href="#regole">Regole</a>
+          <a href="#ambientazione">Ambientazione</a>
+        </div>
+      </nav>
+
+      <!-- HERO -->
+      <main class="hero">
+        <div class="kicker">NARUTO</div>
+        <h1>The Untold<br>Story</h1>
+        <p class="quote">«Dove c'è luce, ci sono anche le ombre.»</p>
+        <p class="lore">Le Grandi Guerre sono finite, ma la loro ombra resta. Tra la Foglia e la Sabbia la pace regge su un filo; nei villaggi dormono bestie che nessuno domina davvero, e nell'ombra una mano ignota tesse la sua trama. Manca solo la scintilla — e a innescarla sarai tu.</p>
+        <div class="enter">
+          <span class="label">— Entra nel mondo —</span>
+          <div class="actions">
+            <a class="btn btn-red" href="#iscriviti">Iscriviti e gioca</a>
+            <a class="btn" href="#accedi">Accedi</a>
+          </div>
+        </div>
+        <div class="meta"><span>18+</span> · contenuti maturi &nbsp;·&nbsp; Play-by-chat in tempo reale</div>
+      </main>
+
+      <!-- FOOTER -->
+      <footer>
+        <div class="fchip">Amatoriale · gratuito · theuntoldstory.it</div>
+        <p class="disc-txt">Progetto amatoriale, gratuito e non ufficiale, realizzato da appassionati. Non affiliato, sponsorizzato o approvato dagli aventi diritto. «Naruto» © Masashi Kishimoto / Shueisha. Illustrazioni originali; contenuti a tema maturo in forma esclusivamente testuale.</p>
+      </footer>
+    </div>
+
+    <div class="frame"><span class="corner tl">✦</span><span class="corner tr">✦</span><span class="corner bl">✦</span><span class="corner br">✦</span></div>
+  </div>
+  <script>
+    (function(){
+      var k=document.getElementById('kyuubi');
+      if(k){var b=k.querySelector('.bijuu');
+        k.addEventListener('click',function(){b.classList.remove('fire');void b.offsetWidth;b.classList.add('fire');});}
+
+      var SH='<svg viewBox="0 0 40 40" fill="currentColor" stroke="#12140f" stroke-width="1"><path d="M20 1 L24.5 15.5 L39 20 L24.5 24.5 L20 39 L15.5 24.5 L1 20 L15.5 15.5 Z"/><circle cx="20" cy="20" r="3.3" fill="#e7d6b2" stroke="none"/></svg>';
+      document.querySelectorAll('.actions .btn').forEach(function(btn){
+        btn.addEventListener('click',function(e){
+          e.preventDefault();
+          var r=btn.getBoundingClientRect();
+          var x=Math.max(16,Math.min(r.width-16,(e.clientX||r.left+r.width/2)-r.left));
+          var y=Math.max(12,Math.min(r.height-12,(e.clientY||r.top+r.height/2)-r.top));
+          var s=document.createElement('span');
+          s.className='shuriken'; s.style.left=x+'px'; s.style.top=y+'px'; s.innerHTML=SH;
+          btn.appendChild(s);
+          requestAnimationFrame(function(){requestAnimationFrame(function(){s.classList.add('hit');});});
+          setTimeout(function(){s.classList.add('fade');},1000);
+          setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s);},1650);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
