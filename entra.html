@@ -159,6 +159,12 @@
       if (pass.length < 8) return show('err','La password deve avere almeno 8 caratteri.');
       if (pass !== pass2) return show('err','Le due password non coincidono.');
       if (!$('r-adult').checked || !$('r-rules').checked) return show('err','Devi confermare la maggiore età e accettare il regolamento.');
+      try {
+        var chk = await sb.rpc('username_status', { p_name: user });
+        if (chk.data === 'blocked') return show('err','Questo nome non è consentito: è un nome del manga oppure un termine offensivo. Scegline un altro.');
+        if (chk.data === 'taken')   return show('err','Questo nome è già in uso. Scegline un altro.');
+        if (chk.data === 'invalid') return show('err','Nome non valido: usa 3–20 caratteri tra lettere, numeri e underscore.');
+      } catch(ignore){}
       $('r-btn').disabled = true; $('r-btn').textContent = 'Creazione…';
       try {
         var { data, error } = await sb.auth.signUp({
