@@ -152,7 +152,7 @@
           <h2>Crea il tuo personaggio</h2>
           <p>Bastano i dati essenziali. <b>Clan</b> ed <b>elemento</b> li sceglierai con calma dalla scheda, dopo aver letto Storia e Regole. Si parte dal rango <b>Deshi</b>.</p>
           <div style="text-align:left">
-            <label class="fld"><span class="lab">Nome del personaggio</span><input id="c-name" class="fin" maxlength="40" placeholder="Nome coerente con l'ambientazione" /></label>
+            <div class="fld"><span class="lab">Nome del personaggio</span><div id="c-name-show" class="fin" style="font-weight:600;display:flex;align-items:center;min-height:44px">—</div><span class="hint" style="margin-top:6px">È il nome con cui ti sei registrato. Un account = un personaggio.</span></div>
             <div class="grid3">
               <label class="fld"><span class="lab">Età</span><input id="c-age" class="fin" type="number" min="1" placeholder="es. 12" /></label>
               <label class="fld"><span class="lab">Sesso</span><select id="c-sex" class="fin"><option value="">— scegli —</option><option>Maschio</option><option>Femmina</option><option>Altro</option></select></label>
@@ -235,7 +235,7 @@
     var STATS=[['taijutsu','Taijutsu'],['ninjutsu','Ninjutsu'],['genjutsu','Genjutsu'],['forza','Forza'],['velocita','Velocità'],['intelligenza','Intelligenza']];
     var BASE=10,POOL=40,CAP=30,STEP=5;
     var ELK={Fuoco:'火',Vento:'風',Fulmine:'雷',Terra:'土',Acqua:'水'},ELC={Fuoco:'e-fuoco',Vento:'e-vento',Fulmine:'e-fulmine',Terra:'e-terra',Acqua:'e-acqua'};
-    var me=null,myChar=null,curPriv=null,newStats={},addBuf={},EMB={};
+    var me=null,myChar=null,curPriv=null,newStats={},addBuf={},EMB={},myName='';
 
     function $(id){return document.getElementById(id);}
     function show(id){['st-loading','st-guest','st-error','st-create','st-sheet'].forEach(function(s){$(s).classList.toggle('on',s===id);});}
@@ -263,8 +263,8 @@
     function remaining(){var u=0;STATS.forEach(function(s){u+=newStats[s[0]]-BASE;});return POOL-u;}
     function refreshPool(){var r=remaining();$('c-pool').textContent=r;$('c-pool').parentNode.classList.toggle('done',r===0);$('c-create').disabled=(r!==0);STATS.forEach(function(s){$('cv-'+s[0]).textContent=newStats[s[0]];var b=$('cb-'+s[0]);if(b)b.style.width=newStats[s[0]]+'%';});}
     $('c-stats').addEventListener('click',function(e){var b=e.target.closest('.stbtn');if(!b)return;var k=b.getAttribute('data-k'),d=parseInt(b.getAttribute('data-d'),10),v=newStats[k]+d*STEP;if(d>0&&(remaining()<STEP||v>CAP))return;if(d<0&&v<BASE)return;newStats[k]=v;refreshPool();});
-    $('c-create').addEventListener('click',async function(){if(!sb)return;var name=$('c-name').value.trim(),age=parseInt($('c-age').value,10),sex=$('c-sex').value,village=$('c-village').value;
-      if(name.length<2){toast('Inserisci un nome',true);return;}if(!age||age<1){toast('Inserisci l’età',true);return;}if(!sex){toast('Scegli il sesso',true);return;}if(!village){toast('Scegli il villaggio',true);return;}if(remaining()!==0){toast('Distribuisci tutti i punti',true);return;}
+    $('c-create').addEventListener('click',async function(){if(!sb)return;var name=(myName||'').trim(),age=parseInt($('c-age').value,10),sex=$('c-sex').value,village=$('c-village').value;
+      if(name.length<2){toast('Nome non disponibile: esci e accedi di nuovo',true);return;}if(!age||age<1){toast('Inserisci l’età',true);return;}if(!sex){toast('Scegli il sesso',true);return;}if(!village){toast('Scegli il villaggio',true);return;}if(remaining()!==0){toast('Distribuisci tutti i punti',true);return;}
       this.disabled=true;var payload={user_id:me.id,name:name,age:age,sex:sex,village:village,rank:'Deshi',clan:'Nessuno'};STATS.forEach(function(s){payload[s[0]]=newStats[s[0]];});
       var r=await sb.from('characters').insert(payload).select().single();this.disabled=false;
       if(r.error){toast(r.error.message.indexOf('consentito')>=0?'Nome non consentito':'Errore nella creazione',true);return;}
@@ -313,6 +313,8 @@
       if(!sb){$('err-msg').textContent='Impossibile contattare il servizio in questo momento. Ricarica la pagina.';show('st-error');return;}
       try{var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;
         if(!me){show('st-guest');return;}
+        try{var pr=await sb.from('profiles').select('username').eq('id',me.id).single();myName=(pr.data&&pr.data.username)?pr.data.username:'';}catch(_e){myName='';}
+        var _ns=$('c-name-show'); if(_ns) _ns.textContent=myName||'(nome non disponibile)';
         try{var em=await sb.from('emblems').select('kind,name,image_url');(em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});}catch(_e){}
         var r=await sb.from('characters').select('*').eq('user_id',me.id).maybeSingle();
         if(r.error){$('err-msg').textContent=r.error.message;show('st-error');return;}
@@ -324,7 +326,7 @@
     }
     init();
     window.__demo=function(c,priv,emb){if(emb)EMB=emb;myChar=c;curPriv=priv||null;fillForm(c,priv||null);show('st-sheet');};
-    window.__demoCreate=function(){show('st-create');};
+    window.__demoCreate=function(nm){if(nm){var e=$('c-name-show');if(e)e.textContent=nm;}show('st-create');};
   })();
   </script>
   <script>

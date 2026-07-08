@@ -75,21 +75,26 @@
     <div class="msg" id="msg"></div>
 
     <!-- LOGIN -->
-    <form id="form-accedi" class="active">
-      <div><label>Email</label><input type="email" id="l-email" autocomplete="email" required></div>
-      <div><label>Password</label><input type="password" id="l-pass" autocomplete="current-password" required></div>
+    <form id="form-accedi" class="active" autocomplete="on">
+      <div><label>Nome del personaggio</label><input type="text" id="l-name" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required></div>
+      <div><label>Password</label><input type="password" id="l-pass" name="password" autocomplete="current-password" required></div>
+      <label class="check"><input type="checkbox" id="l-remember" checked><span>Ricordami su questo dispositivo</span></label>
       <button type="submit" class="btn" id="l-btn">Accedi</button>
       <button type="button" class="linky" id="forgot">Password dimenticata?</button>
+      <div id="recover" style="display:none;flex-direction:column;gap:10px;margin-top:2px">
+        <div><label>Email di recupero</label><input type="email" id="rec-email" autocomplete="email"></div>
+        <button type="button" class="btn" id="rec-send" style="background:transparent;color:var(--ink);border-color:var(--ink)">Invia link di recupero</button>
+      </div>
     </form>
 
     <!-- REGISTER -->
     <form id="form-registrati">
       <div>
-        <label>Nome del ninja (username)</label>
-        <input type="text" id="r-user" autocomplete="username" required>
-        <div class="hint">3–20 caratteri: lettere, numeri e underscore. Sarà visibile agli altri.</div>
+        <label>Nome del personaggio</label>
+        <input type="text" id="r-user" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+        <div class="hint">2–40 caratteri. Sono ammessi lettere, accenti, spazi, apostrofi e trattini. Sarà il nome con cui accedi e che vedono gli altri.</div>
       </div>
-      <div><label>Email</label><input type="email" id="r-email" autocomplete="email" required></div>
+      <div><label>Email</label><input type="email" id="r-email" name="email" autocomplete="email" required></div>
       <div>
         <label>Password</label>
         <input type="password" id="r-pass" autocomplete="new-password" required>
@@ -117,12 +122,27 @@
   (function(){
     var SUPABASE_URL = 'https://tyhyxkslteigibktluml.supabase.co';
     var SUPABASE_KEY = 'sb_publishable_jG9_Pb0L4PWuutcutyVc8w_UP6WY41g';
-    var sb = (window.supabase && window.supabase.createClient) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+    // "Ricordami": when checked, the session is kept in localStorage (survives
+    // browser restarts); when unchecked, it lives in sessionStorage (cleared
+    // when the browser closes). A hybrid storage adapter routes writes based on
+    // the current preference and reads from whichever store holds the session.
+    var remember = true;
+    var hybridStorage = {
+      getItem: function(k){ try { var v = window.localStorage.getItem(k); if (v!=null) return v; return window.sessionStorage.getItem(k); } catch(e){ return null; } },
+      setItem: function(k,v){ try { var primary = remember ? window.localStorage : window.sessionStorage; var other = remember ? window.sessionStorage : window.localStorage; primary.setItem(k,v); other.removeItem(k); } catch(e){} },
+      removeItem: function(k){ try { window.localStorage.removeItem(k); window.sessionStorage.removeItem(k); } catch(e){} }
+    };
+
+    var sb = (window.supabase && window.supabase.createClient)
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: hybridStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } })
+      : null;
 
     var $ = function(id){ return document.getElementById(id); };
     var msg = $('msg');
     function show(type, text){ msg.className = 'msg show ' + type; msg.textContent = text; }
     function clearMsg(){ msg.className = 'msg'; msg.textContent = ''; }
+    function normName(s){ return (s||'').replace(/\s+/g,' ').trim(); }
 
     // tabs
     function setTab(name){
@@ -151,14 +171,14 @@
     }
     refresh();
 
-    // register
+    // register (character name + email + password)
     $('form-registrati').addEventListener('submit', async function(e){
       e.preventDefault(); clearMsg();
-      var user = $('r-user').value.trim();
+      var user = normName($('r-user').value);
       var email = $('r-email').value.trim();
       var pass = $('r-pass').value;
       var pass2 = $('r-pass2').value;
-      if (!/^[A-Za-z0-9_]{3,20}$/.test(user)) return show('err','Lo username deve avere 3–20 caratteri: lettere, numeri o underscore.');
+      if (user.length < 2 || user.length > 40) return show('err','Il nome del personaggio deve avere da 2 a 40 caratteri.');
       if (pass.length < 8) return show('err','La password deve avere almeno 8 caratteri.');
       if (pass !== pass2) return show('err','Le due password non coincidono.');
       if (!$('r-adult').checked || !$('r-rules').checked) return show('err','Devi confermare la maggiore età e accettare il regolamento.');
@@ -166,7 +186,7 @@
         var chk = await sb.rpc('username_status', { p_name: user });
         if (chk.data === 'blocked') return show('err','Questo nome non è consentito: è un nome del manga oppure un termine offensivo. Scegline un altro.');
         if (chk.data === 'taken')   return show('err','Questo nome è già in uso. Scegline un altro.');
-        if (chk.data === 'invalid') return show('err','Nome non valido: usa 3–20 caratteri tra lettere, numeri e underscore.');
+        if (chk.data === 'invalid') return show('err','Nome non valido: usa da 2 a 40 caratteri (lettere, accenti, spazi, apostrofi, trattini).');
       } catch(ignore){}
       $('r-btn').disabled = true; $('r-btn').textContent = 'Creazione…';
       try {
@@ -180,33 +200,55 @@
       } catch(err){
         var m = (err && err.message) ? err.message : 'Errore sconosciuto.';
         if (/already registered|already exists/i.test(m)) m = 'Esiste già un account con questa email. Prova ad accedere.';
-        else if (/Database error/i.test(m)) m = 'Username già in uso o non valido. Scegline un altro.';
+        else if (/Database error/i.test(m)) m = 'Questo nome non è valido o è già in uso. Scegline un altro.';
         show('err','Non è stato possibile registrarti: ' + m);
       } finally { $('r-btn').disabled=false; $('r-btn').textContent='Crea il tuo shinobi'; }
     });
 
-    // login
+    // login (character name + password) via the login-name edge function
     $('form-accedi').addEventListener('submit', async function(e){
       e.preventDefault(); clearMsg();
+      var name = normName($('l-name').value);
+      var pass = $('l-pass').value;
+      if (!name || !pass) return show('err','Inserisci nome del personaggio e password.');
+      remember = $('l-remember').checked;
       $('l-btn').disabled=true; $('l-btn').textContent='Accesso…';
       try {
-        var { error } = await sb.auth.signInWithPassword({ email: $('l-email').value.trim(), password: $('l-pass').value });
-        if (error) throw error;
+        var resp = await fetch(SUPABASE_URL + '/functions/v1/login-name', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+          body: JSON.stringify({ name: name, password: pass })
+        });
+        var out = {}; try { out = await resp.json(); } catch(e){}
+        if (!resp.ok || out.error){
+          if (out.error === 'email_not_confirmed') return show('err','Devi prima confermare l\'email: apri il link di conferma che ti abbiamo inviato.');
+          return show('err','Nome o password non corretti.');
+        }
+        var setRes = await sb.auth.setSession({ access_token: out.access_token, refresh_token: out.refresh_token });
+        if (setRes.error) throw setRes.error;
+        // offer to save credentials in the browser's password manager
+        try {
+          if (window.PasswordCredential){ var cred = new window.PasswordCredential({ id: name, password: pass, name: name }); await navigator.credentials.store(cred); }
+        } catch(e){}
         await refresh();
       } catch(err){
-        var m = (err && err.message) ? err.message : 'Errore.';
-        if (/Invalid login/i.test(m)) m = 'Email o password non corretti.';
-        else if (/Email not confirmed/i.test(m)) m = 'Devi prima confermare l\'email: apri il link che ti abbiamo inviato.';
-        show('err', m);
+        show('err','Nome o password non corretti.');
       } finally { $('l-btn').disabled=false; $('l-btn').textContent='Accedi'; }
     });
 
-    // forgot password
-    $('forgot').addEventListener('click', async function(){
+    // forgot password -> reveal email field, then send reset link
+    $('forgot').addEventListener('click', function(){
       clearMsg();
-      var email = $('l-email').value.trim();
-      if (!email) return show('err','Scrivi la tua email qui sopra, poi premi di nuovo "Password dimenticata?".');
-      try { await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin }); show('ok','Ti abbiamo inviato un\'email per reimpostare la password.'); }
+      var box = $('recover');
+      var open = (box.style.display==='flex');
+      box.style.display = open ? 'none' : 'flex';
+      if (!open) $('rec-email').focus();
+    });
+    $('rec-send').addEventListener('click', async function(){
+      clearMsg();
+      var email = $('rec-email').value.trim();
+      if (!email) return show('err','Scrivi la tua email di recupero qui sopra.');
+      try { await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin }); show('ok','Se l\'email è registrata, ti invieremo un link per reimpostare la password.'); }
       catch(err){ show('err','Non è stato possibile inviare l\'email: ' + (err.message||'')); }
     });
 
