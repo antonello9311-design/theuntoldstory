@@ -54,14 +54,14 @@
   .story-head .inner{position:relative;z-index:1}
   .kicker{display:inline-flex;align-items:center;gap:16px;font-family:'Cinzel',serif;font-weight:600;font-size:clamp(12px,1.4vw,15px);letter-spacing:.5em;color:var(--red-deep);margin-bottom:14px;padding-left:.5em}
   .kicker::before,.kicker::after{content:"";width:clamp(24px,5vw,54px);height:1px;background:var(--rule)}
-  .story-head h1{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;line-height:1.04;
-    font-size:clamp(32px,5.6vw,62px);color:var(--ink);text-shadow:0 1px 0 rgba(255,250,235,.5)}
+  .story-head h1{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;line-height:1.06;letter-spacing:.005em;
+    font-size:clamp(36px,6vw,74px);color:var(--ink);text-shadow:0 1px 0 rgba(255,250,235,.5)}
   .story-head .dek{font-style:italic;font-weight:600;font-size:clamp(17px,2.1vw,22px);color:var(--ink-soft);max-width:44ch;margin:18px auto 0;line-height:1.4}
 
   .manuscript{max-width:66ch;margin:6px auto 0;font-size:clamp(16.5px,1.65vw,18.5px);line-height:1.74;color:var(--ink)}
   .manuscript p{margin:0 0 1.05em}
   .manuscript strong{font-weight:700;color:var(--ink)}
-  .preamble{font-style:italic;color:var(--ink-soft);text-align:center;max-width:54ch;margin:0 auto}
+  .preamble{font-style:italic;color:var(--ink-soft);text-align:center;max-width:52ch;margin:22px auto 0}
   .preamble .vow{display:block;font-style:normal;font-weight:600;color:var(--ink);font-size:1.12em;margin-top:.7em}
 
   .divider{display:flex;align-items:center;justify-content:center;gap:16px;margin:1.9em 0}
@@ -148,16 +148,15 @@
           <div class="inner">
             <div class="kicker">La Cronaca</div>
             <h1>La Storia che<br>Nessuno ha Raccontato</h1>
+            <p class="preamble">
+              C'è una storia che tutti conoscono: quella dei libri, dei memoriali, dei nomi incisi nella pietra.
+              E poi c'è l'altra. Quella che comincia dove le cronache si fermano, la notte in cui il destino mancò il suo appuntamento.
+              <span class="vow">Questa è la storia che nessuno ha raccontato. Ed è la vostra.</span>
+            </p>
           </div>
         </header>
 
         <div class="manuscript">
-          <p class="preamble">
-            C'è una storia che tutti conoscono: quella dei libri, dei memoriali, dei nomi incisi nella pietra.
-            E poi c'è l'altra. Quella che comincia dove le cronache si fermano, la notte in cui il destino mancò il suo appuntamento.
-            <span class="vow">Questa è la storia che nessuno ha raccontato. Ed è la vostra.</span>
-          </p>
-
           <div class="divider"><span class="g">✦</span></div>
 
           <section class="chap lead">
@@ -192,8 +191,6 @@
             <blockquote class="tome">«Un ninja è colui che sopporta.»<span class="src">Insegnamento attribuito a uno dei Sannin</span></blockquote>
           </section>
 
-          <div class="divergence">Ed è qui che la storia che conoscete finisce, e comincia quella che nessuno ha raccontato.</div>
-
           <section class="chap">
             <h2><span class="num">VI</span> La Notte in cui la Storia si Spezzò</h2>
             <p>Dodici anni fa, in una notte d'ottobre, la <strong>Volpe a Nove Code</strong> — il più terribile dei Cercoteri — si abbatté su Konoha. Il Quarto Hokage le andò incontro sapendo di non tornare.</p>
@@ -210,7 +207,7 @@
 
           <section class="chap">
             <h2><span class="num">VIII</span> Oggi — La Storia Non Scritta</h2>
-            <p>Sono passati dodici anni dalla Notte della Volpe. <strong>Konoha</strong> ha ricostruito le sue mura ma non la sua certezza. <strong>Suna</strong>, stretta tra le sabbie e i tagli ai tributi del suo signore feudale, sorride alla Foglia con la mano sull'elsa: l'alleanza tra i due villaggi è inchiostro su carta, non ancora fiducia. A oriente e a settentrione, <strong>Kiri, Kumo e Iwa</strong> osservano e affilano.</p>
+            <p>Sono passati dodici anni dalla Notte della Volpe. <strong>Konoha</strong> ha ricostruito le sue mura ma non la sua certezza. <strong>Suna</strong>, stretta tra le sabbie e i tagli ai tributi del suo signore feudale, sorride alla Foglia con la mano sull'elsa: l'alleanza tra i due villaggi è inchiostro su carta, non ancora fiducia. A oriente e a settentrione, <strong>Kiri, Kumo e Iwa</strong> osservano e affilano le armi.</p>
             <p>E nell'ombra, qualcosa si muove: mercenari senza bandiera, disertori dai nomi cancellati, una mano invisibile che colleziona ciò che i villaggi hanno di più prezioso — e di più pericoloso.</p>
             <p>Le vecchie leggende sono morte, o sono nomi sul memoriale. La profezia è cenere. Nessun eroe è stato annunciato, nessun destino è già scritto.</p>
           </section>
@@ -255,6 +252,241 @@
       });
     })();
   </script>
-  <script src="bijuu.js"></script>
+  <script>
+/* The Untold Story — mascotte "Code" (disegni ORIGINALI ispirati, non copiati).
+   Ogni pagina ne carica una a caso; clic = animazione caratteristica.
+   Uso: <span id="bijuu-logo"></span> + <script src="bijuu.js"><\/script> */
+(function () {
+  var CSS = `
+  .bjmascot{position:relative;display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+  .bjsvg{width:100%;height:100%;overflow:visible;transform-origin:50% 72%;animation:bj-bob 2.9s ease-in-out infinite}
+  @keyframes bj-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+  .bjmascot.hit .bjsvg{animation:bj-squash .45s ease-out}
+  @keyframes bj-squash{0%{transform:scale(1)}30%{transform:scale(1.12,.9)}60%{transform:scale(.97,1.04)}100%{transform:scale(1)}}
+  .bjmascot .sand,.bjmascot .ember,.bjmascot .steam,.bjmascot .dama,.bjmascot .ripple,.bjmascot .drip{opacity:0}
+  .sand,.ember,.tent,.flame,.wings,.ripple{transform-box:fill-box;transform-origin:center}
+  /* 9 volpe (Kurama): bijuudama */
+  .bj-fox.hit .dama{animation:bj-dama .8s ease-out}
+  @keyframes bj-dama{0%{opacity:0;transform:translate(0,0) scale(.3)}22%{opacity:1;transform:translate(4px,-4px) scale(1)}100%{opacity:0;transform:translate(60px,-46px) scale(1.35)}}
+  /* 8 polpo-bue (Gyuki): tentacoli si allungano */
+  .bj-octo.hit .tent{animation:bj-ext .6s ease-out}
+  @keyframes bj-ext{0%{transform:scale(1)}45%{transform:scale(1.28)}100%{transform:scale(1)}}
+  /* 2 gatto (Matatabi): fiamme blu */
+  .bj-cat.hit .flame{animation:bj-flare .6s ease-out}
+  @keyframes bj-flare{0%{transform:scale(1);opacity:.9}40%{transform:scale(1.45);opacity:1}100%{transform:scale(1);opacity:.9}}
+  /* 1 tanuki (Shukaku) / 4 scimmia (Son Goku): scoppio di particelle */
+  .bj-tanuki.hit .sand,.bj-monkey.hit .ember{animation:bj-burst .7s ease-out}
+  @keyframes bj-burst{0%{opacity:0;transform:scale(.25)}25%{opacity:1}100%{opacity:0;transform:scale(1.9)}}
+  /* 3 tartaruga (Isobu): onda d'acqua */
+  .bj-turtle.hit .ripple{animation:bj-ripple .7s ease-out}
+  @keyframes bj-ripple{0%{opacity:.75;transform:scale(.3)}100%{opacity:0;transform:scale(2.6)}}
+  /* 5 cavallo-delfino (Kokuo): sbuffo di vapore */
+  .bj-horse.hit .steam{animation:bj-steam .85s ease-out}
+  @keyframes bj-steam{0%{opacity:0;transform:translate(0,0) scale(.4)}30%{opacity:.9}100%{opacity:0;transform:translate(12px,-18px) scale(1.5)}}
+  /* 6 lumaca (Saiken): goccia */
+  .bj-slug.hit .drip{animation:bj-drip .75s ease-in}
+  @keyframes bj-drip{0%{opacity:0;transform:translateY(0)}25%{opacity:1}100%{opacity:0;transform:translateY(16px)}}
+  /* 7 scarabeo (Chomei): ali che sbattono */
+  .bj-beetle.hit .wings{animation:bj-flap .11s ease-in-out 6}
+  @keyframes bj-flap{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.5)}}
+  `;
+
+  var M = {
+    /* 1 — SHUKAKU: tanuki di sabbia, marchi blu curvi, occhi d'oro, coda unica spessa */
+    tanuki: {vb:'0 0 120 120', svg:
+      '<path d="M96 96 q26 -2 26 -30 q0 -20 -16 -24 q10 12 6 26 q-4 14 -16 20z" fill="#d7b374"/>'+
+      '<path d="M100 60 q10 6 8 22 M108 66 q6 8 2 20" stroke="#26497e" stroke-width="3" fill="none" stroke-linecap="round"/>'+
+      '<path d="M40 44 q-10 -20 2 -26 q10 8 10 24z" fill="#c79a5c"/><path d="M80 44 q10 -20 -2 -26 q-10 8 -10 24z" fill="#c79a5c"/>'+
+      '<path d="M44 40 q-4 -12 2 -18 M76 40 q4 -12 -2 -18" stroke="#8a6636" stroke-width="3" fill="none"/>'+
+      '<ellipse cx="60" cy="66" rx="34" ry="31" fill="#e3c184"/>'+
+      '<ellipse cx="60" cy="78" rx="19" ry="16" fill="#f2e0b6"/>'+
+      // marchi blu (firma di Shukaku)
+      '<path d="M60 40 q-9 6 -7 16 M60 40 q9 6 7 16" stroke="#26497e" stroke-width="3.4" fill="none" stroke-linecap="round"/>'+
+      '<path d="M40 60 q-7 3 -8 11 M80 60 q7 3 8 11" stroke="#26497e" stroke-width="3" fill="none" stroke-linecap="round"/>'+
+      '<path d="M47 76 q-6 4 -6 10 M73 76 q6 4 6 10" stroke="#26497e" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
+      // occhi oro con pupilla a croce
+      '<ellipse cx="49" cy="64" rx="7" ry="7.6" fill="#f4c430"/><ellipse cx="71" cy="64" rx="7" ry="7.6" fill="#f4c430"/>'+
+      '<path d="M49 59 v10 M45 64 h8 M71 59 v10 M67 64 h8" stroke="#241a10" stroke-width="2.2"/>'+
+      '<path d="M56 82 h8 l-4 4z" fill="#241a10"/>'+
+      '<g class="sand" fill="#d7b374"><circle cx="60" cy="70" r="3.2"/><circle cx="42" cy="58" r="2.6"/><circle cx="78" cy="58" r="2.6"/><circle cx="46" cy="86" r="2.6"/><circle cx="74" cy="86" r="2.6"/><circle cx="60" cy="94" r="2.6"/></g>'},
+
+    /* 2 — MATATABI: gatto avvolto da fiamme blu, 2 code di fuoco, occhi bicolore */
+    cat: {vb:'0 0 120 120', svg:
+      '<g class="flame" fill="#3ba7ef">'+
+      '<path d="M30 96 q-14 -4 -14 -22 q-10 12 -4 26 q6 12 18 8z"/>'+
+      '<path d="M90 96 q14 -4 14 -22 q10 12 4 26 q-6 12 -18 8z"/>'+
+      '<path d="M20 60 q-10 -12 -4 -24 q10 8 12 20z"/><path d="M100 60 q10 -12 4 -24 q-10 8 -12 20z"/>'+
+      '</g>'+
+      '<g class="flame" fill="#9fdcff">'+
+      '<path d="M28 92 q-8 -4 -8 -16 q-6 8 -2 18 q4 8 12 6z"/><path d="M92 92 q8 -4 8 -16 q6 8 2 18 q-4 8 -12 6z"/>'+
+      '</g>'+
+      '<path d="M42 46 q-8 -22 4 -26 q10 10 8 26z" fill="#1e2338"/><path d="M78 46 q8 -22 -4 -26 q-10 10 -8 26z" fill="#1e2338"/>'+
+      '<path d="M45 44 q-4 -12 2 -18 M75 44 q4 -12 -2 -18" stroke="#3ba7ef" stroke-width="2.6" fill="none"/>'+
+      '<ellipse cx="60" cy="68" rx="32" ry="29" fill="#232a44"/>'+
+      '<path d="M60 58 q-14 2 -14 16 q0 12 14 12 q14 0 14 -12 q0 -14 -14 -16z" fill="#2c3552"/>'+
+      // occhi bicolore (firma di Matatabi): sinistro oro, destro verde
+      '<ellipse cx="50" cy="66" rx="5.6" ry="6.8" fill="#ffd23f"/><ellipse cx="70" cy="66" rx="5.6" ry="6.8" fill="#66e0a0"/>'+
+      '<ellipse cx="50" cy="66" rx="2" ry="5.4" fill="#181c2c"/><ellipse cx="70" cy="66" rx="2" ry="5.4" fill="#181c2c"/>'+
+      '<path d="M55 76 h10 l-5 4z" fill="#3ba7ef"/>'+
+      '<path d="M46 80 q-12 2 -18 -3 M74 80 q12 2 18 -3" stroke="#3ba7ef" stroke-width="1.8" fill="none"/>'},
+
+    /* 3 — ISOBU: tartaruga con guscio a cupola/spuntoni, testa che sporge, 3 code */
+    turtle: {vb:'0 0 120 120', svg:
+      // zampe (dietro)
+      '<g fill="#5e938b"><ellipse cx="32" cy="94" rx="11" ry="8"/><ellipse cx="88" cy="94" rx="11" ry="8"/><ellipse cx="20" cy="76" rx="9" ry="7"/><ellipse cx="100" cy="76" rx="9" ry="7"/></g>'+
+      // tre code in basso (firma di Isobu)
+      '<g fill="#5e938b"><path d="M50 98 q-3 11 3 13 M60 100 q0 11 0 13 M70 98 q3 11 -3 13"/></g>'+
+      // guscio a cupola
+      '<path d="M20 78 q4 -46 42 -46 q38 0 42 46 q-42 15 -84 0z" fill="#a55f3d"/>'+
+      // spuntoni sul bordo
+      '<path d="M62 34 l-6 -12 l12 0z" fill="#8a4a2c"/><path d="M38 42 l-7 -10 M86 42 l7 -10" stroke="#8a4a2c" stroke-width="3.4" stroke-linecap="round"/>'+
+      // placche
+      '<path d="M62 36 q-26 8 -40 40 M62 36 q26 8 40 40 M62 36 v40 M30 62 l20 10 M94 62 l-20 10" stroke="#7d4529" stroke-width="2.4" fill="none"/>'+
+      // testa che sporge davanti (SOPRA il guscio)
+      '<ellipse cx="62" cy="84" rx="19" ry="16" fill="#7fb3aa"/>'+
+      '<circle cx="54" cy="82" r="5.6" fill="#241a10"/><circle cx="70" cy="82" r="5.6" fill="#241a10"/>'+
+      '<circle cx="55.8" cy="80" r="1.9" fill="#fff"/><circle cx="71.8" cy="80" r="1.9" fill="#fff"/>'+
+      '<path d="M56 91 q6 4 12 0" stroke="#4c7a72" stroke-width="2" fill="none"/>'+
+      '<circle class="ripple" cx="62" cy="100" r="12" fill="none" stroke="#9fd7ce" stroke-width="3"/>'},
+
+    /* 4 — SON GOKU: scimmione rosso con corna e accenti verdi, 4 code, sguardo fiero */
+    monkey: {vb:'0 0 120 120', svg:
+      '<g fill="#b5382a"><path d="M38 86 q-20 2 -24 -12 M40 92 q-18 12 -30 8 M44 96 q-14 14 -26 14 M50 98 q-8 16 -20 18"/></g>'+
+      // corna (firma di Son Goku)
+      '<path d="M42 40 q-10 -18 -2 -28 q10 8 12 24z" fill="#e7ddc2"/><path d="M78 40 q10 -18 2 -28 q-10 8 -12 24z" fill="#e7ddc2"/>'+
+      '<path d="M42 40 q-6 -14 -3 -22 M78 40 q6 -14 3 -22" stroke="#c3b78f" stroke-width="2" fill="none"/>'+
+      '<circle cx="40" cy="58" r="10" fill="#b5382a"/><circle cx="80" cy="58" r="10" fill="#b5382a"/><circle cx="40" cy="58" r="5" fill="#e2a98f"/><circle cx="80" cy="58" r="5" fill="#e2a98f"/>'+
+      '<ellipse cx="60" cy="70" rx="29" ry="27" fill="#c23c2b"/>'+
+      '<path d="M60 56 q-17 2 -17 18 q0 13 17 13 q17 0 17 -13 q0 -16 -17 -18z" fill="#e8bd9c"/>'+
+      // accenti verdi (firma di Son Goku)
+      '<path d="M44 52 q16 -7 32 0" stroke="#5f9e46" stroke-width="3.4" fill="none" stroke-linecap="round"/>'+
+      // sguardo fiero
+      '<path d="M48 60 l12 4 M72 60 l-12 4" stroke="#6e2016" stroke-width="2.6" stroke-linecap="round"/>'+
+      '<circle cx="53" cy="66" r="4.4" fill="#241a10"/><circle cx="67" cy="66" r="4.4" fill="#241a10"/><circle cx="54.3" cy="64.6" r="1.4" fill="#fff"/><circle cx="68.3" cy="64.6" r="1.4" fill="#fff"/>'+
+      '<path d="M54 78 q6 5 12 0" stroke="#7a2418" stroke-width="2.2" fill="none"/>'+
+      '<g class="ember" fill="#ff8a3d"><circle cx="60" cy="70" r="3"/><circle cx="46" cy="60" r="2.4"/><circle cx="74" cy="60" r="2.4"/><circle cx="48" cy="82" r="2.4"/><circle cx="72" cy="82" r="2.4"/></g>'},
+
+    /* 5 — KOKUO: cavallo-delfino bianco, corno, marchi rossi, 5 code */
+    horse: {vb:'0 0 120 120', svg:
+      '<g fill="#cfd7e0"><path d="M36 86 q-22 -2 -26 -18 M38 90 q-20 6 -30 -2 M40 94 q-18 12 -28 8 M42 97 q-14 16 -24 16 M46 98 q-8 18 -18 20"/></g>'+
+      '<g stroke="#c0402e" stroke-width="2" fill="none"><path d="M14 74 l-6 -2 M12 84 l-8 0 M16 94 l-6 4"/></g>'+
+      '<ellipse cx="58" cy="74" rx="28" ry="24" fill="#e4e9f0"/>'+
+      // muso liscio da delfino
+      '<path d="M78 66 q24 2 28 20 q-16 8 -32 -4z" fill="#e4e9f0"/>'+
+      '<path d="M60 52 q6 -16 16 -14 q-2 12 -10 18z" fill="#c3ccd6"/><path d="M54 54 q0 -14 -8 -18 q-4 12 2 20z" fill="#c3ccd6"/>'+
+      // corno (firma di Kokuo)
+      '<path d="M60 46 l-3 -22 l6 0z" fill="#d6dce4" stroke="#aab4c1" stroke-width="1"/>'+
+      // marchi rossi
+      '<path d="M50 62 q6 -4 12 0" stroke="#c0402e" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
+      '<circle cx="64" cy="68" r="4.6" fill="#241a10"/><circle cx="65.4" cy="66.6" r="1.5" fill="#fff"/>'+
+      '<circle cx="100" cy="84" r="2.2" fill="#8fa0b3"/>'+
+      '<g class="steam" fill="#eef3f8"><circle cx="102" cy="80" r="4.5"/><circle cx="109" cy="73" r="3.2"/></g>'},
+
+    /* 6 — SAIKEN: lumaca bianca, occhioni enormi, 6 code frangiate */
+    slug: {vb:'0 0 120 120', svg:
+      '<g fill="#cfe0c8"><path d="M70 92 q-2 10 4 14 M80 90 q0 10 6 12 M90 86 q4 10 10 10 M74 96 q-1 8 3 12 M84 94 q1 8 6 10 M64 94 q-3 8 2 12"/></g>'+
+      // corpo lumaca
+      '<path d="M22 94 q4 -34 44 -34 q40 0 42 22 q1 14 -16 14 q-16 0 -16 -12" fill="none" stroke="#e4efdd" stroke-width="22" stroke-linecap="round"/>'+
+      '<ellipse cx="34" cy="82" rx="17" ry="16" fill="#eef4e8"/>'+
+      // occhi enormi su stelo (firma di Saiken)
+      '<path d="M24 70 q-4 -16 3 -22 M40 68 q3 -17 11 -21" stroke="#cfe0c8" stroke-width="5.5" fill="none" stroke-linecap="round"/>'+
+      '<circle cx="25" cy="44" r="6.5" fill="#f4f8f0"/><circle cx="49" cy="43" r="6.5" fill="#f4f8f0"/>'+
+      '<circle cx="25" cy="45" r="3.6" fill="#241a10"/><circle cx="49" cy="44" r="3.6" fill="#241a10"/>'+
+      '<circle cx="26.4" cy="43.4" r="1.3" fill="#fff"/><circle cx="50.4" cy="42.4" r="1.3" fill="#fff"/>'+
+      '<path d="M28 88 q6 4 12 0" stroke="#a9c4a0" stroke-width="2" fill="none"/>'+
+      '<circle class="drip" cx="96" cy="86" r="3.6" fill="#cfe0c8"/>'},
+
+    /* 7 — CHOMEI: scarabeo verde con grande corno e ali, 7 code-nastro */
+    beetle: {vb:'0 0 120 120', svg:
+      '<g fill="#3f7d55"><path d="M40 84 q-16 8 -24 -2 M42 92 q-14 12 -24 12 M58 98 q-3 10 -1 12 M78 92 q14 12 24 12 M80 84 q16 8 24 -2 M50 96 q-8 10 -16 12 M70 96 q8 10 16 12"/></g>'+
+      // ali translucide
+      '<g class="wings"><ellipse cx="32" cy="66" rx="19" ry="12" fill="#bfe6cf" opacity=".6" transform="rotate(-20 32 66)"/><ellipse cx="88" cy="66" rx="19" ry="12" fill="#bfe6cf" opacity=".6" transform="rotate(20 88 66)"/></g>'+
+      '<ellipse cx="60" cy="76" rx="24" ry="27" fill="#4c8a5a"/>'+
+      '<path d="M60 50 v50" stroke="#356b48" stroke-width="2.6"/>'+
+      '<ellipse cx="60" cy="58" rx="15" ry="13" fill="#3f7d55"/>'+
+      // grande corno (firma di Chomei)
+      '<path d="M60 48 l0 -26 M60 22 l-6 8 M60 22 l6 8" stroke="#2f5a3d" stroke-width="4.5" fill="none" stroke-linecap="round"/>'+
+      '<circle cx="53" cy="58" r="4.4" fill="#241a10"/><circle cx="67" cy="58" r="4.4" fill="#241a10"/><circle cx="54.3" cy="56.6" r="1.5" fill="#fff"/><circle cx="68.3" cy="56.6" r="1.5" fill="#fff"/>'+
+      '<path d="M55 66 q5 3 10 0" stroke="#2f5a3d" stroke-width="1.8" fill="none"/>'},
+
+    /* 8 — GYUKI: polpo-bue. Mantello a cupola da polpo, 8 tentacoli con ventose,
+       corna di bue. Colori indaco/viola scuro con ventre crema. */
+    octo: {vb:'0 0 132 128', svg:
+      // 8 tentacoli (dietro), spessi, .tent
+      '<g class="tent" fill="none" stroke="#463c76" stroke-width="8.5" stroke-linecap="round">'+
+      '<path d="M40 72 q-22 0 -30 -12"/>'+
+      '<path d="M44 80 q-20 6 -28 22 q-3 9 5 12"/>'+
+      '<path d="M53 86 q-12 18 -28 24"/>'+
+      '<path d="M61 90 q-5 20 -14 30"/>'+
+      '<path d="M71 90 q5 20 14 30"/>'+
+      '<path d="M79 86 q12 18 28 24"/>'+
+      '<path d="M88 80 q20 6 28 22 q3 9 -5 12"/>'+
+      '<path d="M92 72 q22 0 30 -12"/>'+
+      '</g>'+
+      // ventose chiare sui tentacoli frontali
+      '<g fill="#c7bce6"><circle cx="59" cy="101" r="2"/><circle cx="57" cy="113" r="1.8"/><circle cx="73" cy="101" r="2"/><circle cx="75" cy="113" r="1.8"/></g>'+
+      // mantello a cupola (testa di polpo)
+      '<path d="M34 84 C 29 32 44 18 66 18 C 88 18 103 32 98 84 C 78 95 54 95 34 84 Z" fill="#453d72"/>'+
+      // ventre/muso crema
+      '<ellipse cx="66" cy="80" rx="15" ry="10" fill="#e6dcc2"/>'+
+      // corna di bue (bianche)
+      '<path d="M46 46 q-22 -6 -24 -26 q4 15 24 19z" fill="#ece3ca"/><path d="M45 44 q-15 -5 -18 -18" stroke="#c9bf9e" stroke-width="1.6" fill="none"/>'+
+      '<path d="M86 46 q22 -6 24 -26 q-4 15 -24 19z" fill="#ece3ca"/><path d="M87 44 q15 -5 18 -18" stroke="#c9bf9e" stroke-width="1.6" fill="none"/>'+
+      // sopracciglia fiere + occhi grandi d'oro
+      '<path d="M50 55 l13 4 M82 55 l-13 4" stroke="#2b2450" stroke-width="2.8" stroke-linecap="round"/>'+
+      '<circle cx="57" cy="62" r="6.4" fill="#f4c430"/><circle cx="75" cy="62" r="6.4" fill="#f4c430"/>'+
+      '<circle cx="57" cy="62" r="2.6" fill="#241a10"/><circle cx="75" cy="62" r="2.6" fill="#241a10"/>'+
+      '<circle cx="58.8" cy="60.2" r="1.5" fill="#fff"/><circle cx="76.8" cy="60.2" r="1.5" fill="#fff"/>'+
+      // bocca sul muso crema
+      '<path d="M60 82 q6 5 12 0" stroke="#7c6f4d" stroke-width="2.2" fill="none"/>'},
+
+    /* 9 — KURAMA: volpe a 9 code, marchi rossi agli occhi, orecchie lunghe, sguardo fiero */
+    fox: {vb:'0 0 200 200', svg:
+      '<g fill="#e0602a">'+
+      ['-76','-57','-38','-19','0','19','38','57','76'].map(function(a){return '<g transform="rotate('+a+' 100 134)"><path d="M100 134 C85 108 83 66 94 30 C104 58 112 104 100 134 Z"/><path d="M94 34 C90 52 90 74 96 96" fill="none" stroke="#b84a1c" stroke-width="2.4"/><ellipse cx="94" cy="36" rx="5" ry="10" fill="#f4ddb8"/></g>';}).join('')+
+      '</g>'+
+      '<ellipse cx="100" cy="150" rx="26" ry="23" fill="#e0602a"/><ellipse cx="100" cy="158" rx="15" ry="15" fill="#f4ddb8"/>'+
+      // orecchie lunghe (firma di Kurama)
+      '<path d="M72 96 L78 40 L102 84 Z" fill="#e0602a"/><path d="M128 96 L122 40 L98 84 Z" fill="#e0602a"/>'+
+      '<path d="M80 84 L84 52 L98 82 Z" fill="#7c3d15"/><path d="M120 84 L116 52 L102 82 Z" fill="#7c3d15"/>'+
+      '<ellipse cx="100" cy="106" rx="36" ry="32" fill="#e0602a"/>'+
+      '<ellipse cx="100" cy="122" rx="19" ry="15" fill="#f4ddb8"/>'+
+      // marchi rossi attorno agli occhi (firma di Kurama)
+      '<path d="M84 92 q-16 -4 -22 6 q14 2 22 4z" fill="#b0341a"/><path d="M116 92 q16 -4 22 6 q-14 2 -22 4z" fill="#b0341a"/>'+
+      '<path d="M100 96 q-6 8 -4 16 M100 96 q6 8 4 16" stroke="#b0341a" stroke-width="2.6" fill="none"/>'+
+      // occhi fieri d'oro con pupilla a fessura
+      '<path d="M80 100 l16 4 M120 100 l-16 4" stroke="#7c3d15" stroke-width="2.6" stroke-linecap="round"/>'+
+      '<ellipse cx="87" cy="106" rx="6.5" ry="7" fill="#f4c430"/><ellipse cx="113" cy="106" rx="6.5" ry="7" fill="#f4c430"/>'+
+      '<ellipse cx="87" cy="106" rx="2.2" ry="6" fill="#241a10"/><ellipse cx="113" cy="106" rx="2.2" ry="6" fill="#241a10"/>'+
+      '<path d="M95 116 h10 l-5 5.5 z" fill="#241a10"/>'+
+      '<g stroke="#b5591f" stroke-width="2" stroke-linecap="round"><path d="M72 114 l-12 -3"/><path d="M72 120 l-12 2"/><path d="M128 114 l12 -3"/><path d="M128 120 l12 2"/></g>'+
+      '<circle class="dama" cx="120" cy="122" r="9" fill="#2a1a3a" stroke="#6a3fa0" stroke-width="2"/>'}
+  };
+
+  // Mascotte attive sul sito. Le altre (slug, beetle, octo) restano definite
+  // ma non vengono mai mostrate. Per riattivarne una, aggiungi la sua chiave qui.
+  var KEYS = ['tanuki', 'cat', 'turtle', 'monkey', 'horse', 'fox'];
+
+  function mount(el) {
+    var key = KEYS[Math.floor(Math.random() * KEYS.length)];
+    var m = M[key];
+    el.className = 'bjmascot bj-' + key;
+    el.setAttribute('role', 'button');
+    el.setAttribute('title', 'Cliccami!');
+    el.innerHTML = '<svg class="bjsvg" viewBox="' + m.vb + '" aria-hidden="true">' + m.svg + '</svg>';
+    el.addEventListener('click', function () {
+      el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit');
+    });
+  }
+
+  function init() {
+    var style = document.createElement('style'); style.textContent = CSS; document.head.appendChild(style);
+    var el = document.getElementById('bijuu-logo');
+    if (el) mount(el);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+
+</script>
 </body>
 </html>
