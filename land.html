@@ -158,6 +158,13 @@
   .who-item{display:flex;align-items:center;gap:8px;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)}
   .who-dot{width:7px;height:7px;border-radius:50%;background:#3c8a3c;flex-shrink:0}
   .who-empty{color:var(--ink-soft);font-style:italic;font-size:13.5px}
+  /* #6 sintassi parlato/azione */
+  .msg .m-body .sp-say{color:var(--red-deep)}
+  .msg .m-body .sp-act{font-style:italic;color:var(--ink-soft)}
+  /* #5 contatore caratteri */
+  .composer-tools{display:flex;align-items:center;gap:12px;flex-shrink:0}
+  .ccount{font-size:11px;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .ccount.warn{color:var(--red)}
 </style>
 </head>
 <body>
@@ -216,11 +223,11 @@
               <div class="msgs" id="msgs"></div>
               <div class="composer">
                 <textarea id="msg-input" maxlength="5000" placeholder="Scrivi il tuo turno di gioco…"></textarea>
-                <div class="composer-row"><span class="chint">In gioco usi ciò che è equipaggiato sulla scheda.</span><button class="btn-send" id="msg-send" type="button">Invia</button></div>
+                <div class="composer-row"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*</span><div class="composer-tools"><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
               </div>
             </section>
             <aside class="who">
-              <h3>Chi è qui</h3>
+              <h3>Presenti</h3>
               <div id="who-list" class="who-list"></div>
             </aside>
           </div>
@@ -306,11 +313,16 @@
       var mapView=document.getElementById('map-view'), roomView=document.getElementById('room-view');
       var lgList=document.getElementById('lg-list');
       var msgsEl=document.getElementById('msgs'), whoEl=document.getElementById('who-list');
-      var input=document.getElementById('msg-input'), sendBtn=document.getElementById('msg-send');
+      var input=document.getElementById('msg-input'), sendBtn=document.getElementById('msg-send'), countEl=document.getElementById('msg-count');
       var nameEl=document.getElementById('room-name'), kindEl=document.getElementById('room-kind'), descEl=document.getElementById('room-desc');
       var backBtn=document.getElementById('room-back');
       var LOCS=[], cur=null, poll=null, loggedIn=false;
       function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+      function fmtBody(s){ var t=esc(s);
+        t=t.replace(/&quot;([\s\S]*?)&quot;/g,'<span class="sp-say">&quot;$1&quot;</span>');
+        t=t.replace(/«([\s\S]*?)»/g,'<span class="sp-say">«$1»</span>');
+        t=t.replace(/\*([^*\n]+?)\*/g,'<em class="sp-act">$1</em>');
+        return t; }
       function fmt(iso){ try{ var d=new Date(iso); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }catch(e){ return ''; } }
       function showView(which){ mapView.classList.toggle('on', which==='map'); roomView.classList.toggle('on', which==='room'); }
 
@@ -334,7 +346,7 @@
         rows=rows||[];
         if(!rows.length){ msgsEl.innerHTML='<div class="msgs-empty">Ancora nessun messaggio qui. Scrivi il primo turno.</div>'; return; }
         msgsEl.innerHTML=rows.map(function(m){
-          return '<div class="msg"><div><span class="m-who">'+esc(m.author_name)+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="m-body">'+esc(m.body)+'</div></div>';
+          return '<div class="msg"><div><span class="m-who">'+esc(m.author_name)+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="m-body">'+fmtBody(m.body)+'</div></div>';
         }).join('');
         msgsEl.scrollTop=msgsEl.scrollHeight;
       }
@@ -371,10 +383,12 @@
         sb.rpc('post_message',{p_location:cur.id,p_body:t}).then(function(r){
           sendBtn.disabled=false;
           if(r&&r.error){ var m=(r.error.message||'').toLowerCase(); toast(/consentito/.test(m)?'Messaggio bloccato dalla moderazione':(/lungo/.test(m)?'Messaggio troppo lungo':(/personaggio/.test(m)?'Ti serve un personaggio':'Impossibile inviare'))); return; }
-          input.value=''; loadMsgs(); loadWho();
+          input.value=''; updCount(); loadMsgs(); loadWho();
         }, function(){ sendBtn.disabled=false; toast('Impossibile inviare'); });
       }
       sendBtn.addEventListener('click', send);
+      function updCount(){ if(!countEl||!input) return; var n=(input.value||'').length; countEl.textContent=n+' / 5000'; countEl.classList.toggle('warn', n>4500); }
+      if(input){ input.addEventListener('input', updCount); } updCount();
 
       // la chat richiede il login
       if(sb&&sb.auth){
