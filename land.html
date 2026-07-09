@@ -117,6 +117,46 @@
     .tb-btn{padding:7px 10px;font-size:10px}
     .mapframe{aspect-ratio:4/5}
   }
+  /* ====== CHAT / LUOGHI ====== */
+  .mapzone{flex-direction:column;align-items:stretch;justify-content:flex-start}
+  .view{flex:1;min-height:0;display:none;flex-direction:column;gap:12px}
+  .view.on{display:flex}
+  #map-view .mapframe{flex:1;min-height:0;width:100%;max-width:1040px;margin:0 auto;aspect-ratio:auto}
+  .luoghi{flex-shrink:0;border:1px solid var(--rule);border-radius:12px;background:linear-gradient(rgba(247,238,214,.92),rgba(233,219,178,.86));padding:10px 12px;box-shadow:0 6px 18px rgba(60,42,18,.14)}
+  .lg-head{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-deep);margin-bottom:8px}
+  .lg-list{display:flex;gap:8px;overflow-x:auto;padding-bottom:3px;min-height:24px}
+  .lg-card{flex:0 0 auto;min-width:158px;max-width:230px;text-align:left;border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.72);padding:9px 12px;cursor:pointer;font-family:inherit;transition:.15s}
+  .lg-card:hover{border-color:var(--red);background:rgba(255,250,235,.98);transform:translateY(-1px)}
+  .lg-name{font-family:'Cinzel',serif;font-weight:600;font-size:13.5px;color:var(--ink)}
+  .lg-kind{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-top:2px}
+  .login-note{margin:auto;text-align:center;color:var(--ink-soft);font-style:italic;font-size:15px;max-width:40ch;padding:14px}
+  .login-note a{color:var(--red-deep)}
+  .room-top{display:flex;align-items:center;gap:12px;flex-shrink:0}
+  .room-title h2{font-family:'Cinzel Decorative','Cinzel',serif;font-size:clamp(18px,2.4vw,24px);color:var(--ink);margin:0;line-height:1.1}
+  .room-title .rk{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-top:2px}
+  .room-desc{flex-shrink:0;font-style:italic;color:var(--ink-soft);font-size:14px;margin:0}
+  .room-grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 208px;gap:14px}
+  @media(max-width:760px){.room-grid{grid-template-columns:1fr}.who{display:none}}
+  .chat{min-height:0;display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:12px;background:rgba(247,238,214,.5);overflow:hidden}
+  .msgs{flex:1;min-height:0;overflow-y:auto;padding:12px 15px;display:flex;flex-direction:column;gap:11px}
+  .msg .m-who{font-family:'Cinzel',serif;font-weight:600;font-size:12.5px;color:var(--red-deep)}
+  .msg .m-time{font-size:10px;color:var(--ink-soft);margin-left:7px;letter-spacing:.03em}
+  .msg .m-body{font-size:15px;line-height:1.5;color:var(--ink);white-space:pre-wrap;margin-top:3px}
+  .msg+.msg{border-top:1px dashed var(--edge);padding-top:11px}
+  .msgs-empty{margin:auto;color:var(--ink-soft);font-style:italic;text-align:center}
+  .composer{flex-shrink:0;border-top:1px solid var(--edge);padding:10px 12px;background:rgba(255,250,235,.6)}
+  .composer textarea{width:100%;box-sizing:border-box;resize:vertical;min-height:54px;max-height:150px;font-family:inherit;font-size:15px;line-height:1.4;padding:8px 10px;border:1px solid var(--edge);border-radius:8px;background:#fbf4e1;color:var(--ink)}
+  .composer-row{display:flex;align-items:center;justify-content:space-between;margin-top:7px;gap:10px}
+  .composer .chint{font-size:11px;color:var(--ink-soft)}
+  .btn-send{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--red);color:#f6ead0;border:1px solid var(--red-deep);border-radius:7px;padding:9px 22px;cursor:pointer}
+  .btn-send:hover{background:var(--red-deep)}
+  .btn-send:disabled{opacity:.5;cursor:default}
+  .who{min-height:0;border:1px solid var(--rule);border-radius:12px;background:rgba(247,238,214,.5);padding:12px;display:flex;flex-direction:column}
+  .who h3{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);margin:0 0 9px}
+  .who-list{overflow-y:auto;display:flex;flex-direction:column;gap:7px}
+  .who-item{display:flex;align-items:center;gap:8px;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)}
+  .who-dot{width:7px;height:7px;border-radius:50%;background:#3c8a3c;flex-shrink:0}
+  .who-empty{color:var(--ink-soft);font-style:italic;font-size:13.5px}
 </style>
 </head>
 <body>
@@ -145,21 +185,48 @@
       </header>
 
       <main class="mapzone">
-        <div class="mapframe" id="mapframe">
-          <img id="land-map" class="map-img" alt="Mappa della Land">
-          <span class="cx tl">✦</span><span class="cx tr">✦</span><span class="cx bl">✦</span><span class="cx br">✦</span>
-          <svg class="compass" viewBox="0 0 100 100" aria-hidden="true">
-            <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="1"/>
-            <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width=".6"/>
-            <path d="M50 6 L57 50 L50 94 L43 50 Z" fill="currentColor"/>
-            <path d="M6 50 L50 43 L94 50 L50 57 Z" fill="currentColor"/>
-            <path d="M50 50 L72 28 L57 50 Z M50 50 L28 72 L43 50 Z" fill="currentColor" opacity=".6"/>
-            <text x="50" y="18" text-anchor="middle" font-family="Cinzel" font-size="8" fill="currentColor">N</text>
-          </svg>
-          <div class="map-hint">
-            <div class="mh-k">— Mondo di gioco —</div>
-            <div class="mh-t">La Mappa</div>
-            <div class="mh-d">Qui andrà la mappa della Land. Caricheremo la tua immagine in questo riquadro (come per emblemi e oggetti).</div>
+        <div id="map-view" class="view on">
+          <div class="mapframe" id="mapframe">
+            <img id="land-map" class="map-img" alt="Mappa della Land">
+            <span class="cx tl">✦</span><span class="cx tr">✦</span><span class="cx bl">✦</span><span class="cx br">✦</span>
+            <svg class="compass" viewBox="0 0 100 100" aria-hidden="true">
+              <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="1"/>
+              <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width=".6"/>
+              <path d="M50 6 L57 50 L50 94 L43 50 Z" fill="currentColor"/>
+              <path d="M6 50 L50 43 L94 50 L50 57 Z" fill="currentColor"/>
+              <path d="M50 50 L72 28 L57 50 Z M50 50 L28 72 L43 50 Z" fill="currentColor" opacity=".6"/>
+              <text x="50" y="18" text-anchor="middle" font-family="Cinzel" font-size="8" fill="currentColor">N</text>
+            </svg>
+            <div class="map-hint">
+              <div class="mh-k">— Mondo di gioco —</div>
+              <div class="mh-t">La Mappa</div>
+              <div class="mh-d">Qui andrà la mappa della Land. Presto i luoghi saranno punti cliccabili direttamente sulla mappa.</div>
+            </div>
+          </div>
+          <div class="luoghi">
+            <div class="lg-head">Luoghi — scegli dove giocare</div>
+            <div class="lg-list" id="lg-list"><span class="who-empty">Caricamento…</span></div>
+          </div>
+        </div>
+
+        <div id="room-view" class="view">
+          <div class="room-top">
+            <button class="tb-btn" id="room-back" type="button">← Mappa</button>
+            <div class="room-title"><h2 id="room-name"></h2><div class="rk" id="room-kind"></div></div>
+          </div>
+          <p class="room-desc" id="room-desc"></p>
+          <div class="room-grid">
+            <section class="chat">
+              <div class="msgs" id="msgs"></div>
+              <div class="composer">
+                <textarea id="msg-input" maxlength="5000" placeholder="Scrivi il tuo turno di gioco…"></textarea>
+                <div class="composer-row"><span class="chint">In gioco usi ciò che è equipaggiato sulla scheda.</span><button class="btn-send" id="msg-send" type="button">Invia</button></div>
+              </div>
+            </section>
+            <aside class="who">
+              <h3>Chi è qui</h3>
+              <div id="who-list" class="who-list"></div>
+            </aside>
           </div>
         </div>
       </main>
@@ -237,6 +304,90 @@
       },function(){});
     }
     if(sb){ ping(); setInterval(ping,60000); document.addEventListener('visibilitychange',function(){ if(!document.hidden) ping(); }); }
+
+    /* ---- CHAT / LUOGHI ---- */
+    (function(){
+      var mapView=document.getElementById('map-view'), roomView=document.getElementById('room-view');
+      var lgList=document.getElementById('lg-list');
+      var msgsEl=document.getElementById('msgs'), whoEl=document.getElementById('who-list');
+      var input=document.getElementById('msg-input'), sendBtn=document.getElementById('msg-send');
+      var nameEl=document.getElementById('room-name'), kindEl=document.getElementById('room-kind'), descEl=document.getElementById('room-desc');
+      var backBtn=document.getElementById('room-back');
+      var LOCS=[], cur=null, poll=null, loggedIn=false;
+      function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+      function fmt(iso){ try{ var d=new Date(iso); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }catch(e){ return ''; } }
+      function showView(which){ mapView.classList.toggle('on', which==='map'); roomView.classList.toggle('on', which==='room'); }
+
+      function renderLuoghi(){
+        if(!loggedIn){ lgList.innerHTML='<span class="login-note">Accedi al tuo account per entrare nei luoghi e giocare. <a href="entra.html#accedi">Accedi</a></span>'; return; }
+        if(!LOCS.length){ lgList.innerHTML='<span class="who-empty">Nessun luogo disponibile per ora.</span>'; return; }
+        lgList.innerHTML=LOCS.map(function(l){
+          return '<button class="lg-card" data-id="'+l.id+'"><div class="lg-name">'+esc(l.name)+'</div>'+(l.kind?'<div class="lg-kind">'+esc(l.kind)+'</div>':'')+'</button>';
+        }).join('');
+        Array.prototype.forEach.call(lgList.querySelectorAll('.lg-card'), function(b){
+          b.addEventListener('click', function(){ var l=LOCS.filter(function(x){return x.id===b.getAttribute('data-id');})[0]; if(l) openRoom(l); });
+        });
+      }
+      function loadLuoghi(){
+        if(!sb||!loggedIn) return;
+        sb.from('locations').select('id,name,kind,description').eq('is_active',true).order('sort').then(function(r){
+          if(r&&!r.error){ LOCS=r.data||[]; renderLuoghi(); }
+        }, function(){});
+      }
+      function renderMsgs(rows){
+        rows=rows||[];
+        if(!rows.length){ msgsEl.innerHTML='<div class="msgs-empty">Ancora nessun messaggio qui. Scrivi il primo turno.</div>'; return; }
+        msgsEl.innerHTML=rows.map(function(m){
+          return '<div class="msg"><div><span class="m-who">'+esc(m.author_name)+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="m-body">'+esc(m.body)+'</div></div>';
+        }).join('');
+        msgsEl.scrollTop=msgsEl.scrollHeight;
+      }
+      function loadMsgs(){
+        if(!sb||!cur) return;
+        sb.from('messages').select('author_name,body,created_at').eq('location_id',cur.id).order('created_at',{ascending:true}).limit(300).then(function(r){
+          if(r&&!r.error) renderMsgs(r.data);
+        }, function(){});
+      }
+      function renderWho(rows){
+        rows=rows||[];
+        if(!rows.length){ whoEl.innerHTML='<span class="who-empty">Nessuno, per ora.</span>'; return; }
+        whoEl.innerHTML=rows.map(function(w){
+          return '<div class="who-item"><span class="who-dot"></span>'+esc(w.name)+(w.epithet?' <span style="color:var(--red-deep);font-style:italic">«'+esc(w.epithet)+'»</span>':'')+'</div>';
+        }).join('');
+      }
+      function loadWho(){
+        if(!sb||!cur) return;
+        sb.rpc('who_here',{p_location:cur.id,p_minutes:8}).then(function(r){ if(r&&!r.error) renderWho(r.data); }, function(){});
+      }
+      function refreshRoom(){ if(!cur) return; sb.rpc('enter_location',{p_location:cur.id}).then(function(){},function(){}); loadMsgs(); loadWho(); }
+      function openRoom(l){
+        cur=l; showView('room');
+        nameEl.textContent=l.name; kindEl.textContent=l.kind||''; descEl.textContent=l.description||'';
+        msgsEl.innerHTML='<div class="msgs-empty">Caricamento…</div>'; whoEl.innerHTML='';
+        refreshRoom();
+        if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
+      }
+      function leaveRoom(){ if(poll){ clearInterval(poll); poll=null; } cur=null; showView('map'); loadLuoghi(); }
+      backBtn.addEventListener('click', leaveRoom);
+      function send(){
+        var t=(input.value||'').replace(/\s+$/,''); if(!t.trim()||!cur||!sb) return;
+        sendBtn.disabled=true;
+        sb.rpc('post_message',{p_location:cur.id,p_body:t}).then(function(r){
+          sendBtn.disabled=false;
+          if(r&&r.error){ var m=(r.error.message||'').toLowerCase(); toast(/consentito/.test(m)?'Messaggio bloccato dalla moderazione':(/lungo/.test(m)?'Messaggio troppo lungo':(/personaggio/.test(m)?'Ti serve un personaggio':'Impossibile inviare'))); return; }
+          input.value=''; loadMsgs(); loadWho();
+        }, function(){ sendBtn.disabled=false; toast('Impossibile inviare'); });
+      }
+      sendBtn.addEventListener('click', send);
+
+      // la chat richiede il login
+      if(sb&&sb.auth){
+        sb.auth.getSession().then(function(res){
+          loggedIn=!!(res&&res.data&&res.data.session);
+          renderLuoghi(); if(loggedIn) loadLuoghi();
+        }, function(){ loggedIn=false; renderLuoghi(); });
+      } else { renderLuoghi(); }
+    })();
   })();
   </script>
 </body>
