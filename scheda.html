@@ -145,6 +145,23 @@
     .sp-grid input,.sp-full textarea{font-family:inherit;font-size:.95rem;text-transform:none;letter-spacing:0;padding:7px 9px;border:1px solid var(--edge);border-radius:7px;background:#fbf4e1;color:var(--ink)}
     .sp-full{margin-top:12px}.sp-full textarea{min-height:90px;resize:vertical}
     .fin:disabled,.mini:disabled{background:rgba(0,0,0,.035);color:var(--ink);cursor:default}
+    /* inventario & negozio */
+    .inv-wrap{margin-top:22px;border-top:1px solid var(--edge);padding-top:20px}
+    .inv-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .inv-ryo{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+    .inv-ryo b{color:var(--red);font-size:15px}
+    .inv-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+    .inv-list .itrow,.shoprow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;border:1px solid var(--edge);background:rgba(255,250,235,.45)}
+    .itmain b{font-weight:600}
+    .itmeta{color:var(--ink-soft);font-size:13.5px}
+    .itqty{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.05em;color:var(--ink);white-space:nowrap}
+    .shop{margin-top:16px;border:1px solid var(--red);border-radius:12px;background:rgba(166,50,29,.05);padding:14px 16px}
+    .shop h3{color:var(--red);margin-bottom:2px}
+    .shop-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+    .shopbuy{display:flex;align-items:center;gap:8px;flex-shrink:0}
+    .qin{width:58px;font-family:inherit;font-size:15px;padding:5px 7px;border:1px solid var(--edge);border-radius:6px;background:#fbf4e1;color:var(--ink)}
+    .mini-btn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;flex-shrink:0}
+    .mini-btn:hover{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
 </style>
 </head>
 <body>
@@ -233,6 +250,17 @@
             <div class="ssec" id="sec-fato"><h3>Note del Fato <span class="priv">🔒 riservate · le scrive lo staff</span></h3>
               <p class="hint">Obiettivi, ganci di trama e destino del personaggio: le scrive lo staff. Le vedete solo tu e lo staff.</p>
               <textarea id="f-fato" class="fin" style="min-height:130px" placeholder="(ancora nessuna nota del Fato)" readonly></textarea></div>
+          </div>
+          <div class="inv-wrap" id="inv-wrap" style="display:none">
+            <div class="inv-head"><h3>Inventario <span class="priv">🔒 magazzino privato · solo tu e lo staff</span></h3><div class="inv-ryo">Ryo disponibili: <b id="inv-ryo">0</b></div></div>
+            <p class="hint">Ciò che possiedi. In chat potrai usare solo ciò che equipaggerai sulla sagoma (in arrivo). Peso totale: <b id="inv-weight">0</b> kg.</p>
+            <div id="inv-list" class="inv-list"></div>
+            <button class="btn btn-red btn-sm" id="inv-shop-btn" style="margin-top:12px">Apri il negozio</button>
+            <div class="shop" id="shop" style="display:none">
+              <h3 id="shop-title">Negozio</h3>
+              <p class="hint" id="shop-hint">Compra dal catalogo spendendo i tuoi Ryo.</p>
+              <div id="shop-list" class="shop-list"></div>
+            </div>
           </div>
           <div class="staff-panel" id="staff-panel" style="display:none">
             <h3>⚙ Pannello staff</h3>
@@ -343,6 +371,7 @@
       var sf=$('sec-fato'); if(sf) sf.style.display=(owner||staff)?'':'none';
       var ff=$('f-fato'); if(ff) ff.readOnly=true;
       var sp=$('staff-panel'); if(sp) sp.style.display=staff?'':'none';
+      var iw=$('inv-wrap'); if(iw) iw.style.display=(viewMode==='public')?'none':'';
       if(staff) fillStaffPanel(myChar,curPriv);
       var badge=$('mode-badge');
       if(badge){ if(viewMode==='adminself'){badge.style.display='';badge.textContent='Admin del sito — controllo completo (proprietario + staff) sulla tua scheda';badge.className='mode-badge staff';} else if(viewMode==='staff'){badge.style.display='';badge.textContent='Modalità staff — stai modificando la scheda di un altro giocatore';badge.className='mode-badge staff';} else if(viewMode==='public'){badge.style.display='';badge.textContent='Scheda di un altro giocatore — sola lettura';badge.className='mode-badge ro';} else {badge.style.display='none';} }
@@ -389,6 +418,79 @@
       else{prompt('Copia il link della scheda:',url);}
     });
 
+    /* ---- Inventario & Negozio ---- */
+    var INV=[], SHOP=null;
+    function escI(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+    function catLabel(c){return {arma:'arma',consumabile:'consumabile',contenitore:'contenitore',altro:'altro'}[c]||c;}
+    async function refreshInventory(){
+      if(!sb||!myChar||viewMode==='public'){return;}
+      try{
+        var r=await sb.from('character_inventory').select('id,quantity,item:items(id,name,category,weight,cost,capacity,slot)').eq('character_id',myChar.id);
+        INV=(r&&r.data)?r.data:[];
+      }catch(e){INV=[];}
+      renderInv();
+    }
+    function renderInv(){
+      var host=$('inv-list'); if(!host)return;
+      var ryo=$('inv-ryo'); if(ryo)ryo.textContent=(myChar&&myChar.money!=null?myChar.money:0);
+      if(!INV.length){host.innerHTML='<p class="hint" style="margin:0">Inventario vuoto. Apri il negozio per acquistare oggetti.</p>';var w0=$('inv-weight');if(w0)w0.textContent='0';return;}
+      var total=0;
+      host.innerHTML=INV.map(function(row){
+        var it=row.item||{}; var line=(it.weight||0)*row.quantity; total+=line;
+        var extra=it.category==='contenitore'?(' · capienza '+(it.capacity||0)+' kg'):'';
+        return '<div class="itrow"><div class="itmain"><b>'+escI(it.name)+'</b> <span class="itmeta">'+catLabel(it.category)+' · '+(it.weight||0)+' kg/u'+extra+'</span></div><div class="itqty">×'+row.quantity+' · '+line.toFixed(2)+' kg</div></div>';
+      }).join('');
+      var w=$('inv-weight'); if(w)w.textContent=total.toFixed(2);
+    }
+    async function loadShop(){
+      if(SHOP)return;
+      try{
+        var r=await sb.from('items').select('*').eq('is_active',true).eq('purchasable',true).order('category').order('name');
+        SHOP=(r&&r.data)?r.data:[];
+      }catch(e){SHOP=[];}
+      renderShop();
+    }
+    function renderShop(){
+      var host=$('shop-list'); if(!host||!SHOP)return;
+      var staffMode=(viewMode==='staff');
+      var label=staffMode?'Assegna':'Compra';
+      host.innerHTML=SHOP.map(function(it){
+        var extra=it.category==='contenitore'?(' · capienza '+(it.capacity||0)+' kg · '+(it.slot||'—')):'';
+        var price=staffMode?'':(' · '+it.cost+' Ryo');
+        return '<div class="shoprow"><div class="itmain"><b>'+escI(it.name)+'</b> <span class="itmeta">'+catLabel(it.category)+' · '+(it.weight||0)+' kg'+extra+price+'</span></div>'+
+          '<div class="shopbuy"><input type="number" min="1" value="1" class="qin" id="q-'+it.id+'"><button class="mini-btn" data-buy="'+it.id+'">'+label+'</button></div></div>';
+      }).join('');
+      var st=$('shop-title'), sh=$('shop-hint');
+      if(st)st.textContent=staffMode?'Assegna oggetti':'Negozio';
+      if(sh)sh.textContent=staffMode?'Assegna oggetti dal catalogo al personaggio (senza costo).':'Compra dal catalogo spendendo i tuoi Ryo.';
+    }
+    function bindInventory(){
+      var btn=$('inv-shop-btn'); if(btn) btn.addEventListener('click',function(){
+        var sh=$('shop'); if(!sh)return;
+        var closed=(sh.style.display==='none'||!sh.style.display);
+        if(closed){ sh.style.display='block'; this.textContent='Chiudi il negozio'; loadShop(); }
+        else { sh.style.display='none'; this.textContent='Apri il negozio'; }
+      });
+      var sl=$('shop-list'); if(sl) sl.addEventListener('click',async function(e){
+        var b=e.target.closest('[data-buy]'); if(!b)return;
+        var id=b.getAttribute('data-buy'); var qin=$('q-'+id); var qty=Math.max(1,parseInt(qin&&qin.value,10)||1);
+        b.disabled=true;
+        try{
+          if(viewMode==='staff'){
+            var cur=INV.filter(function(x){return x.item&&x.item.id===id;})[0];
+            var newQty=(cur?cur.quantity:0)+qty;
+            var r=await sb.from('character_inventory').upsert({character_id:myChar.id,item_id:id,quantity:newQty},{onConflict:'character_id,item_id'});
+            if(r.error){toast('Errore assegnazione',true);return;}
+            toast('Oggetto assegnato'); refreshInventory();
+          } else {
+            var res=await sb.rpc('buy_item',{p_character_id:myChar.id,p_item_id:id,p_qty:qty});
+            if(res.error){var m=res.error.message||'';toast(/insufficienti/i.test(m)?'Ryo insufficienti':'Acquisto non riuscito',true);return;}
+            if(res.data&&res.data.money!=null){myChar.money=res.data.money;var vm=$('v-money');if(vm)vm.textContent=myChar.money;}
+            toast('Acquistato'); refreshInventory();
+          }
+        } finally { b.disabled=false; }
+      });
+    }
     async function init(){
       if(!sb){$('err-msg').textContent='Impossibile contattare il servizio in questo momento. Ricarica la pagina.';show('st-error');return;}
       try{
@@ -405,7 +507,7 @@
           myChar=rv.data;
           viewMode=(myChar.user_id===me.id)?(isAdmin?'adminself':'owner'):(isStaff?'staff':'public');
           if(viewMode!=='public'){var pv=await sb.from('character_private').select('*').eq('character_id',myChar.id).maybeSingle();curPriv=pv.data||null;}else{curPriv=null;}
-          fillForm(myChar,curPriv); show('st-sheet'); return;
+          fillForm(myChar,curPriv); show('st-sheet'); refreshInventory(); return;
         }
         viewMode=isAdmin?'adminself':'owner';
         var r=await sb.from('characters').select('*').eq('user_id',me.id).maybeSingle();
@@ -413,12 +515,15 @@
         if(!r.data){show('st-create');return;}
         myChar=r.data;
         var p=await sb.from('character_private').select('*').eq('character_id',myChar.id).maybeSingle();
-        curPriv=p.data||null; fillForm(myChar,curPriv); show('st-sheet');
+        curPriv=p.data||null; fillForm(myChar,curPriv); show('st-sheet'); refreshInventory();
       }catch(e){$('err-msg').textContent='Errore di connessione.';show('st-error');}
     }
+    bindInventory();
     init();
     window.__demo=function(c,priv,emb,mode){if(emb)EMB=emb;myChar=c;curPriv=priv||null;viewMode=mode||'owner';isStaff=(mode==='staff'||mode==='adminself');isAdmin=(mode==='adminself');fillForm(c,priv||null);show('st-sheet');};
     window.__demoCreate=function(nm){if(nm){var e=$('c-name-show');if(e)e.textContent=nm;}show('st-create');};
+    window.__demoInv=function(inv){INV=inv||[];var iw=$('inv-wrap');if(iw)iw.style.display='';renderInv();};
+    window.__demoShop=function(shop){SHOP=shop||[];var s=$('shop');if(s)s.style.display='block';renderShop();};
   })();
   </script>
   <script>

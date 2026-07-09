@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gestione emblemi — The Untold Story</title>
+<title>Pannello staff — The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cinzel+Decorative:wght@700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet" />
@@ -52,6 +52,19 @@
   footer{position:relative;z-index:3;text-align:center;padding:16px 0 24px;border-top:1px solid var(--rule);margin:26px 4px 0}
   .disc-txt{font-size:13px;color:var(--ink-soft);opacity:.9}
   @media(max-width:640px){.tabs{display:none}}
+  .grp-sub{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:18px 0 6px}
+  .cat-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:14px}
+  .cat-form label{display:flex;flex-direction:column;gap:4px;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+  .cat-form label.full{grid-column:1/-1}
+  .cat-form label.chk{flex-direction:row;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:15px;font-family:'Cormorant Garamond',serif;color:var(--ink)}
+  .cat-form input,.cat-form select{font-family:'Cormorant Garamond',serif;font-size:15px;padding:7px 9px;border:1px solid var(--edge);background:rgba(255,250,235,.7);color:var(--ink)}
+  .cat-actions{display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap}
+  .editing-note{font-style:italic;color:var(--red-deep);font-size:14px}
+  .itrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;border:1px solid var(--edge);background:rgba(255,250,235,.4);margin-bottom:6px}
+  .itrow.off{opacity:.55}
+  .itmeta{color:var(--ink-soft);font-size:13.5px}
+  .mini-btn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;flex-shrink:0}
+  .mini-btn:hover{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
 </style>
 </head>
 <body>
@@ -68,13 +81,32 @@
         <div id="st-mgr" class="state">
           <div class="mgr-head">
             <div class="kicker">Area staff</div>
-            <h1>Emblemi di villaggi e clan</h1>
+            <h1>Pannello di gestione</h1>
             <p class="mgr-note">Carica un'immagine per ogni villaggio e clan: comparirà in automatico su tutte le schede. Consigliato un <b>PNG quadrato con sfondo trasparente</b> (~256×256, sotto 2&nbsp;MB). Le immagini che carichi sono di tua scelta e responsabilità.</p>
           </div>
           <div class="grp-title">Villaggi</div>
           <div class="emgrid" id="grid-village"></div>
           <div class="grp-title">Clan</div>
           <div class="emgrid" id="grid-clan"></div>
+          <div class="grp-title" style="margin-top:46px">Catalogo oggetti</div>
+          <p class="mgr-note">Gli oggetti che crei qui appaiono nel <b>negozio</b> e negli inventari dei personaggi. Peso in kg, costo in Ryo. I <b>contenitori</b> (giubbotti, zaini, porta-kunai…) hanno una <b>capienza</b> in kg e uno <b>slot</b> del corpo dove si indossano.</p>
+          <div class="cat-form" id="cat-form">
+            <label>Nome<input id="it-name" maxlength="60" placeholder="es. Kunai"></label>
+            <label>Categoria<select id="it-category"><option value="arma">Arma</option><option value="consumabile">Consumabile</option><option value="contenitore">Contenitore</option><option value="altro">Altro</option></select></label>
+            <label>Peso (kg)<input id="it-weight" type="number" step="0.05" min="0" placeholder="0.20"></label>
+            <label>Costo (Ryo)<input id="it-cost" type="number" step="1" min="0" placeholder="30"></label>
+            <label class="cont-only" id="wrap-capacity" style="display:none">Capienza (kg)<input id="it-capacity" type="number" step="0.5" min="0" placeholder="2.0"></label>
+            <label class="cont-only" id="wrap-slot" style="display:none">Slot corpo<select id="it-slot"><option value="torso">Torso (giubbotto)</option><option value="schiena">Schiena (zaino)</option><option value="cintura">Cintura (marsupio)</option><option value="coscia">Coscia (porta-kunai)</option></select></label>
+            <label class="full">Descrizione<input id="it-desc" maxlength="200" placeholder="Breve descrizione dell'oggetto"></label>
+            <label class="chk"><input type="checkbox" id="it-purchasable" checked> Acquistabile nel negozio</label>
+            <label class="chk"><input type="checkbox" id="it-active" checked> Attivo</label>
+          </div>
+          <div class="cat-actions">
+            <button class="btn btn-red" id="it-save">Salva oggetto</button>
+            <button class="btn" id="it-reset" style="display:none">Annulla modifica</button>
+            <span id="it-editing" class="editing-note"></span>
+          </div>
+          <div id="cat-list"></div>
         </div>
       </main>
       <footer><p class="disc-txt">Area di gestione · The Untold Story</p></footer>
@@ -125,6 +157,54 @@
       toast('Emblema salvato');
     });
 
+    /* ---- Catalogo oggetti ---- */
+    var ITEMS=[];
+    var CATS=[['arma','Armi'],['consumabile','Consumabili'],['contenitore','Contenitori'],['altro','Altro']];
+    var editingId=null;
+    function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+    function catOnly(){var show=($('it-category').value==='contenitore');document.querySelectorAll('.cont-only').forEach(function(el){el.style.display=show?'':'none';});}
+    function resetCatForm(){editingId=null;$('it-name').value='';$('it-category').value='arma';$('it-weight').value='';$('it-cost').value='';$('it-capacity').value='';$('it-slot').value='torso';$('it-desc').value='';$('it-purchasable').checked=true;$('it-active').checked=true;$('it-reset').style.display='none';$('it-editing').textContent='';$('it-save').textContent='Salva oggetto';catOnly();}
+    async function loadItems(){var r=await sb.from('items').select('*').order('category').order('name');ITEMS=(r&&r.data)||[];renderCatalog();}
+    function renderCatalog(){
+      var host=$('cat-list');if(!host)return;host.innerHTML='';
+      CATS.forEach(function(cat){
+        var list=ITEMS.filter(function(x){return x.category===cat[0];});
+        if(!list.length)return;
+        var block=document.createElement('div');
+        var rows=list.map(function(it){
+          var extra=it.category==='contenitore'?(' · capienza '+(it.capacity||0)+' kg · '+(it.slot||'—')):'';
+          var flags=(it.purchasable?'':' · non in vendita')+(it.is_active?'':' · disattivato');
+          return '<div class="itrow'+(it.is_active?'':' off')+'"><div class="itmain"><b>'+esc(it.name)+'</b> <span class="itmeta">'+it.weight+' kg · '+it.cost+' Ryo'+extra+flags+'</span></div><button class="mini-btn" data-edit="'+it.id+'">Modifica</button></div>';
+        }).join('');
+        block.innerHTML='<div class="grp-sub">'+cat[1]+'</div>'+rows;
+        host.appendChild(block);
+      });
+    }
+    function bindCatalog(){
+      $('it-category').addEventListener('change',catOnly);
+      $('it-reset').addEventListener('click',resetCatForm);
+      $('cat-list').addEventListener('click',function(e){
+        var b=e.target.closest('[data-edit]');if(!b)return;
+        var it=ITEMS.filter(function(x){return x.id===b.getAttribute('data-edit');})[0];if(!it)return;
+        editingId=it.id;$('it-name').value=it.name;$('it-category').value=it.category;$('it-weight').value=it.weight;$('it-cost').value=it.cost;
+        $('it-capacity').value=(it.capacity!=null?it.capacity:'');$('it-slot').value=it.slot||'torso';$('it-desc').value=it.description||'';
+        $('it-purchasable').checked=!!it.purchasable;$('it-active').checked=!!it.is_active;
+        $('it-reset').style.display='';$('it-editing').textContent='Stai modificando: '+it.name;$('it-save').textContent='Aggiorna oggetto';catOnly();
+        window.scrollTo({top:Math.max(0,$('cat-form').offsetTop-90),behavior:'smooth'});
+      });
+      $('it-save').addEventListener('click',async function(){
+        var name=$('it-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
+        var cat=$('it-category').value;
+        var payload={name:name,category:cat,weight:parseFloat($('it-weight').value)||0,cost:parseInt($('it-cost').value,10)||0,description:$('it-desc').value.trim()||null,purchasable:$('it-purchasable').checked,is_active:$('it-active').checked};
+        if(cat==='contenitore'){payload.capacity=parseFloat($('it-capacity').value)||0;payload.slot=$('it-slot').value;}else{payload.capacity=null;payload.slot=null;}
+        this.disabled=true;
+        var r=editingId?await sb.from('items').update(payload).eq('id',editingId).select().single():await sb.from('items').insert(payload).select().single();
+        this.disabled=false;
+        if(r.error){toast(String(r.error.message||'').indexOf('duplicate')>=0?'Esiste già un oggetto con questo nome':'Errore nel salvataggio',true);return;}
+        toast('Oggetto salvato');resetCatForm();loadItems();
+      });
+      catOnly();
+    }
     async function init(){
       if(!sb){show('st-guest');return;}
       var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;
@@ -134,10 +214,10 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      renderGrids();show('st-mgr');
+      renderGrids();await loadItems();bindCatalog();show('st-mgr');
     }
     init();
-    window.__demoMgr=function(map){EMB=map||{};renderGrids();show('st-mgr');};
+    window.__demoMgr=function(map,items){EMB=map||{};ITEMS=items||[];renderGrids();renderCatalog();show('st-mgr');};
   })();
   </script>
   <script>
