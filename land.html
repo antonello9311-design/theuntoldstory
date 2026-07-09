@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>La Land — The Untold Story</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cinzel+Decorative:wght@700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#e7d6b2; --paper-hi:#f1e6ca; --paper-lo:#d2bc90; --edge:#b79d6c;
+    --ink:#2b1d0e; --ink-soft:#6a5231; --rule:#8a6f43;
+    --red:#a6321d; --red-deep:#7c2413;
+    --wood:#6b5836; --wood-lo:#3f3119;
+    --roll:2s;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Cormorant Garamond',Georgia,serif;color:var(--ink);
+    background:radial-gradient(120% 120% at 50% 0%, #6b5836, #4a3c22 70%, #372c18 100%);
+    height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+
+  /* STAGE = il muro dietro la pergamena */
+  .stage{position:fixed;inset:0;overflow:hidden}
+
+  /* LA PERGAMENA (contenuto della land) */
+  .land{position:absolute;inset:0;display:flex;flex-direction:column;z-index:2;
+    background:
+      radial-gradient(120% 90% at 50% 16%, var(--paper-hi), var(--paper) 54%, var(--paper-lo) 100%);
+    clip-path:inset(0 100% 0 0);
+    animation:unroll var(--roll) ease-in-out forwards}
+  .land::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background-image:radial-gradient(var(--ink) .6px, transparent .7px);background-size:4px 4px;opacity:.05}
+  .land::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(130% 120% at 50% 40%, transparent 60%, rgba(60,42,18,.26) 100%)}
+  @keyframes unroll{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+
+  /* IL ROTOLO (stile pergamena ninja) che scorre da sinistra a destra */
+  .scroll{position:absolute;left:0;top:-18px;bottom:-18px;width:86px;z-index:20;
+    transform:translateX(-2px);
+    filter:drop-shadow(-11px 0 18px rgba(0,0,0,.45));
+    animation:sweep var(--roll) ease-in-out forwards}
+  .sc-body{position:absolute;top:22px;bottom:22px;left:9px;right:9px;border-radius:11px;
+    background:linear-gradient(to right,#4d1408 0%,#8f2a18 15%,#bd4429 38%,#dc7350 52%,#b23c22 68%,#7c2413 86%,#460f08 100%);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.18), inset 0 40px 30px -28px rgba(255,224,194,.42), inset 0 -40px 30px -28px rgba(0,0,0,.42)}
+  .sc-cap{position:absolute;left:0;right:0;height:44px;border-radius:16px/22px;
+    background:linear-gradient(to right,#3a4530,#6f8060 26%,#a2b48a 50%,#5c6b4e 76%,#313b29);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.15),0 3px 8px rgba(0,0,0,.35)}
+  .sc-cap.top{top:-2px}.sc-cap.bot{bottom:-2px}
+  .sc-cap.bot::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;
+    background:radial-gradient(circle at 42% 38%,#3a2c18,#0b0906);box-shadow:inset 0 2px 4px rgba(0,0,0,.7)}
+  .sc-cord{position:absolute;left:3px;right:3px;height:6px;border-radius:4px;
+    background:linear-gradient(#f6efdb,#c7bb9a);box-shadow:0 1px 2px rgba(0,0,0,.4);z-index:2}
+  .sc-cord.a{top:36%;transform:rotate(-15deg)}
+  .sc-cord.b{top:43%;transform:rotate(-15deg)}
+  .sc-knot{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);width:18px;height:13px;border-radius:50%;
+    background:linear-gradient(#f6efdb,#cabf9e);box-shadow:0 1px 3px rgba(0,0,0,.45);z-index:3}
+  .sc-tag{position:absolute;left:18px;width:50px;top:52%;height:70px;transform:rotate(-3deg);z-index:1;
+    background:linear-gradient(#f9f2de,#e7d9ba);border:1px solid #c9bd9c;border-radius:2px;
+    box-shadow:0 3px 8px rgba(0,0,0,.35);display:flex;flex-direction:column;justify-content:center;gap:6px;padding:9px 8px}
+  .sc-tag i{height:2px;border-radius:2px;background:#5f4a2c;opacity:.7}
+  .sc-tag i:nth-child(1){width:70%}.sc-tag i:nth-child(2){width:90%}.sc-tag i:nth-child(3){width:58%}
+  .sc-tag i:nth-child(4){width:82%}.sc-tag i:nth-child(5){width:74%}
+  @keyframes sweep{from{transform:translateX(-2px)}to{transform:translateX(calc(100vw + 56px))}}
+
+  /* la land compare solo a srotolamento quasi finito (evita flash del contenuto) */
+  .veil{position:absolute;inset:0;z-index:15;pointer-events:none;background:transparent}
+
+  /* TOP BAR / navigazione */
+  .topbar{position:relative;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:12px clamp(14px,3vw,32px);border-bottom:1.5px solid var(--rule);
+    background:linear-gradient(var(--paper-hi),var(--paper))}
+  .tb-brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
+  .tb-mark{width:30px;height:30px;flex-shrink:0}
+  .tb-name{font-family:'Cinzel',serif;font-weight:600;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);white-space:nowrap}
+  .tb-nav{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+  .tb-btn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink);
+    text-decoration:none;padding:8px 13px;border:1px solid transparent;border-radius:7px;cursor:pointer;background:transparent;transition:.16s;white-space:nowrap}
+  .tb-btn:hover{border-color:var(--edge);background:rgba(255,250,235,.55);color:var(--red-deep)}
+  .tb-btn.on{border-color:var(--red);color:var(--red-deep);background:rgba(166,50,29,.09)}
+  .tb-btn.soon{opacity:.4;cursor:default}
+  .tb-btn.soon:hover{border-color:transparent;background:transparent;color:var(--ink)}
+  .tb-sep{width:1px;height:20px;background:var(--edge);margin:0 3px}
+  .tb-btn.music.on{border-color:#3c8a3c;color:#2f6b2f;background:rgba(60,138,60,.1)}
+  .tb-btn.logout{color:var(--red-deep);border-color:var(--edge)}
+  .tb-btn.logout:hover{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+
+  /* ZONA MAPPA */
+  .mapzone{position:relative;z-index:2;flex:1;display:flex;align-items:center;justify-content:center;padding:clamp(14px,3vw,38px)}
+  .mapframe{position:relative;width:min(1040px,94%);max-height:100%;aspect-ratio:16/10;border:2px solid var(--rule);border-radius:12px;
+    background:
+      radial-gradient(120% 120% at 50% 50%, rgba(255,250,235,.5), rgba(210,188,144,.35));
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+    box-shadow:inset 0 0 70px rgba(120,90,40,.22), 0 12px 34px rgba(40,28,10,.35)}
+  .mapframe .cx{position:absolute;color:var(--rule);font-size:16px;opacity:.75}
+  .cx.tl{top:8px;left:11px}.cx.tr{top:8px;right:11px}.cx.bl{bottom:8px;left:11px}.cx.br{bottom:8px;right:11px}
+  /* rosa dei venti (filigrana originale) */
+  .compass{position:absolute;width:min(46%,340px);opacity:.10;color:var(--ink)}
+  .map-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:none;z-index:0}
+  .map-hint{position:relative;text-align:center;padding:22px;max-width:34ch}
+  .map-hint .mh-k{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--red-deep);margin-bottom:9px}
+  .map-hint .mh-t{font-family:'Cinzel Decorative','Cinzel',serif;font-size:clamp(20px,3vw,28px);color:var(--ink);margin-bottom:8px}
+  .map-hint .mh-d{font-style:italic;color:var(--ink-soft);font-size:clamp(14px,1.8vw,17px);line-height:1.4}
+
+  /* TOAST */
+  .toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);z-index:40;
+    background:var(--ink);color:var(--paper-hi);font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    padding:10px 18px;border-radius:8px;opacity:0;transition:.25s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  @media(prefers-reduced-motion:reduce){
+    .land{animation:none;clip-path:inset(0 0 0 0)}
+    .scroll{display:none}
+  }
+  @media(max-width:720px){
+    .tb-name{display:none}
+    .tb-btn{padding:7px 10px;font-size:10px}
+    .mapframe{aspect-ratio:4/5}
+  }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="land" id="land">
+      <header class="topbar">
+        <div class="tb-brand">
+          <svg class="tb-mark" viewBox="0 0 40 40" aria-hidden="true">
+            <circle cx="20" cy="20" r="18" fill="none" stroke="#a6321d" stroke-width="2" opacity=".5"/>
+            <path d="M20 20 C15 13 16 8 20 5 C22 10 24 15 20 20 Z" fill="#a6321d"/>
+            <path d="M20 20 C27 15 32 16 35 20 C30 22 25 24 20 20 Z" fill="#a6321d" opacity=".8"/>
+            <circle cx="20" cy="20" r="2.4" fill="#7c2413"/>
+          </svg>
+          <span class="tb-name">The Untold Story</span>
+        </div>
+        <nav class="tb-nav">
+          <span class="tb-btn on">Mappa</span>
+          <a class="tb-btn" href="scheda.html">Scheda</a>
+          <span class="tb-btn soon" title="In arrivo">Chat · presto</span>
+          <a class="tb-btn" href="storia.html">Storia</a>
+          <a class="tb-btn" href="regole.html">Regole</a>
+          <span class="tb-sep"></span>
+          <button class="tb-btn music" id="music-btn" type="button">Musica: off</button>
+          <a class="tb-btn logout" href="index.html" id="logout">Esci</a>
+        </nav>
+      </header>
+
+      <main class="mapzone">
+        <div class="mapframe" id="mapframe">
+          <img id="land-map" class="map-img" alt="Mappa della Land">
+          <span class="cx tl">✦</span><span class="cx tr">✦</span><span class="cx bl">✦</span><span class="cx br">✦</span>
+          <svg class="compass" viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="1"/>
+            <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width=".6"/>
+            <path d="M50 6 L57 50 L50 94 L43 50 Z" fill="currentColor"/>
+            <path d="M6 50 L50 43 L94 50 L50 57 Z" fill="currentColor"/>
+            <path d="M50 50 L72 28 L57 50 Z M50 50 L28 72 L43 50 Z" fill="currentColor" opacity=".6"/>
+            <text x="50" y="18" text-anchor="middle" font-family="Cinzel" font-size="8" fill="currentColor">N</text>
+          </svg>
+          <div class="map-hint">
+            <div class="mh-k">— Mondo di gioco —</div>
+            <div class="mh-t">La Mappa</div>
+            <div class="mh-d">Qui andrà la mappa della Land. Caricheremo la tua immagine in questo riquadro (come per emblemi e oggetti).</div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="scroll" id="scroll" aria-hidden="true">
+      <div class="sc-body"></div>
+      <div class="sc-cap top"></div>
+      <div class="sc-cap bot"></div>
+      <div class="sc-cord a"></div>
+      <div class="sc-cord b"></div>
+      <div class="sc-knot"></div>
+      <div class="sc-tag"><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <audio id="bgm" loop preload="none"></audio>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+  (function(){
+    var SB_URL='https://tyhyxkslteigibktluml.supabase.co';
+    var SB_KEY='sb_publishable_jG9_Pb0L4PWuutcutyVc8w_UP6WY41g';
+    var sb=(window.supabase&&SB_KEY)?window.supabase.createClient(SB_URL,SB_KEY):null;
+
+    /* ---- MUSICA di sottofondo ----
+       AUDIO_SRC punta a un file DEL REPO: carica TU il tuo brano come  audio/tema.mp3
+       (o cambia il percorso qui sotto). Il file lo fornisci e lo carichi tu, sotto la
+       tua responsabilità: non vengono incorporate tracce protette da copyright. */
+    var AUDIO_SRC = 'audio/tema.mp3';
+
+    var audio=document.getElementById('bgm');
+    var mbtn=document.getElementById('music-btn');
+    var toastEl=document.getElementById('toast'), toastT;
+    function toast(msg){ toastEl.textContent=msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(function(){toastEl.classList.remove('show');},2600); }
+    function prefGet(){ try{ return localStorage.getItem('tus_music'); }catch(e){ return null; } }
+    function prefSet(v){ try{ localStorage.setItem('tus_music', v); }catch(e){} }
+    function setOn(on){ mbtn.classList.toggle('on',on); mbtn.textContent='Musica: '+(on?'on':'off'); }
+    if(AUDIO_SRC){ audio.src=AUDIO_SRC; audio.volume=0.55; }
+    mbtn.addEventListener('click', function(){
+      if(!AUDIO_SRC){ toast('Traccia non ancora impostata'); return; }
+      if(audio.paused){ audio.play().then(function(){ setOn(true); prefSet('on'); }, function(){ toast('Traccia non disponibile'); }); }
+      else { audio.pause(); setOn(false); prefSet('off'); }
+    });
+    // Avvio automatico insieme all'apertura della pergamena (se non disattivata prima).
+    // Molti browser bloccano l'audio automatico: se bloccato, la musica parte al primo clic sul tasto.
+    if(AUDIO_SRC && prefGet()!=='off'){
+      audio.play().then(function(){ setOn(true); }, function(){ setOn(false); });
+    } else { setOn(false); }
+
+    /* ---- MAPPA: mostra la tua immagine se presente (assets/land-map.png|jpg|webp) ---- */
+    (function(){
+      var mi=document.getElementById('land-map'); if(!mi) return;
+      var hint=document.querySelector('.map-hint'), comp=document.querySelector('.compass');
+      var cands=['assets/land-map.png','assets/land-map.jpg','assets/land-map.webp'], i=0;
+      function next(){ if(i>=cands.length){ mi.style.display='none'; return; } mi.src=cands[i++]; }
+      mi.onload=function(){ mi.style.display='block'; if(hint)hint.style.display='none'; if(comp)comp.style.display='none'; };
+      mi.onerror=next;
+      next();
+    })();
+
+    /* ---- LOGOUT ---- */
+    document.getElementById('logout').addEventListener('click', function(e){
+      e.preventDefault();
+      if(sb){ sb.auth.signOut().then(function(){ location.href='index.html'; }, function(){ location.href='index.html'; }); }
+      else { location.href='index.html'; }
+    });
+
+    /* ---- PRESENZA (essere nella Land conta come online) ---- */
+    function ping(){
+      if(!sb||!sb.auth) return;
+      sb.auth.getSession().then(function(res){
+        if(res&&res.data&&res.data.session){ sb.rpc('touch_presence').then(function(){},function(){}); }
+      },function(){});
+    }
+    if(sb){ ping(); setInterval(ping,60000); document.addEventListener('visibilitychange',function(){ if(!document.hidden) ping(); }); }
+  })();
+  </script>
+</body>
+</html>
