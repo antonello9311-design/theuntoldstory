@@ -127,6 +127,24 @@
   .disc-txt{font-size:13px;line-height:1.5;color:var(--ink-soft);max-width:80ch;margin:0 auto;opacity:.9}
 
   @media(max-width:760px){.tabs{display:none}.sheet-top{grid-template-columns:1fr}.portrait{max-width:280px;margin:0 auto}.mini-vitals{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr}}
+    /* view modes: epithet, share, staff panel */
+    .dhead{align-items:flex-start}
+    .dhead-name{display:flex;flex-direction:column;gap:2px}
+    .dhead-act{display:flex;gap:8px;flex-shrink:0}
+    .epithet{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--red);font-size:1.05rem;letter-spacing:.3px;line-height:1.1}
+    .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--rule)}
+    .btn-ghost:hover{background:rgba(0,0,0,.05)}
+    .priv.pub{color:#3c6b3c}
+    .mode-badge{margin:0 0 14px;padding:9px 14px;border-radius:9px;font-size:.86rem;text-align:center;border:1px solid var(--edge)}
+    .mode-badge.staff{background:rgba(166,50,29,.08);color:var(--red);border-color:var(--red)}
+    .mode-badge.ro{background:rgba(0,0,0,.05);color:var(--ink-soft)}
+    .staff-panel{margin-top:22px;padding:16px 18px;border:1px solid var(--red);border-radius:12px;background:rgba(166,50,29,.05)}
+    .staff-panel h3{margin:0 0 6px;color:var(--red)}
+    .sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:8px}
+    .sp-grid label,.sp-full{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.4px}
+    .sp-grid input,.sp-full textarea{font-family:inherit;font-size:.95rem;text-transform:none;letter-spacing:0;padding:7px 9px;border:1px solid var(--edge);border-radius:7px;background:#fbf4e1;color:var(--ink)}
+    .sp-full{margin-top:12px}.sp-full textarea{min-height:90px;resize:vertical}
+    .fin:disabled,.mini:disabled{background:rgba(0,0,0,.035);color:var(--ink);cursor:default}
 </style>
 </head>
 <body>
@@ -170,10 +188,11 @@
 
         <!-- SHEET -->
         <div id="st-sheet" class="state">
+          <div id="mode-badge" class="mode-badge" style="display:none"></div>
           <div class="sheet-top">
             <div class="portrait" id="s-portrait"><div class="ph">Ritratto del personaggio<span>(caricamento immagine — in arrivo)</span></div></div>
             <div class="dossier">
-              <div class="dhead"><h1 id="s-name">—</h1><button class="btn btn-red btn-sm" id="s-save">Salva</button></div>
+              <div class="dhead"><div class="dhead-name"><h1 id="s-name">—</h1><div id="s-epithet" class="epithet" style="display:none"></div></div><div class="dhead-act"><button class="btn btn-ghost btn-sm" id="s-share" title="Copia il link della scheda">Condividi</button><button class="btn btn-red btn-sm" id="s-save">Salva</button></div></div>
               <div class="dtabs"><button class="dtab on" data-d="dati">Dati</button><button class="dtab" data-d="stat">Statistiche</button></div>
 
               <div class="dpanel on" data-d="dati">
@@ -208,11 +227,35 @@
             <div class="ssec"><h3>Background</h3>
               <p class="hint">La storia del personaggio: origini, legami, aspirazioni. Visibile agli altri giocatori.</p>
               <textarea id="f-background" class="fin" style="min-height:180px" placeholder="Scrivi qui la storia del tuo personaggio…"></textarea></div>
-            <div class="ssec"><h3>Note OFF <span class="priv">🔒 private · solo tu e lo staff</span></h3>
-              <textarea id="f-off" class="fin" style="min-height:130px" placeholder="Appunti fuori gioco, promemoria, disponibilità…"></textarea></div>
-            <div class="ssec"><h3>Note del Fato <span class="priv">🔒 private · solo tu e lo staff</span></h3>
-              <p class="hint">Obiettivi, ganci di trama, destino del personaggio: uno spazio condiviso con lo staff.</p>
-              <textarea id="f-fato" class="fin" style="min-height:130px" placeholder="Dove vuoi portare questo personaggio…"></textarea></div>
+            <div class="ssec" id="sec-off"><h3>Note OFF <span class="priv pub">👁 pubblica · visibile agli altri</span></h3>
+              <p class="hint">Breve nota fuori gioco visibile agli altri giocatori (es. «disponibile sempre dalle 20», fuso orario). Comparirà anche nella zona utenti online della land. Max 280 caratteri.</p>
+              <textarea id="f-off" class="fin" maxlength="280" style="min-height:90px" placeholder="Es. disponibile la sera dopo le 20…"></textarea></div>
+            <div class="ssec" id="sec-fato"><h3>Note del Fato <span class="priv">🔒 riservate · le scrive lo staff</span></h3>
+              <p class="hint">Obiettivi, ganci di trama e destino del personaggio: le scrive lo staff. Le vedete solo tu e lo staff.</p>
+              <textarea id="f-fato" class="fin" style="min-height:130px" placeholder="(ancora nessuna nota del Fato)" readonly></textarea></div>
+          </div>
+          <div class="staff-panel" id="staff-panel" style="display:none">
+            <h3>⚙ Pannello staff</h3>
+            <p class="hint" style="margin-top:-4px">Assegna epiteto e grado, correggi statistiche e vitali, e scrivi le Note del Fato. Solo lo staff vede questo pannello.</p>
+            <div class="sp-grid">
+              <label>Epiteto<input id="sp-epithet" maxlength="40" placeholder="es. Il Lampo Giallo"></label>
+              <label>Grado<input id="sp-rank" maxlength="30"></label>
+              <label>Taijutsu<input id="sp-taijutsu" type="number" step="5"></label>
+              <label>Ninjutsu<input id="sp-ninjutsu" type="number" step="5"></label>
+              <label>Genjutsu<input id="sp-genjutsu" type="number" step="5"></label>
+              <label>Forza<input id="sp-forza" type="number" step="5"></label>
+              <label>Velocità<input id="sp-velocita" type="number" step="5"></label>
+              <label>Intelligenza<input id="sp-intelligenza" type="number" step="5"></label>
+              <label>Vita<input id="sp-vita" type="number"></label>
+              <label>Vita max<input id="sp-vita_max" type="number"></label>
+              <label>Chakra<input id="sp-chakra" type="number"></label>
+              <label>Chakra max<input id="sp-chakra_max" type="number"></label>
+              <label>Soldi<input id="sp-money" type="number"></label>
+              <label>Exp<input id="sp-exp" type="number"></label>
+              <label>Punti da assegnare<input id="sp-unspent_points" type="number" step="5"></label>
+            </div>
+            <label class="sp-full">Note del Fato (visibili al giocatore)<textarea id="sp-fato" placeholder="Obiettivi, ganci di trama, destino…"></textarea></label>
+            <button class="btn btn-red btn-sm" id="sp-save" style="margin-top:12px">Salva modifiche staff</button>
           </div>
         </div>
       </main>
@@ -235,7 +278,7 @@
     var STATS=[['taijutsu','Taijutsu'],['ninjutsu','Ninjutsu'],['genjutsu','Genjutsu'],['forza','Forza'],['velocita','Velocità'],['intelligenza','Intelligenza']];
     var BASE=10,POOL=40,CAP=30,STEP=5;
     var ELK={Fuoco:'火',Vento:'風',Fulmine:'雷',Terra:'土',Acqua:'水'},ELC={Fuoco:'e-fuoco',Vento:'e-vento',Fulmine:'e-fulmine',Terra:'e-terra',Acqua:'e-acqua'};
-    var me=null,myChar=null,curPriv=null,newStats={},addBuf={},EMB={},myName='';
+    var me=null,myChar=null,curPriv=null,newStats={},addBuf={},EMB={},myName='',viewMode='owner',viewId=null,isStaff=false;
 
     function $(id){return document.getElementById(id);}
     function show(id){['st-loading','st-guest','st-error','st-create','st-sheet'].forEach(function(s){$(s).classList.toggle('on',s===id);});}
@@ -278,6 +321,7 @@
 
     function fillForm(c,priv){
       $('s-name').textContent=c.name||'Senza nome';
+      var epi=$('s-epithet'); if(c.epithet){epi.textContent='«'+c.epithet+'»';epi.style.display='';}else{epi.textContent='';epi.style.display='none';}
       $('v-rank').textContent=c.rank||'Deshi'; $('ic-rank').outerHTML=embRank(c.rank||'Deshi').replace('class="emb','id="ic-rank" class="emb');
       $('v-village').textContent=c.village||'—'; $('ic-village').outerHTML=embVillage(c.village).replace('class="emb','id="ic-village" class="emb');
       $('v-age').textContent=(c.age!=null?c.age+' anni':'—'); $('v-sex').textContent=c.sex||'—';
@@ -287,9 +331,31 @@
       $('v-vita').textContent=(c.vita||0)+' / '+(c.vita_max||0); $('v-chakra').textContent=(c.chakra||0)+' / '+(c.chakra_max||0);
       $('v-money').textContent=(c.money||0); $('v-exp').textContent=(c.exp||0);
       renderChars(c); renderUnspent(c);
-      $('f-background').value=c.background||''; $('f-off').value=priv&&priv.off_notes?priv.off_notes:''; $('f-fato').value=priv&&priv.fato_notes?priv.fato_notes:'';
+      $('f-background').value=c.background||''; $('f-off').value=c.off_notes||''; $('f-fato').value=priv&&priv.fato_notes?priv.fato_notes:'';
+      applyMode();
     }
-    // wiring: dropdown → emblema live
+    function applyMode(){
+      var owner=(viewMode==='owner'), staff=(viewMode==='staff');
+      ['f-clan','f-element','f-corporation','f-background','f-off'].forEach(function(id){var el=$(id); if(el) el.disabled=!owner;});
+      var sv=$('s-save'); if(sv) sv.style.display=owner?'':'none';
+      if(!owner){var ub=$('unspent-box'); if(ub) ub.style.display='none';}
+      var so=$('sec-off'); if(so) so.style.display='';
+      var sf=$('sec-fato'); if(sf) sf.style.display=(owner||staff)?'':'none';
+      var ff=$('f-fato'); if(ff) ff.readOnly=true;
+      var sp=$('staff-panel'); if(sp) sp.style.display=staff?'':'none';
+      if(staff) fillStaffPanel(myChar,curPriv);
+      var badge=$('mode-badge');
+      if(badge){ if(owner){badge.style.display='none';} else {badge.style.display='';badge.textContent=staff?'Modalità staff — stai modificando la scheda di un altro giocatore':'Scheda di un altro giocatore — sola lettura';badge.className='mode-badge '+(staff?'staff':'ro');} }
+    }
+    function fillStaffPanel(c,priv){
+      if(!c)return;
+      var set=function(id,v){var el=$(id); if(el) el.value=(v!=null?v:'');};
+      set('sp-epithet',c.epithet||''); set('sp-rank',c.rank||'');
+      STATS.forEach(function(s){set('sp-'+s[0],c[s[0]]!=null?c[s[0]]:BASE);});
+      ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){set('sp-'+k,c[k]!=null?c[k]:0);});
+      set('sp-fato',priv&&priv.fato_notes?priv.fato_notes:'');
+    }
+        // wiring: dropdown → emblema live
     document.addEventListener('change',function(e){
       if(e.target&&e.target.id==='f-clan'){$('ic-clan').outerHTML=embClan(e.target.value).replace('class="emb','id="ic-clan" class="emb');}
       if(e.target&&e.target.id==='f-element'){$('ic-element').outerHTML=embElement(e.target.value).replace('class="emb','id="ic-element" class="emb');}
@@ -299,23 +365,49 @@
     document.querySelectorAll('.dtab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.dtab').forEach(function(x){x.classList.remove('on');});b.classList.add('on');var d=b.getAttribute('data-d');document.querySelectorAll('.dpanel').forEach(function(p){p.classList.toggle('on',p.getAttribute('data-d')===d);});});});
 
     $('s-save').addEventListener('click',async function(){
-      if(!sb||!myChar)return;this.disabled=true;
-      var upd={clan:$('f-clan').value||'Nessuno',element:$('f-element').value||null,corporation:$('f-corporation').value.trim()||null,background:$('f-background').value};
+      if(!sb||!myChar||viewMode!=='owner')return;this.disabled=true;
+      var upd={clan:$('f-clan').value||'Nessuno',element:$('f-element').value||null,corporation:$('f-corporation').value.trim()||null,background:$('f-background').value,off_notes:$('f-off').value.trim()||null};
       var r1=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();
-      var r2=await sb.from('character_private').upsert({character_id:myChar.id,off_notes:$('f-off').value,fato_notes:$('f-fato').value,updated_at:new Date().toISOString()},{onConflict:'character_id'}).select().single();
       this.disabled=false;
       if(r1.error){toast(r1.error.message.indexOf('consentito')>=0?'Nome non consentito':'Errore nel salvataggio',true);return;}
-      if(r2.error){toast('Dati salvati, ma le note private no',true);} else {curPriv=r2.data;}
       myChar=r1.data;toast('Scheda salvata');
+    });
+    var spSave=$('sp-save'); if(spSave) spSave.addEventListener('click',async function(){
+      if(!sb||!myChar||viewMode!=='staff')return;this.disabled=true;
+      var upd={epithet:($('sp-epithet').value.trim()||null),rank:($('sp-rank').value.trim()||myChar.rank)};
+      STATS.forEach(function(s){var v=parseInt($('sp-'+s[0]).value,10); upd[s[0]]=isNaN(v)?myChar[s[0]]:v;});
+      ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?myChar[k]:v;});
+      var r1=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();
+      var r2=await sb.from('character_private').upsert({character_id:myChar.id,fato_notes:$('sp-fato').value,updated_at:new Date().toISOString()},{onConflict:'character_id'}).select().single();
+      this.disabled=false;
+      if(r1.error){toast('Errore staff: '+r1.error.message,true);return;}
+      myChar=r1.data; if(!r2.error)curPriv=r2.data; fillForm(myChar,curPriv); toast('Modifiche staff salvate');
+    });
+    var shBtn=$('s-share'); if(shBtn) shBtn.addEventListener('click',function(){
+      if(!myChar)return; var url=location.origin+location.pathname+'?id='+myChar.id;
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(function(){toast('Link della scheda copiato');},function(){prompt('Copia il link della scheda:',url);});}
+      else{prompt('Copia il link della scheda:',url);}
     });
 
     async function init(){
       if(!sb){$('err-msg').textContent='Impossibile contattare il servizio in questo momento. Ricarica la pagina.';show('st-error');return;}
-      try{var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;
+      try{
+        var params=new URLSearchParams(location.search); viewId=params.get('id');
+        var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;
         if(!me){show('st-guest');return;}
-        try{var pr=await sb.from('profiles').select('username').eq('id',me.id).single();myName=(pr.data&&pr.data.username)?pr.data.username:'';}catch(_e){myName='';}
+        try{var pr=await sb.from('profiles').select('username,role').eq('id',me.id).single();myName=(pr.data&&pr.data.username)?pr.data.username:'';isStaff=!!(pr.data&&(pr.data.role==='master'||pr.data.role==='admin'));}catch(_e){myName='';}
         var _ns=$('c-name-show'); if(_ns) _ns.textContent=myName||'(nome non disponibile)';
         try{var em=await sb.from('emblems').select('kind,name,image_url');(em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});}catch(_e){}
+        if(viewId){
+          var rv=await sb.from('characters').select('*').eq('id',viewId).maybeSingle();
+          if(rv.error){$('err-msg').textContent=rv.error.message;show('st-error');return;}
+          if(!rv.data){$('err-msg').textContent='Scheda non trovata.';show('st-error');return;}
+          myChar=rv.data;
+          viewMode=(myChar.user_id===me.id)?'owner':(isStaff?'staff':'public');
+          if(viewMode!=='public'){var pv=await sb.from('character_private').select('*').eq('character_id',myChar.id).maybeSingle();curPriv=pv.data||null;}else{curPriv=null;}
+          fillForm(myChar,curPriv); show('st-sheet'); return;
+        }
+        viewMode='owner';
         var r=await sb.from('characters').select('*').eq('user_id',me.id).maybeSingle();
         if(r.error){$('err-msg').textContent=r.error.message;show('st-error');return;}
         if(!r.data){show('st-create');return;}
@@ -325,7 +417,7 @@
       }catch(e){$('err-msg').textContent='Errore di connessione.';show('st-error');}
     }
     init();
-    window.__demo=function(c,priv,emb){if(emb)EMB=emb;myChar=c;curPriv=priv||null;fillForm(c,priv||null);show('st-sheet');};
+    window.__demo=function(c,priv,emb,mode){if(emb)EMB=emb;myChar=c;curPriv=priv||null;viewMode=mode||'owner';isStaff=(mode==='staff');fillForm(c,priv||null);show('st-sheet');};
     window.__demoCreate=function(nm){if(nm){var e=$('c-name-show');if(e)e.textContent=nm;}show('st-create');};
   })();
   </script>
