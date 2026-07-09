@@ -82,7 +82,7 @@
   .btn-red:hover{background:var(--red-deep);color:#fff}
 
   /* HERO */
-  .hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:36px 0}
+  .hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px 0}
   .kicker{display:flex;align-items:center;gap:16px;font-family:'Cinzel',serif;font-weight:600;font-size:clamp(13px,1.5vw,16px);letter-spacing:.52em;color:var(--red-deep);margin-bottom:16px;padding-left:.52em}
   .kicker::before,.kicker::after{content:"";width:clamp(28px,6vw,66px);height:1px;background:var(--rule)}
   h1{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;line-height:1.06;font-size:clamp(44px,7.6vw,100px);color:var(--ink);letter-spacing:.005em;
@@ -107,6 +107,13 @@
     .authbar{border-left:none;padding-left:0;margin-left:0}
     .scape{height:26%}
   }
+
+  /* CONTATORE LAND (piccolo, sotto le tab) */
+  .navright{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+  .landstat{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);opacity:.9;display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .landstat b{color:var(--red-deep);font-weight:600}
+  .ls-dot{width:6px;height:6px;border-radius:50%;background:#3c8a3c;box-shadow:0 0 0 2px rgba(60,138,60,.18);flex-shrink:0}
+  @media(max-width:820px){.landstat{font-size:9px}}
 </style>
 </head>
 <body>
@@ -194,9 +201,12 @@
           -->
           <b>The Untold Story</b>
         </div>
-        <div class="tabs">
-          <a href="storia.html">Storia</a>
-          <a href="regole.html">Regole</a>
+        <div class="navright">
+          <div class="tabs">
+            <a href="storia.html">Storia</a>
+            <a href="regole.html">Regole</a>
+          </div>
+          <div class="landstat" id="landstat" aria-live="polite"><span class="ls-dot"></span><b id="ls-online">·</b>&nbsp;in linea&nbsp;·&nbsp;<b id="ls-reg">·</b>&nbsp;iscritti</div>
         </div>
       </nav>
 
@@ -486,5 +496,39 @@
 })();
 
 </script>
+  <!-- Supabase: presenza + contatore land -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+  (function(){
+    var SB_URL='https://tyhyxkslteigibktluml.supabase.co';
+    var SB_KEY='sb_publishable_jG9_Pb0L4PWuutcutyVc8w_UP6WY41g';
+    var sb=(window.supabase&&SB_KEY)?window.supabase.createClient(SB_URL,SB_KEY):null;
+    function setTxt(id,v){var e=document.getElementById(id); if(e) e.textContent=v;}
+    function loadStats(){
+      if(!sb) return;
+      sb.rpc('land_stats').then(function(r){
+        if(r&&!r.error&&r.data&&r.data[0]){ setTxt('ls-online', r.data[0].online); setTxt('ls-reg', r.data[0].registered); }
+      }, function(){});
+    }
+    function showEnter(){
+      var act=document.querySelector('.actions');
+      if(act && !act.getAttribute('data-land')){ act.setAttribute('data-land','1'); act.innerHTML='<a class="btn btn-red" href="land.html">Entra nella Land →</a>'; }
+      var lab=document.querySelector('.enter .label'); if(lab) lab.textContent='— Bentornato —';
+    }
+    function heartbeat(){
+      if(!sb||!sb.auth) return;
+      sb.auth.getSession().then(function(res){
+        var sess=res&&res.data&&res.data.session;
+        if(sess){ sb.rpc('touch_presence').then(function(){ loadStats(); }, function(){}); showEnter(); }
+      }, function(){});
+    }
+    if(sb){
+      heartbeat(); loadStats();
+      setInterval(loadStats, 45000);
+      setInterval(heartbeat, 60000);
+      document.addEventListener('visibilitychange',function(){ if(!document.hidden){ heartbeat(); loadStats(); } });
+    }
+  })();
+  </script>
 </body>
 </html>
