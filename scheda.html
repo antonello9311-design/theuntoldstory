@@ -68,7 +68,7 @@
   .cbar>span{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--red),var(--red-deep));width:10%}
 
   /* SHEET redesign */
-  .sheet-top{display:grid;grid-template-columns:300px 1fr;gap:28px;align-items:start}
+  .sheet-top{display:block}
   .portrait{width:100%;aspect-ratio:3/4;border:1px solid var(--edge);background:rgba(255,250,235,.4) center/cover no-repeat;border-radius:2px;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px}
   .portrait .ph{color:var(--ink-soft);font-style:italic;font-size:14px;line-height:1.5}
   .portrait .ph span{display:block;font-size:12px;opacity:.8;margin-top:6px}
@@ -195,6 +195,35 @@
     .capbar{height:7px;border:1px solid var(--edge);border-radius:4px;overflow:hidden;margin:8px 0 3px;background:rgba(0,0,0,.05)}
     .capbar span{display:block;height:100%;background:var(--red)}
     .capnum{font-size:12px;color:var(--ink-soft);margin-bottom:4px}
+    .ie-section{margin-top:26px;border-top:1px solid var(--edge);padding-top:20px}
+    .ie-layout{display:grid;grid-template-columns:264px 1fr;gap:24px;align-items:start;margin-top:8px}
+    @media(max-width:760px){.ie-layout{grid-template-columns:1fr}.ie-left{max-width:300px;margin:0 auto}}
+    .ie-left{position:sticky;top:12px}
+    .silhouette{width:100%;height:auto;max-height:450px;display:block}
+    .silhouette .body path,.silhouette .body circle,.silhouette .body rect{fill:#cdb88f;stroke:#9c7f4e;stroke-width:2;stroke-linejoin:round}
+    .anchor-dot circle{fill:#f1e6ca;stroke:#9c7f4e;stroke-width:2.5;cursor:pointer;transition:.15s}
+    .anchor-dot.occ circle{fill:var(--red);stroke:var(--red-deep)}
+    .anchor-dot:hover circle{stroke:var(--ink);stroke-width:3}
+    .adot-t{font-family:'Cinzel',serif;font-size:8.5px;fill:var(--ink-soft);pointer-events:none}
+    .eq-slots{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+    .slotcard{border:1px solid var(--edge);background:rgba(255,250,235,.5);border-radius:8px;padding:8px 10px}
+    .sloth{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .slotn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--red-deep)}
+    .sloth b{flex:1;min-width:60px}
+    .eq-summary{margin:6px 0 4px;padding:9px 13px;border:1px solid var(--edge);background:rgba(255,250,235,.5);font-size:14.5px}
+    .ie-rhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+    .ie-rtitle{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep)}
+    .inv-cats{display:flex;flex-direction:column;gap:14px}
+    .invcat .grp-sub{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
+    .invrow{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border:1px solid var(--edge);background:rgba(255,250,235,.45);border-radius:8px;margin-bottom:6px}
+    .ithumb{width:42px;height:42px;flex-shrink:0;border:1px solid var(--edge);border-radius:6px;background:rgba(255,250,235,.7);display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .ithumb img{width:100%;height:100%;object-fit:contain}
+    .ithumb.none::after{content:'—';color:var(--ink-soft)}
+    .invmain{flex:1;min-width:110px}
+    .itdesc{display:block;font-size:12.5px;color:var(--ink-soft);font-style:italic;margin-top:2px}
+    .invacts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:flex-end;max-width:250px}
+    .mini-btn.ghost{border-color:var(--edge);color:var(--ink-soft)}
+    .store-sel{max-width:130px}
 </style>
 </head>
 <body>
@@ -240,7 +269,6 @@
         <div id="st-sheet" class="state">
           <div id="mode-badge" class="mode-badge" style="display:none"></div>
           <div class="sheet-top">
-            <div class="portrait" id="s-portrait"><div class="ph">Ritratto del personaggio<span>(caricamento immagine — in arrivo)</span></div></div>
             <div class="dossier">
               <div class="dhead"><div class="dhead-name"><h1 id="s-name">—</h1><div id="s-epithet" class="epithet" style="display:none"></div></div><div class="dhead-act"><button class="btn btn-ghost btn-sm" id="s-share" title="Copia il link della scheda">Condividi</button><button class="btn btn-red btn-sm" id="s-save">Salva</button></div></div>
               <div class="dtabs"><button class="dtab on" data-d="dati">Dati</button><button class="dtab" data-d="stat">Statistiche</button></div>
@@ -273,6 +301,30 @@
             </div>
           </div>
 
+          <div class="ie-section" id="invequip">
+            <div class="inv-head"><h3>Inventario &amp; Equipaggiamento <span class="priv pub">👁 la sagoma è pubblica · usabile in chat</span></h3><div class="inv-ryo">Ryo: <b id="inv-ryo">0</b></div></div>
+            <p class="hint"><b>In chat usi solo ciò che è sulla sagoma.</b> Indossa contenitori ed equipaggiamento negli slot, tieni un'arma in mano, riponi gli oggetti nei contenitori (capienza in kg). Peso sulla sagoma: <b id="inv-weight">0</b> kg. L'inventario personale è privato (solo tu e lo staff).</p>
+            <div id="equip-summary" class="eq-summary"></div>
+            <div class="ie-layout">
+              <div class="ie-left">
+                <div class="eq-fig" id="equip-figure"></div>
+                <div class="eq-slots" id="equip-slots"></div>
+              </div>
+              <div class="ie-right">
+                <div class="ie-rhead"><span class="ie-rtitle">Inventario personale</span><button class="btn btn-red btn-sm" id="inv-shop-btn">Apri il negozio</button></div>
+                <div id="inv-cats" class="inv-cats"></div>
+                <div class="shop" id="shop" style="display:none">
+                  <h3 id="shop-title">Negozio</h3>
+                  <p class="hint" id="shop-hint">Compra dal catalogo spendendo i tuoi Ryo.</p>
+                  <div id="shop-list" class="shop-list"></div>
+                </div>
+                <div class="log-wrap">
+                  <button class="btn btn-sm" id="log-btn" style="margin-top:14px;background:transparent;color:var(--ink);border-color:var(--ink)">Mostra registro movimenti</button>
+                  <div id="log-box" class="log-box" style="display:none"></div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="scroll-sections">
             <div class="ssec"><h3>Background</h3>
               <p class="hint">La storia del personaggio: origini, legami, aspirazioni. Visibile agli altri giocatori.</p>
@@ -283,30 +335,6 @@
             <div class="ssec" id="sec-fato"><h3>Note del Fato <span class="priv">🔒 riservate · le scrive lo staff</span></h3>
               <p class="hint">Obiettivi, ganci di trama e destino del personaggio: le scrive lo staff. Le vedete solo tu e lo staff.</p>
               <textarea id="f-fato" class="fin" style="min-height:130px" placeholder="(ancora nessuna nota del Fato)" readonly></textarea></div>
-          </div>
-          <div class="eq-section" id="equip-section">
-            <div class="inv-head"><h3>Equipaggiamento <span class="priv pub">👁 sulla sagoma · usabile in chat</span></h3></div>
-            <p class="hint">Indossa i contenitori negli slot del corpo, poi mettici dentro gli oggetti; in mano puoi tenere un'arma. <b>In chat puoi usare solo ciò che è sulla sagoma.</b> Ogni contenitore ha una capienza in kg.</p>
-            <div id="equip-summary" class="eq-summary"></div>
-            <div class="eq-layout">
-              <div class="eq-fig" id="equip-figure"></div>
-              <div class="eq-cards" id="equip-cards"></div>
-            </div>
-          </div>
-          <div class="inv-wrap" id="inv-wrap" style="display:none">
-            <div class="inv-head"><h3>Inventario <span class="priv">🔒 magazzino privato · solo tu e lo staff</span></h3><div class="inv-ryo">Ryo disponibili: <b id="inv-ryo">0</b></div></div>
-            <p class="hint">Ciò che possiedi. In chat potrai usare solo ciò che equipaggerai sulla sagoma (in arrivo). Peso totale: <b id="inv-weight">0</b> kg.</p>
-            <div id="inv-list" class="inv-list"></div>
-            <button class="btn btn-red btn-sm" id="inv-shop-btn" style="margin-top:12px">Apri il negozio</button>
-            <div class="shop" id="shop" style="display:none">
-              <h3 id="shop-title">Negozio</h3>
-              <p class="hint" id="shop-hint">Compra dal catalogo spendendo i tuoi Ryo.</p>
-              <div id="shop-list" class="shop-list"></div>
-            </div>
-            <div class="log-wrap">
-              <button class="btn btn-sm" id="log-btn" style="margin-top:14px;background:transparent;color:var(--ink);border-color:var(--ink)">Mostra registro movimenti</button>
-              <div id="log-box" class="log-box" style="display:none"></div>
-            </div>
           </div>
           <div class="staff-panel" id="staff-panel" style="display:none">
             <h3>⚙ Pannello staff</h3>
@@ -464,224 +492,150 @@
       else{prompt('Copia il link della scheda:',url);}
     });
 
-    /* ---- Inventario, Negozio & Registro movimenti ---- */
-    var INV=[], SHOP=null, LOGSHOWN=false;
-    function escI(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-    function catLabel(c){return {arma:'arma',consumabile:'consumabile',contenitore:'contenitore',altro:'altro'}[c]||c;}
-    function isOwnerMode(){return viewMode==='owner'||viewMode==='adminself';}
-    async function refreshInventory(){
-      if(!sb||!myChar||viewMode==='public'){return;}
-      try{var r=await sb.from('character_inventory').select('id,quantity,item:items(id,name,category,weight,cost,capacity,slot)').eq('character_id',myChar.id);INV=(r&&r.data)?r.data:[];}catch(e){INV=[];}
-      renderInv();
-    }
-    function invAction(it){
-      if(isOwnerMode()) return '<span class="rowact"><input type="number" min="1" value="1" class="qin" id="s-'+it.id+'"><button class="mini-btn" data-sell="'+it.id+'">Vendi</button></span>';
-      if(viewMode==='staff') return '<span class="rowact"><input type="number" min="1" value="1" class="qin" id="s-'+it.id+'"><button class="mini-btn" data-remove="'+it.id+'">Rimuovi</button></span>';
-      return '';
-    }
-    function renderInv(){
-      var host=$('inv-list'); if(!host)return;
-      var ryo=$('inv-ryo'); if(ryo)ryo.textContent=(myChar&&myChar.money!=null?myChar.money:0);
-      if(!INV.length){host.innerHTML='<p class="hint" style="margin:0">Inventario vuoto. Apri il negozio per acquistare oggetti.</p>';var w0=$('inv-weight');if(w0)w0.textContent='0';if(typeof renderEquip==='function')renderEquip();return;}
-      var total=0;
-      host.innerHTML=INV.map(function(row){
-        var it=row.item||{}; var line=(it.weight||0)*row.quantity; total+=line;
-        var extra=it.category==='contenitore'?(' · capienza '+(it.capacity||0)+' kg'):'';
-        return '<div class="itrow"><div class="itmain"><b>'+escI(it.name)+'</b> <span class="itmeta">'+catLabel(it.category)+' · '+(it.weight||0)+' kg/u'+extra+'</span></div>'+
-          '<div class="itright"><span class="itqty">×'+row.quantity+' · '+line.toFixed(2)+' kg</span>'+invAction(it)+'</div></div>';
-      }).join('');
-      var w=$('inv-weight'); if(w)w.textContent=total.toFixed(2);if(typeof renderEquip==='function')renderEquip();
-    }
-    async function loadShop(){
-      if(SHOP)return;
-      try{var r=await sb.from('items').select('*').eq('is_active',true).eq('purchasable',true).order('category').order('name');SHOP=(r&&r.data)?r.data:[];}catch(e){SHOP=[];}
-      renderShop();
-    }
-    function renderShop(){
-      var host=$('shop-list'); if(!host||!SHOP)return;
-      var staffMode=(viewMode==='staff');
-      var label=staffMode?'Assegna':'Compra';
-      host.innerHTML=SHOP.map(function(it){
-        var extra=it.category==='contenitore'?(' · capienza '+(it.capacity||0)+' kg · '+(it.slot||'—')):'';
-        var price=staffMode?'':(' · '+it.cost+' Ryo');
-        return '<div class="shoprow"><div class="itmain"><b>'+escI(it.name)+'</b> <span class="itmeta">'+catLabel(it.category)+' · '+(it.weight||0)+' kg'+extra+price+'</span></div>'+
-          '<div class="shopbuy"><input type="number" min="1" value="1" class="qin" id="q-'+it.id+'"><button class="mini-btn" data-buy="'+it.id+'">'+label+'</button></div></div>';
-      }).join('');
-      var st=$('shop-title'), sh=$('shop-hint');
-      if(st)st.textContent=staffMode?'Assegna oggetti':'Negozio';
-      if(sh)sh.textContent=staffMode?'Assegna oggetti dal catalogo al personaggio (senza costo).':'Compra dal catalogo spendendo i tuoi Ryo.';
-    }
-    function renderLogRows(rows){
-      var box=$('log-box'); if(!box)return;
-      if(!rows.length){box.innerHTML='<p class="hint" style="margin:0">Nessun movimento registrato.</p>';return;}
-      box.innerHTML=rows.map(function(t){
-        var d=new Date(t.created_at); var ds; try{ds=d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){ds=t.created_at;}
-        var ryo=t.ryo_delta?(' · '+(t.ryo_delta>0?'+':'')+t.ryo_delta+' Ryo'):'';
-        var who=(t.actor&&t.actor.username)?(' · da '+escI(t.actor.username)):'';
-        var note=t.note?(' · '+escI(t.note)):'';
-        return '<div class="logrow"><span class="logkind k-'+t.kind+'">'+t.kind+'</span> <b>'+escI(t.item_name||'—')+'</b> ×'+t.quantity+ryo+'<span class="logmeta">'+ds+who+note+'</span></div>';
-      }).join('');
-    }
-    async function loadLog(){
-      if(!sb||!myChar||viewMode==='public')return;
-      var box=$('log-box'); if(!box)return;
-      try{
-        var r=await sb.from('transactions').select('created_at,kind,item_name,quantity,ryo_delta,note,actor:profiles(username)').eq('character_id',myChar.id).order('created_at',{ascending:false}).limit(50);
-        renderLogRows((r&&r.data)||[]);
-      }catch(e){box.innerHTML='<p class="hint" style="margin:0">Registro non disponibile.</p>';}
-    }
-    function bindInventory(){
-      var btn=$('inv-shop-btn'); if(btn) btn.addEventListener('click',function(){
-        var sh=$('shop'); if(!sh)return; var closed=(sh.style.display==='none'||!sh.style.display);
-        if(closed){sh.style.display='block';this.textContent='Chiudi il negozio';loadShop();}else{sh.style.display='none';this.textContent='Apri il negozio';}
-      });
-      var sl=$('shop-list'); if(sl) sl.addEventListener('click',async function(e){
-        var b=e.target.closest('[data-buy]'); if(!b)return;
-        var id=b.getAttribute('data-buy'); var qin=$('q-'+id); var qty=Math.max(1,parseInt(qin&&qin.value,10)||1);
-        b.disabled=true;
-        try{
-          if(viewMode==='staff'){
-            var r=await sb.rpc('staff_adjust_item',{p_character_id:myChar.id,p_item_id:id,p_delta:qty,p_note:'assegnazione'});
-            if(r.error){toast('Errore assegnazione',true);return;}
-            toast('Oggetto assegnato');
-          } else {
-            var res=await sb.rpc('buy_item',{p_character_id:myChar.id,p_item_id:id,p_qty:qty});
-            if(res.error){var m=res.error.message||'';toast(/insufficienti/i.test(m)?'Ryo insufficienti':'Acquisto non riuscito',true);return;}
-            if(res.data&&res.data.money!=null){myChar.money=res.data.money;var vm=$('v-money');if(vm)vm.textContent=myChar.money;}
-            toast('Acquistato');
-          }
-          refreshInventory(); if(LOGSHOWN)loadLog();
-        } finally { b.disabled=false; }
-      });
-      var il=$('inv-list'); if(il) il.addEventListener('click',async function(e){
-        var s=e.target.closest('[data-sell]'), rm=e.target.closest('[data-remove]'); if(!s&&!rm)return;
-        var btnEl=s||rm; var id=btnEl.getAttribute(s?'data-sell':'data-remove'); var qin=$('s-'+id); var qty=Math.max(1,parseInt(qin&&qin.value,10)||1);
-        btnEl.disabled=true;
-        try{
-          if(s){
-            var res=await sb.rpc('sell_item',{p_character_id:myChar.id,p_item_id:id,p_qty:qty});
-            if(res.error){var m=res.error.message||'';toast(/abbastanza/i.test(m)?'Non hai abbastanza oggetti':'Vendita non riuscita',true);return;}
-            if(res.data&&res.data.money!=null){myChar.money=res.data.money;var vm=$('v-money');if(vm)vm.textContent=myChar.money;}
-            toast('Venduto'+(res.data&&res.data.refund!=null?' (+'+res.data.refund+' Ryo)':''));
-          } else {
-            var res2=await sb.rpc('staff_adjust_item',{p_character_id:myChar.id,p_item_id:id,p_delta:-qty,p_note:'rimozione staff'});
-            if(res2.error){toast('Rimozione non riuscita',true);return;}
-            toast('Rimosso');
-          }
-          refreshInventory(); if(LOGSHOWN)loadLog();
-        } finally { btnEl.disabled=false; }
-      });
-      var lb=$('log-btn'); if(lb) lb.addEventListener('click',function(){
-        var box=$('log-box'); if(!box)return; var closed=(box.style.display==='none'||!box.style.display);
-        if(closed){box.style.display='block';this.textContent='Nascondi registro';LOGSHOWN=true;loadLog();}else{box.style.display='none';this.textContent='Mostra registro movimenti';LOGSHOWN=false;}
-      });
-    }
-    window.__demoLog=function(rows){var box=$('log-box');if(box)box.style.display='block';LOGSHOWN=true;renderLogRows(rows||[]);};
-
-    /* ---- Equipaggiamento: sagoma + slot a due livelli ---- */
-    var EQUIP=[];
+    /* ---- Inventario & Equipaggiamento (sagoma + selezione) ---- */
+    var INV=[], EQUIP=[], SHOP=null, LOGSHOWN=false;
+    var CATS=[['arma_consumabile','Armi consumabili'],['arma_impugnare','Armi da impugnare'],['oggetto_generico','Oggetti generici'],['equipaggiamento','Equipaggiamento']];
     var ANCHORS=[
-      {key:'mano_dx',label:'Mano destra',short:'mano dx',type:'hand',x:67,y:232,lx:53,ly:234,al:'end'},
-      {key:'mano_sx',label:'Mano sinistra',short:'mano sx',type:'hand',x:153,y:232,lx:167,ly:234,al:'start'},
-      {key:'torso',label:'Torso',short:'torso',type:'container',slot:'torso',hint:'giubbotto',x:110,y:134,lx:124,ly:136,al:'start'},
-      {key:'schiena',label:'Schiena',short:'schiena',type:'container',slot:'schiena',hint:'zaino',x:110,y:100,lx:124,ly:102,al:'start'},
-      {key:'cintura',label:'Cintura',short:'cintura',type:'container',slot:'cintura',hint:'marsupio',x:110,y:198,lx:124,ly:200,al:'start'},
-      {key:'coscia_dx',label:'Coscia destra',short:'coscia dx',type:'container',slot:'coscia',hint:'porta-kunai',x:99,y:252,lx:85,ly:270,al:'end'},
-      {key:'coscia_sx',label:'Coscia sinistra',short:'coscia sx',type:'container',slot:'coscia',hint:'porta-kunai',x:121,y:252,lx:135,ly:270,al:'start'}
+      {key:'fronte',label:'Fronte',type:'worn',worn:'fronte',x:110,y:40,lx:124,ly:42,al:'start'},
+      {key:'corpo',label:'Corpo',type:'worn',worn:'corpo',x:74,y:112,lx:60,ly:112,al:'end'},
+      {key:'schiena',label:'Schiena',type:'container',slot:'schiena',x:146,y:112,lx:160,ly:112,al:'start'},
+      {key:'torso',label:'Torso',type:'container',slot:'torso',x:110,y:146,lx:124,ly:148,al:'start'},
+      {key:'guanti',label:'Guanti',type:'worn',worn:'guanti',x:164,y:196,lx:176,ly:198,al:'start'},
+      {key:'cintura',label:'Cintura',type:'container',slot:'cintura',x:110,y:200,lx:96,ly:186,al:'end'},
+      {key:'mano_dx',label:'Mano destra',type:'hand',x:57,y:236,lx:44,ly:238,al:'end'},
+      {key:'mano_sx',label:'Mano sinistra',type:'hand',x:163,y:236,lx:176,ly:238,al:'start'},
+      {key:'coscia_dx',label:'Coscia destra',type:'container',slot:'coscia',x:99,y:270,lx:86,ly:288,al:'end'},
+      {key:'coscia_sx',label:'Coscia sinistra',type:'container',slot:'coscia',x:121,y:270,lx:134,ly:288,al:'start'},
+      {key:'piedi',label:'Piedi',type:'worn',worn:'piedi',x:110,y:404,lx:124,ly:404,al:'start'}
     ];
     var BODY={
-      male:'<circle cx="110" cy="46" r="26"/>'+
-        '<path d="M80 84 Q110 74 140 84 L132 182 Q110 190 88 182 Z"/>'+
-        '<path d="M88 180 L132 180 L126 224 Q110 232 94 224 Z"/>'+
-        '<rect x="59" y="90" width="18" height="134" rx="9"/>'+
-        '<rect x="143" y="90" width="18" height="134" rx="9"/>'+
-        '<rect x="89" y="222" width="19" height="176" rx="9"/>'+
-        '<rect x="112" y="222" width="19" height="176" rx="9"/>',
-      female:'<circle cx="110" cy="46" r="24"/>'+
-        '<path d="M86 84 Q110 76 134 84 L120 140 Q110 136 100 140 Z"/>'+
-        '<path d="M100 138 L120 138 L136 200 Q110 210 84 200 Z"/>'+
-        '<rect x="64" y="90" width="15" height="128" rx="7"/>'+
-        '<rect x="141" y="90" width="15" height="128" rx="7"/>'+
-        '<rect x="90" y="198" width="18" height="200" rx="9"/>'+
-        '<rect x="112" y="198" width="18" height="200" rx="9"/>'
+      male:'<circle cx="110" cy="46" r="26"/><path d="M80 84 Q110 74 140 84 L132 182 Q110 190 88 182 Z"/><path d="M88 180 L132 180 L126 224 Q110 232 94 224 Z"/><rect x="59" y="90" width="18" height="134" rx="9"/><rect x="143" y="90" width="18" height="134" rx="9"/><rect x="89" y="222" width="19" height="186" rx="9"/><rect x="112" y="222" width="19" height="186" rx="9"/>',
+      female:'<circle cx="110" cy="46" r="24"/><path d="M86 84 Q110 76 134 84 L120 140 Q110 136 100 140 Z"/><path d="M100 138 L120 138 L136 200 Q110 210 84 200 Z"/><rect x="64" y="90" width="15" height="128" rx="7"/><rect x="141" y="90" width="15" height="128" rx="7"/><rect x="90" y="200" width="18" height="208" rx="9"/><rect x="112" y="200" width="18" height="208" rx="9"/>'
     };
+    function escI(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+    function isOwnerMode(){return viewMode==='owner'||viewMode==='adminself';}
+    function canEdit(){return viewMode==='owner'||viewMode==='adminself'||viewMode==='staff';}
+    function ownedQty(id){var r=INV.filter(function(x){return x.item&&x.item.id===id;})[0];return r?r.quantity:0;}
+    function equippedQtyOf(id){var s=0;EQUIP.forEach(function(e){if(e.item&&e.item.id===id)s+=e.quantity;});return s;}
+    function availQty(id){return ownedQty(id)-equippedQtyOf(id);}
     function containerRow(anchor){return EQUIP.filter(function(e){return e.anchor===anchor;})[0];}
-    function childrenOf(equipId){return EQUIP.filter(function(e){return e.parent_id===equipId;});}
-    function containerUsed(equipId){var s=0;childrenOf(equipId).forEach(function(c){s+=(c.item?c.item.weight:0)*c.quantity;});return s;}
-    function equippedQtyOf(itemId){var s=0;EQUIP.forEach(function(e){if(e.item&&e.item.id===itemId)s+=e.quantity;});return s;}
+    function childrenOf(eid){return EQUIP.filter(function(e){return e.parent_id===eid;});}
+    function containerUsed(eid){var s=0;childrenOf(eid).forEach(function(c){s+=(c.item?c.item.weight:0)*c.quantity;});return s;}
+    function equippedWeight(){var s=0;EQUIP.forEach(function(e){s+=(e.item?e.item.weight:0)*e.quantity;});return s;}
+    function anchorMeta(k){return ANCHORS.filter(function(a){return a.key===k;})[0];}
+    function equippedContainers(){return EQUIP.filter(function(e){return e.anchor&&e.item&&e.item.slot;});}
+    function freeAnchorFor(it){
+      if(it.slot){var c=ANCHORS.filter(function(a){return a.type==='container'&&a.slot===it.slot&&!containerRow(a.key);});return c.length?c[0].key:null;}
+      if(it.worn_slot){var w=ANCHORS.filter(function(a){return a.type==='worn'&&a.worn===it.worn_slot&&!containerRow(a.key);});return w.length?w[0].key:null;}
+      var h=ANCHORS.filter(function(a){return a.type==='hand'&&!containerRow(a.key);});return h.length?h[0].key:null;
+    }
     function silhouetteSVG(sex){
       var body=(sex==='Femmina')?BODY.female:BODY.male;
-      var dots=ANCHORS.map(function(a){
-        var occ=!!containerRow(a.key);
-        return '<g class="anchor-dot'+(occ?' occ':'')+'" data-anchor="'+a.key+'"><circle cx="'+a.x+'" cy="'+a.y+'" r="10"/><text class="adot-t" x="'+a.lx+'" y="'+a.ly+'" text-anchor="'+a.al+'">'+a.short+'</text></g>';
-      }).join('');
-      return '<svg viewBox="0 0 220 410" class="silhouette"><g class="body">'+body+'</g>'+dots+'</svg>';
+      var dots=ANCHORS.map(function(a){var occ=!!containerRow(a.key);
+        return '<g class="anchor-dot'+(occ?' occ':'')+'" data-anchor="'+a.key+'"><circle cx="'+a.x+'" cy="'+a.y+'" r="9"/><text class="adot-t" x="'+a.lx+'" y="'+a.ly+'" text-anchor="'+a.al+'">'+a.label.toLowerCase().replace('mano ','mano ').replace('coscia ','coscia ')+'</text></g>';}).join('');
+      return '<svg viewBox="0 0 220 430" class="silhouette"><g class="body">'+body+'</g>'+dots+'</svg>';
     }
-    function optOwned(fn){
-      if(!INV||!INV.length)return '';
-      return INV.filter(function(row){var it=row.item;if(!it)return false;var un=row.quantity-equippedQtyOf(it.id);return un>0&&fn(it,un);})
-        .map(function(row){var it=row.item;var un=row.quantity-equippedQtyOf(it.id);return '<option value="'+it.id+'">'+escI(it.name)+' (disp. '+un+')</option>';}).join('');
+    function refreshInventory(){
+      if(!sb||!myChar||viewMode==='public')return Promise.resolve();
+      return sb.from('character_inventory').select('id,quantity,item:items(id,name,category,weight,cost,capacity,slot,worn_slot,description,image_url)').eq('character_id',myChar.id)
+        .then(function(r){INV=(r&&r.data)||[];renderIE();},function(){INV=[];renderIE();});
     }
     function refreshEquip(){
       if(!sb||!myChar)return Promise.resolve();
-      return sb.from('character_equipment').select('id,anchor,parent_id,quantity,item:items(id,name,category,weight,capacity,slot)').eq('character_id',myChar.id)
-        .then(function(r){EQUIP=(r&&r.data)||[];renderEquip();}, function(){EQUIP=[];renderEquip();});
+      return sb.from('character_equipment').select('id,anchor,parent_id,quantity,item:items(id,name,category,weight,capacity,slot,worn_slot,image_url)').eq('character_id',myChar.id)
+        .then(function(r){EQUIP=(r&&r.data)||[];renderIE();},function(){EQUIP=[];renderIE();});
     }
-    function renderEquip(){
-      var host=$('equip-cards'); if(!host)return;
-      var edit=(viewMode==='owner'||viewMode==='adminself'||viewMode==='staff');
-      var fig=$('equip-figure'); if(fig)fig.innerHTML=silhouetteSVG(myChar&&myChar.sex);
-      host.innerHTML=ANCHORS.map(function(a){
+    function thumb(url){return url?('<span class="ithumb"><img src="'+url+'" alt=""></span>'):'<span class="ithumb none"></span>';}
+    function renderIE(){
+      if(!$('equip-figure'))return;
+      var edit=canEdit();
+      $('equip-figure').innerHTML=silhouetteSVG(myChar&&myChar.sex);
+      var ryo=$('inv-ryo'); if(ryo)ryo.textContent=(myChar&&myChar.money!=null?myChar.money:0);
+      var w=$('inv-weight'); if(w)w.textContent=equippedWeight().toFixed(2);
+      // usable-in-chat summary
+      var sum=$('equip-summary'); if(sum){var u=[];EQUIP.forEach(function(e){if(e.parent_id||(e.anchor&&e.anchor.indexOf('mano')===0)||(e.anchor&&anchorMeta(e.anchor)&&anchorMeta(e.anchor).type==='worn')){u.push(escI(e.item.name)+(e.quantity>1?' ×'+e.quantity:''));}});sum.innerHTML=u.length?('<b>Usabile in chat:</b> '+u.join(', ')):'<b>Usabile in chat:</b> <span class="eq-empty">niente equipaggiato</span>';}
+      renderSlots(edit);
+      var ir=document.querySelector('.ie-right'); if(ir) ir.style.display=(viewMode==='public')?'none':'';
+      if(viewMode!=='public') renderInvCats(edit);
+    }
+    function renderSlots(edit){
+      var host=$('equip-slots'); if(!host)return;
+      var occ=ANCHORS.filter(function(a){return !!containerRow(a.key);});
+      if(!occ.length){host.innerHTML='<p class="eq-empty" style="margin:4px 0 0">Niente equipaggiato. Scegli dagli oggetti a destra.</p>';return;}
+      host.innerHTML=occ.map(function(a){
         var eq=containerRow(a.key);
-        var head='<div class="eq-h"><b>'+a.label+'</b> <span class="eq-hint">'+(a.type==='hand'?'arma/oggetto':a.hint)+'</span></div>';
-        var body='';
-        if(a.type==='hand'){
-          if(eq){ body='<div class="eq-eqd"><span>'+escI(eq.item.name)+'</span>'+(edit?'<button class="mini-btn" data-unequip="'+eq.id+'">Lascia</button>':'')+'</div>'; }
-          else {
-            var oh=edit?optOwned(function(it){return it.category!=='contenitore';}):'';
-            body=edit?(oh?('<div class="eq-add"><select class="eq-sel" id="wield-'+a.key+'">'+oh+'</select><button class="mini-btn" data-wield="'+a.key+'">Impugna</button></div>'):'<div class="eq-empty">niente da impugnare</div>'):'<div class="eq-empty">vuoto</div>';
-          }
-        } else {
-          if(eq){
-            var used=containerUsed(eq.id), cap=(eq.item.capacity||0), pct=cap?Math.min(100,Math.round(used/cap*100)):0;
-            var kids=childrenOf(eq.id);
-            var kh=kids.length?kids.map(function(c){return '<div class="eq-kid"><span>'+escI(c.item.name)+' ×'+c.quantity+' · '+(c.item.weight*c.quantity).toFixed(2)+' kg</span>'+(edit?'<button class="mini-btn" data-takeout="'+c.id+'">Togli</button>':'')+'</div>';}).join(''):'<div class="eq-empty">contenitore vuoto</div>';
-            var oo=edit?optOwned(function(it){return it.category!=='contenitore'&&it.weight<=(cap-used)+0.0001;}):'';
-            var addh=edit?(oo?('<div class="eq-add"><select class="eq-sel" id="put-'+eq.id+'">'+oo+'</select><input type="number" min="1" value="1" class="qin" id="putq-'+eq.id+'"><button class="mini-btn" data-put="'+eq.id+'">Metti</button></div>'):'<div class="eq-empty" style="margin-top:6px">nulla che entri nello spazio libero</div>'):'';
-            body='<div class="eq-conth"><b>'+escI(eq.item.name)+'</b>'+(edit?'<button class="mini-btn" data-unequip="'+eq.id+'">Rimuovi</button>':'')+'</div>'+
-              '<div class="capbar"><span style="width:'+pct+'%"></span></div><div class="capnum">'+used.toFixed(2)+' / '+cap+' kg</div>'+kh+addh;
-          } else {
-            var oc=edit?optOwned(function(it){return it.category==='contenitore'&&it.slot===a.slot;}):'';
-            body=edit?(oc?('<div class="eq-add"><select class="eq-sel" id="wear-'+a.key+'">'+oc+'</select><button class="mini-btn" data-wear="'+a.key+'">Indossa</button></div>'):'<div class="eq-empty">nessun '+a.hint+' disponibile</div>'):'<div class="eq-empty">vuoto</div>';
-          }
+        if(a.type==='container'){
+          var used=containerUsed(eq.id),cap=(eq.item.capacity||0),pct=cap?Math.min(100,Math.round(used/cap*100)):0;
+          var kids=childrenOf(eq.id);
+          var kh=kids.length?kids.map(function(c){return '<div class="eq-kid"><span>'+escI(c.item.name)+' ×'+c.quantity+'</span>'+(edit?'<button class="mini-btn" data-takeout="'+c.id+'">Togli</button>':'')+'</div>';}).join(''):'<div class="eq-empty">vuoto</div>';
+          return '<div class="slotcard"><div class="sloth"><span class="slotn">'+a.label+'</span><b>'+escI(eq.item.name)+'</b>'+(edit?'<button class="mini-btn" data-unequip="'+eq.id+'">Rimuovi</button>':'')+'</div><div class="capbar"><span style="width:'+pct+'%"></span></div><div class="capnum">'+used.toFixed(2)+' / '+cap+' kg</div>'+kh+'</div>';
         }
-        return '<div class="eq-card" id="card-'+a.key+'">'+head+body+'</div>';
+        return '<div class="slotcard"><div class="sloth"><span class="slotn">'+a.label+'</span><b>'+escI(eq.item.name)+'</b>'+(edit?'<button class="mini-btn" data-unequip="'+eq.id+'">Togli</button>':'')+'</div></div>';
       }).join('');
-      var sum=$('equip-summary'); if(sum){
-        var u=[];EQUIP.forEach(function(e){if(e.parent_id||(e.anchor&&e.anchor.indexOf('mano')===0)){u.push(escI(e.item.name)+(e.quantity>1?' ×'+e.quantity:''));}});
-        sum.innerHTML=u.length?('<b>Usabile in chat:</b> '+u.join(', ')):'<b>Usabile in chat:</b> <span class="eq-empty">niente equipaggiato</span>';
-      }
     }
-    function eqErr(m){m=m||'';if(/Spazio/i.test(m))return 'Spazio insufficiente nel contenitore';if(/occupato/i.test(m))return 'Slot già occupato';if(/equipaggiate/i.test(m))return 'Scorte disponibili insufficienti';if(/slot|contenitore|mano/i.test(m))return 'Oggetto non compatibile con lo slot';return 'Operazione non riuscita';}
-    function eqDone(r,msg){ if(r&&r.error){toast(eqErr(r.error.message),true);return;} toast(msg); refreshEquip(); refreshInventory(); }
-    function bindEquip(){
-      var root=$('equip-section'); if(!root)return;
+    function renderInvCats(edit){
+      var host=$('inv-cats'); if(!host)return;
+      if(!INV.length){host.innerHTML='<p class="hint" style="margin:0">Inventario vuoto. Apri il negozio per acquistare oggetti.</p>';return;}
+      var conts=equippedContainers();
+      host.innerHTML=CATS.map(function(cat){
+        var list=INV.filter(function(r){return r.item&&r.item.category===cat[0];});
+        if(!list.length)return '';
+        var rows=list.map(function(r){
+          var it=r.item, av=availQty(it.id);
+          var meta=(it.slot?('contenitore '+(it.capacity||0)+' kg'):(it.worn_slot?('indossato: '+it.worn_slot):(it.weight+' kg')));
+          var acts='';
+          if(edit){
+            if(av>0){
+              if(it.slot||it.worn_slot){acts+='<button class="mini-btn" data-equip="'+it.id+'">Indossa</button>';}
+              else{acts+='<button class="mini-btn" data-wield="'+it.id+'">Impugna</button>';
+                if(conts.length){acts+='<select class="eq-sel store-sel" id="st-'+it.id+'">'+conts.map(function(c){return '<option value="'+c.id+'">in '+escI(c.item.name)+'</option>';}).join('')+'</select><input type="number" min="1" value="1" class="qin" id="stq-'+it.id+'"><button class="mini-btn" data-store="'+it.id+'">Riponi</button>';}
+              }
+            }
+            acts+=(isOwnerMode()?'<button class="mini-btn ghost" data-sell="'+it.id+'">Vendi</button>':'<button class="mini-btn ghost" data-rem="'+it.id+'">Rimuovi</button>');
+          }
+          return '<div class="invrow">'+thumb(it.image_url)+'<div class="invmain"><b>'+escI(it.name)+'</b> <span class="itmeta">×'+r.quantity+(av<r.quantity?(' (disp. '+av+')'):'')+' · '+meta+'</span>'+(it.description?('<span class="itdesc">'+escI(it.description)+'</span>'):'')+'</div><div class="invacts">'+acts+'</div></div>';
+        }).join('');
+        return '<div class="invcat"><div class="grp-sub">'+cat[1]+'</div>'+rows+'</div>';
+      }).join('');
+    }
+    function loadShop(){ if(SHOP)return Promise.resolve(); return sb.from('items').select('*').eq('is_active',true).eq('purchasable',true).order('category').order('name').then(function(r){SHOP=(r&&r.data)||[];renderShop();},function(){SHOP=[];renderShop();}); }
+    function renderShop(){
+      var host=$('shop-list'); if(!host||!SHOP)return; var staffMode=(viewMode==='staff');
+      host.innerHTML=SHOP.map(function(it){var extra=it.slot?(' · contenitore '+(it.capacity||0)+' kg'):(it.worn_slot?' · indossato':'');var price=staffMode?'':(' · '+it.cost+' Ryo');
+        return '<div class="shoprow">'+thumb(it.image_url)+'<div class="invmain"><b>'+escI(it.name)+'</b> <span class="itmeta">'+(it.weight||0)+' kg'+extra+price+'</span></div><div class="shopbuy"><input type="number" min="1" value="1" class="qin" id="q-'+it.id+'"><button class="mini-btn" data-buy="'+it.id+'">'+(staffMode?'Assegna':'Compra')+'</button></div></div>';}).join('');
+      if($('shop-title'))$('shop-title').textContent=staffMode?'Assegna oggetti':'Negozio';
+      if($('shop-hint'))$('shop-hint').textContent=staffMode?'Assegna oggetti dal catalogo al personaggio (senza costo).':'Compra dal catalogo spendendo i tuoi Ryo.';
+    }
+    function renderLogRows(rows){var box=$('log-box'); if(!box)return; if(!rows.length){box.innerHTML='<p class="hint" style="margin:0">Nessun movimento registrato.</p>';return;}
+      box.innerHTML=rows.map(function(t){var d=new Date(t.created_at),ds;try{ds=d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){ds=t.created_at;}var ryo=t.ryo_delta?(' · '+(t.ryo_delta>0?'+':'')+t.ryo_delta+' Ryo'):'';var who=(t.actor&&t.actor.username)?(' · da '+escI(t.actor.username)):'';var note=t.note?(' · '+escI(t.note)):'';return '<div class="logrow"><span class="logkind k-'+t.kind+'">'+t.kind+'</span> <b>'+escI(t.item_name||'—')+'</b> ×'+t.quantity+ryo+'<span class="logmeta">'+ds+who+note+'</span></div>';}).join('');
+    }
+    function loadLog(){ if(!sb||!myChar||viewMode==='public')return; return sb.from('transactions').select('created_at,kind,item_name,quantity,ryo_delta,note,actor:profiles(username)').eq('character_id',myChar.id).order('created_at',{ascending:false}).limit(50).then(function(r){renderLogRows((r&&r.data)||[]);},function(){}); }
+    function ieErr(m){m=m||'';if(/Spazio/i.test(m))return 'Spazio insufficiente nel contenitore';if(/occupato/i.test(m))return 'Slot già occupato';if(/equipaggiate|possiedi/i.test(m))return 'Scorte disponibili insufficienti';if(/slot|contenitore|indossa|mano/i.test(m))return 'Oggetto non compatibile con lo slot';if(/insufficienti/i.test(m))return 'Ryo insufficienti';if(/abbastanza/i.test(m))return 'Non hai abbastanza oggetti';if(/equipaggiate/i.test(m))return 'Disequipaggia prima';return 'Operazione non riuscita';}
+    function ieDone(r,msg){ if(r&&r.error){toast(ieErr(r.error.message),true);return false;} if(msg)toast(msg); refreshEquip(); refreshInventory(); if(LOGSHOWN)loadLog(); return true; }
+    function bindIE(){
+      var root=$('invequip'); if(!root)return;
+      var shopBtn=$('inv-shop-btn'); if(shopBtn)shopBtn.addEventListener('click',function(){var s=$('shop');if(!s)return;var closed=(s.style.display==='none'||!s.style.display);if(closed){s.style.display='block';this.textContent='Chiudi il negozio';loadShop();}else{s.style.display='none';this.textContent='Apri il negozio';}});
+      var logBtn=$('log-btn'); if(logBtn)logBtn.addEventListener('click',function(){var b=$('log-box');if(!b)return;var closed=(b.style.display==='none'||!b.style.display);if(closed){b.style.display='block';this.textContent='Nascondi registro';LOGSHOWN=true;loadLog();}else{b.style.display='none';this.textContent='Mostra registro movimenti';LOGSHOWN=false;}});
       root.addEventListener('click',async function(e){
-        var dot=e.target.closest('.anchor-dot');
-        if(dot){var k=dot.getAttribute('data-anchor');var card=$('card-'+k);if(card){card.classList.add('flash');setTimeout(function(){card.classList.remove('flash');},1100);card.scrollIntoView({behavior:'smooth',block:'center'});}return;}
-        var b=e.target.closest('button'); if(!b)return;
+        var dot=e.target.closest('.anchor-dot'); if(dot){var sc=$('equip-slots');if(sc){sc.scrollIntoView({behavior:'smooth',block:'nearest'});}return;}
+        var b=e.target.closest('button'); if(!b)return; var id;
         b.disabled=true;
         try{
-          var r;
-          if(b.hasAttribute('data-wear')){var k=b.getAttribute('data-wear');var s=$('wear-'+k);if(!s||!s.value)return;r=await sb.rpc('equip_to_anchor',{p_character:myChar.id,p_item:s.value,p_anchor:k});eqDone(r,'Indossato');}
-          else if(b.hasAttribute('data-wield')){var k=b.getAttribute('data-wield');var s=$('wield-'+k);if(!s||!s.value)return;r=await sb.rpc('equip_to_anchor',{p_character:myChar.id,p_item:s.value,p_anchor:k});eqDone(r,'Impugnato');}
-          else if(b.hasAttribute('data-put')){var ce=b.getAttribute('data-put');var s=$('put-'+ce);var qn=$('putq-'+ce);if(!s||!s.value)return;var q=Math.max(1,parseInt(qn&&qn.value,10)||1);r=await sb.rpc('place_in_container',{p_character:myChar.id,p_item:s.value,p_container:ce,p_qty:q});eqDone(r,'Riposto');}
-          else if(b.hasAttribute('data-takeout')){r=await sb.rpc('unequip_row',{p_equip:b.getAttribute('data-takeout'),p_qty:null});eqDone(r,'Tolto');}
-          else if(b.hasAttribute('data-unequip')){r=await sb.rpc('unequip_row',{p_equip:b.getAttribute('data-unequip'),p_qty:null});eqDone(r,'Rimosso');}
+          if(b.hasAttribute('data-equip')){id=b.getAttribute('data-equip');var it=(INV.filter(function(x){return x.item&&x.item.id===id;})[0]||{}).item;var anc=it?freeAnchorFor(it):null;if(!anc){toast('Nessuno slot libero adatto',true);return;}ieDone(await sb.rpc('equip_to_anchor',{p_character:myChar.id,p_item:id,p_anchor:anc}),'Indossato');}
+          else if(b.hasAttribute('data-wield')){id=b.getAttribute('data-wield');var it2=(INV.filter(function(x){return x.item&&x.item.id===id;})[0]||{}).item;var anc2=freeAnchorFor(it2);if(!anc2){toast('Mani occupate',true);return;}ieDone(await sb.rpc('equip_to_anchor',{p_character:myChar.id,p_item:id,p_anchor:anc2}),'Impugnato');}
+          else if(b.hasAttribute('data-store')){id=b.getAttribute('data-store');var sel=$('st-'+id),qn=$('stq-'+id);if(!sel||!sel.value)return;var q=Math.max(1,parseInt(qn&&qn.value,10)||1);ieDone(await sb.rpc('place_in_container',{p_character:myChar.id,p_item:id,p_container:sel.value,p_qty:q}),'Riposto');}
+          else if(b.hasAttribute('data-takeout')){ieDone(await sb.rpc('unequip_row',{p_equip:b.getAttribute('data-takeout'),p_qty:null}),'Tolto');}
+          else if(b.hasAttribute('data-unequip')){ieDone(await sb.rpc('unequip_row',{p_equip:b.getAttribute('data-unequip'),p_qty:null}),'Rimosso');}
+          else if(b.hasAttribute('data-sell')){id=b.getAttribute('data-sell');var rs=await sb.rpc('sell_item',{p_character_id:myChar.id,p_item_id:id,p_qty:1});if(rs.error){toast(ieErr(rs.error.message),true);}else{if(rs.data&&rs.data.money!=null){myChar.money=rs.data.money;if($('v-money'))$('v-money').textContent=myChar.money;}toast('Venduto (+'+((rs.data&&rs.data.refund)||0)+' Ryo)');refreshInventory();refreshEquip();if(LOGSHOWN)loadLog();}}
+          else if(b.hasAttribute('data-rem')){id=b.getAttribute('data-rem');ieDone(await sb.rpc('staff_adjust_item',{p_character_id:myChar.id,p_item_id:id,p_delta:-1,p_note:'rimozione staff'}),'Rimosso');}
+          else if(b.hasAttribute('data-buy')){id=b.getAttribute('data-buy');var qb=$('q-'+id);var qq=Math.max(1,parseInt(qb&&qb.value,10)||1);if(viewMode==='staff'){ieDone(await sb.rpc('staff_adjust_item',{p_character_id:myChar.id,p_item_id:id,p_delta:qq,p_note:'assegnazione'}),'Assegnato');}else{var rb=await sb.rpc('buy_item',{p_character_id:myChar.id,p_item_id:id,p_qty:qq});if(rb.error){toast(ieErr(rb.error.message),true);}else{if(rb.data&&rb.data.money!=null){myChar.money=rb.data.money;if($('v-money'))$('v-money').textContent=myChar.money;}toast('Acquistato');refreshInventory();refreshEquip();if(LOGSHOWN)loadLog();}}}
         } finally { b.disabled=false; }
       });
     }
-    window.__demoEquip=function(equip,inv,sex){EQUIP=equip||[];if(inv)INV=inv;if(sex&&myChar)myChar.sex=sex;renderEquip();};
+    window.__demoIE=function(inv,equip,sex){INV=inv||[];EQUIP=equip||[];if(sex&&myChar)myChar.sex=sex;renderIE();};
+    window.__demoShop=function(shop){SHOP=shop||[];var s=$('shop');if(s)s.style.display='block';renderShop();};
+    window.__demoLog=function(rows){var b=$('log-box');if(b)b.style.display='block';LOGSHOWN=true;renderLogRows(rows||[]);};
+
     async function init(){
       if(!sb){$('err-msg').textContent='Impossibile contattare il servizio in questo momento. Ricarica la pagina.';show('st-error');return;}
       try{
@@ -709,13 +663,10 @@
         curPriv=p.data||null; fillForm(myChar,curPriv); show('st-sheet'); refreshInventory(); refreshEquip();
       }catch(e){$('err-msg').textContent='Errore di connessione.';show('st-error');}
     }
-    bindInventory();
-    bindEquip();
+    bindIE();
     init();
     window.__demo=function(c,priv,emb,mode){if(emb)EMB=emb;myChar=c;curPriv=priv||null;viewMode=mode||'owner';isStaff=(mode==='staff'||mode==='adminself');isAdmin=(mode==='adminself');fillForm(c,priv||null);show('st-sheet');};
     window.__demoCreate=function(nm){if(nm){var e=$('c-name-show');if(e)e.textContent=nm;}show('st-create');};
-    window.__demoInv=function(inv){INV=inv||[];var iw=$('inv-wrap');if(iw)iw.style.display='';renderInv();};
-    window.__demoShop=function(shop){SHOP=shop||[];var s=$('shop');if(s)s.style.display='block';renderShop();};
   })();
   </script>
   <script>

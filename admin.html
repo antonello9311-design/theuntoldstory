@@ -70,6 +70,18 @@
   .aumeta{color:var(--ink-soft);font-size:12.5px;display:block;margin-top:2px}
   .aukind{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:4px;color:#f6ead0}
   .k-acquisto{background:#3c6b3c}.k-vendita{background:#a6321d}.k-assegnazione{background:#7c6f4d}.k-rimozione{background:#7c2413}.k-correzione{background:#6a5231}
+  .itrow{gap:10px;flex-wrap:wrap}
+  .itthumb{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0}
+  .itthumb img{width:42px;height:42px;object-fit:contain;border:1px solid var(--edge);background:rgba(255,250,235,.7);border-radius:6px}
+  .itthumb .none{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--edge);border-radius:6px;color:var(--ink-soft)}
+  .uptiny{font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--red-deep);cursor:pointer;border:1px solid var(--edge);padding:2px 6px;border-radius:4px}
+  .uptiny:hover{background:var(--red);color:#f6ead0}
+  .uptiny input{display:none}
+  .itmain{flex:1;min-width:150px}
+  .itdesc{display:block;font-size:12.5px;color:var(--ink-soft);font-style:italic;margin-top:2px}
+  .itedit{display:flex;gap:8px;flex-shrink:0}
+  .itedit label{display:flex;flex-direction:column;font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);gap:2px}
+  .itedit input{width:68px;font-family:inherit;font-size:14px;padding:4px 6px;border:1px solid var(--edge);border-radius:5px;background:#fbf4e1;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -94,15 +106,16 @@
           <div class="grp-title">Clan</div>
           <div class="emgrid" id="grid-clan"></div>
           <div class="grp-title" style="margin-top:46px">Catalogo oggetti</div>
-          <p class="mgr-note">Gli oggetti che crei qui appaiono nel <b>negozio</b> e negli inventari dei personaggi. Peso in kg, costo in Ryo. I <b>contenitori</b> (giubbotti, zaini, porta-kunai…) hanno una <b>capienza</b> in kg e uno <b>slot</b> del corpo dove si indossano.</p>
+          <p class="mgr-note">Crea e modifica gli oggetti. Peso e costo si cambiano <b>al volo dalla lista</b> (per il bilanciamento). Rendi un oggetto <b>contenitore</b> dandogli uno slot del corpo + capienza; rendilo <b>indossato</b> dandogli uno slot indossato. Ogni oggetto può avere un'immagine e una descrizione (mostrata nell'inventario).</p>
           <div class="cat-form" id="cat-form">
             <label>Nome<input id="it-name" maxlength="60" placeholder="es. Kunai"></label>
-            <label>Categoria<select id="it-category"><option value="arma">Arma</option><option value="consumabile">Consumabile</option><option value="contenitore">Contenitore</option><option value="altro">Altro</option></select></label>
+            <label>Categoria<select id="it-category"><option value="arma_consumabile">Armi consumabili</option><option value="arma_impugnare">Armi da impugnare</option><option value="oggetto_generico">Oggetti generici</option><option value="equipaggiamento">Equipaggiamento</option></select></label>
             <label>Peso (kg)<input id="it-weight" type="number" step="0.05" min="0" placeholder="0.20"></label>
             <label>Costo (Ryo)<input id="it-cost" type="number" step="1" min="0" placeholder="30"></label>
+            <label>Contenitore — slot<select id="it-slot"><option value="">— non è un contenitore —</option><option value="torso">Torso</option><option value="schiena">Schiena</option><option value="cintura">Cintura</option><option value="coscia">Coscia</option></select></label>
             <label class="cont-only" id="wrap-capacity" style="display:none">Capienza (kg)<input id="it-capacity" type="number" step="0.5" min="0" placeholder="2.0"></label>
-            <label class="cont-only" id="wrap-slot" style="display:none">Slot corpo<select id="it-slot"><option value="torso">Torso (giubbotto)</option><option value="schiena">Schiena (zaino)</option><option value="cintura">Cintura (marsupio)</option><option value="coscia">Coscia (porta-kunai)</option></select></label>
-            <label class="full">Descrizione<input id="it-desc" maxlength="200" placeholder="Breve descrizione dell'oggetto"></label>
+            <label>Indossato — slot<select id="it-worn"><option value="">— non indossabile —</option><option value="fronte">Fronte (coprifronte)</option><option value="guanti">Guanti</option><option value="piedi">Piedi (sandali)</option><option value="corpo">Corpo (mantello)</option></select></label>
+            <label class="full">Descrizione<input id="it-desc" maxlength="200" placeholder="Testo mostrato nell'inventario"></label>
             <label class="chk"><input type="checkbox" id="it-purchasable" checked> Acquistabile nel negozio</label>
             <label class="chk"><input type="checkbox" id="it-active" checked> Attivo</label>
           </div>
@@ -168,11 +181,11 @@
 
     /* ---- Catalogo oggetti ---- */
     var ITEMS=[];
-    var CATS=[['arma','Armi'],['consumabile','Consumabili'],['contenitore','Contenitori'],['altro','Altro']];
+    var CATS=[['arma_consumabile','Armi consumabili'],['arma_impugnare','Armi da impugnare'],['oggetto_generico','Oggetti generici'],['equipaggiamento','Equipaggiamento']];
     var editingId=null;
     function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-    function catOnly(){var show=($('it-category').value==='contenitore');document.querySelectorAll('.cont-only').forEach(function(el){el.style.display=show?'':'none';});}
-    function resetCatForm(){editingId=null;$('it-name').value='';$('it-category').value='arma';$('it-weight').value='';$('it-cost').value='';$('it-capacity').value='';$('it-slot').value='torso';$('it-desc').value='';$('it-purchasable').checked=true;$('it-active').checked=true;$('it-reset').style.display='none';$('it-editing').textContent='';$('it-save').textContent='Salva oggetto';catOnly();}
+    function slotChange(){var w=$('wrap-capacity');if(w)w.style.display=($('it-slot').value!=='')?'':'none';}
+    function resetCatForm(){editingId=null;$('it-name').value='';$('it-category').value='arma_consumabile';$('it-weight').value='';$('it-cost').value='';$('it-slot').value='';$('it-capacity').value='';$('it-worn').value='';$('it-desc').value='';$('it-purchasable').checked=true;$('it-active').checked=true;$('it-reset').style.display='none';$('it-editing').textContent='';$('it-save').textContent='Salva oggetto';slotChange();}
     async function loadItems(){var r=await sb.from('items').select('*').order('category').order('name');ITEMS=(r&&r.data)||[];renderCatalog();}
     function renderCatalog(){
       var host=$('cat-list');if(!host)return;host.innerHTML='';
@@ -181,38 +194,64 @@
         if(!list.length)return;
         var block=document.createElement('div');
         var rows=list.map(function(it){
-          var extra=it.category==='contenitore'?(' · capienza '+(it.capacity||0)+' kg · '+(it.slot||'—')):'';
+          var mech=it.slot?(' · contenitore '+(it.capacity||0)+' kg ('+it.slot+')'):(it.worn_slot?(' · indossato: '+it.worn_slot):'');
           var flags=(it.purchasable?'':' · non in vendita')+(it.is_active?'':' · disattivato');
-          return '<div class="itrow'+(it.is_active?'':' off')+'"><div class="itmain"><b>'+esc(it.name)+'</b> <span class="itmeta">'+it.weight+' kg · '+it.cost+' Ryo'+extra+flags+'</span></div><button class="mini-btn" data-edit="'+it.id+'">Modifica</button></div>';
+          var img=it.image_url?('<img src="'+it.image_url+'" alt="">'):'<span class="none">—</span>';
+          return '<div class="itrow'+(it.is_active?'':' off')+'">'+
+            '<div class="itthumb">'+img+'<label class="uptiny">img<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" data-img="'+it.id+'"></label></div>'+
+            '<div class="itmain"><b>'+esc(it.name)+'</b> <span class="itmeta">'+mech+flags+'</span>'+(it.description?('<span class="itdesc">'+esc(it.description)+'</span>'):'')+'</div>'+
+            '<div class="itedit"><label>peso<input type="number" step="0.05" min="0" value="'+it.weight+'" data-w="'+it.id+'"></label><label>Ryo<input type="number" step="1" min="0" value="'+it.cost+'" data-c="'+it.id+'"></label></div>'+
+            '<button class="mini-btn" data-edit="'+it.id+'">Modifica</button></div>';
         }).join('');
         block.innerHTML='<div class="grp-sub">'+cat[1]+'</div>'+rows;
         host.appendChild(block);
       });
     }
     function bindCatalog(){
-      $('it-category').addEventListener('change',catOnly);
+      $('it-slot').addEventListener('change',slotChange);
       $('it-reset').addEventListener('click',resetCatForm);
       $('cat-list').addEventListener('click',function(e){
         var b=e.target.closest('[data-edit]');if(!b)return;
         var it=ITEMS.filter(function(x){return x.id===b.getAttribute('data-edit');})[0];if(!it)return;
         editingId=it.id;$('it-name').value=it.name;$('it-category').value=it.category;$('it-weight').value=it.weight;$('it-cost').value=it.cost;
-        $('it-capacity').value=(it.capacity!=null?it.capacity:'');$('it-slot').value=it.slot||'torso';$('it-desc').value=it.description||'';
+        $('it-slot').value=it.slot||'';$('it-capacity').value=(it.capacity!=null?it.capacity:'');$('it-worn').value=it.worn_slot||'';$('it-desc').value=it.description||'';
         $('it-purchasable').checked=!!it.purchasable;$('it-active').checked=!!it.is_active;
-        $('it-reset').style.display='';$('it-editing').textContent='Stai modificando: '+it.name;$('it-save').textContent='Aggiorna oggetto';catOnly();
+        $('it-reset').style.display='';$('it-editing').textContent='Stai modificando: '+it.name;$('it-save').textContent='Aggiorna oggetto';slotChange();
         window.scrollTo({top:Math.max(0,$('cat-form').offsetTop-90),behavior:'smooth'});
+      });
+      $('cat-list').addEventListener('change',async function(e){
+        var t=e.target;
+        if(t.hasAttribute('data-w')||t.hasAttribute('data-c')){
+          var id=t.getAttribute('data-w')||t.getAttribute('data-c');
+          var patch=t.hasAttribute('data-w')?{weight:parseFloat(t.value)||0}:{cost:parseInt(t.value,10)||0};
+          var r=await sb.from('items').update(patch).eq('id',id);
+          if(r.error){toast('Errore salvataggio',true);}else{toast('Aggiornato');var it=ITEMS.filter(function(x){return x.id===id;})[0];if(it){if(patch.weight!=null)it.weight=patch.weight;if(patch.cost!=null)it.cost=patch.cost;}}
+          return;
+        }
+        if(t.type==='file'&&t.hasAttribute('data-img')){
+          var id=t.getAttribute('data-img');var file=t.files&&t.files[0];if(!file)return;
+          if(file.size>2097152){toast('Immagine troppo grande (max 2 MB)',true);return;}
+          toast('Caricamento…');
+          var path=id+'/'+Date.now();
+          var up=await sb.storage.from('item-images').upload(path,file,{upsert:true,contentType:file.type});
+          if(up.error){toast('Errore nel caricamento',true);return;}
+          var pub=sb.storage.from('item-images').getPublicUrl(path).data.publicUrl;
+          var r=await sb.from('items').update({image_url:pub}).eq('id',id);
+          if(r.error){toast('Caricata ma non registrata',true);return;}
+          var it=ITEMS.filter(function(x){return x.id===id;})[0];if(it)it.image_url=pub;renderCatalog();toast('Immagine salvata');
+        }
       });
       $('it-save').addEventListener('click',async function(){
         var name=$('it-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
-        var cat=$('it-category').value;
-        var payload={name:name,category:cat,weight:parseFloat($('it-weight').value)||0,cost:parseInt($('it-cost').value,10)||0,description:$('it-desc').value.trim()||null,purchasable:$('it-purchasable').checked,is_active:$('it-active').checked};
-        if(cat==='contenitore'){payload.capacity=parseFloat($('it-capacity').value)||0;payload.slot=$('it-slot').value;}else{payload.capacity=null;payload.slot=null;}
+        var slot=$('it-slot').value||null, worn=$('it-worn').value||null;
+        var payload={name:name,category:$('it-category').value,weight:parseFloat($('it-weight').value)||0,cost:parseInt($('it-cost').value,10)||0,description:$('it-desc').value.trim()||null,slot:slot,capacity:slot?(parseFloat($('it-capacity').value)||0):null,worn_slot:worn,purchasable:$('it-purchasable').checked,is_active:$('it-active').checked};
         this.disabled=true;
         var r=editingId?await sb.from('items').update(payload).eq('id',editingId).select().single():await sb.from('items').insert(payload).select().single();
         this.disabled=false;
-        if(r.error){toast(String(r.error.message||'').indexOf('duplicate')>=0?'Esiste già un oggetto con questo nome':'Errore nel salvataggio',true);return;}
+        if(r.error){toast(String(r.error.message||'').indexOf('duplicate')>=0?'Nome già esistente':'Errore nel salvataggio',true);return;}
         toast('Oggetto salvato');resetCatForm();loadItems();
       });
-      catOnly();
+      slotChange();
     }
     /* ---- Registro movimenti (audit globale) ---- */
     async function loadAudit(){
