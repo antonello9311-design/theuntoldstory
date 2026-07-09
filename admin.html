@@ -82,6 +82,18 @@
   .itedit{display:flex;gap:8px;flex-shrink:0}
   .itedit label{display:flex;flex-direction:column;font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);gap:2px}
   .itedit input{width:68px;font-family:inherit;font-size:14px;padding:4px 6px;border:1px solid var(--edge);border-radius:5px;background:#fbf4e1;color:var(--ink)}
+    .cat-form textarea{width:100%;box-sizing:border-box;font-family:inherit;font-size:14px;padding:7px 9px;border:1px solid var(--edge);border-radius:6px;background:#fbf4e1;color:var(--ink);resize:vertical;min-height:64px}
+    .cat-form .opt{font-weight:400;font-size:10px;color:var(--ink-soft);text-transform:none;letter-spacing:0}
+    .locrow{display:flex;gap:12px;align-items:flex-start;padding:11px 13px;border:1px solid var(--edge);background:rgba(255,250,235,.5);border-radius:9px;margin-bottom:8px}
+    .locrow.off{opacity:.55}
+    .locrow .lmain{flex:1;min-width:150px}
+    .locrow .lname{font-family:'Cinzel',serif;font-weight:600;font-size:15px;color:var(--ink)}
+    .locrow .lkind{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--red-deep);margin-left:8px}
+    .locrow .lmeta{font-size:11px;color:var(--ink-soft);letter-spacing:.03em}
+    .locrow .ldesc{display:block;font-size:13px;color:var(--ink-soft);font-style:italic;margin-top:3px}
+    .locrow .lacts{display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0}
+    .mini-btn.danger{border-color:var(--red);color:var(--red-deep)}
+    .mini-btn.danger:hover{background:var(--red);color:#f6ead0}
 </style>
 </head>
 <body>
@@ -125,6 +137,23 @@
             <span id="it-editing" class="editing-note"></span>
           </div>
           <div id="cat-list"></div>
+          <div class="grp-title" style="margin-top:46px">Luoghi della Land</div>
+          <p class="mgr-note">Crea i luoghi dove si gioca in chat: <b>nome</b>, tipo e <b>descrizione</b>. Le <b>posizioni sulla mappa</b> (X/Y) le sistemeremo dopo, quando la mappa del villaggio sarà online: puoi lasciarle vuote adesso. <b>Disattiva</b> un luogo per nasconderlo dal gioco senza cancellarlo.</p>
+          <div class="cat-form" id="loc-form">
+            <label>Nome<input id="loc-name" maxlength="80" placeholder="es. Konoha — Piazza"></label>
+            <label>Tipo<select id="loc-kind"><option value="villaggio">Villaggio</option><option value="quartiere">Quartiere</option><option value="edificio">Edificio</option><option value="area">Area</option><option value="negozio">Negozio</option><option value="altro">Altro</option></select></label>
+            <label>Ordine<input id="loc-sort" type="number" step="1" placeholder="1"></label>
+            <label class="chk"><input type="checkbox" id="loc-active" checked> Attivo (visibile in gioco)</label>
+            <label class="full">Descrizione<textarea id="loc-desc" maxlength="600" rows="3" placeholder="Cosa si trova qui, atmosfera, chi lo frequenta…"></textarea></label>
+            <label>Mappa — X&nbsp;% <span class="opt">(dopo)</span><input id="loc-x" type="number" step="0.1" min="0" max="100" placeholder="—"></label>
+            <label>Mappa — Y&nbsp;% <span class="opt">(dopo)</span><input id="loc-y" type="number" step="0.1" min="0" max="100" placeholder="—"></label>
+          </div>
+          <div class="cat-actions">
+            <button class="btn btn-red" id="loc-save">Salva luogo</button>
+            <button class="btn" id="loc-reset" style="display:none">Annulla modifica</button>
+            <span id="loc-editing" class="editing-note"></span>
+          </div>
+          <div id="loc-list"></div>
           <div class="grp-title" style="margin-top:46px">Registro movimenti — audit</div>
           <p class="mgr-note">Tutti gli acquisti, vendite e assegnazioni di oggetti dei personaggi, dal più recente. Serve a individuare compravendite anomale o usi impropri.</p>
           <div class="cat-actions"><button class="btn" id="audit-refresh">Aggiorna registro</button></div>
@@ -253,6 +282,56 @@
       });
       slotChange();
     }
+    /* ---- Luoghi della Land ---- */
+    var LOCS=[], editingLoc=null, delArm=null;
+    function resetLocForm(){editingLoc=null;$('loc-name').value='';$('loc-kind').value='villaggio';$('loc-sort').value='';$('loc-desc').value='';$('loc-x').value='';$('loc-y').value='';$('loc-active').checked=true;$('loc-reset').style.display='none';$('loc-editing').textContent='';$('loc-save').textContent='Salva luogo';}
+    async function loadLocs(){var r=await sb.from('locations').select('*').order('sort').order('name');LOCS=(r&&r.data)||[];renderLocs();}
+    function renderLocs(){
+      var host=$('loc-list');if(!host)return;
+      if(!LOCS.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun luogo ancora. Creane uno qui sopra.</p>';return;}
+      host.innerHTML=LOCS.map(function(l){
+        var coord=(l.map_x!=null&&l.map_y!=null)?(' · mappa '+l.map_x+'/'+l.map_y):' · posizione mappa da impostare';
+        return '<div class="locrow'+(l.is_active?'':' off')+'">'+
+          '<div class="lmain"><span class="lname">'+esc(l.name)+'</span><span class="lkind">'+esc(l.kind||'')+'</span>'+
+          '<span class="lmeta">'+coord+(l.is_active?'':' · disattivato')+'</span>'+
+          (l.description?('<span class="ldesc">'+esc(l.description)+'</span>'):'')+'</div>'+
+          '<div class="lacts">'+
+            '<button class="mini-btn" data-locedit="'+l.id+'">Modifica</button>'+
+            '<button class="mini-btn" data-loctoggle="'+l.id+'">'+(l.is_active?'Disattiva':'Attiva')+'</button>'+
+            '<button class="mini-btn danger" data-locdel="'+l.id+'">Elimina</button>'+
+          '</div></div>';
+      }).join('');
+    }
+    function bindLocs(){
+      $('loc-reset').addEventListener('click',resetLocForm);
+      $('loc-save').addEventListener('click',async function(){
+        var name=$('loc-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
+        function num(v){v=parseFloat(v);return isNaN(v)?null:v;}
+        var payload={name:name,kind:$('loc-kind').value,description:$('loc-desc').value.trim()||'',sort:parseInt($('loc-sort').value,10)||0,is_active:$('loc-active').checked,map_x:num($('loc-x').value),map_y:num($('loc-y').value)};
+        this.disabled=true;
+        var r=editingLoc?await sb.from('locations').update(payload).eq('id',editingLoc).select().single():await sb.from('locations').insert(payload).select().single();
+        this.disabled=false;
+        if(r.error){toast('Errore nel salvataggio',true);return;}
+        toast('Luogo salvato');resetLocForm();loadLocs();
+      });
+      $('loc-list').addEventListener('click',async function(e){
+        var eb=e.target.closest('[data-locedit]');
+        if(eb){var l=LOCS.filter(function(x){return x.id===eb.getAttribute('data-locedit');})[0];if(!l)return;
+          editingLoc=l.id;$('loc-name').value=l.name;$('loc-kind').value=l.kind||'villaggio';$('loc-sort').value=(l.sort!=null?l.sort:'');$('loc-desc').value=l.description||'';$('loc-x').value=(l.map_x!=null?l.map_x:'');$('loc-y').value=(l.map_y!=null?l.map_y:'');$('loc-active').checked=!!l.is_active;
+          $('loc-reset').style.display='';$('loc-editing').textContent='Stai modificando: '+l.name;$('loc-save').textContent='Aggiorna luogo';
+          window.scrollTo({top:Math.max(0,$('loc-form').offsetTop-90),behavior:'smooth'});return;}
+        var tb=e.target.closest('[data-loctoggle]');
+        if(tb){var id=tb.getAttribute('data-loctoggle');var l2=LOCS.filter(function(x){return x.id===id;})[0];if(!l2)return;
+          var r=await sb.from('locations').update({is_active:!l2.is_active}).eq('id',id);
+          if(r.error){toast('Errore',true);}else{toast(l2.is_active?'Disattivato':'Attivato');loadLocs();}return;}
+        var db=e.target.closest('[data-locdel]');
+        if(db){var id=db.getAttribute('data-locdel');
+          if(delArm!==id){delArm=id;db.textContent='Confermi?';setTimeout(function(){if(delArm===id){delArm=null;renderLocs();}},4000);return;}
+          delArm=null;var r=await sb.from('locations').delete().eq('id',id);
+          if(r.error){toast('Errore eliminazione',true);}else{toast('Luogo eliminato');loadLocs();}return;}
+      });
+    }
+
     /* ---- Registro movimenti (audit globale) ---- */
     async function loadAudit(){
       var host=$('audit-list'); if(!host)return;
@@ -280,10 +359,10 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      renderGrids();await loadItems();bindCatalog();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);show('st-mgr');
+      renderGrids();await loadItems();bindCatalog();bindLocs();await loadLocs();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);show('st-mgr');
     }
     init();
-    window.__demoMgr=function(map,items,audit){EMB=map||{};ITEMS=items||[];renderGrids();renderCatalog();if(audit)renderAudit(audit);show('st-mgr');};
+    window.__demoMgr=function(map,items,audit,locs){EMB=map||{};ITEMS=items||[];LOCS=locs||[];renderGrids();renderCatalog();renderLocs();if(audit)renderAudit(audit);show('st-mgr');};
   })();
   </script>
   <script>
