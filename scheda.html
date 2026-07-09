@@ -162,6 +162,14 @@
     .qin{width:58px;font-family:inherit;font-size:15px;padding:5px 7px;border:1px solid var(--edge);border-radius:6px;background:#fbf4e1;color:var(--ink)}
     .mini-btn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;flex-shrink:0}
     .mini-btn:hover{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+    .itright{display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+    .rowact{display:flex;align-items:center;gap:6px}
+    .log-box{margin-top:12px;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:auto;border:1px solid var(--edge);background:rgba(255,250,235,.4);padding:10px 12px}
+    .logrow{font-size:14px;color:var(--ink);border-bottom:1px dashed var(--edge);padding-bottom:6px}
+    .logrow:last-child{border-bottom:none;padding-bottom:0}
+    .logkind{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:4px;color:#f6ead0}
+    .k-acquisto{background:#3c6b3c}.k-vendita{background:#a6321d}.k-assegnazione{background:#7c6f4d}.k-rimozione{background:#7c2413}.k-correzione{background:#6a5231}
+    .logmeta{display:block;color:var(--ink-soft);font-size:12.5px;margin-top:2px}
 </style>
 </head>
 <body>
@@ -260,6 +268,10 @@
               <h3 id="shop-title">Negozio</h3>
               <p class="hint" id="shop-hint">Compra dal catalogo spendendo i tuoi Ryo.</p>
               <div id="shop-list" class="shop-list"></div>
+            </div>
+            <div class="log-wrap">
+              <button class="btn btn-sm" id="log-btn" style="margin-top:14px;background:transparent;color:var(--ink);border-color:var(--ink)">Mostra registro movimenti</button>
+              <div id="log-box" class="log-box" style="display:none"></div>
             </div>
           </div>
           <div class="staff-panel" id="staff-panel" style="display:none">
@@ -418,17 +430,20 @@
       else{prompt('Copia il link della scheda:',url);}
     });
 
-    /* ---- Inventario & Negozio ---- */
-    var INV=[], SHOP=null;
+    /* ---- Inventario, Negozio & Registro movimenti ---- */
+    var INV=[], SHOP=null, LOGSHOWN=false;
     function escI(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
     function catLabel(c){return {arma:'arma',consumabile:'consumabile',contenitore:'contenitore',altro:'altro'}[c]||c;}
+    function isOwnerMode(){return viewMode==='owner'||viewMode==='adminself';}
     async function refreshInventory(){
       if(!sb||!myChar||viewMode==='public'){return;}
-      try{
-        var r=await sb.from('character_inventory').select('id,quantity,item:items(id,name,category,weight,cost,capacity,slot)').eq('character_id',myChar.id);
-        INV=(r&&r.data)?r.data:[];
-      }catch(e){INV=[];}
+      try{var r=await sb.from('character_inventory').select('id,quantity,item:items(id,name,category,weight,cost,capacity,slot)').eq('character_id',myChar.id);INV=(r&&r.data)?r.data:[];}catch(e){INV=[];}
       renderInv();
+    }
+    function invAction(it){
+      if(isOwnerMode()) return '<span class="rowact"><input type="number" min="1" value="1" class="qin" id="s-'+it.id+'"><button class="mini-btn" data-sell="'+it.id+'">Vendi</button></span>';
+      if(viewMode==='staff') return '<span class="rowact"><input type="number" min="1" value="1" class="qin" id="s-'+it.id+'"><button class="mini-btn" data-remove="'+it.id+'">Rimuovi</button></span>';
+      return '';
     }
     function renderInv(){
       var host=$('inv-list'); if(!host)return;
@@ -438,16 +453,14 @@
       host.innerHTML=INV.map(function(row){
         var it=row.item||{}; var line=(it.weight||0)*row.quantity; total+=line;
         var extra=it.category==='contenitore'?(' · capienza '+(it.capacity||0)+' kg'):'';
-        return '<div class="itrow"><div class="itmain"><b>'+escI(it.name)+'</b> <span class="itmeta">'+catLabel(it.category)+' · '+(it.weight||0)+' kg/u'+extra+'</span></div><div class="itqty">×'+row.quantity+' · '+line.toFixed(2)+' kg</div></div>';
+        return '<div class="itrow"><div class="itmain"><b>'+escI(it.name)+'</b> <span class="itmeta">'+catLabel(it.category)+' · '+(it.weight||0)+' kg/u'+extra+'</span></div>'+
+          '<div class="itright"><span class="itqty">×'+row.quantity+' · '+line.toFixed(2)+' kg</span>'+invAction(it)+'</div></div>';
       }).join('');
       var w=$('inv-weight'); if(w)w.textContent=total.toFixed(2);
     }
     async function loadShop(){
       if(SHOP)return;
-      try{
-        var r=await sb.from('items').select('*').eq('is_active',true).eq('purchasable',true).order('category').order('name');
-        SHOP=(r&&r.data)?r.data:[];
-      }catch(e){SHOP=[];}
+      try{var r=await sb.from('items').select('*').eq('is_active',true).eq('purchasable',true).order('category').order('name');SHOP=(r&&r.data)?r.data:[];}catch(e){SHOP=[];}
       renderShop();
     }
     function renderShop(){
@@ -464,12 +477,29 @@
       if(st)st.textContent=staffMode?'Assegna oggetti':'Negozio';
       if(sh)sh.textContent=staffMode?'Assegna oggetti dal catalogo al personaggio (senza costo).':'Compra dal catalogo spendendo i tuoi Ryo.';
     }
+    function renderLogRows(rows){
+      var box=$('log-box'); if(!box)return;
+      if(!rows.length){box.innerHTML='<p class="hint" style="margin:0">Nessun movimento registrato.</p>';return;}
+      box.innerHTML=rows.map(function(t){
+        var d=new Date(t.created_at); var ds; try{ds=d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){ds=t.created_at;}
+        var ryo=t.ryo_delta?(' · '+(t.ryo_delta>0?'+':'')+t.ryo_delta+' Ryo'):'';
+        var who=(t.actor&&t.actor.username)?(' · da '+escI(t.actor.username)):'';
+        var note=t.note?(' · '+escI(t.note)):'';
+        return '<div class="logrow"><span class="logkind k-'+t.kind+'">'+t.kind+'</span> <b>'+escI(t.item_name||'—')+'</b> ×'+t.quantity+ryo+'<span class="logmeta">'+ds+who+note+'</span></div>';
+      }).join('');
+    }
+    async function loadLog(){
+      if(!sb||!myChar||viewMode==='public')return;
+      var box=$('log-box'); if(!box)return;
+      try{
+        var r=await sb.from('transactions').select('created_at,kind,item_name,quantity,ryo_delta,note,actor:profiles(username)').eq('character_id',myChar.id).order('created_at',{ascending:false}).limit(50);
+        renderLogRows((r&&r.data)||[]);
+      }catch(e){box.innerHTML='<p class="hint" style="margin:0">Registro non disponibile.</p>';}
+    }
     function bindInventory(){
       var btn=$('inv-shop-btn'); if(btn) btn.addEventListener('click',function(){
-        var sh=$('shop'); if(!sh)return;
-        var closed=(sh.style.display==='none'||!sh.style.display);
-        if(closed){ sh.style.display='block'; this.textContent='Chiudi il negozio'; loadShop(); }
-        else { sh.style.display='none'; this.textContent='Apri il negozio'; }
+        var sh=$('shop'); if(!sh)return; var closed=(sh.style.display==='none'||!sh.style.display);
+        if(closed){sh.style.display='block';this.textContent='Chiudi il negozio';loadShop();}else{sh.style.display='none';this.textContent='Apri il negozio';}
       });
       var sl=$('shop-list'); if(sl) sl.addEventListener('click',async function(e){
         var b=e.target.closest('[data-buy]'); if(!b)return;
@@ -477,20 +507,43 @@
         b.disabled=true;
         try{
           if(viewMode==='staff'){
-            var cur=INV.filter(function(x){return x.item&&x.item.id===id;})[0];
-            var newQty=(cur?cur.quantity:0)+qty;
-            var r=await sb.from('character_inventory').upsert({character_id:myChar.id,item_id:id,quantity:newQty},{onConflict:'character_id,item_id'});
+            var r=await sb.rpc('staff_adjust_item',{p_character_id:myChar.id,p_item_id:id,p_delta:qty,p_note:'assegnazione'});
             if(r.error){toast('Errore assegnazione',true);return;}
-            toast('Oggetto assegnato'); refreshInventory();
+            toast('Oggetto assegnato');
           } else {
             var res=await sb.rpc('buy_item',{p_character_id:myChar.id,p_item_id:id,p_qty:qty});
             if(res.error){var m=res.error.message||'';toast(/insufficienti/i.test(m)?'Ryo insufficienti':'Acquisto non riuscito',true);return;}
             if(res.data&&res.data.money!=null){myChar.money=res.data.money;var vm=$('v-money');if(vm)vm.textContent=myChar.money;}
-            toast('Acquistato'); refreshInventory();
+            toast('Acquistato');
           }
+          refreshInventory(); if(LOGSHOWN)loadLog();
         } finally { b.disabled=false; }
       });
+      var il=$('inv-list'); if(il) il.addEventListener('click',async function(e){
+        var s=e.target.closest('[data-sell]'), rm=e.target.closest('[data-remove]'); if(!s&&!rm)return;
+        var btnEl=s||rm; var id=btnEl.getAttribute(s?'data-sell':'data-remove'); var qin=$('s-'+id); var qty=Math.max(1,parseInt(qin&&qin.value,10)||1);
+        btnEl.disabled=true;
+        try{
+          if(s){
+            var res=await sb.rpc('sell_item',{p_character_id:myChar.id,p_item_id:id,p_qty:qty});
+            if(res.error){var m=res.error.message||'';toast(/abbastanza/i.test(m)?'Non hai abbastanza oggetti':'Vendita non riuscita',true);return;}
+            if(res.data&&res.data.money!=null){myChar.money=res.data.money;var vm=$('v-money');if(vm)vm.textContent=myChar.money;}
+            toast('Venduto'+(res.data&&res.data.refund!=null?' (+'+res.data.refund+' Ryo)':''));
+          } else {
+            var res2=await sb.rpc('staff_adjust_item',{p_character_id:myChar.id,p_item_id:id,p_delta:-qty,p_note:'rimozione staff'});
+            if(res2.error){toast('Rimozione non riuscita',true);return;}
+            toast('Rimosso');
+          }
+          refreshInventory(); if(LOGSHOWN)loadLog();
+        } finally { btnEl.disabled=false; }
+      });
+      var lb=$('log-btn'); if(lb) lb.addEventListener('click',function(){
+        var box=$('log-box'); if(!box)return; var closed=(box.style.display==='none'||!box.style.display);
+        if(closed){box.style.display='block';this.textContent='Nascondi registro';LOGSHOWN=true;loadLog();}else{box.style.display='none';this.textContent='Mostra registro movimenti';LOGSHOWN=false;}
+      });
     }
+    window.__demoLog=function(rows){var box=$('log-box');if(box)box.style.display='block';LOGSHOWN=true;renderLogRows(rows||[]);};
+
     async function init(){
       if(!sb){$('err-msg').textContent='Impossibile contattare il servizio in questo momento. Ricarica la pagina.';show('st-error');return;}
       try{

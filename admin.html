@@ -65,6 +65,11 @@
   .itmeta{color:var(--ink-soft);font-size:13.5px}
   .mini-btn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;flex-shrink:0}
   .mini-btn:hover{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+  .audit-list{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+  .aurow{font-size:14px;color:var(--ink);border:1px solid var(--edge);background:rgba(255,250,235,.4);padding:8px 12px}
+  .aumeta{color:var(--ink-soft);font-size:12.5px;display:block;margin-top:2px}
+  .aukind{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:4px;color:#f6ead0}
+  .k-acquisto{background:#3c6b3c}.k-vendita{background:#a6321d}.k-assegnazione{background:#7c6f4d}.k-rimozione{background:#7c2413}.k-correzione{background:#6a5231}
 </style>
 </head>
 <body>
@@ -107,6 +112,10 @@
             <span id="it-editing" class="editing-note"></span>
           </div>
           <div id="cat-list"></div>
+          <div class="grp-title" style="margin-top:46px">Registro movimenti — audit</div>
+          <p class="mgr-note">Tutti gli acquisti, vendite e assegnazioni di oggetti dei personaggi, dal più recente. Serve a individuare compravendite anomale o usi impropri.</p>
+          <div class="cat-actions"><button class="btn" id="audit-refresh">Aggiorna registro</button></div>
+          <div id="audit-list" class="audit-list"></div>
         </div>
       </main>
       <footer><p class="disc-txt">Area di gestione · The Untold Story</p></footer>
@@ -205,6 +214,24 @@
       });
       catOnly();
     }
+    /* ---- Registro movimenti (audit globale) ---- */
+    async function loadAudit(){
+      var host=$('audit-list'); if(!host)return;
+      host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">Caricamento…</p>';
+      var r=await sb.from('transactions').select('created_at,kind,item_name,quantity,ryo_delta,character:characters(name),actor:profiles(username)').order('created_at',{ascending:false}).limit(100);
+      renderAudit((r&&r.data)||[]);
+    }
+    function renderAudit(rows){
+      var host=$('audit-list'); if(!host)return;
+      if(!rows.length){host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">Nessun movimento registrato.</p>';return;}
+      host.innerHTML=rows.map(function(t){
+        var d=new Date(t.created_at); var ds; try{ds=d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){ds=t.created_at;}
+        var ryo=t.ryo_delta?(' · '+(t.ryo_delta>0?'+':'')+t.ryo_delta+' Ryo'):'';
+        var chn=(t.character&&t.character.name)?esc(t.character.name):'—';
+        var who=(t.actor&&t.actor.username)?esc(t.actor.username):'sistema';
+        return '<div class="aurow"><span class="aukind k-'+t.kind+'">'+t.kind+'</span> <b>'+chn+'</b> — '+esc(t.item_name||'—')+' ×'+t.quantity+ryo+'<span class="aumeta">'+ds+' · azione di '+who+'</span></div>';
+      }).join('');
+    }
     async function init(){
       if(!sb){show('st-guest');return;}
       var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;
@@ -214,10 +241,10 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      renderGrids();await loadItems();bindCatalog();show('st-mgr');
+      renderGrids();await loadItems();bindCatalog();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);show('st-mgr');
     }
     init();
-    window.__demoMgr=function(map,items){EMB=map||{};ITEMS=items||[];renderGrids();renderCatalog();show('st-mgr');};
+    window.__demoMgr=function(map,items,audit){EMB=map||{};ITEMS=items||[];renderGrids();renderCatalog();if(audit)renderAudit(audit);show('st-mgr');};
   })();
   </script>
   <script>
