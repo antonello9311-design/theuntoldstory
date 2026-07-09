@@ -278,7 +278,7 @@
     var STATS=[['taijutsu','Taijutsu'],['ninjutsu','Ninjutsu'],['genjutsu','Genjutsu'],['forza','Forza'],['velocita','Velocità'],['intelligenza','Intelligenza']];
     var BASE=10,POOL=40,CAP=30,STEP=5;
     var ELK={Fuoco:'火',Vento:'風',Fulmine:'雷',Terra:'土',Acqua:'水'},ELC={Fuoco:'e-fuoco',Vento:'e-vento',Fulmine:'e-fulmine',Terra:'e-terra',Acqua:'e-acqua'};
-    var me=null,myChar=null,curPriv=null,newStats={},addBuf={},EMB={},myName='',viewMode='owner',viewId=null,isStaff=false;
+    var me=null,myChar=null,curPriv=null,newStats={},addBuf={},EMB={},myName='',viewMode='owner',viewId=null,isStaff=false,isAdmin=false;
 
     function $(id){return document.getElementById(id);}
     function show(id){['st-loading','st-guest','st-error','st-create','st-sheet'].forEach(function(s){$(s).classList.toggle('on',s===id);});}
@@ -335,7 +335,7 @@
       applyMode();
     }
     function applyMode(){
-      var owner=(viewMode==='owner'), staff=(viewMode==='staff');
+      var owner=(viewMode==='owner'||viewMode==='adminself'), staff=(viewMode==='staff'||viewMode==='adminself');
       ['f-clan','f-element','f-corporation','f-background','f-off'].forEach(function(id){var el=$(id); if(el) el.disabled=!owner;});
       var sv=$('s-save'); if(sv) sv.style.display=owner?'':'none';
       if(!owner){var ub=$('unspent-box'); if(ub) ub.style.display='none';}
@@ -345,7 +345,7 @@
       var sp=$('staff-panel'); if(sp) sp.style.display=staff?'':'none';
       if(staff) fillStaffPanel(myChar,curPriv);
       var badge=$('mode-badge');
-      if(badge){ if(owner){badge.style.display='none';} else {badge.style.display='';badge.textContent=staff?'Modalità staff — stai modificando la scheda di un altro giocatore':'Scheda di un altro giocatore — sola lettura';badge.className='mode-badge '+(staff?'staff':'ro');} }
+      if(badge){ if(viewMode==='adminself'){badge.style.display='';badge.textContent='Admin del sito — controllo completo (proprietario + staff) sulla tua scheda';badge.className='mode-badge staff';} else if(viewMode==='staff'){badge.style.display='';badge.textContent='Modalità staff — stai modificando la scheda di un altro giocatore';badge.className='mode-badge staff';} else if(viewMode==='public'){badge.style.display='';badge.textContent='Scheda di un altro giocatore — sola lettura';badge.className='mode-badge ro';} else {badge.style.display='none';} }
     }
     function fillStaffPanel(c,priv){
       if(!c)return;
@@ -365,7 +365,7 @@
     document.querySelectorAll('.dtab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.dtab').forEach(function(x){x.classList.remove('on');});b.classList.add('on');var d=b.getAttribute('data-d');document.querySelectorAll('.dpanel').forEach(function(p){p.classList.toggle('on',p.getAttribute('data-d')===d);});});});
 
     $('s-save').addEventListener('click',async function(){
-      if(!sb||!myChar||viewMode!=='owner')return;this.disabled=true;
+      if(!sb||!myChar||!(viewMode==='owner'||viewMode==='adminself'))return;this.disabled=true;
       var upd={clan:$('f-clan').value||'Nessuno',element:$('f-element').value||null,corporation:$('f-corporation').value.trim()||null,background:$('f-background').value,off_notes:$('f-off').value.trim()||null};
       var r1=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();
       this.disabled=false;
@@ -373,7 +373,7 @@
       myChar=r1.data;toast('Scheda salvata');
     });
     var spSave=$('sp-save'); if(spSave) spSave.addEventListener('click',async function(){
-      if(!sb||!myChar||viewMode!=='staff')return;this.disabled=true;
+      if(!sb||!myChar||!(viewMode==='staff'||viewMode==='adminself'))return;this.disabled=true;
       var upd={epithet:($('sp-epithet').value.trim()||null),rank:($('sp-rank').value.trim()||myChar.rank)};
       STATS.forEach(function(s){var v=parseInt($('sp-'+s[0]).value,10); upd[s[0]]=isNaN(v)?myChar[s[0]]:v;});
       ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?myChar[k]:v;});
@@ -395,7 +395,7 @@
         var params=new URLSearchParams(location.search); viewId=params.get('id');
         var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;
         if(!me){show('st-guest');return;}
-        try{var pr=await sb.from('profiles').select('username,role').eq('id',me.id).single();myName=(pr.data&&pr.data.username)?pr.data.username:'';isStaff=!!(pr.data&&(pr.data.role==='master'||pr.data.role==='admin'));}catch(_e){myName='';}
+        try{var pr=await sb.from('profiles').select('username,role').eq('id',me.id).single();myName=(pr.data&&pr.data.username)?pr.data.username:'';var _role=pr.data?pr.data.role:'';isStaff=(_role==='master'||_role==='admin');isAdmin=(_role==='admin');}catch(_e){myName='';}
         var _ns=$('c-name-show'); if(_ns) _ns.textContent=myName||'(nome non disponibile)';
         try{var em=await sb.from('emblems').select('kind,name,image_url');(em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});}catch(_e){}
         if(viewId){
@@ -403,11 +403,11 @@
           if(rv.error){$('err-msg').textContent=rv.error.message;show('st-error');return;}
           if(!rv.data){$('err-msg').textContent='Scheda non trovata.';show('st-error');return;}
           myChar=rv.data;
-          viewMode=(myChar.user_id===me.id)?'owner':(isStaff?'staff':'public');
+          viewMode=(myChar.user_id===me.id)?(isAdmin?'adminself':'owner'):(isStaff?'staff':'public');
           if(viewMode!=='public'){var pv=await sb.from('character_private').select('*').eq('character_id',myChar.id).maybeSingle();curPriv=pv.data||null;}else{curPriv=null;}
           fillForm(myChar,curPriv); show('st-sheet'); return;
         }
-        viewMode='owner';
+        viewMode=isAdmin?'adminself':'owner';
         var r=await sb.from('characters').select('*').eq('user_id',me.id).maybeSingle();
         if(r.error){$('err-msg').textContent=r.error.message;show('st-error');return;}
         if(!r.data){show('st-create');return;}
@@ -417,7 +417,7 @@
       }catch(e){$('err-msg').textContent='Errore di connessione.';show('st-error');}
     }
     init();
-    window.__demo=function(c,priv,emb,mode){if(emb)EMB=emb;myChar=c;curPriv=priv||null;viewMode=mode||'owner';isStaff=(mode==='staff');fillForm(c,priv||null);show('st-sheet');};
+    window.__demo=function(c,priv,emb,mode){if(emb)EMB=emb;myChar=c;curPriv=priv||null;viewMode=mode||'owner';isStaff=(mode==='staff'||mode==='adminself');isAdmin=(mode==='adminself');fillForm(c,priv||null);show('st-sheet');};
     window.__demoCreate=function(nm){if(nm){var e=$('c-name-show');if(e)e.textContent=nm;}show('st-create');};
   })();
   </script>
