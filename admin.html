@@ -92,6 +92,15 @@
     .locrow .lmeta{font-size:11px;color:var(--ink-soft);letter-spacing:.03em}
     .locrow .ldesc{display:block;font-size:13px;color:var(--ink-soft);font-style:italic;margin-top:3px}
     .locrow .lacts{display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0}
+    .locrow .lthumb{width:66px;height:46px;border-radius:6px;overflow:hidden;flex-shrink:0;border:1px solid var(--edge)}
+    .locrow .lthumb img{width:100%;height:100%;object-fit:cover}
+    .locrow .lnote{color:var(--red-deep);font-weight:600}
+    .loc-imgrow{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-top:4px}
+    .loc-imgprev{width:184px;height:110px;border:1px solid var(--edge);border-radius:8px;background:rgba(255,250,235,.6);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+    .loc-imgprev img{width:100%;height:100%;object-fit:cover}
+    .loc-imgprev .none{color:var(--ink-soft);font-size:12px;font-style:italic}
+    .loc-imgside{display:flex;flex-direction:column;gap:7px;min-width:210px}
+    .loc-imgside .opt{margin:0}
     .mini-btn.danger{border-color:var(--red);color:var(--red-deep)}
     .mini-btn.danger:hover{background:var(--red);color:#f6ead0}
 </style>
@@ -145,6 +154,15 @@
             <label>Ordine<input id="loc-sort" type="number" step="1" placeholder="1"></label>
             <label class="chk"><input type="checkbox" id="loc-active" checked> Attivo (visibile in gioco)</label>
             <label class="full">Descrizione<textarea id="loc-desc" maxlength="600" rows="3" placeholder="Cosa si trova qui, atmosfera, chi lo frequenta…"></textarea></label>
+            <label class="full">Nota evento <span class="opt">(in evidenza nella stanza; modificabile quando succede qualcosa)</span><textarea id="loc-note" maxlength="400" rows="2" placeholder="Es. Un temporale ha allagato il mercato: le bancarelle restano chiuse."></textarea></label>
+            <div class="loc-imgrow" style="grid-column:1/-1">
+              <div class="loc-imgprev" id="loc-imgprev"><span class="none">Nessuna immagine</span></div>
+              <div class="loc-imgside">
+                <label class="up">Immagine del luogo<input type="file" id="loc-imgfile" accept="image/png,image/jpeg,image/webp,image/svg+xml"></label>
+                <p class="opt" id="loc-imghint">Salva prima il luogo, poi carica l'immagine (max 4 MB).</p>
+                <button class="mini-btn danger" id="loc-imgdel" type="button" style="display:none">Rimuovi immagine</button>
+              </div>
+            </div>
             <label>Mappa — X&nbsp;% <span class="opt">(dopo)</span><input id="loc-x" type="number" step="0.1" min="0" max="100" placeholder="—"></label>
             <label>Mappa — Y&nbsp;% <span class="opt">(dopo)</span><input id="loc-y" type="number" step="0.1" min="0" max="100" placeholder="—"></label>
           </div>
@@ -284,16 +302,20 @@
     }
     /* ---- Luoghi della Land ---- */
     var LOCS=[], editingLoc=null, delArm=null;
-    function resetLocForm(){editingLoc=null;$('loc-name').value='';$('loc-kind').value='villaggio';$('loc-sort').value='';$('loc-desc').value='';$('loc-x').value='';$('loc-y').value='';$('loc-active').checked=true;$('loc-reset').style.display='none';$('loc-editing').textContent='';$('loc-save').textContent='Salva luogo';}
+    function locImgReset(){var p=$('loc-imgprev');if(p)p.innerHTML='<span class="none">Nessuna immagine</span>';var d=$('loc-imgdel');if(d)d.style.display='none';var h=$('loc-imghint');if(h)h.textContent="Salva prima il luogo, poi carica l'immagine (max 4 MB).";}
+    function locImgShow(url){var p=$('loc-imgprev');if(p)p.innerHTML=url?'<img src="'+url+'" alt="">':'<span class="none">Nessuna immagine</span>';var d=$('loc-imgdel');if(d)d.style.display=url?'':'none';var h=$('loc-imghint');if(h)h.textContent=url?"Carica un'altra immagine per sostituirla (max 4 MB).":"Carica un'immagine per questo luogo (max 4 MB).";}
+    function resetLocForm(){editingLoc=null;$('loc-name').value='';$('loc-kind').value='villaggio';$('loc-sort').value='';$('loc-desc').value='';$('loc-note').value='';$('loc-x').value='';$('loc-y').value='';$('loc-active').checked=true;$('loc-reset').style.display='none';$('loc-editing').textContent='';$('loc-save').textContent='Salva luogo';locImgReset();}
     async function loadLocs(){var r=await sb.from('locations').select('*').order('sort').order('name');LOCS=(r&&r.data)||[];renderLocs();}
     function renderLocs(){
       var host=$('loc-list');if(!host)return;
       if(!LOCS.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun luogo ancora. Creane uno qui sopra.</p>';return;}
       host.innerHTML=LOCS.map(function(l){
         var coord=(l.map_x!=null&&l.map_y!=null)?(' · mappa '+l.map_x+'/'+l.map_y):' · posizione mappa da impostare';
-        return '<div class="locrow'+(l.is_active?'':' off')+'">'+
+        var thumb=l.image_url?('<div class="lthumb"><img src="'+esc(l.image_url)+'" alt=""></div>'):'';
+        var extra=(l.image_url?' · immagine':'')+(l.event_note?' · <span class="lnote">nota evento</span>':'');
+        return '<div class="locrow'+(l.is_active?'':' off')+'">'+thumb+
           '<div class="lmain"><span class="lname">'+esc(l.name)+'</span><span class="lkind">'+esc(l.kind||'')+'</span>'+
-          '<span class="lmeta">'+coord+(l.is_active?'':' · disattivato')+'</span>'+
+          '<span class="lmeta">'+coord+extra+(l.is_active?'':' · disattivato')+'</span>'+
           (l.description?('<span class="ldesc">'+esc(l.description)+'</span>'):'')+'</div>'+
           '<div class="lacts">'+
             '<button class="mini-btn" data-locedit="'+l.id+'">Modifica</button>'+
@@ -307,17 +329,18 @@
       $('loc-save').addEventListener('click',async function(){
         var name=$('loc-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
         function num(v){v=parseFloat(v);return isNaN(v)?null:v;}
-        var payload={name:name,kind:$('loc-kind').value,description:$('loc-desc').value.trim()||'',sort:parseInt($('loc-sort').value,10)||0,is_active:$('loc-active').checked,map_x:num($('loc-x').value),map_y:num($('loc-y').value)};
+        var payload={name:name,kind:$('loc-kind').value,description:$('loc-desc').value.trim()||'',event_note:$('loc-note').value.trim()||null,sort:parseInt($('loc-sort').value,10)||0,is_active:$('loc-active').checked,map_x:num($('loc-x').value),map_y:num($('loc-y').value)};
         this.disabled=true;
         var r=editingLoc?await sb.from('locations').update(payload).eq('id',editingLoc).select().single():await sb.from('locations').insert(payload).select().single();
         this.disabled=false;
         if(r.error){toast('Errore nel salvataggio',true);return;}
-        toast('Luogo salvato');resetLocForm();loadLocs();
+        if(editingLoc){toast('Luogo aggiornato');resetLocForm();loadLocs();}
+        else{var nl=r.data;LOCS.push(nl);editingLoc=nl.id;$('loc-reset').style.display='';$('loc-editing').textContent='Luogo creato: '+nl.name+' — ora puoi aggiungere immagine e nota evento.';$('loc-save').textContent='Aggiorna luogo';locImgShow(nl.image_url||'');renderLocs();toast('Luogo creato');}
       });
       $('loc-list').addEventListener('click',async function(e){
         var eb=e.target.closest('[data-locedit]');
         if(eb){var l=LOCS.filter(function(x){return x.id===eb.getAttribute('data-locedit');})[0];if(!l)return;
-          editingLoc=l.id;$('loc-name').value=l.name;$('loc-kind').value=l.kind||'villaggio';$('loc-sort').value=(l.sort!=null?l.sort:'');$('loc-desc').value=l.description||'';$('loc-x').value=(l.map_x!=null?l.map_x:'');$('loc-y').value=(l.map_y!=null?l.map_y:'');$('loc-active').checked=!!l.is_active;
+          editingLoc=l.id;$('loc-name').value=l.name;$('loc-kind').value=l.kind||'villaggio';$('loc-sort').value=(l.sort!=null?l.sort:'');$('loc-desc').value=l.description||'';$('loc-note').value=l.event_note||'';$('loc-x').value=(l.map_x!=null?l.map_x:'');$('loc-y').value=(l.map_y!=null?l.map_y:'');$('loc-active').checked=!!l.is_active;locImgShow(l.image_url||'');
           $('loc-reset').style.display='';$('loc-editing').textContent='Stai modificando: '+l.name;$('loc-save').textContent='Aggiorna luogo';
           window.scrollTo({top:Math.max(0,$('loc-form').offsetTop-90),behavior:'smooth'});return;}
         var tb=e.target.closest('[data-loctoggle]');
@@ -329,6 +352,27 @@
           if(delArm!==id){delArm=id;db.textContent='Confermi?';setTimeout(function(){if(delArm===id){delArm=null;renderLocs();}},4000);return;}
           delArm=null;var r=await sb.from('locations').delete().eq('id',id);
           if(r.error){toast('Errore eliminazione',true);}else{toast('Luogo eliminato');loadLocs();}return;}
+      });
+      var imf=$('loc-imgfile'); if(imf) imf.addEventListener('change',async function(){
+        var file=this.files&&this.files[0];if(!file)return;
+        if(!editingLoc){toast('Salva prima il luogo',true);this.value='';return;}
+        if(file.size>4194304){toast('Immagine troppo grande (max 4 MB)',true);this.value='';return;}
+        toast('Caricamento…');
+        var path=editingLoc+'/scene';
+        var up=await sb.storage.from('location-images').upload(path,file,{upsert:true,contentType:file.type});
+        if(up.error){toast('Errore nel caricamento',true);return;}
+        var pub=sb.storage.from('location-images').getPublicUrl(path).data.publicUrl+'?v='+Date.now();
+        var r=await sb.from('locations').update({image_url:pub}).eq('id',editingLoc);
+        if(r.error){toast('Immagine caricata, ma non registrata',true);return;}
+        LOCS.forEach(function(x){if(x.id===editingLoc)x.image_url=pub;});
+        locImgShow(pub);this.value='';renderLocs();toast('Immagine salvata');
+      });
+      var imd=$('loc-imgdel'); if(imd) imd.addEventListener('click',async function(){
+        if(!editingLoc)return;
+        var r=await sb.from('locations').update({image_url:null}).eq('id',editingLoc);
+        if(r.error){toast('Errore',true);return;}
+        LOCS.forEach(function(x){if(x.id===editingLoc)x.image_url=null;});
+        locImgShow('');renderLocs();toast('Immagine rimossa');
       });
     }
 

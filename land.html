@@ -136,6 +136,12 @@
   .room-title h2{font-family:'Cinzel Decorative','Cinzel',serif;font-size:clamp(18px,2.4vw,24px);color:var(--ink);margin:0;line-height:1.1}
   .room-title .rk{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-top:2px}
   .room-desc{flex-shrink:0;font-style:italic;color:var(--ink-soft);font-size:14px;margin:0}
+  .room-scene{flex-shrink:0;display:none;flex-direction:column;gap:8px}
+  .room-scene.on{display:flex}
+  .room-img{width:100%;max-height:150px;object-fit:cover;border:1.5px solid var(--rule);border-radius:10px;display:none}
+  .room-note{display:none;background:rgba(166,50,29,.08);border:1px solid var(--edge);border-left:4px solid var(--red);border-radius:8px;padding:8px 12px;color:var(--ink);font-size:14px;line-height:1.4}
+  .room-note .rn-k{display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);margin-bottom:3px}
+  .room-note .rn-t{white-space:pre-wrap}
   .room-grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 208px;gap:14px}
   @media(max-width:760px){.room-grid{grid-template-columns:1fr}.who{display:none}}
   .chat{min-height:0;display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:12px;background:rgba(247,238,214,.5);overflow:hidden}
@@ -218,6 +224,10 @@
             <div class="room-title"><h2 id="room-name"></h2><div class="rk" id="room-kind"></div></div>
           </div>
           <p class="room-desc" id="room-desc"></p>
+          <div class="room-scene" id="room-scene">
+            <img class="room-img" id="room-img" alt="">
+            <div class="room-note" id="room-note"></div>
+          </div>
           <div class="room-grid">
             <section class="chat">
               <div class="msgs" id="msgs"></div>
@@ -338,7 +348,7 @@
       }
       function loadLuoghi(){
         if(!sb||!loggedIn) return;
-        sb.from('locations').select('id,name,kind,description').eq('is_active',true).order('sort').then(function(r){
+        sb.from('locations').select('id,name,kind,description,image_url,event_note').eq('is_active',true).order('sort').then(function(r){
           if(r&&!r.error){ LOCS=r.data||[]; renderLuoghi(); }
         }, function(){});
       }
@@ -371,6 +381,10 @@
       function openRoom(l){
         cur=l; showView('room');
         nameEl.textContent=l.name; kindEl.textContent=l.kind||''; descEl.textContent=l.description||'';
+        var sc=document.getElementById('room-scene'), im=document.getElementById('room-img'), nt=document.getElementById('room-note');
+        if(im){ if(l.image_url){ im.src=l.image_url; im.style.display='block'; } else { im.removeAttribute('src'); im.style.display='none'; } }
+        if(nt){ if(l.event_note){ nt.innerHTML='<span class="rn-k">Nota evento</span><span class="rn-t">'+esc(l.event_note)+'</span>'; nt.style.display='block'; } else { nt.style.display='none'; nt.innerHTML=''; } }
+        if(sc){ sc.classList.toggle('on', !!(l.image_url||l.event_note)); }
         msgsEl.innerHTML='<div class="msgs-empty">Caricamento…</div>'; whoEl.innerHTML='';
         refreshRoom();
         if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
