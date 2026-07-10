@@ -229,7 +229,10 @@
     .ptab.on{color:var(--red-deep);border-bottom-color:var(--red)}
     .ptab:hover{color:var(--ink)}
     .spage{display:none}.spage.on{display:block}
-    .portrait{border:1px solid var(--edge);background:rgba(255,250,235,.4);border-radius:10px;min-height:380px;display:flex;align-items:center;justify-content:center;text-align:center}
+    .portrait{border:1px solid var(--edge);background:rgba(255,250,235,.4);border-radius:10px;min-height:380px;display:flex;align-items:center;justify-content:center;text-align:center;position:relative;background-size:cover;background-position:center}
+    .portrait-up{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);cursor:pointer;border:1px solid var(--edge);padding:7px 14px;background:rgba(255,250,235,.92);border-radius:7px;white-space:nowrap;box-shadow:0 3px 10px rgba(40,28,10,.25)}
+    .portrait-up:hover{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+    .portrait-up input{display:none}
     .ph{color:var(--ink-soft);font-style:italic;padding:20px}.ph span{display:block;font-size:12px;margin-top:6px;opacity:.8}
     .silhouette .adot-t{paint-order:stroke;stroke:#efe3c6;stroke-width:2.8px;stroke-linejoin:round;fill:#3a2c18;font-weight:600}
 </style>
@@ -255,22 +258,23 @@
         <!-- CREATE -->
         <div id="st-create" class="state"><div class="msgcard" style="max-width:640px">
           <h2>Crea il tuo personaggio</h2>
-          <p>Bastano i dati essenziali. <b>Clan</b> ed <b>elemento</b> li sceglierai con calma dalla scheda, dopo aver letto Storia e Regole. Si parte dal rango <b>Deshi</b>.</p>
+          <p>Bastano i dati essenziali. Il <b>clan</b> e la <b>corporazione</b> li assegnerà lo <b>staff</b> (in base al tuo background o allo sviluppo in gioco). L'<b>elemento</b> puoi sceglierlo ora — è facoltativo — oppure più avanti dalla scheda. Si parte dal rango <b>Deshi</b>.</p>
           <div style="text-align:left">
             <div class="fld"><span class="lab">Nome del personaggio</span><div id="c-name-show" class="fin" style="font-weight:600;display:flex;align-items:center;min-height:44px">—</div><span class="hint" style="margin-top:6px">È il nome con cui ti sei registrato. Un account = un personaggio.</span></div>
             <div class="grid3">
               <label class="fld"><span class="lab">Età</span><input id="c-age" class="fin" type="number" min="1" placeholder="es. 12" /></label>
               <label class="fld"><span class="lab">Sesso</span><select id="c-sex" class="fin"><option value="">— scegli —</option><option>Maschio</option><option>Femmina</option><option>Altro</option></select></label>
               <label class="fld"><span class="lab">Villaggio</span><select id="c-village" class="fin"><option value="">— scegli —</option><option>Konoha</option><option>Suna</option></select></label>
+              <label class="fld"><span class="lab">Elemento <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· facoltativo</span></span><select id="c-element" class="fin"><option value="">— nessuno —</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select></label>
             </div>
             <div class="block" style="margin-top:4px">
-              <h3><span class="n">◆</span> Statistiche <span class="pool">Punti rimanenti: <b id="c-pool">40</b></span></h3>
-              <p class="hint" style="margin-top:0">Si assegnano a gruppi di 5. Ogni caratteristica parte da 10, massimo +20 su una sola (un Deshi parte tra 10 e 30).</p>
-              <div id="c-stats"></div>
+              <h3><span class="n">◆</span> Statistiche</h3>
+              <p class="hint" style="margin-top:0">Parti con le statistiche <b>base</b> e ricevi <b>40 punti</b> da assegnare (a gruppi di 5): li distribuisci con calma <b>dalla scheda, dentro la land</b>, quando vuoi — così puoi leggere tutto e scegliere con ponderatezza.</p>
+              <div id="c-stats" style="display:none"></div><b id="c-pool" style="display:none">40</b>
             </div>
           </div>
           <p class="hint">I nomi dei personaggi dell'opera non sono ammessi. L'elemento è facoltativo (per le build full-taijutsu).</p>
-          <button class="btn btn-red" id="c-create" disabled>Crea scheda</button>
+          <button class="btn btn-red" id="c-create">Crea scheda</button>
         </div></div>
 
         <!-- SHEET -->
@@ -279,10 +283,13 @@
           <div class="page-tabs"><button class="ptab on" data-p="home">Home</button><button class="ptab" data-p="inv">Inventario</button></div>
           <div id="page-home" class="spage on">
           <div class="sheet-top">
-            <div class="portrait" id="s-portrait"><div class="ph">Ritratto del personaggio<span>(caricamento immagine — in arrivo)</span></div></div>
+            <div class="portrait" id="s-portrait">
+              <div class="ph" id="s-portrait-ph">Ritratto del personaggio<span>(carica un'immagine con «Modifica»)</span></div>
+              <label class="portrait-up" id="s-portrait-up" style="display:none">Carica ritratto<input type="file" id="s-avatar-file" accept="image/png,image/jpeg,image/webp"></label>
+            </div>
             <div class="dossier">
-              <div class="dhead"><div class="dhead-name"><h1 id="s-name">—</h1><div id="s-epithet" class="epithet" style="display:none"></div></div><div class="dhead-act"><button class="btn btn-ghost btn-sm" id="s-share" title="Copia il link della scheda">Condividi</button><button class="btn btn-red btn-sm" id="s-save">Salva</button></div></div>
-              <div class="dtabs"><button class="dtab on" data-d="dati">Dati</button><button class="dtab" data-d="stat">Statistiche</button></div>
+              <div class="dhead"><div class="dhead-name"><h1 id="s-name">—</h1><div id="s-epithet" class="epithet" style="display:none"></div></div><div class="dhead-act"><button class="btn btn-ghost btn-sm" id="s-edit" style="display:none">Modifica</button><button class="btn btn-ghost btn-sm" id="s-share" title="Copia il link della scheda">Condividi</button><button class="btn btn-red btn-sm" id="s-save">Salva</button></div></div>
+              <div class="dtabs"><button class="dtab on" data-d="dati">Dati</button><button class="dtab" data-d="stat">Statistiche<span id="stat-badge" style="display:none;margin-left:6px;min-width:16px;padding:1px 5px;border-radius:9px;background:var(--red);color:#f6ead0;font-family:'Cinzel',serif;font-size:9px"></span></button></div>
 
               <div class="dpanel on" data-d="dati">
                 <div class="drow"><span class="emb" id="ic-rank"></span><div class="dinfo"><span class="dlab">Grado</span><span class="dval" id="v-rank">—</span></div></div>
@@ -394,7 +401,7 @@
     var STATS=[['taijutsu','Taijutsu'],['ninjutsu','Ninjutsu'],['genjutsu','Genjutsu'],['forza','Forza'],['velocita','Velocità'],['intelligenza','Intelligenza']];
     var BASE=10,POOL=40,CAP=30,STEP=5;
     var ELK={Fuoco:'火',Vento:'風',Fulmine:'雷',Terra:'土',Acqua:'水'},ELC={Fuoco:'e-fuoco',Vento:'e-vento',Fulmine:'e-fulmine',Terra:'e-terra',Acqua:'e-acqua'};
-    var me=null,myChar=null,curPriv=null,newStats={},addBuf={},EMB={},myName='',viewMode='owner',viewId=null,isStaff=false,isAdmin=false;
+    var me=null,myChar=null,curPriv=null,newStats={},addBuf={},EMB={},myName='',viewMode='owner',viewId=null,isStaff=false,isAdmin=false,editMode=false;
 
     function $(id){return document.getElementById(id);}
     function show(id){['st-loading','st-guest','st-error','st-create','st-sheet'].forEach(function(s){$(s).classList.toggle('on',s===id);});}
@@ -420,19 +427,19 @@
       row.innerHTML='<span class="cn">'+s[1]+'</span><button type="button" class="stbtn" data-k="'+s[0]+'" data-d="-1">−5</button><span class="stval" id="cv-'+s[0]+'">'+BASE+'</span><button type="button" class="stbtn" data-k="'+s[0]+'" data-d="1">+5</button><div class="cbar"><span id="cb-'+s[0]+'"></span></div>';
       host.appendChild(row);});refreshPool();})();
     function remaining(){var u=0;STATS.forEach(function(s){u+=newStats[s[0]]-BASE;});return POOL-u;}
-    function refreshPool(){var r=remaining();$('c-pool').textContent=r;$('c-pool').parentNode.classList.toggle('done',r===0);$('c-create').disabled=(r!==0);STATS.forEach(function(s){$('cv-'+s[0]).textContent=newStats[s[0]];var b=$('cb-'+s[0]);if(b)b.style.width=newStats[s[0]]+'%';});}
+    function refreshPool(){var cp=$('c-pool');if(cp)cp.textContent=remaining();STATS.forEach(function(s){var el=$('cv-'+s[0]);if(el)el.textContent=newStats[s[0]];var b=$('cb-'+s[0]);if(b)b.style.width=newStats[s[0]]+'%';});}
     $('c-stats').addEventListener('click',function(e){var b=e.target.closest('.stbtn');if(!b)return;var k=b.getAttribute('data-k'),d=parseInt(b.getAttribute('data-d'),10),v=newStats[k]+d*STEP;if(d>0&&(remaining()<STEP||v>CAP))return;if(d<0&&v<BASE)return;newStats[k]=v;refreshPool();});
     $('c-create').addEventListener('click',async function(){if(!sb)return;var name=(myName||'').trim(),age=parseInt($('c-age').value,10),sex=$('c-sex').value,village=$('c-village').value;
-      if(name.length<2){toast('Nome non disponibile: esci e accedi di nuovo',true);return;}if(!age||age<1){toast('Inserisci l’età',true);return;}if(!sex){toast('Scegli il sesso',true);return;}if(!village){toast('Scegli il villaggio',true);return;}if(remaining()!==0){toast('Distribuisci tutti i punti',true);return;}
-      this.disabled=true;var payload={user_id:me.id,name:name,age:age,sex:sex,village:village,rank:'Deshi',clan:'Nessuno'};STATS.forEach(function(s){payload[s[0]]=newStats[s[0]];});
+      if(name.length<2){toast('Nome non disponibile: esci e accedi di nuovo',true);return;}if(!age||age<1){toast('Inserisci l’età',true);return;}if(!sex){toast('Scegli il sesso',true);return;}if(!village){toast('Scegli il villaggio',true);return;}
+      this.disabled=true;var payload={user_id:me.id,name:name,age:age,sex:sex,village:village,rank:'Deshi',clan:'Nessuno',unspent_points:POOL};var _el=$('c-element'); if(_el&&_el.value){payload.element=_el.value;} STATS.forEach(function(s){payload[s[0]]=BASE;});
       var r=await sb.from('characters').insert(payload).select().single();this.disabled=false;
       if(r.error){toast(r.error.message.indexOf('consentito')>=0?'Nome non consentito':'Errore nella creazione',true);return;}
-      myChar=r.data;curPriv=null;fillForm(myChar,curPriv);show('st-sheet');toast('Scheda creata');});
+      toast('Scheda creata! Ti portiamo nella land…');setTimeout(function(){location.href='land.html';},900);});
 
     /* ---- SHEET ---- */
     function renderChars(c){var w=$('charwrap');w.innerHTML='';STATS.forEach(function(s){var v=(c[s[0]]!=null?c[s[0]]:BASE);var row=document.createElement('div');row.className='charrow';row.innerHTML='<span class="cn">'+s[1]+'</span><div class="cbar"><span style="width:'+v+'%"></span></div><span class="roval">'+v+'</span>';w.appendChild(row);});}
-    function renderUnspent(c){var box=$('unspent-box');if(!c.unspent_points||c.unspent_points<=0){box.style.display='none';return;}box.style.display='block';addBuf={};$('u-pts').textContent=c.unspent_points;var host=$('u-rows');host.innerHTML='';STATS.forEach(function(s){addBuf[s[0]]=0;var row=document.createElement('div');row.className='steprow';row.innerHTML='<span class="cn">'+s[1]+'</span><span class="stval" id="ua-'+s[0]+'">'+(c[s[0]]||BASE)+'</span><button type="button" class="stbtn" data-k="'+s[0]+'">+5</button>';host.appendChild(row);});}
-    $('u-rows').addEventListener('click',function(e){var b=e.target.closest('.stbtn');if(!b)return;var k=b.getAttribute('data-k'),used=0;for(var kk in addBuf)used+=addBuf[kk];if(used+STEP>myChar.unspent_points)return;addBuf[k]+=STEP;$('ua-'+k).textContent=(myChar[k]||BASE)+addBuf[k];});
+    function renderUnspent(c){var box=$('unspent-box');if(!c.unspent_points||c.unspent_points<=0){box.style.display='none';return;}box.style.display='block';addBuf={};$('u-pts').textContent=c.unspent_points;var host=$('u-rows');host.innerHTML='';STATS.forEach(function(s){addBuf[s[0]]=0;var row=document.createElement('div');row.className='steprow';row.innerHTML='<span class="cn">'+s[1]+'</span><button type="button" class="stbtn minus" data-k="'+s[0]+'" data-d="-1">−5</button><span class="stval" id="ua-'+s[0]+'">'+(c[s[0]]||BASE)+'</span><button type="button" class="stbtn" data-k="'+s[0]+'" data-d="1">+5</button>';host.appendChild(row);});}
+    $('u-rows').addEventListener('click',function(e){var b=e.target.closest('.stbtn');if(!b)return;var k=b.getAttribute('data-k'),d=parseInt(b.getAttribute('data-d')||'1',10),used=0,kk;for(kk in addBuf)used+=addBuf[kk];if(d>0){if(used+STEP>myChar.unspent_points)return;addBuf[k]+=STEP;}else{if(addBuf[k]<STEP)return;addBuf[k]-=STEP;}used=0;for(kk in addBuf)used+=addBuf[kk];$('ua-'+k).textContent=(myChar[k]||BASE)+addBuf[k];var up=$('u-pts');if(up)up.textContent=(myChar.unspent_points-used);});
     $('u-confirm').addEventListener('click',async function(){var used=0;for(var kk in addBuf)used+=addBuf[kk];if(used===0){toast('Nessun punto assegnato',true);return;}this.disabled=true;var upd={unspent_points:myChar.unspent_points-used};STATS.forEach(function(s){upd[s[0]]=(myChar[s[0]]||BASE)+addBuf[s[0]];});var r=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();this.disabled=false;if(r.error){toast('Errore',true);return;}myChar=r.data;fillForm(myChar,curPriv);toast('Punti assegnati');});
 
     function fillForm(c,priv){
@@ -447,22 +454,28 @@
       $('v-vita').textContent=(c.vita||0)+' / '+(c.vita_max||0); $('v-chakra').textContent=(c.chakra||0)+' / '+(c.chakra_max||0);
       $('v-money').textContent=(c.money||0); $('v-exp').textContent=(c.exp||0);
       renderChars(c); renderUnspent(c);
-      $('f-background').value=c.background||''; $('f-off').value=c.off_notes||''; $('f-fato').value=priv&&priv.fato_notes?priv.fato_notes:'';
+      $('f-background').value=c.background||''; $('f-off').value=c.off_notes||''; $('f-fato').value=priv&&priv.fato_notes?priv.fato_notes:''; setPortrait(c.avatar_url);
       applyMode();
     }
+    function setPortrait(url){ var p=$('s-portrait'), ph=$('s-portrait-ph'); if(!p)return; if(url){ p.style.backgroundImage='url("'+url+'")'; if(ph)ph.style.display='none'; } else { p.style.backgroundImage=''; if(ph)ph.style.display=''; } }
     function applyMode(){
-      var owner=(viewMode==='owner'||viewMode==='adminself'), staff=(viewMode==='staff'||viewMode==='adminself');
-      ['f-clan','f-element','f-corporation','f-background','f-off'].forEach(function(id){var el=$(id); if(el) el.disabled=!owner;});
-      var sv=$('s-save'); if(sv) sv.style.display=owner?'':'none';
-      if(!owner){var ub=$('unspent-box'); if(ub) ub.style.display='none';}
+      var owner=(viewMode==='owner'||viewMode==='adminself'||viewMode==='adminother'), staff=(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother');
+      var canEd=(owner||staff), oEdit=owner&&editMode, sEdit=staff&&editMode;
+      ['f-element','f-background','f-off'].forEach(function(id){var el=$(id); if(el) el.disabled=!oEdit;});
+      ['f-clan','f-corporation'].forEach(function(id){var el=$(id); if(el) el.disabled=!sEdit;});
+      var sv=$('s-save'); if(sv) sv.style.display=oEdit?'':'none';
+      var eb=$('s-edit'); if(eb){ eb.style.display=canEd?'':'none'; eb.textContent=editMode?'Fine modifica':'Modifica'; eb.classList.toggle('btn-red',editMode); eb.classList.toggle('btn-ghost',!editMode); }
+      var pu=$('s-portrait-up'); if(pu) pu.style.display=oEdit?'':'none';
+      var ub=$('unspent-box'); if(ub){ if(owner){ renderUnspent(myChar); } else { ub.style.display='none'; } }
+      var stb=$('stat-badge'); if(stb){ var _p=(owner&&myChar&&myChar.unspent_points>0)?myChar.unspent_points:0; stb.textContent=_p; stb.style.display=_p>0?'':'none'; }
       var so=$('sec-off'); if(so) so.style.display='';
       var sf=$('sec-fato'); if(sf) sf.style.display=(owner||staff)?'':'none';
       var ff=$('f-fato'); if(ff) ff.readOnly=true;
-      var sp=$('staff-panel'); if(sp) sp.style.display=staff?'':'none';
+      var sp=$('staff-panel'); if(sp) sp.style.display=sEdit?'':'none';
       var iw=$('inv-wrap'); if(iw) iw.style.display=(viewMode==='public')?'none':'';
       if(staff) fillStaffPanel(myChar,curPriv);
       var badge=$('mode-badge');
-      if(badge){ if(viewMode==='adminself'){badge.style.display='';badge.textContent='Admin del sito — controllo completo (proprietario + staff) sulla tua scheda';badge.className='mode-badge staff';} else if(viewMode==='staff'){badge.style.display='';badge.textContent='Modalità staff — stai modificando la scheda di un altro giocatore';badge.className='mode-badge staff';} else if(viewMode==='public'){badge.style.display='';badge.textContent='Scheda di un altro giocatore — sola lettura';badge.className='mode-badge ro';} else {badge.style.display='none';} }
+      if(badge){ if(viewMode==='adminself'){badge.style.display='';badge.textContent='Admin del sito — controllo completo sulla tua scheda. Premi «Modifica» per cambiare.';badge.className='mode-badge staff';} else if(viewMode==='adminother'){badge.style.display='';badge.textContent='Admin del sito — controllo completo su questa scheda. Premi «Modifica» per cambiare.';badge.className='mode-badge staff';} else if(viewMode==='staff'){badge.style.display='';badge.textContent='Modalità staff — premi «Modifica» per intervenire sulla scheda di questo giocatore';badge.className='mode-badge staff';} else if(viewMode==='public'){badge.style.display='';badge.textContent='Scheda di un altro giocatore — sola lettura';badge.className='mode-badge ro';} else {badge.style.display='none';} }
     }
     function fillStaffPanel(c,priv){
       if(!c)return;
@@ -482,16 +495,16 @@
     document.querySelectorAll('.dtab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.dtab').forEach(function(x){x.classList.remove('on');});b.classList.add('on');var d=b.getAttribute('data-d');document.querySelectorAll('.dpanel').forEach(function(p){p.classList.toggle('on',p.getAttribute('data-d')===d);});});});
 
     $('s-save').addEventListener('click',async function(){
-      if(!sb||!myChar||!(viewMode==='owner'||viewMode==='adminself'))return;this.disabled=true;
-      var upd={clan:$('f-clan').value||'Nessuno',element:$('f-element').value||null,corporation:$('f-corporation').value.trim()||null,background:$('f-background').value,off_notes:$('f-off').value.trim()||null};
+      if(!sb||!myChar||!(viewMode==='owner'||viewMode==='adminself'||viewMode==='adminother'))return;this.disabled=true;
+      var upd={element:$('f-element').value||null,background:$('f-background').value,off_notes:$('f-off').value.trim()||null};
       var r1=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();
       this.disabled=false;
       if(r1.error){toast(r1.error.message.indexOf('consentito')>=0?'Nome non consentito':'Errore nel salvataggio',true);return;}
       myChar=r1.data;toast('Scheda salvata');
     });
     var spSave=$('sp-save'); if(spSave) spSave.addEventListener('click',async function(){
-      if(!sb||!myChar||!(viewMode==='staff'||viewMode==='adminself'))return;this.disabled=true;
-      var upd={epithet:($('sp-epithet').value.trim()||null),rank:($('sp-rank').value.trim()||myChar.rank)};
+      if(!sb||!myChar||!(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother'))return;this.disabled=true;
+      var upd={epithet:($('sp-epithet').value.trim()||null),rank:($('sp-rank').value.trim()||myChar.rank),clan:$('f-clan').value||'Nessuno',corporation:($('f-corporation').value.trim()||null)};
       STATS.forEach(function(s){var v=parseInt($('sp-'+s[0]).value,10); upd[s[0]]=isNaN(v)?myChar[s[0]]:v;});
       ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?myChar[k]:v;});
       var r1=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();
@@ -500,6 +513,19 @@
       if(r1.error){toast('Errore staff: '+r1.error.message,true);return;}
       myChar=r1.data; if(!r2.error)curPriv=r2.data; fillForm(myChar,curPriv); toast('Modifiche staff salvate');
     });
+    var avFile=$('s-avatar-file'); if(avFile) avFile.addEventListener('change',async function(){
+      var file=this.files&&this.files[0]; if(!file||!sb||!me||!myChar) return;
+      if(file.size>3145728){toast('Immagine troppo grande (max 3 MB)',true);this.value='';return;}
+      toast('Caricamento…');
+      var path=(myChar.user_id||me.id)+'/portrait';
+      var up=await sb.storage.from('avatars').upload(path,file,{upsert:true,contentType:file.type});
+      if(up.error){toast('Errore nel caricamento',true);this.value='';return;}
+      var pub=sb.storage.from('avatars').getPublicUrl(path).data.publicUrl+'?v='+Date.now();
+      var r=await sb.from('characters').update({avatar_url:pub}).eq('id',myChar.id).select().single();
+      if(r.error){toast('Immagine caricata, ma non registrata',true);this.value='';return;}
+      myChar=r.data; setPortrait(pub); this.value=''; toast('Ritratto aggiornato');
+    });
+    var edBtn=$('s-edit'); if(edBtn) edBtn.addEventListener('click',function(){ editMode=!editMode; applyMode(); });
     var shBtn=$('s-share'); if(shBtn) shBtn.addEventListener('click',function(){
       if(!myChar)return; var url=location.origin+location.pathname+'?id='+myChar.id;
       if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(function(){toast('Link della scheda copiato');},function(){prompt('Copia il link della scheda:',url);});}
@@ -528,7 +554,7 @@
     };
     function escI(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
     function isOwnerMode(){return viewMode==='owner'||viewMode==='adminself';}
-    function canEdit(){return viewMode==='owner'||viewMode==='adminself'||viewMode==='staff';}
+    function canEdit(){return viewMode==='owner'||viewMode==='adminself'||viewMode==='staff'||viewMode==='adminother';}
     function ownedQty(id){var r=INV.filter(function(x){return x.item&&x.item.id===id;})[0];return r?r.quantity:0;}
     function equippedQtyOf(id){var s=0;EQUIP.forEach(function(e){if(e.item&&e.item.id===id)s+=e.quantity;});return s;}
     function availQty(id){return ownedQty(id)-equippedQtyOf(id);}
@@ -671,7 +697,7 @@
           if(rv.error){$('err-msg').textContent=rv.error.message;show('st-error');return;}
           if(!rv.data){$('err-msg').textContent='Scheda non trovata.';show('st-error');return;}
           myChar=rv.data;
-          viewMode=(myChar.user_id===me.id)?(isAdmin?'adminself':'owner'):(isStaff?'staff':'public');
+          viewMode=(myChar.user_id===me.id)?(isAdmin?'adminself':'owner'):(isAdmin?'adminother':(isStaff?'staff':'public'));
           if(viewMode!=='public'){var pv=await sb.from('character_private').select('*').eq('character_id',myChar.id).maybeSingle();curPriv=pv.data||null;}else{curPriv=null;}
           fillForm(myChar,curPriv); show('st-sheet'); refreshInventory(); refreshEquip(); return;
         }
@@ -687,7 +713,7 @@
     bindIE();
     bindPages();
     init();
-    window.__demo=function(c,priv,emb,mode){if(emb)EMB=emb;myChar=c;curPriv=priv||null;viewMode=mode||'owner';isStaff=(mode==='staff'||mode==='adminself');isAdmin=(mode==='adminself');fillForm(c,priv||null);show('st-sheet');};
+    window.__demo=function(c,priv,emb,mode){if(emb)EMB=emb;myChar=c;me={id:(c&&c.user_id)||'me'};curPriv=priv||null;viewMode=mode||'owner';isStaff=(mode==='staff'||mode==='adminself'||mode==='adminother');isAdmin=(mode==='adminself'||mode==='adminother');fillForm(c,priv||null);show('st-sheet');};
     window.__demoCreate=function(nm){if(nm){var e=$('c-name-show');if(e)e.textContent=nm;}show('st-create');};
   })();
   </script>

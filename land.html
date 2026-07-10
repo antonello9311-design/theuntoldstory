@@ -81,6 +81,13 @@
   .dn-alba{background:rgba(255,168,110,.18);border-color:#e0965a;color:#9a4a1e}
   .dn-tramonto{background:rgba(206,86,40,.16);border-color:#c96a34;color:#8a2f13}
   .dn-notte{background:rgba(42,52,92,.16);border-color:#5b6690;color:#2b2f52}
+  .pts-reminder{position:relative;z-index:5;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;padding:9px 44px;background:rgba(166,50,29,.11);border-bottom:1px solid var(--rule);font-family:'Cormorant Garamond',serif;font-size:15.5px;color:var(--ink)}
+  .pts-reminder[hidden]{display:none}
+  .pts-reminder b{color:var(--red-deep)}
+  .pts-reminder .ptr-link{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--red-deep);text-decoration:none;border:1px solid var(--edge);border-radius:6px;padding:5px 12px;white-space:nowrap;background:rgba(255,250,235,.6)}
+  .pts-reminder .ptr-link:hover{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+  .pts-reminder .ptr-x{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--ink-soft);font-size:20px;line-height:1;cursor:pointer;padding:0 4px}
+  .pts-reminder .ptr-x:hover{color:var(--red-deep)}
   .tb-nav{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end}
   .tb-btn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink);
     text-decoration:none;padding:8px 13px;border:1px solid transparent;border-radius:7px;cursor:pointer;background:transparent;transition:.16s;white-space:nowrap}
@@ -183,6 +190,7 @@
   .m-rank{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--ink-soft)}
   .m-rank .rb{width:16px;height:16px;flex-shrink:0;display:inline-flex}
   .m-rank .rb svg{width:100%;height:100%}
+  .m-rank .rb img{width:100%;height:100%;object-fit:contain}
   .m-clan{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--ink-soft)}
   .m-clan img{width:14px;height:14px;object-fit:contain;flex-shrink:0}
   .m-epi{font-style:italic;color:var(--red-deep);font-size:12px}
@@ -264,6 +272,12 @@
           <a class="tb-btn logout" href="index.html" id="logout">Esci</a>
         </nav>
       </header>
+
+      <div class="pts-reminder" id="pts-reminder" hidden>
+        <span class="ptr-txt">Hai <b id="pts-n">0</b> punti statistica da assegnare sulla tua scheda.</span>
+        <a class="ptr-link" href="scheda.html">Apri la Scheda →</a>
+        <button class="ptr-x" id="pts-x" type="button" title="Nascondi">×</button>
+      </div>
 
       <main class="mapzone">
         <div id="map-view" class="view on">
@@ -533,8 +547,10 @@
       function rChev(n){var s2='';for(var i=0;i<n;i++){var y=8+i*5.4;s2+='<path d="M6 '+(y+4)+' l6 -4.4 l6 4.4" fill="none" stroke="#3a2a12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';}return '<svg viewBox="0 0 24 24">'+s2+'</svg>';}
       function rankBadge(r){ if(!r)return''; var inner; if(r==='Deshi')inner='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="none" stroke="#3a2a12" stroke-width="2"/></svg>'; else if(r==='Kage / Sannin')inner=RSTAR; else{var n=r==='Genin'?1:r==='Chunin'?2:3;inner=rChev(n);if(r==='Jonin Speciale')inner=inner.replace('<svg viewBox="0 0 24 24">','<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7" fill="#a6321d"/>');} return '<span class="rb">'+inner+'</span>'; }
       function avatarHTML(c,name,cid){ var inner=(c&&c.avatar_url)?('<img src="'+esc(c.avatar_url)+'" alt="">'):('<span class="ava-ph">'+esc((name||'?').charAt(0).toUpperCase())+'</span>'); return cid?('<a class="m-ava" href="scheda.html?id='+esc(cid)+'" title="Apri la scheda di '+esc(name)+'">'+inner+'</a>'):('<span class="m-ava">'+inner+'</span>'); }
-      function identityHTML(c,name,cid,created){ var sx=c&&c.sex; var sexIc=(sx==='Maschio')?SEX_M:((sx==='Femmina')?SEX_F:''); var wo=cid?('<a class="m-who" href="scheda.html?id='+esc(cid)+'">'):'<span class="m-who">'; var wc=cid?'</a>':'</span>'; var rk=c&&c.rank; var rankH=rk?('<span class="m-rank">'+rankBadge(rk)+esc(rk)+'</span>'):''; var cl=(c&&c.clan&&c.clan!=='Nessuno')?c.clan:''; var clanImg=(cl&&EMB[cl])?('<img src="'+esc(EMB[cl])+'" alt="">'):''; var clanH=cl?('<span class="m-clan">'+clanImg+esc(cl)+'</span>'):''; var ep=c&&c.epithet; var epiH=ep?('<span class="m-epi">«'+esc(ep)+'»</span>'):''; return '<div class="m-head">'+wo+esc(name)+wc+sexIc+rankH+clanH+epiH+'<span class="m-time">'+fmt(created)+'</span></div>'; }
-      function loadEmblems(){ if(!sb) return; sb.from('emblems').select('name,image_url').eq('kind','clan').then(function(r){ if(r&&!r.error){ (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.name]=e.image_url; }); } }, function(){}); }
+      function identityHTML(c,name,cid,created){ var sx=c&&c.sex; var sexIc=(sx==='Maschio')?SEX_M:((sx==='Femmina')?SEX_F:''); var wo=cid?('<a class="m-who" href="scheda.html?id='+esc(cid)+'">'):'<span class="m-who">'; var wc=cid?'</a>':'</span>'; var rk=c&&c.rank; var rimg=(rk&&EMB['rank:'+rk]); var rbadge=rimg?('<span class="rb"><img src="'+esc(rimg)+'" alt=""></span>'):rankBadge(rk); var rankH=rk?('<span class="m-rank">'+rbadge+esc(rk)+'</span>'):''; var cl=(c&&c.clan&&c.clan!=='Nessuno')?c.clan:''; var clanImg=(cl&&EMB['clan:'+cl])?('<img src="'+esc(EMB['clan:'+cl])+'" alt="">'):''; var clanH=cl?('<span class="m-clan">'+clanImg+esc(cl)+'</span>'):''; var ep=c&&c.epithet; var epiH=ep?('<span class="m-epi">«'+esc(ep)+'»</span>'):''; return '<div class="m-head">'+wo+esc(name)+wc+sexIc+rankH+clanH+epiH+'<span class="m-time">'+fmt(created)+'</span></div>'; }
+      function loadEmblems(){ if(!sb) return; sb.from('emblems').select('kind,name,image_url').in('kind',['clan','rank']).then(function(r){ if(r&&!r.error){ (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.kind+':'+e.name]=e.image_url; }); } }, function(){}); }
+      function showPtsReminder(n){ var el=document.getElementById('pts-reminder'); if(!el) return; if(n>0){ var pn=document.getElementById('pts-n'); if(pn) pn.textContent=n; el.hidden=false; } else { el.hidden=true; } }
+      (function(){ var px=document.getElementById('pts-x'); if(px) px.addEventListener('click',function(){ var el=document.getElementById('pts-reminder'); if(el) el.hidden=true; }); })();
       function renderMsgs(rows){
         rows=rows||[];
         if(!rows.length){ msgsEl.innerHTML='<div class="msgs-empty">Ancora nessun messaggio qui. Scrivi il primo turno.</div>'; return; }
@@ -654,7 +670,7 @@
         sb.auth.getSession().then(function(res){
           loggedIn=!!(res&&res.data&&res.data.session);
           myId=(loggedIn&&res.data.session.user)?res.data.session.user.id:null;
-          if(myId){ sb.from('characters').select('id').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data) myCharId=cr.data.id; }, function(){}); }
+          if(myId){ sb.from('characters').select('id,unspent_points').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; showPtsReminder(cr.data.unspent_points||0); } }, function(){}); }
           loadEmblems();
           renderLuoghi(); if(loggedIn) loadLuoghi();
         }, function(){ loggedIn=false; renderLuoghi(); });
