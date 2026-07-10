@@ -689,6 +689,8 @@
         var params=new URLSearchParams(location.search); viewId=params.get('id');
         var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;
         if(!me){show('st-guest');return;}
+        try{ sessionStorage.setItem('tus_in_land','1'); }catch(e){}
+        try{ var _hl=document.querySelectorAll('a[href="index.html"]'); for(var _i=0;_i<_hl.length;_i++) _hl[_i].setAttribute('href','land.html'); }catch(e){}
         try{var pr=await sb.from('profiles').select('username,role').eq('id',me.id).single();myName=(pr.data&&pr.data.username)?pr.data.username:'';var _role=pr.data?pr.data.role:'';isStaff=(_role==='master'||_role==='admin');isAdmin=(_role==='admin');}catch(_e){myName='';}
         var _ns=$('c-name-show'); if(_ns) _ns.textContent=myName||'(nome non disponibile)';
         try{var em=await sb.from('emblems').select('kind,name,image_url');(em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});}catch(_e){}

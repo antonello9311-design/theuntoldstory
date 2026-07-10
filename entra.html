@@ -230,6 +230,7 @@
         try {
           if (window.PasswordCredential){ var cred = new window.PasswordCredential({ id: name, password: pass, name: name }); await navigator.credentials.store(cred); }
         } catch(e){}
+        try { if (remember) { localStorage.setItem('tus_login_name', name); } else { localStorage.removeItem('tus_login_name'); } } catch(e){}
         // entra direttamente: land se hai già un personaggio, altrimenti scheda per crearlo
         var uid = null;
         try { var sess = await sb.auth.getSession(); uid = (sess.data && sess.data.session && sess.data.session.user) ? sess.data.session.user.id : null; } catch(e){}
@@ -241,6 +242,9 @@
         show('err','Nome o password non corretti.');
       } finally { $('l-btn').disabled=false; $('l-btn').textContent='Accedi'; }
     });
+
+    // accesso rapido: pre-compila il nome se "ricordami" era attivo
+    try { var _ln = localStorage.getItem('tus_login_name'); if (_ln && $('l-name') && !$('l-name').value) { $('l-name').value = _ln; if ($('l-pass')) setTimeout(function(){ try{ $('l-pass').focus(); }catch(e){} }, 60); } } catch(e){}
 
     // forgot password -> reveal email field, then send reset link
     $('forgot').addEventListener('click', function(){

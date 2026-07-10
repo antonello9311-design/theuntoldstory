@@ -479,6 +479,7 @@
     /* ---- LOGOUT ---- */
     document.getElementById('logout').addEventListener('click', function(e){
       e.preventDefault();
+      try{ sessionStorage.removeItem('tus_in_land'); }catch(e){}
       if(sb){ var _go=function(){ sb.auth.signOut().then(function(){ location.href='index.html'; }, function(){ location.href='index.html'; }); }; sb.rpc('leave_land').then(_go,_go); }
       else { location.href='index.html'; }
     });
@@ -754,6 +755,7 @@
         sb.auth.getSession().then(function(res){
           loggedIn=!!(res&&res.data&&res.data.session);
           myId=(loggedIn&&res.data.session.user)?res.data.session.user.id:null;
+          if(loggedIn){ try{ sessionStorage.setItem('tus_in_land','1'); }catch(e){} }
           if(myId){ sb.from('characters').select('id,unspent_points').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; showPtsReminder(cr.data.unspent_points||0); } }, function(){}); }
           loadEmblems();
           renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); }
