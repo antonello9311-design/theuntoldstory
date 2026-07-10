@@ -151,6 +151,7 @@
           <div class="cat-form" id="loc-form">
             <label>Nome<input id="loc-name" maxlength="80" placeholder="es. Konoha — Piazza"></label>
             <label>Tipo<select id="loc-kind"><option value="villaggio">Villaggio</option><option value="quartiere">Quartiere</option><option value="edificio">Edificio</option><option value="area">Area</option><option value="negozio">Negozio</option><option value="altro">Altro</option></select></label>
+            <label>Villaggio <span class="opt">(per il meteo)</span><select id="loc-region"><option value="">— nessuno —</option><option value="konoha">Konoha</option><option value="suna">Suna</option></select></label>
             <label>Ordine<input id="loc-sort" type="number" step="1" placeholder="1"></label>
             <label class="chk"><input type="checkbox" id="loc-active" checked> Attivo (visibile in gioco)</label>
             <label class="full">Descrizione<textarea id="loc-desc" maxlength="600" rows="3" placeholder="Cosa si trova qui, atmosfera, chi lo frequenta…"></textarea></label>
@@ -304,7 +305,7 @@
     var LOCS=[], editingLoc=null, delArm=null;
     function locImgReset(){var p=$('loc-imgprev');if(p)p.innerHTML='<span class="none">Nessuna immagine</span>';var d=$('loc-imgdel');if(d)d.style.display='none';var h=$('loc-imghint');if(h)h.textContent="Salva prima il luogo, poi carica l'immagine (max 4 MB).";}
     function locImgShow(url){var p=$('loc-imgprev');if(p)p.innerHTML=url?'<img src="'+url+'" alt="">':'<span class="none">Nessuna immagine</span>';var d=$('loc-imgdel');if(d)d.style.display=url?'':'none';var h=$('loc-imghint');if(h)h.textContent=url?"Carica un'altra immagine per sostituirla (max 4 MB).":"Carica un'immagine per questo luogo (max 4 MB).";}
-    function resetLocForm(){editingLoc=null;$('loc-name').value='';$('loc-kind').value='villaggio';$('loc-sort').value='';$('loc-desc').value='';$('loc-note').value='';$('loc-x').value='';$('loc-y').value='';$('loc-active').checked=true;$('loc-reset').style.display='none';$('loc-editing').textContent='';$('loc-save').textContent='Salva luogo';locImgReset();}
+    function resetLocForm(){editingLoc=null;$('loc-name').value='';$('loc-kind').value='villaggio';$('loc-region').value='';$('loc-sort').value='';$('loc-desc').value='';$('loc-note').value='';$('loc-x').value='';$('loc-y').value='';$('loc-active').checked=true;$('loc-reset').style.display='none';$('loc-editing').textContent='';$('loc-save').textContent='Salva luogo';locImgReset();}
     async function loadLocs(){var r=await sb.from('locations').select('*').order('sort').order('name');LOCS=(r&&r.data)||[];renderLocs();}
     function renderLocs(){
       var host=$('loc-list');if(!host)return;
@@ -312,7 +313,8 @@
       host.innerHTML=LOCS.map(function(l){
         var coord=(l.map_x!=null&&l.map_y!=null)?(' · mappa '+l.map_x+'/'+l.map_y):' · posizione mappa da impostare';
         var thumb=l.image_url?('<div class="lthumb"><img src="'+esc(l.image_url)+'" alt=""></div>'):'';
-        var extra=(l.image_url?' · immagine':'')+(l.event_note?' · <span class="lnote">nota evento</span>':'');
+        var reg=l.region?(' · '+l.region.charAt(0).toUpperCase()+l.region.slice(1)):'';
+        var extra=reg+(l.image_url?' · immagine':'')+(l.event_note?' · <span class="lnote">nota evento</span>':'');
         return '<div class="locrow'+(l.is_active?'':' off')+'">'+thumb+
           '<div class="lmain"><span class="lname">'+esc(l.name)+'</span><span class="lkind">'+esc(l.kind||'')+'</span>'+
           '<span class="lmeta">'+coord+extra+(l.is_active?'':' · disattivato')+'</span>'+
@@ -329,7 +331,7 @@
       $('loc-save').addEventListener('click',async function(){
         var name=$('loc-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
         function num(v){v=parseFloat(v);return isNaN(v)?null:v;}
-        var payload={name:name,kind:$('loc-kind').value,description:$('loc-desc').value.trim()||'',event_note:$('loc-note').value.trim()||null,sort:parseInt($('loc-sort').value,10)||0,is_active:$('loc-active').checked,map_x:num($('loc-x').value),map_y:num($('loc-y').value)};
+        var payload={name:name,kind:$('loc-kind').value,region:$('loc-region').value||null,description:$('loc-desc').value.trim()||'',event_note:$('loc-note').value.trim()||null,sort:parseInt($('loc-sort').value,10)||0,is_active:$('loc-active').checked,map_x:num($('loc-x').value),map_y:num($('loc-y').value)};
         this.disabled=true;
         var r=editingLoc?await sb.from('locations').update(payload).eq('id',editingLoc).select().single():await sb.from('locations').insert(payload).select().single();
         this.disabled=false;
@@ -340,7 +342,7 @@
       $('loc-list').addEventListener('click',async function(e){
         var eb=e.target.closest('[data-locedit]');
         if(eb){var l=LOCS.filter(function(x){return x.id===eb.getAttribute('data-locedit');})[0];if(!l)return;
-          editingLoc=l.id;$('loc-name').value=l.name;$('loc-kind').value=l.kind||'villaggio';$('loc-sort').value=(l.sort!=null?l.sort:'');$('loc-desc').value=l.description||'';$('loc-note').value=l.event_note||'';$('loc-x').value=(l.map_x!=null?l.map_x:'');$('loc-y').value=(l.map_y!=null?l.map_y:'');$('loc-active').checked=!!l.is_active;locImgShow(l.image_url||'');
+          editingLoc=l.id;$('loc-name').value=l.name;$('loc-kind').value=l.kind||'villaggio';$('loc-region').value=l.region||'';$('loc-sort').value=(l.sort!=null?l.sort:'');$('loc-desc').value=l.description||'';$('loc-note').value=l.event_note||'';$('loc-x').value=(l.map_x!=null?l.map_x:'');$('loc-y').value=(l.map_y!=null?l.map_y:'');$('loc-active').checked=!!l.is_active;locImgShow(l.image_url||'');
           $('loc-reset').style.display='';$('loc-editing').textContent='Stai modificando: '+l.name;$('loc-save').textContent='Aggiorna luogo';
           window.scrollTo({top:Math.max(0,$('loc-form').offsetTop-90),behavior:'smooth'});return;}
         var tb=e.target.closest('[data-loctoggle]');

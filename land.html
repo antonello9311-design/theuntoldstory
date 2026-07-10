@@ -74,6 +74,13 @@
   .tb-mark{width:30px;height:30px;flex-shrink:0}
   .tb-brand .bjmascot{width:34px;height:34px}
   .tb-name{font-family:'Cinzel',serif;font-weight:600;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);white-space:nowrap}
+  .dnchip{display:inline-flex;align-items:center;gap:6px;margin-left:4px;padding:4px 10px;border:1px solid var(--edge);border-radius:20px;background:rgba(255,250,235,.5);font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);white-space:nowrap}
+  .dnchip svg{width:15px;height:15px;flex-shrink:0}
+  .dnchip .dn-h{color:var(--ink-soft);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+  .dn-giorno{background:rgba(244,205,80,.18);border-color:#d8b24e;color:#8a5a12}
+  .dn-alba{background:rgba(255,168,110,.18);border-color:#e0965a;color:#9a4a1e}
+  .dn-tramonto{background:rgba(206,86,40,.16);border-color:#c96a34;color:#8a2f13}
+  .dn-notte{background:rgba(42,52,92,.16);border-color:#5b6690;color:#2b2f52}
   .tb-nav{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end}
   .tb-btn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink);
     text-decoration:none;padding:8px 13px;border:1px solid transparent;border-radius:7px;cursor:pointer;background:transparent;transition:.16s;white-space:nowrap}
@@ -135,15 +142,33 @@
   .room-top{display:flex;align-items:center;gap:12px;flex-shrink:0}
   .room-title h2{font-family:'Cinzel Decorative','Cinzel',serif;font-size:clamp(18px,2.4vw,24px);color:var(--ink);margin:0;line-height:1.1}
   .room-title .rk{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-top:2px}
-  .room-desc{flex-shrink:0;font-style:italic;color:var(--ink-soft);font-size:14px;margin:0}
-  .room-scene{flex-shrink:0;display:none;flex-direction:column;gap:8px}
-  .room-scene.on{display:flex}
-  .room-img{width:100%;max-height:150px;object-fit:cover;border:1.5px solid var(--rule);border-radius:10px;display:none}
-  .room-note{display:none;background:rgba(166,50,29,.08);border:1px solid var(--edge);border-left:4px solid var(--red);border-radius:8px;padding:8px 12px;color:var(--ink);font-size:14px;line-height:1.4}
-  .room-note .rn-k{display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);margin-bottom:3px}
-  .room-note .rn-t{white-space:pre-wrap}
-  .room-grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 208px;gap:14px}
-  @media(max-width:760px){.room-grid{grid-template-columns:1fr}.who{display:none}}
+  .meteo-chip{margin-left:auto;display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border:1px solid var(--edge);border-radius:20px;background:rgba(255,250,235,.55);font-family:'Cinzel',serif;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);white-space:nowrap}
+  .meteo-chip .mt-ic{display:inline-flex}
+  .meteo-chip svg{width:16px;height:16px;flex-shrink:0}
+  .meteo-chip .mt-temp{color:var(--ink-soft)}
+  .meteo-chip.mt-none{display:none}
+  @media(max-width:720px){.meteo-chip{font-size:9px;padding:4px 9px}}
+  .room-grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 274px;gap:14px}
+  .room-side{min-height:0;display:flex;flex-direction:column;gap:12px}
+  .side-card{border:1px solid var(--rule);border-radius:12px;background:rgba(247,238,214,.5);padding:11px 12px;display:flex;flex-direction:column;min-height:0}
+  .side-k{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);margin-bottom:8px}
+  .side-card.place{flex:0 0 auto}
+  .place-img{width:100%;max-height:158px;object-fit:cover;border:1.5px solid var(--rule);border-radius:9px;display:none;margin-bottom:9px}
+  .place-desc{font-style:italic;color:var(--ink);font-size:14px;line-height:1.45;margin:0}
+  .place-desc:empty{display:none}
+  .place-note{display:none;margin-top:9px;background:rgba(166,50,29,.08);border:1px solid var(--edge);border-left:4px solid var(--red);border-radius:8px;padding:7px 10px;color:var(--ink);font-size:13px;line-height:1.4}
+  .place-note .rn-k{display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);margin-bottom:3px}
+  .place-note .rn-t{white-space:pre-wrap}
+  .side-card.who{flex:1 1 auto;min-height:56px}
+  @media(max-width:760px){
+    .room-grid{display:flex;flex-direction:column}
+    .room-side{flex-direction:row;gap:10px;order:-1}
+    .side-card.who{display:none}
+    .side-card.place{flex:1;flex-direction:row;align-items:flex-start;gap:10px}
+    .side-k{display:none}
+    .place-img{width:116px;max-height:78px;margin:0;flex-shrink:0}
+    .place-note{display:none!important}
+  }
   .chat{min-height:0;display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:12px;background:rgba(247,238,214,.5);overflow:hidden}
   .msgs{flex:1;min-height:0;overflow-y:auto;padding:12px 15px;display:flex;flex-direction:column;gap:11px}
   .msg .m-who{font-family:'Cinzel',serif;font-weight:600;font-size:12.5px;color:var(--red-deep)}
@@ -158,12 +183,10 @@
   .btn-send{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--red);color:#f6ead0;border:1px solid var(--red-deep);border-radius:7px;padding:9px 22px;cursor:pointer}
   .btn-send:hover{background:var(--red-deep)}
   .btn-send:disabled{opacity:.5;cursor:default}
-  .who{min-height:0;border:1px solid var(--rule);border-radius:12px;background:rgba(247,238,214,.5);padding:12px;display:flex;flex-direction:column}
-  .who h3{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);margin:0 0 9px}
-  .who-list{overflow-y:auto;display:flex;flex-direction:column;gap:7px}
-  .who-item{display:flex;align-items:center;gap:8px;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)}
+  .who-list{overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+  .who-item{display:flex;align-items:center;gap:8px;font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink)}
   .who-dot{width:7px;height:7px;border-radius:50%;background:#3c8a3c;flex-shrink:0}
-  .who-empty{color:var(--ink-soft);font-style:italic;font-size:13.5px}
+  .who-empty{color:var(--ink-soft);font-style:italic;font-size:13px}
   /* #6 sintassi parlato/azione */
   .msg .m-body .sp-say{color:var(--red-deep)}
   .msg .m-body .sp-act{font-style:italic;color:var(--ink-soft)}
@@ -180,6 +203,7 @@
         <div class="tb-brand">
           <span id="bijuu-logo"></span>
           <span class="tb-name">The Untold Story</span>
+          <span class="dnchip" id="daynight" title="Ora di gioco"></span>
         </div>
         <nav class="tb-nav">
           <span class="tb-btn on">Mappa</span>
@@ -222,11 +246,7 @@
           <div class="room-top">
             <button class="tb-btn" id="room-back" type="button">← Mappa</button>
             <div class="room-title"><h2 id="room-name"></h2><div class="rk" id="room-kind"></div></div>
-          </div>
-          <p class="room-desc" id="room-desc"></p>
-          <div class="room-scene" id="room-scene">
-            <img class="room-img" id="room-img" alt="">
-            <div class="room-note" id="room-note"></div>
+            <div class="meteo-chip mt-none" id="room-meteo"></div>
           </div>
           <div class="room-grid">
             <section class="chat">
@@ -236,9 +256,17 @@
                 <div class="composer-row"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*</span><div class="composer-tools"><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
               </div>
             </section>
-            <aside class="who">
-              <h3>Presenti</h3>
-              <div id="who-list" class="who-list"></div>
+            <aside class="room-side">
+              <div class="side-card place" id="room-place">
+                <div class="side-k">Il luogo</div>
+                <img class="place-img" id="room-img" alt="">
+                <p class="place-desc" id="room-desc"></p>
+                <div class="place-note" id="room-note"></div>
+              </div>
+              <div class="side-card who">
+                <div class="side-k">Presenti</div>
+                <div id="who-list" class="who-list"></div>
+              </div>
             </aside>
           </div>
         </div>
@@ -318,13 +346,37 @@
     }
     if(sb){ ping(); setInterval(ping,60000); document.addEventListener('visibilitychange',function(){ if(!document.hidden) ping(); }); }
 
+    /* ---- CICLO GIORNO/NOTTE (ora reale, fuso Italia uguale per tutti) ---- */
+    (function(){
+      var chip=document.getElementById('daynight'); if(!chip) return;
+      var SUN='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.4" fill="currentColor"/><g stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.1 5.1l1.8 1.8M17.1 17.1l1.8 1.8M18.9 5.1l-1.8 1.8M6.9 17.1l-1.8 1.8"/></g></svg>';
+      var MOON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.8A8.2 8.2 0 1 1 9.2 3.5a6.4 6.4 0 0 0 11.3 11.3z" fill="currentColor"/></svg>';
+      function romeNow(){
+        try{ return new Intl.DateTimeFormat('it-IT',{timeZone:'Europe/Rome',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date()); }
+        catch(e){ var d=new Date(); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
+      }
+      function phase(h){
+        if(h>=5&&h<8)   return {k:'alba',t:'Alba',moon:false};
+        if(h>=8&&h<19)  return {k:'giorno',t:'Giorno',moon:false};
+        if(h>=19&&h<22) return {k:'tramonto',t:'Tramonto',moon:false};
+        return {k:'notte',t:'Notte',moon:true};
+      }
+      function tick(){
+        var hm=romeNow(); var h=parseInt(hm.slice(0,2),10)||0; var p=phase(h);
+        chip.className='dnchip dn-'+p.k;
+        chip.innerHTML=(p.moon?MOON:SUN)+'<span class="dn-t">'+p.t+'</span><span class="dn-h">'+hm+'</span>';
+        chip.setAttribute('title','Ora di gioco (Italia): '+hm);
+      }
+      tick(); setInterval(tick,60000);
+    })();
+
     /* ---- CHAT / LUOGHI ---- */
     (function(){
       var mapView=document.getElementById('map-view'), roomView=document.getElementById('room-view');
       var lgList=document.getElementById('lg-list');
       var msgsEl=document.getElementById('msgs'), whoEl=document.getElementById('who-list');
       var input=document.getElementById('msg-input'), sendBtn=document.getElementById('msg-send'), countEl=document.getElementById('msg-count');
-      var nameEl=document.getElementById('room-name'), kindEl=document.getElementById('room-kind'), descEl=document.getElementById('room-desc');
+      var nameEl=document.getElementById('room-name'), kindEl=document.getElementById('room-kind'), descEl=document.getElementById('room-desc'), meteoEl=document.getElementById('room-meteo');
       var backBtn=document.getElementById('room-back');
       var LOCS=[], cur=null, poll=null, loggedIn=false;
       function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -335,6 +387,57 @@
         return t; }
       function fmt(iso){ try{ var d=new Date(iso); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }catch(e){ return ''; } }
       function showView(which){ mapView.classList.toggle('on', which==='map'); roomView.classList.toggle('on', which==='room'); }
+
+      /* ---- METEO per villaggio: condizione deterministica dal tempo (uguale per tutti) ---- */
+      var W_SUN='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.2 5.2l1.7 1.7M17.1 17.1l1.7 1.7M18.8 5.2l-1.7 1.7M6.9 17.1l-1.7 1.7"/></g></svg>';
+      var W_MOON='<svg viewBox="0 0 24 24"><path d="M20.5 14.8A8.2 8.2 0 1 1 9.2 3.5a6.4 6.4 0 0 0 11.3 11.3z" fill="currentColor"/></svg>';
+      var W_CLOUD='<svg viewBox="0 0 24 24"><path d="M7 18h9.5a3.7 3.7 0 0 0 .4-7.38A5.2 5.2 0 0 0 6.6 9.2 3.8 3.8 0 0 0 7 18z" fill="currentColor"/></svg>';
+      var W_CLOUDSUN='<svg viewBox="0 0 24 24"><circle cx="8.5" cy="8" r="3" fill="currentColor"/><g stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M8.5 2.6v1.8M2.6 8h1.8M4.3 3.8l1.2 1.2M13.9 3.8l-1.2 1.2"/></g><path d="M8 19h8.2a3.4 3.4 0 0 0 .3-6.78A4.8 4.8 0 0 0 7.4 11 3.5 3.5 0 0 0 8 19z" fill="currentColor"/></svg>';
+      var W_RAIN='<svg viewBox="0 0 24 24"><path d="M7 15h9.5a3.7 3.7 0 0 0 .4-7.38A5.2 5.2 0 0 0 6.6 6.2 3.8 3.8 0 0 0 7 15z" fill="currentColor"/><g stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8.5 18l-1 2.2M12.2 18l-1 2.2M15.9 18l-1 2.2"/></g></svg>';
+      var W_STORM='<svg viewBox="0 0 24 24"><path d="M7 15h9.5a3.7 3.7 0 0 0 .4-7.38A5.2 5.2 0 0 0 6.6 6.2 3.8 3.8 0 0 0 7 15z" fill="currentColor"/><path d="M12.4 15l-3 4.2h2.2l-1 3.2 3.8-4.9h-2.2l1.1-2.5z" fill="#e0a92e"/></svg>';
+      var W_MIST='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8.5h16M4 12h16M5 15.5h11"/></svg>';
+      var W_WIND='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h9a2.4 2.4 0 1 0-2.4-2.4"/><path d="M3 12h13a2.5 2.5 0 1 1-2.5 2.5"/><path d="M3 16h7"/></svg>';
+      var W_SAND='<svg viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 7.5h9a2.3 2.3 0 1 0-2.3-2.3"/><path d="M3 11.5h12.5a2.4 2.4 0 1 1-2.4 2.4"/><path d="M3 15.5h7"/></g><g fill="currentColor"><circle cx="6" cy="19.5" r="1.05"/><circle cx="11" cy="20" r="1.05"/><circle cx="16" cy="19.5" r="1.05"/></g></svg>';
+      var W_GOLD='#d99a1e', W_SLATE='#6b7385', W_BLUE='#4a6a86', W_SAGE='#7d8a7a', W_KHAKI='#8a8452', W_SAND='#c0853a';
+      var CLIMA={
+        konoha:{ nome:'Konoha', stati:[
+            {k:'sereno',clear:true,w:34,day:'Sereno',night:'Notte serena'},
+            {k:'poco',ic:W_CLOUDSUN,col:W_SLATE,w:22,t:'Poco nuvoloso'},
+            {k:'nuvoloso',ic:W_CLOUD,col:W_SLATE,w:16,t:'Nuvoloso'},
+            {k:'pioggia',ic:W_RAIN,col:W_BLUE,w:16,t:'Pioggia'},
+            {k:'temporale',ic:W_STORM,col:W_BLUE,w:5,t:'Temporale'},
+            {k:'umido',ic:W_MIST,col:W_SAGE,w:7,t:'Afa umida'} ],
+          temp:function(ph){ return ph==='notte'?'mite':(ph==='giorno'?'caldo':'tiepido'); } },
+        suna:{ nome:'Suna', stati:[
+            {k:'sole',clear:true,w:40,day:'Sole intenso',night:'Notte limpida'},
+            {k:'terso',clear:true,w:20,day:'Cielo terso',night:'Cielo stellato'},
+            {k:'vento',ic:W_WIND,col:W_KHAKI,w:18,t:'Vento secco'},
+            {k:'sabbia',ic:W_SAND,col:W_SAND,w:18,t:'Tempesta di sabbia'},
+            {k:'foschia',ic:W_MIST,col:W_SAGE,w:4,t:'Foschia calda'} ],
+          temp:function(ph){ return ph==='notte'?'freddo':(ph==='giorno'?'torrido':'caldo'); } }
+      };
+      function romeYMDH(){
+        try{ var ps=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Rome',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hour12:false}).formatToParts(new Date()); var o={}; ps.forEach(function(x){o[x.type]=x.value;}); return {y:o.year,m:o.month,d:o.day,h:(parseInt(o.hour,10)||0)}; }
+        catch(e){ var dt=new Date(); return {y:''+dt.getFullYear(),m:''+(dt.getMonth()+1),d:''+dt.getDate(),h:dt.getHours()}; }
+      }
+      function phaseOf(h){ if(h>=5&&h<8)return'alba'; if(h>=8&&h<19)return'giorno'; if(h>=19&&h<22)return'tramonto'; return'notte'; }
+      function hashStr(str){ var h=2166136261; for(var i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0); }
+      function pickWeather(region,seed){ var prof=CLIMA[region]; if(!prof)return null; var tot=0,i; for(i=0;i<prof.stati.length;i++)tot+=prof.stati[i].w; var r=hashStr(region+'|'+seed)%tot; for(i=0;i<prof.stati.length;i++){ r-=prof.stati[i].w; if(r<0)return prof.stati[i]; } return prof.stati[0]; }
+      function updateMeteo(){
+        if(!meteoEl) return;
+        var region=(cur&&cur.region)?(''+cur.region).toLowerCase():'';
+        var prof=CLIMA[region];
+        if(!prof){ meteoEl.className='meteo-chip mt-none'; meteoEl.innerHTML=''; return; }
+        var t=romeYMDH(); var ph=phaseOf(t.h); var block=Math.floor(t.h/3);
+        var st=pickWeather(region, t.y+'-'+t.m+'-'+t.d+'#'+block);
+        var isNight=(ph==='notte'); var ic,col,label;
+        if(st.clear){ ic=isNight?W_MOON:W_SUN; col=isNight?W_SLATE:W_GOLD; label=isNight?st.night:st.day; }
+        else { ic=st.ic; col=st.col; label=st.t; }
+        var temp=prof.temp(ph);
+        meteoEl.className='meteo-chip';
+        meteoEl.innerHTML='<span class="mt-ic" style="color:'+col+'">'+ic+'</span><span class="mt-t">'+label+'</span><span class="mt-temp">· '+temp+'</span>';
+        meteoEl.setAttribute('title', prof.nome+' — '+label+', clima '+temp);
+      }
 
       function renderLuoghi(){
         if(!loggedIn){ lgList.innerHTML='<span class="login-note">Accedi al tuo account per entrare nei luoghi e giocare. <a href="entra.html#accedi">Accedi</a></span>'; return; }
@@ -348,7 +451,7 @@
       }
       function loadLuoghi(){
         if(!sb||!loggedIn) return;
-        sb.from('locations').select('id,name,kind,description,image_url,event_note').eq('is_active',true).order('sort').then(function(r){
+        sb.from('locations').select('id,name,kind,description,image_url,event_note,region').eq('is_active',true).order('sort').then(function(r){
           if(r&&!r.error){ LOCS=r.data||[]; renderLuoghi(); }
         }, function(){});
       }
@@ -377,14 +480,13 @@
         if(!sb||!cur) return;
         sb.rpc('who_here',{p_location:cur.id,p_minutes:8}).then(function(r){ if(r&&!r.error) renderWho(r.data); }, function(){});
       }
-      function refreshRoom(){ if(!cur) return; sb.rpc('enter_location',{p_location:cur.id}).then(function(){},function(){}); loadMsgs(); loadWho(); }
+      function refreshRoom(){ if(!cur) return; updateMeteo(); sb.rpc('enter_location',{p_location:cur.id}).then(function(){},function(){}); loadMsgs(); loadWho(); }
       function openRoom(l){
         cur=l; showView('room');
         nameEl.textContent=l.name; kindEl.textContent=l.kind||''; descEl.textContent=l.description||'';
-        var sc=document.getElementById('room-scene'), im=document.getElementById('room-img'), nt=document.getElementById('room-note');
+        var im=document.getElementById('room-img'), nt=document.getElementById('room-note');
         if(im){ if(l.image_url){ im.src=l.image_url; im.style.display='block'; } else { im.removeAttribute('src'); im.style.display='none'; } }
         if(nt){ if(l.event_note){ nt.innerHTML='<span class="rn-k">Nota evento</span><span class="rn-t">'+esc(l.event_note)+'</span>'; nt.style.display='block'; } else { nt.style.display='none'; nt.innerHTML=''; } }
-        if(sc){ sc.classList.toggle('on', !!(l.image_url||l.event_note)); }
         msgsEl.innerHTML='<div class="msgs-empty">Caricamento…</div>'; whoEl.innerHTML='';
         refreshRoom();
         if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
