@@ -459,6 +459,24 @@
       function phaseOf(h){ if(h>=5&&h<8)return'alba'; if(h>=8&&h<19)return'giorno'; if(h>=19&&h<22)return'tramonto'; return'notte'; }
       function hashStr(str){ var h=2166136261; for(var i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0); }
       function pickWeather(region,seed){ var prof=CLIMA[region]; if(!prof)return null; var tot=0,i; for(i=0;i<prof.stati.length;i++)tot+=prof.stati[i].w; var r=hashStr(region+'|'+seed)%tot; for(i=0;i<prof.stati.length;i++){ r-=prof.stati[i].w; if(r<0)return prof.stati[i]; } return prof.stati[0]; }
+      /* temperatura in °C: media di villaggio + ciclo stagionale annuale + escursione giorno/notte + offset meteo (deterministico) */
+      var TEMPPAR={
+        konoha:{ mean:13, amp:9, diurnal:{alba:-1,giorno:4,tramonto:0,notte:-5} },
+        suna:{ mean:23, amp:8, diurnal:{alba:-3,giorno:9,tramonto:0,notte:-13} }
+      };
+      var WEATHER_DT={ sereno:2, sole:2, terso:2, poco:0, nuvoloso:-2, pioggia:-4, temporale:-5, umido:1, vento:-1, sabbia:0, foschia:2 };
+      function dayOfYear(y,m,d){ var cum=[0,31,59,90,120,151,181,212,243,273,304,334]; var mm=(m|0); var n=cum[(mm-1)%12]+(d|0); var yy=(y|0); var leap=((yy%4===0&&yy%100!==0)||yy%400===0); if(leap&&mm>2)n+=1; return n; }
+      function tempWord(c){ if(c<=-1)return'gelido'; if(c<=7)return'freddo'; if(c<=14)return'fresco'; if(c<=21)return'mite'; if(c<=28)return'caldo'; if(c<=35)return'molto caldo'; return'torrido'; }
+      function tempC(region,t,ph,stKey){
+        var P=TEMPPAR[region]; if(!P) return null;
+        var doy=dayOfYear(t.y,t.m,t.d);
+        var seasonal=Math.cos(2*Math.PI*(doy-202)/365);   // picco ~ 21 luglio, minimo ~ gennaio
+        var base=P.mean + P.amp*seasonal;
+        base += (P.diurnal[ph]||0);
+        base += (WEATHER_DT[stKey]||0);
+        base += (hashStr(region+'|'+t.y+'-'+t.m+'-'+t.d)%5) - 2;  // piccola variazione giornaliera ±2, uguale per tutti
+        return Math.round(base);
+      }
       function updateMeteo(){
         if(!meteoEl) return;
         var region=(cur&&cur.region)?(''+cur.region).toLowerCase():'';
@@ -469,10 +487,11 @@
         var isNight=(ph==='notte'); var ic,col,label;
         if(st.clear){ ic=isNight?W_MOON:W_SUN; col=isNight?W_SLATE:W_GOLD; label=isNight?st.night:st.day; }
         else { ic=st.ic; col=st.col; label=st.t; }
-        var temp=prof.temp(ph);
+        var degc=tempC(region, t, ph, st.k);
+        var word=(degc!=null)?tempWord(degc):prof.temp(ph);
         meteoEl.className='meteo-chip';
-        meteoEl.innerHTML='<span class="mt-ic" style="color:'+col+'">'+ic+'</span><span class="mt-t">'+label+'</span><span class="mt-temp">· '+temp+'</span>';
-        meteoEl.setAttribute('title', prof.nome+' — '+label+', clima '+temp);
+        meteoEl.innerHTML='<span class="mt-ic" style="color:'+col+'">'+ic+'</span><span class="mt-t">'+label+'</span><span class="mt-temp">· '+(degc!=null?degc+'°C':word)+'</span>';
+        meteoEl.setAttribute('title', prof.nome+' — '+label+', '+(degc!=null?(degc+'°C ('+word+')'):word));
       }
 
       function renderLuoghi(){

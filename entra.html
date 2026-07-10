@@ -230,7 +230,13 @@
         try {
           if (window.PasswordCredential){ var cred = new window.PasswordCredential({ id: name, password: pass, name: name }); await navigator.credentials.store(cred); }
         } catch(e){}
-        await refresh();
+        // entra direttamente: land se hai già un personaggio, altrimenti scheda per crearlo
+        var uid = null;
+        try { var sess = await sb.auth.getSession(); uid = (sess.data && sess.data.session && sess.data.session.user) ? sess.data.session.user.id : null; } catch(e){}
+        var hasChar = false;
+        if (uid){ try { var cc = await sb.from('characters').select('id').eq('user_id', uid).maybeSingle(); hasChar = !!(cc && cc.data && cc.data.id); } catch(e){} }
+        location.href = hasChar ? 'land.html' : 'scheda.html';
+        return;
       } catch(err){
         show('err','Nome o password non corretti.');
       } finally { $('l-btn').disabled=false; $('l-btn').textContent='Accedi'; }
