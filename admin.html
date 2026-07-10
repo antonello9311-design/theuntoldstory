@@ -123,6 +123,13 @@
             <h1>Pannello di gestione</h1>
             <p class="mgr-note">Carica un'immagine per ogni villaggio e clan: comparirà in automatico su tutte le schede. Consigliato un <b>PNG quadrato con sfondo trasparente</b> (~256×256, sotto 2&nbsp;MB). Le immagini che carichi sono di tua scelta e responsabilità.</p>
           </div>
+          <div class="grp-title">Banda notizie (mappa)</div>
+          <p class="mgr-note">La "notizia flash" scorre in cima alla mappa della land. Scrivi l'avvenimento più importante del momento; lascia il campo vuoto per nasconderla.</p>
+          <div class="cat-form">
+            <label class="full">Testo della banda<textarea id="flash-input" maxlength="300" rows="2" placeholder="Es. Konoha è in stato d'allerta: chiunque avvisti i disertori avverta subito i Jonin."></textarea></label>
+          </div>
+          <div class="cat-actions"><button class="btn btn-red" id="flash-save">Salva banda</button><span id="flash-note" class="editing-note"></span></div>
+
           <div class="grp-title">Villaggi</div>
           <div class="emgrid" id="grid-village"></div>
           <div class="grp-title">Clan</div>
@@ -401,6 +408,20 @@
       });
     }
 
+    /* ---- Banda notizie ---- */
+    async function loadFlash(){ if(!sb) return; var r=await sb.from('app_settings').select('value').eq('key','flash_news').maybeSingle(); var el=$('flash-input'); if(el) el.value=(r&&r.data&&r.data.value)||''; }
+    function bindFlash(){
+      var b=$('flash-save'); if(!b) return;
+      b.addEventListener('click', async function(){
+        var v=$('flash-input').value.trim(); this.disabled=true;
+        var r=await sb.from('app_settings').upsert({key:'flash_news',value:v,updated_at:new Date().toISOString()}).select();
+        this.disabled=false;
+        if(r.error){toast('Errore nel salvataggio',true);return;}
+        var nt=$('flash-note'); if(nt){ nt.textContent=v?'Banda aggiornata':'Banda nascosta (campo vuoto)'; setTimeout(function(){nt.textContent='';},3000); }
+        toast(v?'Banda notizie aggiornata':'Banda notizie svuotata');
+      });
+    }
+
     /* ---- Bacheche ---- */
     var BOARDS=[], editingBoard=null, delArmB=null;
     function resetBoardForm(){editingBoard=null;$('board-name').value='';$('board-cat').value='ongame';$('board-wr').value='all';$('board-sort').value='';$('board-desc').value='';$('board-active').checked=true;$('board-reset').style.display='none';$('board-editing').textContent='';$('board-save').textContent='Salva bacheca';}
@@ -482,7 +503,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      renderGrids();await loadItems();bindCatalog();bindLocs();await loadLocs();bindBoards();await loadBoards();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);show('st-mgr');
+      renderGrids();await loadItems();bindCatalog();bindLocs();await loadLocs();bindBoards();await loadBoards();bindFlash();await loadFlash();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
