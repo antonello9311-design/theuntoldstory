@@ -171,8 +171,22 @@
   }
   .chat{min-height:0;display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:12px;background:rgba(247,238,214,.5);overflow:hidden}
   .msgs{flex:1;min-height:0;overflow-y:auto;padding:12px 15px;display:flex;flex-direction:column;gap:11px}
-  .msg .m-who{font-family:'Cinzel',serif;font-weight:600;font-size:12.5px;color:var(--red-deep)}
-  .msg .m-time{font-size:10px;color:var(--ink-soft);margin-left:7px;letter-spacing:.03em}
+  .msg{display:flex;gap:11px;align-items:flex-start}
+  .m-ava{width:42px;height:42px;border-radius:8px;flex-shrink:0;overflow:hidden;border:1px solid var(--edge);background:rgba(255,250,235,.6);display:flex;align-items:center;justify-content:center;text-decoration:none}
+  .m-ava img{width:100%;height:100%;object-fit:cover}
+  .m-ava .ava-ph{font-family:'Cinzel',serif;font-size:18px;color:var(--red-deep)}
+  .m-main{flex:1;min-width:0}
+  .m-head{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .msg .m-who{font-family:'Cinzel',serif;font-weight:600;font-size:13px;color:var(--red-deep);text-decoration:none}
+  a.m-who:hover{text-decoration:underline}
+  .m-sex{width:13px;height:13px;flex-shrink:0}
+  .m-rank{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--ink-soft)}
+  .m-rank .rb{width:16px;height:16px;flex-shrink:0;display:inline-flex}
+  .m-rank .rb svg{width:100%;height:100%}
+  .m-clan{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--ink-soft)}
+  .m-clan img{width:14px;height:14px;object-fit:contain;flex-shrink:0}
+  .m-epi{font-style:italic;color:var(--red-deep);font-size:12px}
+  .msg .m-time{font-size:10px;color:var(--ink-soft);margin-left:auto;letter-spacing:.03em}
   .msg .m-body{font-size:15px;line-height:1.5;color:var(--ink);white-space:pre-wrap;margin-top:3px}
   .msg+.msg{border-top:1px dashed var(--edge);padding-top:11px}
   .msgs-empty{margin:auto;color:var(--ink-soft);font-style:italic;text-align:center}
@@ -236,7 +250,7 @@
       <header class="topbar">
         <div class="tb-brand">
           <span id="bijuu-logo"></span>
-          <span class="tb-name">The Untold Story</span>
+          <span class="tb-name" id="brand-map" title="Torna alla mappa" style="cursor:pointer">The Untold Story</span>
           <span class="dnchip" id="daynight" title="Ora di gioco"></span>
         </div>
         <nav class="tb-nav">
@@ -414,7 +428,7 @@
       var toSel=document.getElementById('msg-to'), diceBtn=document.getElementById('dice-btn'), objBtn=document.getElementById('obj-btn');
       var nameEl=document.getElementById('room-name'), kindEl=document.getElementById('room-kind'), descEl=document.getElementById('room-desc'), meteoEl=document.getElementById('room-meteo');
       var backBtn=document.getElementById('room-back');
-      var LOCS=[], cur=null, poll=null, loggedIn=false, myId=null, myCharId=null;
+      var LOCS=[], cur=null, poll=null, loggedIn=false, myId=null, myCharId=null, EMB={};
       function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
       function fmtBody(s){ var t=esc(s);
         t=t.replace(/&quot;([\s\S]*?)&quot;/g,'<span class="sp-say">&quot;$1&quot;</span>');
@@ -507,12 +521,20 @@
       function loadLuoghi(){
         if(!sb||!loggedIn) return;
         sb.from('locations').select('id,name,kind,description,image_url,event_note,region').eq('is_active',true).order('sort').then(function(r){
-          if(r&&!r.error){ LOCS=r.data||[]; renderLuoghi(); }
+          if(r&&!r.error){ LOCS=r.data||[]; renderLuoghi(); tryResume(); }
         }, function(){});
       }
       var DIE='<svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>';
       var LOCK='<svg class="lk" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="9.5" rx="2" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="1.9"/></svg>';
       var ITEM='<svg class="it" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+      var SEX_M='<svg class="m-sex" viewBox="0 0 24 24"><circle cx="10" cy="14" r="5.5" fill="none" stroke="#2f6fb0" stroke-width="2.2"/><path d="M14.5 9.5 L21 3 M15.5 3 h5.5 v5.5" fill="none" stroke="#2f6fb0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      var SEX_F='<svg class="m-sex" viewBox="0 0 24 24"><circle cx="12" cy="9" r="5.5" fill="none" stroke="#cf5aa0" stroke-width="2.2"/><path d="M12 14.5 v7 M8.5 18 h7" fill="none" stroke="#cf5aa0" stroke-width="2.2" stroke-linecap="round"/></svg>';
+      var RSTAR='<svg viewBox="0 0 24 24"><path d="M12 3 l2.5 6 6.4 .5 -4.9 4.2 1.6 6.3 -5.6 -3.5 -5.6 3.5 1.6 -6.3 -4.9 -4.2 6.4 -.5 Z" fill="#c9a233"/></svg>';
+      function rChev(n){var s2='';for(var i=0;i<n;i++){var y=8+i*5.4;s2+='<path d="M6 '+(y+4)+' l6 -4.4 l6 4.4" fill="none" stroke="#3a2a12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';}return '<svg viewBox="0 0 24 24">'+s2+'</svg>';}
+      function rankBadge(r){ if(!r)return''; var inner; if(r==='Deshi')inner='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="none" stroke="#3a2a12" stroke-width="2"/></svg>'; else if(r==='Kage / Sannin')inner=RSTAR; else{var n=r==='Genin'?1:r==='Chunin'?2:3;inner=rChev(n);if(r==='Jonin Speciale')inner=inner.replace('<svg viewBox="0 0 24 24">','<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7" fill="#a6321d"/>');} return '<span class="rb">'+inner+'</span>'; }
+      function avatarHTML(c,name,cid){ var inner=(c&&c.avatar_url)?('<img src="'+esc(c.avatar_url)+'" alt="">'):('<span class="ava-ph">'+esc((name||'?').charAt(0).toUpperCase())+'</span>'); return cid?('<a class="m-ava" href="scheda.html?id='+esc(cid)+'" title="Apri la scheda di '+esc(name)+'">'+inner+'</a>'):('<span class="m-ava">'+inner+'</span>'); }
+      function identityHTML(c,name,cid,created){ var sx=c&&c.sex; var sexIc=(sx==='Maschio')?SEX_M:((sx==='Femmina')?SEX_F:''); var wo=cid?('<a class="m-who" href="scheda.html?id='+esc(cid)+'">'):'<span class="m-who">'; var wc=cid?'</a>':'</span>'; var rk=c&&c.rank; var rankH=rk?('<span class="m-rank">'+rankBadge(rk)+esc(rk)+'</span>'):''; var cl=(c&&c.clan&&c.clan!=='Nessuno')?c.clan:''; var clanImg=(cl&&EMB[cl])?('<img src="'+esc(EMB[cl])+'" alt="">'):''; var clanH=cl?('<span class="m-clan">'+clanImg+esc(cl)+'</span>'):''; var ep=c&&c.epithet; var epiH=ep?('<span class="m-epi">«'+esc(ep)+'»</span>'):''; return '<div class="m-head">'+wo+esc(name)+wc+sexIc+rankH+clanH+epiH+'<span class="m-time">'+fmt(created)+'</span></div>'; }
+      function loadEmblems(){ if(!sb) return; sb.from('emblems').select('name,image_url').eq('kind','clan').then(function(r){ if(r&&!r.error){ (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.name]=e.image_url; }); } }, function(){}); }
       function renderMsgs(rows){
         rows=rows||[];
         if(!rows.length){ msgsEl.innerHTML='<div class="msgs-empty">Ancora nessun messaggio qui. Scrivi il primo turno.</div>'; return; }
@@ -530,13 +552,14 @@
             else dir='<b>'+esc(m.author_name)+'</b> → <b>'+esc(m.recipient_name||'?')+'</b>';
             return '<div class="msg-whisper"><div class="wsp-head"><span class="wsp-k">'+LOCK+'sussurro '+dir+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="m-body">'+fmtBody(m.body)+'</div></div>';
           }
-          return '<div class="msg"><div><span class="m-who">'+esc(m.author_name)+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="m-body">'+fmtBody(m.body)+'</div></div>';
+          var c=m.character; var nm=(c&&c.name)||m.author_name||'—'; var cid=c&&c.id;
+          return '<div class="msg">'+avatarHTML(c,nm,cid)+'<div class="m-main">'+identityHTML(c,nm,cid,m.created_at)+'<div class="m-body">'+fmtBody(m.body)+'</div></div></div>';
         }).join('');
         msgsEl.scrollTop=msgsEl.scrollHeight;
       }
       function loadMsgs(){
         if(!sb||!cur) return;
-        sb.from('messages').select('author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user').eq('location_id',cur.id).order('created_at',{ascending:true}).limit(300).then(function(r){
+        sb.from('messages').select('author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user,character:characters(id,name,avatar_url,sex,rank,clan,epithet)').eq('location_id',cur.id).order('created_at',{ascending:true}).limit(300).then(function(r){
           if(r&&!r.error) renderMsgs(r.data);
         }, function(){});
       }
@@ -579,8 +602,12 @@
         refreshRoom();
         if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
       }
-      function leaveRoom(){ if(poll){ clearInterval(poll); poll=null; } cur=null; showView('map'); loadLuoghi(); }
+      function leaveRoom(){ if(poll){ clearInterval(poll); poll=null; } cur=null; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
+      function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
+      function tryResume(){ try{ var raw=sessionStorage.getItem('tus_land_resume'); if(!raw) return; sessionStorage.removeItem('tus_land_resume'); var d=JSON.parse(raw); if(!d||!d.room) return; if(d.ts&&(Date.now()-d.ts)>1800000) return; var l=LOCS.filter(function(x){return x.id===d.room;})[0]; if(l){ openRoom(l); if(input){ input.value=d.text||''; updCount(); } } }catch(e){} }
+      window.addEventListener('pagehide', saveResume);
+      var brandMap=document.getElementById('brand-map'); if(brandMap){ brandMap.addEventListener('click', function(){ leaveRoom(); }); }
       function send(){
         var t=(input.value||'').replace(/\s+$/,''); if(!t.trim()||!cur||!sb) return;
         var to=toSel?toSel.value:'';
@@ -628,6 +655,7 @@
           loggedIn=!!(res&&res.data&&res.data.session);
           myId=(loggedIn&&res.data.session.user)?res.data.session.user.id:null;
           if(myId){ sb.from('characters').select('id').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data) myCharId=cr.data.id; }, function(){}); }
+          loadEmblems();
           renderLuoghi(); if(loggedIn) loadLuoghi();
         }, function(){ loggedIn=false; renderLuoghi(); });
       } else { renderLuoghi(); }
