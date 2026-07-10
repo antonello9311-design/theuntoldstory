@@ -137,20 +137,31 @@
   .view{flex:1;min-height:0;display:none;flex-direction:column;gap:12px}
   .view.on{display:flex}
   #map-view .mapframe{flex:1;min-height:0;width:100%;max-width:1040px;margin:0 auto;aspect-ratio:auto}
+  .map-cols{flex:1;min-height:0;display:flex;gap:14px}
+  .map-side{flex:0 0 clamp(240px,24%,320px);min-height:0;display:flex;flex-direction:column}
+  .map-main{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px}
   .luoghi{flex-shrink:0;border:1px solid var(--rule);border-radius:12px;background:linear-gradient(rgba(247,238,214,.92),rgba(233,219,178,.86));padding:10px 12px;box-shadow:0 6px 18px rgba(60,42,18,.14)}
   .lg-head{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-deep);margin-bottom:8px}
   .lg-list{display:flex;gap:8px;overflow-x:auto;padding-bottom:3px;min-height:24px}
-  .activity{flex-shrink:0;border:1px solid var(--rule);border-radius:12px;background:linear-gradient(rgba(247,238,214,.92),rgba(233,219,178,.86));padding:10px 12px;box-shadow:0 6px 18px rgba(60,42,18,.14)}
+  .activity{flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:12px;background:linear-gradient(rgba(247,238,214,.92),rgba(233,219,178,.86));padding:10px 12px;box-shadow:0 6px 18px rgba(60,42,18,.14)}
   .ac-head{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-deep);margin-bottom:6px}
   .ac-hint{color:var(--ink-soft);font-weight:400;text-transform:none;letter-spacing:0;font-size:12px}
-  .ac-list{display:flex;flex-direction:column;gap:2px;max-height:128px;overflow-y:auto}
-  .ac-row{display:flex;align-items:baseline;gap:8px;font-family:'Cormorant Garamond',serif;font-size:14.5px;color:var(--ink);padding:2px 1px;border-bottom:1px dotted rgba(138,111,67,.28)}
+  .ac-list{display:flex;flex-direction:column;gap:2px;flex:1;min-height:0;overflow-y:auto}
+  .ac-row{display:flex;align-items:baseline;gap:8px;font-family:'Cormorant Garamond',serif;font-size:14.5px;color:var(--ink);padding:3px 1px;border-bottom:1px dotted rgba(138,111,67,.28);line-height:1.32}
+  .ac-txt{flex:1;min-width:0}
   .ac-row:last-child{border-bottom:none}
   .ac-row b{color:var(--ink);font-weight:600}
   .ac-row i{color:var(--red-deep);font-style:normal}
   .ac-in{color:#3c8a3c;font-weight:700}
   .ac-out{color:#8a6f43;font-weight:700}
   .ac-t{margin-left:auto;white-space:nowrap;color:var(--ink-soft);font-size:12px;font-style:italic}
+  @media(max-width:860px){
+    .map-cols{flex-direction:column}
+    .map-main{order:1}
+    .map-side{order:2;flex:0 0 auto}
+    .activity{flex:0 0 auto}
+    .ac-list{flex:none;max-height:118px}
+  }
   .lg-card{flex:0 0 auto;min-width:158px;max-width:230px;text-align:left;border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.72);padding:9px 12px;cursor:pointer;font-family:inherit;transition:.15s}
   .lg-card:hover{border-color:var(--red);background:rgba(255,250,235,.98);transform:translateY(-1px)}
   .lg-name{font-family:'Cinzel',serif;font-weight:600;font-size:13.5px;color:var(--ink)}
@@ -251,9 +262,10 @@
   .ovp-u-main{flex:1;min-width:0}
   .ovp-u-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .ovp-u-top .ovp-name{font-family:'Cinzel',serif;font-weight:600;font-size:13px;color:var(--ink)}
-  .ovp-role{font-family:'Cinzel',serif;font-size:8px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:9px}
-  .ovp-role.admin{background:var(--red);color:#f6ead0}
-  .ovp-role.staff{background:#3c6b8a;color:#eaf2f8}
+  .rl-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-family:'Cinzel',serif;font-size:10px;font-weight:700;line-height:1;border:1px solid rgba(43,29,14,.28);box-shadow:0 1px 2px rgba(60,42,18,.28);flex-shrink:0}
+  .rl-admin{background:var(--red);color:#f6ead0}
+  .rl-staff{background:#3c6b8a;color:#eaf2f8}
+  .rl-master{background:#6a4a86;color:#efe7f6}
   .ovp-rank,.ovp-clan{font-size:11.5px;color:var(--ink-soft)}
   .ovp-clan::before{content:'· '}
   .ovp-pm{margin-left:auto;background:rgba(255,250,235,.7);border:1px solid var(--edge);border-radius:6px;color:var(--red-deep);cursor:pointer;font-size:13px;padding:2px 9px;line-height:1.2}
@@ -332,6 +344,14 @@
 
       <main class="mapzone">
         <div id="map-view" class="view on">
+          <div class="map-cols">
+            <aside class="map-side">
+              <div class="activity">
+                <div class="ac-head">Movimenti recenti <span class="ac-hint">· chi entra ed esce</span></div>
+                <div class="ac-list" id="ac-list"><span class="who-empty">—</span></div>
+              </div>
+            </aside>
+            <div class="map-main">
           <div class="mapframe" id="mapframe">
             <img id="land-map" class="map-img" alt="Mappa della Land">
             <span class="cx tl">✦</span><span class="cx tr">✦</span><span class="cx bl">✦</span><span class="cx br">✦</span>
@@ -353,9 +373,7 @@
             <div class="lg-head">Luoghi — scegli dove giocare <span class="lg-count">· <b id="map-count">0</b> presenti nella land</span></div>
             <div class="lg-list" id="lg-list"><span class="who-empty">Caricamento…</span></div>
           </div>
-          <div class="activity">
-            <div class="ac-head">Movimenti recenti <span class="ac-hint">· chi entra ed esce</span></div>
-            <div class="ac-list" id="ac-list"><span class="who-empty">—</span></div>
+            </div>
           </div>
         </div>
 
@@ -746,13 +764,13 @@
       var panelOpen=false;
       function statusColor(s){ return ({online:'#3c8a3c',looking:'#d9a521',busy:'#c0392b',unavailable:'#8a8a8a'})[s]||'#3c8a3c'; }
       function statusLabel(s){ return ({online:'Online',looking:'In cerca di gioco',busy:'Occupato',unavailable:'Non disponibile'})[s]||'Online'; }
-      function roleBadge(r){ if(r==='admin') return '<span class="ovp-role admin">Admin</span>'; if(r==='master') return '<span class="ovp-role staff">Staff</span>'; return ''; }
+      function roleBadge(r){ var m={admin:['A','Admin'],staff:['S','Staff'],master:['M','Master']}; var v=m[r]; return v?'<span class="rl-badge rl-'+r+'" title="'+v[1]+'">'+v[0]+'</span>':''; }
       function updateOnlineCount(){ var n=ROSTER.length; var a=document.getElementById('online-n'); if(a) a.textContent=n; var m=document.getElementById('map-count'); if(m) m.textContent=n; }
       function loadRoster(){ if(!sb||!loggedIn) return; sb.rpc('online_roster',{p_minutes:8}).then(function(r){ if(r&&!r.error){ ROSTER=r.data||[]; updateOnlineCount(); if(panelOpen) renderPanel(); } }, function(){}); }
       function startRosterPoll(){ if(rosterPoll) return; rosterPoll=setInterval(function(){ loadRoster(); loadActivity(); }, 12000); }
       function acTimeAgo(iso){ var t=new Date(iso).getTime(); if(!t) return ''; var sec=Math.max(0,(Date.now()-t)/1000); var m=Math.floor(sec/60); if(m<1) return 'adesso'; if(m<60) return m+' min fa'; var h=Math.floor(m/60); if(h<24) return h+' h fa'; return Math.floor(h/24)+' g fa'; }
       function acLine(e){ var nm='<b>'+esc(e.name||'—')+'</b>'; if(e.event_type==='enter'){ return e.location_name ? ('<span class="ac-in">▸</span> '+nm+' è entrato in <i>'+esc(e.location_name)+'</i>') : ('<span class="ac-in">▸</span> '+nm+' è entrato nella Land'); } return e.location_name ? ('<span class="ac-out">◂</span> '+nm+' ha lasciato <i>'+esc(e.location_name)+'</i>') : ('<span class="ac-out">◂</span> '+nm+' ha lasciato la Land'); }
-      function renderActivity(){ var host=document.getElementById('ac-list'); if(!host) return; if(!ACT.length){ host.innerHTML='<span class="who-empty">Nessun movimento recente.</span>'; return; } host.innerHTML=ACT.map(function(e){ return '<div class="ac-row">'+acLine(e)+'<span class="ac-t">'+acTimeAgo(e.created_at)+'</span></div>'; }).join(''); }
+      function renderActivity(){ var host=document.getElementById('ac-list'); if(!host) return; if(!ACT.length){ host.innerHTML='<span class="who-empty">Nessun movimento recente.</span>'; return; } host.innerHTML=ACT.map(function(e){ return '<div class="ac-row"><span class="ac-txt">'+acLine(e)+'</span><span class="ac-t">'+acTimeAgo(e.created_at)+'</span></div>'; }).join(''); }
       function loadActivity(){ if(!sb||!loggedIn) return; sb.rpc('recent_activity',{p_limit:12}).then(function(r){ if(r&&!r.error){ ACT=r.data||[]; renderActivity(); } }, function(){}); }
       function renderPanel(){
         var host=document.getElementById('ovp-list'); if(!host) return;
