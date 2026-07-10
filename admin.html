@@ -38,6 +38,7 @@
   .mgr-head h1{font-family:'Cinzel Decorative',serif;font-weight:700;font-size:clamp(30px,5vw,46px);color:var(--ink);margin-top:8px}
   .mgr-note{max-width:60ch;margin:14px auto 0;text-align:center;font-style:italic;color:var(--ink-soft);font-size:15px;background:rgba(166,50,29,.05);border:1px solid var(--edge);padding:10px 16px}
   .grp-title{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-deep);border-bottom:1px solid var(--edge);padding-bottom:6px;margin:30px 0 4px}
+  .bd-cat{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;margin:14px 0 4px}
   .emgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:16px;margin-top:16px}
   .ecard{border:1px solid var(--edge);background:rgba(255,250,235,.4);padding:16px;text-align:center}
   .ecard .ename{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);margin-bottom:12px}
@@ -126,6 +127,8 @@
           <div class="emgrid" id="grid-village"></div>
           <div class="grp-title">Clan</div>
           <div class="emgrid" id="grid-clan"></div>
+          <div class="grp-title">Ranghi</div>
+          <div class="emgrid" id="grid-rank"></div>
           <div class="grp-title" style="margin-top:46px">Catalogo oggetti</div>
           <p class="mgr-note">Crea e modifica gli oggetti. Peso e costo si cambiano <b>al volo dalla lista</b> (per il bilanciamento). Rendi un oggetto <b>contenitore</b> dandogli uno slot del corpo + capienza; rendilo <b>indossato</b> dandogli uno slot indossato. Ogni oggetto può avere un'immagine e una descrizione (mostrata nell'inventario).</p>
           <div class="cat-form" id="cat-form">
@@ -173,6 +176,24 @@
             <span id="loc-editing" class="editing-note"></span>
           </div>
           <div id="loc-list"></div>
+
+          <div class="grp-title" style="margin-top:46px">Bacheche</div>
+          <p class="mgr-note">Sezioni delle bacheche mostrate nella land (pulsante <b>Bacheche</b>). Aggiungi, modifica, riordina o disattiva le sezioni quando vuoi: scegli la categoria (On&nbsp;game / Off) e chi può scrivere.</p>
+          <div class="cat-form" id="board-form">
+            <label>Nome<input id="board-name" maxlength="80" placeholder="es. Notizie dal mondo"></label>
+            <label>Categoria<select id="board-cat"><option value="ongame">On game</option><option value="off">Off</option></select></label>
+            <label>Chi può scrivere<select id="board-wr"><option value="all">Tutti i giocatori</option><option value="staff">Solo staff</option></select></label>
+            <label>Ordine<input id="board-sort" type="number" step="1" placeholder="10"></label>
+            <label class="chk"><input type="checkbox" id="board-active" checked> Attiva (visibile in gioco)</label>
+            <label class="full">Descrizione <span class="opt">(a cosa serve la sezione)</span><textarea id="board-desc" maxlength="300" rows="2" placeholder="Es. Gli avvenimenti più importanti della Land."></textarea></label>
+          </div>
+          <div class="cat-actions">
+            <button class="btn btn-red" id="board-save">Salva bacheca</button>
+            <button class="btn" id="board-reset" style="display:none">Annulla modifica</button>
+            <span id="board-editing" class="editing-note"></span>
+          </div>
+          <div id="board-list"></div>
+
           <div class="grp-title" style="margin-top:46px">Registro movimenti — audit</div>
           <p class="mgr-note">Tutti gli acquisti, vendite e assegnazioni di oggetti dei personaggi, dal più recente. Serve a individuare compravendite anomale o usi impropri.</p>
           <div class="cat-actions"><button class="btn" id="audit-refresh">Aggiorna registro</button></div>
@@ -193,6 +214,7 @@
     var sb=(window.supabase&&SB_KEY)?window.supabase.createClient(SB_URL,SB_KEY):null;
     var VILLAGES=['Konoha','Suna'];
     var CLANS=['Hyuga','Nara','Akimichi','Inuzuka','Aburame','Marionettisti','Sabaku','Dokugan','Uchiha'];
+    var RANKS=['Deshi','Genin','Chunin','Jonin','Jonin Speciale','Kage / Sannin'];
     var me=null, EMB={};
     function $(id){return document.getElementById(id);}
     function show(id){['st-loading','st-guest','st-denied','st-mgr'].forEach(function(s){$(s).classList.toggle('on',s===id);});}
@@ -209,6 +231,7 @@
     function renderGrids(){
       var gv=$('grid-village');gv.innerHTML='';VILLAGES.forEach(function(n){gv.appendChild(card('village',n));});
       var gc=$('grid-clan');gc.innerHTML='';CLANS.forEach(function(n){gc.appendChild(card('clan',n));});
+      var gr=$('grid-rank');if(gr){gr.innerHTML='';RANKS.forEach(function(n){gr.appendChild(card('rank',n));});}
     }
     document.addEventListener('change',async function(e){
       var inp=e.target;if(!inp||inp.type!=='file'||!inp.getAttribute('data-kind'))return;
@@ -378,6 +401,60 @@
       });
     }
 
+    /* ---- Bacheche ---- */
+    var BOARDS=[], editingBoard=null, delArmB=null;
+    function resetBoardForm(){editingBoard=null;$('board-name').value='';$('board-cat').value='ongame';$('board-wr').value='all';$('board-sort').value='';$('board-desc').value='';$('board-active').checked=true;$('board-reset').style.display='none';$('board-editing').textContent='';$('board-save').textContent='Salva bacheca';}
+    async function loadBoards(){var r=await sb.from('boards').select('*').order('category').order('sort').order('name');BOARDS=(r&&r.data)||[];renderBoards();}
+    function renderBoards(){
+      var host=$('board-list');if(!host)return;
+      if(!BOARDS.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessuna bacheca. Creane una qui sopra.</p>';return;}
+      var groups=[['ongame','On game'],['off','Off']];
+      host.innerHTML=groups.map(function(g){
+        var rows=BOARDS.filter(function(b){return b.category===g[0];});
+        if(!rows.length)return '';
+        return '<div class="bd-cat">'+g[1]+'</div>'+rows.map(function(b){
+          return '<div class="locrow'+(b.is_active?'':' off')+'">'+
+            '<div class="lmain"><span class="lname">'+esc(b.name)+'</span>'+
+            '<span class="lkind">'+(b.write_role==='staff'?'solo staff':'tutti')+'</span>'+
+            '<span class="lmeta"> · ordine '+(b.sort!=null?b.sort:0)+(b.is_active?'':' · disattivata')+'</span>'+
+            (b.description?('<span class="ldesc">'+esc(b.description)+'</span>'):'')+'</div>'+
+            '<div class="lacts">'+
+              '<button class="mini-btn" data-bedit="'+b.id+'">Modifica</button>'+
+              '<button class="mini-btn" data-btoggle="'+b.id+'">'+(b.is_active?'Disattiva':'Attiva')+'</button>'+
+              '<button class="mini-btn danger" data-bdel="'+b.id+'">Elimina</button>'+
+            '</div></div>';
+        }).join('');
+      }).join('');
+    }
+    function bindBoards(){
+      $('board-reset').addEventListener('click',resetBoardForm);
+      $('board-save').addEventListener('click',async function(){
+        var name=$('board-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
+        var payload={name:name,category:$('board-cat').value,write_role:$('board-wr').value,description:$('board-desc').value.trim()||null,sort:parseInt($('board-sort').value,10)||0,is_active:$('board-active').checked};
+        this.disabled=true;
+        var r=editingBoard?await sb.from('boards').update(payload).eq('id',editingBoard).select().single():await sb.from('boards').insert(payload).select().single();
+        this.disabled=false;
+        if(r.error){toast('Errore nel salvataggio',true);return;}
+        toast(editingBoard?'Bacheca aggiornata':'Bacheca creata');resetBoardForm();loadBoards();
+      });
+      $('board-list').addEventListener('click',async function(e){
+        var eb=e.target.closest('[data-bedit]');
+        if(eb){var b=BOARDS.filter(function(x){return String(x.id)===eb.getAttribute('data-bedit');})[0];if(!b)return;
+          editingBoard=b.id;$('board-name').value=b.name;$('board-cat').value=b.category;$('board-wr').value=b.write_role;$('board-sort').value=(b.sort!=null?b.sort:'');$('board-desc').value=b.description||'';$('board-active').checked=!!b.is_active;
+          $('board-reset').style.display='';$('board-editing').textContent='Stai modificando: '+b.name;$('board-save').textContent='Aggiorna bacheca';
+          window.scrollTo({top:Math.max(0,$('board-form').offsetTop-90),behavior:'smooth'});return;}
+        var tb=e.target.closest('[data-btoggle]');
+        if(tb){var id=tb.getAttribute('data-btoggle');var b2=BOARDS.filter(function(x){return String(x.id)===id;})[0];if(!b2)return;
+          var r=await sb.from('boards').update({is_active:!b2.is_active}).eq('id',id);
+          if(r.error){toast('Errore',true);}else{toast(b2.is_active?'Disattivata':'Attivata');loadBoards();}return;}
+        var db=e.target.closest('[data-bdel]');
+        if(db){var id=db.getAttribute('data-bdel');
+          if(delArmB!==id){delArmB=id;db.textContent='Confermi?';setTimeout(function(){if(delArmB===id){delArmB=null;renderBoards();}},4000);return;}
+          delArmB=null;var r=await sb.from('boards').delete().eq('id',id);
+          if(r.error){toast('Errore eliminazione',true);}else{toast('Bacheca eliminata');loadBoards();}return;}
+      });
+    }
+
     /* ---- Registro movimenti (audit globale) ---- */
     async function loadAudit(){
       var host=$('audit-list'); if(!host)return;
@@ -405,10 +482,10 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      renderGrids();await loadItems();bindCatalog();bindLocs();await loadLocs();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);show('st-mgr');
+      renderGrids();await loadItems();bindCatalog();bindLocs();await loadLocs();bindBoards();await loadBoards();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);show('st-mgr');
     }
     init();
-    window.__demoMgr=function(map,items,audit,locs){EMB=map||{};ITEMS=items||[];LOCS=locs||[];renderGrids();renderCatalog();renderLocs();if(audit)renderAudit(audit);show('st-mgr');};
+    window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
   })();
   </script>
   <script>
