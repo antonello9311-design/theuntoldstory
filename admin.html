@@ -137,6 +137,7 @@
             <button type="button" data-go="bacheche">Bacheche</button>
             <button type="button" data-go="notizie">Banda notizie</button>
             <button type="button" data-go="registro">Registro</button>
+            <button type="button" data-go="messaggi">Messaggi</button>
           </div>
           <section class="adm-page" data-page="notizie">
           <div class="grp-title">Banda notizie (mappa)</div>
@@ -254,6 +255,12 @@
           <p class="mgr-note">Tutti gli acquisti, vendite e assegnazioni di oggetti dei personaggi, dal più recente. Serve a individuare compravendite anomale o usi impropri.</p>
           <div class="cat-actions"><button class="btn" id="audit-refresh">Aggiorna registro</button></div>
           <div id="audit-list" class="audit-list"></div>
+          </section>
+          <section class="adm-page" data-page="messaggi">
+          <div class="grp-title" style="margin-top:0">Messaggi privati — log di moderazione</div>
+          <p class="mgr-note">Tutti i messaggi privati scambiati tra gli utenti, dal più recente. Serve allo staff per verificare eventuali usi impropri. <b>Sola lettura.</b></p>
+          <div class="cat-actions"><button class="btn" id="dmlog-refresh">Aggiorna</button></div>
+          <div id="dmlog-list" class="audit-list"></div>
           </section>
         </div>
       </main>
@@ -544,6 +551,22 @@
         return '<div class="aurow"><span class="aukind k-'+t.kind+'">'+t.kind+'</span> <b>'+chn+'</b> — '+esc(t.item_name||'—')+' ×'+t.quantity+ryo+'<span class="aumeta">'+ds+' · azione di '+who+'</span></div>';
       }).join('');
     }
+    /* ---- Messaggi privati (log moderazione) ---- */
+    async function loadDmLog(){
+      var host=$('dmlog-list'); if(!host)return;
+      host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">Caricamento…</p>';
+      var r=await sb.rpc('dm_log',{p_limit:300});
+      renderDmLog((r&&r.data)||[]);
+    }
+    function renderDmLog(rows){
+      var host=$('dmlog-list'); if(!host)return;
+      if(!rows.length){host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">Nessun messaggio.</p>';return;}
+      host.innerHTML=rows.map(function(m){
+        var d=new Date(m.created_at); var ds; try{ds=d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){ds=m.created_at;}
+        var multi=m.batch_id?' · <span class="lnote">invio multiplo</span>':'';
+        return '<div class="aurow"><b>'+esc(m.sender_name||'—')+'</b> &rarr; <b>'+esc(m.recipient_name||'—')+'</b><span class="itdesc">'+esc(m.body||'')+'</span><span class="aumeta">'+ds+multi+'</span></div>';
+      }).join('');
+    }
     /* ---- Clan (testi e accesso) ---- */
     var CLAN_ROWS=[], editingClan=null;
     function resetClanForm(){editingClan=null;$('clan-name').value='';$('clan-name').disabled=false;$('clan-village').value='Konoha';$('clan-sort').value='';$('clan-gated').checked=false;$('clan-active').checked=true;$('clan-desc').value='';$('clan-history').value='';$('clan-statute').value='';$('clan-abilities').value='';$('clan-reset').style.display='none';$('clan-editing').textContent='';$('clan-save').textContent='Salva clan';}
@@ -612,7 +635,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindLocs();await loadLocs();bindBoards();await loadBoards();bindFlash();await loadFlash();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);show('st-mgr');
+      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindLocs();await loadLocs();bindBoards();await loadBoards();bindFlash();await loadFlash();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
