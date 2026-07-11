@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ottimizza immagine · The Untold Story</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#e7d6b2; --paper-hi:#f1e6ca; --paper-lo:#d2bc90; --edge:#b79d6c;
+    --ink:#2b1d0e; --ink-soft:#6a5231; --rule:#8a6f43;
+    --red:#a6321d; --red-deep:#7c2413;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Cormorant Garamond',Georgia,serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,.35), transparent 60%),
+      linear-gradient(180deg,#e9d9b7 0%, #dfcda6 55%, #d3bd93 100%);
+    min-height:100vh;
+    padding:28px 16px 60px;
+  }
+  .wrap{max-width:960px;margin:0 auto}
+  header{text-align:center;margin-bottom:8px}
+  h1{
+    font-family:'Cinzel Decorative','Cinzel',serif;
+    font-weight:700;font-size:clamp(26px,4.5vw,40px);
+    letter-spacing:.04em;color:var(--ink);margin:0 0 4px;
+    text-shadow:0 1px 0 var(--paper-hi);
+  }
+  .sub{font-size:19px;color:var(--ink-soft);font-style:italic;margin:0 0 22px}
+  .card{
+    background:linear-gradient(180deg,var(--paper-hi),var(--paper) 60%,var(--paper-lo));
+    border:1px solid var(--edge);
+    border-radius:14px;
+    box-shadow:0 10px 26px rgba(60,40,10,.22), inset 0 1px 0 rgba(255,255,255,.5);
+    padding:22px;
+  }
+  .drop{
+    border:2px dashed var(--rule);
+    border-radius:12px;
+    padding:38px 20px;
+    text-align:center;
+    cursor:pointer;
+    transition:.15s;
+    background:rgba(255,255,255,.18);
+  }
+  .drop:hover,.drop.hot{background:rgba(166,50,29,.08);border-color:var(--red)}
+  .drop b{font-family:'Cinzel',serif;font-size:20px;display:block;margin-bottom:4px}
+  .drop span{color:var(--ink-soft);font-size:17px}
+  #file{display:none}
+
+  .stage{display:none;margin-top:20px}
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:640px){.panels{grid-template-columns:1fr}}
+  .pan{
+    background:rgba(255,255,255,.28);
+    border:1px solid var(--edge);border-radius:10px;padding:12px;text-align:center;
+  }
+  .pan h3{font-family:'Cinzel',serif;font-size:15px;margin:0 0 10px;letter-spacing:.05em;color:var(--ink-soft);text-transform:uppercase}
+  .preview{
+    width:100%;height:230px;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;
+    background:#efe4c8;
+  }
+  .preview.checker{
+    background-image:
+      linear-gradient(45deg,#cbb689 25%,transparent 25%),
+      linear-gradient(-45deg,#cbb689 25%,transparent 25%),
+      linear-gradient(45deg,transparent 75%,#cbb689 75%),
+      linear-gradient(-45deg,transparent 75%,#cbb689 75%);
+    background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;
+    background-color:#e7d6b2;
+  }
+  .preview img,.preview canvas{max-width:100%;max-height:230px;display:block}
+  .meta{font-size:16px;color:var(--ink-soft);margin-top:8px;min-height:22px}
+
+  .controls{margin-top:20px;display:grid;gap:16px}
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+  .lbl{font-family:'Cinzel',serif;font-size:14px;letter-spacing:.04em;min-width:150px;color:var(--ink)}
+  .seg{display:inline-flex;border:1px solid var(--edge);border-radius:9px;overflow:hidden}
+  .seg button{
+    font-family:'Cinzel',serif;font-size:14px;border:0;background:rgba(255,255,255,.35);
+    color:var(--ink);padding:8px 14px;cursor:pointer;border-right:1px solid var(--edge);
+  }
+  .seg button:last-child{border-right:0}
+  .seg button.on{background:var(--red);color:#fff}
+  input[type=range]{flex:1;accent-color:var(--red);min-width:140px}
+  .switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:17px}
+  .switch input{width:18px;height:18px;accent-color:var(--red)}
+  .thr{opacity:.4;pointer-events:none;transition:.15s}
+  .thr.on{opacity:1;pointer-events:auto}
+  .thrval{font-family:'Cinzel',serif;font-size:14px;min-width:34px;text-align:right}
+
+  .actions{margin-top:22px;display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+  .btn{
+    font-family:'Cinzel',serif;font-weight:600;font-size:16px;letter-spacing:.03em;
+    border:1px solid var(--red-deep);border-radius:10px;cursor:pointer;padding:13px 26px;
+    background:linear-gradient(180deg,var(--red),var(--red-deep));color:#fff;
+    box-shadow:0 6px 16px rgba(124,36,19,.3);text-decoration:none;display:inline-block;
+  }
+  .btn:hover{filter:brightness(1.06)}
+  .btn.ghost{background:rgba(255,255,255,.4);color:var(--ink);border-color:var(--edge);box-shadow:none}
+  .hint{font-size:16px;color:var(--ink-soft);text-align:center;margin-top:16px;font-style:italic}
+  .note{
+    margin-top:18px;font-size:16px;color:var(--ink-soft);border-top:1px solid var(--edge);padding-top:14px;line-height:1.5;
+  }
+  .note b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Ottimizza immagine</h1>
+    <p class="sub">Riduci risoluzione e peso — pronta per il caricamento sul sito</p>
+  </header>
+
+  <div class="card">
+    <div class="drop" id="drop">
+      <b>Trascina qui l'immagine</b>
+      <span>oppure clicca per sceglierla dal computer</span>
+    </div>
+    <input type="file" id="file" accept="image/*">
+
+    <div class="stage" id="stage">
+      <div class="panels">
+        <div class="pan">
+          <h3>Originale</h3>
+          <div class="preview" id="preOrig"></div>
+          <div class="meta" id="metaOrig"></div>
+        </div>
+        <div class="pan">
+          <h3>Ottimizzata</h3>
+          <div class="preview checker" id="preOut"></div>
+          <div class="meta" id="metaOut"></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <span class="lbl">Dimensione massima</span>
+          <div class="seg" id="segSize">
+            <button data-v="256">256 px</button>
+            <button data-v="384">384 px</button>
+            <button data-v="512" class="on">512 px</button>
+            <button data-v="768">768 px</button>
+          </div>
+        </div>
+        <div class="row">
+          <span class="lbl">Formato</span>
+          <div class="seg" id="segFmt">
+            <button data-v="png" class="on">PNG</button>
+            <button data-v="webp">WebP</button>
+            <button data-v="jpg">JPG</button>
+          </div>
+        </div>
+        <div class="row">
+          <span class="lbl">Sfondo</span>
+          <label class="switch"><input type="checkbox" id="cbBg" checked> Rendi trasparente lo sfondo nero</label>
+        </div>
+        <div class="row thr on" id="thrRow">
+          <span class="lbl">Soglia (tolleranza nero)</span>
+          <input type="range" id="thr" min="10" max="130" value="55">
+          <span class="thrval" id="thrVal">55</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="btn" id="dl">Scarica immagine ottimizzata</a>
+        <button class="btn ghost" id="reset">Cambia immagine</button>
+      </div>
+      <p class="hint" id="hint"></p>
+    </div>
+
+    <div class="note">
+      <b>Come si usa:</b> carica l'immagine, scegli la dimensione (512 px va benissimo per gradi ed emblemi),
+      lascia attiva la trasparenza se lo sfondo è nero, poi scarica. Il file resta ben sotto il limite di 2&nbsp;MB
+      del pannello admin. Se la trasparenza mangia troppo o troppo poco, regola la <b>soglia</b> e guarda l'anteprima.
+      <br>Tutto avviene qui nel tuo browser: nessuna immagine viene caricata da nessuna parte.
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var drop=document.getElementById('drop'), file=document.getElementById('file'),
+      stage=document.getElementById('stage'),
+      preOrig=document.getElementById('preOrig'), preOut=document.getElementById('preOut'),
+      metaOrig=document.getElementById('metaOrig'), metaOut=document.getElementById('metaOut'),
+      segSize=document.getElementById('segSize'), segFmt=document.getElementById('segFmt'),
+      cbBg=document.getElementById('cbBg'), thr=document.getElementById('thr'),
+      thrVal=document.getElementById('thrVal'), thrRow=document.getElementById('thrRow'),
+      dl=document.getElementById('dl'), reset=document.getElementById('reset'), hint=document.getElementById('hint');
+
+  var img=new Image(), loaded=false, baseName='immagine';
+  var opt={size:512, fmt:'png', bg:true, thr:55};
+
+  function human(n){ return n<1024?n+' B' : n<1048576?(n/1024).toFixed(0)+' KB' : (n/1048576).toFixed(2)+' MB'; }
+
+  drop.addEventListener('click',function(){file.click()});
+  drop.addEventListener('dragover',function(e){e.preventDefault();drop.classList.add('hot')});
+  drop.addEventListener('dragleave',function(){drop.classList.remove('hot')});
+  drop.addEventListener('drop',function(e){e.preventDefault();drop.classList.remove('hot');
+    if(e.dataTransfer.files&&e.dataTransfer.files[0])handle(e.dataTransfer.files[0]);});
+  file.addEventListener('change',function(){ if(file.files&&file.files[0])handle(file.files[0]); });
+
+  function handle(f){
+    if(!/^image\//.test(f.type)){hint.textContent='Il file selezionato non è un\'immagine.';return;}
+    baseName=(f.name||'immagine').replace(/\.[^.]+$/,'').replace(/[^\w\-]+/g,'-').toLowerCase()||'immagine';
+    var url=URL.createObjectURL(f);
+    img=new Image();
+    img.onload=function(){
+      loaded=true;
+      drop.style.display='none';
+      stage.style.display='block';
+      var io=document.createElement('img'); io.src=url; preOrig.innerHTML=''; preOrig.appendChild(io);
+      metaOrig.textContent=img.naturalWidth+' × '+img.naturalHeight+' px · '+human(f.size);
+      render();
+    };
+    img.src=url;
+  }
+
+  function bindSeg(seg,key,cast){
+    seg.addEventListener('click',function(e){
+      var b=e.target.closest('button'); if(!b)return;
+      [].forEach.call(seg.children,function(c){c.classList.remove('on')});
+      b.classList.add('on'); opt[key]=cast(b.getAttribute('data-v')); render();
+    });
+  }
+  bindSeg(segSize,'size',Number); bindSeg(segFmt,'fmt',String);
+  cbBg.addEventListener('change',function(){opt.bg=cbBg.checked;thrRow.classList.toggle('on',cbBg.checked);render();});
+  thr.addEventListener('input',function(){opt.thr=Number(thr.value);thrVal.textContent=thr.value;render();});
+
+  function render(){
+    if(!loaded)return;
+    var w=img.naturalWidth, h=img.naturalHeight, m=opt.size;
+    var scale=Math.min(1, m/Math.max(w,h));
+    var ow=Math.max(1,Math.round(w*scale)), oh=Math.max(1,Math.round(h*scale));
+    var cv=document.createElement('canvas'); cv.width=ow; cv.height=oh;
+    var ctx=cv.getContext('2d');
+    ctx.imageSmoothingQuality='high';
+    ctx.drawImage(img,0,0,ow,oh);
+
+    var wantAlpha = opt.bg && opt.fmt!=='jpg';
+    if(wantAlpha){ removeBlackBg(ctx,ow,oh,opt.thr); }
+    else if(opt.fmt==='jpg'){ /* flatten handled by export */ }
+
+    var mime = opt.fmt==='png' ? 'image/png' : opt.fmt==='webp' ? 'image/webp' : 'image/jpeg';
+    var q = opt.fmt==='png' ? undefined : 0.92;
+
+    // JPG can't be transparent -> paint parchment behind
+    var expCv=cv;
+    if(opt.fmt==='jpg'){
+      expCv=document.createElement('canvas'); expCv.width=ow; expCv.height=oh;
+      var ec=expCv.getContext('2d'); ec.fillStyle='#e7d6b2'; ec.fillRect(0,0,ow,oh); ec.drawImage(cv,0,0);
+    }
+
+    expCv.toBlob(function(blob){
+      if(!blob){ hint.textContent='Questo formato non è supportato dal browser, prova PNG.'; return; }
+      var outUrl=URL.createObjectURL(blob);
+      var oi=document.createElement('img'); oi.src=outUrl; preOut.innerHTML=''; preOut.appendChild(oi);
+      metaOut.textContent=ow+' × '+oh+' px · '+human(blob.size);
+      dl.href=outUrl;
+      dl.download=baseName+'-web.'+(opt.fmt==='jpg'?'jpg':opt.fmt);
+      hint.textContent = blob.size>2*1048576
+        ? '⚠️ Ancora sopra i 2 MB: prova una dimensione più piccola o il formato WebP.'
+        : 'Pronta ✓  Scaricala e caricala nel pannello admin.';
+    }, mime, q);
+  }
+
+  // Flood-fill from the borders: turn connected near-black pixels transparent.
+  // Interior dark-navy fabric is preserved because it is not reachable from an edge through black.
+  function removeBlackBg(ctx,w,h,threshold){
+    var id=ctx.getImageData(0,0,w,h), d=id.data, N=w*h;
+    var seen=new Uint8Array(N);
+    var stack=[];
+    function isBlack(i){
+      var p=i*4, r=d[p], g=d[p+1], b=d[p+2];
+      // near-black: every channel low AND not noticeably blue (protects navy)
+      var mx=Math.max(r,g,b);
+      var blu=b-Math.max(r,g);
+      return mx<=threshold && blu<=Math.max(14,threshold*0.5);
+    }
+    function push(i){ if(i>=0&&i<N&&!seen[i]){ seen[i]=1; stack.push(i);} }
+    for(var x=0;x<w;x++){ push(x); push((h-1)*w+x); }
+    for(var y=0;y<h;y++){ push(y*w); push(y*w+(w-1)); }
+    // only keep seeds that are actually black
+    var start=[];
+    for(var s=0;s<stack.length;s++){ if(isBlack(stack[s])) start.push(stack[s]); }
+    seen=new Uint8Array(N); stack=start.slice(); for(var k=0;k<start.length;k++) seen[start[k]]=1;
+    while(stack.length){
+      var i=stack.pop(), xx=i%w, yy=(i/w)|0;
+      d[i*4+3]=0; // transparent
+      var nb=[ xx>0?i-1:-1, xx<w-1?i+1:-1, yy>0?i-w:-1, yy<h-1?i+w:-1 ];
+      for(var n=0;n<4;n++){ var j=nb[n]; if(j>=0&&!seen[j]&&isBlack(j)){ seen[j]=1; stack.push(j); } }
+    }
+    // Soften: fade pixels that border transparency to reduce hard fringe
+    var out=new Uint8ClampedArray(d);
+    for(var yb=0;yb<h;yb++)for(var xb=0;xb<w;xb++){
+      var i2=yb*w+xb, a=d[i2*4+3]; if(a===0)continue;
+      var tr=0,tot=0;
+      for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){
+        var nx=xb+dx, ny=yb+dy; if(nx<0||ny<0||nx>=w||ny>=h)continue;
+        tot++; if(d[(ny*w+nx)*4+3]===0)tr++;
+      }
+      if(tr>0){ out[i2*4+3]=Math.round(a*(1-0.6*(tr/tot))); }
+    }
+    ctx.putImageData(new ImageData(out,w,h),0,0);
+  }
+
+  reset.addEventListener('click',function(){
+    loaded=false; stage.style.display='none'; drop.style.display='block'; file.value=''; hint.textContent='';
+  });
+})();
+</script>
+</body>
+</html>
