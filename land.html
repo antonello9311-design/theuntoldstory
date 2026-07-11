@@ -315,6 +315,12 @@
   a.ovp-clan{text-decoration:none;cursor:pointer}
   a.ovp-clan:hover{color:var(--red-deep)}
   .ovp-clan::before{content:'· '}
+  .cl-emb{position:relative;display:inline-block;vertical-align:middle;flex-shrink:0;overflow:hidden}
+  .cl-emb img{width:100%;height:100%;object-fit:contain;display:block}
+  .cl-emb .shn{position:absolute;inset:0;pointer-events:none;opacity:0}
+  .cl-emb.shine .shn{opacity:1;-webkit-mask:var(--e) center/contain no-repeat;mask:var(--e) center/contain no-repeat;background:linear-gradient(115deg,transparent 40%,rgba(255,224,138,.95) 50%,transparent 60%);background-size:300% 100%;mix-blend-mode:screen;animation:clshine 4.8s ease-in-out infinite}
+  @keyframes clshine{0%{background-position:170% 0}58%,100%{background-position:-170% 0}}
+  a.ovp-clan-emb{display:inline-flex;align-items:center;margin-left:6px;vertical-align:middle;text-decoration:none}
   .ovp-pm{margin-left:auto;background:rgba(255,250,235,.7);border:1px solid var(--edge);border-radius:6px;color:var(--red-deep);cursor:pointer;font-size:13px;padding:2px 9px;line-height:1.2}
   .ovp-pm:hover{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
   .ovp-off{font-style:italic;color:var(--ink-soft);font-size:13px;margin-top:2px;line-height:1.35}
@@ -698,7 +704,8 @@
       function rChev(n){var s2='';for(var i=0;i<n;i++){var y=8+i*5.4;s2+='<path d="M6 '+(y+4)+' l6 -4.4 l6 4.4" fill="none" stroke="#3a2a12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';}return '<svg viewBox="0 0 24 24">'+s2+'</svg>';}
       function rankBadge(r){ if(!r)return''; var inner; if(r==='Deshi')inner='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="none" stroke="#3a2a12" stroke-width="2"/></svg>'; else if(r&&(r.indexOf('Kage')===0||r==='Sannin'||r==='Kage / Sannin'))inner=RSTAR; else{var n=r==='Genin'?1:r==='Chunin'?2:3;inner=rChev(n);if(r==='Jonin Speciale')inner=inner.replace('<svg viewBox="0 0 24 24">','<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7" fill="#a6321d"/>');} return '<span class="rb">'+inner+'</span>'; }
       function avatarHTML(c,name,cid){ var inner=(c&&c.avatar_url)?('<img src="'+esc(c.avatar_url)+'" alt="">'):('<span class="ava-ph">'+esc((name||'?').charAt(0).toUpperCase())+'</span>'); return cid?('<a class="m-ava" href="scheda.html?id='+esc(cid)+'" title="Apri la scheda di '+esc(name)+'">'+inner+'</a>'):('<span class="m-ava">'+inner+'</span>'); }
-      function identityHTML(c,name,cid,created){ var sx=c&&c.sex; var sexIc=(sx==='Maschio')?SEX_M:((sx==='Femmina')?SEX_F:''); var wo=cid?('<a class="m-who" href="scheda.html?id='+esc(cid)+'">'):'<span class="m-who">'; var wc=cid?'</a>':'</span>'; var rk=c&&c.rank; var rimg=(rk&&EMB['rank:'+rk]); var rbadge=rimg?('<span class="rb"><img src="'+esc(rimg)+'" alt=""></span>'):rankBadge(rk); var rankH=rk?('<span class="m-rank">'+rbadge+esc(rk)+'</span>'):''; var cl=(c&&c.clan&&c.clan!=='Nessuno')?c.clan:''; var clanImg=(cl&&EMB['clan:'+cl])?('<img src="'+esc(EMB['clan:'+cl])+'" alt="">'):''; var clanH=cl?('<a class="m-clan" href="clan.html?c='+encodeURIComponent(cl)+'" title="Apri il clan">'+clanImg+esc(cl)+'</a>'):''; var ep=c&&c.epithet; var epiH=ep?('<span class="m-epi">«'+esc(ep)+'»</span>'):''; return '<div class="m-head">'+wo+esc(name)+wc+sexIc+rankH+clanH+epiH+'<span class="m-time">'+fmt(created)+'</span></div>'; }
+      function clanEmbSpan(clan,isCapo,size){ if(!clan||clan==='Nessuno')return ''; var u=EMB['clan:'+clan]; if(!u)return ''; return '<span class="cl-emb'+(isCapo?' shine':'')+'" style="width:'+size+'px;height:'+size+'px'+(isCapo?(';--e:url(&quot;'+u+'&quot;)'):'')+'"><img src="'+esc(u)+'" alt=""><span class="shn"></span></span>'; }
+      function identityHTML(c,name,cid,created){ var sx=c&&c.sex; var sexIc=(sx==='Maschio')?SEX_M:((sx==='Femmina')?SEX_F:''); var wo=cid?('<a class="m-who" href="scheda.html?id='+esc(cid)+'">'):'<span class="m-who">'; var wc=cid?'</a>':'</span>'; var rk=c&&c.rank; var rimg=(rk&&EMB['rank:'+rk]); var rbadge=rimg?('<span class="rb"><img src="'+esc(rimg)+'" alt=""></span>'):rankBadge(rk); var rankH=rk?('<span class="m-rank">'+rbadge+esc(rk)+'</span>'):''; var cl=(c&&c.clan&&c.clan!=='Nessuno')?c.clan:''; var clanImg=clanEmbSpan(cl,(c&&c.clan_role==='Capo clan'),14); var clanH=cl?('<a class="m-clan" href="clan.html?c='+encodeURIComponent(cl)+'" title="Apri il clan">'+clanImg+esc(cl)+'</a>'):''; var ep=c&&c.epithet; var epiH=ep?('<span class="m-epi">«'+esc(ep)+'»</span>'):''; return '<div class="m-head">'+wo+esc(name)+wc+sexIc+rankH+clanH+epiH+'<span class="m-time">'+fmt(created)+'</span></div>'; }
       function loadEmblems(){ if(!sb) return; sb.from('emblems').select('kind,name,image_url').in('kind',['clan','rank']).then(function(r){ if(r&&!r.error){ (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.kind+':'+e.name]=e.image_url; }); } }, function(){}); }
       function showPtsReminder(n){ var el=document.getElementById('pts-reminder'); if(!el) return; if(n>0){ var pn=document.getElementById('pts-n'); if(pn) pn.textContent=n; el.hidden=false; } else { el.hidden=true; } }
       (function(){ var px=document.getElementById('pts-x'); if(px) px.addEventListener('click',function(){ var el=document.getElementById('pts-reminder'); if(el) el.hidden=true; }); })();
@@ -726,7 +733,7 @@
       }
       function loadMsgs(){
         if(!sb||!cur) return;
-        sb.from('messages').select('author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user,character:characters(id,name,avatar_url,sex,rank,clan,epithet)').eq('location_id',cur.id).order('created_at',{ascending:true}).limit(300).then(function(r){
+        sb.from('messages').select('author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user,character:characters(id,name,avatar_url,sex,rank,clan,clan_role,epithet)').eq('location_id',cur.id).order('created_at',{ascending:true}).limit(300).then(function(r){
           if(r&&!r.error) renderMsgs(r.data);
         }, function(){});
       }
@@ -947,7 +954,7 @@
         host.innerHTML=order.map(function(key){ var g=groups[key];
           var head='<button class="ovp-loc" data-loc="'+(g.loc||'')+'">'+esc(g.name)+'<span class="ovp-locn">'+g.users.length+'</span></button>';
           var rows=g.users.map(function(u){
-            var badges=roleBadge(u.role)+(u.rank?'<span class="ovp-rank">'+esc(u.rank)+'</span>':'')+((u.clan&&u.clan!=='Nessuno')?'<a class="ovp-clan" href="clan.html?c='+encodeURIComponent(u.clan)+'" title="Apri il clan">'+esc(u.clan)+'</a>':'');
+            var badges=roleBadge(u.role)+(u.rank?'<span class="ovp-rank">'+esc(u.rank)+'</span>':'')+((u.clan&&u.clan!=='Nessuno')?('<a class="ovp-clan-emb" href="clan.html?c='+encodeURIComponent(u.clan)+'" title="'+esc(u.clan)+'">'+(clanEmbSpan(u.clan,(u.clan_role==='Capo clan'),18)||('<span class="ovp-clan">'+esc(u.clan)+'</span>'))+'</a>'):'');
             var off=u.off_notes?'<div class="ovp-off">'+esc(u.off_notes)+'</div>':'';
             var pm=(u.user_id!==myId&&u.location_id)?'<button class="ovp-pm" data-pm="'+u.user_id+'" data-loc="'+u.location_id+'" title="Messaggio privato">✉</button>':'';
             return '<div class="ovp-user"><span class="st-dot" style="background:'+statusColor(u.status)+'" title="'+statusLabel(u.status)+'"></span><div class="ovp-u-main"><div class="ovp-u-top"><span class="ovp-name">'+esc(u.name)+'</span>'+badges+pm+'</div>'+off+'</div></div>';

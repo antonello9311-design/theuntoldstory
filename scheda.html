@@ -88,6 +88,9 @@
   .drow2{display:flex;gap:30px;padding:12px 2px 0}
   .emb{position:relative;width:40px;height:40px;flex-shrink:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--edge);background:rgba(255,250,235,.6);overflow:hidden}
   .emb svg{width:24px;height:24px}.emb img{width:100%;height:100%;object-fit:contain;padding:3px}.emb.has-img{background:rgba(255,250,235,.6);border-color:var(--edge)}
+  .emb .shn{position:absolute;inset:3px;pointer-events:none;opacity:0}
+  .emb.shine .shn{opacity:1;-webkit-mask:var(--e) center/contain no-repeat;mask:var(--e) center/contain no-repeat;background:linear-gradient(115deg, transparent 40%, rgba(255,224,138,.95) 50%, transparent 60%);background-size:300% 100%;mix-blend-mode:screen;animation:embshine 4.8s ease-in-out infinite}
+  @keyframes embshine{0%{background-position:170% 0}58%,100%{background-position:-170% 0}}
   .emb .kanji{font-family:'Noto Serif JP',serif;font-size:19px;font-weight:700;line-height:1}
   .emb.e-none{color:var(--ink-soft);font-size:15px}
   .emb.e-fuoco{background:#efd6cc;border-color:#c26a4e}.emb.e-fuoco .kanji{color:#a6321d}
@@ -416,7 +419,8 @@
     function chevSvg(n){var s='';for(var i=0;i<n;i++){var y=8+i*5.4;s+='<path d="M6 '+(y+4)+' l6 -4.4 l6 4.4" fill="none" stroke="#3a2a12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';}return '<svg viewBox="0 0 24 24">'+s+'</svg>';}
     function embVillage(v){var u=EMB['village:'+v];if(u)return '<span class="emb has-img"><img src="'+u+'" alt=""></span>';if(v==='Konoha')return '<span class="emb e-konoha">'+LEAF+'</span>';if(v==='Suna')return '<span class="emb e-suna">'+DUNE+'</span>';return '<span class="emb e-none">—</span>';}
     function embRank(r){var inner;if(r==='Deshi')inner='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="none" stroke="#3a2a12" stroke-width="2"/></svg>';else if(r&&(r.indexOf('Kage')===0||r==='Sannin'||r==='Kage / Sannin'))inner=STAR;else{var n=r==='Genin'?1:r==='Chunin'?2:3;inner=chevSvg(n);if(r==='Jonin Speciale')inner=inner.replace('<svg viewBox="0 0 24 24">','<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7" fill="#a6321d"/>');}return '<span class="emb e-rank">'+inner+'</span>';}
-    function embClan(c){if(!c||c==='Nessuno')return '<span class="emb e-none">—</span>';var u=EMB['clan:'+c];if(u)return '<span class="emb has-img"><img src="'+u+'" alt=""></span>';return '<span class="emb e-clan">'+esc(c.charAt(0))+'</span>';}
+    function embClan(c,shine){if(!c||c==='Nessuno')return '<span class="emb e-none">—</span>';var u=EMB['clan:'+c];if(u)return '<span class="emb has-img'+(shine?' shine':'')+'"'+(shine?(' style="--e:url(&quot;'+u+'&quot;)"'):'')+'><img src="'+u+'" alt="">'+(shine?'<span class="shn"></span>':'')+'</span>';return '<span class="emb e-clan">'+esc(c.charAt(0))+'</span>';}
+    function capoSelected(){var r=$('f-clanrole');return !!(r&&r.value==='Capo clan');}
     function embCorp(c){if(!c)return '<span class="emb e-none">—</span>';return '<span class="emb">'+BANNER+'</span>';}
     function embElement(e){if(!e)return '<span class="emb e-none">—</span>';return '<span class="emb '+ELC[e]+'"><span class="kanji">'+ELK[e]+'</span></span>';}
 
@@ -448,7 +452,7 @@
       $('v-rank').textContent=c.rank||'Deshi'; $('ic-rank').outerHTML=embRank(c.rank||'Deshi').replace('class="emb','id="ic-rank" class="emb');
       $('v-village').textContent=c.village||'—'; $('ic-village').outerHTML=embVillage(c.village).replace('class="emb','id="ic-village" class="emb');
       $('v-age').textContent=(c.age!=null?c.age+' anni':'—'); $('v-sex').textContent=c.sex||'—';
-      fillClanSelect($('f-clan'),c.village,c.clan||'Nessuno'); $('ic-clan').outerHTML=embClan(c.clan).replace('class="emb','id="ic-clan" class="emb'); var _fcr=$('f-clanrole'); if(_fcr) _fcr.value=c.clan_role||'';
+      fillClanSelect($('f-clan'),c.village,c.clan||'Nessuno'); var _fcr=$('f-clanrole'); if(_fcr) _fcr.value=c.clan_role||''; $('ic-clan').outerHTML=embClan(c.clan, c.clan_role==='Capo clan').replace('class="emb','id="ic-clan" class="emb');
       $('f-corporation').value=c.corporation||''; $('ic-corp').outerHTML=embCorp(c.corporation).replace('class="emb','id="ic-corp" class="emb');
       $('f-element').value=c.element||''; $('ic-element').outerHTML=embElement(c.element).replace('class="emb','id="ic-element" class="emb');
       $('v-vita').textContent=(c.vita||0)+' / '+(c.vita_max||0); $('v-chakra').textContent=(c.chakra||0)+' / '+(c.chakra_max||0);
@@ -488,7 +492,8 @@
     }
         // wiring: dropdown → emblema live
     document.addEventListener('change',function(e){
-      if(e.target&&e.target.id==='f-clan'){$('ic-clan').outerHTML=embClan(e.target.value).replace('class="emb','id="ic-clan" class="emb');}
+      if(e.target&&e.target.id==='f-clan'){$('ic-clan').outerHTML=embClan(e.target.value, capoSelected()).replace('class="emb','id="ic-clan" class="emb');}
+      if(e.target&&e.target.id==='f-clanrole'){$('ic-clan').outerHTML=embClan(($('f-clan')?$('f-clan').value:''), e.target.value==='Capo clan').replace('class="emb','id="ic-clan" class="emb');}
       if(e.target&&e.target.id==='f-element'){$('ic-element').outerHTML=embElement(e.target.value).replace('class="emb','id="ic-element" class="emb');}
     });
     document.addEventListener('input',function(e){if(e.target&&e.target.id==='f-corporation'){$('ic-corp').outerHTML=embCorp(e.target.value).replace('class="emb','id="ic-corp" class="emb');}});
