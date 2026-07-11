@@ -295,7 +295,7 @@
               <div class="dtabs"><button class="dtab on" data-d="dati">Dati</button><button class="dtab" data-d="stat">Statistiche<span id="stat-badge" style="display:none;margin-left:6px;min-width:16px;padding:1px 5px;border-radius:9px;background:var(--red);color:#f6ead0;font-family:'Cinzel',serif;font-size:9px"></span></button></div>
 
               <div class="dpanel on" data-d="dati">
-                <div class="drow"><span class="emb" id="ic-rank"></span><div class="dinfo"><span class="dlab">Grado</span><span class="dval" id="v-rank">—</span></div></div>
+                <div class="drow"><span class="emb" id="ic-rank"></span><div class="dinfo"><span class="dlab">Grado</span><span class="dval" id="v-rank">—</span><select id="f-rank" class="mini" style="display:none"><option>Deshi</option><option>Genin</option><option>Chunin</option><option>Jonin</option><option>Jonin Speciale</option><option>Kage Konoha</option><option>Kage Suna</option><option>Sannin</option></select></div></div>
                 <div class="drow"><span class="emb" id="ic-village"></span><div class="dinfo"><span class="dlab">Villaggio</span><span class="dval" id="v-village">—</span></div></div>
                 <div class="drow"><span class="emb" id="ic-clan"></span><div class="dinfo"><span class="dlab">Clan <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· scegli quando vuoi</span></span><select id="f-clan" class="mini"></select><span class="dlab" id="lab-clanrole" style="margin-top:9px;display:none">Ruolo nel clan</span><select id="f-clanrole" class="mini" style="display:none"><option value="">—</option><option>Capo clan</option><option>Anziano</option><option>Membro anziano</option><option>Membro</option></select></div></div>
                 <div class="drow"><span class="emb" id="ic-corp"></span><div class="dinfo"><span class="dlab">Corporazione</span><input id="f-corporation" class="mini" maxlength="60" placeholder="Squadra, corpo, gilda…" /></div></div>
@@ -338,7 +338,6 @@
             <p class="hint" style="margin-top:-4px">Assegna epiteto e grado, correggi statistiche e vitali, e scrivi le Note del Fato. Solo lo staff vede questo pannello.</p>
             <div class="sp-grid">
               <label>Epiteto<input id="sp-epithet" maxlength="40" placeholder="es. Il Lampo Giallo"></label>
-              <label>Grado<input id="sp-rank" maxlength="30" list="rank-list"><datalist id="rank-list"><option>Deshi</option><option>Genin</option><option>Chunin</option><option>Jonin</option><option>Jonin Speciale</option><option>Kage Konoha</option><option>Kage Suna</option><option>Sannin</option></datalist></label>
               <label>Taijutsu<input id="sp-taijutsu" type="number" step="5"></label>
               <label>Ninjutsu<input id="sp-ninjutsu" type="number" step="5"></label>
               <label>Genjutsu<input id="sp-genjutsu" type="number" step="5"></label>
@@ -418,7 +417,7 @@
     var STAR='<svg viewBox="0 0 24 24"><path d="M12 3 l2.5 6 6.4 .5 -4.9 4.2 1.6 6.3 -5.6 -3.5 -5.6 3.5 1.6 -6.3 -4.9 -4.2 6.4 -.5 Z" fill="#c9a233"/></svg>';
     function chevSvg(n){var s='';for(var i=0;i<n;i++){var y=8+i*5.4;s+='<path d="M6 '+(y+4)+' l6 -4.4 l6 4.4" fill="none" stroke="#3a2a12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';}return '<svg viewBox="0 0 24 24">'+s+'</svg>';}
     function embVillage(v){var u=EMB['village:'+v];if(u)return '<span class="emb has-img"><img src="'+u+'" alt=""></span>';if(v==='Konoha')return '<span class="emb e-konoha">'+LEAF+'</span>';if(v==='Suna')return '<span class="emb e-suna">'+DUNE+'</span>';return '<span class="emb e-none">—</span>';}
-    function embRank(r){var inner;if(r==='Deshi')inner='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="none" stroke="#3a2a12" stroke-width="2"/></svg>';else if(r&&(r.indexOf('Kage')===0||r==='Sannin'||r==='Kage / Sannin'))inner=STAR;else{var n=r==='Genin'?1:r==='Chunin'?2:3;inner=chevSvg(n);if(r==='Jonin Speciale')inner=inner.replace('<svg viewBox="0 0 24 24">','<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7" fill="#a6321d"/>');}return '<span class="emb e-rank">'+inner+'</span>';}
+    function embRank(r){var _u=r&&EMB['rank:'+r];if(_u)return '<span class="emb has-img"><img src="'+_u+'" alt=""></span>';var inner;if(r==='Deshi')inner='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="none" stroke="#3a2a12" stroke-width="2"/></svg>';else if(r&&(r.indexOf('Kage')===0||r==='Sannin'||r==='Kage / Sannin'))inner=STAR;else{var n=r==='Genin'?1:r==='Chunin'?2:3;inner=chevSvg(n);if(r==='Jonin Speciale')inner=inner.replace('<svg viewBox="0 0 24 24">','<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7" fill="#a6321d"/>');}return '<span class="emb e-rank">'+inner+'</span>';}
     function embClan(c,shine){if(!c||c==='Nessuno')return '<span class="emb e-none">—</span>';var u=EMB['clan:'+c];if(u)return '<span class="emb has-img'+(shine?' shine':'')+'"'+(shine?(' style="--e:url(&quot;'+u+'&quot;)"'):'')+'><img src="'+u+'" alt="">'+(shine?'<span class="shn"></span>':'')+'</span>';return '<span class="emb e-clan">'+esc(c.charAt(0))+'</span>';}
     function capoSelected(){var r=$('f-clanrole');return !!(r&&r.value==='Capo clan');}
     function embCorp(c){if(!c)return '<span class="emb e-none">—</span>';return '<span class="emb">'+BANNER+'</span>';}
@@ -449,7 +448,7 @@
     function fillForm(c,priv){
       $('s-name').textContent=c.name||'Senza nome';
       var epi=$('s-epithet'); if(c.epithet){epi.textContent='«'+c.epithet+'»';epi.style.display='';}else{epi.textContent='';epi.style.display='none';}
-      $('v-rank').textContent=c.rank||'Deshi'; $('ic-rank').outerHTML=embRank(c.rank||'Deshi').replace('class="emb','id="ic-rank" class="emb');
+      $('v-rank').textContent=c.rank||'Deshi'; var _fr=$('f-rank'); if(_fr) _fr.value=c.rank||'Deshi'; $('ic-rank').outerHTML=embRank(c.rank||'Deshi').replace('class="emb','id="ic-rank" class="emb');
       $('v-village').textContent=c.village||'—'; $('ic-village').outerHTML=embVillage(c.village).replace('class="emb','id="ic-village" class="emb');
       $('v-age').textContent=(c.age!=null?c.age+' anni':'—'); $('v-sex').textContent=c.sex||'—';
       fillClanSelect($('f-clan'),c.village,c.clan||'Nessuno'); var _fcr=$('f-clanrole'); if(_fcr) _fcr.value=c.clan_role||''; $('ic-clan').outerHTML=embClan(c.clan, c.clan_role==='Capo clan').replace('class="emb','id="ic-clan" class="emb');
@@ -466,7 +465,8 @@
       var owner=(viewMode==='owner'||viewMode==='adminself'||viewMode==='adminother'), staff=(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother');
       var canEd=(owner||staff), oEdit=owner&&editMode, sEdit=staff&&editMode;
       ['f-element','f-background','f-off'].forEach(function(id){var el=$(id); if(el) el.disabled=!oEdit;});
-      ['f-clan','f-corporation','f-clanrole'].forEach(function(id){var el=$(id); if(el) el.disabled=!sEdit;});
+      ['f-clan','f-corporation','f-clanrole','f-rank'].forEach(function(id){var el=$(id); if(el) el.disabled=!sEdit;});
+      var _vr=$('v-rank'), _fr2=$('f-rank'); if(_vr&&_fr2){ _vr.style.display=sEdit?'none':''; _fr2.style.display=sEdit?'':'none'; }
       var _hasRole=myChar&&myChar.clan_role; var _showRole=(sEdit||_hasRole)?'':'none'; var _lcr=$('lab-clanrole'); if(_lcr)_lcr.style.display=_showRole; var _scr2=$('f-clanrole'); if(_scr2)_scr2.style.display=_showRole;
       var sv=$('s-save'); if(sv) sv.style.display=oEdit?'':'none';
       var eb=$('s-edit'); if(eb){ eb.style.display=canEd?'':'none'; eb.textContent=editMode?'Fine modifica':'Modifica'; eb.classList.toggle('btn-red',editMode); eb.classList.toggle('btn-ghost',!editMode); }
@@ -485,7 +485,7 @@
     function fillStaffPanel(c,priv){
       if(!c)return;
       var set=function(id,v){var el=$(id); if(el) el.value=(v!=null?v:'');};
-      set('sp-epithet',c.epithet||''); set('sp-rank',c.rank||'');
+      set('sp-epithet',c.epithet||'');
       STATS.forEach(function(s){set('sp-'+s[0],c[s[0]]!=null?c[s[0]]:BASE);});
       ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){set('sp-'+k,c[k]!=null?c[k]:0);});
       set('sp-fato',priv&&priv.fato_notes?priv.fato_notes:'');
@@ -493,6 +493,7 @@
         // wiring: dropdown → emblema live
     document.addEventListener('change',function(e){
       if(e.target&&e.target.id==='f-clan'){$('ic-clan').outerHTML=embClan(e.target.value, capoSelected()).replace('class="emb','id="ic-clan" class="emb');}
+      if(e.target&&e.target.id==='f-rank'){var _nv=e.target.value; $('v-rank').textContent=_nv; $('ic-rank').outerHTML=embRank(_nv).replace('class="emb','id="ic-rank" class="emb');}
       if(e.target&&e.target.id==='f-clanrole'){$('ic-clan').outerHTML=embClan(($('f-clan')?$('f-clan').value:''), e.target.value==='Capo clan').replace('class="emb','id="ic-clan" class="emb');}
       if(e.target&&e.target.id==='f-element'){$('ic-element').outerHTML=embElement(e.target.value).replace('class="emb','id="ic-element" class="emb');}
     });
@@ -510,7 +511,7 @@
     });
     var spSave=$('sp-save'); if(spSave) spSave.addEventListener('click',async function(){
       if(!sb||!myChar||!(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother'))return;this.disabled=true;
-      var upd={epithet:($('sp-epithet').value.trim()||null),rank:($('sp-rank').value.trim()||myChar.rank),clan:$('f-clan').value||'Nessuno',clan_role:(($('f-clanrole')&&$('f-clanrole').value)||null),corporation:($('f-corporation').value.trim()||null)};
+      var upd={epithet:($('sp-epithet').value.trim()||null),rank:(($('f-rank')&&$('f-rank').value)||myChar.rank),clan:$('f-clan').value||'Nessuno',clan_role:(($('f-clanrole')&&$('f-clanrole').value)||null),corporation:($('f-corporation').value.trim()||null)};
       STATS.forEach(function(s){var v=parseInt($('sp-'+s[0]).value,10); upd[s[0]]=isNaN(v)?myChar[s[0]]:v;});
       ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?myChar[k]:v;});
       var r1=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();
