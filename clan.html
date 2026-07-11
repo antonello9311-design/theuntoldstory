@@ -101,6 +101,13 @@
     background:linear-gradient(180deg,var(--red),var(--red-deep));border:1px solid var(--red-deep);border-radius:20px;padding:4px 11px;white-space:nowrap;flex-shrink:0}
   .mrole.lead{background:linear-gradient(180deg,#caa64a,#9c7a24);border-color:#7c5f16}
   .mrole.none{background:transparent;color:var(--ink-soft);border-color:var(--edge)}
+  .cl-emb{position:relative;display:inline-block;width:30px;height:30px;flex-shrink:0}
+  .cl-emb img{width:100%;height:100%;object-fit:contain;display:block}
+  .cl-emb .shn{position:absolute;inset:0;pointer-events:none;opacity:0}
+  .cl-emb.shine .shn{opacity:1;-webkit-mask:var(--e) center/contain no-repeat;mask:var(--e) center/contain no-repeat;
+    background:linear-gradient(115deg, transparent 40%, rgba(255,224,138,.95) 50%, transparent 60%);background-size:300% 100%;mix-blend-mode:screen;
+    animation:clshine 4.8s ease-in-out infinite}
+  @keyframes clshine{0%{background-position:170% 0}58%,100%{background-position:-170% 0}}
   .mrank{font-size:13px;color:var(--ink-soft);margin-left:8px}
   .m-empty{font-style:italic;color:var(--ink-soft);font-size:16px;padding:6px 2px}
 
@@ -245,15 +252,18 @@
         if(!members.length){
           html+='<p class="m-empty">Nessun membro assegnato a questo clan, per ora.</p>';
         }else{
+          var clanEmb=EMB['clan:'+c.name]||'';
           html+='<ul class="members">'+members.map(function(m){
             var av=m.avatar_url?('<img src="'+esc(m.avatar_url)+'" alt="">'):('<span class="ini">'+esc(String(m.name||'?').charAt(0))+'</span>');
             var roleCls=m.clan_role===('Capo clan')?'mrole lead':(m.clan_role?'mrole':'mrole none');
             var roleTxt=m.clan_role||'Membro';
             var epi=m.epithet?(' <span class="mepi">«'+esc(m.epithet)+'»</span>'):'';
             var rank=m.rank?('<span class="mrank">'+esc(m.rank)+'</span>'):'';
+            var embCell=clanEmb?('<span class="cl-emb'+(m.clan_role==='Capo clan'?' shine':'')+'" style="--e:url(&quot;'+clanEmb+'&quot;)"><img src="'+esc(clanEmb)+'" alt=""><span class="shn"></span></span>'):'';
             return '<a class="mrow" href="scheda.html?id='+encodeURIComponent(m.id)+'">'+
               '<span class="mav">'+av+'</span>'+
               '<span class="minfo"><span class="mname">'+esc(m.name||'—')+'</span>'+epi+rank+'</span>'+
+              embCell+
               '<span class="'+roleCls+'">'+esc(roleTxt)+'</span></a>';
           }).join('')+'</ul>';
         }
