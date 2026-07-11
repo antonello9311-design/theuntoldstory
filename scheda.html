@@ -294,7 +294,7 @@
               <div class="dpanel on" data-d="dati">
                 <div class="drow"><span class="emb" id="ic-rank"></span><div class="dinfo"><span class="dlab">Grado</span><span class="dval" id="v-rank">—</span></div></div>
                 <div class="drow"><span class="emb" id="ic-village"></span><div class="dinfo"><span class="dlab">Villaggio</span><span class="dval" id="v-village">—</span></div></div>
-                <div class="drow"><span class="emb" id="ic-clan"></span><div class="dinfo"><span class="dlab">Clan <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· scegli quando vuoi</span></span><select id="f-clan" class="mini"></select></div></div>
+                <div class="drow"><span class="emb" id="ic-clan"></span><div class="dinfo"><span class="dlab">Clan <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· scegli quando vuoi</span></span><select id="f-clan" class="mini"></select><span class="dlab" id="lab-clanrole" style="margin-top:9px;display:none">Ruolo nel clan</span><select id="f-clanrole" class="mini" style="display:none"><option value="">—</option><option>Capo clan</option><option>Anziano</option><option>Membro anziano</option><option>Membro</option></select></div></div>
                 <div class="drow"><span class="emb" id="ic-corp"></span><div class="dinfo"><span class="dlab">Corporazione</span><input id="f-corporation" class="mini" maxlength="60" placeholder="Squadra, corpo, gilda…" /></div></div>
                 <div class="drow"><span class="emb" id="ic-element"></span><div class="dinfo"><span class="dlab">Elemento <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· facoltativo</span></span>
                   <select id="f-element" class="mini"><option value="">Nessuno</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select></div></div>
@@ -448,7 +448,7 @@
       $('v-rank').textContent=c.rank||'Deshi'; $('ic-rank').outerHTML=embRank(c.rank||'Deshi').replace('class="emb','id="ic-rank" class="emb');
       $('v-village').textContent=c.village||'—'; $('ic-village').outerHTML=embVillage(c.village).replace('class="emb','id="ic-village" class="emb');
       $('v-age').textContent=(c.age!=null?c.age+' anni':'—'); $('v-sex').textContent=c.sex||'—';
-      fillClanSelect($('f-clan'),c.village,c.clan||'Nessuno'); $('ic-clan').outerHTML=embClan(c.clan).replace('class="emb','id="ic-clan" class="emb');
+      fillClanSelect($('f-clan'),c.village,c.clan||'Nessuno'); $('ic-clan').outerHTML=embClan(c.clan).replace('class="emb','id="ic-clan" class="emb'); var _fcr=$('f-clanrole'); if(_fcr) _fcr.value=c.clan_role||'';
       $('f-corporation').value=c.corporation||''; $('ic-corp').outerHTML=embCorp(c.corporation).replace('class="emb','id="ic-corp" class="emb');
       $('f-element').value=c.element||''; $('ic-element').outerHTML=embElement(c.element).replace('class="emb','id="ic-element" class="emb');
       $('v-vita').textContent=(c.vita||0)+' / '+(c.vita_max||0); $('v-chakra').textContent=(c.chakra||0)+' / '+(c.chakra_max||0);
@@ -462,7 +462,8 @@
       var owner=(viewMode==='owner'||viewMode==='adminself'||viewMode==='adminother'), staff=(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother');
       var canEd=(owner||staff), oEdit=owner&&editMode, sEdit=staff&&editMode;
       ['f-element','f-background','f-off'].forEach(function(id){var el=$(id); if(el) el.disabled=!oEdit;});
-      ['f-clan','f-corporation'].forEach(function(id){var el=$(id); if(el) el.disabled=!sEdit;});
+      ['f-clan','f-corporation','f-clanrole'].forEach(function(id){var el=$(id); if(el) el.disabled=!sEdit;});
+      var _hasRole=myChar&&myChar.clan_role; var _showRole=(sEdit||_hasRole)?'':'none'; var _lcr=$('lab-clanrole'); if(_lcr)_lcr.style.display=_showRole; var _scr2=$('f-clanrole'); if(_scr2)_scr2.style.display=_showRole;
       var sv=$('s-save'); if(sv) sv.style.display=oEdit?'':'none';
       var eb=$('s-edit'); if(eb){ eb.style.display=canEd?'':'none'; eb.textContent=editMode?'Fine modifica':'Modifica'; eb.classList.toggle('btn-red',editMode); eb.classList.toggle('btn-ghost',!editMode); }
       var pu=$('s-portrait-up'); if(pu) pu.style.display=oEdit?'':'none';
@@ -504,7 +505,7 @@
     });
     var spSave=$('sp-save'); if(spSave) spSave.addEventListener('click',async function(){
       if(!sb||!myChar||!(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother'))return;this.disabled=true;
-      var upd={epithet:($('sp-epithet').value.trim()||null),rank:($('sp-rank').value.trim()||myChar.rank),clan:$('f-clan').value||'Nessuno',corporation:($('f-corporation').value.trim()||null)};
+      var upd={epithet:($('sp-epithet').value.trim()||null),rank:($('sp-rank').value.trim()||myChar.rank),clan:$('f-clan').value||'Nessuno',clan_role:(($('f-clanrole')&&$('f-clanrole').value)||null),corporation:($('f-corporation').value.trim()||null)};
       STATS.forEach(function(s){var v=parseInt($('sp-'+s[0]).value,10); upd[s[0]]=isNaN(v)?myChar[s[0]]:v;});
       ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?myChar[k]:v;});
       var r1=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();
@@ -694,6 +695,7 @@
         try{var pr=await sb.from('profiles').select('username,role').eq('id',me.id).single();myName=(pr.data&&pr.data.username)?pr.data.username:'';var _role=pr.data?pr.data.role:'';isStaff=(_role==='master'||_role==='admin');isAdmin=(_role==='admin');}catch(_e){myName='';}
         var _ns=$('c-name-show'); if(_ns) _ns.textContent=myName||'(nome non disponibile)';
         try{var em=await sb.from('emblems').select('kind,name,image_url');(em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});}catch(_e){}
+        try{var _cl=await sb.from('clans').select('name,village,is_active').order('sort').order('name');if(_cl&&_cl.data&&_cl.data.length){var _m={};_cl.data.forEach(function(c){if(c.is_active===false)return;var v=c.village||'Konoha';(_m[v]=_m[v]||['Nessuno']).push(c.name);});if(Object.keys(_m).length)CLANS=_m;}}catch(_e){}
         if(viewId){
           var rv=await sb.from('characters').select('*').eq('id',viewId).maybeSingle();
           if(rv.error){$('err-msg').textContent=rv.error.message;show('st-error');return;}

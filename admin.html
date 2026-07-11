@@ -201,6 +201,26 @@
           </div>
           <div id="board-list"></div>
 
+          <div class="grp-title" style="margin-top:46px">Clan — testi e accesso</div>
+          <p class="mgr-note">Descrizione, storia, statuto e abilità di ogni clan: compaiono nella <b>pagina del clan</b> (pulsante <b>Clan</b> nella land). L'emblema si carica sopra, nella griglia <b>Clan</b>. Spunta <b>Accesso ristretto</b> per i clan non liberi (es. Uchiha, Hyuga): mostreranno un lucchetto e la nota che servono background approvato o sblocco in gioco. Puoi anche <b>aggiungere un nuovo clan</b>: comparirà ovunque (griglia emblemi, scheda, pagina clan). Il <b>ruolo dei membri</b> (Capo clan, Anziano…) si assegna dalla scheda del personaggio.</p>
+          <div class="cat-form" id="clan-form">
+            <label>Nome<input id="clan-name" maxlength="40" placeholder="es. Hyuga"></label>
+            <label>Villaggio<select id="clan-village"><option value="Konoha">Konoha</option><option value="Suna">Suna</option></select></label>
+            <label>Ordine<input id="clan-sort" type="number" step="1" placeholder="100"></label>
+            <label class="chk"><input type="checkbox" id="clan-gated"> Accesso ristretto (approvazione staff)</label>
+            <label class="chk"><input type="checkbox" id="clan-active" checked> Attivo (visibile in gioco)</label>
+            <label class="full">Descrizione<textarea id="clan-desc" maxlength="1200" rows="3" placeholder="Che cos'è il clan, in breve."></textarea></label>
+            <label class="full">Storia <span class="opt">(fino all'inizio della trama del server)</span><textarea id="clan-history" maxlength="4000" rows="5" placeholder="Le origini e la storia del clan fino a oggi…"></textarea></label>
+            <label class="full">Statuto — ingresso e mantenimento del ruolo<textarea id="clan-statute" maxlength="4000" rows="4" placeholder="Regole per entrare nel clan e per mantenere il proprio ruolo…"></textarea></label>
+            <label class="full">Abilità e jutsu del clan<textarea id="clan-abilities" maxlength="4000" rows="4" placeholder="Tecniche, kekkei genkai o hiden peculiari del clan…"></textarea></label>
+          </div>
+          <div class="cat-actions">
+            <button class="btn btn-red" id="clan-save">Salva clan</button>
+            <button class="btn" id="clan-reset" style="display:none">Annulla modifica</button>
+            <span id="clan-editing" class="editing-note"></span>
+          </div>
+          <div id="clan-list"></div>
+
           <div class="grp-title" style="margin-top:46px">Registro movimenti — audit</div>
           <p class="mgr-note">Tutti gli acquisti, vendite e assegnazioni di oggetti dei personaggi, dal più recente. Serve a individuare compravendite anomale o usi impropri.</p>
           <div class="cat-actions"><button class="btn" id="audit-refresh">Aggiorna registro</button></div>
@@ -237,7 +257,7 @@
     }
     function renderGrids(){
       var gv=$('grid-village');gv.innerHTML='';VILLAGES.forEach(function(n){gv.appendChild(card('village',n));});
-      var gc=$('grid-clan');gc.innerHTML='';CLANS.forEach(function(n){gc.appendChild(card('clan',n));});
+      var gc=$('grid-clan');gc.innerHTML='';var _cn=(CLAN_ROWS&&CLAN_ROWS.length)?CLAN_ROWS.map(function(c){return c.name;}):CLANS;_cn.forEach(function(n){gc.appendChild(card('clan',n));});
       var gr=$('grid-rank');if(gr){gr.innerHTML='';RANKS.forEach(function(n){gr.appendChild(card('rank',n));});}
     }
     document.addEventListener('change',async function(e){
@@ -494,6 +514,58 @@
         return '<div class="aurow"><span class="aukind k-'+t.kind+'">'+t.kind+'</span> <b>'+chn+'</b> — '+esc(t.item_name||'—')+' ×'+t.quantity+ryo+'<span class="aumeta">'+ds+' · azione di '+who+'</span></div>';
       }).join('');
     }
+    /* ---- Clan (testi e accesso) ---- */
+    var CLAN_ROWS=[], editingClan=null;
+    function resetClanForm(){editingClan=null;$('clan-name').value='';$('clan-name').disabled=false;$('clan-village').value='Konoha';$('clan-sort').value='';$('clan-gated').checked=false;$('clan-active').checked=true;$('clan-desc').value='';$('clan-history').value='';$('clan-statute').value='';$('clan-abilities').value='';$('clan-reset').style.display='none';$('clan-editing').textContent='';$('clan-save').textContent='Salva clan';}
+    async function loadClans(){var r=await sb.from('clans').select('*').order('village').order('sort').order('name');CLAN_ROWS=(r&&r.data)||[];renderClanList();}
+    function clanFilled(v){return (v&&String(v).trim().length)?'\u2713':'\u2014';}
+    function clanRowHTML(c){
+      var flags=(c.is_gated?' \u00b7 <span class="lnote">accesso ristretto</span>':'')+(c.is_active?'':' \u00b7 disattivato');
+      var prog='descr. '+clanFilled(c.description)+' \u00b7 storia '+clanFilled(c.history)+' \u00b7 statuto '+clanFilled(c.statute)+' \u00b7 abilit\u00e0 '+clanFilled(c.abilities);
+      return '<div class="locrow'+(c.is_active?'':' off')+'">'+
+        '<div class="lmain"><span class="lname">'+esc(c.name)+'</span><span class="lkind">'+esc(c.village||'')+'</span>'+
+        '<span class="lmeta">'+prog+flags+'</span></div>'+
+        '<div class="lacts">'+
+          '<button class="mini-btn" data-clanedit="'+esc(c.name)+'">Modifica</button>'+
+          '<button class="mini-btn" data-clantoggle="'+esc(c.name)+'">'+(c.is_active?'Disattiva':'Attiva')+'</button>'+
+        '</div></div>';
+    }
+    function renderClanList(){
+      var host=$('clan-list');if(!host)return;
+      if(!CLAN_ROWS.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun clan. Creane uno qui sopra.</p>';return;}
+      var groups=['Konoha','Suna'];
+      var html=groups.map(function(g){
+        var rows=CLAN_ROWS.filter(function(c){return c.village===g;});
+        if(!rows.length)return '';
+        return '<div class="bd-cat">'+g+'</div>'+rows.map(clanRowHTML).join('');
+      }).join('');
+      var extra=CLAN_ROWS.filter(function(c){return c.village!=='Konoha'&&c.village!=='Suna';});
+      if(extra.length)html+='<div class="bd-cat">Altri</div>'+extra.map(clanRowHTML).join('');
+      host.innerHTML=html;
+    }
+    function bindClans(){
+      var rb=$('clan-reset');if(rb)rb.addEventListener('click',resetClanForm);
+      var sv=$('clan-save');if(sv)sv.addEventListener('click',async function(){
+        var name=$('clan-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
+        var payload={name:name,village:$('clan-village').value,is_gated:$('clan-gated').checked,is_active:$('clan-active').checked,sort:parseInt($('clan-sort').value,10)||100,description:$('clan-desc').value,history:$('clan-history').value,statute:$('clan-statute').value,abilities:$('clan-abilities').value,updated_at:new Date().toISOString()};
+        this.disabled=true;
+        var r=await sb.from('clans').upsert(payload,{onConflict:'name'});
+        this.disabled=false;
+        if(r.error){toast('Errore nel salvataggio',true);return;}
+        toast(editingClan?'Clan aggiornato':'Clan salvato');resetClanForm();await loadClans();renderGrids();
+      });
+      var lst=$('clan-list');if(lst)lst.addEventListener('click',async function(e){
+        var eb=e.target.closest('[data-clanedit]');
+        if(eb){var c=CLAN_ROWS.filter(function(x){return x.name===eb.getAttribute('data-clanedit');})[0];if(!c)return;
+          editingClan=c.name;$('clan-name').value=c.name;$('clan-name').disabled=true;$('clan-village').value=(c.village==='Suna'?'Suna':'Konoha');$('clan-sort').value=(c.sort!=null?c.sort:'');$('clan-gated').checked=!!c.is_gated;$('clan-active').checked=!!c.is_active;$('clan-desc').value=c.description||'';$('clan-history').value=c.history||'';$('clan-statute').value=c.statute||'';$('clan-abilities').value=c.abilities||'';
+          $('clan-reset').style.display='';$('clan-editing').textContent='Stai modificando: '+c.name;$('clan-save').textContent='Aggiorna clan';
+          window.scrollTo({top:Math.max(0,$('clan-form').offsetTop-90),behavior:'smooth'});return;}
+        var tb=e.target.closest('[data-clantoggle]');
+        if(tb){var nm=tb.getAttribute('data-clantoggle');var c2=CLAN_ROWS.filter(function(x){return x.name===nm;})[0];if(!c2)return;
+          var r=await sb.from('clans').update({is_active:!c2.is_active}).eq('name',nm);
+          if(r.error){toast('Errore',true);}else{toast(c2.is_active?'Disattivato':'Attivato');await loadClans();renderGrids();}return;}
+      });
+    }
     async function init(){
       if(!sb){show('st-guest');return;}
       var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;
@@ -503,7 +575,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      renderGrids();await loadItems();bindCatalog();bindLocs();await loadLocs();bindBoards();await loadBoards();bindFlash();await loadFlash();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);show('st-mgr');
+      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindLocs();await loadLocs();bindBoards();await loadBoards();bindFlash();await loadFlash();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
