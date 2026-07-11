@@ -240,6 +240,19 @@
     .portrait-up input{display:none}
     .ph{color:var(--ink-soft);font-style:italic;padding:20px}.ph span{display:block;font-size:12px;margin-top:6px;opacity:.8}
     .silhouette .adot-t{paint-order:stroke;stroke:#efe3c6;stroke-width:2.8px;stroke-linejoin:round;fill:#3a2c18;font-weight:600}
+  .msg-overlay{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:18px}
+  .msg-overlay[hidden]{display:none}
+  .msg-backdrop{position:absolute;inset:0;background:rgba(30,20,8,.62)}
+  .msg-card{position:relative;z-index:1;width:min(460px,94vw);background:linear-gradient(var(--paper-hi),var(--paper));border:1.5px solid var(--edge);box-shadow:0 20px 60px rgba(20,12,4,.5);display:flex;flex-direction:column;max-height:88vh}
+  .msg-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(var(--red),var(--red-deep));color:#f8ecd6}
+  .msg-title{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+  .msg-x{background:transparent;border:0;color:#f8ecd6;font-size:16px;cursor:pointer;line-height:1;padding:2px 6px}
+  .msg-body{padding:14px 16px 6px;display:flex;flex-direction:column;gap:8px}
+  .msg-to{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--ink-soft)}
+  .msg-to strong{color:var(--ink)}
+  .msg-body textarea{width:100%;min-height:150px;resize:vertical;background:rgba(255,255,255,.35);border:1px solid var(--rule);color:var(--ink);font-family:'Cormorant Garamond',serif;font-size:16px;padding:10px 12px;box-sizing:border-box}
+  .msg-count{text-align:right;font-family:'Cinzel',serif;font-size:10px;color:var(--ink-soft);letter-spacing:.08em}
+  .msg-foot{display:flex;justify-content:flex-end;gap:10px;padding:10px 16px 16px}
 </style>
 </head>
 <body>
@@ -293,7 +306,7 @@
               <div class="ph" id="s-portrait-ph">Ritratto del personaggio<span>(carica un'immagine con «Modifica»)</span></div>
               <label class="portrait-up" id="s-portrait-up" style="display:none">Carica ritratto<input type="file" id="s-avatar-file" accept="image/png,image/jpeg,image/webp"></label>
             </div>
-            <a class="btn btn-red btn-sm portrait-msg" id="s-msg" style="display:none" href="land.html">✉ Invia messaggio</a>
+            <button type="button" class="btn btn-red btn-sm portrait-msg" id="s-msg" style="display:none">✉ Invia messaggio</button>
             </div>
             <div class="dossier">
               <div class="dhead"><div class="dhead-name"><h1 id="s-name">—</h1><div id="s-epithet" class="epithet" style="display:none"></div></div><div class="dhead-act"><button class="btn btn-ghost btn-sm" id="s-edit" style="display:none">Modifica</button><button class="btn btn-ghost btn-sm" id="s-share" title="Copia il link della scheda">Condividi</button><button class="btn btn-red btn-sm" id="s-save">Salva</button></div></div>
@@ -397,6 +410,20 @@
 
   <div class="toast" id="toast"></div>
 
+  <!-- Finestra messaggio: invio diretto dalla scheda -->
+  <div class="msg-overlay" id="msg-overlay" hidden>
+    <div class="msg-backdrop" id="msg-backdrop"></div>
+    <div class="msg-card" role="dialog" aria-modal="true" aria-labelledby="msg-title">
+      <div class="msg-head"><span class="msg-title" id="msg-title">Nuovo messaggio</span><button type="button" class="msg-x" id="msg-close" aria-label="Chiudi">✕</button></div>
+      <div class="msg-body">
+        <div class="msg-to">A: <strong id="msg-to-name">—</strong></div>
+        <textarea id="msg-text" maxlength="4000" placeholder="Scrivi il tuo messaggio…"></textarea>
+        <div class="msg-count"><span id="msg-count">0</span>/4000</div>
+      </div>
+      <div class="msg-foot"><button type="button" class="btn btn-ghost btn-sm" id="msg-cancel">Annulla</button><button type="button" class="btn btn-red btn-sm" id="msg-send">Invia</button></div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
   (function(){
@@ -476,7 +503,7 @@
       var sv=$('s-save'); if(sv) sv.style.display=oEdit?'':'none';
       var eb=$('s-edit'); if(eb){ eb.style.display=canEd?'':'none'; eb.textContent=editMode?'Fine modifica':'Modifica'; eb.classList.toggle('btn-red',editMode); eb.classList.toggle('btn-ghost',!editMode); }
       var pu=$('s-portrait-up'); if(pu) pu.style.display=oEdit?'':'none';
-      var _msg=$('s-msg'); if(_msg){ var _other=(viewMode==='public'||viewMode==='staff'||viewMode==='adminother'); _msg.style.display=_other?'':'none'; if(_other&&myChar&&myChar.user_id) _msg.setAttribute('href','land.html?dm='+encodeURIComponent(myChar.user_id)); }
+      var _msg=$('s-msg'); if(_msg){ var _other=(viewMode==='public'||viewMode==='staff'||viewMode==='adminother'); _msg.style.display=(_other&&myChar&&myChar.user_id)?'':'none'; }
       var ub=$('unspent-box'); if(ub){ if(owner){ renderUnspent(myChar); } else { ub.style.display='none'; } }
       var stb=$('stat-badge'); if(stb){ var _p=(owner&&myChar&&myChar.unspent_points>0)?myChar.unspent_points:0; stb.textContent=_p; stb.style.display=_p>0?'':'none'; }
       var so=$('sec-off'); if(so) so.style.display='';
@@ -726,8 +753,37 @@
         curPriv=p.data||null; fillForm(myChar,curPriv); show('st-sheet'); refreshInventory(); refreshEquip();
       }catch(e){$('err-msg').textContent='Errore di connessione.';show('st-error');}
     }
+    function openMsg(){
+      if(!myChar||!myChar.user_id){toast('Destinatario non disponibile',true);return;}
+      var nm=$('msg-to-name'); if(nm) nm.textContent=myChar.name||'—';
+      var t=$('msg-text'); if(t) t.value=''; var c=$('msg-count'); if(c) c.textContent='0';
+      var ov=$('msg-overlay'); if(ov) ov.hidden=false; if(t) setTimeout(function(){t.focus();},30);
+    }
+    function closeMsg(){var ov=$('msg-overlay'); if(ov) ov.hidden=true;}
+    async function sendMsg(){
+      var t=$('msg-text'); var body=(t&&t.value||'').trim();
+      if(!body){toast('Scrivi un messaggio',true);return;}
+      if(!myChar||!myChar.user_id){toast('Destinatario non disponibile',true);return;}
+      var btn=$('msg-send'); if(btn) btn.disabled=true;
+      try{
+        var r=await sb.rpc('dm_send',{p_recipients:[myChar.user_id],p_body:body});
+        if(r.error){toast(r.error.message||'Invio non riuscito',true);}
+        else{toast('Messaggio inviato'); closeMsg();}
+      }catch(e){toast('Invio non riuscito',true);}
+      finally{if(btn) btn.disabled=false;}
+    }
+    function bindMsg(){
+      var b=$('s-msg'); if(b) b.addEventListener('click',openMsg);
+      var x=$('msg-close'); if(x) x.addEventListener('click',closeMsg);
+      var cx=$('msg-cancel'); if(cx) cx.addEventListener('click',closeMsg);
+      var bd=$('msg-backdrop'); if(bd) bd.addEventListener('click',closeMsg);
+      var sd=$('msg-send'); if(sd) sd.addEventListener('click',sendMsg);
+      var t=$('msg-text'); if(t) t.addEventListener('input',function(){var c=$('msg-count'); if(c) c.textContent=String(t.value.length);});
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'){var ov=$('msg-overlay'); if(ov&&!ov.hidden) closeMsg();}});
+    }
     bindIE();
     bindPages();
+    bindMsg();
     init();
     window.__demo=function(c,priv,emb,mode){if(emb)EMB=emb;myChar=c;me={id:(c&&c.user_id)||'me'};curPriv=priv||null;viewMode=mode||'owner';isStaff=(mode==='staff'||mode==='adminself'||mode==='adminother');isAdmin=(mode==='adminself'||mode==='adminother');fillForm(c,priv||null);show('st-sheet');};
     window.__demoCreate=function(nm){if(nm){var e=$('c-name-show');if(e)e.textContent=nm;}show('st-create');};
