@@ -335,7 +335,7 @@
             <p class="hint" style="margin-top:-4px">Assegna epiteto e grado, correggi statistiche e vitali, e scrivi le Note del Fato. Solo lo staff vede questo pannello.</p>
             <div class="sp-grid">
               <label>Epiteto<input id="sp-epithet" maxlength="40" placeholder="es. Il Lampo Giallo"></label>
-              <label>Grado<input id="sp-rank" maxlength="30"></label>
+              <label>Grado<input id="sp-rank" maxlength="30" list="rank-list"><datalist id="rank-list"><option>Deshi</option><option>Genin</option><option>Chunin</option><option>Jonin</option><option>Jonin Speciale</option><option>Kage Konoha</option><option>Kage Suna</option><option>Sannin</option></datalist></label>
               <label>Taijutsu<input id="sp-taijutsu" type="number" step="5"></label>
               <label>Ninjutsu<input id="sp-ninjutsu" type="number" step="5"></label>
               <label>Genjutsu<input id="sp-genjutsu" type="number" step="5"></label>
@@ -415,7 +415,7 @@
     var STAR='<svg viewBox="0 0 24 24"><path d="M12 3 l2.5 6 6.4 .5 -4.9 4.2 1.6 6.3 -5.6 -3.5 -5.6 3.5 1.6 -6.3 -4.9 -4.2 6.4 -.5 Z" fill="#c9a233"/></svg>';
     function chevSvg(n){var s='';for(var i=0;i<n;i++){var y=8+i*5.4;s+='<path d="M6 '+(y+4)+' l6 -4.4 l6 4.4" fill="none" stroke="#3a2a12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';}return '<svg viewBox="0 0 24 24">'+s+'</svg>';}
     function embVillage(v){var u=EMB['village:'+v];if(u)return '<span class="emb has-img"><img src="'+u+'" alt=""></span>';if(v==='Konoha')return '<span class="emb e-konoha">'+LEAF+'</span>';if(v==='Suna')return '<span class="emb e-suna">'+DUNE+'</span>';return '<span class="emb e-none">—</span>';}
-    function embRank(r){var inner;if(r==='Deshi')inner='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="none" stroke="#3a2a12" stroke-width="2"/></svg>';else if(r==='Kage / Sannin')inner=STAR;else{var n=r==='Genin'?1:r==='Chunin'?2:3;inner=chevSvg(n);if(r==='Jonin Speciale')inner=inner.replace('<svg viewBox="0 0 24 24">','<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7" fill="#a6321d"/>');}return '<span class="emb e-rank">'+inner+'</span>';}
+    function embRank(r){var inner;if(r==='Deshi')inner='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="none" stroke="#3a2a12" stroke-width="2"/></svg>';else if(r&&(r.indexOf('Kage')===0||r==='Sannin'||r==='Kage / Sannin'))inner=STAR;else{var n=r==='Genin'?1:r==='Chunin'?2:3;inner=chevSvg(n);if(r==='Jonin Speciale')inner=inner.replace('<svg viewBox="0 0 24 24">','<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7" fill="#a6321d"/>');}return '<span class="emb e-rank">'+inner+'</span>';}
     function embClan(c){if(!c||c==='Nessuno')return '<span class="emb e-none">—</span>';var u=EMB['clan:'+c];if(u)return '<span class="emb has-img"><img src="'+u+'" alt=""></span>';return '<span class="emb e-clan">'+esc(c.charAt(0))+'</span>';}
     function embCorp(c){if(!c)return '<span class="emb e-none">—</span>';return '<span class="emb">'+BANNER+'</span>';}
     function embElement(e){if(!e)return '<span class="emb e-none">—</span>';return '<span class="emb '+ELC[e]+'"><span class="kanji">'+ELK[e]+'</span></span>';}
