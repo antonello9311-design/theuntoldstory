@@ -323,8 +323,13 @@
   a.ovp-clan-emb{display:inline-flex;align-items:center;margin-left:6px;vertical-align:middle;text-decoration:none}
   .ovp-rankemb{display:inline-flex;align-items:center;margin-left:2px;vertical-align:middle}
   .ovp-rankemb img{width:20px;height:20px;object-fit:contain}
-  .ovp-pm{margin-left:auto;background:rgba(255,250,235,.7);border:1px solid var(--edge);border-radius:6px;color:var(--red-deep);cursor:pointer;font-size:13px;padding:2px 9px;line-height:1.2}
+  .ovp-pm{margin-left:auto;background:rgba(255,250,235,.7);border:1px solid var(--edge);border-radius:6px;color:var(--red-deep);cursor:pointer;font-size:13px;padding:3px 7px;line-height:1;display:inline-flex;align-items:center}
   .ovp-pm:hover{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+  .ovp-pm svg{display:block}
+  .ovp-vil{display:inline-flex;align-items:center;vertical-align:middle}
+  .ovp-vil img{width:18px;height:18px;object-fit:contain}
+  .ovp-corp{font-size:11px;color:var(--ink-soft);border:1px solid var(--edge);border-radius:5px;padding:1px 6px;background:rgba(255,250,235,.5);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ovp-u-top svg.m-sex{width:14px;height:14px;vertical-align:middle}
   .ovp-off{font-style:italic;color:var(--ink-soft);font-size:13px;margin-top:2px;line-height:1.35}
   /* #6 sintassi parlato/azione */
   .msg .m-body .sp-say{color:var(--red-deep)}
@@ -708,7 +713,7 @@
       function avatarHTML(c,name,cid){ var inner=(c&&c.avatar_url)?('<img src="'+esc(c.avatar_url)+'" alt="">'):('<span class="ava-ph">'+esc((name||'?').charAt(0).toUpperCase())+'</span>'); return cid?('<a class="m-ava" href="scheda.html?id='+esc(cid)+'" title="Apri la scheda di '+esc(name)+'">'+inner+'</a>'):('<span class="m-ava">'+inner+'</span>'); }
       function clanEmbSpan(clan,isCapo,size){ if(!clan||clan==='Nessuno')return ''; var u=EMB['clan:'+clan]; if(!u)return ''; return '<span class="cl-emb'+(isCapo?' shine':'')+'" style="width:'+size+'px;height:'+size+'px'+(isCapo?(';--e:url(&quot;'+u+'&quot;)'):'')+'"><img src="'+esc(u)+'" alt=""><span class="shn"></span></span>'; }
       function identityHTML(c,name,cid,created){ var sx=c&&c.sex; var sexIc=(sx==='Maschio')?SEX_M:((sx==='Femmina')?SEX_F:''); var wo=cid?('<a class="m-who" href="scheda.html?id='+esc(cid)+'">'):'<span class="m-who">'; var wc=cid?'</a>':'</span>'; var rk=c&&c.rank; var rimg=(rk&&EMB['rank:'+rk]); var rbadge=rimg?('<span class="rb"><img src="'+esc(rimg)+'" alt=""></span>'):rankBadge(rk); var rankH=rk?('<span class="m-rank">'+rbadge+esc(rk)+'</span>'):''; var cl=(c&&c.clan&&c.clan!=='Nessuno')?c.clan:''; var clanImg=clanEmbSpan(cl,(c&&c.clan_role==='Capo clan'),14); var clanH=cl?('<a class="m-clan" href="clan.html?c='+encodeURIComponent(cl)+'" title="Apri il clan">'+clanImg+esc(cl)+'</a>'):''; var ep=c&&c.epithet; var epiH=ep?('<span class="m-epi">«'+esc(ep)+'»</span>'):''; return '<div class="m-head">'+wo+esc(name)+wc+sexIc+rankH+clanH+epiH+'<span class="m-time">'+fmt(created)+'</span></div>'; }
-      function loadEmblems(){ if(!sb) return; sb.from('emblems').select('kind,name,image_url').in('kind',['clan','rank']).then(function(r){ if(r&&!r.error){ (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.kind+':'+e.name]=e.image_url; }); } }, function(){}); }
+      function loadEmblems(){ if(!sb) return; sb.from('emblems').select('kind,name,image_url').in('kind',['clan','rank','village']).then(function(r){ if(r&&!r.error){ (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.kind+':'+e.name]=e.image_url; }); } }, function(){}); }
       function showPtsReminder(n){ var el=document.getElementById('pts-reminder'); if(!el) return; if(n>0){ var pn=document.getElementById('pts-n'); if(pn) pn.textContent=n; el.hidden=false; } else { el.hidden=true; } }
       (function(){ var px=document.getElementById('pts-x'); if(px) px.addEventListener('click',function(){ var el=document.getElementById('pts-reminder'); if(el) el.hidden=true; }); })();
       function renderMsgs(rows){
@@ -835,17 +840,19 @@
           if(myId){ sb.from('characters').select('id,unspent_points').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; showPtsReminder(cr.data.unspent_points||0); } }, function(){}); }
           if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); } }, function(){}); }
           loadEmblems();
-          renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); loadFlash(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); }
+          renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); loadFlash(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); if(pmTarget){ var _pt=0, _iv=setInterval(function(){ _pt++; tryPmTarget(); if(!pmTarget||_pt>20) clearInterval(_iv); }, 400); } }
         }, function(){ loggedIn=false; renderLuoghi(); });
       } else { renderLuoghi(); }
 
       /* ===== PANNELLO UTENTI ONLINE ===== */
-      var panelOpen=false;
+      var panelOpen=false, pmTarget=null, rosterLoaded=false;
+      try{ pmTarget=new URLSearchParams(location.search).get('pm')||null; }catch(_e){}
+      var SCROLL='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5.5a2 2 0 0 1 2-2h8.5v13a2 2 0 0 0 2 2H9a2 2 0 0 1-2-2z"/><path d="M7 5.5a2 2 0 0 0-2 2v.4h2"/><path d="M11 8h5M11 11.5h5"/></svg>';
       function statusColor(s){ return ({online:'#3c8a3c',looking:'#d9a521',busy:'#c0392b',unavailable:'#8a8a8a'})[s]||'#3c8a3c'; }
       function statusLabel(s){ return ({online:'Online',looking:'In cerca di gioco',busy:'Occupato',unavailable:'Non disponibile'})[s]||'Online'; }
       function roleBadge(r){ var m={admin:['A','Admin'],staff:['S','Staff'],master:['M','Master']}; var v=m[r]; return v?'<span class="rl-badge rl-'+r+'" title="'+v[1]+'">'+v[0]+'</span>':''; }
       function updateOnlineCount(){ var n=ROSTER.length; var a=document.getElementById('online-n'); if(a) a.textContent=n; var m=document.getElementById('map-count'); if(m) m.textContent=n; }
-      function loadRoster(){ if(!sb||!loggedIn) return; sb.rpc('online_roster',{p_minutes:8}).then(function(r){ if(r&&!r.error){ ROSTER=r.data||[]; updateOnlineCount(); if(panelOpen) renderPanel(); } }, function(){}); }
+      function loadRoster(){ if(!sb||!loggedIn) return; sb.rpc('online_roster',{p_minutes:8}).then(function(r){ if(r&&!r.error){ ROSTER=r.data||[]; rosterLoaded=true; updateOnlineCount(); if(panelOpen) renderPanel(); tryPmTarget(); } }, function(){}); }
       function startRosterPoll(){ if(rosterPoll) return; rosterPoll=setInterval(function(){ loadRoster(); loadActivity(); loadFlash(); }, 12000); }
       function acTimeAgo(iso){ var t=new Date(iso).getTime(); if(!t) return ''; var sec=Math.max(0,(Date.now()-t)/1000); var m=Math.floor(sec/60); if(m<1) return 'adesso'; if(m<60) return m+' min fa'; var h=Math.floor(m/60); if(h<24) return h+' h fa'; return Math.floor(h/24)+' g fa'; }
       function acLine(e){ var nm='<b>'+esc(e.name||'—')+'</b>'; if(e.event_type==='enter'){ return e.location_name ? ('<span class="ac-in">▸</span> '+nm+' è entrato in <i>'+esc(e.location_name)+'</i>') : ('<span class="ac-in">▸</span> '+nm+' è entrato nella Land'); } return e.location_name ? ('<span class="ac-out">◂</span> '+nm+' ha lasciato <i>'+esc(e.location_name)+'</i>') : ('<span class="ac-out">◂</span> '+nm+' ha lasciato la Land'); }
@@ -956,9 +963,14 @@
         host.innerHTML=order.map(function(key){ var g=groups[key];
           var head='<button class="ovp-loc" data-loc="'+(g.loc||'')+'">'+esc(g.name)+'<span class="ovp-locn">'+g.users.length+'</span></button>';
           var rows=g.users.map(function(u){
-            var badges=roleBadge(u.role)+(u.rank?(EMB['rank:'+u.rank]?('<span class="ovp-rankemb"><img src="'+esc(EMB['rank:'+u.rank])+'" alt="" title="'+esc(u.rank)+'"></span>'):('<span class="ovp-rank">'+esc(u.rank)+'</span>')):'')+((u.clan&&u.clan!=='Nessuno')?('<a class="ovp-clan-emb" href="clan.html?c='+encodeURIComponent(u.clan)+'" title="'+esc(u.clan)+'">'+(clanEmbSpan(u.clan,(u.clan_role==='Capo clan'),18)||('<span class="ovp-clan">'+esc(u.clan)+'</span>'))+'</a>'):'');
+            var _sx=(u.sex==='Maschio')?SEX_M:((u.sex==='Femmina')?SEX_F:'');
+            var _vil=(u.village&&EMB['village:'+u.village])?('<span class="ovp-vil" title="'+esc(u.village)+'"><img src="'+esc(EMB['village:'+u.village])+'" alt=""></span>'):'';
+            var _rk=(u.rank?(EMB['rank:'+u.rank]?('<span class="ovp-rankemb"><img src="'+esc(EMB['rank:'+u.rank])+'" alt="" title="'+esc(u.rank)+'"></span>'):('<span class="ovp-rank">'+esc(u.rank)+'</span>')):'');
+            var _cl=((u.clan&&u.clan!=='Nessuno')?('<a class="ovp-clan-emb" href="clan.html?c='+encodeURIComponent(u.clan)+'" title="'+esc(u.clan)+'">'+(clanEmbSpan(u.clan,(u.clan_role==='Capo clan'),18)||('<span class="ovp-clan">'+esc(u.clan)+'</span>'))+'</a>'):'');
+            var _corp=(u.corporation?('<span class="ovp-corp" title="Corporazione: '+esc(u.corporation)+'">'+esc(u.corporation)+'</span>'):'');
+            var badges=roleBadge(u.role)+_sx+_vil+_rk+_cl+_corp;
             var off=u.off_notes?'<div class="ovp-off">'+esc(u.off_notes)+'</div>':'';
-            var pm=(u.user_id!==myId&&u.location_id)?'<button class="ovp-pm" data-pm="'+u.user_id+'" data-loc="'+u.location_id+'" title="Messaggio privato">✉</button>':'';
+            var pm=(u.user_id!==myId)?'<button class="ovp-pm" data-pm="'+u.user_id+'" data-loc="'+(u.location_id||'')+'" title="Invia un messaggio">'+SCROLL+'</button>':'';
             return '<div class="ovp-user"><span class="st-dot" style="background:'+statusColor(u.status)+'" title="'+statusLabel(u.status)+'"></span><div class="ovp-u-main"><div class="ovp-u-top"><span class="ovp-name">'+esc(u.name)+'</span>'+badges+pm+'</div>'+off+'</div></div>';
           }).join('');
           return '<div class="ovp-group">'+head+rows+'</div>';
@@ -966,7 +978,8 @@
         Array.prototype.forEach.call(host.querySelectorAll('.ovp-loc'),function(b){ b.addEventListener('click',function(){ var lid=b.getAttribute('data-loc'); closePanel(); if(lid){ var l=LOCS.filter(function(x){return x.id===lid;})[0]; if(l) openRoom(l); } else { if(cur) leaveRoom(); } }); });
         Array.prototype.forEach.call(host.querySelectorAll('.ovp-pm'),function(b){ b.addEventListener('click',function(){ startPM(b.getAttribute('data-pm'), b.getAttribute('data-loc')); }); });
       }
-      function startPM(uid,lid){ closePanel(); var l=LOCS.filter(function(x){return x.id===lid;})[0]; if(!l){ toast('Il giocatore non è in una chat'); return; } pendingWhisper=uid; openRoom(l); setTimeout(function(){ if(input) input.focus(); },300); }
+      function startPM(uid,lid){ closePanel(); var l=LOCS.filter(function(x){return x.id===lid;})[0]; if(!l){ toast('L\u2019utente non \u00e8 in una stanza in questo momento'); return; } pendingWhisper=uid; openRoom(l); setTimeout(function(){ if(input) input.focus(); },300); }
+      function tryPmTarget(){ if(!pmTarget||!rosterLoaded) return; var u=ROSTER.filter(function(x){return x.user_id===pmTarget;})[0]; if(!u){ pmTarget=null; toast('L\u2019utente non \u00e8 online in questo momento'); return; } if(!u.location_id){ pmTarget=null; toast(u.name+' non \u00e8 in una stanza in questo momento'); return; } var l=LOCS.filter(function(x){return x.id===u.location_id;})[0]; if(!l) return; var uid=u.user_id; pmTarget=null; startPM(uid,l.id); }
       function openPanel(){ panelOpen=true; var pn=document.getElementById('online-panel'), bk=document.getElementById('ov-backdrop'); if(pn)pn.hidden=false; if(bk)bk.hidden=false; renderPanel(); loadRoster(); }
       function closePanel(){ panelOpen=false; var pn=document.getElementById('online-panel'), bk=document.getElementById('ov-backdrop'); if(pn)pn.hidden=true; if(bk)bk.hidden=true; }
       (function(){
