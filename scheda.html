@@ -253,6 +253,10 @@
   .msg-body textarea{width:100%;min-height:150px;resize:vertical;background:rgba(255,255,255,.35);border:1px solid var(--rule);color:var(--ink);font-family:'Cormorant Garamond',serif;font-size:16px;padding:10px 12px;box-sizing:border-box}
   .msg-count{text-align:right;font-family:'Cinzel',serif;font-size:10px;color:var(--ink-soft);letter-spacing:.08em}
   .msg-foot{display:flex;justify-content:flex-end;gap:10px;padding:10px 16px 16px}
+  .danger-zone{border:1px solid var(--red);background:rgba(166,50,29,.05);padding:14px 16px;margin-top:14px}
+  .dz-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+  .dz-row input{flex:1;min-width:200px;font-family:'Cormorant Garamond',serif;font-size:16px;padding:9px 12px;border:1px solid var(--rule);background:rgba(255,255,255,.4);color:var(--ink)}
+  #dz-delete:disabled{opacity:.45;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -372,6 +376,15 @@
             </div>
             <label class="sp-full">Note del Fato (visibili al giocatore)<textarea id="sp-fato" placeholder="Obiettivi, ganci di trama, destino…"></textarea></label>
             <button class="btn btn-red btn-sm" id="sp-save" style="margin-top:12px">Salva modifiche staff</button>
+          </div>
+          <div class="ssec danger-zone" id="danger-zone" style="display:none">
+            <h3 style="color:var(--red-deep)">⚠ Zona pericolo</h3>
+            <p class="hint" style="margin-top:-4px">Cancella definitivamente il tuo account. L'operazione &egrave; <strong>irreversibile</strong>: elimina personaggio, scheda, inventario e messaggi, e non &egrave; possibile recuperarli.</p>
+            <div class="dz-row">
+              <input id="dz-confirm" type="text" placeholder="Scrivi CANCELLA per confermare" autocomplete="off" spellcheck="false">
+              <button type="button" class="btn btn-red btn-sm" id="dz-delete" disabled>Cancella account</button>
+            </div>
+            <p class="hint"><a href="privacy.html" target="_blank" style="color:var(--red)">Come trattiamo i tuoi dati</a></p>
           </div>
           </div>
           <div id="page-inv" class="spage">
@@ -504,6 +517,7 @@
       var eb=$('s-edit'); if(eb){ eb.style.display=canEd?'':'none'; eb.textContent=editMode?'Fine modifica':'Modifica'; eb.classList.toggle('btn-red',editMode); eb.classList.toggle('btn-ghost',!editMode); }
       var pu=$('s-portrait-up'); if(pu) pu.style.display=oEdit?'':'none';
       var _msg=$('s-msg'); if(_msg){ var _other=(viewMode==='public'||viewMode==='staff'||viewMode==='adminother'); _msg.style.display=(_other&&myChar&&myChar.user_id)?'':'none'; }
+      var _dz=$('danger-zone'); if(_dz) _dz.style.display=(viewMode==='owner'||viewMode==='adminself')?'':'none';
       var ub=$('unspent-box'); if(ub){ if(owner){ renderUnspent(myChar); } else { ub.style.display='none'; } }
       var stb=$('stat-badge'); if(stb){ var _p=(owner&&myChar&&myChar.unspent_points>0)?myChar.unspent_points:0; stb.textContent=_p; stb.style.display=_p>0?'':'none'; }
       var so=$('sec-off'); if(so) so.style.display='';
@@ -781,9 +795,32 @@
       var t=$('msg-text'); if(t) t.addEventListener('input',function(){var c=$('msg-count'); if(c) c.textContent=String(t.value.length);});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'){var ov=$('msg-overlay'); if(ov&&!ov.hidden) closeMsg();}});
     }
+    async function doDeleteAccount(){
+      var inp=$('dz-confirm'); if(!inp || inp.value.trim().toUpperCase()!=='CANCELLA'){ toast('Scrivi CANCELLA per confermare',true); return; }
+      if(!sb){ toast('Servizio non disponibile',true); return; }
+      var btn=$('dz-delete'); if(btn) btn.disabled=true;
+      try{
+        var ss=await sb.auth.getSession();
+        var tok=(ss&&ss.data&&ss.data.session)?ss.data.session.access_token:null;
+        if(!tok){ toast('Sessione scaduta, riaccedi',true); if(btn) btn.disabled=false; return; }
+        var r=await fetch(SB_URL+'/functions/v1/delete-account',{ method:'POST', headers:{ 'Authorization':'Bearer '+tok, 'apikey':SB_KEY, 'Content-Type':'application/json' }, body:'{}' });
+        var out={}; try{ out=await r.json(); }catch(e){}
+        if(!r.ok || out.error){ toast('Cancellazione non riuscita',true); if(btn) btn.disabled=false; return; }
+        try{ localStorage.removeItem('tus_login_name'); sessionStorage.removeItem('tus_in_land'); }catch(e){}
+        try{ await sb.auth.signOut(); }catch(e){}
+        toast('Account cancellato');
+        setTimeout(function(){ location.href='index.html'; }, 900);
+      }catch(e){ toast('Cancellazione non riuscita',true); if(btn) btn.disabled=false; }
+    }
+    function bindDanger(){
+      var inp=$('dz-confirm'), btn=$('dz-delete');
+      if(inp&&btn){ inp.addEventListener('input',function(){ btn.disabled = inp.value.trim().toUpperCase()!=='CANCELLA'; }); }
+      if(btn){ btn.addEventListener('click',doDeleteAccount); }
+    }
     bindIE();
     bindPages();
     bindMsg();
+    bindDanger();
     init();
     window.__demo=function(c,priv,emb,mode){if(emb)EMB=emb;myChar=c;me={id:(c&&c.user_id)||'me'};curPriv=priv||null;viewMode=mode||'owner';isStaff=(mode==='staff'||mode==='adminself'||mode==='adminother');isAdmin=(mode==='adminself'||mode==='adminother');fillForm(c,priv||null);show('st-sheet');};
     window.__demoCreate=function(nm){if(nm){var e=$('c-name-show');if(e)e.textContent=nm;}show('st-create');};

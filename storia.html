@@ -486,5 +486,31 @@
 
 </script>
 <script>(function(){ try{ if(sessionStorage.getItem('tus_in_land')==='1'){ var a=document.querySelectorAll('a[href="index.html"]'); for(var i=0;i<a.length;i++) a[i].setAttribute('href','land.html'); } }catch(e){} })();</script>
+<!-- Gate 18+ (una volta per dispositivo) -->
+<script>
+(function(){
+  var stored=null; try{ stored=localStorage.getItem('tus_age_ok'); }catch(e){}
+  if(stored) return;
+  function build(){
+    if(document.getElementById('tus-agegate')) return;
+    var o=document.createElement('div'); o.id='tus-agegate';
+    o.setAttribute('style',"position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(20,13,5,.94);font-family:Georgia,'Times New Roman',serif");
+    o.innerHTML='<div style="max-width:460px;width:100%;background:linear-gradient(#f1e6ca,#e7d6b2);border:1.5px solid #b79d6c;box-shadow:0 24px 70px rgba(0,0,0,.55);padding:30px 26px;text-align:center;color:#2b1d0e">'
+      +'<div style="font-family:Georgia,serif;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#7c2413">The Untold Story</div>'
+      +'<h2 style="margin:14px 0 8px;font-size:21px;color:#2b1d0e">Contenuti per un pubblico adulto</h2>'
+      +'<p style="margin:0 0 14px;font-size:17px;line-height:1.5;color:#4a3720">Questo &egrave; un gioco di ruolo testuale a tema maturo, riservato ai <strong>maggiorenni</strong>. Entrando dichiari di avere <strong>almeno 18 anni</strong>.</p>'
+      +'<p style="margin:0 0 18px;font-size:13.5px;line-height:1.5;color:#6a5231">Usiamo solo archiviazione tecnica necessaria al funzionamento. Leggi l\'<a href="privacy.html" style="color:#a6321d">informativa privacy</a> e il <a href="regole.html" style="color:#a6321d">regolamento</a>.</p>'
+      +'<div style="display:flex;flex-direction:column;gap:10px">'
+        +'<button type="button" id="tus-age-yes" style="cursor:pointer;font-family:Georgia,serif;font-weight:bold;font-size:13px;letter-spacing:.1em;text-transform:uppercase;padding:13px 18px;border:1.5px solid #7c2413;background:#a6321d;color:#f6ead0">Ho 18 anni o pi&ugrave; &mdash; Entra</button>'
+        +'<button type="button" id="tus-age-no" style="cursor:pointer;font-family:Georgia,serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:10px 18px;border:1.5px solid #b79d6c;background:transparent;color:#6a5231">No, esco</button>'
+      +'</div></div>';
+    document.body.appendChild(o);
+    document.documentElement.style.overflow='hidden';
+    document.getElementById('tus-age-yes').onclick=function(){ try{ localStorage.setItem('tus_age_ok', new Date().toISOString()); }catch(e){} if(o.parentNode)o.parentNode.removeChild(o); document.documentElement.style.overflow=''; };
+    document.getElementById('tus-age-no').onclick=function(){ window.location.href='https://www.google.com/'; };
+  }
+  if(document.body) build(); else document.addEventListener('DOMContentLoaded', build);
+})();
+</script>
 </body>
 </html>
