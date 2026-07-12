@@ -115,6 +115,17 @@
     .rtable{font-size:13px;min-width:400px}
     .rtable th,.rtable td{padding:5px 7px}
   }
+  details.formula{margin:14px 0}
+  details.formula>summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:7px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);border:1px solid var(--rule);padding:7px 13px;background:rgba(166,50,29,.05);transition:.15s}
+  details.formula>summary:hover{background:rgba(166,50,29,.1)}
+  details.formula>summary::-webkit-details-marker{display:none}
+  details.formula>summary::before{content:"\25B8";font-size:9px}
+  details.formula[open]>summary::before{content:"\25BE"}
+  details.formula[open]>summary{margin-bottom:10px}
+  details.formula .fbody{border:1px solid var(--edge);border-left:3px solid var(--red);background:rgba(255,255,255,.35);padding:12px 16px}
+  details.formula .fbody p{margin:0 0 9px}
+  details.formula .fbody p:last-child{margin-bottom:0}
+  details.formula .fbody .tw{margin-top:10px}
 </style>
 </head>
 <body>
@@ -153,9 +164,9 @@
             <li><a href="#s1">Condotta in gioco</a></li>
             <li><a href="#s2">Account e personaggi</a></li>
             <li><a href="#s3">Creazione del personaggio</a></li>
-            <li><a href="#s4">Sistema di risoluzione</a></li>
+            <li><a href="#s4">Combattimento</a></li>
             <li><a href="#s5">Chakra e jutsu</a></li>
-            <li><a href="#s6">Combattimento e ferite</a></li>
+            <li><a href="#s6">Sconfitta e allenamenti</a></li>
             <li><a href="#s7">PvP e morte</a></li>
             <li><a href="#s8">Progressione</a></li>
             <li><a href="#s9">Armeria ed equipaggiamento</a></li>
@@ -208,28 +219,49 @@
           </section>
 
           <section class="sec" id="s4">
-            <h2><span class="num">4</span> Sistema di risoluzione</h2>
-            <p>Il gioco usa il modello <strong>statistiche + dadi</strong> in versione <strong>roll-under su 1d100</strong>: la caratteristica è la tua percentuale di riuscita.</p>
+            <h2><span class="num">4</span> Combattimento</h2>
+            <p>Ogni azione che può riuscire o fallire — un attacco, una schivata, una tecnica — si risolve con un <strong>confronto</strong>: chi agisce e chi si difende tirano un dado e vi sommano le proprie capacità. <strong>Vince il totale più alto.</strong> Non devi fare conti a mano: nella land il pulsante <strong>⚔ Combatti</strong> calcola tutto e mostra l'esito in chat, del tipo «<em>A usa Palla di Fuoco: B prova a schivare ma è colpito di striscio — subisce 12 danni</em>».</p>
+            <h3>4.1 · Come si risolve un colpo</h3>
             <ul>
-              <li><strong>Azione non contesa:</strong> successo se 1d100 ≤ caratteristica + modificatore di difficoltà (Banale +40, Normale +20, Difficile 0, Ardua −20, Estrema −40).</li>
-              <li><strong>Azione contesa:</strong> entrambi tirano sulla caratteristica pertinente; il margine = (caratteristica + mod) − tiro. Vince il margine più alto; la differenza misura la nettezza dell'esito.</li>
-              <li><strong>Limiti del dado:</strong> 96–100 è sempre fallimento, 1–5 è sempre successo, a prescindere dai modificatori.</li>
-              <li><strong>Onboarding:</strong> le giocate d'accademia e d'addestramento dei Deshi sono a difficoltà Normale (+20) di default.</li>
-              <li><strong>Modificatori comuni:</strong> cerchio elementale ±15 (Fuoco › Vento › Fulmine › Terra › Acqua › Fuoco), terreno/posizione +5/+15, valutazione del master −20/+20, ferito grave −10, sovraccarico di chakra +10 (con costo ×1,5).</li>
-              <li><strong>Genjutsu:</strong> contesa Genjutsu contro Mente. Se l'illusionista vince, il bersaglio subisce l'effetto descritto o perde il turno (secondo il rango della tecnica). Rottura: spesa di 15 chakra con una nuova contesa, oppure l'intervento di un alleato.</li>
+              <li><strong>Attacco contro difesa.</strong> Chi colpisce usa la <strong>capacità naturale</strong> e la <strong>disciplina</strong> adatte (Forza + Taijutsu per un colpo fisico, Mente + Ninjutsu per una tecnica). Chi si difende fa lo stesso: <strong>Velocità + Taijutsu</strong> per schivare, <strong>Mente + Ninjutsu</strong> per contrastare una tecnica.</li>
+              <li><strong>Quanto è netto il colpo.</strong> Se l'attacco supera la difesa va a segno; di quanto la supera (il <em>margine</em>) dice se è <strong>di striscio</strong>, <strong>in pieno</strong> o <strong>devastante</strong> — e più è netto, più danni fa.</li>
+              <li><strong>Punti Vita e Resistenza.</strong> I danni tolgono <strong>Punti Vita</strong>; la <strong>Resistenza</strong> alza i PV e ne assorbe una parte a ogni colpo. A 0 PV si è <strong>fuori combattimento</strong> (in giocata libera: incapacitato, mai ucciso).</li>
+              <li><strong>Genjutsu.</strong> Non toglie PV: impone effetti o condizioni, si contrasta con la Mente e si rompe con una nuova contesa (o l'intervento di un alleato).</li>
+              <li><strong>Bonus di qualità (solo col master).</strong> Quando c'è un <strong>master</strong>, può premiare con un bonus (fino a +6) chi descrive l'azione in modo brillante — terreno, finte, punti deboli. È l'unico modo in cui un grado inferiore, giocando davvero meglio, può ribaltare uno scontro. In <strong>giocata libera</strong> non si usa: conta solo ciò che è oggettivo.</li>
             </ul>
-            <h3>4.1 · Le due modalità di gioco</h3>
+            <details class="formula">
+              <summary>Mostra le formule esatte</summary>
+              <div class="fbody">
+                <p><strong>Confronto</strong> = ⌊(Naturale + Disciplina) ÷ 10⌋ + 1d20 + bonus. Colpisce se il totale d'attacco è ≥ a quello di difesa; il <strong>margine</strong> è la differenza tra i due.</p>
+                <p><strong>Nettezza del colpo</strong> (bonus al danno secondo il margine): 0–4 → +0 <em>(di striscio)</em> · 5–9 → +3 · 10–14 → +6 <em>(in pieno)</em> · 15+ → +10 <em>(devastante)</em>.</p>
+                <p><strong>Punti Vita</strong> = 50 + Resistenza.</p>
+                <p><strong>Danno fisico</strong> = max(1 ; danno base + ⌊Forza ÷ 4⌋ + bonus del margine − ⌊Resistenza ÷ 20⌋). Per il <strong>Ninjutsu</strong>: la Mente al posto della Forza e riduzione ⌊Resistenza ÷ 40⌋.</p>
+                <p><strong>Bonus oggettivi</strong> (vantaggio elementale, terreno, posizione): piccoli valori sommati al confronto, indicati dalla tecnica o dal master. Il <strong>bonus di qualità</strong> del master va da 0 a +6.</p>
+                <div class="tw"><table class="rtable">
+                  <caption>Capacità usate per tipo di azione</caption>
+                  <thead><tr><th>Azione</th><th>Attacco</th><th>Difesa</th></tr></thead>
+                  <tbody>
+                    <tr><td>Colpo fisico o arma</td><td>Forza + Taijutsu</td><td>Velocità + Taijutsu</td></tr>
+                    <tr><td>Ninjutsu offensivo</td><td>Mente + Ninjutsu</td><td>Velocità + Taijutsu <em>o</em> Mente + Ninjutsu</td></tr>
+                    <tr><td>Genjutsu</td><td>Mente + Genjutsu</td><td>Mente + Genjutsu</td></tr>
+                    <tr><td>Sigillo (Fuuinjutsu)</td><td>Mente + Fuuinjutsu</td><td>indicata dal sigillo</td></tr>
+                    <tr><td>Tecnica innata (Kekkei Genkai)</td><td>capacità indicata + Kekkei Genkai</td><td>indicata dalla tecnica</td></tr>
+                  </tbody>
+                </table></div>
+              </div>
+            </details>
+            <h3>4.2 · Le due modalità di gioco</h3>
             <ul>
-              <li><strong>Giocata libera (senza master):</strong> turnazione libera, esiti calcolati automaticamente dal sistema (dadi + caratteristiche + cerchio elementale). Non si può uccidere né mutilare permanentemente un altro personaggio.</li>
-              <li><strong>Giocata masterata:</strong> il master valuta la qualità delle azioni descritte (−20/+20) e può fissare direttamente gli esiti narrativamente decisivi. Missioni, eventi, esami di rango e scontri mortali sono sempre masterati.</li>
+              <li><strong>Giocata libera (senza master):</strong> turnazione libera, esiti calcolati in automatico dal sistema (pulsante ⚔). Nessun bonus di qualità. Non si può uccidere né mutilare in modo permanente un altro personaggio.</li>
+              <li><strong>Giocata masterata:</strong> il master aggiunge il bonus di qualità e, nei momenti decisivi, può fissare direttamente l'esito. Missioni, eventi, esami di rango e scontri mortali sono <strong>sempre</strong> masterati.</li>
             </ul>
-            <h3>4.2 · Struttura del turno</h3>
+            <h3>4.3 · Struttura del turno</h3>
             <ol>
-              <li>Descrizione dell'azione (minimo 500 caratteri).</li>
-              <li>Dichiarazione del jutsu e spesa di chakra.</li>
-              <li>Tiri richiesti dal sistema o dal master.</li>
-              <li>Iniziativa a inizio scontro: tiro su Velocità (a parità, vince il margine più alto).</li>
-              <li>La scena si gioca nella sessione in cui inizia; se resta aperta, si può congelare per un massimo di 72 ore.</li>
+              <li>Descrivi la tua azione (minimo 500 caratteri).</li>
+              <li>Dichiari la tecnica e l'eventuale spesa di chakra.</li>
+              <li>Si lancia il calcolo (⚔) e l'esito appare in chat.</li>
+              <li>Iniziativa a inizio scontro: tiro su Velocità; poi la turnazione si alterna.</li>
+              <li>La scena si gioca nella sessione in cui inizia; se resta aperta, si può congelare per un massimo di 72 ore (vedi §1).</li>
             </ol>
           </section>
 
@@ -254,17 +286,11 @@
           </section>
 
           <section class="sec" id="s6">
-            <h2><span class="num">6</span> Combattimento e ferite</h2>
-            <div class="tw"><table class="rtable">
-              <caption>Vigore (soglia di sconfitta) per rango</caption>
-              <thead><tr><th>Rango</th><th>Deshi</th><th>Genin</th><th>Chunin</th><th>Jonin</th><th>Jonin Sp.</th><th>Kage / Sannin</th></tr></thead>
-              <tbody><tr><td>Vigore</td><td>40</td><td>60</td><td>80</td><td>100</td><td>120</td><td>140</td></tr></tbody>
-            </table></div>
-            <p>Al Vigore si aggiunge un bonus legato alla Forza.</p>
+            <h2><span class="num">6</span> Sconfitta e allenamenti</h2>
+            <p>I <strong>Punti Vita</strong>, i danni e la loro riduzione sono descritti nel <a href="#s4">§4 · Combattimento</a>. Qui contano le conseguenze in gioco.</p>
             <ul>
-              <li><strong>Danno.</strong> Taijutsu e armi = Forza ÷ 3. Ninjutsu = danno base della tecnica (E 5 · D 10 · C 20 · B 30 · A 45 · S 65). Moltiplicatore per margine: striscio ×0,5, colpo pieno ×1, colpo devastante ×1,5.</li>
-              <li><strong>Stati.</strong> Sotto il 50% di Vigore = ferito grave (−10 a tutto); Vigore a 0 = fuori combattimento.</li>
-              <li><strong>Fuori combattimento in giocata libera = incapacitato</strong> (ferito, in fuga o catturato). Mai morto.</li>
+              <li><strong>Fuori combattimento.</strong> A 0 Punti Vita il personaggio è sconfitto. In <strong>giocata libera</strong> significa <strong>incapacitato</strong> (ferito, in fuga o catturato), <strong>mai ucciso</strong>: la morte avviene solo alle condizioni del §7.</li>
+              <li><strong>Ferite.</strong> Un personaggio ridotto male combatte peggio: il master può applicare un malus finché non si cura o si ritira.</li>
             </ul>
             <h3>6.1 · Galateo degli allenamenti</h3>
             <ul>
@@ -306,7 +332,7 @@
             <h2><span class="num">9</span> Armeria ed equipaggiamento</h2>
             <ul>
               <li>Ogni personaggio dispone dell'equipaggiamento ninja standard: kunai, shuriken, filo, sigilli esplosivi in quantità limitata per scena.</li>
-              <li><strong>Armi bianche:</strong> usano il Taijutsu per colpire; danno = Forza ÷ 3, con un piccolo bonus d'arma.</li>
+              <li><strong>Armi comuni:</strong> si impugnano col Taijutsu; il danno segue il <a href="#s4">§4</a> (non c'è una statistica dedicata alle armi). Gli stili armati avanzati sono resi da abilità specifiche.</li>
               <li>Armi speciali, marionette, veleni e strumenti particolari sono censiti nell'<strong>Armeria</strong> (database ufficiale) e richiedono requisiti o l'approvazione dello staff.</li>
               <li>L'economia completa (ryo, negozi, compravendita) arriverà dopo il lancio; fino ad allora l'equipaggiamento speciale si ottiene per via narrativa — missioni e premi.</li>
             </ul>
