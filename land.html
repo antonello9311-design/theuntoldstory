@@ -169,12 +169,12 @@
   .side-toggle:hover{background:var(--red);color:#f6ead0}
   .mbox-head .side-toggle{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.4);color:#f8ecd6}
   .mbox-head .side-toggle:hover{background:rgba(255,255,255,.3)}
-  .side-reopen{display:none}
-  .map-side.collapsed>.activity,.map-phone.collapsed>.mbox{display:none}
-  .map-side.collapsed,.map-phone.collapsed{flex:0 0 36px}
-  .map-side.collapsed>.side-reopen,.map-phone.collapsed>.side-reopen{display:flex;align-items:center;justify-content:center;width:100%;flex:1;min-height:160px;border:1px solid var(--rule);border-radius:12px;background:linear-gradient(rgba(247,238,214,.92),rgba(233,219,178,.86));box-shadow:0 6px 18px rgba(60,42,18,.14);cursor:pointer;color:var(--red-deep)}
-  .map-side.collapsed>.side-reopen:hover,.map-phone.collapsed>.side-reopen:hover{border-color:var(--red)}
-  .side-reopen span{writing-mode:vertical-rl;transform:rotate(180deg);font-family:'Cinzel',serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;white-space:nowrap}
+  /* collapse dall'alto in basso: la barra si riduce all'intestazione */
+  .map-side.collapsed,.map-phone.collapsed{align-self:flex-start}
+  .map-side.collapsed>.activity{flex:0 0 auto}
+  .map-side.collapsed .ac-list{display:none}
+  .map-phone.collapsed .mbox{flex:0 0 auto}
+  .map-phone.collapsed .mbox-search,.map-phone.collapsed .mbox-view{display:none}
   .ac-head{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-deep);margin-bottom:6px}
   .ac-hint{color:var(--ink-soft);font-weight:400;text-transform:none;letter-spacing:0;font-size:12px}
   .ac-list{display:flex;flex-direction:column;gap:2px;flex:1;min-height:0;overflow-y:auto}
@@ -191,9 +191,7 @@
     .map-main{order:1}
     .map-side{order:2;flex:0 0 auto}.map-phone{order:3;flex:0 0 auto}
     .activity{flex:0 0 auto}
-    .map-side.collapsed,.map-phone.collapsed{flex:0 0 auto}
-    .map-side.collapsed>.side-reopen,.map-phone.collapsed>.side-reopen{min-height:0;flex:0 0 auto;padding:10px}
-    .side-reopen span{writing-mode:horizontal-tb;transform:none}
+    .map-side.collapsed,.map-phone.collapsed{align-self:stretch;flex:0 0 auto}
     .ac-list{flex:none;max-height:118px}
   }
   .lg-card{flex:0 0 auto;min-width:158px;max-width:230px;text-align:left;border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.72);padding:9px 12px;cursor:pointer;font-family:inherit;transition:.15s}
@@ -633,9 +631,8 @@
           </div>
           <div class="map-cols">
             <aside class="map-side" id="side-left">
-              <button class="side-reopen" type="button" data-reopen="left" title="Riapri Entrati / Usciti"><span>Entrati / Usciti</span></button>
               <div class="activity">
-                <div class="ac-head"><span>Entrati / Usciti</span><button class="side-toggle" type="button" data-collapse="left" title="Comprimi">«</button></div>
+                <div class="ac-head"><span>Entrati / Usciti</span><button class="side-toggle" type="button" data-collapse="left" title="Comprimi">▾</button></div>
                 <div class="ac-list" id="ac-list"><span class="who-empty">—</span></div>
               </div>
             </aside>
@@ -660,20 +657,15 @@
             </div>
             <div class="map-markers" id="map-markers"></div>
           </div>
-          <div class="luoghi">
-            <div class="lg-head">Luoghi — scegli dove giocare <span class="lg-count">· <b id="map-count">0</b> presenti nella land</span></div>
-            <div class="lg-list" id="lg-list"><span class="who-empty">Caricamento…</span></div>
-          </div>
             </div>
             <aside class="map-phone" id="side-right">
-              <button class="side-reopen" type="button" data-reopen="right" title="Riapri Messaggi"><span>Messaggi</span></button>
               <div class="mbox">
                 <div class="mbox-head">
                   <span class="mb-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg></span>
                   <h2>Messaggi</h2>
                   <span class="mail-badge" id="mail-badge">0</span>
                   <button class="mb-plus" id="mail-new" type="button" title="Nuovo messaggio">+</button>
-                  <button class="side-toggle" type="button" data-collapse="right" title="Comprimi">»</button>
+                  <button class="side-toggle" type="button" data-collapse="right" title="Comprimi">▾</button>
                 </div>
                 <div class="mbox-search">
                   <div class="search-row">
@@ -697,6 +689,10 @@
                 </div>
               </div>
             </aside>
+          </div>
+          <div class="luoghi">
+            <div class="lg-head">Luoghi — scegli dove giocare <span class="lg-count">· <b id="map-count">0</b> presenti nella land</span></div>
+            <div class="lg-list" id="lg-list"><span class="who-empty">Caricamento…</span></div>
           </div>
         </div>
 
@@ -985,11 +981,12 @@
       var mapLevel='world';
       var VILLAGES=[{key:'konoha',name:'Konoha',x:34,y:36},{key:'suna',name:'Suna',x:13,y:46}];
       function mapImgCands(level){ if(level==='konoha') return ['assets/konoha.png','assets/konoha.jpg','assets/konoha.webp']; if(level==='suna') return ['assets/suna.png','assets/suna.jpg','assets/suna.webp']; return ['assets/world.png','assets/world.jpg','assets/world.webp','assets/land-map.png','assets/land-map.jpg','assets/land-map.webp']; }
-      function fitMapFrame(){ var mi=document.getElementById('land-map'), fr=document.getElementById('mapframe'); if(!mi||!fr) return; if(!mi.naturalWidth||!mi.naturalHeight||getComputedStyle(mi).display==='none'){ return; } var maxH=Math.max(240, Math.round((window.innerHeight||700)*0.56)); var wByH=Math.round(maxH*(mi.naturalWidth/mi.naturalHeight)); fr.style.aspectRatio=mi.naturalWidth+' / '+mi.naturalHeight; fr.style.flex='0 0 auto'; fr.style.minHeight='0'; fr.style.maxHeight=maxH+'px'; fr.style.width='min(100%, '+wByH+'px)'; fr.style.margin='0 auto'; }
+      function fitMapFrame(){ var mi=document.getElementById('land-map'), fr=document.getElementById('mapframe'); if(!mi||!fr) return; if(!mi.naturalWidth||!mi.naturalHeight||getComputedStyle(mi).display==='none'){ return; } fr.style.aspectRatio=mi.naturalWidth+' / '+mi.naturalHeight; fr.style.flex='0 0 auto'; fr.style.minHeight='0'; if(mapLevel==='world'){ fr.style.maxHeight=''; fr.style.width=''; fr.style.margin=''; } else { var maxH=Math.max(240, Math.round((window.innerHeight||700)*0.56)); var wByH=Math.round(maxH*(mi.naturalWidth/mi.naturalHeight)); fr.style.maxHeight=maxH+'px'; fr.style.width='min(100%, '+wByH+'px)'; fr.style.margin='0 auto'; } }
       function setMapImage(level){ var mi=document.getElementById('land-map'); if(!mi) return; var hint=document.getElementById('map-hint'), comp=document.querySelector('.compass'), fr=document.getElementById('mapframe'); var cands=mapImgCands(level), i=0; mi.onload=function(){ mi.style.display='block'; if(hint)hint.style.display='none'; if(comp)comp.style.display='none'; fitMapFrame(); }; mi.onerror=function(){ if(i>=cands.length){ mi.removeAttribute('src'); mi.style.display='none'; if(fr){ fr.style.aspectRatio='auto'; fr.style.flex='1'; fr.style.minHeight='340px'; fr.style.maxHeight=''; fr.style.width=''; fr.style.margin=''; } if(hint)hint.style.display=''; if(comp)comp.style.display=''; return; } mi.src=cands[i++]; }; mi.style.display='none'; if(hint)hint.style.display=''; if(comp)comp.style.display=''; mi.onerror(); }
       window.addEventListener('resize', fitMapFrame);
-      function setSideCollapsed(side, collapsed){ var el=document.getElementById(side==='left'?'side-left':'side-right'); if(!el) return; el.classList.toggle('collapsed', !!collapsed); try{ localStorage.setItem('tus_side_'+side, collapsed?'1':'0'); }catch(e){} setTimeout(fitMapFrame,60); }
-      (function(){ document.addEventListener('click',function(e){ var c=e.target.closest('[data-collapse]'); if(c){ setSideCollapsed(c.getAttribute('data-collapse'), true); return; } var r=e.target.closest('[data-reopen]'); if(r){ setSideCollapsed(r.getAttribute('data-reopen'), false); } }); try{ if(localStorage.getItem('tus_side_left')==='1') setSideCollapsed('left',true); if(localStorage.getItem('tus_side_right')==='1') setSideCollapsed('right',true); }catch(e){} })();
+      function setSideCollapsed(side, collapsed){ var el=document.getElementById(side==='left'?'side-left':'side-right'); if(!el) return; el.classList.toggle('collapsed', !!collapsed); var t=el.querySelector('.side-toggle'); if(t){ t.textContent=collapsed?'▾':'▴'; t.title=collapsed?'Espandi':'Comprimi'; } try{ localStorage.setItem('tus_side_'+side, collapsed?'1':'0'); }catch(e){} setTimeout(fitMapFrame,60); }
+      (function(){ document.addEventListener('click',function(e){ var c=e.target.closest('[data-collapse]'); if(!c) return; var side=c.getAttribute('data-collapse'); var el=document.getElementById(side==='left'?'side-left':'side-right'); setSideCollapsed(side, !(el&&el.classList.contains('collapsed'))); });
+        ['left','right'].forEach(function(side){ var c=false; try{ c=localStorage.getItem('tus_side_'+side)==='1'; }catch(e){} setSideCollapsed(side, c); }); })();
       function villageLocs(region){ return LOCS.filter(function(l){ return (''+(l.region||'')).toLowerCase()===region; }); }
       function neutralLocs(){ return LOCS.filter(function(l){ return !l.region; }); }
       function makeMarker(x,y,label,cls){ var b=document.createElement('button'); b.type='button'; b.className='mk '+cls; b.style.left=((x!=null&&x!=='')?x:50)+'%'; b.style.top=((y!=null&&y!=='')?y:50)+'%'; b.innerHTML='<span class="mk-dot"></span><span class="mk-lbl">'+esc(label)+'</span>'; return b; }
