@@ -149,13 +149,15 @@
           </section>
 
           <section class="adm-page on" data-page="emblemi">
-          <p class="mgr-note" style="margin-top:0">Carica un\u2019immagine per ogni villaggio, clan e grado: comparir\u00e0 in automatico su tutte le schede. Consigliato un <b>PNG quadrato con sfondo trasparente</b> (~256\u00d7256, sotto 2&nbsp;MB). Le immagini che carichi sono di tua scelta e responsabilit\u00e0.</p>
+          <p class="mgr-note" style="margin-top:0">Carica un\u2019immagine per ogni villaggio, clan, grado ed elemento: comparir\u00e0 in automatico su tutte le schede. Consigliato un <b>PNG quadrato con sfondo trasparente</b> (~256\u00d7256, sotto 2&nbsp;MB). Le immagini che carichi sono di tua scelta e responsabilit\u00e0.</p>
           <div class="grp-title">Villaggi</div>
           <div class="emgrid" id="grid-village"></div>
           <div class="grp-title">Clan</div>
           <div class="emgrid" id="grid-clan"></div>
           <div class="grp-title">Ranghi</div>
           <div class="emgrid" id="grid-rank"></div>
+          <div class="grp-title">Elementi</div>
+          <div class="emgrid" id="grid-element"></div>
           </section>
           <section class="adm-page" data-page="oggetti">
           <div class="grp-title" style="margin-top:0">Catalogo oggetti</div>
@@ -296,6 +298,7 @@
       var gv=$('grid-village');gv.innerHTML='';VILLAGES.forEach(function(n){gv.appendChild(card('village',n));});
       var gc=$('grid-clan');gc.innerHTML='';var _cn=(CLAN_ROWS&&CLAN_ROWS.length)?CLAN_ROWS.map(function(c){return c.name;}):CLANS;_cn.forEach(function(n){gc.appendChild(card('clan',n));});
       var gr=$('grid-rank');if(gr){gr.innerHTML='';RANKS.forEach(function(n){gr.appendChild(card('rank',n));});}
+      var ge=$('grid-element');if(ge){ge.innerHTML='';['Fuoco','Vento','Fulmine','Terra','Acqua'].forEach(function(n){ge.appendChild(card('element',n));});}
     }
     document.addEventListener('change',async function(e){
       var inp=e.target;if(!inp||inp.type!=='file'||!inp.getAttribute('data-kind'))return;
