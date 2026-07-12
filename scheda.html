@@ -120,6 +120,17 @@
   .scroll-sections{margin-top:32px}
   .ssec{margin:0 0 24px}
   .ssec h3{font-family:'Cinzel',serif;font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);border-bottom:1px solid var(--edge);padding-bottom:6px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+  .jgroup{margin-bottom:16px}
+  .jgh{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep,#7c2413);margin:0 0 8px}
+  .jsub{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:10px 0 6px}
+  .jgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+  .jcard{border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.5);padding:10px 12px}
+  .jtop{display:flex;align-items:baseline;gap:8px}
+  .jname{font-family:'Cinzel',serif;font-weight:600;font-size:13px;color:var(--ink);flex:1}
+  .jrank{font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:#f6ead0;background:var(--rule,#8a6f43);border-radius:9px;padding:1px 7px;flex:0 0 auto}
+  .jrom{font-style:italic;color:var(--ink-soft);font-size:13px;margin-top:1px}
+  .jmeta{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin-top:5px}
+  .jeff{font-size:13.5px;color:var(--ink-soft);margin-top:6px;line-height:1.4}
   .ssec .priv{font-family:'Cormorant Garamond',serif;text-transform:none;letter-spacing:0;font-size:12px;font-style:italic;color:var(--ink-soft);display:inline-flex;align-items:center;gap:5px}
   .lockico{width:12px;height:12px;opacity:.7}
 
@@ -345,6 +356,9 @@
           </div>
 
           <div class="scroll-sections">
+            <div class="ssec" id="sec-jutsu"><h3>Jutsu e abilità</h3>
+              <p class="hint">Le <b>abilità</b> (competenze e capacità) e i <b>jutsu</b> (tecniche) appresi dal personaggio: si imparano all'Accademia e con la progressione.</p>
+              <div id="jutsu-wrap"></div></div>
             <div class="ssec"><h3>Background</h3>
               <p class="hint">La storia del personaggio: origini, legami, aspirazioni. Visibile agli altri giocatori.</p>
               <textarea id="f-background" class="fin" style="min-height:180px" placeholder="Scrivi qui la storia del tuo personaggio…"></textarea></div>
@@ -489,6 +503,34 @@
 
     /* ---- SHEET ---- */
     function renderChars(c){var w=$('charwrap');w.innerHTML='';STATS.forEach(function(s){var v=(c[s[0]]!=null?c[s[0]]:BASE);var row=document.createElement('div');row.className='charrow';row.innerHTML='<span class="cn">'+s[1]+'</span><div class="cbar"><span style="width:'+v+'%"></span></div><span class="roval">'+v+'</span>';w.appendChild(row);});}
+    function jcard(x){
+      var rank=x.rank?('<span class="jrank">'+esc(x.rank)+'</span>'):'';
+      var meta=[]; if(x.nature) meta.push(esc(x.nature)); if(x.action_type) meta.push(esc(x.action_type));
+      var sub=meta.length?('<div class="jmeta">'+meta.join(' \u00b7 ')+'</div>'):'';
+      var rom=x.name_romaji?'<div class="jrom">'+esc(x.name_romaji)+'</div>':'';
+      var eff=x.effect?'<div class="jeff">'+esc(x.effect)+'</div>':'';
+      return '<div class="jcard"><div class="jtop"><span class="jname">'+esc(x.name_it)+'</span>'+rank+'</div>'+rom+sub+eff+'</div>';
+    }
+    function renderJutsu(){
+      var sec=$('sec-jutsu'), host=$('jutsu-wrap');
+      if(sec) sec.style.display=(viewMode==='public')?'none':'';
+      if(!host) return;
+      if(viewMode==='public'){ host.innerHTML=''; return; }
+      var uid=(myChar&&myChar.user_id)||(me&&me.id)||null;
+      if(!sb||!uid){ host.innerHTML='<p class="hint" style="margin:0">\u2014</p>'; return; }
+      host.innerHTML='<p class="hint" style="margin:0">Caricamento\u2026</p>';
+      sb.rpc('my_jutsu',{p_user:uid}).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(!rows.length){ host.innerHTML='<p class="hint" style="margin:0">Nessuna abilit\u00e0 o tecnica ancora appresa. Si imparano in Accademia.</p>'; return; }
+        var abil=rows.filter(function(x){return x.kind==='abilita';});
+        var jt=rows.filter(function(x){return x.kind!=='abilita';});
+        var html='';
+        if(abil.length){ html+='<div class="jgroup"><div class="jgh">Abilit\u00e0</div><div class="jgrid">'+abil.map(jcard).join('')+'</div></div>'; }
+        if(jt.length){ var cats={},order=[]; jt.forEach(function(x){var c=x.category||'Altro'; if(!cats[c]){cats[c]=[];order.push(c);} cats[c].push(x);});
+          html+='<div class="jgroup"><div class="jgh">Jutsu</div>'; order.forEach(function(c){ html+='<div class="jsub">'+esc(c)+'</div><div class="jgrid">'+cats[c].map(jcard).join('')+'</div>'; }); html+='</div>'; }
+        host.innerHTML=html;
+      }, function(){ host.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tecniche.</p>'; });
+    }
     function renderUnspent(c){var box=$('unspent-box');if(!c.unspent_points||c.unspent_points<=0){box.style.display='none';return;}box.style.display='block';addBuf={};$('u-pts').textContent=c.unspent_points;var host=$('u-rows');host.innerHTML='';STATS.forEach(function(s){addBuf[s[0]]=0;var row=document.createElement('div');row.className='steprow';row.innerHTML='<span class="cn">'+s[1]+'</span><button type="button" class="stbtn minus" data-k="'+s[0]+'" data-d="-1">−5</button><span class="stval" id="ua-'+s[0]+'">'+(c[s[0]]||BASE)+'</span><button type="button" class="stbtn" data-k="'+s[0]+'" data-d="1">+5</button>';host.appendChild(row);});}
     $('u-rows').addEventListener('click',function(e){var b=e.target.closest('.stbtn');if(!b)return;var k=b.getAttribute('data-k'),d=parseInt(b.getAttribute('data-d')||'1',10),used=0,kk;for(kk in addBuf)used+=addBuf[kk];if(d>0){if(used+STEP>myChar.unspent_points)return;addBuf[k]+=STEP;}else{if(addBuf[k]<STEP)return;addBuf[k]-=STEP;}used=0;for(kk in addBuf)used+=addBuf[kk];$('ua-'+k).textContent=(myChar[k]||BASE)+addBuf[k];var up=$('u-pts');if(up)up.textContent=(myChar.unspent_points-used);});
     $('u-confirm').addEventListener('click',async function(){var used=0;for(var kk in addBuf)used+=addBuf[kk];if(used===0){toast('Nessun punto assegnato',true);return;}this.disabled=true;var upd={unspent_points:myChar.unspent_points-used};STATS.forEach(function(s){upd[s[0]]=(myChar[s[0]]||BASE)+addBuf[s[0]];});var r=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();this.disabled=false;if(r.error){toast('Errore',true);return;}myChar=r.data;fillForm(myChar,curPriv);toast('Punti assegnati');});
@@ -507,6 +549,7 @@
       renderChars(c); renderUnspent(c);
       $('f-background').value=c.background||''; $('f-off').value=c.off_notes||''; $('f-fato').value=priv&&priv.fato_notes?priv.fato_notes:''; setPortrait(c.avatar_url);
       applyMode();
+      renderJutsu();
     }
     function setPortrait(url){ var p=$('s-portrait'), ph=$('s-portrait-ph'); if(!p)return; if(url){ p.style.backgroundImage='url("'+url+'")'; if(ph)ph.style.display='none'; } else { p.style.backgroundImage=''; if(ph)ph.style.display=''; } }
     function applyMode(){
