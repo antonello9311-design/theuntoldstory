@@ -137,6 +137,25 @@
   .al-mark.exam{color:var(--gold,#b58a2b)}
   .al-title{flex:1;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)}
   .al-date{font-family:'Cinzel',serif;font-size:11px;color:var(--ink-soft);flex:0 0 auto}
+  .lib-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:11px 12px;border:1px solid var(--edge);border-radius:10px;background:rgba(255,250,235,.5);cursor:pointer;margin-bottom:8px;font-family:inherit}
+  .lib-row:hover{border-color:var(--red);background:rgba(255,250,235,.85)}
+  .lib-ic{width:34px;height:34px;flex:0 0 auto;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(166,50,29,.10);color:var(--red-deep)}
+  .lib-ic svg{width:19px;height:19px}
+  .lib-main{flex:1;min-width:0}
+  .lib-title{display:block;font-family:'Cinzel',serif;font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lib-meta{display:block;font-family:'Cormorant Garamond',serif;font-size:13.5px;color:var(--ink-soft);margin-top:2px}
+  .lib-badge{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:20px;flex:0 0 auto}
+  .lib-badge.open{background:rgba(166,50,29,.14);color:var(--red-deep)}
+  .lib-badge.closed{background:rgba(90,120,70,.16);color:#4c6a3a}
+  .role-card{width:min(640px,94vw)}
+  .role-scene{padding:12px 16px 16px;overflow-y:auto;min-height:120px}
+  .role-msg{padding:8px 0;border-bottom:1px solid rgba(138,111,67,.18);font-family:'Cormorant Garamond',serif;font-size:15.5px;line-height:1.5;color:var(--ink);white-space:pre-wrap;word-wrap:break-word}
+  .role-msg:last-child{border-bottom:0}
+  .role-au{font-family:'Cinzel',serif;font-size:11px;color:var(--red-deep);letter-spacing:.03em;margin-bottom:2px}
+  .role-say{color:#2b1d0e}
+  .role-act{font-style:italic;color:#6a5231}
+  .role-sys{font-style:italic;color:var(--ink-soft);font-size:14px}
+  .role-empty{padding:24px 8px;text-align:center;color:var(--ink-soft);font-family:'Cormorant Garamond',serif;font-size:15px}
   .ssec .priv{font-family:'Cormorant Garamond',serif;text-transform:none;letter-spacing:0;font-size:12px;font-style:italic;color:var(--ink-soft);display:inline-flex;align-items:center;gap:5px}
   .lockico{width:12px;height:12px;opacity:.7}
 
@@ -244,8 +263,9 @@
     .invacts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:flex-end;max-width:250px}
     .mini-btn.ghost{border-color:var(--edge);color:var(--ink-soft)}
     .store-sel{max-width:130px}
-    .page-tabs{display:flex;gap:6px;margin:0 0 18px;border-bottom:1px solid var(--edge)}
-    .ptab{font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;padding:10px 22px;border:none;background:transparent;color:var(--ink-soft);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+    .page-tabs{display:flex;gap:2px;margin:0 0 18px;border-bottom:1px solid var(--edge);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .page-tabs::-webkit-scrollbar{display:none}
+    .ptab{font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;padding:10px 16px;border:none;background:transparent;color:var(--ink-soft);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;flex:0 0 auto;white-space:nowrap}
     .ptab.on{color:var(--red-deep);border-bottom-color:var(--red)}
     .ptab:hover{color:var(--ink)}
     .spage{display:none}.spage.on{display:block}
@@ -319,7 +339,7 @@
         <!-- SHEET -->
         <div id="st-sheet" class="state">
           <div id="mode-badge" class="mode-badge" style="display:none"></div>
-          <div class="page-tabs"><button class="ptab on" data-p="home">Home</button><button class="ptab" data-p="inv">Inventario</button></div>
+          <div class="page-tabs"><button class="ptab on" data-p="home">Home</button><button class="ptab" data-p="inv">Inventario</button><button class="ptab" data-p="jutsu">Jutsu e abilità</button><button class="ptab" data-p="acad">Accademia</button><button class="ptab" data-p="lib">Libreria role</button></div>
           <div id="page-home" class="spage on">
           <div class="sheet-top">
             <div class="portrait-col">
@@ -362,12 +382,6 @@
           </div>
 
           <div class="scroll-sections">
-            <div class="ssec" id="sec-jutsu"><h3>Jutsu e abilità</h3>
-              <p class="hint">Le <b>abilità</b> (competenze e capacità) e i <b>jutsu</b> (tecniche) appresi dal personaggio: si imparano all'Accademia e con la progressione.</p>
-              <div id="jutsu-wrap"></div></div>
-            <div class="ssec" id="sec-acad"><h3>Accademia</h3>
-              <p class="hint">Le lezioni che hai svolto. Il collegamento per rileggere la chat di ogni lezione arriverà con l'Accademia in versione chat.</p>
-              <div id="acadlog-wrap"></div></div>
             <div class="ssec"><h3>Background</h3>
               <p class="hint">La storia del personaggio: origini, legami, aspirazioni. Visibile agli altri giocatori.</p>
               <textarea id="f-background" class="fin" style="min-height:180px" placeholder="Scrivi qui la storia del tuo personaggio…"></textarea></div>
@@ -439,6 +453,21 @@
             </div>
           </div>
           </div>
+          <div id="page-jutsu" class="spage">
+            <div class="ssec" id="sec-jutsu"><h3>Jutsu e abilità</h3>
+              <p class="hint">Le <b>abilità</b> (competenze e capacità) e i <b>jutsu</b> (tecniche) appresi dal personaggio: si imparano all'Accademia e con la progressione.</p>
+              <div id="jutsu-wrap"></div></div>
+          </div>
+          <div id="page-acad" class="spage">
+            <div class="ssec" id="sec-acad"><h3>Accademia</h3>
+              <p class="hint">Le lezioni che hai svolto. Il collegamento per rileggere la chat di ogni lezione arriverà con l'Accademia in versione chat.</p>
+              <div id="acadlog-wrap"></div></div>
+          </div>
+          <div id="page-lib" class="spage">
+            <div class="ssec" id="sec-lib"><h3>Libreria role</h3>
+              <p class="hint">Tutte le tue giocate registrate. Quando in una chat qualcuno avvia una registrazione, la scena viene salvata qui per tutti i presenti. Tocca una role per rileggerla.</p>
+              <div id="lib-wrap"></div></div>
+          </div>
         </div>
       </main>
 
@@ -460,6 +489,14 @@
         <div class="msg-count"><span id="msg-count">0</span>/4000</div>
       </div>
       <div class="msg-foot"><button type="button" class="btn btn-ghost btn-sm" id="msg-cancel">Annulla</button><button type="button" class="btn btn-red btn-sm" id="msg-send">Invia</button></div>
+    </div>
+  </div>
+
+  <div class="msg-overlay" id="role-overlay" hidden>
+    <div class="msg-backdrop" id="role-backdrop"></div>
+    <div class="msg-card role-card" role="dialog" aria-modal="true" aria-labelledby="role-title">
+      <div class="msg-head"><span class="msg-title" id="role-title">Role</span><button type="button" class="msg-x" id="role-close" aria-label="Chiudi">✕</button></div>
+      <div class="role-scene" id="role-scene"></div>
     </div>
   </div>
 
@@ -512,9 +549,13 @@
 
     /* ---- SHEET ---- */
     function renderChars(c){var w=$('charwrap');w.innerHTML='';STATS.forEach(function(s){var v=(c[s[0]]!=null?c[s[0]]:BASE);var row=document.createElement('div');row.className='charrow';row.innerHTML='<span class="cn">'+s[1]+'</span><div class="cbar"><span style="width:'+v+'%"></span></div><span class="roval">'+v+'</span>';w.appendChild(row);});}
+    function setTabVis(p,vis){
+      var b=document.querySelector('.ptab[data-p="'+p+'"]'); if(b) b.style.display=vis?'':'none';
+      if(!vis){ var pg=$('page-'+p); if(pg&&pg.classList.contains('on')){ pg.classList.remove('on'); var home=$('page-home'); if(home)home.classList.add('on'); document.querySelectorAll('.ptab').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-p')==='home');}); } }
+    }
     function renderAcademyLog(){
-      var sec=$('sec-acad'), host=$('acadlog-wrap');
-      if(sec) sec.style.display=(viewMode==='public')?'none':'';
+      var host=$('acadlog-wrap');
+      setTabVis('acad', viewMode!=='public');
       if(!host) return;
       if(viewMode==='public'){ host.innerHTML=''; return; }
       var uid=(myChar&&myChar.user_id)||(me&&me.id)||null;
@@ -531,6 +572,59 @@
         }).join('');
       }, function(){ host.innerHTML='<p class="hint" style="margin:0">Impossibile caricare il registro.</p>'; });
     }
+    var LIB_IC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5A1.5 1.5 0 0 0 20 18.5z"/></svg>';
+    function fmtRole(s){ var t=esc(s);
+      t=t.replace(/&quot;([\s\S]*?)&quot;/g,'<span class="role-say">&quot;$1&quot;</span>');
+      t=t.replace(/«([\s\S]*?)»/g,'<span class="role-say">«$1»</span>');
+      t=t.replace(/\*([^*\n]+?)\*/g,'<em class="role-act">$1</em>');
+      return t; }
+    function renderRoleLibrary(){
+      var host=$('lib-wrap');
+      setTabVis('lib', viewMode!=='public');
+      if(!host) return;
+      if(viewMode==='public'){ host.innerHTML=''; return; }
+      var uid=(myChar&&myChar.user_id)||(me&&me.id)||null;
+      if(!sb||!uid){ host.innerHTML=''; return; }
+      host.innerHTML='<p class="hint" style="margin:0">Caricamento…</p>';
+      sb.rpc('my_role_library',{p_user:uid}).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(!rows.length){ host.innerHTML='<p class="hint" style="margin:0">Nessuna role registrata. Avvia una registrazione da una chat di gioco per salvare qui le tue scene.</p>'; return; }
+        host.innerHTML=rows.map(function(x,i){
+          var d=x.started_at?new Date(x.started_at):null;
+          var ds=d?(('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()):'';
+          var n=(x.msg_count!=null?x.msg_count:0);
+          var meta=esc(x.location_name||'Luogo')+' · '+ds+' · '+n+' '+(n===1?'battuta':'battute');
+          var badge=x.is_open?'<span class="lib-badge open">In corso</span>':'<span class="lib-badge closed">Chiusa</span>';
+          return '<button type="button" class="lib-row" data-sess="'+esc(x.session_id)+'" data-title="'+esc(x.title||'Role')+'"><span class="lib-ic">'+LIB_IC+'</span><span class="lib-main"><span class="lib-title">'+esc(x.title||'Role')+'</span><span class="lib-meta">'+meta+'</span></span>'+badge+'</button>';
+        }).join('');
+      }, function(){ host.innerHTML='<p class="hint" style="margin:0">Impossibile caricare la libreria.</p>'; });
+    }
+    function openRoleScene(sessId,title){
+      var ov=$('role-overlay'), host=$('role-scene'), tt=$('role-title');
+      if(!ov||!host) return;
+      if(tt) tt.textContent=title||'Role';
+      host.innerHTML='<p class="role-empty">Caricamento…</p>';
+      ov.hidden=false;
+      if(!sb){ host.innerHTML='<p class="role-empty">Non disponibile.</p>'; return; }
+      sb.rpc('role_scene',{p_session:sessId}).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(!rows.length){ host.innerHTML='<p class="role-empty">Ancora nessuna battuta in questa scena. Le azioni compaiono qui man mano che vengono giocate.</p>'; return; }
+        host.innerHTML=rows.map(function(m){
+          if(m.kind==='dice'){ return '<div class="role-msg"><div class="role-au">'+esc(m.author_name||'')+'</div><span class="role-sys">🎲 '+esc(m.body||'')+(m.dice_result!=null?(' → '+m.dice_result):'')+'</span></div>'; }
+          if(m.kind==='system'||m.kind==='combat'||m.kind==='item'){ return '<div class="role-msg"><span class="role-sys">'+fmtRole(m.body||'')+'</span></div>'; }
+          return '<div class="role-msg"><div class="role-au">'+esc(m.author_name||'')+'</div>'+fmtRole(m.body||'')+'</div>';
+        }).join('');
+        host.scrollTop=0;
+      }, function(){ host.innerHTML='<p class="role-empty">Impossibile caricare la role.</p>'; });
+    }
+    function closeRoleScene(){ var ov=$('role-overlay'); if(ov) ov.hidden=true; }
+    (function(){
+      var host=$('lib-wrap');
+      if(host) host.addEventListener('click',function(e){ var b=e.target.closest('.lib-row'); if(!b) return; openRoleScene(b.getAttribute('data-sess'), b.getAttribute('data-title')); });
+      var x=$('role-close'); if(x) x.addEventListener('click',closeRoleScene);
+      var bk=$('role-backdrop'); if(bk) bk.addEventListener('click',closeRoleScene);
+      document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var ov=$('role-overlay'); if(ov&&!ov.hidden) closeRoleScene(); } });
+    })();
     function jcard(x){
       var rank=x.rank?('<span class="jrank">'+esc(x.rank)+'</span>'):'';
       var meta=[]; if(x.nature) meta.push(esc(x.nature)); if(x.action_type) meta.push(esc(x.action_type));
@@ -540,8 +634,8 @@
       return '<div class="jcard"><div class="jtop"><span class="jname">'+esc(x.name_it)+'</span>'+rank+'</div>'+rom+sub+eff+'</div>';
     }
     function renderJutsu(){
-      var sec=$('sec-jutsu'), host=$('jutsu-wrap');
-      if(sec) sec.style.display=(viewMode==='public')?'none':'';
+      var host=$('jutsu-wrap');
+      setTabVis('jutsu', viewMode!=='public');
       if(!host) return;
       if(viewMode==='public'){ host.innerHTML=''; return; }
       var uid=(myChar&&myChar.user_id)||(me&&me.id)||null;
@@ -579,6 +673,7 @@
       applyMode();
       renderJutsu();
       renderAcademyLog();
+      renderRoleLibrary();
     }
     function setPortrait(url){ var p=$('s-portrait'), ph=$('s-portrait-ph'); if(!p)return; if(url){ p.style.backgroundImage='url("'+url+'")'; if(ph)ph.style.display='none'; } else { p.style.backgroundImage=''; if(ph)ph.style.display=''; } }
     function applyMode(){
@@ -784,8 +879,9 @@
     function bindPages(){
       document.querySelectorAll('.ptab').forEach(function(t){t.addEventListener('click',function(){
         document.querySelectorAll('.ptab').forEach(function(x){x.classList.toggle('on',x===t);});
-        var p=t.getAttribute('data-p');var ph=$('page-home'),pi=$('page-inv');
-        if(ph)ph.classList.toggle('on',p==='home');if(pi)pi.classList.toggle('on',p==='inv');
+        var p=t.getAttribute('data-p');
+        document.querySelectorAll('.spage').forEach(function(pg){pg.classList.remove('on');});
+        var target=$('page-'+p); if(target)target.classList.add('on');
       });});
     }
     function bindIE(){

@@ -460,6 +460,13 @@
   .msg-sys .sys-tag svg{width:12px;height:12px}
   .msg-sys h4{margin:0 0 6px;font-family:'Cinzel',serif;font-size:15px;color:var(--red-deep)}
   .msg-sys p{margin:0 0 8px}.msg-sys p:last-of-type{margin-bottom:0}
+  .msg-sys.welcome{text-align:center;padding-top:14px}
+  .msg-sys.welcome .wl-wrap{text-align:center;margin:0 0 10px}
+  .msg-sys.welcome .wl-logo{display:inline-block;width:128px;height:128px;filter:drop-shadow(0 3px 6px rgba(70,40,10,.28))}
+  .msg-sys.welcome .sys-tag{justify-content:center}
+  .msg-sys.welcome h4{font-size:17px;margin-bottom:8px}
+  .msg-sys.welcome p{text-align:left}
+  .msg-sys.welcome .b-time{text-align:center}
   .thr-reply{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--edge);background:rgba(255,255,255,.35);flex-shrink:0}
   .thr-reply[hidden]{display:none}
   .thr-reply textarea{flex:1;resize:none;height:40px;border:1px solid var(--rule);background:rgba(255,255,255,.55);font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink);padding:8px 10px}
@@ -509,6 +516,31 @@
   .cmb-btn{display:inline-flex;align-items:center;gap:5px;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--red-deep);background:transparent;border:1px solid var(--edge);padding:6px 9px;cursor:pointer}
   .cmb-btn:hover{background:rgba(166,50,29,.08)}
   .cmb-btn .sw{width:15px;height:15px}
+  .exp-btn{display:inline-flex;align-items:center;gap:5px;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--red-deep);background:transparent;border:1px solid var(--edge);padding:6px 9px;cursor:pointer}
+  .exp-btn:hover{background:rgba(166,50,29,.08)}
+  .exp-btn .sw{width:15px;height:15px}
+  .editor-ov{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:16px}
+  .editor-ov[hidden]{display:none}
+  .editor-bk{position:absolute;inset:0;background:rgba(30,18,6,.55)}
+  .editor-card{position:relative;z-index:1;width:min(800px,100%);height:min(90vh,940px);display:flex;flex-direction:column;background:linear-gradient(#f1e6ca,#e7d6b2);border:1px solid var(--edge);border-radius:14px;box-shadow:0 24px 60px rgba(20,12,4,.5);overflow:hidden}
+  .editor-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--edge);background:rgba(255,250,235,.45)}
+  .editor-head h3{margin:0;font-family:'Cinzel',serif;font-size:15px;color:var(--red-deep);flex:1}
+  .editor-head .ed-to{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
+  .editor-x{border:0;background:transparent;font-size:24px;line-height:1;color:var(--ink-soft);cursor:pointer;padding:0 4px}
+  .editor-body{flex:1;display:flex;min-height:0;padding:14px 18px}
+  .editor-body textarea{flex:1;resize:none;width:100%;box-sizing:border-box;border:1px solid var(--rule);border-radius:10px;background:rgba(255,252,244,.72);font-family:'Cormorant Garamond',serif;font-size:17px;line-height:1.62;color:var(--ink);padding:16px 18px}
+  .editor-foot{display:flex;align-items:center;gap:12px;padding:12px 18px;border-top:1px solid var(--edge);background:rgba(255,250,235,.45);flex-wrap:wrap}
+  .editor-foot .chint{flex:1;min-width:150px;font-size:11px;color:var(--ink-soft)}
+  .side-card.rec .rec-live{display:flex;align-items:center;gap:7px;font-family:'Cinzel',serif;font-size:12px;color:var(--red-deep);margin-bottom:3px}
+  .rec-dot{width:9px;height:9px;border-radius:50%;background:var(--red);flex:0 0 auto;box-shadow:0 0 0 0 rgba(166,50,29,.6);animation:recpulse 1.6s infinite}
+  @keyframes recpulse{0%{box-shadow:0 0 0 0 rgba(166,50,29,.55)}70%{box-shadow:0 0 0 7px rgba(166,50,29,0)}100%{box-shadow:0 0 0 0 rgba(166,50,29,0)}}
+  .rec-meta{font-size:12px;color:var(--ink-soft);margin:2px 0 9px;line-height:1.35}
+  .rec-btn{width:100%;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-radius:8px;padding:9px 12px;cursor:pointer;border:1px solid var(--red-deep);background:var(--red);color:#f6ead0;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+  .rec-btn:hover{background:var(--red-deep)}
+  .rec-btn.ghost{background:transparent;color:var(--red-deep)}
+  .rec-btn.ghost:hover{background:rgba(166,50,29,.08)}
+  .rec-btn:disabled{opacity:.55;cursor:default}
+  .rec-hint{font-size:11.5px;color:var(--ink-soft);margin:8px 0 0;line-height:1.35}
   .cmb-overlay{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:18px}
   .cmb-overlay[hidden]{display:none}
   .cmb-backdrop{position:absolute;inset:0;background:rgba(20,13,5,.6)}
@@ -647,7 +679,7 @@
               <div class="composer">
                 <textarea id="msg-input" maxlength="5000" placeholder="Scrivi il tuo turno di gioco…"></textarea>
                 <div class="item-pop" id="item-pop" hidden><div class="ip-head">Oggetti equipaggiati</div><div id="ip-list"></div></div>
-                <div class="composer-row"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*</span><div class="composer-tools"><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="cmb-btn" type="button" title="Calcolo combattimento"><svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>Combatti</button><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
+                <div class="composer-row"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*</span><div class="composer-tools"><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="exp-btn" id="exp-btn" type="button" title="Apri l'editor: finestra grande per scrivere e rileggere tutta la tua role"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg>Editor</button><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="cmb-btn" type="button" title="Calcolo combattimento"><svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>Combatti</button><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
               </div>
             </section>
             <aside class="room-side">
@@ -656,6 +688,10 @@
                 <img class="place-img" id="room-img" alt="">
                 <p class="place-desc" id="room-desc"></p>
                 <div class="place-note" id="room-note"></div>
+              </div>
+              <div class="side-card rec" id="rec-card" hidden>
+                <div class="side-k">Registrazione role</div>
+                <div id="rec-body"></div>
               </div>
               <div class="side-card who">
                 <div class="side-k">Presenti</div>
@@ -703,6 +739,14 @@
         <textarea id="dm-body" maxlength="4000" placeholder="Scrivi il tuo messaggio&hellip;"></textarea>
       </div>
       <div class="dm-foot"><button class="mail-new" id="dm-cancel" type="button">Annulla</button><button class="mail-new" id="dm-send" type="button" style="background:var(--red);color:#f6ead0;border-color:var(--red-deep)">Invia</button></div>
+    </div>
+  </div>
+  <div class="editor-ov" id="editor-ov" hidden aria-label="Editor della role">
+    <div class="editor-bk" id="editor-bk"></div>
+    <div class="editor-card" role="dialog" aria-modal="true">
+      <div class="editor-head"><h3>La tua role</h3><span class="ed-to" id="ed-to"></span><button class="editor-x" id="editor-x" type="button" aria-label="Chiudi">&times;</button></div>
+      <div class="editor-body"><textarea id="ed-text" maxlength="5000" placeholder="Scrivi qui il tuo turno di gioco. Hai tutto lo spazio per rileggere la tua role prima di inviarla&hellip;"></textarea></div>
+      <div class="editor-foot"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*. Il testo resta sincronizzato con la chat.</span><span class="ccount" id="ed-count">0 / 5000</span><button class="btn-send" id="ed-send" type="button">Invia</button></div>
     </div>
   </div>
   <div class="bd-backdrop" id="bd-backdrop" hidden></div>
@@ -1013,7 +1057,56 @@
         if(!sb||!cur) return;
         sb.rpc('who_here',{p_location:cur.id,p_minutes:8}).then(function(r){ if(r&&!r.error){ WHO=r.data||[]; renderWho(r.data); updateTargets(r.data); } }, function(){});
       }
-      function refreshRoom(){ if(!cur) return; updateMeteo(); sb.rpc('enter_location',{p_location:cur.id}).then(function(){},function(){}); loadMsgs(); loadWho(); }
+      function refreshRoom(){ if(!cur) return; updateMeteo(); sb.rpc('enter_location',{p_location:cur.id}).then(function(){},function(){}); loadMsgs(); loadWho(); loadRoleState(); }
+      /* ---- Registrazione role (scene recording) ---- */
+      var roleState={open:false, session:null, can_close:false, starter:'', started_at:null}, recConfirmT=null;
+      function fmtRoleTime(iso){ try{ var d=new Date(iso); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }catch(e){ return ''; } }
+      function renderRec(){
+        var card=document.getElementById('rec-card'), body=document.getElementById('rec-body');
+        if(!card||!body) return;
+        if(!cur||!loggedIn){ card.hidden=true; return; }
+        card.hidden=false;
+        if(roleState.open){
+          var meta='Avviata da <b>'+esc(roleState.starter||'—')+'</b>'+(roleState.started_at?(' · '+fmtRoleTime(roleState.started_at)):'');
+          var btn = roleState.can_close ? '<button class="rec-btn ghost" id="rec-close" type="button">Chiudi role</button>' : '';
+          var hint = roleState.can_close ? 'La scena si salva nella Libreria role di chi è presente e di chi entra. Si chiude da sola dopo 24 ore.' : 'Stai partecipando a una scena registrata: la troverai nella tua Libreria role.';
+          body.innerHTML='<div class="rec-live"><span class="rec-dot"></span>Registrazione in corso</div><div class="rec-meta">'+meta+'</div>'+btn+'<p class="rec-hint">'+hint+'</p>';
+          var cb=document.getElementById('rec-close'); if(cb) cb.addEventListener('click', onCloseClick);
+        } else {
+          body.innerHTML='<button class="rec-btn" id="rec-start" type="button"><span class="rec-dot" style="background:#f6ead0;animation:none;box-shadow:none"></span>Registra role</button><p class="rec-hint">Salva questa scena nella Libreria role di chi è presente e di chi entrerà. La registrazione parte dall’azione successiva.</p>';
+          var s2=document.getElementById('rec-start'); if(s2) s2.addEventListener('click', startRole);
+        }
+      }
+      function loadRoleState(){
+        if(!cur||!sb){ return; }
+        sb.rpc('role_open_here',{p_location:cur.id}).then(function(r){
+          var row=(r&&r.data&&r.data[0])||null;
+          if(row){ roleState={open:true, session:row.session_id, can_close:!!row.can_close, starter:row.starter_name, started_at:row.started_at}; }
+          else { roleState={open:false, session:null, can_close:false, starter:'', started_at:null}; }
+          renderRec();
+        }, function(){});
+      }
+      function startRole(){
+        if(!cur||!sb) return;
+        var b=document.getElementById('rec-start'); if(b) b.disabled=true;
+        sb.rpc('role_start',{p_location:cur.id}).then(function(r){
+          if(r&&r.error){ toast('Impossibile avviare la registrazione'); if(b) b.disabled=false; return; }
+          toast('Registrazione avviata'); loadRoleState();
+        }, function(){ if(b) b.disabled=false; toast('Impossibile avviare la registrazione'); });
+      }
+      function onCloseClick(){
+        var b=document.getElementById('rec-close'); if(!b) return;
+        if(b.getAttribute('data-armed')!=='1'){ b.setAttribute('data-armed','1'); b.textContent='Premi ancora per chiudere'; if(recConfirmT) clearTimeout(recConfirmT); recConfirmT=setTimeout(function(){ if(b){ b.removeAttribute('data-armed'); b.textContent='Chiudi role'; } },3200); return; }
+        if(recConfirmT) clearTimeout(recConfirmT); closeRole();
+      }
+      function closeRole(){
+        if(!roleState.session||!sb) return;
+        var b=document.getElementById('rec-close'); if(b) b.disabled=true;
+        sb.rpc('role_close',{p_session:roleState.session}).then(function(r){
+          if(r&&r.error){ toast('Impossibile chiudere la role'); if(b){ b.disabled=false; b.removeAttribute('data-armed'); b.textContent='Chiudi role'; } return; }
+          toast('Role salvata nella libreria'); loadRoleState();
+        }, function(){ if(b){ b.disabled=false; } toast('Impossibile chiudere la role'); });
+      }
       function openRoom(l){
         cur=l; showView('room');
         nameEl.textContent=l.name; kindEl.textContent=l.kind||''; descEl.textContent=l.description||'';
@@ -1024,13 +1117,13 @@
         refreshRoom();
         if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
       }
-      function leaveRoom(){ if(poll){ clearInterval(poll); poll=null; } cur=null; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ if(poll){ clearInterval(poll); poll=null; } cur=null; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} var rc=document.getElementById('rec-card'); if(rc) rc.hidden=true; roleState={open:false, session:null, can_close:false, starter:'', started_at:null}; if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
       function tryResume(){ try{ var raw=sessionStorage.getItem('tus_land_resume'); if(!raw) return false; sessionStorage.removeItem('tus_land_resume'); var d=JSON.parse(raw); if(!d||!d.room) return false; if(d.ts&&(Date.now()-d.ts)>1800000) return false; var l=LOCS.filter(function(x){return x.id===d.room;})[0]; if(l){ openRoom(l); if(input){ input.value=d.text||''; updCount(); } return true; } }catch(e){} return false; }
       window.addEventListener('pagehide', saveResume);
       var brandMap=document.getElementById('brand-map'); if(brandMap){ brandMap.addEventListener('click', function(){ leaveRoom(); }); }
-      function send(){
+      function send(after){
         var t=(input.value||'').replace(/\s+$/,''); if(!t.trim()||!cur||!sb) return;
         var to=toSel?toSel.value:'';
         sendBtn.disabled=true;
@@ -1040,9 +1133,22 @@
           sendBtn.disabled=false;
           if(r&&r.error){ var m=(r.error.message||'').toLowerCase(); toast(/consentito/.test(m)?'Messaggio bloccato dalla moderazione':(/lungo/.test(m)?'Messaggio troppo lungo':(/personaggio/.test(m)?'Ti serve un personaggio':(/destinatario/.test(m)?'Destinatario non valido':'Impossibile inviare')))); return; }
           input.value=''; updCount(); loadMsgs(); loadWho();
+          if(typeof after==='function') after();
         }, function(){ sendBtn.disabled=false; toast('Impossibile inviare'); });
       }
       sendBtn.addEventListener('click', send);
+      /* ---- Editor: finestra grande per scrivere e rileggere la propria role ---- */
+      var edOv=document.getElementById('editor-ov'), edText=document.getElementById('ed-text'), edCountEl=document.getElementById('ed-count'), edToEl=document.getElementById('ed-to');
+      function edCount(){ if(!edCountEl||!edText) return; var n=(edText.value||'').length; edCountEl.textContent=n+' / 5000'; edCountEl.classList.toggle('warn', n>4500); }
+      function edRefreshTo(){ if(!edToEl) return; var lbl='A tutti'; if(toSel&&toSel.options&&toSel.selectedIndex>=0){ var o=toSel.options[toSel.selectedIndex]; if(o&&o.text) lbl=o.text; } edToEl.textContent='A: '+lbl; }
+      function openEditor(){ if(!edOv||!edText) return; edText.value=input?(input.value||''):''; edCount(); edRefreshTo(); edOv.hidden=false; setTimeout(function(){ try{ edText.focus(); var L=edText.value.length; edText.setSelectionRange(L,L); }catch(e){} },50); }
+      function closeEditor(){ if(!edOv) return; if(input&&edText){ input.value=edText.value; updCount(); } edOv.hidden=true; }
+      function edSend(){ if(!edText||!input) return; input.value=edText.value; edCount(); send(function(){ edText.value=''; edCount(); if(edOv) edOv.hidden=true; }); }
+      if(edText){ edText.addEventListener('input', function(){ if(input) input.value=edText.value; edCount(); updCount(); }); edText.addEventListener('keydown', function(e){ if(e.key==='Escape'){ e.preventDefault(); closeEditor(); } }); }
+      (function(){ var b; b=document.getElementById('exp-btn'); if(b) b.addEventListener('click', openEditor);
+        b=document.getElementById('editor-x'); if(b) b.addEventListener('click', closeEditor);
+        b=document.getElementById('editor-bk'); if(b) b.addEventListener('click', closeEditor);
+        b=document.getElementById('ed-send'); if(b) b.addEventListener('click', edSend); })();
       function rollDice(){ if(!cur||!sb||!diceBtn) return; diceBtn.disabled=true;
         sb.rpc('post_dice',{p_location:cur.id,p_sides:100}).then(function(r){ diceBtn.disabled=false; if(r&&r.error){ toast('Impossibile lanciare il dado'); return; } loadMsgs(); }, function(){ diceBtn.disabled=false; toast('Impossibile lanciare il dado'); }); }
       if(diceBtn){ diceBtn.addEventListener('click', rollDice); }
@@ -1280,6 +1386,7 @@
       var myClan='', myClanRole='', dmRcpts=[], dmChars=[], dmCharsLoaded=false, curDmUser=null, curDmName='';
       var curDmOfficial=false, mailConvs=[], mailField='all', mailTerm='', mailSearchT=null;
       var MAILSEAL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l2.5 5 5.5.6-4 3.8 1 5.5L12 20.8 7.5 18l1-5.5-4-3.8L10 8z"/></svg>';
+      var WLOGO='<svg class="wl-logo" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Untold Story"><defs><radialGradient id="wlDisc" cx="50%" cy="38%" r="74%"><stop offset="0%" stop-color="#fdf4d8"/><stop offset="52%" stop-color="#f3ddb9"/><stop offset="100%" stop-color="#e2c185"/></radialGradient><linearGradient id="wlRoll" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7c1a0b"/><stop offset=".22" stop-color="#d6381d"/><stop offset=".5" stop-color="#f97b4c"/><stop offset=".78" stop-color="#d6381d"/><stop offset="1" stop-color="#6c1507"/></linearGradient><linearGradient id="wlCap" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b6b34"/><stop offset=".5" stop-color="#a9dc8b"/><stop offset="1" stop-color="#33682e"/></linearGradient><path id="wlArc" d="M 141,362 A 400,400 0 0 1 883,362" fill="none"/><radialGradient id="wlVig" cx="50%" cy="44%" r="60%"><stop offset="66%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#5a3410" stop-opacity=".30"/></radialGradient></defs><circle cx="512" cy="512" r="504" fill="url(#wlDisc)"/><circle cx="512" cy="512" r="504" fill="url(#wlVig)"/><circle cx="512" cy="512" r="500" fill="none" stroke="#e0b84e" stroke-width="4"/><circle cx="512" cy="512" r="486" fill="none" stroke="#cf3a1e" stroke-width="13"/><circle cx="512" cy="512" r="468" fill="none" stroke="#c79a2e" stroke-width="4"/><circle cx="512" cy="512" r="372" fill="none" stroke="#c79a2e" stroke-width="2.5" opacity=".85"/><text font-family="Cinzel Decorative,serif" font-weight="700" font-size="76" letter-spacing="2" fill="#2b1d0e"><textPath href="#wlArc" startOffset="50%" text-anchor="middle">THE UNTOLD STORY</textPath></text><text x="150" y="540" text-anchor="middle" font-size="44" fill="#cf3a1e">✦</text><text x="874" y="540" text-anchor="middle" font-size="44" fill="#cf3a1e">✦</text><g transform="translate(0,20)"><ellipse cx="512" cy="648" rx="172" ry="21" fill="#3a2c18" opacity=".13"/><rect x="384" y="404" width="256" height="236" rx="6" fill="#fbf3dd" stroke="#cdaf72" stroke-width="2.5"/><path d="M384 414 q128 -20 256 0" fill="none" stroke="#eaddb6" stroke-width="6"/><g stroke="#6a4a24" stroke-width="6.5" stroke-linecap="round" fill="none" opacity=".85"><path d="M414 452 q44 -12 96 0 t104 0"/><path d="M414 492 q54 12 104 0 t94 0"/><path d="M414 532 q44 -10 86 0 t112 0"/><path d="M414 572 q54 10 96 0 t82 0"/><path d="M414 610 q44 -8 76 0 t92 0"/></g><rect x="330" y="360" width="54" height="322" rx="27" fill="url(#wlRoll)"/><ellipse cx="357" cy="360" rx="27" ry="12.5" fill="url(#wlCap)"/><ellipse cx="357" cy="682" rx="27" ry="12.5" fill="url(#wlCap)"/><rect x="640" y="360" width="54" height="322" rx="27" fill="url(#wlRoll)"/><ellipse cx="667" cy="360" rx="27" ry="12.5" fill="url(#wlCap)"/><ellipse cx="667" cy="682" rx="27" ry="12.5" fill="url(#wlCap)"/></g><text x="512" y="838" text-anchor="middle" font-size="50" fill="#c79a2e">✦</text></svg>';
       function canMulti(){ return !!(iAmStaff || myClanRole==='Capo clan'); }
       function fmtDM(iso){ try{ var d=new Date(iso), now=new Date(); if(d.toDateString()===now.toDateString()) return d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } }
       function loadUnread(){ if(!sb||!loggedIn) return; sb.rpc('dm_unread').then(function(r){ var n=(r&&typeof r.data==='number')?r.data:0; var bd=document.getElementById('mail-badge'); if(bd){ bd.textContent=n>99?'99+':n; bd.classList.toggle('on',n>0); } }, function(){}); }
@@ -1305,7 +1412,8 @@
         if(!msgs.length){ host.innerHTML='<div class="mail-empty">Nessun messaggio.</div>'; return; }
         host.innerHTML=msgs.map(function(m){
           if(!m.sender_user){ var paras=String(m.body||'').split(/\n{2,}/).map(function(t){return '<p>'+esc(t).replace(/\n/g,'<br>')+'</p>';}).join('');
-            return '<div class="bubble msg-sys"><span class="sys-tag">'+MAILSEAL+' Messaggio dal sito</span>'+(m.subject?'<h4>'+esc(m.subject)+'</h4>':'')+paras+'<span class="b-time">'+fmtDM(m.created_at)+'</span></div>'; }
+            var isWel=m.subject&&/benvenut/i.test(m.subject); var logo=isWel?('<div class="wl-wrap">'+WLOGO+'</div>'):'';
+            return '<div class="bubble msg-sys'+(isWel?' welcome':'')+'">'+logo+'<span class="sys-tag">'+MAILSEAL+' Messaggio dal sito</span>'+(m.subject?'<h4>'+esc(m.subject)+'</h4>':'')+paras+'<span class="b-time">'+fmtDM(m.created_at)+'</span></div>'; }
           var mine=(m.sender_user===myId); var sj=m.subject?'<span class="b-subj">\u2709 '+esc(m.subject)+'</span>':'';
           return '<div class="bubble '+(mine?'msg-out':'msg-in')+'">'+sj+esc(m.body)+'<span class="b-time">'+fmtDM(m.created_at)+'</span></div>'; }).join('');
         host.scrollTop=host.scrollHeight; }

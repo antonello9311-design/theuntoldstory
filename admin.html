@@ -80,6 +80,23 @@
   .uptiny input{display:none}
   .itmain{flex:1;min-width:150px}
   .itdesc{display:block;font-size:12.5px;color:var(--ink-soft);font-style:italic;margin-top:2px}
+  .sel{font-family:'Cinzel',serif;font-size:12px;color:var(--ink);background:rgba(255,250,235,.6);border:1px solid var(--edge);border-radius:8px;padding:9px 12px;cursor:pointer;max-width:280px}
+  .aurow.click{cursor:pointer}
+  .aurow.click:hover{border-color:var(--red);background:rgba(255,250,235,.75)}
+  .rbadge{display:inline-block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:middle}
+  .rbadge.open{background:rgba(166,50,29,.14);color:var(--red-deep)}
+  .rbadge.closed{background:rgba(90,120,70,.16);color:#4c6a3a}
+  .rov{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:18px}
+  .rov[hidden]{display:none}
+  .rov-bk{position:absolute;inset:0;background:rgba(30,20,8,.62)}
+  .rov-card{position:relative;z-index:1;width:min(640px,94vw);max-height:88vh;display:flex;flex-direction:column;background:linear-gradient(var(--paper-hi,#f1e6ca),var(--paper,#e7d6b2));border:1.5px solid var(--edge);box-shadow:0 20px 60px rgba(20,12,4,.5)}
+  .rov-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(var(--red),var(--red-deep));color:#f8ecd6;font-family:'Cinzel',serif;font-size:13px;letter-spacing:.04em}
+  .rov-x{border:0;background:transparent;color:#f8ecd6;font-size:20px;cursor:pointer;line-height:1}
+  .rov-body{padding:12px 16px 16px;overflow-y:auto}
+  .rmsg{padding:8px 0;border-bottom:1px solid rgba(138,111,67,.18);font-family:'Cormorant Garamond',serif;font-size:15px;line-height:1.5;color:var(--ink);white-space:pre-wrap;word-wrap:break-word}
+  .rmsg:last-child{border-bottom:0}
+  .rau{font-family:'Cinzel',serif;font-size:10.5px;color:var(--red-deep);letter-spacing:.03em;margin-bottom:2px}
+  .rsay{color:#2b1d0e}.ract{font-style:italic;color:#6a5231}.rsys{font-style:italic;color:var(--ink-soft);font-size:14px}
   .itedit{display:flex;gap:8px;flex-shrink:0}
   .itedit label{display:flex;flex-direction:column;font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);gap:2px}
   .itedit input{width:68px;font-family:inherit;font-size:14px;padding:4px 6px;border:1px solid var(--edge);border-radius:5px;background:#fbf4e1;color:var(--ink)}
@@ -157,6 +174,7 @@
             <button type="button" data-go="notizie">Banda notizie</button>
             <button type="button" data-go="registro">Registro</button>
             <button type="button" data-go="messaggi">Messaggi</button>
+            <button type="button" data-go="archivio">Archivio</button>
           </div>
           <section class="adm-page" data-page="notizie">
           <div class="grp-title">Banda notizie (mappa)</div>
@@ -308,6 +326,18 @@
           <div class="cat-actions"><button class="btn" id="dmlog-refresh">Aggiorna</button></div>
           <div id="dmlog-list" class="audit-list"></div>
           </section>
+
+          <section class="adm-page" data-page="archivio">
+          <div class="grp-title" style="margin-top:0">Role registrate</div>
+          <p class="mgr-note">Tutte le scene registrate dai giocatori (pulsante «Registra role» nelle chat). Tocca una role per rileggerla. <b>Sola lettura.</b></p>
+          <div class="cat-actions"><button class="btn" id="roles-refresh">Aggiorna</button></div>
+          <div id="roles-list" class="audit-list"></div>
+
+          <div class="grp-title">Chat archiviata (oltre 24 ore)</div>
+          <p class="mgr-note">Le chat di gioco mostrano ai giocatori solo le ultime 24 ore. I messaggi più vecchi vengono spostati qui e restano visibili allo staff. Scegli un luogo per consultarli. <b>Sola lettura.</b></p>
+          <div class="cat-actions"><select id="arch-loc" class="sel"><option value="">— scegli un luogo —</option></select><button class="btn" id="arch-refresh">Aggiorna</button></div>
+          <div id="arch-list" class="audit-list"></div>
+          </section>
         </div>
       </main>
       <footer><p class="disc-txt">Area di gestione · The Untold Story</p></footer>
@@ -315,6 +345,14 @@
     <div class="frame"><span class="corner tl">✦</span><span class="corner tr">✦</span><span class="corner bl">✦</span><span class="corner br">✦</span></div>
   </div>
   <div class="toast" id="toast"></div>
+
+  <div class="rov" id="rov" hidden>
+    <div class="rov-bk" id="rov-bk"></div>
+    <div class="rov-card" role="dialog" aria-modal="true">
+      <div class="rov-head"><span id="rov-title">Role</span><button type="button" class="rov-x" id="rov-x" aria-label="Chiudi">×</button></div>
+      <div class="rov-body" id="rov-body"></div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -685,6 +723,70 @@
         return '<div class="aurow"><b>'+esc(m.sender_name||'—')+'</b> &rarr; <b>'+esc(m.recipient_name||'—')+'</b><span class="itdesc">'+esc(m.body||'')+'</span><span class="aumeta">'+ds+multi+'</span></div>';
       }).join('');
     }
+    /* ---- Archivio: role registrate + chat archiviata ---- */
+    function fmtDT(iso){ try{var d=new Date(iso);return d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){return iso||'';} }
+    function fmtRoleA(s){ var t=esc(s);
+      t=t.replace(/&quot;([\s\S]*?)&quot;/g,'<span class="rsay">&quot;$1&quot;</span>');
+      t=t.replace(/«([\s\S]*?)»/g,'<span class="rsay">«$1»</span>');
+      t=t.replace(/\*([^*\n]+?)\*/g,'<em class="ract">$1</em>');
+      return t; }
+    async function loadRolesList(){
+      var host=$('roles-list'); if(!host)return;
+      host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">Caricamento…</p>';
+      var r=await sb.rpc('staff_role_sessions');
+      var rows=(r&&r.data)||[];
+      if(!rows.length){ host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">Nessuna role registrata.</p>'; return; }
+      host.innerHTML=rows.map(function(x){
+        var badge=x.is_open?'<span class="rbadge open">In corso</span>':'<span class="rbadge closed">Chiusa</span>';
+        var n=(x.msg_count!=null?x.msg_count:0);
+        return '<div class="aurow click" data-sess="'+esc(x.session_id)+'" data-title="'+esc(x.title||'Role')+'"><b>'+esc(x.title||'Role')+'</b>'+badge+'<span class="itdesc">'+esc(x.location_name||'')+' · avviata da '+esc(x.starter_name||'—')+' · '+(x.participants||0)+' partecipanti · '+n+' battute</span><span class="aumeta">'+fmtDT(x.started_at)+'</span></div>';
+      }).join('');
+    }
+    function openArchScene(sessId,title){
+      var ov=$('rov'), body=$('rov-body'), tt=$('rov-title');
+      if(!ov||!body)return;
+      if(tt)tt.textContent=title||'Role';
+      body.innerHTML='<p class="mgr-note" style="margin:0">Caricamento…</p>'; ov.hidden=false;
+      sb.rpc('role_scene',{p_session:sessId}).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(!rows.length){ body.innerHTML='<p class="mgr-note" style="margin:0">Nessuna battuta in questa scena.</p>'; return; }
+        body.innerHTML=rows.map(function(m){
+          if(m.kind==='dice'){ return '<div class="rmsg"><div class="rau">'+esc(m.author_name||'')+'</div><span class="rsys">🎲 '+esc(m.body||'')+(m.dice_result!=null?(' → '+m.dice_result):'')+'</span></div>'; }
+          if(m.kind==='system'||m.kind==='combat'||m.kind==='item'){ return '<div class="rmsg"><span class="rsys">'+fmtRoleA(m.body||'')+'</span></div>'; }
+          return '<div class="rmsg"><div class="rau">'+esc(m.author_name||'')+'</div>'+fmtRoleA(m.body||'')+'</div>';
+        }).join('');
+        body.scrollTop=0;
+      }, function(){ body.innerHTML='<p class="mgr-note" style="margin:0">Impossibile caricare la role.</p>'; });
+    }
+    function closeArchScene(){ var ov=$('rov'); if(ov) ov.hidden=true; }
+    function loadArchLocs(){
+      var sel=$('arch-loc'); if(!sel)return;
+      var opts='<option value="">— scegli un luogo —</option>';
+      (LOCS||[]).forEach(function(l){ opts+='<option value="'+esc(l.id)+'">'+esc(l.name)+'</option>'; });
+      sel.innerHTML=opts;
+    }
+    async function loadArchMessages(){
+      var host=$('arch-list'), sel=$('arch-loc'); if(!host)return;
+      var locId=sel?sel.value:'';
+      if(!locId){ host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">Scegli un luogo per vedere i messaggi archiviati.</p>'; return; }
+      host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">Caricamento…</p>';
+      var r=await sb.from('messages_archive').select('author_name,body,kind,recipient_name,created_at,dice_result').eq('location_id',locId).order('created_at',{ascending:false}).limit(300);
+      var rows=(r&&r.data)||[];
+      if(!rows.length){ host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">Nessun messaggio archiviato per questo luogo.</p>'; return; }
+      host.innerHTML=rows.map(function(m){
+        var extra=(m.kind==='whisper'&&m.recipient_name)?(' <span class="lnote">→ '+esc(m.recipient_name)+'</span>'):'';
+        return '<div class="aurow"><b>'+esc(m.author_name||'—')+'</b>'+extra+'<span class="itdesc">'+esc(m.body||'')+(m.dice_result!=null?(' → '+m.dice_result):'')+'</span><span class="aumeta">'+fmtDT(m.created_at)+'</span></div>';
+      }).join('');
+    }
+    function bindArchivio(){
+      var rr=$('roles-refresh'); if(rr) rr.addEventListener('click',loadRolesList);
+      var rl=$('roles-list'); if(rl) rl.addEventListener('click',function(e){ var b=e.target.closest('.aurow.click'); if(!b)return; openArchScene(b.getAttribute('data-sess'), b.getAttribute('data-title')); });
+      var ar=$('arch-refresh'); if(ar) ar.addEventListener('click',loadArchMessages);
+      var asel=$('arch-loc'); if(asel) asel.addEventListener('change',loadArchMessages);
+      var x=$('rov-x'); if(x) x.addEventListener('click',closeArchScene);
+      var bk=$('rov-bk'); if(bk) bk.addEventListener('click',closeArchScene);
+      document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var ov=$('rov'); if(ov&&!ov.hidden) closeArchScene(); } });
+    }
     /* ---- Clan (testi e accesso) ---- */
     var CLAN_ROWS=[], editingClan=null;
     function resetClanForm(){editingClan=null;$('clan-name').value='';$('clan-name').disabled=false;$('clan-village').value='Konoha';$('clan-sort').value='';$('clan-gated').checked=false;$('clan-active').checked=true;$('clan-desc').value='';$('clan-history').value='';$('clan-statute').value='';$('clan-abilities').value='';$('clan-reset').style.display='none';$('clan-editing').textContent='';$('clan-save').textContent='Salva clan';}
@@ -753,7 +855,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindLocs();await loadLocs();bindBoards();await loadBoards();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);show('st-mgr');
+      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindLocs();await loadLocs();bindBoards();await loadBoards();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
