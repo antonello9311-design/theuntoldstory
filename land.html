@@ -136,7 +136,19 @@
   .mapzone{flex-direction:column;align-items:stretch;justify-content:flex-start}
   .view{flex:1;min-height:0;display:none;flex-direction:column;gap:12px}
   .view.on{display:flex}
-  #map-view .mapframe{flex:1;min-height:0;width:100%;max-width:1040px;margin:0 auto;aspect-ratio:auto}
+  #map-view .mapframe{flex:1;min-height:340px;width:100%;max-width:1040px;margin:0 auto;aspect-ratio:auto;position:relative}
+  .map-markers{position:absolute;inset:0;pointer-events:none}
+  .mk{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0;z-index:2}
+  .mk-dot{width:14px;height:14px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px rgba(255,247,235,.75),0 2px 6px rgba(0,0,0,.35);transition:transform .12s}
+  .mk-lbl{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.03em;color:var(--ink);background:rgba(247,238,214,.88);border:1px solid var(--edge);border-radius:6px;padding:1px 6px;white-space:nowrap}
+  .mk.village .mk-dot{width:20px;height:20px;background:var(--red-deep);box-shadow:0 0 0 4px rgba(255,247,235,.85),0 3px 8px rgba(0,0,0,.4)}
+  .mk.village .mk-lbl{font-size:12px;font-weight:600;color:var(--red-deep)}
+  .mk:hover .mk-lbl{background:var(--red);color:#f6ead0}
+  .mk:hover .mk-dot{transform:scale(1.18)}
+  .map-back{position:absolute;top:10px;left:10px;z-index:3;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--red-deep);background:rgba(247,238,214,.92);border:1px solid var(--edge);border-radius:7px;padding:6px 11px;cursor:pointer}
+  .map-back[hidden]{display:none}
+  .map-back:hover{background:var(--red);color:#f6ead0}
+  .map-level{position:absolute;top:10px;right:12px;z-index:3;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);background:rgba(247,238,214,.82);border:1px solid var(--edge);border-radius:7px;padding:5px 10px}
   .map-cols{flex:1;min-height:0;display:flex;gap:14px}
   .map-side{flex:0 0 clamp(240px,24%,320px);min-height:0;display:flex;flex-direction:column}
   .map-main{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px}
@@ -576,11 +588,14 @@
               <path d="M50 50 L72 28 L57 50 Z M50 50 L28 72 L43 50 Z" fill="currentColor" opacity=".6"/>
               <text x="50" y="18" text-anchor="middle" font-family="Cinzel" font-size="8" fill="currentColor">N</text>
             </svg>
-            <div class="map-hint">
+            <button class="map-back" id="map-back" type="button" hidden>&larr; Mondo</button>
+            <div class="map-level" id="map-level"></div>
+            <div class="map-hint" id="map-hint">
               <div class="mh-k">— Mondo di gioco —</div>
               <div class="mh-t">La Mappa</div>
-              <div class="mh-d">Qui andrà la mappa della Land. Presto i luoghi saranno punti cliccabili direttamente sulla mappa.</div>
+              <div class="mh-d">Scegli un villaggio o un luogo qui sotto. Carica le immagini (assets/world · assets/konoha · assets/suna) per vederle qui.</div>
             </div>
+            <div class="map-markers" id="map-markers"></div>
           </div>
           <div class="luoghi">
             <div class="lg-head">Luoghi — scegli dove giocare <span class="lg-count">· <b id="map-count">0</b> presenti nella land</span></div>
@@ -753,16 +768,7 @@
       audio.play().then(function(){ setOn(true); }, function(){ setOn(false); });
     } else { setOn(false); }
 
-    /* ---- MAPPA: mostra la tua immagine se presente (assets/land-map.png|jpg|webp) ---- */
-    (function(){
-      var mi=document.getElementById('land-map'); if(!mi) return;
-      var hint=document.querySelector('.map-hint'), comp=document.querySelector('.compass');
-      var cands=['assets/land-map.png','assets/land-map.jpg','assets/land-map.webp'], i=0;
-      function next(){ if(i>=cands.length){ mi.style.display='none'; return; } mi.src=cands[i++]; }
-      mi.onload=function(){ mi.style.display='block'; if(hint)hint.style.display='none'; if(comp)comp.style.display='none'; };
-      mi.onerror=next;
-      next();
-    })();
+    /* Mappa a due livelli: immagine e marker gestiti da renderMap() */
 
     /* ---- LOGOUT ---- */
     document.getElementById('logout').addEventListener('click', function(e){
@@ -894,16 +900,37 @@
         meteoEl.setAttribute('title', prof.nome+' — '+label+', '+(degc!=null?(degc+'°C ('+word+')'):word));
       }
 
-      function renderLuoghi(){
-        if(!loggedIn){ lgList.innerHTML='<span class="login-note">Accedi al tuo account per entrare nei luoghi e giocare. <a href="entra.html#accedi">Accedi</a></span>'; return; }
-        if(!LOCS.length){ lgList.innerHTML='<span class="who-empty">Nessun luogo disponibile per ora.</span>'; return; }
-        lgList.innerHTML=LOCS.map(function(l){
-          return '<button class="lg-card" data-id="'+l.id+'"><div class="lg-name">'+esc(l.name)+'</div>'+(l.kind?'<div class="lg-kind">'+esc(l.kind)+'</div>':'')+'</button>';
-        }).join('');
-        Array.prototype.forEach.call(lgList.querySelectorAll('.lg-card'), function(b){
-          b.addEventListener('click', function(){ var l=LOCS.filter(function(x){return x.id===b.getAttribute('data-id');})[0]; if(l) openRoom(l); });
-        });
+      var mapLevel='world';
+      var VILLAGES=[{key:'konoha',name:'Konoha',x:34,y:35},{key:'suna',name:'Suna',x:13,y:45}];
+      function mapImgCands(level){ if(level==='konoha') return ['assets/konoha.png','assets/konoha.jpg','assets/konoha.webp']; if(level==='suna') return ['assets/suna.png','assets/suna.jpg','assets/suna.webp']; return ['assets/world.png','assets/world.jpg','assets/world.webp','assets/land-map.png','assets/land-map.jpg','assets/land-map.webp']; }
+      function setMapImage(level){ var mi=document.getElementById('land-map'); if(!mi) return; var hint=document.getElementById('map-hint'), comp=document.querySelector('.compass'); var cands=mapImgCands(level), i=0; mi.onload=function(){ mi.style.display='block'; if(hint)hint.style.display='none'; if(comp)comp.style.display='none'; }; mi.onerror=function(){ if(i>=cands.length){ mi.removeAttribute('src'); mi.style.display='none'; if(hint)hint.style.display=''; if(comp)comp.style.display=''; return; } mi.src=cands[i++]; }; mi.style.display='none'; if(hint)hint.style.display=''; if(comp)comp.style.display=''; mi.onerror(); }
+      function villageLocs(region){ return LOCS.filter(function(l){ return (''+(l.region||'')).toLowerCase()===region; }); }
+      function neutralLocs(){ return LOCS.filter(function(l){ return !l.region; }); }
+      function makeMarker(x,y,label,cls){ var b=document.createElement('button'); b.type='button'; b.className='mk '+cls; b.style.left=((x!=null&&x!=='')?x:50)+'%'; b.style.top=((y!=null&&y!=='')?y:50)+'%'; b.innerHTML='<span class="mk-dot"></span><span class="mk-lbl">'+esc(label)+'</span>'; return b; }
+      function renderMap(){
+        setMapImage(mapLevel);
+        var back=document.getElementById('map-back'); if(back) back.hidden=(mapLevel==='world');
+        var lvl=document.getElementById('map-level'); if(lvl) lvl.textContent=(mapLevel==='world')?'Mondo':((mapLevel==='konoha')?'Villaggio di Konoha':'Villaggio di Suna');
+        var host=document.getElementById('map-markers'); if(host){ host.innerHTML='';
+          if(mapLevel==='world'){
+            VILLAGES.forEach(function(v){ var m=makeMarker(v.x,v.y,v.name,'village'); m.addEventListener('click',function(){ mapLevel=v.key; renderMap(); }); host.appendChild(m); });
+            neutralLocs().forEach(function(l){ var m=makeMarker(l.map_x,l.map_y,l.name,'loc'); m.addEventListener('click',function(){ openRoom(l); }); host.appendChild(m); });
+          } else {
+            villageLocs(mapLevel).forEach(function(l){ var m=makeMarker(l.map_x,l.map_y,l.name,'loc'); m.addEventListener('click',function(){ openRoom(l); }); host.appendChild(m); });
+          }
+        }
+        renderMapList();
       }
+      function renderMapList(){
+        if(!loggedIn){ lgList.innerHTML='<span class="login-note">Accedi al tuo account per entrare nei luoghi e giocare. <a href="entra.html#accedi">Accedi</a></span>'; return; }
+        var items;
+        if(mapLevel==='world'){ items=VILLAGES.map(function(v){ return {village:true,key:v.key,name:v.name}; }).concat(neutralLocs().map(function(l){ return {loc:l,name:l.name,kind:l.kind}; })); }
+        else { items=villageLocs(mapLevel).map(function(l){ return {loc:l,name:l.name,kind:l.kind}; }); if(!items.length){ lgList.innerHTML='<span class="who-empty">Nessun luogo in questo villaggio, per ora.</span>'; return; } }
+        lgList.innerHTML=items.map(function(it,idx){ var sub=it.village?'villaggio':(it.kind||''); return '<button class="lg-card" data-idx="'+idx+'"><div class="lg-name">'+esc(it.name)+'</div>'+(sub?'<div class="lg-kind">'+esc(sub)+'</div>':'')+'</button>'; }).join('');
+        Array.prototype.forEach.call(lgList.querySelectorAll('.lg-card'), function(b){ b.addEventListener('click', function(){ var it=items[parseInt(b.getAttribute('data-idx'),10)]; if(!it) return; if(it.village){ mapLevel=it.key; renderMap(); } else if(it.loc){ openRoom(it.loc); } }); });
+      }
+      function renderLuoghi(){ renderMap(); }
+      (function(){ var bb=document.getElementById('map-back'); if(bb) bb.addEventListener('click', function(){ mapLevel='world'; renderMap(); }); })();
       function loadLuoghi(cb){
         if(!sb||!loggedIn) return;
         sb.from('locations').select('id,name,kind,description,image_url,event_note,region').eq('is_active',true).order('sort').then(function(r){
