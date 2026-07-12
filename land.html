@@ -572,6 +572,10 @@
   .side-card.acad .ac-live{display:flex;align-items:center;gap:7px;font-family:'Cinzel',serif;font-size:12px;color:var(--red-deep);margin-bottom:4px}
   .acad-lesson{font-family:'Cinzel',serif;font-size:12.5px;color:var(--ink);margin-bottom:2px}
   .acad-meta{font-size:12px;color:var(--ink-soft);margin:2px 0 9px;line-height:1.35}
+  .acad-top{display:flex;align-items:center;gap:9px;margin:2px 0 9px}
+  .acad-top .acad-topmain{min-width:0}
+  .acad-top .acad-lesson,.acad-top .acad-meta{margin:0}
+  .acad-portrait{width:42px;height:42px;border-radius:8px;object-fit:cover;border:1px solid var(--edge);flex:0 0 auto;background:var(--paper-hi)}
   .acad-roster{font-size:12.5px;color:var(--ink);margin:2px 0 6px;line-height:1.55}
   .acad-roster .en{color:#3c8a3c}.acad-roster .wa{color:var(--ink-soft)}
   .acad-aud{font-size:11.5px;color:var(--ink-soft);font-style:italic;margin:3px 0 0}
@@ -619,6 +623,8 @@
   .msg-sensei .ms-k{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#8a6a1e}
   .msg-sensei .m-time{margin-left:auto;font-family:'Cinzel',serif;font-size:9px;color:var(--ink-soft)}
   .msg-sensei .m-body{font-family:'Cormorant Garamond',serif;font-size:15.5px;line-height:1.5;color:var(--ink)}
+  .msg-sensei .ms-ava-box{position:relative;width:22px;height:22px;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}
+  .msg-sensei .ms-ava{position:absolute;inset:0;width:22px;height:22px;border-radius:50%;object-fit:cover;border:1px solid var(--gold);background:var(--paper-hi)}
   .cmb-avs{display:flex;align-items:center;gap:9px;margin-bottom:5px}
   .cmb-avs .m-ava{width:32px;height:32px;flex:0 0 auto}
   .cmb-x{color:var(--red-deep);display:inline-flex}.cmb-x .sw{width:19px;height:19px}
@@ -1102,7 +1108,7 @@
             return '<div class="msg-whisper"><div class="wsp-head"><span class="wsp-k">'+LOCK+'sussurro '+dir+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="m-body">'+fmtBody(m.body)+'</div></div>';
           }
           if(m.kind==='combat'){ var cb; try{ cb=JSON.parse(m.body); }catch(e){ cb=null; } if(cb&&cb.a&&cb.d){ return '<div class="msg-combat"><div class="cmb-avs">'+avatarHTML({avatar_url:cb.a.u},cb.a.n,cb.a.c)+'<span class="cmb-x">'+SWORD+'</span>'+avatarHTML({avatar_url:cb.d.u},cb.d.n,cb.d.c)+'<span class="m-time">'+fmt(m.created_at)+'</span></div><div class="cmb-out">'+esc(cb.o)+'</div></div>'; } return '<div class="msg-combat"><div class="cmb-out">'+esc(m.body)+'</div></div>'; }
-          if(m.kind==='sensei'){ return '<div class="msg-sensei"><div class="ms-head">'+SENSEI+'<b>'+esc(m.author_name||'Sensei')+'</b><span class="ms-k">Sensei · Accademia</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="m-body">'+fmtBody(m.body)+'</div></div>'; }
+          if(m.kind==='sensei'){ var sp=senseiPortrait||(classState&&classState.sensei_portrait)||''; var sav='<span class="ms-ava-box">'+SENSEI+(sp?'<img class="ms-ava" src="'+esc(sp)+'" alt="" onerror="this.style.display=\'none\'">':'')+'</span>'; return '<div class="msg-sensei"><div class="ms-head">'+sav+'<b>'+esc(m.author_name||'Sensei')+'</b><span class="ms-k">Sensei · Accademia</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="m-body">'+fmtBody(m.body)+'</div></div>'; }
           var c=m.character; var nm=(c&&c.name)||m.author_name||'—'; var cid=c&&c.id;
           return '<div class="msg">'+avatarHTML(c,nm,cid)+'<div class="m-main">'+identityHTML(c,nm,cid,m.created_at)+'<div class="m-body">'+fmtBody(m.body)+'</div></div></div>';
         }).join('');
@@ -1194,10 +1200,11 @@
         }, function(){ if(b){ b.disabled=false; } toast('Impossibile chiudere la role'); });
       }
       /* ---- Accademia: lezioni in chat ---- */
-      var acadState=null;
+      var classState=null, acadAdvancing=false, senseiPortrait='';
       function acadEl(id){return document.getElementById(id);}
       function rosterHTML(s){
-        var st=(s.students||[]).map(function(x){ return '<span class="'+(x.entered?'en':'wa')+'">'+esc(x.name)+(s.state==='entry'?(x.entered?' ✓':' …'):'')+'</span>'; }).join(', ');
+        var mark=(s.state==='entry'||s.state==='teaching');
+        var st=(s.students||[]).map(function(x){ return '<span class="'+(x.entered?'en':'wa')+'">'+esc(x.name)+(mark?(x.entered?' ✓':' …'):'')+'</span>'; }).join(', ');
         var h='<div class="acad-roster"><b>Iscritti:</b> '+(st||'—')+'</div>';
         if((s.auditors||[]).length){ h+='<div class="acad-aud">Uditori: '+s.auditors.map(esc).join(', ')+'</div>'; }
         return h;
@@ -1205,40 +1212,55 @@
       function renderAcadClass(){
         var card=acadEl('acad-card'), body=acadEl('acad-body'); if(!card||!body) return;
         if(!cur||!cur.is_academy||!loggedIn){ card.hidden=true; return; }
-        card.hidden=false; var s=acadState;
+        card.hidden=false; var s=classState;
         if(!s||!s.active){
           body.innerHTML='<p class="acad-hint">Qui si tengono le lezioni. Chi avvia sceglie l’argomento; gli altri possono unirsi.</p><button class="acad-btn" id="acad-start" type="button">Fai lezione</button>';
           var sb2=acadEl('acad-start'); if(sb2) sb2.addEventListener('click', openLessonPicker); return;
         }
         var mine=s.my_role, isInit=s.can_advance;
-        var html='<div class="acad-lesson">'+esc(s.lesson_title||'Lezione')+'</div><div class="acad-meta">Sensei: <b>'+esc(s.sensei||'—')+'</b></div>';
+        var portrait = s.sensei_portrait ? ('<img class="acad-portrait" src="'+esc(s.sensei_portrait)+'" alt="" onerror="this.style.display=\'none\'">') : '';
+        var html='<div class="acad-top">'+portrait+'<div class="acad-topmain"><div class="acad-lesson">'+esc(s.lesson_title||'Lezione')+'</div><div class="acad-meta">Sensei: <b>'+esc(s.sensei||'—')+'</b></div></div></div>';
         if(s.state==='enrolling'){
           html+='<div class="ac-live"><span class="rec-dot"></span>Iscrizioni aperte</div>'+rosterHTML(s);
           if(!mine){ html+='<button class="acad-btn" id="acad-join" type="button">Unisciti alla lezione</button>'; }
           if(isInit){ html+='<button class="acad-btn'+(mine?'':' ghost')+'" id="acad-begin" type="button">Inizia</button>'; }
           else if(mine==='student'){ html+='<p class="acad-hint">Sei iscritto. In attesa che il maestro dia inizio.</p>'; }
         } else if(s.state==='entry'){
-          html+='<div class="ac-live"><span class="rec-dot"></span>In attesa che tutti entrino</div>'+rosterHTML(s);
-          if(mine==='student'){ html+='<p class="acad-hint">Fai un’azione in chat (entra in aula) per prendere posto.</p>'; }
-          if(isInit){ html+= s.all_entered ? '<button class="acad-btn" id="acad-advance" type="button">Fai entrare il sensei</button>' : '<button class="acad-btn ghost" id="acad-force" type="button">Fai iniziare comunque</button>'; }
+          if(s.all_entered){ html+='<div class="ac-live"><span class="rec-dot"></span>Il sensei sta arrivando…</div>'+rosterHTML(s); }
+          else {
+            html+='<div class="ac-live"><span class="rec-dot"></span>In attesa che tutti entrino</div>'+rosterHTML(s);
+            if(mine==='student'){ html+='<p class="acad-hint">Fai un’azione in chat (entra in aula) per prendere posto.</p>'; }
+            if(isInit){ html+='<button class="acad-btn ghost" id="acad-force" type="button">Fai iniziare comunque</button>'; }
+          }
         } else if(s.state==='teaching'){
           html+='<div class="ac-live"><span class="rec-dot"></span>Lezione in corso <span class="acad-step">· passo '+s.step+'/'+s.total_steps+'</span></div>'+rosterHTML(s);
-          if(isInit){ html+='<button class="acad-btn" id="acad-advance" type="button">'+(s.step>=s.total_steps?'Concludi':'Prosegui')+'</button><button class="acad-btn ghost" id="acad-cancel" type="button">Interrompi</button>'; }
-          else if(mine==='auditor'){ html+='<p class="acad-hint">Assisti come uditore: segui la lezione ma non riceverai l’attestato.</p>'; }
-          else if(mine==='student'){ html+='<p class="acad-hint">Segui il maestro e agisci quando ti invita.</p>'; }
+          html+= s.ready ? '<p class="acad-hint">Turno completo: il maestro sta per proseguire…</p>' : '<p class="acad-hint">In attesa che tutti agiscano (un’azione a testa).</p>';
+          if(mine==='auditor'){ html+='<p class="acad-hint">Assisti come uditore: non riceverai l’attestato.</p>'; }
+          else if(mine){ html+='<p class="acad-hint">Scrivi la tua azione, poi la lezione proseguirà.</p>'; }
           else { html+='<button class="acad-btn" id="acad-join" type="button">Assisti (uditore)</button>'; }
+          if(isInit){ html+='<button class="acad-btn ghost" id="acad-force" type="button">'+(s.step>=s.total_steps?'Concludi ora':'Prosegui ora')+'</button><button class="acad-btn ghost" id="acad-cancel" type="button">Interrompi</button>'; }
         }
         body.innerHTML=html;
         var b;
         b=acadEl('acad-join'); if(b) b.addEventListener('click', doAcadJoin);
         b=acadEl('acad-begin'); if(b) b.addEventListener('click', doAcadBegin);
-        b=acadEl('acad-advance'); if(b) b.addEventListener('click', function(){ doAcadAdvance(false); });
         b=acadEl('acad-force'); if(b) b.addEventListener('click', function(){ doAcadAdvance(true); });
         b=acadEl('acad-cancel'); if(b) b.addEventListener('click', doAcadCancel);
       }
       function loadAcadClass(){
         if(!cur||!cur.is_academy||!sb){ var c=acadEl('acad-card'); if(c) c.hidden=true; return; }
-        sb.rpc('academy_class_state',{p_location:cur.id}).then(function(r){ acadState=(r&&r.data)||null; renderAcadClass(); }, function(){});
+        sb.rpc('academy_class_state',{p_location:cur.id}).then(function(r){ classState=(r&&r.data)||null;
+          var np=(classState&&classState.sensei_portrait)||''; var needMsg=(np && np!==senseiPortrait); if(np) senseiPortrait=np;
+          renderAcadClass();
+          if(needMsg) loadMsgs();
+          if(classState && classState.active && classState.started_by===myId && !acadAdvancing){
+            var s=classState;
+            if((s.state==='entry' && s.all_entered) || (s.state==='teaching' && s.ready)){
+              acadAdvancing=true;
+              sb.rpc('academy_class_advance',{p_session:s.session,p_force:false}).then(function(rr){ acadAdvancing=false; if(rr&&!rr.error){ loadMsgs(); loadAcadClass(); } }, function(){ acadAdvancing=false; });
+            }
+          }
+        }, function(){});
       }
       function openLessonPicker(){
         if(!sb) return; var host=acadEl('lp-list'); if(host) host.innerHTML='<p class="acad-hint" style="padding:8px">Caricamento…</p>';
@@ -1258,10 +1280,10 @@
       function doAcadStart(lessonId){ if(!cur||!sb) return; closeLessonPicker();
         sb.rpc('academy_class_start',{p_location:cur.id,p_lesson:lessonId}).then(function(r){ if(r&&r.error){ toast(acadErr(r.error.message)); return; } toast('Lezione avviata: iscrivete la classe'); loadAcadClass(); }, function(){ toast('Impossibile avviare la lezione'); }); }
       function doAcadJoin(){ if(!cur||!sb) return; sb.rpc('academy_class_join',{p_location:cur.id}).then(function(r){ if(r&&r.error){ toast(acadErr(r.error.message)); return; } loadAcadClass(); }, function(){}); }
-      function doAcadBegin(){ if(!acadState||!acadState.session||!sb) return; sb.rpc('academy_class_begin',{p_session:acadState.session}).then(function(r){ if(r&&r.error){ toast(acadErr(r.error.message)); return; } toast('Che gli allievi entrino in aula'); loadAcadClass(); }, function(){}); }
-      function doAcadAdvance(force){ if(!acadState||!acadState.session||!sb) return; var b=acadEl('acad-advance')||acadEl('acad-force'); if(b) b.disabled=true;
-        sb.rpc('academy_class_advance',{p_session:acadState.session,p_force:!!force}).then(function(r){ if(b) b.disabled=false; if(r&&r.error){ toast(acadErr(r.error.message)); return; } var d=r&&r.data; if(d&&d.state==='entry'&&d.ready===false){ toast('Non tutti sono entrati: aspetta, o «Fai iniziare comunque»'); } loadMsgs(); loadAcadClass(); }, function(){ if(b) b.disabled=false; }); }
-      function doAcadCancel(){ if(!acadState||!acadState.session||!sb) return; sb.rpc('academy_class_cancel',{p_session:acadState.session}).then(function(r){ if(r&&r.error){ toast('Impossibile interrompere'); return; } toast('Lezione interrotta'); loadMsgs(); loadAcadClass(); }, function(){}); }
+      function doAcadBegin(){ if(!classState||!classState.session||!sb) return; sb.rpc('academy_class_begin',{p_session:classState.session}).then(function(r){ if(r&&r.error){ toast(acadErr(r.error.message)); return; } toast('Che gli allievi entrino in aula'); loadAcadClass(); }, function(){}); }
+      function doAcadAdvance(force){ if(!classState||!classState.session||!sb) return; var b=acadEl('acad-advance')||acadEl('acad-force'); if(b) b.disabled=true;
+        sb.rpc('academy_class_advance',{p_session:classState.session,p_force:!!force}).then(function(r){ if(b) b.disabled=false; if(r&&r.error){ toast(acadErr(r.error.message)); return; } var d=r&&r.data; if(d&&d.state==='entry'&&d.ready===false){ toast('Non tutti sono entrati: aspetta, o «Fai iniziare comunque»'); } loadMsgs(); loadAcadClass(); }, function(){ if(b) b.disabled=false; }); }
+      function doAcadCancel(){ if(!classState||!classState.session||!sb) return; sb.rpc('academy_class_cancel',{p_session:classState.session}).then(function(r){ if(r&&r.error){ toast('Impossibile interrompere'); return; } toast('Lezione interrotta'); loadMsgs(); loadAcadClass(); }, function(){}); }
       function acadErr(m){ m=(m||'').toLowerCase(); if(/gia una classe/.test(m)) return 'C’è già una classe in corso qui'; if(/personaggio/.test(m)) return 'Ti serve un personaggio'; if(/tengono/.test(m)) return 'Qui non si tengono lezioni'; return 'Operazione non riuscita'; }
       (function(){ var b; b=acadEl('lp-x'); if(b) b.addEventListener('click', closeLessonPicker); b=acadEl('lp-bk'); if(b) b.addEventListener('click', closeLessonPicker); })();
       function openRoom(l){
@@ -1275,7 +1297,7 @@
         refreshRoom();
         if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
       }
-      function leaveRoom(){ if(poll){ clearInterval(poll); poll=null; } cur=null; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} var rc=document.getElementById('rec-card'); if(rc) rc.hidden=true; roleState={open:false, session:null, can_close:false, starter:'', started_at:null}; var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; acadState=null; if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ if(poll){ clearInterval(poll); poll=null; } cur=null; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} var rc=document.getElementById('rec-card'); if(rc) rc.hidden=true; roleState={open:false, session:null, can_close:false, starter:'', started_at:null}; var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
       function tryResume(){ try{ var raw=sessionStorage.getItem('tus_land_resume'); if(!raw) return false; var d=JSON.parse(raw); if(!d||!d.room){ sessionStorage.removeItem('tus_land_resume'); return false; } if(d.ts&&(Date.now()-d.ts)>1800000){ sessionStorage.removeItem('tus_land_resume'); return false; } var l=LOCS.filter(function(x){return x.id===d.room;})[0]; if(l){ openRoom(l); if(input){ input.value=d.text||''; updCount(); } return true; } }catch(e){} return false; }
