@@ -307,6 +307,7 @@
   .ovp-u-main{flex:1;min-width:0}
   .ovp-u-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .ovp-u-top .ovp-name{font-family:'Cinzel',serif;font-weight:600;font-size:13px;color:var(--ink)}
+  .ovp-u-top .ovp-epi{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--red-deep);font-size:13.5px;margin-left:2px}
   .rl-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-family:'Cinzel',serif;font-size:10px;font-weight:700;line-height:1;border:1px solid rgba(43,29,14,.28);box-shadow:0 1px 2px rgba(60,42,18,.28);flex-shrink:0}
   .rl-admin{background:var(--red);color:#f6ead0}
   .rl-staff{background:#3c6b8a;color:#eaf2f8}
@@ -1137,10 +1138,12 @@
             var _rk=(u.rank?(EMB['rank:'+u.rank]?('<span class="ovp-rankemb"><img src="'+esc(EMB['rank:'+u.rank])+'" alt="" title="'+esc(u.rank)+'"></span>'):('<span class="ovp-rank">'+esc(u.rank)+'</span>')):'');
             var _cl=((u.clan&&u.clan!=='Nessuno')?('<a class="ovp-clan-emb" href="clan.html?c='+encodeURIComponent(u.clan)+'" title="'+esc(u.clan)+'">'+(clanEmbSpan(u.clan,(u.clan_role==='Capo clan'),18)||('<span class="ovp-clan">'+esc(u.clan)+'</span>'))+'</a>'):'');
             var _corp=(u.corporation?('<span class="ovp-corp" title="Corporazione: '+esc(u.corporation)+'">'+esc(u.corporation)+'</span>'):'');
+            var _clanName=(u.clan&&u.clan!=='Nessuno')?(' '+esc(u.clan)):'';
+            var _epi=u.epithet?' <span class="ovp-epi">«'+esc(u.epithet)+'»</span>':'';
             var badges=roleBadge(u.role)+_sx+_vil+_rk+_cl+_corp;
             var off=u.off_notes?'<div class="ovp-off">'+esc(u.off_notes)+'</div>':'';
             var pm=(u.user_id!==myId)?'<button class="ovp-pm" data-pm="'+u.user_id+'" data-nm="'+esc(u.name)+'" title="Invia un messaggio">'+SCROLL+'</button>':'';
-            return '<div class="ovp-user"><span class="st-dot" style="background:'+statusColor(u.status)+'" title="'+statusLabel(u.status)+'"></span><div class="ovp-u-main"><div class="ovp-u-top"><a class="ovp-name" href="scheda.html?id='+esc(u.char_id||'')+'" title="Apri la scheda">'+esc(u.name)+'</a>'+badges+pm+'</div>'+off+'</div></div>';
+            return '<div class="ovp-user"><span class="st-dot" style="background:'+statusColor(u.status)+'" title="'+statusLabel(u.status)+'"></span><div class="ovp-u-main"><div class="ovp-u-top"><a class="ovp-name" href="scheda.html?id='+esc(u.char_id||'')+'" title="Apri la scheda">'+esc(u.name)+_clanName+'</a>'+_epi+badges+pm+'</div>'+off+'</div></div>';
           }).join('');
           return '<div class="ovp-group">'+head+rows+'</div>';
         }).join('');
