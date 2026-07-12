@@ -131,6 +131,12 @@
   .jrom{font-style:italic;color:var(--ink-soft);font-size:13px;margin-top:1px}
   .jmeta{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin-top:5px}
   .jeff{font-size:13.5px;color:var(--ink-soft);margin-top:6px;line-height:1.4}
+  .acadlog-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(138,111,67,.22)}
+  .acadlog-row:last-child{border-bottom:0}
+  .al-mark{color:#3c8a3c;font-weight:700;flex:0 0 auto}
+  .al-mark.exam{color:var(--gold,#b58a2b)}
+  .al-title{flex:1;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)}
+  .al-date{font-family:'Cinzel',serif;font-size:11px;color:var(--ink-soft);flex:0 0 auto}
   .ssec .priv{font-family:'Cormorant Garamond',serif;text-transform:none;letter-spacing:0;font-size:12px;font-style:italic;color:var(--ink-soft);display:inline-flex;align-items:center;gap:5px}
   .lockico{width:12px;height:12px;opacity:.7}
 
@@ -359,6 +365,9 @@
             <div class="ssec" id="sec-jutsu"><h3>Jutsu e abilità</h3>
               <p class="hint">Le <b>abilità</b> (competenze e capacità) e i <b>jutsu</b> (tecniche) appresi dal personaggio: si imparano all'Accademia e con la progressione.</p>
               <div id="jutsu-wrap"></div></div>
+            <div class="ssec" id="sec-acad"><h3>Accademia</h3>
+              <p class="hint">Le lezioni che hai svolto. Il collegamento per rileggere la chat di ogni lezione arriverà con l'Accademia in versione chat.</p>
+              <div id="acadlog-wrap"></div></div>
             <div class="ssec"><h3>Background</h3>
               <p class="hint">La storia del personaggio: origini, legami, aspirazioni. Visibile agli altri giocatori.</p>
               <textarea id="f-background" class="fin" style="min-height:180px" placeholder="Scrivi qui la storia del tuo personaggio…"></textarea></div>
@@ -503,6 +512,25 @@
 
     /* ---- SHEET ---- */
     function renderChars(c){var w=$('charwrap');w.innerHTML='';STATS.forEach(function(s){var v=(c[s[0]]!=null?c[s[0]]:BASE);var row=document.createElement('div');row.className='charrow';row.innerHTML='<span class="cn">'+s[1]+'</span><div class="cbar"><span style="width:'+v+'%"></span></div><span class="roval">'+v+'</span>';w.appendChild(row);});}
+    function renderAcademyLog(){
+      var sec=$('sec-acad'), host=$('acadlog-wrap');
+      if(sec) sec.style.display=(viewMode==='public')?'none':'';
+      if(!host) return;
+      if(viewMode==='public'){ host.innerHTML=''; return; }
+      var uid=(myChar&&myChar.user_id)||(me&&me.id)||null;
+      if(!sb||!uid){ host.innerHTML=''; return; }
+      host.innerHTML='<p class="hint" style="margin:0">Caricamento\u2026</p>';
+      sb.rpc('my_academy_log',{p_user:uid}).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(!rows.length){ host.innerHTML='<p class="hint" style="margin:0">Nessuna lezione ancora svolta.</p>'; return; }
+        host.innerHTML=rows.map(function(x){
+          var d=x.completed_at?new Date(x.completed_at):null;
+          var ds=d?(('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()):'';
+          var mark=x.is_exam?'\u2605':'\u2713';
+          return '<div class="acadlog-row"><span class="al-mark'+(x.is_exam?' exam':'')+'">'+mark+'</span><span class="al-title">'+esc(x.title)+'</span><span class="al-date">'+ds+'</span></div>';
+        }).join('');
+      }, function(){ host.innerHTML='<p class="hint" style="margin:0">Impossibile caricare il registro.</p>'; });
+    }
     function jcard(x){
       var rank=x.rank?('<span class="jrank">'+esc(x.rank)+'</span>'):'';
       var meta=[]; if(x.nature) meta.push(esc(x.nature)); if(x.action_type) meta.push(esc(x.action_type));
@@ -550,6 +578,7 @@
       $('f-background').value=c.background||''; $('f-off').value=c.off_notes||''; $('f-fato').value=priv&&priv.fato_notes?priv.fato_notes:''; setPortrait(c.avatar_url);
       applyMode();
       renderJutsu();
+      renderAcademyLog();
     }
     function setPortrait(url){ var p=$('s-portrait'), ph=$('s-portrait-ph'); if(!p)return; if(url){ p.style.backgroundImage='url("'+url+'")'; if(ph)ph.style.display='none'; } else { p.style.backgroundImage=''; if(ph)ph.style.display=''; } }
     function applyMode(){
