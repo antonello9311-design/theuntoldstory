@@ -445,6 +445,30 @@
   .phone-scroll{flex:1;overflow-y:auto;padding:8px}
   a.ovp-name{text-decoration:none;cursor:pointer}
   a.ovp-name:hover{color:var(--red-deep);text-decoration:underline}
+  .cmb-btn{display:inline-flex;align-items:center;gap:5px;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--red-deep);background:transparent;border:1px solid var(--edge);padding:6px 9px;cursor:pointer}
+  .cmb-btn:hover{background:rgba(166,50,29,.08)}
+  .cmb-btn .sw{width:15px;height:15px}
+  .cmb-overlay{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:18px}
+  .cmb-overlay[hidden]{display:none}
+  .cmb-backdrop{position:absolute;inset:0;background:rgba(20,13,5,.6)}
+  .cmb-card{position:relative;z-index:1;width:min(440px,95vw);background:linear-gradient(var(--paper-hi),var(--paper));border:1.5px solid var(--edge);box-shadow:0 20px 60px rgba(20,12,4,.5);display:flex;flex-direction:column;max-height:92vh}
+  .cmb-head{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;background:linear-gradient(var(--red),var(--red-deep));color:#f8ecd6;font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:.08em}
+  .cmb-head button{background:transparent;border:0;color:#f8ecd6;font-size:15px;cursor:pointer;line-height:1}
+  .cmb-body{padding:13px 15px;display:flex;flex-direction:column;gap:9px;overflow:auto}
+  .cmb-f{display:flex;flex-direction:column;gap:3px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .cmb-f input,.cmb-f select{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink);background:rgba(255,255,255,.45);border:1px solid var(--rule);padding:7px 9px}
+  .cmb-two{display:flex;gap:10px}.cmb-two .cmb-f{flex:1;min-width:0}
+  .cmb-hint{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink-soft);font-style:italic;margin:2px 0 0}
+  .cmb-foot{display:flex;justify-content:flex-end;gap:8px;padding:11px 15px}
+  .cmb-foot button{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:9px 16px;cursor:pointer;border:1.5px solid var(--ink)}
+  .cmb-foot .btn-ghost{background:transparent;color:var(--ink)}
+  .cmb-foot .btn-red{background:var(--red);border-color:var(--red-deep);color:#f6ead0}
+  .msg-combat{margin:10px 0;padding:9px 12px;border:1px solid var(--edge);border-left:3px solid var(--red);background:linear-gradient(rgba(166,50,29,.06),rgba(166,50,29,.02))}
+  .cmb-avs{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+  .cmb-avs .m-ava{width:32px;height:32px;flex:0 0 auto}
+  .cmb-x{color:var(--red-deep);display:inline-flex}.cmb-x .sw{width:19px;height:19px}
+  .cmb-avs .m-time{margin-left:auto;font-family:'Cinzel',serif;font-size:9px;color:var(--ink-soft);letter-spacing:.05em}
+  .cmb-out{font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.4;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -544,7 +568,7 @@
               <div class="composer">
                 <textarea id="msg-input" maxlength="5000" placeholder="Scrivi il tuo turno di gioco…"></textarea>
                 <div class="item-pop" id="item-pop" hidden><div class="ip-head">Oggetti equipaggiati</div><div id="ip-list"></div></div>
-                <div class="composer-row"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*</span><div class="composer-tools"><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
+                <div class="composer-row"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*</span><div class="composer-tools"><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="cmb-btn" type="button" title="Calcolo combattimento"><svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>Combatti</button><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
               </div>
             </section>
             <aside class="room-side">
@@ -710,7 +734,7 @@
       var toSel=document.getElementById('msg-to'), diceBtn=document.getElementById('dice-btn'), objBtn=document.getElementById('obj-btn');
       var nameEl=document.getElementById('room-name'), kindEl=document.getElementById('room-kind'), descEl=document.getElementById('room-desc'), meteoEl=document.getElementById('room-meteo');
       var backBtn=document.getElementById('room-back');
-      var LOCS=[], cur=null, poll=null, loggedIn=false, myId=null, myCharId=null, EMB={}, ROSTER=[], pendingWhisper=null, rosterPoll=null, ACT=[], iAmStaff=false;
+      var LOCS=[], cur=null, poll=null, loggedIn=false, myId=null, myCharId=null, EMB={}, ROSTER=[], pendingWhisper=null, rosterPoll=null, ACT=[], iAmStaff=false, WHO=[];
       function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
       function fmtBody(s){ var t=esc(s);
         t=t.replace(/&quot;([\s\S]*?)&quot;/g,'<span class="sp-say">&quot;$1&quot;</span>');
@@ -809,6 +833,7 @@
       var DIE='<svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>';
       var LOCK='<svg class="lk" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="9.5" rx="2" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="1.9"/></svg>';
       var ITEM='<svg class="it" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+      var SWORD='<svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>';
       var SEX_M='<svg class="m-sex" viewBox="0 0 24 24"><circle cx="10" cy="14" r="5.5" fill="none" stroke="#2f6fb0" stroke-width="2.2"/><path d="M14.5 9.5 L21 3 M15.5 3 h5.5 v5.5" fill="none" stroke="#2f6fb0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       var SEX_F='<svg class="m-sex" viewBox="0 0 24 24"><circle cx="12" cy="9" r="5.5" fill="none" stroke="#cf5aa0" stroke-width="2.2"/><path d="M12 14.5 v7 M8.5 18 h7" fill="none" stroke="#cf5aa0" stroke-width="2.2" stroke-linecap="round"/></svg>';
       var RSTAR='<svg viewBox="0 0 24 24"><path d="M12 3 l2.5 6 6.4 .5 -4.9 4.2 1.6 6.3 -5.6 -3.5 -5.6 3.5 1.6 -6.3 -4.9 -4.2 6.4 -.5 Z" fill="#c9a233"/></svg>';
@@ -837,6 +862,7 @@
             else dir='<b>'+esc(m.author_name)+'</b> → <b>'+esc(m.recipient_name||'?')+'</b>';
             return '<div class="msg-whisper"><div class="wsp-head"><span class="wsp-k">'+LOCK+'sussurro '+dir+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="m-body">'+fmtBody(m.body)+'</div></div>';
           }
+          if(m.kind==='combat'){ var cb; try{ cb=JSON.parse(m.body); }catch(e){ cb=null; } if(cb&&cb.a&&cb.d){ return '<div class="msg-combat"><div class="cmb-avs">'+avatarHTML({avatar_url:cb.a.u},cb.a.n,cb.a.c)+'<span class="cmb-x">'+SWORD+'</span>'+avatarHTML({avatar_url:cb.d.u},cb.d.n,cb.d.c)+'<span class="m-time">'+fmt(m.created_at)+'</span></div><div class="cmb-out">'+esc(cb.o)+'</div></div>'; } return '<div class="msg-combat"><div class="cmb-out">'+esc(m.body)+'</div></div>'; }
           var c=m.character; var nm=(c&&c.name)||m.author_name||'—'; var cid=c&&c.id;
           return '<div class="msg">'+avatarHTML(c,nm,cid)+'<div class="m-main">'+identityHTML(c,nm,cid,m.created_at)+'<div class="m-body">'+fmtBody(m.body)+'</div></div></div>';
         }).join('');
@@ -875,7 +901,7 @@
       }
       function loadWho(){
         if(!sb||!cur) return;
-        sb.rpc('who_here',{p_location:cur.id,p_minutes:8}).then(function(r){ if(r&&!r.error){ renderWho(r.data); updateTargets(r.data); } }, function(){});
+        sb.rpc('who_here',{p_location:cur.id,p_minutes:8}).then(function(r){ if(r&&!r.error){ WHO=r.data||[]; renderWho(r.data); updateTargets(r.data); } }, function(){});
       }
       function refreshRoom(){ if(!cur) return; updateMeteo(); sb.rpc('enter_location',{p_location:cur.id}).then(function(){},function(){}); loadMsgs(); loadWho(); }
       function openRoom(l){
@@ -910,6 +936,13 @@
       function rollDice(){ if(!cur||!sb||!diceBtn) return; diceBtn.disabled=true;
         sb.rpc('post_dice',{p_location:cur.id,p_sides:100}).then(function(r){ diceBtn.disabled=false; if(r&&r.error){ toast('Impossibile lanciare il dado'); return; } loadMsgs(); }, function(){ diceBtn.disabled=false; toast('Impossibile lanciare il dado'); }); }
       if(diceBtn){ diceBtn.addEventListener('click', rollDice); }
+      function openCombat(){ if(!cur||!sb) return; var sel=document.getElementById('cmb-target'); if(!sel) return; var opts=''; (WHO||[]).forEach(function(w){ if(w.user_id&&w.user_id!==myId){ opts+='<option value="'+w.user_id+'">'+esc(w.name)+'</option>'; } }); sel.innerHTML=opts||'<option value="">\u2014 nessun altro presente \u2014</option>'; var qw=document.getElementById('cmb-qwrap'); if(qw) qw.style.display=iAmStaff?'':'none'; bindCombatControls(); var ov=document.getElementById('cmb-overlay'); if(ov) ov.hidden=false; }
+      function closeCombat(){ var ov=document.getElementById('cmb-overlay'); if(ov) ov.hidden=true; }
+      function doCombat(){ var sel=document.getElementById('cmb-target'); var target=sel&&sel.value; if(!target){ toast('Scegli un bersaglio presente'); return; } var go=document.getElementById('cmb-go'); if(go) go.disabled=true; var params={ p_location:cur.id, p_defender_user:target, p_kind:(document.getElementById('cmb-kind')||{}).value||'fisico', p_name:(document.getElementById('cmb-name')||{}).value||'', p_base:parseInt((document.getElementById('cmb-base')||{}).value,10)||0, p_mod:parseInt((document.getElementById('cmb-mod')||{}).value,10)||0, p_defense:(document.getElementById('cmb-def')||{}).value||'schivata', p_quality: iAmStaff?(parseInt((document.getElementById('cmb-q')||{}).value,10)||0):0 }; sb.rpc('post_combat',params).then(function(r){ if(go) go.disabled=false; if(r&&r.error){ toast('Calcolo non riuscito'); return; } closeCombat(); loadMsgs(); }, function(){ if(go) go.disabled=false; toast('Calcolo non riuscito'); }); }
+      var _cmbBound=false;
+      function bindCombatControls(){ if(_cmbBound) return; var x=document.getElementById('cmb-close'), c=document.getElementById('cmb-cancel'), bk=document.getElementById('cmb-backdrop'), g=document.getElementById('cmb-go'); if(x&&c&&bk&&g){ x.addEventListener('click',closeCombat); c.addEventListener('click',closeCombat); bk.addEventListener('click',closeCombat); g.addEventListener('click',doCombat); _cmbBound=true; } }
+      (function(){ var b=document.getElementById('cmb-btn'); if(b) b.addEventListener('click',openCombat); })();
+
       if(toSel){ toSel.addEventListener('change', updateToStyle); }
       function renderItemPop(rows){
         var host=document.getElementById('ip-list'); if(!host) return;
@@ -1386,5 +1419,26 @@
 })();
 
 </script>
+  <div class="cmb-overlay" id="cmb-overlay" hidden>
+    <div class="cmb-backdrop" id="cmb-backdrop"></div>
+    <div class="cmb-card" role="dialog" aria-modal="true" aria-label="Calcolo combattimento">
+      <div class="cmb-head"><span>⚔ Calcolo combattimento</span><button type="button" id="cmb-close" aria-label="Chiudi">✕</button></div>
+      <div class="cmb-body">
+        <label class="cmb-f">Bersaglio (presente nella stanza)<select id="cmb-target"></select></label>
+        <label class="cmb-f">Azione o tecnica<input id="cmb-name" maxlength="60" placeholder="es. Palla di Fuoco"></label>
+        <div class="cmb-two">
+          <label class="cmb-f">Tipo<select id="cmb-kind"><option value="fisico">Fisico · Forza+Taijutsu</option><option value="ninjutsu">Ninjutsu · Mente+Ninjutsu</option></select></label>
+          <label class="cmb-f">Danno base<input id="cmb-base" type="number" min="0" max="120" value="18"></label>
+        </div>
+        <div class="cmb-two">
+          <label class="cmb-f">Difesa del bersaglio<select id="cmb-def"><option value="schivata">Schivata · Velocità+Taijutsu</option><option value="contrasto">Contrasto · Mente+Ninjutsu</option></select></label>
+          <label class="cmb-f">Bonus / Malus<input id="cmb-mod" type="number" min="-30" max="30" value="0"></label>
+        </div>
+        <label class="cmb-f" id="cmb-qwrap" style="display:none">Bonus Qualità 0–6 · solo master<input id="cmb-q" type="number" min="0" max="6" value="0"></label>
+        <p class="cmb-hint">Il server tira i dadi e mostra l'esito in chat. Il conteggio dei PV lo tenete voi.</p>
+      </div>
+      <div class="cmb-foot"><button type="button" class="btn-ghost" id="cmb-cancel">Annulla</button><button type="button" class="btn-red" id="cmb-go">Calcola e mostra</button></div>
+    </div>
+  </div>
 </body>
 </html>
