@@ -360,6 +360,7 @@
                 <div class="drow"><span class="emb" id="ic-corp"></span><div class="dinfo"><span class="dlab">Corporazione</span><input id="f-corporation" class="mini" maxlength="60" placeholder="Squadra, corpo, gilda…" /></div></div>
                 <div class="drow"><span class="emb" id="ic-element"></span><div class="dinfo"><span class="dlab">Elemento del Chakra <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· facoltativo</span></span>
                   <select id="f-element" class="mini"><option value="">Nessuno</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select></div></div>
+                <div class="drow"><span class="emb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:20px;height:20px;color:var(--red-deep)"><path d="M4 6c5-1.4 11-1.4 16 0 0 6-2.4 10-8 10S4 12 4 6z"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="9.5" r="1"/><path d="M9.5 13c.8.8 1.7 1 2.5 1s1.7-.2 2.5-1"/></svg></span><div class="dinfo"><span class="dlab">Prestavolto <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· il volto usato per l'avatar</span></span><input id="f-prestavolto" class="mini" maxlength="80" placeholder="Nome del volto (attore, personaggio…)" /></div></div>
                 <div class="drow2"><div class="dinfo"><span class="dlab">Età</span><span class="dval" id="v-age">—</span></div><div class="dinfo"><span class="dlab">Sesso</span><span class="dval" id="v-sex">—</span></div></div>
               </div>
 
@@ -665,6 +666,7 @@
       $('v-age').textContent=(c.age!=null?c.age+' anni':'—'); $('v-sex').textContent=c.sex||'—';
       fillClanSelect($('f-clan'),c.village,c.clan||'Nessuno'); var _fcr=$('f-clanrole'); if(_fcr) _fcr.value=c.clan_role||''; $('ic-clan').outerHTML=embClan(c.clan, c.clan_role==='Capo clan').replace('class="emb','id="ic-clan" class="emb');
       $('f-corporation').value=c.corporation||''; $('ic-corp').outerHTML=embCorp(c.corporation).replace('class="emb','id="ic-corp" class="emb');
+      var _pv=$('f-prestavolto'); if(_pv) _pv.value=c.face_claim||'';
       $('f-element').value=c.element||''; $('ic-element').outerHTML=embElement(c.element).replace('class="emb','id="ic-element" class="emb');
       $('v-vita').textContent=(c.vita||0)+' / '+(c.vita_max||0); $('v-chakra').textContent=(c.chakra||0)+' / '+(c.chakra_max||0);
       $('v-money').textContent=(c.money||0); $('v-exp').textContent=(c.exp||0);
@@ -679,7 +681,7 @@
     function applyMode(){
       var owner=(viewMode==='owner'||viewMode==='adminself'||viewMode==='adminother'), staff=(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother');
       var canEd=(owner||staff), oEdit=owner&&editMode, sEdit=staff&&editMode;
-      ['f-element','f-background','f-off'].forEach(function(id){var el=$(id); if(el) el.disabled=!oEdit;});
+      ['f-element','f-background','f-off','f-prestavolto'].forEach(function(id){var el=$(id); if(el) el.disabled=!oEdit;});
       ['f-clan','f-corporation','f-clanrole','f-rank'].forEach(function(id){var el=$(id); if(el) el.disabled=!sEdit;});
       var _vr=$('v-rank'), _fr2=$('f-rank'); if(_vr&&_fr2){ _vr.style.display=sEdit?'none':''; _fr2.style.display=sEdit?'':'none'; }
       var _hasRole=myChar&&myChar.clan_role; var _showRole=(sEdit||_hasRole)?'':'none'; var _lcr=$('lab-clanrole'); if(_lcr)_lcr.style.display=_showRole; var _scr2=$('f-clanrole'); if(_scr2)_scr2.style.display=_showRole;
@@ -719,11 +721,14 @@
     document.querySelectorAll('.dtab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.dtab').forEach(function(x){x.classList.remove('on');});b.classList.add('on');var d=b.getAttribute('data-d');document.querySelectorAll('.dpanel').forEach(function(p){p.classList.toggle('on',p.getAttribute('data-d')===d);});});});
 
     $('s-save').addEventListener('click',async function(){
-      if(!sb||!myChar||!(viewMode==='owner'||viewMode==='adminself'||viewMode==='adminother'))return;this.disabled=true;
-      var upd={element:$('f-element').value||null,background:$('f-background').value,off_notes:$('f-off').value.trim()||null};
+      if(!sb||!myChar||!(viewMode==='owner'||viewMode==='adminself'||viewMode==='adminother'))return;
+      var _pvEl=$('f-prestavolto'); var fc=_pvEl?(_pvEl.value||'').trim():'';
+      this.disabled=true;
+      if(fc){ var chk=await sb.from('characters').select('id').ilike('face_claim',fc).neq('id',myChar.id).limit(1); if(chk&&chk.data&&chk.data.length){ this.disabled=false; toast('Prestavolto già usato da un altro personaggio',true); return; } }
+      var upd={element:$('f-element').value||null,background:$('f-background').value,off_notes:$('f-off').value.trim()||null,face_claim:fc||null};
       var r1=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();
       this.disabled=false;
-      if(r1.error){toast(r1.error.message.indexOf('consentito')>=0?'Nome non consentito':'Errore nel salvataggio',true);return;}
+      if(r1.error){ var m=(r1.error.message||''); if(r1.error.code==='23505'||m.toLowerCase().indexOf('faceclaim')>=0||m.toLowerCase().indexOf('face_claim')>=0){toast('Prestavolto già usato da un altro personaggio',true);return;} toast(m.indexOf('consentito')>=0?'Nome non consentito':'Errore nel salvataggio',true);return;}
       myChar=r1.data;toast('Scheda salvata');
     });
     var spSave=$('sp-save'); if(spSave) spSave.addEventListener('click',async function(){

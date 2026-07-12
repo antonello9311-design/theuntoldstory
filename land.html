@@ -139,9 +139,9 @@
   #map-view .mapframe{flex:1;min-height:340px;width:100%;max-width:1040px;margin:0 auto;aspect-ratio:auto;position:relative}
   .map-markers{position:absolute;inset:0;pointer-events:none}
   .mk{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0;z-index:2}
-  .mk-dot{width:14px;height:14px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px rgba(255,247,235,.75),0 2px 6px rgba(0,0,0,.35);transition:transform .12s}
-  .mk-lbl{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.03em;color:var(--ink);background:rgba(247,238,214,.88);border:1px solid var(--edge);border-radius:6px;padding:1px 6px;white-space:nowrap}
-  .mk.village .mk-dot{width:20px;height:20px;background:var(--red-deep);box-shadow:0 0 0 4px rgba(255,247,235,.85),0 3px 8px rgba(0,0,0,.4)}
+  .mk-dot{width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px rgba(255,247,235,.75),0 2px 5px rgba(0,0,0,.35);transition:transform .12s}
+  .mk-lbl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.03em;color:var(--ink);background:rgba(247,238,214,.88);border:1px solid var(--edge);border-radius:6px;padding:1px 5px;white-space:nowrap}
+  .mk.village .mk-dot{width:15px;height:15px;background:var(--red-deep);box-shadow:0 0 0 3px rgba(255,247,235,.85),0 3px 7px rgba(0,0,0,.4)}
   .mk.village .mk-lbl{font-size:12px;font-weight:600;color:var(--red-deep)}
   .mk:hover .mk-lbl{background:var(--red);color:#f6ead0}
   .mk:hover .mk-dot{transform:scale(1.18)}
@@ -163,6 +163,18 @@
   .lg-head{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-deep);margin-bottom:8px}
   .lg-list{display:flex;gap:8px;overflow-x:auto;padding-bottom:3px;min-height:24px}
   .activity{flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:12px;background:linear-gradient(rgba(247,238,214,.92),rgba(233,219,178,.86));padding:10px 12px;box-shadow:0 6px 18px rgba(60,42,18,.14)}
+  .map-side,.map-phone{position:relative}
+  .ac-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .side-toggle{width:22px;height:22px;border:1px solid var(--edge);border-radius:6px;background:rgba(255,250,235,.6);color:var(--red-deep);font-size:13px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;flex:0 0 auto}
+  .side-toggle:hover{background:var(--red);color:#f6ead0}
+  .mbox-head .side-toggle{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.4);color:#f8ecd6}
+  .mbox-head .side-toggle:hover{background:rgba(255,255,255,.3)}
+  .side-reopen{display:none}
+  .map-side.collapsed>.activity,.map-phone.collapsed>.mbox{display:none}
+  .map-side.collapsed,.map-phone.collapsed{flex:0 0 36px}
+  .map-side.collapsed>.side-reopen,.map-phone.collapsed>.side-reopen{display:flex;align-items:center;justify-content:center;width:100%;flex:1;min-height:160px;border:1px solid var(--rule);border-radius:12px;background:linear-gradient(rgba(247,238,214,.92),rgba(233,219,178,.86));box-shadow:0 6px 18px rgba(60,42,18,.14);cursor:pointer;color:var(--red-deep)}
+  .map-side.collapsed>.side-reopen:hover,.map-phone.collapsed>.side-reopen:hover{border-color:var(--red)}
+  .side-reopen span{writing-mode:vertical-rl;transform:rotate(180deg);font-family:'Cinzel',serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;white-space:nowrap}
   .ac-head{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-deep);margin-bottom:6px}
   .ac-hint{color:var(--ink-soft);font-weight:400;text-transform:none;letter-spacing:0;font-size:12px}
   .ac-list{display:flex;flex-direction:column;gap:2px;flex:1;min-height:0;overflow-y:auto}
@@ -179,6 +191,9 @@
     .map-main{order:1}
     .map-side{order:2;flex:0 0 auto}.map-phone{order:3;flex:0 0 auto}
     .activity{flex:0 0 auto}
+    .map-side.collapsed,.map-phone.collapsed{flex:0 0 auto}
+    .map-side.collapsed>.side-reopen,.map-phone.collapsed>.side-reopen{min-height:0;flex:0 0 auto;padding:10px}
+    .side-reopen span{writing-mode:horizontal-tb;transform:none}
     .ac-list{flex:none;max-height:118px}
   }
   .lg-card{flex:0 0 auto;min-width:158px;max-width:230px;text-align:left;border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.72);padding:9px 12px;cursor:pointer;font-family:inherit;transition:.15s}
@@ -341,6 +356,21 @@
   .ovp-me-off input{flex:1;min-width:0}
   .ovp-me-off button{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:var(--red);color:#f6ead0;border:1px solid var(--red-deep);border-radius:7px;padding:0 14px;cursor:pointer;flex-shrink:0}
   .ovp-list{flex:1;overflow-y:auto;padding:10px 12px}
+  .annu-search{padding:10px 14px;border-bottom:1px solid var(--edge);background:rgba(255,250,235,.5);flex-shrink:0}
+  .annu-search input{width:100%;box-sizing:border-box;font-family:'Cormorant Garamond',serif;font-size:15px;padding:8px 11px;border:1px solid var(--edge);border-radius:8px;background:#fbf4e1;color:var(--ink)}
+  .annu-vil{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep);margin:14px 2px 7px;padding-bottom:5px;border-bottom:1px solid var(--edge)}
+  .annu-vil:first-child{margin-top:0}
+  .annu-row{display:flex;align-items:center;gap:11px;padding:8px 6px;border-bottom:1px solid rgba(138,111,67,.16)}
+  .annu-ava{width:38px;height:38px;flex:0 0 auto;border-radius:50%;overflow:hidden;background:rgba(166,50,29,.12);display:flex;align-items:center;justify-content:center;border:1px solid var(--edge)}
+  .annu-ava img{width:100%;height:100%;object-fit:cover}
+  .annu-ava span{font-family:'Cinzel',serif;font-size:15px;color:var(--red-deep)}
+  .annu-main{flex:1;min-width:0}
+  .annu-name{font-family:'Cinzel',serif;font-size:13px;color:var(--ink)}
+  .annu-name a{color:var(--ink);text-decoration:none}
+  .annu-name a:hover{color:var(--red-deep)}
+  .annu-sub{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink-soft);margin-top:1px}
+  .annu-face{display:block;font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink-soft);font-style:italic;margin-top:1px}
+  .annu-empty{color:var(--ink-soft);font-style:italic;text-align:center;padding:24px}
   .ovp-empty{color:var(--ink-soft);font-style:italic;text-align:center;padding:24px}
   .ovp-group{margin-bottom:14px}
   .ovp-loc{display:flex;align-items:center;gap:8px;width:100%;text-align:left;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--red-deep);background:rgba(166,50,29,.07);border:1px solid var(--edge);border-radius:8px;padding:8px 11px;cursor:pointer;margin-bottom:6px}
@@ -582,7 +612,7 @@
           <a class="tb-btn" href="storia.html">Storia</a>
           <a class="tb-btn" href="regole.html">Regole</a>
           <button class="tb-btn" id="boards-btn" type="button">Bacheche</button>
-          <button class="tb-btn" id="acad-btn" type="button">Accademia</button>
+          <button class="tb-btn" id="annu-btn" type="button">Annuario</button>
           <span class="tb-sep"></span>
           <button class="tb-btn music" id="music-btn" type="button">Musica: off</button>
           <a class="tb-btn logout" href="index.html" id="logout">Esci</a>
@@ -602,9 +632,10 @@
             <div class="nb-track"><span class="nb-text" id="nb-text"></span></div>
           </div>
           <div class="map-cols">
-            <aside class="map-side">
+            <aside class="map-side" id="side-left">
+              <button class="side-reopen" type="button" data-reopen="left" title="Riapri Entrati / Usciti"><span>Entrati / Usciti</span></button>
               <div class="activity">
-                <div class="ac-head">Movimenti recenti <span class="ac-hint">· chi entra ed esce</span></div>
+                <div class="ac-head"><span>Entrati / Usciti</span><button class="side-toggle" type="button" data-collapse="left" title="Comprimi">«</button></div>
                 <div class="ac-list" id="ac-list"><span class="who-empty">—</span></div>
               </div>
             </aside>
@@ -634,13 +665,15 @@
             <div class="lg-list" id="lg-list"><span class="who-empty">Caricamento…</span></div>
           </div>
             </div>
-            <aside class="map-phone">
+            <aside class="map-phone" id="side-right">
+              <button class="side-reopen" type="button" data-reopen="right" title="Riapri Messaggi"><span>Messaggi</span></button>
               <div class="mbox">
                 <div class="mbox-head">
                   <span class="mb-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg></span>
                   <h2>Messaggi</h2>
                   <span class="mail-badge" id="mail-badge">0</span>
                   <button class="mb-plus" id="mail-new" type="button" title="Nuovo messaggio">+</button>
+                  <button class="side-toggle" type="button" data-collapse="right" title="Comprimi">»</button>
                 </div>
                 <div class="mbox-search">
                   <div class="search-row">
@@ -723,6 +756,11 @@
       <div class="ovp-me-off"><input id="my-off" maxlength="280" placeholder="Nota OFF accanto al tuo nome…"><button id="my-off-save" type="button">Salva</button></div>
     </div>
     <div class="ovp-list" id="ovp-list"></div>
+  </aside>
+  <aside class="ov-panel" id="annu-panel" hidden aria-label="Annuario dei personaggi">
+    <div class="ovp-head"><h3>Annuario <span id="annu-count">0</span></h3><button class="ovp-close" id="annu-close" type="button" title="Chiudi">×</button></div>
+    <div class="annu-search"><input id="annu-q" type="text" placeholder="Cerca per nome o prestavolto…" autocomplete="off"></div>
+    <div class="ovp-list" id="annu-list"></div>
   </aside>
   <div class="dm-overlay" id="dm-overlay" hidden aria-label="Nuovo messaggio">
     <div class="dm-card">
@@ -947,7 +985,11 @@
       var mapLevel='world';
       var VILLAGES=[{key:'konoha',name:'Konoha',x:34,y:36},{key:'suna',name:'Suna',x:13,y:46}];
       function mapImgCands(level){ if(level==='konoha') return ['assets/konoha.png','assets/konoha.jpg','assets/konoha.webp']; if(level==='suna') return ['assets/suna.png','assets/suna.jpg','assets/suna.webp']; return ['assets/world.png','assets/world.jpg','assets/world.webp','assets/land-map.png','assets/land-map.jpg','assets/land-map.webp']; }
-      function setMapImage(level){ var mi=document.getElementById('land-map'); if(!mi) return; var hint=document.getElementById('map-hint'), comp=document.querySelector('.compass'), fr=document.getElementById('mapframe'); var cands=mapImgCands(level), i=0; mi.onload=function(){ mi.style.display='block'; if(hint)hint.style.display='none'; if(comp)comp.style.display='none'; if(fr&&mi.naturalWidth&&mi.naturalHeight){ fr.style.aspectRatio=mi.naturalWidth+' / '+mi.naturalHeight; fr.style.flex='0 0 auto'; fr.style.minHeight='0'; } }; mi.onerror=function(){ if(i>=cands.length){ mi.removeAttribute('src'); mi.style.display='none'; if(fr){ fr.style.aspectRatio='auto'; fr.style.flex='1'; fr.style.minHeight='340px'; } if(hint)hint.style.display=''; if(comp)comp.style.display=''; return; } mi.src=cands[i++]; }; mi.style.display='none'; if(hint)hint.style.display=''; if(comp)comp.style.display=''; mi.onerror(); }
+      function fitMapFrame(){ var mi=document.getElementById('land-map'), fr=document.getElementById('mapframe'); if(!mi||!fr) return; if(!mi.naturalWidth||!mi.naturalHeight||getComputedStyle(mi).display==='none'){ return; } var maxH=Math.max(240, Math.round((window.innerHeight||700)*0.56)); var wByH=Math.round(maxH*(mi.naturalWidth/mi.naturalHeight)); fr.style.aspectRatio=mi.naturalWidth+' / '+mi.naturalHeight; fr.style.flex='0 0 auto'; fr.style.minHeight='0'; fr.style.maxHeight=maxH+'px'; fr.style.width='min(100%, '+wByH+'px)'; fr.style.margin='0 auto'; }
+      function setMapImage(level){ var mi=document.getElementById('land-map'); if(!mi) return; var hint=document.getElementById('map-hint'), comp=document.querySelector('.compass'), fr=document.getElementById('mapframe'); var cands=mapImgCands(level), i=0; mi.onload=function(){ mi.style.display='block'; if(hint)hint.style.display='none'; if(comp)comp.style.display='none'; fitMapFrame(); }; mi.onerror=function(){ if(i>=cands.length){ mi.removeAttribute('src'); mi.style.display='none'; if(fr){ fr.style.aspectRatio='auto'; fr.style.flex='1'; fr.style.minHeight='340px'; fr.style.maxHeight=''; fr.style.width=''; fr.style.margin=''; } if(hint)hint.style.display=''; if(comp)comp.style.display=''; return; } mi.src=cands[i++]; }; mi.style.display='none'; if(hint)hint.style.display=''; if(comp)comp.style.display=''; mi.onerror(); }
+      window.addEventListener('resize', fitMapFrame);
+      function setSideCollapsed(side, collapsed){ var el=document.getElementById(side==='left'?'side-left':'side-right'); if(!el) return; el.classList.toggle('collapsed', !!collapsed); try{ localStorage.setItem('tus_side_'+side, collapsed?'1':'0'); }catch(e){} setTimeout(fitMapFrame,60); }
+      (function(){ document.addEventListener('click',function(e){ var c=e.target.closest('[data-collapse]'); if(c){ setSideCollapsed(c.getAttribute('data-collapse'), true); return; } var r=e.target.closest('[data-reopen]'); if(r){ setSideCollapsed(r.getAttribute('data-reopen'), false); } }); try{ if(localStorage.getItem('tus_side_left')==='1') setSideCollapsed('left',true); if(localStorage.getItem('tus_side_right')==='1') setSideCollapsed('right',true); }catch(e){} })();
       function villageLocs(region){ return LOCS.filter(function(l){ return (''+(l.region||'')).toLowerCase()===region; }); }
       function neutralLocs(){ return LOCS.filter(function(l){ return !l.region; }); }
       function makeMarker(x,y,label,cls){ var b=document.createElement('button'); b.type='button'; b.className='mk '+cls; b.style.left=((x!=null&&x!=='')?x:50)+'%'; b.style.top=((y!=null&&y!=='')?y:50)+'%'; b.innerHTML='<span class="mk-dot"></span><span class="mk-lbl">'+esc(label)+'</span>'; return b; }
@@ -1114,13 +1156,14 @@
         if(im){ if(l.image_url){ im.src=l.image_url; im.style.display='block'; } else { im.removeAttribute('src'); im.style.display='none'; } }
         if(nt){ if(l.event_note){ nt.innerHTML='<span class="rn-k">Nota evento</span><span class="rn-t">'+esc(l.event_note)+'</span>'; nt.style.display='block'; } else { nt.style.display='none'; nt.innerHTML=''; } }
         msgsEl.innerHTML='<div class="msgs-empty">Caricamento…</div>'; whoEl.innerHTML='';
+        saveResume();
         refreshRoom();
         if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
       }
       function leaveRoom(){ if(poll){ clearInterval(poll); poll=null; } cur=null; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} var rc=document.getElementById('rec-card'); if(rc) rc.hidden=true; roleState={open:false, session:null, can_close:false, starter:'', started_at:null}; if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
-      function tryResume(){ try{ var raw=sessionStorage.getItem('tus_land_resume'); if(!raw) return false; sessionStorage.removeItem('tus_land_resume'); var d=JSON.parse(raw); if(!d||!d.room) return false; if(d.ts&&(Date.now()-d.ts)>1800000) return false; var l=LOCS.filter(function(x){return x.id===d.room;})[0]; if(l){ openRoom(l); if(input){ input.value=d.text||''; updCount(); } return true; } }catch(e){} return false; }
+      function tryResume(){ try{ var raw=sessionStorage.getItem('tus_land_resume'); if(!raw) return false; var d=JSON.parse(raw); if(!d||!d.room){ sessionStorage.removeItem('tus_land_resume'); return false; } if(d.ts&&(Date.now()-d.ts)>1800000){ sessionStorage.removeItem('tus_land_resume'); return false; } var l=LOCS.filter(function(x){return x.id===d.room;})[0]; if(l){ openRoom(l); if(input){ input.value=d.text||''; updCount(); } return true; } }catch(e){} return false; }
       window.addEventListener('pagehide', saveResume);
       var brandMap=document.getElementById('brand-map'); if(brandMap){ brandMap.addEventListener('click', function(){ leaveRoom(); }); }
       function send(after){
@@ -1450,10 +1493,37 @@
       }
       function openPanel(){ panelOpen=true; var pn=document.getElementById('online-panel'), bk=document.getElementById('ov-backdrop'); if(pn)pn.hidden=false; if(bk)bk.hidden=false; renderPanel(); loadRoster(); }
       function closePanel(){ panelOpen=false; var pn=document.getElementById('online-panel'), bk=document.getElementById('ov-backdrop'); if(pn)pn.hidden=true; if(bk)bk.hidden=true; }
+      /* ---- Annuario dei personaggi ---- */
+      var ANNU=[], annuLoaded=false;
+      function annuRow(c){
+        var ava=c.avatar_url?('<img src="'+esc(c.avatar_url)+'" alt="">'):('<span>'+esc((c.name||'?').charAt(0).toUpperCase())+'</span>');
+        var nm=c.char_id?('<a href="scheda.html?id='+esc(c.char_id)+'">'+esc(c.name||'—')+'</a>'):esc(c.name||'—');
+        var sub=[]; if(c.rank) sub.push(esc(c.rank)); if(c.clan) sub.push(esc(c.clan)+(c.clan_role==='Capo clan'?' (Capo)':''));
+        var subH=sub.length?('<div class="annu-sub">'+sub.join(' · ')+'</div>'):'';
+        var face=c.face_claim?('<span class="annu-face">Prestavolto: '+esc(c.face_claim)+'</span>'):'';
+        return '<div class="annu-row"><span class="annu-ava">'+ava+'</span><div class="annu-main"><div class="annu-name">'+nm+'</div>'+subH+face+'</div></div>';
+      }
+      function renderAnnu(){ var host=document.getElementById('annu-list'); if(!host) return;
+        var term=((document.getElementById('annu-q')||{}).value||'').trim().toLowerCase();
+        var rows=ANNU.filter(function(c){ if(!term) return true; return ((c.name||'').toLowerCase().indexOf(term)>=0)||((c.face_claim||'').toLowerCase().indexOf(term)>=0); });
+        var cnt=document.getElementById('annu-count'); if(cnt) cnt.textContent=rows.length;
+        if(!rows.length){ host.innerHTML='<p class="annu-empty">'+(term?'Nessun personaggio trovato.':'Nessun personaggio iscritto.')+'</p>'; return; }
+        var order=['Konoha','Suna'], groups={}, seen=[];
+        rows.forEach(function(c){ var v=c.village||'Senza villaggio'; if(!groups[v]){groups[v]=[];seen.push(v);} groups[v].push(c); });
+        var vils=order.filter(function(v){return groups[v];}).concat(seen.filter(function(v){return order.indexOf(v)<0;}));
+        var html=''; vils.forEach(function(v){ html+='<div class="annu-vil">'+esc(v)+' · '+groups[v].length+'</div>'; groups[v].forEach(function(c){ html+=annuRow(c); }); });
+        host.innerHTML=html;
+      }
+      function loadAnnu(){ if(!sb) return; var host=document.getElementById('annu-list'); if(host&&!annuLoaded) host.innerHTML='<p class="annu-empty">Caricamento…</p>'; sb.rpc('character_directory').then(function(r){ ANNU=(r&&r.data)||[]; annuLoaded=true; renderAnnu(); }, function(){ if(host) host.innerHTML='<p class="annu-empty">Impossibile caricare l’annuario.</p>'; }); }
+      function openAnnu(){ closePanel(); var pn=document.getElementById('annu-panel'), bk=document.getElementById('ov-backdrop'); if(pn)pn.hidden=false; if(bk)bk.hidden=false; loadAnnu(); var q=document.getElementById('annu-q'); if(q) setTimeout(function(){ q.focus(); },60); }
+      function closeAnnu(){ var pn=document.getElementById('annu-panel'), bk=document.getElementById('ov-backdrop'); if(pn)pn.hidden=true; if(bk)bk.hidden=true; }
       (function(){
         var ob=document.getElementById('online-btn'); if(ob) ob.addEventListener('click', openPanel); bindMail();
         var oc=document.getElementById('ovp-close'); if(oc) oc.addEventListener('click', closePanel);
-        var bk=document.getElementById('ov-backdrop'); if(bk) bk.addEventListener('click', closePanel);
+        var bk=document.getElementById('ov-backdrop'); if(bk) bk.addEventListener('click', function(){ closePanel(); closeAnnu(); });
+        var anb=document.getElementById('annu-btn'); if(anb) anb.addEventListener('click', openAnnu);
+        var anc=document.getElementById('annu-close'); if(anc) anc.addEventListener('click', closeAnnu);
+        var anq=document.getElementById('annu-q'); if(anq) anq.addEventListener('input', renderAnnu);
         var ms=document.getElementById('my-status'); if(ms) ms.addEventListener('change', function(){ if(sb) sb.rpc('set_presence_status',{p_status:ms.value}).then(function(){ loadRoster(); },function(){}); });
         var mob=document.getElementById('my-off-save'); if(mob) mob.addEventListener('click', function(){ var mo=document.getElementById('my-off'); if(!mo||!sb||!myId) return; var v=(mo.value||'').trim(); sb.from('characters').update({off_notes:v||null}).eq('user_id',myId).then(function(r){ if(r&&r.error){ toast('Errore nel salvataggio'); return; } toast('Nota OFF salvata'); loadRoster(); }, function(){ toast('Errore'); }); });
       })();
