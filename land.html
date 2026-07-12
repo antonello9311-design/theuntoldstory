@@ -931,11 +931,14 @@
       }
       function renderLuoghi(){ renderMap(); }
       (function(){ var bb=document.getElementById('map-back'); if(bb) bb.addEventListener('click', function(){ mapLevel='world'; renderMap(); }); })();
+      function loadMapVillages(cb){ if(!sb){ if(cb)cb(); return; } sb.from('app_settings').select('value').eq('key','map_villages').maybeSingle().then(function(r){ try{ var v=r&&r.data&&r.data.value; if(v){ var o=JSON.parse(v); VILLAGES.forEach(function(V){ if(o[V.key]){ if(o[V.key].x!=null)V.x=o[V.key].x; if(o[V.key].y!=null)V.y=o[V.key].y; } }); } }catch(e){} if(cb)cb(); }, function(){ if(cb)cb(); }); }
       function loadLuoghi(cb){
         if(!sb||!loggedIn) return;
-        sb.from('locations').select('id,name,kind,description,image_url,event_note,region').eq('is_active',true).order('sort').then(function(r){
-          if(r&&!r.error){ LOCS=r.data||[]; renderLuoghi(); var resumed=tryResume(); if(cb) cb(!!resumed); }
-        }, function(){});
+        loadMapVillages(function(){
+          sb.from('locations').select('id,name,kind,description,image_url,event_note,region,map_x,map_y').eq('is_active',true).order('sort').then(function(r){
+            if(r&&!r.error){ LOCS=r.data||[]; renderLuoghi(); var resumed=tryResume(); if(cb) cb(!!resumed); }
+          }, function(){});
+        });
       }
       var DIE='<svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>';
       var LOCK='<svg class="lk" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="9.5" rx="2" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="1.9"/></svg>';
