@@ -269,6 +269,38 @@
   .bd-compose{border:1px solid var(--edge);border-radius:10px;background:rgba(255,250,235,.5);padding:12px;margin-bottom:16px}
   .bd-compose input,.bd-compose textarea{width:100%;box-sizing:border-box;border:1px solid var(--edge);border-radius:7px;background:#fbf5e6;color:var(--ink);font-family:'Cormorant Garamond',serif;font-size:15px;padding:8px 10px;margin-bottom:8px}
   .bd-compose textarea{resize:vertical;min-height:72px}
+  .acad-backdrop{position:fixed;inset:0;z-index:70;background:rgba(20,14,6,.5)}
+  .acad-backdrop[hidden]{display:none}
+  .acad-overlay{position:fixed;inset:0;z-index:71;display:flex;align-items:center;justify-content:center;padding:24px}
+  .acad-overlay[hidden]{display:none}
+  .acad-card{width:min(720px,96vw);max-height:90vh;display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:14px;background:linear-gradient(rgba(247,238,214,.98),rgba(233,219,178,.96));box-shadow:0 24px 60px rgba(30,20,8,.5)}
+  .acad-head{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--rule)}
+  .acad-head h3{margin:0;font-family:'Cinzel',serif;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep);flex:1}
+  .acad-x{background:none;border:none;font-size:24px;line-height:1;color:var(--ink-soft);cursor:pointer;padding:0 4px}
+  .acad-x:hover{color:var(--red-deep)}
+  .acad-scroll{overflow-y:auto;padding:16px 18px 20px}
+  .acad-intro{font-family:'Cormorant Garamond',serif;font-size:15.5px;color:var(--ink-soft);margin:0 0 14px}
+  .acad-note{border:1px solid var(--edge);border-radius:9px;background:rgba(166,50,29,.06);padding:10px 13px;font-family:'Cormorant Garamond',serif;font-size:14.5px;color:var(--ink);margin-bottom:14px}
+  .les{display:flex;align-items:center;gap:12px;border:1px solid var(--edge);border-radius:10px;background:rgba(255,250,235,.55);padding:11px 14px;margin-bottom:9px}
+  .les.done{background:rgba(60,138,60,.08);border-color:#8fae80}
+  .les.locked{opacity:.55}
+  .les.exam{border-color:var(--gold);background:rgba(181,138,43,.09)}
+  .les-num{width:26px;height:26px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:700;font-size:12px;background:var(--rule);color:#f6ead0}
+  .les.done .les-num{background:#3c8a3c}
+  .les.exam .les-num{background:var(--gold);color:#3a2a10}
+  .les-main{flex:1;min-width:0}
+  .les-title{font-family:'Cinzel',serif;font-weight:600;font-size:14px;color:var(--ink)}
+  .les-obj{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-soft);margin-top:1px}
+  .les-act{flex:0 0 auto}
+  .les-btn{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:7px 13px;cursor:pointer;border-radius:7px;border:1.5px solid var(--red-deep);background:var(--red);color:#f6ead0}
+  .les-btn[disabled]{opacity:.5;cursor:default}
+  .les-done-tag{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#2f6b2f}
+  .lesr-title{font-family:'Cinzel',serif;font-size:16px;color:var(--red-deep);margin:0 0 4px}
+  .lesr-obj{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ink-soft);margin:0 0 12px}
+  .lesr-body{font-family:'Cormorant Garamond',serif;font-size:15.5px;color:var(--ink);line-height:1.5;white-space:pre-wrap}
+  .lesr-ph{border:1px dashed var(--edge);border-radius:9px;padding:14px;color:var(--ink-soft);font-style:italic}
+  .acad-grad{text-align:center;padding:22px 10px}
+  .acad-grad h4{font-family:'Cinzel',serif;color:var(--red-deep);font-size:16px;margin:0 0 6px;letter-spacing:.08em;text-transform:uppercase}
   .bd-compose .bd-send{background:var(--red);border:1px solid var(--red-deep);color:#f6ead0;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;border-radius:8px;padding:9px 18px;cursor:pointer}
   .bd-compose .bd-send:hover{background:var(--red-deep)}
   .bd-note{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ink-soft);font-size:14px;margin-bottom:14px}
@@ -506,6 +538,7 @@
           <a class="tb-btn" href="storia.html">Storia</a>
           <a class="tb-btn" href="regole.html">Regole</a>
           <button class="tb-btn" id="boards-btn" type="button">Bacheche</button>
+          <button class="tb-btn" id="acad-btn" type="button">Accademia</button>
           <span class="tb-sep"></span>
           <button class="tb-btn music" id="music-btn" type="button">Musica: off</button>
           <a class="tb-btn logout" href="index.html" id="logout">Esci</a>
@@ -668,6 +701,20 @@
       <div class="bd-scroll">
         <div id="bd-list"></div>
         <div id="bd-board" hidden></div>
+      </div>
+    </div>
+  </div>
+  <div class="acad-backdrop" id="acad-backdrop" hidden></div>
+  <div class="acad-overlay" id="acad-overlay" hidden aria-label="Accademia">
+    <div class="acad-card">
+      <div class="acad-head">
+        <button class="bd-back" id="acad-back" type="button" hidden>&larr; Lezioni</button>
+        <h3 id="acad-title">Accademia</h3>
+        <button class="acad-x" id="acad-close" type="button" title="Chiudi">&times;</button>
+      </div>
+      <div class="acad-scroll">
+        <div id="acad-list"></div>
+        <div id="acad-lesson" hidden></div>
       </div>
     </div>
   </div>
@@ -1036,6 +1083,48 @@
       var BOARDS_L=[], curBoard=null;
       function openBoards(){ if(!loggedIn){ toast('Accedi per usare le bacheche'); return; } var ov=document.getElementById('bd-overlay'), bk=document.getElementById('bd-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false; showBoardList(); }
       function closeBoards(){ var ov=document.getElementById('bd-overlay'), bk=document.getElementById('bd-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
+      /* ===== Accademia (onboarding) ===== */
+      var acadState=null, acadCurLesson=null;
+      function acEl(id){ return document.getElementById(id); }
+      function openAcademy(){ if(!loggedIn){ toast('Accedi per entrare in Accademia'); return; } closePanel(); var ov=acEl('acad-overlay'), bk=acEl('acad-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false; showAcadList(); loadAcademy(); }
+      function closeAcademy(){ var ov=acEl('acad-overlay'), bk=acEl('acad-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
+      function showAcadList(){ var lv=acEl('acad-list'), tv=acEl('acad-lesson'), bb=acEl('acad-back'), tt=acEl('acad-title'); if(lv)lv.hidden=false; if(tv)tv.hidden=true; if(bb)bb.hidden=true; if(tt)tt.textContent='Accademia'; }
+      function showAcadLesson(){ var lv=acEl('acad-list'), tv=acEl('acad-lesson'), bb=acEl('acad-back'); if(lv)lv.hidden=true; if(tv)tv.hidden=false; if(bb)bb.hidden=false; }
+      function loadAcademy(){ if(!sb) return; var host=acEl('acad-list'); if(host) host.innerHTML='<p class="acad-intro">Caricamento&hellip;</p>'; sb.rpc('academy_state').then(function(r){ acadState=(r&&r.data)||null; renderAcademy(); }, function(){ if(host) host.innerHTML='<p class="acad-intro">Impossibile caricare l Accademia.</p>'; }); }
+      function renderAcademy(){ var host=acEl('acad-list'); if(!host||!acadState) return;
+        if(!acadState.has_char){ host.innerHTML='<p class="acad-intro">Prima crea il tuo personaggio dalla scheda, poi torna in Accademia.</p>'; return; }
+        if(acadState.graduated){ host.innerHTML='<div class="acad-grad"><h4>Ti sei diplomato</h4><p class="acad-intro">Sei un vero shinobi, ora. Non hai pi\u00f9 nulla da imparare qui: il tuo cammino continua nel mondo.</p></div>'; return; }
+        var lessons=acadState.lessons||[]; var html='';
+        html+='<p class="acad-intro">Segui le lezioni, una al giorno, per imparare le basi. Completate tutte, potrai affrontare la prova per diventare Genin.</p>';
+        if(!acadState.can_today && !acadState.exam_unlocked){ html+='<div class="acad-note">Hai gi\u00e0 seguito una lezione di recente. Torna pi\u00f9 tardi per la prossima.</div>'; }
+        lessons.forEach(function(l){
+          var done=l.completed, isExam=l.is_exam, available, actHtml;
+          if(done){ available=false; actHtml='<span class="les-done-tag">\u2713 Completata</span>'; }
+          else if(isExam){ available=!!acadState.exam_unlocked; actHtml = available ? ('<button class="les-btn" data-lesson="'+l.id+'">Affronta la prova</button>') : '<button class="les-btn" disabled>Bloccato</button>'; }
+          else { available=!!acadState.can_today; actHtml = available ? ('<button class="les-btn" data-lesson="'+l.id+'">Entra in classe</button>') : '<button class="les-btn" disabled>&mdash;</button>'; }
+          var cls='les'+(done?' done':'')+(isExam?' exam':'')+((!done&&!available)?' locked':'');
+          html+='<div class="'+cls+'"><span class="les-num">'+(isExam?'\u2605':l.ordinal)+'</span><div class="les-main"><div class="les-title">'+esc(l.title)+'</div><div class="les-obj">'+esc(l.objective||'')+'</div></div><div class="les-act">'+actHtml+'</div></div>';
+        });
+        host.innerHTML=html;
+      }
+      function openLesson(id){ var l=(acadState&&acadState.lessons||[]).filter(function(x){return x.id===id;})[0]; if(!l) return; acadCurLesson=l; showAcadLesson(); var tt=acEl('acad-title'); if(tt)tt.textContent=l.title;
+        var host=acEl('acad-lesson'); if(!host) return;
+        var body = (l.body && (''+l.body).trim()) ? ('<div class="lesr-body">'+esc(l.body)+'</div>') : '<div class="lesr-ph">Il contenuto di questa lezione arriver\u00e0 presto. Quando sei pronto, conferma di averla seguita.</div>';
+        var label = l.is_exam ? 'Affronta la prova' : 'Ho completato la lezione';
+        host.innerHTML='<h4 class="lesr-title">'+esc(l.title)+'</h4><p class="lesr-obj">'+esc(l.objective||'')+'</p>'+body+'<div style="text-align:right;margin-top:18px"><button class="les-btn" id="lesr-complete">'+label+'</button></div>';
+        var b=acEl('lesr-complete'); if(b) b.addEventListener('click', function(){ doCompleteLesson(l.id, this); });
+      }
+      function doCompleteLesson(id, btn){ if(!sb) return; if(btn) btn.disabled=true;
+        sb.rpc('academy_complete',{p_lesson:id}).then(function(r){
+          if(r&&r.error){ toast((r.error&&r.error.message)||'Errore'); if(btn)btn.disabled=false; return; }
+          var d=(r&&r.data)||{};
+          var msg = d.promoted ? 'Esame superato! Sei ora Genin.' : ('Lezione completata: +'+(d.xp||0)+' exp');
+          if(d.granted && d.granted.length){ msg += '. Imparato: '+d.granted.join(', '); }
+          toast(msg);
+          if(d.promoted && myId){ sb.from('characters').select('unspent_points').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data) showPtsReminder(cr.data.unspent_points||0); }, function(){}); }
+          showAcadList(); loadAcademy();
+        }, function(){ toast('Errore'); if(btn)btn.disabled=false; });
+      }
       function showBoardList(){
         curBoard=null;
         var bb=document.getElementById('bd-board'), bl=document.getElementById('bd-list'), bk2=document.getElementById('bd-back'), tt=document.getElementById('bd-title');
@@ -1116,6 +1205,11 @@
       function pinPost(id,pin){ if(!sb) return; sb.rpc('board_pin',{p_post:parseInt(id,10),p_pin:pin}).then(function(r){ if(r&&r.error){ toast('Errore'); return; } loadPosts(); }, function(){ toast('Errore'); }); }
       (function(){
         var ob=document.getElementById('boards-btn'); if(ob) ob.addEventListener('click', openBoards);
+        var acb=document.getElementById('acad-btn'); if(acb) acb.addEventListener('click', openAcademy);
+        var acx=document.getElementById('acad-close'); if(acx) acx.addEventListener('click', closeAcademy);
+        var acbk=document.getElementById('acad-backdrop'); if(acbk) acbk.addEventListener('click', closeAcademy);
+        var acbb=document.getElementById('acad-back'); if(acbb) acbb.addEventListener('click', function(){ showAcadList(); loadAcademy(); });
+        var acl=document.getElementById('acad-list'); if(acl) acl.addEventListener('click', function(e){ var b=e.target.closest('button[data-lesson]'); if(b) openLesson(b.getAttribute('data-lesson')); });
         var cb=document.getElementById('bd-close'); if(cb) cb.addEventListener('click', closeBoards);
         var bd=document.getElementById('bd-backdrop'); if(bd) bd.addEventListener('click', closeBoards);
         var bk=document.getElementById('bd-back'); if(bk) bk.addEventListener('click', showBoardList);
