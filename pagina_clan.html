@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>I Clan — The Untold Story</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cinzel+Decorative:wght@700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#e7d6b2; --paper-hi:#f1e6ca; --paper-lo:#d2bc90; --edge:#b79d6c;
+    --ink:#2b1d0e; --ink-soft:#6a5231; --rule:#8a6f43;
+    --red:#a6321d; --red-deep:#7c2413;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Cormorant Garamond',Georgia,serif;color:var(--ink);background:var(--paper-lo);-webkit-font-smoothing:antialiased}
+  .page{position:relative;min-height:100vh;display:flex;flex-direction:column;
+    background:radial-gradient(120% 80% at 50% 0%, var(--paper-hi), var(--paper) 46%, var(--paper-lo) 100%);}
+  .page::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:radial-gradient(var(--ink) .6px, transparent .7px);background-size:4px 4px;opacity:.05}
+  .page::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(80% 46% at 15% 6%, rgba(120,90,40,.10), transparent 60%),
+      radial-gradient(70% 40% at 88% 96%, rgba(120,90,40,.12), transparent 60%),
+      radial-gradient(130% 120% at 50% 50%, transparent 60%, rgba(60,42,18,.26) 100%)}
+  .frame{position:fixed;inset:16px;z-index:6;pointer-events:none;border:1.5px solid var(--rule);opacity:.7}
+  .frame::before{content:"";position:absolute;inset:5px;border:1px solid var(--rule);opacity:.55}
+  .corner{position:absolute;width:16px;height:16px;color:var(--rule);font-size:16px;line-height:1;text-align:center}
+  .corner.tl{top:-9px;left:-9px}.corner.tr{top:-9px;right:-9px}.corner.bl{bottom:-9px;left:-9px}.corner.br{bottom:-9px;right:-9px}
+  .content{position:relative;z-index:3;display:flex;flex-direction:column;min-height:100vh;padding:0 clamp(22px,5vw,60px)}
+  nav.top{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:26px 4px 22px;border-bottom:1px solid var(--rule)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand b{font-family:'Cinzel',serif;font-weight:600;font-size:16px;letter-spacing:.16em;text-transform:uppercase}
+  .home-link{color:inherit;text-decoration:none}
+  .home-link:hover b{color:var(--red-deep)}
+  .backlink{margin-left:auto;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);text-decoration:none;border:1px solid var(--edge);border-radius:7px;padding:7px 13px;white-space:nowrap}
+  .backlink:hover{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+
+  .reader{position:relative;flex:1;padding:6px 0 8px}
+  .story-head{position:relative;text-align:center;padding:40px 0 8px}
+  .kicker{display:inline-flex;align-items:center;gap:16px;font-family:'Cinzel',serif;font-weight:600;font-size:clamp(12px,1.4vw,15px);letter-spacing:.5em;color:var(--red-deep);margin-bottom:14px;padding-left:.5em}
+  .kicker::before,.kicker::after{content:"";width:clamp(24px,5vw,54px);height:1px;background:var(--rule)}
+  .story-head h1{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;line-height:1.06;letter-spacing:.005em;
+    font-size:clamp(34px,6vw,68px);color:var(--ink);text-shadow:0 1px 0 rgba(255,250,235,.5)}
+  .story-head .dek{font-style:italic;font-weight:600;font-size:clamp(16px,2vw,21px);color:var(--ink-soft);max-width:56ch;margin:16px auto 0;line-height:1.4}
+  .intro{max-width:66ch;margin:22px auto 0;font-size:clamp(16px,1.6vw,18px);line-height:1.74;color:var(--ink);text-align:center}
+
+  /* ===== Directory ===== */
+  .vil-band{max-width:74ch;margin:44px auto 4px;text-align:center;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:16px 10px}
+  .vil-band .vk{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--ink-soft)}
+  .vil-band .vt{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;font-size:clamp(22px,3.4vw,32px);color:var(--red-deep);line-height:1.12}
+  .clan-grid{max-width:78ch;margin:18px auto 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:16px}
+  .clan-card{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:9px;
+    border:1px solid var(--edge);border-radius:13px;background:rgba(255,250,235,.55);padding:20px 16px 17px;
+    text-decoration:none;color:inherit;box-shadow:0 4px 14px rgba(60,42,18,.1);transition:.18s}
+  .clan-card:hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(60,42,18,.2);border-color:var(--red)}
+  .cc-emb{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;
+    background:radial-gradient(circle at 50% 38%, var(--paper-hi), var(--paper-lo));border:1px solid var(--edge)}
+  .cc-emb img{width:100%;height:100%;object-fit:contain}
+  .cc-emb .letter{font-family:'Cinzel Decorative',serif;font-weight:700;font-size:30px;color:var(--red-deep)}
+  .cc-name{font-family:'Cinzel',serif;font-weight:600;font-size:18px;letter-spacing:.02em}
+  .cc-meta{font-size:14px;color:var(--ink-soft);font-style:italic;line-height:1.3}
+  .cc-lock{position:absolute;top:10px;right:11px;font-size:13px;color:var(--red-deep);border:1px solid var(--edge);border-radius:20px;
+    padding:2px 9px 2px 7px;background:rgba(255,250,235,.8);display:inline-flex;align-items:center;gap:4px;
+    font-family:'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;font-size:9px}
+  .cc-lock svg{width:11px;height:11px}
+
+  /* ===== Single clan ===== */
+  .clan-hero{max-width:72ch;margin:8px auto 0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:20px 0 6px}
+  .ch-emb{width:118px;height:118px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;
+    background:radial-gradient(circle at 50% 36%, var(--paper-hi), var(--paper-lo));border:1.5px solid var(--edge);box-shadow:0 6px 18px rgba(60,42,18,.22)}
+  .ch-emb img{width:100%;height:100%;object-fit:contain}
+  .ch-emb .letter{font-family:'Cinzel Decorative',serif;font-weight:700;font-size:52px;color:var(--red-deep)}
+  .clan-hero h1{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;font-size:clamp(30px,5vw,52px);color:var(--ink);line-height:1.05}
+  .ch-vil{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft)}
+  .gated-note{max-width:64ch;margin:6px auto 0;display:flex;align-items:flex-start;gap:11px;text-align:left;
+    border:1px solid var(--red);border-radius:11px;background:rgba(166,50,29,.07);padding:13px 16px}
+  .gated-note svg{width:22px;height:22px;flex-shrink:0;color:var(--red-deep);margin-top:2px}
+  .gated-note b{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.05em;color:var(--red-deep);display:block;margin-bottom:3px;text-transform:uppercase}
+  .gated-note p{font-size:15.5px;line-height:1.55;color:var(--ink)}
+
+  .clan-body{max-width:72ch;margin:0 auto}
+  .sec{margin:30px 0 0}
+  .sec > h3{font-family:'Cinzel',serif;font-weight:600;font-size:clamp(17px,2.1vw,22px);color:var(--ink);display:flex;align-items:center;gap:.5em;margin:0 0 .5em}
+  .sec > h3::after{content:"";flex:1;height:1px;background:var(--rule);opacity:.5;margin-left:.3em}
+  .sec .body{font-size:16.5px;line-height:1.76;color:var(--ink);white-space:pre-wrap}
+  .sec .body.empty{font-style:italic;color:var(--ink-soft);white-space:normal}
+
+  /* ===== Rich text (storia, statuto, abilità) ===== */
+  .doc{margin-top:2px}
+  .doc-h{font-family:'Cinzel',serif;font-weight:600;font-size:clamp(15px,1.9vw,18.5px);letter-spacing:.02em;color:var(--red-deep);margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(138,111,67,.38);display:flex;align-items:center;gap:9px}
+  .doc-h:first-child{margin-top:2px}
+  .doc-h::before{content:"❖";font-size:.8em;color:#b58a2b;flex-shrink:0}
+  .doc-p{font-size:16.5px;line-height:1.76;color:var(--ink);margin:0 0 12px}
+  .doc .lbl{color:var(--red-deep);font-weight:600}
+  .doc-ul{list-style:none;margin:2px 0 15px;padding:0;display:flex;flex-direction:column;gap:9px}
+  .doc-ul .doc-li{position:relative;padding-left:22px;font-size:16.5px;line-height:1.6;color:var(--ink)}
+  .doc-ul .doc-li::before{content:"";position:absolute;left:3px;top:.58em;width:7px;height:7px;background:var(--red);transform:rotate(45deg);border-radius:1px}
+  .doc-ol{list-style:none;counter-reset:doc;margin:4px 0 16px;padding:0;display:flex;flex-direction:column;gap:11px}
+  .doc-ol .doc-li{counter-increment:doc;position:relative;padding-left:40px;font-size:16.5px;line-height:1.55;color:var(--ink);min-height:27px;display:flex;align-items:flex-start}
+  .doc-ol .doc-li::before{content:counter(doc);position:absolute;left:0;top:0;width:27px;height:27px;border-radius:50%;background:linear-gradient(180deg,var(--red),var(--red-deep));color:#f6ead0;font-family:'Cinzel',serif;font-size:12.5px;font-weight:600;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(124,36,19,.3)}
+  .doc-hier{margin:8px 0 14px;display:flex;flex-direction:column;gap:11px}
+  .hier-row{display:flex;align-items:flex-start;gap:12px}
+  .hier-mark{width:32px;height:32px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 40%,var(--paper-hi),var(--paper-lo));border:1px solid var(--edge)}
+  .hier-mark img{width:100%;height:100%;object-fit:contain}
+  .hier-mark.hier-fb{color:var(--red-deep);font-size:15px}
+  .hier-txt{font-size:16.5px;line-height:1.5;padding-top:2px}
+  .hier-role{font-family:'Cinzel',serif;font-weight:600;color:var(--ink);margin-right:.45em}
+  .hier-desc{color:var(--ink-soft)}
+
+  /* ===== Tecniche del clan ===== */
+  .tech-grid{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+  .tech-card{border:1px solid var(--edge);border-radius:11px;background:rgba(255,250,235,.5);padding:13px 16px}
+  .tc-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .tc-name{font-family:'Cinzel',serif;font-weight:600;font-size:17px;color:var(--ink)}
+  .tc-lv{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#f6ead0;background:linear-gradient(180deg,var(--red),var(--red-deep));border:1px solid var(--red-deep);border-radius:20px;padding:3px 10px}
+  .tc-meta{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin-top:5px}
+  .tc-req{font-size:15px;color:var(--ink-soft);font-style:italic;margin-top:7px}
+  .tc-req b{font-style:normal;color:var(--red-deep);font-family:'Cinzel',serif;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase}
+  .tc-desc{font-size:16.5px;line-height:1.66;color:var(--ink);margin-top:6px;white-space:pre-wrap}
+
+  /* Members */
+  .members{list-style:none;display:flex;flex-direction:column;gap:9px;margin-top:4px}
+  .mrow{display:flex;align-items:center;gap:13px;border:1px solid var(--edge);border-radius:11px;background:rgba(255,250,235,.5);padding:10px 14px;text-decoration:none;color:inherit;transition:.15s}
+  .mrow:hover{border-color:var(--red);background:rgba(255,250,235,.8)}
+  .mav{width:44px;height:44px;border-radius:50%;flex-shrink:0;overflow:hidden;background:var(--paper-lo);border:1px solid var(--edge);display:flex;align-items:center;justify-content:center}
+  .mav img{width:100%;height:100%;object-fit:cover}
+  .mav .ini{font-family:'Cinzel',serif;font-weight:600;color:var(--ink-soft);font-size:18px}
+  .minfo{flex:1;min-width:0}
+  .mname{font-family:'Cinzel',serif;font-weight:600;font-size:16.5px;letter-spacing:.01em}
+  .mepi{font-style:italic;color:var(--ink-soft);font-size:14.5px}
+  .mrole{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#f6ead0;
+    background:linear-gradient(180deg,var(--red),var(--red-deep));border:1px solid var(--red-deep);border-radius:20px;padding:4px 11px;white-space:nowrap;flex-shrink:0}
+  .mrole.lead{background:linear-gradient(180deg,#caa64a,#9c7a24);border-color:#7c5f16}
+  .mrole.none{background:transparent;color:var(--ink-soft);border-color:var(--edge)}
+  .cl-emb{position:relative;display:inline-block;width:30px;height:30px;flex-shrink:0}
+  .cl-emb img{width:100%;height:100%;object-fit:contain;display:block}
+  .cl-emb .shn{position:absolute;inset:0;pointer-events:none;opacity:0}
+  .cl-emb.shine .shn{opacity:1;-webkit-mask:var(--e) center/contain no-repeat;mask:var(--e) center/contain no-repeat;
+    background:linear-gradient(115deg, transparent 40%, rgba(255,224,138,.95) 50%, transparent 60%);background-size:300% 100%;mix-blend-mode:screen;
+    animation:clshine 4.8s ease-in-out infinite}
+  @keyframes clshine{0%{background-position:170% 0}58%,100%{background-position:-170% 0}}
+  .mrank{font-size:13px;color:var(--ink-soft);margin-left:8px}
+  .m-empty{font-style:italic;color:var(--ink-soft);font-size:16px;padding:6px 2px}
+
+  .story-return{text-align:center;margin:44px auto 8px;display:flex;gap:22px;justify-content:center;flex-wrap:wrap}
+  .story-return a{font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule);padding-bottom:4px;opacity:.85;transition:.2s}
+  .story-return a:hover{opacity:1;color:var(--red-deep);border-color:var(--red)}
+
+  .state{max-width:60ch;margin:60px auto;text-align:center}
+  .state h2{font-family:'Cinzel',serif;font-size:22px;color:var(--red-deep);margin-bottom:8px}
+  .state p{font-size:16.5px;color:var(--ink-soft);line-height:1.6}
+
+  footer{position:relative;z-index:3;text-align:center;padding:18px 0 26px;border-top:1px solid var(--rule);margin:26px 4px 0}
+  .disc-txt{font-size:14px;line-height:1.55;color:var(--ink-soft);max-width:80ch;margin:0 auto;opacity:.9}
+  .fchip{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-deep);margin-bottom:8px}
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="content">
+      <nav class="top">
+        <div class="brand">
+          <span id="bijuu-logo"></span>
+          <a class="home-link" href="index.html"><b>The Untold Story</b></a>
+        </div>
+        <a href="index.html" class="backlink" id="backlink" onclick="if(history.length>1){history.back();return false;}">← Indietro</a>
+      </nav>
+
+      <main class="reader" id="main">
+        <div class="story-head">
+          <div class="kicker">Le grandi famiglie</div>
+          <h1>I Clan</h1>
+          <div class="dek">Il sangue, le arti e i nomi che reggono i villaggi.</div>
+        </div>
+        <div class="state"><p>Caricamento…</p></div>
+      </main>
+
+      <footer>
+        <div class="fchip">Amatoriale · gratuito · theuntoldstory.it</div>
+        <p class="disc-txt">Progetto amatoriale, gratuito e non ufficiale, realizzato da appassionati. Non affiliato, sponsorizzato o approvato dagli aventi diritto. «Naruto» © Masashi Kishimoto / Shueisha. Contenuti a tema maturo in forma esclusivamente testuale.</p>
+      </footer>
+    </div>
+    <div class="frame"><span class="corner tl">✦</span><span class="corner tr">✦</span><span class="corner bl">✦</span><span class="corner br">✦</span></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+  (function(){
+    var SB_URL='https://tyhyxkslteigibktluml.supabase.co';
+    var SB_KEY='sb_publishable_jG9_Pb0L4PWuutcutyVc8w_UP6WY41g';
+    var sb=(window.supabase&&SB_KEY)?window.supabase.createClient(SB_URL,SB_KEY):null;
+    var LADDER=['Capo clan','Anziano','Membro anziano','Membro'];
+    var VILLAGES=[['Konoha','Paese del Fuoco'],['Suna','Paese del Vento']];
+    var FALLBACK=[ /* used only if DB fetch fails */
+      {name:'Hyuga',village:'Konoha',is_gated:true},{name:'Uchiha',village:'Konoha',is_gated:true},
+      {name:'Nara',village:'Konoha',is_gated:false},{name:'Akimichi',village:'Konoha',is_gated:false},
+      {name:'Inuzuka',village:'Konoha',is_gated:false},{name:'Aburame',village:'Konoha',is_gated:false},
+      {name:'Sabaku',village:'Suna',is_gated:false},{name:'Marionettisti',village:'Suna',is_gated:false},
+      {name:'Dokugan',village:'Suna',is_gated:false}
+    ];
+    var EMB={};
+    function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+    function $(id){return document.getElementById(id);}
+    var LOCK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>';
+
+    function embHTML(name,cls){var u=EMB['clan:'+name];if(u)return '<span class="'+cls+'"><img src="'+esc(u)+'" alt="Emblema '+esc(name)+'"></span>';return '<span class="'+cls+'"><span class="letter">'+esc(String(name).charAt(0))+'</span></span>';}
+
+    function param(k){try{return new URLSearchParams(location.search).get(k);}catch(e){return null;}}
+
+    async function boot(){
+      if(!sb){$('main').innerHTML=head()+'<div class="state"><h2>Servizio non disponibile</h2><p>Riprova tra poco.</p></div>';return;}
+      var me=null;
+      try{var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;}catch(e){}
+      // clans
+      var clans=[];
+      try{var r=await sb.from('clans').select('*').eq('is_active',true).order('sort').order('name');if(r&&!r.error&&r.data&&r.data.length)clans=r.data;}catch(e){}
+      if(!clans.length)clans=FALLBACK.slice();
+      // emblems
+      try{var em=await sb.from('emblems').select('kind,name,image_url').eq('kind','clan');if(em&&em.data)em.data.forEach(function(x){if(x.image_url)EMB['clan:'+x.name]=x.image_url;});}catch(e){}
+
+      var want=param('c');
+      if(want){
+        var c=null;for(var i=0;i<clans.length;i++){if(String(clans[i].name).toLowerCase()===String(want).toLowerCase()){c=clans[i];break;}}
+        if(!c){renderDirectory(clans,me,'Il clan richiesto non esiste o non è attivo.');return;}
+        renderClan(c,me);
+      }else{
+        renderDirectory(clans,me,null);
+      }
+    }
+
+    function head(){return '<div class="story-head"><div class="kicker">Le grandi famiglie</div><h1>I Clan</h1><div class="dek">Il sangue, le arti e i nomi che reggono i villaggi.</div></div>';}
+
+    async function renderDirectory(clans,me,warn){
+      // member tallies (only visible to logged-in users via RLS)
+      var counts={};
+      if(me){try{var mc=await sb.from('characters').select('clan').neq('clan','Nessuno');(mc.data||[]).forEach(function(x){if(x.clan)counts[x.clan]=(counts[x.clan]||0)+1;});}catch(e){}}
+      var html=head();
+      html+='<p class="intro">Ogni shinobi porta un nome, ma alcuni portano anche un’<strong>eredità</strong>. I clan sono le grandi famiglie dei villaggi: custodiscono arti tramandate di sangue in sangue, uno statuto e una gerarchia propri. Scegli un clan per leggerne la storia, lo statuto e i membri.</p>';
+      if(warn)html+='<div class="state" style="margin:24px auto 0"><p>'+esc(warn)+'</p></div>';
+      VILLAGES.forEach(function(v){
+        var rows=clans.filter(function(c){return (c.village||'')===v[0];});
+        if(!rows.length)return;
+        html+='<div class="vil-band"><div class="vk">'+esc(v[1])+'</div><div class="vt">'+esc(v[0])+'</div></div>';
+        html+='<div class="clan-grid">'+rows.map(function(c){
+          var n=counts[c.name]||0;
+          var meta=me?(n===0?'Nessun membro':(n+' '+(n===1?'membro':'membri'))):'Apri la scheda del clan';
+          var lock=c.is_gated?('<span class="cc-lock" title="Accesso ristretto">'+LOCK+'Chiuso</span>'):'';
+          return '<a class="clan-card" href="clan.html?c='+encodeURIComponent(c.name)+'">'+lock+
+            embHTML(c.name,'cc-emb')+
+            '<span class="cc-name">'+esc(c.name)+'</span>'+
+            '<span class="cc-meta">'+esc(meta)+'</span></a>';
+        }).join('')+'</div>';
+      });
+      $('main').innerHTML=html;
+    }
+
+    async function renderClan(c,me){
+      var vilLabel={Konoha:'Paese del Fuoco',Suna:'Paese del Vento'}[c.village]||c.village||'';
+      var clanEmb=EMB['clan:'+c.name]||'';
+      var html='<div class="clan-hero">'+embHTML(c.name,'ch-emb')+
+        '<h1>'+esc(c.name)+'</h1>'+
+        '<div class="ch-vil">'+esc(c.village||'')+(vilLabel?(' · '+esc(vilLabel)):'')+'</div>';
+      if(c.is_gated){
+        html+='<div class="gated-note">'+LOCK+'<div><b>Clan ad accesso ristretto</b><p>Questo clan non è accessibile liberamente. Per farne parte serve un <strong>background approvato dallo staff</strong> in fase di creazione, oppure lo <strong>sblocco dell’abilità durante il gioco</strong>, dopo una valutazione dello staff. Il clan e il ruolo vengono assegnati dallo staff.</p></div></div>';
+      }
+      html+='</div>';
+
+      html+='<div class="clan-body">';
+      html+=section('Descrizione',c.description,'Lo staff sta ancora scrivendo la descrizione di questo clan.',clanEmb);
+      html+=section('Storia',c.history,'La storia di questo clan sarà scritta presto.',clanEmb);
+      html+=section('Statuto — ingresso e ruoli',c.statute, (c.is_gated
+        ? 'Lo statuto verrà pubblicato dallo staff. Nel frattempo: l’ingresso è su valutazione (background o sblocco in gioco).'
+        : 'Lo statuto per l’ingresso e il mantenimento del ruolo sarà pubblicato dallo staff.'),clanEmb);
+      html+=section('Abilità e jutsu del clan',c.abilities,'Le arti peculiari di questo clan saranno elencate presto.',clanEmb);
+
+      // clan techniques
+      var techs=[];
+      try{var rt=await sb.from('clan_techniques').select('*').eq('clan',c.name).eq('is_active',true).order('level').order('sort').order('name');techs=(rt&&rt.data)||[];}catch(e){}
+      if(techs.length){
+        html+='<div class="sec"><h3>Tecniche del clan</h3><div class="tech-grid">'+techs.map(techCard).join('')+'</div></div>';
+      }
+
+      // members
+      html+='<div class="sec"><h3>Membri attuali</h3>';
+      if(!me){
+        html+='<p class="m-empty">Accedi per vedere i membri di questo clan.</p>';
+      }else{
+        var members=[];
+        try{var rm=await sb.from('characters').select('id,name,rank,epithet,clan,clan_role,avatar_url').eq('clan',c.name);members=(rm&&rm.data)||[];}catch(e){}
+        members.sort(function(a,b){var ia=roleIdx(a.clan_role),ib=roleIdx(b.clan_role);if(ia!==ib)return ia-ib;return String(a.name||'').localeCompare(String(b.name||''));});
+        if(!members.length){
+          html+='<p class="m-empty">Nessun membro assegnato a questo clan, per ora.</p>';
+        }else{
+          html+='<ul class="members">'+members.map(function(m){
+            var av=m.avatar_url?('<img src="'+esc(m.avatar_url)+'" alt="">'):('<span class="ini">'+esc(String(m.name||'?').charAt(0))+'</span>');
+            var roleCls=m.clan_role===('Capo clan')?'mrole lead':(m.clan_role?'mrole':'mrole none');
+            var roleTxt=m.clan_role||'Membro';
+            var epi=m.epithet?(' <span class="mepi">«'+esc(m.epithet)+'»</span>'):'';
+            var rank=m.rank?('<span class="mrank">'+esc(m.rank)+'</span>'):'';
+            var embCell=clanEmb?('<span class="cl-emb'+(m.clan_role==='Capo clan'?' shine':'')+'" style="--e:url(&quot;'+clanEmb+'&quot;)"><img src="'+esc(clanEmb)+'" alt=""><span class="shn"></span></span>'):'';
+            return '<a class="mrow" href="scheda.html?id='+encodeURIComponent(m.id)+'">'+
+              '<span class="mav">'+av+'</span>'+
+              '<span class="minfo"><span class="mname">'+esc(m.name||'—')+'</span>'+epi+rank+'</span>'+
+              embCell+
+              '<span class="'+roleCls+'">'+esc(roleTxt)+'</span></a>';
+          }).join('')+'</ul>';
+        }
+      }
+      html+='</div>'; // members sec
+      html+='</div>'; // clan-body
+
+      html+='<div class="story-return"><a href="clan.html">← Tutti i clan</a><a href="ambientazione.html">Ambientazione</a></div>';
+      $('main').innerHTML=html;
+      document.title=c.name+' — I Clan — The Untold Story';
+    }
+
+    function roleIdx(r){var i=LADDER.indexOf(r);return i<0?98:i;}
+    function section(title,val,emptyMsg,clanEmb){
+      var has=val&&String(val).trim().length;
+      if(!has)return '<div class="sec"><h3>'+esc(title)+'</h3><div class="body empty">'+esc(emptyMsg)+'</div></div>';
+      return '<div class="sec"><h3>'+esc(title)+'</h3>'+renderRich(String(val),clanEmb||'')+'</div>';
+    }
+    function richInline(s){s=esc(s);var m=s.match(/^([^:]{2,46}):\s+(.+)$/);return m?('<b class="lbl">'+m[1]+':</b> '+m[2]):s;}
+    function renderHier(items,clanEmb){
+      var mark=clanEmb?('<span class="hier-mark"><img src="'+esc(clanEmb)+'" alt=""></span>'):'<span class="hier-mark hier-fb">✦</span>';
+      return '<div class="doc-hier">'+items.map(function(it){
+        var m=it.match(/^([^:]{1,42}):\s*(.*)$/);var role=m?m[1]:it;var desc=m?m[2]:'';
+        return '<div class="hier-row">'+mark+'<div class="hier-txt"><span class="hier-role">'+esc(role)+'</span>'+(desc?'<span class="hier-desc">'+esc(desc)+'</span>':'')+'</div></div>';
+      }).join('')+'</div>';
+    }
+    function renderRich(text,clanEmb){
+      var lines=String(text).replace(/\r/g,'').split('\n');var out=[];var i=0;var cur='';
+      function isHead(s){return s.length<=64 && !/^[—\-•]/.test(s) && !/^\d+[.)]/.test(s) && !/[.:;,!?]$/.test(s);}
+      while(i<lines.length){
+        var ln=lines[i].trim();
+        if(!ln){i++;continue;}
+        if(/^[—\-•]\s+/.test(ln)){var items=[];while(i<lines.length && /^[—\-•]\s+/.test(lines[i].trim())){items.push(lines[i].trim().replace(/^[—\-•]\s+/,''));i++;}
+          if(/gerarchia/i.test(cur))out.push(renderHier(items,clanEmb));
+          else out.push('<ul class="doc-ul">'+items.map(function(it){return '<li class="doc-li">'+richInline(it)+'</li>';}).join('')+'</ul>');
+          continue;}
+        if(/^\d+[.)]\s+/.test(ln)){var nums=[];while(i<lines.length && /^\d+[.)]\s+/.test(lines[i].trim())){nums.push(lines[i].trim().replace(/^\d+[.)]\s+/,''));i++;}
+          out.push('<ol class="doc-ol">'+nums.map(function(it){return '<li class="doc-li">'+richInline(it)+'</li>';}).join('')+'</ol>');continue;}
+        if(isHead(ln)){cur=ln;out.push('<div class="doc-h">'+esc(ln)+'</div>');i++;continue;}
+        out.push('<div class="doc-p">'+richInline(ln)+'</div>');i++;
+      }
+      return '<div class="doc">'+out.join('')+'</div>';
+    }
+    function techConsume(v){return {ad_utilizzo:'Ad utilizzo',per_turno:'Per turno',passiva:'Passiva'}[v]||'';}
+    function techCard(t){
+      var parts=[];
+      if(t.category)parts.push(esc(t.category));
+      var cons=techConsume(t.consumption_type); if(cons)parts.push(cons);
+      if(t.chakra_cost!=null)parts.push(esc(t.chakra_cost)+' chakra');
+      return '<div class="tech-card"><div class="tc-top"><span class="tc-name">'+esc(t.name)+'</span>'+
+        (t.level!=null?'<span class="tc-lv">Livello '+esc(t.level)+'</span>':'')+'</div>'+
+        (parts.length?'<div class="tc-meta">'+parts.join(' · ')+'</div>':'')+
+        (t.requirements?'<div class="tc-req"><b>Requisiti:</b> '+esc(t.requirements)+'</div>':'')+
+        (t.description?'<div class="tc-desc">'+esc(t.description)+'</div>':'')+
+        '</div>';
+    }
+
+    boot();
+  })();
+  </script>
+  <script>(function(){ try{ if(sessionStorage.getItem('tus_in_land')==='1'){ var a=document.querySelectorAll('a[href="index.html"]'); for(var i=0;i<a.length;i++) a[i].setAttribute('href','land.html'); } }catch(e){} })();</script>
+</body>
+</html>
