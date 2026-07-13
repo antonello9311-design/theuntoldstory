@@ -159,6 +159,19 @@
   .emb-addrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 2px}
   .emb-addrow[hidden]{display:none}
   .emb-addrow input{font-family:'Cormorant Garamond',serif;font-size:15px;padding:8px 10px;border:1px solid var(--edge);border-radius:7px;background:#fbf4e1;color:var(--ink);min-width:200px}
+  /* --- Pulsante "+ Aggiungi" e form a comparsa --- */
+  .adm-addbtn{display:inline-flex;align-items:center;gap:8px;font-family:'Cinzel',serif;font-weight:600;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1.5px solid var(--red-deep);padding:11px 22px;cursor:pointer;margin:14px 0 8px;transition:.15s}
+  .adm-addbtn:hover{background:var(--red-deep)}
+  .adm-addbtn .plus{font-size:17px;line-height:1;margin-top:-1px}
+  .cat-formwrap{margin:2px 0 6px}
+  .cat-formwrap[hidden]{display:none}
+  /* --- Clan: categorie per villaggio espandibili --- */
+  .clan-cat{display:flex;align-items:center;gap:9px;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);border-bottom:1px solid var(--edge);padding:10px 8px;margin-top:16px;cursor:pointer;user-select:none;background:rgba(255,250,235,.4);transition:.15s}
+  .clan-cat:hover{background:rgba(166,50,29,.07)}
+  .clan-cat:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+  .clan-cat .clan-arrow{display:inline-block;width:13px;text-align:center;font-size:11px;color:var(--red)}
+  .clan-cat .clan-count{margin-left:auto;color:var(--ink-soft);font-size:11px;letter-spacing:.06em}
+  .clan-cat-body[hidden]{display:none}
   /* --- Legenda laterale espandibile --- */
   .legend-toggle{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:30;writing-mode:vertical-rl;text-orientation:mixed;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1px solid var(--red-deep);border-left:0;border-radius:0 10px 10px 0;padding:16px 9px;cursor:pointer;transition:left .28s ease;box-shadow:2px 2px 8px rgba(20,12,4,.28)}
   .legend-toggle:hover{background:var(--red-deep)}
@@ -248,6 +261,9 @@
           <section class="adm-page" data-page="oggetti">
           <div class="grp-title" style="margin-top:0">Catalogo oggetti</div>
           <p class="mgr-note">Crea e modifica gli oggetti. Peso e costo si cambiano <b>al volo dalla lista</b> (per il bilanciamento). Rendi un oggetto <b>contenitore</b> dandogli uno slot del corpo + capienza; rendilo <b>indossato</b> dandogli uno slot indossato. Ogni oggetto può avere un'immagine e una descrizione (mostrata nell'inventario).</p>
+          <input class="adm-search" id="cat-search" type="search" placeholder="Cerca oggetto per nome o categoria…">
+          <button type="button" class="adm-addbtn" data-addnew="oggetti"><span class="plus">+</span> Aggiungi nuovo oggetto</button>
+          <div class="cat-formwrap" hidden>
           <div class="cat-form" id="cat-form">
             <label>Nome<input id="it-name" maxlength="60" placeholder="es. Kunai"></label>
             <label>Categoria<select id="it-category"><option value="arma_consumabile">Armi consumabili</option><option value="arma_impugnare">Armi da impugnare</option><option value="oggetto_generico">Oggetti generici</option><option value="equipaggiamento">Equipaggiamento</option></select></label>
@@ -262,15 +278,24 @@
           </div>
           <div class="cat-actions">
             <button class="btn btn-red" id="it-save">Salva oggetto</button>
-            <button class="btn" id="it-reset" style="display:none">Annulla modifica</button>
+            <button class="btn" id="it-reset" style="display:none">Annulla</button>
             <span id="it-editing" class="editing-note"></span>
           </div>
-          <input class="adm-search" id="cat-search" type="search" placeholder="Cerca oggetto per nome o categoria…">
+          </div>
           <div id="cat-list"></div>
           </section>
           <section class="adm-page" data-page="luoghi">
           <div class="grp-title" style="margin-top:0">Luoghi della Land</div>
           <p class="mgr-note">Crea i luoghi dove si gioca in chat: <b>nome</b>, tipo e <b>descrizione</b>. Le <b>posizioni sulla mappa</b> (X/Y) le sistemeremo dopo, quando la mappa del villaggio sarà online: puoi lasciarle vuote adesso. <b>Disattiva</b> un luogo per nasconderlo dal gioco senza cancellarlo.</p>
+          <div class="adm-subtabs" id="loc-subtabs">
+            <button type="button" data-locreg="__all__" class="on">Tutti</button>
+            <button type="button" data-locreg="">Mondo</button>
+            <button type="button" data-locreg="konoha">Konoha</button>
+            <button type="button" data-locreg="suna">Suna</button>
+          </div>
+          <input class="adm-search" id="loc-search" type="search" placeholder="Cerca luogo per nome…">
+          <button type="button" class="adm-addbtn" data-addnew="luoghi"><span class="plus">+</span> Aggiungi nuovo luogo</button>
+          <div class="cat-formwrap" hidden>
           <div class="cat-form" id="loc-form">
             <label>Nome<input id="loc-name" maxlength="80" placeholder="es. Konoha — Piazza"></label>
             <label>Tipo<select id="loc-kind"><option value="villaggio">Villaggio</option><option value="quartiere">Quartiere</option><option value="edificio">Edificio</option><option value="area">Area</option><option value="negozio">Negozio</option><option value="altro">Altro</option></select></label>
@@ -292,16 +317,10 @@
           </div>
           <div class="cat-actions">
             <button class="btn btn-red" id="loc-save">Salva luogo</button>
-            <button class="btn" id="loc-reset" style="display:none">Annulla modifica</button>
+            <button class="btn" id="loc-reset" style="display:none">Annulla</button>
             <span id="loc-editing" class="editing-note"></span>
           </div>
-          <div class="adm-subtabs" id="loc-subtabs">
-            <button type="button" data-locreg="__all__" class="on">Tutti</button>
-            <button type="button" data-locreg="">Mondo</button>
-            <button type="button" data-locreg="konoha">Konoha</button>
-            <button type="button" data-locreg="suna">Suna</button>
           </div>
-          <input class="adm-search" id="loc-search" type="search" placeholder="Cerca luogo per nome…">
           <div id="loc-list"></div>
           </section>
           <section class="adm-page" data-page="mappa">
@@ -333,6 +352,8 @@
           <section class="adm-page" data-page="bacheche">
           <div class="grp-title" style="margin-top:0">Bacheche</div>
           <p class="mgr-note">Sezioni delle bacheche mostrate nella land (pulsante <b>Bacheche</b>). Aggiungi, modifica, riordina o disattiva le sezioni quando vuoi: scegli la categoria (On&nbsp;game / Off) e chi può scrivere.</p>
+          <button type="button" class="adm-addbtn" data-addnew="bacheche"><span class="plus">+</span> Aggiungi nuova bacheca</button>
+          <div class="cat-formwrap" hidden>
           <div class="cat-form" id="board-form">
             <label>Nome<input id="board-name" maxlength="80" placeholder="es. Notizie dal mondo"></label>
             <label>Categoria<select id="board-cat"><option value="ongame">On game</option><option value="off">Off</option></select></label>
@@ -343,8 +364,9 @@
           </div>
           <div class="cat-actions">
             <button class="btn btn-red" id="board-save">Salva bacheca</button>
-            <button class="btn" id="board-reset" style="display:none">Annulla modifica</button>
+            <button class="btn" id="board-reset" style="display:none">Annulla</button>
             <span id="board-editing" class="editing-note"></span>
+          </div>
           </div>
           <div id="board-list"></div>
           </section>
@@ -352,6 +374,9 @@
           <section class="adm-page" data-page="clan">
           <div class="grp-title" style="margin-top:0">Clan — testi e accesso</div>
           <p class="mgr-note">Descrizione, storia, statuto e abilità di ogni clan: compaiono nella <b>pagina del clan</b> (pulsante <b>Clan</b> nella land). L'emblema si carica sopra, nella griglia <b>Clan</b>. Spunta <b>Accesso ristretto</b> per i clan non liberi (es. Uchiha, Hyuga): mostreranno un lucchetto e la nota che servono background approvato o sblocco in gioco. Puoi anche <b>aggiungere un nuovo clan</b>: comparirà ovunque (griglia emblemi, scheda, pagina clan). Il <b>ruolo dei membri</b> (Capo clan, Anziano…) si assegna dalla scheda del personaggio.</p>
+          <input class="adm-search" id="clan-search" type="search" placeholder="Cerca clan per nome…">
+          <button type="button" class="adm-addbtn" data-addnew="clan"><span class="plus">+</span> Aggiungi nuovo clan</button>
+          <div class="cat-formwrap" hidden>
           <div class="cat-form" id="clan-form">
             <label>Nome<input id="clan-name" maxlength="40" placeholder="es. Hyuga"></label>
             <label>Villaggio<select id="clan-village"><option value="Konoha">Konoha</option><option value="Suna">Suna</option></select></label>
@@ -365,16 +390,19 @@
           </div>
           <div class="cat-actions">
             <button class="btn btn-red" id="clan-save">Salva clan</button>
-            <button class="btn" id="clan-reset" style="display:none">Annulla modifica</button>
+            <button class="btn" id="clan-reset" style="display:none">Annulla</button>
             <span id="clan-editing" class="editing-note"></span>
           </div>
-          <input class="adm-search" id="clan-search" type="search" placeholder="Cerca clan per nome…">
+          </div>
           <div id="clan-list"></div>
           </section>
 
           <section class="adm-page" data-page="tecniche">
           <div class="grp-title" style="margin-top:0">Tecniche e abilità</div>
           <p class="mgr-note">Inserisci le <b>tecniche e le abilità</b> dei clan (oppure generali) con la <b>scheda completa</b>: nome, livello, tipologia, grado, portata, bersaglio, azione, durata, ricarica, danno/effetto, tipo di consumo e chakra. In più la <b>meccanica di sblocco</b>: <b>costo in XP</b>, <b>allenamenti necessari</b>, grado minimo e caratteristica richiesta (con soglia). Compaiono raggruppate per clan; puoi modificarle o rimuoverle dalla lista.</p>
+          <input class="adm-search" id="tech-search" type="search" placeholder="Cerca tecnica per nome o clan…">
+          <button type="button" class="adm-addbtn" data-addnew="tecniche"><span class="plus">+</span> Aggiungi nuova tecnica</button>
+          <div class="cat-formwrap" hidden>
           <div class="cat-form" id="tech-form">
             <label>Nome<input id="tech-name" maxlength="80" placeholder="es. Chiusura delle Porte"></label>
             <label>Clan<select id="tech-clan"><option value="">— Generale —</option></select></label>
@@ -403,10 +431,10 @@
           </div>
           <div class="cat-actions">
             <button class="btn btn-red" id="tech-save">Salva tecnica</button>
-            <button class="btn" id="tech-reset" style="display:none">Annulla modifica</button>
+            <button class="btn" id="tech-reset" style="display:none">Annulla</button>
             <span id="tech-editing" class="editing-note"></span>
           </div>
-          <input class="adm-search" id="tech-search" type="search" placeholder="Cerca tecnica per nome o clan…">
+          </div>
           <div id="tech-list"></div>
           </section>
 
@@ -654,7 +682,7 @@
     }
     function bindCatalog(){
       $('it-slot').addEventListener('change',slotChange);
-      $('it-reset').addEventListener('click',resetCatForm);
+      $('it-reset').addEventListener('click',function(){resetCatForm();admFormHide('oggetti');});
       $('cat-list').addEventListener('click',async function(e){
         var db=e.target.closest('[data-itdel]');
         if(db){var id=db.getAttribute('data-itdel');
@@ -669,7 +697,7 @@
         $('it-slot').value=it.slot||'';$('it-capacity').value=(it.capacity!=null?it.capacity:'');$('it-worn').value=it.worn_slot||'';$('it-desc').value=it.description||'';
         $('it-purchasable').checked=!!it.purchasable;$('it-active').checked=!!it.is_active;
         $('it-reset').style.display='';$('it-editing').textContent='Stai modificando: '+it.name;$('it-save').textContent='Aggiorna oggetto';slotChange();
-        window.scrollTo({top:Math.max(0,$('cat-form').offsetTop-90),behavior:'smooth'});
+        admFormShow('oggetti');
       });
       $('cat-list').addEventListener('change',async function(e){
         var t=e.target;
@@ -701,7 +729,7 @@
         var r=editingId?await sb.from('items').update(payload).eq('id',editingId).select().single():await sb.from('items').insert(payload).select().single();
         this.disabled=false;
         if(r.error){toast(String(r.error.message||'').indexOf('duplicate')>=0?'Nome già esistente':'Errore nel salvataggio',true);return;}
-        toast('Oggetto salvato');resetCatForm();loadItems();
+        toast('Oggetto salvato');resetCatForm();admFormHide('oggetti');loadItems();
       });
       slotChange();
     }
@@ -738,7 +766,7 @@
       }).join('');
     }
     function bindLocs(){
-      $('loc-reset').addEventListener('click',resetLocForm);
+      $('loc-reset').addEventListener('click',function(){resetLocForm();admFormHide('luoghi');});
       $('loc-save').addEventListener('click',async function(){
         var name=$('loc-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
         function num(v){v=parseFloat(v);return isNaN(v)?null:v;}
@@ -747,7 +775,7 @@
         var r=editingLoc?await sb.from('locations').update(payload).eq('id',editingLoc).select().single():await sb.from('locations').insert(payload).select().single();
         this.disabled=false;
         if(r.error){toast('Errore nel salvataggio',true);return;}
-        if(editingLoc){toast('Luogo aggiornato');resetLocForm();loadLocs();}
+        if(editingLoc){toast('Luogo aggiornato');resetLocForm();admFormHide('luoghi');loadLocs();}
         else{var nl=r.data;LOCS.push(nl);editingLoc=nl.id;$('loc-reset').style.display='';$('loc-editing').textContent='Luogo creato: '+nl.name+' — ora puoi aggiungere immagine e nota evento.';$('loc-save').textContent='Aggiorna luogo';locImgShow(nl.image_url||'');renderLocs();toast('Luogo creato');}
       });
       $('loc-list').addEventListener('click',async function(e){
@@ -755,7 +783,7 @@
         if(eb){var l=LOCS.filter(function(x){return x.id===eb.getAttribute('data-locedit');})[0];if(!l)return;
           editingLoc=l.id;$('loc-name').value=l.name;$('loc-kind').value=l.kind||'villaggio';$('loc-region').value=l.region||'';$('loc-sort').value=(l.sort!=null?l.sort:'');$('loc-desc').value=l.description||'';$('loc-note').value=l.event_note||'';$('loc-x').value=(l.map_x!=null?l.map_x:'');$('loc-y').value=(l.map_y!=null?l.map_y:'');$('loc-active').checked=!!l.is_active;locImgShow(l.image_url||'');
           $('loc-reset').style.display='';$('loc-editing').textContent='Stai modificando: '+l.name;$('loc-save').textContent='Aggiorna luogo';
-          window.scrollTo({top:Math.max(0,$('loc-form').offsetTop-90),behavior:'smooth'});return;}
+          admFormShow('luoghi');return;}
         var tb=e.target.closest('[data-loctoggle]');
         if(tb){var id=tb.getAttribute('data-loctoggle');var l2=LOCS.filter(function(x){return x.id===id;})[0];if(!l2)return;
           var r=await sb.from('locations').update({is_active:!l2.is_active}).eq('id',id);
@@ -829,7 +857,7 @@
       }).join('');
     }
     function bindBoards(){
-      $('board-reset').addEventListener('click',resetBoardForm);
+      $('board-reset').addEventListener('click',function(){resetBoardForm();admFormHide('bacheche');});
       $('board-save').addEventListener('click',async function(){
         var name=$('board-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
         var payload={name:name,category:$('board-cat').value,write_role:$('board-wr').value,description:$('board-desc').value.trim()||null,sort:parseInt($('board-sort').value,10)||0,is_active:$('board-active').checked};
@@ -837,14 +865,14 @@
         var r=editingBoard?await sb.from('boards').update(payload).eq('id',editingBoard).select().single():await sb.from('boards').insert(payload).select().single();
         this.disabled=false;
         if(r.error){toast('Errore nel salvataggio',true);return;}
-        toast(editingBoard?'Bacheca aggiornata':'Bacheca creata');resetBoardForm();loadBoards();
+        toast(editingBoard?'Bacheca aggiornata':'Bacheca creata');resetBoardForm();admFormHide('bacheche');loadBoards();
       });
       $('board-list').addEventListener('click',async function(e){
         var eb=e.target.closest('[data-bedit]');
         if(eb){var b=BOARDS.filter(function(x){return String(x.id)===eb.getAttribute('data-bedit');})[0];if(!b)return;
           editingBoard=b.id;$('board-name').value=b.name;$('board-cat').value=b.category;$('board-wr').value=b.write_role;$('board-sort').value=(b.sort!=null?b.sort:'');$('board-desc').value=b.description||'';$('board-active').checked=!!b.is_active;
           $('board-reset').style.display='';$('board-editing').textContent='Stai modificando: '+b.name;$('board-save').textContent='Aggiorna bacheca';
-          window.scrollTo({top:Math.max(0,$('board-form').offsetTop-90),behavior:'smooth'});return;}
+          admFormShow('bacheche');return;}
         var tb=e.target.closest('[data-btoggle]');
         if(tb){var id=tb.getAttribute('data-btoggle');var b2=BOARDS.filter(function(x){return String(x.id)===id;})[0];if(!b2)return;
           var r=await sb.from('boards').update({is_active:!b2.is_active}).eq('id',id);
@@ -957,6 +985,8 @@
     }
     /* ---- Clan (testi e accesso) ---- */
     var CLAN_ROWS=[], editingClan=null;
+    var clanCatOpen={Konoha:true,Suna:true,Altri:true};
+    (function(){try{var s=localStorage.getItem('tus_clan_cats');if(s){var o=JSON.parse(s);if(o)['Konoha','Suna','Altri'].forEach(function(k){if(k in o)clanCatOpen[k]=!!o[k];});}}catch(e){}})();
     function resetClanForm(){editingClan=null;$('clan-name').value='';$('clan-name').disabled=false;$('clan-village').value='Konoha';$('clan-sort').value='';$('clan-gated').checked=false;$('clan-active').checked=true;$('clan-desc').value='';$('clan-history').value='';$('clan-statute').value='';$('clan-abilities').value='';$('clan-reset').style.display='none';$('clan-editing').textContent='';$('clan-save').textContent='Salva clan';}
     async function loadClans(){var r=await sb.from('clans').select('*').order('village').order('sort').order('name');CLAN_ROWS=(r&&r.data)||[];renderClanList();}
     function clanFilled(v){return (v&&String(v).trim().length)?'\u2713':'\u2014';}
@@ -971,24 +1001,30 @@
           '<button class="mini-btn" data-clantoggle="'+esc(c.name)+'">'+(c.is_active?'Disattiva':'Attiva')+'</button>'+
         '</div></div>';
     }
+    function clanCatBlock(key,label,rows,forceOpen){
+      var open=forceOpen||(clanCatOpen[key]!==false);
+      return '<div class="clan-cat" data-clancat="'+esc(key)+'" role="button" tabindex="0" aria-expanded="'+(open?'true':'false')+'">'+
+        '<span class="clan-arrow">'+(open?'▾':'▸')+'</span><span>'+esc(label)+'</span><span class="clan-count">'+rows.length+' clan</span></div>'+
+        '<div class="clan-cat-body"'+(open?'':' hidden')+'>'+rows.map(clanRowHTML).join('')+'</div>';
+    }
     function renderClanList(){
       var host=$('clan-list');if(!host)return;
       if(!CLAN_ROWS.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun clan. Creane uno qui sopra.</p>';return;}
       var q=clanSearch.toLowerCase();
       var SRC=CLAN_ROWS.filter(function(c){return !q||(''+(c.name||'')).toLowerCase().indexOf(q)>=0;});
       if(!SRC.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun clan trovato.</p>';return;}
-      var groups=['Konoha','Suna'];
-      var html=groups.map(function(g){
+      var forceOpen=!!q;
+      var html='';
+      ['Konoha','Suna'].forEach(function(g){
         var rows=SRC.filter(function(c){return c.village===g;});
-        if(!rows.length)return '';
-        return '<div class="bd-cat">'+g+'</div>'+rows.map(clanRowHTML).join('');
-      }).join('');
+        if(rows.length)html+=clanCatBlock(g,g,rows,forceOpen);
+      });
       var extra=SRC.filter(function(c){return c.village!=='Konoha'&&c.village!=='Suna';});
-      if(extra.length)html+='<div class="bd-cat">Altri</div>'+extra.map(clanRowHTML).join('');
+      if(extra.length)html+=clanCatBlock('Altri','Altri',extra,forceOpen);
       host.innerHTML=html;
     }
     function bindClans(){
-      var rb=$('clan-reset');if(rb)rb.addEventListener('click',resetClanForm);
+      var rb=$('clan-reset');if(rb)rb.addEventListener('click',function(){resetClanForm();admFormHide('clan');});
       var sv=$('clan-save');if(sv)sv.addEventListener('click',async function(){
         var name=$('clan-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
         var payload={name:name,village:$('clan-village').value,is_gated:$('clan-gated').checked,is_active:$('clan-active').checked,sort:parseInt($('clan-sort').value,10)||100,description:$('clan-desc').value,history:$('clan-history').value,statute:$('clan-statute').value,abilities:$('clan-abilities').value,updated_at:new Date().toISOString()};
@@ -996,19 +1032,22 @@
         var r=await sb.from('clans').upsert(payload,{onConflict:'name'});
         this.disabled=false;
         if(r.error){toast('Errore nel salvataggio',true);return;}
-        toast(editingClan?'Clan aggiornato':'Clan salvato');resetClanForm();await loadClans();renderGrids();
+        toast(editingClan?'Clan aggiornato':'Clan salvato');resetClanForm();admFormHide('clan');await loadClans();renderGrids();
       });
       var lst=$('clan-list');if(lst)lst.addEventListener('click',async function(e){
+        var cc=e.target.closest('[data-clancat]');
+        if(cc){var key=cc.getAttribute('data-clancat');var isOpen=clanCatOpen[key]!==false;clanCatOpen[key]=!isOpen;try{localStorage.setItem('tus_clan_cats',JSON.stringify(clanCatOpen));}catch(_){}renderClanList();return;}
         var eb=e.target.closest('[data-clanedit]');
         if(eb){var c=CLAN_ROWS.filter(function(x){return x.name===eb.getAttribute('data-clanedit');})[0];if(!c)return;
           editingClan=c.name;$('clan-name').value=c.name;$('clan-name').disabled=true;$('clan-village').value=(c.village==='Suna'?'Suna':'Konoha');$('clan-sort').value=(c.sort!=null?c.sort:'');$('clan-gated').checked=!!c.is_gated;$('clan-active').checked=!!c.is_active;$('clan-desc').value=c.description||'';$('clan-history').value=c.history||'';$('clan-statute').value=c.statute||'';$('clan-abilities').value=c.abilities||'';
           $('clan-reset').style.display='';$('clan-editing').textContent='Stai modificando: '+c.name;$('clan-save').textContent='Aggiorna clan';
-          window.scrollTo({top:Math.max(0,$('clan-form').offsetTop-90),behavior:'smooth'});return;}
+          admFormShow('clan');return;}
         var tb=e.target.closest('[data-clantoggle]');
         if(tb){var nm=tb.getAttribute('data-clantoggle');var c2=CLAN_ROWS.filter(function(x){return x.name===nm;})[0];if(!c2)return;
           var r=await sb.from('clans').update({is_active:!c2.is_active}).eq('name',nm);
           if(r.error){toast('Errore',true);}else{toast(c2.is_active?'Disattivato':'Attivato');await loadClans();renderGrids();}return;}
       });
+      if(lst)lst.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){var cc=e.target.closest('[data-clancat]');if(cc){e.preventDefault();cc.click();}}});
     }
     /* ---- Tecniche e abilità dei clan ---- */
     var TECHS=[], editingTech=null, delArmTech=null;
@@ -1057,7 +1096,7 @@
     }
     function resetTechForm(){editingTech=null;$('tech-name').value='';$('tech-clan').value='';$('tech-level').value='';$('tech-category').value='';$('tech-consume').value='ad_utilizzo';$('tech-chakra').value='';['tech-grado','tech-portata','tech-bersaglio','tech-azione','tech-durata','tech-ricarica','tech-xp','tech-train','tech-reqgrade','tech-reqstat','tech-reqval','tech-effetto'].forEach(function(id){var el=$(id);if(el)el.value='';});$('tech-req').value='';$('tech-desc').value='';$('tech-active').checked=true;$('tech-reset').style.display='none';$('tech-editing').textContent='';$('tech-save').textContent='Salva tecnica';}
     function bindTechs(){
-      var rb=$('tech-reset');if(rb)rb.addEventListener('click',resetTechForm);
+      var rb=$('tech-reset');if(rb)rb.addEventListener('click',function(){resetTechForm();admFormHide('tecniche');});
       var sv=$('tech-save');if(sv)sv.addEventListener('click',async function(){
         var name=$('tech-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
         var lvl=$('tech-level').value.trim(),chak=$('tech-chakra').value.trim();
@@ -1067,7 +1106,7 @@
         var r=editingTech?await sb.from('clan_techniques').update(payload).eq('id',editingTech):await sb.from('clan_techniques').insert(payload);
         this.disabled=false;
         if(r.error){toast('Errore nel salvataggio',true);return;}
-        toast(editingTech?'Tecnica aggiornata':'Tecnica salvata');resetTechForm();await loadTechs();
+        toast(editingTech?'Tecnica aggiornata':'Tecnica salvata');resetTechForm();admFormHide('tecniche');await loadTechs();
       });
       var lst=$('tech-list');if(lst)lst.addEventListener('click',async function(e){
         var db=e.target.closest('[data-tdel]');
@@ -1082,16 +1121,33 @@
         editingTech=t.id;
         $('tech-name').value=t.name||'';$('tech-clan').value=t.clan||'';$('tech-level').value=(t.level!=null?t.level:'');$('tech-category').value=t.category||'';$('tech-consume').value=t.consumption_type||'ad_utilizzo';$('tech-chakra').value=(t.chakra_cost!=null?t.chakra_cost:'');$('tech-grado').value=t.grado||'';$('tech-portata').value=t.portata||'';$('tech-bersaglio').value=t.bersaglio||'';$('tech-azione').value=t.tipo_azione||'';$('tech-durata').value=t.durata||'';$('tech-ricarica').value=t.ricarica||'';$('tech-xp').value=(t.xp_cost!=null?t.xp_cost:'');$('tech-train').value=(t.trainings_required!=null?t.trainings_required:'');$('tech-reqgrade').value=t.req_grade||'';$('tech-reqstat').value=t.req_stat||'';$('tech-reqval').value=(t.req_stat_value!=null?t.req_stat_value:'');$('tech-effetto').value=t.danno_effetto||'';$('tech-req').value=t.requirements||'';$('tech-desc').value=t.description||'';$('tech-active').checked=t.is_active!==false;
         $('tech-reset').style.display='';$('tech-editing').textContent='Stai modificando: '+t.name;$('tech-save').textContent='Aggiorna tecnica';
-        window.scrollTo({top:Math.max(0,$('tech-form').offsetTop-90),behavior:'smooth'});
+        admFormShow('tecniche');
       });
     }
+    /* ---- Form a comparsa: mostra/nascondi (Clan, Tecniche, Oggetti, Luoghi, Bacheche) ---- */
+    function admFormWrap(page){var s=document.querySelector('.adm-page[data-page="'+page+'"]');return s?s.querySelector('.cat-formwrap'):null;}
+    function admFormShow(page){var w=admFormWrap(page);if(!w)return;w.hidden=false;var rb=w.querySelector('.cat-actions .btn:not(.btn-red)');if(rb)rb.style.display='';try{window.scrollTo({top:Math.max(0,w.offsetTop-90),behavior:'smooth'});}catch(e){}}
+    function admFormHide(page){var w=admFormWrap(page);if(w)w.hidden=true;}
+    function admHideAllForms(){var ws=document.querySelectorAll('.cat-formwrap');for(var i=0;i<ws.length;i++)ws[i].hidden=true;}
     function admGo(page){
       var pg=document.querySelectorAll('.adm-page'); for(var i=0;i<pg.length;i++){pg[i].classList.toggle('on',pg[i].getAttribute('data-page')===page);}
       var bt=document.querySelectorAll('#adm-nav button'); for(var j=0;j<bt.length;j++){bt[j].classList.toggle('on',bt[j].getAttribute('data-go')===page);}
+      admHideAllForms();
       try{localStorage.setItem('tus_adm_tab',page);}catch(e){}
       try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){}
     }
     (function(){var nav=document.getElementById('adm-nav'); if(!nav)return; nav.addEventListener('click',function(e){var b=e.target.closest('button[data-go]'); if(b)admGo(b.getAttribute('data-go'));}); var saved=null; try{saved=localStorage.getItem('tus_adm_tab');}catch(e){} if(saved)admGo(saved);})();
+    /* ---- "+ Aggiungi nuovo": resetta il form della sezione, lo mostra e ci scrolla ---- */
+    document.addEventListener('click',function(e){
+      var b=e.target.closest('[data-addnew]'); if(!b)return;
+      var page=b.getAttribute('data-addnew');
+      if(page==='oggetti')resetCatForm();
+      else if(page==='luoghi')resetLocForm();
+      else if(page==='bacheche')resetBoardForm();
+      else if(page==='clan')resetClanForm();
+      else if(page==='tecniche')resetTechForm();
+      admFormShow(page);
+    });
     /* ---- Emblemi: sotto-sezioni + "Aggiungi nuovo" + ricerca ---- */
     (function(){
       var subnav=document.getElementById('emb-subtabs'); if(!subnav) return;
