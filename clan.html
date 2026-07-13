@@ -87,6 +87,45 @@
   .sec .body{font-size:16.5px;line-height:1.76;color:var(--ink);white-space:pre-wrap}
   .sec .body.empty{font-style:italic;color:var(--ink-soft);white-space:normal}
 
+  /* ===== Rich text (storia, statuto, abilità) ===== */
+  .doc{margin-top:2px}
+  .doc-h{font-family:'Cinzel',serif;font-weight:600;font-size:clamp(15px,1.9vw,18.5px);letter-spacing:.02em;color:var(--red-deep);margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(138,111,67,.38);display:flex;align-items:center;gap:9px}
+  .doc-h:first-child{margin-top:2px}
+  .doc-h::before{content:"❖";font-size:.8em;color:#b58a2b;flex-shrink:0}
+  .doc-p{font-size:16.5px;line-height:1.76;color:var(--ink);margin:0 0 12px}
+  .doc .lbl{color:var(--red-deep);font-weight:600}
+  .doc-ul{list-style:none;margin:2px 0 15px;padding:0;display:flex;flex-direction:column;gap:9px}
+  .doc-ul .doc-li{position:relative;padding-left:22px;font-size:16.5px;line-height:1.6;color:var(--ink)}
+  .doc-ul .doc-li::before{content:"";position:absolute;left:3px;top:.58em;width:7px;height:7px;background:var(--red);transform:rotate(45deg);border-radius:1px}
+  .doc-ol{list-style:none;counter-reset:doc;margin:4px 0 16px;padding:0;display:flex;flex-direction:column;gap:11px}
+  .doc-ol .doc-li{counter-increment:doc;position:relative;padding-left:40px;font-size:16.5px;line-height:1.55;color:var(--ink);min-height:27px;display:flex;align-items:flex-start}
+  .doc-ol .doc-li::before{content:counter(doc);position:absolute;left:0;top:0;width:27px;height:27px;border-radius:50%;background:linear-gradient(180deg,var(--red),var(--red-deep));color:#f6ead0;font-family:'Cinzel',serif;font-size:12.5px;font-weight:600;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(124,36,19,.3)}
+  .doc-hier{margin:8px 0 14px;display:flex;flex-direction:column;gap:11px}
+  .hier-row{display:flex;align-items:flex-start;gap:12px}
+  .hier-mark{width:32px;height:32px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 40%,var(--paper-hi),var(--paper-lo));border:1px solid var(--edge)}
+  .hier-mark img{width:100%;height:100%;object-fit:contain}
+  .hier-mark.hier-fb{color:var(--red-deep);font-size:15px}
+  .hier-txt{font-size:16.5px;line-height:1.5;padding-top:2px}
+  .hier-role{font-family:'Cinzel',serif;font-weight:600;color:var(--ink);margin-right:.45em}
+  .hier-desc{color:var(--ink-soft)}
+
+  /* ===== Tecniche del clan ===== */
+  .tech-grid{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+  .tech-card{border:1px solid var(--edge);border-radius:11px;background:rgba(255,250,235,.5);padding:13px 16px}
+  .tc-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .tc-name{font-family:'Cinzel',serif;font-weight:600;font-size:17px;color:var(--ink)}
+  .tc-lv{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#f6ead0;background:linear-gradient(180deg,var(--red),var(--red-deep));border:1px solid var(--red-deep);border-radius:20px;padding:3px 10px}
+  .tc-meta{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin-top:5px}
+  .tc-req{font-size:15px;color:var(--ink-soft);font-style:italic;margin-top:7px}
+  .tc-req b{font-style:normal;color:var(--red-deep);font-family:'Cinzel',serif;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase}
+  .tc-desc{font-size:16.5px;line-height:1.66;color:var(--ink);margin-top:6px;white-space:pre-wrap}
+  .tc-eff{font-size:15.5px;color:var(--ink);margin-top:7px}
+  .tc-eff b{color:var(--red-deep);font-family:'Cinzel',serif;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase}
+  .tc-det{font-size:14.5px;color:var(--ink-soft);margin-top:6px}
+  .tc-det b{color:var(--ink);font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;font-weight:600}
+  .tc-unlock{margin-top:8px;font-size:14px;color:var(--ink-soft);background:rgba(124,36,19,.06);border:1px dashed var(--edge);border-radius:9px;padding:6px 10px}
+  .tc-ul-lab{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--red-deep);margin-right:6px;font-weight:600}
+
   /* Members */
   .members{list-style:none;display:flex;flex-direction:column;gap:9px;margin-top:4px}
   .mrow{display:flex;align-items:center;gap:13px;border:1px solid var(--edge);border-radius:11px;background:rgba(255,250,235,.5);padding:10px 14px;text-decoration:none;color:inherit;transition:.15s}
@@ -158,7 +197,7 @@
     var SB_URL='https://tyhyxkslteigibktluml.supabase.co';
     var SB_KEY='sb_publishable_jG9_Pb0L4PWuutcutyVc8w_UP6WY41g';
     var sb=(window.supabase&&SB_KEY)?window.supabase.createClient(SB_URL,SB_KEY):null;
-    var LADDER=['Capo clan','Anziano','Membro anziano','Membro'];
+    var LADDER=['Capo clan','Anziano','Membro esperto','Novizio'];
     var VILLAGES=[['Konoha','Paese del Fuoco'],['Suna','Paese del Vento']];
     var FALLBACK=[ /* used only if DB fetch fails */
       {name:'Hyuga',village:'Konoha',is_gated:true},{name:'Uchiha',village:'Konoha',is_gated:true},
@@ -225,6 +264,7 @@
 
     async function renderClan(c,me){
       var vilLabel={Konoha:'Paese del Fuoco',Suna:'Paese del Vento'}[c.village]||c.village||'';
+      var clanEmb=EMB['clan:'+c.name]||'';
       var html='<div class="clan-hero">'+embHTML(c.name,'ch-emb')+
         '<h1>'+esc(c.name)+'</h1>'+
         '<div class="ch-vil">'+esc(c.village||'')+(vilLabel?(' · '+esc(vilLabel)):'')+'</div>';
@@ -234,12 +274,19 @@
       html+='</div>';
 
       html+='<div class="clan-body">';
-      html+=section('Descrizione',c.description,'Lo staff sta ancora scrivendo la descrizione di questo clan.');
-      html+=section('Storia',c.history,'La storia di questo clan sarà scritta presto.');
+      html+=section('Descrizione',c.description,'Lo staff sta ancora scrivendo la descrizione di questo clan.',clanEmb);
+      html+=section('Storia',c.history,'La storia di questo clan sarà scritta presto.',clanEmb);
       html+=section('Statuto — ingresso e ruoli',c.statute, (c.is_gated
         ? 'Lo statuto verrà pubblicato dallo staff. Nel frattempo: l’ingresso è su valutazione (background o sblocco in gioco).'
-        : 'Lo statuto per l’ingresso e il mantenimento del ruolo sarà pubblicato dallo staff.'));
-      html+=section('Abilità e jutsu del clan',c.abilities,'Le arti peculiari di questo clan saranno elencate presto.');
+        : 'Lo statuto per l’ingresso e il mantenimento del ruolo sarà pubblicato dallo staff.'),clanEmb);
+      html+=section('Abilità e jutsu del clan',c.abilities,'Le arti peculiari di questo clan saranno elencate presto.',clanEmb);
+
+      // clan techniques
+      var techs=[];
+      try{var rt=await sb.from('clan_techniques').select('*').eq('clan',c.name).eq('is_active',true).order('level').order('sort').order('name');techs=(rt&&rt.data)||[];}catch(e){}
+      if(techs.length){
+        html+='<div class="sec"><h3>Tecniche del clan</h3><div class="tech-grid">'+techs.map(techCard).join('')+'</div></div>';
+      }
 
       // members
       html+='<div class="sec"><h3>Membri attuali</h3>';
@@ -252,11 +299,10 @@
         if(!members.length){
           html+='<p class="m-empty">Nessun membro assegnato a questo clan, per ora.</p>';
         }else{
-          var clanEmb=EMB['clan:'+c.name]||'';
           html+='<ul class="members">'+members.map(function(m){
             var av=m.avatar_url?('<img src="'+esc(m.avatar_url)+'" alt="">'):('<span class="ini">'+esc(String(m.name||'?').charAt(0))+'</span>');
             var roleCls=m.clan_role===('Capo clan')?'mrole lead':(m.clan_role?'mrole':'mrole none');
-            var roleTxt=m.clan_role||'Membro';
+            var roleTxt=m.clan_role||'Novizio';
             var epi=m.epithet?(' <span class="mepi">«'+esc(m.epithet)+'»</span>'):'';
             var rank=m.rank?('<span class="mrank">'+esc(m.rank)+'</span>'):'';
             var embCell=clanEmb?('<span class="cl-emb'+(m.clan_role==='Capo clan'?' shine':'')+'" style="--e:url(&quot;'+clanEmb+'&quot;)"><img src="'+esc(clanEmb)+'" alt=""><span class="shn"></span></span>'):'';
@@ -277,9 +323,63 @@
     }
 
     function roleIdx(r){var i=LADDER.indexOf(r);return i<0?98:i;}
-    function section(title,val,emptyMsg){
+    function section(title,val,emptyMsg,clanEmb){
       var has=val&&String(val).trim().length;
-      return '<div class="sec"><h3>'+esc(title)+'</h3><div class="body'+(has?'':' empty')+'">'+(has?esc(val):esc(emptyMsg))+'</div></div>';
+      if(!has)return '<div class="sec"><h3>'+esc(title)+'</h3><div class="body empty">'+esc(emptyMsg)+'</div></div>';
+      return '<div class="sec"><h3>'+esc(title)+'</h3>'+renderRich(String(val),clanEmb||'')+'</div>';
+    }
+    function richInline(s){s=esc(s);var m=s.match(/^([^:]{2,46}):\s+(.+)$/);return m?('<b class="lbl">'+m[1]+':</b> '+m[2]):s;}
+    function renderHier(items,clanEmb){
+      var mark=clanEmb?('<span class="hier-mark"><img src="'+esc(clanEmb)+'" alt=""></span>'):'<span class="hier-mark hier-fb">✦</span>';
+      return '<div class="doc-hier">'+items.map(function(it){
+        var m=it.match(/^([^:]{1,42}):\s*(.*)$/);var role=m?m[1]:it;var desc=m?m[2]:'';
+        return '<div class="hier-row">'+mark+'<div class="hier-txt"><span class="hier-role">'+esc(role)+'</span>'+(desc?'<span class="hier-desc">'+esc(desc)+'</span>':'')+'</div></div>';
+      }).join('')+'</div>';
+    }
+    function renderRich(text,clanEmb){
+      var lines=String(text).replace(/\r/g,'').split('\n');var out=[];var i=0;var cur='';
+      function isHead(s){return s.length<=64 && !/^[—\-•]/.test(s) && !/^\d+[.)]/.test(s) && !/[.:;,!?]$/.test(s);}
+      while(i<lines.length){
+        var ln=lines[i].trim();
+        if(!ln){i++;continue;}
+        if(/^[—\-•]\s+/.test(ln)){var items=[];while(i<lines.length && /^[—\-•]\s+/.test(lines[i].trim())){items.push(lines[i].trim().replace(/^[—\-•]\s+/,''));i++;}
+          if(/gerarchia/i.test(cur))out.push(renderHier(items,clanEmb));
+          else out.push('<ul class="doc-ul">'+items.map(function(it){return '<li class="doc-li">'+richInline(it)+'</li>';}).join('')+'</ul>');
+          continue;}
+        if(/^\d+[.)]\s+/.test(ln)){var nums=[];while(i<lines.length && /^\d+[.)]\s+/.test(lines[i].trim())){nums.push(lines[i].trim().replace(/^\d+[.)]\s+/,''));i++;}
+          out.push('<ol class="doc-ol">'+nums.map(function(it){return '<li class="doc-li">'+richInline(it)+'</li>';}).join('')+'</ol>');continue;}
+        if(isHead(ln)){cur=ln;out.push('<div class="doc-h">'+esc(ln)+'</div>');i++;continue;}
+        out.push('<div class="doc-p">'+richInline(ln)+'</div>');i++;
+      }
+      return '<div class="doc">'+out.join('')+'</div>';
+    }
+    function techConsume(v){return {ad_utilizzo:'Ad utilizzo',per_turno:'Per turno',passiva:'Passiva'}[v]||'';}
+    function techCard(t){
+      var parts=[];
+      if(t.category)parts.push(esc(t.category));
+      if(t.grado)parts.push('Grado '+esc(t.grado));
+      if(t.portata)parts.push(esc(t.portata));
+      var cons=techConsume(t.consumption_type); if(cons)parts.push(cons);
+      if(t.chakra_cost!=null)parts.push(esc(t.chakra_cost)+' chakra');
+      var det=[];
+      if(t.bersaglio)det.push('<b>Bersaglio:</b> '+esc(t.bersaglio));
+      if(t.tipo_azione)det.push('<b>Azione:</b> '+esc(t.tipo_azione));
+      if(t.durata)det.push('<b>Durata:</b> '+esc(t.durata));
+      if(t.ricarica)det.push('<b>Ricarica:</b> '+esc(t.ricarica));
+      var unl=[];
+      if(t.xp_cost!=null)unl.push(esc(t.xp_cost)+' XP');
+      if(t.trainings_required!=null)unl.push(esc(t.trainings_required)+' allenament'+(t.trainings_required===1?'o':'i'));
+      if(t.req_grade)unl.push('grado '+esc(t.req_grade));
+      if(t.req_stat)unl.push(esc(t.req_stat)+(t.req_stat_value!=null?(' ≥ '+esc(t.req_stat_value)):''));
+      return '<div class="tech-card"><div class="tc-top"><span class="tc-name">'+esc(t.name)+'</span>'+
+        (t.level!=null?'<span class="tc-lv">Livello '+esc(t.level)+'</span>':'')+'</div>'+
+        (parts.length?'<div class="tc-meta">'+parts.join(' · ')+'</div>':'')+
+        (t.danno_effetto?'<div class="tc-eff"><b>Effetto:</b> '+esc(t.danno_effetto)+'</div>':'')+
+        (det.length?'<div class="tc-det">'+det.join(' · ')+'</div>':'')+
+        (unl.length?'<div class="tc-unlock"><span class="tc-ul-lab">Come si ottiene</span> '+unl.join(' · ')+'</div>':'')+
+        (t.requirements?'<div class="tc-req"><b>Requisiti:</b> '+esc(t.requirements)+'</div>':'')+
+        (t.description?'<div class="tc-desc">'+esc(t.description)+'</div>':'')+
+        '</div>';
     }
 
     boot();
