@@ -146,6 +146,33 @@
   .mel-name{color:var(--ink,#2b1d0e)}.mel-xy{color:var(--ink-soft,#6a5231);font-family:'Cinzel',serif;font-size:11px}
   .map-add{margin-top:12px;display:flex;flex-direction:column;gap:7px}
   .map-add input,.map-add select{font-family:'Cormorant Garamond',serif;font-size:14px;padding:7px 9px;border:1px solid var(--edge,#b79d6c);border-radius:7px;background:#fbf5e6;color:var(--ink,#2b1d0e)}
+  /* --- Sotto-tab, ricerche e voci "aggiungi" --- */
+  .adm-subtabs{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 10px}
+  .adm-subtabs button{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);background:rgba(255,250,235,.5);border:1px solid var(--edge);border-radius:8px;padding:7px 15px;cursor:pointer;transition:.15s}
+  .adm-subtabs button:hover{border-color:var(--red);color:var(--red-deep)}
+  .adm-subtabs button.on{background:var(--red);border-color:var(--red-deep);color:#f6ead0}
+  .adm-search{width:100%;max-width:440px;font-family:'Cormorant Garamond',serif;font-size:15px;padding:9px 12px;border:1px solid var(--edge);border-radius:8px;background:rgba(255,250,235,.7);color:var(--ink);margin:0 0 8px;display:block}
+  .adm-search:focus{outline:none;border-color:var(--red)}
+  .emb-sub{display:none}
+  .emb-sub.on{display:block}
+  .emb-addbtn{margin-left:12px;vertical-align:middle}
+  .emb-addrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 2px}
+  .emb-addrow[hidden]{display:none}
+  .emb-addrow input{font-family:'Cormorant Garamond',serif;font-size:15px;padding:8px 10px;border:1px solid var(--edge);border-radius:7px;background:#fbf4e1;color:var(--ink);min-width:200px}
+  /* --- Legenda laterale espandibile --- */
+  .legend-toggle{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:30;writing-mode:vertical-rl;text-orientation:mixed;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1px solid var(--red-deep);border-left:0;border-radius:0 10px 10px 0;padding:16px 9px;cursor:pointer;transition:left .28s ease;box-shadow:2px 2px 8px rgba(20,12,4,.28)}
+  .legend-toggle:hover{background:var(--red-deep)}
+  .legend-toggle.on{left:min(340px,86vw)}
+  .legend-panel{position:fixed;left:0;top:0;bottom:0;width:min(340px,86vw);z-index:31;background:linear-gradient(var(--paper-hi),var(--paper));border-right:1.5px solid var(--edge);box-shadow:6px 0 24px rgba(20,12,4,.28);transform:translateX(-102%);transition:transform .28s ease;display:flex;flex-direction:column;overflow:hidden}
+  .legend-panel.on{transform:translateX(0)}
+  .legend-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;background:linear-gradient(var(--red),var(--red-deep));color:#f8ecd6;font-family:'Cinzel',serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+  .legend-x{border:0;background:transparent;color:#f8ecd6;font-size:22px;line-height:1;cursor:pointer}
+  .legend-body{padding:12px 16px 22px;overflow-y:auto}
+  .legend-intro{font-style:italic;color:var(--ink-soft);font-size:14px;margin-bottom:10px}
+  .legend-item{border-bottom:1px solid rgba(138,111,67,.2);padding:9px 0}
+  .legend-item:last-child{border-bottom:0}
+  .legend-item b{display:block;font-family:'Cinzel',serif;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);margin-bottom:3px}
+  .legend-item span{font-size:14.5px;color:var(--ink);line-height:1.45}
 </style>
 </head>
 <body>
@@ -189,15 +216,34 @@
           </section>
 
           <section class="adm-page on" data-page="emblemi">
-          <p class="mgr-note" style="margin-top:0">Carica un\u2019immagine per ogni villaggio, clan, grado ed elemento: comparir\u00e0 in automatico su tutte le schede. Consigliato un <b>PNG quadrato con sfondo trasparente</b> (~256\u00d7256, sotto 2&nbsp;MB). Le immagini che carichi sono di tua scelta e responsabilit\u00e0.</p>
-          <div class="grp-title">Villaggi</div>
-          <div class="emgrid" id="grid-village"></div>
-          <div class="grp-title">Clan</div>
-          <div class="emgrid" id="grid-clan"></div>
-          <div class="grp-title">Ranghi</div>
-          <div class="emgrid" id="grid-rank"></div>
-          <div class="grp-title">Elementi</div>
-          <div class="emgrid" id="grid-element"></div>
+          <p class="mgr-note" style="margin-top:0">Carica un’immagine per ogni villaggio, clan, grado ed elemento: comparirà in automatico su tutte le schede. Consigliato un <b>PNG quadrato con sfondo trasparente</b> (~256×256, sotto 2&nbsp;MB). Le immagini che carichi sono di tua scelta e responsabilità.</p>
+          <div class="adm-subtabs" id="emb-subtabs">
+            <button type="button" data-emb="village" class="on">Villaggi</button>
+            <button type="button" data-emb="clan">Clan</button>
+            <button type="button" data-emb="rank">Ranghi</button>
+            <button type="button" data-emb="element">Elementi</button>
+          </div>
+          <input class="adm-search" id="emb-search" type="search" placeholder="Cerca emblema per nome…">
+          <div class="emb-sub on" data-embsub="village">
+            <div class="grp-title">Villaggi <button type="button" class="mini-btn emb-addbtn" data-embadd="village">+ Aggiungi nuovo</button></div>
+            <div class="emb-addrow" id="embadd-village" hidden><input type="text" maxlength="40" placeholder="Nome del villaggio…" data-embname="village"><button type="button" class="mini-btn" data-embok="village">Crea cella</button><button type="button" class="mini-btn" data-embcancel="village">Annulla</button></div>
+            <div class="emgrid" id="grid-village"></div>
+          </div>
+          <div class="emb-sub" data-embsub="clan">
+            <div class="grp-title">Clan <button type="button" class="mini-btn emb-addbtn" data-embadd="clan">+ Aggiungi nuovo</button></div>
+            <div class="emb-addrow" id="embadd-clan" hidden><input type="text" maxlength="40" placeholder="Nome del clan…" data-embname="clan"><button type="button" class="mini-btn" data-embok="clan">Crea cella</button><button type="button" class="mini-btn" data-embcancel="clan">Annulla</button></div>
+            <div class="emgrid" id="grid-clan"></div>
+          </div>
+          <div class="emb-sub" data-embsub="rank">
+            <div class="grp-title">Ranghi <button type="button" class="mini-btn emb-addbtn" data-embadd="rank">+ Aggiungi nuovo</button></div>
+            <div class="emb-addrow" id="embadd-rank" hidden><input type="text" maxlength="40" placeholder="Nome del grado…" data-embname="rank"><button type="button" class="mini-btn" data-embok="rank">Crea cella</button><button type="button" class="mini-btn" data-embcancel="rank">Annulla</button></div>
+            <div class="emgrid" id="grid-rank"></div>
+          </div>
+          <div class="emb-sub" data-embsub="element">
+            <div class="grp-title">Elementi <button type="button" class="mini-btn emb-addbtn" data-embadd="element">+ Aggiungi nuovo</button></div>
+            <div class="emb-addrow" id="embadd-element" hidden><input type="text" maxlength="40" placeholder="Nome dell'elemento…" data-embname="element"><button type="button" class="mini-btn" data-embok="element">Crea cella</button><button type="button" class="mini-btn" data-embcancel="element">Annulla</button></div>
+            <div class="emgrid" id="grid-element"></div>
+          </div>
           </section>
           <section class="adm-page" data-page="oggetti">
           <div class="grp-title" style="margin-top:0">Catalogo oggetti</div>
@@ -219,6 +265,7 @@
             <button class="btn" id="it-reset" style="display:none">Annulla modifica</button>
             <span id="it-editing" class="editing-note"></span>
           </div>
+          <input class="adm-search" id="cat-search" type="search" placeholder="Cerca oggetto per nome o categoria…">
           <div id="cat-list"></div>
           </section>
           <section class="adm-page" data-page="luoghi">
@@ -227,7 +274,7 @@
           <div class="cat-form" id="loc-form">
             <label>Nome<input id="loc-name" maxlength="80" placeholder="es. Konoha — Piazza"></label>
             <label>Tipo<select id="loc-kind"><option value="villaggio">Villaggio</option><option value="quartiere">Quartiere</option><option value="edificio">Edificio</option><option value="area">Area</option><option value="negozio">Negozio</option><option value="altro">Altro</option></select></label>
-            <label>Villaggio <span class="opt">(per il meteo)</span><select id="loc-region"><option value="">— nessuno —</option><option value="konoha">Konoha</option><option value="suna">Suna</option></select></label>
+            <label>Meteo<select id="loc-region"><option value="">— nessuno —</option><option value="konoha">Konoha</option><option value="suna">Suna</option></select></label>
             <label>Ordine<input id="loc-sort" type="number" step="1" placeholder="1"></label>
             <label class="chk"><input type="checkbox" id="loc-active" checked> Attivo (visibile in gioco)</label>
             <label class="full">Descrizione<textarea id="loc-desc" maxlength="600" rows="3" placeholder="Cosa si trova qui, atmosfera, chi lo frequenta…"></textarea></label>
@@ -248,6 +295,13 @@
             <button class="btn" id="loc-reset" style="display:none">Annulla modifica</button>
             <span id="loc-editing" class="editing-note"></span>
           </div>
+          <div class="adm-subtabs" id="loc-subtabs">
+            <button type="button" data-locreg="__all__" class="on">Tutti</button>
+            <button type="button" data-locreg="">Mondo</button>
+            <button type="button" data-locreg="konoha">Konoha</button>
+            <button type="button" data-locreg="suna">Suna</button>
+          </div>
+          <input class="adm-search" id="loc-search" type="search" placeholder="Cerca luogo per nome…">
           <div id="loc-list"></div>
           </section>
           <section class="adm-page" data-page="mappa">
@@ -314,6 +368,7 @@
             <button class="btn" id="clan-reset" style="display:none">Annulla modifica</button>
             <span id="clan-editing" class="editing-note"></span>
           </div>
+          <input class="adm-search" id="clan-search" type="search" placeholder="Cerca clan per nome…">
           <div id="clan-list"></div>
           </section>
 
@@ -351,6 +406,7 @@
             <button class="btn" id="tech-reset" style="display:none">Annulla modifica</button>
             <span id="tech-editing" class="editing-note"></span>
           </div>
+          <input class="adm-search" id="tech-search" type="search" placeholder="Cerca tecnica per nome o clan…">
           <div id="tech-list"></div>
           </section>
 
@@ -393,6 +449,26 @@
   </div>
   <div class="toast" id="toast"></div>
 
+  <button type="button" id="legend-toggle" class="legend-toggle" aria-expanded="false" aria-controls="legend-panel" title="Apri la legenda del pannello">? Legenda</button>
+  <aside id="legend-panel" class="legend-panel" aria-hidden="true">
+    <div class="legend-head"><span>Legenda del pannello</span><button type="button" id="legend-close" class="legend-x" aria-label="Chiudi la legenda">×</button></div>
+    <div class="legend-body">
+      <p class="legend-intro">Cosa fa ogni scheda e quali parti del sito tocca. Puoi tenere aperto questo pannello mentre lavori.</p>
+      <div class="legend-item"><b>Emblemi</b><span>Carichi le immagini di villaggi, clan, gradi ed elementi (sotto-sezioni). Compaiono in automatico su schede personaggio, chat e pagina del clan. Con «+ Aggiungi nuovo» crei nuove voci.</span></div>
+      <div class="legend-item"><b>Clan</b><span>Testi del clan — descrizione, storia, statuto, abilità — e accesso ristretto. Alimentano la pagina del clan. Puoi creare nuovi clan (compaiono anche negli emblemi e nelle schede).</span></div>
+      <div class="legend-item"><b>Tecniche</b><span>Crei le tecniche/abilità dei clan con la scheda completa e la meccanica di allenamento (costo XP, sessioni, grado e caratteristica richiesti). Usate nelle schede e nell'apprendimento.</span></div>
+      <div class="legend-item"><b>Allenamenti</b><span>Approvi le sessioni di allenamento avviate dai personaggi; completate le sessioni richieste la tecnica diventa attiva e utilizzabile.</span></div>
+      <div class="legend-item"><b>Oggetti</b><span>Catalogo oggetti: armi, equipaggiamento, contenitori, peso, costo, immagini e descrizioni. Alimenta il negozio e gli inventari dei personaggi.</span></div>
+      <div class="legend-item"><b>Luoghi</b><span>Crei e modifichi le stanze di gioco in chat; il campo <b>Meteo</b> assegna la zona meteo Konoha/Suna. I sotto-tab filtrano l'elenco per villaggio.</span></div>
+      <div class="legend-item"><b>Mappa</b><span>Posizioni i marker trascinandoli: i villaggi sulla mappa del Mondo, i luoghi sulla mappa del loro villaggio.</span></div>
+      <div class="legend-item"><b>Bacheche</b><span>Sezioni delle bacheche mostrate nella land: categoria On game/Off, ordine e chi può scrivere.</span></div>
+      <div class="legend-item"><b>Banda notizie</b><span>La notizia flash che scorre in cima alla mappa della land. Lascia vuoto per nasconderla.</span></div>
+      <div class="legend-item"><b>Registro</b><span>Audit di acquisti, vendite e assegnazioni di oggetti dei personaggi, dal più recente. Sola lettura.</span></div>
+      <div class="legend-item"><b>Messaggi</b><span>Log di moderazione dei messaggi privati scambiati tra gli utenti. Sola lettura.</span></div>
+      <div class="legend-item"><b>Archivio</b><span>Role registrate dai giocatori e chat di gioco archiviata oltre le 24 ore. Sola lettura.</span></div>
+    </div>
+  </aside>
+
   <div class="rov" id="rov" hidden>
     <div class="rov-bk" id="rov-bk"></div>
     <div class="rov-card" role="dialog" aria-modal="true">
@@ -411,6 +487,8 @@
     var CLANS=['Hyuga','Nara','Akimichi','Inuzuka','Aburame','Marionettisti','Sabaku','Dokugan','Uchiha'];
     var RANKS=['Deshi','Genin','Chunin','Jonin','Jonin Speciale','Kage Konoha','Kage Suna','Sannin'];
     var me=null, EMB={};
+    var EMB_EXTRA={village:[],clan:[],rank:[],element:[]};
+    var embSearch='',catSearch='',locSearch='',techSearch='',clanSearch='',locRegionFilter='__all__';
     function $(id){return document.getElementById(id);}
     function show(id){['st-loading','st-guest','st-denied','st-mgr'].forEach(function(s){$(s).classList.toggle('on',s===id);});}
     /* ---- Editor Mappa (posiziona marker) ---- */
@@ -494,11 +572,31 @@
         '<label class="up">Carica immagine<input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" data-kind="'+kind+'" data-name="'+name+'"></label>';
       return d;
     }
+    function embBaseNames(kind){
+      if(kind==='village')return VILLAGES.slice();
+      if(kind==='clan')return (CLAN_ROWS&&CLAN_ROWS.length)?CLAN_ROWS.map(function(c){return c.name;}):CLANS.slice();
+      if(kind==='rank')return RANKS.slice();
+      return ['Fuoco','Vento','Fulmine','Terra','Acqua'];
+    }
+    function embNames(kind){
+      var out=[],seen={};
+      embBaseNames(kind).forEach(function(n){var key=(''+n).toLowerCase();if(!seen[key]){seen[key]=1;out.push(n);}});
+      Object.keys(EMB).forEach(function(k){var i=k.indexOf(':');if(i<0)return;var kk=k.slice(0,i),nm=k.slice(i+1);if(kk===kind){var key=nm.toLowerCase();if(!seen[key]){seen[key]=1;out.push(nm);}}});
+      (EMB_EXTRA[kind]||[]).forEach(function(nm){var key=(''+nm).toLowerCase();if(!seen[key]){seen[key]=1;out.push(nm);}});
+      return out;
+    }
+    function fillGrid(kind,hostId){
+      var host=$(hostId);if(!host)return;host.innerHTML='';
+      var q=embSearch.toLowerCase();
+      var names=embNames(kind).filter(function(n){return !q||(''+n).toLowerCase().indexOf(q)>=0;});
+      if(!names.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">'+(q?'Nessun emblema trovato.':'Nessuna voce.')+'</p>';return;}
+      names.forEach(function(n){host.appendChild(card(kind,n));});
+    }
     function renderGrids(){
-      var gv=$('grid-village');gv.innerHTML='';VILLAGES.forEach(function(n){gv.appendChild(card('village',n));});
-      var gc=$('grid-clan');gc.innerHTML='';var _cn=(CLAN_ROWS&&CLAN_ROWS.length)?CLAN_ROWS.map(function(c){return c.name;}):CLANS;_cn.forEach(function(n){gc.appendChild(card('clan',n));});
-      var gr=$('grid-rank');if(gr){gr.innerHTML='';RANKS.forEach(function(n){gr.appendChild(card('rank',n));});}
-      var ge=$('grid-element');if(ge){ge.innerHTML='';['Fuoco','Vento','Fulmine','Terra','Acqua'].forEach(function(n){ge.appendChild(card('element',n));});}
+      fillGrid('village','grid-village');
+      fillGrid('clan','grid-clan');
+      fillGrid('rank','grid-rank');
+      fillGrid('element','grid-element');
     }
     document.addEventListener('change',async function(e){
       var inp=e.target;if(!inp||inp.type!=='file'||!inp.getAttribute('data-kind'))return;
@@ -528,8 +626,14 @@
     async function loadItems(){var r=await sb.from('items').select('*').order('category').order('name');ITEMS=(r&&r.data)||[];renderCatalog();}
     function renderCatalog(){
       var host=$('cat-list');if(!host)return;host.innerHTML='';
+      var q=catSearch.toLowerCase();
       CATS.forEach(function(cat){
-        var list=ITEMS.filter(function(x){return x.category===cat[0];});
+        var catHit=!!q&&(cat[1].toLowerCase().indexOf(q)>=0||cat[0].toLowerCase().indexOf(q)>=0);
+        var list=ITEMS.filter(function(x){
+          if(x.category!==cat[0])return false;
+          if(!q)return true;
+          return catHit||(''+(x.name||'')).toLowerCase().indexOf(q)>=0;
+        });
         if(!list.length)return;
         var block=document.createElement('div');
         var rows=list.map(function(it){
@@ -546,6 +650,7 @@
         block.innerHTML='<div class="grp-sub">'+cat[1]+'</div>'+rows;
         host.appendChild(block);
       });
+      if(!host.children.length){host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">'+(q?'Nessun oggetto trovato.':'Nessun oggetto.')+'</p>';}
     }
     function bindCatalog(){
       $('it-slot').addEventListener('change',slotChange);
@@ -609,7 +714,14 @@
     function renderLocs(){
       var host=$('loc-list');if(!host)return;
       if(!LOCS.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun luogo ancora. Creane uno qui sopra.</p>';return;}
-      host.innerHTML=LOCS.map(function(l){
+      var q=locSearch.toLowerCase();
+      var list=LOCS.filter(function(l){
+        if(locRegionFilter!=='__all__'&&(''+(l.region||''))!==locRegionFilter)return false;
+        if(q&&(''+(l.name||'')).toLowerCase().indexOf(q)<0)return false;
+        return true;
+      });
+      if(!list.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun luogo per questo filtro.</p>';return;}
+      host.innerHTML=list.map(function(l){
         var coord=(l.map_x!=null&&l.map_y!=null)?(' · mappa '+l.map_x+'/'+l.map_y):' · posizione mappa da impostare';
         var thumb=l.image_url?('<div class="lthumb"><img src="'+esc(l.image_url)+'" alt=""></div>'):'';
         var reg=l.region?(' · '+l.region.charAt(0).toUpperCase()+l.region.slice(1)):'';
@@ -850,7 +962,7 @@
     function clanFilled(v){return (v&&String(v).trim().length)?'\u2713':'\u2014';}
     function clanRowHTML(c){
       var flags=(c.is_gated?' \u00b7 <span class="lnote">accesso ristretto</span>':'')+(c.is_active?'':' \u00b7 disattivato');
-      var prog='descr. '+clanFilled(c.description)+' \u00b7 storia '+clanFilled(c.history)+' \u00b7 statuto '+clanFilled(c.statute)+' \u00b7 abilit\u00e0 '+clanFilled(c.abilities);
+      var prog='descr. '+clanFilled(c.description)+' \u00b7 storia '+clanFilled(c.history)+' \u00b7 statuto '+clanFilled(c.statute)+' \u00b7 abilità '+clanFilled(c.abilities);
       return '<div class="locrow'+(c.is_active?'':' off')+'">'+
         '<div class="lmain"><span class="lname">'+esc(c.name)+'</span><span class="lkind">'+esc(c.village||'')+'</span>'+
         '<span class="lmeta">'+prog+flags+'</span></div>'+
@@ -862,13 +974,16 @@
     function renderClanList(){
       var host=$('clan-list');if(!host)return;
       if(!CLAN_ROWS.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun clan. Creane uno qui sopra.</p>';return;}
+      var q=clanSearch.toLowerCase();
+      var SRC=CLAN_ROWS.filter(function(c){return !q||(''+(c.name||'')).toLowerCase().indexOf(q)>=0;});
+      if(!SRC.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun clan trovato.</p>';return;}
       var groups=['Konoha','Suna'];
       var html=groups.map(function(g){
-        var rows=CLAN_ROWS.filter(function(c){return c.village===g;});
+        var rows=SRC.filter(function(c){return c.village===g;});
         if(!rows.length)return '';
         return '<div class="bd-cat">'+g+'</div>'+rows.map(clanRowHTML).join('');
       }).join('');
-      var extra=CLAN_ROWS.filter(function(c){return c.village!=='Konoha'&&c.village!=='Suna';});
+      var extra=SRC.filter(function(c){return c.village!=='Konoha'&&c.village!=='Suna';});
       if(extra.length)html+='<div class="bd-cat">Altri</div>'+extra.map(clanRowHTML).join('');
       host.innerHTML=html;
     }
@@ -926,14 +1041,17 @@
     function renderTechs(){
       var host=$('tech-list');if(!host)return;
       if(!TECHS.length){host.innerHTML='<p class="mgr-note" style="margin-top:14px">Nessuna tecnica inserita, per ora.</p>';return;}
+      var q=techSearch.toLowerCase();
+      var SRC=TECHS.filter(function(t){return !q||(''+(t.name||'')).toLowerCase().indexOf(q)>=0||(''+(t.clan||'')).toLowerCase().indexOf(q)>=0;});
+      if(!SRC.length){host.innerHTML='<p class="mgr-note" style="margin-top:14px">Nessuna tecnica trovata.</p>';return;}
       var groups=[{k:'',t:'Generali'}].concat(CLANS.map(function(c){return {k:c,t:c};}));
       var html='';
       groups.forEach(function(g){
-        var rows=TECHS.filter(function(x){return (x.clan||'')===g.k;});
+        var rows=SRC.filter(function(x){return (x.clan||'')===g.k;});
         if(!rows.length)return;
         html+='<div class="grp-sub">'+esc(g.t)+'</div>'+rows.map(techRow).join('');
       });
-      var extra=TECHS.filter(function(x){var k=x.clan||'';return k!==''&&CLANS.indexOf(k)<0;});
+      var extra=SRC.filter(function(x){var k=x.clan||'';return k!==''&&CLANS.indexOf(k)<0;});
       if(extra.length){html+='<div class="grp-sub">Altri</div>'+extra.map(techRow).join('');}
       host.innerHTML=html;
     }
@@ -974,6 +1092,66 @@
       try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){}
     }
     (function(){var nav=document.getElementById('adm-nav'); if(!nav)return; nav.addEventListener('click',function(e){var b=e.target.closest('button[data-go]'); if(b)admGo(b.getAttribute('data-go'));}); var saved=null; try{saved=localStorage.getItem('tus_adm_tab');}catch(e){} if(saved)admGo(saved);})();
+    /* ---- Emblemi: sotto-sezioni + "Aggiungi nuovo" + ricerca ---- */
+    (function(){
+      var subnav=document.getElementById('emb-subtabs'); if(!subnav) return;
+      function embGo(kind){
+        var subs=document.querySelectorAll('.emb-sub'); for(var i=0;i<subs.length;i++){subs[i].classList.toggle('on',subs[i].getAttribute('data-embsub')===kind);}
+        var bts=subnav.querySelectorAll('button[data-emb]'); for(var j=0;j<bts.length;j++){bts[j].classList.toggle('on',bts[j].getAttribute('data-emb')===kind);}
+        try{localStorage.setItem('tus_emb_sub',kind);}catch(e){}
+      }
+      function embCreate(kind){
+        var row=document.getElementById('embadd-'+kind); if(!row)return;
+        var inp=row.querySelector('[data-embname]'); var raw=inp?inp.value:'';
+        var name=(''+raw).replace(/[<>"\/\\]/g,'').replace(/\s+/g,' ').trim();
+        if(name.length<2){toast('Nome troppo corto',true);return;}
+        var exists=embNames(kind).some(function(n){return (''+n).toLowerCase()===name.toLowerCase();});
+        if(exists){toast('Esiste già una voce con questo nome',true);return;}
+        EMB_EXTRA[kind].push(name); row.hidden=true; if(inp)inp.value='';
+        embGo(kind); renderGrids();
+        toast('Cella creata: ora carica l’immagine');
+      }
+      subnav.addEventListener('click',function(e){var b=e.target.closest('button[data-emb]'); if(b)embGo(b.getAttribute('data-emb'));});
+      var sec=document.querySelector('.adm-page[data-page="emblemi"]');
+      if(sec){
+        sec.addEventListener('click',function(e){
+          var ab=e.target.closest('[data-embadd]');
+          if(ab){var k=ab.getAttribute('data-embadd');var row=document.getElementById('embadd-'+k);if(row){row.hidden=false;var inp=row.querySelector('[data-embname]');if(inp){inp.value='';inp.focus();}}return;}
+          var cb=e.target.closest('[data-embcancel]');
+          if(cb){var k2=cb.getAttribute('data-embcancel');var r2=document.getElementById('embadd-'+k2);if(r2)r2.hidden=true;return;}
+          var ok=e.target.closest('[data-embok]');
+          if(ok){embCreate(ok.getAttribute('data-embok'));return;}
+        });
+        sec.addEventListener('keydown',function(e){
+          if(e.key!=='Enter')return; var inp=e.target.closest('[data-embname]'); if(!inp)return; e.preventDefault(); embCreate(inp.getAttribute('data-embname'));
+        });
+      }
+      var es=document.getElementById('emb-search');
+      if(es)es.addEventListener('input',function(){embSearch=this.value||'';renderGrids();});
+      var saved=null; try{saved=localStorage.getItem('tus_emb_sub');}catch(e){}
+      embGo(saved||'village');
+    })();
+    /* ---- Luoghi: sotto-tab per regione + ricerca ---- */
+    (function(){
+      var subnav=document.getElementById('loc-subtabs');
+      if(subnav)subnav.addEventListener('click',function(e){var b=e.target.closest('button[data-locreg]'); if(!b)return; locRegionFilter=b.getAttribute('data-locreg'); var bts=subnav.querySelectorAll('button[data-locreg]'); for(var i=0;i<bts.length;i++)bts[i].classList.toggle('on',bts[i]===b); renderLocs();});
+      var ls=document.getElementById('loc-search'); if(ls)ls.addEventListener('input',function(){locSearch=this.value||'';renderLocs();});
+    })();
+    /* ---- Ricerche liste: oggetti, tecniche, clan ---- */
+    (function(){
+      var cs=document.getElementById('cat-search'); if(cs)cs.addEventListener('input',function(){catSearch=this.value||'';renderCatalog();});
+      var ts=document.getElementById('tech-search'); if(ts)ts.addEventListener('input',function(){techSearch=this.value||'';renderTechs();});
+      var ns=document.getElementById('clan-search'); if(ns)ns.addEventListener('input',function(){clanSearch=this.value||'';renderClanList();});
+    })();
+    /* ---- Legenda laterale espandibile ---- */
+    (function(){
+      var t=document.getElementById('legend-toggle'), p=document.getElementById('legend-panel'), x=document.getElementById('legend-close');
+      if(!t||!p)return;
+      function set(open){p.classList.toggle('on',open);t.classList.toggle('on',open);t.setAttribute('aria-expanded',open?'true':'false');p.setAttribute('aria-hidden',open?'false':'true');}
+      t.addEventListener('click',function(){set(!p.classList.contains('on'));});
+      if(x)x.addEventListener('click',function(){set(false);});
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'&&p.classList.contains('on'))set(false);});
+    })();
     async function loadTrainings(){ if(!sb)return; var host=$('atrain-list'); if(!host)return; host.innerHTML='<p class="mgr-note">Caricamento…</p>';
       var r=await sb.rpc('all_pending_trainings'); if(r.error){ host.innerHTML='<p class="mgr-note">Errore nel caricamento.</p>'; return; }
       var rows=(r&&r.data)||[];
