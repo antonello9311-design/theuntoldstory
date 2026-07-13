@@ -125,6 +125,15 @@
   .jsub{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:10px 0 6px}
   .jgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
   .jcard{border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.5);padding:10px 12px}
+  .tr-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.5);padding:9px 12px;margin-bottom:8px}
+  .tr-main{flex:1;min-width:120px}
+  .tr-meta{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin-left:6px}
+  .tr-req{display:block;font-size:12.5px;color:var(--ink-soft);font-style:italic;margin-top:3px}
+  .tr-badge{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.06em;text-transform:uppercase;border-radius:20px;padding:4px 10px;white-space:nowrap;border:1px solid var(--edge);color:var(--ink-soft)}
+  .tr-badge.on{background:linear-gradient(180deg,#caa64a,#9c7a24);border-color:#7c5f16;color:#3a2a06}
+  .tr-prog{background:rgba(124,36,19,.08);border-color:var(--rule);color:var(--red-deep)}
+  #train-wrap .mini-btn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#f6ead0;background:linear-gradient(180deg,var(--red),var(--red-deep));border:1px solid var(--red-deep);border-radius:8px;padding:6px 12px;cursor:pointer}
+  #train-wrap .mini-btn[disabled]{opacity:.5}
   .jtop{display:flex;align-items:baseline;gap:8px}
   .jname{font-family:'Cinzel',serif;font-weight:600;font-size:13px;color:var(--ink);flex:1}
   .jrank{font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:#f6ead0;background:var(--rule,#8a6f43);border-radius:9px;padding:1px 7px;flex:0 0 auto}
@@ -457,7 +466,8 @@
           <div id="page-jutsu" class="spage">
             <div class="ssec" id="sec-jutsu"><h3>Jutsu e abilità</h3>
               <p class="hint">Le <b>abilità</b> (competenze e capacità) e i <b>jutsu</b> (tecniche) appresi dal personaggio: si imparano all'Accademia e con la progressione.</p>
-              <div id="jutsu-wrap"></div></div>
+              <div id="jutsu-wrap"></div>
+              <div id="train-wrap" style="margin-top:18px"></div></div>
           </div>
           <div id="page-acad" class="spage">
             <div class="ssec" id="sec-acad"><h3>Accademia</h3>
@@ -654,6 +664,40 @@
         host.innerHTML=html;
       }, function(){ host.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tecniche.</p>'; });
     }
+    function renderTraining(){
+      var host=$('train-wrap'); if(!host) return;
+      if(viewMode==='public'||!sb||!myChar||!myChar.clan||myChar.clan==='Nessuno'){ host.innerHTML=''; return; }
+      var canAct=(viewMode!=='public');
+      host.innerHTML='<div class="jgroup"><div class="jgh">Tecniche del clan · Allenamento</div><p class="hint" style="margin:.2em 0 .7em">Le tecniche del clan si sbloccano allenandosi in gioco: paghi l\'XP per l\'idoneità, poi servono gli allenamenti con un maestro, confermati dal Capo clan o dallo staff (uno al giorno).</p><div id="train-list"><p class="hint" style="margin:0">Caricamento…</p></div></div>';
+      var byId={};
+      sb.rpc('my_abilities',{p_character:myChar.id}).then(function(ar){
+        (ar&&ar.data||[]).forEach(function(a){ byId[a.technique_id]=a; });
+        return sb.from('clan_techniques').select('*').eq('clan',myChar.clan).eq('is_active',true).order('name').order('level');
+      }).then(function(r){
+        var list=$('train-list'); if(!list) return;
+        var techs=(r&&r.data)||[];
+        if(!techs.length){ list.innerHTML='<p class="hint" style="margin:0">Il clan non ha ancora tecniche.</p>'; return; }
+        list.innerHTML=techs.map(function(t){
+          var a=byId[t.id], badge, action='';
+          if(a&&a.state==='attiva'){ badge='<span class="tr-badge on">Attiva</span>'; }
+          else if(a&&a.state==='in_addestramento'){ badge='<span class="tr-badge tr-prog">In addestramento '+(a.sessions_done||0)+'/'+(a.sessions_required||1)+'</span>'; }
+          else { badge='<span class="tr-badge">Da apprendere</span>'; if(canAct) action='<button type="button" class="mini-btn" data-train="'+t.id+'">Allena</button>'; }
+          var meta=[]; if(t.level!=null)meta.push('Liv. '+t.level); if(t.grado)meta.push(esc(t.grado)); if(t.xp_cost!=null)meta.push(t.xp_cost+' XP'); if(t.trainings_required!=null)meta.push(t.trainings_required+(t.trainings_required===1?' allenamento':' allenamenti'));
+          var reqbits=[]; if(t.req_grade)reqbits.push('grado '+esc(t.req_grade)); if(t.req_stat)reqbits.push(esc(t.req_stat)+(t.req_stat_value!=null?(' '+t.req_stat_value):''));
+          return '<div class="tr-row"><div class="tr-main"><b>'+esc(t.name)+'</b> <span class="tr-meta">'+meta.join(' · ')+'</span>'+(reqbits.length?('<span class="tr-req">Sblocco: '+reqbits.join(' · ')+'</span>'):'')+'</div>'+badge+action+'</div>';
+        }).join('');
+      }, function(){ var list=$('train-list'); if(list)list.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tecniche.</p>'; });
+    }
+    (function(){ var tw=$('train-wrap'); if(!tw) return; tw.addEventListener('click',async function(e){
+      var b=e.target.closest('[data-train]'); if(!b) return;
+      b.disabled=true;
+      var r=await sb.rpc('training_start',{p_technique:b.getAttribute('data-train'),p_character:myChar.id});
+      b.disabled=false;
+      if(r.error){ toast('Errore',true); return; }
+      var d=r.data||{};
+      if(d.ok){ toast('Addestramento avviato'+(d.xp_spent?(' · '+d.xp_spent+' XP spesi'):'')); renderTraining(); }
+      else { toast((d.reasons&&d.reasons.length)?d.reasons.join(' · '):'Non idoneo',true); }
+    }); })();
     function renderUnspent(c){var box=$('unspent-box');if(!c.unspent_points||c.unspent_points<=0){box.style.display='none';return;}box.style.display='block';addBuf={};$('u-pts').textContent=c.unspent_points;var host=$('u-rows');host.innerHTML='';STATS.forEach(function(s){addBuf[s[0]]=0;var row=document.createElement('div');row.className='steprow';row.innerHTML='<span class="cn">'+s[1]+'</span><button type="button" class="stbtn minus" data-k="'+s[0]+'" data-d="-1">−5</button><span class="stval" id="ua-'+s[0]+'">'+(c[s[0]]||BASE)+'</span><button type="button" class="stbtn" data-k="'+s[0]+'" data-d="1">+5</button>';host.appendChild(row);});}
     $('u-rows').addEventListener('click',function(e){var b=e.target.closest('.stbtn');if(!b)return;var k=b.getAttribute('data-k'),d=parseInt(b.getAttribute('data-d')||'1',10),used=0,kk;for(kk in addBuf)used+=addBuf[kk];if(d>0){if(used+STEP>myChar.unspent_points)return;addBuf[k]+=STEP;}else{if(addBuf[k]<STEP)return;addBuf[k]-=STEP;}used=0;for(kk in addBuf)used+=addBuf[kk];$('ua-'+k).textContent=(myChar[k]||BASE)+addBuf[k];var up=$('u-pts');if(up)up.textContent=(myChar.unspent_points-used);});
     $('u-confirm').addEventListener('click',async function(){var used=0;for(var kk in addBuf)used+=addBuf[kk];if(used===0){toast('Nessun punto assegnato',true);return;}this.disabled=true;var upd={unspent_points:myChar.unspent_points-used};STATS.forEach(function(s){upd[s[0]]=(myChar[s[0]]||BASE)+addBuf[s[0]];});var r=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();this.disabled=false;if(r.error){toast('Errore',true);return;}myChar=r.data;fillForm(myChar,curPriv);toast('Punti assegnati');});
@@ -674,6 +718,7 @@
       $('f-background').value=c.background||''; $('f-off').value=c.off_notes||''; $('f-fato').value=priv&&priv.fato_notes?priv.fato_notes:''; setPortrait(c.avatar_url);
       applyMode();
       renderJutsu();
+      renderTraining();
       renderAcademyLog();
       renderRoleLibrary();
     }

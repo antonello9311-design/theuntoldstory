@@ -169,6 +169,7 @@
             <button type="button" data-go="emblemi" class="on">Emblemi</button>
             <button type="button" data-go="clan">Clan</button>
             <button type="button" data-go="tecniche">Tecniche</button>
+            <button type="button" data-go="allenamenti">Allenamenti</button>
             <button type="button" data-go="oggetti">Oggetti</button>
             <button type="button" data-go="luoghi">Luoghi</button>
             <button type="button" data-go="mappa">Mappa</button>
@@ -351,6 +352,13 @@
             <span id="tech-editing" class="editing-note"></span>
           </div>
           <div id="tech-list"></div>
+          </section>
+
+          <section class="adm-page" data-page="allenamenti">
+          <div class="grp-title" style="margin-top:0">Allenamenti in corso</div>
+          <p class="mgr-note">Gli addestramenti avviati dai personaggi. Dopo una <b>sessione di allenamento giocata</b>, premi <b>Conferma sessione</b>: quando le sessioni richieste sono complete la tecnica diventa <b>attiva</b> e il personaggio può usarla. Limite di <b>un allenamento al giorno</b> per personaggio (anche il Capo clan può confermare, dalla land).</p>
+          <div class="cat-actions"><button class="btn" id="train-refresh">Aggiorna</button></div>
+          <div id="atrain-list"></div>
           </section>
 
           <section class="adm-page" data-page="registro">
@@ -966,6 +974,25 @@
       try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){}
     }
     (function(){var nav=document.getElementById('adm-nav'); if(!nav)return; nav.addEventListener('click',function(e){var b=e.target.closest('button[data-go]'); if(b)admGo(b.getAttribute('data-go'));}); var saved=null; try{saved=localStorage.getItem('tus_adm_tab');}catch(e){} if(saved)admGo(saved);})();
+    async function loadTrainings(){ if(!sb)return; var host=$('atrain-list'); if(!host)return; host.innerHTML='<p class="mgr-note">Caricamento…</p>';
+      var r=await sb.rpc('all_pending_trainings'); if(r.error){ host.innerHTML='<p class="mgr-note">Errore nel caricamento.</p>'; return; }
+      var rows=(r&&r.data)||[];
+      if(!rows.length){ host.innerHTML='<p class="mgr-note" style="margin-top:12px">Nessun allenamento in corso.</p>'; return; }
+      host.innerHTML=rows.map(function(t){
+        return '<div class="itrow"><div class="itmain"><b>'+esc(t.character_name||'—')+'</b> <span class="itmeta">· '+esc(t.clan||'—')+'</span>'+
+          '<span class="itdesc"><b>'+esc(t.technique_name)+'</b>'+(t.level!=null?(' · Liv. '+t.level):'')+' — sessioni '+(t.sessions_done||0)+'/'+(t.sessions_required||1)+'</span></div>'+
+          '<button class="mini-btn" data-tconfirm="'+t.character_id+'|'+t.technique_id+'">Conferma sessione</button></div>';
+      }).join('');
+    }
+    function bindTrainings(){ var rb=$('train-refresh'); if(rb)rb.addEventListener('click',loadTrainings);
+      var lst=$('atrain-list'); if(lst)lst.addEventListener('click',async function(e){ var b=e.target.closest('[data-tconfirm]'); if(!b)return;
+        var parts=b.getAttribute('data-tconfirm').split('|'); b.disabled=true;
+        var r=await sb.rpc('training_confirm',{p_character:parts[0],p_technique:parts[1]}); b.disabled=false;
+        if(r.error){ toast('Errore',true); return; }
+        var d=r.data||{};
+        if(d.ok){ toast(d.activated?'Tecnica attivata!':('Sessione '+d.sessions_done+'/'+d.sessions_required)); loadTrainings(); }
+        else { toast(d.reason||'Non confermato',true); }
+      }); }
     async function init(){
       if(!sb){show('st-guest');return;}
       var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;
@@ -975,7 +1002,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindTechs();await loadTechs();bindLocs();await loadLocs();bindBoards();await loadBoards();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
+      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindTechs();await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
