@@ -212,6 +212,7 @@
   .room-grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 274px;gap:14px}
   .room-side{min-height:0;display:flex;flex-direction:column;gap:12px}
   .side-card{border:1px solid var(--rule);border-radius:12px;background:rgba(247,238,214,.5);padding:11px 12px;display:flex;flex-direction:column;min-height:0}
+  .side-card[hidden]{display:none}
   .side-k{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);margin-bottom:8px}
   .side-card.place{flex:0 0 auto}
   .place-img{width:100%;max-height:158px;object-fit:cover;border:1.5px solid var(--rule);border-radius:9px;display:none;margin-bottom:9px}
@@ -409,6 +410,29 @@
   .msg .m-body .sp-act{font-style:italic;color:var(--ink-soft)}
   /* #5 contatore caratteri */
   .composer-tools{display:flex;align-items:center;gap:12px;flex-shrink:0}
+  .place-bar{display:flex;align-items:center;gap:7px;margin-top:8px;border:1px solid var(--edge);border-radius:8px;background:rgba(255,250,235,.55);padding:5px 10px}
+  .place-bar .pb-ic{width:15px;height:15px;color:var(--red-deep);flex:0 0 auto}
+  .place-bar .pb-input{flex:1;min-width:0;border:0;background:transparent;outline:0;font-family:'Cormorant Garamond',serif;font-size:14.5px;color:var(--ink)}
+  .place-bar .pb-input::placeholder{color:var(--ink-soft);font-style:italic}
+  .legend-btn{width:26px;height:26px;flex:0 0 auto;border:1px solid var(--edge);border-radius:50%;background:transparent;color:var(--red-deep);font-family:'Cinzel',serif;font-size:13px;font-weight:700;cursor:pointer;line-height:1}
+  .legend-btn:hover{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+  .m-place{display:inline-flex;align-items:center;gap:4px;margin:2px 0 3px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--red-deep);background:rgba(166,50,29,.08);border:1px solid var(--edge);border-radius:20px;padding:2px 9px 2px 6px}
+  .m-place .pin{width:12px;height:12px;flex:0 0 auto}
+  .legend-ov{position:fixed;inset:0;z-index:82;display:flex;align-items:center;justify-content:center;padding:16px}
+  .legend-ov[hidden]{display:none}
+  .legend-bk{position:absolute;inset:0;background:rgba(30,18,6,.55)}
+  .legend-card{position:relative;z-index:1;width:min(560px,100%);max-height:88vh;display:flex;flex-direction:column;background:linear-gradient(#f1e6ca,#e7d6b2);border:1px solid var(--edge);border-radius:14px;box-shadow:0 24px 60px rgba(20,12,4,.5);overflow:hidden}
+  .legend-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--edge);background:rgba(255,250,235,.45)}
+  .legend-head h3{margin:0;font-family:'Cinzel',serif;font-size:15px;color:var(--red-deep);flex:1;letter-spacing:.04em}
+  .legend-body{padding:16px 20px;overflow-y:auto}
+  .lg-block{margin-bottom:18px}
+  .lg-block:last-child{margin-bottom:2px}
+  .lg-block h4{font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--red-deep);margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid rgba(138,111,67,.35)}
+  .lg-block p{font-size:16px;line-height:1.6;color:var(--ink);margin:0 0 8px}
+  .lg-block ul{list-style:none;margin:0 0 6px;padding:0;display:flex;flex-direction:column;gap:7px}
+  .lg-block li{position:relative;padding-left:16px;font-size:15.5px;line-height:1.5;color:var(--ink)}
+  .lg-block li::before{content:"";position:absolute;left:2px;top:.6em;width:6px;height:6px;background:var(--red);transform:rotate(45deg)}
+  .lg-ex{font-style:italic;color:var(--ink-soft);background:rgba(138,111,67,.08);border-left:3px solid var(--edge);padding:8px 12px;border-radius:0 6px 6px 0}
   .ccount{font-size:11px;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
   .ccount.warn{color:var(--red)}
   /* #7 sussurro + #8 dado */
@@ -763,8 +787,9 @@
               <div class="msgs" id="msgs"></div>
               <div class="composer">
                 <textarea id="msg-input" maxlength="5000" placeholder="Scrivi il tuo turno di gioco…"></textarea>
+                <div class="place-bar"><svg class="pb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg><input id="msg-place" class="pb-input" maxlength="60" autocomplete="off" placeholder="Luogo preciso della giocata — es. Ramen Ichiraku (facoltativo)"></div>
                 <div class="item-pop" id="item-pop" hidden><div class="ip-head">Oggetti equipaggiati</div><div id="ip-list"></div></div>
-                <div class="composer-row"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*</span><div class="composer-tools"><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="exp-btn" id="exp-btn" type="button" title="Apri l'editor: finestra grande per scrivere e rileggere tutta la tua role"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg>Editor</button><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="cmb-btn" type="button" title="Calcolo combattimento"><svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>Combatti</button><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
+                <div class="composer-row"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*</span><div class="composer-tools"><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="exp-btn" id="exp-btn" type="button" title="Apri l'editor: finestra grande per scrivere e rileggere tutta la tua role"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg>Editor</button><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="cmb-btn" type="button" title="Calcolo combattimento"><svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>Combatti</button><button class="legend-btn" id="legend-btn" type="button" title="Legenda: comandi e punteggiatura">?</button><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
               </div>
             </section>
             <aside class="room-side">
@@ -849,6 +874,35 @@
       <div class="editor-head"><h3>La tua role</h3><span class="ed-to" id="ed-to"></span><button class="editor-x" id="editor-x" type="button" aria-label="Chiudi">&times;</button></div>
       <div class="editor-body"><textarea id="ed-text" maxlength="5000" placeholder="Scrivi qui il tuo turno di gioco. Hai tutto lo spazio per rileggere la tua role prima di inviarla&hellip;"></textarea></div>
       <div class="editor-foot"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*. Il testo resta sincronizzato con la chat.</span><span class="ccount" id="ed-count">0 / 5000</span><button class="btn-send" id="ed-send" type="button">Invia</button></div>
+    </div>
+  </div>
+  <div class="legend-ov" id="legend-ov" hidden aria-label="Legenda della chat">
+    <div class="legend-bk" id="legend-bk"></div>
+    <div class="legend-card" role="dialog" aria-modal="true">
+      <div class="legend-head"><h3>Legenda della chat</h3><button class="editor-x" id="legend-x" type="button" aria-label="Chiudi">&times;</button></div>
+      <div class="legend-body">
+        <div class="lg-block">
+          <h4>Come si scrive</h4>
+          <p>Usa la punteggiatura per distinguere le due voci della giocata:</p>
+          <ul>
+            <li><b>&quot;Virgolette&quot;</b> per il <b>parlato</b> del personaggio.</li>
+            <li><b>*Asterischi*</b> per le <b>azioni e le descrizioni</b>.</li>
+          </ul>
+          <p class="lg-ex">*Spinge la tenda ed entra, scuotendo la neve dal mantello.* &quot;Un ramen caldo, per favore.&quot;</p>
+        </div>
+        <div class="lg-block">
+          <h4>I tasti della chat</h4>
+          <ul>
+            <li><b>A tutti / destinatario</b> — scrivi a tutti nella stanza, oppure scegli un nome per un <b>sussurro</b> privato.</li>
+            <li><b>Luogo</b> — il punto preciso della giocata (es. «Ramen Ichiraku»): compare come etichetta sul messaggio.</li>
+            <li><b>Editor</b> — finestra grande per scrivere e rileggere con calma tutta la tua azione.</li>
+            <li><b>Oggetto</b> — usa un oggetto che hai equipaggiato.</li>
+            <li><b>1d100</b> — tira un dado da 1 a 100.</li>
+            <li><b>Combatti</b> — apre il calcolo di un'azione di combattimento.</li>
+            <li><b>Invia</b> — pubblica il messaggio.</li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
   <div class="lp-ov" id="lp-ov" hidden aria-label="Scegli la lezione">
@@ -1057,7 +1111,7 @@
       var VILLAGES=[{key:'konoha',name:'Konoha',x:34,y:36},{key:'suna',name:'Suna',x:13,y:46}];
       function mapImgCands(level){ if(level==='konoha') return ['assets/konoha.png','assets/konoha.jpg','assets/konoha.webp']; if(level==='suna') return ['assets/suna.png','assets/suna.jpg','assets/suna.webp']; return ['assets/world.png','assets/world.jpg','assets/world.webp','assets/land-map.png','assets/land-map.jpg','assets/land-map.webp']; }
       function fitMapFrame(){ var mi=document.getElementById('land-map'), fr=document.getElementById('mapframe'); if(!mi||!fr){ syncSideHeights(); return; } if(mi.naturalWidth&&mi.naturalHeight&&getComputedStyle(mi).display!=='none'){ fr.style.aspectRatio=mi.naturalWidth+' / '+mi.naturalHeight; fr.style.flex='0 0 auto'; fr.style.minHeight='0'; if(mapLevel==='world'){ fr.style.maxHeight=''; fr.style.width=''; fr.style.margin=''; } else { var maxH=Math.max(240, Math.round((window.innerHeight||700)*0.56)); var wByH=Math.round(maxH*(mi.naturalWidth/mi.naturalHeight)); fr.style.maxHeight=maxH+'px'; fr.style.width='min(100%, '+wByH+'px)'; fr.style.margin='0 auto'; } } syncSideHeights(); }
-      function syncSideHeights(){ try{ var ids=['side-left','side-right']; if((window.innerWidth||0)<=860){ ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.height=''; }); return; } var mm=document.querySelector('.map-main'); if(!mm) return; var h=Math.round(mm.getBoundingClientRect().height); if(!h||h<260) h=260; ids.forEach(function(id){ var el=document.getElementById(id); if(!el) return; el.style.height=el.classList.contains('collapsed')?'':(h+'px'); }); }catch(e){} }
+      function syncSideHeights(){ try{ var ids=['side-left','side-right']; if((window.innerWidth||0)<=860){ ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.height=''; }); return; } var mm=document.querySelector('.map-main'); if(!mm) return; var h=Math.round(mm.getBoundingClientRect().height); if(!h||h<260) h=260; var cap=Math.max(320,Math.round((window.innerHeight||700)*0.62)); if(h>cap) h=cap; ids.forEach(function(id){ var el=document.getElementById(id); if(!el) return; el.style.height=el.classList.contains('collapsed')?'':(h+'px'); }); }catch(e){} }
       function setMapImage(level){ var mi=document.getElementById('land-map'); if(!mi) return; var hint=document.getElementById('map-hint'), comp=document.querySelector('.compass'), fr=document.getElementById('mapframe'); var cands=mapImgCands(level), i=0; mi.onload=function(){ mi.style.display='block'; if(hint)hint.style.display='none'; if(comp)comp.style.display='none'; fitMapFrame(); }; mi.onerror=function(){ if(i>=cands.length){ mi.removeAttribute('src'); mi.style.display='none'; if(fr){ fr.style.aspectRatio='auto'; fr.style.flex='1'; fr.style.minHeight='340px'; fr.style.maxHeight=''; fr.style.width=''; fr.style.margin=''; } if(hint)hint.style.display=''; if(comp)comp.style.display=''; syncSideHeights(); return; } mi.src=cands[i++]; }; mi.style.display='none'; if(hint)hint.style.display=''; if(comp)comp.style.display=''; mi.onerror(); }
       window.addEventListener('resize', fitMapFrame);
       function setSideCollapsed(side, collapsed){ var el=document.getElementById(side==='left'?'side-left':'side-right'); if(!el) return; el.classList.toggle('collapsed', !!collapsed); var t=el.querySelector('.side-toggle'); if(t){ t.textContent=collapsed?'▾':'▴'; t.title=collapsed?'Espandi':'Comprimi'; } try{ localStorage.setItem('tus_side_'+side, collapsed?'1':'0'); }catch(e){} setTimeout(fitMapFrame,60); }
@@ -1115,6 +1169,7 @@
       function loadEmblems(){ if(!sb) return; sb.from('emblems').select('kind,name,image_url').in('kind',['clan','rank','village']).then(function(r){ if(r&&!r.error){ (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.kind+':'+e.name]=e.image_url; }); } }, function(){}); }
       function showPtsReminder(n){ var el=document.getElementById('pts-reminder'); if(!el) return; if(n>0){ var pn=document.getElementById('pts-n'); if(pn) pn.textContent=n; el.hidden=false; } else { el.hidden=true; } }
       (function(){ var px=document.getElementById('pts-x'); if(px) px.addEventListener('click',function(){ var el=document.getElementById('pts-reminder'); if(el) el.hidden=true; }); })();
+      var PIN='<svg class="pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
       function renderMsgs(rows){
         rows=rows||[];
         if(!rows.length){ msgsEl.innerHTML='<div class="msgs-empty">Ancora nessun messaggio qui. Scrivi il primo turno.</div>'; return; }
@@ -1135,7 +1190,9 @@
           if(m.kind==='combat'){ var cb; try{ cb=JSON.parse(m.body); }catch(e){ cb=null; } if(cb&&cb.a&&cb.d){ return '<div class="msg-combat"><div class="cmb-avs">'+avatarHTML({avatar_url:cb.a.u},cb.a.n,cb.a.c)+'<span class="cmb-x">'+SWORD+'</span>'+avatarHTML({avatar_url:cb.d.u},cb.d.n,cb.d.c)+'<span class="m-time">'+fmt(m.created_at)+'</span></div><div class="cmb-out">'+esc(cb.o)+'</div></div>'; } return '<div class="msg-combat"><div class="cmb-out">'+esc(m.body)+'</div></div>'; }
           if(m.kind==='sensei'){ var sp=senseiPortrait||(classState&&classState.sensei_portrait)||''; var sav='<span class="ms-ava-box">'+SENSEI+(sp?'<img class="ms-ava" src="'+esc(sp)+'" alt="" onerror="this.style.display=\'none\'">':'')+'</span>'; return '<div class="msg-sensei"><div class="ms-head">'+sav+'<b>'+esc(m.author_name||'Sensei')+'</b><span class="ms-k">Sensei · Accademia</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="m-body">'+fmtBody(m.body)+'</div></div>'; }
           var c=m.character; var nm=(c&&c.name)||m.author_name||'—'; var cid=c&&c.id;
-          return '<div class="msg">'+avatarHTML(c,nm,cid)+'<div class="m-main">'+identityHTML(c,nm,cid,m.created_at)+'<div class="m-body">'+fmtBody(m.body)+'</div></div></div>';
+          var braw=m.body||'', place=''; var pm=braw.match(/^【([^】]{1,60})】\s*([\s\S]*)$/); if(pm){ place=pm[1]; braw=pm[2]; }
+          var pchip = place ? '<span class="m-place">'+PIN+esc(place)+'</span>' : '';
+          return '<div class="msg">'+avatarHTML(c,nm,cid)+'<div class="m-main">'+identityHTML(c,nm,cid,m.created_at)+pchip+'<div class="m-body">'+fmtBody(braw)+'</div></div></div>';
         }).join('');
         msgsEl.scrollTop=msgsEl.scrollHeight;
       }
@@ -1331,9 +1388,11 @@
       function send(after){
         var t=(input.value||'').replace(/\s+$/,''); if(!t.trim()||!cur||!sb) return;
         var to=toSel?toSel.value:'';
+        var placeEl=document.getElementById('msg-place'); var place=placeEl?placeEl.value.trim().replace(/[【】]/g,'').slice(0,60):'';
+        var pbody=(place && !to)?('【'+place+'】 '+t):t;
         sendBtn.disabled=true;
         var req = to ? sb.rpc('post_whisper',{p_location:cur.id,p_recipient:to,p_body:t})
-                     : sb.rpc('post_message',{p_location:cur.id,p_body:t});
+                     : sb.rpc('post_message',{p_location:cur.id,p_body:pbody});
         req.then(function(r){
           sendBtn.disabled=false;
           if(r&&r.error){ var m=(r.error.message||'').toLowerCase(); toast(/consentito/.test(m)?'Messaggio bloccato dalla moderazione':(/lungo/.test(m)?'Messaggio troppo lungo':(/personaggio/.test(m)?'Ti serve un personaggio':(/destinatario/.test(m)?'Destinatario non valido':'Impossibile inviare')))); return; }
@@ -1354,6 +1413,12 @@
         b=document.getElementById('editor-x'); if(b) b.addEventListener('click', closeEditor);
         b=document.getElementById('editor-bk'); if(b) b.addEventListener('click', closeEditor);
         b=document.getElementById('ed-send'); if(b) b.addEventListener('click', edSend); })();
+      (function(){ var lo=document.getElementById('legend-ov');
+        function openLeg(){ if(lo) lo.hidden=false; } function closeLeg(){ if(lo) lo.hidden=true; }
+        var b=document.getElementById('legend-btn'); if(b) b.addEventListener('click', openLeg);
+        b=document.getElementById('legend-x'); if(b) b.addEventListener('click', closeLeg);
+        b=document.getElementById('legend-bk'); if(b) b.addEventListener('click', closeLeg);
+        document.addEventListener('keydown', function(e){ if(e.key==='Escape' && lo && !lo.hidden) closeLeg(); }); })();
       function rollDice(){ if(!cur||!sb||!diceBtn) return; diceBtn.disabled=true;
         sb.rpc('post_dice',{p_location:cur.id,p_sides:100}).then(function(r){ diceBtn.disabled=false; if(r&&r.error){ toast('Impossibile lanciare il dado'); return; } loadMsgs(); }, function(){ diceBtn.disabled=false; toast('Impossibile lanciare il dado'); }); }
       if(diceBtn){ diceBtn.addEventListener('click', rollDice); }
