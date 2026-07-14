@@ -83,6 +83,11 @@
   .sel{font-family:'Cinzel',serif;font-size:12px;color:var(--ink);background:rgba(255,250,235,.6);border:1px solid var(--edge);border-radius:8px;padding:9px 12px;cursor:pointer;max-width:280px}
   .aurow.click{cursor:pointer}
   .aurow.click:hover{border-color:var(--red);background:rgba(255,250,235,.75)}
+  .aurow.flagged{border-color:var(--red);border-left:3px solid var(--red);background:rgba(166,50,29,.10)}
+  .aurow.flagged .itdesc{color:#7c2413}
+  .log-filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  .log-q{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink);background:rgba(255,250,235,.7);border:1px solid var(--edge);border-radius:8px;padding:8px 11px;min-width:160px}
+  .log-q::placeholder{color:var(--ink-soft)}
   .rbadge{display:inline-block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:middle}
   .rbadge.open{background:rgba(166,50,29,.14);color:var(--red-deep)}
   .rbadge.closed{background:rgba(90,120,70,.16);color:#4c6a3a}
@@ -344,6 +349,10 @@
                 <select id="map-addkind"><option value="edificio">Edificio</option><option value="area">Area</option><option value="quartiere">Quartiere</option><option value="negozio">Negozio</option><option value="altro">Altro</option></select>
                 <button class="btn" id="map-addbtn" type="button">Aggiungi qui</button>
               </div>
+              <div class="map-add" id="map-addvillage" style="display:none">
+                <input id="map-villagename" placeholder="Nuovo villaggio…" maxlength="40">
+                <button class="btn" id="map-villagebtn" type="button">+ Aggiungi villaggio</button>
+              </div>
             </div>
           </div>
           <div class="cat-actions"><button class="btn btn-red" id="map-save">Salva posizioni</button><span id="map-note" class="editing-note"></span></div>
@@ -455,7 +464,8 @@
           <section class="adm-page" data-page="messaggi">
           <div class="grp-title" style="margin-top:0">Messaggi privati — log di moderazione</div>
           <p class="mgr-note">Tutti i messaggi privati scambiati tra gli utenti, dal più recente. Serve allo staff per verificare eventuali usi impropri. <b>Sola lettura.</b></p>
-          <div class="cat-actions"><button class="btn" id="dmlog-refresh">Aggiorna</button></div>
+          <div class="cat-actions"><input id="dmlog-q" class="log-q" placeholder="Cerca per PG o contenuto…"><button class="btn" id="dmlog-refresh">Aggiorna</button></div>
+          <p class="mgr-note" style="margin:6px 0 0">I messaggi con <b style="color:#7c2413">contenuti sensibili</b> (parole segnalate) sono evidenziati in rosso in automatico.</p>
           <div id="dmlog-list" class="audit-list"></div>
           </section>
 
@@ -463,6 +473,7 @@
           <div class="grp-title" style="margin-top:0">Role registrate</div>
           <p class="mgr-note">Tutte le scene registrate dai giocatori (pulsante «Registra role» nelle chat). Tocca una role per rileggerla. <b>Sola lettura.</b></p>
           <div class="cat-actions"><button class="btn" id="roles-refresh">Aggiorna</button></div>
+          <div class="log-filters"><input id="roles-qname" class="log-q" placeholder="Nome personaggio…"><input id="roles-qday" class="log-q" type="date" title="Filtra per giorno" style="min-width:auto"><select id="roles-qloc" class="sel"><option value="">— tutti i luoghi —</option></select></div>
           <div id="roles-list" class="audit-list"></div>
 
           <div class="grp-title">Chat archiviata (oltre 24 ore)</div>
@@ -523,9 +534,13 @@
     /* ---- Editor Mappa (posiziona marker) ---- */
     function mesc(s){return (''+(s==null?'':s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
     var mapEditLvl='world';
-    var mapVillages={konoha:{x:34,y:36},suna:{x:13,y:46}};
+    var mapVillages={konoha:{x:34,y:36,name:'Konoha'},suna:{x:13,y:46,name:'Suna'}};
     var mapDrag=null;
-    async function loadMapCfg(){ if(!sb)return; try{ var r=await sb.from('app_settings').select('value').eq('key','map_villages').maybeSingle(); if(r&&r.data&&r.data.value){ var o=JSON.parse(r.data.value); if(o.konoha)mapVillages.konoha=o.konoha; if(o.suna)mapVillages.suna=o.suna; } }catch(e){} }
+    function vKeys(){ return Object.keys(mapVillages); }
+    function vName(k){ return (mapVillages[k]&&mapVillages[k].name)||(k.charAt(0).toUpperCase()+k.slice(1)); }
+    function renderLvlTabs(){ var tabs=$('map-lvltabs'); if(!tabs)return; var html='<button type="button" data-lvl="world"'+(mapEditLvl==='world'?' class="on"':'')+'>Mondo</button>'; vKeys().forEach(function(k){ html+='<button type="button" data-lvl="'+esc(k)+'"'+(mapEditLvl===k?' class="on"':'')+'>'+esc(vName(k))+'</button>'; }); tabs.innerHTML=html; }
+    function rebuildVillages(){ VILLAGES=vKeys().map(vName); renderLvlTabs(); }
+    async function loadMapCfg(){ if(!sb)return; try{ var r=await sb.from('app_settings').select('value').eq('key','map_villages').maybeSingle(); if(r&&r.data&&r.data.value){ var o=JSON.parse(r.data.value)||{}; Object.keys(o).forEach(function(k){ var v=o[k]||{}; mapVillages[k]={x:(v.x!=null?v.x:50),y:(v.y!=null?v.y:50),name:v.name||(mapVillages[k]&&mapVillages[k].name)||(k.charAt(0).toUpperCase()+k.slice(1))}; }); } }catch(e){} rebuildVillages(); }
     function mapEditImg(lvl){
       var im=$('map-editimg'), ph=$('map-editph'), cv=$('map-canvas');
       var cands = lvl==='konoha'?['assets/konoha.png','assets/konoha.jpg','assets/konoha.webp']
@@ -543,7 +558,7 @@
     function mapVillageLocs(lvl){ return (LOCS||[]).filter(function(l){ return (''+(l.region||'')).toLowerCase()===lvl && l.is_active; }); }
     function renderMapEditList(){
       var list=$('map-editlist'); if(!list)return; var rows=[];
-      if(mapEditLvl==='world'){ ['konoha','suna'].forEach(function(k){ var p=mapVillages[k]||{x:50,y:50}; rows.push({name:(k==='konoha'?'Konoha':'Suna'),x:p.x,y:p.y}); }); }
+      if(mapEditLvl==='world'){ vKeys().forEach(function(k){ var p=mapVillages[k]||{x:50,y:50}; rows.push({name:vName(k),x:p.x,y:p.y}); }); }
       else { mapVillageLocs(mapEditLvl).forEach(function(l){ rows.push({name:l.name,x:(l.map_x!=null&&l.map_x!=='')?parseFloat(l.map_x):50,y:(l.map_y!=null&&l.map_y!=='')?parseFloat(l.map_y):50}); }); }
       list.innerHTML = rows.length? rows.map(function(r){ return '<div class="mel-row"><span class="mel-name">'+mesc(r.name)+'</span><span class="mel-xy">'+Math.round(r.x)+', '+Math.round(r.y)+'</span></div>'; }).join('') : '<p class="opt">Nessun elemento da posizionare in questo livello.</p>';
     }
@@ -551,8 +566,9 @@
       mapEditImg(mapEditLvl);
       var host=$('map-editmk'); if(host) host.innerHTML='';
       var add=$('map-add'); if(add) add.style.display=(mapEditLvl==='world')?'none':'';
+      var addv=$('map-addvillage'); if(addv) addv.style.display=(mapEditLvl==='world')?'':'none';
       if(host){
-        if(mapEditLvl==='world'){ ['konoha','suna'].forEach(function(k){ var p=mapVillages[k]||{x:50,y:50}; host.appendChild(mkPin(k,(k==='konoha'?'Konoha':'Suna'),p.x,p.y,'village')); }); }
+        if(mapEditLvl==='world'){ vKeys().forEach(function(k){ var p=mapVillages[k]||{x:50,y:50}; host.appendChild(mkPin(k,vName(k),p.x,p.y,'village')); }); }
         else { mapVillageLocs(mapEditLvl).forEach(function(l){ var x=(l.map_x!=null&&l.map_x!=='')?parseFloat(l.map_x):50; var y=(l.map_y!=null&&l.map_y!=='')?parseFloat(l.map_y):50; host.appendChild(mkPin(l.id,l.name,x,y,'loc')); }); }
       }
       renderMapEditList();
@@ -562,7 +578,7 @@
       function pct(e){ var box=cv.getBoundingClientRect(); var x=(e.clientX-box.left)/box.width*100; var y=(e.clientY-box.top)/box.height*100; return {x:Math.max(0,Math.min(100,x)),y:Math.max(0,Math.min(100,y))}; }
       cv.addEventListener('pointerdown',function(e){ var pin=e.target.closest('.medit-pin'); if(!pin)return; mapDrag=pin; try{cv.setPointerCapture(e.pointerId);}catch(_){} e.preventDefault(); });
       cv.addEventListener('pointermove',function(e){ if(!mapDrag)return; var p=pct(e); mapDrag.style.left=p.x+'%'; mapDrag.style.top=p.y+'%'; });
-      cv.addEventListener('pointerup',function(e){ if(!mapDrag)return; var p=pct(e); var key=mapDrag.getAttribute('data-key'); if(mapEditLvl==='world'){ mapVillages[key]={x:+p.x.toFixed(1),y:+p.y.toFixed(1)}; } else { var l=(LOCS||[]).filter(function(x){return x.id===key;})[0]; if(l){ l.map_x=''+p.x.toFixed(1); l.map_y=''+p.y.toFixed(1); } } mapDrag=null; renderMapEditList(); });
+      cv.addEventListener('pointerup',function(e){ if(!mapDrag)return; var p=pct(e); var key=mapDrag.getAttribute('data-key'); if(mapEditLvl==='world'){ mapVillages[key]={x:+p.x.toFixed(1),y:+p.y.toFixed(1),name:vName(key)}; } else { var l=(LOCS||[]).filter(function(x){return x.id===key;})[0]; if(l){ l.map_x=''+p.x.toFixed(1); l.map_y=''+p.y.toFixed(1); } } mapDrag=null; renderMapEditList(); });
     }
     async function saveMapPositions(){
       if(!sb)return; var note=$('map-note');
@@ -584,10 +600,20 @@
       if(r&&r.error){toast('Errore creazione',true);return;}
       if(!window.LOCS)LOCS=LOCS||[]; LOCS.push(r.data); nmEl.value=''; renderMapEdit(); toast('Luogo aggiunto: trascinalo dove vuoi');
     }
+    async function mapAddVillage(){
+      var nmEl=$('map-villagename'); var nm=nmEl?nmEl.value.trim():''; if(!nm){toast('Scrivi un nome',true);return;}
+      var key=nm.toLowerCase().replace(/[^a-z0-9]+/g,''); if(!key){toast('Nome villaggio non valido',true);return;}
+      if(mapVillages[key]){toast('Villaggio già esistente',true);return;}
+      mapVillages[key]={x:50,y:50,name:nm}; rebuildVillages();
+      if(sb){ var r=await sb.from('app_settings').upsert({key:'map_villages',value:JSON.stringify(mapVillages),updated_at:new Date().toISOString()}).select(); if(r&&r.error){toast('Errore salvataggio',true);} }
+      if(nmEl)nmEl.value=''; renderMapEdit();
+      toast('Villaggio «'+nm+'» aggiunto: trascina il pin, poi carica assets/'+key+' e crea i suoi luoghi.');
+    }
     function bindMapEdit(){
       var tabs=$('map-lvltabs'); if(tabs) tabs.addEventListener('click',function(e){ var b=e.target.closest('button[data-lvl]'); if(!b)return; mapEditLvl=b.getAttribute('data-lvl'); Array.prototype.forEach.call(tabs.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b);}); renderMapEdit(); });
       var sv=$('map-save'); if(sv) sv.addEventListener('click',saveMapPositions);
       var ab=$('map-addbtn'); if(ab) ab.addEventListener('click',mapAddLoc);
+      var vb=$('map-villagebtn'); if(vb) vb.addEventListener('click',mapAddVillage);
       var nav=document.getElementById('adm-nav'); if(nav) nav.addEventListener('click',function(e){ var b=e.target.closest('button[data-go="mappa"]'); if(b) setTimeout(renderMapEdit,40); });
       bindMapDrag();
     }
@@ -905,11 +931,23 @@
       }).join('');
     }
     /* ---- Messaggi privati (log moderazione) ---- */
+    var DM_ROWS=[], SENSITIVE=null;
+    async function ensureSensitive(){
+      if(SENSITIVE)return SENSITIVE;
+      try{ var r=await sb.from('blocked_terms').select('term').eq('category','offensive'); SENSITIVE=((r&&r.data)||[]).map(function(t){return (''+(t.term||'')).toLowerCase();}).filter(Boolean); }catch(e){ SENSITIVE=[]; }
+      return SENSITIVE;
+    }
+    function isSensitive(txt){ txt=(''+(txt||'')).toLowerCase(); for(var i=0;i<(SENSITIVE||[]).length;i++){ if(SENSITIVE[i]&&txt.indexOf(SENSITIVE[i])>=0)return true; } return false; }
     async function loadDmLog(){
       var host=$('dmlog-list'); if(!host)return;
       host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">Caricamento…</p>';
+      await ensureSensitive();
       var r=await sb.rpc('dm_log',{p_limit:300});
-      renderDmLog((r&&r.data)||[]);
+      DM_ROWS=(r&&r.data)||[]; renderDmLog(DM_ROWS);
+    }
+    function dmFilter(){
+      var q=((($('dmlog-q')||{}).value)||'').toLowerCase().trim();
+      renderDmLog(!q?DM_ROWS:DM_ROWS.filter(function(m){ return ((m.sender_name||'')+' '+(m.recipient_name||'')+' '+(m.body||'')).toLowerCase().indexOf(q)>=0; }));
     }
     function renderDmLog(rows){
       var host=$('dmlog-list'); if(!host)return;
@@ -917,7 +955,8 @@
       host.innerHTML=rows.map(function(m){
         var d=new Date(m.created_at); var ds; try{ds=d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){ds=m.created_at;}
         var multi=m.batch_id?' · <span class="lnote">invio multiplo</span>':'';
-        return '<div class="aurow"><b>'+esc(m.sender_name||'—')+'</b> &rarr; <b>'+esc(m.recipient_name||'—')+'</b><span class="itdesc">'+esc(m.body||'')+'</span><span class="aumeta">'+ds+multi+'</span></div>';
+        var flag=isSensitive(m.body)?' flagged':'';
+        return '<div class="aurow'+flag+'"><b>'+esc(m.sender_name||'—')+'</b> &rarr; <b>'+esc(m.recipient_name||'—')+'</b><span class="itdesc">'+esc(m.body||'')+'</span><span class="aumeta">'+ds+multi+'</span></div>';
       }).join('');
     }
     /* ---- Archivio: role registrate + chat archiviata ---- */
@@ -927,16 +966,35 @@
       t=t.replace(/«([\s\S]*?)»/g,'<span class="rsay">«$1»</span>');
       t=t.replace(/\*([^*\n]+?)\*/g,'<em class="ract">$1</em>');
       return t; }
+    var ROLE_ROWS=[];
+    function localDay(iso){ try{ var d=new Date(iso); var m=(d.getMonth()+1), day=d.getDate(); return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(day<10?'0':'')+day; }catch(e){ return ''; } }
     async function loadRolesList(){
       var host=$('roles-list'); if(!host)return;
       host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">Caricamento…</p>';
       var r=await sb.rpc('staff_role_sessions');
-      var rows=(r&&r.data)||[];
-      if(!rows.length){ host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">Nessuna role registrata.</p>'; return; }
+      ROLE_ROWS=(r&&r.data)||[];
+      var sel=$('roles-qloc');
+      if(sel){ var locs=[]; ROLE_ROWS.forEach(function(x){ if(x.location_name && locs.indexOf(x.location_name)<0) locs.push(x.location_name); }); locs.sort(); var cur=sel.value; sel.innerHTML='<option value="">— tutti i luoghi —</option>'+locs.map(function(l){return '<option value="'+esc(l)+'">'+esc(l)+'</option>';}).join(''); sel.value=cur; }
+      rolesFilter();
+    }
+    function rolesFilter(){
+      var host=$('roles-list'); if(!host)return;
+      var qn=((($('roles-qname')||{}).value)||'').toLowerCase().trim();
+      var qd=(($('roles-qday')||{}).value)||'';
+      var ql=(($('roles-qloc')||{}).value)||'';
+      var rows=ROLE_ROWS.filter(function(x){
+        if(ql && (x.location_name||'')!==ql) return false;
+        if(qn){ var hay=((x.starter_name||'')+' '+(x.participant_names||'')+' '+(x.title||'')).toLowerCase(); if(hay.indexOf(qn)<0) return false; }
+        if(qd && localDay(x.started_at)!==qd) return false;
+        return true;
+      });
+      if(!ROLE_ROWS.length){ host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">Nessuna role registrata.</p>'; return; }
+      if(!rows.length){ host.innerHTML='<p class="mgr-note" style="margin:8px 0 0">Nessuna role trovata coi filtri scelti.</p>'; return; }
       host.innerHTML=rows.map(function(x){
         var badge=x.is_open?'<span class="rbadge open">In corso</span>':'<span class="rbadge closed">Chiusa</span>';
         var n=(x.msg_count!=null?x.msg_count:0);
-        return '<div class="aurow click" data-sess="'+esc(x.session_id)+'" data-title="'+esc(x.title||'Role')+'"><b>'+esc(x.title||'Role')+'</b>'+badge+'<span class="itdesc">'+esc(x.location_name||'')+' · avviata da '+esc(x.starter_name||'—')+' · '+(x.participants||0)+' partecipanti · '+n+' battute</span><span class="aumeta">'+fmtDT(x.started_at)+'</span></div>';
+        var pn=x.participant_names?(' · '+esc(x.participant_names)):'';
+        return '<div class="aurow click" data-sess="'+esc(x.session_id)+'" data-title="'+esc(x.title||'Role')+'"><b>'+esc(x.title||'Role')+'</b>'+badge+'<span class="itdesc">'+esc(x.location_name||'')+' · avviata da '+esc(x.starter_name||'—')+' · '+(x.participants||0)+' partecipanti · '+n+' battute'+pn+'</span><span class="aumeta">'+fmtDT(x.started_at)+'</span></div>';
       }).join('');
     }
     function openArchScene(sessId,title){
@@ -977,6 +1035,7 @@
     }
     function bindArchivio(){
       var rr=$('roles-refresh'); if(rr) rr.addEventListener('click',loadRolesList);
+      ['roles-qname','roles-qday','roles-qloc'].forEach(function(id){ var el=$(id); if(el) el.addEventListener(id==='roles-qname'?'input':'change', rolesFilter); });
       var rl=$('roles-list'); if(rl) rl.addEventListener('click',function(e){ var b=e.target.closest('.aurow.click'); if(!b)return; openArchScene(b.getAttribute('data-sess'), b.getAttribute('data-title')); });
       var ar=$('arch-refresh'); if(ar) ar.addEventListener('click',loadArchMessages);
       var asel=$('arch-loc'); if(asel) asel.addEventListener('change',loadArchMessages);
@@ -1236,7 +1295,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindTechs();await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
+      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindTechs();await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);var dq=$('dmlog-q');if(dq)dq.addEventListener('input',dmFilter);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
