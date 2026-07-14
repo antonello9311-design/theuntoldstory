@@ -410,7 +410,7 @@
             <label>Tipologia<input id="tech-category" list="tech-cats" maxlength="40" placeholder="es. Taijutsu"><datalist id="tech-cats"><option value="Dōjutsu"></option><option value="Taijutsu"></option><option value="Ninjutsu"></option><option value="Genjutsu"></option><option value="Fuuinjutsu"></option><option value="Kekkei Genkai"></option><option value="Hiden"></option><option value="Difesa"></option><option value="Supporto"></option></datalist></label>
             <label>Tipo di consumo<select id="tech-consume"><option value="ad_utilizzo">Ad utilizzo</option><option value="per_turno">Per turno</option><option value="passiva">Passiva / nessuno</option></select></label>
             <label>Consumo di chakra<input id="tech-chakra" type="number" step="1" min="0" placeholder="es. 10"></label>
-            <label>Grado consigliato<input id="tech-grado" list="tech-grades" maxlength="30" placeholder="es. Genin"></label>
+            <label>Grado (jutsu · D–S)<input id="tech-grado" list="tech-ranks" maxlength="30" placeholder="es. C"></label>
             <label>Portata<input id="tech-portata" list="tech-ranges" maxlength="30" placeholder="es. Corto"></label>
             <label>Bersaglio<input id="tech-bersaglio" maxlength="40" placeholder="es. Sé stesso / Singolo"></label>
             <label>Tipo d'azione<input id="tech-azione" maxlength="40" placeholder="es. Attacco / Difesa / Supporto"></label>
@@ -426,6 +426,7 @@
             <label class="full">Requisiti (testo)<textarea id="tech-req" maxlength="600" rows="2" placeholder="es. Byakugan livello 2 · grado Chunin"></textarea></label>
             <label class="full">Descrizione della tecnica<textarea id="tech-desc" maxlength="2000" rows="3" placeholder="Come evolve e cosa permette di fare in più…"></textarea></label>
             <datalist id="tech-grades"><option value="Deshi"></option><option value="Genin"></option><option value="Chunin"></option><option value="Jonin"></option><option value="Jonin Speciale"></option><option value="Kage Konoha"></option><option value="Kage Suna"></option><option value="Sannin"></option></datalist>
+            <datalist id="tech-ranks"><option value="D"></option><option value="C"></option><option value="B"></option><option value="A"></option><option value="S"></option></datalist>
             <datalist id="tech-ranges"><option value="Contatto"></option><option value="Corto"></option><option value="Medio"></option><option value="Lungo"></option><option value="Molto ampia"></option></datalist>
             <datalist id="tech-stats"><option value="Mente"></option><option value="Forza"></option><option value="Velocità"></option><option value="Resistenza"></option><option value="Ninjutsu"></option><option value="Genjutsu"></option><option value="Taijutsu"></option><option value="Fuuinjutsu"></option><option value="Kekkei Genkai"></option></datalist>
           </div>
@@ -1056,9 +1057,8 @@
     async function loadTechs(){if(!sb)return;var r=await sb.from('clan_techniques').select('*').order('clan').order('sort').order('level').order('name');TECHS=(r&&r.data)||[];fillTechClanSelect();renderTechs();}
     function techRow(t){
       var meta=[];
-      if(t.level!=null)meta.push('Liv. '+t.level);
+      if(t.level!=null)meta.push('Liv. '+t.level); else if(t.grado)meta.push('Grado '+esc(t.grado));
       if(t.category)meta.push(esc(t.category));
-      if(t.grado)meta.push('Grado '+esc(t.grado));
       if(t.portata)meta.push(esc(t.portata));
       meta.push(techConsume(t.consumption_type)+(t.chakra_cost!=null?(' · '+t.chakra_cost+' chakra'):''));
       if(!t.is_active)meta.push('disattivata');

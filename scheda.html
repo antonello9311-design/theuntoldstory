@@ -686,7 +686,7 @@
           if(a&&a.state==='attiva'){ badge='<span class="tr-badge on">Attiva</span>'; }
           else if(a&&a.state==='in_addestramento'){ badge='<span class="tr-badge tr-prog">In addestramento '+(a.sessions_done||0)+'/'+(a.sessions_required||1)+'</span>'; }
           else { badge='<span class="tr-badge">Da apprendere</span>'; if(canAct) action='<button type="button" class="mini-btn" data-train="'+t.id+'">Allena</button>'; }
-          var meta=[]; if(t.level!=null)meta.push('Liv. '+t.level); if(t.grado)meta.push(esc(t.grado)); if(t.xp_cost!=null)meta.push(t.xp_cost+' XP'); if(t.trainings_required!=null)meta.push(t.trainings_required+(t.trainings_required===1?' allenamento':' allenamenti'));
+          var meta=[]; if(t.level!=null)meta.push('Liv. '+t.level); else if(t.grado)meta.push('Grado '+esc(t.grado)); if(t.xp_cost!=null)meta.push(t.xp_cost+' XP'); if(t.trainings_required!=null)meta.push(t.trainings_required+(t.trainings_required===1?' allenamento':' allenamenti'));
           var reqbits=[]; if(t.req_grade)reqbits.push('grado '+esc(t.req_grade)); if(t.req_stat)reqbits.push(esc(t.req_stat)+(t.req_stat_value!=null?(' '+t.req_stat_value):''));
           return '<div class="tr-row"><div class="tr-main"><b>'+esc(t.name)+'</b> <span class="tr-meta">'+meta.join(' · ')+'</span>'+(reqbits.length?('<span class="tr-req">Sblocco: '+reqbits.join(' · ')+'</span>'):'')+'</div>'+badge+action+'</div>';
         }).join('');

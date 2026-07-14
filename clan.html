@@ -357,7 +357,6 @@
     function techCard(t){
       var parts=[];
       if(t.category)parts.push(esc(t.category));
-      if(t.grado)parts.push('Grado '+esc(t.grado));
       if(t.portata)parts.push(esc(t.portata));
       var cons=techConsume(t.consumption_type); if(cons)parts.push(cons);
       if(t.chakra_cost!=null)parts.push(esc(t.chakra_cost)+' chakra');
@@ -372,7 +371,7 @@
       if(t.req_grade)unl.push('grado '+esc(t.req_grade));
       if(t.req_stat)unl.push(esc(t.req_stat)+(t.req_stat_value!=null?(' ≥ '+esc(t.req_stat_value)):''));
       return '<div class="tech-card"><div class="tc-top"><span class="tc-name">'+esc(t.name)+'</span>'+
-        (t.level!=null?'<span class="tc-lv">Livello '+esc(t.level)+'</span>':'')+'</div>'+
+        (t.level!=null?'<span class="tc-lv">Livello '+esc(t.level)+'</span>':(t.grado?'<span class="tc-lv">Grado '+esc(t.grado)+'</span>':''))+'</div>'+
         (parts.length?'<div class="tc-meta">'+parts.join(' · ')+'</div>':'')+
         (t.danno_effetto?'<div class="tc-eff"><b>Effetto:</b> '+esc(t.danno_effetto)+'</div>':'')+
         (det.length?'<div class="tc-det">'+det.join(' · ')+'</div>':'')+
