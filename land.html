@@ -258,6 +258,11 @@
   .composer textarea{width:100%;box-sizing:border-box;resize:vertical;min-height:54px;max-height:150px;font-family:inherit;font-size:15px;line-height:1.4;padding:8px 10px;border:1px solid var(--edge);border-radius:8px;background:#fbf4e1;color:var(--ink)}
   .composer-row{display:flex;align-items:center;justify-content:space-between;margin-top:7px;gap:10px;flex-wrap:wrap}
   .composer .chint{font-size:11px;color:var(--ink-soft)}
+  .act-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px}
+  .act-lbl{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);flex:0 0 auto}
+  .tech-sel{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink);background:#fbf4e1;border:1px solid var(--edge);border-radius:7px;padding:6px 8px;max-width:240px;cursor:pointer}
+  .tech-sel:focus{outline:0;border-color:var(--red)}
+  .tech-hint{font-size:11.5px;color:var(--ink-soft);font-style:italic}
   .btn-send{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--red);color:#f6ead0;border:1px solid var(--red-deep);border-radius:7px;padding:9px 22px;cursor:pointer}
   .btn-send:hover{background:var(--red-deep)}
   .btn-send:disabled{opacity:.5;cursor:default}
@@ -610,6 +615,8 @@
   .rec-btn.ghost:hover{background:rgba(166,50,29,.08)}
   .rec-btn:disabled{opacity:.55;cursor:default}
   .rec-hint{font-size:11.5px;color:var(--ink-soft);margin:8px 0 0;line-height:1.35}
+  .rec-title{width:100%;box-sizing:border-box;margin:2px 0 8px;font-family:'Cormorant Garamond',serif;font-size:14px;padding:7px 9px;border:1px solid var(--edge);border-radius:7px;background:#fbf4e1;color:var(--ink)}
+  .rec-title::placeholder{color:var(--ink-soft)}
   .side-card.acad .ac-live{display:flex;align-items:center;gap:7px;font-family:'Cinzel',serif;font-size:12px;color:var(--red-deep);margin-bottom:4px}
   .acad-lesson{font-family:'Cinzel',serif;font-size:12.5px;color:var(--ink);margin-bottom:2px}
   .acad-meta{font-size:12px;color:var(--ink-soft);margin:2px 0 9px;line-height:1.35}
@@ -788,10 +795,11 @@
             <section class="chat">
               <div class="msgs" id="msgs"></div>
               <div class="composer">
+                <div class="place-bar"><svg class="pb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg><input id="msg-place" class="pb-input" maxlength="60" autocomplete="off" placeholder="Luogo della giocata in questa chat — es. Ramen Ichiraku (facoltativo)"></div>
                 <textarea id="msg-input" maxlength="5000" placeholder="Scrivi il tuo turno di gioco…"></textarea>
-                <div class="place-bar"><svg class="pb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg><input id="msg-place" class="pb-input" maxlength="60" autocomplete="off" placeholder="Luogo preciso della giocata — es. Ramen Ichiraku (facoltativo)"></div>
+                <div class="act-tools"><span class="act-lbl">Nell'azione</span><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><select class="tech-sel" id="msg-tech" title="Tecnica o abilità usata (dalla tua scheda)"><option value="">Tecnica / Abilità…</option></select><span class="tech-hint" id="tech-hint"></span></div>
                 <div class="item-pop" id="item-pop" hidden><div class="ip-head">Oggetti equipaggiati</div><div id="ip-list"></div></div>
-                <div class="composer-row"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*</span><div class="composer-tools"><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="exp-btn" id="exp-btn" type="button" title="Apri l'editor: finestra grande per scrivere e rileggere tutta la tua role"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg>Editor</button><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="cmb-btn" type="button" title="Calcolo combattimento"><svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>Combatti</button><button class="legend-btn" id="legend-btn" type="button" title="Legenda: comandi e punteggiatura">?</button><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
+                <div class="composer-row"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*</span><div class="composer-tools"><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="exp-btn" id="exp-btn" type="button" title="Apri l'editor: finestra grande per scrivere e rileggere tutta la tua role"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg>Editor</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="cmb-btn" type="button" title="Calcolo combattimento"><svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>Combatti</button><button class="legend-btn" id="legend-btn" type="button" title="Legenda: comandi e punteggiatura">?</button><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
               </div>
             </section>
             <aside class="room-side">
@@ -1026,7 +1034,7 @@
       var lgList=document.getElementById('lg-list');
       var msgsEl=document.getElementById('msgs'), whoEl=document.getElementById('who-list');
       var input=document.getElementById('msg-input'), sendBtn=document.getElementById('msg-send'), countEl=document.getElementById('msg-count');
-      var toSel=document.getElementById('msg-to'), diceBtn=document.getElementById('dice-btn'), objBtn=document.getElementById('obj-btn');
+      var toSel=document.getElementById('msg-to'), diceBtn=document.getElementById('dice-btn'), objBtn=document.getElementById('obj-btn'), techSel=document.getElementById('msg-tech');
       var nameEl=document.getElementById('room-name'), kindEl=document.getElementById('room-kind'), descEl=document.getElementById('room-desc'), meteoEl=document.getElementById('room-meteo');
       var backBtn=document.getElementById('room-back');
       var LOCS=[], cur=null, poll=null, loggedIn=false, myId=null, myCharId=null, EMB={}, ROSTER=[], pendingWhisper=null, rosterPoll=null, ACT=[], iAmStaff=false, WHO=[];
@@ -1245,9 +1253,10 @@
         card.hidden=false;
         if(roleState.open){
           var meta='Avviata da <b>'+esc(roleState.starter||'—')+'</b>'+(roleState.started_at?(' · '+fmtRoleTime(roleState.started_at)):'');
-          var btn = roleState.can_close ? '<button class="rec-btn ghost" id="rec-close" type="button">Chiudi role</button>' : '';
-          var hint = roleState.can_close ? 'La scena si salva nella Libreria role di chi è presente e di chi entra. Si chiude da sola dopo 24 ore.' : 'Stai partecipando a una scena registrata: la troverai nella tua Libreria role.';
-          body.innerHTML='<div class="rec-live"><span class="rec-dot"></span>Registrazione in corso</div><div class="rec-meta">'+meta+'</div>'+btn+'<p class="rec-hint">'+hint+'</p>';
+          var titleIn = roleState.can_close ? '<input class="rec-title" id="rec-title" maxlength="80" placeholder="Titolo della role (facoltativo)" value="'+esc(roleState.title||'')+'">' : '';
+          var btn = roleState.can_close ? '<button class="rec-btn ghost" id="rec-close" type="button">Chiudi e salva role</button>' : '';
+          var hint = roleState.can_close ? 'Dai un titolo alla scena, poi chiudila: si salva nella Libreria role di chi è presente e di chi entra. Si chiude da sola dopo 24 ore.' : 'Stai partecipando a una scena registrata: la troverai nella tua Libreria role.';
+          body.innerHTML='<div class="rec-live"><span class="rec-dot"></span>Registrazione in corso</div><div class="rec-meta">'+meta+'</div>'+titleIn+btn+'<p class="rec-hint">'+hint+'</p>';
           var cb=document.getElementById('rec-close'); if(cb) cb.addEventListener('click', onCloseClick);
         } else {
           body.innerHTML='<button class="rec-btn" id="rec-start" type="button"><span class="rec-dot" style="background:#f6ead0;animation:none;box-shadow:none"></span>Registra role</button><p class="rec-hint">Salva questa scena nella Libreria role di chi è presente e di chi entrerà. La registrazione parte dall’azione successiva.</p>';
@@ -1273,16 +1282,21 @@
       }
       function onCloseClick(){
         var b=document.getElementById('rec-close'); if(!b) return;
-        if(b.getAttribute('data-armed')!=='1'){ b.setAttribute('data-armed','1'); b.textContent='Premi ancora per chiudere'; if(recConfirmT) clearTimeout(recConfirmT); recConfirmT=setTimeout(function(){ if(b){ b.removeAttribute('data-armed'); b.textContent='Chiudi role'; } },3200); return; }
+        if(b.getAttribute('data-armed')!=='1'){ b.setAttribute('data-armed','1'); b.textContent='Premi ancora per chiudere'; if(recConfirmT) clearTimeout(recConfirmT); recConfirmT=setTimeout(function(){ if(b){ b.removeAttribute('data-armed'); b.textContent='Chiudi e salva role'; } },3200); return; }
         if(recConfirmT) clearTimeout(recConfirmT); closeRole();
       }
       function closeRole(){
         if(!roleState.session||!sb) return;
         var b=document.getElementById('rec-close'); if(b) b.disabled=true;
-        sb.rpc('role_close',{p_session:roleState.session}).then(function(r){
-          if(r&&r.error){ toast('Impossibile chiudere la role'); if(b){ b.disabled=false; b.removeAttribute('data-armed'); b.textContent='Chiudi role'; } return; }
-          toast('Role salvata nella libreria'); loadRoleState();
-        }, function(){ if(b){ b.disabled=false; } toast('Impossibile chiudere la role'); });
+        var tin=document.getElementById('rec-title'); var ttl=tin?(''+tin.value).trim():'';
+        function doClose(){
+          sb.rpc('role_close',{p_session:roleState.session}).then(function(r){
+            if(r&&r.error){ toast('Impossibile chiudere la role'); if(b){ b.disabled=false; b.removeAttribute('data-armed'); b.textContent='Chiudi e salva role'; } return; }
+            toast('Role salvata nella libreria'); loadRoleState();
+          }, function(){ if(b){ b.disabled=false; } toast('Impossibile chiudere la role'); });
+        }
+        if(ttl){ sb.rpc('role_set_title',{p_session:roleState.session,p_title:ttl}).then(doClose, doClose); }
+        else doClose();
       }
       /* ---- Accademia: lezioni in chat ---- */
       var classState=null, acadAdvancing=false, senseiPortrait='';
@@ -1393,16 +1407,41 @@
         var to=toSel?toSel.value:'';
         var placeEl=document.getElementById('msg-place'); var place=placeEl?placeEl.value.trim().replace(/[【】]/g,'').slice(0,60):'';
         var pbody=(place && !to)?('【'+place+'】 '+t):t;
+        var techEl=document.getElementById('msg-tech'); var tech=(techEl && !to)?techEl.value:'';
         sendBtn.disabled=true;
         var req = to ? sb.rpc('post_whisper',{p_location:cur.id,p_recipient:to,p_body:t})
-                     : sb.rpc('post_message',{p_location:cur.id,p_body:pbody});
+                     : sb.rpc('post_message', tech ? {p_location:cur.id,p_body:pbody,p_technique:tech} : {p_location:cur.id,p_body:pbody});
         req.then(function(r){
           sendBtn.disabled=false;
-          if(r&&r.error){ var m=(r.error.message||'').toLowerCase(); toast(/consentito/.test(m)?'Messaggio bloccato dalla moderazione':(/lungo/.test(m)?'Messaggio troppo lungo':(/personaggio/.test(m)?'Ti serve un personaggio':(/destinatario/.test(m)?'Destinatario non valido':'Impossibile inviare')))); return; }
-          input.value=''; updCount(); loadMsgs(); loadWho();
+          if(r&&r.error){ var raw=(r.error.message||''); var m=raw.toLowerCase();
+            toast(/chakra/.test(m)?raw:(/consentito/.test(m)?'Messaggio bloccato dalla moderazione':(/lungo/.test(m)?'Messaggio troppo lungo':(/tecnica/.test(m)?'Tecnica non disponibile o non ancora attiva':(/personaggio/.test(m)?'Ti serve un personaggio':(/destinatario/.test(m)?'Destinatario non valido':'Impossibile inviare')))))); return; }
+          input.value=''; updCount(); if(techEl){ techEl.value=''; var thh=document.getElementById('tech-hint'); if(thh) thh.textContent=''; } loadMsgs(); loadWho();
           if(typeof after==='function') after();
         }, function(){ sendBtn.disabled=false; toast('Impossibile inviare'); });
       }
+      function loadAbilities(){
+        var sel=document.getElementById('msg-tech'); if(!sel||!sb) return;
+        sb.rpc('my_abilities',{}).then(function(r){
+          var rows=(r&&!r.error&&r.data)||[];
+          var opts='<option value="">Tecnica / Abilità…</option>';
+          rows.filter(function(x){return x.state==='attiva';}).forEach(function(t){
+            var cost=(t.chakra_cost!=null&&t.chakra_cost>0)?(' · '+t.chakra_cost+' ck'):'';
+            var lv=(t.level!=null)?(' (Liv.'+t.level+')'):(t.grado?(' ['+esc(t.grado)+']'):'');
+            opts+='<option value="'+t.technique_id+'" data-ct="'+esc(t.consumption_type||'')+'" data-ck="'+(t.chakra_cost||0)+'">'+esc(t.name)+lv+cost+'</option>';
+          });
+          sel.innerHTML=opts;
+        }, function(){});
+      }
+      (function(){ var ts=document.getElementById('msg-tech');
+        if(ts) ts.addEventListener('change', function(){
+          var th=document.getElementById('tech-hint'); if(!th) return;
+          var o=ts.options[ts.selectedIndex]; if(!o||!ts.value){ th.textContent=''; return; }
+          var ct=o.getAttribute('data-ct')||'', ck=o.getAttribute('data-ck')||'0';
+          var lbl=(ct==='per_turno'?'Per turno':(ct==='passiva'?'Passiva':'Ad utilizzo'));
+          th.textContent=lbl+((+ck>0)?(' · '+ck+' chakra a turno'):'');
+        });
+      })();
+      loadAbilities();
       sendBtn.addEventListener('click', send);
       /* ---- Editor: finestra grande per scrivere e rileggere la propria role ---- */
       var edOv=document.getElementById('editor-ov'), edText=document.getElementById('ed-text'), edCountEl=document.getElementById('ed-count'), edToEl=document.getElementById('ed-to');
