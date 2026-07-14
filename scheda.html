@@ -415,7 +415,7 @@
               <label>Genjutsu<input id="sp-genjutsu" type="number" step="5"></label>
               <label>Taijutsu<input id="sp-taijutsu" type="number" step="5"></label>
               <label>Fuuinjutsu<input id="sp-fuuinjutsu" type="number" step="5"></label>
-              <label>Kekkei Genkai<input id="sp-kekkei_genkai" type="number" step="5"></label>
+              <label><span id="lbl-sp-kg">Kekkei Genkai</span><input id="sp-kekkei_genkai" type="number" step="5"></label>
               <label>Vita<input id="sp-vita" type="number"></label>
               <label>Vita max<input id="sp-vita_max" type="number"></label>
               <label>Chakra<input id="sp-chakra" type="number"></label>
@@ -520,6 +520,10 @@
 
     var CLANS={Konoha:['Nessuno','Hyuga','Nara','Akimichi','Inuzuka','Aburame'],Suna:['Nessuno','Marionettisti','Sabaku','Dokugan']};
     var STATS=[['mente','Mente'],['forza','Forza'],['velocita','Velocità'],['resistenza','Resistenza'],['ninjutsu','Ninjutsu'],['genjutsu','Genjutsu'],['taijutsu','Taijutsu'],['fuuinjutsu','Fuuinjutsu'],['kekkei_genkai','Kekkei Genkai']];
+    var CLAN_ABILITY={};
+    function kgLabel(clan){var k=clan&&CLAN_ABILITY[clan];if(k==='kekkei_genkai')return 'Innata';if(k==='hiden')return 'Arte segreta';return 'Kekkei Genkai';}
+    function statLbl(s){return s[0]==='kekkei_genkai'?kgLabel(myChar&&myChar.clan):s[1];}
+    function showInnata(c){c=c||myChar;return !!(c&&c.clan&&c.clan!=='Nessuno'&&(c.rank||'Deshi')!=='Deshi');}
     var BASE=10,POOL=60,CAP=30,STEP=5;
     var ELK={Fuoco:'火',Vento:'風',Fulmine:'雷',Terra:'土',Acqua:'水'},ELC={Fuoco:'e-fuoco',Vento:'e-vento',Fulmine:'e-fulmine',Terra:'e-terra',Acqua:'e-acqua'};
     var me=null,myChar=null,curPriv=null,newStats={},addBuf={},EMB={},myName='',viewMode='owner',viewId=null,isStaff=false,isAdmin=false,editMode=false;
@@ -559,7 +563,7 @@
       toast('Scheda creata! Ti portiamo nella land…');setTimeout(function(){location.href='land.html';},900);});
 
     /* ---- SHEET ---- */
-    function renderChars(c){var w=$('charwrap');w.innerHTML='';STATS.forEach(function(s){var v=(c[s[0]]!=null?c[s[0]]:BASE);var row=document.createElement('div');row.className='charrow';row.innerHTML='<span class="cn">'+s[1]+'</span><div class="cbar"><span style="width:'+v+'%"></span></div><span class="roval">'+v+'</span>';w.appendChild(row);});}
+    function renderChars(c){var w=$('charwrap');w.innerHTML='';STATS.forEach(function(s){if(s[0]==='kekkei_genkai'&&!showInnata(c))return;var v=(c[s[0]]!=null?c[s[0]]:BASE);var row=document.createElement('div');row.className='charrow';row.innerHTML='<span class="cn">'+statLbl(s)+'</span><div class="cbar"><span style="width:'+v+'%"></span></div><span class="roval">'+v+'</span>';w.appendChild(row);});}
     function setTabVis(p,vis){
       var b=document.querySelector('.ptab[data-p="'+p+'"]'); if(b) b.style.display=vis?'':'none';
       if(!vis){ var pg=$('page-'+p); if(pg&&pg.classList.contains('on')){ pg.classList.remove('on'); var home=$('page-home'); if(home)home.classList.add('on'); document.querySelectorAll('.ptab').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-p')==='home');}); } }
@@ -698,7 +702,7 @@
       if(d.ok){ toast('Addestramento avviato'+(d.xp_spent?(' · '+d.xp_spent+' XP spesi'):'')); renderTraining(); }
       else { toast((d.reasons&&d.reasons.length)?d.reasons.join(' · '):'Non idoneo',true); }
     }); })();
-    function renderUnspent(c){var box=$('unspent-box');if(!c.unspent_points||c.unspent_points<=0){box.style.display='none';return;}box.style.display='block';addBuf={};$('u-pts').textContent=c.unspent_points;var host=$('u-rows');host.innerHTML='';STATS.forEach(function(s){addBuf[s[0]]=0;var row=document.createElement('div');row.className='steprow';row.innerHTML='<span class="cn">'+s[1]+'</span><button type="button" class="stbtn minus" data-k="'+s[0]+'" data-d="-1">−5</button><span class="stval" id="ua-'+s[0]+'">'+(c[s[0]]||BASE)+'</span><button type="button" class="stbtn" data-k="'+s[0]+'" data-d="1">+5</button>';host.appendChild(row);});}
+    function renderUnspent(c){var box=$('unspent-box');if(!c.unspent_points||c.unspent_points<=0){box.style.display='none';return;}box.style.display='block';addBuf={};$('u-pts').textContent=c.unspent_points;var host=$('u-rows');host.innerHTML='';STATS.forEach(function(s){addBuf[s[0]]=0;if(s[0]==='kekkei_genkai'&&!showInnata(c))return;var row=document.createElement('div');row.className='steprow';row.innerHTML='<span class="cn">'+statLbl(s)+'</span><button type="button" class="stbtn minus" data-k="'+s[0]+'" data-d="-1">−5</button><span class="stval" id="ua-'+s[0]+'">'+(c[s[0]]||BASE)+'</span><button type="button" class="stbtn" data-k="'+s[0]+'" data-d="1">+5</button>';host.appendChild(row);});}
     $('u-rows').addEventListener('click',function(e){var b=e.target.closest('.stbtn');if(!b)return;var k=b.getAttribute('data-k'),d=parseInt(b.getAttribute('data-d')||'1',10),used=0,kk;for(kk in addBuf)used+=addBuf[kk];if(d>0){if(used+STEP>myChar.unspent_points)return;addBuf[k]+=STEP;}else{if(addBuf[k]<STEP)return;addBuf[k]-=STEP;}used=0;for(kk in addBuf)used+=addBuf[kk];$('ua-'+k).textContent=(myChar[k]||BASE)+addBuf[k];var up=$('u-pts');if(up)up.textContent=(myChar.unspent_points-used);});
     $('u-confirm').addEventListener('click',async function(){var used=0;for(var kk in addBuf)used+=addBuf[kk];if(used===0){toast('Nessun punto assegnato',true);return;}this.disabled=true;var upd={unspent_points:myChar.unspent_points-used};STATS.forEach(function(s){upd[s[0]]=(myChar[s[0]]||BASE)+addBuf[s[0]];});var r=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();this.disabled=false;if(r.error){toast('Errore',true);return;}myChar=r.data;fillForm(myChar,curPriv);toast('Punti assegnati');});
 
@@ -751,6 +755,7 @@
       var set=function(id,v){var el=$(id); if(el) el.value=(v!=null?v:'');};
       set('sp-epithet',c.epithet||'');
       STATS.forEach(function(s){set('sp-'+s[0],c[s[0]]!=null?c[s[0]]:BASE);});
+      var _kl=$('lbl-sp-kg'); if(_kl)_kl.textContent=kgLabel(c.clan);
       ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){set('sp-'+k,c[k]!=null?c[k]:0);});
       set('sp-fato',priv&&priv.fato_notes?priv.fato_notes:'');
     }
@@ -969,7 +974,7 @@
         try{var pr=await sb.from('profiles').select('username,role').eq('id',me.id).single();myName=(pr.data&&pr.data.username)?pr.data.username:'';var _role=pr.data?pr.data.role:'';isStaff=(_role==='master'||_role==='admin');isAdmin=(_role==='admin');}catch(_e){myName='';}
         var _ns=$('c-name-show'); if(_ns) _ns.textContent=myName||'(nome non disponibile)';
         try{var em=await sb.from('emblems').select('kind,name,image_url');(em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});}catch(_e){}
-        try{var _cl=await sb.from('clans').select('name,village,is_active').order('sort').order('name');if(_cl&&_cl.data&&_cl.data.length){var _m={};_cl.data.forEach(function(c){if(c.is_active===false)return;var v=c.village||'Konoha';(_m[v]=_m[v]||['Nessuno']).push(c.name);});if(Object.keys(_m).length)CLANS=_m;}}catch(_e){}
+        try{var _cl=await sb.from('clans').select('name,village,is_active,ability_kind').order('sort').order('name');if(_cl&&_cl.data&&_cl.data.length){var _m={};_cl.data.forEach(function(c){CLAN_ABILITY[c.name]=c.ability_kind||null;if(c.is_active===false)return;var v=c.village||'Konoha';(_m[v]=_m[v]||['Nessuno']).push(c.name);});if(Object.keys(_m).length)CLANS=_m;}}catch(_e){}
         if(viewId){
           var rv=await sb.from('characters').select('*').eq('id',viewId).maybeSingle();
           if(rv.error){$('err-msg').textContent=rv.error.message;show('st-error');return;}
