@@ -215,7 +215,7 @@
   .side-card[hidden]{display:none}
   .side-k{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);margin-bottom:8px}
   .side-card.place{flex:0 0 auto}
-  .place-img{width:100%;max-height:158px;object-fit:cover;border:1.5px solid var(--rule);border-radius:9px;display:none;margin-bottom:9px}
+  .place-img{width:100%;max-height:158px;object-fit:cover;border-radius:9px;display:none;margin-bottom:9px}
   .place-desc{font-style:italic;color:var(--ink);font-size:14px;line-height:1.45;margin:0}
   .place-desc:empty{display:none}
   .place-note{display:none;margin-top:9px;background:rgba(166,50,29,.08);border:1px solid var(--edge);border-left:4px solid var(--red);border-radius:8px;padding:7px 10px;color:var(--ink);font-size:13px;line-height:1.4}
@@ -262,6 +262,8 @@
   .btn-send:hover{background:var(--red-deep)}
   .btn-send:disabled{opacity:.5;cursor:default}
   .who-list{overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+  .who-name{color:var(--ink);text-decoration:none;cursor:pointer;font-weight:600}
+  .who-name:hover{color:var(--red-deep);text-decoration:underline}
   .who-item{display:flex;align-items:center;gap:8px;font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink)}
   .who-dot{width:7px;height:7px;border-radius:50%;background:#3c8a3c;flex-shrink:0}
   .who-empty{color:var(--ink-soft);font-style:italic;font-size:13px}
@@ -1206,7 +1208,8 @@
         rows=rows||[];
         if(!rows.length){ whoEl.innerHTML='<span class="who-empty">Nessuno, per ora.</span>'; return; }
         whoEl.innerHTML=rows.map(function(w){
-          return '<div class="who-item"><span class="who-dot"></span>'+esc(w.name)+(w.epithet?' <span style="color:var(--red-deep);font-style:italic">«'+esc(w.epithet)+'»</span>':'')+'</div>';
+          var nm = w.char_id ? ('<a class="who-name" href="scheda.html?id='+esc(w.char_id)+'" target="_blank" rel="noopener" title="Apri la scheda di '+esc(w.name)+'">'+esc(w.name)+'</a>') : esc(w.name);
+          return '<div class="who-item"><span class="who-dot"></span>'+nm+(w.epithet?' <span style="color:var(--red-deep);font-style:italic">«'+esc(w.epithet)+'»</span>':'')+'</div>';
         }).join('');
       }
       function updateTargets(rows){
