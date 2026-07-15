@@ -133,10 +133,33 @@
     .mapframe{aspect-ratio:4/5}
   }
   /* ====== CHAT / LUOGHI ====== */
-  .mapzone{flex-direction:column;align-items:stretch;justify-content:flex-start}
+  .mapzone{flex-direction:column;align-items:stretch;justify-content:flex-start;min-height:0}
   .view{flex:1;min-height:0;display:none;flex-direction:column;gap:12px}
   .view.on{display:flex}
   #map-view .mapframe{flex:1;min-height:340px;width:100%;max-width:1040px;margin:0 auto;aspect-ratio:auto;position:relative}
+  /* --- Adattamento a schermi bassi/piccoli (portatili ~14") — la barra Luoghi resta sempre visibile --- */
+  @media (max-height:820px){
+    .topbar{padding:8px clamp(12px,2vw,24px);gap:8px}
+    .tb-btn{padding:6px 9px;font-size:10px}
+    .tb-name{font-size:12.5px}
+    .pts-reminder{padding:6px 44px;font-size:14px}
+    .mapzone{padding:8px clamp(10px,2vw,24px)}
+    .view{gap:8px}
+    #map-view .mapframe{min-height:150px}
+    .map-cols{gap:10px}
+    .activity,.luoghi{padding:8px 11px}
+  }
+  @media (max-height:670px){
+    #map-view .mapframe{min-height:110px}
+    .map-hint .mh-d{display:none}
+    .map-hint .mh-t{font-size:19px;margin-bottom:2px}
+    .map-hint{padding:8px}
+    .lg-head,.ac-head{margin-bottom:5px}
+  }
+  /* --- Schermi stretti: la vista mappa impilata diventa scorrevole (niente tagli) --- */
+  @media (max-width:860px){
+    #map-view{overflow-y:auto;overflow-x:hidden}
+  }
   .map-markers{position:absolute;inset:0;pointer-events:none}
   .mk{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0;z-index:2}
   .mk-dot{width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px rgba(255,247,235,.75),0 2px 5px rgba(0,0,0,.35);transition:transform .12s}
