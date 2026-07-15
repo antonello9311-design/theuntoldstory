@@ -1465,11 +1465,26 @@
       function rollDice(){ if(!cur||!sb||!diceBtn) return; diceBtn.disabled=true;
         sb.rpc('post_dice',{p_location:cur.id,p_sides:100}).then(function(r){ diceBtn.disabled=false; if(r&&r.error){ toast('Impossibile lanciare il dado'); return; } loadMsgs(); }, function(){ diceBtn.disabled=false; toast('Impossibile lanciare il dado'); }); }
       if(diceBtn){ diceBtn.addEventListener('click', rollDice); }
-      function openCombat(){ if(!cur||!sb) return; var sel=document.getElementById('cmb-target'); if(!sel) return; var opts=''; (WHO||[]).forEach(function(w){ if(w.user_id&&w.user_id!==myId){ opts+='<option value="'+w.user_id+'">'+esc(w.name)+'</option>'; } }); sel.innerHTML=opts||'<option value="">\u2014 nessun altro presente \u2014</option>'; var qw=document.getElementById('cmb-qwrap'); if(qw) qw.style.display=iAmStaff?'':'none'; bindCombatControls(); var ov=document.getElementById('cmb-overlay'); if(ov) ov.hidden=false; }
+      function openCombat(){ if(!cur||!sb) return; var sel=document.getElementById('cmb-target'); if(!sel) return; var opts=''; (WHO||[]).forEach(function(w){ if(w.user_id&&w.user_id!==myId){ opts+='<option value="'+w.user_id+'">'+esc(w.name)+'</option>'; } }); sel.innerHTML=opts||'<option value="">\u2014 nessun altro presente \u2014</option>'; var qw=document.getElementById('cmb-qwrap'); if(qw) qw.style.display=iAmStaff?'':'none'; var tt=document.getElementById('cmb-tech'); if(tt) tt.value=''; var bb=document.getElementById('cmb-base'); if(bb) bb.disabled=false; var thh=document.getElementById('cmb-techhint'); if(thh) thh.textContent=''; loadCombatTech(); bindCombatControls(); var ov=document.getElementById('cmb-overlay'); if(ov) ov.hidden=false; }
       function closeCombat(){ var ov=document.getElementById('cmb-overlay'); if(ov) ov.hidden=true; }
-      function doCombat(){ var sel=document.getElementById('cmb-target'); var target=sel&&sel.value; if(!target){ toast('Scegli un bersaglio presente'); return; } var go=document.getElementById('cmb-go'); if(go) go.disabled=true; var params={ p_location:cur.id, p_defender_user:target, p_kind:(document.getElementById('cmb-kind')||{}).value||'fisico', p_name:(document.getElementById('cmb-name')||{}).value||'', p_base:parseInt((document.getElementById('cmb-base')||{}).value,10)||0, p_mod:parseInt((document.getElementById('cmb-mod')||{}).value,10)||0, p_defense:(document.getElementById('cmb-def')||{}).value||'schivata', p_quality: iAmStaff?(parseInt((document.getElementById('cmb-q')||{}).value,10)||0):0 }; sb.rpc('post_combat',params).then(function(r){ if(go) go.disabled=false; if(r&&r.error){ toast('Calcolo non riuscito'); return; } closeCombat(); loadMsgs(); }, function(){ if(go) go.disabled=false; toast('Calcolo non riuscito'); }); }
+      function loadCombatTech(){ var ts=document.getElementById('cmb-tech'); if(!ts||!sb) return;
+        sb.rpc('my_abilities',{}).then(function(r){ var rows=(r&&!r.error&&r.data)||[];
+          var opts='<option value="">— colpo / azione manuale —</option>';
+          rows.filter(function(x){return x.state==='attiva';}).forEach(function(t){
+            var g=(t.grado?(' ['+esc(t.grado)+']'):(t.level!=null?(' (Liv.'+t.level+')'):''));
+            var db=(t.danno_base!=null?t.danno_base:0), ck=(t.chakra_cost!=null?t.chakra_cost:0);
+            opts+='<option value="'+t.technique_id+'" data-base="'+db+'" data-ck="'+ck+'" data-nm="'+esc(t.name)+'">'+esc(t.name)+g+(db>0?(' · '+db+' dmg'):'')+(ck>0?(' · '+ck+' ck'):'')+'</option>';
+          });
+          ts.innerHTML=opts;
+        }, function(){});
+      }
+      function combatTechChange(){ var ts=document.getElementById('cmb-tech'); if(!ts) return; var o=ts.options[ts.selectedIndex]; var nm=document.getElementById('cmb-name'), ba=document.getElementById('cmb-base'), th=document.getElementById('cmb-techhint');
+        if(ts.value&&o){ var db=o.getAttribute('data-base')||'0', ck=o.getAttribute('data-ck')||'0'; if(nm) nm.value=o.getAttribute('data-nm')||''; if(ba){ ba.value=db; ba.disabled=true; } if(th) th.textContent='danno '+db+((+ck>0)?(' · costa '+ck+' chakra'):''); }
+        else { if(ba) ba.disabled=false; if(th) th.textContent=''; }
+      }
+      function doCombat(){ var sel=document.getElementById('cmb-target'); var target=sel&&sel.value; if(!target){ toast('Scegli un bersaglio presente'); return; } var go=document.getElementById('cmb-go'); if(go) go.disabled=true; var tech=(document.getElementById('cmb-tech')||{}).value||''; var params={ p_location:cur.id, p_defender_user:target, p_kind:(document.getElementById('cmb-kind')||{}).value||'fisico', p_name:(document.getElementById('cmb-name')||{}).value||'', p_base:parseInt((document.getElementById('cmb-base')||{}).value,10)||0, p_mod:parseInt((document.getElementById('cmb-mod')||{}).value,10)||0, p_defense:(document.getElementById('cmb-def')||{}).value||'schivata', p_quality: iAmStaff?(parseInt((document.getElementById('cmb-q')||{}).value,10)||0):0 }; if(tech){ params.p_technique=tech; } sb.rpc('post_combat',params).then(function(r){ if(go) go.disabled=false; if(r&&r.error){ var raw=(r.error.message||''); toast(/chakra/i.test(raw)?raw:(/tecnica/i.test(raw)?'Tecnica non disponibile o non attiva':'Calcolo non riuscito')); return; } closeCombat(); loadMsgs(); }, function(){ if(go) go.disabled=false; toast('Calcolo non riuscito'); }); }
       var _cmbBound=false;
-      function bindCombatControls(){ if(_cmbBound) return; var x=document.getElementById('cmb-close'), c=document.getElementById('cmb-cancel'), bk=document.getElementById('cmb-backdrop'), g=document.getElementById('cmb-go'); if(x&&c&&bk&&g){ x.addEventListener('click',closeCombat); c.addEventListener('click',closeCombat); bk.addEventListener('click',closeCombat); g.addEventListener('click',doCombat); _cmbBound=true; } }
+      function bindCombatControls(){ if(_cmbBound) return; var x=document.getElementById('cmb-close'), c=document.getElementById('cmb-cancel'), bk=document.getElementById('cmb-backdrop'), g=document.getElementById('cmb-go'); if(x&&c&&bk&&g){ x.addEventListener('click',closeCombat); c.addEventListener('click',closeCombat); bk.addEventListener('click',closeCombat); g.addEventListener('click',doCombat); var tc=document.getElementById('cmb-tech'); if(tc) tc.addEventListener('change',combatTechChange); _cmbBound=true; } }
       (function(){ var b=document.getElementById('cmb-btn'); if(b) b.addEventListener('click',openCombat); })();
 
       if(toSel){ toSel.addEventListener('change', updateToStyle); }
@@ -2044,10 +2059,11 @@
       <div class="cmb-head"><span>⚔ Calcolo combattimento</span><button type="button" id="cmb-close" aria-label="Chiudi">✕</button></div>
       <div class="cmb-body">
         <label class="cmb-f">Bersaglio (presente nella stanza)<select id="cmb-target"></select></label>
+        <label class="cmb-f">Tecnica (dalla tua scheda)<select id="cmb-tech"><option value="">— colpo / azione manuale —</option></select><span class="cmb-hint" id="cmb-techhint"></span></label>
         <label class="cmb-f">Azione o tecnica<input id="cmb-name" maxlength="60" placeholder="es. Palla di Fuoco"></label>
         <div class="cmb-two">
           <label class="cmb-f">Tipo<select id="cmb-kind"><option value="fisico">Fisico · Forza+Taijutsu</option><option value="ninjutsu">Ninjutsu · Mente+Ninjutsu</option></select></label>
-          <label class="cmb-f">Danno base<input id="cmb-base" type="number" min="0" max="120" value="18"></label>
+          <label class="cmb-f">Danno base<input id="cmb-base" type="number" min="0" max="120" value="10"></label>
         </div>
         <div class="cmb-two">
           <label class="cmb-f">Difesa del bersaglio<select id="cmb-def"><option value="schivata">Schivata · Velocità+Taijutsu</option><option value="contrasto">Contrasto · Mente+Ninjutsu</option></select></label>
