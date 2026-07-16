@@ -526,6 +526,37 @@
   .mailov-slot{flex:1;min-height:0;display:flex}
   .mailov-slot .mbox{flex:1;min-height:0;box-shadow:0 24px 60px rgba(20,12,4,.5)}
   .mailov-slot .side-toggle{display:none}
+  /* Missioni: overlay bacheca + registro */
+  .missov-card{position:relative;width:min(700px,100%);height:min(86vh,820px);display:flex;flex-direction:column;background:linear-gradient(var(--paper-hi),var(--paper));border:1.5px solid var(--rule);box-shadow:0 24px 60px rgba(20,12,4,.5)}
+  .miss-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--rule);flex-wrap:wrap}
+  .miss-title{font-family:'Cinzel',serif;font-weight:700;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);flex:1}
+  .miss-tab{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.09em;text-transform:uppercase;border:1px solid var(--edge);background:rgba(255,250,235,.5);color:var(--ink-soft);border-radius:7px;padding:6px 10px;cursor:pointer}
+  .miss-tab.on{background:var(--red);border-color:var(--red-deep);color:#f6ead0}
+  .miss-body{flex:1;min-height:0;overflow-y:auto;padding:12px 14px}
+  .miss-empty{font-size:14.5px;color:var(--ink-soft);font-style:italic;padding:8px 2px}
+  .mcard{border:1px solid var(--edge);background:rgba(255,252,244,.6);border-radius:9px;padding:11px 13px;margin-bottom:10px}
+  .mcard .mtop{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .mgrade{font-family:'Cinzel',serif;font-weight:700;font-size:12px;color:#f6ead0;background:var(--red);border-radius:8px;padding:2px 9px}
+  .mname{font-family:'Cinzel',serif;font-weight:600;font-size:14.5px;color:var(--ink);flex:1;min-width:120px}
+  .mvil{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);border:1px solid var(--edge);border-radius:7px;padding:2px 7px;white-space:nowrap}
+  .mbrief{font-size:14.5px;line-height:1.5;color:var(--ink);margin:7px 0 6px}
+  .mmeta{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+  .mmeta b{color:var(--ink)}
+  .mact{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+  .mbtn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border-radius:7px;border:1px solid var(--red-deep);background:var(--red);color:#f6ead0;cursor:pointer}
+  .mbtn.ghost{background:transparent;color:var(--ink);border-color:var(--edge)}
+  .mbtn:disabled{opacity:.5;cursor:not-allowed}
+  .mnote{font-size:12px;color:var(--red-deep);font-style:italic}
+  .mform{display:none;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center}
+  .mform.on{display:flex}
+  .mform input[type=date],.mform input[type=text],.mp-date{font-family:'Cormorant Garamond',serif;font-size:14.5px;border:1px solid var(--rule);background:rgba(255,252,244,.8);padding:7px 9px;color:var(--ink)}
+  .mtag{font-size:12px;color:#5a4a86;border:1px dashed #5a4a86;border-radius:7px;padding:3px 8px;margin-top:6px;display:inline-block}
+  .miss-new{border:1px dashed var(--edge);border-radius:9px;background:rgba(255,250,235,.35);padding:11px 13px;margin-bottom:12px}
+  .miss-new h4{font-family:'Cinzel',serif;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--red-deep);margin:0 0 8px}
+  .mn-grid{display:grid;grid-template-columns:2fr .7fr 1fr .6fr .6fr 1.2fr;gap:8px}
+  .mn-grid input,.mn-grid select,.miss-new textarea{width:100%;font-family:'Cormorant Garamond',serif;font-size:14.5px;border:1px solid var(--rule);background:rgba(255,252,244,.8);padding:7px 9px;color:var(--ink)}
+  .miss-new textarea{min-height:64px;margin-top:8px}
+  @media(max-width:700px){.mn-grid{grid-template-columns:1fr 1fr}}
   .mail-x{background:none;border:none;font-size:26px;color:var(--ink-soft);cursor:pointer;line-height:1}
   .mail-body{flex:1;overflow-y:auto;padding:10px 12px}
   .mail-body[hidden]{display:none}
@@ -719,6 +750,7 @@
           <span class="tb-btn on">Mappa</span>
           <a class="tb-btn" href="scheda.html">Scheda</a>
           <button class="tb-btn mailbtn" id="mail-nav" type="button">Messaggi<span class="tb-new" id="tb-new" hidden>New</span></button>
+          <button class="tb-btn" id="miss-nav" type="button">Missioni</button>
           <a class="tb-btn" href="ambientazione.html">Ambientazione</a>
           <a class="tb-btn" href="clan.html">Clan</a>
           <a class="tb-btn" href="storia.html">Storia</a>
@@ -867,6 +899,20 @@
     <div class="mailov-card">
       <button class="mailov-x" id="mailov-x" type="button" title="Chiudi">×</button>
       <div class="mailov-slot" id="mailov-slot"></div>
+    </div>
+  </div>
+
+  <div class="mailov-backdrop" id="missov-backdrop" hidden></div>
+  <div class="mailov" id="missov" hidden aria-label="Missioni">
+    <div class="missov-card">
+      <button class="mailov-x" id="missov-x" type="button" title="Chiudi">×</button>
+      <div class="miss-head">
+        <span class="miss-title">Missioni</span>
+        <button class="miss-tab on" id="mtab-bacheca" type="button">Bacheca</button>
+        <button class="miss-tab" id="mtab-mie" type="button">Le mie</button>
+        <button class="miss-tab" id="mtab-new" type="button" style="display:none">+ Nuova</button>
+      </div>
+      <div class="miss-body" id="miss-body"></div>
     </div>
   </div>
 
@@ -1745,6 +1791,104 @@
       function openMail(){ if(!loggedIn){ toast('Accedi per leggere i messaggi'); return; } var mb=document.getElementById('mbox'), slot=document.getElementById('mailov-slot'); if(mb&&slot&&mb.parentNode!==slot){ slot.appendChild(mb); } var ov=document.getElementById('mailov'), bk=document.getElementById('mailov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false; mailPanelOpen=true; var nd=document.getElementById('tb-new'); if(nd)nd.hidden=true; showMailList(); if(sb){ loadConversations(); loadUnread(); } }
       function closeMail(){ var mb=document.getElementById('mbox'), home=document.getElementById('side-right'); if(mb&&home&&mb.parentNode!==home){ home.appendChild(mb); } var ov=document.getElementById('mailov'), bk=document.getElementById('mailov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; mailPanelOpen=false; syncSideHeights(); }
       (function(){ var b=document.getElementById('mail-nav'); if(b) b.addEventListener('click', openMail); var x=document.getElementById('mailov-x'); if(x) x.addEventListener('click', closeMail); var bk=document.getElementById('mailov-backdrop'); if(bk) bk.addEventListener('click', closeMail); document.addEventListener('keydown', function(e){ if(e.key==='Escape' && mailPanelOpen) closeMail(); }); })();
+
+      /* ===== MISSIONI: bacheca + registro ===== */
+      var missTab='bacheca';
+      function openMiss(){ if(!loggedIn){ toast('Accedi per vedere le missioni'); return; } var ov=document.getElementById('missov'), bk=document.getElementById('missov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false; var tn=document.getElementById('mtab-new'); if(tn) tn.style.display=iAmStaff?'':'none'; setMissTab('bacheca'); }
+      function closeMiss(){ var ov=document.getElementById('missov'), bk=document.getElementById('missov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
+      function missOpenNow(){ var ov=document.getElementById('missov'); return !!(ov && !ov.hidden); }
+      function setMissTab(t){ missTab=t; [['mtab-bacheca','bacheca'],['mtab-mie','mie'],['mtab-new','new']].forEach(function(p){ var el=document.getElementById(p[0]); if(el) el.classList.toggle('on', p[1]===t); });
+        var host=document.getElementById('miss-body'); if(host) host.innerHTML='<p class="miss-empty">Caricamento…</p>';
+        if(t==='bacheca') loadMissBacheca(); else if(t==='mie') loadMissMie(); else renderMissNew(); }
+      function fmtMD(d){ if(!d) return '—'; var x=new Date(d+'T00:00:00'); return ('0'+x.getDate()).slice(-2)+'/'+('0'+(x.getMonth()+1)).slice(-2)+'/'+x.getFullYear(); }
+      function loadMissBacheca(){ if(!sb) return; sb.rpc('bacheca_missioni').then(function(r){ renderMissBacheca((r&&r.data)||[]); }, function(){ renderMissBacheca([]); }); }
+      function renderMissBacheca(rows){ var host=document.getElementById('miss-body'); if(!host) return;
+        if(!rows.length){ host.innerHTML='<p class="miss-empty">Nessuna richiesta in bacheca, per ora: i villaggi sono tranquilli. Torna presto.</p>'; return; }
+        host.innerHTML=rows.map(function(m){
+          var vil=m.village?('<span class="mvil">'+esc(m.village)+'</span>'):'<span class="mvil">Ogni villaggio</span>';
+          var stato=(m.status==='programmata')?('<span class="mvil" style="color:var(--red-deep);border-color:var(--red-deep)">'+fmtMD(m.data_missione)+(m.master_name?(' · '+esc(m.master_name)):'')+'</span>'):'';
+          var iscr=(m.iscritti&&m.iscritti.length)?('<div class="mmeta">Squadra: <b>'+m.iscritti.map(esc).join(', ')+'</b> ('+m.n_iscritti+'/'+m.team_max+')</div>'):('<div class="mmeta">Squadra: ancora nessuno (max '+m.team_max+')</div>');
+          var prop=(m.status==='aperta'&&m.prima_proposta)?('<div class="mmeta">Data proposta: <b>'+fmtMD(m.prima_proposta)+'</b></div>'):'';
+          var tag=m.tag_trama?('<div class="mtag">✦ trama (solo staff): '+esc(m.tag_trama)+'</div>'):'';
+          var act='';
+          if(m.io_iscritto && m.status==='aperta'){ act+='<button class="mbtn ghost" data-mret="'+m.id+'">Ritira l\'iscrizione</button>'; }
+          else if(m.io_iscritto){ act+='<span class="mnote">Sei in squadra: appuntamento col master.</span>'; }
+          else if(m.posso){ act+='<button class="mbtn" data-mjoin="'+m.id+'">Iscriviti</button>'; }
+          else if(m.motivo){ act+='<span class="mnote">'+esc(m.motivo)+'</span>'; }
+          if(iAmStaff){
+            if(m.status==='aperta' && m.n_iscritti>0){ act+='<input type="date" class="mp-date"> <button class="mbtn ghost" data-mprog="'+m.id+'">Programma</button>'; }
+            if(m.status==='programmata'){ act+='<button class="mbtn" data-mok="'+m.id+'">Esito: riuscita</button><button class="mbtn ghost" data-mko="'+m.id+'">Fallita</button>'; }
+            act+='<button class="mbtn ghost" data-mann="'+m.id+'">Annulla</button>';
+          }
+          var joinForm='<div class="mform" id="mjf-'+m.id+'"><input type="date" class="mj-date" min="'+(new Date().toISOString().slice(0,10))+'"><input type="text" class="mj-nota" maxlength="120" placeholder="Disponibilità / nota (facoltativa)"><button class="mbtn" data-msend="'+m.id+'">Conferma iscrizione</button></div>';
+          return '<div class="mcard" data-mid="'+m.id+'"><div class="mtop"><span class="mgrade">'+esc(m.grado)+'</span><span class="mname">'+esc(m.title)+'</span>'+vil+stato+'</div>'
+            +'<div class="mbrief">'+esc(m.briefing)+'</div>'
+            +'<div class="mmeta">Ricompensa: <b>'+m.xp_reward+' XP</b> · <b>'+m.ryo_reward+' Ryo</b>'+(m.location_hint?(' · Luogo: <b>'+esc(m.location_hint)+'</b>'):'')+'</div>'
+            +iscr+prop+tag
+            +'<div class="mact">'+act+'</div>'+joinForm+'</div>';
+        }).join('');
+      }
+      function loadMissMie(){ if(!sb) return; sb.rpc('mie_missioni').then(function(r){ renderMissMie((r&&r.data)||[]); }, function(){ renderMissMie([]); }); }
+      function renderMissMie(rows){ var host=document.getElementById('miss-body'); if(!host) return;
+        if(!rows.length){ host.innerHTML='<p class="miss-empty">Il tuo registro è vuoto: iscriviti a una missione dalla bacheca.</p>'; return; }
+        host.innerHTML=rows.map(function(m){
+          var st=m.signup_status==='iscritto'?((m.mission_status==='programmata')?('<span class="mvil" style="color:var(--red-deep);border-color:var(--red-deep)">Programmata '+fmtMD(m.data_missione)+'</span>'):'<span class="mvil">In attesa</span>')
+            : m.signup_status==='completata'?'<span class="mvil" style="color:#3f6d3a;border-color:#3f6d3a">Completata</span>'
+            : m.signup_status==='fallita'?'<span class="mvil" style="color:var(--red-deep);border-color:var(--red-deep)">Fallita</span>'
+            : '<span class="mvil">Ritirata</span>';
+          var esito=m.esito_nota?('<div class="mmeta">Nota del master: '+esc(m.esito_nota)+'</div>'):'';
+          var premi=(m.signup_status==='completata')?('<div class="mmeta">Riscosso: <b>'+m.xp_reward+' XP</b> · <b>'+m.ryo_reward+' Ryo</b></div>'):'';
+          return '<div class="mcard"><div class="mtop"><span class="mgrade">'+esc(m.grado)+'</span><span class="mname">'+esc(m.title)+'</span>'+st+'</div>'
+            +(m.master_name?('<div class="mmeta">Master: <b>'+esc(m.master_name)+'</b></div>'):'')
+            +premi+esito+'</div>';
+        }).join('');
+      }
+      function renderMissNew(){ var host=document.getElementById('miss-body'); if(!host) return;
+        if(!iAmStaff){ host.innerHTML=''; return; }
+        host.innerHTML='<div class="miss-new"><h4>Nuova richiesta del villaggio</h4>'
+          +'<div class="mn-grid"><input id="mn-title" type="text" maxlength="80" placeholder="Titolo">'
+          +'<select id="mn-grado"><option>D</option><option>C</option><option>B</option><option>A</option><option>S</option></select>'
+          +'<select id="mn-village"><option value="">Ogni villaggio</option><option>Konoha</option><option>Suna</option></select>'
+          +'<select id="mn-tmin" title="Squadra min"><option>1</option><option>2</option><option>3</option><option>4</option></select>'
+          +'<select id="mn-tmax" title="Squadra max"><option>1</option><option>2</option><option>3</option><option selected>4</option></select>'
+          +'<input id="mn-loc" type="text" maxlength="60" placeholder="Luogo suggerito (facolt.)"></div>'
+          +'<textarea id="mn-brief" maxlength="600" placeholder="Briefing: la richiesta del villaggio come la leggeranno i giocatori…"></textarea>'
+          +'<textarea id="mn-tag" maxlength="300" placeholder="Tag di trama (solo staff): indizio verso la quest generale…"></textarea>'
+          +'<div class="mact" style="margin-top:8px"><button class="mbtn" id="mn-crea">Pubblica sulla bacheca</button><span class="mnote">XP e Ryo si impostano da soli in base al grado.</span></div></div>';
+        var b=document.getElementById('mn-crea'); if(b) b.addEventListener('click', function(){
+          var t=(document.getElementById('mn-title').value||'').trim(), br=(document.getElementById('mn-brief').value||'').trim();
+          if(!t||!br){ toast('Servono titolo e briefing'); return; }
+          var tmin=parseInt(document.getElementById('mn-tmin').value,10), tmax=parseInt(document.getElementById('mn-tmax').value,10);
+          if(tmin>tmax){ toast('Squadra: il minimo supera il massimo'); return; }
+          b.disabled=true;
+          sb.rpc('missione_crea',{p_title:t,p_grado:document.getElementById('mn-grado').value,p_briefing:br,
+            p_village:(document.getElementById('mn-village').value||null),p_tag_trama:(document.getElementById('mn-tag').value||null),
+            p_team_min:tmin,p_team_max:tmax,p_location:(document.getElementById('mn-loc').value||null)})
+          .then(function(r){ b.disabled=false; if(r&&r.error){ toast('Errore: '+(r.error.message||'')); return; } toast('Missione pubblicata'); setMissTab('bacheca'); }, function(){ b.disabled=false; toast('Errore'); });
+        });
+      }
+      (function(){
+        var nb=document.getElementById('miss-nav'); if(nb) nb.addEventListener('click', openMiss);
+        var x=document.getElementById('missov-x'); if(x) x.addEventListener('click', closeMiss);
+        var bk=document.getElementById('missov-backdrop'); if(bk) bk.addEventListener('click', closeMiss);
+        document.addEventListener('keydown', function(e){ if(e.key==='Escape' && missOpenNow()) closeMiss(); });
+        [['mtab-bacheca','bacheca'],['mtab-mie','mie'],['mtab-new','new']].forEach(function(p){ var el=document.getElementById(p[0]); if(el) el.addEventListener('click', function(){ setMissTab(p[1]); }); });
+        var body=document.getElementById('miss-body'); if(!body) return;
+        body.addEventListener('click', function(e){
+          var t=e.target.closest('button'); if(!t||!sb) return;
+          var card=t.closest('.mcard');
+          if(t.hasAttribute('data-mjoin')){ var f=document.getElementById('mjf-'+t.getAttribute('data-mjoin')); if(f) f.classList.toggle('on'); return; }
+          if(t.hasAttribute('data-msend')){ var id=t.getAttribute('data-msend'); var f2=document.getElementById('mjf-'+id); var d=f2?f2.querySelector('.mj-date').value:null; var no=f2?f2.querySelector('.mj-nota').value:null;
+            t.disabled=true; sb.rpc('missione_iscrivi',{p_mission:id,p_data:(d||null),p_nota:(no||null)}).then(function(r){ t.disabled=false; if(r&&r.error){ toast(r.error.message||'Errore'); return; } toast('Iscrizione registrata'); loadMissBacheca(); }, function(){ t.disabled=false; toast('Errore'); }); return; }
+          if(t.hasAttribute('data-mret')){ t.disabled=true; sb.rpc('missione_ritira',{p_mission:t.getAttribute('data-mret')}).then(function(r){ t.disabled=false; if(r&&r.error){ toast(r.error.message||'Errore'); return; } toast('Iscrizione ritirata'); loadMissBacheca(); }, function(){ t.disabled=false; toast('Errore'); }); return; }
+          if(t.hasAttribute('data-mprog')){ var dd=card?(card.querySelector('.mp-date')||{}).value:null; if(!dd){ toast('Scegli la data della missione'); return; }
+            t.disabled=true; sb.rpc('missione_programma',{p_mission:t.getAttribute('data-mprog'),p_data:dd}).then(function(r){ t.disabled=false; if(r&&r.error){ toast(r.error.message||'Errore'); return; } toast('Missione programmata: sei tu il master'); loadMissBacheca(); }, function(){ t.disabled=false; toast('Errore'); }); return; }
+          if(t.hasAttribute('data-mok')||t.hasAttribute('data-mko')){ var ok=t.hasAttribute('data-mok'); var mid=t.getAttribute(ok?'data-mok':'data-mko');
+            t.disabled=true; sb.rpc('missione_esito',{p_mission:mid,p_successo:ok,p_nota:null}).then(function(r){ t.disabled=false; if(r&&r.error){ toast(r.error.message||'Errore'); return; } toast(ok?'Missione completata: premi assegnati':'Missione segnata come fallita'); loadMissBacheca(); }, function(){ t.disabled=false; toast('Errore'); }); return; }
+          if(t.hasAttribute('data-mann')){ if(t.getAttribute('data-arm')!=='1'){ t.setAttribute('data-arm','1'); t.textContent='Confermi annullamento?'; return; }
+            t.disabled=true; sb.rpc('missione_annulla',{p_mission:t.getAttribute('data-mann')}).then(function(r){ t.disabled=false; if(r&&r.error){ toast(r.error.message||'Errore'); return; } toast('Missione annullata'); loadMissBacheca(); }, function(){ t.disabled=false; toast('Errore'); }); return; }
+        });
+      })();
       function showMailList(){ var lv=document.getElementById('mail-list-view'), tv=document.getElementById('mail-thread-view'); if(lv)lv.hidden=false; if(tv)tv.hidden=true; curDmUser=null; }
       function showMailThread(){ var lv=document.getElementById('mail-list-view'), tv=document.getElementById('mail-thread-view'); if(lv)lv.hidden=true; if(tv)tv.hidden=false; }
       function loadConversations(){ if(!sb) return; var done=function(r){ mailConvs=(r&&r.data)||[]; renderConversations(); }; var fail=function(){ mailConvs=[]; renderConversations(); }; if(mailTerm){ sb.rpc('dm_search',{p_term:mailTerm,p_field:mailField}).then(done,fail); } else { sb.rpc('dm_conversations').then(done,fail); } }
