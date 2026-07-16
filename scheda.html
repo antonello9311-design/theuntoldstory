@@ -108,6 +108,38 @@
   .mv{background:rgba(255,250,235,.45);border:1px solid var(--edge);padding:9px 8px;text-align:center}
   .mv .vl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);margin-bottom:4px}
   .mv .vv{font-family:'Cinzel',serif;font-weight:600;font-size:17px;color:var(--ink)}
+  /* Barra esperienza */
+  .xpwrap{margin-top:10px;border:1px solid var(--edge);background:rgba(255,250,235,.45);padding:10px 12px}
+  .xpwrap .xt{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .xpwrap .xl{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep)}
+  .xpwrap .xv{font-family:'Cinzel',serif;font-size:12.5px;color:var(--ink)}
+  .xpbar{height:12px;border:1px solid var(--rule);background:rgba(255,252,244,.8);margin-top:7px;position:relative;overflow:hidden}
+  .xpbar > i{position:absolute;inset:0;width:0%;background:linear-gradient(90deg,var(--red),var(--red-deep));transition:width .4s}
+  .xpwrap .xh{font-size:12.5px;color:var(--ink-soft);margin-top:6px;font-style:italic;line-height:1.4}
+  /* Allineamento */
+  .algn{display:flex;flex-direction:column;gap:14px;margin-top:6px}
+  .arow .ahead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:5px}
+  .arow .aname{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep)}
+  .arow .afascia{font-family:'Cinzel',serif;font-size:11.5px;color:var(--ink)}
+  .arow .afascia.warn{color:var(--red-deep);font-weight:700}
+  .agauge{position:relative;height:14px;border:1px solid var(--rule);background:linear-gradient(90deg, rgba(124,36,19,.25), rgba(255,252,244,.75) 50%, rgba(63,109,58,.28))}
+  .agauge > b{position:absolute;top:-4px;bottom:-4px;width:4px;background:var(--ink);border:1px solid #f6ead0;transform:translateX(-50%)}
+  .agauge .amid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--rule);opacity:.6}
+  .aends{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-soft);margin-top:3px;font-family:'Cinzel',serif;letter-spacing:.04em}
+  /* Box richieste svolta */
+  .svbox{border:1px dashed var(--edge);background:rgba(255,250,235,.35);padding:12px 14px;margin-top:14px}
+  .svbox h4{font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--red-deep);margin:0 0 8px}
+  .svgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:640px){.svgrid{grid-template-columns:1fr}}
+  .svgrid label,.svlab{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;flex-direction:column;gap:4px}
+  .svgrid select,.svbox textarea,#sv-role{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--ink);background:rgba(255,252,244,.8);border:1px solid var(--rule);padding:8px 10px;outline:none;width:100%}
+  .svbox textarea{min-height:84px;margin-top:8px}
+  .svcnt{font-size:12px;color:var(--ink-soft);text-align:right;margin-top:2px}
+  .svlist{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+  .svitem{border:1px solid var(--edge);background:rgba(255,252,244,.55);padding:9px 11px;font-size:14.5px;line-height:1.5}
+  .svitem .svtag{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;border:1px solid var(--edge);border-radius:7px;padding:1px 7px;margin-right:6px}
+  .svitem .svtag.p{color:#8a6f43}.svitem .svtag.a{color:#3f6d3a;border-color:#3f6d3a}.svitem .svtag.r{color:var(--red-deep);border-color:var(--red-deep)}
+  .svitem .svmeta{font-size:12.5px;color:var(--ink-soft);margin-top:3px}
   .chars{display:grid;grid-template-columns:1fr;gap:11px}
   .charrow{display:flex;align-items:center;gap:12px}
   .charrow .cn{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);width:112px;flex-shrink:0}
@@ -380,6 +412,11 @@
                   <div class="mv"><div class="vl">Soldi</div><div class="vv" id="v-money">—</div></div>
                   <div class="mv"><div class="vl">Exp</div><div class="vv" id="v-exp">—</div></div>
                 </div>
+                <div class="xpwrap" id="xp-wrap" style="display:none">
+                  <div class="xt"><span class="xl">Esperienza</span><span class="xv" id="xp-line">—</span></div>
+                  <div class="xpbar"><i id="xp-fill"></i></div>
+                  <div class="xh" id="xp-hint"></div>
+                </div>
                 <div class="chars" id="charwrap"></div>
                 <p class="rohint">Distribuite alla creazione; crescono con la progressione (convalidata dallo staff).</p>
                 <div class="unspent" id="unspent-box" style="display:none">
@@ -392,6 +429,28 @@
           </div>
 
           <div class="scroll-sections">
+            <div class="ssec" id="sec-align"><h3>Allineamento <span class="priv pub">👁 pubblico · si muove con le tue scelte</span></h3>
+              <p class="hint">Tre assi raccontano chi sta diventando il tuo ninja: <strong>Lealtà</strong> (il rapporto col villaggio), <strong>Via</strong> (l'anima, tra Volontà del Fuoco e Sentiero dell'Odio) e <strong>Fama</strong> (come ti vede il mondo). Si spostano con le <strong>svolte</strong>: dopo una scena che ha segnato il personaggio, chiedi qui il riconoscimento — decide lo staff.</p>
+              <div class="algn" id="algn-gauges"></div>
+              <div class="svbox" id="svolta-box" style="display:none">
+                <h4>Richiedi una svolta</h4>
+                <div class="svgrid">
+                  <label>Asse
+                    <select id="sv-asse"><option value="lealta">Lealtà</option><option value="via">Via</option><option value="fama">Fama</option></select>
+                  </label>
+                  <label>Spostamento
+                    <select id="sv-delta"><option value="5">+5 · un passo</option><option value="10">+10 · svolta forte</option><option value="-5">−5 · un passo</option><option value="-10">−10 · svolta forte</option></select>
+                  </label>
+                </div>
+                <label class="svlab" style="margin-top:8px">Role di riferimento (facoltativa)
+                  <select id="sv-role"><option value="">— nessuna —</option></select>
+                </label>
+                <textarea id="sv-motivo" maxlength="600" placeholder="Racconta la svolta: cosa è successo in gioco e perché segna il tuo personaggio (minimo 60 caratteri)…"></textarea>
+                <div class="svcnt"><span id="sv-cnt">0</span>/600 · minimo 60 caratteri</div>
+                <button class="btn btn-red btn-sm" id="sv-send" style="margin-top:8px">Invia allo staff</button>
+              </div>
+              <div class="svlist" id="sv-list"></div>
+            </div>
             <div class="ssec"><h3>Background</h3>
               <p class="hint">La storia del personaggio: origini, legami, aspirazioni. Visibile agli altri giocatori.</p>
               <textarea id="f-background" class="fin" style="min-height:180px" placeholder="Scrivi qui la storia del tuo personaggio…"></textarea></div>
@@ -423,6 +482,9 @@
               <label>Soldi<input id="sp-money" type="number"></label>
               <label>Exp<input id="sp-exp" type="number"></label>
               <label>Punti da assegnare<input id="sp-unspent_points" type="number" step="5"></label>
+              <label>Lealtà<input id="sp-lealta" type="number" step="5" min="0" max="100"></label>
+              <label>Via<input id="sp-via" type="number" step="5" min="0" max="100"></label>
+              <label>Fama<input id="sp-fama" type="number" step="5" min="0" max="100"></label>
             </div>
             <label class="sp-full">Note del Fato (visibili al giocatore)<textarea id="sp-fato" placeholder="Obiettivi, ganci di trama, destino…"></textarea></label>
             <button class="btn btn-red btn-sm" id="sp-save" style="margin-top:12px">Salva modifiche staff</button>
@@ -718,6 +780,7 @@
       $('f-element').value=c.element||''; $('ic-element').outerHTML=embElement(c.element).replace('class="emb','id="ic-element" class="emb');
       $('v-vita').textContent=(c.vita||0)+' / '+(c.vita_max||0); $('v-chakra').textContent=(c.chakra||0)+' / '+(c.chakra_max||0);
       $('v-money').textContent=(c.money||0); $('v-exp').textContent=(c.exp||0);
+      renderProgress(c); renderAlign(c);
       renderChars(c); renderUnspent(c);
       $('f-background').value=c.background||''; $('f-off').value=c.off_notes||''; $('f-fato').value=priv&&priv.fato_notes?priv.fato_notes:''; setPortrait(c.avatar_url);
       applyMode();
@@ -725,7 +788,88 @@
       renderTraining();
       renderAcademyLog();
       renderRoleLibrary();
+      loadSvolte();
     }
+    /* ===== Barra XP e Allineamento ===== */
+    var SOGLIE_RANK={'Genin':{next:'Chunin',da:0,a:2500},'Chunin':{next:'Jonin',da:2500,a:9000},'Jonin':{next:'Jonin Speciale',da:9000,a:18000}};
+    function renderProgress(c){
+      var w=$('xp-wrap'); if(!w||!c) return;
+      w.style.display='';
+      var life=c.xp_lifetime||0, saldo=c.exp||0, rk=c.rank||'Deshi';
+      var xl=$('xp-line'); if(xl) xl.textContent='saldo '+saldo+' · carriera '+life;
+      var s=SOGLIE_RANK[rk], fill=$('xp-fill'), hint=$('xp-hint');
+      if(!fill||!hint) return;
+      if(rk==='Deshi'){ fill.style.width='0%'; hint.textContent='Da Deshi si cresce in Accademia: supera l\'esame per diventare Genin.'; }
+      else if(s){ var p=Math.max(0,Math.min(100,Math.round((life-s.da)*100/(s.a-s.da)))); fill.style.width=p+'%';
+        hint.textContent=(life>=s.a)?('Soglia raggiunta! Chiedi allo staff l\'esame per '+s.next+' ('+life+' / '+s.a+' XP di carriera).')
+          :('Verso '+s.next+': '+life+' / '+s.a+' XP di carriera ('+p+'%).'); }
+      else { fill.style.width='100%'; hint.textContent='Vetta della carriera: da qui contano meriti e trama.'; }
+    }
+    var FASCE={
+      lealta:{nomi:['Rinnegato','Sospettato','Neutrale','Fidato','Esemplare'],lo:'Rinnegato',hi:'Esemplare',nome:'Lealtà'},
+      via:{nomi:['Sentiero dell\'Odio','Ombra','In equilibrio','Luce','Volontà del Fuoco'],lo:'Odio',hi:'Volontà del Fuoco',nome:'Via'},
+      fama:{nomi:['Infame','Malfamato','Comune','Rispettato','Eroe'],lo:'Infame',hi:'Eroe',nome:'Fama'}
+    };
+    function fascia(asse,v){ var f=FASCE[asse].nomi; return v<=20?f[0]:v<=40?f[1]:v<=60?f[2]:v<=80?f[3]:f[4]; }
+    function renderAlign(c){
+      var host=$('algn-gauges'); if(!host||!c) return;
+      host.innerHTML=['lealta','via','fama'].map(function(a){
+        var v=(c[a]==null?50:c[a]); var fl=fascia(a,v); var warn=(a!=='fama'&&v<=20)?' warn':'';
+        return '<div class="arow"><div class="ahead"><span class="aname">'+FASCE[a].nome+'</span><span class="afascia'+warn+'">'+esc(fl)+' · '+v+'</span></div>'
+          +'<div class="agauge"><span class="amid"></span><b style="left:'+v+'%"></b></div>'
+          +'<div class="aends"><span>'+esc(FASCE[a].lo)+'</span><span>'+esc(FASCE[a].hi)+'</span></div></div>';
+      }).join('');
+    }
+    function loadSvolte(){
+      var box=$('svolta-box'), list=$('sv-list'); if(!box||!list||!sb||!myChar) return;
+      var owner=(viewMode==='owner'||viewMode==='adminself');
+      var staffV=(viewMode==='staff'||viewMode==='adminother');
+      box.style.display=owner?'':'none';
+      if(owner){
+        var uid=(myChar&&myChar.user_id)||(me&&me.id)||null; var rs=$('sv-role');
+        if(uid&&rs&&rs.options.length<=1){ sb.rpc('my_role_library',{p_user:uid}).then(function(r){
+          ((r&&r.data)||[]).forEach(function(x){ var o=document.createElement('option'); o.value=x.session_id; o.textContent=(x.title||'Role senza titolo'); rs.appendChild(o); });
+        },function(){}); }
+      }
+      if(viewMode==='public'){ list.innerHTML=''; return; }
+      sb.from('svolta_richieste').select('*').eq('character_id',myChar.id).order('created_at',{ascending:false}).limit(8).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(!rows.length){ list.innerHTML=''; return; }
+        list.innerHTML=rows.map(function(x){
+          var tag=x.status==='in attesa'?'<span class="svtag p">In attesa</span>':x.status==='approvata'?'<span class="svtag a">Approvata</span>':'<span class="svtag r">Respinta</span>';
+          var btns=(staffV&&x.status==='in attesa')?('<div style="margin-top:6px"><button type="button" class="btn btn-red btn-sm" data-svok="'+x.id+'">Approva</button> <button type="button" class="btn btn-ghost btn-sm" data-svno="'+x.id+'">Respingi</button></div>'):'';
+          var nota=x.nota_staff?('<div class="svmeta">Staff: '+esc(x.nota_staff)+'</div>'):'';
+          return '<div class="svitem">'+tag+'<b>'+FASCE[x.asse].nome+'</b> '+(x.delta>0?'+':'')+x.delta+'<div class="svmeta">'+esc(x.motivazione||'')+'</div>'+nota+btns+'</div>';
+        }).join('');
+      },function(){ list.innerHTML=''; });
+    }
+    (function(){
+      var svM=$('sv-motivo'); if(svM) svM.addEventListener('input',function(){ var c=$('sv-cnt'); if(c)c.textContent=String(this.value.length); });
+      var svS=$('sv-send'); if(svS) svS.addEventListener('click',async function(){
+        if(!sb||!myChar) return; var mo=($('sv-motivo').value||'').trim();
+        if(mo.length<60){ toast('Racconta la svolta: servono almeno 60 caratteri',true); return; }
+        this.disabled=true;
+        var role=$('sv-role').value||null;
+        var r=await sb.rpc('svolta_richiedi',{p_asse:$('sv-asse').value,p_delta:parseInt($('sv-delta').value,10),p_motivo:mo,p_role:role});
+        this.disabled=false;
+        if(r.error){ toast((r.error.message||'Errore nell\'invio'),true); return; }
+        $('sv-motivo').value=''; var c=$('sv-cnt'); if(c)c.textContent='0';
+        toast('Richiesta inviata allo staff'); loadSvolte();
+      });
+      var svL=$('sv-list'); if(svL) svL.addEventListener('click',async function(e){
+        var ok=e.target.closest('[data-svok]'), no=e.target.closest('[data-svno]');
+        if(!ok&&!no) return; if(!sb) return;
+        var btn=ok||no; btn.disabled=true;
+        var id=btn.getAttribute(ok?'data-svok':'data-svno');
+        var r=await sb.rpc('svolta_decidi',{p_richiesta:id,p_approva:!!ok,p_nota:null});
+        btn.disabled=false;
+        if(r.error){ toast(r.error.message||'Errore',true); return; }
+        toast(ok?'Svolta approvata':'Richiesta respinta');
+        var rr=await sb.from('characters').select('*').eq('id',myChar.id).maybeSingle();
+        if(rr&&rr.data){ myChar=rr.data; renderAlign(myChar); renderProgress(myChar); if(viewMode==='staff'||viewMode==='adminother') fillStaffPanel(myChar,curPriv); }
+        loadSvolte();
+      });
+    })();
     function setPortrait(url){ var p=$('s-portrait'), ph=$('s-portrait-ph'); if(!p)return; if(url){ p.style.backgroundImage='url("'+url+'")'; if(ph)ph.style.display='none'; } else { p.style.backgroundImage=''; if(ph)ph.style.display=''; } }
     function applyMode(){
       var owner=(viewMode==='owner'||viewMode==='adminself'||viewMode==='adminother'), staff=(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother');
@@ -757,6 +901,7 @@
       STATS.forEach(function(s){set('sp-'+s[0],c[s[0]]!=null?c[s[0]]:BASE);});
       var _kl=$('lbl-sp-kg'); if(_kl)_kl.textContent=kgLabel(c.clan);
       ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){set('sp-'+k,c[k]!=null?c[k]:0);});
+      ['lealta','via','fama'].forEach(function(k){set('sp-'+k,c[k]!=null?c[k]:50);});
       set('sp-fato',priv&&priv.fato_notes?priv.fato_notes:'');
     }
         // wiring: dropdown → emblema live
@@ -786,6 +931,7 @@
       var upd={epithet:($('sp-epithet').value.trim()||null),rank:(($('f-rank')&&$('f-rank').value)||myChar.rank),clan:$('f-clan').value||'Nessuno',clan_role:(($('f-clanrole')&&$('f-clanrole').value)||null),corporation:($('f-corporation').value.trim()||null)};
       STATS.forEach(function(s){var v=parseInt($('sp-'+s[0]).value,10); upd[s[0]]=isNaN(v)?myChar[s[0]]:v;});
       ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?myChar[k]:v;});
+      ['lealta','via','fama'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?(myChar[k]!=null?myChar[k]:50):Math.max(0,Math.min(100,v));});
       var r1=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();
       var r2=await sb.from('character_private').upsert({character_id:myChar.id,fato_notes:$('sp-fato').value,updated_at:new Date().toISOString()},{onConflict:'character_id'}).select().single();
       this.disabled=false;
