@@ -167,6 +167,17 @@
   .tr-prog{background:rgba(124,36,19,.08);border-color:var(--rule);color:var(--red-deep)}
   #train-wrap .mini-btn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#f6ead0;background:linear-gradient(180deg,var(--red),var(--red-deep));border:1px solid var(--red-deep);border-radius:8px;padding:6px 12px;cursor:pointer}
   #train-wrap .mini-btn[disabled]{opacity:.5}
+  .slotbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 10px;padding:8px 12px;border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.5)}
+  .slotbar .slotn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+  .slotbar .slotn b{color:var(--red-deep);font-size:13px}
+  .slotbar .slotn.full b{color:var(--red)}
+  .slotbar .svmeta{font-size:12.5px;color:var(--ink-soft)}
+  #sec-premi .svbox{margin-top:10px}
+  #sec-premi .svlab{display:block;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+  #sec-premi .svlab select{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--ink);background:rgba(255,252,244,.8);border:1px solid var(--rule);padding:8px 10px;outline:none;width:100%;margin-top:4px}
+  #sec-premi .svlab+.svlab{margin-top:8px}
+  .prcost{font-size:13.5px;color:var(--ink-soft);margin-top:6px}
+  .prcost b{color:var(--red-deep)}
   .jtop{display:flex;align-items:baseline;gap:8px}
   .jname{font-family:'Cinzel',serif;font-weight:600;font-size:13px;color:var(--ink);flex:1}
   .jrank{font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:#f6ead0;background:var(--rule,#8a6f43);border-radius:9px;padding:1px 7px;flex:0 0 auto}
@@ -538,6 +549,38 @@
               <p class="hint">Le <b>abilità</b> (competenze e capacità) e i <b>jutsu</b> (tecniche) appresi dal personaggio: si imparano all'Accademia e con la progressione.</p>
               <div id="jutsu-wrap"></div>
               <div id="train-wrap" style="margin-top:18px"></div></div>
+            <div class="ssec" id="sec-premi" style="display:none"><h3>Premi speciali <span class="priv">◈ conquiste della carriera</span></h3>
+              <p class="hint">I <b>premi</b> sono acquisti straordinari pagati in XP e legati alla trama: si chiedono qui e decide lo staff. L'XP viene scalato solo all'approvazione.</p>
+              <div id="perk-list"></div>
+              <div class="svbox" id="premio-box" style="display:none">
+                <h4>Richiedi un premio</h4>
+                <label class="svlab">Premio
+                  <select id="pr-tipo">
+                    <option value="seconda_natura">Seconda natura elementale · 300 XP · dal grado Jonin</option>
+                    <option value="evocazione">Contratto di evocazione · 600 XP</option>
+                    <option value="sigillo_maledetto">Sigillo maledetto · 750 XP</option>
+                    <option value="tecnica_segreta">Tecnica segreta di grado S · 375 XP</option>
+                    <option value="tecnica_personale">Tecnica personale · da 115 XP</option>
+                    <option value="jinchuriki">Jinchūriki · 1.800 XP</option>
+                  </select>
+                </label>
+                <label class="svlab" id="pr-grado-wrap" style="display:none">Grado della tecnica personale
+                  <select id="pr-grado">
+                    <option value="D">D · 115 XP</option>
+                    <option value="C">C · 225 XP</option>
+                    <option value="B">B · 340 XP</option>
+                    <option value="A">A · 450 XP</option>
+                    <option value="S">S · 565 XP</option>
+                  </select>
+                </label>
+                <textarea id="pr-dettaglio" maxlength="600" placeholder="Racconta cosa chiedi e perché in trama: cosa è successo in gioco e come lo giustifica (minimo 60 caratteri)…"></textarea>
+                <div class="svcnt"><span id="pr-cnt">0</span>/600 · minimo 60 caratteri</div>
+                <div class="prcost" id="pr-costo-line"></div>
+                <button class="btn btn-red btn-sm" id="pr-send" style="margin-top:8px">Invia allo staff</button>
+              </div>
+              <h4 class="svh" id="pr-list-h" style="display:none">Richieste</h4>
+              <div class="svlist" id="pr-list"></div>
+            </div>
           </div>
           <div id="page-acad" class="spage">
             <div class="ssec" id="sec-acad"><h3>Accademia</h3>
@@ -742,7 +785,8 @@
       var host=$('train-wrap'); if(!host) return;
       if(viewMode==='public'||!sb||!myChar||!myChar.clan||myChar.clan==='Nessuno'){ host.innerHTML=''; return; }
       var canAct=(viewMode!=='public');
-      host.innerHTML='<div class="jgroup"><div class="jgh">Tecniche del clan · Allenamento</div><p class="hint" style="margin:.2em 0 .7em">Le tecniche del clan si sbloccano allenandosi in gioco: paghi l\'XP per l\'idoneità, poi servono gli allenamenti con un maestro, confermati dal Capo clan o dallo staff (uno al giorno).</p><div id="train-list"><p class="hint" style="margin:0">Caricamento…</p></div></div>';
+      host.innerHTML='<div class="jgroup"><div class="jgh">Tecniche del clan · Allenamento</div><div class="slotbar" id="slot-bar" style="display:none"></div><p class="hint" style="margin:.2em 0 .7em">Le tecniche del clan si sbloccano allenandosi in gioco: paghi l\'XP per l\'idoneità, poi servono gli allenamenti con un maestro, confermati dal Capo clan o dallo staff (uno al giorno).</p><div id="train-list"><p class="hint" style="margin:0">Caricamento…</p></div></div>';
+      renderSlotBar();
       var byId={};
       sb.rpc('my_abilities',{p_character:myChar.id}).then(function(ar){
         (ar&&ar.data||[]).forEach(function(a){ byId[a.technique_id]=a; });
@@ -762,14 +806,47 @@
         }).join('');
       }, function(){ var list=$('train-list'); if(list)list.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tecniche.</p>'; });
     }
+    function renderSlotBar(){
+      var el=$('slot-bar'); if(!el||!sb||!myChar) return;
+      sb.rpc('slot_tecniche',{p_character:myChar.id}).then(function(r){
+        var el2=$('slot-bar'); if(!el2) return;
+        var d=(r&&r.data&&r.data[0])||null;
+        if(!d){ el2.style.display='none'; el2.innerHTML=''; return; }
+        var buy='';
+        if(isOwnerMode()){
+          if((d.extra||0)>=4) buy='<span class="svmeta">slot extra al massimo (+4)</span>';
+          else { var cost=200+150*(d.extra||0); buy='<button type="button" class="mini-btn" id="slot-buy" data-cost="'+cost+'">Compra slot extra · '+cost+' XP</button>'; }
+        }
+        var full=(d.usati>=d.totale);
+        el2.style.display='';
+        el2.innerHTML='<span class="slotn'+(full?' full':'')+'">Slot tecniche: <b>'+d.usati+'/'+d.totale+'</b></span><span class="svmeta">base '+d.base+(d.extra?(' + '+d.extra+' extra'):'')+' · le innate del clan non occupano slot</span>'+buy;
+      },function(){ var el2=$('slot-bar'); if(el2){ el2.style.display='none'; el2.innerHTML=''; } });
+    }
     (function(){ var tw=$('train-wrap'); if(!tw) return; tw.addEventListener('click',async function(e){
+      var sbb=e.target.closest('#slot-buy');
+      if(sbb){
+        var cost=sbb.getAttribute('data-cost')||'?';
+        if(sbb.getAttribute('data-armed')!=='1'){
+          sbb.setAttribute('data-armed','1'); sbb.textContent='Confermi? −'+cost+' XP';
+          setTimeout(function(){ var b2=$('slot-buy'); if(b2&&b2.getAttribute('data-armed')==='1'){ b2.setAttribute('data-armed','0'); b2.textContent='Compra slot extra · '+cost+' XP'; } },5000);
+          return;
+        }
+        sbb.disabled=true;
+        var rs=await sb.rpc('compra_slot');
+        if(rs.error){ toast(rs.error.message||'Errore nell\'acquisto',true); sbb.disabled=false; sbb.setAttribute('data-armed','0'); sbb.textContent='Compra slot extra · '+cost+' XP'; return; }
+        var ds=rs.data||{}; toast('Slot extra acquistato · −'+(ds.speso||0)+' XP');
+        var rr=await sb.from('characters').select('*').eq('id',myChar.id).maybeSingle();
+        if(rr&&rr.data){ myChar=rr.data; var ve=$('v-exp'); if(ve)ve.textContent=(myChar.exp||0); renderProgress(myChar); }
+        renderTraining();
+        return;
+      }
       var b=e.target.closest('[data-train]'); if(!b) return;
       b.disabled=true;
       var r=await sb.rpc('training_start',{p_technique:b.getAttribute('data-train'),p_character:myChar.id});
       b.disabled=false;
       if(r.error){ toast('Errore',true); return; }
       var d=r.data||{};
-      if(d.ok){ toast('Addestramento avviato'+(d.xp_spent?(' · '+d.xp_spent+' XP spesi'):'')); renderTraining(); }
+      if(d.ok){ toast('Addestramento avviato'+(d.xp_spent?(' · '+d.xp_spent+' XP spesi'):'')); var ve2=$('v-exp'); renderTraining(); sb.from('characters').select('*').eq('id',myChar.id).maybeSingle().then(function(rr2){ if(rr2&&rr2.data){ myChar=rr2.data; if(ve2)ve2.textContent=(myChar.exp||0); renderProgress(myChar); } }); }
       else { toast((d.reasons&&d.reasons.length)?d.reasons.join(' · '):'Non idoneo',true); }
     }); })();
     function renderUnspent(c){var box=$('unspent-box');if(!c.unspent_points||c.unspent_points<=0){box.style.display='none';return;}box.style.display='block';addBuf={};$('u-pts').textContent=c.unspent_points;var host=$('u-rows');host.innerHTML='';STATS.forEach(function(s){addBuf[s[0]]=0;if(s[0]==='kekkei_genkai'&&!showInnata(c))return;var row=document.createElement('div');row.className='steprow';row.innerHTML='<span class="cn">'+statLbl(s)+'</span><button type="button" class="stbtn minus" data-k="'+s[0]+'" data-d="-1">−5</button><span class="stval" id="ua-'+s[0]+'">'+(c[s[0]]||BASE)+'</span><button type="button" class="stbtn" data-k="'+s[0]+'" data-d="1">+5</button>';host.appendChild(row);});}
@@ -798,6 +875,7 @@
       renderRoleLibrary();
       loadSvolte();
       loadAlignHistory();
+      loadPremi();
     }
     /* ===== Barra XP e Allineamento ===== */
     var SOGLIE_RANK={'Genin':{next:'Chunin',da:0,a:2500},'Chunin':{next:'Jonin',da:2500,a:9000},'Jonin':{next:'Jonin Speciale',da:9000,a:18000}};
@@ -900,6 +978,72 @@
         var rr=await sb.from('characters').select('*').eq('id',myChar.id).maybeSingle();
         if(rr&&rr.data){ myChar=rr.data; renderAlign(myChar); renderProgress(myChar); if(viewMode==='staff'||viewMode==='adminother') fillStaffPanel(myChar,curPriv); }
         loadSvolte(); loadAlignHistory();
+      });
+    })();
+    /* ===== Premi speciali ===== */
+    var PREMI_COSTI={seconda_natura:300,evocazione:600,sigillo_maledetto:750,tecnica_segreta:375,jinchuriki:1800,tecnica_personale:{D:115,C:225,B:340,A:450,S:565}};
+    var PREMI_NOMI={seconda_natura:'Seconda natura elementale',evocazione:'Contratto di evocazione',sigillo_maledetto:'Sigillo maledetto',tecnica_segreta:'Tecnica segreta (S)',tecnica_personale:'Tecnica personale',jinchuriki:'Jinchūriki'};
+    function premioCosto(){ var t=$('pr-tipo')?$('pr-tipo').value:''; if(t==='tecnica_personale'){ var g=$('pr-grado')?$('pr-grado').value:'D'; return PREMI_COSTI.tecnica_personale[g]||0; } return PREMI_COSTI[t]||0; }
+    function updPremioCosto(){ var el=$('pr-costo-line'); if(!el||!myChar) return; var c=premioCosto(), saldo=(myChar.exp||0); el.innerHTML='Costo: <b>'+c+' XP</b> · saldo attuale '+saldo+(saldo<c?' · <span style="color:var(--red)">saldo insufficiente</span>':''); }
+    function loadPremi(){
+      var sec=$('sec-premi'); if(!sec) return;
+      var show=(viewMode!=='public'&&!!myChar);
+      sec.style.display=show?'':'none';
+      if(!show||!sb) return;
+      var owner=isOwnerMode();
+      var staffV=(viewMode==='staff'||viewMode==='adminother');
+      var box=$('premio-box'); if(box) box.style.display=owner?'':'none';
+      if(owner) updPremioCosto();
+      var host=$('perk-list');
+      if(host){ sb.from('character_perks').select('*').eq('character_id',myChar.id).order('created_at').then(function(r){
+        var rows=(r&&r.data)||[]; var h2=$('perk-list'); if(!h2) return;
+        if(!rows.length){ h2.innerHTML='<p class="hint" style="margin:0 0 .4em">Nessun premio ancora conquistato.</p>'; return; }
+        h2.innerHTML='<div class="jgrid">'+rows.map(function(p){
+          var d=p.created_at?new Date(p.created_at):null;
+          var ds=d?(('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()):'';
+          return '<div class="jcard"><div class="jtop"><span class="jname">'+esc(PREMI_NOMI[p.tipo]||p.tipo)+'</span><span class="jrank">'+(p.costo||0)+' XP</span></div>'+(p.dettaglio?('<div class="jeff">'+esc(p.dettaglio)+'</div>'):'')+(ds?('<div class="jmeta">'+ds+'</div>'):'')+'</div>';
+        }).join('')+'</div>';
+      },function(){}); }
+      var lh=$('pr-list-h'), list=$('pr-list'); if(!list) return;
+      sb.from('premio_richieste').select('*').eq('character_id',myChar.id).order('created_at',{ascending:false}).limit(8).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(lh)lh.style.display=rows.length?'':'none';
+        if(!rows.length){ list.innerHTML=''; return; }
+        list.innerHTML=rows.map(function(x){
+          var tag=x.status==='in attesa'?'<span class="svtag p">In attesa</span>':x.status==='approvata'?'<span class="svtag a">Approvata</span>':'<span class="svtag r">Respinta</span>';
+          var btns=(staffV&&x.status==='in attesa')?('<div style="margin-top:6px"><button type="button" class="btn btn-red btn-sm" data-prok="'+x.id+'">Approva · scala '+x.costo+' XP</button> <button type="button" class="btn btn-ghost btn-sm" data-prno="'+x.id+'">Respingi</button></div>'):'';
+          var nota=x.nota_staff?('<div class="svmeta">Staff: '+esc(x.nota_staff)+'</div>'):'';
+          return '<div class="svitem">'+tag+'<b>'+esc(PREMI_NOMI[x.tipo]||x.tipo)+(x.grado_tecnica?(' · grado '+esc(x.grado_tecnica)):'')+'</b> · '+x.costo+' XP<div class="svmeta">'+esc(x.dettaglio||'')+'</div>'+nota+btns+'</div>';
+        }).join('');
+      },function(){ list.innerHTML=''; });
+    }
+    (function(){
+      var pt=$('pr-tipo'); if(pt) pt.addEventListener('change',function(){ var w=$('pr-grado-wrap'); if(w)w.style.display=(this.value==='tecnica_personale')?'':'none'; updPremioCosto(); });
+      var pg=$('pr-grado'); if(pg) pg.addEventListener('change',updPremioCosto);
+      var pd=$('pr-dettaglio'); if(pd) pd.addEventListener('input',function(){ var c=$('pr-cnt'); if(c)c.textContent=String(this.value.length); });
+      var ps=$('pr-send'); if(ps) ps.addEventListener('click',async function(){
+        if(!sb||!myChar) return; var det=($('pr-dettaglio').value||'').trim();
+        if(det.length<60){ toast('Racconta la richiesta: servono almeno 60 caratteri',true); return; }
+        this.disabled=true;
+        var tipo=$('pr-tipo').value, grado=(tipo==='tecnica_personale')?$('pr-grado').value:null;
+        var r=await sb.rpc('premio_richiedi',{p_tipo:tipo,p_dettaglio:det,p_grado:grado});
+        this.disabled=false;
+        if(r.error){ toast((r.error.message||'Errore nell\'invio'),true); return; }
+        $('pr-dettaglio').value=''; var c=$('pr-cnt'); if(c)c.textContent='0';
+        toast('Richiesta inviata allo staff'); loadPremi();
+      });
+      var pl=$('pr-list'); if(pl) pl.addEventListener('click',async function(e){
+        var ok=e.target.closest('[data-prok]'), no=e.target.closest('[data-prno]');
+        if(!ok&&!no) return; if(!sb) return;
+        var btn=ok||no; btn.disabled=true;
+        var id=btn.getAttribute(ok?'data-prok':'data-prno');
+        var r=await sb.rpc('premio_decidi',{p_richiesta:id,p_approva:!!ok,p_nota:null});
+        btn.disabled=false;
+        if(r.error){ toast(r.error.message||'Errore',true); return; }
+        toast(ok?'Premio approvato: XP scalati':'Richiesta respinta');
+        var rr=await sb.from('characters').select('*').eq('id',myChar.id).maybeSingle();
+        if(rr&&rr.data){ myChar=rr.data; var ve=$('v-exp'); if(ve)ve.textContent=(myChar.exp||0); renderProgress(myChar); if(viewMode==='staff'||viewMode==='adminother') fillStaffPanel(myChar,curPriv); }
+        loadPremi();
       });
     })();
     function setPortrait(url){ var p=$('s-portrait'), ph=$('s-portrait-ph'); if(!p)return; if(url){ p.style.backgroundImage='url("'+url+'")'; if(ph)ph.style.display='none'; } else { p.style.backgroundImage=''; if(ph)ph.style.display=''; } }
