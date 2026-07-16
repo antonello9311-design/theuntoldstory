@@ -744,6 +744,14 @@
   .pvb i{display:block;height:100%;background:linear-gradient(90deg,#3f6d3a,#6fae5f)}
   .regia-pg .pvb,.regia-png .pvb{width:100%}
   .ckb i{background:linear-gradient(90deg,#2f6fb0,#5b9bd5)}
+  .cmb-grp{display:inline-flex;gap:5px;align-items:flex-start}
+  .cmb-du.sm .m-ava{width:22px;height:22px}
+  .cmb-du.sm .pvb{width:24px;height:4px}
+  .rg-comboform{flex-direction:column;align-items:stretch}
+  .rg-crow{display:grid;grid-template-columns:minmax(90px,auto) 1fr 62px 52px;gap:6px;align-items:center}
+  .rg-crow label{font-family:'Cormorant Garamond',serif;font-size:14.5px;color:var(--ink);display:flex;align-items:center;gap:5px}
+  .rg-crow select,.rg-crow input{font-family:'Cormorant Garamond',serif;font-size:13.5px;border:1px solid var(--rule);background:rgba(255,252,244,.8);padding:5px 6px;color:var(--ink);width:100%}
+  .rg-cfoot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:2px}
   .cmb-out{font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.4;color:var(--ink)}
 </style>
 </head>
@@ -1291,7 +1299,10 @@
             else dir='<b>'+esc(m.author_name)+'</b> → <b>'+esc(m.recipient_name||'?')+'</b>';
             return '<div class="msg-whisper"><div class="wsp-head"><span class="wsp-k">'+LOCK+'sussurro '+dir+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="m-body">'+fmtBody(m.body)+'</div></div>';
           }
-          if(m.kind==='combat'){ var cb; try{ cb=JSON.parse(m.body); }catch(e){ cb=null; } if(cb&&cb.a&&cb.d){ var pvb=function(pv){ if(!pv||pv.length<2||!pv[1]) return ''; var p=Math.max(0,Math.min(100,Math.round(pv[0]*100/pv[1]))); return '<span class="pvb" title="PV '+pv[0]+' / '+pv[1]+'"><i style="width:'+p+'%'+(p<=25?';background:linear-gradient(90deg,var(--red),var(--red-deep))':'')+'"></i></span>'; }; return '<div class="msg-combat"><div class="cmb-avs"><span class="cmb-du">'+avatarHTML({avatar_url:cb.a.u},cb.a.n,cb.a.c)+pvb(cb.apv)+'</span><span class="cmb-x">'+SWORD+'</span><span class="cmb-du">'+avatarHTML({avatar_url:cb.d.u},cb.d.n,cb.d.c)+pvb(cb.dpv)+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="cmb-out">'+esc(cb.o)+'</div></div>'; } return '<div class="msg-combat"><div class="cmb-out">'+esc(m.body)+'</div></div>'; }
+          if(m.kind==='combat'){ var cb; try{ cb=JSON.parse(m.body); }catch(e){ cb=null; }
+            var pvb=function(pv){ if(!pv||pv.length<2||!pv[1]) return ''; var p=Math.max(0,Math.min(100,Math.round(pv[0]*100/pv[1]))); return '<span class="pvb" title="PV '+pv[0]+' / '+pv[1]+'"><i style="width:'+p+'%'+(p<=25?';background:linear-gradient(90deg,var(--red),var(--red-deep))':'')+'"></i></span>'; };
+            if(cb&&cb.grp&&cb.atks&&cb.d){ var atkh=cb.atks.map(function(x){ return '<span class="cmb-du sm">'+avatarHTML({avatar_url:x.u},x.n,x.c)+pvb(x.apv)+'</span>'; }).join(''); return '<div class="msg-combat"><div class="cmb-avs"><span class="cmb-grp">'+atkh+'</span><span class="cmb-x">'+SWORD+'</span><span class="cmb-du">'+avatarHTML({avatar_url:cb.d.u},cb.d.n,null)+pvb(cb.dpv)+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="cmb-out" style="white-space:pre-line">'+esc(cb.o)+'</div></div>'; }
+            if(cb&&cb.a&&cb.d){ return '<div class="msg-combat"><div class="cmb-avs"><span class="cmb-du">'+avatarHTML({avatar_url:cb.a.u},cb.a.n,cb.a.c)+pvb(cb.apv)+'</span><span class="cmb-x">'+SWORD+'</span><span class="cmb-du">'+avatarHTML({avatar_url:cb.d.u},cb.d.n,cb.d.c)+pvb(cb.dpv)+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="cmb-out">'+esc(cb.o)+'</div></div>'; } return '<div class="msg-combat"><div class="cmb-out">'+esc(m.body)+'</div></div>'; }
           if(m.kind==='sensei'){ var sp=senseiPortrait||(classState&&classState.sensei_portrait)||''; var sav='<span class="ms-ava-box">'+SENSEI+(sp?'<img class="ms-ava" src="'+esc(sp)+'" alt="" onerror="this.style.display=\'none\'">':'')+'</span>'; return '<div class="msg-sensei"><div class="ms-head">'+sav+'<b>'+esc(m.author_name||'Sensei')+'</b><span class="ms-k">Sensei · Accademia</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="m-body">'+fmtBody(m.body)+'</div></div>'; }
           var c=m.character; var nm=(c&&c.name)||m.author_name||'—'; var cid=c&&c.id;
           var braw=m.body||'', place=''; var pm=braw.match(/^【([^】]{1,60})】\s*([\s\S]*)$/); if(pm){ place=pm[1]; braw=pm[2]; }
@@ -1959,7 +1970,7 @@
       })();
 
       /* ===== REGIA DEL MASTER: PNG in scena + stato del gruppo ===== */
-      var REGIA={pgs:[],pngs:[],tpls:[],pend:null,newOpen:false};
+      var REGIA={pgs:[],pngs:[],tpls:[],pend:null,newOpen:false,abmap:{}};
       function openRegia(){ if(!iAmStaff){ toast('Solo per lo staff'); return; } if(!cur){ toast('Entra in una stanza per aprire la Regia'); return; }
         var rr=document.getElementById('regia-room'); if(rr) rr.textContent=cur.name||'stanza';
         var ov=document.getElementById('regiaov'), bk=document.getElementById('regiaov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false;
@@ -1968,7 +1979,7 @@
       function regiaOpenNow(){ var ov=document.getElementById('regiaov'); return !!(ov && !ov.hidden); }
       function loadRegia(){ if(!sb||!cur) return; var body=document.getElementById('regia-body'); if(body&&!body.innerHTML) body.innerHTML='<p class="miss-empty">Caricamento…</p>';
         var ids=(WHO||[]).map(function(w){return w.user_id;}).filter(Boolean);
-        var q1=ids.length?sb.from('characters').select('user_id,name,avatar_url,rank,vita,vita_max,chakra,chakra_max').in('user_id',ids):Promise.resolve({data:[]});
+        var q1=ids.length?sb.from('characters').select('id,user_id,name,avatar_url,rank,vita,vita_max,chakra,chakra_max').in('user_id',ids):Promise.resolve({data:[]});
         Promise.all([q1, sb.from('png_instances').select('*').eq('location_id',cur.id).order('created_at'), sb.from('png_templates').select('id,nome,grado').eq('is_active',true).order('nome')])
         .then(function(rs){ REGIA.pgs=(rs[0]&&rs[0].data)||[]; REGIA.pngs=(rs[1]&&rs[1].data)||[]; REGIA.tpls=(rs[2]&&rs[2].data)||[]; renderRegia(); },
               function(){ REGIA.pgs=[];REGIA.pngs=[];REGIA.tpls=[]; renderRegia(); }); }
@@ -1994,10 +2005,22 @@
           if(!g.is_down){
             btns+=abs.map(function(ab,i){ return '<button type="button" class="mbtn ghost" data-rgab="'+g.id+':'+i+'">'+esc(ab.n||('Abilità '+(i+1)))+' · '+(ab.d||0)+(ab.c?(' 〈−'+ab.c+'ck〉'):'')+'</button>'; }).join('');
             btns+='<button type="button" class="mbtn ghost" data-rgab="'+g.id+':-1">Colpo base</button>';
+            if(REGIA.pgs.length>=2){ btns+='<button type="button" class="mbtn" data-rgcmb="'+g.id+'">Attacco combinato</button>'; }
           }
           btns+='<button type="button" class="mbtn ghost" data-rgrit="'+g.id+'">Ritira</button>';
           var form='';
-          if(REGIA.pend && REGIA.pend.inst===g.id){
+          if(REGIA.pend && REGIA.pend.inst===g.id && REGIA.pend.combo){
+            var rows=REGIA.pgs.map(function(c){ var abs2=(REGIA.abmap[c.id]||[]);
+              return '<div class="rg-crow" data-u="'+c.user_id+'"><label><input type="checkbox" class="rg-cn"> '+esc(c.name)+'</label>'
+                +'<select class="rg-ct"><option value="">— colpo base (10) —</option>'+abs2.map(function(tt){ return '<option value="'+tt.technique_id+'">'+esc(tt.name)+' · '+(tt.danno_base||0)+(tt.chakra_cost?(' 〈−'+tt.chakra_cost+'ck〉'):'')+'</option>'; }).join('')+'</select>'
+                +'<select class="rg-ck2"><option value="fisico">Fis</option><option value="ninjutsu">Nin</option></select>'
+                +'<input type="number" class="rg-cq" min="0" max="6" value="0" title="Bonus Qualità dell\'attaccante"></div>'; }).join('');
+            form='<div class="mform on rg-comboform" data-rgform="'+g.id+'">'+rows
+              +'<div class="rg-cfoot"><select class="rg-def"><option value="schivata">Schivata</option><option value="contrasto">Contrasto</option></select>'
+              +'<input type="number" class="rg-mod" min="-30" max="30" value="0" title="Bonus/Malus condiviso" style="width:60px">'
+              +'<button type="button" class="mbtn" data-rgcombogo="'+g.id+'">Lancia l\'attacco combinato</button></div></div>';
+          }
+          else if(REGIA.pend && REGIA.pend.inst===g.id){
             var tgt=REGIA.pgs.map(function(c){return '<option value="'+c.user_id+'">'+esc(c.name)+'</option>';}).join('');
             form='<div class="mform on" data-rgform="'+g.id+'">'
               +'<select class="rg-target">'+(tgt||'<option value="">— nessun bersaglio —</option>')+'</select>'
@@ -2046,6 +2069,19 @@
         body.addEventListener('click', async function(e){
           var t=e.target.closest('button'); if(!t||!sb) return;
           if(t.hasAttribute('data-rgab')){ var pp=t.getAttribute('data-rgab').split(':'); REGIA.pend={inst:pp[0], idx:parseInt(pp[1],10)}; renderRegia(); return; }
+          if(t.hasAttribute('data-rgcmb')){ var gid0=t.getAttribute('data-rgcmb'); REGIA.pend={inst:gid0, combo:true};
+            Promise.all(REGIA.pgs.map(function(c){ return sb.rpc('my_abilities',{p_character:c.id}).then(function(r){ REGIA.abmap[c.id]=((r&&r.data)||[]).filter(function(x){return x.state==='attiva';}); }, function(){ REGIA.abmap[c.id]=[]; }); })).then(renderRegia, renderRegia);
+            return; }
+          if(t.hasAttribute('data-rgcombogo')){ var gid2=t.getAttribute('data-rgcombogo'); var f3=body.querySelector('[data-rgform="'+gid2+'"]'); if(!f3) return;
+            var atks=[]; f3.querySelectorAll('.rg-crow').forEach(function(row){ var on=row.querySelector('.rg-cn'); if(!on||!on.checked) return;
+              var tsel=(row.querySelector('.rg-ct')||{}).value||'';
+              atks.push({ u:row.getAttribute('data-u'), t:(tsel||null), k:(row.querySelector('.rg-ck2')||{}).value||'fisico', n:'colpo', b:10, q:parseInt((row.querySelector('.rg-cq')||{}).value,10)||0 }); });
+            if(atks.length<2){ toast('Seleziona almeno due attaccanti'); return; }
+            if(atks.length>4){ toast('Massimo quattro attaccanti'); return; }
+            t.disabled=true;
+            sb.rpc('png_attacco_combinato',{p_location:cur.id,p_instance:gid2,p_attacks:atks,p_defense:(f3.querySelector('.rg-def')||{}).value||'schivata',p_mod:parseInt((f3.querySelector('.rg-mod')||{}).value,10)||0})
+            .then(function(r){ t.disabled=false; if(r&&r.error){ toast(r.error.message||'Errore'); return; } REGIA.pend=null; loadRegia(); loadMsgs(); }, function(){ t.disabled=false; toast('Errore'); });
+            return; }
           if(t.hasAttribute('data-rgo')){ var gid=t.getAttribute('data-rgo'); var f=body.querySelector('[data-rgform="'+gid+'"]'); if(!f) return;
             var tgt=(f.querySelector('.rg-target')||{}).value; if(!tgt){ toast('Scegli il bersaglio'); return; }
             var prm={ p_location:cur.id, p_instance:gid, p_target_user:tgt,
