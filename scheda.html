@@ -140,6 +140,7 @@
   .svitem .svtag{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;border:1px solid var(--edge);border-radius:7px;padding:1px 7px;margin-right:6px}
   .svitem .svtag.p{color:#8a6f43}.svitem .svtag.a{color:#3f6d3a;border-color:#3f6d3a}.svitem .svtag.r{color:var(--red-deep);border-color:var(--red-deep)}
   .svitem .svmeta{font-size:12.5px;color:var(--ink-soft);margin-top:3px}
+  .svh{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--red-deep);margin:18px 0 8px;border-top:1px solid var(--edge);padding-top:14px}
   .chars{display:grid;grid-template-columns:1fr;gap:11px}
   .charrow{display:flex;align-items:center;gap:12px}
   .charrow .cn{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);width:112px;flex-shrink:0}
@@ -392,7 +393,7 @@
             </div>
             <div class="dossier">
               <div class="dhead"><div class="dhead-name"><h1 id="s-name">—</h1><div id="s-epithet" class="epithet" style="display:none"></div></div><div class="dhead-act"><button class="btn btn-ghost btn-sm" id="s-edit" style="display:none">Modifica</button><button class="btn btn-ghost btn-sm" id="s-share" title="Copia il link della scheda">Condividi</button><button class="btn btn-red btn-sm" id="s-save">Salva</button></div></div>
-              <div class="dtabs"><button class="dtab on" data-d="dati">Dati</button><button class="dtab" data-d="stat">Statistiche<span id="stat-badge" style="display:none;margin-left:6px;min-width:16px;padding:1px 5px;border-radius:9px;background:var(--red);color:#f6ead0;font-family:'Cinzel',serif;font-size:9px"></span></button></div>
+              <div class="dtabs"><button class="dtab on" data-d="dati">Dati</button><button class="dtab" data-d="stat">Statistiche<span id="stat-badge" style="display:none;margin-left:6px;min-width:16px;padding:1px 5px;border-radius:9px;background:var(--red);color:#f6ead0;font-family:'Cinzel',serif;font-size:9px"></span></button><button class="dtab" data-d="align" id="dtab-align">Allineamento</button></div>
 
               <div class="dpanel on" data-d="dati">
                 <div class="drow"><span class="emb" id="ic-rank"></span><div class="dinfo"><span class="dlab">Grado</span><span class="dval" id="v-rank">—</span><select id="f-rank" class="mini" style="display:none"><option>Deshi</option><option>Genin</option><option>Chunin</option><option>Jonin</option><option>Jonin Speciale</option><option>Kage Konoha</option><option>Kage Suna</option><option>Sannin</option></select></div></div>
@@ -425,31 +426,38 @@
                   <button class="btn btn-red btn-sm" id="u-confirm" style="margin-top:8px">Conferma assegnazione</button>
                 </div>
               </div>
+
+              <div class="dpanel" data-d="align">
+                <p class="hint" style="margin-top:0">Le <strong>svolte</strong> muovono l'allineamento: dopo una scena che ha segnato il tuo personaggio, chiedi qui il riconoscimento — decide lo staff. Sotto, lo <strong>storico dei momenti chiave</strong> che hanno inciso sulla vita del ninja.</p>
+                <div class="svbox" id="svolta-box" style="display:none">
+                  <h4>Richiedi una svolta</h4>
+                  <div class="svgrid">
+                    <label>Asse
+                      <select id="sv-asse"><option value="lealta">Lealtà</option><option value="via">Via</option><option value="fama">Fama</option></select>
+                    </label>
+                    <label>Spostamento
+                      <select id="sv-delta"><option value="5">+5 · un passo</option><option value="10">+10 · svolta forte</option><option value="-5">−5 · un passo</option><option value="-10">−10 · svolta forte</option></select>
+                    </label>
+                  </div>
+                  <label class="svlab" style="margin-top:8px">Role di riferimento (facoltativa)
+                    <select id="sv-role"><option value="">— nessuna —</option></select>
+                  </label>
+                  <textarea id="sv-motivo" maxlength="600" placeholder="Racconta la svolta: cosa è successo in gioco e perché segna il tuo personaggio (minimo 60 caratteri)…"></textarea>
+                  <div class="svcnt"><span id="sv-cnt">0</span>/600 · minimo 60 caratteri</div>
+                  <button class="btn btn-red btn-sm" id="sv-send" style="margin-top:8px">Invia allo staff</button>
+                </div>
+                <h4 class="svh" id="sv-list-h" style="display:none">Richieste recenti</h4>
+                <div class="svlist" id="sv-list"></div>
+                <h4 class="svh" id="sv-history-h">Storico — i momenti chiave</h4>
+                <div class="svlist" id="sv-history"></div>
+              </div>
             </div>
           </div>
 
           <div class="scroll-sections">
-            <div class="ssec" id="sec-align"><h3>Allineamento <span class="priv pub">👁 pubblico · si muove con le tue scelte</span></h3>
-              <p class="hint">Tre assi raccontano chi sta diventando il tuo ninja: <strong>Lealtà</strong> (il rapporto col villaggio), <strong>Via</strong> (l'anima, tra Volontà del Fuoco e Sentiero dell'Odio) e <strong>Fama</strong> (come ti vede il mondo). Si spostano con le <strong>svolte</strong>: dopo una scena che ha segnato il personaggio, chiedi qui il riconoscimento — decide lo staff.</p>
+            <div class="ssec" id="sec-align"><h3>Allineamento <span class="priv">◈ il percorso del ninja</span></h3>
+              <p class="hint">Dove si trova oggi il personaggio: <strong>Lealtà</strong> (il rapporto col villaggio), <strong>Via</strong> (l'anima, tra Volontà del Fuoco e Sentiero dell'Odio) e <strong>Fama</strong> (come lo vede il mondo). Le <strong>svolte</strong> e lo storico dei momenti chiave sono nel tab <strong>Allineamento</strong> in alto.</p>
               <div class="algn" id="algn-gauges"></div>
-              <div class="svbox" id="svolta-box" style="display:none">
-                <h4>Richiedi una svolta</h4>
-                <div class="svgrid">
-                  <label>Asse
-                    <select id="sv-asse"><option value="lealta">Lealtà</option><option value="via">Via</option><option value="fama">Fama</option></select>
-                  </label>
-                  <label>Spostamento
-                    <select id="sv-delta"><option value="5">+5 · un passo</option><option value="10">+10 · svolta forte</option><option value="-5">−5 · un passo</option><option value="-10">−10 · svolta forte</option></select>
-                  </label>
-                </div>
-                <label class="svlab" style="margin-top:8px">Role di riferimento (facoltativa)
-                  <select id="sv-role"><option value="">— nessuna —</option></select>
-                </label>
-                <textarea id="sv-motivo" maxlength="600" placeholder="Racconta la svolta: cosa è successo in gioco e perché segna il tuo personaggio (minimo 60 caratteri)…"></textarea>
-                <div class="svcnt"><span id="sv-cnt">0</span>/600 · minimo 60 caratteri</div>
-                <button class="btn btn-red btn-sm" id="sv-send" style="margin-top:8px">Invia allo staff</button>
-              </div>
-              <div class="svlist" id="sv-list"></div>
             </div>
             <div class="ssec"><h3>Background</h3>
               <p class="hint">La storia del personaggio: origini, legami, aspirazioni. Visibile agli altri giocatori.</p>
@@ -789,6 +797,7 @@
       renderAcademyLog();
       renderRoleLibrary();
       loadSvolte();
+      loadAlignHistory();
     }
     /* ===== Barra XP e Allineamento ===== */
     var SOGLIE_RANK={'Genin':{next:'Chunin',da:0,a:2500},'Chunin':{next:'Jonin',da:2500,a:9000},'Jonin':{next:'Jonin Speciale',da:9000,a:18000}};
@@ -831,9 +840,11 @@
           ((r&&r.data)||[]).forEach(function(x){ var o=document.createElement('option'); o.value=x.session_id; o.textContent=(x.title||'Role senza titolo'); rs.appendChild(o); });
         },function(){}); }
       }
-      if(viewMode==='public'){ list.innerHTML=''; return; }
+      var lh=$('sv-list-h');
+      if(viewMode==='public'){ list.innerHTML=''; if(lh)lh.style.display='none'; return; }
       sb.from('svolta_richieste').select('*').eq('character_id',myChar.id).order('created_at',{ascending:false}).limit(8).then(function(r){
         var rows=(r&&r.data)||[];
+        if(lh)lh.style.display=rows.length?'':'none';
         if(!rows.length){ list.innerHTML=''; return; }
         list.innerHTML=rows.map(function(x){
           var tag=x.status==='in attesa'?'<span class="svtag p">In attesa</span>':x.status==='approvata'?'<span class="svtag a">Approvata</span>':'<span class="svtag r">Respinta</span>';
@@ -842,6 +853,27 @@
           return '<div class="svitem">'+tag+'<b>'+FASCE[x.asse].nome+'</b> '+(x.delta>0?'+':'')+x.delta+'<div class="svmeta">'+esc(x.motivazione||'')+'</div>'+nota+btns+'</div>';
         }).join('');
       },function(){ list.innerHTML=''; });
+    }
+    function loadAlignHistory(){
+      var host=$('sv-history'), hh=$('sv-history-h'); if(!host||!sb||!myChar) return;
+      if(viewMode==='public'){ host.innerHTML=''; if(hh)hh.style.display='none'; return; }
+      if(hh)hh.style.display='';
+      sb.from('allineamento_log').select('*').eq('character_id',myChar.id).order('created_at',{ascending:false}).limit(30).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(!rows.length){ host.innerHTML='<p class="hint" style="margin:0">Ancora nessun momento chiave: la storia del tuo ninja comincia ora.</p>'; return; }
+        host.innerHTML=rows.map(function(x){
+          var d=x.created_at?new Date(x.created_at):null;
+          var ds=d?(('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()):'';
+          var mo=x.motivo||'', testo, tag;
+          if(mo.indexOf('svolta approvata: ')===0){ testo=mo.slice(18); tag='<span class="svtag a">Svolta</span>'; }
+          else if(mo==='intervento dello staff'){ testo=''; tag='<span class="svtag p">Staff</span>'; }
+          else { testo=mo; tag='<span class="svtag p">Evento</span>'; }
+          var fl=fascia(x.asse, x.valore_dopo!=null?x.valore_dopo:50);
+          return '<div class="svitem">'+tag+'<b>'+FASCE[x.asse].nome+'</b> '+(x.delta>0?'+':'')+x.delta+' → '+esc(fl)+' · '+x.valore_dopo
+            +(testo?('<div class="svmeta">'+esc(testo)+'</div>'):'')
+            +'<div class="svmeta">'+ds+'</div></div>';
+        }).join('');
+      },function(){ host.innerHTML=''; if(hh)hh.style.display='none'; });
     }
     (function(){
       var svM=$('sv-motivo'); if(svM) svM.addEventListener('input',function(){ var c=$('sv-cnt'); if(c)c.textContent=String(this.value.length); });
@@ -867,7 +899,7 @@
         toast(ok?'Svolta approvata':'Richiesta respinta');
         var rr=await sb.from('characters').select('*').eq('id',myChar.id).maybeSingle();
         if(rr&&rr.data){ myChar=rr.data; renderAlign(myChar); renderProgress(myChar); if(viewMode==='staff'||viewMode==='adminother') fillStaffPanel(myChar,curPriv); }
-        loadSvolte();
+        loadSvolte(); loadAlignHistory();
       });
     })();
     function setPortrait(url){ var p=$('s-portrait'), ph=$('s-portrait-ph'); if(!p)return; if(url){ p.style.backgroundImage='url("'+url+'")'; if(ph)ph.style.display='none'; } else { p.style.backgroundImage=''; if(ph)ph.style.display=''; } }
@@ -889,6 +921,12 @@
       var sf=$('sec-fato'); if(sf) sf.style.display=(owner||staff)?'':'none';
       var ff=$('f-fato'); if(ff) ff.readOnly=true;
       var sp=$('staff-panel'); if(sp) sp.style.display=sEdit?'':'none';
+      var ta=$('dtab-align'); if(ta){ var _pub=(viewMode==='public'); ta.style.display=_pub?'none':'';
+        if(_pub){ var ap=document.querySelector('.dpanel[data-d="align"]');
+          if(ap&&ap.classList.contains('on')){
+            document.querySelectorAll('.dtab').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-d')==='dati');});
+            document.querySelectorAll('.dpanel').forEach(function(p){p.classList.toggle('on',p.getAttribute('data-d')==='dati');});
+          } } }
       var iw=$('inv-wrap'); if(iw) iw.style.display=(viewMode==='public')?'none':'';
       if(staff) fillStaffPanel(myChar,curPriv);
       var badge=$('mode-badge');
