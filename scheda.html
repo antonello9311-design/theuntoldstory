@@ -638,6 +638,8 @@
     function statLbl(s){return s[0]==='kekkei_genkai'?kgLabel(myChar&&myChar.clan):s[1];}
     function showInnata(c){c=c||myChar;return !!(c&&c.clan&&c.clan!=='Nessuno'&&(c.rank||'Deshi')!=='Deshi');}
     var BASE=10,POOL=60,CAP=30,STEP=5;
+    var RANKCAP={'Deshi':30,'Genin':45,'Chunin':60,'Jonin':75,'Jonin Speciale':85};
+    function rankCap(c){c=c||myChar;return (c&&RANKCAP[c.rank])||100;}
     var ELK={Fuoco:'火',Vento:'風',Fulmine:'雷',Terra:'土',Acqua:'水'},ELC={Fuoco:'e-fuoco',Vento:'e-vento',Fulmine:'e-fulmine',Terra:'e-terra',Acqua:'e-acqua'};
     var me=null,myChar=null,curPriv=null,newStats={},addBuf={},EMB={},myName='',viewMode='owner',viewId=null,isStaff=false,isAdmin=false,editMode=false;
 
@@ -850,7 +852,7 @@
       else { toast((d.reasons&&d.reasons.length)?d.reasons.join(' · '):'Non idoneo',true); }
     }); })();
     function renderUnspent(c){var box=$('unspent-box');if(!c.unspent_points||c.unspent_points<=0){box.style.display='none';return;}box.style.display='block';addBuf={};$('u-pts').textContent=c.unspent_points;var host=$('u-rows');host.innerHTML='';STATS.forEach(function(s){addBuf[s[0]]=0;if(s[0]==='kekkei_genkai'&&!showInnata(c))return;var row=document.createElement('div');row.className='steprow';row.innerHTML='<span class="cn">'+statLbl(s)+'</span><button type="button" class="stbtn minus" data-k="'+s[0]+'" data-d="-1">−5</button><span class="stval" id="ua-'+s[0]+'">'+(c[s[0]]||BASE)+'</span><button type="button" class="stbtn" data-k="'+s[0]+'" data-d="1">+5</button>';host.appendChild(row);});}
-    $('u-rows').addEventListener('click',function(e){var b=e.target.closest('.stbtn');if(!b)return;var k=b.getAttribute('data-k'),d=parseInt(b.getAttribute('data-d')||'1',10),used=0,kk;for(kk in addBuf)used+=addBuf[kk];if(d>0){if(used+STEP>myChar.unspent_points)return;addBuf[k]+=STEP;}else{if(addBuf[k]<STEP)return;addBuf[k]-=STEP;}used=0;for(kk in addBuf)used+=addBuf[kk];$('ua-'+k).textContent=(myChar[k]||BASE)+addBuf[k];var up=$('u-pts');if(up)up.textContent=(myChar.unspent_points-used);});
+    $('u-rows').addEventListener('click',function(e){var b=e.target.closest('.stbtn');if(!b)return;var k=b.getAttribute('data-k'),d=parseInt(b.getAttribute('data-d')||'1',10),used=0,kk;for(kk in addBuf)used+=addBuf[kk];if(d>0){if(used+STEP>myChar.unspent_points)return;if((myChar[k]||BASE)+addBuf[k]+STEP>rankCap()){toast('Tetto del grado: max '+rankCap()+' a questo rango',true);return;}addBuf[k]+=STEP;}else{if(addBuf[k]<STEP)return;addBuf[k]-=STEP;}used=0;for(kk in addBuf)used+=addBuf[kk];$('ua-'+k).textContent=(myChar[k]||BASE)+addBuf[k];var up=$('u-pts');if(up)up.textContent=(myChar.unspent_points-used);});
     $('u-confirm').addEventListener('click',async function(){var used=0;for(var kk in addBuf)used+=addBuf[kk];if(used===0){toast('Nessun punto assegnato',true);return;}this.disabled=true;var upd={unspent_points:myChar.unspent_points-used};STATS.forEach(function(s){upd[s[0]]=(myChar[s[0]]||BASE)+addBuf[s[0]];});var r=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();this.disabled=false;if(r.error){toast('Errore',true);return;}myChar=r.data;fillForm(myChar,curPriv);toast('Punti assegnati');});
 
     function fillForm(c,priv){
