@@ -1970,7 +1970,7 @@
       })();
 
       /* ===== REGIA DEL MASTER: PNG in scena + stato del gruppo ===== */
-      var REGIA={pgs:[],pngs:[],tpls:[],pend:null,newOpen:false,abmap:{}};
+      var REGIA={pgs:[],pngs:[],tpls:[],pend:null,newOpen:false,editId:null,abmap:{}};
       function openRegia(){ if(!iAmStaff){ toast('Solo per lo staff'); return; } if(!cur){ toast('Entra in una stanza per aprire la Regia'); return; }
         var rr=document.getElementById('regia-room'); if(rr) rr.textContent=cur.name||'stanza';
         var ov=document.getElementById('regiaov'), bk=document.getElementById('regiaov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false;
@@ -1980,7 +1980,7 @@
       function loadRegia(){ if(!sb||!cur) return; var body=document.getElementById('regia-body'); if(body&&!body.innerHTML) body.innerHTML='<p class="miss-empty">Caricamento…</p>';
         var ids=(WHO||[]).map(function(w){return w.user_id;}).filter(Boolean);
         var q1=ids.length?sb.from('characters').select('id,user_id,name,avatar_url,rank,vita,vita_max,chakra,chakra_max').in('user_id',ids):Promise.resolve({data:[]});
-        Promise.all([q1, sb.from('png_instances').select('*').eq('location_id',cur.id).order('created_at'), sb.from('png_templates').select('id,nome,grado,prestavolto').eq('is_active',true).order('nome')])
+        Promise.all([q1, sb.from('png_instances').select('*').eq('location_id',cur.id).order('created_at'), sb.from('png_templates').select('*').order('nome')])
         .then(function(rs){ REGIA.pgs=(rs[0]&&rs[0].data)||[]; REGIA.pngs=(rs[1]&&rs[1].data)||[]; REGIA.tpls=(rs[2]&&rs[2].data)||[]; renderRegia(); },
               function(){ REGIA.pgs=[];REGIA.pngs=[];REGIA.tpls=[]; renderRegia(); }); }
       function rgBar(cu,mx,cls){ var p=mx?Math.max(0,Math.min(100,Math.round(cu*100/mx))):0; return '<span class="pvb '+(cls||'')+'" title="'+cu+' / '+mx+'"><i style="width:'+p+'%'+((cls!=='ckb'&&p<=25)?';background:linear-gradient(90deg,var(--red),var(--red-deep))':'')+'"></i></span>'; }
@@ -1995,7 +1995,7 @@
         // — Evoca —
         h+='<h4 class="rg-h">PNG in scena</h4>';
         h+='<div class="mform on" style="margin:0 0 10px">'
-          +'<select id="rg-tpl">'+(REGIA.tpls.length?REGIA.tpls.map(function(t){return '<option value="'+t.id+'">'+esc(t.nome)+' ('+esc(t.grado)+')'+(t.prestavolto?' · '+esc(t.prestavolto):'')+'</option>';}).join(''):'<option value="">— bestiario vuoto —</option>')+'</select>'
+          +(function(){ var act=REGIA.tpls.filter(function(t){return t.is_active!==false;}); return '<select id="rg-tpl">'+(act.length?act.map(function(t){return '<option value="'+t.id+'">'+esc(t.nome)+' ('+esc(t.grado)+')'+(t.prestavolto?' · '+esc(t.prestavolto):'')+'</option>';}).join(''):'<option value="">— nessun modello attivo —</option>')+'</select>'; })()
           +'<input type="text" id="rg-nome" maxlength="40" placeholder="Nome in scena (facolt.)">'
           +'<button type="button" class="mbtn" id="rg-evoca">Evoca</button></div>';
         if(!REGIA.pngs.length){ h+='<p class="miss-empty">Nessun PNG evocato: scegli un modello e premi Evoca (o crea un modello con «+ Modello»).</p>'; }
@@ -2040,19 +2040,34 @@
             +(g.note?('<div class="mmeta">'+esc(g.note)+'</div>'):'')
             +'<div class="mact">'+btns+'</div>'+form+'</div>';
         }).join(''); }
-        // — Nuovo modello —
+        // — Bestiario: modelli esistenti (con editor) —
+        h+='<h4 class="rg-h">Bestiario — modelli</h4>';
+        if(!REGIA.tpls.length){ h+='<p class="miss-empty">Nessun modello. Crea il primo con «+ Modello».</p>'; }
+        else { h+=REGIA.tpls.map(function(t){ var off=(t.is_active===false);
+          return '<div class="mcard"'+(off?' style="opacity:.55"':'')+'><div class="mtop">'+avatarHTML({avatar_url:t.avatar_url},t.nome,null)
+            +'<span class="mname">'+esc(t.nome)+'</span><span class="mvil">'+esc(t.grado)+'</span>'+(off?'<span class="mvil" style="color:var(--ink-soft)">disattivo</span>':'')+'</div>'
+            +(t.epiteto?('<div class="mmeta">'+esc(t.epiteto)+'</div>'):'')
+            +(t.prestavolto?('<div class="mmeta" style="color:var(--red-deep)">◈ Prestavolto: '+esc(t.prestavolto)+'</div>'):'')
+            +'<div class="mmeta">F '+t.forza+' · T '+t.taijutsu+' · V '+t.velocita+' · M '+t.mente+' · N '+t.ninjutsu+' · G '+t.genjutsu+' · R '+t.resistenza+' · Fu '+t.fuuinjutsu+' · KG '+t.kekkei_genkai+'</div>'
+            +'<div class="mact"><button type="button" class="mbtn ghost" data-rgedit="'+t.id+'">Modifica</button>'
+            +'<button type="button" class="mbtn ghost" data-rgtoggle="'+t.id+'">'+(off?'Riattiva':'Disattiva')+'</button></div></div>';
+        }).join(''); }
+        // — Nuovo modello / Modifica —
         if(REGIA.newOpen){
-          h+='<h4 class="rg-h">Nuovo modello (bestiario)</h4><div class="miss-new" id="rg-newform">'
-            +'<div class="mn-grid"><input id="rgn-nome" type="text" maxlength="40" placeholder="Nome (es. Bandito)">'
-            +'<input id="rgn-epiteto" type="text" maxlength="60" placeholder="Epiteto (facolt.)">'
-            +'<select id="rgn-grado"><option>D</option><option>C</option><option>B</option><option>A</option><option>S</option></select></div>'
-            +'<input id="rgn-prestavolto" type="text" maxlength="80" placeholder="Prestavolto (volto di riferimento: attore/personaggio — facolt.)" style="width:100%;margin-top:8px;font-family:\'Cormorant Garamond\',serif;font-size:14.5px;border:1px solid var(--rule);background:rgba(255,252,244,.8);padding:7px 9px">'
+          var ed = REGIA.editId ? (REGIA.tpls.filter(function(x){return x.id===REGIA.editId;})[0]||null) : null;
+          var eAb=[]; if(ed){ try{ eAb=(typeof ed.abilita==='string')?JSON.parse(ed.abilita):(ed.abilita||[]); }catch(e){ eAb=[]; } }
+          var istyle='width:100%;margin-top:8px;font-family:\'Cormorant Garamond\',serif;font-size:14.5px;border:1px solid var(--rule);background:rgba(255,252,244,.8);padding:7px 9px';
+          h+='<h4 class="rg-h">'+(ed?('Modifica: '+esc(ed.nome)):'Nuovo modello (bestiario)')+'</h4><div class="miss-new" id="rg-newform">'
+            +'<div class="mn-grid"><input id="rgn-nome" type="text" maxlength="40" value="'+(ed?esc(ed.nome):'')+'" placeholder="Nome (es. Bandito)">'
+            +'<input id="rgn-epiteto" type="text" maxlength="60" value="'+(ed?esc(ed.epiteto||''):'')+'" placeholder="Epiteto (facolt.)">'
+            +'<select id="rgn-grado">'+['D','C','B','A','S'].map(function(g){return '<option'+((ed&&ed.grado===g)?' selected':'')+'>'+g+'</option>';}).join('')+'</select></div>'
+            +'<input id="rgn-prestavolto" type="text" maxlength="80" value="'+(ed?esc(ed.prestavolto||''):'')+'" placeholder="Prestavolto (volto di riferimento: attore/personaggio — facolt.)" style="'+istyle+'">'
             +'<div class="mn-grid" style="margin-top:8px">'
-            +['forza','taijutsu','velocita','mente','ninjutsu','genjutsu','resistenza','fuuinjutsu'].map(function(k){ return '<input id="rgn-'+k+'" type="number" step="5" min="0" max="120" value="10" title="'+k+'" placeholder="'+k+'">'; }).join('')
-            +'</div><p class="cmb-hint">Statistiche a multipli di 5 (i valori vengono arrotondati). PV e chakra si calcolano da soli con le formule dei PG in base al grado.</p>'
-            +[0,1,2].map(function(i){ return '<div class="mn-grid" style="margin-top:6px"><input id="rgn-ab'+i+'-n" type="text" maxlength="40" placeholder="Abilità '+(i+1)+' (nome)"><select id="rgn-ab'+i+'-k"><option value="fisico">Fisico</option><option value="ninjutsu">Ninjutsu</option></select><input id="rgn-ab'+i+'-d" type="number" step="5" min="0" max="120" placeholder="danno"><input id="rgn-ab'+i+'-c" type="number" step="5" min="0" max="60" placeholder="costo ck"></div>'; }).join('')
-            +'<input id="rgn-note" type="text" maxlength="200" placeholder="Note per il master (facolt.)" style="width:100%;margin-top:8px;font-family:\'Cormorant Garamond\',serif;font-size:14.5px;border:1px solid var(--rule);background:rgba(255,252,244,.8);padding:7px 9px">'
-            +'<div class="mact" style="margin-top:8px"><label class="mbtn ghost" style="cursor:pointer">Volto… <input id="rgn-avatar" type="file" accept="image/*" style="display:none"></label><span class="mnote" id="rgn-avname"></span><button type="button" class="mbtn" id="rgn-salva">Salva nel bestiario</button></div></div>';
+            +['forza','taijutsu','velocita','mente','ninjutsu','genjutsu','resistenza','fuuinjutsu','kekkei_genkai'].map(function(k){ var dv=(k==='kekkei_genkai'?0:10); var val=ed?(ed[k]!=null?ed[k]:dv):dv; return '<input id="rgn-'+k+'" type="number" step="5" min="0" max="120" value="'+val+'" title="'+k+'" placeholder="'+k+'">'; }).join('')
+            +'</div><p class="cmb-hint">Nove statistiche a multipli di 5 (arrotondate). PV e chakra si calcolano da soli in base al grado.</p>'
+            +[0,1,2].map(function(i){ var a=eAb[i]||{}; return '<div class="mn-grid" style="margin-top:6px"><input id="rgn-ab'+i+'-n" type="text" maxlength="40" value="'+(a.n?esc(a.n):'')+'" placeholder="Abilità '+(i+1)+' (nome)"><select id="rgn-ab'+i+'-k"><option value="fisico"'+((!a.k||a.k==='fisico')?' selected':'')+'>Fisico</option><option value="ninjutsu"'+((a.k==='ninjutsu'||a.k==='nin')?' selected':'')+'>Ninjutsu</option></select><input id="rgn-ab'+i+'-d" type="number" step="5" min="0" max="120" value="'+(a.d!=null?a.d:'')+'" placeholder="danno"><input id="rgn-ab'+i+'-c" type="number" step="5" min="0" max="60" value="'+(a.c!=null?a.c:'')+'" placeholder="costo ck"></div>'; }).join('')
+            +'<textarea id="rgn-note" maxlength="600" placeholder="Note per il master / descrizione (facolt.)" style="'+istyle+';min-height:72px">'+(ed?esc(ed.note||''):'')+'</textarea>'
+            +'<div class="mact" style="margin-top:8px"><label class="mbtn ghost" style="cursor:pointer">Volto… <input id="rgn-avatar" type="file" accept="image/*" style="display:none"></label><span class="mnote" id="rgn-avname">'+((ed&&ed.avatar_url)?'volto attuale presente — carica solo per sostituirlo':'')+'</span>'+(ed?'<button type="button" class="mbtn ghost" data-rgcancel="1">Annulla</button>':'')+'<button type="button" class="mbtn" id="rgn-salva">'+(ed?'Salva modifiche':'Salva nel bestiario')+'</button></div></div>';
         }
         host.innerHTML=h;
       }
@@ -2062,7 +2077,7 @@
         var x=document.getElementById('regiaov-x'); if(x) x.addEventListener('click',closeRegia);
         var bk=document.getElementById('regiaov-backdrop'); if(bk) bk.addEventListener('click',closeRegia);
         var rf=document.getElementById('regia-refresh'); if(rf) rf.addEventListener('click',loadRegia);
-        var nb=document.getElementById('regia-new'); if(nb) nb.addEventListener('click',function(){ REGIA.newOpen=!REGIA.newOpen; renderRegia(); });
+        var nb=document.getElementById('regia-new'); if(nb) nb.addEventListener('click',function(){ REGIA.editId=null; REGIA.newOpen=!REGIA.newOpen; renderRegia(); });
         document.addEventListener('keydown', function(e){ if(e.key==='Escape' && regiaOpenNow()) closeRegia(); });
         var body=document.getElementById('regia-body'); if(!body) return;
         body.addEventListener('change', function(e){
@@ -2070,6 +2085,9 @@
         });
         body.addEventListener('click', async function(e){
           var t=e.target.closest('button'); if(!t||!sb) return;
+          if(t.hasAttribute('data-rgedit')){ REGIA.editId=t.getAttribute('data-rgedit'); REGIA.newOpen=true; renderRegia(); var fed=document.getElementById('rg-newform'); if(fed) fed.scrollIntoView({block:'center'}); return; }
+          if(t.hasAttribute('data-rgcancel')){ REGIA.editId=null; REGIA.newOpen=false; renderRegia(); return; }
+          if(t.hasAttribute('data-rgtoggle')){ var tid=t.getAttribute('data-rgtoggle'); var tp0=REGIA.tpls.filter(function(x){return x.id===tid;})[0]; var na=(tp0&&tp0.is_active!==false)?false:true; t.disabled=true; sb.from('png_templates').update({is_active:na}).eq('id',tid).then(function(r){ t.disabled=false; if(r&&r.error){ toast('Errore: '+(r.error.message||'')); return; } toast(na?'Modello riattivato':'Modello disattivato'); loadRegia(); }, function(){ t.disabled=false; toast('Errore'); }); return; }
           if(t.hasAttribute('data-rgab')){ var pp=t.getAttribute('data-rgab').split(':'); REGIA.pend={inst:pp[0], idx:parseInt(pp[1],10)}; renderRegia(); return; }
           if(t.hasAttribute('data-rgcmb')){ var gid0=t.getAttribute('data-rgcmb'); REGIA.pend={inst:gid0, combo:true};
             Promise.all(REGIA.pgs.map(function(c){ return sb.rpc('my_abilities',{p_character:c.id}).then(function(r){ REGIA.abmap[c.id]=((r&&r.data)||[]).filter(function(x){return x.state==='attiva';}); }, function(){ REGIA.abmap[c.id]=[]; }); })).then(renderRegia, renderRegia);
@@ -2105,18 +2123,19 @@
             var rec={ nome:nm, epiteto:((document.getElementById('rgn-epiteto')||{}).value||'').trim()||null,
               grado:(document.getElementById('rgn-grado')||{}).value||'D',
               prestavolto:((document.getElementById('rgn-prestavolto')||{}).value||'').trim()||null,
-              note:((document.getElementById('rgn-note')||{}).value||'').trim()||null, genjutsu:10, kekkei_genkai:0 };
-            ['forza','taijutsu','velocita','mente','ninjutsu','genjutsu','resistenza','fuuinjutsu'].forEach(function(k){ var el=document.getElementById('rgn-'+k); if(el) rec[k]=rgSnap(el.value); });
+              note:((document.getElementById('rgn-note')||{}).value||'').trim()||null };
+            ['forza','taijutsu','velocita','mente','ninjutsu','genjutsu','resistenza','fuuinjutsu','kekkei_genkai'].forEach(function(k){ var el=document.getElementById('rgn-'+k); if(el) rec[k]=rgSnap(el.value); });
             var abs=[]; [0,1,2].forEach(function(i){ var n=((document.getElementById('rgn-ab'+i+'-n')||{}).value||'').trim(); if(!n) return;
               abs.push({ n:n, k:(document.getElementById('rgn-ab'+i+'-k')||{}).value||'fisico', d:rgSnap((document.getElementById('rgn-ab'+i+'-d')||{}).value), c:rgSnap((document.getElementById('rgn-ab'+i+'-c')||{}).value) }); });
             rec.abilita=abs;
-            var doInsert=function(){ sb.from('png_templates').insert(rec).then(function(r){ t.disabled=false; if(r&&r.error){ toast('Errore: '+(r.error.message||'')); return; } toast('Modello salvato nel bestiario'); REGIA.newOpen=false; loadRegia(); }, function(){ t.disabled=false; toast('Errore'); }); };
+            var doSave=function(){ var q=REGIA.editId ? sb.from('png_templates').update(rec).eq('id',REGIA.editId) : sb.from('png_templates').insert(rec);
+              q.then(function(r){ t.disabled=false; if(r&&r.error){ toast('Errore: '+(r.error.message||'')); return; } toast(REGIA.editId?'Modello aggiornato':'Modello salvato nel bestiario'); REGIA.editId=null; REGIA.newOpen=false; loadRegia(); }, function(){ t.disabled=false; toast('Errore'); }); };
             var fi=document.getElementById('rgn-avatar'); var file=fi&&fi.files&&fi.files[0];
             if(file){ if(file.size>3145728){ t.disabled=false; toast('Immagine troppo grande (max 3 MB)'); return; }
               var ext=(file.name.split('.').pop()||'jpg').toLowerCase(); var path=myId+'/png-'+Date.now()+'.'+ext;
               sb.storage.from('avatars').upload(path,file,{upsert:true,contentType:file.type}).then(function(up){ if(up&&up.error){ t.disabled=false; toast('Volto non caricato: '+(up.error.message||'')); return; }
-                rec.avatar_url=sb.storage.from('avatars').getPublicUrl(path).data.publicUrl+'?v='+Date.now(); doInsert(); }, function(){ t.disabled=false; toast('Volto non caricato'); });
-            } else { doInsert(); }
+                rec.avatar_url=sb.storage.from('avatars').getPublicUrl(path).data.publicUrl+'?v='+Date.now(); doSave(); }, function(){ t.disabled=false; toast('Volto non caricato'); });
+            } else { doSave(); }
             return; }
         });
       })();
