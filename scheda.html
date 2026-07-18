@@ -1053,6 +1053,7 @@
       var owner=(viewMode==='owner'||viewMode==='adminself'||viewMode==='adminother'), staff=(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother');
       var canEd=(owner||staff), oEdit=owner&&editMode, sEdit=staff&&editMode;
       ['f-element','f-background','f-off','f-prestavolto'].forEach(function(id){var el=$(id); if(el) el.disabled=!oEdit;});
+      var _fe=$('f-element'); if(_fe){ _fe.disabled = !oEdit || !!(myChar && myChar.element); _fe.title = (myChar && myChar.element) ? 'L\'elemento base si sceglie una sola volta' : ''; }
       ['f-clan','f-corporation','f-clanrole','f-rank'].forEach(function(id){var el=$(id); if(el) el.disabled=!sEdit;});
       var _vr=$('v-rank'), _fr2=$('f-rank'); if(_vr&&_fr2){ _vr.style.display=sEdit?'none':''; _fr2.style.display=sEdit?'':'none'; }
       var _hasRole=myChar&&myChar.clan_role; var _showRole=(sEdit||_hasRole)?'':'none'; var _lcr=$('lab-clanrole'); if(_lcr)_lcr.style.display=_showRole; var _scr2=$('f-clanrole'); if(_scr2)_scr2.style.display=_showRole;

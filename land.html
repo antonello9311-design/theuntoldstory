@@ -1140,7 +1140,7 @@
       var nameEl=document.getElementById('room-name'), kindEl=document.getElementById('room-kind'), descEl=document.getElementById('room-desc'), meteoEl=document.getElementById('room-meteo');
       var backBtn=document.getElementById('room-back');
       var LOCS=[], cur=null, poll=null, loggedIn=false, myId=null, myCharId=null, EMB={}, ROSTER=[], pendingWhisper=null, rosterPoll=null, ACT=[], iAmStaff=false, WHO=[];
-      function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+      function esc(s){return (s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
       function fmtBody(s){ var t=esc(s);
         t=t.replace(/&quot;([\s\S]*?)&quot;/g,'<span class="sp-say">&quot;$1&quot;</span>');
         t=t.replace(/«([\s\S]*?)»/g,'<span class="sp-say">«$1»</span>');
@@ -1284,6 +1284,7 @@
       var PIN='<svg class="pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
       function renderMsgs(rows){
         rows=rows||[];
+        var nearBottom=(msgsEl.scrollHeight-msgsEl.scrollTop-msgsEl.clientHeight)<80;
         if(!rows.length){ msgsEl.innerHTML='<div class="msgs-empty">Ancora nessun messaggio qui. Scrivi il primo turno.</div>'; return; }
         msgsEl.innerHTML=rows.map(function(m){
           if(m.kind==='roll'){
@@ -1309,7 +1310,7 @@
           var pchip = place ? '<span class="m-place">'+PIN+esc(place)+'</span>' : '';
           return '<div class="msg">'+avatarHTML(c,nm,cid)+'<div class="m-main">'+identityHTML(c,nm,cid,m.created_at)+pchip+'<div class="m-body">'+fmtBody(braw)+'</div></div></div>';
         }).join('');
-        msgsEl.scrollTop=msgsEl.scrollHeight;
+        if(nearBottom) msgsEl.scrollTop=msgsEl.scrollHeight;
       }
       function loadMsgs(){
         if(!sb||!cur) return;
@@ -1342,6 +1343,8 @@
         if(sendBtn) sendBtn.textContent = w ? 'Sussurra' : 'Invia';
         var opt=toSel.options[toSel.selectedIndex];
         if(input) input.placeholder = w ? ('Sussurro privato a '+(opt?opt.text:'')+'…') : 'Scrivi il tuo turno di gioco…';
+        var _pl=document.getElementById('msg-place'); if(_pl){ _pl.disabled=w; _pl.title=w?'Il luogo non si applica ai sussurri':''; }
+        var _tc=document.getElementById('msg-tech'); if(_tc){ _tc.disabled=w; _tc.title=w?'Le tecniche non si applicano ai sussurri':''; }
       }
       function loadWho(){
         if(!sb||!cur) return;
@@ -1657,7 +1660,7 @@
       }
       if(objBtn){ objBtn.addEventListener('click', function(e){ e.stopPropagation(); openItemPop(); }); }
       document.addEventListener('click', function(e){ var pop=document.getElementById('item-pop'); if(pop&&!pop.hidden){ if(!pop.contains(e.target) && e.target!==objBtn && !(objBtn&&objBtn.contains(e.target))){ pop.hidden=true; } } });
-      function updCount(){ if(!countEl||!input) return; var n=(input.value||'').length; countEl.textContent=n+' / 5000'; countEl.classList.toggle('warn', n>4500); }
+      function updCount(){ if(!countEl||!input) return; var n=(input.value||'').length; if(n<500){ countEl.textContent=n+' / 500 min'; countEl.classList.add('warn'); } else { countEl.textContent=n+' caratteri'; countEl.classList.remove('warn'); } }
       if(input){ input.addEventListener('input', updCount); } updCount();
 
       // la chat richiede il login

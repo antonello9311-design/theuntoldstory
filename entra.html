@@ -101,8 +101,8 @@
     <form id="form-registrati">
       <div>
         <label>Nome del personaggio</label>
-        <input type="text" id="r-user" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required>
-        <div class="hint">2–40 caratteri. Sono ammessi lettere, accenti, spazi, apostrofi e trattini. Sarà il nome con cui accedi e che vedono gli altri.</div>
+        <input type="text" id="r-user" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="15" required>
+        <div class="hint">2–15 lettere, senza numeri né spazi (accenti, apostrofo e trattino ammessi). Sarà il nome con cui accedi e che vedono gli altri.</div>
       </div>
       <div><label>Email</label><input type="email" id="r-email" name="email" autocomplete="email" required></div>
       <div>
@@ -160,7 +160,7 @@
     var msg = $('msg');
     function show(type, text){ msg.className = 'msg show ' + type; msg.textContent = text; }
     function clearMsg(){ msg.className = 'msg'; msg.textContent = ''; }
-    function normName(s){ return (s||'').replace(/\s+/g,' ').trim(); }
+    function normName(s){ return (s||'').replace(/\s+/g,'').trim(); }
     function passwordError(p){
       if(!p || p.length < 10) return 'La password deve avere almeno 10 caratteri.';
       if(!/[A-Z]/.test(p)) return 'La password deve contenere almeno una lettera maiuscola.';
@@ -204,7 +204,7 @@
       var email = $('r-email').value.trim();
       var pass = $('r-pass').value;
       var pass2 = $('r-pass2').value;
-      if (user.length < 2 || user.length > 40) return show('err','Il nome del personaggio deve avere da 2 a 40 caratteri.');
+      if (!/^[A-Za-zÀ-ÿ'’-]{2,15}$/.test(user)) return show('err','Il nome può avere 2–15 lettere, senza numeri né spazi (accenti, apostrofo e trattino ammessi).');
       var pwErr = passwordError(pass); if (pwErr) return show('err', pwErr);
       if (pass !== pass2) return show('err','Le due password non coincidono.');
       if (!$('r-adult').checked || !$('r-rules').checked) return show('err','Devi confermare la maggiore età e accettare il regolamento.');
