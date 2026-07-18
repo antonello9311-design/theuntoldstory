@@ -221,7 +221,11 @@
           options: { data: { username: user, is_adult: true, consent_version: '2026-07' }, emailRedirectTo: window.location.origin }
         });
         if (error) throw error;
-        show('ok','Account creato! Ti abbiamo inviato un\'email di conferma: apri il link per attivare l\'accesso. (Controlla anche lo spam.)');
+        if (data && data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+          show('ok','Questo indirizzo risulta già registrato ma non confermato: ti abbiamo rimandato l\'email di conferma. Controlla la posta (anche lo spam).');
+        } else {
+          show('ok','Account creato! Ti abbiamo inviato un\'email di conferma: apri il link per attivare l\'accesso. (Controlla anche lo spam.)');
+        }
         this.reset();
       } catch(err){
         var m = (err && err.message) ? err.message : 'Errore sconosciuto.';
