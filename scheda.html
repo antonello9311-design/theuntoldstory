@@ -115,6 +115,14 @@
   .xpwrap .xv{font-family:'Cinzel',serif;font-size:12.5px;color:var(--ink)}
   .xpbar{height:12px;border:1px solid var(--rule);background:rgba(255,252,244,.8);margin-top:7px;position:relative;overflow:hidden}
   .xpbar > i{position:absolute;inset:0;width:0%;background:linear-gradient(90deg,var(--red),var(--red-deep));transition:width .4s}
+  /* Barre PV/Chakra */
+  .vbar{height:9px;border:1px solid var(--rule);background:rgba(255,252,244,.8);margin-top:6px;position:relative;overflow:hidden;border-radius:2px}
+  .vbar > i{position:absolute;inset:0;width:0%;transition:width .4s}
+  .vbar.pv > i{background:linear-gradient(90deg,#5f8f43,#3f6d3a)}
+  .vbar.pv.mid > i{background:linear-gradient(90deg,#d2a838,#b5852a)}
+  .vbar.pv.low > i{background:linear-gradient(90deg,var(--red),var(--red-deep))}
+  .vbar.ck > i{background:linear-gradient(90deg,#4a86a8,#2f6484)}
+  .ko-banner{display:none;margin:2px 0 14px;text-align:center;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1px solid var(--red-deep);border-radius:5px;padding:5px 8px}
   .xpwrap .xh{font-size:12.5px;color:var(--ink-soft);margin-top:6px;font-style:italic;line-height:1.4}
   /* Allineamento */
   .algn{display:flex;flex-direction:column;gap:14px;margin-top:6px}
@@ -419,11 +427,12 @@
 
               <div class="dpanel" data-d="stat">
                 <div class="mini-vitals">
-                  <div class="mv"><div class="vl">Vita</div><div class="vv" id="v-vita">—</div></div>
-                  <div class="mv"><div class="vl">Chakra</div><div class="vv" id="v-chakra">—</div></div>
+                  <div class="mv"><div class="vl">Vita</div><div class="vv" id="v-vita">—</div><div class="vbar pv" id="bar-vita-wrap"><i id="bar-vita"></i></div></div>
+                  <div class="mv"><div class="vl">Chakra</div><div class="vv" id="v-chakra">—</div><div class="vbar ck"><i id="bar-chakra"></i></div></div>
                   <div class="mv"><div class="vl">Soldi</div><div class="vv" id="v-money">—</div></div>
                   <div class="mv"><div class="vl">Exp</div><div class="vv" id="v-exp">—</div></div>
                 </div>
+                <div class="ko-banner" id="ko-banner">⚠ Fuori combattimento — non puoi attaccare finché non recuperi</div>
                 <div class="xpwrap" id="xp-wrap" style="display:none">
                   <div class="xt"><span class="xl">Esperienza</span><span class="xv" id="xp-line">—</span></div>
                   <div class="xpbar"><i id="xp-fill"></i></div>
@@ -865,7 +874,14 @@
       $('f-corporation').value=c.corporation||''; $('ic-corp').outerHTML=embCorp(c.corporation).replace('class="emb','id="ic-corp" class="emb');
       var _pv=$('f-prestavolto'); if(_pv) _pv.value=c.face_claim||'';
       $('f-element').value=c.element||''; $('ic-element').outerHTML=embElement(c.element).replace('class="emb','id="ic-element" class="emb');
-      $('v-vita').textContent=(c.vita||0)+' / '+(c.vita_max||0); $('v-chakra').textContent=(c.chakra||0)+' / '+(c.chakra_max||0);
+      (function(){var pv=c.vita||0,pvm=c.vita_max||0,ck=c.chakra||0,ckm=c.chakra_max||0;
+        $('v-vita').textContent=pv+' / '+pvm; $('v-chakra').textContent=ck+' / '+ckm;
+        var pr=pvm>0?Math.max(0,Math.min(1,pv/pvm)):0, cr=ckm>0?Math.max(0,Math.min(1,ck/ckm)):0;
+        var bv=$('bar-vita'), bvw=$('bar-vita-wrap'); if(bv) bv.style.width=(pr*100)+'%';
+        if(bvw){ bvw.classList.remove('mid','low'); if(pr<=0.25) bvw.classList.add('low'); else if(pr<=0.5) bvw.classList.add('mid'); }
+        var bc=$('bar-chakra'); if(bc) bc.style.width=(cr*100)+'%';
+        var kb=$('ko-banner'); if(kb) kb.style.display=(pvm>0&&pv<=0)?'':'none';
+      })();
       $('v-money').textContent=(c.money||0); $('v-exp').textContent=(c.exp||0);
       renderProgress(c); renderAlign(c);
       renderChars(c); renderUnspent(c);
