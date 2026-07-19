@@ -2127,8 +2127,8 @@
             +(g.note?('<div class="mmeta">'+esc(g.note)+'</div>'):'')
             +'<div class="mact">'+btns+'</div>'+form+'</div>';
         }).join(''); }
-        // — Bestiario: modelli esistenti (con editor) —
-        h+='<h4 class="rg-h">Bestiario — modelli</h4>';
+        // — Ninja Book: modelli esistenti (con editor) —
+        h+='<h4 class="rg-h">Ninja Book: modelli</h4>';
         if(!REGIA.tpls.length){ h+='<p class="miss-empty">Nessun modello. Crea il primo con «+ Modello».</p>'; }
         else { h+=REGIA.tpls.map(function(t){ var off=(t.is_active===false);
           return '<div class="mcard"'+(off?' style="opacity:.55"':'')+'><div class="mtop">'+avatarHTML({avatar_url:t.avatar_url},t.nome,null)
@@ -2144,7 +2144,7 @@
           var ed = REGIA.editId ? (REGIA.tpls.filter(function(x){return x.id===REGIA.editId;})[0]||null) : null;
           var eAb=[]; if(ed){ try{ eAb=(typeof ed.abilita==='string')?JSON.parse(ed.abilita):(ed.abilita||[]); }catch(e){ eAb=[]; } }
           var istyle='width:100%;margin-top:8px;font-family:\'Cormorant Garamond\',serif;font-size:14.5px;border:1px solid var(--rule);background:rgba(255,252,244,.8);padding:7px 9px';
-          h+='<h4 class="rg-h">'+(ed?('Modifica: '+esc(ed.nome)):'Nuovo modello (bestiario)')+'</h4><div class="miss-new" id="rg-newform">'
+          h+='<h4 class="rg-h">'+(ed?('Modifica: '+esc(ed.nome)):'Nuovo modello (Ninja Book)')+'</h4><div class="miss-new" id="rg-newform">'
             +'<div class="mn-grid"><input id="rgn-nome" type="text" maxlength="40" value="'+(ed?esc(ed.nome):'')+'" placeholder="Nome (es. Bandito)">'
             +'<input id="rgn-epiteto" type="text" maxlength="60" value="'+(ed?esc(ed.epiteto||''):'')+'" placeholder="Epiteto (facolt.)">'
             +'<select id="rgn-grado">'+['D','C','B','A','S'].map(function(g){return '<option'+((ed&&ed.grado===g)?' selected':'')+'>'+g+'</option>';}).join('')+'</select></div>'
@@ -2154,7 +2154,7 @@
             +'</div><p class="cmb-hint">Nove statistiche a multipli di 5 (arrotondate). PV e chakra si calcolano da soli in base al grado.</p>'
             +[0,1,2].map(function(i){ var a=eAb[i]||{}; return '<div class="mn-grid" style="margin-top:6px"><input id="rgn-ab'+i+'-n" type="text" maxlength="40" value="'+(a.n?esc(a.n):'')+'" placeholder="Abilità '+(i+1)+' (nome)"><select id="rgn-ab'+i+'-k"><option value="fisico"'+((!a.k||a.k==='fisico')?' selected':'')+'>Fisico</option><option value="ninjutsu"'+((a.k==='ninjutsu'||a.k==='nin')?' selected':'')+'>Ninjutsu</option></select><input id="rgn-ab'+i+'-d" type="number" step="5" min="0" max="120" value="'+(a.d!=null?a.d:'')+'" placeholder="danno"><input id="rgn-ab'+i+'-c" type="number" step="5" min="0" max="60" value="'+(a.c!=null?a.c:'')+'" placeholder="costo ck"></div>'; }).join('')
             +'<textarea id="rgn-note" maxlength="600" placeholder="Note per il master / descrizione (facolt.)" style="'+istyle+';min-height:72px">'+(ed?esc(ed.note||''):'')+'</textarea>'
-            +'<div class="mact" style="margin-top:8px"><label class="mbtn ghost" style="cursor:pointer">Volto… <input id="rgn-avatar" type="file" accept="image/*" style="display:none"></label><span class="mnote" id="rgn-avname">'+((ed&&ed.avatar_url)?'volto attuale presente — carica solo per sostituirlo':'')+'</span>'+(ed?'<button type="button" class="mbtn ghost" data-rgcancel="1">Annulla</button>':'')+'<button type="button" class="mbtn" id="rgn-salva">'+(ed?'Salva modifiche':'Salva nel bestiario')+'</button></div></div>';
+            +'<div class="mact" style="margin-top:8px"><label class="mbtn ghost" style="cursor:pointer">Volto… <input id="rgn-avatar" type="file" accept="image/*" style="display:none"></label><span class="mnote" id="rgn-avname">'+((ed&&ed.avatar_url)?'volto attuale presente — carica solo per sostituirlo':'')+'</span>'+(ed?'<button type="button" class="mbtn ghost" data-rgcancel="1">Annulla</button>':'')+'<button type="button" class="mbtn" id="rgn-salva">'+(ed?'Salva modifiche':'Salva nel Ninja Book')+'</button></div></div>';
         }
         host.innerHTML=h;
       }
@@ -2216,7 +2216,7 @@
               abs.push({ n:n, k:(document.getElementById('rgn-ab'+i+'-k')||{}).value||'fisico', d:rgSnap((document.getElementById('rgn-ab'+i+'-d')||{}).value), c:rgSnap((document.getElementById('rgn-ab'+i+'-c')||{}).value) }); });
             rec.abilita=abs;
             var doSave=function(){ var q=REGIA.editId ? sb.from('png_templates').update(rec).eq('id',REGIA.editId) : sb.from('png_templates').insert(rec);
-              q.then(function(r){ t.disabled=false; if(r&&r.error){ toast('Errore: '+(r.error.message||'')); return; } toast(REGIA.editId?'Modello aggiornato':'Modello salvato nel bestiario'); REGIA.editId=null; REGIA.newOpen=false; loadRegia(); }, function(){ t.disabled=false; toast('Errore'); }); };
+              q.then(function(r){ t.disabled=false; if(r&&r.error){ toast('Errore: '+(r.error.message||'')); return; } toast(REGIA.editId?'Modello aggiornato':'Modello salvato nel Ninja Book'); REGIA.editId=null; REGIA.newOpen=false; loadRegia(); }, function(){ t.disabled=false; toast('Errore'); }); };
             var fi=document.getElementById('rgn-avatar'); var file=fi&&fi.files&&fi.files[0];
             if(file){ if(file.size>3145728){ t.disabled=false; toast('Immagine troppo grande (max 3 MB)'); return; }
               var ext=(file.name.split('.').pop()||'jpg').toLowerCase(); var path=myId+'/png-'+Date.now()+'.'+ext;
