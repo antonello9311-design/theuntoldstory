@@ -1430,7 +1430,7 @@
         else doClose();
       }
       /* ---- Accademia: lezioni in chat ---- */
-      var classState=null, acadAdvancing=false, senseiPortrait='';
+      var classState=null, acadAdvancing=false, senseiPortrait='', lastAcadSig=null;
       function acadEl(id){return document.getElementById(id);}
       function rosterHTML(s){
         var mark=(s.state==='entry'||s.state==='teaching');
@@ -1441,44 +1441,50 @@
       }
       function renderAcadClass(){
         var card=acadEl('acad-card'), body=acadEl('acad-body'); if(!card||!body) return;
-        if(!cur||!cur.is_academy||!loggedIn){ card.hidden=true; return; }
+        if(!cur||!cur.is_academy||!loggedIn){ card.hidden=true; lastAcadSig=null; return; }
         card.hidden=false; var s=classState;
+        var html, mode;
         if(!s||!s.active){
-          body.innerHTML='<p class="acad-hint">Qui si tengono le lezioni. Chi avvia sceglie l’argomento; gli altri possono unirsi.</p><button class="acad-btn" id="acad-start" type="button">Fai lezione</button>';
-          var sb2=acadEl('acad-start'); if(sb2) sb2.addEventListener('click', openLessonPicker); return;
-        }
-        var mine=s.my_role, isInit=s.can_advance;
-        var portrait = s.sensei_portrait ? ('<img class="acad-portrait" src="'+esc(s.sensei_portrait)+'" alt="" onerror="this.style.display=\'none\'">') : '';
-        var html='<div class="acad-top">'+portrait+'<div class="acad-topmain"><div class="acad-lesson">'+esc(s.lesson_title||'Lezione')+'</div><div class="acad-meta">Sensei: <b>'+esc(s.sensei||'—')+'</b></div></div></div>';
-        if(s.state==='enrolling'){
-          html+='<div class="ac-live"><span class="rec-dot"></span>Iscrizioni aperte</div>'+rosterHTML(s);
-          if(!mine){ html+='<button class="acad-btn" id="acad-join" type="button">Unisciti alla lezione</button>'; }
-          if(isInit){ html+='<button class="acad-btn'+(mine?'':' ghost')+'" id="acad-begin" type="button">Inizia</button>'; }
-          else if(mine==='student'){ html+='<p class="acad-hint">Sei iscritto. In attesa che il maestro dia inizio.</p>'; }
-        } else if(s.state==='entry'){
-          if(s.all_entered){ html+='<div class="ac-live"><span class="rec-dot"></span>Il sensei sta arrivando…</div>'+rosterHTML(s); }
-          else {
-            html+='<div class="ac-live"><span class="rec-dot"></span>In attesa che tutti entrino</div>'+rosterHTML(s);
-            if(mine==='student'){ html+='<p class="acad-hint">Fai un’azione in chat (entra in aula) per prendere posto.</p>'; }
-            if(isInit){ html+='<button class="acad-btn ghost" id="acad-force" type="button">Fai iniziare comunque</button>'; }
+          mode='empty';
+          html='<p class="acad-hint">Qui si tengono le lezioni. Chi avvia sceglie l’argomento; gli altri possono unirsi.</p><button class="acad-btn" id="acad-start" type="button">Fai lezione</button>';
+        } else {
+          mode='active';
+          var mine=s.my_role, isInit=s.can_advance;
+          var portrait = s.sensei_portrait ? ('<img class="acad-portrait" src="'+esc(s.sensei_portrait)+'" alt="" onerror="this.style.display=\'none\'">') : '';
+          html='<div class="acad-top">'+portrait+'<div class="acad-topmain"><div class="acad-lesson">'+esc(s.lesson_title||'Lezione')+'</div><div class="acad-meta">Sensei: <b>'+esc(s.sensei||'—')+'</b></div></div></div>';
+          if(s.state==='enrolling'){
+            html+='<div class="ac-live"><span class="rec-dot"></span>Iscrizioni aperte</div>'+rosterHTML(s);
+            if(!mine){ html+='<button class="acad-btn" id="acad-join" type="button">Unisciti alla lezione</button>'; }
+            if(isInit){ html+='<button class="acad-btn'+(mine?'':' ghost')+'" id="acad-begin" type="button">Inizia</button>'; }
+            else if(mine==='student'){ html+='<p class="acad-hint">Sei iscritto. In attesa che il maestro dia inizio.</p>'; }
+          } else if(s.state==='entry'){
+            if(s.all_entered){ html+='<div class="ac-live"><span class="rec-dot"></span>Il sensei sta arrivando…</div>'+rosterHTML(s); }
+            else {
+              html+='<div class="ac-live"><span class="rec-dot"></span>In attesa che tutti entrino</div>'+rosterHTML(s);
+              if(mine==='student'){ html+='<p class="acad-hint">Fai un’azione in chat (entra in aula) per prendere posto.</p>'; }
+              if(isInit){ html+='<button class="acad-btn ghost" id="acad-force" type="button">Fai iniziare comunque</button>'; }
+            }
+          } else if(s.state==='teaching'){
+            html+='<div class="ac-live"><span class="rec-dot"></span>Lezione in corso <span class="acad-step">· passo '+s.step+'/'+s.total_steps+'</span></div>'+rosterHTML(s);
+            html+= s.ready ? '<p class="acad-hint">Turno completo: il maestro sta per proseguire…</p>' : '<p class="acad-hint">In attesa che tutti agiscano (un’azione a testa).</p>';
+            if(mine==='auditor'){ html+='<p class="acad-hint">Assisti come uditore: non riceverai l’attestato.</p>'; }
+            else if(mine){ html+='<p class="acad-hint">Scrivi la tua azione, poi la lezione proseguirà.</p>'; }
+            else { html+='<button class="acad-btn" id="acad-join" type="button">Assisti (uditore)</button>'; }
+            if(isInit){ html+='<button class="acad-btn ghost" id="acad-force" type="button">'+(s.step>=s.total_steps?'Concludi ora':'Prosegui ora')+'</button><button class="acad-btn ghost" id="acad-cancel" type="button">Interrompi</button>'; }
           }
-        } else if(s.state==='teaching'){
-          html+='<div class="ac-live"><span class="rec-dot"></span>Lezione in corso <span class="acad-step">· passo '+s.step+'/'+s.total_steps+'</span></div>'+rosterHTML(s);
-          html+= s.ready ? '<p class="acad-hint">Turno completo: il maestro sta per proseguire…</p>' : '<p class="acad-hint">In attesa che tutti agiscano (un’azione a testa).</p>';
-          if(mine==='auditor'){ html+='<p class="acad-hint">Assisti come uditore: non riceverai l’attestato.</p>'; }
-          else if(mine){ html+='<p class="acad-hint">Scrivi la tua azione, poi la lezione proseguirà.</p>'; }
-          else { html+='<button class="acad-btn" id="acad-join" type="button">Assisti (uditore)</button>'; }
-          if(isInit){ html+='<button class="acad-btn ghost" id="acad-force" type="button">'+(s.step>=s.total_steps?'Concludi ora':'Prosegui ora')+'</button><button class="acad-btn ghost" id="acad-cancel" type="button">Interrompi</button>'; }
         }
+        if(html===lastAcadSig) return;   // niente è cambiato → nessun ridisegno → niente flicker
+        lastAcadSig=html;
         body.innerHTML=html;
         var b;
+        if(mode==='empty'){ b=acadEl('acad-start'); if(b) b.addEventListener('click', openLessonPicker); return; }
         b=acadEl('acad-join'); if(b) b.addEventListener('click', doAcadJoin);
         b=acadEl('acad-begin'); if(b) b.addEventListener('click', doAcadBegin);
         b=acadEl('acad-force'); if(b) b.addEventListener('click', function(){ doAcadAdvance(true); });
         b=acadEl('acad-cancel'); if(b) b.addEventListener('click', doAcadCancel);
       }
       function loadAcadClass(){
-        if(!cur||!cur.is_academy||!sb){ var c=acadEl('acad-card'); if(c) c.hidden=true; return; }
+        if(!cur||!cur.is_academy||!sb){ var c=acadEl('acad-card'); if(c) c.hidden=true; lastAcadSig=null; return; }
         sb.rpc('academy_class_state',{p_location:cur.id}).then(function(r){ classState=(r&&r.data)||null;
           var np=(classState&&classState.sensei_portrait)||''; var needMsg=(np && np!==senseiPortrait); if(np) senseiPortrait=np;
           renderAcadClass();
