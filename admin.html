@@ -190,6 +190,22 @@
   .legend-item:last-child{border-bottom:0}
   .legend-item b{display:block;font-family:'Cinzel',serif;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);margin-bottom:3px}
   .legend-item span{font-size:14.5px;color:var(--ink);line-height:1.45}
+
+  /* ---- Tecniche: accordion per clan + famiglie a livelli ---- */
+  .tk-acc2{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;user-select:none;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);border:1px solid var(--edge);background:rgba(255,250,235,.55);border-radius:8px;padding:9px 13px;margin:8px 0 0}
+  .tk-acc2:hover{border-color:var(--red)}
+  .tk-acc2 .a-n{color:var(--ink-soft);font-size:11px}
+  .tk-acc2 .a-ch{font-size:11px;transition:transform .15s}
+  .tk-acc2.open .a-ch{transform:rotate(90deg)}
+  .tk-bd2{display:none;padding:4px 0 2px}
+  .tk-bd2.open{display:block}
+  .tech-fam{border-color:var(--gold,#b79d6c)}
+  .fam-tag{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#8a6a1e;border:1px solid var(--edge);border-radius:6px;padding:1px 7px;margin-left:8px}
+  .lv-tabs{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}
+  .lv-tab{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:5px 11px;border:1px solid var(--edge);border-radius:7px;background:rgba(255,250,235,.6);color:var(--ink);cursor:pointer}
+  .lv-tab.on{background:var(--red);border-color:var(--red-deep);color:#f6ead0}
+  .lv-body[hidden]{display:none}
+  .lv-body .itmain{width:100%}
 </style>
 </head>
 <body>
@@ -521,7 +537,7 @@
 
           <section class="adm-page" data-page="tecniche">
           <div class="grp-title" style="margin-top:0">Tecniche e abilità</div>
-          <p class="mgr-note">Inserisci le <b>tecniche e le abilità</b> dei clan (oppure generali) con la <b>scheda completa</b>: nome, livello, tipologia, grado, portata, bersaglio, azione, durata, ricarica, danno/effetto, tipo di consumo e chakra. In più la <b>meccanica di sblocco</b>: <b>costo in XP</b>, <b>allenamenti necessari</b>, grado minimo e caratteristica richiesta (con soglia). Compaiono raggruppate per clan; puoi modificarle o rimuoverle dalla lista.</p>
+          <p class="mgr-note">Inserisci le <b>tecniche e le abilità</b> dei clan (oppure generali) con la <b>scheda completa</b>: nome, livello, tipologia, grado, portata, bersaglio, azione, durata, ricarica, danno/effetto, tipo di consumo e chakra. In più la <b>meccanica di sblocco</b>: <b>costo in XP</b>, <b>allenamenti necessari</b>, grado minimo e caratteristica richiesta (con soglia). Compaiono <b>raggruppate per clan in sezioni richiudibili</b> (apri solo quella che ti serve); le tecniche a più <b>livelli</b> stanno in un unico pannello con un <b>selettore Liv 1/2/3/4</b> per vedere cosa cambia, e un pulsante <b>+ livello</b> per aggiungere il successivo già precompilato.</p>
           <input class="adm-search" id="tech-search" type="search" placeholder="Cerca tecnica per nome o clan…">
           <button type="button" class="adm-addbtn" data-addnew="tecniche"><span class="plus">+</span> Aggiungi nuova tecnica</button>
           <div class="cat-formwrap" hidden>
@@ -1496,11 +1512,13 @@
     function techConsume(v){return {ad_utilizzo:'Ad utilizzo',per_turno:'Per turno',passiva:'Passiva'}[v]||'—';}
     function fillTechClanSelect(){var sel=$('tech-clan');if(!sel)return;var cur=sel.value;sel.innerHTML='<option value="">— Generale —</option>'+CLANS.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');sel.value=cur;}
     async function loadTechs(){if(!sb)return;var r=await sb.from('clan_techniques').select('*').order('clan').order('sort').order('level').order('name');TECHS=(r&&r.data)||[];fillTechClanSelect();renderTechs();}
-    function techRow(t){
+    var TECHOPEN={}, TECHLV={}, FAM=[];
+    function techDetailBody(t){
       var meta=[];
-      if(t.level!=null)meta.push('Liv. '+t.level); else if(t.grado)meta.push('Grado '+esc(t.grado));
+      if(t.grado)meta.push('Grado '+esc(t.grado));
       if(t.category)meta.push(esc(t.category));
       if(t.portata)meta.push(esc(t.portata));
+      if(t.bersaglio)meta.push(esc(t.bersaglio));
       meta.push(techConsume(t.consumption_type)+(t.chakra_cost!=null?(' · '+t.chakra_cost+' chakra'):''));
       if(!t.is_active)meta.push('disattivata');
       var mech=[];
@@ -1508,31 +1526,51 @@
       if(t.trainings_required!=null)mech.push(t.trainings_required+' allenamenti');
       if(t.req_grade)mech.push('da '+esc(t.req_grade));
       if(t.req_stat)mech.push(esc(t.req_stat)+(t.req_stat_value!=null?(' '+t.req_stat_value):''));
-      return '<div class="itrow'+(t.is_active?'':' off')+'">'+
-        '<div class="itmain"><b>'+esc(t.name)+'</b> <span class="itmeta">· '+meta.join(' · ')+'</span>'+
+      return '<span class="itmeta">· '+meta.join(' · ')+'</span>'+
         (t.danno_effetto?('<span class="itdesc"><b>Effetto:</b> '+esc(t.danno_effetto)+'</span>'):'')+
         (mech.length?('<span class="itdesc"><b>Sblocco:</b> '+mech.join(' · ')+'</span>'):'')+
         (t.requirements?('<span class="itdesc"><b>Requisiti:</b> '+esc(t.requirements)+'</span>'):'')+
-        (t.description?('<span class="itdesc">'+esc(t.description)+'</span>'):'')+
-        '</div>'+
-        '<button class="mini-btn" data-tedit="'+t.id+'">Modifica</button>'+
-        '<button class="mini-btn danger" data-tdel="'+t.id+'">Rimuovi</button></div>';
+        (t.description?('<span class="itdesc">'+esc(t.description)+'</span>'):'');
+    }
+    function techActs(t){
+      return '<button class="mini-btn" data-tedit="'+t.id+'">Modifica</button>'+
+             '<button class="mini-btn danger" data-tdel="'+t.id+'">Rimuovi</button>';
+    }
+    function techRow(t){
+      return '<div class="itrow'+(t.is_active?'':' off')+'"><div class="itmain"><b>'+esc(t.name)+'</b> '+techDetailBody(t)+'</div>'+techActs(t)+'</div>';
+    }
+    function techFamily(key, rows){
+      FAM.push({key:key, rows:rows}); var fi=FAM.length-1;
+      var sel=TECHLV[key]; if(sel==null||sel>=rows.length) sel=0;
+      var tabs=rows.map(function(r,i){ var lbl=(r.level!=null?('Liv '+r.level):(r.grado?esc(r.grado):'·')); return '<button type="button" class="lv-tab'+(i===sel?' on':'')+'" data-lvpick="'+fi+'|'+i+'">'+lbl+(!r.is_active?' · off':'')+'</button>'; }).join('');
+      var bodies=rows.map(function(r,i){ return '<div class="lv-body"'+(i===sel?'':' hidden')+' data-lvbody="'+fi+'|'+i+'"><div class="itmain" style="margin:2px 0 6px">'+techDetailBody(r)+'</div><div>'+techActs(r)+'</div></div>'; }).join('');
+      return '<div class="itrow tech-fam" style="flex-direction:column;align-items:stretch"><div style="width:100%"><b>'+esc(rows[0].name)+'</b><span class="fam-tag">'+rows.length+' livelli</span></div><div class="lv-tabs">'+tabs+'<button type="button" class="lv-tab" data-lvadd="'+fi+'" title="Aggiungi il livello successivo con nome e clan gia compilati">+ livello</button></div>'+bodies+'</div>';
+    }
+    function techGroupBody(rows){
+      var byName={}, order=[];
+      rows.forEach(function(t){ var k=(t.name||''); if(!byName[k]){byName[k]=[];order.push(k);} byName[k].push(t); });
+      return order.map(function(nm){ var g=byName[nm];
+        if(g.length>1){ g.sort(function(a,b){ return (a.level==null?999:a.level)-(b.level==null?999:b.level); }); return techFamily((g[0].clan||'')+'::'+nm, g); }
+        return techRow(g[0]);
+      }).join('');
     }
     function renderTechs(){
-      var host=$('tech-list');if(!host)return;
+      var host=$('tech-list');if(!host)return; FAM=[];
       if(!TECHS.length){host.innerHTML='<p class="mgr-note" style="margin-top:14px">Nessuna tecnica inserita, per ora.</p>';return;}
       var q=techSearch.toLowerCase();
-      var SRC=TECHS.filter(function(t){return !q||(''+(t.name||'')).toLowerCase().indexOf(q)>=0||(''+(t.clan||'')).toLowerCase().indexOf(q)>=0;});
+      var SRC=TECHS.filter(function(t){return !q||(''+(t.name||'')).toLowerCase().indexOf(q)>=0||(''+(t.clan||'')).toLowerCase().indexOf(q)>=0||(''+(t.category||'')).toLowerCase().indexOf(q)>=0;});
       if(!SRC.length){host.innerHTML='<p class="mgr-note" style="margin-top:14px">Nessuna tecnica trovata.</p>';return;}
-      var groups=[{k:'',t:'Generali'}].concat(CLANS.map(function(c){return {k:c,t:c};}));
+      var known=CLANS.slice();
+      var groups=[{k:'__gen',t:'Generali',m:function(x){return (x.clan||'')==='';}}];
+      known.forEach(function(c){ groups.push({k:c,t:c,m:function(x){return (x.clan||'')===c;}}); });
+      groups.push({k:'__altri',t:'Altri',m:function(x){var k=x.clan||'';return k!==''&&known.indexOf(k)<0;}});
       var html='';
       groups.forEach(function(g){
-        var rows=SRC.filter(function(x){return (x.clan||'')===g.k;});
-        if(!rows.length)return;
-        html+='<div class="grp-sub">'+esc(g.t)+'</div>'+rows.map(techRow).join('');
+        var rows=SRC.filter(g.m); if(!rows.length)return;
+        var open=!!q||!!TECHOPEN[g.k];
+        html+='<div class="tk-acc2'+(open?' open':'')+'" data-tgrp="'+g.k+'"><span>'+esc(g.t)+' <span class="a-n">· '+rows.length+'</span></span><span class="a-ch">▶</span></div>'+
+              '<div class="tk-bd2'+(open?' open':'')+'" id="tgb-'+g.k+'">'+techGroupBody(rows)+'</div>';
       });
-      var extra=SRC.filter(function(x){var k=x.clan||'';return k!==''&&CLANS.indexOf(k)<0;});
-      if(extra.length){html+='<div class="grp-sub">Altri</div>'+extra.map(techRow).join('');}
       host.innerHTML=html;
     }
     function resetTechForm(){editingTech=null;$('tech-name').value='';$('tech-clan').value='';$('tech-level').value='';$('tech-category').value='';$('tech-consume').value='ad_utilizzo';$('tech-chakra').value='';['tech-grado','tech-portata','tech-bersaglio','tech-azione','tech-durata','tech-ricarica','tech-xp','tech-train','tech-reqgrade','tech-reqstat','tech-reqval','tech-effetto'].forEach(function(id){var el=$(id);if(el)el.value='';});$('tech-req').value='';$('tech-desc').value='';$('tech-active').checked=true;$('tech-reset').style.display='none';$('tech-editing').textContent='';$('tech-save').textContent='Salva tecnica';}
@@ -1550,6 +1588,18 @@
         toast(editingTech?'Tecnica aggiornata':'Tecnica salvata');resetTechForm();admFormHide('tecniche');await loadTechs();
       });
       var lst=$('tech-list');if(lst)lst.addEventListener('click',async function(e){
+        var grp=e.target.closest('[data-tgrp]');
+        if(grp){ var gk=grp.getAttribute('data-tgrp'); TECHOPEN[gk]=!TECHOPEN[gk]; grp.classList.toggle('open',TECHOPEN[gk]); var bd=$('tgb-'+gk); if(bd) bd.classList.toggle('open',TECHOPEN[gk]); return; }
+        var lp=e.target.closest('[data-lvpick]');
+        if(lp){ var v=lp.getAttribute('data-lvpick'), pp=v.split('|'), fi=pp[0], ix=parseInt(pp[1],10), card=lp.closest('.tech-fam');
+          if(card){ Array.prototype.forEach.call(card.querySelectorAll('[data-lvpick]'),function(x){ x.classList.toggle('on', x.getAttribute('data-lvpick')===v); });
+            Array.prototype.forEach.call(card.querySelectorAll('[data-lvbody]'),function(x){ x.hidden=(x.getAttribute('data-lvbody')!==(fi+'|'+ix)); }); }
+          if(FAM[fi]) TECHLV[FAM[fi].key]=ix; return; }
+        var la=e.target.closest('[data-lvadd]');
+        if(la){ var f=FAM[la.getAttribute('data-lvadd')]; if(f){ var rr=f.rows, mx=0; rr.forEach(function(x){ if(x.level!=null&&x.level>mx)mx=x.level; }); var base=rr[rr.length-1]||rr[0];
+          resetTechForm(); $('tech-name').value=base.name||''; $('tech-clan').value=base.clan||''; $('tech-level').value=(mx+1);
+          if(base.category)$('tech-category').value=base.category; if(base.grado)$('tech-grado').value=base.grado;
+          $('tech-editing').textContent='Nuovo livello '+(mx+1)+' di: '+base.name; admFormShow('tecniche'); } return; }
         var db=e.target.closest('[data-tdel]');
         if(db){var id=db.getAttribute('data-tdel');
           if(delArmTech!==id){delArmTech=id;db.textContent='Confermi?';db.classList.add('armed');setTimeout(function(){if(delArmTech===id){delArmTech=null;renderTechs();}},4000);return;}
