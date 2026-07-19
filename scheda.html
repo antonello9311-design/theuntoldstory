@@ -355,6 +355,17 @@
   .dz-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
   .dz-row input{flex:1;min-width:200px;font-family:'Cormorant Garamond',serif;font-size:16px;padding:9px 12px;border:1px solid var(--rule);background:rgba(255,255,255,.4);color:var(--ink)}
   #dz-delete:disabled{opacity:.45;cursor:not-allowed}
+
+  /* ---- Catalogo tecniche ---- */
+  .tk-tools{display:flex;gap:8px;align-items:center;margin:0 0 10px;flex-wrap:wrap}
+  .tk-search{flex:1;min-width:180px;font-family:'Cormorant Garamond',serif;font-size:14.5px;padding:7px 10px;border:1px solid var(--edge);border-radius:8px;background:#fbf4e1;color:var(--ink)}
+  .tk-grp{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);border-bottom:1px solid var(--edge);padding:10px 0 4px;margin:6px 0 6px}
+  .tr-row{cursor:pointer}
+  .tr-cat{font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:#8a6a1e;border:1px solid var(--edge);border-radius:6px;padding:1px 6px;margin-left:6px;white-space:nowrap}
+  .tr-det{display:none;margin:2px 0 8px;padding:9px 12px;border-left:3px solid var(--edge);background:rgba(255,250,235,.55);border-radius:0 8px 8px 0;font-family:'Cormorant Garamond',serif;font-size:14.5px;line-height:1.55;color:var(--ink)}
+  .tr-det.on{display:block}
+  .tr-det b{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--red-deep)}
+  .tr-det .tkd{margin:2px 0}
 </style>
 </head>
 <body>
@@ -796,29 +807,71 @@
         host.innerHTML=html;
       }, function(){ host.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tecniche.</p>'; });
     }
+    var TK={techs:[],byId:{},base:[],q:''};
+    function tkDetail(t){
+      var rows=[];
+      if(t.description) rows.push('<div class="tkd"><b>Descrizione</b> · '+esc(t.description)+'</div>');
+      var eff=t.danno_effetto||''; if(t.danno_base!=null&&t.danno_base>0) eff=(eff?eff+' · ':'')+'danno base '+t.danno_base;
+      if(eff) rows.push('<div class="tkd"><b>Effetto</b> · '+esc(eff)+'</div>');
+      var tech=[]; if(t.portata)tech.push('portata '+esc(t.portata)); if(t.bersaglio)tech.push('bersaglio '+esc(t.bersaglio)); if(t.tipo_azione)tech.push('azione '+esc(t.tipo_azione)); if(t.durata)tech.push('durata '+esc(t.durata)); if(t.ricarica)tech.push('ricarica '+esc(t.ricarica));
+      if(tech.length) rows.push('<div class="tkd"><b>Tecnica</b> · '+tech.join(' · ')+'</div>');
+      var cons=[]; if(t.chakra_cost!=null&&t.chakra_cost>0)cons.push(t.chakra_cost+' chakra'); if(t.consumption_type)cons.push(t.consumption_type==='per_turno'?'per turno':(t.consumption_type==='passiva'?'passiva':'ad utilizzo'));
+      if(cons.length) rows.push('<div class="tkd"><b>Consumo</b> · '+cons.join(' · ')+'</div>');
+      var req=[]; if(t.req_grade)req.push('grado '+esc(t.req_grade)); if(t.req_stat)req.push(esc(t.req_stat)+(t.req_stat_value!=null?(' '+t.req_stat_value):'')); if(t.requirements)req.push(esc(t.requirements));
+      if(req.length) rows.push('<div class="tkd"><b>Requisiti</b> · '+req.join(' · ')+'</div>');
+      var acq=[]; if(t.xp_cost!=null)acq.push('<b style="color:var(--red-deep)">'+t.xp_cost+' XP</b>'); if(t.trainings_required!=null)acq.push(t.trainings_required+(t.trainings_required===1?' allenamento':' allenamenti'));
+      if(acq.length) rows.push('<div class="tkd"><b>Acquisto</b> · '+acq.join(' · ')+'</div>');
+      return rows.join('')||'<div class="tkd hint">Nessun dettaglio disponibile.</div>';
+    }
+    function tkRow(t,a,canAct){
+      var badge, action='';
+      if(a&&a.state==='attiva'){ badge='<span class="tr-badge on">Attiva</span>'; }
+      else if(a&&a.state==='in_addestramento'){ badge='<span class="tr-badge tr-prog">In addestramento '+(a.sessions_done||0)+'/'+(a.sessions_required||1)+'</span>'; }
+      else { badge='<span class="tr-badge">Da apprendere</span>'; if(canAct) action='<button type="button" class="mini-btn" data-train="'+t.id+'">Allena</button>'; }
+      var meta=[]; if(t.xp_cost!=null)meta.push(t.xp_cost+' XP'); if(t.chakra_cost!=null&&t.chakra_cost>0)meta.push(t.chakra_cost+' ck');
+      return '<div class="tr-row" data-texp="'+t.id+'"><div class="tr-main"><b>'+esc(t.name)+'</b>'+(t.category?('<span class="tr-cat">'+esc(t.category)+'</span>'):'')+(t.is_innata?'<span class="tr-cat">Innata</span>':'')+' <span class="tr-meta">'+meta.join(' · ')+'</span></div>'+badge+action+'</div>'
+        +'<div class="tr-det" id="tkd-'+t.id+'">'+tkDetail(t)+'</div>';
+    }
+    function tkMatch(t,q){ if(!q) return true; q=q.toLowerCase();
+      return (t.name||'').toLowerCase().indexOf(q)>=0||(t.category||'').toLowerCase().indexOf(q)>=0||(t.description||'').toLowerCase().indexOf(q)>=0; }
+    function paintCatalog(){
+      var list=$('train-list'); if(!list) return;
+      var canAct=(viewMode!=='public'); var q=TK.q; var h='';
+      // Abilità e jutsu di base (Accademia)
+      var base=TK.base.filter(function(j){ return !q||(j.name_it||'').toLowerCase().indexOf(q.toLowerCase())>=0||(j.effect||'').toLowerCase().indexOf(q.toLowerCase())>=0; });
+      if(base.length){
+        h+='<div class="tk-grp">Abilità e jutsu di base · si imparano all\'Accademia</div>';
+        base.forEach(function(j){
+          h+='<div class="tr-row" data-texp="j'+j.id+'"><div class="tr-main"><b>'+esc(j.name_it)+'</b><span class="tr-cat">'+esc(j.category||'')+(j.rank?(' · '+esc(j.rank)):'')+'</span> <span class="tr-meta">'+(j.chakra_cost?(j.chakra_cost+' ck'):'')+'</span></div><span class="tr-badge on">Accademia</span></div>'
+            +'<div class="tr-det" id="tkd-j'+j.id+'">'+(j.effect?('<div class="tkd"><b>Effetto</b> · '+esc(j.effect)+'</div>'):'')+(j.requirements?('<div class="tkd"><b>Requisiti</b> · '+esc(j.requirements)+'</div>'):'')+(j.limits?('<div class="tkd"><b>Limiti</b> · '+esc(j.limits)+'</div>'):'')+'</div>';
+        });
+      }
+      // Tecniche del clan per grado
+      var ordini=[['D','Grado D'],['C','Grado C'],['B','Grado B'],['A','Grado A'],['S','Grado S'],[null,'Innate e passive · senza grado']];
+      ordini.forEach(function(g){
+        var rows=TK.techs.filter(function(t){ return ((g[0]===null)?(!t.grado):(t.grado===g[0])) && tkMatch(t,q); });
+        if(!rows.length) return;
+        h+='<div class="tk-grp">'+g[1]+' · '+rows.length+'</div>';
+        rows.forEach(function(t){ h+=tkRow(t,TK.byId[t.id],canAct); });
+      });
+      list.innerHTML=h||'<p class="hint" style="margin:0">Nessuna tecnica trovata'+(q?' per «'+esc(q)+'»':'')+'.</p>';
+    }
     function renderTraining(){
       var host=$('train-wrap'); if(!host) return;
       if(viewMode==='public'||!sb||!myChar||!myChar.clan||myChar.clan==='Nessuno'){ host.innerHTML=''; return; }
-      var canAct=(viewMode!=='public');
-      host.innerHTML='<div class="jgroup"><div class="jgh">Tecniche del clan · Allenamento</div><div class="slotbar" id="slot-bar" style="display:none"></div><p class="hint" style="margin:.2em 0 .7em">Le tecniche del clan si sbloccano allenandosi in gioco: paghi l\'XP per l\'idoneità, poi servono gli allenamenti con un maestro, confermati dal Capo clan o dallo staff (uno al giorno).</p><div id="train-list"><p class="hint" style="margin:0">Caricamento…</p></div></div>';
+      host.innerHTML='<div class="jgroup"><div class="jgh">Catalogo tecniche · Allenamento</div><div class="slotbar" id="slot-bar" style="display:none"></div><p class="hint" style="margin:.2em 0 .7em">Tutte le tecniche del tuo clan e le basi dell\'Accademia: <b>tocca una riga</b> per leggere cosa fa, i requisiti e il costo. Le tecniche si acquistano col <b>saldo XP</b>: paghi l\'idoneità e poi servono gli allenamenti con un maestro, confermati dal Capo clan o dallo staff (uno al giorno).</p><div class="tk-tools"><input class="tk-search" id="tk-search" type="search" placeholder="Cerca per nome, categoria o testo…"></div><div id="train-list"><p class="hint" style="margin:0">Caricamento…</p></div></div>';
       renderSlotBar();
       var byId={};
       sb.rpc('my_abilities',{p_character:myChar.id}).then(function(ar){
         (ar&&ar.data||[]).forEach(function(a){ byId[a.technique_id]=a; });
-        return sb.from('clan_techniques').select('*').eq('clan',myChar.clan).eq('is_active',true).order('name').order('level');
+        return sb.from('clan_techniques').select('*').eq('clan',myChar.clan).eq('is_active',true).order('sort').order('name');
       }).then(function(r){
-        var list=$('train-list'); if(!list) return;
-        var techs=(r&&r.data)||[];
-        if(!techs.length){ list.innerHTML='<p class="hint" style="margin:0">Il clan non ha ancora tecniche.</p>'; return; }
-        list.innerHTML=techs.map(function(t){
-          var a=byId[t.id], badge, action='';
-          if(a&&a.state==='attiva'){ badge='<span class="tr-badge on">Attiva</span>'; }
-          else if(a&&a.state==='in_addestramento'){ badge='<span class="tr-badge tr-prog">In addestramento '+(a.sessions_done||0)+'/'+(a.sessions_required||1)+'</span>'; }
-          else { badge='<span class="tr-badge">Da apprendere</span>'; if(canAct) action='<button type="button" class="mini-btn" data-train="'+t.id+'">Allena</button>'; }
-          var meta=[]; if(t.level!=null)meta.push('Liv. '+t.level); else if(t.grado)meta.push('Grado '+esc(t.grado)); if(t.xp_cost!=null)meta.push(t.xp_cost+' XP'); if(t.trainings_required!=null)meta.push(t.trainings_required+(t.trainings_required===1?' allenamento':' allenamenti'));
-          var reqbits=[]; if(t.req_grade)reqbits.push('grado '+esc(t.req_grade)); if(t.req_stat)reqbits.push(esc(t.req_stat)+(t.req_stat_value!=null?(' '+t.req_stat_value):''));
-          return '<div class="tr-row"><div class="tr-main"><b>'+esc(t.name)+'</b> <span class="tr-meta">'+meta.join(' · ')+'</span>'+(reqbits.length?('<span class="tr-req">Sblocco: '+reqbits.join(' · ')+'</span>'):'')+'</div>'+badge+action+'</div>';
-        }).join('');
+        TK.techs=(r&&r.data)||[]; TK.byId=byId;
+        return sb.from('jutsu').select('id,name_it,category,rank,effect,requirements,limits,chakra_cost').eq('is_active',true).order('sort');
+      }).then(function(jr){
+        TK.base=(jr&&jr.data)||[]; TK.q='';
+        paintCatalog();
+        var s=$('tk-search'); if(s) s.addEventListener('input', function(){ TK.q=(s.value||'').trim(); paintCatalog(); });
       }, function(){ var list=$('train-list'); if(list)list.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tecniche.</p>'; });
     }
     function renderSlotBar(){
@@ -838,6 +891,10 @@
       },function(){ var el2=$('slot-bar'); if(el2){ el2.style.display='none'; el2.innerHTML=''; } });
     }
     (function(){ var tw=$('train-wrap'); if(!tw) return; tw.addEventListener('click',async function(e){
+      if(!e.target.closest('[data-train]')&&!e.target.closest('#slot-buy')){
+        var ex=e.target.closest('[data-texp]');
+        if(ex){ var det=$('tkd-'+ex.getAttribute('data-texp')); if(det) det.classList.toggle('on'); return; }
+      }
       var sbb=e.target.closest('#slot-buy');
       if(sbb){
         var cost=sbb.getAttribute('data-cost')||'?';
