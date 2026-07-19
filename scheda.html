@@ -813,7 +813,7 @@
         host.innerHTML=html;
       }, function(){ host.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tecniche.</p>'; });
     }
-    var TK={techs:[],byId:{},base:[],q:''};
+    var TK={techs:[],byId:{},base:[],gen:[],q:''};
     function tkDetail(t){
       var rows=[];
       if(t.description) rows.push('<div class="tkd"><b>Descrizione</b> · '+esc(t.description)+'</div>');
@@ -825,6 +825,7 @@
       if(cons.length) rows.push('<div class="tkd"><b>Consumo</b> · '+cons.join(' · ')+'</div>');
       var req=[]; if(t.req_grade)req.push('grado '+esc(t.req_grade)); if(t.req_stat)req.push(esc(t.req_stat)+(t.req_stat_value!=null?(' '+t.req_stat_value):'')); if(t.requirements)req.push(esc(t.requirements));
       if(req.length) rows.push('<div class="tkd"><b>Requisiti</b> · '+req.join(' · ')+'</div>');
+      if(t.req_elements&&t.req_elements.length) rows.push('<div class="tkd"><b>Elemento</b> · '+esc(t.req_elements.join(' o '))+' <span class="hint">(serve possederne uno)</span></div>');
       var acq=[]; if(t.xp_cost!=null)acq.push('<b style="color:var(--red-deep)">'+t.xp_cost+' XP</b>'); if(t.trainings_required!=null)acq.push(t.trainings_required+(t.trainings_required===1?' allenamento':' allenamenti'));
       if(acq.length) rows.push('<div class="tkd"><b>Acquisto</b> · '+acq.join(' · ')+'</div>');
       return rows.join('')||'<div class="tkd hint">Nessun dettaglio disponibile.</div>';
@@ -862,6 +863,17 @@
         }).join('');
         h+=tkGroup('b'+ci, esc(cat), rh, rows.length, q);
       });
+      // 1b) Tecniche generiche e abilità del gioco (per tutti)
+      var genAll=(TK.gen||[]).filter(function(t){ return tkMatch(t,q); });
+      if(genAll.length){
+        h+='<div class="tk-grp" style="border-bottom:none;margin-top:14px">Tecniche generiche e abilità</div>';
+        var gcats=[]; genAll.forEach(function(t){ var c=t.category||'Senza categoria'; if(gcats.indexOf(c)<0)gcats.push(c); }); gcats.sort();
+        gcats.forEach(function(cat,gi){
+          var rows=genAll.filter(function(t){ return (t.category||'Senza categoria')===cat; });
+          var rh=rows.map(function(t){ return tkRow(t,TK.byId[t.id],canAct); }).join('');
+          h+=tkGroup('gen'+gi, esc(cat), rh, rows.length, q);
+        });
+      }
       // 2) Tecniche del clan (solo per chi è in un clan)
       if(hasClan){
         h+='<div class="tk-grp" style="border-bottom:none;margin-top:14px">Tecniche del clan '+esc(myChar.clan)+'</div>';
@@ -893,7 +905,10 @@
         TK.techs=(r&&r.data)||[]; TK.byId=byId;
         return sb.from('jutsu').select('id,name_it,category,rank,effect,requirements,limits,chakra_cost').eq('is_active',true).order('sort');
       }).then(function(jr){
-        TK.base=(jr&&jr.data)||[]; TK.q='';
+        TK.base=(jr&&jr.data)||[];
+        return sb.from('clan_techniques').select('*').is('clan',null).in('macro',['generica','abilita']).eq('is_active',true).order('sort').order('name');
+      }).then(function(gr){
+        TK.gen=(gr&&gr.data)||[]; TK.q='';
         paintCatalog();
         var s=$('tk-search'); if(s) s.addEventListener('input', function(){ TK.q=(s.value||'').trim(); paintCatalog(); });
       }, function(){ var list=$('train-list'); if(list)list.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tecniche.</p>'; });

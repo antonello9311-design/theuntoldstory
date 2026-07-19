@@ -538,12 +538,14 @@
           <section class="adm-page" data-page="tecniche">
           <div class="grp-title" style="margin-top:0">Tecniche e abilità</div>
           <p class="mgr-note">Inserisci le <b>tecniche e le abilità</b> dei clan (oppure generali) con la <b>scheda completa</b>: nome, livello, tipologia, grado, portata, bersaglio, azione, durata, ricarica, danno/effetto, tipo di consumo e chakra. In più la <b>meccanica di sblocco</b>: <b>costo in XP</b>, <b>allenamenti necessari</b>, grado minimo e caratteristica richiesta (con soglia). Compaiono <b>raggruppate per clan in sezioni richiudibili</b> (apri solo quella che ti serve); le tecniche a più <b>livelli</b> stanno in un unico pannello con un <b>selettore Liv 1/2/3/4</b> per vedere cosa cambia, e un pulsante <b>+ livello</b> per aggiungere il successivo già precompilato.</p>
-          <input class="adm-search" id="tech-search" type="search" placeholder="Cerca tecnica per nome o clan…">
+          <div class="adm-nav" id="tech-macrotabs" style="margin:6px 0 8px;max-width:none;justify-content:flex-start"><button type="button" data-tmac="clan" class="on">Clan</button><button type="button" data-tmac="generica">Generiche</button><button type="button" data-tmac="abilita">Abilità</button></div>
+          <input class="adm-search" id="tech-search" type="search" placeholder="Cerca per nome, categoria o clan…">
           <button type="button" class="adm-addbtn" data-addnew="tecniche"><span class="plus">+</span> Aggiungi nuova tecnica</button>
           <div class="cat-formwrap" hidden>
           <div class="cat-form" id="tech-form">
             <label>Nome<input id="tech-name" maxlength="80" placeholder="es. Chiusura delle Porte"></label>
-            <label>Clan<select id="tech-clan"><option value="">— Generale —</option></select></label>
+            <label>Macro-categoria<select id="tech-macro"><option value="clan">Clan</option><option value="generica">Generica</option><option value="abilita">Abilità</option></select></label>
+            <label>Clan <span class="opt">(solo se «Clan»)</span><select id="tech-clan"><option value="">— nessuno —</option></select></label>
             <label>Livello<input id="tech-level" type="number" step="1" min="1" placeholder="es. 1"></label>
             <label>Tipologia<input id="tech-category" list="tech-cats" maxlength="40" placeholder="es. Taijutsu"><datalist id="tech-cats"><option value="Dōjutsu"></option><option value="Taijutsu"></option><option value="Ninjutsu"></option><option value="Genjutsu"></option><option value="Fuuinjutsu"></option><option value="Kekkei Genkai"></option><option value="Hiden"></option><option value="Difesa"></option><option value="Supporto"></option></datalist></label>
             <label>Tipo di consumo<select id="tech-consume"><option value="ad_utilizzo">Ad utilizzo</option><option value="per_turno">Per turno</option><option value="passiva">Passiva / nessuno</option></select></label>
@@ -560,6 +562,7 @@
             <label>Caratteristica richiesta<input id="tech-reqstat" list="tech-stats" maxlength="30" placeholder="es. Kekkei Genkai"></label>
             <label>Soglia caratteristica<input id="tech-reqval" type="number" step="1" min="0" placeholder="es. 30"></label>
             <label class="chk"><input type="checkbox" id="tech-active" checked> Attiva</label>
+            <label class="full">Elemento richiesto <span class="opt">(vincola l'apprendimento: solo chi possiede uno di questi elementi potrà impararla; lascia vuoto se non serve)</span><span id="tech-elems" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:5px"><label style="display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)"><input type="checkbox" data-elem="Fuoco"> Fuoco</label><label style="display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)"><input type="checkbox" data-elem="Vento"> Vento</label><label style="display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)"><input type="checkbox" data-elem="Fulmine"> Fulmine</label><label style="display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)"><input type="checkbox" data-elem="Terra"> Terra</label><label style="display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)"><input type="checkbox" data-elem="Acqua"> Acqua</label></span></label>
             <label class="full">Danno / effetto<textarea id="tech-effetto" maxlength="600" rows="2" placeholder="es. fa perdere chakra al bersaglio; abilita il Pugno Gentile…"></textarea></label>
             <label class="full">Requisiti (testo)<textarea id="tech-req" maxlength="600" rows="2" placeholder="es. Byakugan livello 2 · grado Chunin"></textarea></label>
             <label class="full">Descrizione della tecnica<textarea id="tech-desc" maxlength="2000" rows="3" placeholder="Come evolve e cosa permette di fare in più…"></textarea></label>
@@ -1529,6 +1532,7 @@
       return '<span class="itmeta">· '+meta.join(' · ')+'</span>'+
         (t.danno_effetto?('<span class="itdesc"><b>Effetto:</b> '+esc(t.danno_effetto)+'</span>'):'')+
         (mech.length?('<span class="itdesc"><b>Sblocco:</b> '+mech.join(' · ')+'</span>'):'')+
+        ((t.req_elements&&t.req_elements.length)?('<span class="itdesc"><b>Elemento:</b> '+esc(t.req_elements.join(' o '))+'</span>'):'')+
         (t.requirements?('<span class="itdesc"><b>Requisiti:</b> '+esc(t.requirements)+'</span>'):'')+
         (t.description?('<span class="itdesc">'+esc(t.description)+'</span>'):'');
     }
@@ -1554,33 +1558,56 @@
         return techRow(g[0]);
       }).join('');
     }
+    var techMacro='clan';
+    function techMacroCount(m){ return TECHS.filter(function(t){return (t.macro||'clan')===m;}).length; }
+    function renderTechMacroTabs(){
+      var bar=$('tech-macrotabs'); if(!bar) return;
+      var LBL={clan:'Clan',generica:'Generiche',abilita:'Abilità'};
+      Array.prototype.forEach.call(bar.querySelectorAll('button[data-tmac]'),function(b){ var m=b.getAttribute('data-tmac'); b.classList.toggle('on',m===techMacro); b.textContent=LBL[m]+' ('+techMacroCount(m)+')'; });
+    }
     function renderTechs(){
       var host=$('tech-list');if(!host)return; FAM=[];
-      if(!TECHS.length){host.innerHTML='<p class="mgr-note" style="margin-top:14px">Nessuna tecnica inserita, per ora.</p>';return;}
+      renderTechMacroTabs();
+      var all=TECHS.filter(function(t){return (t.macro||'clan')===techMacro;});
+      var EMPTY={clan:'tecnica di clan',generica:'tecnica generica',abilita:'abilità'};
+      if(!all.length){host.innerHTML='<p class="mgr-note" style="margin-top:14px">Ancora nessuna '+EMPTY[techMacro]+'. Usa «+ Aggiungi» per crearne una.</p>';return;}
       var q=techSearch.toLowerCase();
-      var SRC=TECHS.filter(function(t){return !q||(''+(t.name||'')).toLowerCase().indexOf(q)>=0||(''+(t.clan||'')).toLowerCase().indexOf(q)>=0||(''+(t.category||'')).toLowerCase().indexOf(q)>=0;});
+      var SRC=all.filter(function(t){return !q||(''+(t.name||'')).toLowerCase().indexOf(q)>=0||(''+(t.clan||'')).toLowerCase().indexOf(q)>=0||(''+(t.category||'')).toLowerCase().indexOf(q)>=0;});
       if(!SRC.length){host.innerHTML='<p class="mgr-note" style="margin-top:14px">Nessuna tecnica trovata.</p>';return;}
-      var known=CLANS.slice();
-      var groups=[{k:'__gen',t:'Generali',m:function(x){return (x.clan||'')==='';}}];
-      known.forEach(function(c){ groups.push({k:c,t:c,m:function(x){return (x.clan||'')===c;}}); });
-      groups.push({k:'__altri',t:'Altri',m:function(x){var k=x.clan||'';return k!==''&&known.indexOf(k)<0;}});
+      var groups=[];
+      if(techMacro==='clan'){
+        CLANS.forEach(function(c){ groups.push({k:c,t:c,rows:SRC.filter(function(x){return (x.clan||'')===c;})}); });
+        var extra=SRC.filter(function(x){var k=x.clan||'';return k===''||CLANS.indexOf(k)<0;});
+        if(extra.length) groups.push({k:'__altri',t:'Altri / senza clan',rows:extra});
+      } else {
+        var cats=[]; SRC.forEach(function(t){ var c=t.category||'Senza categoria'; if(cats.indexOf(c)<0)cats.push(c); }); cats.sort();
+        cats.forEach(function(c){ groups.push({k:c,t:c,rows:SRC.filter(function(x){return (x.category||'Senza categoria')===c;})}); });
+      }
       var html='';
       groups.forEach(function(g){
-        var rows=SRC.filter(g.m); if(!rows.length)return;
-        var open=!!q||!!TECHOPEN[g.k];
-        html+='<div class="tk-acc2'+(open?' open':'')+'" data-tgrp="'+g.k+'"><span>'+esc(g.t)+' <span class="a-n">· '+rows.length+'</span></span><span class="a-ch">▶</span></div>'+
-              '<div class="tk-bd2'+(open?' open':'')+'" id="tgb-'+g.k+'">'+techGroupBody(rows)+'</div>';
+        if(!g.rows.length)return;
+        var gk=techMacro+'|'+g.k; var open=!!q||!!TECHOPEN[gk];
+        html+='<div class="tk-acc2'+(open?' open':'')+'" data-tgrp="'+gk+'"><span>'+esc(g.t)+' <span class="a-n">· '+g.rows.length+'</span></span><span class="a-ch">▶</span></div>'+
+              '<div class="tk-bd2'+(open?' open':'')+'" id="tgb-'+gk+'">'+techGroupBody(g.rows)+'</div>';
       });
       host.innerHTML=html;
     }
-    function resetTechForm(){editingTech=null;$('tech-name').value='';$('tech-clan').value='';$('tech-level').value='';$('tech-category').value='';$('tech-consume').value='ad_utilizzo';$('tech-chakra').value='';['tech-grado','tech-portata','tech-bersaglio','tech-azione','tech-durata','tech-ricarica','tech-xp','tech-train','tech-reqgrade','tech-reqstat','tech-reqval','tech-effetto'].forEach(function(id){var el=$(id);if(el)el.value='';});$('tech-req').value='';$('tech-desc').value='';$('tech-active').checked=true;$('tech-reset').style.display='none';$('tech-editing').textContent='';$('tech-save').textContent='Salva tecnica';}
+    function resetTechForm(){editingTech=null;$('tech-name').value='';$('tech-clan').value='';$('tech-level').value='';$('tech-category').value='';$('tech-consume').value='ad_utilizzo';$('tech-chakra').value='';['tech-grado','tech-portata','tech-bersaglio','tech-azione','tech-durata','tech-ricarica','tech-xp','tech-train','tech-reqgrade','tech-reqstat','tech-reqval','tech-effetto'].forEach(function(id){var el=$(id);if(el)el.value='';});$('tech-req').value='';$('tech-desc').value='';$('tech-active').checked=true;var _tm=$('tech-macro');if(_tm)_tm.value=(techMacro||'clan');Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){x.checked=false;});techMacroFormSync();$('tech-reset').style.display='none';$('tech-editing').textContent='';$('tech-save').textContent='Salva tecnica';}
+    function techMacroFormSync(){ var m=($('tech-macro')&&$('tech-macro').value)||'clan'; var cl=$('tech-clan'); if(cl){ cl.disabled=(m!=='clan'); if(m!=='clan') cl.value=''; cl.style.opacity=(m!=='clan')?'.5':''; } }
     function bindTechs(){
       var rb=$('tech-reset');if(rb)rb.addEventListener('click',function(){resetTechForm();admFormHide('tecniche');});
+      var tm=$('tech-macro');if(tm)tm.addEventListener('change',techMacroFormSync);
+      var mtb=$('tech-macrotabs');if(mtb)mtb.addEventListener('click',function(e){var b=e.target.closest('button[data-tmac]');if(!b)return;techMacro=b.getAttribute('data-tmac');try{localStorage.setItem('tus_tech_macro',techMacro);}catch(_e){}renderTechs();});
       var sv=$('tech-save');if(sv)sv.addEventListener('click',async function(){
         var name=$('tech-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
         var lvl=$('tech-level').value.trim(),chak=$('tech-chakra').value.trim();
         var _xp=$('tech-xp').value.trim(),_tr=$('tech-train').value.trim(),_rv=$('tech-reqval').value.trim();
         var payload={clan:$('tech-clan').value||null,name:name,level:lvl!==''?(parseInt(lvl,10)||null):null,category:$('tech-category').value.trim()||null,consumption_type:$('tech-consume').value||null,chakra_cost:chak!==''?(parseInt(chak,10)||0):null,grado:$('tech-grado').value.trim()||null,portata:$('tech-portata').value.trim()||null,bersaglio:$('tech-bersaglio').value.trim()||null,tipo_azione:$('tech-azione').value.trim()||null,durata:$('tech-durata').value.trim()||null,ricarica:$('tech-ricarica').value.trim()||null,danno_effetto:$('tech-effetto').value.trim()||null,xp_cost:_xp!==''?(parseInt(_xp,10)||0):null,trainings_required:_tr!==''?(parseInt(_tr,10)||0):null,req_grade:$('tech-reqgrade').value.trim()||null,req_stat:$('tech-reqstat').value.trim()||null,req_stat_value:_rv!==''?(parseInt(_rv,10)||0):null,requirements:$('tech-req').value.trim()||null,description:$('tech-desc').value.trim()||null,is_active:$('tech-active').checked};
+        var _macro=($('tech-macro')&&$('tech-macro').value)||'clan';
+        payload.macro=_macro;
+        payload.clan=(_macro==='clan')?($('tech-clan').value||null):null;
+        var _el=[]; Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){ if(x.checked)_el.push(x.getAttribute('data-elem')); });
+        payload.req_elements=_el.length?_el:null;
         this.disabled=true;
         var r=editingTech?await sb.from('clan_techniques').update(payload).eq('id',editingTech):await sb.from('clan_techniques').insert(payload);
         this.disabled=false;
@@ -1598,7 +1625,7 @@
         var la=e.target.closest('[data-lvadd]');
         if(la){ var f=FAM[la.getAttribute('data-lvadd')]; if(f){ var rr=f.rows, mx=0; rr.forEach(function(x){ if(x.level!=null&&x.level>mx)mx=x.level; }); var base=rr[rr.length-1]||rr[0];
           resetTechForm(); $('tech-name').value=base.name||''; $('tech-clan').value=base.clan||''; $('tech-level').value=(mx+1);
-          if(base.category)$('tech-category').value=base.category; if(base.grado)$('tech-grado').value=base.grado;
+          if($('tech-macro'))$('tech-macro').value=(base.macro||'clan'); techMacroFormSync(); if(base.category)$('tech-category').value=base.category; if(base.grado)$('tech-grado').value=base.grado;
           $('tech-editing').textContent='Nuovo livello '+(mx+1)+' di: '+base.name; admFormShow('tecniche'); } return; }
         var db=e.target.closest('[data-tdel]');
         if(db){var id=db.getAttribute('data-tdel');
@@ -1611,6 +1638,9 @@
         var t=TECHS.filter(function(x){return x.id===b.getAttribute('data-tedit');})[0];if(!t)return;
         editingTech=t.id;
         $('tech-name').value=t.name||'';$('tech-clan').value=t.clan||'';$('tech-level').value=(t.level!=null?t.level:'');$('tech-category').value=t.category||'';$('tech-consume').value=t.consumption_type||'ad_utilizzo';$('tech-chakra').value=(t.chakra_cost!=null?t.chakra_cost:'');$('tech-grado').value=t.grado||'';$('tech-portata').value=t.portata||'';$('tech-bersaglio').value=t.bersaglio||'';$('tech-azione').value=t.tipo_azione||'';$('tech-durata').value=t.durata||'';$('tech-ricarica').value=t.ricarica||'';$('tech-xp').value=(t.xp_cost!=null?t.xp_cost:'');$('tech-train').value=(t.trainings_required!=null?t.trainings_required:'');$('tech-reqgrade').value=t.req_grade||'';$('tech-reqstat').value=t.req_stat||'';$('tech-reqval').value=(t.req_stat_value!=null?t.req_stat_value:'');$('tech-effetto').value=t.danno_effetto||'';$('tech-req').value=t.requirements||'';$('tech-desc').value=t.description||'';$('tech-active').checked=t.is_active!==false;
+        if($('tech-macro'))$('tech-macro').value=(t.macro||'clan');
+        Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){ x.checked=!!(t.req_elements&&t.req_elements.indexOf(x.getAttribute('data-elem'))>=0); });
+        techMacroFormSync();
         $('tech-reset').style.display='';$('tech-editing').textContent='Stai modificando: '+t.name;$('tech-save').textContent='Aggiorna tecnica';
         admFormShow('tecniche');
       });
@@ -1730,7 +1760,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindTechs();await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
+      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
