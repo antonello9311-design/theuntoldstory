@@ -785,6 +785,50 @@
   }
   .mic-on{background:var(--red)!important;color:#f6ead0!important;border-color:var(--red-deep)!important;animation:micpulse 1.15s ease-in-out infinite}
   @keyframes micpulse{50%{opacity:.55}}
+
+  /* ---- Calendario della Land ---- */
+  .calbox{flex:0 0 auto;display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:12px;background:linear-gradient(rgba(247,238,214,.94),rgba(233,219,178,.88));padding:10px 12px;box-shadow:0 6px 18px rgba(60,42,18,.14);margin-bottom:10px}
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:2px 0 6px}
+  .cal-title{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.08em;color:var(--ink);text-transform:capitalize}
+  .cal-arr{width:22px;height:22px;border:1px solid var(--edge);border-radius:6px;background:rgba(255,250,235,.6);color:var(--red-deep);font-size:14px;line-height:1;cursor:pointer;padding:0}
+  .cal-arr:hover{background:var(--red);color:#f6ead0}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px}
+  .cal-dow{font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);text-align:center;padding:2px 0}
+  .cal-day{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink);border-radius:6px;cursor:pointer;border:1px solid transparent}
+  .cal-day:hover{background:rgba(166,50,29,.08)}
+  .cal-day.off{visibility:hidden}
+  .cal-day.today{border-color:var(--red);font-weight:700}
+  .cal-day.sel{background:var(--red);color:#f6ead0;font-weight:700}
+  .cal-day.hasev::after{content:"";position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--red-deep)}
+  .cal-day.sel.hasev::after{background:#f6ead0}
+  .cal-list{display:flex;flex-direction:column;gap:3px;max-height:150px;overflow-y:auto}
+  .cal-row{display:flex;align-items:baseline;gap:6px;font-family:'Cormorant Garamond',serif;font-size:13.5px;line-height:1.35;color:var(--ink);border-bottom:1px dotted rgba(138,111,67,.28);padding:2px 1px}
+  .cal-row:last-child{border-bottom:none}
+  .cal-row .cd{font-family:'Cinzel',serif;font-size:9.5px;color:var(--ink-soft);white-space:nowrap}
+  .cal-row .ct{flex:1;min-width:0}
+  .cal-row .ct i{color:var(--ink-soft);font-style:italic}
+  .cal-row .cx2{border:0;background:transparent;color:var(--red-deep);cursor:pointer;font-size:13px;padding:0 2px;line-height:1}
+  .cl-chip{flex:0 0 auto;width:15px;height:15px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:8.5px;color:#f6ead0;transform:translateY(2px)}
+  .cl-role{background:var(--red)}.cl-quest{background:#b98a1c}.cl-missione{background:#3c7a3c}.cl-evento{background:#6b5b95}
+  .cal-form{display:flex;flex-direction:column;gap:6px;margin:4px 0 8px;padding:8px;border:1px dashed var(--edge);border-radius:8px;background:rgba(255,250,235,.5)}
+  .cal-form[hidden]{display:none}
+  .cal-form input,.cal-form select{font-family:'Cormorant Garamond',serif;font-size:13.5px;padding:5px 7px;border:1px solid var(--edge);border-radius:6px;background:#fbf4e1;color:var(--ink);min-width:0}
+  .cal-frow{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+  .cal-frow select{flex:0 0 auto}
+  .cal-frow input[type=date]{flex:1 1 100px}
+  .cal-frow input[type=time]{flex:0 0 74px}
+  .cal-btn{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:6px 11px;border:1px solid var(--red-deep);border-radius:7px;background:var(--red);color:#f6ead0;cursor:pointer}
+  .cal-btn.ghost{background:transparent;color:var(--red-deep);border-color:var(--edge)}
+  .cal-hint{font-size:11px;color:var(--ink-soft);font-style:italic}
+  .cal-remind{display:flex;align-items:center;gap:9px;margin:0 0 10px;padding:8px 12px;border:1px solid var(--gold,#b79d6c);border-left:3px solid var(--red);border-radius:8px;background:linear-gradient(#f6ecc9,#f1e4bb);font-family:'Cormorant Garamond',serif;font-size:14.5px;color:var(--ink);box-shadow:0 4px 12px rgba(60,42,18,.12)}
+  .cal-remind[hidden]{display:none}
+  .cr-ic{flex:0 0 auto}
+  .cr-txt{flex:1;min-width:0}
+  .cr-txt b{color:var(--red-deep)}
+  .cr-x{border:0;background:transparent;font-size:17px;color:var(--ink-soft);cursor:pointer;padding:0 3px;line-height:1}
+  /* Entrati/Usciti in versione compatta sotto il calendario */
+  .activity .ac-list{max-height:150px}
+  .activity .ac-row{font-size:13px}
 </style>
 </head>
 <body>
@@ -826,8 +870,21 @@
             <span class="nb-tag">Ultim'ora</span>
             <div class="nb-track"><span class="nb-text" id="nb-text"></span></div>
           </div>
+          <div class="cal-remind" id="cal-remind" hidden><span class="cr-ic">&#9200;</span><span class="cr-txt" id="cal-remind-txt"></span><button class="cr-x" id="cal-remind-x" type="button" title="Ho letto">&times;</button></div>
           <div class="map-cols">
             <aside class="map-side" id="side-left">
+              <div class="calbox" id="calbox">
+                <div class="ac-head"><span>Calendario</span><button class="side-toggle" id="cal-add" type="button" title="Aggiungi un impegno (role, quest, missione, evento)">+</button></div>
+                <div class="cal-nav"><button class="cal-arr" id="cal-prev" type="button">&#8249;</button><span class="cal-title" id="cal-title">&mdash;</span><button class="cal-arr" id="cal-next" type="button">&#8250;</button></div>
+                <div class="cal-grid" id="cal-grid"></div>
+                <div class="cal-form" id="cal-form" hidden>
+                  <input id="cal-f-title" maxlength="80" placeholder="Titolo &mdash; es. Role al Ramen" autocomplete="off">
+                  <div class="cal-frow"><select id="cal-f-kind"><option value="role">Role</option><option value="quest">Quest</option><option value="missione">Missione</option><option value="evento">Evento</option></select><input id="cal-f-date" type="date"><input id="cal-f-time" type="time"></div>
+                  <input id="cal-f-loc" maxlength="60" placeholder="Luogo (facoltativo)" autocomplete="off">
+                  <div class="cal-frow"><button class="cal-btn" id="cal-f-save" type="button">Salva</button><button class="cal-btn ghost" id="cal-f-x" type="button">Annulla</button><span class="cal-hint" id="cal-f-hint"></span></div>
+                </div>
+                <div class="cal-list" id="cal-list"><span class="who-empty">Accedi per usare il calendario.</span></div>
+              </div>
               <div class="activity">
                 <div class="ac-head"><span>Entrati / Usciti</span><button class="side-toggle" type="button" data-collapse="left" title="Comprimi">▾</button></div>
                 <div class="ac-list" id="ac-list"><span class="who-empty">—</span></div>
@@ -1695,6 +1752,105 @@
           }, function(){ btn.disabled=false; toast('Invio non riuscito, riprova'); });
         });
       })();
+      /* ---- Calendario personale + promemoria ---- */
+      var CAL={y:0,m:0,sel:null,data:{events:[],missioni:[]}};
+      function calISO(d){ return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+      function calToday(){ var t=new Date(); return calISO(t); }
+      function calLoad(){ if(!sb||!loggedIn) return;
+        var from=new Date(CAL.y,CAL.m,1), to=new Date(CAL.y,CAL.m+1,0);
+        sb.rpc('my_calendar',{p_from:calISO(from),p_to:calISO(to)}).then(function(r){ if(r&&!r.error&&r.data){ CAL.data=r.data; renderCal(); } }, function(){});
+      }
+      function calEntries(dateISO){
+        var out=[];
+        (CAL.data.events||[]).forEach(function(e){ if(!dateISO||e.date===dateISO) out.push({d:e.date,t:(e.time||'').slice(0,5),k:e.kind,title:e.title,loc:e.loc,id:e.id,own:true}); });
+        (CAL.data.missioni||[]).forEach(function(m){ if(!dateISO||m.date===dateISO) out.push({d:m.date,t:'',k:'missione',title:m.title+(m.grado?(' ['+m.grado+']'):''),loc:null,id:null,own:false,st:m.status}); });
+        out.sort(function(a,b){ return (a.d+(a.t||'99:99')).localeCompare(b.d+(b.t||'99:99')); });
+        return out;
+      }
+      function renderCal(){
+        var grid=document.getElementById('cal-grid'), title=document.getElementById('cal-title'); if(!grid||!title) return;
+        var mesi=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+        title.textContent=mesi[CAL.m]+' '+CAL.y;
+        var have={};
+        (CAL.data.events||[]).forEach(function(e){ have[e.date]=1; });
+        (CAL.data.missioni||[]).forEach(function(m){ have[m.date]=1; });
+        var first=new Date(CAL.y,CAL.m,1), days=new Date(CAL.y,CAL.m+1,0).getDate();
+        var off=(first.getDay()+6)%7, today=calToday();
+        var h=['L','M','M','G','V','S','D'].map(function(d){ return '<span class="cal-dow">'+d+'</span>'; }).join('');
+        for(var b=0;b<off;b++) h+='<span class="cal-day off"></span>';
+        for(var d=1;d<=days;d++){ var iso=calISO(new Date(CAL.y,CAL.m,d));
+          h+='<span class="cal-day'+(iso===today?' today':'')+(CAL.sel===iso?' sel':'')+(have[iso]?' hasev':'')+'" data-cd="'+iso+'">'+d+'</span>'; }
+        grid.innerHTML=h;
+        renderCalList();
+      }
+      function renderCalList(){
+        var host=document.getElementById('cal-list'); if(!host) return;
+        if(!loggedIn){ host.innerHTML='<span class="who-empty">Accedi per usare il calendario.</span>'; return; }
+        var rows=calEntries(CAL.sel), today=calToday();
+        if(!CAL.sel){ rows=rows.filter(function(r){ return r.d>=today; }).slice(0,6); }
+        if(!rows.length){ host.innerHTML='<span class="who-empty">'+(CAL.sel?'Nessun impegno in questo giorno.':'Nessun impegno in vista. Usa + per aggiungerne.')+'</span>'; return; }
+        host.innerHTML=rows.map(function(r){
+          var dd=r.d.slice(8,10)+'/'+r.d.slice(5,7);
+          var chip='<span class="cl-chip cl-'+esc(r.k)+'" title="'+esc(r.k)+'">'+esc(r.k.charAt(0).toUpperCase())+'</span>';
+          return '<div class="cal-row">'+chip+'<span class="cd">'+dd+(r.t?(' '+r.t):'')+'</span><span class="ct">'+esc(r.title)+(r.loc?(' <i>&middot; '+esc(r.loc)+'</i>'):'')+(r.st?(' <i>&middot; '+esc(r.st)+'</i>'):'')+'</span>'+(r.own?('<button class="cx2" data-caldel="'+r.id+'" title="Elimina">&times;</button>'):'')+'</div>';
+        }).join('');
+      }
+      function calInit(){
+        var t=new Date(); CAL.y=t.getFullYear(); CAL.m=t.getMonth();
+        calLoad(); calRemindCheck();
+      }
+      function calRemindCheck(){ if(!sb||!loggedIn) return;
+        var t=new Date(), dom=new Date(t.getTime()+86400000);
+        sb.rpc('my_calendar',{p_from:calISO(t),p_to:calISO(dom)}).then(function(r){
+          if(!r||r.error||!r.data) return;
+          var today=calISO(t), tomorrow=calISO(dom), parts=[];
+          var all=[];
+          (r.data.events||[]).forEach(function(e){ all.push({d:e.date,t:(e.time||'').slice(0,5),title:e.title,loc:e.loc}); });
+          (r.data.missioni||[]).forEach(function(m){ all.push({d:m.date,t:'',title:'Missione: '+m.title,loc:null}); });
+          if(!all.length) return;
+          var key='tus_cal_rem_'+today; try{ if(localStorage.getItem(key)==='1') return; }catch(e){}
+          var fT=function(x){ return '\u00AB'+x.title+'\u00BB'+(x.t?(' alle '+x.t):'')+(x.loc?(' ('+x.loc+')'):''); };
+          var og=all.filter(function(x){return x.d===today;}).map(fT);
+          var dm=all.filter(function(x){return x.d===tomorrow;}).map(fT);
+          if(og.length) parts.push('<b>Oggi</b>: '+og.join(', '));
+          if(dm.length) parts.push('<b>Domani</b>: '+dm.join(', '));
+          if(!parts.length) return;
+          var bx=document.getElementById('cal-remind'), tx=document.getElementById('cal-remind-txt');
+          if(bx&&tx){ tx.innerHTML='Promemoria dal tuo calendario &mdash; '+parts.join(' &nbsp;&middot;&nbsp; '); bx.hidden=false; }
+        }, function(){});
+      }
+      (function(){
+        var g=document.getElementById('cal-grid');
+        if(g) g.addEventListener('click', function(e){ var d=e.target.closest('[data-cd]'); if(!d) return; var iso=d.getAttribute('data-cd'); CAL.sel=(CAL.sel===iso)?null:iso; renderCal(); });
+        var b;
+        b=document.getElementById('cal-prev'); if(b) b.addEventListener('click', function(){ CAL.m--; if(CAL.m<0){CAL.m=11;CAL.y--;} CAL.sel=null; renderCal(); calLoad(); });
+        b=document.getElementById('cal-next'); if(b) b.addEventListener('click', function(){ CAL.m++; if(CAL.m>11){CAL.m=0;CAL.y++;} CAL.sel=null; renderCal(); calLoad(); });
+        b=document.getElementById('cal-add'); if(b) b.addEventListener('click', function(){ if(!loggedIn){ toast('Accedi per usare il calendario'); return; } var f=document.getElementById('cal-form'); if(!f) return; f.hidden=!f.hidden; if(!f.hidden){ var dt=document.getElementById('cal-f-date'); if(dt&&!dt.value) dt.value=CAL.sel||calToday(); var ti=document.getElementById('cal-f-title'); if(ti) setTimeout(function(){ try{ti.focus();}catch(e){} },40); } });
+        b=document.getElementById('cal-f-x'); if(b) b.addEventListener('click', function(){ var f=document.getElementById('cal-form'); if(f) f.hidden=true; });
+        b=document.getElementById('cal-f-save'); if(b) b.addEventListener('click', function(){
+          var ti=(document.getElementById('cal-f-title').value||'').trim();
+          var dt=document.getElementById('cal-f-date').value;
+          if(ti.length<2){ toast('Dai un titolo all\'impegno'); return; }
+          if(!dt){ toast('Scegli la data'); return; }
+          var payload={ kind:document.getElementById('cal-f-kind').value||'role', title:ti, event_date:dt,
+            event_time:(document.getElementById('cal-f-time').value||null),
+            location_name:((document.getElementById('cal-f-loc').value||'').trim()||null) };
+          var btn=this; btn.disabled=true;
+          sb.from('calendar_events').insert(payload).then(function(r){ btn.disabled=false;
+            if(r&&r.error){ toast('Impossibile salvare'); return; }
+            document.getElementById('cal-f-title').value=''; document.getElementById('cal-f-loc').value=''; document.getElementById('cal-f-time').value='';
+            document.getElementById('cal-form').hidden=true;
+            var d=new Date(dt+'T00:00:00'); CAL.y=d.getFullYear(); CAL.m=d.getMonth(); CAL.sel=dt;
+            toast('Aggiunto al calendario'); calLoad();
+          }, function(){ btn.disabled=false; toast('Impossibile salvare'); });
+        });
+        var lst=document.getElementById('cal-list');
+        if(lst) lst.addEventListener('click', function(e){ var d=e.target.closest('[data-caldel]'); if(!d) return;
+          if(d.getAttribute('data-arm')!=='1'){ d.setAttribute('data-arm','1'); d.textContent='Confermi?'; d.style.fontSize='10px'; return; }
+          sb.from('calendar_events').delete().eq('id',d.getAttribute('data-caldel')).then(function(r){ if(r&&r.error){ toast('Impossibile eliminare'); return; } toast('Impegno eliminato'); calLoad(); }, function(){});
+        });
+        b=document.getElementById('cal-remind-x'); if(b) b.addEventListener('click', function(){ var bx=document.getElementById('cal-remind'); if(bx) bx.hidden=true; try{ localStorage.setItem('tus_cal_rem_'+calToday(),'1'); }catch(e){} });
+      })();
       /* ---- Dettatura vocale (Web Speech API, it-IT) ---- */
       (function(){
         var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -1848,7 +2004,7 @@
           if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max,mente').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); myMente=(cr.data.mente!=null?cr.data.mente:null); showPtsReminder(cr.data.unspent_points||0); updateVitals(); updateKOState(); updateHealBtn(); } }, function(){}); }
           if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; } }, function(){}); }
           loadEmblems();
-          renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); loadFlash(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); sb.rpc('ensure_welcome').then(function(){ loadUnread(); loadConversations(); }, function(){ loadUnread(); loadConversations(); }); if(dmTarget){ var _dt=dmTarget; dmTarget=null; sb.from('characters').select('name').eq('user_id',_dt).maybeSingle().then(function(rr){ openCompose(_dt,(rr&&rr.data&&rr.data.name)||'utente'); }, function(){ openCompose(_dt,'utente'); }); } }
+          renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); loadFlash(); calInit(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); sb.rpc('ensure_welcome').then(function(){ loadUnread(); loadConversations(); }, function(){ loadUnread(); loadConversations(); }); if(dmTarget){ var _dt=dmTarget; dmTarget=null; sb.from('characters').select('name').eq('user_id',_dt).maybeSingle().then(function(rr){ openCompose(_dt,(rr&&rr.data&&rr.data.name)||'utente'); }, function(){ openCompose(_dt,'utente'); }); } }
         }, function(){ loggedIn=false; renderLuoghi(); });
       } else { renderLuoghi(); }
 
