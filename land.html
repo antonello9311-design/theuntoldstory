@@ -1145,7 +1145,7 @@
     (function(){
       var mapView=document.getElementById('map-view'), roomView=document.getElementById('room-view');
       var lgList=document.getElementById('lg-list');
-      var msgsEl=document.getElementById('msgs'), whoEl=document.getElementById('who-list');
+      var msgsEl=document.getElementById('msgs'), whoEl=document.getElementById('who-list'), lastMsgsSig=null;
       var input=document.getElementById('msg-input'), sendBtn=document.getElementById('msg-send'), countEl=document.getElementById('msg-count');
       var toSel=document.getElementById('msg-to'), diceBtn=document.getElementById('dice-btn'), objBtn=document.getElementById('obj-btn'), techSel=document.getElementById('msg-tech');
       var nameEl=document.getElementById('room-name'), kindEl=document.getElementById('room-kind'), descEl=document.getElementById('room-desc'), meteoEl=document.getElementById('room-meteo');
@@ -1296,9 +1296,14 @@
       var PIN='<svg class="pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
       function renderMsgs(rows){
         rows=rows||[];
-        var nearBottom=(msgsEl.scrollHeight-msgsEl.scrollTop-msgsEl.clientHeight)<80;
-        if(!rows.length){ msgsEl.innerHTML='<div class="msgs-empty">Ancora nessun messaggio qui. Scrivi il primo turno.</div>'; return; }
-        msgsEl.innerHTML=rows.map(function(m){
+        var rid=(cur?cur.id:'');
+        if(!rows.length){
+          var esig=rid+'|__empty__';
+          if(esig===lastMsgsSig) return;
+          lastMsgsSig=esig;
+          msgsEl.innerHTML='<div class="msgs-empty">Ancora nessun messaggio qui. Scrivi il primo turno.</div>'; return;
+        }
+        var html=rows.map(function(m){
           if(m.kind==='roll'){
             return '<div class="msg-roll">'+DIE+'<span><b>'+esc(m.author_name)+'</b> tira 1d'+(m.dice_sides||100)+'</span><span class="rl-res">'+(m.dice_result!=null?m.dice_result:'?')+'</span></div>';
           }
@@ -1323,6 +1328,11 @@
           var pchip = place ? '<span class="m-place">'+PIN+esc(place)+'</span>' : '';
           return '<div class="msg">'+avatarHTML(c,nm,cid)+'<div class="m-main">'+identityHTML(c,nm,cid,m.created_at)+pchip+'<div class="m-body">'+fmtBody(braw)+'</div></div></div>';
         }).join('');
+        var sig=rid+'|'+html;
+        if(sig===lastMsgsSig) return;   // nessun messaggio nuovo/cambiato → niente ridisegno → niente flicker sull’emblema/avatar
+        var nearBottom=(msgsEl.scrollHeight-msgsEl.scrollTop-msgsEl.clientHeight)<80;
+        lastMsgsSig=sig;
+        msgsEl.innerHTML=html;
         if(nearBottom) msgsEl.scrollTop=msgsEl.scrollHeight;
       }
       function loadMsgs(){
