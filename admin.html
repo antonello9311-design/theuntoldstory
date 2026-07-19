@@ -219,6 +219,7 @@
             <button type="button" data-go="mappa">Mappa</button>
             <button type="button" data-go="bacheche">Bacheche</button>
             <button type="button" data-go="ia">IA</button>
+            <button type="button" data-go="compagni">Compagni</button>
             <button type="button" data-go="notizie">Banda notizie</button>
             <button type="button" data-go="registro">Registro</button>
             <button type="button" data-go="segnalazioni">Segnalazioni</button>
@@ -565,6 +566,20 @@
           <p class="mgr-note">Gli addestramenti avviati dai personaggi. Dopo una <b>sessione di allenamento giocata</b>, premi <b>Conferma sessione</b>: quando le sessioni richieste sono complete la tecnica diventa <b>attiva</b> e il personaggio può usarla. Limite di <b>un allenamento al giorno</b> per personaggio (anche il Capo clan può confermare, dalla land).</p>
           <div class="cat-actions"><button class="btn" id="train-refresh">Aggiorna</button></div>
           <div id="atrain-list"></div>
+          </section>
+
+          <section class="adm-page" data-page="compagni">
+          <div class="grp-title" style="margin-top:0">Compagni PNG dei giocatori</div>
+          <p class="mgr-note">Evocazioni, marionette e cani ninja creati dai giocatori dalla <b>loro scheda</b> (slot base: <b>1</b>; i requisiti di clan/premio li verifica il server). Da qui lo staff <b>assegna i gradi</b> (minore → intermedia → superiore → leggendaria) e concede <b>slot extra</b> a un personaggio.</p>
+          <div class="grp-sub">Slot extra per personaggio</div>
+          <div class="cat-form" style="margin-top:6px">
+            <label>Personaggio<input id="cso-name" maxlength="40" placeholder="nome esatto del PG"></label>
+            <label>Slot extra (oltre il primo)<input id="cso-extra" type="number" min="0" max="9" step="1" placeholder="0"></label>
+            <label class="full chk"><button class="btn btn-red" id="cso-save" type="button">Imposta</button><span class="editing-note" id="cso-note" style="margin-left:10px"></span></label>
+          </div>
+          <div id="cso-list" style="margin:8px 0 16px"></div>
+          <div class="grp-sub">Tutti i compagni</div>
+          <div id="comp-admin-list"></div>
           </section>
 
           <section class="adm-page" data-page="segnalazioni">
@@ -1231,6 +1246,51 @@
       });
     }
 
+    /* ---- Compagni PNG (gestione staff: gradi e slot) ---- */
+    var COMPS=[],delArmComp=null;
+    async function loadComps(){
+      var r=await sb.from('character_companions').select('*,character:characters(name)').order('created_at',{ascending:false});
+      COMPS=(r&&r.data)||[];renderComps();
+      var o=await sb.from('companion_slot_overrides').select('*,character:characters(name)').order('updated_at',{ascending:false});
+      var host=$('cso-list'); if(host){ var rows=(o&&o.data)||[];
+        host.innerHTML=rows.filter(function(x){return (x.extra_slots||0)>0;}).map(function(x){ return '<div class="itrow"><div class="itmain"><b>'+esc((x.character&&x.character.name)||'?')+'</b> <span class="itmeta">\u00B7 slot extra: '+x.extra_slots+' (totale '+(1+x.extra_slots)+')</span></div></div>'; }).join('')||'<p class="mgr-note" style="margin:4px 0 0">Nessuno slot extra concesso.</p>'; }
+    }
+    function renderComps(){
+      var host=$('comp-admin-list');if(!host)return;
+      if(!COMPS.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun compagno creato dai giocatori, per ora.</p>';return;}
+      var kmap={marionetta:'Marionetta',cane_ninja:'Cane ninja',evocazione:'Evocazione'};
+      var GR=['minore','intermedia','superiore','leggendaria'];
+      host.innerHTML=COMPS.map(function(c){
+        var av=c.avatar_url?('<img class="ia-ava" src="'+esc(c.avatar_url)+'" alt="" onerror="this.style.visibility=\'hidden\'">'):'<span class="ia-ava"></span>';
+        var sel='<select data-compgr="'+c.id+'" style="font-family:\'Cormorant Garamond\',serif;font-size:14px;padding:4px 6px;border:1px solid var(--edge);background:rgba(255,250,235,.7)">'+GR.map(function(g){return '<option'+(c.grado===g?' selected':'')+'>'+g+'</option>';}).join('')+'</select>';
+        return '<div class="locrow">'+av+'<div class="lmain"><span class="lname">'+esc(c.name)+'</span><span class="lkind">'+(kmap[c.kind]||esc(c.kind))+'</span><span class="lmeta"> \u00B7 di '+esc((c.character&&c.character.name)||'?')+'</span>'+(c.descr?('<span class="ldesc">'+esc(c.descr)+'</span>'):'')+'</div><div class="lacts">'+sel+'<button class="mini-btn danger" data-compdel="'+c.id+'">Elimina</button></div></div>';
+      }).join('');
+    }
+    function bindComps(){
+      $('cso-save').addEventListener('click',async function(){
+        var nm=$('cso-name').value.trim(); if(!nm){toast('Scrivi il nome del personaggio',true);return;}
+        var ch=await sb.from('characters').select('id,name').ilike('name',nm).maybeSingle();
+        if(!ch||ch.error||!ch.data){toast('Personaggio non trovato',true);return;}
+        var ex=Math.max(0,Math.min(9,parseInt($('cso-extra').value,10)||0));
+        var r=await sb.from('companion_slot_overrides').upsert({character_id:ch.data.id,extra_slots:ex,updated_at:new Date().toISOString()});
+        if(r.error){toast('Errore nel salvataggio',true);return;}
+        var n=$('cso-note'); if(n)n.textContent=ch.data.name+' \u2192 slot totali: '+(1+ex);
+        toast('Slot aggiornati');loadComps();
+      });
+      $('comp-admin-list').addEventListener('change',async function(e){
+        var s=e.target.closest('[data-compgr]'); if(!s) return;
+        var r=await sb.from('character_companions').update({grado:s.value}).eq('id',s.getAttribute('data-compgr'));
+        if(r.error){toast('Errore',true);}else{toast('Grado aggiornato');loadComps();}
+      });
+      $('comp-admin-list').addEventListener('click',async function(e){
+        var d=e.target.closest('[data-compdel]'); if(!d) return;
+        var id=d.getAttribute('data-compdel');
+        if(delArmComp!==id){delArmComp=id;d.textContent='Confermi?';setTimeout(function(){if(delArmComp===id){delArmComp=null;renderComps();}},4000);return;}
+        delArmComp=null;var r=await sb.from('character_companions').delete().eq('id',id);
+        if(r.error){toast('Errore eliminazione',true);}else{toast('Compagno eliminato');loadComps();}
+      });
+    }
+
     /* ---- Segnalazioni allo staff ---- */
     var REPS=[];
     async function loadReps(){
@@ -1620,7 +1680,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindTechs();await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
+      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindTechs();await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};

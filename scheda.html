@@ -592,6 +592,10 @@
             </div>
           </div>
           <div id="page-acad" class="spage">
+            <div class="ssec" id="sec-comp" style="display:none"><h3>Compagno PNG <span class="priv">◈ evocazioni · marionette · cani ninja</span></h3>
+              <p class="hint">Il tuo <b>compagno</b> agisce nel <b>tuo stesso turno</b>: in chat, il pulsante 🎭 accanto a «Tecnica» apre il riquadro con la sua azione. <b>Slot: 1</b> (ampliamenti concessi dallo staff). Il <b>grado</b> (minore → intermedia → superiore → leggendaria) lo assegna lo staff col progredire della storia. Requisiti: <b>marionetta</b> per il clan Marionettisti, <b>cane ninja</b> per gli Inuzuka, <b>evocazione</b> con il Contratto (sezione Premi).</p>
+              <div id="comp-wrap"></div>
+            </div>
             <div class="ssec" id="sec-acad"><h3>Accademia</h3>
               <p class="hint">Le lezioni che hai svolto. Il collegamento per rileggere la chat di ogni lezione arriverà con l'Accademia in versione chat.</p>
               <div id="acadlog-wrap"></div></div>
@@ -894,6 +898,64 @@
       loadSvolte();
       loadAlignHistory();
       loadPremi();
+      loadCompagni();
+    }
+
+    /* ===== Compagno PNG (evocazioni, marionette, cani ninja) ===== */
+    async function loadCompagni(){
+      var host=$('comp-wrap'), sec=$('sec-comp'); if(!host||!sec) return;
+      if(viewMode!=='owner'||!myChar){ sec.style.display='none'; return; }
+      sec.style.display='';
+      var r=await sb.from('character_companions').select('*').eq('character_id',myChar.id).order('created_at');
+      var rows=(r&&r.data)||[];
+      var extra=0; try{ var o=await sb.from('companion_slot_overrides').select('extra_slots').eq('character_id',myChar.id).maybeSingle(); if(o&&o.data) extra=o.data.extra_slots||0; }catch(e){}
+      var slots=1+extra;
+      var kmap={marionetta:['\uD83C\uDFAD','Marionetta'],cane_ninja:['\uD83D\uDC3E','Cane ninja'],evocazione:['\uD83D\uDC0D','Evocazione']};
+      var h='<p class="hint" style="margin:0 0 8px">Slot compagni: <b>'+rows.length+' / '+slots+'</b></p>';
+      rows.forEach(function(c){ var km=kmap[c.kind]||['',''];
+        h+='<div class="svbox" style="display:flex;gap:12px;align-items:flex-start">'
+          +(c.avatar_url?('<img src="'+esc(c.avatar_url)+'" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:1px solid var(--edge);flex:0 0 auto">'):('<span style="width:54px;height:54px;border-radius:50%;border:1px solid var(--edge);display:inline-flex;align-items:center;justify-content:center;font-size:24px;flex:0 0 auto">'+km[0]+'</span>'))
+          +'<div style="flex:1;min-width:0"><b>'+esc(c.name)+'</b> <span class="svtag a">'+km[0]+' '+km[1]+' \u00B7 '+esc(c.grado)+'</span>'
+          +(c.descr?('<div class="hint" style="margin:4px 0 0">'+esc(c.descr)+'</div>'):'')
+          +'<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
+          +'<label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">Volto\u2026 <input type="file" accept="image/*" data-compava="'+c.id+'" style="display:none"></label>'
+          +'<button class="btn btn-ghost btn-sm" type="button" data-compcong="'+c.id+'">Congeda</button>'
+          +'</div></div></div>';
+      });
+      if(rows.length<slots){
+        h+='<div class="svbox"><h4>Nuovo compagno</h4>'
+         +'<label class="svlab">Tipo<select id="comp-kind"><option value="marionetta">Marionetta \u00B7 clan Marionettisti</option><option value="cane_ninja">Cane ninja \u00B7 clan Inuzuka</option><option value="evocazione">Evocazione \u00B7 serve il Contratto (Premi)</option></select></label>'
+         +'<label class="svlab">Nome<input id="comp-name" maxlength="40" placeholder="es. Karasu"></label>'
+         +'<label class="svlab">Descrizione breve (facoltativa)<textarea id="comp-descr" maxlength="300" rows="2" placeholder="Aspetto e carattere del compagno\u2026"></textarea></label>'
+         +'<button class="btn btn-red btn-sm" id="comp-create" type="button" style="margin-top:8px">Crea compagno</button></div>';
+      }
+      host.innerHTML=h;
+      var cb=$('comp-create'); if(cb) cb.addEventListener('click', async function(){
+        var nm=($('comp-name').value||'').trim(); if(nm.length<2){ toast('Dai un nome al compagno',true); return; }
+        this.disabled=true;
+        var r2=await sb.rpc('companion_create',{p_kind:$('comp-kind').value,p_name:nm,p_descr:(($('comp-descr').value||'').trim()||null)});
+        this.disabled=false;
+        if(r2&&r2.error){ toast(r2.error.message||'Impossibile creare',true); return; }
+        toast('Compagno creato: lo trovi anche in chat, pulsante \uD83C\uDFAD'); loadCompagni();
+      });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-compcong]'), function(b){ b.addEventListener('click', async function(){
+        if(b.getAttribute('data-arm')!=='1'){ b.setAttribute('data-arm','1'); b.textContent='Confermi?'; setTimeout(function(){ if(b.getAttribute('data-arm')==='1'){ b.setAttribute('data-arm','0'); b.textContent='Congeda'; } },4000); return; }
+        var r3=await sb.from('character_companions').delete().eq('id',b.getAttribute('data-compcong'));
+        if(r3&&r3.error){ toast('Impossibile congedare',true); return; }
+        toast('Compagno congedato'); loadCompagni();
+      }); });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-compava]'), function(inp){ inp.addEventListener('change', async function(){
+        var f=inp.files&&inp.files[0]; if(!f) return;
+        if(f.size>3145728){ toast('Immagine troppo grande (max 3 MB)',true); return; }
+        var ext=((f.name.split('.').pop()||'png').toLowerCase().replace(/[^a-z0-9]/g,''))||'png';
+        var path=((me&&me.id)?me.id:'x')+'/comp-'+Date.now()+'.'+ext;
+        var up=await sb.storage.from('avatars').upload(path,f,{upsert:true,contentType:f.type});
+        if(up.error){ toast('Volto non caricato',true); return; }
+        var pub=sb.storage.from('avatars').getPublicUrl(path).data.publicUrl+'?v='+Date.now();
+        var r4=await sb.from('character_companions').update({avatar_url:pub}).eq('id',inp.getAttribute('data-compava'));
+        if(r4&&r4.error){ toast('Caricato ma non registrato',true); return; }
+        toast('Volto del compagno salvato'); loadCompagni();
+      }); });
     }
     /* ===== Barra XP e Allineamento ===== */
     var SOGLIE_RANK={'Genin':{next:'Chunin',da:0,a:2500},'Chunin':{next:'Jonin',da:2500,a:9000},'Jonin':{next:'Jonin Speciale',da:9000,a:18000}};
