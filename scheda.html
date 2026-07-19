@@ -1188,7 +1188,7 @@
       var owner=(viewMode==='owner'||viewMode==='adminself'||viewMode==='adminother'), staff=(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother');
       var canEd=(owner||staff), oEdit=owner&&editMode, sEdit=staff&&editMode;
       ['f-element','f-background','f-off','f-prestavolto'].forEach(function(id){var el=$(id); if(el) el.disabled=!oEdit;});
-      var _fe=$('f-element'); if(_fe){ _fe.disabled = !oEdit || !!(myChar && myChar.element); _fe.title = (myChar && myChar.element) ? 'L\'elemento base si sceglie una sola volta' : ''; }
+      var _fe=$('f-element'); if(_fe){ var _adm=(viewMode==='adminself'||viewMode==='adminother'); _fe.disabled = !oEdit || (!!(myChar && myChar.element) && !_adm); _fe.title = (myChar && myChar.element && !_adm) ? 'L\'elemento base si sceglie una sola volta' : ''; }
       ['f-clan','f-corporation','f-clanrole','f-rank'].forEach(function(id){var el=$(id); if(el) el.disabled=!sEdit;});
       var _vr=$('v-rank'), _fr2=$('f-rank'); if(_vr&&_fr2){ _vr.style.display=sEdit?'none':''; _fr2.style.display=sEdit?'':'none'; }
       var _hasRole=myChar&&myChar.clan_role; var _showRole=(sEdit||_hasRole)?'':'none'; var _lcr=$('lab-clanrole'); if(_lcr)_lcr.style.display=_showRole; var _scr2=$('f-clanrole'); if(_scr2)_scr2.style.display=_showRole;
@@ -1263,14 +1263,22 @@
       this.disabled=true;
       if(fc){ var chk=await sb.from('characters').select('id').ilike('face_claim',fc).neq('id',myChar.id).limit(1); if(chk&&chk.data&&chk.data.length){ this.disabled=false; toast('Prestavolto già usato da un altro personaggio',true); return; } }
       var upd={element:$('f-element').value||null,background:$('f-background').value,off_notes:$('f-off').value.trim()||null,face_claim:fc||null};
+      if(viewMode==='adminself'||viewMode==='adminother'){
+        var _cl=(($('f-clan')&&$('f-clan').value)||'Nessuno');
+        upd.clan=_cl;
+        upd.clan_role=(_cl==='Nessuno'||!_cl)?null:((($('f-clanrole')&&$('f-clanrole').value)||null));
+        if($('f-rank')&&$('f-rank').value) upd.rank=$('f-rank').value;
+        if($('f-corporation')) upd.corporation=(($('f-corporation').value)||'').trim()||null;
+      }
       var r1=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();
       this.disabled=false;
       if(r1.error){ var m=(r1.error.message||''); if(r1.error.code==='23505'||m.toLowerCase().indexOf('faceclaim')>=0||m.toLowerCase().indexOf('face_claim')>=0){toast('Prestavolto già usato da un altro personaggio',true);return;} toast(m.indexOf('consentito')>=0?'Nome non consentito':'Errore nel salvataggio',true);return;}
-      myChar=r1.data;toast('Scheda salvata');
+      myChar=r1.data;fillForm(myChar,curPriv);toast('Scheda salvata');
     });
     var spSave=$('sp-save'); if(spSave) spSave.addEventListener('click',async function(){
       if(!sb||!myChar||!(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother'))return;this.disabled=true;
-      var upd={epithet:($('sp-epithet').value.trim()||null),rank:(($('f-rank')&&$('f-rank').value)||myChar.rank),clan:$('f-clan').value||'Nessuno',clan_role:(($('f-clanrole')&&$('f-clanrole').value)||null),corporation:($('f-corporation').value.trim()||null)};
+      var _spClan=($('f-clan').value||'Nessuno');
+      var upd={epithet:($('sp-epithet').value.trim()||null),rank:(($('f-rank')&&$('f-rank').value)||myChar.rank),clan:_spClan,clan_role:((_spClan==='Nessuno')?null:((($('f-clanrole')&&$('f-clanrole').value)||null))),corporation:($('f-corporation').value.trim()||null)};
       STATS.forEach(function(s){var v=parseInt($('sp-'+s[0]).value,10); upd[s[0]]=isNaN(v)?myChar[s[0]]:v;});
       ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?myChar[k]:v;});
       ['lealta','via','fama'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?(myChar[k]!=null?myChar[k]:50):Math.max(0,Math.min(100,v));});
