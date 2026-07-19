@@ -446,8 +446,8 @@
   .ovp-u-top svg.m-sex{width:14px;height:14px;vertical-align:middle}
   .ovp-off{font-style:italic;color:var(--ink-soft);font-size:13px;margin-top:2px;line-height:1.35}
   /* #6 sintassi parlato/azione */
-  .msg .m-body .sp-say{color:var(--red-deep)}
-  .msg .m-body .sp-act{font-style:italic;color:var(--ink-soft)}
+  .m-body .sp-say{color:var(--red-deep)}
+  .m-body .sp-act{font-style:italic;color:var(--ink-soft)}
   /* #5 contatore caratteri */
   .composer-tools{display:flex;align-items:center;gap:8px;flex-shrink:0}
   .place-bar{display:flex;align-items:center;gap:7px;width:min(300px,100%);margin:0 0 8px;border:1px solid var(--edge);border-radius:8px;background:rgba(255,250,235,.55);padding:5px 10px}
@@ -511,6 +511,7 @@
   .msg-item .it{width:16px;height:16px;color:#5f7a3a;flex-shrink:0}
   .msg-item b{color:var(--ink)}
   .msg-item .it-name{color:#4c6330}
+  .msg-cura{display:flex;align-items:center;gap:7px;margin:5px 0;font-family:'Cormorant Garamond',serif;font-style:italic;color:#3f6d3a}
   /* ===== Messaggeria interna (DM) ===== */
   .tb-btn.mail{position:relative}
   .mail-badge{display:none;position:absolute;top:-6px;right:-7px;min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:var(--red);color:#f6ead0;font-family:'Cinzel',serif;font-size:9px;line-height:16px;text-align:center}
@@ -884,7 +885,7 @@
                 <div class="place-bar"><svg class="pb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg><input id="msg-place" class="pb-input" maxlength="60" autocomplete="off" placeholder="Luogo — es. Strade del villaggio"></div>
                 <textarea id="msg-input" maxlength="5000" placeholder="Scrivi il tuo turno di gioco…"></textarea>
                 <div class="item-pop" id="item-pop" hidden><div class="ip-head">Oggetti equipaggiati</div><div id="ip-list"></div></div>
-                <div class="composer-row"><div class="composer-tools act-side"><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><select class="tech-sel" id="msg-tech" title="Tecnica o abilità usata (dalla tua scheda)"><option value="">Tecnica / Abilità…</option></select><span class="tech-hint" id="tech-hint"></span><span class="vitmini" id="vit-mini"><span class="vrow"><b>PV</b><span class="vtrack pv" id="vt-pv"><i id="vf-pv"></i></span><span class="vnum" id="vn-pv">—</span></span><span class="vrow"><b>CK</b><span class="vtrack ck"><i id="vf-ck"></i></span><span class="vnum" id="vn-ck">—</span></span></span></div><div class="composer-tools mech-side"><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="exp-btn" id="exp-btn" type="button" title="Apri l'editor: finestra grande per scrivere e rileggere tutta la tua role"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg>Editor</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="cmb-btn" type="button" title="Calcolo combattimento"><svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>Combatti</button><span id="ko-badge" style="display:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1px solid var(--red-deep);border-radius:7px;padding:4px 9px">⚠ Fuori combattimento</span><button class="cmb-btn" id="regia-btn" type="button" style="display:none" title="Regia del master: PNG in scena e stato del gruppo"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/></svg>Regia</button><button class="legend-btn" id="legend-btn" type="button" title="Legenda: comandi e punteggiatura">?</button><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
+                <div class="composer-row"><div class="composer-tools act-side"><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><select class="tech-sel" id="msg-tech" title="Tecnica o abilità usata (dalla tua scheda)"><option value="">Tecnica / Abilità…</option></select><span class="tech-hint" id="tech-hint"></span><span class="vitmini" id="vit-mini"><span class="vrow"><b>PV</b><span class="vtrack pv" id="vt-pv"><i id="vf-pv"></i></span><span class="vnum" id="vn-pv">—</span></span><span class="vrow"><b>CK</b><span class="vtrack ck"><i id="vf-ck"></i></span><span class="vnum" id="vn-ck">—</span></span></span></div><div class="composer-tools mech-side"><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="exp-btn" id="exp-btn" type="button" title="Apri l'editor: finestra grande per scrivere e rileggere tutta la tua role"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg>Editor</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="cmb-btn" type="button" title="Calcolo combattimento"><svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>Combatti</button><button class="cmb-btn" id="heal-btn" type="button" title="Cura: te stesso o un alleato presente (Mente ≥ 25)" style="display:none">✚ Cura</button><span id="ko-badge" style="display:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1px solid var(--red-deep);border-radius:7px;padding:4px 9px">⚠ Fuori combattimento</span><button class="cmb-btn" id="regia-btn" type="button" style="display:none" title="Regia del master: PNG in scena e stato del gruppo"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/></svg>Regia</button><button class="legend-btn" id="legend-btn" type="button" title="Legenda: comandi e punteggiatura">?</button><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
               </div>
             </section>
             <aside class="room-side">
@@ -1149,7 +1150,7 @@
       var toSel=document.getElementById('msg-to'), diceBtn=document.getElementById('dice-btn'), objBtn=document.getElementById('obj-btn'), techSel=document.getElementById('msg-tech');
       var nameEl=document.getElementById('room-name'), kindEl=document.getElementById('room-kind'), descEl=document.getElementById('room-desc'), meteoEl=document.getElementById('room-meteo');
       var backBtn=document.getElementById('room-back');
-      var LOCS=[], cur=null, poll=null, loggedIn=false, myId=null, myCharId=null, EMB={}, ROSTER=[], pendingWhisper=null, rosterPoll=null, ACT=[], iAmStaff=false, WHO=[], myVita=null, myChakra=null, myVitaMax=null, myChakraMax=null;
+      var LOCS=[], cur=null, poll=null, loggedIn=false, myId=null, myCharId=null, EMB={}, ROSTER=[], pendingWhisper=null, rosterPoll=null, ACT=[], iAmStaff=false, WHO=[], myVita=null, myChakra=null, myVitaMax=null, myChakraMax=null, myMente=null;
       function esc(s){return (s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
       function fmtBody(s){ var t=esc(s);
         t=t.replace(/&quot;([\s\S]*?)&quot;/g,'<span class="sp-say">&quot;$1&quot;</span>');
@@ -1278,6 +1279,7 @@
       var DIE='<svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>';
       var LOCK='<svg class="lk" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="9.5" rx="2" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="1.9"/></svg>';
       var ITEM='<svg class="it" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+      var HEAL='<svg class="sw" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="#3f6d3a" d="M9 2h6v7h7v6h-7v7H9v-7H2V9h7z"/></svg>';
       var SWORD='<svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>';
       var SENSEI='<svg class="ss" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5.5A1.5 1.5 0 0 1 6.5 4H19v13H6.5A1.5 1.5 0 0 0 5 18.5z"/><path d="M9 8.5h6M9 11.5h6"/></svg>';
       var SEX_M='<svg class="m-sex" viewBox="0 0 24 24"><circle cx="10" cy="14" r="5.5" fill="none" stroke="#2f6fb0" stroke-width="2.2"/><path d="M14.5 9.5 L21 3 M15.5 3 h5.5 v5.5" fill="none" stroke="#2f6fb0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -1303,6 +1305,7 @@
           if(m.kind==='item'){
             return '<div class="msg-item">'+ITEM+'<span><b>'+esc(m.author_name)+'</b> usa <b class="it-name">'+esc(m.body)+'</b></span></div>';
           }
+          if(m.kind==='cura'){ return '<div class="msg-cura">'+HEAL+'<span>'+esc(m.body)+'</span></div>'; }
           if(m.kind==='whisper'){
             var dir;
             if(m.recipient_user&&m.recipient_user===myId) dir='da <b>'+esc(m.author_name)+'</b>';
@@ -1361,7 +1364,7 @@
         sb.rpc('who_here',{p_location:cur.id,p_minutes:8}).then(function(r){ if(r&&!r.error){ WHO=r.data||[]; renderWho(r.data); updateTargets(r.data); } }, function(){});
       }
       function updateKOState(){ var cb=document.getElementById('cmb-btn'), badge=document.getElementById('ko-badge'); var ko=(myVita!=null && myVita<=0); if(cb){ cb.disabled=ko; cb.title=ko?'Sei fuori combattimento: recupera prima di poter attaccare':'Calcolo combattimento'; } if(badge){ badge.style.display=ko?'':'none'; } }
-      function refreshMyVita(){ if(!sb||!myId) return; sb.from('characters').select('vita,vita_max,chakra,chakra_max').eq('user_id',myId).maybeSingle().then(function(r){ if(r&&r.data){ myVita=(r.data.vita!=null?r.data.vita:null); myVitaMax=(r.data.vita_max!=null?r.data.vita_max:null); myChakra=(r.data.chakra!=null?r.data.chakra:null); myChakraMax=(r.data.chakra_max!=null?r.data.chakra_max:null); } updateVitals(); updateKOState(); },function(){}); }
+      function refreshMyVita(){ if(!sb||!myId) return; sb.from('characters').select('vita,vita_max,chakra,chakra_max,mente').eq('user_id',myId).maybeSingle().then(function(r){ if(r&&r.data){ myVita=(r.data.vita!=null?r.data.vita:null); myVitaMax=(r.data.vita_max!=null?r.data.vita_max:null); myChakra=(r.data.chakra!=null?r.data.chakra:null); myChakraMax=(r.data.chakra_max!=null?r.data.chakra_max:null); myMente=(r.data.mente!=null?r.data.mente:null); } updateVitals(); updateKOState(); updateHealBtn(); },function(){}); }
       function updateVitals(){ var clamp=function(x){ return x<0?0:(x>1?1:x); };
         var pr=(myVitaMax>0)?clamp(myVita/myVitaMax):0, cr=(myChakraMax>0)?clamp(myChakra/myChakraMax):0;
         var vfp=document.getElementById('vf-pv'); if(vfp) vfp.style.width=(pr*100)+'%';
@@ -1514,7 +1517,7 @@
       function acadErr(m){ m=(m||'').toLowerCase(); if(/gia una classe/.test(m)) return 'C’è già una classe in corso qui'; if(/personaggio/.test(m)) return 'Ti serve un personaggio'; if(/tengono/.test(m)) return 'Qui non si tengono lezioni'; return 'Operazione non riuscita'; }
       (function(){ var b; b=acadEl('lp-x'); if(b) b.addEventListener('click', closeLessonPicker); b=acadEl('lp-bk'); if(b) b.addEventListener('click', closeLessonPicker); })();
       function openRoom(l){
-        cur=l; showView('room');
+        cur=l; showView('room'); updateHealBtn();
         nameEl.textContent=l.name; kindEl.textContent=l.kind||''; descEl.textContent=l.description||'';
         var im=document.getElementById('room-img'), nt=document.getElementById('room-note');
         if(im){ if(l.image_url){ im.src=l.image_url; im.style.display='block'; } else { im.removeAttribute('src'); im.style.display='none'; } }
@@ -1657,6 +1660,13 @@
       var _cmbBound=false;
       function bindCombatControls(){ if(_cmbBound) return; var x=document.getElementById('cmb-close'), c=document.getElementById('cmb-cancel'), bk=document.getElementById('cmb-backdrop'), g=document.getElementById('cmb-go'); if(x&&c&&bk&&g){ x.addEventListener('click',closeCombat); c.addEventListener('click',closeCombat); bk.addEventListener('click',closeCombat); g.addEventListener('click',doCombat); var tc=document.getElementById('cmb-tech'); if(tc) tc.addEventListener('change',combatTechChange); var mdd=document.getElementById('cmb-mode'); if(mdd) mdd.addEventListener('change',combatModeChange); _cmbBound=true; } }
       (function(){ var b=document.getElementById('cmb-btn'); if(b) b.addEventListener('click',openCombat); })();
+      function updateHealBtn(){ var b=document.getElementById('heal-btn'); if(!b) return; var medic=(iAmStaff || (myMente!=null && myMente>=25)); var ko=(myVita!=null && myVita<=0); b.style.display=(medic&&!ko)?'':'none'; }
+      var _healBound=false;
+      function bindHealControls(){ if(_healBound) return; var x=document.getElementById('heal-close'), c=document.getElementById('heal-cancel'), bk=document.getElementById('heal-backdrop'), g=document.getElementById('heal-go'); if(x&&c&&bk&&g){ x.addEventListener('click',closeHeal); c.addEventListener('click',closeHeal); bk.addEventListener('click',closeHeal); g.addEventListener('click',doHeal); _healBound=true; } }
+      function openHeal(){ if(!cur||!sb) return; bindHealControls(); var sel=document.getElementById('heal-target'); if(sel){ var opts='<option value="">Su te stesso</option>'; (WHO||[]).forEach(function(w){ if(w.user_id&&w.user_id!==myId){ opts+='<option value="'+w.user_id+'">'+esc(w.name)+'</option>'; } }); sel.innerHTML=opts; } var ov=document.getElementById('heal-overlay'); if(ov) ov.hidden=false; }
+      function closeHeal(){ var ov=document.getElementById('heal-overlay'); if(ov) ov.hidden=true; }
+      function doHeal(){ if(!cur||!sb) return; var sel=document.getElementById('heal-target'); var tgt=(sel&&sel.value)?sel.value:null; var go=document.getElementById('heal-go'); if(go) go.disabled=true; sb.rpc('post_heal',{p_location:cur.id,p_target_user:tgt}).then(function(r){ if(go) go.disabled=false; if(r&&r.error){ toast(r.error.message||'Cura non riuscita'); return; } toast((r&&typeof r.data==='string'&&r.data)?r.data:'Cura eseguita'); closeHeal(); loadMsgs(); refreshMyVita(); }, function(){ if(go) go.disabled=false; toast('Cura non riuscita'); }); }
+      (function(){ var b=document.getElementById('heal-btn'); if(b) b.addEventListener('click',openHeal); })();
 
       if(toSel){ toSel.addEventListener('change', updateToStyle); }
       function renderItemPop(rows){
@@ -1676,7 +1686,7 @@
       function useItem(eqId){
         var pop=document.getElementById('item-pop'); if(pop) pop.hidden=true;
         if(!cur||!sb) return;
-        sb.rpc('post_item_use',{p_location:cur.id,p_equip:eqId}).then(function(r){ if(r&&r.error){ toast("Impossibile usare l'oggetto"); return; } loadMsgs(); }, function(){ toast("Impossibile usare l'oggetto"); });
+        sb.rpc('post_item_use',{p_location:cur.id,p_equip:eqId}).then(function(r){ if(r&&r.error){ toast("Impossibile usare l'oggetto"); return; } loadMsgs(); refreshMyVita(); }, function(){ toast("Impossibile usare l'oggetto"); });
       }
       if(objBtn){ objBtn.addEventListener('click', function(e){ e.stopPropagation(); openItemPop(); }); }
       document.addEventListener('click', function(e){ var pop=document.getElementById('item-pop'); if(pop&&!pop.hidden){ if(!pop.contains(e.target) && e.target!==objBtn && !(objBtn&&objBtn.contains(e.target))){ pop.hidden=true; } } });
@@ -1689,7 +1699,7 @@
           loggedIn=!!(res&&res.data&&res.data.session);
           myId=(loggedIn&&res.data.session.user)?res.data.session.user.id:null;
           if(loggedIn){ try{ sessionStorage.setItem('tus_in_land','1'); }catch(e){} }
-          if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); showPtsReminder(cr.data.unspent_points||0); updateVitals(); updateKOState(); } }, function(){}); }
+          if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max,mente').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); myMente=(cr.data.mente!=null?cr.data.mente:null); showPtsReminder(cr.data.unspent_points||0); updateVitals(); updateKOState(); updateHealBtn(); } }, function(){}); }
           if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; } }, function(){}); }
           loadEmblems();
           renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); loadFlash(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); sb.rpc('ensure_welcome').then(function(){ loadUnread(); loadConversations(); }, function(){ loadUnread(); loadConversations(); }); if(dmTarget){ var _dt=dmTarget; dmTarget=null; sb.from('characters').select('name').eq('user_id',_dt).maybeSingle().then(function(rr){ openCompose(_dt,(rr&&rr.data&&rr.data.name)||'utente'); }, function(){ openCompose(_dt,'utente'); }); } }
@@ -2521,6 +2531,17 @@
         <p class="cmb-hint">Il server tira i dadi e mostra l'esito in chat. Il conteggio dei PV lo tenete voi.</p>
       </div>
       <div class="cmb-foot"><button type="button" class="btn-ghost" id="cmb-cancel">Annulla</button><button type="button" class="btn-red" id="cmb-go">Calcola e mostra</button></div>
+    </div>
+  </div>
+  <div class="cmb-overlay" id="heal-overlay" hidden>
+    <div class="cmb-backdrop" id="heal-backdrop"></div>
+    <div class="cmb-card" role="dialog" aria-modal="true" aria-label="Cura">
+      <div class="cmb-head"><span>✚ Cura</span><button type="button" id="heal-close" aria-label="Chiudi">✕</button></div>
+      <div class="cmb-body">
+        <label class="cmb-f">Chi curi<select id="heal-target"></select></label>
+        <p class="cmb-hint">Cura te stesso o un alleato presente nella stanza. Consuma chakra.</p>
+      </div>
+      <div class="cmb-foot"><button type="button" class="btn-ghost" id="heal-cancel">Annulla</button><button type="button" class="btn-red" id="heal-go">Cura</button></div>
     </div>
   </div>
 </body>
