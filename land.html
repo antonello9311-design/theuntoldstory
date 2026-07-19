@@ -666,11 +666,11 @@
   .exp-btn{display:inline-flex;align-items:center;gap:5px;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--red-deep);background:transparent;border:1px solid var(--edge);padding:6px 9px;cursor:pointer}
   .exp-btn:hover{background:rgba(166,50,29,.08)}
   .exp-btn .sw{width:15px;height:15px}
-  .editor-ov{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:16px}
+  .editor-ov{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:16px;pointer-events:none}
   .editor-ov[hidden]{display:none}
-  .editor-bk{position:absolute;inset:0;background:rgba(30,18,6,.55)}
-  .editor-card{position:relative;z-index:1;width:min(800px,100%);height:min(90vh,940px);display:flex;flex-direction:column;background:linear-gradient(#f1e6ca,#e7d6b2);border:1px solid var(--edge);border-radius:14px;box-shadow:0 24px 60px rgba(20,12,4,.5);overflow:hidden}
-  .editor-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--edge);background:rgba(255,250,235,.45)}
+  .editor-bk{display:none}
+  .editor-card{position:relative;z-index:1;width:min(760px,100%);height:min(78vh,860px);display:flex;flex-direction:column;background:linear-gradient(#f1e6ca,#e7d6b2);border:1px solid var(--edge);border-radius:14px;box-shadow:0 24px 60px rgba(20,12,4,.5);overflow:hidden;pointer-events:auto;resize:both;min-width:340px;min-height:300px}
+  .editor-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--edge);background:rgba(255,250,235,.45);cursor:move;user-select:none;touch-action:none}
   .editor-head h3{margin:0;font-family:'Cinzel',serif;font-size:15px;color:var(--red-deep);flex:1}
   .editor-head .ed-to{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
   .editor-x{border:0;background:transparent;font-size:24px;line-height:1;color:var(--ink-soft);cursor:pointer;padding:0 4px}
@@ -993,8 +993,8 @@
   </div>
   <div class="editor-ov" id="editor-ov" hidden aria-label="Editor della role">
     <div class="editor-bk" id="editor-bk"></div>
-    <div class="editor-card" role="dialog" aria-modal="true">
-      <div class="editor-head"><h3>La tua role</h3><span class="ed-to" id="ed-to"></span><button class="editor-x" id="editor-x" type="button" aria-label="Chiudi">&times;</button></div>
+    <div class="editor-card" role="dialog">
+      <div class="editor-head" id="editor-drag" title="Trascina per spostare la finestra"><h3>La tua role</h3><span class="ed-to" id="ed-to"></span><button class="editor-x" id="editor-x" type="button" aria-label="Chiudi">&times;</button></div>
       <div class="editor-body"><textarea id="ed-text" maxlength="5000" placeholder="Scrivi qui il tuo turno di gioco. Hai tutto lo spazio per rileggere la tua role prima di inviarla&hellip;"></textarea></div>
       <div class="editor-foot"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*. Il testo resta sincronizzato con la chat.</span><span class="ccount" id="ed-count">0 / 5000</span><button class="btn-send" id="ed-send" type="button">Invia</button></div>
     </div>
@@ -1545,8 +1545,12 @@
       function doAcadCancel(){ if(!classState||!classState.session||!sb) return; sb.rpc('academy_class_cancel',{p_session:classState.session}).then(function(r){ if(r&&r.error){ toast('Impossibile interrompere'); return; } toast('Lezione interrotta'); loadMsgs(); loadAcadClass(); }, function(){}); }
       function acadErr(m){ m=(m||'').toLowerCase(); if(/gia una classe/.test(m)) return 'C’è già una classe in corso qui'; if(/personaggio/.test(m)) return 'Ti serve un personaggio'; if(/tengono/.test(m)) return 'Qui non si tengono lezioni'; return 'Operazione non riuscita'; }
       (function(){ var b; b=acadEl('lp-x'); if(b) b.addEventListener('click', closeLessonPicker); b=acadEl('lp-bk'); if(b) b.addEventListener('click', closeLessonPicker); })();
+      /* ---- Tag luogo persistente: una volta inserito resta, per stanza, finché il player non lo cambia ---- */
+      function restorePlace(id){ var pl=document.getElementById('msg-place'); if(!pl) return; var v=''; try{ v=(JSON.parse(localStorage.getItem('tus_place')||'{}'))[id]||''; }catch(e){} pl.value=v; }
+      function savePlace(){ if(!cur) return; var pl=document.getElementById('msg-place'); if(!pl) return; try{ var m=JSON.parse(localStorage.getItem('tus_place')||'{}'); var v=pl.value.trim(); if(v) m[cur.id]=v.slice(0,60); else delete m[cur.id]; localStorage.setItem('tus_place', JSON.stringify(m)); }catch(e){} }
+      (function(){ var pl=document.getElementById('msg-place'); if(pl) pl.addEventListener('input', savePlace); })();
       function openRoom(l){
-        cur=l; showView('room'); updateHealBtn();
+        cur=l; showView('room'); updateHealBtn(); restorePlace(l.id);
         nameEl.textContent=l.name; kindEl.textContent=l.kind||''; descEl.textContent=l.description||'';
         var im=document.getElementById('room-img'), nt=document.getElementById('room-note');
         if(im){ if(l.image_url){ im.src=l.image_url; im.style.display='block'; } else { im.removeAttribute('src'); im.style.display='none'; } }
@@ -1613,8 +1617,29 @@
       if(edText){ edText.addEventListener('input', function(){ if(input) input.value=edText.value; edCount(); updCount(); }); edText.addEventListener('keydown', function(e){ if(e.key==='Escape'){ e.preventDefault(); closeEditor(); } }); }
       (function(){ var b; b=document.getElementById('exp-btn'); if(b) b.addEventListener('click', openEditor);
         b=document.getElementById('editor-x'); if(b) b.addEventListener('click', closeEditor);
-        b=document.getElementById('editor-bk'); if(b) b.addEventListener('click', closeEditor);
         b=document.getElementById('ed-send'); if(b) b.addEventListener('click', edSend); })();
+      /* ---- Editor sganciato: trascinabile dalla barra del titolo (la chat resta visibile e consultabile) ---- */
+      (function(){
+        var card=edOv?edOv.querySelector('.editor-card'):null, head=document.getElementById('editor-drag');
+        if(!card||!head) return;
+        var off={x:0,y:0};
+        function apply(){ card.style.transform='translate('+off.x+'px,'+off.y+'px)'; }
+        head.addEventListener('pointerdown', function(e){
+          if(e.target && e.target.closest && e.target.closest('button')) return;
+          e.preventDefault();
+          var sx=e.clientX-off.x, sy=e.clientY-off.y;
+          var r0=card.getBoundingClientRect(), bx=r0.left-off.x, by=r0.top-off.y, w=r0.width;
+          function mv(ev){
+            off.x=ev.clientX-sx; off.y=ev.clientY-sy;
+            var vw=window.innerWidth, vh=window.innerHeight;
+            off.x=Math.max(-(bx+w-90), Math.min(off.x, vw-bx-90));   // almeno 90px della barra restano visibili
+            off.y=Math.max(-by+4, Math.min(off.y, vh-by-56));        // la barra non esce mai dallo schermo
+            apply();
+          }
+          function up(){ document.removeEventListener('pointermove',mv); document.removeEventListener('pointerup',up); }
+          document.addEventListener('pointermove',mv); document.addEventListener('pointerup',up);
+        });
+      })();
       (function(){ var lo=document.getElementById('legend-ov');
         function openLeg(){ if(lo) lo.hidden=false; } function closeLeg(){ if(lo) lo.hidden=true; }
         var b=document.getElementById('legend-btn'); if(b) b.addEventListener('click', openLeg);
