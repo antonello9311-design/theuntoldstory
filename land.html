@@ -247,12 +247,13 @@
   .side-card.who{flex:1 1 auto;min-height:56px}
   @media(max-width:760px){
     .room-grid{display:flex;flex-direction:column}
-    .room-side{flex-direction:row;gap:10px;order:-1}
+    .room-side{flex-direction:row;flex-wrap:wrap;gap:10px;order:-1}
     .side-card.who{display:none}
     .side-card.place{flex:1;flex-direction:row;align-items:flex-start;gap:10px}
     .side-k{display:none}
     .place-img{width:116px;max-height:78px;margin:0;flex-shrink:0}
     .place-note{display:none!important}
+    .side-card.acad,.side-card.rec{flex:1 1 100%}
   }
   .chat{min-height:0;display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:12px;background:rgba(247,238,214,.5);overflow:hidden}
   .msgs{flex:1;min-height:0;overflow-y:auto;padding:12px 15px;display:flex;flex-direction:column;gap:11px}
@@ -764,6 +765,26 @@
   .rg-crow select,.rg-crow input{font-family:'Cormorant Garamond',serif;font-size:13.5px;border:1px solid var(--rule);background:rgba(255,252,244,.8);padding:5px 6px;color:var(--ink);width:100%}
   .rg-cfoot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:2px}
   .cmb-out{font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.4;color:var(--ink)}
+
+  /* ---- Mobile: barra strumenti compatta, editor a tutto schermo, dettatura ---- */
+  @media(max-width:700px){
+    .composer-row{gap:6px}
+    .composer-tools{flex-wrap:wrap;flex-shrink:1;gap:6px;row-gap:6px}
+    .obj-btn,.exp-btn,.dice-btn,.cmb-btn{font-size:0;gap:0;padding:7px}
+    #heal-btn{font-size:11px;padding:6px 8px}
+    .tech-sel{max-width:132px}
+    .msg-to{max-width:104px}
+    .tech-hint{display:none}
+    .vitmini .vtrack{width:44px}
+    .ccount{font-size:9px}
+  }
+  @media(max-width:640px){
+    .editor-ov{padding:0}
+    .editor-card{width:100vw;height:100%;min-height:0;max-height:none;border-radius:0;resize:none;transform:none!important}
+    .editor-head{cursor:default}
+  }
+  .mic-on{background:var(--red)!important;color:#f6ead0!important;border-color:var(--red-deep)!important;animation:micpulse 1.15s ease-in-out infinite}
+  @keyframes micpulse{50%{opacity:.55}}
 </style>
 </head>
 <body>
@@ -885,7 +906,7 @@
                 <div class="place-bar"><svg class="pb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg><input id="msg-place" class="pb-input" maxlength="60" autocomplete="off" placeholder="Luogo — es. Strade del villaggio"></div>
                 <textarea id="msg-input" maxlength="5000" placeholder="Scrivi il tuo turno di gioco…"></textarea>
                 <div class="item-pop" id="item-pop" hidden><div class="ip-head">Oggetti equipaggiati</div><div id="ip-list"></div></div>
-                <div class="composer-row"><div class="composer-tools act-side"><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><select class="tech-sel" id="msg-tech" title="Tecnica o abilità usata (dalla tua scheda)"><option value="">Tecnica / Abilità…</option></select><span class="tech-hint" id="tech-hint"></span><span class="vitmini" id="vit-mini"><span class="vrow"><b>PV</b><span class="vtrack pv" id="vt-pv"><i id="vf-pv"></i></span><span class="vnum" id="vn-pv">—</span></span><span class="vrow"><b>CK</b><span class="vtrack ck"><i id="vf-ck"></i></span><span class="vnum" id="vn-ck">—</span></span></span></div><div class="composer-tools mech-side"><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="exp-btn" id="exp-btn" type="button" title="Apri l'editor: finestra grande per scrivere e rileggere tutta la tua role"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg>Editor</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="cmb-btn" type="button" title="Calcolo combattimento"><svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>Combatti</button><button class="cmb-btn" id="heal-btn" type="button" title="Cura: te stesso o un alleato presente (Mente ≥ 25)" style="display:none">✚ Cura</button><span id="ko-badge" style="display:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1px solid var(--red-deep);border-radius:7px;padding:4px 9px">⚠ Fuori combattimento</span><button class="cmb-btn" id="regia-btn" type="button" style="display:none" title="Regia del master: PNG in scena e stato del gruppo"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/></svg>Regia</button><button class="legend-btn" id="spell-btn" type="button" style="width:auto;padding:0 8px;font-size:11px" title="Correttore ortografico del browser (attivo/spento). I termini del mondo — shinobi, kunoichi, jutsu… — non sono errori: sono nel Glossario dell'Ambientazione. Se le sottolineature rosse disturbano, spegnilo qui.">Abc</button><button class="legend-btn" id="legend-btn" type="button" title="Legenda: comandi e punteggiatura">?</button><button class="legend-btn" id="report-btn" type="button" style="width:auto;padding:0 8px" title="Segnala allo staff: una scena che ti mette a disagio, un abuso, una violazione">⚑</button><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
+                <div class="composer-row"><div class="composer-tools act-side"><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><select class="tech-sel" id="msg-tech" title="Tecnica o abilità usata (dalla tua scheda)"><option value="">Tecnica / Abilità…</option></select><span class="tech-hint" id="tech-hint"></span><span class="vitmini" id="vit-mini"><span class="vrow"><b>PV</b><span class="vtrack pv" id="vt-pv"><i id="vf-pv"></i></span><span class="vnum" id="vn-pv">—</span></span><span class="vrow"><b>CK</b><span class="vtrack ck"><i id="vf-ck"></i></span><span class="vnum" id="vn-ck">—</span></span></span><button class="obj-btn" id="mic-btn" type="button" style="display:none" title="Dettatura vocale: scrivi parlando in italiano. Tocca per iniziare, ritocca per fermare."><svg class="ob" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg>Detta</button></div><div class="composer-tools mech-side"><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="exp-btn" id="exp-btn" type="button" title="Apri l'editor: finestra grande per scrivere e rileggere tutta la tua role"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg>Editor</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="cmb-btn" type="button" title="Calcolo combattimento"><svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>Combatti</button><button class="cmb-btn" id="heal-btn" type="button" title="Cura: te stesso o un alleato presente (Mente ≥ 25)" style="display:none">✚ Cura</button><span id="ko-badge" style="display:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1px solid var(--red-deep);border-radius:7px;padding:4px 9px">⚠ Fuori combattimento</span><button class="cmb-btn" id="regia-btn" type="button" style="display:none" title="Regia del master: PNG in scena e stato del gruppo"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/></svg>Regia</button><button class="legend-btn" id="spell-btn" type="button" style="width:auto;padding:0 8px;font-size:11px" title="Correttore ortografico del browser (attivo/spento). I termini del mondo — shinobi, kunoichi, jutsu… — non sono errori: sono nel Glossario dell'Ambientazione. Se le sottolineature rosse disturbano, spegnilo qui.">Abc</button><button class="legend-btn" id="legend-btn" type="button" title="Legenda: comandi e punteggiatura">?</button><button class="legend-btn" id="report-btn" type="button" style="width:auto;padding:0 8px" title="Segnala allo staff: una scena che ti mette a disagio, un abuso, una violazione">⚑</button><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
               </div>
             </section>
             <aside class="room-side">
@@ -996,7 +1017,7 @@
     <div class="editor-card" role="dialog">
       <div class="editor-head" id="editor-drag" title="Trascina per spostare la finestra"><h3>La tua role</h3><span class="ed-to" id="ed-to"></span><button class="editor-x" id="editor-x" type="button" aria-label="Chiudi">&times;</button></div>
       <div class="editor-body"><textarea id="ed-text" maxlength="5000" placeholder="Scrivi qui il tuo turno di gioco. Hai tutto lo spazio per rileggere la tua role prima di inviarla&hellip;"></textarea></div>
-      <div class="editor-foot"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*. Il testo resta sincronizzato con la chat.</span><span class="ccount" id="ed-count">0 / 5000</span><button class="btn-send" id="ed-send" type="button">Invia</button></div>
+      <div class="editor-foot"><span class="chint">Parlato tra &quot;virgolette&quot; · azioni tra *asterischi*. Il testo resta sincronizzato con la chat.</span><button class="exp-btn" id="mic-btn-ed" type="button" style="display:none" title="Dettatura vocale (italiano)"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg>Detta</button><span class="ccount" id="ed-count">0 / 5000</span><button class="btn-send" id="ed-send" type="button">Invia</button></div>
     </div>
   </div>
   <div class="legend-ov" id="legend-ov" hidden aria-label="Legenda della chat">
@@ -1022,6 +1043,7 @@
             <li><b>Oggetto</b> — usa un oggetto che hai equipaggiato.</li>
             <li><b>1d100</b> — tira un dado da 1 a 100.</li>
             <li><b>Combatti</b> — apre il calcolo di un'azione di combattimento.</li>
+            <li><b>Detta</b> — dettatura vocale: scrivi parlando in italiano (se il tuo browser la supporta; comodissima da telefono).</li>
             <li><b>Abc</b> — accende o spegne il correttore ortografico del browser (i termini del mondo non sono errori: v. Glossario).</li>
             <li><b>⚑</b> — segnala allo staff una scena che ti mette a disagio, un abuso o una violazione.</li>
             <li><b>Invia</b> — pubblica il messaggio.</li>
@@ -1672,6 +1694,43 @@
             if(t) t.value=''; closeRep(); toast('Segnalazione inviata allo staff. Grazie.');
           }, function(){ btn.disabled=false; toast('Invio non riuscito, riprova'); });
         });
+      })();
+      /* ---- Dettatura vocale (Web Speech API, it-IT) ---- */
+      (function(){
+        var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+        var mb=document.getElementById('mic-btn'), mbe=document.getElementById('mic-btn-ed');
+        if(!SR) return;
+        if(mb) mb.style.display=''; if(mbe) mbe.style.display='';
+        var rec=null, active=false, target=null, base='';
+        function joinTxt(a,b){ a=a||''; b=(b||'').replace(/^\s+/,''); if(!b) return a; if(!a) return b.charAt(0).toUpperCase()+b.slice(1); return a+(/\s$/.test(a)?'':' ')+b; }
+        function syncOut(){ if(!target) return;
+          if(target===edText){ if(input) input.value=edText.value; try{edCount();}catch(e){} }
+          try{ updCount(); }catch(e){}
+        }
+        function uiOn(){ if(mb)mb.classList.add('mic-on'); if(mbe)mbe.classList.add('mic-on'); }
+        function uiOff(){ if(mb)mb.classList.remove('mic-on'); if(mbe)mbe.classList.remove('mic-on'); }
+        function mkRec(){
+          var r=new SR(); r.lang='it-IT'; r.continuous=true; r.interimResults=true;
+          r.onresult=function(e){ var fin='', mid='';
+            for(var i=e.resultIndex;i<e.results.length;i++){ var t=e.results[i][0].transcript; if(e.results[i].isFinal) fin+=t; else mid+=t; }
+            if(fin) base=joinTxt(base,fin);
+            if(target){ target.value=joinTxt(base,mid); syncOut(); } };
+          r.onerror=function(e){ var k=e&&e.error;
+            if(k==='not-allowed'||k==='service-not-allowed'){ toast('Microfono non consentito: controlla i permessi del browser'); stopDict(); }
+            else if(k==='audio-capture'){ toast('Nessun microfono trovato'); stopDict(); } };
+          r.onend=function(){ if(active){ try{ r.start(); }catch(e){ stopDict(); } } };
+          return r; }
+        function startDict(t){ if(active){ stopDict(); return; } if(!t) return;
+          target=t; base=t.value||''; active=true; rec=rec||mkRec();
+          try{ rec.start(); uiOn(); toast('Dettatura attiva: parla pure. Tocca di nuovo per fermare.'); }
+          catch(e){ active=false; uiOff(); } }
+        function stopDict(){ if(!active&&!rec) return; active=false; uiOff(); if(rec){ try{ rec.stop(); }catch(e){} } }
+        if(mb) mb.addEventListener('click', function(){ startDict(input); });
+        if(mbe) mbe.addEventListener('click', function(){ startDict(edText); });
+        var s1=document.getElementById('msg-send'); if(s1) s1.addEventListener('click', stopDict);
+        var s2=document.getElementById('ed-send'); if(s2) s2.addEventListener('click', stopDict);
+        var s3=document.getElementById('editor-x'); if(s3) s3.addEventListener('click', stopDict);
+        window.addEventListener('pagehide', stopDict);
       })();
       (function(){ var lo=document.getElementById('legend-ov');
         function openLeg(){ if(lo) lo.hidden=false; } function closeLeg(){ if(lo) lo.hidden=true; }
