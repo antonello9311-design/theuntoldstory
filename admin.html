@@ -60,6 +60,8 @@
   .cat-form label.chk{flex-direction:row;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:15px;font-family:'Cormorant Garamond',serif;color:var(--ink)}
   .cat-form .fgrp{grid-column:1/-1;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep);border-bottom:1px solid var(--edge);padding:10px 0 4px}
   .ia-ava{width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid var(--edge);background:rgba(255,250,235,.7);flex:0 0 auto}
+  .ia-sub{display:none}
+  .ia-sub.on{display:block}
   .cat-form input,.cat-form select{font-family:'Cormorant Garamond',serif;font-size:15px;padding:7px 9px;border:1px solid var(--edge);background:rgba(255,250,235,.7);color:var(--ink)}
   .cat-actions{display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap}
   .editing-note{font-style:italic;color:var(--red-deep);font-size:14px}
@@ -375,14 +377,18 @@
           </section>
 
           <section class="adm-page" data-page="ia">
-          <div class="grp-title" style="margin-top:0">IA — Sensei Accademia</div>
-          <p class="mgr-note">L'<b>hub IA</b> della Land, sezione Sensei: i maestri che conducono le lezioni dell'Accademia. Ogni villaggio ha un <b>pool</b>: all'avvio di una lezione il sensei viene <b>estratto a caso</b> tra gli attivi del villaggio, e il <b>Peso</b> alza la probabilità di uscire. Da qui modifichi <b>voce, carattere, reazioni, aspetto e guardrail</b> senza toccare codice: l'IA li usa dal turno successivo. L'<b>avatar</b> si carica qui e compare come piccolo emblema accanto ai messaggi; in chat è l'IA a descrivere l'aspetto a parole. <i>(Le sezioni «PNG di trama» ed «Eventi» arriveranno nelle prossime fasi.)</i></p>
-          <button type="button" class="adm-addbtn" data-addnew="ia"><span class="plus">+</span> Aggiungi nuovo sensei</button>
+          <div class="grp-title" style="margin-top:0">IA — PNG della Land</div>
+          <p class="mgr-note">L'<b>hub dei PNG</b>, in tre sezioni ben definite: <b>Accademia</b> (i sensei-IA delle lezioni), <b>PNG Trama</b> (il cast narrativo guidato dall'IA) e <b>Ninja Book</b> (i modelli con statistiche che i master <b>evocano in scena dalla Regia</b>: è la stessa fonte, gestibile anche da qui). Ogni sezione ha il suo <b>+ Aggiungi PNG</b>, così è sempre chiaro da dove si pesca e dove creare i prossimi.</p>
+          <div class="adm-nav" id="ia-subtabs" style="margin:10px 0 6px;max-width:none;justify-content:flex-start">
+            <button type="button" data-iasub="sensei" class="on">Accademia</button>
+            <button type="button" data-iasub="png_trama">PNG Trama</button>
+            <button type="button" data-iasub="ninja_book">Ninja Book</button>
+          </div>
           <div class="cat-formwrap" hidden>
           <div class="cat-form" id="ia-form">
             <div class="fgrp">Identità</div>
             <label>Nome<input id="ia-name" maxlength="40" placeholder="es. Katsuo"></label>
-            <label>Villaggio<select id="ia-village"><option value="konoha">Konoha</option><option value="suna">Suna</option></select></label>
+            <label>Villaggio<select id="ia-village"><option value="konoha">Konoha</option><option value="suna">Suna</option><option value="">Globale (ovunque)</option></select></label>
             <label>Titolo <span class="opt">(facoltativo)</span><input id="ia-title" maxlength="60" placeholder="es. la Vipera del deserto"></label>
             <label>Peso nel pool<input id="ia-weight" type="number" min="1" step="1" placeholder="1"></label>
             <label class="chk"><input type="checkbox" id="ia-active" checked> Attivo (partecipa all'estrazione)</label>
@@ -418,12 +424,69 @@
             <label class="full">Note staff <span class="opt">(non arrivano all'IA)</span><input id="ia-notes" maxlength="300" placeholder="appunti interni"></label>
           </div>
           <div class="cat-actions">
-            <button class="btn btn-red" id="ia-save">Salva sensei</button>
+            <button class="btn btn-red" id="ia-save">Salva PNG</button>
             <button class="btn" id="ia-reset" style="display:none">Annulla</button>
             <span id="ia-editing" class="editing-note"></span>
           </div>
           </div>
-          <div id="ia-list"></div>
+
+          <div class="ia-sub on" data-iasub="sensei">
+            <p class="mgr-note">I <b>maestri dell'Accademia</b>. Ogni villaggio ha un <b>pool</b>: all'avvio della lezione il sensei viene <b>estratto a caso</b> tra gli attivi del villaggio, e il <b>Peso</b> alza la probabilità di uscire. Voce, carattere, aspetto e guardrail si modificano da qui: l'IA li usa dal turno successivo. L'avatar compare come piccolo emblema accanto ai messaggi; in chat è l'IA a descrivere l'aspetto a parole.</p>
+            <button type="button" class="adm-addbtn" data-addnew="ia"><span class="plus">+</span> Aggiungi PNG</button>
+            <div id="ia-list"></div>
+          </div>
+
+          <div class="ia-sub" data-iasub="png_trama">
+            <p class="mgr-note">Il cast dei <b>personaggi di trama</b>: antagonisti, figure ricorrenti, volti che torneranno nelle scene. Si creano e si organizzano qui con la stessa scheda dei sensei (voce, carattere, aspetto, guardrail); con la <b>Fase 2</b> prenderanno voce in scena tramite l'IA. Villaggio <b>«Globale»</b> = può comparire ovunque.</p>
+            <button type="button" class="adm-addbtn" data-addnew="ia-trama"><span class="plus">+</span> Aggiungi PNG</button>
+            <div id="iat-list"></div>
+          </div>
+
+          <div class="ia-sub" data-iasub="ninja_book">
+            <p class="mgr-note">I modelli del <b>Ninja Book</b>: PNG pronti al combattimento, con le <b>nove statistiche</b> (multipli di 5) e fino a <b>tre abilità</b>, che i master <b>evocano in scena dalla Regia</b>. PV e chakra si calcolano da soli in base al grado. Creati qui o dalla Regia, finiscono nello stesso libro.</p>
+            <button type="button" class="adm-addbtn" data-addnew="ninjabook"><span class="plus">+</span> Aggiungi PNG</button>
+            <div class="cat-formwrap" hidden>
+            <div class="cat-form" id="nb-form">
+              <div class="fgrp">Modello</div>
+              <label>Nome<input id="nb-nome" maxlength="40" placeholder="es. Bandito"></label>
+              <label>Epiteto <span class="opt">(facoltativo)</span><input id="nb-epiteto" maxlength="60" placeholder="es. delle Sabbie Rosse"></label>
+              <label>Grado<select id="nb-grado"><option>D</option><option>C</option><option>B</option><option>A</option><option>S</option></select></label>
+              <label>Prestavolto <span class="opt">(facolt.)</span><input id="nb-prestavolto" maxlength="80" placeholder="volto di riferimento"></label>
+              <label>Volto <span class="opt">(immagine, max 3 MB)</span><input id="nb-avatar" type="file" accept="image/*"></label>
+              <label class="chk"><input type="checkbox" id="nb-active" checked> Attivo (evocabile dalla Regia)</label>
+              <div class="fgrp">Statistiche (multipli di 5)</div>
+              <label>Forza<input id="nb-forza" type="number" step="5" min="0" max="120" value="10"></label>
+              <label>Taijutsu<input id="nb-taijutsu" type="number" step="5" min="0" max="120" value="10"></label>
+              <label>Velocità<input id="nb-velocita" type="number" step="5" min="0" max="120" value="10"></label>
+              <label>Mente<input id="nb-mente" type="number" step="5" min="0" max="120" value="10"></label>
+              <label>Ninjutsu<input id="nb-ninjutsu" type="number" step="5" min="0" max="120" value="10"></label>
+              <label>Genjutsu<input id="nb-genjutsu" type="number" step="5" min="0" max="120" value="10"></label>
+              <label>Resistenza<input id="nb-resistenza" type="number" step="5" min="0" max="120" value="10"></label>
+              <label>Fuuinjutsu<input id="nb-fuuinjutsu" type="number" step="5" min="0" max="120" value="10"></label>
+              <label>Kekkei Genkai<input id="nb-kekkei_genkai" type="number" step="5" min="0" max="120" value="0"></label>
+              <div class="fgrp">Abilità (fino a 3)</div>
+              <label>Abilità 1 — nome<input id="nb-ab0-n" maxlength="40" placeholder="es. Fendente"></label>
+              <label>Tipo<select id="nb-ab0-k"><option value="fisico">Fisico</option><option value="ninjutsu">Ninjutsu</option></select></label>
+              <label>Danno<input id="nb-ab0-d" type="number" step="5" min="0" max="120" placeholder="15"></label>
+              <label>Costo chakra<input id="nb-ab0-c" type="number" step="5" min="0" max="60" placeholder="0"></label>
+              <label>Abilità 2 — nome<input id="nb-ab1-n" maxlength="40"></label>
+              <label>Tipo<select id="nb-ab1-k"><option value="fisico">Fisico</option><option value="ninjutsu">Ninjutsu</option></select></label>
+              <label>Danno<input id="nb-ab1-d" type="number" step="5" min="0" max="120"></label>
+              <label>Costo chakra<input id="nb-ab1-c" type="number" step="5" min="0" max="60"></label>
+              <label>Abilità 3 — nome<input id="nb-ab2-n" maxlength="40"></label>
+              <label>Tipo<select id="nb-ab2-k"><option value="fisico">Fisico</option><option value="ninjutsu">Ninjutsu</option></select></label>
+              <label>Danno<input id="nb-ab2-d" type="number" step="5" min="0" max="120"></label>
+              <label>Costo chakra<input id="nb-ab2-c" type="number" step="5" min="0" max="60"></label>
+              <label class="full">Note per il master<textarea id="nb-note" maxlength="600" rows="2" placeholder="Come si comporta, quando usarlo…"></textarea></label>
+            </div>
+            <div class="cat-actions">
+              <button class="btn btn-red" id="nb-save">Salva PNG</button>
+              <button class="btn" id="nb-reset" style="display:none">Annulla</button>
+              <span id="nb-editing" class="editing-note"></span>
+            </div>
+            </div>
+            <div id="nb-list"></div>
+          </div>
           </section>
 
           <section class="adm-page" data-page="clan">
@@ -941,44 +1004,70 @@
       });
     }
 
-    /* ---- IA — Sensei Accademia (hub IA, Fase 1) ---- */
-    var IA_ROWS=[],editingIA=null,delArmIA=null;
+    /* ---- IA — hub PNG della Land: Accademia (sensei) · PNG Trama · Ninja Book ---- */
+    var IA_ROWS=[],editingIA=null,delArmIA=null,iaKind='sensei';
+    function iaGo(sub){
+      var subs=document.querySelectorAll('.ia-sub');for(var i=0;i<subs.length;i++){subs[i].classList.toggle('on',subs[i].getAttribute('data-iasub')===sub);}
+      var bts=document.querySelectorAll('#ia-subtabs button');for(var j=0;j<bts.length;j++){bts[j].classList.toggle('on',bts[j].getAttribute('data-iasub')===sub);}
+      admHideAllForms();
+      try{localStorage.setItem('tus_ia_sub',sub);}catch(e){}
+    }
+    (function(){var st=document.getElementById('ia-subtabs');if(!st)return;
+      st.addEventListener('click',function(e){var b=e.target.closest('button[data-iasub]');if(b)iaGo(b.getAttribute('data-iasub'));});
+      var saved=null;try{saved=localStorage.getItem('tus_ia_sub');}catch(e){}
+      if(saved)iaGo(saved);
+    })();
+    function iaSetKind(k){
+      iaKind=(k==='png_trama')?'png_trama':'sensei';
+      var v=$('ia-village');if(v)v.value=(iaKind==='sensei')?'konoha':'';
+      $('ia-save').textContent=editingIA?'Aggiorna PNG':'Salva PNG';
+    }
     function resetIAForm(){
       editingIA=null;
       ['ia-name','ia-title','ia-weight','ia-bio','ia-registro','ia-ritmo','ia-appellativo','ia-mai','ia-frasi','ia-tratti','ia-ama','ia-detesta','ia-difetto','ia-rbravo','ia-rpigro','ia-rspavaldo','ia-rtimido','ia-inaula','ia-eta','ia-capelli','ia-occhi','ia-volto','ia-corporatura','ia-segni','ia-guard','ia-notes'].forEach(function(id){var el=$(id);if(el)el.value='';});
-      var v=$('ia-village');if(v)v.value='konoha';
+      var v=$('ia-village');if(v)v.value=(iaKind==='sensei')?'konoha':'';
       var ac=$('ia-active');if(ac)ac.checked=true;
       var av=$('ia-avatar');if(av)av.value='';
-      $('ia-reset').style.display='none';$('ia-editing').textContent='';$('ia-save').textContent='Salva sensei';
+      $('ia-reset').style.display='none';$('ia-editing').textContent='';$('ia-save').textContent='Salva PNG';
     }
-    async function loadIA(){var r=await sb.from('ai_agents').select('*').eq('kind','sensei').order('village').order('name');IA_ROWS=(r&&r.data)||[];renderIA();}
+    async function loadIA(){var r=await sb.from('ai_agents').select('*').in('kind',['sensei','png_trama']).order('village').order('name');IA_ROWS=(r&&r.data)||[];renderIA();}
+    function iaRowHTML(a){
+      var av=a.avatar_url?('<img class="ia-ava" src="'+esc(a.avatar_url)+'" alt="" onerror="this.style.visibility=\'hidden\'">'):'<span class="ia-ava"></span>';
+      return '<div class="locrow'+(a.is_active?'':' off')+'">'+av+
+        '<div class="lmain"><span class="lname">'+esc(a.name)+'</span>'+
+        (a.title?('<span class="lkind">'+esc(a.title)+'</span>'):'')+
+        '<span class="lmeta"> · peso '+(a.weight||1)+(a.is_active?'':' · disattivato')+'</span>'+
+        ((a.persona&&a.persona.registro)?('<span class="ldesc">Voce: '+esc(a.persona.registro)+'</span>'):'')+'</div>'+
+        '<div class="lacts">'+
+          '<button class="mini-btn" data-iaedit="'+a.id+'">Modifica</button>'+
+          '<button class="mini-btn" data-iatoggle="'+a.id+'">'+(a.is_active?'Disattiva':'Attiva')+'</button>'+
+          '<button class="mini-btn danger" data-iadel="'+a.id+'">Elimina</button>'+
+        '</div></div>';
+    }
     function renderIA(){
-      var host=$('ia-list');if(!host)return;
-      if(!IA_ROWS.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun sensei nel pool. Aggiungine uno qui sopra.</p>';return;}
-      var groups=[['konoha','Konoha'],['suna','Suna']];
-      host.innerHTML=groups.map(function(g){
-        var rows=IA_ROWS.filter(function(a){return a.village===g[0];});
-        if(!rows.length)return '';
-        return '<div class="bd-cat">'+g[1]+'</div>'+rows.map(function(a){
-          var av=a.avatar_url?('<img class="ia-ava" src="'+esc(a.avatar_url)+'" alt="" onerror="this.style.visibility=\'hidden\'">'):'<span class="ia-ava"></span>';
-          return '<div class="locrow'+(a.is_active?'':' off')+'">'+av+
-            '<div class="lmain"><span class="lname">'+esc(a.name)+'</span>'+
-            (a.title?('<span class="lkind">'+esc(a.title)+'</span>'):'')+
-            '<span class="lmeta"> · peso '+(a.weight||1)+(a.is_active?'':' · disattivato')+'</span>'+
-            ((a.persona&&a.persona.registro)?('<span class="ldesc">Voce: '+esc(a.persona.registro)+'</span>'):'')+'</div>'+
-            '<div class="lacts">'+
-              '<button class="mini-btn" data-iaedit="'+a.id+'">Modifica</button>'+
-              '<button class="mini-btn" data-iatoggle="'+a.id+'">'+(a.is_active?'Disattiva':'Attiva')+'</button>'+
-              '<button class="mini-btn danger" data-iadel="'+a.id+'">Elimina</button>'+
-            '</div></div>';
-        }).join('');
-      }).join('');
+      var hostS=$('ia-list'),hostT=$('iat-list');
+      var groups=[['konoha','Konoha'],['suna','Suna'],[null,'Globale']];
+      if(hostS){
+        var sen=IA_ROWS.filter(function(a){return a.kind==='sensei';});
+        hostS.innerHTML=sen.length?groups.map(function(g){
+          var rows=sen.filter(function(a){return (a.village||null)===g[0];});
+          return rows.length?('<div class="bd-cat">'+g[1]+'</div>'+rows.map(iaRowHTML).join('')):'';
+        }).join(''):'<p class="mgr-note" style="margin:6px 0 0">Nessun sensei nel pool. Aggiungine uno qui sopra.</p>';
+      }
+      if(hostT){
+        var tra=IA_ROWS.filter(function(a){return a.kind==='png_trama';});
+        hostT.innerHTML=tra.length?groups.map(function(g){
+          var rows=tra.filter(function(a){return (a.village||null)===g[0];});
+          return rows.length?('<div class="bd-cat">'+g[1]+'</div>'+rows.map(iaRowHTML).join('')):'';
+        }).join(''):'<p class="mgr-note" style="margin:6px 0 0">Nessun PNG di trama, per ora. Il cast si costruisce da qui.</p>';
+      }
     }
     function iaLines(v){return (v||'').split('\n').map(function(s){return s.trim();}).filter(Boolean);}
     function bindIA(){
       $('ia-reset').addEventListener('click',function(){resetIAForm();admFormHide('ia');});
       $('ia-save').addEventListener('click',async function(){
         var name=$('ia-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
+        if(iaKind==='sensei'&&!$('ia-village').value){toast('Un sensei deve avere un villaggio (il pool è per villaggio)',true);return;}
         var row=editingIA?IA_ROWS.filter(function(x){return x.id===editingIA;})[0]:null;
         var p=(row&&row.persona)?JSON.parse(JSON.stringify(row.persona)):{};
         function setOr(k,v){if(v)p[k]=v;else delete p[k];}
@@ -999,7 +1088,7 @@
         var asp={};[['eta','ia-eta'],['capelli','ia-capelli'],['occhi','ia-occhi'],['volto','ia-volto'],['corporatura','ia-corporatura'],['segni','ia-segni']].forEach(function(kv){var v=$(kv[1]).value.trim();if(v)asp[kv[0]]=v;});
         if(Object.keys(asp).length)p.aspetto=asp;else delete p.aspetto;
         var gl=iaLines($('ia-guard').value);if(gl.length)p.guardrail=gl;else delete p.guardrail;
-        var payload={kind:'sensei',village:$('ia-village').value,name:name,title:$('ia-title').value.trim()||null,persona:p,weight:Math.max(1,parseInt($('ia-weight').value,10)||1),is_active:$('ia-active').checked,notes:$('ia-notes').value.trim()||null,updated_at:new Date().toISOString()};
+        var payload={kind:iaKind,village:$('ia-village').value||null,name:name,title:$('ia-title').value.trim()||null,persona:p,weight:Math.max(1,parseInt($('ia-weight').value,10)||1),is_active:$('ia-active').checked,notes:$('ia-notes').value.trim()||null,updated_at:new Date().toISOString()};
         this.disabled=true;
         var fi=$('ia-avatar');var file=fi&&fi.files&&fi.files[0];
         if(file){
@@ -1013,13 +1102,14 @@
         var r=editingIA?await sb.from('ai_agents').update(payload).eq('id',editingIA).select().single():await sb.from('ai_agents').insert(payload).select().single();
         this.disabled=false;
         if(r.error){toast('Errore nel salvataggio',true);return;}
-        toast(editingIA?'Sensei aggiornato':'Sensei creato');resetIAForm();admFormHide('ia');loadIA();
+        toast(editingIA?'PNG aggiornato':'PNG creato');resetIAForm();admFormHide('ia');loadIA();
       });
-      $('ia-list').addEventListener('click',async function(e){
+      var iaListHandler=async function(e){
         var eb=e.target.closest('[data-iaedit]');
         if(eb){var a=IA_ROWS.filter(function(x){return String(x.id)===eb.getAttribute('data-iaedit');})[0];if(!a)return;
-          editingIA=a.id;var p=a.persona||{},asp=p.aspetto||{},rz=p.reazioni||{};
-          $('ia-name').value=a.name||'';$('ia-village').value=a.village||'konoha';$('ia-title').value=a.title||p.titolo||'';
+          editingIA=a.id;iaKind=(a.kind==='png_trama')?'png_trama':'sensei';
+          var p=a.persona||{},asp=p.aspetto||{},rz=p.reazioni||{};
+          $('ia-name').value=a.name||'';$('ia-village').value=a.village||'';$('ia-title').value=a.title||p.titolo||'';
           $('ia-weight').value=a.weight||1;$('ia-active').checked=!!a.is_active;$('ia-avatar').value='';
           $('ia-bio').value=p.bio||'';$('ia-registro').value=p.registro||'';$('ia-ritmo').value=p.ritmo||'';
           $('ia-appellativo').value=p.appellativo||'';$('ia-mai').value=p.mai||'';
@@ -1029,7 +1119,7 @@
           $('ia-inaula').value=p.in_aula||'';
           $('ia-eta').value=asp.eta||'';$('ia-capelli').value=asp.capelli||'';$('ia-occhi').value=asp.occhi||'';$('ia-volto').value=asp.volto||'';$('ia-corporatura').value=asp.corporatura||'';$('ia-segni').value=asp.segni||'';
           $('ia-guard').value=(p.guardrail||[]).join('\n');$('ia-notes').value=a.notes||'';
-          $('ia-reset').style.display='';$('ia-editing').textContent='Stai modificando: '+a.name;$('ia-save').textContent='Aggiorna sensei';
+          $('ia-reset').style.display='';$('ia-editing').textContent='Stai modificando: '+a.name+(a.kind==='png_trama'?' (PNG Trama)':' (sensei)');$('ia-save').textContent='Aggiorna PNG';
           admFormShow('ia');return;}
         var tb=e.target.closest('[data-iatoggle]');
         if(tb){var id=tb.getAttribute('data-iatoggle');var a2=IA_ROWS.filter(function(x){return String(x.id)===id;})[0];if(!a2)return;
@@ -1039,7 +1129,93 @@
         if(db){var id2=db.getAttribute('data-iadel');
           if(delArmIA!==id2){delArmIA=id2;db.textContent='Confermi?';setTimeout(function(){if(delArmIA===id2){delArmIA=null;renderIA();}},4000);return;}
           delArmIA=null;var r2=await sb.from('ai_agents').delete().eq('id',id2);
-          if(r2.error){toast('Impossibile eliminare: usato da lezioni passate. Disattivalo.',true);}else{toast('Sensei eliminato');loadIA();}return;}
+          if(r2.error){toast('Impossibile eliminare: usato da lezioni passate. Disattivalo.',true);}else{toast('PNG eliminato');loadIA();}return;}
+      };
+      $('ia-list').addEventListener('click',iaListHandler);
+      $('iat-list').addEventListener('click',iaListHandler);
+    }
+
+    /* ---- Ninja Book (png_templates): stessi modelli evocabili dalla Regia ---- */
+    var NB_ROWS=[],editingNB=null,delArmNB=null;
+    function nbSnap(v){v=parseInt(v,10);if(isNaN(v)||v<0)v=0;return Math.round(v/5)*5;}
+    function nbShowForm(){var w=document.querySelector('.ia-sub[data-iasub="ninja_book"] .cat-formwrap');if(!w)return;w.hidden=false;try{window.scrollTo({top:Math.max(0,w.offsetTop-90),behavior:'smooth'});}catch(e){}}
+    function nbHideForm(){var w=document.querySelector('.ia-sub[data-iasub="ninja_book"] .cat-formwrap');if(w)w.hidden=true;}
+    function resetNBForm(){
+      editingNB=null;
+      ['nb-nome','nb-epiteto','nb-prestavolto','nb-note','nb-ab0-n','nb-ab0-d','nb-ab0-c','nb-ab1-n','nb-ab1-d','nb-ab1-c','nb-ab2-n','nb-ab2-d','nb-ab2-c'].forEach(function(id){var el=$(id);if(el)el.value='';});
+      ['forza','taijutsu','velocita','mente','ninjutsu','genjutsu','resistenza','fuuinjutsu'].forEach(function(k){var el=$('nb-'+k);if(el)el.value=10;});
+      var kg=$('nb-kekkei_genkai');if(kg)kg.value=0;
+      var g=$('nb-grado');if(g)g.value='D';
+      ['nb-ab0-k','nb-ab1-k','nb-ab2-k'].forEach(function(id){var el=$(id);if(el)el.value='fisico';});
+      var ac=$('nb-active');if(ac)ac.checked=true;
+      var av=$('nb-avatar');if(av)av.value='';
+      $('nb-reset').style.display='none';$('nb-editing').textContent='';$('nb-save').textContent='Salva PNG';
+    }
+    async function loadNB(){var r=await sb.from('png_templates').select('*').order('grado').order('nome');NB_ROWS=(r&&r.data)||[];renderNB();}
+    function renderNB(){
+      var host=$('nb-list');if(!host)return;
+      if(!NB_ROWS.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Il Ninja Book è vuoto. Aggiungi il primo modello qui sopra (o dalla Regia in gioco).</p>';return;}
+      host.innerHTML=NB_ROWS.map(function(t){
+        var av=t.avatar_url?('<img class="ia-ava" src="'+esc(t.avatar_url)+'" alt="" onerror="this.style.visibility=\'hidden\'">'):'<span class="ia-ava"></span>';
+        var abs=[];try{abs=(typeof t.abilita==='string')?JSON.parse(t.abilita):(t.abilita||[]);}catch(e){abs=[];}
+        return '<div class="locrow'+(t.is_active===false?' off':'')+'">'+av+
+          '<div class="lmain"><span class="lname">'+esc(t.nome)+'</span>'+
+          (t.epiteto?('<span class="lkind">'+esc(t.epiteto)+'</span>'):'')+
+          '<span class="lmeta"> · grado '+esc(t.grado||'D')+' · '+abs.length+' abilità'+(t.is_active===false?' · disattivato':'')+'</span>'+
+          (t.note?('<span class="ldesc">'+esc(t.note)+'</span>'):'')+'</div>'+
+          '<div class="lacts">'+
+            '<button class="mini-btn" data-nbedit="'+t.id+'">Modifica</button>'+
+            '<button class="mini-btn" data-nbtoggle="'+t.id+'">'+(t.is_active===false?'Attiva':'Disattiva')+'</button>'+
+            '<button class="mini-btn danger" data-nbdel="'+t.id+'">Elimina</button>'+
+          '</div></div>';
+      }).join('');
+    }
+    function bindNB(){
+      $('nb-reset').addEventListener('click',function(){resetNBForm();nbHideForm();});
+      $('nb-save').addEventListener('click',async function(){
+        var nome=$('nb-nome').value.trim();if(!nome){toast('Serve un nome per il modello',true);return;}
+        var rec={nome:nome,epiteto:$('nb-epiteto').value.trim()||null,grado:$('nb-grado').value||'D',prestavolto:$('nb-prestavolto').value.trim()||null,note:$('nb-note').value.trim()||null,is_active:$('nb-active').checked};
+        ['forza','taijutsu','velocita','mente','ninjutsu','genjutsu','resistenza','fuuinjutsu','kekkei_genkai'].forEach(function(k){rec[k]=nbSnap($('nb-'+k).value);});
+        var abs=[];[0,1,2].forEach(function(i){var n=$('nb-ab'+i+'-n').value.trim();if(!n)return;abs.push({n:n,k:$('nb-ab'+i+'-k').value||'fisico',d:nbSnap($('nb-ab'+i+'-d').value),c:nbSnap($('nb-ab'+i+'-c').value)});});
+        rec.abilita=abs;
+        this.disabled=true;
+        var fi=$('nb-avatar');var file=fi&&fi.files&&fi.files[0];
+        if(file){
+          if(file.size>3145728){this.disabled=false;toast('Immagine troppo grande (max 3 MB)',true);return;}
+          var ext=((file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,''))||'jpg';
+          var slug=(nome.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''))||'png';
+          var path='ai-nb-'+slug+'-'+Date.now()+'.'+ext;
+          var up=await sb.storage.from('avatars').upload(path,file,{upsert:true,contentType:file.type});
+          if(up.error){this.disabled=false;toast('Volto non caricato: '+(up.error.message||''),true);return;}
+          rec.avatar_url=sb.storage.from('avatars').getPublicUrl(path).data.publicUrl+'?v='+Date.now();
+        }
+        var r=editingNB?await sb.from('png_templates').update(rec).eq('id',editingNB).select().single():await sb.from('png_templates').insert(rec).select().single();
+        this.disabled=false;
+        if(r.error){toast('Errore nel salvataggio: '+(r.error.message||''),true);return;}
+        toast(editingNB?'Modello aggiornato':'Modello salvato nel Ninja Book');resetNBForm();nbHideForm();loadNB();
+      });
+      $('nb-list').addEventListener('click',async function(e){
+        var eb=e.target.closest('[data-nbedit]');
+        if(eb){var t=NB_ROWS.filter(function(x){return String(x.id)===eb.getAttribute('data-nbedit');})[0];if(!t)return;
+          editingNB=t.id;
+          $('nb-nome').value=t.nome||'';$('nb-epiteto').value=t.epiteto||'';$('nb-grado').value=t.grado||'D';
+          $('nb-prestavolto').value=t.prestavolto||'';$('nb-note').value=t.note||'';
+          var ac=$('nb-active');if(ac)ac.checked=(t.is_active!==false);
+          var av=$('nb-avatar');if(av)av.value='';
+          ['forza','taijutsu','velocita','mente','ninjutsu','genjutsu','resistenza','fuuinjutsu','kekkei_genkai'].forEach(function(k){var el=$('nb-'+k);if(el)el.value=(t[k]!=null?t[k]:(k==='kekkei_genkai'?0:10));});
+          var abs=[];try{abs=(typeof t.abilita==='string')?JSON.parse(t.abilita):(t.abilita||[]);}catch(e2){abs=[];}
+          [0,1,2].forEach(function(i){var a=abs[i]||{};$('nb-ab'+i+'-n').value=a.n||'';$('nb-ab'+i+'-k').value=(a.k==='ninjutsu'||a.k==='nin')?'ninjutsu':'fisico';$('nb-ab'+i+'-d').value=(a.d!=null?a.d:'');$('nb-ab'+i+'-c').value=(a.c!=null?a.c:'');});
+          $('nb-reset').style.display='';$('nb-editing').textContent='Stai modificando: '+t.nome;$('nb-save').textContent='Aggiorna PNG';
+          nbShowForm();return;}
+        var tb=e.target.closest('[data-nbtoggle]');
+        if(tb){var id=tb.getAttribute('data-nbtoggle');var t2=NB_ROWS.filter(function(x){return String(x.id)===id;})[0];if(!t2)return;
+          var r=await sb.from('png_templates').update({is_active:!(t2.is_active!==false)}).eq('id',id);
+          if(r.error){toast('Errore',true);}else{toast((t2.is_active!==false)?'Disattivato':'Attivato');loadNB();}return;}
+        var db=e.target.closest('[data-nbdel]');
+        if(db){var id2=db.getAttribute('data-nbdel');
+          if(delArmNB!==id2){delArmNB=id2;db.textContent='Confermi?';setTimeout(function(){if(delArmNB===id2){delArmNB=null;renderNB();}},4000);return;}
+          delArmNB=null;var r2=await sb.from('png_templates').delete().eq('id',id2);
+          if(r2.error){toast('Impossibile eliminare: già evocato in passato? Disattivalo.',true);}else{toast('Modello eliminato');loadNB();}return;}
       });
     }
 
@@ -1301,7 +1477,9 @@
       if(page==='oggetti')resetCatForm();
       else if(page==='luoghi')resetLocForm();
       else if(page==='bacheche')resetBoardForm();
-      else if(page==='ia')resetIAForm();
+      else if(page==='ia'){iaSetKind('sensei');resetIAForm();}
+      else if(page==='ia-trama'){iaSetKind('png_trama');resetIAForm();admFormShow('ia');return;}
+      else if(page==='ninjabook'){resetNBForm();nbShowForm();return;}
       else if(page==='clan')resetClanForm();
       else if(page==='tecniche')resetTechForm();
       admFormShow(page);
@@ -1394,7 +1572,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindTechs();await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();await loadIA();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
+      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindTechs();await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
