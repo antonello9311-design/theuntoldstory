@@ -221,6 +221,7 @@
             <button type="button" data-go="ia">IA</button>
             <button type="button" data-go="notizie">Banda notizie</button>
             <button type="button" data-go="registro">Registro</button>
+            <button type="button" data-go="segnalazioni">Segnalazioni</button>
             <button type="button" data-go="messaggi">Messaggi</button>
             <button type="button" data-go="archivio">Archivio</button>
           </div>
@@ -274,6 +275,8 @@
             <label>Categoria<select id="it-category"><option value="arma_consumabile">Armi consumabili</option><option value="arma_impugnare">Armi da impugnare</option><option value="oggetto_generico">Oggetti generici</option><option value="equipaggiamento">Equipaggiamento</option></select></label>
             <label>Peso (kg)<input id="it-weight" type="number" step="0.05" min="0" placeholder="0.20"></label>
             <label>Costo (Ryo)<input id="it-cost" type="number" step="1" min="0" placeholder="30"></label>
+            <label>Cura PV <span class="opt">(usandolo; 0 = nessuna)</span><input id="it-healv" type="number" step="5" min="0" placeholder="0"></label>
+            <label>Cura chakra <span class="opt">(usandolo; 0 = nessuna)</span><input id="it-healc" type="number" step="5" min="0" placeholder="0"></label>
             <label>Contenitore — slot<select id="it-slot"><option value="">— non è un contenitore —</option><option value="torso">Torso</option><option value="schiena">Schiena</option><option value="cintura">Cintura</option><option value="coscia">Coscia</option></select></label>
             <label class="cont-only" id="wrap-capacity" style="display:none">Capienza (kg)<input id="it-capacity" type="number" step="0.5" min="0" placeholder="2.0"></label>
             <label>Indossato — slot<select id="it-worn"><option value="">— non indossabile —</option><option value="fronte">Fronte (coprifronte)</option><option value="guanti">Guanti</option><option value="piedi">Piedi (sandali)</option><option value="corpo">Corpo (mantello)</option></select></label>
@@ -564,6 +567,13 @@
           <div id="atrain-list"></div>
           </section>
 
+          <section class="adm-page" data-page="segnalazioni">
+          <div class="grp-title" style="margin-top:0">Segnalazioni allo staff</div>
+          <p class="mgr-note">Le segnalazioni inviate dai giocatori con il pulsante <b>⚑</b> in land: scene che mettono a disagio, abusi, violazioni delle regole. Le <b>aperte</b> stanno in cima; dopo l'intervento premi <b>Segna gestita</b>. Massimo 5 segnalazioni al giorno per giocatore (anti-spam lato server).</p>
+          <button class="mini-btn" id="rep-refresh" type="button" style="margin-bottom:10px">Aggiorna</button>
+          <div id="rep-list"></div>
+          </section>
+
           <section class="adm-page" data-page="registro">
           <div class="grp-title" style="margin-top:0">Registro movimenti — audit</div>
           <p class="mgr-note">Tutti gli acquisti, vendite e assegnazioni di oggetti dei personaggi, dal più recente. Serve a individuare compravendite anomale o usi impropri.</p>
@@ -769,7 +779,7 @@
     var delArmIt=null;
     function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
     function slotChange(){var w=$('wrap-capacity');if(w)w.style.display=($('it-slot').value!=='')?'':'none';}
-    function resetCatForm(){editingId=null;$('it-name').value='';$('it-category').value='arma_consumabile';$('it-weight').value='';$('it-cost').value='';$('it-slot').value='';$('it-capacity').value='';$('it-worn').value='';$('it-desc').value='';$('it-purchasable').checked=true;$('it-active').checked=true;$('it-reset').style.display='none';$('it-editing').textContent='';$('it-save').textContent='Salva oggetto';slotChange();}
+    function resetCatForm(){editingId=null;$('it-name').value='';$('it-category').value='arma_consumabile';$('it-weight').value='';$('it-cost').value='';$('it-healv').value='';$('it-healc').value='';$('it-slot').value='';$('it-capacity').value='';$('it-worn').value='';$('it-desc').value='';$('it-purchasable').checked=true;$('it-active').checked=true;$('it-reset').style.display='none';$('it-editing').textContent='';$('it-save').textContent='Salva oggetto';slotChange();}
     async function loadItems(){var r=await sb.from('items').select('*').order('category').order('name');ITEMS=(r&&r.data)||[];renderCatalog();}
     function renderCatalog(){
       var host=$('cat-list');if(!host)return;host.innerHTML='';
@@ -785,6 +795,7 @@
         var block=document.createElement('div');
         var rows=list.map(function(it){
           var mech=it.slot?(' · contenitore '+(it.capacity||0)+' kg ('+it.slot+')'):(it.worn_slot?(' · indossato: '+it.worn_slot):'');
+          if(it.heal_vita||it.heal_chakra){mech+=' · cura'+(it.heal_vita?(' +'+it.heal_vita+' PV'):'')+(it.heal_chakra?(' +'+it.heal_chakra+' ck'):'');}
           var flags=(it.purchasable?'':' · non in vendita')+(it.is_active?'':' · disattivato');
           var img=it.image_url?('<img src="'+it.image_url+'" alt="">'):'<span class="none">—</span>';
           return '<div class="itrow'+(it.is_active?'':' off')+'">'+
@@ -813,6 +824,7 @@
         var b=e.target.closest('[data-edit]');if(!b)return;
         var it=ITEMS.filter(function(x){return x.id===b.getAttribute('data-edit');})[0];if(!it)return;
         editingId=it.id;$('it-name').value=it.name;$('it-category').value=it.category;$('it-weight').value=it.weight;$('it-cost').value=it.cost;
+        $('it-healv').value=(it.heal_vita?it.heal_vita:'');$('it-healc').value=(it.heal_chakra?it.heal_chakra:'');
         $('it-slot').value=it.slot||'';$('it-capacity').value=(it.capacity!=null?it.capacity:'');$('it-worn').value=it.worn_slot||'';$('it-desc').value=it.description||'';
         $('it-purchasable').checked=!!it.purchasable;$('it-active').checked=!!it.is_active;
         $('it-reset').style.display='';$('it-editing').textContent='Stai modificando: '+it.name;$('it-save').textContent='Aggiorna oggetto';slotChange();
@@ -843,7 +855,7 @@
       $('it-save').addEventListener('click',async function(){
         var name=$('it-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
         var slot=$('it-slot').value||null, worn=$('it-worn').value||null;
-        var payload={name:name,category:$('it-category').value,weight:parseFloat($('it-weight').value)||0,cost:parseInt($('it-cost').value,10)||0,description:$('it-desc').value.trim()||null,slot:slot,capacity:slot?(parseFloat($('it-capacity').value)||0):null,worn_slot:worn,purchasable:$('it-purchasable').checked,is_active:$('it-active').checked};
+        var payload={name:name,category:$('it-category').value,weight:parseFloat($('it-weight').value)||0,cost:parseInt($('it-cost').value,10)||0,heal_vita:parseInt($('it-healv').value,10)||0,heal_chakra:parseInt($('it-healc').value,10)||0,description:$('it-desc').value.trim()||null,slot:slot,capacity:slot?(parseFloat($('it-capacity').value)||0):null,worn_slot:worn,purchasable:$('it-purchasable').checked,is_active:$('it-active').checked};
         this.disabled=true;
         var r=editingId?await sb.from('items').update(payload).eq('id',editingId).select().single():await sb.from('items').insert(payload).select().single();
         this.disabled=false;
@@ -1219,6 +1231,42 @@
       });
     }
 
+    /* ---- Segnalazioni allo staff ---- */
+    var REPS=[];
+    async function loadReps(){
+      var r=await sb.from('staff_reports').select('*').order('status',{ascending:true}).order('created_at',{ascending:false}).limit(200);
+      REPS=(r&&r.data)||[];renderReps();
+      var btn=document.querySelector('#adm-nav button[data-go="segnalazioni"]');
+      if(btn){var n=REPS.filter(function(s){return s.status==='aperta';}).length;btn.textContent='Segnalazioni'+(n?(' ('+n+')'):'');}
+    }
+    function renderReps(){
+      var host=$('rep-list');if(!host)return;
+      if(!REPS.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessuna segnalazione. Buon segno.</p>';return;}
+      host.innerHTML=REPS.map(function(s){
+        var when='';try{when=new Date(s.created_at).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}catch(e){}
+        var open=(s.status==='aperta');
+        return '<div class="locrow'+(open?'':' off')+'">'+
+          '<div class="lmain"><span class="lname">'+esc(s.reporter_name||'—')+'</span>'+
+          '<span class="lkind">'+(open?'aperta':'gestita')+'</span>'+
+          '<span class="lmeta"> · '+esc(when)+(s.location_name?(' · '+esc(s.location_name)):'')+'</span>'+
+          '<span class="ldesc">'+esc(s.reason)+'</span></div>'+
+          '<div class="lacts">'+(open?('<button class="mini-btn" data-repdone="'+s.id+'">Segna gestita</button>'):('<button class="mini-btn" data-repopen="'+s.id+'">Riapri</button>'))+'</div>'+
+        '</div>';
+      }).join('');
+    }
+    function bindReps(){
+      var rb=$('rep-refresh');if(rb)rb.addEventListener('click',loadReps);
+      $('rep-list').addEventListener('click',async function(e){
+        var d=e.target.closest('[data-repdone]');
+        if(d){var uid=null;try{var u=await sb.auth.getUser();uid=u&&u.data&&u.data.user?u.data.user.id:null;}catch(e2){}
+          var r=await sb.from('staff_reports').update({status:'gestita',handled_at:new Date().toISOString(),handled_by:uid}).eq('id',d.getAttribute('data-repdone'));
+          if(r.error){toast('Errore',true);}else{toast('Segnalazione gestita');loadReps();}return;}
+        var o=e.target.closest('[data-repopen]');
+        if(o){var r2=await sb.from('staff_reports').update({status:'aperta',handled_at:null,handled_by:null}).eq('id',o.getAttribute('data-repopen'));
+          if(r2.error){toast('Errore',true);}else{toast('Segnalazione riaperta');loadReps();}return;}
+      });
+    }
+
     /* ---- Registro movimenti (audit globale) ---- */
     async function loadAudit(){
       var host=$('audit-list'); if(!host)return;
@@ -1572,7 +1620,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindTechs();await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
+      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindTechs();await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
