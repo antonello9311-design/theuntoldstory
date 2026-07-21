@@ -179,6 +179,19 @@
   .map-back:hover{background:var(--red);color:#f6ead0}
   .map-level{position:absolute;top:10px;right:12px;z-index:3;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);background:rgba(247,238,214,.82);border:1px solid var(--edge);border-radius:7px;padding:5px 10px}
   .map-cols{flex:1;min-height:0;display:flex;gap:14px;align-items:flex-start}
+  .world-rail{flex:0 0 clamp(150px,16%,192px);min-width:0;display:flex;flex-direction:column;gap:6px;border:1px solid var(--rule);border-radius:12px;background:linear-gradient(rgba(247,238,214,.92),rgba(233,219,178,.86));padding:10px 9px;box-shadow:0 6px 18px rgba(60,42,18,.14)}
+  .wr-title{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep);text-align:center;padding-bottom:6px;margin-bottom:2px;border-bottom:1px solid var(--rule)}
+  .wr-btn{display:block;width:100%;text-align:left;font-family:'Cinzel',serif;font-size:11.5px;letter-spacing:.05em;color:var(--ink);background:transparent;border:1px solid transparent;border-radius:8px;padding:8px 10px;cursor:pointer;text-decoration:none;transition:background .15s,border-color .15s}
+  .wr-btn:hover{background:rgba(166,50,29,.08);border-color:var(--edge)}
+  .cal-overlay{position:fixed;inset:0;z-index:86;display:flex;align-items:center;justify-content:center;padding:18px}
+  .cal-overlay[hidden]{display:none}
+  .cal-ov-backdrop{position:absolute;inset:0;background:rgba(20,13,5,.55)}
+  .cal-ov-card{position:relative;z-index:1;width:min(420px,95vw);max-height:92vh;overflow:auto}
+  .cal-ov-card .calbox{margin-bottom:0}
+  .cal-ov-x{position:absolute;top:8px;right:10px;z-index:2;background:transparent;border:0;font-size:20px;line-height:1;color:var(--ink);cursor:pointer}
+  .ovp-activity{border-top:1px solid var(--rule);margin-top:10px;padding-top:8px}
+  .ovp-subhead{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);margin-bottom:5px}
+  .tb-btn.staff{color:var(--red-deep);border-color:var(--edge)}
   .map-side{flex:0 0 clamp(240px,24%,320px);min-width:0;min-height:0;display:flex;flex-direction:column}
   .map-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;gap:12px}
   .newsband{flex-shrink:0;display:flex;align-items:stretch;background:linear-gradient(90deg,var(--red-deep),var(--red));color:#f6ead0;border-radius:10px;overflow:hidden;margin-bottom:12px;box-shadow:0 4px 14px rgba(124,36,19,.3)}
@@ -218,6 +231,9 @@
   @media(max-width:860px){
     .map-cols{flex-direction:column}
     .map-main{order:1}
+    .world-rail{order:0;flex:0 0 auto;flex-direction:row;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:2px}
+    .world-rail .wr-title{display:none}
+    .world-rail .wr-btn{display:inline-block;width:auto;flex:0 0 auto;padding:6px 11px;font-size:10.5px;border:1px solid var(--edge);text-align:center}
     .map-side{order:2;flex:0 0 auto}.map-phone{order:3;flex:0 0 auto}
     .activity{flex:0 0 auto}
     .map-side.collapsed,.map-phone.collapsed{align-self:stretch;flex:0 0 auto}
@@ -863,19 +879,19 @@
           <span class="dnchip" id="daynight" title="Ora di gioco"></span>
         </div>
         <nav class="tb-nav">
-          <button class="tb-btn online" id="online-btn" type="button"><span class="ob-dot"></span>Online · <b id="online-n">0</b></button>
           <span class="tb-btn on">Mappa</span>
-          <a class="tb-btn" href="scheda.html">Scheda</a>
+          <button class="tb-btn" id="cal-nav" type="button">Calendario</button>
           <button class="tb-btn mailbtn" id="mail-nav" type="button">Messaggi<span class="tb-new" id="tb-new" hidden>New</span></button>
           <button class="tb-btn" id="miss-nav" type="button">Missioni</button>
-          <a class="tb-btn" href="ambientazione.html">Ambientazione</a>
-          <a class="tb-btn" href="clan.html">Clan</a>
+          <button class="tb-btn" id="boards-btn" type="button">Bacheche</button>
+          <a class="tb-btn" href="scheda.html">Scheda</a>
+          <a class="tb-btn" href="ambientazione.html">Guida</a>
           <a class="tb-btn" href="storia.html">Storia</a>
           <a class="tb-btn" href="regole.html">Regole</a>
-          <button class="tb-btn" id="boards-btn" type="button">Bacheche</button>
-          <button class="tb-btn" id="annu-btn" type="button">Annuario</button>
           <span class="tb-sep"></span>
+          <button class="tb-btn online" id="online-btn" type="button"><span class="ob-dot"></span>Online · <b id="online-n">0</b></button>
           <button class="tb-btn music" id="music-btn" type="button">Musica: off</button>
+          <a class="tb-btn staff" href="admin.html" id="admin-nav" style="display:none">Staff</a>
           <a class="tb-btn logout" href="index.html" id="logout">Esci</a>
         </nav>
       </header>
@@ -894,23 +910,16 @@
           </div>
           <div class="cal-remind" id="cal-remind" hidden><span class="cr-ic">&#9200;</span><span class="cr-txt" id="cal-remind-txt"></span><button class="cr-x" id="cal-remind-x" type="button" title="Ho letto">&times;</button></div>
           <div class="map-cols">
-            <aside class="map-side" id="side-left">
-              <div class="calbox" id="calbox">
-                <div class="ac-head"><span>Calendario</span><button class="side-toggle" id="cal-add" type="button" title="Aggiungi un impegno (role, quest, missione, evento)">+</button></div>
-                <div class="cal-nav"><button class="cal-arr" id="cal-prev" type="button">&#8249;</button><span class="cal-title" id="cal-title">&mdash;</span><button class="cal-arr" id="cal-next" type="button">&#8250;</button></div>
-                <div class="cal-grid" id="cal-grid"></div>
-                <div class="cal-form" id="cal-form" hidden>
-                  <input id="cal-f-title" maxlength="80" placeholder="Titolo &mdash; es. Role al Ramen" autocomplete="off">
-                  <div class="cal-frow"><select id="cal-f-kind"><option value="role">Role</option><option value="quest">Quest</option><option value="missione">Missione</option><option value="evento">Evento</option></select><input id="cal-f-date" type="date"><input id="cal-f-time" type="time"></div>
-                  <input id="cal-f-loc" maxlength="60" placeholder="Luogo (facoltativo)" autocomplete="off">
-                  <div class="cal-frow"><button class="cal-btn" id="cal-f-save" type="button">Salva</button><button class="cal-btn ghost" id="cal-f-x" type="button">Annulla</button><span class="cal-hint" id="cal-f-hint"></span></div>
-                </div>
-                <div class="cal-list" id="cal-list"><span class="who-empty">Accedi per usare il calendario.</span></div>
-              </div>
-              <div class="activity">
-                <div class="ac-head"><span>Entrati / Usciti</span><button class="side-toggle" type="button" data-collapse="left" title="Comprimi">▾</button></div>
-                <div class="ac-list" id="ac-list"><span class="who-empty">—</span></div>
-              </div>
+            <aside class="world-rail" id="world-rail">
+              <div class="wr-title">Mondo di gioco</div>
+              <a class="wr-btn" href="clan.html">Clan</a>
+              <button class="wr-btn" type="button" data-world="corporazioni">Corporazioni</button>
+              <button class="wr-btn" type="button" data-world="jutsu">Jutsu</button>
+              <button class="wr-btn" type="button" data-world="abilita">Abilità</button>
+              <button class="wr-btn" type="button" data-world="evocazioni">Evocazioni</button>
+              <button class="wr-btn" type="button" data-world="cercoteri">Cercoteri</button>
+              <button class="wr-btn" type="button" data-world="premi">Premi</button>
+              <button class="wr-btn" id="annu-btn" type="button">Annuario</button>
             </aside>
             <div class="map-main">
           <div class="mapframe" id="mapframe">
@@ -934,37 +943,7 @@
             <div class="map-markers" id="map-markers"></div>
           </div>
             </div>
-            <aside class="map-phone" id="side-right">
-              <div class="mbox" id="mbox">
-                <div class="mbox-head">
-                  <span class="mb-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg></span>
-                  <h2>Messaggi</h2>
-                  <span class="mail-badge" id="mail-badge">0</span>
-                  <button class="mb-plus" id="mail-new" type="button" title="Nuovo messaggio">+</button>
-                  <button class="side-toggle" type="button" data-collapse="right" title="Comprimi">▾</button>
-                </div>
-                <div class="mbox-search">
-                  <div class="search-row">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
-                    <input id="mail-q" placeholder="mittente, testo, oggetto&hellip;" autocomplete="off">
-                  </div>
-                  <div class="seg" id="mail-seg">
-                    <button data-f="all" class="on" type="button">Tutto</button>
-                    <button data-f="sender" type="button">Mittente</button>
-                    <button data-f="text" type="button">Testo</button>
-                    <button data-f="subject" type="button">Oggetto</button>
-                  </div>
-                </div>
-                <div class="mbox-view" id="mail-list-view">
-                  <div class="conv-list" id="mail-conversations"></div>
-                </div>
-                <div class="mbox-view" id="mail-thread-view" hidden>
-                  <div class="thr-head"><button class="thr-back" id="thread-back" type="button" title="Indietro">&larr;</button><span class="thr-title" id="thread-title"></span></div>
-                  <div class="thr-msgs" id="mail-thread"></div>
-                  <div class="thr-reply" id="mail-reply"><textarea id="reply-text" maxlength="4000" placeholder="Scrivi una risposta&hellip;"></textarea><button id="reply-send" type="button">Invia</button></div>
-                </div>
-              </div>
-            </aside>
+            
           </div>
           <div class="luoghi">
             <div class="lg-head">Luoghi — scegli dove giocare <span class="lg-count">· <b id="map-count">0</b> presenti nella land</span></div>
@@ -1026,6 +1005,24 @@
   </div>
 
   <div class="mailov-backdrop" id="mailov-backdrop" hidden></div>
+  <div class="cal-overlay" id="cal-overlay" hidden aria-label="Calendario">
+    <div class="cal-ov-backdrop" id="cal-ov-backdrop"></div>
+    <div class="cal-ov-card">
+      <button class="cal-ov-x" id="cal-ov-x" type="button" title="Chiudi">&times;</button>
+      <div class="calbox" id="calbox">
+                <div class="ac-head"><span>Calendario</span><button class="side-toggle" id="cal-add" type="button" title="Aggiungi un impegno (role, quest, missione, evento)">+</button></div>
+                <div class="cal-nav"><button class="cal-arr" id="cal-prev" type="button">&#8249;</button><span class="cal-title" id="cal-title">&mdash;</span><button class="cal-arr" id="cal-next" type="button">&#8250;</button></div>
+                <div class="cal-grid" id="cal-grid"></div>
+                <div class="cal-form" id="cal-form" hidden>
+                  <input id="cal-f-title" maxlength="80" placeholder="Titolo &mdash; es. Role al Ramen" autocomplete="off">
+                  <div class="cal-frow"><select id="cal-f-kind"><option value="role">Role</option><option value="quest">Quest</option><option value="missione">Missione</option><option value="evento">Evento</option></select><input id="cal-f-date" type="date"><input id="cal-f-time" type="time"></div>
+                  <input id="cal-f-loc" maxlength="60" placeholder="Luogo (facoltativo)" autocomplete="off">
+                  <div class="cal-frow"><button class="cal-btn" id="cal-f-save" type="button">Salva</button><button class="cal-btn ghost" id="cal-f-x" type="button">Annulla</button><span class="cal-hint" id="cal-f-hint"></span></div>
+                </div>
+                <div class="cal-list" id="cal-list"><span class="who-empty">Accedi per usare il calendario.</span></div>
+              </div>
+    </div>
+  </div>
   <div class="mailov" id="mailov" hidden aria-label="Messaggi">
     <div class="mailov-card">
       <button class="mailov-x" id="mailov-x" type="button" title="Chiudi">×</button>
@@ -1069,12 +1066,49 @@
       <div class="ovp-me-off"><input id="my-off" maxlength="280" placeholder="Nota OFF accanto al tuo nome…"><button id="my-off-save" type="button">Salva</button></div>
     </div>
     <div class="ovp-list" id="ovp-list"></div>
+    <div class="ovp-activity"><div class="ovp-subhead">Entrati / Usciti</div><div class="ac-list" id="ac-list"><span class="who-empty">—</span></div></div>
   </aside>
   <aside class="ov-panel" id="annu-panel" hidden aria-label="Annuario dei personaggi">
     <div class="ovp-head"><h3>Annuario <span id="annu-count">0</span></h3><button class="ovp-close" id="annu-close" type="button" title="Chiudi">×</button></div>
     <div class="annu-search"><input id="annu-q" type="text" placeholder="Cerca per nome o prestavolto…" autocomplete="off"></div>
     <div class="ovp-list" id="annu-list"></div>
   </aside>
+  <aside class="ov-panel" id="world-panel" hidden aria-label="Mondo di gioco">
+    <div class="ovp-head"><h3 id="world-title">Mondo</h3><button class="ovp-close" id="world-close" type="button" title="Chiudi">&times;</button></div>
+    <div class="ovp-list" id="world-body"></div>
+  </aside>
+  <div class="mail-home" id="mail-home" style="display:none"><aside class="map-phone" id="side-right">
+              <div class="mbox" id="mbox">
+                <div class="mbox-head">
+                  <span class="mb-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg></span>
+                  <h2>Messaggi</h2>
+                  <span class="mail-badge" id="mail-badge">0</span>
+                  <button class="mb-plus" id="mail-new" type="button" title="Nuovo messaggio">+</button>
+                  <button class="side-toggle" type="button" data-collapse="right" title="Comprimi">▾</button>
+                </div>
+                <div class="mbox-search">
+                  <div class="search-row">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+                    <input id="mail-q" placeholder="mittente, testo, oggetto&hellip;" autocomplete="off">
+                  </div>
+                  <div class="seg" id="mail-seg">
+                    <button data-f="all" class="on" type="button">Tutto</button>
+                    <button data-f="sender" type="button">Mittente</button>
+                    <button data-f="text" type="button">Testo</button>
+                    <button data-f="subject" type="button">Oggetto</button>
+                  </div>
+                </div>
+                <div class="mbox-view" id="mail-list-view">
+                  <div class="conv-list" id="mail-conversations"></div>
+                </div>
+                <div class="mbox-view" id="mail-thread-view" hidden>
+                  <div class="thr-head"><button class="thr-back" id="thread-back" type="button" title="Indietro">&larr;</button><span class="thr-title" id="thread-title"></span></div>
+                  <div class="thr-msgs" id="mail-thread"></div>
+                  <div class="thr-reply" id="mail-reply"><textarea id="reply-text" maxlength="4000" placeholder="Scrivi una risposta&hellip;"></textarea><button id="reply-send" type="button">Invia</button></div>
+                </div>
+              </div>
+            </aside></div>
+
   <div class="dm-overlay" id="dm-overlay" hidden aria-label="Nuovo messaggio">
     <div class="dm-card">
       <div class="dm-head"><h3>Nuovo messaggio</h3><button class="mail-x" id="dm-x" type="button">&times;</button></div>
@@ -1268,7 +1302,7 @@
       var toSel=document.getElementById('msg-to'), diceBtn=document.getElementById('dice-btn'), objBtn=document.getElementById('obj-btn'), techSel=document.getElementById('msg-tech');
       var nameEl=document.getElementById('room-name'), kindEl=document.getElementById('room-kind'), descEl=document.getElementById('room-desc'), meteoEl=document.getElementById('room-meteo');
       var backBtn=document.getElementById('room-back');
-      var LOCS=[], cur=null, poll=null, loggedIn=false, myId=null, myCharId=null, EMB={}, ROSTER=[], pendingWhisper=null, rosterPoll=null, ACT=[], iAmStaff=false, WHO=[], myVita=null, myChakra=null, myVitaMax=null, myChakraMax=null, myMente=null;
+      var LOCS=[], cur=null, poll=null, loggedIn=false, myId=null, myCharId=null, EMB={}, ROSTER=[], pendingWhisper=null, rosterPoll=null, ACT=[], iAmStaff=false, WHO=[], myVita=null, myChakra=null, myVitaMax=null, myChakraMax=null, myMente=null, myCorp=null;
       function esc(s){return (s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
       /* ---- Correttore del browser: interruttore (i termini del mondo non sono errori) ---- */
       var spellOn=true; try{ spellOn=(localStorage.getItem('tus_spell')!=='0'); }catch(e){}
@@ -1528,7 +1562,7 @@
         sb.rpc('who_here',{p_location:cur.id,p_minutes:8}).then(function(r){ if(r&&!r.error){ WHO=r.data||[]; renderWho(r.data); updateTargets(r.data); } }, function(){});
       }
       function updateKOState(){ var cb=document.getElementById('cmb-btn'), badge=document.getElementById('ko-badge'); var ko=(myVita!=null && myVita<=0); if(cb){ cb.disabled=ko; cb.title=ko?'Sei fuori combattimento: recupera prima di poter attaccare':'Calcolo combattimento'; } if(badge){ badge.style.display=ko?'':'none'; } }
-      function refreshMyVita(){ if(!sb||!myId) return; sb.from('characters').select('vita,vita_max,chakra,chakra_max,mente').eq('user_id',myId).maybeSingle().then(function(r){ if(r&&r.data){ myVita=(r.data.vita!=null?r.data.vita:null); myVitaMax=(r.data.vita_max!=null?r.data.vita_max:null); myChakra=(r.data.chakra!=null?r.data.chakra:null); myChakraMax=(r.data.chakra_max!=null?r.data.chakra_max:null); myMente=(r.data.mente!=null?r.data.mente:null); } updateVitals(); updateKOState(); updateHealBtn(); },function(){}); }
+      function refreshMyVita(){ if(!sb||!myId) return; sb.from('characters').select('vita,vita_max,chakra,chakra_max,mente,corporation').eq('user_id',myId).maybeSingle().then(function(r){ if(r&&r.data){ myVita=(r.data.vita!=null?r.data.vita:null); myVitaMax=(r.data.vita_max!=null?r.data.vita_max:null); myChakra=(r.data.chakra!=null?r.data.chakra:null); myChakraMax=(r.data.chakra_max!=null?r.data.chakra_max:null); myMente=(r.data.mente!=null?r.data.mente:null); myCorp=(r.data.corporation!=null?r.data.corporation:null); } updateVitals(); updateKOState(); updateHealBtn(); },function(){}); }
       function updateVitals(){ var clamp=function(x){ return x<0?0:(x>1?1:x); };
         var pr=(myVitaMax>0)?clamp(myVita/myVitaMax):0, cr=(myChakraMax>0)?clamp(myChakra/myChakraMax):0;
         var vfp=document.getElementById('vf-pv'); if(vfp) vfp.style.width=(pr*100)+'%';
@@ -2085,7 +2119,7 @@
       var _cmbBound=false;
       function bindCombatControls(){ if(_cmbBound) return; var x=document.getElementById('cmb-close'), c=document.getElementById('cmb-cancel'), bk=document.getElementById('cmb-backdrop'), g=document.getElementById('cmb-go'); if(x&&c&&bk&&g){ x.addEventListener('click',closeCombat); c.addEventListener('click',closeCombat); bk.addEventListener('click',closeCombat); g.addEventListener('click',doCombat); var tc=document.getElementById('cmb-tech'); if(tc) tc.addEventListener('change',combatTechChange); var mdd=document.getElementById('cmb-mode'); if(mdd) mdd.addEventListener('change',combatModeChange); var gnn=document.getElementById('cmb-gen'); if(gnn) gnn.addEventListener('change',dispelGenChange); _cmbBound=true; } }
       (function(){ var b=document.getElementById('cmb-btn'); if(b) b.addEventListener('click',openCombat); })();
-      function updateHealBtn(){ var b=document.getElementById('heal-btn'); if(!b) return; var medic=(iAmStaff || (myMente!=null && myMente>=25)); var ko=(myVita!=null && myVita<=0); b.style.display=(medic&&!ko)?'':'none'; }
+      function updateHealBtn(){ var b=document.getElementById('heal-btn'); if(!b) return; var medic=(iAmStaff || (myCorp && /medic/i.test(myCorp))); var ko=(myVita!=null && myVita<=0); b.style.display=(medic&&!ko)?'':'none'; }
       var _healBound=false;
       function bindHealControls(){ if(_healBound) return; var x=document.getElementById('heal-close'), c=document.getElementById('heal-cancel'), bk=document.getElementById('heal-backdrop'), g=document.getElementById('heal-go'); if(x&&c&&bk&&g){ x.addEventListener('click',closeHeal); c.addEventListener('click',closeHeal); bk.addEventListener('click',closeHeal); g.addEventListener('click',doHeal); _healBound=true; } }
       function openHeal(){ if(!cur||!sb) return; bindHealControls(); var sel=document.getElementById('heal-target'); if(sel){ var opts='<option value="">Su te stesso</option>'; (WHO||[]).forEach(function(w){ if(w.user_id&&w.user_id!==myId){ opts+='<option value="'+w.user_id+'">'+esc(w.name)+'</option>'; } }); sel.innerHTML=opts; } var ov=document.getElementById('heal-overlay'); if(ov) ov.hidden=false; }
@@ -2124,8 +2158,8 @@
           loggedIn=!!(res&&res.data&&res.data.session);
           myId=(loggedIn&&res.data.session.user)?res.data.session.user.id:null;
           if(loggedIn){ try{ sessionStorage.setItem('tus_in_land','1'); }catch(e){} }
-          if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max,mente').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); myMente=(cr.data.mente!=null?cr.data.mente:null); showPtsReminder(cr.data.unspent_points||0); updateVitals(); updateKOState(); updateHealBtn(); loadMyCompanion(); } }, function(){}); }
-          if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; } }, function(){}); }
+          if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max,mente,corporation').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); myMente=(cr.data.mente!=null?cr.data.mente:null); myCorp=(cr.data.corporation!=null?cr.data.corporation:null); showPtsReminder(cr.data.unspent_points||0); updateVitals(); updateKOState(); updateHealBtn(); loadMyCompanion(); } }, function(){}); }
+          if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; } }, function(){}); }
           loadEmblems();
           renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); loadFlash(); calInit(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); sb.rpc('ensure_welcome').then(function(){ loadUnread(); loadConversations(); }, function(){ loadUnread(); loadConversations(); }); if(dmTarget){ var _dt=dmTarget; dmTarget=null; sb.from('characters').select('name').eq('user_id',_dt).maybeSingle().then(function(rr){ openCompose(_dt,(rr&&rr.data&&rr.data.name)||'utente'); }, function(){ openCompose(_dt,'utente'); }); } }
         }, function(){ loggedIn=false; renderLuoghi(); });
@@ -2328,6 +2362,25 @@
       function openMail(){ if(!loggedIn){ toast('Accedi per leggere i messaggi'); return; } var mb=document.getElementById('mbox'), slot=document.getElementById('mailov-slot'); if(mb&&slot&&mb.parentNode!==slot){ slot.appendChild(mb); } var ov=document.getElementById('mailov'), bk=document.getElementById('mailov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false; mailPanelOpen=true; var nd=document.getElementById('tb-new'); if(nd)nd.hidden=true; showMailList(); if(sb){ loadConversations(); loadUnread(); } }
       function closeMail(){ var mb=document.getElementById('mbox'), home=document.getElementById('side-right'); if(mb&&home&&mb.parentNode!==home){ home.appendChild(mb); } var ov=document.getElementById('mailov'), bk=document.getElementById('mailov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; mailPanelOpen=false; syncSideHeights(); }
       (function(){ var b=document.getElementById('mail-nav'); if(b) b.addEventListener('click', openMail); var x=document.getElementById('mailov-x'); if(x) x.addEventListener('click', closeMail); var bk=document.getElementById('mailov-backdrop'); if(bk) bk.addEventListener('click', closeMail); document.addEventListener('keydown', function(e){ if(e.key==='Escape' && mailPanelOpen) closeMail(); }); })();
+      (function(){
+        function openCalOv(){ var ov=document.getElementById('cal-overlay'); if(ov) ov.hidden=false; }
+        function closeCalOv(){ var ov=document.getElementById('cal-overlay'); if(ov) ov.hidden=true; }
+        var cn=document.getElementById('cal-nav'); if(cn) cn.addEventListener('click', openCalOv);
+        var cx=document.getElementById('cal-ov-x'); if(cx) cx.addEventListener('click', closeCalOv);
+        var cbk=document.getElementById('cal-ov-backdrop'); if(cbk) cbk.addEventListener('click', closeCalOv);
+        var WORLD={
+          corporazioni:{t:'Corporazioni',h:'<p>Le organizzazioni del mondo shinobi. <b>ANBU</b> — forze speciali di villaggio (infiltrazione, pedinamento, assassinio, sensoriali). <b>Medici</b> — l’unico corpo che può curare i PV in scena, con il Palmo Curativo. <b>Akatsuki</b> — organizzazione mondiale fuorilegge che raccoglie i disertori.</p><p class="who-empty">Il sistema completo di adesione e ruoli è in arrivo.</p>'},
+          jutsu:{t:'Jutsu',h:'<p>La consultazione completa dei jutsu — divisi per disciplina (Ninjutsu, Taijutsu, Genjutsu, Fuuinjutsu) — vive nella tua <b>Scheda</b>, sezione «Jutsu e abilità», dove puoi anche allenarli con l’XP.</p><p><a class="wr-link" href="scheda.html">Apri la Scheda →</a></p>'},
+          abilita:{t:'Abilità',h:'<p>Abilità innate e generiche del mondo: le consulti nella tua <b>Scheda</b>, sezione «Jutsu e abilità» › Abilità.</p><p><a class="wr-link" href="scheda.html">Apri la Scheda →</a></p>'},
+          evocazioni:{t:'Evocazioni',h:'<p>I contratti di evocazione permettono di richiamare creature alleate. Si ottengono come <b>premio</b> (dalla Scheda) e si gestiscono come <b>compagni PNG</b> in scena.</p><p class="who-empty">Catalogo delle evocazioni in arrivo.</p>'},
+          cercoteri:{t:'Cercoteri — le Bestie con le Code',h:'<p>Nove creature di chakra immenso, numerate dalle code: <b>Shukaku</b> (1), <b>Matatabi</b> (2), <b>Isobu</b> (3), <b>Son Gokū</b> (4), <b>Kokuō</b> (5), <b>Saiken</b> (6), <b>Chōmei</b> (7), <b>Gyūki</b> (8) e <b>Kurama</b> (9), la Volpe a nove code. Sigillate nei jinchūriki, sono l’arma strategica dei villaggi.</p><p class="who-empty">Sulla mappa, passando sui paesi, comparirà l’effetto della bestia (quando caricherai le immagini).</p>'},
+          premi:{t:'Premi',h:'<p>Ciò che puoi ottenere spendendo XP o per meriti di trama: seconda natura elementale, contratto di evocazione, sigillo maledetto, tecnica personale e altro. Le richieste si fanno dalla <b>Scheda</b>, sezione «Premi».</p><p><a class="wr-link" href="scheda.html">Apri la Scheda →</a></p>'}
+        };
+        function openWorld(key){ var w=WORLD[key]; if(!w) return; var t=document.getElementById('world-title'), b=document.getElementById('world-body'); if(t)t.textContent=w.t; if(b)b.innerHTML=w.h; var bk=document.getElementById('ov-backdrop'), pn=document.getElementById('world-panel'); if(bk)bk.hidden=false; if(pn)pn.hidden=false; }
+        function closeWorld(){ var pn=document.getElementById('world-panel'); if(pn)pn.hidden=true; var bk=document.getElementById('ov-backdrop'); if(bk)bk.hidden=true; }
+        var wr=document.getElementById('world-rail'); if(wr) wr.addEventListener('click', function(e){ var b=e.target.closest('[data-world]'); if(!b) return; openWorld(b.getAttribute('data-world')); });
+        var wc=document.getElementById('world-close'); if(wc) wc.addEventListener('click', closeWorld);
+      })();
 
       /* ===== MISSIONI: bacheca + registro ===== */
       var missTab='bacheca';
@@ -2682,7 +2735,7 @@
       (function(){
         var ob=document.getElementById('online-btn'); if(ob) ob.addEventListener('click', openPanel); bindMail();
         var oc=document.getElementById('ovp-close'); if(oc) oc.addEventListener('click', closePanel);
-        var bk=document.getElementById('ov-backdrop'); if(bk) bk.addEventListener('click', function(){ closePanel(); closeAnnu(); });
+        var bk=document.getElementById('ov-backdrop'); if(bk) bk.addEventListener('click', function(){ closePanel(); closeAnnu(); var _wp=document.getElementById('world-panel'); if(_wp)_wp.hidden=true; });
         var anb=document.getElementById('annu-btn'); if(anb) anb.addEventListener('click', openAnnu);
         var anc=document.getElementById('annu-close'); if(anc) anc.addEventListener('click', closeAnnu);
         var anq=document.getElementById('annu-q'); if(anq) anq.addEventListener('input', renderAnnu);
