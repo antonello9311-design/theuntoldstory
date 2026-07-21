@@ -163,6 +163,12 @@
   .map-markers{position:absolute;inset:0;pointer-events:none}
   .mk{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0;z-index:2}
   .mk-dot{width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px rgba(255,247,235,.75),0 2px 5px rgba(0,0,0,.35);transition:transform .12s}
+  .mk-sym{width:23px;height:23px;border-radius:50%;background:rgba(247,238,214,.94);border:1px solid var(--edge);box-shadow:0 2px 6px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:var(--red-deep);transition:transform .12s;overflow:hidden}
+  .mk-sym svg{width:14px;height:14px}
+  .mk-emb{width:100%;height:100%;object-fit:cover;border-radius:50%}
+  .mk:hover .mk-sym{transform:scale(1.16)}
+  .mk.village .mk-sym{width:31px;height:31px;border-color:var(--red-deep);box-shadow:0 3px 9px rgba(0,0,0,.42)}
+  .mk.village .mk-sym svg{width:19px;height:19px}
   .mk-lbl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.03em;color:var(--ink);background:rgba(247,238,214,.88);border:1px solid var(--edge);border-radius:6px;padding:1px 5px;white-space:nowrap}
   .mk.village .mk-dot{width:15px;height:15px;background:var(--red-deep);box-shadow:0 0 0 3px rgba(255,247,235,.85),0 3px 7px rgba(0,0,0,.4)}
   .mk.village .mk-lbl{font-size:12px;font-weight:600;color:var(--red-deep)}
@@ -1367,17 +1373,31 @@
         ['left','right'].forEach(function(side){ var c=false; try{ c=localStorage.getItem('tus_side_'+side)==='1'; }catch(e){} setSideCollapsed(side, c); }); })();
       function villageLocs(region){ return LOCS.filter(function(l){ return (''+(l.region||'')).toLowerCase()===region; }); }
       function neutralLocs(){ return LOCS.filter(function(l){ return !l.region; }); }
-      function makeMarker(x,y,label,cls){ var b=document.createElement('button'); b.type='button'; b.className='mk '+cls; b.style.left=((x!=null&&x!=='')?x:50)+'%'; b.style.top=((y!=null&&y!=='')?y:50)+'%'; b.innerHTML='<span class="mk-dot"></span><span class="mk-lbl">'+esc(label)+'</span>'; return b; }
+      var MK_SYM={
+        village:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 6c3-1.4 15-1.4 18 0l-.7 2.1c-2.5-1-13.1-1-15.6 0L3 6z"/><rect x="4.6" y="8.7" width="1.9" height="11"/><rect x="17.5" y="8.7" width="1.9" height="11"/><rect x="6" y="9.6" width="12" height="1.7"/></svg>',
+        academy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 6c-2-1.4-5-1.4-7 0v11c2-1.4 5-1.4 7 0 2-1.4 5-1.4 7 0V6c-2-1.4-5-1.4-7 0z"/><path d="M12 6v11"/></svg>',
+        edificio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/><rect x="10.6" y="13.6" width="2.8" height="5.4" fill="currentColor" stroke="none"/></svg>',
+        quartiere:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M2 12l5-4 5 4"/><path d="M12 12l5-4 5 4"/><path d="M4.5 11.2v7h15v-7"/></svg>',
+        area:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l4.2 6H14l2.8 4.6H14V19h-4v-5.4H7.2L10 9H7.8z"/></svg>',
+        negozio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M4.2 9L6 6h12l1.8 3"/><rect x="4" y="9" width="16" height="2.6" fill="currentColor" stroke="none"/><path d="M5.4 12v7h13.2v-7"/></svg>',
+        _default:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 9-9 9-9-9z"/></svg>'
+      };
+      function markerSymbol(o){ o=o||{};
+        if(o.emblem) return '<img class="mk-emb" src="'+esc(o.emblem)+'" alt="" onerror="this.parentNode.innerHTML=MK_SYM.village">';
+        var k=o.isAcademy?'academy':(o.village?'village':(o.kind||''));
+        if(k==='villaggio')k='village';
+        return MK_SYM[k]||MK_SYM._default; }
+      function makeMarker(x,y,label,cls,opts){ var b=document.createElement('button'); b.type='button'; b.className='mk '+cls; b.style.left=((x!=null&&x!=='')?x:50)+'%'; b.style.top=((y!=null&&y!=='')?y:50)+'%'; b.innerHTML='<span class="mk-sym">'+markerSymbol(opts)+'</span><span class="mk-lbl">'+esc(label)+'</span>'; return b; }
       function renderMap(){
         setMapImage(mapLevel);
         var back=document.getElementById('map-back'); if(back) back.hidden=(mapLevel==='world');
         var lvl=document.getElementById('map-level'); if(lvl) lvl.textContent=(mapLevel==='world')?'Mondo':((mapLevel==='konoha')?'Villaggio di Konoha':'Villaggio di Suna');
         var host=document.getElementById('map-markers'); if(host){ host.innerHTML='';
           if(mapLevel==='world'){
-            VILLAGES.forEach(function(v){ var m=makeMarker(v.x,v.y,v.name,'village'); m.addEventListener('click',function(){ mapLevel=v.key; renderMap(); }); host.appendChild(m); });
-            neutralLocs().forEach(function(l){ var m=makeMarker(l.map_x,l.map_y,l.name,'loc'); m.addEventListener('click',function(){ openRoom(l); }); host.appendChild(m); });
+            VILLAGES.forEach(function(v){ var m=makeMarker(v.x,v.y,v.name,'village',{village:true,emblem:EMB['village:'+v.name]}); m.addEventListener('click',function(){ mapLevel=v.key; renderMap(); }); host.appendChild(m); });
+            neutralLocs().forEach(function(l){ var m=makeMarker(l.map_x,l.map_y,l.name,'loc',{kind:l.kind,isAcademy:l.is_academy}); m.addEventListener('click',function(){ openRoom(l); }); host.appendChild(m); });
           } else {
-            villageLocs(mapLevel).forEach(function(l){ var m=makeMarker(l.map_x,l.map_y,l.name,'loc'); m.addEventListener('click',function(){ openRoom(l); }); host.appendChild(m); });
+            villageLocs(mapLevel).forEach(function(l){ var m=makeMarker(l.map_x,l.map_y,l.name,'loc',{kind:l.kind,isAcademy:l.is_academy}); m.addEventListener('click',function(){ openRoom(l); }); host.appendChild(m); });
           }
         }
         renderMapList();
@@ -1970,6 +1990,19 @@
       function combatModeChange(){ var md=document.getElementById('cmb-mode'); var mode=(md&&md.value)||'pvp';
         var tw=document.getElementById('cmb-targetwrap'), pb=document.getElementById('cmb-pngbox'), tech=document.getElementById('cmb-techwrap');
         var hint=document.getElementById('cmb-pnghint');
+        var ab=document.getElementById('cmb-attackbox'), db=document.getElementById('cmb-dispelbox'), qw=document.getElementById('cmb-qwrap');
+        var go=document.getElementById('cmb-go');
+        if(mode==='dispel'){
+          if(tw)tw.style.display='none'; if(pb)pb.style.display='none'; if(tech)tech.style.display='none';
+          if(ab)ab.style.display='none'; if(db)db.style.display=''; if(qw)qw.style.display='none';
+          if(hint)hint.textContent='';
+          if(go)go.textContent='Tenta la Dispersione';
+          loadDispel();
+          return;
+        }
+        if(go)go.textContent='Calcola e mostra';
+        if(db)db.style.display='none'; if(ab)ab.style.display='';
+        if(qw)qw.style.display=iAmStaff?'':'none';
         if(mode==='vspng'){
           if(tw)tw.style.display='none'; if(pb)pb.style.display=''; if(tech)tech.style.display='';
           if(hint)hint.textContent='Attacchi il PNG evocato dal master: difese e resistenza le legge dalla sua scheda, i suoi PV scalano da soli. Il tuo chakra si consuma se usi una tecnica.';
@@ -1978,6 +2011,23 @@
           if(tw)tw.style.display=''; if(pb)pb.style.display='none'; if(tech)tech.style.display='';
           if(hint)hint.textContent='';
         }
+      }
+      function loadDispel(){
+        var gsel=document.getElementById('cmb-gen'); var tsel=document.getElementById('cmb-dtarget');
+        if(tsel){ var opts='<option value="">Te stesso</option>'; (WHO||[]).forEach(function(w){ if(w.user_id&&w.user_id!==myId){ opts+='<option value="'+w.user_id+'">'+esc(w.name)+'</option>'; } }); tsel.innerHTML=opts; }
+        if(gsel&&sb){ gsel.innerHTML='<option value="">— potenza manuale —</option>';
+          sb.rpc('list_genjutsu',{}).then(function(r){ var rows=(r&&!r.error&&r.data)||[];
+            rows.forEach(function(g){ gsel.innerHTML+='<option value="'+g.id+'" data-pot="'+(g.potenza!=null?g.potenza:'')+'" data-grado="'+esc(g.grado||'')+'">'+esc(g.name)+' ['+esc(g.grado||'?')+'] · pot '+(g.potenza!=null?g.potenza:'?')+'</option>'; });
+          }, function(){}); }
+        dispelGenChange();
+      }
+      function dispelGenChange(){ var g=document.getElementById('cmb-gen'); var pw=document.getElementById('cmb-genpotwrap'); var pin=document.getElementById('cmb-genpot'); var h=document.getElementById('cmb-dispelhint');
+        if(!g) return; var o=g.options[g.selectedIndex];
+        if(g.value&&o){ var pot=o.getAttribute('data-pot'); var grd=o.getAttribute('data-grado')||'';
+          if(pin&&pot!==''&&pot!=null){ pin.value=pot; }
+          if(pw)pw.style.display='none';
+          if(h){ h.textContent=(grd==='A'||grd==='S')?('Grado '+grd+' (Mangekyō): immune alla Dispersione base — non si spezza.'):('Potenza '+ (pot||'?') +'. Riesce se la tua Mente ≥ '+(pot||'?')+'.'); }
+        } else { if(pw)pw.style.display=''; if(h)h.textContent='Inserisci la potenza dell’illusione. Riesce se la tua Mente ≥ potenza.'; }
       }
       function closeCombat(){ var ov=document.getElementById('cmb-overlay'); if(ov) ov.hidden=true; }
       function loadCombatTech(){ var ts=document.getElementById('cmb-tech'); if(!ts||!sb) return;
@@ -1998,6 +2048,18 @@
       function doCombat(){
         var mode=((document.getElementById('cmb-mode')||{}).value)||'pvp';
         var go=document.getElementById('cmb-go');
+        if(mode==='dispel'){
+          if(!cur){ toast('Entra in una stanza'); return; }
+          var gen=(document.getElementById('cmb-gen')||{}).value||'';
+          var gpot=parseInt((document.getElementById('cmb-genpot')||{}).value,10);
+          var dtgt=(document.getElementById('cmb-dtarget')||{}).value||'';
+          var pd={ p_location:cur.id };
+          if(gen){ pd.p_genjutsu=gen; } else { if(isNaN(gpot)){ toast('Indica la potenza dell’illusione'); return; } pd.p_potenza=gpot; }
+          if(dtgt){ pd.p_target_user=dtgt; }
+          var doneD=function(r){ if(go) go.disabled=false; if(r&&r.error){ var raw=(r.error.message||''); toast(/Dispersione|potenza|genjutsu|presente|personaggio/i.test(raw)?raw:'Dispersione non riuscita'); return; } closeCombat(); loadMsgs(); refreshMyVita(); };
+          var failD=function(){ if(go) go.disabled=false; toast('Dispersione non riuscita'); };
+          if(go) go.disabled=true; sb.rpc('post_dispersione',pd).then(doneD,failD); return;
+        }
         var kind=(document.getElementById('cmb-kind')||{}).value||'fisico';
         var nome=(document.getElementById('cmb-name')||{}).value||'';
         var base=parseInt((document.getElementById('cmb-base')||{}).value,10)||0;
@@ -2021,7 +2083,7 @@
         sb.rpc('post_combat',params).then(done,fail);
       }
       var _cmbBound=false;
-      function bindCombatControls(){ if(_cmbBound) return; var x=document.getElementById('cmb-close'), c=document.getElementById('cmb-cancel'), bk=document.getElementById('cmb-backdrop'), g=document.getElementById('cmb-go'); if(x&&c&&bk&&g){ x.addEventListener('click',closeCombat); c.addEventListener('click',closeCombat); bk.addEventListener('click',closeCombat); g.addEventListener('click',doCombat); var tc=document.getElementById('cmb-tech'); if(tc) tc.addEventListener('change',combatTechChange); var mdd=document.getElementById('cmb-mode'); if(mdd) mdd.addEventListener('change',combatModeChange); _cmbBound=true; } }
+      function bindCombatControls(){ if(_cmbBound) return; var x=document.getElementById('cmb-close'), c=document.getElementById('cmb-cancel'), bk=document.getElementById('cmb-backdrop'), g=document.getElementById('cmb-go'); if(x&&c&&bk&&g){ x.addEventListener('click',closeCombat); c.addEventListener('click',closeCombat); bk.addEventListener('click',closeCombat); g.addEventListener('click',doCombat); var tc=document.getElementById('cmb-tech'); if(tc) tc.addEventListener('change',combatTechChange); var mdd=document.getElementById('cmb-mode'); if(mdd) mdd.addEventListener('change',combatModeChange); var gnn=document.getElementById('cmb-gen'); if(gnn) gnn.addEventListener('change',dispelGenChange); _cmbBound=true; } }
       (function(){ var b=document.getElementById('cmb-btn'); if(b) b.addEventListener('click',openCombat); })();
       function updateHealBtn(){ var b=document.getElementById('heal-btn'); if(!b) return; var medic=(iAmStaff || (myMente!=null && myMente>=25)); var ko=(myVita!=null && myVita<=0); b.style.display=(medic&&!ko)?'':'none'; }
       var _healBound=false;
@@ -2874,6 +2936,7 @@
         <label class="cmb-f" id="cmb-modewrap">Scontro<select id="cmb-mode">
           <option value="pvp">Tra personaggi</option>
           <option value="vspng">Contro un PNG in scena</option>
+          <option value="dispel">Dispersione · rompere un genjutsu</option>
         </select></label>
         <label class="cmb-f" id="cmb-targetwrap">Bersaglio (presente nella stanza)<select id="cmb-target"></select></label>
         <div id="cmb-pngbox" style="display:none">
@@ -2881,6 +2944,7 @@
           <p class="cmb-hint" id="cmb-pnghint"></p>
         </div>
         <label class="cmb-f" id="cmb-techwrap">Tecnica (dalla tua scheda)<select id="cmb-tech"><option value="">— colpo / azione manuale —</option></select><span class="cmb-hint" id="cmb-techhint"></span></label>
+        <div id="cmb-attackbox">
         <label class="cmb-f">Azione o tecnica<input id="cmb-name" maxlength="60" placeholder="es. Palla di Fuoco"></label>
         <div class="cmb-two">
           <label class="cmb-f">Tipo<select id="cmb-kind"><option value="fisico">Fisico · Forza+Taijutsu</option><option value="ninjutsu">Ninjutsu · Mente+Ninjutsu</option></select></label>
@@ -2892,6 +2956,15 @@
         </div>
         <label class="cmb-f" id="cmb-qwrap" style="display:none">Bonus Qualità 0–6 · solo master<input id="cmb-q" type="number" min="0" max="6" value="0"></label>
         <p class="cmb-hint">Il server tira i dadi e mostra l'esito in chat. Il conteggio dei PV lo tenete voi.</p>
+        </div>
+        <div id="cmb-dispelbox" style="display:none">
+          <label class="cmb-f">Genjutsu da spezzare<select id="cmb-gen"><option value="">— potenza manuale —</option></select></label>
+          <div class="cmb-two">
+            <label class="cmb-f" id="cmb-genpotwrap">Potenza dell'illusione<input id="cmb-genpot" type="number" min="0" max="200" value="25"></label>
+            <label class="cmb-f">Libera<select id="cmb-dtarget"><option value="">Te stesso</option></select></label>
+          </div>
+          <p class="cmb-hint" id="cmb-dispelhint">Riesce se la tua Mente ≥ potenza dell'illusione. I genjutsu di grado A/S (Mangekyō) sono immuni al Kai di base. Consuma la tua azione.</p>
+        </div>
       </div>
       <div class="cmb-foot"><button type="button" class="btn-ghost" id="cmb-cancel">Annulla</button><button type="button" class="btn-red" id="cmb-go">Calcola e mostra</button></div>
     </div>
