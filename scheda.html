@@ -372,6 +372,10 @@
   .tk-acc.open .tka-ch{transform:rotate(90deg)}
   .tk-body{display:none}
   .tk-body.open{display:block}
+  .tk-sec{font-family:'Cinzel',serif;font-size:11.5px;letter-spacing:.05em;color:var(--red-deep);margin:13px 0 4px;padding-bottom:3px;border-bottom:1px solid var(--rule)}
+  .tk-sec-big{font-size:13.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);margin:18px 0 5px;padding-bottom:4px;border-bottom:2px solid var(--edge)}
+  .tk-grp.tk-sub{padding-left:2px}
+  .tk-body{padding-left:6px}
 </style>
 </head>
 <body>
@@ -848,48 +852,62 @@
       return '<div class="tk-grp tk-acc'+(open?' open':'')+'" data-tkacc="'+id+'"><span>'+label+' · '+count+'</span><span class="tka-ch">\u25B6</span></div>'
         +'<div class="tk-body'+(open?' open':'')+'" id="tkb-'+id+'">'+rowsHtml+'</div>';
     }
+    function tkBaseMatch(j,q){ if(!q)return true; q=q.toLowerCase(); return (j.name_it||'').toLowerCase().indexOf(q)>=0||(j.effect||'').toLowerCase().indexOf(q)>=0||(j.category||'').toLowerCase().indexOf(q)>=0; }
+    function tkBaseRow(j){
+      return '<div class="tr-row" data-texp="j'+j.id+'"><div class="tr-main"><b>'+esc(j.name_it)+'</b><span class="tr-cat">'+(j.rank?('rango '+esc(j.rank)):'base')+'</span> <span class="tr-meta">'+(j.chakra_cost?(j.chakra_cost+' ck'):'')+'</span></div><span class="tr-badge on">Accademia</span></div>'
+        +'<div class="tr-det" id="tkd-j'+j.id+'">'+(j.effect?('<div class="tkd"><b>Effetto</b> · '+esc(j.effect)+'</div>'):'')+(j.requirements?('<div class="tkd"><b>Requisiti</b> · '+esc(j.requirements)+'</div>'):'')+(j.limits?('<div class="tkd"><b>Limiti</b> · '+esc(j.limits)+'</div>'):'')+'<div class="tkd"><b>Come si impara</b> · all\'Accademia, con le lezioni del sensei.</div></div>';
+    }
+    var TK_DISC=['Ninjutsu','Taijutsu','Genjutsu','Fuuinjutsu'];
+    function tkHead(label,big){ return '<div class="tk-sec'+(big?' tk-sec-big':'')+'">'+label+'</div>'; }
     function paintCatalog(){
       var list=$('train-list'); if(!list) return;
       var canAct=(viewMode!=='public'); var q=TK.q; var h='';
       var hasClan=!!(myChar&&myChar.clan&&myChar.clan!=='Nessuno');
-      // 1) Jutsu e abilità del gioco (per tutti), navigabili per categoria
-      var baseAll=TK.base.filter(function(j){ return !q||(j.name_it||'').toLowerCase().indexOf(q.toLowerCase())>=0||(j.effect||'').toLowerCase().indexOf(q.toLowerCase())>=0||(j.category||'').toLowerCase().indexOf(q.toLowerCase())>=0; });
-      var cats=[]; baseAll.forEach(function(j){ var c=j.category||'Altro'; if(cats.indexOf(c)<0) cats.push(c); });
-      cats.sort();
-      cats.forEach(function(cat,ci){
-        var rows=baseAll.filter(function(j){ return (j.category||'Altro')===cat; });
-        var rh=rows.map(function(j){
-          return '<div class="tr-row" data-texp="j'+j.id+'"><div class="tr-main"><b>'+esc(j.name_it)+'</b><span class="tr-cat">'+(j.rank?('rango '+esc(j.rank)):'base')+'</span> <span class="tr-meta">'+(j.chakra_cost?(j.chakra_cost+' ck'):'')+'</span></div><span class="tr-badge on">Accademia</span></div>'
-            +'<div class="tr-det" id="tkd-j'+j.id+'">'+(j.effect?('<div class="tkd"><b>Effetto</b> · '+esc(j.effect)+'</div>'):'')+(j.requirements?('<div class="tkd"><b>Requisiti</b> · '+esc(j.requirements)+'</div>'):'')+(j.limits?('<div class="tkd"><b>Limiti</b> · '+esc(j.limits)+'</div>'):'')+'<div class="tkd"><b>Come si impara</b> · all\'Accademia, con le lezioni del sensei.</div></div>';
-        }).join('');
-        h+=tkGroup('b'+ci, esc(cat), rh, rows.length, q);
-      });
-      // 1b) Tecniche generiche e abilità del gioco (per tutti)
-      var genAll=(TK.gen||[]).filter(function(t){ return tkMatch(t,q); });
-      if(genAll.length){
-        h+='<div class="tk-grp" style="border-bottom:none;margin-top:14px">Tecniche generiche e abilità</div>';
-        var gcats=[]; genAll.forEach(function(t){ var c=t.category||'Senza categoria'; if(gcats.indexOf(c)<0)gcats.push(c); }); gcats.sort();
-        gcats.forEach(function(cat,gi){
-          var rows=genAll.filter(function(t){ return (t.category||'Senza categoria')===cat; });
-          var rh=rows.map(function(t){ return tkRow(t,TK.byId[t.id],canAct); }).join('');
-          h+=tkGroup('gen'+gi, esc(cat), rh, rows.length, q);
-        });
-      }
-      // 2) Tecniche del clan (solo per chi è in un clan)
+      var baseAll=(TK.base||[]).filter(function(j){return tkBaseMatch(j,q);});
+      var baseNin=baseAll.filter(function(j){return (j.category||'')!=='Abilità';});
+      var baseAbi=baseAll.filter(function(j){return (j.category||'')==='Abilità';});
+      var gen=(TK.gen||[]).filter(function(t){return tkMatch(t,q);});
+      var genJutsu=gen.filter(function(t){return t.macro!=='abilita';});
+      var genAbil=gen.filter(function(t){return t.macro==='abilita';});
+
+      // ===== JUTSU =====
+      h+=tkHead('Jutsu',true);
+      // -- del clan --
       if(hasClan){
-        h+='<div class="tk-grp" style="border-bottom:none;margin-top:14px">Tecniche del clan '+esc(myChar.clan)+'</div>';
-        var ordini=[['D','Grado D'],['C','Grado C'],['B','Grado B'],['A','Grado A'],['S','Grado S'],[null,'Innate e passive · senza grado']];
-        var any=false;
-        ordini.forEach(function(g,gi){
-          var rows=TK.techs.filter(function(t){ return ((g[0]===null)?(!t.grado):(t.grado===g[0])) && tkMatch(t,q); });
-          if(!rows.length) return; any=true;
-          var rh=rows.map(function(t){ return tkRow(t,TK.byId[t.id],canAct); }).join('');
-          h+=tkGroup('g'+gi, g[1], rh, rows.length, q);
+        h+=tkHead('Del clan · '+esc(myChar.clan));
+        var clanAll=(TK.techs||[]).filter(function(t){return tkMatch(t,q);});
+        var clanAbi=clanAll.filter(function(t){return t.disciplina==='Abilità';});
+        var anyC=false;
+        if(clanAbi.length){ h+=tkGroup('cabil','Abilità del clan · innate e segrete', clanAbi.map(function(t){return tkRow(t,TK.byId[t.id],canAct);}).join(''), clanAbi.length, q); anyC=true; }
+        TK_DISC.forEach(function(d,di){
+          var rows=clanAll.filter(function(t){return t.disciplina===d;});
+          if(!rows.length) return; anyC=true;
+          h+=tkGroup('cj'+di, d, rows.map(function(t){return tkRow(t,TK.byId[t.id],canAct);}).join(''), rows.length, q);
         });
-        if(!any&&!q) h+='<p class="hint" style="margin:4px 0 0">Il clan non ha ancora tecniche a catalogo.</p>';
+        if(!anyC && !q) h+='<p class="hint" style="margin:2px 0 0">Il clan non ha ancora tecniche a catalogo.</p>';
       } else {
-        h+='<p class="hint" style="margin:14px 0 0">Le <b>tecniche di clan</b> compaiono qui quando entri in un clan: ogni famiglia ha il suo catalogo segreto (arti hiden e innate).</p>';
+        h+=tkHead('Del clan');
+        h+='<p class="hint" style="margin:2px 0 0">Le <b>tecniche di clan</b> compaiono qui quando entri in un clan: ogni famiglia ha il suo catalogo (arti innate, segrete e jutsu divisi per disciplina).</p>';
       }
+      // -- generiche --
+      h+=tkHead('Generiche');
+      var anyG=false;
+      TK_DISC.forEach(function(d,di){
+        var gr=genJutsu.filter(function(t){return (t.disciplina||'Ninjutsu')===d;});
+        var br=(d==='Ninjutsu')?baseNin:[];
+        var cnt=gr.length+br.length; if(!cnt) return; anyG=true;
+        var rh=br.map(tkBaseRow).join('')+gr.map(function(t){return tkRow(t,TK.byId[t.id],canAct);}).join('');
+        h+=tkGroup('gj'+di, d, rh, cnt, q);
+      });
+      if(!anyG && !q) h+='<p class="hint" style="margin:2px 0 0">Nessuna tecnica generica, per ora.</p>';
+
+      // ===== ABILITÀ =====
+      h+=tkHead('Abilità',true);
+      var anyA=false;
+      if(genAbil.length){ h+=tkGroup('ag','Generiche', genAbil.map(function(t){return tkRow(t,TK.byId[t.id],canAct);}).join(''), genAbil.length, q); anyA=true; }
+      if(baseAbi.length){ h+=tkGroup('ab','Basi d\'Accademia', baseAbi.map(tkBaseRow).join(''), baseAbi.length, q); anyA=true; }
+      if(!anyA && !q) h+='<p class="hint" style="margin:2px 0 0">Nessuna abilità generica.</p>';
+
       list.innerHTML=h||'<p class="hint" style="margin:0">Nessuna tecnica trovata'+(q?' per «'+esc(q)+'»':'')+'.</p>';
     }
     function renderTraining(){
