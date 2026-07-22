@@ -862,7 +862,7 @@
       if(tech.length) rows.push('<div class="tkd"><b>Tecnica</b> · '+tech.join(' · ')+'</div>');
       var cons=[]; if(t.chakra_cost!=null&&t.chakra_cost>0)cons.push(t.chakra_cost+' chakra'); if(t.consumption_type)cons.push(t.consumption_type==='per_turno'?'per turno':(t.consumption_type==='passiva'?'passiva':'ad utilizzo'));
       if(cons.length) rows.push('<div class="tkd"><b>Consumo</b> · '+cons.join(' · ')+'</div>');
-      var req=[]; if(t.req_grade)req.push('grado '+esc(t.req_grade)); if(t.req_stat)req.push(esc(t.req_stat)+(t.req_stat_value!=null?(' '+t.req_stat_value):'')); if(t.requirements)req.push(esc(t.requirements));
+      var req=[]; if(t.req_grade)req.push('grado '+esc(t.req_grade)); if(t.req_stat)req.push(esc(t.req_stat)+(t.req_stat_value!=null?(' '+t.req_stat_value):'')); if(t.req_corp)req.push('Corpo: '+esc(t.req_corp.charAt(0).toUpperCase()+t.req_corp.slice(1))); if(t.req_ramo)req.push('Ramo: '+esc(t.req_ramo)); if(t.requirements)req.push(esc(t.requirements));
       if(req.length) rows.push('<div class="tkd"><b>Requisiti</b> · '+req.join(' · ')+'</div>');
       if(t.req_elements&&t.req_elements.length) rows.push('<div class="tkd"><b>Elemento</b> · '+esc(t.req_elements.join(' o '))+' <span class="hint">(serve possederne uno)</span></div>');
       var acq=[]; if(t.xp_cost!=null)acq.push('<b style="color:var(--red-deep)">'+t.xp_cost+' XP</b>'); if(t.trainings_required!=null)acq.push(t.trainings_required+(t.trainings_required===1?' allenamento':' allenamenti'));
@@ -900,7 +900,8 @@
       var baseAll=(TK.base||[]).filter(function(j){return tkBaseMatch(j,q);});
       var baseNin=baseAll.filter(function(j){return (j.category||'')!=='Abilità';});
       var baseAbi=baseAll.filter(function(j){return (j.category||'')==='Abilità';});
-      var gen=(TK.gen||[]).filter(function(t){return tkMatch(t,q);});
+      var myCorp2=String((myChar&&myChar.corporation)||'').toLowerCase();
+      var gen=(TK.gen||[]).filter(function(t){return tkMatch(t,q) && (!t.req_corp || String(t.req_corp).toLowerCase()===myCorp2);});
       var genJutsu=gen.filter(function(t){return t.macro!=='abilita';});
       var genAbil=gen.filter(function(t){return t.macro==='abilita';});
 
@@ -1043,7 +1044,7 @@
         var vc=$('v-corp'); if(vc){ if(showK){ var _cvil=((showK==='anbu'||showK==='medici')&&c.village)?('<span class="sc-corp-meta">· '+esc(c.village)+'</span>'):''; vc.innerHTML='<span class="sc-corp-badge '+showK+'">'+corpKeyLabel(showK)+'</span>'+_cvil+(c.corp_spec?('<span class="sc-corp-meta">· '+corpSpecLabelS(c.corp_spec)+'</span>'):'')+(c.corp_role?('<span class="sc-corp-meta">· '+esc(c.corp_role)+'</span>'):''); } else { vc.textContent='—'; } }
         $('ic-corp').outerHTML=embCorp(showK).replace('class="emb','id="ic-corp" class="emb');
         var fc=$('f-corp'); if(fc) fc.value=k||'';
-        var fs=$('f-corpspec'); if(fs){ fs.value=(c.corp_spec||'infiltrazione'); fs.style.display=(k==='anbu')?'':'none'; }
+        fillCorpSpec(k, c.corp_spec);
         var fr=$('f-corprole'); if(fr) fr.value=c.corp_role||'';
       })();
       var _pv=$('f-prestavolto'); if(_pv) _pv.value=c.face_claim||'';
@@ -1390,7 +1391,18 @@
       if(e.target&&e.target.id==='f-clanrole'){$('ic-clan').outerHTML=embClan(($('f-clan')?$('f-clan').value:''), e.target.value==='Capo clan').replace('class="emb','id="ic-clan" class="emb');}
       if(e.target&&e.target.id==='f-element'){$('ic-element').outerHTML=embElement(e.target.value).replace('class="emb','id="ic-element" class="emb');}
     });
-    document.addEventListener('change',function(e){if(e.target&&e.target.id==='f-corp'){var fs=$('f-corpspec'); if(fs) fs.style.display=(e.target.value==='anbu')?'':'none';}});
+    var CORP_SPEC_OPTS={
+      anbu:[['infiltrazione','Infiltrazione'],['pedinamento','Pedinamento'],['assassinio','Assassinio'],['sensoriale','Sensoriale']],
+      medici:[['chirurgia','Chirurgia'],['tossicologia','Tossicologia'],['cura-campo','Cura da campo'],['combattimento','Combattimento']]
+    };
+    function fillCorpSpec(corp,cur){
+      var fs=$('f-corpspec'); if(!fs) return;
+      var opts=CORP_SPEC_OPTS[corp]||[];
+      if(!opts.length){ fs.style.display='none'; fs.innerHTML=''; return; }
+      fs.innerHTML='<option value="">— nessuno —</option>'+opts.map(function(o){return '<option value="'+o[0]+'">'+esc(o[1])+'</option>';}).join('');
+      fs.value=cur||''; fs.style.display='';
+    }
+    document.addEventListener('change',function(e){if(e.target&&e.target.id==='f-corp'){fillCorpSpec(e.target.value,'');}});
 
     document.querySelectorAll('.dtab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.dtab').forEach(function(x){x.classList.remove('on');});b.classList.add('on');var d=b.getAttribute('data-d');document.querySelectorAll('.dpanel').forEach(function(p){p.classList.toggle('on',p.getAttribute('data-d')===d);});});});
 
@@ -1427,7 +1439,7 @@
     var corpApply=$('f-corp-apply'); if(corpApply) corpApply.addEventListener('click',async function(){
       if(!sb||!myChar||!(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother'))return;
       var corp=(($('f-corp')&&$('f-corp').value)||'');
-      var spec=(corp==='anbu')?(($('f-corpspec')&&$('f-corpspec').value)||null):null;
+      var spec=(corp==='anbu'||corp==='medici')?((($('f-corpspec')&&$('f-corpspec').value)||'')||null):null;
       var role=(($('f-corprole')&&$('f-corprole').value)||'').trim()||null;
       this.disabled=true;
       var r=await sb.rpc('corp_assegna',{p_character:myChar.id,p_corp:corp,p_spec:spec,p_role:role});
