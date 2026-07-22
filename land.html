@@ -855,6 +855,8 @@
   .cmb-f input,.cmb-f select{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink);background:rgba(255,255,255,.45);border:1px solid var(--rule);padding:7px 9px}
   .cmb-two{display:flex;gap:10px}.cmb-two .cmb-f{flex:1;min-width:0}
   .cmb-hint{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink-soft);font-style:italic;margin:2px 0 0}
+  .cmb-reach{font-style:normal;border-top:1px dashed var(--rule);padding-top:6px;margin-top:7px;line-height:1.5}
+  .cmb-reach b{color:var(--ink)}
   .cmb-foot{display:flex;justify-content:flex-end;gap:8px;padding:11px 15px}
   .cmb-foot button{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:9px 16px;cursor:pointer;border:1.5px solid var(--ink)}
   .cmb-foot .btn-ghost{background:transparent;color:var(--ink)}
@@ -2181,13 +2183,14 @@
           rows.filter(function(x){return x.state==='attiva';}).forEach(function(t){
             var g=(t.grado?(' ['+esc(t.grado)+']'):(t.level!=null?(' (Liv.'+t.level+')'):''));
             var db=(t.danno_base!=null?t.danno_base:0), ck=(t.chakra_cost!=null?t.chakra_cost:0);
-            opts+='<option value="'+t.technique_id+'" data-base="'+db+'" data-ck="'+ck+'" data-nm="'+esc(t.name)+'">'+esc(t.name)+g+(db>0?(' · '+db+' dmg'):'')+(ck>0?(' · '+ck+' ck'):'')+'</option>';
+            var git=t.gittata||'', att=t.attivazione||'';
+            opts+='<option value="'+t.technique_id+'" data-base="'+db+'" data-ck="'+ck+'" data-git="'+esc(git)+'" data-att="'+esc(att)+'" data-nm="'+esc(t.name)+'">'+esc(t.name)+g+(db>0?(' · '+db+' dmg'):'')+(ck>0?(' · '+ck+' ck'):'')+'</option>';
           });
           ts.innerHTML=opts;
         }, function(){});
       }
       function combatTechChange(){ var ts=document.getElementById('cmb-tech'); if(!ts) return; var o=ts.options[ts.selectedIndex]; var nm=document.getElementById('cmb-name'), ba=document.getElementById('cmb-base'), th=document.getElementById('cmb-techhint');
-        if(ts.value&&o){ var db=o.getAttribute('data-base')||'0', ck=o.getAttribute('data-ck')||'0'; if(nm) nm.value=o.getAttribute('data-nm')||''; if(ba){ ba.value=db; ba.disabled=true; } if(th) th.textContent='danno '+db+((+ck>0)?(' · costa '+ck+' chakra'):''); }
+        if(ts.value&&o){ var db=o.getAttribute('data-base')||'0', ck=o.getAttribute('data-ck')||'0', git=o.getAttribute('data-git')||'', att=o.getAttribute('data-att')||''; if(nm) nm.value=o.getAttribute('data-nm')||''; if(ba){ ba.value=db; ba.disabled=true; } if(th){ var hint='danno '+db+((+ck>0)?(' · costa '+ck+' chakra'):''); if(git)hint+=' · gittata '+git; if(att)hint+=' · '+(att==='sigilli'?'con sigilli':'istantanea'); th.textContent=hint; } }
         else { if(ba) ba.disabled=false; if(th) th.textContent=''; }
       }
       function doCombat(){
@@ -3241,6 +3244,7 @@
         </div>
         <label class="cmb-f" id="cmb-qwrap" style="display:none">Bonus Qualità 0–6 · solo master<input id="cmb-q" type="number" min="0" max="6" value="0"></label>
         <p class="cmb-hint">Il server tira i dadi e mostra l'esito in chat. Il conteggio dei PV lo tenete voi.</p>
+        <p class="cmb-hint cmb-reach">⇢ <b>Gittata</b> · contatto 0–2 m · corta 3–10 m · media 10–30 m · lunga 30–60 m. Le armi da lancio contano come <b>azione rapida</b>. Colpire in mischia chi sta intrecciando i sigilli ne <b>disturba</b> la tecnica (attacco di opportunità).</p>
         </div>
         <div id="cmb-dispelbox" style="display:none">
           <label class="cmb-f">Genjutsu da spezzare<select id="cmb-gen"><option value="">— potenza manuale —</option></select></label>

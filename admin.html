@@ -570,7 +570,9 @@
             <label>Grado (jutsu · D–S)<input id="tech-grado" list="tech-ranks" maxlength="30" placeholder="es. C"></label>
             <label>Potenza illusione <span class="opt">(solo genjutsu · Mente per spezzarlo con la Dispersione)</span><input id="tech-potenza" type="number" step="1" min="0" max="200" placeholder="es. 25 (C) · 40 (B) · 80 (S)"></label>
             <label>Disciplina <span class="opt">(organizzazione: i Jutsu per disciplina, oppure Abilità per arti innate/segrete)</span><select id="tech-disc"><option value="Ninjutsu">Ninjutsu</option><option value="Taijutsu">Taijutsu</option><option value="Genjutsu">Genjutsu</option><option value="Fuuinjutsu">Fuuinjutsu</option><option value="Abilità">Abilità (innata / segreta)</option></select></label>
-            <label>Portata<input id="tech-portata" list="tech-ranges" maxlength="30" placeholder="es. Corto"></label>
+            <label>Portata <span class="opt">(descrittiva, testo libero)</span><input id="tech-portata" list="tech-ranges" maxlength="30" placeholder="es. Corto"></label>
+            <label>Gittata <span class="opt">(meccanica: fascia di distanza)</span><select id="tech-gittata"><option value="">— default per tipo</option><option value="contatto">Contatto</option><option value="corta">Corta</option><option value="media">Media</option><option value="lunga">Lunga</option></select></label>
+            <label>Attivazione <span class="opt">(istantanea o con sigilli: conta per il disturbo a contatto)</span><select id="tech-attivazione"><option value="">— default per tipo</option><option value="istantanea">Istantanea</option><option value="sigilli">Con sigilli</option></select></label>
             <label>Bersaglio<input id="tech-bersaglio" maxlength="40" placeholder="es. Sé stesso / Singolo"></label>
             <label>Tipo d'azione<input id="tech-azione" maxlength="40" placeholder="es. Attacco / Difesa / Supporto"></label>
             <label>Durata<input id="tech-durata" maxlength="60" placeholder="es. Istantanea / Finché mantenuta"></label>
@@ -1548,11 +1550,14 @@
     function fillTechClanSelect(){var sel=$('tech-clan');if(!sel)return;var cur=sel.value;sel.innerHTML='<option value="">— Generale —</option>'+CLANS.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');sel.value=cur;}
     async function loadTechs(){if(!sb)return;var r=await sb.from('clan_techniques').select('*').order('clan').order('sort').order('level').order('name');TECHS=(r&&r.data)||[];fillTechClanSelect();renderTechs();}
     var TECHOPEN={}, TECHLV={}, FAM=[];
+    function techGittataDefault(t){ var d=String(t&&t.disciplina||'').toLowerCase(); if(d==='taijutsu')return 'contatto'; if(d==='genjutsu')return 'corta'; if(d==='fuuinjutsu')return 'contatto'; if(d==='ninjutsu')return 'media'; return ''; }
     function techDetailBody(t){
       var meta=[];
       if(t.grado)meta.push('Grado '+esc(t.grado));
       if(t.category)meta.push(esc(t.category));
       if(t.portata)meta.push(esc(t.portata));
+      var _g=t.gittata||techGittataDefault(t); if(_g)meta.push('⇢ '+_g+(t.gittata?'':' (def)'));
+      if(t.attivazione)meta.push(t.attivazione==='sigilli'?'con sigilli':'istantanea');
       if(t.bersaglio)meta.push(esc(t.bersaglio));
       meta.push(techConsume(t.consumption_type)+(t.chakra_cost!=null?(' · '+t.chakra_cost+' chakra'):''));
       if(!t.is_active)meta.push('disattivata');
@@ -1637,7 +1642,7 @@
       });
       host.innerHTML=html;
     }
-    function resetTechForm(){editingTech=null;$('tech-name').value='';$('tech-clan').value='';$('tech-level').value='';$('tech-category').value='';$('tech-consume').value='ad_utilizzo';$('tech-chakra').value='';['tech-grado','tech-potenza','tech-portata','tech-bersaglio','tech-azione','tech-durata','tech-ricarica','tech-xp','tech-train','tech-reqgrade','tech-reqstat','tech-reqval','tech-effetto'].forEach(function(id){var el=$(id);if(el)el.value='';});$('tech-req').value='';$('tech-desc').value='';$('tech-active').checked=true;var _tm=$('tech-macro');if(_tm)_tm.value=(techMacro||'clan');Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){x.checked=false;});if($('tech-disc'))$('tech-disc').value=((techMacro||'clan')==='abilita'?'Abilità':'Ninjutsu');techMacroFormSync();$('tech-reset').style.display='none';$('tech-editing').textContent='';$('tech-save').textContent='Salva tecnica';}
+    function resetTechForm(){editingTech=null;$('tech-name').value='';$('tech-clan').value='';$('tech-level').value='';$('tech-category').value='';$('tech-consume').value='ad_utilizzo';$('tech-chakra').value='';['tech-grado','tech-potenza','tech-portata','tech-gittata','tech-attivazione','tech-bersaglio','tech-azione','tech-durata','tech-ricarica','tech-xp','tech-train','tech-reqgrade','tech-reqstat','tech-reqval','tech-effetto'].forEach(function(id){var el=$(id);if(el)el.value='';});$('tech-req').value='';$('tech-desc').value='';$('tech-active').checked=true;var _tm=$('tech-macro');if(_tm)_tm.value=(techMacro||'clan');Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){x.checked=false;});if($('tech-disc'))$('tech-disc').value=((techMacro||'clan')==='abilita'?'Abilità':'Ninjutsu');techMacroFormSync();$('tech-reset').style.display='none';$('tech-editing').textContent='';$('tech-save').textContent='Salva tecnica';}
     function techMacroFormSync(){ var m=($('tech-macro')&&$('tech-macro').value)||'clan'; var cl=$('tech-clan'); if(cl){ cl.disabled=(m!=='clan'); if(m!=='clan') cl.value=''; cl.style.opacity=(m!=='clan')?'.5':''; } var dd=$('tech-disc'); if(dd && m==='abilita') dd.value='Abilità'; }
     function bindTechs(){
       var rb=$('tech-reset');if(rb)rb.addEventListener('click',function(){resetTechForm();admFormHide('tecniche');});
@@ -1655,6 +1660,8 @@
         payload.req_elements=_el.length?_el:null;
         var _pot=$('tech-potenza')?$('tech-potenza').value.trim():''; payload.potenza=_pot!==''?(parseInt(_pot,10)||0):null;
         payload.disciplina=($('tech-disc')&&$('tech-disc').value)||null;
+        payload.gittata=($('tech-gittata')&&$('tech-gittata').value)||null;
+        payload.attivazione=($('tech-attivazione')&&$('tech-attivazione').value)||null;
         this.disabled=true;
         var r=editingTech?await sb.from('clan_techniques').update(payload).eq('id',editingTech):await sb.from('clan_techniques').insert(payload);
         this.disabled=false;
@@ -1688,6 +1695,8 @@
         if($('tech-macro'))$('tech-macro').value=(t.macro||'clan');
         if($('tech-potenza'))$('tech-potenza').value=(t.potenza!=null?t.potenza:'');
         if($('tech-disc'))$('tech-disc').value=(t.disciplina||'Ninjutsu');
+        if($('tech-gittata'))$('tech-gittata').value=(t.gittata||'');
+        if($('tech-attivazione'))$('tech-attivazione').value=(t.attivazione||'');
         Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){ x.checked=!!(t.req_elements&&t.req_elements.indexOf(x.getAttribute('data-elem'))>=0); });
         techMacroFormSync();
         $('tech-reset').style.display='';$('tech-editing').textContent='Stai modificando: '+t.name;$('tech-save').textContent='Aggiorna tecnica';

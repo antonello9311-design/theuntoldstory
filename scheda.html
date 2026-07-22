@@ -113,6 +113,10 @@
   .sc-corp-meta{color:var(--ink-soft);font-size:12px;margin-left:6px}
 
   .mini-vitals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+  .deriv-row{display:flex;flex-wrap:wrap;gap:8px;margin:-8px 0 16px}
+  .deriv-row .deriv{display:inline-flex;align-items:baseline;gap:6px;border:1px solid var(--edge);border-radius:8px;background:rgba(255,250,235,.5);padding:5px 11px}
+  .deriv-row .dl{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .deriv-row .deriv b{font-size:14px;color:var(--red-deep);font-variant-numeric:tabular-nums}
   .mv{background:rgba(255,250,235,.45);border:1px solid var(--edge);padding:9px 8px;text-align:center}
   .mv .vl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);margin-bottom:4px}
   .mv .vv{font-family:'Cinzel',serif;font-weight:600;font-size:17px;color:var(--ink)}
@@ -467,6 +471,11 @@
                   <div class="mv"><div class="vl">Chakra</div><div class="vv" id="v-chakra">—</div><div class="vbar ck"><i id="bar-chakra"></i></div></div>
                   <div class="mv"><div class="vl">Soldi</div><div class="vv" id="v-money">—</div></div>
                   <div class="mv"><div class="vl">Exp</div><div class="vv" id="v-exp">—</div></div>
+                </div>
+                <div class="deriv-row" id="deriv-row" style="display:none">
+                  <span class="deriv" title="Metri percorsi con lo spostamento di un turno · ⌊Velocità÷10⌋×5"><span class="dl">Movimento</span><b id="d-move">—</b></span>
+                  <span class="deriv" title="Sforzi fisici intensi sostenibili per scena prima dell'affaticamento · ⌊Resistenza÷20⌋+1"><span class="dl">Tenuta</span><b id="d-tenuta">—</b></span>
+                  <span class="deriv" title="Slot tecniche: usati / totale (base di grado + Mente + acquistati)"><span class="dl">Slot</span><b id="d-slot">—</b></span>
                 </div>
                 <div class="ko-banner" id="ko-banner">⚠ Fuori combattimento — non puoi attaccare finché non recuperi</div>
                 <div class="xpwrap" id="xp-wrap" style="display:none">
@@ -835,13 +844,19 @@
       }, function(){ host.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tecniche.</p>'; });
     }
     var TK={techs:[],byId:{},base:[],gen:[],q:''};
+    function techGittataDefault(t){ var d=String(t&&t.disciplina||'').toLowerCase(); if(d==='taijutsu')return 'contatto'; if(d==='genjutsu')return 'corta'; if(d==='fuuinjutsu')return 'contatto'; if(d==='ninjutsu')return 'media'; return ''; }
+    function techAttivDefault(t){ if(t&&t.is_innata) return 'istantanea'; var d=String(t&&t.disciplina||'').toLowerCase(); if(d==='taijutsu'||d==='abilità'||d==='abilita') return 'istantanea'; if(String(t&&t.macro||'').toLowerCase()==='abilita') return 'istantanea'; return 'sigilli'; }
     function tkDetail(t){
       var rows=[];
       if(t.description) rows.push('<div class="tkd"><b>Descrizione</b> · '+esc(t.description).replace(/\n/g,'<br>')+'</div>');
       var eff=t.danno_effetto||''; if(t.danno_base!=null&&t.danno_base>0) eff=(eff?eff+' · ':'')+'danno base '+t.danno_base;
       if(eff) rows.push('<div class="tkd"><b>Effetto</b> · '+esc(eff)+'</div>');
       if(t.potenza!=null) rows.push('<div class="tkd"><b>Potenza illusione</b> · '+t.potenza+' <span class="hint">(Dispersione: serve Mente &ge; '+t.potenza+((t.grado==='A'||t.grado==='S')?' &mdash; grado '+esc(t.grado)+', immune al Kai base':'')+')</span></div>');
-      var tech=[]; if(t.portata)tech.push('portata '+esc(t.portata)); if(t.bersaglio)tech.push('bersaglio '+esc(t.bersaglio)); if(t.tipo_azione)tech.push('azione '+esc(t.tipo_azione)); if(t.durata)tech.push('durata '+esc(t.durata)); if(t.ricarica)tech.push('ricarica '+esc(t.ricarica));
+      var tech=[]; if(t.portata)tech.push('portata '+esc(t.portata));
+      var _g=t.gittata||techGittataDefault(t); if(_g)tech.push('gittata '+esc(_g)+(t.gittata?'':' <span class="hint">(def)</span>'));
+      if(t.bersaglio)tech.push('bersaglio '+esc(t.bersaglio)); if(t.tipo_azione)tech.push('azione '+esc(t.tipo_azione));
+      var _a=t.attivazione||techAttivDefault(t); if(_a)tech.push(_a==='sigilli'?'con sigilli':'istantanea');
+      if(t.durata)tech.push('durata '+esc(t.durata)); if(t.ricarica)tech.push('ricarica '+esc(t.ricarica));
       if(tech.length) rows.push('<div class="tkd"><b>Tecnica</b> · '+tech.join(' · ')+'</div>');
       var cons=[]; if(t.chakra_cost!=null&&t.chakra_cost>0)cons.push(t.chakra_cost+' chakra'); if(t.consumption_type)cons.push(t.consumption_type==='per_turno'?'per turno':(t.consumption_type==='passiva'?'passiva':'ad utilizzo'));
       if(cons.length) rows.push('<div class="tkd"><b>Consumo</b> · '+cons.join(' · ')+'</div>');
@@ -962,7 +977,7 @@
         }
         var full=(d.usati>=d.totale);
         el2.style.display='';
-        el2.innerHTML='<span class="slotn'+(full?' full':'')+'">Slot tecniche: <b>'+d.usati+'/'+d.totale+'</b></span><span class="svmeta">base '+d.base+(d.extra?(' + '+d.extra+' extra'):'')+' · le innate del clan non occupano slot</span>'+buy;
+        el2.innerHTML='<span class="slotn'+(full?' full':'')+'">Slot tecniche: <b>'+d.usati+'/'+d.totale+'</b></span><span class="svmeta">base '+d.base+((d.mente||0)?(' + '+d.mente+' Mente'):'')+(d.extra?(' + '+d.extra+' acquistati'):'')+' · le innate del clan non occupano slot</span>'+buy;
       },function(){ var el2=$('slot-bar'); if(el2){ el2.style.display='none'; el2.innerHTML=''; } });
     }
     (function(){ var tw=$('train-wrap'); if(!tw) return; tw.addEventListener('click',async function(e){
@@ -1003,6 +1018,17 @@
     $('u-rows').addEventListener('click',function(e){var b=e.target.closest('.stbtn');if(!b)return;var k=b.getAttribute('data-k'),d=parseInt(b.getAttribute('data-d')||'1',10),used=0,kk;for(kk in addBuf)used+=addBuf[kk];if(d>0){if(used+STEP>myChar.unspent_points)return;if((myChar[k]||BASE)+addBuf[k]+STEP>rankCap()){toast('Tetto del grado: max '+rankCap()+' a questo rango',true);return;}addBuf[k]+=STEP;}else{if(addBuf[k]<STEP)return;addBuf[k]-=STEP;}used=0;for(kk in addBuf)used+=addBuf[kk];$('ua-'+k).textContent=(myChar[k]||BASE)+addBuf[k];var up=$('u-pts');if(up)up.textContent=(myChar.unspent_points-used);});
     $('u-confirm').addEventListener('click',async function(){var used=0;for(var kk in addBuf)used+=addBuf[kk];if(used===0){toast('Nessun punto assegnato',true);return;}this.disabled=true;var upd={unspent_points:myChar.unspent_points-used};STATS.forEach(function(s){upd[s[0]]=(myChar[s[0]]||BASE)+addBuf[s[0]];});var r=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();this.disabled=false;if(r.error){toast('Errore',true);return;}myChar=r.data;fillForm(myChar,curPriv);toast('Punti assegnati');});
 
+    function renderDeriv(c){
+      var dr=$('deriv-row'); if(!dr) return;
+      if(!c || viewMode==='public'){ dr.style.display='none'; return; }
+      var vel=parseInt(c.velocita,10)||10, res=parseInt(c.resistenza,10)||10;
+      var em=$('d-move'); if(em) em.textContent=(Math.floor(vel/10)*5)+' m';
+      var et=$('d-tenuta'); if(et) et.textContent=(Math.floor(res/20)+1);
+      dr.style.display='';
+      var es=$('d-slot'); if(es){ es.textContent='…';
+        if(sb && c.id){ sb.rpc('slot_tecniche',{p_character:c.id}).then(function(r){ var d=(r&&r.data&&r.data[0])||null; var e2=$('d-slot'); if(!e2) return; if(d){ e2.textContent=d.usati+'/'+d.totale; if(e2.parentNode) e2.parentNode.title='Slot tecniche · base '+d.base+' + Mente '+(d.mente||0)+' + acquistati '+d.extra; } else e2.textContent='—'; },function(){ var e2=$('d-slot'); if(e2) e2.textContent='—'; });
+        } else es.textContent='—'; }
+    }
     function fillForm(c,priv){
       $('s-name').textContent=c.name||'Senza nome';
       var epi=$('s-epithet'); if(c.epithet){epi.textContent='«'+c.epithet+'»';epi.style.display='';}else{epi.textContent='';epi.style.display='none';}
@@ -1029,6 +1055,7 @@
         var kb=$('ko-banner'); if(kb) kb.style.display=(pvm>0&&pv<=0)?'':'none';
       })();
       $('v-money').textContent=(c.money||0); $('v-exp').textContent=(c.exp||0);
+      renderDeriv(c);
       renderProgress(c); renderAlign(c);
       renderChars(c); renderUnspent(c);
       $('f-background').value=c.background||''; $('f-off').value=c.off_notes||''; $('f-fato').value=priv&&priv.fato_notes?priv.fato_notes:''; setPortrait(c.avatar_url);

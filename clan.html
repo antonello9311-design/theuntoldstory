@@ -354,15 +354,19 @@
       return '<div class="doc">'+out.join('')+'</div>';
     }
     function techConsume(v){return {ad_utilizzo:'Ad utilizzo',per_turno:'Per turno',passiva:'Passiva'}[v]||'';}
+    function techGittataDefault(t){ var d=String(t&&t.disciplina||'').toLowerCase(); if(d==='taijutsu')return 'contatto'; if(d==='genjutsu')return 'corta'; if(d==='fuuinjutsu')return 'contatto'; if(d==='ninjutsu')return 'media'; return ''; }
+    function techAttivDefault(t){ if(t&&t.is_innata) return 'istantanea'; var d=String(t&&t.disciplina||'').toLowerCase(); if(d==='taijutsu'||d==='abilità'||d==='abilita') return 'istantanea'; if(String(t&&t.macro||'').toLowerCase()==='abilita') return 'istantanea'; return 'sigilli'; }
     function techCard(t){
       var parts=[];
       if(t.category)parts.push(esc(t.category));
       if(t.portata)parts.push(esc(t.portata));
+      var _g=t.gittata||techGittataDefault(t); if(_g)parts.push('gittata '+esc(_g)+(t.gittata?'':' (def)'));
       var cons=techConsume(t.consumption_type); if(cons)parts.push(cons);
       if(t.chakra_cost!=null)parts.push(esc(t.chakra_cost)+' chakra');
       var det=[];
       if(t.bersaglio)det.push('<b>Bersaglio:</b> '+esc(t.bersaglio));
       if(t.tipo_azione)det.push('<b>Azione:</b> '+esc(t.tipo_azione));
+      var _a=t.attivazione||techAttivDefault(t); if(_a)det.push('<b>Attivazione:</b> '+(_a==='sigilli'?'con sigilli':'istantanea'));
       if(t.durata)det.push('<b>Durata:</b> '+esc(t.durata));
       if(t.ricarica)det.push('<b>Ricarica:</b> '+esc(t.ricarica));
       var unl=[];
