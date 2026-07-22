@@ -598,6 +598,15 @@
   .corp-card{border:1px solid var(--rule);border-radius:11px;background:linear-gradient(rgba(255,250,235,.6),rgba(247,238,214,.5));padding:13px 15px}
   .corp-card-h{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:7px}
   .corp-scope{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+  .corp-vil{font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:2px 8px;background:rgba(255,250,235,.7)}
+  .corp-statuto{margin:2px 0 9px;border-left:2px solid var(--rule);padding:2px 0 2px 11px}
+  .corp-statuto-h{display:block;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);margin-bottom:3px}
+  .corp-statuto p{font-size:12.5px;line-height:1.5;color:var(--ink);margin:0 0 7px}
+  .corp-statuto p:last-child{margin-bottom:0}
+  .corp-card.akatsuki .corp-statuto{border-left-color:#7a3a3a}
+  .corp-card.akatsuki .corp-statuto-h{color:#e0a48f}
+  .corp-card.akatsuki .corp-statuto p{color:#ecd6c8}
+  .corp-card.akatsuki .corp-vil{color:#eADBD0;border-color:#5a2a2a;background:rgba(255,255,255,.05)}
   .corp-desc{font-size:13px;color:var(--ink);margin:0 0 8px;line-height:1.5}
   .corp-req-box{font-size:12px;color:var(--ink-soft);background:rgba(60,42,18,.05);border-radius:7px;padding:7px 9px;line-height:1.45}
   .corp-members{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -2437,6 +2446,21 @@
       var CORP_SPECS={infiltrazione:'Infiltrazione',pedinamento:'Pedinamento',assassinio:'Assassinio',sensoriale:'Sensoriale'};
       function corpSpecLabel(s){ if(!s) return ''; return CORP_SPECS[String(s).toLowerCase()]||s; }
       function corpNameOf(cat,key){ key=String(key||'').toLowerCase(); for(var i=0;i<cat.length;i++){ if(cat[i].key===key) return cat[i].nome; } return key; }
+      var CORP_VILLAGES=['Konoha','Suna'];
+      function corpRich(t){ return String(t||'').split(/\n\n+/).map(function(p){ var s=esc(p).replace(/\n/g,'<br>'); s=s.replace(/^([^.:<]{2,22}[.:])\s/,'<strong>$1</strong> '); return '<p>'+s+'</p>'; }).join(''); }
+      function corpCardHTML(c,vil,members){
+        var scopeLabel = vil ? ('di '+vil) : (c.key==='akatsuki' ? 'mondiale · fuorilegge' : (c.scope==='villaggio'?'di villaggio':'mondiale'));
+        var h='<div class="corp-card '+esc(c.key)+'">'
+          +'<div class="corp-card-h"><span class="corp-badge '+esc(c.key)+'">'+esc(c.nome)+'</span>'+(vil?('<span class="corp-vil">'+esc(vil)+'</span>'):'')+'<span class="corp-scope">'+esc(scopeLabel)+'</span></div>'
+          +'<p class="corp-desc">'+esc(c.descrizione)+'</p>';
+        if(c.statuto){ h+='<div class="corp-statuto"><span class="corp-statuto-h">Statuto</span>'+corpRich(c.statuto)+'</div>'; }
+        h+='<div class="corp-req-box"><b>Requisiti.</b> '+esc(c.requisiti)+'</div>'
+          +'<div class="corp-members"><span class="corp-mem-h">Membri ('+members.length+')</span>';
+        if(!members.length){ h+='<span class="corp-empty">Nessun membro noto, per ora.</span>'; }
+        else { h+=members.map(function(m){ return '<span class="corp-mem">'+esc(m.name)+(m.corp_spec?(' · '+esc(corpSpecLabel(m.corp_spec))):'')+(m.corp_role?(' · '+esc(m.corp_role)):'')+'</span>'; }).join(''); }
+        h+='</div></div>';
+        return h;
+      }
       function openCorp(){ if(!loggedIn){ toast('Accedi per vedere le corporazioni'); return; } var ov=document.getElementById('corpov'), bk=document.getElementById('corpov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false; loadCorp(); }
       function closeCorp(){ var ov=document.getElementById('corpov'), bk=document.getElementById('corpov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
       function corpOpenNow(){ var ov=document.getElementById('corpov'); return !!(ov && !ov.hidden); }
@@ -2453,7 +2477,6 @@
         cat=cat||[]; roster=roster||[]; pending=pending||[];
         var mineCorp = (mine && mine.corp) ? String(mine.corp).toLowerCase() : '';
         var hasChar = !!(mine && mine.character_id);
-        var canSeeAkatsuki = iAmStaff || mineCorp==='akatsuki';
         var h='';
         h+='<div class="corp-me">';
         if(mineCorp){
@@ -2497,16 +2520,15 @@
         }
         h+='<div class="corp-cards">';
         cat.forEach(function(c){
-          if(c.key==='akatsuki' && !canSeeAkatsuki) return;
-          var members = roster.filter(function(m){ return String(m.corporation||'').toLowerCase()===c.key; });
-          h+='<div class="corp-card '+esc(c.key)+'">'
-            +'<div class="corp-card-h"><span class="corp-badge '+esc(c.key)+'">'+esc(c.nome)+'</span><span class="corp-scope">'+(c.scope==='villaggio'?'di villaggio':'mondiale')+(c.is_secret?' · segreta':'')+'</span></div>'
-            +'<p class="corp-desc">'+esc(c.descrizione)+'</p>'
-            +'<div class="corp-req-box"><b>Requisiti.</b> '+esc(c.requisiti)+'</div>'
-            +'<div class="corp-members"><span class="corp-mem-h">Membri ('+members.length+')</span>';
-          if(!members.length){ h+='<span class="corp-empty">Nessun membro noto, per ora.</span>'; }
-          else { h+=members.map(function(m){ return '<span class="corp-mem">'+esc(m.name)+(m.corp_spec?(' · '+esc(corpSpecLabel(m.corp_spec))):'')+((c.scope==='villaggio'&&m.village)?(' · '+esc(m.village)):'')+(m.corp_role?(' · '+esc(m.corp_role)):'')+'</span>'; }).join(''); }
-          h+='</div></div>';
+          if(c.scope==='villaggio'){
+            CORP_VILLAGES.forEach(function(vil){
+              var mem=roster.filter(function(m){ return String(m.corporation||'').toLowerCase()===c.key && (m.village||'')===vil; });
+              h+=corpCardHTML(c,vil,mem);
+            });
+          } else {
+            var mem=roster.filter(function(m){ return String(m.corporation||'').toLowerCase()===c.key; });
+            h+=corpCardHTML(c,null,mem);
+          }
         });
         h+='</div>';
         host.innerHTML=h;

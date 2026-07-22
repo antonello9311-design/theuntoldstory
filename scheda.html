@@ -103,6 +103,14 @@
   .emb.e-konoha{background:#dcecdc;border-color:#6f9e6f}
   .emb.e-suna{background:#efe2c4;border-color:#cbb05a}
   .emb.e-rank{background:rgba(255,250,235,.7)}
+  .emb.corp-e-anbu{background:#333a4d;border-color:#232838;color:#eef1f7;font-family:'Cinzel',serif;font-weight:700;font-size:16px}
+  .emb.corp-e-medici{background:#3f6d3a;border-color:#2c4e29;color:#f2f7ec;font-size:19px}
+  .emb.corp-e-akatsuki{background:#3a1414;border-color:#240c0c;color:#e9b7a3;font-size:18px}
+  .sc-corp-badge{display:inline-block;font-family:'Cinzel',serif;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:7px;border:1px solid var(--edge);vertical-align:middle}
+  .sc-corp-badge.anbu{background:#333a4d;border-color:#232838;color:#eef1f7}
+  .sc-corp-badge.medici{background:#3f6d3a;border-color:#2c4e29;color:#f2f7ec}
+  .sc-corp-badge.akatsuki{background:#3a1414;border-color:#240c0c;color:#f0d9c8}
+  .sc-corp-meta{color:var(--ink-soft);font-size:12px;margin-left:6px}
 
   .mini-vitals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
   .mv{background:rgba(255,250,235,.45);border:1px solid var(--edge);padding:9px 8px;text-align:center}
@@ -439,7 +447,14 @@
                 <div class="drow"><span class="emb" id="ic-rank"></span><div class="dinfo"><span class="dlab">Grado</span><span class="dval" id="v-rank">—</span><select id="f-rank" class="mini" style="display:none"><option>Deshi</option><option>Genin</option><option>Chunin</option><option>Jonin</option><option>Jonin Speciale</option><option>Kage Konoha</option><option>Kage Suna</option><option>Sannin</option></select></div></div>
                 <div class="drow"><span class="emb" id="ic-village"></span><div class="dinfo"><span class="dlab">Villaggio</span><span class="dval" id="v-village">—</span></div></div>
                 <div class="drow"><span class="emb" id="ic-clan"></span><div class="dinfo"><span class="dlab">Clan <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· entra da solo in un clan aperto del tuo villaggio; i clan speciali (Hyuga, Uchiha, Sabaku…) li assegna lo staff</span></span><select id="f-clan" class="mini"></select><div id="clan-join" style="display:none;margin-top:8px"><select id="clan-join-sel" class="mini" style="max-width:180px"></select> <button type="button" class="btn btn-red btn-sm" id="clan-join-btn" style="margin-left:6px">Unisciti</button></div><span class="dlab" id="lab-clanrole" style="margin-top:9px;display:none">Ruolo nel clan</span><select id="f-clanrole" class="mini" style="display:none"><option value="">—</option><option>Capo clan</option><option>Anziano</option><option>Membro esperto</option><option>Novizio</option></select></div></div>
-                <div class="drow"><span class="emb" id="ic-corp"></span><div class="dinfo"><span class="dlab">Corporazione</span><input id="f-corporation" class="mini" maxlength="60" placeholder="Squadra, corpo, gilda…" /></div></div>
+                <div class="drow"><span class="emb" id="ic-corp"></span><div class="dinfo"><span class="dlab">Corporazione <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· la scegli candidandoti dalla land; la conferma lo staff</span></span><span class="dval" id="v-corp">—</span>
+                  <div id="corp-staff" style="display:none;margin-top:8px">
+                    <select id="f-corp" class="mini" style="max-width:150px"><option value="">— Nessuna</option><option value="anbu">ANBU</option><option value="medici">Medici</option><option value="akatsuki">Akatsuki</option></select>
+                    <select id="f-corpspec" class="mini" style="max-width:150px;display:none;margin-left:6px"><option value="infiltrazione">Infiltrazione</option><option value="pedinamento">Pedinamento</option><option value="assassinio">Assassinio</option><option value="sensoriale">Sensoriale</option></select>
+                    <input id="f-corprole" class="mini" maxlength="40" placeholder="Ruolo (es. Capitano)" style="max-width:150px;margin-left:6px" />
+                    <button type="button" class="btn btn-red btn-sm" id="f-corp-apply" style="margin-left:6px">Applica</button>
+                    <div class="dlab" style="text-transform:none;letter-spacing:0;color:var(--ink-soft);margin-top:6px">ANBU richiede Jonin+ e Lealtà ≥ 65; Akatsuki richiede Lealtà ≤ 20. L'assegnazione registra la data d'ingresso.</div>
+                  </div></div></div>
                 <div class="drow"><span class="emb" id="ic-element"></span><div class="dinfo"><span class="dlab">Elemento del Chakra <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· facoltativo</span></span>
                   <select id="f-element" class="mini"><option value="">Nessuno</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select></div></div>
                 <div class="drow"><span class="emb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:20px;height:20px;color:var(--red-deep)"><path d="M4 6c5-1.4 11-1.4 16 0 0 6-2.4 10-8 10S4 12 4 6z"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="9.5" r="1"/><path d="M9.5 13c.8.8 1.7 1 2.5 1s1.7-.2 2.5-1"/></svg></span><div class="dinfo"><span class="dlab">Prestavolto <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· il volto usato per l'avatar</span></span><input id="f-prestavolto" class="mini" maxlength="80" placeholder="Nome del volto (attore, personaggio…)" /></div></div>
@@ -692,7 +707,9 @@
     function embRank(r){var _u=r&&EMB['rank:'+r];if(_u)return '<span class="emb has-img"><img src="'+_u+'" alt=""></span>';var inner;if(r==='Deshi')inner='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="none" stroke="#3a2a12" stroke-width="2"/></svg>';else if(r&&(r.indexOf('Kage')===0||r==='Sannin'||r==='Kage / Sannin'))inner=STAR;else{var n=r==='Genin'?1:r==='Chunin'?2:3;inner=chevSvg(n);if(r==='Jonin Speciale')inner=inner.replace('<svg viewBox="0 0 24 24">','<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7" fill="#a6321d"/>');}return '<span class="emb e-rank">'+inner+'</span>';}
     function embClan(c,shine){if(!c||c==='Nessuno')return '<span class="emb e-none">—</span>';var u=EMB['clan:'+c];if(u)return '<span class="emb has-img'+(shine?' shine':'')+'"'+(shine?(' style="--e:url(&quot;'+u+'&quot;)"'):'')+'><img src="'+u+'" alt="">'+(shine?'<span class="shn"></span>':'')+'</span>';return '<span class="emb e-clan">'+esc(c.charAt(0))+'</span>';}
     function capoSelected(){var r=$('f-clanrole');return !!(r&&r.value==='Capo clan');}
-    function embCorp(c){if(!c)return '<span class="emb e-none">—</span>';return '<span class="emb">'+BANNER+'</span>';}
+    function corpKeyLabel(k){k=String(k||'').toLowerCase();return {anbu:'ANBU',medici:'Medici',akatsuki:'Akatsuki'}[k]||k;}
+    function corpSpecLabelS(s){s=String(s||'').toLowerCase();return {infiltrazione:'Infiltrazione',pedinamento:'Pedinamento',assassinio:'Assassinio',sensoriale:'Sensoriale'}[s]||'';}
+    function embCorp(c){if(!c)return '<span class="emb e-none">—</span>';var k=String(c).toLowerCase();var S={anbu:'A',medici:'✚',akatsuki:'☁'}[k]||'▲';return '<span class="emb corp-e-'+k+'">'+S+'</span>';}
     function embElement(e){if(!e)return '<span class="emb e-none">—</span>';var _u=EMB['element:'+e];if(_u)return '<span class="emb has-img"><img src="'+_u+'" alt=""></span>';return '<span class="emb '+ELC[e]+'"><span class="kanji">'+ELK[e]+'</span></span>';}
 
     function fillClanSelect(sel,village,current){var list=CLANS[village]||['Nessuno'];sel.innerHTML='';list.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;if(c===current)o.selected=true;sel.appendChild(o);});}
@@ -820,7 +837,7 @@
     var TK={techs:[],byId:{},base:[],gen:[],q:''};
     function tkDetail(t){
       var rows=[];
-      if(t.description) rows.push('<div class="tkd"><b>Descrizione</b> · '+esc(t.description)+'</div>');
+      if(t.description) rows.push('<div class="tkd"><b>Descrizione</b> · '+esc(t.description).replace(/\n/g,'<br>')+'</div>');
       var eff=t.danno_effetto||''; if(t.danno_base!=null&&t.danno_base>0) eff=(eff?eff+' · ':'')+'danno base '+t.danno_base;
       if(eff) rows.push('<div class="tkd"><b>Effetto</b> · '+esc(eff)+'</div>');
       if(t.potenza!=null) rows.push('<div class="tkd"><b>Potenza illusione</b> · '+t.potenza+' <span class="hint">(Dispersione: serve Mente &ge; '+t.potenza+((t.grado==='A'||t.grado==='S')?' &mdash; grado '+esc(t.grado)+', immune al Kai base':'')+')</span></div>');
@@ -993,7 +1010,14 @@
       $('v-village').textContent=c.village||'—'; $('ic-village').outerHTML=embVillage(c.village).replace('class="emb','id="ic-village" class="emb');
       $('v-age').textContent=(c.age!=null?c.age+' anni':'—'); $('v-sex').textContent=c.sex||'—';
       fillClanSelect($('f-clan'),c.village,c.clan||'Nessuno'); var _fcr=$('f-clanrole'); if(_fcr) _fcr.value=c.clan_role||''; $('ic-clan').outerHTML=embClan(c.clan, c.clan_role==='Capo clan').replace('class="emb','id="ic-clan" class="emb');
-      $('f-corporation').value=c.corporation||''; $('ic-corp').outerHTML=embCorp(c.corporation).replace('class="emb','id="ic-corp" class="emb');
+      (function(){ var k=String(c.corporation||'').toLowerCase();
+        var showK=(k && (viewMode!=='public' || k!=='akatsuki'))?k:'';
+        var vc=$('v-corp'); if(vc){ if(showK){ var _cvil=((showK==='anbu'||showK==='medici')&&c.village)?('<span class="sc-corp-meta">· '+esc(c.village)+'</span>'):''; vc.innerHTML='<span class="sc-corp-badge '+showK+'">'+corpKeyLabel(showK)+'</span>'+_cvil+(c.corp_spec?('<span class="sc-corp-meta">· '+corpSpecLabelS(c.corp_spec)+'</span>'):'')+(c.corp_role?('<span class="sc-corp-meta">· '+esc(c.corp_role)+'</span>'):''); } else { vc.textContent='—'; } }
+        $('ic-corp').outerHTML=embCorp(showK).replace('class="emb','id="ic-corp" class="emb');
+        var fc=$('f-corp'); if(fc) fc.value=k||'';
+        var fs=$('f-corpspec'); if(fs){ fs.value=(c.corp_spec||'infiltrazione'); fs.style.display=(k==='anbu')?'':'none'; }
+        var fr=$('f-corprole'); if(fr) fr.value=c.corp_role||'';
+      })();
       var _pv=$('f-prestavolto'); if(_pv) _pv.value=c.face_claim||'';
       $('f-element').value=c.element||''; $('ic-element').outerHTML=embElement(c.element).replace('class="emb','id="ic-element" class="emb');
       (function(){var pv=c.vita||0,pvm=c.vita_max||0,ck=c.chakra||0,ckm=c.chakra_max||0;
@@ -1250,7 +1274,8 @@
       var canEd=(owner||staff), oEdit=owner&&editMode, sEdit=staff&&editMode;
       ['f-element','f-background','f-off','f-prestavolto'].forEach(function(id){var el=$(id); if(el) el.disabled=!oEdit;});
       var _fe=$('f-element'); if(_fe){ var _adm=(viewMode==='adminself'||viewMode==='adminother'); _fe.disabled = !oEdit || (!!(myChar && myChar.element) && !_adm); _fe.title = (myChar && myChar.element && !_adm) ? 'L\'elemento base si sceglie una sola volta' : ''; }
-      ['f-clan','f-corporation','f-clanrole','f-rank'].forEach(function(id){var el=$(id); if(el) el.disabled=!sEdit;});
+      ['f-clan','f-clanrole','f-rank'].forEach(function(id){var el=$(id); if(el) el.disabled=!sEdit;});
+      var _cs=$('corp-staff'); if(_cs) _cs.style.display=sEdit?'':'none';
       var _vr=$('v-rank'), _fr2=$('f-rank'); if(_vr&&_fr2){ _vr.style.display=sEdit?'none':''; _fr2.style.display=sEdit?'':'none'; }
       var _hasRole=myChar&&myChar.clan_role; var _showRole=(sEdit||_hasRole)?'':'none'; var _lcr=$('lab-clanrole'); if(_lcr)_lcr.style.display=_showRole; var _scr2=$('f-clanrole'); if(_scr2)_scr2.style.display=_showRole;
       var sv=$('s-save'); if(sv) sv.style.display=oEdit?'':'none';
@@ -1314,7 +1339,7 @@
       if(e.target&&e.target.id==='f-clanrole'){$('ic-clan').outerHTML=embClan(($('f-clan')?$('f-clan').value:''), e.target.value==='Capo clan').replace('class="emb','id="ic-clan" class="emb');}
       if(e.target&&e.target.id==='f-element'){$('ic-element').outerHTML=embElement(e.target.value).replace('class="emb','id="ic-element" class="emb');}
     });
-    document.addEventListener('input',function(e){if(e.target&&e.target.id==='f-corporation'){$('ic-corp').outerHTML=embCorp(e.target.value).replace('class="emb','id="ic-corp" class="emb');}});
+    document.addEventListener('change',function(e){if(e.target&&e.target.id==='f-corp'){var fs=$('f-corpspec'); if(fs) fs.style.display=(e.target.value==='anbu')?'':'none';}});
 
     document.querySelectorAll('.dtab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.dtab').forEach(function(x){x.classList.remove('on');});b.classList.add('on');var d=b.getAttribute('data-d');document.querySelectorAll('.dpanel').forEach(function(p){p.classList.toggle('on',p.getAttribute('data-d')===d);});});});
 
@@ -1329,7 +1354,6 @@
         upd.clan=_cl;
         upd.clan_role=(_cl==='Nessuno'||!_cl)?null:((($('f-clanrole')&&$('f-clanrole').value)||null));
         if($('f-rank')&&$('f-rank').value) upd.rank=$('f-rank').value;
-        if($('f-corporation')) upd.corporation=(($('f-corporation').value)||'').trim()||null;
       }
       var r1=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();
       this.disabled=false;
@@ -1339,7 +1363,7 @@
     var spSave=$('sp-save'); if(spSave) spSave.addEventListener('click',async function(){
       if(!sb||!myChar||!(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother'))return;this.disabled=true;
       var _spClan=($('f-clan').value||'Nessuno');
-      var upd={epithet:($('sp-epithet').value.trim()||null),rank:(($('f-rank')&&$('f-rank').value)||myChar.rank),clan:_spClan,clan_role:((_spClan==='Nessuno')?null:((($('f-clanrole')&&$('f-clanrole').value)||null))),corporation:($('f-corporation').value.trim()||null)};
+      var upd={epithet:($('sp-epithet').value.trim()||null),rank:(($('f-rank')&&$('f-rank').value)||myChar.rank),clan:_spClan,clan_role:((_spClan==='Nessuno')?null:((($('f-clanrole')&&$('f-clanrole').value)||null)))};
       STATS.forEach(function(s){var v=parseInt($('sp-'+s[0]).value,10); upd[s[0]]=isNaN(v)?myChar[s[0]]:v;});
       ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?myChar[k]:v;});
       ['lealta','via','fama'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?(myChar[k]!=null?myChar[k]:50):Math.max(0,Math.min(100,v));});
@@ -1348,6 +1372,19 @@
       this.disabled=false;
       if(r1.error){toast('Errore staff: '+r1.error.message,true);return;}
       myChar=r1.data; if(!r2.error)curPriv=r2.data; fillForm(myChar,curPriv); toast('Modifiche staff salvate');
+    });
+    var corpApply=$('f-corp-apply'); if(corpApply) corpApply.addEventListener('click',async function(){
+      if(!sb||!myChar||!(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother'))return;
+      var corp=(($('f-corp')&&$('f-corp').value)||'');
+      var spec=(corp==='anbu')?(($('f-corpspec')&&$('f-corpspec').value)||null):null;
+      var role=(($('f-corprole')&&$('f-corprole').value)||'').trim()||null;
+      this.disabled=true;
+      var r=await sb.rpc('corp_assegna',{p_character:myChar.id,p_corp:corp,p_spec:spec,p_role:role});
+      this.disabled=false;
+      if(r.error){ toast(r.error.message||'Errore',true); return; }
+      var rr=await sb.from('characters').select('*').eq('id',myChar.id).maybeSingle();
+      if(rr&&rr.data){ myChar=rr.data; fillForm(myChar,curPriv); }
+      toast(corp?'Corporazione assegnata':'Corporazione rimossa');
     });
     var avFile=$('s-avatar-file'); if(avFile) avFile.addEventListener('change',async function(){
       var file=this.files&&this.files[0]; if(!file||!sb||!me||!myChar) return;
