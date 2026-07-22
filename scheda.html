@@ -373,6 +373,8 @@
   /* ---- Catalogo tecniche ---- */
   .tk-tools{display:flex;gap:8px;align-items:center;margin:0 0 10px;flex-wrap:wrap}
   .tk-search{flex:1;min-width:180px;font-family:'Cormorant Garamond',serif;font-size:14.5px;padding:7px 10px;border:1px solid var(--edge);border-radius:8px;background:#fbf4e1;color:var(--ink)}
+  .tk-count{flex:0 0 auto;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.03em;color:var(--ink-soft);background:rgba(166,50,29,.07);border:1px solid var(--edge);border-radius:8px;padding:6px 11px}
+  .tk-count b{color:var(--red-deep)}
   .tk-grp{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);border-bottom:1px solid var(--edge);padding:10px 0 4px;margin:6px 0 6px}
   .tr-row{cursor:pointer}
   .tr-cat{font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:#8a6a1e;border:1px solid var(--edge);border-radius:6px;padding:1px 6px;margin-left:6px;white-space:nowrap}
@@ -821,9 +823,8 @@
       var rank=x.rank?('<span class="jrank">'+esc(x.rank)+'</span>'):'';
       var meta=[]; if(x.nature) meta.push(esc(x.nature)); if(x.action_type) meta.push(esc(x.action_type));
       var sub=meta.length?('<div class="jmeta">'+meta.join(' \u00b7 ')+'</div>'):'';
-      var rom=x.name_romaji?'<div class="jrom">'+esc(x.name_romaji)+'</div>':'';
       var eff=x.effect?'<div class="jeff">'+esc(x.effect)+'</div>':'';
-      return '<div class="jcard"><div class="jtop"><span class="jname">'+esc(x.name_it)+'</span>'+rank+'</div>'+rom+sub+eff+'</div>';
+      return '<div class="jcard"><div class="jtop"><span class="jname">'+esc(x.name_it)+'</span>'+rank+'</div>'+sub+eff+'</div>';
     }
     function renderJutsu(){
       var host=$('jutsu-wrap');
@@ -893,6 +894,23 @@
     }
     var TK_DISC=['Ninjutsu','Taijutsu','Genjutsu','Fuuinjutsu'];
     function tkHead(label,big){ return '<div class="tk-sec'+(big?' tk-sec-big':'')+'">'+label+'</div>'; }
+    /* Idoneità lato client: mostra solo ciò che il personaggio può davvero imparare (gate duri, XP/slot a parte) */
+    function _rankOrd(r){ return ({'Deshi':0,'Genin':1,'Chunin':2,'Jonin':3,'Jonin Speciale':4,'Kage':5,'Sannin':5})[r||'Deshi']||0; }
+    function _statVal(s){ s=String(s||'').toLowerCase(); var m={'mente':'mente','forza':'forza','velocità':'velocita','velocita':'velocita','resistenza':'resistenza','ninjutsu':'ninjutsu','genjutsu':'genjutsu','taijutsu':'taijutsu','fuuinjutsu':'fuuinjutsu','kekkei genkai':'kekkei_genkai'}; var f=m[s]; if(!f) return null; return (myChar&&myChar[f]!=null)?myChar[f]:0; }
+    function techQualifies(t){
+      if(!myChar) return false;
+      if(t.req_grade && _rankOrd(myChar.rank) < _rankOrd(t.req_grade)) return false;
+      if(t.req_stat && t.req_stat_value!=null){ var v=_statVal(t.req_stat); if(v==null || v < t.req_stat_value) return false; }
+      if(t.req_corp && String(myChar.corporation||'').toLowerCase()!==String(t.req_corp).toLowerCase()) return false;
+      if(t.req_ramo && String(myChar.corp_spec||'').toLowerCase()!==String(t.req_ramo).toLowerCase()) return false;
+      if(t.clan && myChar.clan!==t.clan) return false;
+      if(t.req_elements && t.req_elements.length && (!myChar.element || t.req_elements.indexOf(myChar.element)<0)) return false;
+      if(t.level && t.level>1){ var ok=(TK.techs||[]).some(function(p){ var pa=TK.byId[p.id]; return p.name===t.name && (p.clan||null)===(t.clan||null) && p.level===(t.level-1) && pa && pa.state==='attiva'; }); if(!ok) return false; }
+      return true;
+    }
+    function techLearnable(t){ return techQualifies(t) && !TK.byId[t.id]; }
+    function techShow(t){ var a=TK.byId[t.id]; return techQualifies(t) && !(a && a.state==='attiva'); }
+    function techIsAbil(t){ return (t.disciplina==='Abilità')||(t.macro==='abilita'); }
     function paintCatalog(){
       var list=$('train-list'); if(!list) return;
       var canAct=(viewMode!=='public'); var q=TK.q; var h='';
@@ -901,16 +919,21 @@
       var baseNin=baseAll.filter(function(j){return (j.category||'')!=='Abilità';});
       var baseAbi=baseAll.filter(function(j){return (j.category||'')==='Abilità';});
       var myCorp2=String((myChar&&myChar.corporation)||'').toLowerCase();
-      var gen=(TK.gen||[]).filter(function(t){return tkMatch(t,q) && (!t.req_corp || String(t.req_corp).toLowerCase()===myCorp2);});
+      var gen=(TK.gen||[]).filter(function(t){return tkMatch(t,q) && (!t.req_corp || String(t.req_corp).toLowerCase()===myCorp2) && techShow(t);});
       var genJutsu=gen.filter(function(t){return t.macro!=='abilita';});
       var genAbil=gen.filter(function(t){return t.macro==='abilita';});
+      // Conteggio globale delle tecniche apprendibili ora (idonee e non ancora apprese) — ignora la ricerca
+      var _pool=(TK.techs||[]).concat((TK.gen||[]).filter(function(t){return (!t.req_corp||String(t.req_corp).toLowerCase()===myCorp2);}));
+      var _learn=_pool.filter(techLearnable);
+      var _cJ=_learn.filter(function(t){return !techIsAbil(t);}).length, _cA=_learn.filter(techIsAbil).length;
+      var _cc=$('tk-count'); if(_cc) _cc.innerHTML='Puoi imparare ora: <b>'+_cJ+'</b> jutsu &middot; <b>'+_cA+'</b> abilità';
 
       // ===== JUTSU =====
       h+=tkHead('Jutsu',true);
       // -- del clan --
       if(hasClan){
         h+=tkHead('Del clan · '+esc(myChar.clan));
-        var clanAll=(TK.techs||[]).filter(function(t){return tkMatch(t,q);});
+        var clanAll=(TK.techs||[]).filter(function(t){return tkMatch(t,q) && techShow(t);});
         var clanAbi=clanAll.filter(function(t){return t.disciplina==='Abilità';});
         var anyC=false;
         if(clanAbi.length){ h+=tkGroup('cabil','Abilità del clan · innate e segrete', clanAbi.map(function(t){return tkRow(t,TK.byId[t.id],canAct);}).join(''), clanAbi.length, q); anyC=true; }
@@ -919,7 +942,7 @@
           if(!rows.length) return; anyC=true;
           h+=tkGroup('cj'+di, d, rows.map(function(t){return tkRow(t,TK.byId[t.id],canAct);}).join(''), rows.length, q);
         });
-        if(!anyC && !q) h+='<p class="hint" style="margin:2px 0 0">Il clan non ha ancora tecniche a catalogo.</p>';
+        if(!anyC && !q) h+='<p class="hint" style="margin:2px 0 0">Nessuna arte del clan alla tua portata per ora: sali di grado o statistiche.</p>';
       } else {
         h+=tkHead('Del clan');
         h+='<p class="hint" style="margin:2px 0 0">Le <b>tecniche di clan</b> compaiono qui quando entri in un clan: ogni famiglia ha il suo catalogo (arti innate, segrete e jutsu divisi per disciplina).</p>';
@@ -934,14 +957,14 @@
         var rh=br.map(tkBaseRow).join('')+gr.map(function(t){return tkRow(t,TK.byId[t.id],canAct);}).join('');
         h+=tkGroup('gj'+di, d, rh, cnt, q);
       });
-      if(!anyG && !q) h+='<p class="hint" style="margin:2px 0 0">Nessuna tecnica generica, per ora.</p>';
+      if(!anyG && !q) h+='<p class="hint" style="margin:2px 0 0">Nessuna tecnica generica alla tua portata, per ora.</p>';
 
       // ===== ABILITÀ =====
       h+=tkHead('Abilità',true);
       var anyA=false;
       if(genAbil.length){ h+=tkGroup('ag','Generiche', genAbil.map(function(t){return tkRow(t,TK.byId[t.id],canAct);}).join(''), genAbil.length, q); anyA=true; }
       if(baseAbi.length){ h+=tkGroup('ab','Basi d\'Accademia', baseAbi.map(tkBaseRow).join(''), baseAbi.length, q); anyA=true; }
-      if(!anyA && !q) h+='<p class="hint" style="margin:2px 0 0">Nessuna abilità generica.</p>';
+      if(!anyA && !q) h+='<p class="hint" style="margin:2px 0 0">Nessuna abilità alla tua portata, per ora.</p>';
 
       list.innerHTML=h||'<p class="hint" style="margin:0">Nessuna tecnica trovata'+(q?' per «'+esc(q)+'»':'')+'.</p>';
     }
@@ -949,7 +972,7 @@
       var host=$('train-wrap'); if(!host) return;
       if(viewMode==='public'||!sb||!myChar){ host.innerHTML=''; return; }
       var hasClan=!!(myChar.clan&&myChar.clan!=='Nessuno');
-      host.innerHTML='<div class="jgroup"><div class="jgh">Catalogo jutsu e abilità</div><div class="slotbar" id="slot-bar" style="display:none"></div><p class="hint" style="margin:.2em 0 .7em">Tutto ciò che si può imparare nel gioco, <b>navigabile per categorie</b>: apri una categoria e <b>tocca una riga</b> per leggere cosa fa, i requisiti e i costi.'+(hasClan?' Le tecniche del clan si acquistano col <b>saldo XP</b>: paghi l\'idoneità e poi servono gli allenamenti con un maestro (uno al giorno).':'')+'</p><div class="tk-tools"><input class="tk-search" id="tk-search" type="search" placeholder="Cerca per nome, categoria o testo…"></div><div id="train-list"><p class="hint" style="margin:0">Caricamento…</p></div></div>';
+      host.innerHTML='<div class="jgroup"><div class="jgh">Catalogo jutsu e abilità</div><div class="slotbar" id="slot-bar" style="display:none"></div><p class="hint" style="margin:.2em 0 .7em">Tutto ciò che si può imparare nel gioco, <b>navigabile per categorie</b>: apri una categoria e <b>tocca una riga</b> per leggere cosa fa, i requisiti e i costi.'+(hasClan?' Le tecniche del clan si acquistano col <b>saldo XP</b>: paghi l\'idoneità e poi servono gli allenamenti con un maestro (uno al giorno).':'')+'</p><div class="tk-tools"><input class="tk-search" id="tk-search" type="search" placeholder="Cerca per nome, categoria o testo…"><span class="tk-count" id="tk-count"></span></div><div id="train-list"><p class="hint" style="margin:0">Caricamento…</p></div></div>';
       if(hasClan) renderSlotBar();
       var byId={};
       sb.rpc('my_abilities',{p_character:myChar.id}).then(function(ar){
