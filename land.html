@@ -621,8 +621,18 @@
   .corp-tab.on .corp-tab-you{background:rgba(255,255,255,.22)}
   .corp-gradi{margin:2px 0 11px;border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.4);padding:9px 12px}
   .corp-gradi-h{display:block;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
-  .corp-grade{display:flex;flex-direction:column;gap:1px;padding:5px 0;border-top:1px solid rgba(138,111,67,.22)}
+  .corp-grade{display:flex;gap:9px;align-items:flex-start;padding:5px 0;border-top:1px solid rgba(138,111,67,.22)}
   .corp-grade:first-of-type{border-top:none;padding-top:0}
+  .corp-grade-tx{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
+  .corp-gemb{width:30px;height:30px;flex:0 0 auto;border-radius:7px;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,250,235,.45);border:1px solid var(--edge)}
+  .corp-gemb img{width:100%;height:100%;object-fit:contain}
+  .corp-logo{width:34px;height:34px;flex:0 0 auto;border-radius:8px;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,250,235,.5);border:1px solid var(--edge)}
+  .corp-logo img{width:100%;height:100%;object-fit:contain}
+  .corp-tab-emb{width:16px;height:16px;flex:0 0 auto;display:inline-flex}
+  .corp-tab-emb img{width:100%;height:100%;object-fit:contain}
+  .corp-semb{width:14px;height:14px;display:inline-flex;vertical-align:-2px;margin-right:3px}
+  .corp-semb img{width:100%;height:100%;object-fit:contain}
+  .corp-card.akatsuki .corp-logo,.corp-card.akatsuki .corp-gemb{background:rgba(255,255,255,.06);border-color:#5a2a2a}
   .corp-grade-n{font-family:'Cinzel',serif;font-weight:700;font-size:12.5px;letter-spacing:.02em;color:var(--ink)}
   .corp-grade-d{color:var(--ink-soft);font-size:12px;line-height:1.42}
   .corp-card.akatsuki .corp-gradi{background:rgba(255,255,255,.05);border-color:#5a2a2a}
@@ -1565,7 +1575,7 @@
       function avatarHTML(c,name,cid){ var inner=(c&&c.avatar_url)?('<img src="'+esc(c.avatar_url)+'" alt="">'):('<span class="ava-ph">'+esc((name||'?').charAt(0).toUpperCase())+'</span>'); return cid?('<a class="m-ava" href="scheda.html?id='+esc(cid)+'" title="Apri la scheda di '+esc(name)+'">'+inner+'</a>'):('<span class="m-ava">'+inner+'</span>'); }
       function clanEmbSpan(clan,isCapo,size){ if(!clan||clan==='Nessuno')return ''; var u=EMB['clan:'+clan]; if(!u)return ''; return '<span class="cl-emb'+(isCapo?' shine':'')+'" style="width:'+size+'px;height:'+size+'px'+(isCapo?(';--e:url(&quot;'+u+'&quot;)'):'')+'"><img src="'+esc(u)+'" alt=""><span class="shn"></span></span>'; }
       function identityHTML(c,name,cid,created){ var sx=c&&c.sex; var sexIc=(sx==='Maschio')?SEX_M:((sx==='Femmina')?SEX_F:''); var wo=cid?('<a class="m-who" href="scheda.html?id='+esc(cid)+'">'):'<span class="m-who">'; var wc=cid?'</a>':'</span>'; var rk=c&&c.rank; var rimg=(rk&&EMB['rank:'+rk]); var rbadge=rimg?('<span class="rb"><img src="'+esc(rimg)+'" alt=""></span>'):rankBadge(rk); var rankH=rk?('<span class="m-rank">'+rbadge+esc(rk)+'</span>'):''; var cl=(c&&c.clan&&c.clan!=='Nessuno')?c.clan:''; var clanImg=clanEmbSpan(cl,(c&&c.clan_role==='Capo clan'),14); var clanH=cl?('<a class="m-clan" href="clan.html?c='+encodeURIComponent(cl)+'" title="Apri il clan">'+clanImg+esc(cl)+'</a>'):''; var ep=c&&c.epithet; var epiH=ep?('<span class="m-epi">«'+esc(ep)+'»</span>'):''; return '<div class="m-head">'+wo+esc(name)+wc+sexIc+rankH+clanH+epiH+'<span class="m-time">'+fmt(created)+'</span></div>'; }
-      function loadEmblems(){ if(!sb) return; sb.from('emblems').select('kind,name,image_url').in('kind',['clan','rank','village']).then(function(r){ if(r&&!r.error){ (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.kind+':'+e.name]=e.image_url; }); } }, function(){}); }
+      function loadEmblems(){ if(!sb) return; sb.from('emblems').select('kind,name,image_url').in('kind',['clan','rank','village','corp','corpspec','corpgrade']).then(function(r){ if(r&&!r.error){ (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.kind+':'+e.name]=e.image_url; }); } }, function(){}); }
       function showPtsReminder(n){ var el=document.getElementById('pts-reminder'); if(!el) return; if(n>0){ var pn=document.getElementById('pts-n'); if(pn) pn.textContent=n; el.hidden=false; } else { el.hidden=true; } }
       (function(){ var px=document.getElementById('pts-x'); if(px) px.addEventListener('click',function(){ var el=document.getElementById('pts-reminder'); if(el) el.hidden=true; }); })();
       var PIN='<svg class="pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
@@ -2484,13 +2494,14 @@
       var CORP_VILLAGES=['Konoha','Suna'];
       function corpRich(t){ return String(t||'').split(/\n\n+/).map(function(p){ var s=esc(p).replace(/\n/g,'<br>'); s=s.replace(/^([^.:<]{2,22}[.:])\s/,'<strong>$1</strong> '); return '<p>'+s+'</p>'; }).join(''); }
       var CORP_DATA=null;
-      function corpGradiHTML(gradi){ if(!gradi||!gradi.length) return ''; var rows=gradi.map(function(g){ return '<div class="corp-grade"><span class="corp-grade-n">'+esc(g.nome)+'</span><span class="corp-grade-d">'+esc(g.nota||'')+'</span></div>'; }).join(''); return '<div class="corp-gradi"><span class="corp-gradi-h">Gradi e struttura</span>'+rows+'</div>'; }
-      function corpMembersHTML(members){ if(!members.length) return '<span class="corp-empty">Nessun membro noto, per ora.</span>'; return members.map(function(m){ return '<span class="corp-mem">'+esc(m.name)+(m.corp_spec?(' · '+esc(corpSpecLabel(m.corp_spec))):'')+(m.corp_role?(' · '+esc(m.corp_role)):'')+'</span>'; }).join(''); }
+      function corpEmbImg(kind,name,cls){ if(!name) return ''; var u=EMB[kind+':'+name]; return u?('<span class="'+cls+'"><img src="'+esc(u)+'" alt=""></span>'):''; }
+      function corpGradiHTML(gradi){ if(!gradi||!gradi.length) return ''; var rows=gradi.map(function(g){ var ic=corpEmbImg('corpgrade',g.nome,'corp-gemb'); return '<div class="corp-grade">'+ic+'<div class="corp-grade-tx"><span class="corp-grade-n">'+esc(g.nome)+'</span><span class="corp-grade-d">'+esc(g.nota||'')+'</span></div></div>'; }).join(''); return '<div class="corp-gradi"><span class="corp-gradi-h">Gradi e struttura</span>'+rows+'</div>'; }
+      function corpMembersHTML(members){ if(!members.length) return '<span class="corp-empty">Nessun membro noto, per ora.</span>'; return members.map(function(m){ var sp=m.corp_spec?corpEmbImg('corpspec',String(m.corp_spec).toLowerCase(),'corp-semb'):''; return '<span class="corp-mem">'+sp+esc(m.name)+(m.corp_spec?(' · '+esc(corpSpecLabel(m.corp_spec))):'')+(m.corp_role?(' · '+esc(m.corp_role)):'')+'</span>'; }).join(''); }
       function corpDetailHTML(c){
         var roster=(CORP_DATA&&CORP_DATA.roster)||[];
         var scopeLabel = c.key==='akatsuki' ? 'mondiale · fuorilegge' : (c.scope==='villaggio'?'di villaggio':'mondiale');
         var h='<div class="corp-card '+esc(c.key)+'">'
-          +'<div class="corp-card-h"><span class="corp-badge '+esc(c.key)+'">'+esc(c.nome)+'</span><span class="corp-scope">'+esc(scopeLabel)+'</span></div>'
+          +'<div class="corp-card-h">'+corpEmbImg('corp',c.key,'corp-logo')+'<span class="corp-badge '+esc(c.key)+'">'+esc(c.nome)+'</span><span class="corp-scope">'+esc(scopeLabel)+'</span></div>'
           +'<p class="corp-desc">'+esc(c.descrizione)+'</p>';
         h+=corpGradiHTML(c.gradi);
         if(c.statuto){ h+='<div class="corp-statuto"><span class="corp-statuto-h">Statuto</span>'+corpRich(c.statuto)+'</div>'; }
@@ -2566,7 +2577,7 @@
           h+='</div>';
         }
         h+='<div class="corp-tabs">';
-        cat.forEach(function(c){ var own=(mineCorp===c.key); h+='<button class="corp-tab" type="button" data-corpbtn="'+esc(c.key)+'">'+esc(c.nome)+(own?' <span class="corp-tab-you">tu</span>':'')+'</button>'; });
+        cat.forEach(function(c){ var own=(mineCorp===c.key); h+='<button class="corp-tab" type="button" data-corpbtn="'+esc(c.key)+'">'+corpEmbImg('corp',c.key,'corp-tab-emb')+esc(c.nome)+(own?' <span class="corp-tab-you">tu</span>':'')+'</button>'; });
         h+='</div><div class="corp-detail" id="corp-detail"></div>';
         host.innerHTML=h;
         CORP_DATA={cat:cat, roster:roster, mine:mine};

@@ -260,6 +260,9 @@
             <button type="button" data-emb="clan">Clan</button>
             <button type="button" data-emb="rank">Ranghi</button>
             <button type="button" data-emb="element">Elementi</button>
+            <button type="button" data-emb="corp">Corporazioni</button>
+            <button type="button" data-emb="corpspec">Spec. ANBU</button>
+            <button type="button" data-emb="corpgrade">Gradi corp</button>
           </div>
           <input class="adm-search" id="emb-search" type="search" placeholder="Cerca emblema per nome…">
           <div class="emb-sub on" data-embsub="village">
@@ -281,6 +284,18 @@
             <div class="grp-title">Elementi <button type="button" class="mini-btn emb-addbtn" data-embadd="element">+ Aggiungi nuovo</button></div>
             <div class="emb-addrow" id="embadd-element" hidden><input type="text" maxlength="40" placeholder="Nome dell'elemento…" data-embname="element"><button type="button" class="mini-btn" data-embok="element">Crea cella</button><button type="button" class="mini-btn" data-embcancel="element">Annulla</button></div>
             <div class="emgrid" id="grid-element"></div>
+          </div>
+          <div class="emb-sub" data-embsub="corp">
+            <div class="grp-title">Corporazioni <span class="mgr-note" style="text-transform:none;letter-spacing:0">— il logo di ogni corporazione</span></div>
+            <div class="emgrid" id="grid-corp"></div>
+          </div>
+          <div class="emb-sub" data-embsub="corpspec">
+            <div class="grp-title">Specializzazioni ANBU <span class="mgr-note" style="text-transform:none;letter-spacing:0">— infiltrazione, pedinamento, assassinio, sensoriale</span></div>
+            <div class="emgrid" id="grid-corpspec"></div>
+          </div>
+          <div class="emb-sub" data-embsub="corpgrade">
+            <div class="grp-title">Gradi delle corporazioni <span class="mgr-note" style="text-transform:none;letter-spacing:0">— i gradi interni (da «Gradi e struttura» di ogni corporazione)</span></div>
+            <div class="emgrid" id="grid-corpgrade"></div>
           </div>
           </section>
           <section class="adm-page" data-page="oggetti">
@@ -649,7 +664,7 @@
     <div class="legend-head"><span>Legenda del pannello</span><button type="button" id="legend-close" class="legend-x" aria-label="Chiudi la legenda">×</button></div>
     <div class="legend-body">
       <p class="legend-intro">Cosa fa ogni scheda e quali parti del sito tocca. Puoi tenere aperto questo pannello mentre lavori.</p>
-      <div class="legend-item"><b>Emblemi</b><span>Carichi le immagini di villaggi, clan, gradi ed elementi (sotto-sezioni). Compaiono in automatico su schede personaggio, chat e pagina del clan. Con «+ Aggiungi nuovo» crei nuove voci.</span></div>
+      <div class="legend-item"><b>Emblemi</b><span>Carichi le immagini di villaggi, clan, gradi ed elementi, più i loghi delle <b>corporazioni</b> e le icone delle <b>specializzazioni ANBU</b> e dei <b>gradi delle corporazioni</b> (sotto-sezioni). Compaiono in automatico su schede, chat, pagina del clan e pannello Corporazioni. Con «+ Aggiungi nuovo» crei nuove voci.</span></div>
       <div class="legend-item"><b>Clan</b><span>Testi del clan — descrizione, storia, statuto, abilità — e accesso ristretto. Alimentano la pagina del clan. Puoi creare nuovi clan (compaiono anche negli emblemi e nelle schede).</span></div>
       <div class="legend-item"><b>Tecniche</b><span>Crei le tecniche/abilità dei clan con la scheda completa e la meccanica di allenamento (costo XP, sessioni, grado e caratteristica richiesti). Usate nelle schede e nell'apprendimento.</span></div>
       <div class="legend-item"><b>Allenamenti</b><span>Approvi le sessioni di allenamento avviate dai personaggi; completate le sessioni richieste la tecnica diventa attiva e utilizzabile.</span></div>
@@ -682,7 +697,12 @@
     var CLANS=['Hyuga','Nara','Akimichi','Inuzuka','Aburame','Marionettisti','Sabaku','Dokugan','Uchiha'];
     var RANKS=['Deshi','Genin','Chunin','Jonin','Jonin Speciale','Kage Konoha','Kage Suna','Sannin'];
     var me=null, EMB={};
-    var EMB_EXTRA={village:[],clan:[],rank:[],element:[]};
+    var EMB_EXTRA={village:[],clan:[],rank:[],element:[],corp:[],corpspec:[],corpgrade:[]};
+    var CORP_ROWS=[];
+    function isCorpKind(k){return k==='corp'||k==='corpspec'||k==='corpgrade';}
+    function embSlug(s){return (''+s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'x';}
+    function embLabel(kind,name){ if(kind==='corp')return ({anbu:'ANBU',medici:'Medici',akatsuki:'Akatsuki'})[name]||name; if(kind==='corpspec')return name.charAt(0).toUpperCase()+name.slice(1); return name; }
+    async function loadCorps(){ try{ var r=await sb.from('corporations').select('key,nome,gradi,sort').order('sort'); CORP_ROWS=(r&&r.data)||[]; }catch(e){ CORP_ROWS=[]; } }
     var embSearch='',catSearch='',locSearch='',techSearch='',clanSearch='',locRegionFilter='__all__';
     function $(id){return document.getElementById(id);}
     function show(id){['st-loading','st-guest','st-denied','st-mgr'].forEach(function(s){$(s).classList.toggle('on',s===id);});}
@@ -759,18 +779,22 @@
     }
     function toast(m,e){var t=$('toast');t.textContent=m;t.className='toast show'+(e?' err':'');setTimeout(function(){t.className='toast';},2800);}
 
+    function embCellId(kind,name){ return 'prev-'+kind+'-'+(isCorpKind(kind)?embSlug(name):name); }
     function card(kind,name){
       var url=EMB[kind+':'+name];
       var d=document.createElement('div');d.className='ecard';
-      d.innerHTML='<div class="ename">'+name+'</div>'+
-        '<div class="eprev" id="prev-'+kind+'-'+name+'">'+(url?'<img src="'+url+'" alt="">':'<span class="none">—</span>')+'</div>'+
-        '<label class="up">Carica immagine<input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" data-kind="'+kind+'" data-name="'+name+'"></label>';
+      d.innerHTML='<div class="ename">'+esc(embLabel(kind,name))+'</div>'+
+        '<div class="eprev" id="'+embCellId(kind,name)+'">'+(url?'<img src="'+url+'" alt="">':'<span class="none">—</span>')+'</div>'+
+        '<label class="up">Carica immagine<input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" data-kind="'+kind+'" data-name="'+esc(name)+'"></label>';
       return d;
     }
     function embBaseNames(kind){
       if(kind==='village')return VILLAGES.slice();
       if(kind==='clan')return (CLAN_ROWS&&CLAN_ROWS.length)?CLAN_ROWS.map(function(c){return c.name;}):CLANS.slice();
       if(kind==='rank')return RANKS.slice();
+      if(kind==='corp')return (CORP_ROWS&&CORP_ROWS.length)?CORP_ROWS.map(function(c){return c.key;}):['anbu','medici','akatsuki'];
+      if(kind==='corpspec')return ['infiltrazione','pedinamento','assassinio','sensoriale'];
+      if(kind==='corpgrade'){ var g=[]; (CORP_ROWS||[]).forEach(function(c){ (c.gradi||[]).forEach(function(x){ if(x&&x.nome)g.push(x.nome); }); }); return g.length?g:['Novizio ANBU','Operativo specializzato','Capo ANBU','Medico novizio','Medico esperto','Capo medico','Membro dell\'Alba','Le Dieci Dita','Capo dell\'Alba']; }
       return ['Fuoco','Vento','Fulmine','Terra','Acqua'];
     }
     function embNames(kind){
@@ -792,6 +816,9 @@
       fillGrid('clan','grid-clan');
       fillGrid('rank','grid-rank');
       fillGrid('element','grid-element');
+      fillGrid('corp','grid-corp');
+      fillGrid('corpspec','grid-corpspec');
+      fillGrid('corpgrade','grid-corpgrade');
     }
     document.addEventListener('change',async function(e){
       var inp=e.target;if(!inp||inp.type!=='file'||!inp.getAttribute('data-kind'))return;
@@ -799,14 +826,15 @@
       if(!file)return;
       if(file.size>2097152){toast('Immagine troppo grande (max 2 MB)',true);return;}
       toast('Caricamento…');
-      var path=kind+'/'+name;
+      var pathName=isCorpKind(kind)?embSlug(name):name;
+      var path=kind+'/'+pathName;
       var up=await sb.storage.from('emblems').upload(path,file,{upsert:true,contentType:file.type});
       if(up.error){toast('Errore nel caricamento',true);return;}
       var pub=sb.storage.from('emblems').getPublicUrl(path).data.publicUrl+'?v='+Date.now();
       var r=await sb.from('emblems').upsert({kind:kind,name:name,image_url:pub,updated_at:new Date().toISOString()},{onConflict:'kind,name'});
       if(r.error){toast('Immagine caricata, ma non registrata',true);return;}
       EMB[kind+':'+name]=pub;
-      var prev=$('prev-'+kind+'-'+name);if(prev)prev.innerHTML='<img src="'+pub+'" alt="">';
+      var prev=$(embCellId(kind,name));if(prev)prev.innerHTML='<img src="'+pub+'" alt="">';
       toast('Emblema salvato');
     });
 
@@ -1538,7 +1566,7 @@
         (mech.length?('<span class="itdesc"><b>Sblocco:</b> '+mech.join(' · ')+'</span>'):'')+
         ((t.req_elements&&t.req_elements.length)?('<span class="itdesc"><b>Elemento:</b> '+esc(t.req_elements.join(' o '))+'</span>'):'')+
         (t.requirements?('<span class="itdesc"><b>Requisiti:</b> '+esc(t.requirements)+'</span>'):'')+
-        (t.description?('<span class="itdesc">'+esc(t.description)+'</span>'):'');
+        (t.description?('<span class="itdesc">'+esc(t.description).replace(/\n/g,'<br>')+'</span>'):'');
     }
     function techActs(t){
       return '<button class="mini-btn" data-tedit="'+t.id+'">Modifica</button>'+
@@ -1781,7 +1809,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
+      await loadClans();bindClans();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
