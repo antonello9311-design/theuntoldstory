@@ -640,6 +640,11 @@
   .corp-card.akatsuki .corp-logo,.corp-card.akatsuki .corp-gemb{background:rgba(255,255,255,.06);border-color:#5a2a2a}
   .corp-grade-n{font-family:'Cinzel',serif;font-weight:700;font-size:12.5px;letter-spacing:.02em;color:var(--ink)}
   .corp-grade-d{color:var(--ink-soft);font-size:12px;line-height:1.42}
+  .corp-grade-req{display:inline-block;margin-left:7px;font-family:'Cinzel',serif;font-size:8.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--red-deep);border:1px solid var(--edge);border-radius:5px;padding:1px 6px;background:rgba(255,250,235,.7);vertical-align:1px}
+  .corp-spec-row{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0 3px 39px}
+  .corp-spec-chip{display:inline-flex;align-items:center;font-size:11px;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:2px 7px;background:rgba(255,250,235,.55)}
+  .corp-card.akatsuki .corp-grade-req{color:#e0a48f;border-color:#5a2a2a;background:rgba(255,255,255,.06)}
+  .corp-card.akatsuki .corp-spec-chip{color:#ecd6c8;border-color:#5a2a2a;background:rgba(255,255,255,.05)}
   .corp-card.akatsuki .corp-gradi{background:rgba(255,255,255,.05);border-color:#5a2a2a}
   .corp-card.akatsuki .corp-gradi-h{color:#cc9a9a}
   .corp-card.akatsuki .corp-grade{border-top-color:rgba(255,255,255,.12)}
@@ -2510,7 +2515,18 @@
       function corpRich(t){ return String(t||'').split(/\n\n+/).map(function(p){ var s=esc(p).replace(/\n/g,'<br>'); s=s.replace(/^([^.:<]{2,22}[.:])\s/,'<strong>$1</strong> '); return '<p>'+s+'</p>'; }).join(''); }
       var CORP_DATA=null;
       function corpEmbImg(kind,name,cls){ if(!name) return ''; var u=EMB[kind+':'+name]; return u?('<span class="'+cls+'"><img src="'+esc(u)+'" alt=""></span>'):''; }
-      function corpGradiHTML(gradi){ if(!gradi||!gradi.length) return ''; var rows=gradi.map(function(g){ var ic=corpEmbImg('corpgrade',g.nome,'corp-gemb'); return '<div class="corp-grade">'+ic+'<div class="corp-grade-tx"><span class="corp-grade-n">'+esc(g.nome)+'</span><span class="corp-grade-d">'+esc(g.nota||'')+'</span></div></div>'; }).join(''); return '<div class="corp-gradi"><span class="corp-gradi-h">Gradi e struttura</span>'+rows+'</div>'; }
+      function corpEmbRef(ref,cls){ if(!ref) return ''; var i=String(ref).indexOf(':'); if(i<0) return ''; return corpEmbImg(ref.slice(0,i), ref.slice(i+1), cls); }
+      function corpGradiHTML(gradi){ if(!gradi||!gradi.length) return '';
+        var rows=gradi.map(function(g){
+          var ic=corpEmbRef(g.emblema,'corp-gemb') || corpEmbImg('corpgrade',g.nome,'corp-gemb');
+          var req=g.req?'<span class="corp-grade-req">'+esc(g.req)+'</span>':'';
+          var head='<div class="corp-grade">'+ic+'<div class="corp-grade-tx"><span class="corp-grade-n">'+esc(g.nome)+req+'</span><span class="corp-grade-d">'+esc(g.nota||'')+'</span></div></div>';
+          var specs='';
+          if(g.spec && g.spec.length){ specs='<div class="corp-spec-row">'+g.spec.map(function(s){ return '<span class="corp-spec-chip">'+corpEmbRef(s.emblema,'corp-semb')+esc(s.nome)+'</span>'; }).join('')+'</div>'; }
+          return head+specs;
+        }).join('');
+        return '<div class="corp-gradi"><span class="corp-gradi-h">Gradi e struttura</span>'+rows+'</div>';
+      }
       function corpMembersHTML(members){ if(!members.length) return '<span class="corp-empty">Nessun membro noto, per ora.</span>'; return members.map(function(m){ var sp=m.corp_spec?corpEmbImg('corpspec',String(m.corp_spec).toLowerCase(),'corp-semb'):''; return '<span class="corp-mem">'+sp+esc(m.name)+(m.corp_spec?(' · '+esc(corpSpecLabel(m.corp_spec))):'')+(m.corp_role?(' · '+esc(m.corp_role)):'')+'</span>'; }).join(''); }
       function corpDetailHTML(c){
         var roster=(CORP_DATA&&CORP_DATA.roster)||[];
@@ -2571,9 +2587,7 @@
             +'<h4>La tua candidatura</h4>'
             +'<label class="corp-lbl">Corporazione</label>'
             +'<select id="corp-sel"><option value="medici">Medici</option><option value="anbu">ANBU</option></select>'
-            +'<div id="corp-spec-wrap" hidden><label class="corp-lbl">Specializzazione ANBU</label>'
-            +'<select id="corp-spec-sel"><option value="infiltrazione">Infiltrazione</option><option value="pedinamento">Pedinamento</option><option value="assassinio">Assassinio</option><option value="sensoriale">Sensoriale</option></select>'
-            +'<p class="corp-hint">L\'ANBU richiede grado Jonin o superiore e Lealt&agrave; &ge; 65.</p></div>'
+            +'<div id="corp-spec-wrap" hidden><p class="corp-hint">L\'ANBU accetta da grado <b>Chunin</b> con Lealt&agrave; &ge; 65. Entri come <b>Novizio</b>; l\'arte (infiltrazione, pedinamento, assassinio o sensoriale) la scegli da <b>Jonin</b>.</p></div>'
             +'<label class="corp-lbl">Motivazione <span class="corp-mini">(min. 40 caratteri)</span></label>'
             +'<textarea id="corp-motivo" maxlength="600" placeholder="Perch&eacute; vuoi entrare? Cosa porti alla corporazione?"></textarea>'
             +'<div class="corp-form-act"><button class="corp-btn" id="corp-send">Invia candidatura</button><button class="corp-btn ghost" id="corp-cancel">Annulla</button></div>'
@@ -2609,7 +2623,7 @@
           if(!sb) return;
           if(t.id==='corp-apply-open'){ var f=document.getElementById('corp-form'); if(f) f.hidden=false; t.style.display='none'; return; }
           if(t.id==='corp-cancel'){ var f2=document.getElementById('corp-form'); if(f2) f2.hidden=true; var ob=document.getElementById('corp-apply-open'); if(ob) ob.style.display=''; return; }
-          if(t.id==='corp-send'){ var sel=document.getElementById('corp-sel'), mo=document.getElementById('corp-motivo'); var corp=sel?sel.value:''; var motivo=mo?(mo.value||'').trim():''; var spec=null; if(corp==='anbu'){ var ss=document.getElementById('corp-spec-sel'); spec=ss?ss.value:null; }
+          if(t.id==='corp-send'){ var sel=document.getElementById('corp-sel'), mo=document.getElementById('corp-motivo'); var corp=sel?sel.value:''; var motivo=mo?(mo.value||'').trim():''; var spec=null;
             if(motivo.length<40){ toast('Motivazione troppo corta (min. 40 caratteri)'); return; }
             t.disabled=true; sb.rpc('corp_richiedi',{p_corp:corp,p_spec:spec,p_motivo:motivo}).then(function(r){ t.disabled=false; if(r&&r.error){ toast(r.error.message||'Errore'); return; } toast((r&&r.data)||'Candidatura inviata'); loadCorp(); }, function(){ t.disabled=false; toast('Errore'); }); return; }
           if(t.hasAttribute('data-cok')||t.hasAttribute('data-cko')){ var ok=t.hasAttribute('data-cok'); var id=t.getAttribute(ok?'data-cok':'data-cko'); var boxx=t.closest('.corp-req'); var nota=boxx?((boxx.querySelector('.corp-nota')||{}).value||null):null;
