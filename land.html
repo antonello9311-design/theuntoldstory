@@ -595,6 +595,24 @@
   .corp-motivo{font-size:12px;color:var(--ink);margin:6px 0;white-space:pre-wrap;border-left:2px solid var(--rule);padding-left:8px}
   .corp-empty{font-size:12px;color:var(--ink-soft);font-style:italic}
   .corp-cards{display:flex;flex-direction:column;gap:12px}
+  .corp-tabs{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+  .corp-tab{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--edge);background:rgba(255,250,235,.5);color:var(--ink-soft);border-radius:8px;padding:7px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .corp-tab:hover{background:rgba(255,250,235,.85)}
+  .corp-tab.on{background:var(--red);border-color:var(--red-deep);color:#f6ead0}
+  .corp-tab[data-corpbtn="akatsuki"].on{background:#3a1414;border-color:#240c0c;color:#f0d9c8}
+  .corp-tab-you{font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;background:rgba(60,42,18,.16);border-radius:5px;padding:1px 5px}
+  .corp-tab.on .corp-tab-you{background:rgba(255,255,255,.22)}
+  .corp-gradi{margin:2px 0 11px;border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.4);padding:9px 12px}
+  .corp-gradi-h{display:block;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+  .corp-grade{display:flex;flex-direction:column;gap:1px;padding:5px 0;border-top:1px solid rgba(138,111,67,.22)}
+  .corp-grade:first-of-type{border-top:none;padding-top:0}
+  .corp-grade-n{font-family:'Cinzel',serif;font-weight:700;font-size:12.5px;letter-spacing:.02em;color:var(--ink)}
+  .corp-grade-d{color:var(--ink-soft);font-size:12px;line-height:1.42}
+  .corp-card.akatsuki .corp-gradi{background:rgba(255,255,255,.05);border-color:#5a2a2a}
+  .corp-card.akatsuki .corp-gradi-h{color:#cc9a9a}
+  .corp-card.akatsuki .corp-grade{border-top-color:rgba(255,255,255,.12)}
+  .corp-card.akatsuki .corp-grade-n{color:#f0dccf}
+  .corp-card.akatsuki .corp-grade-d{color:#d8b8a8}
   .corp-card{border:1px solid var(--rule);border-radius:11px;background:linear-gradient(rgba(255,250,235,.6),rgba(247,238,214,.5));padding:13px 15px}
   .corp-card-h{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:7px}
   .corp-scope{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
@@ -2448,19 +2466,31 @@
       function corpNameOf(cat,key){ key=String(key||'').toLowerCase(); for(var i=0;i<cat.length;i++){ if(cat[i].key===key) return cat[i].nome; } return key; }
       var CORP_VILLAGES=['Konoha','Suna'];
       function corpRich(t){ return String(t||'').split(/\n\n+/).map(function(p){ var s=esc(p).replace(/\n/g,'<br>'); s=s.replace(/^([^.:<]{2,22}[.:])\s/,'<strong>$1</strong> '); return '<p>'+s+'</p>'; }).join(''); }
-      function corpCardHTML(c,vil,members){
-        var scopeLabel = vil ? ('di '+vil) : (c.key==='akatsuki' ? 'mondiale · fuorilegge' : (c.scope==='villaggio'?'di villaggio':'mondiale'));
+      var CORP_DATA=null;
+      function corpGradiHTML(gradi){ if(!gradi||!gradi.length) return ''; var rows=gradi.map(function(g){ return '<div class="corp-grade"><span class="corp-grade-n">'+esc(g.nome)+'</span><span class="corp-grade-d">'+esc(g.nota||'')+'</span></div>'; }).join(''); return '<div class="corp-gradi"><span class="corp-gradi-h">Gradi e struttura</span>'+rows+'</div>'; }
+      function corpMembersHTML(members){ if(!members.length) return '<span class="corp-empty">Nessun membro noto, per ora.</span>'; return members.map(function(m){ return '<span class="corp-mem">'+esc(m.name)+(m.corp_spec?(' · '+esc(corpSpecLabel(m.corp_spec))):'')+(m.corp_role?(' · '+esc(m.corp_role)):'')+'</span>'; }).join(''); }
+      function corpDetailHTML(c){
+        var roster=(CORP_DATA&&CORP_DATA.roster)||[];
+        var scopeLabel = c.key==='akatsuki' ? 'mondiale · fuorilegge' : (c.scope==='villaggio'?'di villaggio':'mondiale');
         var h='<div class="corp-card '+esc(c.key)+'">'
-          +'<div class="corp-card-h"><span class="corp-badge '+esc(c.key)+'">'+esc(c.nome)+'</span>'+(vil?('<span class="corp-vil">'+esc(vil)+'</span>'):'')+'<span class="corp-scope">'+esc(scopeLabel)+'</span></div>'
+          +'<div class="corp-card-h"><span class="corp-badge '+esc(c.key)+'">'+esc(c.nome)+'</span><span class="corp-scope">'+esc(scopeLabel)+'</span></div>'
           +'<p class="corp-desc">'+esc(c.descrizione)+'</p>';
+        h+=corpGradiHTML(c.gradi);
         if(c.statuto){ h+='<div class="corp-statuto"><span class="corp-statuto-h">Statuto</span>'+corpRich(c.statuto)+'</div>'; }
-        h+='<div class="corp-req-box"><b>Requisiti.</b> '+esc(c.requisiti)+'</div>'
-          +'<div class="corp-members"><span class="corp-mem-h">Membri ('+members.length+')</span>';
-        if(!members.length){ h+='<span class="corp-empty">Nessun membro noto, per ora.</span>'; }
-        else { h+=members.map(function(m){ return '<span class="corp-mem">'+esc(m.name)+(m.corp_spec?(' · '+esc(corpSpecLabel(m.corp_spec))):'')+(m.corp_role?(' · '+esc(m.corp_role)):'')+'</span>'; }).join(''); }
-        h+='</div></div>';
+        h+='<div class="corp-req-box"><b>Requisiti.</b> '+esc(c.requisiti)+'</div>';
+        if(c.scope==='villaggio'){
+          CORP_VILLAGES.forEach(function(vil){
+            var mem=roster.filter(function(m){ return String(m.corporation||'').toLowerCase()===c.key && (m.village||'')===vil; });
+            h+='<div class="corp-members"><span class="corp-mem-h"><span class="corp-vil">'+esc(vil)+'</span> Membri ('+mem.length+')</span>'+corpMembersHTML(mem)+'</div>';
+          });
+        } else {
+          var mem=roster.filter(function(m){ return String(m.corporation||'').toLowerCase()===c.key; });
+          h+='<div class="corp-members"><span class="corp-mem-h">Membri ('+mem.length+')</span>'+corpMembersHTML(mem)+'</div>';
+        }
+        h+='</div>';
         return h;
       }
+      function showCorpDetail(key){ if(!CORP_DATA) return; key=String(key||'').toLowerCase(); var c=null; for(var i=0;i<CORP_DATA.cat.length;i++){ if(CORP_DATA.cat[i].key===key){ c=CORP_DATA.cat[i]; break; } } if(!c && CORP_DATA.cat.length){ c=CORP_DATA.cat[0]; key=c.key; } var host=document.getElementById('corp-detail'); if(!host) return; host.innerHTML=c?corpDetailHTML(c):''; var tabs=document.querySelectorAll('#corp-body [data-corpbtn]'); for(var j=0;j<tabs.length;j++){ tabs[j].classList.toggle('on', tabs[j].getAttribute('data-corpbtn')===key); } }
       function openCorp(){ if(!loggedIn){ toast('Accedi per vedere le corporazioni'); return; } var ov=document.getElementById('corpov'), bk=document.getElementById('corpov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false; loadCorp(); }
       function closeCorp(){ var ov=document.getElementById('corpov'), bk=document.getElementById('corpov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
       function corpOpenNow(){ var ov=document.getElementById('corpov'); return !!(ov && !ov.hidden); }
@@ -2518,20 +2548,12 @@
           }).join(''); }
           h+='</div>';
         }
-        h+='<div class="corp-cards">';
-        cat.forEach(function(c){
-          if(c.scope==='villaggio'){
-            CORP_VILLAGES.forEach(function(vil){
-              var mem=roster.filter(function(m){ return String(m.corporation||'').toLowerCase()===c.key && (m.village||'')===vil; });
-              h+=corpCardHTML(c,vil,mem);
-            });
-          } else {
-            var mem=roster.filter(function(m){ return String(m.corporation||'').toLowerCase()===c.key; });
-            h+=corpCardHTML(c,null,mem);
-          }
-        });
-        h+='</div>';
+        h+='<div class="corp-tabs">';
+        cat.forEach(function(c){ var own=(mineCorp===c.key); h+='<button class="corp-tab" type="button" data-corpbtn="'+esc(c.key)+'">'+esc(c.nome)+(own?' <span class="corp-tab-you">tu</span>':'')+'</button>'; });
+        h+='</div><div class="corp-detail" id="corp-detail"></div>';
         host.innerHTML=h;
+        CORP_DATA={cat:cat, roster:roster, mine:mine};
+        showCorpDetail(mineCorp || (cat[0]&&cat[0].key));
       }
       (function(){
         var x=document.getElementById('corpov-x'); if(x) x.addEventListener('click', closeCorp);
@@ -2539,7 +2561,9 @@
         document.addEventListener('keydown', function(e){ if(e.key==='Escape' && corpOpenNow()) closeCorp(); });
         var body=document.getElementById('corp-body'); if(!body) return;
         body.addEventListener('change', function(e){ if(e.target && e.target.id==='corp-sel'){ var w=document.getElementById('corp-spec-wrap'); if(w) w.hidden=(e.target.value!=='anbu'); } });
-        body.addEventListener('click', function(e){ var t=e.target.closest('button'); if(!t||!sb) return;
+        body.addEventListener('click', function(e){ var t=e.target.closest('button'); if(!t) return;
+          if(t.hasAttribute('data-corpbtn')){ showCorpDetail(t.getAttribute('data-corpbtn')); return; }
+          if(!sb) return;
           if(t.id==='corp-apply-open'){ var f=document.getElementById('corp-form'); if(f) f.hidden=false; t.style.display='none'; return; }
           if(t.id==='corp-cancel'){ var f2=document.getElementById('corp-form'); if(f2) f2.hidden=true; var ob=document.getElementById('corp-apply-open'); if(ob) ob.style.display=''; return; }
           if(t.id==='corp-send'){ var sel=document.getElementById('corp-sel'), mo=document.getElementById('corp-motivo'); var corp=sel?sel.value:''; var motivo=mo?(mo.value||'').trim():''; var spec=null; if(corp==='anbu'){ var ss=document.getElementById('corp-spec-sel'); spec=ss?ss.value:null; }
