@@ -709,7 +709,7 @@
     function capoSelected(){var r=$('f-clanrole');return !!(r&&r.value==='Capo clan');}
     function corpKeyLabel(k){k=String(k||'').toLowerCase();return {anbu:'ANBU',medici:'Medici',akatsuki:'Akatsuki'}[k]||k;}
     function corpSpecLabelS(s){s=String(s||'').toLowerCase();return {infiltrazione:'Infiltrazione',pedinamento:'Pedinamento',assassinio:'Assassinio',sensoriale:'Sensoriale'}[s]||'';}
-    function embCorp(c){if(!c)return '<span class="emb e-none">—</span>';var k=String(c).toLowerCase();var S={anbu:'A',medici:'✚',akatsuki:'☁'}[k]||'▲';return '<span class="emb corp-e-'+k+'">'+S+'</span>';}
+    function embCorp(c){if(!c)return '<span class="emb e-none">—</span>';var k=String(c).toLowerCase();var u=EMB['corp:'+k];if(u)return '<span class="emb has-img"><img src="'+esc(u)+'" alt=""></span>';var S={anbu:'A',medici:'✚',akatsuki:'☁'}[k]||'▲';return '<span class="emb corp-e-'+k+'">'+S+'</span>';}
     function embElement(e){if(!e)return '<span class="emb e-none">—</span>';var _u=EMB['element:'+e];if(_u)return '<span class="emb has-img"><img src="'+_u+'" alt=""></span>';return '<span class="emb '+ELC[e]+'"><span class="kanji">'+ELK[e]+'</span></span>';}
 
     function fillClanSelect(sel,village,current){var list=CLANS[village]||['Nessuno'];sel.innerHTML='';list.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;if(c===current)o.selected=true;sel.appendChild(o);});}

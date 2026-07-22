@@ -482,7 +482,12 @@
   .ovp-pm svg{display:block}
   .ovp-vil{display:inline-flex;align-items:center;vertical-align:middle}
   .ovp-vil img{width:18px;height:18px;object-fit:contain}
-  .ovp-corp{font-size:11px;color:var(--ink-soft);border:1px solid var(--edge);border-radius:5px;padding:1px 6px;background:rgba(255,250,235,.5);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ovp-corp{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);border:1px solid var(--edge);border-radius:5px;padding:1px 6px;background:rgba(255,250,235,.5);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ovp-corp.c-anbu{color:#eef1f7;background:#333a4d;border-color:#232838}
+  .ovp-corp.c-medici{color:#f2f7ec;background:#3f6d3a;border-color:#2c4e29}
+  .ovp-corp.c-akatsuki{color:#f0d9c8;background:#3a1414;border-color:#240c0c}
+  .ovp-corp-emb{display:inline-flex;align-items:center;vertical-align:middle}
+  .ovp-corp-emb img{width:18px;height:18px;object-fit:contain}
   .ovp-u-top svg.m-sex{width:14px;height:14px;vertical-align:middle}
   .ovp-off{font-style:italic;color:var(--ink-soft);font-size:13px;margin-top:2px;line-height:1.35}
   /* #6 sintassi parlato/azione */
@@ -2441,7 +2446,14 @@
             var _vil=(u.village&&EMB['village:'+u.village])?('<span class="ovp-vil" title="'+esc(u.village)+'"><img src="'+esc(EMB['village:'+u.village])+'" alt=""></span>'):'';
             var _rk=(u.rank?(EMB['rank:'+u.rank]?('<span class="ovp-rankemb"><img src="'+esc(EMB['rank:'+u.rank])+'" alt="" title="'+esc(u.rank)+'"></span>'):('<span class="ovp-rank">'+esc(u.rank)+'</span>')):'');
             var _cl=((u.clan&&u.clan!=='Nessuno')?('<a class="ovp-clan-emb" href="clan.html?c='+encodeURIComponent(u.clan)+'" title="'+esc(u.clan)+'">'+(clanEmbSpan(u.clan,(u.clan_role==='Capo clan'),18)||('<span class="ovp-clan">'+esc(u.clan)+'</span>'))+'</a>'):'');
-            var _corp=(u.corporation?('<span class="ovp-corp" title="Corporazione: '+esc(u.corporation)+'">'+esc(u.corporation)+'</span>'):'');
+            var _corpKey=String(u.corporation||'').toLowerCase();
+            var _corp='';
+            if(_corpKey && (_corpKey!=='akatsuki' || iAmStaff)){
+              var _cn={anbu:'ANBU',medici:'Medici',akatsuki:'Akatsuki'}[_corpKey]||u.corporation;
+              var _cu=EMB['corp:'+_corpKey];
+              _corp=_cu?('<span class="ovp-corp-emb" title="'+esc(_cn)+'"><img src="'+esc(_cu)+'" alt=""></span>')
+                       :('<span class="ovp-corp c-'+_corpKey+'" title="Corporazione: '+esc(_cn)+'">'+esc(_cn)+'</span>');
+            }
             var _clanName=(u.clan&&u.clan!=='Nessuno')?(' '+esc(u.clan)):'';
             var _epi=u.epithet?' <span class="ovp-epi">«'+esc(u.epithet)+'»</span>':'';
             var badges=roleBadge(u.role)+_sx+_vil+_rk+_cl+_corp;
