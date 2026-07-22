@@ -1665,7 +1665,15 @@
         TK_DISC_ADMIN.forEach(function(d){ var rows=SRC.filter(function(x){return (x.disciplina||'Ninjutsu')===d;}); if(rows.length) groups.push({k:d,t:d,rows:rows,disc:false}); });
         var ab=SRC.filter(function(x){return (x.disciplina)==='Abilità';}); if(ab.length) groups.push({k:'Abilità',t:'Abilità',rows:ab,disc:false});
       } else {
-        groups.push({k:'tutte',t:'Abilità generiche',rows:SRC,disc:false});
+        // Abilità divise per categoria (Generiche, poi Medica e i suoi rami, poi le altre)
+        var CATORD=['Medica','Medica · Chirurgia','Medica · Tossicologia','Medica · Cura da campo','Medica · Combattimento'];
+        var byCat={}, cats=[];
+        SRC.forEach(function(x){ var c=(x.category&&(''+x.category).trim())||'__gen'; if(!byCat[c]){byCat[c]=[];cats.push(c);} byCat[c].push(x); });
+        cats.sort(function(a,b){ function rk(c){ if(c==='__gen')return -1; var i=CATORD.indexOf(c); return i<0?50:i; } var ra=rk(a),rb=rk(b); return ra!==rb?ra-rb:a.localeCompare(b); });
+        cats.forEach(function(c){
+          var key='cat-'+(c==='__gen'?'generiche':c.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''));
+          groups.push({k:key, t:(c==='__gen'?'Generiche':c), rows:byCat[c], disc:false});
+        });
       }
       var html='';
       groups.forEach(function(g){
