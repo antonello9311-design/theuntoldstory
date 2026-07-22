@@ -142,6 +142,8 @@
   .arow .aname{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep)}
   .arow .afascia{font-family:'Cinzel',serif;font-size:11.5px;color:var(--ink)}
   .arow .afascia.warn{color:var(--red-deep);font-weight:700}
+  .arow .aedit{width:58px;font-family:inherit;font-size:.85rem;padding:2px 6px;border:1px solid var(--red);border-radius:6px;background:#fff;color:var(--ink);margin-left:auto}
+  .arow .aedit:focus{outline:none;border-color:var(--red-deep);box-shadow:0 0 0 2px rgba(166,50,29,.15)}
   .agauge{position:relative;height:14px;border:1px solid var(--rule);background:linear-gradient(90deg, rgba(124,36,19,.25), rgba(255,252,244,.75) 50%, rgba(63,109,58,.28))}
   .agauge > b{position:absolute;top:-4px;bottom:-4px;width:4px;background:var(--ink);border:1px solid #f6ead0;transform:translateX(-50%)}
   .agauge .amid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--rule);opacity:.6}
@@ -1144,18 +1146,40 @@
     var FASCE={
       lealta:{nomi:['Rinnegato','Sospettato','Neutrale','Fidato','Esemplare'],lo:'Rinnegato',hi:'Esemplare',nome:'Lealtà'},
       via:{nomi:['Sentiero dell\'Odio','Ombra','In equilibrio','Luce','Volontà del Fuoco'],lo:'Odio',hi:'Volontà del Fuoco',nome:'Via'},
-      fama:{nomi:['Infame','Malfamato','Comune','Rispettato','Eroe'],lo:'Infame',hi:'Eroe',nome:'Fama'}
+      fama:{nomi:['Villain','Malfamato','Comune','Rispettato','Eroe'],lo:'Villain',hi:'Eroe',nome:'Fama'}
     };
     function fascia(asse,v){ var f=FASCE[asse].nomi; return v<=20?f[0]:v<=40?f[1]:v<=60?f[2]:v<=80?f[3]:f[4]; }
+    function alignAdmin(){ return viewMode==='adminself'||viewMode==='adminother'||viewMode==='staff'; }
     function renderAlign(c){
       var host=$('algn-gauges'); if(!host||!c) return;
+      var adm=alignAdmin();
       host.innerHTML=['lealta','via','fama'].map(function(a){
         var v=(c[a]==null?50:c[a]); var fl=fascia(a,v); var warn=(a!=='fama'&&v<=20)?' warn':'';
-        return '<div class="arow"><div class="ahead"><span class="aname">'+FASCE[a].nome+'</span><span class="afascia'+warn+'">'+esc(fl)+' · '+v+'</span></div>'
+        var edit=adm?('<input class="aedit" type="number" step="5" min="0" max="100" value="'+v+'" data-align="'+a+'" title="Admin: modifica diretta">'):'';
+        return '<div class="arow"><div class="ahead"><span class="aname">'+FASCE[a].nome+'</span><span class="afascia'+warn+'">'+esc(fl)+' · '+v+'</span>'+edit+'</div>'
           +'<div class="agauge"><span class="amid"></span><b style="left:'+v+'%"></b></div>'
           +'<div class="aends"><span>'+esc(FASCE[a].lo)+'</span><span>'+esc(FASCE[a].hi)+'</span></div></div>';
       }).join('');
     }
+    /* Admin: modifica diretta degli allineamenti sui gauge (salva subito) */
+    (function(){
+      var host=$('algn-gauges'); if(!host) return;
+      host.addEventListener('change', async function(e){
+        var inp=e.target.closest('input[data-align]'); if(!inp) return;
+        if(!sb||!myChar||!alignAdmin()) return;
+        var a=inp.getAttribute('data-align'); var nv=parseInt(inp.value,10);
+        if(isNaN(nv)){ renderAlign(myChar); return; }
+        nv=Math.max(0,Math.min(100,Math.round(nv/5)*5));
+        inp.disabled=true;
+        var upd={}; upd[a]=nv;
+        var r=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();
+        inp.disabled=false;
+        if(r.error){ toast('Errore: '+(r.error.message||''),true); renderAlign(myChar); return; }
+        myChar=r.data; renderAlign(myChar);
+        if((viewMode==='staff'||viewMode==='adminother')&&typeof fillStaffPanel==='function') fillStaffPanel(myChar,curPriv);
+        toast(FASCE[a].nome+': '+nv+' ('+fascia(a,nv)+')');
+      });
+    })();
     function loadSvolte(){
       var box=$('svolta-box'), list=$('sv-list'); if(!box||!list||!sb||!myChar) return;
       var owner=(viewMode==='owner'||viewMode==='adminself');
