@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>La tua scheda — The Untold Story</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cinzel+Decorative:wght@700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--paper:#e7d6b2;--paper-hi:#f1e6ca;--paper-lo:#d2bc90;--edge:#b79d6c;--ink:#2b1d0e;--ink-soft:#6a5231;--rule:#8a6f43;--red:#a6321d;--red-deep:#7c2413}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Cormorant Garamond',Georgia,serif;color:var(--ink);background:var(--paper-lo);-webkit-font-smoothing:antialiased}
+  .page{position:relative;min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(120% 80% at 50% 0%,var(--paper-hi),var(--paper) 46%,var(--paper-lo) 100%)}
+  .page::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(var(--ink) .6px,transparent .7px);background-size:4px 4px;opacity:.05}
+  .page::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(80% 46% at 15% 6%,rgba(120,90,40,.10),transparent 60%),radial-gradient(70% 40% at 88% 96%,rgba(120,90,40,.12),transparent 60%),radial-gradient(130% 120% at 50% 50%,transparent 60%,rgba(60,42,18,.26) 100%)}
+  .frame{position:fixed;inset:16px;z-index:6;pointer-events:none;border:1.5px solid var(--rule);opacity:.7}
+  .frame::before{content:"";position:absolute;inset:5px;border:1px solid var(--rule);opacity:.55}
+  .corner{position:absolute;width:16px;height:16px;color:var(--rule);font-size:16px;line-height:1;text-align:center}
+  .corner.tl{top:-9px;left:-9px}.corner.tr{top:-9px;right:-9px}.corner.bl{bottom:-9px;left:-9px}.corner.br{bottom:-9px;right:-9px}
+  .content{position:relative;z-index:3;display:flex;flex-direction:column;min-height:100vh;padding:0 clamp(18px,4vw,54px)}
+
+  nav{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:24px 4px 20px;border-bottom:1px solid var(--rule)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand b{font-family:'Cinzel',serif;font-weight:600;font-size:16px;letter-spacing:.16em;text-transform:uppercase}
+  .home-link{color:inherit;text-decoration:none}.home-link:hover b{color:var(--red-deep)}
+  .tabs{display:flex;gap:24px;margin-left:auto;align-items:center}
+  .tabs a{font-family:'Cinzel',serif;font-weight:500;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);text-decoration:none;opacity:.82;transition:.2s}
+  .tabs a:hover{opacity:1;color:var(--red-deep)}
+  .tabs a.here{opacity:1;color:var(--red-deep);border-bottom:1.5px solid var(--red);padding-bottom:3px}
+
+  main{position:relative;z-index:3;flex:1;padding:24px 0 8px;max-width:1000px;margin:0 auto;width:100%}
+  .state{display:none}.state.on{display:block}
+  .msgcard{max-width:640px;margin:7vh auto;text-align:center;background:rgba(255,250,235,.5);border:1px solid var(--edge);padding:34px 30px}
+  .msgcard h2{font-family:'Cinzel Decorative',serif;font-size:26px;color:var(--ink);margin-bottom:10px}
+  .msgcard p{color:var(--ink-soft);font-size:17px;line-height:1.5;margin-bottom:18px}
+  .msgcard p b{color:var(--ink)}
+  .btn{font-family:'Cinzel',serif;font-weight:600;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;padding:12px 26px;border:1.5px solid var(--ink);color:var(--ink);background:transparent;cursor:pointer;transition:.2s;display:inline-block}
+  .btn:hover{background:var(--ink);color:var(--paper-hi)}
+  .btn:disabled{opacity:.4;cursor:default}.btn:disabled:hover{background:transparent;color:var(--ink)}
+  .btn-red{background:var(--red);border-color:var(--red-deep);color:#f6ead0}.btn-red:hover{background:var(--red-deep);color:#fff}
+  .btn-red:disabled{background:var(--red);color:#f6ead0;opacity:.4}
+  .btn-sm{padding:8px 18px;font-size:11px}
+
+  label.fld{display:block;text-align:left;margin:0 0 12px}
+  label.fld .lab{display:block;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);margin-bottom:5px}
+  .fin,select.fin,textarea.fin{width:100%;font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--ink);background:rgba(255,250,235,.55);border:1px solid var(--edge);padding:9px 11px;outline:none;transition:.15s}
+  .fin:focus,select.fin:focus,textarea.fin:focus{border-color:var(--red);background:rgba(255,250,235,.85)}
+  textarea.fin{resize:vertical;min-height:120px;line-height:1.5}
+  select.fin{cursor:pointer}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:0 18px}
+  .hint{font-size:13.5px;color:var(--ink-soft);font-style:italic;margin:-6px 0 14px}
+
+  /* creation stats */
+  .block{margin:0 0 22px}
+  .block>h3{font-family:'Cinzel',serif;font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);border-bottom:1px solid var(--edge);padding-bottom:6px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .block>h3 .n{font-family:'Cinzel Decorative',serif;color:var(--red-deep)}
+  .pool{font-family:'Cormorant Garamond',serif;text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--ink-soft);font-style:italic;margin-left:auto}
+  .pool b{color:var(--red-deep);font-style:normal;font-weight:700;font-size:15px}
+  .pool.done b{color:#2f7d4a}
+  .steprow{display:flex;align-items:center;gap:10px;margin:0 0 11px}
+  .steprow .cn{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);width:112px;flex-shrink:0}
+  .stbtn{min-width:30px;height:28px;padding:0 6px;flex-shrink:0;border:1px solid var(--edge);background:rgba(255,250,235,.6);color:var(--red-deep);font-family:'Cinzel',serif;font-size:14px;font-weight:700;cursor:pointer;line-height:1;border-radius:2px}
+  .stbtn:hover{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+  .stval{width:32px;text-align:center;font-family:'Cinzel',serif;font-weight:600;font-size:16px;color:var(--ink);flex-shrink:0}
+  .cbar{flex:1;height:8px;background:rgba(138,111,67,.2);border:1px solid var(--edge);position:relative;overflow:hidden}
+  .cbar>span{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--red),var(--red-deep));width:10%}
+
+  /* SHEET redesign */
+  .sheet-top{display:grid;grid-template-columns:300px 1fr;gap:28px;align-items:start}
+  .portrait{width:100%;aspect-ratio:3/4;border:1px solid var(--edge);background:rgba(255,250,235,.4) center/cover no-repeat;border-radius:2px;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px}
+  .portrait .ph{color:var(--ink-soft);font-style:italic;font-size:14px;line-height:1.5}
+  .portrait .ph span{display:block;font-size:12px;opacity:.8;margin-top:6px}
+  .dossier{min-width:0}
+  .dhead{display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--rule);padding-bottom:12px;margin-bottom:14px}
+  .dhead h1{flex:1;font-family:'Cinzel Decorative',serif;font-weight:700;font-size:clamp(23px,3.2vw,34px);line-height:1.05;color:var(--ink);min-width:0}
+  .dtabs{display:flex;gap:6px;margin-bottom:14px}
+  .dtab{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);background:none;border:1px solid transparent;padding:7px 18px;cursor:pointer;border-radius:2px}
+  .dtab.on{color:var(--red-deep);border-color:var(--edge);background:rgba(255,250,235,.5)}
+  .dpanel{display:none}.dpanel.on{display:block}
+  .drow{display:flex;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid rgba(183,157,108,.35)}
+  .dinfo{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+  .dlab{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep)}
+  .dval{font-size:17px;color:var(--ink)}
+  .mini{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--ink);background:rgba(255,250,235,.55);border:1px solid var(--edge);padding:5px 8px;outline:none;max-width:260px}
+  .mini:focus{border-color:var(--red)}
+  .drow2{display:flex;gap:30px;padding:12px 2px 0}
+  .emb{position:relative;width:40px;height:40px;flex-shrink:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--edge);background:rgba(255,250,235,.6);overflow:hidden}
+  .emb svg{width:24px;height:24px}.emb img{width:100%;height:100%;object-fit:contain;padding:3px}.emb.has-img{background:rgba(255,250,235,.6);border-color:var(--edge)}
+  .emb .shn{position:absolute;inset:3px;pointer-events:none;opacity:0}
+  .emb.shine .shn{opacity:1;-webkit-mask:var(--e) center/contain no-repeat;mask:var(--e) center/contain no-repeat;background:linear-gradient(115deg, transparent 40%, rgba(255,224,138,.95) 50%, transparent 60%);background-size:300% 100%;mix-blend-mode:screen;animation:embshine 4.8s ease-in-out infinite}
+  @keyframes embshine{0%{background-position:170% 0}58%,100%{background-position:-170% 0}}
+  .emb .kanji{font-family:'Noto Serif JP',serif;font-size:19px;font-weight:700;line-height:1}
+  .emb.e-none{color:var(--ink-soft);font-size:15px}
+  .emb.e-fuoco{background:#efd6cc;border-color:#c26a4e}.emb.e-fuoco .kanji{color:#a6321d}
+  .emb.e-vento{background:#d9ead9;border-color:#7fae7f}.emb.e-vento .kanji{color:#2f6d3f}
+  .emb.e-fulmine{background:#f2e6c2;border-color:#cbb05a}.emb.e-fulmine .kanji{color:#8a6a12}
+  .emb.e-terra{background:#e6dcc4;border-color:#b79d6c}.emb.e-terra .kanji{color:#6a5231}
+  .emb.e-acqua{background:#cfe0ee;border-color:#6f9ec4}.emb.e-acqua .kanji{color:#1f5a86}
+  .emb.e-clan{font-family:'Cinzel Decorative',serif;font-weight:700;font-size:16px;color:var(--red-deep);background:rgba(255,250,235,.75)}
+  .emb.e-clan::before{content:"";position:absolute;inset:4px;border:1px solid var(--edge);border-radius:50%}
+  .emb.e-konoha{background:#dcecdc;border-color:#6f9e6f}
+  .emb.e-suna{background:#efe2c4;border-color:#cbb05a}
+  .emb.e-rank{background:rgba(255,250,235,.7)}
+  .emb.corp-e-anbu{background:#333a4d;border-color:#232838;color:#eef1f7;font-family:'Cinzel',serif;font-weight:700;font-size:16px}
+  .emb.corp-e-medici{background:#3f6d3a;border-color:#2c4e29;color:#f2f7ec;font-size:19px}
+  .emb.corp-e-akatsuki{background:#3a1414;border-color:#240c0c;color:#e9b7a3;font-size:18px}
+  .sc-corp-badge{display:inline-block;font-family:'Cinzel',serif;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:7px;border:1px solid var(--edge);vertical-align:middle}
+  .sc-corp-badge.anbu{background:#333a4d;border-color:#232838;color:#eef1f7}
+  .sc-corp-badge.medici{background:#3f6d3a;border-color:#2c4e29;color:#f2f7ec}
+  .sc-corp-badge.akatsuki{background:#3a1414;border-color:#240c0c;color:#f0d9c8}
+  .sc-corp-meta{color:var(--ink-soft);font-size:12px;margin-left:6px}
+
+  .mini-vitals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+  .mv{background:rgba(255,250,235,.45);border:1px solid var(--edge);padding:9px 8px;text-align:center}
+  .mv .vl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);margin-bottom:4px}
+  .mv .vv{font-family:'Cinzel',serif;font-weight:600;font-size:17px;color:var(--ink)}
+  /* Barra esperienza */
+  .xpwrap{margin-top:10px;border:1px solid var(--edge);background:rgba(255,250,235,.45);padding:10px 12px}
+  .xpwrap .xt{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .xpwrap .xl{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep)}
+  .xpwrap .xv{font-family:'Cinzel',serif;font-size:12.5px;color:var(--ink)}
+  .xpbar{height:12px;border:1px solid var(--rule);background:rgba(255,252,244,.8);margin-top:7px;position:relative;overflow:hidden}
+  .xpbar > i{position:absolute;inset:0;width:0%;background:linear-gradient(90deg,var(--red),var(--red-deep));transition:width .4s}
+  /* Barre PV/Chakra */
+  .vbar{height:9px;border:1px solid var(--rule);background:rgba(255,252,244,.8);margin-top:6px;position:relative;overflow:hidden;border-radius:2px}
+  .vbar > i{position:absolute;inset:0;width:0%;transition:width .4s}
+  .vbar.pv > i{background:linear-gradient(90deg,#5f8f43,#3f6d3a)}
+  .vbar.pv.mid > i{background:linear-gradient(90deg,#d2a838,#b5852a)}
+  .vbar.pv.low > i{background:linear-gradient(90deg,var(--red),var(--red-deep))}
+  .vbar.ck > i{background:linear-gradient(90deg,#4a86a8,#2f6484)}
+  .ko-banner{display:none;margin:2px 0 14px;text-align:center;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1px solid var(--red-deep);border-radius:5px;padding:5px 8px}
+  .xpwrap .xh{font-size:12.5px;color:var(--ink-soft);margin-top:6px;font-style:italic;line-height:1.4}
+  /* Allineamento */
+  .algn{display:flex;flex-direction:column;gap:14px;margin-top:6px}
+  .arow .ahead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:5px}
+  .arow .aname{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep)}
+  .arow .afascia{font-family:'Cinzel',serif;font-size:11.5px;color:var(--ink)}
+  .arow .afascia.warn{color:var(--red-deep);font-weight:700}
+  .agauge{position:relative;height:14px;border:1px solid var(--rule);background:linear-gradient(90deg, rgba(124,36,19,.25), rgba(255,252,244,.75) 50%, rgba(63,109,58,.28))}
+  .agauge > b{position:absolute;top:-4px;bottom:-4px;width:4px;background:var(--ink);border:1px solid #f6ead0;transform:translateX(-50%)}
+  .agauge .amid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--rule);opacity:.6}
+  .aends{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-soft);margin-top:3px;font-family:'Cinzel',serif;letter-spacing:.04em}
+  /* Box richieste svolta */
+  .svbox{border:1px dashed var(--edge);background:rgba(255,250,235,.35);padding:12px 14px;margin-top:14px}
+  .svbox h4{font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--red-deep);margin:0 0 8px}
+  .svgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:640px){.svgrid{grid-template-columns:1fr}}
+  .svgrid label,.svlab{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;flex-direction:column;gap:4px}
+  .svgrid select,.svbox textarea,#sv-role{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--ink);background:rgba(255,252,244,.8);border:1px solid var(--rule);padding:8px 10px;outline:none;width:100%}
+  .svbox textarea{min-height:84px;margin-top:8px}
+  .svcnt{font-size:12px;color:var(--ink-soft);text-align:right;margin-top:2px}
+  .svlist{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+  .svitem{border:1px solid var(--edge);background:rgba(255,252,244,.55);padding:9px 11px;font-size:14.5px;line-height:1.5}
+  .svitem .svtag{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;border:1px solid var(--edge);border-radius:7px;padding:1px 7px;margin-right:6px}
+  .svitem .svtag.p{color:#8a6f43}.svitem .svtag.a{color:#3f6d3a;border-color:#3f6d3a}.svitem .svtag.r{color:var(--red-deep);border-color:var(--red-deep)}
+  .svitem .svmeta{font-size:12.5px;color:var(--ink-soft);margin-top:3px}
+  .svh{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--red-deep);margin:18px 0 8px;border-top:1px solid var(--edge);padding-top:14px}
+  .chars{display:grid;grid-template-columns:1fr;gap:11px}
+  .charrow{display:flex;align-items:center;gap:12px}
+  .charrow .cn{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);width:112px;flex-shrink:0}
+  .charrow .roval{width:40px;flex-shrink:0;text-align:center;font-family:'Cinzel',serif;font-weight:600;font-size:15px;color:var(--ink)}
+  .rohint{font-size:13px;color:var(--ink-soft);font-style:italic;margin-top:12px}
+  .unspent{margin-top:16px;padding:12px 14px;border:1px dashed var(--red);background:rgba(166,50,29,.06)}
+  .unspent .ut{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);margin-bottom:10px}
+  .unspent .ut b{font-size:14px}
+
+  .scroll-sections{margin-top:32px}
+  .ssec{margin:0 0 24px}
+  .ssec h3{font-family:'Cinzel',serif;font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);border-bottom:1px solid var(--edge);padding-bottom:6px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+  .jgroup{margin-bottom:16px}
+  .jgh{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep,#7c2413);margin:0 0 8px}
+  .jsub{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:10px 0 6px}
+  .jgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+  .jcard{border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.5);padding:10px 12px}
+  .tr-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.5);padding:9px 12px;margin-bottom:8px}
+  .tr-main{flex:1;min-width:120px}
+  .tr-meta{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin-left:6px}
+  .tr-req{display:block;font-size:12.5px;color:var(--ink-soft);font-style:italic;margin-top:3px}
+  .tr-badge{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.06em;text-transform:uppercase;border-radius:20px;padding:4px 10px;white-space:nowrap;border:1px solid var(--edge);color:var(--ink-soft)}
+  .tr-badge.on{background:linear-gradient(180deg,#caa64a,#9c7a24);border-color:#7c5f16;color:#3a2a06}
+  .tr-prog{background:rgba(124,36,19,.08);border-color:var(--rule);color:var(--red-deep)}
+  #train-wrap .mini-btn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#f6ead0;background:linear-gradient(180deg,var(--red),var(--red-deep));border:1px solid var(--red-deep);border-radius:8px;padding:6px 12px;cursor:pointer}
+  #train-wrap .mini-btn[disabled]{opacity:.5}
+  .slotbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 10px;padding:8px 12px;border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.5)}
+  .slotbar .slotn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+  .slotbar .slotn b{color:var(--red-deep);font-size:13px}
+  .slotbar .slotn.full b{color:var(--red)}
+  .slotbar .svmeta{font-size:12.5px;color:var(--ink-soft)}
+  #sec-premi .svbox{margin-top:10px}
+  #sec-premi .svlab{display:block;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+  #sec-premi .svlab select{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--ink);background:rgba(255,252,244,.8);border:1px solid var(--rule);padding:8px 10px;outline:none;width:100%;margin-top:4px}
+  #sec-premi .svlab+.svlab{margin-top:8px}
+  .prcost{font-size:13.5px;color:var(--ink-soft);margin-top:6px}
+  .prcost b{color:var(--red-deep)}
+  .jtop{display:flex;align-items:baseline;gap:8px}
+  .jname{font-family:'Cinzel',serif;font-weight:600;font-size:13px;color:var(--ink);flex:1}
+  .jrank{font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:#f6ead0;background:var(--rule,#8a6f43);border-radius:9px;padding:1px 7px;flex:0 0 auto}
+  .jrom{font-style:italic;color:var(--ink-soft);font-size:13px;margin-top:1px}
+  .jmeta{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin-top:5px}
+  .jeff{font-size:13.5px;color:var(--ink-soft);margin-top:6px;line-height:1.4}
+  .acadlog-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(138,111,67,.22)}
+  .acadlog-row:last-child{border-bottom:0}
+  .al-mark{color:#3c8a3c;font-weight:700;flex:0 0 auto}
+  .al-mark.exam{color:var(--gold,#b58a2b)}
+  .al-title{flex:1;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)}
+  .al-date{font-family:'Cinzel',serif;font-size:11px;color:var(--ink-soft);flex:0 0 auto}
+  .lib-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:11px 12px;border:1px solid var(--edge);border-radius:10px;background:rgba(255,250,235,.5);cursor:pointer;margin-bottom:8px;font-family:inherit}
+  .lib-row:hover{border-color:var(--red);background:rgba(255,250,235,.85)}
+  .lib-ic{width:34px;height:34px;flex:0 0 auto;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(166,50,29,.10);color:var(--red-deep)}
+  .lib-ic svg{width:19px;height:19px}
+  .lib-main{flex:1;min-width:0}
+  .lib-title{display:block;font-family:'Cinzel',serif;font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lib-meta{display:block;font-family:'Cormorant Garamond',serif;font-size:13.5px;color:var(--ink-soft);margin-top:2px}
+  .lib-badge{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:20px;flex:0 0 auto}
+  .lib-badge.open{background:rgba(166,50,29,.14);color:var(--red-deep)}
+  .lib-badge.closed{background:rgba(90,120,70,.16);color:#4c6a3a}
+  .role-card{width:min(640px,94vw)}
+  .role-scene{padding:12px 16px 16px;overflow-y:auto;min-height:120px}
+  .role-msg{padding:8px 0;border-bottom:1px solid rgba(138,111,67,.18);font-family:'Cormorant Garamond',serif;font-size:15.5px;line-height:1.5;color:var(--ink);white-space:pre-wrap;word-wrap:break-word}
+  .role-msg:last-child{border-bottom:0}
+  .role-au{font-family:'Cinzel',serif;font-size:11px;color:var(--red-deep);letter-spacing:.03em;margin-bottom:2px}
+  .role-say{color:#2b1d0e}
+  .role-act{font-style:italic;color:#6a5231}
+  .role-sys{font-style:italic;color:var(--ink-soft);font-size:14px}
+  .role-empty{padding:24px 8px;text-align:center;color:var(--ink-soft);font-family:'Cormorant Garamond',serif;font-size:15px}
+  .ssec .priv{font-family:'Cormorant Garamond',serif;text-transform:none;letter-spacing:0;font-size:12px;font-style:italic;color:var(--ink-soft);display:inline-flex;align-items:center;gap:5px}
+  .lockico{width:12px;height:12px;opacity:.7}
+
+  .toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);z-index:20;background:var(--ink);color:var(--paper-hi);font-family:'Cinzel',serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:12px 22px;opacity:0;pointer-events:none;transition:.3s}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.err{background:var(--red-deep)}
+  footer{position:relative;z-index:3;text-align:center;padding:16px 0 24px;border-top:1px solid var(--rule);margin:24px 4px 0}
+  .disc-txt{font-size:13px;line-height:1.5;color:var(--ink-soft);max-width:80ch;margin:0 auto;opacity:.9}
+
+  @media(max-width:760px){.tabs{display:none}.sheet-top{grid-template-columns:1fr}.portrait{max-width:280px;margin:0 auto}.mini-vitals{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr}}
+    /* view modes: epithet, share, staff panel */
+    .dhead{align-items:flex-start}
+    .dhead-name{display:flex;flex-direction:column;gap:2px}
+    .dhead-act{display:flex;gap:8px;flex-shrink:0}
+    .epithet{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--red);font-size:1.05rem;letter-spacing:.3px;line-height:1.1}
+    .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--rule)}
+    .btn-ghost:hover{background:rgba(0,0,0,.05)}
+    .priv.pub{color:#3c6b3c}
+    .mode-badge{margin:0 0 14px;padding:9px 14px;border-radius:9px;font-size:.86rem;text-align:center;border:1px solid var(--edge)}
+    .mode-badge.staff{background:rgba(166,50,29,.08);color:var(--red);border-color:var(--red)}
+    .mode-badge.ro{background:rgba(0,0,0,.05);color:var(--ink-soft)}
+    .staff-panel{margin-top:22px;padding:16px 18px;border:1px solid var(--red);border-radius:12px;background:rgba(166,50,29,.05)}
+    .staff-panel h3{margin:0 0 6px;color:var(--red)}
+    .sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:8px}
+    .sp-grid label,.sp-full{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.4px}
+    .sp-grid input,.sp-full textarea{font-family:inherit;font-size:.95rem;text-transform:none;letter-spacing:0;padding:7px 9px;border:1px solid var(--edge);border-radius:7px;background:#fbf4e1;color:var(--ink)}
+    .sp-full{margin-top:12px}.sp-full textarea{min-height:90px;resize:vertical}
+    .fin:disabled,.mini:disabled{background:rgba(0,0,0,.035);color:var(--ink);cursor:default}
+    /* inventario & negozio */
+    .inv-wrap{margin-top:22px;border-top:1px solid var(--edge);padding-top:20px}
+    .inv-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .inv-ryo{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+    .inv-ryo b{color:var(--red);font-size:15px}
+    .inv-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+    .inv-list .itrow,.shoprow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;border:1px solid var(--edge);background:rgba(255,250,235,.45)}
+    .itmain b{font-weight:600}
+    .itmeta{color:var(--ink-soft);font-size:13.5px}
+    .itqty{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.05em;color:var(--ink);white-space:nowrap}
+    .shop{margin-top:16px;border:1px solid var(--red);border-radius:12px;background:rgba(166,50,29,.05);padding:14px 16px}
+    .shop h3{color:var(--red);margin-bottom:2px}
+    .shop-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+    .shopbuy{display:flex;align-items:center;gap:8px;flex-shrink:0}
+    .qin{width:58px;font-family:inherit;font-size:15px;padding:5px 7px;border:1px solid var(--edge);border-radius:6px;background:#fbf4e1;color:var(--ink)}
+    .mini-btn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;flex-shrink:0}
+    .mini-btn:hover{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+    .itright{display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+    .rowact{display:flex;align-items:center;gap:6px}
+    .log-box{margin-top:12px;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:auto;border:1px solid var(--edge);background:rgba(255,250,235,.4);padding:10px 12px}
+    .logrow{font-size:14px;color:var(--ink);border-bottom:1px dashed var(--edge);padding-bottom:6px}
+    .logrow:last-child{border-bottom:none;padding-bottom:0}
+    .logkind{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:4px;color:#f6ead0}
+    .k-acquisto{background:#3c6b3c}.k-vendita{background:#a6321d}.k-assegnazione{background:#7c6f4d}.k-rimozione{background:#7c2413}.k-correzione{background:#6a5231}
+    .logmeta{display:block;color:var(--ink-soft);font-size:12.5px;margin-top:2px}
+    .eq-section{margin-top:22px;border-top:1px solid var(--edge);padding-top:20px}
+    .eq-summary{margin:6px 0 14px;padding:9px 13px;border:1px solid var(--edge);background:rgba(255,250,235,.5);font-size:14.5px}
+    .eq-layout{display:grid;grid-template-columns:230px 1fr;gap:22px;align-items:start}
+    @media(max-width:680px){.eq-layout{grid-template-columns:1fr}.eq-fig{max-width:230px;margin:0 auto}}
+    .eq-fig{position:sticky;top:12px}
+    .silhouette{width:100%;height:auto;max-height:430px;display:block}
+    .silhouette .body path,.silhouette .body circle,.silhouette .body rect{fill:none;stroke:#3a2c18;stroke-width:2.3;stroke-linejoin:round;stroke-linecap:round}
+    .anchor-dot circle{fill:#f1e6ca;stroke:#9c7f4e;stroke-width:2.5;cursor:pointer;transition:.15s}
+    .anchor-dot.occ circle{fill:var(--red);stroke:var(--red-deep)}
+    .anchor-dot:hover circle{stroke:var(--ink);stroke-width:3}
+    .adot-t{font-family:'Cinzel',serif;font-size:9px;fill:var(--ink-soft);letter-spacing:.02em;pointer-events:none}
+    .eq-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media(max-width:520px){.eq-cards{grid-template-columns:1fr}}
+    .eq-card{border:1px solid var(--edge);background:rgba(255,250,235,.4);padding:10px 12px;border-radius:8px}
+    .eq-card.flash{box-shadow:0 0 0 2px var(--red);border-color:var(--red)}
+    .eq-h{display:flex;align-items:baseline;gap:8px;justify-content:space-between;margin-bottom:6px}
+    .eq-hint{font-size:11px;color:var(--ink-soft)}
+    .eq-empty{color:var(--ink-soft);font-style:italic;font-size:13.5px}
+    .eq-add{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}
+    .eq-sel{flex:1;min-width:88px;font-family:inherit;font-size:13.5px;padding:5px 7px;border:1px solid var(--edge);border-radius:6px;background:#fbf4e1;color:var(--ink)}
+    .eq-eqd,.eq-kid,.eq-conth{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px}
+    .eq-kid{border-top:1px dashed var(--edge);padding-top:5px;margin-top:5px}
+    .capbar{height:7px;border:1px solid var(--edge);border-radius:4px;overflow:hidden;margin:8px 0 3px;background:rgba(0,0,0,.05)}
+    .capbar span{display:block;height:100%;background:var(--red)}
+    .capnum{font-size:12px;color:var(--ink-soft);margin-bottom:4px}
+    .ie-section{margin-top:26px;border-top:1px solid var(--edge);padding-top:20px}
+    .ie-layout{display:grid;grid-template-columns:264px 1fr;gap:24px;align-items:start;margin-top:8px}
+    @media(max-width:760px){.ie-layout{grid-template-columns:1fr}.ie-left{max-width:300px;margin:0 auto}}
+    .ie-left{position:sticky;top:12px}
+    .silhouette{width:100%;height:auto;max-height:450px;display:block}
+    .silhouette .body path,.silhouette .body circle,.silhouette .body rect{fill:none;stroke:#3a2c18;stroke-width:2.3;stroke-linejoin:round;stroke-linecap:round}
+    .anchor-dot circle{fill:#f1e6ca;stroke:#9c7f4e;stroke-width:2.5;cursor:pointer;transition:.15s}
+    .anchor-dot.occ circle{fill:var(--red);stroke:var(--red-deep)}
+    .anchor-dot:hover circle{stroke:var(--ink);stroke-width:3}
+    .adot-t{font-family:'Cinzel',serif;font-size:8.5px;fill:var(--ink-soft);pointer-events:none}
+    .eq-slots{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+    .slotcard{border:1px solid var(--edge);background:rgba(255,250,235,.5);border-radius:8px;padding:8px 10px}
+    .sloth{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .slotn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--red-deep)}
+    .sloth b{flex:1;min-width:60px}
+    .eq-summary{margin:6px 0 4px;padding:9px 13px;border:1px solid var(--edge);background:rgba(255,250,235,.5);font-size:14.5px}
+    .ie-rhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+    .ie-rtitle{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep)}
+    .inv-cats{display:flex;flex-direction:column;gap:14px}
+    .invcat .grp-sub{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
+    .invrow{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border:1px solid var(--edge);background:rgba(255,250,235,.45);border-radius:8px;margin-bottom:6px}
+    .ithumb{width:42px;height:42px;flex-shrink:0;border:1px solid var(--edge);border-radius:6px;background:rgba(255,250,235,.7);display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .ithumb img{width:100%;height:100%;object-fit:contain}
+    .ithumb.none::after{content:'—';color:var(--ink-soft)}
+    .invmain{flex:1;min-width:110px}
+    .itdesc{display:block;font-size:12.5px;color:var(--ink-soft);font-style:italic;margin-top:2px}
+    .invacts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:flex-end;max-width:250px}
+    .mini-btn.ghost{border-color:var(--edge);color:var(--ink-soft)}
+    .store-sel{max-width:130px}
+    .page-tabs{display:flex;gap:2px;margin:0 0 18px;border-bottom:1px solid var(--edge);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .page-tabs::-webkit-scrollbar{display:none}
+    .ptab{font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;padding:10px 16px;border:none;background:transparent;color:var(--ink-soft);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;flex:0 0 auto;white-space:nowrap}
+    .ptab.on{color:var(--red-deep);border-bottom-color:var(--red)}
+    .ptab:hover{color:var(--ink)}
+    .spage{display:none}.spage.on{display:block}
+    .portrait{border:1px solid var(--edge);background:rgba(255,250,235,.4);border-radius:10px;min-height:380px;display:flex;align-items:center;justify-content:center;text-align:center;position:relative;background-size:cover;background-position:center}
+    .portrait-up{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);cursor:pointer;border:1px solid var(--edge);padding:7px 14px;background:rgba(255,250,235,.92);border-radius:7px;white-space:nowrap;box-shadow:0 3px 10px rgba(40,28,10,.25)}
+    .portrait-col{display:flex;flex-direction:column;gap:12px}
+    .portrait-msg{width:100%;text-align:center;text-decoration:none}
+    .portrait-up:hover{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+    .portrait-up input{display:none}
+    .ph{color:var(--ink-soft);font-style:italic;padding:20px}.ph span{display:block;font-size:12px;margin-top:6px;opacity:.8}
+    .silhouette .adot-t{paint-order:stroke;stroke:#efe3c6;stroke-width:2.8px;stroke-linejoin:round;fill:#3a2c18;font-weight:600}
+  .msg-overlay{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:18px}
+  .msg-overlay[hidden]{display:none}
+  .msg-backdrop{position:absolute;inset:0;background:rgba(30,20,8,.62)}
+  .msg-card{position:relative;z-index:1;width:min(460px,94vw);background:linear-gradient(var(--paper-hi),var(--paper));border:1.5px solid var(--edge);box-shadow:0 20px 60px rgba(20,12,4,.5);display:flex;flex-direction:column;max-height:88vh}
+  .msg-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(var(--red),var(--red-deep));color:#f8ecd6}
+  .msg-title{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+  .msg-x{background:transparent;border:0;color:#f8ecd6;font-size:16px;cursor:pointer;line-height:1;padding:2px 6px}
+  .msg-body{padding:14px 16px 6px;display:flex;flex-direction:column;gap:8px}
+  .msg-to{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--ink-soft)}
+  .msg-to strong{color:var(--ink)}
+  .msg-body textarea{width:100%;min-height:150px;resize:vertical;background:rgba(255,255,255,.35);border:1px solid var(--rule);color:var(--ink);font-family:'Cormorant Garamond',serif;font-size:16px;padding:10px 12px;box-sizing:border-box}
+  .msg-count{text-align:right;font-family:'Cinzel',serif;font-size:10px;color:var(--ink-soft);letter-spacing:.08em}
+  .msg-foot{display:flex;justify-content:flex-end;gap:10px;padding:10px 16px 16px}
+  .danger-zone{border:1px solid var(--red);background:rgba(166,50,29,.05);padding:14px 16px;margin-top:14px}
+  .dz-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+  .dz-row input{flex:1;min-width:200px;font-family:'Cormorant Garamond',serif;font-size:16px;padding:9px 12px;border:1px solid var(--rule);background:rgba(255,255,255,.4);color:var(--ink)}
+  #dz-delete:disabled{opacity:.45;cursor:not-allowed}
+
+  /* ---- Catalogo tecniche ---- */
+  .tk-tools{display:flex;gap:8px;align-items:center;margin:0 0 10px;flex-wrap:wrap}
+  .tk-search{flex:1;min-width:180px;font-family:'Cormorant Garamond',serif;font-size:14.5px;padding:7px 10px;border:1px solid var(--edge);border-radius:8px;background:#fbf4e1;color:var(--ink)}
+  .tk-grp{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);border-bottom:1px solid var(--edge);padding:10px 0 4px;margin:6px 0 6px}
+  .tr-row{cursor:pointer}
+  .tr-cat{font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:#8a6a1e;border:1px solid var(--edge);border-radius:6px;padding:1px 6px;margin-left:6px;white-space:nowrap}
+  .tr-det{display:none;margin:2px 0 8px;padding:9px 12px;border-left:3px solid var(--edge);background:rgba(255,250,235,.55);border-radius:0 8px 8px 0;font-family:'Cormorant Garamond',serif;font-size:14.5px;line-height:1.55;color:var(--ink)}
+  .tr-det.on{display:block}
+  .tr-det b{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--red-deep)}
+  .tr-det .tkd{margin:2px 0}
+
+  .tk-acc{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;user-select:none}
+  .tk-acc .tka-ch{font-size:11px;color:var(--ink-soft);transition:transform .15s}
+  .tk-acc.open .tka-ch{transform:rotate(90deg)}
+  .tk-body{display:none}
+  .tk-body.open{display:block}
+  .tk-sec{font-family:'Cinzel',serif;font-size:11.5px;letter-spacing:.05em;color:var(--red-deep);margin:13px 0 4px;padding-bottom:3px;border-bottom:1px solid var(--rule)}
+  .tk-sec-big{font-size:13.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);margin:18px 0 5px;padding-bottom:4px;border-bottom:2px solid var(--edge)}
+  .tk-grp.tk-sub{padding-left:2px}
+  .tk-body{padding-left:6px}
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="content">
+      <nav>
+        <div class="brand"><span id="bijuu-logo"></span><a class="home-link" href="index.html"><b>The Untold Story</b></a></div>
+        <a href="land.html" class="backlink" onclick="if(history.length>1){history.back();return false;}" style="margin-left:auto;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);text-decoration:none;border:1px solid var(--edge);border-radius:7px;padding:7px 13px;white-space:nowrap">← Indietro</a>
+      </nav>
+
+      <main>
+        <div id="st-loading" class="state on"><div class="msgcard"><p>Caricamento della scheda…</p></div></div>
+
+        <div id="st-guest" class="state"><div class="msgcard">
+          <h2>La tua scheda</h2><p>Accedi al tuo account per creare e gestire la scheda del tuo personaggio.</p>
+          <a class="btn btn-red" href="entra.html#accedi">Accedi</a><a class="btn" href="entra.html#registrati" style="margin-left:10px">Registrati</a>
+        </div></div>
+
+        <div id="st-error" class="state"><div class="msgcard"><h2>Ops</h2><p id="err-msg">Si è verificato un problema.</p><button class="btn" onclick="location.reload()">Ricarica</button></div></div>
+
+        <!-- CREATE -->
+        <div id="st-create" class="state"><div class="msgcard" style="max-width:640px">
+          <h2>Crea il tuo personaggio</h2>
+          <p>Bastano i dati essenziali. Il <b>clan</b> e la <b>corporazione</b> li assegnerà lo <b>staff</b> (in base al tuo background o allo sviluppo in gioco). L'<b>elemento</b> puoi sceglierlo ora — è facoltativo — oppure più avanti dalla scheda. Si parte dal rango <b>Deshi</b>.</p>
+          <div style="text-align:left">
+            <div class="fld"><span class="lab">Nome del personaggio</span><div id="c-name-show" class="fin" style="font-weight:600;display:flex;align-items:center;min-height:44px">—</div><span class="hint" style="margin-top:6px">È il nome con cui ti sei registrato. Un account = un personaggio.</span></div>
+            <div class="grid3">
+              <label class="fld"><span class="lab">Età</span><input id="c-age" class="fin" type="number" min="1" placeholder="es. 12" /></label>
+              <label class="fld"><span class="lab">Sesso</span><select id="c-sex" class="fin"><option value="">— scegli —</option><option>Maschio</option><option>Femmina</option><option>Altro</option></select></label>
+              <label class="fld"><span class="lab">Villaggio</span><select id="c-village" class="fin"><option value="">— scegli —</option><option>Konoha</option><option>Suna</option></select></label>
+              <label class="fld"><span class="lab">Elemento del Chakra <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· facoltativo</span></span><select id="c-element" class="fin"><option value="">— nessuno —</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select></label>
+            </div>
+            <div class="block" style="margin-top:4px">
+              <h3><span class="n">◆</span> Statistiche</h3>
+              <p class="hint" style="margin-top:0">Parti con le statistiche <b>base</b> e ricevi <b>60 punti</b> da assegnare (a gruppi di 5): li distribuisci con calma <b>dalla scheda, dentro la land</b>, quando vuoi — così puoi leggere tutto e scegliere con ponderatezza.</p>
+              <div id="c-stats" style="display:none"></div><b id="c-pool" style="display:none">60</b>
+            </div>
+          </div>
+          <p class="hint">I nomi dei personaggi dell'opera non sono ammessi. L'elemento è facoltativo (per le build full-taijutsu).</p>
+          <button class="btn btn-red" id="c-create">Crea scheda</button>
+        </div></div>
+
+        <!-- SHEET -->
+        <div id="st-sheet" class="state">
+          <div id="mode-badge" class="mode-badge" style="display:none"></div>
+          <div class="page-tabs"><button class="ptab on" data-p="home">Home</button><button class="ptab" data-p="inv">Inventario</button><button class="ptab" data-p="jutsu">Jutsu e abilità</button><button class="ptab" data-p="acad">Accademia</button><button class="ptab" data-p="lib">Libreria role</button></div>
+          <div id="page-home" class="spage on">
+          <div class="sheet-top">
+            <div class="portrait-col">
+            <div class="portrait" id="s-portrait">
+              <div class="ph" id="s-portrait-ph">Ritratto del personaggio<span>(carica un'immagine con «Modifica»)</span></div>
+              <label class="portrait-up" id="s-portrait-up" style="display:none">Carica ritratto<input type="file" id="s-avatar-file" accept="image/png,image/jpeg,image/webp"></label>
+            </div>
+            <button type="button" class="btn btn-red btn-sm portrait-msg" id="s-msg" style="display:none">✉ Invia messaggio</button>
+            </div>
+            <div class="dossier">
+              <div class="dhead"><div class="dhead-name"><h1 id="s-name">—</h1><div id="s-epithet" class="epithet" style="display:none"></div></div><div class="dhead-act"><button class="btn btn-ghost btn-sm" id="s-edit" style="display:none">Modifica</button><button class="btn btn-ghost btn-sm" id="s-share" title="Copia il link della scheda">Condividi</button><button class="btn btn-red btn-sm" id="s-save">Salva</button></div></div>
+              <div class="dtabs"><button class="dtab on" data-d="dati">Dati</button><button class="dtab" data-d="stat">Statistiche<span id="stat-badge" style="display:none;margin-left:6px;min-width:16px;padding:1px 5px;border-radius:9px;background:var(--red);color:#f6ead0;font-family:'Cinzel',serif;font-size:9px"></span></button><button class="dtab" data-d="align" id="dtab-align">Allineamento</button></div>
+
+              <div class="dpanel on" data-d="dati">
+                <div class="drow"><span class="emb" id="ic-rank"></span><div class="dinfo"><span class="dlab">Grado</span><span class="dval" id="v-rank">—</span><select id="f-rank" class="mini" style="display:none"><option>Deshi</option><option>Genin</option><option>Chunin</option><option>Jonin</option><option>Jonin Speciale</option><option>Kage Konoha</option><option>Kage Suna</option><option>Sannin</option></select></div></div>
+                <div class="drow"><span class="emb" id="ic-village"></span><div class="dinfo"><span class="dlab">Villaggio</span><span class="dval" id="v-village">—</span></div></div>
+                <div class="drow"><span class="emb" id="ic-clan"></span><div class="dinfo"><span class="dlab">Clan <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· entra da solo in un clan aperto del tuo villaggio; i clan speciali (Hyuga, Uchiha, Sabaku…) li assegna lo staff</span></span><select id="f-clan" class="mini"></select><div id="clan-join" style="display:none;margin-top:8px"><select id="clan-join-sel" class="mini" style="max-width:180px"></select> <button type="button" class="btn btn-red btn-sm" id="clan-join-btn" style="margin-left:6px">Unisciti</button></div><span class="dlab" id="lab-clanrole" style="margin-top:9px;display:none">Ruolo nel clan</span><select id="f-clanrole" class="mini" style="display:none"><option value="">—</option><option>Capo clan</option><option>Anziano</option><option>Membro esperto</option><option>Novizio</option></select></div></div>
+                <div class="drow"><span class="emb" id="ic-corp"></span><div class="dinfo"><span class="dlab">Corporazione <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· la scegli candidandoti dalla land; la conferma lo staff</span></span><span class="dval" id="v-corp">—</span>
+                  <div id="corp-staff" style="display:none;margin-top:8px">
+                    <select id="f-corp" class="mini" style="max-width:150px"><option value="">— Nessuna</option><option value="anbu">ANBU</option><option value="medici">Medici</option><option value="akatsuki">Akatsuki</option></select>
+                    <select id="f-corpspec" class="mini" style="max-width:150px;display:none;margin-left:6px"><option value="infiltrazione">Infiltrazione</option><option value="pedinamento">Pedinamento</option><option value="assassinio">Assassinio</option><option value="sensoriale">Sensoriale</option></select>
+                    <input id="f-corprole" class="mini" maxlength="40" placeholder="Ruolo (es. Capitano)" style="max-width:150px;margin-left:6px" />
+                    <button type="button" class="btn btn-red btn-sm" id="f-corp-apply" style="margin-left:6px">Applica</button>
+                    <div class="dlab" style="text-transform:none;letter-spacing:0;color:var(--ink-soft);margin-top:6px">ANBU richiede Jonin+ e Lealtà ≥ 65; Akatsuki richiede Lealtà ≤ 20. L'assegnazione registra la data d'ingresso.</div>
+                  </div></div></div>
+                <div class="drow"><span class="emb" id="ic-element"></span><div class="dinfo"><span class="dlab">Elemento del Chakra <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· facoltativo</span></span>
+                  <select id="f-element" class="mini"><option value="">Nessuno</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select></div></div>
+                <div class="drow"><span class="emb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:20px;height:20px;color:var(--red-deep)"><path d="M4 6c5-1.4 11-1.4 16 0 0 6-2.4 10-8 10S4 12 4 6z"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="9.5" r="1"/><path d="M9.5 13c.8.8 1.7 1 2.5 1s1.7-.2 2.5-1"/></svg></span><div class="dinfo"><span class="dlab">Prestavolto <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· il volto usato per l'avatar</span></span><input id="f-prestavolto" class="mini" maxlength="80" placeholder="Nome del volto (attore, personaggio…)" /></div></div>
+                <div class="drow2"><div class="dinfo"><span class="dlab">Età</span><span class="dval" id="v-age">—</span></div><div class="dinfo"><span class="dlab">Sesso</span><span class="dval" id="v-sex">—</span></div></div>
+              </div>
+
+              <div class="dpanel" data-d="stat">
+                <div class="mini-vitals">
+                  <div class="mv"><div class="vl">Vita</div><div class="vv" id="v-vita">—</div><div class="vbar pv" id="bar-vita-wrap"><i id="bar-vita"></i></div></div>
+                  <div class="mv"><div class="vl">Chakra</div><div class="vv" id="v-chakra">—</div><div class="vbar ck"><i id="bar-chakra"></i></div></div>
+                  <div class="mv"><div class="vl">Soldi</div><div class="vv" id="v-money">—</div></div>
+                  <div class="mv"><div class="vl">Exp</div><div class="vv" id="v-exp">—</div></div>
+                </div>
+                <div class="ko-banner" id="ko-banner">⚠ Fuori combattimento — non puoi attaccare finché non recuperi</div>
+                <div class="xpwrap" id="xp-wrap" style="display:none">
+                  <div class="xt"><span class="xl">Esperienza</span><span class="xv" id="xp-line">—</span></div>
+                  <div class="xpbar"><i id="xp-fill"></i></div>
+                  <div class="xh" id="xp-hint"></div>
+                </div>
+                <div class="chars" id="charwrap"></div>
+                <p class="rohint">Distribuite alla creazione; crescono con la progressione (convalidata dallo staff).</p>
+                <div class="unspent" id="unspent-box" style="display:none">
+                  <div class="ut">Hai <b id="u-pts">0</b> punti da assegnare (a gruppi di 5)</div>
+                  <div id="u-rows"></div>
+                  <button class="btn btn-red btn-sm" id="u-confirm" style="margin-top:8px">Conferma assegnazione</button>
+                </div>
+              </div>
+
+              <div class="dpanel" data-d="align">
+                <p class="hint" style="margin-top:0">Le <strong>svolte</strong> muovono l'allineamento: dopo una scena che ha segnato il tuo personaggio, chiedi qui il riconoscimento — decide lo staff. Sotto, lo <strong>storico dei momenti chiave</strong> che hanno inciso sulla vita del ninja.</p>
+                <div class="svbox" id="svolta-box" style="display:none">
+                  <h4>Richiedi una svolta</h4>
+                  <div class="svgrid">
+                    <label>Asse
+                      <select id="sv-asse"><option value="lealta">Lealtà</option><option value="via">Via</option><option value="fama">Fama</option></select>
+                    </label>
+                    <label>Spostamento
+                      <select id="sv-delta"><option value="5">+5 · un passo</option><option value="10">+10 · svolta forte</option><option value="-5">−5 · un passo</option><option value="-10">−10 · svolta forte</option></select>
+                    </label>
+                  </div>
+                  <label class="svlab" style="margin-top:8px">Role di riferimento (facoltativa)
+                    <select id="sv-role"><option value="">— nessuna —</option></select>
+                  </label>
+                  <textarea id="sv-motivo" maxlength="600" placeholder="Racconta la svolta: cosa è successo in gioco e perché segna il tuo personaggio (minimo 60 caratteri)…"></textarea>
+                  <div class="svcnt"><span id="sv-cnt">0</span>/600 · minimo 60 caratteri</div>
+                  <button class="btn btn-red btn-sm" id="sv-send" style="margin-top:8px">Invia allo staff</button>
+                </div>
+                <h4 class="svh" id="sv-list-h" style="display:none">Richieste recenti</h4>
+                <div class="svlist" id="sv-list"></div>
+                <h4 class="svh" id="sv-history-h">Storico — i momenti chiave</h4>
+                <div class="svlist" id="sv-history"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scroll-sections">
+            <div class="ssec" id="sec-align"><h3>Allineamento <span class="priv">◈ il percorso del ninja</span></h3>
+              <p class="hint">Dove si trova oggi il personaggio: <strong>Lealtà</strong> (il rapporto col villaggio), <strong>Via</strong> (l'anima, tra Volontà del Fuoco e Sentiero dell'Odio) e <strong>Fama</strong> (come lo vede il mondo). Le <strong>svolte</strong> e lo storico dei momenti chiave sono nel tab <strong>Allineamento</strong> in alto.</p>
+              <div class="algn" id="algn-gauges"></div>
+            </div>
+            <div class="ssec"><h3>Background</h3>
+              <p class="hint">La storia del personaggio: origini, legami, aspirazioni. Visibile agli altri giocatori.</p>
+              <textarea id="f-background" class="fin" style="min-height:180px" placeholder="Scrivi qui la storia del tuo personaggio…"></textarea></div>
+            <div class="ssec" id="sec-off"><h3>Note OFF <span class="priv pub">👁 pubblica · visibile agli altri</span></h3>
+              <p class="hint">Breve nota fuori gioco visibile agli altri giocatori (es. «disponibile sempre dalle 20», fuso orario). Comparirà anche nella zona utenti online della land. Max 280 caratteri.</p>
+              <textarea id="f-off" class="fin" maxlength="280" style="min-height:90px" placeholder="Es. disponibile la sera dopo le 20…"></textarea></div>
+            <div class="ssec" id="sec-fato"><h3>Note del Fato <span class="priv">🔒 riservate · le scrive lo staff</span></h3>
+              <p class="hint">Obiettivi, ganci di trama e destino del personaggio: le scrive lo staff. Le vedete solo tu e lo staff.</p>
+              <textarea id="f-fato" class="fin" style="min-height:130px" placeholder="(ancora nessuna nota del Fato)" readonly></textarea></div>
+          </div>
+          <div class="staff-panel" id="staff-panel" style="display:none">
+            <h3>⚙ Pannello staff</h3>
+            <p class="hint" style="margin-top:-4px">Assegna epiteto e grado, correggi statistiche e vitali, e scrivi le Note del Fato. Solo lo staff vede questo pannello.</p>
+            <div class="sp-grid">
+              <label>Epiteto<input id="sp-epithet" maxlength="40" placeholder="es. Il Lampo Giallo"></label>
+              <label>Mente<input id="sp-mente" type="number" step="5"></label>
+              <label>Forza<input id="sp-forza" type="number" step="5"></label>
+              <label>Velocità<input id="sp-velocita" type="number" step="5"></label>
+              <label>Resistenza<input id="sp-resistenza" type="number" step="5"></label>
+              <label>Ninjutsu<input id="sp-ninjutsu" type="number" step="5"></label>
+              <label>Genjutsu<input id="sp-genjutsu" type="number" step="5"></label>
+              <label>Taijutsu<input id="sp-taijutsu" type="number" step="5"></label>
+              <label>Fuuinjutsu<input id="sp-fuuinjutsu" type="number" step="5"></label>
+              <label><span id="lbl-sp-kg">Kekkei Genkai</span><input id="sp-kekkei_genkai" type="number" step="5"></label>
+              <label>Vita<input id="sp-vita" type="number"></label>
+              <label>Vita max<input id="sp-vita_max" type="number"></label>
+              <label>Chakra<input id="sp-chakra" type="number"></label>
+              <label>Chakra max<input id="sp-chakra_max" type="number"></label>
+              <label>Soldi<input id="sp-money" type="number"></label>
+              <label>Exp<input id="sp-exp" type="number"></label>
+              <label>Punti da assegnare<input id="sp-unspent_points" type="number" step="5"></label>
+              <label>Lealtà<input id="sp-lealta" type="number" step="5" min="0" max="100"></label>
+              <label>Via<input id="sp-via" type="number" step="5" min="0" max="100"></label>
+              <label>Fama<input id="sp-fama" type="number" step="5" min="0" max="100"></label>
+            </div>
+            <label class="sp-full">Note del Fato (visibili al giocatore)<textarea id="sp-fato" placeholder="Obiettivi, ganci di trama, destino…"></textarea></label>
+            <button class="btn btn-red btn-sm" id="sp-save" style="margin-top:12px">Salva modifiche staff</button>
+          </div>
+          <div class="ssec danger-zone" id="danger-zone" style="display:none">
+            <h3 style="color:var(--red-deep)">⚠ Zona pericolo</h3>
+            <p class="hint" style="margin-top:-4px">Cancella definitivamente il tuo account. L'operazione &egrave; <strong>irreversibile</strong>: elimina personaggio, scheda, inventario e messaggi, e non &egrave; possibile recuperarli.</p>
+            <div class="dz-row">
+              <input id="dz-confirm" type="text" placeholder="Scrivi CANCELLA per confermare" autocomplete="off" spellcheck="false">
+              <button type="button" class="btn btn-red btn-sm" id="dz-delete" disabled>Cancella account</button>
+            </div>
+            <p class="hint"><a href="privacy.html" target="_blank" style="color:var(--red)">Come trattiamo i tuoi dati</a></p>
+          </div>
+          </div>
+          <div id="page-inv" class="spage">
+          <div class="ie-section" id="invequip">
+            <div class="inv-head"><h3>Inventario &amp; Equipaggiamento <span class="priv pub">👁 la sagoma è pubblica · usabile in chat</span></h3><div class="inv-ryo">Ryo: <b id="inv-ryo">0</b></div></div>
+            <p class="hint"><b>In chat usi solo ciò che è sulla sagoma.</b> Indossa contenitori ed equipaggiamento negli slot, tieni un'arma in mano, riponi gli oggetti nei contenitori (capienza in kg). Peso sulla sagoma: <b id="inv-weight">0</b> kg. L'inventario personale è privato (solo tu e lo staff).</p>
+            <div id="equip-summary" class="eq-summary"></div>
+            <div class="ie-layout">
+              <div class="ie-left">
+                <div class="eq-fig" id="equip-figure"></div>
+                <div class="eq-slots" id="equip-slots"></div>
+              </div>
+              <div class="ie-right">
+                <div class="ie-rhead"><span class="ie-rtitle">Inventario personale</span><button class="btn btn-red btn-sm" id="inv-shop-btn">Apri il negozio</button></div>
+                <div id="inv-cats" class="inv-cats"></div>
+                <div class="shop" id="shop" style="display:none">
+                  <h3 id="shop-title">Negozio</h3>
+                  <p class="hint" id="shop-hint">Compra dal catalogo spendendo i tuoi Ryo.</p>
+                  <div id="shop-list" class="shop-list"></div>
+                </div>
+                <div class="log-wrap">
+                  <button class="btn btn-sm" id="log-btn" style="margin-top:14px;background:transparent;color:var(--ink);border-color:var(--ink)">Mostra registro movimenti</button>
+                  <div id="log-box" class="log-box" style="display:none"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div id="page-jutsu" class="spage">
+            <div class="ssec" id="sec-jutsu"><h3>Jutsu e abilità</h3>
+              <p class="hint">Le <b>abilità</b> (competenze e capacità) e i <b>jutsu</b> (tecniche) appresi dal personaggio: si imparano all'Accademia e con la progressione.</p>
+              <div id="jutsu-wrap"></div>
+              <div id="train-wrap" style="margin-top:18px"></div></div>
+            <div class="ssec" id="sec-premi" style="display:none"><h3>Premi speciali <span class="priv">◈ conquiste della carriera</span></h3>
+              <p class="hint">I <b>premi</b> sono acquisti straordinari pagati in XP e legati alla trama: si chiedono qui e decide lo staff. L'XP viene scalato solo all'approvazione.</p>
+              <div id="perk-list"></div>
+              <div class="svbox" id="premio-box" style="display:none">
+                <h4>Richiedi un premio</h4>
+                <label class="svlab">Premio
+                  <select id="pr-tipo">
+                    <option value="seconda_natura">Seconda natura elementale · 300 XP · dal grado Jonin</option>
+                    <option value="evocazione">Contratto di evocazione · 600 XP</option>
+                    <option value="sigillo_maledetto">Sigillo maledetto · 750 XP</option>
+                    <option value="tecnica_segreta">Tecnica segreta di grado S · 375 XP</option>
+                    <option value="tecnica_personale">Tecnica personale · da 115 XP</option>
+                    <option value="jinchuriki">Jinchūriki · 1.800 XP</option>
+                  </select>
+                </label>
+                <label class="svlab" id="pr-grado-wrap" style="display:none">Grado della tecnica personale
+                  <select id="pr-grado">
+                    <option value="D">D · 115 XP</option>
+                    <option value="C">C · 225 XP</option>
+                    <option value="B">B · 340 XP</option>
+                    <option value="A">A · 450 XP</option>
+                    <option value="S">S · 565 XP</option>
+                  </select>
+                </label>
+                <textarea id="pr-dettaglio" maxlength="600" placeholder="Racconta cosa chiedi e perché in trama: cosa è successo in gioco e come lo giustifica (minimo 60 caratteri)…"></textarea>
+                <div class="svcnt"><span id="pr-cnt">0</span>/600 · minimo 60 caratteri</div>
+                <div class="prcost" id="pr-costo-line"></div>
+                <button class="btn btn-red btn-sm" id="pr-send" style="margin-top:8px">Invia allo staff</button>
+              </div>
+              <h4 class="svh" id="pr-list-h" style="display:none">Richieste</h4>
+              <div class="svlist" id="pr-list"></div>
+            </div>
+          </div>
+          <div id="page-acad" class="spage">
+            <div class="ssec" id="sec-comp" style="display:none"><h3>Compagno PNG <span class="priv">◈ evocazioni · marionette · cani ninja</span></h3>
+              <p class="hint">Il tuo <b>compagno</b> agisce nel <b>tuo stesso turno</b>: in chat, il pulsante 🎭 accanto a «Tecnica» apre il riquadro con la sua azione. <b>Slot: 1</b> (ampliamenti concessi dallo staff). Il <b>grado</b> (minore → intermedia → superiore → leggendaria) lo assegna lo staff col progredire della storia. Requisiti: <b>marionetta</b> per il clan Marionettisti, <b>cane ninja</b> per gli Inuzuka, <b>evocazione</b> con il Contratto (sezione Premi).</p>
+              <div id="comp-wrap"></div>
+            </div>
+            <div class="ssec" id="sec-acad"><h3>Accademia</h3>
+              <p class="hint">Le lezioni che hai svolto. Il collegamento per rileggere la chat di ogni lezione arriverà con l'Accademia in versione chat.</p>
+              <div id="acadlog-wrap"></div></div>
+          </div>
+          <div id="page-lib" class="spage">
+            <div class="ssec" id="sec-lib"><h3>Libreria role</h3>
+              <p class="hint">Tutte le tue giocate registrate. Quando in una chat qualcuno avvia una registrazione, la scena viene salvata qui per tutti i presenti. Tocca una role per rileggerla.</p>
+              <div id="lib-wrap"></div></div>
+          </div>
+        </div>
+      </main>
+
+      <footer><p class="disc-txt">Progetto amatoriale, gratuito e non ufficiale. «Naruto» © Masashi Kishimoto / Shueisha. Contenuti a tema maturo in forma esclusivamente testuale.</p></footer>
+    </div>
+    <div class="frame"><span class="corner tl">✦</span><span class="corner tr">✦</span><span class="corner bl">✦</span><span class="corner br">✦</span></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Finestra messaggio: invio diretto dalla scheda -->
+  <div class="msg-overlay" id="msg-overlay" hidden>
+    <div class="msg-backdrop" id="msg-backdrop"></div>
+    <div class="msg-card" role="dialog" aria-modal="true" aria-labelledby="msg-title">
+      <div class="msg-head"><span class="msg-title" id="msg-title">Nuovo messaggio</span><button type="button" class="msg-x" id="msg-close" aria-label="Chiudi">✕</button></div>
+      <div class="msg-body">
+        <div class="msg-to">A: <strong id="msg-to-name">—</strong></div>
+        <textarea id="msg-text" maxlength="4000" placeholder="Scrivi il tuo messaggio…"></textarea>
+        <div class="msg-count"><span id="msg-count">0</span>/4000</div>
+      </div>
+      <div class="msg-foot"><button type="button" class="btn btn-ghost btn-sm" id="msg-cancel">Annulla</button><button type="button" class="btn btn-red btn-sm" id="msg-send">Invia</button></div>
+    </div>
+  </div>
+
+  <div class="msg-overlay" id="role-overlay" hidden>
+    <div class="msg-backdrop" id="role-backdrop"></div>
+    <div class="msg-card role-card" role="dialog" aria-modal="true" aria-labelledby="role-title">
+      <div class="msg-head"><span class="msg-title" id="role-title">Role</span><button type="button" class="msg-x" id="role-close" aria-label="Chiudi">✕</button></div>
+      <div class="role-scene" id="role-scene"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+  (function(){
+    var SB_URL='https://tyhyxkslteigibktluml.supabase.co';
+    var SB_KEY='sb_publishable_jG9_Pb0L4PWuutcutyVc8w_UP6WY41g';
+    var sb=(window.supabase&&SB_KEY)?window.supabase.createClient(SB_URL,SB_KEY):null;
+
+    var CLANS={Konoha:['Nessuno','Hyuga','Nara','Akimichi','Inuzuka','Aburame'],Suna:['Nessuno','Marionettisti','Sabaku','Dokugan']};
+    var STATS=[['mente','Mente'],['forza','Forza'],['velocita','Velocità'],['resistenza','Resistenza'],['ninjutsu','Ninjutsu'],['genjutsu','Genjutsu'],['taijutsu','Taijutsu'],['fuuinjutsu','Fuuinjutsu'],['kekkei_genkai','Kekkei Genkai']];
+    var CLAN_ABILITY={};
+    function kgLabel(clan){var k=clan&&CLAN_ABILITY[clan];if(k==='kekkei_genkai')return 'Innata';if(k==='hiden')return 'Arte segreta';return 'Kekkei Genkai';}
+    function statLbl(s){return s[0]==='kekkei_genkai'?kgLabel(myChar&&myChar.clan):s[1];}
+    function showInnata(c){c=c||myChar;return !!(c&&c.clan&&c.clan!=='Nessuno'&&(c.rank||'Deshi')!=='Deshi');}
+    var BASE=10,POOL=60,CAP=30,STEP=5;
+    var RANKCAP={'Deshi':30,'Genin':45,'Chunin':60,'Jonin':75,'Jonin Speciale':85};
+    function rankCap(c){c=c||myChar;return (c&&RANKCAP[c.rank])||100;}
+    var ELK={Fuoco:'火',Vento:'風',Fulmine:'雷',Terra:'土',Acqua:'水'},ELC={Fuoco:'e-fuoco',Vento:'e-vento',Fulmine:'e-fulmine',Terra:'e-terra',Acqua:'e-acqua'};
+    var me=null,myChar=null,curPriv=null,newStats={},addBuf={},EMB={},myName='',viewMode='owner',viewId=null,isStaff=false,isAdmin=false,editMode=false;
+
+    function $(id){return document.getElementById(id);}
+    function show(id){['st-loading','st-guest','st-error','st-create','st-sheet'].forEach(function(s){$(s).classList.toggle('on',s===id);});}
+    function toast(m,e){var t=$('toast');t.textContent=m;t.className='toast show'+(e?' err':'');setTimeout(function(){t.className='toast';},2600);}
+    function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+    /* ---- emblemi (originali; elementi = kanji reali) ---- */
+    var LEAF='<svg viewBox="0 0 24 24"><path d="M12 3 C6 8 5 15 12 21 C19 15 18 8 12 3 Z" fill="#3f7d55"/><path d="M12 6 L12 19" stroke="#2f5a3d" stroke-width="1.4"/></svg>';
+    var DUNE='<svg viewBox="0 0 24 24"><circle cx="16.5" cy="8" r="3" fill="#e0a53d"/><path d="M2 19 Q8 12.5 12 18 Q16 22 22 16.5 L22 21 L2 21 Z" fill="#c99a54"/></svg>';
+    var BANNER='<svg viewBox="0 0 24 24"><path d="M7 3 h10 v15 l-5 -3.2 l-5 3.2 Z" fill="#8a6f43"/><path d="M7 7 h10" stroke="#5f4a2c" stroke-width="1.2"/></svg>';
+    var STAR='<svg viewBox="0 0 24 24"><path d="M12 3 l2.5 6 6.4 .5 -4.9 4.2 1.6 6.3 -5.6 -3.5 -5.6 3.5 1.6 -6.3 -4.9 -4.2 6.4 -.5 Z" fill="#c9a233"/></svg>';
+    function chevSvg(n){var s='';for(var i=0;i<n;i++){var y=8+i*5.4;s+='<path d="M6 '+(y+4)+' l6 -4.4 l6 4.4" fill="none" stroke="#3a2a12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';}return '<svg viewBox="0 0 24 24">'+s+'</svg>';}
+    function embVillage(v){var u=EMB['village:'+v];if(u)return '<span class="emb has-img"><img src="'+u+'" alt=""></span>';if(v==='Konoha')return '<span class="emb e-konoha">'+LEAF+'</span>';if(v==='Suna')return '<span class="emb e-suna">'+DUNE+'</span>';return '<span class="emb e-none">—</span>';}
+    function embRank(r){var _u=r&&EMB['rank:'+r];if(_u)return '<span class="emb has-img"><img src="'+_u+'" alt=""></span>';var inner;if(r==='Deshi')inner='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="none" stroke="#3a2a12" stroke-width="2"/></svg>';else if(r&&(r.indexOf('Kage')===0||r==='Sannin'||r==='Kage / Sannin'))inner=STAR;else{var n=r==='Genin'?1:r==='Chunin'?2:3;inner=chevSvg(n);if(r==='Jonin Speciale')inner=inner.replace('<svg viewBox="0 0 24 24">','<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7" fill="#a6321d"/>');}return '<span class="emb e-rank">'+inner+'</span>';}
+    function embClan(c,shine){if(!c||c==='Nessuno')return '<span class="emb e-none">—</span>';var u=EMB['clan:'+c];if(u)return '<span class="emb has-img'+(shine?' shine':'')+'"'+(shine?(' style="--e:url(&quot;'+u+'&quot;)"'):'')+'><img src="'+u+'" alt="">'+(shine?'<span class="shn"></span>':'')+'</span>';return '<span class="emb e-clan">'+esc(c.charAt(0))+'</span>';}
+    function capoSelected(){var r=$('f-clanrole');return !!(r&&r.value==='Capo clan');}
+    function corpKeyLabel(k){k=String(k||'').toLowerCase();return {anbu:'ANBU',medici:'Medici',akatsuki:'Akatsuki'}[k]||k;}
+    function corpSpecLabelS(s){s=String(s||'').toLowerCase();return {infiltrazione:'Infiltrazione',pedinamento:'Pedinamento',assassinio:'Assassinio',sensoriale:'Sensoriale'}[s]||'';}
+    function embCorp(c){if(!c)return '<span class="emb e-none">—</span>';var k=String(c).toLowerCase();var S={anbu:'A',medici:'✚',akatsuki:'☁'}[k]||'▲';return '<span class="emb corp-e-'+k+'">'+S+'</span>';}
+    function embElement(e){if(!e)return '<span class="emb e-none">—</span>';var _u=EMB['element:'+e];if(_u)return '<span class="emb has-img"><img src="'+_u+'" alt=""></span>';return '<span class="emb '+ELC[e]+'"><span class="kanji">'+ELK[e]+'</span></span>';}
+
+    function fillClanSelect(sel,village,current){var list=CLANS[village]||['Nessuno'];sel.innerHTML='';list.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;if(c===current)o.selected=true;sel.appendChild(o);});}
+
+    /* ---- CREATE ---- */
+    (function(){var host=$('c-stats');STATS.forEach(function(s){newStats[s[0]]=BASE;var row=document.createElement('div');row.className='steprow';
+      row.innerHTML='<span class="cn">'+s[1]+'</span><button type="button" class="stbtn" data-k="'+s[0]+'" data-d="-1">−5</button><span class="stval" id="cv-'+s[0]+'">'+BASE+'</span><button type="button" class="stbtn" data-k="'+s[0]+'" data-d="1">+5</button><div class="cbar"><span id="cb-'+s[0]+'"></span></div>';
+      host.appendChild(row);});refreshPool();})();
+    function remaining(){var u=0;STATS.forEach(function(s){u+=newStats[s[0]]-BASE;});return POOL-u;}
+    function refreshPool(){var cp=$('c-pool');if(cp)cp.textContent=remaining();STATS.forEach(function(s){var el=$('cv-'+s[0]);if(el)el.textContent=newStats[s[0]];var b=$('cb-'+s[0]);if(b)b.style.width=newStats[s[0]]+'%';});}
+    $('c-stats').addEventListener('click',function(e){var b=e.target.closest('.stbtn');if(!b)return;var k=b.getAttribute('data-k'),d=parseInt(b.getAttribute('data-d'),10),v=newStats[k]+d*STEP;if(d>0&&(remaining()<STEP||v>CAP))return;if(d<0&&v<BASE)return;newStats[k]=v;refreshPool();});
+    $('c-create').addEventListener('click',async function(){if(!sb)return;var name=(myName||'').trim(),age=parseInt($('c-age').value,10),sex=$('c-sex').value,village=$('c-village').value;
+      if(name.length<2){toast('Nome non disponibile: esci e accedi di nuovo',true);return;}if(!age||age<1){toast('Inserisci l’età',true);return;}if(!sex){toast('Scegli il sesso',true);return;}if(!village){toast('Scegli il villaggio',true);return;}
+      this.disabled=true;var payload={user_id:me.id,name:name,age:age,sex:sex,village:village,rank:'Deshi',clan:'Nessuno',unspent_points:POOL};var _el=$('c-element'); if(_el&&_el.value){payload.element=_el.value;} STATS.forEach(function(s){payload[s[0]]=BASE;});
+      var r=await sb.from('characters').insert(payload).select().single();this.disabled=false;
+      if(r.error){toast(r.error.message.indexOf('consentito')>=0?'Nome non consentito':'Errore nella creazione',true);return;}
+      toast('Scheda creata! Ti portiamo nella land…');setTimeout(function(){location.href='land.html';},900);});
+
+    /* ---- SHEET ---- */
+    function renderChars(c){var w=$('charwrap');w.innerHTML='';STATS.forEach(function(s){if(s[0]==='kekkei_genkai'&&!showInnata(c))return;var v=(c[s[0]]!=null?c[s[0]]:BASE);var row=document.createElement('div');row.className='charrow';row.innerHTML='<span class="cn">'+statLbl(s)+'</span><div class="cbar"><span style="width:'+v+'%"></span></div><span class="roval">'+v+'</span>';w.appendChild(row);});}
+    function setTabVis(p,vis){
+      var b=document.querySelector('.ptab[data-p="'+p+'"]'); if(b) b.style.display=vis?'':'none';
+      if(!vis){ var pg=$('page-'+p); if(pg&&pg.classList.contains('on')){ pg.classList.remove('on'); var home=$('page-home'); if(home)home.classList.add('on'); document.querySelectorAll('.ptab').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-p')==='home');}); } }
+    }
+    function renderAcademyLog(){
+      var host=$('acadlog-wrap');
+      setTabVis('acad', viewMode!=='public');
+      if(!host) return;
+      if(viewMode==='public'){ host.innerHTML=''; return; }
+      var uid=(myChar&&myChar.user_id)||(me&&me.id)||null;
+      if(!sb||!uid){ host.innerHTML=''; return; }
+      host.innerHTML='<p class="hint" style="margin:0">Caricamento\u2026</p>';
+      sb.rpc('my_academy_log',{p_user:uid}).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(!rows.length){ host.innerHTML='<p class="hint" style="margin:0">Nessuna lezione ancora svolta.</p>'; return; }
+        host.innerHTML=rows.map(function(x){
+          var d=x.completed_at?new Date(x.completed_at):null;
+          var ds=d?(('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()):'';
+          var mark=x.is_exam?'\u2605':'\u2713';
+          return '<div class="acadlog-row"><span class="al-mark'+(x.is_exam?' exam':'')+'">'+mark+'</span><span class="al-title">'+esc(x.title)+'</span><span class="al-date">'+ds+'</span></div>';
+        }).join('');
+      }, function(){ host.innerHTML='<p class="hint" style="margin:0">Impossibile caricare il registro.</p>'; });
+    }
+    var LIB_IC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5A1.5 1.5 0 0 0 20 18.5z"/></svg>';
+    function fmtRole(s){ var t=esc(s);
+      t=t.replace(/&quot;([\s\S]*?)&quot;/g,'<span class="role-say">&quot;$1&quot;</span>');
+      t=t.replace(/«([\s\S]*?)»/g,'<span class="role-say">«$1»</span>');
+      t=t.replace(/\*([^*\n]+?)\*/g,'<em class="role-act">$1</em>');
+      return t; }
+    function renderRoleLibrary(){
+      var host=$('lib-wrap');
+      setTabVis('lib', viewMode!=='public');
+      if(!host) return;
+      if(viewMode==='public'){ host.innerHTML=''; return; }
+      var uid=(myChar&&myChar.user_id)||(me&&me.id)||null;
+      if(!sb||!uid){ host.innerHTML=''; return; }
+      host.innerHTML='<p class="hint" style="margin:0">Caricamento…</p>';
+      sb.rpc('my_role_library',{p_user:uid}).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(!rows.length){ host.innerHTML='<p class="hint" style="margin:0">Nessuna role registrata. Avvia una registrazione da una chat di gioco per salvare qui le tue scene.</p>'; return; }
+        host.innerHTML=rows.map(function(x,i){
+          var d=x.started_at?new Date(x.started_at):null;
+          var ds=d?(('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()):'';
+          var n=(x.msg_count!=null?x.msg_count:0);
+          var meta=esc(x.location_name||'Luogo')+' · '+ds+' · '+n+' '+(n===1?'battuta':'battute');
+          var badge=x.is_open?'<span class="lib-badge open">In corso</span>':'<span class="lib-badge closed">Chiusa</span>';
+          return '<button type="button" class="lib-row" data-sess="'+esc(x.session_id)+'" data-title="'+esc(x.title||'Role')+'"><span class="lib-ic">'+LIB_IC+'</span><span class="lib-main"><span class="lib-title">'+esc(x.title||'Role')+'</span><span class="lib-meta">'+meta+'</span></span>'+badge+'</button>';
+        }).join('');
+      }, function(){ host.innerHTML='<p class="hint" style="margin:0">Impossibile caricare la libreria.</p>'; });
+    }
+    function openRoleScene(sessId,title){
+      var ov=$('role-overlay'), host=$('role-scene'), tt=$('role-title');
+      if(!ov||!host) return;
+      if(tt) tt.textContent=title||'Role';
+      host.innerHTML='<p class="role-empty">Caricamento…</p>';
+      ov.hidden=false;
+      if(!sb){ host.innerHTML='<p class="role-empty">Non disponibile.</p>'; return; }
+      sb.rpc('role_scene',{p_session:sessId}).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(!rows.length){ host.innerHTML='<p class="role-empty">Ancora nessuna battuta in questa scena. Le azioni compaiono qui man mano che vengono giocate.</p>'; return; }
+        host.innerHTML=rows.map(function(m){
+          if(m.kind==='dice'){ return '<div class="role-msg"><div class="role-au">'+esc(m.author_name||'')+'</div><span class="role-sys">🎲 '+esc(m.body||'')+(m.dice_result!=null?(' → '+m.dice_result):'')+'</span></div>'; }
+          if(m.kind==='system'||m.kind==='combat'||m.kind==='item'){ return '<div class="role-msg"><span class="role-sys">'+fmtRole(m.body||'')+'</span></div>'; }
+          return '<div class="role-msg"><div class="role-au">'+esc(m.author_name||'')+'</div>'+fmtRole(m.body||'')+'</div>';
+        }).join('');
+        host.scrollTop=0;
+      }, function(){ host.innerHTML='<p class="role-empty">Impossibile caricare la role.</p>'; });
+    }
+    function closeRoleScene(){ var ov=$('role-overlay'); if(ov) ov.hidden=true; }
+    (function(){
+      var host=$('lib-wrap');
+      if(host) host.addEventListener('click',function(e){ var b=e.target.closest('.lib-row'); if(!b) return; openRoleScene(b.getAttribute('data-sess'), b.getAttribute('data-title')); });
+      var x=$('role-close'); if(x) x.addEventListener('click',closeRoleScene);
+      var bk=$('role-backdrop'); if(bk) bk.addEventListener('click',closeRoleScene);
+      document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var ov=$('role-overlay'); if(ov&&!ov.hidden) closeRoleScene(); } });
+    })();
+    function jcard(x){
+      var rank=x.rank?('<span class="jrank">'+esc(x.rank)+'</span>'):'';
+      var meta=[]; if(x.nature) meta.push(esc(x.nature)); if(x.action_type) meta.push(esc(x.action_type));
+      var sub=meta.length?('<div class="jmeta">'+meta.join(' \u00b7 ')+'</div>'):'';
+      var rom=x.name_romaji?'<div class="jrom">'+esc(x.name_romaji)+'</div>':'';
+      var eff=x.effect?'<div class="jeff">'+esc(x.effect)+'</div>':'';
+      return '<div class="jcard"><div class="jtop"><span class="jname">'+esc(x.name_it)+'</span>'+rank+'</div>'+rom+sub+eff+'</div>';
+    }
+    function renderJutsu(){
+      var host=$('jutsu-wrap');
+      setTabVis('jutsu', viewMode!=='public');
+      if(!host) return;
+      if(viewMode==='public'){ host.innerHTML=''; return; }
+      var uid=(myChar&&myChar.user_id)||(me&&me.id)||null;
+      if(!sb||!uid){ host.innerHTML='<p class="hint" style="margin:0">\u2014</p>'; return; }
+      host.innerHTML='<p class="hint" style="margin:0">Caricamento\u2026</p>';
+      sb.rpc('my_jutsu',{p_user:uid}).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(!rows.length){ host.innerHTML='<p class="hint" style="margin:0">Nessuna abilit\u00e0 o tecnica ancora appresa. Si imparano in Accademia.</p>'; return; }
+        var abil=rows.filter(function(x){return x.kind==='abilita';});
+        var jt=rows.filter(function(x){return x.kind!=='abilita';});
+        var html='';
+        if(abil.length){ html+='<div class="jgroup"><div class="jgh">Abilit\u00e0</div><div class="jgrid">'+abil.map(jcard).join('')+'</div></div>'; }
+        if(jt.length){ var cats={},order=[]; jt.forEach(function(x){var c=x.category||'Altro'; if(!cats[c]){cats[c]=[];order.push(c);} cats[c].push(x);});
+          html+='<div class="jgroup"><div class="jgh">Jutsu</div>'; order.forEach(function(c){ html+='<div class="jsub">'+esc(c)+'</div><div class="jgrid">'+cats[c].map(jcard).join('')+'</div>'; }); html+='</div>'; }
+        host.innerHTML=html;
+      }, function(){ host.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tecniche.</p>'; });
+    }
+    var TK={techs:[],byId:{},base:[],gen:[],q:''};
+    function tkDetail(t){
+      var rows=[];
+      if(t.description) rows.push('<div class="tkd"><b>Descrizione</b> · '+esc(t.description).replace(/\n/g,'<br>')+'</div>');
+      var eff=t.danno_effetto||''; if(t.danno_base!=null&&t.danno_base>0) eff=(eff?eff+' · ':'')+'danno base '+t.danno_base;
+      if(eff) rows.push('<div class="tkd"><b>Effetto</b> · '+esc(eff)+'</div>');
+      if(t.potenza!=null) rows.push('<div class="tkd"><b>Potenza illusione</b> · '+t.potenza+' <span class="hint">(Dispersione: serve Mente &ge; '+t.potenza+((t.grado==='A'||t.grado==='S')?' &mdash; grado '+esc(t.grado)+', immune al Kai base':'')+')</span></div>');
+      var tech=[]; if(t.portata)tech.push('portata '+esc(t.portata)); if(t.bersaglio)tech.push('bersaglio '+esc(t.bersaglio)); if(t.tipo_azione)tech.push('azione '+esc(t.tipo_azione)); if(t.durata)tech.push('durata '+esc(t.durata)); if(t.ricarica)tech.push('ricarica '+esc(t.ricarica));
+      if(tech.length) rows.push('<div class="tkd"><b>Tecnica</b> · '+tech.join(' · ')+'</div>');
+      var cons=[]; if(t.chakra_cost!=null&&t.chakra_cost>0)cons.push(t.chakra_cost+' chakra'); if(t.consumption_type)cons.push(t.consumption_type==='per_turno'?'per turno':(t.consumption_type==='passiva'?'passiva':'ad utilizzo'));
+      if(cons.length) rows.push('<div class="tkd"><b>Consumo</b> · '+cons.join(' · ')+'</div>');
+      var req=[]; if(t.req_grade)req.push('grado '+esc(t.req_grade)); if(t.req_stat)req.push(esc(t.req_stat)+(t.req_stat_value!=null?(' '+t.req_stat_value):'')); if(t.requirements)req.push(esc(t.requirements));
+      if(req.length) rows.push('<div class="tkd"><b>Requisiti</b> · '+req.join(' · ')+'</div>');
+      if(t.req_elements&&t.req_elements.length) rows.push('<div class="tkd"><b>Elemento</b> · '+esc(t.req_elements.join(' o '))+' <span class="hint">(serve possederne uno)</span></div>');
+      var acq=[]; if(t.xp_cost!=null)acq.push('<b style="color:var(--red-deep)">'+t.xp_cost+' XP</b>'); if(t.trainings_required!=null)acq.push(t.trainings_required+(t.trainings_required===1?' allenamento':' allenamenti'));
+      if(acq.length) rows.push('<div class="tkd"><b>Acquisto</b> · '+acq.join(' · ')+'</div>');
+      return rows.join('')||'<div class="tkd hint">Nessun dettaglio disponibile.</div>';
+    }
+    function tkRow(t,a,canAct){
+      var badge, action='';
+      if(a&&a.state==='attiva'){ badge='<span class="tr-badge on">Attiva</span>'; }
+      else if(a&&a.state==='in_addestramento'){ badge='<span class="tr-badge tr-prog">In addestramento '+(a.sessions_done||0)+'/'+(a.sessions_required||1)+'</span>'; }
+      else { badge='<span class="tr-badge">Da apprendere</span>'; if(canAct) action='<button type="button" class="mini-btn" data-train="'+t.id+'">Allena</button>'; }
+      var meta=[]; if(t.xp_cost!=null)meta.push(t.xp_cost+' XP'); if(t.chakra_cost!=null&&t.chakra_cost>0)meta.push(t.chakra_cost+' ck');
+      return '<div class="tr-row" data-texp="'+t.id+'"><div class="tr-main"><b>'+esc(t.name)+'</b>'+(t.category?('<span class="tr-cat">'+esc(t.category)+'</span>'):'')+(t.is_innata?'<span class="tr-cat">Innata</span>':'')+' <span class="tr-meta">'+meta.join(' · ')+'</span></div>'+badge+action+'</div>'
+        +'<div class="tr-det" id="tkd-'+t.id+'">'+tkDetail(t)+'</div>';
+    }
+    function tkMatch(t,q){ if(!q) return true; q=q.toLowerCase();
+      return (t.name||'').toLowerCase().indexOf(q)>=0||(t.category||'').toLowerCase().indexOf(q)>=0||(t.description||'').toLowerCase().indexOf(q)>=0; }
+    var TKOPEN={};
+    function tkGroup(id,label,rowsHtml,count,q){
+      var open=!!q||TKOPEN[id];
+      return '<div class="tk-grp tk-acc'+(open?' open':'')+'" data-tkacc="'+id+'"><span>'+label+' · '+count+'</span><span class="tka-ch">\u25B6</span></div>'
+        +'<div class="tk-body'+(open?' open':'')+'" id="tkb-'+id+'">'+rowsHtml+'</div>';
+    }
+    function tkBaseMatch(j,q){ if(!q)return true; q=q.toLowerCase(); return (j.name_it||'').toLowerCase().indexOf(q)>=0||(j.effect||'').toLowerCase().indexOf(q)>=0||(j.category||'').toLowerCase().indexOf(q)>=0; }
+    function tkBaseRow(j){
+      return '<div class="tr-row" data-texp="j'+j.id+'"><div class="tr-main"><b>'+esc(j.name_it)+'</b><span class="tr-cat">'+(j.rank?('rango '+esc(j.rank)):'base')+'</span> <span class="tr-meta">'+(j.chakra_cost?(j.chakra_cost+' ck'):'')+'</span></div><span class="tr-badge on">Accademia</span></div>'
+        +'<div class="tr-det" id="tkd-j'+j.id+'">'+(j.effect?('<div class="tkd"><b>Effetto</b> · '+esc(j.effect)+'</div>'):'')+(j.requirements?('<div class="tkd"><b>Requisiti</b> · '+esc(j.requirements)+'</div>'):'')+(j.limits?('<div class="tkd"><b>Limiti</b> · '+esc(j.limits)+'</div>'):'')+'<div class="tkd"><b>Come si impara</b> · all\'Accademia, con le lezioni del sensei.</div></div>';
+    }
+    var TK_DISC=['Ninjutsu','Taijutsu','Genjutsu','Fuuinjutsu'];
+    function tkHead(label,big){ return '<div class="tk-sec'+(big?' tk-sec-big':'')+'">'+label+'</div>'; }
+    function paintCatalog(){
+      var list=$('train-list'); if(!list) return;
+      var canAct=(viewMode!=='public'); var q=TK.q; var h='';
+      var hasClan=!!(myChar&&myChar.clan&&myChar.clan!=='Nessuno');
+      var baseAll=(TK.base||[]).filter(function(j){return tkBaseMatch(j,q);});
+      var baseNin=baseAll.filter(function(j){return (j.category||'')!=='Abilità';});
+      var baseAbi=baseAll.filter(function(j){return (j.category||'')==='Abilità';});
+      var gen=(TK.gen||[]).filter(function(t){return tkMatch(t,q);});
+      var genJutsu=gen.filter(function(t){return t.macro!=='abilita';});
+      var genAbil=gen.filter(function(t){return t.macro==='abilita';});
+
+      // ===== JUTSU =====
+      h+=tkHead('Jutsu',true);
+      // -- del clan --
+      if(hasClan){
+        h+=tkHead('Del clan · '+esc(myChar.clan));
+        var clanAll=(TK.techs||[]).filter(function(t){return tkMatch(t,q);});
+        var clanAbi=clanAll.filter(function(t){return t.disciplina==='Abilità';});
+        var anyC=false;
+        if(clanAbi.length){ h+=tkGroup('cabil','Abilità del clan · innate e segrete', clanAbi.map(function(t){return tkRow(t,TK.byId[t.id],canAct);}).join(''), clanAbi.length, q); anyC=true; }
+        TK_DISC.forEach(function(d,di){
+          var rows=clanAll.filter(function(t){return t.disciplina===d;});
+          if(!rows.length) return; anyC=true;
+          h+=tkGroup('cj'+di, d, rows.map(function(t){return tkRow(t,TK.byId[t.id],canAct);}).join(''), rows.length, q);
+        });
+        if(!anyC && !q) h+='<p class="hint" style="margin:2px 0 0">Il clan non ha ancora tecniche a catalogo.</p>';
+      } else {
+        h+=tkHead('Del clan');
+        h+='<p class="hint" style="margin:2px 0 0">Le <b>tecniche di clan</b> compaiono qui quando entri in un clan: ogni famiglia ha il suo catalogo (arti innate, segrete e jutsu divisi per disciplina).</p>';
+      }
+      // -- generiche --
+      h+=tkHead('Generiche');
+      var anyG=false;
+      TK_DISC.forEach(function(d,di){
+        var gr=genJutsu.filter(function(t){return (t.disciplina||'Ninjutsu')===d;});
+        var br=(d==='Ninjutsu')?baseNin:[];
+        var cnt=gr.length+br.length; if(!cnt) return; anyG=true;
+        var rh=br.map(tkBaseRow).join('')+gr.map(function(t){return tkRow(t,TK.byId[t.id],canAct);}).join('');
+        h+=tkGroup('gj'+di, d, rh, cnt, q);
+      });
+      if(!anyG && !q) h+='<p class="hint" style="margin:2px 0 0">Nessuna tecnica generica, per ora.</p>';
+
+      // ===== ABILITÀ =====
+      h+=tkHead('Abilità',true);
+      var anyA=false;
+      if(genAbil.length){ h+=tkGroup('ag','Generiche', genAbil.map(function(t){return tkRow(t,TK.byId[t.id],canAct);}).join(''), genAbil.length, q); anyA=true; }
+      if(baseAbi.length){ h+=tkGroup('ab','Basi d\'Accademia', baseAbi.map(tkBaseRow).join(''), baseAbi.length, q); anyA=true; }
+      if(!anyA && !q) h+='<p class="hint" style="margin:2px 0 0">Nessuna abilità generica.</p>';
+
+      list.innerHTML=h||'<p class="hint" style="margin:0">Nessuna tecnica trovata'+(q?' per «'+esc(q)+'»':'')+'.</p>';
+    }
+    function renderTraining(){
+      var host=$('train-wrap'); if(!host) return;
+      if(viewMode==='public'||!sb||!myChar){ host.innerHTML=''; return; }
+      var hasClan=!!(myChar.clan&&myChar.clan!=='Nessuno');
+      host.innerHTML='<div class="jgroup"><div class="jgh">Catalogo jutsu e abilità</div><div class="slotbar" id="slot-bar" style="display:none"></div><p class="hint" style="margin:.2em 0 .7em">Tutto ciò che si può imparare nel gioco, <b>navigabile per categorie</b>: apri una categoria e <b>tocca una riga</b> per leggere cosa fa, i requisiti e i costi.'+(hasClan?' Le tecniche del clan si acquistano col <b>saldo XP</b>: paghi l\'idoneità e poi servono gli allenamenti con un maestro (uno al giorno).':'')+'</p><div class="tk-tools"><input class="tk-search" id="tk-search" type="search" placeholder="Cerca per nome, categoria o testo…"></div><div id="train-list"><p class="hint" style="margin:0">Caricamento…</p></div></div>';
+      if(hasClan) renderSlotBar();
+      var byId={};
+      sb.rpc('my_abilities',{p_character:myChar.id}).then(function(ar){
+        (ar&&ar.data||[]).forEach(function(a){ byId[a.technique_id]=a; });
+        return hasClan ? sb.from('clan_techniques').select('*').eq('clan',myChar.clan).eq('is_active',true).order('sort').order('name') : Promise.resolve({data:[]});
+      }).then(function(r){
+        TK.techs=(r&&r.data)||[]; TK.byId=byId;
+        return sb.from('jutsu').select('id,name_it,category,rank,effect,requirements,limits,chakra_cost').eq('is_active',true).order('sort');
+      }).then(function(jr){
+        TK.base=(jr&&jr.data)||[];
+        return sb.from('clan_techniques').select('*').is('clan',null).in('macro',['generica','abilita']).eq('is_active',true).order('sort').order('name');
+      }).then(function(gr){
+        TK.gen=(gr&&gr.data)||[]; TK.q='';
+        paintCatalog();
+        var s=$('tk-search'); if(s) s.addEventListener('input', function(){ TK.q=(s.value||'').trim(); paintCatalog(); });
+      }, function(){ var list=$('train-list'); if(list)list.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tecniche.</p>'; });
+    }
+    function renderSlotBar(){
+      var el=$('slot-bar'); if(!el||!sb||!myChar) return;
+      sb.rpc('slot_tecniche',{p_character:myChar.id}).then(function(r){
+        var el2=$('slot-bar'); if(!el2) return;
+        var d=(r&&r.data&&r.data[0])||null;
+        if(!d){ el2.style.display='none'; el2.innerHTML=''; return; }
+        var buy='';
+        if(isOwnerMode()){
+          if((d.extra||0)>=4) buy='<span class="svmeta">slot extra al massimo (+4)</span>';
+          else { var cost=200+150*(d.extra||0); buy='<button type="button" class="mini-btn" id="slot-buy" data-cost="'+cost+'">Compra slot extra · '+cost+' XP</button>'; }
+        }
+        var full=(d.usati>=d.totale);
+        el2.style.display='';
+        el2.innerHTML='<span class="slotn'+(full?' full':'')+'">Slot tecniche: <b>'+d.usati+'/'+d.totale+'</b></span><span class="svmeta">base '+d.base+(d.extra?(' + '+d.extra+' extra'):'')+' · le innate del clan non occupano slot</span>'+buy;
+      },function(){ var el2=$('slot-bar'); if(el2){ el2.style.display='none'; el2.innerHTML=''; } });
+    }
+    (function(){ var tw=$('train-wrap'); if(!tw) return; tw.addEventListener('click',async function(e){
+      if(!e.target.closest('[data-train]')&&!e.target.closest('#slot-buy')){
+        var ac=e.target.closest('[data-tkacc]');
+        if(ac){ var gid=ac.getAttribute('data-tkacc'); TKOPEN[gid]=!TKOPEN[gid];
+          ac.classList.toggle('open',TKOPEN[gid]); var bd=$('tkb-'+gid); if(bd) bd.classList.toggle('open',TKOPEN[gid]); return; }
+        var ex=e.target.closest('[data-texp]');
+        if(ex){ var det=$('tkd-'+ex.getAttribute('data-texp')); if(det) det.classList.toggle('on'); return; }
+      }
+      var sbb=e.target.closest('#slot-buy');
+      if(sbb){
+        var cost=sbb.getAttribute('data-cost')||'?';
+        if(sbb.getAttribute('data-armed')!=='1'){
+          sbb.setAttribute('data-armed','1'); sbb.textContent='Confermi? −'+cost+' XP';
+          setTimeout(function(){ var b2=$('slot-buy'); if(b2&&b2.getAttribute('data-armed')==='1'){ b2.setAttribute('data-armed','0'); b2.textContent='Compra slot extra · '+cost+' XP'; } },5000);
+          return;
+        }
+        sbb.disabled=true;
+        var rs=await sb.rpc('compra_slot');
+        if(rs.error){ toast(rs.error.message||'Errore nell\'acquisto',true); sbb.disabled=false; sbb.setAttribute('data-armed','0'); sbb.textContent='Compra slot extra · '+cost+' XP'; return; }
+        var ds=rs.data||{}; toast('Slot extra acquistato · −'+(ds.speso||0)+' XP');
+        var rr=await sb.from('characters').select('*').eq('id',myChar.id).maybeSingle();
+        if(rr&&rr.data){ myChar=rr.data; var ve=$('v-exp'); if(ve)ve.textContent=(myChar.exp||0); renderProgress(myChar); }
+        renderTraining();
+        return;
+      }
+      var b=e.target.closest('[data-train]'); if(!b) return;
+      b.disabled=true;
+      var r=await sb.rpc('training_start',{p_technique:b.getAttribute('data-train'),p_character:myChar.id});
+      b.disabled=false;
+      if(r.error){ toast('Errore',true); return; }
+      var d=r.data||{};
+      if(d.ok){ toast('Addestramento avviato'+(d.xp_spent?(' · '+d.xp_spent+' XP spesi'):'')); var ve2=$('v-exp'); renderTraining(); sb.from('characters').select('*').eq('id',myChar.id).maybeSingle().then(function(rr2){ if(rr2&&rr2.data){ myChar=rr2.data; if(ve2)ve2.textContent=(myChar.exp||0); renderProgress(myChar); } }); }
+      else { toast((d.reasons&&d.reasons.length)?d.reasons.join(' · '):'Non idoneo',true); }
+    }); })();
+    function renderUnspent(c){var box=$('unspent-box');if(!c.unspent_points||c.unspent_points<=0){box.style.display='none';return;}box.style.display='block';addBuf={};$('u-pts').textContent=c.unspent_points;var host=$('u-rows');host.innerHTML='';STATS.forEach(function(s){addBuf[s[0]]=0;if(s[0]==='kekkei_genkai'&&!showInnata(c))return;var row=document.createElement('div');row.className='steprow';row.innerHTML='<span class="cn">'+statLbl(s)+'</span><button type="button" class="stbtn minus" data-k="'+s[0]+'" data-d="-1">−5</button><span class="stval" id="ua-'+s[0]+'">'+(c[s[0]]||BASE)+'</span><button type="button" class="stbtn" data-k="'+s[0]+'" data-d="1">+5</button>';host.appendChild(row);});}
+    $('u-rows').addEventListener('click',function(e){var b=e.target.closest('.stbtn');if(!b)return;var k=b.getAttribute('data-k'),d=parseInt(b.getAttribute('data-d')||'1',10),used=0,kk;for(kk in addBuf)used+=addBuf[kk];if(d>0){if(used+STEP>myChar.unspent_points)return;if((myChar[k]||BASE)+addBuf[k]+STEP>rankCap()){toast('Tetto del grado: max '+rankCap()+' a questo rango',true);return;}addBuf[k]+=STEP;}else{if(addBuf[k]<STEP)return;addBuf[k]-=STEP;}used=0;for(kk in addBuf)used+=addBuf[kk];$('ua-'+k).textContent=(myChar[k]||BASE)+addBuf[k];var up=$('u-pts');if(up)up.textContent=(myChar.unspent_points-used);});
+    $('u-confirm').addEventListener('click',async function(){var used=0;for(var kk in addBuf)used+=addBuf[kk];if(used===0){toast('Nessun punto assegnato',true);return;}this.disabled=true;var upd={unspent_points:myChar.unspent_points-used};STATS.forEach(function(s){upd[s[0]]=(myChar[s[0]]||BASE)+addBuf[s[0]];});var r=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();this.disabled=false;if(r.error){toast('Errore',true);return;}myChar=r.data;fillForm(myChar,curPriv);toast('Punti assegnati');});
+
+    function fillForm(c,priv){
+      $('s-name').textContent=c.name||'Senza nome';
+      var epi=$('s-epithet'); if(c.epithet){epi.textContent='«'+c.epithet+'»';epi.style.display='';}else{epi.textContent='';epi.style.display='none';}
+      $('v-rank').textContent=c.rank||'Deshi'; var _fr=$('f-rank'); if(_fr) _fr.value=c.rank||'Deshi'; $('ic-rank').outerHTML=embRank(c.rank||'Deshi').replace('class="emb','id="ic-rank" class="emb');
+      $('v-village').textContent=c.village||'—'; $('ic-village').outerHTML=embVillage(c.village).replace('class="emb','id="ic-village" class="emb');
+      $('v-age').textContent=(c.age!=null?c.age+' anni':'—'); $('v-sex').textContent=c.sex||'—';
+      fillClanSelect($('f-clan'),c.village,c.clan||'Nessuno'); var _fcr=$('f-clanrole'); if(_fcr) _fcr.value=c.clan_role||''; $('ic-clan').outerHTML=embClan(c.clan, c.clan_role==='Capo clan').replace('class="emb','id="ic-clan" class="emb');
+      (function(){ var k=String(c.corporation||'').toLowerCase();
+        var showK=(k && (viewMode!=='public' || k!=='akatsuki'))?k:'';
+        var vc=$('v-corp'); if(vc){ if(showK){ vc.innerHTML='<span class="sc-corp-badge '+showK+'">'+corpKeyLabel(showK)+'</span>'+(c.corp_spec?('<span class="sc-corp-meta">'+corpSpecLabelS(c.corp_spec)+'</span>'):'')+(c.corp_role?('<span class="sc-corp-meta">· '+esc(c.corp_role)+'</span>'):''); } else { vc.textContent='—'; } }
+        $('ic-corp').outerHTML=embCorp(showK).replace('class="emb','id="ic-corp" class="emb');
+        var fc=$('f-corp'); if(fc) fc.value=k||'';
+        var fs=$('f-corpspec'); if(fs){ fs.value=(c.corp_spec||'infiltrazione'); fs.style.display=(k==='anbu')?'':'none'; }
+        var fr=$('f-corprole'); if(fr) fr.value=c.corp_role||'';
+      })();
+      var _pv=$('f-prestavolto'); if(_pv) _pv.value=c.face_claim||'';
+      $('f-element').value=c.element||''; $('ic-element').outerHTML=embElement(c.element).replace('class="emb','id="ic-element" class="emb');
+      (function(){var pv=c.vita||0,pvm=c.vita_max||0,ck=c.chakra||0,ckm=c.chakra_max||0;
+        $('v-vita').textContent=pv+' / '+pvm; $('v-chakra').textContent=ck+' / '+ckm;
+        var pr=pvm>0?Math.max(0,Math.min(1,pv/pvm)):0, cr=ckm>0?Math.max(0,Math.min(1,ck/ckm)):0;
+        var bv=$('bar-vita'), bvw=$('bar-vita-wrap'); if(bv) bv.style.width=(pr*100)+'%';
+        if(bvw){ bvw.classList.remove('mid','low'); if(pr<=0.25) bvw.classList.add('low'); else if(pr<=0.5) bvw.classList.add('mid'); }
+        var bc=$('bar-chakra'); if(bc) bc.style.width=(cr*100)+'%';
+        var kb=$('ko-banner'); if(kb) kb.style.display=(pvm>0&&pv<=0)?'':'none';
+      })();
+      $('v-money').textContent=(c.money||0); $('v-exp').textContent=(c.exp||0);
+      renderProgress(c); renderAlign(c);
+      renderChars(c); renderUnspent(c);
+      $('f-background').value=c.background||''; $('f-off').value=c.off_notes||''; $('f-fato').value=priv&&priv.fato_notes?priv.fato_notes:''; setPortrait(c.avatar_url);
+      applyMode();
+      renderJutsu();
+      renderTraining();
+      renderAcademyLog();
+      renderRoleLibrary();
+      loadSvolte();
+      loadAlignHistory();
+      loadPremi();
+      loadCompagni();
+    }
+
+    /* ===== Compagno PNG (evocazioni, marionette, cani ninja) ===== */
+    async function loadCompagni(){
+      var host=$('comp-wrap'), sec=$('sec-comp'); if(!host||!sec) return;
+      if(viewMode!=='owner'||!myChar){ sec.style.display='none'; return; }
+      sec.style.display='';
+      var r=await sb.from('character_companions').select('*').eq('character_id',myChar.id).order('created_at');
+      var rows=(r&&r.data)||[];
+      var extra=0; try{ var o=await sb.from('companion_slot_overrides').select('extra_slots').eq('character_id',myChar.id).maybeSingle(); if(o&&o.data) extra=o.data.extra_slots||0; }catch(e){}
+      var slots=1+extra;
+      var kmap={marionetta:['\uD83C\uDFAD','Marionetta'],cane_ninja:['\uD83D\uDC3E','Cane ninja'],evocazione:['\uD83D\uDC0D','Evocazione']};
+      var h='<p class="hint" style="margin:0 0 8px">Slot compagni: <b>'+rows.length+' / '+slots+'</b></p>';
+      rows.forEach(function(c){ var km=kmap[c.kind]||['',''];
+        h+='<div class="svbox" style="display:flex;gap:12px;align-items:flex-start">'
+          +(c.avatar_url?('<img src="'+esc(c.avatar_url)+'" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:1px solid var(--edge);flex:0 0 auto">'):('<span style="width:54px;height:54px;border-radius:50%;border:1px solid var(--edge);display:inline-flex;align-items:center;justify-content:center;font-size:24px;flex:0 0 auto">'+km[0]+'</span>'))
+          +'<div style="flex:1;min-width:0"><b>'+esc(c.name)+'</b> <span class="svtag a">'+km[0]+' '+km[1]+' \u00B7 '+esc(c.grado)+'</span>'
+          +(c.descr?('<div class="hint" style="margin:4px 0 0">'+esc(c.descr)+'</div>'):'')
+          +'<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
+          +'<label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">Volto\u2026 <input type="file" accept="image/*" data-compava="'+c.id+'" style="display:none"></label>'
+          +'<button class="btn btn-ghost btn-sm" type="button" data-compcong="'+c.id+'">Congeda</button>'
+          +'</div></div></div>';
+      });
+      if(rows.length<slots){
+        h+='<div class="svbox"><h4>Nuovo compagno</h4>'
+         +'<label class="svlab">Tipo<select id="comp-kind"><option value="marionetta">Marionetta \u00B7 clan Marionettisti</option><option value="cane_ninja">Cane ninja \u00B7 clan Inuzuka</option><option value="evocazione">Evocazione \u00B7 serve il Contratto (Premi)</option></select></label>'
+         +'<label class="svlab">Nome<input id="comp-name" maxlength="40" placeholder="es. Karasu"></label>'
+         +'<label class="svlab">Descrizione breve (facoltativa)<textarea id="comp-descr" maxlength="300" rows="2" placeholder="Aspetto e carattere del compagno\u2026"></textarea></label>'
+         +'<button class="btn btn-red btn-sm" id="comp-create" type="button" style="margin-top:8px">Crea compagno</button></div>';
+      }
+      host.innerHTML=h;
+      var cb=$('comp-create'); if(cb) cb.addEventListener('click', async function(){
+        var nm=($('comp-name').value||'').trim(); if(nm.length<2){ toast('Dai un nome al compagno',true); return; }
+        this.disabled=true;
+        var r2=await sb.rpc('companion_create',{p_kind:$('comp-kind').value,p_name:nm,p_descr:(($('comp-descr').value||'').trim()||null)});
+        this.disabled=false;
+        if(r2&&r2.error){ toast(r2.error.message||'Impossibile creare',true); return; }
+        toast('Compagno creato: lo trovi anche in chat, pulsante \uD83C\uDFAD'); loadCompagni();
+      });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-compcong]'), function(b){ b.addEventListener('click', async function(){
+        if(b.getAttribute('data-arm')!=='1'){ b.setAttribute('data-arm','1'); b.textContent='Confermi?'; setTimeout(function(){ if(b.getAttribute('data-arm')==='1'){ b.setAttribute('data-arm','0'); b.textContent='Congeda'; } },4000); return; }
+        var r3=await sb.from('character_companions').delete().eq('id',b.getAttribute('data-compcong'));
+        if(r3&&r3.error){ toast('Impossibile congedare',true); return; }
+        toast('Compagno congedato'); loadCompagni();
+      }); });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-compava]'), function(inp){ inp.addEventListener('change', async function(){
+        var f=inp.files&&inp.files[0]; if(!f) return;
+        if(f.size>3145728){ toast('Immagine troppo grande (max 3 MB)',true); return; }
+        var ext=((f.name.split('.').pop()||'png').toLowerCase().replace(/[^a-z0-9]/g,''))||'png';
+        var path=((me&&me.id)?me.id:'x')+'/comp-'+Date.now()+'.'+ext;
+        var up=await sb.storage.from('avatars').upload(path,f,{upsert:true,contentType:f.type});
+        if(up.error){ toast('Volto non caricato',true); return; }
+        var pub=sb.storage.from('avatars').getPublicUrl(path).data.publicUrl+'?v='+Date.now();
+        var r4=await sb.from('character_companions').update({avatar_url:pub}).eq('id',inp.getAttribute('data-compava'));
+        if(r4&&r4.error){ toast('Caricato ma non registrato',true); return; }
+        toast('Volto del compagno salvato'); loadCompagni();
+      }); });
+    }
+    /* ===== Barra XP e Allineamento ===== */
+    var SOGLIE_RANK={'Genin':{next:'Chunin',da:0,a:2500},'Chunin':{next:'Jonin',da:2500,a:9000},'Jonin':{next:'Jonin Speciale',da:9000,a:18000}};
+    function renderProgress(c){
+      var w=$('xp-wrap'); if(!w||!c) return;
+      w.style.display='';
+      var life=c.xp_lifetime||0, saldo=c.exp||0, rk=c.rank||'Deshi';
+      var xl=$('xp-line'); if(xl) xl.textContent='saldo '+saldo+' · carriera '+life;
+      var s=SOGLIE_RANK[rk], fill=$('xp-fill'), hint=$('xp-hint');
+      if(!fill||!hint) return;
+      if(rk==='Deshi'){ fill.style.width='0%'; hint.textContent='Da Deshi si cresce in Accademia: supera l\'esame per diventare Genin.'; }
+      else if(s){ var p=Math.max(0,Math.min(100,Math.round((life-s.da)*100/(s.a-s.da)))); fill.style.width=p+'%';
+        hint.textContent=(life>=s.a)?('Soglia raggiunta! Chiedi allo staff l\'esame per '+s.next+' ('+life+' / '+s.a+' XP di carriera).')
+          :('Verso '+s.next+': '+life+' / '+s.a+' XP di carriera ('+p+'%).'); }
+      else { fill.style.width='100%'; hint.textContent='Vetta della carriera: da qui contano meriti e trama.'; }
+    }
+    var FASCE={
+      lealta:{nomi:['Rinnegato','Sospettato','Neutrale','Fidato','Esemplare'],lo:'Rinnegato',hi:'Esemplare',nome:'Lealtà'},
+      via:{nomi:['Sentiero dell\'Odio','Ombra','In equilibrio','Luce','Volontà del Fuoco'],lo:'Odio',hi:'Volontà del Fuoco',nome:'Via'},
+      fama:{nomi:['Infame','Malfamato','Comune','Rispettato','Eroe'],lo:'Infame',hi:'Eroe',nome:'Fama'}
+    };
+    function fascia(asse,v){ var f=FASCE[asse].nomi; return v<=20?f[0]:v<=40?f[1]:v<=60?f[2]:v<=80?f[3]:f[4]; }
+    function renderAlign(c){
+      var host=$('algn-gauges'); if(!host||!c) return;
+      host.innerHTML=['lealta','via','fama'].map(function(a){
+        var v=(c[a]==null?50:c[a]); var fl=fascia(a,v); var warn=(a!=='fama'&&v<=20)?' warn':'';
+        return '<div class="arow"><div class="ahead"><span class="aname">'+FASCE[a].nome+'</span><span class="afascia'+warn+'">'+esc(fl)+' · '+v+'</span></div>'
+          +'<div class="agauge"><span class="amid"></span><b style="left:'+v+'%"></b></div>'
+          +'<div class="aends"><span>'+esc(FASCE[a].lo)+'</span><span>'+esc(FASCE[a].hi)+'</span></div></div>';
+      }).join('');
+    }
+    function loadSvolte(){
+      var box=$('svolta-box'), list=$('sv-list'); if(!box||!list||!sb||!myChar) return;
+      var owner=(viewMode==='owner'||viewMode==='adminself');
+      var staffV=(viewMode==='staff'||viewMode==='adminother');
+      box.style.display=owner?'':'none';
+      if(owner){
+        var uid=(myChar&&myChar.user_id)||(me&&me.id)||null; var rs=$('sv-role');
+        if(uid&&rs&&rs.options.length<=1){ sb.rpc('my_role_library',{p_user:uid}).then(function(r){
+          ((r&&r.data)||[]).forEach(function(x){ var o=document.createElement('option'); o.value=x.session_id; o.textContent=(x.title||'Role senza titolo'); rs.appendChild(o); });
+        },function(){}); }
+      }
+      var lh=$('sv-list-h');
+      if(viewMode==='public'){ list.innerHTML=''; if(lh)lh.style.display='none'; return; }
+      sb.from('svolta_richieste').select('*').eq('character_id',myChar.id).order('created_at',{ascending:false}).limit(8).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(lh)lh.style.display=rows.length?'':'none';
+        if(!rows.length){ list.innerHTML=''; return; }
+        list.innerHTML=rows.map(function(x){
+          var tag=x.status==='in attesa'?'<span class="svtag p">In attesa</span>':x.status==='approvata'?'<span class="svtag a">Approvata</span>':'<span class="svtag r">Respinta</span>';
+          var btns=(staffV&&x.status==='in attesa')?('<div style="margin-top:6px"><button type="button" class="btn btn-red btn-sm" data-svok="'+x.id+'">Approva</button> <button type="button" class="btn btn-ghost btn-sm" data-svno="'+x.id+'">Respingi</button></div>'):'';
+          var nota=x.nota_staff?('<div class="svmeta">Staff: '+esc(x.nota_staff)+'</div>'):'';
+          return '<div class="svitem">'+tag+'<b>'+FASCE[x.asse].nome+'</b> '+(x.delta>0?'+':'')+x.delta+'<div class="svmeta">'+esc(x.motivazione||'')+'</div>'+nota+btns+'</div>';
+        }).join('');
+      },function(){ list.innerHTML=''; });
+    }
+    function loadAlignHistory(){
+      var host=$('sv-history'), hh=$('sv-history-h'); if(!host||!sb||!myChar) return;
+      if(viewMode==='public'){ host.innerHTML=''; if(hh)hh.style.display='none'; return; }
+      if(hh)hh.style.display='';
+      sb.from('allineamento_log').select('*').eq('character_id',myChar.id).order('created_at',{ascending:false}).limit(30).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(!rows.length){ host.innerHTML='<p class="hint" style="margin:0">Ancora nessun momento chiave: la storia del tuo ninja comincia ora.</p>'; return; }
+        host.innerHTML=rows.map(function(x){
+          var d=x.created_at?new Date(x.created_at):null;
+          var ds=d?(('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()):'';
+          var mo=x.motivo||'', testo, tag;
+          if(mo.indexOf('svolta approvata: ')===0){ testo=mo.slice(18); tag='<span class="svtag a">Svolta</span>'; }
+          else if(mo==='intervento dello staff'){ testo=''; tag='<span class="svtag p">Staff</span>'; }
+          else { testo=mo; tag='<span class="svtag p">Evento</span>'; }
+          var fl=fascia(x.asse, x.valore_dopo!=null?x.valore_dopo:50);
+          return '<div class="svitem">'+tag+'<b>'+FASCE[x.asse].nome+'</b> '+(x.delta>0?'+':'')+x.delta+' → '+esc(fl)+' · '+x.valore_dopo
+            +(testo?('<div class="svmeta">'+esc(testo)+'</div>'):'')
+            +'<div class="svmeta">'+ds+'</div></div>';
+        }).join('');
+      },function(){ host.innerHTML=''; if(hh)hh.style.display='none'; });
+    }
+    (function(){
+      var svM=$('sv-motivo'); if(svM) svM.addEventListener('input',function(){ var c=$('sv-cnt'); if(c)c.textContent=String(this.value.length); });
+      var svS=$('sv-send'); if(svS) svS.addEventListener('click',async function(){
+        if(!sb||!myChar) return; var mo=($('sv-motivo').value||'').trim();
+        if(mo.length<60){ toast('Racconta la svolta: servono almeno 60 caratteri',true); return; }
+        this.disabled=true;
+        var role=$('sv-role').value||null;
+        var r=await sb.rpc('svolta_richiedi',{p_asse:$('sv-asse').value,p_delta:parseInt($('sv-delta').value,10),p_motivo:mo,p_role:role});
+        this.disabled=false;
+        if(r.error){ toast((r.error.message||'Errore nell\'invio'),true); return; }
+        $('sv-motivo').value=''; var c=$('sv-cnt'); if(c)c.textContent='0';
+        toast('Richiesta inviata allo staff'); loadSvolte();
+      });
+      var svL=$('sv-list'); if(svL) svL.addEventListener('click',async function(e){
+        var ok=e.target.closest('[data-svok]'), no=e.target.closest('[data-svno]');
+        if(!ok&&!no) return; if(!sb) return;
+        var btn=ok||no; btn.disabled=true;
+        var id=btn.getAttribute(ok?'data-svok':'data-svno');
+        var r=await sb.rpc('svolta_decidi',{p_richiesta:id,p_approva:!!ok,p_nota:null});
+        btn.disabled=false;
+        if(r.error){ toast(r.error.message||'Errore',true); return; }
+        toast(ok?'Svolta approvata':'Richiesta respinta');
+        var rr=await sb.from('characters').select('*').eq('id',myChar.id).maybeSingle();
+        if(rr&&rr.data){ myChar=rr.data; renderAlign(myChar); renderProgress(myChar); if(viewMode==='staff'||viewMode==='adminother') fillStaffPanel(myChar,curPriv); }
+        loadSvolte(); loadAlignHistory();
+      });
+    })();
+    /* ===== Premi speciali ===== */
+    var PREMI_COSTI={seconda_natura:300,evocazione:600,sigillo_maledetto:750,tecnica_segreta:375,jinchuriki:1800,tecnica_personale:{D:115,C:225,B:340,A:450,S:565}};
+    var PREMI_NOMI={seconda_natura:'Seconda natura elementale',evocazione:'Contratto di evocazione',sigillo_maledetto:'Sigillo maledetto',tecnica_segreta:'Tecnica segreta (S)',tecnica_personale:'Tecnica personale',jinchuriki:'Jinchūriki'};
+    function premioCosto(){ var t=$('pr-tipo')?$('pr-tipo').value:''; if(t==='tecnica_personale'){ var g=$('pr-grado')?$('pr-grado').value:'D'; return PREMI_COSTI.tecnica_personale[g]||0; } return PREMI_COSTI[t]||0; }
+    function updPremioCosto(){ var el=$('pr-costo-line'); if(!el||!myChar) return; var c=premioCosto(), saldo=(myChar.exp||0); el.innerHTML='Costo: <b>'+c+' XP</b> · saldo attuale '+saldo+(saldo<c?' · <span style="color:var(--red)">saldo insufficiente</span>':''); }
+    function loadPremi(){
+      var sec=$('sec-premi'); if(!sec) return;
+      var show=(viewMode!=='public'&&!!myChar);
+      sec.style.display=show?'':'none';
+      if(!show||!sb) return;
+      var owner=isOwnerMode();
+      var staffV=(viewMode==='staff'||viewMode==='adminother');
+      var box=$('premio-box'); if(box) box.style.display=owner?'':'none';
+      if(owner) updPremioCosto();
+      var host=$('perk-list');
+      if(host){ sb.from('character_perks').select('*').eq('character_id',myChar.id).order('created_at').then(function(r){
+        var rows=(r&&r.data)||[]; var h2=$('perk-list'); if(!h2) return;
+        if(!rows.length){ h2.innerHTML='<p class="hint" style="margin:0 0 .4em">Nessun premio ancora conquistato.</p>'; return; }
+        h2.innerHTML='<div class="jgrid">'+rows.map(function(p){
+          var d=p.created_at?new Date(p.created_at):null;
+          var ds=d?(('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()):'';
+          return '<div class="jcard"><div class="jtop"><span class="jname">'+esc(PREMI_NOMI[p.tipo]||p.tipo)+'</span><span class="jrank">'+(p.costo||0)+' XP</span></div>'+(p.dettaglio?('<div class="jeff">'+esc(p.dettaglio)+'</div>'):'')+(ds?('<div class="jmeta">'+ds+'</div>'):'')+'</div>';
+        }).join('')+'</div>';
+      },function(){}); }
+      var lh=$('pr-list-h'), list=$('pr-list'); if(!list) return;
+      sb.from('premio_richieste').select('*').eq('character_id',myChar.id).order('created_at',{ascending:false}).limit(8).then(function(r){
+        var rows=(r&&r.data)||[];
+        if(lh)lh.style.display=rows.length?'':'none';
+        if(!rows.length){ list.innerHTML=''; return; }
+        list.innerHTML=rows.map(function(x){
+          var tag=x.status==='in attesa'?'<span class="svtag p">In attesa</span>':x.status==='approvata'?'<span class="svtag a">Approvata</span>':'<span class="svtag r">Respinta</span>';
+          var btns=(staffV&&x.status==='in attesa')?('<div style="margin-top:6px"><button type="button" class="btn btn-red btn-sm" data-prok="'+x.id+'">Approva · scala '+x.costo+' XP</button> <button type="button" class="btn btn-ghost btn-sm" data-prno="'+x.id+'">Respingi</button></div>'):'';
+          var nota=x.nota_staff?('<div class="svmeta">Staff: '+esc(x.nota_staff)+'</div>'):'';
+          return '<div class="svitem">'+tag+'<b>'+esc(PREMI_NOMI[x.tipo]||x.tipo)+(x.grado_tecnica?(' · grado '+esc(x.grado_tecnica)):'')+'</b> · '+x.costo+' XP<div class="svmeta">'+esc(x.dettaglio||'')+'</div>'+nota+btns+'</div>';
+        }).join('');
+      },function(){ list.innerHTML=''; });
+    }
+    (function(){
+      var pt=$('pr-tipo'); if(pt) pt.addEventListener('change',function(){ var w=$('pr-grado-wrap'); if(w)w.style.display=(this.value==='tecnica_personale')?'':'none'; updPremioCosto(); });
+      var pg=$('pr-grado'); if(pg) pg.addEventListener('change',updPremioCosto);
+      var pd=$('pr-dettaglio'); if(pd) pd.addEventListener('input',function(){ var c=$('pr-cnt'); if(c)c.textContent=String(this.value.length); });
+      var ps=$('pr-send'); if(ps) ps.addEventListener('click',async function(){
+        if(!sb||!myChar) return; var det=($('pr-dettaglio').value||'').trim();
+        if(det.length<60){ toast('Racconta la richiesta: servono almeno 60 caratteri',true); return; }
+        this.disabled=true;
+        var tipo=$('pr-tipo').value, grado=(tipo==='tecnica_personale')?$('pr-grado').value:null;
+        var r=await sb.rpc('premio_richiedi',{p_tipo:tipo,p_dettaglio:det,p_grado:grado});
+        this.disabled=false;
+        if(r.error){ toast((r.error.message||'Errore nell\'invio'),true); return; }
+        $('pr-dettaglio').value=''; var c=$('pr-cnt'); if(c)c.textContent='0';
+        toast('Richiesta inviata allo staff'); loadPremi();
+      });
+      var pl=$('pr-list'); if(pl) pl.addEventListener('click',async function(e){
+        var ok=e.target.closest('[data-prok]'), no=e.target.closest('[data-prno]');
+        if(!ok&&!no) return; if(!sb) return;
+        var btn=ok||no; btn.disabled=true;
+        var id=btn.getAttribute(ok?'data-prok':'data-prno');
+        var r=await sb.rpc('premio_decidi',{p_richiesta:id,p_approva:!!ok,p_nota:null});
+        btn.disabled=false;
+        if(r.error){ toast(r.error.message||'Errore',true); return; }
+        toast(ok?'Premio approvato: XP scalati':'Richiesta respinta');
+        var rr=await sb.from('characters').select('*').eq('id',myChar.id).maybeSingle();
+        if(rr&&rr.data){ myChar=rr.data; var ve=$('v-exp'); if(ve)ve.textContent=(myChar.exp||0); renderProgress(myChar); if(viewMode==='staff'||viewMode==='adminother') fillStaffPanel(myChar,curPriv); }
+        loadPremi();
+      });
+    })();
+    function setPortrait(url){ var p=$('s-portrait'), ph=$('s-portrait-ph'); if(!p)return; if(url){ p.style.backgroundImage='url("'+url+'")'; if(ph)ph.style.display='none'; } else { p.style.backgroundImage=''; if(ph)ph.style.display=''; } }
+    function applyMode(){
+      var owner=(viewMode==='owner'||viewMode==='adminself'||viewMode==='adminother'), staff=(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother');
+      var canEd=(owner||staff), oEdit=owner&&editMode, sEdit=staff&&editMode;
+      ['f-element','f-background','f-off','f-prestavolto'].forEach(function(id){var el=$(id); if(el) el.disabled=!oEdit;});
+      var _fe=$('f-element'); if(_fe){ var _adm=(viewMode==='adminself'||viewMode==='adminother'); _fe.disabled = !oEdit || (!!(myChar && myChar.element) && !_adm); _fe.title = (myChar && myChar.element && !_adm) ? 'L\'elemento base si sceglie una sola volta' : ''; }
+      ['f-clan','f-clanrole','f-rank'].forEach(function(id){var el=$(id); if(el) el.disabled=!sEdit;});
+      var _cs=$('corp-staff'); if(_cs) _cs.style.display=sEdit?'':'none';
+      var _vr=$('v-rank'), _fr2=$('f-rank'); if(_vr&&_fr2){ _vr.style.display=sEdit?'none':''; _fr2.style.display=sEdit?'':'none'; }
+      var _hasRole=myChar&&myChar.clan_role; var _showRole=(sEdit||_hasRole)?'':'none'; var _lcr=$('lab-clanrole'); if(_lcr)_lcr.style.display=_showRole; var _scr2=$('f-clanrole'); if(_scr2)_scr2.style.display=_showRole;
+      var sv=$('s-save'); if(sv) sv.style.display=oEdit?'':'none';
+      var eb=$('s-edit'); if(eb){ eb.style.display=canEd?'':'none'; eb.textContent=editMode?'Fine modifica':'Modifica'; eb.classList.toggle('btn-red',editMode); eb.classList.toggle('btn-ghost',!editMode); }
+      var pu=$('s-portrait-up'); if(pu) pu.style.display=oEdit?'':'none';
+      var _msg=$('s-msg'); if(_msg){ var _other=(viewMode==='public'||viewMode==='staff'||viewMode==='adminother'); _msg.style.display=(_other&&myChar&&myChar.user_id)?'':'none'; }
+      var _dz=$('danger-zone'); if(_dz) _dz.style.display=(viewMode==='owner'||viewMode==='adminself')?'':'none';
+      var ub=$('unspent-box'); if(ub){ if(owner){ renderUnspent(myChar); } else { ub.style.display='none'; } }
+      var stb=$('stat-badge'); if(stb){ var _p=(owner&&myChar&&myChar.unspent_points>0)?myChar.unspent_points:0; stb.textContent=_p; stb.style.display=_p>0?'':'none'; }
+      var so=$('sec-off'); if(so) so.style.display='';
+      var sf=$('sec-fato'); if(sf) sf.style.display=(owner||staff)?'':'none';
+      var ff=$('f-fato'); if(ff) ff.readOnly=true;
+      var sp=$('staff-panel'); if(sp) sp.style.display=sEdit?'':'none';
+      var ta=$('dtab-align'); if(ta){ var _pub=(viewMode==='public'); ta.style.display=_pub?'none':'';
+        if(_pub){ var ap=document.querySelector('.dpanel[data-d="align"]');
+          if(ap&&ap.classList.contains('on')){
+            document.querySelectorAll('.dtab').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-d')==='dati');});
+            document.querySelectorAll('.dpanel').forEach(function(p){p.classList.toggle('on',p.getAttribute('data-d')==='dati');});
+          } } }
+      var iw=$('inv-wrap'); if(iw) iw.style.display=(viewMode==='public')?'none':'';
+      if(staff) fillStaffPanel(myChar,curPriv);
+      var badge=$('mode-badge');
+      if(badge){ if(viewMode==='adminself'){badge.style.display='';badge.textContent='Admin del sito — controllo completo sulla tua scheda. Premi «Modifica» per cambiare.';badge.className='mode-badge staff';} else if(viewMode==='adminother'){badge.style.display='';badge.textContent='Admin del sito — controllo completo su questa scheda. Premi «Modifica» per cambiare.';badge.className='mode-badge staff';} else if(viewMode==='staff'){badge.style.display='';badge.textContent='Modalità staff — premi «Modifica» per intervenire sulla scheda di questo giocatore';badge.className='mode-badge staff';} else if(viewMode==='public'){badge.style.display='';badge.textContent='Scheda di un altro giocatore — sola lettura';badge.className='mode-badge ro';} else {badge.style.display='none';} }
+      renderClanJoin();
+    }
+    function renderClanJoin(){
+      var box=$('clan-join'), sel=$('clan-join-sel'), btn=$('clan-join-btn'); if(!box||!sel) return;
+      var show=isOwnerMode() && myChar && (!myChar.clan || myChar.clan==='Nessuno');
+      box.style.display=show?'':'none';
+      if(!show) return;
+      if(btn && btn.getAttribute('data-bound')!=='1'){ btn.setAttribute('data-bound','1'); btn.addEventListener('click',async function(){
+        if(!sb||!myChar) return; var name=sel.value; if(!name){ toast('Scegli un clan',true); return; }
+        btn.disabled=true; var r=await sb.rpc('clan_join_open',{p_clan:name}); btn.disabled=false;
+        if(r.error){ toast(r.error.message||'Errore',true); return; }
+        toast('Sei entrato nel clan '+name);
+        var rr=await sb.from('characters').select('*').eq('id',myChar.id).maybeSingle();
+        if(rr&&rr.data){ myChar=rr.data; fillForm(myChar,curPriv); }
+      }); }
+      if(sel.getAttribute('data-vil')!==(myChar.village||'')){
+        sel.setAttribute('data-vil', myChar.village||'');
+        sel.innerHTML='<option value="">— scegli un clan —</option>';
+        if(sb&&myChar.village){ sb.from('clans').select('name,village').eq('is_gated',false).eq('is_active',true).eq('village',myChar.village).order('name').then(function(r){
+          ((r&&r.data)||[]).forEach(function(c){ if(c.name==='Nessuno')return; var o=document.createElement('option'); o.value=c.name; o.textContent=c.name; sel.appendChild(o); });
+        },function(){}); }
+      }
+    }
+    function fillStaffPanel(c,priv){
+      if(!c)return;
+      var set=function(id,v){var el=$(id); if(el) el.value=(v!=null?v:'');};
+      set('sp-epithet',c.epithet||'');
+      STATS.forEach(function(s){set('sp-'+s[0],c[s[0]]!=null?c[s[0]]:BASE);});
+      var _kl=$('lbl-sp-kg'); if(_kl)_kl.textContent=kgLabel(c.clan);
+      ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){set('sp-'+k,c[k]!=null?c[k]:0);});
+      ['lealta','via','fama'].forEach(function(k){set('sp-'+k,c[k]!=null?c[k]:50);});
+      set('sp-fato',priv&&priv.fato_notes?priv.fato_notes:'');
+    }
+        // wiring: dropdown → emblema live
+    document.addEventListener('change',function(e){
+      if(e.target&&e.target.id==='f-clan'){$('ic-clan').outerHTML=embClan(e.target.value, capoSelected()).replace('class="emb','id="ic-clan" class="emb');}
+      if(e.target&&e.target.id==='f-rank'){var _nv=e.target.value; $('v-rank').textContent=_nv; $('ic-rank').outerHTML=embRank(_nv).replace('class="emb','id="ic-rank" class="emb');}
+      if(e.target&&e.target.id==='f-clanrole'){$('ic-clan').outerHTML=embClan(($('f-clan')?$('f-clan').value:''), e.target.value==='Capo clan').replace('class="emb','id="ic-clan" class="emb');}
+      if(e.target&&e.target.id==='f-element'){$('ic-element').outerHTML=embElement(e.target.value).replace('class="emb','id="ic-element" class="emb');}
+    });
+    document.addEventListener('change',function(e){if(e.target&&e.target.id==='f-corp'){var fs=$('f-corpspec'); if(fs) fs.style.display=(e.target.value==='anbu')?'':'none';}});
+
+    document.querySelectorAll('.dtab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.dtab').forEach(function(x){x.classList.remove('on');});b.classList.add('on');var d=b.getAttribute('data-d');document.querySelectorAll('.dpanel').forEach(function(p){p.classList.toggle('on',p.getAttribute('data-d')===d);});});});
+
+    $('s-save').addEventListener('click',async function(){
+      if(!sb||!myChar||!(viewMode==='owner'||viewMode==='adminself'||viewMode==='adminother'))return;
+      var _pvEl=$('f-prestavolto'); var fc=_pvEl?(_pvEl.value||'').trim():'';
+      this.disabled=true;
+      if(fc){ var chk=await sb.from('characters').select('id').ilike('face_claim',fc).neq('id',myChar.id).limit(1); if(chk&&chk.data&&chk.data.length){ this.disabled=false; toast('Prestavolto già usato da un altro personaggio',true); return; } }
+      var upd={element:$('f-element').value||null,background:$('f-background').value,off_notes:$('f-off').value.trim()||null,face_claim:fc||null};
+      if(viewMode==='adminself'||viewMode==='adminother'){
+        var _cl=(($('f-clan')&&$('f-clan').value)||'Nessuno');
+        upd.clan=_cl;
+        upd.clan_role=(_cl==='Nessuno'||!_cl)?null:((($('f-clanrole')&&$('f-clanrole').value)||null));
+        if($('f-rank')&&$('f-rank').value) upd.rank=$('f-rank').value;
+      }
+      var r1=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();
+      this.disabled=false;
+      if(r1.error){ var m=(r1.error.message||''); if(r1.error.code==='23505'||m.toLowerCase().indexOf('faceclaim')>=0||m.toLowerCase().indexOf('face_claim')>=0){toast('Prestavolto già usato da un altro personaggio',true);return;} toast(m.indexOf('consentito')>=0?'Nome non consentito':'Errore nel salvataggio',true);return;}
+      myChar=r1.data;fillForm(myChar,curPriv);toast('Scheda salvata');
+    });
+    var spSave=$('sp-save'); if(spSave) spSave.addEventListener('click',async function(){
+      if(!sb||!myChar||!(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother'))return;this.disabled=true;
+      var _spClan=($('f-clan').value||'Nessuno');
+      var upd={epithet:($('sp-epithet').value.trim()||null),rank:(($('f-rank')&&$('f-rank').value)||myChar.rank),clan:_spClan,clan_role:((_spClan==='Nessuno')?null:((($('f-clanrole')&&$('f-clanrole').value)||null)))};
+      STATS.forEach(function(s){var v=parseInt($('sp-'+s[0]).value,10); upd[s[0]]=isNaN(v)?myChar[s[0]]:v;});
+      ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?myChar[k]:v;});
+      ['lealta','via','fama'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?(myChar[k]!=null?myChar[k]:50):Math.max(0,Math.min(100,v));});
+      var r1=await sb.from('characters').update(upd).eq('id',myChar.id).select().single();
+      var r2=await sb.from('character_private').upsert({character_id:myChar.id,fato_notes:$('sp-fato').value,updated_at:new Date().toISOString()},{onConflict:'character_id'}).select().single();
+      this.disabled=false;
+      if(r1.error){toast('Errore staff: '+r1.error.message,true);return;}
+      myChar=r1.data; if(!r2.error)curPriv=r2.data; fillForm(myChar,curPriv); toast('Modifiche staff salvate');
+    });
+    var corpApply=$('f-corp-apply'); if(corpApply) corpApply.addEventListener('click',async function(){
+      if(!sb||!myChar||!(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother'))return;
+      var corp=(($('f-corp')&&$('f-corp').value)||'');
+      var spec=(corp==='anbu')?(($('f-corpspec')&&$('f-corpspec').value)||null):null;
+      var role=(($('f-corprole')&&$('f-corprole').value)||'').trim()||null;
+      this.disabled=true;
+      var r=await sb.rpc('corp_assegna',{p_character:myChar.id,p_corp:corp,p_spec:spec,p_role:role});
+      this.disabled=false;
+      if(r.error){ toast(r.error.message||'Errore',true); return; }
+      var rr=await sb.from('characters').select('*').eq('id',myChar.id).maybeSingle();
+      if(rr&&rr.data){ myChar=rr.data; fillForm(myChar,curPriv); }
+      toast(corp?'Corporazione assegnata':'Corporazione rimossa');
+    });
+    var avFile=$('s-avatar-file'); if(avFile) avFile.addEventListener('change',async function(){
+      var file=this.files&&this.files[0]; if(!file||!sb||!me||!myChar) return;
+      if(file.size>3145728){toast('Immagine troppo grande (max 3 MB)',true);this.value='';return;}
+      toast('Caricamento…');
+      var path=(myChar.user_id||me.id)+'/portrait';
+      var up=await sb.storage.from('avatars').upload(path,file,{upsert:true,contentType:file.type});
+      if(up.error){toast('Errore nel caricamento',true);this.value='';return;}
+      var pub=sb.storage.from('avatars').getPublicUrl(path).data.publicUrl+'?v='+Date.now();
+      var r=await sb.from('characters').update({avatar_url:pub}).eq('id',myChar.id).select().single();
+      if(r.error){toast('Immagine caricata, ma non registrata',true);this.value='';return;}
+      myChar=r.data; setPortrait(pub); this.value=''; toast('Ritratto aggiornato');
+    });
+    var edBtn=$('s-edit'); if(edBtn) edBtn.addEventListener('click',function(){ editMode=!editMode; applyMode(); });
+    var shBtn=$('s-share'); if(shBtn) shBtn.addEventListener('click',function(){
+      if(!myChar)return; var url=location.origin+location.pathname+'?id='+myChar.id;
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(function(){toast('Link della scheda copiato');},function(){prompt('Copia il link della scheda:',url);});}
+      else{prompt('Copia il link della scheda:',url);}
+    });
+
+    /* ---- Inventario & Equipaggiamento (sagoma + selezione) ---- */
+    var INV=[], EQUIP=[], SHOP=null, LOGSHOWN=false;
+    var CATS=[['arma_consumabile','Armi consumabili'],['arma_impugnare','Armi da impugnare'],['oggetto_generico','Oggetti generici'],['equipaggiamento','Equipaggiamento']];
+    var ANCHORS=[
+      {key:'fronte',label:'Fronte',type:'worn',worn:'fronte',x:110,y:40,lx:124,ly:42,al:'start'},
+      {key:'corpo',label:'Corpo',type:'worn',worn:'corpo',x:92,y:104,lx:78,ly:104,al:'end'},
+      {key:'schiena',label:'Schiena',type:'container',slot:'schiena',x:128,y:104,lx:142,ly:104,al:'start'},
+      {key:'torso',label:'Torso',type:'container',slot:'torso',x:110,y:122,lx:124,ly:124,al:'start'},
+      {key:'cintura',label:'Cintura',type:'container',slot:'cintura',x:110,y:152,lx:96,ly:142,al:'end'},
+      {key:'guanti',label:'Guanti',type:'worn',worn:'guanti',x:142,y:200,lx:156,ly:202,al:'start'},
+      {key:'mano_dx',label:'Mano destra',type:'hand',x:85,y:232,lx:71,ly:234,al:'end'},
+      {key:'mano_sx',label:'Mano sinistra',type:'hand',x:135,y:232,lx:149,ly:234,al:'start'},
+      {key:'coscia_dx',label:'Coscia destra',type:'container',slot:'coscia',x:99,y:214,lx:85,ly:230,al:'end'},
+      {key:'coscia_sx',label:'Coscia sinistra',type:'container',slot:'coscia',x:121,y:214,lx:135,ly:230,al:'start'},
+      {key:'piedi',label:'Piedi',type:'worn',worn:'piedi',x:110,y:412,lx:124,ly:412,al:'start'}
+    ];
+    var BODY={
+      male:'<path d="M110 20 C96 20 88 32 88 46 C88 58 96 66 110 68 C124 66 132 58 132 46 C132 32 124 20 110 20 Z"/><path d="M88 46 C86 26 98 16 110 16 C122 16 134 26 132 46"/><path d="M96 50 Q110 56 124 50"/><path d="M92 44 L128 44"/><path d="M104 68 L104 78 M116 68 L116 78"/><path d="M96 78 Q110 86 124 78"/><path d="M123 78 C148 84 152 108 143 130 C144 110 130 94 118 90"/><path d="M92 86 C102 81 118 81 128 86 C128 108 124 132 118 150 C112 154 108 154 102 150 C96 132 92 108 92 86 Z"/><path d="M96 148 Q110 154 124 148"/><path d="M107 149 L107 159 L113 159 L113 149"/><path d="M90 88 C78 98 74 118 76 140 C77 162 79 200 80 222 L90 222 C89 200 88 162 88 142 C88 122 92 104 100 96 Z"/><path d="M130 88 C142 98 146 118 144 140 C143 162 141 200 140 222 L130 222 C131 200 132 162 132 142 C132 122 128 104 120 96 Z"/><ellipse cx="85" cy="228" rx="6.5" ry="7.5"/><ellipse cx="135" cy="228" rx="6.5" ry="7.5"/><path d="M78 198 L88 201 M78 205 L88 208 M78 212 L88 215"/><path d="M142 198 L132 201 M142 205 L132 208 M142 212 L132 215"/><path d="M94 150 C96 164 98 176 102 184 L118 184 C122 176 124 164 126 150 C114 156 106 156 94 150 Z"/><path d="M100 184 C94 186 90 200 89 218 C86 260 84 320 83 360 C82 386 83 404 86 410 L98 410 C100 404 101 388 102 362 C104 320 106 260 107 220 C108 202 106 186 100 184 Z"/><path d="M120 184 C126 186 130 200 131 218 C134 260 136 320 137 360 C138 386 137 404 134 410 L122 410 C120 404 119 388 118 362 C116 320 114 260 113 220 C112 202 114 186 120 184 Z"/><path d="M92 234 L108 234 M112 234 L128 234"/><path d="M84 408 L100 408 L104 418 L79 418 Z"/><path d="M120 408 L136 408 L141 418 L116 418 Z"/>',
+      female:'<path d="M110 22 C97 22 90 33 90 46 C90 57 97 64 110 66 C123 64 130 57 130 46 C130 33 123 22 110 22 Z"/><path d="M90 46 C88 27 99 18 110 18 C121 18 132 27 130 46"/><path d="M97 50 Q110 55 123 50"/><path d="M94 44 L126 44"/><path d="M105 66 L105 76 M115 66 L115 76"/><path d="M98 76 Q110 84 122 76"/><path d="M121 76 C145 82 149 106 141 128 C142 108 129 92 117 88"/><path d="M95 84 C103 80 117 80 125 84 C123 100 119 118 112 134 C111 130 109 130 108 134 C101 118 97 100 95 84 Z"/><path d="M100 132 Q110 138 120 132"/><path d="M108 134 C102 146 98 160 98 176 C100 184 110 188 110 188 C110 188 120 184 122 176 C122 160 118 146 112 134 Z"/><path d="M94 88 C82 98 79 118 81 140 C82 162 84 200 85 222 L93 222 C92 200 91 162 90 142 C90 122 94 104 102 96 Z"/><path d="M126 88 C138 98 141 118 139 140 C138 162 136 200 135 222 L127 222 C128 200 129 162 130 142 C130 122 126 104 118 96 Z"/><ellipse cx="88" cy="228" rx="6" ry="7"/><ellipse cx="132" cy="228" rx="6" ry="7"/><path d="M82 200 L90 203 M82 207 L90 210"/><path d="M138 200 L130 203 M138 207 L130 210"/><path d="M100 186 C98 200 97 210 100 218 L120 218 C123 210 122 200 120 186 C114 192 106 192 100 186 Z"/><path d="M102 216 C97 218 94 230 93 246 C90 286 88 330 87 362 C86 386 87 404 90 410 L100 410 C102 404 103 388 104 364 C106 330 108 286 109 248 C110 232 108 216 102 216 Z"/><path d="M118 216 C123 218 126 230 127 246 C130 286 132 330 133 362 C134 386 133 404 130 410 L120 410 C118 404 117 388 116 364 C114 330 112 286 111 248 C110 232 112 216 118 216 Z"/><path d="M94 258 L108 258 M112 258 L126 258"/><path d="M86 408 L100 408 L104 418 L81 418 Z"/><path d="M120 408 L134 408 L139 418 L116 418 Z"/>'
+    };
+    function escI(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+    function isOwnerMode(){return viewMode==='owner'||viewMode==='adminself';}
+    function canEdit(){return viewMode==='owner'||viewMode==='adminself'||viewMode==='staff'||viewMode==='adminother';}
+    function ownedQty(id){var r=INV.filter(function(x){return x.item&&x.item.id===id;})[0];return r?r.quantity:0;}
+    function equippedQtyOf(id){var s=0;EQUIP.forEach(function(e){if(e.item&&e.item.id===id)s+=e.quantity;});return s;}
+    function availQty(id){return ownedQty(id)-equippedQtyOf(id);}
+    function containerRow(anchor){return EQUIP.filter(function(e){return e.anchor===anchor;})[0];}
+    function childrenOf(eid){return EQUIP.filter(function(e){return e.parent_id===eid;});}
+    function containerUsed(eid){var s=0;childrenOf(eid).forEach(function(c){s+=(c.item?c.item.weight:0)*c.quantity;});return s;}
+    function equippedWeight(){var s=0;EQUIP.forEach(function(e){s+=(e.item?e.item.weight:0)*e.quantity;});return s;}
+    function anchorMeta(k){return ANCHORS.filter(function(a){return a.key===k;})[0];}
+    function equippedContainers(){return EQUIP.filter(function(e){return e.anchor&&e.item&&e.item.slot;});}
+    function freeAnchorFor(it){
+      if(it.slot){var c=ANCHORS.filter(function(a){return a.type==='container'&&a.slot===it.slot&&!containerRow(a.key);});return c.length?c[0].key:null;}
+      if(it.worn_slot){var w=ANCHORS.filter(function(a){return a.type==='worn'&&a.worn===it.worn_slot&&!containerRow(a.key);});return w.length?w[0].key:null;}
+      var h=ANCHORS.filter(function(a){return a.type==='hand'&&!containerRow(a.key);});return h.length?h[0].key:null;
+    }
+    function silhouetteSVG(sex){
+      var body=(sex==='Femmina')?BODY.female:BODY.male;
+      var dots=ANCHORS.map(function(a){var occ=!!containerRow(a.key);
+        return '<g class="anchor-dot'+(occ?' occ':'')+'" data-anchor="'+a.key+'"><circle cx="'+a.x+'" cy="'+a.y+'" r="9"/><text class="adot-t" x="'+a.lx+'" y="'+a.ly+'" text-anchor="'+a.al+'">'+a.label.toLowerCase().replace('mano ','mano ').replace('coscia ','coscia ')+'</text></g>';}).join('');
+      return '<svg viewBox="0 0 220 430" class="silhouette"><g class="body">'+body+'</g>'+dots+'</svg>';
+    }
+    function refreshInventory(){
+      if(!sb||!myChar||viewMode==='public')return Promise.resolve();
+      return sb.from('character_inventory').select('id,quantity,item:items(id,name,category,weight,cost,capacity,slot,worn_slot,description,image_url)').eq('character_id',myChar.id)
+        .then(function(r){INV=(r&&r.data)||[];renderIE();},function(){INV=[];renderIE();});
+    }
+    function refreshEquip(){
+      if(!sb||!myChar)return Promise.resolve();
+      return sb.from('character_equipment').select('id,anchor,parent_id,quantity,item:items(id,name,category,weight,capacity,slot,worn_slot,image_url)').eq('character_id',myChar.id)
+        .then(function(r){EQUIP=(r&&r.data)||[];renderIE();},function(){EQUIP=[];renderIE();});
+    }
+    function thumb(url){return url?('<span class="ithumb"><img src="'+url+'" alt=""></span>'):'<span class="ithumb none"></span>';}
+    function renderIE(){
+      if(!$('equip-figure'))return;
+      var edit=canEdit();
+      $('equip-figure').innerHTML=silhouetteSVG(myChar&&myChar.sex);
+      var ryo=$('inv-ryo'); if(ryo)ryo.textContent=(myChar&&myChar.money!=null?myChar.money:0);
+      var w=$('inv-weight'); if(w)w.textContent=equippedWeight().toFixed(2);
+      // usable-in-chat summary
+      var sum=$('equip-summary'); if(sum){var u=[];EQUIP.forEach(function(e){if(e.parent_id||(e.anchor&&e.anchor.indexOf('mano')===0)||(e.anchor&&anchorMeta(e.anchor)&&anchorMeta(e.anchor).type==='worn')){u.push(escI(e.item.name)+(e.quantity>1?' ×'+e.quantity:''));}});sum.innerHTML=u.length?('<b>Usabile in chat:</b> '+u.join(', ')):'<b>Usabile in chat:</b> <span class="eq-empty">niente equipaggiato</span>';}
+      renderSlots(edit);
+      var ir=document.querySelector('.ie-right'); if(ir) ir.style.display=(viewMode==='public')?'none':'';
+      if(viewMode!=='public') renderInvCats(edit);
+    }
+    function renderSlots(edit){
+      var host=$('equip-slots'); if(!host)return;
+      var occ=ANCHORS.filter(function(a){return !!containerRow(a.key);});
+      if(!occ.length){host.innerHTML='<p class="eq-empty" style="margin:4px 0 0">Niente equipaggiato. Scegli dagli oggetti a destra.</p>';return;}
+      host.innerHTML=occ.map(function(a){
+        var eq=containerRow(a.key);
+        if(a.type==='container'){
+          var used=containerUsed(eq.id),cap=(eq.item.capacity||0),pct=cap?Math.min(100,Math.round(used/cap*100)):0;
+          var kids=childrenOf(eq.id);
+          var kh=kids.length?kids.map(function(c){return '<div class="eq-kid"><span>'+escI(c.item.name)+' ×'+c.quantity+'</span>'+(edit?'<button class="mini-btn" data-takeout="'+c.id+'">Togli</button>':'')+'</div>';}).join(''):'<div class="eq-empty">vuoto</div>';
+          return '<div class="slotcard"><div class="sloth"><span class="slotn">'+a.label+'</span><b>'+escI(eq.item.name)+'</b>'+(edit?'<button class="mini-btn" data-unequip="'+eq.id+'">Rimuovi</button>':'')+'</div><div class="capbar"><span style="width:'+pct+'%"></span></div><div class="capnum">'+used.toFixed(2)+' / '+cap+' kg</div>'+kh+'</div>';
+        }
+        return '<div class="slotcard"><div class="sloth"><span class="slotn">'+a.label+'</span><b>'+escI(eq.item.name)+'</b>'+(edit?'<button class="mini-btn" data-unequip="'+eq.id+'">Togli</button>':'')+'</div></div>';
+      }).join('');
+    }
+    function renderInvCats(edit){
+      var host=$('inv-cats'); if(!host)return;
+      if(!INV.length){host.innerHTML='<p class="hint" style="margin:0">Inventario vuoto. Apri il negozio per acquistare oggetti.</p>';return;}
+      var conts=equippedContainers();
+      host.innerHTML=CATS.map(function(cat){
+        var list=INV.filter(function(r){return r.item&&r.item.category===cat[0];});
+        if(!list.length)return '';
+        var rows=list.map(function(r){
+          var it=r.item, av=availQty(it.id);
+          var meta=(it.slot?('contenitore '+(it.capacity||0)+' kg'):(it.worn_slot?('indossato: '+it.worn_slot):(it.weight+' kg')));
+          var acts='';
+          if(edit){
+            if(av>0){
+              if(it.slot||it.worn_slot){acts+='<button class="mini-btn" data-equip="'+it.id+'">Indossa</button>';}
+              else{acts+='<button class="mini-btn" data-wield="'+it.id+'">Impugna</button>';
+                if(conts.length){acts+='<select class="eq-sel store-sel" id="st-'+it.id+'">'+conts.map(function(c){return '<option value="'+c.id+'">in '+escI(c.item.name)+'</option>';}).join('')+'</select><input type="number" min="1" value="1" class="qin" id="stq-'+it.id+'"><button class="mini-btn" data-store="'+it.id+'">Riponi</button>';}
+              }
+            }
+            acts+=(isOwnerMode()?'<button class="mini-btn ghost" data-sell="'+it.id+'">Vendi</button>':'<button class="mini-btn ghost" data-rem="'+it.id+'">Rimuovi</button>');
+          }
+          return '<div class="invrow">'+thumb(it.image_url)+'<div class="invmain"><b>'+escI(it.name)+'</b> <span class="itmeta">×'+r.quantity+(av<r.quantity?(' (disp. '+av+')'):'')+' · '+meta+'</span>'+(it.description?('<span class="itdesc">'+escI(it.description)+'</span>'):'')+'</div><div class="invacts">'+acts+'</div></div>';
+        }).join('');
+        return '<div class="invcat"><div class="grp-sub">'+cat[1]+'</div>'+rows+'</div>';
+      }).join('');
+    }
+    function loadShop(){ if(SHOP)return Promise.resolve(); return sb.from('items').select('*').eq('is_active',true).eq('purchasable',true).order('category').order('name').then(function(r){SHOP=(r&&r.data)||[];renderShop();},function(){SHOP=[];renderShop();}); }
+    function renderShop(){
+      var host=$('shop-list'); if(!host||!SHOP)return; var staffMode=(viewMode==='staff');
+      host.innerHTML=SHOP.map(function(it){var extra=it.slot?(' · contenitore '+(it.capacity||0)+' kg'):(it.worn_slot?' · indossato':'');var price=staffMode?'':(' · '+it.cost+' Ryo');
+        return '<div class="shoprow">'+thumb(it.image_url)+'<div class="invmain"><b>'+escI(it.name)+'</b> <span class="itmeta">'+(it.weight||0)+' kg'+extra+price+'</span></div><div class="shopbuy"><input type="number" min="1" value="1" class="qin" id="q-'+it.id+'"><button class="mini-btn" data-buy="'+it.id+'">'+(staffMode?'Assegna':'Compra')+'</button></div></div>';}).join('');
+      if($('shop-title'))$('shop-title').textContent=staffMode?'Assegna oggetti':'Negozio';
+      if($('shop-hint'))$('shop-hint').textContent=staffMode?'Assegna oggetti dal catalogo al personaggio (senza costo).':'Compra dal catalogo spendendo i tuoi Ryo.';
+    }
+    function renderLogRows(rows){var box=$('log-box'); if(!box)return; if(!rows.length){box.innerHTML='<p class="hint" style="margin:0">Nessun movimento registrato.</p>';return;}
+      box.innerHTML=rows.map(function(t){var d=new Date(t.created_at),ds;try{ds=d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){ds=t.created_at;}var ryo=t.ryo_delta?(' · '+(t.ryo_delta>0?'+':'')+t.ryo_delta+' Ryo'):'';var who=(t.actor&&t.actor.username)?(' · da '+escI(t.actor.username)):'';var note=t.note?(' · '+escI(t.note)):'';return '<div class="logrow"><span class="logkind k-'+t.kind+'">'+t.kind+'</span> <b>'+escI(t.item_name||'—')+'</b> ×'+t.quantity+ryo+'<span class="logmeta">'+ds+who+note+'</span></div>';}).join('');
+    }
+    function loadLog(){ if(!sb||!myChar||viewMode==='public')return; return sb.from('transactions').select('created_at,kind,item_name,quantity,ryo_delta,note,actor:profiles(username)').eq('character_id',myChar.id).order('created_at',{ascending:false}).limit(50).then(function(r){renderLogRows((r&&r.data)||[]);},function(){}); }
+    function ieErr(m){m=m||'';if(/Spazio/i.test(m))return 'Spazio insufficiente nel contenitore';if(/occupato/i.test(m))return 'Slot già occupato';if(/equipaggiate|possiedi/i.test(m))return 'Scorte disponibili insufficienti';if(/slot|contenitore|indossa|mano/i.test(m))return 'Oggetto non compatibile con lo slot';if(/insufficienti/i.test(m))return 'Ryo insufficienti';if(/abbastanza/i.test(m))return 'Non hai abbastanza oggetti';if(/equipaggiate/i.test(m))return 'Disequipaggia prima';return 'Operazione non riuscita';}
+    function ieDone(r,msg){ if(r&&r.error){toast(ieErr(r.error.message),true);return false;} if(msg)toast(msg); refreshEquip(); refreshInventory(); if(LOGSHOWN)loadLog(); return true; }
+    function bindPages(){
+      document.querySelectorAll('.ptab').forEach(function(t){t.addEventListener('click',function(){
+        document.querySelectorAll('.ptab').forEach(function(x){x.classList.toggle('on',x===t);});
+        var p=t.getAttribute('data-p');
+        document.querySelectorAll('.spage').forEach(function(pg){pg.classList.remove('on');});
+        var target=$('page-'+p); if(target)target.classList.add('on');
+      });});
+    }
+    function bindIE(){
+      var root=$('invequip'); if(!root)return;
+      var shopBtn=$('inv-shop-btn'); if(shopBtn)shopBtn.addEventListener('click',function(){var s=$('shop');if(!s)return;var closed=(s.style.display==='none'||!s.style.display);if(closed){s.style.display='block';this.textContent='Chiudi il negozio';loadShop();}else{s.style.display='none';this.textContent='Apri il negozio';}});
+      var logBtn=$('log-btn'); if(logBtn)logBtn.addEventListener('click',function(){var b=$('log-box');if(!b)return;var closed=(b.style.display==='none'||!b.style.display);if(closed){b.style.display='block';this.textContent='Nascondi registro';LOGSHOWN=true;loadLog();}else{b.style.display='none';this.textContent='Mostra registro movimenti';LOGSHOWN=false;}});
+      root.addEventListener('click',async function(e){
+        var dot=e.target.closest('.anchor-dot'); if(dot){var sc=$('equip-slots');if(sc){sc.scrollIntoView({behavior:'smooth',block:'nearest'});}return;}
+        var b=e.target.closest('button'); if(!b)return; var id;
+        b.disabled=true;
+        try{
+          if(b.hasAttribute('data-equip')){id=b.getAttribute('data-equip');var it=(INV.filter(function(x){return x.item&&x.item.id===id;})[0]||{}).item;var anc=it?freeAnchorFor(it):null;if(!anc){toast('Nessuno slot libero adatto',true);return;}ieDone(await sb.rpc('equip_to_anchor',{p_character:myChar.id,p_item:id,p_anchor:anc}),'Indossato');}
+          else if(b.hasAttribute('data-wield')){id=b.getAttribute('data-wield');var it2=(INV.filter(function(x){return x.item&&x.item.id===id;})[0]||{}).item;var anc2=freeAnchorFor(it2);if(!anc2){toast('Mani occupate',true);return;}ieDone(await sb.rpc('equip_to_anchor',{p_character:myChar.id,p_item:id,p_anchor:anc2}),'Impugnato');}
+          else if(b.hasAttribute('data-store')){id=b.getAttribute('data-store');var sel=$('st-'+id),qn=$('stq-'+id);if(!sel||!sel.value)return;var q=Math.max(1,parseInt(qn&&qn.value,10)||1);ieDone(await sb.rpc('place_in_container',{p_character:myChar.id,p_item:id,p_container:sel.value,p_qty:q}),'Riposto');}
+          else if(b.hasAttribute('data-takeout')){ieDone(await sb.rpc('unequip_row',{p_equip:b.getAttribute('data-takeout'),p_qty:null}),'Tolto');}
+          else if(b.hasAttribute('data-unequip')){ieDone(await sb.rpc('unequip_row',{p_equip:b.getAttribute('data-unequip'),p_qty:null}),'Rimosso');}
+          else if(b.hasAttribute('data-sell')){id=b.getAttribute('data-sell');var rs=await sb.rpc('sell_item',{p_character_id:myChar.id,p_item_id:id,p_qty:1});if(rs.error){toast(ieErr(rs.error.message),true);}else{if(rs.data&&rs.data.money!=null){myChar.money=rs.data.money;if($('v-money'))$('v-money').textContent=myChar.money;}toast('Venduto (+'+((rs.data&&rs.data.refund)||0)+' Ryo)');refreshInventory();refreshEquip();if(LOGSHOWN)loadLog();}}
+          else if(b.hasAttribute('data-rem')){id=b.getAttribute('data-rem');ieDone(await sb.rpc('staff_adjust_item',{p_character_id:myChar.id,p_item_id:id,p_delta:-1,p_note:'rimozione staff'}),'Rimosso');}
+          else if(b.hasAttribute('data-buy')){id=b.getAttribute('data-buy');var qb=$('q-'+id);var qq=Math.max(1,parseInt(qb&&qb.value,10)||1);if(viewMode==='staff'){ieDone(await sb.rpc('staff_adjust_item',{p_character_id:myChar.id,p_item_id:id,p_delta:qq,p_note:'assegnazione'}),'Assegnato');}else{var rb=await sb.rpc('buy_item',{p_character_id:myChar.id,p_item_id:id,p_qty:qq});if(rb.error){toast(ieErr(rb.error.message),true);}else{if(rb.data&&rb.data.money!=null){myChar.money=rb.data.money;if($('v-money'))$('v-money').textContent=myChar.money;}toast('Acquistato');refreshInventory();refreshEquip();if(LOGSHOWN)loadLog();}}}
+        } finally { b.disabled=false; }
+      });
+    }
+    window.__demoIE=function(inv,equip,sex){INV=inv||[];EQUIP=equip||[];if(sex&&myChar)myChar.sex=sex;renderIE();};
+    window.__demoShop=function(shop){SHOP=shop||[];var s=$('shop');if(s)s.style.display='block';renderShop();};
+    window.__demoLog=function(rows){var b=$('log-box');if(b)b.style.display='block';LOGSHOWN=true;renderLogRows(rows||[]);};
+
+    async function init(){
+      if(!sb){$('err-msg').textContent='Impossibile contattare il servizio in questo momento. Ricarica la pagina.';show('st-error');return;}
+      try{
+        var params=new URLSearchParams(location.search); viewId=params.get('id');
+        var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;
+        if(!me){show('st-guest');return;}
+        try{ sessionStorage.setItem('tus_in_land','1'); }catch(e){}
+        try{ var _hl=document.querySelectorAll('a[href="index.html"]'); for(var _i=0;_i<_hl.length;_i++) _hl[_i].setAttribute('href','land.html'); }catch(e){}
+        try{var pr=await sb.from('profiles').select('username,role').eq('id',me.id).single();myName=(pr.data&&pr.data.username)?pr.data.username:'';var _role=pr.data?pr.data.role:'';isStaff=(_role==='master'||_role==='admin');isAdmin=(_role==='admin');}catch(_e){myName='';}
+        var _ns=$('c-name-show'); if(_ns) _ns.textContent=myName||'(nome non disponibile)';
+        try{var em=await sb.from('emblems').select('kind,name,image_url');(em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});}catch(_e){}
+        try{var _cl=await sb.from('clans').select('name,village,is_active,ability_kind').order('sort').order('name');if(_cl&&_cl.data&&_cl.data.length){var _m={};_cl.data.forEach(function(c){CLAN_ABILITY[c.name]=c.ability_kind||null;if(c.is_active===false)return;var v=c.village||'Konoha';(_m[v]=_m[v]||['Nessuno']).push(c.name);});if(Object.keys(_m).length)CLANS=_m;}}catch(_e){}
+        if(viewId){
+          var rv=await sb.from('characters').select('*').eq('id',viewId).maybeSingle();
+          if(rv.error){$('err-msg').textContent=rv.error.message;show('st-error');return;}
+          if(!rv.data){$('err-msg').textContent='Scheda non trovata.';show('st-error');return;}
+          myChar=rv.data;
+          viewMode=(myChar.user_id===me.id)?(isAdmin?'adminself':'owner'):(isAdmin?'adminother':(isStaff?'staff':'public'));
+          if(viewMode!=='public'){var pv=await sb.from('character_private').select('*').eq('character_id',myChar.id).maybeSingle();curPriv=pv.data||null;}else{curPriv=null;}
+          fillForm(myChar,curPriv); show('st-sheet'); refreshInventory(); refreshEquip(); return;
+        }
+        viewMode=isAdmin?'adminself':'owner';
+        var r=await sb.from('characters').select('*').eq('user_id',me.id).maybeSingle();
+        if(r.error){$('err-msg').textContent=r.error.message;show('st-error');return;}
+        if(!r.data){show('st-create');return;}
+        myChar=r.data;
+        var p=await sb.from('character_private').select('*').eq('character_id',myChar.id).maybeSingle();
+        curPriv=p.data||null; fillForm(myChar,curPriv); show('st-sheet'); refreshInventory(); refreshEquip();
+      }catch(e){$('err-msg').textContent='Errore di connessione.';show('st-error');}
+    }
+    function openMsg(){
+      if(!myChar||!myChar.user_id){toast('Destinatario non disponibile',true);return;}
+      var nm=$('msg-to-name'); if(nm) nm.textContent=myChar.name||'—';
+      var t=$('msg-text'); if(t) t.value=''; var c=$('msg-count'); if(c) c.textContent='0';
+      var ov=$('msg-overlay'); if(ov) ov.hidden=false; if(t) setTimeout(function(){t.focus();},30);
+    }
+    function closeMsg(){var ov=$('msg-overlay'); if(ov) ov.hidden=true;}
+    async function sendMsg(){
+      var t=$('msg-text'); var body=(t&&t.value||'').trim();
+      if(!body){toast('Scrivi un messaggio',true);return;}
+      if(!myChar||!myChar.user_id){toast('Destinatario non disponibile',true);return;}
+      var btn=$('msg-send'); if(btn) btn.disabled=true;
+      try{
+        var r=await sb.rpc('dm_send',{p_recipients:[myChar.user_id],p_body:body});
+        if(r.error){toast(r.error.message||'Invio non riuscito',true);}
+        else{toast('Messaggio inviato'); closeMsg();}
+      }catch(e){toast('Invio non riuscito',true);}
+      finally{if(btn) btn.disabled=false;}
+    }
+    function bindMsg(){
+      var b=$('s-msg'); if(b) b.addEventListener('click',openMsg);
+      var x=$('msg-close'); if(x) x.addEventListener('click',closeMsg);
+      var cx=$('msg-cancel'); if(cx) cx.addEventListener('click',closeMsg);
+      var bd=$('msg-backdrop'); if(bd) bd.addEventListener('click',closeMsg);
+      var sd=$('msg-send'); if(sd) sd.addEventListener('click',sendMsg);
+      var t=$('msg-text'); if(t) t.addEventListener('input',function(){var c=$('msg-count'); if(c) c.textContent=String(t.value.length);});
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'){var ov=$('msg-overlay'); if(ov&&!ov.hidden) closeMsg();}});
+    }
+    async function doDeleteAccount(){
+      var inp=$('dz-confirm'); if(!inp || inp.value.trim().toUpperCase()!=='CANCELLA'){ toast('Scrivi CANCELLA per confermare',true); return; }
+      if(!sb){ toast('Servizio non disponibile',true); return; }
+      var btn=$('dz-delete'); if(btn) btn.disabled=true;
+      try{
+        var ss=await sb.auth.getSession();
+        var tok=(ss&&ss.data&&ss.data.session)?ss.data.session.access_token:null;
+        if(!tok){ toast('Sessione scaduta, riaccedi',true); if(btn) btn.disabled=false; return; }
+        var r=await fetch(SB_URL+'/functions/v1/delete-account',{ method:'POST', headers:{ 'Authorization':'Bearer '+tok, 'apikey':SB_KEY, 'Content-Type':'application/json' }, body:'{}' });
+        var out={}; try{ out=await r.json(); }catch(e){}
+        if(!r.ok || out.error){ toast('Cancellazione non riuscita',true); if(btn) btn.disabled=false; return; }
+        try{ localStorage.removeItem('tus_login_name'); sessionStorage.removeItem('tus_in_land'); }catch(e){}
+        try{ await sb.auth.signOut(); }catch(e){}
+        toast('Account cancellato');
+        setTimeout(function(){ location.href='index.html'; }, 900);
+      }catch(e){ toast('Cancellazione non riuscita',true); if(btn) btn.disabled=false; }
+    }
+    function bindDanger(){
+      var inp=$('dz-confirm'), btn=$('dz-delete');
+      if(inp&&btn){ inp.addEventListener('input',function(){ btn.disabled = inp.value.trim().toUpperCase()!=='CANCELLA'; }); }
+      if(btn){ btn.addEventListener('click',doDeleteAccount); }
+    }
+    bindIE();
+    bindPages();
+    bindMsg();
+    bindDanger();
+    init();
+    window.__demo=function(c,priv,emb,mode){if(emb)EMB=emb;myChar=c;me={id:(c&&c.user_id)||'me'};curPriv=priv||null;viewMode=mode||'owner';isStaff=(mode==='staff'||mode==='adminself'||mode==='adminother');isAdmin=(mode==='adminself'||mode==='adminother');fillForm(c,priv||null);show('st-sheet');};
+    window.__demoCreate=function(nm){if(nm){var e=$('c-name-show');if(e)e.textContent=nm;}show('st-create');};
+  })();
+  </script>
+  <script>
+/* The Untold Story — mascotte "Code" (disegni ORIGINALI ispirati, non copiati).
+   Ogni pagina ne carica una a caso; clic = animazione caratteristica.
+   Uso: <span id="bijuu-logo"></span> + <script src="bijuu.js"><\/script> */
+(function () {
+  var CSS = `
+  .bjmascot{position:relative;display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+  .bjsvg{width:100%;height:100%;overflow:visible;transform-origin:50% 72%;animation:bj-bob 2.9s ease-in-out infinite}
+  @keyframes bj-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+  .bjmascot.hit .bjsvg{animation:bj-squash .45s ease-out}
+  @keyframes bj-squash{0%{transform:scale(1)}30%{transform:scale(1.12,.9)}60%{transform:scale(.97,1.04)}100%{transform:scale(1)}}
+  .bjmascot .sand,.bjmascot .ember,.bjmascot .steam,.bjmascot .dama,.bjmascot .ripple,.bjmascot .drip{opacity:0}
+  .sand,.ember,.tent,.flame,.wings,.ripple{transform-box:fill-box;transform-origin:center}
+  /* 9 volpe (Kurama): bijuudama */
+  .bj-fox.hit .dama{animation:bj-dama .8s ease-out}
+  @keyframes bj-dama{0%{opacity:0;transform:translate(0,0) scale(.3)}22%{opacity:1;transform:translate(4px,-4px) scale(1)}100%{opacity:0;transform:translate(60px,-46px) scale(1.35)}}
+  /* 8 polpo-bue (Gyuki): tentacoli si allungano */
+  .bj-octo.hit .tent{animation:bj-ext .6s ease-out}
+  @keyframes bj-ext{0%{transform:scale(1)}45%{transform:scale(1.28)}100%{transform:scale(1)}}
+  /* 2 gatto (Matatabi): fiamme blu */
+  .bj-cat.hit .flame{animation:bj-flare .6s ease-out}
+  @keyframes bj-flare{0%{transform:scale(1);opacity:.9}40%{transform:scale(1.45);opacity:1}100%{transform:scale(1);opacity:.9}}
+  /* 1 tanuki (Shukaku) / 4 scimmia (Son Goku): scoppio di particelle */
+  .bj-tanuki.hit .sand,.bj-monkey.hit .ember{animation:bj-burst .7s ease-out}
+  @keyframes bj-burst{0%{opacity:0;transform:scale(.25)}25%{opacity:1}100%{opacity:0;transform:scale(1.9)}}
+  /* 3 tartaruga (Isobu): onda d'acqua */
+  .bj-turtle.hit .ripple{animation:bj-ripple .7s ease-out}
+  @keyframes bj-ripple{0%{opacity:.75;transform:scale(.3)}100%{opacity:0;transform:scale(2.6)}}
+  /* 5 cavallo-delfino (Kokuo): sbuffo di vapore */
+  .bj-horse.hit .steam{animation:bj-steam .85s ease-out}
+  @keyframes bj-steam{0%{opacity:0;transform:translate(0,0) scale(.4)}30%{opacity:.9}100%{opacity:0;transform:translate(12px,-18px) scale(1.5)}}
+  /* 6 lumaca (Saiken): goccia */
+  .bj-slug.hit .drip{animation:bj-drip .75s ease-in}
+  @keyframes bj-drip{0%{opacity:0;transform:translateY(0)}25%{opacity:1}100%{opacity:0;transform:translateY(16px)}}
+  /* 7 scarabeo (Chomei): ali che sbattono */
+  .bj-beetle.hit .wings{animation:bj-flap .11s ease-in-out 6}
+  @keyframes bj-flap{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.5)}}
+  `;
+
+  var M = {
+    /* 1 — SHUKAKU: tanuki di sabbia, marchi blu curvi, occhi d'oro, coda unica spessa */
+    tanuki: {vb:'0 0 120 120', svg:
+      '<path d="M96 96 q26 -2 26 -30 q0 -20 -16 -24 q10 12 6 26 q-4 14 -16 20z" fill="#d7b374"/>'+
+      '<path d="M100 60 q10 6 8 22 M108 66 q6 8 2 20" stroke="#26497e" stroke-width="3" fill="none" stroke-linecap="round"/>'+
+      '<path d="M40 44 q-10 -20 2 -26 q10 8 10 24z" fill="#c79a5c"/><path d="M80 44 q10 -20 -2 -26 q-10 8 -10 24z" fill="#c79a5c"/>'+
+      '<path d="M44 40 q-4 -12 2 -18 M76 40 q4 -12 -2 -18" stroke="#8a6636" stroke-width="3" fill="none"/>'+
+      '<ellipse cx="60" cy="66" rx="34" ry="31" fill="#e3c184"/>'+
+      '<ellipse cx="60" cy="78" rx="19" ry="16" fill="#f2e0b6"/>'+
+      // marchi blu (firma di Shukaku)
+      '<path d="M60 40 q-9 6 -7 16 M60 40 q9 6 7 16" stroke="#26497e" stroke-width="3.4" fill="none" stroke-linecap="round"/>'+
+      '<path d="M40 60 q-7 3 -8 11 M80 60 q7 3 8 11" stroke="#26497e" stroke-width="3" fill="none" stroke-linecap="round"/>'+
+      '<path d="M47 76 q-6 4 -6 10 M73 76 q6 4 6 10" stroke="#26497e" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
+      // occhi oro con pupilla a croce
+      '<ellipse cx="49" cy="64" rx="7" ry="7.6" fill="#f4c430"/><ellipse cx="71" cy="64" rx="7" ry="7.6" fill="#f4c430"/>'+
+      '<path d="M49 59 v10 M45 64 h8 M71 59 v10 M67 64 h8" stroke="#241a10" stroke-width="2.2"/>'+
+      '<path d="M56 82 h8 l-4 4z" fill="#241a10"/>'+
+      '<g class="sand" fill="#d7b374"><circle cx="60" cy="70" r="3.2"/><circle cx="42" cy="58" r="2.6"/><circle cx="78" cy="58" r="2.6"/><circle cx="46" cy="86" r="2.6"/><circle cx="74" cy="86" r="2.6"/><circle cx="60" cy="94" r="2.6"/></g>'},
+
+    /* 2 — MATATABI: gatto avvolto da fiamme blu, 2 code di fuoco, occhi bicolore */
+    cat: {vb:'0 0 120 120', svg:
+      '<g class="flame" fill="#3ba7ef">'+
+      '<path d="M30 96 q-14 -4 -14 -22 q-10 12 -4 26 q6 12 18 8z"/>'+
+      '<path d="M90 96 q14 -4 14 -22 q10 12 4 26 q-6 12 -18 8z"/>'+
+      '<path d="M20 60 q-10 -12 -4 -24 q10 8 12 20z"/><path d="M100 60 q10 -12 4 -24 q-10 8 -12 20z"/>'+
+      '</g>'+
+      '<g class="flame" fill="#9fdcff">'+
+      '<path d="M28 92 q-8 -4 -8 -16 q-6 8 -2 18 q4 8 12 6z"/><path d="M92 92 q8 -4 8 -16 q6 8 2 18 q-4 8 -12 6z"/>'+
+      '</g>'+
+      '<path d="M42 46 q-8 -22 4 -26 q10 10 8 26z" fill="#1e2338"/><path d="M78 46 q8 -22 -4 -26 q-10 10 -8 26z" fill="#1e2338"/>'+
+      '<path d="M45 44 q-4 -12 2 -18 M75 44 q4 -12 -2 -18" stroke="#3ba7ef" stroke-width="2.6" fill="none"/>'+
+      '<ellipse cx="60" cy="68" rx="32" ry="29" fill="#232a44"/>'+
+      '<path d="M60 58 q-14 2 -14 16 q0 12 14 12 q14 0 14 -12 q0 -14 -14 -16z" fill="#2c3552"/>'+
+      // occhi bicolore (firma di Matatabi): sinistro oro, destro verde
+      '<ellipse cx="50" cy="66" rx="5.6" ry="6.8" fill="#ffd23f"/><ellipse cx="70" cy="66" rx="5.6" ry="6.8" fill="#66e0a0"/>'+
+      '<ellipse cx="50" cy="66" rx="2" ry="5.4" fill="#181c2c"/><ellipse cx="70" cy="66" rx="2" ry="5.4" fill="#181c2c"/>'+
+      '<path d="M55 76 h10 l-5 4z" fill="#3ba7ef"/>'+
+      '<path d="M46 80 q-12 2 -18 -3 M74 80 q12 2 18 -3" stroke="#3ba7ef" stroke-width="1.8" fill="none"/>'},
+
+    /* 3 — ISOBU: tartaruga con guscio a cupola/spuntoni, testa che sporge, 3 code */
+    turtle: {vb:'0 0 120 120', svg:
+      // zampe (dietro)
+      '<g fill="#5e938b"><ellipse cx="32" cy="94" rx="11" ry="8"/><ellipse cx="88" cy="94" rx="11" ry="8"/><ellipse cx="20" cy="76" rx="9" ry="7"/><ellipse cx="100" cy="76" rx="9" ry="7"/></g>'+
+      // tre code in basso (firma di Isobu)
+      '<g fill="#5e938b"><path d="M50 98 q-3 11 3 13 M60 100 q0 11 0 13 M70 98 q3 11 -3 13"/></g>'+
+      // guscio a cupola
+      '<path d="M20 78 q4 -46 42 -46 q38 0 42 46 q-42 15 -84 0z" fill="#a55f3d"/>'+
+      // spuntoni sul bordo
+      '<path d="M62 34 l-6 -12 l12 0z" fill="#8a4a2c"/><path d="M38 42 l-7 -10 M86 42 l7 -10" stroke="#8a4a2c" stroke-width="3.4" stroke-linecap="round"/>'+
+      // placche
+      '<path d="M62 36 q-26 8 -40 40 M62 36 q26 8 40 40 M62 36 v40 M30 62 l20 10 M94 62 l-20 10" stroke="#7d4529" stroke-width="2.4" fill="none"/>'+
+      // testa che sporge davanti (SOPRA il guscio)
+      '<ellipse cx="62" cy="84" rx="19" ry="16" fill="#7fb3aa"/>'+
+      '<circle cx="54" cy="82" r="5.6" fill="#241a10"/><circle cx="70" cy="82" r="5.6" fill="#241a10"/>'+
+      '<circle cx="55.8" cy="80" r="1.9" fill="#fff"/><circle cx="71.8" cy="80" r="1.9" fill="#fff"/>'+
+      '<path d="M56 91 q6 4 12 0" stroke="#4c7a72" stroke-width="2" fill="none"/>'+
+      '<circle class="ripple" cx="62" cy="100" r="12" fill="none" stroke="#9fd7ce" stroke-width="3"/>'},
+
+    /* 4 — SON GOKU: scimmione rosso con corna e accenti verdi, 4 code, sguardo fiero */
+    monkey: {vb:'0 0 120 120', svg:
+      '<g fill="#b5382a"><path d="M38 86 q-20 2 -24 -12 M40 92 q-18 12 -30 8 M44 96 q-14 14 -26 14 M50 98 q-8 16 -20 18"/></g>'+
+      // corna (firma di Son Goku)
+      '<path d="M42 40 q-10 -18 -2 -28 q10 8 12 24z" fill="#e7ddc2"/><path d="M78 40 q10 -18 2 -28 q-10 8 -12 24z" fill="#e7ddc2"/>'+
+      '<path d="M42 40 q-6 -14 -3 -22 M78 40 q6 -14 3 -22" stroke="#c3b78f" stroke-width="2" fill="none"/>'+
+      '<circle cx="40" cy="58" r="10" fill="#b5382a"/><circle cx="80" cy="58" r="10" fill="#b5382a"/><circle cx="40" cy="58" r="5" fill="#e2a98f"/><circle cx="80" cy="58" r="5" fill="#e2a98f"/>'+
+      '<ellipse cx="60" cy="70" rx="29" ry="27" fill="#c23c2b"/>'+
+      '<path d="M60 56 q-17 2 -17 18 q0 13 17 13 q17 0 17 -13 q0 -16 -17 -18z" fill="#e8bd9c"/>'+
+      // accenti verdi (firma di Son Goku)
+      '<path d="M44 52 q16 -7 32 0" stroke="#5f9e46" stroke-width="3.4" fill="none" stroke-linecap="round"/>'+
+      // sguardo fiero
+      '<path d="M48 60 l12 4 M72 60 l-12 4" stroke="#6e2016" stroke-width="2.6" stroke-linecap="round"/>'+
+      '<circle cx="53" cy="66" r="4.4" fill="#241a10"/><circle cx="67" cy="66" r="4.4" fill="#241a10"/><circle cx="54.3" cy="64.6" r="1.4" fill="#fff"/><circle cx="68.3" cy="64.6" r="1.4" fill="#fff"/>'+
+      '<path d="M54 78 q6 5 12 0" stroke="#7a2418" stroke-width="2.2" fill="none"/>'+
+      '<g class="ember" fill="#ff8a3d"><circle cx="60" cy="70" r="3"/><circle cx="46" cy="60" r="2.4"/><circle cx="74" cy="60" r="2.4"/><circle cx="48" cy="82" r="2.4"/><circle cx="72" cy="82" r="2.4"/></g>'},
+
+    /* 5 — KOKUO: cavallo-delfino bianco, corno, marchi rossi, 5 code */
+    horse: {vb:'0 0 120 120', svg:
+      '<g fill="#cfd7e0"><path d="M36 86 q-22 -2 -26 -18 M38 90 q-20 6 -30 -2 M40 94 q-18 12 -28 8 M42 97 q-14 16 -24 16 M46 98 q-8 18 -18 20"/></g>'+
+      '<g stroke="#c0402e" stroke-width="2" fill="none"><path d="M14 74 l-6 -2 M12 84 l-8 0 M16 94 l-6 4"/></g>'+
+      '<ellipse cx="58" cy="74" rx="28" ry="24" fill="#e4e9f0"/>'+
+      // muso liscio da delfino
+      '<path d="M78 66 q24 2 28 20 q-16 8 -32 -4z" fill="#e4e9f0"/>'+
+      '<path d="M60 52 q6 -16 16 -14 q-2 12 -10 18z" fill="#c3ccd6"/><path d="M54 54 q0 -14 -8 -18 q-4 12 2 20z" fill="#c3ccd6"/>'+
+      // corno (firma di Kokuo)
+      '<path d="M60 46 l-3 -22 l6 0z" fill="#d6dce4" stroke="#aab4c1" stroke-width="1"/>'+
+      // marchi rossi
+      '<path d="M50 62 q6 -4 12 0" stroke="#c0402e" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
+      '<circle cx="64" cy="68" r="4.6" fill="#241a10"/><circle cx="65.4" cy="66.6" r="1.5" fill="#fff"/>'+
+      '<circle cx="100" cy="84" r="2.2" fill="#8fa0b3"/>'+
+      '<g class="steam" fill="#eef3f8"><circle cx="102" cy="80" r="4.5"/><circle cx="109" cy="73" r="3.2"/></g>'},
+
+    /* 6 — SAIKEN: lumaca bianca, occhioni enormi, 6 code frangiate */
+    slug: {vb:'0 0 120 120', svg:
+      '<g fill="#cfe0c8"><path d="M70 92 q-2 10 4 14 M80 90 q0 10 6 12 M90 86 q4 10 10 10 M74 96 q-1 8 3 12 M84 94 q1 8 6 10 M64 94 q-3 8 2 12"/></g>'+
+      // corpo lumaca
+      '<path d="M22 94 q4 -34 44 -34 q40 0 42 22 q1 14 -16 14 q-16 0 -16 -12" fill="none" stroke="#e4efdd" stroke-width="22" stroke-linecap="round"/>'+
+      '<ellipse cx="34" cy="82" rx="17" ry="16" fill="#eef4e8"/>'+
+      // occhi enormi su stelo (firma di Saiken)
+      '<path d="M24 70 q-4 -16 3 -22 M40 68 q3 -17 11 -21" stroke="#cfe0c8" stroke-width="5.5" fill="none" stroke-linecap="round"/>'+
+      '<circle cx="25" cy="44" r="6.5" fill="#f4f8f0"/><circle cx="49" cy="43" r="6.5" fill="#f4f8f0"/>'+
+      '<circle cx="25" cy="45" r="3.6" fill="#241a10"/><circle cx="49" cy="44" r="3.6" fill="#241a10"/>'+
+      '<circle cx="26.4" cy="43.4" r="1.3" fill="#fff"/><circle cx="50.4" cy="42.4" r="1.3" fill="#fff"/>'+
+      '<path d="M28 88 q6 4 12 0" stroke="#a9c4a0" stroke-width="2" fill="none"/>'+
+      '<circle class="drip" cx="96" cy="86" r="3.6" fill="#cfe0c8"/>'},
+
+    /* 7 — CHOMEI: scarabeo verde con grande corno e ali, 7 code-nastro */
+    beetle: {vb:'0 0 120 120', svg:
+      '<g fill="#3f7d55"><path d="M40 84 q-16 8 -24 -2 M42 92 q-14 12 -24 12 M58 98 q-3 10 -1 12 M78 92 q14 12 24 12 M80 84 q16 8 24 -2 M50 96 q-8 10 -16 12 M70 96 q8 10 16 12"/></g>'+
+      // ali translucide
+      '<g class="wings"><ellipse cx="32" cy="66" rx="19" ry="12" fill="#bfe6cf" opacity=".6" transform="rotate(-20 32 66)"/><ellipse cx="88" cy="66" rx="19" ry="12" fill="#bfe6cf" opacity=".6" transform="rotate(20 88 66)"/></g>'+
+      '<ellipse cx="60" cy="76" rx="24" ry="27" fill="#4c8a5a"/>'+
+      '<path d="M60 50 v50" stroke="#356b48" stroke-width="2.6"/>'+
+      '<ellipse cx="60" cy="58" rx="15" ry="13" fill="#3f7d55"/>'+
+      // grande corno (firma di Chomei)
+      '<path d="M60 48 l0 -26 M60 22 l-6 8 M60 22 l6 8" stroke="#2f5a3d" stroke-width="4.5" fill="none" stroke-linecap="round"/>'+
+      '<circle cx="53" cy="58" r="4.4" fill="#241a10"/><circle cx="67" cy="58" r="4.4" fill="#241a10"/><circle cx="54.3" cy="56.6" r="1.5" fill="#fff"/><circle cx="68.3" cy="56.6" r="1.5" fill="#fff"/>'+
+      '<path d="M55 66 q5 3 10 0" stroke="#2f5a3d" stroke-width="1.8" fill="none"/>'},
+
+    /* 8 — GYUKI: polpo-bue. Mantello a cupola da polpo, 8 tentacoli con ventose,
+       corna di bue. Colori indaco/viola scuro con ventre crema. */
+    octo: {vb:'0 0 132 128', svg:
+      // 8 tentacoli (dietro), spessi, .tent
+      '<g class="tent" fill="none" stroke="#463c76" stroke-width="8.5" stroke-linecap="round">'+
+      '<path d="M40 72 q-22 0 -30 -12"/>'+
+      '<path d="M44 80 q-20 6 -28 22 q-3 9 5 12"/>'+
+      '<path d="M53 86 q-12 18 -28 24"/>'+
+      '<path d="M61 90 q-5 20 -14 30"/>'+
+      '<path d="M71 90 q5 20 14 30"/>'+
+      '<path d="M79 86 q12 18 28 24"/>'+
+      '<path d="M88 80 q20 6 28 22 q3 9 -5 12"/>'+
+      '<path d="M92 72 q22 0 30 -12"/>'+
+      '</g>'+
+      // ventose chiare sui tentacoli frontali
+      '<g fill="#c7bce6"><circle cx="59" cy="101" r="2"/><circle cx="57" cy="113" r="1.8"/><circle cx="73" cy="101" r="2"/><circle cx="75" cy="113" r="1.8"/></g>'+
+      // mantello a cupola (testa di polpo)
+      '<path d="M34 84 C 29 32 44 18 66 18 C 88 18 103 32 98 84 C 78 95 54 95 34 84 Z" fill="#453d72"/>'+
+      // ventre/muso crema
+      '<ellipse cx="66" cy="80" rx="15" ry="10" fill="#e6dcc2"/>'+
+      // corna di bue (bianche)
+      '<path d="M46 46 q-22 -6 -24 -26 q4 15 24 19z" fill="#ece3ca"/><path d="M45 44 q-15 -5 -18 -18" stroke="#c9bf9e" stroke-width="1.6" fill="none"/>'+
+      '<path d="M86 46 q22 -6 24 -26 q-4 15 -24 19z" fill="#ece3ca"/><path d="M87 44 q15 -5 18 -18" stroke="#c9bf9e" stroke-width="1.6" fill="none"/>'+
+      // sopracciglia fiere + occhi grandi d'oro
+      '<path d="M50 55 l13 4 M82 55 l-13 4" stroke="#2b2450" stroke-width="2.8" stroke-linecap="round"/>'+
+      '<circle cx="57" cy="62" r="6.4" fill="#f4c430"/><circle cx="75" cy="62" r="6.4" fill="#f4c430"/>'+
+      '<circle cx="57" cy="62" r="2.6" fill="#241a10"/><circle cx="75" cy="62" r="2.6" fill="#241a10"/>'+
+      '<circle cx="58.8" cy="60.2" r="1.5" fill="#fff"/><circle cx="76.8" cy="60.2" r="1.5" fill="#fff"/>'+
+      // bocca sul muso crema
+      '<path d="M60 82 q6 5 12 0" stroke="#7c6f4d" stroke-width="2.2" fill="none"/>'},
+
+    /* 9 — KURAMA: volpe a 9 code, marchi rossi agli occhi, orecchie lunghe, sguardo fiero */
+    fox: {vb:'0 0 200 200', svg:
+      '<g fill="#e0602a">'+
+      ['-76','-57','-38','-19','0','19','38','57','76'].map(function(a){return '<g transform="rotate('+a+' 100 134)"><path d="M100 134 C85 108 83 66 94 30 C104 58 112 104 100 134 Z"/><path d="M94 34 C90 52 90 74 96 96" fill="none" stroke="#b84a1c" stroke-width="2.4"/><ellipse cx="94" cy="36" rx="5" ry="10" fill="#f4ddb8"/></g>';}).join('')+
+      '</g>'+
+      '<ellipse cx="100" cy="150" rx="26" ry="23" fill="#e0602a"/><ellipse cx="100" cy="158" rx="15" ry="15" fill="#f4ddb8"/>'+
+      // orecchie lunghe (firma di Kurama)
+      '<path d="M72 96 L78 40 L102 84 Z" fill="#e0602a"/><path d="M128 96 L122 40 L98 84 Z" fill="#e0602a"/>'+
+      '<path d="M80 84 L84 52 L98 82 Z" fill="#7c3d15"/><path d="M120 84 L116 52 L102 82 Z" fill="#7c3d15"/>'+
+      '<ellipse cx="100" cy="106" rx="36" ry="32" fill="#e0602a"/>'+
+      '<ellipse cx="100" cy="122" rx="19" ry="15" fill="#f4ddb8"/>'+
+      // marchi rossi attorno agli occhi (firma di Kurama)
+      '<path d="M84 92 q-16 -4 -22 6 q14 2 22 4z" fill="#b0341a"/><path d="M116 92 q16 -4 22 6 q-14 2 -22 4z" fill="#b0341a"/>'+
+      '<path d="M100 96 q-6 8 -4 16 M100 96 q6 8 4 16" stroke="#b0341a" stroke-width="2.6" fill="none"/>'+
+      // occhi fieri d'oro con pupilla a fessura
+      '<path d="M80 100 l16 4 M120 100 l-16 4" stroke="#7c3d15" stroke-width="2.6" stroke-linecap="round"/>'+
+      '<ellipse cx="87" cy="106" rx="6.5" ry="7" fill="#f4c430"/><ellipse cx="113" cy="106" rx="6.5" ry="7" fill="#f4c430"/>'+
+      '<ellipse cx="87" cy="106" rx="2.2" ry="6" fill="#241a10"/><ellipse cx="113" cy="106" rx="2.2" ry="6" fill="#241a10"/>'+
+      '<path d="M95 116 h10 l-5 5.5 z" fill="#241a10"/>'+
+      '<g stroke="#b5591f" stroke-width="2" stroke-linecap="round"><path d="M72 114 l-12 -3"/><path d="M72 120 l-12 2"/><path d="M128 114 l12 -3"/><path d="M128 120 l12 2"/></g>'+
+      '<circle class="dama" cx="120" cy="122" r="9" fill="#2a1a3a" stroke="#6a3fa0" stroke-width="2"/>'}
+  };
+
+  // Mascotte attive sul sito. Le altre (slug, beetle, octo) restano definite
+  // ma non vengono mai mostrate. Per riattivarne una, aggiungi la sua chiave qui.
+  var KEYS = ['tanuki', 'cat', 'turtle', 'monkey', 'horse', 'fox'];
+
+  function mount(el) {
+    var key = KEYS[Math.floor(Math.random() * KEYS.length)];
+    var m = M[key];
+    el.className = 'bjmascot bj-' + key;
+    el.setAttribute('role', 'button');
+    el.setAttribute('title', 'Cliccami!');
+    el.innerHTML = '<svg class="bjsvg" viewBox="' + m.vb + '" aria-hidden="true">' + m.svg + '</svg>';
+    el.addEventListener('click', function () {
+      el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit');
+    });
+  }
+
+  function init() {
+    var style = document.createElement('style'); style.textContent = CSS; document.head.appendChild(style);
+    var el = document.getElementById('bijuu-logo');
+    if (el) mount(el);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+
+</script>
+  <!-- Presenza: segnala che questo giocatore è online (per la zona utenti in home) -->
+  <script>
+  (function(){
+    if(!window.supabase) return;
+    var hb=window.supabase.createClient('https://tyhyxkslteigibktluml.supabase.co','sb_publishable_jG9_Pb0L4PWuutcutyVc8w_UP6WY41g');
+    function ping(){
+      hb.auth.getSession().then(function(res){
+        if(res&&res.data&&res.data.session){ hb.rpc('touch_presence').then(function(){},function(){}); }
+      },function(){});
+    }
+    ping();
+    setInterval(ping, 60000);
+    document.addEventListener('visibilitychange',function(){ if(!document.hidden) ping(); });
+  })();
+  </script>
+</body>
+</html>
