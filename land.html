@@ -614,6 +614,20 @@
   .jdb-eff{font-size:12.5px;line-height:1.42;color:var(--ink);margin:2px 0 4px}
   .jdb-meta{font-size:11px;color:var(--ink-soft);line-height:1.4}
   .jdb-empty{color:var(--ink-soft);font-style:italic;padding:12px 2px}
+  .jdb-card.jdb-click{cursor:pointer;transition:border-color .12s,background .12s}
+  .jdb-card.jdb-click:hover{border-color:var(--red);background:rgba(166,50,29,.05)}
+  .jdb-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .jdb-more{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--red-deep);margin-top:6px;opacity:.85}
+  .jdb-back{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.05em;color:var(--ink);background:rgba(255,250,235,.6);border:1px solid var(--edge);border-radius:8px;padding:7px 12px;cursor:pointer;margin-bottom:12px}
+  .jdb-back:hover{background:rgba(166,50,29,.08);border-color:var(--red)}
+  .jdb-det-h{display:flex;align-items:baseline;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  .jdb-det-name{font-family:'Cinzel',serif;font-weight:700;font-size:16px;color:var(--ink)}
+  .jdb-dsec{margin:13px 0 0;border-top:1px solid rgba(138,111,67,.25);padding-top:10px}
+  .jdb-dh{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--red-deep);margin-bottom:6px}
+  .jdb-dp{font-size:14px;line-height:1.5;color:var(--ink);margin:0}
+  .jdb-drow{display:flex;gap:10px;line-height:1.45;padding:2px 0}
+  .jdb-dl{flex:0 0 118px;color:var(--ink-soft);text-transform:uppercase;font-size:9.5px;letter-spacing:.05em;font-family:'Cinzel',serif;padding-top:3px}
+  .jdb-dv{flex:1;color:var(--ink);font-size:14px}
   /* Corporazioni */
   .corp-me{border:1px solid var(--rule);border-radius:10px;background:rgba(255,250,235,.5);padding:12px 14px;margin-bottom:14px}
   .corp-me-in{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
@@ -2553,33 +2567,60 @@
         var JDB_ANBU_RAMI=[['','Tronco comune'],['assassinio','Assassinio'],['pedinamento','Pedinamento'],['sensoriale','Sensoriale'],['infiltrazione','Infiltrazione']];
         function jdbRamo(r){ var m={chirurgia:'Chirurgia',tossicologia:'Tossicologia','cura-campo':'Cura da campo',combattimento:'Combattimento',assassinio:'Assassinio',pedinamento:'Pedinamento',sensoriale:'Sensoriale',infiltrazione:'Infiltrazione'}; return m[r]||r; }
         function jdbMatch(o,q){ if(!q) return true; q=q.toLowerCase(); return (((o.name||o.name_it||'')+' '+(o.danno_effetto||o.effect||'')+' '+(o.category||'')+' '+(o.clan||'')+' '+(o.name_romaji||'')+' '+(o.disciplina||'')).toLowerCase().indexOf(q)>=0); }
+        function jdbKey(o){ return o.__k||(o.name_it?('j'+o.id):o.id); }
         function jdbCard(o){
+          // anteprima compatta: nome + grado + effetto in due righe. Click -> riquadro completo.
           var name=o.name||o.name_it||'—';
           var rank=o.grado||o.rank||(o.level!=null?('Liv. '+o.level):'');
+          var eff=o.danno_effetto||o.effect||'';
+          return '<div class="jdb-card jdb-click" data-jt="'+esc(jdbKey(o))+'" role="button" tabindex="0">'
+            +'<div class="jdb-top"><span class="jdb-name">'+esc(name)+'</span>'+(rank?'<span class="jdb-badge">'+esc(rank)+'</span>':'')+'</div>'
+            +(eff?'<div class="jdb-eff jdb-2">'+esc(eff)+'</div>':'')
+            +'<div class="jdb-more">Dettagli &rarr;</div></div>';
+        }
+        function jdbRow(label,val){ return val?('<div class="jdb-drow"><span class="jdb-dl">'+label+'</span><span class="jdb-dv">'+val+'</span></div>'):''; }
+        function jdbDetailHTML(o){
+          var name=esc(o.name||o.name_it||'—');
           var rom=o.name_romaji?(' <span class="jdb-rom">'+esc(o.name_romaji)+'</span>'):'';
+          var rank=o.grado||o.rank||(o.level!=null?('Liv. '+o.level):'');
+          var badge=rank?'<span class="jdb-badge">'+esc(rank)+'</span>':'';
           var tags=[];
           if(o.disciplina && o.disciplina!=='Abilità') tags.push(o.disciplina);
           if(o.clan) tags.push(o.clan);
           if(o.req_ramo) tags.push(jdbRamo(o.req_ramo));
           if(o.category && !/^Medica/.test(o.category) && !/^ANBU · /.test(o.category)) tags.push(o.category);
           if(o.nature) tags.push(o.nature);
-          if(o.action_type) tags.push(o.action_type);
-          var eff=o.danno_effetto||o.effect||'';
-          var meta=[];
+          var tagsH=tags.length?('<div class="jdb-tags">'+tags.map(function(t){return '<span class="jdb-tag">'+esc(t)+'</span>';}).join('')+'</div>'):'';
+          var desc=o.description?('<div class="jdb-dsec"><div class="jdb-dh">Descrizione</div><p class="jdb-dp">'+esc(o.description).replace(/\n/g,'<br>')+'</p></div>'):'';
+          var eff=o.danno_effetto||o.effect;
+          var effH=eff?('<div class="jdb-dsec"><div class="jdb-dh">Effetto</div><p class="jdb-dp">'+esc(eff)+'</p></div>'):'';
           var db=(o.danno_base!=null&&o.danno_base>0)?o.danno_base:((o.damage_base!=null&&o.damage_base>0)?o.damage_base:null);
-          if(db) meta.push('danno '+db);
-          if(o.potenza!=null) meta.push('potenza '+o.potenza);
-          if(o.gittata) meta.push('gittata '+esc(o.gittata));
-          if(o.attivazione) meta.push(o.attivazione==='sigilli'?'con sigilli':'istantanea');
-          if(o.chakra_cost!=null&&o.chakra_cost>0) meta.push(o.chakra_cost+' chakra');
-          if(o.req_corp) meta.push('Corpo: '+esc(o.req_corp.charAt(0).toUpperCase()+o.req_corp.slice(1)));
-          if(o.req_grade) meta.push('grado '+esc(o.req_grade));
-          if(o.req_stat) meta.push(esc(o.req_stat)+(o.req_stat_value!=null?(' '+o.req_stat_value):''));
-          if(o.requirements) meta.push(esc(o.requirements));
-          return '<div class="jdb-card"><div class="jdb-top"><span class="jdb-name">'+esc(name)+rom+'</span>'+(rank?'<span class="jdb-badge">'+esc(rank)+'</span>':'')+'</div>'
-            +(tags.length?'<div class="jdb-tags">'+tags.map(function(t){return '<span class="jdb-tag">'+esc(t)+'</span>';}).join('')+'</div>':'')
-            +(eff?'<div class="jdb-eff">'+esc(eff)+'</div>':'')
-            +(meta.length?'<div class="jdb-meta">'+meta.join(' · ')+'</div>':'')+'</div>';
+          var car='';
+          car+=jdbRow('Distanza', o.gittata?(esc(o.gittata)+(o.portata?(' · '+esc(o.portata)):'')):(o.portata?esc(o.portata):''));
+          car+=jdbRow('Attivazione', o.attivazione?(o.attivazione==='sigilli'?'con sigilli (disturbabile a contatto)':'istantanea'):'');
+          car+=jdbRow('Danno base', db!=null?(''+db):'');
+          car+=jdbRow('Potenza illusione', o.potenza!=null?(''+o.potenza):'');
+          car+=jdbRow('Bersaglio', o.bersaglio?esc(o.bersaglio):'');
+          car+=jdbRow('Azione', (o.tipo_azione||o.action_type)?esc(o.tipo_azione||o.action_type):'');
+          car+=jdbRow('Durata', o.durata?esc(o.durata):'');
+          car+=jdbRow('Ricarica', o.ricarica?esc(o.ricarica):'');
+          car+=jdbRow('Chakra', (o.chakra_cost!=null&&o.chakra_cost>0)?(o.chakra_cost+' chakra'):'');
+          car+=jdbRow('Consumo', o.consumption_type?(({ad_utilizzo:'ad utilizzo',per_turno:'per turno',passiva:'passiva'})[o.consumption_type]||o.consumption_type):'');
+          var carH=car?('<div class="jdb-dsec"><div class="jdb-dh">Caratteristiche</div>'+car+'</div>'):'';
+          var unl='';
+          unl+=jdbRow('Grado minimo', o.req_grade?esc(o.req_grade):'');
+          unl+=jdbRow('Statistica', o.req_stat?(esc(o.req_stat)+(o.req_stat_value!=null?(' &ge; '+o.req_stat_value):'')):'');
+          unl+=jdbRow('Corpo', o.req_corp?esc(o.req_corp.charAt(0).toUpperCase()+o.req_corp.slice(1)):'');
+          unl+=jdbRow('Ramo', o.req_ramo?esc(jdbRamo(o.req_ramo)):'');
+          unl+=jdbRow('Elemento', (o.req_elements&&o.req_elements.length)?esc(o.req_elements.join(' o ')):'');
+          unl+=jdbRow('Requisiti', o.requirements?esc(o.requirements):'');
+          var costo=(o.xp_cost!=null?(o.xp_cost+' XP'):'')+((o.xp_cost!=null&&o.trainings_required!=null)?' · ':'')+(o.trainings_required!=null?(o.trainings_required+(o.trainings_required===1?' allenamento':' allenamenti')):'');
+          unl+=jdbRow('Costo', costo);
+          unl+=jdbRow('Limiti', o.limits?esc(o.limits):'');
+          if(o.name_it && !o.req_grade) unl+=jdbRow('Come si impara','all\'Accademia, con le lezioni del sensei');
+          var unlH=unl?('<div class="jdb-dsec"><div class="jdb-dh">Come si sblocca</div>'+unl+'</div>'):'';
+          return '<button type="button" class="jdb-back">&larr; Torna all\'elenco</button>'
+            +'<div class="jdb-det"><div class="jdb-det-h"><span class="jdb-det-name">'+name+rom+'</span>'+badge+'</div>'+tagsH+desc+effH+carH+unlH+'</div>';
         }
         function renderJutsuDB(){
           var host=document.getElementById('jutsu-body'); if(!host) return;
@@ -2637,7 +2678,10 @@
           Promise.all([
             sb.from('jutsu').select('id,name_it,name_romaji,category,nature,rank,power,requirements,chakra_cost,action_type,damage_base,effect,limits,kind').eq('is_active',true).order('sort'),
             sb.from('clan_techniques').select('*').eq('is_active',true).order('sort').order('name')
-          ]).then(function(rs){ JDB.jutsu=(rs[0]&&rs[0].data)||[]; JDB.tech=(rs[1]&&rs[1].data)||[]; JDB.loaded=true; renderJutsuDB(); },
+          ]).then(function(rs){ JDB.jutsu=(rs[0]&&rs[0].data)||[]; JDB.tech=(rs[1]&&rs[1].data)||[]; JDB.byId={};
+            JDB.jutsu.forEach(function(o){ o.__k='j'+o.id; JDB.byId[o.__k]=o; });
+            JDB.tech.forEach(function(o){ o.__k=o.id; JDB.byId[o.__k]=o; });
+            JDB.loaded=true; renderJutsuDB(); },
             function(){ var hh=document.getElementById('jutsu-body'); if(hh)hh.innerHTML='<p class="jdb-empty">Impossibile caricare il database delle tecniche.</p>'; });
         }
         function closeJutsu(){ var ov=document.getElementById('jutsuov'), bk=document.getElementById('jutsuov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
@@ -2648,7 +2692,11 @@
           document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&jutsuOpenNow())closeJutsu(); });
           var tb=document.getElementById('jdb-tabs'); if(tb)tb.addEventListener('click',function(e){ var b=e.target.closest('[data-jtab]'); if(!b)return; JDB.tab=b.getAttribute('data-jtab'); renderJutsuDB(); });
           var s=document.getElementById('jdb-search'); if(s)s.addEventListener('input',function(){ JDB.q=this.value||''; renderJutsuDB(); });
-          var body=document.getElementById('jutsu-body'); if(body)body.addEventListener('click',function(e){ var a=e.target.closest('.jdb-acc'); if(!a)return; a.classList.toggle('open'); var bd=a.nextElementSibling; if(bd&&bd.classList.contains('jdb-accbody'))bd.classList.toggle('open'); });
+          var body=document.getElementById('jutsu-body'); if(body)body.addEventListener('click',function(e){
+            var card=e.target.closest('.jdb-click'); if(card){ var o=JDB.byId&&JDB.byId[card.getAttribute('data-jt')]; if(o){ body.scrollTop=0; body.innerHTML=jdbDetailHTML(o); } return; }
+            if(e.target.closest('.jdb-back')){ renderJutsuDB(); return; }
+            var a=e.target.closest('.jdb-acc'); if(a){ a.classList.toggle('open'); var bd=a.nextElementSibling; if(bd&&bd.classList.contains('jdb-accbody'))bd.classList.toggle('open'); }
+          });
         })();
         var wr=document.getElementById('world-rail'); if(wr) wr.addEventListener('click', function(e){ var b=e.target.closest('[data-world]'); if(!b) return; var k=b.getAttribute('data-world'); if(k==='corporazioni'){ openCorp(); } else if(k==='jutsu'){ openJutsu('accademia'); } else if(k==='abilita'){ openJutsu('abilita'); } else { openWorld(k); } });
         var wc=document.getElementById('world-close'); if(wc) wc.addEventListener('click', closeWorld);
