@@ -1212,6 +1212,7 @@
         <button class="miss-tab" type="button" data-jtab="accademia">Accademia</button>
         <button class="miss-tab" type="button" data-jtab="clan">Clan</button>
         <button class="miss-tab" type="button" data-jtab="medico">Corpo Medico</button>
+        <button class="miss-tab" type="button" data-jtab="anbu">ANBU</button>
         <button class="miss-tab" type="button" data-jtab="abilita">Abilità</button>
       </div>
       <div class="miss-body" id="jutsu-body"></div>
@@ -2549,7 +2550,8 @@
         /* ===== CODICE DELLE TECNICHE — database informativo (sola lettura) ===== */
         var JDB={loaded:false,jutsu:[],tech:[],tab:'accademia',q:''};
         var JDB_RAMI=[['','Tronco comune'],['chirurgia','Chirurgia'],['tossicologia','Tossicologia'],['cura-campo','Cura da campo'],['combattimento','Combattimento']];
-        function jdbRamo(r){ var m={chirurgia:'Chirurgia',tossicologia:'Tossicologia','cura-campo':'Cura da campo',combattimento:'Combattimento'}; return m[r]||r; }
+        var JDB_ANBU_RAMI=[['','Tronco comune'],['assassinio','Assassinio'],['pedinamento','Pedinamento'],['sensoriale','Sensoriale'],['infiltrazione','Infiltrazione']];
+        function jdbRamo(r){ var m={chirurgia:'Chirurgia',tossicologia:'Tossicologia','cura-campo':'Cura da campo',combattimento:'Combattimento',assassinio:'Assassinio',pedinamento:'Pedinamento',sensoriale:'Sensoriale',infiltrazione:'Infiltrazione'}; return m[r]||r; }
         function jdbMatch(o,q){ if(!q) return true; q=q.toLowerCase(); return (((o.name||o.name_it||'')+' '+(o.danno_effetto||o.effect||'')+' '+(o.category||'')+' '+(o.clan||'')+' '+(o.name_romaji||'')+' '+(o.disciplina||'')).toLowerCase().indexOf(q)>=0); }
         function jdbCard(o){
           var name=o.name||o.name_it||'—';
@@ -2559,7 +2561,7 @@
           if(o.disciplina && o.disciplina!=='Abilità') tags.push(o.disciplina);
           if(o.clan) tags.push(o.clan);
           if(o.req_ramo) tags.push(jdbRamo(o.req_ramo));
-          if(o.category && !/^Medica/.test(o.category)) tags.push(o.category);
+          if(o.category && !/^Medica/.test(o.category) && !/^ANBU · /.test(o.category)) tags.push(o.category);
           if(o.nature) tags.push(o.nature);
           if(o.action_type) tags.push(o.action_type);
           var eff=o.danno_effetto||o.effect||'';
@@ -2607,8 +2609,15 @@
                 list.sort(function(a,b){return (a.sort||0)-(b.sort||0);});
                 return '<div class="jdb-h">'+esc(rm[1])+'</div><div class="jdb-grid">'+list.map(jdbCard).join('')+'</div>'; }).join('');
             }
+          } else if(tab==='anbu'){
+            var an=JDB.tech.filter(function(o){return /^ANBU/.test(o.category||'') && jdbMatch(o,q);});
+            if(!an.length){ h='<p class="jdb-empty">Nessuna tecnica ANBU'+(q?' per «'+esc(q)+'»':'')+'.</p>'; }
+            else { h=JDB_ANBU_RAMI.map(function(rm){ var list=an.filter(function(o){return (o.req_ramo||'')===rm[0];}); if(!list.length) return '';
+                list.sort(function(a,b){return (a.sort||0)-(b.sort||0);});
+                return '<div class="jdb-h">'+esc(rm[1])+'</div><div class="jdb-grid">'+list.map(jdbCard).join('')+'</div>'; }).join('');
+            }
           } else {
-            var ab=JDB.tech.filter(function(o){return !o.clan && !/^Medica/.test(o.category||'') && jdbMatch(o,q);});
+            var ab=JDB.tech.filter(function(o){return !o.clan && !/^Medica/.test(o.category||'') && !/^ANBU/.test(o.category||'') && jdbMatch(o,q);});
             if(!ab.length){ h='<p class="jdb-empty">Nessuna abilità'+(q?' per «'+esc(q)+'»':'')+'.</p>'; }
             else { ab.sort(function(a,b){return (a.sort||0)-(b.sort||0);}); h='<div class="jdb-grid">'+ab.map(jdbCard).join('')+'</div>'; }
           }
