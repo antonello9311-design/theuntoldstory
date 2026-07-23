@@ -916,8 +916,8 @@
       var canAct=(viewMode!=='public'); var q=TK.q; var h='';
       var hasClan=!!(myChar&&myChar.clan&&myChar.clan!=='Nessuno');
       var baseAll=(TK.base||[]).filter(function(j){return tkBaseMatch(j,q);});
-      var baseNin=baseAll.filter(function(j){return (j.category||'')!=='Abilità';});
-      var baseAbi=baseAll.filter(function(j){return (j.category||'')==='Abilità';});
+      var baseNin=baseAll.filter(function(j){return j.kind!=='abilita';});
+      var baseAbi=baseAll.filter(function(j){return j.kind==='abilita';});
       var myCorp2=String((myChar&&myChar.corporation)||'').toLowerCase();
       var gen=(TK.gen||[]).filter(function(t){return tkMatch(t,q) && (!t.req_corp || String(t.req_corp).toLowerCase()===myCorp2) && techShow(t);});
       var genJutsu=gen.filter(function(t){return t.macro!=='abilita';});
@@ -980,7 +980,7 @@
         return hasClan ? sb.from('clan_techniques').select('*').eq('clan',myChar.clan).eq('is_active',true).order('sort').order('name') : Promise.resolve({data:[]});
       }).then(function(r){
         TK.techs=(r&&r.data)||[]; TK.byId=byId;
-        return sb.from('jutsu').select('id,name_it,category,rank,effect,requirements,limits,chakra_cost').eq('is_active',true).order('sort');
+        return sb.from('jutsu').select('id,name_it,category,rank,effect,requirements,limits,chakra_cost,kind').eq('is_active',true).order('sort');
       }).then(function(jr){
         TK.base=(jr&&jr.data)||[];
         return sb.from('clan_techniques').select('*').is('clan',null).in('macro',['generica','abilita']).eq('is_active',true).order('sort').order('name');

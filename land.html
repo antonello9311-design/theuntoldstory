@@ -2585,7 +2585,7 @@
           var host=document.getElementById('jutsu-body'); if(!host) return;
           var q=JDB.q, tab=JDB.tab, h='';
           if(tab==='accademia'){
-            var js=JDB.jutsu.filter(function(o){return jdbMatch(o,q);});
+            var js=JDB.jutsu.filter(function(o){return o.kind!=='abilita' && jdbMatch(o,q);});
             if(!js.length){ h='<p class="jdb-empty">Nessun jutsu base'+(q?' per «'+esc(q)+'»':'')+'.</p>'; }
             else { var order=['E','D','C','B','A','S'], groups={}, ord=[];
               js.forEach(function(o){ var r=o.rank||'—'; if(!groups[r]){groups[r]=[];ord.push(r);} groups[r].push(o); });
@@ -2617,9 +2617,13 @@
                 return '<div class="jdb-h">'+esc(rm[1])+'</div><div class="jdb-grid">'+list.map(jdbCard).join('')+'</div>'; }).join('');
             }
           } else {
+            var baseAb=JDB.jutsu.filter(function(o){return o.kind==='abilita' && jdbMatch(o,q);});
             var ab=JDB.tech.filter(function(o){return !o.clan && !/^Medica/.test(o.category||'') && !/^ANBU/.test(o.category||'') && jdbMatch(o,q);});
-            if(!ab.length){ h='<p class="jdb-empty">Nessuna abilità'+(q?' per «'+esc(q)+'»':'')+'.</p>'; }
-            else { ab.sort(function(a,b){return (a.sort||0)-(b.sort||0);}); h='<div class="jdb-grid">'+ab.map(jdbCard).join('')+'</div>'; }
+            if(!baseAb.length && !ab.length){ h='<p class="jdb-empty">Nessuna abilità'+(q?' per «'+esc(q)+'»':'')+'.</p>'; }
+            else { baseAb.sort(function(a,b){return (a.sort||0)-(b.sort||0);}); ab.sort(function(a,b){return (a.sort||0)-(b.sort||0);}); h='';
+              if(baseAb.length) h+='<div class="jdb-h">Basi d\'Accademia</div><div class="jdb-grid">'+baseAb.map(jdbCard).join('')+'</div>';
+              if(ab.length) h+='<div class="jdb-h">Generiche</div><div class="jdb-grid">'+ab.map(jdbCard).join('')+'</div>';
+            }
           }
           host.innerHTML=h;
           var tabs=document.querySelectorAll('#jdb-tabs [data-jtab]'); for(var i=0;i<tabs.length;i++) tabs[i].classList.toggle('on',tabs[i].getAttribute('data-jtab')===tab);
@@ -2631,7 +2635,7 @@
           if(JDB.loaded){ renderJutsuDB(); return; }
           var host=document.getElementById('jutsu-body'); if(host)host.innerHTML='<p class="jdb-empty">Caricamento…</p>';
           Promise.all([
-            sb.from('jutsu').select('id,name_it,name_romaji,category,nature,rank,power,requirements,chakra_cost,action_type,damage_base,effect,limits').eq('is_active',true).order('sort'),
+            sb.from('jutsu').select('id,name_it,name_romaji,category,nature,rank,power,requirements,chakra_cost,action_type,damage_base,effect,limits,kind').eq('is_active',true).order('sort'),
             sb.from('clan_techniques').select('*').eq('is_active',true).order('sort').order('name')
           ]).then(function(rs){ JDB.jutsu=(rs[0]&&rs[0].data)||[]; JDB.tech=(rs[1]&&rs[1].data)||[]; JDB.loaded=true; renderJutsuDB(); },
             function(){ var hh=document.getElementById('jutsu-body'); if(hh)hh.innerHTML='<p class="jdb-empty">Impossibile caricare il database delle tecniche.</p>'; });
