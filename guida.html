@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guida al primo accesso · The Untold Story</title>
+<meta name="description" content="Dalla registrazione al primo turno di gioco: la guida pratica a The Untold Story, il gioco di ruolo testuale a tema Naruto." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cinzel+Decorative:wght@700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#e7d6b2; --paper-hi:#f1e6ca; --paper-lo:#d2bc90; --edge:#b79d6c;
+    --ink:#2b1d0e; --ink-soft:#6a5231; --rule:#8a6f43;
+    --red:#a6321d; --red-deep:#7c2413;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Cormorant Garamond',Georgia,serif;color:var(--ink);background:var(--paper-lo);
+    -webkit-font-smoothing:antialiased}
+  .page{position:relative;min-height:100vh;display:flex;flex-direction:column;
+    background:radial-gradient(120% 80% at 50% 0%, var(--paper-hi), var(--paper) 46%, var(--paper-lo) 100%);}
+  .page::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:radial-gradient(var(--ink) .6px, transparent .7px);background-size:4px 4px;opacity:.05}
+  .page::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(80% 46% at 15% 6%, rgba(120,90,40,.10), transparent 60%),
+      radial-gradient(70% 40% at 88% 96%, rgba(120,90,40,.12), transparent 60%),
+      radial-gradient(130% 120% at 50% 50%, transparent 60%, rgba(60,42,18,.26) 100%)}
+  .frame{position:fixed;inset:16px;z-index:6;pointer-events:none;border:1.5px solid var(--rule);opacity:.7}
+  .frame::before{content:"";position:absolute;inset:5px;border:1px solid var(--rule);opacity:.55}
+  .corner{position:absolute;width:16px;height:16px;color:var(--rule);font-size:16px;line-height:1;text-align:center}
+  .corner.tl{top:-9px;left:-9px}.corner.tr{top:-9px;right:-9px}.corner.bl{bottom:-9px;left:-9px}.corner.br{bottom:-9px;right:-9px}
+
+  .content{position:relative;z-index:3;display:flex;flex-direction:column;min-height:100vh;padding:0 clamp(22px,5vw,60px)}
+
+  /* NAV */
+  nav{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:26px 4px 22px;border-bottom:1px solid var(--rule)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand b{font-family:'Cinzel',serif;font-weight:600;font-size:16px;letter-spacing:.16em;text-transform:uppercase}
+  .home-link{color:inherit;text-decoration:none}
+  .home-link:hover b{color:var(--red-deep)}
+
+  /* HEADER */
+  .reader{position:relative;flex:1;padding:6px 0 8px}
+  .rules-head{position:relative;text-align:center;padding:40px 0 8px}
+  .seal-mini{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:min(300px,60vw);aspect-ratio:1;z-index:0;pointer-events:none;opacity:.9}
+  .rules-head .inner{position:relative;z-index:1}
+  .kicker{display:inline-flex;align-items:center;gap:16px;font-family:'Cinzel',serif;font-weight:600;font-size:clamp(12px,1.4vw,15px);letter-spacing:.5em;color:var(--red-deep);margin-bottom:14px;padding-left:.5em}
+  .kicker::before,.kicker::after{content:"";width:clamp(24px,5vw,54px);height:1px;background:var(--rule)}
+  .rules-head h1{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;line-height:1.06;letter-spacing:.005em;
+    font-size:clamp(34px,5.6vw,68px);color:var(--ink);text-shadow:0 1px 0 rgba(255,250,235,.5)}
+  .rules-head .dek{font-style:italic;font-weight:600;font-size:clamp(16px,2vw,21px);color:var(--ink-soft);max-width:48ch;margin:16px auto 0;line-height:1.4}
+
+  /* NOTICE + TOC */
+  .notice{max-width:64ch;margin:26px auto 0;text-align:center;font-style:italic;color:var(--ink-soft);font-size:15px;
+    background:rgba(166,50,29,.05);border:1px solid var(--edge);padding:9px 16px}
+  .toc{max-width:64ch;margin:22px auto 6px;padding:16px 22px;border:1px solid var(--edge);background:rgba(255,250,235,.4)}
+  .toc h3{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--red-deep);margin-bottom:10px;text-align:center}
+  .toc ol{list-style:none;counter-reset:toc;columns:2;column-gap:34px}
+  .toc li{counter-increment:toc;margin:5px 0;break-inside:avoid}
+  .toc a{color:var(--ink);text-decoration:none;font-size:15.5px}
+  .toc a::before{content:counter(toc) ".\00a0";color:var(--red-deep);font-family:'Cinzel',serif;font-weight:600}
+  .toc a:hover{color:var(--red-deep)}
+
+  /* INTRO BOX */
+  .quickstart{max-width:66ch;margin:30px auto 6px;padding:24px 26px 20px;border:1px solid var(--red);
+    background:linear-gradient(rgba(166,50,29,.07),rgba(255,250,235,.45));position:relative}
+  .quickstart::before{content:"\2726";position:absolute;top:-19px;left:20px;font-family:'Cinzel Decorative','Cinzel',serif;
+    font-weight:900;font-size:28px;color:var(--red-deep);background:var(--paper);padding:0 12px;line-height:1}
+  .quickstart h2{font-family:'Cinzel',serif;font-weight:600;font-size:clamp(17px,2.1vw,21px);color:var(--ink);margin:0 0 8px;letter-spacing:.01em}
+  .quickstart p{font-size:16.5px;line-height:1.6;margin:0 0 .7em}
+  .quickstart p:last-child{margin-bottom:0}
+  .quickstart .qs-end{margin-top:14px;font-style:italic;color:var(--red-deep);text-align:center}
+
+  /* BODY */
+  .rules{max-width:66ch;margin:0 auto;font-size:clamp(16px,1.6vw,18px);color:var(--ink)}
+  .sec{margin:2.4em 0 0;scroll-margin-top:24px}
+  .sec h2{font-family:'Cinzel',serif;font-weight:600;font-size:clamp(19px,2.3vw,24px);color:var(--ink);
+    display:flex;align-items:center;gap:.5em;margin:0 0 .6em}
+  .sec h2 .num{font-family:'Cinzel Decorative',serif;color:var(--red-deep);font-size:1.02em;min-width:1.5em;text-align:right}
+  .sec h2::after{content:"";flex:1;height:1px;background:var(--rule);opacity:.5;margin-left:.35em}
+  .sec h3{font-family:'Cinzel',serif;font-weight:600;font-size:15.5px;letter-spacing:.03em;color:var(--red-deep);margin:1.35em 0 .5em}
+  .rules p{margin:0 0 .8em;line-height:1.7}
+  .rules ol,.rules ul{margin:.2em 0 1em;padding-left:1.6em}
+  .rules li{margin:.5em 0;line-height:1.6}
+  .rules ol{list-style:none;counter-reset:item}
+  .rules ol>li{counter-increment:item;position:relative}
+  .rules ol>li::before{content:counter(item);position:absolute;left:-1.6em;top:.02em;font-family:'Cinzel',serif;font-weight:600;font-size:.82em;color:var(--red-deep)}
+  .rules ul{list-style:none}
+  .rules ul>li{position:relative}
+  .rules ul>li::before{content:"\25C6";position:absolute;left:-1.3em;top:.15em;color:var(--rule);font-size:.66em}
+  .rules strong{font-weight:700}
+  .rules em{font-style:italic}
+  .lede{font-style:italic;color:var(--ink-soft);font-size:1.02em}
+
+  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:.5em 0 1.1em}
+  .rtable{width:100%;min-width:430px;border-collapse:collapse;margin:0;font-size:15px}
+  .rtable caption{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);text-align:left;margin-bottom:6px}
+  .rtable th,.rtable td{border:1px solid var(--edge);padding:6px 10px;text-align:center}
+  .rtable th{font-family:'Cinzel',serif;font-weight:600;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;background:rgba(138,111,67,.14);color:var(--ink)}
+  .rtable td:first-child,.rtable th:first-child{text-align:left}
+  .rtable td:first-child{font-weight:600}
+
+  .callout{margin:1.2em 0;padding:13px 18px 14px 20px;border-left:4px solid var(--red);background:rgba(166,50,29,.07)}
+  .callout .k{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-deep);display:block;margin-bottom:5px}
+  .callout p{margin:0 0 .55em;font-size:16.5px;line-height:1.55}
+  .callout p:last-child{margin-bottom:0}
+  .callout.calm{border-left-color:var(--rule);background:rgba(138,111,67,.10)}
+  .callout.calm .k{color:var(--ink-soft)}
+  .badge18{display:inline-block;font-family:'Cinzel',serif;font-weight:700;font-size:12px;letter-spacing:.03em;color:#f6ead0;background:var(--red-deep);padding:2px 9px;margin-right:8px;vertical-align:2px}
+
+  /* etichetta di un comando dell'interfaccia */
+  .ui{display:inline-block;font-family:'Cinzel',serif;font-size:.76em;letter-spacing:.06em;border:1px solid var(--edge);
+    border-radius:6px;padding:1px 7px;background:rgba(255,250,235,.6);color:var(--red-deep);white-space:nowrap;vertical-align:1.5px}
+
+  /* finto messaggio di chat */
+  .chat{border:1px solid var(--edge);background:rgba(255,250,235,.5);padding:13px 16px 14px;margin:1em 0;font-size:16.5px;line-height:1.62}
+  .chat .cw{font-family:'Cinzel',serif;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep)}
+  .chat .cp{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);
+    border:1px solid var(--edge);border-radius:5px;padding:1px 6px;margin-left:8px;white-space:nowrap}
+  .chat .ct{margin-top:8px}
+  .chat .ct em{color:var(--ink-soft)}
+  .chat.bad{border-color:var(--red);background:rgba(166,50,29,.06)}
+  .chat .cnote{display:block;margin-top:10px;padding-top:9px;border-top:1px solid var(--edge);font-size:14.5px;font-style:italic;color:var(--ink-soft)}
+  .chat .sys{font-size:15px;color:var(--ink-soft);font-style:italic}
+
+  /* elenco "sbagli tipici" */
+  .oops{margin:.4em 0 1em;padding:0;list-style:none}
+  .oops>li{position:relative;padding-left:1.9em;margin:.85em 0;line-height:1.6}
+  .oops>li::before{content:"\2716";position:absolute;left:0;top:.12em;color:var(--red);font-size:.85em}
+  .oops>li b{color:var(--red-deep)}
+  .rules .oops>li::before{left:0}
+
+  .story-return{text-align:center;margin:40px auto 8px}
+  .story-return a{font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule);padding-bottom:4px;opacity:.85;transition:.2s}
+  .story-return a:hover{opacity:1;color:var(--red-deep);border-color:var(--red)}
+
+  .cta{max-width:66ch;margin:34px auto 0;text-align:center;border:1px solid var(--red);padding:22px 24px;background:linear-gradient(rgba(166,50,29,.08),rgba(255,250,235,.4))}
+  .cta h2{font-family:'Cinzel',serif;font-weight:600;font-size:clamp(17px,2.1vw,21px);margin-bottom:8px}
+  .cta p{font-size:16.5px;line-height:1.6;color:var(--ink-soft);margin-bottom:16px}
+  .cta a{display:inline-block;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    text-decoration:none;padding:12px 22px;margin:0 5px 6px;border:1.5px solid var(--red-deep);background:var(--red);color:#f6ead0;transition:.2s}
+  .cta a:hover{background:var(--red-deep)}
+  .cta a.ghost{background:transparent;color:var(--red-deep)}
+  .cta a.ghost:hover{background:rgba(166,50,29,.1)}
+
+  footer{position:relative;z-index:3;text-align:center;padding:18px 0 26px;border-top:1px solid var(--rule);margin:26px 4px 0}
+  .disc-txt{font-size:14px;line-height:1.55;color:var(--ink-soft);max-width:80ch;margin:0 auto;opacity:.9}
+  .fchip{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-deep);margin-bottom:8px}
+
+  @media(max-width:820px){
+    .toc ol{columns:1}
+    .sec h2 .num{min-width:auto}
+    .rtable{font-size:13px;min-width:400px}
+    .rtable th,.rtable td{padding:5px 7px}
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="content">
+      <!-- NAV -->
+      <nav>
+        <div class="brand">
+          <span id="bijuu-logo"></span>
+          <a class="home-link" href="index.html"><b>The Untold Story</b></a>
+        </div>
+        <a href="index.html" class="backlink" onclick="if(history.length>1){history.back();return false;}" style="margin-left:auto;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);text-decoration:none;border:1px solid var(--edge);border-radius:7px;padding:7px 13px;white-space:nowrap">← Indietro</a>
+      </nav>
+
+      <article class="reader">
+        <header class="rules-head">
+          <svg class="seal-mini" viewBox="0 0 100 100" aria-hidden="true">
+            <g fill="none" stroke="var(--red)" stroke-width="2.4" opacity=".13" stroke-linecap="round">
+              <circle cx="50" cy="50" r="11"/><circle cx="50" cy="50" r="21"/>
+              <circle cx="50" cy="50" r="31"/><circle cx="50" cy="50" r="41"/>
+              <path d="M50 50 q20 0 20 20"/><path d="M61 50 a11 11 0 0 1 -11 11"/>
+            </g>
+          </svg>
+          <div class="inner">
+            <div class="kicker">Primi passi</div>
+            <h1>Guida al primo accesso</h1>
+            <p class="dek">Dalla registrazione al primo turno scritto in chat. Nessuna esperienza richiesta: si impara facendo.</p>
+          </div>
+        </header>
+
+        <p class="notice">Questa guida racconta cosa vedrai davvero sullo schermo, pulsante per pulsante. Le <a href="regole.html" style="color:var(--red-deep)">Regole</a> sono il patto; questa è la pratica.</p>
+
+        <section class="quickstart" aria-label="In due parole">
+          <h2>In due parole</h2>
+          <p><strong>The Untold Story</strong> è un gioco di ruolo <strong>scritto</strong>. Non ci sono grafica 3D, punteggi da battere o partite che finiscono: c'è un mondo — Konoha e Suna, dopo una guerra che nessuno racconta volentieri — e ci sei tu, che ci metti dentro una persona e la fai vivere <strong>scrivendo</strong> quello che dice e quello che fa. Gli altri leggono e rispondono. Da lì nasce la storia.</p>
+          <p>Non serve saper scrivere bene. Serve solo <strong>rispondere a quello che c'è</strong>: se qualcuno ti parla, il tuo personaggio sente; se piove, si bagna. Il resto viene da sé.</p>
+          <p>Si gioca dal browser, anche dal telefono, e non c'è niente da scaricare né da pagare. <strong>Il tempo minimo per esserci è mezz'ora, un paio di volte a settimana.</strong> Chi ha più tempo lo usa; chi ne ha poco non resta indietro.</p>
+          <p class="qs-end">Dalla registrazione al primo turno passano dieci minuti. Vediamoli.</p>
+        </section>
+
+        <nav class="toc" aria-label="Indice">
+          <h3>Indice</h3>
+          <ol>
+            <li><a href="#g1">Prima di cominciare</a></li>
+            <li><a href="#g2">Crea l'account</a></li>
+            <li><a href="#g3">Crea il personaggio</a></li>
+            <li><a href="#g4">Distribuisci i 60 punti</a></li>
+            <li><a href="#g5">La mappa: dove si gioca</a></li>
+            <li><a href="#g6">Il primo turno</a></li>
+            <li><a href="#g7">L'Accademia</a></li>
+            <li><a href="#g8">Le missioni</a></li>
+            <li><a href="#g9">Come si cresce</a></li>
+            <li><a href="#g10">Gli sbagli della prima settimana</a></li>
+            <li><a href="#g11">Dove chiedere aiuto</a></li>
+          </ol>
+        </nav>
+
+        <div class="rules">
+
+          <section class="sec" id="g1">
+            <h2><span class="num">1</span> Prima di cominciare</h2>
+            <p>Tre cose da sapere subito, così non ci sono sorprese.</p>
+            <p><span class="badge18">18+</span> <strong>Il gioco è riservato ai maggiorenni.</strong> Non perché sia un gioco erotico — non lo è, e non esistono aree dedicate all'esplicito — ma perché i temi sono adulti: la guerra, la perdita, le scelte che non si possono rimangiare. Tutto resta in <strong>forma esclusivamente testuale</strong> e chiunque può fermare una scena che lo mette a disagio, in qualsiasi momento, senza dover spiegare perché.</p>
+            <p><strong>Il tuo personaggio può morire, e la morte è definitiva.</strong> Non succede per caso né alle spalle di nessuno: avviene solo in scene condotte da un master o in duelli che hai accettato. Ma succede davvero, ed è questo che dà peso a tutto il resto.</p>
+            <p><strong>Un account, un personaggio.</strong> Il nome con cui ti registri <em>è</em> il nome del tuo ninja. Sceglilo bene: non è un soprannome da cambiare la settimana dopo.</p>
+            <div class="callout calm">
+              <span class="k">Da leggere quando hai voglia</span>
+              <p>Non serve studiare niente per iniziare, ma se ti va di arrivare preparato ci sono tre pagine: <a href="ambientazione.html">Ambientazione</a> (com'è fatto il mondo, i villaggi, il chakra, il glossario), <a href="storia.html">Storia</a> (cos'è successo prima che tu arrivassi) e <a href="regole.html">Regole</a> (il patto completo). Puoi leggerle anche dopo, tra una giocata e l'altra.</p>
+            </div>
+          </section>
+
+          <section class="sec" id="g2">
+            <h2><span class="num">2</span> Crea l'account</h2>
+            <p>Dalla home clicca <span class="ui">Iscriviti e gioca</span>, oppure vai direttamente a <a href="entra.html#registrati">entra</a>. Ti servono quattro cose.</p>
+
+            <h3>Il nome del personaggio</h3>
+            <p>Da <strong>2 a 15 lettere</strong>, senza numeri e senza spazi. Accenti, apostrofo e trattino sono ammessi. È il nome del tuo ninja <em>e</em> il nome con cui farai l'accesso: non c'è un secondo username da ricordare.</p>
+            <p>Scegli un nome coerente con il mondo — onomastica giapponese o affine. <strong>I nomi dei personaggi dell'opera non sono ammessi:</strong> niente Naruto, niente Sasuke, niente Kakashi. Non è severità fine a sé stessa: qui la storia è un'altra, e un nome preso in prestito porta con sé aspettative che non c'entrano nulla.</p>
+
+            <h3>L'email</h3>
+            <p>Deve essere vera e funzionante: serve a confermare l'iscrizione e, il giorno in cui dimenticherai la password, a recuperarla. Riceverai una mail di conferma — se non arriva entro qualche minuto, guarda nello spam.</p>
+
+            <h3>La password</h3>
+            <p>Almeno <strong>10 caratteri</strong>, con <strong>una maiuscola, una minuscola, un numero e un carattere speciale</strong>. La barra sotto il campo ti dice in tempo reale cosa manca ancora.</p>
+
+            <h3>Le due spunte</h3>
+            <p>Dichiari di avere 18 anni e accetti regolamento e privacy. Poi <span class="ui">Crea il tuo shinobi</span>, conferma dalla mail, e sei dentro.</p>
+            <div class="callout">
+              <span class="k">Se torni domani</span>
+              <p>L'accesso si fa con <strong>nome del personaggio + password</strong>, non con l'email. La casella <span class="ui">Ricordami</span> ti evita di rifarlo ogni volta.</p>
+            </div>
+          </section>
+
+          <section class="sec" id="g3">
+            <h2><span class="num">3</span> Crea il personaggio</h2>
+            <p>Al primo accesso la scheda è vuota e ti chiede pochissimo. È voluto: <strong>quasi tutto si decide giocando</strong>, non compilando un modulo.</p>
+            <ul>
+              <li><strong>Età</strong> — coerente con un allievo d'accademia. Undici, dodici, tredici anni sono la norma; qualche anno in più se il tuo personaggio ha cominciato tardi, e allora vale la pena che il motivo finisca nel background.</li>
+              <li><strong>Sesso</strong> — maschio, femmina o altro.</li>
+              <li><strong>Villaggio</strong> — <strong>Konoha</strong> o <strong>Suna</strong>. È la scelta più pesante di questa schermata: decide dove vivrai, chi incontrerai ogni giorno e da che parte starai quando le cose si metteranno male. Non si cambia a piacere.</li>
+              <li><strong>Elemento del chakra</strong> — Fuoco, Vento, Fulmine, Terra, Acqua. <strong>È facoltativo</strong>: puoi sceglierlo adesso o lasciarlo vuoto e decidere più avanti dalla scheda, quando avrai capito che ninja stai diventando. Chi punta tutto sul corpo a corpo può anche non prenderlo mai.</li>
+            </ul>
+            <p>Poi <span class="ui">Crea scheda</span> e il personaggio esiste. Parti dal grado <strong>Deshi</strong>, cioè studente: tutti partono da lì, senza eccezioni.</p>
+
+            <h3>E il clan? E la corporazione?</h3>
+            <p>Non si scelgono qui, e non è una dimenticanza.</p>
+            <p>Il <strong>clan</strong> lo trovi nella scheda, sotto <span class="ui">Dati</span>. Ai <strong>clan aperti</strong> del tuo villaggio ti iscrivi da solo, quando te la senti. I <strong>clan speciali</strong> — Hyuga, Uchiha, Sabaku e simili — li assegna lo staff, perché portano poteri rari e slot limitati: si conquistano col background e con quello che combini in gioco, non spuntando una casella il primo giorno.</p>
+            <p>La <strong>corporazione</strong> (ANBU, Corpo Medico, e ciò che si muove nell'ombra) si sceglie <strong>candidandosi dalla land</strong>, e la conferma lo staff. Servono grado e reputazione adatti: nessuno entra negli ANBU da Deshi.</p>
+            <div class="callout calm">
+              <span class="k">Il consiglio che conta</span>
+              <p>Prima di tutto il resto, scrivi due paragrafi di <strong>Background</strong> nella scheda: da dove viene, chi gli manca, cosa vuole. Sono i dieci minuti che rendono il personaggio giocabile — e sono anche quello che lo staff legge quando decide clan, agganci di trama e <em>Note del Fato</em>.</p>
+            </div>
+          </section>
+
+          <section class="sec" id="g4">
+            <h2><span class="num">4</span> Distribuisci i 60 punti</h2>
+            <p>Ogni caratteristica parte da <strong>10</strong>, e tu hai <strong>60 punti</strong> da aggiungere. Li assegni dalla scheda, dentro la land, quando vuoi: <strong>non c'è fretta</strong>, e il gioco te lo ricorda con un avviso in alto finché non li hai spesi.</p>
+            <p>Si assegnano <strong>a gruppi di 5</strong>, e da Deshi nessuna caratteristica può superare <strong>30</strong>. In pratica: puoi mettere al massimo +20 su una sola, oppure spalmare.</p>
+            <div class="tw">
+              <table class="rtable">
+                <caption>Le nove caratteristiche</caption>
+                <thead><tr><th>Caratteristica</th><th>A cosa serve davvero</th></tr></thead>
+                <tbody>
+                  <tr><td>Mente</td><td>Lucidità e controllo. Governa gli slot per le tecniche e apre la cura (da 25).</td></tr>
+                  <tr><td>Forza</td><td>Quanto fa male quando colpisci con il corpo.</td></tr>
+                  <tr><td>Velocità</td><td>Iniziativa e metri di spostamento in un turno.</td></tr>
+                  <tr><td>Resistenza</td><td>Punti vita e quanti sforzi intensi reggi in una scena.</td></tr>
+                  <tr><td>Ninjutsu</td><td>Le tecniche col chakra: la via più comune.</td></tr>
+                  <tr><td>Genjutsu</td><td>Illusioni. Rara, difficile, devastante quando funziona.</td></tr>
+                  <tr><td>Taijutsu</td><td>Corpo a corpo puro, senza chakra.</td></tr>
+                  <tr><td>Fuuinjutsu</td><td>Sigilli e barriere: la via lenta e tecnica.</td></tr>
+                  <tr><td>Innata</td><td>L'abilità di sangue del clan. Compare in scheda solo quando avrai un clan e almeno il grado Genin.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Nella scheda, tab <span class="ui">Statistiche</span>, il riquadro dei punti mostra <em>«Hai N punti da assegnare»</em> con i tasti <span class="ui">−5</span> e <span class="ui">+5</span>. Provi finché non ti torna, poi <span class="ui">Conferma assegnazione</span>. Lì accanto vedi anche <strong>Vita</strong>, <strong>Chakra</strong>, <strong>Soldi</strong>, <strong>Exp</strong> e i valori derivati: <strong>Movimento</strong> (i metri che copri in un turno), <strong>Tenuta</strong> (gli sforzi intensi che reggi) e <strong>Slot</strong> (quante tecniche puoi tenere pronte).</p>
+            <div class="callout">
+              <span class="k">Come scegliere senza sbagliare</span>
+              <p>Non esiste una distribuzione ottimale, esiste il personaggio che hai in testa. Se lo immagini rapido e sfuggente, Velocità. Se lo immagini uno che incassa e resta in piedi, Resistenza. Se lo immagini pieno di tecniche, Ninjutsu e un po' di Mente. <strong>Evita solo di mettere 5 punti ovunque:</strong> un personaggio bravo in tutto è un personaggio che in scena non spicca in niente.</p>
+              <p>E comunque non è per sempre: crescendo arrivano altri punti, e il tetto si alza a ogni grado.</p>
+            </div>
+          </section>
+
+          <section class="sec" id="g5">
+            <h2><span class="num">5</span> La mappa: dove si gioca</h2>
+            <p>Entrando nella land ti trovi davanti alla <strong>mappa del mondo</strong>. Clicchi un villaggio ed entri nella sua mappa; clicchi un luogo e sei dentro la stanza, cioè la chat dove si gioca. Con <span class="ui">← Mondo</span> e <span class="ui">← Mappa</span> torni indietro.</p>
+            <p>Sotto la mappa c'è il pannello <strong>Luoghi</strong>, con l'elenco completo e il conteggio di chi è in giro adesso. Se stai cercando gente, quello è il posto dove guardare.</p>
+
+            <h3>La barra in alto</h3>
+            <ul>
+              <li><span class="ui">Calendario</span> — eventi e missioni programmate.</li>
+              <li><span class="ui">Messaggi</span> — la posta interna. Il pallino <em>New</em> segnala che c'è qualcosa da leggere.</li>
+              <li><span class="ui">Missioni</span> — la bacheca del villaggio (vedi §8).</li>
+              <li><span class="ui">Bacheche</span> — annunci, ricerca di compagni, avvisi.</li>
+              <li><span class="ui">Scheda</span> — il tuo personaggio.</li>
+              <li><span class="ui">Guida</span> <span class="ui">Storia</span> <span class="ui">Regole</span> — queste pagine.</li>
+              <li><span class="ui">Online · N</span> — chi c'è adesso, con le note fuori gioco di ciascuno.</li>
+            </ul>
+            <p>Accanto al titolo c'è l'<strong>ora di gioco</strong>: il mondo ha il suo giorno e la sua notte, e conviene tenerne conto quando scrivi (di notte le strade sono vuote, i negozi chiusi, le guardie più sospettose).</p>
+
+            <h3>La colonna «Mondo di gioco»</h3>
+            <p>Sul lato trovi le enciclopedie del mondo: <span class="ui">Clan</span>, <span class="ui">Corporazioni</span>, <span class="ui">Jutsu</span>, <span class="ui">Abilità</span>, <span class="ui">Evocazioni</span>, <span class="ui">Cercoteri</span>, <span class="ui">Premi</span>, <span class="ui">Annuario</span>. Sono consultabili sempre, anche solo per curiosare. L'<strong>Annuario</strong> è l'elenco dei personaggi esistenti: leggerne qualcuno prima di scegliere dove giocare è il modo più veloce per capire l'aria che tira.</p>
+          </section>
+
+          <section class="sec" id="g6">
+            <h2><span class="num">6</span> Il primo turno</h2>
+            <p>Sei in una stanza. In basso c'è lo spazio per scrivere. È qui che succede tutto il resto del gioco.</p>
+
+            <h3>Come si scrive una giocata</h3>
+            <p>Due segni, e li hai imparati tutti:</p>
+            <ul>
+              <li><strong>«Virgolette»</strong> per quello che il personaggio <strong>dice</strong>.</li>
+              <li><strong>*Asterischi*</strong> per quello che <strong>fa</strong> e per le descrizioni.</li>
+            </ul>
+            <p>Il campo <strong>Luogo</strong> in cima al riquadro è il punto preciso della scena (<em>«Ramen Ichiraku»</em>, <em>«Campo d'addestramento n. 3»</em>): diventa un'etichetta sul messaggio e resta finché non lo cambi. Un turno vale <strong>almeno 500 caratteri</strong> — il contatore accanto a <span class="ui">Invia</span> te lo conta e diventa rosso finché non ci arrivi.</p>
+
+            <div class="chat">
+              <span class="cw">Kaede Amagiri</span><span class="cp">Campo d'addestramento n. 3</span>
+              <div class="ct"><em>*Arriva col fiato corto, la sacca dei kunai che le sbatte contro il fianco a ogni passo. Si ferma sul limitare dell'erba alta, appoggia le mani sulle ginocchia e si prende tre respiri buoni prima di rialzare la testa. Il campo è vuoto a quest'ora: solo i pali da allenamento, il legno consumato nel punto in cui colpiscono tutti, e una figura seduta all'ombra del cedro. Si asciuga il palmo sui pantaloni e fa qualche passo avanti, tenendo la distanza che le hanno insegnato a tenere con gli sconosciuti.*</em><br>
+              «Scusa. Non volevo disturbare.» <em>*Indica i pali con il mento, come se la cosa non le importasse davvero.*</em> «Avevo prenotato il campo per stamattina, ma se stavi lavorando tu aspetto. Non ho fretta.»<br>
+              <em>*Resta in piedi, la sacca ancora sulla spalla, e aspetta una risposta senza sedersi.*</em></div>
+              <span class="cnote">Guarda cosa fa questo turno: descrive un luogo che gli altri possono usare, dice qualcosa a cui si può rispondere, e finisce <strong>lasciando spazio</strong>. Non decide come reagisce l'altro. Sono 640 caratteri, scritti in tre minuti.</span>
+            </div>
+
+            <p>Ecco invece com'è fatto un turno che blocca la scena:</p>
+
+            <div class="chat bad">
+              <span class="cw">Un turno da non imitare</span>
+              <div class="ct">«ciao» <em>*si siede e capisce subito che quel tizio nasconde qualcosa e che non gli piacerà per niente*</em></div>
+              <span class="cnote">Tre problemi in una riga: è sotto le 500 battute e non dà niente all'altro; scrive <strong>pensieri</strong> che nessuno può sentire (vietato: le intenzioni si mostrano con azioni e parole); e <strong>decide al posto dell'altro giocatore</strong> cosa il suo personaggio nasconde.</span>
+            </div>
+
+            <h3>I tasti che userai subito</h3>
+            <ul>
+              <li><span class="ui">Editor</span> — apre una finestra grande per scrivere e rileggere con calma. Da telefono è quasi indispensabile.</li>
+              <li><span class="ui">A tutti</span> — il menu del destinatario: scegli un nome e il messaggio diventa un <strong>sussurro</strong> privato.</li>
+              <li><span class="ui">1d100</span> — tira un dado da 1 a 100, quando serve la fortuna e non le statistiche.</li>
+              <li><span class="ui">Combatti</span> — apre il calcolo del combattimento (sotto).</li>
+              <li><span class="ui">Oggetto</span> — usa qualcosa che hai equipaggiato.</li>
+              <li><span class="ui">Tecnica / Abilità…</span> — dichiara la tecnica che stai usando: il chakra si scala da solo.</li>
+              <li><span class="ui">Detta</span> — dettatura vocale, scrivi parlando. Comodissima dal telefono.</li>
+              <li><span class="ui">Abc</span> — spegne il correttore del browser, che sottolinea in rosso mezzo glossario.</li>
+              <li><span class="ui">?</span> — la legenda, sempre a portata: ripete tutto questo dentro il gioco.</li>
+              <li><span class="ui">⚑</span> — segnala allo staff una scena che ti mette a disagio o un comportamento scorretto. Arriva <strong>solo</strong> allo staff.</li>
+            </ul>
+            <p>Accanto trovi anche le due barrette <strong>PV</strong> e <strong>CK</strong> — vita e chakra — che si aggiornano da sole.</p>
+
+            <h3>Combattere</h3>
+            <p>Non devi fare conti. Scrivi la tua azione come la scriveresti sempre, poi premi <span class="ui">Combatti</span>: il gioco confronta chi attacca e chi si difende, tira i dadi, applica le statistiche, sottrae il chakra e pubblica l'esito in chat.</p>
+            <div class="chat">
+              <span class="cw">Esito</span>
+              <div class="ct sys">Kaede usa <strong>Palla di Fuoco</strong>: Hiroshi prova a schivare ma è colpito di striscio — subisce 12 danni.</div>
+            </div>
+            <p>Il tuo compito resta quello di sempre: <strong>raccontare</strong> come è andata. Il numero è la cornice, la scena la scrivi tu. Una regola d'oro: <em>dichiari cosa tenti, non cosa riesce</em> — «gli tira il kunai puntando alla spalla» va bene, «lo colpisce alla spalla» no.</p>
+
+            <h3>Salvare la scena: le role registrate</h3>
+            <p>Nel pannello laterale c'è <span class="ui">Registra role</span>. Premendolo dai un titolo alla scena e la registrazione parte <strong>dall'azione successiva</strong>: da quel momento tutto quello che si scrive finisce nella <strong>Libreria role</strong> di chi è presente e di chi entrerà. A fine scena, <span class="ui">Chiudi e salva role</span>.</p>
+            <div class="callout">
+              <span class="k">Importante, e sfugge a tutti</span>
+              <p>I <strong>+20 XP giornalieri</strong> arrivano solo da una role <strong>registrata e chiusa</strong>. Se giocate due ore senza premere quel pulsante, la scena resta bellissima ma non conta niente. <strong>Prendi l'abitudine: si apre la registrazione all'inizio, si chiude alla fine.</strong> Se ve ne dimenticate, si chiude da sola dopo 24 ore.</p>
+            </div>
+          </section>
+
+          <section class="sec" id="g7">
+            <h2><span class="num">7</span> L'Accademia</h2>
+            <p>Da Deshi la strada è una sola: l'Accademia. Non è un tutorial da saltare e non è un modulo da compilare — <strong>è una lezione vera, giocata in chat, con gli altri allievi</strong>. Il sensei è condotto dall'intelligenza artificiale: ti parla, ti chiede di fare le cose, reagisce a quello che scrivi.</p>
+            <p>Come funziona, in pratica:</p>
+            <ol>
+              <li>Vai al luogo <strong>Accademia</strong> del tuo villaggio. Sul lato compare il riquadro <span class="ui">Accademia</span>.</li>
+              <li>Se non c'è lezione in corso, premi <span class="ui">Fai lezione</span> e scegli l'argomento dall'elenco: quelle già fatte sono segnate <em>Fatta</em>, quelle ancora fuori portata <em>Bloccata</em>.</li>
+              <li>Gli altri presenti premono <span class="ui">Unisciti alla lezione</span>. Quando la classe è pronta, chi ha aperto dà il via con <span class="ui">Inizia</span>.</li>
+              <li>Da lì si gioca: il sensei apre il passo, <strong>ognuno scrive la sua azione</strong>, e quando tutti hanno agito la lezione avanza. Il riquadro mostra sempre a che punto siete.</li>
+              <li>Alla fine l'attestato entra in scheda e gli XP sono tuoi.</li>
+            </ol>
+            <p>Chi arriva a lezione già iniziata può restare come <strong>uditore</strong>: assiste e gioca la scena, ma non prende l'attestato di quella lezione.</p>
+            <div class="tw">
+              <table class="rtable">
+                <caption>Il percorso completo</caption>
+                <thead><tr><th>Lezione</th><th>XP</th></tr></thead>
+                <tbody>
+                  <tr><td>1 · Storia e mondo</td><td>15</td></tr>
+                  <tr><td>2 · Il chakra</td><td>15</td></tr>
+                  <tr><td>3 · Controllo del chakra</td><td>15</td></tr>
+                  <tr><td>4 · Trasformazione (Henge)</td><td>15</td></tr>
+                  <tr><td>5 · Moltiplicazione del corpo (Bunshin)</td><td>15</td></tr>
+                  <tr><td>6 · Sostituzione (Kawarimi)</td><td>15</td></tr>
+                  <tr><td>★ Esame Genin</td><td>30</td></tr>
+                  <tr><td><strong>Totale</strong></td><td><strong>120</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Superato l'esame diventi <strong>Genin</strong>: si aprono le missioni, il tetto delle caratteristiche sale a 45 e cominci a contare come ninja invece che come allievo.</p>
+            <div class="callout calm">
+              <span class="k">Un modo intelligente di usarla</span>
+              <p>Le lezioni sono anche il posto migliore per <strong>conoscere gente</strong>. Se apri una lezione e aspetti qualche minuto che arrivi qualcuno, ti ritrovi con dei compagni di classe — e i compagni di classe sono la prima squadra che avrai.</p>
+            </div>
+          </section>
+
+          <section class="sec" id="g8">
+            <h2><span class="num">8</span> Le missioni</h2>
+            <p>Dalla barra in alto, <span class="ui">Missioni</span>. Due schede: <strong>Bacheca</strong> (tutto quello che il villaggio chiede) e <strong>Le mie</strong> (il tuo registro).</p>
+            <p>Ogni cartellino dice grado, villaggio, cosa c'è da fare, ricompensa in <strong>XP</strong> e <strong>Ryo</strong>, luogo, e chi si è già iscritto. Se puoi prenderla, c'è <span class="ui">Iscriviti</span>: indichi <strong>una data in cui ci saresti</strong> e, se vuoi, una nota sulla tua disponibilità. Poi <span class="ui">Conferma iscrizione</span>.</p>
+            <p>Da lì tocca allo staff: un master raccoglie chi si è iscritto, fissa il giorno e conduce la missione in chat. A scena finita registra l'esito e le ricompense arrivano in automatico.</p>
+            <div class="tw">
+              <table class="rtable">
+                <caption>Chi può prendere cosa</caption>
+                <thead><tr><th>Grado</th><th>Missioni</th></tr></thead>
+                <tbody>
+                  <tr><td>Deshi</td><td>Nessuna: prima il diploma</td></tr>
+                  <tr><td>Genin</td><td>fino a C</td></tr>
+                  <tr><td>Chunin</td><td>fino a B</td></tr>
+                  <tr><td>Jonin</td><td>fino a A</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Le missioni <strong>D</strong> sono lavoro ordinario: cercare, scortare, sistemare. Le <strong>C</strong> cominciano a mordere. Molte si possono fare anche da soli, ma quasi tutte vengono meglio in due o tre — e comunque le squadre si formano lì, in bacheca.</p>
+            <div class="callout">
+              <span class="k">La cosa che nessuno dice</span>
+              <p>Nessuna missione è solo una consegna. Sotto ogni incarico banale c'è quasi sempre qualcosa che non torna: un nome che ricorre, una firma sbagliata, una porta che non doveva essere aperta. <strong>Se lo noti e lo scrivi nel rapporto, sei entrato in una trama.</strong> Chi si limita a consegnare prende gli XP; chi guarda meglio si ritrova dentro la storia grande.</p>
+            </div>
+          </section>
+
+          <section class="sec" id="g9">
+            <h2><span class="num">9</span> Come si cresce</h2>
+            <p>Tutto passa dagli <strong>XP</strong>, e gli XP si prendono in tre modi.</p>
+            <ul>
+              <li><strong>Giocando: +20 XP al giorno.</strong> Una volta al giorno, per una <strong>role registrata e chiusa</strong> (vedi §6). È la fonte più costante: chi c'è, cresce.</li>
+              <li><strong>Missioni.</strong> Grado D: 40 XP e 50 Ryo. Grado C: 60 XP e 100 Ryo. Si sale da lì.</li>
+              <li><strong>Accademia, quest ed eventi.</strong> Il diploma vale 120 XP; gli eventi condotti dallo staff hanno ricompense proprie.</li>
+            </ul>
+            <p>Gli XP si contano due volte: uno <strong>storico</strong> che non scende mai e che determina il grado, e un <strong>saldo</strong> che spendi. Spendere non ti fa retrocedere.</p>
+            <div class="tw">
+              <table class="rtable">
+                <caption>Le promozioni</caption>
+                <thead><tr><th>Da → a</th><th>XP storici</th><th>In regalo</th></tr></thead>
+                <tbody>
+                  <tr><td>Deshi → Genin</td><td>esame d'Accademia</td><td>—</td></tr>
+                  <tr><td>Genin → Chunin</td><td>2 500</td><td>+50 punti</td></tr>
+                  <tr><td>Chunin → Jonin</td><td>9 000</td><td>+50 punti</td></tr>
+                  <tr><td>Jonin → Jonin Speciale</td><td>18 000</td><td>+50 punti</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Con il saldo, dalla scheda, fai tre cose: <strong>impari tecniche</strong> (le scegli dal Codice delle Tecniche e ti alleni, tab <span class="ui">Jutsu e abilità</span>), <strong>compri slot extra</strong> quando le tecniche pronte non ti bastano più, e <strong>richiedi i premi</strong> — la seconda natura del chakra, un contratto di evocazione, una tecnica personale. I premi passano dallo staff: costano XP e una motivazione in gioco.</p>
+            <p>C'è poi una crescita che non si compra. L'<strong>allineamento</strong> — <strong>Lealtà</strong> verso il villaggio, <strong>Via</strong> tra la Volontà del Fuoco e il Sentiero dell'Odio, <strong>Fama</strong> — si muove con quello che fai davvero in scena. Dopo una giocata che ha segnato il tuo personaggio chiedi una <strong>svolta</strong> dalla scheda, e lo staff la valuta. È il modo in cui il gioco tiene traccia di chi sta diventando il tuo ninja: e sì, ha conseguenze concrete — certe corporazioni si aprono o si chiudono in base a quei numeri.</p>
+          </section>
+
+          <section class="sec" id="g10">
+            <h2><span class="num">10</span> Gli sbagli della prima settimana</h2>
+            <p class="lede">Li abbiamo fatti tutti. Costa meno leggerli qui.</p>
+            <ul class="oops">
+              <li><b>Aspettare di «essere pronti».</b> Non esiste il momento in cui saprai tutto. Entra in un luogo dove c'è qualcuno, scrivi che arrivi, e vedi cosa succede. Il resto lo impari leggendo gli altri.</li>
+              <li><b>Scrivere i pensieri del personaggio.</b> È la regola che sorprende di più: quello che il tuo ninja pensa e non dice, <strong>non si scrive in scena</strong>. Serve a evitare che gli altri giochino su informazioni che i loro personaggi non hanno. Le intenzioni si mostrano: uno sguardo, una mano che resta vicina all'arma, una risposta data male.</li>
+              <li><b>Decidere per gli altri.</b> Puoi scrivere cosa <em>tenti</em>, mai cosa <em>riesce</em> addosso a un altro personaggio. «Allunga la mano per fermarlo» sì; «lo blocca» no. Vale per i colpi, per le emozioni e per i segreti.</li>
+              <li><b>Dimenticare di registrare la role.</b> È la più frustrante: due ore di bella scena e zero XP, perché nessuno ha premuto <span class="ui">Registra role</span>. Prendetelo come rito d'apertura.</li>
+              <li><b>Confondere te e il personaggio.</b> Le antipatie nate fuori non entrano in gioco, e quelle nate in gioco restano lì. Se qualcosa ti pesa davvero, c'è <span class="ui">⚑</span> e c'è lo staff — non la vendetta in scena.</li>
+              <li><b>Sparire nel mezzo di un combattimento.</b> Le scene di scontro si giocano nella sessione in cui iniziano; al massimo si congelano <strong>72 ore</strong>. E finché sei congelato non puoi giocare altrove — quindi avvisa se devi staccare.</li>
+              <li><b>Costruire il personaggio perfetto.</b> Un ninja bravo in tutto non è interessante e non ha storia. I difetti, le paure e le cose che non sa fare sono quello che rende una scena memorabile.</li>
+            </ul>
+          </section>
+
+          <section class="sec" id="g11">
+            <h2><span class="num">11</span> Dove chiedere aiuto</h2>
+            <p>Nessuno si aspetta che tu faccia tutto giusto al primo colpo. Quando ti blocchi:</p>
+            <ul>
+              <li><strong>Nel gioco:</strong> il tasto <span class="ui">?</span> in chat ripete la legenda dei comandi; il tasto <span class="ui">⚑</span> scrive allo staff.</li>
+              <li><strong>Su Discord:</strong> <a href="https://discord.gg/dRC385r9YD" target="_blank" rel="noopener">il canale della community</a>. È il posto giusto per le domande da principiante, per trovare qualcuno con cui giocare e per capire chi è online.</li>
+              <li><strong>Dallo staff:</strong> la posta interna della land, dalla voce <span class="ui">Messaggi</span>.</li>
+              <li><strong>Sulle regole:</strong> il <a href="regole.html">regolamento completo</a> ha l'indice: si cerca il paragrafo e si legge solo quello.</li>
+            </ul>
+            <div class="callout">
+              <span class="k">Una cosa vera</span>
+              <p>I giocatori esperti sono contenti quando arriva qualcuno di nuovo: significa scene nuove, personaggi nuovi, storie che non hanno ancora letto. Chiedere «come funziona questa cosa?» non ti fa sembrare impreparato — ti fa sembrare uno che ha intenzione di restare.</p>
+            </div>
+          </section>
+
+        </div>
+
+        <div class="cta">
+          <h2>Pronto?</h2>
+          <p>Nome, email, password. Poi età, villaggio, e sei un Deshi con sessanta punti da spendere e un mondo da attraversare.</p>
+          <a href="entra.html#registrati">Crea il tuo shinobi</a>
+          <a class="ghost" href="entra.html#accedi">Ho già un account</a>
+        </div>
+
+        <div class="story-return"><a href="index.html">← Torna alla home</a></div>
+      </article>
+
+      <footer>
+        <div class="fchip">Amatoriale · gratuito · theuntoldstory.it</div>
+        <p class="disc-txt">Progetto amatoriale, gratuito e non ufficiale, realizzato da appassionati. Non affiliato, sponsorizzato o approvato dagli aventi diritto. «Naruto» © Masashi Kishimoto / Shueisha. Universo alternativo e testi originali; contenuti a tema maturo in forma esclusivamente testuale.</p>
+      </footer>
+    </div>
+
+    <div class="frame"><span class="corner tl">✦</span><span class="corner tr">✦</span><span class="corner bl">✦</span><span class="corner br">✦</span></div>
+  </div>
+
+  <script src="bijuu.js"></script>
+  <script>(function(){ try{ if(sessionStorage.getItem('tus_in_land')==='1'){ var a=document.querySelectorAll('a[href="index.html"]'); for(var i=0;i<a.length;i++) a[i].setAttribute('href','land.html'); } }catch(e){} })();</script>
+  <!-- Gate 18+ (una volta per dispositivo) -->
+  <script>
+(function(){
+  var stored=null; try{ stored=localStorage.getItem('tus_age_ok'); }catch(e){}
+  if(stored) return;
+  function build(){
+    if(document.getElementById('tus-agegate')) return;
+    var o=document.createElement('div'); o.id='tus-agegate';
+    o.setAttribute('style',"position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(20,13,5,.94);font-family:Georgia,'Times New Roman',serif");
+    o.innerHTML='<div style="max-width:460px;width:100%;background:linear-gradient(#f1e6ca,#e7d6b2);border:1.5px solid #b79d6c;box-shadow:0 24px 70px rgba(0,0,0,.55);padding:30px 26px;text-align:center;color:#2b1d0e">'
+      +'<div style="font-family:Georgia,serif;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#7c2413">The Untold Story</div>'
+      +'<h2 style="margin:14px 0 8px;font-size:21px;color:#2b1d0e">Contenuti per un pubblico adulto</h2>'
+      +'<p style="margin:0 0 14px;font-size:17px;line-height:1.5;color:#4a3720">Questo &egrave; un gioco di ruolo testuale a tema maturo, riservato ai <strong>maggiorenni</strong>. Entrando dichiari di avere <strong>almeno 18 anni</strong>.</p>'
+      +'<p style="margin:0 0 18px;font-size:13.5px;line-height:1.5;color:#6a5231">Usiamo solo archiviazione tecnica necessaria al funzionamento. Leggi l\'<a href="privacy.html" style="color:#a6321d">informativa privacy</a> e il <a href="regole.html" style="color:#a6321d">regolamento</a>.</p>'
+      +'<div style="display:flex;flex-direction:column;gap:10px">'
+        +'<button type="button" id="tus-age-yes" style="cursor:pointer;font-family:Georgia,serif;font-weight:bold;font-size:13px;letter-spacing:.1em;text-transform:uppercase;padding:13px 18px;border:1.5px solid #7c2413;background:#a6321d;color:#f6ead0">Ho 18 anni o pi&ugrave; &mdash; Entra</button>'
+        +'<button type="button" id="tus-age-no" style="cursor:pointer;font-family:Georgia,serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:10px 18px;border:1.5px solid #b79d6c;background:transparent;color:#6a5231">No, esco</button>'
+      +'</div></div>';
+    document.body.appendChild(o);
+    document.documentElement.style.overflow='hidden';
+    document.getElementById('tus-age-yes').onclick=function(){ try{ localStorage.setItem('tus_age_ok', new Date().toISOString()); }catch(e){} if(o.parentNode)o.parentNode.removeChild(o); document.documentElement.style.overflow=''; };
+    document.getElementById('tus-age-no').onclick=function(){ window.location.href='https://www.google.com/'; };
+  }
+  if(document.body) build(); else document.addEventListener('DOMContentLoaded', build);
+})();
+  </script>
+</body>
+</html>
