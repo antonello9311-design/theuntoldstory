@@ -187,6 +187,9 @@
   #sec-premi .svlab+.svlab{margin-top:8px}
   .prcost{font-size:13.5px;color:var(--ink-soft);margin-top:6px}
   .prcost b{color:var(--red-deep)}
+  .prslot{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--rule);padding-bottom:6px;margin-bottom:10px}
+  .prslot b{font-family:'Cormorant Garamond',serif;font-size:14px;letter-spacing:0;text-transform:none;color:var(--red-deep)}
+  .prslot b.full{color:var(--red)}
   .jtop{display:flex;align-items:baseline;gap:8px}
   .jname{font-family:'Cinzel',serif;font-weight:600;font-size:13px;color:var(--ink);flex:1}
   .jrank{font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:#f6ead0;background:var(--rule,#8a6f43);border-radius:9px;padding:1px 7px;flex:0 0 auto}
@@ -570,18 +573,20 @@
               <div id="jutsu-wrap"></div>
               <div id="train-wrap" style="margin-top:18px"></div></div>
             <div class="ssec" id="sec-premi" style="display:none"><h3>Premi speciali <span class="priv">◈ conquiste della carriera</span></h3>
-              <p class="hint">I <b>premi</b> sono acquisti straordinari pagati in XP e legati alla trama: si chiedono qui e decide lo staff. L'XP viene scalato solo all'approvazione.</p>
+              <p class="hint">I <b>premi</b> sono acquisti straordinari pagati in XP e legati alla trama: si chiedono qui e decide lo staff. L'XP viene scalato solo all'approvazione.<br>I <b>premi maggiori</b> — contratto leggendario, tecnica proibita, tecnica personale di grado S, sigillo maledetto e Cercoterio — sono <b>due per tutta la carriera</b>, e il Cercoterio da solo li occupa entrambi. Gli altri premi restano fuori dal conteggio.</p>
               <div id="perk-list"></div>
               <div class="svbox" id="premio-box" style="display:none">
                 <h4>Richiedi un premio</h4>
+                <div class="prslot" id="pr-slot"></div>
                 <label class="svlab">Premio
                   <select id="pr-tipo">
                     <option value="seconda_natura">Seconda natura elementale · 300 XP · dal grado Jonin</option>
                     <option value="evocazione">Contratto di evocazione · 600 XP</option>
-                    <option value="sigillo_maledetto">Sigillo maledetto · 750 XP</option>
                     <option value="tecnica_segreta">Tecnica segreta di grado S · 375 XP</option>
                     <option value="tecnica_personale">Tecnica personale · da 115 XP</option>
-                    <option value="jinchuriki">Jinchūriki · 1.800 XP</option>
+                    <option value="sigillo_maledetto">Sigillo maledetto · 750 XP · dal grado Chunin · maggiore</option>
+                    <option value="tecnica_proibita">Tecnica proibita · 900 XP · dal grado Jonin · maggiore</option>
+                    <option value="evocazione_leggendaria">Contratto leggendario · 1.200 XP · dal grado Jonin · maggiore</option>
                   </select>
                 </label>
                 <label class="svlab" id="pr-grado-wrap" style="display:none">Grado della tecnica personale
@@ -597,6 +602,7 @@
                 <div class="svcnt"><span id="pr-cnt">0</span>/600 · minimo 60 caratteri</div>
                 <div class="prcost" id="pr-costo-line"></div>
                 <button class="btn btn-red btn-sm" id="pr-send" style="margin-top:8px">Invia allo staff</button>
+                <p class="hint" style="margin:10px 0 0">Il <b>Cercoterio</b> non si chiede da qui. Lo propone lo staff alla fine di un arco narrativo, dal grado Genin in su, e prende il posto del clan familiare.</p>
               </div>
               <h4 class="svh" id="pr-list-h" style="display:none">Richieste</h4>
               <div class="svlist" id="pr-list"></div>
@@ -1234,10 +1240,30 @@
       });
     })();
     /* ===== Premi speciali ===== */
-    var PREMI_COSTI={seconda_natura:300,evocazione:600,sigillo_maledetto:750,tecnica_segreta:375,jinchuriki:1800,tecnica_personale:{D:115,C:225,B:340,A:450,S:565}};
-    var PREMI_NOMI={seconda_natura:'Seconda natura elementale',evocazione:'Contratto di evocazione',sigillo_maledetto:'Sigillo maledetto',tecnica_segreta:'Tecnica segreta (S)',tecnica_personale:'Tecnica personale',jinchuriki:'Jinchūriki'};
-    function premioCosto(){ var t=$('pr-tipo')?$('pr-tipo').value:''; if(t==='tecnica_personale'){ var g=$('pr-grado')?$('pr-grado').value:'D'; return PREMI_COSTI.tecnica_personale[g]||0; } return PREMI_COSTI[t]||0; }
-    function updPremioCosto(){ var el=$('pr-costo-line'); if(!el||!myChar) return; var c=premioCosto(), saldo=(myChar.exp||0); el.innerHTML='Costo: <b>'+c+' XP</b> · saldo attuale '+saldo+(saldo<c?' · <span style="color:var(--red)">saldo insufficiente</span>':''); }
+    var PREMI_COSTI={seconda_natura:300,evocazione:600,evocazione_leggendaria:1200,sigillo_maledetto:750,tecnica_segreta:375,tecnica_proibita:900,jinchuriki:1800,tecnica_personale:{D:115,C:225,B:340,A:450,S:565}};
+    var PREMI_NOMI={seconda_natura:'Seconda natura elementale',evocazione:'Contratto di evocazione',evocazione_leggendaria:'Contratto leggendario',sigillo_maledetto:'Sigillo maledetto',tecnica_segreta:'Tecnica segreta (S)',tecnica_proibita:'Tecnica proibita',tecnica_personale:'Tecnica personale',jinchuriki:'Jinchūriki'};
+    var PR_USATI=0, PR_PEND=0;
+    function premioSlot(t,g){ if(t==='jinchuriki') return 2; if(t==='evocazione_leggendaria'||t==='tecnica_proibita'||t==='sigillo_maledetto') return 1; if(t==='tecnica_personale'&&g==='S') return 1; return 0; }
+    function premioCosto(){ var t=$('pr-tipo')?$('pr-tipo').value:''; if(t==='tecnica_personale'){ var g=$('pr-grado')?$('pr-grado').value:'D'; return PREMI_COSTI.tecnica_personale[g]||0; } if(t==='evocazione'&&myChar&&(myChar.corporation==='Medici'||myChar.corporation==='ANBU')) return 300; return PREMI_COSTI[t]||0; }
+    function updPremioSlot(){
+      var el=$('pr-slot'); if(!el) return; var pieni=(PR_USATI+PR_PEND)>=2;
+      el.innerHTML='Premi maggiori · <b'+(pieni?' class="full"':'')+'>'+PR_USATI+' di 2</b>'+(PR_PEND?(' · '+PR_PEND+' in attesa di risposta'):'');
+    }
+    function updPremioCosto(){
+      var el=$('pr-costo-line'); if(!el||!myChar) return;
+      var t=$('pr-tipo')?$('pr-tipo').value:'', g=(t==='tecnica_personale'&&$('pr-grado'))?$('pr-grado').value:null;
+      var c=premioCosto(), saldo=(myChar.exp||0);
+      var h='Costo: <b>'+c+' XP</b> · saldo attuale '+saldo;
+      if(t==='evocazione'&&c===300) h+=' · <b>metà prezzo</b> con la tua corporazione';
+      if(saldo<c) h+=' · <span style="color:var(--red)">saldo insufficiente</span>';
+      var s=premioSlot(t,g);
+      if(s>0){
+        h+='<br>Premio maggiore: occupa '+(s>1?'entrambi gli slot':'1 slot dei 2')+'.';
+        if(PR_USATI+PR_PEND+s>2) h+=' <span style="color:var(--red)">Non ti restano slot liberi.</span>';
+      }
+      if(t==='evocazione_leggendaria') h+='<br>Serve il contratto di evocazione già in mano: i 1.200 XP si aggiungono ai 600 del contratto base.';
+      el.innerHTML=h;
+    }
     function loadPremi(){
       var sec=$('sec-premi'); if(!sec) return;
       var show=(viewMode!=='public'&&!!myChar);
@@ -1249,14 +1275,23 @@
       if(owner) updPremioCosto();
       var host=$('perk-list');
       if(host){ sb.from('character_perks').select('*').eq('character_id',myChar.id).order('created_at').then(function(r){
-        var rows=(r&&r.data)||[]; var h2=$('perk-list'); if(!h2) return;
+        var rows=(r&&r.data)||[];
+        PR_USATI=rows.reduce(function(a,p){ return a+premioSlot(p.tipo,p.grado_tecnica); },0);
+        updPremioSlot(); if(owner) updPremioCosto();
+        var h2=$('perk-list'); if(!h2) return;
         if(!rows.length){ h2.innerHTML='<p class="hint" style="margin:0 0 .4em">Nessun premio ancora conquistato.</p>'; return; }
         h2.innerHTML='<div class="jgrid">'+rows.map(function(p){
           var d=p.created_at?new Date(p.created_at):null;
           var ds=d?(('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()):'';
-          return '<div class="jcard"><div class="jtop"><span class="jname">'+esc(PREMI_NOMI[p.tipo]||p.tipo)+'</span><span class="jrank">'+(p.costo||0)+' XP</span></div>'+(p.dettaglio?('<div class="jeff">'+esc(p.dettaglio)+'</div>'):'')+(ds?('<div class="jmeta">'+ds+'</div>'):'')+'</div>';
+          var mg=premioSlot(p.tipo,p.grado_tecnica)>0?'<span class="jrank">◈ maggiore</span>':'';
+          return '<div class="jcard"><div class="jtop"><span class="jname">'+esc(PREMI_NOMI[p.tipo]||p.tipo)+(p.grado_tecnica?(' · grado '+esc(p.grado_tecnica)):'')+'</span>'+mg+'<span class="jrank">'+(p.costo||0)+' XP</span></div>'+(p.dettaglio?('<div class="jeff">'+esc(p.dettaglio)+'</div>'):'')+(ds?('<div class="jmeta">'+ds+'</div>'):'')+'</div>';
         }).join('')+'</div>';
       },function(){}); }
+      sb.from('premio_richieste').select('tipo,grado_tecnica').eq('character_id',myChar.id).eq('status','in attesa').then(function(r){
+        var rows=(r&&r.data)||[];
+        PR_PEND=rows.reduce(function(a,p){ return a+premioSlot(p.tipo,p.grado_tecnica); },0);
+        updPremioSlot(); if(owner) updPremioCosto();
+      },function(){});
       var lh=$('pr-list-h'), list=$('pr-list'); if(!list) return;
       sb.from('premio_richieste').select('*').eq('character_id',myChar.id).order('created_at',{ascending:false}).limit(8).then(function(r){
         var rows=(r&&r.data)||[];

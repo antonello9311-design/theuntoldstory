@@ -237,6 +237,7 @@
             <button type="button" data-go="clan">Clan</button>
             <button type="button" data-go="tecniche">Tecniche</button>
             <button type="button" data-go="allenamenti">Allenamenti</button>
+            <button type="button" data-go="premi">Premi</button>
             <button type="button" data-go="oggetti">Oggetti</button>
             <button type="button" data-go="luoghi">Luoghi</button>
             <button type="button" data-go="mappa">Mappa</button>
@@ -629,6 +630,38 @@
           <div id="cso-list" style="margin:8px 0 16px"></div>
           <div class="grp-sub">Tutti i compagni</div>
           <div id="comp-admin-list"></div>
+          </section>
+
+          <section class="adm-page" data-page="premi">
+          <div class="grp-title" style="margin-top:0">Premi speciali — richieste e assegnazioni</div>
+          <p class="mgr-note">I premi di <b>§8.6</b>: acquisti straordinari pagati in XP e legati alla trama. L'XP si scala <b>solo all'approvazione</b>. I <b>premi maggiori</b> — contratto leggendario, tecnica proibita, tecnica personale di grado S, sigillo maledetto e Cercoterio — sono <b>due per tutta la carriera</b> e il Cercoterio da solo li occupa entrambi: il server rifiuta il terzo. Il <b>Cercoterio</b> non compare nel menu della scheda: si concede solo da qui, dal grado <b>Genin</b> in su e solo a un personaggio <b>senza clan familiare</b>.</p>
+          <button class="mini-btn" id="prm-refresh" type="button" style="margin-bottom:10px">Aggiorna</button>
+          <div class="grp-sub">Richieste in coda</div>
+          <div class="cat-form" style="margin-top:0;margin-bottom:10px"><label class="full">Nota per il giocatore — facoltativa, viene allegata alla prossima decisione<input id="prm-nota" maxlength="200" placeholder="Es. concesso dopo l'arco del Tempio sommerso…"></label></div>
+          <div id="prm-list"></div>
+          <div class="grp-sub" style="margin-top:18px">Assegna un premio d'ufficio</div>
+          <p class="mgr-note">Serve per il <b>Cercoterio</b>, per i contratti <b>ereditari o di trama</b> concessi a fine arco e per ogni premio che nasce dalla storia invece che da una richiesta. Il costo in XP viene scalato lo stesso, a meno che non spunti «senza costo».</p>
+          <div class="cat-form" style="margin-top:6px">
+            <label>Personaggio<input id="prm-name" maxlength="40" placeholder="nome esatto del PG"></label>
+            <label>Premio<select id="prm-tipo">
+              <option value="jinchuriki">Cercoterio (Jinchūriki) · 1.800 XP · maggiore ×2</option>
+              <option value="evocazione">Contratto di evocazione · 600 XP</option>
+              <option value="evocazione_leggendaria">Contratto leggendario · 1.200 XP · maggiore</option>
+              <option value="sigillo_maledetto">Sigillo maledetto · 750 XP · maggiore</option>
+              <option value="tecnica_proibita">Tecnica proibita · 900 XP · maggiore</option>
+              <option value="tecnica_segreta">Tecnica segreta di grado S · 375 XP</option>
+              <option value="seconda_natura">Seconda natura elementale · 300 XP</option>
+              <option value="tecnica_personale">Tecnica personale · da 115 XP</option>
+            </select></label>
+            <label>Grado (solo tecnica personale)<select id="prm-grado">
+              <option value="">—</option><option value="D">D · 115 XP</option><option value="C">C · 225 XP</option><option value="B">B · 340 XP</option><option value="A">A · 450 XP</option><option value="S">S · 565 XP · maggiore</option>
+            </select></label>
+            <label class="full">Motivazione (resta scritta sulla scheda del personaggio)<input id="prm-det" maxlength="300" placeholder="Perché lo riceve: quale arco narrativo, quale prova superata…"></label>
+            <label class="full chk"><input type="checkbox" id="prm-gratis"> Senza costo in XP — contratto ereditario o di trama (§6.4)</label>
+            <label class="full chk"><button class="btn btn-red" id="prm-save" type="button">Assegna</button><span class="editing-note" id="prm-note" style="margin-left:10px"></span></label>
+          </div>
+          <div class="grp-sub" style="margin-top:18px">Premi già concessi</div>
+          <div id="prm-perks"></div>
           </section>
 
           <section class="adm-page" data-page="segnalazioni">
@@ -1392,6 +1425,87 @@
       });
     }
 
+    /* ---- Premi speciali: coda delle richieste e assegnazione d'ufficio (§8.6) ---- */
+    var PRM=[],PRMP=[];
+    var PRM_NOMI={seconda_natura:'Seconda natura elementale',evocazione:'Contratto di evocazione',evocazione_leggendaria:'Contratto leggendario',sigillo_maledetto:'Sigillo maledetto',tecnica_segreta:'Tecnica segreta (S)',tecnica_proibita:'Tecnica proibita',tecnica_personale:'Tecnica personale',jinchuriki:'Cercoterio (Jinchūriki)'};
+    function prmSlot(t,g){ if(t==='jinchuriki')return 2; if(t==='evocazione_leggendaria'||t==='tecnica_proibita'||t==='sigillo_maledetto')return 1; if(t==='tecnica_personale'&&g==='S')return 1; return 0; }
+    function prmDate(s){ if(!s)return ''; var d=new Date(s); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear(); }
+    async function loadPrm(){
+      var r=await sb.from('premio_richieste').select('*,character:characters(name,rank,exp,clan,corporation)').order('created_at',{ascending:false}).limit(200);
+      PRM=(r&&r.data)||[];
+      var p=await sb.from('character_perks').select('*,character:characters(name)').order('created_at',{ascending:false}).limit(200);
+      PRMP=(p&&p.data)||[];
+      renderPrm();
+      var btn=document.querySelector('#adm-nav button[data-go="premi"]');
+      if(btn){ var n=PRM.filter(function(x){return x.status==='in attesa';}).length; btn.textContent='Premi'+(n?(' ('+n+')'):''); }
+    }
+    function renderPrm(){
+      var usati={};
+      PRMP.forEach(function(p){ usati[p.character_id]=(usati[p.character_id]||0)+prmSlot(p.tipo,p.grado_tecnica); });
+      var host=$('prm-list');
+      if(host){
+        var rows=PRM.slice().sort(function(a,b){
+          var pa=(a.status==='in attesa')?0:1, pb=(b.status==='in attesa')?0:1;
+          if(pa!==pb) return pa-pb;
+          return String(b.created_at||'').localeCompare(String(a.created_at||''));
+        });
+        if(!rows.length){ host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessuna richiesta di premio, per ora.</p>'; }
+        else host.innerHTML=rows.map(function(x){
+          var ch=x.character||{}, sl=prmSlot(x.tipo,x.grado_tecnica), u=usati[x.character_id]||0, att=(x.status==='in attesa');
+          var saldo=(ch.exp==null)?null:ch.exp;
+          var av=['<span class="lmeta"> · '+esc(ch.rank||'grado ignoto')+'</span>'];
+          av.push('<span class="lmeta"> · saldo '+((saldo==null)?'?':saldo)+' XP</span>');
+          if(sl>0) av.push('<span class="lmeta"> · maggiore: '+sl+' slot, ne ha '+u+' su 2</span>');
+          if(att&&saldo!=null&&saldo<x.costo) av.push('<span class="lmeta lnote"> · XP insufficienti</span>');
+          if(att&&sl>0&&(u+sl)>2) av.push('<span class="lmeta lnote"> · slot maggiori esauriti</span>');
+          var nota=x.nota_staff?('<span class="ldesc">Nota staff: '+esc(x.nota_staff)+'</span>'):'';
+          var acts=att?('<div class="lacts"><button class="mini-btn" data-prmok="'+x.id+'">Approva · scala '+x.costo+' XP</button><button class="mini-btn danger" data-prmno="'+x.id+'">Respingi</button></div>')
+                      :('<div class="lacts"><span class="lkind">'+esc(x.status)+'</span><span class="lmeta">'+prmDate(x.decided_at||x.created_at)+'</span></div>');
+          return '<div class="locrow'+(att?'':' off')+'"><div class="lmain"><span class="lname">'+esc(ch.name||'?')+'</span><span class="lkind">'+esc(PRM_NOMI[x.tipo]||x.tipo)+(x.grado_tecnica?(' · grado '+esc(x.grado_tecnica)):'')+'</span><span class="lkind">'+x.costo+' XP</span><div>'+av.join('')+'<span class="lmeta"> · '+prmDate(x.created_at)+'</span></div><span class="ldesc">'+esc(x.dettaglio||'')+'</span>'+nota+'</div>'+acts+'</div>';
+        }).join('');
+      }
+      var ph=$('prm-perks');
+      if(ph){
+        if(!PRMP.length){ ph.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun premio concesso, per ora.</p>'; }
+        else ph.innerHTML=PRMP.map(function(p){
+          var mg=prmSlot(p.tipo,p.grado_tecnica);
+          return '<div class="itrow"><div class="itmain"><b>'+esc((p.character&&p.character.name)||'?')+'</b> <span class="itmeta">· '+esc(PRM_NOMI[p.tipo]||p.tipo)+(p.grado_tecnica?(' · grado '+esc(p.grado_tecnica)):'')+' · '+(p.costo||0)+' XP'+(mg?(' · maggiore ('+mg+' slot)'):'')+' · '+prmDate(p.created_at)+'</span>'+(p.dettaglio?('<div class="itmeta">'+esc(p.dettaglio)+'</div>'):'')+'</div></div>';
+        }).join('');
+      }
+    }
+    function bindPrm(){
+      var rf=$('prm-refresh'); if(rf) rf.addEventListener('click',loadPrm);
+      var tp=$('prm-tipo'); if(tp) tp.addEventListener('change',function(){ var g=$('prm-grado'); if(g) g.disabled=(this.value!=='tecnica_personale'); });
+      var g0=$('prm-grado'); if(g0) g0.disabled=true;
+      var sv=$('prm-save'); if(sv) sv.addEventListener('click',async function(){
+        var nm=($('prm-name').value||'').trim(); if(!nm){toast('Scrivi il nome del personaggio',true);return;}
+        var det=($('prm-det').value||'').trim(); if(det.length<10){toast('Scrivi almeno una riga di motivazione',true);return;}
+        var tipo=$('prm-tipo').value, gr=($('prm-grado').value||null);
+        if(tipo==='tecnica_personale'&&!gr){toast('Scegli il grado della tecnica personale',true);return;}
+        var ch=await sb.from('characters').select('id,name').ilike('name',nm).maybeSingle();
+        if(!ch||ch.error||!ch.data){toast('Personaggio non trovato',true);return;}
+        this.disabled=true;
+        var r=await sb.rpc('premio_assegna',{p_character:ch.data.id,p_tipo:tipo,p_dettaglio:det,p_grado:(tipo==='tecnica_personale'?gr:null),p_gratis:!!($('prm-gratis')&&$('prm-gratis').checked)});
+        this.disabled=false;
+        if(r.error){toast(r.error.message||'Errore nell\'assegnazione',true);return;}
+        var n=$('prm-note'); if(n)n.textContent=ch.data.name+' → '+(PRM_NOMI[tipo]||tipo);
+        $('prm-det').value=''; if($('prm-gratis'))$('prm-gratis').checked=false;
+        toast('Premio assegnato');loadPrm();
+      });
+      var lst=$('prm-list'); if(lst) lst.addEventListener('click',async function(e){
+        var ok=e.target.closest('[data-prmok]'), no=e.target.closest('[data-prmno]');
+        if(!ok&&!no) return;
+        var btn=ok||no, id=btn.getAttribute(ok?'data-prmok':'data-prmno');
+        var nt=$('prm-nota'), nota=nt?((nt.value||'').trim()||null):null;
+        btn.disabled=true;
+        var r=await sb.rpc('premio_decidi',{p_richiesta:id,p_approva:!!ok,p_nota:nota});
+        btn.disabled=false;
+        if(r.error){toast(r.error.message||'Errore',true);return;}
+        if(nt) nt.value='';
+        toast(ok?'Premio approvato: XP scalati':'Richiesta respinta');loadPrm();
+      });
+    }
+
     /* ---- Segnalazioni allo staff ---- */
     var REPS=[];
     async function loadReps(){
@@ -1895,7 +2009,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
+      await loadClans();bindClans();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPrm();await loadPrm();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
