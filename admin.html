@@ -634,7 +634,7 @@
 
           <section class="adm-page" data-page="premi">
           <div class="grp-title" style="margin-top:0">Premi speciali — richieste e assegnazioni</div>
-          <p class="mgr-note">I premi di <b>§8.6</b>: acquisti straordinari pagati in XP e legati alla trama. L'XP si scala <b>solo all'approvazione</b>. I <b>premi maggiori</b> — contratto leggendario, tecnica proibita, tecnica personale di grado S, sigillo maledetto e Cercoterio — sono <b>due per tutta la carriera</b> e il Cercoterio da solo li occupa entrambi: il server rifiuta il terzo. Il <b>Cercoterio</b> non compare nel menu della scheda: si concede solo da qui, dal grado <b>Genin</b> in su e solo a un personaggio <b>senza clan familiare</b>.</p>
+          <p class="mgr-note">I premi di <b>§8.6</b>: acquisti straordinari pagati in XP e legati alla trama. Corrono su <b>due strade separate</b>. I <b>premi minori</b> — seconda natura, contratto di evocazione, tecnica segreta, tecnica personale da D ad A — il giocatore <b>se li compra da sé dalla scheda</b> e l'XP gli viene scalato subito: in questa coda non arrivano. I <b>premi maggiori</b> — contratto leggendario, tecnica proibita, tecnica personale di grado S, sigillo maledetto e Cercoterio — <b>non si comprano</b>: dalla scheda parte solo la richiesta, l'XP si scala <b>all'approvazione</b> e la decisione è tua. Sono <b>due per tutta la carriera</b> e il Cercoterio da solo li occupa entrambi: il server rifiuta il terzo. Il <b>Cercoterio</b> non compare nemmeno nel modulo della scheda: si concede solo da qui, dal grado <b>Genin</b> in su e solo a un personaggio <b>senza clan familiare</b>, ed è una condizione permanente. Nessun premio, per nessuna delle due strade, si prende da <b>Deshi</b>.</p>
           <button class="mini-btn" id="prm-refresh" type="button" style="margin-bottom:10px">Aggiorna</button>
           <div class="grp-sub">Richieste in coda</div>
           <div class="cat-form" style="margin-top:0;margin-bottom:10px"><label class="full">Nota per il giocatore — facoltativa, viene allegata alla prossima decisione<input id="prm-nota" maxlength="200" placeholder="Es. concesso dopo l'arco del Tempio sommerso…"></label></div>
@@ -660,6 +660,15 @@
             <label class="full chk"><input type="checkbox" id="prm-gratis"> Senza costo in XP — contratto ereditario o di trama (§6.4)</label>
             <label class="full chk"><button class="btn btn-red" id="prm-save" type="button">Assegna</button><span class="editing-note" id="prm-note" style="margin-left:10px"></span></label>
           </div>
+          <div class="grp-sub" style="margin-top:18px">Tecniche leggendarie di clan</div>
+          <p class="mgr-note">Ogni clan ne ha <b>una sola</b>, ed è <b>una sola in tutto il mondo di gioco</b>: nel momento in cui la concedi a qualcuno, per tutti gli altri è chiusa finché quel personaggio la porta. Non si compra, non si allena e non si chiede dalla scheda — sta <b>fuori dalla progressione a XP</b> e la decidi tu, in fondo a un arco narrativo che se la sia meritata. Costa comunque <b>uno dei due slot di premio maggiore</b>. Il personaggio deve appartenere al clan della tecnica e averne il rango.</p>
+          <div class="cat-form" style="margin-top:6px">
+            <label>Personaggio<input id="tlg-name" maxlength="40" placeholder="nome esatto del PG"></label>
+            <label>Tecnica<select id="tlg-tec"><option value="">—</option></select></label>
+            <label class="full">Motivazione in trama (resta scritta in scheda)<input id="tlg-motivo" maxlength="280" placeholder="Da dove arriva: chi gliel'ha tramandata, quale prova ha superato…"></label>
+            <label class="full chk"><button class="btn btn-red" id="tlg-save" type="button">Concedi</button><span class="editing-note" id="tlg-note" style="margin-left:10px"></span></label>
+          </div>
+          <div id="tlg-list"></div>
           <div class="grp-sub" style="margin-top:18px">Premi già concessi</div>
           <div id="prm-perks"></div>
           </section>
@@ -1427,8 +1436,8 @@
 
     /* ---- Premi speciali: coda delle richieste e assegnazione d'ufficio (§8.6) ---- */
     var PRM=[],PRMP=[];
-    var PRM_NOMI={seconda_natura:'Seconda natura elementale',evocazione:'Contratto di evocazione',evocazione_leggendaria:'Contratto leggendario',sigillo_maledetto:'Sigillo maledetto',tecnica_segreta:'Tecnica segreta (S)',tecnica_proibita:'Tecnica proibita',tecnica_personale:'Tecnica personale',jinchuriki:'Cercoterio (Jinchūriki)'};
-    function prmSlot(t,g){ if(t==='jinchuriki')return 2; if(t==='evocazione_leggendaria'||t==='tecnica_proibita'||t==='sigillo_maledetto')return 1; if(t==='tecnica_personale'&&g==='S')return 1; return 0; }
+    var PRM_NOMI={seconda_natura:'Seconda natura elementale',evocazione:'Contratto di evocazione',evocazione_leggendaria:'Contratto leggendario',sigillo_maledetto:'Sigillo maledetto',tecnica_segreta:'Tecnica segreta (S)',tecnica_proibita:'Tecnica proibita',tecnica_personale:'Tecnica personale',jinchuriki:'Cercoterio (Jinchūriki)',tecnica_leggendaria:'Tecnica leggendaria di clan'};
+    function prmSlot(t,g){ if(t==='jinchuriki')return 2; if(t==='evocazione_leggendaria'||t==='tecnica_proibita'||t==='sigillo_maledetto'||t==='tecnica_leggendaria')return 1; if(t==='tecnica_personale'&&g==='S')return 1; return 0; }
     function prmDate(s){ if(!s)return ''; var d=new Date(s); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear(); }
     async function loadPrm(){
       var r=await sb.from('premio_richieste').select('*,character:characters(name,rank,exp,clan,corporation)').order('created_at',{ascending:false}).limit(200);
@@ -1503,6 +1512,74 @@
         if(r.error){toast(r.error.message||'Errore',true);return;}
         if(nt) nt.value='';
         toast(ok?'Premio approvato: XP scalati':'Richiesta respinta');loadPrm();
+      });
+    }
+
+    /* ---- Tecniche leggendarie di clan: premio unico, una sola al mondo ---- */
+    var TLG=[],TLGA=[];
+    async function loadTlg(){
+      var host=$('tlg-list'), sel=$('tlg-tec');
+      var r=await sb.from('clan_techniques').select('id,clan,name,grado,req_grade').eq('is_leggendaria',true).order('clan',{ascending:true});
+      if(r.error){
+        TLG=[];TLGA=[];
+        if(sel) sel.innerHTML='<option value="">\u2014</option>';
+        if(host) host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Le tecniche leggendarie non sono ancora accese sul database: manca la migrazione che aggiunge la colonna <b>is_leggendaria</b> e le nove righe di clan. Questo riquadro si accende da solo appena viene eseguita.</p>';
+        return;
+      }
+      TLG=r.data||[];
+      TLGA=[];
+      var ids=TLG.map(function(t){return t.id;});
+      if(ids.length){
+        var a=await sb.from('character_abilities').select('character_id,technique_id,state,character:characters(name)').in('technique_id',ids);
+        TLGA=(a&&a.data)||[];
+      }
+      renderTlg();
+    }
+    function tlgOwner(id){ var f=null; TLGA.forEach(function(a){ if(a.technique_id===id&&!f) f=a; }); return f; }
+    function renderTlg(){
+      var sel=$('tlg-tec');
+      if(sel){
+        var cur=sel.value;
+        sel.innerHTML='<option value="">\u2014</option>'+TLG.map(function(t){
+          var o=tlgOwner(t.id);
+          var lab=(t.clan||'\u2014')+' \u00b7 '+t.name+' \u00b7 grado '+(t.grado||'?')+' \u00b7 dal rango '+(t.req_grade||'Genin');
+          if(o) lab+=' \u2014 gi\u00e0 concessa a '+((o.character&&o.character.name)||'?');
+          return '<option value="'+t.id+'"'+(o?' disabled':'')+'>'+esc(lab)+'</option>';
+        }).join('');
+        if(cur) sel.value=cur;
+      }
+      var host=$('tlg-list'); if(!host)return;
+      if(!TLG.length){ host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessuna tecnica leggendaria in elenco.</p>'; return; }
+      var liberi=TLG.filter(function(t){return !tlgOwner(t.id);}).length;
+      host.innerHTML='<p class="mgr-note" style="margin:6px 0 8px">'+liberi+' su '+TLG.length+' ancora libere.</p>'+TLG.map(function(t){
+        var o=tlgOwner(t.id);
+        var stato=o?('Concessa a <b>'+esc((o.character&&o.character.name)||'?')+'</b>'+((o.state&&o.state!=='attiva')?(' \u00b7 '+esc(o.state)):'')):'<i>Libera</i>';
+        return '<div class="itrow'+(o?' off':'')+'"><div class="itmain"><b>'+esc(t.name)+'</b> <span class="itmeta">\u00b7 '+esc(t.clan||'\u2014')+' \u00b7 grado '+esc(t.grado||'?')+' \u00b7 dal rango '+esc(t.req_grade||'Genin')+'</span><div class="itmeta">'+stato+'</div></div></div>';
+      }).join('');
+    }
+    function bindTlg(){
+      var sv=$('tlg-save'); if(!sv)return;
+      sv.addEventListener('click',async function(){
+        var el;
+        el=$('tlg-name'); var nm=((el&&el.value)||'').trim();
+        if(!nm){toast('Scrivi il nome del personaggio',true);return;}
+        el=$('tlg-tec'); var tid=((el&&el.value)||'');
+        if(!tid){toast('Scegli la tecnica leggendaria',true);return;}
+        el=$('tlg-motivo'); var mot=((el&&el.value)||'').trim();
+        if(mot.length<10){toast('Scrivi almeno una riga di motivazione in trama',true);return;}
+        var t=null; TLG.forEach(function(x){ if(x.id===tid) t=x; });
+        if(tlgOwner(tid)){toast('Questa tecnica \u00e8 gi\u00e0 concessa: \u00e8 unica',true);return;}
+        var ch=await sb.from('characters').select('id,name,clan,rank').ilike('name',nm).maybeSingle();
+        if(!ch||ch.error||!ch.data){toast('Personaggio non trovato',true);return;}
+        if(t&&t.clan&&((ch.data.clan||'').trim()!==t.clan)){toast(ch.data.name+' non appartiene al clan '+t.clan,true);return;}
+        this.disabled=true;
+        var r=await sb.rpc('tecnica_leggendaria_assegna',{p_character:ch.data.id,p_technique:tid,p_motivo:mot});
+        this.disabled=false;
+        if(r.error){toast(r.error.message||'Errore nella concessione',true);return;}
+        var n=$('tlg-note'); if(n)n.textContent=ch.data.name+' \u2192 '+((t&&t.name)||'tecnica leggendaria');
+        var m=$('tlg-motivo'); if(m)m.value='';
+        toast('Tecnica leggendaria concessa');
+        await loadTlg(); loadPrm();
       });
     }
 
@@ -2009,7 +2086,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPrm();await loadPrm();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
+      await loadClans();bindClans();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPrm();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
