@@ -647,6 +647,17 @@
   .corp-members{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
   .corp-mem-h{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);width:100%}
   .corp-mem{font-size:11.5px;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:2px 8px;background:rgba(255,250,235,.6)}
+  .corp-vgroup{margin-top:9px;border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.45);overflow:hidden}
+  .corp-vbtn{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:7px 10px;-webkit-user-select:none;user-select:none}
+  .corp-vbtn::-webkit-details-marker{display:none}
+  .corp-vbtn:hover{background:rgba(60,42,18,.06)}
+  .corp-vbtn-n{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .corp-vcar{margin-left:auto;font-size:10px;color:var(--ink-soft);transition:transform .15s ease}
+  .corp-vgroup[open] .corp-vcar{transform:rotate(180deg)}
+  .corp-vgroup .corp-members{margin:0;padding:0 10px 10px}
+  .corp-card.akatsuki .corp-vgroup{border-color:#5a2a2a;background:rgba(255,255,255,.04)}
+  .corp-card.akatsuki .corp-vbtn:hover{background:rgba(255,255,255,.06)}
+  .corp-card.akatsuki .corp-vbtn-n,.corp-card.akatsuki .corp-vcar{color:#cc9a9a}
   .corp-card.akatsuki{background:linear-gradient(rgba(40,14,14,.92),rgba(24,8,8,.94));border-color:#240c0c}
   .corp-card.akatsuki .corp-desc,.corp-card.akatsuki .corp-mem{color:#e9d4c4}
   .corp-card.akatsuki .corp-req-box{background:rgba(255,255,255,.06);color:#d8b8a8}
@@ -1829,7 +1840,7 @@
         var chip=document.getElementById('png-chip'), lab=document.getElementById('png-lab'), elab=document.getElementById('ed-png-lab'), ebox=document.getElementById('ed-png-box');
         if(!myComp){ if(chip) chip.style.display='none'; var b=document.getElementById('png-box'); if(b) b.hidden=true; if(ebox) ebox.hidden=true; return; }
         if(chip){ chip.style.display=''; chip.textContent=pngIcon(myComp.kind)+' '+myComp.name; }
-        if(lab) lab.textContent='Azione di '+myComp.name+' ('+myComp.kind.replace('_',' ')+' \u00B7 '+(myComp.grado||'minore')+')';
+        if(lab) lab.textContent='Azione di '+myComp.name+' ('+myComp.kind.replace('_',' ')+' \u00B7 '+(myComp.grado||'baby')+')';
         if(elab) elab.textContent='Azione di '+myComp.name;
       }
       (function(){
@@ -1915,7 +1926,7 @@
       sendBtn.addEventListener('click', send);
       /* ---- Editor: finestra grande per scrivere e rileggere la propria role ---- */
       var edOv=document.getElementById('editor-ov'), edText=document.getElementById('ed-text'), edCountEl=document.getElementById('ed-count'), edToEl=document.getElementById('ed-to');
-      function edCount(){ if(!edCountEl||!edText) return; var n=(edText.value||'').length; edCountEl.textContent=n+' / 5000'; edCountEl.classList.toggle('warn', n>4500); }
+      function edCount(){ if(!edCountEl||!edText) return; var n=(edText.value||'').length; if(n<500){ edCountEl.textContent=n+' / 500 min'; edCountEl.classList.add('warn'); } else { edCountEl.textContent=n+' / 5000'; edCountEl.classList.toggle('warn', n>4500); } }
       function edRefreshTo(){ if(!edToEl) return; var lbl='A tutti'; if(toSel&&toSel.options&&toSel.selectedIndex>=0){ var o=toSel.options[toSel.selectedIndex]; if(o&&o.text) lbl=o.text; } edToEl.textContent='A: '+lbl; }
       function openEditor(){ if(!edOv||!edText) return; edText.value=input?(input.value||''):''; var _ep=document.getElementById('ed-png'), _pi=document.getElementById('png-input'); if(_ep&&_pi) _ep.value=_pi.value; var _eb=document.getElementById('ed-png-box'); if(_eb) _eb.hidden=!(myComp && !document.getElementById('png-box').hidden); edCount(); edRefreshTo(); edOv.hidden=false; setTimeout(function(){ try{ edText.focus(); var L=edText.value.length; edText.setSelectionRange(L,L); }catch(e){} },50); }
       function closeEditor(){ if(!edOv) return; if(input&&edText){ input.value=edText.value; updCount(); } edOv.hidden=true; }
@@ -2594,6 +2605,7 @@
         return '<div class="corp-gradi"><span class="corp-gradi-h">Gradi e struttura</span>'+rows+'</div>';
       }
       function corpMembersHTML(members){ if(!members.length) return '<span class="corp-empty">Nessun membro noto, per ora.</span>'; return members.map(function(m){ var sp=m.corp_spec?corpEmbImg('corpspec',String(m.corp_spec).toLowerCase(),'corp-semb'):''; return '<span class="corp-mem">'+sp+esc(m.name)+(m.corp_spec?(' · '+esc(corpSpecLabel(m.corp_spec))):'')+(m.corp_role?(' · '+esc(m.corp_role)):'')+'</span>'; }).join(''); }
+      function corpGroupHTML(label,mem){ return '<details class="corp-vgroup"><summary class="corp-vbtn">'+(label||'')+'<span class="corp-vbtn-n">Membri ('+mem.length+')</span><span class="corp-vcar">&#9662;</span></summary><div class="corp-members">'+corpMembersHTML(mem)+'</div></details>'; }
       function corpDetailHTML(c){
         var roster=(CORP_DATA&&CORP_DATA.roster)||[];
         var scopeLabel = c.key==='akatsuki' ? 'mondiale · fuorilegge' : (c.scope==='villaggio'?'di villaggio':'mondiale');
@@ -2606,11 +2618,11 @@
         if(c.scope==='villaggio'){
           CORP_VILLAGES.forEach(function(vil){
             var mem=roster.filter(function(m){ return String(m.corporation||'').toLowerCase()===c.key && (m.village||'')===vil; });
-            h+='<div class="corp-members"><span class="corp-mem-h"><span class="corp-vil">'+esc(vil)+'</span> Membri ('+mem.length+')</span>'+corpMembersHTML(mem)+'</div>';
+            h+=corpGroupHTML('<span class="corp-vil">'+esc(vil)+'</span>', mem);
           });
         } else {
           var mem=roster.filter(function(m){ return String(m.corporation||'').toLowerCase()===c.key; });
-          h+='<div class="corp-members"><span class="corp-mem-h">Membri ('+mem.length+')</span>'+corpMembersHTML(mem)+'</div>';
+          h+=corpGroupHTML('', mem);
         }
         h+='</div>';
         return h;
