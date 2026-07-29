@@ -565,13 +565,13 @@
           <section class="adm-page" data-page="tecniche">
           <div class="grp-title" style="margin-top:0">Tecniche e abilità</div>
           <p class="mgr-note">Inserisci le <b>tecniche e le abilità</b> dei clan (oppure generali) con la <b>scheda completa</b>: nome, livello, tipologia, grado, portata, bersaglio, azione, durata, ricarica, danno/effetto, tipo di consumo e chakra. In più la <b>meccanica di sblocco</b>: <b>costo in XP</b>, <b>allenamenti necessari</b>, grado minimo e caratteristica richiesta (con soglia). Compaiono <b>raggruppate per clan in sezioni richiudibili</b> (apri solo quella che ti serve); le tecniche a più <b>livelli</b> stanno in un unico pannello con un <b>selettore Liv 1/2/3/4</b> per vedere cosa cambia, e un pulsante <b>+ livello</b> per aggiungere il successivo già precompilato.</p>
-          <div class="adm-nav" id="tech-macrotabs" style="margin:6px 0 8px;max-width:none;justify-content:flex-start"><button type="button" data-tmac="clan" class="on">Clan</button><button type="button" data-tmac="generica">Generiche</button><button type="button" data-tmac="abilita">Abilità</button></div>
+          <div class="adm-nav" id="tech-macrotabs" style="margin:6px 0 8px;max-width:none;justify-content:flex-start"><button type="button" data-tmac="clan" class="on">Clan</button><button type="button" data-tmac="generica">Generiche</button><button type="button" data-tmac="abilita">Abilità</button><button type="button" data-tmac="evocazione">Evocazioni</button><button type="button" data-tmac="cercoterio">Cercoteri</button></div>
           <input class="adm-search" id="tech-search" type="search" placeholder="Cerca per nome, categoria o clan…">
           <button type="button" class="adm-addbtn" data-addnew="tecniche"><span class="plus">+</span> Aggiungi nuova tecnica</button>
           <div class="cat-formwrap" hidden>
           <div class="cat-form" id="tech-form">
             <label>Nome<input id="tech-name" maxlength="80" placeholder="es. Chiusura delle Porte"></label>
-            <label>Macro-categoria<select id="tech-macro"><option value="clan">Clan</option><option value="generica">Generica</option><option value="abilita">Abilità</option></select></label>
+            <label>Macro-categoria<select id="tech-macro"><option value="clan">Clan</option><option value="generica">Generica</option><option value="abilita">Abilità</option><option value="evocazione">Evocazione</option><option value="cercoterio">Cercoterio</option></select></label>
             <label>Clan <span class="opt">(solo se «Clan»)</span><select id="tech-clan"><option value="">— nessuno —</option></select></label>
             <label>Livello<input id="tech-level" type="number" step="1" min="1" placeholder="es. 1"></label>
             <label>Tipologia<input id="tech-category" list="tech-cats" maxlength="40" placeholder="es. Taijutsu"><datalist id="tech-cats"><option value="Dōjutsu"></option><option value="Taijutsu"></option><option value="Ninjutsu"></option><option value="Genjutsu"></option><option value="Fuuinjutsu"></option><option value="Kekkei Genkai"></option><option value="Hiden"></option><option value="Difesa"></option><option value="Supporto"></option></datalist></label>
@@ -592,8 +592,11 @@
             <label>Grado minimo<input id="tech-reqgrade" list="tech-grades" maxlength="30" placeholder="es. Genin"></label>
             <label>Caratteristica richiesta<input id="tech-reqstat" list="tech-stats" maxlength="30" placeholder="es. Kekkei Genkai"></label>
             <label>Soglia caratteristica<input id="tech-reqval" type="number" step="1" min="0" placeholder="es. 30"></label>
+            <label>Seconda caratteristica <span class="opt">(facoltativa: se la compili serve <b>insieme</b> alla prima, non in alternativa)</span><input id="tech-reqstat2" list="tech-stats" maxlength="30" placeholder="es. Resistenza"></label>
+            <label>Soglia seconda caratteristica<input id="tech-reqval2" type="number" step="1" min="0" placeholder="es. 15"></label>
             <label class="chk"><input type="checkbox" id="tech-active" checked> Attiva</label>
             <label class="full">Elemento richiesto <span class="opt">(vincola l'apprendimento: solo chi possiede uno di questi elementi potrà impararla; lascia vuoto se non serve)</span><span id="tech-elems" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:5px"><label style="display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)"><input type="checkbox" data-elem="Fuoco"> Fuoco</label><label style="display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)"><input type="checkbox" data-elem="Vento"> Vento</label><label style="display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)"><input type="checkbox" data-elem="Fulmine"> Fulmine</label><label style="display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)"><input type="checkbox" data-elem="Terra"> Terra</label><label style="display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)"><input type="checkbox" data-elem="Acqua"> Acqua</label></span></label>
+            <label class="full">Come si contano gli elementi <span class="opt">(vale solo se ne hai spuntato almeno uno)</span><select id="tech-elemsmode"><option value="uno">Basta uno di quelli spuntati</option><option value="tutti">Servono tutti quelli spuntati — es. Legno = Terra + Acqua</option></select></label>
             <label class="full">Danno / effetto<textarea id="tech-effetto" maxlength="600" rows="2" placeholder="es. fa perdere chakra al bersaglio; abilita il Pugno Gentile…"></textarea></label>
             <label class="full">Requisiti (testo)<textarea id="tech-req" maxlength="600" rows="2" placeholder="es. Byakugan livello 2 · grado Chunin"></textarea></label>
             <label class="full">Descrizione della tecnica<textarea id="tech-desc" maxlength="2000" rows="3" placeholder="Come evolve e cosa permette di fare in più…"></textarea></label>
@@ -1805,10 +1808,11 @@
       if(t.trainings_required!=null)mech.push(t.trainings_required+' allenamenti');
       if(t.req_grade)mech.push('da '+esc(t.req_grade));
       if(t.req_stat)mech.push(esc(t.req_stat)+(t.req_stat_value!=null?(' '+t.req_stat_value):''));
+      if(t.req_stat2)mech.push(esc(t.req_stat2)+(t.req_stat2_value!=null?(' '+t.req_stat2_value):''));
       return '<span class="itmeta">· '+meta.join(' · ')+'</span>'+
         (t.danno_effetto?('<span class="itdesc"><b>Effetto:</b> '+esc(t.danno_effetto)+'</span>'):'')+
         (mech.length?('<span class="itdesc"><b>Sblocco:</b> '+mech.join(' · ')+'</span>'):'')+
-        ((t.req_elements&&t.req_elements.length)?('<span class="itdesc"><b>Elemento:</b> '+esc(t.req_elements.join(' o '))+'</span>'):'')+
+        ((t.req_elements&&t.req_elements.length)?('<span class="itdesc"><b>'+(t.req_elements_mode==='tutti'?'Elementi (servono tutti)':'Elemento')+':</b> '+esc(t.req_elements.join(t.req_elements_mode==='tutti'?' + ':' o '))+'</span>'):'')+
         (t.requirements?('<span class="itdesc"><b>Requisiti:</b> '+esc(t.requirements)+'</span>'):'')+
         (t.description?('<span class="itdesc">'+esc(t.description).replace(/\n/g,'<br>')+'</span>'):'');
     }
@@ -1849,14 +1853,14 @@
     function techMacroCount(m){ return TECHS.filter(function(t){return (t.macro||'clan')===m;}).length; }
     function renderTechMacroTabs(){
       var bar=$('tech-macrotabs'); if(!bar) return;
-      var LBL={clan:'Clan',generica:'Generiche',abilita:'Abilità'};
+      var LBL={clan:'Clan',generica:'Generiche',abilita:'Abilità',evocazione:'Evocazioni',cercoterio:'Cercoteri'};
       Array.prototype.forEach.call(bar.querySelectorAll('button[data-tmac]'),function(b){ var m=b.getAttribute('data-tmac'); b.classList.toggle('on',m===techMacro); b.textContent=LBL[m]+' ('+techMacroCount(m)+')'; });
     }
     function renderTechs(){
       var host=$('tech-list');if(!host)return; FAM=[];
       renderTechMacroTabs();
       var all=TECHS.filter(function(t){return (t.macro||'clan')===techMacro;});
-      var EMPTY={clan:'tecnica di clan',generica:'tecnica generica',abilita:'abilità'};
+      var EMPTY={clan:'tecnica di clan',generica:'tecnica generica',abilita:'abilità',evocazione:'tecnica di evocazione',cercoterio:'tecnica dei Cercoteri'};
       if(!all.length){host.innerHTML='<p class="mgr-note" style="margin-top:14px">Ancora nessuna '+EMPTY[techMacro]+'. Usa «+ Aggiungi» per crearne una.</p>';return;}
       var q=techSearch.toLowerCase();
       var SRC=all.filter(function(t){return !q||(''+(t.name||'')).toLowerCase().indexOf(q)>=0||(''+(t.clan||'')).toLowerCase().indexOf(q)>=0||(''+(t.category||'')).toLowerCase().indexOf(q)>=0;});
@@ -1870,7 +1874,7 @@
         TK_DISC_ADMIN.forEach(function(d){ var rows=SRC.filter(function(x){return (x.disciplina||'Ninjutsu')===d;}); if(rows.length) groups.push({k:d,t:d,rows:rows,disc:false}); });
         var ab=SRC.filter(function(x){return (x.disciplina)==='Abilità';}); if(ab.length) groups.push({k:'Abilità',t:'Abilità',rows:ab,disc:false});
       } else {
-        // Abilità divise per categoria (Generiche, poi Medica e i suoi rami, poi le altre)
+        // Abilità, Evocazioni e Cercoteri: divise per categoria (Generiche, poi Medica e i suoi rami, poi le altre)
         var CATORD=['Medica','Medica · Chirurgia','Medica · Tossicologia','Medica · Cura da campo','Medica · Combattimento'];
         var byCat={}, cats=[];
         SRC.forEach(function(x){ var c=(x.category&&(''+x.category).trim())||'__gen'; if(!byCat[c]){byCat[c]=[];cats.push(c);} byCat[c].push(x); });
@@ -1889,7 +1893,7 @@
       });
       host.innerHTML=html;
     }
-    function resetTechForm(){editingTech=null;$('tech-name').value='';$('tech-clan').value='';$('tech-level').value='';$('tech-category').value='';$('tech-consume').value='ad_utilizzo';$('tech-chakra').value='';['tech-grado','tech-potenza','tech-portata','tech-gittata','tech-attivazione','tech-bersaglio','tech-azione','tech-durata','tech-ricarica','tech-xp','tech-train','tech-reqgrade','tech-reqstat','tech-reqval','tech-effetto'].forEach(function(id){var el=$(id);if(el)el.value='';});$('tech-req').value='';$('tech-desc').value='';$('tech-active').checked=true;var _tm=$('tech-macro');if(_tm)_tm.value=(techMacro||'clan');Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){x.checked=false;});if($('tech-disc'))$('tech-disc').value=((techMacro||'clan')==='abilita'?'Abilità':'Ninjutsu');techMacroFormSync();$('tech-reset').style.display='none';$('tech-editing').textContent='';$('tech-save').textContent='Salva tecnica';}
+    function resetTechForm(){editingTech=null;$('tech-name').value='';$('tech-clan').value='';$('tech-level').value='';$('tech-category').value='';$('tech-consume').value='ad_utilizzo';$('tech-chakra').value='';['tech-grado','tech-potenza','tech-portata','tech-gittata','tech-attivazione','tech-bersaglio','tech-azione','tech-durata','tech-ricarica','tech-xp','tech-train','tech-reqgrade','tech-reqstat','tech-reqval','tech-reqstat2','tech-reqval2','tech-effetto'].forEach(function(id){var el=$(id);if(el)el.value='';});$('tech-req').value='';$('tech-desc').value='';$('tech-active').checked=true;var _tm=$('tech-macro');if(_tm)_tm.value=(techMacro||'clan');Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){x.checked=false;});var _em=$('tech-elemsmode');if(_em)_em.value='uno';if($('tech-disc'))$('tech-disc').value=((techMacro||'clan')==='abilita'?'Abilità':'Ninjutsu');techMacroFormSync();$('tech-reset').style.display='none';$('tech-editing').textContent='';$('tech-save').textContent='Salva tecnica';}
     function techMacroFormSync(){ var m=($('tech-macro')&&$('tech-macro').value)||'clan'; var cl=$('tech-clan'); if(cl){ cl.disabled=(m!=='clan'); if(m!=='clan') cl.value=''; cl.style.opacity=(m!=='clan')?'.5':''; } var dd=$('tech-disc'); if(dd && m==='abilita') dd.value='Abilità'; }
     function bindTechs(){
       var rb=$('tech-reset');if(rb)rb.addEventListener('click',function(){resetTechForm();admFormHide('tecniche');});
@@ -1898,13 +1902,13 @@
       var sv=$('tech-save');if(sv)sv.addEventListener('click',async function(){
         var name=$('tech-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
         var lvl=$('tech-level').value.trim(),chak=$('tech-chakra').value.trim();
-        var _xp=$('tech-xp').value.trim(),_tr=$('tech-train').value.trim(),_rv=$('tech-reqval').value.trim();
-        var payload={clan:$('tech-clan').value||null,name:name,level:lvl!==''?(parseInt(lvl,10)||null):null,category:$('tech-category').value.trim()||null,consumption_type:$('tech-consume').value||null,chakra_cost:chak!==''?(parseInt(chak,10)||0):null,grado:$('tech-grado').value.trim()||null,portata:$('tech-portata').value.trim()||null,bersaglio:$('tech-bersaglio').value.trim()||null,tipo_azione:$('tech-azione').value.trim()||null,durata:$('tech-durata').value.trim()||null,ricarica:$('tech-ricarica').value.trim()||null,danno_effetto:$('tech-effetto').value.trim()||null,xp_cost:_xp!==''?(parseInt(_xp,10)||0):null,trainings_required:_tr!==''?(parseInt(_tr,10)||0):null,req_grade:$('tech-reqgrade').value.trim()||null,req_stat:$('tech-reqstat').value.trim()||null,req_stat_value:_rv!==''?(parseInt(_rv,10)||0):null,requirements:$('tech-req').value.trim()||null,description:$('tech-desc').value.trim()||null,is_active:$('tech-active').checked};
+        var _xp=$('tech-xp').value.trim(),_tr=$('tech-train').value.trim(),_rv=$('tech-reqval').value.trim(),_rv2=$('tech-reqval2').value.trim();
+        var payload={clan:$('tech-clan').value||null,name:name,level:lvl!==''?(parseInt(lvl,10)||null):null,category:$('tech-category').value.trim()||null,consumption_type:$('tech-consume').value||null,chakra_cost:chak!==''?(parseInt(chak,10)||0):null,grado:$('tech-grado').value.trim()||null,portata:$('tech-portata').value.trim()||null,bersaglio:$('tech-bersaglio').value.trim()||null,tipo_azione:$('tech-azione').value.trim()||null,durata:$('tech-durata').value.trim()||null,ricarica:$('tech-ricarica').value.trim()||null,danno_effetto:$('tech-effetto').value.trim()||null,xp_cost:_xp!==''?(parseInt(_xp,10)||0):null,trainings_required:_tr!==''?(parseInt(_tr,10)||0):null,req_grade:$('tech-reqgrade').value.trim()||null,req_stat:$('tech-reqstat').value.trim()||null,req_stat_value:_rv!==''?(parseInt(_rv,10)||0):null,req_stat2:$('tech-reqstat2').value.trim()||null,req_stat2_value:_rv2!==''?(parseInt(_rv2,10)||0):null,requirements:$('tech-req').value.trim()||null,description:$('tech-desc').value.trim()||null,is_active:$('tech-active').checked};
         var _macro=($('tech-macro')&&$('tech-macro').value)||'clan';
         payload.macro=_macro;
         payload.clan=(_macro==='clan')?($('tech-clan').value||null):null;
         var _el=[]; Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){ if(x.checked)_el.push(x.getAttribute('data-elem')); });
-        payload.req_elements=_el.length?_el:null;
+        payload.req_elements=_el.length?_el:null;payload.req_elements_mode=_el.length?((($('tech-elemsmode')||{}).value)||'uno'):null;
         var _pot=$('tech-potenza')?$('tech-potenza').value.trim():''; payload.potenza=_pot!==''?(parseInt(_pot,10)||0):null;
         payload.disciplina=($('tech-disc')&&$('tech-disc').value)||null;
         payload.gittata=($('tech-gittata')&&$('tech-gittata').value)||null;
@@ -1938,13 +1942,13 @@
         var b=e.target.closest('[data-tedit]');if(!b)return;
         var t=TECHS.filter(function(x){return x.id===b.getAttribute('data-tedit');})[0];if(!t)return;
         editingTech=t.id;
-        $('tech-name').value=t.name||'';$('tech-clan').value=t.clan||'';$('tech-level').value=(t.level!=null?t.level:'');$('tech-category').value=t.category||'';$('tech-consume').value=t.consumption_type||'ad_utilizzo';$('tech-chakra').value=(t.chakra_cost!=null?t.chakra_cost:'');$('tech-grado').value=t.grado||'';$('tech-portata').value=t.portata||'';$('tech-bersaglio').value=t.bersaglio||'';$('tech-azione').value=t.tipo_azione||'';$('tech-durata').value=t.durata||'';$('tech-ricarica').value=t.ricarica||'';$('tech-xp').value=(t.xp_cost!=null?t.xp_cost:'');$('tech-train').value=(t.trainings_required!=null?t.trainings_required:'');$('tech-reqgrade').value=t.req_grade||'';$('tech-reqstat').value=t.req_stat||'';$('tech-reqval').value=(t.req_stat_value!=null?t.req_stat_value:'');$('tech-effetto').value=t.danno_effetto||'';$('tech-req').value=t.requirements||'';$('tech-desc').value=t.description||'';$('tech-active').checked=t.is_active!==false;
+        $('tech-name').value=t.name||'';$('tech-clan').value=t.clan||'';$('tech-level').value=(t.level!=null?t.level:'');$('tech-category').value=t.category||'';$('tech-consume').value=t.consumption_type||'ad_utilizzo';$('tech-chakra').value=(t.chakra_cost!=null?t.chakra_cost:'');$('tech-grado').value=t.grado||'';$('tech-portata').value=t.portata||'';$('tech-bersaglio').value=t.bersaglio||'';$('tech-azione').value=t.tipo_azione||'';$('tech-durata').value=t.durata||'';$('tech-ricarica').value=t.ricarica||'';$('tech-xp').value=(t.xp_cost!=null?t.xp_cost:'');$('tech-train').value=(t.trainings_required!=null?t.trainings_required:'');$('tech-reqgrade').value=t.req_grade||'';$('tech-reqstat').value=t.req_stat||'';$('tech-reqval').value=(t.req_stat_value!=null?t.req_stat_value:'');$('tech-reqstat2').value=t.req_stat2||'';$('tech-reqval2').value=(t.req_stat2_value!=null?t.req_stat2_value:'');$('tech-effetto').value=t.danno_effetto||'';$('tech-req').value=t.requirements||'';$('tech-desc').value=t.description||'';$('tech-active').checked=t.is_active!==false;
         if($('tech-macro'))$('tech-macro').value=(t.macro||'clan');
         if($('tech-potenza'))$('tech-potenza').value=(t.potenza!=null?t.potenza:'');
         if($('tech-disc'))$('tech-disc').value=(t.disciplina||'Ninjutsu');
         if($('tech-gittata'))$('tech-gittata').value=(t.gittata||'');
         if($('tech-attivazione'))$('tech-attivazione').value=(t.attivazione||'');
-        Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){ x.checked=!!(t.req_elements&&t.req_elements.indexOf(x.getAttribute('data-elem'))>=0); });
+        Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){ x.checked=!!(t.req_elements&&t.req_elements.indexOf(x.getAttribute('data-elem'))>=0); });var _em2=$('tech-elemsmode');if(_em2)_em2.value=t.req_elements_mode||'uno';
         techMacroFormSync();
         $('tech-reset').style.display='';$('tech-editing').textContent='Stai modificando: '+t.name;$('tech-save').textContent='Aggiorna tecnica';
         admFormShow('tecniche');
