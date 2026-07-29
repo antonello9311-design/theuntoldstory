@@ -420,6 +420,7 @@
                 <div class="drow"><span class="emb" id="ic-rank"></span><div class="dinfo"><span class="dlab">Grado</span><span class="dval" id="v-rank">—</span><select id="f-rank" class="mini" style="display:none"><option>Deshi</option><option>Genin</option><option>Chunin</option><option>Jonin</option><option>Jonin Speciale</option><option>Kage Konoha</option><option>Kage Suna</option><option>Sannin</option></select></div></div>
                 <div class="drow"><span class="emb" id="ic-village"></span><div class="dinfo"><span class="dlab">Villaggio</span><span class="dval" id="v-village">—</span></div></div>
                 <div class="drow"><span class="emb" id="ic-clan"></span><div class="dinfo"><span class="dlab">Clan <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· entra da solo in un clan aperto del tuo villaggio; i clan speciali (Hyuga, Uchiha, Sabaku…) li assegna lo staff</span></span><select id="f-clan" class="mini"></select><div id="clan-join" style="display:none;margin-top:8px"><select id="clan-join-sel" class="mini" style="max-width:180px"></select> <button type="button" class="btn btn-red btn-sm" id="clan-join-btn" style="margin-left:6px">Unisciti</button></div><span class="dlab" id="lab-clanrole" style="margin-top:9px;display:none">Ruolo nel clan</span><select id="f-clanrole" class="mini" style="display:none"><option value="">—</option><option>Capo clan</option><option>Anziano</option><option>Membro esperto</option><option>Novizio</option></select></div></div>
+                <div class="drow" id="row-cerc" style="display:none"><span class="emb" id="ic-cerc"></span><div class="dinfo"><span class="dlab">Cercoterio <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· la bestia sigillata dentro di te; esclude il clan familiare ed è permanente</span></span><span class="dval" id="v-cerc">—</span></div></div>
                 <div class="drow"><span class="emb" id="ic-corp"></span><div class="dinfo"><span class="dlab">Corporazione <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· la scegli candidandoti dalla land; la conferma lo staff</span></span><span class="dval" id="v-corp">—</span>
                   <div id="corp-staff" style="display:none;margin-top:8px">
                     <select id="f-corp" class="mini" style="max-width:150px"><option value="">— Nessuna</option><option value="anbu">ANBU</option><option value="medici">Medici</option><option value="akatsuki">Akatsuki</option></select>
@@ -684,6 +685,7 @@
     function embVillage(v){var u=EMB['village:'+v];if(u)return '<span class="emb has-img"><img src="'+u+'" alt=""></span>';if(v==='Konoha')return '<span class="emb e-konoha">'+LEAF+'</span>';if(v==='Suna')return '<span class="emb e-suna">'+DUNE+'</span>';return '<span class="emb e-none">—</span>';}
     function embRank(r){var _u=r&&EMB['rank:'+r];if(_u)return '<span class="emb has-img"><img src="'+_u+'" alt=""></span>';var inner;if(r==='Deshi')inner='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="none" stroke="#3a2a12" stroke-width="2"/></svg>';else if(r&&(r.indexOf('Kage')===0||r==='Sannin'||r==='Kage / Sannin'))inner=STAR;else{var n=r==='Genin'?1:r==='Chunin'?2:3;inner=chevSvg(n);if(r==='Jonin Speciale')inner=inner.replace('<svg viewBox="0 0 24 24">','<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7" fill="#a6321d"/>');}return '<span class="emb e-rank">'+inner+'</span>';}
     function embClan(c,shine){if(!c||c==='Nessuno')return '<span class="emb e-none">—</span>';var u=EMB['clan:'+c];if(u)return '<span class="emb has-img'+(shine?' shine':'')+'"'+(shine?(' style="--e:url(&quot;'+u+'&quot;)"'):'')+'><img src="'+u+'" alt="">'+(shine?'<span class="shn"></span>':'')+'</span>';return '<span class="emb e-clan">'+esc(c.charAt(0))+'</span>';}
+    function embCerc(n){if(!n)return '<span class="emb e-none">—</span>';var u=EMB['bijuu:'+n];if(u)return '<span class="emb has-img"><img src="'+u+'" alt=""></span>';return '<span class="emb e-clan">'+esc(n.charAt(0))+'</span>';}
     function capoSelected(){var r=$('f-clanrole');return !!(r&&r.value==='Capo clan');}
     function corpKeyLabel(k){k=String(k||'').toLowerCase();return {anbu:'ANBU',medici:'Medici',akatsuki:'Akatsuki'}[k]||k;}
     function corpSpecLabelS(s){s=String(s||'').toLowerCase();return {infiltrazione:'Infiltrazione',pedinamento:'Pedinamento',assassinio:'Assassinio',sensoriale:'Sensoriale'}[s]||'';}
@@ -1024,6 +1026,7 @@
       $('v-village').textContent=c.village||'—'; $('ic-village').outerHTML=embVillage(c.village).replace('class="emb','id="ic-village" class="emb');
       $('v-age').textContent=(c.age!=null?c.age+' anni':'—'); $('v-sex').textContent=c.sex||'—';
       fillClanSelect($('f-clan'),c.village,c.clan||'Nessuno'); var _fcr=$('f-clanrole'); if(_fcr) _fcr.value=c.clan_role||''; $('ic-clan').outerHTML=embClan(c.clan, c.clan_role==='Capo clan').replace('class="emb','id="ic-clan" class="emb');
+      (function(){var row=$('row-cerc');if(!row)return;if(c.cercoterio){row.style.display='';var vc=$('v-cerc');if(vc)vc.textContent=c.cercoterio+(c.sigillo?(' · sigillo '+c.sigillo):'');var ic=$('ic-cerc');if(ic)ic.outerHTML=embCerc(c.cercoterio).replace('class="emb','id="ic-cerc" class="emb');}else{row.style.display='none';var vc2=$('v-cerc');if(vc2)vc2.textContent='—';}})();
       (function(){ var k=String(c.corporation||'').toLowerCase();
         var showK=(k && (viewMode!=='public' || k!=='akatsuki'))?k:'';
         var vc=$('v-corp'); if(vc){ if(showK){ var _cvil=((showK==='anbu'||showK==='medici')&&c.village)?('<span class="sc-corp-meta">· '+esc(c.village)+'</span>'):''; vc.innerHTML='<span class="sc-corp-badge '+showK+'">'+corpKeyLabel(showK)+'</span>'+_cvil+(c.corp_spec?('<span class="sc-corp-meta">· '+corpSpecLabelS(c.corp_spec)+'</span>'):'')+(c.corp_role?('<span class="sc-corp-meta">· '+esc(c.corp_role)+'</span>'):''); } else { vc.textContent='—'; } }
@@ -1368,7 +1371,7 @@
     }
     function renderClanJoin(){
       var box=$('clan-join'), sel=$('clan-join-sel'), btn=$('clan-join-btn'); if(!box||!sel) return;
-      var show=isOwnerMode() && myChar && (!myChar.clan || myChar.clan==='Nessuno');
+      var show=isOwnerMode() && myChar && !myChar.cercoterio && (!myChar.clan || myChar.clan==='Nessuno');
       box.style.display=show?'':'none';
       if(!show) return;
       if(btn && btn.getAttribute('data-bound')!=='1'){ btn.setAttribute('data-bound','1'); btn.addEventListener('click',async function(){
