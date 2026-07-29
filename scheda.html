@@ -663,9 +663,9 @@
     var CLANS={Konoha:['Nessuno','Hyuga','Nara','Akimichi','Inuzuka','Aburame'],Suna:['Nessuno','Marionettisti','Sabaku','Dokugan']};
     var STATS=[['mente','Mente'],['forza','Forza'],['velocita','Velocità'],['resistenza','Resistenza'],['ninjutsu','Ninjutsu'],['genjutsu','Genjutsu'],['taijutsu','Taijutsu'],['fuuinjutsu','Fuuinjutsu'],['kekkei_genkai','Kekkei Genkai']];
     var CLAN_ABILITY={};
-    function kgLabel(clan){var k=clan&&CLAN_ABILITY[clan];if(k==='kekkei_genkai')return 'Innata';if(k==='hiden')return 'Arte segreta';return 'Kekkei Genkai';}
-    function statLbl(s){return s[0]==='kekkei_genkai'?kgLabel(myChar&&myChar.clan):s[1];}
-    function showInnata(c){c=c||myChar;return !!(c&&c.clan&&c.clan!=='Nessuno'&&(c.rank||'Deshi')!=='Deshi');}
+    function kgLabel(clan,cerc){if(cerc)return 'Sintonia';var k=clan&&CLAN_ABILITY[clan];if(k==='kekkei_genkai')return 'Innata';if(k==='hiden')return 'Arte segreta';return 'Kekkei Genkai';}
+    function statLbl(s){return s[0]==='kekkei_genkai'?kgLabel(myChar&&myChar.clan,myChar&&myChar.cercoterio):s[1];}
+    function showInnata(c){c=c||myChar;return !!(c&&(c.cercoterio||(c.clan&&c.clan!=='Nessuno'))&&(c.rank||'Deshi')!=='Deshi');}
     var BASE=10,POOL=60,CAP=30,STEP=5;
     var RANKCAP={'Deshi':30,'Genin':45,'Chunin':60,'Jonin':75,'Jonin Speciale':85};
     function rankCap(c){c=c||myChar;return (c&&RANKCAP[c.rank])||100;}
@@ -1392,7 +1392,7 @@
       var set=function(id,v){var el=$(id); if(el) el.value=(v!=null?v:'');};
       set('sp-epithet',c.epithet||'');
       STATS.forEach(function(s){set('sp-'+s[0],c[s[0]]!=null?c[s[0]]:BASE);});
-      var _kl=$('lbl-sp-kg'); if(_kl)_kl.textContent=kgLabel(c.clan);
+      var _kl=$('lbl-sp-kg'); if(_kl)_kl.textContent=kgLabel(c.clan,c.cercoterio);
       ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){set('sp-'+k,c[k]!=null?c[k]:0);});
       ['lealta','via','fama'].forEach(function(k){set('sp-'+k,c[k]!=null?c[k]:50);});
       set('sp-fato',priv&&priv.fato_notes?priv.fato_notes:'');
