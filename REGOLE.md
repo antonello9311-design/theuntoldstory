@@ -1,0 +1,611 @@
+# REGOLE — The Untold Story (v1.0)
+
+> Regolamento completo di gioco, allineato ai sistemi attivi in produzione: motore di combattimento bilanciato, XP a due contatori, missioni, allineamento a 3 assi, slot tecniche e premi.
+>
+> **Agg. 27/07 — scritta nel §4.5 la Sostituzione (Kawarimi):** raggio dello scambio in base al Ninjutsu, obbligo di un oggetto/appiglio entro gittata e limite anti-abuso (non due turni difensivi consecutivi). Erano già attivi nel software.
+>
+> **Agg. 26/07 — aggiunto il §12 (segnalazioni e provvedimenti); §0 e §3 riallineati a ciò che fa realmente il software in creazione personaggio.**
+>
+> **Agg. 17/07 — regolamento finalizzato.** Chiusi tutti i punti aperti (vedi tabella in fondo) e aggiunto il **Quick-start** (§0). D'ora in avanti le modifiche saranno soprattutto di **bilanciamento**: i valori del motore restano tarabili col playtest dal vivo.
+
+---
+
+## 0. Quick-start — crea il personaggio e gioca in 10 minuti
+
+Hai fretta di cominciare? Ecco il percorso essenziale; i dettagli sono nelle sezioni che seguono. Se è la tua prima volta in un GDR via chat, parti dalla **Guida al primo accesso** (`guida.html`): ti accompagna passo per passo fino al primo turno.
+
+1. **Registrati** (serve essere maggiorenni): scegli nome utente e password, conferma l'email e sei dentro.
+2. **Crea la scheda.** Bastano i dati essenziali: nome, **età**, sesso e **villaggio** (Konoha o Suna). L'**Elemento del Chakra** è facoltativo, puoi sceglierlo ora o più avanti. **Clan** e **corporazione** non si scelgono qui: arrivano dopo, in gioco (vedi §3). Si parte tutti dal rango **Deshi**.
+3. **Distribuisci i 60 punti.** Ogni caratteristica parte da **10** e hai **60 punti** da aggiungere, a gruppi di **5**, con un tetto di **30** per caratteristica al rango Deshi. Li assegni **dalla scheda, dentro la land**, quando vuoi: non c'è fretta e un avviso te lo ricorda finché non li hai spesi.
+4. **Vai all'Accademia** (in chat): un sensei ti guida lezione dopo lezione fino al **diploma da Genin**. È il modo più veloce per capire il gioco e prendere i primi XP.
+5. **Entra nella land.** Scegli un luogo sulla mappa, presentati e gioca: ogni turno di scena è di **almeno 500 caratteri**.
+6. **Combatti** col pulsante **⚔**: calcola tutto da solo e scala il chakra in automatico.
+7. **Cresci.** Giocando ogni giorno prendi **+20 XP**; le **missioni** (bacheca del villaggio) danno XP e Ryo; con l'XP impari **jutsu** allenandoti e compri **slot** e **premi** dalla scheda.
+8. **Il personaggio ha un'anima:** l'**allineamento** (Lealtà, Via, Fama) si muove con le tue scelte, che chiedi come «svolte» dalla scheda.
+9. **Tre cose da ricordare sempre:** on e off separati, rispetto tra giocatori, e la **morte è permanente** (ma avviene solo in scene masterate o in duelli che accetti).
+
+Benvenuto shinobi. Il resto lo impari giocando.
+
+---
+
+## 1. Regole generali di condotta in gioco
+
+1. **Separazione on/off game.** Il personaggio non è il giocatore. Informazioni, simpatie e rancori off-game non entrano in gioco, mai.
+2. **Metagaming vietato.** È proibito usare in gioco informazioni apprese fuori dal gioco (chat esterne, Discord, letture di giocate a cui il proprio PG non era presente). Sanzionabile.
+3. **Pensieri in azione: vietati.** Non si scrivono in scena i pensieri non pronunciati del personaggio: ciò che il PG non dice e non fa, gli altri non possono conoscerlo. Le intenzioni si comunicano con le azioni e le parole. È una scelta di pulizia contro il metagaming e le ambiguità.
+4. **Backchatting (commenti off-game in chat di gioco): limitato.** Consentito solo tra parentesi/tag off e per comunicazioni brevi di servizio ("torno in 5 min"). Le conversazioni off si tengono nelle chat/canali dedicati.
+5. **Minimo per turno di giocata: 500 caratteri** (il contatore in chat li mostra). Qualità sopra quantità: il muro di testo non è un merito.
+6. **Tempo in combattimento: una sessione.** La scena si gioca nella sessione in cui inizia; se non si conclude, le giocate possono essere **congelate per un massimo di 72 ore**, poi vanno chiuse.
+7. **Personaggi congelati nel tempo.** Un personaggio bloccato in una giocata congelata non può partecipare ad altre giocate finché quella non si sblocca — vale anche per **quest e missioni**.
+8. **Lingua e leggibilità.** Italiano corretto, terza o prima persona coerente per tutta la scena, azioni distinte dal parlato secondo la formattazione della chat.
+
+## 2. Account e personaggi
+
+1. **Un account = una persona. Condivisione account vietata.** Lo staff svolge indagini attive sui multiaccount; la violazione comporta il ban.
+2. **Secondo personaggio: solo su approvazione dello staff.** Non esiste un requisito automatico (mesi o grado): chi desidera un secondo PG lo chiede allo staff, che valuta caso per caso — attività, condotta, coerenza col gioco. **Divieto assoluto di interazione diretta o indiretta tra i propri PG** (stesse scene, scambi di risorse, favori incrociati tramite terzi).
+3. **PNG introdotti dagli utenti.** Un giocatore può muovere comparse senza scheda (il negoziante, il parente) per colore narrativo, purché: non abbiano rilevanza meccanica, non combattano, non forniscano vantaggi al PG. PNG ricorrenti o rilevanti vanno registrati e approvati dallo staff.
+4. **Nomi.** Coerenti con l'ambientazione (onomastica giapponese o affine). Vietati nomi di personaggi canonici.
+
+## 3. Creazione del personaggio
+
+1. **Alla creazione servono pochi dati:** nome (lo stesso con cui ti sei registrato), **età**, sesso e **villaggio** (Konoha o Suna). Un account = un personaggio. Tutto il resto si costruisce giocando.
+2. **Elemento del Chakra: facoltativo.** Puoi sceglierne uno subito tra Fuoco, Vento, Fulmine, Terra e Acqua, oppure lasciarlo vuoto e deciderlo più avanti dalla scheda. Il secondo si sblocca con la progressione, **dal rango Jonin** (300 XP, §8.6).
+3. **Caratteristiche (scala 1-100):** Mente, Forza, Velocità, Resistenza, Ninjutsu, Genjutsu, Taijutsu, Fuuinjutsu e l'**Innata** (il Kekkei Genkai di clan). Base 10 ciascuna, più un pool di **60 punti** da distribuire **a gruppi di 5**, con un tetto di **30** per caratteristica al rango Deshi. **Non si assegnano in creazione:** li distribuisci dalla scheda, dentro la land, quando vuoi. **Regola dei 5:** ogni valore in scheda è sempre un multiplo di 5. L'Innata compare solo se hai un clan e almeno il grado Genin.
+4. **Clan: non si sceglie alla creazione.**
+   - **Clan aperti** — ci entri da solo, dalla scheda, quando te la senti: a *Konoha* Nara, Akimichi, Inuzuka, Aburame; a *Suna* la scuola dei Marionettisti e il clan Dokugan.
+   - **Clan speciali** — li assegna lo **staff**, in base al background o a come si sviluppa il personaggio in gioco: *Hyuga* e *Uchiha* a Konoha, *Sabaku* a Suna (che comprende la rara **Sabbia di Ferro** come Kekkei Genkai).
+   - Si può anche restare **senza clan**: non è una penalità — ed è l'unica strada che resta aperta verso una **Forza Portante** (§8.9), perché la casella **Innata** è una sola: o il Kekkei Genkai di famiglia, o il legame con un Cercoterio. Mai entrambi.
+5. **Corporazione: si chiede dalla land**, candidandosi; la conferma arriva dallo staff. Alcune hanno requisiti d'accesso: **ANBU** richiede Jonin o superiore e Lealtà ≥ 65, **Akatsuki** richiede Lealtà ≤ 20 (§8.8).
+6. **Background obbligatorio**, approvato dallo staff: età coerente col rango Deshi, aggancio al villaggio, nessuna parentela con personaggi canonici. È anche il testo su cui lo staff valuta un eventuale clan speciale.
+7. Si parte tutti dal rango **Deshi** (studente d'accademia).
+
+## 4. Combattimento
+
+Ogni azione che può riuscire o fallire — un attacco, una schivata, una tecnica — si risolve con un **confronto**: chi agisce e chi si difende tirano un dado e vi sommano le proprie capacità. **Vince il totale più alto.** Nella land il pulsante **⚔ Combatti** calcola tutto e mostra l'esito in chat («*A usa Palla di Fuoco: B prova a schivare ma è colpito di striscio — subisce 12 danni*»).
+
+**Come si risolve un colpo**
+
+- **Attacco contro difesa:** chi colpisce usa la capacità naturale + la disciplina adatte (Forza + Taijutsu per un colpo fisico, Mente + Ninjutsu per una tecnica); chi si difende usa Velocità + Taijutsu per schivare o **Velocità + Mente** per contrastare.
+- **Nettezza:** se l'attacco supera la difesa va a segno; il margine dice se è **di striscio, in pieno o devastante** — più è netto, più danni fa.
+- **PV e Resistenza:** i danni tolgono Punti Vita; la Resistenza alza i PV e ne assorbe una parte. A 0 PV si è **fuori combattimento** (in libera: incapacitato, mai ucciso).
+- **Genjutsu:** non toglie PV — impone effetti/condizioni, si contrasta con la Mente e si rompe con una nuova contesa; chi conosce l'abilità **Dispersione** può tentare un rilascio deliberato, anche per liberare un alleato (§4.3).
+- **Bonus di qualità (solo col master):** fino a +6 per chi descrive l'azione in modo brillante; è l'unico modo in cui un grado inferiore, giocando meglio, può ribaltare lo scontro. In libera non si usa.
+
+<details>
+<summary><strong>Formule esatte</strong> — clic per espandere</summary>
+
+- **Confronto** = ⌊(Naturale + Disciplina) / 10⌋ + 1d20 + bonus. Colpisce se attacco ≥ difesa; margine = differenza.
+- **Bonus del margine:** 0–4 → +0 · 5–9 → +3 · 10–14 → +6 · 15+ → +10.
+- **Punti Vita** = 50 + Resistenza + bonus di grado (Deshi 0 · Genin 10 · Chunin 25 · Jonin 45 · Jonin Sp. 60 · Kage 80), arrotondati al multiplo di 5.
+- **Chakra** = 30 + (Ninjutsu + Mente) × 1,2 + bonus di grado (Deshi 0 · Genin 15 · Chunin 30 · Jonin 50 · Jonin Sp. 65 · Kage 85), arrotondato al multiplo di 5.
+- **Danno fisico** = max(1; base + ⌊max(Forza, Taijutsu)/4⌋ + bonus margine − ⌊Resistenza/20⌋). Ninjutsu: Mente al posto della Forza, riduzione ⌊Resistenza/40⌋.
+- **Bonus oggettivi** (indicati dalla tecnica o applicati dal master): **vantaggio elementale +2**; **terreno o posizione favorevoli +1 o +2**. Valori piccoli, per dare colore senza stravolgere il confronto.
+
+| Azione | Attacco | Difesa |
+|---|---|---|
+| Colpo fisico/arma | Forza + Taijutsu | Velocità + Taijutsu |
+| Ninjutsu offensivo | Mente + Ninjutsu | Velocità + Taijutsu / Velocità + Mente |
+| Genjutsu | Mente + Genjutsu | Mente + Genjutsu |
+| Sigillo (Fuuinjutsu) | Mente + Fuuinjutsu | indicata dal sigillo |
+| Tecnica innata (Kekkei Genkai) | capacità indicata + Kekkei Genkai | indicata dalla tecnica |
+
+**Danno base e costo chakra delle tecniche, per grado:**
+
+| | Colpo base | D | C | B | A | S |
+|---|---|---|---|---|---|---|
+| **Danno base** | 10 | 15 | 20 | 25 | 35 | 45 |
+| **Costo chakra** | 0 | 5 | 10 | 20 | 30 | 40 |
+
+**Regola dei 5:** ogni valore visibile — statistiche, PV, chakra, danni, costi — è sempre un **multiplo di 5**.
+
+</details>
+
+### 4.1 Le due modalità di gioco
+
+- **Giocata libera (senza master):** turnazione libera, esiti automatici dal sistema (pulsante ⚔), nessun bonus di qualità. Non si può uccidere né mutilare permanentemente un altro PG.
+- **Giocata masterata:** il master aggiunge il bonus di qualità e può fissare gli esiti decisivi. Missioni, eventi, esami di rango e scontri mortali sono sempre masterati.
+
+### 4.2 L'ordine del turno
+
+**A inizio scontro** si tira l'**iniziativa** sulla Velocità; poi ci si alterna.
+
+**In ogni turno** hai, nell'ordine che preferisci:
+
+- **uno spostamento** — fino ai tuoi metri di Velocità (§4.5); **non** consuma l'azione e si può spezzare prima/dopo di essa;
+- **una sola azione principale** — la mossa che si risolve col ⚔: un jutsu, un attacco in taijutsu, un colpo d'arma da mischia, la Dispersione, **un jutsu che porta in campo un'evocazione, un clone o una marionetta** (nel turno in cui chiami non attacchi, §6.3) o una cura (il Palmo Curativo, §6.2, occupa tutto il turno);
+- **una sola azione rapida** — un gesto veloce: un'arma da lancio (attacco leggero), estrarre/riporre un'arma, usare un oggetto, mettersi in guardia (+difesa al prossimo confronto) o prendere la mira (+ al prossimo attacco);
+- **una reazione difensiva** quando sei bersaglio — tiri la difesa senza spendere nulla; hai **una** reazione "attiva" per round (schivata piena, parata, Sostituzione — questa con le sue regole di raggio e riuso, §4.5), oltre la quale ti difendi da colto in azione.
+
+Non puoi compiere **due azioni principali** nello stesso turno (es. un jutsu *e* un fendente pieno). **Muoverti, lanciare un jutsu e tirare un kunai**, invece, si può: spostamento + azione principale + azione rapida.
+
+**Come si gioca in chat:**
+
+1. Descrivi l'azione (min. 500 caratteri), dichiarando spostamento, azione principale ed eventuale rapida.
+2. Scegli la tecnica dal selettore **⚔** (danno base e costo si compilano da soli) o dichiari un colpo manuale.
+3. Si lancia il calcolo (⚔): l'esito appare in chat e il **chakra scala in automatico** (se non basta, la tecnica non parte).
+4. La scena si gioca nella sessione; se resta aperta si congela max 72h (§1).
+
+**Un turno di combattimento, per esteso.** Kaede è a una decina di metri da Hiroshi, in un allenamento al campo n. 3. Tocca a lei.
+
+> **Kaede Amagiri** · Campo d'addestramento n. 3
+>
+> \*Non gli lascia il tempo di rimettersi in guardia: scatta di lato lungo la fila dei pali, otto passi buoni, quanto basta per uscire dal raggio del suo braccio e ritrovarsi col sole alle spalle. Mentre corre intreccia i sigilli con le dita ancora sporche di terra — Tigre, Serpente, Ariete — e sente il calore raccogliersi dietro lo sterno, quel peso caldo che sua madre chiamava «il respiro trattenuto».\*
+>
+> «Fermo lì. Questa scotta.»
+>
+> \*Espira e libera la Palla di Fuoco verso il punto in cui lo ha lasciato, tenendo il tiro basso perché non finisca sui rami del cedro. Nello stesso movimento la sinistra scivola alla sacca e lascia partire un kunai di lato: non per colpirlo, ma per costringerlo a scegliere da che parte scansarsi.\*
+>
+> **Esito calcolato dal ⚔** — *Kaede usa **Palla di Fuoco**: Hiroshi prova a schivare ma è colpito di striscio — subisce **12 danni**.* (−10 chakra a Kaede, scalati in automatico.)
+
+Nel turno ci sono tutte e tre le cose e nessuna di più: lo **spostamento** (otto passi, dentro i metri della sua Velocità), l'**azione principale** (la Palla di Fuoco, quella che si risolve col ⚔) e l'**azione rapida** (il kunai di lato). E soprattutto: Kaede dichiara **che cosa tenta**, non che cosa riesce. Se avesse scritto «*lo prende in pieno e lo stende*» avrebbe deciso al posto dell'altro giocatore — è l'unica cosa che in una giocata non si fa mai.
+
+### 4.3 Genjutsu e Dispersione
+
+Un **genjutsu** non toglie Punti Vita: intrappola la mente del bersaglio e gli impone un effetto o una condizione (confusione, blocco, falsa percezione, dolore illusorio). In combattimento si lancia e si difende con **Mente + Genjutsu** (§4) e, turno dopo turno, si può tentare di romperlo con una **nuova contesa**.
+
+Oltre alla contesa, chi conosce l'abilità **Dispersione** (il *Kai*) può tentare un **rilascio deliberato** del chakra: interrompe il proprio flusso per spezzare quello che alimenta l'illusione. Regole:
+
+- **Condizione di successo:** la **Dispersione riesce se la tua Mente ≥ potenza del genjutsu**. Se la potenza supera la tua Mente fallisci e resti intrappolato, ma puoi **ritentare il turno successivo**. La parità basta: Mente 30 rompe una potenza 30, ma non una potenza 40.
+- **Potenza del genjutsu:** è un **valore indicato su ogni illusione**, crescente col suo grado — **D 10 · C 25 · B 40 · A 60 · S 80** (tarabile dallo staff per un'illusione particolarmente forte). È il grado, quindi, a rendere un genjutsu Jonin più difficile da sciogliere di uno Genin; la bravura di chi lancia conta comunque nella contesa dal vivo (Mente + Genjutsu) e nel fatto che i gradi alti richiedono statistiche alte per essere appresi. I genjutsu **di grado A ed S** (i Mangekyō come Tsukuyomi, Izanami, Kotoamatsukami) sono **immuni alla Dispersione base**: servono contromisure superiori o l'aiuto esterno.
+- **Su di sé o su altri:** puoi usarla per liberare **te stesso** oppure, restando **a contatto**, per liberare un **compagno**. In entrambi i casi conta la **tua** Mente: un ninja lucido può sciogliere un'illusione che aveva già vinto contro una vittima più debole di lui.
+- **Costo e apprendimento:** consuma la tua **azione** del turno (chakra minimo). **Si impara in Accademia**, alla **terza lezione — «Controllo del chakra»**, insieme alle altre basi del controllo: non si compra più dal pannello Jutsu e non costa XP. Chi ha già superato quella lezione se la ritrova **già in scheda**. In scena non conta nessuna soglia d'accesso: conta la tua Mente **attuale**.
+- **Nella land:** lo strumento **⚔** ha una modalità **Dispersione** che, scelto il genjutsu (o inserita la potenza) e il bersaglio (te stesso o un alleato), confronta la tua Mente e mostra subito in chat se l'illusione si spezza.
+
+*La potenza è riportata su ogni genjutsu nel catalogo Jutsu della scheda. La versione di clan degli Uchiha, «Contro illusione», segue lo stesso principio.*
+
+### 4.4 Le caratteristiche in gioco (e le capacità derivate)
+
+Ogni caratteristica conta nel **confronto** e, in più, dà una **capacità concreta** in scena, oltre il puro tiro di combattimento.
+
+| Caratteristica | Nel confronto | Capacità in scena |
+|---|---|---|
+| **Mente** | Attacco ninjutsu, contrasto in difesa, rottura genjutsu, pool Chakra, cure | **Tecniche in più**: slot bonus = ⌊Mente ÷ 20⌋ (§5.2). Percezione e analisi della scena |
+| **Forza** | Attacco fisico, spinge il danno | **Potenza pratica**: sollevare, sfondare, proiettare (scala qui sotto) |
+| **Velocità** | Difesa (schivata/contrasto), iniziativa | **Movimento**: metri percorsi con lo spostamento (§4.5) |
+| **Resistenza** | Alza i PV, assorbe danno | **Tenuta**: **⌊Res ÷ 20⌋ + 1** sforzi intensi per scena, poi **−2** al confronto finché non recuperi; alza la soglia contro veleni, clima e fatica |
+| **Ninjutsu · Genjutsu · Taijutsu · Fuuinjutsu** | Attacco e difesa della disciplina | **Soglia** per imparare le tecniche di ogni grado (§5.2) |
+| **Kekkei Genkai** | Attacco innato; le innate **non occupano slot** | **Livello** dell'arte di sangue (la soglia che sblocca gli stadi superiori) |
+
+**Potenza pratica della Forza** (scala d'arbitrato per le scene): **10–25** sfondi il legno / sollevi il tuo peso · **30–45** pieghi una sbarra, sollevi più persone · **50–65** spacchi la roccia, ribalti un carro · **70–85** sfondi muri di pietra, proietti l'avversario · **90–100** frantumi la roccia a mani nude.
+
+### 4.5 Distanze, movimento e gittata
+
+Le distanze si contano a **fasce**, coi metri come riferimento:
+
+| Fascia | Metri | Ci arriva |
+|---|---|---|
+| **Contatto** | 0–2 m | Taijutsu, armi bianche, prese |
+| **Corta** | ~3–10 m | Armi da lancio, jutsu a corto raggio |
+| **Media** | ~10–30 m | Gran parte dei ninjutsu offensivi |
+| **Lunga** | ~30–60 m | Jutsu a lunga gittata, cecchinaggio |
+| **Fuori portata** | > 60 m | Serve avvicinarsi |
+
+**Movimento.** Con lo spostamento del turno copri **⌊Velocità ÷ 10⌋ × 5 metri** (ogni 10 di Velocità = 5 m): da ~10 m di un Deshi ai 50 m di un Kage. Serve ad accorciare o allungare le fasce — **chi è più veloce sceglie la distanza**.
+
+**Gittata delle tecniche.** Ogni tecnica dei Rotoli indica la sua **gittata** (contatto/corta/media/lunga) e il suo **tipo di attivazione** (§4.6). Un colpo di taijutsu vive nel Contatto; molti ninjutsu nella Media; i grandi jutsu e il cecchinaggio nella Lunga. È la ragione per cui il ninjutser vuole tenere la distanza e il taijutser vuole chiuderla.
+
+**La Sostituzione (Kawarimi no Jutsu) ha una gittata sua.** È una **reazione**: nel momento del colpo ti scambi di posto con un oggetto o un appiglio entro gittata, eviti il danno e riappari dove si trovava quello. Quanto lontano riesci a scambiarti dipende dal tuo **Ninjutsu**:
+
+| Ninjutsu | Raggio dello scambio |
+|---|---|
+| **< 25** | 0–2 m |
+| **25–49** | 3–5 m |
+| **50–74** | 6–10 m |
+| **≥ 75** | 11–15 m |
+
+Serve **un oggetto o un appiglio adatto entro quella distanza** — un tronco, un masso, un palo, una cassa, un ramo: se non c'è nulla con cui scambiarsi **la sostituzione fallisce** e incassi il colpo. In una stanza spoglia o su terreno aperto e sgombro il narratore può dichiarare che non c'è nulla di utile: descrivi sempre *con cosa* ti scambi.
+
+**Limite anti-abuso.** Vale la regola generale delle reazioni — **una per turno** (§4.2) — e in più la Sostituzione **non è utilizzabile come difesa per due turni consecutivi**: dopo una sostituzione, il turno successivo devi difenderti in altro modo (schivata, parata, o da colto in azione).
+
+### 4.6 Tempismo dei sigilli
+
+Le tecniche sono **istantanee** (taijutsu, armi, molte arti innate/dojutsu, alcuni ninjutsu rapidi) o **con sigilli** (quasi tutti i ninjutsu, i genjutsu e i fuuinjutsu): queste ultime richiedono di intrecciare i segni e **non sono immediate**.
+
+**Disturbo dei sigilli (a Contatto).** Se lanci una tecnica **con sigilli** mentre un nemico è **a contatto** con te, lui può usare la sua **reazione** per un **attacco di opportunità** (taijutsu o arma) *prima* che la tecnica parta. Se ti colpisce, oltre al danno **disturba i sigilli**: la tecnica esce con una **penalità al confronto pari al bonus di margine del colpo** (di striscio −3 · in pieno −6 · devastante −10); se ti mette **fuori combattimento**, la tecnica **non parte** e non spendi chakra.
+
+Il ninjutser si difende **creando distanza** (poi lancia al sicuro), usando una **tecnica istantanea** in mischia, o imparando i **sigilli a una mano** (un'abilità che annulla il disturbo). È lo specchio del vantaggio della distanza: **taijutsu forte in mischia, ninjutsu forte da lontano, la Velocità decide dove si combatte.**
+
+## 5. Chakra e jutsu
+
+Il **chakra** è l'energia con cui i ninja creano le tecniche (i *jutsu*). Nasce dall'unione di due energie: l'**energia fisica** (dal corpo e dalle sue cellule) e l'**energia spirituale** (dalla mente; cresce con studio, allenamento ed esperienza). Mescolando le due — spesso coi **sigilli delle mani** — si modella il chakra e si dà forma alla tecnica.
+
+La **riserva** è il pool **Chakra** della scheda (formula nel §4). Ogni tecnica consuma in base al proprio grado — da 5 (grado D) a 40 (grado S) — e **se il chakra non basta, la tecnica non parte**. Conta più il **controllo** che la quantità: sprecare chakra stanca prima.
+
+### 5.1 Le nature del chakra (i cinque elementi)
+
+Il chakra può essere trasformato in una **natura elementale** (nella scheda: *Elemento del Chakra*). Le cinque nature di base, col loro kanji, sono: **Fuoco 火 · Vento 風 · Fulmine 雷 · Terra 土 · Acqua 水**. Si dominano in un ciclo — ognuna è **forte** contro la successiva e **debole** contro la precedente:
+
+- **Fuoco 火** batte **Vento 風**
+- **Vento 風** batte **Fulmine 雷**
+- **Fulmine 雷** batte **Terra 土**
+- **Terra 土** batte **Acqua 水**
+- **Acqua 水** batte **Fuoco 火**
+
+*In combattimento l'elemento in vantaggio dà un bonus (vedi §4). Il diagramma a colori è nella pagina `regole.html`.*
+
+### 5.2 I jutsu
+
+- **Rotoli dei Jutsu:** registro ufficiale delle tecniche approvate per rango (E→S), coi requisiti (rango, natura, clan). Solo le tecniche nei Rotoli sono giocabili. Danno e costo di ogni tecnica si consultano in gioco nel **pannello Jutsu**.
+- **Apprendimento: allenamento + esperienza.** I jutsu si imparano giocando gli **allenamenti** (una prova al giorno, con requisiti di grado e idoneità) e **costano punti esperienza**, crescenti col grado della tecnica: **D 50 · C 100 · B 150 · A 200 · S 250**. La spesa è tracciata nel registro XP. L'esito è confermato dal **Capo clan o dallo staff**.
+- **Il Deshi è accademia, e basta.** Chi è ancora Deshi impara **solo i jutsu accademici** (grado E: Sostituzione, Trasformazione, Moltiplicazione del corpo, Occultamento, Liberazione dalle corde, più le quattro basi del controllo: **controllo del chakra**, **uso dei sigilli**, **camminata sulle superfici** e **Dispersione**), e li impara **dentro le lezioni dell'Accademia** — non con gli allenamenti liberi, non spendendo XP, non con i premi. Le **tecniche ninja vere e proprie** e le **tecniche personali** partono tutte da **grado D** e da **rango Genin**: prima si diventa Genin, poi si impara.
+- **Requisiti per imparare (doppia chiave).** Servono **insieme**: **(a)** il **rango** ti apre il grado — Deshi **solo E (accademia)** · Genin fino a **C** · Chunin fino a **B** · Jonin fino a **A** · Jonin Sp. e oltre fino a **S**; **(b)** la **disciplina** giusta a una soglia — **D ≥ 10 · C ≥ 25 · B ≥ 40 · A ≥ 60 · S ≥ 80** (Ninjutsu per i ninjutsu, Genjutsu per le illusioni, Taijutsu per gli stili e le armi, Fuuinjutsu per i sigilli, Kekkei Genkai per l'arte innata). La **Mente** resta requisito trasversale per le tecniche molto costose in chakra.
+- **Slot tecniche.** Ogni tecnica appresa o in addestramento occupa uno **slot**; le **tecniche innate del clan non occupano slot**. Slot base per grado: **Deshi e Genin 5 · Chunin 7 · Jonin 9 · Jonin Sp. e oltre 11**. In più la **Mente aggiunge slot bonus = ⌊Mente ÷ 20⌋** (fino a +5). Si possono infine acquistare fino a **4 slot extra** con XP: **200 · 350 · 500 · 650** (dalla scheda, pagina Jutsu).
+- **Jutsu personalizzati (tecnica personale):** proponibili dalla scheda (sezione **Premi**); lo staff li valuta e, se approvati, li inserisce nei Rotoli. Costo maggiorato rispetto al grado: **D 115 · C 225 · B 340 · A 450 · S 565** (vedi §8.6). È lo strumento principale di caratterizzazione.
+
+> ✅ **Chiuso (15/07):** riserva di chakra, costi e consumo delle tecniche sono **fissati e attivi in produzione**, bilanciati in simulazione (20.000 duelli). Ogni valore è un multiplo di 5.
+
+## 6. Sconfitta e allenamenti
+
+I **Punti Vita**, i danni e la loro riduzione sono nel **§4 · Combattimento**. Qui contano le conseguenze in gioco.
+
+1. **Fuori combattimento.** A 0 Punti Vita il personaggio è sconfitto. In **giocata libera** significa **incapacitato** (ferito, in fuga o catturato), **mai ucciso**: la morte avviene solo alle condizioni del §7.
+2. **Ferite.** Un personaggio ridotto male combatte peggio: il master può applicare un malus finché non si cura o si ritira.
+3. **Recupero graduale.** Salire di statistiche o di grado alza i massimi ma **non cura**: PV e chakra correnti si riempiono col tempo — circa **1/3 dei PV** e **metà del chakra** al giorno, **mai il pieno in 24 ore**. Rigenerano in fretta solo le **giocate di cura** (medico-ninja) e gli **oggetti curativi**.
+
+### 6.1 Galateo degli allenamenti e aree di combattimento
+
+- Sparring e allenamenti tra utenti si svolgono nelle **aree di combattimento dedicate** (campi d'allenamento, arene).
+- Lo sparring si apre dichiarando off-game intensità e limiti concordati; si chiude quando uno dei due cede o al fuori combattimento. Nessuna conseguenza permanente.
+- Attaccare un PG fuori dalle aree dedicate e senza contesto narrativo è **powerplay** ed è sanzionato.
+
+### 6.2 Cure attive — medici e oggetti
+
+Regola di fondo: **i Punti Vita in scena si ripristinano solo grazie a un medico**; il **chakra** invece si recupera con gli **oggetti**. Tutto è applicato dal server (non è il giocatore a decidere l'effetto).
+
+- **Palmo Curativo (solo medici).** Solo un ninja della **corporazione Medico** può curare, con la tecnica **Palmo Curativo** (pulsante **✚ Cura**): ripristina PV pari a **(Mente + Ninjutsu) ÷ 3** a sé stesso o a un compagno **a contatto**, costa **20 chakra** e **consuma il turno** — nel turno in cui curi resti fermo e **non attacchi né usi tecniche**. Serve anche a **rimettere in piedi un alleato fuori combattimento** (a 0 PV). Un medico a 0 PV va prima soccorso. **Chi non è medico non può curare i PV in scena**.
+- **Oggetti.** Usati col pulsante **Oggetto**, ripristinano PV o chakra: **Kit medico** (+35 PV), **Pillola militare** (+10 PV, +40 chakra), **Pillola del chakra** (+30 chakra), **Razioni militari** (+15 PV). Ogni uso **consuma una carica** (poi l'oggetto va ricomprato). **Il chakra si recupera solo così** (oltre al riposo fuori scena): in combattimento non esiste un'auto-cura del chakra.
+
+La cura non porta mai oltre i massimi della scheda.
+
+### 6.3 · Compagni PNG: evocazioni, marionette, cani ninja
+Alcuni ninja combattono in coppia: il **marionettista** con la sua marionetta, l'**Inuzuka** col suo cane ninja, l'**evocatore** con la creatura del suo contratto. Il compagno si crea dalla **scheda** (sezione «Compagno PNG») e agisce **nel tuo stesso turno**: in chat, il pulsante 🎭 apre un riquadro dedicato alla sua azione, che compare sotto la tua nello stesso messaggio.
+- **Slot:** ogni personaggio ha **1 slot compagno**; ampliamenti li concede **solo lo staff**.
+- **Requisiti:** marionetta → clan **Marionettisti**; cane ninja → clan **Inuzuka**; evocazione → **Contratto di evocazione** (Premi, approvazione staff) **e** il jutsu del **Richiamo**, che si impara in gioco (§6.4).
+- **Taglie:** baby → piccola → media → grande → leggendaria; le assegna lo staff col progredire della storia (si parte dalla **baby**). In scheda il campo si chiama *grado*.
+- **In combattimento.** Marionette, cani ninja ed evocazioni sono **veri PNG**: hanno punti vita propri, occupano una posizione, possono essere bersagliati e fare da copertura, e scrivono la loro parte in un **riquadro a sé**, firmato col loro nome, sotto la tua azione nello stesso messaggio. Ma **non hanno un'iniziativa propria e non aggiungono un'azione**: quello che fanno, lo fanno **dentro una tua azione** — la tua tecnica e la sua si risolvono insieme, un bersaglio, un risultato (§6.4). In nessun caso un compagno raddoppia i tuoi attacchi.
+- **Portare in campo costa un'azione.** Il jutsu che richiama un'evocazione, che rilascia una marionetta dal rotolo o che crea un clone occupa **l'azione principale** del turno: in quel turno chiami, non attacchi. Dal turno dopo il compagno è in campo e agisce combinandosi con te.
+- **Attacchi multipli:** dove esistono, arrivano dalle **tecniche di clan** che li scrivono dentro di sé (*Marionette Multiple*, *Spettacolo di Cento Marionette*, *Clone Bestiale*…), e le paghi con la **tua** azione principale. Non sono un'iniziativa del compagno.
+
+### 6.4 · Evocazioni
+
+Le evocazioni sono **PNG animali** richiamati consumando una grande quantità di chakra. Non sono un secondo personaggio: sono un **extra in combattimento** — utili a rango basso, decisive quasi mai, molto forti solo ai livelli alti e per pochi turni. Valgono tutte le regole del §6.3 (1 slot, veri PNG, nessuna azione in più) più quelle che seguono.
+
+**Come ci si arriva.** Servono due cose insieme, e nessuna delle due basta da sola:
+
+1. un **contratto** — di norma il premio **Contratto di evocazione** (600 XP, §8.6); il **Corpo Medico** (lumache) e gli **ANBU** (rettili, rapaci) lo pagano **300 XP** finché restano nella corporazione; lo staff può concederne uno **ereditario** o **di trama** senza costo;
+2. il jutsu del **Richiamo**, che **non si compra con gli XP**: si impara **in gioco**, con gli addestramenti.
+
+**La scala del Richiamo.** Cinque righe di catalogo, nessuna a pagamento — **dieci addestramenti** dalla firma al capostipite.
+
+| Passo | Riga di catalogo | Addestramenti |
+|---|---|---|
+| Imparare a evocare → **baby** | Richiamo | **3** |
+| baby → **piccola** | Richiamo — taglia Piccola | **1** |
+| piccola → **media** | Richiamo — taglia Media | **1** |
+| media → **grande** | Richiamo — taglia Grande | **1** |
+| grande → **leggendaria** | Richiamo Maggiore | **4** (+ premio maggiore) |
+
+L'addestramento **non sostituisce** il requisito di scheda: si aggiunge. Una sola **famiglia** per personaggio, per sempre. La **firma è di sangue**: chi è immobilizzato o non ha una mano libera non evoca.
+
+**Requisiti di taglia** — la stessa doppia chiave del §5.2, con **Ninjutsu** come disciplina:
+
+| Taglia | Grado | Rango minimo | Ninjutsu | Che cosa richiami |
+|---|---|---|---|---|
+| **Baby** | D | Genin | **10** | un cucciolo, poco più grande di una mano |
+| **Piccola** | C | Genin | **25** | grande come un cane, agile |
+| **Media** | B | Chunin | **40** | grande come un cavallo, combatte davvero |
+| **Grande** | A | Jonin | **60** | grande come una casa, cambia la scena |
+| **Leggendaria** | S | Jonin Speciale | **80** | il capostipite della famiglia |
+
+**Costi e durata** — un'evocazione costa **il doppio** di un jutsu di pari grado, perché non è un colpo: resta in campo.
+
+| Taglia | Chakra | Mantenimento/turno | Tempo di richiamo | Turni in campo | PV | Bonus di combo |
+|---|---|---|---|---|---|---|
+| Baby | **10** | 0 | 1 turno | **6** | 20 | — |
+| Piccola | **20** | 5 | 1 turno | **6** | 40 | **+5** |
+| Media | **40** | 5 | 1 turno | **5** | 60 | **+10** |
+| Grande | **60** | 10 | **2 turni** | **4** | 90 | **+15** |
+| Leggendaria | **80** | 15 | **2 turni** | **3** | 120 | **+20** |
+
+- **1 turno di richiamo** = il richiamo occupa la tua azione principale, la creatura entra alla fine del turno e comincia a combinare **dal turno dopo**. **2 turni** = un rituale di due azioni principali consecutive: nel frattempo ti muovi e ti difendi, ma non attacchi.
+- Il chakra si paga **all'inizio** del richiamo. Se il rituale salta — vai fuori combattimento, o subisci **20 danni o più in un colpo solo** — **recuperi metà** del chakra speso (arrotondata ai 5).
+- Il **mantenimento** si paga a inizio turno: se non puoi pagarlo, la creatura si congeda da sola.
+- A **0 PV l'evocazione non muore: si congeda** e torna nel suo mondo. Richiamarla nella stessa scena **costa il doppio**. Il **congedo volontario** è un'azione rapida e non costa nulla.
+- I gradi bassi durano molto e fanno poco; quelli alti durano poco e fanno molto. È voluto: una Leggendaria è una finestra, non una scena intera.
+
+**Che cosa fa dentro un turno.** Quattro modalità, tutte e quattro **combinate**:
+
+1. **Azione principale combinata** — la tua azione contiene il **tuo** jutsu **più** una tecnica della creatura, risolti come una cosa sola: un bersaglio, un risultato. È la **combo**.
+2. **Azione rapida** — al posto della combo, una tecnica **non offensiva** della creatura (ricognizione, trasporto, messaggero) **al posto** della tua rapida, non in aggiunta.
+3. **Reazione combinata** — la creatura aggiunge la sua difesa alla tua reazione, o para al posto tuo. Resta **una reazione a turno**.
+4. **Passive** — valgono finché la creatura è in campo e non costano azione (occultamento, occhi indipendenti, volo di pattuglia).
+
+I paletti: **una sola combo per turno**, e **mai nel turno in cui la creatura arriva**; il chakra delle tecniche di famiglia **lo paghi tu**; per combinare la creatura deve stare entro **distanza Media (30 m)** — passive, ricognizione, pattugliamento e messaggeria funzionano invece a qualunque distanza; la **stessa** tecnica di controllo che toglie il turno a un avversario **non si usa due turni di fila** (come la Sostituzione, §4.2).
+
+**Le combo.** Una sola azione, un solo messaggio: la tua parte sopra, quella della creatura nel riquadro 🎭 sotto. Mai due bersagli diversi — quello sarebbe un raddoppio.
+
+- **Di potenza** — tuo jutsu d'attacco + attacco della creatura. Danno base = **il maggiore dei due, più il bonus di taglia**; paghi entrambi i costi in chakra. *Esempio:* jutsu di grado B (20) + rospo di taglia Media (20) → **30**, un colpo solo. **La taglia baby non fa combo di potenza.**
+- **Di effetto** — tuo jutsu + controllo o supporto della creatura. Il tuo danno resta il tuo, e si porta dietro l'effetto: veleno, immobilizzo, spinta, disarmo. Nessun bonus al danno. **Disponibile da subito, anche alla taglia baby**: non aggiunge numeri, aggiunge opzioni.
+- **Elementale** — le sinergie dichiarate nella scheda di famiglia (l'olio del rospo che raddoppia un Katon, l'acqua col Raiton). Valgono **al posto** della combo di potenza, non in aggiunta.
+
+**Il tetto: il danno base di una combo non supera mai 65** (45, il massimo del §4, più il +20 della Leggendaria).
+
+**Le famiglie all'apertura.** Ognuna fa una cosa che le altre non fanno.
+
+| Famiglia | Ruolo | Disciplina | Elemento |
+|---|---|---|---|
+| **Rospi** | assalto pesante e controllo del campo | Ninjutsu | Suiton (+ olio) |
+| **Serpenti** | immobilizzo, veleno, infiltrazione | Ninjutsu | Doton |
+| **Rapaci** | ricognizione, quota, trasporto | Abilità | — |
+| **Rettili** | occultamento e furtività | Abilità | — |
+| **Lumache** | cura, divisione, purificazione — **solo per i Medici** | Ninjutsu | Suiton |
+| **Scimmie** | arma vivente, corpo a corpo | Taijutsu | — |
+
+Le lumache **non aggirano il §6.2**: cambiano la portata e i bersagli del Palmo Curativo, non la sua potenza, e restano in mano ai soli medici. I **canidi non esistono fra le evocazioni**: sono esclusiva del clan **Inuzuka**. Altre famiglie (corvi, felini, pachidermi, aracnidi) si apriranno più avanti.
+
+**Il contratto leggendario** — il patto col capostipite — non si compra col premio normale: vive nella categoria dei **premi maggiori**, insieme ai jutsu di rango S e alle tecniche proibite, ed è contingentato dallo staff.
+
+> Riferimento completo (schede di famiglia, tecniche, pegni): `claude/evocazioni_spec.md`.
+
+## 7. PvP e morte del personaggio
+
+1. **PvP previsto e regolamentato.** Il conflitto tra PG è parte del gioco (rivalità, spionaggio, scontri tra villaggi), nel rispetto delle regole sopra.
+2. **La morte è permanente** — è la differenza principale rispetto alle altre land, e va accettata all'iscrizione.
+3. La morte può avvenire **solo** in: scene masterate ad esito letale, o **duelli all'ultimo sangue esplicitamente accettati da entrambi i giocatori davanti a un master**.
+4. **Sistema Eredità:** dopo la morte, il nuovo PG parte dal rango **Genin** con una **dote di XP di carriera proporzionale all'anzianità dell'account** — **250 XP per ogni mese compiuto, fino a un massimo di 2.500** (la soglia Chunin). Non si eredita nulla della potenza del PG morto: né statistiche, né tecniche, né Ryo. Così un veterano non riparte da zero, ma nemmeno salta la gavetta. *(Valore tarabile col bilanciamento; sistema da implementare.)*
+5. Le morti hanno peso: memoriale del villaggio, impatto sulle trame in corso.
+
+## 8. Progressione
+
+1. **Ranghi:** Deshi → Genin → Chunin → Jonin → Jonin Speciale → Kage/Sannin.
+2. **Due contatori di esperienza.** L'**XP di carriera** sale e non scende mai: è la misura del grado. Il **saldo XP** è ciò che si ha in cassa da spendere in tecniche e premi. **Spendere non rallenta la carriera.** Ogni movimento è tracciato in un registro consultabile (anti-favoritismo).
+3. **Promozioni: soglia + conferma giocata.** Genin con l'esame d'accademia (masterato). Poi il grado si sblocca alla **soglia di XP di carriera** — **2.500** per Chunin, **9.000** per Jonin, **18.000** per Jonin Speciale — confermata da un esame o evento giocato (gli **Esami Chunin** per il primo salto). Kage/Sannin restano ruoli politico-leggendari per meriti giocati. A ogni promozione: **+50 punti caratteristica** (a gruppi di 5) e tetti più alti.
+4. **Tetti di caratteristica per rango:** Deshi 30, Genin 45, Chunin 60, Jonin 75, Jonin Sp. 85, Kage/Sannin 100.
+5. **Fonti di XP:** **gioco giornaliero** (alla chiusura di una role registrata, 1 volta/giorno — l'importo **cala man mano che la carriera sale**, tabella qui sotto) · **missioni** (XP D 40 · C 60 · B 90 · A 130 · S 180 e Ryo D 50 · C 100 · B 150 · A 250 · S 400; sempre col master, dalla bacheca del villaggio) · **quest del master** (forbice-guida tracciata) · **eventi premio** della comunità.
+
+   **Il gioco giornaliero è degressivo.** Chi comincia prende il massimo, chi ha già una carriera alle spalle prende meno. Serve a impedire che il divario fra veterani e nuovi arrivati si allarghi da solo per sempre: chi si iscrive a stagione iniziata deve poter ancora avvicinarsi. Gli scaglioni coincidono con le soglie di promozione, quindi lo scalino cade su un momento che si festeggia comunque.
+
+   | XP di carriera | Gioco giornaliero |
+   |---|---|
+   | 0 – 2.499 *(fino a Chunin)* | **20** |
+   | 2.500 – 8.999 *(Chunin)* | **14** |
+   | 9.000 – 17.999 *(Jonin)* | **10** |
+   | 18.000 e oltre | **7** |
+
+   **La riduzione riguarda solo il gioco giornaliero.** Missioni, accademia, quest del master, eventi premio e assegnazioni dello staff restano **piene a ogni grado**: chi è avanti continua a crescere, ma dal gioco **strutturato** invece che dalla semplice presenza.
+6. **Spese di XP:** **jutsu e abilità** (D 50 → S 250, §5.2) · **slot tecnica extra** (200 · 350 · 500 · 650, massimo +4) · **premi speciali**, che si prendono per **due strade diverse** dalla sezione **Premi** della scheda:
+
+   > **Si compra quello che il regolamento ha già scritto.** Bottone **Acquista**, XP scalato subito, il premio è tuo. Nessuna coda, nessuna attesa.
+   > **Si chiede quello che scrivi tu e quello che occupa uno slot.** Nessun bottone di acquisto: solo il modulo di **richiesta**, con una motivazione in trama di almeno **60 caratteri**. Decide lo staff, e l'XP è scalato **solo all'approvazione** — se la richiesta viene respinta non hai pagato nulla.
+
+   Il confine fra le due strade non è il prezzo: è **chi scrive il contenuto del premio**. Una seconda natura elementale è già definita dal regolamento — si compra e basta. Una **tecnica personale** invece la scrivi tu, e nessuno può sapere in anticipo se è equilibrata: quindi si chiede, lo staff la legge, la confronta con la scala dei danni del §4 e con la doppia chiave del §5.2, e solo dopo la aggiunge alla scheda. Vale lo stesso per la **tecnica segreta**, che pesca dal patrimonio riservato del villaggio o del clan.
+
+   Nessun premio sta su tutt'e due le strade, e **nessun premio si prende da Deshi**: il rango minimo è sempre **Genin** (§5.2).
+
+   **Premi che si comprano col bottone** (fuori dal tetto dei due maggiori):
+   - **Seconda natura elementale** — **300 XP**, dal rango **Jonin**;
+   - **Contratto di evocazione** — **600 XP** (**300** se arriva dalla corporazione: lumache per il Corpo Medico, rettili e rapaci per gli ANBU, e si perde lasciando il corpo). Il contratto è solo metà del percorso: il jutsu del **Richiamo** si impara **in gioco**, con gli addestramenti (§6.4).
+
+   **Premi che si chiedono ma non occupano slot** (fuori dal tetto dei due maggiori):
+   - **Tecnica segreta di grado S** — **375 XP**, dal rango **Jonin Speciale** (è grado S: vale la doppia chiave del §5.2). Non la scrivi tu, ma la scegli dal patrimonio riservato: lo staff verifica che il villaggio o il clan possano davvero concedertela;
+   - **Tecnica personale dal grado D al grado A** — **D 115 · C 225 · B 340 · A 450 XP**, grado entro il proprio rango (**Genin C · Chunin B · Jonin A**): il grado minimo è **D** e il rango minimo è **Genin**, perché il Deshi non ha tecniche proprie. Nel modulo scrivi **nome, effetto, portata, costo di chakra e limiti**; lo staff la bilancia e può approvarla, respingerla o rimandartela con una correzione da accettare. Solo all'approvazione l'XP viene scalato e la tecnica entra in scheda: **nessuno si aggiunge da solo una tecnica scritta da sé**. La **tecnica personale di grado S** è un premio maggiore e sta nella tabella qui sotto.
+
+   **Premi maggiori: due per personaggio, in tutta la carriera.** Non due per rango, non due per stagione: **due e basta**. Sono cinque, e chi li prende rinuncia per sempre agli altri — è la scelta che rende diversi due personaggi con gli stessi XP. **Nessuno dei cinque si compra:** si chiedono, e decide lo staff.
+
+   | Premio maggiore | XP | Rango |
+   |---|---|---|
+   | **Contratto leggendario** *(oltre ai 600 del contratto base)* | 1.200 | Jonin |
+   | **Tecnica proibita** | 900 | Jonin |
+   | **Tecnica personale di grado S** | 565 | Jonin Speciale |
+   | **Sigillo maledetto** | 750 | Chunin |
+   | **Jinchūriki** *(Forza Portante, §8.9)* | 1.800 | staff / trama — **occupa entrambi gli slot**, ed **esclude il clan** |
+
+   Quattro dei cinque — contratto leggendario, tecnica proibita, tecnica personale di grado S e sigillo maledetto — **si chiedono dalla scheda**: il modulo c'è, il bottone di acquisto no, e la scheda ti dice quanti slot ti restano prima che tu invii. Il **Jinchūriki** non ha nemmeno il modulo: quello lo propone lo staff (§8.9). Il contratto leggendario, poi, si innesta sul contratto base: senza quello in mano la richiesta viene rifiutata.
+
+   Tutto il resto — seconda natura, contratto di evocazione normale, tecnica segreta e tecnica personale fino al grado A — resta **fuori dal tetto dei due slot**: i primi due col bottone, gli altri due col modulo di richiesta.
+
+   **Le tecniche leggendarie** dei clan (§5.2) sono un capitolo a parte: non si comprano, non si allenano e non si chiedono. Sono **premi unici** — una sola per tutto il mondo di gioco — che lo staff concede a chi se l'è giocata, e consumano uno dei due slot di premio maggiore. Non costano XP: **non si spende niente in più**, si arriva e basta.
+
+   Tre regole le governano:
+   - **Una sola per personaggio, in tutta la carriera.** Chi ne ha già una non ne riceve una seconda, nemmeno se il secondo slot di premio maggiore è ancora libero. È il punto d'arrivo, non una collezione.
+   - **Una sola per tutto il mondo di gioco.** Assegnata a un personaggio, quella tecnica esce dal catalogo per tutti gli altri, compresi i compagni di clan.
+   - **Serve il rango.** Sono di grado S: **Jonin Speciale**, e il valore dell'Innata di clan richiesto dalla riga.
+
+   **Ogni clan ha la sua.** Tutti e nove i clan hanno una tecnica leggendaria **scritta apposta per loro**: non è mai una tecnica del catalogo promossa di grado perché chiedeva statistiche alte: è il punto d'arrivo di quel clan e di nessun altro. Tre clan — **Uchiha**, **Sabaku** e **Marionettisti** — ne hanno **due alternative** invece di una sola.
+
+   **Dove il clan offre due strade, se ne imbocca una sola.** Due clan hanno un bivio invece di un punto d'arrivo unico, ed è lì che due membri dello stesso clan diventano diversi: i **Sabaku** scelgono fra la **Polvere d'Oro** e la **Sabbia di Ferro** — l'elemento portato allo stadio finale, ognuno con la sua tecnica di grado S; i **Marionettisti** scelgono fra **Il Cuore Superstite** — la marionetta umana, il proprio corpo — e **Il Capolavoro**, la marionetta suprema costruita sul corpo di uno shinobi leggendario, da conquistare in trama. Le due strade non si sommano mai: chi imbocca l'una rinuncia per sempre all'altra, e la scelta si dichiara al momento della concessione.
+
+   **Gli Uchiha hanno un bivio più lungo.** Chi sblocca il **quarto livello dello Sharingan** — il **Mangekyō** — non prende tutte le varianti di grado S: ne sceglie **una sola** fra **Susanoo**, **Amaterasu**, **Kamui** e **Tsukuyomi**, e quella resta la sua per tutta la carriera (il *Controllo delle Fiamme Nere* appartiene alla strada di Amaterasu, entrambe le forme del *Kamui* alla propria). Sono **tecniche di clan, non leggendarie**: costano **250 XP e 3 allenamenti** l'una e chiedono **Kekkei Genkai 80**, come qualsiasi tecnica di grado S.
+
+   **Il Mangekyō si paga con gli occhi.** Nella stessa scena il **primo** potere del Mangekyō è gratuito; dal **secondo** in poi l'Uchiha accumula **−10 a Mente e Velocità** (fino a −20); al **terzo** lo Sharingan **si spegne** fino a fine scena. È il prezzo della cecità, ed è l'unico freno all'occhio che vede tutto.
+
+   **Lo Sharingan Eterno cancella quel prezzo, e non si compra.** Non ha listino, non ha modulo di richiesta e non compare nella sezione Premi della scheda: **si ottiene in gioco**, a condizioni speciali di trama decise dallo staff, e solo un Uchiha può riceverlo, una volta sola. Chi lo ottiene smette di pagare la cecità e sblocca **una sola** delle due **tecniche segrete**: il **Susanoo Perfetto** (che pretende il Susanoo già appreso) **oppure** **Kotoamatsukami**. Quelle due sì che sono **leggendarie**: non costano XP, non si allenano, e valgono come *la* tecnica leggendaria del personaggio.
+7. **Allineamento e svolte.** Tre assi (0–100, partenza 50, passi di 5) registrano il percorso del personaggio: **Lealtà** (il villaggio: Rinnegato↔Esemplare), **Via** (l'anima: Sentiero dell'Odio↔Volontà del Fuoco), **Fama** (la reputazione: Infame↔Eroe). Si muovono con le **svolte**: le richiedi dalla scheda dopo una scena significativa — ±5 o ±10, motivazione di almeno 60 caratteri, meglio se citando una role registrata — e decide lo staff (una richiesta in attesa per asse; al massimo una svolta per asse ogni 7 giorni). Anche quest, eventi e correzioni dello staff spostano gli assi. Ogni cambiamento resta scritto nello **storico dei momenti chiave** (tab Allineamento della scheda — faccenda personale: gli assi si consultano in scheda, non in land). Le fasce estreme per ora sono soprattutto un'etichetta narrativa; il primo effetto concreto è attivo: un **Rinnegato** (Lealtà ≤ 20) non accede alla bacheca delle missioni del villaggio.
+
+> Riferimento completo (tempi-obiettivo, tabelle costi, slot): `claude/progressione_XP_proposta.md` · allineamento: `claude/allineamento_sistema.md` · missioni: `claude/missioni_pacchetto_iniziale.md`.
+
+### 8.8 Corporazioni
+
+Oltre al **villaggio** e al **clan**, un personaggio può appartenere a una **corporazione**: un'organizzazione operativa che ne definisce ruolo, accessi e agganci di trama. Definisce *cosa fai* nel mondo (spia, medico, rinnegato) più che *da dove vieni*. **Una sola corporazione per personaggio** — niente cumulo. Le corporazioni **di villaggio** (ANBU e Medici) esistono **separate in ogni villaggio**: gli ANBU e i Medici di Konoha e di Suna sono corpi **distinti**, con roster propri. Tutto si consulta e si richiede dal pannello **Corporazioni** della land.
+
+1. **ANBU** *(di villaggio, uno per villaggio)* — le forze speciali segrete, agli ordini del Kage. Ingresso per **candidatura approvata**: serve grado **Jonin o superiore** e **Lealtà ≥ 65** (fascia Fidato/Esemplare). Il candidato sceglie una **specializzazione** (infiltrazione, pedinamento, assassinio, sensoriale) che lo staff conferma. Aggancio all'allineamento: se la Lealtà **scende sotto la soglia**, il membro è sospeso o espulso (un ANBU sleale non esiste). Struttura interna: **Novizio ANBU**, **Operativo specializzato**, **Capo ANBU**.
+2. **Medici** *(di villaggio, uno per villaggio)* — ogni villaggio ha il **proprio corpo medico** (Konoha e Suna separati): i medico-ninja sono gli **unici** che possono curare i Punti Vita in scena, col **Palmo Curativo** (§6.2). Ingresso per **candidatura** con valutazione dello staff (attitudine medica). Struttura interna: **Medico novizio**, **Medico esperto**, **Capo medico**.
+3. **Akatsuki** *(mondiale, fuorilegge)* — organizzazione criminale sovranazionale, **antagonista gestita dallo staff**. È **consultabile da tutti** dal pannello Corporazioni: chiunque può leggerne lo **statuto** e capire cosa offre e cosa pretende. **Nessuna candidatura**: si entra **solo tramite la trama** e solo se si è già **Rinnegati** (Lealtà ≤ 20). Raccoglie i disertori (nukenin) e apre a scenari fuori dai villaggi; il prezzo è diventare bersaglio (taglia, caccia). Struttura interna: **Membro dell'Alba**, le **Dieci Dita** (gli operativi di punta) e il **Capo dell'Alba**, che sarà un **personaggio non giocante** mosso dallo staff con l'IA per dare spunti di trama e interferire con i villaggi.
+
+Lo **staff** può anche assegnare o rimuovere direttamente una corporazione (nomine, espulsioni) e attribuire un **ruolo interno** (es. *Capitano ANBU*). L'appartenenza compare come **badge** sulla scheda e nel roster della land. Lo **statuto** dell'Akatsuki è aperto a tutti, ma l'**elenco dei suoi membri resta nascosto** (solo staff).
+
+> Riferimento completo (visione, specializzazioni, fasi di sviluppo): `claude/corporazioni_spec.md`.
+
+### 8.9 Forze Portanti e Cercoteri
+
+I **Cercoteri** sono le nove Bestie con le Code: creature di chakra immenso, numerate dalle code, sigillate dentro una persona. Quella persona si chiama **Forza Portante**. Non è un potere che si compra: è una condanna che diventa un'arma, e il prezzo è scritto tutto qui sotto. Il catalogo delle nove bestie, con descrizione, abilità passive e jutsu speciali, si consulta dalla land, voce **Cercoteri**.
+
+1. **Nessuna delle nove appartiene a un villaggio.** Dopo la Notte della Volpe i sigilli si sono sciolti e le linee di successione si sono spezzate: le Bestie con le Code si sono disperse nel mondo e oggi **non sono di nessuno**. Nessun villaggio ne rivendica una, nessuna è promessa a nessuno. Finché un personaggio non costruisce in gioco il proprio percorso verso una di loro, le nove restano **materiale di trama** nelle mani dello staff: voci, avvistamenti, spedizioni che non tornano, e la mano invisibile che sembra collezionarle. Nel catalogo, **Libera** significa che nessuna Forza Portante viva la porta e che è possibile ambire a lei; **Dispersa** significa che di quella bestia, al momento, non si sa nulla.
+2. **Come si diventa Forza Portante.** È un **premio maggiore di trama**: **1.800 XP**, e **occupa entrambi** gli slot di premio maggiore della carriera (§8.6). Non si richiede dalla scheda come gli altri premi: lo propone lo **staff** al termine di un arco narrativo, e il percorso comincia dal gioco — un personaggio che vuole arrivarci deve prima **dimostrare in scena di volerlo e di poterlo reggere**. Rango minimo **Genin**. Il background va riscritto insieme allo staff. **Una sola Forza Portante per Cercoterio in tutto il gioco.**
+3. **Chi porta un Cercoterio non ha clan.** La casella **Innata** è una sola: per una Forza Portante smette di essere il Kekkei Genkai di famiglia e diventa **Sintonia** con la bestia. Chi entra in questa strada **esce dal clan** (le tecniche di clan che richiedono l'Innata diventano inutilizzabili; le altre restano, e il valore numerico dell'Innata non si azzera); chi non ha mai avuto un clan vede l'Innata aprirsi per la prima volta. **Mai entrambe le cose.** È una **condizione permanente**: non si torna nel clan, e finché il clan è scritto in scheda **il premio viene rifiutato in automatico** — prima si lascia la famiglia, poi si accetta la bestia. Chi sceglie la via della Forza Portante sta alle regole della Forza Portante.
+4. **La scala del Manto: due acquisti, poi solo addestramento.** **Una sola meccanica per tutte e nove le bestie**: non esiste una tabella per Shukaku e una per Kurama, esiste una scala sola e la bestia decide soltanto **dove finisce**. Con l'XP si comprano **due sole tecniche**, con la doppia chiave di §5.2.
+
+   | Tecnica | Grado | Rango | Sintonia | Corpo | Chakra | XP |
+   |---|---|---|---|---|---|---|
+   | **Velo del Cercoterio** | D | Genin | 10 | — | 5 a turno | 50 |
+   | **Manto del Cercoterio** | B | Chunin | 40 | Resistenza 15 | 5 × coda attiva | 150 |
+
+   Il **Velo** non ha code: dà **+5 Forza e +5 Velocità**, nessun contraccolpo. Il **Manto** apre la scala delle code, e da lì in poi **non si compra più niente**: le code **non costano XP**, si pagano in **Sintonia, Resistenza e rango**. Chi vuole più code **si allena**, non spende.
+
+   La soglia di una coda **non dipende da quale coda è in assoluto**, ma da **quanta parte della tua bestia stai tirando fuori**: si parte dal **colmo** della bestia e si tolgono **5 punti per ogni coda che ti manca alla sua ultima**. La **Resistenza** richiesta è sempre quella Sintonia **meno 25**: il corpo segue la testa, con lo stesso scarto per tutti.
+
+   | Bestia | Code | Soglie di Sintonia, dalla prima all'ultima |
+   |---|---|---|
+   | **Shukaku** | 1 | 60 |
+   | **Matatabi** | 2 | 60 · 65 |
+   | **Isobu** | 3 | 55 · 60 · 65 |
+   | **Son Gokū** | 4 | 55 · 60 · 65 · 70 |
+   | **Kokuō** | 5 | 50 · 55 · 60 · 65 · 70 |
+   | **Saiken** | 6 | 50 · 55 · 60 · 65 · 70 · 75 |
+   | **Chōmei** | 7 | 45 · 50 · 55 · 60 · 65 · 70 · 75 |
+   | **Gyūki** | 8 | 45 · 50 · 55 · 60 · 65 · 70 · 75 · 80 |
+   | **Kurama** | 9 | 40 · 45 · 50 · 55 · 60 · 65 · 70 · 75 · 80 |
+
+   **Il rango non è più una condizione a sé.** Ci pensa il tetto di caratteristica per grado (§8.4): Sintonia 60 la raggiunge solo un Chunin, 75 solo un Jonin, 80 solo un Jonin Speciale. Una regola in meno, e nessuna possibilità che le due si contraddicano.
+
+   > **CODE MASSIME = il minore fra: le code della bestia, la scala di Sintonia e la scala di Resistenza.**
+
+   Il colmo, bestia per bestia: Shukaku 1 coda (Sintonia 60, Resistenza 35, Chunin) · Matatabi 2 (65/40/Jonin) · Isobu 3 (65/40/Jonin) · Son Gokū 4 (70/45/Jonin) · Kokuō 5 (70/45/Jonin) · Saiken 6 (75/50/Jonin) · Chōmei 7 (75/50/Jonin) · Gyūki 8 (80/55/Jonin Speciale) · Kurama 9 (80/55/Jonin Speciale).
+
+   **Più code = più statistiche:** a nove code il bonus è **+45** su Forza, Velocità e Resistenza; a una coda è **+5**. **Il cammino, invece, non è più incomparabile:** chi porta Kurama arriva in fondo a **Sintonia 80 e Resistenza 55**, da Jonin Speciale; chi porta Shukaku ci arriva a **Sintonia 60 e Resistenza 35**, da Chunin. La bestia piccola resta la più rapida — è giusto, dà nove volte meno — ma non è più al capolinea quando gli altri hanno appena cominciato. **E il traguardo vero è lo stesso per tutti:** il jutsu di grado S della bestia, il **Patto**, la **Modalità Cercoterio** e la **Teriosfera** chiedono **Sintonia 80 e Jonin Speciale** a tutte e nove. Un portatore di Shukaku arriva presto al colmo delle *sue code*, e non arriva affatto presto al colmo del *suo Cercoterio*.
+
+   Attivare costa l'**azione rapida**; si sale di **una coda per turno** (azione rapida) e si scende di una per turno (azione **principale**). Per ogni coda attiva: **+5 Forza, +5 Velocità, +5 Resistenza** e **5 Vita rigenerate** a fine turno. Il manto **brucia**: chi tocca il portatore a portata Contatto subisce **5 danni per coda**, alleati compresi. Il manto **consuma**: a fine scena il portatore perde **5 Vita per ogni coda del suo picco**, non curabili con tecniche né oggetti — serve **riposo, un giorno di gioco per coda**. Il manto **costa**: **5 chakra a turno per ogni coda attiva** (a nove code sono 45 a turno, da solo un limite di durata). Il **Velo** (0 code) dà solo +5 Forza e +5 Velocità, senza contraccolpo.
+5. **Soglia di lucidità = (Sintonia − soglia della prima coda della tua bestia) ÷ 5**, arrotondata per difetto, e mai oltre le proprie **code massime**. Fino alla soglia il personaggio resta **tuo**; a **soglia + 1** scatta la **possessione parziale**; da **soglia + 2** in su la **possessione totale**. Per chi porta Kurama, che parte da 40: Sintonia 40 → soglia 0 · 45 → 1 · 60 → 4 · 80 → 8 · 85 → 9. Per chi porta Shukaku, che parte da 60: 60 → soglia 0 · 65 → 1. **La scala è la stessa, misurata da dove comincia la propria bestia.**
+
+   **Cinque punti di margine.** Confronta questa scala con quella delle code (punto 4) e vedrai la sola regola che conta: **la Sintonia che ti permette di *alzare* una coda non è ancora quella che ti permette di *tenerla*** — servono **cinque punti in più**. Chi alza una coda nel momento esatto in cui la Sintonia gliela consente, la **paga**; cinque punti dopo, quella coda è sua e può pensare alla successiva. **Il margine si accumula:** chi porta Kurama a Sintonia 60 può alzare cinque code e ne tiene lucide quattro; salendo ancora, ogni coda che si apre chiede di riguadagnarsi i suoi cinque punti. La Sintonia in eccesso non è mai sprecata: è esattamente il modo in cui si doma un Cercoterio.
+
+   Si finisce in possessione per quattro strade, uguali per tutte e nove: **spingendo oltre** le proprie code massime (fino a +2, mai oltre le code della bestia); alzando la **propria ultima coda senza i cinque punti di margine** (per chi porta Kurama è la nona a Sintonia 80, per chi porta Shukaku è la sua unica a Sintonia 60 — stessa regola, stesso punto della propria scala); **restando** in possessione parziale (punto 6); o per **decisione del master**, che deve dichiararla in chiaro con una ragione scritta in scena. Con il **sigillo Difettoso** la soglia scende di 2 (punto 9).
+6. **Possessione parziale.** Il giocatore continua a scrivere il personaggio, ma: deve **attaccare la creatura viva più vicina** (alleati compresi) se la finzione non gli lascia altra via; **niente Fuuinjutsu, niente Genjutsu, niente tecniche che richiedono sigilli**; la **Mente vale 0**; **+5 danno** ma **nessuna reazione difensiva**; non può abbandonare la scena. **Ogni turno sale una coda da sola**, salvo spendere l'azione principale per **resistere** con un intervento di almeno **400 caratteri** che parli della persona, non del combattimento (decide il master). **La parziale non è un posto in cui stare:** chi la chiude **due turni di fila** senza resistere e senza scendere sotto la soglia passa alla **totale**, e chi è già all'**ultima coda della bestia** ci passa **subito**, a fine turno — lì la coda che sale da sola non ha dove andare, e la parziale (soglia + 1) diventa totale (soglia + 2) nel giro di un turno. **Vale per tutte e nove**, alla prima coda di Shukaku come alla nona di Kurama. Resistere blocca la coda in più, **non restituisce il controllo**: serve a guadagnare il turno in cui **scendere**, e siccome sia resistere sia scendere costano l'**azione principale**, quei turni non si possono usare per altro. Se ne esce scendendo sotto la soglia, con il **Richiamo**, o con un sigillo di soppressione applicato da chi ha **Fuuinjutsu ≥ 60**.
+7. **Possessione totale.** Ci si arriva **per code** (soglia + 2, cioè spingendo oltre le proprie code massime), **per durata** (punto 6: due turni di parziale, o uno solo se si è già all'ultima coda della bestia) o **per decisione del master**. Le tre porte sono le stesse per tutte e nove le bestie. **Il personaggio passa al master**: il giocatore smette di scriverlo. È il prezzo, ed è dichiarato prima che qualcuno accetti il premio. La bestia non riconosce nessuno. Oltre **tre turni** si arriva alla **Trasformazione completa** e la scena diventa **evento di trama**. All'uscita: **Vita 1**, convalescenza fuori scena decisa dal master, **Sintonia −5**, sigillo da ricucire. La trasformazione **non uccide**: *si muore per l'estrazione o la rottura del sigillo, non per la trasformazione*.
+8. **Il Richiamo.** Un alleato con un **legame scritto** col portatore (role registrate, non un compagno di squadra qualunque) può spendere la propria **azione principale** e almeno **600 caratteri** rivolti **alla persona**, non alla bestia: se il master accetta, le code **scendono di 2** immediatamente. **Uno solo per personaggio, per scena.** Non costa XP e non si compra.
+9. **Il sigillo** è un oggetto di gioco e va scritto in scheda: **Solido** (nessuna penalità) · **Ordinario** (nessuna penalità, ma diventa Difettoso alla prima possessione totale) · **Difettoso** (soglia di lucidità **−2**, e il portatore **non dorme**). Si rinforza con un PG o PNG dotato di **Fuuinjutsu ≥ 60**, in una scena dedicata fuori dal combattimento e col consenso del portatore. Rompere o estrarre il sigillo è l'unico modo di uccidere una Forza Portante per via del suo Cercoterio: richiede tempo, più di un operatore e controllo totale — è materiale da trama, non da scontro fra giocatori.
+10. **Le vie alte.** Nessuna si compra con l'XP. Il **Patto** si gioca: bisogna incontrare la bestia dentro di sé e darle una ragione, e la condizione non è tecnica ma emotiva. La **Trasformazione parziale** (grado B, Sintonia 40, Chunin — non richiede il Patto) manifesta un pezzo vero della bestia: azione principale, 20 chakra più 10 per turno, **+10 danno** a Contatto e portata su di una fascia, **senza far salire le code e senza contraccolpo**. La **Modalità Cercoterio** (grado S, Jonin Speciale, richiede il Patto) chiede **Sintonia 80 e Jonin Speciale** — uguale per tutte e nove — e dà **tutte le code della bestia, tutte lucide e senza contraccolpo**: **40 chakra a turno**, **massimo 3 turni per scena**. Non è il numero di code a fare la differenza, è il prezzo che smette di esserci. La **Teriosfera** (grado S, richiede la Modalità Cercoterio) chiede **un turno di carica** da 40 chakra — in cui il portatore è visibile e vulnerabile — e poi colpisce a portata **Lunga** in area per **45 danni base, +5 per ogni coda attiva oltre la soglia di stabilità, fino al tetto di 65**. La **soglia di stabilità è metà delle code della bestia, arrotondata per eccesso** (Shukaku 1 · Matatabi 1 · Isobu 2 · Son Gokū 2 · Kokuō 3 · Saiken 3 · Chōmei 4 · Gyūki 4 · Kurama 5): una sola per scena, e sotto quella soglia **esplode addosso al portatore** per metà del danno.
+11. **Cosa significa socialmente.** Il **villaggio in cui vive lo viene a sapere**, presto o tardi: una Forza Portante è una risorsa militare, e nessun villaggio si lascia sfuggire l'occasione di registrarla come propria — anche se la bestia, di suo, non è di nessuno. La **diffidenza dei PNG e degli altri personaggi è legittima e incoraggiata** — è il mondo, non ostilità fra giocatori. E chi accetta il premio accetta di essere un **bersaglio permanente** per chi colleziona Cercoteri.
+
+> Riferimento completo (le nove bestie, passive, jutsu, numeri e punti aperti): `claude/cercoteri_spec.md`.
+
+## 9. Armeria ed equipaggiamento (regole base)
+
+- Ogni PG dispone dell'equipaggiamento ninja standard (kunai, shuriken, filo, sigilli esplosivi in quantità limitata per scena).
+- **Armi comuni:** si impugnano col Taijutsu; il danno segue il §4 (non c'è una statistica dedicata alle armi). Gli stili armati avanzati sono resi da abilità specifiche.
+- Armi speciali, marionette, veleni e strumenti particolari sono censiti nell'**Armeria** (database ufficiale) e richiedono requisiti o approvazione staff.
+- L'economia completa (negozi, compravendita) arriverà dopo il lancio; fino ad allora l'equipaggiamento speciale si ottiene per via narrativa (missioni, premi). **Il Ryo è l'unica moneta della land.**
+
+## 10. Master e staff
+
+1. **Ruoli:** Admin (piattaforma), Master (trame, eventi, valutazioni), Moderatori (condotta, dispute).
+2. **Trasparenza:** i gestori **possono giocare personaggi propri**, purché **dichiarati pubblicamente**; **non esistono master invisibili**: gli interventi di masteraggio sono sempre riconoscibili.
+3. **Un master non può masterare scene in cui è coinvolto un proprio PG.**
+4. **Avanzamenti tracciati:** ogni promozione di rango e premio rilevante è motivato e consultabile (anti-favoritismo). *(Implementato: registro XP, registro allineamento e registro premi a database.)*
+5. **Dispute:** segnalazione → esame dei log da parte di un moderatore non coinvolto → decisione motivata.
+
+## 11. Contenuti maturi (18+)
+
+1. Il gioco è riservato ai **maggiorenni**. Violenza e contenuti espliciti sono ammessi **solo in forma testuale**; vietata ogni immagine esplicita.
+2. **Nessuna area o chat dedicata all'esplicito.** I temi maturi (violenza, toni adulti) possono emergere nelle normali scene di gioco, sempre in forma esclusivamente testuale e con misura narrativa; chi non vuole prendervi parte usa la regola dello stop (punto 4).
+3. **Divieto assoluto** di contenuti sessuali che coinvolgano personaggi minorenni, anche fittizi: i PG nelle fasi Deshi/Genin (personaggi giovani) sono categoricamente esclusi da tali scene.
+4. **Regola dello stop:** qualunque giocatore può interrompere off-game una scena che lo mette a disagio, senza penalità e senza obbligo di motivazione.
+5. **I PNG gestiti da IA non partecipano mai a scene esplicite.**
+
+## 12. Segnalazioni e provvedimenti
+
+Questa sezione dice due cose: **come chiedere aiuto** quando qualcosa non va, e **cosa succede** a chi rompe le regole. È scritta perché nessuno debba scoprirlo nel momento sbagliato.
+
+### 12.1 Come si segnala
+
+1. **Il pulsante ⚑ in chat.** Nella land, accanto al tasto d'invio: racconti cosa è successo e la segnalazione parte. Arriva **solo allo staff**, con stanza e orario allegati; nessun altro giocatore la vede e chi hai segnalato non riceve alcuna notifica. Il tetto è di **5 segnalazioni al giorno**, per evitare che lo strumento venga usato come arma.
+2. **Un messaggio privato** a un membro dello staff, se preferisci parlarne prima, o il canale dedicato su **Discord** per le questioni fuori gioco.
+3. **Non servono prove.** Le chat di gioco e i messaggi privati sono archiviati e consultabili dallo staff: basta indicare dove e quando. Se hai comunque uno screenshot, allegalo pure.
+4. **Segnalare non è delazione.** Chi segnala in buona fede non subisce conseguenze nemmeno se la segnalazione si rivela infondata. Fanno eccezione le segnalazioni **deliberatamente false**, costruite per danneggiare qualcuno: quelle sono a loro volta una violazione.
+
+### 12.2 Come lo staff decide
+
+1. La segnalazione la esamina un moderatore **non coinvolto** nella vicenda.
+2. Si leggono i **log** della scena o della conversazione: nel dubbio contano quelli, non i racconti di seconda mano.
+3. Si **sente anche l'altra parte**, salvo i casi di gravità immediata del punto 12.4.
+4. La decisione viene **comunicata e motivata** a chi la subisce. Chi ha segnalato viene informato che il caso è chiuso, ma **non** di quale provvedimento è stato preso: quello riguarda solo l'interessato.
+5. Tempi indicativi: entro **48 ore** per le cose urgenti (molestie, contenuti vietati, scene da fermare), entro **una settimana** per tutto il resto. Siamo un progetto amatoriale: se serve più tempo, ve lo diciamo.
+
+### 12.3 La scala dei provvedimenti
+
+Si sale di gradino in base a **gravità**, **intenzione** e **recidiva**. Non è un automatismo: un errore riconosciuto e corretto vale meno di uno ripetuto dopo un richiamo.
+
+| Provvedimento | Che cosa comporta | Quando |
+|---|---|---|
+| **Richiamo informale** | Due parole in privato. Non resta traccia. | Distrazione, regola non capita, prima volta. |
+| **Ammonizione** | Avviso formale registrato dallo staff. | Violazione chiara, o richiamo ignorato. |
+| **Annullamento della scena** | La giocata non produce effetti: niente XP, Ryo, danni o conseguenze. | Metagaming, powerplay, scena forzata su chi non voleva. |
+| **Rettifica della scheda** | Si tolgono XP, Ryo, oggetti o gradi ottenuti irregolarmente. | Vantaggi presi aggirando le regole. |
+| **Sospensione** | Accesso bloccato per un periodo definito (di norma **3-30 giorni**). Il personaggio resta com'è. | Recidiva, condotta ostile verso altri giocatori. |
+| **Ban** | Chiusura definitiva dell'account. | Violazioni gravi (12.4) o recidiva dopo sospensione. |
+
+Il provvedimento colpisce **il giocatore, non la storia degli altri**: quando possibile la trama viene ricucita, non cancellata. La morte di un personaggio non è mai una sanzione disciplinare — si muore in gioco, alle condizioni del §7.
+
+### 12.4 Violazioni gravi
+
+> **Ban immediato.** Per queste non c'è scala e non c'è preavviso: si interviene subito e si valuta dopo.
+
+1. **Essere minorenni**, o coinvolgere minori in qualunque forma. Vale anche il solo tentativo (§11).
+2. **Contenuti sessuali che coinvolgano personaggi minorenni**, anche fittizi.
+3. **Molestie, minacce, stalking o discriminazione** verso una persona reale — dentro o fuori dalla piattaforma.
+4. **Diffusione di dati personali altrui** (nome, indirizzo, foto, contatti, screenshot di conversazioni private) senza consenso.
+5. **Multiaccount** per aggirare regole o provvedimenti, e ogni tentativo di manomettere la piattaforma o accedere ad account non propri.
+6. **Impersonare lo staff** o spacciare decisioni non prese.
+
+### 12.5 Cosa non è sanzionabile
+
+Perché sia chiaro anche il contrario: **perdere uno scontro**, subire un tradimento in gioco, ricevere ostilità dal personaggio di un altro, interpretare un carattere sgradevole o un antagonista, **dire allo staff che secondo te ha sbagliato**. Il conflitto tra personaggi è il gioco. Diventa un problema solo quando smette di essere tra personaggi: se un attrito in scena ti sembra diventato personale, usa il ⚑ prima che si incancrenisca.
+
+### 12.6 Ricorso
+
+1. Hai **7 giorni** per contestare un provvedimento, scrivendo a un membro dello staff.
+2. Il riesame lo fa una persona **diversa** da chi ha deciso.
+3. La risposta al ricorso è **definitiva**. Le sospensioni restano attive durante il riesame; se il ricorso viene accolto, ciò che era stato tolto viene restituito.
+4. Puoi in ogni momento **cancellare il tuo account** dalla scheda, e i tuoi dati vengono eliminati (vedi l'informativa privacy).
+
+### 12.7 Lo staff risponde delle stesse regole
+
+Chi gestisce il gioco è soggetto a questo regolamento **esattamente come tutti**, e su alcune cose a maggior ragione: nessun master invisibile, nessuna scena masterata a favore di un proprio personaggio, ogni avanzamento motivato e consultabile (§10). Se il problema è un membro dello staff, scrivi a un altro membro dello staff: il caso lo segue chi non è coinvolto. Gli strumenti di moderazione — archivio delle chat, log dei messaggi privati, registro dei movimenti — esistono per verificare gli abusi, non per curiosare: usarli fuori da una segnalazione o da un'indagine è a sua volta un abuso.
+
+---
+
+## Decisioni chiuse (storico revisione)
+
+Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da qui in avanti si interviene solo per bilanciamento.
+
+| # | Punto | Decisione |
+|---|-------|-----------|
+| 1 | Pensieri in azione | ✅ **Vietati** (§1.3) — niente pensieri non pronunciati in scena |
+| 2 | Secondo PG | ✅ **Solo su approvazione dello staff** (§2.2), caso per caso; nessun requisito automatico |
+| 3 | Requisito per il secondo PG | ✅ Superato: **valutazione discrezionale dello staff** (niente soglia fissa di mesi/grado) |
+| 4 | Clan sabbia di ferro a Suna | ✅ **Confluito nel clan Sabaku** come Kekkei Genkai raro staff-gated (§3.2) — già attivo (es. il Kazekage Rina) |
+| 5 | Seconda natura elementale | ✅ **Dal rango Jonin**, 300 XP (§8.6) — attivo in produzione |
+| 6 | Critico / fallimento sul d20 | ✅ **Nessun critico**: il margine premia già i colpi netti; il motore resta com'è (bilanciato su 20.000 duelli) |
+| 7 | Bonus oggettivi su scala d20 | ✅ **Fissati** (§4): elementale +2, terreno/posizione +1/+2 |
+| 8 | Genjutsu | ✅ **Definito** (§4 e §4.3): contesa Mente+Genjutsu, impone effetti/condizioni (no danno PV), si rompe con una nuova contesa o con l'abilità **Dispersione** (Mente ≥ potenza; A/S immuni); gli effetti specifici arrivano con ogni tecnica |
+| 9 | Motore di combattimento v1 | ✅ Correzioni A+B applicate e validate in simulazione |
+| 10 | Pool chakra | ✅ Formule derivate attive in produzione |
+| 11 | Dote del sistema Eredità | ✅ **Fissata** (§7.4): 250 XP di carriera per mese di anzianità, max 2.500; nulla si eredita dal PG morto (da implementare) |
+| 12 | Gestori giocanti | ✅ **Sì, dichiarati** (§10.2); un master non masterizza mai scene coi propri PG |
+| 13 | Regolamento disciplinare pubblico | ✅ **Scritto** (§12): canale di segnalazione (⚑ → staff, 5/giorno), iter di esame, scala dei provvedimenti, violazioni gravi, ricorso a 7 giorni |
+| 14 | Creazione personaggio: testi vs software | ✅ **Allineati** (§0 e §3): alla creazione si danno solo i dati essenziali; punti, clan e corporazione arrivano dopo, dalla scheda e dalla land |
+| 15 | Cercoteri e villaggi | ✅ **Nessuna delle nove appartiene a un villaggio** (§8.9): dopo la Notte della Volpe si sono disperse. **Tutte e nove sono Libere**, Kurama compresa: si può ambire a ognuna per percorso di gioco. La volpe resta comunque il **motore delle trame d'apertura** dello staff — chi la insegue entra in una storia già in movimento, non in una casella vuota |
+| 16 | Curva dell'XP di gioco giornaliero | ✅ **Degressiva** (§8.5): 20 fino a 2.500 di carriera · 14 da Chunin · 10 da Jonin · 7 da 18.000 in su. Missioni, accademia, quest, eventi e assegnazioni staff restano **pieni** — attiva in produzione dal 28/07/2026 |
+| 17 | Soglie di caratteristica delle arti di clan | ✅ **Corrette** il 28/07/2026: il quarto livello dell'Innata di ogni clan chiedeva **90** con tetto massimo giocabile **85** (§8.4, Jonin Speciale) — era irraggiungibile. Portate a **80**, la soglia di grado S di §5.2. Riguardava 20 righe su nove clan, non solo i Sabaku |
+| 18 | Cosa impara un Deshi | ✅ **Solo accademia** (§5.2), dal 28/07/2026: il Deshi conosce le tecniche di grado E e le impara **dentro le lezioni dell'accademia**, non con gli allenamenti liberi. Le tecniche ninja vere e le tecniche personali partono dal **grado D** e dal rango **Genin** |
+| 19 | Premi: due strade separate | ✅ **Divise** (§8.6) dal 28/07/2026: i **premi minori** si comprano dalla scheda col bottone Acquista (XP scalato subito); i **premi maggiori** hanno in scheda **solo il modulo di richiesta**, senza bottone di acquisto, e li valuta lo staff. Nessun premio si prende da Deshi |
+| 20 | Tecniche leggendarie di clan | ✅ **Premi unici** (§8.6): una sola per tutto il mondo di gioco, fuori dalla progressione a XP — non si comprano, non si allenano, non si chiedono. Le concede lo staff e consumano uno slot di premio maggiore |
+| 21 | Possessione totale del Cercoterio | ✅ **Resa raggiungibile** (§8.9) dal 28/07/2026: le **code massime** e la **soglia di lucidità** si fermano alle code effettive della bestia, e alla totale si arriva anche **per durata** (due turni di fila in parziale, o subito se si è già all'ultima coda della bestia), non solo per numero di code |
+| 22 | Una sola meccanica per tutte e nove le bestie | ✅ **Riscritta** (§8.9) dal 28/07/2026: la scala del Manto non è più un listino di cinque gradini pensato su Kurama (750 XP) ma **due sole tecniche** — Velo (D, Genin, Sintonia 10, 50 XP) e Manto (B, Chunin, Sintonia 40, Resistenza 15, 150 XP). Da lì in poi le code **non costano XP**: la coda *k* chiede **Sintonia ≥ 35 + 5k**, **Resistenza ≥ 10 + 5k** e il rango (Chunin 4 · Jonin 6 · Jonin Speciale 9). Le **code massime** restano il minore fra scala e code della bestia, e la **soglia di lucidità** diventa **(Sintonia − 40) ÷ 5**: cinque punti sotto la scala delle code, così che *alzare* una coda e *tenerla* non siano mai la stessa Sintonia. Nove code valgono +45 su tre caratteristiche e costano 18.000 XP di carriera; una coda vale +5 e ne costa 2.500 |
+| 23 | Chi scrive il testo della tecnica personale | ✅ **Passa dallo staff** (§8.6) dal 28/07/2026: la tecnica personale e la tecnica segreta escono dalla strada dell'acquisto ed entrano in quella della **richiesta**. Restano **fuori dal tetto dei due premi maggiori** e costano quanto prima (D 115 · C 225 · B 340 · A 450 · segreta 375), ma in scheda non hanno più il bottone Acquista: c'è il modulo, l'XP si scala **all'approvazione** e lo staff bilancia il testo prima di aggiungerlo. Il confine fra le due strade non è più il prezzo ma **chi scrive il contenuto del premio** |
+| 24 | Lo stadio finale di clan | ✅ **Un bivio, non un traguardo unico** (§8.6) dal 28/07/2026: **Sabaku** e **Marionettisti** hanno due tecniche leggendarie alternative — Polvere d'Oro *o* Sabbia di Ferro, Il Cuore Superstite *o* Il Capolavoro. Nessuna costa XP («senza spendere extra»): chi imbocca una strada rinuncia per sempre all'altra, e due membri dello stesso clan possono così arrivare a punti d'arrivo diversi. Per gli altri sette clan lo stadio finale è **in valutazione** (`claude/stadio_finale_clan_proposta.md`) |
+| 25 | Quante tecniche leggendarie per personaggio | ✅ **Una sola in tutta la carriera** (§8.6) dal 28/07/2026 — vincolo aggiunto: prima il limite era solo «una per tutto il mondo di gioco» e i due slot di premio maggiore ne avrebbero permesse due sullo stesso personaggio. Ora `tecnica_leggendaria_assegna` rifiuta la seconda anche a slot libero |
+| 26 | Il Mangekyō degli Uchiha | ✅ **Un bivio, non un set** (§8.6) dal 28/07/2026: chi sblocca il quarto livello dello Sharingan sceglie **una sola** variante di grado S fra Susanoo, Amaterasu, Kamui e Tsukuyomi — 250 XP e 3 allenamenti l'una, Kekkei Genkai 80, come ogni tecnica S di clan — e vi resta legato per la carriera. Il **malus di cecità**, prima solo evocato a parole, ora ha una meccanica: primo potere gratis nella scena, dal secondo −10 a Mente e Velocità (fino a −20), al terzo lo Sharingan si spegne. Lo **Sharingan Eterno** — premio di sola trama, senza prezzo e senza modulo, riservato agli Uchiha — cancella il malus e sblocca **una** fra Susanoo Perfetto e Kotoamatsukami, che sono tecniche leggendarie |
+| 27 | Dove si impara la Dispersione | ✅ **In Accademia** (§4.3 e §5.2) dal 28/07/2026: il *Kai* era una tecnica **acquistabile** dal pannello Jutsu, cioè un'abilità di base dietro un costo. Ora è la **quarta base dell'Accademia**, concessa dalla **terza lezione «Controllo del chakra»** insieme a controllo del chakra, uso dei sigilli e camminata sulle superfici. La riga acquistabile è stata **disattivata** (non cancellata: chi l'aveva la tiene) e chi aveva già superato quella lezione l'ha ricevuta d'ufficio |
+| 28 | Come nasce una tecnica leggendaria | ✅ **Scritta apposta, mai promossa** (§8.6) dal 28/07/2026: tre tecniche di clan erano diventate leggendarie **in automatico** perché superavano una soglia di requisito, e nel passaggio avevano perso costo e allenamenti. Due sono state **riportate** a tecniche normali (250 XP · 3 allenamenti · Innata 80) e ai loro clan è stata scritta una leggendaria vera: **L'Alveare Madre** (Aburame) e **Il Richiamo del Capobranco** (Inuzuka). Oggi ogni clan ha la sua |
+| 29 | Scala delle code relativa alla bestia | ✅ **Riscritta** (§8.9) dal 29/07/2026: la soglia di una coda non dipende più dal suo numero assoluto ma da quanta parte della bestia si tira fuori — si parte dal **colmo** e si tolgono 5 punti per ogni coda che manca all'ultima. Il colmo passa da **40÷80** a **60÷80** di Sintonia (Kurama e Gyūki invariati), la **Resistenza** segue sempre a **−25**, e la riga del **rango sparisce** dalla tabella perché già imposta dai tetti di §8.4. La **soglia di lucidità** si misura dalla **prima coda della propria bestia** invece che da 40 fisso, così i cinque punti di margine restano dov'erano per tutte e nove. Le **vie alte** — Patto, Modalità Cercoterio, Teriosfera — hanno **requisito unico**: Sintonia 80 e Jonin Speciale, come già diceva il testo e come la tabella contraddiceva. Motivo: chi portava una bestia piccola era al colmo del proprio Cercoterio a Sintonia 40, quando gli altri avevano appena cominciato |
