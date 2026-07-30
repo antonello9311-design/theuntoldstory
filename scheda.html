@@ -430,7 +430,7 @@
                     <div class="dlab" style="text-transform:none;letter-spacing:0;color:var(--ink-soft);margin-top:6px">ANBU richiede Jonin+ e Lealtà ≥ 65; Akatsuki richiede Lealtà ≤ 20. L'assegnazione registra la data d'ingresso.</div>
                   </div></div></div>
                 <div class="drow"><span class="emb" id="ic-element"></span><div class="dinfo"><span class="dlab">Elemento del Chakra <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· facoltativo</span></span>
-                  <select id="f-element" class="mini"><option value="">Nessuno</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select><span class="dval" id="v-elems" style="display:none;align-items:center;flex-wrap:wrap;gap:6px 14px;margin-top:8px"></span><span class="dlab" id="lab-elem2" style="margin-top:10px;display:none">Seconda natura <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· traguardo del grado Jonin, non costa XP e si scegle una volta sola</span></span><select id="f-elem2" class="mini" style="display:none"><option value="">— scegli —</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select><button type="button" class="btn btn-red btn-sm" id="elem2-save" style="display:none;margin-top:7px">Conferma la seconda natura</button></div></div>
+                  <select id="f-element" class="mini"><option value="">Nessuno</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select><span class="dval" id="v-elems" style="display:none;align-items:center;flex-wrap:wrap;gap:6px 14px;margin-top:8px"></span><span class="dlab" id="lab-elem2" style="margin-top:10px;display:none">Seconda natura <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· traguardo del grado Jonin, non costa XP e si scegle una volta sola</span></span><select id="f-elem2" class="mini" style="display:none"><option value="">— scegli —</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select><button type="button" class="btn btn-red btn-sm" id="elem2-save" style="display:none;margin-top:7px">Conferma la seconda natura</button><button type="button" class="mini-btn" id="elem2-clear" style="display:none;margin-top:7px;margin-left:8px">Rimuovi</button></div></div>
                 <div class="drow"><span class="emb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:20px;height:20px;color:var(--red-deep)"><path d="M4 6c5-1.4 11-1.4 16 0 0 6-2.4 10-8 10S4 12 4 6z"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="9.5" r="1"/><path d="M9.5 13c.8.8 1.7 1 2.5 1s1.7-.2 2.5-1"/></svg></span><div class="dinfo"><span class="dlab">Prestavolto <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· il volto usato per l'avatar</span></span><input id="f-prestavolto" class="mini" maxlength="80" placeholder="Nome del volto (attore, personaggio…)" /></div></div>
                 <div class="drow2"><div class="dinfo"><span class="dlab">Età</span><span class="dval" id="v-age">—</span></div><div class="dinfo"><span class="dlab">Sesso</span><span class="dval" id="v-sex">—</span></div></div>
               </div>
@@ -698,13 +698,21 @@
     function loadElems(c){
       myElemBase=(c&&c.element)||null; myElems=[]; renderElems();
       (function(){
-        var lab=$('lab-elem2'), sel=$('f-elem2'), btn=$('elem2-save');
+        var lab=$('lab-elem2'), sel=$('f-elem2'), btn=$('elem2-save'), del=$('elem2-clear');
         var jonin=['Jonin','Jonin Speciale','Kage Konoha','Kage Suna','Sannin'].indexOf((c&&c.rank)||'Deshi')>=0;
-        var mostra=!!(c && isOwnerMode() && jonin && !c.element2);
-        if(lab) lab.style.display=mostra?'':'none';
+        var staff=!!(isStaff||isAdmin);
+        // il giocatore la scegle una volta sola, dal Jonin; lo staff la cambia e la rimuove sempre
+        var mostra=!!(c && (staff || (isOwnerMode() && jonin && !c.element2)));
+        if(lab){ lab.style.display=mostra?'':'none';
+          lab.innerHTML=staff
+            ? 'Seconda natura <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· da staff puoi cambiarla o rimuoverla; per il giocatore la scelta è irrevocabile</span>'
+            : 'Seconda natura <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· traguardo del grado Jonin, non costa XP e si scegle una volta sola</span>'; }
         if(sel){ sel.style.display=mostra?'':'none';
-          if(mostra) Array.prototype.forEach.call(sel.options,function(o){ o.disabled=(o.value&&o.value===(c.element||'')); }); }
-        if(btn) btn.style.display=mostra?'':'none';
+          if(mostra){ sel.value=(c.element2||'');
+            Array.prototype.forEach.call(sel.options,function(o){ o.disabled=(!!o.value && o.value===(c.element||'')); }); } }
+        if(btn){ btn.style.display=mostra?'':'none';
+          btn.textContent=(c&&c.element2)?'Cambia la seconda natura':'Conferma la seconda natura'; }
+        if(del) del.style.display=(mostra&&staff&&c&&c.element2)?'':'none';
       })();
       if(!sb||!c||!c.id) return;
       sb.rpc('character_elementi',{p_character:c.id}).then(function(r){
@@ -1385,11 +1393,23 @@
         if(!sb||!myChar) return; var v=($('f-elem2')&&$('f-elem2').value)||'';
         if(!v){ toast('Scegli la seconda natura',true); return; }
         if(v===(myChar.element||'')){ toast('La seconda natura dev\'essere diversa dalla prima',true); return; }
+        if(myChar.element2 && !(isStaff||isAdmin)){ toast('La seconda natura è già scelta: la decisione è irrevocabile',true); return; }
         this.disabled=true;
         var r=await sb.from('characters').update({element2:v}).eq('id',myChar.id).select().single();
         this.disabled=false;
         if(r.error){ toast(r.error.message||'Errore',true); return; }
         myChar=r.data; toast('Seconda natura: '+v); fillForm(myChar,curPriv);
+      });
+      var e2d=$('elem2-clear'); if(e2d) e2d.addEventListener('click',async function(){
+        if(!sb||!myChar) return;
+        if(!(isStaff||isAdmin)){ toast('Solo lo staff può rimuovere la seconda natura',true); return; }
+        if(this.getAttribute('data-armed')!=='1'){ this.setAttribute('data-armed','1'); this.textContent='Confermi la rimozione?';
+          var b=this; setTimeout(function(){ if(b.getAttribute('data-armed')==='1'){ b.setAttribute('data-armed','0'); b.textContent='Rimuovi'; } },5000); return; }
+        this.setAttribute('data-armed','0'); this.textContent='Rimuovi'; this.disabled=true;
+        var r=await sb.from('characters').update({element2:null}).eq('id',myChar.id).select().single();
+        this.disabled=false;
+        if(r.error){ toast(r.error.message||'Errore',true); return; }
+        myChar=r.data; toast('Seconda natura rimossa'); fillForm(myChar,curPriv);
       });
       var pl=$('pr-list'); if(pl) pl.addEventListener('click',async function(e){
         var ok=e.target.closest('[data-prok]'), no=e.target.closest('[data-prno]');
