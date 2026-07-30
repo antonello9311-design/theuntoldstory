@@ -130,15 +130,16 @@
   .view{flex:1;min-height:0;display:none;flex-direction:column;gap:12px}
   .view.on{display:flex}
   #map-view .mapframe{flex:1;min-height:340px;width:100%;max-width:1040px;margin:0 auto;aspect-ratio:auto;position:relative}
-  /* --- Adattamento a schermi bassi/piccoli (portatili ~14") — la barra Luoghi resta sempre visibile --- */
+  /* --- Adattamento a schermi bassi/piccoli (portatili ~14"): la barra Luoghi si ritira e la mappa prende il suo spazio --- */
   @media (max-height:820px){
+    #map-view .luoghi{display:none}
     .topbar{padding:8px clamp(12px,2vw,24px);gap:8px}
     .tb-btn{padding:6px 9px;font-size:10px}
     .tb-name{font-size:12.5px}
     .pts-reminder{padding:6px 44px;font-size:14px}
     .mapzone{padding:8px clamp(10px,2vw,24px)}
     .view{gap:8px}
-    #map-view .mapframe{min-height:150px}
+    #map-view .mapframe{min-height:220px}
     .map-cols{gap:10px}
     .activity,.luoghi{padding:8px 11px}
   }
@@ -2490,7 +2491,7 @@
           jutsu:{t:'Jutsu',h:'<p>La consultazione completa dei jutsu — divisi per disciplina (Ninjutsu, Taijutsu, Genjutsu, Fuuinjutsu) — vive nella tua <b>Scheda</b>, sezione «Jutsu e abilità», dove puoi anche allenarli con l’XP.</p><p><a class="wr-link" href="scheda.html">Apri la Scheda →</a></p>'},
           abilita:{t:'Abilità',h:'<p>Abilità innate e generiche del mondo: le consulti nella tua <b>Scheda</b>, sezione «Jutsu e abilità» › Abilità.</p><p><a class="wr-link" href="scheda.html">Apri la Scheda →</a></p>'},
           evocazioni:{t:'Evocazioni',h:'<p>I contratti di evocazione permettono di richiamare creature alleate. Si ottengono come <b>premio</b> (dalla Scheda) e si gestiscono come <b>compagni PNG</b> in scena.</p><p class="who-empty">Catalogo delle evocazioni in arrivo.</p>'},
-          premi:{t:'Premi',h:'<p>Ciò che puoi ottenere spendendo XP o per meriti di trama: seconda natura elementale, contratto di evocazione, sigillo maledetto, tecnica personale e altro. Le richieste si fanno dalla <b>Scheda</b>, sezione «Premi».</p><p><a class="wr-link" href="scheda.html">Apri la Scheda →</a></p>'}
+          premi:{t:'Premi',h:'<p>Ciò che puoi ottenere spendendo XP o per meriti di trama: contratto di evocazione, sigillo maledetto, tecnica personale e altro. Le richieste si fanno dalla <b>Scheda</b>, sezione «Premi».</p><p><a class="wr-link" href="scheda.html">Apri la Scheda →</a></p>'}
         };
         function openWorld(key){ var w=WORLD[key]; if(!w) return; var t=document.getElementById('world-title'), b=document.getElementById('world-body'); if(t)t.textContent=w.t; if(b)b.innerHTML=w.h; var bk=document.getElementById('ov-backdrop'), pn=document.getElementById('world-panel'); if(bk)bk.hidden=false; if(pn)pn.hidden=false; }
         function closeWorld(){ var pn=document.getElementById('world-panel'); if(pn)pn.hidden=true; var bk=document.getElementById('ov-backdrop'); if(bk)bk.hidden=true; }
