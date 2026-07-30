@@ -430,7 +430,7 @@
                     <div class="dlab" style="text-transform:none;letter-spacing:0;color:var(--ink-soft);margin-top:6px">ANBU richiede Jonin+ e Lealtà ≥ 65; Akatsuki richiede Lealtà ≤ 20. L'assegnazione registra la data d'ingresso.</div>
                   </div></div></div>
                 <div class="drow"><span class="emb" id="ic-element"></span><div class="dinfo"><span class="dlab">Elemento del Chakra <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· facoltativo</span></span>
-                  <select id="f-element" class="mini"><option value="">Nessuno</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select><span class="dval" id="v-elems" style="display:none;align-items:center;flex-wrap:wrap;gap:6px 14px;margin-top:8px"></span></div></div>
+                  <select id="f-element" class="mini"><option value="">Nessuno</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select><span class="dval" id="v-elems" style="display:none;align-items:center;flex-wrap:wrap;gap:6px 14px;margin-top:8px"></span><span class="dlab" id="lab-elem2" style="margin-top:10px;display:none">Seconda natura <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· traguardo del grado Jonin, non costa XP e si scegle una volta sola</span></span><select id="f-elem2" class="mini" style="display:none"><option value="">— scegli —</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select><button type="button" class="btn btn-red btn-sm" id="elem2-save" style="display:none;margin-top:7px">Conferma la seconda natura</button></div></div>
                 <div class="drow"><span class="emb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:20px;height:20px;color:var(--red-deep)"><path d="M4 6c5-1.4 11-1.4 16 0 0 6-2.4 10-8 10S4 12 4 6z"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="9.5" r="1"/><path d="M9.5 13c.8.8 1.7 1 2.5 1s1.7-.2 2.5-1"/></svg></span><div class="dinfo"><span class="dlab">Prestavolto <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· il volto usato per l'avatar</span></span><input id="f-prestavolto" class="mini" maxlength="80" placeholder="Nome del volto (attore, personaggio…)" /></div></div>
                 <div class="drow2"><div class="dinfo"><span class="dlab">Età</span><span class="dval" id="v-age">—</span></div><div class="dinfo"><span class="dlab">Sesso</span><span class="dval" id="v-sex">—</span></div></div>
               </div>
@@ -577,18 +577,10 @@
               <p class="hint">I <b>premi</b> sono acquisti straordinari pagati in XP e legati alla trama: si chiedono qui e decide lo staff. L'XP viene scalato solo all'approvazione.<br>I <b>premi maggiori</b> — contratto leggendario, tecnica proibita, tecnica personale di grado S, sigillo maledetto e Cercoterio — sono <b>due per tutta la carriera</b>, e il Cercoterio da solo li occupa entrambi. Gli altri premi restano fuori dal conteggio.</p>
               <div id="perk-list"></div>
               <div class="svbox" id="premio-box" style="display:none">
-                <h4>Richiedi un premio</h4>
+                <h4 id="pr-titolo">Premi speciali</h4>
                 <div class="prslot" id="pr-slot"></div>
                 <label class="svlab">Premio
-                  <select id="pr-tipo">
-                    <option value="seconda_natura">Seconda natura elementale · 300 XP · dal grado Jonin</option>
-                    <option value="evocazione">Contratto di evocazione · 600 XP</option>
-                    <option value="tecnica_segreta">Tecnica segreta di grado S · 375 XP</option>
-                    <option value="tecnica_personale">Tecnica personale · da 115 XP</option>
-                    <option value="sigillo_maledetto">Sigillo maledetto · 750 XP · dal grado Chunin · maggiore</option>
-                    <option value="tecnica_proibita">Tecnica proibita · 900 XP · dal grado Jonin · maggiore</option>
-                    <option value="evocazione_leggendaria">Contratto leggendario · 1.200 XP · dal grado Jonin · maggiore</option>
-                  </select>
+                  <select id="pr-tipo"></select>
                 </label>
                 <label class="svlab" id="pr-grado-wrap" style="display:none">Grado della tecnica personale
                   <select id="pr-grado">
@@ -601,6 +593,7 @@
                 </label>
                 <textarea id="pr-dettaglio" maxlength="600" placeholder="Racconta cosa chiedi e perché in trama: cosa è successo in gioco e come lo giustifica (minimo 60 caratteri)…"></textarea>
                 <div class="svcnt"><span id="pr-cnt">0</span>/600 · minimo 60 caratteri</div>
+                <p class="hint" id="pr-effetto" style="margin:8px 0 0"></p>
                 <div class="prcost" id="pr-costo-line"></div>
                 <button class="btn btn-red btn-sm" id="pr-send" style="margin-top:8px">Invia allo staff</button>
                 <p class="hint" style="margin:10px 0 0">Il <b>Cercoterio</b> non si chiede da qui. Lo propone lo staff alla fine di un arco narrativo, dal grado Genin in su, e prende il posto del clan familiare.</p>
@@ -704,6 +697,15 @@
     }
     function loadElems(c){
       myElemBase=(c&&c.element)||null; myElems=[]; renderElems();
+      (function(){
+        var lab=$('lab-elem2'), sel=$('f-elem2'), btn=$('elem2-save');
+        var jonin=['Jonin','Jonin Speciale','Kage Konoha','Kage Suna','Sannin'].indexOf((c&&c.rank)||'Deshi')>=0;
+        var mostra=!!(c && isOwnerMode() && jonin && !c.element2);
+        if(lab) lab.style.display=mostra?'':'none';
+        if(sel){ sel.style.display=mostra?'':'none';
+          if(mostra) Array.prototype.forEach.call(sel.options,function(o){ o.disabled=(o.value&&o.value===(c.element||'')); }); }
+        if(btn) btn.style.display=mostra?'':'none';
+      })();
       if(!sb||!c||!c.id) return;
       sb.rpc('character_elementi',{p_character:c.id}).then(function(r){
         if(r&&!r.error&&Array.isArray(r.data)) myElems=r.data;
@@ -1263,28 +1265,54 @@
       });
     })();
     /* ===== Premi speciali ===== */
-    var PREMI_COSTI={seconda_natura:300,evocazione:600,evocazione_leggendaria:1200,sigillo_maledetto:750,tecnica_segreta:375,tecnica_proibita:900,jinchuriki:1800,tecnica_personale:{D:115,C:225,B:340,A:450,S:565}};
-    var PREMI_NOMI={seconda_natura:'Seconda natura elementale',evocazione:'Contratto di evocazione',evocazione_leggendaria:'Contratto leggendario',sigillo_maledetto:'Sigillo maledetto',tecnica_segreta:'Tecnica segreta (S)',tecnica_proibita:'Tecnica proibita',tecnica_personale:'Tecnica personale',jinchuriki:'Jinchūriki'};
-    var PR_USATI=0, PR_PEND=0;
-    function premioSlot(t,g){ if(t==='jinchuriki') return 2; if(t==='evocazione_leggendaria'||t==='tecnica_proibita'||t==='sigillo_maledetto') return 1; if(t==='tecnica_personale'&&g==='S') return 1; return 0; }
-    function premioCosto(){ var t=$('pr-tipo')?$('pr-tipo').value:''; if(t==='tecnica_personale'){ var g=$('pr-grado')?$('pr-grado').value:'D'; return PREMI_COSTI.tecnica_personale[g]||0; } if(t==='evocazione'&&myChar&&(myChar.corporation==='Medici'||myChar.corporation==='ANBU')) return 300; return PREMI_COSTI[t]||0; }
+    /* Il listino non è scritto in pagina: lo costruisce il server (tabella premi → premio_listino). */
+    var PREMI=[], PR_USATI=0, PR_PEND=0, PREMI_CARICATO=false;
+    function premioRiga(t,g){ for(var i=0;i<PREMI.length;i++){ var x=PREMI[i]; if(x.tipo===t && (x.grado||null)===(g||null)) return x; } for(var j=0;j<PREMI.length;j++){ if(PREMI[j].tipo===t) return PREMI[j]; } return null; }
+    function premioNome(t,g){ var r=premioRiga(t,g); return r?r.nome:(t==='seconda_natura'?'Seconda natura elementale':t); }
+    function premioSlot(t,g){ var r=premioRiga(t,g); return r?(r.slot||0):0; }
+    function premioSel(){ var t=$('pr-tipo')?$('pr-tipo').value:''; var g=(t==='tecnica_personale'&&$('pr-grado'))?$('pr-grado').value:null; return premioRiga(t,g); }
+    function premioCosto(){ var r=premioSel(); if(!r) return 0; var c=r.costo||0;
+      if(r.tipo==='evocazione'&&myChar&&(myChar.corporation==='Medici'||myChar.corporation==='ANBU')) c=300; return c; }
+    async function caricaPremi(){
+      if(PREMI_CARICATO||!sb) return; PREMI_CARICATO=true;
+      var r=await sb.rpc('premio_listino');
+      if(r&&!r.error&&Array.isArray(r.data)) PREMI=r.data.filter(function(x){return x.giocatore;});
+      var sel=$('pr-tipo'); if(!sel) return;
+      var compra=PREMI.filter(function(x){return !x.valutazione;}), chiedi=PREMI.filter(function(x){return x.valutazione;});
+      function opt(x){ var et=[]; if(x.costo!=null) et.push(x.costo+' XP'); if(x.rango_min&&x.rango_min!=='Genin') et.push('dal grado '+x.rango_min); if(x.slot>0) et.push(x.slot>1?'occupa entrambi gli slot':'premio maggiore');
+        var v=x.tipo+(x.grado?('|'+x.grado):''); return '<option value="'+v+'">'+esc(x.nome)+(et.length?(' · '+et.join(' · ')):'')+'</option>'; }
+      var h='';
+      if(compra.length) h+='<optgroup label="Si compra subito">'+compra.map(opt).join('')+'</optgroup>';
+      if(chiedi.length) h+='<optgroup label="Lo valuta lo staff">'+chiedi.map(opt).join('')+'</optgroup>';
+      sel.innerHTML=h;
+      updPremioCosto();
+    }
     function updPremioSlot(){
       var el=$('pr-slot'); if(!el) return; var pieni=(PR_USATI+PR_PEND)>=2;
       el.innerHTML='Premi maggiori · <b'+(pieni?' class="full"':'')+'>'+PR_USATI+' di 2</b>'+(PR_PEND?(' · '+PR_PEND+' in attesa di risposta'):'');
     }
+    function prSelTipo(){ var v=($('pr-tipo')&&$('pr-tipo').value)||''; var q=v.split('|'); return {tipo:q[0]||'', grado:q[1]||null}; }
     function updPremioCosto(){
       var el=$('pr-costo-line'); if(!el||!myChar) return;
-      var t=$('pr-tipo')?$('pr-tipo').value:'', g=(t==='tecnica_personale'&&$('pr-grado'))?$('pr-grado').value:null;
+      var sel=prSelTipo(), r=premioRiga(sel.tipo, sel.grado);
+      var w=$('pr-grado-wrap'); if(w) w.style.display=(sel.tipo==='tecnica_personale')?'':'none';
+      var ef=$('pr-effetto'); if(ef) ef.innerHTML=r?(esc(r.descrizione||'')+(r.effetto?(' <b>'+esc(r.effetto)+'</b>'):'')):'';
+      var ti=$('pr-titolo'); if(ti) ti.textContent=r?(r.valutazione?'Chiedi un premio':'Compra un premio'):'Premi speciali';
+      var bt=$('pr-send'); if(bt) bt.textContent=r?(r.valutazione?'Invia allo staff':'Acquista'):'Invia';
+      var td=$('pr-dettaglio'); if(td) td.placeholder=(r&&!r.valutazione)?'Indica cosa stai prendendo (per esempio la famiglia di evocazione)…':'Racconta cosa chiedi e perché in trama: cosa è successo in gioco e come lo giustifica (minimo 60 caratteri)…';
+      if(!r){ el.innerHTML=''; return; }
       var c=premioCosto(), saldo=(myChar.exp||0);
       var h='Costo: <b>'+c+' XP</b> · saldo attuale '+saldo;
-      if(t==='evocazione'&&c===300) h+=' · <b>metà prezzo</b> con la tua corporazione';
+      if(r.tipo==='evocazione'&&c===300) h+=' · <b>metà prezzo</b> con la tua corporazione';
       if(saldo<c) h+=' · <span style="color:var(--red)">saldo insufficiente</span>';
-      var s=premioSlot(t,g);
+      h+=' · rango minimo <b>'+esc(r.rango_min||'Genin')+'</b>';
+      var s=r.slot||0;
       if(s>0){
         h+='<br>Premio maggiore: occupa '+(s>1?'entrambi gli slot':'1 slot dei 2')+'.';
         if(PR_USATI+PR_PEND+s>2) h+=' <span style="color:var(--red)">Non ti restano slot liberi.</span>';
       }
-      if(t==='evocazione_leggendaria') h+='<br>Serve il contratto di evocazione già in mano: i 1.200 XP si aggiungono ai 600 del contratto base.';
+      if(r.valutazione) h+='<br>L\'XP si scala <b>solo all\'approvazione</b>: se la richiesta viene respinta non hai pagato nulla.';
+      else h+='<br>L\'XP si scala <b>subito</b>.';
       el.innerHTML=h;
     }
     function loadPremi(){
@@ -1295,6 +1323,7 @@
       var owner=isOwnerMode();
       var staffV=(viewMode==='staff'||viewMode==='adminother');
       var box=$('premio-box'); if(box) box.style.display=owner?'':'none';
+      caricaPremi();
       if(owner) updPremioCosto();
       var host=$('perk-list');
       if(host){ sb.from('character_perks').select('*').eq('character_id',myChar.id).order('created_at').then(function(r){
@@ -1307,7 +1336,7 @@
           var d=p.created_at?new Date(p.created_at):null;
           var ds=d?(('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()):'';
           var mg=premioSlot(p.tipo,p.grado_tecnica)>0?'<span class="jrank">◈ maggiore</span>':'';
-          return '<div class="jcard"><div class="jtop"><span class="jname">'+esc(PREMI_NOMI[p.tipo]||p.tipo)+(p.grado_tecnica?(' · grado '+esc(p.grado_tecnica)):'')+'</span>'+mg+'<span class="jrank">'+(p.costo||0)+' XP</span></div>'+(p.dettaglio?('<div class="jeff">'+esc(p.dettaglio)+'</div>'):'')+(ds?('<div class="jmeta">'+ds+'</div>'):'')+'</div>';
+          return '<div class="jcard"><div class="jtop"><span class="jname">'+esc(premioNome(p.tipo,p.grado_tecnica))+(p.grado_tecnica?(' · grado '+esc(p.grado_tecnica)):'')+'</span>'+mg+'<span class="jrank">'+(p.costo||0)+' XP</span></div>'+(p.dettaglio?('<div class="jeff">'+esc(p.dettaglio)+'</div>'):'')+(ds?('<div class="jmeta">'+ds+'</div>'):'')+'</div>';
         }).join('')+'</div>';
       },function(){}); }
       sb.from('premio_richieste').select('tipo,grado_tecnica').eq('character_id',myChar.id).eq('status','in attesa').then(function(r){
@@ -1324,24 +1353,43 @@
           var tag=x.status==='in attesa'?'<span class="svtag p">In attesa</span>':x.status==='approvata'?'<span class="svtag a">Approvata</span>':'<span class="svtag r">Respinta</span>';
           var btns=(staffV&&x.status==='in attesa')?('<div style="margin-top:6px"><button type="button" class="btn btn-red btn-sm" data-prok="'+x.id+'">Approva · scala '+x.costo+' XP</button> <button type="button" class="btn btn-ghost btn-sm" data-prno="'+x.id+'">Respingi</button></div>'):'';
           var nota=x.nota_staff?('<div class="svmeta">Staff: '+esc(x.nota_staff)+'</div>'):'';
-          return '<div class="svitem">'+tag+'<b>'+esc(PREMI_NOMI[x.tipo]||x.tipo)+(x.grado_tecnica?(' · grado '+esc(x.grado_tecnica)):'')+'</b> · '+x.costo+' XP<div class="svmeta">'+esc(x.dettaglio||'')+'</div>'+nota+btns+'</div>';
+          return '<div class="svitem">'+tag+'<b>'+esc(premioNome(x.tipo,x.grado_tecnica))+(x.grado_tecnica?(' · grado '+esc(x.grado_tecnica)):'')+'</b> · '+x.costo+' XP<div class="svmeta">'+esc(x.dettaglio||'')+'</div>'+nota+btns+'</div>';
         }).join('');
       },function(){ list.innerHTML=''; });
     }
     (function(){
-      var pt=$('pr-tipo'); if(pt) pt.addEventListener('change',function(){ var w=$('pr-grado-wrap'); if(w)w.style.display=(this.value==='tecnica_personale')?'':'none'; updPremioCosto(); });
+      var pt=$('pr-tipo'); if(pt) pt.addEventListener('change',updPremioCosto);
       var pg=$('pr-grado'); if(pg) pg.addEventListener('change',updPremioCosto);
       var pd=$('pr-dettaglio'); if(pd) pd.addEventListener('input',function(){ var c=$('pr-cnt'); if(c)c.textContent=String(this.value.length); });
       var ps=$('pr-send'); if(ps) ps.addEventListener('click',async function(){
-        if(!sb||!myChar) return; var det=($('pr-dettaglio').value||'').trim();
-        if(det.length<60){ toast('Racconta la richiesta: servono almeno 60 caratteri',true); return; }
+        if(!sb||!myChar) return;
+        var sel=prSelTipo(), riga=premioRiga(sel.tipo, sel.grado);
+        if(!riga){ toast('Scegli un premio',true); return; }
+        var det=($('pr-dettaglio').value||'').trim();
+        var minimo=riga.valutazione?60:((sel.tipo==='tecnica_personale'||sel.tipo==='tecnica_segreta')?60:2);
+        if(det.length<minimo){ toast('Servono almeno '+minimo+' caratteri',true); return; }
         this.disabled=true;
-        var tipo=$('pr-tipo').value, grado=(tipo==='tecnica_personale')?$('pr-grado').value:null;
-        var r=await sb.rpc('premio_richiedi',{p_tipo:tipo,p_dettaglio:det,p_grado:grado});
+        var grado=(sel.tipo==='tecnica_personale')?sel.grado:null;
+        var r=riga.valutazione
+          ? await sb.rpc('premio_richiedi',{p_tipo:sel.tipo,p_dettaglio:det,p_grado:grado})
+          : await sb.rpc('premio_acquista',{p_tipo:sel.tipo,p_dettaglio:det,p_grado:grado});
         this.disabled=false;
-        if(r.error){ toast((r.error.message||'Errore nell\'invio'),true); return; }
+        if(r.error){ toast((r.error.message||'Errore'),true); return; }
         $('pr-dettaglio').value=''; var c=$('pr-cnt'); if(c)c.textContent='0';
-        toast('Richiesta inviata allo staff'); loadPremi();
+        toast(riga.valutazione?'Richiesta inviata allo staff':'Premio acquistato');
+        var rr=await sb.from('characters').select('*').eq('id',myChar.id).maybeSingle();
+        if(rr&&rr.data){ myChar=rr.data; fillForm(myChar,curPriv); }
+        loadPremi();
+      });
+      var e2b=$('elem2-save'); if(e2b) e2b.addEventListener('click',async function(){
+        if(!sb||!myChar) return; var v=($('f-elem2')&&$('f-elem2').value)||'';
+        if(!v){ toast('Scegli la seconda natura',true); return; }
+        if(v===(myChar.element||'')){ toast('La seconda natura dev\'essere diversa dalla prima',true); return; }
+        this.disabled=true;
+        var r=await sb.from('characters').update({element2:v}).eq('id',myChar.id).select().single();
+        this.disabled=false;
+        if(r.error){ toast(r.error.message||'Errore',true); return; }
+        myChar=r.data; toast('Seconda natura: '+v); fillForm(myChar,curPriv);
       });
       var pl=$('pr-list'); if(pl) pl.addEventListener('click',async function(e){
         var ok=e.target.closest('[data-prok]'), no=e.target.closest('[data-prno]');

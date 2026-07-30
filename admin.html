@@ -646,22 +646,32 @@
           <p class="mgr-note">Serve per il <b>Cercoterio</b>, per i contratti <b>ereditari o di trama</b> concessi a fine arco e per ogni premio che nasce dalla storia invece che da una richiesta. Il costo in XP viene scalato lo stesso, a meno che non spunti «senza costo».</p>
           <div class="cat-form" style="margin-top:6px">
             <label>Personaggio<input id="prm-name" maxlength="40" placeholder="nome esatto del PG"></label>
-            <label>Premio<select id="prm-tipo">
-              <option value="jinchuriki">Cercoterio (Jinchūriki) · 1.800 XP · maggiore ×2</option>
-              <option value="evocazione">Contratto di evocazione · 600 XP</option>
-              <option value="evocazione_leggendaria">Contratto leggendario · 1.200 XP · maggiore</option>
-              <option value="sigillo_maledetto">Sigillo maledetto · 750 XP · maggiore</option>
-              <option value="tecnica_proibita">Tecnica proibita · 900 XP · maggiore</option>
-              <option value="tecnica_segreta">Tecnica segreta di grado S · 375 XP</option>
-              <option value="seconda_natura">Seconda natura elementale · 300 XP</option>
-              <option value="tecnica_personale">Tecnica personale · da 115 XP</option>
-            </select></label>
+            <label>Premio<select id="prm-tipo"></select></label>
             <label>Grado (solo tecnica personale)<select id="prm-grado">
               <option value="">—</option><option value="D">D · 115 XP</option><option value="C">C · 225 XP</option><option value="B">B · 340 XP</option><option value="A">A · 450 XP</option><option value="S">S · 565 XP · maggiore</option>
             </select></label>
             <label class="full">Motivazione (resta scritta sulla scheda del personaggio)<input id="prm-det" maxlength="300" placeholder="Perché lo riceve: quale arco narrativo, quale prova superata…"></label>
             <label class="full chk"><input type="checkbox" id="prm-gratis"> Senza costo in XP — contratto ereditario o di trama (§6.4)</label>
             <label class="full chk"><button class="btn btn-red" id="prm-save" type="button">Assegna</button><span class="editing-note" id="prm-note" style="margin-left:10px"></span></label>
+          </div>
+          <div class="grp-sub" style="margin-top:18px">Listino dei premi</div>
+          <p class="mgr-note">Costi, ranghi minimi, slot occupati e testi di <b>tutti</b> i premi. Non sono scritti nelle pagine: stanno in tabella, e le funzioni del server li leggono da qui. Cambia un numero e cambia <b>insieme</b> in scheda, nel listino del giocatore e nei controlli del server. Clicca una riga per modificarla.</p>
+          <div id="prl-list"></div>
+          <div class="cat-form" style="margin-top:10px">
+            <label>Tipo <span class="opt">(la chiave: non cambiarlo su un premio esistente)</span><input id="prl-tipo" maxlength="40" placeholder="es. cinque_nature"></label>
+            <label>Grado <span class="opt">(solo per la tecnica personale)</span><input id="prl-grado" maxlength="2" placeholder="D · C · B · A · S"></label>
+            <label class="full">Nome mostrato al giocatore<input id="prl-nome" maxlength="80"></label>
+            <label class="full">Descrizione <span class="opt">(che cos'è, in una riga)</span><input id="prl-desc" maxlength="300"></label>
+            <label class="full">Effetto <span class="opt">(cosa fa in gioco: si legge sotto il nome, in scheda)</span><input id="prl-eff" maxlength="400"></label>
+            <label>Costo in XP <span class="opt">(vuoto = non determinabile)</span><input id="prl-costo" type="number" step="5" min="0"></label>
+            <label>Slot maggiori occupati<select id="prl-slot"><option value="0">0 — non è un premio maggiore</option><option value="1">1 — uno dei due</option><option value="2">2 — entrambi</option></select></label>
+            <label>Rango minimo<select id="prl-rango"><option>Genin</option><option>Chunin</option><option>Jonin</option><option>Jonin Speciale</option></select></label>
+            <label>Ordine nel listino<input id="prl-sort" type="number" step="1" min="0"></label>
+            <label class="full chk"><input type="checkbox" id="prl-val"> <b>Lo valuta lo staff</b> — in scheda compare solo il modulo di richiesta, e l'XP si scala all'approvazione. Se lo togli, il premio si compra col bottone e l'XP si scala subito</label>
+            <label class="full chk"><input type="checkbox" id="prl-gio"> Visibile al giocatore — se lo togli, il premio esiste ma lo concede solo lo staff (Cercoterio, Sharingan Eterno, leggendarie)</label>
+            <label class="full chk"><input type="checkbox" id="prl-rip"> Ripetibile — si può avere più di una volta (tecniche personali e segrete)</label>
+            <label class="full chk"><input type="checkbox" id="prl-active" checked> Attivo nel listino</label>
+            <label class="full chk"><button class="btn btn-red" id="prl-save" type="button">Salva premio</button><button class="mini-btn" id="prl-reset" type="button" style="margin-left:8px">Nuovo</button><span class="editing-note" id="prl-editing" style="margin-left:10px"></span></label>
           </div>
           <div class="grp-sub" style="margin-top:18px">Tecniche leggendarie di clan</div>
           <p class="mgr-note">Ogni clan ne ha <b>una sola</b>, ed è <b>una sola in tutto il mondo di gioco</b>: nel momento in cui la concedi a qualcuno, per tutti gli altri è chiusa finché quel personaggio la porta. Non si compra, non si allena e non si chiede dalla scheda — sta <b>fuori dalla progressione a XP</b> e la decidi tu, in fondo a un arco narrativo che se la sia meritata. Costa comunque <b>uno dei due slot di premio maggiore</b>. Il personaggio deve appartenere al clan della tecnica e averne il rango.</p>
@@ -1438,9 +1448,104 @@
     }
 
     /* ---- Premi speciali: coda delle richieste e assegnazione d'ufficio (§8.6) ---- */
-    var PRM=[],PRMP=[];
+    var PRM=[],PRMP=[],PRL=[],editingPrl=null;
+    function prlKey(t,g){ return t+'|'+(g||''); }
+    function prlRiga(t,g){ for(var i=0;i<PRL.length;i++){ if(PRL[i].tipo===t&&(PRL[i].grado||null)===(g||null)) return PRL[i]; } return null; }
+    async function loadPrl(){
+      var r=await sb.from('premi').select('*').order('sort').order('tipo');
+      PRL=(r&&r.data)||[];
+      renderPrl(); fillPrmTipo();
+    }
+    function fillPrmTipo(){
+      var sel=$('prm-tipo'); if(!sel) return;
+      var att=PRL.filter(function(x){return x.is_active && x.tipo!=='tecnica_leggendaria';});
+      sel.innerHTML=att.map(function(x){
+        var et=[]; if(x.costo!=null) et.push(x.costo+' XP');
+        if(x.slot>0) et.push(x.slot>1?'maggiore ×2':'maggiore');
+        if(!x.giocatore) et.push('solo staff');
+        return '<option value="'+esc(x.tipo)+'">'+esc(x.nome)+(et.length?(' · '+et.join(' · ')):'')+'</option>';
+      }).join('');
+    }
+    function renderPrl(){
+      var h=$('prl-list'); if(!h) return;
+      if(!PRL.length){ h.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Listino vuoto.</p>'; return; }
+      h.innerHTML=PRL.map(function(x){
+        var m=[]; m.push(x.costo!=null?(x.costo+' XP'):'costo non definito');
+        m.push('dal grado '+(x.rango_min||'Genin'));
+        m.push(x.slot>0?(x.slot>1?'occupa entrambi gli slot':'premio maggiore'):'non occupa slot');
+        m.push(x.valutazione?'lo valuta lo staff':'si compra');
+        if(!x.giocatore) m.push('solo staff');
+        if(x.ripetibile) m.push('ripetibile');
+        return '<div class="itrow'+(x.is_active?'':' off')+'" data-prl="'+esc(prlKey(x.tipo,x.grado))+'" style="cursor:pointer">'
+          +'<div class="itmain"><b>'+esc(x.nome)+'</b>'+(x.grado?(' <span class="itmeta">· grado '+esc(x.grado)+'</span>'):'')
+          +'<div class="itmeta">'+esc(x.tipo)+' · '+m.join(' · ')+(x.is_active?'':' · DISATTIVATO')+'</div>'
+          +(x.effetto?('<div class="itdesc">'+esc(x.effetto)+'</div>'):'')+'</div></div>';
+      }).join('');
+    }
+    function resetPrlForm(){
+      editingPrl=null;
+      ['prl-tipo','prl-grado','prl-nome','prl-desc','prl-eff','prl-costo'].forEach(function(id){var e=$(id);if(e)e.value='';});
+      if($('prl-slot'))$('prl-slot').value='0';
+      if($('prl-rango'))$('prl-rango').value='Genin';
+      if($('prl-sort'))$('prl-sort').value='100';
+      ['prl-val','prl-gio','prl-rip'].forEach(function(id){var e=$(id);if(e)e.checked=(id==='prl-gio');});
+      if($('prl-active'))$('prl-active').checked=true;
+      if($('prl-editing'))$('prl-editing').textContent='';
+      if($('prl-tipo'))$('prl-tipo').readOnly=false;
+    }
+    function editPrl(key){
+      var q=key.split('|'), x=prlRiga(q[0], q[1]||null); if(!x) return;
+      editingPrl={tipo:x.tipo, grado:x.grado||null};
+      $('prl-tipo').value=x.tipo; $('prl-tipo').readOnly=true;
+      $('prl-grado').value=x.grado||'';
+      $('prl-nome').value=x.nome||''; $('prl-desc').value=x.descrizione||''; $('prl-eff').value=x.effetto||'';
+      $('prl-costo').value=(x.costo!=null?x.costo:'');
+      $('prl-slot').value=String(x.slot||0);
+      $('prl-rango').value=x.rango_min||'Genin';
+      $('prl-sort').value=(x.sort!=null?x.sort:100);
+      $('prl-val').checked=!!x.valutazione; $('prl-gio').checked=!!x.giocatore; $('prl-rip').checked=!!x.ripetibile;
+      $('prl-active').checked=x.is_active!==false;
+      if($('prl-editing'))$('prl-editing').textContent='Stai modificando «'+x.nome+'»';
+      admFormHide('premi');
+    }
+    function bindPrl(){
+      var l=$('prl-list'); if(l) l.addEventListener('click',function(e){ var r=e.target.closest('[data-prl]'); if(r) editPrl(r.getAttribute('data-prl')); });
+      var rs=$('prl-reset'); if(rs) rs.addEventListener('click',resetPrlForm);
+      var sv=$('prl-save'); if(sv) sv.addEventListener('click',async function(){
+        var tipo=($('prl-tipo').value||'').trim().toLowerCase().replace(/\s+/g,'_');
+        var nome=($('prl-nome').value||'').trim();
+        if(tipo.length<3){ toast('Il tipo è la chiave: almeno 3 caratteri',true); return; }
+        if(nome.length<3){ toast('Serve il nome mostrato al giocatore',true); return; }
+        var grado=($('prl-grado').value||'').trim().toUpperCase()||null;
+        if(grado && ['D','C','B','A','S'].indexOf(grado)<0){ toast('Il grado può essere solo D, C, B, A o S',true); return; }
+        var costoV=($('prl-costo').value||'').trim();
+        var payload={tipo:tipo, grado:grado, nome:nome,
+          descrizione:($('prl-desc').value||'').trim()||null,
+          effetto:($('prl-eff').value||'').trim()||null,
+          costo:(costoV!==''?(parseInt(costoV,10)||0):null),
+          slot:parseInt($('prl-slot').value,10)||0,
+          rango_min:$('prl-rango').value||'Genin',
+          sort:parseInt($('prl-sort').value,10)||100,
+          valutazione:!!$('prl-val').checked, giocatore:!!$('prl-gio').checked,
+          ripetibile:!!$('prl-rip').checked, is_active:!!$('prl-active').checked,
+          updated_at:new Date().toISOString()};
+        if(payload.costo!=null && payload.costo%5!==0){ toast('I costi sono multipli di 5',true); return; }
+        this.disabled=true;
+        var r;
+        if(editingPrl){
+          var q=sb.from('premi').update(payload).eq('tipo',editingPrl.tipo);
+          q=editingPrl.grado?q.eq('grado',editingPrl.grado):q.is('grado',null);
+          r=await q;
+        } else { r=await sb.from('premi').insert(payload); }
+        this.disabled=false;
+        if(r&&r.error){ toast(r.error.message||'Errore nel salvataggio',true); return; }
+        toast(editingPrl?'Premio aggiornato':'Premio creato');
+        resetPrlForm(); admFormHide('premi'); await loadPrl();
+      });
+    }
+    function prmNome(t,g){ var x=prlRiga(t,g)||prlRiga(t,null); return x?x.nome:(PRM_NOMI[t]||t); }
     var PRM_NOMI={seconda_natura:'Seconda natura elementale',evocazione:'Contratto di evocazione',evocazione_leggendaria:'Contratto leggendario',sigillo_maledetto:'Sigillo maledetto',tecnica_segreta:'Tecnica segreta (S)',tecnica_proibita:'Tecnica proibita',tecnica_personale:'Tecnica personale',jinchuriki:'Cercoterio (Jinchūriki)',tecnica_leggendaria:'Tecnica leggendaria di clan'};
-    function prmSlot(t,g){ if(t==='jinchuriki')return 2; if(t==='evocazione_leggendaria'||t==='tecnica_proibita'||t==='sigillo_maledetto'||t==='tecnica_leggendaria')return 1; if(t==='tecnica_personale'&&g==='S')return 1; return 0; }
+    function prmSlot(t,g){ var x=prlRiga(t,g)||prlRiga(t,null); return x?(x.slot||0):0; }
     function prmDate(s){ if(!s)return ''; var d=new Date(s); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear(); }
     async function loadPrm(){
       var r=await sb.from('premio_richieste').select('*,character:characters(name,rank,exp,clan,corporation)').order('created_at',{ascending:false}).limit(200);
@@ -1473,7 +1578,7 @@
           var nota=x.nota_staff?('<span class="ldesc">Nota staff: '+esc(x.nota_staff)+'</span>'):'';
           var acts=att?('<div class="lacts"><button class="mini-btn" data-prmok="'+x.id+'">Approva · scala '+x.costo+' XP</button><button class="mini-btn danger" data-prmno="'+x.id+'">Respingi</button></div>')
                       :('<div class="lacts"><span class="lkind">'+esc(x.status)+'</span><span class="lmeta">'+prmDate(x.decided_at||x.created_at)+'</span></div>');
-          return '<div class="locrow'+(att?'':' off')+'"><div class="lmain"><span class="lname">'+esc(ch.name||'?')+'</span><span class="lkind">'+esc(PRM_NOMI[x.tipo]||x.tipo)+(x.grado_tecnica?(' · grado '+esc(x.grado_tecnica)):'')+'</span><span class="lkind">'+x.costo+' XP</span><div>'+av.join('')+'<span class="lmeta"> · '+prmDate(x.created_at)+'</span></div><span class="ldesc">'+esc(x.dettaglio||'')+'</span>'+nota+'</div>'+acts+'</div>';
+          return '<div class="locrow'+(att?'':' off')+'"><div class="lmain"><span class="lname">'+esc(ch.name||'?')+'</span><span class="lkind">'+esc(prmNome(x.tipo,x.grado_tecnica))+(x.grado_tecnica?(' · grado '+esc(x.grado_tecnica)):'')+'</span><span class="lkind">'+x.costo+' XP</span><div>'+av.join('')+'<span class="lmeta"> · '+prmDate(x.created_at)+'</span></div><span class="ldesc">'+esc(x.dettaglio||'')+'</span>'+nota+'</div>'+acts+'</div>';
         }).join('');
       }
       var ph=$('prm-perks');
@@ -1481,12 +1586,13 @@
         if(!PRMP.length){ ph.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun premio concesso, per ora.</p>'; }
         else ph.innerHTML=PRMP.map(function(p){
           var mg=prmSlot(p.tipo,p.grado_tecnica);
-          return '<div class="itrow"><div class="itmain"><b>'+esc((p.character&&p.character.name)||'?')+'</b> <span class="itmeta">· '+esc(PRM_NOMI[p.tipo]||p.tipo)+(p.grado_tecnica?(' · grado '+esc(p.grado_tecnica)):'')+' · '+(p.costo||0)+' XP'+(mg?(' · maggiore ('+mg+' slot)'):'')+' · '+prmDate(p.created_at)+'</span>'+(p.dettaglio?('<div class="itmeta">'+esc(p.dettaglio)+'</div>'):'')+'</div></div>';
+          return '<div class="itrow"><div class="itmain"><b>'+esc((p.character&&p.character.name)||'?')+'</b> <span class="itmeta">· '+esc(prmNome(p.tipo,p.grado_tecnica))+(p.grado_tecnica?(' · grado '+esc(p.grado_tecnica)):'')+' · '+(p.costo||0)+' XP'+(mg?(' · maggiore ('+mg+' slot)'):'')+' · '+prmDate(p.created_at)+'</span>'+(p.dettaglio?('<div class="itmeta">'+esc(p.dettaglio)+'</div>'):'')+'</div></div>';
         }).join('');
       }
     }
     function bindPrm(){
-      var rf=$('prm-refresh'); if(rf) rf.addEventListener('click',loadPrm);
+      var rf=$('prm-refresh'); if(rf) rf.addEventListener('click',function(){loadPrm();loadPrl();});
+      bindPrl(); resetPrlForm();
       var tp=$('prm-tipo'); if(tp) tp.addEventListener('change',function(){ var g=$('prm-grado'); if(g) g.disabled=(this.value!=='tecnica_personale'); });
       var g0=$('prm-grado'); if(g0) g0.disabled=true;
       var sv=$('prm-save'); if(sv) sv.addEventListener('click',async function(){
@@ -1500,7 +1606,7 @@
         var r=await sb.rpc('premio_assegna',{p_character:ch.data.id,p_tipo:tipo,p_dettaglio:det,p_grado:(tipo==='tecnica_personale'?gr:null),p_gratis:!!($('prm-gratis')&&$('prm-gratis').checked)});
         this.disabled=false;
         if(r.error){toast(r.error.message||'Errore nell\'assegnazione',true);return;}
-        var n=$('prm-note'); if(n)n.textContent=ch.data.name+' → '+(PRM_NOMI[tipo]||tipo);
+        var n=$('prm-note'); if(n)n.textContent=ch.data.name+' → '+prmNome(tipo,null);
         $('prm-det').value=''; if($('prm-gratis'))$('prm-gratis').checked=false;
         toast('Premio assegnato');loadPrm();
       });
@@ -2090,7 +2196,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPrm();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
+      await loadClans();bindClans();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
