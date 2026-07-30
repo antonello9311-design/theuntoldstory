@@ -268,6 +268,7 @@
             <button type="button" data-emb="element">Elementi</button>
             <button type="button" data-emb="corp">Corporazioni</button>
             <button type="button" data-emb="bijuu">Cercoteri</button>
+            <button type="button" data-emb="evofam">Evocazioni</button>
           </div>
           <input class="adm-search" id="emb-search" type="search" placeholder="Cerca emblema per nome…">
           <div class="emb-sub on" data-embsub="village">
@@ -306,6 +307,12 @@
             <p class="mgr-note" style="margin:0 0 8px">I nove simboli delle Bestie con le Code. Finché non carichi un’immagine, in land compare il disegno di riserva già presente nel sito.</p>
             <div class="emb-addrow" id="embadd-bijuu" hidden><input type="text" maxlength="40" placeholder="Nome del Cercoterio…" data-embname="bijuu"><button type="button" class="mini-btn" data-embok="bijuu">Crea cella</button><button type="button" class="mini-btn" data-embcancel="bijuu">Annulla</button></div>
             <div class="emgrid" id="grid-bijuu"></div>
+          </div>
+          <div class="emb-sub" data-embsub="evofam">
+            <div class="grp-title">Famiglie di evocazione <button type="button" class="mini-btn emb-addbtn" data-embadd="evofam">+ Aggiungi nuova</button></div>
+            <p class="mgr-note" style="margin:0 0 8px">Le sei famiglie aperte il 01/08: rospi, serpenti, rapaci, rettili, lumache, scimmie. Un emblema per famiglia, uguale per tutti i giocatori che hanno quel contratto. Finché l’immagine manca, in scheda compare il nome della famiglia senza simbolo — non rompe niente. I <b>canidi non esistono</b> fra le evocazioni: sono esclusiva Inuzuka.</p>
+            <div class="emb-addrow" id="embadd-evofam" hidden><input type="text" maxlength="40" placeholder="Nome della famiglia…" data-embname="evofam"><button type="button" class="mini-btn" data-embok="evofam">Crea cella</button><button type="button" class="mini-btn" data-embcancel="evofam">Annulla</button></div>
+            <div class="emgrid" id="grid-evofam"></div>
           </div>
           </section>
           <section class="adm-page" data-page="oggetti">
@@ -763,7 +770,7 @@
     var CLANS=['Hyuga','Nara','Akimichi','Inuzuka','Aburame','Marionettisti','Sabaku','Dokugan','Uchiha'];
     var RANKS=['Deshi','Genin','Chunin','Jonin','Jonin Speciale','Kage Konoha','Kage Suna','Sannin'];
     var me=null, EMB={};
-    var EMB_EXTRA={village:[],clan:[],rank:[],element:[],corp:[],corpspec:[],corpgrade:[],bijuu:[]};
+    var EMB_EXTRA={village:[],clan:[],rank:[],element:[],corp:[],corpspec:[],corpgrade:[],bijuu:[],evofam:[]};
     var BIJUU=['Shukaku','Matatabi','Isobu','Son Gokū','Kokuō','Saiken','Chōmei','Gyūki','Kurama'];
     var CORP_ROWS=[];
     function isCorpKind(k){return k==='corp'||k==='corpspec'||k==='corpgrade';}
@@ -772,7 +779,7 @@
        Il nome a database resta con il macron — è la chiave che la land cerca —
        ma il percorso del file nello storage deve restare ASCII. */
     function embSlugPath(k){return isCorpKind(k)||k==='bijuu';}
-    function embLabel(kind,name){ if(kind==='corp')return ({anbu:'ANBU',medici:'Medici',akatsuki:'Akatsuki'})[name]||name; if(kind==='corpspec')return name.charAt(0).toUpperCase()+name.slice(1); return name; }
+    function embLabel(kind,name){ if(kind==='corp')return ({anbu:'ANBU',medici:'Medici',akatsuki:'Akatsuki'})[name]||name; if(kind==='corpspec'||kind==='evofam')return name.charAt(0).toUpperCase()+name.slice(1); return name; }
     async function loadCorps(){ try{ var r=await sb.from('corporations').select('key,nome,scope,gradi,sort').order('sort'); CORP_ROWS=(r&&r.data)||[]; }catch(e){ CORP_ROWS=[]; } }
     var embSearch='',catSearch='',locSearch='',techSearch='',clanSearch='',locRegionFilter='__all__';
     function $(id){return document.getElementById(id);}
@@ -866,6 +873,7 @@
       if(kind==='corp')return (CORP_ROWS&&CORP_ROWS.length)?CORP_ROWS.map(function(c){return c.key;}):['anbu','medici','akatsuki'];
       if(kind==='corpspec')return ['infiltrazione','pedinamento','assassinio','sensoriale'];
       if(kind==='bijuu')return BIJUU.slice();
+      if(kind==='evofam')return ['rospi','serpenti','rapaci','rettili','lumache','scimmie'];
       if(kind==='corpgrade'){ var g=[]; (CORP_ROWS||[]).forEach(function(c){ (c.gradi||[]).forEach(function(x){ if(x&&x.nome)g.push(x.nome); }); }); return g.length?g:['Novizio ANBU','Operativo specializzato','Capo ANBU','Medico novizio','Medico esperto','Capo medico','Membro dell\'Alba','Le Dieci Dita','Capo dell\'Alba']; }
       return ['Fuoco','Vento','Fulmine','Terra','Acqua'];
     }
@@ -889,6 +897,7 @@
       fillGrid('rank','grid-rank');
       fillGrid('element','grid-element');
       fillGrid('bijuu','grid-bijuu');
+      fillGrid('evofam','grid-evofam');
       renderCorpTree();
     }
     /* Corporazioni: un albero per corp (base + specializzazioni + gradi), guidato dai dati */

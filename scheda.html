@@ -977,10 +977,28 @@
         return sb.from('jutsu').select('id,name_it,category,rank,effect,requirements,limits,chakra_cost,kind').eq('is_active',true).order('sort');
       }).then(function(jr){
         TK.base=(jr&&jr.data)||[];
-        return sb.from('clan_techniques').select('*').is('clan',null).in('macro',['generica','abilita']).eq('is_active',true).order('sort').order('name');
+        return sb.from('clan_techniques').select('*').is('clan',null).in('macro',['generica','abilita','cercoterio','evocazione']).eq('is_active',true).order('sort').order('name');
       }).then(function(gr){
         TK.gen=(gr&&gr.data)||[]; TK.q='';
         paintCatalog();
+        // Cercoteri ed Evocazioni si mostrano solo a chi li ha davvero: altrimenti
+        // sarebbero settantasei righe che nessuno può imparare
+        Promise.all([
+          sb.from('character_perks').select('tipo').eq('character_id',myChar.id),
+          sb.from('character_companions').select('kind,famiglia').eq('character_id',myChar.id)
+        ]).then(function(res){
+          var perks=((res[0]&&res[0].data)||[]).map(function(x){return x.tipo;});
+          var comp=((res[1]&&res[1].data)||[]).filter(function(x){return x.kind==='evocazione';})[0]||null;
+          var haEvoc=perks.indexOf('evocazione')>=0||!!comp;
+          var famiglia=comp?comp.famiglia:null;
+          var cerc=myChar.cercoterio||null;
+          TK.gen=(TK.gen||[]).filter(function(t){
+            if(t.macro==='cercoterio') return !!cerc && (!t.req_cercoterio || t.req_cercoterio===cerc);
+            if(t.macro==='evocazione') return haEvoc && (!t.req_famiglia || t.req_famiglia===famiglia);
+            return true;
+          });
+          paintCatalog();
+        });
         var s=$('tk-search'); if(s) s.addEventListener('input', function(){ TK.q=(s.value||'').trim(); paintCatalog(); });
       }, function(){ var list=$('train-list'); if(list)list.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tecniche.</p>'; });
     }
@@ -1115,15 +1133,24 @@
       if(rows.length<slots){
         h+='<div class="svbox"><h4>Nuovo compagno</h4>'
          +'<label class="svlab">Tipo<select id="comp-kind"><option value="marionetta">Marionetta \u00B7 clan Marionettisti</option><option value="cane_ninja">Cane ninja \u00B7 clan Inuzuka</option><option value="evocazione">Evocazione \u00B7 serve il Contratto (Premi)</option></select></label>'
+         +'<label class="svlab" id="comp-fam-wrap" style="display:none">Famiglia dell\'evocazione \u00B7 una sola, per sempre<select id="comp-fam"><option value="">\u2014 scegli \u2014</option><option value="rospi">Rospi \u00B7 assalto pesante e controllo del campo</option><option value="serpenti">Serpenti \u00B7 immobilizzo, veleno, infiltrazione</option><option value="rapaci">Rapaci \u00B7 ricognizione, quota, trasporto</option><option value="rettili">Rettili \u00B7 occultamento e furtivit\u00E0</option><option value="lumache">Lumache \u00B7 cura e purificazione (Corpo Medico)</option><option value="scimmie">Scimmie \u00B7 arma vivente, corpo a corpo</option></select></label>'
+         +'<p class="hint" id="comp-fam-nota" style="display:none;margin:6px 0 0">La famiglia non si cambia pi\u00F9 dopo la creazione. Il <b>Richiamo</b> va imparato in gioco con tre addestramenti: finch\u00E9 non \u00E8 attivo, il contratto \u00E8 carta e la creatura non entra in campo.</p>'
          +'<label class="svlab">Nome<input id="comp-name" maxlength="40" placeholder="es. Karasu"></label>'
          +'<label class="svlab">Descrizione breve (facoltativa)<textarea id="comp-descr" maxlength="300" rows="2" placeholder="Aspetto e carattere del compagno\u2026"></textarea></label>'
          +'<button class="btn btn-red btn-sm" id="comp-create" type="button" style="margin-top:8px">Crea compagno</button></div>';
       }
       host.innerHTML=h;
+      var ck=$('comp-kind');
+      function compKindSync(){ var ev=(ck&&ck.value==='evocazione');
+        var w=$('comp-fam-wrap'); if(w) w.style.display=ev?'':'none';
+        var n=$('comp-fam-nota'); if(n) n.style.display=ev?'':'none'; }
+      if(ck){ ck.addEventListener('change',compKindSync); compKindSync(); }
       var cb=$('comp-create'); if(cb) cb.addEventListener('click', async function(){
         var nm=($('comp-name').value||'').trim(); if(nm.length<2){ toast('Dai un nome al compagno',true); return; }
+        var kd=$('comp-kind').value, fam=(kd==='evocazione'&&$('comp-fam'))?($('comp-fam').value||''):'';
+        if(kd==='evocazione'&&!fam){ toast('Scegli la famiglia dell\'evocazione',true); return; }
         this.disabled=true;
-        var r2=await sb.rpc('companion_create',{p_kind:$('comp-kind').value,p_name:nm,p_descr:(($('comp-descr').value||'').trim()||null)});
+        var r2=await sb.rpc('companion_create',{p_kind:kd,p_name:nm,p_descr:(($('comp-descr').value||'').trim()||null),p_famiglia:(fam||null)});
         this.disabled=false;
         if(r2&&r2.error){ toast(r2.error.message||'Impossibile creare',true); return; }
         toast('Compagno creato: lo trovi anche in chat, pulsante \uD83C\uDFAD'); loadCompagni();
