@@ -1998,7 +1998,16 @@
           rows.filter(function(x){return x.state==='attiva';}).forEach(function(t){
             var cost=(t.chakra_cost!=null&&t.chakra_cost>0)?(' · '+t.chakra_cost+' ck'):'';
             var lv=(t.level!=null)?(' (Liv.'+t.level+')'):(t.grado?(' ['+esc(t.grado)+']'):'');
-            opts+='<option value="'+t.technique_id+'" data-ct="'+esc(t.consumption_type||'')+'" data-ck="'+(t.chakra_cost||0)+'">'+esc(t.name)+lv+cost+'</option>';
+            var det=[];
+            if(t.grado) det.push('grado '+t.grado);
+            if(t.disciplina) det.push(t.disciplina);
+            if(t.clan) det.push('clan '+t.clan);
+            if(t.gittata) det.push('gittata '+t.gittata);
+            if(t.attivazione) det.push(t.attivazione==='sigilli'?'si compone con i sigilli':'attivazione istantanea');
+            det.push(t.consumption_type==='per_turno'?'costo a ogni turno':(t.consumption_type==='passiva'?'passiva':'costo a utilizzo'));
+            if(t.chakra_cost!=null&&t.chakra_cost>0) det.push(t.chakra_cost+' chakra');
+            var txt=t.name+'\n'+det.join(' · ')+(t.danno_effetto?('\n\n'+t.danno_effetto):'');
+            opts+='<option value="'+t.technique_id+'" title="'+esc(txt)+'" data-tx="'+esc(txt)+'" data-ef="'+esc(t.danno_effetto||'')+'" data-ct="'+esc(t.consumption_type||'')+'" data-ck="'+(t.chakra_cost||0)+'">'+esc(t.name)+lv+cost+'</option>';
           });
           sel.innerHTML=opts;
         }, function(){});
@@ -2006,10 +2015,13 @@
       (function(){ var ts=document.getElementById('msg-tech');
         if(ts) ts.addEventListener('change', function(){
           var th=document.getElementById('tech-hint'); if(!th) return;
-          var o=ts.options[ts.selectedIndex]; if(!o||!ts.value){ th.textContent=''; return; }
+          var o=ts.options[ts.selectedIndex]; if(!o||!ts.value){ th.textContent=''; th.title=''; ts.title='Tecnica o abilità usata (dalla tua scheda)'; return; }
           var ct=o.getAttribute('data-ct')||'', ck=o.getAttribute('data-ck')||'0';
           var lbl=(ct==='per_turno'?'Per turno':(ct==='passiva'?'Passiva':'Ad utilizzo'));
-          th.textContent=lbl+((+ck>0)?(' · '+ck+' chakra a turno'):'');
+          var ef=o.getAttribute('data-ef')||'', tx=o.getAttribute('data-tx')||'';
+          var breve=ef?(ef.length>90?(ef.slice(0,88).replace(/\s+\S*$/,'')+'…'):ef):'';
+          th.textContent=lbl+((+ck>0)?(' · '+ck+' chakra a turno'):'')+(breve?(' · '+breve):'');
+          th.title=tx; ts.title=tx||'Tecnica o abilità usata (dalla tua scheda)';
         });
       })();
       loadAbilities();
