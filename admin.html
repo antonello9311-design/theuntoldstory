@@ -2225,7 +2225,8 @@
       if(a==='ryo')   t='<label class="full">Ryo da aggiungere, con il meno per toglierli <input id="pg-in" type="number" step="10" value="100"></label>';
       if(a==='punti') t='<label class="full">Punti caratteristica da aggiungere <input id="pg-in" type="number" step="5" value="5"></label>';
       if(a==='grado') t='<p class="mgr-note" style="margin:0 0 6px">Sale di un grado e riceve <b>50 punti</b> da assegnare, come una promozione vera.</p>';
-      var etichetta = (a==='xp')?'Conferma: dai XP a ':(a==='ryo')?'Conferma: cambia i Ryo di ':(a==='punti')?'Conferma: aggiungi punti a ':'Conferma: promuovi ';
+      if(a==='rank')  t='<p class="mgr-note" style="margin:0 0 6px">Imposta il grado <b>a mano</b>, senza dare punti: serve per i casi che la promozione normale non gestisce, cioè Deshi → Genin (che di regola si prende con l\'esame) e i gradi fuori scala. Per la progressione vera usa <b>Promuovi</b>.</p><label class="full">Nuovo grado <select id="pg-in3"><option>Deshi</option><option>Genin</option><option>Chunin</option><option>Jonin</option><option>Jonin Speciale</option><option>Kage Konoha</option><option>Kage Suna</option><option>Sannin</option></select></label>';
+      var etichetta = (a==='xp')?'Conferma: dai XP a ':(a==='ryo')?'Conferma: cambia i Ryo di ':(a==='punti')?'Conferma: aggiungi punti a ':(a==='rank')?'Conferma: cambia il grado di ':'Conferma: promuovi ';
       return '<div class="ldesc" style="width:100%;border-top:1px dotted var(--rule);margin-top:7px;padding-top:8px">'+t
         +'<div class="lacts"><button class="mini-btn" type="button" data-pgok="'+c.id+'">'+etichetta+esc(c.name)+'</button>'
         +'<button class="mini-btn" type="button" data-pgno="1">Annulla</button></div></div>';
@@ -2251,6 +2252,7 @@
           +'<button class="mini-btn" type="button" data-pgact="xp" data-id="'+c.id+'">Dai XP</button>'
           +'<button class="mini-btn" type="button" data-pgact="ryo" data-id="'+c.id+'">Ryo</button>'
           +'<button class="mini-btn" type="button" data-pgact="punti" data-id="'+c.id+'">Punti</button>'
+          +'<button class="mini-btn" type="button" data-pgact="rank" data-id="'+c.id+'">Grado</button>'
           +'<button class="mini-btn" type="button" data-pgact="grado" data-id="'+c.id+'">Promuovi</button>'
           +'<a class="mini-btn" href="scheda.html?id='+esc(c.id)+'" target="_blank" rel="noopener">Scheda</a>'
           +'</div>';
@@ -2275,6 +2277,13 @@
         var r3=await sb.from('characters').update({unspent_points:Math.max(0,(c.unspent_points||0)+v)}).eq('id',c.id);
         if(r3.error){ toast(r3.error.message||'Punti non aggiornati',true); return; }
         toast('Punti aggiornati per '+c.name);
+      } else if(a==='rank'){
+        var nr=($('pg-in3')?$('pg-in3').value:'');
+        if(!nr){ toast('Scegli il grado',true); return; }
+        if(nr===c.rank){ toast('Ha già questo grado',true); return; }
+        var r5=await sb.from('characters').update({rank:nr}).eq('id',c.id);
+        if(r5.error){ toast(r5.error.message||'Grado non aggiornato',true); return; }
+        toast(c.name+' ora è '+nr);
       } else if(a==='grado'){
         var r4=await sb.rpc('promuovi',{p_character:c.id});
         if(r4.error){ toast(r4.error.message||'Promozione non riuscita',true); return; }

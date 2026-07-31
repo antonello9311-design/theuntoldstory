@@ -454,6 +454,15 @@
   /* #6 sintassi parlato/azione */
   .m-body .sp-say{color:var(--red-deep)}
   .m-body .sp-act{font-style:italic;color:var(--ink-soft)}
+  .prm-card{border:1px solid var(--rule);border-radius:10px;background:rgba(255,250,235,.55);padding:10px 12px;margin-bottom:9px}
+  .prm-top{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-bottom:4px}
+  .prm-top b{font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:.04em;color:var(--red-deep)}
+  .prm-cost{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.06em;background:var(--red);color:#f6ead0;border-radius:7px;padding:2px 8px}
+  .prm-tag{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);border:1px solid var(--edge);border-radius:7px;padding:2px 7px}
+  .prm-tag.magg{color:var(--red-deep);border-color:var(--red-deep)}
+  .prm-d{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink);line-height:1.4}
+  .prm-e{font-family:'Cormorant Garamond',serif;font-size:13.5px;color:var(--ink-soft);font-style:italic;line-height:1.38;margin-top:3px}
+  .wr-intro{font-family:'Cormorant Garamond',serif;font-size:14.5px;color:var(--ink-soft);margin:0 0 10px;line-height:1.45}
   .m-body .sp-fig{display:block;max-width:min(420px,100%);height:auto;margin:9px 0 4px;border:1px solid var(--rule);border-radius:9px;background:rgba(255,250,235,.65);box-shadow:0 3px 10px rgba(60,42,18,.13)}
   /* #5 contatore caratteri */
   .composer-tools{display:flex;align-items:center;gap:8px;flex-shrink:0}
@@ -1227,6 +1236,21 @@
     </div>
   </div>
 
+  <div class="mailov-backdrop" id="prmov-backdrop" hidden></div>
+  <div class="mailov" id="prmov" hidden aria-label="Premi">
+    <div class="missov-card">
+      <button class="mailov-x" id="prmov-x" type="button" title="Chiudi">×</button>
+      <div class="miss-head">
+        <span class="miss-title">Premi — ciò che si ottiene con l'esperienza</span>
+      </div>
+      <div class="jdb-tabs" id="prm-tabs">
+        <button class="miss-tab" type="button" data-ptab="compra">Si comprano subito</button>
+        <button class="miss-tab" type="button" data-ptab="chiedi">Li valuta lo staff</button>
+        <button class="miss-tab" type="button" data-ptab="staff">Solo dallo staff</button>
+      </div>
+      <div class="miss-body" id="prm-body"></div>
+    </div>
+  </div>
   <div class="mailov-backdrop" id="cercov-backdrop" hidden></div>
   <div class="mailov" id="cercov" hidden aria-label="Cercoteri">
     <div class="missov-card">
@@ -2866,7 +2890,47 @@
             var a=e.target.closest('.jdb-acc'); if(a){ a.classList.toggle('open'); var bd=a.nextElementSibling; if(bd&&bd.classList.contains('jdb-accbody'))bd.classList.toggle('open'); }
           });
         })();
-        var wr=document.getElementById('world-rail'); if(wr) wr.addEventListener('click', function(e){ var b=e.target.closest('[data-world]'); if(!b) return; var k=b.getAttribute('data-world'); if(k==='corporazioni'){ openCorp(); } else if(k==='jutsu'){ openJutsu('accademia'); } else if(k==='abilita'){ openJutsu('abilita'); } else if(k==='cercoteri'){ openCerc('bestie'); } else { openWorld(k); } });
+        /* ===== PANNELLO PREMI ===== */
+        var PRML=null, prmTab='compra';
+        function prmGruppo(x){ if(x.giocatore===false) return 'staff'; return x.valutazione ? 'chiedi' : 'compra'; }
+        function prmRender(){
+          var body=document.getElementById('prm-body'); if(!body) return;
+          var tabs=document.querySelectorAll('#prm-tabs .miss-tab');
+          for(var i=0;i<tabs.length;i++){ tabs[i].classList.toggle('on', tabs[i].getAttribute('data-ptab')===prmTab); }
+          if(PRML===null){ body.innerHTML='<p class="who-empty">Carico il listino…</p>'; return; }
+          var intro = (prmTab==='compra')
+            ? 'Si pagano subito con i tuoi XP, dalla <b>Scheda</b>, sezione Premi. L\'esperienza viene scalata nel momento in cui premi Acquista.'
+            : (prmTab==='chiedi')
+            ? 'Si chiedono allo staff con una motivazione scritta. L\'esperienza <b>non</b> viene scalata quando invii: succede solo se la richiesta viene approvata.'
+            : 'Non si comprano e non si chiedono: arrivano dallo staff, quasi sempre a chiusura di un arco narrativo.';
+          var righe=PRML.filter(function(x){ return prmGruppo(x)===prmTab; });
+          if(!righe.length){ body.innerHTML='<p class="wr-intro">'+intro+'</p><p class="who-empty">Niente in questa categoria.</p>'; return; }
+          body.innerHTML='<p class="wr-intro">'+intro+'</p>'+righe.map(function(x){
+            var tag=[];
+            if(x.costo>0) tag.push('<span class="prm-cost">'+x.costo+' XP</span>');
+            if(x.rango_min) tag.push('<span class="prm-tag">da '+esc(x.rango_min)+'</span>');
+            if(x.slot>0) tag.push('<span class="prm-tag magg">premio maggiore'+(x.slot>1?(' · '+x.slot+' slot'):'')+'</span>');
+            if(x.ripetibile) tag.push('<span class="prm-tag">ripetibile</span>');
+            return '<div class="prm-card"><div class="prm-top"><b>'+esc(x.nome)+'</b>'+tag.join('')+'</div>'
+              +(x.descrizione?('<div class="prm-d">'+esc(x.descrizione)+'</div>'):'')
+              +(x.effetto?('<div class="prm-e">'+esc(x.effetto)+'</div>'):'')+'</div>';
+          }).join('');
+        }
+        function openPrm(){
+          if(!loggedIn){ toast('Accedi per consultare i premi'); return; }
+          var ov=document.getElementById('prmov'), bk=document.getElementById('prmov-backdrop');
+          if(ov)ov.hidden=false; if(bk)bk.hidden=false;
+          prmRender();
+          if(PRML===null && sb){ sb.rpc('premio_listino').then(function(r){ PRML=(r&&!r.error&&r.data)?r.data:[]; prmRender(); }, function(){ PRML=[]; prmRender(); }); }
+        }
+        function closePrm(){ var ov=document.getElementById('prmov'), bk=document.getElementById('prmov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
+        (function(){
+          var x=document.getElementById('prmov-x'); if(x) x.addEventListener('click', closePrm);
+          var bk=document.getElementById('prmov-backdrop'); if(bk) bk.addEventListener('click', closePrm);
+          var tb=document.getElementById('prm-tabs'); if(tb) tb.addEventListener('click', function(e){ var b=e.target.closest('[data-ptab]'); if(!b) return; prmTab=b.getAttribute('data-ptab'); prmRender(); });
+        })();
+
+        var wr=document.getElementById('world-rail'); if(wr) wr.addEventListener('click', function(e){ var b=e.target.closest('[data-world]'); if(!b) return; var k=b.getAttribute('data-world'); if(k==='corporazioni'){ openCorp(); } else if(k==='jutsu'){ openJutsu('accademia'); } else if(k==='abilita'){ openJutsu('abilita'); } else if(k==='cercoteri'){ openCerc('bestie'); } else if(k==='premi'){ openPrm(); } else { openWorld(k); } });
         var wc=document.getElementById('world-close'); if(wc) wc.addEventListener('click', closeWorld);
       })();
 
