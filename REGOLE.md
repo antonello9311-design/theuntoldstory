@@ -285,15 +285,15 @@ Le evocazioni sono **PNG animali** richiamati consumando una grande quantità di
 1. un **contratto** — di norma il premio **Contratto di evocazione** (600 XP, §8.6); il **Corpo Medico** (lumache) e gli **ANBU** (rettili, rapaci) lo pagano **300 XP** finché restano nella corporazione; lo staff può concederne uno **ereditario** o **di trama** senza costo;
 2. il jutsu del **Richiamo**, che **non si compra con gli XP**: si impara **in gioco**, con gli addestramenti.
 
-**La scala del Richiamo.** Cinque righe di catalogo, nessuna a pagamento — **dieci addestramenti** dalla firma al capostipite.
+**La scala del Richiamo.** Una sola tecnica su **cinque livelli**, come le arti innate dei clan: nessun livello si compra, e dalla firma al capostipite sono **dieci addestramenti**. Ogni livello pretende il precedente e apre una taglia.
 
-| Passo | Riga di catalogo | Addestramenti |
-|---|---|---|
-| Imparare a evocare → **baby** | Richiamo | **3** |
-| baby → **piccola** | Richiamo — taglia Piccola | **1** |
-| piccola → **media** | Richiamo — taglia Media | **1** |
-| media → **grande** | Richiamo — taglia Grande | **1** |
-| grande → **leggendaria** | Richiamo Maggiore | **4** (+ premio maggiore) |
+| Livello | Taglia che apre | Grado | Serve | Addestramenti |
+|---|---|---|---|---|
+| **Richiamo · 1** | baby | D | Genin · Ninjutsu 10 | **3** |
+| **Richiamo · 2** | piccola | C | Genin · Ninjutsu 25 | **1** |
+| **Richiamo · 3** | media | B | Chunin · Ninjutsu 40 | **1** |
+| **Richiamo · 4** | grande | A | Jonin · Ninjutsu 60 | **1** |
+| **Richiamo · 5** | leggendaria | S | Jonin Speciale · Ninjutsu 80 | **4** (+ premio maggiore) |
 
 L'addestramento **non sostituisce** il requisito di scheda: si aggiunge. Una sola **famiglia** per personaggio, per sempre. La **firma è di sangue**: chi è immobilizzato o non ha una mano libera non evoca.
 
@@ -623,3 +623,4 @@ Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da q
 | 31 | La seconda natura, gli elementi di clan e le cinque nature | ✅ **Riscritti** (§5.1 e §8.6) dal 30/07/2026: la **seconda natura esce dai premi** e diventa un traguardo del **Jonin** — gratuita, scelta dal giocatore in scheda, definitiva (prima erano 300 XP da comprare). I clan la cui **innata combina due o tre nature** (il Legno = Terra + Acqua) le concedono **dal Genin**: nuova colonna `clans.elementi_innati`, oggi vuota per tutti e nove. Nasce il premio **Le cinque nature**, 1.500 XP dal Jonin Speciale, premio **maggiore** che occupa uno dei due slot: i premi maggiori passano da cinque a **sei**. A database la seconda natura è la colonna `characters.element2`, e il **listino dei premi diventa la tabella `premi`** — costi, ranghi, slot, strade, nomi, descrizioni ed effetti si modificano dal pannello admin invece di stare cablati in cinque funzioni e in due pagine |
 | 32 | Il controllo del chakra assorbe la camminata sulle superfici | ✅ **Fuse** (§5.2) dal 31/07/2026: erano due abilità distinte, ma camminare sulle pareti è l'applicazione diretta del controllo, non una capacità a parte. Ora il **controllo del chakra** comprende l'aderenza a ogni superficie **solida**; le superfici **liquide** restano al **Controllo del Chakra Avanzato** (grado C, Chunin, Mente 30), che si allena in gioco. Le basi dell'Accademia passano da quattro a **tre**, e l'**uso dei sigilli** si sposta alla **seconda lezione**, dove i sigilli vengono spiegati. La riga «Camminata sulle superfici» è stata **disattivata, non cancellata**. Nessun personaggio possedeva ancora abilità accademiche, quindi non è servito nessun recupero d'ufficio |
 | 33 | Il primo sigillo dichiara la natura | ✅ **Aggiunta** (§5.1) dal 31/07/2026: le sequenze di sigilli non erano mai state legate alle nature. Ora ogni natura ha il suo segno d'apertura — **Tigre** Fuoco, **Cane** Acqua, **Serpente** Terra, **Uccello** Vento, **Lepre** Fulmine — e chi conosce l'uso dei sigilli riconosce la natura in arrivo guardando le mani. Vale solo per le tecniche a **attivazione «sigilli»**: quelle **istantanee** non si leggono. Il vantaggio è di informazione e non tocca il confronto. I dodici segni vengono insegnati alla **seconda lezione** dell'Accademia, dove si è spostata anche l'abilità «uso dei sigilli» |
+| 34 | Il Richiamo diventa una tecnica a cinque livelli | ✅ **Riordinato** (§6.4) dal 31/07/2026: erano cinque righe di catalogo con nomi diversi («Richiamo», «Richiamo — taglia Piccola», e così via) e in scheda sembravano tecniche doppie. Ora sono **un'unica tecnica «Richiamo» su cinque livelli**, come le arti innate dei clan: il livello apre la taglia (1 baby · 2 piccola · 3 media · 4 grande · 5 leggendaria) e pretende il precedente. **Requisiti, gradi, addestramenti e chakra non cambiano di un punto**: cambia solo come si legge il catalogo |
