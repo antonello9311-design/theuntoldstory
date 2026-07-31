@@ -1981,14 +1981,14 @@
         var req = to ? sb.rpc('post_whisper',{p_location:cur.id,p_recipient:to,p_body:t})
                      : sb.rpc('post_message', prm);
         req.then(function(r){
-          sendBtn.disabled=false;
+          syncSendBtn();
           if(r&&r.error){ var raw=(r.error.message||''); var m=raw.toLowerCase();
-            toast(/chakra/.test(m)?raw:(/consentito/.test(m)?'Messaggio bloccato dalla moderazione':(/lungo/.test(m)?'Messaggio troppo lungo':(/tecnica/.test(m)?'Tecnica non disponibile o non ancora attiva':(/personaggio/.test(m)?'Ti serve un personaggio':(/destinatario/.test(m)?'Destinatario non valido':'Impossibile inviare')))))); return; }
+            toast(/chakra/.test(m)?raw:(/almeno 500 caratteri/.test(m)?raw:(/consentito/.test(m)?'Messaggio bloccato dalla moderazione':(/lungo/.test(m)?'Messaggio troppo lungo':(/tecnica/.test(m)?'Tecnica non disponibile o non ancora attiva':(/personaggio/.test(m)?'Ti serve un personaggio':(/destinatario/.test(m)?'Destinatario non valido':'Impossibile inviare'))))))); return; }
           input.value=''; updCount(); if(techEl){ techEl.value=''; var thh=document.getElementById('tech-hint'); if(thh) thh.textContent=''; }
           var _pi=document.getElementById('png-input'); if(_pi) _pi.value=''; var _pe=document.getElementById('ed-png'); if(_pe) _pe.value='';
           loadMsgs(); loadWho();
           if(typeof after==='function') after();
-        }, function(){ sendBtn.disabled=false; toast('Impossibile inviare'); });
+        }, function(){ syncSendBtn(); toast('Impossibile inviare'); });
       }
       function loadAbilities(){
         var sel=document.getElementById('msg-tech'); if(!sel||!sb) return;
@@ -2028,7 +2028,7 @@
       sendBtn.addEventListener('click', send);
       /* ---- Editor: finestra grande per scrivere e rileggere la propria role ---- */
       var edOv=document.getElementById('editor-ov'), edText=document.getElementById('ed-text'), edCountEl=document.getElementById('ed-count'), edToEl=document.getElementById('ed-to');
-      function edCount(){ if(!edCountEl||!edText) return; var n=(edText.value||'').length; if(n<500){ edCountEl.textContent=n+' / 500 min'; edCountEl.classList.add('warn'); } else { edCountEl.textContent=n+' / 5000'; edCountEl.classList.toggle('warn', n>4500); } }
+      function edCount(){ if(edCountEl&&edText){ var n=(edText.value||'').length; if(n<500){ edCountEl.textContent=n+' / 500 min'; edCountEl.classList.add('warn'); } else { edCountEl.textContent=n+' / 5000'; edCountEl.classList.toggle('warn', n>4500); } } try{ syncSendBtn(); }catch(e){} }
       function edRefreshTo(){ if(!edToEl) return; var lbl='A tutti'; if(toSel&&toSel.options&&toSel.selectedIndex>=0){ var o=toSel.options[toSel.selectedIndex]; if(o&&o.text) lbl=o.text; } edToEl.textContent='A: '+lbl; }
       function openEditor(){ if(!edOv||!edText) return; edText.value=input?(input.value||''):''; var _ep=document.getElementById('ed-png'), _pi=document.getElementById('png-input'); if(_ep&&_pi) _ep.value=_pi.value; var _eb=document.getElementById('ed-png-box'); if(_eb) _eb.hidden=!(myComp && !document.getElementById('png-box').hidden); edCount(); edRefreshTo(); edOv.hidden=false; setTimeout(function(){ try{ edText.focus(); var L=edText.value.length; edText.setSelectionRange(L,L); }catch(e){} },50); }
       function closeEditor(){ if(!edOv) return; if(input&&edText){ input.value=edText.value; updCount(); } edOv.hidden=true; }
@@ -2359,8 +2359,33 @@
       }
       if(objBtn){ objBtn.addEventListener('click', function(e){ e.stopPropagation(); openItemPop(); }); }
       document.addEventListener('click', function(e){ var pop=document.getElementById('item-pop'); if(pop&&!pop.hidden){ if(!pop.contains(e.target) && e.target!==objBtn && !(objBtn&&objBtn.contains(e.target))){ pop.hidden=true; } } });
-      function updCount(){ if(!countEl||!input) return; var n=(input.value||'').length; if(n<500){ countEl.textContent=n+' / 500 min'; countEl.classList.add('warn'); } else { countEl.textContent=n+' caratteri'; countEl.classList.remove('warn'); } }
-      if(input){ input.addEventListener('input', updCount); } updCount();
+      /* [31/07/2026] Il minimo di 500 caratteri e' una regola del server (§1.5):
+         post_message rifiuta i turni piu' corti. Qui si spegne il bottone Invia
+         prima che il giocatore ci provi, con le stesse tre eccezioni del server:
+         i sussurri non hanno minimo, lo staff e' esente, e il conteggio somma
+         l'azione del compagno PNG. Il tag del luogo 【…】 invece NON conta:
+         il server lo conterebbe, noi no, e restiamo volutamente piu' severi. */
+      function turnoLen(){
+        var n=(input&&input.value)?input.value.length:0;
+        var pIn=document.getElementById('png-input'), pBox=document.getElementById('png-box');
+        if(myComp && pIn && pBox && !pBox.hidden) n+=(pIn.value||'').length;
+        return n;
+      }
+      function sendGateOk(){
+        if(toSel && toSel.value) return true;
+        if(iAmStaff) return true;
+        return turnoLen()>=500;
+      }
+      function syncSendBtn(){
+        var ok=sendGateOk(), ttl=ok?'':'Un turno di role vuole almeno 500 caratteri';
+        if(sendBtn){ sendBtn.disabled=!ok; sendBtn.title=ttl; }
+        var eb=document.getElementById('ed-send'); if(eb){ eb.disabled=!ok; eb.title=ttl; }
+      }
+      function updCount(){ if(countEl&&input){ var n=turnoLen(); if(n<500){ countEl.textContent=n+' / 500 min'; countEl.classList.add('warn'); } else { countEl.textContent=n+' caratteri'; countEl.classList.remove('warn'); } } syncSendBtn(); }
+      if(input){ input.addEventListener('input', updCount); }
+      if(toSel){ toSel.addEventListener('change', updCount); }
+      (function(){ var pI=document.getElementById('png-input'); if(pI) pI.addEventListener('input', updCount); })();
+      updCount();
 
       // la chat richiede il login
       if(sb&&sb.auth){
@@ -2370,7 +2395,7 @@
           if(loggedIn){ try{ sessionStorage.setItem('tus_in_land','1'); }catch(e){} }
           if(myId){ sb.from('characters').select('id').eq('user_id',myId).maybeSingle().then(function(g){ if(!(g&&g.data)){ try{ document.documentElement.style.visibility='hidden'; }catch(e){} location.replace('scheda.html'); } }, function(){}); }
           if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max,mente,corporation').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); myCorp=(cr.data.corporation!=null?cr.data.corporation:null); showPtsReminder(cr.data.unspent_points||0); updateVitals(); updateKOState(); updateHealBtn(); loadMyCompanion(); } }, function(){}); }
-          if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; } }, function(){}); }
+          if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; try{ syncSendBtn(); }catch(e){} } }, function(){}); }
           loadEmblems();
           renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); loadFlash(); calInit(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); sb.rpc('ensure_welcome').then(function(){ loadUnread(); loadConversations(); }, function(){ loadUnread(); loadConversations(); }); if(dmTarget){ var _dt=dmTarget; dmTarget=null; sb.from('characters').select('name').eq('user_id',_dt).maybeSingle().then(function(rr){ openCompose(_dt,(rr&&rr.data&&rr.data.name)||'utente'); }, function(){ openCompose(_dt,'utente'); }); } }
         }, function(){ loggedIn=false; renderLuoghi(); });
