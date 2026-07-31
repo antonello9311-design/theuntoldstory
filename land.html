@@ -278,6 +278,7 @@
   .place-note .rn-k{display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);margin-bottom:3px}
   .place-note .rn-t{white-space:pre-wrap}
   .side-card.who{flex:1 1 auto;min-height:56px}
+  .only-m{display:none!important}
   @media(max-width:760px){
     .room-grid{display:flex;flex-direction:column}
     .room-side{flex-direction:row;flex-wrap:wrap;gap:10px;order:-1}
@@ -286,7 +287,20 @@
     .side-k{display:none}
     .place-img{width:116px;max-height:78px;margin:0;flex-shrink:0}
     .place-note{display:none!important}
-    .side-card.acad,.side-card.rec{flex:1 1 100%}
+    .side-card.acad{flex:1 1 100%}
+    /* [31/07/2026] Su telefono la chat deve avere tutta l'altezza: il riquadro del
+       luogo e quello della registrazione escono dalla colonna e diventano due
+       pulsanti nella barra della chat. L'Accademia resta, serve per fare lezione. */
+    .side-card.place{display:none}
+    .side-card.place.show-m{display:flex;flex:1 1 100%}
+    .side-card.rec{display:none!important}
+    .only-m{display:inline-flex!important}
+    #rec-m.on{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+    .mk-lbl{font-size:8px;padding:1px 4px;max-width:92px;overflow:hidden;text-overflow:ellipsis}
+    .mk.village .mk-lbl{font-size:10px;max-width:none}
+    .mk-sym{width:19px;height:19px}
+    .mk-sym svg{width:12px;height:12px}
+    .mk.village .mk-sym{width:26px;height:26px}
   }
   .chat{min-height:0;display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:12px;background:rgba(247,238,214,.5);overflow:hidden}
   .msgs{flex:1;min-height:0;overflow-y:auto;padding:12px 15px;display:flex;flex-direction:column;gap:11px}
@@ -363,6 +377,9 @@
   .bd-item:hover{background:rgba(166,50,29,.09);border-color:var(--rule)}
   .bd-item .bi-name{font-family:'Cinzel',serif;font-weight:600;font-size:14px;color:var(--ink);display:flex;align-items:center;gap:9px}
   .bd-item .bi-tag{font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;background:#3c6b8a;color:#eaf2f8;border-radius:8px;padding:2px 7px}
+  .bd-item .bi-new{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.06em;background:var(--red);color:#f6ead0;border:1px solid var(--red-deep);border-radius:9px;padding:2px 8px;margin-left:auto}
+  .bd-allread{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border:1px solid var(--edge);border-radius:10px;background:rgba(255,250,235,.35);padding:10px 12px;margin-bottom:4px}
+  .bd-allread span{font-size:12.5px;color:var(--ink-soft);font-style:italic}
   .bd-item .bi-desc{font-family:'Cormorant Garamond',serif;font-size:14.5px;color:var(--ink-soft);margin-top:3px}
   .bd-compose{border:1px solid var(--edge);border-radius:10px;background:rgba(255,250,235,.5);padding:12px;margin-bottom:16px}
   .bd-compose input,.bd-compose textarea{width:100%;box-sizing:border-box;border:1px solid var(--edge);border-radius:7px;background:#fbf5e6;color:var(--ink);font-family:'Cormorant Garamond',serif;font-size:15px;padding:8px 10px;margin-bottom:8px}
@@ -1114,7 +1131,7 @@
                 <textarea id="msg-input" maxlength="5000" placeholder="Scrivi il tuo turno di gioco…"></textarea>
                 <div class="png-box" id="png-box" hidden><div class="png-lab" id="png-lab">Azione del compagno</div><textarea id="png-input" maxlength="2500" placeholder="Cosa fa il tuo compagno in questo turno… (si risolve nel tuo stesso turno)"></textarea></div>
                 <div class="item-pop" id="item-pop" hidden><div class="ip-head">Oggetti equipaggiati</div><div id="ip-list"></div></div>
-                <div class="composer-row"><div class="composer-tools act-side"><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><select class="tech-sel" id="msg-tech" title="Tecnica o abilità usata (dalla tua scheda)"><option value="">Tecnica / Abilità…</option></select><span class="tech-hint" id="tech-hint"></span><button class="obj-btn" id="png-chip" type="button" style="display:none" title="Aggiungi l'azione del tuo compagno PNG a questo turno">🎭 PNG</button><span class="vitmini" id="vit-mini"><span class="vrow"><b>PV</b><span class="vtrack pv" id="vt-pv"><i id="vf-pv"></i></span><span class="vnum" id="vn-pv">—</span></span><span class="vrow"><b>CK</b><span class="vtrack ck"><i id="vf-ck"></i></span><span class="vnum" id="vn-ck">—</span></span></span><button class="obj-btn" id="mic-btn" type="button" style="display:none" title="Dettatura vocale: scrivi parlando in italiano. Tocca per iniziare, ritocca per fermare."><svg class="ob" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg>Detta</button></div><div class="composer-tools mech-side"><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="exp-btn" id="exp-btn" type="button" title="Apri l'editor: finestra grande per scrivere e rileggere tutta la tua role"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg>Editor</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="cmb-btn" type="button" title="Calcolo combattimento"><svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>Combatti</button><button class="cmb-btn" id="heal-btn" type="button" title="Cura: te stesso o un alleato presente (Mente ≥ 25)" style="display:none">✚ Cura</button><span id="ko-badge" style="display:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1px solid var(--red-deep);border-radius:7px;padding:4px 9px">⚠ Fuori combattimento</span><button class="cmb-btn" id="regia-btn" type="button" style="display:none" title="Regia del master: PNG in scena e stato del gruppo"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/></svg>Regia</button><button class="legend-btn" id="spell-btn" type="button" style="width:auto;padding:0 8px;font-size:11px" title="Correttore ortografico del browser (attivo/spento). I termini del mondo — shinobi, kunoichi, jutsu… — non sono errori: sono nel Glossario dell'Ambientazione. Se le sottolineature rosse disturbano, spegnilo qui.">Abc</button><button class="legend-btn" id="legend-btn" type="button" title="Legenda: comandi e punteggiatura">?</button><button class="legend-btn" id="report-btn" type="button" style="width:auto;padding:0 8px" title="Segnala allo staff: una scena che ti mette a disagio, un abuso, una violazione">⚑</button><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
+                <div class="composer-row"><div class="composer-tools act-side"><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><select class="tech-sel" id="msg-tech" title="Tecnica o abilità usata (dalla tua scheda)"><option value="">Tecnica / Abilità…</option></select><span class="tech-hint" id="tech-hint"></span><button class="obj-btn" id="png-chip" type="button" style="display:none" title="Aggiungi l'azione del tuo compagno PNG a questo turno">🎭 PNG</button><span class="vitmini" id="vit-mini"><span class="vrow"><b>PV</b><span class="vtrack pv" id="vt-pv"><i id="vf-pv"></i></span><span class="vnum" id="vn-pv">—</span></span><span class="vrow"><b>CK</b><span class="vtrack ck"><i id="vf-ck"></i></span><span class="vnum" id="vn-ck">—</span></span></span><button class="obj-btn" id="mic-btn" type="button" style="display:none" title="Dettatura vocale: scrivi parlando in italiano. Tocca per iniziare, ritocca per fermare."><svg class="ob" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg>Detta</button></div><div class="composer-tools mech-side"><button class="obj-btn only-m" id="rec-m" type="button" title="Registra questa scena">&#9679; Rec</button><button class="obj-btn only-m" id="place-m" type="button" title="Mostra o nascondi il riquadro del luogo">Luogo</button><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="exp-btn" id="exp-btn" type="button" title="Apri l'editor: finestra grande per scrivere e rileggere tutta la tua role"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg>Editor</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="cmb-btn" type="button" title="Calcolo combattimento"><svg class="sw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"/><path d="M20 4L9 15"/><path d="M13 15l4 4"/><path d="M11 15l-4 4"/><path d="M16 16l3-3"/><path d="M8 16l-3-3"/></g></svg>Combatti</button><button class="cmb-btn" id="heal-btn" type="button" title="Cura: te stesso o un alleato presente (Mente ≥ 25)" style="display:none">✚ Cura</button><span id="ko-badge" style="display:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1px solid var(--red-deep);border-radius:7px;padding:4px 9px">⚠ Fuori combattimento</span><button class="cmb-btn" id="regia-btn" type="button" style="display:none" title="Regia del master: PNG in scena e stato del gruppo"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/></svg>Regia</button><button class="legend-btn" id="spell-btn" type="button" style="width:auto;padding:0 8px;font-size:11px" title="Correttore ortografico del browser (attivo/spento). I termini del mondo — shinobi, kunoichi, jutsu… — non sono errori: sono nel Glossario dell'Ambientazione. Se le sottolineature rosse disturbano, spegnilo qui.">Abc</button><button class="legend-btn" id="legend-btn" type="button" title="Legenda: comandi e punteggiatura">?</button><button class="legend-btn" id="report-btn" type="button" style="width:auto;padding:0 8px" title="Segnala allo staff: una scena che ti mette a disagio, un abuso, una violazione">⚑</button><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
               </div>
             </section>
             <aside class="room-side">
@@ -1619,7 +1636,11 @@
         var k=o.isAcademy?'academy':(o.village?'village':(o.kind||''));
         if(k==='villaggio')k='village';
         return MK_SYM[k]||MK_SYM._default; }
-      function makeMarker(x,y,label,cls,opts){ var b=document.createElement('button'); b.type='button'; b.className='mk '+cls; b.style.left=((x!=null&&x!=='')?x:50)+'%'; b.style.top=((y!=null&&y!=='')?y:50)+'%'; b.innerHTML='<span class="mk-sym">'+markerSymbol(opts)+'</span><span class="mk-lbl">'+esc(label)+'</span>'; var em=b.querySelector('.mk-emb'); if(em) em.onerror=function(){ var p=this.parentNode; if(p) p.innerHTML=MK_SYM.village; }; return b; }
+      /* [31/07/2026] «Konoha \u2014 Centro» sulla mappa diventa «Centro»: il villaggio
+         lo dice gia' il livello della mappa, e su telefono il prefisso mangiava la vista.
+         Il nome intero resta nel tooltip e nell'elenco dei luoghi. */
+      function mapShortLabel(t){ t=String(t||''); var i=t.indexOf('\u2014'); var r=(i>0?t.slice(i+1):t).trim(); return r||t; }
+      function makeMarker(x,y,label,cls,opts){ var b=document.createElement('button'); b.type='button'; b.className='mk '+cls; b.title=label; b.style.left=((x!=null&&x!=='')?x:50)+'%'; b.style.top=((y!=null&&y!=='')?y:50)+'%'; b.innerHTML='<span class="mk-sym">'+markerSymbol(opts)+'</span><span class="mk-lbl">'+esc(cls==='loc'?mapShortLabel(label):label)+'</span>'; var em=b.querySelector('.mk-emb'); if(em) em.onerror=function(){ var p=this.parentNode; if(p) p.innerHTML=MK_SYM.village; }; return b; }
       function renderMap(){
         setMapImage(mapLevel);
         var back=document.getElementById('map-back'); if(back) back.hidden=(mapLevel==='world');
@@ -1775,8 +1796,8 @@
       function fmtRoleTime(iso){ try{ var d=new Date(iso); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }catch(e){ return ''; } }
       function renderRec(){
         var card=document.getElementById('rec-card'), body=document.getElementById('rec-body');
-        if(!card||!body) return;
-        if(!cur||!loggedIn){ card.hidden=true; return; }
+        if(!card||!body){ syncRecM(); return; }
+        if(!cur||!loggedIn){ card.hidden=true; syncRecM(); return; }
         card.hidden=false;
         if(roleState.open){
           var meta='Avviata da <b>'+esc(roleState.starter||'—')+'</b>'+(roleState.started_at?(' · '+fmtRoleTime(roleState.started_at)):'');
@@ -1788,6 +1809,22 @@
         } else {
           body.innerHTML='<button class="rec-btn" id="rec-start" type="button"><span class="rec-dot" style="background:#f6ead0;animation:none;box-shadow:none"></span>Registra role</button><p class="rec-hint">Salva questa scena nella Libreria role di chi è presente e di chi entrerà. La registrazione parte dall’azione successiva.</p>';
           var s2=document.getElementById('rec-start'); if(s2) s2.addEventListener('click', startRole);
+        }
+        syncRecM();
+      }
+      /* Il gemello mobile del riquadro «Registrazione role»: un solo tasto nella barra. */
+      function syncRecM(){
+        var b=document.getElementById('rec-m'); if(!b) return;
+        if(roleState.open){
+          b.classList.add('on');
+          b.innerHTML='\u25CF Rec';
+          b.title=roleState.can_close?'Registrazione in corso \u2014 tocca per chiudere e salvare la role':('Scena registrata da '+(roleState.starter||'\u2014'));
+          b.disabled=!roleState.can_close;
+        } else {
+          b.classList.remove('on');
+          b.innerHTML='\u25CB Rec';
+          b.title='Registra questa scena nella Libreria role';
+          b.disabled=false;
         }
       }
       function loadRoleState(){
@@ -2022,6 +2059,19 @@
           var tx=o.getAttribute('data-tx')||'';
           th.textContent=''; th.title=tx;
           ts.title=tx||'Tecnica o abilità usata (dalla tua scheda)';
+        });
+      })();
+      (function(){
+        var rb=document.getElementById('rec-m');
+        if(rb) rb.addEventListener('click', function(){
+          if(roleState.open){ if(roleState.can_close) closeRole(); }
+          else startRole();
+        });
+        var pb=document.getElementById('place-m');
+        if(pb) pb.addEventListener('click', function(){
+          var card=document.getElementById('room-place'); if(!card) return;
+          var on=card.classList.toggle('show-m');
+          pb.title=on?'Nascondi il riquadro del luogo':'Mostra il riquadro del luogo';
         });
       })();
       loadAbilities();
@@ -2428,7 +2478,9 @@
         if(bb)bb.hidden=true; if(bl)bl.hidden=false; if(bk2)bk2.hidden=true; if(tt)tt.textContent='Bacheche';
         if(bl) bl.innerHTML='<div class="bd-empty">Caricamento…</div>';
         if(!sb) return;
-        sb.from('boards').select('*').eq('is_active',true).order('category').order('sort').order('name').then(function(r){
+        /* [31/07/2026] bacheche_lista porta anche n_non_letti: i thread nuovi in cima
+           dall'ultima apertura, esclusi i propri. Le risposte dentro i thread non contano. */
+        sb.rpc('bacheche_lista').then(function(r){
           BOARDS_L=(r&&r.data)||[]; renderBoardList();
         }, function(){ if(bl) bl.innerHTML='<div class="bd-empty">Errore nel caricamento.</div>'; });
       }
@@ -2436,14 +2488,23 @@
         var bl=document.getElementById('bd-list'); if(!bl) return;
         if(!BOARDS_L.length){ bl.innerHTML='<div class="bd-empty">Nessuna bacheca disponibile.</div>'; return; }
         var groups=[['ongame','On game'],['off','Off']];
-        bl.innerHTML=groups.map(function(g){
+        var tot=BOARDS_L.reduce(function(n,b){ return n+(+b.n_non_letti||0); },0);
+        var head=tot?('<div class="bd-allread"><span>'+tot+(tot===1?' messaggio non letto':' messaggi non letti')+'</span><button class="bd-send" id="bd-readall" type="button">Segna tutte come lette</button></div>'):'';
+        bl.innerHTML=head+groups.map(function(g){
           var rows=BOARDS_L.filter(function(b){return b.category===g[0];});
           if(!rows.length) return '';
           return '<div class="bd-gcat">'+g[1]+'</div>'+rows.map(function(b){
             var tag=(b.write_role==='staff')?'<span class="bi-tag">solo staff</span>':'';
-            return '<button class="bd-item" data-board="'+b.id+'"><span class="bi-name">'+esc(b.name)+tag+'</span>'+(b.description?'<span class="bi-desc">'+esc(b.description)+'</span>':'')+'</button>';
+            var nn=+b.n_non_letti||0;
+            var badge=nn?('<span class="bi-new">'+nn+' non '+(nn===1?'letto':'letti')+'</span>'):'';
+            return '<button class="bd-item" data-board="'+b.id+'"><span class="bi-name">'+esc(b.name)+tag+badge+'</span>'+(b.description?'<span class="bi-desc">'+esc(b.description)+'</span>':'')+'</button>';
           }).join('');
         }).join('');
+        (function(){ var ra=document.getElementById('bd-readall'); if(!ra) return;
+          ra.addEventListener('click', function(){ if(!sb) return; ra.disabled=true;
+            sb.rpc('bacheche_segna_tutte_lette').then(function(){ showBoardList(); },
+                   function(){ ra.disabled=false; toast('Impossibile segnare le bacheche'); }); });
+        })();
         Array.prototype.forEach.call(bl.querySelectorAll('.bd-item'), function(btn){
           btn.addEventListener('click', function(){ var b=BOARDS_L.filter(function(x){return String(x.id)===btn.getAttribute('data-board');})[0]; if(b) openBoard(b); });
         });
@@ -2454,6 +2515,7 @@
         if(bl)bl.hidden=true; if(bb)bb.hidden=false; if(bk2)bk2.hidden=false; if(tt)tt.textContent=b.name;
         if(bb) bb.innerHTML='<div class="bd-empty">Caricamento…</div>';
         loadPosts();
+        if(sb && b && b.id!=null){ sb.rpc('bacheca_segna_letta',{p_board:b.id}).then(function(){ b.n_non_letti=0; }, function(){}); }
       }
       function canWriteBoard(b){ return !!(b && (b.write_role==='all' || iAmStaff)); }
       function loadPosts(){
