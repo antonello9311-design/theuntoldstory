@@ -2016,12 +2016,12 @@
         if(ts) ts.addEventListener('change', function(){
           var th=document.getElementById('tech-hint'); if(!th) return;
           var o=ts.options[ts.selectedIndex]; if(!o||!ts.value){ th.textContent=''; th.title=''; ts.title='Tecnica o abilità usata (dalla tua scheda)'; return; }
-          var ct=o.getAttribute('data-ct')||'', ck=o.getAttribute('data-ck')||'0';
-          var lbl=(ct==='per_turno'?'Per turno':(ct==='passiva'?'Passiva':'Ad utilizzo'));
-          var ef=o.getAttribute('data-ef')||'', tx=o.getAttribute('data-tx')||'';
-          var breve=ef?(ef.length>90?(ef.slice(0,88).replace(/\s+\S*$/,'')+'…'):ef):'';
-          th.textContent=lbl+((+ck>0)?(' · '+ck+' chakra a turno'):'')+(breve?(' · '+breve):'');
-          th.title=tx; ts.title=tx||'Tecnica o abilità usata (dalla tua scheda)';
+          /* [31/07/2026] Niente più testo accanto al menù: il composer era troppo pieno.
+             Categoria, costo ed effetto restano nel tooltip, che compare tenendo
+             il mouse sulla tecnica. Lo span resta nel DOM ma vuoto. */
+          var tx=o.getAttribute('data-tx')||'';
+          th.textContent=''; th.title=tx;
+          ts.title=tx||'Tecnica o abilità usata (dalla tua scheda)';
         });
       })();
       loadAbilities();
