@@ -185,7 +185,13 @@
   .cal-ov-card .calbox{margin-bottom:0}
   .cal-ov-x{position:absolute;top:8px;right:10px;z-index:2;background:transparent;border:0;font-size:20px;line-height:1;color:var(--ink);cursor:pointer}
   .cal-ov-card .ac-head{padding-right:26px}
-  .ovp-activity{border-top:1px solid var(--rule);margin-top:10px;padding-top:8px}
+  .ovp-activity{border-top:1px solid var(--rule);margin-top:10px;padding-top:8px;flex-shrink:0}
+  .ovp-activity>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:7px;margin-bottom:0}
+  .ovp-activity>summary::-webkit-details-marker{display:none}
+  .ovp-activity>summary::after{content:'\25BE';margin-left:auto;color:var(--ink-soft);font-size:12px}
+  .ovp-activity[open]>summary::after{content:'\25B4'}
+  .ovp-activity[open] .ac-list{margin-top:7px;max-height:34vh;overflow-y:auto}
+  .ovp-actn{font-family:'Cormorant Garamond',serif;font-size:12px;letter-spacing:0;text-transform:none;color:var(--ink-soft);font-style:italic}
   .ovp-subhead{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);margin-bottom:5px}
   .tb-btn.staff{color:var(--red-deep);border-color:var(--edge)}
   .map-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;gap:12px}
@@ -1247,7 +1253,7 @@
       <div class="ovp-me-off"><input id="my-off" maxlength="280" placeholder="Nota OFF accanto al tuo nome…"><button id="my-off-save" type="button">Salva</button></div>
     </div>
     <div class="ovp-list" id="ovp-list"></div>
-    <div class="ovp-activity"><div class="ovp-subhead">Entrati / Usciti</div><div class="ac-list" id="ac-list"><span class="who-empty">—</span></div></div>
+    <details class="ovp-activity" id="ovp-act"><summary class="ovp-subhead">Movimenti<span class="ovp-actn" id="ac-count"></span></summary><div class="ac-list" id="ac-list"><span class="who-empty">—</span></div></details>
   </aside>
   <aside class="ov-panel" id="annu-panel" hidden aria-label="Annuario dei personaggi">
     <div class="ovp-head"><h3>Annuario <span id="annu-count">0</span></h3><button class="ovp-close" id="annu-close" type="button" title="Chiudi">×</button></div>
@@ -2346,7 +2352,7 @@
       function startRosterPoll(){ if(rosterPoll) return; rosterPoll=setInterval(function(){ loadRoster(); loadActivity(); loadFlash(); loadUnread(); loadConversations(); }, 12000); }
       function acTimeAgo(iso){ var t=new Date(iso).getTime(); if(!t) return ''; var sec=Math.max(0,(Date.now()-t)/1000); var m=Math.floor(sec/60); if(m<1) return 'adesso'; if(m<60) return m+' min fa'; var h=Math.floor(m/60); if(h<24) return h+' h fa'; return Math.floor(h/24)+' g fa'; }
       function acLine(e){ var nm='<b>'+esc(e.name||'—')+'</b>'; if(e.event_type==='enter'){ return e.location_name ? ('<span class="ac-in">▸</span> '+nm+' è entrato in <i>'+esc(e.location_name)+'</i>') : ('<span class="ac-in">▸</span> '+nm+' è entrato nella Land'); } return e.location_name ? ('<span class="ac-out">◂</span> '+nm+' ha lasciato <i>'+esc(e.location_name)+'</i>') : ('<span class="ac-out">◂</span> '+nm+' ha lasciato la Land'); }
-      function renderActivity(){ var host=document.getElementById('ac-list'); if(!host) return; if(!ACT.length){ host.innerHTML='<span class="who-empty">Nessun movimento recente.</span>'; return; } host.innerHTML=ACT.map(function(e){ return '<div class="ac-row"><span class="ac-txt">'+acLine(e)+'</span><span class="ac-t">'+acTimeAgo(e.created_at)+'</span></div>'; }).join(''); }
+      function renderActivity(){ var host=document.getElementById('ac-list'); if(!host) return; var _cn=document.getElementById('ac-count'); if(_cn) _cn.textContent = ACT.length ? ('· '+ACT.length+(ACT.length===1?' movimento':' movimenti')) : '· nessuno'; if(!ACT.length){ host.innerHTML='<span class="who-empty">Nessun movimento recente.</span>'; return; } host.innerHTML=ACT.map(function(e){ return '<div class="ac-row"><span class="ac-txt">'+acLine(e)+'</span><span class="ac-t">'+acTimeAgo(e.created_at)+'</span></div>'; }).join(''); }
       function loadActivity(){ if(!sb||!loggedIn) return; sb.rpc('recent_activity',{p_limit:12}).then(function(r){ if(r&&!r.error){ ACT=r.data||[]; renderActivity(); } }, function(){}); }
       function loadFlash(){ if(!sb||!loggedIn) return; sb.from('app_settings').select('value').eq('key','flash_news').maybeSingle().then(function(r){ setFlash((r&&r.data&&r.data.value)?String(r.data.value).trim():''); }, function(){}); }
       function setFlash(txt){ var band=document.getElementById('newsband'), el=document.getElementById('nb-text'); if(!band||!el) return; if(txt){ if(el.textContent!==txt){ el.textContent=txt; var dur=Math.max(12, Math.round(txt.length*0.32)); el.style.animationDuration=dur+'s'; } band.hidden=false; } else { band.hidden=true; el.textContent=''; } }

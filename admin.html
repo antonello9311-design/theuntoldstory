@@ -234,6 +234,7 @@
           </div>
           <div class="adm-nav" id="adm-nav">
             <button type="button" data-go="emblemi" class="on">Emblemi</button>
+            <button type="button" data-go="personaggi">Personaggi</button>
             <button type="button" data-go="clan">Clan</button>
             <button type="button" data-go="tecniche">Tecniche</button>
             <button type="button" data-go="allenamenti">Allenamenti</button>
@@ -250,6 +251,16 @@
             <button type="button" data-go="messaggi">Messaggi</button>
             <button type="button" data-go="archivio">Archivio</button>
           </div>
+          <section class="adm-page" data-page="personaggi">
+          <div class="grp-title">Personaggi</div>
+          <p class="mgr-note">Cerca un personaggio e agisci sui suoi numeri senza aprire la scheda. Le azioni passano dalle funzioni del server, quindi finiscono nel registro come tutte le altre. Per i campi che non trovi qui, il bottone <b>Scheda</b> apre la sua pagina in modalità staff.</p>
+          <div class="cat-form">
+            <label class="full">Cerca<input id="pg-q" type="search" placeholder="Nome, villaggio, clan o grado…" autocomplete="off"></label>
+          </div>
+          <div class="cat-actions"><button class="btn" id="pg-refresh" type="button">Aggiorna elenco</button><span id="pg-note" class="editing-note"></span></div>
+          <div id="pg-list"></div>
+          </section>
+
           <section class="adm-page" data-page="notizie">
           <div class="grp-title">Banda notizie (mappa)</div>
           <p class="mgr-note">La "notizia flash" scorre in cima alla mappa della land. Scrivi l'avvenimento più importante del momento; lascia il campo vuoto per nasconderla.</p>
@@ -2196,6 +2207,94 @@
         if(d.ok){ toast(d.activated?'Tecnica attivata!':('Sessione '+d.sessions_done+'/'+d.sessions_required)); loadTrainings(); }
         else { toast(d.reason||'Non confermato',true); }
       }); }
+
+    /* ===== PERSONAGGI (staff) ===== */
+    var PG=[], pgOpen=null;
+    async function loadPg(){
+      var r=await sb.from('characters')
+        .select('id,name,village,rank,clan,corporation,exp,xp_lifetime,unspent_points,money,cercoterio')
+        .order('name');
+      if(r.error){ var e=$('pg-note'); if(e)e.textContent='Non riesco a leggere i personaggi'; return; }
+      PG=r.data||[]; renderPg();
+      var n=$('pg-note'); if(n) n.textContent=PG.length+(PG.length===1?' personaggio':' personaggi');
+    }
+    function pgFind(id){ for(var i=0;i<PG.length;i++){ if(PG[i].id===id) return PG[i]; } return null; }
+    function pgPanel(c){
+      var a=pgOpen.act, t='';
+      if(a==='xp')    t='<label class="full">Quanti XP <input id="pg-in" type="number" step="5" value="100"></label><label class="full">Motivo, che finisce nel registro <input id="pg-in2" type="text" value="collaudo" maxlength="80"></label>';
+      if(a==='ryo')   t='<label class="full">Ryo da aggiungere, con il meno per toglierli <input id="pg-in" type="number" step="10" value="100"></label>';
+      if(a==='punti') t='<label class="full">Punti caratteristica da aggiungere <input id="pg-in" type="number" step="5" value="5"></label>';
+      if(a==='grado') t='<p class="mgr-note" style="margin:0 0 6px">Sale di un grado e riceve <b>50 punti</b> da assegnare, come una promozione vera.</p>';
+      var etichetta = (a==='xp')?'Conferma: dai XP a ':(a==='ryo')?'Conferma: cambia i Ryo di ':(a==='punti')?'Conferma: aggiungi punti a ':'Conferma: promuovi ';
+      return '<div class="ldesc" style="width:100%;border-top:1px dotted var(--rule);margin-top:7px;padding-top:8px">'+t
+        +'<div class="lacts"><button class="mini-btn" type="button" data-pgok="'+c.id+'">'+etichetta+esc(c.name)+'</button>'
+        +'<button class="mini-btn" type="button" data-pgno="1">Annulla</button></div></div>';
+    }
+    function renderPg(){
+      var host=$('pg-list'); if(!host) return;
+      var q=((($('pg-q')||{}).value)||'').trim().toLowerCase();
+      var rows=PG.filter(function(c){
+        if(!q) return true;
+        return [c.name,c.village,c.clan,c.rank,c.corporation].join(' ').toLowerCase().indexOf(q)>=0;
+      });
+      if(!rows.length){ host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun personaggio trovato.</p>'; return; }
+      host.innerHTML=rows.map(function(c){
+        var chi = (c.clan&&c.clan!=='Nessuno') ? c.clan : (c.cercoterio ? ('Forza Portante · '+c.cercoterio) : 'senza clan');
+        var meta='<span class="lmeta"> · '+esc(c.village||'—')+'</span>'
+          +'<span class="lmeta"> · '+esc(chi)+'</span>'
+          +(c.corporation?('<span class="lmeta"> · '+esc(c.corporation)+'</span>'):'')
+          +'<span class="lmeta"> · saldo '+(c.exp==null?'?':c.exp)+' XP</span>'
+          +'<span class="lmeta"> · carriera '+(c.xp_lifetime==null?'?':c.xp_lifetime)+'</span>'
+          +'<span class="lmeta"> · '+(c.money==null?'?':c.money)+' Ryo</span>'
+          +((c.unspent_points>0)?('<span class="lmeta lnote"> · '+c.unspent_points+' punti da assegnare</span>'):'');
+        var acts='<div class="lacts">'
+          +'<button class="mini-btn" type="button" data-pgact="xp" data-id="'+c.id+'">Dai XP</button>'
+          +'<button class="mini-btn" type="button" data-pgact="ryo" data-id="'+c.id+'">Ryo</button>'
+          +'<button class="mini-btn" type="button" data-pgact="punti" data-id="'+c.id+'">Punti</button>'
+          +'<button class="mini-btn" type="button" data-pgact="grado" data-id="'+c.id+'">Promuovi</button>'
+          +'<a class="mini-btn" href="scheda.html?id='+esc(c.id)+'" target="_blank" rel="noopener">Scheda</a>'
+          +'</div>';
+        var box=(pgOpen&&pgOpen.id===c.id)?pgPanel(c):'';
+        return '<div class="locrow"><div class="lmain"><span class="lname">'+esc(c.name)+'</span><span class="lkind">'+esc(c.rank||'—')+'</span>'+meta+'</div>'+acts+box+'</div>';
+      }).join('');
+    }
+    async function pgEsegui(c){
+      var a=pgOpen.act, v=($('pg-in')?Number($('pg-in').value):0), m=($('pg-in2')?($('pg-in2').value||'').trim():'');
+      if(a==='xp'){
+        if(!v){ toast('Scrivi quanti XP',true); return; }
+        var r=await sb.rpc('staff_assegna_xp',{p_character:c.id,p_amount:v,p_motivo:(m||'staff')});
+        if(r.error){ toast(r.error.message||'XP non assegnati',true); return; }
+        toast(v+' XP a '+c.name);
+      } else if(a==='ryo'){
+        if(!v){ toast('Scrivi quanti Ryo',true); return; }
+        var r2=await sb.from('characters').update({money:Math.max(0,(c.money||0)+v)}).eq('id',c.id);
+        if(r2.error){ toast(r2.error.message||'Ryo non aggiornati',true); return; }
+        toast('Ryo aggiornati per '+c.name);
+      } else if(a==='punti'){
+        if(!v){ toast('Scrivi quanti punti',true); return; }
+        var r3=await sb.from('characters').update({unspent_points:Math.max(0,(c.unspent_points||0)+v)}).eq('id',c.id);
+        if(r3.error){ toast(r3.error.message||'Punti non aggiornati',true); return; }
+        toast('Punti aggiornati per '+c.name);
+      } else if(a==='grado'){
+        var r4=await sb.rpc('promuovi',{p_character:c.id});
+        if(r4.error){ toast(r4.error.message||'Promozione non riuscita',true); return; }
+        toast(c.name+' promosso');
+      }
+      pgOpen=null; await loadPg();
+    }
+    function bindPg(){
+      var q=$('pg-q'); if(q) q.addEventListener('input', renderPg);
+      var rf=$('pg-refresh'); if(rf) rf.addEventListener('click', loadPg);
+      var host=$('pg-list'); if(!host) return;
+      host.addEventListener('click', async function(e){
+        var act=e.target.closest('[data-pgact]');
+        if(act){ pgOpen={id:act.getAttribute('data-id'), act:act.getAttribute('data-pgact')}; renderPg(); return; }
+        if(e.target.closest('[data-pgno]')){ pgOpen=null; renderPg(); return; }
+        var ok=e.target.closest('[data-pgok]');
+        if(ok){ var c=pgFind(ok.getAttribute('data-pgok')); if(!c||!pgOpen) return; ok.disabled=true; await pgEsegui(c); }
+      });
+    }
+
     async function init(){
       if(!sb){show('st-guest');return;}
       var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;
@@ -2205,7 +2304,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
+      await loadClans();bindClans();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPg();await loadPg();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
