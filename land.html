@@ -132,7 +132,6 @@
   #map-view .mapframe{flex:1;min-height:340px;width:100%;max-width:1040px;margin:0 auto;aspect-ratio:auto;position:relative}
   /* --- Adattamento a schermi bassi/piccoli (portatili ~14"): la barra Luoghi si ritira e la mappa prende il suo spazio --- */
   @media (max-height:820px){
-    #map-view .luoghi{display:none}
     .topbar{padding:8px clamp(12px,2vw,24px);gap:8px}
     .tb-btn{padding:6px 9px;font-size:10px}
     .tb-name{font-size:12.5px}
@@ -149,6 +148,11 @@
     .map-hint .mh-t{font-size:19px;margin-bottom:2px}
     .map-hint{padding:8px}
     .lg-head,.ac-head{margin-bottom:5px}
+  }
+  /* --- La barra Luoghi si ritira quando l'altezza non basta (portatili: MacBook 14" ~870px di viewport).
+         Ai luoghi si entra dai segnaposti sulla mappa. --- */
+  @media (max-height:900px){
+    #map-view .luoghi{display:none!important}
   }
   /* --- Schermi stretti: la vista mappa impilata diventa scorrevole (niente tagli) --- */
   @media (max-width:860px){
@@ -444,6 +448,7 @@
   /* #6 sintassi parlato/azione */
   .m-body .sp-say{color:var(--red-deep)}
   .m-body .sp-act{font-style:italic;color:var(--ink-soft)}
+  .m-body .sp-fig{display:block;max-width:min(420px,100%);height:auto;margin:9px 0 4px;border:1px solid var(--rule);border-radius:9px;background:rgba(255,250,235,.65);box-shadow:0 3px 10px rgba(60,42,18,.13)}
   /* #5 contatore caratteri */
   .composer-tools{display:flex;align-items:center;gap:8px;flex-shrink:0}
   .place-bar{display:flex;align-items:center;gap:7px;width:min(300px,100%);margin:0 0 8px;border:1px solid var(--edge);border-radius:8px;background:rgba(255,250,235,.55);padding:5px 10px}
@@ -1482,6 +1487,7 @@
         t=t.replace(/&quot;([\s\S]*?)&quot;/g,'<span class="sp-say">&quot;$1&quot;</span>');
         t=t.replace(/«([\s\S]*?)»/g,'<span class="sp-say">«$1»</span>');
         t=t.replace(/\*([^*\n]+?)\*/g,'<em class="sp-act">$1</em>');
+        t=t.replace(/\[figura:([a-z0-9-]{1,40})\]/g,'<img class="sp-fig" src="assets/$1.png" alt="" loading="lazy">');
         return t; }
       function fmt(iso){ try{ var d=new Date(iso); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }catch(e){ return ''; } }
       function showView(which){ mapView.classList.toggle('on', which==='map'); roomView.classList.toggle('on', which==='room'); }
