@@ -590,6 +590,19 @@
   .jdb-acc .jdb-count{margin-left:auto;font-size:10px;color:var(--ink-soft);background:rgba(60,42,18,.08);border-radius:10px;padding:1px 9px}
   .jdb-accbody{display:none;padding:7px 0 2px}
   .jdb-accbody.open{display:block}
+  /* --- sotto-linguette del Codice delle Tecniche (31/07/2026) --- */
+  .jdb-tabs .miss-tab{display:inline-flex;align-items:center;gap:7px}
+  .jdb-tabs .miss-tab i{font-style:normal;font-size:9px;letter-spacing:0;color:var(--ink-soft);background:rgba(43,29,14,.09);border-radius:10px;padding:1px 6px;min-width:14px;text-align:center}
+  .jdb-tabs .miss-tab.on i{background:rgba(0,0,0,.24);color:#f6ead0}
+  .jdb-tabs .miss-tab.empty{opacity:.42}
+  .jdb-subs{display:flex;gap:5px;flex-wrap:wrap;margin:2px 0 12px}
+  .jdb-sub{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);background:transparent;border:1px solid var(--edge);border-radius:6px;padding:4px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s,color .15s}
+  .jdb-sub:hover{color:var(--ink);background:rgba(166,50,29,.07)}
+  .jdb-sub i{font-style:normal;font-size:9px;letter-spacing:0;color:var(--ink-soft)}
+  .jdb-sub.on{background:rgba(166,50,29,.12);border-color:var(--rule);color:var(--red-deep)}
+  .jdb-sub.on i{color:var(--red-deep)}
+  .jdb-altrove{font-size:13px;color:var(--ink-soft);font-style:italic;margin:10px 2px 0}
+  @media(max-width:720px){ .jdb-sub{font-size:9px;padding:4px 8px} }
   .jdb-card{border:1px solid var(--edge);border-radius:9px;background:rgba(255,252,245,.6);padding:9px 11px}
   .jdb-top{display:flex;align-items:baseline;gap:6px;margin-bottom:3px}
   .jdb-name{font-family:'Cinzel',serif;font-weight:700;font-size:12.5px;color:var(--ink);flex:1;min-width:0;line-height:1.25}
@@ -1084,8 +1097,7 @@
               <div class="wr-title">Mondo di gioco</div>
               <a class="wr-btn" href="clan.html">Clan</a>
               <button class="wr-btn" type="button" data-world="corporazioni">Corporazioni</button>
-              <button class="wr-btn" type="button" data-world="jutsu">Jutsu</button>
-              <button class="wr-btn" type="button" data-world="abilita">Abilità</button>
+              <button class="wr-btn" type="button" data-world="jutsu">Jutsu e Abilità</button>
               <button class="wr-btn" type="button" data-world="evocazioni">Evocazioni</button>
               <button class="wr-btn" type="button" data-world="cercoteri">Cercoteri</button>
               <button class="wr-btn" type="button" data-world="premi">Premi</button>
@@ -1247,11 +1259,13 @@
         <input class="jdb-search" id="jdb-search" type="search" placeholder="Cerca tecnica…" aria-label="Cerca tecnica">
       </div>
       <div class="jdb-tabs" id="jdb-tabs">
-        <button class="miss-tab" type="button" data-jtab="accademia">Accademia</button>
-        <button class="miss-tab" type="button" data-jtab="clan">Clan</button>
-        <button class="miss-tab" type="button" data-jtab="medico">Corpo Medico</button>
-        <button class="miss-tab" type="button" data-jtab="anbu">ANBU</button>
-        <button class="miss-tab" type="button" data-jtab="abilita">Abilità</button>
+        <button class="miss-tab" type="button" data-jtab="accademia">Accademia<i></i></button>
+        <button class="miss-tab" type="button" data-jtab="generiche">Generiche<i></i></button>
+        <button class="miss-tab" type="button" data-jtab="clan">Clan<i></i></button>
+        <button class="miss-tab" type="button" data-jtab="medico">Corpo Medico<i></i></button>
+        <button class="miss-tab" type="button" data-jtab="anbu">ANBU<i></i></button>
+        <button class="miss-tab" type="button" data-jtab="evocazioni">Evocazioni<i></i></button>
+        <button class="miss-tab" type="button" data-jtab="cercoteri">Cercoteri<i></i></button>
       </div>
       <div class="miss-body" id="jutsu-body"></div>
     </div>
@@ -2857,7 +2871,7 @@
           document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var ov=document.getElementById('cercov'); if(ov&&!ov.hidden) closeCerc(); } });
         })();
         /* ===== CODICE DELLE TECNICHE — database informativo (sola lettura) ===== */
-        var JDB={loaded:false,jutsu:[],tech:[],tab:'accademia',q:''};
+        var JDB={loaded:false,jutsu:[],tech:[],tab:'accademia',sub:{},q:''};
         var JDB_RAMI=[['','Tronco comune'],['chirurgia','Chirurgia'],['tossicologia','Tossicologia'],['cura-campo','Cura da campo'],['combattimento','Combattimento']];
         var JDB_ANBU_RAMI=[['','Tronco comune'],['assassinio','Assassinio'],['pedinamento','Pedinamento'],['sensoriale','Sensoriale'],['infiltrazione','Infiltrazione']];
         function jdbRamo(r){ var m={chirurgia:'Chirurgia',tossicologia:'Tossicologia','cura-campo':'Cura da campo',combattimento:'Combattimento',assassinio:'Assassinio',pedinamento:'Pedinamento',sensoriale:'Sensoriale',infiltrazione:'Infiltrazione'}; return m[r]||r; }
@@ -2917,56 +2931,96 @@
           return '<button type="button" class="jdb-back">&larr; Torna all\'elenco</button>'
             +'<div class="jdb-det"><div class="jdb-det-h"><span class="jdb-det-name">'+name+rom+'</span>'+badge+'</div>'+tagsH+desc+effH+carH+unlH+'</div>';
         }
+        /* ===== Codice delle Tecniche · sette linguette, ognuna con le sue
+           sotto-linguette (restyle 31/07/2026) =====
+           Prima le 41 generiche, le 41 di evocazione e le 32 dei Cercoteri
+           finivano tutte insieme sotto «Abilità»: 118 voci in un elenco solo.
+           Qui ogni famiglia ha la sua linguetta e dentro la sua divisione. */
+        var JDB_BIJUU=['Shukaku','Matatabi','Isobu','Son Gokū','Kokuō','Saiken','Chōmei','Gyūki','Kurama'];
+        var JDB_TABS=[['accademia','Accademia'],['generiche','Generiche'],['clan','Clan'],['medico','Corpo Medico'],['anbu','ANBU'],['evocazioni','Evocazioni'],['cercoteri','Cercoteri']];
+        function jdbCap(x){ x=String(x||''); return x?(x.charAt(0).toUpperCase()+x.slice(1)):x; }
+        function jdbIsCorp(o){ var c=o.category||''; return /^Medica/.test(c)||/^ANBU/.test(c); }
+        /* Restituisce le sottocategorie della linguetta: [{label, items}], solo quelle piene. */
+        function jdbBuckets(tab,q){
+          var T=JDB.tech||[], J=JDB.jutsu||[], out=[];
+          function m(o){ return jdbMatch(o,q); }
+          function add(label,items){ if(items&&items.length) out.push({label:label,items:items}); }
+          if(tab==='accademia'){
+            add('Jutsu', J.filter(function(o){ return o.kind!=='abilita' && m(o); }));
+            add('Abilità', J.filter(function(o){ return o.kind==='abilita' && m(o); }));
+          } else if(tab==='generiche'){
+            var g=T.filter(function(o){ return o.macro==='generica' && m(o); });
+            ['Ninjutsu','Taijutsu','Genjutsu','Fuuinjutsu'].forEach(function(d){
+              add(d, g.filter(function(o){ return (o.disciplina||'')===d; }));
+            });
+            add('Abilità', T.filter(function(o){ return o.macro==='abilita' && !o.clan && !jdbIsCorp(o) && m(o); }));
+          } else if(tab==='clan'){
+            var c=T.filter(function(o){ return o.clan && m(o); }), nomi={}, ord=[];
+            c.forEach(function(o){ if(!nomi[o.clan]){ nomi[o.clan]=1; ord.push(o.clan); } });
+            ord.sort().forEach(function(cl){ add(cl, c.filter(function(o){ return o.clan===cl; })); });
+          } else if(tab==='medico'||tab==='anbu'){
+            var re=(tab==='medico')?/^Medica/:/^ANBU/;
+            var rami=(tab==='medico')?JDB_RAMI:JDB_ANBU_RAMI;
+            var l=T.filter(function(o){ return !o.clan && re.test(o.category||'') && m(o); });
+            rami.forEach(function(rm){ add(rm[1], l.filter(function(o){ return (o.req_ramo||'')===rm[0]; })); });
+          } else if(tab==='evocazioni'){
+            var e=T.filter(function(o){ return o.macro==='evocazione' && m(o); });
+            add('Comuni a tutte', e.filter(function(o){ return !o.req_famiglia; }));
+            var fam={}, fo=[];
+            e.forEach(function(o){ if(o.req_famiglia && !fam[o.req_famiglia]){ fam[o.req_famiglia]=1; fo.push(o.req_famiglia); } });
+            fo.sort().forEach(function(f){ add(jdbCap(f), e.filter(function(o){ return o.req_famiglia===f; })); });
+          } else if(tab==='cercoteri'){
+            var cc=T.filter(function(o){ return o.macro==='cercoterio' && m(o); });
+            add('Manto e comuni', cc.filter(function(o){ return !o.req_cercoterio; }));
+            var vis={};
+            JDB_BIJUU.forEach(function(n){ vis[n]=1; add(n, cc.filter(function(o){ return o.req_cercoterio===n; })); });
+            var altri={}, ao=[];
+            cc.forEach(function(o){ if(o.req_cercoterio && !vis[o.req_cercoterio] && !altri[o.req_cercoterio]){ altri[o.req_cercoterio]=1; ao.push(o.req_cercoterio); } });
+            ao.sort().forEach(function(n){ add(n, cc.filter(function(o){ return o.req_cercoterio===n; })); });
+          }
+          return out;
+        }
         function renderJutsuDB(){
           var host=document.getElementById('jutsu-body'); if(!host) return;
           var q=JDB.q, tab=JDB.tab, h='';
-          if(tab==='accademia'){
-            var js=JDB.jutsu.filter(function(o){return o.kind!=='abilita' && jdbMatch(o,q);});
-            if(!js.length){ h='<p class="jdb-empty">Nessun jutsu base'+(q?' per «'+esc(q)+'»':'')+'.</p>'; }
-            else { var order=['E','D','C','B','A','S'], groups={}, ord=[];
-              js.forEach(function(o){ var r=o.rank||'—'; if(!groups[r]){groups[r]=[];ord.push(r);} groups[r].push(o); });
-              ord.sort(function(a,b){ var ia=order.indexOf(a),ib=order.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib); });
-              h=ord.map(function(r){ return '<div class="jdb-h">Rango '+esc(r)+'</div><div class="jdb-grid">'+groups[r].map(jdbCard).join('')+'</div>'; }).join('');
-            }
-          } else if(tab==='clan'){
-            var ct=JDB.tech.filter(function(o){return o.clan && jdbMatch(o,q);});
-            var byClan={}, clans=[];
-            ct.forEach(function(o){ if(!byClan[o.clan]){byClan[o.clan]=[];clans.push(o.clan);} byClan[o.clan].push(o); });
-            clans.sort();
-            if(!clans.length){ h='<p class="jdb-empty">Nessuna tecnica di clan'+(q?' per «'+esc(q)+'»':'')+'.</p>'; }
-            else { var op=!!q; h=clans.map(function(cl){
-                return '<div class="jdb-sec"><button type="button" class="jdb-acc'+(op?' open':'')+'"><span class="jdb-ch">▶</span>'+esc(cl)+'<span class="jdb-count">'+byClan[cl].length+'</span></button>'
-                  +'<div class="jdb-accbody'+(op?' open':'')+'"><div class="jdb-grid">'+byClan[cl].map(jdbCard).join('')+'</div></div></div>'; }).join('');
-            }
-          } else if(tab==='medico'){
-            var md=JDB.tech.filter(function(o){return /^Medica/.test(o.category||'') && jdbMatch(o,q);});
-            if(!md.length){ h='<p class="jdb-empty">Nessuna tecnica medica'+(q?' per «'+esc(q)+'»':'')+'.</p>'; }
-            else { h=JDB_RAMI.map(function(rm){ var list=md.filter(function(o){return (o.req_ramo||'')===rm[0];}); if(!list.length) return '';
-                list.sort(function(a,b){return (a.sort||0)-(b.sort||0);});
-                return '<div class="jdb-h">'+esc(rm[1])+'</div><div class="jdb-grid">'+list.map(jdbCard).join('')+'</div>'; }).join('');
-            }
-          } else if(tab==='anbu'){
-            var an=JDB.tech.filter(function(o){return /^ANBU/.test(o.category||'') && jdbMatch(o,q);});
-            if(!an.length){ h='<p class="jdb-empty">Nessuna tecnica ANBU'+(q?' per «'+esc(q)+'»':'')+'.</p>'; }
-            else { h=JDB_ANBU_RAMI.map(function(rm){ var list=an.filter(function(o){return (o.req_ramo||'')===rm[0];}); if(!list.length) return '';
-                list.sort(function(a,b){return (a.sort||0)-(b.sort||0);});
-                return '<div class="jdb-h">'+esc(rm[1])+'</div><div class="jdb-grid">'+list.map(jdbCard).join('')+'</div>'; }).join('');
+          var bk=jdbBuckets(tab,q);
+          if(!bk.length){
+            h='<p class="jdb-empty">Niente in questa sezione'+(q?' per «'+esc(q)+'»':'')+'.</p>';
+            if(q){
+              var altrove=JDB_TABS.filter(function(t){ return t[0]!==tab && jdbBuckets(t[0],q).length; }).map(function(t){ return t[1]; });
+              if(altrove.length) h+='<p class="jdb-altrove">Ci sono risultati in: '+esc(altrove.join(', '))+'.</p>';
             }
           } else {
-            var baseAb=JDB.jutsu.filter(function(o){return o.kind==='abilita' && jdbMatch(o,q);});
-            var ab=JDB.tech.filter(function(o){return !o.clan && !/^Medica/.test(o.category||'') && !/^ANBU/.test(o.category||'') && jdbMatch(o,q);});
-            if(!baseAb.length && !ab.length){ h='<p class="jdb-empty">Nessuna abilità'+(q?' per «'+esc(q)+'»':'')+'.</p>'; }
-            else { baseAb.sort(function(a,b){return (a.sort||0)-(b.sort||0);}); ab.sort(function(a,b){return (a.sort||0)-(b.sort||0);}); h='';
-              if(baseAb.length) h+='<div class="jdb-h">Basi d\'Accademia</div><div class="jdb-grid">'+baseAb.map(jdbCard).join('')+'</div>';
-              if(ab.length) h+='<div class="jdb-h">Generiche</div><div class="jdb-grid">'+ab.map(jdbCard).join('')+'</div>';
+            if(!JDB.sub) JDB.sub={};
+            var etichette=bk.map(function(x){ return x.label; });
+            var cur=JDB.sub[tab]||'';
+            if(etichette.indexOf(cur)<0){ cur=etichette[0]; JDB.sub[tab]=cur; }
+            if(bk.length>1){
+              h+='<div class="jdb-subs">'+bk.map(function(x){
+                return '<button type="button" class="jdb-sub'+(x.label===cur?' on':'')+'" data-jsub="'+esc(x.label)+'">'+esc(x.label)+'<i>'+x.items.length+'</i></button>';
+              }).join('')+'</div>';
+            } else {
+              h+='<div class="jdb-h">'+esc(bk[0].label)+'</div>';
             }
+            var sel=null;
+            for(var z=0;z<bk.length;z++){ if(bk[z].label===cur){ sel=bk[z]; break; } }
+            if(!sel) sel=bk[0];
+            h+='<div class="jdb-grid">'+sel.items.map(jdbCard).join('')+'</div>';
           }
           host.innerHTML=h;
-          var tabs=document.querySelectorAll('#jdb-tabs [data-jtab]'); for(var i=0;i<tabs.length;i++) tabs[i].classList.toggle('on',tabs[i].getAttribute('data-jtab')===tab);
+          var tabs=document.querySelectorAll('#jdb-tabs [data-jtab]');
+          for(var i=0;i<tabs.length;i++){
+            var k=tabs[i].getAttribute('data-jtab');
+            tabs[i].classList.toggle('on',k===tab);
+            var n=jdbBuckets(k,q).reduce(function(acc,x){ return acc+x.items.length; },0);
+            var cnt=tabs[i].querySelector('i'); if(cnt) cnt.textContent=n;
+            tabs[i].classList.toggle('empty',n===0);
+          }
         }
         function openJutsu(tab){
           if(!loggedIn){ toast('Accedi per consultare il Codice delle Tecniche'); return; }
           JDB.tab=tab||JDB.tab||'accademia';
+          if(JDB.tab==='abilita') JDB.tab='generiche';   /* vecchia chiave, dal pulsante unificato */
           var ov=document.getElementById('jutsuov'), bk=document.getElementById('jutsuov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false;
           if(JDB.loaded){ renderJutsuDB(); return; }
           var host=document.getElementById('jutsu-body'); if(host)host.innerHTML='<p class="jdb-empty">Caricamento…</p>';
@@ -2988,6 +3042,8 @@
           var tb=document.getElementById('jdb-tabs'); if(tb)tb.addEventListener('click',function(e){ var b=e.target.closest('[data-jtab]'); if(!b)return; JDB.tab=b.getAttribute('data-jtab'); renderJutsuDB(); });
           var s=document.getElementById('jdb-search'); if(s)s.addEventListener('input',function(){ JDB.q=this.value||''; renderJutsuDB(); });
           var body=document.getElementById('jutsu-body'); if(body)body.addEventListener('click',function(e){
+            var sbt=e.target.closest('[data-jsub]');
+            if(sbt){ if(!JDB.sub) JDB.sub={}; JDB.sub[JDB.tab]=sbt.getAttribute('data-jsub'); renderJutsuDB(); return; }
             var card=e.target.closest('.jdb-click'); if(card){ var o=JDB.byId&&JDB.byId[card.getAttribute('data-jt')]; if(o){ body.scrollTop=0; body.innerHTML=jdbDetailHTML(o); } return; }
             if(e.target.closest('.jdb-back')){ renderJutsuDB(); return; }
             var a=e.target.closest('.jdb-acc'); if(a){ a.classList.toggle('open'); var bd=a.nextElementSibling; if(bd&&bd.classList.contains('jdb-accbody'))bd.classList.toggle('open'); }
@@ -3033,7 +3089,7 @@
           var tb=document.getElementById('prm-tabs'); if(tb) tb.addEventListener('click', function(e){ var b=e.target.closest('[data-ptab]'); if(!b) return; prmTab=b.getAttribute('data-ptab'); prmRender(); });
         })();
 
-        var wr=document.getElementById('world-rail'); if(wr) wr.addEventListener('click', function(e){ var b=e.target.closest('[data-world]'); if(!b) return; var k=b.getAttribute('data-world'); if(k==='corporazioni'){ openCorp(); } else if(k==='jutsu'){ openJutsu('accademia'); } else if(k==='abilita'){ openJutsu('abilita'); } else if(k==='cercoteri'){ openCerc('bestie'); } else if(k==='premi'){ openPrm(); } else { openWorld(k); } });
+        var wr=document.getElementById('world-rail'); if(wr) wr.addEventListener('click', function(e){ var b=e.target.closest('[data-world]'); if(!b) return; var k=b.getAttribute('data-world'); if(k==='corporazioni'){ openCorp(); } else if(k==='jutsu'||k==='abilita'){ openJutsu(); } else if(k==='cercoteri'){ openCerc('bestie'); } else if(k==='premi'){ openPrm(); } else { openWorld(k); } });
         var wc=document.getElementById('world-close'); if(wc) wc.addEventListener('click', closeWorld);
       })();
 
