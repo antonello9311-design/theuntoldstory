@@ -244,6 +244,7 @@
             <button type="button" data-go="mappa">Mappa</button>
             <button type="button" data-go="bacheche">Bacheche</button>
             <button type="button" data-go="ia">IA</button>
+            <button type="button" data-go="aiuto">Aiuto</button>
             <button type="button" data-go="compagni">Compagni</button>
             <button type="button" data-go="notizie">Banda notizie</button>
             <button type="button" data-go="registro">Registro</button>
@@ -552,6 +553,42 @@
             </div>
             <div id="nb-list"></div>
           </div>
+          </section>
+
+          <section class="adm-page" data-page="aiuto">
+          <div class="grp-title" style="margin-top:0">Aiuto — il Tavolo di Aiuto della land</div>
+          <p class="mgr-note">Le <b>voci</b> qui sotto sono l'unica cosa che il Custode dell'Archivio sa. Non pesca da nessun'altra parte: se una risposta manca, manca perché manca la voce. Il <b>nome, il tono, il modello e l'interruttore acceso/spento</b> stanno invece nella scheda <b>IA</b>, perché il Custode è un agente come i sensei.</p>
+
+          <div class="grp-title">Prova una domanda</div>
+          <p class="mgr-note">Interroga il bot da qui, come lo vedrebbe un giocatore. Le prove dello staff <b>non consumano</b> il tetto giornaliero.</p>
+          <div class="cat-form" id="hkb-prova-form">
+            <label class="full">Domanda<input id="hkb-prova-q" maxlength="300" placeholder="es. dove trovo l'elenco dei jutsu?"></label>
+          </div>
+          <div class="cat-actions">
+            <button class="btn btn-red" id="hkb-prova-go">Chiedi</button>
+            <span id="hkb-prova-note" class="editing-note"></span>
+          </div>
+          <div id="hkb-prova-out"></div>
+
+          <div class="grp-title">Le voci</div>
+          <button type="button" class="adm-addbtn" data-addnew="aiuto"><span class="plus">+</span> Aggiungi una voce</button>
+          <div class="cat-formwrap" hidden>
+          <div class="cat-form" id="hkb-form">
+            <label>Sezione<select id="hkb-sez"><option value="Funzioni">Funzioni</option><option value="Regole">Regole</option><option value="Mondo">Mondo</option><option value="Storia">Storia</option></select></label>
+            <label>Titolo<input id="hkb-titolo" maxlength="80" placeholder="es. Imparare una tecnica"></label>
+            <label>Ordine<input id="hkb-sort" type="number" step="10" placeholder="10"></label>
+            <label class="chk"><input type="checkbox" id="hkb-active" checked> Attiva (il bot la usa)</label>
+            <label class="full">Testo <span class="opt">(quello che il bot può dire: scrivilo come risposta, non come appunto)</span><textarea id="hkb-testo" maxlength="1200" rows="4" placeholder="Nella Scheda, sezione Jutsu e Abilità, scegli la disciplina e apri la tecnica…"></textarea></label>
+            <label class="full">Dove si trova <span class="opt">(il bot lo cita per indirizzare il giocatore)</span><input id="hkb-dove" maxlength="160" placeholder="es. Pagina Scheda, sezione Jutsu e Abilità"></label>
+            <label class="full">Parole chiave <span class="opt">(separate da virgola: aiutano a farla trovare)</span><input id="hkb-tags" maxlength="240" placeholder="allenare, imparare, addestramento, maestro"></label>
+          </div>
+          <div class="cat-actions">
+            <button class="btn btn-red" id="hkb-save">Salva voce</button>
+            <button class="btn" id="hkb-reset" style="display:none">Annulla</button>
+            <span id="hkb-editing" class="editing-note"></span>
+          </div>
+          </div>
+          <div id="hkb-list"></div>
           </section>
 
           <section class="adm-page" data-page="clan">
@@ -2080,6 +2117,126 @@
         admFormShow('tecniche');
       });
     }
+    /* ================= Aiuto — voci del Tavolo di Aiuto (31/07/2026) =================
+       help_kb e la sola fonte del Custode dell'Archivio. Niente DELETE: una voce
+       sbagliata si disattiva, cosi il testo resta e si puo rimettere. */
+    var HKB=[], editingHkb=null;
+    function resetHkbForm(){
+      editingHkb=null;
+      if($('hkb-sez'))$('hkb-sez').value='Funzioni';
+      if($('hkb-titolo'))$('hkb-titolo').value='';
+      if($('hkb-sort'))$('hkb-sort').value='';
+      if($('hkb-testo'))$('hkb-testo').value='';
+      if($('hkb-dove'))$('hkb-dove').value='';
+      if($('hkb-tags'))$('hkb-tags').value='';
+      if($('hkb-active'))$('hkb-active').checked=true;
+      if($('hkb-reset'))$('hkb-reset').style.display='none';
+      if($('hkb-editing'))$('hkb-editing').textContent='';
+      if($('hkb-save'))$('hkb-save').textContent='Salva voce';
+    }
+    async function loadHkb(){
+      if(!sb) return;
+      var r=await sb.from('help_kb').select('*').order('sezione').order('sort');
+      HKB=(r&&r.data)||[]; renderHkb();
+    }
+    function renderHkb(){
+      var host=$('hkb-list'); if(!host) return;
+      if(!HKB.length){ host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessuna voce. Il bot non saprebbe rispondere a niente.</p>'; return; }
+      var sez=[['Funzioni','Funzioni della land'],['Regole','Regolamento'],['Mondo','Mondo'],['Storia','Storia']];
+      host.innerHTML=sez.map(function(g){
+        var rows=HKB.filter(function(v){ return v.sezione===g[0]; });
+        if(!rows.length) return '';
+        var attive=rows.filter(function(v){ return v.is_active; }).length;
+        return '<div class="bd-cat">'+g[1]+' · '+attive+' attive su '+rows.length+'</div>'+rows.map(function(v){
+          return '<div class="locrow'+(v.is_active?'':' off')+'">'+
+            '<div class="lmain"><span class="lname">'+esc(v.titolo)+'</span>'+
+            '<span class="lmeta"> · ordine '+(v.sort!=null?v.sort:0)+(v.is_active?'':' · disattivata')+'</span>'+
+            '<span class="ldesc">'+esc(String(v.testo||'').slice(0,160))+(String(v.testo||'').length>160?'…':'')+'</span>'+
+            (v.dove?('<span class="ldesc"><b>Dove:</b> '+esc(v.dove)+'</span>'):'')+
+            ((v.tags&&v.tags.length)?('<span class="ldesc"><b>Chiavi:</b> '+esc(v.tags.join(', '))+'</span>'):'')+
+            '</div><div class="lacts">'+
+              '<button class="mini-btn" data-hkbedit="'+v.id+'">Modifica</button>'+
+              '<button class="mini-btn" data-hkbtoggle="'+v.id+'">'+(v.is_active?'Disattiva':'Attiva')+'</button>'+
+            '</div></div>';
+        }).join('');
+      }).join('');
+    }
+    function bindHkb(){
+      var sv=$('hkb-save');
+      if(sv) sv.addEventListener('click',async function(){
+        var titolo=($('hkb-titolo').value||'').trim();
+        var testo=($('hkb-testo').value||'').trim();
+        if(titolo.length<3){ toast('Serve un titolo'); return; }
+        if(testo.length<20){ toast('Il testo e troppo corto: il bot deve poterci rispondere'); return; }
+        var tg=($('hkb-tags').value||'').split(',').map(function(x){return x.trim();}).filter(Boolean);
+        var riga={ sezione:$('hkb-sez').value, titolo:titolo, testo:testo,
+                   dove:($('hkb-dove').value||'').trim()||null, tags:tg,
+                   sort:parseInt($('hkb-sort').value,10)||0,
+                   is_active:!!$('hkb-active').checked, updated_at:new Date().toISOString() };
+        sv.disabled=true;
+        var r = editingHkb ? await sb.from('help_kb').update(riga).eq('id',editingHkb)
+                           : await sb.from('help_kb').insert(riga);
+        sv.disabled=false;
+        if(r&&r.error){ toast(r.error.message||'Errore nel salvataggio'); return; }
+        toast(editingHkb?'Voce aggiornata':'Voce creata');
+        resetHkbForm(); admFormHide('aiuto'); loadHkb();
+      });
+      var rs=$('hkb-reset'); if(rs) rs.addEventListener('click',function(){ resetHkbForm(); admFormHide('aiuto'); });
+      var host=$('hkb-list');
+      if(host) host.addEventListener('click',async function(e){
+        var ed=e.target.closest('[data-hkbedit]');
+        if(ed){
+          var id=ed.getAttribute('data-hkbedit'), v=null;
+          for(var i=0;i<HKB.length;i++){ if(HKB[i].id===id){ v=HKB[i]; break; } }
+          if(!v) return;
+          editingHkb=id;
+          $('hkb-sez').value=v.sezione; $('hkb-titolo').value=v.titolo||'';
+          $('hkb-sort').value=(v.sort!=null?v.sort:''); $('hkb-testo').value=v.testo||'';
+          $('hkb-dove').value=v.dove||''; $('hkb-tags').value=(v.tags||[]).join(', ');
+          $('hkb-active').checked=!!v.is_active;
+          $('hkb-reset').style.display=''; $('hkb-editing').textContent='Stai modificando: '+v.titolo;
+          $('hkb-save').textContent='Aggiorna voce';
+          admFormShow('aiuto');
+          return;
+        }
+        var tg2=e.target.closest('[data-hkbtoggle]');
+        if(tg2){
+          var id2=tg2.getAttribute('data-hkbtoggle'), w=null;
+          for(var j=0;j<HKB.length;j++){ if(HKB[j].id===id2){ w=HKB[j]; break; } }
+          if(!w) return;
+          tg2.disabled=true;
+          var r2=await sb.from('help_kb').update({is_active:!w.is_active, updated_at:new Date().toISOString()}).eq('id',id2);
+          tg2.disabled=false;
+          if(r2&&r2.error){ toast(r2.error.message||'Errore'); return; }
+          toast(w.is_active?'Voce disattivata':'Voce riattivata'); loadHkb();
+        }
+      });
+      var pg=$('hkb-prova-go');
+      if(pg) pg.addEventListener('click',async function(){
+        var q=(($('hkb-prova-q')||{}).value||'').trim();
+        if(q.length<3){ toast('Scrivi una domanda'); return; }
+        var out=$('hkb-prova-out'), note=$('hkb-prova-note');
+        pg.disabled=true; if(note)note.textContent='Sto chiedendo…';
+        if(out) out.innerHTML='';
+        try{
+          var r3=await sb.functions.invoke('land_help_ai',{body:{domanda:q}});
+          var d=(r3&&r3.data)||null;
+          if(out){
+            if(d&&d.ok){
+              out.innerHTML='<div class="locrow"><div class="lmain"><span class="lname">'+esc(d.nome||'Custode')+'</span>'+
+                '<span class="ldesc" style="white-space:pre-wrap">'+esc(d.risposta)+'</span></div></div>';
+            } else {
+              out.innerHTML='<p class="mgr-note" style="margin:6px 0 0">'+esc((d&&d.motivo)||'Nessuna risposta.')+'</p>';
+            }
+          }
+        } catch(err){
+          if(out) out.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Il tavolo di aiuto non risponde.</p>';
+        }
+        pg.disabled=false; if(note)note.textContent='';
+      });
+      var qi=$('hkb-prova-q');
+      if(qi) qi.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); var b=$('hkb-prova-go'); if(b)b.click(); } });
+    }
     /* ---- Form a comparsa: mostra/nascondi (Clan, Tecniche, Oggetti, Luoghi, Bacheche) ---- */
     function admFormWrap(page){var s=document.querySelector('.adm-page[data-page="'+page+'"]');return s?s.querySelector('.cat-formwrap'):null;}
     function admFormShow(page){var w=admFormWrap(page);if(!w)return;w.hidden=false;var rb=w.querySelector('.cat-actions .btn:not(.btn-red)');if(rb)rb.style.display='';try{window.scrollTo({top:Math.max(0,w.offsetTop-90),behavior:'smooth'});}catch(e){}}
@@ -2103,6 +2260,7 @@
       else if(page==='ia'){iaSetKind('sensei');resetIAForm();}
       else if(page==='ia-trama'){iaSetKind('png_trama');resetIAForm();admFormShow('ia');return;}
       else if(page==='ninjabook'){resetNBForm();nbShowForm();return;}
+      else if(page==='aiuto')resetHkbForm();
       else if(page==='clan')resetClanForm();
       else if(page==='tecniche')resetTechForm();
       admFormShow(page);
@@ -2313,7 +2471,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPg();await loadPg();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
+      await loadClans();bindClans();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindHkb();await loadHkb();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPg();await loadPg();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};

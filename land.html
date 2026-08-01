@@ -602,6 +602,22 @@
   .jdb-sub.on{background:rgba(166,50,29,.12);border-color:var(--rule);color:var(--red-deep)}
   .jdb-sub.on i{color:var(--red-deep)}
   .jdb-altrove{font-size:13px;color:var(--ink-soft);font-style:italic;margin:10px 2px 0}
+  /* --- Tavolo di Aiuto (31/07/2026) --- */
+  .hlp-intro{font-size:13.5px;color:var(--ink-soft);font-style:italic;margin:0 0 10px}
+  .hlp-log{display:flex;flex-direction:column;gap:10px;margin:0 0 12px}
+  .hlp-b{border:1px solid var(--edge);border-radius:10px;padding:9px 12px;max-width:92%;font-family:'Cormorant Garamond',serif;font-size:15.5px;line-height:1.55;white-space:pre-wrap}
+  .hlp-b.io{align-self:flex-end;background:rgba(166,50,29,.09);border-color:var(--rule)}
+  .hlp-b.lui{align-self:flex-start;background:rgba(255,252,245,.7)}
+  .hlp-b.err{align-self:flex-start;background:rgba(166,50,29,.06);border-style:dashed;font-style:italic}
+  .hlp-who{display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:3px}
+  .hlp-ask{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;border-top:1px solid var(--edge);padding-top:11px}
+  .hlp-q{flex:1;min-width:200px;font-family:'Cormorant Garamond',serif;font-size:15.5px;padding:9px 11px;border:1px solid var(--edge);border-radius:9px;background:#fbf4e1;color:var(--ink);resize:vertical;min-height:44px}
+  .hlp-send{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#f6ead0;background:linear-gradient(180deg,var(--red),var(--red-deep));border:1px solid var(--red-deep);border-radius:9px;padding:10px 18px;cursor:pointer;flex:0 0 auto}
+  .hlp-send[disabled]{opacity:.5;cursor:default}
+  .hlp-left{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);flex:0 0 auto;width:100%;margin-top:2px}
+  .hlp-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+  .hlp-chip{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-soft);background:transparent;border:1px dashed var(--edge);border-radius:20px;padding:5px 12px;cursor:pointer}
+  .hlp-chip:hover{color:var(--ink);border-style:solid;background:rgba(166,50,29,.06)}
   @media(max-width:720px){ .jdb-sub{font-size:9px;padding:4px 8px} }
   .jdb-card{border:1px solid var(--edge);border-radius:9px;background:rgba(255,252,245,.6);padding:9px 11px}
   .jdb-top{display:flex;align-items:baseline;gap:6px;margin-bottom:3px}
@@ -1098,6 +1114,7 @@
               <a class="wr-btn" href="clan.html">Clan</a>
               <button class="wr-btn" type="button" data-world="corporazioni">Corporazioni</button>
               <button class="wr-btn" type="button" data-world="jutsu">Jutsu e Abilità</button>
+              <button class="wr-btn" type="button" data-world="help">Help</button>
               <button class="wr-btn" type="button" data-world="evocazioni">Evocazioni</button>
               <button class="wr-btn" type="button" data-world="cercoteri">Cercoteri</button>
               <button class="wr-btn" type="button" data-world="premi">Premi</button>
@@ -1284,6 +1301,31 @@
         <button class="miss-tab" type="button" data-ptab="staff">Solo dallo staff</button>
       </div>
       <div class="miss-body" id="prm-body"></div>
+    </div>
+  </div>
+  <div class="mailov-backdrop" id="helpov-backdrop" hidden></div>
+  <div class="mailov" id="helpov" hidden aria-label="Tavolo di Aiuto">
+    <div class="missov-card">
+      <button class="mailov-x" id="helpov-x" type="button" title="Chiudi">×</button>
+      <div class="miss-head">
+        <span class="miss-title" id="hlp-title">Tavolo di Aiuto</span>
+      </div>
+      <div class="miss-body">
+        <p class="hlp-intro">Chiedi dove si trova una cosa o cosa dice una regola. Risponde solo con quello che è scritto nella land: regole, mondo, storia e funzionamento del sito. Non conosce il tuo personaggio e non calcola nulla — quello lo fa il server.</p>
+        <div class="hlp-chips" id="hlp-chips">
+          <button type="button" class="hlp-chip" data-hlpq="Come si impara una tecnica?">Come si impara una tecnica?</button>
+          <button type="button" class="hlp-chip" data-hlpq="Quanti punti caratteristica ho alla creazione?">Punti alla creazione</button>
+          <button type="button" class="hlp-chip" data-hlpq="Dove trovo l'elenco di tutti i jutsu?">Dove sono i jutsu</button>
+          <button type="button" class="hlp-chip" data-hlpq="Come funzionano i premi?">Come funzionano i premi</button>
+          <button type="button" class="hlp-chip" data-hlpq="Quanto deve essere lungo un messaggio di role?">Lunghezza della role</button>
+        </div>
+        <div class="hlp-log" id="hlp-log"></div>
+        <div class="hlp-ask">
+          <textarea class="hlp-q" id="hlp-q" rows="1" maxlength="300" placeholder="Scrivi la tua domanda…"></textarea>
+          <button class="hlp-send" id="hlp-send" type="button">Chiedi</button>
+          <span class="hlp-left" id="hlp-left"></span>
+        </div>
+      </div>
     </div>
   </div>
   <div class="mailov-backdrop" id="cercov-backdrop" hidden></div>
@@ -3017,6 +3059,79 @@
             tabs[i].classList.toggle('empty',n===0);
           }
         }
+        /* ===== Tavolo di Aiuto (31/07/2026) =====
+           Interroga la Edge Function land_help_ai, che risponde solo con quanto
+           sta in help_kb. Nessun dato del personaggio esce da qui: la domanda
+           parte da sola. Il tetto giornaliero lo applica il server. */
+        var HLP={busy:false,storia:[]};
+        function hlpBolla(chi,testo,classe){
+          var log=document.getElementById('hlp-log'); if(!log) return;
+          var d=document.createElement('div');
+          d.className='hlp-b '+(classe||'lui');
+          d.innerHTML='<span class="hlp-who">'+esc(chi)+'</span>'+esc(testo);
+          log.appendChild(d);
+          var body=log.parentNode; if(body) body.scrollTop=body.scrollHeight;
+        }
+        function hlpRestanti(n){
+          var el=document.getElementById('hlp-left'); if(!el) return;
+          el.textContent=(n==null)?'':('Domande che ti restano oggi: '+n);
+        }
+        async function hlpChiedi(testo){
+          if(HLP.busy) return;
+          var q=String(testo||'').trim();
+          if(q.length<3){ toast('Scrivi una domanda un po’ più lunga'); return; }
+          if(!sb||!loggedIn){ toast('Accedi per usare il Tavolo di Aiuto'); return; }
+          var inp=document.getElementById('hlp-q'), btn=document.getElementById('hlp-send');
+          HLP.busy=true; if(btn){ btn.disabled=true; btn.textContent='…'; }
+          hlpBolla('Tu',q,'io'); if(inp) inp.value='';
+          var attesa=document.createElement('div');
+          attesa.className='hlp-b lui'; attesa.id='hlp-wait';
+          attesa.innerHTML='<span class="hlp-who">Custode</span>Sto cercando…';
+          var log=document.getElementById('hlp-log'); if(log) log.appendChild(attesa);
+          try{
+            var r=await sb.functions.invoke('land_help_ai',{body:{domanda:q}});
+            var d=(r&&r.data)||null;
+            var w=document.getElementById('hlp-wait'); if(w&&w.parentNode) w.parentNode.removeChild(w);
+            if(d&&d.ok){
+              hlpBolla(d.nome||'Custode', d.risposta, 'lui');
+              hlpRestanti(d.restanti);
+            } else {
+              hlpBolla('Custode', (d&&d.motivo)||'Non riesco a rispondere in questo momento.', 'err');
+              if(d&&d.restanti!=null) hlpRestanti(d.restanti);
+            }
+          } catch(e){
+            var w2=document.getElementById('hlp-wait'); if(w2&&w2.parentNode) w2.parentNode.removeChild(w2);
+            hlpBolla('Custode','Non riesco a rispondere in questo momento.','err');
+          }
+          HLP.busy=false; if(btn){ btn.disabled=false; btn.textContent='Chiedi'; }
+          if(inp) inp.focus();
+        }
+        function openHelp(){
+          if(!loggedIn){ toast('Accedi per usare il Tavolo di Aiuto'); return; }
+          var ov=document.getElementById('helpov'), bk=document.getElementById('helpov-backdrop');
+          if(ov)ov.hidden=false; if(bk)bk.hidden=false;
+          var inp=document.getElementById('hlp-q'); if(inp) setTimeout(function(){inp.focus();},80);
+          if(sb) sb.rpc('help_restanti').then(function(r){ if(r&&!r.error) hlpRestanti(r.data); },function(){});
+        }
+        function closeHelp(){
+          var ov=document.getElementById('helpov'), bk=document.getElementById('helpov-backdrop');
+          if(ov)ov.hidden=true; if(bk)bk.hidden=true;
+        }
+        function helpOpenNow(){ var ov=document.getElementById('helpov'); return !!(ov && !ov.hidden); }
+        (function(){
+          var x=document.getElementById('helpov-x'); if(x)x.addEventListener('click',closeHelp);
+          var bk=document.getElementById('helpov-backdrop'); if(bk)bk.addEventListener('click',closeHelp);
+          document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&helpOpenNow())closeHelp(); });
+          var b=document.getElementById('hlp-send'); if(b)b.addEventListener('click',function(){
+            var i=document.getElementById('hlp-q'); hlpChiedi(i?i.value:'');
+          });
+          var i2=document.getElementById('hlp-q'); if(i2)i2.addEventListener('keydown',function(e){
+            if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); hlpChiedi(this.value); }
+          });
+          var ch=document.getElementById('hlp-chips'); if(ch)ch.addEventListener('click',function(e){
+            var c=e.target.closest('[data-hlpq]'); if(c) hlpChiedi(c.getAttribute('data-hlpq'));
+          });
+        })();
         function openJutsu(tab){
           if(!loggedIn){ toast('Accedi per consultare il Codice delle Tecniche'); return; }
           JDB.tab=tab||JDB.tab||'accademia';
@@ -3089,7 +3204,7 @@
           var tb=document.getElementById('prm-tabs'); if(tb) tb.addEventListener('click', function(e){ var b=e.target.closest('[data-ptab]'); if(!b) return; prmTab=b.getAttribute('data-ptab'); prmRender(); });
         })();
 
-        var wr=document.getElementById('world-rail'); if(wr) wr.addEventListener('click', function(e){ var b=e.target.closest('[data-world]'); if(!b) return; var k=b.getAttribute('data-world'); if(k==='corporazioni'){ openCorp(); } else if(k==='jutsu'||k==='abilita'){ openJutsu(); } else if(k==='cercoteri'){ openCerc('bestie'); } else if(k==='premi'){ openPrm(); } else { openWorld(k); } });
+        var wr=document.getElementById('world-rail'); if(wr) wr.addEventListener('click', function(e){ var b=e.target.closest('[data-world]'); if(!b) return; var k=b.getAttribute('data-world'); if(k==='corporazioni'){ openCorp(); } else if(k==='jutsu'||k==='abilita'){ openJutsu(); } else if(k==='help'){ openHelp(); } else if(k==='cercoteri'){ openCerc('bestie'); } else if(k==='premi'){ openPrm(); } else { openWorld(k); } });
         var wc=document.getElementById('world-close'); if(wc) wc.addEventListener('click', closeWorld);
       })();
 
