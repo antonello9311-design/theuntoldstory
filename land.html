@@ -334,6 +334,16 @@
      è un serif sottile, e il peso 600 pesa più di qualunque ritocco al colore. */
   .msg .m-body{font-size:16.5px;font-weight:600;line-height:1.52;color:var(--ink);white-space:pre-wrap;margin-top:3px}
   .msg+.msg{border-top:1px dashed var(--edge);padding-top:11px}
+  .msgs,.who-list{scrollbar-width:none;-ms-overflow-style:none}
+  .msgs::-webkit-scrollbar,.who-list::-webkit-scrollbar{width:0;height:0;display:none}
+  .chat{position:relative}
+  .side-card.who{position:relative}
+  .scrollarrows{position:absolute;right:7px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:5px;z-index:3}
+  .scrollarrows[hidden]{display:none}
+  .scrollarrows button{width:22px;height:22px;border-radius:50%;border:1px solid var(--edge);background:rgba(247,238,214,.82);color:var(--red-deep);font-size:8.5px;line-height:1;cursor:pointer;padding:0;opacity:.45;transition:opacity .15s,background .15s;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .scrollarrows button:hover{opacity:1;background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+  .scrollarrows.mini{position:static;transform:none;display:inline-flex;flex-direction:row;gap:3px;margin-left:7px;vertical-align:middle}
+  .scrollarrows.mini button{width:15px;height:15px;font-size:6.5px;box-shadow:none}
   .msgs-empty{margin:auto;color:var(--ink-soft);font-style:italic;text-align:center}
   .composer{position:relative;flex-shrink:0;border-top:1px solid var(--edge);padding:10px 12px;background:rgba(255,250,235,.6)}
   .composer textarea{width:100%;box-sizing:border-box;resize:vertical;min-height:54px;max-height:150px;font-family:inherit;font-size:15px;line-height:1.4;padding:8px 10px;border:1px solid var(--edge);border-radius:8px;background:#fbf4e1;color:var(--ink)}
@@ -1172,7 +1182,7 @@
           </div>
           <div class="room-grid">
             <section class="chat">
-              <div class="msgs" id="msgs"></div>
+              <div class="msgs" id="msgs"></div><div class="scrollarrows" id="msgs-arrows" hidden><button type="button" data-scroll="msgs" data-dir="-1" title="Scorri su" aria-label="Scorri su">▲</button><button type="button" data-scroll="msgs" data-dir="1" title="Scorri giù" aria-label="Scorri giù">▼</button></div>
               <div class="composer">
                 <div class="place-bar"><svg class="pb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg><input id="msg-place" class="pb-input" maxlength="60" autocomplete="off" placeholder="Luogo — es. Strade del villaggio"></div>
                 <textarea id="msg-input" maxlength="5000" placeholder="Scrivi il tuo turno di gioco…"></textarea>
@@ -1197,7 +1207,7 @@
                 <div id="rec-body"></div>
               </div>
               <div class="side-card who">
-                <div class="side-k">Presenti</div>
+                <div class="side-k">Presenti<span class="scrollarrows mini" id="who-arrows" hidden><button type="button" data-scroll="who-list" data-dir="-1" title="Scorri su" aria-label="Scorri su">▲</button><button type="button" data-scroll="who-list" data-dir="1" title="Scorri giù" aria-label="Scorri giù">▼</button></span></div>
                 <div id="who-list" class="who-list"></div>
               </div>
             </aside>
@@ -1780,6 +1790,26 @@
       function identityHTML(c,name,cid,created){ var sx=c&&c.sex; var sexIc=(sx==='Maschio')?SEX_M:((sx==='Femmina')?SEX_F:''); var wo=cid?('<a class="m-who" href="scheda.html?id='+esc(cid)+'">'):'<span class="m-who">'; var wc=cid?'</a>':'</span>'; var rk=c&&c.rank; var rimg=(rk&&EMB['rank:'+rk]); var rbadge=rimg?('<span class="rb"><img src="'+esc(rimg)+'" alt=""></span>'):rankBadge(rk); var rankH=rk?('<span class="m-rank">'+rbadge+esc(rk)+'</span>'):''; var cl=(c&&c.clan&&c.clan!=='Nessuno')?c.clan:''; var clanImg=clanEmbSpan(cl,(c&&c.clan_role==='Capo clan'),14); var clanH=cl?('<a class="m-clan" href="clan.html?c='+encodeURIComponent(cl)+'" title="Apri il clan">'+clanImg+esc(cl)+'</a>'):''; var ep=c&&c.epithet; var epiH=ep?('<span class="m-epi">«'+esc(ep)+'»</span>'):''; return '<div class="m-head">'+wo+esc(name)+wc+sexIc+rankH+clanH+epiH+'<span class="m-time">'+fmt(created)+'</span></div>'; }
       function loadEmblems(){ if(!sb) return; sb.from('emblems').select('kind,name,image_url').in('kind',['clan','rank','village','corp','corpspec','corpgrade','bijuu','evofam']).then(function(r){ if(r&&!r.error){ (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.kind+':'+e.name]=e.image_url; }); } }, function(){}); }
       function showPtsReminder(n){ var el=document.getElementById('pts-reminder'); if(!el) return; if(n>0){ var pn=document.getElementById('pts-n'); if(pn) pn.textContent=n; el.hidden=false; } else { el.hidden=true; } }
+    /* Barre di scorrimento nascoste: restano due frecce, e solo quando serve scorrere. */
+    (function(){
+      function collega(idLista, idFrecce){
+        var el=document.getElementById(idLista), ar=document.getElementById(idFrecce);
+        if(!el||!ar) return;
+        function aggiorna(){ try{ ar.hidden = (el.scrollHeight - el.clientHeight) < 8; }catch(e){} }
+        el.addEventListener('scroll', aggiorna);
+        window.addEventListener('resize', aggiorna);
+        try{ new MutationObserver(aggiorna).observe(el, {childList:true, subtree:true, characterData:true}); }catch(e){}
+        setTimeout(aggiorna, 300); aggiorna();
+      }
+      collega('msgs','msgs-arrows');
+      collega('who-list','who-arrows');
+      document.addEventListener('click', function(e){
+        var b=e.target.closest && e.target.closest('[data-scroll]'); if(!b) return;
+        var el=document.getElementById(b.getAttribute('data-scroll')); if(!el) return;
+        var passo=Math.max(90, Math.round(el.clientHeight*0.6)) * (parseInt(b.getAttribute('data-dir'),10)||1);
+        try{ el.scrollBy({top:passo, behavior:'smooth'}); }catch(err){ el.scrollTop += passo; }
+      });
+    })();
       (function(){ var px=document.getElementById('pts-x'); if(px) px.addEventListener('click',function(){ var el=document.getElementById('pts-reminder'); if(el) el.hidden=true; }); })();
       var PIN='<svg class="pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
       function renderMsgs(rows){
