@@ -427,7 +427,7 @@
         <!-- SHEET -->
         <div id="st-sheet" class="state">
           <div id="mode-badge" class="mode-badge" style="display:none"></div>
-          <div class="page-tabs"><button class="ptab on" data-p="home">Home</button><button class="ptab" data-p="inv">Inventario</button><button class="ptab" data-p="jutsu">Jutsu e abilità</button><button class="ptab" data-p="acad">Accademia</button><button class="ptab" data-p="lib">Libreria role</button></div>
+          <div class="page-tabs"><button class="ptab on" data-p="home">Home</button><button class="ptab" data-p="inv">Inventario</button><button class="ptab" data-p="jutsu">Jutsu e abilità</button><button class="ptab" data-p="png" style="display:none">Compagno PNG</button><button class="ptab" data-p="acad">Accademia</button><button class="ptab" data-p="lib">Libreria role</button></div>
           <div id="page-home" class="spage on">
           <div class="sheet-top">
             <div class="portrait-col">
@@ -627,11 +627,13 @@
               <div class="svlist" id="pr-list"></div>
             </div>
           </div>
-          <div id="page-acad" class="spage">
+          <div id="page-png" class="spage">
             <div class="ssec" id="sec-comp" style="display:none"><h3>Compagno PNG <span class="priv">◈ evocazioni · marionette · cani ninja</span></h3>
               <p class="hint">Il tuo <b>compagno</b> agisce nel <b>tuo stesso turno</b>: in chat, il pulsante 🎭 accanto a «Tecnica» apre il riquadro con la sua azione. <b>Slot: 1</b> (ampliamenti concessi dallo staff). La <b>taglia</b> (baby → piccola → media → grande → leggendaria) la assegna lo staff col progredire della storia. Requisiti: <b>marionetta</b> per il clan Marionettisti, <b>cane ninja</b> per gli Inuzuka, <b>evocazione</b> con il Contratto (sezione Premi) <b>più il jutsu del Richiamo</b>, che si impara in gioco con gli addestramenti.</p>
               <div id="comp-wrap"></div>
             </div>
+          </div>
+          <div id="page-acad" class="spage">
             <div class="ssec" id="sec-acad"><h3>Accademia</h3>
               <p class="hint">Le lezioni che hai svolto. Il collegamento per rileggere la chat di ogni lezione arriverà con l'Accademia in versione chat.</p>
               <div id="acadlog-wrap"></div></div>
@@ -1228,36 +1230,87 @@
       loadCompagni();
     }
 
-    /* ===== Compagno PNG (evocazioni, marionette, cani ninja) ===== */
+    /* ===== Compagno PNG (evocazioni, marionette, cani ninja) =====
+       La linguetta esiste solo per chi può davvero avere un compagno. Chi non
+       può, non la vede: prima il riquadro stava dentro Accademia e lo vedevano
+       tutti, con un menù che offriva marionette a chi non è Marionettista.
+       La verità resta companion_create, che rifiuta a database: qui si evita
+       soltanto di proporre porte chiuse. */
+    var PNG_CLAN={'Marionettisti':'marionetta','Inuzuka':'cane_ninja'};   /* aggiungere un clan è una riga */
+    var PNG_KMAP={marionetta:['🎭','Marionetta'],cane_ninja:['🐾','Cane ninja'],evocazione:['🐍','Evocazione']};
     async function loadCompagni(){
       var host=$('comp-wrap'), sec=$('sec-comp'); if(!host||!sec) return;
-      if(viewMode!=='owner'||!myChar){ sec.style.display='none'; return; }
+      function spegni(){ sec.style.display='none'; setTabVis('png',false); }
+      if(viewMode!=='owner'||!myChar){ spegni(); return; }
+
+      var res=await Promise.all([
+        sb.from('character_companions').select('*').eq('character_id',myChar.id).order('created_at'),
+        sb.from('companion_slot_overrides').select('extra_slots').eq('character_id',myChar.id).maybeSingle(),
+        sb.from('character_perks').select('tipo').eq('character_id',myChar.id),
+        sb.from('premio_richieste').select('tipo').eq('character_id',myChar.id).eq('status','approvata'),
+        sb.rpc('my_abilities',{p_character:myChar.id})
+      ]);
+      var rows=((res[0]&&res[0].data)||[]);
+      var extra=((res[1]&&res[1].data&&res[1].data.extra_slots)||0);
+      var perks=((res[2]&&res[2].data)||[]).map(function(x){return x.tipo;});
+      var appr=((res[3]&&res[3].data)||[]).map(function(x){return x.tipo;});
+      var abil=((res[4]&&res[4].data)||[]);
+
+      var tipoClan=PNG_CLAN[myChar.clan||'']||null;
+      var haContratto=(perks.indexOf('evocazione')>=0)||(appr.indexOf('evocazione')>=0);
+      var haRichiamo=abil.some(function(a){ return a.name==='Richiamo'&&a.state==='attiva'; });
+
+      /* si vede a chi può crearne uno, e a chi ne ha già uno da gestire */
+      var visibile=!!tipoClan||haContratto||rows.length>0;
+      setTabVis('png',visibile);
+      if(!visibile){ sec.style.display='none'; return; }
       sec.style.display='';
-      var r=await sb.from('character_companions').select('*').eq('character_id',myChar.id).order('created_at');
-      var rows=(r&&r.data)||[];
-      var extra=0; try{ var o=await sb.from('companion_slot_overrides').select('extra_slots').eq('character_id',myChar.id).maybeSingle(); if(o&&o.data) extra=o.data.extra_slots||0; }catch(e){}
+
       var slots=1+extra;
-      var kmap={marionetta:['\uD83C\uDFAD','Marionetta'],cane_ninja:['\uD83D\uDC3E','Cane ninja'],evocazione:['\uD83D\uDC0D','Evocazione']};
+      var tipi=[];
+      if(tipoClan) tipi.push(tipoClan);
+      if(haContratto&&haRichiamo) tipi.push('evocazione');
+
       var h='<p class="hint" style="margin:0 0 8px">Slot compagni: <b>'+rows.length+' / '+slots+'</b></p>';
-      rows.forEach(function(c){ var km=kmap[c.kind]||['',''];
+      rows.forEach(function(c){ var km=PNG_KMAP[c.kind]||['',''];
         h+='<div class="svbox" style="display:flex;gap:12px;align-items:flex-start">'
-          +(c.avatar_url?('<img src="'+esc(c.avatar_url)+'" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:1px solid var(--edge);flex:0 0 auto">'):('<span style="width:54px;height:54px;border-radius:50%;border:1px solid var(--edge);display:inline-flex;align-items:center;justify-content:center;font-size:24px;flex:0 0 auto">'+km[0]+'</span>'))
-          +'<div style="flex:1;min-width:0"><b>'+esc(c.name)+'</b> <span class="svtag a">'+km[0]+' '+km[1]+' \u00B7 '+esc(c.grado)+'</span>'
+          +(c.avatar_url?('<img src="'+esc(c.avatar_url)+'" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:1px solid var(--edge);flex:0 0 auto">'):('<span style="width:54px;height:54px;border-radius:50%;border:1px dashed var(--edge);display:flex;align-items:center;justify-content:center;flex:0 0 auto">'+km[0]+'</span>'))
+          +'<div style="flex:1;min-width:0"><b>'+esc(c.name)+'</b> <span class="svtag a">'+km[0]+' '+km[1]+' · '+esc(c.grado)+'</span>'
           +(c.descr?('<div class="hint" style="margin:4px 0 0">'+esc(c.descr)+'</div>'):'')
           +'<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
-          +'<label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">Volto\u2026 <input type="file" accept="image/*" data-compava="'+c.id+'" style="display:none"></label>'
+          +'<label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">Volto… <input type="file" accept="image/*" data-compava="'+c.id+'" style="display:none"></label>'
           +'<button class="btn btn-ghost btn-sm" type="button" data-compcong="'+c.id+'">Congeda</button>'
           +'</div></div></div>';
       });
-      if(rows.length<slots){
-        h+='<div class="svbox"><h4>Nuovo compagno</h4>'
-         +'<label class="svlab">Tipo<select id="comp-kind"><option value="marionetta">Marionetta \u00B7 clan Marionettisti</option><option value="cane_ninja">Cane ninja \u00B7 clan Inuzuka</option><option value="evocazione">Evocazione \u00B7 serve il Contratto (Premi)</option></select></label>'
-         +'<label class="svlab" id="comp-fam-wrap" style="display:none">Famiglia dell\'evocazione \u00B7 una sola, per sempre<select id="comp-fam"><option value="">\u2014 scegli \u2014</option><option value="rospi">Rospi \u00B7 assalto pesante e controllo del campo</option><option value="serpenti">Serpenti \u00B7 immobilizzo, veleno, infiltrazione</option><option value="rapaci">Rapaci \u00B7 ricognizione, quota, trasporto</option><option value="rettili">Rettili \u00B7 occultamento e furtivit\u00E0</option><option value="lumache">Lumache \u00B7 cura e purificazione (Corpo Medico)</option><option value="scimmie">Scimmie \u00B7 arma vivente, corpo a corpo</option></select></label>'
-         +'<p class="hint" id="comp-fam-nota" style="display:none;margin:6px 0 0">La famiglia non si cambia pi\u00F9 dopo la creazione. Il <b>Richiamo</b> va imparato in gioco con tre addestramenti: finch\u00E9 non \u00E8 attivo, il contratto \u00E8 carta e la creatura non entra in campo.</p>'
+
+      if(rows.length>=slots){
+        h+='<p class="hint" style="margin:8px 0 0">Gli slot sono pieni. Un secondo compagno lo concede soltanto lo staff.</p>';
+      } else if(tipi.length){
+        var scelta;
+        if(tipi.length>1){
+          scelta='<label class="svlab">Tipo<select id="comp-kind">'
+            +tipi.map(function(t){ return '<option value="'+t+'">'+PNG_KMAP[t][1]+(t==='evocazione'?'':(' · clan '+esc(myChar.clan||'')))+'</option>'; }).join('')
+            +'</select></label>';
+        } else {
+          scelta='<input type="hidden" id="comp-kind" value="'+tipi[0]+'">'
+            +'<p class="hint" style="margin:0 0 8px">Stai creando: <b>'+PNG_KMAP[tipi[0]][0]+' '+PNG_KMAP[tipi[0]][1]+'</b>'
+            +(tipi[0]==='evocazione'?'':(' · per diritto di clan'))+'.</p>';
+        }
+        h+='<div class="svbox"><h4>Nuovo compagno</h4>'+scelta
+         +'<label class="svlab" id="comp-fam-wrap" style="display:none">Famiglia dell\'evocazione · una sola, per sempre<select id="comp-fam"><option value="">— scegli —</option><option value="rospi">Rospi</option><option value="serpenti">Serpenti</option><option value="rapaci">Rapaci</option><option value="rettili">Rettili</option><option value="lumache">Lumache</option><option value="scimmie">Scimmie</option></select></label>'
+         +'<p class="hint" id="comp-fam-nota" style="display:none;margin:6px 0 0">La famiglia non si cambia più dopo la creazione.</p>'
          +'<label class="svlab">Nome<input id="comp-name" maxlength="40" placeholder="es. Karasu"></label>'
-         +'<label class="svlab">Descrizione breve (facoltativa)<textarea id="comp-descr" maxlength="300" rows="2" placeholder="Aspetto e carattere del compagno\u2026"></textarea></label>'
+         +'<label class="svlab">Descrizione breve (facoltativa)<textarea id="comp-descr" maxlength="300" rows="2" placeholder="Aspetto e carattere del compagno…"></textarea></label>'
          +'<button class="btn btn-red btn-sm" id="comp-create" type="button" style="margin-top:8px">Crea compagno</button></div>';
+        if(haContratto&&!haRichiamo){
+          h+='<p class="hint" style="margin:8px 0 0">Hai anche il <b>Contratto di evocazione</b>, ma la creatura non entra in campo finché non impari il <b>Richiamo</b>: tre addestramenti in scena, nessun XP.</p>';
+        }
+      } else if(haContratto&&!haRichiamo){
+        h+='<div class="svbox"><h4>Ti manca il Richiamo</h4>'
+         +'<p class="hint" style="margin:0">Hai il <b>Contratto di evocazione</b>, ma il contratto da solo non porta in campo nessuno: serve il jutsu del <b>Richiamo</b>, che <b>non si compra con gli XP</b> e si impara in scena con <b>tre addestramenti</b> condotti da chi ha già un contratto o da un master.</p>'
+         +'<p class="hint" style="margin:6px 0 0">Quando il Richiamo è attivo, qui compare il modulo per creare la creatura e scegliere la <b>famiglia</b> — una sola, per sempre.</p></div>';
       }
+
       host.innerHTML=h;
       var ck=$('comp-kind');
       function compKindSync(){ var ev=(ck&&ck.value==='evocazione');
@@ -1272,7 +1325,7 @@
         var r2=await sb.rpc('companion_create',{p_kind:kd,p_name:nm,p_descr:(($('comp-descr').value||'').trim()||null),p_famiglia:(fam||null)});
         this.disabled=false;
         if(r2&&r2.error){ toast(r2.error.message||'Impossibile creare',true); return; }
-        toast('Compagno creato: lo trovi anche in chat, pulsante \uD83C\uDFAD'); loadCompagni();
+        toast('Compagno creato: lo trovi anche in chat, pulsante 🎭'); loadCompagni();
       });
       Array.prototype.forEach.call(host.querySelectorAll('[data-compcong]'), function(b){ b.addEventListener('click', async function(){
         if(b.getAttribute('data-arm')!=='1'){ b.setAttribute('data-arm','1'); b.textContent='Confermi?'; setTimeout(function(){ if(b.getAttribute('data-arm')==='1'){ b.setAttribute('data-arm','0'); b.textContent='Congeda'; } },4000); return; }
