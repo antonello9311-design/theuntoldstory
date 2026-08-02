@@ -427,7 +427,7 @@
         <!-- SHEET -->
         <div id="st-sheet" class="state">
           <div id="mode-badge" class="mode-badge" style="display:none"></div>
-          <div class="page-tabs"><button class="ptab on" data-p="home">Home</button><button class="ptab" data-p="inv">Inventario</button><button class="ptab" data-p="jutsu">Jutsu e abilità</button><button class="ptab" data-p="png" style="display:none">Compagno PNG</button><button class="ptab" data-p="acad">Accademia</button><button class="ptab" data-p="lib">Libreria role</button></div>
+          <div class="page-tabs"><button class="ptab on" data-p="home">Home</button><button class="ptab" data-p="inv">Inventario</button><button class="ptab" data-p="jutsu">Jutsu e abilità</button><button class="ptab" data-p="acad">Accademia</button><button class="ptab" data-p="lib">Libreria role</button><button class="ptab" data-p="premi">Premi</button></div>
           <div id="page-home" class="spage on">
           <div class="sheet-top">
             <div class="portrait-col">
@@ -594,15 +594,31 @@
           </div>
           </div>
           <div id="page-jutsu" class="spage">
+            <div class="ssec" id="sec-basi"><h3>Basi d'Accademia</h3>
+              <p class="hint">Le tecniche che si imparano all'Accademia, una lezione alla volta. Qui vedi quali hai già appreso e a quale lezione si insegnano le altre.</p>
+              <div id="basi-wrap"><p class="hint" style="margin:0">Caricamento…</p></div></div>
             <div class="ssec" id="sec-jutsu"><h3>Jutsu e abilità</h3>
               <p class="hint">Le <b>abilità</b> (competenze e capacità) e i <b>jutsu</b> (tecniche) appresi dal personaggio: si imparano all'Accademia e con la progressione.</p>
-              <div id="jutsu-wrap"></div>
-              <div id="train-wrap" style="margin-top:18px"></div></div>
+              <div id="jutsu-wrap"></div></div>
+            <div class="ssec" id="sec-cat"><h3>Catalogo jutsu e abilità</h3>
+              <div id="train-wrap"></div></div>
+          </div>
+          <div id="page-premi" class="spage">
             <div class="ssec" id="sec-premi" style="display:none"><h3>Premi speciali <span class="priv">◈ conquiste della carriera</span></h3>
               <p class="hint">I <b>premi</b> sono acquisti straordinari pagati in XP e legati alla trama: si chiedono qui e decide lo staff. L'XP viene scalato solo all'approvazione.<br>I <b>premi maggiori</b> — contratto leggendario, tecnica proibita, tecnica personale di grado S, sigillo maledetto e Cercoterio — sono <b>due per tutta la carriera</b>, e il Cercoterio da solo li occupa entrambi. Gli altri premi restano fuori dal conteggio.</p>
               <div id="perk-list"></div>
+              <div class="svbox" id="premio-compra" style="display:none">
+                <h4>Si compra subito</h4>
+                <p class="hint" style="margin:0 0 8px">Questi non passano dallo staff: paghi con il saldo XP e li ottieni all'istante.</p>
+                <label class="svlab">Premio
+                  <select id="pc-tipo"></select>
+                </label>
+                <textarea id="pc-dettaglio" maxlength="600" placeholder="Indica cosa stai prendendo, per esempio la famiglia di evocazione…"></textarea>
+                <div class="prcost" id="pc-costo-line"></div>
+                <button class="btn btn-red btn-sm" id="pc-send" style="margin-top:8px">Acquista</button>
+              </div>
               <div class="svbox" id="premio-box" style="display:none">
-                <h4 id="pr-titolo">Premi speciali</h4>
+                <h4 id="pr-titolo">Chiedi un premio allo staff</h4>
                 <div class="prslot" id="pr-slot"></div>
                 <label class="svlab">Premio
                   <select id="pr-tipo"></select>
@@ -627,13 +643,11 @@
               <div class="svlist" id="pr-list"></div>
             </div>
           </div>
-          <div id="page-png" class="spage">
+          <div id="page-acad" class="spage">
             <div class="ssec" id="sec-comp" style="display:none"><h3>Compagno PNG <span class="priv">◈ evocazioni · marionette · cani ninja</span></h3>
               <p class="hint">Il tuo <b>compagno</b> agisce nel <b>tuo stesso turno</b>: in chat, il pulsante 🎭 accanto a «Tecnica» apre il riquadro con la sua azione. <b>Slot: 1</b> (ampliamenti concessi dallo staff). La <b>taglia</b> (baby → piccola → media → grande → leggendaria) la assegna lo staff col progredire della storia. Requisiti: <b>marionetta</b> per il clan Marionettisti, <b>cane ninja</b> per gli Inuzuka, <b>evocazione</b> con il Contratto (sezione Premi) <b>più il jutsu del Richiamo</b>, che si impara in gioco con gli addestramenti.</p>
               <div id="comp-wrap"></div>
             </div>
-          </div>
-          <div id="page-acad" class="spage">
             <div class="ssec" id="sec-acad"><h3>Accademia</h3>
               <p class="hint">Le lezioni che hai svolto. Il collegamento per rileggere la chat di ogni lezione arriverà con l'Accademia in versione chat.</p>
               <div id="acadlog-wrap"></div></div>
@@ -695,7 +709,7 @@
     function $(id){return document.getElementById(id);}
     function show(id){['st-loading','st-guest','st-error','st-create','st-sheet'].forEach(function(s){$(s).classList.toggle('on',s===id);});}
     function toast(m,e){var t=$('toast');t.textContent=m;t.className='toast show'+(e?' err':'');setTimeout(function(){t.className='toast';},2600);}
-    function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+    function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 
     /* ---- emblemi (originali; elementi = kanji reali) ---- */
     var LEAF='<svg viewBox="0 0 24 24"><path d="M12 3 C6 8 5 15 12 21 C19 15 18 8 12 3 Z" fill="#3f7d55"/><path d="M12 6 L12 19" stroke="#2f5a3d" stroke-width="1.4"/></svg>';
@@ -1016,7 +1030,19 @@
       if(orf) t+=' · '+orf+' non ancora insegnate';
       return '<span class="tk-orig-n">'+t+'</span>';
     }
+    /* [02/08/2026] Le Basi d'Accademia in cima alla pagina: sono la prima cosa che
+       serve a chi arriva, e non devono stare sepolte in fondo al catalogo. */
+    function renderBasi(){
+      var host=$('basi-wrap'); if(!host) return;
+      var b=(TK.base||[]);
+      if(!b.length){ host.innerHTML='<p class="hint" style="margin:0">Nessuna base d\'Accademia attiva.</p>'; return; }
+      var h=((_rankOrd(myChar&&myChar.rank)<1)?TK_DESHI_BOX:'');
+      h+='<div class="tk-orig">Le otto basi'+tkBaseSummary()+'</div>';
+      b.forEach(function(j){ h+=tkBaseRow(j); });
+      host.innerHTML=h;
+    }
     function paintCatalog(){
+      renderBasi();
       var list=$('train-list'); if(!list) return;
       var canAct=(viewMode!=='public'); var q=TK.q;
       var hasClan=!!(myChar&&myChar.clan&&myChar.clan!=='Nessuno');
@@ -1030,10 +1056,8 @@
         if(!tkMatch(t,q)||!techShow(t)) return;
         push(techTab(t),techOrig(t),tkRow(t,TK.byId[t.id],canAct));
       });
-      (TK.base||[]).forEach(function(j){
-        if(!tkBaseMatch(j,q)) return;
-        push(j.kind==='abilita'?'Abilità':'Ninjutsu','Basi d\'Accademia',tkBaseRow(j));
-      });
+      /* [02/08/2026] Le Basi d'Accademia non stanno più qui dentro: hanno il loro
+         blocco in cima alla pagina, disegnato da renderBasi(). */
 
       // Conteggio globale delle tecniche apprendibili ora — ignora la ricerca
       var _learn=(TK.techs||[]).concat(genOk).filter(techLearnable);
@@ -1044,13 +1068,12 @@
 
       var live=TK_TABS.filter(function(d){ return (buckets[d]||[]).length>0; });
       if(!live.length){
-        list.innerHTML=(_isDeshi&&!q?TK_DESHI_BOX:'')+'<p class="hint" style="margin:0">'+(q?('Nessuna tecnica trovata per «'+esc(q)+'».'):(_isDeshi?'Le Basi d\'Accademia compariranno qui appena le lezioni saranno attive.':'Nessuna tecnica alla tua portata per ora: sali di grado, alza le statistiche o entra in un clan.'))+'</p>';
+        list.innerHTML='<p class="hint" style="margin:0">'+(q?('Nessuna tecnica trovata per «'+esc(q)+'».'):(_isDeshi?'Da Deshi qui non c\'è ancora nulla: il tuo percorso sono le <b>Basi d\'Accademia</b>, in cima a questa pagina.':'Nessuna tecnica alla tua portata per ora: sali di grado, alza le statistiche o entra in un clan.'))+'</p>';
         return;
       }
       if(live.indexOf(TKTAB)<0) TKTAB=live[0];
 
-      var h=(_isDeshi?TK_DESHI_BOX:'');
-      h+='<div class="tk-tabs">';
+      var h='<div class="tk-tabs">';
       live.forEach(function(d){
         h+='<button type="button" class="tk-tab'+(d===TKTAB?' on':'')+'" data-tktab="'+esc(d)+'">'+esc(d)+'<i>'+buckets[d].length+'</i></button>';
       });
@@ -1069,7 +1092,7 @@
       var host=$('train-wrap'); if(!host) return;
       if(viewMode==='public'||!sb||!myChar){ host.innerHTML=''; return; }
       var hasClan=!!(myChar.clan&&myChar.clan!=='Nessuno');
-      host.innerHTML='<div class="jgroup"><div class="jgh">Catalogo jutsu e abilità</div><div class="slotbar" id="slot-bar" style="display:none"></div><p class="hint" style="margin:.2em 0 .7em">Tutto ciò che si può imparare nel gioco, <b>una disciplina per volta</b>: scegli una linguetta e <b>tocca una riga</b> per aprirne il dettaglio. La ricerca lavora su tutte le discipline insieme.'+(hasClan?' Le tecniche del clan si acquistano col <b>saldo XP</b>: paghi l\'idoneità e poi servono gli allenamenti con un maestro (uno al giorno).':'')+'</p><div class="tk-tools"><input class="tk-search" id="tk-search" type="search" placeholder="Cerca per nome, categoria o testo…"><span class="tk-count" id="tk-count"></span></div><div id="train-list"><p class="hint" style="margin:0">Caricamento…</p></div></div>';
+      host.innerHTML='<div class="jgroup"><div class="slotbar" id="slot-bar" style="display:none"></div><p class="hint" style="margin:.2em 0 .7em">Tutto ciò che si può imparare nel gioco, <b>una disciplina per volta</b>: scegli una linguetta e <b>tocca una riga</b> per aprirne il dettaglio. La ricerca lavora su tutte le discipline insieme.'+(hasClan?' Le tecniche del clan si acquistano col <b>saldo XP</b>: paghi l\'idoneità e poi servono gli allenamenti con un maestro (uno al giorno).':'')+'</p><div class="tk-tools"><input class="tk-search" id="tk-search" type="search" placeholder="Cerca per nome, categoria o testo…"><span class="tk-count" id="tk-count"></span></div><div id="train-list"><p class="hint" style="margin:0">Caricamento…</p></div></div>';
       if(hasClan) renderSlotBar();
       var byId={};
       sb.rpc('character_elementi',{p_character:myChar.id}).then(function(er){
@@ -1137,6 +1160,12 @@
         el2.innerHTML='<span class="slotn'+(full?' full':'')+'">Slot tecniche: <b>'+d.usati+'/'+d.totale+'</b></span><span class="svmeta">base '+d.base+((d.mente||0)?(' + '+d.mente+' Mente'):'')+(d.extra?(' + '+d.extra+' acquistati'):'')+' · le innate del clan non occupano slot</span>'+buy;
       },function(){ var el2=$('slot-bar'); if(el2){ el2.style.display='none'; el2.innerHTML=''; } });
     }
+    /* Le righe delle Basi vivono fuori da train-wrap: serve lo stesso tocco per aprirle. */
+    (function(){ var bw=$('basi-wrap'); if(!bw) return; bw.addEventListener('click',function(e){
+      var ex=e.target.closest('[data-texp]'); if(!ex) return;
+      var det=$('tkd-'+ex.getAttribute('data-texp'));
+      if(det){ det.classList.toggle('on'); ex.classList.toggle('open',det.classList.contains('on')); }
+    }); })();
     (function(){ var tw=$('train-wrap'); if(!tw) return; tw.addEventListener('click',async function(e){
       if(!e.target.closest('[data-train]')&&!e.target.closest('#slot-buy')){
         var ac=e.target.closest('[data-tkacc]');
@@ -1230,87 +1259,36 @@
       loadCompagni();
     }
 
-    /* ===== Compagno PNG (evocazioni, marionette, cani ninja) =====
-       La linguetta esiste solo per chi può davvero avere un compagno. Chi non
-       può, non la vede: prima il riquadro stava dentro Accademia e lo vedevano
-       tutti, con un menù che offriva marionette a chi non è Marionettista.
-       La verità resta companion_create, che rifiuta a database: qui si evita
-       soltanto di proporre porte chiuse. */
-    var PNG_CLAN={'Marionettisti':'marionetta','Inuzuka':'cane_ninja'};   /* aggiungere un clan è una riga */
-    var PNG_KMAP={marionetta:['🎭','Marionetta'],cane_ninja:['🐾','Cane ninja'],evocazione:['🐍','Evocazione']};
+    /* ===== Compagno PNG (evocazioni, marionette, cani ninja) ===== */
     async function loadCompagni(){
       var host=$('comp-wrap'), sec=$('sec-comp'); if(!host||!sec) return;
-      function spegni(){ sec.style.display='none'; setTabVis('png',false); }
-      if(viewMode!=='owner'||!myChar){ spegni(); return; }
-
-      var res=await Promise.all([
-        sb.from('character_companions').select('*').eq('character_id',myChar.id).order('created_at'),
-        sb.from('companion_slot_overrides').select('extra_slots').eq('character_id',myChar.id).maybeSingle(),
-        sb.from('character_perks').select('tipo').eq('character_id',myChar.id),
-        sb.from('premio_richieste').select('tipo').eq('character_id',myChar.id).eq('status','approvata'),
-        sb.rpc('my_abilities',{p_character:myChar.id})
-      ]);
-      var rows=((res[0]&&res[0].data)||[]);
-      var extra=((res[1]&&res[1].data&&res[1].data.extra_slots)||0);
-      var perks=((res[2]&&res[2].data)||[]).map(function(x){return x.tipo;});
-      var appr=((res[3]&&res[3].data)||[]).map(function(x){return x.tipo;});
-      var abil=((res[4]&&res[4].data)||[]);
-
-      var tipoClan=PNG_CLAN[myChar.clan||'']||null;
-      var haContratto=(perks.indexOf('evocazione')>=0)||(appr.indexOf('evocazione')>=0);
-      var haRichiamo=abil.some(function(a){ return a.name==='Richiamo'&&a.state==='attiva'; });
-
-      /* si vede a chi può crearne uno, e a chi ne ha già uno da gestire */
-      var visibile=!!tipoClan||haContratto||rows.length>0;
-      setTabVis('png',visibile);
-      if(!visibile){ sec.style.display='none'; return; }
+      if(viewMode!=='owner'||!myChar){ sec.style.display='none'; return; }
       sec.style.display='';
-
+      var r=await sb.from('character_companions').select('*').eq('character_id',myChar.id).order('created_at');
+      var rows=(r&&r.data)||[];
+      var extra=0; try{ var o=await sb.from('companion_slot_overrides').select('extra_slots').eq('character_id',myChar.id).maybeSingle(); if(o&&o.data) extra=o.data.extra_slots||0; }catch(e){}
       var slots=1+extra;
-      var tipi=[];
-      if(tipoClan) tipi.push(tipoClan);
-      if(haContratto&&haRichiamo) tipi.push('evocazione');
-
+      var kmap={marionetta:['\uD83C\uDFAD','Marionetta'],cane_ninja:['\uD83D\uDC3E','Cane ninja'],evocazione:['\uD83D\uDC0D','Evocazione']};
       var h='<p class="hint" style="margin:0 0 8px">Slot compagni: <b>'+rows.length+' / '+slots+'</b></p>';
-      rows.forEach(function(c){ var km=PNG_KMAP[c.kind]||['',''];
+      rows.forEach(function(c){ var km=kmap[c.kind]||['',''];
         h+='<div class="svbox" style="display:flex;gap:12px;align-items:flex-start">'
-          +(c.avatar_url?('<img src="'+esc(c.avatar_url)+'" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:1px solid var(--edge);flex:0 0 auto">'):('<span style="width:54px;height:54px;border-radius:50%;border:1px dashed var(--edge);display:flex;align-items:center;justify-content:center;flex:0 0 auto">'+km[0]+'</span>'))
-          +'<div style="flex:1;min-width:0"><b>'+esc(c.name)+'</b> <span class="svtag a">'+km[0]+' '+km[1]+' · '+esc(c.grado)+'</span>'
+          +(c.avatar_url?('<img src="'+esc(c.avatar_url)+'" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:1px solid var(--edge);flex:0 0 auto">'):('<span style="width:54px;height:54px;border-radius:50%;border:1px solid var(--edge);display:inline-flex;align-items:center;justify-content:center;font-size:24px;flex:0 0 auto">'+km[0]+'</span>'))
+          +'<div style="flex:1;min-width:0"><b>'+esc(c.name)+'</b> <span class="svtag a">'+km[0]+' '+km[1]+' \u00B7 '+esc(c.grado)+'</span>'
           +(c.descr?('<div class="hint" style="margin:4px 0 0">'+esc(c.descr)+'</div>'):'')
           +'<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
-          +'<label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">Volto… <input type="file" accept="image/*" data-compava="'+c.id+'" style="display:none"></label>'
+          +'<label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">Volto\u2026 <input type="file" accept="image/*" data-compava="'+c.id+'" style="display:none"></label>'
           +'<button class="btn btn-ghost btn-sm" type="button" data-compcong="'+c.id+'">Congeda</button>'
           +'</div></div></div>';
       });
-
-      if(rows.length>=slots){
-        h+='<p class="hint" style="margin:8px 0 0">Gli slot sono pieni. Un secondo compagno lo concede soltanto lo staff.</p>';
-      } else if(tipi.length){
-        var scelta;
-        if(tipi.length>1){
-          scelta='<label class="svlab">Tipo<select id="comp-kind">'
-            +tipi.map(function(t){ return '<option value="'+t+'">'+PNG_KMAP[t][1]+(t==='evocazione'?'':(' · clan '+esc(myChar.clan||'')))+'</option>'; }).join('')
-            +'</select></label>';
-        } else {
-          scelta='<input type="hidden" id="comp-kind" value="'+tipi[0]+'">'
-            +'<p class="hint" style="margin:0 0 8px">Stai creando: <b>'+PNG_KMAP[tipi[0]][0]+' '+PNG_KMAP[tipi[0]][1]+'</b>'
-            +(tipi[0]==='evocazione'?'':(' · per diritto di clan'))+'.</p>';
-        }
-        h+='<div class="svbox"><h4>Nuovo compagno</h4>'+scelta
-         +'<label class="svlab" id="comp-fam-wrap" style="display:none">Famiglia dell\'evocazione · una sola, per sempre<select id="comp-fam"><option value="">— scegli —</option><option value="rospi">Rospi</option><option value="serpenti">Serpenti</option><option value="rapaci">Rapaci</option><option value="rettili">Rettili</option><option value="lumache">Lumache</option><option value="scimmie">Scimmie</option></select></label>'
-         +'<p class="hint" id="comp-fam-nota" style="display:none;margin:6px 0 0">La famiglia non si cambia più dopo la creazione.</p>'
+      if(rows.length<slots){
+        h+='<div class="svbox"><h4>Nuovo compagno</h4>'
+         +'<label class="svlab">Tipo<select id="comp-kind"><option value="marionetta">Marionetta \u00B7 clan Marionettisti</option><option value="cane_ninja">Cane ninja \u00B7 clan Inuzuka</option><option value="evocazione">Evocazione \u00B7 serve il Contratto (Premi)</option></select></label>'
+         +'<label class="svlab" id="comp-fam-wrap" style="display:none">Famiglia dell\'evocazione \u00B7 una sola, per sempre<select id="comp-fam"><option value="">\u2014 scegli \u2014</option><option value="rospi">Rospi \u00B7 assalto pesante e controllo del campo</option><option value="serpenti">Serpenti \u00B7 immobilizzo, veleno, infiltrazione</option><option value="rapaci">Rapaci \u00B7 ricognizione, quota, trasporto</option><option value="rettili">Rettili \u00B7 occultamento e furtivit\u00E0</option><option value="lumache">Lumache \u00B7 cura e purificazione (Corpo Medico)</option><option value="scimmie">Scimmie \u00B7 arma vivente, corpo a corpo</option></select></label>'
+         +'<p class="hint" id="comp-fam-nota" style="display:none;margin:6px 0 0">La famiglia non si cambia pi\u00F9 dopo la creazione. Il <b>Richiamo</b> va imparato in gioco con tre addestramenti: finch\u00E9 non \u00E8 attivo, il contratto \u00E8 carta e la creatura non entra in campo.</p>'
          +'<label class="svlab">Nome<input id="comp-name" maxlength="40" placeholder="es. Karasu"></label>'
-         +'<label class="svlab">Descrizione breve (facoltativa)<textarea id="comp-descr" maxlength="300" rows="2" placeholder="Aspetto e carattere del compagno…"></textarea></label>'
+         +'<label class="svlab">Descrizione breve (facoltativa)<textarea id="comp-descr" maxlength="300" rows="2" placeholder="Aspetto e carattere del compagno\u2026"></textarea></label>'
          +'<button class="btn btn-red btn-sm" id="comp-create" type="button" style="margin-top:8px">Crea compagno</button></div>';
-        if(haContratto&&!haRichiamo){
-          h+='<p class="hint" style="margin:8px 0 0">Hai anche il <b>Contratto di evocazione</b>, ma la creatura non entra in campo finché non impari il <b>Richiamo</b>: tre addestramenti in scena, nessun XP.</p>';
-        }
-      } else if(haContratto&&!haRichiamo){
-        h+='<div class="svbox"><h4>Ti manca il Richiamo</h4>'
-         +'<p class="hint" style="margin:0">Hai il <b>Contratto di evocazione</b>, ma il contratto da solo non porta in campo nessuno: serve il jutsu del <b>Richiamo</b>, che <b>non si compra con gli XP</b> e si impara in scena con <b>tre addestramenti</b> condotti da chi ha già un contratto o da un master.</p>'
-         +'<p class="hint" style="margin:6px 0 0">Quando il Richiamo è attivo, qui compare il modulo per creare la creatura e scegliere la <b>famiglia</b> — una sola, per sempre.</p></div>';
       }
-
       host.innerHTML=h;
       var ck=$('comp-kind');
       function compKindSync(){ var ev=(ck&&ck.value==='evocazione');
@@ -1325,7 +1303,7 @@
         var r2=await sb.rpc('companion_create',{p_kind:kd,p_name:nm,p_descr:(($('comp-descr').value||'').trim()||null),p_famiglia:(fam||null)});
         this.disabled=false;
         if(r2&&r2.error){ toast(r2.error.message||'Impossibile creare',true); return; }
-        toast('Compagno creato: lo trovi anche in chat, pulsante 🎭'); loadCompagni();
+        toast('Compagno creato: lo trovi anche in chat, pulsante \uD83C\uDFAD'); loadCompagni();
       });
       Array.prototype.forEach.call(host.querySelectorAll('[data-compcong]'), function(b){ b.addEventListener('click', async function(){
         if(b.getAttribute('data-arm')!=='1'){ b.setAttribute('data-arm','1'); b.textContent='Confermi?'; setTimeout(function(){ if(b.getAttribute('data-arm')==='1'){ b.setAttribute('data-arm','0'); b.textContent='Congeda'; } },4000); return; }
@@ -1480,6 +1458,32 @@
     function premioSel(){ var t=$('pr-tipo')?$('pr-tipo').value:''; var g=(t==='tecnica_personale'&&$('pr-grado'))?$('pr-grado').value:null; return premioRiga(t,g); }
     function premioCosto(){ var r=premioSel(); if(!r) return 0; var c=r.costo||0;
       if(r.tipo==='evocazione'&&myChar&&(myChar.corporation==='Medici'||myChar.corporation==='ANBU')) c=300; return c; }
+    /* [02/08/2026] Acquisto diretto, separato dalle richieste: qui finiscono solo i
+       premi con valutazione=false, che il server concede senza passare dallo staff. */
+    function pcSel(){ var v=($('pc-tipo')&&$('pc-tipo').value)||''; var a=v.split('|'); return {tipo:a[0],grado:a[1]||null}; }
+    function updPcCosto(){
+      var el=$('pc-costo-line'); if(!el) return;
+      var q=pcSel(), r=premioRiga(q.tipo,q.grado);
+      if(!r){ el.innerHTML=''; return; }
+      var c=r.costo||0, saldo=(myChar&&myChar.exp)||0, ok=(saldo>=c);
+      el.innerHTML='Costo <b>'+c+' XP</b> · saldo attuale '+saldo+(ok?'':' · <b class="full">non basta</b>');
+      var b=$('pc-send'); if(b) b.disabled=!ok;
+    }
+    async function pcBuy(){
+      if(!sb||!myChar) return;
+      var q=pcSel(), riga=premioRiga(q.tipo,q.grado);
+      if(!riga){ toast('Scegli un premio',true); return; }
+      var det=(($('pc-dettaglio')||{}).value||'').trim();
+      if(det.length<2){ toast('Scrivi cosa stai prendendo',true); return; }
+      var b=$('pc-send'); if(b) b.disabled=true;
+      var r=await sb.rpc('premio_acquista',{p_tipo:q.tipo,p_dettaglio:det,p_grado:(q.tipo==='tecnica_personale')?q.grado:null});
+      if(b) b.disabled=false;
+      if(r.error){ toast((r.error.message||'Errore'),true); return; }
+      $('pc-dettaglio').value=''; toast('Premio acquistato');
+      var rr=await sb.from('characters').select('*').eq('id',myChar.id).maybeSingle();
+      if(rr&&rr.data){ myChar=rr.data; fillForm(myChar,curPriv); }
+      loadPremi();
+    }
     async function caricaPremi(){
       if(PREMI_CARICATO||!sb) return; PREMI_CARICATO=true;
       var r=await sb.rpc('premio_listino');
@@ -1488,10 +1492,17 @@
       var compra=PREMI.filter(function(x){return !x.valutazione;}), chiedi=PREMI.filter(function(x){return x.valutazione;});
       function opt(x){ var et=[]; if(x.costo!=null) et.push(x.costo+' XP'); if(x.rango_min&&x.rango_min!=='Genin') et.push('dal grado '+x.rango_min); if(x.slot>0) et.push(x.slot>1?'occupa entrambi gli slot':'premio maggiore');
         var v=x.tipo+(x.grado?('|'+x.grado):''); return '<option value="'+v+'">'+esc(x.nome)+(et.length?(' · '+et.join(' · ')):'')+'</option>'; }
-      var h='';
-      if(compra.length) h+='<optgroup label="Si compra subito">'+compra.map(opt).join('')+'</optgroup>';
-      if(chiedi.length) h+='<optgroup label="Lo valuta lo staff">'+chiedi.map(opt).join('')+'</optgroup>';
-      sel.innerHTML=h;
+      /* [02/08/2026] Nelle richieste restano solo i premi che lo staff deve valutare:
+         quelli che si comprano al volo hanno il riquadro «Si compra subito», sopra. */
+      sel.innerHTML=chiedi.map(opt).join('');
+      var selC=$('pc-tipo');
+      if(selC){
+        selC.innerHTML=compra.map(opt).join('');
+        if(!selC.getAttribute('data-bound')){ selC.setAttribute('data-bound','1'); selC.addEventListener('change',updPcCosto); }
+      }
+      var btC=$('pc-send');
+      if(btC&&!btC.getAttribute('data-bound')){ btC.setAttribute('data-bound','1'); btC.addEventListener('click',pcBuy); }
+      updPcCosto();
       updPremioCosto();
     }
     function updPremioSlot(){
@@ -1526,10 +1537,12 @@
       var sec=$('sec-premi'); if(!sec) return;
       var show=(viewMode!=='public'&&!!myChar);
       sec.style.display=show?'':'none';
+      setTabVis('premi',show);
       if(!show||!sb) return;
       var owner=isOwnerMode();
       var staffV=(viewMode==='staff'||viewMode==='adminother');
       var box=$('premio-box'); if(box) box.style.display=owner?'':'none';
+      var boxC=$('premio-compra'); if(boxC) boxC.style.display=owner?'':'none';
       caricaPremi();
       if(owner) updPremioCosto();
       var host=$('perk-list');
@@ -1790,7 +1803,7 @@
       male:'<path d="M110 20 C96 20 88 32 88 46 C88 58 96 66 110 68 C124 66 132 58 132 46 C132 32 124 20 110 20 Z"/><path d="M88 46 C86 26 98 16 110 16 C122 16 134 26 132 46"/><path d="M96 50 Q110 56 124 50"/><path d="M92 44 L128 44"/><path d="M104 68 L104 78 M116 68 L116 78"/><path d="M96 78 Q110 86 124 78"/><path d="M123 78 C148 84 152 108 143 130 C144 110 130 94 118 90"/><path d="M92 86 C102 81 118 81 128 86 C128 108 124 132 118 150 C112 154 108 154 102 150 C96 132 92 108 92 86 Z"/><path d="M96 148 Q110 154 124 148"/><path d="M107 149 L107 159 L113 159 L113 149"/><path d="M90 88 C78 98 74 118 76 140 C77 162 79 200 80 222 L90 222 C89 200 88 162 88 142 C88 122 92 104 100 96 Z"/><path d="M130 88 C142 98 146 118 144 140 C143 162 141 200 140 222 L130 222 C131 200 132 162 132 142 C132 122 128 104 120 96 Z"/><ellipse cx="85" cy="228" rx="6.5" ry="7.5"/><ellipse cx="135" cy="228" rx="6.5" ry="7.5"/><path d="M78 198 L88 201 M78 205 L88 208 M78 212 L88 215"/><path d="M142 198 L132 201 M142 205 L132 208 M142 212 L132 215"/><path d="M94 150 C96 164 98 176 102 184 L118 184 C122 176 124 164 126 150 C114 156 106 156 94 150 Z"/><path d="M100 184 C94 186 90 200 89 218 C86 260 84 320 83 360 C82 386 83 404 86 410 L98 410 C100 404 101 388 102 362 C104 320 106 260 107 220 C108 202 106 186 100 184 Z"/><path d="M120 184 C126 186 130 200 131 218 C134 260 136 320 137 360 C138 386 137 404 134 410 L122 410 C120 404 119 388 118 362 C116 320 114 260 113 220 C112 202 114 186 120 184 Z"/><path d="M92 234 L108 234 M112 234 L128 234"/><path d="M84 408 L100 408 L104 418 L79 418 Z"/><path d="M120 408 L136 408 L141 418 L116 418 Z"/>',
       female:'<path d="M110 22 C97 22 90 33 90 46 C90 57 97 64 110 66 C123 64 130 57 130 46 C130 33 123 22 110 22 Z"/><path d="M90 46 C88 27 99 18 110 18 C121 18 132 27 130 46"/><path d="M97 50 Q110 55 123 50"/><path d="M94 44 L126 44"/><path d="M105 66 L105 76 M115 66 L115 76"/><path d="M98 76 Q110 84 122 76"/><path d="M121 76 C145 82 149 106 141 128 C142 108 129 92 117 88"/><path d="M95 84 C103 80 117 80 125 84 C123 100 119 118 112 134 C111 130 109 130 108 134 C101 118 97 100 95 84 Z"/><path d="M100 132 Q110 138 120 132"/><path d="M108 134 C102 146 98 160 98 176 C100 184 110 188 110 188 C110 188 120 184 122 176 C122 160 118 146 112 134 Z"/><path d="M94 88 C82 98 79 118 81 140 C82 162 84 200 85 222 L93 222 C92 200 91 162 90 142 C90 122 94 104 102 96 Z"/><path d="M126 88 C138 98 141 118 139 140 C138 162 136 200 135 222 L127 222 C128 200 129 162 130 142 C130 122 126 104 118 96 Z"/><ellipse cx="88" cy="228" rx="6" ry="7"/><ellipse cx="132" cy="228" rx="6" ry="7"/><path d="M82 200 L90 203 M82 207 L90 210"/><path d="M138 200 L130 203 M138 207 L130 210"/><path d="M100 186 C98 200 97 210 100 218 L120 218 C123 210 122 200 120 186 C114 192 106 192 100 186 Z"/><path d="M102 216 C97 218 94 230 93 246 C90 286 88 330 87 362 C86 386 87 404 90 410 L100 410 C102 404 103 388 104 364 C106 330 108 286 109 248 C110 232 108 216 102 216 Z"/><path d="M118 216 C123 218 126 230 127 246 C130 286 132 330 133 362 C134 386 133 404 130 410 L120 410 C118 404 117 388 116 364 C114 330 112 286 111 248 C110 232 112 216 118 216 Z"/><path d="M94 258 L108 258 M112 258 L126 258"/><path d="M86 408 L100 408 L104 418 L81 418 Z"/><path d="M120 408 L134 408 L139 418 L116 418 Z"/>'
     };
-    function escI(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+    function escI(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
     function isOwnerMode(){return viewMode==='owner'||viewMode==='adminself';}
     function canEdit(){return viewMode==='owner'||viewMode==='adminself'||viewMode==='staff'||viewMode==='adminother';}
     function ownedQty(id){var r=INV.filter(function(x){return x.item&&x.item.id===id;})[0];return r?r.quantity:0;}
