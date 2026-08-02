@@ -242,7 +242,7 @@
     .staff-panel h3{margin:0 0 6px;color:var(--red)}
     .sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:8px}
     .sp-grid label,.sp-full{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.4px}
-    .sp-grid input,.sp-full textarea{font-family:inherit;font-size:.95rem;text-transform:none;letter-spacing:0;padding:7px 9px;border:1px solid var(--edge);border-radius:7px;background:#fbf4e1;color:var(--ink)}
+    .sp-grid input,.sp-grid select,.sp-full textarea{font-family:inherit;font-size:.95rem;text-transform:none;letter-spacing:0;padding:7px 9px;border:1px solid var(--edge);border-radius:7px;background:#fbf4e1;color:var(--ink)}
     .sp-full{margin-top:12px}.sp-full textarea{min-height:90px;resize:vertical}
     .fin:disabled,.mini:disabled{background:rgba(0,0,0,.035);color:var(--ink);cursor:default}
     /* inventario & negozio */
@@ -531,9 +531,9 @@
           </div>
           <div class="staff-panel" id="staff-panel" style="display:none">
             <h3>⚙ Pannello staff</h3>
-            <p class="hint" style="margin-top:-4px">Assegna epiteto e grado, correggi statistiche e vitali, e scrivi le Note del Fato. Solo lo staff vede questo pannello.</p>
+            <p class="hint" style="margin-top:-4px">Assegna epiteto e grado, correggi anagrafica, elementi, statistiche e vitali, e scrivi le Note del Fato. Villaggio, sesso e Cercoterio lasciati sul trattino restano come sono; il Cercoterio pretende clan «Nessuno», e cancellandolo si cancella anche il Sigillo. Il <b>Cercoterio</b> il server lo accetta solo dopo il premio Jinchūriki. ⚠️ Il <b>nome</b> è anche la credenziale di accesso: cambiandolo, il giocatore entra solo col nome nuovo. Da 2 a 15 lettere, senza spazi né numeri. Solo lo staff vede questo pannello.</p>
             <div class="sp-grid">
-              <label>Epiteto<input id="sp-epithet" maxlength="40" placeholder="es. Il Lampo Giallo"></label>
+              <label>Nome<input id="sp-name" maxlength="15" placeholder="2-15 lettere, senza spazi"></label><label>Epiteto<input id="sp-epithet" maxlength="40" placeholder="es. Il Lampo Giallo"></label><label>Età<input id="sp-age" type="number" min="1" max="120" step="1"></label><label>Sesso<select id="sp-sex"><option value="">—</option><option>Maschio</option><option>Femmina</option><option>Altro</option></select></label><label>Villaggio<select id="sp-village"><option value="">—</option><option>Konoha</option><option>Suna</option></select></label><label>Elemento<select id="sp-element"><option value="">—</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select></label><label>Seconda natura<select id="sp-element2"><option value="">—</option><option>Fuoco</option><option>Vento</option><option>Fulmine</option><option>Terra</option><option>Acqua</option></select></label><label>Cercoterio<select id="sp-cercoterio"><option value="">—</option><option>Shukaku</option><option>Matatabi</option><option>Isobu</option><option>Son Gokū</option><option>Kokuō</option><option>Saiken</option><option>Chōmei</option><option>Gyūki</option><option>Kurama</option></select></label><label>Sigillo<select id="sp-sigillo"><option value="">—</option><option>Solido</option><option>Ordinario</option><option>Difettoso</option></select></label><label>XP di carriera<input id="sp-xplife" type="number" step="5" min="0"></label><label>Slot tecnica extra<input id="sp-slotextra" type="number" step="1" min="0" max="4"></label>
               <label>Mente<input id="sp-mente" type="number" step="5"></label>
               <label>Forza<input id="sp-forza" type="number" step="5"></label>
               <label>Velocità<input id="sp-velocita" type="number" step="5"></label>
@@ -1784,6 +1784,16 @@
       if(!c)return;
       var set=function(id,v){var el=$(id); if(el) el.value=(v!=null?v:'');};
       set('sp-epithet',c.epithet||'');
+      set('sp-age',c.age!=null?c.age:'');
+      set('sp-sex',c.sex||'');
+      set('sp-village',c.village||'');
+      set('sp-name',c.name||'');
+      set('sp-element',c.element||'');
+      set('sp-element2',c.element2||'');
+      set('sp-cercoterio',c.cercoterio||'');
+      set('sp-sigillo',c.sigillo||'');
+      set('sp-xplife',c.xp_lifetime!=null?c.xp_lifetime:0);
+      set('sp-slotextra',c.slot_extra!=null?c.slot_extra:0);
       STATS.forEach(function(s){set('sp-'+s[0],c[s[0]]!=null?c[s[0]]:BASE);});
       var _kl=$('lbl-sp-kg'); if(_kl)_kl.textContent=kgLabel(c.clan,c.cercoterio);
       ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){set('sp-'+k,c[k]!=null?c[k]:0);});
@@ -1832,6 +1842,24 @@
       if(!sb||!myChar||!(viewMode==='staff'||viewMode==='adminself'||viewMode==='adminother'))return;this.disabled=true;
       var _spClan=($('f-clan').value||'Nessuno');
       var upd={epithet:($('sp-epithet').value.trim()||null),rank:(($('f-rank')&&$('f-rank').value)||myChar.rank),clan:_spClan,clan_role:((_spClan==='Nessuno')?null:((($('f-clanrole')&&$('f-clanrole').value)||null)))};
+      var _spAge=parseInt((($('sp-age')||{}).value)||'',10); upd.age=isNaN(_spAge)?myChar.age:Math.max(1,Math.min(120,_spAge));
+      var _spSex=((($('sp-sex')||{}).value)||'').trim(); upd.sex=_spSex||null;
+      var _spVil=((($('sp-village')||{}).value)||'').trim(); if(_spVil) upd.village=_spVil;
+      var _spNm=((($('sp-name')||{}).value)||'').trim();
+      if(_spNm && _spNm!==(myChar.name||'')){
+        if(!/^[A-Za-zÀ-ÿ'’\-]{2,15}$/.test(_spNm)){ this.disabled=false; toast('Nome non valido: da 2 a 15 lettere, senza spazi né numeri',true); return; }
+        upd.name=_spNm;
+      }
+      var _spEl=((($('sp-element')||{}).value)||'').trim()||null;
+      var _spEl2=((($('sp-element2')||{}).value)||'').trim()||null;
+      if(_spEl2 && _spEl2===_spEl){ this.disabled=false; toast('La seconda natura deve essere diversa dalla prima',true); return; }
+      upd.element=_spEl; upd.element2=_spEl2;
+      var _spCer=((($('sp-cercoterio')||{}).value)||'').trim()||null;
+      var _spSig=((($('sp-sigillo')||{}).value)||'').trim()||null;
+      if(_spCer && (($('f-clan')&&$('f-clan').value)||'Nessuno')!=='Nessuno'){ this.disabled=false; toast('Una Forza Portante non puo appartenere a un clan: metti il clan su Nessuno',true); return; }
+      upd.cercoterio=_spCer; upd.sigillo=(_spCer?_spSig:null);
+      var _spXl=parseInt((($('sp-xplife')||{}).value)||'',10); if(!isNaN(_spXl)) upd.xp_lifetime=Math.max(0,_spXl);
+      var _spSe=parseInt((($('sp-slotextra')||{}).value)||'',10); if(!isNaN(_spSe)) upd.slot_extra=Math.max(0,Math.min(4,_spSe));
       STATS.forEach(function(s){var v=parseInt($('sp-'+s[0]).value,10); upd[s[0]]=isNaN(v)?myChar[s[0]]:v;});
       ['vita','vita_max','chakra','chakra_max','money','exp','unspent_points'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?myChar[k]:v;});
       ['lealta','via','fama'].forEach(function(k){var v=parseInt($('sp-'+k).value,10); upd[k]=isNaN(v)?(myChar[k]!=null?myChar[k]:50):Math.max(0,Math.min(100,v));});
