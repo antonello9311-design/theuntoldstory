@@ -456,6 +456,7 @@
             <label>Nome<input id="ia-name" maxlength="40" placeholder="es. Katsuo"></label>
             <label>Villaggio<select id="ia-village"><option value="konoha">Konoha</option><option value="suna">Suna</option><option value="">Globale (ovunque)</option></select></label>
             <label>Titolo <span class="opt">(facoltativo)</span><input id="ia-title" maxlength="60" placeholder="es. la Vipera del deserto"></label>
+            <label>Grado <span class="opt">(facoltativo)</span><input id="ia-grado" maxlength="40" placeholder="es. Chunin"></label>
             <label>Peso nel pool<input id="ia-weight" type="number" min="1" step="1" placeholder="1"></label>
             <label class="chk"><input type="checkbox" id="ia-active" checked> Attivo (partecipa all'estrazione)</label>
             <label>Avatar <span class="opt">(quadrato, il viso)</span><input id="ia-avatar" type="file" accept="image/*"></label>
@@ -1272,7 +1273,7 @@
     }
     function resetIAForm(){
       editingIA=null;
-      ['ia-name','ia-title','ia-weight','ia-bio','ia-registro','ia-ritmo','ia-appellativo','ia-mai','ia-frasi','ia-tratti','ia-ama','ia-detesta','ia-difetto','ia-rbravo','ia-rpigro','ia-rspavaldo','ia-rtimido','ia-inaula','ia-eta','ia-capelli','ia-occhi','ia-volto','ia-corporatura','ia-segni','ia-guard','ia-notes'].forEach(function(id){var el=$(id);if(el)el.value='';});
+      ['ia-name','ia-title','ia-grado','ia-weight','ia-bio','ia-registro','ia-ritmo','ia-appellativo','ia-mai','ia-frasi','ia-tratti','ia-ama','ia-detesta','ia-difetto','ia-rbravo','ia-rpigro','ia-rspavaldo','ia-rtimido','ia-inaula','ia-eta','ia-capelli','ia-occhi','ia-volto','ia-corporatura','ia-segni','ia-guard','ia-notes'].forEach(function(id){var el=$(id);if(el)el.value='';});
       var v=$('ia-village');if(v)v.value=(iaKind==='sensei')?'konoha':'';
       var ac=$('ia-active');if(ac)ac.checked=true;
       var av=$('ia-avatar');if(av)av.value='';
@@ -1297,10 +1298,16 @@
       var groups=[['konoha','Konoha'],['suna','Suna'],[null,'Globale']];
       if(hostS){
         var sen=IA_ROWS.filter(function(a){return a.kind==='sensei';});
-        hostS.innerHTML=sen.length?groups.map(function(g){
+        hostS.innerHTML=groups.map(function(g){
           var rows=sen.filter(function(a){return (a.village||null)===g[0];});
-          return rows.length?('<div class="bd-cat">'+g[1]+'</div>'+rows.map(iaRowHTML).join('')):'';
-        }).join(''):'<p class="mgr-note" style="margin:6px 0 0">Nessun sensei nel pool. Aggiungine uno qui sopra.</p>';
+          var conAula=(g[0]==='konoha'||g[0]==='suna');
+          if(!rows.length&&!conAula) return '';
+          var att=rows.filter(function(a){return a.is_active;}).length;
+          var nota=conAula?('<p class="mgr-note" style="margin:2px 0 8px'+(att?'':';color:var(--red-deep);font-weight:600')+'">'+
+            (att?('Sensei attivi: '+att+'. Le lezioni possono partire.')
+                :('\u26a0 Nessun sensei attivo qui: le lezioni non possono iniziare finche non ne riattivi almeno uno.'))+'</p>'):'';
+          return '<div class="bd-cat">'+g[1]+'</div>'+nota+rows.map(iaRowHTML).join('');
+        }).join('');
       }
       if(hostT){
         var tra=IA_ROWS.filter(function(a){return a.kind==='png_trama';});
@@ -1321,6 +1328,7 @@
         function setOr(k,v){if(v)p[k]=v;else delete p[k];}
         setOr('titolo',$('ia-title').value.trim());
         setOr('bio',$('ia-bio').value.trim());
+        setOr('grado',$('ia-grado').value.trim());
         setOr('registro',$('ia-registro').value.trim());
         setOr('ritmo',$('ia-ritmo').value.trim());
         setOr('appellativo',$('ia-appellativo').value.trim());
@@ -1359,7 +1367,7 @@
           var p=a.persona||{},asp=p.aspetto||{},rz=p.reazioni||{};
           $('ia-name').value=a.name||'';$('ia-village').value=a.village||'';$('ia-title').value=a.title||p.titolo||'';
           $('ia-weight').value=a.weight||1;$('ia-active').checked=!!a.is_active;$('ia-avatar').value='';
-          $('ia-bio').value=p.bio||'';$('ia-registro').value=p.registro||'';$('ia-ritmo').value=p.ritmo||'';
+          $('ia-grado').value=p.grado||'';$('ia-bio').value=p.bio||'';$('ia-registro').value=p.registro||'';$('ia-ritmo').value=p.ritmo||'';
           $('ia-appellativo').value=p.appellativo||'';$('ia-mai').value=p.mai||'';
           $('ia-frasi').value=(p.frasi_tipiche||[]).join('\n');$('ia-tratti').value=(p.tratti||[]).join(', ');
           $('ia-ama').value=p.ama||'';$('ia-detesta').value=p.detesta||'';$('ia-difetto').value=p.difetto||'';
