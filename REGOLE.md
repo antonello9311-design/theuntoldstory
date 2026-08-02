@@ -17,7 +17,7 @@ Hai fretta di cominciare? Ecco il percorso essenziale; i dettagli sono nelle sez
 1. **Registrati** (serve essere maggiorenni): scegli nome utente e password, conferma l'email e sei dentro.
 2. **Crea la scheda.** Bastano i dati essenziali: nome, **età**, sesso e **villaggio** (Konoha o Suna). L'**Elemento del Chakra** è facoltativo, puoi sceglierlo ora o più avanti. **Clan** e **corporazione** non si scelgono qui: arrivano dopo, in gioco (vedi §3). Si parte tutti dal rango **Deshi**.
 3. **Distribuisci i 60 punti.** Ogni caratteristica parte da **10** e hai **60 punti** da aggiungere, a gruppi di **5**, con un tetto di **30** per caratteristica al rango Deshi. Li assegni **dalla scheda, dentro la land**, quando vuoi: non c'è fretta e un avviso te lo ricorda finché non li hai spesi.
-4. **Vai all'Accademia** (in chat): un sensei ti guida lezione dopo lezione fino al **diploma da Genin**. È il modo più veloce per capire il gioco e prendere i primi XP.
+4. **Vai all'Accademia** (in chat): un sensei ti guida lezione dopo lezione fino al **diploma da Genin**. È il modo più veloce per capire il gioco e prendere i primi XP. **Una lezione si può seguire anche da soli**, senza aspettare altri allievi, e se ne fa **una ogni venti ore**, contate dalla fine della precedente.
 5. **Entra nella land.** Scegli un luogo sulla mappa, presentati e gioca: ogni turno di scena è di **almeno 500 caratteri**.
 6. **Combatti** col pulsante **⚔**: calcola tutto da solo e scala il chakra in automatico.
 7. **Cresci.** Giocando ogni giorno prendi **+20 XP**; le **missioni** (bacheca del villaggio) danno XP e Ryo; con l'XP impari **jutsu** allenandoti e compri **slot** e **premi** dalla scheda.
