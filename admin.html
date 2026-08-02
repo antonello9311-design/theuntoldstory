@@ -1005,7 +1005,7 @@
     var CATS=[['arma_consumabile','Armi consumabili'],['arma_impugnare','Armi da impugnare'],['oggetto_generico','Oggetti generici'],['equipaggiamento','Equipaggiamento']];
     var editingId=null;
     var delArmIt=null;
-    function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+    function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
     function slotChange(){var w=$('wrap-capacity');if(w)w.style.display=($('it-slot').value!=='')?'':'none';}
     function resetCatForm(){editingId=null;$('it-name').value='';$('it-category').value='arma_consumabile';$('it-weight').value='';$('it-cost').value='';$('it-healv').value='';$('it-healc').value='';$('it-slot').value='';$('it-capacity').value='';$('it-worn').value='';$('it-desc').value='';$('it-purchasable').checked=true;$('it-active').checked=true;$('it-reset').style.display='none';$('it-editing').textContent='';$('it-save').textContent='Salva oggetto';slotChange();}
     async function loadItems(){var r=await sb.from('items').select('*').order('category').order('name');ITEMS=(r&&r.data)||[];renderCatalog();}
