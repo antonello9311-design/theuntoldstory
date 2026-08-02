@@ -341,6 +341,12 @@
   .tk-search{flex:1;min-width:180px;font-family:'Cormorant Garamond',serif;font-size:14.5px;padding:7px 10px;border:1px solid var(--edge);border-radius:8px;background:#fbf4e1;color:var(--ink)}
   .tk-count{flex:0 0 auto;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.03em;color:var(--ink-soft);background:rgba(166,50,29,.07);border:1px solid var(--edge);border-radius:8px;padding:6px 11px}
   .tk-count b{color:var(--red-deep)}
+  .tr-badge.mute{opacity:.62}
+  .tk-orig-n{font-weight:400;color:var(--ink-soft);letter-spacing:.02em}
+  .tk-deshi{border:1px solid var(--edge);border-left:3px solid var(--red-deep);border-radius:10px;background:rgba(166,50,29,.05);padding:12px 14px;margin:0 0 14px}
+  .tk-deshi b.tkdh{display:block;font-family:'Cinzel',serif;font-size:13px;letter-spacing:.03em;color:var(--red-deep);margin:0 0 6px}
+  .tk-deshi p{margin:0 0 6px;font-size:13px;line-height:1.5;color:var(--ink-soft)}
+  .tk-deshi p:last-child{margin-bottom:0}
   .tk-grp{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);border-bottom:1px solid var(--edge);padding:10px 0 4px;margin:6px 0 6px}
   .tr-row{cursor:pointer}
   .tr-cat{font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:#8a6a1e;border:1px solid var(--edge);border-radius:6px;padding:1px 6px;margin-left:6px;white-space:nowrap}
@@ -850,7 +856,7 @@
       host.innerHTML='<p class="hint" style="margin:0">Caricamento\u2026</p>';
       sb.rpc('my_jutsu',{p_user:uid}).then(function(r){
         var rows=(r&&r.data)||[];
-        if(!rows.length){ host.innerHTML='<p class="hint" style="margin:0">Nessuna abilit\u00e0 o tecnica ancora appresa. Si imparano in Accademia.</p>'; return; }
+        if(!rows.length){ host.innerHTML='<p class="hint" style="margin:0">Non hai ancora imparato nulla. Le <b>Basi d’Accademia</b> si imparano partecipando alle lezioni: nel catalogo qui sotto ogni riga dice a quale lezione si insegna.</p>'; return; }
         var abil=rows.filter(function(x){return x.kind==='abilita';});
         var jt=rows.filter(function(x){return x.kind!=='abilita';});
         var html='';
@@ -860,7 +866,7 @@
         host.innerHTML=html;
       }, function(){ host.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tecniche.</p>'; });
     }
-    var TK={techs:[],byId:{},base:[],gen:[],els:[],q:''};
+    var TK={techs:[],byId:{},base:[],gen:[],els:[],mine:{},lesson:{},q:''};
     function techGittataDefault(t){ var d=String(t&&t.disciplina||'').toLowerCase(); if(d==='taijutsu')return 'contatto'; if(d==='genjutsu')return 'corta'; if(d==='fuuinjutsu')return 'contatto'; if(d==='ninjutsu')return 'media'; return ''; }
     function techAttivDefault(t){ if(t&&t.is_innata) return 'istantanea'; var d=String(t&&t.disciplina||'').toLowerCase(); if(d==='taijutsu'||d==='abilità'||d==='abilita') return 'istantanea'; if(String(t&&t.macro||'').toLowerCase()==='abilita') return 'istantanea'; return 'sigilli'; }
     /* Dettaglio in tre blocchi: Effetto (cosa fa e come si usa) · Costi · Requisiti.
@@ -917,13 +923,21 @@
     }
     function tkBaseMatch(j,q){ if(!q)return true; q=q.toLowerCase(); return (j.name_it||'').toLowerCase().indexOf(q)>=0||(j.effect||'').toLowerCase().indexOf(q)>=0||(j.category||'').toLowerCase().indexOf(q)>=0; }
     function tkBaseRow(j){
+      /* [02/08/2026] Tre stati per le Basi d'Accademia: appresa, da imparare a una
+         lezione precisa, oppure non ancora insegnata da nessuna lezione. */
+      var _m=(TK.mine||{})[j.id]||null, _l=(TK.lesson||{})[j.id]||null;
+      var _les=_l?(esc(_l.code)+' \u00b7 '+esc(_l.title)):'';
       var d='';
       if(j.effect) d+='<div class="tkd-blk"><div class="tkd-h">Effetto</div><div class="tkd"><b>Effetto</b> · '+esc(j.effect)+'</div></div>';
       d+='<div class="tkd-blk"><div class="tkd-h">Requisiti</div>'
         +(j.requirements?('<div class="tkd"><b>Requisiti</b> · '+esc(j.requirements)+'</div>'):'')
         +(j.limits?('<div class="tkd"><b>Limiti</b> · '+esc(j.limits)+'</div>'):'')
-        +'<div class="tkd"><b>Come si impara</b> · all\'Accademia, con le lezioni del sensei.</div></div>';
-      return '<div class="tr-row" data-texp="j'+j.id+'"><div class="tr-main"><b>'+esc(j.name_it)+'</b><span class="tr-gr">'+(j.rank?esc(j.rank):'base')+'</span></div>'+(j.chakra_cost?('<span class="tr-meta">'+j.chakra_cost+' ck</span>'):'')+'<span class="tr-badge on">Accademia</span><span class="tr-ch">▸</span></div>'
+        +'<div class="tkd"><b>Come si impara</b> \u00b7 '+(
+            _m ? ('gi\u00e0 appresa'+(_m.learned_at?(' il '+new Date(_m.learned_at).toLocaleDateString('it-IT')):'')+(_les?(', alla lezione '+_les):'')+'.')
+          : _l ? ('si insegna alla lezione <b>'+_les+'</b>: entra nell\'Accademia del tuo villaggio e prendi posto quando la lezione \u00e8 aperta.')
+               : ('al momento nessuna lezione dell\'Accademia la insegna: arriver\u00e0 con le prossime lezioni.')
+          )+'</div></div>';
+      return '<div class="tr-row" data-texp="j'+j.id+'"><div class="tr-main"><b>'+esc(j.name_it)+'</b><span class="tr-gr">'+(j.rank?esc(j.rank):'base')+'</span></div>'+(j.chakra_cost?('<span class="tr-meta">'+j.chakra_cost+' ck</span>'):'')+(_m?'<span class="tr-badge on">Appresa</span>':(_l?'<span class="tr-badge">Da imparare</span>':'<span class="tr-badge mute">Non ancora insegnata</span>'))+'<span class="tr-ch">▸</span></div>'
         +'<div class="tr-det" id="tkd-j'+j.id+'">'+d+'</div>';
     }
     var TK_DISC=['Ninjutsu','Taijutsu','Genjutsu','Fuuinjutsu'];
@@ -982,7 +996,24 @@
       return 'Generiche';
     }
     var TK_ORD=['Del clan','Generiche','Basi d\'Accademia','Dell\'evocazione','Del Cercoterio'];
+    /* [02/08/2026] Per un Deshi il catalogo è per forza vuoto: lo zero non spiega
+       nulla, questo riquadro sì. Sostituisce il conteggio, non lo affianca. */
+    var TK_DESHI_BOX='<div class="tk-deshi"><b class="tkdh">Sei un Deshi: il tuo percorso è l\'Accademia</b>'
+      +'<p>Le tecniche di clan, le generiche e le abilità si aprono dal grado <b>Genin</b>. Adesso impari solo le <b>Basi d\'Accademia</b>, e le impari partecipando alle lezioni: entra nell\'Accademia del tuo villaggio e prendi posto quando una lezione è aperta.</p>'
+      +'<p>Il grado Genin arriva a <b>2.500 XP</b> di carriera.</p></div>';
     function tkOrigRank(o){ for(var i=0;i<TK_ORD.length;i++){ if(o.indexOf(TK_ORD[i])===0) return i; } return 9; }
+    /* Conteggio onesto: le basi che nessuna lezione insegna restano fuori dal totale. */
+    function tkBaseSummary(){
+      var ap=0, tot=0, orf=0;
+      (TK.base||[]).forEach(function(j){
+        var m=(TK.mine||{})[j.id], l=(TK.lesson||{})[j.id];
+        if(m||l){ tot++; if(m) ap++; } else { orf++; }
+      });
+      if(!tot&&!orf) return '';
+      var t=' · '+ap+' di '+tot+' apprese';
+      if(orf) t+=' · '+orf+' non ancora insegnate';
+      return '<span class="tk-orig-n">'+t+'</span>';
+    }
     function paintCatalog(){
       var list=$('train-list'); if(!list) return;
       var canAct=(viewMode!=='public'); var q=TK.q;
@@ -1005,16 +1036,19 @@
       // Conteggio globale delle tecniche apprendibili ora — ignora la ricerca
       var _learn=(TK.techs||[]).concat(genOk).filter(techLearnable);
       var _cJ=_learn.filter(function(t){return !techIsAbil(t);}).length, _cA=_learn.filter(techIsAbil).length;
-      var _cc=$('tk-count'); if(_cc) _cc.innerHTML='Puoi imparare ora: <b>'+_cJ+'</b> jutsu &middot; <b>'+_cA+'</b> abilità';
+      var _isDeshi=(_rankOrd(myChar&&myChar.rank)<1);
+      var _cc=$('tk-count');
+      if(_cc){ if(_isDeshi){ _cc.style.display='none'; } else { _cc.style.display=''; _cc.innerHTML='Puoi imparare ora: <b>'+_cJ+'</b> jutsu &middot; <b>'+_cA+'</b> abilità'; } }
 
       var live=TK_TABS.filter(function(d){ return (buckets[d]||[]).length>0; });
       if(!live.length){
-        list.innerHTML='<p class="hint" style="margin:0">'+(q?('Nessuna tecnica trovata per «'+esc(q)+'».'):'Nessuna tecnica alla tua portata per ora: sali di grado, alza le statistiche o entra in un clan.')+'</p>';
+        list.innerHTML=(_isDeshi&&!q?TK_DESHI_BOX:'')+'<p class="hint" style="margin:0">'+(q?('Nessuna tecnica trovata per «'+esc(q)+'».'):(_isDeshi?'Le Basi d\'Accademia compariranno qui appena le lezioni saranno attive.':'Nessuna tecnica alla tua portata per ora: sali di grado, alza le statistiche o entra in un clan.'))+'</p>';
         return;
       }
       if(live.indexOf(TKTAB)<0) TKTAB=live[0];
 
-      var h='<div class="tk-tabs">';
+      var h=(_isDeshi?TK_DESHI_BOX:'');
+      h+='<div class="tk-tabs">';
       live.forEach(function(d){
         h+='<button type="button" class="tk-tab'+(d===TKTAB?' on':'')+'" data-tktab="'+esc(d)+'">'+esc(d)+'<i>'+buckets[d].length+'</i></button>';
       });
@@ -1023,7 +1057,7 @@
       var rows=buckets[TKTAB].slice().sort(function(x,y){ return tkOrigRank(x.o)-tkOrigRank(y.o); });
       var last=null;
       rows.forEach(function(r){
-        if(r.o!==last){ h+='<div class="tk-orig">'+esc(r.o)+'</div>'; last=r.o; }
+        if(r.o!==last){ h+='<div class="tk-orig">'+esc(r.o)+(r.o==='Basi d\'Accademia'?tkBaseSummary():'')+'</div>'; last=r.o; }
         h+=r.h;
       });
       if(!hasClan&&!q) h+='<p class="hint" style="margin:14px 0 0">Le <b>tecniche di clan</b> compaiono qui quando entri in un clan: ogni famiglia ha il suo catalogo, diviso per disciplina.</p>';
@@ -1048,6 +1082,18 @@
         return sb.from('jutsu').select('id,name_it,category,rank,effect,requirements,limits,chakra_cost,kind').eq('is_active',true).order('sort');
       }).then(function(jr){
         TK.base=(jr&&jr.data)||[];
+        /* [02/08/2026] Due mappe per le Basi d'Accademia: quali il personaggio ha già
+           imparato e quale lezione insegna ciascuna. Alimentano tkBaseRow. */
+        return Promise.all([
+          sb.rpc('my_jutsu',{p_user:myChar.user_id}),
+          sb.from('lesson_grants').select('lesson_id,jutsu_id'),
+          sb.from('academy_lessons').select('id,code,title,ordinal').eq('is_active',true)
+        ]).then(function(res){
+          TK.mine={}; (((res[0]||{}).data)||[]).forEach(function(x){ TK.mine[x.jutsu_id]=x; });
+          var _byL={}; (((res[2]||{}).data)||[]).forEach(function(l){ _byL[l.id]=l; });
+          TK.lesson={}; (((res[1]||{}).data)||[]).forEach(function(g){ var l=_byL[g.lesson_id]; if(l) TK.lesson[g.jutsu_id]=l; });
+        }, function(){ TK.mine={}; TK.lesson={}; });
+      }).then(function(){
         return sb.from('clan_techniques').select('*').is('clan',null).in('macro',['generica','abilita','cercoterio','evocazione']).eq('is_active',true).order('sort').order('name');
       }).then(function(gr){
         TK.gen=(gr&&gr.data)||[]; TK.q='';
