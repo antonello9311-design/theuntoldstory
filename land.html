@@ -2005,6 +2005,7 @@
 
       /* ---- Motore di combattimento: il pannello dello scontro ---- */
       var CMB=null, CMB_DEF=[], CMB_INN=[];
+      function cmbFascia(d){ return d<=2?'a contatto':(d<=10?'corta':(d<=30?'media':(d<=60?'lunga':'fuori portata'))); }
       function cmbBar(v,max,cls){ var p=(max>0)?Math.max(0,Math.min(100,Math.round(v*100/max))):0;
         return '<span class="cmb-bar'+(cls||'')+'" title="'+v+'/'+max+'"><i style="width:'+p+'%"></i></span>'; }
       function loadCombat(){ if(!sb||!cur){ return; }
@@ -2028,9 +2029,13 @@
               '<span class="cmb-fase">'+(CMB.fase==='difesa'?'si difende':'si attacca')+'</span>'+
               (CMB.tuo_turno?'<span class="cmb-tuo">tocca a te</span>':'')+'</div>';
         (CMB.partecipanti||[]).forEach(function(p){
-          h+='<div class="cmb-row'+(p.io?' io':'')+(p.fuori?' ko':'')+'"><b>'+esc(p.nome)+'</b>'+
-             (p.ruolo==='partecipante'?'<span class="cmb-pos">in scena</span>':
-               ('<span class="cmb-pos">'+p.pos+' m</span>'+cmbBar(p.vita,p.vita_max)+cmbBar(p.chakra,p.chakra_max,' ck')))+'</div>';
+          var dove;
+          if(p.ruolo==='partecipante'){ dove='<span class="cmb-pos">in scena</span>'; }
+          else if(p.io){ dove='<span class="cmb-pos">tu</span>'; }
+          else if(io){ var d=Math.abs(p.pos-io.pos); dove='<span class="cmb-pos" title="fascia: '+cmbFascia(d)+'">'+(d<=2?'a contatto':(d+' m da te'))+'</span>'; }
+          else { dove='<span class="cmb-pos">'+p.pos+' m</span>'; }
+          h+='<div class="cmb-row'+(p.io?' io':'')+(p.fuori?' ko':'')+'"><b>'+esc(p.nome)+'</b>'+dove+
+             (p.ruolo==='partecipante'?'':(cmbBar(p.vita,p.vita_max)+cmbBar(p.chakra,p.chakra_max,' ck')))+'</div>';
         });
         (CMB.in_sospeso||[]).forEach(function(x){
           h+='<p class="cmb-note"><b>'+esc(x.attaccante)+'</b> ha dichiarato \u00ab'+esc(x.tecnica)+'\u00bb contro <b>'+esc(x.bersaglio)+'</b> a '+x.distanza+' m'+(x.tocca_a_me?' \u2014 tocca a te rispondere.':'.')+'</p>';
