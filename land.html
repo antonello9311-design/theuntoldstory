@@ -2969,7 +2969,7 @@
           {k:'leggendaria',n:'Leggendaria',g:'S',rk:'Jonin Speciale',nin:80,che:'un anziano della famiglia',ck:80,mant:15,tempo:'2 turni',turni:3,pv:120,combo:'+20'}
         ];
         var EVODB={loaded:false,busy:false,err:false,rows:[]};
-        var evoTab='famiglie', evoFam='rospi';
+        var evoTab='famiglie', evoFam='rospi', evoAb=null;
         function evoTagN(k){ for(var i=0;i<EVO_TAGLIE.length;i++){ if(EVO_TAGLIE[i].k===k) return EVO_TAGLIE[i].n; } return k||'—'; }
         function evoTagIdx(k){ for(var i=0;i<EVO_TAGLIE.length;i++){ if(EVO_TAGLIE[i].k===k) return i; } return 99; }
         function evoFamObj(k){ for(var i=0;i<EVO.length;i++){ if(EVO[i].k===k) return EVO[i]; } return EVO[0]; }
@@ -3029,31 +3029,48 @@
              '<p class="bj-note">Perché una Leggendaria compaia in gioco servono mesi di gioco continuativo. Le prime non si vedranno presto, ed è previsto così.</p></div>';
           return h;
         }
+        function evoDettaglio(o,t){
+          var _rc=String(o.req_corp||'').toLowerCase();
+          var tg=[evoFamObj(evoFam).n];
+          if(o.disciplina) tg.push(o.disciplina);
+          if(o.tipo_azione) tg.push(o.tipo_azione);
+          if(o.gittata) tg.push('Portata '+o.gittata.charAt(0).toUpperCase()+o.gittata.slice(1));
+          if(_rc) tg.push(_rc==='medici'?'Solo Corpo Medico':(_rc==='anbu'?'Solo ANBU':o.req_corp));
+          return '<div class="jdb-card jdb-det">'+
+            '<div class="jdb-det-h"><span class="jdb-det-name">'+esc(o.name||'')+'</span><span class="jdb-badge">Taglia '+esc(t.n)+'</span></div>'+
+            '<div class="jdb-tags">'+tg.map(function(x){ return '<span class="jdb-tag">'+esc(x)+'</span>'; }).join('')+'</div>'+
+            '<p class="jdb-dp">'+esc(o.description||'')+'</p>'+
+            '<div class="jdb-dsec"><div class="jdb-dh">In numeri</div>'+
+            '<div class="jdb-drow"><span class="jdb-dl">Chakra</span><span class="jdb-dv">'+(o.chakra_cost==null?'—':o.chakra_cost)+'</span></div>'+
+            '<div class="jdb-drow"><span class="jdb-dl">Danno base</span><span class="jdb-dv">'+(o.danno_base?o.danno_base:'nessuno')+'</span></div>'+
+            '<div class="jdb-drow"><span class="jdb-dl">Si apre alla</span><span class="jdb-dv">taglia '+esc(t.n)+', con '+esc(t.rk)+' e Ninjutsu '+t.nin+'</span></div>'+
+            '</div></div>';
+        }
         function evoAbilita(){
           if(EVODB.err) return '<p class="jdb-empty">Impossibile caricare le abilità delle evocazioni.</p>';
           if(!EVODB.loaded) return '<p class="jdb-empty">Caricamento…</p>';
-          var h='<p class="bj-intro">Ogni famiglia ha <b>sei abilità</b>, e si aprono con la <b>taglia</b>: una alla Baby, una alla Piccola, due alla Media, due alla Grande. Non costano XP e non si allenano una per una — arrivano con la creatura. La <b>Leggendaria</b> non ne aggiunge di proprie: le usa tutte.</p>'+
-                  '<p class="bj-intro">Sono le abilità della <b>creatura</b>, non tue: si risolvono <b>dentro una tua azione</b>, mai in un turno separato.</p>';
+          var h='<p class="bj-intro">Sei abilità per famiglia, che si aprono con la <b>taglia</b>. Non costano XP e non si allenano: arrivano con la creatura, e si risolvono <b>dentro una tua azione</b>, mai in un turno a parte. Scegli la famiglia, poi tocca un nome per aprirlo.</p>';
           h+='<div class="jdb-subs">'+EVO.map(function(f){
-              var n=evoRows(f.k).length;
-              return '<button type="button" class="jdb-sub'+(f.k===evoFam?' on':'')+'" data-efam="'+esc(f.k)+'">'+esc(f.n)+'<i>'+n+'</i></button>';
+              return '<button type="button" class="jdb-sub'+(f.k===evoFam?' on':'')+'" data-efam="'+esc(f.k)+'">'+esc(f.n)+'<i>'+evoRows(f.k).length+'</i></button>';
             }).join('')+'</div>';
           var f=evoFamObj(evoFam), rows=evoRows(evoFam);
           h+='<div class="bj-h">'+esc(f.n)+' — '+esc(f.d)+'</div>';
           if(!rows.length) return h+'<p class="jdb-empty">Nessuna abilità a catalogo per questa famiglia.</p>';
-          h+='<div class="bj-tw"><table class="bj-t"><caption>Abilità della famiglia '+esc(f.n)+'</caption><thead><tr><th>Taglia</th><th>Abilità</th><th>Chakra</th><th>Danno</th><th>Portata</th><th>Azione</th><th>Effetto</th></tr></thead><tbody>';
-          rows.forEach(function(o){
-            var _rc=String(o.req_corp||'').toLowerCase(); var rc=(_rc?(' <span class="bj-home">'+esc(_rc==='medici'?'Corpo Medico':(_rc==='anbu'?'ANBU':o.req_corp))+'</span>'):'');
-            h+='<tr><td class="bj-c">'+esc(evoTagN(o.req_taglia))+'</td>'+
-               '<td class="bj-c">'+esc(o.name||'')+rc+'</td>'+
-               '<td class="bj-c">'+(o.chakra_cost==null?'—':o.chakra_cost)+'</td>'+
-               '<td class="bj-c">'+(o.danno_base?o.danno_base:'—')+'</td>'+
-               '<td class="bj-c">'+esc(o.gittata?(o.gittata.charAt(0).toUpperCase()+o.gittata.slice(1)):'—')+'</td>'+
-               '<td class="bj-c">'+esc(o.tipo_azione||'—')+'</td>'+
-               '<td>'+esc(o.description||'')+'</td></tr>';
+          EVO_TAGLIE.forEach(function(t){
+            var g=rows.filter(function(o){ return o.req_taglia===t.k; });
+            h+='<div class="jdb-h">'+esc(t.n)+(g.length?(' <span class="jdb-tag">'+g.length+(g.length===1?' abilità':' abilità')+'</span>'):'')+'</div>';
+            if(!g.length){
+              h+='<p class="bj-note">'+(t.k==='leggendaria'
+                ? 'Nessuna abilità propria: un anziano della famiglia <b>le usa tutte e sei</b>.'
+                : 'Nessuna abilità a questa taglia.')+'</p>';
+              return;
+            }
+            h+='<div class="jdb-subs">'+g.map(function(o){
+                return '<button type="button" class="jdb-sub'+(String(o.sort)===String(evoAb)?' on':'')+'" data-eab="'+esc(o.sort)+'">'+esc(o.name||'')+'<i>'+(o.chakra_cost==null?'—':o.chakra_cost)+'</i></button>';
+              }).join('')+'</div>';
+            for(var i=0;i<g.length;i++){ if(String(g[i].sort)===String(evoAb)){ h+=evoDettaglio(g[i],t); break; } }
           });
-          h+='</tbody></table></div>';
-          h+='<p class="bj-note">Nessuna abilità di evocazione supera il tetto di 65 danni per singola azione, come tutto il resto del motore.</p>';
+          h+='<p class="bj-note">Il numero accanto al nome è il <b>chakra</b>. Nessuna abilità di evocazione supera il tetto di 65 danni per singola azione.</p>';
           return h;
         }
         function evoRichiamo(){
@@ -3091,15 +3108,16 @@
              '<p class="bj-note">Utile a rango basso, decisiva quasi mai, molto forte solo ai livelli alti e per pochi turni. È pensata così.</p></div>';
           return h;
         }
-        function evoRender(){
+        function evoRender(keep){
           var b=document.getElementById('evo-body'); if(!b) return;
+          var sc=b.scrollTop;
           var t=document.getElementById('evo-tabs');
           if(t){ var bs=t.querySelectorAll('[data-etab]'); for(var i=0;i<bs.length;i++){ bs[i].classList.toggle('on', bs[i].getAttribute('data-etab')===evoTab); } }
           if(evoTab==='taglie') b.innerHTML=evoTaglie();
           else if(evoTab==='abilita') b.innerHTML=evoAbilita();
           else if(evoTab==='richiamo') b.innerHTML=evoRichiamo();
           else b.innerHTML=evoFamiglie();
-          b.scrollTop=0;
+          b.scrollTop=keep?sc:0;
         }
         function openEvo(tab){
           evoTab=tab||'famiglie';
@@ -3111,8 +3129,11 @@
         (function(){
           var x=document.getElementById('evoov-x'); if(x)x.addEventListener('click',closeEvo);
           var bk=document.getElementById('evoov-backdrop'); if(bk)bk.addEventListener('click',closeEvo);
-          var t=document.getElementById('evo-tabs'); if(t)t.addEventListener('click',function(e){ var b=e.target.closest('[data-etab]'); if(!b)return; evoTab=b.getAttribute('data-etab'); evoRender(); });
-          var body=document.getElementById('evo-body'); if(body)body.addEventListener('click',function(e){ var s=e.target.closest('[data-efam]'); if(!s)return; evoFam=s.getAttribute('data-efam'); evoRender(); });
+          var t=document.getElementById('evo-tabs'); if(t)t.addEventListener('click',function(e){ var b=e.target.closest('[data-etab]'); if(!b)return; evoTab=b.getAttribute('data-etab'); evoAb=null; evoRender(); });
+          var body=document.getElementById('evo-body'); if(body)body.addEventListener('click',function(e){
+            var s=e.target.closest('[data-efam]'); if(s){ evoFam=s.getAttribute('data-efam'); evoAb=null; evoRender(); return; }
+            var a=e.target.closest('[data-eab]'); if(a){ var k=a.getAttribute('data-eab'); evoAb=(String(evoAb)===String(k))?null:k; evoRender(true); return; }
+          });
           document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var ov=document.getElementById('evoov'); if(ov&&!ov.hidden) closeEvo(); } });
         })();
         /* ===== CODICE DELLE TECNICHE — database informativo (sola lettura) ===== */
