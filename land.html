@@ -491,6 +491,7 @@
   /* #6 sintassi parlato/azione */
   .m-body .sp-say{color:var(--red-deep)}
   .m-body .sp-act{font-style:italic;color:var(--ink-soft)}
+  .m-body .sp-nome,.png-body .sp-nome{font-weight:700;text-decoration:underline;text-underline-offset:2px}
   .prm-card{border:1px solid var(--rule);border-radius:10px;background:rgba(255,250,235,.55);padding:10px 12px;margin-bottom:9px}
   .prm-top{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-bottom:4px}
   .prm-top b{font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:.04em;color:var(--red-deep)}
@@ -1469,14 +1470,17 @@
       <div class="legend-body">
         <div class="lg-block">
           <h4>Come si scrive</h4>
-          <p>Usa la punteggiatura per distinguere le due voci della giocata:</p>
+          <p>Una sola cosa da ricordare: <b>si segna il parlato, il resto è descrizione</b>.</p>
           <ul>
-            <li><b>&quot;Virgolette&quot;</b> per il <b>parlato</b> del personaggio.</li>
-            <li><b>*Asterischi*</b> per le <b>azioni e le descrizioni</b>.</li>
+            <li><b>&quot;Virgolette&quot;</b> oppure <b>&lt;parentesi angolari&gt;</b> per il <b>parlato</b> del personaggio: vanno bene entrambe e diventano <span class="sp-say">rosse</span>. Anche le virgolette basse «…» funzionano.</li>
+            <li><b>Per il descrittivo non serve nulla</b>: quello che scrivi fuori dal parlato è già la tua azione.</li>
+            <li>I <b>nomi dei personaggi</b>, dei compagni PNG e dei maestri diventano <b><u>grassetto sottolineato</u></b> da soli quando li nomini nel descrittivo: non devi fare niente. Dentro il parlato restano normali, perché lì li sta dicendo il tuo personaggio.</li>
+            <li><b>*Asterischi*</b> restano validi per staccare un gesto dal resto: diventa <em class="sp-act">corsivo</em>. Sono quelli che usano i maestri dell'Accademia.</li>
             <li><b>[figura:nome]</b> per mostrare una <b>tavola illustrata</b> dentro il messaggio. Quella disponibile oggi è <b>[figura:sigilli]</b>, i dodici sigilli delle mani: la stessa che il sensei appende alla parete in Accademia.</li>
           </ul>
-          <p class="lg-ex">*Spinge la tenda ed entra, scuotendo la neve dal mantello.* &quot;Un ramen caldo, per favore.&quot;</p>
-          <p class="lg-ex">*Compone la sequenza, lento, perché il ragazzo la veda.* [figura:sigilli] &quot;Guarda le mani, non gli occhi.&quot;</p>
+          <p class="lg-ex">Spinge la tenda ed entra, scuotendo la neve dal mantello. &lt;Un ramen caldo, per favore.&gt;</p>
+          <p class="lg-ex">Si volta verso Nozomi e abbassa la voce. &quot;Non l'ho fatto apposta, sensei.&quot;</p>
+          <p class="lg-ex">*Compone la sequenza, lento, perché il ragazzo la veda.* [figura:sigilli] &lt;Guarda le mani, non gli occhi.&gt;</p>
         </div>
         <div class="lg-block">
           <h4>I tasti della chat</h4>
@@ -1632,12 +1636,38 @@
         if(window.MutationObserver){ new MutationObserver(function(){ if(!spellOn) applySpell(); }).observe(document.body,{childList:true,subtree:true}); }
         applySpell();
       })();
+      /* Nomi da mettere in evidenza nel descrittivo: personaggi, compagni PNG, maestri. */
+      var NOMI_RE=null, NOMI_SET={};
+      function nomiAggiorna(lista){
+        (lista||[]).forEach(function(n){ n=(n==null?'':String(n)).trim(); if(n.length>=3) NOMI_SET[n]=1; });
+        var tutti=Object.keys(NOMI_SET);
+        if(!tutti.length){ NOMI_RE=null; return; }
+        tutti.sort(function(a,b){ return b.length-a.length; });
+        var pezzi=tutti.map(function(n){ return n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); });
+        try{ NOMI_RE=new RegExp('(^|[^\\wÀ-ÿ])('+pezzi.join('|')+')(?![\\wÀ-ÿ])','g'); }catch(e){ NOMI_RE=null; }
+      }
+      function nomiInGrassetto(html){
+        if(!NOMI_RE) return html;
+        function marca(txt){ return txt.replace(NOMI_RE, function(_m,pre,nome){ return pre+'<b class="sp-nome">'+nome+'</b>'; }); }
+        var out='', i=0, dentroSay=0, re=/<\/?[^>]+>/g, m;
+        while((m=re.exec(html))!==null){
+          var testo=html.slice(i, m.index);
+          out += (dentroSay ? testo : marca(testo));
+          if(/^<span class="sp-say"/.test(m[0])) dentroSay++;
+          else if(m[0]==='</span>' && dentroSay>0) dentroSay--;
+          out += m[0]; i = re.lastIndex;
+        }
+        var coda=html.slice(i);
+        out += (dentroSay ? coda : marca(coda));
+        return out;
+      }
       function fmtBody(s){ var t=esc(s);
         t=t.replace(/&quot;([\s\S]*?)&quot;/g,'<span class="sp-say">&quot;$1&quot;</span>');
         t=t.replace(/«([\s\S]*?)»/g,'<span class="sp-say">«$1»</span>');
+        t=t.replace(/&lt;([^&\n]{1,600}?)&gt;/g,'<span class="sp-say">&lt;$1&gt;</span>');
         t=t.replace(/\*([^*\n]+?)\*/g,'<em class="sp-act">$1</em>');
         t=t.replace(/\[figura:([a-z0-9-]{1,40})\]/g,'<img class="sp-fig" src="assets/$1.png" alt="" loading="lazy">');
-        return t; }
+        return nomiInGrassetto(t); }
       function fmt(iso){ try{ var d=new Date(iso); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }catch(e){ return ''; } }
       function showView(which){ mapView.classList.toggle('on', which==='map'); roomView.classList.toggle('on', which==='room'); }
 
@@ -1789,7 +1819,19 @@
       function clanEmbSpan(clan,isCapo,size){ if(!clan||clan==='Nessuno')return ''; var u=EMB['clan:'+clan]; if(!u)return ''; return '<span class="cl-emb'+(isCapo?' shine':'')+'" style="width:'+size+'px;height:'+size+'px'+(isCapo?(';--e:url(&quot;'+u+'&quot;)'):'')+'"><img src="'+esc(u)+'" alt=""><span class="shn"></span></span>'; }
       function identityHTML(c,name,cid,created){ var sx=c&&c.sex; var sexIc=(sx==='Maschio')?SEX_M:((sx==='Femmina')?SEX_F:''); var wo=cid?('<a class="m-who" href="scheda.html?id='+esc(cid)+'">'):'<span class="m-who">'; var wc=cid?'</a>':'</span>'; var rk=c&&c.rank; var rimg=(rk&&EMB['rank:'+rk]); var rbadge=rimg?('<span class="rb"><img src="'+esc(rimg)+'" alt=""></span>'):rankBadge(rk); var rankH=rk?('<span class="m-rank">'+rbadge+esc(rk)+'</span>'):''; var cl=(c&&c.clan&&c.clan!=='Nessuno')?c.clan:''; var clanImg=clanEmbSpan(cl,(c&&c.clan_role==='Capo clan'),14); var clanH=cl?('<a class="m-clan" href="clan.html?c='+encodeURIComponent(cl)+'" title="Apri il clan">'+clanImg+esc(cl)+'</a>'):''; var ep=c&&c.epithet; var epiH=ep?('<span class="m-epi">«'+esc(ep)+'»</span>'):''; return '<div class="m-head">'+wo+esc(name)+wc+sexIc+rankH+clanH+epiH+'<span class="m-time">'+fmt(created)+'</span></div>'; }
       function loadEmblems(){ if(!sb) return; sb.from('emblems').select('kind,name,image_url').in('kind',['clan','rank','village','corp','corpspec','corpgrade','bijuu','evofam']).then(function(r){ if(r&&!r.error){ (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.kind+':'+e.name]=e.image_url; }); } }, function(){}); }
-      function showPtsReminder(n){ var el=document.getElementById('pts-reminder'); if(!el) return; if(n>0){ var pn=document.getElementById('pts-n'); if(pn) pn.textContent=n; el.hidden=false; } else { el.hidden=true; } }
+      function caricaNomiEvidenza(){
+      if(!sb) return;
+      Promise.all([
+        sb.from('characters').select('name'),
+        sb.from('character_companions').select('name')
+      ]).then(function(rs){
+        var l=[];
+        (((rs[0]||{}).data)||[]).forEach(function(x){ l.push(x.name); });
+        (((rs[1]||{}).data)||[]).forEach(function(x){ l.push(x.name); });
+        nomiAggiorna(l);
+      }, function(){});
+    }
+    function showPtsReminder(n){ var el=document.getElementById('pts-reminder'); if(!el) return; if(n>0){ var pn=document.getElementById('pts-n'); if(pn) pn.textContent=n; el.hidden=false; } else { el.hidden=true; } }
     /* Barre di scorrimento nascoste: restano due frecce, e solo quando serve scorrere. */
     (function(){
       function collega(idLista, idFrecce){
@@ -1814,6 +1856,9 @@
       var PIN='<svg class="pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
       function renderMsgs(rows){
         rows=rows||[];
+        var _nuovi=[];
+        rows.forEach(function(m){ if(m && m.kind==='sensei' && m.author_name) _nuovi.push(m.author_name); });
+        if(_nuovi.length) nomiAggiorna(_nuovi);
         var rid=(cur?cur.id:'');
         if(!rows.length){
           var esig=rid+'|__empty__';
@@ -2566,7 +2611,7 @@
           myId=(loggedIn&&res.data.session.user)?res.data.session.user.id:null;
           if(loggedIn){ try{ sessionStorage.setItem('tus_in_land','1'); }catch(e){} }
           if(myId){ sb.from('characters').select('id').eq('user_id',myId).maybeSingle().then(function(g){ if(!(g&&g.data)){ try{ document.documentElement.style.visibility='hidden'; }catch(e){} location.replace('scheda.html'); } }, function(){}); }
-          if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max,mente,corporation').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); myCorp=(cr.data.corporation!=null?cr.data.corporation:null); showPtsReminder(cr.data.unspent_points||0); updateVitals(); updateKOState(); updateHealBtn(); loadMyCompanion(); } }, function(){}); }
+          if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max,mente,corporation').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); myCorp=(cr.data.corporation!=null?cr.data.corporation:null); showPtsReminder(cr.data.unspent_points||0); caricaNomiEvidenza(); updateVitals(); updateKOState(); updateHealBtn(); loadMyCompanion(); } }, function(){}); }
           if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; try{ syncSendBtn(); }catch(e){} } }, function(){}); }
           loadEmblems();
           renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); loadFlash(); calInit(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); sb.rpc('ensure_welcome').then(function(){ loadUnread(); loadConversations(); }, function(){ loadUnread(); loadConversations(); }); if(dmTarget){ var _dt=dmTarget; dmTarget=null; sb.from('characters').select('name').eq('user_id',_dt).maybeSingle().then(function(rr){ openCompose(_dt,(rr&&rr.data&&rr.data.name)||'utente'); }, function(){ openCompose(_dt,'utente'); }); } }
