@@ -592,7 +592,7 @@
           </section>
 
           <section class="adm-page" data-page="clan">
-          <div class="grp-title" style="margin-top:0">Clan — testi e accesso</div>
+          <div class="grp-title" style="margin-top:0">Richieste di clan</div><p class="mgr-note">Chi non ha un clan può chiedere un clan ad <b>accesso ristretto</b> del proprio villaggio allegando il background. Approvando, il clan viene scritto sulla scheda del personaggio; respingendo, la nota qui sotto compare al giocatore, che può riscrivere e ripresentare la richiesta.</p><label class="full" style="display:block;margin:0 0 8px">Nota per il giocatore<textarea id="clanreq-nota" rows="2" placeholder="Il motivo della decisione: lo legge chi ha fatto la richiesta."></textarea></label><div id="clanreq-list"></div><div class="grp-title" style="margin-top:22px">Clan — testi e accesso</div>
           <p class="mgr-note">Descrizione, storia, statuto e abilità di ogni clan: compaiono nella <b>pagina del clan</b> (pulsante <b>Clan</b> nella land). L'emblema si carica sopra, nella griglia <b>Clan</b>. Spunta <b>Accesso ristretto</b> per i clan non liberi (es. Uchiha, Hyuga): mostreranno un lucchetto e la nota che servono background approvato o sblocco in gioco. Puoi anche <b>aggiungere un nuovo clan</b>: comparirà ovunque (griglia emblemi, scheda, pagina clan). Il <b>ruolo dei membri</b> (Capo clan, Anziano…) si assegna dalla scheda del personaggio.</p>
           <input class="adm-search" id="clan-search" type="search" placeholder="Cerca clan per nome…">
           <button type="button" class="adm-addbtn" data-addnew="clan"><span class="plus">+</span> Aggiungi nuovo clan</button>
@@ -1889,6 +1889,43 @@
     (function(){try{var s=localStorage.getItem('tus_clan_cats');if(s){var o=JSON.parse(s);if(o)['Konoha','Suna','Altri'].forEach(function(k){if(k in o)clanCatOpen[k]=!!o[k];});}}catch(e){}})();
     function resetClanForm(){editingClan=null;$('clan-name').value='';$('clan-name').disabled=false;$('clan-village').value='Konoha';$('clan-sort').value='';$('clan-gated').checked=false;$('clan-active').checked=true;$('clan-desc').value='';$('clan-history').value='';$('clan-statute').value='';$('clan-abilities').value='';$('clan-reset').style.display='none';$('clan-editing').textContent='';$('clan-save').textContent='Salva clan';}
     async function loadClans(){var r=await sb.from('clans').select('*').order('village').order('sort').order('name');CLAN_ROWS=(r&&r.data)||[];renderClanList();}
+    /* ---- Richieste di clan: il giocatore manda il background, lo staff decide ---- */
+    var CLANREQ=[];
+    function clDate(s){ if(!s) return ''; var d=new Date(s); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear(); }
+    async function loadClanReq(){
+      var r=await sb.rpc('staff_clan_richieste');
+      CLANREQ=(r&&r.data)||[];
+      renderClanReqList();
+      var b=document.querySelector('#adm-nav button[data-go="clan"]');
+      if(b){ var n=CLANREQ.filter(function(x){return x.status==='in attesa';}).length; b.textContent='Clan'+(n?(' ('+n+')'):''); }
+    }
+    function renderClanReqList(){
+      var host=$('clanreq-list'); if(!host) return;
+      if(!CLANREQ.length){ host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessuna richiesta di clan, per ora.</p>'; return; }
+      host.innerHTML=CLANREQ.map(function(x){
+        var att=(x.status==='in attesa');
+        var nota=x.nota_staff?('<span class="ldesc">Nota staff: '+esc(x.nota_staff)+'</span>'):'';
+        var acts=att?('<div class="lacts"><button class="mini-btn" data-clreqok="'+x.id+'">Approva</button><button class="mini-btn danger" data-clreqno="'+x.id+'">Respingi</button></div>')
+                    :('<div class="lacts"><span class="lkind">'+esc(x.status)+'</span><span class="lmeta">'+clDate(x.decided_at||x.created_at)+'</span></div>');
+        return '<div class="locrow'+(att?'':' off')+'"><div class="lmain"><span class="lname">'+esc(x.personaggio||'?')+'</span><span class="lkind">'+esc(x.clan||'')+'</span><span class="lmeta"> \u00b7 '+esc(x.villaggio||'')+' \u00b7 '+clDate(x.created_at)+'</span><span class="ldesc" style="white-space:pre-wrap">'+esc(x.bg||'')+'</span>'+nota+'</div>'+acts+'</div>';
+      }).join('');
+    }
+    function bindClanReq(){
+      var lst=$('clanreq-list'); if(!lst) return;
+      lst.addEventListener('click', async function(e){
+        var ok=e.target.closest('[data-clreqok]'), no=e.target.closest('[data-clreqno]');
+        if(!ok&&!no) return;
+        var btn=ok||no, id=btn.getAttribute(ok?'data-clreqok':'data-clreqno');
+        var nt=$('clanreq-nota'), nota=nt?((nt.value||'').trim()||null):null;
+        btn.disabled=true;
+        var r=await sb.rpc('clan_decidi',{p_richiesta:id,p_approva:!!ok,p_nota:nota});
+        btn.disabled=false;
+        if(r&&r.error){ toast(r.error.message||'Errore',true); return; }
+        if(nt) nt.value='';
+        toast(ok?'Clan assegnato al personaggio':'Richiesta respinta');
+        await loadClanReq(); await loadClans();
+      });
+    }
     function clanFilled(v){return (v&&String(v).trim().length)?'\u2713':'\u2014';}
     function clanRowHTML(c){
       var flags=(c.is_gated?' \u00b7 <span class="lnote">accesso ristretto</span>':'')+(c.is_active?'':' \u00b7 disattivato');
@@ -2471,7 +2508,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindHkb();await loadHkb();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPg();await loadPg();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
+      await loadClans();bindClans();bindClanReq();await loadClanReq();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindLocs();await loadLocs();bindBoards();await loadBoards();bindHkb();await loadHkb();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPg();await loadPg();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};

@@ -444,7 +444,7 @@
               <div class="dpanel on" data-d="dati">
                 <div class="drow"><span class="emb" id="ic-rank"></span><div class="dinfo"><span class="dlab">Grado</span><span class="dval" id="v-rank">—</span><select id="f-rank" class="mini" style="display:none"><option>Deshi</option><option>Genin</option><option>Chunin</option><option>Jonin</option><option>Jonin Speciale</option><option>Kage Konoha</option><option>Kage Suna</option><option>Sannin</option></select></div></div>
                 <div class="drow"><span class="emb" id="ic-village"></span><div class="dinfo"><span class="dlab">Villaggio</span><span class="dval" id="v-village">—</span></div></div>
-                <div class="drow"><span class="emb" id="ic-clan"></span><div class="dinfo"><span class="dlab">Clan <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· entra da solo in un clan aperto del tuo villaggio; i clan speciali (Hyuga, Uchiha, Sabaku…) li assegna lo staff</span></span><select id="f-clan" class="mini"></select><div id="clan-join" style="display:none;margin-top:8px"><select id="clan-join-sel" class="mini" style="max-width:180px"></select> <button type="button" class="btn btn-red btn-sm" id="clan-join-btn" style="margin-left:6px">Unisciti</button></div><span class="dlab" id="lab-clanrole" style="margin-top:9px;display:none">Ruolo nel clan</span><select id="f-clanrole" class="mini" style="display:none"><option value="">—</option><option>Capo clan</option><option>Anziano</option><option>Membro esperto</option><option>Novizio</option></select></div></div>
+                <div class="drow"><span class="emb" id="ic-clan"></span><div class="dinfo"><span class="dlab">Clan <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· entra da solo in un clan aperto del tuo villaggio; i clan speciali (Hyuga, Uchiha, Sabaku…) si chiedono allo staff, con un background</span></span><select id="f-clan" class="mini"></select><div id="clan-join" style="display:none;margin-top:8px"><select id="clan-join-sel" class="mini" style="max-width:180px"></select> <button type="button" class="btn btn-red btn-sm" id="clan-join-btn" style="margin-left:6px">Unisciti</button></div><div id="clan-req" style="display:none;margin-top:10px"><div id="clan-req-state" class="hint" style="margin:0 0 6px"></div><div id="clan-req-form"><select id="clan-req-sel" class="mini" style="max-width:180px"></select><textarea id="clan-req-bg" rows="5" placeholder="Racconta chi è il tuo personaggio e perché appartiene a questo clan: le origini, la famiglia, come è arrivato fin qui." style="width:100%;margin-top:6px"></textarea><button type="button" class="btn btn-red btn-sm" id="clan-req-btn" style="margin-top:6px">Invia la richiesta</button></div></div><span class="dlab" id="lab-clanrole" style="margin-top:9px;display:none">Ruolo nel clan</span><select id="f-clanrole" class="mini" style="display:none"><option value="">—</option><option>Capo clan</option><option>Anziano</option><option>Membro esperto</option><option>Novizio</option></select></div></div>
                 <div class="drow" id="row-cerc" style="display:none"><span class="emb" id="ic-cerc"></span><div class="dinfo"><span class="dlab">Cercoterio <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· la bestia sigillata dentro di te; esclude il clan familiare ed è permanente</span></span><span class="dval" id="v-cerc">—</span></div></div>
                 <div class="drow"><span class="emb" id="ic-corp"></span><div class="dinfo"><span class="dlab">Corporazione <span style="text-transform:none;letter-spacing:0;color:var(--ink-soft)">· la scegli candidandoti dalla land; la conferma lo staff</span></span><span class="dval" id="v-corp">—</span>
                   <div id="corp-staff" style="display:none;margin-top:8px">
@@ -1306,8 +1306,15 @@
           +(c.descr?('<div class="hint" style="margin:4px 0 0">'+esc(c.descr)+'</div>'):'')
           +'<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
           +'<label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">Volto\u2026 <input type="file" accept="image/*" data-compava="'+c.id+'" style="display:none"></label>'
+          +'<button class="btn btn-ghost btn-sm" type="button" data-compedit="'+c.id+'">Modifica</button>'
           +'<button class="btn btn-ghost btn-sm" type="button" data-compcong="'+c.id+'">Congeda</button>'
-          +'</div></div></div>';
+          +'</div>'
+          +'<div id="cedit-'+c.id+'" style="display:none;margin-top:10px">'
+          +'<label class="svlab">Nome<input type="text" id="cedn-'+c.id+'" maxlength="40" value="'+esc(c.name)+'"></label>'
+          +'<label class="svlab">Descrizione<textarea id="cedd-'+c.id+'" rows="3" maxlength="600" placeholder="Aspetto, carattere, come si muove in scena\u2026">'+esc(c.descr||'')+'</textarea></label>'
+          +'<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm" type="button" data-compsave="'+c.id+'">Salva</button><button class="btn btn-ghost btn-sm" type="button" data-compundo="'+c.id+'">Annulla</button></div>'
+          +'</div>'
+          +'</div></div>';
       });
       if(tipi.length&&rows.length<slots){
         h+='<div class="svbox"><h4>Nuovo compagno</h4>'
@@ -1355,6 +1362,19 @@
         var r4=await sb.from('character_companions').update({avatar_url:pub}).eq('id',inp.getAttribute('data-compava'));
         if(r4&&r4.error){ toast('Caricato ma non registrato',true); return; }
         toast('Volto del compagno salvato'); loadCompagni();
+      }); });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-compedit]'), function(b){ b.addEventListener('click', function(){ var bx=document.getElementById('cedit-'+b.getAttribute('data-compedit')); if(bx) bx.style.display=(bx.style.display==='none'?'':'none'); }); });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-compundo]'), function(b){ b.addEventListener('click', function(){ var bx=document.getElementById('cedit-'+b.getAttribute('data-compundo')); if(bx) bx.style.display='none'; }); });
+      Array.prototype.forEach.call(host.querySelectorAll('[data-compsave]'), function(b){ b.addEventListener('click', async function(){
+        var id=b.getAttribute('data-compsave');
+        var ni=document.getElementById('cedn-'+id), di=document.getElementById('cedd-'+id);
+        var nm=((ni&&ni.value)||'').trim(), ds=((di&&di.value)||'').trim();
+        if(!nm){ toast('Il nome non pu\u00F2 restare vuoto',true); return; }
+        b.disabled=true;
+        var r5=await sb.from('character_companions').update({name:nm,descr:(ds||null)}).eq('id',id);
+        b.disabled=false;
+        if(r5&&r5.error){ toast('Modifica non salvata',true); return; }
+        toast('Compagno aggiornato'); loadCompagni();
       }); });
     }
     /* ===== Barra XP e Allineamento ===== */
@@ -1700,7 +1720,7 @@
       if(staff) fillStaffPanel(myChar,curPriv);
       var badge=$('mode-badge');
       if(badge){ if(viewMode==='adminself'){badge.style.display='';badge.textContent='Admin del sito — controllo completo sulla tua scheda. Premi «Modifica» per cambiare.';badge.className='mode-badge staff';} else if(viewMode==='adminother'){badge.style.display='';badge.textContent='Admin del sito — controllo completo su questa scheda. Premi «Modifica» per cambiare.';badge.className='mode-badge staff';} else if(viewMode==='staff'){badge.style.display='';badge.textContent='Modalità staff — premi «Modifica» per intervenire sulla scheda di questo giocatore';badge.className='mode-badge staff';} else if(viewMode==='public'){badge.style.display='';badge.textContent='Scheda di un altro giocatore — sola lettura';badge.className='mode-badge ro';} else {badge.style.display='none';} }
-      renderClanJoin();
+      renderClanJoin(); renderClanReq();
     }
     function renderClanJoin(){
       var box=$('clan-join'), sel=$('clan-join-sel'), btn=$('clan-join-btn'); if(!box||!sel) return;
@@ -1722,6 +1742,43 @@
           ((r&&r.data)||[]).forEach(function(c){ if(c.name==='Nessuno')return; var o=document.createElement('option'); o.value=c.name; o.textContent=c.name; sel.appendChild(o); });
         },function(){}); }
       }
+    }
+    async function renderClanReq(){
+      var box=$('clan-req'); if(!box) return;
+      var show=isOwnerMode() && myChar && !myChar.cercoterio && (!myChar.clan || myChar.clan==='Nessuno');
+      box.style.display=show?'':'none';
+      if(!show || !sb) return;
+      var sel=$('clan-req-sel'), form=$('clan-req-form'), st=$('clan-req-state'), btn=$('clan-req-btn');
+      if(sel && sel.getAttribute('data-vil')!==(myChar.village||'')){
+        sel.setAttribute('data-vil', myChar.village||'');
+        sel.innerHTML='<option value="">\u2014 scegli un clan \u2014</option>';
+        if(myChar.village){
+          var rc=await sb.from('clans').select('name').eq('is_gated',true).eq('is_active',true).eq('village',myChar.village).order('name');
+          ((rc&&rc.data)||[]).forEach(function(c){ var o=document.createElement('option'); o.value=c.name; o.textContent=c.name; sel.appendChild(o); });
+        }
+      }
+      var rq=await sb.from('clan_richieste').select('clan,bg,status,nota_staff,created_at').eq('character_id',myChar.id).order('created_at',{ascending:false}).limit(1);
+      var last=((rq&&rq.data)||[])[0]||null;
+      if(last && last.status==='in attesa'){
+        if(st) st.innerHTML='<b>Richiesta inviata</b> per il clan '+esc(last.clan)+' il '+new Date(last.created_at).toLocaleDateString('it-IT')+'. Lo staff la sta valutando: quando decide, la risposta compare qui.';
+        if(form) form.style.display='none';
+        return;
+      }
+      if(form) form.style.display='';
+      if(last && last.status==='respinta'){
+        if(st) st.innerHTML='<b>La richiesta per '+esc(last.clan)+' non \u00e8 stata accolta.</b>'+(last.nota_staff?(' Nota dello staff: \u00ab'+esc(last.nota_staff)+'\u00bb.'):'')+' Puoi riscrivere il background e ripresentarla.';
+        var ta=$('clan-req-bg'); if(ta && !ta.value) ta.value=last.bg||'';
+      } else if(st){
+        st.innerHTML='I clan speciali si chiedono allo staff: scegli il clan e racconta il tuo personaggio. Non c\u2019\u00e8 una lunghezza minima, ma quello che scrivi \u00e8 tutto ci\u00f2 su cui lo staff decide.';
+      }
+      if(btn && btn.getAttribute('data-bound')!=='1'){ btn.setAttribute('data-bound','1'); btn.addEventListener('click',async function(){
+        var nm=(($('clan-req-sel')||{}).value)||'', bg=((($('clan-req-bg')||{}).value)||'').trim();
+        if(!nm){ toast('Scegli un clan',true); return; }
+        if(!bg){ toast('Scrivi il background prima di inviare',true); return; }
+        btn.disabled=true; var r=await sb.rpc('clan_richiedi',{p_clan:nm,p_bg:bg}); btn.disabled=false;
+        if(r&&r.error){ toast((r.error.message||'Richiesta non inviata'),true); return; }
+        toast('Richiesta inviata allo staff'); renderClanReq();
+      }); }
     }
     function fillStaffPanel(c,priv){
       if(!c)return;
