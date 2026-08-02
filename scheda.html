@@ -1262,7 +1262,9 @@
     /* ===== Compagno PNG (evocazioni, marionette, cani ninja) ===== */
     async function loadCompagni(){
       var host=$('comp-wrap'), sec=$('sec-comp'); if(!host||!sec) return;
-      if(viewMode!=='owner'||!myChar){ sec.style.display='none'; return; }
+      /* [02/08/2026] Anche l'admin che guarda la propria scheda deve vedere il pannello:
+         viewMode vale 'adminself', non 'owner', e prima la sezione spariva. */
+      if(!(viewMode==='owner'||viewMode==='adminself')||!myChar){ sec.style.display='none'; return; }
       sec.style.display='';
       var r=await sb.from('character_companions').select('*').eq('character_id',myChar.id).order('created_at');
       var rows=(r&&r.data)||[];
