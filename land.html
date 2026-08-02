@@ -1344,6 +1344,22 @@
       <div class="miss-body" id="cerc-body"></div>
     </div>
   </div>
+  <div class="mailov-backdrop" id="evoov-backdrop" hidden></div>
+  <div class="mailov" id="evoov" hidden aria-label="Evocazioni">
+    <div class="missov-card">
+      <button class="mailov-x" id="evoov-x" type="button" title="Chiudi">×</button>
+      <div class="miss-head">
+        <span class="miss-title">Evocazioni — le sei famiglie</span>
+      </div>
+      <div class="jdb-tabs" id="evo-tabs">
+        <button class="miss-tab" type="button" data-etab="famiglie">Le sei famiglie</button>
+        <button class="miss-tab" type="button" data-etab="taglie">Le cinque taglie</button>
+        <button class="miss-tab" type="button" data-etab="abilita">Abilità</button>
+        <button class="miss-tab" type="button" data-etab="richiamo">Contratto e Richiamo</button>
+      </div>
+      <div class="miss-body" id="evo-body"></div>
+    </div>
+  </div>
 
   <div class="ov-backdrop" id="ov-backdrop" hidden></div>
   <aside class="ov-panel" id="online-panel" hidden aria-label="Utenti online">
@@ -1748,7 +1764,7 @@
       function avatarHTML(c,name,cid){ var inner=(c&&c.avatar_url)?('<img src="'+esc(c.avatar_url)+'" alt="">'):('<span class="ava-ph">'+esc((name||'?').charAt(0).toUpperCase())+'</span>'); return cid?('<a class="m-ava" href="scheda.html?id='+esc(cid)+'" title="Apri la scheda di '+esc(name)+'">'+inner+'</a>'):('<span class="m-ava">'+inner+'</span>'); }
       function clanEmbSpan(clan,isCapo,size){ if(!clan||clan==='Nessuno')return ''; var u=EMB['clan:'+clan]; if(!u)return ''; return '<span class="cl-emb'+(isCapo?' shine':'')+'" style="width:'+size+'px;height:'+size+'px'+(isCapo?(';--e:url(&quot;'+u+'&quot;)'):'')+'"><img src="'+esc(u)+'" alt=""><span class="shn"></span></span>'; }
       function identityHTML(c,name,cid,created){ var sx=c&&c.sex; var sexIc=(sx==='Maschio')?SEX_M:((sx==='Femmina')?SEX_F:''); var wo=cid?('<a class="m-who" href="scheda.html?id='+esc(cid)+'">'):'<span class="m-who">'; var wc=cid?'</a>':'</span>'; var rk=c&&c.rank; var rimg=(rk&&EMB['rank:'+rk]); var rbadge=rimg?('<span class="rb"><img src="'+esc(rimg)+'" alt=""></span>'):rankBadge(rk); var rankH=rk?('<span class="m-rank">'+rbadge+esc(rk)+'</span>'):''; var cl=(c&&c.clan&&c.clan!=='Nessuno')?c.clan:''; var clanImg=clanEmbSpan(cl,(c&&c.clan_role==='Capo clan'),14); var clanH=cl?('<a class="m-clan" href="clan.html?c='+encodeURIComponent(cl)+'" title="Apri il clan">'+clanImg+esc(cl)+'</a>'):''; var ep=c&&c.epithet; var epiH=ep?('<span class="m-epi">«'+esc(ep)+'»</span>'):''; return '<div class="m-head">'+wo+esc(name)+wc+sexIc+rankH+clanH+epiH+'<span class="m-time">'+fmt(created)+'</span></div>'; }
-      function loadEmblems(){ if(!sb) return; sb.from('emblems').select('kind,name,image_url').in('kind',['clan','rank','village','corp','corpspec','corpgrade','bijuu']).then(function(r){ if(r&&!r.error){ (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.kind+':'+e.name]=e.image_url; }); } }, function(){}); }
+      function loadEmblems(){ if(!sb) return; sb.from('emblems').select('kind,name,image_url').in('kind',['clan','rank','village','corp','corpspec','corpgrade','bijuu','evofam']).then(function(r){ if(r&&!r.error){ (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.kind+':'+e.name]=e.image_url; }); } }, function(){}); }
       function showPtsReminder(n){ var el=document.getElementById('pts-reminder'); if(!el) return; if(n>0){ var pn=document.getElementById('pts-n'); if(pn) pn.textContent=n; el.hidden=false; } else { el.hidden=true; } }
       (function(){ var px=document.getElementById('pts-x'); if(px) px.addEventListener('click',function(){ var el=document.getElementById('pts-reminder'); if(el) el.hidden=true; }); })();
       var PIN='<svg class="pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
@@ -2912,6 +2928,193 @@
           var t=document.getElementById('cerc-tabs'); if(t)t.addEventListener('click',function(e){ var b=e.target.closest('[data-ctab]'); if(!b)return; cercTab=b.getAttribute('data-ctab'); cercRender(); });
           document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var ov=document.getElementById('cercov'); if(ov&&!ov.hidden) closeCerc(); } });
         })();
+        /* ===== EVOCAZIONI — le sei famiglie (menù Mondo → Evocazioni) ===== */
+        var EVO=[
+          {k:'rospi',n:'Rospi',d:'Ninjutsu',
+            r:'Difesa e urto. La più solida delle sei.',
+            c:'Il rotolo si firma col sangue in una palude d’altura, e i rospi non chiedono forza: chiedono la parola data. Chi manca a una promessa fatta davanti a loro non li richiama più.',
+            ch:'Solenni e litigiosi. Trattano l’evocatore come un parente: discutono ogni ordine prima di eseguirlo, e poi lo eseguono.',
+            s:'Lo <b>Sputo d’olio</b> raddoppia il danno base di un Katon che colpisce l’area: sono i compagni naturali di chi ha il Fuoco.'},
+          {k:'serpenti',n:'Serpenti',d:'Ninjutsu',
+            r:'Veleno e immobilizzo. Il danno più alto su un bersaglio solo.',
+            c:'Non si firma: si contratta. Chiedono qualcosa in cambio ogni volta, tengono il conto, e prima o poi il conto lo presentano.',
+            ch:'Freddi e pazienti. La lealtà non li interessa: rispettano soltanto chi non mostra paura.',
+            s:'Il veleno <b>non si somma con sé stesso</b> — applicarlo di nuovo rinnova la durata, non raddoppia il malus.'},
+          {k:'rapaci',n:'Rapaci',d:'Abilità',
+            r:'Occhi. Ricognizione, messaggi, spostamento: poco danno, molta informazione.',
+            c:'Non chiedono sangue, chiedono il primo volo: si sale e ci si lascia portare. Chi si irrigidisce non viene accettato.',
+            ch:'Schivi, precisi, di poche parole. Parlano quando hanno qualcosa da dire, e non un momento prima.',
+            s:'Famiglia degli <b>ANBU</b>: il contratto costa <b>300 XP</b> invece di 600 finché resti nella corporazione.'},
+          {k:'rettili',n:'Rettili',d:'Abilità',
+            r:'Furtività, per sé e per la squadra, e l’agguato che ne esce.',
+            c:'Si firma restando fermi finché non si viene accettati. Possono volerci ore, e chi si muove ricomincia da capo.',
+            ch:'Silenziosi e mai in fretta. Non avvertono e non salutano: ci sono, oppure non ci sono.',
+            s:'Seconda famiglia degli <b>ANBU</b>: contratto a <b>300 XP</b> invece di 600 finché resti nella corporazione.'},
+          {k:'lumache',n:'Lumache',d:'Ninjutsu',
+            r:'Sostegno e cura. Due delle sei abilità sono riservate al Corpo Medico.',
+            c:'Si firma soltanto dopo aver curato qualcuno davanti a loro. Chi arriva col contratto in mano e la voglia di combattere se ne torna indietro.',
+            ch:'Lente, gentili, ostinate. Non alzano mai la voce e non cambiano mai idea.',
+            s:'Famiglia del <b>Corpo Medico</b>: contratto a <b>300 XP</b> invece di 600 finché resti nella corporazione. Il contratto però è aperto a chiunque — sono le due abilità marcate <i>Corpo Medico</i> a restare chiuse a chi medico non è.'},
+          {k:'scimmie',n:'Scimmie',d:'Taijutsu',
+            r:'L’unica famiglia che diventa arma. Premia chi combatte in mischia.',
+            c:'Non si firma: si vince. Un confronto, senza regole dichiarate. Poi ridono, e accettano.',
+            ch:'Irriverenti e competitive. Ti prendono in giro per tutta la scena, e non ti lasciano mai indietro.',
+            s:'Mentre è trasformata in arma la scimmia non usa altre tecniche di famiglia: <b>o il bastone, o la combo</b>.'}
+        ];
+        var EVO_TAGLIE=[
+          {k:'baby',n:'Baby',g:'D',rk:'Genin',nin:10,che:'un cucciolo, poco più grande di una mano',ck:10,mant:0,tempo:'1 turno',turni:6,pv:20,combo:'—'},
+          {k:'piccola',n:'Piccola',g:'C',rk:'Genin',nin:25,che:'grande come un cane, agile',ck:20,mant:5,tempo:'1 turno',turni:6,pv:40,combo:'+5'},
+          {k:'media',n:'Media',g:'B',rk:'Chunin',nin:40,che:'grande come un cavallo, combatte davvero',ck:40,mant:5,tempo:'1 turno',turni:5,pv:60,combo:'+10'},
+          {k:'grande',n:'Grande',g:'A',rk:'Jonin',nin:60,che:'grande come una casa, cambia la scena',ck:60,mant:10,tempo:'2 turni',turni:4,pv:90,combo:'+15'},
+          {k:'leggendaria',n:'Leggendaria',g:'S',rk:'Jonin Speciale',nin:80,che:'un anziano della famiglia',ck:80,mant:15,tempo:'2 turni',turni:3,pv:120,combo:'+20'}
+        ];
+        var EVODB={loaded:false,busy:false,err:false,rows:[]};
+        var evoTab='famiglie', evoFam='rospi';
+        function evoTagN(k){ for(var i=0;i<EVO_TAGLIE.length;i++){ if(EVO_TAGLIE[i].k===k) return EVO_TAGLIE[i].n; } return k||'—'; }
+        function evoTagIdx(k){ for(var i=0;i<EVO_TAGLIE.length;i++){ if(EVO_TAGLIE[i].k===k) return i; } return 99; }
+        function evoFamObj(k){ for(var i=0;i<EVO.length;i++){ if(EVO[i].k===k) return EVO[i]; } return EVO[0]; }
+        function evoArt(f){ var u=EMB['evofam:'+f.k]; return '<div class="bj-art">'+(u?('<img src="'+esc(u)+'" alt="">'):'<span class="who-empty">—</span>')+'</div>'; }
+        function evoRows(fam){ return EVODB.rows.filter(function(o){ return o.req_famiglia===fam; }).sort(function(a,b){ var d=evoTagIdx(a.req_taglia)-evoTagIdx(b.req_taglia); return d||((a.sort||0)-(b.sort||0)); }); }
+        function evoLoad(){
+          if(EVODB.loaded||EVODB.busy||!sb) return;
+          EVODB.busy=true;
+          sb.from('clan_techniques')
+            .select('name,description,chakra_cost,danno_base,tipo_azione,gittata,disciplina,req_famiglia,req_taglia,req_corp,level,grado,req_grade,req_stat_value,trainings_required,sort')
+            .eq('is_active',true).eq('macro','evocazione').order('sort')
+            .then(function(r){ EVODB.busy=false;
+              if(r&&!r.error){ EVODB.rows=r.data||[]; EVODB.loaded=true; } else { EVODB.err=true; }
+              evoRender(); },
+              function(){ EVODB.busy=false; EVODB.err=true; evoRender(); });
+        }
+        function evoFamiglie(){
+          var h='<p class="bj-intro">Un <b>contratto di evocazione</b> lega un ninja a una famiglia animale, e la lega <b>per sempre</b>: se ne sceglie <b>una sola</b>, e non si cambia. Il contratto da solo però non porta in campo nessuno — serve il jutsu del <b>Richiamo</b>, che non si compra con gli XP e si impara in scena.</p>'+
+                  '<p class="bj-intro">Le famiglie aperte sono <b>sei</b>. Non sono varianti dello stesso animale: cambiano disciplina, ruolo in combattimento e modo di essere avvicinate. I <b>canidi non sono qui</b>: i cani ninja restano esclusiva del clan Inuzuka.</p>';
+          h+='<div class="bj-grid">';
+          EVO.forEach(function(f){
+            var n=EVODB.loaded?evoRows(f.k).length:0;
+            h+='<div class="bj-card">'+evoArt(f)+'<div class="bj-txt">'+
+               '<div class="bj-top"><span class="bj-name">'+esc(f.n)+'</span><span class="bj-tails">'+esc(f.d)+'</span>'+
+               (EVODB.loaded?('<span class="bj-home">'+n+' abilità</span>'):'')+'</div>'+
+               '<p class="bj-desc">'+esc(f.r)+'</p>'+
+               '<p class="bj-pass"><b>Il patto</b> — '+esc(f.c)+'</p>'+
+               '<p class="bj-pass"><b>Come sono</b> — '+esc(f.ch)+'</p>'+
+               (f.s?('<p class="bj-pass">'+f.s+'</p>'):'')+
+               '</div></div>';
+          });
+          h+='</div>';
+          h+='<p class="bj-note">Il contratto si chiede fra i <b>Premi</b> della Scheda; la creatura si crea da lì, e da lì entra in scena col riquadro 🎭 del turno.</p>';
+          return h;
+        }
+        function evoTaglie(){
+          var h='<p class="bj-intro">La taglia non è un dettaglio descrittivo: è <b>quanto grosso</b> è quello che chiami, quanto costa, quanto resta e quante delle sue abilità puoi usare. Si sale un gradino alla volta, e ogni gradino si guadagna <b>in gioco</b> con un addestramento — mai con gli XP.</p>'+
+                  '<p class="bj-intro">Valgono le due chiavi di sempre (§5.2): il <b>rango</b> apre il grado, la soglia di <b>Ninjutsu</b> lo conferma. Sono le stesse soglie delle tecniche: non c’è una seconda tabella da imparare.</p>';
+          h+='<div class="bj-tw"><table class="bj-t"><caption>Requisiti delle cinque taglie</caption><thead><tr><th>Taglia</th><th>Grado</th><th>Rango</th><th>Ninjutsu</th><th>Che cosa richiami</th></tr></thead><tbody>';
+          EVO_TAGLIE.forEach(function(t){
+            h+='<tr><td class="bj-c">'+esc(t.n)+'</td><td class="bj-c">'+esc(t.g)+'</td><td class="bj-c">'+esc(t.rk)+'</td><td class="bj-c">'+t.nin+'</td><td>'+esc(t.che)+'</td></tr>';
+          });
+          h+='</tbody></table></div>';
+          h+='<div class="bj-tw"><table class="bj-t"><caption>Costi, durata e resistenza</caption><thead><tr><th>Taglia</th><th>Chakra</th><th>Mantenimento</th><th>Richiamo</th><th>Turni in campo</th><th>PV</th><th>Bonus di combo</th></tr></thead><tbody>';
+          EVO_TAGLIE.forEach(function(t){
+            h+='<tr><td class="bj-c">'+esc(t.n)+'</td><td class="bj-c">'+t.ck+'</td><td class="bj-c">'+(t.mant?(t.mant+' / turno'):'—')+'</td><td class="bj-c">'+esc(t.tempo)+'</td><td class="bj-c">'+t.turni+'</td><td class="bj-c">'+t.pv+'</td><td class="bj-c">'+esc(t.combo)+'</td></tr>';
+          });
+          h+='</tbody></table></div>';
+          h+='<div class="bj-sec"><div class="bj-h">Le regole che contano</div>'+
+             '<p class="bj-p">Un’evocazione costa <b>il doppio</b> di un jutsu di pari grado, perché non è un colpo: resta in campo. <b>Richiamare occupa l’azione principale</b> — nel turno in cui chiami, hai chiamato. Con le taglie Grande e Leggendaria il rituale dura <b>due azioni principali consecutive</b>: nel frattempo ti muovi e ti difendi, ma non attacchi.</p>'+
+             '<p class="bj-p">Il chakra si paga <b>all’inizio</b> del richiamo. Se il rituale salta — vai fuori combattimento, o subisci <b>20 danni o più in un colpo solo</b> — recuperi <b>metà</b> del chakra speso, arrotondata ai 5. Il mantenimento si paga a inizio turno: se non puoi pagarlo, la creatura si congeda da sola.</p>'+
+             '<p class="bj-p">A <b>0 PV l’evocazione non muore: si congeda</b> e torna nel suo mondo. Richiamarla nella stessa scena costa <b>il doppio</b>. Il congedo volontario è un’azione rapida e non costa nulla.</p>'+
+             '<p class="bj-note">I gradi bassi durano molto e fanno poco, quelli alti durano poco e fanno molto. È voluto: una Leggendaria è una finestra, non una scena intera.</p></div>';
+          h+='<div class="bj-sec"><div class="bj-h">La Leggendaria</div>'+
+             '<p class="bj-p">L’ultimo gradino non si allena e basta: serve il premio maggiore <b>Contratto leggendario</b> (1.200 XP, rango Jonin), che si innesta sul contratto che hai già, più <b>quattro</b> addestramenti e una scena masterata in cui la creatura <b>ha il diritto di rifiutare</b>.</p>'+
+             '<p class="bj-p"><b>La Leggendaria non porta abilità proprie: le usa tutte.</b> Un anziano della famiglia sa fare tutto ciò che sanno i suoi — le sei abilità delle taglie sotto, senza eccezioni — e le fa con i propri PV, la propria durata e il proprio bonus di combo. Non c’è una settima riga da cercare: non esiste.</p>'+
+             '<p class="bj-note">Perché una Leggendaria compaia in gioco servono mesi di gioco continuativo. Le prime non si vedranno presto, ed è previsto così.</p></div>';
+          return h;
+        }
+        function evoAbilita(){
+          if(EVODB.err) return '<p class="jdb-empty">Impossibile caricare le abilità delle evocazioni.</p>';
+          if(!EVODB.loaded) return '<p class="jdb-empty">Caricamento…</p>';
+          var h='<p class="bj-intro">Ogni famiglia ha <b>sei abilità</b>, e si aprono con la <b>taglia</b>: una alla Baby, una alla Piccola, due alla Media, due alla Grande. Non costano XP e non si allenano una per una — arrivano con la creatura. La <b>Leggendaria</b> non ne aggiunge di proprie: le usa tutte.</p>'+
+                  '<p class="bj-intro">Sono le abilità della <b>creatura</b>, non tue: si risolvono <b>dentro una tua azione</b>, mai in un turno separato.</p>';
+          h+='<div class="jdb-subs">'+EVO.map(function(f){
+              var n=evoRows(f.k).length;
+              return '<button type="button" class="jdb-sub'+(f.k===evoFam?' on':'')+'" data-efam="'+esc(f.k)+'">'+esc(f.n)+'<i>'+n+'</i></button>';
+            }).join('')+'</div>';
+          var f=evoFamObj(evoFam), rows=evoRows(evoFam);
+          h+='<div class="bj-h">'+esc(f.n)+' — '+esc(f.d)+'</div>';
+          if(!rows.length) return h+'<p class="jdb-empty">Nessuna abilità a catalogo per questa famiglia.</p>';
+          h+='<div class="bj-tw"><table class="bj-t"><caption>Abilità della famiglia '+esc(f.n)+'</caption><thead><tr><th>Taglia</th><th>Abilità</th><th>Chakra</th><th>Danno</th><th>Portata</th><th>Azione</th><th>Effetto</th></tr></thead><tbody>';
+          rows.forEach(function(o){
+            var _rc=String(o.req_corp||'').toLowerCase(); var rc=(_rc?(' <span class="bj-home">'+esc(_rc==='medici'?'Corpo Medico':(_rc==='anbu'?'ANBU':o.req_corp))+'</span>'):'');
+            h+='<tr><td class="bj-c">'+esc(evoTagN(o.req_taglia))+'</td>'+
+               '<td class="bj-c">'+esc(o.name||'')+rc+'</td>'+
+               '<td class="bj-c">'+(o.chakra_cost==null?'—':o.chakra_cost)+'</td>'+
+               '<td class="bj-c">'+(o.danno_base?o.danno_base:'—')+'</td>'+
+               '<td class="bj-c">'+esc(o.gittata?(o.gittata.charAt(0).toUpperCase()+o.gittata.slice(1)):'—')+'</td>'+
+               '<td class="bj-c">'+esc(o.tipo_azione||'—')+'</td>'+
+               '<td>'+esc(o.description||'')+'</td></tr>';
+          });
+          h+='</tbody></table></div>';
+          h+='<p class="bj-note">Nessuna abilità di evocazione supera il tetto di 65 danni per singola azione, come tutto il resto del motore.</p>';
+          return h;
+        }
+        function evoRichiamo(){
+          var h='<div class="bj-sec"><div class="bj-h">Servono due cose, e nessuna basta da sola</div>'+
+                '<p class="bj-p"><b>1 · Il contratto.</b> È il premio <b>Contratto di evocazione</b>: <b>600 XP</b>, rango minimo Genin, si chiede dalla Scheda alla voce Premi e non occupa slot di premio maggiore. Chi sta nel <b>Corpo Medico</b> (lumache) o negli <b>ANBU</b> (rettili, rapaci) lo paga <b>300 XP</b> finché resta nella corporazione. Lo staff può concederne uno ereditario o di trama, senza costo.</p>'+
+                '<p class="bj-p"><b>2 · Il Richiamo.</b> Il jutsu <b>non si compra con gli XP</b>: si impara in gioco, con gli addestramenti, e finché non è attivo il contratto è carta. Con il Richiamo appreso — tre addestramenti — la creatura si crea dalla Scheda.</p>'+
+                '<p class="bj-note">La firma è di sangue: chi è immobilizzato o non ha una mano libera <b>non evoca</b>.</p></div>';
+          h+='<div class="bj-sec"><div class="bj-h">La scala del Richiamo — dieci addestramenti in tutto</div>';
+          if(EVODB.err){ h+='<p class="jdb-empty">Impossibile caricare la scala del Richiamo.</p>'; }
+          else if(!EVODB.loaded){ h+='<p class="jdb-empty">Caricamento…</p>'; }
+          else {
+            var sc=EVODB.rows.filter(function(o){ return !o.req_famiglia && o.level; }).sort(function(a,b){ return (a.level||0)-(b.level||0); });
+            if(!sc.length){ h+='<p class="jdb-empty">Nessuna riga di catalogo per il Richiamo.</p>'; }
+            else {
+              h+='<div class="bj-tw"><table class="bj-t"><caption>Scala del Richiamo</caption><thead><tr><th>Passo</th><th>Taglia raggiunta</th><th>Grado</th><th>Rango</th><th>Ninjutsu</th><th>Chakra</th><th>Addestramenti</th></tr></thead><tbody>';
+              var tot=0;
+              sc.forEach(function(o,i){
+                var t=EVO_TAGLIE[(o.level||1)-1]||{n:'—'};
+                tot+=(o.trainings_required||0);
+                h+='<tr><td class="bj-c">'+(i===0?'Imparare a evocare':('→ '+esc(t.n)))+'</td>'+
+                   '<td class="bj-c">'+esc(t.n)+'</td>'+
+                   '<td class="bj-c">'+esc(o.grado||'—')+'</td>'+
+                   '<td class="bj-c">'+esc(o.req_grade||'—')+'</td>'+
+                   '<td class="bj-c">'+(o.req_stat_value==null?'—':o.req_stat_value)+'</td>'+
+                   '<td class="bj-c">'+(o.chakra_cost==null?'—':o.chakra_cost)+'</td>'+
+                   '<td class="bj-c">'+(o.trainings_required||0)+'</td></tr>';
+              });
+              h+='</tbody><tfoot><tr><td class="bj-c" colspan="6">Totale dalla firma al capostipite</td><td class="bj-c">'+tot+'</td></tr></tfoot></table></div>';
+            }
+          }
+          h+='<p class="bj-note">L’addestramento <b>non sostituisce</b> il requisito di scheda: si aggiunge. Una sola famiglia per personaggio, per sempre.</p></div>';
+          h+='<div class="bj-sec"><div class="bj-h">Che cos’è, in scena</div>'+
+             '<p class="bj-p">Un’evocazione è un <b>vero PNG</b>: ha punti vita propri, occupa una posizione, può essere bersagliata e fare da copertura, e scrive la sua parte in un riquadro a sé sotto la tua azione. Ma <b>non ha un’iniziativa propria e non aggiunge un’azione</b>: quello che fa, lo fa dentro una tua azione — la tua tecnica e la sua si risolvono insieme, un bersaglio, un risultato. In nessun caso un compagno raddoppia i tuoi attacchi.</p>'+
+             '<p class="bj-p">Vale <b>uno slot compagno</b>, e di slot ne hai uno: marionetta, cane ninja o evocazione. Un secondo slot lo concede soltanto lo staff.</p>'+
+             '<p class="bj-note">Utile a rango basso, decisiva quasi mai, molto forte solo ai livelli alti e per pochi turni. È pensata così.</p></div>';
+          return h;
+        }
+        function evoRender(){
+          var b=document.getElementById('evo-body'); if(!b) return;
+          var t=document.getElementById('evo-tabs');
+          if(t){ var bs=t.querySelectorAll('[data-etab]'); for(var i=0;i<bs.length;i++){ bs[i].classList.toggle('on', bs[i].getAttribute('data-etab')===evoTab); } }
+          if(evoTab==='taglie') b.innerHTML=evoTaglie();
+          else if(evoTab==='abilita') b.innerHTML=evoAbilita();
+          else if(evoTab==='richiamo') b.innerHTML=evoRichiamo();
+          else b.innerHTML=evoFamiglie();
+          b.scrollTop=0;
+        }
+        function openEvo(tab){
+          evoTab=tab||'famiglie';
+          var ov=document.getElementById('evoov'), bk=document.getElementById('evoov-backdrop');
+          if(ov)ov.hidden=false; if(bk)bk.hidden=false;
+          evoRender(); evoLoad();
+        }
+        function closeEvo(){ var ov=document.getElementById('evoov'), bk=document.getElementById('evoov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
+        (function(){
+          var x=document.getElementById('evoov-x'); if(x)x.addEventListener('click',closeEvo);
+          var bk=document.getElementById('evoov-backdrop'); if(bk)bk.addEventListener('click',closeEvo);
+          var t=document.getElementById('evo-tabs'); if(t)t.addEventListener('click',function(e){ var b=e.target.closest('[data-etab]'); if(!b)return; evoTab=b.getAttribute('data-etab'); evoRender(); });
+          var body=document.getElementById('evo-body'); if(body)body.addEventListener('click',function(e){ var s=e.target.closest('[data-efam]'); if(!s)return; evoFam=s.getAttribute('data-efam'); evoRender(); });
+          document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var ov=document.getElementById('evoov'); if(ov&&!ov.hidden) closeEvo(); } });
+        })();
         /* ===== CODICE DELLE TECNICHE — database informativo (sola lettura) ===== */
         var JDB={loaded:false,jutsu:[],tech:[],tab:'accademia',sub:{},q:''};
         var JDB_RAMI=[['','Tronco comune'],['chirurgia','Chirurgia'],['tossicologia','Tossicologia'],['cura-campo','Cura da campo'],['combattimento','Combattimento']];
@@ -3204,7 +3407,7 @@
           var tb=document.getElementById('prm-tabs'); if(tb) tb.addEventListener('click', function(e){ var b=e.target.closest('[data-ptab]'); if(!b) return; prmTab=b.getAttribute('data-ptab'); prmRender(); });
         })();
 
-        var wr=document.getElementById('world-rail'); if(wr) wr.addEventListener('click', function(e){ var b=e.target.closest('[data-world]'); if(!b) return; var k=b.getAttribute('data-world'); if(k==='corporazioni'){ openCorp(); } else if(k==='jutsu'||k==='abilita'){ openJutsu(); } else if(k==='help'){ openHelp(); } else if(k==='cercoteri'){ openCerc('bestie'); } else if(k==='premi'){ openPrm(); } else { openWorld(k); } });
+        var wr=document.getElementById('world-rail'); if(wr) wr.addEventListener('click', function(e){ var b=e.target.closest('[data-world]'); if(!b) return; var k=b.getAttribute('data-world'); if(k==='corporazioni'){ openCorp(); } else if(k==='jutsu'||k==='abilita'){ openJutsu(); } else if(k==='help'){ openHelp(); } else if(k==='cercoteri'){ openCerc('bestie'); } else if(k==='evocazioni'){ openEvo('famiglie'); } else if(k==='premi'){ openPrm(); } else { openWorld(k); } });
         var wc=document.getElementById('world-close'); if(wc) wc.addEventListener('click', closeWorld);
       })();
 
