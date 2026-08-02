@@ -198,6 +198,29 @@
   .tb-btn.staff{color:var(--red-deep);border-color:var(--edge)}
   .test-banner{display:flex;align-items:center;gap:12px;margin:0 0 10px;padding:9px 13px;border:1px dashed #4a86b8;border-radius:10px;background:rgba(74,134,184,.10);color:var(--ink)}
   .test-banner[hidden]{display:none}
+  .side-card.cmb{border-color:#8a3b2a}
+  .cmb-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  .cmb-round{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.06em;color:var(--red-deep)}
+  .cmb-fase{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
+  .cmb-tuo{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.06em;color:#f6ead0;background:var(--red);border-radius:6px;padding:2px 7px}
+  .cmb-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-top:1px dotted var(--edge);font-size:12px}
+  .cmb-row:first-of-type{border-top:0}
+  .cmb-row b{flex:1;font-weight:600}
+  .cmb-row.io b{color:var(--red-deep)}
+  .cmb-row.ko{opacity:.5;text-decoration:line-through}
+  .cmb-pos{font-size:10.5px;color:var(--ink-soft);white-space:nowrap}
+  .cmb-bar{width:44px;height:5px;border-radius:3px;background:rgba(0,0,0,.12);overflow:hidden;flex:0 0 auto}
+  .cmb-bar i{display:block;height:100%;background:#8a3b2a}
+  .cmb-bar.ck i{background:#3d6f96}
+  .cmb-act{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .cmb-act button{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.05em;color:var(--ink);background:transparent;border:1px solid var(--edge);border-radius:7px;padding:5px 9px;cursor:pointer}
+  .cmb-act button.on{color:#f6ead0;background:var(--red);border-color:var(--red-deep)}
+  .cmb-act button:disabled{opacity:.4;cursor:default}
+  .cmb-act select,.cmb-act input{font-size:11.5px;border:1px solid var(--edge);border-radius:7px;padding:4px 6px;background:var(--paper-hi,#f6eeda);color:var(--ink);max-width:150px}
+  .cmb-note{font-size:11px;line-height:1.4;color:var(--ink-soft);margin:6px 0 0}
+  .msg-scontro{display:flex;gap:7px;align-items:flex-start;margin:6px 0;padding:5px 9px;border-left:3px solid #8a3b2a;background:rgba(138,59,42,.07);border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.45;color:var(--ink-soft)}
+  .msg-scontro b{color:var(--red-deep);font-weight:700}
+  .msg-scontro svg{width:15px;height:15px;flex:0 0 auto;color:#8a3b2a;margin-top:1px}
   .test-banner .tb-txt{flex:1;font-size:12.5px;line-height:1.45}
   .test-banner .tb-wipe{flex:0 0 auto;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.06em;color:#3d6f96;background:transparent;border:1px solid #4a86b8;border-radius:8px;padding:6px 11px;cursor:pointer}
   .test-banner .tb-wipe:hover{background:rgba(74,134,184,.16)}
@@ -1210,6 +1233,10 @@
                 <div class="side-k">Accademia</div>
                 <div id="acad-body"></div>
               </div>
+              <div class="side-card cmb" id="cmb-card" hidden>
+                <div class="side-k">Scontro</div>
+                <div id="cmb-body"></div>
+              </div>
               <div class="side-card rec" id="rec-card" hidden>
                 <div class="side-k">Registrazione role</div>
                 <div id="rec-body"></div>
@@ -1892,6 +1919,7 @@
             return '<div class="msg-item">'+ITEM+'<span><b>'+esc(m.author_name)+'</b> usa <b class="it-name">'+esc(m.body)+'</b></span></div>';
           }
           if(m.kind==='cura'){ return '<div class="msg-cura">'+HEAL+'<span>'+esc(m.body)+'</span></div>'; }
+          if(m.kind==='sistema'){ return '<div class="msg-scontro">'+SWORD+'<span>'+esc(m.body)+'</span></div>'; }
           if(m.kind==='whisper'){
             var dir;
             if(m.recipient_user&&m.recipient_user===myId) dir='da <b>'+esc(m.author_name)+'</b>';
@@ -1973,7 +2001,95 @@
         var vnp=document.getElementById('vn-pv'); if(vnp) vnp.textContent=(myVita!=null?myVita:'—')+' / '+(myVitaMax!=null?myVitaMax:'—');
         var vnc=document.getElementById('vn-ck'); if(vnc) vnc.textContent=(myChakra!=null?myChakra:'—')+' / '+(myChakraMax!=null?myChakraMax:'—');
       }
-      function refreshRoom(){ if(!cur) return; updateMeteo(); sb.rpc('enter_location',{p_location:cur.id}).then(function(){},function(){}); loadMsgs(); loadWho(); loadRoleState(); loadAcadClass(); refreshMyVita(); }
+      function refreshRoom(){ if(!cur) return; updateMeteo(); sb.rpc('enter_location',{p_location:cur.id}).then(function(){},function(){}); loadMsgs(); loadWho(); loadRoleState(); loadAcadClass(); refreshMyVita(); loadCombat(); }
+
+      /* ---- Motore di combattimento: il pannello dello scontro ---- */
+      var CMB=null, CMB_DEF=[], CMB_INN=[];
+      function cmbBar(v,max,cls){ var p=(max>0)?Math.max(0,Math.min(100,Math.round(v*100/max))):0;
+        return '<span class="cmb-bar'+(cls||'')+'" title="'+v+'/'+max+'"><i style="width:'+p+'%"></i></span>'; }
+      function loadCombat(){ if(!sb||!cur){ return; }
+        sb.rpc('combat_state',{p_location:cur.id}).then(function(r){
+          CMB=(r&&!r.error&&r.data)||null; renderCombat();
+        }, function(){ CMB=null; renderCombat(); }); }
+      function renderCombat(){
+        var card=document.getElementById('cmb-card'), body=document.getElementById('cmb-body');
+        if(!card||!body) return;
+        if(!CMB||!CMB.aperto){
+          card.hidden=false;
+          body.innerHTML='<p class="cmb-note">Qui non c\u2019\u00e8 nessuno scontro aperto.</p>'+
+            '<div class="cmb-act"><input id="cmb-dist" type="number" min="0" max="60" step="5" placeholder="metri" style="max-width:74px">'+
+            '<button type="button" data-cmb="apri">Apri un allenamento</button>'+
+            '<button type="button" data-cmb="apri-fato" title="La distanza d\u2019ingaggio la decide un tiro">Lascia al fato</button></div>';
+          return;
+        }
+        card.hidden=false;
+        var io=(CMB.partecipanti||[]).filter(function(p){return p.io;})[0]||null;
+        var h='<div class="cmb-head"><span class="cmb-round">Round '+CMB.round+'</span>'+
+              '<span class="cmb-fase">'+(CMB.fase==='difesa'?'si difende':'si attacca')+'</span>'+
+              (CMB.tuo_turno?'<span class="cmb-tuo">tocca a te</span>':'')+'</div>';
+        (CMB.partecipanti||[]).forEach(function(p){
+          h+='<div class="cmb-row'+(p.io?' io':'')+(p.fuori?' ko':'')+'"><b>'+esc(p.nome)+'</b>'+
+             (p.ruolo==='partecipante'?'<span class="cmb-pos">in scena</span>':
+               ('<span class="cmb-pos">'+p.pos+' m</span>'+cmbBar(p.vita,p.vita_max)+cmbBar(p.chakra,p.chakra_max,' ck')))+'</div>';
+        });
+        (CMB.in_sospeso||[]).forEach(function(x){
+          h+='<p class="cmb-note"><b>'+esc(x.attaccante)+'</b> ha dichiarato \u00ab'+esc(x.tecnica)+'\u00bb contro <b>'+esc(x.bersaglio)+'</b> a '+x.distanza+' m'+(x.tocca_a_me?' \u2014 tocca a te rispondere.':'.')+'</p>';
+        });
+        if((CMB.accese||[]).length){ h+='<p class="cmb-note">Acceso: '+(CMB.accese||[]).map(function(a){return esc(a.nome)+' ('+a.costo+' ck/round)';}).join(' \u00b7 ')+'</p>'; }
+        h+='<div class="cmb-act">';
+        if(!io){
+          h+='<input id="cmb-dist" type="number" min="0" max="60" step="5" placeholder="metri" style="max-width:74px">'+
+             '<button type="button" data-cmb="entra">Entro</button>'+
+             '<button type="button" data-cmb="guardo" title="Resti nella turnazione ma il motore non ti calcola">Solo partecipante</button>';
+        } else if(CMB.tuo_turno && CMB.fase==='attacco'){
+          var bers=(CMB.partecipanti||[]).filter(function(p){return !p.io && !p.fuori && p.ruolo==='combattente';});
+          h+='<input id="cmb-passi" type="number" step="5" placeholder="\u00b1 m" style="max-width:64px" title="Positivo ti avvicini, negativo ti stacchi">'+
+             '<button type="button" data-cmb="muovi"'+(io.speso&&io.speso.spostamento?' disabled':'')+'>Sposta</button>';
+          if(bers.length){
+            h+='<select id="cmb-target">'+bers.map(function(p){return '<option value="'+p.user_id+'">'+esc(p.nome)+'</option>';}).join('')+'</select>'+
+               '<select id="cmb-kind"><option value="fisico">fisico</option><option value="ninjutsu">ninjutsu</option></select>'+
+               '<button type="button" data-cmb="attacca"'+(io.speso&&io.speso.principale?' disabled':'')+'>Dichiara il colpo</button>';
+          }
+          if(CMB_INN.length){
+            h+='<select id="cmb-inn">'+CMB_INN.map(function(t){return '<option value="'+t.technique_id+'"'+(t.accesa?' disabled':'')+'>'+esc(t.name)+(t.livello!=null?(' \u00b7 liv '+t.livello):'')+' \u00b7 '+t.chakra_cost+' ck</option>';}).join('')+'</select>'+
+               '<button type="button" data-cmb="accendi"'+(io.speso&&io.speso.principale?' disabled':'')+' title="Accendere costa l\u2019azione principale del turno">Accendi</button>';
+          }
+        } else if(CMB.tuo_turno && CMB.fase==='difesa'){
+          h+='<input id="cmb-passi" type="number" step="5" placeholder="\u00b1 m" style="max-width:64px" title="Conta dopo il colpo">'+
+             '<button type="button" data-cmb="muovi"'+(io.speso&&io.speso.spostamento?' disabled':'')+'>Sposta</button>'+
+             '<select id="cmb-reaz"><option value="schivata">schivo</option><option value="parata">paro</option>'+
+             '<option value="contrasto">contrasto</option><option value="sostituzione">Sostituzione</option></select>';
+          if(CMB_DEF.length){ h+='<select id="cmb-deftech"><option value="">\u2014 nessuna tecnica</option>'+CMB_DEF.map(function(t){return '<option value="'+t.technique_id+'">'+esc(t.name)+'</option>';}).join('')+'</select>'; }
+          h+='<button type="button" class="on" data-cmb="difendi">Difenditi</button>';
+        } else {
+          h+='<span class="cmb-pos">Aspetta il tuo turno.</span>';
+        }
+        h+='<button type="button" data-cmb="chiudi" title="Pu\u00f2 chiudere chi ha aperto, il master o lo staff">Chiudi</button></div>';
+        if(CMB.fase==='attacco'&&CMB.tuo_turno){ h+='<p class="cmb-note">Scrivi il tuo turno in chat, poi dichiara il colpo: si risolve quando l\u2019altro si difende.</p>'; }
+        body.innerHTML=h;
+      }
+      function cmbErr(e){ toast((e&&(e.message||e.hint))||'Non si pu\u00f2 fare adesso'); }
+      function cmbCall(fn,args){ if(!sb) return; sb.rpc(fn,args).then(function(r){ if(r&&r.error){ cmbErr(r.error); return; } loadCombat(); loadMsgs(); refreshMyVita(); }, cmbErr); }
+      function cmbListe(){ if(!sb) return;
+        sb.rpc('my_defenses').then(function(r){ CMB_DEF=(r&&!r.error&&r.data)||[]; }, function(){});
+        sb.rpc('my_innate',{p_session:(CMB&&CMB.id)||null}).then(function(r){ CMB_INN=(r&&!r.error&&r.data)||[]; renderCombat(); }, function(){}); }
+      (function(){ var host=document.getElementById('cmb-body'); if(!host) return;
+        host.addEventListener('click', function(e){
+          var b=e.target.closest('[data-cmb]'); if(!b||!cur) return;
+          var a=b.getAttribute('data-cmb'), v=function(id){ var el=document.getElementById(id); return el?el.value:''; };
+          if(a==='apri'){ var d=parseInt(v('cmb-dist'),10); cmbCall('combat_open',{p_location:cur.id,p_kind:'allenamento',p_distanza:isNaN(d)?5:d}); }
+          else if(a==='apri-fato'){ cmbCall('combat_open',{p_location:cur.id,p_kind:'allenamento',p_distanza:null}); }
+          else if(a==='entra'){ var d2=parseInt(v('cmb-dist'),10); cmbCall('combat_join',{p_session:CMB.id,p_distanza:isNaN(d2)?5:d2,p_ruolo:'combattente'}); }
+          else if(a==='guardo'){ cmbCall('combat_join',{p_session:CMB.id,p_distanza:0,p_ruolo:'partecipante'}); }
+          else if(a==='muovi'){ var m=parseInt(v('cmb-passi'),10); if(isNaN(m)){ toast('Quanti metri, e in che verso?'); return; } cmbCall('combat_muovi',{p_session:CMB.id,p_metri:m}); }
+          else if(a==='attacca'){ var t=document.getElementById('msg-tech');
+            cmbCall('combat_dichiara_attacco',{p_session:CMB.id,p_target_user:v('cmb-target'),p_kind:v('cmb-kind'),
+              p_technique:(t&&t.value)||null,p_fonte:(t&&t.value)?'clan':null,p_name:(t&&t.value)?'':'colpo',p_base:0,p_rapida:false}); }
+          else if(a==='accendi'){ cmbCall('innata_accendi',{p_session:CMB.id,p_technique:v('cmb-inn')}); }
+          else if(a==='difendi'){ cmbCall('combat_dichiara_difesa',{p_session:CMB.id,p_reazione:v('cmb-reaz'),p_technique:v('cmb-deftech')||null}); }
+          else if(a==='chiudi'){ cmbCall('combat_close',{p_session:CMB.id,p_motivo:'chiuso da chi conduce'}); }
+        });
+      })();
       /* ---- Registrazione role (scene recording) ---- */
       var roleState={open:false, session:null, can_close:false, starter:'', started_at:null}, recConfirmT=null;
       function fmtRoleTime(iso){ try{ var d=new Date(iso); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }catch(e){ return ''; } }
@@ -2179,12 +2295,13 @@
         if(im){ if(l.image_url){ im.src=l.image_url; im.style.display='block'; } else { im.removeAttribute('src'); im.style.display='none'; } }
         if(nt){ if(l.event_note){ nt.innerHTML='<span class="rn-k">Nota evento</span><span class="rn-t">'+esc(l.event_note)+'</span>'; nt.style.display='block'; } else { nt.style.display='none'; nt.innerHTML=''; } }
         var tbn=document.getElementById('test-banner'); if(tbn) tbn.hidden=!l.is_test;
+        CMB=null; try{ cmbListe(); }catch(e){}
         msgsEl.innerHTML='<div class="msgs-empty">Caricamento…</div>'; whoEl.innerHTML='';
         saveResume();
         refreshRoom();
         if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
       }
-      function leaveRoom(){ if(poll){ clearInterval(poll); poll=null; } cur=null; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} var rc=document.getElementById('rec-card'); if(rc) rc.hidden=true; roleState={open:false, session:null, can_close:false, starter:'', started_at:null}; var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} var rc=document.getElementById('rec-card'); if(rc) rc.hidden=true; roleState={open:false, session:null, can_close:false, starter:'', started_at:null}; var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
