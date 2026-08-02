@@ -1980,14 +1980,14 @@
             if(s.all_entered){ html+='<div class="ac-live"><span class="rec-dot"></span>Il sensei sta arrivando…</div>'+rosterHTML(s); }
             else {
               html+='<div class="ac-live"><span class="rec-dot"></span>In attesa che tutti entrino</div>'+rosterHTML(s);
-              if(mine==='student'){ html+='<p class="acad-hint">Fai un’azione in chat (entra in aula) per prendere posto.</p>'; }
+              if(mine==='student'){ html+='<p class="acad-hint">Fai un’azione in chat (entra in aula) per prendere posto. Conta solo ciò che scrivi da adesso: se avevi già scritto prima che la lezione aprisse, riscrivi il tuo ingresso.</p>'; }
               if(isInit){ html+='<button class="acad-btn ghost" id="acad-force" type="button">Fai iniziare comunque</button>'; }
             }
           } else if(s.state==='teaching'){
             html+='<div class="ac-live"><span class="rec-dot"></span>Lezione in corso <span class="acad-step">· passo '+s.step+'/'+s.total_steps+'</span></div>'+rosterHTML(s);
             html+= s.ready ? '<p class="acad-hint">Turno completo: il maestro sta per proseguire…</p>' : '<p class="acad-hint">In attesa che tutti agiscano (un’azione a testa).</p>';
             if(mine==='auditor'){ html+='<p class="acad-hint">Assisti come uditore: non riceverai l’attestato.</p>'; }
-            else if(mine){ html+='<p class="acad-hint">Scrivi la tua azione, poi la lezione proseguirà.</p>'; }
+            else if(mine){ html+='<p class="acad-hint">Scrivi la tua azione dopo l’ultimo intervento del maestro: conta solo quella, poi la lezione proseguirà.</p>'; }
             else { html+='<button class="acad-btn" id="acad-join" type="button">Assisti (uditore)</button>'; }
             if(isInit){ html+='<button class="acad-btn ghost" id="acad-force" type="button">'+(s.step>=s.total_steps?'Concludi ora':'Prosegui ora')+'</button><button class="acad-btn ghost" id="acad-cancel" type="button">Interrompi</button>'; }
           }
