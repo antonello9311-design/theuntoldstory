@@ -1472,7 +1472,7 @@
           <h4>Come si scrive</h4>
           <p>Una sola cosa da ricordare: <b>si segna il parlato, il resto è descrizione</b>.</p>
           <ul>
-            <li><b>&quot;Virgolette&quot;</b> oppure <b>&lt;parentesi angolari&gt;</b> per il <b>parlato</b> del personaggio: vanno bene entrambe e diventano <span class="sp-say">rosse</span>. Anche le virgolette basse «…» funzionano.</li>
+            <li><b>&quot;Virgolette&quot;</b> oppure <b>&lt;parentesi angolari&gt;</b> per il <b>parlato</b> del personaggio: vanno bene entrambe e diventano <span class="sp-say">rosse</span>. Anche le virgolette basse «…» funzionano, e così pure quelle curve “…” che mettono da soli Word e LibreOffice: se scrivi l’azione fuori dal sito e la incolli qui, il parlato viene rosso lo stesso.</li>
             <li><b>Per il descrittivo non serve nulla</b>: quello che scrivi fuori dal parlato è già la tua azione.</li>
             <li>I <b>nomi dei personaggi</b>, dei compagni PNG e dei maestri diventano <b><u>grassetto sottolineato</u></b> da soli quando li nomini nel descrittivo: non devi fare niente. Dentro il parlato restano normali, perché lì li sta dicendo il tuo personaggio.</li>
             <li><b>*Asterischi*</b> restano validi per staccare un gesto dal resto: diventa <em class="sp-act">corsivo</em>. Sono quelli che usano i maestri dell'Accademia.</li>
@@ -1661,7 +1661,17 @@
         out += (dentroSay ? coda : marca(coda));
         return out;
       }
-      function fmtBody(s){ var t=esc(s);
+      /* Virgolette tipografiche (Word, LibreOffice, telefoni): il copia-incolla
+         porta “ ” al posto di ", e il parlato restava nero. Qui si riportano
+         alla forma dritta prima di ogni cosa, così il testo incollato da fuori
+         viene letto esattamente come quello scritto nella chat interna.
+         Sostituzione uno-a-uno: la lunghezza del testo non cambia.
+         Non si toccano « » (già riconosciute) né l'apostrofo curvo ’,
+         che sta dentro le parole: nell’aula, dall’aula. */
+      function normVirg(s){ return (s==null?'':String(s))
+        .replace(/[\u201C\u201D\u201E\u201F\u2033\u3003\u301D\u301E\uFF02]/g,'"')
+        .replace(/\u00A0/g,' '); }
+      function fmtBody(s){ var t=esc(normVirg(s));
         t=t.replace(/&quot;([\s\S]*?)&quot;/g,'<span class="sp-say">&quot;$1&quot;</span>');
         t=t.replace(/«([\s\S]*?)»/g,'<span class="sp-say">«$1»</span>');
         t=t.replace(/&lt;([^&\n]{1,600}?)&gt;/g,'<span class="sp-say">&lt;$1&gt;</span>');
