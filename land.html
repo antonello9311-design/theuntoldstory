@@ -2969,7 +2969,7 @@
           {k:'leggendaria',n:'Leggendaria',g:'S',rk:'Jonin Speciale',nin:80,che:'un anziano della famiglia',ck:80,mant:15,tempo:'2 turni',turni:3,pv:120,combo:'+20'}
         ];
         var EVODB={loaded:false,busy:false,err:false,rows:[]};
-        var evoTab='famiglie', evoFam='rospi', evoAb=null;
+        var evoTab='famiglie', evoFam='rospi', evoAb=null, evoRc=null;
         function evoTagN(k){ for(var i=0;i<EVO_TAGLIE.length;i++){ if(EVO_TAGLIE[i].k===k) return EVO_TAGLIE[i].n; } return k||'—'; }
         function evoTagIdx(k){ for(var i=0;i<EVO_TAGLIE.length;i++){ if(EVO_TAGLIE[i].k===k) return i; } return 99; }
         function evoFamObj(k){ for(var i=0;i<EVO.length;i++){ if(EVO[i].k===k) return EVO[i]; } return EVO[0]; }
@@ -3073,32 +3073,45 @@
           h+='<p class="bj-note">Il numero accanto al nome è il <b>chakra</b>. Nessuna abilità di evocazione supera il tetto di 65 danni per singola azione.</p>';
           return h;
         }
+        function evoScalaDett(sc,lv){
+          var n=sc.length; lv=Math.max(0,Math.min(n-1,lv|0));
+          var o=sc[lv], t=EVO_TAGLIE[(o.level||1)-1]||{n:'—',rk:'—',nin:'—'};
+          var tot=0; sc.forEach(function(x){ tot+=(x.trainings_required||0); });
+          var fatti=0; for(var i=0;i<=lv;i++){ fatti+=(sc[i].trainings_required||0); }
+          var tg=['Taglia '+t.n];
+          if(o.req_grade) tg.push(o.req_grade);
+          if(o.req_stat_value!=null) tg.push('Ninjutsu '+o.req_stat_value);
+          tg.push('Nessun XP');
+          var scala='<div class="jdb-subs">'+sc.map(function(x,i){
+            return '<button type="button" class="jdb-sub'+(i===lv?' on':'')+'" data-erc="'+i+'">Livello '+(x.level||(i+1))+(x.grado?('<i>'+esc(x.grado)+'</i>'):'')+'</button>';
+          }).join('')+'</div>';
+          return '<div class="jdb-card jdb-det">'+
+            '<div class="jdb-det-h"><span class="jdb-det-name">Richiamo</span><span class="jdb-badge">Livello '+(o.level||(lv+1))+' · grado '+esc(o.grado||'—')+'</span></div>'+
+            scala+
+            '<div class="jdb-tags">'+tg.map(function(x){ return '<span class="jdb-tag">'+esc(x)+'</span>'; }).join('')+'</div>'+
+            '<p class="jdb-dp">'+esc(o.description||'')+'</p>'+
+            '<div class="jdb-dsec"><div class="jdb-dh">In numeri</div>'+
+            '<div class="jdb-drow"><span class="jdb-dl">Chakra</span><span class="jdb-dv">'+(o.chakra_cost==null?'—':o.chakra_cost)+'</span></div>'+
+            '<div class="jdb-drow"><span class="jdb-dl">Addestramenti</span><span class="jdb-dv">'+(o.trainings_required||0)+' per questo passo · '+fatti+' dalla firma, su '+tot+'</span></div>'+
+            '<div class="jdb-drow"><span class="jdb-dl">Ti apre</span><span class="jdb-dv">la taglia '+esc(t.n)+', con '+esc(t.rk)+' e Ninjutsu '+t.nin+'</span></div>'+
+            '</div></div>';
+        }
         function evoRichiamo(){
           var h='<div class="bj-sec"><div class="bj-h">Servono due cose, e nessuna basta da sola</div>'+
                 '<p class="bj-p"><b>1 · Il contratto.</b> È il premio <b>Contratto di evocazione</b>: <b>600 XP</b>, rango minimo Genin, si chiede dalla Scheda alla voce Premi e non occupa slot di premio maggiore. Chi sta nel <b>Corpo Medico</b> (lumache) o negli <b>ANBU</b> (rettili, rapaci) lo paga <b>300 XP</b> finché resta nella corporazione. Lo staff può concederne uno ereditario o di trama, senza costo.</p>'+
                 '<p class="bj-p"><b>2 · Il Richiamo.</b> Il jutsu <b>non si compra con gli XP</b>: si impara in gioco, con gli addestramenti, e finché non è attivo il contratto è carta. Con il Richiamo appreso — tre addestramenti — la creatura si crea dalla Scheda.</p>'+
                 '<p class="bj-note">La firma è di sangue: chi è immobilizzato o non ha una mano libera <b>non evoca</b>.</p></div>';
-          h+='<div class="bj-sec"><div class="bj-h">La scala del Richiamo — dieci addestramenti in tutto</div>';
+          h+='<div class="bj-sec"><div class="bj-h">La scala del Richiamo</div>';
           if(EVODB.err){ h+='<p class="jdb-empty">Impossibile caricare la scala del Richiamo.</p>'; }
           else if(!EVODB.loaded){ h+='<p class="jdb-empty">Caricamento…</p>'; }
           else {
             var sc=EVODB.rows.filter(function(o){ return !o.req_famiglia && o.level; }).sort(function(a,b){ return (a.level||0)-(b.level||0); });
             if(!sc.length){ h+='<p class="jdb-empty">Nessuna riga di catalogo per il Richiamo.</p>'; }
             else {
-              h+='<div class="bj-tw"><table class="bj-t"><caption>Scala del Richiamo</caption><thead><tr><th>Passo</th><th>Taglia raggiunta</th><th>Grado</th><th>Rango</th><th>Ninjutsu</th><th>Chakra</th><th>Addestramenti</th></tr></thead><tbody>';
-              var tot=0;
-              sc.forEach(function(o,i){
-                var t=EVO_TAGLIE[(o.level||1)-1]||{n:'—'};
-                tot+=(o.trainings_required||0);
-                h+='<tr><td class="bj-c">'+(i===0?'Imparare a evocare':('→ '+esc(t.n)))+'</td>'+
-                   '<td class="bj-c">'+esc(t.n)+'</td>'+
-                   '<td class="bj-c">'+esc(o.grado||'—')+'</td>'+
-                   '<td class="bj-c">'+esc(o.req_grade||'—')+'</td>'+
-                   '<td class="bj-c">'+(o.req_stat_value==null?'—':o.req_stat_value)+'</td>'+
-                   '<td class="bj-c">'+(o.chakra_cost==null?'—':o.chakra_cost)+'</td>'+
-                   '<td class="bj-c">'+(o.trainings_required||0)+'</td></tr>';
-              });
-              h+='</tbody><tfoot><tr><td class="bj-c" colspan="6">Totale dalla firma al capostipite</td><td class="bj-c">'+tot+'</td></tr></tfoot></table></div>';
+              var tot=0; sc.forEach(function(x){ tot+=(x.trainings_required||0); });
+              h+='<p class="bj-p">Una sola riga di catalogo, <b>'+sc.length+' livelli</b>: ogni livello apre la taglia successiva e costa un addestramento in scena, mai XP. Dalla firma al capostipite sono <b>'+tot+' addestramenti</b>.</p>';
+              h+='<div class="jdb-subs"><button type="button" class="jdb-sub'+(evoRc==null?'':' on')+'" data-erc="apri">Richiamo<i>'+sc.length+'</i></button></div>';
+              if(evoRc!=null) h+=evoScalaDett(sc,evoRc);
             }
           }
           h+='<p class="bj-note">L’addestramento <b>non sostituisce</b> il requisito di scheda: si aggiunge. Una sola famiglia per personaggio, per sempre.</p></div>';
@@ -3129,32 +3142,57 @@
         (function(){
           var x=document.getElementById('evoov-x'); if(x)x.addEventListener('click',closeEvo);
           var bk=document.getElementById('evoov-backdrop'); if(bk)bk.addEventListener('click',closeEvo);
-          var t=document.getElementById('evo-tabs'); if(t)t.addEventListener('click',function(e){ var b=e.target.closest('[data-etab]'); if(!b)return; evoTab=b.getAttribute('data-etab'); evoAb=null; evoRender(); });
+          var t=document.getElementById('evo-tabs'); if(t)t.addEventListener('click',function(e){ var b=e.target.closest('[data-etab]'); if(!b)return; evoTab=b.getAttribute('data-etab'); evoAb=null; evoRc=null; evoRender(); });
           var body=document.getElementById('evo-body'); if(body)body.addEventListener('click',function(e){
             var s=e.target.closest('[data-efam]'); if(s){ evoFam=s.getAttribute('data-efam'); evoAb=null; evoRender(); return; }
             var a=e.target.closest('[data-eab]'); if(a){ var k=a.getAttribute('data-eab'); evoAb=(String(evoAb)===String(k))?null:k; evoRender(true); return; }
+            var r=e.target.closest('[data-erc]'); if(r){ var v=r.getAttribute('data-erc');
+              evoRc=(v==='apri')?((evoRc==null)?0:null):(parseInt(v,10)||0); evoRender(true); return; }
           });
           document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var ov=document.getElementById('evoov'); if(ov&&!ov.hidden) closeEvo(); } });
         })();
         /* ===== CODICE DELLE TECNICHE — database informativo (sola lettura) ===== */
-        var JDB={loaded:false,jutsu:[],tech:[],tab:'accademia',sub:{},q:''};
+        var JDB={loaded:false,jutsu:[],tech:[],tab:'accademia',sub:{},q:'',grp:{},open:null,lv:0};
         var JDB_RAMI=[['','Tronco comune'],['chirurgia','Chirurgia'],['tossicologia','Tossicologia'],['cura-campo','Cura da campo'],['combattimento','Combattimento']];
         var JDB_ANBU_RAMI=[['','Tronco comune'],['assassinio','Assassinio'],['pedinamento','Pedinamento'],['sensoriale','Sensoriale'],['infiltrazione','Infiltrazione']];
         function jdbRamo(r){ var m={chirurgia:'Chirurgia',tossicologia:'Tossicologia','cura-campo':'Cura da campo',combattimento:'Combattimento',assassinio:'Assassinio',pedinamento:'Pedinamento',sensoriale:'Sensoriale',infiltrazione:'Infiltrazione'}; return m[r]||r; }
         function jdbMatch(o,q){ if(!q) return true; q=q.toLowerCase(); return (((o.name||o.name_it||'')+' '+(o.danno_effetto||o.effect||'')+' '+(o.category||'')+' '+(o.clan||'')+' '+(o.name_romaji||'')+' '+(o.disciplina||'')).toLowerCase().indexOf(q)>=0); }
+        /* Raggruppa in una voce sola le righe che condividono nome e clan e si
+           distinguono per livello (le 9 innate di clan, la scala del Richiamo). */
+        function jdbGroupKey(o){ return (o.macro||'j')+'|'+(o.clan||'')+'|'+(o.req_cercoterio||'')+'|'+(o.req_famiglia||'')+'|'+(o.category||'')+'|'+(o.name||o.name_it||''); }
+        function jdbGroup(items){
+          if(!JDB.grp) JDB.grp={};
+          var ord=[], mappa={};
+          (items||[]).forEach(function(o){
+            if(o.level==null){ ord.push(o); return; }
+            var k=jdbGroupKey(o);
+            if(!mappa[k]){ mappa[k]={__g:true,__k:'g:'+k,name:(o.name||o.name_it||''),clan:o.clan||null,items:[]}; ord.push(mappa[k]); }
+            mappa[k].items.push(o);
+          });
+          return ord.map(function(x){
+            if(!x.__g) return x;
+            x.items.sort(function(a,b){ return (a.level||0)-(b.level||0); });
+            if(x.items.length===1) return x.items[0];
+            JDB.grp[x.__k]=x;
+            return x;
+          });
+        }
         function jdbKey(o){ return o.__k||(o.name_it?('j'+o.id):o.id); }
         function jdbCard(o){
           // anteprima compatta: nome + grado + effetto in due righe. Click -> riquadro completo.
           var name=o.name||o.name_it||'—';
           var rank=o.grado||o.rank||(o.level!=null?('Liv. '+o.level):'');
           var eff=o.danno_effetto||o.effect||'';
+          if(o.__g){ var p=o.items[0];
+            name=o.name; rank=o.items.length+' livelli';
+            eff=p.danno_effetto||p.effect||p.description||''; }
           return '<div class="jdb-card jdb-click" data-jt="'+esc(jdbKey(o))+'" role="button" tabindex="0">'
             +'<div class="jdb-top"><span class="jdb-name">'+esc(name)+'</span>'+(rank?'<span class="jdb-badge">'+esc(rank)+'</span>':'')+'</div>'
             +(eff?'<div class="jdb-eff jdb-2">'+esc(eff)+'</div>':'')
             +'<div class="jdb-more">Dettagli &rarr;</div></div>';
         }
         function jdbRow(label,val){ return val?('<div class="jdb-drow"><span class="jdb-dl">'+label+'</span><span class="jdb-dv">'+val+'</span></div>'):''; }
-        function jdbDetailHTML(o){
+        function jdbDetailBody(o){
           var name=esc(o.name||o.name_it||'—');
           var rom=o.name_romaji?(' <span class="jdb-rom">'+esc(o.name_romaji)+'</span>'):'';
           var rank=o.grado||o.rank||(o.level!=null?('Liv. '+o.level):'');
@@ -3194,8 +3232,17 @@
           unl+=jdbRow('Limiti', o.limits?esc(o.limits):'');
           if(o.name_it && !o.req_grade) unl+=jdbRow('Come si impara','all\'Accademia, con le lezioni del sensei');
           var unlH=unl?('<div class="jdb-dsec"><div class="jdb-dh">Come si sblocca</div>'+unl+'</div>'):'';
-          return '<button type="button" class="jdb-back">&larr; Torna all\'elenco</button>'
-            +'<div class="jdb-det"><div class="jdb-det-h"><span class="jdb-det-name">'+name+rom+'</span>'+badge+'</div>'+tagsH+desc+effH+carH+unlH+'</div>';
+          return '<div class="jdb-det"><div class="jdb-det-h"><span class="jdb-det-name">'+name+rom+'</span>'+badge+'</div>'+tagsH+desc+effH+carH+unlH+'</div>';
+        }
+        function jdbBack(){ return '<button type="button" class="jdb-back">&larr; Torna all\'elenco</button>'; }
+        function jdbDetailHTML(o){ return jdbBack()+jdbDetailBody(o); }
+        /* Una voce sola, i livelli si scorrono qui dentro: niente quattro pannelli uguali. */
+        function jdbDetailGroup(g,lv){
+          var n=g.items.length; lv=Math.max(0,Math.min(n-1,lv|0));
+          var scala='<div class="jdb-subs">'+g.items.map(function(o,i){
+            return '<button type="button" class="jdb-sub'+(i===lv?' on':'')+'" data-jlv="'+i+'">Livello '+(o.level!=null?o.level:(i+1))+(o.grado?('<i>'+esc(o.grado)+'</i>'):'')+'</button>';
+          }).join('')+'</div>';
+          return jdbBack()+'<div class="jdb-h">'+esc(g.name)+' &middot; '+n+' livelli</div>'+scala+jdbDetailBody(g.items[lv]);
         }
         /* ===== Codice delle Tecniche · sette linguette, ognuna con le sue
            sotto-linguette (restyle 31/07/2026) =====
@@ -3210,7 +3257,7 @@
         function jdbBuckets(tab,q){
           var T=JDB.tech||[], J=JDB.jutsu||[], out=[];
           function m(o){ return jdbMatch(o,q); }
-          function add(label,items){ if(items&&items.length) out.push({label:label,items:items}); }
+          function add(label,items){ items=jdbGroup(items||[]); if(items.length) out.push({label:label,items:items}); }
           if(tab==='accademia'){
             add('Jutsu', J.filter(function(o){ return o.kind!=='abilita' && m(o); }));
             add('Abilità', J.filter(function(o){ return o.kind==='abilita' && m(o); }));
@@ -3383,8 +3430,13 @@
           var body=document.getElementById('jutsu-body'); if(body)body.addEventListener('click',function(e){
             var sbt=e.target.closest('[data-jsub]');
             if(sbt){ if(!JDB.sub) JDB.sub={}; JDB.sub[JDB.tab]=sbt.getAttribute('data-jsub'); renderJutsuDB(); return; }
-            var card=e.target.closest('.jdb-click'); if(card){ var o=JDB.byId&&JDB.byId[card.getAttribute('data-jt')]; if(o){ body.scrollTop=0; body.innerHTML=jdbDetailHTML(o); } return; }
-            if(e.target.closest('.jdb-back')){ renderJutsuDB(); return; }
+            var lvb=e.target.closest('[data-jlv]');
+            if(lvb){ var g=JDB.grp&&JDB.grp[JDB.open]; if(g){ JDB.lv=parseInt(lvb.getAttribute('data-jlv'),10)||0; var sc=body.scrollTop; body.innerHTML=jdbDetailGroup(g,JDB.lv); body.scrollTop=sc; } return; }
+            var card=e.target.closest('.jdb-click'); if(card){ var k=card.getAttribute('data-jt');
+              var gr=JDB.grp&&JDB.grp[k];
+              if(gr){ JDB.open=k; JDB.lv=0; body.scrollTop=0; body.innerHTML=jdbDetailGroup(gr,0); return; }
+              var o=JDB.byId&&JDB.byId[k]; if(o){ JDB.open=null; body.scrollTop=0; body.innerHTML=jdbDetailHTML(o); } return; }
+            if(e.target.closest('.jdb-back')){ JDB.open=null; renderJutsuDB(); return; }
             var a=e.target.closest('.jdb-acc'); if(a){ a.classList.toggle('open'); var bd=a.nextElementSibling; if(bd&&bd.classList.contains('jdb-accbody'))bd.classList.toggle('open'); }
           });
         })();
