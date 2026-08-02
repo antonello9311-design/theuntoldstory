@@ -279,7 +279,7 @@
   .place-note{display:none;margin-top:9px;background:rgba(166,50,29,.08);border:1px solid var(--edge);border-left:4px solid var(--red);border-radius:8px;padding:7px 10px;color:var(--ink);font-size:13px;line-height:1.4}
   .place-note .rn-k{display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);margin-bottom:3px}
   .place-note .rn-t{white-space:pre-wrap}
-  .side-card.who{flex:1 1 auto;min-height:56px}
+  .side-card.who{flex:1 1 auto;min-height:104px}
   .only-m{display:none!important}
   @media(max-width:760px){
     .room-grid{display:flex;flex-direction:column}
@@ -932,6 +932,10 @@
   .acad-btn{width:100%;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-radius:8px;padding:9px 12px;cursor:pointer;border:1px solid var(--red-deep);background:var(--red);color:#f6ead0;margin-top:6px}
   .acad-btn:hover{background:var(--red-deep)}
   .acad-btn.ghost{background:transparent;color:var(--red-deep)}
+  .acad-btn.mini{font-size:10px;padding:6px 8px;letter-spacing:.04em;border-radius:7px}
+  .acad-row{display:flex;gap:6px;margin-top:6px}
+  .acad-row .acad-btn{margin-top:0}
+  .rec-btn{font-size:10.5px;padding:7px 10px}
   .acad-btn.ghost:hover{background:rgba(166,50,29,.08)}
   .acad-btn:disabled{opacity:.55;cursor:default}
   .acad-hint{font-size:11.5px;color:var(--ink-soft);margin:8px 0 0;line-height:1.35}
@@ -1973,7 +1977,7 @@
           html='<div class="acad-top">'+portrait+'<div class="acad-topmain"><div class="acad-lesson">'+esc(s.lesson_title||'Lezione')+'</div><div class="acad-meta">Sensei: <b>'+esc(s.sensei||'—')+'</b></div></div></div>';
           if(s.state==='enrolling'){
             html+='<div class="ac-live"><span class="rec-dot"></span>Iscrizioni aperte</div>'+rosterHTML(s);
-            if(!mine){ html+='<button class="acad-btn" id="acad-join" type="button">Unisciti alla lezione</button>'; }
+            if(!mine){ html+='<button class="acad-btn mini" id="acad-join" type="button">Unisciti alla lezione</button>'; }
             if(isInit){ html+='<button class="acad-btn'+(mine?'':' ghost')+'" id="acad-begin" type="button">Inizia</button>'; }
             else if(mine==='student'){ html+='<p class="acad-hint">Sei iscritto. In attesa che il maestro dia inizio.</p>'; }
           } else if(s.state==='entry'){
@@ -1981,7 +1985,7 @@
             else {
               html+='<div class="ac-live"><span class="rec-dot"></span>In attesa che tutti entrino</div>'+rosterHTML(s);
               if(mine==='student'){ html+='<p class="acad-hint">Fai un’azione in chat (entra in aula) per prendere posto. Conta solo ciò che scrivi da adesso: se avevi già scritto prima che la lezione aprisse, riscrivi il tuo ingresso.</p>'; }
-              if(isInit){ html+='<button class="acad-btn ghost" id="acad-force" type="button">Fai iniziare comunque</button>'; }
+              if(isInit){ html+='<button class="acad-btn ghost mini" id="acad-force" type="button">Fai iniziare comunque</button>'; }
             }
           } else if(s.state==='teaching'){
             html+='<div class="ac-live"><span class="rec-dot"></span>Lezione in corso <span class="acad-step">· passo '+s.step+'/'+s.total_steps+'</span></div>'+rosterHTML(s);
@@ -1989,9 +1993,9 @@
             if(mine==='auditor'){ html+='<p class="acad-hint">Assisti come uditore: non riceverai l’attestato.</p>'; }
             else if(mine){ html+='<p class="acad-hint">Scrivi la tua azione dopo l’ultimo intervento del maestro: conta solo quella, poi la lezione proseguirà.</p>'; }
             else { html+= (s.step<=1)
-              ? '<button class="acad-btn" id="acad-join" type="button">Unisciti alla lezione</button><p class="acad-hint">Sei ancora in tempo: finché il maestro è al primo passo si entra come allievo, con l’attestato.</p>'
-              : '<button class="acad-btn" id="acad-join" type="button">Assisti (uditore)</button><p class="acad-hint">La lezione è andata oltre il primo passo: da qui si entra solo come uditore, senza attestato.</p>'; }
-            if(isInit){ html+='<button class="acad-btn ghost" id="acad-force" type="button">'+(s.step>=s.total_steps?'Concludi ora':'Prosegui ora')+'</button><button class="acad-btn ghost" id="acad-cancel" type="button">Interrompi</button>'; }
+              ? '<button class="acad-btn mini" id="acad-join" type="button">Unisciti alla lezione</button><p class="acad-hint">Sei ancora in tempo: finché il maestro è al primo passo si entra come allievo, con l’attestato.</p>'
+              : '<button class="acad-btn mini" id="acad-join" type="button">Assisti (uditore)</button><p class="acad-hint">La lezione è andata oltre il primo passo: da qui si entra solo come uditore, senza attestato.</p>'; }
+            if(isInit){ html+='<div class="acad-row">'+'<button class="acad-btn ghost mini" id="acad-force" type="button" title="Fa proseguire il maestro anche se non hanno scritto tutti">'+(s.step>=s.total_steps?'Concludi':'Avanti')+'</button>'+'<button class="acad-btn ghost mini" id="acad-cancel" type="button" title="Interrompe la lezione">Stop</button>'+'</div>'; }
           }
         }
         if(html===lastAcadSig) return;   // niente è cambiato → nessun ridisegno → niente flicker
