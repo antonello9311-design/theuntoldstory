@@ -2004,13 +2004,16 @@
       function refreshRoom(){ if(!cur) return; updateMeteo(); sb.rpc('enter_location',{p_location:cur.id}).then(function(){},function(){}); loadMsgs(); loadWho(); loadRoleState(); loadAcadClass(); refreshMyVita(); loadCombat(); }
 
       /* ---- Motore di combattimento: il pannello dello scontro ---- */
-      var CMB=null, CMB_DEF=[], CMB_INN=[];
+      var CMB=null, CMB_DEF=[], CMB_INN=[], CMB_INN_SESS=null;
       function cmbFascia(d){ return d<=2?'a contatto':(d<=10?'corta':(d<=30?'media':(d<=60?'lunga':'fuori portata'))); }
       function cmbBar(v,max,cls){ var p=(max>0)?Math.max(0,Math.min(100,Math.round(v*100/max))):0;
         return '<span class="cmb-bar'+(cls||'')+'" title="'+v+'/'+max+'"><i style="width:'+p+'%"></i></span>'; }
       function loadCombat(){ if(!sb||!cur){ return; }
         sb.rpc('combat_state',{p_location:cur.id}).then(function(r){
-          CMB=(r&&!r.error&&r.data)||null; renderCombat();
+          CMB=(r&&!r.error&&r.data)||null;
+          var sid=(CMB&&CMB.aperto)?CMB.id:null;
+          if(sid!==CMB_INN_SESS){ CMB_INN_SESS=sid; cmbListe(); }
+          renderCombat();
         }, function(){ CMB=null; renderCombat(); }); }
       function renderCombat(){
         var card=document.getElementById('cmb-card'), body=document.getElementById('cmb-body');
@@ -2056,7 +2059,7 @@
                '<button type="button" data-cmb="attacca"'+(io.speso&&io.speso.principale?' disabled':'')+'>Dichiara il colpo</button>';
           }
           if(CMB_INN.length){
-            h+='<select id="cmb-inn">'+CMB_INN.map(function(t){return '<option value="'+t.technique_id+'"'+(t.accesa?' disabled':'')+'>'+esc(t.name)+(t.livello!=null?(' \u00b7 liv '+t.livello):'')+' \u00b7 '+t.chakra_cost+' ck</option>';}).join('')+'</select>'+
+            h+='<select id="cmb-inn">'+CMB_INN.map(function(t){return '<option value="'+t.technique_id+'"'+(t.accesa?' disabled':'')+'>'+((t.clan&&t.clan!=='\u2014')?(esc(t.clan)+' \u00b7 '):'')+esc(t.name)+(t.livello!=null?(' \u00b7 liv '+t.livello):'')+' \u00b7 '+t.chakra_cost+' ck'+(t.accesa?' (accesa)':'')+'</option>';}).join('')+'</select>'+
                '<button type="button" data-cmb="accendi"'+(io.speso&&io.speso.principale?' disabled':'')+' title="Accendere costa l\u2019azione principale del turno">Accendi</button>';
           }
         } else if(CMB.tuo_turno && CMB.fase==='difesa'){
@@ -2300,7 +2303,7 @@
         if(im){ if(l.image_url){ im.src=l.image_url; im.style.display='block'; } else { im.removeAttribute('src'); im.style.display='none'; } }
         if(nt){ if(l.event_note){ nt.innerHTML='<span class="rn-k">Nota evento</span><span class="rn-t">'+esc(l.event_note)+'</span>'; nt.style.display='block'; } else { nt.style.display='none'; nt.innerHTML=''; } }
         var tbn=document.getElementById('test-banner'); if(tbn) tbn.hidden=!l.is_test;
-        CMB=null; try{ cmbListe(); }catch(e){}
+        CMB=null; CMB_INN_SESS=null; try{ cmbListe(); }catch(e){}
         msgsEl.innerHTML='<div class="msgs-empty">Caricamento…</div>'; whoEl.innerHTML='';
         saveResume();
         refreshRoom();
