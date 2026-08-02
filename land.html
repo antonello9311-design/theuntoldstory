@@ -2039,7 +2039,7 @@
       function doAcadJoin(){ if(!cur||!sb) return; sb.rpc('academy_class_join',{p_location:cur.id}).then(function(r){ if(r&&r.error){ toast(acadErr(r.error.message)); return; } loadAcadClass(); }, function(){}); }
       function doAcadBegin(){ if(!classState||!classState.session||!sb) return; sb.rpc('academy_class_begin',{p_session:classState.session}).then(function(r){ if(r&&r.error){ toast(acadErr(r.error.message)); return; } toast('Che gli allievi entrino in aula'); loadAcadClass(); }, function(){}); }
       function doAcadAdvance(force){ if(!classState||!classState.session||!sb) return; var b=acadEl('acad-advance')||acadEl('acad-force'); if(b) b.disabled=true;
-        sb.rpc('academy_class_advance',{p_session:classState.session,p_force:!!force}).then(function(r){ if(b) b.disabled=false; if(r&&r.error){ toast(acadErr(r.error.message)); return; } var d=r&&r.data; if(d&&d.state==='entry'&&d.ready===false){ toast('Non tutti sono entrati: aspetta, o «Fai iniziare comunque»'); } loadMsgs(); loadAcadClass(); }, function(){ if(b) b.disabled=false; }); }
+        sb.rpc('academy_class_advance',{p_session:classState.session,p_force:!!force}).then(function(r){ if(b) b.disabled=false; if(r&&r.error){ toast(acadErr(r.error.message)); return; } var d=r&&r.data; if(d&&d.forzato){ toast('Il maestro interviene entro un minuto, anche senza il turno di tutti'); } else if(d&&d.ai_mode&&!force){ toast('La lezione la conduce il maestro: interviene appena la classe ha scritto'); } else if(d&&d.state==='entry'&&d.ready===false){ toast('Non tutti sono entrati: aspetta, o «Fai iniziare comunque»'); } loadMsgs(); loadAcadClass(); }, function(){ if(b) b.disabled=false; }); }
       function doAcadCancel(){ if(!classState||!classState.session||!sb) return; sb.rpc('academy_class_cancel',{p_session:classState.session}).then(function(r){ if(r&&r.error){ toast('Impossibile interrompere'); return; } toast('Lezione interrotta'); loadMsgs(); loadAcadClass(); }, function(){}); }
       function acadErr(m){ m=(m||'').toLowerCase(); if(/gia una classe/.test(m)) return 'C’è già una classe in corso qui'; if(/personaggio/.test(m)) return 'Ti serve un personaggio'; if(/tengono/.test(m)) return 'Qui non si tengono lezioni'; return 'Operazione non riuscita'; }
       (function(){ var b; b=acadEl('lp-x'); if(b) b.addEventListener('click', closeLessonPicker); b=acadEl('lp-bk'); if(b) b.addEventListener('click', closeLessonPicker); })();
@@ -3199,7 +3199,7 @@
             name=o.name; rank=o.items.length+' livelli';
             eff=p.danno_effetto||p.effect||p.description||''; }
           return '<div class="jdb-card jdb-click" data-jt="'+esc(jdbKey(o))+'" role="button" tabindex="0">'
-            +'<div class="jdb-top"><span class="jdb-name">'+esc(name)+'</span>'+(rank?'<span class="jdb-badge">'+esc(rank)+'</span>':'')+'</div>'
+            +'<div class="jdb-top"><span class="jdb-name">'+esc(name)+'</span>'+((o.req_elements&&o.req_elements.length)?'<span class="jdb-badge">'+esc(o.req_elements.join(' + '))+'</span>':'')+(rank?'<span class="jdb-badge">'+esc(rank)+'</span>':'')+'</div>'
             +(eff?'<div class="jdb-eff jdb-2">'+esc(eff)+'</div>':'')
             +'<div class="jdb-more">Dettagli &rarr;</div></div>';
         }
@@ -3275,8 +3275,11 @@
             add('Abilità', J.filter(function(o){ return o.kind==='abilita' && m(o); }));
           } else if(tab==='generiche'){
             var g=T.filter(function(o){ return o.macro==='generica' && m(o); });
-            ['Ninjutsu','Taijutsu','Genjutsu','Fuuinjutsu'].forEach(function(d){
-              add(d, g.filter(function(o){ return (o.disciplina||'')===d; }));
+            var jdbHasEl=function(o){ return !!(o.req_elements && o.req_elements.length); };
+            add('Ninjutsu', g.filter(function(o){ return (o.disciplina||'')==='Ninjutsu' && !jdbHasEl(o); }));
+            add('Elementali', g.filter(jdbHasEl));
+            ['Taijutsu','Genjutsu','Fuuinjutsu'].forEach(function(d){
+              add(d, g.filter(function(o){ return (o.disciplina||'')===d && !jdbHasEl(o); }));
             });
             add('Abilità', T.filter(function(o){ return o.macro==='abilita' && !o.clan && !jdbIsCorp(o) && m(o); }));
           } else if(tab==='clan'){
@@ -3420,6 +3423,7 @@
           JDB.tab=tab||JDB.tab||'accademia';
           if(JDB.tab==='abilita') JDB.tab='generiche';   /* vecchia chiave, dal pulsante unificato */
           var ov=document.getElementById('jutsuov'), bk=document.getElementById('jutsuov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false;
+          try{ if(window.innerWidth>900){ var _qi=document.getElementById('jdb-search'); if(_qi) setTimeout(function(){ try{ _qi.focus(); _qi.select(); }catch(e){} },40); } }catch(e){}
           if(JDB.loaded){ renderJutsuDB(); return; }
           var host=document.getElementById('jutsu-body'); if(host)host.innerHTML='<p class="jdb-empty">Caricamento…</p>';
           Promise.all([
