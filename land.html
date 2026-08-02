@@ -1988,7 +1988,9 @@
             html+= s.ready ? '<p class="acad-hint">Turno completo: il maestro sta per proseguire…</p>' : '<p class="acad-hint">In attesa che tutti agiscano (un’azione a testa).</p>';
             if(mine==='auditor'){ html+='<p class="acad-hint">Assisti come uditore: non riceverai l’attestato.</p>'; }
             else if(mine){ html+='<p class="acad-hint">Scrivi la tua azione dopo l’ultimo intervento del maestro: conta solo quella, poi la lezione proseguirà.</p>'; }
-            else { html+='<button class="acad-btn" id="acad-join" type="button">Assisti (uditore)</button>'; }
+            else { html+= (s.step<=1)
+              ? '<button class="acad-btn" id="acad-join" type="button">Unisciti alla lezione</button><p class="acad-hint">Sei ancora in tempo: finché il maestro è al primo passo si entra come allievo, con l’attestato.</p>'
+              : '<button class="acad-btn" id="acad-join" type="button">Assisti (uditore)</button><p class="acad-hint">La lezione è andata oltre il primo passo: da qui si entra solo come uditore, senza attestato.</p>'; }
             if(isInit){ html+='<button class="acad-btn ghost" id="acad-force" type="button">'+(s.step>=s.total_steps?'Concludi ora':'Prosegui ora')+'</button><button class="acad-btn ghost" id="acad-cancel" type="button">Interrompi</button>'; }
           }
         }
