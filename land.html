@@ -2009,6 +2009,9 @@
       function cmbBar(v,max,cls){ var p=(max>0)?Math.max(0,Math.min(100,Math.round(v*100/max))):0;
         return '<span class="cmb-bar'+(cls||'')+'" title="'+v+'/'+max+'"><i style="width:'+p+'%"></i></span>'; }
       function loadCombat(){ if(!sb||!cur){ return; }
+        /* [03/08/2026] Il motore e' ancora in costruzione: il pannello dello scontro
+           vive solo nella Test Room. Fuori di li' non si chiede nulla al server. */
+        if(!cur.is_test){ CMB=null; renderCombat(); return; }
         sb.rpc('combat_state',{p_location:cur.id}).then(function(r){
           CMB=(r&&!r.error&&r.data)||null;
           var sid=(CMB&&CMB.aperto)?CMB.id:null;
@@ -2018,6 +2021,7 @@
       function renderCombat(){
         var card=document.getElementById('cmb-card'), body=document.getElementById('cmb-body');
         if(!card||!body) return;
+        if(!cur||!cur.is_test){ card.hidden=true; return; }
         if(!CMB||!CMB.aperto){
           card.hidden=false;
           body.innerHTML='<p class="cmb-note">Qui non c\u2019\u00e8 nessuno scontro aperto.</p>'+
