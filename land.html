@@ -309,6 +309,38 @@
   .place-note .rn-t{white-space:pre-wrap}
   .side-card.who{flex:1 1 auto;min-height:104px}
   .only-m{display:none!important}
+  /* ===== [03/08/2026] La colonna destra non si accavalla piu' =====
+     Prima: quando comparivano lezione e scontro insieme, i riquadri si
+     comprimevano a vicenda e il contenuto usciva dai bordi — 34px dall'Accademia
+     e 83px dallo Scontro, cioe' testo sovrapposto e illeggibile.
+     Ora nessun riquadro si comprime, l'elenco dei Presenti mostra quattro nomi
+     e scorre come la chat, e se non ci sta tutto scorre la colonna.
+     Solo su schermo grande: su telefono la colonna diventa una riga e vale la
+     media query di sotto, che non si tocca. */
+  @media(min-width:761px){
+    .room-side{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+    .side-card{flex:0 0 auto}
+    .side-card.place{flex:0 0 auto}
+    .side-card.who{flex:0 0 auto;min-height:0}
+    .who-list{max-height:84px}
+    /* [03/08/2026] La registrazione esce dalla colonna e diventa il tasto Rec,
+       come gia' succede su telefono dal 31/07. */
+    .side-card.rec{display:none!important}
+    #rec-m{display:inline-flex!important}
+  }
+  /* Il tasto Rec pulsa mentre la scena si sta registrando */
+  #rec-m.on{background:var(--red);color:#f6ead0;border-color:var(--red-deep);animation:recpulse 1.6s infinite}
+  /* Il pop up del titolo, all'atto di chiudere */
+  .rt-ov{position:fixed;inset:0;z-index:90;background:rgba(20,14,6,.5);display:flex;align-items:center;justify-content:center;padding:18px}
+  .rt-ov[hidden]{display:none}
+  .rt-box{width:min(420px,94vw);background:linear-gradient(var(--paper-hi),var(--paper));border:1.5px solid var(--edge);border-radius:14px;box-shadow:0 20px 60px rgba(20,12,4,.5);padding:18px 20px}
+  .rt-k{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep);margin-bottom:8px}
+  .rt-hint{font-size:12.5px;color:var(--ink-soft);line-height:1.45;margin:0 0 12px}
+  .rt-box input{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--edge);border-radius:9px;background:#fbf4e1;color:var(--ink);font-family:inherit;font-size:14.5px}
+  .rt-act{display:flex;gap:9px;justify-content:flex-end;margin-top:14px}
+  .rt-act button{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--edge);border-radius:9px;padding:8px 14px;background:transparent;color:var(--ink);cursor:pointer}
+  .rt-act button.on{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+  .rt-act button:hover{border-color:var(--red-deep)}
   @media(max-width:760px){
     .room-grid{display:flex;flex-direction:column}
     .room-side{flex-direction:row;flex-wrap:wrap;gap:10px;order:-1}
@@ -1443,6 +1475,14 @@
     <div class="ovp-list" id="ovp-list"></div>
     <details class="ovp-activity" id="ovp-act"><summary class="ovp-subhead">Movimenti<span class="ovp-actn" id="ac-count"></span></summary><div class="ac-list" id="ac-list"><span class="who-empty">—</span></div></details>
   </aside>
+  <div class="rt-ov" id="rt-ov" hidden role="dialog" aria-modal="true" aria-label="Titolo della role">
+    <div class="rt-box">
+      <div class="rt-k">Chiudi e salva la scena</div>
+      <p class="rt-hint">Dai un titolo a questa role: è come la ritroveranno nella Libreria tutti quelli che c’erano. Puoi anche lasciarlo vuoto.</p>
+      <input id="rt-title" maxlength="80" placeholder="Titolo della role" autocomplete="off">
+      <div class="rt-act"><button type="button" id="rt-cancel">Annulla</button><button type="button" class="on" id="rt-save">Salva e chiudi</button></div>
+    </div>
+  </div>
   <aside class="ov-panel" id="tk-panel" hidden aria-label="Le tue tecniche">
     <div class="ovp-head"><h3>Cosa sai fare <span id="tk-count">0</span></h3><button class="ovp-close" id="tk-close" type="button" title="Chiudi">&times;</button></div>
     <div class="tk-search"><input id="tk-q" type="text" placeholder="Cerca per nome, clan, grado o disciplina…" autocomplete="off"></div>
@@ -2173,15 +2213,39 @@
           toast('Registrazione avviata'); loadRoleState();
         }, function(){ if(b) b.disabled=false; toast('Impossibile avviare la registrazione'); });
       }
+      /* [03/08/2026] Il pop up del titolo: si apre quando fermi la registrazione,
+         chiede il titolo e chiude la scena. Sostituisce la doppia conferma del
+         riquadro, che con il tasto Rec non aveva pi\u00f9 dove stare. */
+      function openRecTitle(){
+        var ov=document.getElementById('rt-ov'), inp=document.getElementById('rt-title');
+        if(!ov||!inp){ closeRole(); return; }
+        inp.value=roleState.title||'';
+        ov.hidden=false;
+        setTimeout(function(){ inp.focus(); inp.select(); },50);
+      }
+      function closeRecTitle(){ var ov=document.getElementById('rt-ov'); if(ov) ov.hidden=true; }
+      (function(){
+        var sv=document.getElementById('rt-save'), cn=document.getElementById('rt-cancel'),
+            ov=document.getElementById('rt-ov'), inp=document.getElementById('rt-title');
+        function salva(){ var t=inp?inp.value:''; closeRecTitle(); closeRole(t); }
+        if(sv) sv.addEventListener('click', salva);
+        if(cn) cn.addEventListener('click', closeRecTitle);
+        if(ov) ov.addEventListener('click', function(e){ if(e.target===ov) closeRecTitle(); });
+        if(inp) inp.addEventListener('keydown', function(e){
+          if(e.key==='Enter'){ e.preventDefault(); salva(); }
+          if(e.key==='Escape'){ e.preventDefault(); closeRecTitle(); } });
+      })();
       function onCloseClick(){
         var b=document.getElementById('rec-close'); if(!b) return;
         if(b.getAttribute('data-armed')!=='1'){ b.setAttribute('data-armed','1'); b.textContent='Premi ancora per chiudere'; if(recConfirmT) clearTimeout(recConfirmT); recConfirmT=setTimeout(function(){ if(b){ b.removeAttribute('data-armed'); b.textContent='Chiudi e salva role'; } },3200); return; }
         if(recConfirmT) clearTimeout(recConfirmT); closeRole();
       }
-      function closeRole(){
+      function closeRole(ttlArg){
         if(!roleState.session||!sb) return;
         var b=document.getElementById('rec-close'); if(b) b.disabled=true;
-        var tin=document.getElementById('rec-title'); var ttl=tin?(''+tin.value).trim():'';
+        var tin=document.getElementById('rec-title');
+        /* [03/08/2026] il titolo arriva dal pop up; il campo nel riquadro resta per compatibilita' */
+        var ttl=(typeof ttlArg==='string') ? ttlArg.trim() : (tin?(''+tin.value).trim():'');
         function doClose(){
           sb.rpc('role_close',{p_session:roleState.session}).then(function(r){
             if(r&&r.error){ toast('Impossibile chiudere la role'); if(b){ b.disabled=false; b.removeAttribute('data-armed'); b.textContent='Chiudi e salva role'; } return; }
@@ -2407,7 +2471,7 @@
       (function(){
         var rb=document.getElementById('rec-m');
         if(rb) rb.addEventListener('click', function(){
-          if(roleState.open){ if(roleState.can_close) closeRole(); }
+          if(roleState.open){ if(roleState.can_close) openRecTitle(); }
           else startRole();
         });
         var pb=document.getElementById('place-m');
