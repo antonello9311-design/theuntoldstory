@@ -2337,7 +2337,16 @@
         req.then(function(r){
           syncSendBtn();
           if(r&&r.error){ var raw=(r.error.message||''); var m=raw.toLowerCase();
-            toast(/chakra/.test(m)?raw:(/almeno 500 caratteri/.test(m)?raw:(/consentito/.test(m)?'Messaggio bloccato dalla moderazione':(/lungo/.test(m)?'Messaggio troppo lungo':(/tecnica/.test(m)?'Tecnica non disponibile o non ancora attiva':(/personaggio/.test(m)?'Ti serve un personaggio':(/destinatario/.test(m)?'Destinatario non valido':'Impossibile inviare'))))))); return; }
+            /* [03/08/2026] Il server parla italiano ai giocatori: la gittata, il turno,
+               i comandi fra quadre. Prima di oggi tutto quello che non era in questo
+               elenco diventava «Impossibile inviare», e il motivo spariva. Ora si
+               mostra il messaggio vero, tranne la moderazione e gli errori tecnici. */
+            var tecnico=/permission|relation |function |syntax|null value|violates|duplicate key|jwt|row-level|invalid input|does not exist/.test(m);
+            var msg = /consentito/.test(m) ? 'Messaggio bloccato dalla moderazione'
+                    : (/personaggio/.test(m) ? 'Ti serve un personaggio'
+                    : (/destinatario/.test(m) ? 'Destinatario non valido'
+                    : ((raw && !tecnico && raw.length<=200) ? raw : 'Impossibile inviare')));
+            toast(msg); return; }
           input.value=''; updCount(); if(techEl){ techEl.value=''; var thh=document.getElementById('tech-hint'); if(thh) thh.textContent=''; }
           var _pi=document.getElementById('png-input'); if(_pi) _pi.value=''; var _pe=document.getElementById('ed-png'); if(_pe) _pe.value='';
           loadMsgs(); loadWho();
@@ -2741,6 +2750,7 @@
       function sendGateOk(){
         if(toSel && toSel.value) return true;
         if(iAmStaff) return true;
+        if(cur && cur.is_test) return true;   /* [03/08/2026] la Test Room non e' una scena */
         return turnoLen()>=500;
       }
       function syncSendBtn(){
@@ -2748,7 +2758,8 @@
         if(sendBtn){ sendBtn.disabled=!ok; sendBtn.title=ttl; }
         var eb=document.getElementById('ed-send'); if(eb){ eb.disabled=!ok; eb.title=ttl; }
       }
-      function updCount(){ if(countEl&&input){ var n=turnoLen(); if(n<500){ countEl.textContent=n+' / 500 min'; countEl.classList.add('warn'); } else { countEl.textContent=n+' caratteri'; countEl.classList.remove('warn'); } } syncSendBtn(); }
+      function updCount(){ if(countEl&&input){ var n=turnoLen(); var senzaMin=(cur&&cur.is_test)||iAmStaff;
+        if(!senzaMin && n<500){ countEl.textContent=n+' / 500 min'; countEl.classList.add('warn'); } else { countEl.textContent=n+' caratteri'; countEl.classList.remove('warn'); } } syncSendBtn(); }
       if(input){ input.addEventListener('input', updCount); }
       if(toSel){ toSel.addEventListener('change', updCount); }
       (function(){ var pI=document.getElementById('png-input'); if(pI) pI.addEventListener('input', updCount); })();
