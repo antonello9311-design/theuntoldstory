@@ -34,7 +34,7 @@ Benvenuto shinobi. Il resto lo impari giocando.
 2. **Metagaming vietato.** È proibito usare in gioco informazioni apprese fuori dal gioco (chat esterne, Discord, letture di giocate a cui il proprio PG non era presente). Sanzionabile.
 3. **Pensieri in azione: vietati.** Non si scrivono in scena i pensieri non pronunciati del personaggio: ciò che il PG non dice e non fa, gli altri non possono conoscerlo. Le intenzioni si comunicano con le azioni e le parole. È una scelta di pulizia contro il metagaming e le ambiguità.
 4. **Backchatting (commenti off-game in chat di gioco): limitato.** Consentito solo tra parentesi/tag off e per comunicazioni brevi di servizio ("torno in 5 min"). Le conversazioni off si tengono nelle chat/canali dedicati.
-5. **Minimo per turno di giocata: 500 caratteri** (il contatore in chat li mostra). Qualità sopra quantità: il muro di testo non è un merito.
+5. **Minimo per turno di giocata: 500 caratteri** (il contatore in chat li mostra). Contano soltanto i caratteri della **narrativa**: il nome del luogo in cima al messaggio non entra nel conto, e nemmeno i comandi, che vengono tolti dal testo prima di contarlo. Qualità sopra quantità: il muro di testo non è un merito.
 6. **Tempo in combattimento: una sessione.** La scena si gioca nella sessione in cui inizia; se non si conclude, le giocate possono essere **congelate per un massimo di 72 ore**, poi vanno chiuse.
 7. **Personaggi congelati nel tempo.** Un personaggio bloccato in una giocata congelata non può partecipare ad altre giocate finché quella non si sblocca — vale anche per **quest e missioni**.
 8. **Lingua e leggibilità.** Italiano corretto, terza o prima persona coerente per tutta la scena, azioni distinte dal parlato secondo la formattazione della chat.
@@ -61,11 +61,11 @@ Benvenuto shinobi. Il resto lo impari giocando.
 
 ## 4. Combattimento
 
-Ogni azione che può riuscire o fallire — un attacco, una schivata, una tecnica — si risolve con un **confronto**: chi agisce e chi si difende tirano un dado e vi sommano le proprie capacità. **Vince il totale più alto.** Nella land il pulsante **⚔ Combatti** calcola tutto e mostra l'esito in chat («*A usa Palla di Fuoco: B prova a schivare ma è colpito di striscio — subisce 12 danni*»).
+Ogni azione che può riuscire o fallire — un attacco, una schivata, una tecnica — si risolve con un **confronto**: chi agisce e chi si difende tirano un dado e vi sommano le proprie capacità. **Vince il totale più alto.** Nei **duelli uno contro uno** della land il calcolo è passato al **pannello guidato** (§4.7): l'azione si compone da una finestra e il server risolve tutto da sé. Altrove il pulsante **⚔ Combatti** calcola e mostra l'esito in chat («*A usa Palla di Fuoco: B prova a schivare ma è colpito di striscio — subisce 12 danni*»).
 
 **Come si risolve un colpo**
 
-- **Attacco contro difesa:** chi colpisce usa la capacità naturale + la disciplina adatte (Forza + Taijutsu per un colpo fisico, Mente + Ninjutsu per una tecnica); chi si difende usa Velocità + Taijutsu per schivare o **Velocità + Mente** per contrastare.
+- **Attacco contro difesa:** chi colpisce usa la capacità naturale + la disciplina adatte (Forza + Taijutsu per un colpo fisico, Mente + Ninjutsu per una tecnica); chi si difende usa Velocità + Taijutsu per schivare o **Velocità + Mente** per contrastare. ⚠️ La **Contromossa** non è in vigore nei duelli della land: lì ci si difende con schivata, parata, Sostituzione o una tecnica difensiva (§4.7).
 - **Nettezza:** se l'attacco supera la difesa va a segno; il margine dice se è **di striscio, in pieno o devastante** — più è netto, più danni fa.
 - **PV e Resistenza:** i danni tolgono Punti Vita; la Resistenza alza i PV e ne assorbe una parte. A 0 PV si è **fuori combattimento** (in libera: incapacitato, mai ucciso).
 - **Genjutsu:** non toglie PV — impone effetti/condizioni, si contrasta con la Mente e si rompe con una nuova contesa; chi conosce l'abilità **Dispersione** può tentare un rilascio deliberato, anche per liberare un alleato (§4.3).
@@ -113,7 +113,7 @@ Ogni azione che può riuscire o fallire — un attacco, una schivata, una tecnic
 
 - **uno spostamento** — fino ai tuoi metri di Velocità (§4.5); **non** consuma l'azione e si può spezzare prima/dopo di essa;
 - **una sola azione principale** — la mossa che si risolve col ⚔: un jutsu, un attacco in taijutsu, un colpo d'arma da mischia, la Dispersione, **un jutsu che porta in campo un'evocazione, un clone o una marionetta** (nel turno in cui chiami non attacchi, §6.3) o una cura (il Palmo Curativo, §6.2, occupa tutto il turno);
-- **una sola azione rapida** — un gesto veloce: un'arma da lancio (attacco leggero), estrarre/riporre un'arma, usare un oggetto, mettersi in guardia (+difesa al prossimo confronto) o prendere la mira (+ al prossimo attacco);
+- **una sola azione rapida** — un gesto veloce: un'arma da lancio (attacco leggero), estrarre/riporre un'arma, usare un oggetto, mettersi in guardia (+difesa al prossimo confronto) o prendere la mira (+ al prossimo attacco). ⚠️ Nei duelli della land, in questa versione, **l'unica azione rapida è la guardia** (§4.7);
 - **una reazione difensiva** quando sei bersaglio — tiri la difesa senza spendere nulla; hai **una** reazione "attiva" per round (schivata piena, parata, Sostituzione — questa con le sue regole di raggio e riuso, §4.5), oltre la quale ti difendi da colto in azione.
 
 Non puoi compiere **due azioni principali** nello stesso turno (es. un jutsu *e* un fendente pieno). **Muoverti, lanciare un jutsu e tirare un kunai**, invece, si può: spostamento + azione principale + azione rapida.
@@ -121,7 +121,7 @@ Non puoi compiere **due azioni principali** nello stesso turno (es. un jutsu *e*
 **Come si gioca in chat:**
 
 1. Descrivi l'azione (min. 500 caratteri), dichiarando spostamento, azione principale ed eventuale rapida.
-2. Scegli la tecnica dal selettore **⚔** (danno base e costo si compilano da soli) o dichiari un colpo manuale.
+2. Scegli la tecnica: nei duelli della land dalla **finestra dell'azione** (§4.7), altrove dal selettore **⚔** — danno base e costo si compilano da soli — oppure dichiarando un colpo manuale.
 3. Si lancia il calcolo (⚔): l'esito appare in chat e il **chakra scala in automatico** (se non basta, la tecnica non parte).
 4. La scena si gioca nella sessione; se resta aperta si congela max 72h (§1).
 
@@ -204,6 +204,46 @@ Le tecniche sono **istantanee** (taijutsu, armi, molte arti innate/dojutsu, alcu
 **Disturbo dei sigilli (a Contatto).** Se lanci una tecnica **con sigilli** mentre un nemico è **a contatto** con te, lui può usare la sua **reazione** per un **attacco di opportunità** (taijutsu o arma) *prima* che la tecnica parta. Se ti colpisce, oltre al danno **disturba i sigilli**: la tecnica esce con una **penalità al confronto pari al bonus di margine del colpo** (di striscio −3 · in pieno −6 · devastante −10); se ti mette **fuori combattimento**, la tecnica **non parte** e non spendi chakra.
 
 Il ninjutser si difende **creando distanza** (poi lancia al sicuro), usando una **tecnica istantanea** in mischia, o imparando i **sigilli a una mano** (un'abilità che annulla il disturbo). È lo specchio del vantaggio della distanza: **taijutsu forte in mischia, ninjutsu forte da lontano, la Velocità decide dove si combatte.**
+
+### 4.7 Lo scontro nella land
+
+Questa sezione descrive il **motore dei duelli** che gira dentro la land. Vale per lo scontro **uno contro uno** in giocata libera; la giocata masterata resta quella di §4.1.
+
+**Dove si combatte.** Per ora **solo nella stanza di prova**: fuori di lì aprire uno scontro o entrarci viene rifiutato. È una limitazione voluta, finché il motore non ha visto abbastanza mani vere.
+
+**Il duello è fra due.** Un terzo può restare in scena come **partecipante** — assiste, non entra nei calcoli — ma soltanto **prima del primo colpo**: a scontro cominciato non si entra più, in nessun ruolo. Chi apre decide la **distanza d'ingaggio**, oppure la lascia al caso. L'**iniziativa** si tira una volta sola, quando si entra, e non si ritira: chi ce l'ha più alta comincia. Si sta in **un solo scontro per volta**.
+
+**Come scorre il turno.** Lo scontro procede a **round**, e ogni round ha due fasi: prima si attacca, poi si difende. Chi attacca dichiara la propria azione, ma **l'esito non si vede subito**: si risolve quando l'avversario risponde. Finché non risponde, chi ha colpito non sa com'è andata — è il momento in cui la scena respira. Quando hai speso l'azione principale il turno passa all'altro; quando l'hanno spesa entrambi comincia un round nuovo. Dopo **ventiquattr'ore senza una mossa** lo scontro si chiude da solo, e il colpo eventualmente in sospeso **non viene risolto**: nessun salto, nessun costo, nessun danno.
+
+**Cosa puoi fare nel tuo turno.** Un'azione principale — obbligatoria — e, se vuoi, uno spostamento e un'azione rapida.
+
+L'azione principale è una di queste quattro:
+
+- un **colpo a mani nude**, che arriva solo a contatto;
+- una **tecnica di clan** che hai in scheda;
+- una **tecnica o abilità dell'Accademia**;
+- **accendere un'arte innata**: accenderla costa il turno, come tutto il resto.
+
+L'**azione rapida**, in questa versione, è **una sola: la guardia**. Le abilità rapide di catalogo non entrano nel motore e non consumano nulla. Lo **spostamento** copre i metri di §4.5, e vale la pena ricordarne il segno: **positivo ti avvicina, negativo ti allontana**.
+
+**Quando ti difendi rispondi e basta**: niente movimento, niente azioni rapide. Le risposte sono **schivata**, **parata**, **Sostituzione** — con le sue regole di raggio e riuso, §4.5 — oppure una **tecnica difensiva**. La **Contromossa non è in vigore** in questa versione.
+
+Una tecnica che non arriva viene **rifiutata prima del tiro**, dicendoti a quanti metri sei e fin dove copre: non spendi il turno per scoprire che eri lontano.
+
+**Quanto si scrive.** Vale il minimo di §1.5 — cinquecento caratteri — e contano solo quelli della narrativa. **L'azione viaggia fuori dal messaggio**: quello che scrivi resta racconto, la meccanica la scegli dalla finestra. Nessuno deve più infilare comandi dentro la propria scena.
+
+**Quello che vedi e quello che non vedi.** Chi si difende vede **il testo di chi ha attaccato, il nome della tecnica in arrivo e la distanza**. Non vede costi, valori, tiri né danno previsto: sa cosa gli sta arrivando addosso, non quanto pesa. Fuori dalla stanza di prova, **vita e chakra dell'avversario non si vedono**. I numeri — tiri, riserve, modificatori, riduzioni, danno grezzo e applicato — **non compaiono mai in chat**: vivono nel referto, che legge lo staff. In breve: **metri e nomi di tecnica sono scena; punti vita, chakra, danno e tiri sono referto.**
+
+**Fuori combattimento.** A zero Punti Vita si è fuori combattimento, con le conseguenze di §6. Un singolo colpo non toglie più di **65** Punti Vita, dopo le riduzioni: il valore grezzo, se era più alto, resta scritto nel referto e non arriva al personaggio.
+
+**Il pannello.** Nella colonna a destra trovi i partecipanti, il round, la fase e **un solo pulsante: «Componi azione»**, che diventa «Modifica azione» quando hai già scelto. La finestra mostra **solo le opzioni legali**; quelle che non lo sono restano visibili ma spente, **con il motivo scritto accanto** — a venti metri non arriva, servono dodici chakra e ne hai sette, hai già speso l'azione principale. Applicata l'azione compare la pastiglia **«Azione pronta»** accanto a Invia e dentro l'Editor: l'azione resta **nel tuo browser** finché non invii, si modifica riaprendo la finestra e si annulla solo da dentro. **Testo e azione partono insieme, in un colpo solo**: se il server rifiuta l'azione il messaggio non viene scritto, e non resta mai un turno a metà.
+
+**Chi decide.** Tecnica, base, danno, requisiti, costi, distanza, turni e autorizzazioni **li ricava il server**. La pagina non calcola niente: mostra quello che il server dice e manda quello che hai scelto. Se un rifiuto sembra sbagliato è una cosa da segnalare (§12), non da aggirare.
+
+**La stanza di prova.** I tiri sono veri, i numeri no: i colpi vengono calcolati e raccontati, ma vita, chakra ed esperienza **non cambiano di un punto**. Non si aprono role, i compagni PNG e gli oggetti sono sospesi, niente arriva al mondo di gioco e i messaggi si cancellano da soli ogni ora. Lo staff può usare **tutto il catalogo**, anche ciò che il personaggio non ha in scheda, e dispone di **scenari a dadi fissi**: sceglierne uno azzera la prova precedente e rimette la stanza in ordine — round uno, turno a chi ha scelto, azioni libere, arti innate spente, combattenti alla distanza dello scenario. I dadi fissi valgono **per un solo scambio**: consegnato l'esito la stanza torna pulita, e per un'altra prova serve una nuova scelta. Anche chiudere la prova la azzera. Lì il fuori combattimento **si vede e si registra**, ma non chiude la prova e non tocca nessun valore reale.
+
+**Le parentesi quadre.** Durante uno scontro sono **testo libero**: scrivile pure, restano nel messaggio come le hai messe. Comandano qualcosa in un posto solo — la scorciatoia manuale dello staff nella stanza di prova — e da nessun'altra parte.
+
 
 ## 5. Chakra e jutsu
 
@@ -645,3 +685,4 @@ Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da q
 | 40 | I clan speciali si chiedono, con il background | ✅ **Aggiunto** (§3.4) dal 02/08/2026: *Hyuga*, *Uchiha* e *Sabaku* erano «assegnati dallo staff», ma non esisteva **nessuna porta** per chiederli: il giocatore poteva solo sperare che qualcuno se ne accorgesse. Ora dalla scheda si sceglie il clan e si allega il **background**, e la richiesta finisce in una coda che lo staff vede dal pannello. Il server impone quattro cose: si chiede **solo un clan del proprio villaggio**, solo **se non si ha già un clan**, **una richiesta alla volta**, e il background non può essere vuoto — nessuna lunghezza minima, però. Il rifiuto porta **sempre una nota**, che il giocatore legge in scheda, e dopo un rifiuto si può riscrivere e ripresentare |
 | 41 | L'Accademia: si entra a lezione iniziata, e le aule diventano due | ✅ **Aggiunto** (§0.4) dal 02/08/2026: chi arrivava a lezione cominciata poteva solo assistere da **uditore**, senza attestato, anche se il maestro aveva appena finito la prima battuta. Ora **finché la lezione è al primo passo si entra come allievo**, con l'attestato; dal secondo passo in poi resta l'uditore di prima. In più ogni villaggio ha una **seconda aula**, che compare da sola quando la prima è occupata e si nasconde quando non serve: due lezioni in contemporanea, chat separate e **maestri diversi**, perché un maestro già in aula non viene estratto una seconda volta. Konoha e Suna hanno ciascuna un secondo insegnante |
 | 42 | I punti caratteristica alla promozione, e il premio che ne dà altri quindici | ✅ **Corretto e attivato** (§8.3, §8.6) dal 02/08/2026: il regolamento prometteva **+50 punti caratteristica a ogni promozione**, ma **nessuna riga di codice li ha mai concessi** — un Genin promosso restava con le statistiche del giorno prima e un tetto più alto che non poteva riempire. Ora i punti arrivano davvero, **interi e subito**, ma con una scala legata al tetto invece che fissa: **90 al Genin, 120 al Chunin, 150 al Jonin, 170 al Jonin Speciale, 200 al Kage**, cioè **+30** a ogni salto tranne il penultimo. Con quel pool si portano **due caratteristiche al tetto** e restano venti punti da spargere: la terza specializzazione smette di essere un regalo del grado e diventa una scelta che si paga. Per questo nasce il premio **Punti caratteristica**, **+15** ciascuno, uno per gradino, a costo crescente — **200 XP da Genin · 400 da Chunin · 600 da Jonin · 800 da Jonin Speciale · 1.000 da Kage** — che **non alza mai il tetto del grado**: dà varietà, non altezza. ⚠️ Il pool si concede **una volta sola per gradino**: retrocedere e ripromuovere non lo raddoppia |
+| 43 | Il motore degli scontri uno contro uno | ✅ **Rilasciato** (§4.7, §1.5) dal 05/08/2026: il combattimento in land aveva un pannello che chiamava una funzione per ogni gesto — muovi, dichiara, accendi, difenditi — e la pagina poteva sbagliarne l'ordine. Ora l'azione si compone in una **finestra guidata** che mostra **solo le opzioni legali**, con il motivo scritto accanto a quelle spente, e parte **insieme al testo in un'unica chiamata**: se il server rifiuta l'azione, il messaggio non viene nemmeno scritto. Il **duello è 1v1** e a scontro cominciato non entra più nessuno, nemmeno come spettatore. In difesa si **risponde e basta**, l'unica azione rapida è la **guardia**, la **Contromossa non è in vigore**. I 500 caratteri contano **solo la narrativa**: prefisso del luogo e comandi restano fuori dal conto. **Nessun numero in chat**: tiri, riduzioni e danno vivono nel referto, e fuori dalla stanza di prova vita e chakra dell'avversario non si vedono. Tetto di **65 danni per colpo**, che il regolamento prometteva dal primo giorno e nessuna riga imponeva. Nella **stanza di prova** gli scenari a dadi fissi valgono per un solo scambio e azzerano la prova precedente. A database restano **due sole porte** — `combat_azione` e `post_message` — e le quattro chiamate dirette del vecchio pannello sono state revocate ai giocatori |
