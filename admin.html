@@ -252,6 +252,7 @@
             <button type="button" data-go="segnalazioni">Segnalazioni</button>
             <button type="button" data-go="messaggi">Messaggi</button>
             <button type="button" data-go="archivio">Archivio</button>
+            <button type="button" data-go="pilot">Pilot scontri</button>
           </div>
           <section class="adm-page" data-page="personaggi">
           <div class="grp-title">Personaggi</div>
@@ -478,6 +479,19 @@
           <div id="board-list"></div>
           </section>
 
+          <section class="adm-page" data-page="pilot">
+          <div class="grp-title" style="margin-top:0">Pilot scontri — Konoha - Mura</div>
+          <p class="mgr-note">Playtest circoscritto del motore e del narratore fuori dalla Test Room. Vale solo per <b>Konoha - Mura</b> e per la coppia <b>Riuji</b> e <b>testperfunzioni</b>, per <b>24 ore</b>. Il luogo resta una chat normale: <code>is_test</code> non viene mai cambiato. PV e chakra si scalano davvero e vengono <b>fotografati all'avvio</b> e ripristinati alla chiusura.</p>
+          <div id="pilot-box" style="border:1px solid var(--edge);border-radius:10px;padding:12px;max-width:720px">
+            <div id="pilot-stato" style="font-size:13px;line-height:1.6">Caricamento…</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+              <button type="button" id="pilot-avvia" class="btn">Avvia il pilot (24 ore)</button>
+              <button type="button" id="pilot-ko" class="btn" disabled title="Disponibile solo dopo il primo esito normale gia narrato">Prepara KO (5 PV)</button>
+              <button type="button" id="pilot-chiudi" class="btn">Chiudi e ripristina</button>
+            </div>
+            <p class="mgr-note" style="margin-top:10px">Il KO non forza i dadi: abbassa i PV del bersaglio a 5 e basta. Se il colpo manca, resta a 5 PV e si ripete con azioni normali.</p>
+          </div>
+          </section>
           <section class="adm-page" data-page="ia">
           <div class="grp-title" style="margin-top:0">IA — PNG della Land</div>
           <p class="mgr-note">L'<b>hub dei PNG</b>, in tre sezioni ben definite: <b>Accademia</b> (i sensei-IA delle lezioni), <b>PNG Trama</b> (il cast narrativo guidato dall'IA) e <b>Ninja Book</b> (i modelli con statistiche che i master <b>evocano in scena dalla Regia</b>: è la stessa fonte, gestibile anche da qui). Ogni sezione ha il suo <b>+ Aggiungi PNG</b>, così è sempre chiaro da dove si pesca e dove creare i prossimi.</p>
@@ -2689,7 +2703,42 @@
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
   })();
-  </script>
+  
+      /* ───────── PILOT SCONTRI ───────── */
+      (function(){
+        var box=document.getElementById('pilot-stato');
+        if(!box) return;
+        var bAvvia=document.getElementById('pilot-avvia'), bKo=document.getElementById('pilot-ko'), bChiudi=document.getElementById('pilot-chiudi');
+        var timer=null, residuo=0;
+        function hhmmss(t){ t=Math.max(0,t|0); var h=(t/3600)|0,m=((t%3600)/60)|0,x=t%60; return (h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(x<10?'0':'')+x; }
+        function tick(){ if(residuo>0){ residuo--; var e=document.getElementById('pilot-residuo'); if(e) e.textContent=hhmmss(residuo); } }
+        function render(d){
+          if(!d||!d.staff){ box.innerHTML='<b>Riservato allo staff.</b>'; return; }
+          var u=d.ultimo_referto;
+          box.innerHTML =
+            '<div><b>Stato:</b> '+(d.attivo?'<span style="color:#2e7d32">attivo</span>':'<span style="color:#8a3b2a">spento</span>')+'</div>'+
+            (d.attivo?'<div><b>Tempo residuo:</b> <span id="pilot-residuo">'+hhmmss(d.secondi_residui)+'</span></div>':'')+
+            (d.avviato_at?'<div><b>Avviato:</b> '+new Date(d.avviato_at).toLocaleString()+'</div>':'')+
+            (d.chiuso_at?'<div><b>Chiuso:</b> '+new Date(d.chiuso_at).toLocaleString()+' ('+(d.chiuso_motivo||'')+')</div>':'')+
+            '<div><b>Scontro aperto:</b> '+(d.scontro_aperto?'si':'no')+'</div>'+
+            '<div><b>Ultimo esito:</b> '+(u?(u.attacker_name+' → '+u.defender_name+' · '+(u.colpito?'a segno':'mancato')+(u.ko?' · KO':'')+' · narrato: '+(u.narrato?(u.narr_fallback?'ripiego':'si'):'non ancora')+' · '+u.ora):'nessuno')+'</div>';
+          bKo.disabled = !d.ko_disponibile;
+          bKo.title = d.ko_disponibile ? 'Abbassa a 5 PV testperfunzioni' : 'Disponibile solo dopo il primo esito normale gia narrato';
+          bAvvia.disabled = !!d.attivo;
+          bChiudi.disabled = !d.attivo;
+          residuo = d.secondi_residui||0;
+          if(timer) clearInterval(timer);
+          if(d.attivo) timer=setInterval(tick,1000);
+        }
+        function carica(){ sb.rpc('pilot_stato').then(function(r){ if(r&&!r.error) render(r.data); else box.textContent='Errore di lettura.'; }, function(){ box.textContent='Errore di rete.'; }); }
+        function chiama(fn,args){ return sb.rpc(fn,args||{}).then(function(r){ if(r&&r.error){ alert('Errore: '+r.error.message); } else if(r&&r.data&&r.data.ok===false){ alert(r.data.motivo||'Operazione non eseguita.'); } carica(); }, function(){ alert('Errore di rete.'); }); }
+        bAvvia.addEventListener('click',function(){ chiama('pilot_avvia'); });
+        bKo.addEventListener('click',function(){ chiama('pilot_prepara_ko'); });
+        bChiudi.addEventListener('click',function(){ chiama('pilot_chiudi',{p_motivo:'chiusura manuale dalla card staff'}); });
+        carica();
+        setInterval(carica, 30000);
+      })();
+</script>
   <script src="bijuu.js"></script>
 </body>
 </html>

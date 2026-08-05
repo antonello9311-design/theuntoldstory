@@ -2186,7 +2186,12 @@
       /* [04/08/2026] La card vive ovunque ci sia uno scontro aperto: il server decide
          chi puo' fare cosa, e combat_state gia' oscura vita e chakra dell'avversario
          fuori dalla stanza di prova. I pulsanti per aprire restano solo dove si puo'. */
-      function loadCombat(){ if(!sb||!cur){ return; }
+      /* [PILOT] Konoha - Mura: la card scontro compare solo ai due autorizzati e solo a pilot acceso.
+         Il server resta l'autorita': pilot_stato() risponde attivo=false a chiunque non sia dentro il perimetro. */
+      var PILOT={attivo:false,location_id:null};
+      function loadPilot(){ if(!sb){ return; } sb.rpc('pilot_stato').then(function(r){ PILOT=(r&&!r.error&&r.data)||{attivo:false,location_id:null}; renderCombat(); }, function(){ PILOT={attivo:false,location_id:null}; }); }
+      function pilotQui(){ return !!(PILOT && PILOT.attivo && cur && PILOT.location_id === cur.id); }
+      function loadCombat(){ if(!sb||!cur){ return; } loadPilot();
         sb.rpc('combat_state',{p_location:cur.id}).then(function(r){
           CMB=(r&&!r.error&&r.data)||null;
           if(!(CMB&&CMB.aperto&&CMB.puo_comporre)) CMB_AZ=null;
@@ -2210,7 +2215,7 @@
         if(!card||!body) return;
         if(!cur){ card.hidden=true; return; }
         if(!CMB||!CMB.aperto){
-          if(!cur.is_test){ card.hidden=true; return; }
+          if(!cur.is_test && !pilotQui()){ card.hidden=true; return; }
           card.hidden=false;
           body.innerHTML='<p class="cs-note">Qui non c\u2019\u00e8 nessuno scontro aperto.</p>'+
             '<div class="cs-act"><input id="cmb-dist" type="number" min="0" max="60" step="5" placeholder="metri">'+
