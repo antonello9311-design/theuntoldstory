@@ -1221,6 +1221,7 @@
   .az-d{display:block;font-size:10.5px;color:var(--ink-soft);font-style:italic}
   .az-mv{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px}
   .az-mv input[type=number]{width:78px;font-size:13px;border:1px solid var(--edge);border-radius:7px;padding:5px 7px;background:#fbf4e1;color:var(--ink)}
+  .az-fin{margin:2px 0 0;font-style:normal;color:var(--red-deep)}
   .az-err{font-size:12px;color:var(--red-deep);background:rgba(166,50,29,.1);border:1px solid var(--edge);border-left:3px solid var(--red);border-radius:7px;padding:6px 9px;margin:0 14px}
   .az-err[hidden]{display:none}
   .az-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--edge)}
@@ -2179,7 +2180,7 @@
       function refreshRoom(){ if(!cur) return; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadAcadClass(); refreshMyVita(); loadCombat(); }
 
       /* ---- Motore di combattimento: il pannello dello scontro ---- */
-      var CMB=null, CMB_AZ=null, CMB_OPZ=null, azBozza=null, azFiltro='';
+      var CMB=null, CMB_AZ=null, CMB_OPZ=null, azBozza=null, azFiltro='', azPri=[];
       function cmbFascia(d){ return d<=2?'a contatto':(d<=10?'corta':(d<=30?'media':(d<=60?'lunga':'fuori portata'))); }
       function cmbBar(v,max,cls){ var p=(max>0)?Math.max(0,Math.min(100,Math.round(v*100/max))):0;
         return '<span class="cmb-bar'+(cls||'')+'" title="'+v+'/'+max+'"><i style="width:'+p+'%"></i></span>'; }
@@ -2274,11 +2275,11 @@
       function syncAzPill(){ var on=!!CMB_AZ;
         ['az-pill','az-pill-ed'].forEach(function(id){ var e=azEl(id); if(e) e.hidden=!on; }); }
       function azBozzaInit(){
-        azBozza={principale:null, spostamento:'', guardia:false, reazione:null};
+        azBozza={principale:null, spostamento:'0', guardia:false, reazione:null};
         if(!CMB_AZ) return;
         if(CMB_AZ.tipo==='attacco'){
           azBozza.principale=CMB_AZ.principale?{fonte:CMB_AZ.principale.fonte,id:CMB_AZ.principale.id||null}:null;
-          azBozza.spostamento=(CMB_AZ.spostamento!=null)?String(CMB_AZ.spostamento):'';
+          azBozza.spostamento=(CMB_AZ.spostamento!=null)?String(CMB_AZ.spostamento):'0';
           azBozza.guardia=!!(CMB_AZ.rapida&&CMB_AZ.rapida.chiave==='guardia');
         } else {
           azBozza.reazione={chiave:CMB_AZ.reazione, id:CMB_AZ.tecnica||null};
@@ -2294,8 +2295,65 @@
           var f=azEl('az-cerca'); if(f) setTimeout(function(){ try{ f.focus(); }catch(e){} },40);
         }, function(e){ toast((e&&e.message)||'Non si pu\u00f2 comporre adesso'); });
       }
+      /* ============================================================
+         [05/08/2026 - TASK-COMBAT-V1-PILOT-MOVIMENTO]
+         Lo spostamento si dichiara prima dell'azione principale, perche' e'
+         in quest'ordine che il motore lo esegue: combat_azione muove e poi
+         dichiara l'attacco. La finestra proietta la distanza finale e riapre
+         le opzioni che quella distanza rende raggiungibili.
+         Qui non si decide niente: la proiezione ricopia la geometria di
+         combat_muovi e i requisiti di combat_opzioni. L'ultima parola resta
+         a combat_dichiara_attacco, che ricontrolla la gittata sulla posizione
+         vera dopo il movimento.
+         ============================================================ */
+      function azFascia(d){ return d<=2?'a contatto':(d<=10?'corta':(d<=30?'media':'lunga')); }
+      function azMov(){
+        var mv=(CMB_OPZ&&CMB_OPZ.spostamento)||{}; if(!mv.disponibile) return 0;
+        var m=parseInt((azBozza&&azBozza.spostamento)||'',10); if(isNaN(m)) m=0;
+        var mx=mv.max_metri||0; if(m>mx) m=mx; if(m<-mx) m=-mx; return m; }
+      function azDistOra(){ var d=parseInt((CMB_OPZ&&CMB_OPZ.distanza),10); return isNaN(d)?0:d; }
+      /* positivo avvicina, negativo allontana. Il server ferma a 0 (non si
+         attraversa l'avversario) e a 60 (il campo finisce li'). */
+      function azDistFin(){ var f=azDistOra()-azMov(); if(f<0) f=0; if(f>60) f=60; return f; }
+      function azDistTxt(){
+        var mv=(CMB_OPZ&&CMB_OPZ.spostamento)||{}, d=azDistOra();
+        if(!mv.disponibile) return 'Distanza: '+d+' m · '+azFascia(d)+'. '+(mv.motivo_no||'Nessuno spostamento in questo turno.');
+        var m=azMov(), f=azDistFin();
+        if(m===0) return 'Resti dove sei: '+d+' m · '+azFascia(d)+'.';
+        return 'Dopo lo spostamento: '+f+' m · '+azFascia(f)+
+               (m<0?' · meno, se hai il limite del campo alle spalle':'')+'.';
+      }
+      function azCk(x){ var o=CMB_OPZ||{}, c=+(x.chakra||0);
+        return !(c>0) || !!o.is_test || (+((o.chakra||{}).ora||0))>=c; }
+      /* Sbloccabile solo se il server la nega per la sola gittata: «hai gia'
+         speso» e il chakra insufficiente restano blocchi, lo spostamento non
+         li tocca. Nel dubbio si resta bloccati. */
+      function azSoloGittata(x){
+        if(x.ok) return false;
+        if(typeof x.portata!=='number') return false;
+        if(!(azDistOra()>x.portata)) return false;
+        if(!x.no || /speso/i.test(x.no)) return false;
+        return azCk(x); }
+      function azOkOra(x){ return !!x.ok || (azSoloGittata(x) && azDistFin()<=x.portata); }
+      function azDet(x){ return x.det+((!x.ok&&azOkOra(x))?' · raggiungibile dopo lo spostamento':''); }
+      function azTrova(k){ for(var i=0;i<azPri.length;i++){ if(azPri[i].k===k) return azPri[i]; } return null; }
+      function azSyncMov(){
+        var o=CMB_OPZ; if(!o||o.fase==='difesa'||!azBozza) return;
+        var fin=azEl('az-dist-fin'); if(fin) fin.textContent=azDistTxt();
+        var host=azEl('az-pri'); if(!host) return;
+        var rows=host.querySelectorAll('.az-opt[data-azk]'), persa=false;
+        for(var i=0;i<rows.length;i++){
+          var el=rows[i], x=azTrova(el.getAttribute('data-azk')); if(!x) continue;
+          var ok=azOkOra(x), inp=el.querySelector('input'), det=el.querySelector('.az-d');
+          if(ok) el.classList.remove('no'); else el.classList.add('no');
+          if(inp){ inp.disabled=!ok; if(!ok&&inp.checked){ inp.checked=false; persa=true; } }
+          if(det) det.textContent = ok ? azDet(x) : (x.no||'non disponibile');
+        }
+        if(persa){ azBozza.principale=null;
+          azErr('Con questo spostamento quell’opzione non arriva più: scegline un’altra.'); }
+      }
       function azOpz(gruppo, val, testo, det, ok, motivo, scelto){
-        return '<label class="az-opt'+(ok?'':' no')+'">'+
+        return '<label class="az-opt'+(ok?'':' no')+'" data-azk="'+esc(val)+'">'+
           '<input type="radio" name="'+gruppo+'" value="'+esc(val)+'"'+(ok?'':' disabled')+(scelto?' checked':'')+'>'+
           '<span><span class="az-n">'+esc(testo)+'</span>'+
           '<span class="az-d">'+esc(ok?(det||''):(motivo||'non disponibile'))+'</span></span></label>';
@@ -2317,37 +2375,44 @@
           });
           h+='</div></div><p class="az-d" style="margin:0">In difesa si risponde e basta: niente movimento, niente rapide.</p>';
         } else {
-          var q=(azFiltro||'').toLowerCase(), pri=[];
-          if(o.colpo) pri.push({fonte:'colpo', id:'', nome:o.colpo.nome,
-            det:'a contatto \u00b7 nessun costo', ok:!!o.colpo.disponibile, no:o.colpo.motivo_no});
-          (o.principali||[]).forEach(function(t){ pri.push({fonte:t.fonte, id:t.id, nome:t.nome,
-            det:(t.gittata||'')+' \u00b7 '+(t.chakra?(t.chakra+' chakra'):'nessun costo')+(t.posseduta?'':' \u00b7 non in scheda'),
+          var q=(azFiltro||'').toLowerCase(); azPri=[];
+          if(o.colpo) azPri.push({fonte:'colpo', id:'', nome:o.colpo.nome,
+            det:'a contatto · nessun costo', chakra:0,
+            portata:(typeof o.colpo.portata_m==='number'?o.colpo.portata_m:2),
+            ok:!!o.colpo.disponibile, no:o.colpo.motivo_no});
+          (o.principali||[]).forEach(function(t){ azPri.push({fonte:t.fonte, id:t.id, nome:t.nome,
+            det:(t.gittata||'')+' · '+(t.chakra?(t.chakra+' chakra'):'nessun costo')+(t.posseduta?'':' · non in scheda'),
+            chakra:+(t.chakra||0), portata:(typeof t.portata_m==='number'?t.portata_m:null),
             ok:!!t.disponibile, no:t.motivo_no}); });
-          (o.innate||[]).forEach(function(t){ pri.push({fonte:'innata', id:t.id, nome:t.nome,
-            det:'arte innata \u00b7 si accende \u00b7 '+(t.chakra?(t.chakra+' chakra a round'):'nessun costo')+(t.posseduta?'':' \u00b7 non in scheda'),
+          (o.innate||[]).forEach(function(t){ azPri.push({fonte:'innata', id:t.id, nome:t.nome,
+            det:'arte innata · si accende · '+(t.chakra?(t.chakra+' chakra a round'):'nessun costo')+(t.posseduta?'':' · non in scheda'),
+            chakra:+(t.chakra||0), portata:null,
             ok:!!t.disponibile, no:t.motivo_no}); });
-          var vis=pri.filter(function(x){ return !q || (x.nome||'').toLowerCase().indexOf(q)>=0; });
+          azPri.forEach(function(x){ x.k=x.fonte+'|'+(x.id||''); });
+          /* [MOVIMENTO] Prima lo spostamento: e' quello che decide da dove parte il colpo. */
+          var mv=o.spostamento||{}, mx=mv.max_metri||0;
+          h+='<div class="az-sec"><div class="az-k">Spostamento</div><div class="az-mv">'+
+             '<input type="number" id="az-passi" step="5" min="-'+mx+'" max="'+mx+'" placeholder="± m" value="'+esc(azBozza.spostamento)+'"'+(mv.disponibile?'':' disabled')+'>'+
+             '<span class="az-d">'+esc(mv.disponibile?('fino a '+mx+' m · positivo avvicina, negativo allontana · 0 = resti dove sei'):(mv.motivo_no||'non disponibile'))+'</span></div>'+
+             '<p class="az-d az-fin" id="az-dist-fin">'+esc(azDistTxt())+'</p></div>';
+          var vis=azPri.filter(function(x){ return !q || (x.nome||'').toLowerCase().indexOf(q)>=0; });
           h+='<div class="az-sec"><div class="az-k">Azione principale</div>'+
-             '<input class="az-find" id="az-cerca" type="text" placeholder="Cerca fra le tue opzioni\u2026" value="'+esc(azFiltro||'')+'">'+
-             '<div class="az-list">';
+             '<input class="az-find" id="az-cerca" type="text" placeholder="Cerca fra le tue opzioni…" value="'+esc(azFiltro||'')+'">'+
+             '<div class="az-list" id="az-pri">';
           if(!vis.length){ h+='<p class="sug-no">Nessuna opzione con questo nome.</p>'; }
           vis.slice(0,300).forEach(function(x){
-            var val=x.fonte+'|'+(x.id||'');
+            var ok=azOkOra(x);
             var scelto=!!(azBozza.principale&&azBozza.principale.fonte===x.fonte&&(azBozza.principale.id||'')===(x.id||''));
-            h+=azOpz('azp', val, x.nome, x.det, x.ok, x.no, scelto);
+            h+=azOpz('azp', x.k, x.nome, azDet(x), ok, x.no, scelto&&ok);
           });
           h+='</div>';
           if(vis.length>300) h+='<p class="az-d">Mostrate le prime 300 di '+vis.length+': scrivi qualche lettera per restringere.</p>';
           h+='</div>';
-          var mv=o.spostamento||{}, mx=mv.max_metri||0;
-          h+='<div class="az-sec"><div class="az-k">Spostamento</div><div class="az-mv">'+
-             '<input type="number" id="az-passi" step="5" min="-'+mx+'" max="'+mx+'" placeholder="\u00b1 m" value="'+esc(azBozza.spostamento||'')+'"'+(mv.disponibile?'':' disabled')+'>'+
-             '<span class="az-d">'+esc(mv.disponibile?('fino a '+mx+' m \u00b7 positivo avvicina, negativo allontana'):(mv.motivo_no||'non disponibile'))+'</span></div></div>';
           var g=((o.rapide||[])[0])||{};
           h+='<div class="az-sec"><div class="az-k">Azione rapida</div><div class="az-list">'+
              '<label class="az-opt'+(g.disponibile?'':' no')+'"><input type="checkbox" id="az-guardia"'+(g.disponibile?'':' disabled')+(azBozza.guardia?' checked':'')+'>'+
              '<span><span class="az-n">'+esc(g.nome||'In guardia')+'</span><span class="az-d">'+
-             esc(g.disponibile?'ti copre meglio alla prossima difesa \u00b7 nessun costo':(g.motivo_no||'non disponibile'))+
+             esc(g.disponibile?'ti copre meglio alla prossima difesa · nessun costo':(g.motivo_no||'non disponibile'))+
              '</span></span></label></div></div>';
         }
         b.innerHTML=h;
@@ -2369,12 +2434,17 @@
             if(!azBozza.principale.id){ azErr('Scegli quale tecnica.'); return; }
             a.principale.id=azBozza.principale.id;
           }
-          var m=parseInt(azBozza.spostamento,10);
-          if(!isNaN(m)&&m!==0){
-            var mx=(o.spostamento&&o.spostamento.max_metri)||0;
+          var m=parseInt(azBozza.spostamento,10); if(isNaN(m)) m=0;
+          /* 0 e' la conferma di restare fermi: non diventa un movimento nel payload. */
+          if(m!==0){
+            var mv2=o.spostamento||{}, mx=mv2.max_metri||0;
+            if(!mv2.disponibile){ azErr(mv2.motivo_no||'Adesso non puoi spostarti.'); return; }
             if(Math.abs(m)>mx){ azErr('La tua Velocit\u00e0 ti porta al massimo a '+mx+' metri.'); return; }
             a.spostamento=m;
           }
+          /* La riga sbloccata dallo spostamento vale solo se lo spostamento c'e' ancora. */
+          var xs=azTrova(azBozza.principale.fonte+'|'+(azBozza.principale.id||''));
+          if(xs&&!azOkOra(xs)){ azErr(xs.no||'Quell\u2019opzione non \u00e8 disponibile adesso.'); return; }
           if(azBozza.guardia) a.rapida={chiave:'guardia'};
           CMB_AZ=a;
         }
@@ -2388,7 +2458,7 @@
           var t=e.target; if(!t) return;
           if(t.id==='az-cerca'){ azFiltro=t.value||''; var pos=t.selectionStart; azRender();
             var f=azEl('az-cerca'); if(f){ try{ f.focus(); f.setSelectionRange(pos,pos); }catch(x){} } return; }
-          if(t.id==='az-passi'&&azBozza){ azBozza.spostamento=t.value||''; }
+          if(t.id==='az-passi'&&azBozza){ azBozza.spostamento=t.value||''; azSyncMov(); }
         });
         body.addEventListener('change', function(e){
           var t=e.target; if(!t||!azBozza) return;
