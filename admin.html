@@ -2689,6 +2689,55 @@
       });
     }
 
+    /* ───────── PILOT SCONTRI ─────────
+       Vive dentro questo IIFE perche' usa `sb`, che qui e' una var locale e
+       non va esposta su window. Viene agganciata solo da init(), dopo che il
+       ruolo staff e' confermato e st-mgr e' mostrato: se la pagina e' in
+       st-guest o st-denied, la card non esiste e non si chiama nulla. */
+    var pilotTimer=null, pilotResiduo=0, pilotPoll=null;
+    function pilotHhmmss(t){ t=Math.max(0,t|0); var h=(t/3600)|0,m=((t%3600)/60)|0,x=t%60;
+      return (h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(x<10?'0':'')+x; }
+    function bindPilot(){
+      var box=document.getElementById('pilot-stato');
+      var bAvvia=document.getElementById('pilot-avvia');
+      var bKo=document.getElementById('pilot-ko');
+      var bChiudi=document.getElementById('pilot-chiudi');
+      if(!box||!bAvvia||!bKo||!bChiudi||!sb) return;
+      function tick(){ if(pilotResiduo>0){ pilotResiduo--; var e=document.getElementById('pilot-residuo');
+        if(e) e.textContent=pilotHhmmss(pilotResiduo); } }
+      function render(d){
+        if(!d||!d.staff){ box.innerHTML='<b>Riservato allo staff.</b>'; return; }
+        var u=d.ultimo_referto;
+        box.innerHTML =
+          '<div><b>Stato:</b> '+(d.attivo?'<span style="color:#2e7d32">attivo</span>':'<span style="color:#8a3b2a">spento</span>')+'</div>'+
+          (d.attivo?'<div><b>Tempo residuo:</b> <span id="pilot-residuo">'+pilotHhmmss(d.secondi_residui)+'</span></div>':'')+
+          (d.avviato_at?'<div><b>Avviato:</b> '+new Date(d.avviato_at).toLocaleString()+'</div>':'')+
+          (d.chiuso_at?'<div><b>Chiuso:</b> '+new Date(d.chiuso_at).toLocaleString()+' ('+(d.chiuso_motivo||'')+')</div>':'')+
+          '<div><b>Scontro aperto:</b> '+(d.scontro_aperto?'si':'no')+'</div>'+
+          '<div><b>Ultimo esito:</b> '+(u?(u.attacker_name+' → '+u.defender_name+' · '+(u.colpito?'a segno':'mancato')+(u.ko?' · KO':'')+' · narrato: '+(u.narrato?(u.narr_fallback?'ripiego':'si'):'non ancora')+' · '+u.ora):'nessuno')+'</div>';
+        bKo.disabled = !d.ko_disponibile;
+        bKo.title = d.ko_disponibile ? 'Abbassa a 5 PV testperfunzioni' : 'Disponibile solo dopo il primo esito normale gia narrato';
+        bAvvia.disabled = !!d.attivo;
+        bChiudi.disabled = !d.attivo;
+        pilotResiduo = d.secondi_residui||0;
+        if(pilotTimer) clearInterval(pilotTimer);
+        if(d.attivo) pilotTimer=setInterval(tick,1000);
+      }
+      function carica(){ sb.rpc('pilot_stato').then(function(r){
+        if(r&&!r.error) render(r.data); else box.textContent='Errore di lettura dello stato.';
+      }, function(){ box.textContent='Errore di rete.'; }); }
+      function chiama(fn,args){ return sb.rpc(fn,args||{}).then(function(r){
+        if(r&&r.error){ alert('Errore: '+r.error.message); }
+        else if(r&&r.data&&r.data.ok===false){ alert(r.data.motivo||'Operazione non eseguita.'); }
+        carica();
+      }, function(){ alert('Errore di rete.'); }); }
+      bAvvia.addEventListener('click',function(){ if(confirm('Avviare il pilot per 24 ore? PV e chakra verranno fotografati adesso.')) chiama('pilot_avvia'); });
+      bKo.addEventListener('click',function(){ chiama('pilot_prepara_ko'); });
+      bChiudi.addEventListener('click',function(){ chiama('pilot_chiudi',{p_motivo:'chiusura manuale dalla card staff'}); });
+      carica();
+      if(pilotPoll) clearInterval(pilotPoll);
+      pilotPoll=setInterval(carica, 30000);
+    }
     async function init(){
       if(!sb){show('st-guest');return;}
       var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;
@@ -2698,47 +2747,12 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();bindClanReq();await loadClanReq();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindBasi();await loadBasi();bindLocs();await loadLocs();bindBoards();await loadBoards();bindHkb();await loadHkb();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPg();await loadPg();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');
+      await loadClans();bindClans();bindClanReq();await loadClanReq();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindBasi();await loadBasi();bindLocs();await loadLocs();bindBoards();await loadBoards();bindHkb();await loadHkb();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPg();await loadPg();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');bindPilot();
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
   })();
-  
-      /* ───────── PILOT SCONTRI ───────── */
-      (function(){
-        var box=document.getElementById('pilot-stato');
-        if(!box) return;
-        var bAvvia=document.getElementById('pilot-avvia'), bKo=document.getElementById('pilot-ko'), bChiudi=document.getElementById('pilot-chiudi');
-        var timer=null, residuo=0;
-        function hhmmss(t){ t=Math.max(0,t|0); var h=(t/3600)|0,m=((t%3600)/60)|0,x=t%60; return (h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(x<10?'0':'')+x; }
-        function tick(){ if(residuo>0){ residuo--; var e=document.getElementById('pilot-residuo'); if(e) e.textContent=hhmmss(residuo); } }
-        function render(d){
-          if(!d||!d.staff){ box.innerHTML='<b>Riservato allo staff.</b>'; return; }
-          var u=d.ultimo_referto;
-          box.innerHTML =
-            '<div><b>Stato:</b> '+(d.attivo?'<span style="color:#2e7d32">attivo</span>':'<span style="color:#8a3b2a">spento</span>')+'</div>'+
-            (d.attivo?'<div><b>Tempo residuo:</b> <span id="pilot-residuo">'+hhmmss(d.secondi_residui)+'</span></div>':'')+
-            (d.avviato_at?'<div><b>Avviato:</b> '+new Date(d.avviato_at).toLocaleString()+'</div>':'')+
-            (d.chiuso_at?'<div><b>Chiuso:</b> '+new Date(d.chiuso_at).toLocaleString()+' ('+(d.chiuso_motivo||'')+')</div>':'')+
-            '<div><b>Scontro aperto:</b> '+(d.scontro_aperto?'si':'no')+'</div>'+
-            '<div><b>Ultimo esito:</b> '+(u?(u.attacker_name+' → '+u.defender_name+' · '+(u.colpito?'a segno':'mancato')+(u.ko?' · KO':'')+' · narrato: '+(u.narrato?(u.narr_fallback?'ripiego':'si'):'non ancora')+' · '+u.ora):'nessuno')+'</div>';
-          bKo.disabled = !d.ko_disponibile;
-          bKo.title = d.ko_disponibile ? 'Abbassa a 5 PV testperfunzioni' : 'Disponibile solo dopo il primo esito normale gia narrato';
-          bAvvia.disabled = !!d.attivo;
-          bChiudi.disabled = !d.attivo;
-          residuo = d.secondi_residui||0;
-          if(timer) clearInterval(timer);
-          if(d.attivo) timer=setInterval(tick,1000);
-        }
-        function carica(){ sb.rpc('pilot_stato').then(function(r){ if(r&&!r.error) render(r.data); else box.textContent='Errore di lettura.'; }, function(){ box.textContent='Errore di rete.'; }); }
-        function chiama(fn,args){ return sb.rpc(fn,args||{}).then(function(r){ if(r&&r.error){ alert('Errore: '+r.error.message); } else if(r&&r.data&&r.data.ok===false){ alert(r.data.motivo||'Operazione non eseguita.'); } carica(); }, function(){ alert('Errore di rete.'); }); }
-        bAvvia.addEventListener('click',function(){ chiama('pilot_avvia'); });
-        bKo.addEventListener('click',function(){ chiama('pilot_prepara_ko'); });
-        bChiudi.addEventListener('click',function(){ chiama('pilot_chiudi',{p_motivo:'chiusura manuale dalla card staff'}); });
-        carica();
-        setInterval(carica, 30000);
-      })();
-</script>
+  </script>
   <script src="bijuu.js"></script>
 </body>
 </html>
