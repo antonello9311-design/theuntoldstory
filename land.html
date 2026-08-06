@@ -221,11 +221,22 @@
   .msg-scontro{display:flex;gap:7px;align-items:flex-start;margin:6px 0;padding:5px 9px;border-left:3px solid #8a3b2a;background:rgba(138,59,42,.07);border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.45;color:var(--ink-soft)}
   .msg-scontro b{color:var(--red-deep);font-weight:700}
   .msg-scontro svg{width:15px;height:15px;flex:0 0 auto;color:#8a3b2a;margin-top:1px}
-  .msg-narratore{margin:10px 0;padding:11px 14px 12px;border-left:3px solid #b08d57;background:linear-gradient(180deg,rgba(176,141,87,.10),rgba(176,141,87,.03));border-radius:0 10px 10px 0}
+  /* [05/08/2026 NARRATORE-UX] stesso azzurro dei sensei: il fondo chiaro non staccava dalla chat */
+  .msg-narratore{margin:10px 0;padding:11px 14px 12px;border:1px solid #7ba6c9;border-left:3px solid #4a86b8;background:linear-gradient(#e9f3fb,#d9e9f6);border-radius:0 10px 10px 0}
   .msg-narratore .mn-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:5px}
-  .msg-narratore .mn-k{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#8a6d3f}
+  .msg-narratore .mn-k{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#2d5f89}
   .msg-narratore .mn-body{font-size:16.5px;font-weight:600;line-height:1.62;color:var(--ink,#2f2a24)}
   .msg-narratore .mn-pv{display:inline-block;margin-left:3px;font-size:12.5px;font-weight:700;color:var(--red-deep,#8a3b2a);white-space:nowrap}
+  /* [05/08/2026 NARRATORE-UX] L'attesa del racconto. Non e' un messaggio:
+     sta fuori da #msgs, non entra mai nell'elenco e non lascia tracce. */
+  .narr-attesa{display:flex;align-items:center;gap:8px;margin:0;padding:7px 15px;border-top:1px solid var(--rule);background:linear-gradient(#e9f3fb,#d9e9f6);color:#1f4c74;font-family:'Cormorant Garamond',serif;font-size:13.5px;font-style:italic}
+  .narr-attesa[hidden]{display:none}
+  .narr-attesa .na-dots{display:inline-flex;gap:3px;flex:0 0 auto}
+  .narr-attesa .na-dots i{width:4px;height:4px;border-radius:50%;background:#4a86b8;animation:naPulse 1.2s infinite ease-in-out}
+  .narr-attesa .na-dots i:nth-child(2){animation-delay:.18s}
+  .narr-attesa .na-dots i:nth-child(3){animation-delay:.36s}
+  @keyframes naPulse{0%,60%,100%{opacity:.28}30%{opacity:1}}
+  @media (prefers-reduced-motion:reduce){.narr-attesa .na-dots i{animation:none}}
   .msg-motore{display:flex;gap:7px;align-items:flex-start;margin:4px 0;padding:3px 9px;border-left:2px dashed #7a8797;background:rgba(122,135,151,.07);border-radius:0 6px 6px 0;font-size:11.5px;line-height:1.4;color:#68758a}
   .msg-motore .mm-k{flex:0 0 auto;font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#94a1b3;padding-top:2px}
   .test-banner .tb-txt{flex:1;font-size:12.5px;line-height:1.45}
@@ -1344,6 +1355,7 @@
           <div class="room-grid">
             <section class="chat">
               <div class="msgs" id="msgs"></div><div class="scrollarrows" id="msgs-arrows" hidden><button type="button" data-scroll="msgs" data-dir="-1" title="Scorri su" aria-label="Scorri su">▲</button><button type="button" data-scroll="msgs" data-dir="1" title="Scorri giù" aria-label="Scorri giù">▼</button></div>
+              <div class="narr-attesa" id="narr-attesa" role="status" aria-live="polite" hidden><span class="na-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>Il narratore sta scrivendo&hellip;</span></div>
               <div class="composer">
                 <div class="sug-pop" id="sug-pop" hidden role="listbox" aria-label="Tecniche e abilità"></div>
                 <div class="place-bar"><svg class="pb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg><input id="msg-place" class="pb-input" maxlength="60" autocomplete="off" placeholder="Luogo — es. Strade del villaggio"></div>
@@ -2192,12 +2204,19 @@
       var PILOT={attivo:false,location_id:null};
       function loadPilot(){ if(!sb){ return; } sb.rpc('pilot_stato').then(function(r){ PILOT=(r&&!r.error&&r.data)||{attivo:false,location_id:null}; renderCombat(); }, function(){ PILOT={attivo:false,location_id:null}; }); }
       function pilotQui(){ return !!(PILOT && PILOT.attivo && cur && PILOT.location_id === cur.id); }
-      function loadCombat(){ if(!sb||!cur){ return; } loadPilot();
+      /* [05/08/2026 NARRATORE-UX] La riga d'attesa e' una resa del client e basta.
+         Il server manda un solo booleano, circoscritto al luogo: niente referto,
+         niente tentativi, niente tecnica. Il confronto e' con true esplicito, cosi'
+         se la pagina arriva prima della migrazione la chiave manca, l'attesa resta
+         nascosta e il comportamento e' quello di oggi. */
+      function syncNarrAttesa(on){ var el=document.getElementById('narr-attesa'); if(el) el.hidden = !on; }
+      function loadCombat(){ if(!sb||!cur){ syncNarrAttesa(false); return; } loadPilot();
         sb.rpc('combat_state',{p_location:cur.id}).then(function(r){
           CMB=(r&&!r.error&&r.data)||null;
           if(!(CMB&&CMB.aperto&&CMB.puo_comporre)) CMB_AZ=null;
+          syncNarrAttesa(!!(CMB&&CMB.narrazione_attesa===true));
           renderCombat(); syncAzPill();
-        }, function(){ CMB=null; renderCombat(); }); }
+        }, function(){ CMB=null; syncNarrAttesa(false); renderCombat(); }); }
       function csBar(v,max,cls){
         /* fuori dalla stanza di prova il server non manda i valori dell'avversario:
            in quel caso non si disegna nessuna barra, invece di disegnarne una vuota */
