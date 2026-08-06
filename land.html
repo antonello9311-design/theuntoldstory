@@ -2210,7 +2210,11 @@
          se la pagina arriva prima della migrazione la chiave manca, l'attesa resta
          nascosta e il comportamento e' quello di oggi. */
       function syncNarrAttesa(on){ var el=document.getElementById('narr-attesa'); if(el) el.hidden = !on; }
-      function loadCombat(){ if(!sb||!cur){ syncNarrAttesa(false); return; } loadPilot();
+      /* [06/08 APERTURA] loadPilot() non viene più chiamata: il pilot è chiuso, il suo
+         cron è spento e la whitelist non è più consultata da nessuna funzione. Restava
+         un'interrogazione ogni 9 secondi per ogni giocatore, per un valore sempre
+         falso. Le due funzioni restano definite sopra, inerti. */
+      function loadCombat(){ if(!sb||!cur){ syncNarrAttesa(false); return; }
         sb.rpc('combat_state',{p_location:cur.id}).then(function(r){
           CMB=(r&&!r.error&&r.data)||null;
           if(!(CMB&&CMB.aperto&&CMB.puo_comporre)) CMB_AZ=null;
@@ -2235,7 +2239,10 @@
         if(!card||!body) return;
         if(!cur){ card.hidden=true; return; }
         if(!CMB||!CMB.aperto){
-          if(!cur.is_test && !pilotQui()){ card.hidden=true; return; }
+          /* [06/08 APERTURA] La card vive in ogni chat di gioco. Prima si nascondeva
+             ovunque tranne Test Room e luogo del pilot: senza questa riga l'apertura
+             sarebbe invisibile, perché il server accetterebbe e il pulsante non
+             comparirebbe mai. Il server resta l'autorità: la Test Room la rifiuta. */
           card.hidden=false;
           body.innerHTML='<p class="cs-note">Qui non c\u2019\u00e8 nessuno scontro aperto.</p>'+
             '<div class="cs-act"><input id="cmb-dist" type="number" min="0" max="60" step="5" placeholder="metri">'+
@@ -2274,7 +2281,7 @@
         } else {
           h+='<span class="cs-pos">'+(CMB.fase==='difesa'?'Aspetta: tocca all\u2019altro difendersi.':'Aspetta il tuo turno.')+'</span>';
         }
-        h+='<button type="button" data-cmb="chiudi" title="Pu\u00f2 chiudere chi ha aperto, il master o lo staff">Chiudi</button></div>';
+        h+='<button type="button" data-cmb="chiudi" title="Chiudono subito chi ha aperto, il master e lo staff. L\u2019altro combattente pu\u00f2 abbandonare dopo dieci minuti di silenzio dell\u2019avversario">Chiudi</button></div>';
         h+='<p class="cs-note fissa">'+(CMB.puo_comporre
              ? (CMB_AZ?'Azione pronta: parte insieme al prossimo messaggio.':'Scrivi il tuo turno, poi componi l\u2019azione: partono insieme.')
              : '&nbsp;')+'</p>';
