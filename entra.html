@@ -130,6 +130,29 @@
       <p class="guidalink">Non hai mai giocato a un GDR via chat? <a href="guida.html" target="_blank">Leggi la guida al primo accesso</a>: si apre in una scheda a parte, così non perdi quello che hai scritto qui.</p>
     </form>
 
+    <!-- PASSWORD RECOVERY -->
+    <form id="form-reset" autocomplete="on">
+      <p>Il collegamento ricevuto via email è stato verificato. Scegli una nuova password per il tuo account.</p>
+      <div>
+        <label>Nuova password</label>
+        <div class="pw-wrap">
+          <input type="password" id="reset-pass" autocomplete="new-password" required>
+          <button type="button" class="pw-toggle" data-target="reset-pass" aria-label="Mostra password" aria-pressed="false"></button>
+        </div>
+        <div class="hint">Almeno <strong>10 caratteri</strong>, con una <strong>maiuscola</strong>, una <strong>minuscola</strong>, un <strong>numero</strong> e un <strong>carattere speciale</strong> (es. ! ? @ # $).</div>
+      </div>
+      <div>
+        <label>Conferma nuova password</label>
+        <div class="pw-wrap">
+          <input type="password" id="reset-pass2" autocomplete="new-password" required>
+          <button type="button" class="pw-toggle" data-target="reset-pass2" aria-label="Mostra password" aria-pressed="false"></button>
+        </div>
+      </div>
+      <p class="hint">Dopo il cambio, gli altri dispositivi verranno disconnessi anche se avevano «Ricordami» attivo. Questo dispositivo resterà connesso.</p>
+      <button type="submit" class="btn" id="reset-save">Salva nuova password</button>
+      <button type="button" class="btn" id="reset-continue" style="display:none">Continua nel gioco</button>
+    </form>
+
     <!-- LOGGED IN -->
     <div class="account" id="account">
       <div class="who" id="who"></div>
@@ -157,6 +180,11 @@
       removeItem: function(k){ try { window.localStorage.removeItem(k); window.sessionStorage.removeItem(k); } catch(e){} }
     };
 
+    var incomingAuth = (window.location.hash || '') + '&' + (window.location.search || '');
+    var recoveryExpected = /(?:^|[&#?])type=recovery(?:&|$)/.test(incomingAuth);
+    var recoveryFailed = /(?:^|[&#?])error(?:=|_code=)/.test(incomingAuth);
+    var recoveryMode = false;
+
     var sb = (window.supabase && window.supabase.createClient)
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: hybridStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } })
       : null;
@@ -175,11 +203,35 @@
       return null;
     }
 
+    function showResetForm(){
+      recoveryMode = true;
+      $('form-accedi').classList.remove('active');
+      $('form-registrati').classList.remove('active');
+      $('account').classList.remove('active');
+      $('tabs').style.display='none';
+      $('form-reset').classList.add('active');
+      $('title').textContent='Scegli una nuova password';
+      clearMsg();
+      try { $('reset-pass').focus(); } catch(e){}
+    }
+
+    function showRecoveryError(){
+      recoveryMode = false;
+      $('form-reset').classList.remove('active');
+      $('account').classList.remove('active');
+      $('tabs').style.display='flex';
+      setTab('accedi');
+      $('recover').style.display='flex';
+      $('title').textContent='Richiedi un nuovo collegamento';
+      show('err','Questo collegamento di recupero non è più valido. Inserisci la tua email per riceverne uno nuovo.');
+    }
+
     // tabs
     function setTab(name){
       document.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('active', t.dataset.tab===name); });
       $('form-accedi').classList.toggle('active', name==='accedi');
       $('form-registrati').classList.toggle('active', name==='registrati');
+      $('form-reset').classList.remove('active');
       $('title').textContent = name==='registrati' ? 'Crea il tuo account' : 'Entra nel mondo';
       clearMsg();
     }
@@ -188,8 +240,15 @@
 
     if (!sb){ show('err', 'Impossibile contattare il servizio account in questo momento. Ricarica la pagina.'); return; }
 
+    sb.auth.onAuthStateChange(function(event){
+      if (event === 'PASSWORD_RECOVERY') showResetForm();
+    });
+
+    if (recoveryFailed) showRecoveryError();
+
     // already logged in?
     async function refresh(){
+      if (recoveryExpected || recoveryFailed || recoveryMode) return;
       var { data:{ session } } = await sb.auth.getSession();
       if (session && session.user){
         var uname = session.user.email;
@@ -201,6 +260,41 @@
       }
     }
     refresh();
+
+    if (recoveryExpected){
+      window.setTimeout(function(){ if (!recoveryMode) showRecoveryError(); }, 4000);
+    }
+
+    $('form-reset').addEventListener('submit', async function(e){
+      e.preventDefault(); clearMsg();
+      var pass = $('reset-pass').value;
+      var pass2 = $('reset-pass2').value;
+      var pwErr = passwordError(pass); if (pwErr) return show('err', pwErr);
+      if (pass !== pass2) return show('err','Le due password non coincidono.');
+      $('reset-save').disabled=true; $('reset-save').textContent='Salvataggio…';
+      var passwordUpdated = false;
+      try {
+        var updated = await sb.auth.updateUser({ password: pass });
+        if (updated.error) throw updated.error;
+        passwordUpdated = true;
+        var closed = await sb.auth.signOut({ scope: 'others' });
+        if (closed.error) throw closed.error;
+        try { window.history.replaceState(null, '', window.location.pathname); } catch(ignore){}
+        $('reset-pass').value=''; $('reset-pass2').value='';
+        $('reset-pass').closest('div').parentNode.style.display='none';
+        $('reset-pass2').closest('div').parentNode.style.display='none';
+        $('reset-save').style.display='none';
+        $('reset-continue').style.display='';
+        show('ok','Password aggiornata. Gli altri dispositivi sono stati disconnessi; puoi continuare da questo dispositivo.');
+      } catch(err){
+        if (passwordUpdated) show('err','La password è stata aggiornata, ma non è stato possibile chiudere tutte le altre sessioni. Esci dall’account e contatta lo staff prima di continuare.');
+        else show('err','Non è stato possibile aggiornare la password. Il collegamento potrebbe essere scaduto o già usato: richiedine uno nuovo.');
+      } finally {
+        $('reset-save').disabled=false; $('reset-save').textContent='Salva nuova password';
+      }
+    });
+
+    $('reset-continue').addEventListener('click', function(){ window.location.href='land.html'; });
 
     // register (character name + email + password)
     $('form-registrati').addEventListener('submit', async function(e){
@@ -293,7 +387,7 @@
       clearMsg();
       var email = $('rec-email').value.trim();
       if (!email) return show('err','Scrivi la tua email di recupero qui sopra.');
-      try { await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin }); show('ok','Se l\'email è registrata, ti invieremo un link per reimpostare la password.'); }
+      try { await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/entra.html' }); show('ok','Se l\'email è registrata, ti invieremo un link per reimpostare la password.'); }
       catch(err){ show('err','Non è stato possibile inviare l\'email: ' + (err.message||'')); }
     });
 
