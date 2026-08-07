@@ -213,6 +213,42 @@
   .lv-tab.on{background:var(--red);border-color:var(--red-deep);color:#f6ead0}
   .lv-body[hidden]{display:none}
   .lv-body .itmain{width:100%}
+  /* ---- ACC · pannello «Audit Accademia» e «Classi bloccate» ---- */
+  .acc-vuoto,.acc-guasto,.acc-attesa{border:1px solid var(--edge);background:rgba(255,250,235,.5);border-radius:9px;padding:14px 16px;margin:10px 0;color:var(--ink-soft)}
+  .acc-guasto{border-color:var(--red);background:rgba(166,50,29,.07)}
+  .acc-vuoto-t,.acc-guasto-t{margin:0 0 4px;font-weight:700;color:var(--ink)}
+  .acc-guasto-t{color:var(--red-deep)}
+  .acc-vuoto-s,.acc-guasto-s{margin:0 0 4px;font-size:14px;line-height:1.5}
+  .acc-attesa{font-style:italic}
+  .acc-lista{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+  .acc-card{border:1px solid var(--edge);background:rgba(255,250,235,.5);border-radius:9px;padding:12px 14px}
+  .acc-card-h{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}
+  .acc-lez{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.06em;color:var(--ink)}
+  .acc-vil,.acc-cat,.acc-stato,.acc-tag{font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--edge);border-radius:6px;padding:2px 7px;color:var(--ink-soft)}
+  .acc-sev{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;border:1px solid var(--ink);border-radius:6px;padding:2px 8px;color:var(--ink)}
+  .acc-sev-P0,.acc-sev-P1{border-color:var(--red);color:var(--red-deep);background:rgba(166,50,29,.08)}
+  .acc-riga{margin:4px 0;font-size:14px;line-height:1.5;color:var(--ink)}
+  .acc-nota{color:var(--ink-soft);font-style:italic}
+  .acc-nota-staff{background:rgba(166,50,29,.05);border-left:3px solid var(--edge);padding:4px 9px}
+  .acc-sum{font-style:italic}
+  .acc-err-riga{color:var(--red-deep)}
+  .acc-det{margin:6px 0}
+  .acc-det>summary{cursor:pointer;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+  .acc-err{margin:6px 0 0 18px;font-size:14px;color:var(--ink)}
+  .acc-pre{white-space:pre-wrap;word-break:break-word;font-size:13px;background:rgba(43,29,14,.05);border:1px solid var(--edge);border-radius:6px;padding:8px;margin:6px 0 0}
+  .acc-occ{border-top:1px dashed var(--edge);padding-top:6px;margin-top:6px}
+  .acc-ev{margin:4px 0;padding:6px 10px;border-left:3px solid var(--rule);background:rgba(43,29,14,.04);font-style:italic;font-size:14px}
+  .acc-azioni{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:9px}
+  .acc-btn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border:1px solid var(--ink);background:transparent;color:var(--ink);border-radius:6px;cursor:pointer}
+  .acc-btn:hover{border-color:var(--red);color:var(--red-deep)}
+  .acc-btn[disabled]{opacity:.45;cursor:default}
+  .acc-btn-alt{border-color:var(--red);color:var(--red-deep)}
+  .acc-btn-alt:hover{background:var(--red);color:#f6ead0}
+  .acc-nota-in{flex:1 1 200px;min-width:150px;padding:6px 9px;border:1px solid var(--edge);border-radius:6px;background:rgba(255,250,235,.7);color:var(--ink);font-size:13px}
+  .acc-ultimo{border:1px solid var(--edge);background:rgba(255,250,235,.5);border-radius:9px;padding:12px 14px;margin:10px 0}
+  .acc-ultimo h4{margin:0 0 6px;font-family:'Cinzel',serif;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
+  .acc-avviso{margin:10px 0;padding:9px 13px;border:1px solid var(--edge);border-radius:9px;font-size:14px;line-height:1.5;background:rgba(255,250,235,.7);color:var(--ink)}
+  .acc-avviso[data-esito="no"]{border-color:var(--red);color:var(--red-deep);background:rgba(166,50,29,.08)}
 </style>
 </head>
 <body>
@@ -499,6 +535,8 @@
             <button type="button" data-iasub="sensei" class="on">Accademia</button>
             <button type="button" data-iasub="png_trama">PNG Trama</button>
             <button type="button" data-iasub="ninja_book">Ninja Book</button>
+            <button type="button" data-iasub="audit">Audit Accademia</button>
+            <button type="button" data-iasub="bloccate">Classi bloccate</button>
           </div>
           <div class="cat-formwrap" hidden>
           <div class="cat-form" id="ia-form">
@@ -603,6 +641,24 @@
             </div>
             </div>
             <div id="nb-list"></div>
+          </div>
+
+          <div class="ia-sub" data-iasub="audit">
+            <p class="mgr-note">Il <b>controllo qualità</b> dell'Accademia. Un revisore automatico rilegge le lezioni concluse e <b>propone</b> difetti: non corregge niente da solo. Qui si leggono e si decidono. La <b>ricorrenza</b> conta gli <b>audit distinti</b> in cui il difetto è ricomparso, non quante volte è stato segnalato: due segnalazioni nella stessa corsa sono un difetto solo. L'audit si lancia dal server, non da questa pagina.</p>
+            <div class="adm-nav" id="acc-aud-filtri" style="margin:10px 0 6px;max-width:none;justify-content:flex-start">
+              <button type="button" data-accstato="aperto" class="on">Aperti</button>
+              <button type="button" data-accstato="approvato">Approvati</button>
+              <button type="button" data-accstato="verificato">Verificati</button>
+              <button type="button" data-accstato="respinto">Respinti</button>
+            </div>
+            <div id="acc-aud-avviso"></div>
+            <div id="acc-aud-list"></div>
+          </div>
+
+          <div class="ia-sub" data-iasub="bloccate">
+            <p class="mgr-note">Le <b>classi ferme</b>. Quando il maestro sbaglia il formato due volte di seguito, il server smette di riprovare e blocca la lezione invece di ritentare ogni quattro minuti a vuoto. Da qui si legge cosa è andato storto e si sblocca. <b>Sblocca e forza il turno</b> fa parlare il maestro al primo giro utile, senza aspettare che tutti abbiano scritto.</p>
+            <div id="acc-blo-avviso"></div>
+            <div id="acc-blo-list"></div>
           </div>
           </section>
 
@@ -1432,6 +1488,395 @@
       var saved=null;try{saved=localStorage.getItem('tus_ia_sub');}catch(e){}
       if(saved)iaGo(saved);
     })();
+    /* ==================================================================
+     * ACC · pannello «Audit Accademia» e «Classi bloccate».
+     * Il blocco fra i due marcatori e' la copia ALLA LETTERA di
+     * admin_audit_pannello.js, il file che il banco prova davvero.
+     * Non e' rientrato come il resto della pagina proprio per questo:
+     * il banco confronta le due copie carattere per carattere, e un
+     * rientro cosmetico romperebbe la garanzia che cio' che gira qui
+     * sia cio' che e' stato provato. Si modifica la sorgente, non qui.
+     * ================================================================== */
+/* === ACC-PANNELLO INIZIO — copia sorvegliata dal banco, non modificare
+       qui senza rigenerare admin.html === */
+
+/* ---------------------------------------------------------------------
+ * 0 · Escape. admin.html ha già una `esc()`, ma fra le pagine è
+ *     disallineata sull'apostrofo (difetto noto, `04` §4.3). Finché non
+ *     è sanata uso una mia, con nome distinto per non sovrascriverla.
+ * ------------------------------------------------------------------- */
+function escAcc(v) {
+  if (v === null || v === undefined) return '';
+  return String(v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function dataIt(iso) {
+  if (!iso) return '—';
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  function p(n) { n = String(n); return n.length < 2 ? '0' + n : n; }
+  return p(d.getDate()) + '/' + p(d.getMonth() + 1) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+/* ---------------------------------------------------------------------
+ * 1 · Il ciclo degli stati. Il server accetta tutti e quattro i valori,
+ *     compreso il ritorno ad `aperto`; l'interfaccia offre solo le
+ *     transizioni decise: aperto → approvato → verificato, oppure
+ *     respinto. `verificato` e `respinto` sono terminali qui.
+ * ------------------------------------------------------------------- */
+var STATI_FINDING = ['aperto', 'approvato', 'respinto', 'verificato'];
+
+function transizioniAmmesse(stato) {
+  switch (stato) {
+    case 'aperto':     return ['approvato', 'respinto'];
+    case 'approvato':  return ['verificato', 'respinto'];
+    case 'verificato': return [];
+    case 'respinto':   return [];
+    default:           return [];
+  }
+}
+
+function etichettaStato(stato) {
+  switch (stato) {
+    case 'aperto':     return 'aperto';
+    case 'approvato':  return 'approvato';
+    case 'verificato': return 'verificato';
+    case 'respinto':   return 'respinto';
+    default:           return String(stato || '—');
+  }
+}
+
+/* ---------------------------------------------------------------------
+ * 2 · Stati della vista: vuoto e guasto devono vedersi diversi.
+ * ------------------------------------------------------------------- */
+function renderVuoto(titolo, spiegazione) {
+  return '<div class="acc-vuoto" data-stato="vuoto">' +
+         '<p class="acc-vuoto-t">' + escAcc(titolo) + '</p>' +
+         '<p class="acc-vuoto-s">' + escAcc(spiegazione) + '</p>' +
+         '</div>';
+}
+
+function renderGuasto(cosa, dettaglio) {
+  return '<div class="acc-guasto" data-stato="guasto" role="alert">' +
+         '<p class="acc-guasto-t">⚠️ Non è stato possibile caricare ' + escAcc(cosa) + '.</p>' +
+         '<p class="acc-guasto-s">' + escAcc(dettaglio || 'Errore non specificato.') + '</p>' +
+         '<p class="acc-guasto-s">Questo <strong>non</strong> vuol dire che non ci sia niente: vuol dire che la pagina non ha potuto chiedere. Riprova.</p>' +
+         '</div>';
+}
+
+function renderCaricamento(cosa) {
+  return '<div class="acc-attesa" data-stato="attesa">Carico ' + escAcc(cosa) + '…</div>';
+}
+
+/* ---------------------------------------------------------------------
+ * 3 · Classi bloccate
+ * ------------------------------------------------------------------- */
+function renderClassiBloccate(righe) {
+  if (!Array.isArray(righe)) {
+    return renderGuasto('le classi bloccate', 'La risposta del server non è un elenco.');
+  }
+  if (righe.length === 0) {
+    return renderVuoto(
+      'Nessuna classe bloccata.',
+      'Una classe finisce qui quando il maestro sbaglia il formato due volte di seguito e il server smette di riprovare. Adesso non ce ne sono.');
+  }
+
+  return '<div class="acc-lista" data-stato="pieno">' + righe.map(function (c) {
+    var errori = Array.isArray(c.ultimi_errori) ? c.ultimi_errori : [];
+    return '' +
+      '<article class="acc-card" data-session="' + escAcc(c.id) + '">' +
+        '<header class="acc-card-h">' +
+          '<span class="acc-lez">' + escAcc(c.lesson_code) + ' · ' + escAcc(c.lesson_title) + '</span>' +
+          '<span class="acc-vil">' + escAcc(c.village) + '</span>' +
+        '</header>' +
+        '<p class="acc-riga">Maestro <strong>' + escAcc(c.sensei_name) + '</strong>' +
+          ' · passo ' + escAcc(c.step) + ' di ' + escAcc(c.total_steps) +
+          ' · ' + escAcc(c.allievi) + ' allievi' +
+          (c.starter_name ? ' · aperta da ' + escAcc(c.starter_name) : '') + '</p>' +
+        '<p class="acc-riga">Bloccata il <strong>' + escAcc(dataIt(c.ai_blocked_at)) + '</strong>' +
+          ' · motivo <code>' + escAcc(c.ai_block_reason) + '</code>' +
+          ' · tentativi falliti ' + escAcc(c.ai_fail_count) + '</p>' +
+        (errori.length
+          ? '<details class="acc-det"><summary>Errori che hanno bloccato la classe (' + errori.length + ')</summary>' +
+            '<ul class="acc-err">' + errori.map(function (e) {
+              return '<li>' + escAcc(e) + '</li>';
+            }).join('') + '</ul></details>'
+          : '<p class="acc-riga acc-nota">Nessun errore registrato per questo blocco.</p>') +
+        (c.ultimo_output
+          ? '<details class="acc-det"><summary>Ultimo intervento scartato</summary>' +
+            '<pre class="acc-pre">' + escAcc(c.ultimo_output) + '</pre></details>'
+          : '') +
+        '<div class="acc-azioni">' +
+          '<button type="button" class="acc-btn" data-accazione="sblocca" data-session="' + escAcc(c.id) + '" data-forza="0">Sblocca</button>' +
+          '<button type="button" class="acc-btn acc-btn-alt" data-accazione="sblocca" data-session="' + escAcc(c.id) + '" data-forza="1">Sblocca e forza il turno</button>' +
+        '</div>' +
+      '</article>';
+  }).join('') + '</div>';
+}
+
+/* `academy_sblocca` risponde {ok:false, reason:…} senza sollevare:
+ * chi guarda solo l'assenza di eccezione mostra un falso successo. */
+function esitoSblocca(res) {
+  if (!res || typeof res !== 'object') {
+    return { ok: false, messaggio: 'Risposta del server non leggibile.' };
+  }
+  if (res.ok === true) {
+    return {
+      ok: true,
+      messaggio: res.forzata ? 'Classe sbloccata, e il prossimo turno è forzato.' : 'Classe sbloccata.'
+    };
+  }
+  return { ok: false, messaggio: 'Non sbloccata: ' + escAcc(res.reason || 'motivo non indicato') + '.' };
+}
+
+/* ---------------------------------------------------------------------
+ * 4 · Audit Accademia
+ * ------------------------------------------------------------------- */
+function renderUltimoAudit(a) {
+  if (!a) {
+    return renderVuoto('Nessun audit eseguito.',
+      'L’audit non è ancora mai girato su questo periodo.');
+  }
+  // ⚠️ NULL vuol dire «non registrato», non zero: gli audit precedenti ad
+  // ACC-AUDIT-012 non hanno telemetria e scrivere 0 direbbe una falsità.
+  var tel = function (v) { return (v === null || v === undefined) ? '<em>non registrato</em>' : escAcc(v); };
+  var motivi = Array.isArray(a.motivi_scarto) ? a.motivi_scarto : null;
+
+  return '<section class="acc-ultimo" data-stato="pieno">' +
+    '<h4>Ultimo audit</h4>' +
+    '<p class="acc-riga">Eseguito il <strong>' + escAcc(dataIt(a.eseguito_at)) + '</strong>' +
+      ' · periodo ' + escAcc(dataIt(a.periodo_da)) + ' → ' + escAcc(dataIt(a.periodo_a)) +
+      ' · origine <code>' + escAcc(a.origine) + '</code>' +
+      (a.legacy ? ' · <span class="acc-tag">legacy</span>' : '') + '</p>' +
+    '<p class="acc-riga">Modello <code>' + escAcc(a.modello) + '</code>' +
+      ' · lezioni lette ' + escAcc(a.lezioni_lette) +
+      ' · saltate ' + escAcc(a.lezioni_saltate) + '</p>' +
+    '<p class="acc-riga">Findings nuovi ' + escAcc(a.findings_nuovi) +
+      ' · ripetuti ' + escAcc(a.findings_ripetuti) +
+      ' · scartati dal server ' + escAcc(a.scartati) +
+      ' · scartati dalla Edge ' + tel(a.scartati_edge) +
+      ' · turni corretti ' + tel(a.turni_corretti) + '</p>' +
+    (motivi && motivi.length
+      ? '<details class="acc-det"><summary>Motivi degli scarti della Edge (' + motivi.length + ')</summary>' +
+        '<ul class="acc-err">' + motivi.map(function (m) { return '<li>' + escAcc(m) + '</li>'; }).join('') + '</ul></details>'
+      : '<p class="acc-riga acc-nota">Motivi degli scarti: ' + (motivi ? 'nessuno' : '<em>non registrati</em>') + '.</p>') +
+    (a.summary ? '<p class="acc-riga acc-sum">' + escAcc(a.summary) + '</p>' : '') +
+    (a.errore ? '<p class="acc-riga acc-err-riga">⚠️ ' + escAcc(a.errore) + '</p>' : '') +
+    // Nessun pulsante «Esegui adesso»: richiede un contratto server, task a parte.
+    '<p class="acc-riga acc-nota">L’audit si lancia dal server, non da qui.</p>' +
+  '</section>';
+}
+
+function renderFinding(f) {
+  var occ = Array.isArray(f.occorrenze) ? f.occorrenze : [];
+  var azioni = transizioniAmmesse(f.stato);
+  return '' +
+    '<article class="acc-card acc-find" data-finding="' + escAcc(f.id) + '" data-stato-finding="' + escAcc(f.stato) + '">' +
+      '<header class="acc-card-h">' +
+        '<span class="acc-sev acc-sev-' + escAcc(f.severity) + '">' + escAcc(f.severity) + '</span>' +
+        '<span class="acc-cat">' + escAcc(f.category) + '</span>' +
+        '<span class="acc-stato">' + escAcc(etichettaStato(f.stato)) + '</span>' +
+      '</header>' +
+      // ⚠️ `ricorrenze` è il numero di AUDIT distinti in cui il difetto è
+      // ricomparso, non il numero di segnalazioni: due nella stessa corsa
+      // sono un difetto solo. `occorrenze_totali` è l'altro numero.
+      '<p class="acc-riga">Ricorrenze su audit distinti <strong>' + escAcc(f.ricorrenze) + '</strong>' +
+        (f.ricorrenze_legacy ? ' (+' + escAcc(f.ricorrenze_legacy) + ' legacy)' : '') +
+        ' · occorrenze in tutto ' + escAcc(f.occorrenze_totali) +
+        ' · vista la prima volta ' + escAcc(dataIt(f.prima_vista_at)) +
+        ', l’ultima ' + escAcc(dataIt(f.ultima_vista_at)) + '</p>' +
+      (f.expected ? '<p class="acc-riga"><strong>Atteso:</strong> ' + escAcc(f.expected) + '</p>' : '') +
+      (f.cause ? '<p class="acc-riga"><strong>Causa:</strong> <code>' + escAcc(f.cause) + '</code></p>' : '') +
+      (f.proposed_fix ? '<p class="acc-riga"><strong>Rimedio proposto:</strong> ' + escAcc(f.proposed_fix) + '</p>' : '') +
+      (f.regression_case ? '<p class="acc-riga"><strong>Caso di regressione:</strong> ' + escAcc(f.regression_case) + '</p>' : '') +
+      (f.nota_staff ? '<p class="acc-riga acc-nota-staff"><strong>Nota dello staff:</strong> ' + escAcc(f.nota_staff) + '</p>' : '') +
+      (occ.length
+        ? '<details class="acc-det"><summary>Occorrenze (' + occ.length + ')</summary>' +
+          occ.map(function (o) {
+            return '<div class="acc-occ">' +
+              '<p class="acc-riga">' + escAcc(o.lesson_code) + ' · passo ' + escAcc(o.step) +
+                ' · ' + escAcc(o.sensei_name) + ' · ' + escAcc(dataIt(o.created_at)) +
+                (o.legacy ? ' · <span class="acc-tag">legacy</span>' : '') +
+                (o.prompt_version ? ' · prompt v' + escAcc(o.prompt_version) : '') + '</p>' +
+              '<blockquote class="acc-ev">' + escAcc(o.evidence) + '</blockquote>' +
+              (o.expected ? '<p class="acc-riga acc-nota">Come quella corsa lo descriveva: ' + escAcc(o.expected) + '</p>' : '') +
+            '</div>';
+          }).join('') +
+          '</details>'
+        : '<p class="acc-riga acc-nota">Nessuna occorrenza allegata.</p>') +
+      '<div class="acc-azioni">' +
+        (azioni.length
+          ? azioni.map(function (s) {
+              return '<button type="button" class="acc-btn" data-accazione="decidi" ' +
+                     'data-finding="' + escAcc(f.id) + '" data-nuovo-stato="' + escAcc(s) + '">' +
+                     escAcc(s.charAt(0).toUpperCase() + s.slice(1)) + '</button>';
+            }).join('')
+          : '<span class="acc-nota">Nessuna azione: lo stato <strong>' + escAcc(f.stato) + '</strong> è definitivo.</span>') +
+        (azioni.length ? '<input type="text" class="acc-nota-in" data-finding="' + escAcc(f.id) + '" maxlength="500" placeholder="nota facoltativa">' : '') +
+      '</div>' +
+    '</article>';
+}
+
+function renderAuditElenco(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return renderGuasto('l’audit dell’Accademia', 'La risposta del server non è leggibile.');
+  }
+  var findings = Array.isArray(payload.findings) ? payload.findings : [];
+  var testa = renderUltimoAudit(payload.ultimo_audit);
+
+  if (findings.length === 0) {
+    return testa + renderVuoto('Nessun finding in questo stato.',
+      'Cambia filtro per vedere quelli già decisi.');
+  }
+  return testa + '<div class="acc-lista" data-stato="pieno">' +
+         findings.map(renderFinding).join('') + '</div>';
+}
+
+/* ---------------------------------------------------------------------
+ * 5 · Verifica dopo la decisione: la RPC dice {ok:true}, ma la verità è
+ *     la riga. Si rilegge l'elenco e si controlla il cambio di stato.
+ * ------------------------------------------------------------------- */
+function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
+  var lista = (elencoDopo && Array.isArray(elencoDopo.findings)) ? elencoDopo.findings : [];
+  var f = null;
+  for (var i = 0; i < lista.length; i++) {
+    if (lista[i] && lista[i].id === findingId) { f = lista[i]; break; }
+  }
+  if (!f) {
+    // Sparito dall'elenco: normale se il filtro è per stato e lo stato è cambiato.
+    return { confermato: true, motivo: 'non è più in questo filtro: lo stato è cambiato' };
+  }
+  if (f.stato === statoAtteso) {
+    return { confermato: true, motivo: 'stato aggiornato a ' + statoAtteso };
+  }
+  return { confermato: false, motivo: 'il server ha risposto ok ma lo stato è ancora ' + f.stato };
+}
+
+/* === ACC-PANNELLO FINE === */
+
+    /* === ACC-COLLEGAMENTI INIZIO === */
+    /* ---- ACC · Audit Accademia e Classi bloccate · collegamenti -------
+     * Le sole quattro RPC usate da questo pannello, e nessun altro
+     * contratto: academy_audit_elenco, academy_finding_decidi,
+     * academy_classi_bloccate, academy_sblocca. Nessuna chiamata di rete
+     * diretta, nessuna intestazione propria, nessun segreto in pagina:
+     * l'audit si lancia dal server, non da qui.
+     *
+     * I nomi cominciano tutti per `acc` perche' in questa pagina esistono
+     * gia' `loadAudit()` e `renderAudit()`, che sono il registro dei
+     * movimenti dello staff: due cose chiamate «audit» nello stesso file
+     * sono il modo in cui nasce la confusione silenziosa.
+     * ------------------------------------------------------------------ */
+    var ACC_STATO='aperto', ACC_BUSY=false;
+
+    /* Il testo arriva GIA' passato da escAcc: `esitoSblocca` lo consegna
+     * cosi'. Chi chiama con testo proprio deve fare altrettanto. */
+    function accAvviso(host,htmlGiaEscapato,ok){
+      if(!host)return;
+      host.innerHTML='<div class="acc-avviso" data-esito="'+(ok?'si':'no')+'">'+htmlGiaEscapato+'</div>';
+    }
+
+    async function accBloccateLoad(){
+      var host=$('acc-blo-list'); if(!host)return;
+      host.innerHTML=renderCaricamento('le classi bloccate');
+      if(!sb){host.innerHTML=renderGuasto('le classi bloccate','Connessione al server non disponibile.');return;}
+      var r=await sb.rpc('academy_classi_bloccate');
+      if(r.error){host.innerHTML=renderGuasto('le classi bloccate',r.error.message||'errore non specificato');return;}
+      /* Niente `|| []`: una risposta che non e' un elenco e' un guasto, non
+       * un «non c'e' niente». Confonderli e' esattamente cio' che il
+       * pannello deve evitare. */
+      host.innerHTML=renderClassiBloccate(r.data);
+    }
+
+    async function accAuditLoad(){
+      var host=$('acc-aud-list'); if(!host)return;
+      host.innerHTML=renderCaricamento('l’audit dell’Accademia');
+      if(!sb){host.innerHTML=renderGuasto('l’audit dell’Accademia','Connessione al server non disponibile.');return;}
+      var r=await sb.rpc('academy_audit_elenco',{p_stato:ACC_STATO,p_limit:100});
+      if(r.error){host.innerHTML=renderGuasto('l’audit dell’Accademia',r.error.message||'errore non specificato');return;}
+      host.innerHTML=renderAuditElenco(r.data);
+    }
+
+    /* `academy_sblocca` risponde {ok:false, reason:…} senza sollevare:
+     * guardare solo l'assenza di errore mostrerebbe un falso via libera. */
+    async function accSblocca(sessione,forza,bottone){
+      if(ACC_BUSY)return; ACC_BUSY=true;
+      var avv=$('acc-blo-avviso');
+      if(bottone)bottone.disabled=true;
+      var r=await sb.rpc('academy_sblocca',{p_session:sessione,p_forza:!!forza});
+      ACC_BUSY=false;
+      if(bottone)bottone.disabled=false;
+      if(r.error){accAvviso(avv,'Il server ha rifiutato la richiesta: '+escAcc(r.error.message||'errore non specificato')+'.',false);return;}
+      var e=esitoSblocca(r.data);
+      accAvviso(avv,e.messaggio,e.ok);
+      await accBloccateLoad();
+    }
+
+    async function accDecidi(findingId,nuovoStato,bottone){
+      if(ACC_BUSY)return; ACC_BUSY=true;
+      var avv=$('acc-aud-avviso');
+      var scheda=bottone?bottone.closest('.acc-find'):null;
+      var campo=scheda?scheda.querySelector('.acc-nota-in'):null;
+      var nota=(campo&&campo.value.trim())?campo.value.trim():null;
+      if(bottone)bottone.disabled=true;
+      var r=await sb.rpc('academy_finding_decidi',{p_id:findingId,p_stato:nuovoStato,p_nota:nota});
+      ACC_BUSY=false;
+      if(bottone)bottone.disabled=false;
+      if(r.error){accAvviso(avv,'Il server ha rifiutato la decisione: '+escAcc(r.error.message||'errore non specificato')+'.',false);return;}
+      if(!r.data||r.data.ok!==true){accAvviso(avv,'Decisione non registrata dal server.',false);return;}
+      /* La RPC dice {ok:true}, ma la verita' e' la riga: si rilegge
+       * l'elenco e si controlla che lo stato sia cambiato davvero. */
+      var v=await sb.rpc('academy_audit_elenco',{p_stato:ACC_STATO,p_limit:100});
+      if(v.error){accAvviso(avv,'Decisione inviata, ma non ho potuto rileggere l’elenco per confermarla: '+escAcc(v.error.message||'errore non specificato')+'.',false);return;}
+      var esito=verificaCambioStato(v.data,findingId,nuovoStato);
+      accAvviso(avv,(esito.confermato?'Fatto: ':'⚠️ ')+escAcc(esito.motivo)+'.',esito.confermato);
+      var host=$('acc-aud-list'); if(host)host.innerHTML=renderAuditElenco(v.data);
+    }
+
+    /* Si carica quando la scheda si apre, non al boot: sono due letture
+     * pesanti e la gran parte delle visite alla scheda IA non le riguarda. */
+    function accApri(sub){
+      if(sub==='audit')accAuditLoad();
+      else if(sub==='bloccate')accBloccateLoad();
+    }
+
+    function bindAcc(){
+      var f=$('acc-aud-filtri');
+      if(f)f.addEventListener('click',function(e){
+        var b=e.target.closest('button[data-accstato]'); if(!b)return;
+        ACC_STATO=b.getAttribute('data-accstato');
+        var bts=f.querySelectorAll('button[data-accstato]');
+        for(var i=0;i<bts.length;i++)bts[i].classList.toggle('on',bts[i]===b);
+        accAuditLoad();
+      });
+      var au=$('acc-aud-list');
+      if(au)au.addEventListener('click',function(e){
+        var b=e.target.closest('button[data-accazione="decidi"]'); if(!b)return;
+        accDecidi(b.getAttribute('data-finding'),b.getAttribute('data-nuovo-stato'),b);
+      });
+      var bl=$('acc-blo-list');
+      if(bl)bl.addEventListener('click',function(e){
+        var b=e.target.closest('button[data-accazione="sblocca"]'); if(!b)return;
+        accSblocca(b.getAttribute('data-session'),b.getAttribute('data-forza')==='1',b);
+      });
+      var st=$('ia-subtabs');
+      if(st)st.addEventListener('click',function(e){
+        var b=e.target.closest('button[data-iasub]'); if(!b)return;
+        accApri(b.getAttribute('data-iasub'));
+      });
+      /* La scheda puo' essere gia' aperta: il ripristino da localStorage
+       * gira quando la pagina viene letta, molto prima che init() arrivi
+       * qui. Senza questo controllo il pannello resterebbe vuoto. */
+      var attivo=document.querySelector('.ia-sub.on');
+      if(attivo)accApri(attivo.getAttribute('data-iasub'));
+    }
+    /* === ACC-COLLEGAMENTI FINE === */
+
     function iaSetKind(k){
       iaKind=(k==='png_trama')?'png_trama':'sensei';
       var v=$('ia-village');if(v)v.value=(iaKind==='sensei')?'konoha':'';
@@ -2747,7 +3192,7 @@
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();bindClanReq();await loadClanReq();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindBasi();await loadBasi();bindLocs();await loadLocs();bindBoards();await loadBoards();bindHkb();await loadHkb();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPg();await loadPg();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();show('st-mgr');bindPilot();
+      await loadClans();bindClans();bindClanReq();await loadClanReq();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindBasi();await loadBasi();bindLocs();await loadLocs();bindBoards();await loadBoards();bindHkb();await loadHkb();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPg();await loadPg();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();bindAcc();show('st-mgr');bindPilot();
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
