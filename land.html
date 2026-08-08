@@ -1055,6 +1055,10 @@
   .lp-t{flex:1;font-family:'Cinzel',serif;font-size:13px;color:var(--ink)}
   .lp-b{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:20px;flex:0 0 auto}
   .lp-b.done{background:rgba(90,120,70,.16);color:#4c6a3a}.lp-b.lock{background:rgba(120,90,60,.14);color:#7a5a3a}
+  /* [EXAM-GATE-COPY-001] Avviso di percorso completato: non è una lezione e non si clicca.
+     Volutamente diverso da .lp-row — cornice tratteggiata, filetto rosso a sinistra, corpo
+     serif invece del Cinzel maiuscolo dei titoli — così non si confonde con una riga. */
+  .lp-done-note{margin:2px 0 5px;padding:12px 13px;border:1px dashed var(--rule);border-left:3px solid var(--red);border-radius:10px;background:rgba(255,250,235,.35);font-family:'Cormorant Garamond',serif;font-size:15.5px;line-height:1.5;color:var(--ink);cursor:default}
   .cmb-overlay{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:18px}
   .cmb-overlay[hidden]{display:none}
   .cmb-backdrop{position:absolute;inset:0;background:rgba(20,13,5,.6)}
@@ -2733,13 +2737,26 @@
         var ov=acadEl('lp-ov'); if(ov) ov.hidden=false;
         sb.rpc('academy_lessons_pick').then(function(r){ renderLessonPicker((r&&r.data)||[]); }, function(){ if(host) host.innerHTML='<p class="acad-hint" style="padding:8px">Impossibile caricare le lezioni.</p>'; });
       }
+      /* [EXAM-GATE-COPY-001] Spiegazione al punto d'uso, mentre l'Esame Genin è contenuto lato
+         server. Restituisce markup INERTE: nessun pulsante, nessun data-lesson, nessuna RPC.
+         Compare solo se il server dice che tutte le lezioni regolari sono fatte; se il picker
+         non torna nessuna lezione (elenco vuoto, o errore gestito da openLessonPicker) non
+         compare, e la riga EXAM, quando il server tornerà a restituirla, lo fa sparire da
+         solo senza rimettere le mani in pagina. */
+      function acadPercorsoCompleto(rows){
+        var r=(rows&&rows.length)?rows:[]; var reg=[], esame=false, i, l;
+        for(i=0;i<r.length;i++){ l=r[i]; if(!l) continue; if(l.is_exam){ esame=true; } else { reg.push(l); } }
+        if(esame || !reg.length) return '';
+        for(i=0;i<reg.length;i++){ if(!reg[i].done) return ''; }
+        return '<div class="lp-done-note" role="note">Percorso accademico completato. L’Esame Genin è in preparazione e sarà disponibile qui appena terminati i collaudi. I progressi ottenuti restano validi.</div>';
+      }
       function renderLessonPicker(rows){
         var host=acadEl('lp-list'); if(!host) return;
         host.innerHTML=rows.map(function(l){
           var badge=l.done?'<span class="lp-b done">Fatta</span>':(l.unlocked?'':'<span class="lp-b lock">Bloccata</span>');
           var dis=(!l.unlocked||l.done)?'disabled':''; var n=l.is_exam?'★':l.ordinal;
           return '<button class="lp-row" '+dis+' data-lesson="'+esc(l.id)+'"><span class="lp-n">'+n+'</span><span class="lp-t">'+esc(l.title)+'</span>'+badge+'</button>';
-        }).join('');
+        }).join('')+acadPercorsoCompleto(rows);
         Array.prototype.forEach.call(host.querySelectorAll('.lp-row'), function(b){ if(b.disabled) return; b.addEventListener('click', function(){ doAcadStart(b.getAttribute('data-lesson')); }); });
       }
       function closeLessonPicker(){ var ov=acadEl('lp-ov'); if(ov) ov.hidden=true; }
