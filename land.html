@@ -1589,7 +1589,7 @@
   </aside>
   <aside class="ov-panel" id="annu-panel" hidden aria-label="Annuario dei personaggi">
     <div class="ovp-head"><h3>Annuario <span id="annu-count">0</span></h3><button class="ovp-close" id="annu-close" type="button" title="Chiudi">×</button></div>
-    <div class="annu-search"><input id="annu-q" type="text" placeholder="Cerca per nome o prestavolto…" autocomplete="off"></div>
+    <div class="annu-search"><input id="annu-q" type="text" placeholder="Cerca per nome, cognome o prestavolto…" autocomplete="off"></div>
     <div class="ovp-list" id="annu-list"></div>
   </aside>
   <aside class="ov-panel" id="world-panel" hidden aria-label="Mondo di gioco">
@@ -2029,9 +2029,32 @@
       var RSTAR='<svg viewBox="0 0 24 24"><path d="M12 3 l2.5 6 6.4 .5 -4.9 4.2 1.6 6.3 -5.6 -3.5 -5.6 3.5 1.6 -6.3 -4.9 -4.2 6.4 -.5 Z" fill="#c9a233"/></svg>';
       function rChev(n){var s2='';for(var i=0;i<n;i++){var y=8+i*5.4;s2+='<path d="M6 '+(y+4)+' l6 -4.4 l6 4.4" fill="none" stroke="#3a2a12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';}return '<svg viewBox="0 0 24 24">'+s2+'</svg>';}
       function rankBadge(r){ if(!r)return''; var inner; if(r==='Deshi')inner='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="none" stroke="#3a2a12" stroke-width="2"/></svg>'; else if(r&&(r.indexOf('Kage')===0||r==='Sannin'||r==='Kage / Sannin'))inner=RSTAR; else{var n=r==='Genin'?1:r==='Chunin'?2:3;inner=rChev(n);if(r==='Jonin Speciale')inner=inner.replace('<svg viewBox="0 0 24 24">','<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.7" fill="#a6321d"/>');} return '<span class="rb">'+inner+'</span>'; }
+      // [COGNOME] regola unica del nome visibile: cognome scelto, altrimenti clan-famiglia, altrimenti solo nome.
+      // Restituisce testo NON escapato: va passato a esc() nel punto di rendering.
+      function nomeVisibile(c,fallback){
+        var fb=(fallback!=null?String(fallback):'');
+        if(!c) return fb;
+        var n=(c.name!=null?String(c.name).trim():'');
+        if(!n) return fb;
+        var cg=(c.cognome!=null?String(c.cognome).trim():'');
+        if(cg) return n+' '+cg;
+        var cl=(c.clan!=null?String(c.clan).trim():'');
+        var k=cl.toLowerCase();
+        if(cl && k!=='nessuno' && k!=='marionettisti') return n+' '+cl;
+        return n;
+      }
+      // Vero quando il nome visibile ha gia usato il clan al posto del cognome:
+      // serve a non stampare due volte lo stesso clan nella stessa intestazione.
+      function clanUsatoComeCognome(c){
+        if(!c) return false;
+        if(c.cognome!=null && String(c.cognome).trim()) return false;
+        var cl=(c.clan!=null?String(c.clan).trim():'');
+        var k=cl.toLowerCase();
+        return !!(cl && k!=='nessuno' && k!=='marionettisti');
+      }
       function avatarHTML(c,name,cid){ var inner=(c&&c.avatar_url)?('<img src="'+esc(c.avatar_url)+'" alt="">'):('<span class="ava-ph">'+esc((name||'?').charAt(0).toUpperCase())+'</span>'); return cid?('<a class="m-ava" href="scheda.html?id='+esc(cid)+'" title="Apri la scheda di '+esc(name)+'">'+inner+'</a>'):('<span class="m-ava">'+inner+'</span>'); }
       function clanEmbSpan(clan,isCapo,size){ if(!clan||clan==='Nessuno')return ''; var u=EMB['clan:'+clan]; if(!u)return ''; return '<span class="cl-emb'+(isCapo?' shine':'')+'" style="width:'+size+'px;height:'+size+'px'+(isCapo?(';--e:url(&quot;'+u+'&quot;)'):'')+'"><img src="'+esc(u)+'" alt=""><span class="shn"></span></span>'; }
-      function identityHTML(c,name,cid,created){ var sx=c&&c.sex; var sexIc=(sx==='Maschio')?SEX_M:((sx==='Femmina')?SEX_F:''); var wo=cid?('<a class="m-who" href="scheda.html?id='+esc(cid)+'">'):'<span class="m-who">'; var wc=cid?'</a>':'</span>'; var rk=c&&c.rank; var rimg=(rk&&EMB['rank:'+rk]); var rbadge=rimg?('<span class="rb"><img src="'+esc(rimg)+'" alt=""></span>'):rankBadge(rk); var rankH=rk?('<span class="m-rank">'+rbadge+esc(rk)+'</span>'):''; var cl=(c&&c.clan&&c.clan!=='Nessuno')?c.clan:''; var clanImg=clanEmbSpan(cl,(c&&c.clan_role==='Capo clan'),14); var clanH=cl?('<a class="m-clan" href="clan.html?c='+encodeURIComponent(cl)+'" title="Apri il clan">'+clanImg+esc(cl)+'</a>'):''; var ep=c&&c.epithet; var epiH=ep?('<span class="m-epi">«'+esc(ep)+'»</span>'):''; return '<div class="m-head">'+wo+esc(name)+wc+sexIc+rankH+clanH+epiH+'<span class="m-time">'+fmt(created)+'</span></div>'; }
+      function identityHTML(c,name,cid,created){ var sx=c&&c.sex; var sexIc=(sx==='Maschio')?SEX_M:((sx==='Femmina')?SEX_F:''); var wo=cid?('<a class="m-who" href="scheda.html?id='+esc(cid)+'">'):'<span class="m-who">'; var wc=cid?'</a>':'</span>'; var rk=c&&c.rank; var rimg=(rk&&EMB['rank:'+rk]); var rbadge=rimg?('<span class="rb"><img src="'+esc(rimg)+'" alt=""></span>'):rankBadge(rk); var rankH=rk?('<span class="m-rank">'+rbadge+esc(rk)+'</span>'):''; var cl=(c&&c.clan&&c.clan!=='Nessuno')?c.clan:''; var clanImg=clanEmbSpan(cl,(c&&c.clan_role==='Capo clan'),14); var _clEred=clanUsatoComeCognome(c); var _clMostra=!!cl&&!(_clEred&&!clanImg); var clanH=_clMostra?('<a class="m-clan" href="clan.html?c='+encodeURIComponent(cl)+'" title="'+(_clEred?(esc(cl)+' · apri il clan'):'Apri il clan')+'">'+clanImg+(_clEred?'':esc(cl))+'</a>'):''; var ep=c&&c.epithet; var epiH=ep?('<span class="m-epi">«'+esc(ep)+'»</span>'):''; return '<div class="m-head">'+wo+esc(name)+wc+sexIc+rankH+clanH+epiH+'<span class="m-time">'+fmt(created)+'</span></div>'; }
       function loadEmblems(){ if(!sb) return; sb.from('emblems').select('kind,name,image_url').in('kind',['clan','rank','village','corp','corpspec','corpgrade','bijuu','evofam']).then(function(r){ if(r&&!r.error){ (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.kind+':'+e.name]=e.image_url; }); } }, function(){}); }
       function caricaNomiEvidenza(){
       if(!sb) return;
@@ -2082,10 +2105,10 @@
         }
         var html=rows.map(function(m){
           if(m.kind==='roll'){
-            return '<div class="msg-roll">'+DIE+'<span><b>'+esc(m.author_name)+'</b> tira 1d'+(m.dice_sides||100)+'</span><span class="rl-res">'+(m.dice_result!=null?m.dice_result:'?')+'</span></div>';
+            return '<div class="msg-roll">'+DIE+'<span><b>'+esc(nomeVisibile(m.character,m.author_name))+'</b> tira 1d'+(m.dice_sides||100)+'</span><span class="rl-res">'+(m.dice_result!=null?m.dice_result:'?')+'</span></div>';
           }
           if(m.kind==='item'){
-            return '<div class="msg-item">'+ITEM+'<span><b>'+esc(m.author_name)+'</b> usa <b class="it-name">'+esc(m.body)+'</b></span></div>';
+            return '<div class="msg-item">'+ITEM+'<span><b>'+esc(nomeVisibile(m.character,m.author_name))+'</b> usa <b class="it-name">'+esc(m.body)+'</b></span></div>';
           }
           if(m.kind==='cura'){ return '<div class="msg-cura">'+HEAL+'<span>'+esc(m.body)+'</span></div>'; }
           if(m.kind==='motore'){ if(!iAmStaff) return ''; return '<div class="msg-motore"><span class="mm-k">motore</span><span>'+esc(m.body)+'</span></div>'; }
@@ -2093,9 +2116,9 @@
           if(m.kind==='sistema'){ return '<div class="msg-scontro">'+SWORD+'<span>'+esc(m.body)+'</span></div>'; }
           if(m.kind==='whisper'){
             var dir;
-            if(m.recipient_user&&m.recipient_user===myId) dir='da <b>'+esc(m.author_name)+'</b>';
+            if(m.recipient_user&&m.recipient_user===myId) dir='da <b>'+esc(nomeVisibile(m.character,m.author_name))+'</b>';
             else if(m.sender_user&&m.sender_user===myId) dir='a <b>'+esc(m.recipient_name||'?')+'</b>';
-            else dir='<b>'+esc(m.author_name)+'</b> → <b>'+esc(m.recipient_name||'?')+'</b>';
+            else dir='<b>'+esc(nomeVisibile(m.character,m.author_name))+'</b> → <b>'+esc(m.recipient_name||'?')+'</b>';
             return '<div class="msg-whisper"><div class="wsp-head"><span class="wsp-k">'+LOCK+'sussurro '+dir+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="m-body">'+fmtBody(m.body)+'</div></div>';
           }
           if(m.kind==='combat'){ var cb; try{ cb=JSON.parse(m.body); }catch(e){ cb=null; }
@@ -2103,7 +2126,7 @@
             if(cb&&cb.grp&&cb.atks&&cb.d){ var atkh=cb.atks.map(function(x){ return '<span class="cmb-du sm">'+avatarHTML({avatar_url:x.u},x.n,x.c)+pvb(x.apv)+'</span>'; }).join(''); return '<div class="msg-combat"><div class="cmb-avs"><span class="cmb-grp">'+atkh+'</span><span class="cmb-x">'+SWORD+'</span><span class="cmb-du">'+avatarHTML({avatar_url:cb.d.u},cb.d.n,null)+pvb(cb.dpv)+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="cmb-out" style="white-space:pre-line">'+esc(cb.o)+'</div></div>'; }
             if(cb&&cb.a&&cb.d){ return '<div class="msg-combat"><div class="cmb-avs"><span class="cmb-du">'+avatarHTML({avatar_url:cb.a.u},cb.a.n,cb.a.c)+pvb(cb.apv)+'</span><span class="cmb-x">'+SWORD+'</span><span class="cmb-du">'+avatarHTML({avatar_url:cb.d.u},cb.d.n,cb.d.c)+pvb(cb.dpv)+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="cmb-out">'+esc(cb.o)+'</div></div>'; } return '<div class="msg-combat"><div class="cmb-out">'+esc(m.body)+'</div></div>'; }
           if(m.kind==='sensei'){ var sp=senseiPortrait||(classState&&classState.sensei_portrait)||''; var sav='<span class="ms-ava-box">'+SENSEI+(sp?'<img class="ms-ava" src="'+esc(sp)+'" alt="" onerror="this.style.display=\'none\'">':'')+'</span>'; return '<div class="msg-sensei"><div class="ms-head">'+sav+'<b>'+esc(m.author_name||'Sensei')+'</b><span class="ms-k">Sensei · Accademia</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="m-body">'+fmtBody(m.body)+'</div></div>'; }
-          var c=m.character; var nm=(c&&c.name)||m.author_name||'—'; var cid=c&&c.id;
+          var c=m.character; var nm=nomeVisibile(c,m.author_name||'—'); var cid=c&&c.id;
           var braw=m.body||'', place=''; var pm=braw.match(/^【([^】]{1,60})】\s*([\s\S]*)$/); if(pm){ place=pm[1]; braw=pm[2]; }
           var pchip = place ? '<span class="m-place">'+PIN+esc(place)+'</span>' : '';
           var csub='';
@@ -2124,7 +2147,7 @@
       }
       function loadMsgs(){
         if(!sb||!cur) return;
-        sb.from('messages').select('author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user,companion_body,character:characters(id,name,avatar_url,sex,rank,clan,clan_role,epithet),companion:character_companions(name,avatar_url,kind,grado)').eq('location_id',cur.id).order('created_at',{ascending:true}).limit(300).then(function(r){
+        sb.from('messages').select('author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user,companion_body,character:characters(id,name,cognome,avatar_url,sex,rank,clan,clan_role,epithet),companion:character_companions(name,avatar_url,kind,grado)').eq('location_id',cur.id).order('created_at',{ascending:true}).limit(300).then(function(r){
           if(r&&!r.error) renderMsgs(r.data);
         }, function(){});
       }
@@ -3418,12 +3441,11 @@
               _corp=_cu?('<span class="ovp-corp-emb" title="'+esc(_cn)+'"><img src="'+esc(_cu)+'" alt=""></span>')
                        :('<span class="ovp-corp c-'+_corpKey+'" title="Corporazione: '+esc(_cn)+'">'+esc(_cn)+'</span>');
             }
-            var _clanName=(u.clan&&u.clan!=='Nessuno')?(' '+esc(u.clan)):'';
             var _epi=u.epithet?' <span class="ovp-epi">«'+esc(u.epithet)+'»</span>':'';
             var badges=roleBadge(u.role)+_sx+_vil+_rk+_cl+_corp;
             var off=u.off_notes?'<div class="ovp-off">'+esc(u.off_notes)+'</div>':'';
             var pm=(u.user_id!==myId)?'<button class="ovp-pm" data-pm="'+u.user_id+'" data-nm="'+esc(u.name)+'" title="Invia un messaggio">'+SCROLL+'</button>':'';
-            return '<div class="ovp-user"><span class="st-dot" style="background:'+statusColor(u.status)+'" title="'+statusLabel(u.status)+'"></span><div class="ovp-u-main"><div class="ovp-u-top"><a class="ovp-name" href="scheda.html?id='+esc(u.char_id||'')+'" title="Apri la scheda">'+esc(u.name)+_clanName+'</a>'+_epi+badges+pm+'</div>'+off+'</div></div>';
+            return '<div class="ovp-user"><span class="st-dot" style="background:'+statusColor(u.status)+'" title="'+statusLabel(u.status)+'"></span><div class="ovp-u-main"><div class="ovp-u-top"><a class="ovp-name" href="scheda.html?id='+esc(u.char_id||'')+'" title="Apri la scheda">'+esc(nomeVisibile(u))+'</a>'+_epi+badges+pm+'</div>'+off+'</div></div>';
           }).join('');
           return '<div class="ovp-group">'+head+rows+'</div>';
         }).join('');
@@ -4691,7 +4713,8 @@
       var ANNU=[], annuLoaded=false;
       function annuRow(c){
         var ava=c.avatar_url?('<img src="'+esc(c.avatar_url)+'" alt="">'):('<span>'+esc((c.name||'?').charAt(0).toUpperCase())+'</span>');
-        var nm=c.char_id?('<a href="scheda.html?id='+esc(c.char_id)+'">'+esc(c.name||'—')+'</a>'):esc(c.name||'—');
+        var _nv=nomeVisibile(c,c.name||'—');
+        var nm=c.char_id?('<a href="scheda.html?id='+esc(c.char_id)+'">'+esc(_nv)+'</a>'):esc(_nv);
         var sub=[]; if(c.rank) sub.push(esc(c.rank)); if(c.clan) sub.push(esc(c.clan)+(c.clan_role==='Capo clan'?' (Capo)':''));
         var subH=sub.length?('<div class="annu-sub">'+sub.join(' · ')+'</div>'):'';
         var face=c.face_claim?('<span class="annu-face">Prestavolto: '+esc(c.face_claim)+'</span>'):'';
@@ -4699,7 +4722,7 @@
       }
       function renderAnnu(){ var host=document.getElementById('annu-list'); if(!host) return;
         var term=((document.getElementById('annu-q')||{}).value||'').trim().toLowerCase();
-        var rows=ANNU.filter(function(c){ if(!term) return true; return ((c.name||'').toLowerCase().indexOf(term)>=0)||((c.face_claim||'').toLowerCase().indexOf(term)>=0); });
+        var rows=ANNU.filter(function(c){ if(!term) return true; return ((c.name||'').toLowerCase().indexOf(term)>=0)||((c.cognome||'').toLowerCase().indexOf(term)>=0)||(nomeVisibile(c,'').toLowerCase().indexOf(term)>=0)||((c.face_claim||'').toLowerCase().indexOf(term)>=0); });
         var cnt=document.getElementById('annu-count'); if(cnt) cnt.textContent=rows.length;
         if(!rows.length){ host.innerHTML='<p class="annu-empty">'+(term?'Nessun personaggio trovato.':'Nessun personaggio iscritto.')+'</p>'; return; }
         var order=['Konoha','Suna'], groups={}, seen=[];
