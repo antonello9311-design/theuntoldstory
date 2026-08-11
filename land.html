@@ -342,8 +342,10 @@
     .side-card.who{flex:0 0 auto;min-height:0}
     .who-list{max-height:84px}
     /* [03/08/2026] La registrazione esce dalla colonna e diventa il tasto Rec,
-       come gia' succede su telefono dal 31/07. */
-    .side-card.rec{display:none!important}
+       come gia' succede su telefono dal 31/07.
+       [10/08/2026 · ROLE-REC-UI-002] Il riquadro non e' piu' nella colonna:
+       vive nella finestra #rec-ov, che il tasto Rec apre su desktop e su
+       telefono con lo stesso codice. */
     #rec-m{display:inline-flex!important}
   }
   /* Il tasto Rec pulsa mentre la scena si sta registrando */
@@ -359,6 +361,31 @@
   .rt-act button{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--edge);border-radius:9px;padding:8px 14px;background:transparent;color:var(--ink);cursor:pointer}
   .rt-act button.on{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
   .rt-act button:hover{border-color:var(--red-deep)}
+  .rt-act button:disabled{opacity:.55;cursor:default}
+  /* [10/08/2026 · ROLE-REC-UI-002] La finestra della registrazione: stato
+     personale, salvataggio della propria role, elenco di quelle rimaste. */
+  .rec-box{width:min(520px,94vw);max-height:86vh;overflow-y:auto}
+  .rec-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .rec-head .rt-k{margin-bottom:8px}
+  .rec-x{border:0;background:transparent;color:var(--ink-soft);font-size:22px;line-height:1;cursor:pointer;padding:0 2px}
+  .rec-x:hover{color:var(--red-deep)}
+  .rec-st{font-size:13px;color:var(--ink);margin:6px 0 4px;line-height:1.4}
+  .rec-num{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--ink-soft);margin:8px 0 2px}
+  .rec-staff{margin-top:12px;padding-top:10px;border-top:1px solid var(--rule)}
+  .rec-conf{border:1px solid var(--red-deep);border-radius:9px;padding:9px 11px;background:rgba(166,50,29,.06)}
+  .rec-conf .rt-hint{margin:0}
+  .rec-conf .rt-act{margin-top:9px}
+  .rec-sec{margin-top:14px;padding-top:11px;border-top:1px solid var(--rule)}
+  .rec-sec-k{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);margin-bottom:7px}
+  .rec-it{border:1px solid var(--rule);border-radius:9px;padding:8px 10px;margin-bottom:8px}
+  .rec-it:last-child{margin-bottom:0}
+  .rec-it-k{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink);line-height:1.25}
+  .rec-it-m{font-size:11.5px;color:var(--ink-soft);margin-top:2px;line-height:1.35}
+  .rec-it-t{font-size:11.5px;color:var(--ink);margin-top:4px}
+  .rec-empty,.rec-load,.rec-warn{font-size:12px;color:var(--ink-soft);margin:0;line-height:1.4}
+  .rec-warn{color:var(--red-deep)}
+  .rec-bdg{display:inline-flex;align-items:center;justify-content:center;min-width:15px;height:15px;margin-left:5px;padding:0 4px;border-radius:8px;background:var(--red);color:#f6ead0;font-size:9.5px;font-weight:700;line-height:1}
+  #rec-m.on .rec-bdg{background:#f6ead0;color:var(--red-deep)}
   @media(max-width:860px){
     .room-grid{display:flex;flex-direction:column}
     .room-side{flex-direction:row;flex-wrap:wrap;gap:10px;order:-1}
@@ -378,7 +405,6 @@
        sfuma sotto la chat e non si legge comunque. Resta solo il testo del posto.
        Su schermo grande l'immagine c'e' ancora, nella colonna laterale. */
     .place-img{display:none!important}
-    .side-card.rec{display:none!important}
     .only-m{display:inline-flex!important}
     #rec-m.on{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
     .mk-lbl{font-size:8px;padding:1px 4px;max-width:92px;overflow:hidden;text-overflow:ellipsis}
@@ -1007,7 +1033,7 @@
   .editor-body textarea{flex:1;resize:none;width:100%;box-sizing:border-box;border:1px solid var(--rule);border-radius:10px;background:rgba(255,252,244,.72);font-family:'Cormorant Garamond',serif;font-size:17px;line-height:1.62;color:var(--ink);padding:16px 18px}
   .editor-foot{display:flex;align-items:center;gap:12px;padding:12px 18px;border-top:1px solid var(--edge);background:rgba(255,250,235,.45);flex-wrap:wrap}
   .editor-foot .chint{flex:1;min-width:150px;font-size:11px;color:var(--ink-soft)}
-  .side-card.rec .rec-live{display:flex;align-items:center;gap:7px;font-family:'Cinzel',serif;font-size:12px;color:var(--red-deep);margin-bottom:3px}
+  .rec-live{display:flex;align-items:center;gap:7px;font-family:'Cinzel',serif;font-size:12px;color:var(--red-deep);margin-bottom:3px}
   .rec-dot{width:9px;height:9px;border-radius:50%;background:var(--red);flex:0 0 auto;box-shadow:0 0 0 0 rgba(166,50,29,.6);animation:recpulse 1.6s infinite}
   @keyframes recpulse{0%{box-shadow:0 0 0 0 rgba(166,50,29,.55)}70%{box-shadow:0 0 0 7px rgba(166,50,29,0)}100%{box-shadow:0 0 0 0 rgba(166,50,29,0)}}
   .rec-meta{font-size:12px;color:var(--ink-soft);margin:2px 0 9px;line-height:1.35}
@@ -1366,7 +1392,7 @@
                 <textarea id="msg-input" maxlength="5000" placeholder="Scrivi il tuo turno di gioco…"></textarea>
                 <div class="png-box" id="png-box" hidden><div class="png-lab" id="png-lab">Azione del compagno</div><textarea id="png-input" maxlength="2500" placeholder="Cosa fa il tuo compagno in questo turno… (si risolve nel tuo stesso turno)"></textarea></div>
                 <div class="item-pop" id="item-pop" hidden><div class="ip-head">Oggetti equipaggiati</div><div id="ip-list"></div></div>
-                <div class="composer-row"><div class="composer-tools act-side"><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><button class="obj-btn" id="tk-btn" type="button" title="Cosa sai fare: tutte le tue tecniche, con la ricerca"><img class="ob rasen" alt="" src="data:image/png;base64,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">Tecniche</button><button class="obj-btn" id="png-chip" type="button" style="display:none" title="Aggiungi l'azione del tuo compagno PNG a questo turno">🎭 PNG</button><span class="vitmini" id="vit-mini"><span class="vrow"><b>PV</b><span class="vtrack pv" id="vt-pv"><i id="vf-pv"></i></span><span class="vnum" id="vn-pv">—</span></span><span class="vrow"><b>CK</b><span class="vtrack ck"><i id="vf-ck"></i></span><span class="vnum" id="vn-ck">—</span></span></span><button class="obj-btn" id="mic-btn" type="button" style="display:none" title="Dettatura vocale: scrivi parlando in italiano. Tocca per iniziare, ritocca per fermare."><svg class="ob" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg>Detta</button></div><div class="composer-tools mech-side"><button class="obj-btn only-m" id="rec-m" type="button" title="Registra questa scena">&#9679; Rec</button><button class="obj-btn only-m" id="place-m" type="button" title="Mostra o nascondi il riquadro del luogo">Luogo</button><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="exp-btn" id="exp-btn" type="button" title="Apri l'editor: finestra grande per scrivere e rileggere tutta la tua role"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg>Editor</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="heal-btn" type="button" title="Cura: te stesso o un alleato presente (Mente ≥ 25)" style="display:none">✚ Cura</button><span id="ko-badge" style="display:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1px solid var(--red-deep);border-radius:7px;padding:4px 9px">⚠ Fuori combattimento</span><button class="cmb-btn" id="regia-btn" type="button" style="display:none" title="Regia del master: PNG in scena e stato del gruppo"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/></svg>Regia</button><button class="legend-btn" id="spell-btn" type="button" style="width:auto;padding:0 8px;font-size:11px" title="Correttore ortografico del browser (attivo/spento). I termini del mondo — shinobi, kunoichi, jutsu… — non sono errori: sono nel Glossario dell'Ambientazione. Se le sottolineature rosse disturbano, spegnilo qui.">Abc</button><button class="legend-btn" id="legend-btn" type="button" title="Legenda: comandi e punteggiatura">?</button><button class="legend-btn" id="report-btn" type="button" style="width:auto;padding:0 8px" title="Segnala allo staff: una scena che ti mette a disagio, un abuso, una violazione">⚑</button><span class="azp" id="az-pill" hidden title="Hai un'azione composta: parte insieme a questo messaggio">⚔ Azione pronta</span><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
+                <div class="composer-row"><div class="composer-tools act-side"><button class="obj-btn" id="obj-btn" type="button" title="Usa un oggetto equipaggiato"><svg class="ob" viewBox="0 0 24 24"><path d="M7 8h10l1.4 11a2 2 0 0 1-2 2.2H7.6a2 2 0 0 1-2-2.2z" fill="currentColor"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Oggetto</button><button class="obj-btn" id="tk-btn" type="button" title="Cosa sai fare: tutte le tue tecniche, con la ricerca"><img class="ob rasen" alt="" src="data:image/png;base64,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">Tecniche</button><button class="obj-btn" id="png-chip" type="button" style="display:none" title="Aggiungi l'azione del tuo compagno PNG a questo turno">🎭 PNG</button><span class="vitmini" id="vit-mini"><span class="vrow"><b>PV</b><span class="vtrack pv" id="vt-pv"><i id="vf-pv"></i></span><span class="vnum" id="vn-pv">—</span></span><span class="vrow"><b>CK</b><span class="vtrack ck"><i id="vf-ck"></i></span><span class="vnum" id="vn-ck">—</span></span></span><button class="obj-btn" id="mic-btn" type="button" style="display:none" title="Dettatura vocale: scrivi parlando in italiano. Tocca per iniziare, ritocca per fermare."><svg class="ob" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg>Detta</button></div><div class="composer-tools mech-side"><button class="obj-btn only-m" id="rec-m" type="button" title="Registrazione role: stato, salvataggio e role da salvare">&#9675; Rec</button><button class="obj-btn only-m" id="place-m" type="button" title="Mostra o nascondi il riquadro del luogo">Luogo</button><select class="msg-to" id="msg-to" title="Destinatario del messaggio"><option value="">A tutti</option></select><button class="exp-btn" id="exp-btn" type="button" title="Apri l'editor: finestra grande per scrivere e rileggere tutta la tua role"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg>Editor</button><button class="dice-btn" id="dice-btn" type="button" title="Lancia 1d100"><svg class="di" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>1d100</button><button class="cmb-btn" id="heal-btn" type="button" title="Cura: te stesso o un alleato presente (Mente ≥ 25)" style="display:none">✚ Cura</button><span id="ko-badge" style="display:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1px solid var(--red-deep);border-radius:7px;padding:4px 9px">⚠ Fuori combattimento</span><button class="cmb-btn" id="regia-btn" type="button" style="display:none" title="Regia del master: PNG in scena e stato del gruppo"><svg class="sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/></svg>Regia</button><button class="legend-btn" id="spell-btn" type="button" style="width:auto;padding:0 8px;font-size:11px" title="Correttore ortografico del browser (attivo/spento). I termini del mondo — shinobi, kunoichi, jutsu… — non sono errori: sono nel Glossario dell'Ambientazione. Se le sottolineature rosse disturbano, spegnilo qui.">Abc</button><button class="legend-btn" id="legend-btn" type="button" title="Legenda: comandi e punteggiatura">?</button><button class="legend-btn" id="report-btn" type="button" style="width:auto;padding:0 8px" title="Segnala allo staff: una scena che ti mette a disagio, un abuso, una violazione">⚑</button><span class="azp" id="az-pill" hidden title="Hai un'azione composta: parte insieme a questo messaggio">⚔ Azione pronta</span><span class="ccount" id="msg-count">0 / 5000</span><button class="btn-send" id="msg-send" type="button">Invia</button></div></div>
               </div>
             </section>
             <aside class="room-side">
@@ -1383,10 +1409,6 @@
               <div class="side-card cmb" id="cmb-card" hidden>
                 <div class="side-k">Scontro</div>
                 <div id="cmb-body"></div>
-              </div>
-              <div class="side-card rec" id="rec-card" hidden>
-                <div class="side-k">Registrazione role</div>
-                <div id="rec-body"></div>
               </div>
               <div class="side-card who">
                 <div class="side-k">Presenti<span class="scrollarrows mini" id="who-arrows" hidden><button type="button" data-scroll="who-list" data-dir="-1" title="Scorri su" aria-label="Scorri su">▲</button><button type="button" data-scroll="who-list" data-dir="1" title="Scorri giù" aria-label="Scorri giù">▼</button></span></div>
@@ -1578,12 +1600,11 @@
     <div class="ovp-list" id="ovp-list"></div>
     <details class="ovp-activity" id="ovp-act"><summary class="ovp-subhead">Movimenti<span class="ovp-actn" id="ac-count"></span></summary><div class="ac-list" id="ac-list"><span class="who-empty">—</span></div></details>
   </aside>
-  <div class="rt-ov" id="rt-ov" hidden role="dialog" aria-modal="true" aria-label="Titolo della role">
-    <div class="rt-box">
-      <div class="rt-k">Chiudi e salva la scena</div>
-      <p class="rt-hint">Dai un titolo a questa role: è come la ritroveranno nella Libreria tutti quelli che c’erano. Puoi anche lasciarlo vuoto.</p>
-      <input id="rt-title" maxlength="80" placeholder="Titolo della role" autocomplete="off">
-      <div class="rt-act"><button type="button" id="rt-cancel">Annulla</button><button type="button" class="on" id="rt-save">Salva e chiudi</button></div>
+  <div class="rt-ov" id="rec-ov" hidden role="dialog" aria-modal="true" aria-label="Registrazione role">
+    <div class="rt-box rec-box">
+      <div class="rec-head"><div class="rt-k">Registrazione role</div><button class="rec-x" type="button" id="rec-ov-x" title="Chiudi" aria-label="Chiudi">&times;</button></div>
+      <div id="rec-body"></div>
+      <div class="rec-sec"><div class="rec-sec-k">Role da salvare</div><div id="rec-lista"></div></div>
     </div>
   </div>
   <aside class="ov-panel" id="tk-panel" hidden aria-label="Le tue tecniche">
@@ -2565,102 +2586,275 @@
           else if(a==='chiudi'){ cmbCall('combat_close',{p_session:CMB.id,p_motivo:'chiuso da chi conduce'}); }
         });
       })();
-      /* ---- Registrazione role (scene recording) ---- */
-      var roleState={open:false, session:null, can_close:false, starter:'', started_at:null}, recConfirmT=null;
+      /* ---- Registrazione role · salvataggio individuale ---------------------
+         [10/08/2026 · ROLE-REC-UI-002] La scena è condivisa, la registrazione è
+         personale. Ogni personaggio salva soltanto la propria: salvare non
+         chiude la REC generale e non tocca quella degli altri, che continuano a
+         giocare. Chi scrive ancora dopo aver salvato si ritrova la stessa
+         registrazione di nuovo da salvare.
+
+         Stato, turni, soglia, XP, proprietà e chiusura li decide il server. Qui
+         non si deduce niente: REC_SOGLIA serve a scrivere «2/4 turni», non ad
+         autorizzare un clic — comanda posso_salvare.
+
+         La chiusura generale è un comando staff, separato e dichiarato, e non è
+         un salvataggio. Un giocatore non la vede.                              */
+      function recVuoto(){ return {open:false, session:null, can_close:false, starter:'', started_at:null,
+                                   mio_stato:'fuori', miei_turni:0, mio_titolo:'', posso_salvare:false,
+                                   contributori:0, mancanti:0}; }
+      var roleState=recVuoto();
+      var REC_SOGLIA=4;                      /* solo per la resa: non autorizza */
+      var recBusy=false, recTest=false, recStaffConf=false, recSig=null, recLSig=null,
+          recLista=null, recListaErr=false, recListaAt=0, recDraft={};
       function fmtRoleTime(iso){ try{ var d=new Date(iso); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }catch(e){ return ''; } }
-      function renderRec(){
-        var card=document.getElementById('rec-card'), body=document.getElementById('rec-body');
-        if(!card||!body){ syncRecM(); return; }
-        if(!cur||!loggedIn){ card.hidden=true; syncRecM(); return; }
-        card.hidden=false;
-        if(roleState.open){
-          var meta='Avviata da <b>'+esc(roleState.starter||'—')+'</b>'+(roleState.started_at?(' · '+fmtRoleTime(roleState.started_at)):'');
-          var titleIn = roleState.can_close ? '<input class="rec-title" id="rec-title" maxlength="80" placeholder="Titolo della role (facoltativo)" value="'+esc(roleState.title||'')+'">' : '';
-          var btn = roleState.can_close ? '<button class="rec-btn ghost" id="rec-close" type="button">Chiudi e salva role</button>' : '';
-          var hint = roleState.can_close ? 'Dai un titolo alla scena, poi chiudila: si salva nella Libreria role di chi è presente e di chi entra. Si chiude da sola dopo 24 ore.' : 'Stai partecipando a una scena registrata: la troverai nella tua Libreria role.';
-          body.innerHTML='<div class="rec-live"><span class="rec-dot"></span>Registrazione in corso</div><div class="rec-meta">'+meta+'</div>'+titleIn+btn+'<p class="rec-hint">'+hint+'</p>';
-          var cb=document.getElementById('rec-close'); if(cb) cb.addEventListener('click', onCloseClick);
-        } else {
-          body.innerHTML='<button class="rec-btn" id="rec-start" type="button"><span class="rec-dot" style="background:#f6ead0;animation:none;box-shadow:none"></span>Registra role</button><p class="rec-hint">Salva questa scena nella Libreria role di chi è presente e di chi entrerà. La registrazione parte dall’azione successiva.</p>';
-          var s2=document.getElementById('rec-start'); if(s2) s2.addEventListener('click', startRole);
+      function recOvEl(){ return document.getElementById('rec-ov'); }
+      function recOvAperto(){ var o=recOvEl(); return !!o && !o.hidden; }
+      function recSalvabili(){ var n=0, L=recLista||[]; for(var k=0;k<L.length;k++){ if(L[k].posso_salvare) n++; } return n; }
+      function recBozza(sid, ripiego){ return (recDraft[sid]!=null) ? recDraft[sid] : (ripiego||''); }
+      /* Gli errori del server non arrivano mai crudi al giocatore: niente stack,
+         niente nomi interni, niente SQL. */
+      function recErr(err, ripiego){
+        var raw=(err&&err.message)||'', m=(''+raw).toLowerCase();
+        if(/titolo/.test(m)) return 'Serve un titolo, al massimo 80 caratteri';
+        if(/soglia|turni|quattro/.test(m)) return 'Non hai ancora abbastanza turni per salvare';
+        if(/contribut|partecip|nessuna registrazione/.test(m)) return 'Non hai una registrazione da salvare in questa scena';
+        if(/permission|denied|autoriz|staff|row-level|not allowed/.test(m)) return 'Non hai il permesso per questa azione';
+        if(/session|sessione|not found|does not exist|no rows/.test(m)) return 'Registrazione non trovata: ricarica la pagina';
+        return ripiego;
+      }
+      function recHTML(){
+        if(!loggedIn) return '<p class="rec-hint">Accedi per registrare le tue role.</p>';
+        if(!cur) return '<p class="rec-hint">Entra in un luogo per registrare la scena.</p>';
+        if(recTest) return '<p class="rec-hint">Nella Test Room non si registrano role.</p>';
+        if(!roleState.open){
+          return '<button class="rec-btn" id="rec-start" type="button"><span class="rec-dot" style="background:#f6ead0;animation:none;box-shadow:none"></span>Avvia REC</button>'
+               + '<p class="rec-hint">Apre la registrazione della scena. La tua registrazione personale inizier\u00e0 con il primo messaggio pubblico di gioco.</p>';
         }
+        var st=roleState.mio_stato||'fuori', turni=roleState.miei_turni||0;
+        var h='<div class="rec-live"><span class="rec-dot"></span>REC attiva</div>'
+            + '<div class="rec-meta">Avviata da <b>'+esc(roleState.starter||'\u2014')+'</b>'
+            + (roleState.started_at?(' \u00b7 '+fmtRoleTime(roleState.started_at)):'')+'</div>';
+        if(st==='fuori'||st==='presenza'){
+          h+='<p class="rec-st">La REC \u00e8 attiva. La tua registrazione inizier\u00e0 al primo messaggio valido.</p>';
+        } else if(st==='in_corso'){
+          h+='<p class="rec-st">Registrazione in corso \u00b7 '+turni+'/'+REC_SOGLIA+' turni.</p>';
+          var man=REC_SOGLIA-turni;
+          if(man>0) h+='<p class="rec-hint">'+(man===1?'Ti manca un turno':('Ti mancano '+man+' turni'))+' per poter salvare.</p>';
+        } else if(st==='da_salvare'){
+          h+='<p class="rec-st">La tua registrazione \u00e8 da salvare \u00b7 '+turni+' turni.</p>';
+          if(roleState.posso_salvare){
+            h+='<input class="rec-title" id="rec-titolo" maxlength="80" autocomplete="off" placeholder="Il titolo della tua registrazione" value="'+esc(recBozza(roleState.session, roleState.mio_titolo))+'">'
+             + '<button class="rec-btn" id="rec-salva" type="button"'+(recBusy?' disabled':'')+'>Salva role</button>'
+             + '<p class="rec-hint">Salvi soltanto la tua: la scena resta aperta e gli altri continuano a giocare.</p>';
+          } else {
+            h+='<p class="rec-hint">Il server non ha ancora aperto il salvataggio per questa registrazione.</p>';
+          }
+        } else if(st==='salvata'){
+          h+='<p class="rec-st">Role salvata'+(roleState.mio_titolo?(' \u00b7 <b>'+esc(roleState.mio_titolo)+'</b>'):'')+'</p>'
+           + '<p class="rec-hint">Se scrivi ancora in questa scena, la stessa registrazione torner\u00e0 da salvare.</p>';
+        }
+        h+='<div class="rec-num"><span>Contributori: <b>'+(roleState.contributori||0)+'</b></span>'
+         + '<span>Registrazioni ancora da salvare: <b>'+(roleState.mancanti||0)+'</b></span></div>';
+        if(iAmStaff){
+          h+='<div class="rec-staff">';
+          if(recStaffConf){
+            h+='<div class="rec-conf"><p class="rt-hint">Chiude la scena per tutti i presenti. Non salva e non premia nessuno: chi non ha ancora salvato lo potr\u00e0 fare dopo, da \u00abRole da salvare\u00bb.</p>'
+             + '<div class="rt-act"><button type="button" id="rec-staff-no">Annulla</button>'
+             + '<button type="button" class="on" id="rec-staff-si"'+(recBusy?' disabled':'')+'>Conferma chiusura</button></div></div>';
+          } else {
+            h+='<button class="rec-btn ghost" id="rec-staff-close" type="button">Chiudi REC per tutti</button>'
+             + '<p class="rec-hint">Comando dello staff. Non \u00e8 un salvataggio personale.</p>';
+          }
+          h+='</div>';
+        }
+        return h;
+      }
+      function bindRec(){
+        var s1=document.getElementById('rec-start'); if(s1) s1.addEventListener('click', startRole);
+        var ti=document.getElementById('rec-titolo');
+        if(ti){
+          ti.addEventListener('input', function(){ recDraft[roleState.session]=ti.value; });
+          ti.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); salvaRole(roleState.session, ti.value); } });
+        }
+        var sv=document.getElementById('rec-salva');
+        if(sv) sv.addEventListener('click', function(){ var i2=document.getElementById('rec-titolo'); salvaRole(roleState.session, i2?i2.value:recBozza(roleState.session, roleState.mio_titolo)); });
+        var sc=document.getElementById('rec-staff-close');
+        if(sc) sc.addEventListener('click', function(){ recStaffConf=true; recSig=null; renderRec(); });
+        var no=document.getElementById('rec-staff-no');
+        if(no) no.addEventListener('click', function(){ recStaffConf=false; recSig=null; renderRec(); });
+        var si=document.getElementById('rec-staff-si');
+        if(si) si.addEventListener('click', chiudiRecStaff);
+      }
+      /* Si ridisegna solo quando qualcosa e' cambiato davvero: il ciclo di
+         aggiornamento gira ogni 9 secondi e non deve cancellare il titolo che il
+         giocatore sta scrivendo. */
+      function renderRec(){
+        var body=document.getElementById('rec-body');
+        if(!body){ syncRecM(); return; }
+        var sig=[loggedIn, cur?cur.id:'', recTest, roleState.open, roleState.session, roleState.mio_stato,
+                 roleState.miei_turni, roleState.posso_salvare, roleState.mio_titolo, roleState.contributori,
+                 roleState.mancanti, roleState.starter, roleState.started_at, iAmStaff, recBusy, recStaffConf].join('|');
+        if(sig!==recSig){
+          recSig=sig;
+          var att=document.activeElement, caret=(att&&att.id==='rec-titolo')?att.selectionStart:null;
+          body.innerHTML=recHTML();
+          bindRec();
+          if(caret!==null){ var ni=document.getElementById('rec-titolo');
+            if(ni){ try{ ni.focus(); ni.setSelectionRange(caret,caret); }catch(e){} } }
+        }
+        renderRecLista();
         syncRecM();
       }
-      /* Il gemello mobile del riquadro «Registrazione role»: un solo tasto nella barra. */
+      /* «Role da salvare»: solo da role_da_salvare(), REC chiuse comprese.
+         La registrazione di questa scena non si ripete qui: sta gia' sopra. */
+      function renderRecLista(){
+        var host=document.getElementById('rec-lista'); if(!host) return;
+        var dati=recLista, voci=[];
+        if(dati){ for(var k=0;k<dati.length;k++){ if(dati[k].session_id!==roleState.session) voci.push(dati[k]); } }
+        var sig;
+        if(recListaErr) sig='err';
+        else if(dati===null) sig='load';
+        else { sig=''; for(var q=0;q<voci.length;q++){ var v0=voci[q];
+                 sig+=[v0.session_id,v0.stato,v0.turni,v0.turni_salvati,v0.mancano_turni,v0.rec_chiusa,
+                       v0.posso_salvare,v0.titolo_personale,v0.titolo_scena].join(',')+';'; }
+               sig+='#'+recBusy+'#'+dati.length; }
+        if(sig===recLSig) return;
+        recLSig=sig;
+        var html;
+        if(recListaErr) html='<p class="rec-warn">Elenco non disponibile. Riprova fra poco.</p>';
+        else if(dati===null) html='<p class="rec-load">Caricamento\u2026</p>';
+        else if(!voci.length) html='<p class="rec-empty">'+(dati.length?'Nessun\u2019altra role da salvare.':'Nessuna role da salvare.')+'</p>';
+        else {
+          html='';
+          for(var w=0;w<voci.length;w++){
+            var v=voci[w], chiusa=!!v.rec_chiusa;
+            html+='<div class="rec-it">'
+               + '<div class="rec-it-k">'+esc(v.titolo_scena||'Scena senza titolo')+'</div>'
+               + '<div class="rec-it-m">'+esc(v.location_name||'\u2014')
+               + ' \u00b7 '+fmtRoleTime(v.started_at)
+               + ' \u00b7 '+(chiusa?('chiusa'+(v.closed_at?(' il '+fmtRoleTime(v.closed_at)):'')):'aperta')
+               + ' \u00b7 '+(v.turni||0)+' turni'
+               + (((v.mancano_turni||0)>0)?(' \u00b7 mancano '+v.mancano_turni+' turni'):'')
+               + '</div>';
+            if(v.titolo_personale) html+='<div class="rec-it-t">Titolo: <b>'+esc(v.titolo_personale)+'</b></div>';
+            if(v.posso_salvare){
+              html+='<input class="rec-title" data-t="'+esc(v.session_id)+'" maxlength="80" autocomplete="off" placeholder="Il titolo della tua registrazione" value="'+esc(recBozza(v.session_id, v.titolo_personale))+'">'
+                  + '<button class="rec-btn" type="button" data-salva="'+esc(v.session_id)+'"'+(recBusy?' disabled':'')+'>Salva role</button>';
+            } else if(v.stato==='salvata'){
+              html+='<p class="rec-hint">Gi\u00e0 salvata.</p>';
+            } else {
+              html+='<p class="rec-hint">Non ancora salvabile.</p>';
+            }
+            html+='</div>';
+          }
+        }
+        host.innerHTML=html;
+      }
+      /* Il gemello mobile e desktop del riquadro: un solo tasto nella barra.
+         Non si disabilita mai perche' l'utente non ha aperto la scena. */
       function syncRecM(){
         var b=document.getElementById('rec-m'); if(!b) return;
-        if(roleState.open){
-          b.classList.add('on');
-          b.innerHTML='\u25CF Rec';
-          b.title=roleState.can_close?'Registrazione in corso \u2014 tocca per chiudere e salvare la role':('Scena registrata da '+(roleState.starter||'\u2014'));
-          b.disabled=!roleState.can_close;
-        } else {
-          b.classList.remove('on');
-          b.innerHTML='\u25CB Rec';
-          b.title='Registra questa scena nella Libreria role';
-          b.disabled=false;
-        }
+        var n=recSalvabili();
+        b.disabled=false;
+        if(roleState.open) b.classList.add('on'); else b.classList.remove('on');
+        b.innerHTML=(roleState.open?'\u25CF':'\u25CB')+' Rec'+(n?('<span class="rec-bdg">'+n+'</span>'):'');
+        b.title=(roleState.open?('REC attiva \u2014 avviata da '+(roleState.starter||'\u2014')):'Nessuna REC in questo luogo')
+              + (n?(' \u00b7 '+n+(n===1?' role da salvare':' role da salvare')):'')
+              + ' \u2014 tocca per aprire la registrazione';
       }
+      function apriRecOv(){
+        if(!loggedIn){ toast('Accedi per registrare le tue role'); return; }
+        var o=recOvEl(); if(!o) return;
+        o.hidden=false; recStaffConf=false; recSig=null; recLSig=null;
+        renderRec(); loadRoleState(); loadRoleDaSalvare(true);
+      }
+      function chiudiRecOv(){ var o=recOvEl(); if(o) o.hidden=true; recStaffConf=false; recSig=null; }
       function loadRoleState(){
         if(!cur||!sb){ return; }
-        if(cur.is_test){ roleState={open:false, session:null, can_close:false, starter:'', started_at:null}; var _rc=document.getElementById('rec-card'); if(_rc) _rc.hidden=true; return; }
+        if(cur.is_test){ recTest=true; roleState=recVuoto(); renderRec(); return; }
+        recTest=false;
         sb.rpc('role_open_here',{p_location:cur.id}).then(function(r){
           var row=(r&&r.data&&r.data[0])||null;
-          if(row){ roleState={open:true, session:row.session_id, can_close:!!row.can_close, starter:row.starter_name, started_at:row.started_at}; }
-          else { roleState={open:false, session:null, can_close:false, starter:'', started_at:null}; }
+          if(row){ roleState={open:true, session:row.session_id, can_close:!!row.can_close,
+                              starter:row.starter_name, started_at:row.started_at,
+                              mio_stato:row.mio_stato||'fuori', miei_turni:row.miei_turni||0,
+                              mio_titolo:row.mio_titolo||'', posso_salvare:!!row.posso_salvare,
+                              contributori:row.contributori||0, mancanti:row.mancanti||0}; }
+          else { roleState=recVuoto(); }
           renderRec();
+          loadRoleDaSalvare();
         }, function(){});
       }
+      /* Elenco globale: segue il ciclo dei 9 secondi solo a finestra aperta.
+         A finestra chiusa basta sapere che c'e' qualcosa da salvare: una volta
+         al minuto. Nessun secondo polling. */
+      function loadRoleDaSalvare(subito){
+        if(!sb||!loggedIn) return;
+        var ora=Date.now();
+        if(!subito && !recOvAperto() && recLista!==null && (ora-recListaAt)<60000) return;
+        recListaAt=ora;
+        sb.rpc('role_da_salvare',{}).then(function(r){
+          if(r&&r.error){ recListaErr=true; }
+          else { recListaErr=false; recLista=(r&&r.data)||[]; }
+          renderRecLista(); syncRecM();
+        }, function(){ recListaErr=true; renderRecLista(); syncRecM(); });
+      }
       function startRole(){
-        if(!cur||!sb) return;
-        var b=document.getElementById('rec-start'); if(b) b.disabled=true;
+        if(!cur||!sb||recBusy) return;
+        recBusy=true; recSig=null; renderRec();
         sb.rpc('role_start',{p_location:cur.id}).then(function(r){
-          if(r&&r.error){ toast('Impossibile avviare la registrazione'); if(b) b.disabled=false; return; }
-          toast('Registrazione avviata'); loadRoleState();
-        }, function(){ if(b) b.disabled=false; toast('Impossibile avviare la registrazione'); });
+          recBusy=false; recSig=null;
+          if(r&&r.error){ toast(recErr(r.error,'Impossibile avviare la registrazione')); renderRec(); return; }
+          toast('REC avviata'); loadRoleState(); loadRoleDaSalvare(true);
+        }, function(){ recBusy=false; recSig=null; toast('Impossibile avviare la registrazione'); renderRec(); });
       }
-      /* [03/08/2026] Il pop up del titolo: si apre quando fermi la registrazione,
-         chiede il titolo e chiude la scena. Sostituisce la doppia conferma del
-         riquadro, che con il tasto Rec non aveva pi\u00f9 dove stare. */
-      function openRecTitle(){
-        var ov=document.getElementById('rt-ov'), inp=document.getElementById('rt-title');
-        if(!ov||!inp){ closeRole(); return; }
-        inp.value=roleState.title||'';
-        ov.hidden=false;
-        setTimeout(function(){ inp.focus(); inp.select(); },50);
+      /* Il client manda due cose sole: quale registrazione e con che titolo.
+         Turni, XP, identita', soglia e chiusura non partono da qui. */
+      function salvaRole(sid, titolo){
+        if(!sb||!sid||recBusy) return;
+        var t=(''+(titolo==null?'':titolo)).trim();
+        if(!t){ toast('Serve un titolo per la tua registrazione'); return; }
+        if(t.length>80) t=t.slice(0,80);
+        recBusy=true; recSig=null; recLSig=null; renderRec();
+        sb.rpc('role_salva',{p_session:sid, p_titolo:t}).then(function(r){
+          recBusy=false; recSig=null; recLSig=null;
+          if(r&&r.error){ toast(recErr(r.error,'Impossibile salvare la registrazione')); renderRec(); return; }
+          var d=(r&&r.data)||null; if(Object.prototype.toString.call(d)==='[object Array]') d=d[0]||null;
+          d=d||{};
+          delete recDraft[sid];
+          var parti=[ d.gia_salvata ? 'Registrazione gi\u00e0 salvata' : 'Role salvata' ];
+          if(d.titolo) parti.push('\u00ab'+d.titolo+'\u00bb');
+          if(d.xp_assegnato_ora) parti.push('XP giornaliero assegnato');
+          if(d.rec_chiusa) parti.push('scena generale chiusa');
+          if((d.mancanti||0)>0) parti.push(d.mancanti+' ancora da salvare');
+          toast(parti.join(' \u00b7 '));
+          loadRoleState(); loadRoleDaSalvare(true);
+        }, function(){ recBusy=false; recSig=null; recLSig=null; toast('Impossibile salvare la registrazione'); renderRec(); });
       }
-      function closeRecTitle(){ var ov=document.getElementById('rt-ov'); if(ov) ov.hidden=true; }
+      /* Chiusura generale: staff soltanto, e mai come salvataggio. La conferma
+         sta dentro la riga col motivo, non in un pulsante armato. */
+      function chiudiRecStaff(){
+        if(!sb||!iAmStaff||!roleState.session||recBusy) return;
+        recBusy=true; recSig=null; renderRec();
+        sb.rpc('role_close',{p_session:roleState.session}).then(function(r){
+          recBusy=false; recStaffConf=false; recSig=null;
+          if(r&&r.error){ toast(recErr(r.error,'Impossibile chiudere la REC')); renderRec(); return; }
+          toast('REC chiusa per tutti'); loadRoleState(); loadRoleDaSalvare(true);
+        }, function(){ recBusy=false; recStaffConf=false; recSig=null; toast('Impossibile chiudere la REC'); renderRec(); });
+      }
       (function(){
-        var sv=document.getElementById('rt-save'), cn=document.getElementById('rt-cancel'),
-            ov=document.getElementById('rt-ov'), inp=document.getElementById('rt-title');
-        function salva(){ var t=inp?inp.value:''; closeRecTitle(); closeRole(t); }
-        if(sv) sv.addEventListener('click', salva);
-        if(cn) cn.addEventListener('click', closeRecTitle);
-        if(ov) ov.addEventListener('click', function(e){ if(e.target===ov) closeRecTitle(); });
-        if(inp) inp.addEventListener('keydown', function(e){
-          if(e.key==='Enter'){ e.preventDefault(); salva(); }
-          if(e.key==='Escape'){ e.preventDefault(); closeRecTitle(); } });
+        var host=document.getElementById('rec-lista'); if(!host) return;
+        host.addEventListener('input', function(e){
+          var i3=e.target&&e.target.closest?e.target.closest('input[data-t]'):null;
+          if(i3) recDraft[i3.getAttribute('data-t')]=i3.value;
+        });
+        host.addEventListener('click', function(e){
+          var b=e.target&&e.target.closest?e.target.closest('button[data-salva]'):null;
+          if(!b) return;
+          var riga=b.closest('.rec-it'), inp=riga?riga.querySelector('input[data-t]'):null;
+          salvaRole(b.getAttribute('data-salva'), inp?inp.value:'');
+        });
       })();
-      function onCloseClick(){
-        var b=document.getElementById('rec-close'); if(!b) return;
-        if(b.getAttribute('data-armed')!=='1'){ b.setAttribute('data-armed','1'); b.textContent='Premi ancora per chiudere'; if(recConfirmT) clearTimeout(recConfirmT); recConfirmT=setTimeout(function(){ if(b){ b.removeAttribute('data-armed'); b.textContent='Chiudi e salva role'; } },3200); return; }
-        if(recConfirmT) clearTimeout(recConfirmT); closeRole();
-      }
-      function closeRole(ttlArg){
-        if(!roleState.session||!sb) return;
-        var b=document.getElementById('rec-close'); if(b) b.disabled=true;
-        var tin=document.getElementById('rec-title');
-        /* [03/08/2026] il titolo arriva dal pop up; il campo nel riquadro resta per compatibilita' */
-        var ttl=(typeof ttlArg==='string') ? ttlArg.trim() : (tin?(''+tin.value).trim():'');
-        function doClose(){
-          sb.rpc('role_close',{p_session:roleState.session}).then(function(r){
-            if(r&&r.error){ toast('Impossibile chiudere la role'); if(b){ b.disabled=false; b.removeAttribute('data-armed'); b.textContent='Chiudi e salva role'; } return; }
-            toast('Role salvata nella libreria'); loadRoleState();
-          }, function(){ if(b){ b.disabled=false; } toast('Impossibile chiudere la role'); });
-        }
-        if(ttl){ sb.rpc('role_set_title',{p_session:roleState.session,p_title:ttl}).then(doClose, doClose); }
-        else doClose();
-      }
       /* ---- Accademia: lezioni in chat ---- */
       var classState=null, acadAdvancing=false, senseiPortrait='', lastAcadSig=null;
       function acadEl(id){return document.getElementById(id);}
@@ -2817,7 +3011,7 @@
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} var rc=document.getElementById('rec-card'); if(rc) rc.hidden=true; roleState={open:false, session:null, can_close:false, starter:'', started_at:null}; var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -2861,7 +3055,7 @@
           if(guidata){ CMB_AZ=null; syncAzPill();
             var st=(r&&r.data&&r.data.stato)||null; if(st){ CMB=st; renderCombat(); } }
           var _pi=document.getElementById('png-input'); if(_pi) _pi.value=''; var _pe=document.getElementById('ed-png'); if(_pe) _pe.value='';
-          loadMsgs(); loadWho();
+          loadMsgs(); loadWho(); loadRoleState();
           if(typeof after==='function') after();
         }, function(){ syncSendBtn(); toast('Impossibile inviare'); });
       }
@@ -2946,10 +3140,12 @@
       })();
       (function(){
         var rb=document.getElementById('rec-m');
-        if(rb) rb.addEventListener('click', function(){
-          if(roleState.open){ if(roleState.can_close) openRecTitle(); }
-          else startRole();
-        });
+        if(rb) rb.addEventListener('click', function(){ apriRecOv(); });
+        var rx=document.getElementById('rec-ov-x');
+        if(rx) rx.addEventListener('click', chiudiRecOv);
+        var rov=document.getElementById('rec-ov');
+        if(rov) rov.addEventListener('click', function(e){ if(e.target===rov) chiudiRecOv(); });
+        document.addEventListener('keydown', function(e){ if(e.key==='Escape' && recOvAperto()){ e.preventDefault(); chiudiRecOv(); } });
         var pb=document.getElementById('place-m');
         if(pb) pb.addEventListener('click', function(){
           var card=document.getElementById('room-place'); if(!card) return;
