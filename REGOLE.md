@@ -2,7 +2,7 @@
 
 > Regolamento completo di gioco, allineato ai sistemi attivi in produzione: motore di combattimento bilanciato, XP a due contatori, missioni, allineamento a 3 assi, slot tecniche e premi.
 >
-> **Agg. 27/07 — scritta nel §4.5 la Sostituzione (Kawarimi):** raggio dello scambio in base al Ninjutsu, obbligo di un oggetto/appiglio entro gittata e limite anti-abuso (non due turni difensivi consecutivi). Erano già attivi nel software.
+> **Agg. 11/08 — riallineata nel §4.5 la Sostituzione (Kawarimi):** raggio dello scambio in base al Ninjutsu, costo di 5 chakra, negazione totale e limite anti-abuso di una volta ogni tre turni difensivi (vedi changelog 53).
 >
 > **Agg. 26/07 — aggiunto il §12 (segnalazioni e provvedimenti); §0 e §3 riallineati a ciò che fa realmente il software in creazione personaggio.**
 >
@@ -19,7 +19,7 @@ Hai fretta di cominciare? Ecco il percorso essenziale; i dettagli sono nelle sez
 3. **Distribuisci i 60 punti.** Ogni caratteristica parte da **10** e hai **60 punti** da aggiungere, a gruppi di **5**, con un tetto di **30** per caratteristica al rango Deshi. Li assegni **dalla scheda, dentro la land**, quando vuoi: non c'è fretta e un avviso te lo ricorda finché non li hai spesi.
 4. **Vai all'Accademia** (in chat): un sensei ti guida lezione dopo lezione fino al **diploma da Genin**. È il modo più veloce per capire il gioco e prendere i primi XP. **Una lezione si può seguire anche da soli**, senza aspettare altri allievi, e se ne fa **una al giorno**, dove la giornata dell'Accademia va dalle **06:00 alle 05:59** del mattino dopo. Chi arriva quando la lezione è già cominciata entra **come allievo, con l'attestato, finché il maestro è al primo passo**; più avanti si entra solo come **uditore**, che gioca la scena ma non prende l'attestato. Se l'aula del villaggio è già occupata da una classe se ne apre **una seconda**, con un altro maestro.
 5. **Entra nella land.** Scegli un luogo sulla mappa, presentati e gioca: ogni turno di scena è di **almeno 500 caratteri**.
-6. **Combatti** col pulsante **⚔**: calcola tutto da solo e scala il chakra in automatico.
+6. **Combatti** dal pannello **Scontro**: componi l'azione, scrivi la role e il server risolve tutto, compresi chakra e Punti Vita.
 7. **Cresci.** Giocando ogni giorno prendi **+20 XP**; le **missioni** (bacheca del villaggio) danno XP e Ryo; con l'XP impari **jutsu** allenandoti e compri **slot** e **premi** dalla scheda.
 8. **Il personaggio ha un'anima:** l'**allineamento** (Lealtà, Via, Fama) si muove con le tue scelte, che chiedi come «svolte» dalla scheda.
 9. **Tre cose da ricordare sempre:** on e off separati, rispetto tra giocatori, e la **morte è permanente** (ma avviene solo in scene masterate o in duelli che accetti).
@@ -62,12 +62,12 @@ Benvenuto shinobi. Il resto lo impari giocando.
 
 ## 4. Combattimento
 
-Ogni azione che può riuscire o fallire — un attacco, una schivata, una tecnica — si risolve con un **confronto**: chi agisce e chi si difende tirano un dado e vi sommano le proprie capacità. **Vince il totale più alto.** Nei **duelli uno contro uno** della land il calcolo è passato al **pannello guidato** (§4.7): l'azione si compone da una finestra e il server risolve tutto da sé. Altrove il pulsante **⚔ Combatti** calcola e mostra l'esito in chat («*A usa Palla di Fuoco: B prova a schivare ma è colpito di striscio — subisce 12 danni*»).
+Ogni azione che può riuscire o fallire — un attacco, una schivata, una tecnica — si risolve con un **confronto**: chi agisce e chi si difende sommano le proprie capacità e due dadi da dieci. **Vince il totale più alto.** Nei **duelli uno contro uno** della land si usa il **pannello guidato** (§4.7): l'azione si compone da una finestra e il server risolve tutto da sé. Il vecchio calcolo PG contro PG sotto la chat è ritirato.
 
 **Come si risolve un colpo**
 
 - **Attacco contro difesa:** chi colpisce usa la capacità naturale + la disciplina adatte (Forza + Taijutsu per un colpo fisico, Mente + Ninjutsu per una tecnica); chi si difende usa **Velocità + Taijutsu** — per schivare **e per parare** — oppure **Velocità + Mente** per contrastare. ⚠️ La **Contromossa** non è in vigore nei duelli della land: lì ci si difende con schivata, parata, Sostituzione o una tecnica difensiva (§4.7).
-- **Nettezza:** se l'attacco supera la difesa va a segno; il margine dice se è **di striscio, in pieno o devastante** — più è netto, più danni fa.
+- **Nettezza:** se l'attacco supera la difesa va a segno; il margine dice se è **di striscio, in pieno o devastante** — più è netto, più danni fa. Se resta sotto, il colpo **sfiora** e lascia comunque un quarto del danno pieno, minimo 1 PV. La Sostituzione è l'unica negazione totale.
 - **PV e Resistenza:** i danni tolgono Punti Vita; la Resistenza alza i PV e ne assorbe una parte. A 0 PV si è **fuori combattimento** (in libera: incapacitato, mai ucciso).
 - **Genjutsu:** non toglie PV — impone effetti/condizioni, si contrasta con la Mente e si rompe con una nuova contesa; chi conosce l'abilità **Dispersione** può tentare un rilascio deliberato, anche per liberare un alleato (§4.3).
 - **Bonus di qualità (solo col master):** fino a +6 per chi descrive l'azione in modo brillante; è l'unico modo in cui un grado inferiore, giocando meglio, può ribaltare lo scontro. In libera non si usa.
@@ -75,12 +75,14 @@ Ogni azione che può riuscire o fallire — un attacco, una schivata, una tecnic
 <details>
 <summary><strong>Formule esatte</strong> — clic per espandere</summary>
 
-- **Confronto** = ⌊(Naturale + Disciplina) / 10⌋ + 1d20 + bonus. Colpisce se attacco ≥ difesa; margine = differenza.
+- **Confronto** = ⌊(Naturale + Disciplina) / 5⌋ + 2d10 + bonus + Slancio. Colpisce se attacco ≥ difesa; margine = differenza.
+- **Slancio:** ogni attacco che non va a segno dà **+3** al successivo, fino a **+9**; vale anche quando il colpo è negato dalla Sostituzione. Si azzera al primo colpo a segno.
 - **Bonus del margine:** 0–4 → +0 · 5–9 → +3 · 10–14 → +6 · 15+ → +10.
 - **Punti Vita** = 50 + Resistenza + bonus di grado (Deshi 0 · Genin 10 · Chunin 25 · Jonin 45 · Jonin Sp. 60 · Kage 80), arrotondati al multiplo di 5.
 - **Chakra** = 30 + (Ninjutsu + Mente) × 1,2 + bonus di grado (Deshi 0 · Genin 15 · Chunin 30 · Jonin 50 · Jonin Sp. 65 · Kage 85), arrotondato al multiplo di 5.
 - **Danno fisico** = max(1; base + ⌊max(Forza, Taijutsu)/4⌋ + bonus margine − ⌊Resistenza/20⌋). Ninjutsu: Mente al posto della Forza, riduzione ⌊Resistenza/40⌋.
-- **Il divisore della riduzione dipende da come ti difendi.** La **parata** divide sempre per **10**, qualunque cosa ti arrivi addosso: è il suo vantaggio, e il motivo per cui incassare a piede fermo conviene contro i colpi pesanti. Ogni **altra** reazione — schivata, Sostituzione, **tecnica difensiva** — tiene il divisore dell'**attacco**: **÷20** contro un colpo fisico, **÷40** contro un ninjutsu. Una tecnica difensiva quindi **non riduce di più**: il suo vantaggio sta nel confronto, dove porta la propria disciplina, non nella riduzione.
+- **Sfioramento:** se l'attacco perde il confronto, applica **un quarto del danno pieno**, arrotondato per difetto e mai sotto 1 PV. Non vale per i genjutsu e non può superare il danno pieno.
+- **Il divisore della riduzione dipende da come ti difendi.** La **parata** divide sempre per **10**, qualunque cosa ti arrivi addosso: è il suo vantaggio, e il motivo per cui incassare a piede fermo conviene contro i colpi pesanti. **Schivata** e **tecnica difensiva** tengono invece il divisore dell'**attacco**: **÷20** contro un colpo fisico, **÷40** contro un ninjutsu. La **Sostituzione** non riduce: nega interamente il colpo.
 - **Bonus oggettivi** (indicati dalla tecnica o applicati dal master): **vantaggio elementale +2**; **terreno o posizione favorevoli +1 o +2**. Valori piccoli, per dare colore senza stravolgere il confronto.
 - **Il vantaggio elementale nasce fra due tecniche, non fra due schede.** Il **+2** compare soltanto quando in campo ci sono **due nature che si affrontano davvero**: una **tecnica elementale d'attacco** contro una **tecnica difensiva elementale**. In ogni altro caso il modificatore è **zero da entrambe le parti** — contro una **parata**, una **schivata** o una **Sostituzione**; contro una **tecnica difensiva senza natura**; quando ad attaccare è un **colpo fisico** o una **tecnica neutrale**; e quando i due elementi in campo sono **lo stesso**. Gli elementi che il personaggio **possiede** (§5.1) restano requisito per imparare e usare le tecniche, ma **non entrano nel confronto**: non danno bonus a chi si difende a mani nude.
 
@@ -105,7 +107,7 @@ Ogni azione che può riuscire o fallire — un attacco, una schivata, una tecnic
 
 ### 4.1 Le due modalità di gioco
 
-- **Giocata libera (senza master):** turnazione libera, esiti automatici dal sistema (pulsante ⚔), nessun bonus di qualità. Non si può uccidere né mutilare permanentemente un altro PG.
+- **Giocata libera (senza master):** turnazione libera, esiti automatici dal pannello Scontro, nessun bonus di qualità. Non si può uccidere né mutilare permanentemente un altro PG.
 - **Giocata masterata:** il master aggiunge il bonus di qualità e può fissare gli esiti decisivi. Missioni, eventi, esami di rango e scontri mortali sono sempre masterati.
 
 ### 4.2 L'ordine del turno
@@ -115,17 +117,17 @@ Ogni azione che può riuscire o fallire — un attacco, una schivata, una tecnic
 **In ogni turno** hai, nell'ordine che preferisci:
 
 - **uno spostamento** — fino ai tuoi metri di Velocità (§4.5); **non** consuma l'azione e si può spezzare prima/dopo di essa;
-- **una sola azione principale** — la mossa che si risolve col ⚔: un jutsu, un attacco in taijutsu, un colpo d'arma da mischia, la Dispersione, **un jutsu che porta in campo un'evocazione, un clone o una marionetta** (nel turno in cui chiami non attacchi, §6.3) o una cura (il Palmo Curativo, §6.2, occupa tutto il turno);
+- **una sola azione principale** — la mossa che si risolve dal pannello: un jutsu, un attacco in taijutsu, un colpo d'arma da mischia, la Dispersione, **un jutsu che porta in campo un'evocazione, un clone o una marionetta** (nel turno in cui chiami non attacchi, §6.3) o una cura (il Palmo Curativo, §6.2, occupa tutto il turno);
 - **una sola azione rapida** — un gesto veloce: un'arma da lancio (attacco leggero), estrarre/riporre un'arma, usare un oggetto, mettersi in guardia (+difesa al prossimo confronto) o prendere la mira (+ al prossimo attacco). ⚠️ Nei duelli della land, in questa versione, **l'unica azione rapida è la guardia** (§4.7);
-- **una reazione difensiva** quando sei bersaglio — tiri la difesa senza spendere nulla; hai **una** reazione "attiva" per round (schivata piena, parata, Sostituzione — questa con le sue regole di raggio e riuso, §4.5), oltre la quale ti difendi da colto in azione.
+- **una reazione difensiva** quando sei bersaglio — schivata, parata, Sostituzione o tecnica difensiva. La regola «colto in azione» è sospesa nel motore attuale.
 
 Non puoi compiere **due azioni principali** nello stesso turno (es. un jutsu *e* un fendente pieno). **Muoverti, lanciare un jutsu e tirare un kunai**, invece, si può: spostamento + azione principale + azione rapida.
 
 **Come si gioca in chat:**
 
 1. Descrivi l'azione (min. 500 caratteri), dichiarando spostamento, azione principale ed eventuale rapida.
-2. Scegli la tecnica: nei duelli della land dalla **finestra dell'azione** (§4.7), altrove dal selettore **⚔** — danno base e costo si compilano da soli — oppure dichiarando un colpo manuale.
-3. Si lancia il calcolo (⚔): l'esito appare in chat e il **chakra scala in automatico** (se non basta, la tecnica non parte).
+2. Scegli la tecnica dalla **finestra dell'azione** (§4.7): danno base, costo e opzioni legali arrivano dal server.
+3. Invia testo e azione insieme: l'esito appare in chat e il **chakra scala in automatico** (se non basta, la tecnica non parte).
 4. La scena si gioca nella sessione; se resta aperta si congela max 72h (§1).
 
 **Un turno di combattimento, per esteso.** Kaede è a una decina di metri da Hiroshi, in un allenamento al campo n. 3. Tocca a lei.
@@ -187,18 +189,18 @@ Le distanze si contano a **fasce**, coi metri come riferimento:
 
 **Gittata delle tecniche.** Ogni tecnica dei Rotoli indica la sua **gittata** (contatto/corta/media/lunga) e il suo **tipo di attivazione** (§4.6). Un colpo di taijutsu vive nel Contatto; molti ninjutsu nella Media; i grandi jutsu e il cecchinaggio nella Lunga. È la ragione per cui il ninjutser vuole tenere la distanza e il taijutser vuole chiuderla.
 
-**La Sostituzione (Kawarimi no Jutsu) ha una gittata sua.** È una **reazione**: nel momento del colpo ti scambi di posto con un oggetto o un appiglio entro gittata, eviti il danno e riappari dove si trovava quello. Quanto lontano riesci a scambiarti dipende dal tuo **Ninjutsu**:
+**La Sostituzione (Kawarimi no Jutsu) ha una gittata sua.** È una **reazione** da **5 chakra** e l'unica difesa che nega del tutto anche lo sfioramento: nel momento del colpo lasci un tronco o un appiglio al tuo posto. Dal pannello scegli se riapparire dove eri oppure **avvicinarti o allontanarti** di una distanza consentita dal tuo **Ninjutsu**:
 
 | Ninjutsu | Raggio dello scambio |
 |---|---|
-| **< 25** | 0–2 m |
-| **25–49** | 3–5 m |
-| **50–74** | 6–10 m |
-| **≥ 75** | 11–15 m |
+| **< 25** | 0 m |
+| **25–49** | 0 o 5 m |
+| **50–74** | 0, 5 o 10 m |
+| **≥ 75** | 0, 5, 10 o 15 m |
 
-Serve **un oggetto o un appiglio adatto entro quella distanza** — un tronco, un masso, un palo, una cassa, un ramo: se non c'è nulla con cui scambiarsi **la sostituzione fallisce** e incassi il colpo. In una stanza spoglia o su terreno aperto e sgombro il narratore può dichiarare che non c'è nulla di utile: descrivi sempre *con cosa* ti scambi.
+Descrivi sempre *con cosa* ti scambi: un tronco, un masso, un palo, una cassa o un ramo coerente con la scena. Distanza, costo, riuso e posizione finale li valida il server.
 
-**Limite anti-abuso.** Vale la regola generale delle reazioni — **una per turno** (§4.2) — e in più la Sostituzione **non è utilizzabile come difesa per due turni consecutivi**: dopo una sostituzione, il turno successivo devi difenderti in altro modo (schivata, parata, o da colto in azione).
+**Limite anti-abuso.** La Sostituzione si usa **una volta ogni tre turni difensivi**: usata al turno R, è indisponibile a R+1 e R+2 e torna a R+3. Il pannello mostra lo stesso confine che il server applica.
 
 ### 4.6 Tempismo dei sigilli
 
@@ -222,6 +224,8 @@ Questa sezione descrive il **motore dei duelli** che gira dentro la land. Vale p
 
 **Come scorre il turno.** Lo scontro procede a **round**, e ogni round ha due fasi: prima si attacca, poi si difende. Chi attacca dichiara la propria azione, ma **l'esito non si vede subito**: si risolve quando l'avversario risponde. Finché non risponde, chi ha colpito non sa com'è andata — è il momento in cui la scena respira. Quando hai speso l'azione principale il turno passa all'altro; quando l'hanno spesa entrambi comincia un round nuovo. Dopo **ventiquattr'ore senza una mossa** lo scontro si chiude da solo, e il colpo eventualmente in sospeso **non viene risolto**: nessun salto, nessun costo, nessun danno.
 
+**Il confronto del duello.** Il server usa **⌊pool/5⌋ + 2d10** per entrambi. Se l'attacco perde, il colpo **sfiora** e applica un quarto del danno pieno, minimo 1 PV; il genjutsu spezzato resta senza danno. Ogni attacco non riuscito dà **Slancio +3** al successivo, fino a +9, e il primo colpo a segno lo azzera. Lo Slancio è visibile nella card e nella finestra, ma non si dichiara: arriva dal server.
+
 **Cosa puoi fare nel tuo turno.** Un'azione principale — obbligatoria — e, se vuoi, uno spostamento e un'azione rapida.
 
 L'azione principale è una di queste quattro:
@@ -233,9 +237,9 @@ L'azione principale è una di queste quattro:
 
 L'**azione rapida**, in questa versione, è **una sola: la guardia**. Le abilità rapide di catalogo non entrano nel motore e non consumano nulla. Lo **spostamento** copre i metri di §4.5, e vale la pena ricordarne il segno: **positivo ti avvicina, negativo ti allontana**.
 
-**Quando ti difendi rispondi e basta**: niente movimento, niente azioni rapide. Le risposte sono **schivata**, **parata**, **Sostituzione** — con le sue regole di raggio e riuso, §4.5 — oppure una **tecnica difensiva**. La **Contromossa non è in vigore** in questa versione.
+**Quando ti difendi rispondi e basta**: niente movimento, niente azioni rapide. Le risposte sono **schivata**, **parata**, **Sostituzione** — 5 chakra, posizione e riuso di §4.5 — oppure una **tecnica difensiva**. La Sostituzione produce un referto regolare, concede Slancio all'attaccante ma lascia il danno a zero. La **Contromossa** e il **colto in azione** non sono in vigore in questa versione.
 
-**Come ti difendi cambia quanto incassi.** La **parata** riduce il danno con il divisore più generoso — **⌊Resistenza/10⌋** — qualunque sia il colpo. **Schivata**, **Sostituzione** e **tecnica difensiva** tengono invece il divisore dell'attacco: **⌊Resistenza/20⌋** contro un colpo fisico, **⌊Resistenza/40⌋** contro un ninjutsu. Vale la pena dirlo chiaro perché è controintuitivo: **la tecnica difensiva non ti fa incassare di meno**. Ti fa difendere meglio — nel confronto porta la sua disciplina invece della tua Velocità — ma sulla riduzione non cambia niente. **Il pool, invece, è lo stesso per tutte le reazioni di base:** schivata, parata e Sostituzione si tirano con **Velocità + Taijutsu**. Parare non pesca dalla Forza: il vantaggio della parata sta tutto nella riduzione, non nel confronto.
+**Come ti difendi cambia quanto incassi.** La **parata** riduce il danno con il divisore più generoso — **⌊Resistenza/10⌋** — qualunque sia il colpo. **Schivata** e **tecnica difensiva** tengono invece il divisore dell'attacco: **⌊Resistenza/20⌋** contro un colpo fisico, **⌊Resistenza/40⌋** contro un ninjutsu. La **Sostituzione** è diversa: nega interamente il colpo. Vale la pena dirlo chiaro perché è controintuitivo: **la tecnica difensiva non ti fa incassare di meno**. Ti fa difendere meglio — nel confronto porta la sua disciplina invece della tua Velocità — ma sulla riduzione non cambia niente. **Il pool, invece, è lo stesso per tutte le reazioni di base:** schivata, parata e Sostituzione si tirano con **Velocità + Taijutsu**. Parare non pesca dalla Forza: il vantaggio della parata sta tutto nella riduzione, non nel confronto.
 
 Una tecnica che non arriva viene **rifiutata prima del tiro**, dicendoti a quanti metri sei e fin dove copre: non spendi il turno per scoprire che eri lontano.
 
@@ -303,7 +307,7 @@ I **Punti Vita**, i danni e la loro riduzione sono nel **§4 · Combattimento**.
 
 1. **Fuori combattimento.** A 0 Punti Vita il personaggio è sconfitto. In **giocata libera** significa **incapacitato** (ferito, in fuga o catturato), **mai ucciso**: la morte avviene solo alle condizioni del §7.
 2. **Ferite.** Un personaggio ridotto male combatte peggio: il master può applicare un malus finché non si cura o si ritira.
-3. **Recupero graduale.** Salire di statistiche o di grado alza i massimi ma **non cura**: PV e chakra correnti si riempiono col tempo — circa **1/3 dei PV** e **metà del chakra** al giorno, **mai il pieno in 24 ore**. Rigenerano in fretta solo le **giocate di cura** (medico-ninja) e gli **oggetti curativi**.
+3. **Recupero graduale.** Salire di statistiche o di grado alza i massimi ma **non cura**: PV e chakra correnti si riempiono col tempo — circa **1/3 dei PV** e **metà del chakra** al giorno, **mai il pieno in 24 ore**. Durante uno scontro il recupero è sospeso: il tempo trascorso combattendo non viene restituito alla chiusura; quello maturato prima dello scontro si conserva. Rigenerano in fretta solo le **giocate di cura** (medico-ninja) e gli **oggetti curativi**.
 
 ### 6.1 Galateo degli allenamenti e aree di combattimento
 
@@ -383,7 +387,7 @@ L'addestramento **non sostituisce** il requisito di scheda: si aggiunge. Una sol
 3. **Reazione combinata** — la creatura aggiunge la sua difesa alla tua reazione, o para al posto tuo. Resta **una reazione a turno**.
 4. **Passive** — valgono finché la creatura è in campo e non costano azione (occultamento, occhi indipendenti, volo di pattuglia).
 
-I paletti: **una sola combo per turno**, e **mai nel turno in cui la creatura arriva**; il chakra delle tecniche di famiglia **lo paghi tu**; per combinare la creatura deve stare entro **distanza Media (30 m)** — passive, ricognizione, pattugliamento e messaggeria funzionano invece a qualunque distanza; la **stessa** tecnica di controllo che toglie il turno a un avversario **non si usa due turni di fila** (come la Sostituzione, §4.2).
+I paletti: **una sola combo per turno**, e **mai nel turno in cui la creatura arriva**; il chakra delle tecniche di famiglia **lo paghi tu**; per combinare la creatura deve stare entro **distanza Media (30 m)** — passive, ricognizione, pattugliamento e messaggeria funzionano invece a qualunque distanza; la **stessa** tecnica di controllo che toglie il turno a un avversario **non si usa due turni di fila**.
 
 **Le combo.** Una sola azione, un solo messaggio: la tua parte sopra, quella della creatura nel riquadro 🎭 sotto. Mai due bersagli diversi — quello sarebbe un raddoppio.
 
@@ -706,3 +710,4 @@ Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da q
 | 50 | L'Accademia ha una giornata, non un cronometro | ✅ **Cambiato** (§0.4) dal 08/08/2026: fra una lezione e l'altra passavano **venti ore contate dalla fine della precedente**, e l'attesa scivolava indietro di quattro ore al giorno: chi giocava appena poteva si ritrovava spinto nelle ore piccole, e chi chiudeva a mezzanotte e dieci restava fermo fino alle venti del giorno dopo. Ora se ne fa **una al giorno**, e la giornata dell'Accademia va dalle **06:00 alle 05:59** del mattino successivo, ora italiana — non da mezzanotte, così chi gioca a notte fonda resta nella giornata che ha appena vissuto. L'esame non ha attesa, come prima. ⚠️ La regola viveva in **quattro copie** dentro il database, e una era quella che rilascia l'attestato a fine lezione: adesso decide **un solo helper**, e le altre lo interrogano. ⚠️ Chi chiude alle 05:58 può ricominciare alle 06:00: il confine è secco, senza pausa minima |
 | 51 | Chi non eredita un cognome se lo sceglie | ✅ **Aggiunto** (§3.4) dal 08/08/2026: il cognome, in gioco, è il nome del clan — ma **i Marionettisti sono una scuola-bottega, non un casato**, e chi non ha clan non ha nulla. Nel pannello degli utenti online un marionettista si leggeva «Nome Marionettisti», cioè un mestiere scritto al posto di una famiglia, e chi era senza clan compariva col solo nome. Ora **chi non eredita un cognome se lo sceglie dalla scheda**: da **2 a 15 lettere**, accenti, apostrofo e trattino ammessi, niente spazi né numeri, stessa lista di nomi non consentiti del nome proprio. **Si sceglie una volta sola** — poi lo corregge solo lo staff, e non si può svuotare, perché altrimenti «una volta sola» diventerebbe «finché qualcuno non azzera». È **facoltativo** e **non è stato assegnato niente d'ufficio**: chi c'era prima è rimasto esattamente com'era. ⚠️ Se entri in un clan **dopo** aver scelto il cognome, quello che ti sei dato **resta il tuo** e ha la precedenza; il clan continua a comparire accanto a te come affiliazione, ma una volta sola — dove il nome lo porta già, resta il solo emblema |
 | 52 | Il vantaggio elementale nasce fra due tecniche, non fra due schede | ✅ **Chiarito** (§4, §5.1) dal 10/08/2026: il regolamento lasciava intendere che il **+2** spettasse a chi **possiede** l'elemento in vantaggio, e il motore faceva esattamente così — bastava avere il Vento in scheda per subire il bonus del Fuoco **mentre si parava a mani nude**, e un colpo da 27 danni ne faceva 30. Ora è scritto che il modificatore esiste **solo quando due nature si affrontano davvero**: una tecnica elementale d'attacco contro una **tecnica difensiva elementale**. Parata, schivata, Sostituzione, tecnica difensiva senza natura, colpo fisico, tecnica neutrale e **stesso elemento** valgono **zero da entrambe le parti**. Gli elementi posseduti — base, seconda natura, innate di clan, premio «Le cinque nature» — restano requisito per **imparare e usare** le tecniche. Il ciclo non cambia: Fuoco > Vento > Fulmine > Terra > Acqua > Fuoco. Il motore è allineato dal candidato `TASK-COMBAT-ELEMENTI-JUTSU-001`, che va applicato **insieme** al rilascio di questi due file |
+| 53 | Sfioramento, Slancio e Sostituzione completa | ✅ **Rilasciato** (§4, §4.5, §4.7, §6) dall'11/08/2026: il duello usa **⌊pool/5⌋ + 2d10**. Un attacco che perde il confronto sfiora per un quarto del danno pieno, minimo 1 PV; ogni attacco non riuscito dà **Slancio +3** fino a +9, azzerato al primo colpo a segno. La **Sostituzione** resta l'unica negazione totale: costa 5 chakra, si usa una volta ogni tre turni difensivi e permette di riapparire a 0/5/10/15 metri secondo il Ninjutsu, avvicinandosi o allontanandosi. Il colto in azione è sospeso; durante lo scontro il recupero PV/chakra non avanza. Il vecchio calcolo PG contro PG sotto la chat è ritirato |

@@ -2321,16 +2321,19 @@
         }
         card.hidden=false;
         var io=(CMB.partecipanti||[]).filter(function(p){return p.io;})[0]||null;
+        var slancioIo=io?(+io.slancio||0):0;
         var h='<div class="cs-head"><span class="cs-round">Round '+CMB.round+'</span>'+
               '<span class="cs-fase">'+(CMB.fase==='difesa'?'si difende':'si attacca')+'</span>'+
-              (CMB.tuo_turno?'<span class="cs-tuo">tocca a te</span>':'')+'</div>';
+              (CMB.tuo_turno?'<span class="cs-tuo">tocca a te</span>':'')+
+              (slancioIo>0?'<span class="cs-pos" title="Bonus al prossimo attacco">Slancio +'+slancioIo+'</span>':'')+'</div>';
         (CMB.partecipanti||[]).forEach(function(p){
           var dove;
           if(p.ruolo==='partecipante'){ dove='<span class="cs-pos">in scena</span>'; }
           else if(p.io){ dove='<span class="cs-pos">tu</span>'; }
           else if(io){ var d=Math.abs(p.pos-io.pos); dove='<span class="cs-pos" title="fascia: '+cmbFascia(d)+'">'+(d<=2?'a contatto':(d+' m da te'))+'</span>'; }
           else { dove='<span class="cs-pos">'+p.pos+' m</span>'; }
-          h+='<div class="cs-row'+(p.io?' io':'')+(p.fuori?' ko':'')+'"><b>'+esc(p.nome)+'</b>'+dove+
+          var sl=(p.io&&(+p.slancio||0)>0)?'<span class="cs-pos" title="Bonus al prossimo attacco">Slancio +'+(+p.slancio)+'</span>':'';
+          h+='<div class="cs-row'+(p.io?' io':'')+(p.fuori?' ko':'')+'"><b>'+esc(p.nome)+'</b>'+dove+sl+
              (p.ruolo==='partecipante'?'':(csBar(p.vita,p.vita_max)+csBar(p.chakra,p.chakra_max,' ck')))+'</div>';
         });
         /* due righe di servizio sempre in piedi: cosi' l'altezza della card non balla */
@@ -2370,7 +2373,7 @@
       function syncAzPill(){ var on=!!CMB_AZ;
         ['az-pill','az-pill-ed'].forEach(function(id){ var e=azEl(id); if(e) e.hidden=!on; }); }
       function azBozzaInit(){
-        azBozza={principale:null, spostamento:'0', guardia:false, reazione:null};
+        azBozza={principale:null, spostamento:'0', guardia:false, reazione:null, posizione:'0'};
         if(!CMB_AZ) return;
         if(CMB_AZ.tipo==='attacco'){
           azBozza.principale=CMB_AZ.principale?{fonte:CMB_AZ.principale.fonte,id:CMB_AZ.principale.id||null}:null;
@@ -2378,6 +2381,7 @@
           azBozza.guardia=!!(CMB_AZ.rapida&&CMB_AZ.rapida.chiave==='guardia');
         } else {
           azBozza.reazione={chiave:CMB_AZ.reazione, id:CMB_AZ.tecnica||null};
+          azBozza.posizione=String(CMB_AZ.posizione||0);
         }
       }
       function azApri(){
@@ -2458,7 +2462,8 @@
         var tit=azEl('az-tit'), sub=azEl('az-sub');
         if(tit) tit.textContent=(o.fase==='difesa')?'Come ti difendi':'Componi l\u2019azione';
         if(sub) sub.textContent='Round '+o.round+' \u00b7 '+o.fascia+' ('+o.distanza+' m) \u00b7 chakra '+
-          ((o.chakra&&o.chakra.ora)||0)+'/'+((o.chakra&&o.chakra.max)||0);
+          ((o.chakra&&o.chakra.ora)||0)+'/'+((o.chakra&&o.chakra.max)||0)+
+          ((+o.slancio||0)>0?(' \u00b7 Slancio +'+(+o.slancio)):'');
         var h='';
         if(o.fase==='difesa'){
           h+='<div class="az-sec"><div class="az-k">La tua reazione</div><div class="az-list">';
@@ -2468,7 +2473,25 @@
             var det=(x.chakra?(x.chakra+' chakra'):'nessun costo')+(x.disciplina?(' \u00b7 '+x.disciplina):'');
             h+=azOpz('azr', val, x.nome, det, !!x.disponibile, x.motivo_no, scelto);
           });
-          h+='</div></div><p class="az-d" style="margin:0">In difesa si risponde e basta: niente movimento, niente rapide.</p>';
+          h+='</div></div>';
+          var sr=(o.reazioni||[]).filter(function(x){
+            return azBozza.reazione&&x.chiave===azBozza.reazione.chiave&&(x.id||'')===(azBozza.reazione.id||'');
+          })[0]||null;
+          if(sr&&sr.chiave==='sostituzione'){
+            var pos=sr.posizioni||[0];
+            h+='<div class="az-sec"><div class="az-k">Dove riappari</div><div class="az-list">';
+            pos.forEach(function(m){
+              m=+m||0;
+              if(m===0){
+                h+=azOpz('azpos','0','Dove eri','nessuno spostamento',true,'',azBozza.posizione==='0');
+              } else {
+                h+=azOpz('azpos',String(m),'Avvicinati di '+m+' m','verso l\u2019avversario',true,'',azBozza.posizione===String(m));
+                h+=azOpz('azpos',String(-m),'Allontanati di '+m+' m','lontano dall\u2019avversario',true,'',azBozza.posizione===String(-m));
+              }
+            });
+            h+='</div>'+(sr.motivo_posizione?('<p class="az-d" style="margin:0">'+esc(sr.motivo_posizione)+'</p>'):'')+'</div>';
+          }
+          h+='<p class="az-d" style="margin:0">In difesa si risponde e basta: niente movimento, niente rapide.</p>';
         } else {
           var q=(azFiltro||'').toLowerCase(); azPri=[];
           if(o.colpo) azPri.push({fonte:'colpo', id:'', nome:o.colpo.nome,
@@ -2521,6 +2544,9 @@
             if(!azBozza.reazione.id){ azErr('Quella reazione vuole una tecnica: sceglila dall\u2019elenco.'); return; }
             r.tecnica=azBozza.reazione.id;
           }
+          if(r.reazione==='sostituzione'){
+            var ps=parseInt(azBozza.posizione,10); r.posizione=isNaN(ps)?0:ps;
+          }
           CMB_AZ=r;
         } else {
           if(!azBozza.principale){ azErr('Manca l\u2019azione principale: scegline una dall\u2019elenco.'); return; }
@@ -2558,7 +2584,8 @@
         body.addEventListener('change', function(e){
           var t=e.target; if(!t||!azBozza) return;
           if(t.name==='azp'){ var v=(t.value||'').split('|'); azBozza.principale={fonte:v[0], id:v[1]||null}; azErr(''); }
-          else if(t.name==='azr'){ var w=(t.value||'').split('|'); azBozza.reazione={chiave:w[0], id:w[1]||null}; azErr(''); }
+          else if(t.name==='azr'){ var w=(t.value||'').split('|'); azBozza.reazione={chiave:w[0], id:w[1]||null}; azBozza.posizione='0'; azErr(''); azRender(); }
+          else if(t.name==='azpos'){ azBozza.posizione=t.value||'0'; azErr(''); }
           else if(t.id==='az-guardia'){ azBozza.guardia=!!t.checked; }
         });
         var b;
