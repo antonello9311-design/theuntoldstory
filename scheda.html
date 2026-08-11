@@ -598,8 +598,8 @@
             <div class="ssec" id="sec-basi"><h3>Basi d'Accademia</h3>
               <p class="hint">Le tecniche che si imparano all'Accademia, una lezione alla volta. Qui vedi quali hai già appreso e a quale lezione si insegnano le altre.</p>
               <div id="basi-wrap"><p class="hint" style="margin:0">Caricamento…</p></div></div>
-            <div class="ssec" id="sec-jutsu"><h3>Jutsu e abilità</h3>
-              <p class="hint">Le <b>abilità</b> (competenze e capacità) e i <b>jutsu</b> (tecniche) appresi dal personaggio: si imparano all'Accademia e con la progressione.</p>
+            <div class="ssec" id="sec-jutsu"><h3>Le tue tecniche</h3>
+              <p class="hint">Le tecniche che il personaggio <b>possiede</b>: quelle <b>attive</b> e quelle <b>in addestramento</b>, di clan o generiche. Le <b>Basi d'Accademia</b> hanno il loro riquadro qui sopra e non si ripetono qui. Tocca una riga per il dettaglio.</p>
               <div id="jutsu-wrap"></div></div>
             <div class="ssec" id="sec-cat"><h3>Catalogo jutsu e abilità</h3>
               <div id="train-wrap"></div></div>
@@ -858,34 +858,97 @@
       var bk=$('role-backdrop'); if(bk) bk.addEventListener('click',closeRoleScene);
       document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var ov=$('role-overlay'); if(ov&&!ov.hidden) closeRoleScene(); } });
     })();
-    function jcard(x){
-      var rank=x.rank?('<span class="jrank">'+esc(x.rank)+'</span>'):'';
-      var meta=[]; if(x.nature) meta.push(esc(x.nature)); if(x.action_type) meta.push(esc(x.action_type));
-      var sub=meta.length?('<div class="jmeta">'+meta.join(' \u00b7 ')+'</div>'):'';
-      var eff=x.effect?'<div class="jeff">'+esc(x.effect)+'</div>':'';
-      return '<div class="jcard"><div class="jtop"><span class="jname">'+esc(x.name_it)+'</span>'+rank+'</div>'+sub+eff+'</div>';
+    /* ══════════════════════════════════════════════════════════════════════
+       MY_TECHNIQUES_TEMP · blocco temporaneo — TASK-SCHEDA-JUTSU-VISIBILITA-002
+       ──────────────────────────────────────────────────────────────────────
+       Vista personale: ciò che il personaggio POSSIEDE davvero. Fino all'11/08/2026
+       una tecnica di clan o generica, una volta appresa, non compariva più da
+       nessuna parte: usciva dal catalogo (techShow la escludeva se attiva) e non
+       rientrava in «Jutsu e abilità», che leggeva my_jutsu — cioè le sole Basi
+       d'Accademia. Due tecniche reali erano già invisibili ai loro proprietari.
+
+       Qui si uniscono IN PAGINA due fonti server già esistenti, perché una
+       funzione unica non c'è ancora:
+
+         · my_abilities(p_character) — possesso, stato e progresso.
+           ⚠ Restituisce TRE rami: le tecniche in scheda (stati 'attiva',
+           'in_addestramento' e 'ritirata' quando la tecnica viene disattivata),
+           le Basi d'Accademia lette da character_jutsu e marcate 'attiva', e —
+           solo dentro la Test Room — l'intero catalogo marcato 'catalogo'.
+           Qui serve il primo ramo soltanto: 'catalogo' non è possesso.
+
+         · my_jutsu(p_user) — usata SOLO per riconoscere ed escludere le Basi,
+           che hanno casa propria nel riquadro «Basi d'Accademia». È un confronto
+           per id, non un'euristica: trainings_required vale 0 su 12 tecniche
+           vere, quindi non distingue le Basi da niente.
+
+       L'arricchimento del dettaglio pesca dalle righe di catalogo già caricate
+       (TK.tById) ed è FACOLTATIVO di proposito: una tecnica di un clan che il
+       personaggio ha lasciato non sta più in catalogo e deve restare visibile
+       lo stesso, con il suo progresso.
+
+       Il server resta l'unica fonte di possesso, stato, progresso, slot e
+       requisiti: qui non si calcola nulla, si dispone soltanto.
+
+       ⇢ QUANDO NASCERÀ LA RPC my_techniques: sostituire le chiamate marcate
+         MY_TECHNIQUES_TEMP con la sola my_techniques, togliere l'esclusione
+         delle Basi e mieArricchisci(), e cancellare questo riquadro. Ogni punto
+         da toccare porta il marcatore MY_TECHNIQUES_TEMP.
+       ══════════════════════════════════════════════════════════════════════ */
+    /* «Posseduta» sono i tre stati reali di my_abilities. 'catalogo' NON lo è:
+       trattarlo come possesso svuoterebbe il catalogo dentro la Test Room. */
+    function abilPosseduta(a){ return !!a && (a.state==='attiva'||a.state==='in_addestramento'||a.state==='ritirata'); }
+    function mieArricchisci(a){                                    /* MY_TECHNIQUES_TEMP */
+      var base=(TK.tById&&TK.tById[a.technique_id])||null, t={}, k;
+      if(base){ for(k in base){ if(Object.prototype.hasOwnProperty.call(base,k)) t[k]=base[k]; } }
+      /* my_abilities vince su ogni campo che restituisce: è la fonte server della riga posseduta */
+      ['name','level','clan','category','xp_cost','danno_effetto','chakra_cost',
+       'consumption_type','grado','danno_base','disciplina','gittata','attivazione']
+        .forEach(function(c){ if(a[c]!=null) t[c]=a[c]; });
+      t.id=a.technique_id;
+      /* [PM 11/08/2026 · OPEN-1] Su una tecnica che il personaggio ha GIA', il numero
+         utile in gioco è il chakra: l'XP è stato speso e mostrarlo come prezzo inganna.
+         Azzerandolo qui — nel solo oggetto di presentazione, mai a database — tkRow
+         ripiega sul chakra e il blocco «Acquisto» del dettaglio perde la cifra in XP
+         conservando gli allenamenti, che accompagnano il progresso x/y.
+         Il Catalogo continua a mostrare l'XP: là è un prezzo vero, e non passa di qui. */
+      t.xp_cost=null;
+      return t;
+    }
+    function mieVuoto(){
+      return (_rankOrd(myChar&&myChar.rank)<1)
+        ? 'Da Deshi non possiedi ancora tecniche di clan o generiche: il tuo percorso sono le <b>Basi d’Accademia</b>, nel riquadro qui sopra.'
+        : 'Non possiedi ancora tecniche di clan o generiche. Scegline una dal <b>catalogo</b> qui sotto e avvia un allenamento.';
     }
     function renderJutsu(){
       var host=$('jutsu-wrap');
       setTabVis('jutsu', viewMode!=='public');
       if(!host) return;
       if(viewMode==='public'){ host.innerHTML=''; return; }
-      var uid=(myChar&&myChar.user_id)||(me&&me.id)||null;
-      if(!sb||!uid){ host.innerHTML='<p class="hint" style="margin:0">\u2014</p>'; return; }
+      if(!sb||!myChar){ host.innerHTML='<p class="hint" style="margin:0">\u2014</p>'; return; }
       host.innerHTML='<p class="hint" style="margin:0">Caricamento\u2026</p>';
-      sb.rpc('my_jutsu',{p_user:uid}).then(function(r){
-        var rows=(r&&r.data)||[];
-        if(!rows.length){ host.innerHTML='<p class="hint" style="margin:0">Non hai ancora imparato nulla. Le <b>Basi d’Accademia</b> si imparano partecipando alle lezioni: nel catalogo qui sotto ogni riga dice a quale lezione si insegna.</p>'; return; }
-        var abil=rows.filter(function(x){return x.kind==='abilita';});
-        var jt=rows.filter(function(x){return x.kind!=='abilita';});
-        var html='';
-        if(abil.length){ html+='<div class="jgroup"><div class="jgh">Abilit\u00e0</div><div class="jgrid">'+abil.map(jcard).join('')+'</div></div>'; }
-        if(jt.length){ var cats={},order=[]; jt.forEach(function(x){var c=x.category||'Altro'; if(!cats[c]){cats[c]=[];order.push(c);} cats[c].push(x);});
-          html+='<div class="jgroup"><div class="jgh">Jutsu</div>'; order.forEach(function(c){ html+='<div class="jsub">'+esc(c)+'</div><div class="jgrid">'+cats[c].map(jcard).join('')+'</div>'; }); html+='</div>'; }
-        host.innerHTML=html;
-      }, function(){ host.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tecniche.</p>'; });
+      Promise.all([                                                /* MY_TECHNIQUES_TEMP */
+        sb.rpc('my_abilities',{p_character:myChar.id}),
+        sb.rpc('my_jutsu',{p_user:myChar.user_id})
+      ]).then(function(res){
+        var host2=$('jutsu-wrap'); if(!host2) return;
+        var r0=res[0]||{}, r1=res[1]||{};
+        if(r0.error){ host2.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tue tecniche.</p>'; return; }
+        var basi={}; ((r1.data)||[]).forEach(function(j){ basi[j.jutsu_id]=1; });  /* MY_TECHNIQUES_TEMP */
+        var rows=((r0.data)||[]).filter(function(a){ return abilPosseduta(a) && !basi[a.technique_id]; });
+        if(!rows.length){ host2.innerHTML='<p class="hint" style="margin:0">'+mieVuoto()+'</p>'; return; }
+        var ord={in_addestramento:0,attiva:1,ritirata:2};
+        rows.sort(function(x,y){
+          var d=(ord[x.state]==null?9:ord[x.state])-(ord[y.state]==null?9:ord[y.state]);
+          return d || String(x.name||'').localeCompare(String(y.name||''),'it');
+        });
+        var prog=rows.filter(function(x){return x.state==='in_addestramento';}).length;
+        var h='<div class="tk-orig">Possedute \u00b7 '+rows.length+(prog?('<span class="tk-orig-n"> \u00b7 '+prog+' in addestramento</span>'):'')+'</div>';
+        rows.forEach(function(a){ h+=tkRow(mieArricchisci(a),a,false,'m'); });
+        host2.innerHTML=h;
+      }, function(){ var h2=$('jutsu-wrap'); if(h2) h2.innerHTML='<p class="hint" style="margin:0">Impossibile caricare le tue tecniche.</p>'; });
     }
-    var TK={techs:[],byId:{},base:[],gen:[],els:[],mine:{},lesson:{},q:''};
+    var TK={techs:[],byId:{},tById:{},base:[],gen:[],els:[],mine:{},lesson:{},q:''};
     function techGittataDefault(t){ var d=String(t&&t.disciplina||'').toLowerCase(); if(d==='taijutsu')return 'contatto'; if(d==='genjutsu')return 'corta'; if(d==='fuuinjutsu')return 'contatto'; if(d==='ninjutsu')return 'media'; return ''; }
     function techAttivDefault(t){ if(t&&t.is_innata) return 'istantanea'; var d=String(t&&t.disciplina||'').toLowerCase(); if(d==='taijutsu'||d==='abilità'||d==='abilita') return 'istantanea'; if(String(t&&t.macro||'').toLowerCase()==='abilita') return 'istantanea'; return 'sigilli'; }
     /* Dettaglio in tre blocchi: Effetto (cosa fa e come si usa) · Costi · Requisiti.
@@ -922,15 +985,17 @@
       return out||'<div class="tkd hint">Nessun dettaglio disponibile.</div>';
     }
     /* Riga chiusa: nome · grado · un solo numero. Il resto si legge aprendo. */
-    function tkRow(t,a,canAct){
+    function tkRow(t,a,canAct,pfx){
+      pfx=pfx||'';   /* 'm' per la vista personale: nessuna collisione di id nel DOM */
       var right='';
       if(a&&a.state==='attiva'){ right='<span class="tr-badge on">Attiva</span>'; }
       else if(a&&a.state==='in_addestramento'){ right='<span class="tr-badge tr-prog">Addestramento '+(a.sessions_done||0)+'/'+(a.sessions_required||1)+'</span>'; }
+      else if(a&&a.state==='ritirata'){ right='<span class="tr-badge mute">Ritirata</span>'; }
       else if(canAct){ right='<button type="button" class="mini-btn" data-train="'+t.id+'">Allena</button>'; }
       else { right='<span class="tr-badge">Da apprendere</span>'; }
       var num=(t.xp_cost!=null&&t.xp_cost>0)?(t.xp_cost+' XP'):((t.chakra_cost!=null&&t.chakra_cost>0)?(t.chakra_cost+' ck'):'');
-      return '<div class="tr-row" data-texp="'+t.id+'"><div class="tr-main"><b>'+esc(t.name)+'</b>'+(t.grado?('<span class="tr-gr">'+esc(t.grado)+'</span>'):'')+(t.is_innata?'<span class="tr-cat">Innata</span>':'')+'</div>'+(num?('<span class="tr-meta">'+num+'</span>'):'')+right+'<span class="tr-ch">▸</span></div>'
-        +'<div class="tr-det" id="tkd-'+t.id+'">'+tkDetail(t)+'</div>';
+      return '<div class="tr-row" data-texp="'+pfx+t.id+'"><div class="tr-main"><b>'+esc(t.name)+'</b>'+(t.grado?('<span class="tr-gr">'+esc(t.grado)+'</span>'):'')+(t.is_innata?'<span class="tr-cat">Innata</span>':'')+'</div>'+(num?('<span class="tr-meta">'+num+'</span>'):'')+right+'<span class="tr-ch">▸</span></div>'
+        +'<div class="tr-det" id="tkd-'+pfx+t.id+'">'+tkDetail(t)+'</div>';
     }
     function tkMatch(t,q){ if(!q) return true; q=q.toLowerCase();
       return (t.name||'').toLowerCase().indexOf(q)>=0||(t.category||'').toLowerCase().indexOf(q)>=0||(t.description||'').toLowerCase().indexOf(q)>=0; }
@@ -994,8 +1059,12 @@
       if(t.level && t.level>1){ var ok=(TK.techs||[]).some(function(p){ var pa=TK.byId[p.id]; return p.name===t.name && (p.clan||null)===(t.clan||null) && p.level===(t.level-1) && pa && pa.state==='attiva'; }); if(!ok) return false; }
       return true;
     }
-    function techLearnable(t){ return techQualifies(t) && !TK.byId[t.id]; }
-    function techShow(t){ var a=TK.byId[t.id]; return techQualifies(t) && !(a && a.state==='attiva'); }
+    function techLearnable(t){ return techQualifies(t) && !abilPosseduta(TK.byId[t.id]); }
+    /* [TASK-SCHEDA-JUTSU-VISIBILITA-002] Catalogo e vista personale sono
+       complementari e non si sovrappongono: qui c'è ciò che si può imparare,
+       là ciò che si possiede. Il ramo 'catalogo' della Test Room non è possesso
+       e continua quindi a comparire in catalogo, come prima. */
+    function techShow(t){ return techLearnable(t); }
     function techIsAbil(t){ return (t.disciplina==='Abilità')||(t.macro==='abilita'); }
     /* ===== Catalogo a linguette (restyle 31/07/2026) =====
        Una disciplina per volta. Dentro la linguetta le righe restano raggruppate
@@ -1096,7 +1165,11 @@
       if(viewMode==='public'||!sb||!myChar){ host.innerHTML=''; return; }
       var hasClan=!!(myChar.clan&&myChar.clan!=='Nessuno');
       host.innerHTML='<div class="jgroup"><div class="slotbar" id="slot-bar" style="display:none"></div><p class="hint" style="margin:.2em 0 .7em">Tutto ciò che si può imparare nel gioco, <b>una disciplina per volta</b>: scegli una linguetta e <b>tocca una riga</b> per aprirne il dettaglio. La ricerca lavora su tutte le discipline insieme.'+(hasClan?' Le tecniche del clan si acquistano col <b>saldo XP</b>: paghi l\'idoneità e poi servono gli allenamenti con un maestro (uno al giorno).':'')+'</p><div class="tk-tools"><input class="tk-search" id="tk-search" type="search" placeholder="Cerca per nome, categoria o testo…"><span class="tk-count" id="tk-count"></span></div><div id="train-list"><p class="hint" style="margin:0">Caricamento…</p></div></div>';
-      if(hasClan) renderSlotBar();
+      /* [TASK-SCHEDA-JUTSU-VISIBILITA-002] Non più «if(hasClan)»: slot_tecniche
+         conta ogni tecnica non innata e non leggendaria, generiche comprese, e un
+         personaggio senza clan può averne. La barra si nasconde da sola se il
+         server non restituisce una riga. */
+      renderSlotBar();
       var byId={};
       sb.rpc('character_elementi',{p_character:myChar.id}).then(function(er){
         TK.els=(er&&er.data)||[];
@@ -1125,7 +1198,13 @@
         return sb.from('clan_techniques').select('*').is('clan',null).in('macro',['generica','abilita','cercoterio','evocazione']).eq('is_active',true).order('sort').order('name');
       }).then(function(gr){
         TK.gen=(gr&&gr.data)||[]; TK.q='';
+        /* MY_TECHNIQUES_TEMP · mappa id→riga di catalogo, serve solo ad arricchire il
+           dettaglio della vista personale. Costruita prima del filtro Cercoteri/
+           Evocazioni, così una tecnica posseduta di una famiglia non più posseduta
+           conserva comunque il suo dettaglio. */
+        TK.tById={}; (TK.techs||[]).concat(TK.gen).forEach(function(t){ TK.tById[t.id]=t; });
         paintCatalog();
+        renderJutsu();   /* ridisegno arricchito · vale anche dopo «Allena» e «Compra slot» */
         // Cercoteri ed Evocazioni si mostrano solo a chi li ha davvero: altrimenti
         // sarebbero settantasei righe che nessuno può imparare
         Promise.all([
@@ -1160,11 +1239,18 @@
         }
         var full=(d.usati>=d.totale);
         el2.style.display='';
-        el2.innerHTML='<span class="slotn'+(full?' full':'')+'">Slot tecniche: <b>'+d.usati+'/'+d.totale+'</b></span><span class="svmeta">base '+d.base+((d.mente||0)?(' + '+d.mente+' Mente'):'')+(d.extra?(' + '+d.extra+' acquistati'):'')+' · le innate del clan non occupano slot</span>'+buy;
+        var _inn=(myChar&&myChar.clan&&myChar.clan!=='Nessuno')?' \u00b7 le innate del clan non occupano slot':'';
+        el2.innerHTML='<span class="slotn'+(full?' full':'')+'">Slot tecniche: <b>'+d.usati+'/'+d.totale+'</b></span><span class="svmeta">base '+d.base+((d.mente||0)?(' + '+d.mente+' Mente'):'')+(d.extra?(' + '+d.extra+' acquistati'):'')+_inn+'</span>'+buy;
       },function(){ var el2=$('slot-bar'); if(el2){ el2.style.display='none'; el2.innerHTML=''; } });
     }
     /* Le righe delle Basi vivono fuori da train-wrap: serve lo stesso tocco per aprirle. */
     (function(){ var bw=$('basi-wrap'); if(!bw) return; bw.addEventListener('click',function(e){
+      var ex=e.target.closest('[data-texp]'); if(!ex) return;
+      var det=$('tkd-'+ex.getAttribute('data-texp'));
+      if(det){ det.classList.toggle('on'); ex.classList.toggle('open',det.classList.contains('on')); }
+    }); })();
+    /* Anche le righe della vista personale vivono fuori da train-wrap. */
+    (function(){ var jw=$('jutsu-wrap'); if(!jw) return; jw.addEventListener('click',function(e){
       var ex=e.target.closest('[data-texp]'); if(!ex) return;
       var det=$('tkd-'+ex.getAttribute('data-texp'));
       if(det){ det.classList.toggle('on'); ex.classList.toggle('open',det.classList.contains('on')); }
