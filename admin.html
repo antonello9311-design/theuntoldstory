@@ -126,6 +126,21 @@
     .mini-btn.danger{border-color:var(--red);color:var(--red-deep)}
     .mini-btn.danger:hover{background:var(--red);color:#f6ead0}
     .mini-btn.armed{background:var(--red);color:#f6ead0;border-color:var(--red-deep)}
+    /* TRAINING-V2-ADMIN-006 · sottosezione «Sessioni segnalate» — INIZIO */
+    .tsrow{display:block}
+    .tsrow .tsmain{width:100%}
+    .tsname{font-family:'Cinzel',serif;font-weight:600;font-size:15px;color:var(--ink)}
+    .tsmis{display:flex;flex-wrap:wrap;gap:3px 14px;margin-top:5px}
+    .tsmis span{font-size:12.5px;color:var(--ink-soft);white-space:nowrap}
+    .tsmis b{color:var(--ink);font-weight:600}
+    .tswhy{display:block;font-size:13px;color:var(--red-deep);font-style:italic;margin-top:5px;overflow-wrap:anywhere}
+    .tsacts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+    .tsconf{margin-top:8px;padding:9px 11px;border:1px solid var(--red);background:rgba(166,50,29,.06)}
+    .tsconf[hidden]{display:none}
+    .tsconf label{display:block;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--red-deep);margin-bottom:4px}
+    .tsconf textarea{width:100%;box-sizing:border-box;font-family:inherit;font-size:14px;padding:7px 9px;border:1px solid var(--edge);border-radius:6px;background:#fbf4e1;color:var(--ink);resize:vertical;min-height:56px}
+    .tserr{border:1px solid var(--red);background:rgba(166,50,29,.06);padding:10px 14px;margin-top:12px;font-style:italic;color:var(--red-deep);font-size:14px;overflow-wrap:anywhere}
+    /* TRAINING-V2-ADMIN-006 · sottosezione «Sessioni segnalate» — FINE */
   .adm-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin:20px auto 4px;max-width:820px}
   .adm-nav button{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);background:rgba(255,250,235,.5);border:1px solid var(--edge);border-radius:9px;padding:9px 17px;cursor:pointer;transition:.15s}
   .adm-nav button:hover{border-color:var(--red);color:var(--red-deep)}
@@ -783,6 +798,13 @@
           <p class="mgr-note">Gli addestramenti avviati dai personaggi. Dopo una <b>sessione di allenamento giocata</b>, premi <b>Conferma sessione</b>: quando le sessioni richieste sono complete la tecnica diventa <b>attiva</b> e il personaggio può usarla. Limite di <b>un allenamento al giorno</b> per personaggio (anche il Capo clan può confermare, dalla land).</p>
           <div class="cat-actions"><button class="btn" id="train-refresh">Aggiorna</button></div>
           <div id="atrain-list"></div>
+
+          <!-- TRAINING-V2-ADMIN-006 · SESSIONI SEGNALATE — INIZIO -->
+          <div class="grp-sub">Sessioni segnalate</div>
+          <p class="mgr-note">Sessioni di allenamento <b>gi&agrave; valide</b>, registrate dal Training V2 e <b>segnalate dal server</b>: continuano a contare finch&eacute; non intervieni. Qui leggi <b>perch&eacute;</b> sono state segnalate e le <b>misure della scena</b> rilevate dal server. <b>Annulla sessione</b> non cancella la riga: il server <b>ricalcola l&rsquo;avanzamento</b> dalle sessioni ancora valide e <b>avvisa il giocatore</b>. Il motivo &egrave; obbligatorio e lo legge chi ha giocato.</p>
+          <div class="cat-actions"><button class="btn" id="tseg-refresh" type="button">Aggiorna segnalate</button></div>
+          <div id="tseg-list"></div>
+          <!-- TRAINING-V2-ADMIN-006 · SESSIONI SEGNALATE — FINE -->
           </section>
 
           <section class="adm-page" data-page="compagni">
@@ -899,7 +921,7 @@
       <div class="legend-item"><b>Clan</b><span>In cima le <strong>richieste di clan</strong> ad accesso ristretto, da approvare o respingere con una nota che il giocatore legge. Sotto, i testi di ogni clan — descrizione, storia, statuto, abilità — che alimentano la pagina del clan, più la spunta <strong>Accesso ristretto</strong>. Puoi anche creare nuovi clan.</span></div>
       <div class="legend-item"><b>Tecniche</b><span>Il catalogo diviso per macro: <strong>Clan</strong>, <strong>Generiche</strong>, <strong>Abilità</strong>, <strong>Evocazioni</strong> e <strong>Cercoteri</strong>. Scheda completa (grado, portata, bersaglio, azione, durata, ricarica, danno, tipo di consumo, chakra) e meccanica di sblocco: costo in XP, allenamenti necessari, grado minimo e caratteristica richiesta. Le voci d’Accademia non stanno qui.</span></div>
       <div class="legend-item"><b>Basi Accademia</b><span>Il programma accademico: i <strong>tre jutsu di grado E</strong> e le <strong>abilità</strong> senza costo. Vivono in una tabella separata dal catalogo <strong>Tecniche</strong>. Da qui si correggono effetto, limiti e requisiti che i giocatori leggono in scheda. Per togliere una voce dal gioco si <strong>disattiva</strong>: chi l’ha già imparata se la tiene.</span></div>
-      <div class="legend-item"><b>Allenamenti</b><span>Approvi le sessioni avviate dai personaggi con <strong>Conferma sessione</strong>; completate le sessioni richieste la tecnica diventa <strong>attiva</strong> e utilizzabile. Limite di <strong>un allenamento al giorno</strong> per personaggio; anche il Capo clan può confermare, dalla land.</span></div>
+      <div class="legend-item"><b>Allenamenti</b><span>Due elenchi diversi, uno sotto l’altro. In alto le <strong>conferme amministrative</strong> di sempre: approvi con <strong>Conferma sessione</strong> le sessioni avviate dai personaggi e, completate quelle richieste, la tecnica diventa <strong>attiva</strong> e utilizzabile — limite di <strong>un allenamento al giorno</strong> per personaggio, e anche il Capo clan può confermare dalla land. Sotto, le <strong>sessioni segnalate</strong>: allenamenti giocati in una scena, già validi, che il <strong>server ha segnalato da solo</strong> misurando messaggi, caratteri propri, testo duplicato e durata. Non vanno approvati — si leggono; se la scena non regge si usa <strong>Annulla sessione</strong>, con un <strong>motivo obbligatorio</strong>. L’annullamento <strong>non cancella la riga</strong>: il server <strong>ricalcola l’avanzamento</strong> dalle sessioni ancora valide e <strong>avvisa il giocatore</strong>.</span></div>
       <div class="legend-item"><b>Premi</b><span>Le <strong>richieste in coda</strong> — ci arrivano solo i premi maggiori, perché i minori il giocatore se li compra dalla scheda —, l’<strong>assegnazione d’ufficio</strong> per Cercoteri e contratti di trama, il <strong>listino</strong> con costi, slot e rango minimo che il server legge da qui, le <strong>tecniche leggendarie di clan</strong> e lo storico dei premi già concessi.</span></div>
       <div class="legend-item"><b>Oggetti</b><span>Catalogo oggetti: armi, equipaggiamento, contenitori, peso, costo, immagini e descrizioni. Peso e costo si cambiano <strong>al volo dalla lista</strong>. Alimenta il negozio e gli inventari dei personaggi.</span></div>
       <div class="legend-item"><b>Luoghi</b><span>Le stanze di gioco in chat: nome, tipo, descrizione, immagine, nota evento e <strong>aula d’Accademia</strong>. Il campo <strong>Meteo</strong> assegna la zona meteo Konoha/Suna. I sotto-tab filtrano l’elenco per <strong>regione</strong> (Mondo, Konoha, Suna). Un luogo si <strong>disattiva</strong>, non si cancella.</span></div>
@@ -3046,6 +3068,88 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
         else { toast(d.reason||'Non confermato',true); }
       }); }
 
+    /* ===== TRAINING-V2-ADMIN-006 · Sessioni segnalate (Training V2) =====
+       Contratti congelati, non reinterpretati:
+         lettura   training_segnalate()                       -> 11 colonne
+         azione    training_annulla(p_session uuid, p_motivo text) -> jsonb
+       Il client non decide nessun numero e non ne spedisce nessuno: manda
+       l'identificativo della sessione e il motivo battuto dallo staff, e
+       riscrive cio' che il server risponde. Finche' Training V2 Core non e'
+       applicato le due funzioni non esistono: la sottosezione mostra un errore
+       locale e il pannello qui sopra resta intatto. Nessun ripiego le finge. */
+    var tsegBusy=null;
+    function tsegN(v){ return (v===null||v===undefined||v==='')?'\u2014':esc(v); }
+    function tsegGiornata(d){ if(!d)return '\u2014'; try{ var x=new Date(String(d)+'T00:00:00'); return isNaN(x)?esc(d):x.toLocaleDateString('it-IT'); }catch(e){ return esc(d); } }
+    function tsegQuando(iso){ if(!iso)return '\u2014'; try{ var x=new Date(iso); return isNaN(x)?esc(iso):(x.toLocaleDateString('it-IT')+' '+x.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})); }catch(e){ return esc(iso); } }
+    function tsegErrore(host,msg){ if(host)host.innerHTML='<div class="tserr">'+esc(msg)+'</div>'; }
+    function tsegRiga(s){
+      var id=esc(s.training_session_id);
+      return '<div class="itrow tsrow" data-tsid="'+id+'"><div class="itmain tsmain">'+
+        '<span class="tsname">'+esc(s.personaggio||'\u2014')+'</span> <span class="itmeta">\u00b7 '+esc(s.tecnica||'\u2014')+'</span>'+
+        '<span class="tsmis">'+
+          '<span>Modalit\u00e0 <b>'+tsegN(s.modalita)+'</b></span>'+
+          '<span>Giornata <b>'+tsegGiornata(s.giornata)+'</b></span>'+
+          '<span>Messaggi propri <b>'+tsegN(s.msg_propri)+'</b></span>'+
+          '<span>Caratteri propri <b>'+tsegN(s.car_propri)+'</b></span>'+
+          '<span>Caratteri duplicati <b>'+tsegN(s.car_duplicati)+'</b></span>'+
+          '<span>Durata <b>'+tsegN(s.durata_min)+'</b> min</span>'+
+          '<span>Registrata <b>'+tsegQuando(s.created_at)+'</b></span>'+
+        '</span>'+
+        '<span class="tswhy">Segnalata: '+esc(s.sospetta_motivo||'motivo non indicato')+'</span>'+
+        '<span class="tsacts"><button class="mini-btn danger" type="button" data-tsapri="'+id+'">Annulla sessione</button></span>'+
+        '<div class="tsconf" hidden>'+
+          '<label for="tsmot-'+id+'">Motivo dell\'annullamento (obbligatorio, lo legge il giocatore)</label>'+
+          '<textarea id="tsmot-'+id+'" rows="2" maxlength="500" placeholder="Perch\u00e9 questa sessione viene annullata."></textarea>'+
+          '<span class="tsacts">'+
+            '<button class="mini-btn danger" type="button" data-tsok="'+id+'">Conferma annullamento</button>'+
+            '<button class="mini-btn" type="button" data-tsno="'+id+'">Non annullare</button>'+
+          '</span>'+
+        '</div>'+
+      '</div></div>';
+    }
+    async function loadSegnalate(){
+      var host=$('tseg-list'); if(!host)return;
+      if(!sb){ tsegErrore(host,'Client non disponibile: la coda delle segnalazioni non \u00e8 leggibile.'); return; }
+      host.innerHTML='<p class="mgr-note">Caricamento\u2026</p>';
+      var r=null;
+      try{ r=await sb.rpc('training_segnalate'); }
+      catch(e){ tsegErrore(host,'Coda non disponibile: '+((e&&e.message)||'la chiamata non \u00e8 riuscita')+'.'); return; }
+      if(!r||r.error){ tsegErrore(host,'Coda non disponibile: '+((r&&r.error&&r.error.message)||'training_segnalate non ha risposto')+'.'); return; }
+      var rows=(r&&r.data)||[];
+      if(!rows.length){ host.innerHTML='<p class="mgr-note" style="margin-top:12px">Nessuna sessione segnalata.</p>'; return; }
+      host.innerHTML=rows.map(tsegRiga).join('');
+    }
+    function bindSegnalate(){
+      var rb=$('tseg-refresh'); if(rb)rb.addEventListener('click',loadSegnalate);
+      var lst=$('tseg-list'); if(!lst)return;
+      lst.addEventListener('click',async function(e){
+        var apri=e.target.closest('[data-tsapri]');
+        if(apri){ var ra=apri.closest('.tsrow'); var ba=ra&&ra.querySelector('.tsconf');
+          if(ba){ ba.hidden=false; var ta0=ba.querySelector('textarea'); if(ta0)ta0.focus(); } return; }
+        var no=e.target.closest('[data-tsno]');
+        if(no){ var rn=no.closest('.tsrow'); var bn=rn&&rn.querySelector('.tsconf');
+          if(bn){ var tn=bn.querySelector('textarea'); if(tn)tn.value=''; bn.hidden=true; }
+          toast('Annullamento non eseguito'); return; }
+        var ok=e.target.closest('[data-tsok]'); if(!ok)return;
+        var id=ok.getAttribute('data-tsok');
+        var row=ok.closest('.tsrow'); var ta=row&&row.querySelector('.tsconf textarea');
+        var motivo=((ta&&ta.value)||'').trim();
+        if(!motivo){ toast('Scrivi il motivo dell\'annullamento',true); if(ta)ta.focus(); return; }
+        if(tsegBusy)return;                       /* doppio clic: la seconda non parte */
+        tsegBusy=id; ok.disabled=true;
+        var r=null;
+        try{ r=await sb.rpc('training_annulla',{p_session:id,p_motivo:motivo}); }
+        catch(err){ r={error:{message:(err&&err.message)||'la chiamata non \u00e8 riuscita'}}; }
+        tsegBusy=null; ok.disabled=false;
+        if(!r||r.error){ toast('Annullamento non riuscito: '+((r&&r.error&&r.error.message)||'errore'),true); return; }
+        var d=r.data||{};
+        if(d.ok!==true){ toast('Annullamento non eseguito',true); return; }
+        if(d.gia_annullata===true){ toast('Era gi\u00e0 annullata'); await loadSegnalate(); return; }
+        toast('Annullata \u00b7 sessioni '+tsegN(d.sessions_done)+'/'+tsegN(d.sessions_required)+' \u00b7 '+tsegN(d.state));
+        await loadSegnalate();
+      });
+    }
+
     /* ===== PERSONAGGI (staff) ===== */
     var PG=[], pgOpen=null;
     async function loadPg(){
@@ -3200,7 +3304,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();bindClanReq();await loadClanReq();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindBasi();await loadBasi();bindLocs();await loadLocs();bindBoards();await loadBoards();bindHkb();await loadHkb();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPg();await loadPg();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();bindAcc();show('st-mgr');bindPilot();
+      await loadClans();bindClans();bindClanReq();await loadClanReq();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindSegnalate();await loadSegnalate();bindBasi();await loadBasi();bindLocs();await loadLocs();bindBoards();await loadBoards();bindHkb();await loadHkb();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPg();await loadPg();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();bindAcc();show('st-mgr');bindPilot();
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
