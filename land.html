@@ -2621,6 +2621,11 @@
          giocare. Chi scrive ancora dopo aver salvato si ritrova la stessa
          registrazione di nuovo da salvare.
 
+         [14/08/2026 · ROLE-REC-AUTOSTART-UI-007] Anche l'apertura la decide il
+         server: la REC parte col primo turno pubblico di almeno 500 caratteri.
+         Il client non ha piu' un comando di avvio e non deduce mai l'apertura
+         dal numero di caratteri che ha in mano: la sente da role_open_here.
+
          Stato, turni, soglia, XP, proprietà e chiusura li decide il server. Qui
          non si deduce niente: REC_SOGLIA serve a scrivere «2/4 turni», non ad
          autorizzare un clic — comanda posso_salvare.
@@ -2655,8 +2660,11 @@
         if(!cur) return '<p class="rec-hint">Entra in un luogo per registrare la scena.</p>';
         if(recTest) return '<p class="rec-hint">Nella Test Room non si registrano role.</p>';
         if(!roleState.open){
-          return '<button class="rec-btn" id="rec-start" type="button"><span class="rec-dot" style="background:#f6ead0;animation:none;box-shadow:none"></span>Avvia REC</button>'
-               + '<p class="rec-hint">Apre la registrazione della scena. La tua registrazione personale inizier\u00e0 con il primo messaggio pubblico di gioco.</p>';
+          /* [14/08/2026 · ROLE-REC-AUTOSTART-UI-007] Niente comando di avvio: la
+             REC la apre il server al primo turno pubblico di almeno 500
+             caratteri. Qui si dichiara solo la regola, non si deduce nulla. */
+          return '<div class="rec-live" style="color:var(--ink-soft)"><span class="rec-dot" style="background:#d9c9a4;animation:none;box-shadow:none"></span>Nessuna REC in questo luogo</div>'
+               + '<p class="rec-hint">La REC partir\u00e0 automaticamente quando invii il primo turno pubblico di almeno 500 caratteri.</p>';
         }
         var st=roleState.mio_stato||'fuori', turni=roleState.miei_turni||0;
         var h='<div class="rec-live"><span class="rec-dot"></span>REC attiva</div>'
@@ -2698,7 +2706,6 @@
         return h;
       }
       function bindRec(){
-        var s1=document.getElementById('rec-start'); if(s1) s1.addEventListener('click', startRole);
         var ti=document.getElementById('rec-titolo');
         if(ti){
           ti.addEventListener('input', function(){ recDraft[roleState.session]=ti.value; });
@@ -2786,7 +2793,7 @@
         b.disabled=false;
         if(roleState.open) b.classList.add('on'); else b.classList.remove('on');
         b.innerHTML=(roleState.open?'\u25CF':'\u25CB')+' Rec'+(n?('<span class="rec-bdg">'+n+'</span>'):'');
-        b.title=(roleState.open?('REC attiva \u2014 avviata da '+(roleState.starter||'\u2014')):'Nessuna REC in questo luogo')
+        b.title=(roleState.open?('REC attiva \u2014 avviata da '+(roleState.starter||'\u2014')):'Nessuna REC \u2014 parte col primo turno pubblico di almeno 500 caratteri')
               + (n?(' \u00b7 '+n+(n===1?' role da salvare':' role da salvare')):'')
               + ' \u2014 tocca per aprire la registrazione';
       }
@@ -2827,15 +2834,11 @@
           renderRecLista(); syncRecM();
         }, function(){ recListaErr=true; renderRecLista(); syncRecM(); });
       }
-      function startRole(){
-        if(!cur||!sb||recBusy) return;
-        recBusy=true; recSig=null; renderRec();
-        sb.rpc('role_start',{p_location:cur.id}).then(function(r){
-          recBusy=false; recSig=null;
-          if(r&&r.error){ toast(recErr(r.error,'Impossibile avviare la registrazione')); renderRec(); return; }
-          toast('REC avviata'); loadRoleState(); loadRoleDaSalvare(true);
-        }, function(){ recBusy=false; recSig=null; toast('Impossibile avviare la registrazione'); renderRec(); });
-      }
+      /* [14/08/2026 · ROLE-REC-AUTOSTART-UI-007] Qui viveva startRole(), che
+         chiamava role_start. L'apertura non e' piu' un comando del giocatore: la
+         decide il server quando riceve il primo turno pubblico di almeno 500
+         caratteri. Il client non chiama piu' role_start da nessuna parte, e non
+         annuncia mai un'apertura che il server non ha ancora confermato. */
       /* Il client manda due cose sole: quale registrazione e con che titolo.
          Turni, XP, identita', soglia e chiusura non partono da qui. */
       function salvaRole(sid, titolo){
@@ -3083,6 +3086,10 @@
           if(guidata){ CMB_AZ=null; syncAzPill();
             var st=(r&&r.data&&r.data.stato)||null; if(st){ CMB=st; renderCombat(); } }
           var _pi=document.getElementById('png-input'); if(_pi) _pi.value=''; var _pe=document.getElementById('ed-png'); if(_pe) _pe.value='';
+          /* [14/08/2026 · ROLE-REC-AUTOSTART-UI-007] Dopo un invio riuscito lo
+             stato REC si rilegge subito: se quel turno ha aperto la
+             registrazione, il pallino si accende adesso e non fra nove secondi.
+             A dirlo resta role_open_here, non il conteggio dei caratteri. */
           loadMsgs(); loadWho(); loadRoleState();
           if(typeof after==='function') after();
         }, function(){ syncSendBtn(); toast('Impossibile inviare'); });
@@ -3419,8 +3426,22 @@
          post_message rifiuta i turni piu' corti. Qui si spegne il bottone Invia
          prima che il giocatore ci provi, con le stesse tre eccezioni del server:
          i sussurri non hanno minimo, lo staff e' esente, e il conteggio somma
-         l'azione del compagno PNG. Il tag del luogo 【…】 invece NON conta:
-         il server lo conterebbe, noi no, e restiamo volutamente piu' severi. */
+         l'azione del compagno PNG. Il tag del luogo 【…】 non conta ne' qui ne' la'.
+
+         [15/08/2026 · ROLE-REC-AUTOSTART-UI-007-R1-LIVE-REBASE] Rettifica: fino
+         a ieri questo cappello dichiarava il client piu' severo del server sul
+         tag del luogo. Non e' piu' vero, e la frase e' stata tolta invece di
+         essere ricopiata qui, perche' un commento che la ripete si rilegge come
+         se la sostenesse ancora. Con la migrazione role_rec_autostart_006
+         post_message toglie dal testo il tag iniziale che ha validato lui — una
+         sola occorrenza, ancorata all'inizio, al massimo 60 caratteri, senza
+         parentesi annidate — PRIMA di contare. Noi non lo abbiamo mai contato,
+         perche' lo aggiungiamo solo al momento dell'invio: sul tag le due conte
+         guardano ormai lo stesso testo.
+         Le differenze rimaste sono altrove e piccole: in scontro il server
+         toglie anche i comandi fra quadre prima di contare, e taglia gli spazi
+         ai due capi. Questo bottone resta quindi un'anticipazione della risposta
+         del server, non la sua copia. */
       function turnoLen(){
         var n=(input&&input.value)?input.value.length:0;
         var pIn=document.getElementById('png-input'), pBox=document.getElementById('png-box');
