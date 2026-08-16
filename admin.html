@@ -116,6 +116,20 @@
     .locrow .lacts{display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0}
     .locrow .lthumb{width:66px;height:46px;border-radius:6px;overflow:hidden;flex-shrink:0;border:1px solid var(--edge)}
     .locrow .lthumb img{width:100%;height:100%;object-fit:cover}
+    .locrow .exbadge{display:inline-block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:.09em;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1px solid var(--red-deep);color:var(--red-deep);background:rgba(150,30,30,.07);margin-right:7px;vertical-align:2px}
+    .locrow .exoff{border-color:var(--ink-soft);color:var(--ink-soft);background:transparent}
+    .exam-confirm{grid-column:1/-1;border:1px solid var(--red-deep);background:rgba(150,30,30,.06);border-radius:8px;padding:10px 12px;margin-top:4px}
+    .exam-confirm p{margin:0 0 8px;font-size:13px;color:var(--ink)}
+    .exam-confirm .row{display:flex;gap:8px;flex-wrap:wrap}
+    .exam-sess{border:1px solid var(--edge);background:rgba(255,250,235,.5);border-radius:9px;padding:11px 13px;margin-bottom:10px}
+    .exam-sess h4{font-family:'Cinzel',serif;font-size:14px;margin:0 0 2px;color:var(--ink)}
+    .exam-sess .smeta{font-size:11px;color:var(--ink-soft);letter-spacing:.03em;display:block;margin-bottom:8px}
+    .exam-part{display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:7px 0;border-top:1px dashed var(--edge)}
+    .exam-part .pname{font-weight:600;font-size:13px;color:var(--ink);min-width:130px}
+    .exam-part select{font:inherit;font-size:12px;padding:4px 6px;border:1px solid var(--edge);border-radius:6px;background:#fffdf6}
+    .exam-part select:disabled,.exam-part button:disabled{opacity:.45;cursor:not-allowed}
+    .locrow .lacts .nodel{opacity:.6;cursor:help;border-style:dashed}
+    .exam-warn{border:1px solid var(--red-deep);background:rgba(150,30,30,.06);border-radius:8px;padding:9px 12px;margin:0 0 10px;font-size:13px;color:var(--ink)}
     .locrow .lnote{color:var(--red-deep);font-weight:600}
     .loc-imgrow{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-top:4px}
     .loc-imgprev{width:184px;height:110px;border:1px solid var(--edge);border-radius:8px;background:rgba(255,250,235,.6);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
@@ -278,6 +292,7 @@
             <button type="button" data-go="premi">Premi</button>
             <button type="button" data-go="oggetti">Oggetti</button>
             <button type="button" data-go="luoghi">Luoghi</button>
+            <button type="button" data-go="esame">Esame</button>
             <button type="button" data-go="mappa">Mappa</button>
             <button type="button" data-go="bacheche">Bacheche</button>
             <button type="button" data-go="ia">IA</button>
@@ -436,6 +451,7 @@
             <button type="button" data-locreg="">Mondo</button>
             <button type="button" data-locreg="konoha">Konoha</button>
             <button type="button" data-locreg="suna">Suna</button>
+            <button type="button" data-locreg="__exam__">Sale d’esame</button>
           </div>
           <input class="adm-search" id="loc-search" type="search" placeholder="Cerca luogo per nome…">
           <button type="button" class="adm-addbtn" data-addnew="luoghi"><span class="plus">+</span> Aggiungi nuovo luogo</button>
@@ -445,7 +461,7 @@
             <label>Tipo<select id="loc-kind"><option value="villaggio">Villaggio</option><option value="quartiere">Quartiere</option><option value="edificio">Edificio</option><option value="area">Area</option><option value="negozio">Negozio</option><option value="altro">Altro</option></select></label>
             <label>Meteo<select id="loc-region"><option value="">— nessuno —</option><option value="konoha">Konoha</option><option value="suna">Suna</option></select></label>
             <label>Ordine<input id="loc-sort" type="number" step="1" placeholder="1"></label>
-            <label class="chk"><input type="checkbox" id="loc-active" checked> Attivo (visibile in gioco)</label><label class="chk"><input type="checkbox" id="loc-academy"> Accademia (qui si tengono le lezioni)</label><label>Aula di riserva di<select id="loc-overflow"><option value="">— nessuna —</option></select></label>
+            <label class="chk"><input type="checkbox" id="loc-active" checked> Attivo (visibile in gioco)</label><label class="chk"><input type="checkbox" id="loc-academy"> Accademia (qui si tengono le lezioni)</label><label class="chk"><input type="checkbox" id="loc-exam"> Sala d’esame (qui si sostiene l’Esame Genin)</label><label>Aula di riserva di<select id="loc-overflow"><option value="">— nessuna —</option></select></label>
             <label class="full">Descrizione<textarea id="loc-desc" maxlength="600" rows="3" placeholder="Cosa si trova qui, atmosfera, chi lo frequenta…"></textarea></label>
             <label class="full">Nota evento <span class="opt">(in evidenza nella stanza; modificabile quando succede qualcosa)</span><textarea id="loc-note" maxlength="400" rows="2" placeholder="Es. Un temporale ha allagato il mercato: le bancarelle restano chiuse."></textarea></label>
             <div class="loc-imgrow" style="grid-column:1/-1">
@@ -458,6 +474,7 @@
             </div>
             <label>Mappa — X&nbsp;% <span class="opt">(dopo)</span><input id="loc-x" type="number" step="0.1" min="0" max="100" placeholder="—"></label>
             <label>Mappa — Y&nbsp;% <span class="opt">(dopo)</span><input id="loc-y" type="number" step="0.1" min="0" max="100" placeholder="—"></label>
+            <div class="exam-confirm" id="loc-examconfirm" hidden></div>
           </div>
           <div class="cat-actions">
             <button class="btn btn-red" id="loc-save">Salva luogo</button>
@@ -466,6 +483,16 @@
           </div>
           </div>
           <div id="loc-list"></div>
+          </section>
+          <section class="adm-page" data-page="esame">
+          <div class="grp-title" style="margin-top:0">Esame Genin — sale e sessioni</div>
+          <p class="mgr-note">Le <b>quattro sale d’esame</b> come le vede il server, e le sessioni d’esame che vi si sono svolte. Le sale si creano e si correggono nel pannello <b>Luoghi</b>: qui si controlla che siano quelle giuste. L’<b>esito</b> lo scrive il server a fine esame; questa è la finestra per rileggerlo e, se serve, correggerlo.</p>
+          <div class="grp-title">Le sale</div>
+          <div id="esame-sale"></div>
+          <div class="grp-title">Le sessioni d’esame</div>
+          <p class="mgr-note">Ultime 50 sessioni aperte dentro una sala d’esame, dalla più recente. L’esito ammette solo i tre valori che scrive il server (<code>brillante</code>, <code>solida</code>, <code>con lacune</code>) oppure nessuno: il pannello non ne inventa altri. La correzione passa da <code>esame_esito_correggi</code>, che verifica ogni cosa e <b>restituisce l’esito riletto</b>: il successo lo dichiara il server, non questa pagina. Se la sessione è ancora aperta il server lo segnala, e la correzione potrà essere <b>ricalcolata</b> alla chiusura. ⚠️ Una correzione a mano <b>non lascia traccia</b>: il registro di chi ha corretto è un lavoro ancora da fare — il server non ha né la colonna <code>corretto_da</code> né <code>corretto_at</code>, e il pannello non finge di averla. Dopo ogni correzione la pagina <b>rilegge quella singola riga</b> e mostra quello che c’è davvero in tabella; se il server rifiuta, ne compaiono <b>messaggio, dettaglio e suggerimento</b> per intero.</p>
+          <div id="esame-sess"></div>
+          <div class="cat-actions"><button class="btn" id="esame-refresh" type="button">Rileggi dal server</button><span id="esame-note" class="editing-note"></span></div>
           </section>
           <section class="adm-page" data-page="mappa">
           <div class="grp-title" style="margin-top:0">Mappa — posiziona i marker</div>
@@ -1210,10 +1237,10 @@
       slotChange();
     }
     /* ---- Luoghi della Land ---- */
-    var LOCS=[], editingLoc=null, delArm=null;
+    var LOCS=[], editingLoc=null, delArm=null, locExamArmed=false;
     function locImgReset(){var p=$('loc-imgprev');if(p)p.innerHTML='<span class="none">Nessuna immagine</span>';var d=$('loc-imgdel');if(d)d.style.display='none';var h=$('loc-imghint');if(h)h.textContent="Salva prima il luogo, poi carica l'immagine (max 4 MB).";}
     function locImgShow(url){var p=$('loc-imgprev');if(p)p.innerHTML=url?'<img src="'+url+'" alt="">':'<span class="none">Nessuna immagine</span>';var d=$('loc-imgdel');if(d)d.style.display=url?'':'none';var h=$('loc-imghint');if(h)h.textContent=url?"Carica un'altra immagine per sostituirla (max 4 MB).":"Carica un'immagine per questo luogo (max 4 MB).";}
-    function resetLocForm(){editingLoc=null;$('loc-name').value='';$('loc-kind').value='villaggio';$('loc-region').value='';$('loc-sort').value='';$('loc-desc').value='';$('loc-note').value='';$('loc-x').value='';$('loc-y').value='';$('loc-active').checked=true;if($('loc-academy'))$('loc-academy').checked=false;fillLocOverflow(null,'');$('loc-reset').style.display='none';$('loc-editing').textContent='';$('loc-save').textContent='Salva luogo';locImgReset();}
+    function resetLocForm(){editingLoc=null;$('loc-name').value='';$('loc-kind').value='villaggio';$('loc-region').value='';$('loc-sort').value='';$('loc-desc').value='';$('loc-note').value='';$('loc-x').value='';$('loc-y').value='';$('loc-active').checked=true;if($('loc-academy'))$('loc-academy').checked=false;if($('loc-exam'))$('loc-exam').checked=false;locExamConfirmHide();fillLocOverflow(null,'');$('loc-reset').style.display='none';$('loc-editing').textContent='';$('loc-save').textContent='Salva luogo';locImgReset();}
     function fillLocOverflow(selfId,current){
       var sel=$('loc-overflow'); if(!sel) return;
       sel.innerHTML='<option value="">— nessuna —</option>';
@@ -1342,7 +1369,8 @@
       if(!LOCS.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessun luogo ancora. Creane uno qui sopra.</p>';return;}
       var q=locSearch.toLowerCase();
       var list=LOCS.filter(function(l){
-        if(locRegionFilter!=='__all__'&&(''+(l.region||''))!==locRegionFilter)return false;
+        if(locRegionFilter==='__exam__'){if(!l.is_exam_room)return false;}
+        else if(locRegionFilter!=='__all__'&&(''+(l.region||''))!==locRegionFilter)return false;
         if(q&&(''+(l.name||'')).toLowerCase().indexOf(q)<0)return false;
         return true;
       });
@@ -1351,46 +1379,120 @@
         var coord=(l.map_x!=null&&l.map_y!=null)?(' · mappa '+l.map_x+'/'+l.map_y):' · posizione mappa da impostare';
         var thumb=l.image_url?('<div class="lthumb"><img src="'+esc(l.image_url)+'" alt=""></div>'):'';
         var reg=l.region?(' · '+l.region.charAt(0).toUpperCase()+l.region.slice(1)):'';
-        var extra=reg+(l.image_url?' · immagine':'')+(l.event_note?' · <span class="lnote">nota evento</span>':'')+(l.is_academy?' · accademia':'')+(l.overflow_of?(' · <span class="lnote">aula di riserva: si accende da sola</span>'):'');
+        var esame=!!l.is_exam_room;
+        var madre=null; if(l.overflow_of){var _m=LOCS.filter(function(x){return x.id===l.overflow_of;})[0]; madre=_m?_m.name:null;}
+        // Sulle sale d'esame il villaggio e la riserva li dice exmeta, con il
+        // valore GREZZO di region e il nome della madre: niente doppioni.
+        var extra=(esame?'':reg)+(l.image_url?' · immagine':'')+(l.event_note?' · <span class="lnote">nota evento</span>':'')+(l.is_academy?' · accademia':'')+((l.overflow_of&&!esame)?(' · <span class="lnote">aula di riserva: si accende da sola</span>'):'');
+        // Le sale d'esame dichiarano per esteso ciò su cui il server decide:
+        // stato, villaggio, coordinate, ordinamento e di chi sono la riserva.
+        var exmeta=esame?(' · <b>'+(l.is_active?'attiva':'inattiva')+'</b> · villaggio '+esc(l.region||'—')
+          +' · ordine '+(l.sort!=null?l.sort:'—')
+          +(l.overflow_of?(' · riserva di «'+esc(madre||'luogo non in elenco')+'»'):' · sala madre')):'';
+        var badge=esame?('<span class="exbadge'+(l.is_active?'':' exoff')+'">Sala d’esame</span>'):'';
         return '<div class="locrow'+(l.is_active?'':' off')+'">'+thumb+
-          '<div class="lmain"><span class="lname">'+esc(l.name)+'</span><span class="lkind">'+esc(l.kind||'')+'</span>'+
-          '<span class="lmeta">'+coord+extra+(l.is_active?'':' · disattivato')+'</span>'+
+          '<div class="lmain">'+badge+'<span class="lname">'+esc(l.name)+'</span><span class="lkind">'+esc(l.kind||'')+'</span>'+
+          '<span class="lmeta">'+coord+extra+exmeta+(l.is_active?'':' · disattivato')+'</span>'+
           (l.description?('<span class="ldesc">'+esc(l.description)+'</span>'):'')+'</div>'+
           '<div class="lacts">'+
             '<button class="mini-btn" data-locedit="'+l.id+'">Modifica</button>'+
             '<button class="mini-btn" data-loctoggle="'+l.id+'">'+(l.is_active?'Disattiva':'Attiva')+'</button>'+
-            '<button class="mini-btn danger" data-locdel="'+l.id+'">Elimina</button>'+
+            (esame
+              ? '<button class="mini-btn nodel" type="button" data-locnodel="'+l.id+'" title="Le sale d’esame non si cancellano: si disattivano. Anche il server lo impedisce.">Non rimovibile</button>'
+              : '<button class="mini-btn danger" data-locdel="'+l.id+'">Elimina</button>')+
           '</div></div>';
       }).join('');
     }
+    /* ---- Rilettura dal server: si confronta cio' che il server ha, non cio'
+           che il pannello ha spedito. Un update che non scrive nulla e non da'
+           errore (RLS senza policy) qui diventa visibile. ---- */
+    async function locRilettura(id,atteso){
+      var v=await sb.from('locations').select('*').eq('id',id).maybeSingle();
+      if(v&&v.error)return{ok:false,msg:'Salvato ma non verificabile: '+(v.error.message||'rilettura fallita'),row:null,diff:[]};
+      if(!v||!v.data)return{ok:false,msg:'Il server non restituisce più questa riga: modifica NON confermata.',row:null,diff:[]};
+      var diff=[];
+      Object.keys(atteso).forEach(function(k){
+        var a=atteso[k],b=v.data[k];
+        if(k==='map_x'||k==='map_y'){a=(a==null?null:Number(a));b=(b==null?null:Number(b));}
+        if(a===''&&b==null)return; if(a==null&&b==='')return;
+        if(a!==b)diff.push(k);
+      });
+      return{ok:diff.length===0,msg:diff.length?('Il server NON ha applicato: '+diff.join(', ')+'. La riga resta com’era.'):'',row:v.data,diff:diff};
+    }
+    function locExamConfirmHide(){var b=$('loc-examconfirm');if(b){b.hidden=true;b.innerHTML='';}locExamArmed=false;}
+    function locExamConfirmShow(nome,acceso,esisteGia){
+      var b=$('loc-examconfirm');if(!b)return;
+      var motivo=acceso
+        ?('«'+esc(nome)+'» diventerà una <b>sala d’esame</b>: <code>esame_avvia</code> la considererà fra i luoghi in cui si può aprire l’Esame Genin del villaggio, e comparirà nel pannello Esame.')
+        :('«'+esc(nome)+'» <b>smetterà</b> di essere una sala d’esame: <code>esame_avvia</code> non la troverà più, e un esame che la usava resterebbe senza luogo.');
+      b.innerHTML='<p><b>Conferma richiesta — flag strutturale.</b> '+motivo+(esisteGia?'':' Il luogo non esiste ancora: verrà creato già con questo flag.')+'</p>'
+        +'<div class="row"><button class="btn btn-red" type="button" id="loc-examok">Confermo il cambio</button>'
+        +'<button class="btn" type="button" id="loc-examno">Annulla il cambio</button></div>';
+      b.hidden=false;
+      try{b.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){}
+    }
     function bindLocs(){
+      var cf=$('loc-examconfirm');
+      if(cf)cf.addEventListener('click',function(e){
+        if(e.target.closest('#loc-examok')){locExamArmed=true;var b=$('loc-examconfirm');if(b){b.hidden=true;b.innerHTML='';}$('loc-save').click();return;}
+        if(e.target.closest('#loc-examno')){var ex=$('loc-exam');if(ex)ex.checked=!ex.checked;locExamConfirmHide();toast('Cambio annullato: il flag resta com’era.');return;}
+      });
       $('loc-reset').addEventListener('click',function(){resetLocForm();admFormHide('luoghi');});
       $('loc-save').addEventListener('click',async function(){
         var name=$('loc-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
         function num(v){v=parseFloat(v);return isNaN(v)?null:v;}
-        var payload={name:name,kind:$('loc-kind').value,region:$('loc-region').value||null,description:$('loc-desc').value.trim()||'',event_note:$('loc-note').value.trim()||null,sort:parseInt($('loc-sort').value,10)||0,is_active:$('loc-active').checked,map_x:num($('loc-x').value),map_y:num($('loc-y').value),is_academy:!!($('loc-academy')&&$('loc-academy').checked),overflow_of:(($('loc-overflow')&&$('loc-overflow').value)||null)};
+        var wantExam=!!($('loc-exam')&&$('loc-exam').checked);
+        var prevLoc=editingLoc?(LOCS.filter(function(x){return x.id===editingLoc;})[0]||{}):{};
+        var wasExam=editingLoc?!!prevLoc.is_exam_room:false;
+        // Conferma esplicita: is_exam_room non e' un'etichetta, e' cio' su cui
+        // esame_avvia sceglie la sala. Si conferma dentro la riga, col motivo.
+        if(wantExam!==wasExam&&!locExamArmed){locExamConfirmShow(name,wantExam,!!editingLoc);return;}
+        locExamArmed=false;locExamConfirmHide();
+        var payload={name:name,kind:$('loc-kind').value,region:$('loc-region').value||null,description:$('loc-desc').value.trim()||'',event_note:$('loc-note').value.trim()||null,sort:parseInt($('loc-sort').value,10)||0,is_active:$('loc-active').checked,map_x:num($('loc-x').value),map_y:num($('loc-y').value),is_academy:!!($('loc-academy')&&$('loc-academy').checked),overflow_of:(($('loc-overflow')&&$('loc-overflow').value)||null),is_exam_room:wantExam};
         this.disabled=true;
         var r=editingLoc?await sb.from('locations').update(payload).eq('id',editingLoc).select().single():await sb.from('locations').insert(payload).select().single();
         this.disabled=false;
-        if(r.error){toast('Errore nel salvataggio',true);return;}
-        if(editingLoc){toast('Luogo aggiornato');resetLocForm();admFormHide('luoghi');loadLocs();}
-        else{var nl=r.data;LOCS.push(nl);editingLoc=nl.id;$('loc-reset').style.display='';$('loc-editing').textContent='Luogo creato: '+nl.name+' — ora puoi aggiungere immagine e nota evento.';$('loc-save').textContent='Aggiorna luogo';locImgShow(nl.image_url||'');renderLocs();toast('Luogo creato');}
+        if(r.error){toast('Il server ha rifiutato il salvataggio: '+(r.error.message||'errore senza messaggio'),true);return;}
+        if(!r.data){toast('Il server non ha restituito la riga salvata: modifica NON confermata.',true);loadLocs();return;}
+        // Rilettura dal server: cio' che si mostra non e' cio' che si e' inviato.
+        var ver=await locRilettura(r.data.id,payload);
+        if(!ver.ok){toast(ver.msg,true);loadLocs();return;}
+        if(editingLoc){toast('Luogo aggiornato');resetLocForm();admFormHide('luoghi');loadLocs();loadEsame();}
+        else{var nl=ver.row;LOCS.push(nl);editingLoc=nl.id;$('loc-reset').style.display='';$('loc-editing').textContent='Luogo creato: '+nl.name+' — ora puoi aggiungere immagine e nota evento.';$('loc-save').textContent='Aggiorna luogo';locImgShow(nl.image_url||'');renderLocs();loadEsame();toast('Luogo creato');}
       });
       $('loc-list').addEventListener('click',async function(e){
         var eb=e.target.closest('[data-locedit]');
         if(eb){var l=LOCS.filter(function(x){return x.id===eb.getAttribute('data-locedit');})[0];if(!l)return;
-          editingLoc=l.id;$('loc-name').value=l.name;$('loc-kind').value=l.kind||'villaggio';$('loc-region').value=l.region||'';$('loc-sort').value=(l.sort!=null?l.sort:'');$('loc-desc').value=l.description||'';$('loc-note').value=l.event_note||'';$('loc-x').value=(l.map_x!=null?l.map_x:'');$('loc-y').value=(l.map_y!=null?l.map_y:'');$('loc-active').checked=!!l.is_active;if($('loc-academy'))$('loc-academy').checked=!!l.is_academy;fillLocOverflow(l.id,l.overflow_of||'');locImgShow(l.image_url||'');
+          editingLoc=l.id;$('loc-name').value=l.name;$('loc-kind').value=l.kind||'villaggio';$('loc-region').value=l.region||'';$('loc-sort').value=(l.sort!=null?l.sort:'');$('loc-desc').value=l.description||'';$('loc-note').value=l.event_note||'';$('loc-x').value=(l.map_x!=null?l.map_x:'');$('loc-y').value=(l.map_y!=null?l.map_y:'');$('loc-active').checked=!!l.is_active;if($('loc-academy'))$('loc-academy').checked=!!l.is_academy;if($('loc-exam'))$('loc-exam').checked=!!l.is_exam_room;locExamConfirmHide();fillLocOverflow(l.id,l.overflow_of||'');locImgShow(l.image_url||'');
           $('loc-reset').style.display='';$('loc-editing').textContent='Stai modificando: '+l.name;$('loc-save').textContent='Aggiorna luogo';
           admFormShow('luoghi');return;}
         var tb=e.target.closest('[data-loctoggle]');
         if(tb){var id=tb.getAttribute('data-loctoggle');var l2=LOCS.filter(function(x){return x.id===id;})[0];if(!l2)return;
           var r=await sb.from('locations').update({is_active:!l2.is_active}).eq('id',id);
           if(r.error){toast('Errore',true);}else{toast(l2.is_active?'Disattivato':'Attivato');loadLocs();}return;}
+        // Sala d'esame: non si cancella. Il controllo si rifà QUI, rileggendo dal
+        // server: la riga in memoria può essere vecchia, e un pulsante disegnato
+        // due minuti fa non è una protezione. Il divieto vero sta comunque a
+        // database (trigger locations_no_delete_exam_room): questa è la cortesia.
+        var nb=e.target.closest('[data-locnodel]');
+        if(nb){var nid=nb.getAttribute('data-locnodel');
+          var v0=await sb.from('locations').select('name,is_exam_room').eq('id',nid).maybeSingle();
+          if(v0&&v0.error){toast('Non riesco a rileggere il luogo: '+(v0.error.message||''),true);return;}
+          if(!v0||!v0.data){toast('Questo luogo non esiste più sul server.',true);loadLocs();return;}
+          if(v0.data.is_exam_room){toast('«'+v0.data.name+'» è una sala d’esame: non si cancella. Togli il flag «Sala d’esame», poi potrai eliminarla.',true);return;}
+          toast('Questo luogo non è più una sala d’esame: l’elenco è stato riletto.');loadLocs();return;}
         var db=e.target.closest('[data-locdel]');
         if(db){var id=db.getAttribute('data-locdel');
           if(delArm!==id){delArm=id;db.textContent='Confermi?';setTimeout(function(){if(delArm===id){delArm=null;renderLocs();}},4000);return;}
-          delArm=null;var r=await sb.from('locations').delete().eq('id',id);
-          if(r.error){toast('Errore eliminazione',true);}else{toast('Luogo eliminato');loadLocs();}return;}
+          delArm=null;
+          // Ricontrollo anche qui: fra il disegno e la conferma un'altra sessione
+          // può aver reso questa riga una sala d'esame.
+          var v1=await sb.from('locations').select('name,is_exam_room').eq('id',id).maybeSingle();
+          if(v1&&v1.error){toast('Non riesco a rileggere il luogo: '+(v1.error.message||''),true);renderLocs();return;}
+          if(v1&&v1.data&&v1.data.is_exam_room){toast('«'+v1.data.name+'» nel frattempo è diventata una sala d’esame: non la cancello.',true);loadLocs();return;}
+          var r=await sb.from('locations').delete().eq('id',id);
+          if(r.error){toast('Il server ha rifiutato l\'eliminazione: '+(r.error.message||'errore senza messaggio'),true);loadLocs();}
+          else{toast('Luogo eliminato');loadLocs();}return;}
       });
       var imf=$('loc-imgfile'); if(imf) imf.addEventListener('change',async function(){
         var file=this.files&&this.files[0];if(!file)return;
@@ -1415,6 +1517,227 @@
       });
     }
 
+    /* ---- Esame Genin: sale e sessioni ----
+       I tre esiti sono quelli che scrive _esame_classifica sul server
+       (brillante / solida / con lacune). Non c'e' un CHECK in tabella: il
+       pannello NON aggiunge valori propri, e chi ne aggiunge uno sul server
+       deve aggiornare anche questa riga. ---- */
+    var ESAME_ESITI=['brillante','solida','con lacune'];
+    var EXAM_SESS=[], EXAM_PART={}, examArm=null;
+    function esameSale(){return (LOCS||[]).filter(function(l){return !!l.is_exam_room;});}
+    function renderEsameSale(){
+      var host=$('esame-sale'); if(!host)return;
+      var sale=esameSale();
+      var avviso='';
+      if(sale.length!==4)avviso='<div class="exam-warn">Il server espone <b>'+sale.length+'</b> sale d’esame, non 4. Controlla il pannello <b>Luoghi</b> prima di aprire un esame.</div>';
+      if(!sale.length){host.innerHTML=avviso+'<p class="mgr-note" style="margin:6px 0 0">Nessuna sala d’esame. Nel pannello Luoghi, spunta <b>Sala d’esame</b> sul luogo giusto.</p>';return;}
+      host.innerHTML=avviso+sale.map(function(l){
+        var madre=null; if(l.overflow_of){var _m=LOCS.filter(function(x){return x.id===l.overflow_of;})[0]; madre=_m?_m.name:null;}
+        var meta=['villaggio '+(l.region||'—'),
+                  'mappa '+(l.map_x!=null?l.map_x:'—')+'/'+(l.map_y!=null?l.map_y:'—'),
+                  'ordine '+(l.sort!=null?l.sort:'—'),
+                  (l.is_active?'attiva':'inattiva'),
+                  (l.overflow_of?('riserva di «'+(madre||'luogo non in elenco')+'»'):'sala madre'),
+                  (l.is_academy?'accademia':'NON accademia')];
+        return '<div class="locrow'+(l.is_active?'':' off')+'"><div class="lmain">'
+          +'<span class="exbadge'+(l.is_active?'':' exoff')+'">Sala d’esame</span>'
+          +'<span class="lname">'+esc(l.name)+'</span>'
+          +'<span class="lmeta"> · '+esc(meta.join(' · '))+'</span>'
+          +(l.description?('<span class="ldesc">'+esc(l.description)+'</span>'):'')
+          +'</div></div>';
+      }).join('');
+    }
+    function renderEsameSess(){
+      var host=$('esame-sess'); if(!host)return;
+      if(!EXAM_SESS.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Nessuna sessione d’esame finora.</p>';return;}
+      host.innerHTML=EXAM_SESS.map(function(sx){
+        var luogo=(LOCS||[]).filter(function(x){return x.id===sx.location_id;})[0];
+        var q=(EXAM_PART[sx.id]||[]);
+        var righe=q.length?q.map(function(p){
+          var vero=(p.esito==null?'':p.esito);
+          var opz=['<option value="">— nessuno —</option>'].concat(ESAME_ESITI.map(function(v){
+            return '<option value="'+esc(v)+'"'+(v===vero?' selected':'')+'>'+esc(v)+'</option>';}));
+          var chiave=sx.id+'|'+p.user_id;
+          return '<div class="exam-part" data-part="'+esc(chiave)+'">'
+            +'<span class="pname">'+esc(p.character_name||p.character_id||p.user_id)+'</span>'
+            +'<span class="lmeta">'+esc(p.kind||'')+'</span>'
+            +'<select data-esito="'+esc(chiave)+'"'+(p.kind==='student'?'':' disabled')+'>'+opz.join('')+'</select>'
+            +'<button class="mini-btn" type="button" data-esitosave="'+esc(chiave)+'"'+(p.kind==='student'?'':' disabled')+'>Salva esito</button>'
+            +'<span class="lmeta" data-esitonote="'+esc(chiave)+'"></span>'
+            +'</div>';
+        }).join(''):'<div class="exam-part"><span class="lmeta">Nessun partecipante registrato.</span></div>';
+        var meta=[(luogo?luogo.name:'luogo sconosciuto'),
+                  'villaggio '+(sx.village||'—'),
+                  'stato '+(sx.state||'—'),
+                  'passo '+(sx.step!=null?sx.step:'—')+'/'+(sx.total_steps!=null?sx.total_steps:'—'),
+                  (sx.created_at?String(sx.created_at).slice(0,16).replace('T',' '):'—')];
+        return '<div class="exam-sess"><h4>'+esc(sx.lesson_title||sx.lesson_code||'Esame')+'</h4>'
+          +'<span class="smeta">'+esc(meta.join(' · '))+'</span>'+righe+'</div>';
+      }).join('');
+    }
+    async function loadEsame(){
+      if(!sb)return;
+      renderEsameSale();
+      var host=$('esame-sess');
+      var ids=esameSale().map(function(l){return l.id;});
+      if(!ids.length){EXAM_SESS=[];EXAM_PART={};renderEsameSess();return;}
+      var r=await sb.from('academy_class_sessions').select('*').in('location_id',ids).order('created_at',{ascending:false}).limit(50);
+      if(r&&r.error){if(host)host.innerHTML='<div class="exam-warn">Il server ha rifiutato la lettura delle sessioni: '+esc(r.error.message||'errore senza messaggio')+'</div>';return;}
+      EXAM_SESS=(r&&r.data)||[];EXAM_PART={};
+      if(EXAM_SESS.length){
+        var sid=EXAM_SESS.map(function(x){return x.id;});
+        var p=await sb.from('academy_class_participants').select('*').in('session_id',sid);
+        if(p&&p.error){if(host)host.innerHTML='<div class="exam-warn">Il server ha rifiutato la lettura dei partecipanti: '+esc(p.error.message||'errore senza messaggio')+'</div>';return;}
+        ((p&&p.data)||[]).forEach(function(x){(EXAM_PART[x.session_id]=EXAM_PART[x.session_id]||[]).push(x);});
+      }
+      renderEsameSess();
+    }
+    /* ---- La correzione dell'esito passa da UNA RPC, non da un update diretto.
+       `academy_class_participants` ha RLS con la sola SELECT: un update dal
+       client toccherebbe zero righe SENZA errore. La RPC è staff-only,
+       verifica sessione, partecipante e vocabolario, e restituisce l'esito
+       RILETTO con un `ok` calcolato dal server.
+       🔴 Qui non si deduce niente: si obbedisce a `ok`. ---- */
+    /* ---- R3 · il testo dell'errore si compone con TUTTO ciò che il server
+       manda: MESSAGE, DETAIL e HINT. I sei SQLSTATE di
+       EXAM-GENIN-ADMIN-SERVER-004 portano ciascuno il proprio DETAIL (la
+       chiave cercata, auth.uid(), il valore normalizzato) e il proprio HINT
+       col comando alternativo già scritto. Mostrarne solo il messaggio
+       butterebbe via la metà utile. ---- */
+    function srvErrTesto(e){
+      if(!e) return 'errore senza messaggio';
+      var p=[];
+      if(e.message) p.push(String(e.message));
+      if(e.details) p.push('Dettaglio: '+String(e.details));
+      if(e.hint)    p.push('Come fare: '+String(e.hint));
+      if(e.code)    p.push('(codice '+String(e.code)+')');
+      return p.length?p.join(' — '):'errore senza messaggio';
+    }
+    /* ---- R3 · la rilettura è MIRATA: una riga sola, sulla chiave intera
+       (session_id, user_id). Non un elenco, non un ricaricamento del
+       pannello — un `loadEsame()` di ripiego leggerebbe comunque la tabella
+       e lascerebbe verde un'inversione che toglie la rilettura vera.
+       🔴 È questa lettura, non il JSON della RPC, a dire com'è la riga:
+          un server che accetta e non scrive risponderebbe comunque «ok». ---- */
+    async function esitoRileggi(sess,usr){
+      var r=await sb.from('academy_class_participants').select('esito')
+              .eq('session_id',sess).eq('user_id',usr).maybeSingle();
+      if(!r||r.error) return {ok:false,err:(r&&r.error)||null};
+      if(!r.data)     return {ok:false,err:{message:'La riga non si rilegge: nessun partecipante con questa chiave.'}};
+      return {ok:true,esito:(r.data.esito==null?null:r.data.esito)};
+    }
+    function esitoDire(chiave,t,err){
+      var n=document.querySelector('[data-esitonote="'+chiave+'"]');
+      if(n){n.textContent=t;n.style.color=err?'var(--red-deep)':'';}
+    }
+    async function esitoSalva(chiave,valore,btn){
+      var parti=String(chiave).split('|'), sess=parti[0], usr=parti[1];
+      /* R3 · `null`, la stringa vuota e una stringa di SOLI SPAZI valgono la
+         stessa cosa: «nessun esito». Il server le normalizza tutte e tre con
+         `nullif(lower(btrim(…)),'')`; il pannello fa lo stesso PRIMA di
+         controllare il vocabolario, altrimenti «   » verrebbe rifiutato qui
+         come valore inventato e la strada per togliere un esito si
+         chiuderebbe a metà. */
+      var voluto=(valore==null)?null:String(valore);
+      if(voluto!==null){ voluto=voluto.replace(/^\s+|\s+$/g,'').toLowerCase(); if(voluto==='')voluto=null; }
+      // il pannello non inventa valori: quelli veri li elenca il server
+      if(voluto!==null&&ESAME_ESITI.indexOf(voluto)<0){
+        esitoDire(chiave,'Valore non previsto dal server: il pannello non lo invia.',true);
+        toast('Valore non previsto dal server: rifiutato dal pannello.',true); return false;
+      }
+      if(btn)btn.disabled=true;
+      var r=await sb.rpc('esame_esito_correggi',{p_session:sess,p_user:usr,p_esito:voluto});
+      if(btn)btn.disabled=false;
+      if(r&&r.error){
+        esitoDire(chiave,'Il server ha rifiutato: '+srvErrTesto(r.error),true);
+        toast('Il server ha rifiutato la modifica',true); return false;
+      }
+      var d=(r&&r.data)||null;
+      if(!d||typeof d!=='object'||!('ok' in d)){
+        var rm=await esitoRileggi(sess,usr);
+        if(rm.ok){(EXAM_PART[sess]||[]).forEach(function(p){ if(p.user_id===usr) p.esito=rm.esito; });renderEsameSess();}
+        esitoDire(chiave,'Il server non ha risposto con l’esito: modifica NON confermata.'
+          +(rm.ok?(' In tabella resta «'+(rm.esito||'nessuno')+'».'):''),true);
+        toast('Modifica NON confermata',true); return false;
+      }
+      // si riallinea la memoria a CIÒ CHE IL SERVER DICE, non a ciò che si è chiesto.
+      // ⚠️ Nessuna traccia persistente: il contratto ADMIN-SERVER-004 non ha
+      //    colonne `corretto_da`/`corretto_at`, e l'audit è un task futuro.
+      //    Quindi niente marchio nell'elenco: sarebbe vero solo fino al ricaricamento.
+      /* 🔴 R3 · qui si RILEGGE la riga, e la riletta è l'unica verità che il
+         pannello mostra. Il JSON della RPC dice già di rileggere, ma un
+         pannello che si fidasse del JSON non saprebbe distinguere un server
+         che scrive da uno che accetta e non scrive: sono la stessa risposta.
+         Vedi l'inversione V2. */
+      var ril=await esitoRileggi(sess,usr);
+      if(!ril.ok){
+        esitoDire(chiave,'La rilettura non conferma niente: modifica NON confermata. '+srvErrTesto(ril.err),true);
+        toast('Modifica NON confermata: la rilettura è fallita',true); return false;
+      }
+      (EXAM_PART[sess]||[]).forEach(function(p){ if(p.user_id===usr) p.esito=ril.esito; });
+      var vero=(ril.esito==null?'':ril.esito);
+      renderEsameSess();
+      if(d.ok!==true){
+        esitoDire(chiave,'Il server NON ha applicato la modifica: l’esito resta «'+(vero||'nessuno')+'».',true);
+        toast('Il server NON ha applicato la modifica',true); return false;
+      }
+      /* 🔴 R3 · il caso «server muto»: risponde ok e la riga non si è mossa.
+         In produzione la porta viva solleva 25000, ma il pannello non lo dà
+         per scontato — un ok con la riga invariata NON è un successo. */
+      if(ril.esito!==voluto){
+        esitoDire(chiave,'Il server ha risposto «ok» ma in tabella c’è «'+(vero||'nessuno')
+          +'»: la modifica NON è stata applicata.',true);
+        toast('Modifica NON applicata: la rilettura non conferma',true); return false;
+      }
+      // e se il JSON del server e la riga non dicono la stessa cosa, lo si dichiara.
+      if(('esito' in d) && ((d.esito==null?null:d.esito)!==ril.esito)){
+        esitoDire(chiave,'Il server dichiara «'+((d.esito==null?'nessuno':d.esito))+'» ma in tabella c’è «'
+          +(vero||'nessuno')+'»: modifica NON confermata.',true);
+        toast('Risposta e tabella non concordano',true); return false;
+      }
+      // `sara_ricalcolato` lo decide il server guardando lo stato della sessione:
+      // il pannello non lo deduce dallo stato che ha in memoria.
+      var ric=(d.sara_ricalcolato===true);
+      var coda=ric
+        ? ' — ⚠️ la sessione è ancora aperta'+(d.stato_sessione?(' («'+esc(d.stato_sessione)+'»)'):'')+': alla chiusura esame_chiudi ricalcolerà l’esito e potrà sovrascrivere questa correzione.'
+        : '.';
+      esitoDire(chiave,'Esito confermato dal server: «'+(vero||'nessuno')+'»'+coda, ric);
+      toast(ric?'Esito aggiornato — potrà essere ricalcolato':'Esito aggiornato'); return true;
+    }
+    function bindEsame(){
+      var rf=$('esame-refresh'); if(rf)rf.addEventListener('click',async function(){this.disabled=true;await loadLocs();await loadEsame();this.disabled=false;var n=$('esame-note');if(n)n.textContent='Riletto dal server.';});
+      var host=$('esame-sess'); if(!host)return;
+      host.addEventListener('click',async function(e){
+        var ok=e.target.closest('[data-esitook]');
+        if(ok){var k=ok.getAttribute('data-esitook');var val=ok.getAttribute('data-esitoval')||'';examArm=null;
+          var row=document.querySelector('[data-part="'+k+'"]');var hold=row?row.querySelector('[data-esitohold]'):null;if(hold)hold.remove();
+          await esitoSalva(k,val,ok);return;}
+        var no=e.target.closest('[data-esitono]');
+        if(no){var k2=no.getAttribute('data-esitono');examArm=null;
+          var row2=document.querySelector('[data-part="'+k2+'"]');var hold2=row2?row2.querySelector('[data-esitohold]'):null;if(hold2)hold2.remove();
+          var sel2=document.querySelector('[data-esito="'+k2+'"]');
+          var p2=null;Object.keys(EXAM_PART).forEach(function(sid){(EXAM_PART[sid]||[]).forEach(function(p){if(sid+'|'+p.user_id===k2)p2=p;});});
+          if(sel2)sel2.value=(p2&&p2.esito!=null)?p2.esito:'';
+          return;}
+        var b=e.target.closest('[data-esitosave]');
+        if(!b)return;
+        var k3=b.getAttribute('data-esitosave');
+        var sel=document.querySelector('[data-esito="'+k3+'"]'); if(!sel)return;
+        var val3=sel.value||'';
+        if(val3&&ESAME_ESITI.indexOf(val3)<0){toast('Valore non previsto dal server: rifiutato dal pannello.',true);return;}
+        var row3=document.querySelector('[data-part="'+k3+'"]'); if(!row3)return;
+        if(row3.querySelector('[data-esitohold]'))return;
+        var prec=null;Object.keys(EXAM_PART).forEach(function(sid){(EXAM_PART[sid]||[]).forEach(function(p){if(sid+'|'+p.user_id===k3)prec=p;});});
+        var da=(prec&&prec.esito!=null)?prec.esito:'nessuno';
+        if((prec&&prec.esito!=null?prec.esito:'')===val3){toast('L’esito è già questo.');return;}
+        var w=document.createElement('div');
+        w.className='exam-confirm';w.setAttribute('data-esitohold','1');w.style.width='100%';
+        w.innerHTML='<p><b>Conferma richiesta.</b> L’esito lo calcola il server a fine esame. Stai per riscriverlo a mano da «'+esc(da)+'» a «'+esc(val3||'nessuno')+'». Se la sessione è già chiusa il valore resta questo; se è ancora aperta, alla chiusura <code>esame_chiudi</code> può ricalcolarlo e sovrascriverlo. Chi decide è il server: te lo dice lui subito dopo. ⚠️ La correzione <b>non lascia traccia</b> di chi l’ha fatta.</p>'
+          +'<div class="row"><button class="btn btn-red" type="button" data-esitook="'+esc(k3)+'" data-esitoval="'+esc(val3)+'">Confermo</button>'
+          +'<button class="btn" type="button" data-esitono="'+esc(k3)+'">Annulla</button></div>';
+        row3.appendChild(w);
+      });
+    }
     /* ---- Banda notizie ---- */
     async function loadFlash(){ if(!sb) return; var r=await sb.from('app_settings').select('value').eq('key','flash_news').maybeSingle(); var el=$('flash-input'); if(el) el.value=(r&&r.data&&r.data.value)||''; }
     function bindFlash(){
@@ -3211,10 +3534,12 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
-      await loadClans();bindClans();bindClanReq();await loadClanReq();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindBasi();await loadBasi();bindLocs();await loadLocs();bindBoards();await loadBoards();bindHkb();await loadHkb();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPg();await loadPg();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();bindAcc();show('st-mgr');bindPilot();
+      await loadClans();bindClans();bindClanReq();await loadClanReq();await loadCorps();renderGrids();await loadItems();bindCatalog();bindTechs();try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}await loadTechs();bindTrainings();await loadTrainings();bindBasi();await loadBasi();bindLocs();await loadLocs();bindEsame();await loadEsame();bindBoards();await loadBoards();bindHkb();await loadHkb();bindIA();bindNB();await loadIA();await loadNB();bindReps();await loadReps();bindComps();await loadComps();bindPg();await loadPg();bindPrm();await loadPrl();await loadPrm();bindTlg();await loadTlg();bindFlash();await loadFlash();await loadMapCfg();bindMapEdit();renderMapEdit();loadAudit();var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);loadDmLog();var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);loadArchLocs();loadArchMessages();loadRolesList();bindArchivio();bindAcc();show('st-mgr');bindPilot();
     }
     init();
     window.__demoMgr=function(map,items,audit,locs,boards){EMB=map||{};ITEMS=items||[];LOCS=locs||[];BOARDS=boards||[];renderGrids();renderCatalog();renderLocs();renderBoards();if(audit)renderAudit(audit);show('st-mgr');};
+    window.__demoEsame=function(locs,sess,parts){if(locs)LOCS=locs;EXAM_SESS=sess||[];EXAM_PART={};(parts||[]).forEach(function(x){(EXAM_PART[x.session_id]=EXAM_PART[x.session_id]||[]).push(x);});renderLocs();renderEsameSale();renderEsameSess();show('st-mgr');};
+    window.__esameApi={loadEsame:function(){return loadEsame();},esitoSalva:function(k,v,b){return esitoSalva(k,v,b);},esitoRileggi:function(s,u){return esitoRileggi(s,u);},srvErrTesto:function(e){return srvErrTesto(e);},locRilettura:function(i,a){return locRilettura(i,a);},esiti:ESAME_ESITI};
   })();
   </script>
   <script src="bijuu.js"></script>
