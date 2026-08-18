@@ -3486,8 +3486,10 @@
       var SCROLL='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h9a1.6 1.6 0 0 1 0 3.2h-1.6"/><path d="M15.4 4v14.4A1.6 1.6 0 0 1 13.8 20H6.6A1.6 1.6 0 0 1 5 18.4c0-.88.72-1.6 1.6-1.6H8"/><path d="M8 4v13"/><path d="M10.5 8.5h4M10.5 11.5h4"/></svg>';
       function statusColor(s){ return ({online:'#3c8a3c',looking:'#d9a521',busy:'#c0392b',unavailable:'#8a8a8a'})[s]||'#3c8a3c'; }
       function statusLabel(s){ return ({online:'Online',looking:'In cerca di gioco',busy:'Occupato',unavailable:'Non disponibile'})[s]||'Online'; }
+      function myRosterRow(){ for(var i=0;i<ROSTER.length;i++){ if(ROSTER[i].user_id===myId) return ROSTER[i]; } return null; }
+      function updateMyStatusDot(){ var meRow=myRosterRow(), dot=document.querySelector('#online-btn .ob-dot'); if(!dot||!meRow) return; dot.style.background=statusColor(meRow.status); dot.title=statusLabel(meRow.status); }
       function roleBadge(r){ var m={admin:['A','Admin'],staff:['S','Staff'],master:['M','Master']}; var v=m[r]; return v?'<span class="rl-badge rl-'+r+'" title="'+v[1]+'">'+v[0]+'</span>':''; }
-      function updateOnlineCount(){ var n=ROSTER.length; var a=document.getElementById('online-n'); if(a) a.textContent=n; var m=document.getElementById('map-count'); if(m) m.textContent=n; }
+      function updateOnlineCount(){ var n=ROSTER.length; var a=document.getElementById('online-n'); if(a) a.textContent=n; var m=document.getElementById('map-count'); if(m) m.textContent=n; updateMyStatusDot(); }
       function loadRoster(){ if(!sb||!loggedIn) return; sb.rpc('online_roster',{p_minutes:8}).then(function(r){ if(r&&!r.error){ ROSTER=r.data||[]; rosterLoaded=true; updateOnlineCount(); if(panelOpen) renderPanel(); } }, function(){}); }
       function startRosterPoll(){ if(rosterPoll) return; rosterPoll=setInterval(function(){ loadRoster(); loadActivity(); loadFlash(); loadUnread(); loadConversations(); }, 12000); }
       function acTimeAgo(iso){ var t=new Date(iso).getTime(); if(!t) return ''; var sec=Math.max(0,(Date.now()-t)/1000); var m=Math.floor(sec/60); if(m<1) return 'adesso'; if(m<60) return m+' min fa'; var h=Math.floor(m/60); if(h<24) return h+' h fa'; return Math.floor(h/24)+' g fa'; }
@@ -3599,7 +3601,7 @@
       })();
       function renderPanel(){
         var host=document.getElementById('ovp-list'); if(!host) return;
-        var meRow=null; ROSTER.forEach(function(u){ if(u.user_id===myId) meRow=u; });
+        var meRow=myRosterRow();
         var ms=document.getElementById('my-status'); if(ms&&meRow) ms.value=meRow.status;
         var mo=document.getElementById('my-off'); if(mo&&meRow&&document.activeElement!==mo) mo.value=meRow.off_notes||'';
         var cc=document.getElementById('ovp-count'); if(cc) cc.textContent=ROSTER.length;
