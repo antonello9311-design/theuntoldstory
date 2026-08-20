@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="tus-build" content="LAND-083-A1" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2826,7 +2827,31 @@
            pannello sceglie mossa e azione, e nient'altro. */
         if(o.fase==='difesa'){
           h+='<div class="az-sec"><div class="az-k">La tua reazione</div><div class="az-list">';
-          (o.reazioni||[]).forEach(function(x){
+          /* [083-A1] Le difese CONTESTUALI dipendono da uno stato che puo'
+             non esserci: le copie vivono solo dopo una Moltiplicazione, la
+             Dispersione solo contro un genjutsu. Se lo stato non c'e', la
+             voce non si mostra spenta: non si mostra. Le difese ORDINARIE
+             restano invece sempre in elenco, spente col loro motivo, perche'
+             li' il motivo e' l'informazione (la Sostituzione in ricarica
+             torna fra due turni, e il candidato deve saperlo).
+             Il client non decide: `disponibile` lo scrive il server. */
+          var azContestuali={copie:1,dispersione:1};
+          var reaVis=(o.reazioni||[]).filter(function(x){
+            var k=String((x&&x.chiave)||'').toLowerCase();
+            return x.disponibile || !azContestuali[k];
+          });
+          /* [083-A1] Se la bozza puntava a una contestuale che e' appena
+             sparita, si ripulisce: altrimenti il client terrebbe in mano una
+             reazione che il server non offre piu' e proverebbe a mandarla.
+             E' il punto «il client non deve poter inventare lo stato». */
+          if(azBozza.reazione){
+            var kb=String(azBozza.reazione.chiave||'').toLowerCase();
+            var ancora=reaVis.filter(function(x){
+              return x.chiave===azBozza.reazione.chiave
+                  && (x.id||'')===(azBozza.reazione.id||'') && x.disponibile; }).length;
+            if(azContestuali[kb] && !ancora) azBozza.reazione=null;
+          }
+          reaVis.forEach(function(x){
             var val=x.chiave+'|'+(x.id||'');
             var scelto=!!(azBozza.reazione&&azBozza.reazione.chiave===x.chiave&&(azBozza.reazione.id||'')===(x.id||''));
             var det=(x.chakra?(x.chakra+' chakra'):'nessun costo')+(x.disciplina?(' \u00b7 '+x.disciplina):'');
@@ -2896,11 +2921,24 @@
                 copie_offerte:t.copie_offerte||[],copie_max:t.copie_max,
                 costo_base:t.costo_base,costo_per_copia:t.costo_per_copia,
                 ok:!!t.disponibile,no:t.motivo_no});
-            } else {
+            } else if(t.chiave){
               azPri.push({fonte:'diversivo', id:t.id,direzione:t.chiave,
                 nome:(t.tecnica?String(t.tecnica)+' · ':'')+t.nome,
                 det:(t.chakra?(t.chakra+' chakra'):'nessun costo')+' · attiva le copie · distanza finale '+t.distanza_dopo+' m'+azFasciaDopoTxt(t),
                 chakra:+(t.chakra||0),portata:null,ok:!!t.disponibile,no:t.motivo_no});
+            } else {
+              /* [083-A1] Il payload non porta ne' `modalita_offerte` ne'
+                 `chiave`: non c'e' niente da giocare. Prima di questa riga
+                 la voce nasceva lo stesso, con direzione vuota, e finiva
+                 nell'elenco chiamandosi come la tecnica: il candidato la
+                 sceglieva, il server rifiutava, e in pannello «Diversivo»
+                 non compariva da nessuna parte. Adesso la voce c'e' ed e'
+                 spenta, con scritto il motivo: un pannello disallineato dal
+                 server lo deve DIRE. */
+              azPri.push({fonte:'diversivo', id:t.id,direzione:'',
+                nome:(t.tecnica?String(t.tecnica):'Moltiplicazione del corpo'),
+                det:'', chakra:0, portata:null, ok:false,
+                no:'questa pagina e\u2019 piu\u2019 vecchia del server: ricarica con Ctrl+F5 o chiedi il land.html aggiornato'});
             }
           });
           /* [044-B1] Le modalita arrivano dal server. Il browser le presenta,
@@ -3055,6 +3093,12 @@
           /* Guardia ritirata: nessun riquadro rapido, nemmeno come fallback se
              un payload vecchio contenesse ancora la lista delle rapide. */
         }
+        /* [083-A1] IL MARCATORE. Questo giro e' costato un pomeriggio a
+           una domanda senza risposta: «quale land.html e' caricato?».
+           Da qui in poi la risposta e' scritta in fondo al pannello, e si
+           legge senza aprire il sorgente. Non e' decorazione: e' la sola
+           cosa che distingue un difetto da un file vecchio. */
+        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-083-A1"+'</p>';
         b.innerHTML=h;
         azNarrSync();
       }
