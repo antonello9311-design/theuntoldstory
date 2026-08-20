@@ -2626,8 +2626,10 @@
         if(azSrc==='esame'){
           if(!ES_AZ) return;
           if(ES_AZ.tipo==='attacco'){
-            azBozza.principale=ES_AZ.principale?{fonte:ES_AZ.principale.fonte,id:ES_AZ.principale.id||null,direzione:ES_AZ.principale.direzione||null,modalita:null}:null;
+            azBozza.principale=ES_AZ.principale?{fonte:ES_AZ.principale.fonte,id:ES_AZ.principale.id||null,direzione:ES_AZ.principale.direzione||null,modalita:ES_AZ.principale.modalita||null}:null;
             azBozza.spostamento=(ES_AZ.spostamento!=null)?String(ES_AZ.spostamento):'0';
+            azBozza.copie=(ES_AZ.principale&&ES_AZ.principale.copie!=null)?String(ES_AZ.principale.copie):'1';
+            azBozza.originale_idx=(ES_AZ.principale&&ES_AZ.principale.originale_idx!=null)?String(ES_AZ.principale.originale_idx):'1';
           } else if(ES_AZ.tipo==='difesa'){
             azBozza.reazione={chiave:ES_AZ.reazione, id:ES_AZ.tecnica||null};
             azBozza.posizione=String(ES_AZ.posizione||0);
@@ -2886,21 +2888,28 @@
              `fascia_dopo` per la fascia (via `azFasciaDopoTxt`). Nessuna soglia
              locale, nessun ricalcolo, nessun ripiego su una tabella di questa
              pagina. */
-          (o.diversivi||[]).forEach(function(t){ azPri.push({fonte:'diversivo', id:t.id,
-            direzione:t.chiave, nome:(t.tecnica?String(t.tecnica)+' · ':'')+t.nome,
-            det:(function(){ var cpc=(t.costo_per_copia!=null)?+t.costo_per_copia:(t.chakra!=null?+t.chakra:null);
-                             return (cpc?(cpc+' chakra a copia'):'nessun costo')+' · attiva le copie · distanza finale '+t.distanza_dopo+' m'+azFasciaDopoTxt(t); })(),
-            chakra:+(t.chakra||0), portata:null,
-            copie_offerte:(t.copie_offerte&&t.copie_offerte.length)?t.copie_offerte:null,
-            copie_max:(t.copie_max!=null?t.copie_max:null),
-            costo_per_copia:(t.costo_per_copia!=null?t.costo_per_copia:null),
-            ok:!!t.disponibile, no:t.motivo_no}); });
+          (o.diversivi||[]).forEach(function(t){
+            if(t.modalita_offerte&&t.modalita_offerte.length){
+              azPri.push({fonte:'moltiplicazione',id:t.id,nome:t.tecnica||t.nome||'Moltiplicazione del corpo',
+                det:'scegli poi Diversivo, Copertura o Assalto',chakra:+(t.costo_base||0),portata:null,
+                modalita_offerte:t.modalita_offerte,direzioni_offerte:t.direzioni_offerte||[],
+                copie_offerte:t.copie_offerte||[],copie_max:t.copie_max,
+                costo_base:t.costo_base,costo_per_copia:t.costo_per_copia,
+                ok:!!t.disponibile,no:t.motivo_no});
+            } else {
+              azPri.push({fonte:'diversivo', id:t.id,direzione:t.chiave,
+                nome:(t.tecnica?String(t.tecnica)+' · ':'')+t.nome,
+                det:(t.chakra?(t.chakra+' chakra'):'nessun costo')+' · attiva le copie · distanza finale '+t.distanza_dopo+' m'+azFasciaDopoTxt(t),
+                chakra:+(t.chakra||0),portata:null,ok:!!t.disponibile,no:t.motivo_no});
+            }
+          });
           /* [044-B1] Le modalita arrivano dal server. Il browser le presenta,
              non ne calcola costo, bonus o risultato. Una sola voce tecnica e'
              sufficiente: direzione e distanza del vecchio Diversivo non vengono
              riciclate per la formazione strutturata. */
           var fmSeen={};
           (o.diversivi||[]).forEach(function(t){ (t.modalita_offerte||[]).forEach(function(m){
+            if((t.modalita_offerte||[]).indexOf('diversivo')>=0) return;
             if(m!=='copertura'&&m!=='assalto') return; var key=String(t.id||'')+'|'+m; if(fmSeen[key]) return; fmSeen[key]=true;
             azPri.push({fonte:'formazione',id:t.id,modalita:m,direzione:m,
               nome:(t.tecnica||'Moltiplicazione')+' · '+(m==='assalto'?'Assalto':'Copertura'),
@@ -2937,36 +2946,83 @@
             h+=azOpz('azp', x.k, x.nome, azDet(x), ok, x.no, scelto&&ok);
           });
           h+='</div>';
+          var mol=(azBozza.principale&&azBozza.principale.fonte==='moltiplicazione')
+                  ?azTrova('moltiplicazione|'+(azBozza.principale.id||'')+'|'):null;
+          if(mol){
+            h+='<div class="az-sec"><div class="az-k">Come usi Moltiplicazione</div><div class="az-list">';
+            (mol.modalita_offerte||[]).forEach(function(m){
+              var lab=m==='diversivo'?'Diversivo':(m==='copertura'?'Copertura':'Assalto');
+              var det=m==='diversivo'?'le copie coprono uno spostamento e restano fino all’azione successiva':
+                      (m==='copertura'?'prepara le copie e passa l’iniziativa':'accompagna subito un colpo fisico, senza Slancio');
+              h+=azOpz('azmodalita',m,lab,det,true,'',azBozza.principale.modalita===m);
+            });
+            h+='</div></div>';
+            if(azBozza.principale.modalita==='diversivo'){
+              h+='<div class="az-sec"><div class="az-k">Direzione del Diversivo</div><div class="az-list">';
+              (mol.direzioni_offerte||[]).forEach(function(d){
+                h+=azOpz('azdirezione',d.chiave,d.nome,'distanza finale '+d.distanza_dopo+' m',!!d.disponibile,d.motivo_no,azBozza.principale.direzione===d.chiave);
+              });
+              h+='</div></div>';
+            }
+          }
           if(vis.length>300) h+='<p class="az-d">Mostrate le prime 300 di '+vis.length+': scrivi qualche lettera per restringere.</p>';
           h+='</div>';
-          /* [COMBAT-040-042-R2] Quante copie. Sceglie il giocatore, ma soltanto
-             fra i valori che il server ha gia' offerto in `copie_offerte`. Il
-             pannello NON calcola il tetto (`copie_max` lo scrive, non lo deduce),
-             NON moltiplica il costo (mostra il costo di una copia cosi' com'e'),
-             NON nomina il bonus difensivo. Se il server non manda l'elenco il
-             riquadro non esiste e nessun numero parte: il server assume 1, cioe'
-             il comportamento di oggi, con la migrazione non ancora applicata. */
-          var dv=(azBozza.principale&&(azBozza.principale.fonte==='diversivo'||azBozza.principale.fonte==='formazione'))
+          /* [079] Le copie restano un elenco chiuso del server. Se l'elenco ha
+             una sola voce non chiediamo una scelta finta: la selezioniamo e
+             mostriamo una sola volta il costo TOTALE. Con piu' voci, ciascuna
+             mostra il proprio totale; mai «base 10» e «5 per copia» come se
+             fossero due prezzi alternativi della stessa tecnica. */
+          var dv=(azBozza.principale&&(azBozza.principale.fonte==='diversivo'||azBozza.principale.fonte==='formazione'||azBozza.principale.fonte==='moltiplicazione'))
                  ? azTrova(azBozza.principale.fonte+'|'+(azBozza.principale.id||'')+'|'+(azBozza.principale.direzione||azBozza.principale.modalita||'')) : null;
+          if(!dv&&azBozza.principale&&azBozza.principale.fonte==='moltiplicazione') dv=mol;
           var cof=(dv&&dv.copie_offerte&&dv.copie_offerte.length)?dv.copie_offerte:null;
           if(cof){
             var cscelte=cof.map(function(n){ return String(parseInt(n,10)); });
             /* fuori elenco si torna al default del contratto: una copia */
             if(cscelte.indexOf(String(azBozza.copie||'1'))<0) azBozza.copie=cscelte[0]||'1';
-            h+='<div class="az-sec"><div class="az-k">Quante copie</div><div class="az-list" id="az-copie">';
-            cof.forEach(function(n){ var q=parseInt(n,10); if(!(q>0)) return;
-              h+=azOpz('azcopie', String(q), (q===1?'Una copia':(q+' copie')),
-                       ((dv.costo_base!=null?('base '+dv.costo_base+' + '):'')+(dv.costo_per_copia!=null?(dv.costo_per_copia+' per copia'):'costo deciso dal server')),
-                       true, '', String(q)===String(azBozza.copie||'1'));
-            });
-            h+='</div><p class="az-d" style="margin:0">Il tetto, il costo e il bonus li decide il server: qui si sceglie soltanto fra le copie che ha offerto'+((dv.copie_max!=null)?(' \u00b7 massimo '+dv.copie_max):'')+'.</p></div>';
+            var costoTot=function(q){
+              return (dv.costo_base!=null&&dv.costo_per_copia!=null)
+                ?(+dv.costo_base+(+dv.costo_per_copia*q)) : null; };
+            if(cof.length===1){
+              var unica=parseInt(cof[0],10), cu=costoTot(unica);
+              h+='<div class="az-sec"><div class="az-k">Copie</div><p class="az-d" style="margin:0">'+
+                 (unica===1?'1 copia disponibile':(unica+' copie disponibili'))+
+                 (cu!=null?(' \u00b7 costo totale '+cu+' chakra'):' \u00b7 costo deciso dal server')+
+                 '</p></div>';
+            } else {
+              h+='<div class="az-sec"><div class="az-k">Quante copie</div><div class="az-list" id="az-copie">';
+              cof.forEach(function(n){ var q=parseInt(n,10); if(!(q>0)) return; var ct=costoTot(q);
+                h+=azOpz('azcopie', String(q), (q===1?'Una copia':(q+' copie')),
+                         ct!=null?('costo totale '+ct+' chakra'):'costo deciso dal server',
+                         true, '', String(q)===String(azBozza.copie||'1'));
+              });
+              h+='</div><p class="az-d" style="margin:0">Scegli soltanto fra i numeri offerti dal server'+((dv.copie_max!=null)?(' \u00b7 massimo '+dv.copie_max):'')+'.</p></div>';
+            }
+          }
+          /* [079] Nell'Assalto il giocatore indica privatamente quale delle
+             figure e' il corpo reale. Un solo selettore numerico, da 1 al
+             totale originale + copie: niente due schede «Figura 1/Figura 2»
+             prive di un riferimento utile. */
+          if(mol&&azBozza.principale&&azBozza.principale.modalita==='assalto'){
+            var ncMol=parseInt(azBozza.copie,10); if(!(ncMol>0)) ncMol=1;
+            var totMol=ncMol+1, oriMol=parseInt(azBozza.originale_idx,10);
+            if(!(oriMol>=1&&oriMol<=totMol)){ oriMol=1; azBozza.originale_idx='1'; }
+            h+='<div class="az-sec"><label class="az-k" for="az-originale-mol">Seleziona quale è l’originale</label>'+
+               '<select class="az-find" id="az-originale-mol" name="azoriginale">';
+            for(var om=1;om<=totMol;om++) h+='<option value="'+om+'"'+(om===oriMol?' selected':'')+'>'+om+'</option>';
+            h+='</select><p class="az-d" style="margin:0">Scelta privata: il numero identifica il corpo reale fra '+totMol+' figure complessive.</p></div>';
           }
           if(dv&&azBozza.principale&&azBozza.principale.fonte==='formazione'){
             azFigureSync();
-            h+='<div class="az-sec"><div class="az-k">Formazione entro 5 metri</div><div class="az-list">';
+            var totFig=(azBozza.figure||[]).length, oiFig=parseInt(azBozza.originale_idx,10);
+            if(!(oiFig>=1&&oiFig<=totFig)){ oiFig=1; azBozza.originale_idx='1'; }
+            h+='<div class="az-sec"><label class="az-k" for="az-originale-form">Seleziona quale è l’originale</label>'+
+               '<select class="az-find" id="az-originale-form" name="azoriginale">';
+            for(var of=1;of<=totFig;of++) h+='<option value="'+of+'"'+(of===oiFig?' selected':'')+'>'+of+'</option>';
+            h+='</select><p class="az-d" style="margin:0">Scelta privata, sigillata dal server.</p>'+
+               '<div class="az-k" style="margin-top:10px">Formazione entro 5 metri</div><div class="az-list">';
             (azBozza.figure||[]).forEach(function(x){
-              h+='<label class="az-opt"><input type="radio" name="azoriginale" value="'+x.idx+'"'+(String(azBozza.originale_idx)===String(x.idx)?' checked':'')+'><span><span class="az-n">'+esc(x.etichetta)+' è l’originale</span><span class="az-d">scelta privata, sigillata dal server</span></span></label>'+
-                 '<label class="az-mv"><span class="az-d">Posizione figura '+x.idx+'</span><input type="number" name="azfigpos" data-idx="'+x.idx+'" min="0" max="60" step="1" value="'+esc(String(x.posizione_m))+'"></label>';
+              h+='<label class="az-mv"><span class="az-d">Posizione figura '+x.idx+'</span><input type="number" name="azfigpos" data-idx="'+x.idx+'" min="0" max="60" step="1" value="'+esc(String(x.posizione_m))+'"></label>';
             });
             h+='</div><p class="az-d" style="margin:0">Tutte le figure devono restare in una finestra di 5 metri. Se una copia viene descritta o mossa oltre il limite, il server la fa svanire.</p></div>';
           }
@@ -3058,6 +3114,25 @@
               a.principale.copie=parseInt(nc,10);
             }
           }
+          if(a.principale.fonte==='moltiplicazione'){
+            var msel=azTrova('moltiplicazione|'+(azBozza.principale.id||'')+'|');
+            var mm=azBozza.principale.modalita;
+            if(!msel||(msel.modalita_offerte||[]).indexOf(mm)<0){ azErr('Scegli Diversivo, Copertura oppure Assalto.'); return; }
+            if(mm==='diversivo'){
+              var dirs=(msel.direzioni_offerte||[]).map(function(x){return x.chiave;});
+              if(dirs.indexOf(azBozza.principale.direzione)<0){ azErr('Scegli la direzione del Diversivo.'); return; }
+              a.principale.direzione=azBozza.principale.direzione;
+            }
+            var mn=String(azBozza.copie==null?'1':azBozza.copie).trim();
+            if(!/^[0-9]{1,2}$/.test(mn)||(msel.copie_offerte||[]).map(Number).indexOf(+mn)<0){ azErr('Quel numero di copie non è fra quelli offerti dal server.'); return; }
+            a.principale.id=azBozza.principale.id; a.principale.modalita=mm; a.principale.copie=+mn;
+            if(mm==='assalto'){
+              var om=parseInt(azBozza.originale_idx,10), tm=(+mn)+1;
+              if(!(om>=1&&om<=tm)){ azErr('Seleziona quale numero identifica l’originale.'); return; }
+              a.principale.originale_idx=om;
+            }
+            azBozza.spostamento='0';
+          }
           if(a.principale.fonte==='formazione'){
             if(azBozza.principale.modalita!=='copertura'&&azBozza.principale.modalita!=='assalto'){ azErr('Scegli Copertura oppure Assalto.'); return; }
             var fsel=azTrova('formazione|'+(azBozza.principale.id||'')+'|'+azBozza.principale.modalita);
@@ -3133,6 +3208,8 @@
         body.addEventListener('change', function(e){
           var t=e.target; if(!t||!azBozza) return;
           if(t.name==='azp'){ var v=(t.value||'').split('|'); azBozza.principale={fonte:v[0], id:v[1]||null, direzione:v[2]||null, modalita:v[0]==='formazione'?(v[2]||null):null}; azBozza.manovra=null; azBozza.copie='1'; azBozza.figure=[]; azBozza.originale_idx='1'; azBozza.bersaglio_figura=null; azErr(''); azRender(); }
+          else if(t.name==='azmodalita'){ azBozza.principale.modalita=t.value||null; azBozza.principale.direzione=null; azErr(''); azRender(); }
+          else if(t.name==='azdirezione'){ azBozza.principale.direzione=t.value||null; azErr(''); azRender(); }
           else if(t.name==='azcopie'){ azBozza.copie=t.value||'1'; azFigureSync(); azErr(''); azRender(); }
           else if(t.name==='azoriginale'){ azBozza.originale_idx=t.value||'1'; azErr(''); }
           else if(t.name==='azfigura'){ azBozza.figura=t.value||null; azErr(''); }
@@ -4035,6 +4112,12 @@
           out={tipo:'attacco', principale:{fonte:(a.principale&&a.principale.fonte)||null}};
           if(a.principale&&a.principale.id) out.principale.id=a.principale.id;
           if(a.principale&&a.principale.fonte==='diversivo'&&a.principale.direzione) out.principale.direzione=a.principale.direzione;
+          if(a.principale&&a.principale.fonte==='moltiplicazione'){
+            out.principale.modalita=a.principale.modalita;
+            out.principale.copie=a.principale.copie;
+            if(a.principale.modalita==='assalto') out.principale.originale_idx=a.principale.originale_idx;
+            if(a.principale.modalita==='diversivo') out.principale.direzione=a.principale.direzione;
+          }
           if(a.spostamento!=null&&Number(a.spostamento)!==0) out.spostamento=a.spostamento;
         } else { return null; }
         if(a.tipo==='manovra') return out;
