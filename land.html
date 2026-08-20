@@ -2602,15 +2602,39 @@
       function azErr(m){ var e=azEl('az-err'); if(!e) return;
         if(m){ e.textContent=m; e.hidden=false; } else { e.textContent=''; e.hidden=true; } }
       function azChiudi(){ var o=azEl('az-ov'); if(o) o.hidden=true; azErr(''); azSrc='scontro'; }
-      function syncAzPill(){ var on=!!CMB_AZ;
-        ['az-pill','az-pill-ed'].forEach(function(id){ var e=azEl(id); if(e) e.hidden=!on; }); }
+      /* [071-A · FLUSSO UI §4] La pastiglia c'era gia' per lo Scontro e
+         diceva sempre la stessa cosa. Ora, nella prova, dice QUALE mossa e'
+         pronta — «+5 m \u00b7 Colpo a mani nude» — perche' un riepilogo che non
+         riepiloga niente non e' un riepilogo. Cliccarla riapre il pannello:
+         e' la via per modificare, e c'era gia'. */
+      function syncAzPill(){ var on=!!CMB_AZ||!!ES_AZ;
+        var txt=ES_AZ?('\u2694 '+(ES_AZ_ETI||'Mossa pronta')):'\u2694 Azione pronta';
+        var tit=ES_AZ?'Mossa preparata: clic per modificarla. Parte con il prossimo messaggio della chat.'
+                     :'Hai un\u2019azione composta: parte insieme a questo messaggio';
+        ['az-pill','az-pill-ed'].forEach(function(id){ var e=azEl(id);
+          if(e){ e.hidden=!on; e.textContent=txt; e.title=tit; } }); }
       function azBozzaInit(){
         /* [COMBAT-040-042-R2] `copie` nasce a '1': e' il default scritto nel
            contratto congelato (§5.2). Se il campo non parte, il server assume 1
            lo stesso: il browser non decide, ripete. */
         azBozza={principale:null, manovra:null, spostamento:'0', reazione:null, posizione:'0', testo:'', copie:'1', originale_idx:'1', figure:[], figura:null, bersaglio_figura:null};
-        /* nella prova non c'e' nessuna azione in memoria da riaprire: parte pulita */
-        if(azSrc==='esame'||!CMB_AZ) return;
+        /* [071-A · FLUSSO UI §4] Prima, nella prova, il pannello ripartiva
+           sempre vuoto: non c'era niente da riaprire perche' l'azione o era
+           gia' partita o non era mai esistita. Ora esiste e non e' partita,
+           quindi riaprendo si ritrova — altrimenti «modificabile» sarebbe
+           una parola scritta in un documento e basta. */
+        if(azSrc==='esame'){
+          if(!ES_AZ) return;
+          if(ES_AZ.tipo==='attacco'){
+            azBozza.principale=ES_AZ.principale?{fonte:ES_AZ.principale.fonte,id:ES_AZ.principale.id||null,direzione:ES_AZ.principale.direzione||null,modalita:null}:null;
+            azBozza.spostamento=(ES_AZ.spostamento!=null)?String(ES_AZ.spostamento):'0';
+          } else if(ES_AZ.tipo==='difesa'){
+            azBozza.reazione={chiave:ES_AZ.reazione, id:ES_AZ.tecnica||null};
+            azBozza.posizione=String(ES_AZ.posizione||0);
+          } else if(ES_AZ.tipo==='manovra'){ azBozza.manovra=ES_AZ.manovra; }
+          return;
+        }
+        if(!CMB_AZ) return;
         if(CMB_AZ.tipo==='attacco'){
           azBozza.principale=CMB_AZ.principale?{fonte:CMB_AZ.principale.fonte,id:CMB_AZ.principale.id||null,direzione:CMB_AZ.principale.direzione||null,modalita:CMB_AZ.principale.modalita||null}:null;
           azBozza.spostamento=(CMB_AZ.spostamento!=null)?String(CMB_AZ.spostamento):'0';
@@ -2626,6 +2650,9 @@
       }
       function azApri(){
         azSrc='scontro';
+        /* [071-A] il pannello e' lo stesso per due sorgenti: l'etichetta del
+           pulsante torna quella dello Scontro, o resterebbe quella dell'Esame. */
+        var _fa2=azEl('az-applica'); if(_fa2) _fa2.textContent='Applica';
         if(!sb||!CMB||!CMB.aperto){ toast('Qui non c\u2019\u00e8 nessuno scontro aperto'); return; }
         sb.rpc('combat_opzioni',{p_session:CMB.id}).then(function(r){
           if(r&&r.error){ toast(r.error.message||'Non si pu\u00f2 comporre adesso'); return; }
@@ -2681,6 +2708,15 @@
            vocabolario suo. */
         if(azSrc==='esame'){ var esf=fasciaTesto(CMB_OPZ&&CMB_OPZ.fascia); esf=esf?(' · '+esf):'';
         /* ===== [COMBAT-050-R3 · VIA-NUOVA FINE] ===== */
+          /* [071-A · BLOCKER AZIONE] Con un passo dichiarato si mostra il
+             risultato di quella dichiarazione, altrimenti lo sblocco di K6
+             sembrerebbe magia. Non si proietta nessuna FASCIA: quella la
+             manda il server, e inventarla qui vorrebbe dire calcolare al
+             posto suo. I metri, invece, sono l'aritmetica della scelta che
+             il candidato ha appena fatto. */
+          var esm=azMov();
+          if(mv.disponibile && esm!==0)
+            return 'Dopo il passo dichiarato: '+azDistFin()+' m (hai indicato '+(esm>0?'+':'')+esm+' m). Lo applica e lo verifica il server.';
           return mv.disponibile ? ('Distanza: '+d+' m'+esf+'. Lo spostamento lo calcola il server.')
                                 : ('Distanza: '+d+' m'+esf+'. '+(mv.motivo_no||'Nessuno spostamento in questo scambio.')); }
         if(!mv.disponibile) return 'Distanza: '+d+' m · '+azFascia(d)+'. '+(mv.motivo_no||'Nessuno spostamento in questo turno.');
@@ -2702,7 +2738,32 @@
         return azCk(x); }
       /* Nella prova vale solo cio' che il server ha marcato disponibile: nessuna
          riga si sblocca per un conto fatto qui. */
-      function azOkOra(x){ if(azSrc==='esame') return !!x.ok; return !!x.ok || (azSoloGittata(x) && azDistFin()<=x.portata); }
+      /* [071-A · BLOCKER AZIONE] Le DUE frasi con cui il server rifiuta per
+         gittata nella prova, lette in `_esame_prova_opzioni` e non dedotte:
+             colpo  \u00ab a 5 metri non lo raggiungi: serve il contatto \u00bb
+             jutsu  \u00ab a 5 metri non arriva: copre 2 \u00bb
+         Cominciano tutte e due con \u00ab a N metri non \u00bb. Ogni ALTRO rifiuto resta
+         dov'e': \u00ab hai gi\u00e0 speso l'azione principale \u00bb, \u00ab servono N chakra \u00bb e
+         soprattutto \u00ab In questa prova non ancora: prima il passo e il colpo \u00bb,
+         che e' il contratto dell'Esame e non cede a uno spostamento.
+         Se il server cambiasse quelle parole, qui si resta BLOCCATI: e' la
+         direzione giusta in cui sbagliare, e il controllo statico S-BLK la
+         confronta con la funzione viva perche' non cambi in silenzio. */
+      var ES_GITTATA=/^a\s+\d+\s+metri non\s/i;
+      function esGittataSola(x){
+        if(!x || x.ok) return false;
+        if(typeof x.portata!=='number') return false;
+        if(!x.no || !ES_GITTATA.test(String(x.no))) return false;
+        if(!(azDistOra()>x.portata)) return false;
+        /* e serve un avvicinamento davvero dichiarato e davvero offerto:
+           senza passo non si sblocca niente, e allontanarsi non avvicina. */
+        var mv=(CMB_OPZ&&CMB_OPZ.spostamento)||{};
+        if(!mv.disponibile) return false;
+        if(!(azMov()>0)) return false;
+        return azCk(x); }
+      function azOkOra(x){
+        if(azSrc==='esame') return !!x.ok || (esGittataSola(x) && azDistFin()<=x.portata);
+        return !!x.ok || (azSoloGittata(x) && azDistFin()<=x.portata); }
       function azDet(x){ return x.det+((!x.ok&&azOkOra(x))?' · raggiungibile dopo lo spostamento':''); }
       function azTrova(k){ for(var i=0;i<azPri.length;i++){ if(azPri[i].k===k) return azPri[i]; } return null; }
       function azPosMia(){ var p=(CMB&&CMB.partecipanti||[]).filter(function(x){return x.io;})[0]; return p&&Number.isFinite(+p.pos)?+p.pos:0; }
@@ -2757,11 +2818,10 @@
            nella barra della chat e `combat_azione` li porta già insieme.
            Il contatore è visibile e non c'è nessun `maxlength`: il tetto lo
            tiene una guardia sola, quella dell'invio, e si vede mentre si scrive. */
-        if(azSrc==='esame'){
-          h+='<div class="az-sec az-narr"><div class="az-k">Il tuo turno</div>'+
-             '<textarea id="az-narr" placeholder="Racconta la tua azione: parte insieme alla mossa, in una sola chiamata\u2026">'+esc(azBozza.testo||'')+'</textarea>'+
-             '<p class="az-d az-narr-c" id="az-narr-c"></p></div>';
-        }
+        /* [071-A · FLUSSO UI §2] Qui c'era la casella per raccontare il
+           turno. Non serve e duplicava la chat: la descrizione si scrive
+           nel campo di sempre, e da li' parte insieme alla meccanica. Il
+           pannello sceglie mossa e azione, e nient'altro. */
         if(o.fase==='difesa'){
           h+='<div class="az-sec"><div class="az-k">La tua reazione</div><div class="az-list">';
           (o.reazioni||[]).forEach(function(x){
@@ -3046,7 +3106,15 @@
              non viene controllato qui — la porta è una sola e la guardia sta là,
              perché due guardie sullo stesso caso sono una rete che non si può
              più provare. */
-          azErr(''); esInvia(AZ, (azBozza&&azBozza.testo)||''); return; }
+          /* [071-A · FLUSSO UI §3] QUI stava il secondo difetto del
+             playtest: la conferma del pannello inviava. Ora prepara e
+             basta — nessuna chiamata, nessun turno consumato — e la mossa
+             resta in mano al giocatore finche' non scrive in chat.
+             `esInvia` non sparisce: e' la porta, e la usa `send()`. */
+          ES_AZ=AZ; ES_AZ_ETI=esAzEtichetta();
+          azErr(''); azChiudi(); syncAzPill(); renderEsame();
+          toast('Mossa pronta: parte con il tuo prossimo messaggio in chat');
+          return; }
         CMB_AZ=AZ;
         azErr(''); azChiudi(); syncAzPill(); renderCombat();
         toast('Azione pronta: parte insieme al prossimo messaggio');
@@ -3079,15 +3147,23 @@
         b=azEl('az-chiudi');  if(b) b.addEventListener('click', azChiudi);
         b=azEl('az-applica'); if(b) b.addEventListener('click', azApplica);
         b=azEl('az-annulla'); if(b) b.addEventListener('click', function(){
-          /* nella prova non c'e' niente da annullare: l'azione o e' partita o non
-             e' mai esistita. Qui il tasto chiude e basta. */
-          if(azSrc==='esame'){ azChiudi(); return; }
+          /* [071-A · FLUSSO UI §4] Adesso c'e' eccome qualcosa da annullare:
+             la mossa preparata e non ancora inviata. Il tasto la toglie,
+             spegne la pastiglia e lascia la chat esattamente com'era. */
+          if(azSrc==='esame'){
+            ES_AZ=null; ES_AZ_ETI='';
+            azBozzaInit(); azRender(); syncAzPill(); renderEsame(); azChiudi();
+            toast('Mossa annullata'); return; }
           CMB_AZ=null; azBozzaInit(); azRender(); syncAzPill(); renderCombat(); azChiudi();
           toast('Azione annullata'); });
         document.addEventListener('keydown', function(e){
           if(e.key==='Escape'&&!ov.hidden){ e.preventDefault(); azChiudi(); } });
         ['az-pill','az-pill-ed'].forEach(function(id){ var e=azEl(id);
-          if(e) e.addEventListener('click', function(){ azApri(); }); });
+          if(e) e.addEventListener('click', function(){
+            /* [071-A · FLUSSO UI §4] Due sorgenti, due aperture. `azApri()`
+               chiede le opzioni allo Scontro e senza sessione aperta si
+               ferma: sulla prova non riaprirebbe mai niente. */
+            if(ES_AZ && esScontroVivo()) esComponi(); else azApri(); }); });
       })();
       (function(){ var host=document.getElementById('cmb-body'); if(!host) return;
         host.addEventListener('click', function(e){
@@ -3593,6 +3669,25 @@
             mostra come l'ha scritta, e la dipendenza sta in HANDOFF.md come
             lavoro di DB-CORE. Aggirarla qui vorrebbe dire nasconderla. */
       var ES_AP={sess:null, chiesta:false, inVolo:false, rifiuto:''};
+      /* [071-A · FLUSSO UI] La mossa scelta nel pannello e NON ancora
+         inviata. Vive qui, in locale, esattamente come `CMB_AZ` vive per
+         lo Scontro: nessuna chiamata al server la accompagna, e finche'
+         resta qui il turno non e' consumato.
+         L'ETICHETTA sta in una variabile SEPARATA di proposito: `ES_AZ` e'
+         il payload che attraversa la porta, e il vocabolario di quella
+         porta e' chiuso (`esNormalizza`). Un nome leggibile infilato li'
+         dentro sarebbe una chiave in piu' che il server non ha chiesto. */
+      var ES_AZ=null, ES_AZ_ETI='';
+      function esAzEtichetta(){
+        var v=[], m=azMov();
+        if(m) v.push((m>0?'+':'')+m+' m');
+        if(azBozza&&azBozza.manovra) v.push('avvicinamento');
+        else if(azBozza&&azBozza.principale){
+          var k=azBozza.principale.fonte+'|'+(azBozza.principale.id||'')+'|'+(azBozza.principale.direzione||'');
+          var x=azTrova(k); v.push((x&&x.nome)||'azione');
+        } else if(azBozza&&azBozza.reazione){
+          v.push(azBozza.reazione.nome||azBozza.reazione.chiave||'reazione'); }
+        return v.join(' \u00b7 '); }
       function esAperturaReset(){ ES_AP={sess:null, chiesta:false, inVolo:false, rifiuto:''}; }
       function esGateReset(){ ES_GATE={chiesto:false, aperto:false, inVolo:false, luogo:null}; }
       function esGatePubblico(){ return !!ES_GATE.aperto; }
@@ -3653,6 +3748,9 @@
            stanza non vale in questa, e un rifiuto di ieri non e' il
            rifiuto di oggi. */
         esAperturaReset();
+        /* [071-A] e con lei la mossa preparata: una meccanica scelta in
+           un'altra stanza non vale in questa. */
+        ES_AZ=null; ES_AZ_ETI=''; syncAzPill();
         var c=esEl('esm-card'); if(c) c.hidden=true; }
       /* La sessione d'esame non se la inventa il browser: o la conosce già
          l'Accademia, o è quella che `esame_avvia` ha appena restituito. Se la
@@ -3898,10 +3996,11 @@
       function esComponi(){
         var o=esOpz(); if(!o){ toast('La prova non è pronta'); return; }
         azSrc='esame'; CMB_OPZ=o; azFiltro=''; azBozzaInit();
-        /* Il turno già scritto nella barra della chat non si perde e non si
-           duplica: entra nel compositore, dove diventa il testo che parte
-           con l'azione. */
-        if(input&&input.value) azBozza.testo=String(input.value).replace(/\s+$/,'');
+        /* [071-A · FLUSSO UI §7] Il testo della chat NON entra piu' qui, e
+           non viene toccato: resta dov'e' mentre si sceglie la mossa, e
+           aprire o chiudere questo pannello non lo sfiora. Prima veniva
+           importato nella textarea — che adesso non esiste piu'. */
+        var _fa=azEl('az-applica'); if(_fa) _fa.textContent='Conferma selezione';
         azErr(''); azRender();
         var ov=azEl('az-ov'); if(ov) ov.hidden=false;
         var f=azEl('az-cerca'); if(f) setTimeout(function(){ try{ f.focus(); }catch(e){} },40);
@@ -3990,6 +4089,11 @@
              stesso testo — se il candidato nel frattempo ha scritto altro,
              quello che ha scritto non si cancella. */
           if(azBozza) azBozza.testo='';
+          /* [071-A · FLUSSO UI] La mossa e' stata consumata: la pastiglia
+             accanto alla chat si spegne qui, nel ramo di successo e in
+             nessun altro. Su rifiuto resta preparata, e il candidato puo'
+             correggere invece di ricominciare. */
+          ES_AZ=null; ES_AZ_ETI=''; syncAzPill();
           if(input&&String(input.value).replace(/\s+$/,'')===txt){ input.value=''; updCount(); }
           azChiudi(); renderEsame(); loadMsgs();
           /* La risposta della manovra chiude la metà: si rilegge subito lo stato
@@ -4065,7 +4169,7 @@
           /* ===== [COMBAT-050-R3 · VIA-NUOVA FINE] ===== */
           if(d.narrazione_attesa===true) h+='<p class="esm-attesa">L’avversario sta scrivendo…</p>';
           if(p.tuo_turno){
-            h+='<button class="esm-btn" id="esm-componi" type="button">'+((p.fase==='difesa')?'Come ti difendi':'Componi l’azione')+'</button>';
+            h+='<button class="esm-btn" id="esm-componi" type="button">'+((p.fase==='difesa')?'Scegli la reazione':'Scegli mossa e azione')+'</button>';
           } else {
             h+='<p class="esm-hint">'+((p.fase==='difesa')?'Aspetta: tocca all’avversario difendersi.':'Aspetta il tuo turno.')+'</p>';
           }
@@ -4145,6 +4249,13 @@
         var to=toSel?toSel.value:'';
         var placeEl=document.getElementById('msg-place'); var place=placeEl?placeEl.value.trim().replace(/[【】]/g,'').slice(0,60):'';
         var pbody=(place && !to)?('【'+place+'】 '+t):t;
+        /* [071-A · FLUSSO UI §6] Se c'e' una mossa preparata e una prova
+           viva, questo pulsante manda testo e meccanica INSIEME passando
+           dalla porta di sempre: una chiamata sola, le stesse guardie, e
+           nessun secondo modo di consumare il turno.
+           Il testo non si perde: `esInvia` svuota la barra della chat solo
+           a invio riuscito, e solo se e' ancora esattamente quello mandato. */
+        if(!to && ES_AZ && esScontroVivo()){ esInvia(ES_AZ, pbody); return; }
         sendBtn.disabled=true;
         var prm={p_location:cur.id,p_body:pbody};
         if(!to && pTxt && myComp){ prm.p_companion=myComp.id; prm.p_companion_body=pTxt; }
