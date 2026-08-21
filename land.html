@@ -3594,6 +3594,48 @@
         var st=+(s.step||0), tot=+(s.total_steps||0);
         return tot>0 && st>0 && st===tot-1;
       }
+      /* [046-A7bis] IL COMANDO INIZIALE, e il motivo per cui sta QUI.
+         Nelle arene d'esame il riquadro della lezione NON si disegna:
+         `renderAcadClass` esce subito su `cur.is_exam_room`. E' una decisione
+         del 069 ed e' giusta — «l'Esame non e' una lezione»: niente roster,
+         niente «passo X/Y», niente «Avanti»/«Stop».
+         Ma insieme alla scaletta era sparito anche l'UNICO comando che porta
+         `enrolling` -> `entry`, e senza quello l'Esame non comincia: il 21/08
+         la sessione 5b4b3a95 e' rimasta ferma in iscrizione senza un solo
+         pulsante da premere in tutta la pagina.
+         Qui la scaletta NON torna: torna un pulsante solo, quello, e nel
+         riquadro che l'Esame ce l'ha gia'. Chiama `academy_class_begin`, che e'
+         cosa diversa da `esame_prova_apri` e lo dice al candidato; il permesso
+         resta del server (`started_by = auth.uid()` oppure `is_staff()`).
+         Dopo `entry` non serve nessun altro pulsante: avanza il cron ogni 90
+         secondi, e l'orologio del client nelle arene resta spento come deciso. */
+      function esPuoIniziare(){
+        var s=classState;
+        return !!(s && s.active && s.session && s.state==='enrolling' && (s.started_by===myId || iAmStaff));
+      }
+      /* Il chiavistello del comando iniziale. `ES.busy` da solo non bastava, e
+         il banco l'ha mostrato (sonda X7): fra il clic e il giro dell'Accademia
+         che aggiorna `classState` passano dei secondi, e in quei secondi lo
+         stato letto e' ancora `enrolling` — un secondo clic manderebbe una
+         seconda `academy_class_begin`. Il server la regge (esce subito se lo
+         stato non e' piu' quello), ma una RPC che sappiamo inutile non si
+         manda: e' la stessa regola dei rifiuti gia' incassati.
+         Su errore il chiavistello si riapre, altrimenti un guasto di rete
+         lascerebbe il candidato senza piu' nessun modo di cominciare. */
+      var ES_INIZIO={sess:null, inVolo:false};
+      function esIniziaLezione(){
+        var s=esSess(); if(!s||!sb) return;
+        if(!esPuoIniziare()) return;
+        if(ES_INIZIO.inVolo || ES_INIZIO.sess===s) return;
+        ES_INIZIO.sess=s; ES_INIZIO.inVolo=true;
+        ES.busy=true; esSig=null; renderEsame();
+        sb.rpc('academy_class_begin',{p_session:s}).then(function(r){
+          ES.busy=false; ES_INIZIO.inVolo=false; esSig=null;
+          if(r&&r.error){ ES_INIZIO.sess=null; ES.errore=esFrase(r.error); renderEsame(); return; }
+          ES.errore=''; renderEsame(); loadAcadClass(); loadMsgs();
+        }, function(){ ES.busy=false; ES_INIZIO.inVolo=false; ES_INIZIO.sess=null;
+                       ES.errore=ES_RETE; esSig=null; renderEsame(); });
+      }
       /* [046-A7] L'attesa scritta come attesa, e non come errore. Tre stati e
          tre frasi: «non ancora cominciato», «si sta entrando» e «in corso» non
          sono la stessa cosa, e confonderle e' cio' che ha fermato il collaudo
@@ -3607,7 +3649,10 @@
         }
         if(st==='enrolling'){
           return '<p class="esm-attesa">Iscrizione aperta: l’Esame non è ancora cominciato.</p>'+
-                 '<p class="esm-hint">Il comando iniziale non è qui: sta nel riquadro <b>della lezione</b>, ed è il pulsante <b>«Inizia»</b>. Questo riquadro serve soltanto quando arriva lo scontro.</p>';
+                 (esPuoIniziare()
+                   ? '<p class="esm-hint">Questo è il <b>comando iniziale</b>, e non apre lo scontro: fa entrare in aula e avvia l’Esame. Lo scontro viene dopo, e si accende da sé.</p>'+
+                     '<button class="esm-btn" id="esm-inizia" type="button">Inizia l’Esame</button>'
+                   : '<p class="esm-hint">Sei iscritto. L’Esame comincia quando lo avvia chi l’ha aperto.</p>');
         }
         if(st==='entry'){
           return '<p class="esm-attesa">Ingresso in aula.</p>'+
@@ -4094,6 +4139,11 @@
         esSig=h; body.innerHTML=h;
         var b;
         b=esEl('esm-avvia');   if(b) b.addEventListener('click', esAvvia);
+        /* [046-A7bis] Il comando iniziale della LEZIONE, dentro il riquadro
+           dell'Esame perche' e' l'unico disegnato in un'arena. Resta distinto
+           da `esm-avvia`, che apre la sessione, e da tutto cio' che riguarda la
+           prova: tre pulsanti, tre RPC diverse, nessuna ambiguita'. */
+        b=esEl('esm-inizia');  if(b) b.addEventListener('click', esIniziaLezione);
         /* [069-R2] `esm-entra` non viene piu' disegnato: il listener sparisce
            con lui. Lasciarlo sarebbe una porta socchiusa su un pulsante che
            qualcuno potrebbe rimettere domani senza accorgersi del contratto. */
