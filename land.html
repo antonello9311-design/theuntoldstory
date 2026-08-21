@@ -2697,20 +2697,20 @@
         var mv=(CMB_OPZ&&CMB_OPZ.spostamento)||{}; if(!mv.disponibile) return 0;
         var m=parseInt((azBozza&&azBozza.spostamento)||'',10); if(isNaN(m)) m=0;
         var mx=mv.max_metri||0; if(m>mx) m=mx; if(m<-mx) m=-mx; return m; }
-      /* Nell'Esame il browser non inventa una distanza intermedia: il server
-         offre al massimo restare fermi, l'avvicinamento esatto e la ritirata
-         esatta. Gli stessi valori chiusi sono usati sia per disegnare sia per
-         validare l'invio. */
-      function esSpostamentiOfferti(){
-        var mv=(CMB_OPZ&&CMB_OPZ.spostamento)||{}, out=[0], a=mv.avvicinamento||{}, r=mv.ritirata||{};
-        if(mv.disponibile&&a.disponibile&&+(a.metri||0)>0) out.push(+(a.metri||0));
-        if(mv.disponibile&&r.disponibile&&+(r.metri||0)>0) out.push(-+(r.metri||0));
-        return out;
+      /* Nell'Esame il server decide i due limiti effettivi, ma il giocatore
+         sceglie quanti metri percorrere entro quei limiti. Positivo avvicina,
+         negativo allontana, zero significa restare fermi. */
+      function esSpostamentoValido(m){
+        var mv=(CMB_OPZ&&CMB_OPZ.spostamento)||{}, a=mv.avvicinamento||{}, r=mv.ritirata||{};
+        if(m===0) return true;
+        if(!mv.disponibile) return false;
+        if(m>0) return !!a.disponibile && m<=+(a.metri||0);
+        return !!r.disponibile && -m<=+(r.metri||0);
       }
       function esSpostamentoScelto(){
         var mv=(CMB_OPZ&&CMB_OPZ.spostamento)||{}, m=azMov(), a=mv.avvicinamento||{}, r=mv.ritirata||{};
-        if(m>0&&a.disponibile&&m===+(a.metri||0)) return a;
-        if(m<0&&r.disponibile&&-m===+(r.metri||0)) return r;
+        if(m>0&&a.disponibile&&m<=+(a.metri||0)) return {distanza_dopo:Math.max(0,azDistOra()-m)};
+        if(m<0&&r.disponibile&&-m<=+(r.metri||0)) return {distanza_dopo:Math.min(60,azDistOra()-m)};
         return null;
       }
       function azDistOra(){ var d=parseInt((CMB_OPZ&&CMB_OPZ.distanza),10); return isNaN(d)?0:d; }
@@ -2778,7 +2778,7 @@
         if(azSrc==='esame'){
           if(x.ok) return true;
           var a=(CMB_OPZ&&CMB_OPZ.spostamento&&CMB_OPZ.spostamento.avvicinamento)||{};
-          return !!x.dopoAvv && !!a.disponibile && azMov()===+(a.metri||0);
+          return !!x.dopoAvv && !!a.disponibile && azMov()>0 && azDistFin()<=x.portata;
         }
         return !!x.ok || (azSoloGittata(x) && azDistFin()<=x.portata); }
       function azDet(x){ return x.det+((!x.ok&&azOkOra(x))?' · raggiungibile dopo lo spostamento':''); }
@@ -2985,13 +2985,11 @@
           if(!azBozza.manovra){
             if(azSrc==='esame'){
               var av=mv.avvicinamento||{}, ri=mv.ritirata||{};
-              h+='<div class="az-sec"><div class="az-k">Spostamento</div><div class="az-list">'+
-                 azOpz('azspostamento','0','Resta dove sei','distanza finale '+o.distanza+' m',true,'',azMov()===0);
-              if(av.disponibile&&+(av.metri||0)>0)
-                h+=azOpz('azspostamento',String(+av.metri),'Avvicinati di '+(+av.metri)+' m','distanza finale '+av.distanza_dopo+' m',true,'',azMov()===+av.metri);
-              if(ri.disponibile&&+(ri.metri||0)>0)
-                h+=azOpz('azspostamento',String(-(+ri.metri)),'Allontanati di '+(+ri.metri)+' m','distanza finale '+ri.distanza_dopo+' m',true,'',azMov()===-(+ri.metri));
-              h+='</div><p class="az-d az-fin" id="az-dist-fin">'+esc(azDistTxt())+'</p>'+
+              var maxAv=av.disponibile?+(av.metri||0):0, maxRi=ri.disponibile?+(ri.metri||0):0;
+              h+='<div class="az-sec"><div class="az-k">Spostamento</div><div class="az-mv">'+
+                 '<input type="number" id="az-passi" step="1" min="-'+maxRi+'" max="'+maxAv+'" placeholder="± m" value="'+esc(azBozza.spostamento)+'"'+(mv.disponibile?'':' disabled')+'>'+
+                 '<span class="az-d">da -'+maxRi+' m (allontanati) a +'+maxAv+' m (avvicinati) · 0 = resti dove sei</span></div>'+ 
+                 '<p class="az-d az-fin" id="az-dist-fin">'+esc(azDistTxt())+'</p>'+
                  ((!mv.disponibile&&mv.motivo_no)?('<p class="az-d">'+esc(mv.motivo_no)+'</p>'):'')+'</div>';
             } else {
               h+='<div class="az-sec"><div class="az-k">Spostamento</div><div class="az-mv">'+
@@ -3223,7 +3221,7 @@
           if(m!==0){
             var mv2=o.spostamento||{}, mx=mv2.max_metri||0;
             if(!mv2.disponibile){ azErr(mv2.motivo_no||'Adesso non puoi spostarti.'); return; }
-            if(azSrc==='esame'&&esSpostamentiOfferti().indexOf(m)<0){ azErr('Scegli uno degli spostamenti precisi offerti dal server.'); return; }
+            if(azSrc==='esame'&&!esSpostamentoValido(m)){ azErr('Scegli una quantità entro i limiti di spostamento indicati.'); return; }
             if(azSrc!=='esame'&&Math.abs(m)>mx){ azErr('La tua Velocit\u00e0 ti porta al massimo a '+mx+' metri.'); return; }
             a.spostamento=m;
           }
