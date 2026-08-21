@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="tus-build" content="LAND-083-A1" />
+<meta name="tus-build" content="LAND-091-A1" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3123,7 +3123,7 @@
            Da qui in poi la risposta e' scritta in fondo al pannello, e si
            legge senza aprire il sorgente. Non e' decorazione: e' la sola
            cosa che distingue un difetto da un file vecchio. */
-        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-083-A1"+'</p>';
+        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-091-A1"+'</p>';
         b.innerHTML=h;
         azNarrSync();
       }
@@ -4206,11 +4206,12 @@
          quella a tre e nient'altro.
          Il tetto sta QUI e in nessun altro posto: una guardia sola, sulla porta
          sola, così non esiste una seconda rete che copra il buco della prima. */
-      function esInvia(az, testo){
+      function esInvia(az, testo, grezzo){
         var d=ES.dato; if(!sb||!d||!d.prova||ES.busy) return;
         var az2=esNormalizza(az);
         if(!az2){ azErr('Quell\u2019azione non \u00e8 in una forma che il server accetta.'); return; }
         var txt=String(testo==null?'':testo).replace(/\s+$/,'');
+        var grz=(grezzo==null)?txt:String(grezzo).replace(/\s+$/,'');
         if(!txt.trim()){ azErr('Scrivi il tuo turno: parte insieme all\u2019azione, in una chiamata sola.'); return; }
         var nch=esTestoLen(txt);
         if(nch>ES_TESTO_MAX){ azErr('Il turno supera i '+ES_TESTO_MAX+' caratteri: adesso ne conta '+nch+'. Accorcialo prima di applicare.'); return; }
@@ -4218,8 +4219,10 @@
            server ne ha già uno diverso, la risposta è vecchia e si scarta. */
         var sc=ES.scontrino;
         ES.busy=true; var b=azEl('az-applica'); if(b) b.disabled=true;
+        syncSendBtn();
         sb.rpc('esame_prova_azione',{p_prova:d.prova.id, p_azione:az2, p_testo:txt}).then(function(r){
           ES.busy=false; if(b) b.disabled=false;
+          syncSendBtn();
           if(esScaduto(sc)) return;
           if(r&&r.error){
             /* Gli errori della manovra sono già testo di gioco del server: la
@@ -4243,17 +4246,18 @@
              stesso testo — se il candidato nel frattempo ha scritto altro,
              quello che ha scritto non si cancella. */
           if(azBozza) azBozza.testo='';
+          if(input&&String(input.value).replace(/\s+$/,'')===grz){ input.value=''; }
           /* [071-A · FLUSSO UI] La mossa e' stata consumata: la pastiglia
              accanto alla chat si spegne qui, nel ramo di successo e in
              nessun altro. Su rifiuto resta preparata, e il candidato puo'
              correggere invece di ricominciare. */
           ES_AZ=null; ES_AZ_ETI=''; syncAzPill();
-          if(input&&String(input.value).replace(/\s+$/,'')===txt){ input.value=''; updCount(); }
+          updCount();
           azChiudi(); renderEsame(); loadMsgs();
           /* La risposta della manovra chiude la metà: si rilegge subito lo stato
              invece di aspettare il polling, senza dedurre il nuovo turno. */
           if(az2.tipo==='manovra') loadEsame();
-        }, function(){ ES.busy=false; if(b) b.disabled=false; azErr(ES_RETE); });
+        }, function(){ ES.busy=false; if(b) b.disabled=false; syncSendBtn(); azErr(ES_RETE); });
       }
       function renderEsame(){
         var card=esEl('esm-card'), body=esEl('esm-body'); if(!card||!body) return;
@@ -4409,7 +4413,7 @@
            nessun secondo modo di consumare il turno.
            Il testo non si perde: `esInvia` svuota la barra della chat solo
            a invio riuscito, e solo se e' ancora esattamente quello mandato. */
-        if(!to && ES_AZ && esScontroVivo()){ esInvia(ES_AZ, pbody); return; }
+        if(!to && ES_AZ && esScontroVivo()){ esInvia(ES_AZ, pbody, t); return; }
         sendBtn.disabled=true;
         var prm={p_location:cur.id,p_body:pbody};
         if(!to && pTxt && myComp){ prm.p_companion=myComp.id; prm.p_companion_body=pTxt; }
@@ -4810,6 +4814,9 @@
       }
       function syncSendBtn(){
         var ok=sendGateOk(), ttl=ok?'':'Un turno di role vuole almeno 500 caratteri';
+        var occupata=false;
+        try{ occupata=!!(ES&&ES.busy); }catch(e){ occupata=false; }
+        if(occupata){ ok=false; ttl='La mossa \u00e8 in volo: aspetta la risposta del server'; }
         if(sendBtn){ sendBtn.disabled=!ok; sendBtn.title=ttl; }
         var eb=document.getElementById('ed-send'); if(eb){ eb.disabled=!ok; eb.title=ttl; }
       }
