@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="tus-build" content="LAND-090-A1" />
+<meta name="tus-build" content="LAND-093-A1" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3191,7 +3191,7 @@
            Da qui in poi la risposta e' scritta in fondo al pannello, e si
            legge senza aprire il sorgente. Non e' decorazione: e' la sola
            cosa che distingue un difetto da un file vecchio. */
-        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-090-A1"+'</p>';
+        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-093-A1"+'</p>';
         b.innerHTML=h;
         azNarrSync();
       }
@@ -4019,6 +4019,9 @@
         /* [071-A] e con lei la mossa preparata: una meccanica scelta in
            un'altra stanza non vale in questa. */
         ES_AZ=null; ES_AZ_ETI=''; syncAzPill();
+        /* [090] E con lei la spinta all'IA: una bussata fatta in un'altra
+           stanza non vale in questa. */
+        esIAReset();
         var c=esEl('esm-card'); if(c) c.hidden=true; }
       /* La sessione d'esame non se la inventa il browser: o la conosce già
          l'Accademia, o è quella che `esame_avvia` ha appena restituito. Se la
@@ -4093,7 +4096,77 @@
          arrivata dopo trova un numero diverso e viene lasciata cadere. Senza
          questo, una risposta tardiva rimetterebbe in pagina uno scambio già
          passato — e sarebbe il client a decidere a che punto è la prova. */
-      function esAccetta(d){ ES.dato=d||null; ES.errore=''; ES.carico=false; ES.seq++; ES.scontrino=esScontrino(ES.dato); }
+      /* ═══ [093 · CICLO IA CANONICO] ═══════════════════════════════════
+         Quando il ripiego deterministico ha giocato al posto del modello, la
+         prova puo' restare ferma con il turno in mano al PNG e nessuno che
+         guidi la Edge: `esame_ai_tick()` la chiama, ma e' il driver del cron e
+         NON e' eseguibile da `authenticated` — verificato con
+         `has_function_privilege`. Dal browser l'unica via e' `functions.invoke`.
+
+         ⚠️ IL CONFINE E' `tuo_turno === false` INSIEME A
+            `narrazione_attesa === true`, NON «`opzioni_id` presente».
+            Il mandato chiedeva la seconda, ma `opzioni_id` della PROVA e' nullo
+            proprio nei casi che si vogliono sbloccare: `_esame_moltiplicazione_
+            candidato` lo azzera nel ramo Diversivo, e sulla prova viva
+            d44af4ba risultava nullo mentre l'unico `opzioni_id` esistente era
+            quello del CICLO di narrazione. Una spinta agganciata a quella
+            chiave non sarebbe partita mai. `tuo_turno === false` e' invece la
+            frase con cui il server dice «sto aspettando il PNG»;
+            `narrazione_attesa` distingue un ciclo realmente aperto da una resa
+            vecchia o da un passaggio che non richiede il modello.
+
+         ⚠️ UNA SOLA VOLTA per stato del server, ANCHE DOPO REFRESH. La firma e'
+            la quintupla
+            (prova, scambio, beat, meta, fase): finche' non cambia, la spinta
+            non si ripete — nemmeno se `esAccetta` viene chiamata dieci volte
+            dal giro dei nove secondi. La stessa firma resta in sessionStorage:
+            ricaricare la pagina non paga una seconda chiamata modello.
+            `inVolo` copre la finestra fra partenza e risposta; il contatore
+            serve al banco.
+
+         ⚠️ Il corpo pubblico della Edge e' `{prova_id}`. `{prova}` appartiene
+            al vecchio driver e riceve `missing_prova_id`: il difetto misurato
+            durante la prova reale. */
+      var ES_IA_KEY='tus_esame_ia_firma_v1';
+      function esIALeggiFirma(){ try{return sessionStorage.getItem(ES_IA_KEY)||null;}catch(e){return null;} }
+      function esIAScriviFirma(f){ try{sessionStorage.setItem(ES_IA_KEY,f);}catch(e){} }
+      var ES_IA={firma:esIALeggiFirma(), inVolo:false, spinte:0};
+      function esIAReset(){ ES_IA={firma:esIALeggiFirma(), inVolo:false, spinte:0}; }
+      function esIAFirma(){
+        var d=ES&&ES.dato, p=d&&d.prova;
+        if(!p||!p.id) return null;
+        return [p.id, p.scambio, p.beat, p.meta, p.fase].join('|');
+      }
+      function esIASpinta(){
+        if(!sb) return;
+        var d=ES&&ES.dato, p=d&&d.prova;
+        if(!p||!p.id) return;
+        if(p.stato!=null&&p.stato!=='aperta') return;
+        /* Su una prova aperta il server definisce `narrazione_attesa` come
+           `!tuo_turno`: le due condizioni descrivono lo stesso passaggio al
+           PNG. Mantenerle entrambe rende esplicito il contratto pubblico; se
+           quel calcolo server cambia, questa guardia e il banco vanno rivisti.
+           Se tocca al candidato non c'e' niente da spingere: bussare adesso
+           chiederebbe al PNG di giocare il turno di qualcun altro. */
+        if(p.tuo_turno!==false || d.narrazione_attesa!==true) return;
+        var f=esIAFirma(); if(!f) return;
+        if(ES_IA.inVolo) return;
+        if(ES_IA.firma===f) return;
+        ES_IA.firma=f; esIAScriviFirma(f); ES_IA.inVolo=true; ES_IA.spinte++;
+        sb.functions.invoke('exam_genin_ai',{body:{prova_id:p.id}}).then(function(){
+          ES_IA.inVolo=false; loadEsame();
+        }, function(){
+          /* Se la Edge rifiuta o non risponde non si riprova in cerchio: la
+             firma resta segnata, e il prossimo tentativo arrivera' quando lo
+             stato del server sara' cambiato davvero. Un client che ribussa da
+             solo e' un client che fa la coda al posto del cron. */
+          ES_IA.inVolo=false;
+        });
+      }
+      function esAccetta(d){ ES.dato=d||null; ES.errore=''; ES.carico=false; ES.seq++; ES.scontrino=esScontrino(ES.dato);
+        /* Qui e in nessun altro posto: `esAccetta` e' il punto unico in cui
+           uno stato nuovo entra in pagina. */
+        try{ esIASpinta(); }catch(e){} }
 
       /* [R3] Lo SCONTRINO della prova: le chiavi con cui il server identifica ciò
          su cui stiamo lavorando — l'id della prova, l'id dell'elenco di opzioni
@@ -4459,10 +4532,10 @@
           var fscEs=fasciaTesto(d.fascia);
           h+='<p class="esm-dist">Distanza: '+esc(d.distanza)+' m'+(fscEs?(' · '+esc(fscEs)):'')+'</p>';
           /* ===== [COMBAT-050-R3 · VIA-NUOVA FINE] ===== */
-          if(d.narrazione_attesa===true) h+='<p class="esm-attesa">L’avversario sta scrivendo…</p>';
+          if(d.narrazione_attesa===true) h+='<p class="esm-attesa">Il narratore sta preparando la scena…</p>';
           if(p.tuo_turno){
             h+='<button class="esm-btn" id="esm-componi" type="button">'+((p.fase==='difesa')?'Scegli la reazione':'Scegli mossa')+'</button>';
-          } else {
+          } else if(d.narrazione_attesa!==true) {
             h+='<p class="esm-hint">'+((p.fase==='difesa')?'Aspetta: tocca all’avversario difendersi.':'Aspetta il tuo turno.')+'</p>';
           }
           /* Il degrado si registra e si mostra ALLO STAFF (§10): il candidato non
