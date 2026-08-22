@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="tus-build" content="LAND-093-A1" />
+<meta name="tus-build" content="LAND-095-A1" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2915,7 +2915,7 @@
             h+='<div class="az-sec"><div class="az-k">Dove riappari</div><div class="az-list">';
             voci.forEach(function(m){
               if(m===0){
-                h+=azOpz('azpos','0','Dove eri','nessuno spostamento',true,'',azBozza.posizione==='0');
+                h+=azOpz('azpos','0','Resta a 0 m','con Ninjutsu sotto 20 non è disponibile un altro punto di rientro',true,'',azBozza.posizione==='0');
               } else if(m>0){
                 h+=azOpz('azpos',String(m),'Avvicinati di '+m+' m','verso l\u2019avversario',true,'',azBozza.posizione===String(m));
               } else {
@@ -3020,7 +3020,7 @@
           azPri.forEach(function(x){ x.k=azIdent(x); });
           /* [MOVIMENTO] Prima lo spostamento: e' quello che decide da dove parte il colpo. */
           var mv=o.spostamento||{}, mx=mv.max_metri||0;
-          if(!azBozza.manovra){
+          if(!azBozza.manovra && !(azBozza.principale&&azBozza.principale.fonte==='moltiplicazione')){
             if(azSrc==='esame'){
               var av=mv.avvicinamento||{}, ri=mv.ritirata||{};
               var maxAv=av.disponibile?+(av.metri||0):0, maxRi=ri.disponibile?+(ri.metri||0):0;
@@ -3062,7 +3062,22 @@
               h+=azOpz('azmodalita',m,lab,det+' · costo 10 chakra + 5 per copia',true,'',azBozza.principale.modalita===m);
             });
             h+='</div></div>';
-            if(azBozza.principale.modalita==='diversivo'){
+            /* [095] Un solo spostamento effettivo. Quando si usa
+               Moltiplicazione il selettore ordinario sparisce e questo ne
+               prende il posto: il client non può sommare due movimenti. */
+            if(azBozza.principale.modalita){
+              var modoMol=azBozza.principale.modalita;
+              var avMol=mv.avvicinamento||{}, riMol=mv.ritirata||{};
+              var maxAvMol=avMol.disponibile?+(avMol.metri||0):0;
+              var maxRiMol=riMol.disponibile?+(riMol.metri||0):0;
+              if(modoMol==='assalto') azBozza.spostamento='0';
+              h+='<div class="az-sec"><div class="az-k">Posizione del corpo reale</div><div class="az-mv">'+
+                 '<input type="number" id="az-mol-sposta" step="5" min="-'+maxRiMol+'" max="'+maxAvMol+'" value="'+esc(azBozza.spostamento||'0')+'"'+(modoMol==='assalto'?' disabled':'')+'>'+
+                 '<span class="az-d">'+(modoMol==='assalto'
+                   ?'Assalto termina a contatto: nessun arretramento dopo il colpo.'
+                   :'unico spostamento del turno · negativo allontana, positivo avvicina, 0 resta')+'</span></div></div>';
+            }
+            if(false && azBozza.principale.modalita==='diversivo'){
               h+='<div class="az-sec"><div class="az-k">Direzione del Diversivo</div><div class="az-list">';
               (mol.direzioni_offerte||[]).forEach(function(d){
                 h+=azOpz('azdirezione',d.chiave,d.nome,'distanza finale '+d.distanza_dopo+' m',!!d.disponibile,d.motivo_no,azBozza.principale.direzione===d.chiave);
@@ -3191,7 +3206,7 @@
            Da qui in poi la risposta e' scritta in fondo al pannello, e si
            legge senza aprire il sorgente. Non e' decorazione: e' la sola
            cosa che distingue un difetto da un file vecchio. */
-        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-093-A1"+'</p>';
+        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-095-A1"+'</p>';
         b.innerHTML=h;
         azNarrSync();
       }
@@ -3257,10 +3272,12 @@
             var msel=azTrova('moltiplicazione|'+(azBozza.principale.id||'')+'|');
             var mm=azBozza.principale.modalita;
             if(!msel||(msel.modalita_offerte||[]).indexOf(mm)<0){ azErr('Scegli Diversivo, Copertura oppure Assalto.'); return; }
-            if(mm==='diversivo'){
-              var dirs=(msel.direzioni_offerte||[]).map(function(x){return x.chiave;});
-              if(dirs.indexOf(azBozza.principale.direzione)<0){ azErr('Scegli la direzione del Diversivo.'); return; }
-              a.principale.direzione=azBozza.principale.direzione;
+            var molSposta=parseInt(azBozza.spostamento,10); if(isNaN(molSposta)) molSposta=0;
+            if(mm==='assalto'&&molSposta!==0){ azErr('Assalto deve terminare a contatto: scegli 0 metri.'); return; }
+            if(mm!=='assalto'){
+              if(!esSpostamentoValido(molSposta)&&molSposta!==0){ azErr('Scegli una distanza entro i limiti indicati.'); return; }
+              if(Math.abs(molSposta)%5!==0){ azErr('Lo spostamento con Moltiplicazione va scelto a passi di 5 metri.'); return; }
+              a.principale.direzione=String(molSposta);
             }
             var mn=String(azBozza.copie==null?'1':azBozza.copie).trim();
             if(!/^[0-9]{1,2}$/.test(mn)||(msel.copie_offerte||[]).map(Number).indexOf(+mn)<0){ azErr('Quel numero di copie non è fra quelli offerti dal server.'); return; }
@@ -3276,7 +3293,7 @@
                partire un turno che sara' rifiutato.
                Ogni numero confrontato viene dal payload: raggio, campo e passo
                non sono scritti in questa pagina. */
-            if(mm==='diversivo'&&msel.figure){
+            if(false && mm==='diversivo'&&msel.figure){
               var fgc=msel.figure;
               azFigureSync();
               var ffd=(azBozza.figure||[]).map(function(x){ return {idx:+x.idx, posizione_m:+x.posizione_m}; });
@@ -3367,7 +3384,7 @@
           var t=e.target; if(!t) return;
           if(t.id==='az-cerca'){ azFiltro=t.value||''; var pos=t.selectionStart; azRender();
             var f=azEl('az-cerca'); if(f){ try{ f.focus(); f.setSelectionRange(pos,pos); }catch(x){} } return; }
-          if(t.id==='az-passi'&&azBozza){ azBozza.spostamento=t.value||''; azSyncMov(); return; }
+          if((t.id==='az-passi'||t.id==='az-mol-sposta')&&azBozza){ azBozza.spostamento=t.value||'0'; azSyncMov(); return; }
           if(t.id==='az-narr'&&azBozza){ azBozza.testo=t.value||''; azNarrSync(); return; }
           if(t.name==='azfigpos'&&azBozza){ var ix=+t.getAttribute('data-idx'); (azBozza.figure||[]).forEach(function(x){if(+x.idx===ix)x.posizione_m=+t.value;}); return; }
         });
@@ -3378,7 +3395,7 @@
              Il ternario cercava `formazione`, che non nasce piu'. */
             azBozza.principale={fonte:v[0], id:v[1]||null, direzione:v[2]||null, modalita:null}; azBozza.manovra=null; azBozza.copie='1'; azBozza.figure=[]; azBozza.originale_idx='1'; azBozza.bersaglio_figura=null; azErr(''); azRender(); }
           else if(t.name==='azspostamento'){ azBozza.spostamento=t.value||'0'; azErr(''); azSyncMov(); }
-          else if(t.name==='azmodalita'){ azBozza.principale.modalita=t.value||null; azBozza.principale.direzione=null; azErr(''); azRender(); }
+          else if(t.name==='azmodalita'){ azBozza.principale.modalita=t.value||null; azBozza.principale.direzione=null; azBozza.spostamento='0'; azErr(''); azRender(); }
           else if(t.name==='azdirezione'){ azBozza.principale.direzione=t.value||null; azErr(''); azRender(); }
           else if(t.name==='azcopie'){ azBozza.copie=t.value||'1'; azFigureSync(); azErr(''); azRender(); }
           else if(t.name==='azoriginale'){ azBozza.originale_idx=t.value||'1'; azErr(''); }
@@ -4380,7 +4397,7 @@
             out.principale.modalita=a.principale.modalita;
             out.principale.copie=a.principale.copie;
             if(a.principale.modalita==='assalto') out.principale.originale_idx=a.principale.originale_idx;
-            if(a.principale.modalita==='diversivo'){
+            if(a.principale.modalita==='diversivo'||a.principale.modalita==='copertura'){
               out.principale.direzione=a.principale.direzione;
               /* [R3 · 090] `figure` e `originale_idx` attraversano questa porta
                  SOLO nel Diversivo, e solo se la bozza li ha davvero: niente
@@ -4389,7 +4406,7 @@
                  perche' quello che il compositore tiene per se' non deve
                  attraversare la soglia. Il server rivalida tutto: questi non
                  sono valori autorevoli, sono una PROPOSTA. */
-              if(Array.isArray(a.principale.figure)&&a.principale.figure.length){
+              if(a.principale.modalita==='diversivo'&&Array.isArray(a.principale.figure)&&a.principale.figure.length){
                 out.principale.figure=a.principale.figure.map(function(x){
                   return {idx:+x.idx, posizione_m:+x.posizione_m}; });
                 if(a.principale.originale_idx!=null) out.principale.originale_idx=a.principale.originale_idx;
