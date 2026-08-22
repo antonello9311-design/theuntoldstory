@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="tus-build" content="LAND-098-A1" />
+<meta name="tus-build" content="LAND-099-A1" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3205,7 +3205,7 @@
            Da qui in poi la risposta e' scritta in fondo al pannello, e si
            legge senza aprire il sorgente. Non e' decorazione: e' la sola
            cosa che distingue un difetto da un file vecchio. */
-        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-098-A1"+'</p>';
+        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-099-A1"+'</p>';
         b.innerHTML=h;
         azNarrSync();
       }
@@ -4171,7 +4171,19 @@
         if(ES_IA.inVolo) return;
         if(ES_IA.firma===f) return;
         ES_IA.firma=f; esIAScriviFirma(f); ES_IA.inVolo=true; ES_IA.spinte++;
-        sb.functions.invoke('exam_genin_ai',{body:{prova_id:p.id}}).then(function(){
+        sb.functions.invoke('exam_genin_ai',{body:{prova_id:p.id}}).then(function(r){
+          /* [099 · CATENA PNG] Una risposta realmente applicata puo' aprire
+             subito il secondo ciclo dello stesso scambio (prima il PNG si
+             difende, poi contrattacca). Round, beat, meta e fase restano
+             identici, quindi la firma di stato da sola non distingue i due
+             scontrini. Si libera la firma soltanto quando la Edge dichiara di
+             avere pubblicato o applicato il ripiego: il successivo load legge
+             il server e, se esiste davvero un altro ciclo, lo spinge. Risposte
+             saltate, errori e scontrini scaduti non riarmano la chiamata. */
+          var d=r&&r.data;
+          if(d&&(d.pubblicato===true||d.ripiego===true)){
+            ES_IA.firma=null; esIAScriviFirma('');
+          }
           ES_IA.inVolo=false; loadEsame();
         }, function(){
           /* Se la Edge rifiuta o non risponde non si riprova in cerchio: la
