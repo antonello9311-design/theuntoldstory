@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="tus-build" content="LAND-099-A1" />
+<meta name="tus-build" content="LAND-105-A1" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2415,7 +2415,7 @@
         sb.rpc('who_here',{p_location:cur.id,p_minutes:8}).then(function(r){ if(r&&!r.error){ WHO=r.data||[]; renderWho(r.data); updateTargets(r.data); } }, function(){});
       }
       function updateKOState(){ /* [R3] il pulsante che disabilitava e' stato ritirato: resta il badge, che e' l'unico avviso di KO ancora in barra. */ var badge=document.getElementById('ko-badge'); var ko=(myVita!=null && myVita<=0); if(badge){ badge.style.display=ko?'':'none'; } }
-      function refreshMyVita(){ if(!sb||!myId) return; sb.from('characters').select('vita,vita_max,chakra,chakra_max,mente,corporation').eq('user_id',myId).maybeSingle().then(function(r){ if(r&&r.data){ myVita=(r.data.vita!=null?r.data.vita:null); myVitaMax=(r.data.vita_max!=null?r.data.vita_max:null); myChakra=(r.data.chakra!=null?r.data.chakra:null); myChakraMax=(r.data.chakra_max!=null?r.data.chakra_max:null); myCorp=(r.data.corporation!=null?r.data.corporation:null); } updateVitals(); updateKOState(); updateHealBtn(); },function(){}); }
+      function refreshMyVita(notificaPunti){ if(!sb||!myId) return; sb.from('characters').select('vita,vita_max,chakra,chakra_max,mente,corporation,unspent_points').eq('user_id',myId).maybeSingle().then(function(r){ if(r&&r.data){ myVita=(r.data.vita!=null?r.data.vita:null); myVitaMax=(r.data.vita_max!=null?r.data.vita_max:null); myChakra=(r.data.chakra!=null?r.data.chakra:null); myChakraMax=(r.data.chakra_max!=null?r.data.chakra_max:null); myCorp=(r.data.corporation!=null?r.data.corporation:null); var pts=Math.max(0,parseInt(r.data.unspent_points,10)||0); showPtsReminder(pts); if(notificaPunti&&pts>0) toast('Promozione completata: sei Genin. Hai '+pts+' punti statistica disponibili da assegnare nella Scheda.'); } updateVitals(); updateKOState(); updateHealBtn(); },function(){}); }
       function updateVitals(){ var clamp=function(x){ return x<0?0:(x>1?1:x); };
         var pr=(myVitaMax>0)?clamp(myVita/myVitaMax):0, cr=(myChakraMax>0)?clamp(myChakra/myChakraMax):0;
         var vfp=document.getElementById('vf-pv'); if(vfp) vfp.style.width=(pr*100)+'%';
@@ -3205,7 +3205,7 @@
            Da qui in poi la risposta e' scritta in fondo al pannello, e si
            legge senza aprire il sorgente. Non e' decorazione: e' la sola
            cosa che distingue un difetto da un file vecchio. */
-        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-099-A1"+'</p>';
+        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-105-A1"+'</p>';
         b.innerHTML=h;
         azNarrSync();
       }
@@ -4511,9 +4511,12 @@
           ES.busy=false; syncSendBtn();
           if(esScaduto(sc)) return;
           if(r&&r.error){ toast(esFrase(r.error)); renderEsame(); return; }
-          esAccetta((r&&r.data)||null);
+          var dat=(r&&r.data)||null;
+          esAccetta(dat);
           if(input&&String(input.value).replace(/\s+$/,'')===grz) input.value='';
-          updCount(); renderEsame(); loadMsgs(); loadAcadClass(); refreshMyVita();
+          var ch=(dat&&dat.chiusura)||null;
+          var promosso=!!(ch&&ch.ok&&!ch.isolata&&ch.rank==='Genin');
+          updCount(); renderEsame(); loadMsgs(); loadAcadClass(); refreshMyVita(promosso);
         },function(){ ES.busy=false; syncSendBtn(); toast(ES_RETE); renderEsame(); });
       }
       function renderEsame(){
