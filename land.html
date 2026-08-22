@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="tus-build" content="LAND-095-A1" />
+<meta name="tus-build" content="LAND-098-A1" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3070,11 +3070,10 @@
               var avMol=mv.avvicinamento||{}, riMol=mv.ritirata||{};
               var maxAvMol=avMol.disponibile?+(avMol.metri||0):0;
               var maxRiMol=riMol.disponibile?+(riMol.metri||0):0;
-              if(modoMol==='assalto') azBozza.spostamento='0';
               h+='<div class="az-sec"><div class="az-k">Posizione del corpo reale</div><div class="az-mv">'+
-                 '<input type="number" id="az-mol-sposta" step="5" min="-'+maxRiMol+'" max="'+maxAvMol+'" value="'+esc(azBozza.spostamento||'0')+'"'+(modoMol==='assalto'?' disabled':'')+'>'+
+                 '<input type="number" id="az-mol-sposta" step="5" min="-'+maxRiMol+'" max="'+maxAvMol+'" value="'+esc(azBozza.spostamento||'0')+'">'+
                  '<span class="az-d">'+(modoMol==='assalto'
-                   ?'Assalto termina a contatto: nessun arretramento dopo il colpo.'
+                   ?'Assalto usa questo unico spostamento e deve concludersi a contatto.'
                    :'unico spostamento del turno · negativo allontana, positivo avvicina, 0 resta')+'</span></div></div>';
             }
             if(false && azBozza.principale.modalita==='diversivo'){
@@ -3206,7 +3205,7 @@
            Da qui in poi la risposta e' scritta in fondo al pannello, e si
            legge senza aprire il sorgente. Non e' decorazione: e' la sola
            cosa che distingue un difetto da un file vecchio. */
-        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-095-A1"+'</p>';
+        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-098-A1"+'</p>';
         b.innerHTML=h;
         azNarrSync();
       }
@@ -3273,12 +3272,9 @@
             var mm=azBozza.principale.modalita;
             if(!msel||(msel.modalita_offerte||[]).indexOf(mm)<0){ azErr('Scegli Diversivo, Copertura oppure Assalto.'); return; }
             var molSposta=parseInt(azBozza.spostamento,10); if(isNaN(molSposta)) molSposta=0;
-            if(mm==='assalto'&&molSposta!==0){ azErr('Assalto deve terminare a contatto: scegli 0 metri.'); return; }
-            if(mm!=='assalto'){
-              if(!esSpostamentoValido(molSposta)&&molSposta!==0){ azErr('Scegli una distanza entro i limiti indicati.'); return; }
-              if(Math.abs(molSposta)%5!==0){ azErr('Lo spostamento con Moltiplicazione va scelto a passi di 5 metri.'); return; }
-              a.principale.direzione=String(molSposta);
-            }
+            if(!esSpostamentoValido(molSposta)&&molSposta!==0){ azErr('Scegli una distanza entro i limiti indicati.'); return; }
+            if(Math.abs(molSposta)%5!==0){ azErr('Lo spostamento con Moltiplicazione va scelto a passi di 5 metri.'); return; }
+            a.principale.direzione=String(molSposta);
             var mn=String(azBozza.copie==null?'1':azBozza.copie).trim();
             if(!/^[0-9]{1,2}$/.test(mn)||(msel.copie_offerte||[]).map(Number).indexOf(+mn)<0){ azErr('Quel numero di copie non è fra quelli offerti dal server.'); return; }
             a.principale.id=azBozza.principale.id; a.principale.modalita=mm; a.principale.copie=+mn;
@@ -4018,6 +4014,11 @@
         var d=ES&&ES.dato, p=d&&d.prova;
         return !!(p && p.id && (p.stato==null || p.stato==='aperta') && p.tuo_turno===true);
       }
+      function esUscitaAttesa(){
+        var d=ES&&ES.dato, p=d&&d.prova;
+        return !!(p && p.id && (p.stato==null || p.stato==='aperta')
+                  && p.tuo_turno===true && p.azione_richiesta==='uscita');
+      }
       function esScontroVivo(){
         var d=ES&&ES.dato, p=d&&d.prova;
         return !!(p && p.id && (p.stato==null || p.stato==='aperta'));
@@ -4483,6 +4484,26 @@
           if(az2.tipo==='manovra') loadEsame();
         }, function(){ ES.busy=false; if(b) b.disabled=false; syncSendBtn(); azErr(ES_RETE); });
       }
+      /* [098] La role d'uscita è ancora un messaggio di gioco, ma non è una
+         mossa: il server la pubblica e chiude prova, sessione e promozione in
+         un solo commit. Nessun payload di combattimento attraversa la porta. */
+      function esInviaUscita(testo, grezzo){
+        var d=ES.dato; if(!sb||!d||!d.prova||ES.busy) return;
+        var txt=String(testo==null?'':testo).replace(/\s+$/,'');
+        var grz=(grezzo==null)?txt:String(grezzo).replace(/\s+$/,'');
+        if(!txt.trim()){ toast('Scrivi la role con cui lasci l\u2019aula.'); return; }
+        var nch=esTestoLen(txt);
+        if(nch>ES_TESTO_MAX){ toast('La role supera i '+ES_TESTO_MAX+' caratteri: adesso ne conta '+nch+'.'); return; }
+        var sc=ES.scontrino; ES.busy=true; syncSendBtn(); renderEsame();
+        sb.rpc('esame_prova_uscita',{p_prova:d.prova.id,p_testo:txt}).then(function(r){
+          ES.busy=false; syncSendBtn();
+          if(esScaduto(sc)) return;
+          if(r&&r.error){ toast(esFrase(r.error)); renderEsame(); return; }
+          esAccetta((r&&r.data)||null);
+          if(input&&String(input.value).replace(/\s+$/,'')===grz) input.value='';
+          updCount(); renderEsame(); loadMsgs(); loadAcadClass(); refreshMyVita();
+        },function(){ ES.busy=false; syncSendBtn(); toast(ES_RETE); renderEsame(); });
+      }
       function renderEsame(){
         var card=esEl('esm-card'), body=esEl('esm-body'); if(!card||!body) return;
         if(!esArena()){ card.hidden=true; esSig=null; return; }
@@ -4520,22 +4541,18 @@
              '<p class="esm-hint">Com’è andata lo racconta il narratore nella scena: qui non c’è altro da fare.</p>';
         } else {
           var io=d.io||{}, av=d.avversario||{};
-          /* [071-A · §2 §3] La testata risponde a «da dove attacco?». Il
-             totale degli scambi NON si scrive: Antonello ha deciso che
-             l'Esame non e' legato a un numero prestabilito di passaggi, e
-             stamparlo lo contraddirebbe in pagina. Il massimo che il motore
-             impone oggi resta un fatto del server, dichiarato come
-             dipendenza bloccante in DIPENDENZE.md (DIP-3) invece di essere
-             nascosto qui dentro. */
+          /* [098] I round sono del combattimento, non passi obbligati di una
+             lezione. Il totale arriva dal server ed è il limite ratificato:
+             quattro round oppure conclusione anticipata per risorse esaurite. */
           h+='<div class="esm-titolo">Scontro d’Esame<span class="esm-vivo">già aperto</span></div>';
-          h+='<div class="esm-head"><span class="esm-sc">Round '+esc(p.scambio)+'</span>'+
-             '<span class="esm-fase">'+((p.fase==='difesa')?'ti difendi':'attacchi')+'</span>'+
+          h+='<div class="esm-head"><span class="esm-sc">Round '+esc(p.scambio)+(p.di_scambi?(' di '+esc(p.di_scambi)):'')+'</span>'+ 
+             '<span class="esm-fase">'+(p.fase==='uscita'?'congedo':((p.fase==='difesa')?'ti difendi':'attacchi'))+'</span>'+ 
              (p.tuo_turno?'<span class="esm-tuo">tocca a te</span>':'')+'</div>';
           /* [069-R2 · ADDENDUM PM §6] «Scambio 2 di 6» e' del MOTORE della
              prova, ed e' un numero che il server manda. Somiglia troppo a
              «passo 2 di 6» della lezione, che e' la cosa che l'Esame non ha:
              detto una volta, sotto la testata, smette di somigliarci. */
-          h+='<p class="esm-motore">Questo è lo scontro dell’Esame: si combatte da qui. I round li conta il motore della prova, e l’Esame Genin non ha una scaletta di passaggi da completare.</p>';
+          h+='<p class="esm-motore">Questo è lo scontro dell’Esame: si combatte da qui. Il motore conclude dopo quattro round completi oppure prima, se uno dei contendenti esaurisce punti vita o chakra.</p>';
           /* I punti sono quelli SIMULATI che ha mandato il server, e le barre
              sono quelle dello Scontro. Dell'avversario il server manda nulle le
              vitali: nulle restano, e csBar() non disegna niente. */
@@ -4550,7 +4567,9 @@
           h+='<p class="esm-dist">Distanza: '+esc(d.distanza)+' m'+(fscEs?(' · '+esc(fscEs)):'')+'</p>';
           /* ===== [COMBAT-050-R3 · VIA-NUOVA FINE] ===== */
           if(d.narrazione_attesa===true) h+='<p class="esm-attesa">Il narratore sta preparando la scena…</p>';
-          if(p.tuo_turno){
+          if(p.fase==='uscita'){
+            h+='<p class="esm-fine">Lo scontro è concluso.</p><p class="esm-hint">Scrivi nella chat la role con cui il tuo personaggio si congeda e lascia l’aula. Non devi scegliere nessuna mossa: l’invio chiuderà formalmente l’Esame.</p>';
+          } else if(p.tuo_turno){
             h+='<button class="esm-btn" id="esm-componi" type="button">'+((p.fase==='difesa')?'Scegli la reazione':'Scegli mossa')+'</button>';
           } else if(d.narrazione_attesa!==true) {
             h+='<p class="esm-hint">'+((p.fase==='difesa')?'Aspetta: tocca all’avversario difendersi.':'Aspetta il tuo turno.')+'</p>';
@@ -4660,6 +4679,9 @@
            secondo il SERVER — non «esiste una prova». Fuori dal proprio turno
            la chat ordinaria resta ordinaria: si scrive di scena, e si passa da
            `post_message` come sempre. */
+        if(!to && esScontroVivo() && esUscitaAttesa()){
+          esInviaUscita(pbody,t); return;
+        }
         if(!to && esScontroVivo() && esMossaAttesa()){
           /* ⚠️ `esNormalizza` da sola non basta come prova di coerenza: su un
              attacco senza fonte restituisce comunque un oggetto, perche' il
