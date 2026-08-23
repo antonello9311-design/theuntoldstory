@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="tus-build" content="LAND-105-A1" />
+<meta name="tus-build" content="LAND-108-A1" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3070,11 +3070,23 @@
               var avMol=mv.avvicinamento||{}, riMol=mv.ritirata||{};
               var maxAvMol=avMol.disponibile?+(avMol.metri||0):0;
               var maxRiMol=riMol.disponibile?+(riMol.metri||0):0;
-              h+='<div class="az-sec"><div class="az-k">Posizione del corpo reale</div><div class="az-mv">'+
-                 '<input type="number" id="az-mol-sposta" step="5" min="-'+maxRiMol+'" max="'+maxAvMol+'" value="'+esc(azBozza.spostamento||'0')+'">'+
-                 '<span class="az-d">'+(modoMol==='assalto'
-                   ?'Assalto usa questo unico spostamento e deve concludersi a contatto.'
-                   :'unico spostamento del turno · negativo allontana, positivo avvicina, 0 resta')+'</span></div></div>';
+              if(modoMol==='assalto'){
+                var avAss=(mol.assalto_avanzamenti||[]).map(Number);
+                if(avAss.indexOf(+azBozza.spostamento)<0){
+                  azBozza.spostamento=avAss.length?String(avAss[0]):'0';
+                }
+                h+='<div class="az-sec"><label class="az-k" for="az-mol-sposta">Avanzamento dell’Assalto</label>'+
+                   '<select class="az-find" id="az-mol-sposta"'+(avAss.length?'':' disabled')+'>';
+                avAss.forEach(function(m){
+                  h+='<option value="'+m+'"'+(String(m)===String(azBozza.spostamento)?' selected':'')+'>'+
+                     (m===0?'Già a contatto · 0 m':('Avanza di '+m+' m · termina a contatto'))+'</option>';
+                });
+                h+='</select><p class="az-d" style="margin:0">È l’unico movimento del turno: soltanto in avanti, entro la tua Velocità. Se non puoi raggiungere il contatto, Assalto non viene offerto.</p></div>';
+              } else {
+                h+='<div class="az-sec"><div class="az-k">Posizione del corpo reale</div><div class="az-mv">'+
+                   '<input type="number" id="az-mol-sposta" step="5" min="-'+maxRiMol+'" max="'+maxAvMol+'" value="'+esc(azBozza.spostamento||'0')+'">'+
+                   '<span class="az-d">unico spostamento del turno · negativo allontana, positivo avvicina, 0 resta</span></div></div>';
+              }
             }
             if(false && azBozza.principale.modalita==='diversivo'){
               h+='<div class="az-sec"><div class="az-k">Direzione del Diversivo</div><div class="az-list">';
@@ -3205,7 +3217,7 @@
            Da qui in poi la risposta e' scritta in fondo al pannello, e si
            legge senza aprire il sorgente. Non e' decorazione: e' la sola
            cosa che distingue un difetto da un file vecchio. */
-        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-105-A1"+'</p>';
+        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-108-A1"+'</p>';
         b.innerHTML=h;
         azNarrSync();
       }
@@ -3274,6 +3286,11 @@
             var molSposta=parseInt(azBozza.spostamento,10); if(isNaN(molSposta)) molSposta=0;
             if(!esSpostamentoValido(molSposta)&&molSposta!==0){ azErr('Scegli una distanza entro i limiti indicati.'); return; }
             if(Math.abs(molSposta)%5!==0){ azErr('Lo spostamento con Moltiplicazione va scelto a passi di 5 metri.'); return; }
+            if(mm==='assalto'){
+              var assOff=(msel.assalto_avanzamenti||[]).map(Number);
+              if(molSposta<0){ azErr('Assalto consente soltanto di avanzare verso il bersaglio.'); return; }
+              if(assOff.indexOf(molSposta)<0){ azErr('Da questa distanza Assalto non può concludersi a contatto.'); return; }
+            }
             a.principale.direzione=String(molSposta);
             var mn=String(azBozza.copie==null?'1':azBozza.copie).trim();
             if(!/^[0-9]{1,2}$/.test(mn)||(msel.copie_offerte||[]).map(Number).indexOf(+mn)<0){ azErr('Quel numero di copie non è fra quelli offerti dal server.'); return; }
@@ -3914,21 +3931,13 @@
          lezione, chiesta al candidato per far proseguire una scaletta che
          l'Esame non ha. Tolto tutto.
 
-         Al suo posto UNA domanda sola, per sessione e per vita della
-         pagina. Non e' un ripetitore e non e' un orologio:
-           · alla prima apertura la prova non c'e' e il server la crea;
-           · dopo un refresh o un rientro la prova c'e' gia', e la stessa
-             domanda la RITROVA — l'idempotenza e' del server, garantita da
-             un indice unico parziale, e sul ramo idempotente `esame_prova_apri`
-             esce PRIMA di scrivere la riga di sistema: nessun messaggio
-             duplicato.
-
-         ⛔ Il rifiuto non si maschera. Oggi il server pretende che la classe
-            sia all'ultimo passo valutabile del copione, e con la lezione
-            ferma quel passo non arriva: la frase che il server scrive si
-            mostra come l'ha scritta, e la dipendenza sta in HANDOFF.md come
-            lavoro di DB-CORE. Aggirarla qui vorrebbe dire nasconderla. */
-      var ES_AP={sess:null, chiesta:false, inVolo:false, rifiuto:''};
+         [108] Per il player esiste un solo passaggio: dalla stanza Esame il
+         comando Avvia crea sul server contenitore, partecipante e prova nella
+         stessa transazione. Questa domanda rilegge soltanto la prova già
+         creata; dopo refresh la ritrova grazie all'idempotenza server. Se una
+         risposta di rete fallisce, il recupero è limitato a tre tentativi e
+         poi rende visibile il blocco: nessuna attesa indefinita. */
+      var ES_AP={sess:null, chiesta:false, inVolo:false, rifiuto:'', prossimo:0, tentativi:0};
       /* [071-A · FLUSSO UI] La mossa scelta nel pannello e NON ancora
          inviata. Vive qui, in locale, esattamente come `CMB_AZ` vive per
          lo Scontro: nessuna chiamata al server la accompagna, e finche'
@@ -3959,7 +3968,7 @@
         } else if(azBozza&&azBozza.reazione){
           v.push(azBozza.reazione.nome||azBozza.reazione.chiave||'reazione'); }
         return v.join(' \u00b7 '); }
-      function esAperturaReset(){ ES_AP={sess:null, chiesta:false, inVolo:false, rifiuto:''}; }
+      function esAperturaReset(){ ES_AP={sess:null, chiesta:false, inVolo:false, rifiuto:'', prossimo:0, tentativi:0}; }
       function esGateReset(){ ES_GATE={chiesto:false, aperto:false, inVolo:false, luogo:null}; }
       function esGatePubblico(){ return !!ES_GATE.aperto; }
       /* Sola resa, e va letta cosi': non e' un permesso, e' il motivo per cui
@@ -4328,28 +4337,47 @@
           ES.sess=(r&&r.data)||null; ES.errore=''; renderEsame(); loadAcadClass(); loadMsgs();
         }, function(){ ES.busy=false; ES.carico=false; ES.errore=ES_RETE; esSig=null; renderEsame(); });
       }
-      /* [069-R2] Stesso nome, altra natura: non e' piu' la reazione a un
-         clic, e' la domanda che la pagina fa da sola quando c'e' una
-         sessione e non c'e' ancora una prova in mano. Le tre guardie sono
-         in fila e ognuna serve a qualcosa: `inVolo` regge il doppio giro
-         ravvicinato, `chiesta`+`sess` reggono i nove secondi che tornano,
-         l'idempotenza del server regge tutto il resto. */
+      /* [108] Lettura/recupero della prova già creata da `esame_avvia`.
+         `inVolo` regge il doppio giro ravvicinato, `chiesta`+`sess` fermano i
+         nove secondi che tornano; `tentativi` e `prossimo` gestiscono soltanto
+         guasti transitori, senza trasformare la LAND in un cron. */
       function esEntra(){
         var s=esSess(); if(!esArena()||ES.busy||!s) return;
         if(ES_AP.inVolo) return;
         if(ES_AP.chiesta && ES_AP.sess===s) return;
+        /* [108] Un rifiuto transitorio non resta agganciato per tutta la vita
+           della pagina. Il giro ordinario della stanza può riprovare al
+           massimo tre volte, con 15 secondi fra i tentativi. Non è polling
+           aggressivo e non può produrre una coda infinita. */
+        if(ES_AP.sess===s && Date.now()<ES_AP.prossimo) return;
         ES_AP.sess=s; ES_AP.inVolo=true; ES_AP.rifiuto='';
         ES.busy=true; ES.carico=false; ES.errore=''; esSig=null; renderEsame();
         sb.rpc('esame_prova_apri',{p_session:s}).then(function(r){
-          ES.busy=false; ES_AP.inVolo=false; ES_AP.chiesta=true; esSig=null;
+          ES.busy=false; ES_AP.inVolo=false; esSig=null;
           /* Il rifiuto dell'apertura NON diventa `ES.errore`: quello disegna
              un «Riprova», e un «Riprova» qui sarebbe di nuovo un'azione
              chiesta al candidato per far muovere qualcosa che non deve
              muovere lui. Si mostra la frase del server, e basta. */
-          if(r&&r.error){ ES.carico=false; ES_AP.rifiuto=esFrase(r.error); renderEsame(); return; }
+          if(r&&r.error){
+            ES.carico=false; ES_AP.tentativi++;
+            ES_AP.chiesta=ES_AP.tentativi>=3;
+            ES_AP.prossimo=Date.now()+15000;
+            ES_AP.rifiuto=ES_AP.chiesta
+              ? 'L\'avvio dell\'esame non si è completato. Lo staff è stato avvisato.'
+              : 'Il server sta completando l\'avvio dell\'esame; nuovo controllo automatico fra pochi secondi.';
+            try{ esFrase(r.error); }catch(e){}
+            renderEsame(); return;
+          }
+          ES_AP.chiesta=true; ES_AP.tentativi=0; ES_AP.prossimo=0;
           esAccetta((r&&r.data)||null); renderEsame(); loadMsgs();
-        }, function(){ ES.busy=false; ES_AP.inVolo=false; ES_AP.chiesta=true; ES.carico=false;
-                       ES_AP.rifiuto=ES_RETE; esSig=null; renderEsame(); });
+        }, function(){
+          ES.busy=false; ES_AP.inVolo=false; ES.carico=false; ES_AP.tentativi++;
+          ES_AP.chiesta=ES_AP.tentativi>=3; ES_AP.prossimo=Date.now()+15000;
+          ES_AP.rifiuto=ES_AP.chiesta
+            ? 'Il server non ha completato l\'avvio. Lo staff è stato avvisato.'
+            : 'Il server non ha risposto; nuovo controllo automatico fra pochi secondi.';
+          esSig=null; renderEsame();
+        });
       }
       /* L'elenco legale, così come il server lo ha scritto, messo nella forma che
          il pannello dello Scontro già legge. Nessuna voce viene aggiunta, tolta,
