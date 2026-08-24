@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="tus-build" content="LAND-113-A1" />
+<meta name="tus-build" content="LAND-115-A1" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3221,7 +3221,7 @@
            Da qui in poi la risposta e' scritta in fondo al pannello, e si
            legge senza aprire il sorgente. Non e' decorazione: e' la sola
            cosa che distingue un difetto da un file vecchio. */
-        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-113-A1"+'</p>';
+        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-115-A1"+'</p>';
         b.innerHTML=h;
         azNarrSync();
       }
@@ -3840,13 +3840,14 @@
       function acadPercorsoCompleto(rows){
         var r=(rows&&rows.length)?rows:[]; var reg=[], esame=false, i, l;
         for(i=0;i<r.length;i++){ l=r[i]; if(!l) continue; if(l.is_exam){ esame=true; } else { reg.push(l); } }
-        if(esame || !reg.length) return '';
+        if(!reg.length) return '';
         for(i=0;i<reg.length;i++){ if(!reg[i].done) return ''; }
-        return '<div class="lp-done-note" role="note">Percorso accademico completato. L’Esame Genin è in preparazione e sarà disponibile qui appena terminati i collaudi. I progressi ottenuti restano validi.</div>';
+        return '<div class="lp-done-note" role="note">Percorso accademico completato. '+(esame?'Per sostenere l’Esame Genin raggiungi una stanza d’esame.':'L’Esame Genin è in preparazione e sarà disponibile appena terminati i collaudi.')+' I progressi ottenuti restano validi.</div>';
       }
       function renderLessonPicker(rows){
         var host=acadEl('lp-list'); if(!host) return;
-        host.innerHTML=rows.map(function(l){
+        var regolari=(rows||[]).filter(function(l){ return l&&!l.is_exam; });
+        host.innerHTML=regolari.map(function(l){
           var badge=l.done?'<span class="lp-b done">Fatta</span>':(l.unlocked?'':'<span class="lp-b lock">Bloccata</span>');
           var dis=(!l.unlocked||l.done)?'disabled':''; var n=l.is_exam?'★':l.ordinal;
           return '<button class="lp-row" '+dis+' data-lesson="'+esc(l.id)+'"><span class="lp-n">'+n+'</span><span class="lp-t">'+esc(l.title)+'</span>'+badge+'</button>';
@@ -4105,13 +4106,13 @@
       ];
       var ES_GENERICO='Non è stato possibile: riprova, e se continua avvisa lo staff.';
       var ES_RETE='Il server non ha risposto: riprova fra poco.';
-      /* [EXAM-GENIN-NARRATORE-038] Il tetto del testo narrativo della prova.
-         È il tetto del SERVER: oltre i 2.500 la porta solleva. Il client non ci
+      /* [EXAM-GENIN-TESTO-5000-114] Il tetto del testo narrativo della prova.
+         È lo stesso tetto del SERVER: oltre i 5.000 la porta solleva. Il client non ci
          conta sopra — si ferma prima, in un punto solo, perché un'azione
          rifiutata dopo l'invio avrebbe già consumato il gesto del candidato.
          Il conto è per caratteri Unicode come quello del server: una coppia
          surrogata (un emoji) vale uno, non due. */
-      var ES_TESTO_MAX=2500;
+      var ES_TESTO_MAX=5000;
       function esTestoLen(t){ return String(t==null?'':t).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g,'_').length; }
       function esFrase(err){
         var raw=String((err&&(err.message||err.hint))||'').trim();
