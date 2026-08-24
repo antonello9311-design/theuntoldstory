@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="tus-build" content="LAND-121-A1" />
+  <meta name="tus-build" content="LAND-121-A1-FATO-MANUAL-MVP-007" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -236,6 +236,16 @@
   .msg-narratore .mn-body .sp-say{color:var(--red-deep)}
   .msg-narratore .mn-lab{display:block;font-family:'Cinzel',serif;font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#2d5f89;margin:3px 0 1px}
   .msg-narratore .mn-lab:first-child{margin-top:0}
+  .msg-fato{margin:10px 0;padding:12px 15px;border:1px solid #b99855;border-left:4px solid #7b251c;background:linear-gradient(135deg,rgba(255,248,224,.98),rgba(235,218,177,.9));border-radius:0 10px 10px 0;box-shadow:0 2px 8px rgba(67,42,22,.1)}
+  .msg-fato .mf-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:5px}
+  .msg-fato .mf-k{font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#7b251c}
+  .msg-fato .mf-body{font-size:16px;line-height:1.62;color:var(--ink,#2f2a24);white-space:pre-line}
+  .fato-toggle-row{display:flex;justify-content:flex-end;margin:0 0 7px}
+  .fato-toggle{border:1px solid #8d6a33;border-radius:8px;background:#f5ead0;color:#60352b;padding:6px 11px;font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.06em;cursor:pointer}
+  .fato-toggle[aria-pressed="true"]{background:#7b251c;border-color:#5f1812;color:#fff5dc;box-shadow:0 0 0 2px rgba(123,37,28,.15)}
+  .composer.fato-on{border-top-color:#8d6a33;background:linear-gradient(rgba(255,248,224,.92),rgba(238,222,186,.88))}
+  .composer.fato-on #obj-btn,.composer.fato-on #tk-btn,.composer.fato-on #png-chip,.composer.fato-on #vit-mini,.composer.fato-on #mic-btn,.composer.fato-on #dice-btn,.composer.fato-on #heal-btn,.composer.fato-on #regia-btn,.composer.fato-on #az-pill,.composer.fato-on #exp-btn{display:none!important}
+  .composer.fato-on #msg-to{display:none}
   /* [05/08/2026 NARRATORE-UX] L'attesa del racconto. Non e' un messaggio:
      sta fuori da #msgs, non entra mai nell'elenco e non lascia tracce. */
   .narr-attesa{display:flex;align-items:center;gap:8px;margin:0;padding:7px 15px;border-top:1px solid var(--rule);background:linear-gradient(#e9f3fb,#d9e9f6);color:#1f4c74;font-family:'Cormorant Garamond',serif;font-size:13.5px;font-style:italic}
@@ -1453,6 +1463,7 @@
               <div class="composer">
                 <div class="sug-pop" id="sug-pop" hidden role="listbox" aria-label="Tecniche e abilità"></div>
                 <div class="place-bar"><svg class="pb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg><input id="msg-place" class="pb-input" maxlength="60" autocomplete="off" placeholder="Luogo — es. Strade del villaggio"></div>
+                <div class="fato-toggle-row" id="fato-toggle-row" style="display:none"><button class="fato-toggle" id="fato-btn" type="button" aria-pressed="false">Entra come Fato</button></div>
                 <textarea id="msg-input" placeholder="Scrivi il tuo turno di gioco…"></textarea>
                 <div class="png-box" id="png-box" hidden><div class="png-lab" id="png-lab">Azione del compagno</div><textarea id="png-input" maxlength="2500" placeholder="Cosa fa il tuo compagno in questo turno… (si risolve nel tuo stesso turno)"></textarea></div>
                 <div class="item-pop" id="item-pop" hidden><div class="ip-head">Oggetti equipaggiati</div><div id="ip-list"></div></div>
@@ -1887,6 +1898,7 @@
     /* ---- LOGOUT ---- */
     document.getElementById('logout').addEventListener('click', function(e){
       e.preventDefault();
+      try{ window.dispatchEvent(new Event('tus:fato-reset')); }catch(_fr){}
       try{ sessionStorage.removeItem('tus_in_land'); }catch(e){}
       if(sb){ var _go=function(){ sb.auth.signOut().then(function(){ location.href='index.html'; }, function(){ location.href='index.html'; }); }; sb.rpc('leave_land').then(_go,_go); }
       else { location.href='index.html'; }
@@ -1934,7 +1946,7 @@
       var toSel=document.getElementById('msg-to'), diceBtn=document.getElementById('dice-btn'), objBtn=document.getElementById('obj-btn');
       var nameEl=document.getElementById('room-name'), kindEl=document.getElementById('room-kind'), descEl=document.getElementById('room-desc'), meteoEl=document.getElementById('room-meteo');
       var backBtn=document.getElementById('room-back');
-      var LOCS=[], cur=null, poll=null, loggedIn=false, myId=null, myCharId=null, EMB={}, ROSTER=[], pendingWhisper=null, rosterPoll=null, ACT=[], iAmStaff=false, WHO=[], myVita=null, myChakra=null, myVitaMax=null, myChakraMax=null, myCorp=null;
+      var LOCS=[], cur=null, poll=null, loggedIn=false, myId=null, myCharId=null, EMB={}, ROSTER=[], pendingWhisper=null, rosterPoll=null, ACT=[], iAmStaff=false, fatoMode=false, WHO=[], myVita=null, myChakra=null, myVitaMax=null, myChakraMax=null, myCorp=null;
       function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
       /* ---- Correttore del browser: interruttore (i termini del mondo non sono errori) ---- */
       var spellOn=true; try{ spellOn=(localStorage.getItem('tus_spell')!=='0'); }catch(e){}
@@ -2336,6 +2348,7 @@
           }
           if(m.kind==='cura'){ return '<div class="msg-cura">'+HEAL+'<span>'+esc(m.body)+'</span></div>'; }
           if(m.kind==='motore'){ if(!iAmStaff) return ''; return '<div class="msg-motore"><span class="mm-k">motore</span><span>'+esc(m.body)+'</span></div>'; }
+          if(m.kind==='fato'){ var fb=m.body||'', fp=''; var fm=fb.match(/^【([^】]{1,60})】\s*([\s\S]*)$/); if(fm){ fp=fm[1]; fb=fm[2]; } return '<div class="msg-fato"><div class="mf-head"><span class="mf-k">Fato</span><span class="m-time">'+fmt(m.created_at)+'</span></div>'+(fp?'<span class="m-place">'+PIN+esc(fp)+'</span>':'')+'<div class="mf-body">'+fmtBody(fb)+'</div></div>'; }
           if(m.kind==='sistema'&&m.author_name==='Il narratore'){ return '<div class="msg-narratore"><div class="mn-head"><span class="mn-k">Il narratore</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="mn-body">'+fmtNarratore(m.body)+'</div></div>'; }
           /* [COMBAT-040-042-R2] Le due righe pubbliche del Diversivo viaggiano
              su kind='sistema' (decisione PM 2): la SCENICA ha per autore il nome
@@ -2400,6 +2413,14 @@
       }
       function updateToStyle(){
         if(!toSel) return;
+        if(fatoMode){
+          toSel.value=''; toSel.disabled=true; toSel.classList.remove('on');
+          if(sendBtn) sendBtn.textContent='Pubblica esito';
+          if(input) input.placeholder='Scrivi l\'esito narrativo del Fato…';
+          var _fpl=document.getElementById('msg-place'); if(_fpl){ _fpl.disabled=false; _fpl.title=''; }
+          return;
+        }
+        toSel.disabled=false;
         var w=!!toSel.value;
         toSel.classList.toggle('on', w);
         if(sendBtn) sendBtn.textContent = w ? 'Sussurra' : 'Invia';
@@ -2410,6 +2431,22 @@
         var _pb=document.getElementById('png-box'); if(_pb&&w){ _pb.hidden=true; if(_pc) _pc.classList.remove('on'); var _eb2=document.getElementById('ed-png-box'); if(_eb2) _eb2.hidden=true; }
         if(w) sugScegli(null);
       }
+      function setFatoMode(on){
+        fatoMode=!!on && !!iAmStaff;
+        var comp=document.querySelector('.composer'), btn=document.getElementById('fato-btn');
+        if(comp) comp.classList.toggle('fato-on',fatoMode);
+        if(btn){ btn.setAttribute('aria-pressed',fatoMode?'true':'false'); btn.textContent=fatoMode?'Torna al PG':'Entra come Fato'; }
+        if(fatoMode){
+          if(toSel) toSel.value='';
+          var pb=document.getElementById('png-box'); if(pb) pb.hidden=true;
+          var eb=document.getElementById('ed-overlay'); if(eb) eb.hidden=true;
+          sugScegli(null);
+        }
+        updateToStyle(); updCount();
+      }
+      (function(){ var b=document.getElementById('fato-btn'); if(b) b.addEventListener('click',function(){ setFatoMode(!fatoMode); }); })();
+      window.addEventListener('tus:fato-reset',function(){ setFatoMode(false); });
+      window.addEventListener('pagehide',function(){ setFatoMode(false); });
       function loadWho(){
         if(!sb||!cur) return;
         sb.rpc('who_here',{p_location:cur.id,p_minutes:8}).then(function(r){ if(r&&!r.error){ WHO=r.data||[]; renderWho(r.data); updateTargets(r.data); } }, function(){});
@@ -4691,7 +4728,7 @@
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -4705,6 +4742,28 @@
         var to=toSel?toSel.value:'';
         var placeEl=document.getElementById('msg-place'); var place=placeEl?placeEl.value.trim().replace(/[【】]/g,'').slice(0,60):'';
         var pbody=(place && !to)?('【'+place+'】 '+t):t;
+        if(fatoMode){
+          if(!t.trim()){ toast('Scrivi l\'esito del Fato'); return; }
+          if(esTestoLen(pbody)>5000){ toast('Esito troppo lungo: massimo 5000 caratteri'); return; }
+          sendBtn.disabled=true;
+          sb.rpc('post_fato_manual',{p_location:cur.id,p_body:pbody}).then(function(r){
+            syncSendBtn();
+            if(r&&r.error){
+              var code=(r.error.message||'');
+              var fmsg=code.indexOf('FATO_NON_AUTENTICATO')>=0?'Sessione scaduta: accedi di nuovo'
+                :code.indexOf('FATO_NON_AUTORIZZATO')>=0?'Non sei autorizzato a pubblicare come Fato'
+                :code.indexOf('FATO_TESTO_VUOTO')>=0?'Scrivi l\'esito del Fato'
+                :code.indexOf('FATO_TESTO_TROPPO_LUNGO')>=0?'Esito troppo lungo: massimo 5000 caratteri'
+                :code.indexOf('FATO_LUOGO_NON_VALIDO')>=0?'Luogo non valido o non attivo'
+                :code.indexOf('FATO_CONTENUTO_NON_CONSENTITO')>=0?'Messaggio bloccato dalla moderazione'
+                :'Impossibile pubblicare l\'esito del Fato';
+              toast(fmsg); return;
+            }
+            input.value=''; updCount(); loadMsgs();
+            if(typeof after==='function') after();
+          },function(){ syncSendBtn(); toast('Impossibile pubblicare l\'esito del Fato'); });
+          return;
+        }
         /* [071-A · FLUSSO UI §6] Se c'e' una mossa preparata e una prova
            viva, questo pulsante manda testo e meccanica INSIEME passando
            dalla porta di sempre: una chiamata sola, le stesse guardie, e
@@ -5155,6 +5214,7 @@
         return n;
       }
       function sendGateOk(){
+        if(fatoMode) return iAmStaff && turnoLen()>0 && turnoLen()<=5000;
         if(toSel && toSel.value) return true;
         if(iAmStaff) return true;
         if(cur && cur.is_test) return true;   /* [03/08/2026] la Test Room non e' una scena */
@@ -5168,7 +5228,7 @@
         if(sendBtn){ sendBtn.disabled=!ok; sendBtn.title=ttl; }
         var eb=document.getElementById('ed-send'); if(eb){ eb.disabled=!ok; eb.title=ttl; }
       }
-      function updCount(){ if(countEl&&input){ var n=turnoLen(); var senzaMin=(cur&&cur.is_test)||iAmStaff;
+      function updCount(){ if(countEl&&input){ var n=turnoLen(); if(fatoMode){ countEl.textContent=n+' / 5000 · Fato'; countEl.classList.toggle('warn',n>5000); syncSendBtn(); return; } var senzaMin=(cur&&cur.is_test)||iAmStaff;
         if(!senzaMin && n<500){ countEl.textContent=n+' / 500 min'; countEl.classList.add('warn'); } else { countEl.textContent=n+' caratteri'; countEl.classList.remove('warn'); } } syncSendBtn(); }
       if(input){ input.addEventListener('input', updCount); }
       if(toSel){ toSel.addEventListener('change', updCount); }
@@ -5183,7 +5243,7 @@
           if(loggedIn){ try{ sessionStorage.setItem('tus_in_land','1'); }catch(e){} }
           if(myId){ sb.from('characters').select('id').eq('user_id',myId).maybeSingle().then(function(g){ if(!(g&&g.data)){ try{ document.documentElement.style.visibility='hidden'; }catch(e){} location.replace('scheda.html'); } }, function(){}); }
           if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max,mente,corporation').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); myCorp=(cr.data.corporation!=null?cr.data.corporation:null); showPtsReminder(cr.data.unspent_points||0); caricaNomiEvidenza(); updateVitals(); updateKOState(); updateHealBtn(); loadMyCompanion(); } }, function(){}); }
-          if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; var _tb=document.getElementById('test-btn'); if(_tb) _tb.style.display=iAmStaff?'':'none'; try{ syncSendBtn(); }catch(e){} } }, function(){}); }
+          if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _fr=document.getElementById('fato-toggle-row'); if(_fr) _fr.style.display=iAmStaff?'':'none'; if(!iAmStaff) setFatoMode(false); var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; var _tb=document.getElementById('test-btn'); if(_tb) _tb.style.display=iAmStaff?'':'none'; try{ syncSendBtn(); }catch(e){} } }, function(){ setFatoMode(false); }); }
           loadEmblems();
           renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); loadFlash(); calInit(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); sb.rpc('ensure_welcome').then(function(){ loadUnread(); loadConversations(); }, function(){ loadUnread(); loadConversations(); }); if(dmTarget){ var _dt=dmTarget; dmTarget=null; sb.from('characters').select('name').eq('user_id',_dt).maybeSingle().then(function(rr){ openCompose(_dt,(rr&&rr.data&&rr.data.name)||'utente'); }, function(){ openCompose(_dt,'utente'); }); } }
         }, function(){ loggedIn=false; renderLuoghi(); });
