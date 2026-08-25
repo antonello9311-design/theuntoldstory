@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-123-A1-MASTER-COMBAT-V2-021" />
+  <meta name="tus-build" content="LAND-123-A1-MASTER-COMBAT-V2-021-TR-NARR-A6" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3528,7 +3528,7 @@
            Da qui in poi la risposta e' scritta in fondo al pannello, e si
            legge senza aprire il sorgente. Non e' decorazione: e' la sola
            cosa che distingue un difetto da un file vecchio. */
-        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-123-A1"+'</p>';
+        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-123-A1-TR-NARR-A6"+'</p>';
         b.innerHTML=h;
         azNarrSync();
       }
@@ -6354,6 +6354,15 @@
           order.forEach(function(k){ if(m[k]===undefined||m[k]===null) return; var v=m[k]; if(typeof v==='boolean') v=v?'Sì':'No'; if(k==='chakra_cost') v=v+' chakra'; h+='<div class="tru-kv"><span>'+labels[k]+'</span><strong>'+esc(String(v))+'</strong></div>'; });
           return h+'</div><p class="tru-safe">Valori reali scritti: no. L’esito resta confinato a questa prova.</p>';
         }
+        function truPlain(v){
+          return String(v||'')
+            .replace(/^\s{0,3}#{1,6}\s*/gm,'')
+            .replace(/^\s*>\s?/gm,'')
+            .replace(/(\*\*|__)(.*?)\1/g,'$2')
+            .replace(/[*_`~]/g,'')
+            .replace(/\s+/g,' ')
+            .trim();
+        }
         function truRender(){
           var host=truEl('truv-body'); if(!host) return;
           var st=TRU.state||{}, sess=st.session||null, q=st.quota||{used:0,remaining:5,limit:5};
@@ -6372,7 +6381,7 @@
           }
           if(rep&&rep.mechanics){
             h+='<section class="tru-section"><h4>Esito meccanico</h4>'+truMech(rep.mechanics);
-            if(rep.ai_status==='completata'&&rep.ai_text) h+='<div class="tru-ai"><h5>Narrazione di prova</h5><p>'+esc(rep.ai_text)+'</p></div>';
+            if(rep.ai_status==='completata'&&rep.ai_text) h+='<div class="tru-ai"><h5>Narrazione di prova</h5><p>'+esc(truPlain(rep.ai_text))+'</p></div>';
             else if(rep.ai_status==='prenotata') h+='<div class="tru-ai"><h5>Narrazione in elaborazione</h5><p>Il gettone è stato prenotato. Aggiorna per leggere il risultato.</p></div>';
             else if(rep.ai_status==='fallita') h+='<p class="tru-err">La narrazione IA non è riuscita. L’esito meccanico resta valido e il gettone risulta consumato. Esegui una nuova azione per creare un nuovo referto e riprovare.</p>';
             h+='<div class="tru-actions"><button class="tru-btn" id="tru-ai" type="button"'+(TRU.busy||used>=limit||rep.ai_status==='completata'||rep.ai_status==='prenotata'||rep.ai_status==='fallita'?' disabled':'')+'>Chiedi narrazione IA</button><button class="tru-btn ghost" id="tru-reload-report" type="button"'+(TRU.busy?' disabled':'')+'>Aggiorna</button></div><div class="tru-reset">'+esc(truResetText(q))+'</div></section>';
