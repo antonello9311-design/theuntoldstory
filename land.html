@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-122-A1-FATO-DIALOGUE-HIGHLIGHT-009" />
+  <meta name="tus-build" content="LAND-123-A1-MASTER-COMBAT-V2-021" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -200,6 +200,33 @@
   .test-banner{display:flex;align-items:center;gap:12px;margin:0 0 10px;padding:9px 13px;border:1px dashed #4a86b8;border-radius:10px;background:rgba(74,134,184,.10);color:var(--ink)}
   .test-banner[hidden]{display:none}
   .side-card.cmb{border-color:#8a3b2a}
+  .side-card.mv2{border-color:#8d6a33;background:linear-gradient(145deg,rgba(255,248,224,.82),rgba(239,224,190,.58))}
+  .mv2-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+  .mv2-state{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.08em;text-transform:uppercase;border:1px solid #9a7a43;border-radius:999px;padding:3px 7px;color:#6c3c2e;background:rgba(255,252,244,.72)}
+  .mv2-note{font-size:13.5px;line-height:1.35;color:var(--ink-soft);margin:5px 0 9px}
+  .mv2-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:7px 0}
+  .mv2-grid.one{grid-template-columns:1fr}
+  .mv2-field{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .mv2-field>span{font-family:'Cinzel',serif;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+  .mv2-field input,.mv2-field select,.mv2-field textarea,.mv2-select{width:100%;box-sizing:border-box;border:1px solid var(--rule);border-radius:6px;background:rgba(255,252,244,.9);color:var(--ink);padding:6px 7px;font-family:'Cormorant Garamond',serif;font-size:14px}
+  .mv2-field textarea{min-height:68px;resize:vertical}
+  .mv2-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px}
+  .mv2-btn{border:1px solid var(--red-deep);border-radius:7px;background:var(--red);color:#fff6df;padding:6px 9px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+  .mv2-btn.ghost{background:transparent;color:var(--ink);border-color:var(--edge)}
+  .mv2-btn.warn{background:#6f241b}
+  .mv2-btn:disabled{opacity:.48;cursor:not-allowed}
+  .mv2-roster{display:flex;flex-direction:column;gap:6px;margin:7px 0}
+  .mv2-row{border:1px solid rgba(116,84,45,.28);border-radius:7px;background:rgba(255,252,244,.55);padding:7px}
+  .mv2-rowtop{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .mv2-name{font-weight:700;flex:1;min-width:90px}
+  .mv2-res{font-size:12px;color:var(--ink-soft)}
+  .mv2-team{font-family:'Cinzel',serif;font-size:8px;text-transform:uppercase;color:var(--red-deep)}
+  .mv2-phase{border-left:3px solid #8d6a33;padding-left:8px;margin:8px 0;font-size:13px}
+  .mv2-report{margin-top:8px;border-top:1px solid var(--rule);padding-top:8px}
+  .mv2-outcome{font-size:13px;line-height:1.4;padding:5px 0;border-bottom:1px dotted rgba(116,84,45,.28)}
+  .mv2-score{font-family:'Cinzel',serif;font-size:11px;font-weight:700;color:var(--red-deep)}
+  .mv2-wait{font-style:italic;color:var(--ink-soft);font-size:13px}
+  @media(max-width:760px){.side-card.mv2{flex:1 1 100%}.mv2-grid{grid-template-columns:1fr}}
   .cmb-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px}
   .cmb-round{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.06em;color:var(--red-deep)}
   .cmb-fase{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
@@ -1518,6 +1545,10 @@
                 <div class="side-k">Esame Genin</div>
                 <div id="esm-body"></div>
               </div>
+              <div class="side-card mv2" id="mv2-card" hidden>
+                <div class="mv2-head"><div class="side-k">Regia Master</div><span class="mv2-state" id="mv2-state">V2</span></div>
+                <div id="mv2-body"></div>
+              </div>
               <div class="side-card cmb" id="cmb-card" hidden>
                 <div class="side-k">Scontro</div>
                 <div id="cmb-body"></div>
@@ -2521,7 +2552,203 @@
           if(typeof ok==='function') ok();
         }, function(e){ stanzaNegata(e&&e.message); });
       }
-      function refreshRoom(){ if(!cur) return; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); }
+      function refreshRoom(){ if(!cur) return; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); }
+
+      /* ---- MASTER-COMBAT-V2-LAND-UI-021: regia multi-attore ---- */
+      var MV2={data:null,loading:false,setup:null,setupOpen:false,pngDraft:[],options:{},busy:false,missingRpc:false};
+      function mv2Key(){ try{return crypto.randomUUID();}catch(e){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c==='x'?r:(r&3|8);return v.toString(16);});} }
+      function mv2Data(r){ return r&&r.data&&r.data.data!==undefined?r.data.data:(r&&r.data?r.data:null); }
+      function mv2Error(r,alt){ var e=r&&r.error, m=e&&(e.message||e.details||e.hint); if(!m) return alt||'Operazione non riuscita'; try{ var j=JSON.parse(m); return j.message||j.error||alt||m; }catch(_e){ return m; } }
+      function mv2Rpc(name,args){ return sb.rpc(name,args).then(function(r){ if(r&&r.error) throw new Error(mv2Error(r)); return mv2Data(r); }); }
+      function mv2Card(show){ var c=document.getElementById('mv2-card'); if(c)c.hidden=!show; }
+      function loadMasterV2(){
+        if(!sb||!cur||MV2.loading||MV2.missingRpc) return;
+        if(cur.is_exam_room){ mv2Card(false); return; }
+        MV2.loading=true;
+        sb.rpc('master_v2_ui_state',{p_location:cur.id}).then(function(r){
+          MV2.loading=false;
+          if(r&&r.error){
+            var mm=(r.error.message||'').toLowerCase();
+            if(mm.indexOf('master_v2_ui_state')>=0||mm.indexOf('schema cache')>=0){ MV2.missingRpc=true; mv2Card(false); }
+            else { MV2.data=null; mv2Card(false); }
+            return;
+          }
+          MV2.data=mv2Data(r)||{}; renderMasterV2(); mv2EnsureOptions();
+        },function(){ MV2.loading=false; mv2Card(false); });
+      }
+      function mv2Actor(id){ var a=((MV2.data||{}).actors||[]).filter(function(x){return x.id===id;}); return a[0]||null; }
+      function mv2ActorName(id){ var a=mv2Actor(id); return a?a.name:'Attore'; }
+      function mv2EnsureOptions(){
+        var d=MV2.data||{}, r=d.round;
+        if(!r||!d.encounter||d.master&&d.master.stato==='sospesa') return;
+        (d.actors||[]).filter(function(a){return a.mine&&a.state==='attivo';}).forEach(function(a){
+          if(Object.prototype.hasOwnProperty.call(MV2.options,a.id)) return;
+          MV2.options[a.id]=null;
+          sb.rpc('combat_v2_round_options',{p_round:r.id,p_actor:a.id}).then(function(x){ MV2.options[a.id]=x&&!x.error?(mv2Data(x)||{}):{}; renderMasterV2(); },function(){ MV2.options[a.id]={}; renderMasterV2(); });
+        });
+      }
+      function mv2SetupLoad(){
+        if(MV2.setup){ renderMasterV2(); return; }
+        var whoP=sb.rpc('who_here',{p_location:cur.id,p_minutes:8});
+        var misP=sb.from('missions').select('id,title,grado,status').in('status',['aperta','programmata']).order('created_at',{ascending:false});
+        var tplP=sb.from('png_templates').select('id,nome,grado,is_active').eq('is_active',true).order('nome');
+        Promise.all([whoP,misP,tplP]).then(function(rs){
+          var wr=(rs[0]&&!rs[0].error?rs[0].data:[])||[], ids=wr.map(function(w){return w.user_id;}).filter(Boolean);
+          var chars=ids.length?sb.from('characters').select('id,user_id,name,rank').in('user_id',ids):Promise.resolve({data:[]});
+          chars.then(function(cr){ MV2.setup={pgs:(cr&&cr.data)||[],missions:(rs[1]&&rs[1].data)||[],templates:(rs[2]&&rs[2].data)||[]}; renderMasterV2(); },function(){ MV2.setup={pgs:[],missions:[],templates:(rs[2]&&rs[2].data)||[]}; renderMasterV2(); });
+        },function(){ MV2.setup={pgs:[],missions:[],templates:[]}; renderMasterV2(); });
+      }
+      function mv2SessionForm(){
+        var s=MV2.setup;
+        if(!s) return '<p class="mv2-wait">Carico missioni e persone presenti…</p>';
+        return '<div class="mv2-grid"><label class="mv2-field"><span>Attività</span><select id="mv2-kind"><option value="duello">Duello</option><option value="quest">Quest</option></select></label>'
+          +'<label class="mv2-field"><span>Titolo</span><input id="mv2-title" maxlength="100" placeholder="Titolo della giocata"></label></div>'
+          +'<label class="mv2-field" id="mv2-mission-field" hidden><span>Missione collegata</span><select id="mv2-mission"><option value="">Scegli la missione</option>'
+          +s.missions.map(function(m){return '<option value="'+m.id+'">'+esc(m.title)+' · '+esc(m.grado||'—')+'</option>';}).join('')+'</select></label>'
+          +'<p class="mv2-note">Prima si apre la regia; nel passaggio successivo scegli tutti i PG, i PNG e le squadre.</p>'
+          +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="session-open">Apri regia</button><button class="mv2-btn ghost" type="button" data-mv2="setup-cancel">Annulla</button></div>';
+      }
+      function mv2EncounterForm(){
+        var s=MV2.setup;
+        if(!s) return '<p class="mv2-wait">Carico persone e Ninja Book…</p>';
+        var mode=MV2.composeMode||'png_pg';
+        var pgs=s.pgs.map(function(p,i){ return '<div class="mv2-row"><div class="mv2-rowtop"><label class="mv2-name"><input type="checkbox" data-mv2-pg="'+p.id+'"> '+esc(p.name)+'</label><select class="mv2-select" data-mv2-team="'+p.id+'" style="width:74px"><option value="A">Team A</option><option value="B"'+(mode==='pg_pg'&&i%2?' selected':'')+'>Team B</option><option value="C">Team C</option><option value="D">Team D</option></select></div></div>'; }).join('');
+        var tplOpts=s.templates.map(function(t){return '<option value="'+t.id+'">'+esc(t.nome)+' · '+esc(t.grado||'—')+'</option>';}).join('');
+        var pngs=MV2.pngDraft.map(function(p,i){return '<div class="mv2-row"><div class="mv2-rowtop"><span class="mv2-name">'+esc(p.label)+'</span><input class="mv2-select" data-mv2-png-name="'+i+'" maxlength="60" value="'+esc(p.name||'')+'" placeholder="Nome in scena"><select class="mv2-select" data-mv2-png-team="'+i+'" style="width:74px"><option>A</option><option selected>B</option><option>C</option><option>D</option></select><button class="mv2-btn ghost" type="button" data-mv2-png-remove="'+i+'">Rimuovi</button></div></div>';}).join('');
+        return '<label class="mv2-field"><span>Tipo di scontro</span><select id="mv2-compose"><option value="png_pg"'+(mode==='png_pg'?' selected':'')+'>PNG contro PG</option><option value="pg_pg"'+(mode==='pg_pg'?' selected':'')+'>PG contro PG</option></select></label>'
+          +'<div class="mv2-phase"><b>PG presenti</b><br>Seleziona tutti i partecipanti e assegna la squadra.</div><div class="mv2-roster">'+(pgs||'<p class="mv2-wait">Nessun PG presente nella stanza.</p>')+'</div>'
+          +(mode==='png_pg'?('<div class="mv2-phase"><b>PNG</b><br>I valori arrivano dal Ninja Book; qui scegli soltanto identità e squadra.</div><div class="mv2-actions"><select id="mv2-png-template" class="mv2-select" style="flex:1"><option value="">Scegli un PNG</option>'+tplOpts+'</select><button class="mv2-btn ghost" type="button" data-mv2="png-add">Aggiungi</button></div><div class="mv2-roster">'+pngs+'</div>'):'')
+          +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="encounter-open">Apri scontro</button></div>';
+      }
+      function mv2AbilityOptions(actor,defense){
+        var o=MV2.options[actor.id], abs=o&&Array.isArray(o.abilities)?o.abilities:[];
+        abs=abs.filter(function(a){return !defense||a.defensive===true||String(a.defensive)==='true';});
+        return abs.map(function(a){return '<option value="'+esc(a.source)+':'+esc(a.id)+'">'+esc(a.name)+' · '+(a.chakra_cost||0)+' CK</option>';}).join('');
+      }
+      function mv2ActionForm(a){
+        var enemies=((MV2.data||{}).actors||[]).filter(function(x){return x.id!==a.id&&x.team!==a.team&&x.state==='attivo';});
+        return '<div class="mv2-row" data-mv2-action-form="'+a.id+'"><div class="mv2-rowtop"><span class="mv2-name">'+esc(a.name)+'</span><span class="mv2-team">Team '+esc(a.team)+'</span></div>'
+          +'<div class="mv2-grid"><label class="mv2-field"><span>Azione</span><select data-mv2-action-kind><option value="attacco">Attacco</option><option value="movimento">Movimento</option><option value="utilita">Utilità</option><option value="passa">Passa</option></select></label>'
+          +'<label class="mv2-field" data-mv2-target-field><span>Bersaglio</span><select data-mv2-target>'+enemies.map(function(x){return '<option value="'+x.id+'">'+esc(x.name)+' · Team '+esc(x.team)+'</option>';}).join('')+'</select></label></div>'
+          +'<label class="mv2-field" data-mv2-ability-field><span>Attacco offerto dal server</span><select data-mv2-ability><option value="mano">Colpo a mano · 0 CK</option>'+mv2AbilityOptions(a,false)+'</select></label>'
+          +'<label class="mv2-field" data-mv2-move-field hidden><span>Spostamento in metri (-15 / +15)</span><input type="number" min="-15" max="15" value="0" data-mv2-move></label>'
+          +'<label class="mv2-field"><span>Interpretazione dell’azione</span><textarea maxlength="5000" data-mv2-text placeholder="Descrivi cosa fa '+esc(a.name)+'. Il testo viene consegnato al Master e confluirà nel resoconto."></textarea></label>'
+          +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2-action-send="'+a.id+'">Consegna azione</button></div></div>';
+      }
+      function mv2DefenseForm(p){
+        var a=mv2Actor(p.target_actor_id); if(!a) return '';
+        return '<div class="mv2-row" data-mv2-defense-form="'+p.attack_declaration_id+'"><div class="mv2-rowtop"><span class="mv2-name">'+esc(p.target_name)+'</span><span class="mv2-team">attacco di '+esc(p.attacker_name)+'</span></div>'
+          +'<p class="mv2-note">'+esc(p.text||'Attacco dichiarato')+'</p><label class="mv2-field"><span>Reazione</span><select data-mv2-reaction><option value="schivata">Schivata</option><option value="parata">Parata</option><option value="sostituzione">Sostituzione · 5 CK</option><option value="copie">Copie</option><option value="tecnica">Tecnica difensiva</option><option value="nessuna">Nessuna difesa</option></select></label>'
+          +'<label class="mv2-field" data-mv2-defense-ability hidden><span>Tecnica offerta dal server</span><select data-mv2-def-ability>'+mv2AbilityOptions(a,true)+'</select></label>'
+          +'<label class="mv2-field"><span>Interpretazione della difesa</span><textarea maxlength="5000" data-mv2-def-text placeholder="Descrivi la reazione. Una sola reazione copre un solo attacco."></textarea></label>'
+          +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2-defense-send="'+p.attack_declaration_id+'" data-actor="'+p.target_actor_id+'">Consegna difesa</button></div></div>';
+      }
+      function mv2RatingForm(x){
+        return '<div class="mv2-row" data-mv2-rating-form="'+x.declaration_id+'"><div class="mv2-rowtop"><span class="mv2-name">'+esc(x.actor_name)+'</span><span class="mv2-team">'+esc(x.kind)+'</span></div><p class="mv2-note">'+esc(x.text||'Nessun testo')+'</p>'
+          +'<div class="mv2-grid"><label class="mv2-field"><span>Valutazione</span><select data-mv2-score><option value="">Scegli da -3 a +3</option><option>-3</option><option>-2</option><option>-1</option><option>0</option><option>1</option><option>2</option><option>3</option></select></label><label class="mv2-field"><span>Motivazione / revisione</span><input maxlength="500" data-mv2-reason placeholder="Facoltativa, resta nel referto"></label></div><button class="mv2-btn" type="button" data-mv2-rating-send="'+x.declaration_id+'">Registra voto</button></div>';
+      }
+      function mv2ReportHtml(rep){
+        if(!rep||!rep.mechanics) return '';
+        var dec=rep.mechanics.declarations||[];
+        var rows=dec.filter(function(x){return x.kind!=='nessuna'&&x.kind!=='difesa';}).map(function(x){
+          var o=x.outcome||{}, txt='<b>'+esc(mv2ActorName(x.actor))+'</b> · '+esc(x.kind);
+          if(x.target) txt+=' → '+esc(mv2ActorName(x.target));
+          if(x.kind==='attacco') txt+=': '+(o.success?'riuscito':'fallito')+' · margine '+(o.threshold_margin==null?'—':o.threshold_margin)+' · danno '+(o.damage_applied||0);
+          return '<div class="mv2-outcome">'+txt+'</div>';
+        }).join('');
+        return '<div class="mv2-report"><div class="mv2-phase"><b>Risultati effettivi del motore</b><br>'+(rep.values_written?'Valori applicati ai personaggi.':'Prova non lesiva: valori non applicati.')+'</div>'+(rows||'<p class="mv2-wait">Nessun esito meccanico.</p>')+'</div>';
+      }
+      function renderMasterV2(){
+        var body=document.getElementById('mv2-body'), tag=document.getElementById('mv2-state'); if(!body||!cur) return;
+        var d=MV2.data||{}, m=d.master, e=d.encounter, r=d.round, viewer=d.viewer||{};
+        if(!m){
+          if(!iAmStaff){ mv2Card(false); return; }
+          mv2Card(true); if(tag)tag.textContent='Disponibile';
+          body.innerHTML=MV2.setupOpen?mv2SessionForm():'<p class="mv2-note">Apri una regia per raccogliere le azioni di più PG e PNG e pubblicare un unico esito cinematografico.</p><button class="mv2-btn" type="button" data-mv2="setup-open">Nuovo duello o quest</button>';
+          return;
+        }
+        mv2Card(true); if(tag)tag.textContent=(m.stato||'V2').replace('_',' ');
+        var h='<div class="mv2-phase"><b>'+esc(m.titolo||m.tipo)+'</b><br>'+esc(m.tipo)+' · '+esc(m.stato)+'</div>';
+        if(m.stato==='sospesa'){
+          h+='<p class="mv2-note">Quest congelata: i personaggi restano impegnati e nessun valore avanza.</p>';
+          if(viewer.is_master) h+='<button class="mv2-btn" type="button" data-mv2="resume">Riprendi dal checkpoint</button>';
+          if(viewer.is_admin&&!viewer.is_master) h+='<label class="mv2-field"><span>Motivo del subentro Admin</span><input data-mv2-override-reason maxlength="500" placeholder="Motivo obbligatorio"></label><button class="mv2-btn warn" type="button" data-mv2="admin-override">Subentra come Master</button>';
+          body.innerHTML=h; return;
+        }
+        if(!e){
+          if(viewer.is_master){ if(!MV2.setup) mv2SetupLoad(); h+=mv2EncounterForm(); }
+          else h+='<p class="mv2-wait">Il Master sta preparando lo scontro.</p>';
+          body.innerHTML=h; return;
+        }
+        h+='<div class="mv2-roster">'+(d.actors||[]).map(function(a){var z=a.resources||{}; return '<div class="mv2-row"><div class="mv2-rowtop"><span class="mv2-name">'+esc(a.name)+'</span><span class="mv2-team">Team '+esc(a.team)+'</span><span class="mv2-res">'+esc(a.state)+(a.resources?' · PV '+(z.vita==null?'—':z.vita)+'/'+(z.vita_max==null?'—':z.vita_max)+' · CK '+(z.chakra==null?'—':z.chakra)+'/'+(z.chakra_max==null?'—':z.chakra_max):'')+'</span></div></div>';}).join('')+'</div>';
+        if(r) h+='<div class="mv2-phase"><b>Round '+r.no+'</b><br>'+esc(r.phase.replace(/_/g,' '))+'</div>';
+        if(r&&r.phase==='raccolta_azioni'){
+          var mine=(d.actors||[]).filter(function(a){return a.mine&&a.state==='attivo'&&!a.has_action;});
+          h+=mine.length?mine.map(mv2ActionForm).join(''):'<p class="mv2-wait">Azioni consegnate. Attendo gli altri partecipanti…</p>';
+        }
+        if(r&&r.phase==='raccolta_difese'){
+          var pd=(d.pending_defenses||[]).filter(function(x){var a=mv2Actor(x.target_actor_id); return a&&a.mine;});
+          h+=pd.length?'<p class="mv2-note">Se più attacchi convergono sullo stesso bersaglio, puoi reagire a uno solo: gli altri resteranno senza difesa.</p>'+pd.map(mv2DefenseForm).join(''):'<p class="mv2-wait">Difese proprie completate. Attendo gli altri…</p>';
+        }
+        if(viewer.is_master&&(d.ratings_pending||[]).length) h+='<div class="mv2-phase"><b>Valutazione qualitativa</b><br>Da −3 a +3: influenza la riuscita senza cambiare i numeri del motore.</div>'+d.ratings_pending.map(mv2RatingForm).join('');
+        if(viewer.is_master&&r&&r.phase==='raccolta_difese'&&!(d.pending_defenses||[]).length&&!(d.ratings_pending||[]).length) h+='<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="resolve">Calcola attacchi e difese</button></div>';
+        h+=mv2ReportHtml(d.report);
+        if(viewer.is_master&&d.report&&d.report.narration_state!=='pubblicata') h+='<label class="mv2-field"><span>Resoconto cinematografico del Fato</span><textarea id="mv2-narrative" maxlength="5000" placeholder="Raccogli la turnazione e racconta l’esito per tutti. I dialoghi tra virgolette saranno evidenziati in rosso."></textarea></label><button class="mv2-btn" type="button" data-mv2="narrate">Pubblica esito e avanza</button>';
+        if(viewer.is_master&&e.state==='risolto'&&r&&r.state==='narrato') h+=(m.tipo==='quest'?'<div class="mv2-grid"><label class="mv2-field"><span>Esito quest</span><select id="mv2-close-outcome"><option value="successo">Successo</option><option value="fallimento">Fallimento</option></select></label><label class="mv2-field"><span>Nota finale</span><input id="mv2-close-note" maxlength="1000"></label></div>':'<label class="mv2-field"><span>Nota finale</span><input id="mv2-close-note" maxlength="1000"></label>')+'<label class="mv2-note"><input id="mv2-close-role" type="checkbox"> Chiudi anche le REC collegate alla giocata</label><button class="mv2-btn" type="button" data-mv2="close">Chiudi attività</button>';
+        if(viewer.is_master&&e.state!=='risolto') h+='<label class="mv2-field"><span>Motivo della sospensione</span><input id="mv2-suspend-reason" maxlength="500" placeholder="Es. giocata da riprendere alla prossima sessione"></label><div class="mv2-actions"><button class="mv2-btn ghost" type="button" data-mv2="suspend">Congela e sospendi</button></div>';
+        if(viewer.is_admin&&!viewer.is_master) h+='<label class="mv2-field"><span>Motivo subentro Admin</span><input data-mv2-override-reason maxlength="500"></label><button class="mv2-btn warn" type="button" data-mv2="admin-override">Rimuovi e subentra</button>';
+        body.innerHTML=h;
+      }
+      function mv2Busy(on){ MV2.busy=on; var b=document.getElementById('mv2-body'); if(b) Array.prototype.forEach.call(b.querySelectorAll('button'),function(x){x.disabled=on;}); }
+      function mv2Reload(msg){ MV2.options={}; if(msg)toast(msg); loadMasterV2(); }
+      (function(){
+        var body=document.getElementById('mv2-body'); if(!body)return;
+        body.addEventListener('change',function(ev){
+          var t=ev.target;
+          if(t.id==='mv2-kind'){ var mf=document.getElementById('mv2-mission-field'); if(mf)mf.hidden=t.value!=='quest'; }
+          if(t.id==='mv2-compose'){ MV2.composeMode=t.value; MV2.pngDraft=[]; renderMasterV2(); }
+          if(t.hasAttribute('data-mv2-action-kind')){ var f=t.closest('[data-mv2-action-form]'), k=t.value; if(f){var tf=f.querySelector('[data-mv2-target-field]'),af=f.querySelector('[data-mv2-ability-field]'),mf=f.querySelector('[data-mv2-move-field]'); if(tf)tf.hidden=k!=='attacco'; if(af)af.hidden=k!=='attacco'; if(mf)mf.hidden=k!=='movimento';} }
+          if(t.hasAttribute('data-mv2-reaction')){ var fd=t.closest('[data-mv2-defense-form]'), aa=fd&&fd.querySelector('[data-mv2-defense-ability]'); if(aa)aa.hidden=t.value!=='tecnica'; }
+        });
+        body.addEventListener('click',function(ev){
+          var t=ev.target.closest('button'); if(!t||MV2.busy||!sb||!cur)return;
+          var a=t.getAttribute('data-mv2');
+          if(a==='setup-open'){MV2.setupOpen=true;mv2SetupLoad();renderMasterV2();return;}
+          if(a==='setup-cancel'){MV2.setupOpen=false;renderMasterV2();return;}
+          if(a==='session-open'){
+            var k=(document.getElementById('mv2-kind')||{}).value||'duello', title=((document.getElementById('mv2-title')||{}).value||'').trim(), mission=(document.getElementById('mv2-mission')||{}).value||null;
+            if(!title){toast('Inserisci il titolo della giocata');return;} if(k==='quest'&&!mission){toast('Collega una missione');return;}
+            mv2Busy(true); mv2Rpc('master_v2_session_open',{p_location:cur.id,p_tipo:k,p_mission:k==='quest'?mission:null,p_titolo:title,p_request_key:mv2Key()}).then(function(){MV2.setupOpen=false;mv2Busy(false);mv2Reload('Regia aperta: configura lo scontro');},function(e){mv2Busy(false);toast(e.message);}); return;
+          }
+          if(a==='png-add'){var sel=document.getElementById('mv2-png-template'),id=sel&&sel.value,tp=MV2.setup&&MV2.setup.templates.filter(function(x){return x.id===id;})[0]; if(!tp){toast('Scegli un PNG');return;} MV2.pngDraft.push({template_id:id,label:tp.nome,name:'',client_ref:mv2Key()});renderMasterV2();return;}
+          if(t.hasAttribute('data-mv2-png-remove')){MV2.pngDraft.splice(parseInt(t.getAttribute('data-mv2-png-remove'),10),1);renderMasterV2();return;}
+          if(a==='encounter-open'){
+            var mode=(document.getElementById('mv2-compose')||{}).value||'png_pg', pg=[], teams={};
+            body.querySelectorAll('[data-mv2-pg]:checked').forEach(function(x){var id=x.getAttribute('data-mv2-pg'),ts=body.querySelector('[data-mv2-team="'+id+'"]');pg.push(id);teams[id]=ts?ts.value:'A';});
+            var specs=[]; if(mode==='png_pg') MV2.pngDraft.forEach(function(p,i){var ni=body.querySelector('[data-mv2-png-name="'+i+'"]'),ti=body.querySelector('[data-mv2-png-team="'+i+'"]');specs.push({client_ref:p.client_ref,template_id:p.template_id,nome:(ni&&ni.value.trim())||p.label});teams[p.client_ref]=(ti&&ti.value)||'B';});
+            var uniq={};Object.keys(teams).forEach(function(x){uniq[teams[x]]=1;});
+            if((mode==='pg_pg'&&pg.length<2)||(mode==='png_pg'&&(!pg.length||!specs.length))){toast(mode==='pg_pg'?'Seleziona almeno due PG':'Seleziona almeno un PG e un PNG');return;} if(Object.keys(uniq).length<2){toast('Servono almeno due squadre diverse');return;}
+            mv2Busy(true);mv2Rpc('master_v2_encounter_open',{p_master_session:MV2.data.master.id,p_pg_ids:pg,p_png_specs:specs,p_team_map:teams,p_request_key:mv2Key()}).then(function(){MV2.pngDraft=[];mv2Busy(false);mv2Reload('Scontro multi-attore aperto');},function(e){mv2Busy(false);toast(e.message);});return;
+          }
+          if(t.hasAttribute('data-mv2-action-send')){
+            var id=t.getAttribute('data-mv2-action-send'),f=t.closest('[data-mv2-action-form]'),kind=f.querySelector('[data-mv2-action-kind]').value,txt=f.querySelector('[data-mv2-text]').value.trim(),intent={kind:kind};
+            if(!txt){toast('Descrivi l’azione');return;} if(kind==='attacco'){var target=f.querySelector('[data-mv2-target]').value,ab=f.querySelector('[data-mv2-ability]').value;if(!target){toast('Scegli il bersaglio');return;}intent.target_actor=target;if(ab==='mano')intent.ability_source='mano';else{var z=ab.split(':');intent.ability_source=z[0];intent.ability_id=z[1];}} else if(kind==='movimento')intent.move_m=parseInt(f.querySelector('[data-mv2-move]').value,10)||0;
+            mv2Busy(true);mv2Rpc('combat_v2_action_declare',{p_round:MV2.data.round.id,p_actor:id,p_intent:intent,p_text:txt,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Azione consegnata al Master');},function(e){mv2Busy(false);toast(e.message);});return;
+          }
+          if(t.hasAttribute('data-mv2-defense-send')){
+            var atk=t.getAttribute('data-mv2-defense-send'),actor=t.getAttribute('data-actor'),fd=t.closest('[data-mv2-defense-form]'),reaction=fd.querySelector('[data-mv2-reaction]').value,dt=fd.querySelector('[data-mv2-def-text]').value.trim(),intentD={reaction:reaction};
+            if(reaction!=='nessuna'&&!dt){toast('Descrivi la difesa');return;} if(reaction==='tecnica'){var av=(fd.querySelector('[data-mv2-def-ability]')||{}).value;if(!av){toast('Non hai tecniche difensive disponibili');return;}var zz=av.split(':');intentD.ability_source=zz[0];intentD.ability_id=zz[1];}
+            mv2Busy(true);mv2Rpc('combat_v2_defense_declare',{p_round:MV2.data.round.id,p_attack_declaration:atk,p_actor:actor,p_intent:intentD,p_text:dt,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Difesa consegnata');},function(e){mv2Busy(false);toast(e.message);});return;
+          }
+          if(t.hasAttribute('data-mv2-rating-send')){var did=t.getAttribute('data-mv2-rating-send'),fr=t.closest('[data-mv2-rating-form]'),sv=fr.querySelector('[data-mv2-score]').value,reason=fr.querySelector('[data-mv2-reason]').value.trim();if(sv===''){toast('Scegli un voto da -3 a +3');return;}mv2Busy(true);mv2Rpc('combat_v2_rating_save',{p_declaration:did,p_value:parseInt(sv,10),p_reason:reason||null,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Valutazione registrata nel referto');},function(e){mv2Busy(false);toast(e.message);});return;}
+          if(a==='resolve'){mv2Busy(true);mv2Rpc('combat_v2_round_resolve',{p_round:MV2.data.round.id,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Calcolo completato: prepara il resoconto');},function(e){mv2Busy(false);toast(e.message);});return;}
+          if(a==='narrate'){var tx=((document.getElementById('mv2-narrative')||{}).value||'').trim();if(!tx){toast('Scrivi il resoconto cinematografico');return;}mv2Busy(true);mv2Rpc('combat_v2_round_narrate_human',{p_round:MV2.data.round.id,p_text:tx,p_request_key:mv2Key()}).then(function(){mv2Busy(false);loadMsgs();mv2Reload('Esito pubblicato in chat come Fato');},function(e){mv2Busy(false);toast(e.message);});return;}
+          if(a==='suspend'){var reason=((document.getElementById('mv2-suspend-reason')||{}).value||'').trim();if(reason.length<3){toast('Indica perché la giocata viene sospesa');return;}mv2Busy(true);mv2Rpc('master_v2_suspend',{p_session:MV2.data.master.id,p_mode:'emergenza',p_reason:reason,p_expected_control_version:MV2.data.master.control_version,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Quest congelata: i personaggi restano impegnati');},function(e){mv2Busy(false);toast(e.message);});return;}
+          if(a==='resume'){mv2Busy(true);mv2Rpc('master_v2_resume',{p_session:MV2.data.master.id,p_expected_control_version:MV2.data.master.control_version,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Quest ripresa dal checkpoint');},function(e){mv2Busy(false);toast(e.message);});return;}
+          if(a==='admin-override'){var rr=(((body.querySelector('[data-mv2-override-reason]')||{}).value)||'').trim();if(rr.length<3){toast('Indica il motivo del subentro');return;}mv2Busy(true);mv2Rpc('master_v2_admin_override',{p_session:MV2.data.master.id,p_reason:rr,p_expected_control_version:MV2.data.master.control_version,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Subentro Admin registrato; la sessione è sospesa');},function(e){mv2Busy(false);toast(e.message);});return;}
+          if(a==='close'){var out=MV2.data.master.tipo==='quest'?((document.getElementById('mv2-close-outcome')||{}).value||'successo'):null,note=((document.getElementById('mv2-close-note')||{}).value||'').trim(),closeRole=!!((document.getElementById('mv2-close-role')||{}).checked),closeKey=mv2Key(),n=0;mv2Busy(true);var step=function(){if(n++>=5){mv2Busy(false);mv2Reload('Attività chiusa e depositata');return;}mv2Rpc('master_v2_close',{p_session:MV2.data.master.id,p_mission_outcome:out,p_mission_note:note||null,p_close_role:closeRole,p_expected_control_version:MV2.data.master.control_version,p_request_key:closeKey}).then(step,function(e){mv2Busy(false);toast(e.message);});};step();return;}
+        });
+      })();
 
       /* ---- Motore di combattimento: il pannello dello scontro ---- */
       var CMB=null, CMB_AZ=null, CMB_OPZ=null, azBozza=null, azFiltro='', azPri=[];
@@ -3301,7 +3528,7 @@
            Da qui in poi la risposta e' scritta in fondo al pannello, e si
            legge senza aprire il sorgente. Non e' decorazione: e' la sola
            cosa che distingue un difetto da un file vecchio. */
-        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-122-A1"+'</p>';
+        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-123-A1"+'</p>';
         b.innerHTML=h;
         azNarrSync();
       }
@@ -4767,11 +4994,11 @@
         if(poll){ clearInterval(poll); poll=null; }
         /* il poll parte solo se il server ci fa entrare davvero */
         entraLuogo(function(){
-          updateMeteo(); loadMsgs(); loadWho(); loadRoleState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame();
+          updateMeteo(); loadMsgs(); loadWho(); loadRoleState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2();
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; MV2.data=null; MV2.setup=null; MV2.setupOpen=false; MV2.composeMode='png_pg'; MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -4786,6 +5013,7 @@
         var placeEl=document.getElementById('msg-place'); var place=placeEl?placeEl.value.trim().replace(/[【】]/g,'').slice(0,60):'';
         var pbody=(place && !to)?('【'+place+'】 '+t):t;
         if(fatoMode){
+          if(MV2.data&&MV2.data.encounter){ toast('Durante uno scontro V2 pubblica l’esito dal pannello Regia Master: così referto, chat e round restano collegati.'); return; }
           if(!t.trim()){ toast('Scrivi l\'esito del Fato'); return; }
           if(esTestoLen(pbody)>5000){ toast('Esito troppo lungo: massimo 5000 caratteri'); return; }
           sendBtn.disabled=true;
@@ -4805,6 +5033,10 @@
             input.value=''; updCount(); loadMsgs();
             if(typeof after==='function') after();
           },function(){ syncSendBtn(); toast('Impossibile pubblicare l\'esito del Fato'); });
+          return;
+        }
+        if(MV2.data&&MV2.data.master&&MV2.data.encounter&&MV2.data.viewer&&(MV2.data.viewer.is_master||MV2.data.viewer.is_participant)){
+          toast(MV2.data.master.stato==='sospesa'?'La quest è congelata: riprendila prima di continuare.':'Durante lo scontro consegna azione o difesa dal pannello Regia Master. Il Fato pubblicherà il resoconto unico.');
           return;
         }
         /* [071-A · FLUSSO UI §6] Se c'e' una mossa preparata e una prova
@@ -5287,7 +5519,7 @@
           var _tbu=document.getElementById('test-btn'); if(_tbu) _tbu.style.display=loggedIn?'':'none';
           if(myId){ sb.from('characters').select('id').eq('user_id',myId).maybeSingle().then(function(g){ if(!(g&&g.data)){ try{ document.documentElement.style.visibility='hidden'; }catch(e){} location.replace('scheda.html'); } }, function(){}); }
           if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max,mente,corporation').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); myCorp=(cr.data.corporation!=null?cr.data.corporation:null); showPtsReminder(cr.data.unspent_points||0); caricaNomiEvidenza(); updateVitals(); updateKOState(); updateHealBtn(); loadMyCompanion(); } }, function(){}); }
-          if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _fr=document.getElementById('fato-toggle-row'); if(_fr) _fr.style.display=iAmStaff?'':'none'; if(!iAmStaff) setFatoMode(false); var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; var _tbs=document.getElementById('test-staff-btn'); if(_tbs) _tbs.style.display=iAmStaff?'':'none'; try{ syncSendBtn(); }catch(e){} } }, function(){ setFatoMode(false); }); }
+          if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _fr=document.getElementById('fato-toggle-row'); if(_fr) _fr.style.display=iAmStaff?'':'none'; if(!iAmStaff) setFatoMode(false); var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; var _tbs=document.getElementById('test-staff-btn'); if(_tbs) _tbs.style.display=iAmStaff?'':'none'; try{ syncSendBtn(); }catch(e){} if(cur)loadMasterV2(); } }, function(){ setFatoMode(false); }); }
           loadEmblems();
           renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); loadFlash(); calInit(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); sb.rpc('ensure_welcome').then(function(){ loadUnread(); loadConversations(); }, function(){ loadUnread(); loadConversations(); }); if(dmTarget){ var _dt=dmTarget; dmTarget=null; sb.from('characters').select('name').eq('user_id',_dt).maybeSingle().then(function(rr){ openCompose(_dt,(rr&&rr.data&&rr.data.name)||'utente'); }, function(){ openCompose(_dt,'utente'); }); } }
         }, function(){ loggedIn=false; renderLuoghi(); });
