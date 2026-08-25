@@ -837,6 +837,38 @@
   .bj-ul li{margin-bottom:4px}
   .bj-note{font-size:12.5px;line-height:1.45;color:var(--ink-soft);font-style:italic;border-left:2px solid var(--edge);padding-left:9px;margin:0 0 8px}
   @media (max-width:560px){ .bj-grid{grid-template-columns:1fr} table.bj-t{min-width:420px;font-size:12px} }
+
+  /* TEST-ROOM-UTENTI-MOCK-AI-070 · sandbox privata utente */
+  .tru-card{width:min(820px,96vw);max-height:92vh;display:flex;flex-direction:column}
+  .tru-body{overflow-y:auto;padding:15px 17px 19px}
+  .tru-intro{margin:0 0 13px;padding:11px 13px;border:1px solid #8fae80;border-left:4px solid #5c9150;border-radius:8px;background:rgba(223,238,217,.72);font-size:14px;line-height:1.5;color:var(--ink)}
+  .tru-intro strong{color:#315d2d}
+  .tru-status{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+  .tru-chip{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--edge);border-radius:7px;padding:3px 8px;background:rgba(255,250,235,.72);color:var(--ink-soft)}
+  .tru-chip.ok{border-color:#6b9563;color:#315d2d;background:rgba(223,238,217,.7)}
+  .tru-chip.limit{border-color:var(--red-deep);color:var(--red-deep);background:rgba(166,50,29,.06)}
+  .tru-section{border:1px solid var(--edge);border-radius:10px;background:rgba(255,252,245,.58);padding:12px 13px;margin-top:11px}
+  .tru-section h4{margin:0 0 8px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--red-deep)}
+  .tru-row{display:grid;grid-template-columns:minmax(160px,1fr) minmax(220px,2fr);gap:10px;align-items:center;margin-top:9px}
+  .tru-label{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .tru-select{width:100%;border:1px solid var(--edge);border-radius:8px;background:var(--paper-hi);color:var(--ink);font:15px 'Cormorant Garamond',serif;padding:8px 10px}
+  .tru-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+  .tru-btn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.07em;text-transform:uppercase;border:1px solid var(--red-deep);background:var(--red);color:#f6ead0;border-radius:8px;padding:8px 12px;cursor:pointer}
+  .tru-btn.ghost{background:transparent;color:var(--ink);border-color:var(--edge)}
+  .tru-btn:disabled{opacity:.48;cursor:not-allowed}
+  .tru-err{margin:9px 0 0;padding:8px 10px;border-left:3px solid var(--red-deep);background:rgba(166,50,29,.07);color:var(--red-deep);font-size:13px;line-height:1.4}
+  .tru-wait{color:var(--ink-soft);font-style:italic;font-size:13px;margin:8px 0}
+  .tru-mech{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 12px}
+  .tru-kv{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(138,111,67,.25);padding:4px 0;font-size:13px}
+  .tru-kv span:first-child{color:var(--ink-soft)}
+  .tru-kv strong{color:var(--ink);text-align:right}
+  .tru-safe{margin:9px 0 0;font-size:12.5px;color:#315d2d;font-weight:600}
+  .tru-ai{margin-top:10px;padding:11px 12px;border:1px solid var(--gold);border-radius:9px;background:linear-gradient(#f6ecc9,#efe1b7)}
+  .tru-ai h5{margin:0 0 5px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8a6a1e}
+  .tru-ai p{margin:0;white-space:pre-wrap;font-size:14.5px;line-height:1.48;color:var(--ink)}
+  .tru-reset{font-size:11.5px;color:var(--ink-soft);margin-top:5px}
+  @media(max-width:600px){.tru-body{padding:12px}.tru-row{grid-template-columns:1fr}.tru-mech{grid-template-columns:1fr}.tru-actions .tru-btn{flex:1 1 44%}}
+
   /* Corporazioni */
   .corp-me{border:1px solid var(--rule);border-radius:10px;background:rgba(255,250,235,.5);padding:12px 14px;margin-bottom:14px}
   .corp-me-in{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
@@ -1416,7 +1448,8 @@
               <button class="wr-btn" type="button" data-world="cercoteri">Cercoteri</button>
               <button class="wr-btn" type="button" data-world="premi">Premi</button>
               <button class="wr-btn" id="annu-btn" type="button">Annuario</button>
-              <button class="wr-btn" id="test-btn" type="button" style="display:none" title="Stanza di prova riservata allo staff: i colpi si calcolano ma non modificano nulla">Test Room</button>
+              <button class="wr-btn" id="test-btn" type="button" style="display:none" title="Prova privata e non lesiva contro il Manichino mock">Test Room</button>
+              <button class="wr-btn" id="test-staff-btn" type="button" style="display:none" title="Stanza tecnica riservata allo staff">Test Room staff</button>
               <button class="wr-btn" type="button" data-world="help">Help</button>
             </aside>
             <div class="map-main">
@@ -1610,6 +1643,16 @@
       <div class="miss-body" id="prm-body"></div>
     </div>
   </div>
+
+  <div class="mailov-backdrop" id="truv-backdrop" hidden></div>
+  <div class="mailov" id="truv" hidden aria-label="Test Room">
+    <div class="missov-card tru-card" role="dialog" aria-modal="true" aria-labelledby="truv-title">
+      <button class="mailov-x" id="truv-x" type="button" title="Chiudi">×</button>
+      <div class="miss-head"><span class="miss-title" id="truv-title">Test Room · prova privata</span></div>
+      <div class="tru-body" id="truv-body" aria-live="polite"></div>
+    </div>
+  </div>
+
   <div class="mailov-backdrop" id="helpov-backdrop" hidden></div>
   <div class="mailov" id="helpov" hidden aria-label="Tavolo di Aiuto">
     <div class="missov-card">
@@ -5241,9 +5284,10 @@
           loggedIn=!!(res&&res.data&&res.data.session);
           myId=(loggedIn&&res.data.session.user)?res.data.session.user.id:null;
           if(loggedIn){ try{ sessionStorage.setItem('tus_in_land','1'); }catch(e){} }
+          var _tbu=document.getElementById('test-btn'); if(_tbu) _tbu.style.display=loggedIn?'':'none';
           if(myId){ sb.from('characters').select('id').eq('user_id',myId).maybeSingle().then(function(g){ if(!(g&&g.data)){ try{ document.documentElement.style.visibility='hidden'; }catch(e){} location.replace('scheda.html'); } }, function(){}); }
           if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max,mente,corporation').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); myCorp=(cr.data.corporation!=null?cr.data.corporation:null); showPtsReminder(cr.data.unspent_points||0); caricaNomiEvidenza(); updateVitals(); updateKOState(); updateHealBtn(); loadMyCompanion(); } }, function(){}); }
-          if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _fr=document.getElementById('fato-toggle-row'); if(_fr) _fr.style.display=iAmStaff?'':'none'; if(!iAmStaff) setFatoMode(false); var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; var _tb=document.getElementById('test-btn'); if(_tb) _tb.style.display=iAmStaff?'':'none'; try{ syncSendBtn(); }catch(e){} } }, function(){ setFatoMode(false); }); }
+          if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _fr=document.getElementById('fato-toggle-row'); if(_fr) _fr.style.display=iAmStaff?'':'none'; if(!iAmStaff) setFatoMode(false); var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; var _tbs=document.getElementById('test-staff-btn'); if(_tbs) _tbs.style.display=iAmStaff?'':'none'; try{ syncSendBtn(); }catch(e){} } }, function(){ setFatoMode(false); }); }
           loadEmblems();
           renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); loadFlash(); calInit(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); sb.rpc('ensure_welcome').then(function(){ loadUnread(); loadConversations(); }, function(){ loadUnread(); loadConversations(); }); if(dmTarget){ var _dt=dmTarget; dmTarget=null; sb.from('characters').select('name').eq('user_id',_dt).maybeSingle().then(function(rr){ openCompose(_dt,(rr&&rr.data&&rr.data.name)||'utente'); }, function(){ openCompose(_dt,'utente'); }); } }
         }, function(){ loggedIn=false; renderLuoghi(); });
@@ -6056,6 +6100,81 @@
             tabs[i].classList.toggle('empty',n===0);
           }
         }
+
+        /* ===== TEST ROOM UTENTI 070 · sandbox privata, nessun luogo fisico ===== */
+        var TRU={busy:false,state:null,techniques:[],report:null,error:''};
+        function truEl(id){ return document.getElementById(id); }
+        function truErr(e){
+          var s=String((e&&e.message)||e||'errore').toLowerCase();
+          var m={autenticazione_richiesta:'Accedi per usare la Test Room.',personaggio_richiesto:'Serve un personaggio per aprire la prova.',manichino_non_configurato:'Il Manichino mock non è disponibile.',prova_non_aperta:'Apri prima una prova.',bersaglio_non_valido:'Il bersaglio ammesso è soltanto il Manichino mock.',sorgente_non_valida:'Tecnica non riconosciuta.',azione_non_valida:'Azione non riconosciuta.',tecnica_non_disponibile:'Questa tecnica non è disponibile per il tuo personaggio.',chakra_insufficiente:'Il tuo chakra reale non basta per provare questa tecnica.',quota_ia_esaurita:'Hai già usato le cinque narrazioni IA di questa giornata.',referto_non_tuo:'Questo referto non appartiene alla tua prova.'};
+          for(var k in m){ if(s.indexOf(k)>=0) return m[k]; }
+          return 'La Test Room non risponde in questo momento. Il personaggio non è stato modificato.';
+        }
+        function truResetText(q){
+          if(!q||!q.resets_at) return '';
+          try{return 'La quota riparte '+new Intl.DateTimeFormat('it-IT',{timeZone:'Europe/Rome',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(q.resets_at))+'.';}catch(e){return '';}
+        }
+        function truMech(m){
+          if(!m) return '';
+          var labels={action:'Azione',technique:'Tecnica',target:'Bersaglio',activation:'Attivazione',chakra_cost:'Costo richiesto',reaction:'Reazione del manichino',dado_att:'Tiro attacco',dado_dif:'Tiro difesa',atk_tot:'Totale attacco',def_tot:'Totale difesa',margine:'Margine',danno_grezzo:'Danno grezzo',danno_applicato:'Danno simulato',mock_hp_prima:'PV manichino prima',mock_hp_dopo:'PV manichino dopo',ko:'KO simulato',mock_reset:'Ripristino automatico',striscio:'Sfioramento',colpito:'Colpito',cap_attivo:'Tetto applicato',activated:'Attivata'};
+          var order=['action','technique','target','activation','chakra_cost','reaction','dado_att','dado_dif','atk_tot','def_tot','margine','danno_grezzo','danno_applicato','mock_hp_prima','mock_hp_dopo','ko','mock_reset','striscio','colpito','cap_attivo','activated'];
+          var h='<div class="tru-mech">';
+          order.forEach(function(k){ if(m[k]===undefined||m[k]===null) return; var v=m[k]; if(typeof v==='boolean') v=v?'Sì':'No'; if(k==='chakra_cost') v=v+' chakra'; h+='<div class="tru-kv"><span>'+labels[k]+'</span><strong>'+esc(String(v))+'</strong></div>'; });
+          return h+'</div><p class="tru-safe">Valori reali scritti: no. L’esito resta confinato a questa prova.</p>';
+        }
+        function truRender(){
+          var host=truEl('truv-body'); if(!host) return;
+          var st=TRU.state||{}, sess=st.session||null, q=st.quota||{used:0,remaining:5,limit:5};
+          var rep=TRU.report||st.last_report||null, used=+(q.used||0), limit=+(q.limit||5);
+          var h='<p class="tru-intro"><strong>Nessuna conseguenza sul personaggio.</strong> Prova le tecniche che possiedi contro il Manichino mock. PV, chakra, progressi, oggetti e statistiche non cambiano. L’esito meccanico funziona anche senza IA.</p>';
+          h+='<div class="tru-status"><span class="tru-chip '+(sess?'ok':'')+'">'+(sess?'Prova aperta':'Nessuna prova aperta')+'</span><span class="tru-chip '+(used>=limit?'limit':'')+'">IA '+used+'/'+limit+' usate</span></div>';
+          if(TRU.error) h+='<p class="tru-err">'+esc(TRU.error)+'</p>';
+          if(TRU.busy) h+='<p class="tru-wait">Attendo la risposta del server…</p>';
+          if(!sess){
+            h+='<div class="tru-actions"><button class="tru-btn" id="tru-open" type="button"'+(TRU.busy?' disabled':'')+'>Avvia prova</button><button class="tru-btn ghost" id="tru-reload-empty" type="button"'+(TRU.busy?' disabled':'')+'>Aggiorna</button></div>';
+          } else {
+            h+='<section class="tru-section"><h4>Prova tecnica</h4><div class="tru-row"><span class="tru-label">Bersaglio</span><strong>Manichino mock</strong></div><div class="tru-row"><label class="tru-label" for="tru-tech">Tecnica posseduta</label><select class="tru-select" id="tru-tech">';
+            if(!TRU.techniques.length) h+='<option value="">Nessuna tecnica disponibile</option>';
+            TRU.techniques.forEach(function(t){ h+='<option value="'+esc(t.source+'|'+t.technique_id)+'">'+esc(t.name)+' · '+esc(t.activation||'istantanea')+' · '+Number(t.chakra_cost||0)+' chakra</option>'; });
+            h+='</select></div><div class="tru-actions"><button class="tru-btn ghost" id="tru-activate" type="button"'+(TRU.busy||!TRU.techniques.length?' disabled':'')+'>Attiva</button><button class="tru-btn" id="tru-use" type="button"'+(TRU.busy||!TRU.techniques.length?' disabled':'')+'>Usa sul Manichino</button><button class="tru-btn ghost" id="tru-close" type="button"'+(TRU.busy?' disabled':'')+'>Chiudi prova</button></div></section>';
+          }
+          if(rep&&rep.mechanics){
+            h+='<section class="tru-section"><h4>Esito meccanico</h4>'+truMech(rep.mechanics);
+            if(rep.ai_status==='completata'&&rep.ai_text) h+='<div class="tru-ai"><h5>Narrazione di prova</h5><p>'+esc(rep.ai_text)+'</p></div>';
+            else if(rep.ai_status==='prenotata') h+='<div class="tru-ai"><h5>Narrazione in elaborazione</h5><p>Il gettone è stato prenotato. Aggiorna per leggere il risultato.</p></div>';
+            else if(rep.ai_status==='fallita') h+='<p class="tru-err">La narrazione IA non è riuscita. L’esito meccanico resta valido e il gettone risulta consumato. Esegui una nuova azione per creare un nuovo referto e riprovare.</p>';
+            h+='<div class="tru-actions"><button class="tru-btn" id="tru-ai" type="button"'+(TRU.busy||used>=limit||rep.ai_status==='completata'||rep.ai_status==='prenotata'||rep.ai_status==='fallita'?' disabled':'')+'>Chiedi narrazione IA</button><button class="tru-btn ghost" id="tru-reload-report" type="button"'+(TRU.busy?' disabled':'')+'>Aggiorna</button></div><div class="tru-reset">'+esc(truResetText(q))+'</div></section>';
+          }
+          host.innerHTML=h; truBind();
+        }
+        function truCall(name,args){ return sb.rpc(name,args||{}).then(function(r){ if(r&&r.error) throw r.error; return r?r.data:null; }); }
+        async function truLoad(){
+          if(!sb||!loggedIn) return;
+          TRU.busy=true; TRU.error=''; truRender();
+          try{ var z=await Promise.all([truCall('test_room_user_state'),truCall('test_room_user_techniques')]); TRU.state=z[0]||{}; TRU.techniques=z[1]||[]; TRU.report=(TRU.state&&TRU.state.last_report)||null; if(TRU.report&&TRU.report.id){TRU.report=await truCall('test_room_user_report',{p_report:TRU.report.id})||TRU.report;} }
+          catch(e){ TRU.error=truErr(e); }
+          TRU.busy=false; truRender();
+        }
+        async function truOpenSession(){ TRU.busy=true;TRU.error='';truRender();try{TRU.state=await truCall('test_room_user_open');TRU.techniques=await truCall('test_room_user_techniques')||[];}catch(e){TRU.error=truErr(e);}TRU.busy=false;truRender(); }
+        async function truAction(kind){
+          var sel=truEl('tru-tech'), raw=sel?sel.value:'', p=raw.split('|'); if(p.length!==2) return;
+          TRU.busy=true;TRU.error='';truRender();
+          try{var d=await truCall('test_room_user_action',{p_source:p[0],p_technique:p[1],p_action:kind,p_target:'manichino'});TRU.report=d?{id:d.report_id,mechanics:d.mechanics,ai_status:'non_richiesta'}:null;if(TRU.state&&d&&d.quota)TRU.state.quota=d.quota;}
+          catch(e){TRU.error=truErr(e);}TRU.busy=false;truRender();
+        }
+        function truIdem(id){var k='tus_tru_ai_'+id,v='';try{v=sessionStorage.getItem(k)||'';if(!v){v=crypto.randomUUID();sessionStorage.setItem(k,v);}}catch(e){v=crypto.randomUUID();}return v;}
+        async function truAI(){
+          var rep=TRU.report||(TRU.state&&TRU.state.last_report); if(!rep||!rep.id||!sb) return;
+          TRU.busy=true;TRU.error='';rep.ai_status='prenotata';truRender();
+          try{var r=await sb.functions.invoke('test_room_ai',{body:{report_id:rep.id,idempotency_key:truIdem(rep.id)}});var d=r&&r.data;if(r&&r.error)throw r.error;if(d&&d.report)TRU.report=d.report;if(TRU.state&&d&&d.quota){TRU.state.quota={used:d.quota.used,remaining:d.quota.remaining,limit:d.quota.limit||5,resets_at:(TRU.state.quota||{}).resets_at};}if(d&&!d.ok&&d.error)TRU.error=(d.error==='quota_ia_esaurita')?'Hai già usato le cinque narrazioni IA di questa giornata.':'La narrazione non è riuscita; l’esito meccanico resta valido.';}
+          catch(e){TRU.error=truErr(e); await truLoad(); return;}TRU.busy=false;truRender();
+        }
+        async function truCloseSession(){TRU.busy=true;TRU.error='';truRender();try{await truCall('test_room_user_close');TRU.state=null;TRU.report=null;await truLoad();return;}catch(e){TRU.error=truErr(e);}TRU.busy=false;truRender();}
+        function truBind(){var b=truEl('tru-open');if(b)b.onclick=truOpenSession;b=truEl('tru-activate');if(b)b.onclick=function(){truAction('attiva');};b=truEl('tru-use');if(b)b.onclick=function(){truAction('usa');};b=truEl('tru-ai');if(b)b.onclick=truAI;b=truEl('tru-close');if(b)b.onclick=truCloseSession;b=truEl('tru-reload-empty');if(b)b.onclick=truLoad;b=truEl('tru-reload-report');if(b)b.onclick=truLoad;}
+        function openTestRoomUser(){if(!loggedIn){toast('Accedi per usare la Test Room');return;}var ov=truEl('truv'),bk=truEl('truv-backdrop');if(ov)ov.hidden=false;if(bk)bk.hidden=false;truLoad();}
+        function closeTestRoomUser(){var ov=truEl('truv'),bk=truEl('truv-backdrop');if(ov)ov.hidden=true;if(bk)bk.hidden=true;}
+        (function(){var x=truEl('truv-x'),bk=truEl('truv-backdrop'),tbu=truEl('test-btn');if(x)x.addEventListener('click',closeTestRoomUser);if(bk)bk.addEventListener('click',closeTestRoomUser);if(tbu)tbu.addEventListener('click',openTestRoomUser);document.addEventListener('keydown',function(e){var ov=truEl('truv');if(e.key==='Escape'&&ov&&!ov.hidden)closeTestRoomUser();});})();
+
         /* ===== Tavolo di Aiuto (31/07/2026) =====
            Interroga la Edge Function land_help_ai, che risponde solo con quanto
            sta in help_kb. Nessun dato del personaggio esce da qui: la domanda
@@ -6754,7 +6873,7 @@
         var oc=document.getElementById('ovp-close'); if(oc) oc.addEventListener('click', closePanel);
         var bk=document.getElementById('ov-backdrop'); if(bk) bk.addEventListener('click', function(){ closePanel(); closeAnnu(); closeTk(); var _wp=document.getElementById('world-panel'); if(_wp)_wp.hidden=true; });
         var anb=document.getElementById('annu-btn'); if(anb) anb.addEventListener('click', openAnnu);
-        var tsb=document.getElementById('test-btn'); if(tsb) tsb.addEventListener('click', function(){ var l=testLoc(); if(l) openRoom(l); else toast('La Test Room non risulta fra i luoghi: controlla che sia attiva.'); });
+        var tss=document.getElementById('test-staff-btn'); if(tss) tss.addEventListener('click', function(){ var l=testLoc(); if(l) openRoom(l); else toast('La Test Room staff non risulta attiva.'); });
         var anc=document.getElementById('annu-close'); if(anc) anc.addEventListener('click', closeAnnu);
         var anq=document.getElementById('annu-q'); if(anq) anq.addEventListener('input', renderAnnu);
         var ms=document.getElementById('my-status'); if(ms) ms.addEventListener('change', function(){ if(sb) sb.rpc('set_presence_status',{p_status:ms.value}).then(function(){ loadRoster(); },function(){}); });
