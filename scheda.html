@@ -6,6 +6,8 @@
 <title>La tua scheda — The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://tyhyxkslteigibktluml.supabase.co" crossorigin />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cinzel+Decorative:wght@700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet" />
 <style>
   :root{--paper:#e7d6b2;--paper-hi:#f1e6ca;--paper-lo:#d2bc90;--edge:#b79d6c;--ink:#2b1d0e;--ink-soft:#6a5231;--ink-it:#523d20;--rule:#8a6f43;--red:#a6321d;--red-deep:#7c2413}
@@ -165,7 +167,6 @@
   .ssec h3{font-family:'Cinzel',serif;font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);border-bottom:1px solid var(--edge);padding-bottom:6px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
   .jgroup{margin-bottom:16px}
   .jgh{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep,#7c2413);margin:0 0 8px}
-  .jsub{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:10px 0 6px}
   .jgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
   .jcard{border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.5);padding:10px 12px}
   .tr-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--edge);border-radius:9px;background:rgba(255,250,235,.5);padding:9px 12px;margin-bottom:8px}
@@ -358,21 +359,14 @@
   .tk-deshi b.tkdh{display:block;font-family:'Cinzel',serif;font-size:13px;letter-spacing:.03em;color:var(--red-deep);margin:0 0 6px}
   .tk-deshi p{margin:0 0 6px;font-size:13px;line-height:1.5;color:var(--ink-soft)}
   .tk-deshi p:last-child{margin-bottom:0}
-  .tk-grp{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);border-bottom:1px solid var(--edge);padding:10px 0 4px;margin:6px 0 6px}
   .tr-row{cursor:pointer}
   .tr-cat{font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:#8a6a1e;border:1px solid var(--edge);border-radius:6px;padding:1px 6px;margin-left:6px;white-space:nowrap}
   .tr-det{display:none;margin:2px 0 8px;padding:9px 12px;border-left:3px solid var(--edge);background:rgba(255,250,235,.55);border-radius:0 8px 8px 0;font-family:'Cormorant Garamond',serif;font-size:14.5px;line-height:1.55;color:var(--ink)}
   .tr-det.on{display:block}
   .tr-det b{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--red-deep)}
   .tr-det .tkd{margin:2px 0}
-  .tk-acc{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;user-select:none}
-  .tk-acc .tka-ch{font-size:11px;color:var(--ink-soft);transition:transform .15s}
-  .tk-acc.open .tka-ch{transform:rotate(90deg)}
-  .tk-body{display:none}
-  .tk-body.open{display:block}
   .tk-sec{font-family:'Cinzel',serif;font-size:11.5px;letter-spacing:.05em;color:var(--red-deep);margin:13px 0 4px;padding-bottom:3px;border-bottom:1px solid var(--rule)}
   .tk-sec-big{font-size:13.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);margin:18px 0 5px;padding-bottom:4px;border-bottom:2px solid var(--edge)}
-  .tk-body{padding-left:6px}
   /* --- restyle Jutsu e Abilità (31/07/2026): linguette per disciplina --- */
   .tk-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 4px;padding-bottom:9px;border-bottom:1px solid var(--edge)}
   .tk-tab{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);background:transparent;border:1px solid var(--edge);border-radius:20px;padding:6px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:background .15s,color .15s}
@@ -1097,13 +1091,6 @@
     }
     function tkMatch(t,q){ if(!q) return true; q=q.toLowerCase();
       return (t.name||'').toLowerCase().indexOf(q)>=0||(t.category||'').toLowerCase().indexOf(q)>=0||(t.description||'').toLowerCase().indexOf(q)>=0; }
-    var TKOPEN={};
-    function tkGroup(id,label,rowsHtml,count,q){
-      var open=!!q||TKOPEN[id];
-      return '<div class="tk-grp tk-acc'+(open?' open':'')+'" data-tkacc="'+id+'"><span>'+label+' · '+count+'</span><span class="tka-ch">\u25B6</span></div>'
-        +'<div class="tk-body'+(open?' open':'')+'" id="tkb-'+id+'">'+rowsHtml+'</div>';
-    }
-    function tkBaseMatch(j,q){ if(!q)return true; q=q.toLowerCase(); return (j.name_it||'').toLowerCase().indexOf(q)>=0||(j.effect||'').toLowerCase().indexOf(q)>=0||(j.category||'').toLowerCase().indexOf(q)>=0; }
     function tkBaseRow(j){
       /* [02/08/2026] Tre stati per le Basi d'Accademia: appresa, da imparare a una
          lezione precisa, oppure non ancora insegnata da nessuna lezione. */
@@ -1123,7 +1110,6 @@
         +'<div class="tr-det" id="tkd-j'+j.id+'">'+d+'</div>';
     }
     var TK_DISC=['Ninjutsu','Taijutsu','Genjutsu','Fuuinjutsu'];
-    function tkHead(label,big){ return '<div class="tk-sec'+(big?' tk-sec-big':'')+'">'+label+'</div>'; }
     /* Idoneità lato client: mostra solo ciò che il personaggio può davvero imparare (gate duri, XP/slot a parte) */
     function _rankOrd(r){ return ({'Deshi':0,'Genin':1,'Chunin':2,'Jonin':3,'Jonin Speciale':4,'Kage':5,'Sannin':5})[r||'Deshi']||0; }
     function _statVal(s){ s=String(s||'').toLowerCase(); var m={'mente':'mente','forza':'forza','velocità':'velocita','velocita':'velocita','resistenza':'resistenza','ninjutsu':'ninjutsu','genjutsu':'genjutsu','taijutsu':'taijutsu','fuuinjutsu':'fuuinjutsu','kekkei genkai':'kekkei_genkai'}; var f=m[s]; if(!f) return null; return (myChar&&myChar[f]!=null)?myChar[f]:0; }
@@ -1355,9 +1341,6 @@
     }); })();
     (function(){ var tw=$('train-wrap'); if(!tw) return; tw.addEventListener('click',async function(e){
       if(!e.target.closest('[data-train]')&&!e.target.closest('#slot-buy')){
-        var ac=e.target.closest('[data-tkacc]');
-        if(ac){ var gid=ac.getAttribute('data-tkacc'); TKOPEN[gid]=!TKOPEN[gid];
-          ac.classList.toggle('open',TKOPEN[gid]); var bd=$('tkb-'+gid); if(bd) bd.classList.toggle('open',TKOPEN[gid]); return; }
         var tbn=e.target.closest('[data-tktab]');
         if(tbn){ TKTAB=tbn.getAttribute('data-tktab'); paintCatalog(); return; }
         var ex=e.target.closest('[data-texp]');
@@ -1487,7 +1470,7 @@
       var h='<p class="hint" style="margin:0 0 8px">Slot compagni: <b>'+rows.length+' / '+slots+'</b></p>';
       rows.forEach(function(c){ var km=kmap[c.kind]||['',''];
         h+='<div class="svbox" style="display:flex;gap:12px;align-items:flex-start">'
-          +(c.avatar_url?('<img src="'+esc(c.avatar_url)+'" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:1px solid var(--edge);flex:0 0 auto">'):('<span style="width:54px;height:54px;border-radius:50%;border:1px solid var(--edge);display:inline-flex;align-items:center;justify-content:center;font-size:24px;flex:0 0 auto">'+km[0]+'</span>'))
+          +(c.avatar_url?('<img loading="lazy" src="'+esc(c.avatar_url)+'" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:1px solid var(--edge);flex:0 0 auto">'):('<span style="width:54px;height:54px;border-radius:50%;border:1px solid var(--edge);display:inline-flex;align-items:center;justify-content:center;font-size:24px;flex:0 0 auto">'+km[0]+'</span>'))
           +'<div style="flex:1;min-width:0"><b>'+esc(c.name)+'</b> <span class="svtag a">'+km[0]+' '+km[1]+' \u00B7 '+esc(c.grado)+'</span>'
           +(c.descr?('<div class="hint" style="margin:4px 0 0">'+esc(c.descr)+'</div>'):'')
           +'<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
@@ -2307,12 +2290,20 @@
         if(!me){show('st-guest');return;}
         try{ sessionStorage.setItem('tus_in_land','1'); }catch(e){}
         try{ var _hl=document.querySelectorAll('a[href="index.html"]'); for(var _i=0;_i<_hl.length;_i++) _hl[_i].setAttribute('href','land.html'); }catch(e){}
-        try{var pr=await sb.from('profiles').select('username,role').eq('id',me.id).single();myName=(pr.data&&pr.data.username)?pr.data.username:'';var _role=pr.data?pr.data.role:'';isStaff=(_role==='master'||_role==='admin');isAdmin=(_role==='admin');}catch(_e){myName='';}
+        /* [26/08/2026] Un giro di rete solo: le quattro letture partono insieme.
+           _avvia() aggancia subito un catch muto, cosi' un rifiuto arrivato in
+           anticipo non suona come unhandledrejection mentre si attende altro. */
+        function _avvia(q){var p=Promise.resolve(q);p.catch(function(){});return p;}
+        var qProfilo=_avvia(sb.from('profiles').select('username,role').eq('id',me.id).single());
+        var qEmblemi=_avvia(sb.from('emblems').select('kind,name,image_url'));
+        var qClan=_avvia(sb.from('clans').select('name,village,is_active,ability_kind').order('sort').order('name'));
+        var qChar=_avvia(viewId?sb.from('characters').select('*').eq('id',viewId).maybeSingle():sb.from('characters').select('*').eq('user_id',me.id).maybeSingle());
+        try{var pr=await qProfilo;myName=(pr.data&&pr.data.username)?pr.data.username:'';var _role=pr.data?pr.data.role:'';isStaff=(_role==='master'||_role==='admin');isAdmin=(_role==='admin');}catch(_e){myName='';}
         var _ns=$('c-name-show'); if(_ns) _ns.textContent=myName||'(nome non disponibile)';
-        try{var em=await sb.from('emblems').select('kind,name,image_url');(em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});}catch(_e){}
-        try{var _cl=await sb.from('clans').select('name,village,is_active,ability_kind').order('sort').order('name');if(_cl&&_cl.data&&_cl.data.length){var _m={};_cl.data.forEach(function(c){CLAN_ABILITY[c.name]=c.ability_kind||null;if(c.is_active===false)return;var v=c.village||'Konoha';(_m[v]=_m[v]||['Nessuno']).push(c.name);});if(Object.keys(_m).length)CLANS=_m;}}catch(_e){}
+        try{var em=await qEmblemi;(em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});}catch(_e){}
+        try{var _cl=await qClan;if(_cl&&_cl.data&&_cl.data.length){var _m={};_cl.data.forEach(function(c){CLAN_ABILITY[c.name]=c.ability_kind||null;if(c.is_active===false)return;var v=c.village||'Konoha';(_m[v]=_m[v]||['Nessuno']).push(c.name);});if(Object.keys(_m).length)CLANS=_m;}}catch(_e){}
         if(viewId){
-          var rv=await sb.from('characters').select('*').eq('id',viewId).maybeSingle();
+          var rv=await qChar;
           if(rv.error){$('err-msg').textContent=rv.error.message;show('st-error');return;}
           if(!rv.data){$('err-msg').textContent='Scheda non trovata.';show('st-error');return;}
           myChar=rv.data;
@@ -2321,7 +2312,7 @@
           fillForm(myChar,curPriv); show('st-sheet'); refreshInventory(); refreshEquip(); return;
         }
         viewMode=isAdmin?'adminself':'owner';
-        var r=await sb.from('characters').select('*').eq('user_id',me.id).maybeSingle();
+        var r=await qChar;
         if(r.error){$('err-msg').textContent=r.error.message;show('st-error');return;}
         if(!r.data){show('st-create');return;}
         myChar=r.data;
@@ -2388,7 +2379,7 @@
     window.__demoCreate=function(nm){if(nm){var e=$('c-name-show');if(e)e.textContent=nm;}show('st-create');};
   })();
   </script>
-  <script src="bijuu.js"></script>
+  <script src="bijuu.js" defer></script>
   <!-- Presenza: segnala che questo giocatore è online (per la zona utenti in home) -->
   <script>
   (function(){

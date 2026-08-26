@@ -187,7 +187,6 @@
   .trv2-reason{box-sizing:border-box;width:100%;min-height:60px;margin-top:8px;padding:7px 9px;border:1px solid var(--edge);background:#fbf4e1;color:var(--ink);font-family:inherit;font-size:14px;resize:vertical}
   .trv2-state{padding:9px 11px;border-left:3px solid var(--gold);background:rgba(166,50,29,.05);margin:8px 0}
   .trv2-state.err{border-color:var(--red-deep);color:var(--red-deep)}
-  .trv2-warn{color:var(--red-deep);font-weight:700}
   .trv2-preview{white-space:normal;overflow-wrap:anywhere;margin-top:8px}
   .trv2-panel button[hidden]{display:none}
   /* TRAINING-V2-ADMIN-138A CSS FINE */
@@ -1220,7 +1219,7 @@
       var url=EMB[kind+':'+name];
       var d=document.createElement('div');d.className='ecard';
       d.innerHTML='<div class="ename">'+esc(label||embLabel(kind,name))+'</div>'+
-        '<div class="eprev" id="'+embCellId(kind,name)+'">'+(url?'<img src="'+url+'" alt="">':'<span class="none">—</span>')+'</div>'+
+        '<div class="eprev" id="'+embCellId(kind,name)+'">'+(url?'<img loading="lazy" src="'+url+'" alt="">':'<span class="none">—</span>')+'</div>'+
         '<label class="up">Carica immagine<input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" data-kind="'+kind+'" data-name="'+esc(name)+'"></label>';
       return d;
     }
@@ -1335,7 +1334,7 @@
           var mech=it.slot?(' · contenitore '+(it.capacity||0)+' kg ('+it.slot+')'):(it.worn_slot?(' · indossato: '+it.worn_slot):'');
           if(it.heal_vita||it.heal_chakra){mech+=' · cura'+(it.heal_vita?(' +'+it.heal_vita+' PV'):'')+(it.heal_chakra?(' +'+it.heal_chakra+' ck'):'');}
           var flags=(it.purchasable?'':' · non in vendita')+(it.is_active?'':' · disattivato');
-          var img=it.image_url?('<img src="'+it.image_url+'" alt="">'):'<span class="none">—</span>';
+          var img=it.image_url?('<img loading="lazy" src="'+it.image_url+'" alt="">'):'<span class="none">—</span>';
           return '<div class="itrow'+(it.is_active?'':' off')+'">'+
             '<div class="itthumb">'+img+'<label class="uptiny">img<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" data-img="'+it.id+'"></label></div>'+
             '<div class="itmain"><b>'+esc(it.name)+'</b> <span class="itmeta">'+mech+flags+'</span>'+(it.description?('<span class="itdesc">'+esc(it.description)+'</span>'):'')+'</div>'+
@@ -2093,7 +2092,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
     }
     async function loadIA(){var r=await sb.from('ai_agents').select('*').in('kind',['sensei','png_trama']).order('village').order('name');IA_ROWS=(r&&r.data)||[];renderIA();}
     function iaRowHTML(a){
-      var av=a.avatar_url?('<img class="ia-ava" src="'+esc(a.avatar_url)+'" alt="" onerror="this.style.visibility=\'hidden\'">'):'<span class="ia-ava"></span>';
+      var av=a.avatar_url?('<img loading="lazy" class="ia-ava" src="'+esc(a.avatar_url)+'" alt="" onerror="this.style.visibility=\'hidden\'">'):'<span class="ia-ava"></span>';
       return '<div class="locrow'+(a.is_active?'':' off')+'">'+av+
         '<div class="lmain"><span class="lname">'+esc(a.name)+'</span>'+
         (a.title?('<span class="lkind">'+esc(a.title)+'</span>'):'')+
@@ -2224,7 +2223,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       var host=$('nb-list');if(!host)return;
       if(!NB_ROWS.length){host.innerHTML='<p class="mgr-note" style="margin:6px 0 0">Il Ninja Book è vuoto. Aggiungi il primo modello qui sopra (o dalla Regia in gioco).</p>';return;}
       host.innerHTML=NB_ROWS.map(function(t){
-        var av=t.avatar_url?('<img class="ia-ava" src="'+esc(t.avatar_url)+'" alt="" onerror="this.style.visibility=\'hidden\'">'):'<span class="ia-ava"></span>';
+        var av=t.avatar_url?('<img loading="lazy" class="ia-ava" src="'+esc(t.avatar_url)+'" alt="" onerror="this.style.visibility=\'hidden\'">'):'<span class="ia-ava"></span>';
         var abs=[];try{abs=(typeof t.abilita==='string')?JSON.parse(t.abilita):(t.abilita||[]);}catch(e){abs=[];}
         return '<div class="locrow'+(t.is_active===false?' off':'')+'">'+av+
           '<div class="lmain"><span class="lname">'+esc(t.nome)+'</span>'+
@@ -2302,7 +2301,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       var kmap={marionetta:'Marionetta',cane_ninja:'Cane ninja',evocazione:'Evocazione'};
       var GR=['baby','piccola','media','grande','leggendaria'];
       host.innerHTML=COMPS.map(function(c){
-        var av=c.avatar_url?('<img class="ia-ava" src="'+esc(c.avatar_url)+'" alt="" onerror="this.style.visibility=\'hidden\'">'):'<span class="ia-ava"></span>';
+        var av=c.avatar_url?('<img loading="lazy" class="ia-ava" src="'+esc(c.avatar_url)+'" alt="" onerror="this.style.visibility=\'hidden\'">'):'<span class="ia-ava"></span>';
         var sel='<select data-compgr="'+c.id+'" style="font-family:\'Cormorant Garamond\',serif;font-size:14px;padding:4px 6px;border:1px solid var(--edge);background:rgba(255,250,235,.7)">'+GR.map(function(g){return '<option'+(c.grado===g?' selected':'')+'>'+g+'</option>';}).join('')+'</select>';
         return '<div class="locrow">'+av+'<div class="lmain"><span class="lname">'+esc(c.name)+'</span><span class="lkind">'+(kmap[c.kind]||esc(c.kind))+'</span><span class="lmeta"> \u00B7 di '+esc((c.character&&c.character.name)||'?')+'</span>'+(c.descr?('<span class="ldesc">'+esc(c.descr)+'</span>'):'')+'</div><div class="lacts">'+sel+'<button class="mini-btn danger" data-compdel="'+c.id+'">Elimina</button></div></div>';
       }).join('');
