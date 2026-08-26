@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-136A-TRAINING-V2" />
+  <meta name="tus-build" content="LAND-136A-TRAINING-V2-NB028I-A" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1440,6 +1440,20 @@
   .sug-no{padding:7px 10px;font-size:12px;color:var(--ink-soft);font-style:italic}
 
   .sp-tec{display:inline-flex;align-items:center;gap:4px;font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--red-deep);background:rgba(166,50,29,.09);border:1px solid var(--edge);border-radius:6px;padding:2px 7px;margin-left:5px;vertical-align:middle}
+/* [TEST-ONLY NB028I] Namespace esclusivo; nessuna classe dinamica esistente. */
+.nb028i-panel{margin:10px 0;padding:12px;border:1px solid #8f2430;border-radius:10px;background:#170f12;color:#f4e8dc;box-shadow:0 8px 22px rgba(0,0,0,.22)}
+.nb028i-panel[hidden]{display:none!important}
+.nb028i-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:'Cinzel',serif;letter-spacing:.04em}
+.nb028i-head strong{color:#ff8e9b;font-size:12px}
+.nb028i-head span{color:#c9b8ad;font-size:10px;text-align:right}
+.nb028i-status{margin:9px 0 8px;font-size:12px;color:#eadbd0}
+.nb028i-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 10px}
+.nb028i-results div{min-width:0;padding:7px;border:1px solid rgba(255,255,255,.09);border-radius:7px;background:rgba(255,255,255,.025)}
+.nb028i-results dt{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#a9968b}
+.nb028i-results dd{margin:3px 0 0;font-size:11px;overflow-wrap:anywhere}
+.nb028i-run{width:100%;min-height:36px;border:1px solid #a52c3a;border-radius:8px;background:#7f1d29;color:#fff0e7;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.05em;cursor:pointer}
+.nb028i-run:disabled{cursor:not-allowed;opacity:.45}
+@media(max-width:680px){.nb028i-head{display:block}.nb028i-head span{display:block;margin-top:3px;text-align:left}.nb028i-results{grid-template-columns:1fr}.nb028i-panel{padding:10px}}
 </style>
 </head>
 <body>
@@ -1534,6 +1548,19 @@
             <div class="meteo-chip mt-none" id="room-meteo"></div>
           </div>
           <div class="test-banner" id="test-banner" hidden><div class="tb-txt"><b>Test Room &mdash; stanza di prova.</b> I tiri sono veri, i numeri no: i colpi vengono calcolati e raccontati, ma vita, chakra ed esperienza non cambiano di un punto. Qui non si aprono role, i PNG e gli oggetti sono sospesi, e nulla arriva al mondo di gioco. I messaggi si cancellano da soli ogni ora.</div><button class="tb-wipe" id="test-wipe" type="button" title="Cancella subito tutti i messaggi della stanza">Svuota la stanza</button></div>
+          <section class="nb028i-panel" id="nb028i-panel" hidden aria-label="Test-only Ninja Book canary">
+            <div class="nb028i-head">
+              <strong>[TEST-ONLY NB028I]</strong>
+              <span>Mock autenticato · nessun effetto canonico</span>
+            </div>
+            <p class="nb028i-status" id="nb028i-status" role="status" aria-live="polite">Non disponibile.</p>
+            <dl class="nb028i-results" aria-label="Esito redatto">
+              <div><dt>Prima chiamata</dt><dd id="nb028i-first">Non eseguita</dd></div>
+              <div><dt>Replay identico</dt><dd id="nb028i-replay">Non eseguito</dd></div>
+              <div><dt>Risultato</dt><dd id="nb028i-result">In attesa</dd></div>
+            </dl>
+            <button class="nb028i-run" id="nb028i-run" type="button" disabled>Esegui mock + replay</button>
+          </section>
           <div class="room-grid">
             <section class="chat">
               <div class="msgs" id="msgs"></div><div class="scrollarrows" id="msgs-arrows" hidden><button type="button" data-scroll="msgs" data-dir="-1" title="Scorri su" aria-label="Scorri su">▲</button><button type="button" data-scroll="msgs" data-dir="1" title="Scorri giù" aria-label="Scorri giù">▼</button></div>
@@ -5149,6 +5176,210 @@
       function restorePlace(id){ var pl=document.getElementById('msg-place'); if(!pl) return; var v=''; try{ v=(JSON.parse(localStorage.getItem('tus_place')||'{}'))[id]||''; }catch(e){} pl.value=v; }
       function savePlace(){ if(!cur) return; var pl=document.getElementById('msg-place'); if(!pl) return; try{ var m=JSON.parse(localStorage.getItem('tus_place')||'{}'); var v=pl.value.trim(); if(v) m[cur.id]=v.slice(0,60); else delete m[cur.id]; localStorage.setItem('tus_place', JSON.stringify(m)); }catch(e){} }
       (function(){ var pl=document.getElementById('msg-place'); if(pl) pl.addEventListener('input', savePlace); })();
+/* [TEST-ONLY NB028I] Candidato OFFLINE. Da inserire nello stesso IIFE della Land,
+   dopo la dichiarazione di sb/cur e prima di openRoom(). Non legge sessioni,
+   storage, token o chiavi; usa soltanto il client sb già esistente. */
+var nb028iRefresh=function(){};
+var nb028iTeardown=function(){};
+(function(root,factory){
+  if(typeof module==='object'&&module.exports){ module.exports=factory; return; }
+  var controller=factory({
+    client:sb,
+    document:document,
+    getLocation:function(){return cur;}
+  });
+  controller.install();
+  nb028iRefresh=function(){return controller.refresh({unlock:true});};
+  nb028iTeardown=controller.teardown;
+})(typeof window!=='undefined'?window:this,function createNb028i(deps){
+  'use strict';
+  var TARGET_USER_ID='b4952ed5-5ce0-49c0-9f2b-8fd5dcd89b4b';
+  var TEST_ROOM_ID='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
+  var READINESS_RPC='nb_canary_test_room_readiness';
+  var READINESS_VERSION='ninja-book-test-room-canary-readiness/1.0';
+  var EDGE_NAME='ninja_book_test_room_canary';
+  var EDGE_VERSION='ninja-book-test-room-canary/1.0';
+  var SURFACE_VERSION='ninja-book-surface/1.0';
+  var EVENT_REF='evt_nb028j_canary_001';
+  var REQUEST_KEY='02810000-0000-4000-8000-000000000002';
+  var TEST_INPUT='Il PNG di prova osserva la stanza.';
+  var READINESS_KEYS=['contract_version','event_ref','ready','reason_code','session_ref'];
+  var REQUEST_KEYS=['contract_version','event_ref','request_key','session_ref','test_input'];
+  var RESPONSE_KEYS=['audit_receipt','contract_version','fallback','replayed','request_key','status','surface'];
+  var FALLBACK_CODES=['NB_AI_REFUSAL','NB_AI_INCOMPLETE','NB_AI_NETWORK','NB_AI_TIMEOUT','NB_SURFACE_SCHEMA_INVALID','NB_FACT_NOT_GRANTED','NB_ATOM_NOT_GRANTED','NB_STATE_CHANGED','NB_CONTEXT_REQUIRED'];
+  var UI_TEXT={
+    NB_UI_IDLE:'Non disponibile.',
+    NB_UI_CHECKING:'Verifica server in corso…',
+    NB_UI_READY:'Gate pronto. Il server rivaliderà ogni passaggio.',
+    NB_UI_NOT_READY:'Gate non pronto.',
+    NB_UI_FIRST_ERROR:'Prima chiamata rifiutata.',
+    NB_UI_REPLAY_ERROR:'Replay rifiutato.',
+    NB_UI_RESPONSE_INVALID:'Risposta non conforme.',
+    NB_UI_REPLAY_MISMATCH:'Replay non equivalente.',
+    NB_UI_GATE_CHANGED:'Gate cambiato: sequenza interrotta.',
+    NB_UI_OK:'Prima chiamata e replay equivalenti.',
+    NB_UI_INTERNAL:'Superficie non disponibile.'
+  };
+  var client=deps.client;
+  var doc=deps.document;
+  var getLocation=deps.getLocation;
+  var panel=null,button=null,statusEl=null,firstEl=null,replayEl=null,resultEl=null;
+  var flight=false;
+
+  function ownExact(value,keys){
+    return !!value&&typeof value==='object'&&!Array.isArray(value)&&
+      Object.keys(value).sort().join('|')===keys.slice().sort().join('|');
+  }
+  function hasHtml(value){ return typeof value==='string'&&/<\/?[a-z][\s\S]*>/i.test(value); }
+  function uuid(value){ return typeof value==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value); }
+  function publicSession(value){ return typeof value==='string'&&/^nbtr_[A-Za-z0-9_-]{16,96}$/.test(value); }
+  function fixedText(el,text){ if(el) el.textContent=text; }
+  function setStatus(code){ fixedText(statusEl,UI_TEXT[code]||UI_TEXT.NB_UI_INTERNAL); fixedText(resultEl,code); }
+  function resetResults(){ fixedText(firstEl,'Non eseguita'); fixedText(replayEl,'Non eseguito'); fixedText(resultEl,'In attesa'); }
+  function hide(){ if(panel) panel.hidden=true; if(button) button.disabled=true; }
+  function showReady(){ if(panel) panel.hidden=false; if(button) button.disabled=flight; setStatus('NB_UI_READY'); }
+  function validateReadiness(value){
+    if(!ownExact(value,READINESS_KEYS)||value.contract_version!==READINESS_VERSION||typeof value.ready!=='boolean') return null;
+    if(value.ready===false) return value.reason_code==='NB_NOT_READY'&&value.session_ref===null&&value.event_ref===null?{ready:false}:null;
+    if(value.reason_code!=='NB_READY'||!publicSession(value.session_ref)||value.event_ref!==EVENT_REF) return null;
+    return {ready:true,session_ref:value.session_ref,event_ref:value.event_ref};
+  }
+  function profileQuery(userId){
+    return client.from('profiles').select('role').eq('id',userId).maybeSingle();
+  }
+  async function eligibility(render){
+    if(!client||!client.auth||!client.functions||typeof client.rpc!=='function') return null;
+    var loc=getLocation();
+    if(!loc||loc.id!==TEST_ROOM_ID||loc.is_test!==true) return null;
+    var auth;
+    try{ auth=await client.auth.getUser(); }catch(_authThrown){ return null; }
+    var user=auth&&auth.data&&auth.data.user;
+    if((auth&&auth.error)||!user||user.id!==TARGET_USER_ID) return null;
+    var profile;
+    try{ profile=await profileQuery(user.id); }catch(_profileThrown){ return null; }
+    if((profile&&profile.error)||!profile||!profile.data||profile.data.role!=='admin') return null;
+    var rpc;
+    try{ rpc=await client.rpc(READINESS_RPC); }catch(_rpcThrown){ return null; }
+    if(!rpc||rpc.error) return null;
+    var ready=validateReadiness(rpc.data);
+    if(!ready||!ready.ready) return null;
+    if(render) showReady();
+    return ready;
+  }
+  function buildPayload(ready){
+    var body={
+      contract_version:EDGE_VERSION,
+      request_key:REQUEST_KEY,
+      session_ref:ready.session_ref,
+      event_ref:ready.event_ref,
+      test_input:TEST_INPUT
+    };
+    return Object.freeze(body);
+  }
+  function validatePayload(body,ready){
+    return ownExact(body,REQUEST_KEYS)&&body.contract_version===EDGE_VERSION&&body.request_key===REQUEST_KEY&&uuid(body.request_key)&&
+      body.session_ref===ready.session_ref&&publicSession(body.session_ref)&&body.event_ref===ready.event_ref&&body.event_ref===EVENT_REF&&body.test_input===TEST_INPUT;
+  }
+  function stringArray(value){ return Array.isArray(value)&&value.every(function(item){return typeof item==='string'&&!hasHtml(item);}); }
+  function validateSegment(segment){
+    if(!segment||typeof segment!=='object'||Array.isArray(segment)||typeof segment.id!=='string'||!segment.id||hasHtml(segment.id)) return false;
+    var shapes={
+      narration:['actor','fact_refs','id','text','type'],
+      dialogue:['fact_refs','id','intent','speaker','text','type'],
+      reveal:['atom_id','id','recipients','text','type'],
+      memory_candidate:['id','proposition','quarantine','source_refs','type']
+    };
+    var shape=shapes[segment.type]; if(!shape||!ownExact(segment,shape)) return false;
+    var prose=segment.text!==undefined?segment.text:segment.proposition;
+    if(typeof prose!=='string'||!prose.trim()||hasHtml(prose)) return false;
+    if(segment.type==='narration') return segment.actor==='npc'&&stringArray(segment.fact_refs);
+    if(segment.type==='dialogue') return segment.speaker==='npc'&&typeof segment.intent==='string'&&!hasHtml(segment.intent)&&stringArray(segment.fact_refs);
+    if(segment.type==='reveal') return typeof segment.atom_id==='string'&&!hasHtml(segment.atom_id)&&stringArray(segment.recipients);
+    return segment.quarantine===true&&stringArray(segment.source_refs);
+  }
+  function validateSurface(surface){
+    return ownExact(surface,['schema_version','segments'])&&surface.schema_version===SURFACE_VERSION&&
+      Array.isArray(surface.segments)&&surface.segments.length>=1&&surface.segments.length<=3&&surface.segments.every(validateSegment);
+  }
+  function validateFallback(value){
+    return ownExact(value,['code','message'])&&FALLBACK_CODES.indexOf(value.code)>=0&&value.message==='Prova non disponibile.'&&!hasHtml(value.message);
+  }
+  function validateResponse(value,body){
+    if(!ownExact(value,RESPONSE_KEYS)||value.contract_version!==EDGE_VERSION||value.request_key!==body.request_key||typeof value.replayed!=='boolean') return null;
+    if(typeof value.audit_receipt!=='string'||!/^audit_[0-9a-f]{64}$/i.test(value.audit_receipt)) return null;
+    if(value.status==='completed'){
+      if(value.fallback!==null||!validateSurface(value.surface)) return null;
+      return {status:'completed',replayed:value.replayed,fallbackCode:null,comparable:canonicalCopy(value)};
+    }
+    if(value.status==='fallback'){
+      if(value.surface!==null||!validateFallback(value.fallback)) return null;
+      return {status:'fallback',replayed:value.replayed,fallbackCode:value.fallback.code,comparable:canonicalCopy(value)};
+    }
+    return null;
+  }
+  function canonical(value){
+    if(value===null||typeof value!=='object') return JSON.stringify(value);
+    if(Array.isArray(value)) return '['+value.map(canonical).join(',')+']';
+    return '{'+Object.keys(value).sort().map(function(key){return JSON.stringify(key)+':'+canonical(value[key]);}).join(',')+'}';
+  }
+  function canonicalCopy(value){
+    var copy={}; Object.keys(value).forEach(function(key){copy[key]=value[key];}); copy.replayed=false; return canonical(copy);
+  }
+  function safeOutcome(parsed){ return parsed.status+(parsed.fallbackCode?' · '+parsed.fallbackCode:''); }
+  async function invoke(body){
+    try{ return await client.functions.invoke(EDGE_NAME,{body:body}); }
+    catch(_invokeThrown){ return {data:null,error:true}; }
+  }
+  async function refresh(options){
+    options=options||{};
+    if(options.unlock) flight=false;
+    hide(); if(!options.preserveStatus) setStatus('NB_UI_CHECKING');
+    var ready=await eligibility(false);
+    if(!ready){ hide(); setStatus('NB_UI_NOT_READY'); return false; }
+    if(panel) panel.hidden=false;
+    if(button) button.disabled=flight;
+    if(!options.preserveStatus) setStatus('NB_UI_READY'); return true;
+  }
+  async function run(){
+    if(flight) return false;
+    flight=true; if(button) button.disabled=true; resetResults(); setStatus('NB_UI_CHECKING');
+    try{
+      var ready=await eligibility(false);
+      if(!ready){ hide(); setStatus('NB_UI_GATE_CHANGED'); return false; }
+      var body=buildPayload(ready);
+      if(!validatePayload(body,ready)){ setStatus('NB_UI_INTERNAL'); return false; }
+      var first=await invoke(body);
+      if(!first||first.error){ fixedText(firstEl,'Errore redatto'); setStatus('NB_UI_FIRST_ERROR'); return false; }
+      var parsedFirst=validateResponse(first.data,body);
+      if(!parsedFirst){ fixedText(firstEl,'Risposta respinta'); setStatus('NB_UI_RESPONSE_INVALID'); return false; }
+      fixedText(firstEl,safeOutcome(parsedFirst));
+      var replayGate=await eligibility(false);
+      if(!replayGate||replayGate.session_ref!==body.session_ref||replayGate.event_ref!==body.event_ref){ setStatus('NB_UI_GATE_CHANGED'); return false; }
+      var replay=await invoke(body);
+      if(!replay||replay.error){ fixedText(replayEl,'Errore redatto'); setStatus('NB_UI_REPLAY_ERROR'); return false; }
+      var parsedReplay=validateResponse(replay.data,body);
+      if(!parsedReplay){ fixedText(replayEl,'Risposta respinta'); setStatus('NB_UI_RESPONSE_INVALID'); return false; }
+      fixedText(replayEl,safeOutcome(parsedReplay));
+      if(parsedReplay.replayed!==true||parsedFirst.comparable!==parsedReplay.comparable){ setStatus('NB_UI_REPLAY_MISMATCH'); return false; }
+      setStatus('NB_UI_OK'); return true;
+    }finally{
+      flight=false;
+      await refresh({unlock:true,preserveStatus:true});
+    }
+  }
+  function teardown(){ flight=false; hide(); resetResults(); setStatus('NB_UI_IDLE'); }
+  function install(){
+    panel=doc.getElementById('nb028i-panel'); button=doc.getElementById('nb028i-run'); statusEl=doc.getElementById('nb028i-status');
+    firstEl=doc.getElementById('nb028i-first'); replayEl=doc.getElementById('nb028i-replay'); resultEl=doc.getElementById('nb028i-result');
+    if(!panel||!button||!statusEl||!firstEl||!replayEl||!resultEl) return false;
+    hide(); resetResults(); button.addEventListener('click',run); return true;
+  }
+  return {
+    install:install,refresh:refresh,run:run,teardown:teardown,
+    validateReadiness:validateReadiness,validatePayload:validatePayload,validateResponse:validateResponse,buildPayload:buildPayload,
+    constants:{targetUserId:TARGET_USER_ID,testRoomId:TEST_ROOM_ID,eventRef:EVENT_REF,requestKey:REQUEST_KEY,testInput:TEST_INPUT}
+  };
+});
       function openRoom(l){
         cur=l; showView('room'); updateHealBtn(); restorePlace(l.id);
         nameEl.textContent=l.name; kindEl.textContent=l.kind||''; descEl.textContent=l.description||'';
@@ -5162,11 +5393,11 @@
         if(poll){ clearInterval(poll); poll=null; }
         /* il poll parte solo se il server ci fa entrare davvero */
         entraLuogo(function(){
-          updateMeteo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2();
+          updateMeteo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); nb028iRefresh();
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; MV2.data=null; MV2.setup=null; MV2.setupOpen=false; MV2.composeMode='png_pg'; MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; MV2.data=null; MV2.setup=null; MV2.setupOpen=false; MV2.composeMode='png_pg'; MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
