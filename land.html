@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-123-A1-MASTER-COMBAT-V2-021-TR-NARR-A6" />
+  <meta name="tus-build" content="LAND-136A-TRAINING-V2" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -200,6 +200,24 @@
   .test-banner{display:flex;align-items:center;gap:12px;margin:0 0 10px;padding:9px 13px;border:1px dashed #4a86b8;border-radius:10px;background:rgba(74,134,184,.10);color:var(--ink)}
   .test-banner[hidden]{display:none}
   .side-card.cmb{border-color:#8a3b2a}
+  /* TRAINING-V2-LAND-UI-136A: il pannello proietta soltanto lo stato delle
+     RPC Training V2. Conteggi, progressi, giornata e permessi restano server. */
+  .side-card.trv2{border-color:#55764b;background:linear-gradient(145deg,rgba(245,248,231,.78),rgba(226,235,204,.55))}
+  .trv2-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+  .trv2-state{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.08em;text-transform:uppercase;border:1px solid #6d8c60;border-radius:999px;padding:3px 7px;color:#38502f;background:rgba(255,252,244,.72)}
+  .trv2-name{font-family:'Cinzel',serif;font-size:12px;color:var(--ink);margin:2px 0 4px}
+  .trv2-progress{font-size:12px;color:#38502f;margin:0 0 7px}
+  .trv2-note,.trv2-warn{font-size:12px;line-height:1.4;color:var(--ink-soft);margin:6px 0}
+  .trv2-warn{color:var(--red-deep)}
+  .trv2-field{display:flex;flex-direction:column;gap:3px;margin-top:7px}
+  .trv2-field>span{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .trv2-field select{width:100%;box-sizing:border-box;border:1px solid var(--rule);border-radius:7px;background:rgba(255,252,244,.9);color:var(--ink);padding:7px 8px;font-family:'Cormorant Garamond',serif;font-size:14px}
+  .trv2-check{display:flex;align-items:flex-start;gap:7px;margin-top:8px;font-size:12px;line-height:1.35;color:var(--ink)}
+  .trv2-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .trv2-btn{flex:1 1 120px;border:1px solid #48643e;border-radius:7px;background:#55764b;color:#fff8e6;padding:7px 9px;font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+  .trv2-btn.ghost{background:transparent;color:var(--ink);border-color:var(--edge)}
+  .trv2-btn.warn{background:transparent;color:var(--red-deep);border-color:var(--red-deep)}
+  .trv2-btn:disabled{opacity:.5;cursor:default}
   .side-card.mv2{border-color:#8d6a33;background:linear-gradient(145deg,rgba(255,248,224,.82),rgba(239,224,190,.58))}
   .mv2-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
   .mv2-state{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.08em;text-transform:uppercase;border:1px solid #9a7a43;border-radius:999px;padding:3px 7px;color:#6c3c2e;background:rgba(255,252,244,.72)}
@@ -1541,6 +1559,10 @@
                 <div class="side-k">Accademia</div>
                 <div id="acad-body"></div>
               </div>
+              <div class="side-card trv2" id="trv2-card" hidden>
+                <div class="trv2-head"><div class="side-k">Addestramento</div><span class="trv2-state">V2</span></div>
+                <div id="trv2-body"></div>
+              </div>
               <div class="side-card esm" id="esm-card" hidden>
                 <div class="side-k">Esame Genin</div>
                 <div id="esm-body"></div>
@@ -2523,7 +2545,7 @@
       window.addEventListener('pagehide',function(){ setFatoMode(false); });
       function loadWho(){
         if(!sb||!cur) return;
-        sb.rpc('who_here',{p_location:cur.id,p_minutes:8}).then(function(r){ if(r&&!r.error){ WHO=r.data||[]; renderWho(r.data); updateTargets(r.data); } }, function(){});
+        sb.rpc('who_here',{p_location:cur.id,p_minutes:8}).then(function(r){ if(r&&!r.error){ WHO=r.data||[]; renderWho(r.data); updateTargets(r.data); try{TRV2.sig=null;renderTraining();}catch(e){} } }, function(){});
       }
       function updateKOState(){ /* [R3] il pulsante che disabilitava e' stato ritirato: resta il badge, che e' l'unico avviso di KO ancora in barra. */ var badge=document.getElementById('ko-badge'); var ko=(myVita!=null && myVita<=0); if(badge){ badge.style.display=ko?'':'none'; } }
       function refreshMyVita(notificaPunti){ if(!sb||!myId) return; sb.from('characters').select('vita,vita_max,chakra,chakra_max,mente,corporation,unspent_points').eq('user_id',myId).maybeSingle().then(function(r){ if(r&&r.data){ myVita=(r.data.vita!=null?r.data.vita:null); myVitaMax=(r.data.vita_max!=null?r.data.vita_max:null); myChakra=(r.data.chakra!=null?r.data.chakra:null); myChakraMax=(r.data.chakra_max!=null?r.data.chakra_max:null); myCorp=(r.data.corporation!=null?r.data.corporation:null); var pts=Math.max(0,parseInt(r.data.unspent_points,10)||0); showPtsReminder(pts); if(notificaPunti&&pts>0) toast('Promozione completata: sei Genin. Hai '+pts+' punti statistica disponibili da assegnare nella Scheda.'); } updateVitals(); updateKOState(); updateHealBtn(); },function(){}); }
@@ -2552,7 +2574,7 @@
           if(typeof ok==='function') ok();
         }, function(e){ stanzaNegata(e&&e.message); });
       }
-      function refreshRoom(){ if(!cur) return; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); }
+      function refreshRoom(){ if(!cur) return; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); }
 
       /* ---- MASTER-COMBAT-V2-LAND-UI-021: regia multi-attore ---- */
       var MV2={data:null,loading:false,setup:null,setupOpen:false,pngDraft:[],options:{},busy:false,missingRpc:false};
@@ -2809,8 +2831,8 @@
           CMB=(r&&!r.error&&r.data)||null;
           if(!(CMB&&CMB.aperto&&CMB.puo_comporre)) CMB_AZ=null;
           syncNarrAttesa(!!(CMB&&CMB.narrazione_attesa===true));
-          renderCombat(); syncAzPill();
-        }, function(){ CMB=null; syncNarrAttesa(false); renderCombat(); }); }
+          renderCombat(); syncAzPill(); try{TRV2.sig=null;renderTraining();}catch(e){}
+        }, function(){ CMB=null; syncNarrAttesa(false); renderCombat(); try{TRV2.sig=null;renderTraining();}catch(e){} }); }
       function csBar(v,max,cls){
         /* fuori dalla stanza di prova il server non manda i valori dell'avversario:
            in quel caso non si disegna nessuna barra, invece di disegnarne una vuota */
@@ -3968,6 +3990,7 @@
                               contributori:row.contributori||0, mancanti:row.mancanti||0}; }
           else { roleState=recVuoto(); }
           renderRec();
+          try{TRV2.sig=null;renderTraining();}catch(e){}
           loadRoleDaSalvare();
         }, function(){});
       }
@@ -4035,6 +4058,151 @@
           if(!b) return;
           var riga=b.closest('.rec-it'), inp=riga?riga.querySelector('input[data-t]'):null;
           salvaRole(b.getAttribute('data-salva'), inp?inp.value:'');
+        });
+      })();
+      /* ---- Training V2 · consumer deterministico LAND ----------------------
+         La LAND non conta azioni, non decide se una role vale, non assegna
+         progresso e non costruisce contesto IA. Mostra my_training_state e
+         inoltra alle RPC soltanto identificativi e scelte esplicite. */
+      var TRV2={state:null,busy:false,loading:false,error:false,missing:false,
+                 sig:null,techName:'',techId:null,mode:'individuale',partner:'',
+                 linkCombat:false,abandonConfirm:false};
+      function trv2Card(on){ var c=document.getElementById('trv2-card'); if(c)c.hidden=!on; }
+      function trv2Data(r){ var d=r&&r.data; if(Object.prototype.toString.call(d)==='[object Array]') d=d[0]||null; return d||null; }
+      function trv2Current(){ return TRV2.state&&TRV2.state.current||null; }
+      /* Una sola tabella alimenta sia il testo sia il riconoscimento delle
+         eccezioni: cosi' un codice tradotto non puo' restare fuori dal ramo
+         che intercetta gli errori DB (review PM su PARTNER_NOT_PRESENT). */
+      var TRV2_ERROR_COPY={
+        UNAUTHENTICATED:'Sessione scaduta: accedi di nuovo',NO_CHARACTER:'Ti serve un personaggio',
+        INVALID_MODE:'Modalit\u00e0 di addestramento non valida',PARTNER_REQUIRED_OR_FORBIDDEN:'Scegli un partner solo per la modalit\u00e0 cooperativa',
+        PARTNER_MUST_DIFFER:'Non puoi scegliere te stesso come partner',ROLE_NOT_OPEN:'La role non \u00e8 pi\u00f9 aperta',
+        TEST_ROOM_FORBIDDEN:'La Test Room non conta per gli addestramenti',NOT_ROLE_PARTICIPANT:'Devi partecipare alla role prima di dichiarare l\u2019addestramento',
+        TECHNIQUE_NOT_IN_TRAINING:'Questa tecnica non \u00e8 in addestramento',TECHNIQUE_NOT_TRAINABLE:'Questa tecnica non richiede altri addestramenti',
+        DAY_ALREADY_RESERVED:'Hai gi\u00e0 registrato un addestramento nella giornata di gioco',PARTNER_NOT_PRESENT:'Il partner scelto non risulta presente nella role',
+        SPARRING_NOT_LINKABLE:'Lo scontro aperto non pu\u00f2 essere collegato a questo addestramento',NOT_SPARRING_FIGHTER:'Devi essere un combattente dello sparring collegato',
+        OTHER_COMBAT_OPEN:'Hai un altro scontro aperto incompatibile con questo addestramento',DECLARATION_CONFLICT:'Hai gi\u00e0 una dichiarazione diversa in questa role',
+        PARTNER_DID_NOT_PARTICIPATE:'Il partner non ha ancora partecipato dopo la dichiarazione',GROUP_NEEDS_TWO_STUDENTS:'Per il gruppo servono almeno due allievi dichiarati',
+        ALTERNATION_REQUIRED:'Nello sparring non risulta ancora l\u2019alternanza richiesta',TRAINING_NOT_OWNED:'Questo addestramento non appartiene al tuo personaggio',
+        TRAINING_STATE_CONFLICT:'Lo stato dell\u2019addestramento \u00e8 cambiato: ricarica',ONLY_DECLARATION_CAN_BE_ABANDONED:'Si pu\u00f2 abbandonare soltanto una dichiarazione ancora aperta',
+        NO_LINKED_SPARRING:'Non c\u2019\u00e8 uno sparring collegato',ALREADY_CLOSED:'Lo sparring era gi\u00e0 concluso'
+      };
+      function trv2Code(code,d){
+        if(code==='NOT_ENOUGH_ACTIONS') return 'Servono quattro azioni pubbliche dopo la dichiarazione: il server ne rileva '+((d&&d.actions)||0);
+        return TRV2_ERROR_COPY[code]||'Operazione Training non riuscita';
+      }
+      function trv2Error(err){
+        var raw=(err&&(err.message||err.hint))||'', keys=Object.keys(TRV2_ERROR_COPY);
+        for(var i=0;i<keys.length;i++){ if(raw.indexOf(keys[i])>=0) return trv2Code(keys[i]); }
+        return 'Operazione Training non riuscita';
+      }
+      function trv2LoadName(id){
+        if(!id||!sb) return;
+        if(TRV2.techId===id&&TRV2.techName) return;
+        TRV2.techId=id; TRV2.techName='';
+        sb.from('clan_techniques').select('id,name').eq('id',id).maybeSingle().then(function(r){
+          if(TRV2.techId!==id) return;
+          TRV2.techName=(r&&!r.error&&r.data&&r.data.name)||'Tecnica in addestramento'; TRV2.sig=null; renderTraining();
+        },function(){ if(TRV2.techId===id){TRV2.techName='Tecnica in addestramento';TRV2.sig=null;renderTraining();} });
+      }
+      function trv2Fighter(){
+        if(!(CMB&&CMB.aperto&&CMB.id)) return false;
+        return (CMB.partecipanti||[]).some(function(p){return p.io&&p.ruolo==='combattente';});
+      }
+      function trv2Partners(){
+        var seen={}, out=[];
+        (WHO||[]).forEach(function(w){ if(w.char_id&&w.char_id!==myCharId&&!seen[w.char_id]){seen[w.char_id]=1;out.push(w);} });
+        return out;
+      }
+      function trv2HTML(){
+        var s=TRV2.state||{}, a=s.ability||null, c=s.current||null;
+        if(TRV2.error&&!a&&!c) return '<p class="trv2-warn">Stato Training non disponibile. Riprover\u00f2 automaticamente.</p>';
+        var h='<div class="trv2-name">'+esc(TRV2.techName||(a?'Tecnica in addestramento':'Addestramento in corso'))+'</div>';
+        if(a) h+='<p class="trv2-progress">Progresso: <b>'+(a.sessions_done||0)+' / '+(a.sessions_required||0)+'</b></p>';
+        if(c){
+          var st=c.stato||'dichiarata', mode=c.modalita||'individuale';
+          h+='<p class="trv2-note">Modalit\u00e0 <b>'+esc(mode)+'</b> \u00b7 '+(st==='sospetta'?'<b>in revisione staff</b>':'dichiarazione attiva')+'.</p>';
+          if(st==='sospetta') h+='<p class="trv2-warn">Il server ha messo la registrazione in revisione. Il progresso non \u00e8 stato applicato.</p>';
+          else h+='<p class="trv2-note">Il server conter\u00e0 soltanto le azioni pubbliche successive alla dichiarazione. Servono quattro azioni dell\u2019allievo.</p>';
+          if(c.role_session_id&&roleState.session===c.role_session_id) h+='<p class="trv2-note"><b>Questa \u00e8 la role dichiarata.</b></p>';
+          else h+='<p class="trv2-note">La dichiarazione appartiene a una role diversa o gi\u00e0 chiusa; puoi comunque registrarla quando i requisiti sono completi.</p>';
+          if(st==='dichiarata'){
+            h+='<div class="trv2-actions"><button class="trv2-btn" type="button" data-trv2="register"'+(TRV2.busy?' disabled':'')+'>Registra</button>';
+            if(TRV2.abandonConfirm){
+              h+='<button class="trv2-btn ghost" type="button" data-trv2="abandon-cancel">Torna indietro</button><button class="trv2-btn warn" type="button" data-trv2="abandon-confirm"'+(TRV2.busy?' disabled':'')+'>Conferma abbandono</button>';
+            }else h+='<button class="trv2-btn ghost" type="button" data-trv2="abandon">Abbandona</button>';
+            h+='</div>';
+            if(TRV2.abandonConfirm) h+='<p class="trv2-warn">L\u2019abbandono non rimborsa gli XP spesi per avviare la tecnica.</p>';
+          }
+          if(c.combat_session_id) h+='<div class="trv2-actions"><button class="trv2-btn warn" type="button" data-trv2="surrender"'+(TRV2.busy?' disabled':'')+'>Resa nello sparring</button></div><p class="trv2-note">La resa chiude lo sparring non letale. PV e chakra consumati non vengono ripristinati.</p>';
+          return h;
+        }
+        if(!a) return h+'<p class="trv2-note">Nessuna tecnica in addestramento.</p>';
+        if(s.day_reserved) return h+'<p class="trv2-note">L\u2019addestramento della giornata di gioco \u00e8 gi\u00e0 registrato.</p>';
+        if(cur&&cur.is_test) return h+'<p class="trv2-warn">La Test Room non pu\u00f2 essere usata per registrare addestramenti.</p>';
+        if(!roleState.open) return h+'<p class="trv2-note">Prima apri una role reale: la REC parte con il primo turno pubblico valido. Poi dichiara qui l\u2019addestramento; le azioni precedenti non conteranno.</p>';
+        var ps=trv2Partners();
+        h+='<label class="trv2-field"><span>Modalit\u00e0</span><select id="trv2-mode"><option value="individuale"'+(TRV2.mode==='individuale'?' selected':'')+'>Individuale</option><option value="cooperativa"'+(TRV2.mode==='cooperativa'?' selected':'')+'>Cooperativa</option><option value="gruppo"'+(TRV2.mode==='gruppo'?' selected':'')+'>Gruppo</option></select></label>';
+        if(TRV2.mode==='cooperativa') h+='<label class="trv2-field"><span>Partner presente</span><select id="trv2-partner"><option value="">Scegli il partner</option>'+ps.map(function(w){return '<option value="'+esc(w.char_id)+'"'+(TRV2.partner===w.char_id?' selected':'')+'>'+esc(w.name)+'</option>';}).join('')+'</select></label>';
+        if(trv2Fighter()) h+='<label class="trv2-check"><input id="trv2-combat" type="checkbox"'+(TRV2.linkCombat?' checked':'')+'> <span>Collega lo sparring aperto in questa scena. Il server verificher\u00e0 tipo, partecipazione e alternanza.</span></label>';
+        h+='<button class="trv2-btn" type="button" data-trv2="declare"'+(TRV2.busy?' disabled':'')+'>Dichiara addestramento</button>';
+        h+='<p class="trv2-note">La dichiarazione fissa l\u2019inizio della misura. Il client non valuta la qualit\u00e0 della role.</p>';
+        return h;
+      }
+      function renderTraining(){
+        var s=TRV2.state||{}, a=s.ability||null, c=s.current||null;
+        if(!loggedIn||!cur||TRV2.missing||(!a&&!c&&!TRV2.error)){trv2Card(false);return;}
+        trv2Card(true);
+        var body=document.getElementById('trv2-body'); if(!body)return;
+        var whoSig=(WHO||[]).map(function(w){return (w.char_id||'')+':'+(w.name||'');}).join('|');
+        var sig=JSON.stringify([s,a,c,TRV2.busy,TRV2.error,TRV2.techName,TRV2.mode,TRV2.partner,TRV2.linkCombat,TRV2.abandonConfirm,roleState.session,cur&&cur.is_test,CMB&&CMB.id,trv2Fighter(),whoSig]);
+        if(sig===TRV2.sig)return; TRV2.sig=sig; body.innerHTML=trv2HTML();
+      }
+      function loadTrainingState(){
+        if(!sb||!loggedIn||!cur||TRV2.loading||TRV2.missing)return;
+        TRV2.loading=true;
+        sb.rpc('my_training_state',{p_character:null}).then(function(r){
+          TRV2.loading=false;
+          if(r&&r.error){var mm=(r.error.message||'').toLowerCase();if(mm.indexOf('my_training_state')>=0||mm.indexOf('schema cache')>=0)TRV2.missing=true;TRV2.error=true;TRV2.sig=null;renderTraining();return;}
+          TRV2.error=false;TRV2.state=trv2Data(r)||{};TRV2.sig=null;
+          var a=TRV2.state.ability||null,c=TRV2.state.current||null,id=(a&&a.technique_id)||(c&&c.technique_id)||null;
+          if(id)trv2LoadName(id);else{TRV2.techId=null;TRV2.techName='';}
+          renderTraining();
+        },function(){TRV2.loading=false;TRV2.error=true;TRV2.sig=null;renderTraining();});
+      }
+      function trv2Done(msg){TRV2.busy=false;TRV2.abandonConfirm=false;TRV2.sig=null;if(msg)toast(msg);loadTrainingState();loadCombat();refreshMyVita();}
+      function trv2Call(fn,args,okText){
+        if(!sb||TRV2.busy)return;TRV2.busy=true;TRV2.sig=null;renderTraining();
+        sb.rpc(fn,args).then(function(r){
+          if(r&&r.error){TRV2.busy=false;TRV2.sig=null;toast(trv2Error(r.error));renderTraining();return;}
+          var d=trv2Data(r)||{};if(d.ok===false){TRV2.busy=false;TRV2.sig=null;toast(trv2Code(d.code,d));renderTraining();return;}
+          var text=okText;
+          if(d.code==='PENDING_REVIEW')text='Registrazione inviata alla revisione staff: il progresso non \u00e8 ancora applicato';
+          else if(d.code==='ALREADY_APPLIED')text='Addestramento gi\u00e0 registrato';
+          else if(d.code==='ALREADY_DECLARED')text='Addestramento gi\u00e0 dichiarato in questa role';
+          else if(d.code==='ALREADY_CLOSED')text='Sparring gi\u00e0 concluso';
+          trv2Done(text);
+        },function(){TRV2.busy=false;TRV2.sig=null;toast('Operazione Training non riuscita');renderTraining();});
+      }
+      function trv2Declare(){
+        var s=TRV2.state||{},a=s.ability||null;if(!a||!roleState.open)return;
+        if(TRV2.mode==='cooperativa'&&!TRV2.partner){toast('Scegli il partner presente');return;}
+        trv2Call('training_role_dichiara',{p_role_session:roleState.session,p_technique:a.technique_id,p_modalita:TRV2.mode,p_partner_character:TRV2.mode==='cooperativa'?TRV2.partner:null,p_combat_session:(TRV2.linkCombat&&trv2Fighter())?CMB.id:null},'Addestramento dichiarato: da ora il server misura le azioni');
+      }
+      (function(){
+        var body=document.getElementById('trv2-body');if(!body)return;
+        body.addEventListener('change',function(e){
+          if(e.target.id==='trv2-mode'){TRV2.mode=e.target.value;TRV2.partner='';TRV2.sig=null;renderTraining();}
+          else if(e.target.id==='trv2-partner')TRV2.partner=e.target.value;
+          else if(e.target.id==='trv2-combat')TRV2.linkCombat=!!e.target.checked;
+        });
+        body.addEventListener('click',function(e){var b=e.target.closest('[data-trv2]');if(!b)return;var a=b.getAttribute('data-trv2'),c=trv2Current();
+          if(a==='declare')trv2Declare();
+          else if(a==='register'&&c)trv2Call('training_role_registra',{p_training_session:c.id},'Addestramento registrato');
+          else if(a==='abandon'){TRV2.abandonConfirm=true;TRV2.sig=null;renderTraining();}
+          else if(a==='abandon-cancel'){TRV2.abandonConfirm=false;TRV2.sig=null;renderTraining();}
+          else if(a==='abandon-confirm'&&c)trv2Call('training_role_abbandona',{p_training_session:c.id},'Dichiarazione abbandonata senza rimborso XP');
+          else if(a==='surrender'&&c)trv2Call('training_sparring_resa',{p_training_session:c.id},'Resa registrata: sparring concluso');
         });
       })();
       /* ---- Accademia: lezioni in chat ---- */
@@ -4994,11 +5162,11 @@
         if(poll){ clearInterval(poll); poll=null; }
         /* il poll parte solo se il server ci fa entrare davvero */
         entraLuogo(function(){
-          updateMeteo(); loadMsgs(); loadWho(); loadRoleState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2();
+          updateMeteo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2();
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; MV2.data=null; MV2.setup=null; MV2.setupOpen=false; MV2.composeMode='png_pg'; MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; MV2.data=null; MV2.setup=null; MV2.setupOpen=false; MV2.composeMode='png_pg'; MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -5127,7 +5295,7 @@
              stato REC si rilegge subito: se quel turno ha aperto la
              registrazione, il pallino si accende adesso e non fra nove secondi.
              A dirlo resta role_open_here, non il conteggio dei caratteri. */
-          loadMsgs(); loadWho(); loadRoleState();
+          loadMsgs(); loadWho(); loadRoleState(); loadTrainingState();
           if(typeof after==='function') after();
         }, function(){ syncSendBtn(); toast('Impossibile inviare'); });
       }

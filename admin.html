@@ -174,6 +174,21 @@
   .adm-addbtn .plus{font-size:17px;line-height:1;margin-top:-1px}
   .cat-formwrap{margin:2px 0 6px}
   .cat-formwrap[hidden]{display:none}
+  /* TRAINING-V2-ADMIN-138A CSS INIZIO */
+  .trv2-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:14px;margin:12px 0 20px}
+  .trv2-panel{border:1px solid var(--edge);background:rgba(255,250,235,.42);padding:12px}
+  .trv2-panel.wide{grid-column:1/-1}
+  .trv2-card{border-top:1px dotted var(--rule);padding:10px 0}
+  .trv2-card:first-child{border-top:0;padding-top:0}
+  .trv2-meta{font-size:13px;color:var(--ink-soft);overflow-wrap:anywhere}
+  .trv2-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:8px}
+  .trv2-reason{box-sizing:border-box;width:100%;min-height:60px;margin-top:8px;padding:7px 9px;border:1px solid var(--edge);background:#fbf4e1;color:var(--ink);font-family:inherit;font-size:14px;resize:vertical}
+  .trv2-state{padding:9px 11px;border-left:3px solid var(--gold);background:rgba(166,50,29,.05);margin:8px 0}
+  .trv2-state.err{border-color:var(--red-deep);color:var(--red-deep)}
+  .trv2-warn{color:var(--red-deep);font-weight:700}
+  .trv2-preview{white-space:normal;overflow-wrap:anywhere;margin-top:8px}
+  .trv2-panel button[hidden]{display:none}
+  /* TRAINING-V2-ADMIN-138A CSS FINE */
   /* --- Clan: categorie per villaggio espandibili --- */
   .clan-cat{display:flex;align-items:center;gap:9px;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);border-bottom:1px solid var(--edge);padding:10px 8px;margin-top:16px;cursor:pointer;user-select:none;background:rgba(255,250,235,.4);transition:.15s}
   .clan-cat:hover{background:rgba(166,50,29,.07)}
@@ -903,10 +918,60 @@
           </section>
 
           <section class="adm-page" data-page="allenamenti">
-          <div class="grp-title" style="margin-top:0">Allenamenti in corso</div>
-          <p class="mgr-note">Gli addestramenti avviati dai personaggi. Dopo una <b>sessione di allenamento giocata</b>, premi <b>Conferma sessione</b>: quando le sessioni richieste sono complete la tecnica diventa <b>attiva</b> e il personaggio può usarla. Limite di <b>un allenamento al giorno</b> per personaggio (anche il Capo clan può confermare, dalla land).</p>
-          <div class="cat-actions"><button class="btn" id="train-refresh">Aggiorna</button></div>
-          <div id="atrain-list"></div>
+          <!-- TRAINING-V2-ADMIN-138A HTML INIZIO -->
+          <div class="grp-title" style="margin-top:0">Revisione Allenamenti V2</div>
+          <p class="mgr-note">Il server ha già misurato azioni, alternanza, giornata e progresso. Qui lo staff <b>decide soltanto i casi segnalati</b>, gestisce le due righe legacy e può annullare o rimborsare con strumenti tracciati. La vecchia <b>Conferma sessione</b> non fa parte del flusso V2 ordinario ed è ritirata da questo pannello.</p>
+          <div class="cat-actions"><button class="btn" id="train-refresh" type="button">Aggiorna tutto</button></div>
+          <div id="atrain-state" class="trv2-state" role="status" aria-live="polite">Pronto.</div>
+
+          <div class="trv2-grid">
+            <section class="trv2-panel" aria-labelledby="atrain-review-title">
+              <div class="grp-sub" id="atrain-review-title">Casi segnalati dal server</div>
+              <p class="trv2-meta">Approvazione o rifiuto motivati. Il giorno originale e il progresso restano sotto controllo server.</p>
+              <div id="atrain-review-list"><p class="mgr-note">Caricamento…</p></div>
+            </section>
+            <section class="trv2-panel" aria-labelledby="atrain-legacy-title">
+              <div class="grp-sub" id="atrain-legacy-title">Righe legacy da decidere</div>
+              <p class="trv2-meta">Porta eccezionale per le due righe sospese: nessun avanzamento silenzioso.</p>
+              <div id="atrain-legacy-list"><p class="mgr-note">Caricamento…</p></div>
+            </section>
+
+            <section class="trv2-panel wide" aria-labelledby="atrain-active-title">
+              <div class="grp-sub" id="atrain-active-title">Sessioni annullabili</div>
+              <p class="trv2-meta">Dichiarazioni e registrazioni ancora attive. Scegli una riga per trasferirla all’anteprima firmata.</p>
+              <div id="atrain-active-list"><p class="mgr-note">Caricamento…</p></div>
+            </section>
+
+            <section class="trv2-panel wide" aria-labelledby="atrain-cancel-title">
+              <div class="grp-sub" id="atrain-cancel-title">Annullamento con anteprima firmata</div>
+              <p class="trv2-meta">Prima prepara l’anteprima; poi controlla righe e ambito e conferma. Se cambia qualcosa, l’impronta scade e serve una nuova anteprima.</p>
+              <div class="cat-form">
+                <label>Sessione Training (UUID)<input id="atrain-cancel-session" autocomplete="off" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></label>
+                <label>Ambito<select id="atrain-cancel-scope"><option value="registrazione">Solo registrazione</option><option value="scena">Intera scena</option></select></label>
+                <label class="full">Motivo <span class="opt">almeno 10 caratteri</span><textarea id="atrain-cancel-reason" maxlength="500" rows="2"></textarea></label>
+              </div>
+              <div class="trv2-actions"><button class="mini-btn" id="atrain-preview" type="button">1 · Prepara anteprima</button><button class="mini-btn" id="atrain-cancel-confirm" type="button" disabled>2 · Conferma annullamento</button></div>
+              <div id="atrain-preview-box" class="trv2-preview" aria-live="polite"></div>
+            </section>
+
+            <section class="trv2-panel wide" aria-labelledby="atrain-refund-title">
+              <div class="grp-sub" id="atrain-refund-title">Rimborso staff del percorso</div>
+              <p class="trv2-meta">Solo percorsi ancora in addestramento. Importo, stato e audit sono calcolati dal server; nessuna riga viene cancellata.</p>
+              <div class="cat-form">
+                <label class="full">Percorso rimborsabile<select id="atrain-refund-target"><option value="">— carico i percorsi —</option></select></label>
+                <label class="full">Motivo <span class="opt">almeno 10 caratteri</span><textarea id="atrain-refund-reason" maxlength="500" rows="2"></textarea></label>
+              </div>
+              <div class="trv2-actions"><button class="mini-btn" id="atrain-refund-arm" type="button">1 · Prepara rimborso</button><button class="mini-btn" id="atrain-refund-confirm" type="button" disabled>2 · Conferma rimborso</button></div>
+              <div id="atrain-refund-box" class="trv2-preview" aria-live="polite"></div>
+            </section>
+
+            <section class="trv2-panel wide" aria-labelledby="atrain-history-title">
+              <div class="grp-sub" id="atrain-history-title">Storico annullamenti</div>
+              <p class="trv2-meta">Ultime 100 operazioni, in sola lettura.</p>
+              <div id="atrain-history-list"><p class="mgr-note">Caricamento…</p></div>
+            </section>
+          </div>
+          <!-- TRAINING-V2-ADMIN-138A HTML FINE -->
           </section>
 
           <section class="adm-page" data-page="compagni">
@@ -1023,7 +1088,7 @@
       <div class="legend-item"><b>Clan</b><span>In cima le <strong>richieste di clan</strong> ad accesso ristretto, da approvare o respingere con una nota che il giocatore legge. Sotto, i testi di ogni clan — descrizione, storia, statuto, abilità — che alimentano la pagina del clan, più la spunta <strong>Accesso ristretto</strong>. Puoi anche creare nuovi clan.</span></div>
       <div class="legend-item"><b>Tecniche</b><span>Il catalogo diviso per macro: <strong>Clan</strong>, <strong>Generiche</strong>, <strong>Abilità</strong>, <strong>Evocazioni</strong> e <strong>Cercoteri</strong>. Scheda completa (grado, portata, bersaglio, azione, durata, ricarica, danno, tipo di consumo, chakra) e meccanica di sblocco: costo in XP, allenamenti necessari, grado minimo e caratteristica richiesta. Le voci d’Accademia non stanno qui.</span></div>
       <div class="legend-item"><b>Basi Accademia</b><span>Il programma accademico: i <strong>tre jutsu di grado E</strong> e le <strong>abilità</strong> senza costo. Vivono in una tabella separata dal catalogo <strong>Tecniche</strong>. Da qui si correggono effetto, limiti e requisiti che i giocatori leggono in scheda. Per togliere una voce dal gioco si <strong>disattiva</strong>: chi l’ha già imparata se la tiene.</span></div>
-      <div class="legend-item"><b>Allenamenti</b><span>Approvi le sessioni avviate dai personaggi con <strong>Conferma sessione</strong>; completate le sessioni richieste la tecnica diventa <strong>attiva</strong> e utilizzabile. Limite di <strong>un allenamento al giorno</strong> per personaggio; anche il Capo clan può confermare, dalla land.</span></div>
+      <div class="legend-item"><b>Allenamenti</b><span>Il server registra da solo le sessioni valide. Qui lo staff decide i <strong>casi segnalati</strong> e le due righe <strong>legacy</strong>, consulta lo storico e usa annullamento firmato o rimborso tracciato. La vecchia <strong>Conferma sessione</strong> è ritirata dal flusso V2 ordinario.</span></div>
       <div class="legend-item"><b>Premi</b><span>Le <strong>richieste in coda</strong> — ci arrivano solo i premi maggiori, perché i minori il giocatore se li compra dalla scheda —, l’<strong>assegnazione d’ufficio</strong> per Cercoteri e contratti di trama, il <strong>listino</strong> con costi, slot e rango minimo che il server legge da qui, le <strong>tecniche leggendarie di clan</strong> e lo storico dei premi già concessi.</span></div>
       <div class="legend-item"><b>Oggetti</b><span>Catalogo oggetti: armi, equipaggiamento, contenitori, peso, costo, immagini e descrizioni. Peso e costo si cambiano <strong>al volo dalla lista</strong>. Alimenta il negozio e gli inventari dei personaggi.</span></div>
       <div class="legend-item"><b>Luoghi</b><span>Le stanze di gioco in chat: nome, tipo, descrizione, immagine, nota evento e <strong>aula d’Accademia</strong>. Il campo <strong>Meteo</strong> assegna la zona meteo Konoha/Suna. I sotto-tab filtrano l’elenco per <strong>regione</strong> (Mondo, Konoha, Suna). Un luogo si <strong>disattiva</strong>, non si cancella.</span></div>
@@ -3163,25 +3228,98 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       if(x)x.addEventListener('click',function(){set(false);});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&p.classList.contains('on'))set(false);});
     })();
-    async function loadTrainings(){ if(!sb)return; var host=$('atrain-list'); if(!host)return; host.innerHTML='<p class="mgr-note">Caricamento…</p>';
-      var r=await sb.rpc('all_pending_trainings'); if(r.error){ host.innerHTML='<p class="mgr-note">Errore nel caricamento.</p>'; return; }
-      var rows=(r&&r.data)||[];
-      if(!rows.length){ host.innerHTML='<p class="mgr-note" style="margin-top:12px">Nessun allenamento in corso.</p>'; return; }
-      host.innerHTML=rows.map(function(t){
-        return '<div class="itrow"><div class="itmain"><b>'+esc(t.character_name||'—')+'</b> <span class="itmeta">· '+esc(t.clan||'—')+'</span>'+
-          '<span class="itdesc"><b>'+esc(t.technique_name)+'</b>'+(t.level!=null?(' · Liv. '+t.level):'')+' — sessioni '+(t.sessions_done||0)+'/'+(t.sessions_required||1)+'</span></div>'+
-          '<button class="mini-btn" data-tconfirm="'+t.character_id+'|'+t.technique_id+'">Conferma sessione</button></div>';
-      }).join('');
+    /* TRAINING-V2-ADMIN-138A JS INIZIO */
+    var TRAINING_V2={busy:false,preview:null,refund:null,names:{characters:{},techniques:{}},refundRows:[]};
+    function trainState(msg,isErr){var n=$('atrain-state');if(!n)return;n.textContent=msg;n.classList.toggle('err',!!isErr);}
+    function trainShort(v){v=String(v||'');return v?v.slice(0,8)+'…':'—';}
+    function trainDate(v){if(!v)return '—';try{return new Date(v).toLocaleString('it-IT');}catch(e){return String(v);}}
+    function trainUuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||'').trim());}
+    function trainReason(v){return String(v||'').trim().length>=10;}
+    function trainErr(err){
+      var raw=String((err&&err.message)||err||'');
+      var codes=['FORBIDDEN','INVALID_DECISION','INVALID_SCOPE','REASON_REQUIRED','TRAINING_NOT_FOUND','NOT_PENDING_REVIEW','NOT_LEGACY_REVIEW','NO_REFUNDABLE_TRAINING','STALE_FINGERPRINT'];
+      var code='';for(var i=0;i<codes.length;i++){if(raw.indexOf(codes[i])>=0){code=codes[i];break;}}
+      var map={FORBIDDEN:'Permesso negato: serve un account staff.',INVALID_DECISION:'Decisione non valida o motivazione troppo breve.',INVALID_SCOPE:'Ambito di annullamento non valido.',REASON_REQUIRED:'Inserisci una motivazione di almeno 10 caratteri.',TRAINING_NOT_FOUND:'Sessione Training non trovata.',NOT_PENDING_REVIEW:'Il caso non è più in attesa di revisione.',NOT_LEGACY_REVIEW:'La riga legacy non è più da decidere.',NO_REFUNDABLE_TRAINING:'Il percorso non è più rimborsabile.',STALE_FINGERPRINT:'L’anteprima non è più attuale: preparane una nuova.'};
+      return map[code]||'Operazione non riuscita. Riprova; se persiste, annota l’orario per il controllo tecnico.';
     }
-    function bindTrainings(){ var rb=$('train-refresh'); if(rb)rb.addEventListener('click',loadTrainings);
-      var lst=$('atrain-list'); if(lst)lst.addEventListener('click',async function(e){ var b=e.target.closest('[data-tconfirm]'); if(!b)return;
-        var parts=b.getAttribute('data-tconfirm').split('|'); b.disabled=true;
-        var r=await sb.rpc('training_confirm',{p_character:parts[0],p_technique:parts[1]}); b.disabled=false;
-        if(r.error){ toast('Errore',true); return; }
-        var d=r.data||{};
-        if(d.ok){ toast(d.activated?'Tecnica attivata!':('Sessione '+d.sessions_done+'/'+d.sessions_required)); loadTrainings(); }
-        else { toast(d.reason||'Non confermato',true); }
-      }); }
+    function trainChar(id){return TRAINING_V2.names.characters[id]||('Personaggio '+trainShort(id));}
+    function trainTech(id){return TRAINING_V2.names.techniques[id]||('Tecnica '+trainShort(id));}
+    async function trainNames(rows){
+      var cs=[],ts=[];(rows||[]).forEach(function(x){if(x.character_id&&cs.indexOf(x.character_id)<0)cs.push(x.character_id);if(x.technique_id&&ts.indexOf(x.technique_id)<0)ts.push(x.technique_id);});
+      var jobs=[];
+      if(cs.length)jobs.push(sb.from('characters').select('id,name').in('id',cs).then(function(r){if(!r.error)(r.data||[]).forEach(function(x){TRAINING_V2.names.characters[x.id]=x.name||trainShort(x.id);});}));
+      if(ts.length)jobs.push(sb.from('clan_techniques').select('id,name,level').in('id',ts).then(function(r){if(!r.error)(r.data||[]).forEach(function(x){TRAINING_V2.names.techniques[x.id]=(x.name||trainShort(x.id))+(x.level!=null?' · Liv. '+x.level:'');});}));
+      await Promise.all(jobs);
+    }
+    function trainCard(row,kind){
+      var sid=esc(row.id),reasonId='atrain-reason-'+kind+'-'+sid;
+      var meta=kind==='suspect'?'Giornata '+esc(row.giornata||'—')+' · azioni rilevate '+esc(row.azioni==null?'—':row.azioni)+' · '+esc(row.motivo||'segnalazione server'):'Riga precedente al V2 in revisione esplicita';
+      return '<article class="trv2-card" data-training-card="'+kind+'|'+sid+'"><b>'+esc(trainChar(row.character_id))+'</b><div>'+esc(trainTech(row.technique_id))+'</div><div class="trv2-meta">'+meta+' · sessione '+esc(trainShort(row.id))+'</div>'+
+        '<textarea class="trv2-reason" id="'+reasonId+'" maxlength="500" placeholder="Motivazione staff (almeno 10 caratteri)"></textarea>'+
+        '<div class="trv2-actions"><button class="mini-btn" type="button" data-training-decide="'+kind+'|'+sid+'|approva">Approva</button><button class="mini-btn" type="button" data-training-arm="'+kind+'|'+sid+'">Prepara rifiuto</button><button class="mini-btn" type="button" data-training-decide="'+kind+'|'+sid+'|respinge" hidden>Conferma rifiuto</button></div></article>';
+    }
+    function trainHistoryCard(row){return '<article class="trv2-card"><b>'+esc(trainChar(row.character_id))+'</b> · '+esc(trainTech(row.technique_id))+'<div class="trv2-meta">'+esc(row.ambito||'—')+' · stato precedente '+esc(row.stato_precedente||'—')+' · '+esc(trainDate(row.annullata_at))+' · progresso dopo '+esc(row.sessions_done_dopo==null?'—':row.sessions_done_dopo)+'</div><div>'+esc(row.motivo||'Motivo non disponibile')+'</div><div class="trv2-meta">Operazione '+esc(trainShort(row.operation_id))+'</div></article>';}
+    function trainActiveCard(row){return '<article class="trv2-card"><b>'+esc(trainChar(row.character_id))+'</b> · '+esc(trainTech(row.technique_id))+'<div class="trv2-meta">'+esc(row.stato||'—')+' · '+esc(row.modalita||'—')+' · giorno '+esc(row.giornata||'—')+' · sessione '+esc(trainShort(row.id))+'</div><div class="trv2-actions"><button class="mini-btn" type="button" data-training-usecancel="'+esc(row.id)+'">Prepara annullamento</button></div></article>';}
+    async function loadTrainings(){
+      if(!sb||TRAINING_V2.busy)return;TRAINING_V2.busy=true;trainState('Aggiornamento delle code in corso…');
+      var review=$('atrain-review-list'),legacy=$('atrain-legacy-list'),active=$('atrain-active-list'),history=$('atrain-history-list'),refund=$('atrain-refund-target');
+      if(review)review.innerHTML='<p class="mgr-note">Caricamento…</p>';if(legacy)legacy.innerHTML='<p class="mgr-note">Caricamento…</p>';if(active)active.innerHTML='<p class="mgr-note">Caricamento…</p>';if(history)history.innerHTML='<p class="mgr-note">Caricamento…</p>';
+      var results=await Promise.all([
+        sb.rpc('training_segnalate'),
+        sb.from('training_sessions').select('id,character_id,technique_id,created_at').eq('modalita','legacy').eq('stato','legacy_review').order('created_at'),
+        sb.from('training_sessions').select('id,character_id,technique_id,role_session_id,stato,modalita,giornata,created_at').in('stato',['dichiarata','sospetta','valida']).order('created_at',{ascending:false}).limit(100),
+        sb.rpc('training_annullate',{p_limit:100}),
+        sb.from('character_abilities').select('character_id,technique_id,state').eq('state','in_addestramento')
+      ]);
+      var all=[];results.forEach(function(r){if(!r.error)all=all.concat(r.data||[]);});await trainNames(all);
+      var errors=0,r0=results[0],r1=results[1],r2=results[2],r3=results[3],r4=results[4];
+      if(r0.error){errors++;review.innerHTML='<p class="trv2-state err">'+esc(trainErr(r0.error))+' <button class="mini-btn" data-training-retry="1" type="button">Riprova</button></p>';}else{review.innerHTML=(r0.data||[]).length?(r0.data||[]).map(function(x){return trainCard(x,'suspect');}).join(''):'<p class="mgr-note">Nessun caso segnalato.</p>';}
+      if(r1.error){errors++;legacy.innerHTML='<p class="trv2-state err">'+esc(trainErr(r1.error))+' <button class="mini-btn" data-training-retry="1" type="button">Riprova</button></p>';}else{legacy.innerHTML=(r1.data||[]).length?(r1.data||[]).map(function(x){return trainCard(x,'legacy');}).join(''):'<p class="mgr-note">Nessuna riga legacy da decidere.</p>';}
+      if(r2.error){errors++;active.innerHTML='<p class="trv2-state err">'+esc(trainErr(r2.error))+' <button class="mini-btn" data-training-retry="1" type="button">Riprova</button></p>';}else{active.innerHTML=(r2.data||[]).length?(r2.data||[]).map(trainActiveCard).join(''):'<p class="mgr-note">Nessuna sessione attiva annullabile.</p>';}
+      if(r3.error){errors++;history.innerHTML='<p class="trv2-state err">'+esc(trainErr(r3.error))+' <button class="mini-btn" data-training-retry="1" type="button">Riprova</button></p>';}else{history.innerHTML=(r3.data||[]).length?(r3.data||[]).map(trainHistoryCard).join(''):'<p class="mgr-note">Nessun annullamento registrato.</p>';}
+      TRAINING_V2.refundRows=r4.error?[]:(r4.data||[]);if(r4.error){errors++;refund.innerHTML='<option value="">Errore nel caricamento</option>';}else{refund.innerHTML='<option value="">— scegli un percorso —</option>'+TRAINING_V2.refundRows.map(function(x){return '<option value="'+esc(x.character_id)+'|'+esc(x.technique_id)+'">'+esc(trainChar(x.character_id))+' · '+esc(trainTech(x.technique_id))+'</option>';}).join('');}
+      TRAINING_V2.busy=false;trainInvalidateCancel();trainInvalidateRefund();trainState(errors?'Aggiornamento parziale: '+errors+' sezione/i non disponibili. Usa Riprova.':'Code aggiornate. Le decisioni definitive restano al server.',!!errors);
+    }
+    function trainInvalidateCancel(){TRAINING_V2.preview=null;var b=$('atrain-cancel-confirm'),box=$('atrain-preview-box');if(b)b.disabled=true;if(box)box.innerHTML='';}
+    function trainInvalidateRefund(){TRAINING_V2.refund=null;var b=$('atrain-refund-confirm'),box=$('atrain-refund-box');if(b)b.disabled=true;if(box)box.innerHTML='';}
+    async function trainPreview(){
+      var sid=String(($('atrain-cancel-session')||{}).value||'').trim(),scope=String(($('atrain-cancel-scope')||{}).value||'');if(!trainUuid(sid)){toast('Inserisci un UUID di sessione valido',true);return;}
+      var b=$('atrain-preview');b.disabled=true;var r=await sb.rpc('training_annulla_anteprima',{p_session:sid,p_ambito:scope});b.disabled=false;
+      if(r.error){trainInvalidateCancel();$('atrain-preview-box').innerHTML='<p class="trv2-state err">'+esc(trainErr(r.error))+'</p>';return;}
+      var d=r.data||{},rows=Array.isArray(d.rows)?d.rows:[];TRAINING_V2.preview={session:sid,scope:scope,fingerprint:d.fingerprint||'',rows:rows};
+      $('atrain-preview-box').innerHTML=rows.length?'<p><b>Anteprima firmata:</b> '+rows.length+' riga/he. Controlla prima della conferma.</p>'+rows.map(function(x){return '<div class="trv2-meta">'+esc(trainChar(x.character_id))+' · '+esc(trainTech(x.technique_id))+' · '+esc(x.state||'—')+' · giorno '+esc(x.day||'—')+'</div>';}).join(''):'<p class="trv2-state err">L’anteprima non contiene righe annullabili.</p>';
+      $('atrain-cancel-confirm').disabled=!rows.length||!d.fingerprint;
+    }
+    async function trainCancel(){
+      var p=TRAINING_V2.preview,reason=String(($('atrain-cancel-reason')||{}).value||'').trim();if(!p){toast('Prepara prima una nuova anteprima',true);return;}if(!trainReason(reason)){toast('La motivazione deve avere almeno 10 caratteri',true);return;}
+      var b=$('atrain-cancel-confirm');b.disabled=true;var r=await sb.rpc('training_annulla',{p_session:p.session,p_motivo:reason,p_ambito:p.scope,p_impronta:p.fingerprint});
+      if(r.error){b.disabled=false;toast(trainErr(r.error),true);return;}var d=r.data||{};
+      if(d.ok===false&&d.code==='STALE_FINGERPRINT'){trainInvalidateCancel();toast('Dati cambiati: controlla una nuova anteprima prima di confermare.',true);await trainPreview();return;}
+      if(!d.ok){b.disabled=false;toast('Annullamento non confermato dal server',true);return;}toast('Annullamento registrato: '+(d.rows==null?'—':d.rows)+' riga/he.');$('atrain-cancel-session').value='';$('atrain-cancel-reason').value='';await loadTrainings();
+    }
+    async function trainRefund(){
+      var p=TRAINING_V2.refund,reason=String(($('atrain-refund-reason')||{}).value||'').trim();if(!p){toast('Prepara prima il rimborso',true);return;}if(!trainReason(reason)){toast('La motivazione deve avere almeno 10 caratteri',true);return;}
+      var b=$('atrain-refund-confirm');b.disabled=true;var r=await sb.rpc('training_rimborso_staff',{p_character:p.character,p_technique:p.technique,p_motivo:reason});
+      if(r.error){b.disabled=false;toast(trainErr(r.error),true);return;}var d=r.data||{};if(!d.ok){b.disabled=false;toast('Rimborso non confermato dal server',true);return;}
+      toast(d.code==='ALREADY_REFUNDED'?'Rimborso già registrato.':'Rimborso registrato dal server: '+esc(d.amount==null?'—':d.amount)+' XP.');$('atrain-refund-target').value='';$('atrain-refund-reason').value='';await loadTrainings();
+    }
+    function bindTrainings(){
+      var rb=$('train-refresh');if(rb)rb.addEventListener('click',loadTrainings);
+      var page=document.querySelector('.adm-page[data-page="allenamenti"]');if(!page)return;
+      page.addEventListener('click',async function(e){
+        var retry=e.target.closest('[data-training-retry]');if(retry){await loadTrainings();return;}
+        var useCancel=e.target.closest('[data-training-usecancel]');if(useCancel){$('atrain-cancel-session').value=useCancel.getAttribute('data-training-usecancel');trainInvalidateCancel();$('atrain-cancel-session').focus();return;}
+        var arm=e.target.closest('[data-training-arm]');if(arm){var bits=arm.getAttribute('data-training-arm').split('|'),card=arm.closest('[data-training-card]'),confirm=card&&card.querySelector('[data-training-decide$="|respinge"]');if(confirm){confirm.hidden=false;arm.hidden=true;}return;}
+        var dec=e.target.closest('[data-training-decide]');if(dec){var p=dec.getAttribute('data-training-decide').split('|'),kind=p[0],sid=p[1],choice=p[2],reason=String(($('atrain-reason-'+kind+'-'+sid)||{}).value||'').trim();if(!trainReason(reason)){toast('La motivazione deve avere almeno 10 caratteri',true);return;}dec.disabled=true;var rpc=kind==='legacy'?'training_legacy_decidi':'training_sospetta_decidi';var r=await sb.rpc(rpc,{p_session:sid,p_esito:choice,p_motivo:reason});if(r.error){dec.disabled=false;toast(trainErr(r.error),true);return;}var d=r.data||{};toast(d.code==='ALREADY_DECIDED'||d.code==='ALREADY_REJECTED'||d.code==='ALREADY_APPLIED'?'Decisione già registrata.':'Decisione registrata dal server.');await loadTrainings();return;}
+      });
+      ['atrain-cancel-session','atrain-cancel-scope','atrain-cancel-reason'].forEach(function(id){var n=$(id);if(n)n.addEventListener(id==='atrain-cancel-scope'?'change':'input',trainInvalidateCancel);});
+      var pb=$('atrain-preview');if(pb)pb.addEventListener('click',trainPreview);var cb=$('atrain-cancel-confirm');if(cb)cb.addEventListener('click',trainCancel);
+      ['atrain-refund-target','atrain-refund-reason'].forEach(function(id){var n=$(id);if(n)n.addEventListener(id==='atrain-refund-target'?'change':'input',trainInvalidateRefund);});
+      var ra=$('atrain-refund-arm');if(ra)ra.addEventListener('click',function(){var v=String(($('atrain-refund-target')||{}).value||''),parts=v.split('|'),reason=String(($('atrain-refund-reason')||{}).value||'').trim();if(parts.length!==2||!trainUuid(parts[0])||!trainUuid(parts[1])){toast('Scegli un percorso rimborsabile',true);return;}if(!trainReason(reason)){toast('La motivazione deve avere almeno 10 caratteri',true);return;}TRAINING_V2.refund={character:parts[0],technique:parts[1]};$('atrain-refund-box').innerHTML='<p><b>Controllo finale:</b> '+esc(trainChar(parts[0]))+' · '+esc(trainTech(parts[1]))+'. Il server deciderà importo e stato.</p>';$('atrain-refund-confirm').disabled=false;});
+      var rc=$('atrain-refund-confirm');if(rc)rc.addEventListener('click',trainRefund);
+      window.__training138aTest={load:loadTrainings,state:TRAINING_V2,preview:trainPreview,cancel:trainCancel,error:trainErr};
+    }
+    /* TRAINING-V2-ADMIN-138A JS FINE */
 
     /* ===== PERSONAGGI (staff) ===== */
     var PG=[], pgOpen=null;
@@ -3441,6 +3579,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       var role=pr.data?pr.data.role:'player';
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       nbeRole=role;
+      if(window.__TRAINING138A_MOCK__){show('st-mgr');admGo('allenamenti');bindTrainings();await loadTrainings();return;}
       if(window.__NB027B_MOCK__){show('st-mgr');admGo('ninja-editoriale');nbeWire();return;}
       var em=await sb.from('emblems').select('kind,name,image_url');
       (em.data||[]).forEach(function(x){if(x.image_url)EMB[x.kind+':'+x.name]=x.image_url;});
