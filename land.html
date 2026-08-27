@@ -157,7 +157,7 @@
   /* --- La barra Luoghi si ritira quando l'altezza non basta (portatili: MacBook 14" ~870px di viewport).
          Ai luoghi si entra dai segnaposti sulla mappa. --- */
   @media (max-height:900px){
-    #map-view .luoghi{display:none!important}
+    #map-view{overflow-y:auto;overflow-x:hidden}#map-view .mapframe{flex:0 0 auto;max-height:50vh;min-height:220px}
   }
   /* --- Schermi stretti: la vista mappa impilata diventa scorrevole (niente tagli) --- */
   @media (max-width:860px){
@@ -285,7 +285,7 @@
   @keyframes naPulse{0%,60%,100%{opacity:.28}30%{opacity:1}}
   @media (prefers-reduced-motion:reduce){.narr-attesa .na-dots i{animation:none}}
   .msg-motore{display:flex;gap:7px;align-items:flex-start;margin:4px 0;padding:3px 9px;border-left:2px dashed #7a8797;background:rgba(122,135,151,.07);border-radius:0 6px 6px 0;font-size:11.5px;line-height:1.4;color:#68758a}
-  .msg-motore .mm-k{flex:0 0 auto;font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#94a1b3;padding-top:2px}
+  .msg-motore .mm-k{flex:0 0 auto;font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#5b6a7d;padding-top:2px}
   .test-banner .tb-txt{flex:1;font-size:12.5px;line-height:1.45}
   .test-banner .tb-wipe{flex:0 0 auto;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.06em;color:#3d6f96;background:transparent;border:1px solid #4a86b8;border-radius:8px;padding:6px 11px;cursor:pointer}
   .test-banner .tb-wipe:hover{background:rgba(74,134,184,.16)}
@@ -1424,7 +1424,131 @@
 .nb028i-run{width:100%;min-height:36px;border:1px solid #a52c3a;border-radius:8px;background:#7f1d29;color:#fff0e7;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.05em;cursor:pointer}
 .nb028i-run:disabled{cursor:not-allowed;opacity:.45}
 @media(max-width:680px){.nb028i-head{display:block}.nb028i-head span{display:block;margin-top:3px;text-align:left}.nb028i-results{grid-template-columns:1fr}.nb028i-panel{padding:10px}}
-</style>
+
+  /* ===== [LEGGIBILITA-14 v4 · 27/08/2026] Blocco ADDITIVO. Non tocca le regole
+     esistenti. Regolazioni PER AREA dal pannellino «Aa»: data-testo (chat) ·
+     data-lato (pannello laterale e Scontro) · data-tasti (tasti sotto la chat) ·
+     data-alto (barra in alto e menu).
+     Da mantenere in coda al foglio: l'ordine nel cascade è parte del design. ===== */
+  #tsz-btn{min-width:36px;font-weight:700;letter-spacing:.02em;text-transform:none}
+  #tsz-pop{position:absolute;top:calc(100% + 6px);right:0;z-index:260;width:256px;padding:12px 13px;
+    border:1px solid var(--rule);border-radius:12px;background:linear-gradient(rgba(251,244,225,.98),rgba(240,228,198,.97));
+    box-shadow:0 10px 26px rgba(60,40,10,.25)}
+  #tsz-pop[hidden]{display:none}
+  .tsz-wrap{position:relative;display:inline-block}
+  .tsz-k{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep);margin:0 0 6px}
+  .tsz-k+.tsz-k, .tsz-row+.tsz-k{margin-top:11px}
+  .tsz-row{display:flex;gap:6px}
+  .tsz-opt{flex:1 1 0;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.03em;text-transform:none;
+    padding:6px 4px;border:1px solid var(--edge);border-radius:7px;background:rgba(255,250,235,.7);color:var(--ink);cursor:pointer}
+  .tsz-opt:hover{border-color:var(--red);color:var(--red-deep)}
+  .tsz-opt.on{border-color:var(--red);color:var(--red-deep);background:rgba(166,50,29,.10);font-weight:700}
+  /* — Testo della chat: taglia «grande» — */
+  html[data-testo="grande"] .msg .m-body,html[data-testo="grande"] .msg-narratore .mn-body{font-size:18px;line-height:1.58}
+  html[data-testo="grande"] .msg-sensei .m-body{font-size:18.5px}
+  html[data-testo="grande"] .msg-fato .mf-body{font-size:17.5px}
+  html[data-testo="grande"] .msg-whisper .m-body,html[data-testo="grande"] .composer textarea{font-size:16.5px}
+  html[data-testo="grande"] .msg-sys,html[data-testo="grande"] .msg-roll,html[data-testo="grande"] .who-item{font-size:16px}
+  html[data-testo="grande"] .msg-sys h4{font-size:16.5px}
+  html[data-testo="grande"] .msg .m-who,html[data-testo="grande"] .msg-sensei .ms-head b,html[data-testo="grande"] .who-empty,html[data-testo="grande"] .msg-to,html[data-testo="grande"] .lg-head{font-size:14.5px}
+  html[data-testo="grande"] .msg-motore{font-size:14px}
+  html[data-testo="grande"] .m-time,html[data-testo="grande"] .room-title .rk,html[data-testo="grande"] .lg-count,html[data-testo="grande"] #msg-count{font-size:11.5px}
+  html[data-testo="grande"] .mm-k,html[data-testo="grande"] .mn-k,html[data-testo="grande"] .mf-k,html[data-testo="grande"] .wsp-k,html[data-testo="grande"] .ms-k,html[data-testo="grande"] .sys-tag{font-size:11px}
+  /* — Testo della chat: taglia «molto grande» — */
+  html[data-testo="molto"] .msg .m-body,html[data-testo="molto"] .msg-narratore .mn-body,html[data-testo="molto"] .msg-sensei .m-body{font-size:20px;line-height:1.6}
+  html[data-testo="molto"] .msg-fato .mf-body{font-size:19px}
+  html[data-testo="molto"] .msg-whisper .m-body,html[data-testo="molto"] .composer textarea{font-size:18px}
+  html[data-testo="molto"] .msg-sys,html[data-testo="molto"] .msg-roll,html[data-testo="molto"] .who-item{font-size:17px}
+  html[data-testo="molto"] .msg-sys h4{font-size:18px}
+  html[data-testo="molto"] .msg .m-who,html[data-testo="molto"] .msg-sensei .ms-head b,html[data-testo="molto"] .who-empty,html[data-testo="molto"] .msg-to,html[data-testo="molto"] .lg-head{font-size:15.5px}
+  html[data-testo="molto"] .msg-motore{font-size:15px}
+  html[data-testo="molto"] .m-time,html[data-testo="molto"] .room-title .rk,html[data-testo="molto"] .lg-count,html[data-testo="molto"] #msg-count{font-size:12.5px}
+  html[data-testo="molto"] .mm-k,html[data-testo="molto"] .mn-k,html[data-testo="molto"] .mf-k,html[data-testo="molto"] .wsp-k,html[data-testo="molto"] .ms-k,html[data-testo="molto"] .sys-tag{font-size:12px}
+  html[data-testo="molto"] .msgs{gap:13px}
+  /* — Pannelli e pulsanti: «grandi» — */
+  html[data-lato="grande"] .room-grid{grid-template-columns:1fr 306px}
+  html[data-lato="grande"] .side-k{font-size:11.5px}
+  html[data-lato="grande"] .side-card{font-size:15px}
+  html[data-lato="grande"] .side-toggle{width:26px;height:26px;font-size:15px}
+  html[data-alto="grande"] .tb-btn{font-size:12.5px;padding:9px 14px}
+  html[data-tasti="grande"] .obj-btn,html[data-tasti="grande"] .exp-btn,html[data-tasti="grande"] .dice-btn,html[data-tasti="grande"] .legend-btn,html[data-tasti="grande"] .btn-send,html[data-tasti="grande"] .msg-to{font-size:12.5px}
+  html[data-tasti="grande"] .obj-btn,html[data-tasti="grande"] .exp-btn,html[data-tasti="grande"] .dice-btn{padding:8px 11px}
+  html[data-tasti="grande"] .ccount,html[data-tasti="grande"] .azp{font-size:12px}
+  html[data-alto="grande"] .wr-title{font-size:12.5px}
+  html[data-alto="grande"] .wr-btn{font-size:14.5px;padding:9px 12px}
+  html[data-alto="grande"] .ovp-head h3{font-size:17px}
+  html[data-alto="grande"] .ovp-list{font-size:15px}
+  /* — Pannelli e pulsanti: «molto grandi» — */
+  html[data-lato="molto"] .room-grid{grid-template-columns:1fr 336px}
+  html[data-lato="molto"] .side-k{font-size:13px}
+  html[data-lato="molto"] .side-card{font-size:16px}
+  html[data-lato="molto"] .side-toggle{width:29px;height:29px;font-size:16.5px}
+  html[data-alto="molto"] .tb-btn{font-size:14px;padding:10px 15px}
+  html[data-tasti="molto"] .obj-btn,html[data-tasti="molto"] .exp-btn,html[data-tasti="molto"] .dice-btn,html[data-tasti="molto"] .legend-btn,html[data-tasti="molto"] .btn-send,html[data-tasti="molto"] .msg-to{font-size:14px}
+  html[data-tasti="molto"] .obj-btn,html[data-tasti="molto"] .exp-btn,html[data-tasti="molto"] .dice-btn{padding:9px 13px}
+  html[data-tasti="molto"] .ccount,html[data-tasti="molto"] .azp{font-size:13px}
+  html[data-alto="molto"] .wr-title{font-size:14px}
+  html[data-alto="molto"] .wr-btn{font-size:16px;padding:10px 13px}
+  html[data-alto="molto"] .ovp-head h3{font-size:18.5px}
+  html[data-alto="molto"] .ovp-list{font-size:16px}
+  /* — Scontro: card aperta e finestra «Componi azione» — */
+  html[data-lato="grande"] .cs-row{font-size:13.5px}
+  html[data-lato="grande"] .cs-round{font-size:12.5px}
+  html[data-lato="grande"] .cs-fase,html[data-lato="grande"] .cs-tuo,html[data-lato="grande"] .cs-act button{font-size:12px}
+  html[data-lato="grande"] .cs-act input{font-size:13px;max-width:92px}
+  html[data-lato="grande"] .cs-note{font-size:12.5px}
+  html[data-lato="grande"] .cs-note.fissa{height:34px}
+  html[data-lato="grande"] .cs-pos{font-size:12px}
+  html[data-lato="grande"] .cs-bar{width:56px;height:6px}
+  html[data-lato="grande"] .az-card{width:min(600px,96vw)}
+  html[data-lato="grande"] .az-head{font-size:13.5px}
+  html[data-lato="grande"] .az-sub{font-size:14px}
+  html[data-lato="grande"] .az-k{font-size:11px}
+  html[data-lato="grande"] .az-find{font-size:15.5px}
+  html[data-lato="grande"] .az-n{font-size:15px}
+  html[data-lato="grande"] .az-d{font-size:12px}
+  html[data-lato="grande"] .az-mv{font-size:14px}
+  html[data-lato="grande"] .az-mv input[type=number]{font-size:14.5px;width:88px}
+  html[data-lato="grande"] .az-err{font-size:13.5px}
+  html[data-lato="grande"] .az-foot button{font-size:12px}
+  html[data-lato="grande"] .az-narr textarea{font-size:15.5px}
+  html[data-lato="grande"] .az-list{max-height:48vh}
+  html[data-lato="molto"] .cs-row{font-size:15px}
+  html[data-lato="molto"] .cs-round{font-size:14px}
+  html[data-lato="molto"] .cs-fase,html[data-lato="molto"] .cs-tuo,html[data-lato="molto"] .cs-act button{font-size:13.5px}
+  html[data-lato="molto"] .cs-act input{font-size:14.5px;max-width:100px}
+  html[data-lato="molto"] .cs-note{font-size:14px}
+  html[data-lato="molto"] .cs-note.fissa{height:38px}
+  html[data-lato="molto"] .cs-pos{font-size:13.5px}
+  html[data-lato="molto"] .cs-bar{width:64px;height:7px}
+  html[data-lato="molto"] .az-card{width:min(660px,96vw)}
+  html[data-lato="molto"] .az-head{font-size:15px}
+  html[data-lato="molto"] .az-sub{font-size:15.5px}
+  html[data-lato="molto"] .az-k{font-size:12px}
+  html[data-lato="molto"] .az-find{font-size:17px}
+  html[data-lato="molto"] .az-n{font-size:16.5px}
+  html[data-lato="molto"] .az-d{font-size:13.5px}
+  html[data-lato="molto"] .az-mv{font-size:15.5px}
+  html[data-lato="molto"] .az-mv input[type=number]{font-size:16px;width:96px}
+  html[data-lato="molto"] .az-err{font-size:15px}
+  html[data-lato="molto"] .az-foot button{font-size:13.5px}
+  html[data-lato="molto"] .az-narr textarea{font-size:17px}
+  html[data-lato="molto"] .az-list{max-height:52vh}
+  /* — Scontro aperto: fino a 1600px il pannello laterale si allarga da solo — */
+  @media (max-width:1600px){
+    .room-grid:has(.side-card.cmb:not([hidden])){grid-template-columns:1fr 330px}
+    html[data-lato="grande"] .room-grid:has(.side-card.cmb:not([hidden])){grid-template-columns:1fr 360px}
+    html[data-lato="molto"] .room-grid:has(.side-card.cmb:not([hidden])){grid-template-columns:1fr 392px}
+  }
+  /* — Banda laptop: sotto i 1600px nessun testo di lettura resta minuscolo — */
+  @media (min-width:861px) and (max-width:1600px){
+    html:not([data-testo]) .m-time,html:not([data-testo]) .lg-count,html:not([data-testo]) #msg-count{font-size:11px}
+    html:not([data-testo]) .mm-k,html:not([data-testo]) .mn-k,html:not([data-testo]) .mf-k,html:not([data-testo]) .wsp-k,html:not([data-testo]) .ms-k,html:not([data-testo]) .sys-tag{font-size:10.5px}
+    html:not([data-testo]) .room-title .rk{font-size:10px}
+    html:not([data-testo]) .msg-motore{font-size:13.5px}
+    html:not([data-testo]) .who-empty{font-size:13.5px}
+  }
+  </style>
 </head>
 <body>
   <div class="stage" id="stage">
@@ -1448,7 +1572,7 @@
           <a class="tb-btn" href="regole.html">Regole</a>
           <span class="tb-sep"></span>
           <button class="tb-btn online" id="online-btn" type="button"><span class="ob-dot"></span>Online · <b id="online-n">0</b></button>
-          <button class="tb-btn music" id="music-btn" type="button">Musica: off</button>
+          <span class="tsz-wrap"><button class="tb-btn" id="tsz-btn" type="button" title="Grandezza per area: cambi solo quello che preferisci" aria-haspopup="true" aria-expanded="false">Aa</button><div id="tsz-pop" hidden role="group" aria-label="Grandezza per area"><div class="tsz-k">Testo della chat</div><div class="tsz-row" data-tsz="testo"><button class="tsz-opt" type="button" data-v="">Normale</button><button class="tsz-opt" type="button" data-v="grande">Grande</button><button class="tsz-opt" type="button" data-v="molto">Molto</button></div><div class="tsz-k">Pannello laterale e Scontro</div><div class="tsz-row" data-tsz="lato"><button class="tsz-opt" type="button" data-v="">Normale</button><button class="tsz-opt" type="button" data-v="grande">Grande</button><button class="tsz-opt" type="button" data-v="molto">Molto</button></div><div class="tsz-k">Tasti sotto la chat</div><div class="tsz-row" data-tsz="tasti"><button class="tsz-opt" type="button" data-v="">Normali</button><button class="tsz-opt" type="button" data-v="grande">Grandi</button><button class="tsz-opt" type="button" data-v="molto">Molto</button></div><div class="tsz-k">Barra in alto e menu</div><div class="tsz-row" data-tsz="alto"><button class="tsz-opt" type="button" data-v="">Normale</button><button class="tsz-opt" type="button" data-v="grande">Grande</button><button class="tsz-opt" type="button" data-v="molto">Molto</button></div></div></span><button class="tb-btn music" id="music-btn" type="button">Musica: off</button>
           <a class="tb-btn staff" href="admin.html" id="admin-nav" style="display:none">Staff</a>
           <a class="tb-btn logout" href="index.html" id="logout">Esci</a>
         </nav>
@@ -7454,6 +7578,48 @@ var nb028iTeardown=function(){};
         var mob=document.getElementById('my-off-save'); if(mob) mob.addEventListener('click', function(){ var mo=document.getElementById('my-off'); if(!mo||!sb||!myId) return; var v=(mo.value||'').trim(); sb.from('characters').update({off_notes:v||null}).eq('user_id',myId).then(function(r){ if(r&&r.error){ toast('Errore nel salvataggio'); return; } toast('Nota OFF salvata'); loadRoster(); }, function(){ toast('Errore'); }); });
       })();
     })();
+  })();
+  </script>
+  <script>
+  /* [LEGGIBILITA-14 v2] Due regolazioni separate — testo della chat e pannelli —
+     scelte dal pannellino «Aa», salvate in localStorage con chiavi valide per
+     tutto il sito (le legge anche scheda.html). Autonomo: nessuna dipendenza. */
+  (function(){
+    var REG={testo:{key:'tus_testo',attr:'data-testo'},
+             lato:{key:'tus_pan_lato',attr:'data-lato'},
+             tasti:{key:'tus_pan_tasti',attr:'data-tasti'},
+             alto:{key:'tus_pan_alto',attr:'data-alto'}};
+    /* migrazione: chi aveva la vecchia scelta unica «Pannelli» la ritrova
+       applicata a tutte e tre le aree, poi la chiave vecchia si svuota */
+    try{
+      var vecchia=localStorage.getItem('tus_pannelli');
+      if(vecchia==='grande'||vecchia==='molto'){
+        ['tus_pan_lato','tus_pan_tasti','tus_pan_alto'].forEach(function(k){ if(!localStorage.getItem(k)) localStorage.setItem(k,vecchia); });
+        localStorage.removeItem('tus_pannelli');
+      }
+    }catch(eM){}
+    var LIV=['','grande','molto'];
+    function leggi(k){var v='';try{v=localStorage.getItem(k)||'';}catch(e){}return LIV.indexOf(v)<0?'':v;}
+    function applica(quale,v){
+      var r=REG[quale];
+      if(v)document.documentElement.setAttribute(r.attr,v);
+      else document.documentElement.removeAttribute(r.attr);
+      var riga=document.querySelector('#tsz-pop .tsz-row[data-tsz="'+quale+'"]');
+      if(riga){var bs=riga.querySelectorAll('.tsz-opt');for(var i=0;i<bs.length;i++)bs[i].classList.toggle('on',bs[i].getAttribute('data-v')===v);}
+    }
+    ['testo','lato','tasti','alto'].forEach(function(q){applica(q,leggi(REG[q].key));});
+    var btn=document.getElementById('tsz-btn'), pop=document.getElementById('tsz-pop');
+    if(btn&&pop){
+      btn.addEventListener('click',function(e){e.stopPropagation();pop.hidden=!pop.hidden;btn.setAttribute('aria-expanded',pop.hidden?'false':'true');});
+      pop.addEventListener('click',function(e){
+        var b=e.target.closest('.tsz-opt'); if(!b)return; e.stopPropagation();
+        var quale=b.parentElement.getAttribute('data-tsz'), v=b.getAttribute('data-v');
+        try{localStorage.setItem(REG[quale].key,v);}catch(e2){}
+        applica(quale,v);
+      });
+      document.addEventListener('click',function(e){if(!pop.hidden&&!e.target.closest('.tsz-wrap')){pop.hidden=true;btn.setAttribute('aria-expanded','false');}});
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!pop.hidden){pop.hidden=true;btn.setAttribute('aria-expanded','false');}});
+    }
   })();
   </script>
   <script src="bijuu.js" defer></script>
