@@ -1756,7 +1756,7 @@
       var det=(($('pc-dettaglio')||{}).value||'').trim();
       if(det.length<2){ toast('Scrivi cosa stai prendendo',true); return; }
       var b=$('pc-send'); if(b) b.disabled=true;
-      var r=await sb.rpc('premio_acquista',{p_tipo:q.tipo,p_dettaglio:det,p_grado:(q.tipo==='tecnica_personale')?q.grado:null});
+      var r=await sb.rpc('premio_acquista',{p_tipo:q.tipo,p_dettaglio:det,p_grado:(q.tipo==='tecnica_personale'||q.tipo==='punti_caratteristica')?q.grado:null});
       if(b) b.disabled=false;
       if(r.error){ toast((r.error.message||'Errore'),true); return; }
       $('pc-dettaglio').value=''; toast('Premio acquistato');
