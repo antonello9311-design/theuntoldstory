@@ -1036,6 +1036,14 @@
             <label class="full chk"><button class="btn btn-red" id="tlg-save" type="button">Concedi</button><span class="editing-note" id="tlg-note" style="margin-left:10px"></span></label>
           </div>
           <div id="tlg-list"></div>
+          <div class="grp-sub" style="margin-top:18px">Assegnazione d’ufficio</div>
+          <p class="mgr-note">Per riparare un problema: consegna una tecnica o un’abilità del catalogo <b>senza toccare gli XP</b> (se vanno scalati, usa «Dai XP» col segno meno). Completa anche una tecnica già <b>in addestramento</b> quando la misura in land non è mai arrivata. Le leggendarie restano nel riquadro qui sopra. Il server verifica clan, rango, nature e prerequisiti; la motivazione finisce nel registro dello staff.</p>
+          <div class="cat-form" style="margin-top:6px">
+            <label>Personaggio<input id="tau-name" placeholder="Nome esatto"></label>
+            <label>Tecnica o abilità<input id="tau-tec" placeholder="Nome dal catalogo"></label>
+            <label class="full">Motivazione (obbligatoria)<input id="tau-motivo" maxlength="280" placeholder="Quale problema ripara questa assegnazione…"></label>
+            <label class="full chk"><button class="btn btn-red" id="tau-save" type="button">Assegna d’ufficio</button><span class="editing-note" id="tau-note" style="margin-left:10px"></span></label>
+          </div>
           <div class="grp-sub" style="margin-top:18px">Premi già concessi</div>
           <div id="prm-perks"></div>
           </section>
@@ -2550,6 +2558,33 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
         return '<div class="itrow'+(o?' off':'')+'"><div class="itmain"><b>'+esc(t.name)+'</b> <span class="itmeta">\u00b7 '+esc(t.clan||'\u2014')+' \u00b7 grado '+esc(t.grado||'?')+' \u00b7 dal rango '+esc(t.req_grade||'Genin')+'</span><div class="itmeta">'+stato+'</div></div></div>';
       }).join('');
     }
+    function bindTau(){
+      var sv=$('tau-save'); if(!sv)return;
+      sv.addEventListener('click',async function(){
+        var el;
+        el=$('tau-name'); var nm=((el&&el.value)||'').trim();
+        if(!nm){toast('Scrivi il nome del personaggio',true);return;}
+        el=$('tau-tec'); var tn=((el&&el.value)||'').trim();
+        if(!tn){toast('Scrivi il nome della tecnica o abilit\u00e0',true);return;}
+        el=$('tau-motivo'); var mot=((el&&el.value)||'').trim();
+        if(mot.length<10){toast('Scrivi almeno una riga di motivazione',true);return;}
+        var ch=await sb.from('characters').select('id,name').ilike('name',nm).maybeSingle();
+        if(!ch||ch.error||!ch.data){toast('Personaggio non trovato',true);return;}
+        var tq=await sb.from('clan_techniques').select('id,name,is_leggendaria').eq('is_active',true).ilike('name',tn).limit(6);
+        var righe=(tq&&tq.data)||[];
+        if(!righe.length){tq=await sb.from('clan_techniques').select('id,name,is_leggendaria').eq('is_active',true).ilike('name','%'+tn+'%').limit(6);righe=(tq&&tq.data)||[];}
+        if(!righe.length){toast('Tecnica non trovata nel catalogo',true);return;}
+        if(righe.length>1){toast('Pi\u00f9 tecniche combaciano: '+righe.map(function(x){return x.name;}).join(' \u00b7 '),true);return;}
+        if(righe[0].is_leggendaria){toast('\u00c8 leggendaria: usa il riquadro qui sopra',true);return;}
+        this.disabled=true;
+        var r=await sb.rpc('tecnica_assegna_ufficio',{p_character:ch.data.id,p_technique:righe[0].id,p_motivo:mot});
+        this.disabled=false;
+        if(r.error){toast(r.error.message||'Errore nell\u2019assegnazione',true);return;}
+        var n=$('tau-note'); if(n)n.textContent=ch.data.name+' \u2192 '+righe[0].name;
+        var m=$('tau-motivo'); if(m)m.value='';
+        toast('Assegnata d\u2019ufficio: '+righe[0].name);
+      });
+    }
     function bindTlg(){
       var sv=$('tlg-save'); if(!sv)return;
       sv.addEventListener('click',async function(){
@@ -3584,7 +3619,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       if(window.__NB027B_MOCK__){show('st-mgr');admGo('ninja-editoriale');nbeWire();return;}
       show('st-mgr');
       function _q(pr){return Promise.resolve(pr).catch(function(e){try{console.warn('[init] caricamento fallito',e);}catch(_x){}});}
-      bindClans();bindClanReq();bindCatalog();bindTechs();bindTrainings();bindBasi();bindLocs();bindBoards();bindHkb();bindIA();bindNB();bindReps();bindComps();bindPg();bindPrm();bindTlg();bindFlash();bindArchivio();bindAcc();nbeWire();bindPilot();
+      bindClans();bindClanReq();bindCatalog();bindTechs();bindTrainings();bindBasi();bindLocs();bindBoards();bindHkb();bindIA();bindNB();bindReps();bindComps();bindPg();bindPrm();bindTlg();bindTau();bindFlash();bindArchivio();bindAcc();nbeWire();bindPilot();
       try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}
       var ar=$('audit-refresh');if(ar)ar.addEventListener('click',loadAudit);
       var dr=$('dmlog-refresh');if(dr)dr.addEventListener('click',loadDmLog);
