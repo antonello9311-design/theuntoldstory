@@ -2733,8 +2733,8 @@
       function mv2CaptureDefenseDrafts(){
         var body=document.getElementById('mv2-body'); if(!body)return;
         body.querySelectorAll('[data-mv2-defense-form]').forEach(function(f){
-          var id=f.getAttribute('data-mv2-defense-form'),re=f.querySelector('[data-mv2-reaction]'),ab=f.querySelector('[data-mv2-def-ability]'),tx=f.querySelector('[data-mv2-def-text]');
-          if(id)MV2.defenseDrafts[id]={reaction:re?re.value:'schivata',ability:ab?ab.value:'',text:tx?tx.value:''};
+          var id=f.getAttribute('data-mv2-defense-form'),re=f.querySelector('[data-mv2-reaction]'),ab=f.querySelector('[data-mv2-def-ability]');
+          if(id)MV2.defenseDrafts[id]={reaction:re?re.value:'schivata',ability:ab?ab.value:''};
         });
       }
       function mv2PruneDefenseDrafts(d){
@@ -2745,8 +2745,8 @@
         var body=document.getElementById('mv2-body'); if(!body)return;
         body.querySelectorAll('[data-mv2-defense-form]').forEach(function(f){
           var dr=MV2.defenseDrafts[f.getAttribute('data-mv2-defense-form')]; if(!dr)return;
-          var re=f.querySelector('[data-mv2-reaction]'),ab=f.querySelector('[data-mv2-def-ability]'),tx=f.querySelector('[data-mv2-def-text]'),af=f.querySelector('[data-mv2-defense-ability]');
-          if(re)re.value=dr.reaction||'schivata'; if(ab&&dr.ability)ab.value=dr.ability; if(tx)tx.value=dr.text||''; if(af&&re)af.hidden=re.value!=='tecnica';
+          var re=f.querySelector('[data-mv2-reaction]'),ab=f.querySelector('[data-mv2-def-ability]'),af=f.querySelector('[data-mv2-defense-ability]');
+          if(re)re.value=dr.reaction||'schivata'; if(ab&&dr.ability)ab.value=dr.ability; if(af&&re)af.hidden=re.value!=='tecnica';
         });
       }
       function mv2SetBody(body,html){body.innerHTML=html;mv2RestoreDefenseDrafts();}
@@ -2852,7 +2852,6 @@
         return '<div class="mv2-row" data-mv2-defense-form="'+p.attack_declaration_id+'"><div class="mv2-rowtop"><span class="mv2-name">'+esc(p.target_name)+'</span><span class="mv2-team">attacco di '+esc(p.attacker_name)+'</span></div>'
           +'<p class="mv2-note">'+esc(p.text||'Attacco dichiarato')+'</p><label class="mv2-field"><span>Reazione</span><select data-mv2-reaction>'+ro+'</select></label>'
           +'<label class="mv2-field" data-mv2-defense-ability'+(rv==='tecnica'?'':' hidden')+'><span>Tecnica offerta dal server</span><select data-mv2-def-ability>'+mv2AbilityOptions(a,true,dr.ability||'')+'</select></label>'
-          +'<label class="mv2-field"><span>Interpretazione della difesa</span><textarea maxlength="5000" data-mv2-def-text placeholder="Descrivi la reazione. Una sola reazione copre un solo attacco.">'+esc(dr.text||'')+'</textarea></label>'
           +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2-defense-send="'+p.attack_declaration_id+'" data-actor="'+p.target_actor_id+'">Consegna difesa</button></div></div>';
       }
       function mv2RatingForm(x){
@@ -2979,9 +2978,9 @@
             mv2Busy(true);mv2Rpc('combat_v2_action_declare',{p_round:MV2.data.round.id,p_actor:id,p_intent:intent,p_text:txt,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Azione consegnata al Master');},function(e){mv2Busy(false);toast(e.message);});return;
           }
           if(t.hasAttribute('data-mv2-defense-send')){
-            var atk=t.getAttribute('data-mv2-defense-send'),actor=t.getAttribute('data-actor'),fd=t.closest('[data-mv2-defense-form]'),reaction=fd.querySelector('[data-mv2-reaction]').value,dt=fd.querySelector('[data-mv2-def-text]').value.trim(),intentD={reaction:reaction};
-            if(reaction!=='nessuna'&&!dt){toast('Descrivi la difesa');return;} if(reaction==='tecnica'){var av=(fd.querySelector('[data-mv2-def-ability]')||{}).value;if(!av){toast('Non hai tecniche difensive disponibili');return;}var zz=av.split(':');intentD.ability_source=zz[0];intentD.ability_id=zz[1];}
-            mv2Busy(true);mv2Rpc('combat_v2_defense_declare',{p_round:MV2.data.round.id,p_attack_declaration:atk,p_actor:actor,p_intent:intentD,p_text:dt,p_request_key:mv2Key()}).then(function(){delete MV2.defenseDrafts[atk];mv2Busy(false);mv2Reload('Difesa consegnata');},function(e){mv2Busy(false);toast(e.message);});return;
+            var atk=t.getAttribute('data-mv2-defense-send'),actor=t.getAttribute('data-actor'),fd=t.closest('[data-mv2-defense-form]'),reaction=fd.querySelector('[data-mv2-reaction]').value,intentD={reaction:reaction};
+            if(reaction==='tecnica'){var av=(fd.querySelector('[data-mv2-def-ability]')||{}).value;if(!av){toast('Non hai tecniche difensive disponibili');return;}var zz=av.split(':');intentD.ability_source=zz[0];intentD.ability_id=zz[1];}
+            mv2Busy(true);mv2Rpc('combat_v2_defense_declare',{p_round:MV2.data.round.id,p_attack_declaration:atk,p_actor:actor,p_intent:intentD,p_text:'',p_request_key:mv2Key()}).then(function(){delete MV2.defenseDrafts[atk];mv2Busy(false);mv2Reload('Difesa consegnata');},function(e){mv2Busy(false);toast(e.message);});return;
           }
           if(t.hasAttribute('data-mv2-rating-send')){var did=t.getAttribute('data-mv2-rating-send'),fr=t.closest('[data-mv2-rating-form]'),sv=fr.querySelector('[data-mv2-score]').value,reason=fr.querySelector('[data-mv2-reason]').value.trim();if(sv===''){toast('Scegli un voto da -3 a +3');return;}mv2Busy(true);mv2Rpc('combat_v2_rating_save',{p_declaration:did,p_value:parseInt(sv,10),p_reason:reason||null,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Valutazione registrata nel referto');},function(e){mv2Busy(false);toast(e.message);});return;}
           if(a==='resolve'){mv2Busy(true);mv2Rpc('combat_v2_round_resolve',{p_round:MV2.data.round.id,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Calcolo completato: prepara il resoconto');},function(e){mv2Busy(false);toast(e.message);});return;}
