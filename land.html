@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-MV2-VIEWER-DISTANCE-003" />
+  <meta name="tus-build" content="LAND-MV2-MOLTIPLICAZIONE-PANEL-004" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2846,6 +2846,39 @@
         abs=abs.filter(function(a){return !defense||a.defensive===true||String(a.defensive)==='true';});
         return abs.map(function(a){var v=String(a.source)+':'+String(a.id);return '<option value="'+esc(v)+'"'+(selected===v?' selected':'')+'>'+esc(a.name)+' · '+(a.chakra_cost||0)+' CK</option>';}).join('');
       }
+      /* [MV2-MOLTIPLICAZIONE-PANEL-001 · 01/09/2026]
+         Il compositore avanzato dell'Esame non può essere sostituito dal
+         selettore generico V2: Moltiplicazione è una famiglia, non un attacco.
+         La LAND riconosce la tecnica per UUID (mai dal nome) e disegna le tre
+         modalità canoniche. I limiti di copie e il permesso di consegna restano
+         server-side: finché round_options non pubblica il contratto indicato,
+         il pannello è visibile ma fail-closed e non spedisce un attacco generico.
+      */
+      var MV2_MOLTIPLICAZIONE_ID='c6e31b7b-38fe-4b4f-b3c7-05f3e922d193';
+      function mv2MultiplicationAbility(actor){
+        var o=MV2.options[actor.id],abs=o&&Array.isArray(o.abilities)?o.abilities:[];
+        return abs.filter(function(x){return String(x.id||'')===MV2_MOLTIPLICAZIONE_ID;})[0]||null;
+      }
+      function mv2MultiplicationOffer(actor){
+        var o=MV2.options[actor.id]||{},m=o.multiplication_offer||null;
+        return m&&m.schema_version==='combat-v2-multiplication-offer/1.0'?m:null;
+      }
+      function mv2MultiplicationPanel(actor){
+        if(!mv2MultiplicationAbility(actor))return '';
+        var offer=mv2MultiplicationOffer(actor),ready=!!offer;
+        var modes=offer&&Array.isArray(offer.modes)?offer.modes:['diversivo','copertura','assalto'];
+        var copies=offer&&Array.isArray(offer.copies)?offer.copies:[];
+        var labels={diversivo:'Diversivo',copertura:'Copertura',assalto:'Assalto'};
+        return '<div class="mv2-phase" data-mv2-multiplication hidden><b>Moltiplicazione del corpo</b>'
+          +'<p class="mv2-note">Scegli la modalità e il numero di copie fra i valori autorizzati dal server. Le copie non sono attacchi autonomi.</p>'
+          +'<div class="mv2-grid"><label class="mv2-field"><span>Modalità</span><select data-mv2-multiplication-mode'+(ready?'':' disabled')+'>'
+          +modes.map(function(x){return '<option value="'+esc(x)+'">'+esc(labels[x]||x)+'</option>';}).join('')+'</select></label>'
+          +'<label class="mv2-field"><span>Copie</span><select data-mv2-multiplication-copies'+(ready?'':' disabled')+'>'
+          +(copies.length?copies.map(function(x){return '<option value="'+esc(String(x))+'">'+esc(String(x))+'</option>';}).join(''):'<option>—</option>')+'</select></label></div>'
+          +(ready?'<p class="mv2-note">Costo: 10 CK + 5 CK per copia. Il server rivalida costo, cap, posizione e formazione.</p>'
+            :'<p class="mv2-note"><b>Non ancora consegnabile:</b> il server V2 non ha pubblicato l’offerta strutturata. La tecnica resta bloccata invece di diventare un attacco normale.</p>')
+          +'</div>';
+      }
       function mv2ActionForm(a){
         var enemies=((MV2.data||{}).actors||[]).filter(function(x){return x.id!==a.id&&x.team!==a.team&&x.state==='attivo';});
         return '<div class="mv2-row" data-mv2-action-form="'+a.id+'"><div class="mv2-rowtop"><span class="mv2-name">'+esc(a.name)+'</span><span class="mv2-team">Team '+esc(a.team)+'</span></div>'
@@ -2853,6 +2886,7 @@
           +'<div class="mv2-grid"><label class="mv2-field"><span>Azione</span><select data-mv2-action-kind><option value="attacco">Attacco</option><option value="movimento">Movimento</option><option value="utilita">Utilità</option><option value="passa">Passa</option></select></label>'
           +'<label class="mv2-field" data-mv2-target-field><span>Bersaglio</span><select data-mv2-target>'+enemies.map(function(x){var dm=mv2MetersBetween(a,x);return '<option value="'+x.id+'">'+esc(x.name)+' · Team '+esc(x.team)+(dm===null?'':' · '+dm+' m')+'</option>';}).join('')+'</select></label></div>'
           +'<label class="mv2-field" data-mv2-ability-field><span>Attacco offerto dal server</span><select data-mv2-ability><option value="mano">Colpo a mano · 0 CK</option>'+mv2AbilityOptions(a,false)+'</select></label>'
+          +mv2MultiplicationPanel(a)
           +'<label class="mv2-field" data-mv2-move-field hidden><span>Spostamento in metri (-15 / +15)</span><input type="number" min="-15" max="15" value="0" data-mv2-move></label>'
           +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2-action-send="'+a.id+'">Consegna azione</button></div></div>';
       }
@@ -2955,7 +2989,8 @@
         body.addEventListener('change',function(ev){
           var t=ev.target;
           if(t.id==='mv2-compose'){ MV2.composeMode=t.value; MV2.pngDraft=[]; renderMasterV2(); }
-          if(t.hasAttribute('data-mv2-action-kind')){ var f=t.closest('[data-mv2-action-form]'), k=t.value; if(f){var tf=f.querySelector('[data-mv2-target-field]'),af=f.querySelector('[data-mv2-ability-field]'),mf=f.querySelector('[data-mv2-move-field]'); if(tf)tf.hidden=k!=='attacco'; if(af)af.hidden=k!=='attacco'; if(mf)mf.hidden=k!=='movimento';} }
+          if(t.hasAttribute('data-mv2-action-kind')){ var f=t.closest('[data-mv2-action-form]'), k=t.value; if(f){var tf=f.querySelector('[data-mv2-target-field]'),af=f.querySelector('[data-mv2-ability-field]'),mf=f.querySelector('[data-mv2-move-field]'),mp=f.querySelector('[data-mv2-multiplication]'); if(tf)tf.hidden=k!=='attacco'; if(af)af.hidden=k!=='attacco'; if(mf)mf.hidden=k!=='movimento'; if(mp)mp.hidden=true;} }
+          if(t.hasAttribute('data-mv2-ability')){var fa=t.closest('[data-mv2-action-form]'),ma=fa&&fa.querySelector('[data-mv2-multiplication]');if(ma)ma.hidden=t.value.split(':')[1]!==MV2_MOLTIPLICAZIONE_ID;}
           if(t.hasAttribute('data-mv2-reaction')){ var fd=t.closest('[data-mv2-defense-form]'), aa=fd&&fd.querySelector('[data-mv2-defense-ability]'); if(aa)aa.hidden=t.value!=='tecnica'; }
         });
         body.addEventListener('click',function(ev){
@@ -2986,7 +3021,7 @@
           }
           if(t.hasAttribute('data-mv2-action-send')){
             var id=t.getAttribute('data-mv2-action-send'),f=t.closest('[data-mv2-action-form]'),kind=f.querySelector('[data-mv2-action-kind]').value,intent={kind:kind};
-            if(kind==='attacco'){var target=f.querySelector('[data-mv2-target]').value,ab=f.querySelector('[data-mv2-ability]').value;if(!target){toast('Scegli il bersaglio');return;}intent.target_actor=target;if(ab==='mano')intent.ability_source='mano';else{var z=ab.split(':');intent.ability_source=z[0];intent.ability_id=z[1];}} else if(kind==='movimento')intent.move_m=parseInt(f.querySelector('[data-mv2-move]').value,10)||0;
+            if(kind==='attacco'){var target=f.querySelector('[data-mv2-target]').value,ab=f.querySelector('[data-mv2-ability]').value;if(!target){toast('Scegli il bersaglio');return;}intent.target_actor=target;if(ab==='mano')intent.ability_source='mano';else{var z=ab.split(':');if(z[1]===MV2_MOLTIPLICAZIONE_ID){var mo=mv2MultiplicationOffer(mv2Actor(id));if(!mo){toast('Moltiplicazione attende il resolver V2 strutturato: non viene inviata come attacco normale.');return;}toast('Il resolver V2 di Moltiplicazione non è ancora collegato alla consegna.');return;}intent.ability_source=z[0];intent.ability_id=z[1];}} else if(kind==='movimento')intent.move_m=parseInt(f.querySelector('[data-mv2-move]').value,10)||0;
             mv2Busy(true);mv2Rpc('combat_v2_action_declare',{p_round:MV2.data.round.id,p_actor:id,p_intent:intent,p_text:'',p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Scelta meccanica consegnata');},function(e){mv2Busy(false);toast(e.message);});return;
           }
           if(t.hasAttribute('data-mv2-defense-send')){
