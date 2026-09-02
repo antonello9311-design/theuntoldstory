@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-MV2-AZIONE-ETICHETTE-005" />
+  <meta name="tus-build" content="LAND-MV2-CHIUDI-SCENA-006" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2936,7 +2936,7 @@
           mv2SetBody(body,h); return;
         }
         if(!e){
-          if(viewer.is_master){ if(!MV2.setup) mv2SetupLoad(); h+=mv2EncounterForm(); }
+          if(viewer.is_master){ if(!MV2.setup) mv2SetupLoad(); h+=mv2EncounterForm()+mv2SceneCloseBlock(m); }
           else h+='<p class="mv2-wait">Il Master sta preparando lo scontro.</p>';
           mv2SetBody(body,h); return;
         }
@@ -2955,7 +2955,7 @@
         h+=mv2ReportHtml(d.report);
         if(viewer.is_master&&d.report&&d.report.narration_state!=='pubblicata') h+='<label class="mv2-field"><span>Resoconto cinematografico del Fato</span><textarea id="mv2-narrative" maxlength="5000" placeholder="Raccogli la turnazione e racconta l’esito per tutti. I dialoghi tra virgolette saranno evidenziati in rosso."></textarea></label><button class="mv2-btn" type="button" data-mv2="narrate">Pubblica esito e avanza</button>';
         if(viewer.is_master&&e.state==='risolto'&&r&&r.state==='narrato') h+=(m.tipo==='quest'?'<div class="mv2-grid"><label class="mv2-field"><span>Esito quest</span><select id="mv2-close-outcome"><option value="successo">Successo</option><option value="fallimento">Fallimento</option></select></label><label class="mv2-field"><span>Nota finale</span><input id="mv2-close-note" maxlength="1000"></label></div>':'<label class="mv2-field"><span>Nota finale</span><input id="mv2-close-note" maxlength="1000"></label>')+'<label class="mv2-note"><input id="mv2-close-role" type="checkbox"> Chiudi anche le REC collegate alla giocata</label><button class="mv2-btn" type="button" data-mv2="close">Chiudi attività</button>';
-        if(viewer.is_master&&e.state!=='risolto') h+='<label class="mv2-field"><span>Motivo della sospensione</span><input id="mv2-suspend-reason" maxlength="500" placeholder="Es. giocata da riprendere alla prossima sessione"></label><div class="mv2-actions"><button class="mv2-btn ghost" type="button" data-mv2="suspend">Congela e sospendi</button></div>';
+        if(viewer.is_master&&e.state!=='risolto') h+='<label class="mv2-field"><span>Motivo della sospensione</span><input id="mv2-suspend-reason" maxlength="500" placeholder="Es. giocata da riprendere alla prossima sessione"></label><div class="mv2-actions"><button class="mv2-btn ghost" type="button" data-mv2="suspend">Congela e sospendi</button></div>'+mv2SceneCloseBlock(m);
         if(viewer.is_admin&&!viewer.is_master) h+='<label class="mv2-field"><span>Motivo subentro Admin</span><input data-mv2-override-reason maxlength="500"></label><button class="mv2-btn warn" type="button" data-mv2="admin-override">Rimuovi e subentra</button>';
         mv2SetBody(body,h);
       }
@@ -2979,6 +2979,16 @@
       function mv2OvChiudi(){ var ov=document.getElementById('mv2ov'), bk=document.getElementById('mv2ov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
       function mv2Busy(on){ MV2.busy=on; var b=document.getElementById('mv2-body'); if(b) Array.prototype.forEach.call(b.querySelectorAll('button'),function(x){x.disabled=on;}); }
       function mv2Reload(msg){ MV2.options={}; MV2.serverSig=null; if(msg)toast(msg); loadMasterV2(); }
+      /* [MV2-CHIUDI-SCENA-006 · 02/09/2026] Chiusura di una scena senza KO: porta server master_v2_scene_close
+         (esclude le missioni con mission_id: quelle si chiudono con «Chiudi attività» e un esito).
+         La conferma sta nella riga col motivo, mai in confirm(). */
+      function mv2SceneCloseBlock(m){
+        if(!m||(m.tipo==='quest'&&m.mission_id)) return '';
+        return '<div class="mv2-actions"><button class="mv2-btn ghost" type="button" data-mv2="scene-close-ask">Chiudi scena</button></div>'
+          +'<div data-mv2-scene-close hidden><label class="mv2-field"><span>Motivo della chiusura</span><input id="mv2-scene-close-reason" maxlength="500" placeholder="Es. prova terminata, scena da rifare"></label>'
+          +'<p class="mv2-note">Lo scontro in corso viene annullato: quanto già risolto resta, il round aperto non si calcola. La sessione Master si chiude.</p>'
+          +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="scene-close">Conferma chiusura</button><button class="mv2-btn ghost" type="button" data-mv2="scene-close-cancel">Annulla</button></div></div>';
+      }
       (function(){
         var body=document.getElementById('mv2-body'); if(!body)return;
         var _sl=document.getElementById('mv2-slim'); if(_sl) _sl.addEventListener('click',function(e){ if(e.target.closest('[data-mv2-ov]')) mv2OvApri(); });
@@ -3033,6 +3043,9 @@
           if(t.hasAttribute('data-mv2-rating-send')){var did=t.getAttribute('data-mv2-rating-send'),fr=t.closest('[data-mv2-rating-form]'),sv=fr.querySelector('[data-mv2-score]').value,reason=fr.querySelector('[data-mv2-reason]').value.trim();if(sv===''){toast('Scegli un voto da -3 a +3');return;}mv2Busy(true);mv2Rpc('combat_v2_rating_save',{p_declaration:did,p_value:parseInt(sv,10),p_reason:reason||null,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Valutazione registrata nel referto');},function(e){mv2Busy(false);toast(e.message);});return;}
           if(a==='resolve'){mv2Busy(true);mv2Rpc('combat_v2_round_resolve',{p_round:MV2.data.round.id,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Calcolo completato: prepara il resoconto');},function(e){mv2Busy(false);toast(e.message);});return;}
           if(a==='narrate'){var tx=((document.getElementById('mv2-narrative')||{}).value||'').trim();if(!tx){toast('Scrivi il resoconto cinematografico');return;}mv2Busy(true);mv2Rpc('combat_v2_round_narrate_human',{p_round:MV2.data.round.id,p_text:tx,p_request_key:mv2Key()}).then(function(){mv2Busy(false);loadMsgs();mv2Reload('Esito pubblicato in chat come Fato');},function(e){mv2Busy(false);toast(e.message);});return;}
+          if(a==='scene-close-ask'){var bx=body.querySelector('[data-mv2-scene-close]');if(bx){bx.hidden=false;var inp=document.getElementById('mv2-scene-close-reason');if(inp){try{inp.focus();}catch(e){}}}return;}
+          if(a==='scene-close-cancel'){var bx2=body.querySelector('[data-mv2-scene-close]');if(bx2)bx2.hidden=true;return;}
+          if(a==='scene-close'){var sreason=((document.getElementById('mv2-scene-close-reason')||{}).value||'').trim();if(sreason.length<3){toast('Indica perché la scena viene chiusa');return;}mv2Busy(true);mv2Rpc('master_v2_scene_close',{p_session:MV2.data.master.id,p_reason:sreason,p_expected_control_version:MV2.data.master.control_version,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Scena chiusa');},function(e){mv2Busy(false);toast(e.message);});return;}
           if(a==='suspend'){var reason=((document.getElementById('mv2-suspend-reason')||{}).value||'').trim();if(reason.length<3){toast('Indica perché la giocata viene sospesa');return;}mv2Busy(true);mv2Rpc('master_v2_suspend',{p_session:MV2.data.master.id,p_mode:'emergenza',p_reason:reason,p_expected_control_version:MV2.data.master.control_version,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Quest congelata: i personaggi restano impegnati');},function(e){mv2Busy(false);toast(e.message);});return;}
           if(a==='resume'){mv2Busy(true);mv2Rpc('master_v2_resume',{p_session:MV2.data.master.id,p_expected_control_version:MV2.data.master.control_version,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Quest ripresa dal checkpoint');},function(e){mv2Busy(false);toast(e.message);});return;}
           if(a==='admin-override'){var rr=(((body.querySelector('[data-mv2-override-reason]')||{}).value)||'').trim();if(rr.length<3){toast('Indica il motivo del subentro');return;}mv2Busy(true);mv2Rpc('master_v2_admin_override',{p_session:MV2.data.master.id,p_reason:rr,p_expected_control_version:MV2.data.master.control_version,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Subentro Admin registrato; la sessione è sospesa');},function(e){mv2Busy(false);toast(e.message);});return;}
