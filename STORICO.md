@@ -1,1 +1,1 @@
-- 03/09/2026 · PM-DOC-001 · adottati SCHEDA/HANDOFF/STORICO v2; exact21 aperto, history450–453 LIVE inerti e rebase futuro vincolato alla head LIVE del gate · esito: documentale, nessuna mutazione LIVE.
+- 03/09/2026 · PM-DOC-001 · adottati SCHEDA/HANDOFF/STORICO v2; Composite LIVE inerte, Moltiplicazione da ribasare, Sostituzione offer-only e adapter aperto · esito: documentale, nessuna mutazione LIVE.
