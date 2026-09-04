@@ -1,5 +1,5 @@
 # AREA · IA narrativa — repertorio, voce, provider — scheda viva
-Riscritta il 03/09/2026 · da Codex (`PM-DOCUMENTALE-CANTIERI-DIPENDENZE-001`) · **stato dell'area: in uso; Narratore Esame v119 LIVE, qualità ancora da certificare**
+Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-COMPACT-4.7.1`) · **stato dell'area: in uso; `exam_genin_ai` 4.7.1/prompt30 LIVE e smoke completo verde**
 
 ## Fonti fondamentali — in quest'ordine, solo il blocco che serve
 1. `management/repertorio/README.md`, `MANIFESTO.json`, `GENERAZIONE.md`, `REFERTO_0_3_0.md`, `STORICO_VERSIONI.md` — **la fonte canonica** del repertorio condiviso di lingua e narrazione (v0.3.0, promosso). Le note di redazione sugli esiti vanno qui, non in un handoff.
@@ -11,20 +11,20 @@ Riscritta il 03/09/2026 · da Codex (`PM-DOCUMENTALE-CANTIERI-DIPENDENZE-001`) �
 5. Registro `public.ai_agents` (kind, model, persona, is_active) — il provider è quello a database, mai dedotto da una riga scrivibile.
 6. Memoria di progetto: `ai_lingua_repertorio_condiviso_018`, `provider_da_riga_scrivibile` (🔴), `corpus_reale_come_ancora`, `guardrail_fonte_vs_prompt_certificato`, `narratori_luna_046`.
 
-## Stato vivo — Edge riconfermata da Antonello/Claude il 03/09/2026
-- **`exam_genin_ai` v119 (`4.1.0-NU001`, prompt21) LIVE**, byte-verificata da Antonello/Claude, `verify_jwt=false`: metodo ricevuta autoritativa → piano narrativo → prosa → validatore per riferimenti; prompt e contesto voce ampliati; minimi `azione_png >=1000` e branche `>=450`. Migrazioni 457–461, head `20260903111028 esame_narratore_unificato_005_bersaglio_dichiarato`; P1 «fatti d'esito arricchiti» è LIVE lato DB. Lo smoke Staff/Test Room è concluso lato backend (zero prove globali aperte, 2/2 cicli risolti), ma **non è certificazione qualitativa**.
-- Narratori Edge vivi: `academy_sensei_ai` v40 · `combat_narratore_ai` v18 · **`exam_genin_ai` v119** · `mission_narratore_ai` v9 · `training_sensei_ai` v5 (spento) · Tavolo di Aiuto `land_help_ai` v12.
-- Provider: **unico**, `gpt-5.6-luna` con `reasoning: high` (142A/145B/145C: braccio unico, provider ritirato rimosso fisicamente). `OPENAI_API_KEY` nei Secrets della Edge (mai letta).
+## Stato vivo — aggiornato il 04/09/2026
+- **`exam_genin_ai` 4.7.1/prompt30 LIVE**, `verify_jwt=false`, pacchetto riscaricato 9/9 byte-exact. Locale 189/189, checksum 9/9 e review indipendente 0/0/0.
+- **Candidata `4.6.6-NU001-CANDIDATO`, prompt29**: alias nominativo esatto canonicalizzato fail-closed, tetti `11.798/8.848`, Luna/high e verbosity medium; 186/186, Deno/checksum 9/9 e review `0/0/0`. Edge QA v125 byte-exact. Ultima A–G **15/18**: A08/A09/A17 `max_tokens`; i 15 verdi hanno 438–1.159 caratteri e 0 qualità/avvisi. Gate produzione negato.
+- **Gate 4.7.1**: vettore compatto ricomposto server-side, strict rimosso, tetto 1.024. Unico A08 QA verde; smoke LIVE completo con `testperfunzioni`, 10/10 cicli Luna/prompt30/stop, 0 ripieghi e 0 non conformi; chiusura isolata con XP 0 e grado invariato. Branch QA reso inerte; produzione resta attiva.
+- **Confronto empirico su due esami**: preflight fermato prima del provider perché il branch non contiene due catene da tre cicli e il replay di agosto non conserva le azioni byte-exact. Luna 0/6, Terra 0/1, costo $0; nessun verdetto qualitativo aggiunto.
+- Narratori Edge: `exam_genin_ai` LIVE 4.7.1/prompt30; branch QA sulla stessa revisione ma inerte, token ruotato, 0 prove aperte e 0 cicli non terminali. Gli altri non sono stati modificati né ricensiti.
+- Provider: **unico**, `gpt-5.6-luna` con `reasoning: high` (142A/145B/145C: braccio unico, provider ritirato rimosso fisicamente). `OPENAI_API_KEY` è operativo anche sul branch QA; mai letto o stampato.
 - Repertorio 018 R2 promosso (v0.3.0); caporali validati; `innesti.json` ricco. **Provato nel bundle v102 che l'innesto performativo NON arriva alla chiamata Surface del Narratore** (usa il proprio prompt dal seed, persona ridotta).
 - Diagnosi del 29/08: coerenza raggiunta e provata; **espressività mancante per costruzione** (persona descrittiva senza esempi di voce, esito legato per famiglia, validazione per riferimento e non per contenuto); prosa del giocatore in quarantena → il Narratore non può riprendere l'azione descritta dal PG.
 
 ## Lavori aperti — in ordine
-1. **[P1] Player bridge strutturato** — portare intenti e dettagli non autoritativi del giocatore come claim espliciti (`player_claims` / `player_reprise`), sopprimendo ogni conflitto con i fatti server.
-2. **[P1] Ampiezza delle manovre** — evitare che il piano narrativo restringa le opzioni legali del PNG a poche sequenze ricorrenti; nessuna meccanica nuova dal modello.
-3. **[P1] Memoria anti-ripetizione** — formule, chiusure e immagini già usate nella prova devono entrare nel contesto di esclusione, senza trasformarsi in fatti di gioco.
-4. **[P1] Validazione qualitativa della voce end-to-end** — v119 amplia prompt e contesto voce, ma lo smoke misto non certifica naturalezza, dialogo o varietà; serve banco dedicato e lettura umana.
-5. **[P2] Portare il metodo a combat e missioni** — solo dopo la certificazione dell'Esame, mantenendo ricevuta e validatore specifici per consumer.
-6. **[P3] `TASK-AI-ITALIANO-COMUNE-001`** — si riprende quando il contratto dell'Esame è stabile.
+1. ✅ **Rilascio Narratore 4.7.1** — manifesto, review, A08, produzione e smoke completo conclusi.
+2. **[P2] Portare il metodo a combat e missioni** — solo con un mandato separato, mantenendo ricevuta e validatore specifici per consumer.
+3. **[P3] `TASK-AI-ITALIANO-COMUNE-001`** — il prerequisito dell'Esame stabile in produzione è ora soddisfatto; resta necessario un mandato dedicato.
 
 ## Parcheggiato — non riaprire senza mandato
 - Proposte P2 (blocco voice nella persona), P3 (aprire 018 R2 — già promosso), P5 (audit corpus di ripiego 26–29/08), P6 (contesti orfani `narrative_context_exam/combat`), P7 (caporali — già validati), P8 (`prompt_version`).
@@ -36,9 +36,11 @@ Riscritta il 03/09/2026 · da Codex (`PM-DOCUMENTALE-CANTIERI-DIPENDENZE-001`) �
 - Il provider si risolve **prima** di spendere il gettone; `ai_agents.model` non è un instradatore.
 - I due asterischi di `personas.json` sono contenuto e non si normalizzano.
 - Le cinque IA non condividono memoria: ogni consumer riceve e prova esplicitamente il contratto.
+- 03/09: architettura QA futura ratificata — controlli deterministici condivisibili; ricevute e referti come sola comunicazione; Narratori su Luna/high; giudice qualitativo asincrono offline su Terra/high, senza potere di pubblicare, mutare stato, rigenerare o decidere meccaniche; nessuna memoria condivisa gratuita e nessun consumer chiama un altro consumer.
+- 03/09: per la revisione 4.3 il modello non certifica più ricevuta o provenienza e non vede raw/claim del giocatore; la Edge materializza gli identificatori e le fonti. Dialogo e ripresa del candidato restano sospesi finché il replay non certifica il contratto minimo.
 
 ## Trappole — lezioni della memoria di progetto che valgono qui
 [[provider_da_riga_scrivibile]] · [[guardrail_fonte_vs_prompt_certificato]] · [[corpus_reale_come_ancora]] · [[ai_lingua_repertorio_condiviso_018]] · [[accademia_ia_blocco]] · [[scontrino_monouso]] · [[voce_narrativa_066_r2]]
 
 ## Prossimo passo
-Preparare la certificazione qualitativa v119 separata dal rilascio: player bridge, ampiezza delle manovre, memoria anti-ripetizione e banco umano sulla voce end-to-end.
+Nessun nuovo ciclo sul Narratore dell'Esame: 4.7.1 è verificata end-to-end. I consumer Combat e Missioni restano separati e richiedono un mandato proprio.
