@@ -1,5 +1,5 @@
 # AREA · IA narrativa — repertorio, voce, provider — scheda viva
-Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-COMPACT-4.7.1`) · **stato dell'area: in uso; `exam_genin_ai` 4.7.1/prompt30 LIVE e smoke completo verde**
+Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-4.8`) · **stato dell'area: in uso sul LIVE 4.7.1; candidata 4.8 locale in lavoro, non distribuita**
 
 ## Fonti fondamentali — in quest'ordine, solo il blocco che serve
 1. `management/repertorio/README.md`, `MANIFESTO.json`, `GENERAZIONE.md`, `REFERTO_0_3_0.md`, `STORICO_VERSIONI.md` — **la fonte canonica** del repertorio condiviso di lingua e narrazione (v0.3.0, promosso). Le note di redazione sugli esiti vanno qui, non in un handoff.
@@ -12,6 +12,9 @@ Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-COMPACT-4.7.1`) · **s
 6. Memoria di progetto: `ai_lingua_repertorio_condiviso_018`, `provider_da_riga_scrivibile` (🔴), `corpus_reale_come_ancora`, `guardrail_fonte_vs_prompt_certificato`, `narratori_luna_046`.
 
 ## Stato vivo — aggiornato il 04/09/2026
+- **4.8.0/prompt31 locale**: schede tecniche revisionate e ricevuta spaziale entrano nel brief per identità esatta; risposta naturale senza copia della battuta, fisicità/emozione, tentativo prima dell'esito, attivazione tecnica e contrattacco successivo sono obblighi espliciti e verificati. Tetti +20% (14.158/10.618), JSON minimo tipizzato, giudizio Terra bloccante; 196/196, import/sintassi verdi, checksum 10/10. Nessun deploy.
+- **Dipendenza COMBAT 4.8 costruita offline**: adapter dello scambio e ricevuta spaziale POV sono verdi staticamente; Luna riceve solo timeline semantica before/impact/anchor/after, nessuna coordinata o UUID, e non decide contrattacco o iniziativa. Manca ancora l'innesto Esame sul branch e quindi A08 non è certificabile.
+- **Branch QA al gate 4.8**: nuovo ref `kkzvwqsmuqunkjzhlkon` Unhealthy alla head `20260717085531`. Primo errore determinato read-only: `20260818151034_acc_sensei_action_grammar_001.sql` attende 74 copioni, QA ne ha 62. Mancano 12 step L2/L3/L6 e nove file di migrazioni registrate in produzione: history non riproducibile. STOP per drift, nessun deploy/provider. Preview non-spaziale annullata.
 - **`exam_genin_ai` 4.7.1/prompt30 LIVE**, `verify_jwt=false`, pacchetto riscaricato 9/9 byte-exact. Locale 189/189, checksum 9/9 e review indipendente 0/0/0.
 - **Candidata `4.6.6-NU001-CANDIDATO`, prompt29**: alias nominativo esatto canonicalizzato fail-closed, tetti `11.798/8.848`, Luna/high e verbosity medium; 186/186, Deno/checksum 9/9 e review `0/0/0`. Edge QA v125 byte-exact. Ultima A–G **15/18**: A08/A09/A17 `max_tokens`; i 15 verdi hanno 438–1.159 caratteri e 0 qualità/avvisi. Gate produzione negato.
 - **Gate 4.7.1**: vettore compatto ricomposto server-side, strict rimosso, tetto 1.024. Unico A08 QA verde; smoke LIVE completo con `testperfunzioni`, 10/10 cicli Luna/prompt30/stop, 0 ripieghi e 0 non conformi; chiusura isolata con XP 0 e grado invariato. Branch QA reso inerte; produzione resta attiva.
@@ -22,9 +25,9 @@ Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-COMPACT-4.7.1`) · **s
 - Diagnosi del 29/08: coerenza raggiunta e provata; **espressività mancante per costruzione** (persona descrittiva senza esempi di voce, esito legato per famiglia, validazione per riferimento e non per contenuto); prosa del giocatore in quarantena → il Narratore non può riprendere l'azione descritta dal PG.
 
 ## Lavori aperti — in ordine
-1. ✅ **Rilascio Narratore 4.7.1** — manifesto, review, A08, produzione e smoke completo conclusi.
+1. **[P1] Chiudere la 4.8 sulla versione revisionata** — prima innesto COMBAT della Sostituzione nell'Esame; poi review 0/0/0, A08 sul branch e smoke completo senza fallback.
 2. **[P2] Portare il metodo a combat e missioni** — solo con un mandato separato, mantenendo ricevuta e validatore specifici per consumer.
-3. **[P3] `TASK-AI-ITALIANO-COMUNE-001`** — il prerequisito dell'Esame stabile in produzione è ora soddisfatto; resta necessario un mandato dedicato.
+3. **[P3] `TASK-AI-ITALIANO-COMUNE-001`** — resta necessario un mandato dedicato.
 
 ## Parcheggiato — non riaprire senza mandato
 - Proposte P2 (blocco voice nella persona), P3 (aprire 018 R2 — già promosso), P5 (audit corpus di ripiego 26–29/08), P6 (contesti orfani `narrative_context_exam/combat`), P7 (caporali — già validati), P8 (`prompt_version`).
@@ -43,4 +46,4 @@ Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-COMPACT-4.7.1`) · **s
 [[provider_da_riga_scrivibile]] · [[guardrail_fonte_vs_prompt_certificato]] · [[corpus_reale_come_ancora]] · [[ai_lingua_repertorio_condiviso_018]] · [[accademia_ia_blocco]] · [[scontrino_monouso]] · [[voce_narrativa_066_r2]]
 
 ## Prossimo passo
-Nessun nuovo ciclo sul Narratore dell'Esame: 4.7.1 è verificata end-to-end. I consumer Combat e Missioni restano separati e richiedono un mandato proprio.
+Riparare la baseline QA ricostruendo nove file registrati e le 12 righe mancanti con seed fail-closed; certificare Healthy/head/impronte. Poi integrare/revisionare i tre P1 Combat e fare un unico replay completo con 4.8 e una Luna/high.

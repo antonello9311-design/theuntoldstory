@@ -1,0 +1,69 @@
+{
+  "profile_id": "combat_exam_exchange_adapter_v1",
+  "identity_profile_id": "combat_exam_exchange_identity_v1",
+  "spatial_receipt_profile_id": "combat_exam_narrative_spatial_receipt_v1",
+  "status": "OFFLINE_CANDIDATE_RUNTIME_RED",
+  "input_authority": "server_snapshot",
+  "identity_fields_in_order": [
+    "exchange_id",
+    "exchange_version",
+    "root_application_id",
+    "attack_application_id",
+    "defense_application_id",
+    "substitution_event_id",
+    "resolution_revision"
+  ],
+  "composition_order": [
+    "candidate_action_executed",
+    "png_defense_resolved",
+    "server_outcome_settled",
+    "narrative_spatial_receipt_projected",
+    "png_counterattack_declared_unresolved_optional",
+    "server_next_initiative_bound"
+  ],
+  "state_machine": [
+    "facts_bound",
+    "plan_frozen",
+    "narration_pending",
+    "validated",
+    "published",
+    "next_initiative_released"
+  ],
+  "narrator_mapping": {
+    "with_counterattack_role": "png_attacca",
+    "without_counterattack_role": "png_esito",
+    "counterattack_cardinality": 1,
+    "counterattack_status": "pending_unresolved",
+    "next_initiative_source": "server_snapshot",
+    "release_barrier": "after_narrative_published"
+  },
+  "error_codes": [
+    "adapter_input_invalid",
+    "exchange_identity_mismatch",
+    "candidate_action_not_executed",
+    "defense_not_resolved",
+    "counterattack_not_pending",
+    "next_initiative_not_server_derived",
+    "narrative_projection_leakage",
+    "exchange_request_key_conflict",
+    "exchange_plan_already_frozen"
+  ],
+  "forbidden_narrator_authority": [
+    "choose_action",
+    "choose_defense",
+    "choose_target",
+    "choose_anchor",
+    "choose_outcome",
+    "choose_position",
+    "choose_damage",
+    "choose_next_initiative"
+  ],
+  "external_dependencies": [
+    "generic_sostituzione_spatial_v1",
+    "combat_exam_narrative_spatial_receipt_v1",
+    "NARRATORE-UNIFICATO_4.8_payload_v5",
+    "server_exchange_claim_store",
+    "server_narrative_publish_barrier"
+  ]
+}
+

@@ -1,5 +1,5 @@
 # AREA · Esame Genin — scheda viva
-Riscritta il 04/09/2026 · da Codex (`STAFF-TEST-ROOM-GATE-001`) · **stato dell'area: in uso; Test Room pronta per lo smoke staff; fix REC separato e non applicato**
+Riscritta il 04/09/2026 · da Codex (`P1-COMBAT-ESAME-SOSTITUZIONE-SCAMBIO-001-OFFLINE`) · **stato dell'area: in uso; P1 spaziale verde statico, branch QA in riallineamento; fix REC separato e non applicato**
 
 ## Fonti fondamentali — in quest'ordine, solo il blocco che serve
 1. `sito_live/REGOLE.md` §8 Progressione (promozione a Genin) e §4 per il combattimento della prova — il regolamento vivo.
@@ -13,6 +13,7 @@ Riscritta il 04/09/2026 · da Codex (`STAFF-TEST-ROOM-GATE-001`) · **stato dell
 7. Memoria di progetto: `esame_genin_contratto_r12` (contratto R1.3), `esame_ia_contratto_004` (§10.2), `exam_digest_qualificato_001`.
 
 ## Stato vivo — aggiornato il 04/09/2026; produzione 4.7.1 verificata e smoke Staff Test Room concluso
+- **P1 Sostituzione/scambio depositato offline**: produzione letta alla head `20260903203601`; resolver comune R9 e wrapper Esame esistono, ma `_esame_prova_opzioni`/`_esame_risolvi` conservano il ramo legacy (nessun exact option id; selezione ancora locale; costo/cooldown locali). I tre contratti offline — resolver attestato, adapter e receipt POV — più l'integrazione contano 125 banchi verdi staticamente. Nessun apply, enable o smoke; la prova aperta osservata non è stata identificata né toccata.
 - **Gate Staff Test Room riacceso il 04/09 con autorizzazione nominativa di Antonello**: unica stanza `0b85f354…` confermata `is_test=true`, `is_active=true`, `is_academy=true`, `is_exam_room=true`. Preflight e postflight: 0 prove aperte, 0 sessioni Accademia aperte nella stanza, 48 messaggi e 76 personaggi invariati (ultimo `updated_at` invariato), `esame-tick` e `esame-monitor-10m` attivi, token runtime presente. Non è stata creata alcuna prova e non è stato toccato alcun account o personaggio; mai Riuji. Il gate resta acceso esclusivamente per lo smoke staff con partecipante alternativo.
 - **Aperto agli utenti** dal 23/08 (`EXAM.is_active=true`, `ai_mode=true`, porte `esame_avvia` / `esame_prova_*` per `authenticated`, mai `anon`). **0 prove aperte; ultima prova reale il 30/08 (Itsuki, vinta).**
 - **I 44 annullamenti letti uno per uno (02/09).** Quel censimento era su 56 prove: 12 concluse (5 vinte, 7 perse) + 44 annullate (35 `cancelled`, 5 `timeout`, 4 senza motivo). Dei 44: **36 sono di Riuji**, 5 di account di prova e 3 di giocatori veri. Il totale vivo letto in sola lettura il 03/09 è ora **58 prove, 0 aperte**; la classificazione storica non viene estesa senza rileggere le due righe nuove. **Il «62% di annullamenti» era il QA, non i giocatori.**
@@ -36,7 +37,8 @@ Riscritta il 04/09/2026 · da Codex (`STAFF-TEST-ROOM-GATE-001`) · **stato dell
 - Tabelle: `esame_prove` **58** (lettura 03/09, 0 aperte) · ultimo conteggio dettagliato: `esame_scambi` 142 · `esame_narrazione_cicli` 211 · `esame_ia_tentativi` 212 · `esame_frasi` 366 · `esame_png_profili` 6 · `esame_azione_ricevute` 30 · `esame_monitor_eventi` 47.
 
 ## Lavori aperti — in ordine
-1. **[P1] REC all'apertura dell'Esame** — approvare `EXAM-REC-OPEN-001`; poi candidato DB, review 0/0/0, branch QA e gate produzione separato. Il QA empirico resta parcheggiato fino allo smoke verde.
+1. **[P1] Innesto Esame Sostituzione/scambio** — attendere il branch QA Healthy e allineato; sostituire integralmente il ramo legacy usando il resolver comune, quindi suite integrata e una sola review indipendente. Nessun doppio addebito e nessun apply implicito.
+1b. **[P1] REC all'apertura dell'Esame** — approvare `EXAM-REC-OPEN-001`; poi candidato DB, review 0/0/0, branch QA e gate produzione separato. Il QA empirico resta parcheggiato fino allo smoke verde.
 2. **[P1] Regolamento del rilascio** — sincronizzare `REGOLE.md` + `regole.html` con `gdr-regole-sync`: la prova non sottrae davvero arti o risorse permanenti, ma la scena può mostrarne le conseguenze quando il referto le autorizza; includere perimetro/ingaggio approvati.
 3. ✅ **Gate Narratore 4.7.1** — checksum/review/A08/deploy/smoke completati; nessuna ulteriore reiterazione richiesta.
 4. **[P1] Monitor: togliere il falso «narratore_bloccato»** — escludere i cicli `accettata` che aspettano il candidato. Chi: DB-CORE su mandato.
@@ -62,4 +64,4 @@ Riscritta il 04/09/2026 · da Codex (`STAFF-TEST-ROOM-GATE-001`) · **stato dell
 [[scontrino_monouso]] · [[un_ciclo_solo_non_esiste]] · [[esiti_irraggiungibili_esame]] · [[esame_banco_modello_gate]] · [[opzione_offerta_stato_risultante]] · [[guardia_su_valore_nullo]] · [[exam_digest_qualificato_001]] · [[riorganizzazione_schede_aree_20260901]] (il caso del tick)
 
 ## Prossimo passo
-Staff: aprire dalla land lo smoke nella Test Room con un partecipante alternativo, senza usare Riuji; al termine chiudere prova/sessione e ripristinare entrambi i flag. Separatamente, il contratto `EXAM-REC-OPEN-001` resta proposto e non applicato.
+Verificare il branch QA dopo il reset controllato; se Healthy e allineato alla produzione, eseguire l'innesto P1 Sostituzione/scambio, la campagna integrata e una sola review indipendente. `EXAM-REC-OPEN-001` resta separato e non applicato.
