@@ -1,5 +1,5 @@
 # AREA · Esame Genin — scheda viva
-Riscritta il 04/09/2026 · da Codex (`EXAM-REC-OPEN-001`) · **stato dell'area: in uso; fix REC all'apertura proposto, non applicato**
+Riscritta il 04/09/2026 · da Codex (`STAFF-TEST-ROOM-GATE-001`) · **stato dell'area: in uso; Test Room pronta per lo smoke staff; fix REC separato e non applicato**
 
 ## Fonti fondamentali — in quest'ordine, solo il blocco che serve
 1. `sito_live/REGOLE.md` §8 Progressione (promozione a Genin) e §4 per il combattimento della prova — il regolamento vivo.
@@ -13,6 +13,7 @@ Riscritta il 04/09/2026 · da Codex (`EXAM-REC-OPEN-001`) · **stato dell'area: 
 7. Memoria di progetto: `esame_genin_contratto_r12` (contratto R1.3), `esame_ia_contratto_004` (§10.2), `exam_digest_qualificato_001`.
 
 ## Stato vivo — aggiornato il 04/09/2026; produzione 4.7.1 verificata e smoke Staff Test Room concluso
+- **Gate Staff Test Room riacceso il 04/09 con autorizzazione nominativa di Antonello**: unica stanza `0b85f354…` confermata `is_test=true`, `is_active=true`, `is_academy=true`, `is_exam_room=true`. Preflight e postflight: 0 prove aperte, 0 sessioni Accademia aperte nella stanza, 48 messaggi e 76 personaggi invariati (ultimo `updated_at` invariato), `esame-tick` e `esame-monitor-10m` attivi, token runtime presente. Non è stata creata alcuna prova e non è stato toccato alcun account o personaggio; mai Riuji. Il gate resta acceso esclusivamente per lo smoke staff con partecipante alternativo.
 - **Aperto agli utenti** dal 23/08 (`EXAM.is_active=true`, `ai_mode=true`, porte `esame_avvia` / `esame_prova_*` per `authenticated`, mai `anon`). **0 prove aperte; ultima prova reale il 30/08 (Itsuki, vinta).**
 - **I 44 annullamenti letti uno per uno (02/09).** Quel censimento era su 56 prove: 12 concluse (5 vinte, 7 perse) + 44 annullate (35 `cancelled`, 5 `timeout`, 4 senza motivo). Dei 44: **36 sono di Riuji**, 5 di account di prova e 3 di giocatori veri. Il totale vivo letto in sola lettura il 03/09 è ora **58 prove, 0 aperte**; la classificazione storica non viene estesa senza rileggere le due righe nuove. **Il «62% di annullamenti» era il QA, non i giocatori.**
 - **Il Narratore per i giocatori veri.** 23–26/08 (Jun, Kurohasu, Hime, Rei, Kirei): il modello risponde in 36–58 s medi (max 94 s), 10 ripieghi su 59 cicli, tutti per rifiuti del validatore (ferite/sangue, «4 periodi difensivi», manca la conseguenza fisica, JSON non valido). **Tenma 29/08: 11 cicli su 11 in ripiego con `model=null`** (digest non qualificato, corretto alle 08:56 dello stesso giorno, due minuti dopo la fine della prova). **Itsuki 30/08: 12 cicli su 12 in ripiego con «payload v4 non conforme: CONTESTO_TEMPORALE_ASSENTE»**: la Edge v105 pretendeva `scena.luogo.temporale` che `_esame_luogo_prova()` non produce. **La Edge v106 (31/08, 09:36 UTC) toglie quel controllo** (commento in `prompt.ts`: «Pretendere campi V5 dentro v4 spegneva Luna prima della chiamata»), ma **nessun esame è stato giocato dopo**: la v106 è da verificare sul vivo. Gli ultimi due giocatori veri hanno fatto l'esame intero con i testi di ripiego.
@@ -61,4 +62,4 @@ Riscritta il 04/09/2026 · da Codex (`EXAM-REC-OPEN-001`) · **stato dell'area: 
 [[scontrino_monouso]] · [[un_ciclo_solo_non_esiste]] · [[esiti_irraggiungibili_esame]] · [[esame_banco_modello_gate]] · [[opzione_offerta_stato_risultante]] · [[guardia_su_valore_nullo]] · [[exam_digest_qualificato_001]] · [[riorganizzazione_schede_aree_20260901]] (il caso del tick)
 
 ## Prossimo passo
-PM: approvare il contratto `EXAM-REC-OPEN-001`; fino all'ok non si prepara né si applica SQL.
+Staff: aprire dalla land lo smoke nella Test Room con un partecipante alternativo, senza usare Riuji; al termine chiudere prova/sessione e ripristinare entrambi i flag. Separatamente, il contratto `EXAM-REC-OPEN-001` resta proposto e non applicato.
