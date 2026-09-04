@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "combat-exam-narrative-spatial-receipt/1.0",
+  "title": "combat_exam_narrative_spatial_receipt_v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "receipt_handle", "exchange_handle",
+    "resolution_revision", "viewer_scope", "actors", "source", "timeline",
+    "relative_distances", "outcome", "continuity", "next_initiative",
+    "counterattack_status"
+  ],
+  "properties": {
+    "schema_version": {"const": "combat-exam-narrative-spatial-receipt/1.0"},
+    "receipt_handle": {"type": "string", "pattern": "^rcpt_[A-Za-z0-9_-]{12,}$"},
+    "exchange_handle": {"type": "string", "pattern": "^exch_[A-Za-z0-9_-]{12,}$"},
+    "resolution_revision": {"type": "integer", "minimum": 1},
+    "viewer_scope": {"enum": ["exam_narrator", "combat_narrator", "staff_audit_projection"]},
+    "actors": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "items": {"$ref": "#/$defs/actor"}
+    },
+    "source": {"$ref": "#/$defs/source"},
+    "timeline": {
+      "type": "object", "additionalProperties": false,
+      "required": ["before", "impact", "anchor", "after"],
+      "properties": {
+        "before": {"$ref": "#/$defs/locus"},
+        "impact": {"$ref": "#/$defs/locus"},
+        "anchor": {"$ref": "#/$defs/anchor"},
+        "after": {"$ref": "#/$defs/locus"}
+      }
+    },
+    "relative_distances": {
+      "type": "array", "maxItems": 4,
+      "items": {"$ref": "#/$defs/distance"}
+    },
+    "outcome": {"enum": ["substituted", "hit", "glancing", "defended", "missed", "source_lost"]},
+    "continuity": {
+      "type": "array", "prefixItems": [
+        {"const": "substitution"}, {"const": "reappearance"},
+        {"const": "opponent_recovery"}
+      ], "items": false, "minItems": 3, "maxItems": 3
+    },
+    "next_initiative": {"enum": ["candidate", "opponent", "exchange_closed"]},
+    "counterattack_status": {"enum": ["not_applicable", "pending_unresolved", "resolved"]},
+    "lighting_context": {"type": ["string", "null"], "maxLength": 160}
+  },
+  "$defs": {
+    "actor": {
+      "type": "object", "additionalProperties": false,
+      "required": ["actor_handle", "role", "label"],
+      "properties": {
+        "actor_handle": {"type": "string", "pattern": "^act_[A-Za-z0-9_-]{10,}$"},
+        "role": {"enum": ["candidate", "opponent"]},
+        "label": {"type": "string", "minLength": 1, "maxLength": 80}
+      }
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["family", "manifestation", "trajectory_kind", "anatomical_origin", "target_region"],
+      "properties": {
+        "family": {"enum": ["physical", "projectile", "ninjutsu", "genjutsu", "other_typed"]},
+        "manifestation": {"type": "string", "minLength": 1, "maxLength": 100},
+        "trajectory_kind": {"enum": ["contact", "direct", "arc", "area", "not_applicable"]},
+        "anatomical_origin": {"type": "string", "minLength": 1, "maxLength": 80},
+        "target_region": {"type": "string", "minLength": 1, "maxLength": 80}
+      }
+    },
+    "locus": {
+      "type": "object", "additionalProperties": false,
+      "required": ["subject_role", "semantic_region", "viewer_relation"],
+      "properties": {
+        "subject_role": {"enum": ["candidate", "opponent", "anchor_proxy"]},
+        "semantic_region": {"type": "string", "minLength": 1, "maxLength": 100},
+        "viewer_relation": {"type": "string", "minLength": 1, "maxLength": 100}
+      }
+    },
+    "anchor": {
+      "type": "object", "additionalProperties": false,
+      "required": ["anchor_handle", "semantic_label", "before_region", "after_region", "outcome"],
+      "properties": {
+        "anchor_handle": {"type": "string", "pattern": "^anch_[A-Za-z0-9_-]{10,}$"},
+        "semantic_label": {"type": "string", "minLength": 1, "maxLength": 100},
+        "before_region": {"type": "string", "minLength": 1, "maxLength": 100},
+        "after_region": {"type": "string", "minLength": 1, "maxLength": 100},
+        "outcome": {"const": "consumed_non_substitutable"}
+      }
+    },
+    "distance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["viewer_role", "subject_role", "phase", "distance_m", "range_band", "range_profile_version"],
+      "properties": {
+        "viewer_role": {"enum": ["candidate", "opponent", "narrator"]},
+        "subject_role": {"enum": ["candidate", "opponent", "anchor_proxy"]},
+        "phase": {"enum": ["before", "impact", "after"]},
+        "distance_m": {"type": "number", "minimum": 0},
+        "range_band": {"enum": ["contact", "short", "medium", "long", "out_of_range"]},
+        "range_profile_version": {"type": "string", "minLength": 1, "maxLength": 100}
+      }
+    }
+  }
+}
