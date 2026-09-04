@@ -2,7 +2,7 @@
 
 > Una pagina, si **riscrive** in posto: niente sezioni datate. Il diario fino al 02/09 è in `storico/04_LAVORI_APERTI_diario_fino_20260902.md`. Il dettaglio di ogni voce è nella scheda d'area. **Regola d'ingresso: al massimo tre cantieri «in lavoro»**; un cantiere nuovo si apre solo quando uno passa «in uso» o viene parcheggiato per iscritto. «In uso» lo dichiara solo Antonello.
 
-Riscritto il 04/09/2026 · task `EXAM-REC-OPEN-001`.
+Riscritto il 04/09/2026 · task `STAFF-TEST-ROOM-GATE-001`.
 
 ## Il tabellone
 | Area | Stato | Cantiere | Prossimo passo | Chi |
@@ -12,7 +12,7 @@ Riscritto il 04/09/2026 · task `EXAM-REC-OPEN-001`.
 | Combat V2 | **in lavoro** | `management/candidati/COMBAT-COMPOSITE_2026-09-01/` | Moltiplicazione: rebase sulla head LIVE verificata al gate | COMBAT-CORE/DB-CORE |
 | Esame Genin | in uso; fix REC all'apertura **proposto, non applicato** | `management/candidati/EXAM-REC-OPEN_2026-09-04/` | approvare piano; poi candidato DB, review e branch QA | DB-CORE + PM |
 | Narratore unificato (Esame ← modello Ronda) | **applicato inerte**: 4.7.1/prompt30 LIVE, 189/189, review 0/0/0, A08 e smoke completi verdi; QA inerte | `management/candidati/NARRATORE-UNIFICATO_2026-09-02/` | ciclo tecnico concluso; «in uso» solo su dichiarazione di Antonello | PM + NARRATIVE-AI + Antonello |
-| Test Room | in uso; Tester avanzato parcheggiato | — | QA 070 con due account, svolta in autonomia (mezz'ora) | Antonello |
+| Test Room | in uso; gate Esame staff acceso; Tester avanzato parcheggiato | — | smoke Esame con partecipante alternativo; poi chiusura e ripristino flag | Antonello |
 | Missioni (umane) | pubblicato, mai usato | — | scoprire perché 0 prenotazioni: prova del flusso bacheca → prenotazione → Regia → esito | Antonello + LAND-UI |
 | Training V2 | pubblicato, quasi non giocato | — | leggere le sessioni abbandonate; un allenamento completo | QA + Antonello |
 | Missioni IA / Ninja Book / PNG Builder | applicato inerte | **parcheggiato** fino al canary | data del canary «Nodo Azzurro» | Antonello |
