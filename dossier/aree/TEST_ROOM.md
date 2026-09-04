@@ -1,5 +1,5 @@
 # AREA · Test Room (staff e utenti) — scheda viva
-Riscritta il 04/09/2026 · da Codex (`TEST-ROOM-TESTER-AVANZATO-RINVIO-001`) · **stato dell'area: applicato, QA reale a metà** (DB ed Edge dal 23/08; 5 dispatch reali il 25/08; caricamento Land/regole da confermare)
+Riscritta il 04/09/2026 · da Codex (`STAFF-TEST-ROOM-GATE-001`) · **stato dell'area: in uso; gate Esame acceso per lo smoke staff**
 
 ## Fonti fondamentali — in quest'ordine, solo il blocco che serve
 1. `sito_live/REGOLE.md` §10 «Master e staff» (la Test Room è il luogo di prova riservato allo staff: i tiri sono veri, i numeri no).
@@ -9,6 +9,7 @@ Riscritta il 04/09/2026 · da Codex (`TEST-ROOM-TESTER-AVANZATO-RINVIO-001`) · 
 5. Memoria di progetto: `test_room_cancello_e_deroga` (🔴), `test_room_collaudo_giocato`, `sandbox_test_room_068_r2`.
 
 ## Stato vivo — verificato a database il 04/09/2026
+- **Gate Esame acceso per lo smoke staff (04/09)**: sull'unica Test Room `is_test=true`, `is_active=true`, `is_academy=true`, `is_exam_room=true`. Prima e dopo l'operazione: 0 prove aperte, 0 sessioni Accademia aperte nella stanza, 48 messaggi e 76 personaggi invariati; cron Esame e monitor attivi, token runtime presente. Nessuna prova creata, nessun account/personaggio modificato, mai Riuji. Il gate va spento al termine dello smoke controllato.
 - **Smoke Esame 4.7.1 (04/09)**: usato soltanto `testperfunzioni`; flag `is_academy` e `is_exam_room` accesi per la durata della prova e poi ripristinati. Sessione `b4ea7ece…` chiusa `done`, prova `7dfe2fef…` conclusa `done`, 10/10 cicli Luna senza ripieghi, XP 0 e grado invariato. Postflight: Test Room `is_test=true`, `is_active=true`, `is_academy=false`, `is_exam_room=false`; 0 prove aperte e 0 cicli attivi; cron Esame acceso. Mai Riuji.
 - **02/09**: per la prova d'esame di Riuji sono stati accesi e poi **spenti alle 18:50 UTC** i flag `is_exam_room` e `is_academy` sulla Test Room (oggi entrambi `false`, `is_test=true`). Lezione: la land disegna l'Esame solo in `is_exam_room` e ritrova la sessione solo da `academy_class_state` (`is_academy`); in una stanza senza i due flag, dopo un refresh il riquadro resta su «Il narratore sta preparando la scena». Se si ripete una prova d'esame qui, i due flag vanno riaccesi per la durata della prova e rispenti.
 - **Deroghe di collaudo per lo staff nella Test Room (02/09):** `20260902102259` zona franca (lo staff schiera i propri PG in Regia) e `20260902152803 esame_avvia_deroga_test_room_002` (lo staff avvia l'Esame con qualunque PG: niente controllo di villaggio, grado, lezioni; la chiusura in `is_test` resta isolata — xp 0, grado invariato). Entrambe valgono per `is_test` + `is_staff()`, mai per un giocatore.
@@ -39,4 +40,4 @@ Riscritta il 04/09/2026 · da Codex (`TEST-ROOM-TESTER-AVANZATO-RINVIO-001`) · 
 [[test_room_cancello_e_deroga]] · [[test_room_collaudo_giocato]] · [[sandbox_test_room_068_r2]] · [[provider_da_riga_scrivibile]] · [[guasto_solo_sotto_corsa]]
 
 ## Prossimo passo
-Antonello completa in autonomia la mezz'ora con due account; il Tester avanzato resta parcheggiato.
+Eseguire lo smoke Esame dalla land con un partecipante alternativo; poi chiudere prova/sessione, verificare zero pendenti e spegnere `is_academy`/`is_exam_room`. La QA 070 a due account e il Tester avanzato restano separati.
