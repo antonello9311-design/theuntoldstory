@@ -1,0 +1,86 @@
+-- HARDENING (audit 2026-07-17)
+-- 1) Pin search_path sulle 8 funzioni pure segnalate dall'advisor (function_search_path_mutable).
+alter function public._grade_rank(g text) set search_path = public, pg_temp;
+alter function public._grado_max_rank(p_rank text) set search_path = public, pg_temp;
+alter function public._grado_ord(g text) set search_path = public, pg_temp;
+alter function public._png_rank_equiv(g text) set search_path = public, pg_temp;
+alter function public._slot_base(p_rank text) set search_path = public, pg_temp;
+alter function public.calc_chakra_max(p_nin integer, p_mente integer, p_rank text) set search_path = public, pg_temp;
+alter function public.calc_vita_max(p_res integer, p_rank text) set search_path = public, pg_temp;
+alter function public.premio_costo(p_tipo text, p_grado text) set search_path = public, pg_temp;
+
+-- 2) Togli l'eseguibilità ad anon/PUBLIC su tutti gli endpoint RPC privilegiati (restano su authenticated).
+--    Difesa in profondità: già oggi ogni funzione verifica auth.uid()/is_staff internamente, ma un non
+--    autenticato non deve poter nemmeno invocarle. Restano anon-callable solo land_stats, username_status,
+--    is_staff/is_clan_leader (usate nelle policy RLS di tabelle pubbliche) e le helper pure.
+revoke execute on function public.academy_class_advance(p_session uuid, p_force boolean) from public, anon; grant execute on function public.academy_class_advance(p_session uuid, p_force boolean) to authenticated;
+revoke execute on function public.academy_class_begin(p_session uuid) from public, anon; grant execute on function public.academy_class_begin(p_session uuid) to authenticated;
+revoke execute on function public.academy_class_cancel(p_session uuid) from public, anon; grant execute on function public.academy_class_cancel(p_session uuid) to authenticated;
+revoke execute on function public.academy_class_join(p_location uuid) from public, anon; grant execute on function public.academy_class_join(p_location uuid) to authenticated;
+revoke execute on function public.academy_class_start(p_location uuid, p_lesson uuid) from public, anon; grant execute on function public.academy_class_start(p_location uuid, p_lesson uuid) to authenticated;
+revoke execute on function public.academy_class_state(p_location uuid) from public, anon; grant execute on function public.academy_class_state(p_location uuid) to authenticated;
+revoke execute on function public.academy_complete(p_lesson uuid) from public, anon; grant execute on function public.academy_complete(p_lesson uuid) to authenticated;
+revoke execute on function public.academy_lessons_pick() from public, anon; grant execute on function public.academy_lessons_pick() to authenticated;
+revoke execute on function public.academy_state() from public, anon; grant execute on function public.academy_state() to authenticated;
+revoke execute on function public.all_pending_trainings() from public, anon; grant execute on function public.all_pending_trainings() to authenticated;
+revoke execute on function public.applica_recupero(p_user uuid) from public, anon; grant execute on function public.applica_recupero(p_user uuid) to authenticated;
+revoke execute on function public.bacheca_missioni() from public, anon; grant execute on function public.bacheca_missioni() to authenticated;
+revoke execute on function public.board_delete(p_post bigint) from public, anon; grant execute on function public.board_delete(p_post bigint) to authenticated;
+revoke execute on function public.board_pin(p_post bigint, p_pin boolean) from public, anon; grant execute on function public.board_pin(p_post bigint, p_pin boolean) to authenticated;
+revoke execute on function public.board_post(p_board bigint, p_title text, p_body text, p_parent bigint) from public, anon; grant execute on function public.board_post(p_board bigint, p_title text, p_body text, p_parent bigint) to authenticated;
+revoke execute on function public.character_directory() from public, anon; grant execute on function public.character_directory() to authenticated;
+revoke execute on function public.clan_pending_trainings(p_clan text) from public, anon; grant execute on function public.clan_pending_trainings(p_clan text) to authenticated;
+revoke execute on function public.dm_conversations() from public, anon; grant execute on function public.dm_conversations() to authenticated;
+revoke execute on function public.dm_log(p_limit integer) from public, anon; grant execute on function public.dm_log(p_limit integer) to authenticated;
+revoke execute on function public.dm_mark_read(p_ids uuid[]) from public, anon; grant execute on function public.dm_mark_read(p_ids uuid[]) to authenticated;
+revoke execute on function public.dm_search(p_term text, p_field text) from public, anon; grant execute on function public.dm_search(p_term text, p_field text) to authenticated;
+revoke execute on function public.dm_send(p_recipients uuid[], p_body text, p_subject text) from public, anon; grant execute on function public.dm_send(p_recipients uuid[], p_body text, p_subject text) to authenticated;
+revoke execute on function public.dm_thread(p_other uuid, p_limit integer) from public, anon; grant execute on function public.dm_thread(p_other uuid, p_limit integer) to authenticated;
+revoke execute on function public.dm_unread() from public, anon; grant execute on function public.dm_unread() to authenticated;
+revoke execute on function public.ensure_welcome() from public, anon; grant execute on function public.ensure_welcome() to authenticated;
+revoke execute on function public.enter_land() from public, anon; grant execute on function public.enter_land() to authenticated;
+revoke execute on function public.enter_location(p_location uuid) from public, anon; grant execute on function public.enter_location(p_location uuid) to authenticated;
+revoke execute on function public.grant_jutsu(p_user uuid, p_jutsu uuid, p_source text) from public, anon; grant execute on function public.grant_jutsu(p_user uuid, p_jutsu uuid, p_source text) to authenticated;
+revoke execute on function public.leave_land() from public, anon; grant execute on function public.leave_land() to authenticated;
+revoke execute on function public.log_stale_leaves() from public, anon; grant execute on function public.log_stale_leaves() to authenticated;
+revoke execute on function public.mie_missioni() from public, anon; grant execute on function public.mie_missioni() to authenticated;
+revoke execute on function public.missione_annulla(p_mission uuid) from public, anon; grant execute on function public.missione_annulla(p_mission uuid) to authenticated;
+revoke execute on function public.missione_crea(p_title text, p_grado text, p_briefing text, p_village text, p_tag_trama text, p_team_min integer, p_team_max integer, p_location text, p_xp integer, p_ryo integer) from public, anon; grant execute on function public.missione_crea(p_title text, p_grado text, p_briefing text, p_village text, p_tag_trama text, p_team_min integer, p_team_max integer, p_location text, p_xp integer, p_ryo integer) to authenticated;
+revoke execute on function public.missione_esito(p_mission uuid, p_successo boolean, p_nota text) from public, anon; grant execute on function public.missione_esito(p_mission uuid, p_successo boolean, p_nota text) to authenticated;
+revoke execute on function public.missione_iscrivi(p_mission uuid, p_data date, p_nota text) from public, anon; grant execute on function public.missione_iscrivi(p_mission uuid, p_data date, p_nota text) to authenticated;
+revoke execute on function public.missione_programma(p_mission uuid, p_data date) from public, anon; grant execute on function public.missione_programma(p_mission uuid, p_data date) to authenticated;
+revoke execute on function public.missione_ritira(p_mission uuid) from public, anon; grant execute on function public.missione_ritira(p_mission uuid) to authenticated;
+revoke execute on function public.my_abilities(p_character uuid) from public, anon; grant execute on function public.my_abilities(p_character uuid) to authenticated;
+revoke execute on function public.my_academy_log(p_user uuid) from public, anon; grant execute on function public.my_academy_log(p_user uuid) to authenticated;
+revoke execute on function public.my_jutsu(p_user uuid) from public, anon; grant execute on function public.my_jutsu(p_user uuid) to authenticated;
+revoke execute on function public.my_role_library(p_user uuid) from public, anon; grant execute on function public.my_role_library(p_user uuid) to authenticated;
+revoke execute on function public.online_roster(p_minutes integer) from public, anon; grant execute on function public.online_roster(p_minutes integer) to authenticated;
+revoke execute on function public.online_users(p_minutes integer) from public, anon; grant execute on function public.online_users(p_minutes integer) to authenticated;
+revoke execute on function public.pg_attacca_png(p_location uuid, p_instance uuid, p_kind text, p_name text, p_base integer, p_mod integer, p_defense text, p_quality integer, p_technique uuid) from public, anon; grant execute on function public.pg_attacca_png(p_location uuid, p_instance uuid, p_kind text, p_name text, p_base integer, p_mod integer, p_defense text, p_quality integer, p_technique uuid) to authenticated;
+revoke execute on function public.png_attacca_pg(p_location uuid, p_instance uuid, p_target_user uuid, p_ability_idx integer, p_kind text, p_name text, p_base integer, p_mod integer, p_defense text, p_quality integer) from public, anon; grant execute on function public.png_attacca_pg(p_location uuid, p_instance uuid, p_target_user uuid, p_ability_idx integer, p_kind text, p_name text, p_base integer, p_mod integer, p_defense text, p_quality integer) to authenticated;
+revoke execute on function public.png_attacco_combinato(p_location uuid, p_instance uuid, p_attacks jsonb, p_defense text, p_mod integer) from public, anon; grant execute on function public.png_attacco_combinato(p_location uuid, p_instance uuid, p_attacks jsonb, p_defense text, p_mod integer) to authenticated;
+revoke execute on function public.png_evoca(p_template uuid, p_location uuid, p_nome text) from public, anon; grant execute on function public.png_evoca(p_template uuid, p_location uuid, p_nome text) to authenticated;
+revoke execute on function public.png_in_scena(p_location uuid) from public, anon; grant execute on function public.png_in_scena(p_location uuid) to authenticated;
+revoke execute on function public.png_ritira(p_instance uuid) from public, anon; grant execute on function public.png_ritira(p_instance uuid) to authenticated;
+revoke execute on function public.post_combat(p_location uuid, p_defender_user uuid, p_kind text, p_name text, p_base integer, p_mod integer, p_defense text, p_quality integer, p_technique uuid) from public, anon; grant execute on function public.post_combat(p_location uuid, p_defender_user uuid, p_kind text, p_name text, p_base integer, p_mod integer, p_defense text, p_quality integer, p_technique uuid) to authenticated;
+revoke execute on function public.post_combat_png(p_location uuid, p_png_attacca boolean, p_png_nome text, p_png_off integer, p_png_dif integer, p_png_res integer, p_target_user uuid, p_kind text, p_name text, p_base integer, p_mod integer, p_defense text, p_quality integer, p_technique uuid) from public, anon; grant execute on function public.post_combat_png(p_location uuid, p_png_attacca boolean, p_png_nome text, p_png_off integer, p_png_dif integer, p_png_res integer, p_target_user uuid, p_kind text, p_name text, p_base integer, p_mod integer, p_defense text, p_quality integer, p_technique uuid) to authenticated;
+revoke execute on function public.post_dice(p_location uuid, p_sides integer) from public, anon; grant execute on function public.post_dice(p_location uuid, p_sides integer) to authenticated;
+revoke execute on function public.post_item_use(p_location uuid, p_equip uuid) from public, anon; grant execute on function public.post_item_use(p_location uuid, p_equip uuid) to authenticated;
+revoke execute on function public.post_message(p_location uuid, p_body text, p_technique uuid) from public, anon; grant execute on function public.post_message(p_location uuid, p_body text, p_technique uuid) to authenticated;
+revoke execute on function public.post_whisper(p_location uuid, p_recipient uuid, p_body text) from public, anon; grant execute on function public.post_whisper(p_location uuid, p_recipient uuid, p_body text) to authenticated;
+revoke execute on function public.promuovi(p_character uuid) from public, anon; grant execute on function public.promuovi(p_character uuid) to authenticated;
+revoke execute on function public.recent_activity(p_limit integer) from public, anon; grant execute on function public.recent_activity(p_limit integer) to authenticated;
+revoke execute on function public.record_consent(p_version text) from public, anon; grant execute on function public.record_consent(p_version text) to authenticated;
+revoke execute on function public.role_close(p_session uuid) from public, anon; grant execute on function public.role_close(p_session uuid) to authenticated;
+revoke execute on function public.role_open_here(p_location uuid) from public, anon; grant execute on function public.role_open_here(p_location uuid) to authenticated;
+revoke execute on function public.role_scene(p_session uuid) from public, anon; grant execute on function public.role_scene(p_session uuid) to authenticated;
+revoke execute on function public.role_set_title(p_session uuid, p_title text) from public, anon; grant execute on function public.role_set_title(p_session uuid, p_title text) to authenticated;
+revoke execute on function public.role_start(p_location uuid) from public, anon; grant execute on function public.role_start(p_location uuid) to authenticated;
+revoke execute on function public.set_presence_status(p_status text) from public, anon; grant execute on function public.set_presence_status(p_status text) to authenticated;
+revoke execute on function public.staff_assegna_xp(p_character uuid, p_amount integer, p_motivo text) from public, anon; grant execute on function public.staff_assegna_xp(p_character uuid, p_amount integer, p_motivo text) to authenticated;
+revoke execute on function public.staff_role_sessions() from public, anon; grant execute on function public.staff_role_sessions() to authenticated;
+revoke execute on function public.svolta_decidi(p_richiesta uuid, p_approva boolean, p_nota text) from public, anon; grant execute on function public.svolta_decidi(p_richiesta uuid, p_approva boolean, p_nota text) to authenticated;
+revoke execute on function public.svolta_richiedi(p_asse text, p_delta integer, p_motivo text, p_role uuid) from public, anon; grant execute on function public.svolta_richiedi(p_asse text, p_delta integer, p_motivo text, p_role uuid) to authenticated;
+revoke execute on function public.touch_presence() from public, anon; grant execute on function public.touch_presence() to authenticated;
+revoke execute on function public.training_confirm(p_character uuid, p_technique uuid, p_teacher uuid) from public, anon; grant execute on function public.training_confirm(p_character uuid, p_technique uuid, p_teacher uuid) to authenticated;
+revoke execute on function public.who_here(p_location uuid, p_minutes integer) from public, anon; grant execute on function public.who_here(p_location uuid, p_minutes integer) to authenticated;
