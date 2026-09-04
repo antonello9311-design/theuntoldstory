@@ -12,6 +12,7 @@ Completare la catena Combat Composite senza confondere componenti già LIVE iner
 - **Moltiplicazione R4** è un candidato offline con review 0/0/0 e sigilli integri, ma la catena arriva a history453: richiede rebase sulla head LIVE verificata al momento del gate, nuova readiness e nuova review. Migration, rollback, checksum e review correnti non si alterano.
 - **Sostituzione comune** è già presente LIVE come resolver R9 e porte Combat/Esame, ma l'Esame usa ancora il ramo legacy: offre senza option id opaco, sceglie localmente l'ancora e addebita localmente costo/cooldown. Il candidato P1-A attesta il resolver comune e vieta di crearne un secondo.
 - **Adapter dello scambio e ricevuta spaziale** sono costruiti offline: un'unica identità lega attacco, difesa, eventuale Sostituzione, contrattacco irrisolto e iniziativa server-derived; Luna riceve solo la proiezione narrativa viewer-safe.
+- **GitHub**: i 45 file verificati del pacchetto P1 sono pubblicati sul branch `combat-sostituzione-spatial-p1`; proposta aperta come PR #1 verso `main`, non unita e senza deployment.
 - La baseline LIVE verificata il 04/09/2026 è head `20260903203601 esame_narratore_finale_ampiezza_006_recovery`; non è un pin permanente.
 
 ## Ordine corrente
