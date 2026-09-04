@@ -1,5 +1,5 @@
 # AREA · Piattaforma — database, migrazioni, cron, Edge, cartella di lavoro — scheda viva
-Riscritta il 04/09/2026 · da Codex (`STAFF-TEST-ROOM-GATE-001`) · **stato dell'area: produzione Narratore 4.7.1 verificata; gate Esame Test Room acceso per smoke staff**
+Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-4.8`) · **stato dell'area: produzione invariata; nuovo branch QA Unhealthy e disallineato**
 
 ## Fonti fondamentali — in quest'ordine, solo il blocco che serve
 1. Skill `gdr-sql` (GRANT esplicito, CHECK, dollar-quoting, prova in transazione, piano prima dell'apply) e `gdr-verifica` (le cinque interrogazioni che fotografano il DB).
@@ -11,7 +11,7 @@ Riscritta il 04/09/2026 · da Codex (`STAFF-TEST-ROOM-GATE-001`) · **stato dell
 
 ## Stato vivo — baseline backend osservata dal PM il 03/09/2026; Edge riconfermata da Antonello/Claude
 - **Cambio operativo autorizzato del 04/09**: aggiornata una sola riga `locations`, l'unica Test Room, da `is_academy=false/is_exam_room=false` a `true/true`; invariati `is_test=true` e `is_active=true`. Gate transazionale con unicità, stato iniziale e assenza di prove/sessioni aperte; postflight esatto verde. Nessuna migrazione, funzione, ACL, Edge, cron, sessione, prova, account o personaggio modificati. Il fix REC resta separato e non applicato.
-- **Branch QA `qa-exchange-monthly-2026-08-31`**, ref `yvqeiorqrdlhuzxkssjg`: Edge `exam_genin_ai` **v125**, `ACTIVE`, bundle SHA-256 `a1e6d128257b8ad63ea6c795f518cf8dd5f94d39f230462bd7c01ea54be8c3e6`, sorgente 9/9 byte-exact alla candidata 4.6.6. Review `0/0/0`; ultimo A–G 15/18 per tre `max_tokens`. Postflight: 0 prove aperte, 0 cicli non terminali; token runtime ruotato server-side.
+- **Branch QA `qa-exchange-monthly-2026-08-31`**: nuovo ref `kkzvwqsmuqunkjzhlkon`, **Unhealthy**, head `20260717085531` contro produzione `20260903203601`. Primo errore: `20260818151034_acc_sensei_action_grammar_001.sql` pretende 74 righe `academy_lesson_script`; QA=62, LIVE=74. Mancano L2 step 6–8, L3 5–6, L6 5 per entrambi i villaggi. Le nove migrazioni LIVE `20260717103955`…`20260718115504` non esistono in `supabase/migrations/` e nessuna tocca quei copioni: baseline/history non riproducibile. Vietati deploy e apply; produzione invariata.
 - **Preflight QA due esami (04/09)**: branch verificato in sola lettura con 0 prove aperte e 0 cicli non terminali. Il corpus contiene una prova sintetica con 18 snapshot, ma soltanto un ciclo per ciascuno dei due esami scelti; nessuna scrittura o chiamata modello eseguita. Produzione letta soltanto per selezione e sigilli, invariata.
 - **Produzione**: head DB resta `20260903203601 esame_narratore_finale_ampiezza_006_recovery`; nessuna migrazione nuova. Edge `exam_genin_ai` osservata il 04/09 **v125**, candidata 4.6.1/prompt29, `verify_jwt=false`. Lo smoke reale ha aperto la prova ma è caduto in ripiego al secondo ciclo per alias nominativo; prova/sessione poi chiuse senza pending. Nessun redeploy 4.6.6 autorizzato.
 - `public`: **230 tabelle** (93 con zero righe: `training` 24, `nb` 23, `mission` 18, `combat` 8, `master` 5, `character` 3, altre 12) · **732 funzioni** al 03/09/2026; il precedente totale 705 è superato dalla fotografia autenticata corrente.
@@ -47,4 +47,4 @@ Riscritta il 04/09/2026 · da Codex (`STAFF-TEST-ROOM-GATE-001`) · **stato dell
 [[sql_una_sola_chiamata]] · [[registrazione_migrazione_manuale]] · [[guardia_nome_migrazione]] · [[guardia_su_valore_nullo]] · [[role_start_porta_di_servizio]] · [[acl_confronto_per_insieme]] · [[check_vivo_sostituzione_insieme]] · [[rollback_asimmetrico]] · [[funzione_tomba]] · [[collisione_068_due_sessioni]] · [[dossier_task_dedicato]]
 
 ## Prossimo passo
-Staff: completare lo smoke Esame nella Test Room con partecipante alternativo e poi ripristinare i due flag; il lavoro strutturale successivo resta il fix REC, con gate e autorizzazione separati.
+Preparare una sola riparazione della baseline: nove file ricostruiti byte-esatti dai `statements` del registro LIVE più seed idempotente/fail-closed delle 12 righe mancanti prima della `20260818151034`; review e prova su branch pulito fino a Healthy/head/impronte esatte. Nessun apply autorizzato.
