@@ -1879,3 +1879,6 @@ Antonello sostituisce la regola del deploy sempre manuale: quando un lavoro già
 
 ## 04/09/2026 — Il Tester avanzato della Test Room è rinviato
 Antonello rinvia il progetto per il tempo richiesto e continua personalmente i collaudi. Restano parcheggiati, senza nuovo cantiere né autorizzazione a codice o database: capability Tester separata dallo staff, scheda ombra modificabile, Esame ripetibile e chiamate Luna con quota. La Test Room pubblica esistente e le deroghe staff non cambiano; il lavoro si riapre solo con un nuovo mandato di Antonello.
+
+## 04/09/2026 — La REC dell'Esame deve partire con l'apertura della prova
+Antonello identifica la causa delle REC mancanti: l'Esame comincia con l'esito del Fato e non con un turno del personaggio, quindi il normale automatismo della chat non apre la registrazione. Si apre `EXAM-REC-OPEN-001`: la REC dovrà nascere server-side dentro `esame_prova_apri(uuid)`, prima dei messaggi iniziali di Sistema e Fato, usando la porta di servizio esistente; Test Room esclusa, nessuna modifica della land e nessun recupero retroattivo. Questa decisione approva il perimetro del fix, non l'apply al database, che resta subordinato a piano approvato, review 0/0/0, branch verde e autorizzazione nominativa.
