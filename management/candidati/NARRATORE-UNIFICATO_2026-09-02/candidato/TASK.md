@@ -1,0 +1,24 @@
+# Checklist · ESAME-GENIN-NARRATORE-FINALE-001
+
+- [x] Baseline LIVE riconciliata: DB head documentata `20260903203601`, Edge v123 con sorgente 6/6 byte-identica alla recovery.
+- [x] Candidata v121 ritirata conservata in `_precedenti/2026-09-03_v121_ritirata/` con referti precedenti.
+- [x] Candidata 4.5.0 archiviata in `_precedenti/2026-09-04_v4.5.0/` dopo il gate A02 verde/A03 rosso.
+- [x] Candidata corrente Edge `4.7.1-NU001-CANDIDATO`: vettore compatto di soli ID, atomi e rami ricomposti server-side, alias nominativo fail-closed e wire pubblico invariato.
+- [x] Contratto autoritativo dell'ampiezza definito.
+- [x] Memoria di formule, chiusure e immagini implementata.
+- [x] Player bridge strutturato implementato e raw text escluso dal prompt.
+- [x] Validazione meccanica/qualitativa separata.
+- [x] Fault injection completa, suite 189/189 e checksum 9/9 verdi; coperti rami multipli ed esempio prompt→decoder.
+- [x] Manifesto e checksum della candidata aggiornati; recovery LIVE invariata e già verificata.
+- [x] Review indipendente conclusiva: **`0/0/0`** dopo rimozione del retry replay e verifica preventiva del massimo composto.
+- [x] Revisione 4.6.6 distribuita soltanto sul branch QA come Edge v125, 9/9 byte-exact; produzione resta v125/4.6.1.
+- [x] Prima campagna A–G completa sulla v118: 18 chiamate senza retry, 17 incompletezze provider e un finale fermato dalla dogana; finding aggregati nella revisione a slot chiusi.
+- [x] Ricertificazione A–G v119 completata: 18 chiamate singole, nessun retry, 16 verdi; A11 e D rossi per `tetto_token_raggiunto` a 8.192 output token.
+- [x] Max token aumentati di almeno il 20% (`9.831/7.373`), review delta `0/0/0`; certificazione A–G v120 **18/18**, una chiamata per caso e zero rilievi.
+- [x] Produzione 4.6.1/v125 e primo smoke reale Test Room: apertura e primo ciclo verdi, secondo ciclo in ripiego per alias; chiusura pulita, zero XP, mai Riuji.
+- [x] Ultimo gate 4.6.6 Luna/high/verbosity medium: 15/18, tre `max_tokens` a 11.798; PM STOP, branch inerte, nessun redeploy o nuovo smoke.
+- [x] Prima review 4.7.0 `0/1/1`; unica correzione aggregata applicata senza chiamate Luna.
+- [x] Controverifica finale 4.7.1 `0/0/0`.
+- [x] Deploy QA byte-esatto e unica prova dinamica A08 senza retry: verde.
+- [x] Deploy produzione 9/9 byte-esatto, smoke completo `testperfunzioni`, chiusura senza fallback e postflight pulito.
+- [x] SCHEDA/HANDOFF/STORICO e schede d'area aggiornati.
