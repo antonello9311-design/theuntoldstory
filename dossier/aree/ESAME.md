@@ -1,5 +1,5 @@
 # AREA · Esame Genin — scheda viva
-Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-COMPACT-4.7.1`) · **stato dell'area: in uso; Narratore 4.7.1/prompt30 LIVE, A08 e smoke completo verdi senza ripieghi**
+Riscritta il 04/09/2026 · da Codex (`EXAM-REC-OPEN-001`) · **stato dell'area: in uso; fix REC all'apertura proposto, non applicato**
 
 ## Fonti fondamentali — in quest'ordine, solo il blocco che serve
 1. `sito_live/REGOLE.md` §8 Progressione (promozione a Genin) e §4 per il combattimento della prova — il regolamento vivo.
@@ -27,14 +27,15 @@ Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-COMPACT-4.7.1`) · **s
 - **Candidata 4.6.6**: corregge l'alias nominativo con uguaglianza esatta e mantiene Luna/high/verbosity medium, una chiamata, prosa e validatori. Locale 186/186, Deno/checksum 9/9, review 0/0/0; Edge QA v125 esatta. Ultimo A–G **15/18**: A08, A09, A17 saturano 11.798 token; gate produzione negato e branch inerte.
 - **Revisione 4.7.1 conclusiva**: protocollo compatto generalizzato, tetto 1.024, strict rimosso; locale 189/189, checksum 9/9 e review `0/0/0`. Unico A08 sul branch verde (HTTP 200, una chiamata, stop, Luna/prompt30, 0 motivi/qualità/avvisi, nessun fallback). Produzione distribuita e riscaricata 9/9 byte-exact.
 - **Smoke LIVE completo del 04/09 con `testperfunzioni`**: sessione `b4ea7ece…`, prova `7dfe2fef…`, 10/10 cicli risolti — 4 difese, 3 attacchi, 2 esiti e 1 finale — tutti Luna/prompt30/stop, 0 ripieghi e 0 non conformi. Uscita ordinaria registrata; prova `conclusa|done`, sessione `closed|done`, esito `solida`, XP 0 e grado invariato. Test Room ripristinata `t|t|f|f`, prove aperte globali 0, cicli attivi 0, `esame-tick` attivo. Mai Riuji.
-- **QA bounded su due esami (04/09)**: selezionati `2399b1fa…` e `23d4ccf1…`, ma il corpus branch conserva un solo ciclo per ciascuno e non espone l'azione byte-exact dei cicli di agosto. STOP prima del modello: Luna 0/6, Terra 0/1, costo $0; ambienti invariati. Dettagli in `management/candidati/NARRATORE-UNIFICATO_2026-09-02/referti/CONFRONTO_DUE_ESAMI.md`.
+- **QA REC reale separata (04/09)**: inventario produzione in sola lettura su 6 Esami conclusi di candidati oggi Genin, Riuji/test esclusi: 5 nelle Arena/Aule del perimetro e 1 fuori, escluso. Una sola prova (`333662b8…`) ha una REC dell'Esame byte-exact valida: 9 azioni, 14.633 caratteri, SHA-256/16 `bad09259118934a3`. La causa è strutturale: l'incipit server di Sistema/Fato non consegna al trigger il gettone del primo turno del personaggio, quindi la REC non nasce all'apertura. Il QA è parcheggiato in `archivio/2026-09/candidati/QA-ESAME-REC-REAL_2026-09-04/`, con Luna 0/6 e budget intatto.
+- **Fix `EXAM-REC-OPEN-001` proposto, non applicato**: `esame_prova_apri(uuid)` aprirà la REC tramite la porta server esistente prima di Sistema/Fato, solo nelle aule reali; Test Room, firme, ACL, land, cron ed Edge restano invariati. Piano in `management/candidati/EXAM-REC-OPEN_2026-09-04/`.
 - **Chiusura Staff Test Room completata e verificata**: prova `31491c15-7b5a-4385-913c-920b24d23acb` `annullata`, `close_reason=cancelled`, nessun pending/opzione; sessione `093024db-c44f-4b35-9bdd-b293d959c4eb` closed/cancelled; Test Room `is_test=true`, `is_active=true`, `is_academy=false`, `is_exam_room=false`; prove aperte globali 0; cicli narrativi 2/2 risolti, 0 non risolti. Nessuna DELETE, cron invariati. È uno **smoke misto, non una certificazione qualitativa**.
 - Cron `esame-tick` (jobid 18, 1′) attivo; monitor `esame-monitor-10m` attivo; `academy_ai_runtime.tick_token` presente. La 460 mantiene ripiego DB 5′ e tick 210 s; la candidata QA v120 non ha aggiunto migrazioni.
 - Le aule d'esame non conservano i messaggi: `messages` per «Konoha — Arena d'esame» è vuota (0 righe) benché vi abbiano giocato Jun, Hime, Rei, Tenma, Itsuki. La trascrizione resta solo in `esame_scambi` / `esame_narrazione_cicli`.
 - Tabelle: `esame_prove` **58** (lettura 03/09, 0 aperte) · ultimo conteggio dettagliato: `esame_scambi` 142 · `esame_narrazione_cicli` 211 · `esame_ia_tentativi` 212 · `esame_frasi` 366 · `esame_png_profili` 6 · `esame_azione_ricevute` 30 · `esame_monitor_eventi` 47.
 
 ## Lavori aperti — in ordine
-1. **[P1] Sbloccare il QA empirico su due esami** — indicare snapshot byte-exact già depositati o autorizzare un piano separato per materializzare sei fixture immutabili sul branch; nessuna chiamata finché il contratto non è soddisfatto.
+1. **[P1] REC all'apertura dell'Esame** — approvare `EXAM-REC-OPEN-001`; poi candidato DB, review 0/0/0, branch QA e gate produzione separato. Il QA empirico resta parcheggiato fino allo smoke verde.
 2. **[P1] Regolamento del rilascio** — sincronizzare `REGOLE.md` + `regole.html` con `gdr-regole-sync`: la prova non sottrae davvero arti o risorse permanenti, ma la scena può mostrarne le conseguenze quando il referto le autorizza; includere perimetro/ingaggio approvati.
 3. ✅ **Gate Narratore 4.7.1** — checksum/review/A08/deploy/smoke completati; nessuna ulteriore reiterazione richiesta.
 4. **[P1] Monitor: togliere il falso «narratore_bloccato»** — escludere i cicli `accettata` che aspettano il candidato. Chi: DB-CORE su mandato.
@@ -43,6 +44,7 @@ Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-COMPACT-4.7.1`) · **s
 7. **[P2] Difetto Assalto/Moltiplicazione nella UI** segnalato dal QA di Itsuki — LAND-UI (scheda `PAGINE.md`).
 
 ## Parcheggiato — non riaprire senza mandato
+- QA empirico `QA-ESAME-REC-REAL-001`: budget intatto; riprenderlo dopo il rilascio del fix REC e la disponibilità di una seconda REC genuina.
 - Voce narrativa 066 / 066 R2 / incipit 067 R2: consegnati e mai distribuiti; superati come candidati, restano fonte di soglie e corpus.
 - UI-005 R3 dell'Esame (pannello) e UI-003 R3 (esito): «pronti e non pubblicati» dal 16/08 — verificare contro la land viva prima di qualunque riuso.
 - Prompt certificato / shim `personas.json`: ratificato, non si riapre.
@@ -59,4 +61,4 @@ Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-COMPACT-4.7.1`) · **s
 [[scontrino_monouso]] · [[un_ciclo_solo_non_esiste]] · [[esiti_irraggiungibili_esame]] · [[esame_banco_modello_gate]] · [[opzione_offerta_stato_risultante]] · [[guardia_su_valore_nullo]] · [[exam_digest_qualificato_001]] · [[riorganizzazione_schede_aree_20260901]] (il caso del tick)
 
 ## Prossimo passo
-Il ciclo tecnico Narratore è concluso. Restano, come lavori separati, regolamento, falso positivo del monitor, chiusura della prova all'interruzione e anticipo del round nella LAND.
+PM: approvare il contratto `EXAM-REC-OPEN-001`; fino all'ok non si prepara né si applica SQL.
