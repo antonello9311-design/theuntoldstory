@@ -1,1 +1,2 @@
 - 03/09/2026 · PM-DOC-001 · adottati SCHEDA/HANDOFF/STORICO v2; Composite LIVE inerte, Moltiplicazione da ribasare, Sostituzione offer-only e adapter aperto · esito: documentale, nessuna mutazione LIVE.
+- 04/09/2026 · P1-COMBAT-ESAME-001 · costruiti e sigillati offline Sostituzione, adapter e ricevuta POV con integrazione125 banchi · esito: verde statico, STOP branch QA non allineato, zero LIVE.
