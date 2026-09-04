@@ -5,7 +5,6 @@ alter function public._grado_max_rank(p_rank text) set search_path = public, pg_
 alter function public._grado_ord(g text) set search_path = public, pg_temp;
 alter function public._png_rank_equiv(g text) set search_path = public, pg_temp;
 alter function public._slot_base(p_rank text) set search_path = public, pg_temp;
-alter function public.calc_chakra_max(p_nin integer, p_mente integer, p_rank text) set search_path = public, pg_temp;
 alter function public.calc_vita_max(p_res integer, p_rank text) set search_path = public, pg_temp;
 alter function public.premio_costo(p_tipo text, p_grado text) set search_path = public, pg_temp;
 
