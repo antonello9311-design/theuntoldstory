@@ -1876,3 +1876,6 @@ Antonello chiude il disegno futuro: i controlli deterministici possono essere co
 
 ## 03/09/2026 — Caricamento GitHub autonomo dopo il gate
 Antonello sostituisce la regola del deploy sempre manuale: quando un lavoro già approvato è pronto e verificato, Codex o Claude possono caricare autonomamente su `antonello9311-design/theuntoldstory`, branch `main`, esclusivamente i file appartenenti al task. Restano obbligatori owner unico, riconciliazione con la testa remota, esclusione di segreti e file estranei, registrazione di commit/SHA e verifica del dominio; restano vietati cancellazioni, force-push e riscritture della storia. Gli scope `offline-only` o `no deploy` prevalgono. Se non esiste un canale GitHub autenticato, si blocca soltanto il caricamento e si consegna la lista esatta. Il caricamento di SQL o sorgenti Edge su GitHub non autorizza apply o deploy Supabase.
+
+## 04/09/2026 — Il Tester avanzato della Test Room è rinviato
+Antonello rinvia il progetto per il tempo richiesto e continua personalmente i collaudi. Restano parcheggiati, senza nuovo cantiere né autorizzazione a codice o database: capability Tester separata dallo staff, scheda ombra modificabile, Esame ripetibile e chiamate Luna con quota. La Test Room pubblica esistente e le deroghe staff non cambiano; il lavoro si riapre solo con un nuovo mandato di Antonello.
