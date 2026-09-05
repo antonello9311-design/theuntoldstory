@@ -1,5 +1,5 @@
 # AREA · IA narrativa — repertorio, voce, provider — scheda viva
-Riscritta il 05/09/2026 · Codex NARRATORE-UNIFICATO · **Esame4.8/prompt31 LIVE v128 verificata; DB336/337 applicati; LAND007 caricata, dominio non attestato per blocco degli strumenti**
+Riscritta il 05/09/2026 · Codex NARRATORE-UNIFICATO · **Esame4.8/prompt31 LIVE v128 verificata; DB336/337 applicati; LAND007 caricata, marcatore sul dominio attestato manualmente da Antonello; verifica strumentale non eseguita**
 
 ## Fonti fondamentali — in quest'ordine, solo il blocco che serve
 1. `management/repertorio/README.md`, `MANIFESTO.json`, `GENERAZIONE.md`, `REFERTO_0_3_0.md`, `STORICO_VERSIONI.md` — **la fonte canonica** del repertorio condiviso di lingua e narrazione (v0.3.0, promosso). Le note di redazione sugli esiti vanno qui, non in un handoff.
@@ -17,12 +17,12 @@ Riscritta il 05/09/2026 · Codex NARRATORE-UNIFICATO · **Esame4.8/prompt31 LIVE
 - **Review unica e correzione aggregata**: primo referto0/3/2, controverifica finale0/0/0. Suite201/201, orchestrazione simulata1/1 e LAND8/8. Gate integrato DB16/16 e quattro payload NATIVI4/4 in93ms,0provider; tutti png_esito ciclo/replay Konoha bound e Suna legacy, non quattro ruoli.
 - **Dipendenze integrate LIVE**: DB-CORE ha applicato una volta codice20260904233136 e seed20260904233137, SHA95472cf8/2fcab661 esatti; postflight33corpi/ACL verdi dopo ciascuno. Konoha10x10,8oggetti,2slot,1binding e1route abilitata; Suna resta legacy. Runtime prima/dopo invariato e0esamiaperti. Evidenza `QA-BRANCH-BASELINE-REPAIR_2026-09-04/referti/PRODV5_LIVE_APPLY_RESULT.json`, SHA0c0edb96. Nessuna geometria Suna nuova.
 - **Provenienza card esplicita**: adattamento del catalogo jutsu LIVE, non revisione editoriale inventata. effect duplicato in descrizione/effetto; action_type indica solo tipologia. Vecchi limits della Sostituzione esclusi; distanze dalla ricevuta common/server. Sigilli generici della Sostituzione autorizzati da Antonello come licenza redazionale separata, identica per Luna/Terra, senza nuove sequenze o regole.
-- **LAND**: scelta dell'ancora tramite option_id opaco, build LAND-ESAME-ANCHOR-OPTION-007,706117B,SHA c241f571d543214d6ca6c5ea4dbbe7e00fafbf0e431bcb0a5b65bfdd2ce144e5; caricata in root GitHub commit445bdd7304af95456f32bcf9e47aaed31b25884d. Review0/0/0 e8/8, riconciliazione remota verde. Verifica diretta dominio non attestata: accesso bloccato dagli strumenti, nessun aggiramento.
+- **LAND**: scelta dell'ancora tramite option_id opaco, build LAND-ESAME-ANCHOR-OPTION-007,706117B,SHA c241f571d543214d6ca6c5ea4dbbe7e00fafbf0e431bcb0a5b65bfdd2ce144e5; caricata in root GitHub commit445bdd7304af95456f32bcf9e47aaed31b25884d. Review0/0/0 e8/8, riconciliazione remota verde. Marcatore LAND-ESAME-ANCHOR-OPTION-007 attestato manualmente da Antonello sul dominio pubblico (risposta «presente»); verifica strumentale non eseguita.
 - **Evidenze storiche**: 4.7.1 smoke LIVE10/10 senza ripieghi; QA spaziale receipt37f90c5f, 12 gruppi/24 assert con rollback. Anteprime private conservate, non template e non prove del runtime 4.8.
 - Repertorio canonico 0.3.0 invariato. Gli altri narratori non sono stati modificati né ricertificati.
 
 ## Lavori aperti — in ordine
-1. **[P1] Verifica dominio LAND** — resta non attestata per bloccoURL degli strumenti. DB/Edge sono distribuiti e verificati, LAND caricata; commit e verifiche delle sorgenti/docs selettive nel registro PUBBLICAZIONE. Nessun nuovo esame o campagna stilistica; Tamako viene avviata da Antonello, non da questi task.
+1. ✅ **Sotto-scope ESAME GENIN concluso per approvazione Antonello** — marcatore LAND007 sul dominio attestato manualmente da Antonello; verifica strumentale non eseguita. DB/Edge sono distribuiti e verificati, LAND caricata; commit e verifiche delle sorgenti/docs selettive nel registro PUBBLICAZIONE. Nessun nuovo esame o campagna stilistica; Tamako viene avviata da Antonello, non da questi task.
 2. **[P2] Portare il metodo a combat e missioni** — solo con un mandato separato, mantenendo ricevuta e validatore specifici per consumer.
 3. **[P3] `TASK-AI-ITALIANO-COMUNE-001`** — resta necessario un mandato dedicato.
 
@@ -43,4 +43,4 @@ Riscritta il 05/09/2026 · Codex NARRATORE-UNIFICATO · **Esame4.8/prompt31 LIVE
 [[provider_da_riga_scrivibile]] · [[guardrail_fonte_vs_prompt_certificato]] · [[corpus_reale_come_ancora]] · [[ai_lingua_repertorio_condiviso_018]] · [[accademia_ia_blocco]] · [[scontrino_monouso]] · [[voce_narrativa_066_r2]]
 
 ## Prossimo passo
-Seguire PUBBLICAZIONE per commit/verifiche dei caricamenti selettivi e lasciare esplicita la verifica dominio LAND non attestata. La futura prova narrativa Tamako è manuale di Antonello, non avviata da questi task; i verdi tecnici non sono una nuova certificazione provider.
+Seguire PUBBLICAZIONE per commit/verifiche dei caricamenti selettivi e distinguere il marcatore pubblico attestato manualmente da Antonello dalla verifica strumentale non eseguita. La futura prova narrativa Tamako è manuale di Antonello, non avviata da questi task; i verdi tecnici non sono una nuova certificazione provider.

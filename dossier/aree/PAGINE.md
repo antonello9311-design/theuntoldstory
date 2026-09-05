@@ -1,5 +1,5 @@
 # AREA · Pagine HTML — land, scheda, admin, regole — scheda viva
-Riscritta il 05/09/2026 · Codex NARRATORE-UNIFICATO/LAND-UI · **LAND007 caricata e byte-exact su GitHub; dominio non attestato per bloccoURL degli strumenti**; stato delle altre pagine non riverificato da questo task.
+Riscritta il 05/09/2026 · Codex NARRATORE-UNIFICATO/LAND-UI · **LAND007 caricata e byte-exact su GitHub; marcatore sul dominio attestato manualmente da Antonello; verifica strumentale non eseguita**; stato delle altre pagine non riverificato da questo task.
 
 ## Fonti fondamentali — in quest'ordine, solo il blocco che serve
 1. Skill `gdr-pagine` — il metodo Python con verifica di unicità, il controllo di sintassi del blocco `<script>`, le **14 classi CSS costruite per concatenazione in JS da non rinominare**.
@@ -10,12 +10,12 @@ Riscritta il 05/09/2026 · Codex NARRATORE-UNIFICATO/LAND-UI · **LAND007 carica
 6. `claude/pagina_*.html` — **copie ferme e pesanti** (349 KB la land): solo se serve proprio quella versione storica, mai come base.
 
 ## Stato vivo — LAND verificata il 05/09/2026; altre pagine: dati storici 01/09
-- `land.html` riconciliata dalla baseline006, poi pubblicata `LAND-ESAME-ANCHOR-OPTION-007`,706117B,SHA256 `c241f571d543214d6ca6c5ea4dbbe7e00fafbf0e431bcb0a5b65bfdd2ce144e5`, commit `445bdd7304af95456f32bcf9e47aaed31b25884d`. File GitHub byte-exact e build007 verificati. Conserva option_id opaco, distingue le ancore e blocca scelte scadute; legacy/Scontro invariati, review0/0/0 e8/8. DB336/337 ed Edgev128 verificati prima upload. Verifica diretta dominio non attestata per bloccoURL, nessun aggiramento o nuovo esame.
+- `land.html` riconciliata dalla baseline006, poi pubblicata `LAND-ESAME-ANCHOR-OPTION-007`,706117B,SHA256 `c241f571d543214d6ca6c5ea4dbbe7e00fafbf0e431bcb0a5b65bfdd2ce144e5`, commit `445bdd7304af95456f32bcf9e47aaed31b25884d`. File GitHub byte-exact e build007 verificati. Conserva option_id opaco, distingue le ancore e blocca scelte scadute; legacy/Scontro invariati, review0/0/0 e8/8. DB336/337 ed Edgev128 verificati prima upload. Marcatore LAND-ESAME-ANCHOR-OPTION-007 attestato manualmente da Antonello sul dominio pubblico (risposta «presente»); verifica strumentale non eseguita, nessun nuovo esame.
 - `scheda.html` 225.491 B (`SCHEDA-JUTSU-VISIBILITA-002`, `SCHEDA-LEGGIBILITA`, Training V2 presente). `admin.html` 347.700 B (`ADMIN-138A`, `ADMIN-DELETE-GUARD-003`). `regole.html` 180.138 B (28/08). `entra.html` 26/08. `guida.html` ferma al 07/08.
 - Pulizia del codice morto eseguita su 4 pagine (26/08); `init()` paralleli in admin e scheda (26/08); leggibilità v4 land + v2 scheda (27/08); Regia nella riga del Fato, card Scontro ripulita, legende (27/08); cura ✚ rimossa dalla chat (28/08); fix premio «punti caratteristica» in scheda (29/08).
 
 ## Lavori aperti — in ordine
-0. **[P1] Verifica dominio LAND007** — caricamento GitHub concluso e byte-exact; accesso diretto al dominio bloccato dagli strumenti. Lasciare esplicita verifica manuale utente, senza ulteriori revisioni UI o nuove prove automatiche di gioco.
+0. ✅ **Pubblicazione LAND007 conclusa** — GitHub byte-exact e marcatore sul dominio attestato manualmente da Antonello; verifica strumentale non eseguita. Nessuna nuova prova funzionale automatica.
 1. ✅ **Collaudo del land caricato il 01/09 eseguito il 02/09** (`COMBAT.md` #1): chat libera + pannello solo meccanico, selezione che sopravvive al polling, doppio ruolo Master/PG ok.
 2. **[P1] Difetto Assalto/Moltiplicazione** segnalato dal QA di Itsuki (30/08): assegnato a LAND-UI, mandato da scrivere.
 2b. ✅ **Etichette del menu azione MV2** (02/09, build `LAND-MV2-AZIONE-ETICHETTE-005`, da caricare): «Utilità» → «Azione non offensiva · nessun effetto meccanico», «Movimento · solo spostamento», «Passa · nessuna azione», più una nota che spiega cosa entra nel calcolo. Solo testo, nessuna logica. Resta aperto: una sessione in «preparazione» senza scontro non ha un pulsante per chiudersi («Chiudi attività» compare solo dopo l'esito di un round) — P3, dopo la riorganizzazione.
@@ -40,4 +40,4 @@ Riscritta il 05/09/2026 · Codex NARRATORE-UNIFICATO/LAND-UI · **LAND007 carica
 [[banco_pagina_vera]] · [[prova_resa_pagine]] · [[insieme_chiuso_operatore_in]] · [[porto_fra_linguaggi]] · [[testo_pannelli_larghezza]] · [[qa_coordinate_mappa]] · [[ritiro_funzioni_client]] · [[pulizia_codice_morto_20260826]]
 
 ## Prossimo passo
-LAND007 caricata e verificata su GitHub; controllo diretto del dominio ancora non attestato per bloccoURL degli strumenti. Non avviare Tamako o una nuova prova: la verifica narrativa manuale resta di Antonello. Gli altri interventi restano separati.
+LAND007 caricata e verificata su GitHub; marcatore sul dominio attestato manualmente da Antonello (risposta «presente»), verifica strumentale non eseguita. Non avviare Tamako o una nuova prova: la verifica narrativa manuale resta di Antonello. Gli altri interventi restano separati.
