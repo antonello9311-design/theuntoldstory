@@ -1,5 +1,5 @@
 # AREA · IA narrativa — repertorio, voce, provider — scheda viva
-Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-COMPACT-4.7.1`) · **stato dell'area: in uso; `exam_genin_ai` 4.7.1/prompt30 LIVE e smoke completo verde**
+Riscritta il 05/09/2026 · Codex NARRATORE-UNIFICATO · **Esame4.8/prompt31 LIVE v128 verificata; DB336/337 applicati; LAND007 caricata, dominio non attestato per blocco degli strumenti**
 
 ## Fonti fondamentali — in quest'ordine, solo il blocco che serve
 1. `management/repertorio/README.md`, `MANIFESTO.json`, `GENERAZIONE.md`, `REFERTO_0_3_0.md`, `STORICO_VERSIONI.md` — **la fonte canonica** del repertorio condiviso di lingua e narrazione (v0.3.0, promosso). Le note di redazione sugli esiti vanno qui, non in un handoff.
@@ -11,20 +11,20 @@ Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-COMPACT-4.7.1`) · **s
 5. Registro `public.ai_agents` (kind, model, persona, is_active) — il provider è quello a database, mai dedotto da una riga scrivibile.
 6. Memoria di progetto: `ai_lingua_repertorio_condiviso_018`, `provider_da_riga_scrivibile` (🔴), `corpus_reale_come_ancora`, `guardrail_fonte_vs_prompt_certificato`, `narratori_luna_046`.
 
-## Stato vivo — aggiornato il 04/09/2026
-- **`exam_genin_ai` 4.7.1/prompt30 LIVE**, `verify_jwt=false`, pacchetto riscaricato 9/9 byte-exact. Locale 189/189, checksum 9/9 e review indipendente 0/0/0.
-- **Candidata `4.6.6-NU001-CANDIDATO`, prompt29**: alias nominativo esatto canonicalizzato fail-closed, tetti `11.798/8.848`, Luna/high e verbosity medium; 186/186, Deno/checksum 9/9 e review `0/0/0`. Edge QA v125 byte-exact. Ultima A–G **15/18**: A08/A09/A17 `max_tokens`; i 15 verdi hanno 438–1.159 caratteri e 0 qualità/avvisi. Gate produzione negato.
-- **Gate 4.7.1**: vettore compatto ricomposto server-side, strict rimosso, tetto 1.024. Unico A08 QA verde; smoke LIVE completo con `testperfunzioni`, 10/10 cicli Luna/prompt30/stop, 0 ripieghi e 0 non conformi; chiusura isolata con XP 0 e grado invariato. Branch QA reso inerte; produzione resta attiva.
-- **Confronto empirico su due esami**: preflight fermato prima del provider perché il branch non contiene due catene da tre cicli e il replay di agosto non conserva le azioni byte-exact. Luna 0/6, Terra 0/1, costo $0; nessun verdetto qualitativo aggiunto.
-- Narratori Edge: `exam_genin_ai` LIVE 4.7.1/prompt30; branch QA sulla stessa revisione ma inerte, token ruotato, 0 prove aperte e 0 cicli non terminali. Gli altri non sono stati modificati né ricensiti.
-- Provider: **unico**, `gpt-5.6-luna` con `reasoning: high` (142A/145B/145C: braccio unico, provider ritirato rimosso fisicamente). `OPENAI_API_KEY` è operativo anche sul branch QA; mai letto o stampato.
-- Repertorio 018 R2 promosso (v0.3.0); caporali validati; `innesti.json` ricco. **Provato nel bundle v102 che l'innesto performativo NON arriva alla chiamata Surface del Narratore** (usa il proprio prompt dal seed, persona ridotta).
-- Diagnosi del 29/08: coerenza raggiunta e provata; **espressività mancante per costruzione** (persona descrittiva senza esempi di voce, esito legato per famiglia, validazione per riferimento e non per contenuto); prosa del giocatore in quarantena → il Narratore non può riprendere l'azione descritta dal PG.
+## Stato vivo — aggiornato il 05/09/2026
+- **LIVE verificata direttamente**: singolo deploy `exam_genin_ai` v128,4.8.0/prompt31,ACTIVE/JWTfalse. Download10/10 byte-exact al manifesto `71535d50ce8ee07cf41c193e45ff3f6343dda635df062f6012d4a6b97cce58f4`; bundle remoto `d7b7466fa9903a3232b38d8806849989249ded3b7e15f2d4427e2fb2ffa138ee`. Unico smoke impronta HTTP200,0provider/SQL, promptSHA `c4009b3394b62b35ba724d6068c8323f23e3358892734eac9395d23958564075`.
+- **4.8/prompt31 distribuita**:22 gruppi editoriali condivisi in sistema attivo, piano, brief e giudice; prosa diretta Luna/high e controllo Terra/high bloccante. Tetti14.158/10.618, giudice4096; due chiamate al massimo, conteggiate effettivamente. Nessun nuovo smoke narrativo completo o attestazione zero fallback.
+- **Review unica e correzione aggregata**: primo referto0/3/2, controverifica finale0/0/0. Suite201/201, orchestrazione simulata1/1 e LAND8/8. Gate integrato DB16/16 e quattro payload NATIVI4/4 in93ms,0provider; tutti png_esito ciclo/replay Konoha bound e Suna legacy, non quattro ruoli.
+- **Dipendenze integrate LIVE**: DB-CORE ha applicato una volta codice20260904233136 e seed20260904233137, SHA95472cf8/2fcab661 esatti; postflight33corpi/ACL verdi dopo ciascuno. Konoha10x10,8oggetti,2slot,1binding e1route abilitata; Suna resta legacy. Runtime prima/dopo invariato e0esamiaperti. Evidenza `QA-BRANCH-BASELINE-REPAIR_2026-09-04/referti/PRODV5_LIVE_APPLY_RESULT.json`, SHA0c0edb96. Nessuna geometria Suna nuova.
+- **Provenienza card esplicita**: adattamento del catalogo jutsu LIVE, non revisione editoriale inventata. effect duplicato in descrizione/effetto; action_type indica solo tipologia. Vecchi limits della Sostituzione esclusi; distanze dalla ricevuta common/server. Sigilli generici della Sostituzione autorizzati da Antonello come licenza redazionale separata, identica per Luna/Terra, senza nuove sequenze o regole.
+- **LAND**: scelta dell'ancora tramite option_id opaco, build LAND-ESAME-ANCHOR-OPTION-007,706117B,SHA c241f571d543214d6ca6c5ea4dbbe7e00fafbf0e431bcb0a5b65bfdd2ce144e5; caricata in root GitHub commit445bdd7304af95456f32bcf9e47aaed31b25884d. Review0/0/0 e8/8, riconciliazione remota verde. Verifica diretta dominio non attestata: accesso bloccato dagli strumenti, nessun aggiramento.
+- **Evidenze storiche**: 4.7.1 smoke LIVE10/10 senza ripieghi; QA spaziale receipt37f90c5f, 12 gruppi/24 assert con rollback. Anteprime private conservate, non template e non prove del runtime 4.8.
+- Repertorio canonico 0.3.0 invariato. Gli altri narratori non sono stati modificati né ricertificati.
 
 ## Lavori aperti — in ordine
-1. ✅ **Rilascio Narratore 4.7.1** — manifesto, review, A08, produzione e smoke completo conclusi.
+1. **[P1] Verifica dominio LAND** — resta non attestata per bloccoURL degli strumenti. DB/Edge sono distribuiti e verificati, LAND caricata; commit e verifiche delle sorgenti/docs selettive nel registro PUBBLICAZIONE. Nessun nuovo esame o campagna stilistica; Tamako viene avviata da Antonello, non da questi task.
 2. **[P2] Portare il metodo a combat e missioni** — solo con un mandato separato, mantenendo ricevuta e validatore specifici per consumer.
-3. **[P3] `TASK-AI-ITALIANO-COMUNE-001`** — il prerequisito dell'Esame stabile in produzione è ora soddisfatto; resta necessario un mandato dedicato.
+3. **[P3] `TASK-AI-ITALIANO-COMUNE-001`** — resta necessario un mandato dedicato.
 
 ## Parcheggiato — non riaprire senza mandato
 - Proposte P2 (blocco voice nella persona), P3 (aprire 018 R2 — già promosso), P5 (audit corpus di ripiego 26–29/08), P6 (contesti orfani `narrative_context_exam/combat`), P7 (caporali — già validati), P8 (`prompt_version`).
@@ -32,7 +32,7 @@ Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-COMPACT-4.7.1`) · **s
 
 ## Decisioni chiuse — non ridiscutere
 - «L'IA racconta, il server comanda»: nessun valore di gioco dall'IA; persona, fatti, frame e permessi sono autoritativi lato server.
-- Una chiamata modello per ciclo; la risposta in ritardo si scarta; al modello arriva l'elenco già sfrondato.
+- 4.7.1 usava una chiamata; Esame4.8 distribuita usa Luna più giudice Terra bloccante, senza retry automatico. Il programma QA comunicante futuro, asincrono e offline, resta distinto e non realizzato.
 - Il provider si risolve **prima** di spendere il gettone; `ai_agents.model` non è un instradatore.
 - I due asterischi di `personas.json` sono contenuto e non si normalizzano.
 - Le cinque IA non condividono memoria: ogni consumer riceve e prova esplicitamente il contratto.
@@ -43,4 +43,4 @@ Riscritta il 04/09/2026 · da Codex (`NARRATORE-UNIFICATO-COMPACT-4.7.1`) · **s
 [[provider_da_riga_scrivibile]] · [[guardrail_fonte_vs_prompt_certificato]] · [[corpus_reale_come_ancora]] · [[ai_lingua_repertorio_condiviso_018]] · [[accademia_ia_blocco]] · [[scontrino_monouso]] · [[voce_narrativa_066_r2]]
 
 ## Prossimo passo
-Nessun nuovo ciclo sul Narratore dell'Esame: 4.7.1 è verificata end-to-end. I consumer Combat e Missioni restano separati e richiedono un mandato proprio.
+Seguire PUBBLICAZIONE per commit/verifiche dei caricamenti selettivi e lasciare esplicita la verifica dominio LAND non attestata. La futura prova narrativa Tamako è manuale di Antonello, non avviata da questi task; i verdi tecnici non sono una nuova certificazione provider.
