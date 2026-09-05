@@ -1,33 +1,34 @@
 // exam_genin_ai — il Narratore dell'Esame Genin (NARRATORE-UNIFICATO-001)
 //
-// FUNCTION_VERSION 4.7.1-NU001-CANDIDATO · payload del ciclo 5 · prompt 30.
+// FUNCTION_VERSION 4.8.0-NU001-CANDIDATO · payload del ciclo 5 · prompt 31.
 // Sostituisce per intero la v106 (3.11.0-122): stessa porta (POST {prova_id} o
 // {class_session_id}; `x-tick-token` del tick oppure JWT del candidato o dello
 // staff), stesse risposte per la land ({pubblicato:true} / {ripiego:true}),
 // stessa uscita al database (`esame_narrazione_apply`). Cambia tutto il resto:
 //   · ingresso: `_esame_ciclo_payload` v5 (ricevuta arricchita, scena in terza
 //     persona, dossier dello sfidante, aula per villaggio);
-//   · dentro: piano narrativo in otto punti → una chiamata a gpt-5.6-luna →
-//     validatore per riferimenti;
+//   · dentro: piano narrativo → prosa Luna → validatore per riferimenti →
+//     giudizio Terra; pubblicazione soltanto se tutti i controlli passano;
 //   · niente gate V5 (147F), niente surface mode, niente innesti: il metodo
 //     editoriale delle Missioni IA sta nel prompt e nel piano.
-// Regole che non cambiano: l'IA racconta, il server comanda; una chiamata per
-// ciclo LIVE; la prova non si blocca mai (ogni guasto → ripiego del database);
+// Regole che non cambiano: l'IA racconta, il server comanda; nessun retry.
+// Un ciclo usa Luna e, se la risposta è leggibile, Terra; chiamate effettive.
+// La prova non si blocca mai (ogni guasto → ripiego del database);
 // nessuna chiave nel codice. Replay: `{replay_prova_id, ciclo_id?}` con il
-// token del tick, mai in gioco, nessuna scrittura; può fare un solo secondo
-// tentativo quando il primo è meccanicamente valido ma debole in qualità.
+// token del tick, mai in gioco, nessuna scrittura né secondo tentativo.
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {
-  CONTRATTO_CICLO, FUNCTION_VERSION, MODELLO, PROMPT_VERSION, REASONING_EFFORT,
-  TETTI_TOKEN, TIMEOUT_MODELLO_MS, completaPayloadReplay, numeriNelPayload, verificaPayloadV5, type PayloadV5,
+  CONTRATTO_CICLO, FUNCTION_VERSION, MODELLO, MODELLO_GIUDICE, PROMPT_VERSION, REASONING_EFFORT,
+  TETTI_TOKEN, TETTO_TOKEN_GIUDICE, TIMEOUT_GIUDICE_MS, TIMEOUT_MODELLO_MS, completaPayloadReplay, numeriNelPayload, verificaPayloadV5, type PayloadV5,
 } from "./contratto.ts";
 import { costruisciPiano } from "./piano.ts";
-import { PROMPT_SISTEMA, costruisciUtente, decodificaVettoreCompatto, improntaPrompt, layoutCompatto } from "./prompt.ts";
+import { PROMPT_SISTEMA, costruisciUtente, improntaPrompt, schemaProsaDiretta } from "./prompt.ts";
 import { chiamaModello, nomeChiave } from "./provider.ts";
-import { materializzaProvenienzaAtomica } from "./provenienza.ts";
-import { valida } from "./validatore.ts";
+import { materializzaProvenienza, selezionaIntenzione } from "./provenienza.ts";
+import { claimCorrisponde, valida } from "./validatore.ts";
+import { PROMPT_GIUDICE, SCHEMA_GIUDIZIO, costruisciPromptGiudice, leggiGiudizio } from "./giudice.ts";
 
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -59,24 +60,13 @@ async function ripiegoDelDatabase(admin: Admin, prova: string, ricevuta: string,
 }
 
 /** Il ciclo: payload → piano → modello → validatore → uscita. Nessuna scrittura qui. */
-async function eseguiCiclo(payload: PayloadV5, chiave: string, correzioniQualita: string[] = []) {
+async function eseguiCiclo(payload: PayloadV5, chiave: string) {
   const piano = costruisciPiano(payload);
   const sistema = PROMPT_SISTEMA;
-  const baseUtente = costruisciUtente(payload, piano);
-  const utente = correzioniQualita.length
-    ? `${baseUtente}\n\nRIGENERAZIONE QUALITATIVA CONTROLLATA (non cambia alcun fatto):\n- ${correzioniQualita.join("\n- ")}`
-    : baseUtente;
-  try { layoutCompatto(payload, piano); } catch (e) {
-    return {
-      ok: false as const,
-      motivi: [`contratto_schema_non_soddisfacibile: ${String((e as Error)?.message ?? e).slice(0, 240)}`],
-      telemetria: { model: MODELLO, latency_ms: 0, stop_reason: null, input_tokens: null, output_tokens: null, reasoning_tokens: null,
-        piano_sha256: await sha256(JSON.stringify(piano)), stato_sfidante: piano.stato_sfidante.voci_di_tattica_attive },
-      piano,
-    };
-  }
+  const utente = costruisciUtente(payload, piano);
   const risposta = await chiamaModello({
     chiave, modello: MODELLO, effort: REASONING_EFFORT, sistema, utente,
+    schema: schemaProsaDiretta(payload),
     maxTokens: TETTI_TOKEN[payload.ruolo], timeoutMs: TIMEOUT_MODELLO_MS,
   });
   const telemetria = {
@@ -85,20 +75,40 @@ async function eseguiCiclo(payload: PayloadV5, chiave: string, correzioniQualita
     reasoning_tokens: risposta.reasoning_tokens ?? null, piano_sha256: await sha256(JSON.stringify(piano)),
     stato_sfidante: piano.stato_sfidante.voci_di_tattica_attive,
   };
-  if (!risposta.ok) return { ok: false as const, motivi: [`modello: ${risposta.status ?? 0} ${risposta.detail ?? ""}`.trim()], telemetria, piano };
-  if (risposta.stop_reason === "max_tokens") return { ok: false as const, motivi: ["tetto_token_raggiunto"], telemetria, piano, stop_reason: "max_tokens", testo: risposta.text ?? "" };
+  if (!risposta.ok) return { ok: false as const, chiamate: 1, motivi: [`modello: ${risposta.status ?? 0} ${risposta.detail ?? ""}`.trim()], telemetria, piano };
+  if (risposta.stop_reason === "max_tokens") return { ok: false as const, chiamate: 1, motivi: ["tetto_token_raggiunto"], telemetria, piano, stop_reason: "max_tokens", testo: risposta.text ?? "" };
   let grezza: Record<string, unknown>;
-  try { grezza = decodificaVettoreCompatto(risposta.text ?? "", payload, piano); } catch (e) {
-    return { ok: false as const, motivi: [`protocollo_compatto: ${String((e as Error)?.message ?? e).slice(0, 240)}`], telemetria, piano };
+  try {
+    const raw = JSON.parse(risposta.text ?? "");
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("radice non valida");
+    const r = raw as Record<string, unknown>;
+    if (JSON.stringify(Object.keys(r).sort()) !== JSON.stringify(["azione_png", "esiti"])) throw new Error("chiavi non valide");
+    grezza = { scelta: { intenzione_id: selezionaIntenzione(payload), azione_png: r.azione_png, esiti: r.esiti } };
+  } catch (e) {
+    return { ok: false as const, chiamate: 1, motivi: [`bozza_narrativa_non_leggibile: ${String((e as Error)?.message ?? e).slice(0, 180)}`], telemetria, piano };
   }
-  const uscita = materializzaProvenienzaAtomica(grezza, payload, piano);
+  const uscita = materializzaProvenienza(grezza, payload, piano, (id, frase) => claimCorrisponde(piano, id, frase));
   const verdetto = valida(uscita, payload, piano);
+  const rilieviDeterministici = [...verdetto.errori, ...verdetto.qualita];
+  const giudiceRaw = await chiamaModello({
+    chiave, modello: MODELLO_GIUDICE, effort: REASONING_EFFORT, sistema: PROMPT_GIUDICE,
+    utente: costruisciPromptGiudice(payload, piano, uscita, rilieviDeterministici),
+    schema: SCHEMA_GIUDIZIO,
+    maxTokens: TETTO_TOKEN_GIUDICE, timeoutMs: TIMEOUT_GIUDICE_MS,
+  });
+  const giudizio = giudiceRaw.ok && giudiceRaw.stop_reason !== "max_tokens"
+    ? leggiGiudizio(giudiceRaw.text ?? "")
+    : { verde: false, rilievi: [giudiceRaw.stop_reason === "max_tokens" ? "Terra ha raggiunto il tetto token" : `Terra non disponibile: ${giudiceRaw.detail ?? giudiceRaw.status ?? "errore"}`] };
+  const motivi = [...verdetto.errori, ...verdetto.qualita, ...giudizio.rilievi];
   return {
-    ok: verdetto.errori.length === 0,
-    motivi: verdetto.errori,
+    ok: motivi.length === 0 && giudizio.verde,
+    chiamate: 2,
+    motivi,
     qualita: verdetto.qualita,
     avvisi: verdetto.avvisi,
-    uscita, telemetria, piano,
+    uscita, telemetria, piano, giudizio,
+    telemetria_giudice: { model: giudiceRaw.model, latency_ms: giudiceRaw.latency_ms, stop_reason: giudiceRaw.stop_reason ?? null,
+      input_tokens: giudiceRaw.input_tokens ?? null, output_tokens: giudiceRaw.output_tokens ?? null, reasoning_tokens: giudiceRaw.reasoning_tokens ?? null },
   };
 }
 
@@ -116,9 +126,10 @@ Deno.serve(async (req: Request) => {
       return json({
         ok: true, function_version: FUNCTION_VERSION, contratto_ciclo: CONTRATTO_CICLO,
         prompt_version: PROMPT_VERSION, impronta_prompt: await improntaPrompt(),
-        modello: MODELLO, reasoning: REASONING_EFFORT, tetti_token: TETTI_TOKEN, chiamate_per_ciclo: 1,
-        gate_v5: "ritirato", metodo: "ricevuta → brief minimo → prosa → provenienza deterministica → validatore meccanico + qualità",
-        replay_chiamate_massime: 1,
+        modello: MODELLO, giudice: MODELLO_GIUDICE, reasoning: REASONING_EFFORT, tetti_token: TETTI_TOKEN,
+        tetto_token_giudice: TETTO_TOKEN_GIUDICE, chiamate_per_ciclo: 2,
+        gate_v5: "ritirato", metodo: "ricevuta → piano causale → bozza Luna → controlli deterministici → giudizio Terra → pubblicazione solo verde",
+        replay_chiamate_massime: 2,
       });
     }
 
@@ -170,14 +181,15 @@ Deno.serve(async (req: Request) => {
         const numeri = numeriNelPayload(payload).filter((x) => !/^originale\./.test(x));
         if (numeri.length) { esiti.push({ ciclo: c.id, ruolo: c.ruolo, errore: `numeri nel payload: ${numeri.join(",")}` }); continue; }
         const r = await eseguiCiclo(payload, chiave);
-        const chiamate = 1;
+        const chiamate = r.chiamate;
         const primaQualita = (r as any).qualita ?? [];
         const primaTelemetria = r.telemetria;
         esiti.push({
           ciclo: c.id, ruolo: c.ruolo, ok: r.ok, motivi: r.motivi,
           qualita: (r as any).qualita ?? [], qualita_primo_tentativo: primaQualita,
           avvisi: (r as any).avvisi ?? [], chiamate,
-          telemetria: r.telemetria, telemetria_primo_tentativo: primaTelemetria,
+          telemetria: r.telemetria, telemetria_primo_tentativo: primaTelemetria, telemetria_giudice: (r as any).telemetria_giudice,
+          giudizio: (r as any).giudizio,
           perche: (r as any).uscita?.perche ?? null,
           azione_png: (r as any).uscita?.azione_png ?? (r as any).testo ?? null, esiti: (r as any).uscita?.esiti ?? null,
           player_reprise_ids: (r as any).uscita?.player_reprise_ids ?? [],
@@ -232,7 +244,8 @@ Deno.serve(async (req: Request) => {
 
     const r = await eseguiCiclo(payload, chiave);
     const ctx = { ...r.telemetria, contratto_ciclo: CONTRATTO_CICLO, prompt_version: PROMPT_VERSION, function_version: FUNCTION_VERSION,
-      qualita: (r as any).qualita ?? [], avvisi: (r as any).avvisi ?? [], perche: (r as any).uscita?.perche ?? null, chiamate: 1,
+      qualita: (r as any).qualita ?? [], avvisi: (r as any).avvisi ?? [], perche: (r as any).uscita?.perche ?? null, chiamate: r.chiamate,
+      giudizio: (r as any).giudizio ?? null, telemetria_giudice: (r as any).telemetria_giudice ?? null,
       provenienza: r.ok ? {
         player_reprise_ids: (r as any).uscita?.player_reprise_ids ?? [],
         fonti_azione: (r as any).uscita?.fonti_azione ?? [],

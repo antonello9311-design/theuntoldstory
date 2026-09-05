@@ -7,7 +7,7 @@
 // nessun coprifronte ai Deshi, la mossa nasce dalla tattica e dallo stato.
 
 import { CONTRATTO_CICLO, TETTI_PROSA, type PayloadV5, type Ruolo } from "./contratto.ts";
-import type { Piano } from "./piano.ts";
+import { ISTRUZIONI_EDITORIALI, type Piano } from "./piano.ts";
 import { SLOT_RACCORDI, costruisciScheletroCiclo, selezionaIntenzione, type AtomoMeccanico } from "./provenienza.ts";
 
 const VOCABOLARIO_COMPATTO = {
@@ -41,16 +41,23 @@ LA FORMA. Un unico paragrafo per ogni testo richiesto, al tempo presente (mai il
   " Il tono resta concreto, fisico e cinematografico, senza un brano-modello da riprodurre.",
 );
 
-/** Contratto generativo 8: Luna sceglie soltanto slot narrativi chiusi. */
-export const PROMPT_SISTEMA = `Sei il raccordatore narrativo dell'Esame Genin di «The Untold Story».
+/** Contratto generativo 9: Luna scrive la scena; il server conserva l'autorità. */
+export const PROMPT_SISTEMA = `Sei il Narratore dell'Esame Genin di «The Untold Story». Scrivi in italiano, in terza persona, con voce concreta, fisica e cinematografica.
 
-AUTORITÀ. La Edge ha già costruito uno scheletro meccanico immutabile. Tu non lo vedi, non lo completi e non lo riscrivi: ogni attore, bersaglio, esito, conseguenza, movimento, posizione e iniziativa sarà inserito dal server dopo la tua risposta.
+AUTORITÀ. L'IA racconta, il server comanda. Il brief contiene i soli fatti meccanici ammessi: attori, gesto autorizzato del candidato, reazione o tecnica offerta, esito, zona, conseguenza, posizione, ancora e iniziativa. Non correggere, ampliare o decidere questi fatti.
 
-COMPITO. Per ogni raccordo scegli, nell'ordine richiesto, un ID per ciascuno dei quattro slot chiusi: fuoco, contrappunto, chiusura ed estensione. Gli ID combinano soltanto atmosfera impersonale. Varia le combinazioni usando la memoria esclusivamente per non ripeterti.
+ASSE CAUSALE. La scena parte dal candidato: gesto, postura, traiettoria, bersaglio e tema delle sue parole. Mostra poi il TENTATIVO dello sfidante prima del risultato: lettura, decisione, gesto e, quando la scheda lo autorizza, sigilli, chakra raccolto e modo in cui viene impiegato. Solo dopo racconta l'esito ricevuto; chiudi sulle conseguenze corporee e sulle posizioni. La Sostituzione è valida soltanto se preparazione, attacco in arrivo, sigilli o attivazione autorizzata, chakra, ancora e riapparizione della ricevuta spaziale compaiono nella stessa catena causale.
 
-DIVIETI. Non scrivere parole o prosa libera, non nominare alcun attore o persona e non aggiungere proprietà. Non produrre atomi, azione_png, testi meccanici, fonti, spiegazioni o autocertificazioni.
+PERSONA. Lo sfidante è fisicamente ed emotivamente presente: aspetto, appoggi, sguardo, tensione, desiderio, esitazione e tattica derivano dal dossier e devono modificare le sue azioni. Se il candidato parla, lo sfidante risponde davvero al significato con una o più battute naturali secondo il proprio ritmo; non ripete né parafrasa meccanicamente le parole del candidato. L'ambiente entra soltanto quando un corpo lo tocca, lo sposta, lo sente o lo usa.
 
-FORMA. Restituisci soltanto il JSON compatto, per esempio ${JSON.stringify(ESEMPIO_SINTASSI_COMPATTA)}. La lista v deve avere esattamente una quadrupla per ogni posizione indicata, nello stesso ordine e con l'estensione indicata per quella posizione. Non scrivere nomi di sezioni o rami e non ripetere la stessa quadrupla.`;
+TECNICHE. La scheda tecnica fornita è la fonte canonica dei dati disponibili; non chiamarla revisionata editorialmente se è soltanto un adattamento del catalogo. Categoria, descrizione, effetto, attivazione e chakra servono a mostrare come viene tentata, non sono un elenco da recitare. Descrizione ed effetto possono riprodurre lo stesso campo canonico: non sono due attestazioni indipendenti. Il tipo di azione reazione/mantenuta/istantanea non specifica preparazione né presenza o assenza di sigilli. Se una fonte esplicita richiede sigilli, le mani li compongono prima dell'effetto senza nomi o sequenze inventati. Le licenze in regia.licenze_redazionali autorizzano soltanto la resa narrativa dichiarata e non cambiano i dati del motore. La ricevuta spaziale decide le posizioni: rispetta la sua autorità dichiarata; legacy_server_1d non attesta coordinate, traiettorie o clearance 2D. Non completare fatti mancanti e non imporre distanze minime diverse dalla ricevuta.
+
+FORMA. Ogni campo è un solo paragrafo fluido al presente narrativo: gli eventi della scena corrente non sono raccontati all'imperfetto o al passato. Il passato resta ammesso quando necessario per antefatti o dentro dialoghi, senza spostare al passato la scena corrente. Non usare etichette del motore come «Colpo a mani nude», formule da referto, cifre, note tecniche o spiegazioni. Descrivi arto, traiettoria, bersaglio e postura. Varia aperture, immagini e chiusure; evita ripetizioni anche tra azione e branche. L'ultima frase rende leggibile l'iniziativa indicata dal server attraverso il corpo e la posizione, senza assegnarla ad altri.
+
+USCITA. Restituisci soltanto JSON semplice: {"azione_png":"...","esiti":{"nome_esito":"..."}}. Usa tutte e sole le chiavi di esito richieste. Non restituire intenzioni, prove, fonti o autocertificazioni.
+
+REGIA CONDIVISA MISSIONI/ESAME. Applica le regole seguenti ai soli fatti e ruoli disponibili. Le istruzioni specifiche del ruolo delimitano cosa è già risolto e cosa resta pending; non inventare linee, PNG o finali per soddisfare una regola generale.
+${ISTRUZIONI_EDITORIALI}`;
 
 const ISTRUZIONI_RUOLO_LEGACY: Record<Ruolo, string> = {
   png_difende: `CICLO «png_difende»: il candidato ha appena attaccato; ricevi soltanto i suoi claim autorizzati nel player_bridge e lo sfidante deve reagire. Scegli UNA reazione fra le intenzioni offerte, come conseguenza della sua tattica e del suo stato. Scrivi:
@@ -64,12 +71,12 @@ const ISTRUZIONI_RUOLO_LEGACY: Record<Ruolo, string> = {
 };
 
 const ISTRUZIONI_RUOLO: Record<Ruolo, string> = {
-  png_difende: "Raccorda lo scheletro d'azione e tutte le sue branche, senza descriverne la meccanica.",
-  png_attacca: "Raccorda lo scheletro d'azione e tutte le sue branche, senza descriverne la meccanica.",
-  png_esito: "Raccorda lo scheletro chiuso dell'esito; l'oggetto esiti resta vuoto.",
-  png_finale: "Raccorda lo scheletro chiuso dell'esito e dell'intervento finale; l'oggetto esiti resta vuoto.",
+  png_difende: "Il candidato attacca. azione_png mostra il suo gesto e la preparazione ancora irrisolta della difesa scelta. Ogni branca prosegue quella stessa causalità, racconta soltanto il proprio esito autorizzato e chiude con l'iniziativa allo sfidante.",
+  png_attacca: "Racconta l'esito già risolto dell'attacco del candidato, poi apre il nuovo attacco irrisolto dello sfidante. Ogni branca racconta soltanto il proprio esito possibile e chiude con l'iniziativa al candidato.",
+  png_esito: "Racconta la difesa del candidato e l'esito già risolto dell'attacco dello sfidante; chiudi con l'iniziativa al candidato. esiti resta vuoto.",
+  png_finale: "Racconta l'ultimo esito e l'intervento del Sensei; la prova si chiude e esiti resta vuoto.",
 };
-const ISTRUZIONE_ATTACCO_SENZA_ESITO = ISTRUZIONI_RUOLO.png_attacca;
+const ISTRUZIONE_ATTACCO_SENZA_ESITO = "Non c'è un esito precedente: azione_png apre soltanto l'attacco irrisolto dello sfidante; le branche ne raccontano gli esiti possibili e restituiscono l'iniziativa al candidato.";
 void PROMPT_SISTEMA_LEGACY;
 void ISTRUZIONI_RUOLO_LEGACY;
 
@@ -110,14 +117,16 @@ function obblighiIntenzione(p: PayloadV5, intenzioneId: string): string[] {
 }
 
 function obblighiAzione(p: PayloadV5): string[] {
-  const senzaDialogo = "nessun dialogo, caporale, virgoletta o parola pronunciata in alcun testo";
+  const dialogo = p.ruolo === "png_finale"
+    ? "nel congedo lo sfidante reagisce col corpo; il parlato finale spetta soltanto al Sensei secondo il contratto del finale"
+    : "se il candidato ha parlato, lo sfidante risponde al tema con dialogo naturale fra caporali senza ripetere la battuta del candidato; altrimenti il dialogo segue soltanto la voce del personaggio";
   const formaIntegra = "nessun carattere numerico e nessuna nota di stesura, correzione, debug, errore o validazione; soltanto prosa italiana finita";
   const assettoFinale = "l'ultima frase mostra dove restano i due e a chi torna l'iniziativa, rendendo visibile il nuovo assetto senza formula da referto";
   if (p.ruolo === "png_attacca") return p.esito_precedente
-    ? [...obblighiRisolti(p), "poi, e soltanto poi, apre il nuovo attacco irrisolto scelto; da quel punto nessun contatto, reazione, riuscita, fallimento o conseguenza", senzaDialogo, formaIntegra, assettoFinale]
-    : ["nessun esito in azione_png: apre soltanto il nuovo attacco irrisolto scelto, senza contatto, reazione, riuscita, fallimento o conseguenza", senzaDialogo, formaIntegra, assettoFinale];
-  if (p.ruolo === "png_esito" || p.ruolo === "png_finale") return [...obblighiRisolti(p), senzaDialogo, formaIntegra, assettoFinale];
-  return ["la reazione dello sfidante resta interamente irrisolta", senzaDialogo, formaIntegra, assettoFinale];
+    ? [...obblighiRisolti(p), "prima ricostruisce il tentativo che ha prodotto l'esito; poi, e soltanto poi, apre il nuovo attacco irrisolto scelto; da quel punto nessun contatto, reazione, riuscita, fallimento o conseguenza", dialogo, formaIntegra, assettoFinale]
+    : ["nessun esito in azione_png: apre soltanto il nuovo attacco irrisolto scelto, senza contatto, reazione, riuscita, fallimento o conseguenza", dialogo, formaIntegra, assettoFinale];
+  if (p.ruolo === "png_esito" || p.ruolo === "png_finale") return [...obblighiRisolti(p), "mostra il tentativo prima del risultato già deciso", dialogo, formaIntegra, assettoFinale];
+  return ["la reazione dello sfidante resta interamente irrisolta ma il tentativo è concreto e completo", dialogo, formaIntegra, assettoFinale];
 }
 
 function esempioCompatto(p: PayloadV5, piano: Piano): { v: string[][] } {
@@ -141,27 +150,80 @@ export function costruisciUtente(p: PayloadV5, piano: Piano): string {
   const scena = p.scena as Record<string, any>;
   const dossier = p.dossier as Record<string, any>;
   const intenzioneId = selezionaIntenzione(p);
-  const s = costruisciScheletroCiclo(p, piano, intenzioneId);
-  const ordineOutput = layoutCompatto(p, piano).posizioni.map((x) => `${x.sezione}:${x.estensione}`);
+  const intenzione = p.intenzioni.find((x) => x.id === intenzioneId)!;
+  const schede = p.schede_tecniche ?? [];
+  const schedaScelta = intenzione.tecnica_id ? schede.find((x) => x.id === intenzione.tecnica_id) ?? null : null;
+  const tecnicaRisoltaId = typeof p.esito_precedente?.tecnica_id === "string" ? p.esito_precedente.tecnica_id : null;
+  const schedaRisolta = tecnicaRisoltaId ? schede.find((x) => x.id === tecnicaRisoltaId) ?? null : null;
+  const iniziativaFinale = p.ruolo === "png_difende"
+    ? piano.riferimenti.sfidante
+    : p.ruolo === "png_finale" ? "prova chiusa" : piano.riferimenti.candidato;
   const contesto = {
-    ambiente: { luce: scena.luogo?.luce ?? null, aria: scena.luogo?.aria ?? null, suolo: scena.luogo?.suolo ?? null, pareti: scena.luogo?.pareti ?? null },
-    ritmo_sfidante: { tratti: dossier.tratti ?? null, ritmo: dossier.ritmo ?? null, registro: dossier.registro ?? null },
-    forma_protetta: { azione: s.azione.map((a) => a.tipo), esiti: Object.fromEntries(Object.entries(s.esiti).map(([k, xs]) => [k, xs.map((a) => a.tipo)])) },
-    slot_raccordi: {
-      fuoco: VOCABOLARIO_COMPATTO.fuoco,
-      contrappunto: VOCABOLARIO_COMPATTO.contrappunto,
-      chiusura: VOCABOLARIO_COMPATTO.chiusura,
-      estensione: VOCABOLARIO_COMPATTO.estensione,
+    ruolo: p.ruolo,
+    regia: piano.regia,
+    attori: { candidato: piano.riferimenti.candidato, sfidante: piano.riferimenti.sfidante, sensei: piano.riferimenti.sensei },
+    candidato: {
+      claim_autorizzati: piano.player_bridge.claims,
+      temi_dialogo: piano.riferimenti.player_utterances,
+      ha_parlato: piano.riferimenti.player_utterances.length > 0,
     },
-    output_compatto: { ordine: ordineOutput, esempio_valido: esempioCompatto(p, piano) },
+    server: {
+      esito_precedente: p.esito_precedente,
+      fatti_del_ciclo: p.fatti_del_ciclo,
+      intenzione_scelta: intenzione,
+      scheda_tecnica_scelta: schedaScelta,
+      scheda_tecnica_esito_precedente: schedaRisolta,
+      schede_tecniche_provenienza: p.schede_tecniche_provenienza ?? null,
+      spazio_revisionato: (p.scena as Record<string, unknown>).spazio ?? null,
+      esiti_richiesti: [...new Set(intenzione.esiti_possibili.map(String))].sort(),
+      iniziativa_finale: iniziativaFinale,
+    },
+    sfidante: {
+      aspetto: dossier.aspetto ?? null,
+      bio: dossier.bio ?? null,
+      scopo: dossier.scopo ?? null,
+      condotta: dossier.condotta ?? null,
+      reazioni: dossier.reazioni ?? null,
+      firma_fisica: dossier.firma_fisica ?? null,
+      voce: dossier.voce ?? null,
+      ritmo: dossier.ritmo ?? null,
+      registro: dossier.registro ?? null,
+      tattica_per_stato: dossier.tattica_per_stato ?? null,
+      tattica_attiva: piano.stato_sfidante,
+    },
+    ambiente_autorizzato: {
+      luogo: scena.luogo ?? {}, misura: scena.misura ?? {}, segni: scena.segni ?? [], condizione: scena.condizione ?? {},
+    },
     memoria_solo_esclusione: piano.riferimenti.memoria_stile,
+    limiti_caratteri: TETTI_PROSA[p.ruolo],
+    obblighi: [...obblighiAzione(p), ...obblighiIntenzione(p, intenzioneId)],
   };
   return [
     istruzioneRuolo(p),
     "",
-    "CONTESTO NON MECCANICO E FORMA DELLO SCHELETRO:",
+    "BRIEF AUTORITATIVO E PIANO CAUSALE:",
     JSON.stringify(contesto),
   ].join("\n");
+}
+
+/** Forma JSON minima della prosa: le chiavi dei rami restano decise dal server. */
+export function schemaProsaDiretta(p: PayloadV5): Record<string, unknown> {
+  const intenzione = p.intenzioni.find((x) => x.id === selezionaIntenzione(p))!;
+  const chiavi = [...new Set(intenzione.esiti_possibili.map(String))].sort();
+  return {
+    type: "object",
+    properties: {
+      azione_png: { type: "string" },
+      esiti: {
+        type: "object",
+        properties: Object.fromEntries(chiavi.map((k) => [k, { type: "string" }])),
+        required: chiavi,
+        additionalProperties: false,
+      },
+    },
+    required: ["azione_png", "esiti"],
+    additionalProperties: false,
+  };
 }
 
 type PosizioneCompatta = { sezione: string; estensione: "breve" | "distesa" };

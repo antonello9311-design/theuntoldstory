@@ -100,7 +100,11 @@ function bersaglioDichiarato(t: string): string | null {
 
 function segnaleDialogo(t: string, domanda: boolean): string {
   if (!domanda) {
-    if (/\b(?:sfid\w*|provoc\w*|vinc\w*|perd\w*|prend\w*|ferm\w*)\b/iu.test(t)) return "il candidato rivolge una provocazione o una sfida";
+    const sfida = /\b(?:sfid\w*|provoc\w*|vinc\w*|perd\w*|prend\w*|ferm\w*|mostr\w*|vediamo|fammi\s+vedere|prova\w*)\b/iu.test(t);
+    const resiste = /\b(?:non\s+(?:arretr\w*|ced\w*|moll\w*|ferm\w*)|rest\w*\s+(?:qui|in piedi)|continu\w*)\b/iu.test(t);
+    if (sfida && resiste) return "il candidato sfida lo sfidante a mostrare una risposta migliore e dichiara che non intende cedere";
+    if (sfida) return "il candidato chiede allo sfidante di mostrare concretamente una risposta migliore";
+    if (resiste) return "il candidato dichiara che non intende cedere o arretrare";
     return "il candidato pronuncia una battuta generica";
   }
   if (/\b(?:paura|timore|dolore|male|stanc\w*|fiato|ferit\w*|senti|provi)\b/iu.test(t)) return "il candidato pone una domanda sulla condizione dello sfidante";
@@ -116,6 +120,25 @@ function segnalePostura(t: string): string {
   if (/\bpeso\b.{0,24}\b(?:avanti|anteriore)\b/iu.test(t)) return "mantiene il peso in avanti";
   if (/\bpeso\b.{0,24}\b(?:indietro|posteriore)\b/iu.test(t)) return "mantiene il peso indietro";
   return `assume o cerca una postura centrata su ${segnale(RE_POSTURA, t)}`;
+}
+
+function segnaleManovra(t: string): string {
+  if (/\bpugn\w*\b/iu.test(t)) return /\bfrontal\w*\b/iu.test(t) ? "porta un pugno frontale" : "porta un pugno";
+  if (/\bcalci\w*|\bcalcio\b/iu.test(t)) return "porta un calcio";
+  if (/\bpalmo\b/iu.test(t)) return "porta un colpo di palmo";
+  if (/\bgomito\b/iu.test(t)) return "porta il gomito";
+  if (/\bginocchiat\w*\b/iu.test(t)) return "porta il ginocchio";
+  if (/\bavanz\w*|\bscatt\w*|\bslanci\w*/iu.test(t)) return "avanza di scatto";
+  return `tenta una manovra di tipo ${segnale(RE_MANOVRA.test(t) ? RE_MANOVRA : RE_TENTATIVO, t)}`;
+}
+
+function segnaleTraiettoria(t: string): string {
+  if (/\bfrontal\w*\b/iu.test(t)) return "segue una traiettoria frontale e stretta";
+  if (/\bdiagonal\w*|\bobliqu\w*/iu.test(t)) return "segue una traiettoria diagonale";
+  if (/\blateral\w*/iu.test(t)) return "segue una traiettoria laterale";
+  if (/\bdall['’]alto/iu.test(t)) return "scende dall'alto";
+  if (/\bdal basso/iu.test(t)) return "sale dal basso";
+  return `dichiara una traiettoria ${segnale(RE_TRAIETTORIA, t)}`;
 }
 
 function segnaleVincolo(t: string): string {
@@ -234,8 +257,8 @@ export function costruisciPlayerBridge(p: PayloadV5): PlayerBridge {
       soppressi.push({ tipo: "manovra_tentata", motivo: "conflitto_movimento" });
     } else {
       if (RE_DIFESA.test(parte)) aggiungi("difesa_tentata", `tenta una difesa di tipo ${segnale(RE_DIFESA, parte)}`);
-      else if (RE_MANOVRA.test(parte) || RE_TENTATIVO.test(parte)) aggiungi("manovra_tentata", `tenta una manovra di tipo ${segnale(RE_MANOVRA.test(parte) ? RE_MANOVRA : RE_TENTATIVO, parte)}`);
-      if (RE_TRAIETTORIA.test(parte)) aggiungi("traiettoria", `dichiara una traiettoria ${segnale(RE_TRAIETTORIA, parte)}`);
+      else if (RE_MANOVRA.test(parte) || RE_TENTATIVO.test(parte)) aggiungi("manovra_tentata", segnaleManovra(parte));
+      if (RE_TRAIETTORIA.test(parte) || /\bfrontal\w*\b/iu.test(parte)) aggiungi("traiettoria", segnaleTraiettoria(parte));
     }
     if (RE_POSTURA.test(parte)) aggiungi("postura", segnalePostura(parte));
     if (RE_VINCOLO.test(parte)) aggiungi("vincolo_autoimposto", segnaleVincolo(parte));

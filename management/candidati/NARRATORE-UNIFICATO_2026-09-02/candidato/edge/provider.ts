@@ -1,6 +1,6 @@
 // exam_genin_ai — il provider (OpenAI Responses API, gpt-5.6-luna, reasoning high,
-// store:false). UNA chiamata per ciclo, nessun retry: un guasto qualunque
-// finisce nel ripiego deterministico del database. La chiave sta solo
+// store:false). Il ciclo usa una generazione Luna e un giudizio Terra, senza
+// retry: un guasto qualunque finisce nel ripiego deterministico del database. La chiave sta solo
 // nell'ambiente (`OPENAI_API_KEY`): mai nel codice, mai nel ritorno.
 
 export type UscitaModello = {
@@ -67,7 +67,7 @@ function spolpa(t: unknown): string {
 
 export async function chiamaModello(r: {
   chiave: string; modello: string; effort: "low" | "high" | null;
-  sistema: string; utente: string;
+  sistema: string; utente: string; schema?: Record<string, unknown> | null;
   maxTokens: number; timeoutMs: number;
 }): Promise<UscitaModello> {
   const partito = Date.now();
@@ -77,7 +77,9 @@ export async function chiamaModello(r: {
     input: r.utente,
     max_output_tokens: r.maxTokens,
     store: false,
-    text: { verbosity: OUTPUT_VERBOSITY },
+    text: r.schema
+      ? { verbosity: OUTPUT_VERBOSITY, format: { type: "json_schema", name: "exam_genin_output", strict: true, schema: r.schema } }
+      : { verbosity: OUTPUT_VERBOSITY },
   };
   if (r.effort) corpo.reasoning = { effort: r.effort };
   const ctrl = new AbortController();

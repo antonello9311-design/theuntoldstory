@@ -553,10 +553,7 @@ function haCopiaLunga(testo: string, fonte: string): boolean {
   return false;
 }
 
-function controllaProvenienza(uscita: Record<string, unknown>, azione: string, esiti: Record<string, unknown>, p: PayloadV5, piano: Piano, v: Verdetto) {
-  const disponibili = new Set(piano.riferimenti.fonti_disponibili);
-  const usate = new Set<string>();
-  const claimCorrisponde = (id: string, frase: string): boolean => {
+export function claimCorrisponde(piano: Piano, id: string, frase: string): boolean {
     const claim = piano.player_bridge.claims.find((c) => c.id === id);
     if (!claim) return false;
     if (claim.tipo === "battuta") return battutaRispondeAlSegnale(claim.action, frase);
@@ -603,7 +600,11 @@ function controllaProvenienza(uscita: Record<string, unknown>, azione: string, e
       if (zonaClaim && !fraseClaim.includes(zonaClaim)) return false;
     }
     return true;
-  };
+}
+
+function controllaProvenienza(uscita: Record<string, unknown>, azione: string, esiti: Record<string, unknown>, p: PayloadV5, piano: Piano, v: Verdetto) {
+  const disponibili = new Set(piano.riferimenti.fonti_disponibili);
+  const usate = new Set<string>();
   const controlla = (dove: string, testo: string, grezze: unknown) => {
     const righe = fontiPerTesto(grezze);
     if (!righe) { v.errori.push(`${dove}: traccia frase-per-fonte malformata`); return; }
@@ -617,7 +618,7 @@ function controllaProvenienza(uscita: Record<string, unknown>, azione: string, e
         if (!disponibili.has(fonte)) v.errori.push(`${dove}: fonte non autorizzata «${fonte}»`);
         if (fonte.startsWith("claim.")) {
           usate.add(fonte);
-          if (!claimCorrisponde(fonte, frasiTesto[i] ?? "")) v.errori.push(`${dove}: il claim «${fonte}» non corrisponde semanticamente alla frase`);
+          if (!claimCorrisponde(piano, fonte, frasiTesto[i] ?? "")) v.errori.push(`${dove}: il claim «${fonte}» non corrisponde semanticamente alla frase`);
         }
       }
     }
@@ -742,9 +743,9 @@ function controllaQualita(uscita: Record<string, unknown>, azione: string, esiti
     if (chiusura && memoria.chiusure.some((vecchia) => similaritaStile(chiusura, vecchia) >= 0.62)) {
       v.qualita.push("chiusura troppo simile a una già usata nella prova");
     }
-    if (chiusura && !chiusuraConAssetto(chiusura, piano)) {
-      v.errori.push("la chiusura non rende leggibile il nuovo assetto della scena");
-    }
+    // L'assetto può emergere nell'intera scena, non da una formula nell'ultima
+    // frase. Terra verifica leggibilità e iniziativa sulla ricevuta; i controlli
+    // deterministici di identità, posizione ed esito rimangono invariati.
   }
 
   const fonti = [uscita.fonti_azione, ...Object.values((uscita.fonti_esiti && typeof uscita.fonti_esiti === "object") ? uscita.fonti_esiti as Record<string, unknown> : {})]
@@ -882,6 +883,34 @@ function controllaEsito(dove: string, t: string, esito: string, piano: Piano, v:
     v.errori.push(`${dove}: la Sostituzione non nomina l'ancora della ricevuta (${r.ancora_parole.join("/")})`);
   }
   if (esito === "sostituito" && /supporto di legno/iu.test(t)) v.avvisi.push(`${dove}: «supporto di legno» generico invece dell'ancora`);
+  if (esito === "sostituito" && !/\b(?:riappar\w*|ricompar\w*|riemerg\w*|si materializz\w*|torna visibil\w*)\b/iu.test(t)) {
+    v.errori.push(`${dove}: la Sostituzione non mostra la riapparizione della ricevuta spaziale`);
+  }
+}
+
+function controllaTecniche(uscita: Record<string, unknown>, p: PayloadV5, v: Verdetto) {
+  const azione = String(uscita.azione_png ?? "");
+  const intenzione = p.intenzioni.find((i) => i.id === uscita.intenzione_id);
+  const ref = (p.esito_precedente ?? {}) as Record<string, unknown>;
+  const ids = [...new Set([intenzione?.tecnica_id, typeof ref.tecnica_id === "string" ? ref.tecnica_id : null].filter((x): x is string => !!x))];
+  for (const id of ids) {
+    const scheda = p.schede_tecniche?.find((s) => s.id === id);
+    if (!scheda) continue;
+    if (!azione.toLocaleLowerCase("it").includes(scheda.nome.toLocaleLowerCase("it"))) {
+      v.errori.push(`azione_png: non rende riconoscibile la tecnica «${scheda.nome}»`);
+    }
+    // Con più tecniche il paragrafo contiene stadi diversi: un divieto globale
+    // attribuirebbe i sigilli dell'una all'altra. Il giudice, con entrambe le
+    // schede e i rispettivi ruoli, verifica l'associazione senza fondere gli stadi.
+    if (ids.length > 1) continue;
+    const senzaSigilli = /(?:senza|non richiede)\s+sigill/iu.test(scheda.attivazione);
+    const richiedeSigilli = !senzaSigilli && /sigill/iu.test(scheda.attivazione);
+    if (richiedeSigilli && !/\bsigill\w*\b/iu.test(azione)) v.errori.push(`azione_png: omette i sigilli richiesti da «${scheda.nome}»`);
+    if (senzaSigilli && /\bsigill\w*\b/iu.test(azione)) v.errori.push(`azione_png: inventa sigilli esclusi dalla scheda «${scheda.nome}»`);
+    if (!/\b(?:nessun\w*|zero)\b/iu.test(scheda.chakra) && !/\bchakra\b/iu.test(azione)) {
+      v.errori.push(`azione_png: omette la preparazione del chakra per «${scheda.nome}»`);
+    }
+  }
 }
 
 function controllaContrattoSegmenti(uscita: Record<string, unknown>, p: PayloadV5, piano: Piano, v: Verdetto) {
@@ -1049,6 +1078,7 @@ export function valida(uscita: Record<string, unknown>, p: PayloadV5, piano: Pia
   }
   controllaProvenienza(uscita, azione, esiti, p, piano, v);
   controllaAmpiezza(uscita, azione, esiti, p, piano, v);
+  controllaTecniche(uscita, p, v);
 
   const r = piano.riferimenti;
   if (ruolo === "png_difende") {

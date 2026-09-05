@@ -5,27 +5,29 @@
 // riferimenti → `esame_narrazione_apply`. Voce «Fato» in terza persona; lo
 // sfidante parla dentro la narrazione. L'IA racconta, il server comanda.
 
-export const FUNCTION_VERSION = "4.7.1-NU001-CANDIDATO";
-export const PROMPT_VERSION = 30;
+export const FUNCTION_VERSION = "4.8.0-NU001-CANDIDATO";
+export const PROMPT_VERSION = 31;
 export const CONTRATTO_CICLO = 5;
 export const MODELLO = "gpt-5.6-luna";
 export const REASONING_EFFORT: "high" = "high";
-export const TIMEOUT_MODELLO_MS = 200_000; // richiesta di Antonello (03/09): il ripiego del database è a 5 minuti
+export const TIMEOUT_MODELLO_MS = 95_000;
+export const MODELLO_GIUDICE = "gpt-5.6-terra";
+export const TETTO_TOKEN_GIUDICE = 4_096;
+export const TIMEOUT_GIUDICE_MS = 70_000;
 
 export const RUOLI = ["png_difende", "png_attacca", "png_esito", "png_finale"] as const;
 export type Ruolo = typeof RUOLI[number];
 
 /**
- * Tetto d'uscita comprensivo del reasoning. La diagnosi 4.6.6 ha escluso una
- * carenza numerica: le saturazioni nascevano dal percorso strict annidato.
- * Il protocollo vettoriale 4.7 usa quindi un margine uniforme di 1.024 token;
- * i limiti della prosa pubblica restano separati e invariati.
+ * Tetti d'uscita comprensivi del reasoning. La 4.8 elimina il vettore compatto
+ * e restituisce a Luna la prosa effettiva. I valori applicano +20% ai tetti
+ * dell'ultimo percorso narrativo (11.798/8.848), arrotondando per eccesso.
  */
 export const TETTI_TOKEN: Record<Ruolo, number> = {
-  png_difende: 1_024,
-  png_attacca: 1_024,
-  png_esito: 1_024,
-  png_finale: 1_024,
+  png_difende: 14_158,
+  png_attacca: 14_158,
+  png_esito: 10_618,
+  png_finale: 10_618,
 };
 
 /** Tetti di prosa (caratteri): i massimi sono quelli di `_esame_narrazione_valida`. */
@@ -47,6 +49,16 @@ export type MovimentoAutoritativo = {
   attore_ref: "actor.candidate" | "actor.opponent";
   direzione: "guadagna terreno" | "cede terreno" | "resta sulla misura";
   ampiezza: AmpiezzaNarrativa;
+};
+
+export type SchedaTecnicaNarrativa = {
+  id: string;
+  nome: string;
+  categoria: string;
+  attivazione: string;
+  descrizione: string;
+  effetto: string;
+  chakra: string;
 };
 
 export function ampiezzaNarrativaValida(x: unknown): x is AmpiezzaNarrativa {
@@ -73,8 +85,11 @@ export type PayloadV5 = {
     genere: string;
     movimento?: string | null;
     ampiezza?: AmpiezzaNarrativa | null;
+    tecnica_id?: string | null;
     esiti_possibili: string[];
   }>;
+  schede_tecniche?: SchedaTecnicaNarrativa[];
+  schede_tecniche_provenienza?: Record<string, unknown>;
   originale?: Record<string, unknown>;
 };
 
@@ -134,6 +149,17 @@ export function verificaPayloadV5(x: unknown): PayloadV5 {
   if (!p.scena || typeof p.scena !== "object" || Array.isArray(p.scena)) throw new Error("scena assente");
   if (!p.dossier || typeof p.dossier !== "object") throw new Error("dossier assente");
   if (!Array.isArray(p.intenzioni) || p.intenzioni.length === 0) throw new Error("intenzioni assenti");
+  if (p.schede_tecniche != null) {
+    if (!Array.isArray(p.schede_tecniche)) throw new Error("schede_tecniche non è un array");
+    const ids = new Set<string>();
+    for (const voce of p.schede_tecniche as unknown[]) {
+      const s = voce as Record<string, unknown>;
+      const chiavi = ["id", "nome", "categoria", "attivazione", "descrizione", "effetto", "chakra"];
+      if (!s || typeof s !== "object" || chiavi.some((k) => typeof s[k] !== "string" || !String(s[k]).trim())) throw new Error("scheda tecnica narrativa incompleta");
+      if (ids.has(String(s.id))) throw new Error("scheda tecnica narrativa duplicata");
+      ids.add(String(s.id));
+    }
+  }
   const visti = new Set<string>();
   for (const i of p.intenzioni as unknown[]) {
     const r = i as Record<string, unknown>;
@@ -147,12 +173,17 @@ export function verificaPayloadV5(x: unknown): PayloadV5 {
       if (!["guadagna terreno", "cede terreno", "resta sulla misura"].includes(String(r.movimento))) throw new Error("direzione dell'intenzione con ampiezza fuori vocabolario");
       if ((r.ampiezza === "nessuno") !== (r.movimento === "resta sulla misura")) throw new Error("direzione e ampiezza dell'intenzione sono incoerenti");
     }
+    if (r?.tecnica_id != null && typeof r.tecnica_id !== "string") throw new Error("tecnica_id dell'intenzione malformato");
     if (!Array.isArray(r?.esiti_possibili)) throw new Error("esiti_possibili assenti");
     if ((r.esiti_possibili as unknown[]).some((e) => typeof e !== "string" || !(ESITI_NOTI as readonly string[]).includes(e))) {
       throw new Error("esito possibile fuori vocabolario");
     }
     if (new Set(r.esiti_possibili as string[]).size !== (r.esiti_possibili as string[]).length) throw new Error("esito possibile duplicato");
     if ((p.ruolo === "png_esito" || p.ruolo === "png_finale") && (r.esiti_possibili as unknown[]).length) throw new Error("branche non ammesse per un ciclo chiuso");
+  }
+  const schedeIds = new Set((p.schede_tecniche ?? []).map((s) => s.id));
+  for (const i of p.intenzioni) {
+    if (i.tecnica_id && !schedeIds.has(i.tecnica_id)) throw new Error(`scheda tecnica assente per l'intenzione ${i.id}`);
   }
   const ref = p.esito_precedente;
   if (ref != null) {
@@ -188,7 +219,25 @@ export function verificaPayloadV5(x: unknown): PayloadV5 {
         if ((r.ampiezza === "nessuno") !== (r.direzione === "resta sulla misura")) throw new Error("direzione e ampiezza del movimento autoritativo sono incoerenti");
       }
     }
-    if (JSON.stringify(ref).match(/[0-9]/)) throw new Error("esito_precedente contiene una cifra");
+    if (typeof (ref as Record<string, unknown>).tecnica_id === "string" && !schedeIds.has(String((ref as Record<string, unknown>).tecnica_id))) {
+      throw new Error("scheda tecnica assente per l'esito precedente");
+    }
+    if ((ref as Record<string, unknown>).esito === "sostituito") {
+      const spazio = (p.scena as Record<string, unknown>).spazio as Record<string, unknown> | undefined;
+      const ricevuta = spazio?.narrator_payload && typeof spazio.narrator_payload === "object"
+        ? spazio.narrator_payload as Record<string, unknown>
+        : spazio;
+      const chiavi = ["defender_before", "impact_point", "anchor", "defender_after", "distance_to_attacker_after_m", "continuity"];
+      if (!ricevuta || chiavi.some((k) => !(k in ricevuta))) throw new Error("ricevuta spaziale revisionata assente per la Sostituzione");
+      // La portata difensore→ancora appartiene al resolver, non è un minimo
+      // di separazione dall'attaccante dopo lo scambio autorizzato.
+      if (typeof ricevuta.distance_to_attacker_after_m !== "number" || !Number.isFinite(ricevuta.distance_to_attacker_after_m) || ricevuta.distance_to_attacker_after_m < 0) {
+        throw new Error("distanza spaziale della Sostituzione non valida");
+      }
+    }
+    const refSenzaIdentita = { ...(ref as Record<string, unknown>) };
+    delete refSenzaIdentita.tecnica_id;
+    if (JSON.stringify(refSenzaIdentita).match(/[0-9]/)) throw new Error("esito_precedente contiene una cifra");
   }
   if ((p.ruolo === "png_esito" || p.ruolo === "png_finale") && ref == null) {
     throw new Error("esito_precedente assente per un ciclo di esito");

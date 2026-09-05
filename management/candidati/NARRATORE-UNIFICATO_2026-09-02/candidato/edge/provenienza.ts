@@ -54,6 +54,7 @@ function fontiEsitoRisolto(p: PayloadV5): string[] {
     : [];
   return uniche([
     ...(p.esito_precedente ? ["server.esito"] : []),
+    ...(typeof ref.tecnica_id === "string" ? ["server.scheda_tecnica"] : []),
     ...(ref.conseguenza || ((p.scena as Record<string, unknown>).segni as unknown[] | undefined)?.length
       ? ["server.conseguenza"] : []),
     ...(movimenti.some((x) => x.attore_ref === "actor.candidate")
@@ -67,6 +68,7 @@ function fontiIntenzione(p: PayloadV5, intenzioneId: string): string[] {
   const intenzione = p.intenzioni.find((x) => x.id === intenzioneId);
   return uniche([
     ...(intenzione ? ["server.intenzione"] : []),
+    ...(intenzione?.tecnica_id ? ["server.scheda_tecnica"] : []),
     ...(intenzione?.movimento || intenzione?.ampiezza ? ["server.posizione.intenzione"] : []),
   ]);
 }
@@ -559,6 +561,7 @@ export function materializzaProvenienza(
   grezza: Record<string, unknown>,
   p: PayloadV5,
   piano: Piano,
+  corrispondeClaim?: (id: string, frase: string) => boolean,
 ): Record<string, unknown> {
   const scelta = grezza.scelta && typeof grezza.scelta === "object"
     ? grezza.scelta as Record<string, unknown>
@@ -574,17 +577,24 @@ export function materializzaProvenienza(
   const intenzione = fontiIntenzione(p, intenzioneId);
   const brancaFonti = fontiBranca(p, piano, intenzioneId);
   const nAzione = numeroFrasi(azione);
+  const claimDialogo = piano.player_bridge.claims.filter((c) => c.tipo === "battuta").map((c) => c.id);
+  const claimUsati = new Set<string>();
   const fontiPerFrase = Array.from({ length: nAzione }, (_, i) => {
+    const frase = azione.split(/(?<=[.!?…])\s+/u)[i] ?? "";
+    const dialogo = corrispondeClaim
+      ? piano.player_bridge.claims.filter((c) => c.surface_permissions.includes("player_reprise") && corrispondeClaim(c.id, frase)).map((c) => c.id)
+      : /«[^»]+»/u.test(frase) ? claimDialogo : [];
+    dialogo.forEach((id) => claimUsati.add(id));
     if (p.ruolo === "png_attacca") {
       // Il contratto assegna l'ultima frase al nuovo attacco; le precedenti
       // appartengono all'esito già risolto.
-      if (nAzione === 1) return uniche([...comuni, ...esitoRisolto, ...intenzione]);
+      if (nAzione === 1) return uniche([...comuni, ...esitoRisolto, ...intenzione, ...dialogo]);
       return i === nAzione - 1
-        ? uniche([...comuni, ...intenzione])
-        : uniche([...comuni, ...esitoRisolto]);
+        ? uniche([...comuni, ...intenzione, ...dialogo])
+        : uniche([...comuni, ...esitoRisolto, ...dialogo]);
     }
-    if (p.ruolo === "png_difende") return uniche([...comuni, ...intenzione]);
-    return uniche([...comuni, ...esitoRisolto]);
+    if (p.ruolo === "png_difende") return uniche([...comuni, ...intenzione, ...dialogo]);
+    return uniche([...comuni, ...esitoRisolto, ...dialogo]);
   });
   return {
     ...scelta,
@@ -594,7 +604,7 @@ export function materializzaProvenienza(
     ricevuta_id: p.ricevuta_id,
     provenienza_deterministica: true,
     perche: "scelta narrativa entro un'intenzione offerta dal server",
-    player_reprise_ids: [],
+    player_reprise_ids: [...claimUsati],
     fonti_azione: fontiPerFrase,
     fonti_esiti: Object.fromEntries(Object.entries(esiti).map(([k, v]) => [
       k,
