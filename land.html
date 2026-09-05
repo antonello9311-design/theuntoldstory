@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-MV2-CHIUDI-SCENA-006" />
+  <meta name="tus-build" content="LAND-ESAME-ANCHOR-OPTION-007" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3249,7 +3249,11 @@
             azBozza.copie=(ES_AZ.principale&&ES_AZ.principale.copie!=null)?String(ES_AZ.principale.copie):'1';
             azBozza.originale_idx=(ES_AZ.principale&&ES_AZ.principale.originale_idx!=null)?String(ES_AZ.principale.originale_idx):'1';
           } else if(ES_AZ.tipo==='difesa'){
-            azBozza.reazione={chiave:ES_AZ.reazione, id:ES_AZ.tecnica||null};
+            azBozza.reazione={chiave:ES_AZ.reazione, id:ES_AZ.tecnica||null, option_id:ES_AZ.option_id||null};
+            if(ES_AZ.option_id){
+              var esRea=(CMB_OPZ&&CMB_OPZ.reazioni||[]).filter(function(x){return x.option_id===ES_AZ.option_id;})[0];
+              if(esRea) azBozza.reazione.id=esRea.id||null;
+            }
             azBozza.posizione=String(ES_AZ.posizione||0);
           } else if(ES_AZ.tipo==='manovra'){ azBozza.manovra=ES_AZ.manovra; }
           return;
@@ -3428,6 +3432,15 @@
         if(persa){ azBozza.principale=null;
           azErr('Con questo spostamento quell’opzione non arriva più: scegline un’altra.'); }
       }
+      /* [LAND-ESAME-ANCHOR-OPTION-007] Identità opaca offerta dal server:
+         due ancore della stessa tecnica restano due scelte. Scontro invariato. */
+      function azReazioneUguale(a,b){
+        return !!(a&&b&&a.chiave===b.chiave&&(a.id||'')===(b.id||'')
+          &&(azSrc!=='esame'||(a.option_id||'')===(b.option_id||'')));
+      }
+      function azReazioneValore(x){
+        return x.chiave+'|'+(x.id||'')+(azSrc==='esame'&&x.option_id?'|'+encodeURIComponent(x.option_id):'');
+      }
       function azOpz(gruppo, val, testo, det, ok, motivo, scelto){
         return '<label class="az-opt'+(ok?'':' no')+'" data-azk="'+esc(val)+'">'+
           '<input type="radio" name="'+gruppo+'" value="'+esc(val)+'"'+(ok?'':' disabled')+(scelto?' checked':'')+'>'+
@@ -3482,19 +3495,18 @@
           if(azBozza.reazione){
             var kb=String(azBozza.reazione.chiave||'').toLowerCase();
             var ancora=reaVis.filter(function(x){
-              return x.chiave===azBozza.reazione.chiave
-                  && (x.id||'')===(azBozza.reazione.id||'') && x.disponibile; }).length;
-            if(azContestuali[kb] && !ancora) azBozza.reazione=null;
+              return azReazioneUguale(x,azBozza.reazione) && x.disponibile; }).length;
+            if((azContestuali[kb]||(azSrc==='esame'&&azBozza.reazione.option_id)) && !ancora) azBozza.reazione=null;
           }
           reaVis.forEach(function(x){
-            var val=x.chiave+'|'+(x.id||'');
-            var scelto=!!(azBozza.reazione&&azBozza.reazione.chiave===x.chiave&&(azBozza.reazione.id||'')===(x.id||''));
+            var val=azReazioneValore(x);
+            var scelto=azReazioneUguale(azBozza.reazione,x);
             var det=(x.chakra?(x.chakra+' chakra'):'nessun costo')+(x.disciplina?(' \u00b7 '+x.disciplina):'');
             h+=azOpz('azr', val, x.nome, det, !!x.disponibile, x.motivo_no, scelto);
           });
           h+='</div></div>';
           var sr=(o.reazioni||[]).filter(function(x){
-            return azBozza.reazione&&x.chiave===azBozza.reazione.chiave&&(x.id||'')===(azBozza.reazione.id||'');
+            return azReazioneUguale(azBozza.reazione,x);
           })[0]||null;
           /* [14/08/2026 · EXAM-GENIN-UI-005 R1 · O1] Nello Scontro il client SPECCHIA
              le posizioni (m e -m): e' una geometria sua, e il motore la ricontrolla.
@@ -3833,11 +3845,16 @@
         if(o.fase==='difesa'){
           if(!azBozza.reazione){ azErr('Scegli come ti difendi.'); return; }
           var r={tipo:'difesa', reazione:azBozza.reazione.chiave};
-          if(r.reazione==='tecnica'||r.reazione==='sostituzione'){
+          if(azSrc==='esame'&&r.reazione==='sostituzione'&&azBozza.reazione.option_id){
+            var esAncora=(o.reazioni||[]).filter(function(x){return azReazioneUguale(x,azBozza.reazione)&&x.disponibile;})[0];
+            if(!esAncora){ azErr('Quell’ancora non è più disponibile: riscegli la difesa.'); return; }
+            r.option_id=esAncora.option_id;
+          }
+          if(r.reazione==='tecnica'||(r.reazione==='sostituzione'&&!r.option_id)){
             if(!azBozza.reazione.id){ azErr('Quella reazione vuole una tecnica: sceglila dall\u2019elenco.'); return; }
             r.tecnica=azBozza.reazione.id;
           }
-          if(r.reazione==='sostituzione'){
+          if(r.reazione==='sostituzione'&&!r.option_id){
             var ps=parseInt(azBozza.posizione,10); r.posizione=isNaN(ps)?0:ps;
           }
           if(azBozza.figura!=null&&azBozza.figura!=='') r.figura=parseInt(azBozza.figura,10);
@@ -4013,7 +4030,7 @@
           else if(t.name==='azfigura'){ azBozza.figura=t.value||null; azErr(''); }
           else if(t.name==='azbersagliofigura'){ azBozza.bersaglio_figura=t.value||null; azErr(''); }
           else if(t.name==='azm'){ azBozza.manovra={chiave:t.value}; azBozza.principale=null; azBozza.spostamento='0'; azErr(''); azRender(); }
-          else if(t.name==='azr'){ var w=(t.value||'').split('|'); azBozza.reazione={chiave:w[0], id:w[1]||null}; azBozza.posizione='0'; azErr(''); azRender(); }
+          else if(t.name==='azr'){ var w=(t.value||'').split('|'); azBozza.reazione={chiave:w[0], id:w[1]||null}; if(azSrc==='esame'&&w[2]) azBozza.reazione.option_id=decodeURIComponent(w[2]); azBozza.posizione='0'; azErr(''); azRender(); }
           else if(t.name==='azpos'){ azBozza.posizione=t.value||'0'; azErr(''); }
         });
         var b;
@@ -5027,7 +5044,7 @@
       function esPosizioniOfferte(){
         var o=CMB_OPZ; if(!o||!azBozza||!azBozza.reazione) return null;
         var r=(o.reazioni||[]).filter(function(x){
-          return x.chiave===azBozza.reazione.chiave && (x.id||'')===(azBozza.reazione.id||''); })[0];
+          return azReazioneUguale(x,azBozza.reazione); })[0];
         return (r&&r.posizioni)||null;
       }
       /* [R1 · O2] Lo stato della classe arriva DOPO il primo giro di loadEsame:
@@ -5177,13 +5194,15 @@
           out={tipo:'manovra', manovra:'avvicinamento'};
         } else if(a.tipo==='difesa'){
           out={tipo:'difesa', reazione:a.reazione};
-          if(a.tecnica) out.tecnica=a.tecnica;
+          if(a.reazione==='sostituzione'&&a.option_id){
+            out.option_id=a.option_id;
+          } else if(a.tecnica) out.tecnica=a.tecnica;
           /* `posizione` vive SOLO sul percorso della Sostituzione, e solo se il
              valore è uno di quelli che il server ha offerto per QUELLA reazione.
              Fuori di lì non parte: né uno zero di comodo, né un default del
              compositore, né una coordinata. Se il server non ha offerto niente,
              la chiave non esiste — non vale zero. */
-          if(a.reazione==='sostituzione'&&a.posizione!=null){
+          if(a.reazione==='sostituzione'&&!a.option_id&&a.posizione!=null){
             var off=esPosizioniOfferte();
             if(off&&off.length&&off.map(String).indexOf(String(a.posizione))>=0) out.posizione=a.posizione;
           }
