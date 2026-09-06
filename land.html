@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-ORDINARY-SHION-PREVIEW-CANDIDATO-001" />
+  <meta name="tus-build" content="LAND-ORDINARY-CONSUMER-CANDIDATO-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3033,107 +3033,6 @@ window.TUSOrdinary={attachOrdinaryLand};
         }, function(e){ stanzaNegata(e&&e.message); });
       }
       /* ORDINARY-CONSUMER-001: innesto offline, ingresso non disponibile finché manca eligibility server. */
-
-      /* SHION-PRIVATE-PREVIEW-001: temporaneo, nessuna scrittura di gioco. */
-      // QA privata Shion. Il ruolo client nasconde soltanto la UI: autorizza la Edge.
-function mountShionPreview({root, client, staffScope}) {
-  const owner = staffScope();
-  root.hidden = true;
-  root.replaceChildren();
-  if (!owner || !client?.functions?.invoke) return {destroy() {}};
-  const doc = root.ownerDocument;
-  let alive = true, busy = false;
-  const rows = [];
-  const add = (tag, text, parent = root) => {
-    const el = doc.createElement(tag);
-    el.textContent = text;
-    parent.append(el);
-    return el;
-  };
-  add('h3', 'Anteprime private Shion · staff');
-  add('p', 'Due richieste manuali, una per pulsante. Nessuna pubblicazione in chat. Anche un errore consuma il tentativo; non ricaricare per riprovare.');
-  function destroy() {
-    alive = false;
-    root.hidden = true;
-    root.replaceChildren();
-    for (const row of rows) { row.button.disabled = true; row.output.textContent = ''; }
-  }
-  function current() {
-    if (!alive) return false;
-    if (staffScope() !== owner) { destroy(); return false; }
-    return true;
-  }
-  function renderButtons() {
-    for (const row of rows) row.button.disabled = !alive || busy || row.used;
-  }
-  for (const [operation, label] of [['apertura', 'Apertura'], ['primo_esito', 'Primo esito']]) {
-    const section = add('section', '');
-    const button = add('button', label, section);
-    button.type = 'button';
-    const status = add('p', 'Non richiesta.', section);
-    status.setAttribute('role', 'status');
-    const output = add('pre', '', section);
-    output.style.whiteSpace = 'pre-wrap';
-    output.style.overflowWrap = 'anywhere';
-    const row = {button, status, output, used:false};
-    rows.push(row);
-    button.addEventListener('click', async () => {
-      if (!current() || busy || row.used) return;
-      row.used = true;
-      busy = true;
-      renderButtons();
-      status.textContent = 'Richiesta in corso · controllo staff sul server. Nessun reinvio automatico.';
-      try {
-        const result = await client.functions.invoke('exam_genin_ai', {body:{qa_preview_shion:operation}});
-        if (!current()) return;
-        let data = result?.data;
-        // Solo il body JSON sanitizzato della Edge, mai header o errore SDK grezzo.
-        if (result?.error && !data && typeof result.error.context?.json === 'function') {
-          try { data = await result.error.context.json(); } catch (_) { data = null; }
-          if (!current()) return;
-        }
-        if (data?.preview === true && data.operazione === operation) {
-          output.textContent = JSON.stringify(data, null, 2);
-          status.textContent = result?.error || data.ok !== true
-            ? 'Anteprima non verde o errore server · risposta privata integrale sotto. Tentativo consumato.'
-            : 'Anteprima ricevuta · non pubblicata. Tentativo consumato.';
-        } else {
-          status.textContent = 'Risposta non disponibile o non conforme. Esito incerto: tentativo consumato, non riprovare.';
-        }
-      } catch (_) {
-        if (current()) status.textContent = 'Errore di trasporto. Esito incerto: tentativo consumato, non riprovare.';
-      } finally {
-        busy = false;
-        if (current()) renderButtons();
-      }
-    });
-  }
-  root.hidden = false;
-  renderButtons();
-  return {destroy};
-}
-
-      var SHION_PREVIEW=null,shionPreviewRevoked=false;
-      function shionPreviewStop(){
-        shionPreviewRevoked=true;
-        if(SHION_PREVIEW)SHION_PREVIEW.destroy();
-      }
-      function shionPreviewRefresh(){
-        if(shionPreviewRevoked)return;
-        if(!loggedIn||!iAmStaff||!myId){if(SHION_PREVIEW)SHION_PREVIEW.destroy();return;}
-        if(SHION_PREVIEW)return;
-        var target=document.getElementById('test-staff-btn');
-        if(!target||!target.parentNode)return;
-        var root=document.createElement('section');
-        root.id='shion-private-preview';root.hidden=true;
-        target.parentNode.appendChild(root);
-        SHION_PREVIEW=mountShionPreview({root:root,client:sb,
-          staffScope:function(){return !shionPreviewRevoked&&loggedIn&&iAmStaff&&myId?myId:null;}});
-      }
-      window.addEventListener('tus:ordinary-logout',shionPreviewStop);
-      if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event){
-        if(event==='SIGNED_OUT'||(SHION_PREVIEW&&(event==='SIGNED_IN'||event==='USER_UPDATED')))shionPreviewStop();
-      });
       var ORDINARY=null,ordinaryAuthId=null,ordinarySigningOut=false;
       window.addEventListener('tus:ordinary-logout',function(){ordinarySigningOut=true;if(ORDINARY)ORDINARY.invalidate();});
       if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session){
@@ -6624,7 +6523,7 @@ var nb028iTeardown=function(){};
           var _tbu=document.getElementById('test-btn'); if(_tbu) _tbu.style.display=loggedIn?'':'none';
           if(myId){ sb.from('characters').select('id').eq('user_id',myId).maybeSingle().then(function(g){ if(!(g&&g.data)){ try{ document.documentElement.style.visibility='hidden'; }catch(e){} location.replace('scheda.html'); } }, function(){}); }
           if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max,mente,corporation').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); myCorp=(cr.data.corporation!=null?cr.data.corporation:null); showPtsReminder(cr.data.unspent_points||0); caricaNomiEvidenza(); updateVitals(); updateKOState();  loadMyCompanion(); } }, function(){}); }
-          if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _mb=document.getElementById('mv2-open-btn'); if(_mb) _mb.style.display=iAmStaff?'':'none'; var _fr=document.getElementById('fato-toggle-row'); if(_fr) _fr.style.display=iAmStaff?'':'none'; if(!iAmStaff) setFatoMode(false); var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; var _tbs=document.getElementById('test-staff-btn'); if(_tbs) _tbs.style.display=iAmStaff?'':'none'; shionPreviewRefresh(); try{ syncSendBtn(); }catch(e){} if(cur)loadMasterV2(); } }, function(){ setFatoMode(false); }); }
+          if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _mb=document.getElementById('mv2-open-btn'); if(_mb) _mb.style.display=iAmStaff?'':'none'; var _fr=document.getElementById('fato-toggle-row'); if(_fr) _fr.style.display=iAmStaff?'':'none'; if(!iAmStaff) setFatoMode(false); var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; var _tbs=document.getElementById('test-staff-btn'); if(_tbs) _tbs.style.display=iAmStaff?'':'none'; try{ syncSendBtn(); }catch(e){} if(cur)loadMasterV2(); } }, function(){ setFatoMode(false); }); }
           loadEmblems();
           renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); loadFlash(); calInit(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); sb.rpc('ensure_welcome').then(function(){ loadUnread(); loadConversations(); }, function(){ loadUnread(); loadConversations(); }); if(dmTarget){ var _dt=dmTarget; dmTarget=null; sb.from('characters').select('name').eq('user_id',_dt).maybeSingle().then(function(rr){ openCompose(_dt,(rr&&rr.data&&rr.data.name)||'utente'); }, function(){ openCompose(_dt,'utente'); }); } }
         }, function(){ loggedIn=false; renderLuoghi(); });
