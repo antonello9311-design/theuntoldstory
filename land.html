@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-COMBAT-HOLD-RETENTION-001" />
+  <meta name="tus-build" content="LAND-NARRATIVE-PARAGRAPH-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -254,7 +254,7 @@
   .msg-narratore{margin:10px 0;padding:11px 14px 12px;border:1px solid #7ba6c9;border-left:3px solid #4a86b8;background:linear-gradient(#e9f3fb,#d9e9f6);border-radius:0 10px 10px 0}
   .msg-narratore .mn-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:5px}
   .msg-narratore .mn-k{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#2d5f89}
-  .msg-narratore .mn-body{font-size:16.5px;font-weight:600;line-height:1.62;color:var(--ink,#2f2a24);white-space:pre-line}
+  .msg-narratore .mn-body{font-size:16.5px;font-weight:600;line-height:1.62;color:var(--ink,#2f2a24);white-space:normal}
   .msg-narratore .mn-pv{display:inline-block;margin-left:3px;font-size:12.5px;font-weight:700;color:var(--red-deep,#8a3b2a);white-space:nowrap}
   /* [REVIEW PM 069-R3 \u00a73] Il rosso del parlato esiste gia' da sempre, ma vive
      sotto `.m-body`: il corpo del Narratore e' `.mn-body`, e quella regola non
@@ -262,7 +262,7 @@
      piu'. Nessun colore nuovo entra nella tavolozza, e il resto del messaggio
      del Narratore NON diventa rosso: solo cio' che sta fra le caporali. */
   .msg-narratore .mn-body .sp-say{color:var(--red-deep)}
-  .msg-narratore .mn-lab{display:block;font-family:'Cinzel',serif;font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#2d5f89;margin:3px 0 1px}
+  .msg-narratore .mn-lab{display:inline;margin-right:.25em;font-family:'Cinzel',serif;font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#2d5f89;margin:3px 0 1px}
   .msg-narratore .mn-lab:first-child{margin-top:0}
   .msg-fato{margin:10px 0;padding:12px 15px;border:1px solid #b99855;border-left:4px solid #7b251c;background:linear-gradient(135deg,rgba(255,248,224,.98),rgba(235,218,177,.9));border-radius:0 10px 10px 0;box-shadow:0 2px 8px rgba(67,42,22,.1)}
   .msg-fato .mf-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:5px}
@@ -2698,12 +2698,15 @@ window.TUSOrdinary={attachOrdinaryLand};
         t=t.replace(/\u00ab([\s\S]*?)\u00bb/g,'<span class="sp-say">\u00ab$1\u00bb</span>');
         return t;
       }
+      function narrativeParagraphText(value) {
+  return String(value??'').replace(/[\r\n\u0085\u2028\u2029]+/g,' ');
+}
       function fmtNarratore(s){
         var t=fmtNarratoreParlato(esc(s)).replace(/\u3008([^\u3008\u3009]{1,60})\u3009/g,'<span class="mn-pv">\u3008$1\u3009</span>');
         /* L'a capo dopo l'etichetta lo dà il blocco, non il testo: tenerli
            tutti e due aprirebbe una riga vuota che nel corpo del server non
            c'è. Il testo non viene riscritto: cambia solo dove va a capo. */
-        return t.replace(MN_ETICHETTE, function(_m,pre,lab){ return pre+'<span class="mn-lab">'+lab+'</span>'; });
+        return narrativeParagraphText(t.replace(MN_ETICHETTE, function(_m,pre,lab){ return pre+'<span class="mn-lab">'+lab+'</span> '; }));
       }
       /* ===== [15/08/2026 · EXAM-GENIN-UI-005 R2] La battuta dell'avversario d'esame =====
          Requisito 9 di AI-004. Su diciotto battute della corsa reale del 15/08 le
@@ -3235,7 +3238,7 @@ function mountEsameHold({root, client, context}) {
       const section=add('section','',output), r=b.risultato;
       add('h4',`${b.tipo} · ${b.stato}`,section);
       if(r){
-        const prose=(label,text)=>{add('h5',label,section);const p=add('p',text,section);p.style.whiteSpace='pre-wrap';p.style.overflowWrap='anywhere';};
+        const prose=(label,text)=>{add('h5',label,section);const p=add('p',narrativeParagraphText(text),section);p.style.whiteSpace='normal';p.style.overflowWrap='anywhere';};
         const u=r.uscita, branches=u?.esiti;
         if(typeof r.testo==='string')prose('Apertura',r.testo);
         else if(typeof u?.azione_png==='string'&&branches&&typeof branches==='object'&&!Array.isArray(branches)&&Object.values(branches).every(x=>typeof x==='string')){
