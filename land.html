@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-ESAME-ANCHOR-OPTION-007" />
+  <meta name="tus-build" content="LAND-ORDINARY-CONSUMER-CANDIDATO-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1684,6 +1684,10 @@
                 <div class="mv2-head"><div class="side-k">Regia Master</div><span class="mv2-state" id="mv2-state">V2</span></div>
                 <div id="mv2-slim"></div>
               </div>
+              <div class="side-card mv2" id="ordinary-card" hidden>
+                <div class="side-k">Duello fra due PG</div>
+                <button class="mv2-btn" id="ordinary-open" type="button">Apri pannello duello</button>
+              </div>
               <div class="side-card cmb" id="cmb-card" hidden>
                 <div class="side-k">Scontro</div>
                 <div id="cmb-body"></div>
@@ -1709,6 +1713,12 @@
     </div>
   </div>
 
+  <div class="cmb-overlay" id="ordinary-overlay" hidden style="display:none" aria-label="Duello fra due PG">
+    <div class="cmb-card" style="padding:18px;overflow:auto">
+      <button class="mv2-btn ghost" id="ordinary-close" type="button">Torna alla chat</button>
+      <div id="ordinary-body"></div>
+    </div>
+  </div>
   <div class="mailov-backdrop" id="mailov-backdrop" hidden></div>
   <div class="cal-overlay" id="cal-overlay" hidden aria-label="Calendario">
     <div class="cal-ov-backdrop" id="cal-ov-backdrop"></div>
@@ -2099,6 +2109,313 @@
   <audio id="bgm" loop preload="none"></audio>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script id="ordinary-consumer-bundle">
+(function(){
+const core=(function(){
+// Candidato offline: trasporto esplicito, nessuna connessione automatica.
+const RPC = Object.freeze({state:'combat_consumer_state_v1',options:'combat_consumer_options_v1',commit:'combat_consumer_commit_v1'});
+const operations = {open:'open',join:'join',action:'declare',defense:'defend',control:'control',close:'close'};
+const phases = new Set(['waiting_join','action','defense','resolved','closed']);
+const text = value => typeof value === 'string' && value.trim().length > 0;
+const version = value => Number.isSafeInteger(value) && value >= 0;
+class ConsumerError extends Error { constructor(code){super(code);this.code=code;} }
+const publicErrorCodes=new Set(['not_participant','scene_not_configured','source_not_ready','name_projection_missing','context_stale','legacy_session_active','adapter_not_ready','no_active_session','offer_not_available']);
+function transportError(error){
+  // SQLSTATE e testo grezzo non attraversano la superficie del giocatore.
+  let body=null;
+  if(typeof error?.message==='string'){try{body=JSON.parse(error.message);}catch{/* errore non strutturato */}}
+  const code=publicErrorCodes.has(error?.code)?error.code:(publicErrorCodes.has(body?.code)?body.code:'server_rejected');
+  // retryable è un dato del server, non un'autorizzazione all'autoretry.
+  return new ConsumerError(code);
+}
+function requireValue(ok,code='invalid_projection'){if(!ok)throw new ConsumerError(code);}
+function contextKey(e){return e.context===null ? 'blocked' : JSON.stringify([e.context.activity_kind,e.context.activity_id,e.context.exchange_id,e.context.phase,e.context.version,e.context.scene_version,e.viewer.actor_id,e.viewer.can_command]);}
+function validateEnvelope(e,{state=false}={}){
+  requireValue(e?.schema_version==='combat-consumer/1' && ['ready','blocked'].includes(e.status));
+  if(e.status==='blocked' && e.context===null){
+    requireValue(text(e.reason_code)&&e.viewer?.actor_id===null&&e.viewer.can_command===false&&Array.isArray(e.actors)&&e.actors.length===0&&Array.isArray(e.offers)&&e.offers.length===0&&e.receipt===null);
+    return e;
+  }
+  requireValue(e.context && phases.has(e.context.phase) && version(e.context.version) && version(e.context.scene_version));
+  requireValue(typeof e.viewer?.can_command==='boolean' && Array.isArray(e.actors) && Array.isArray(e.offers));
+  requireValue(!state || e.offers.length===0);
+  const actors=new Set();
+  for(const a of e.actors){
+    requireValue(text(a.actor_id) && !actors.has(a.actor_id));actors.add(a.actor_id);
+    requireValue(text(a.display_name),'name_projection_missing');
+    requireValue(version(a.label_version) && typeof a.mine==='boolean');
+    requireValue(a.distance_from_viewer_m===null || (Number.isFinite(a.distance_from_viewer_m)&&a.distance_from_viewer_m>=0));
+  }
+  const offers=new Set();
+  for(const o of e.offers){
+    requireValue(text(o.offer_id)&&!offers.has(o.offer_id));offers.add(o.offer_id);
+    requireValue(operations[o.kind]===o.operation && text(o.source_id));
+    requireValue(text(o.label) && (o.target_actor_id===null || text(o.target_display_name)),'name_projection_missing');
+    requireValue(o.context_version===e.context.version && o.scene_version===e.context.scene_version,'context_stale');
+    requireValue(Array.isArray(o.movement_options) && typeof o.movement_required==='boolean');
+    requireValue(!o.movement_required || (o.operation==='declare' && o.movement_options.length>0));
+    const moves=new Set();
+    for(const m of o.movement_options){
+      requireValue(o.operation==='declare'&&text(m.offer_id)&&!moves.has(m.offer_id));moves.add(m.offer_id);
+      requireValue(text(m.label),'name_projection_missing');
+      requireValue(Number.isFinite(m.distance_m)&&m.distance_m>=0);
+    }
+  }
+  if(e.receipt!==null){
+    const r=e.receipt;requireValue(r && text(r.receipt_id)&&text(r.request_key)&&typeof r.replayed==='boolean'&&typeof r.values_written==='boolean'&&Array.isArray(r.display_events));
+    const kinds=new Set(['movement','action_declared','defense_resolved','control_changed','combat_closed']);
+    for(const event of r.display_events){
+      requireValue(text(event.event_id)&&kinds.has(event.event_kind)&&text(event.summary));
+      for(const [id,label,lv] of [['actor_id','display_name','label_version'],['target_actor_id','target_display_name','target_label_version']]){
+        requireValue(event[id]===null ? event[label]===null&&event[lv]===null : text(event[id])&&text(event[label])&&version(event[lv]),'name_projection_missing');
+      }
+    }
+  }
+  return e;
+}
+class CombatConsumer {
+  constructor({rpc,locationId,requestKey,onChange=()=>{}}){
+    requireValue(typeof rpc==='function'&&text(locationId)&&typeof requestKey==='function');
+    this.rpc=rpc;this.locationId=locationId;this.requestKey=requestKey;this.onChange=onChange;
+    this.envelope=null;this.offers=[];this.selected=null;this.movement=null;
+    this.pending=null;this.busy=false;this.error=null;this.needsOptions=true;this.sequence=0;
+  }
+  notify(){this.onChange(this);}
+  async call(name,args){const r=await this.rpc(name,args);if(r?.error)throw transportError(r.error);return r && Object.hasOwn(r,'data')?r.data:r;}
+  apply(e,withOffers=false){
+    validateEnvelope(e,{state:!withOffers});
+    const changed=!this.envelope || contextKey(e)!==contextKey(this.envelope);
+    this.envelope=e;
+    if(changed || e.status!=='ready'){this.offers=[];this.selected=null;this.movement=null;this.needsOptions=true;}
+    if(withOffers && e.status==='ready'){
+      this.offers=e.offers;this.needsOptions=false;
+      const selected=this.offers.find(o=>o.offer_id===this.selected);
+      if(!selected){this.selected=null;this.movement=null;}
+      else if(!selected.movement_options.some(m=>m.offer_id===this.movement))this.movement=null;
+    }
+  }
+  async poll(){
+    if(this.busy)return;
+    const seq=++this.sequence;
+    try{const e=await this.call(RPC.state,{p_location:this.locationId});if(seq!==this.sequence)return;this.apply(e);this.error=null;}
+    catch(e){if(seq!==this.sequence)return;this.error=e.code||'network_uncertain';this.offers=[];this.selected=null;this.needsOptions=true;}
+    this.notify();
+  }
+  async openOptions(){
+    requireValue(!this.busy && !this.pending,'command_pending');
+    requireValue(this.envelope?.status==='ready' && this.envelope.viewer.can_command,'not_participant');
+    const seq=++this.sequence;this.busy=true;this.notify();
+    try{const e=await this.call(RPC.options,{p_location:this.locationId,p_context_version:this.envelope.context.version});if(seq!==this.sequence)return;this.apply(e,true);this.error=null;}
+    catch(e){this.error=e.code||'network_uncertain';this.offers=[];this.selected=null;this.needsOptions=true;}
+    finally{this.busy=false;this.notify();}
+  }
+  select(offerId,movementId=null){
+    requireValue(!this.busy&&!this.pending,'command_pending');
+    requireValue(!this.needsOptions && this.envelope?.status==='ready' && this.envelope.viewer.can_command,'context_stale');
+    const offer=this.offers.find(o=>o.offer_id===offerId);requireValue(offer,'offer_not_available');
+    requireValue(movementId===null || offer.movement_options.some(m=>m.offer_id===movementId),'movement_not_available');
+    this.selected=offerId;this.movement=movementId;this.error=null;this.notify();
+  }
+  canSubmit(){return !this.busy&&!this.pending&&!this.needsOptions&&this.envelope?.status==='ready'&&this.envelope.viewer.can_command&&this.offers.some(o=>o.offer_id===this.selected && typeof o.movement_required==='boolean' && (!o.movement_required || o.movement_options.some(m=>m.offer_id===this.movement)));}
+  async submit(narrativeText=''){
+    requireValue(this.canSubmit(),'offer_not_available');requireValue(typeof narrativeText==='string');
+    const o=this.offers.find(o=>o.offer_id===this.selected),c=this.envelope.context;
+    this.pending=Object.freeze({schema_version:'combat-consumer-command/1',operation:o.operation,location_id:this.locationId,activity_id:c.activity_id,exchange_id:c.exchange_id,context_version:c.version,offer_id:o.offer_id,movement_offer_id:this.movement,request_key:this.requestKey(),narrative_text:narrativeText});
+    return this.sendPending();
+  }
+  async retry(){requireValue(this.pending&&!this.busy,'no_pending_command');return this.sendPending();}
+  async sendPending(){
+    ++this.sequence;this.busy=true;this.error=null;this.notify();
+    try{
+      const e=await this.call(RPC.commit,{p_command:this.pending});validateEnvelope(e);
+      requireValue(e.receipt?.request_key===this.pending.request_key,'receipt_mismatch');
+      requireValue(e.receipt.operation===this.pending.operation,'receipt_mismatch');
+      this.apply(e,true);this.pending=null;this.selected=null;this.movement=null;this.offers=[];this.needsOptions=true;
+      return e.receipt;
+    }catch(e){
+      // Un esito incerto conserva il comando immutabile; mai retry automatico.
+      this.error=e.code||'network_uncertain';
+      if(['context_stale','offer_not_available','adapter_not_ready','legacy_session_active','not_participant','scene_not_configured'].includes(this.error)){
+        this.pending=null;this.offers=[];this.selected=null;this.needsOptions=true;
+      }
+      return null;
+    }finally{this.busy=false;this.notify();}
+  }
+}
+
+return{CombatConsumer,ConsumerError,validateEnvelope};})();
+const {CombatConsumer,ConsumerError,validateEnvelope}=core;
+const view=(function(){
+// Nessun innerHTML, nome sintetico, coordinata o valore di gioco ricostruito.
+const phases={waiting_join:'In attesa del partecipante',action:'Azione',defense:'Difesa',resolved:'Scambio risolto',closed:'Scontro concluso'};
+const reasons={context_stale:'La situazione è cambiata: aggiorna le scelte.',name_projection_missing:'Nomi della scena non disponibili. Il pannello resta bloccato.',scene_not_configured:'La scena di scontro non è ancora configurata.',adapter_not_ready:'Questo percorso non è ancora disponibile.',legacy_session_active:'Lo scontro in corso continua nel suo pannello originale.',not_participant:'Non puoi impartire comandi in questo scontro.',network_uncertain:'Conferma non ricevuta. Verifica nuovamente lo stesso invio, senza crearne un altro.'};
+// Memoria di sola presentazione: mai letta dal controller o dai controlli di invio.
+function createCloseReceiptMemory(originScope){
+  let scope=originScope,last=null,valid=true;
+  return {observe(currentScope,e){
+    if(!currentScope||currentScope!==scope){scope=currentScope;last=null;valid=false;}
+    if(!valid||!currentScope||currentScope!==originScope)return null;
+    const activity=e?.context?.activity_id,r=e?.receipt;
+    if(last&&activity&&activity!==last.activity_id)last=null;
+    if(e?.status==='ready'&&e.context?.phase==='closed'&&r?.operation==='close'
+      &&r.receipt_id&&r.activity_id===activity){
+      last={receipt_id:r.receipt_id,activity_id:r.activity_id};
+    }
+    return last;
+  },clear(){last=null;valid=false;}};
+}
+function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=null,presentationScope=()=>null}={}){
+  const doc=root.ownerDocument;
+  function node(tag,text){const e=doc.createElement(tag);if(text!==undefined)e.textContent=text;return e;}
+  const heading=node('h3','Scontro'),status=node('p'),roster=node('ul'),notice=node('p');notice.setAttribute('role','status');
+  const form=node('div'),offerLabel=node('label','Scelta offerta dal server'),select=node('select');select.setAttribute('aria-label','Scelta offerta dal server');offerLabel.append(select);
+  const movementLabel=node('label','Movimento prima dell’azione'),movement=node('select');movement.setAttribute('aria-label','Movimento prima dell’azione');movementLabel.append(movement);
+  const refresh=node('button','Aggiorna scelte'),send=node('button','Conferma scelta'),retry=node('button','Verifica lo stesso invio');
+  const note=node('p','Descrivi la tua azione nella chat di gioco. Qui scegli soltanto le opzioni dello scontro.');
+  const receipt=node('p'),events=node('ul'),lastClose=node('p');lastClose.className='mv2-note';
+  const closeMemory=createCloseReceiptMemory(presentationScope());
+  form.append(offerLabel,movementLabel,refresh,send,retry);root.replaceChildren(heading,status,roster,notice,note,form,receipt,events,lastClose);
+  // Classi Regia esistenti: nessun restyle o rinomina del monolite.
+  status.className='mv2-phase';roster.className='mv2-roster';notice.className='mv2-note';note.className='mv2-note';form.className='mv2-grid';
+  offerLabel.className='mv2-field';movementLabel.className='mv2-field';refresh.className='mv2-btn ghost';send.className='mv2-btn';retry.className='mv2-btn ghost';receipt.className='mv2-phase';events.className='mv2-roster';
+  let offerSignature='',moveSignature='';
+  function options(el,items,placeholder){el.replaceChildren();const first=node('option',placeholder);first.value='';el.append(first);for(const item of items){const o=node('option',item.label);o.value=item.offer_id;el.append(o);}}
+  function render(){
+    const c=controller,e=c.envelope;status.textContent=e?.context?phases[e.context.phase]:(e?'Scontro non disponibile':'Caricamento dello scontro…');
+    roster.replaceChildren();for(const a of e?.actors||[]){roster.append(node('li',a.display_name+(a.distance_from_viewer_m===null?'':' · '+a.distance_from_viewer_m+' m da te')));}
+    const code=c.error||(e?.status==='blocked'?e.reason_code:null);
+    notice.textContent=code?(reasons[code]||'Scelte non disponibili. Aggiorna lo stato dello scontro.'):(e?.context?.phase==='closed'?'Lo scontro è concluso.':(!e?.viewer.can_command?'In attesa del passaggio successivo.':(c.needsOptions?'Apri o aggiorna le scelte disponibili.':'')));
+    const sig=JSON.stringify(c.offers);if(sig!==offerSignature){options(select,c.offers,'Seleziona una scelta');offerSignature=sig;}
+    select.value=c.selected||'';select.disabled=c.busy||!!c.pending||c.needsOptions;
+    const chosen=c.offers.find(o=>o.offer_id===c.selected),moves=chosen?.movement_options||[];
+    const ms=JSON.stringify([chosen?.movement_required,moves]);if(ms!==moveSignature){options(movement,moves,chosen?.movement_required?'Seleziona uno spostamento':'Nessuno spostamento');moveSignature=ms;}
+    movement.value=c.movement||'';movement.disabled=select.disabled;movementLabel.hidden=moves.length===0;movementLabel.setAttribute('style',moves.length?'':'display:none');
+    refresh.disabled=c.busy||!!c.pending||e?.status!=='ready'||!e?.viewer.can_command;
+    send.disabled=!c.canSubmit();retry.hidden=!c.pending;retry.disabled=c.busy;
+    send.textContent=onConfirm&&['declare','defend'].includes(chosen?.operation)?'Prepara scelta':'Conferma scelta';
+    const r=e?.receipt;receipt.textContent=r?('Ricevuta registrata'+(r.replayed?' · invio già acquisito':'')+(r.values_written?' · valori applicati.':' · nessuna modifica ai valori in questo passaggio.')):'';
+    events.replaceChildren();for(const event of r?.display_events||[])events.append(node('li',event.summary));
+    const remembered=closeMemory.observe(presentationScope(),e);
+    lastClose.textContent=remembered?'Ultima chiusura confermata · ricevuta '+remembered.receipt_id+'. Questa ricevuta non indica lo stato attuale.':'';
+    lastClose.hidden=!remembered;
+  }
+  function handle(action){Promise.resolve().then(action).catch(e=>{controller.error=e.code||'invalid_projection';render();});}
+  select.addEventListener('change',()=>handle(()=>controller.select(select.value)));
+  movement.addEventListener('change',()=>handle(()=>controller.select(select.value,movement.value||null)));
+  refresh.addEventListener('click',()=>handle(()=>controller.openOptions()));
+  send.addEventListener('click',()=>handle(()=>onConfirm?onConfirm(controller):controller.submit(readChat())));
+  retry.addEventListener('click',()=>handle(()=>onRetry?onRetry(controller):controller.retry()));
+  controller.onChange=render;render();return {render,clearPresentation(){closeMemory.clear();lastClose.textContent='';lastClose.hidden=true;}};
+}
+
+return{mountConsumer};})();
+const {mountConsumer}=view;
+// Innesto privato LAND: nessuna RPC aggiuntiva o rilettura di dati di gioco dal DOM.
+function attachOrdinaryLand(host){
+  let controller=null,locationId=null,prepared=null,rawSubmitted=null,opening=false,presentation=null;
+  let originScope=null,epoch=0,stateRequest=0,entryAllowed=false;
+  const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  function scope(){
+    const id=host.identity?.(),place=host.location()?.id;
+    return id&&uuid.test(id.principal_id)&&uuid.test(id.character_id)&&uuid.test(place)
+      ?JSON.stringify([id.principal_id,id.character_id,place]):null;
+  }
+  const presentationScope=()=>host.principal?.()&&host.location()?.id?JSON.stringify([host.principal(),host.location().id]):null;
+  const root=host.document.getElementById('ordinary-body'),card=host.document.getElementById('ordinary-card'),dialog=host.document.getElementById('ordinary-overlay');
+  const entry=host.document.getElementById('ordinary-open'),close=host.document.getElementById('ordinary-close');
+  const selectionKey=c=>JSON.stringify([c.envelope?.context?.version,c.envelope?.context?.exchange_id,c.selected,c.movement,c.offers.find(o=>o.offer_id===c.selected)]);
+  function localAllowed(){return !!scope()&&!host.isExam()&&!host.otherCombat();}
+  function eligible(){return entryAllowed&&localAllowed()&&originScope===scope();}
+  function visible(on){dialog.hidden=!on;dialog.style.display=on?'flex':'none';}
+  function showEntry(){const on=eligible();card.hidden=!on;card.style.display=on?'':'none';}
+  function invalidate(){
+    epoch++;stateRequest++;entryAllowed=false;opening=false;prepared=null;rawSubmitted=null;
+    if(controller){controller.sequence++;controller.onChange=()=>{};}
+    presentation?.clearPresentation();presentation=null;controller=null;originScope=null;locationId=null;
+    root.replaceChildren();visible(false);showEntry();
+  }
+  function current(c,stamp){return c===controller&&stamp===epoch&&originScope===scope()&&localAllowed();}
+  function syncScope(){if((controller&&originScope!==scope())||!localAllowed())invalidate();}
+  function sameLocation(){return originScope===scope()&&locationId===host.location()?.id;}
+  function accepted(r){
+    if(!r||!eligible()||!sameLocation())return;
+    if(rawSubmitted!==null&&host.readChat().trim()===rawSubmitted)host.clearChat();
+    rawSubmitted=null;prepared=null;host.accepted(r);host.notice('Scelta acquisita dal server.');
+  }
+  async function submit(){
+    const origin=controller,stamp=epoch;
+    if(!current(origin,stamp)||!eligible())throw new ConsumerError('context_stale');
+    const r=await origin.submit('');if(current(origin,stamp))accepted(r);return r;
+  }
+  function setup(){
+    syncScope();if(controller&&sameLocation())return;
+    if(!localAllowed())return;
+    locationId=host.location().id;prepared=null;rawSubmitted=null;
+    originScope=scope();const stamp=epoch,binding=JSON.parse(originScope);
+    const created=new CombatConsumer({locationId,requestKey:host.requestKey,rpc:async(name,args)=>{
+      if(!current(created,stamp)||(name!=='combat_consumer_state_v1'&&!eligible()))throw new ConsumerError('context_stale');
+      const isState=name==='combat_consumer_state_v1',ticket=isState?++stateRequest:null;
+      let result;
+      try{result=await host.rpc(name,args);}catch(e){if(isState&&current(created,stamp)&&ticket===stateRequest)invalidate();throw e;}
+      if(!current(created,stamp)||(isState&&ticket!==stateRequest))throw new ConsumerError('context_stale');
+      const payload=result&&Object.hasOwn(result,'data')?result.data:result;
+      if(isState){
+        try{
+          if(result?.error)throw new ConsumerError('network_uncertain');
+          validateEnvelope(payload,{state:true});
+          if(payload.context&&payload.context.activity_kind!=='ordinary_v2')throw new ConsumerError('adapter_not_ready');
+          const grant=payload?.entry;
+          if(!grant||typeof grant.allowed!=='boolean'||grant.principal_id!==binding[0]
+            ||grant.character_id!==binding[1]||grant.location_id!==binding[2]
+            ||(grant.allowed&&payload.status!=='ready'))throw new ConsumerError('invalid_projection');
+          if(!grant.allowed){invalidate();throw new ConsumerError('not_participant');}
+          entryAllowed=true;showEntry();
+        }catch(e){if(current(created,stamp))invalidate();throw e;}
+      }
+      if(payload?.context && payload.context.activity_kind!=='ordinary_v2')throw new ConsumerError('adapter_not_ready');
+      return result;
+    }});
+    controller=created;
+    presentation=mountConsumer(root,controller,{presentationScope,onConfirm:async c=>{
+      if(!current(c,stamp)||!eligible()||!c.canSubmit())throw new ConsumerError('offer_not_available');
+      const offer=c.offers.find(o=>o.offer_id===c.selected);
+      if(['declare','defend'].includes(offer?.operation)){prepared=selectionKey(c);visible(false);host.notice('Scelta pronta. Invia la role dalla chat.');return;}
+      await submit();
+    },onRetry:async c=>{if(!current(c,stamp)||!eligible())throw new ConsumerError('context_stale');const r=await c.retry();if(current(c,stamp))accepted(r);}});
+  }
+  async function open(){
+    syncScope();if(!eligible()||opening)return;
+    opening=true;const c=controller,stamp=epoch;visible(true);
+    try{await c.poll();if(current(c,stamp)&&eligible()&&c.envelope?.status==='ready'&&c.envelope.viewer.can_command&&!c.pending&&c.needsOptions)await c.openOptions();}
+    finally{if(stamp===epoch)opening=false;}
+  }
+  async function refresh(){
+    syncScope();showEntry();if(!localAllowed())return;
+    setup();const c=controller,stamp=epoch;
+    if(c)await c.poll();
+    if(current(c,stamp)){presentation?.render();showEntry();}
+  }
+  function ownsCurrent(){return eligible()&&sameLocation()&&controller?.envelope?.context?.activity_kind==='ordinary_v2'&&!!controller.envelope.context.activity_id;}
+  // Chiamato prima del normale post_message, dopo i rami Esame invariati.
+  function handleSend(raw,narrative){
+    syncScope();
+    if(!ownsCurrent())return false;
+    const c=controller,stamp=epoch;
+    if(!c.envelope.viewer.actor_id||c.envelope.context.phase==='waiting_join')return false;
+    if(c.pending||c.busy){visible(true);host.notice('Invio in corso o da verificare: non creare un secondo invio.');return true;}
+    if(!c.envelope.viewer.can_command)return false; // normale chat, nessun avanzamento meccanico
+    if(!c.canSubmit()||prepared!==selectionKey(c)){visible(true);host.notice('Seleziona e prepara la scelta dello scontro prima di inviare.');return true;}
+    rawSubmitted=raw.trim();c.submit(narrative).then(r=>{if(current(c,stamp))accepted(r);}).catch(()=>{if(current(c,stamp)&&eligible())host.notice('Invio non confermato. Conserva la role e verifica lo stesso invio.');});
+    return true;
+  }
+  entry.addEventListener('click',open);close.addEventListener('click',()=>visible(false));
+  showEntry();visible(false);
+  return {open,refresh,handleSend,ownsCurrent,invalidate,clearPresentation(){presentation?.clearPresentation();},get controller(){return controller;}};
+}
+
+window.TUSOrdinary={attachOrdinaryLand};
+})();
+  </script>
   <script>
   (function(){
     var SB_URL='https://tyhyxkslteigibktluml.supabase.co';
@@ -2134,6 +2451,7 @@
     /* ---- LOGOUT ---- */
     document.getElementById('logout').addEventListener('click', function(e){
       e.preventDefault();
+      window.dispatchEvent(new Event('tus:ordinary-logout'));
       try{ window.dispatchEvent(new Event('tus:fato-reset')); }catch(_fr){}
       try{ sessionStorage.removeItem('tus_in_land'); }catch(e){}
       if(sb){ var _go=function(){ sb.auth.signOut().then(function(){ location.href='index.html'; }, function(){ location.href='index.html'; }); }; sb.rpc('leave_land').then(_go,_go); }
@@ -2714,7 +3032,30 @@
           if(typeof ok==='function') ok();
         }, function(e){ stanzaNegata(e&&e.message); });
       }
-      function refreshRoom(){ if(!cur) return; CMB_APRI=false; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); }
+      /* ORDINARY-CONSUMER-001: innesto offline, ingresso non disponibile finché manca eligibility server. */
+      var ORDINARY=null,ordinaryAuthId=null,ordinarySigningOut=false;
+      window.addEventListener('tus:ordinary-logout',function(){ordinarySigningOut=true;if(ORDINARY)ORDINARY.invalidate();});
+      if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session){
+        var id=session&&session.user?session.user.id:null;
+        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){if(ORDINARY)ORDINARY.invalidate();}
+        ordinaryAuthId=id;
+      });
+      function ordinaryRefresh(){
+        if(!window.TUSOrdinary||!cur){if(ORDINARY)ORDINARY.invalidate();return;}
+        if(!ORDINARY) ORDINARY=window.TUSOrdinary.attachOrdinaryLand({
+          document:document,location:function(){return cur;},
+          principal:function(){return loggedIn&&myId&&myCharId?JSON.stringify([myId,myCharId]):null;},
+          identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId&&myId&&myCharId?{principal_id:myId,character_id:myCharId}:null;},
+          isExam:function(){return !!(cur&&cur.is_exam_room)||esScontroVivo();},
+          otherCombat:function(){return !!(CMB&&CMB.aperto)||!!(MV2&&MV2.data&&MV2.data.encounter);},
+          rpc:function(name,args){return sb.rpc(name,args);},requestKey:mv2Key,
+          readChat:function(){return input.value||'';},
+          clearChat:function(){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';updCount();},
+          notice:toast,accepted:function(){syncSendBtn();loadMsgs();loadWho();loadRoleState();loadTrainingState();}
+        });
+        ORDINARY.refresh();
+      }
+      function refreshRoom(){ if(!cur) return; CMB_APRI=false; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); ordinaryRefresh(); }
 
       /* ---- MASTER-COMBAT-V2-LAND-UI-021: regia multi-attore ---- */
       var MV2={data:null,loading:false,setup:null,setupOpen:false,pngDraft:[],options:{},busy:false,missingRpc:false,setupKind:null,serverSig:null,defenseDrafts:{}};
@@ -3121,6 +3462,7 @@
         var card=document.getElementById('cmb-card'), body=document.getElementById('cmb-body');
         if(!card||!body) return;
         if(!cur){ card.hidden=true; return; }
+        if(ORDINARY&&ORDINARY.ownsCurrent()){card.hidden=true;return;}
         /* [071-A · §1] QUI stava il difetto del playtest. Con una prova
            d'Esame aperta, `combat_state` risponde il vero — nel luogo non
            c'e' nessuna riga `combat_sessions` — e questo ramo lo traduceva
@@ -5650,7 +5992,7 @@ var nb028iTeardown=function(){};
   };
 });
       function openRoom(l){
-        cur=l; showView('room');  restorePlace(l.id);
+        if(ORDINARY)ORDINARY.invalidate();cur=l; showView('room');  restorePlace(l.id);
         nameEl.textContent=l.name; kindEl.textContent=l.kind||''; descEl.textContent=l.description||'';
         var im=document.getElementById('room-img'), nt=document.getElementById('room-note');
         if(im){ if(l.image_url){ im.src=l.image_url; im.style.display='block'; } else { im.removeAttribute('src'); im.style.display='none'; } }
@@ -5666,7 +6008,7 @@ var nb028iTeardown=function(){};
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -5761,6 +6103,7 @@ var nb028iTeardown=function(){};
           }
           esInvia(ES_AZ, t, t); return;
         }
+        if(!to && ORDINARY && ORDINARY.handleSend(t,pbody)) return;
         sendBtn.disabled=true;
         var prm={p_location:cur.id,p_body:pbody};
         if(!to && pTxt && myComp){ prm.p_companion=myComp.id; prm.p_companion_body=pTxt; }
