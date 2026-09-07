@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-MARIONETTA-MOVEMENT-PICKER-001" />
+  <meta name="tus-build" content="LAND-MISSION-EXAM-SESSION-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3265,9 +3265,10 @@ window.TUSOrdinary={attachOrdinaryLand};
         esameHoldStop();esameHoldKey=k;
       }
       document.addEventListener('visibilitychange',function(){if(!document.hidden)esameHoldRefresh();});
-      window.addEventListener('tus:ordinary-logout',function(){esameHoldRevoked=true;esameHoldStop();});
+      window.addEventListener('tus:ordinary-logout',function(){missionSessionReset();esameHoldRevoked=true;esameHoldStop();});
       if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session){
         var nextId=session&&session.user?session.user.id:null;
+        if(event==='SIGNED_OUT'||nextId!==myId)missionSessionReset();
         if(holdAuthRevokes(event,myId,nextId,esameHoldKey!==null||!!missionOpeningPanel)){esameHoldRevoked=true;esameHoldStop();}
       });
       var ORDINARY=null,ordinaryAuthId=null,ordinarySigningOut=false;
@@ -5362,8 +5363,8 @@ window.TUSOrdinary={attachOrdinaryLand};
         return !!(p && p.id && (p.stato==null || p.stato==='aperta'));
       }
       function esArena(){ return !!(cur && cur.is_exam_room && loggedIn && sb
-                                   && (esGatePubblico() || esGateQA())); }
-      function esReset(){ ES={dato:null, sess:null, carico:false, errore:'', seq:0, busy:false}; esSig=null;
+                                   && (missionSessionOwn() || esGatePubblico() || esGateQA())); }
+      function esReset(){ missionSessionReset(); ES={dato:null, sess:null, carico:false, errore:'', seq:0, busy:false}; esSig=null;
         /* [069] Il gate se ne va con la stanza. Tenerlo acceso da una stanza
            all'altra vorrebbe dire portarsi dietro un permesso che quella
            stanza non ha dato. */
@@ -5494,6 +5495,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         return [p.id, p.scambio, p.beat, p.meta, p.fase].join('|');
       }
       function esIASpinta(){
+        if(missionSessionLegacyBlocked())return;
         if(!sb) return;
         var d=ES&&ES.dato, p=d&&d.prova;
         if(!p||!p.id) return;
@@ -5534,7 +5536,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       function esAccetta(d){ ES.dato=d||null; ES.errore=''; ES.carico=false; ES.seq++; ES.scontrino=esScontrino(ES.dato);
         /* Qui e in nessun altro posto: `esAccetta` e' il punto unico in cui
            uno stato nuovo entra in pagina. */
-        try{ esIASpinta(); }catch(e){} }
+        try{ esIASpinta(); }catch(e){} missionSessionAccepted(); }
 
       /* [R3] Lo SCONTRINO della prova: le chiavi con cui il server identifica ciò
          su cui stiamo lavorando — l'id della prova, l'id dell'elenco di opzioni
@@ -5583,6 +5585,7 @@ window.TUSOrdinary={attachOrdinaryLand};
          misurata il 16/08 sul Core applicato, NON mette `prova_id` nel payload.
          Finché resta così, questa funzione si comporta esattamente come prima. */
       function esProvaId(){
+        if(missionSessionOwn())return MS.prova;
         var cid=esProvaIdClasse(), mio=(ES.dato&&ES.dato.prova&&ES.dato.prova.id)||null;
         if(cid&&mio&&String(cid)!==String(mio)) return cid;
         return mio||cid||null;
@@ -5626,7 +5629,8 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(esArena() && !ES.dato){ loadEsame(); return; }
         renderEsame();
       }
-      function loadEsame(){
+      function loadEsame(){if(missionSessionLoad())return;return loadEsameLegacy();}
+      function loadEsameLegacy(){
         /* [069] La domanda al server sta PRIMA della guardia. Se stesse dopo,
            il gate non verrebbe mai chiesto: la guardia lo trova chiuso, esce,
            e la superficie resterebbe spenta anche il giorno in cui EXAM viene
@@ -5786,7 +5790,271 @@ function createOpeningController({client, context, onChange = () => {}}) {
         if(!missionOpeningController)missionOpeningController=missionOpeningLibrary.createOpeningController({client:sb,context:missionOpeningContext,onChange:missionOpeningRender});
         missionOpeningController.start();
       }
+      var missionSessionLibrary=(function(){
+// Orchestratore candidato: l'adapter owner normalizza SOLO attestazioni server.
+// Porte owner concordate; nessuna whitelist Staff o calcolo di gioco.
+const SESSION_VERSION = 'MISSION-EXAM-SESSION-001';
+const isUUID = value => typeof value === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(value);
+const isSHA = value => typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value);
+const insist = (value, code) => { if (!value) throw Error(code); };
+
+// Le firme sono concordate con DB; questo adapter non apre o chiude una prova.
+function createSessionAdapter({client, getProva}) {
+  async function rpc(name, args) {
+    const response = await client.rpc(name, args);
+    insist(!response?.error && response?.data != null, 'server_or_uncertain');
+    return response.data;
+  }
+  async function read() {
+    const prova = getProva(); insist(isUUID(prova), 'prova_missing');
+    const raw = await rpc('esame_session_state', {p_prova:prova});
+    insist(raw.ok === true && raw.prova === prova && raw.protected === true &&
+      raw.version === SESSION_VERSION && typeof raw.player_ready === 'boolean' &&
+      typeof raw.publishing === 'boolean' && typeof raw.closed === 'boolean' &&
+      typeof raw.opening_published === 'boolean' &&
+      (raw.error === null || typeof raw.error === 'string') &&
+      (raw.receipt_id === null || isUUID(raw.receipt_id)), 'owner_state_invalid');
+    let next;
+    const draft = raw.draft;
+    insist(draft === null || (isUUID(draft?.id) &&
+      ['autorizzata','generazione','pronta','errore','pubblicata'].includes(draft.status)), 'draft_shape');
+    if (raw.closed) next = 'complete';
+    else if (raw.error !== null || draft?.status === 'errore') next = 'paused';
+    else if (raw.publishing) next = 'waiting';
+    else if (raw.player_ready) next = 'player';
+    else if (draft === null) next = 'authorize';
+    else if (draft.status === 'autorizzata') next = 'generate';
+    else if (draft.status === 'pronta') {
+      insist(draft.result_ok === true && draft.publishable === true &&
+        draft.version === SESSION_VERSION && isSHA(draft.sha), 'draft_not_publishable');
+      next = 'publish';
+    } else next = 'waiting';
+    if (['authorize','generate','publish'].includes(next)) insist(isUUID(raw.receipt_id), 'receipt_missing');
+    return {authorized:true, protectedSession:true, sessionPolicy:'SESSION', prova,
+      next, actionKey:raw.receipt_id, draft:draft?.id ?? null, sha:draft?.sha ?? null,
+      budget:raw.budget, phase:raw.phase, status:raw.status, error:raw.error};
+  }
+  async function authorize(view) {
+    const id = await rpc('esame_session_authorize', {p_prova:view.prova, p_ricevuta:view.actionKey});
+    insist(isUUID(id), 'authorization_uncertain');
+  }
+  async function generate(view) {
+    const response = await client.functions.invoke('mission_narratore_ai/exam-session', {body:{draft_id:view.draft}});
+    const data = response?.data;
+    insist(!response?.error && data?.bozza === view.draft && data.pubblicato === false &&
+      isSHA(data.sha) && data.risultato?.ok === true && data.risultato.publishable === true &&
+      data.risultato.validator_version === SESSION_VERSION, 'generation_or_uncertain');
+  }
+  async function publish(view) {
+    insist(isSHA(view.sha), 'seal_missing');
+    const result = await rpc('esame_session_publish', {p_bozza:view.draft, p_sha:view.sha});
+    insist(result.ok === true && result.pubblicato === true, 'publication_or_uncertain');
+  }
+  return {read, authorize, generate, publish};
+}
+
+function createSessionController({adapter, contextKey, onChange = () => {}}) {
+  if (!adapter || typeof contextKey !== 'function') throw Error('adapter_required');
+  let epoch = 0, owner = null, busy = false;
+  let state = {stage:'idle', view:null, error:null};
+  const attempted = new Set();
+  const snapshot = () => ({...state, busy});
+  const ownsContext = () => owner !== null && owner === contextKey();
+  const notify = () => onChange(snapshot());
+  function clear() {
+    epoch++; owner = null; busy = false;
+    state = {stage:'idle', view:null, error:null}; notify();
+  }
+  function validate(view) {
+    // Interfaccia interna, NON shape dichiarata delle RPC live.
+    if (!view || view.authorized !== true || view.protectedSession !== true ||
+        view.sessionPolicy !== 'SESSION' || typeof view.prova !== 'string' || !view.prova ||
+        !['authorize','generate','publish','player','waiting','paused','complete'].includes(view.next) ||
+        !Number.isSafeInteger(view.budget?.used) || view.budget.used < 0 ||
+        !Number.isSafeInteger(view.budget?.limit) || view.budget.limit < 0) throw Error('owner_state_invalid');
+    if (['authorize','generate','publish'].includes(view.next) &&
+        (typeof view.actionKey !== 'string' || !view.actionKey)) throw Error('action_key_missing');
+    if (['generate','publish'].includes(view.next) &&
+        (typeof view.draft !== 'string' || !view.draft)) throw Error('draft_missing');
+    return view;
+  }
+  async function run(advance) {
+    if (busy || (advance && state.stage === 'stopped')) return false;
+    const key = contextKey();
+    if (typeof key !== 'string' || !key) { clear(); return false; }
+    if (owner !== null && owner !== key) { clear(); return false; }
+    owner = key; busy = true;
+    const ticket = epoch;
+    const check = () => {
+      if (ticket !== epoch || !ownsContext()) throw Error('context_changed');
+    };
+    const read = async () => {
+      check(); const view = await adapter.read(); check();
+      return validate(view);
+    };
+    notify();
+    try {
+      // Limite di sicurezza locale della catena, non rinnova budget server.
+      for (let transitions = 0; transitions < 40; transitions++) {
+        const view = await read();
+        state = {stage:view.next, view, error:null}; notify();
+        if (!advance || !['authorize','generate','publish'].includes(view.next)) return true;
+        if (view.next !== 'publish' && view.budget.used >= view.budget.limit) throw Error('call_budget_reached');
+        const actionKey = JSON.stringify([owner, view.prova, view.next, view.actionKey]);
+        if (attempted.has(actionKey)) throw Error('action_already_attempted');
+        attempted.add(actionKey); // Prima dell'attesa: nessun retry dopo risposta incerta.
+        check();
+        const operation = adapter[view.next];
+        if (typeof operation !== 'function') throw Error('adapter_not_bound');
+        await operation(view); check();
+        // La risposta non avanza localmente il turno: si rilegge l'autorità owner.
+      }
+      throw Error('transition_limit');
+    } catch (error) {
+      if (ticket === epoch) {
+        state = {stage:'stopped', view:null, error:ownsContext() ? String(error?.message || 'server_or_uncertain') : 'context_changed'};
+      }
+      return false;
+    } finally {
+      if (ticket === epoch) {
+        busy = false;
+        if (!ownsContext()) { epoch++; owner = null; state = {stage:'idle', view:null, error:null}; }
+        notify();
+      }
+    }
+  }
+  // Mount/osservazione è sola lettura. L'integrazione decide quando resume è autorizzato.
+  // Nessun avvio prova, timer, auto-close, vecchio Narratore o uscita reale.
+  return {snapshot, ownsContext, observe:() => run(false), resume:() => run(true), clear};
+}
+
+return {createSessionController,createSessionAdapter,isUUID};})();
+function canCloseSession({own,prova,loading,busy,closed}) {
+  return own===true&&typeof prova==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(prova)&&loading===false&&busy===false&&closed===false;
+}
+
+  var MS={key:null,readiness:null,loading:false,error:null,prova:null,controller:null,auto:false,openKeys:new Set(),closeKeys:new Map(),mechanical:false};
+  function missionSessionKey(){return loggedIn&&!ordinarySigningOut&&ordinaryAuthId===myId&&myCharId&&cur&&cur.is_exam_room?JSON.stringify([myId,myCharId,cur.id]):null;}
+  function missionSessionReset(){
+    if(!MS)return;
+    if(MS.controller)MS.controller.clear();
+    MS.key=null;MS.readiness=null;MS.loading=false;MS.error=null;MS.prova=null;MS.controller=null;MS.auto=false;MS.mechanical=false;
+  }
+  function missionSessionOwn(){return !!(MS&&MS.key===missionSessionKey()&&MS.readiness&&MS.readiness.eligible===true);}
+  function missionSessionLegacyBlocked(){return !!(missionSessionKey()&&(!MS||MS.key!==missionSessionKey()||!MS.readiness||MS.readiness.eligible!==false));}
+  function missionSessionView(){return MS&&MS.controller?MS.controller.snapshot():null;}
+  function missionSessionPlayer(){var s=missionSessionView();return !!(missionSessionOwn()&&!MS.loading&&!s?.busy&&s?.view?.next==='player'&&!MS.error);}
+  function missionSessionCanClose(){var s=missionSessionView();return canCloseSession({own:missionSessionOwn(),prova:MS.prova,loading:MS.loading,busy:s?.busy===true,closed:s?.view?.next==='complete'});}
+  function missionSessionBind(){
+    if(MS.controller||!MS.prova)return;
+    MS.controller=missionSessionLibrary.createSessionController({
+      adapter:missionSessionLibrary.createSessionAdapter({client:sb,getProva:function(){return MS.prova;}}),
+      contextKey:missionSessionKey,onChange:function(){renderEsame();}
+    });
+  }
+  async function missionSessionReadiness(){
+    var key=missionSessionKey();if(!key||MS.loading)return;
+    if(MS.key!==key){missionSessionReset();MS.key=key;}
+    MS.loading=true;MS.error=null;
+    try{
+      var r=await sb.rpc('esame_session_readiness',{});
+      if(key!==missionSessionKey()||key!==MS.key)return;
+      var d=r&&r.data;
+      if(r.error||!d||d.ok!==true||typeof d.eligible!=='boolean'||typeof d.ready!=='boolean'||typeof d.protected!=='boolean'||d.version!=='MISSION-EXAM-SESSION-001')throw Error('Verifica della prova non disponibile. Nessun avvio eseguito.');
+      if(d.eligible&&(d.candidate_character!==myCharId||d.location_id!==cur.id||d.protected!==true||!d.budget||!Number.isSafeInteger(d.budget.used)||!Number.isSafeInteger(d.budget.limit)||d.budget.used<0||d.budget.limit<0))throw Error('Contesto o budget della prova non confermati dal server.');
+      if(d.existing_prova!==null&&!missionSessionLibrary.isUUID(d.existing_prova))throw Error('Identificativo della prova non valido.');
+      MS.readiness=d;MS.prova=d.eligible?d.existing_prova:null;
+      if(MS.prova)missionSessionBind();
+    }catch(e){if(key===MS.key){MS.error=String(e.message);MS.auto=false;}}
+    finally{if(key===MS.key){MS.loading=false;renderEsame();}}
+  }
+  async function missionSessionRefresh(){
+    var key=missionSessionKey();if(!missionSessionOwn()||MS.loading||!MS.prova)return;
+    missionSessionBind();MS.loading=true;
+    try{
+      await MS.controller.observe();
+      if(key!==MS.key||key!==missionSessionKey())return;
+      var s=MS.controller.snapshot();
+      if(s.stage==='stopped'){MS.error='La prova è in pausa: '+s.error;MS.auto=false;return;}
+      if(s.view?.next==='complete'){MS.auto=false;return;}
+      var result=await sb.rpc('esame_prova_stato',{p_prova:MS.prova});
+      if(key!==MS.key||key!==missionSessionKey())return;
+      if(result.error||result.data?.prova?.id!==MS.prova)throw Error('Stato della prova non disponibile.');
+      MS.mechanical=true;esAccetta(result.data);MS.mechanical=false;
+    }catch(e){if(key===MS.key){MS.mechanical=false;MS.error=String(e.message);MS.auto=false;}}
+    finally{if(key===MS.key){MS.loading=false;renderEsame();}}
+  }
+  async function missionSessionDrive(){
+    if(!missionSessionOwn()||!MS.auto||!MS.controller||MS.loading)return;
+    var key=MS.key;
+    var ok=await MS.controller.resume();
+    if(key!==MS.key||key!==missionSessionKey())return;
+    if(!ok){MS.auto=false;MS.error='Narrazione in pausa. Nessuna chiamata viene ripetuta automaticamente.';}
+    await missionSessionRefresh();loadMsgs();renderEsame();
+  }
+  async function missionSessionStart(){
+    if(!missionSessionOwn()||!MS.readiness.ready||MS.loading||MS.prova||MS.openKeys.has(MS.key))return;
+    var key=MS.key,request=crypto.randomUUID();MS.openKeys.add(key);MS.loading=true;MS.error=null;renderEsame();
+    try{
+      var r=await sb.rpc('esame_session_open',{p_request:request}),d=r&&r.data;
+      if(key!==MS.key||key!==missionSessionKey())return;
+      if(r.error||d?.ok!==true||d.protected!==true||d.version!=='MISSION-EXAM-SESSION-001'||!missionSessionLibrary.isUUID(d.prova)||!missionSessionLibrary.isUUID(d.class_session_id))throw Error('Apertura non confermata. Rileggi lo stato senza avviare una seconda prova.');
+      MS.prova=d.prova;ES.sess=d.class_session_id;missionSessionBind();MS.auto=true;
+    }catch(e){if(key===MS.key){MS.error=String(e.message);MS.auto=false;}}
+    finally{if(key===MS.key){MS.loading=false;renderEsame();}}
+    if(key===MS.key&&MS.auto)await missionSessionDrive();
+  }
+  async function missionSessionClose(){
+    if(!missionSessionCanClose())return;
+    var key=MS.key,prova=MS.prova;
+    if(!MS.closeKeys.has(prova))MS.closeKeys.set(prova,crypto.randomUUID());
+    MS.loading=true;MS.auto=false;renderEsame();
+    try{
+      var r=await sb.rpc('esame_session_close',{p_prova:prova,p_request:MS.closeKeys.get(prova)}),d=r&&r.data;
+      if(key!==MS.key||key!==missionSessionKey())return;
+      if(r.error||d?.ok!==true||d.prova!==prova||d.closed!==true||d.protected!==true)throw Error('Chiusura non confermata. La prova rimane in pausa: rileggi lo stato.');
+    }catch(e){if(key===MS.key)MS.error=String(e.message);}
+    finally{if(key===MS.key){MS.loading=false;await missionSessionRefresh();renderEsame();}}
+  }
+  function missionSessionLoad(){
+    var key=missionSessionKey();
+    if(!key){if(MS&&MS.key)missionSessionReset();return false;}
+    if(MS.key!==key||!MS.readiness){missionSessionReadiness();return true;}
+    if(!MS.readiness.eligible)return false;
+    missionSessionRefresh();renderEsame();return true;
+  }
+  function missionSessionAccepted(){
+    if(missionSessionOwn()&&!MS.mechanical&&MS.auto)Promise.resolve().then(missionSessionDrive);
+  }
+  function missionSessionRender(){
+    if(!missionSessionKey())return false;
+    var card=esEl('esm-card'),body=esEl('esm-body');if(!card||!body)return true;
+    if(MS.readiness&&MS.key===missionSessionKey()&&MS.readiness.eligible===false)return false;
+    card.hidden=false;
+    var own=missionSessionOwn(),s=missionSessionView();
+    if(own&&ES.dato?.prova?.id===MS.prova&&s?.view?.next!=='complete')renderEsameLegacy();else body.replaceChildren();
+    var previous=document.getElementById('mission-session-status');if(previous)previous.remove();
+    var panel=document.createElement('section');panel.id='mission-session-status';body.prepend(panel);
+    function text(value){var p=document.createElement('p');p.textContent=value;panel.append(p);}
+    function button(label,fn,disabled){var b=document.createElement('button');b.type='button';b.className='esm-btn';b.textContent=label;b.disabled=!!disabled;b.addEventListener('click',fn);panel.append(b);}
+    text('Campione Esame protetto · nessun premio o avanzamento reale.');
+    var budget=s?.view?.budget||MS.readiness?.budget;
+    if(budget)text('Chiamate IA: '+budget.used+' / '+budget.limit+'.');
+    if(MS.error)text(MS.error);
+    else if(!own)text('Verifica del contesto in corso.');
+    else if(!MS.readiness.ready)text(MS.readiness.reason||'La prova non è ancora disponibile.');
+    else if(s?.view?.next==='complete')text('Campione concluso. Lo storico resta disponibile.');
+    else if(!MS.prova)button('Sostieni l’Esame Genin',missionSessionStart,MS.loading||MS.openKeys.has(MS.key));
+    else if(!MS.auto&&s?.view?.next!=='complete')button('Riprendi la prova',function(){MS.error=null;MS.auto=true;missionSessionDrive();},MS.loading||s?.busy);
+    if(missionSessionOwn()&&MS.prova&&s?.view?.next!=='complete')button('Chiudi il campione',missionSessionClose,!missionSessionCanClose());
+    if(MS.error)button('Rileggi lo stato',async function(){MS.error=null;if(!MS.prova)await missionSessionReadiness();else await missionSessionRefresh();},MS.loading);
+    var compose=esEl('esm-componi');if(compose)compose.disabled=!missionSessionPlayer();
+    var oldStart=esEl('esm-avvia');if(oldStart)oldStart.remove();
+    return true;
+  }
+
       function esAvvia(){
+        if(missionSessionLegacyBlocked()){missionSessionStart();return;}
         if(missionOpeningEligible()){if(esArena()&&!ES.busy)missionOpeningStart();return;}
         if(!esArena()||ES.busy) return; ES.busy=true; ES.carico=true; ES.errore=''; esSig=null; renderEsame();
         sb.rpc('esame_avvia',{p_location:cur.id}).then(function(r){
@@ -5802,6 +6070,7 @@ function createOpeningController({client, context, onChange = () => {}}) {
          nove secondi che tornano; `tentativi` e `prossimo` gestiscono soltanto
          guasti transitori, senza trasformare la LAND in un cron. */
       function esEntra(){
+        if(missionSessionLegacyBlocked())return;
         if(missionOpeningEligible())return; // Nessun recupero mutante o retry del vecchio percorso per il campione.
         var s=esSess(); if(!esArena()||ES.busy||!s) return;
         if(ES_AP.inVolo) return;
@@ -5854,6 +6123,7 @@ function createOpeningController({client, context, onChange = () => {}}) {
                  manovre:o.manovre||[], rapide:[], reazioni:o.reazioni||[] };
       }
       function esComponi(){
+        if(missionSessionLegacyBlocked()&&!missionSessionPlayer())return;
         var o=esOpz(); if(!o){ toast('La prova non è pronta'); return; }
         azSrc='esame'; CMB_OPZ=o; azFiltro=''; azBozzaInit();
         /* [071-A · FLUSSO UI §7] Il testo della chat NON entra piu' qui, e
@@ -5942,6 +6212,7 @@ function createOpeningController({client, context, onChange = () => {}}) {
          Il tetto sta QUI e in nessun altro posto: una guardia sola, sulla porta
          sola, così non esiste una seconda rete che copra il buco della prima. */
       function esInvia(az, testo, grezzo){
+        if(missionSessionLegacyBlocked()&&!missionSessionPlayer()){azErr("Attendi lo stato autorizzato della prova.");return;}
         var d=ES.dato; if(!sb||!d||!d.prova||ES.busy) return;
         var az2=esNormalizza(az);
         if(!az2){ azErr('Quell\u2019azione non \u00e8 in una forma che il server accetta.'); return; }
@@ -5998,6 +6269,7 @@ function createOpeningController({client, context, onChange = () => {}}) {
          mossa: il server la pubblica e chiude prova, sessione e promozione in
          un solo commit. Nessun payload di combattimento attraversa la porta. */
       function esInviaUscita(testo, grezzo){
+        if(missionSessionLegacyBlocked()){toast("Usa Chiudi il campione: nessuna uscita con premi reali.");return;}
         var d=ES.dato; if(!sb||!d||!d.prova||ES.busy) return;
         var txt=String(testo==null?'':testo).replace(/\s+$/,'');
         var grz=(grezzo==null)?txt:String(grezzo).replace(/\s+$/,'');
@@ -6017,7 +6289,8 @@ function createOpeningController({client, context, onChange = () => {}}) {
           updCount(); renderEsame(); loadMsgs(); loadAcadClass(); refreshMyVita(promosso);
         },function(){ ES.busy=false; syncSendBtn(); toast(ES_RETE); renderEsame(); });
       }
-      function renderEsame(){
+      function renderEsame(){if(missionSessionRender())return;return renderEsameLegacy();}
+      function renderEsameLegacy(){
         var card=esEl('esm-card'), body=esEl('esm-body'); if(!card||!body) return;
         if(!esArena()){ card.hidden=true; esSig=null; return; }
         card.hidden=false;
@@ -6080,7 +6353,7 @@ function createOpeningController({client, context, onChange = () => {}}) {
           h+='<p class="esm-dist">Distanza: '+esc(d.distanza)+' m'+(fscEs?(' · '+esc(fscEs)):'')+'</p>';
           /* ===== [COMBAT-050-R3 · VIA-NUOVA FINE] ===== */
           if(d.narrazione_attesa===true) h+='<p class="esm-attesa">Il narratore sta preparando la scena…</p>';
-          if(p.fase==='uscita'){
+          if(p.fase==='uscita'&&!missionSessionOwn()){
             h+='<p class="esm-fine">Lo scontro è concluso.</p><p class="esm-hint">Scrivi nella chat la role con cui il tuo personaggio si congeda e lascia l’aula. Non devi scegliere nessuna mossa: l’invio chiuderà formalmente l’Esame.</p>';
           } else if(p.tuo_turno){
             h+='<button class="esm-btn" id="esm-componi" type="button">'+((p.fase==='difesa')?'Scegli la reazione':'Scegli mossa')+'</button>';
