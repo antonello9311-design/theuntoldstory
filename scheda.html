@@ -451,6 +451,7 @@
   html[data-tasti="molto"] .stbtn{font-size:17px}
   html[data-tasti="molto"] .tk-search{font-size:17px}
   </style>
+<meta name="tus-clan-catalog-build" content="CLAN-CATALOGO-CANDIDATO-001">
 </head>
 <body>
   <div class="page">
@@ -1406,6 +1407,7 @@
       ['name','level','clan','category','xp_cost','danno_effetto','chakra_cost',
        'consumption_type','grado','danno_base','disciplina','gittata','attivazione']
         .forEach(function(c){ if(a[c]!=null) t[c]=a[c]; });
+      ['description','requirements','durata','bersaglio','uso','portata','difensiva','di_scena'].forEach(function(c){if(Object.prototype.hasOwnProperty.call(a,c))t[c]=a[c];});
       t.id=a.technique_id;
       /* [PM 11/08/2026 · OPEN-1] Su una tecnica che il personaggio ha GIA', il numero
          utile in gioco è il chakra: l'XP è stato speso e mostrarlo come prezzo inganna.
@@ -1466,9 +1468,10 @@
       var _g=t.gittata||techGittataDefault(t); if(_g)tech.push('gittata '+esc(_g)+(t.gittata?'':' <span class="hint">(def)</span>'));
       if(t.bersaglio)tech.push('bersaglio '+esc(t.bersaglio)); if(t.tipo_azione)tech.push('azione '+esc(t.tipo_azione));
       var _a=t.attivazione||techAttivDefault(t); if(_a)tech.push(_a==='sigilli'?'con sigilli':'istantanea');
+      if(t.uso)tech.push('uso '+esc(t.uso)); if(t.difensiva===true)tech.push('utilizzabile anche in difesa');
       if(t.durata)tech.push('durata '+esc(t.durata)); if(t.ricarica)tech.push('ricarica '+esc(t.ricarica));
       if(tech.length) b1.push('<div class="tkd"><b>Tecnica</b> · '+tech.join(' · ')+'</div>');
-      var cons=[]; if(t.chakra_cost!=null&&t.chakra_cost>0)cons.push(t.chakra_cost+' chakra'); if(t.consumption_type)cons.push(t.consumption_type==='per_turno'?'per turno':(t.consumption_type==='passiva'?'passiva':'ad utilizzo'));
+      var cons=[]; if(t.chakra_cost!=null&&t.chakra_cost>=0)cons.push(t.chakra_cost+' chakra'); if(t.consumption_type)cons.push(t.consumption_type==='per_turno'?'per turno':(t.consumption_type==='passiva'?'passiva':'ad utilizzo'));
       if(cons.length) b2.push('<div class="tkd"><b>Consumo</b> · '+cons.join(' · ')+'</div>');
       var acq=[]; if(t.xp_cost!=null)acq.push('<b style="color:var(--red-deep)">'+t.xp_cost+' XP</b>'); if(t.trainings_required!=null)acq.push(t.trainings_required+(t.trainings_required===1?' allenamento':' allenamenti'));
       if(acq.length) b2.push('<div class="tkd"><b>Acquisto</b> · '+acq.join(' · ')+'</div>');

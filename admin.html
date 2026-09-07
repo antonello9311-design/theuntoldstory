@@ -289,6 +289,7 @@
   @media(prefers-reduced-motion:reduce){.nbe-steps button{scroll-behavior:auto}}
   /* NINJA-BOOK-027B CSS FINE */
 </style>
+<meta name="tus-clan-catalog-build" content="CLAN-CATALOGO-CANDIDATO-001">
 </head>
 <body>
   <div class="page">
@@ -879,6 +880,7 @@
             <label>Tipologia<input id="tech-category" list="tech-cats" maxlength="40" placeholder="es. Taijutsu"><datalist id="tech-cats"><option value="Dōjutsu"></option><option value="Taijutsu"></option><option value="Ninjutsu"></option><option value="Genjutsu"></option><option value="Fuuinjutsu"></option><option value="Kekkei Genkai"></option><option value="Hiden"></option><option value="Difesa"></option><option value="Supporto"></option></datalist></label>
             <label>Tipo di consumo<select id="tech-consume"><option value="ad_utilizzo">Ad utilizzo</option><option value="per_turno">Per turno</option><option value="passiva">Passiva / nessuno</option></select></label>
             <label>Consumo di chakra<input id="tech-chakra" type="number" step="1" min="0" placeholder="es. 10"></label>
+            <label>Danno base <span class="opt">(valore di catalogo, distinto dalla Potenza e dal danno finale)</span><input id="tech-danno-base" type="number" step="1" min="0" placeholder="non definito"></label>
             <label>Grado (jutsu · D–S)<input id="tech-grado" list="tech-ranks" maxlength="30" placeholder="es. C"></label>
             <label>Potenza illusione <span class="opt">(solo genjutsu · Mente per spezzarlo con la Dispersione)</span><input id="tech-potenza" type="number" step="1" min="0" max="200" placeholder="es. 25 (C) · 40 (B) · 80 (S)"></label>
             <label>Disciplina <span class="opt">(organizzazione: i Jutsu per disciplina, oppure Abilità per arti innate/segrete)</span><select id="tech-disc"><option value="Ninjutsu">Ninjutsu</option><option value="Taijutsu">Taijutsu</option><option value="Genjutsu">Genjutsu</option><option value="Fuuinjutsu">Fuuinjutsu</option><option value="Abilità">Abilità (innata / segreta)</option></select></label>
@@ -987,6 +989,7 @@
           <div id="cso-list" style="margin:8px 0 16px"></div>
           <div class="grp-sub">Tutti i compagni</div>
           <div id="comp-admin-list"></div>
+          <section id="marionetta-chassis-admin"></section>
           </section>
 
           <section class="adm-page" data-page="premi">
@@ -2314,7 +2317,84 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
         return '<div class="locrow">'+av+'<div class="lmain"><span class="lname">'+esc(c.name)+'</span><span class="lkind">'+(kmap[c.kind]||esc(c.kind))+'</span><span class="lmeta"> \u00B7 di '+esc((c.character&&c.character.name)||'?')+'</span>'+(c.descr?('<span class="ldesc">'+esc(c.descr)+'</span>'):'')+'</div><div class="lacts">'+sel+'<button class="mini-btn danger" data-compdel="'+c.id+'">Elimina</button></div></div>';
       }).join('');
     }
+    function createChassisAdminController({rpc,principalId,getPrincipal,requestKey,onChange=()=>{}}){
+  const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x);
+  const text=x=>typeof x==='string'&&x.trim().length>0;
+  const integrity=x=>x===null||Number.isSafeInteger(x)&&x>=0&&x<=30;
+  const error=code=>Object.assign(new Error(code),{code});
+  const errors={'42501':'Operazione staff non autorizzata o registrazione non abilitata.','40001':'La scelta è scaduta o il compagno è cambiato. Aggiorna l’elenco.','22023':'Richiesta non valida: verifica selezione e conferma del modulo.'};
+  let epoch=0;
+  const c={entries:[],selected:null,confirmed:false,busy:false,invalid:false,uncertain:false,pending:null,receipt:null,message:'Carica le marionette ammesse dal server. Nessuna registrazione automatica.'};
+  const notify=()=>onChange(c);
+  const same=()=>!c.invalid&&principalId&&getPrincipal()===principalId;
+  const validEntry=e=>e&&text(e.companion_label)&&text(e.owner_label)&&typeof e.registered==='boolean'&&typeof e.can_register==='boolean'&&
+    (e.option_id===null||uuid(e.option_id))&&(!e.can_register||!e.registered&&uuid(e.option_id))&&integrity(e.integrity)&&
+    e.integrity_max===30&&e.radius_m===0.5&&e.module_label==='Arto rinforzato contundente'&&(e.reason_code===null||text(e.reason_code));
+  c.invalidate=()=>{epoch++;c.invalid=true;c.entries=[];c.selected=null;c.confirmed=false;c.receipt=null;c.pending=null;c.busy=false;c.message='Identità cambiata: riapri l’amministrazione con l’accesso autorizzato.';notify();};
+  c.select=id=>{if(c.busy||c.invalid||c.uncertain)return;c.selected=c.entries.some(e=>e.option_id===id&&e.can_register)?id:null;c.confirmed=false;notify();};
+  c.confirm=value=>{if(c.busy||c.invalid||c.uncertain)return;c.confirmed=value===true&&!!c.selected;notify();};
+  c.canRegister=()=>same()&&!c.busy&&!c.uncertain&&c.confirmed&&c.entries.some(e=>e.option_id===c.selected&&e.can_register&&!e.registered);
+  c.load=async()=>{
+    if(c.busy||c.invalid)return;
+    if(!same()){c.invalidate();return;}
+    const seq=++epoch;c.busy=true;c.selected=null;c.confirmed=false;notify();
+    try{
+      const r=await rpc('clan_marionettisti_chassis_options_v1',{});
+      if(seq!==epoch)return;if(!same()){c.invalidate();return;}
+      if(r?.error)throw error(r.error.code||'server_rejected');
+      const d=r?.data,ids=d?.entries?.filter(e=>e.option_id!==null).map(e=>e.option_id);
+      if(d?.schema_version!=='marionetta-chassis-admin/1'||d.profile_version!=='chassis-l1/1'||!Array.isArray(d.entries)||!d.entries.every(validEntry)||new Set(ids).size!==ids.length)throw error('invalid_projection');
+      c.entries=d.entries;c.message=c.uncertain?'Esito precedente non confermato: elenco di sola lettura, non ripetere la registrazione.':d.entries.length?'Seleziona una marionetta ammessa e conferma il modulo.':'Nessuna marionetta ammessa dal server.';
+    }catch(e){if(seq===epoch){c.entries=[];c.message=errors[e.code]||'Impossibile leggere lo stato autorizzato. Nessun dato modificato da questa lettura.';}}
+    finally{if(seq===epoch){c.busy=false;notify();}}
+  };
+  c.register=async()=>{
+    if(!c.canRegister())return;
+    const selected=c.entries.find(e=>e.option_id===c.selected),key=requestKey();
+    if(!uuid(key)){c.message='Identificatore della richiesta non disponibile. Nessun invio eseguito.';notify();return;}
+    const seq=++epoch;c.pending={p_option:selected.option_id,p_request:key,p_confirm_module:true};c.busy=true;c.receipt=null;notify();
+    try{
+      const r=await rpc('clan_marionettisti_chassis_register_v1',c.pending);
+      if(seq!==epoch)return;if(!same()){c.invalidate();return;}
+      if(r?.error){c.message=errors[r.error.code]||'Registrazione non confermata. Verifica lo stato prima di altre operazioni.';c.uncertain=!Object.hasOwn(errors,r.error.code);return;}
+      const d=r?.data;
+      if(d?.schema_version!=='marionetta-chassis-admin/1'||d.request_key!==key||!uuid(d.companion_id)||d.registered!==true||typeof d.replayed!=='boolean'||!integrity(d.integrity)||d.integrity_max!==30||d.module_label!=='Arto rinforzato contundente')throw error('invalid_receipt');
+      c.receipt={request_key:key,replayed:d.replayed,companion_label:selected.companion_label};
+      c.pending=null;c.message='Registrazione acquisita'+(d.replayed?' · ricevuta originaria già registrata':'')+'. Aggiorna l’elenco per lo stato corrente; nessun ripristino di integrità.';
+    }catch{if(seq===epoch){c.uncertain=true;c.message='Esito non confermato. Non ripetere la registrazione: conserva il riferimento e verifica con lo staff.';}}
+    finally{if(seq===epoch){c.busy=false;c.entries=[];c.selected=null;c.confirmed=false;notify();}}
+  };
+  return c;
+}
+    function mountChassisAdmin(root,client,principalId){
+  const doc=root.ownerDocument;
+  const node=(tag,text)=>{const n=doc.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
+  const title=node('h3','Primo chassis Marionettisti'),note=node('p','Registra una sola volta il chassis ratificato di una marionetta reale già esistente. Non crea personaggi, compagni o abilità e non ripara danni.'),status=node('p'),list=node('ul');
+  const load=node('button','Leggi stato chassis'),select=node('select'),label=node('label','Marionetta autorizzata '),check=node('input'),confirm=node('label','Confermo la registrazione dell’arto rinforzato contundente previsto dal primo chassis. '),save=node('button','Registra primo chassis'),receipt=node('p');
+  load.type=save.type='button';check.type='checkbox';status.setAttribute('role','status');select.setAttribute('aria-label','Marionetta autorizzata');
+  label.append(select);confirm.prepend(check);load.className='btn';save.className='btn btn-red';note.className=status.className=receipt.className='mgr-note';
+  const form=node('div');form.className='cat-form';confirm.className='full chk';form.append(label,confirm);
+  root.replaceChildren(title,note,load,status,list,form,save,receipt);
+  let currentPrincipal=principalId;
+  const c=createChassisAdminController({rpc:(name,args)=>client.rpc(name,args),principalId,getPrincipal:()=>currentPrincipal,requestKey:()=>globalThis.crypto?.randomUUID?.(),onChange:render});
+  function render(){
+    status.textContent=c.message;list.replaceChildren();select.replaceChildren();
+    const blank=node('option','— scegli una marionetta —');blank.value='';select.append(blank);
+    for(const e of c.entries){
+      const reason={release_disabled:'registrazione non abilitata',source_unavailable:'requisiti non disponibili'}[e.reason_code];
+      list.append(node('li',e.companion_label+' · '+e.owner_label+' · '+(e.registered?'già registrata':'non registrata')+' · integrità '+(e.integrity===null?'non disponibile':e.integrity+' / '+e.integrity_max)+' · '+e.module_label+' · raggio '+String(e.radius_m).replace('.',',')+' m'+(reason?' · '+reason:'')));
+      if(e.can_register){const o=node('option',e.companion_label+' · '+e.owner_label);o.value=e.option_id;select.append(o);}
+    }
+    select.value=c.selected||'';select.disabled=c.busy||c.invalid||c.uncertain;
+    check.checked=c.confirmed;check.disabled=select.disabled||!c.selected;save.disabled=!c.canRegister();load.disabled=c.busy||c.invalid;
+    receipt.textContent=c.receipt?'Ricevuta di registrazione · '+c.receipt.companion_label+' · '+c.receipt.request_key:c.uncertain&&c.pending?'Richiesta da verificare · '+c.pending.p_request:'';
+  }
+  load.addEventListener('click',()=>c.load());select.addEventListener('change',()=>c.select(select.value));check.addEventListener('change',()=>c.confirm(check.checked));save.addEventListener('click',()=>c.register());
+  const sub=client.auth.onAuthStateChange((_event,session)=>{currentPrincipal=session?.user?.id||null;if(currentPrincipal!==principalId)c.invalidate();});
+  render();return {controller:c,destroy(){sub?.data?.subscription?.unsubscribe();c.invalidate();root.replaceChildren();}};
+}
     function bindComps(){
+      mountChassisAdmin($('marionetta-chassis-admin'),sb,me.id);
       $('cso-save').addEventListener('click',async function(){
         var nm=$('cso-name').value.trim(); if(!nm){toast('Scrivi il nome del personaggio',true);return;}
         var ch=await sb.from('characters').select('id,name').ilike('name',nm).maybeSingle();
@@ -2868,6 +2948,9 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       if(t.bersaglio)meta.push(esc(t.bersaglio));
       meta.push(techConsume(t.consumption_type)+(t.chakra_cost!=null?(' · '+t.chakra_cost+' chakra'):''));
       if(!t.is_active)meta.push('disattivata');
+      if(t.danno_base!=null)meta.push('Danno base '+esc(String(t.danno_base)));
+      if(t.durata)meta.push('Durata '+esc(t.durata));
+      if(t.ricarica)meta.push('Ricarica '+esc(t.ricarica));
       var mech=[];
       if(t.xp_cost!=null)mech.push(t.xp_cost+' XP');
       if(t.trainings_required!=null)mech.push(t.trainings_required+' allenamenti');
@@ -2964,7 +3047,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       });
       host.innerHTML=html;
     }
-    function resetTechForm(){editingTech=null;$('tech-name').value='';$('tech-clan').value='';$('tech-level').value='';$('tech-category').value='';$('tech-consume').value='ad_utilizzo';$('tech-chakra').value='';['tech-grado','tech-potenza','tech-portata','tech-gittata','tech-uso','tech-attivazione','tech-bersaglio','tech-azione','tech-durata','tech-ricarica','tech-xp','tech-train','tech-reqgrade','tech-reqstat','tech-reqval','tech-reqstat2','tech-reqval2','tech-effetto'].forEach(function(id){var el=$(id);if(el)el.value='';});$('tech-req').value='';$('tech-desc').value='';$('tech-active').checked=true;var _td=$('tech-difensiva');if(_td)_td.checked=false;var _tm=$('tech-macro');if(_tm)_tm.value=(techMacro||'clan');Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){x.checked=false;});var _em=$('tech-elemsmode');if(_em)_em.value='uno';if($('tech-disc'))$('tech-disc').value=((techMacro||'clan')==='abilita'?'Abilità':'Ninjutsu');techMacroFormSync();$('tech-reset').style.display='none';$('tech-editing').textContent='';$('tech-save').textContent='Salva tecnica';}
+    function resetTechForm(){editingTech=null;$('tech-name').value='';$('tech-clan').value='';$('tech-level').value='';$('tech-category').value='';$('tech-consume').value='ad_utilizzo';$('tech-chakra').value='';['tech-grado','tech-potenza','tech-danno-base','tech-portata','tech-gittata','tech-uso','tech-attivazione','tech-bersaglio','tech-azione','tech-durata','tech-ricarica','tech-xp','tech-train','tech-reqgrade','tech-reqstat','tech-reqval','tech-reqstat2','tech-reqval2','tech-effetto'].forEach(function(id){var el=$(id);if(el)el.value='';});$('tech-req').value='';$('tech-desc').value='';$('tech-active').checked=true;var _td=$('tech-difensiva');if(_td)_td.checked=false;var _tm=$('tech-macro');if(_tm)_tm.value=(techMacro||'clan');Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){x.checked=false;});var _em=$('tech-elemsmode');if(_em)_em.value='uno';if($('tech-disc'))$('tech-disc').value=((techMacro||'clan')==='abilita'?'Abilità':'Ninjutsu');techMacroFormSync();$('tech-reset').style.display='none';$('tech-editing').textContent='';$('tech-save').textContent='Salva tecnica';}
     function techMacroFormSync(){ var m=($('tech-macro')&&$('tech-macro').value)||'clan'; var cl=$('tech-clan'); if(cl){ cl.disabled=(m!=='clan'); if(m!=='clan') cl.value=''; cl.style.opacity=(m!=='clan')?'.5':''; } var dd=$('tech-disc'); if(dd && m==='abilita') dd.value='Abilità'; }
     function bindTechs(){
       var rb=$('tech-reset');if(rb)rb.addEventListener('click',function(){resetTechForm();admFormHide('tecniche');});
@@ -2980,6 +3063,9 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
         payload.clan=(_macro==='clan')?($('tech-clan').value||null):null;
         var _el=[]; Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){ if(x.checked)_el.push(x.getAttribute('data-elem')); });
         payload.req_elements=_el.length?_el:null;payload.req_elements_mode=_el.length?((($('tech-elemsmode')||{}).value)||'uno'):null;
+        var _db=$('tech-danno-base').value.trim();
+        if(_db!==''&&(!/^\d+$/.test(_db)||!Number.isSafeInteger(Number(_db)))){toast('Danno base: inserisci un intero non negativo oppure lascia vuoto.',true);return;}
+        payload.danno_base=_db===''?null:Number(_db);
         var _pot=$('tech-potenza')?$('tech-potenza').value.trim():''; payload.potenza=_pot!==''?(parseInt(_pot,10)||0):null;
         payload.disciplina=($('tech-disc')&&$('tech-disc').value)||null;
         payload.gittata=($('tech-gittata')&&$('tech-gittata').value)||null;
@@ -3023,6 +3109,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
         $('tech-name').value=t.name||'';$('tech-clan').value=t.clan||'';$('tech-level').value=(t.level!=null?t.level:'');$('tech-category').value=t.category||'';$('tech-consume').value=t.consumption_type||'ad_utilizzo';$('tech-chakra').value=(t.chakra_cost!=null?t.chakra_cost:'');$('tech-grado').value=t.grado||'';$('tech-portata').value=t.portata||'';$('tech-bersaglio').value=t.bersaglio||'';$('tech-azione').value=t.tipo_azione||'';$('tech-durata').value=t.durata||'';$('tech-ricarica').value=t.ricarica||'';$('tech-xp').value=(t.xp_cost!=null?t.xp_cost:'');$('tech-train').value=(t.trainings_required!=null?t.trainings_required:'');$('tech-reqgrade').value=t.req_grade||'';$('tech-reqstat').value=t.req_stat||'';$('tech-reqval').value=(t.req_stat_value!=null?t.req_stat_value:'');$('tech-reqstat2').value=t.req_stat2||'';$('tech-reqval2').value=(t.req_stat2_value!=null?t.req_stat2_value:'');$('tech-effetto').value=t.danno_effetto||'';$('tech-req').value=t.requirements||'';$('tech-desc').value=t.description||'';$('tech-active').checked=t.is_active!==false;
         if($('tech-macro'))$('tech-macro').value=(t.macro||'clan');
         if($('tech-potenza'))$('tech-potenza').value=(t.potenza!=null?t.potenza:'');
+        $('tech-danno-base').value=(t.danno_base!=null?t.danno_base:'');
         if($('tech-disc'))$('tech-disc').value=(t.disciplina||'Ninjutsu');
         if($('tech-gittata'))$('tech-gittata').value=(t.gittata||'');
         if($('tech-uso'))$('tech-uso').value=(t.uso||'');

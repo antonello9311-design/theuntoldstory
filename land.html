@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-NARRATIVE-PARAGRAPH-001" />
+  <meta name="tus-build" content="LAND-MARIONETTA-CANDIDATO-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2310,11 +2310,14 @@ function renderCombatMap(root,envelope){
   const pos=a=>a&&finite(a.x_m)&&finite(a.y_m)&&finite(a.radius_m)&&a.radius_m>0&&a.x_m>=0&&a.y_m>=0&&a.x_m<=bounds.width_m&&a.y_m<=bounds.height_m;
   const me=roster.filter(a=>a.mine===true&&a.actor_id===envelope?.viewer?.actor_id);
   const states=['available','reserved','consumed_non_substitutable','blocked'];
+  const players=Array.isArray(m?.actors)?m.actors.filter(a=>a.body_only!==true):[];
+  const bodies=Array.isArray(m?.actors)?m.actors.filter(a=>a.body_only===true):[];
   if(!m||m.schema_version!=='combat-map/1'||m.readonly!==true||!Number.isSafeInteger(m.map_version)||m.map_version<0||!name(m.label)||
     !finite(bounds?.width_m)||!finite(bounds?.height_m)||bounds.width_m<=0||bounds.height_m<=0||me.length!==1||m.pov?.actor_id!==me[0].actor_id||!pos(m.pov)||
-    !Array.isArray(m.actors)||m.actors.length!==2||new Set(m.actors.map(a=>a.actor_id)).size!==2||
-    !m.actors.every(a=>pos(a)&&roster.some(r=>r.actor_id===a.actor_id&&r.state==='active'&&name(r.display_name)))||
-    !m.actors.some(a=>a.actor_id===m.pov.actor_id)||!Array.isArray(m.objects)||
+    !Array.isArray(m.actors)||players.length<1||players.length>2||bodies.length>2||new Set(m.actors.map(a=>a.actor_id)).size!==m.actors.length||
+    !players.every(a=>pos(a)&&roster.some(r=>r.actor_id===a.actor_id&&r.body_only!==true&&r.state==='active'&&name(r.display_name)))||
+    !bodies.every(a=>pos(a)&&name(a.display_name)&&roster.some(r=>r.actor_id===a.actor_id&&r.body_only===true&&r.mine===false&&r.display_name===a.display_name))||
+    !players.some(a=>a.actor_id===m.pov.actor_id)||!Array.isArray(m.objects)||
     !m.objects.every(o=>pos(o)&&name(o.object_id)&&name(o.label)&&finite(o.distance_from_viewer_m)&&o.distance_from_viewer_m>=0&&states.includes(o.state)&&typeof o.substitution_anchor_available==='boolean')){
     add('p','Mappa non disponibile per questo contesto.');return;
   }
@@ -2328,10 +2331,10 @@ function renderCombatMap(root,envelope){
   const legend=add('ul','');
   for(const a of m.actors){
     const r=roster.find(r=>r.actor_id===a.actor_id),mine=a.actor_id===m.pov.actor_id;
-    const circle=shape('circle',{cx:a.x_m,cy:a.y_m,r:a.radius_m,fill:mine?'#923c30':'#356b91'});
+    const circle=shape('circle',{cx:a.x_m,cy:a.y_m,r:a.radius_m,fill:a.body_only===true?'#806336':mine?'#923c30':'#356b91'});
     const title=shape('title',{},circle);title.textContent=r.display_name;
     const text=shape('text',{x:a.x_m,y:a.y_m-a.radius_m,'text-anchor':'middle','font-size':Math.min(bounds.width_m,bounds.height_m)/28,fill:'#352b1e'});text.textContent=r.display_name;
-    add('li',r.display_name+(mine?' · tu':finite(r.distance_from_viewer_m)?` · ${r.distance_from_viewer_m} m da te`:''),legend);
+    add('li',r.display_name+(a.body_only===true?' · corpo passivo':'')+(mine?' · tu':finite(r.distance_from_viewer_m)?` · ${r.distance_from_viewer_m} m da te`:''),legend);
   }
   const labels={available:'disponibile',reserved:'riservato',consumed_non_substitutable:'consumato · non sostituibile',blocked:'bloccato'};
   for(const o of m.objects){
@@ -2341,19 +2344,43 @@ function renderCombatMap(root,envelope){
   }
   add('p','La disponibilità di un oggetto non concede una tecnica: valgono soltanto le scelte offerte dal server.');
 }
+function renderCombatCompanion(root,envelope){
+  root.replaceChildren();root.hidden=true;
+  const c=envelope?.companion;
+  if(c==null)return;
+  const text=s=>typeof s==='string'&&s.trim().length>0;
+  const valid=c.schema_version==='combat-companion/1'&&envelope.status==='ready'&&
+    text(envelope.viewer?.actor_id)&&text(c.actor_id)&&c.actor_id!==envelope.viewer.actor_id&&
+    c.passive===true&&c.commanded_by_me===true&&typeof c.simulated==='boolean'&&text(c.display_name)&&
+    (envelope.actors||[]).some(a=>a.actor_id===c.actor_id&&a.body_only===true&&a.mine===false&&a.display_name===c.display_name)&&
+    [null,'connected','severed','unavailable'].includes(c.link_state)&&
+    (c.integrity===null||Number.isSafeInteger(c.integrity)&&c.integrity>=0)&&
+    (c.integrity_max===null||Number.isSafeInteger(c.integrity_max)&&c.integrity_max>0)&&
+    (c.integrity===null||c.integrity_max===null||c.integrity<=c.integrity_max);
+  const add=(tag,value)=>{const n=root.ownerDocument.createElement(tag);n.textContent=value;root.append(n);return n;};
+  root.hidden=false;
+  if(!valid){add('p','Dati del compagno non disponibili dal server.');return;}
+  add('h4',c.display_name+' · compagno passivo');
+  add('p',c.simulated?'Compagno di prova · separato dalla scheda reale':'Compagno comandato · nessun turno autonomo');
+  add('p',c.integrity!==null&&c.integrity_max!==null?'Integrità · '+c.integrity+' / '+c.integrity_max:'Integrità non disponibile dal server.');
+  const links={connected:'Fili collegati',severed:'Fili recisi',unavailable:'Collegamento non disponibile'};
+  if(c.link_state!==null)add('p',links[c.link_state]);
+  add('p','Movimento, attacco e riallaccio sono disponibili soltanto quando offerti dal server.');
+}
 function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=null,presentationScope=()=>null}={}){
   const doc=root.ownerDocument;
   function node(tag,text){const e=doc.createElement(tag);if(text!==undefined)e.textContent=text;return e;}
   const heading=node('h3','Scontro'),status=node('p'),roster=node('ul'),notice=node('p');notice.setAttribute('role','status');
   const resources=node('section');resources.className='ordinary-resources';
   const map=node('section');map.className='ordinary-map-section';
+  const companion=node('section');companion.className='ordinary-companion';
   const form=node('div'),offerLabel=node('label','Scelta offerta dal server'),select=node('select');select.setAttribute('aria-label','Scelta offerta dal server');offerLabel.append(select);
   const movementLabel=node('label','Movimento prima dell’azione'),movement=node('select');movement.setAttribute('aria-label','Movimento prima dell’azione');movementLabel.append(movement);
   const refresh=node('button','Aggiorna scelte'),send=node('button','Conferma scelta'),retry=node('button','Verifica lo stesso invio');
   const note=node('p','Descrivi la tua azione nella chat di gioco. Qui scegli soltanto le opzioni dello scontro.');
   const receipt=node('p'),events=node('ul'),lastClose=node('p');lastClose.className='mv2-note';
   const closeMemory=createCloseReceiptMemory(presentationScope());
-  form.append(offerLabel,movementLabel,refresh,send,retry);root.replaceChildren(heading,status,roster,resources,map,notice,note,form,receipt,events,lastClose);
+  form.append(offerLabel,movementLabel,refresh,send,retry);root.replaceChildren(heading,status,roster,resources,companion,map,notice,note,form,receipt,events,lastClose);
   // Classi Regia esistenti: nessun restyle o rinomina del monolite.
   status.className='mv2-phase';roster.className='mv2-roster';notice.className='mv2-note';note.className='mv2-note';form.className='mv2-grid';
   offerLabel.className='mv2-field';movementLabel.className='mv2-field';refresh.className='mv2-btn ghost';send.className='mv2-btn';retry.className='mv2-btn ghost';receipt.className='mv2-phase';events.className='mv2-roster';
@@ -2361,12 +2388,12 @@ function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=n
   function options(el,items,placeholder,isMovement=false){el.replaceChildren();const first=node('option',placeholder);first.value='';el.append(first);for(const item of items){const o=node('option',item.label+(isMovement?' · spostamento '+String(item.distance_m).replace('.',',')+' m':''));o.value=item.offer_id;el.append(o);}}
   function render(){
     const c=controller,e=c.envelope;status.textContent=e?.context?((Number.isSafeInteger(e.context.round_no)?'Round '+e.context.round_no+' · ':'')+phases[e.context.phase]):(e?'Scontro non disponibile':'Caricamento dello scontro…');
-    const activeActors=(e?.actors||[]).filter(a=>a.state==='active');
+    const activeActors=(e?.actors||[]).filter(a=>a.state==='active'&&a.body_only!==true);
     const expected=activeActors.filter(a=>e?.context?.phase==='action'?a.is_turn_owner===true:e?.context?.phase==='defense'?a.is_turn_owner===false:false);
     if(activeActors.length===2&&expected.length===1)status.textContent+=' · Deve agire '+expected[0].display_name;
     if(e?.context?.phase==='resolved')status.textContent+=' · In attesa dell’esito';
     roster.replaceChildren();for(const a of e?.actors||[]){roster.append(node('li',a.display_name+(a.distance_from_viewer_m===null?'':' · '+a.distance_from_viewer_m+' m da te')));}
-    renderPovResources(resources,e);renderCombatMap(map,e);
+    renderPovResources(resources,e);renderCombatMap(map,e);renderCombatCompanion(companion,e);
     const code=c.error||(e?.status==='blocked'?e.reason_code:null);
     notice.textContent=code?(reasons[code]||'Scelte non disponibili. Aggiorna lo stato dello scontro.'):(e?.context?.phase==='closed'?'Lo scontro è concluso.':(!e?.viewer.can_command?'In attesa del passaggio successivo.':(c.needsOptions?'Apri o aggiorna le scelte disponibili.':'')));
     const sig=JSON.stringify(c.offers);if(sig!==offerSignature){options(select,c.offers,'Seleziona una scelta');offerSignature=sig;}
@@ -8309,12 +8336,15 @@ var nb028iTeardown=function(){};
         if(t.chakra_cost>0) det.push(t.chakra_cost+' chakra'+(t.consumption_type==='per_turno'?' a round':''));
         if(t.danno_base>0) det.push('danno '+t.danno_base);
         if(t.consumption_type==='passiva') det.push('passiva');
-        var corso=(t.state!=='attiva');
+        var corso=(t.state==='in_addestramento');
+        var extra=[];
+        [['Descrizione','description'],['Requisiti','requirements'],['Durata','durata'],['Bersaglio','bersaglio'],['Uso','uso'],['Portata','portata']].forEach(function(pair){if(t[pair[1]]!=null&&t[pair[1]]!=='')extra.push('<span class="tk-eff"><b>'+pair[0]+'</b> · '+esc(String(t[pair[1]]))+'</span>');});
+        if(t.difensiva===true)extra.push('<span class="tk-eff">Utilizzabile anche in difesa</span>');
         return '<div class="tk-row"><b>'+esc(t.name)+'</b>'+
           (t.level!=null?'<span class="tk-lv">Lv'+t.level+'</span>':'')+
           (corso?'<span class="tk-tag corso">in addestramento</span>':'')+
           '<span class="tk-meta">'+esc(det.join(' \u00b7 '))+'</span>'+
-          (t.danno_effetto?('<span class="tk-eff">'+esc(t.danno_effetto)+'</span>'):'')+'</div>';
+          (t.danno_effetto?('<span class="tk-eff">'+esc(t.danno_effetto)+'</span>'):'')+extra.join('')+'</div>';
       }
       function renderTk(){
         var host=document.getElementById('tk-list'); if(!host) return;
