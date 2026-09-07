@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-MISSION-EXAM-SESSION-001" />
+  <meta name="tus-build" content="LAND-EXAM-ASSALTO-CONTACT-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -4247,7 +4247,7 @@ window.TUSOrdinary={attachOrdinaryLand};
                    '<select class="az-find" id="az-mol-sposta"'+(avAss.length?'':' disabled')+'>';
                 avAss.forEach(function(m){
                   h+='<option value="'+m+'"'+(String(m)===String(azBozza.spostamento)?' selected':'')+'>'+
-                     (m===0?'Già a contatto · 0 m':('Avanza di '+m+' m · termina a contatto'))+'</option>';
+                     (m===0?'Già a contatto · 0 m':(azSrc==='esame'?'Raggiungi il contatto':('Avanza di '+m+' m · termina a contatto')))+'</option>';
                 });
                 h+='</select><p class="az-d" style="margin:0">È l’unico movimento del turno: soltanto in avanti, entro la tua Velocità. Se non puoi raggiungere il contatto, Assalto non viene offerto.</p></div>';
               } else {
@@ -4456,9 +4456,10 @@ window.TUSOrdinary={attachOrdinaryLand};
             var msel=azTrova('moltiplicazione|'+(azBozza.principale.id||'')+'|');
             var mm=azBozza.principale.modalita;
             if(!msel||(msel.modalita_offerte||[]).indexOf(mm)<0){ azErr('Scegli Diversivo, Copertura oppure Assalto.'); return; }
-            var molSposta=parseInt(azBozza.spostamento,10); if(isNaN(molSposta)) molSposta=0;
-            if(!esSpostamentoValido(molSposta)&&molSposta!==0){ azErr('Scegli una distanza entro i limiti indicati.'); return; }
-            if(Math.abs(molSposta)%5!==0){ azErr('Lo spostamento con Moltiplicazione va scelto a passi di 5 metri.'); return; }
+            var esAssalto=azSrc==='esame'&&mm==='assalto';
+            var molSposta=esAssalto?Number(azBozza.spostamento):parseInt(azBozza.spostamento,10); if(!esAssalto&&isNaN(molSposta)) molSposta=0;
+            if(!esAssalto&&!esSpostamentoValido(molSposta)&&molSposta!==0){ azErr('Scegli una distanza entro i limiti indicati.'); return; }
+            if(!esAssalto&&Math.abs(molSposta)%5!==0){ azErr('Lo spostamento con Moltiplicazione va scelto a passi di 5 metri.'); return; }
             if(mm==='assalto'){
               var assOff=(msel.assalto_avanzamenti||[]).map(Number);
               if(molSposta<0){ azErr('Assalto consente soltanto di avanzare verso il bersaglio.'); return; }
