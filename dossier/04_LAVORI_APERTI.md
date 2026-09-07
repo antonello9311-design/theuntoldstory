@@ -18,7 +18,7 @@ Riscritto il 04/09/2026 · task `STAFF-TEST-ROOM-GATE-001`.
 | Missioni IA / Ninja Book / PNG Builder | applicato inerte | **parcheggiato** fino al canary | data del canary «Nodo Azzurro» | Antonello |
 | IA narrativa | in uso; follow-up separati dal rilascio | — | player bridge, ampiezza manovre, memoria anti-ripetizione, validazione qualitativa v119 | NARRATIVE-AI |
 | Accademia | in uso | — | le sette caselle di §1b (20 minuti) | Antonello |
-| Pagine | allineate | — | difetto Assalto/Moltiplicazione (mandato LAND-UI) | LAND-UI |
+| Pagine | background HTML pubblicato e verificato07/09; in uso da dichiarare Antonello | `management/candidati/SCHEDA-BACKGROUND-SICURO_2026-09-07/`, intervento separato autorizzato in deroga ai tre cantieri | preservare nuova scheda nel rebaseMarionetta; commit9e5fb5e,16/16/review0/0/0 | SCHEDA-UI + PM |
 | Pubblicazione | 13 asset sito allineati; sorgenti, test, referti e documenti 4.7.1 caricati su `main` via Chrome (`AGENTS.md` locale è il 14° file di `sito_live/`) | — | mantenere il registro a regime | PM |
 | Piattaforma | history461; igiene arretrata | — | deposito della migrazione461; ratifica dei 15 `anon` + `pg_net` | Antonello + DB-CORE |
 
