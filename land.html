@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-ESAME-SUPERVISION-REMOVED-001" />
+  <meta name="tus-build" content="LAND-MARIONETTA-MOVEMENT-PICKER-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2396,6 +2396,74 @@ function renderCombatCompanion(root,envelope){
   if(c.link_state!==null)add('p',links[c.link_state]);
   add('p','Movimento, attacco e riallaccio sono disponibili soltanto quando offerti dal server.');
 }
+// Sola presentazione di offerte autoritative: nessuna geometria o nuovo comando.
+const directions={left:'Sinistra',right:'Destra',up:'Verso l’alto',down:'Verso il basso'};
+function movementChoices(offers){
+  const valid=offers.filter(o=>{
+    const m=o.companion_movement;
+    return o.kind==='control'&&o.operation==='control'&&o.movement_required===false
+      &&Array.isArray(o.movement_options)&&o.movement_options.length===0
+      &&typeof o.source_id==='string'&&o.source_id.length>0
+      &&m&&typeof m==='object'&&!Array.isArray(m)
+      &&Object.keys(m).sort().join(',')==='direction,distance_m'
+      &&typeof m.direction==='string'&&Object.hasOwn(directions,m.direction)&&Number.isFinite(m.distance_m)&&m.distance_m>0;
+  });
+  // Contratto011: un solo corpo autorizzato per viewer/snapshot; source_id è casuale per offerta.
+  const ids=new Set(valid.map(o=>o.offer_id));
+  const groups=[];
+  for(const direction of Object.keys(directions)){
+    const byDistance=new Map();
+    for(const o of valid.filter(o=>o.companion_movement.direction===direction)){
+      const d=o.companion_movement.distance_m;
+      if(!byDistance.has(d))byDistance.set(d,o);
+    }
+    if(byDistance.size)groups.push({direction,offers:[...byDistance.values()].sort((a,b)=>a.companion_movement.distance_m-b.companion_movement.distance_m)});
+  }
+  return {normal:offers.filter(o=>!ids.has(o.offer_id)),groups};
+}
+function mountMovementPicker(root,c,{node,onConfirm,readChat}){
+  const title=node('p','Muovi la marionetta'),directionsRoot=node('div'),distancesRoot=node('div');
+  title.className='mv2-note';directionsRoot.className='mv2-actions';distancesRoot.className='mv2-actions';
+  directionsRoot.setAttribute('role','group');directionsRoot.setAttribute('aria-label','Direzione della marionetta');
+  distancesRoot.setAttribute('role','group');distancesRoot.setAttribute('aria-label','Distanza della marionetta');
+  root.append(title,directionsRoot,distancesRoot);
+  let direction=null,signature=null,locked=false,disposed=false;
+  const key=()=>JSON.stringify([c.envelope?.context,c.envelope?.viewer,c.offers]);
+  const ready=()=>!disposed&&!locked&&!c.busy&&!c.pending&&!c.needsOptions
+    &&c.envelope?.status==='ready'&&c.envelope.viewer?.can_command===true;
+  function render(){
+    const current=key(),choices=movementChoices(c.offers);
+    if(current!==signature||!ready())direction=null;
+    signature=current;root.hidden=choices.groups.length===0||disposed;
+    directionsRoot.replaceChildren();distancesRoot.replaceChildren();
+    for(const group of choices.groups){
+      const button=node('button',directions[group.direction]);button.type='button';button.className='mv2-btn ghost';
+      button.disabled=!ready();button.setAttribute('aria-pressed',String(direction===group.direction));
+      button.addEventListener('click',()=>{
+        if(!ready()||key()!==current)return;
+        direction=group.direction;render();
+      });directionsRoot.append(button);
+    }
+    const group=choices.groups.find(g=>g.direction===direction);
+    for(const offer of group?.offers||[]){
+      const button=node('button',String(offer.companion_movement.distance_m)+' m');button.type='button';button.className='mv2-btn';button.disabled=!ready();
+      button.setAttribute('aria-label','Sposta la marionetta: '+directions[group.direction]+', '+offer.companion_movement.distance_m+' m');
+      button.addEventListener('click',()=>{
+        if(!ready()||key()!==current||direction!==group.direction)return;
+        // La selezione e il lock avvengono prima di ogni attesa: doppio click non invia due volte.
+        locked=true;direction=null;
+        let action;
+        try{c.select(offer.offer_id);render();action=onConfirm?onConfirm(c):c.submit(readChat());}
+        catch(error){action=Promise.reject(error);}
+        Promise.resolve(action).catch(error=>{c.error=error.code||'invalid_projection';})
+          .finally(()=>{locked=false;if(!disposed)c.notify();});
+      });distancesRoot.append(button);
+    }
+    return choices.normal;
+  }
+  return {render,clear(){disposed=true;direction=null;root.replaceChildren();root.hidden=true;}};
+}
+
 function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=null,presentationScope=()=>null}={}){
   const doc=root.ownerDocument;
   function node(tag,text){const e=doc.createElement(tag);if(text!==undefined)e.textContent=text;return e;}
@@ -2413,6 +2481,8 @@ function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=n
   // Classi Regia esistenti: nessun restyle o rinomina del monolite.
   status.className='mv2-phase';roster.className='mv2-roster';notice.className='mv2-note';note.className='mv2-note';form.className='mv2-grid';
   offerLabel.className='mv2-field';movementLabel.className='mv2-field';refresh.className='mv2-btn ghost';send.className='mv2-btn';retry.className='mv2-btn ghost';receipt.className='mv2-phase';events.className='mv2-roster';
+  const companionPickerRoot=node('div');companionPickerRoot.className='mv2-field';form.append(companionPickerRoot);
+  const companionPicker=mountMovementPicker(companionPickerRoot,controller,{node,onConfirm,readChat});
   let offerSignature='',moveSignature='';
   function options(el,items,placeholder,isMovement=false){el.replaceChildren();const first=node('option',placeholder);first.value='';el.append(first);for(const item of items){const o=node('option',item.label+(isMovement?' · spostamento '+String(item.distance_m).replace('.',',')+' m':''));o.value=item.offer_id;el.append(o);}}
   function render(){
@@ -2427,7 +2497,8 @@ function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=n
     const code=c.error||(e?.status==='blocked'?e.reason_code:null);
     notice.textContent=code?(reasons[code]||'Scelte non disponibili. Aggiorna lo stato dello scontro.'):(e?.context?.phase==='closed'?'Lo scontro è concluso.':(!e?.viewer.can_command?'In attesa del passaggio successivo.':(c.needsOptions?'Apri o aggiorna le scelte disponibili.':'')));
     if(narrativeView.notice!==null)notice.textContent=narrativeView.notice;
-    const sig=JSON.stringify(c.offers);if(sig!==offerSignature){options(select,c.offers,'Seleziona una scelta');offerSignature=sig;}
+    const normalOffers=companionPicker.render();
+    const sig=JSON.stringify(normalOffers);if(sig!==offerSignature){options(select,normalOffers,'Seleziona una scelta');offerSignature=sig;}
     select.value=c.selected||'';select.disabled=c.busy||!!c.pending||c.needsOptions;
     const chosen=c.offers.find(o=>o.offer_id===c.selected),moves=chosen?.movement_options||[];
     const ms=JSON.stringify([chosen?.movement_required,moves]);if(ms!==moveSignature){options(movement,moves,chosen?.movement_required?'Seleziona uno spostamento':'Nessuno spostamento',true);moveSignature=ms;}
@@ -2447,7 +2518,7 @@ function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=n
   refresh.addEventListener('click',()=>handle(()=>controller.openOptions()));
   send.addEventListener('click',()=>handle(()=>onConfirm?onConfirm(controller):controller.submit(readChat())));
   retry.addEventListener('click',()=>handle(()=>onRetry?onRetry(controller):controller.retry()));
-  controller.onChange=render;render();return {render,clearPresentation(){closeMemory.clear();lastClose.textContent='';lastClose.hidden=true;}};
+  controller.onChange=render;render();return {render,clearPresentation(){companionPicker.clear();closeMemory.clear();lastClose.textContent='';lastClose.hidden=true;}};
 }
 
 return{mountConsumer};})();
