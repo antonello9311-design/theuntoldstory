@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-COMBAT-OBSERVABILITY-009" />
+  <meta name="tus-build" content="LAND-ESAME-SUPERVISION-REMOVED-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3180,195 +3180,24 @@ window.TUSOrdinary={attachOrdinaryLand};
       }
       /* ORDINARY-CONSUMER-001: innesto offline, ingresso non disponibile finché manca eligibility server. */
 
-      /* SHION-HOLD-UI-001: comandi staff espliciti, nessuna chiamata al montaggio. */
-      // Supervisione privata: il client presenta le scelte, il server autorizza ogni operazione.
-function mountEsameHold({root, client, context}) {
-  const initial = context();
-  root.hidden = true;
-  root.replaceChildren();
-  if (!initial?.staff || !initial.principal || !client?.rpc || !client.functions?.invoke) return {destroy(){}};
-  const key = c => c?.staff ? JSON.stringify([c.principal,c.character,c.location]) : null;
-  const owner = key(initial), doc = root.ownerDocument;
-  let alive = true, busy = false, detail = null, reservations = [], selected = '', draft = null, detailSignature='',autoReadPaused=false;
-  const consumed = new Set(), buttons = [];
-  const add = (tag, text, parent=root) => {
-    const el=doc.createElement(tag); el.textContent=text; parent.append(el); return el;
-  };
-  const button = (text, fn) => {
-    const el=add('button',text); el.type='button'; buttons.push(el);
-    el.addEventListener('click',fn); return el;
-  };
-  add('h3','Supervisione Esame · privata staff');
-  add('p','Prenota prima dell’avvio. Generazione e pubblicazione sono comandi distinti. Nessun tentativo viene ripetuto automaticamente.');
-  const status=add('p','Non caricata. Nessuna prenotazione o chiamata IA eseguita.');
-  status.setAttribute('role','status');
-  async function syncState(){
-    const data=await rpc('esame_supervisione_stato',{p_prova:null});
-    if(!current())return;
-    if(!Array.isArray(data?.prenotazioni))throw Error('shape');
-    if(JSON.stringify(reservations)!==JSON.stringify(data.prenotazioni)){
-      reservations=data.prenotazioni;
-      selection.replaceChildren(); option('','Seleziona una prova');
-      for(const r of reservations)if(r.prova)option(r.prova,`${r.nome} · ${r.stanza} · ${r.stato_prova}`);
-    }
-    if(selected&&!reservations.some(r=>r.prova===selected)){selected='';clearDetail();}
-    selection.value=selected;
-    listing.textContent=reservations.length?reservations.map(r=>`${r.nome} · ${r.stanza} · ${r.prova?r.stato_prova:'prenotata, prova non avviata'}`).join('\n'):'Nessuna prenotazione.';
-    if(selected)await loadDetail();
-    else status.textContent='Elenco aggiornato. Seleziona una prova per leggerne le bozze.';
-  }
-  const refresh=button('Aggiorna supervisione',()=>{autoReadPaused=false;return run(syncState);});
-  const reserve=button('Prenota il mio PG in questa stanza',()=>run(async()=>{
-    if(consumed.has('reserve'))return;
-    consumed.add('reserve');
-    const c=context();
-    const id=await rpc('esame_supervisione_prenota',{p_personaggio:c.character,p_luogo:c.location});
-    if(!current())return;
-    if(typeof id!=='string')throw Error('shape');
-    status.textContent='Prenotazione registrata. Non avviare la prova senza il gate concordato. Aggiorna l’elenco per verificarla.';
-  }));
-  const listing=add('pre',''); listing.style.whiteSpace='pre-wrap';
-  const label=add('label','Prova supervisionata');
-  const selection=add('select','',label); selection.setAttribute('aria-label','Prova supervisionata');
-  function option(value,text){const el=add('option',text,selection);el.value=value;}
-  option('','Seleziona una prova');
-  selection.addEventListener('change',()=>{if(!current()||busy)return;selected=selection.value;clearDetail();render();});
-  const read=button('Leggi prova e bozze',()=>run(()=>loadDetail()));
-  const gate=add('p','');
-  const output=add('div','');
-  const generate=button('Genera anteprima (1 Luna)',()=>run(async()=>{
-    if(missionOpeningEligible()||missionOpeningPrivateDraft(draft)||detail?.bozze?.some(missionOpeningPrivateDraft))return;
-    const attempt=`generate:${selected}:${detail.bozze.length}`;
-    if(consumed.has(attempt))return;
-    consumed.add(attempt);
-    const prova=selected;
-    const id=await rpc('esame_supervisione_autorizza',{p_prova:prova});
-    if(!current())return;
-    if(typeof id!=='string')throw Error('shape');
-    await edge({supervisione_bozza:id});
-    if(current())await loadDetail();
-  }));
-  const revalidate=button('Rivaluta senza generare',()=>run(async()=>{
-    if(missionOpeningEligible()||missionOpeningPrivateDraft(draft)||detail?.bozze?.some(missionOpeningPrivateDraft))return;
-    const b=draft, attempt=`revalidate:${b.id}:${b.sha}`;
-    if(consumed.has(attempt))return;
-    consumed.add(attempt); draft=null;
-    await edge({supervisione_rivalida:b.id});
-    if(current())await loadDetail();
-  }));
-  const publish=button('Approva e pubblica questa bozza',()=>run(async()=>{
-    if(missionOpeningEligible()||missionOpeningPrivateDraft(draft)||detail?.bozze?.some(missionOpeningPrivateDraft))return;
-    const b=draft, attempt=`publish:${b.id}:${b.sha}`;
-    if(consumed.has(attempt))return;
-    consumed.add(attempt); draft=null;
-    const result=await rpc('esame_supervisione_pubblica',{p_bozza:b.id,p_sha:b.sha});
-    if(!current())return;
-    if(result?.ok!==true)throw Error('shape');
-    await loadDetail();
-    if(current())status.textContent='Bozza esatta pubblicata. Nessuna nuova generazione richiesta.';
-  }));
-  const close=button('Chiudi prova supervisionata',()=>run(async()=>{
-    const attempt=`close:${selected}`;
-    if(consumed.has(attempt))return;
-    consumed.add(attempt); draft=null;
-    await rpc('esame_supervisione_chiudi',{p_prova:selected});
-    if(current())await loadDetail();
-  }));
-  function current(){if(!alive)return false;if(key(context())!==owner){destroy();return false;}return true;}
-  function destroy(){alive=false;root.hidden=true;root.replaceChildren();detail=null;draft=null;reservations=[];for(const b of buttons)b.disabled=true;}
-  function clearDetail(){detail=null;draft=null;detailSignature='';gate.textContent='';output.replaceChildren();}
-  async function rpc(name,args){const r=await client.rpc(name,args);if(r?.error||r?.data==null)throw Error('server');return r.data;}
-  async function edge(body){const r=await client.functions.invoke('exam_genin_ai',{body});if(r?.error||r?.data?.preview!==true||r.data.pubblicato!==false)throw Error('server');}
-  async function run(fn,quiet=false){
-    if(!current()||busy)return;
-    busy=true;render();if(!quiet)status.textContent='Operazione in corso. Nessun reinvio automatico.';
-    try{await fn();}
-    catch(_){if(current()){autoReadPaused=true;clearDetail();status.textContent='Operazione rifiutata o esito incerto. Aggiornamento automatico sospeso: usa la lettura dello stato, senza ripetere comandi operativi.';}}
-    finally{busy=false;if(current())render();}
-  }
-  async function loadDetail(){
-    if(!selected)return;
-    const prova=selected;
-    const data=await rpc('esame_supervisione_stato',{p_prova:prova});
-    if(!current()||selected!==prova)return;
-    if(data?.prova!==prova||!Array.isArray(data.bozze))throw Error('shape');
-    const signature=JSON.stringify(data);
-    if(signature===detailSignature)return;
-    detail=data;draft=null;detailSignature=signature;output.replaceChildren();
-    gate.textContent=data.chiusa_at?'Prova supervisionata chiusa.':data.player_ready?'In attesa dell’azione del giocatore.':'Supervisione attiva · pubblicazione trattenuta.';
-    for(const b of data.bozze){
-      const section=add('section','',output), r=b.risultato;
-      add('h4',`${b.tipo} · ${b.stato}`,section);
-      if(r){
-        const prose=(label,text)=>{add('h5',label,section);const p=add('p',narrativeParagraphText(text),section);p.style.whiteSpace='normal';p.style.overflowWrap='anywhere';};
-        const u=r.uscita, branches=u?.esiti;
-        if(typeof r.testo==='string')prose('Apertura',r.testo);
-        else if(typeof u?.azione_png==='string'&&branches&&typeof branches==='object'&&!Array.isArray(branches)&&Object.values(branches).every(x=>typeof x==='string')){
-          prose('Azione del PNG',u.azione_png);
-          for(const [label,text] of Object.entries(branches))prose('Esito · '+label,text);
-        }else{
-          add('p','Anteprima strutturata non disponibile.',section);
-          const diagnostic=add('details','',section);add('summary','Testo grezzo · diagnostica staff',diagnostic);
-          const raw=add('pre',r.raw_output??'Testo non disponibile.',diagnostic);raw.style.whiteSpace='pre-wrap';raw.style.overflowWrap='anywhere';
-        }
-        add('p',`Rilievi: ${Array.isArray(r.motivi)?r.motivi.join(' · '):'non disponibili'}`,section);
-        add('p',`Avvisi editoriali: ${Array.isArray(r.avvisi)?(r.avvisi.join(' · ')||'nessuno'):'non disponibili'}`,section);
-        add('p',r.giudice_non_eseguito===true?'Giudice non eseguito.':'Controllo del giudice: non attestato da questa interfaccia.',section);
-        add('p',`Impronta della bozza: ${b.sha??'non disponibile'}`,section);
-      }
-    }
-    draft=data.bozze.at(-1)??null;
-    status.textContent='Stato letto dal server. La pubblicazione richiede un comando esplicito sulla bozza mostrata.';
-  }
-  function render(){
-    const unavailable=!alive||busy, open=detail&&!detail.chiusa_at&&!detail.publishing;
-    for(const b of buttons)b.disabled=unavailable;
-    selection.disabled=unavailable;
-    reserve.disabled=unavailable||!initial.character||!initial.location||!initial.isTest||consumed.has('reserve');
-    read.disabled=unavailable||!selected;
-    generate.disabled=unavailable||!open||detail.player_ready||
-      (draft&&draft.stato!=='pubblicata')||consumed.has(`generate:${selected}:${detail?.bozze.length}`);
-    revalidate.disabled=unavailable||!open||!draft?.sha||!['pronta','errore'].includes(draft?.stato)||
-      consumed.has(`revalidate:${draft?.id}:${draft?.sha}`);
-    publish.disabled=unavailable||!open||draft?.stato!=='pronta'||draft?.risultato?.ok!==true||
-      draft?.risultato?.validator_version!=='SHION-HOLD-001'||!/^[a-f0-9]{64}$/.test(draft?.sha??'')||
-      consumed.has(`publish:${draft?.id}:${draft?.sha}`);
-    close.disabled=unavailable||!open||consumed.has(`close:${selected}`);
-    if(missionOpeningEligible()||missionOpeningPrivateDraft(draft)||detail?.bozze?.some(missionOpeningPrivateDraft)){generate.disabled=true;revalidate.disabled=true;publish.disabled=true;}
-  }
-  root.hidden=false;render();
-  return {destroy,refreshReadOnly(){if(!autoReadPaused)return run(syncState,true);}};
-}
-
       function holdAuthRevokes(event,currentId,nextId,mounted){
   return event==='SIGNED_OUT'||!!(mounted&&nextId!==currentId);
 }
-      var ESAME_HOLD=null,esameHoldRoot=null,esameHoldKey=null,esameHoldRevoked=false,esameHoldReadAt=0;
+      var esameHoldKey=null,esameHoldRevoked=false;
       function esameHoldContext(){return {staff:!esameHoldRevoked&&!ordinarySigningOut&&loggedIn&&iAmStaff&&ordinaryAuthId===myId,
         principal:myId,character:myCharId,location:cur&&cur.id,isTest:!!(cur&&cur.is_test)};}
-      function esameHoldStop(){missionOpeningHide();if(ESAME_HOLD)ESAME_HOLD.destroy();ESAME_HOLD=null;esameHoldKey=null;
-        if(esameHoldRoot){esameHoldRoot.remove();esameHoldRoot=null;}}
-      function esameHoldRead(force){
-        if(!ESAME_HOLD||!esameHoldRoot||!esameHoldRoot.open||document.hidden)return;
-        var now=Date.now();if(!force&&now-esameHoldReadAt<9000)return;
-        esameHoldReadAt=now;ESAME_HOLD.refreshReadOnly();
-      }
+      // Lifecycle interno dell'incipit: nessun pannello o polling Supervisione.
+      function esameHoldStop(){missionOpeningHide();esameHoldKey=null;}
       function esameHoldRefresh(){
         var c=esameHoldContext(),k=c.staff?JSON.stringify([c.principal,c.character,c.location]):null;
-        if(k===esameHoldKey){esameHoldRead(false);return;}esameHoldStop();if(!k)return;
-        esameHoldKey=k;
-        esameHoldRoot=document.createElement('details');esameHoldRoot.id='esame-hold-staff';
-        esameHoldRoot.style.cssText='position:fixed;right:16px;top:68px;z-index:10000;width:min(420px,92vw);max-height:80vh;overflow:auto;background:#f4ecd5;color:#352b1e;border:1px solid #9e8b61;padding:12px;box-shadow:0 6px 24px #0003';
-        var summary=document.createElement('summary');summary.textContent='Supervisione Esame · staff';esameHoldRoot.appendChild(summary);
-        var section=document.createElement('section');esameHoldRoot.appendChild(section);document.body.appendChild(esameHoldRoot);
-        ESAME_HOLD=mountEsameHold({root:section,client:sb,context:esameHoldContext});
-        esameHoldRoot.addEventListener('toggle',function(){esameHoldRead(true);});
+        if(k===esameHoldKey)return;
+        esameHoldStop();esameHoldKey=k;
       }
       document.addEventListener('visibilitychange',function(){if(!document.hidden)esameHoldRefresh();});
       window.addEventListener('tus:ordinary-logout',function(){esameHoldRevoked=true;esameHoldStop();});
       if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session){
         var nextId=session&&session.user?session.user.id:null;
-        if(holdAuthRevokes(event,myId,nextId,!!ESAME_HOLD)){esameHoldRevoked=true;esameHoldStop();}
+        if(holdAuthRevokes(event,myId,nextId,esameHoldKey!==null||!!missionOpeningPanel)){esameHoldRevoked=true;esameHoldStop();}
       });
       var ORDINARY=null,ordinaryAuthId=null,ordinarySigningOut=false;
       window.addEventListener('tus:ordinary-logout',function(){ordinarySigningOut=true;if(ORDINARY)ORDINARY.invalidate();});
@@ -5866,7 +5695,7 @@ function createOpeningController({client, context, onChange = () => {}}) {
         missionOpeningPanel.replaceChildren();
         function line(tag,text){var n=document.createElement(tag);n.textContent=text;missionOpeningPanel.appendChild(n);return n;}
         line('h3','Incipit Esame · campione privato');
-        var messages={preflight:'Verifica della prenotazione protetta.',opening:'Avvio della prova supervisionata.',generating:'Una generazione in corso. Nessun reinvio automatico.',preview:'Bozza privata. Non pubblicata e non utilizzabile per avanzare la prova.',stopped:'Operazione fermata o esito incerto. Nessun nuovo tentativo: leggi la supervisione e chiudi la sola prova.',closed:'Chiusura della prova confermata dal server.'};
+        var messages={preflight:'Verifica della prenotazione protetta.',opening:'Avvio della prova supervisionata.',generating:'Una generazione in corso. Nessun reinvio automatico.',preview:'Bozza privata. Non pubblicata e non utilizzabile per avanzare la prova.',stopped:'Operazione fermata o esito incerto. Nessun nuovo tentativo: chiudi la sola prova con il pulsante del campione.',closed:'Chiusura della prova confermata dal server.'};
         line('p',messages[s.stage]||'Nessuna operazione.').setAttribute('role','status');
         if(s.result){
           var r=s.result.risultato;
