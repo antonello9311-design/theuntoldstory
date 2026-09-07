@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-EXAM-MANUAL-REVIEW-RETIRED-001" />
+  <meta name="tus-build" content="LAND-EXAM-PANEL-RECOVERY-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -5934,6 +5934,20 @@ function canCloseSession({own,prova,loading,busy,closed}) {
   return own===true&&typeof prova==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(prova)&&loading===false&&busy===false&&closed===false;
 }
 
+
+  // Solo categorie pubbliche: mai messaggi arbitrari SQL, token, dettagli o role.
+  function missionSessionDiagnostic(result){
+    var code=result&&result.error&&result.error.code;
+    code=typeof code==='string'&&/^(?:[0-9A-Z]{5}|PGRST[0-9]{3})$/.test(code)?code:'non disponibile';
+    var status=result&&result.status;
+    status=Number.isInteger(status)&&status>=0&&status<=599?String(status):'non disponibile';
+    var data=result&&result.data;
+    var shape=data===null?'null':Array.isArray(data)?'array':typeof data;
+    var prova=data&&typeof data==='object'&&!Array.isArray(data)?data.prova:null;
+    var id=prova&&typeof prova==='object'?prova.id:null;
+    var match=typeof id==='string'?(id===MS.prova?'coincidente':'diverso'):'assente';
+    return 'HTTP '+status+'; codice '+code+'; risposta '+shape+'; prova '+match+'.';
+  }
   var MS={key:null,readiness:null,loading:false,error:null,prova:null,controller:null,auto:false,openKeys:new Set(),closeKeys:new Map(),mechanical:false};
   function missionSessionKey(){return loggedIn&&!ordinarySigningOut&&ordinaryAuthId===myId&&myCharId&&cur&&cur.is_exam_room?JSON.stringify([myId,myCharId,cur.id]):null;}
   function missionSessionReset(){
@@ -5977,11 +5991,11 @@ function canCloseSession({own,prova,loading,busy,closed}) {
       if(key!==MS.key||key!==missionSessionKey())return;
       var s=MS.controller.snapshot();
       if(s.stage==='stopped'){MS.error='La prova è in pausa: '+s.error;MS.auto=false;return;}
-      if(s.view?.next==='complete'){MS.auto=false;return;}
+      if(s.view?.next==='complete'){MS.auto=false;MS.error=null;return;}
       var result=await sb.rpc('esame_prova_stato',{p_prova:MS.prova});
       if(key!==MS.key||key!==missionSessionKey())return;
-      if(result.error||result.data?.prova?.id!==MS.prova)throw Error('Stato della prova non disponibile.');
-      MS.mechanical=true;esAccetta(result.data);MS.mechanical=false;
+      if(!result||result.error||result.data?.prova?.id!==MS.prova)throw Error('Stato della prova non disponibile. '+missionSessionDiagnostic(result));
+      MS.error=null;MS.mechanical=true;esAccetta(result.data);MS.mechanical=false;
     }catch(e){if(key===MS.key){MS.mechanical=false;MS.error=String(e.message);MS.auto=false;}}
     finally{if(key===MS.key){MS.loading=false;renderEsame();}}
   }
@@ -6033,7 +6047,7 @@ function canCloseSession({own,prova,loading,busy,closed}) {
     if(MS.readiness&&MS.key===missionSessionKey()&&MS.readiness.eligible===false)return false;
     card.hidden=false;
     var own=missionSessionOwn(),s=missionSessionView();
-    if(own&&ES.dato?.prova?.id===MS.prova&&s?.view?.next!=='complete')renderEsameLegacy();else body.replaceChildren();
+    if(own&&ES.dato?.prova?.id===MS.prova&&s?.view?.next!=='complete')renderEsameLegacy();else {body.replaceChildren();esSig=null;}
     var previous=document.getElementById('mission-session-status');if(previous)previous.remove();
     var panel=document.createElement('section');panel.id='mission-session-status';body.prepend(panel);
     function text(value){var p=document.createElement('p');p.textContent=value;panel.append(p);}
