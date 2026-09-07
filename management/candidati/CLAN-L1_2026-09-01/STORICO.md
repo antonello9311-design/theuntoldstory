@@ -88,3 +88,12 @@
 07/09/2026 · ORDINARY-VISIBILITY-001 QA007 iniziale · Quattro casi fermati da guardia statistiche della fixture; recovery/isolamento verdi,0provider; correzione applicativa non ancora provata · FAIL preparazione, apply non eseguito.
 
 07/09/2026 · ORDINARY-VISIBILITY-001 QA007 finale · 3/4PASS; fixtureMaster viola identità sorgente, recovery e isolamentoPASS,0provider; ciclo concluso senza apply · ROSSO finale.
+
+07/09/2026 · VISIBILITY-MASTER-QA-008 · Antonello autorizza correzione della preparazioneMaster tramite producer reale; prodotto2707invariato,4casi/32SQL/15min/0provider · in preparazione, nessun run.
+
+07/09/2026 · VISIBILITY-MASTER-QA-008 · 4/4PASS,1202assert,19SQL/5.783s,0provider,review0/0/0,recovery/isolamento/zeroresiduiPASS · VERDE locale,nonlive.
+
+07/09/2026 · marionetta_ordinary_visibility_001 · Unico apply20260907110828 e postflight byte/metadata/runtime/0residuiPASS;4gateOFF,0provider · helpercorrettoLIVE,smokecompleto daeseguire.
+
+07/09/2026 · SmokeMarionetta ripreso · Visibilità3corpi/attaccoParata/costoPASS;1IA5886token respintavalidation_rejected;close5e4e943f e2PG12superfici invariati/0residui/4OFF · ROSSO narrativa,nessunrilasciopubblico.
+07/09/2026 · MARIONETTA-DIAGNOSTICA-PIANO · Diagnosi conclusa: output non conservato, causa specifica non ricostruibile; proposto audit con codici e stato terminale UI, senza cambiare accettazione o ritentare IA · Piano da autorizzare, nessuna patch/apply.
