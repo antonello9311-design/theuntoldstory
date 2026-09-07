@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-EXAM-EDITORIAL-001" />
+  <meta name="tus-build" content="LAND-EXAM-PREVIEW-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -6002,6 +6002,79 @@ return {createEditorialController};})();
     if(state.error||state.target?.status==='generating'||state.target?.status==='error')button('Rileggi stato e messaggi',async function(){await controller.observe();loadMsgs();},state.busy);
   }
 
+var missionPreviewLibrary=(function(){
+function createPreviewController({getKey,readState,generate,onChange=()=>{}}){
+  const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(x);
+  const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
+  const exact=(x,keys)=>object(x)&&Object.keys(x).length===keys.length&&keys.every(k=>Object.hasOwn(x,k));
+  let owner=null,epoch=0,busy=false,state=null,error=null;const attempted=new Set();
+  function clear(){owner=null;epoch++;busy=false;state=null;error=null;}
+  function sync(){const key=getKey();if(key!==owner){clear();owner=key;}return typeof key==='string'&&key.length>0;}
+  const allowed=()=>!!owner&&!busy&&!error&&state?.status==='available'&&uuid(state.draft_id)&&!attempted.has(state.draft_id);
+  function snapshot(){sync();return{busy,state:state?structuredClone(state):null,error,canGenerate:allowed()};}
+  const current=(ticket,key)=>ticket===epoch&&owner===key&&getKey()===key;
+  async function observe(){
+    if(!sync()||busy)return false;const ticket=++epoch,key=owner;busy=true;onChange();
+    try{
+      const result=await readState();if(!current(ticket,key))return false;
+      if(!exact(result,['ok','draft_id','status','testo','telemetria','prompt_id'])||result.ok!==true||!(result.draft_id===null||uuid(result.draft_id))||!['unavailable','available','generating','ready','error'].includes(result.status)||!(result.prompt_id===null||typeof result.prompt_id==='string'))throw Error('preview_state_invalid');
+      if(result.status!=='unavailable'&&!uuid(result.draft_id))throw Error('preview_draft_invalid');
+      if(result.status==='ready'?(typeof result.testo!=='string'||!object(result.telemetria)||typeof result.prompt_id!=='string'):(result.testo!==null||result.telemetria!==null))throw Error('preview_result_invalid');
+      state=structuredClone(result);error=null;return true;
+    }catch(e){if(current(ticket,key)){state=null;error='Lettura dell’anteprima non riuscita. Rileggi lo stato senza generare di nuovo.';}return false;}
+    finally{if(current(ticket,key)){busy=false;onChange();}}
+  }
+  async function request(){
+    if(!sync()||!allowed())return false;
+    const ticket=++epoch,key=owner,draft=state.draft_id;attempted.add(draft);busy=true;onChange();let ready=false;
+    try{
+      const result=await generate(draft);if(!current(ticket,key))return false;
+      if(!exact(result,['status','ok','preview_ready','chiamate','retry'])||result.status!==200||result.ok!==true||result.preview_ready!==true||result.chiamate!==1||result.retry!==false)throw Error('preview_response_invalid');
+      ready=true;
+    }catch(e){if(current(ticket,key))error='Anteprima non confermata. Nessuna nuova generazione: puoi soltanto rileggere lo stato.';}
+    finally{if(current(ticket,key)){busy=false;onChange();}}
+    if(!ready||!current(ticket,key))return false;
+    return observe();
+  }
+  return{clear,snapshot,observe,request};
+}
+
+return {createPreviewController};})();
+
+  var MSP=null;
+  function missionPreviewKey(){
+    if(!MS||!missionSessionOwn()||!MS.prova||missionSessionView()?.view?.next==='complete')return null;
+    return JSON.stringify([MS.key,MS.prova,missionSessionView()?.view?.actionKey||null]);
+  }
+  function missionPreviewController(){
+    if(!MSP)MSP=missionPreviewLibrary.createPreviewController({
+      getKey:missionPreviewKey,onChange:function(){renderEsame();},
+      readState:async function(){var r=await sb.rpc('esame_session_preview_state',{p_prova:MS.prova});if(r.error)throw Error('preview_read_failed');return r.data;},
+      generate:async function(draft){var r=await sb.functions.invoke('mission_narratore_ai/exam-preview',{body:{draft_id:draft}});if(r.error)throw Error('preview_uncertain');return r.data;}
+    });
+    return MSP;
+  }
+  function missionPreviewRender(panel){
+    if(!missionPreviewKey())return;
+    var controller=missionPreviewController(),model=controller.snapshot(),state=model.state;
+    var box=document.createElement('section');box.id='mission-preview-status';panel.append(box);
+    function text(value){var p=document.createElement('p');p.textContent=value;box.append(p);return p;}
+    function button(label,fn,disabled){var b=document.createElement('button');b.type='button';b.className='esm-btn';b.textContent=label;b.disabled=!!disabled;b.addEventListener('click',fn);box.append(b);}
+    if(!state&&!model.busy&&!model.error)Promise.resolve().then(function(){return controller.observe();});
+    if(state?.status==='available'){
+      text('Una chiamata IA aggiuntiva, inclusa nel budget della prova. Anteprima privata: nessun messaggio pubblicato e nessuna mossa ripetuta.');
+      button('Prova il nuovo esito in privato',async function(){if(MS.loading||missionSessionView()?.busy)return;await controller.request();},!model.canGenerate||MS.loading||missionSessionView()?.busy);
+    }
+    if(model.busy)text('Anteprima privata in elaborazione…');
+    else if(state?.status==='generating')text('Anteprima già richiesta. Nessuna nuova generazione viene avviata.');
+    else if(state?.status==='ready'){
+      text('Anteprima privata · non pubblicata in chat · modello configurato gpt-5.6-luna/high · versione '+state.prompt_id);
+      var prose=text(state.testo);prose.style.whiteSpace='pre-wrap';
+    }else if(state?.status==='error')text('Anteprima in errore. Nessuna nuova generazione automatica.');
+    if(model.error)text(model.error);
+    if(model.error||['generating','error','ready'].includes(state?.status))button('Rileggi l’anteprima privata',function(){return controller.observe();},model.busy);
+  }
+
 function canCloseSession({own,prova,loading,busy,closed}) {
   return own===true&&typeof prova==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(prova)&&loading===false&&busy===false&&closed===false;
 }
@@ -6009,6 +6082,7 @@ function canCloseSession({own,prova,loading,busy,closed}) {
   var MS={key:null,readiness:null,loading:false,error:null,prova:null,controller:null,auto:false,openKeys:new Set(),closeKeys:new Map(),mechanical:false};
   function missionSessionKey(){return loggedIn&&!ordinarySigningOut&&ordinaryAuthId===myId&&myCharId&&cur&&cur.is_exam_room?JSON.stringify([myId,myCharId,cur.id]):null;}
   function missionSessionReset(){
+    if(MSP)MSP.clear();
     if(MSE)MSE.clear();
     if(!MS)return;
     if(MS.controller)MS.controller.clear();
@@ -6123,6 +6197,7 @@ function canCloseSession({own,prova,loading,busy,closed}) {
     if(missionSessionOwn()&&MS.prova&&s?.view?.next!=='complete')button('Chiudi il campione',missionSessionClose,!missionSessionCanClose());
     if(MS.error)button('Rileggi lo stato',async function(){MS.error=null;if(!MS.prova)await missionSessionReadiness();else await missionSessionRefresh();},MS.loading);
     missionEditorialRender(panel);
+    missionPreviewRender(panel);
     var compose=esEl('esm-componi');if(compose)compose.disabled=!missionSessionPlayer();
     var oldStart=esEl('esm-avvia');if(oldStart)oldStart.remove();
     return true;
