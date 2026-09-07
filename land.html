@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-MARIONETTA-CANDIDATO-001" />
+  <meta name="tus-build" content="LAND-MISSION-EXAM-OPENING-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3205,6 +3205,7 @@ function mountEsameHold({root, client, context}) {
   const gate=add('p','');
   const output=add('div','');
   const generate=button('Genera anteprima (1 Luna)',()=>run(async()=>{
+    if(missionOpeningEligible()||missionOpeningPrivateDraft(draft)||detail?.bozze?.some(missionOpeningPrivateDraft))return;
     const attempt=`generate:${selected}:${detail.bozze.length}`;
     if(consumed.has(attempt))return;
     consumed.add(attempt);
@@ -3216,6 +3217,7 @@ function mountEsameHold({root, client, context}) {
     if(current())await loadDetail();
   }));
   const revalidate=button('Rivaluta senza generare',()=>run(async()=>{
+    if(missionOpeningEligible()||missionOpeningPrivateDraft(draft)||detail?.bozze?.some(missionOpeningPrivateDraft))return;
     const b=draft, attempt=`revalidate:${b.id}:${b.sha}`;
     if(consumed.has(attempt))return;
     consumed.add(attempt); draft=null;
@@ -3223,6 +3225,7 @@ function mountEsameHold({root, client, context}) {
     if(current())await loadDetail();
   }));
   const publish=button('Approva e pubblica questa bozza',()=>run(async()=>{
+    if(missionOpeningEligible()||missionOpeningPrivateDraft(draft)||detail?.bozze?.some(missionOpeningPrivateDraft))return;
     const b=draft, attempt=`publish:${b.id}:${b.sha}`;
     if(consumed.has(attempt))return;
     consumed.add(attempt); draft=null;
@@ -3299,6 +3302,7 @@ function mountEsameHold({root, client, context}) {
       draft?.risultato?.validator_version!=='SHION-HOLD-001'||!/^[a-f0-9]{64}$/.test(draft?.sha??'')||
       consumed.has(`publish:${draft?.id}:${draft?.sha}`);
     close.disabled=unavailable||!open||consumed.has(`close:${selected}`);
+    if(missionOpeningEligible()||missionOpeningPrivateDraft(draft)||detail?.bozze?.some(missionOpeningPrivateDraft)){generate.disabled=true;revalidate.disabled=true;publish.disabled=true;}
   }
   root.hidden=false;render();
   return {destroy,refreshReadOnly(){if(!autoReadPaused)return run(syncState,true);}};
@@ -3310,7 +3314,7 @@ function mountEsameHold({root, client, context}) {
       var ESAME_HOLD=null,esameHoldRoot=null,esameHoldKey=null,esameHoldRevoked=false,esameHoldReadAt=0;
       function esameHoldContext(){return {staff:!esameHoldRevoked&&!ordinarySigningOut&&loggedIn&&iAmStaff&&ordinaryAuthId===myId,
         principal:myId,character:myCharId,location:cur&&cur.id,isTest:!!(cur&&cur.is_test)};}
-      function esameHoldStop(){if(ESAME_HOLD)ESAME_HOLD.destroy();ESAME_HOLD=null;esameHoldKey=null;
+      function esameHoldStop(){missionOpeningHide();if(ESAME_HOLD)ESAME_HOLD.destroy();ESAME_HOLD=null;esameHoldKey=null;
         if(esameHoldRoot){esameHoldRoot.remove();esameHoldRoot=null;}}
       function esameHoldRead(force){
         if(!ESAME_HOLD||!esameHoldRoot||!esameHoldRoot.open||document.hidden)return;
@@ -5720,7 +5724,138 @@ function mountEsameHold({root, client, context}) {
           renderEsame();
         }, function(){ if(n!==ES.seq) return; ES.carico=false; ES.errore=ES_RETE; renderEsame(); });
       }
+
+      /* MISSION-EXAM-OPENING-001: campione privato, nessuna chiamata al montaggio. */
+      function missionOpeningPrivateDraft(draft) {
+  return draft?.risultato?.publishable === false || draft?.risultato?.validator_version === 'MISSION-EXAM-OPENING-001';
+}
+      var missionOpeningLibrary=(function(){
+// CAMPIONE INCIPIT: orchestrazione UI; tutte le autorizzazioni restano server-side.
+const OPENING_ROUTE = 'mission_narratore_ai/exam-opening';
+const OPENING_VALIDATOR = 'MISSION-EXAM-OPENING-001';
+const uuid = value => typeof value === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(value);
+const participants = new Set(['2a877f02-4993-4e65-9172-7d29f08c5b86', '6bceee99-974f-426b-8d92-38b43b4a4267']);
+function openingScope(c) {
+  return !!(c?.staff && uuid(c.principal) && participants.has(c.character) && c.isTest && c.isExam && c.isAcademy &&
+    c.location === '0b85f354-9cdb-47e1-baf9-3d266bb7e06b');
+}
+const identity = c => JSON.stringify([c?.principal, c?.character, c?.location, !!c?.staff]);
+const requireState = (condition, code) => { if (!condition) throw Error(code); };
+
+function createOpeningController({client, context, onChange = () => {}}) {
+  const attempted = new Set();
+  let state = {stage:'idle', busy:false, session:null, prova:null, draft:null, result:null, error:null};
+  let owner = null, closeAttempted = false;
+  const snapshot = () => ({...state});
+  function notify() { onChange(snapshot()); }
+  function current() { return openingScope(context()) && identity(context()) === owner; }
+  function check() { requireState(current(), 'context_changed'); }
+  async function rpc(name, args) {
+    check();
+    const response = await client.rpc(name, args);
+    check();
+    requireState(!response?.error && response?.data != null, 'server_or_uncertain');
+    return response.data;
+  }
+  async function start() {
+    const c = context(), key = identity(c);
+    if (!openingScope(c) || state.busy || attempted.has(key)) return false;
+    attempted.add(key); owner = key; closeAttempted = false;
+    state = {stage:'preflight', busy:true, session:null, prova:null, draft:null, result:null, error:null}; notify();
+    try {
+      const listing = await rpc('esame_supervisione_stato', {p_prova:null});
+      requireState(Array.isArray(listing.prenotazioni), 'reservation_shape');
+      const own = listing.prenotazioni.filter(r => r.personaggio === c.character);
+      requireState(!own.some(r => r.prova && r.stato_prova === 'aperta'), 'existing_exam');
+      const pending = own.filter(r => r.is_active === true && r.prova === null);
+      requireState(pending.length <= 1 && pending.every(r => r.luogo === c.location && uuid(r.id)), 'reservation_conflict');
+      if (!pending.length) {
+        const reservation = await rpc('esame_supervisione_prenota', {p_personaggio:c.character, p_luogo:c.location});
+        requireState(uuid(reservation), 'reservation_shape');
+      }
+      state.stage = 'opening'; notify();
+      const session = await rpc('esame_avvia', {p_location:c.location});
+      requireState(uuid(session), 'session_shape'); state.session = session;
+      const envelope = await rpc('esame_prova_apri', {p_session:session});
+      requireState(uuid(envelope?.prova?.id) && envelope.prova.stato === 'aperta', 'exam_shape');
+      state.prova = envelope.prova.id; notify();
+      const hold = await rpc('esame_supervisione_stato', {p_prova:state.prova});
+      requireState(hold.prova === state.prova && hold.chiusa_at === null && hold.apertura_fatti && typeof hold.apertura_fatti === 'object' && hold.apertura_pubblicata === false &&
+        hold.player_ready === false && hold.publishing === false && uuid(hold.apertura_ricevuta) &&
+        Array.isArray(hold.bozze) && hold.bozze.length === 0, 'opening_not_pending');
+      state.draft = await rpc('esame_supervisione_autorizza', {p_prova:state.prova});
+      requireState(uuid(state.draft), 'draft_shape');
+      state.stage = 'generating'; notify(); check();
+      const response = await client.functions.invoke(OPENING_ROUTE, {body:{draft_id:state.draft}});
+      check();
+      const data = response?.data, result = data?.risultato;
+      requireState(!response?.error && data?.preview === true && data.pubblicato === false && data.bozza === state.draft &&
+        typeof data.sha === 'string' && /^[a-f0-9]{64}$/.test(data.sha) && result?.publishable === false &&
+        result.validator_version === OPENING_VALIDATOR && typeof result.ok === 'boolean' &&
+        (typeof result.testo === 'string' || (result.ok === false && result.testo === null)) && Array.isArray(result.motivi), 'response_or_uncertain');
+      state.result = data; state.stage = 'preview';
+    } catch (error) {
+      state.stage = 'stopped'; state.error = error.message;
+    } finally { state.busy = false; if (current()) notify(); }
+    return true;
+  }
+  async function close() {
+    if (!current() || state.busy || !uuid(state.prova) || closeAttempted) return false;
+    closeAttempted = true; state.busy = true; notify();
+    try {
+      await rpc('esame_supervisione_chiudi', {p_prova:state.prova});
+      const hold = await rpc('esame_supervisione_stato', {p_prova:state.prova});
+      requireState(hold.prova === state.prova && typeof hold.chiusa_at === 'string', 'closure_uncertain');
+      state.stage = 'closed'; state.result = null;
+    } catch (error) { state.error = error.message; state.stage = 'stopped'; }
+    finally { state.busy = false; if (current()) notify(); }
+    return true;
+  }
+  return {start, close, snapshot, ownsContext:current,
+    attemptedHere:() => attempted.has(identity(context()))};
+}
+
+        return {openingScope,createOpeningController};
+      })();
+      var missionOpeningController=null,missionOpeningPanel=null;
+      function missionOpeningContext(){
+        var c=esameHoldContext();
+        return Object.assign({},c,{isExam:!!(cur&&cur.is_exam_room),isAcademy:!!(cur&&cur.is_academy)});
+      }
+      function missionOpeningEligible(){return !!missionOpeningLibrary&&missionOpeningLibrary.openingScope(missionOpeningContext());}
+      function missionOpeningHide(){if(missionOpeningPanel)missionOpeningPanel.remove();missionOpeningPanel=null;}
+      function missionOpeningRender(s){
+        if(!missionOpeningController||!missionOpeningController.ownsContext()){missionOpeningHide();return;}
+        if(!missionOpeningPanel){
+          missionOpeningPanel=document.createElement('section');missionOpeningPanel.id='mission-opening-preview';
+          missionOpeningPanel.style.cssText='position:fixed;right:16px;top:68px;z-index:10001;width:min(480px,92vw);max-height:80vh;overflow:auto;background:#f4ecd5;color:#352b1e;border:1px solid #9e8b61;padding:16px';
+          document.body.appendChild(missionOpeningPanel);
+        }
+        missionOpeningPanel.replaceChildren();
+        function line(tag,text){var n=document.createElement(tag);n.textContent=text;missionOpeningPanel.appendChild(n);return n;}
+        line('h3','Incipit Esame · campione privato');
+        var messages={preflight:'Verifica della prenotazione protetta.',opening:'Avvio della prova supervisionata.',generating:'Una generazione in corso. Nessun reinvio automatico.',preview:'Bozza privata. Non pubblicata e non utilizzabile per avanzare la prova.',stopped:'Operazione fermata o esito incerto. Nessun nuovo tentativo: leggi la supervisione e chiudi la sola prova.',closed:'Chiusura della prova confermata dal server.'};
+        line('p',messages[s.stage]||'Nessuna operazione.').setAttribute('role','status');
+        if(s.result){
+          var r=s.result.risultato;
+          if(typeof r.testo==='string'){var prose=line('p',narrativeParagraphText(r.testo));prose.style.whiteSpace='normal';prose.style.overflowWrap='anywhere';}
+          line('p','Chiamate dichiarate dal server: '+String(s.result.chiamate??'non disponibili'));
+          if(r.motivi.length)line('p','Esito tecnico: '+r.motivi.join(' · '));
+        }
+        if(s.prova&&s.stage!=='closed'){
+          var close=line('button','Chiudi il campione');close.type='button';close.disabled=s.busy;
+          close.addEventListener('click',function(){missionOpeningController.close();});
+        }
+        ES.busy=s.busy;ES.carico=s.busy;esSig=null;
+        if(s.session)ES.sess=s.session;
+        renderEsame();
+      }
+      function missionOpeningStart(){
+        if(!missionOpeningController)missionOpeningController=missionOpeningLibrary.createOpeningController({client:sb,context:missionOpeningContext,onChange:missionOpeningRender});
+        missionOpeningController.start();
+      }
       function esAvvia(){
+        if(missionOpeningEligible()){if(esArena()&&!ES.busy)missionOpeningStart();return;}
         if(!esArena()||ES.busy) return; ES.busy=true; ES.carico=true; ES.errore=''; esSig=null; renderEsame();
         sb.rpc('esame_avvia',{p_location:cur.id}).then(function(r){
           ES.busy=false; ES.carico=false; esSig=null;
@@ -5735,6 +5870,7 @@ function mountEsameHold({root, client, context}) {
          nove secondi che tornano; `tentativi` e `prossimo` gestiscono soltanto
          guasti transitori, senza trasformare la LAND in un cron. */
       function esEntra(){
+        if(missionOpeningEligible())return; // Nessun recupero mutante o retry del vecchio percorso per il campione.
         var s=esSess(); if(!esArena()||ES.busy||!s) return;
         if(ES_AP.inVolo) return;
         if(ES_AP.chiesta && ES_AP.sess===s) return;
