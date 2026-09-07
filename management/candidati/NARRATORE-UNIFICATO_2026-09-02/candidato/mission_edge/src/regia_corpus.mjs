@@ -1,0 +1,4 @@
+import{canonical,sha256}from'./attestation.mjs';
+export const REGIA_CORPUS=Object.freeze({schema_version:'regia_corpus_v1',license:'model_example',verbatim_quote:false,opening:'resume_previous_authorized_action',gesture_before_first_voice:true,no_consecutive_utterances_without_physical_beat:true,max_codepoints_per_utterance:240,global_scene_dialogue_cap:null,action_dialogue_ratio:{min_action:1,max_dialogue:1},rhythm_profile_source:'persona_owner_or_owner_default',quality_guard:['strict_structure','authorized_refs','within_response_deduplication','no_textual_similarity_scoring'],model_examples:[{function:'consequence_to_recovery',pattern:['authoritative_consequence','physical_adaptation','posture_recovery']},{function:'gesture_to_dialogue',pattern:['persona_gesture','short_utterance','transition']} ]});
+export async function regiaCorpusDigest(){return sha256(`regia_corpus_v1\n${canonical(REGIA_CORPUS)}`)}
+
