@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-MISSION-EXAM-OPENING-001" />
+  <meta name="tus-build" content="LAND-COMBAT-OBSERVABILITY-009" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2126,6 +2126,34 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script id="ordinary-consumer-bundle">
 (function(){
+function validateCombatNarrative(e) {
+  if (!e || !Object.hasOwn(e, 'narrative')) return; // Rollout DB prima, UI dopo.
+  const reject = () => { throw Object.assign(new Error('invalid_narrative_projection'), {code:'invalid_narrative_projection'}); };
+  const n=e.narrative, c=e.context;
+  if (e.status==='blocked' || !c || c.phase!=='resolved') {
+    if(n!==null) reject();
+    return;
+  }
+  const keys=['schema_version','activity_id','exchange_id','state','reason_code'];
+  if(!n || typeof n!=='object' || Array.isArray(n) || Object.keys(n).length!==keys.length || !keys.every(k=>Object.hasOwn(n,k))) reject();
+  if(n.schema_version!=='combat-narrative-state/1' || typeof n.activity_id!=='string' || !n.activity_id.trim() || typeof n.exchange_id!=='string' || !n.exchange_id.trim() || n.activity_id!==c.activity_id || n.exchange_id!==c.exchange_id) reject();
+  if(!['waiting','running','failed','expired','published'].includes(n.state)) reject();
+  if(n.state==='failed') {
+    if(!['validation_rejected','provider_error','configuration_mismatch','timeout','context_changed','narration_unavailable'].includes(n.reason_code)) reject();
+  } else if(n.state==='expired') {
+    if(n.reason_code!=='timeout') reject();
+  } else if(n.reason_code!==null) reject();
+}
+function combatNarrativePresentation(e, error) {
+  if(error==='invalid_narrative_projection') return {suffix:'Stato narrativo non disponibile',notice:'Il server ha restituito uno stato narrativo non valido. Nessun nuovo tentativo narrativo è stato avviato.'};
+  if(e?.context?.phase!=='resolved' || e?.status!=='ready') return {suffix:'',notice:null};
+  if(error) return {suffix:'Stato non aggiornato',notice:null};
+  const state=e.narrative?.state;
+  if(state==='failed') return {suffix:'Racconto non pubblicato',notice:'Il racconto è stato interrotto o respinto. Lo scambio resta risolto; nessun nuovo tentativo automatico.'};
+  if(state==='expired') return {suffix:'Tempo del racconto scaduto',notice:'Il racconto non è arrivato entro il tempo previsto. Lo scambio resta risolto; nessun nuovo tentativo automatico.'};
+  if(state==='published') return {suffix:'Esito pubblicato',notice:'Il racconto dello scambio è stato pubblicato.'};
+  return {suffix:state==='running'?'Racconto in elaborazione':'In attesa dell’esito',notice:null};
+}
 const core=(function(){
 // Candidato offline: trasporto esplicito, nessuna connessione automatica.
 const RPC = Object.freeze({state:'combat_consumer_state_v1',options:'combat_consumer_options_v1',commit:'combat_consumer_commit_v1'});
@@ -2146,6 +2174,7 @@ function transportError(error){
 function requireValue(ok,code='invalid_projection'){if(!ok)throw new ConsumerError(code);}
 function contextKey(e){return e.context===null ? 'blocked' : JSON.stringify([e.context.activity_kind,e.context.activity_id,e.context.exchange_id,e.context.phase,e.context.version,e.context.scene_version,e.viewer.actor_id,e.viewer.can_command]);}
 function validateEnvelope(e,{state=false}={}){
+  validateCombatNarrative(e);
   requireValue(e?.schema_version==='combat-consumer/1' && ['ready','blocked'].includes(e.status));
   if(e.status==='blocked' && e.context===null){
     requireValue(text(e.reason_code)&&e.viewer?.actor_id===null&&e.viewer.can_command===false&&Array.isArray(e.actors)&&e.actors.length===0&&Array.isArray(e.offers)&&e.offers.length===0&&e.receipt===null);
@@ -2391,11 +2420,13 @@ function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=n
     const activeActors=(e?.actors||[]).filter(a=>a.state==='active'&&a.body_only!==true);
     const expected=activeActors.filter(a=>e?.context?.phase==='action'?a.is_turn_owner===true:e?.context?.phase==='defense'?a.is_turn_owner===false:false);
     if(activeActors.length===2&&expected.length===1)status.textContent+=' · Deve agire '+expected[0].display_name;
-    if(e?.context?.phase==='resolved')status.textContent+=' · In attesa dell’esito';
+    const narrativeView=combatNarrativePresentation(e,c.error);
+    if(narrativeView.suffix)status.textContent+=' · '+narrativeView.suffix;
     roster.replaceChildren();for(const a of e?.actors||[]){roster.append(node('li',a.display_name+(a.distance_from_viewer_m===null?'':' · '+a.distance_from_viewer_m+' m da te')));}
     renderPovResources(resources,e);renderCombatMap(map,e);renderCombatCompanion(companion,e);
     const code=c.error||(e?.status==='blocked'?e.reason_code:null);
     notice.textContent=code?(reasons[code]||'Scelte non disponibili. Aggiorna lo stato dello scontro.'):(e?.context?.phase==='closed'?'Lo scontro è concluso.':(!e?.viewer.can_command?'In attesa del passaggio successivo.':(c.needsOptions?'Apri o aggiorna le scelte disponibili.':'')));
+    if(narrativeView.notice!==null)notice.textContent=narrativeView.notice;
     const sig=JSON.stringify(c.offers);if(sig!==offerSignature){options(select,c.offers,'Seleziona una scelta');offerSignature=sig;}
     select.value=c.selected||'';select.disabled=c.busy||!!c.pending||c.needsOptions;
     const chosen=c.offers.find(o=>o.offer_id===c.selected),moves=chosen?.movement_options||[];
@@ -2424,7 +2455,7 @@ const {mountConsumer}=view;
 // Innesto privato LAND: nessuna RPC aggiuntiva o rilettura di dati di gioco dal DOM.
 function attachOrdinaryLand(host){
   let controller=null,locationId=null,prepared=null,rawSubmitted=null,opening=false,presentation=null;
-  let originScope=null,epoch=0,stateRequest=0,entryAllowed=false;
+  let originScope=null,epoch=0,stateRequest=0,entryAllowed=false,entryNarrativeErrorScope=null;
   const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   function scope(){
     const id=host.identity?.(),place=host.location()?.id;
@@ -2438,8 +2469,9 @@ function attachOrdinaryLand(host){
   function localAllowed(){return !!scope()&&!host.isExam()&&!host.otherCombat();}
   function eligible(){return entryAllowed&&localAllowed()&&originScope===scope();}
   function visible(on){dialog.hidden=!on;dialog.style.display=on?'flex':'none';}
-  function showEntry(){const on=eligible(),available=localAllowed();card.hidden=!available;card.style.display=available?'':'none';entry.hidden=!on;entry.disabled=!on;const note=host.document.getElementById('ordinary-entry-note');if(note)note.textContent=on?'Duello gestito dal server. Le azioni si scrivono in chat.':'Scontro non disponibile in questo luogo o per questo personaggio.';}
-  function invalidate(){
+  function showEntry(){const on=eligible(),available=localAllowed();card.hidden=!available;card.style.display=available?'':'none';entry.hidden=!on;entry.disabled=!on;const note=host.document.getElementById('ordinary-entry-note');if(entryNarrativeErrorScope!==scope())entryNarrativeErrorScope=null;if(note){note.setAttribute('role','status');note.textContent=entryNarrativeErrorScope?combatNarrativePresentation(null,'invalid_narrative_projection').notice:(on?'Duello gestito dal server. Le azioni si scrivono in chat.':'Scontro non disponibile in questo luogo o per questo personaggio.');}}
+  function invalidate(error=null){
+    entryNarrativeErrorScope=error==='invalid_narrative_projection'&&localAllowed()?scope():null;
     epoch++;stateRequest++;entryAllowed=false;opening=false;prepared=null;rawSubmitted=null;
     if(controller){controller.sequence++;controller.onChange=()=>{};}
     presentation?.clearPresentation();presentation=null;controller=null;originScope=null;locationId=null;
@@ -2480,8 +2512,8 @@ function attachOrdinaryLand(host){
             ||grant.character_id!==binding[1]||grant.location_id!==binding[2]
             ||(grant.allowed&&payload.status!=='ready'))throw new ConsumerError('invalid_projection');
           if(!grant.allowed){invalidate();throw new ConsumerError('not_participant');}
-          entryAllowed=true;showEntry();
-        }catch(e){if(current(created,stamp))invalidate();throw e;}
+          entryNarrativeErrorScope=null;entryAllowed=true;showEntry();
+        }catch(e){if(current(created,stamp))invalidate(e.code);throw e;}
       }
       if(payload?.context && payload.context.activity_kind!=='ordinary_v2')throw new ConsumerError('adapter_not_ready');
       return result;
