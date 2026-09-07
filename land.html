@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-EXAM-PANEL-RECOVERY-001" />
+  <meta name="tus-build" content="LAND-EXAM-DRIVE-QUEUE-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -5935,6 +5935,7 @@ function canCloseSession({own,prova,loading,busy,closed}) {
 }
 
 
+
   // Solo categorie pubbliche: mai messaggi arbitrari SQL, token, dettagli o role.
   function missionSessionDiagnostic(result){
     var code=result&&result.error&&result.error.code;
@@ -5948,12 +5949,12 @@ function canCloseSession({own,prova,loading,busy,closed}) {
     var match=typeof id==='string'?(id===MS.prova?'coincidente':'diverso'):'assente';
     return 'HTTP '+status+'; codice '+code+'; risposta '+shape+'; prova '+match+'.';
   }
-  var MS={key:null,readiness:null,loading:false,error:null,prova:null,controller:null,auto:false,openKeys:new Set(),closeKeys:new Map(),mechanical:false};
+  var MS={key:null,readiness:null,loading:false,error:null,prova:null,controller:null,auto:false,openKeys:new Set(),closeKeys:new Map(),mechanical:false,pendingDrive:null,driveTicket:null};
   function missionSessionKey(){return loggedIn&&!ordinarySigningOut&&ordinaryAuthId===myId&&myCharId&&cur&&cur.is_exam_room?JSON.stringify([myId,myCharId,cur.id]):null;}
   function missionSessionReset(){
     if(!MS)return;
     if(MS.controller)MS.controller.clear();
-    MS.key=null;MS.readiness=null;MS.loading=false;MS.error=null;MS.prova=null;MS.controller=null;MS.auto=false;MS.mechanical=false;
+    MS.key=null;MS.readiness=null;MS.loading=false;MS.error=null;MS.prova=null;MS.controller=null;MS.auto=false;MS.mechanical=false;MS.pendingDrive=null;MS.driveTicket=null;
   }
   function missionSessionOwn(){return !!(MS&&MS.key===missionSessionKey()&&MS.readiness&&MS.readiness.eligible===true);}
   function missionSessionLegacyBlocked(){return !!(missionSessionKey()&&(!MS||MS.key!==missionSessionKey()||!MS.readiness||MS.readiness.eligible!==false));}
@@ -5981,7 +5982,7 @@ function canCloseSession({own,prova,loading,busy,closed}) {
       MS.readiness=d;MS.prova=d.eligible?d.existing_prova:null;
       if(MS.prova)missionSessionBind();
     }catch(e){if(key===MS.key){MS.error=String(e.message);MS.auto=false;}}
-    finally{if(key===MS.key){MS.loading=false;renderEsame();}}
+    finally{if(key===MS.key){MS.loading=false;renderEsame();missionSessionFlushDrive();}}
   }
   async function missionSessionRefresh(){
     var key=missionSessionKey();if(!missionSessionOwn()||MS.loading||!MS.prova)return;
@@ -5997,15 +5998,18 @@ function canCloseSession({own,prova,loading,busy,closed}) {
       if(!result||result.error||result.data?.prova?.id!==MS.prova)throw Error('Stato della prova non disponibile. '+missionSessionDiagnostic(result));
       MS.error=null;MS.mechanical=true;esAccetta(result.data);MS.mechanical=false;
     }catch(e){if(key===MS.key){MS.mechanical=false;MS.error=String(e.message);MS.auto=false;}}
-    finally{if(key===MS.key){MS.loading=false;renderEsame();}}
+    finally{if(key===MS.key){MS.loading=false;renderEsame();missionSessionFlushDrive();}}
   }
   async function missionSessionDrive(){
-    if(!missionSessionOwn()||!MS.auto||!MS.controller||MS.loading)return;
-    var key=MS.key;
-    var ok=await MS.controller.resume();
-    if(key!==MS.key||key!==missionSessionKey())return;
-    if(!ok){MS.auto=false;MS.error='Narrazione in pausa. Nessuna chiamata viene ripetuta automaticamente.';}
-    await missionSessionRefresh();loadMsgs();renderEsame();
+    if(!missionSessionOwn()||!MS.auto||!MS.controller||MS.driveTicket)return;
+    if(MS.loading||missionSessionView()?.busy){MS.pendingDrive={key:MS.key,prova:MS.prova};return;}
+    var ticket={key:MS.key,prova:MS.prova};MS.pendingDrive=null;MS.driveTicket=ticket;
+    try{
+      var ok=await MS.controller.resume();
+      if(ticket.key!==MS.key||ticket.key!==missionSessionKey()||ticket.prova!==MS.prova)return;
+      if(!ok){MS.auto=false;MS.error='Narrazione in pausa. Nessuna chiamata viene ripetuta automaticamente.';}
+      await missionSessionRefresh();loadMsgs();renderEsame();
+    }finally{if(MS.driveTicket===ticket){MS.driveTicket=null;missionSessionFlushDrive();}}
   }
   async function missionSessionStart(){
     if(!missionSessionOwn()||!MS.readiness.ready||MS.loading||MS.prova||MS.openKeys.has(MS.key))return;
@@ -6023,7 +6027,7 @@ function canCloseSession({own,prova,loading,busy,closed}) {
     if(!missionSessionCanClose())return;
     var key=MS.key,prova=MS.prova;
     if(!MS.closeKeys.has(prova))MS.closeKeys.set(prova,crypto.randomUUID());
-    MS.loading=true;MS.auto=false;renderEsame();
+    MS.loading=true;MS.auto=false;MS.pendingDrive=null;renderEsame();
     try{
       var r=await sb.rpc('esame_session_close',{p_prova:prova,p_request:MS.closeKeys.get(prova)}),d=r&&r.data;
       if(key!==MS.key||key!==missionSessionKey())return;
@@ -6039,7 +6043,13 @@ function canCloseSession({own,prova,loading,busy,closed}) {
     missionSessionRefresh();renderEsame();return true;
   }
   function missionSessionAccepted(){
-    if(missionSessionOwn()&&!MS.mechanical&&MS.auto)Promise.resolve().then(missionSessionDrive);
+    if(missionSessionOwn()&&!MS.mechanical&&MS.auto&&!MS.driveTicket){MS.pendingDrive={key:MS.key,prova:MS.prova};Promise.resolve().then(missionSessionFlushDrive);}
+  }
+  function missionSessionFlushDrive(){
+    var pending=MS.pendingDrive,s=missionSessionView();if(!pending)return;
+    if(!missionSessionOwn()||pending.key!==MS.key||pending.prova!==MS.prova||!MS.auto||MS.error||s?.view?.next==='complete'){MS.pendingDrive=null;return;}
+    if(MS.loading||MS.driveTicket||s?.busy)return;
+    MS.pendingDrive=null;missionSessionDrive();
   }
   function missionSessionRender(){
     if(!missionSessionKey())return false;
