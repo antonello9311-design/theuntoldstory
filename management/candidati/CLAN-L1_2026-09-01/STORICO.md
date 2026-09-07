@@ -97,3 +97,58 @@
 
 07/09/2026 · SmokeMarionetta ripreso · Visibilità3corpi/attaccoParata/costoPASS;1IA5886token respintavalidation_rejected;close5e4e943f e2PG12superfici invariati/0residui/4OFF · ROSSO narrativa,nessunrilasciopubblico.
 07/09/2026 · MARIONETTA-DIAGNOSTICA-PIANO · Diagnosi conclusa: output non conservato, causa specifica non ricostruibile; proposto audit con codici e stato terminale UI, senza cambiare accettazione o ritentare IA · Piano da autorizzare, nessuna patch/apply.
+07/09/2026 · MARIONETTA-OSSERVABILITÀ-001 · Antonello autorizza a proseguire dopo il deposito verificato; avvio candidato DB/Edge/UI, cinque stati narrativi e nessun cambio alle regole del validatore · In lavoro, zero nuove IA/apply.
+07/09/2026 · COMBAT-OBSERVABILITY-009 · Campagna rossa: DB19 fallito e runner duplica dodici casi Edge (32 invocazioni invece di 20); zero IA, recovery/isolamento verdi, unico reviewer avviato · Nessun apply/deploy, aggregata e finale pendenti.
+07/09/2026 · COMBAT-OBSERVABILITY-009 aggregata · Unica review 0/1/3, finding definitivi F1–F4; autorizzata correzione aggregata runner/fixture/UI/preflight ACL, nessun cambio regole narratore · Finale unica pendente, produzione invariata.
+07/09/2026 · COMBAT-OBSERVABILITY-009 finale · Venti casi unici con tutte le porzioni PASS, ma riepilogo FAIL per formato spec non riconosciuto dal lettore TAP; risultato originale conservato e stessa controverifica finale richiesta · Zero IA/apply, nessun rerun o ulteriore patch.
+07/09/2026 · COMBAT-OBSERVABILITY-009 controverifica · F1–F4 risolti 0/0/0; gate automatico ancora rosso per solo classificatore TAP/spec, proposta eccezione esplicita sulle evidenze reali già PASS · Ciclo terminato, nessuna nuova patch/prova/apply.
+07/09/2026 · COMBAT-OBSERVABILITY-009 gate PM · Recepito ok di Antonello all’eccezione sul solo riepilogo TAP/spec, mantenendo RESULT FAIL e test originali; avvio preflight per rilascio controllato già concordato · Nessun nuovo test o patch, produzione ancora da verificare.
+07/09/2026 · COMBAT-OBSERVABILITY-009 GO PM · Preflight locale/live allineato; dato GO al singolo apply e, dopo postflight verde, deploy Edge esatto; UI seguirà verifica · Rilascio controllato in corso, zero IA.
+07/09/2026 · COMBAT-OBSERVABILITY-009 backend · Singolo apply20260907131204 e Edge21 verificati, funzione/ACL e8file esatti; GO al caricamentoLAND congelato · Zero IA, provaStaff ancora da avviare.
+07/09/2026 · MARIONETTA-STAFF009 · Menu movimento con tre etichette4m prive di direzione, stop prima di azione/IA; close63025c52 e2PG12superfici invariati, quattro gateOFF/providerStaffON · Rilascio pubblico ancora fermo, cleanupSupervisioneUI avviabile.
+07/09/2026 · STAFF-CLAN-PERSISTENTE · Antonello richiede una sola prova aperta dopo rimozione Supervisione, correzioniUI/backend e chiamata motore nella stessa scena, niente chiusure/reset; limitiIA separati · Protocollo precedente15min sostituito, label010 minima approvata.
+07/09/2026 · MOVEMENT-LABEL-010 QA · Quattro casi verdi,23SQL7,117s0IA,capability/commit/ACL e isolamento preservati; avviata unica review indipendente sul nuovo scope13file · Candidata non applicata.
+07/09/2026 · SUPERVISIONE-UI rimossa · Cleanup pubblicato e6868ad/buildREMOVED001,DOM senzaSupervisione/Sostieni visibile,review0/0/0zeroIA; GO setup unicaStaffpersistente primaapplylabel010 · Nessuna nuova scena attestata finché ricevuta.
+07/09/2026 · MOVEMENT-LABEL-010 GO · Review0/0/0 e4casiPASS, datoGO preflight+singoloapply solo labelserver; compatibile conunicaStaffpersistente senzareset/chiusura · Atteso postflightreale, zeroIA.
+07/09/2026 · MOVEMENT-LABEL-010 applicata · Postflight13:42:29 funzione80deaa63 eACL/metadataesatti; baseline2PG12superfici identica anche dopoingressoSafari, unico invitoStaffpersistente in corso · ZeroIA, nientechiusura/reset.
+07/09/2026 · MARIONETTA-MOTORE-PASS · UnicaIA audit1915907token10,101s accettata,Fato realevisibile ecanonico coerente;12superficiPGinvariate,scena9407APERTA alturnosuccessivo · Zero retry/reset/close,UI2click011 in preparazione.
+
+2026-09-07 · MOVEMENT-PICKER-011 · Due clic direzione/distanza, unica campagna 4/4 DB e 4/4 UI verde; motore e Fato reali PASS audit191, scena persistente aperta e risorse identiche · Review indipendente in corso, rilascio011 non eseguito.
+
+2026-09-07 · MOVEMENT-PICKER-011 finale · Unica correzione F1, campagna finale 4/4 DB e 4/4 UI, controverifica 0/0/0; preflight DB/UI verde e GO al rilascio mantenendo scena9407 · Applicazione in corso.
+
+2026-09-07 · MOVEMENT-PICKER-011 live · Dueclicmanualiutente→unico movimento1m, audit192PASS e valori reali invariati;4timestampaccessopreT0 documentati, scenaaperta · PASS_LIVE_USER_ASSISTED, gatepubbliciMarionetta ancoraOFF.
+
+2026-09-07 · MARIONETTA rilascio · Public/provisioning attivati una sola volta15:53:42; postflight e SELECT indipendente verdi, scena aperta e nessuna registrazione reale · Rilasciata; deposito ultime evidenze ancora locale.
+
+2026-09-07 · SABAKU Trasporto · Recuperata ratifica completa e verificato runtime ancora fixture; GO sola preparazione candidataoffline con In​nata/giara, UI seriale e scena9407 preservata · In lavoro, nessunapply/testlive.
+
+2026-09-07 · UI movimento comune · Registrato requisito causa/quantità riduzioni server, distinto budget/terreno/blocco, senza leak o valori client · Requisito acquisito, nessun nuovo rilascio.
+
+2026-09-07 · Redazione Marionettisti e UI desktop · Richiesta verifica testi sul motore; rifacimento pannello PC pianificato dopo i Clan · Nessuna modifica meccanica/live implicita.
+
+2026-09-07 · MARIONETTISTI redazione L1 · Descrizioni/effetti Padronanza e Fili pubblicati16:40UTC, ricarica precisata, blocco altriJutsu conservato; review0/0/0 e DB/catalogo/screenshot verificati · Live, due righe e soli campi redazionali; deposito evidenze locale.
+
+2026-09-07 · Fili precisazione redazionale · Pubblicata la frase richiesta «Restano possibili movimento e difese che non richiedono Jutsu»16:46:55UTC, review0/0/0 e catalogo verificato · Live, solo danno_effetto di una riga.
+
+2026-09-07 · Priorità confermata · Antonello richiede ripresa autonoma Trasporto di Sabbia al termine dell’aggancio Esame, mandato trasmesso a DB e owner Esame · Nessun nuovo GO necessario per riprendere la preparazione.
+
+2026-09-07 · SABAKU catalogo · Baseline live completa e confronto di tutti i campi Trasporto, testo candidato e dipendenza InnataL1 consegnati al DB owner · Preparato, nessun apply; ripresa SQL dopo aggancio Esame.
+
+2026-09-07 · SABAKU raccordo consumer · Verificati tipoUUID/prerequisito, distinzione possesso-toggle e uso trasmesso al motore; handoff parent consolidati allo stato corrente · Preparazione utile completata, nessun apply.
+
+2026-09-07 · Ripresa Sabaku · DBTamako consegnato, ownerDB riprende SQLTrasporto e LAND incaricato UIisolata; SESSION congelata resta all’ownerEsame per integrazione/QA · Ripartenza autorizzata, nessun rilascioEsame o Sabaku attestato.
+
+2026-09-07 · SABAKU Common e canale Git · Identificati writerPG/customJWT non idonei aStaff e autorizzato minimo adattatore protetto nella candidata; HEAD/blobLAND remoti riconciliati, pushCLI non autenticato · Nessun testmutante/apply/pushreale.
+
+2026-09-07 · SABAKU implementazione · Verificati primo storageSQL e tre moduliUI reali nel candidato; prosegue Commonprotetto e assemblaggio · Codice in preparazione, nessunQA/apply.
+
+2026-09-07 · SABAKU Innata e pannello · Baseline/testi/campi dipendenzaL1 completati, rilevata promessa live di difesa implicita superata; UIassemblata e wirebinding confermato, addonDB in sviluppo · Nessunfreeze/QA/apply.
+
+2026-09-07 · SABAKU preparazione smoke · Verificata scena9407 ancoraaction/testper/context10 protetta e preparata sequenza probatoria con limiti espliciti; bind/catalogo candidati aggiunti DBowner · Nessun testlive, budget da finalizzare suproducer.
+
+2026-09-07 · SABAKU transizioni · Verificato nuovo04Common e ricevuta owner su costi/testledger/antidoppioaddebito; richiesto check GitHubSafari a LAND libero · Candidato incompleto, nessunQA/apply.
+
+2026-09-07 · Finestra Esame aggregata · Assegnata correzione unica DB/LAND sull’insieme chiuso12/16+review0/3/1; Sabaku salvato e ripresa automatica dopo consegna · Nessunapply o ulteriore autorizzazione richiesta.
+
+2026-09-07 · Pubblicazione accesso · LAND verifica nuovo pannelloSafariGitHub giàautenticato, senza credenziali o modifiche repository; ownershipGUI aLAND · Canale disponibile, upload/commit ancora non eseguiti.
