@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-COMMON-PANELS-STAFF-097" />
+  <meta name="tus-build" content="LAND-COMMON-PANELS-STAFF-099" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2766,9 +2766,66 @@ return {mountPanelSurface};
 const module0=(()=>{
 const {mountPanelSurface}=module1;
 const {isId,insist}=module3;
+// Invito e accettazione riusano le porte pubblicate; le fasi giocate usano Common.
+// La selezione dipende solo dalla proiezione server, mai da un errore di commit.
+function attachPanelLand(host){
+  if(typeof host.attachOpening!=='function')return attachCombatPanel(host);
+  let child=null,mode='opening',disposed=false,refreshing=null,generation=0;
+  const childHost={...host,accepted(receipt){host.accepted(receipt);queueMicrotask(()=>{if(!disposed)refresh();});}};
+  const pending=()=>mode==='opening'
+    ? !!(child?.controller?.pending||child?.controller?.busy)
+    : !!(child?.snapshot()?.pending||child?.snapshot()?.busy);
+  function install(next){
+    const dialog=host.document.getElementById('ordinary-overlay');
+    const visible=dialog&&!dialog.hidden;
+    child?.dispose();mode=next;generation++;
+    child=next==='opening'?host.attachOpening(childHost):attachCombatPanel(childHost);
+    return visible;
+  }
+  install('opening');
+  function refresh(){
+    if(disposed)return Promise.resolve(false);
+    if(refreshing)return refreshing;
+    const task=(async()=>{
+      if(pending())return false;
+      const current=child,stamp=generation;
+      await current.refresh();
+      if(disposed||child!==current||stamp!==generation||pending())return false;
+      const e=mode==='opening'?child.controller?.envelope:child.snapshot()?.envelope;
+      let next=mode;
+      if(mode==='opening'&&e?.status==='ready'&&isId(e.context?.activity_id)&&['action','defense','resolved','closed'].includes(e.context.phase))next='combat';
+      if(mode==='combat'&&e?.status==='ready'&&e.context?.phase==='setup')next='opening';
+      if(next!==mode){
+        const wasVisible=install(next),newChild=child;
+        await newChild.refresh();
+        if(!disposed&&child===newChild&&wasVisible)await newChild.open();
+      }
+      return true;
+    })();
+    refreshing=task;
+    task.catch(()=>host.notice('Stato non aggiornato. Rileggi il pannello.')).finally(()=>{if(refreshing===task)refreshing=null;});
+    return task;
+  }
+  async function open(which='ordinary'){
+    if(disposed)return false;
+    await refresh();if(disposed)return false;
+    if(mode==='opening')host.closeMaster?.();
+    return child.open(mode==='combat'?which:undefined);
+  }
+  function invalidate(){generation++;refreshing=null;child?.invalidate();}
+  function dispose(){if(disposed)return;disposed=true;generation++;child?.dispose();child=null;}
+  return {open,refresh,invalidate,dispose,
+    handleSend:(...args)=>!disposed&&child.handleSend(...args),
+    ownsCurrent:()=>!disposed&&child.ownsCurrent(),
+    ownsSurface:()=>!disposed&&(child.ownsSurface?.()??false),
+    currentSurface:()=>child?.currentSurface?.()??'ordinary',
+    clearPresentation:()=>child?.clearPresentation(),
+    snapshot:()=>mode==='combat'?child?.snapshot():null};
+}
+
 // Un solo controller e un solo nodo DOM per stanza/Auth, anche cambiando finestra.
 // Le porte legacy di creazione scena restano al chiamante: mai fallback di commit.
-function attachPanelLand(host){
+function attachCombatPanel(host){
   const doc=host.document,root=doc.createElement('div');root.className='combat-panel-common';
   const ordinary=doc.getElementById('ordinary-body'),master=doc.getElementById('mv2-body');
   const card=doc.getElementById('ordinary-card'),entry=doc.getElementById('ordinary-open');
@@ -2834,7 +2891,7 @@ function attachPanelLand(host){
     snapshot:()=>panel?.snapshot()??null};
 }
 
-return {attachPanelLand};
+return {attachPanelLand,attachCombatPanel};
 })();
 window.TUSCommonPanel=module0;
 })();
@@ -4007,6 +4064,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           document:document,location:function(){return cur;},
           showMaster:function(){var ov=document.getElementById('mv2ov'),bk=document.getElementById('mv2ov-backdrop');if(ov)ov.hidden=false;if(bk)bk.hidden=false;},
           closeMaster:mv2OvChiudi,
+          attachOpening:window.TUSOrdinary&&window.TUSOrdinary.attachOrdinaryLand,
           principal:function(){return loggedIn&&myId&&myCharId?JSON.stringify([myId,myCharId]):null;},
           identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId&&myId&&(commonPanelRoom()||myCharId)?{principal_id:myId,character_id:myCharId||null}:null;},
           isExam:function(){return (!!(cur&&cur.is_exam_room)&&!(cur&&cur.is_test&&iAmStaff))||esScontroVivo();},
