@@ -19,12 +19,12 @@ const payload={versione:5,ricevuta_id:receipt,ruolo:'png_attacca',scena:opening.
 test('AGG01 delta solo redazione/versione prompt, sintassi moduli',()=>{
  let a=read(new URL('exam-cycle.mjs',src)),b=read(new URL('exam-cycle.mjs',old));
  for(const n of ['CYCLE_EDITORIAL_NOTES','CYCLE_SYSTEM']){a=strip(a,n);b=strip(b,n);}
- assert.equal(a.replace('MISSION-EXAM-CYCLE-004','MISSION-EXAM-CYCLE-003'),b);
- a=strip(read(new URL('exam-opening.mjs',src)),'SYSTEM').replace("export const PROMPT_VERSION = 'MISSION-EXAM-OPENING-002';\n",'');
+ assert.equal(a.replace('MISSION-EXAM-CYCLE-005','MISSION-EXAM-CYCLE-003'),b);
+ a=strip(read(new URL('exam-opening.mjs',src)),'SYSTEM').replace("export const PROMPT_VERSION = 'MISSION-EXAM-OPENING-003';\n",'');
  assert.equal(a,strip(read(new URL('exam-opening.mjs',old)),'SYSTEM'));
  assert.equal(read(new URL('exam-session.mjs',src)).replace('generateOpening,PROMPT_VERSION as OPENING_VERSION','generateOpening,VERSION as OPENING_VERSION'),read(new URL('exam-session.mjs',old)));
  let count=0;for(const name of readdirSync(src).filter(n=>n.endsWith('.mjs'))){const r=spawnSync(process.execPath,['--check',new URL(name,src).pathname],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);count++;}assert(count>0);
- assert.equal(VERSION,'MISSION-EXAM-OPENING-001');assert.equal(PROMPT_VERSION,'MISSION-EXAM-OPENING-002');
+ assert.equal(VERSION,'MISSION-EXAM-OPENING-001');assert.equal(PROMPT_VERSION,'MISSION-EXAM-OPENING-003');
 });
 test('AGG02 dati separati e intatti, budget/schema invariati, minimo non bloccante',async()=>{
  const original=JSON.stringify(payload),c=cycleContext(payload,opening),r=cycleRequest(c).payload;
@@ -33,7 +33,7 @@ test('AGG02 dati separati e intatti, budget/schema invariati, minimo non bloccan
  assert.deepEqual(JSON.parse(r.input[1].content[0].text),JSON.parse(JSON.stringify(c)));assert.equal(r.input[0].content[0].text,CYCLE_SYSTEM);
  assert.equal(r.max_output_tokens,10000);assert.equal(r.reasoning.effort,'high');assert.deepEqual(r.text.format.schema.required,['intenzione_id','azione_png','esiti']);
  let calls=0;const out=await generateCycle(payload,opening,{async create(){calls++;return {status:'completed',realization:{intenzione_id:'a',azione_png:'Un gesto.',esiti:[]},metrics:{total_tokens:10}};}});
- assert(out.ok);assert.equal(out.uscita.azione_png,'Un gesto.');assert.equal(calls,1);assert.equal(out.prompt_id,'MISSION-EXAM-CYCLE-004');
+ assert(out.ok);assert.equal(out.uscita.azione_png,'Un gesto.');assert.equal(calls,1);assert.equal(out.prompt_id,'MISSION-EXAM-CYCLE-005');
 });
 test('AGG03 SESSION conserva autorità/claim; due porte ritirate senza servizi',async()=>{
  let calls=0,claimed=false;const db={async row(t){return t==='esame_supervisione_bozze'?{prova:'proof',tipo:'apertura',autore:'owner',stato:'autorizzata'}:{candidate_user:'owner',stato:'aperta'};},async drafts(){return [];},async rpc(n,a){if(n==='_esame_session_scope')return true;if(n==='_esame_session_claim'){if(claimed)throw Error('consumed');claimed=true;return {bozza:id,prova:'proof',tipo:'apertura',ricevuta:receipt,payload:opening.payload};}if(n==='_esame_supervisione_deposita')return {risultato:a.p_risultato};throw Error('Unexpected RPC');}};
