@@ -1,16 +1,14 @@
-# MISSION-EXAM-EDITORIAL-REBUILD-001 — QA
-08/09/2026. Budget4gruppi PostgreSQL,3gruppi Node,0provider,0Esami live.
+# QA — MISSION-EXAM-EDITORIAL-INTERACTION-001
+08/09/2026 · seguito autorizzato dopo accettazione complessiva del campione da parte di Antonello.
 
-PostgreSQL17.6 reale nel container locale esistente, database dedicato tus_exam_editorial_rebuild_001 copiato da tus_night_projection_001. Schema baseline; sole sei persona narrative reali, profili statistici sintetici e nessun dato/Auth del giocatore. Non è una prova di runtimeAuth.
-- QA01 PASS: sei persona after esatte, tutte le altre colonne ai_agents e tutti i profili invariati.
-- QA02 PASS: secondo apply inerte, nessuna modifica.
-- QA03 PASS: drift nell'ultimo ID intercettato, annullate anche le modifiche precedenti nella stessa chiamata.
-- QA04 PASS: binding profilo errato intercettato, nessuna mutazione parziale.
-Transazione finale ROLLBACK; nessun DELETE.
+Budget:3gruppi Node esistenti e19controlli sintassi; una sola review indipendente;0chiamate provider e0nuove prove.
 
-Node3/3PASS,19moduli sintatticamente validi: differenze di codice limitate ai prompt e ai loro identificatori; contesto ricevuto integro; budget10000/high invariato; struttura JSON e autorità server/claim preservate; testo sotto1000 non bloccato; porte ritirate410senza servizi. Circa390ms nell'ultima esecuzione.
+- AGG01 PASS: delta limitato ai prompt/versioni, resto del codice invariato;19moduli con sintassi valida.
+- AGG02 PASS: role e dati server separati e intatti; schemaJSON,10000token/high e risposta breve non bloccante invariati.
+- AGG03 PASS: autorità SESSION/claim e porte ritirate invariati.
+- Edge di partenza riletta: mission_narratore_ai v17 ACTIVE/JWTfalse;21file locali,19raggiungibili nel bundle. Solo exam-cycle.mjs ed exam-opening.mjs cambiano.
+- Sei persona rilette dal DB:6/6identiche alla revisione approvata. Nessun limite del tipo una sola frase, due o tre parole o frase e basta. Nessuna modifica dati.
+- Lettura dei prompt attivi Esame: nessun tetto imposto alle battute; unico paragrafo è un requisito di presentazione, non un limite al dialogo. Interazione può contenere più frasi/interventi senza inventare risposte del PG.
+- Copia: contributo soltanto visivo, fallimento del vantaggio subordinato all'esito server; distinzione RNG/capacità rivelatrice preservata. Nessun filtro lessicale, giudice o retry introdotto.
 
-Incidenti di preparazione risolti prima del verdetto: profili sintetici inizialmente con somma80, rifiutati dal CHECK140; corretti a140senza allentare vincoli. Nel confezionamento dell'unica aggregata il cambio appellativo aveva modificato una baselineJSON: il QA ha rilevato il drift, ripristinata la baseline dall'archivio, verificati integralmente SQL/JSON/before/after e rieseguiti gli stessi4gruppi, tutti verdi. Nessun effetto produzione in entrambi i casi.
-
-Limite: questi controlli attestano integrità della modifica, non il miglioramento già dimostrato di una nuova prosa. Nessuna chiamata al modello è stata eseguita.
-
+Verifica tecnica, non nuova misura della prosa generata. L'unico campione precedente è accettato complessivamente da Antonello; nessuna rigenerazione effettuata. QA e review della precedente revisione integrale conservate in _precedenti/2026-09-08_editoriale21_v17/.
