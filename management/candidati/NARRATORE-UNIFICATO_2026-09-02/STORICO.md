@@ -80,3 +80,4 @@
 08/09/2026 · SESSION-DRIVE-QUEUE-001 · Segnale Accepted conservato durante aggiornamento pannello, QA3/3 e review0/0/0 · LANDba3dba993ed1268102f7e7030f226e7dcfb7e824 /777050B/5f9de9ef, dominioPASS01:03; automaticità in verifica campione02
 08/09/2026 · MISSION-EXAM-NIGHT-AGGREGATA-001 · Cinque baseline complete, unica revisione note e fonti copie/zona · QA3/3,review0/0/0,apply20260907234048+20260907234056,Edge16/19exact,postflightisolamentoPASS; avvio15conferme
 08/09/2026 · MISSION-EXAM-NIGHT-001 finale ·20prove reali chiuse,60chiamate/398523token; difese ripristinate e aggregata v16, qualità variabile con finding conservati · campagna completata, seguito alPM.
+08/09/2026 · MISSION-EXAM-EDITORIAL-REBUILD-001 · Prompt integrali CYCLE005/OPENING003 e sei schedePNG liberate dai copioni; Edge17 e DMLpersona verificati, QA4+3/review0/0/0 · applicato; singolo collaudo17906token concluso, isolamentoPASS/qualitàeditorialeNONraggiunta.
