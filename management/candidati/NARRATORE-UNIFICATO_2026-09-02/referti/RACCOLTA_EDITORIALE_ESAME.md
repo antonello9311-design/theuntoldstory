@@ -1,14 +1,15 @@
 # Raccolta editoriale dell'Esame Tamako
 
-Aggiornata08/09/2026 dopo20prove reali del sito. La campagna è conclusa; non sono autorizzate nuove chiamate in questa revisione. [Il rapporto](MISSION_NIGHT_REPORT.md) contiene20referti, i20esiti realmente pubblicati e il testo esatto delle note CYCLE004. [L'audit](MISSION_NIGHT_AUDIT.json) conserva incipit, consumi e fatti; l'azione originale del PG non è trascritta nei documenti.
+Aggiornata08/09/2026: la campagna20prove resta immutabile; il seguito autorizzato ha riscritto interamente prompt e sei schedePNG. CYCLE005/OPENING003 e persona aggiornate rilasciati alle07:59Roma. I20testi e le note CYCLE004 nel rapporto notturno sono la fotografia precedente, non istruzioni da reinserire.
 
 ## Note attive
 
-Il Narratore legge prima azioni e parole della chat, raccoglie separatamente fatti server e tentativi aperti, quindi li integra in una sola scena. Il PNG risponde con parola, gesto o silenzio leggibile, secondo carattere ed emozione; può scegliere una mossa poco conveniente fra quelle legali. I movimenti vanno raccontati come intenzione, ostacolo e conseguenza, senza un inventario ripetuto di posture.
+La scena nasce da ciò che il PG ha fatto e detto. Riprendi i dettagli che motivano lo scambio, senza ricopiare tutta la role: il PNG reagisce al loro significato con parole proprie, un gesto o un silenzio comprensibile. Lascia che fiducia, imbarazzo, orgoglio, curiosità o frustrazione incidano sul rapporto e sulla scelta fra le mosse offerte. La personalità è un'inclinazione: non impone battute brevi, silenzi, gesti rituali, la mossa migliore o un errore obbligatorio.
+Racconta un movimento attraverso ciò che cerca, ciò che incontra e ciò che cambia. Intreccia ambiente, percezioni e interazione allo scambio; evita elenchi di arti, traiettorie e riassetti della guardia. Usa i dettagli distintivi quando esprimono qualcosa di nuovo. Abiti e fasciature sono aspetto, non prova di lesioni; le reazioni fisiche seguono zona e gravità confermate. Non aggiungere un altro colpo per rendere vivace una difesa.
+Nella Moltiplicazione del corpo conserva le associazioni dichiarate fra figura, gesto e bersaglio; chiama una figura originale soltanto quando le fonti ne sostengono l'identità. Le copie illusorie sono incorporee: il loro tentativo svanisce o viene attraversato, non urta, para, ferisce né lascia segni. L'etichetta tecnica copia_colpita non descrive un impatto materiale. Se il server attesta un riconoscimento ordinario RNG, rendilo come un difetto di coordinazione o tempismo; se attesta una capacità rivelatrice, rendilo attraverso quella fonte. Non dedurre il riconoscimento dalla sola dissoluzione. Distingui il fallimento dell'inganno dal risultato del colpo reale, senza cambiare chi lo porta, dove mira o le conseguenze. Queste indicazioni non si estendono agli altri tipi di clone.
+Lo scambio pubblico completo ha almeno 1000 caratteri, spazi inclusi, senza massimo editoriale: sviluppa interazione e nessi causali, senza riempitivi. Il minimo non si applica a ogni alternativa futura. Chiudi la nuova offensiva sul tentativo consentito, lasciando al PG la risposta; evita spiegazioni sul passaggio di iniziativa.
 
-Le copie della Moltiplicazione del corpo sono incorporee: nessun impatto, segno o danno. Il riconoscimento ordinario RNG emerge da coordinazione/tempismo; una capacità rivelatrice attestata usa invece la sua fonte. Distinguere l'inganno dal colpo reale. Non generalizzare agli altri cloni. La fonte deve mantenere chi attacca, chi difende e chi possiede la copia.
-
-Lo scambio pubblico completo richiede almeno1000caratteri, senza massimo editoriale, usando spazio per interazione e raccordi. Non è un filtro bloccante. Il finale resta sul tentativo della contromossa, senza inventare la difesa del PG e senza spiegare il passaggio di iniziativa. Nell'incipit il Sensei parla direttamente. Nessun giudice, lista di sinonimi vietati o retry aggiunto.
+Prompt completo, fonti e sei personalità in [MISSION_EDITORIAL_REBUILD](../candidato/MISSION_EDITORIAL_REBUILD.md). Le vecchie schede sono conservate solo come baseline di audit; il consumer riceve quelle nuove.
 
 ## Evidenze della campagna
 
@@ -21,7 +22,7 @@ Lo scambio pubblico completo richiede almeno1000caratteri, senza massimo editori
 
 ## Diagnosi e seguito
 
-Le nuove note migliorano la completezza, ma non rendono il risultato uniforme. I campioni sono diversi perRNG ePNG; non attribuire ogni differenza al prompt. Il prossimo intervento deve togliere ambiguità dalle fonti e rendere il dossier una descrizione della persona, non un repertorio da recitare. Nessuna nuova condizione bloccante viene applicata da questa raccolta.
+Le nuove note migliorano la completezza, ma non rendono il risultato uniforme. I campioni sono diversi perRNG ePNG; non attribuire ogni differenza al prompt. Il seguito rilasciato ha riscritto il prompt e trasformato il dossier in una descrizione della persona, eliminando i copioni e le prescrizioni. Non ha aggiunto una mappa strutturata delle figure al server né condizioni stilistiche bloccanti. Il08/09Antonello ha richiesto una sola prova successiva: conclusa,1849caratteri e3provider, qualità non raggiunta. Il nuovo dossier è presente ma il testo riprende formule del referto e della nota sulle copie, lascia rossoreograffio comealternativa e una chiusura meta. Referto MISSION_EDITORIAL_SINGLE_REPORT.md. Nessuna seconda generazione o patch per cercare un verde.
 
 I difetti tecnici sono separati dalla prosa:01recuperato prima della correzione della coda;09/11risultato pronto pubblicato dopo ripresa normale, senza altre chiamate;13/15/17clic non acquisito e zero ricevute prima invio effettivo. Codice23514nel11, causa runtime precisa non dimostrata.20esami e20policy chiusi, risorse reali/RECinvariate, ma20metadati di arena restanoopen. Tutto conservato nei referti, senza cancellazioni o ripristini compensativi.
 
