@@ -1,4 +1,4 @@
-import {generateOpening,VERSION as OPENING_VERSION} from './exam-opening.mjs';
+import {generateOpening,PROMPT_VERSION as OPENING_VERSION} from './exam-opening.mjs';
 import {generateCycle} from './exam-cycle.mjs';
 
 export const SESSION_VERSION='MISSION-EXAM-SESSION-001';
