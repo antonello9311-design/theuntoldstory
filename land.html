@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-COMMON-PANELS-STAFF-096" />
+  <meta name="tus-build" content="LAND-COMMON-PANELS-STAFF-097" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2775,7 +2775,7 @@ function attachPanelLand(host){
   const dialog=doc.getElementById('ordinary-overlay'),close=doc.getElementById('ordinary-close');
   insist(ordinary&&master&&card&&entry&&dialog&&close,'land_mount_missing');
   let panel=null,key=null,opened=false,surface='ordinary',generation=0,chatSubmitted=null,refreshing=null,disposed=false;
-  function scope(){const who=host.identity?.(),place=host.location?.();return !disposed&&who&&isId(who.principal_id)&&(who.character_id===null||isId(who.character_id))&&isId(place?.id)&&!place.is_exam_room&&!host.isExam?.()?JSON.stringify([who.principal_id,who.character_id,place.id]):null;}
+  function scope(){const who=host.identity?.(),place=host.location?.();return !disposed&&who&&isId(who.principal_id)&&(who.character_id===null||isId(who.character_id))&&isId(place?.id)&&!host.isExam?.()?JSON.stringify([who.principal_id,who.character_id,place.id]):null;}
   function hide(){dialog.hidden=true;dialog.style.display='none';host.closeMaster?.();opened=false;}
   function invalidate(){generation++;key=null;chatSubmitted=null;refreshing=null;panel?.dispose();panel=null;root.replaceChildren();hide();showEntry();}
   function showEntry(){const allowed=!!scope();card.hidden=!allowed;card.style.display=allowed?'':'none';entry.hidden=!allowed;entry.disabled=!allowed;const note=doc.getElementById('ordinary-entry-note');if(note)note.textContent='Pannello comune: disponibilità e scelte sono verificate dal server.';}
@@ -3989,7 +3989,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(holdAuthRevokes(event,myId,nextId,esameHoldKey!==null||!!missionOpeningPanel)){esameHoldRevoked=true;esameHoldStop();}
       });
       var ORDINARY=null,ordinaryAuthId=null,ordinarySigningOut=false,ordinaryPanelMode=null;
-      function commonPanelRoom(){return !!(cur&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test&&!cur.is_exam_room);}
+      function commonPanelRoom(){return !!(cur&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test);}
       window.addEventListener('tus:ordinary-logout',function(){ordinarySigningOut=true;if(ORDINARY)ORDINARY.invalidate();});
       if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session){
         var id=session&&session.user?session.user.id:null;
