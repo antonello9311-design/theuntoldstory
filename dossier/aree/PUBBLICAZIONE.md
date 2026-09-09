@@ -1,5 +1,5 @@
 # AREA · Pubblicazione — cosa è online, cosa è in coda — scheda viva
-Allineamento 09/09/2026 · dieci sorgenti del catalogo narrativo qualificato depositate e verificate; nessun apply del catalogo. IA v24 già rilasciata, PNG di collaudo in preparazione.
+Allineamento09/09/2026 · diciassette documenti/contratti/referti depositati e verificati alla testa983f21c; recovery009 verde locale, PNG in costruzione, nessun nuovo rilascio.
 
 > **Regola dell'area.** `sito_live/` **non è ciò che è pubblicato**: è ciò che è pronto per esserlo. La verità è il file su GitHub (`antonello9311-design/theuntoldstory`, branch `main`, cartella root) e il dominio `https://theuntoldstory.it`. Ogni modifica aggiorna la riga corrente del file con build, byte e SHA; ogni caricamento registra commit, «caricato il» e «verificato il». Le evidenze precedenti restano qualificate per data, senza appendici di rettifica. Prima di patchare una pagina si riconcilia con la copia pubblicata (memoria: [[sito_live_non_e_pubblicato]], [[riconciliare_con_github]]).
 
@@ -44,26 +44,35 @@ Inventario storico integrale dei 31 file, con byte e SHA, conservato nella [vers
 
 **Rilascio IA09/09 autorizzato da Antonello:** combat_narratore_ai v24 ACTIVE,15/15moduli identici al bundle approvato, digestservizio`3ac47eb4420e65d01498c79e1dc558cb25461ccd920c3de1e84b993ed0c1dbfd`. Singola migrazione`20260909183721 narrative_tech_sources_staff_001`, registro497. Postflight18:37:46UTC: snapshot`a417e6a98201a2177cb8c244a736bb3c`, helper`955228bdc23c89cdb287198db57231b8`, ownerpostgres/ACLsolo postgres esatti; confermati readonly18:42:10. Flag e cataloghi immutati,0provider/test. L’aggancio è effettivo sui nuovi snapshotStaffammessi; prompt condiviso compatibilelegacy. NessunassetHTMLmodificato, nessunnuovo controllo dominio richiesto dal solo deposito documentale.
 
-**Deposito catalogo del 09/09:** dieci file esatti verificati nel commit [`2238b4d`](https://github.com/antonello9311-design/theuntoldstory/commit/2238b4d1d5e741dddd9ae2c197eb8fbe9da97f48), parent `f15622bef83beadf961f1b95e1c73dc618be3cc2`. Solo sorgenti, piano, prove e review: quattro gruppi locali PASS, sei SQL, review indipendente 0/0/0. Nessun apply del catalogo, nessun cambiamento al sito o nuova chiamata IA. La review non chiude il requisito tattico004 e il gate DB resta distinto. Il registro viene depositato per ultimo, escluso dalla propria impronta.
+**Deposito selettivo09/09 verificato:** diciassette file, sei commit consecutivi da69938b178b51578651aabf814df4b3839f5c169c alla testa [`983f21c`](https://github.com/antonello9311-design/theuntoldstory/commit/983f21cb2257ebffc651774cdbf79eed34528448). Per ogni commit verificati parent, soli percorsi attesi e blob Git identici ai byte locali congelati. Nessun HTML live, SQL applicato, Edge distribuita o chiamata IA. Registro depositato per ultimo, escluso dalla propria impronta.
 
-| File nel candidato Narratore | Byte | SHA-256 verificata |
+Commit per gruppo: `19b4427909740dea921480970ea10e11803ea6da` (4 file); `1d8d7b9721039501ebcd47eae5b6c6bdcf279127` (3 file); `40665bb301e990ddf5b11e5cf281f1126647d74c` (2 file); `9eafeec0bc80a1e688aec4652978ac62e09584b2` (1 file); `a2a4a5c24899cd267e0aa406d523d2de6b4a10ac` (3 file); `983f21cb2257ebffc651774cdbf79eed34528448` (4 file).
+
+| File verificato | Byte | SHA-256 |
 |---|---:|---|
-| `NARRATIVE_CATALOG_ALIGNMENT.json` | 19873 | `799d528962e2aa1017d8c74e402b8fbfa456d3bc7008c62aae11dd458ecbb23a` |
-| `NARRATIVE_CATALOG_ALIGNMENT.md` | 12005 | `5ff93921d75747d564b83ba1ec7f8dcd7371d3de85f6a956af23918ca2a1a704` |
-| `NARRATIVE_CATALOG_INSTALL.sql` | 11715 | `56729d1e2b93bae9f18aecec3259a6fe08f14315b0f03d36e3e58d15184c9878` |
-| `NARRATIVE_CATALOG_MANIFEST.json` | 3677 | `56248d2c33beaada3785e870e5411eae36a9f8d0644b2e06723808dd710b5a84` |
-| `NARRATIVE_CATALOG_PLAN.md` | 4759 | `31fb56fcc1c167d7646672171417b450b972bc24db032ff665fc18af69bd2d7f` |
-| `NARRATIVE_CATALOG_QA.json` | 2847 | `7bc7781bfcc76c9be00a5eb1eb79ec1f3e2cb740bdf1c3acb8016ce59508beef` |
-| `NARRATIVE_CATALOG_RECOVERY.sql` | 11716 | `848ab29a3505b138e6e548980914c59b1ec492c7378ac20362eac863ba9b9d3b` |
-| `NARRATIVE_CATALOG_REVIEW.md` | 6450 | `77bf8c721b44b1cf356bf96f2b9ee0c232cbd6c95a5c97cf5439682ff906cf9b` |
-| `NARRATIVE_CATALOG_REVIEW_MANIFEST.json` | 3087 | `c3d516634a3f89745a1b7079ad8829a487a32ad9f65e0149a3709e15d4d61b11` |
-| `NARRATIVE_CATALOG_RUNNER.py` | 24214 | `7345006e137a25f4d1bb222d48278c86edff8bc81b073a770626a4226b329ed7` |
+| `management/candidati/CLAN-L1_2026-09-01/HANDOFF.md` | 36056 | `5eb0d8149d32c5fba2affc9b02edc290d6ff0cb3aa2a6d5bc0fb850b5ec7c584` |
+| `management/candidati/CLAN-L1_2026-09-01/SCHEDA.md` | 29655 | `86b41ad2a71a5dfb30964c3c1e8edeae8e3699f1edadb4e90a2872e35673d912` |
+| `management/candidati/CLAN-L1_2026-09-01/STORICO.md` | 62167 | `e335e8a07bc1ae2ade0a67f6ba4abe8bfe0ec11d65527943eefd171dfd230139` |
+| `management/candidati/CLAN-L1_2026-09-01/PIANO_LAVORO.json` | 6397 | `c364799126fbd37240bdf4dfecaa269f1a0da101276cda1cc5a348e8033e3392` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/HANDOFF.md` | 8020 | `90fefc4c08421c53c39f69c492a1ae5bead14540377d508863d0c1cde9547112` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/SCHEDA.md` | 29424 | `531e8af788e5ba89d7a69dded5a355b70c2c5acf72c10111f3983dc771ea6aa9` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/STORICO.md` | 28968 | `811f6a8337d34ca34dc41f9404a2bb33cf08dc2dc166982961ffe7e85bd01037` |
+| `dossier/aree/CLAN.md` | 40523 | `c82ef198a8f7a0e7d2a53478f00f46225c94f5fe05610e4fd744f05fdea437a1` |
+| `dossier/aree/IA_NARRATIVA.md` | 57515 | `e196565c577a586628037416ff4a36d2fe422ac081cef9f8a136f2fdbcbe64c4` |
+| `dossier/04_LAVORI_APERTI.md` | 10431 | `9a8dfde17c8e9bbebdc731dd375b4b4be4e25654928344cce501442bac23c9b0` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/STAFF_SYNTHETIC_UI_CONTRACT.md` | 5546 | `4033711a97df33ff3c4ca1479377d87d26e35d3bb3f64b22ab3cdc78a47c50f0` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/STAFF_SYNTHETIC_CONTRACT.md` | 45550 | `e65a2be0bab1ae7b23971479aad3ab51e50655f0788f12156e8b5917cde8a9b6` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/STAFF_SYNTHETIC_OPPONENT_PLAN.md` | 23860 | `d3e5c2655b325716fa455fb8d310c302c34ed9b9ffec2f76b70340756e9c3161` |
+| `management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_RECOVERY_009_REVIEW.md` | 1812 | `0d2778e813f5fb0b25a311c9191717aa40ea6c2c36f5a15c0314be39956276ee` |
+| `management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_RECOVERY_009_REVIEW_MANIFEST.json` | 1103 | `54309cac073e43357c092ef8dba3a2dfbca98103aee1371da76f6f6626937896` |
+| `management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_CLEAN_RECOVERY_QA.json` | 143414 | `f28ce5b94415c500165ff5c3027a2b515f5b92ef42f3fa065f7acbf2d14ea2f7` |
+| `management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_CLEAN_RECOVERY_MANIFEST.json` | 53324 | `7b3343ecfe90ed34fb42180eb5a71dfae5ebd1dd451f12a93377144de2adbe97` |
 
-Inventario precedente delle nove evidenze del rilascio IA, con byte e SHA, conservato nel [registro verificato alla testa f15622b](https://github.com/antonello9311-design/theuntoldstory/blob/f15622bef83beadf961f1b95e1c73dc618be3cc2/dossier/aree/PUBBLICAZIONE.md).
+I dieci file del catalogo narrativo qualificato restano depositati al commit2238b4d1d5e741dddd9ae2c197eb8fbe9da97f48, con [inventario precedente completo](https://github.com/antonello9311-design/theuntoldstory/blob/69938b178b51578651aabf814df4b3839f5c169c/dossier/aree/PUBBLICAZIONE.md). Nessun apply catalogo; il deposito non completa le tattiche004.
 
-**Collaudo e nuova esclusione:** Antonello usa Riuji per giocare; nessuntest,azione,browser o chiusura della sua scena. Heartbeat allineato. Il percorsoordinary richiede2PGreali: testperfunzioni+mock non è ancora supportato sul sito e Master/PNG è una porta diversa. Smoke ancora aperto, nessuna certificazione live da mocklocali. PNG permanente ratificato: richiamo rapido solo nelle Test Room, nuova istanza isolata per ogni prova, cataloghi Staff/utenti distinti. Piano allineato localmente, contratto e baseline ancora in completamento; nessun account fittizio o impersonazione. Piano PNG, nuova ratifica e ultimi riepiloghi locali non sono inclusi in questo deposito dei dieci file catalogo. TestRoomutenti e nuovi mapping rimangono aperti. La candidata dei due campi editoriali ha quattro gruppi Docker PASS e review 0/0/0; apply ancora da autorizzare nominativamente: non è catalogo live né completamento tattiche004.
+**Collaudo e isolamento:** Riuji riservato al gioco di Antonello, escluso da test/browser/modifiche/chiusure; scena esistente intatta. Contratto del PNG permanente e API UI congelati e depositati: richiamo solo nelle Test Room, nuova istanza isolata, cataloghi Staff/utenti distinti. Backend in costruzione; candidata LAND consegnata con8controlli Node positivi, senza verifica visiva/live e con recupero dopo reload da integrare. Nessun account fittizio o impersonazione. Smoke testperfunzioni+PNG, parità utenti e nuovi mapping restano aperti. Fonti backend/UI e bootstrap Hyūga ancora locali, non inclusi nei17file.
 
-**Movimento locale:** prodotto3/5 verde6/6 e controverifica0/0/0; ripristinooperativo ancora aperto. Preflight003 identitànonricondotte poi chiarite nei seed;004 fermo per campocrittografico nonvuoto, senza copiarlo/estrarlo. NessunDBTEMPLATE creato o scriptINSTALL/RECOVERY eseguito inquelleprove. Bootstrap nativo pulito005 completato con54tabelle vuote, ma il terzo tentativo è fermo al confronto dei nomi prima di INSTALL. Il quarto006 è fermo alla reviewstatica del comparatore,0/0/1 e0SQL. Quinto e ultimo tentativo assegnato sulla sola correzione aggregata del banco; nessun nuovo risultato attestato. Referti preservati, Riuji intatto.
+**Movimento locale:** prodotto3/5 verde6/6 e controverifica0/0/0; recovery009 verde5/5 e review finale indipendente0/0/0. Settimo cumulativo, secondo aggiuntivo autorizzato: correzione CREATE nel solo DB locale005, INSTALL/RECOVERY con COMMIT separati,65pin/owner/ACL ripristinati, due helper private inerti e54tabelle vuote. Trigger/policy/Auth/gameplay non qualificati da questo banco; ciclo fermo al verde. Nessun rilascio movimento: ordinary_options si sovrappone alla candidata PNG e richiede integrazione coerente prima del gate. Referti precedenti preservati.
 
 **Depositi precedenti preservati:**30sorgenti/referti/bundle IA e9riepiloghi, poi registro, verificati alla testa`5876982061cc74f4ddc0939d180799d78519e9be`. [Inventari, impronte e commit](https://github.com/antonello9311-design/theuntoldstory/blob/5876982061cc74f4ddc0939d180799d78519e9be/dossier/aree/PUBBLICAZIONE.md). Regola5aggregate/5controverifiche cumulative e arresto alverde invariata. FondazioniHyūga e piano ESPANSIONE_MULTIATTORE restano preparazioni, non runtime qualificati.
 
