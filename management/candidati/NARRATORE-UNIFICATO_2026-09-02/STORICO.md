@@ -110,3 +110,4 @@
 
 09/09/2026 · PM-CLAN-IA-GOAL-001 · Goal e ripresa automatica attivi; avviati candidati indipendenti movimentoPG e raccordo narrativo, mappe/PNG durante espansione · in lavoro,0provider/nessun rilascio.
 09/09/2026 · PM-CLAN-IA-GOAL-001 finale · Movimento 4/6 e IA 0/8 qualificati, review terminali rosse; fondazioni Hyūga consegnate, richiesta eccezione per sole correzioni e ricertificazione · nessun rilascio/provider, goal incompleto.
+09/09/2026 · IA-ESPANSIONE-MAPPING-001 · Verificati binding distinti ordinary/Master/missioni, ponte Builder e fonte memoria non attestati; piano concreto con fonti e hash · 4 readonly, zero gameplay/provider, nessun rilascio.

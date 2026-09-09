@@ -1,6 +1,10 @@
-TASK-ID: PM-CLAN-IA-GOAL-001 / IA-NARRATIVE-TECH-FIX-001.
+TASK-ID: IA-ESPANSIONE-MAPPING-001, seguito indipendente di PM-CLAN-IA-GOAL-001; IA-NARRATIVE-TECH-FIX-001 resta terminale.
 
-Scope toccato: raccordo fonti catalogo e fine Clone, undici file NARRATIVE_TECH_* nel candidato esistente. Sorgenti e review finali congelate; nessun rilascio.
+Scope di questa consegna: sola ricognizione e piano di espansione, più riepiloghi.
+
+**Espansione verificata in sola lettura il 09/09, 17:34–17:36 UTC:** quattro query complessive di definizioni/metadati, zero gameplay/provider. Il formato scene ammette più PG/PNG, ma ordinary conserva roster2PG, altro membro STRICT e una/due role. Regia e missioni hanno binding e publisher distinti; il mapping deve conservare target/controller/coverage, versione spaziale e visibilità, senza copiare l’intera UI Master. Builder v17 e surface missione usano binding distinti, ponte non attestato; story_ledger conserva impronte/versioni e richiede la fonte del contenuto del ricordo. Le nove porte v17 hanno ACL espliciti postgres-only nel checkpoint, non accesso service_role attestato. `live_scene` non certifica scene libere. Piano concreto in `management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/ESPANSIONE_MULTIATTORE.md`: fonti, hash, innesti e criteri. Nessuna modifica applicativa, DB, permessi o contratto; cicli terminali e richiesta di seguito pendente invariati.
+
+Scope tecnico precedente: raccordo fonti catalogo e fine Clone, undici file NARRATIVE_TECH_* nel candidato esistente. Sorgenti e review finali congelate; nessun rilascio.
 
 Contratti usati/modificati: catalogo identificato tramite ID nativi e congelato nello snapshot con versione/hash; contenuti editoriali separati dai fatti server e dalle istruzioni. La candidata copre Clone di sabbia e Moltiplicazione, non tutte le tecniche o i domini.
 
