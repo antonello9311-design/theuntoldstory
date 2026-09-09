@@ -114,3 +114,4 @@
 09/09/2026 · PM-QA-BUDGET-005-001 · Antonello amplia a5aggregate/5controverifiche cumulative; movimento e IA ripresi dal2/5, gate invariati · regola applicata, qualifica in corso.
 09/09/2026 · QA-PASS02 · IA8/8 e controverifica0/0/0, arresto al verde; movimento4/6 e0/2/0, assegnata aggregata3/5 · nessun rilascio o provider.
 09/09/2026 · RELEASE-PREP · movimento3/5 e IA2/5 qualificati0/0/0; pacchetti concreti e recupero preparati, gate produzione pendenti · nessunapply/deploy/provider.
+09/09/2026 · NARRATIVE-TECH-LIVE-001 · Edge24 eSQL20260909183721 rilasciati/byteACLverificati; Riuji escluso, smoke testperfunzioni+mock attende porta nativa ·0provider/test.
