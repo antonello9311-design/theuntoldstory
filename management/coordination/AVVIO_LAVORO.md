@@ -1,6 +1,6 @@
 # Avvio e coordinamento del lavoro
 
-Versione 1.1 · punto 2: costruzione del nuovo processo, autorizzata da Antonello il 09/09/2026 · verificata e installata localmente. Punto 1: documenti riordinati e decisioni consolidate, completato localmente. Il deposito GitHub è rinviato per richiesta di Antonello al suo rientro. La prima consegna tecnica TASK-PM-AVVIO-001 conserva l’etichetta storica «blocco1»; la numerazione corrente distingue documenti e processo. AGENTS mantiene i gate; questo file descrive l’esecuzione.
+Versione 1.2 · punto 2: costruzione del nuovo processo, autorizzata da Antonello il 09/09/2026 · verificata e installata localmente. Punto 1: documenti riordinati e decisioni consolidate, completato localmente. Il deposito GitHub è rinviato per richiesta di Antonello al suo rientro. La prima consegna tecnica TASK-PM-AVVIO-001 conserva l’etichetta storica «blocco1»; la numerazione corrente distingue documenti e processo. AGENTS mantiene i gate; questo file descrive l’esecuzione.
 
 ## Cosa deve fare Antonello
 
@@ -43,7 +43,7 @@ Resta il massimo di tre cantieri «in lavoro». Si riusano quelli esistenti; il 
 
 Il piano è un elenco di incarichi con lo stesso formato del registro, un obiettivo e il numero massimo di specialisti contemporanei. `task_plan.py` lo legge senza modificarlo e senza creare un registro. Segnala dipendenze mancanti/circolari, collisioni, risorse occupate e incarichi che possono avanzare insieme. La proposta di parallelismo non è una prenotazione: claim resta l’autorità locale per gli scrittori cooperativi.
 
-Per un lavoro trasversale l’ordine ordinario è contratto condiviso → backend e frontend sui file distinti → integrazione → review indipendente → eventuale unica correzione aggregata → controverifica → collaudo e gate pertinenti. Il QA può preparare i criteri durante l’implementazione; la review della candidata attende il congelamento. I riepiloghi comuni restano all’integratore. Per un lavoro piccolo non si creano artificialmente tutti questi ruoli.
+Per un lavoro trasversale l’ordine ordinario è contratto condiviso → backend e frontend sui file distinti → integrazione → review indipendente → correzione aggregata → controverifica, fino a cinque passaggi cumulativi e arresto al verde → collaudo e gate pertinenti. Il QA può preparare i criteri durante l’implementazione; la review della candidata attende il congelamento. I riepiloghi comuni restano all’integratore. Per un lavoro piccolo non si creano artificialmente tutti questi ruoli.
 
 Quando termina un incarico, il PM legge esito, prove e contratto consegnato, poi riesegue l’analisi del piano. Le dipendenze pronte vengono registrate soltanto ora, contro i file effettivamente prodotti. Se uno specialista si blocca, i rami indipendenti continuano; il PM registra il blocco e non usa una consegna rossa come prerequisito valido. I gruppi suggeriti sono una scelta pratica, non una promessa matematica del tempo minimo assoluto.
 
@@ -105,7 +105,7 @@ Il percorso completo è: esigenza del giocatore → contratto → backend / UI /
 
 Si fissano prima casi, tempo, chiamate e token della campagna; i valori del modello JSON sono un esempio, non un budget di produzione. Il registro conserva minuti/casi/chiamate dichiarati; non misura né interrompe automaticamente processi o fatturazione. Owner e PM tengono il consumo reale nelle evidenze del cantiere, inclusi token quando pertinenti. A limite raggiunto si consegna quanto raccolto, senza espandere il banco.
 
-Per ogni candidata: un solo passaggio indipendente, un'unica correzione aggregata e una sola controverifica finale. Il referto rosso termina quel ciclo e torna al PM; non si rinomina la versione per ricominciare. Errori del banco e difetti del prodotto restano distinti. Si riusano le prove pertinenti già raccolte, senza ripetere campagne concluse solo per ricreare il contesto.
+Per ogni candidata: un passaggio indipendente iniziale, fino a cinque correzioni aggregate e cinque controverifiche, contando i passaggi già eseguiti. Il rosso intermedio consente il seguito autonomo nel mandato e nel limite; il verde termina il ciclo, il quinto rosso torna al PM. Matrice completa e budget fissato prima di ciascuna campagna; niente micro-patch, nuovi esempi esplorativi, rinomine o riprese che azzerino il conteggio. Errori del banco e difetti del prodotto restano distinti; le evidenze precedenti sono conservate. Regola canonica in AGENTS.md §Budget di revisione vincolante, ratificata il09/09 da Antonello.
 
 Per sviluppo DB vale Docker/PostgreSQL reale e la valutazione dei rischi d'integrazione di AGENTS. Per il solo collaudo di funzioni già pubblicate si usa direttamente il percorso protetto autorizzato. Autorizzazione a una prova non autorizza rilascio, enable o apertura generale. Un contesto di test non protegge automaticamente risorse reali: verificare isolamento e postflight, conservare storico e chiudere soltanto la prova propria salvo mandato contrario.
 
