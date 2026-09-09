@@ -11,7 +11,14 @@ Aggiornamento documentale del 09/09/2026 · Recupero Staff e caso marionetta att
 5. Registro `public.ai_agents` (kind, model, persona, is_active) — il provider è quello a database, mai dedotto da una riga scrivibile.
 6. Memoria di progetto: `ai_lingua_repertorio_condiviso_018`, `provider_da_riga_scrivibile` (🔴), `corpus_reale_come_ancora`, `guardrail_fonte_vs_prompt_certificato`, `narratori_luna_046`.
 
-## Stato vivo — aggiornamento documentale del 09/09/2026
+## Stato vivo
+
+**PNG permanente, costruzione parallela09/09:** contratto e baseline congelati, API§5.1 estratta identica per LAND. Backend e pannello sono assegnati a owner distinti; integrazione, review, disponibilità nelle Test Room e smoke restano da eseguire. Recovery movimento009 è verde locale con review0/0/0, senza nuovo rilascio. Riuji e scena esistente esclusi.
+
+ — aggiornamento documentale del 09/09/2026
+
+**Ratifica Antonello09/09 — PNG permanente di collaudo:** profilo/identità riutilizzabile e persistente, richiamabile rapidamente soltanto nelle Test Room. Il server verifica stanza, permessi e profilo ammesso; nessunrichiamo nelGDRreale, missioni oquest reali. Il profilo rimane dopo la chiusura; ogni prova usa una propria istanza con risorse, effetti, posizione e stato isolati, senza trascinamento delle prove precedenti o resetglobale. Conservare storico e ricevute; nienteaccount o schedaPG fittizi. Staff e stanza utenti mantengono cataloghi/permessi distinti, prima consegnaStaff esplicita senza dare accessiStaffagliutenti. Riuji e scenaesistente esclusi da interventi. Sostituisce il profilo temporaneo del primo piano: il contratto inpreparazione recepisce la permanenza; piano daallineare dopo rilascio delconsumer che lo usa. Decisione diprodotto, nessunPNG/RPC/UI ancora rilasciato.
+
 
 **Rilascio IA09/09, autorizzato da Antonello:** combat_narratore_ai v24 ACTIVE,15/15moduli esatti, bundle3ac47eb4420e65d01498c79e1dc558cb25461ccd920c3de1e84b993ed0c1dbfd. Migrazione20260909183721 narrative_tech_sources_staff_001 applicata una volta, registro497. Postflight18:37:46UTC: snapshot a417e6a98201a2177cb8c244a736bb3c e helper955228bdc23c89cdb287198db57231b8, ownerpostgres eACLsolo postgres esatti. Nessunflag/catalogo/datoPG modificato,0provider/test. Aggancio effettivo per nuovi snapshotStaffammessi; promptEdge condiviso compatibilelegacy. Riuji è riservato al gioco di Antonello: escluso da ogni test/azione/browser o chiusura. Smokecon testperfunzioni+mock ancora impossibile nel percorsoordinary che richiede2PGreali; porta avversariosintetico da integrare, nessunaimpersonazione o accountfittizio. Mocklocali noncertificano live. TestRoomutenti e altri mapping ancora aperti. Non dichiarato inuso o completamentoSabaku/IAgenerale.
 
