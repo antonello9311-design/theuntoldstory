@@ -107,3 +107,6 @@
 - 09/09/2026 · Chiusura task Narratore · Mandato completato e task archiviata su richiesta Antonello, monitor sospeso; consegna e referti conservati, seguiti al PM e owner Clan, cantiere condiviso non archiviato.
 
 - 09/09/2026 · IA-FATTI-CONTRATTO-001 · Ripresa documentale nella taskPM: collegamento descrizione/effetti mancante verificato live, regola di completezza e libertà narrativa ratificate, due documenti candidati · nessun codice/apply/provider nuovo del ramoIA.
+
+09/09/2026 · PM-CLAN-IA-GOAL-001 · Goal e ripresa automatica attivi; avviati candidati indipendenti movimentoPG e raccordo narrativo, mappe/PNG durante espansione · in lavoro,0provider/nessun rilascio.
+09/09/2026 · PM-CLAN-IA-GOAL-001 finale · Movimento 4/6 e IA 0/8 qualificati, review terminali rosse; fondazioni Hyūga consegnate, richiesta eccezione per sole correzioni e ricertificazione · nessun rilascio/provider, goal incompleto.
