@@ -1,6 +1,6 @@
 # The Untold Story — workflow multi-agent
 
-**Origine:** fotografia organizzativa del 03/08/2026, con successive decisioni indicate nel testo. **Allineamento delle istruzioni esistenti: 09/09/2026.** Numeri, roadmap, backlog e sprint di agosto restano riferimenti storici, non incarichi da riaprire. Lo stato generale si legge in `dossier/01_STATO_ATTUALE.md`, quello operativo nelle schede d'area e nel tabellone `dossier/04_LAVORI_APERTI.md`, con date e limiti delle verifiche. Questo documento non sostituisce `AGENTS.md`, database, regolamento o fonti vive e **non attiva il nuovo processo organizzativo ancora da definire**.
+**Origine:** fotografia organizzativa del 03/08/2026, con successive decisioni indicate nel testo. **Allineamento delle istruzioni esistenti: 09/09/2026.** Numeri, roadmap, backlog e sprint di agosto restano riferimenti storici, non incarichi da riaprire. Lo stato generale si legge in `dossier/01_STATO_ATTUALE.md`, quello operativo nelle schede d'area e nel tabellone `dossier/04_LAVORI_APERTI.md`, con date e limiti delle verifiche. Questo documento non sostituisce `AGENTS.md`, database, regolamento o fonti vive e **rimanda per il processo corrente a `management/coordination/AVVIO_LAVORO.md` (punto 2,09/09)**.
 
 ## 1. Mappa del progetto
 
@@ -151,6 +151,8 @@ flowchart TD
 **Proposte originarie da riconciliare prima di riprendere:** registro contratti leggero, fonte Accademia, funzioni pure testabili nelle pagine monolitiche, consolidamento delle sonde e aggiornamento guida/skill. Non costituiscono un ordine di implementazione attuale: si confrontano con le schede vive, i materiali recuperati e le decisioni esplicite di Antonello. L'allineamento documentale non autorizza questi refactoring né crea nuovi strumenti organizzativi.
 
 ## 10. Ciclo operativo
+
+L’avvio concreto è definito una sola volta in `coordination/AVVIO_LAVORO.md`: registrazione e prenotazione dei file/risorse tramite `tooling/task_guard.py`, contratti come input, rami indipendenti in parallelo, integrazione e rilascio delle prenotazioni dopo consegna. Per le skill usare le copie manutenute in `coordination/skills/`. Il registro coordina sessioni conformi sulla stessa cartella; non è una sandbox, un sistema di deploy o un cron automatico.
 
 1. Il PM assegna il lavoro e gli scope, rispettando il massimo di tre cantieri in lavoro; obiettivo, fonti vive, contratti, percorsi autorizzati e criteri di completamento si leggono nei documenti esistenti, senza creare un ulteriore pacchetto duplicato.
 2. Ogni task segue l'avvio di `AGENTS.md`: `00_LEGGIMI`, `CONTESTO`, `01_STATO_ATTUALE`, `04_LAVORI_APERTI`, scheda d'area e blocchi pertinenti; se ha un cantiere, anche `SCHEDA.md` e `HANDOFF.md`. Analizza il proprio scope e distingue decisioni approvate da proposte aperte.
