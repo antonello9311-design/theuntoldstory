@@ -36,43 +36,24 @@ Legenda: ⬜ da fare · ❓ da confermare · ✅ fatto (con data).
 
 **Caricamento autorizzato da Antonello al rientro e completato via Chrome autenticato il 09/09.** Il connettore diretto ha restituito 403 senza scritture; il browser ha depositato nove commit circoscritti dalla baseline 23263a942da3760234da1f562a2c33aa7f1675bc alla testa e618b1964467ee954f0c7b88e2cb0adc0a1826bd. Verifica remota: 31/31 blob Git identici byte per byte alle copie locali, 584741 byte; catena dei parent coerente e nessun percorso estraneo. Commit: cc1ce27abc30ba24e2cb1d5a9d1e6653a9fdf18f; d18bbdae81a4c6630360755a6a00668a6165a4a4; 5e5c304faa821c3b504261d020dc0207da4e3429; 037e5121f303339c33e1d4cbb1072bc74b3a579c; 8c6829e5a6814d20a0eb206258b2fd718575a984; 7104b9d9d9499954c1fc6fce2c1fd5ef7964526d; fc30ccaf3167569f4177e8901cc8f13ab2473bfd; 6853d12bb5ce9126b88f8f09071b9d5a593d491e; e618b1964467ee954f0c7b88e2cb0adc0a1826bd. Nessun asset del sito modificato, quindi nessun nuovo collaudo del dominio richiesto per questo deposito. SQL/Edge/candidati Clan sono esclusi e mantengono i loro gate.
 
-Elenco esatto:31contenuti più questo registro, escluso dalla propria SHA. CLAUDE.md invariato importa AGENTS. RuntimeSQLite, backup, cacheplugin e temporanei esclusi. Le sorgenti/campagneClan sono coda distinta: non aggiungerle indiscriminatamente. Configurazioni esterneClaude/Cowork non verificate; dossier06 contiene il testo pronto. La tabella identifica le copie depositate; le righe04 e PIATTAFORMA sono aggiornate ai successivi commit c5bc4314effeb7b75aa5184e26aff17277cb2455 e be6671d067e6121d1284066c0448a87c7d5212c0 del rilascioClan.
+Elenco esatto:31contenuti più questo registro, escluso dalla propria SHA. CLAUDE.md invariato importa AGENTS. RuntimeSQLite, backup, cacheplugin e temporanei esclusi. Le sorgenti/campagneClan sono coda distinta: non aggiungerle indiscriminatamente. Configurazioni esterneClaude/Cowork non verificate; dossier06 contiene il testo pronto. Il registro storico collegato identifica le copie depositate; le righe04 e PIATTAFORMA sono aggiornate ai successivi commit c5bc4314effeb7b75aa5184e26aff17277cb2455 e be6671d067e6121d1284066c0448a87c7d5212c0 del rilascioClan.
 
-| File caricato e verificato | Byte | SHA-256 verificato |
-|---|---:|---|
-| `AGENTS.md` | 19456 | `5f52102bb334e1b76042e9ed896af05b6d697e11be475e08a6f6bbbeaacd54f5` |
-| `dossier/00_LEGGIMI.md` | 5505 | `81a2718eacef4f182791f0ab9cfb6917ef2423da72eebe48c79716849f4a6435` |
-| `dossier/01_STATO_ATTUALE.md` | 5553 | `210f5078145fe588e07e5222c5496919ae7cc494209ea3411ba1dff9ffbdbc25` |
-| `dossier/02_INDICE_DOCUMENTI.md` | 159817 | `07dc357600a5cb909f2912bdaf7a3196846241a787116c2735a2055f6f3303ff` |
-| `dossier/04_LAVORI_APERTI.md` | 6920 | `e2a6e5bd92362288798c3dbae94c2dbceb53dfae91b03b4d716099211a31a7ac` |
-| `dossier/05_CONVENZIONI.md` | 93366 | `f47695f65f60fad056c0f33a6a1911066127bbbc173ed47cc7ce1f3bff49677d` |
-| `dossier/06_ISTRUZIONI_PROGETTO.md` | 3531 | `577969b4381632b3c30e616595d4b9eb003bd36cf0053cf8fa1c7d99e623a74f` |
-| `dossier/CONTESTO.md` | 20019 | `0116c0ac61369bceb29f5e885c003db84c9464257782774a8a2b359af7eb3ecf` |
-| `dossier/aree/00_COME_SI_USA.md` | 5766 | `8f8a8f1eba3cb2dce9ededed3d8a4b1dbe2a9f7214e52dc990b87becb1405f1f` |
-| `dossier/aree/PIATTAFORMA.md` | 57603 | `eff46704cbd3b2e7df14a41877c0e210081baeab7b6fc9aa843f589474765458` |
-| `management/TheUntoldStory_Workflow_MultiAgent.md` | 19438 | `1c73ce63dcaf70003f9dac724b571075e0ce412209cce937651b6a3400a1e36b` |
-| `management/coordination/.gitignore` | 92 | `2714c9e1186156b3cf0216f4be8a6983ff4dbdb2a5c796c8cf5a8cbb2f53e138` |
-| `management/coordination/AVVIO_LAVORO.md` | 19190 | `5d09a19f1a18052b892b2b0e904ac22f99c8a1314bbcb74ba68ec1c28d1d858e` |
-| `management/coordination/AVVIO_TEMPLATE.json` | 505 | `cc5a0321a86e2a3fe26b7c04efd4c322821e9fb546bf5eb36675e74eeec008bc` |
-| `management/coordination/HANDOFFS/TASK-PM-AVVIO-001.md` | 5653 | `4333a46192f848ac796d9ee6b5d8df275b43519cea418cedac470af07734be2c` |
-| `management/coordination/HANDOFFS/TASK-PM-PROCESSO-002.md` | 3130 | `c194481b86765ee344b85933b4435815a7e47eeb505dcbde4546382f1373b06f` |
-| `management/coordination/PIANO_TEMPLATE.json` | 2236 | `bce09eea72b1398c2dd9f6b43a7bddf994c5c1624c633aadeb30f3a4848da1ac` |
-| `management/coordination/PM_QUEUE.md` | 25608 | `2b3007d3fbb0046fa715cb4cd0d096dc710df824b56abd33ac0367afe4f02bab` |
-| `management/coordination/skills/antigravity-protocol.md` | 4567 | `56cceeec6cc30b6c5f847b6b1f3359f7d3d13e1e68e6e5e6ecb6997eb6222e01` |
-| `management/coordination/skills/gdr-chiusura.md` | 2303 | `c2a7af52673b504b14243d46736135b51e44967f03ab7236db6d40cb7ece7913` |
-| `management/coordination/skills/gdr-contesto.md` | 1423 | `df56f41749aa6526d37fe40ad5351f1838d4fb719d3886bcd10546d9dcbf1b23` |
-| `management/coordination/skills/gdr-pagine.md` | 6899 | `761621c1b87abdba9865fbc4fc03e9beac345351adcbc582fcac92fe4e523816` |
-| `management/coordination/skills/gdr-regole-sync.md` | 4693 | `488f72d4079a354d2c123a55546124d3e0da1caf7dfe4a563d9672ee1b5a1c3d` |
-| `management/coordination/skills/gdr-rotta.md` | 1374 | `8e34c48c0565c5022673004d07eed1f49b44fd7ca85fe150d527781deddc28b8` |
-| `management/coordination/skills/gdr-sql.md` | 25657 | `e34adc2c6dcf8bf28ac1f293794191c24ecb1e337aed00d4cb778a189a418fa1` |
-| `management/coordination/skills/gdr-verifica.md` | 5897 | `1cba6bb6f1564712e115210b8ce9dc198d1b9b84ffc6f3fd13cd6b56845a42fc` |
-| `management/tooling/sync_skills.py` | 4968 | `4b73340d38d57ebdcae10c058f09c14d67a9631a5b116f47811830b63c135d52` |
-| `management/tooling/task_guard.py` | 25853 | `41c9ba101e8d99439d7368bb6ce7c367a9b2e929ce7dd5a6e495bedf5fa8bd76` |
-| `management/tooling/task_plan.py` | 15556 | `476739662f8e0122c5a1825d37c7dc6c868455e1926dc8461ba04ffd5fdcf49a` |
-| `management/tooling/test_task_guard.py` | 21129 | `6fa9a7283e6b6b43ae8be0738339cf12e53365f100b078aefbccc3ef8c3b9100` |
-| `management/tooling/test_task_plan.py` | 11677 | `a397e65bb54a58b7fd5fe39001cb980105e65217e950d7b223a40e835e57f913` |
+Inventario storico integrale dei 31 file, con byte e SHA, conservato nella [versione verificata del registro](https://github.com/antonello9311-design/theuntoldstory/blob/31632c770ad6416572cb05696fc9e4d4dc3885f2/dossier/aree/PUBBLICAZIONE.md). Le righe correnti qui sotto registrano i depositi successivi senza confondere le rispettive revisioni.
 
 ## Lavori aperti — in ordine
+
+**Espansione IA, ricognizione del 09/09:** sei documenti caricati e verificati byte per byte alla testa `4746abde5cae67bc96792b876593e22f4bea9d23`, commit selettivi `b6cb84fd6c7c15bab9a06e317309ebe3781fe297`, `1ff7ab772d0592d37b13407d7b24b2b0385d154a`, `4746abde5cae67bc96792b876593e22f4bea9d23`. Quattro query readonly di definizioni/metadati, zero gameplay/provider; nessun codice, database, catalogo, Edge o sito modificato. Piano e lacune verificati, non runtime qualificato. Fonte corrente ESPANSIONE_MULTIATTORE.md nel cantiere Narratore; i cicli terminali e la richiesta pendente restano invariati.
+
+| Documento di espansione | Byte | SHA-256 verificata |
+|---|---:|---|
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/ESPANSIONE_MULTIATTORE.md` | 15448 | `37f4c3c69115d03461bf31965b74da65b85b1c2473824be5fb692cfff0e37683` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/SCHEDA.md` | 25639 | `d14c9cc91c1ead48141363cc6f1a3b599e2d1db8c82e08dfe74d3ca3cffe1c11` |
+| `dossier/aree/IA_NARRATIVA.md` | 53857 | `f347907e9e70256a571e59548cadd353e2fa08c8a0e9aa3b11f27deee3d7dfe9` |
+| `dossier/aree/MISSIONI_IA.md` | 14125 | `94bc73ef6cade779b9186cfce7021539a03be940b802c4b5061e3fa9eafb3b24` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/HANDOFF.md` | 7278 | `bf58a0ac502fe5653cded15da6e61a4d0088005e748488fa26575792f5c15e69` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/STORICO.md` | 27387 | `595cb02b3fecf2cbec563907d4ba906d24f75e98987c646584ff25f1abf54d95` |
+
+Questo registro è depositato per ultimo ed escluso dalla propria impronta; nessun blocco autenticazione/conflitto per i sei documenti. Sorgenti tecniche rosse e fondazioni locali restano nello stato della voce precedente. Nessuna nuova verifica del dominio richiesta da modifiche solo documentali.
 
 **Goal Clan e IA, consegna del 09/09 alle 17:31 UTC:** dieci documenti di coordinamento caricati e verificati tramite identità dei blob alla testa `0184886fe39522cc26b459e9b311ce76cf61c17c`; nessun conflitto. Commit selettivi: `31e8a9bfe9e3bb01d8ea5287ee70ac8007e39c7c`, `e1e82eb6f50b7702fc92886639809a47af7b6b47`, `8920bc4c4efc3ae740ecdb98dca4fb7cd7d44733`, `0184886fe39522cc26b459e9b311ce76cf61c17c`. Il goal e la ripresa automatica ogni 10 minuti restano attivi; i due cicli tecnici sono terminali ROSSI, richiesta nominata di un unico ciclo locale aggiuntivo pendente. Nessuna modifica a sito, catalogo, database, Edge, flag o dati di gioco: nessun nuovo controllo del dominio richiesto da questi documenti. I precedenti rilasci mantengono i propri checkpoint.
 
