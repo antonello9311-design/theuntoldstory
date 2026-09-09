@@ -1,5 +1,5 @@
 # AREA · Pubblicazione — cosa è online, cosa è in coda — scheda viva
-Allineamento09/09/2026 · regola cinque aggregate/controverifiche e14documenti verificati su GitHub; IA qualificata al secondo passaggio, movimento al terzo in controverifica. Nessun nuovo runtime live.
+Allineamento09/09/2026 ·39file verificati su GitHub: sorgenti/pacchetto IA e9riepiloghi; qualifiche IA2/5 e movimento3/5 verdi. Nessun nuovoapply/deploy.
 
 > **Regola dell'area.** `sito_live/` **non è ciò che è pubblicato**: è ciò che è pronto per esserlo. La verità è il file su GitHub (`antonello9311-design/theuntoldstory`, branch `main`, cartella root) e il dominio `https://theuntoldstory.it`. Ogni modifica aggiorna la riga corrente del file con build, byte e SHA; ogni caricamento registra commit, «caricato il» e «verificato il». Le evidenze precedenti restano qualificate per data, senza appendici di rettifica. Prima di patchare una pagina si riconcilia con la copia pubblicata (memoria: [[sito_live_non_e_pubblicato]], [[riconciliare_con_github]]).
 
@@ -42,28 +42,25 @@ Inventario storico integrale dei 31 file, con byte e SHA, conservato nella [vers
 
 ## Lavori aperti — in ordine
 
-**Budget QA aggiornato da Antonello09/09:** fino a5aggregate e5controverifiche cumulative, arresto al verde. AGENTS, AVVIOv1.2 e istruzioni condivise allineati; heartbeat aggiornato senza creare task. Quattordici documenti verificati byte per byte alla testa `5eeb7a089e2366198cee6372fff1ca233e6db676`, catena selettiva dalla baseline `0acad2346b0792305e299ddf3dca7c0db4720e41`; nessun conflitto o percorso estraneo. Il registro viene depositato per ultimo, escluso dalla propria impronta. Nessun asset sito, DB, Edge, catalogo o provider modificato da questo deposito; verifica dominio non necessaria per soli documenti.
+**Preparazione rilascio09/09:**39/39file verificati byte per byte alla testa `5e7f6273f161375efe8cd76bc6b7fae2b19e6075`, dalla baseline `c2aa9c0cb92c8cb6adc05fcd4ddc344c230c30b8`:30sorgenti/referti/bundle IA e9documenti di coordinamento. Sei commit selettivi, parent coerenti, nessunpercorsoestraneo o drift. Inventario esatto nel [confronto immutabile del deposito](https://github.com/antonello9311-design/theuntoldstory/compare/c2aa9c0cb92c8cb6adc05fcd4ddc344c230c30b8...5e7f6273f161375efe8cd76bc6b7fae2b19e6075). Questo registro viene caricato per ultimo, escluso dalla propria impronta.
 
-| Documento | Byte | SHA-256 verificata |
+**Pacchetto IA:** candidato/NARRATIVE_TECH_RELEASE_MANIFEST.json SHA256`b7e1f5d93a88408e80cd3bfffaaa72198264ba1035807ce5eebec232aac6f704`, piano`20a6b0e76f98868f78a586bf791a9078f3065d9570c18d7679d1c3bc8cf716db`;15moduli/162085B, soloeditorial diverso dalla Edge23. NARRATIVE_TECH_MANIFEST e REVIEW_PASS02_MANIFEST conservano le impronte dei sorgenti certificati; review2/5 verde0/0/0 e8/8gruppi. Il deposito SQL/Edge è soltanto sorgente: gate nominati per deploy eapply ancora pendenti. SmokeStaff giàautorizzato,1caso/1provider/0retry/10min/12000token quando misurabili, subordinato a rilascio e isolamento. Nessunasset sito,DB,Edge,flag,catalogo oprovider modificato da questo deposito; nessunnuovo controllo dominio richiesto.
+
+| Documento di coordinamento | Byte | SHA-256 verificata |
 |---|---:|---|
-| `AGENTS.md` | 20287 | `115a276983522953b12372c27fc588fe60ba1773391d05316d5d5754f3f2f7e8` |
-| `management/coordination/AVVIO_LAVORO.md` | 19478 | `1ae3df84a93f981b1500c4473f62873d34b1fbaa215bd7e553f74c0d9b8443d8` |
-| `dossier/06_ISTRUZIONI_PROGETTO.md` | 3710 | `07f5ee444fbda225ba37d2907136caacf92c9d9415a2a009e85e8b084d2f46ee` |
-| `dossier/aree/PIATTAFORMA.md` | 58431 | `b3f7ce0f86a7a25f7db532ce53d3c145b4fd7add5c12a6da4c47ed635038cbc1` |
-| `dossier/aree/CLAN.md` | 38998 | `0b9cf8a79ddde3fbce15ebc3de0d3e6747bbf78823a41eab6d62548dc6c4780b` |
-| `dossier/aree/IA_NARRATIVA.md` | 54834 | `3717a4138b42b8d07b48af3b631297f216917d79f24e04ff8f4cac5001009345` |
-| `dossier/04_LAVORI_APERTI.md` | 7901 | `60e3c80c9808d90619b9baba7fec1be96d8d847270bf255927c7e6a4a33d695b` |
-| `management/candidati/CLAN-L1_2026-09-01/SCHEDA.md` | 28843 | `1204262c180a9741af7945d121043430fed02afbdc5d230e3edefdc9e3fc7f04` |
-| `management/candidati/CLAN-L1_2026-09-01/HANDOFF.md` | 34884 | `72d3db3cf1e67db5ef4a4c25f634037300e7e42de0b34988e5053accad944bba` |
-| `management/candidati/CLAN-L1_2026-09-01/STORICO.md` | 61472 | `757beb4571ee8b1171ffc69103f1f78510f4df2a335d720b63e7a9dea202b0cb` |
-| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/SCHEDA.md` | 26616 | `9b9e6694d2aba2eaf5a9263fc7a1fe460546bee5f07e4de002e00244fce932e0` |
-| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/HANDOFF.md` | 8158 | `2767215e19bec791a17d465353194f995fbcbecf6926d26d379fde5ff348be7c` |
-| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/STORICO.md` | 27719 | `24a641ae51ad12825cd2510c530b4f6925618ef2c383ff05d3275e7d73ae4860` |
-| `management/candidati/CLAN-L1_2026-09-01/PIANO_LAVORO.json` | 10452 | `e7241b4c07d512d5938f37da773890e82dfe2967a27ae97a63511eca56c1fbc0` |
+| `dossier/aree/CLAN.md` | 39450 | `5b65eee8bb197eefdaaf897e8bdebf5f30305b0778f790d80fa42e46ec214298` |
+| `dossier/aree/IA_NARRATIVA.md` | 55296 | `58f5e73c13c99cb3bfd32114000f4bce4690e63d5b977fc6fe5499cfaa75fde1` |
+| `dossier/04_LAVORI_APERTI.md` | 8248 | `16528978bf2138df586f1d0a0ba0dc3bb35771e8a5460d0d2bcf3daee6761eee` |
+| `management/candidati/CLAN-L1_2026-09-01/SCHEDA.md` | 29295 | `19ab8c2d7394239c4fdaaeeae68dcc96e0851099ddc35e37ba4eedf7e3ef2237` |
+| `management/candidati/CLAN-L1_2026-09-01/HANDOFF.md` | 35361 | `00a6aedfaedcad91f299556e7922d6dc4cc138af8769b24c7e47d134e1be5c0c` |
+| `management/candidati/CLAN-L1_2026-09-01/STORICO.md` | 61639 | `d9bc172b166f89626d21ae6ff8f1c756497b1125da9f57a637ec7b077f1a0806` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/SCHEDA.md` | 27078 | `d00aee0e8d97c00c8d50c40380acd54636d3cb809a23df5f739ecbfa6da1fcc7` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/HANDOFF.md` | 8659 | `9610d97010613a5b61cb2cd4dd9f0f096f039dd530e2ba02867d91d2f805f68f` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/STORICO.md` | 27886 | `825f0c92db249098130bfc672288d0edb4282d8647cc63f7dbebfcced28b8b73` |
 
-**Checkpoint tecnico distinto dal deposito:** IA passaggio2/5:8/8 e controverifica indipendente0/0/0; nessun altro ciclo di correzione, pacchetto di rilascio in preparazione. Movimento passaggio3/5:6/6 attestati dall’owner, controverifica indipendente in corso; captureG4 sintetica e recoveryG6 transazionale, non smoke live. Sorgenti e referti tecnici di questi seguiti sono ancora locali, fuori dai14documenti depositati. Nessun apply/deploy/enable implicito. Le fondazioni Hyūga restano locali, preparazione e non qualifica gameplay.
+**Movimento, evidenze locali non incluse nel deposito:** qualifica3/5 verde6/6 e controverifica0/0/0. G4presa sintetica validata; G6recovery transazionale. La distinta prova di recoverycommittata si è fermata al preflight1/5 per identità non ricondotte all’allowlist sintetica della fonte: nessunDBcopiato,INSTALL oRECOVERY eseguiti. Non prova presenza di PG reali; provenienza in diagnosi readonly separata. Gate ripristinooperativo ancora aperto, candidata verde immutata. Fuori da questa tranche: movimento dopoprincipale, nuove tatticheMoltiplicazione, utentiTestRoom e completamentoSabaku. Testi catalogo riletti18:23:50UTC; proposta di allineamento narrativo in preparazione, nessunDML.
 
-**Depositi precedenti preservati:** inventari, impronte e commit della ricognizione multiattore e del checkpoint17:31 sono nella [versione immutabile del registro](https://github.com/antonello9311-design/theuntoldstory/blob/0acad2346b0792305e299ddf3dca7c0db4720e41/dossier/aree/PUBBLICAZIONE.md). I primi referti rossi restano storici; la precedente attesa per un ciclo aggiuntivo è superata dalla nuova regola. ESPANSIONE_MULTIATTORE.md resta piano verificato, non runtime operativo.
+**Regola e precedenti preservati:** fino a5aggregate/5controverifiche cumulative, arresto alverde. I15file della modifica procedurale restano verificati alla testa `c2aa9c0cb92c8cb6adc05fcd4ddc344c230c30b8`; [inventari e impronte precedenti](https://github.com/antonello9311-design/theuntoldstory/blob/c2aa9c0cb92c8cb6adc05fcd4ddc344c230c30b8/dossier/aree/PUBBLICAZIONE.md). Heartbeat corrente, nessuna nuova task o riapertura storica. Referti rossi originari conservati, non riclassificati. FondazioniHyūga e piano ESPANSIONE_MULTIATTORE restano preparazioni, non runtime qualificati.
 
 **Raccordo Clan rilasciato e collaudato09/09:** qualifica locale16SQL/8gruppi/9sottocasi e due review pertinenti0/0/0; recovery installCOMMIT→recoveryCOMMIT verificata in copiaDocker. Migrazione20260909154236 applicata una sola volta, preflight9dipendenze/ACL senza drift e0reportpendenti, postflight3corpi/ACL esatti. SmokeClone/Fato PASS: creazione nativa, cattura fallita e fineClone coerenti col motore, Fato5199b592 pubblicato15:44:13,1provider2932token0retry. Postflight15:45:42 su12superfici/2PG identico alla baseline15:37:49. P2 resa narrativa della dissoluzione esplicita, nessuna rigenerazione. **43file sorgenti/referti/precedenti depositati e verificati byte per byte** in5commit da a305ea82a420779ceeec1a4da663e65c7cf0a2fb a b17621a67e85190f99275772d8842388288c3812. Inventario esatto nel confronto GitHub18f439ef8233fb9ce25c0034e737471b67293ebc...b17621a67e85190f99275772d8842388288c3812; impronte e provenienza nei manifesti CLAN_CONTINUATION_REVIEW_FINAL_MANIFEST/RELEASE_REVIEW_MANIFEST, più LIVE_GATE/LIVE_RESULT/STAFF_RESUME_PREFLIGHT. I19precedenti sono preservati e non riqualificati. Nessun Edge, flag, RLS, catalogo o asset sito modificato. Uchiha13file candidati resta locale e non qualificato: inventorypin/permissionCommon/consumer aperti.
 
