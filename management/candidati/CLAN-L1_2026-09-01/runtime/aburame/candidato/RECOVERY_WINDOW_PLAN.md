@@ -1,0 +1,9 @@
+# Recupero Clan · finestra temporale candidata
+
+Scope ROOT/DB-COMBAT09/09: completare il prerequisito temporale della rigenerazione Colonia e dei recuperi Clan. Una funzione privata read-only, nessuna modifica alle due RPC vive. Baseline aggiornata in RECOVERY_BASELINE_CURRENT.json: i corpi/ACL letti06:35 divergono dai pin05:38 ma conservano logica legacy e lettura PG priva di lock. Nessun owner concorrente individuato dal coordinamento; nessuna attribuzione del drift.
+
+La funzione02 legge periodi reali legacy e CombatV2, usa il personaggio fisico, esclude locations.is_test e unisce intervalli sovrapposti prima dello scomputo. Tiene il recupero sospeso per attori attivi in scontri correnti. Per Master usa joined_at/left_at dei partecipanti. Un’uscita individuale senza orario, o una preparazione priva di inizio misurato, produce history_complete=false, senza inventare secondi di riposo. Questo limite deve essere raccordato con i lifecycle e il recupero pubblico prima del rilascio; nessuna perdita di risorse o reset dei timestamp viene applicato.
+
+Budget prima dell’esecuzione:8gruppi,3submission SQL totali (preflight, installazione+fixture+matrice in unica transazione annullata, postflight),20minuti,0provider/0UI. Casi: nessuno scontro; legacy chiuso; V2 chiuso e sovrapposizioni; attore attivo/sospeso; stanze protette; uscita senza timestamp; uscita Master attestata; clipping/invalidi/ACL e invarianzaPG. Fixture soltanto locali/sintetiche e controllate: attesta il lettore temporale, non creazione nativa dello scontro, Auth o runtime live. Nessuna race in questo incremento read-only.
+
+Restano nello stesso raccordo: authority sui timestamp lifecycle; lock PG condiviso con ingresso/risoluzione e ledger Colonia; esclusione atomica del tempo combattuto; split chakra/Colonia prima del cap; aggiornamento timestamp e ricevuta nella stessa transazione; review e gate della tecnica completa. Nessuna distribuzione di helper isolati.

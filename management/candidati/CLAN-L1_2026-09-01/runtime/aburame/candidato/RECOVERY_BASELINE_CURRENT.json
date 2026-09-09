@@ -1,0 +1,634 @@
+{
+  "scope": "baseline readonly, nessuna invocazione di recupero",
+  "recovery": {
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+        "body_md5": "6c456f5afbcba2b3063f15d0f7bd2efb",
+        "signature": "applica_recupero(uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION public.applica_recupero(p_user uuid DEFAULT NULL::uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\ndeclare v_user uuid; c public.characters%rowtype; giorni numeric; add_v int; add_c int;\n        v_scontro interval;\nbegin\n  if public.is_staff() then\n    v_user := coalesce(p_user, auth.uid());\n  else\n    v_user := auth.uid();\n  end if;\n  if v_user is null then return; end if;\n  -- [V1.1 · decisione 9] Dentro uno scontro aperto non si recupera niente, e\n  -- soprattutto NON si tocca last_regen_at: il maturato resta lì e riparte a\n  -- scontro chiuso. Si riusa lo stesso predicato di combat_join e combat_open,\n  -- per non avere due definizioni di «essere in scontro».\n  if public._combat_impegnato(v_user) then return; end if;\n  select * into c from public.characters where user_id = v_user;\n  if c.id is null then return; end if;\n  -- [V1.1 · decisione 9] Il tempo passato a combattere non è tempo di riposo.\n  -- La finestra si taglia due volte: greatest(last_regen_at, joined_at) esclude\n  -- la parte già scontata in un recupero precedente, least(now(), closed_at)\n  -- protegge da un closed_at nel futuro, e greatest(interval '0', …) impedisce\n  -- che un intervallo invertito diventi un REGALO di tempo invece di uno\n  -- scomputo. Solo i combattenti: chi assiste non sta combattendo.\n  select coalesce(sum(greatest(\n           interval '0',\n           least(now(), s.closed_at) - greatest(coalesce(c.last_regen_at, now()), p.joined_at))),\n         interval '0')\n    into v_scontro\n    from public.combat_participants p\n    join public.combat_sessions s on s.id = p.session_id\n   where p.user_id = v_user\n     and p.ruolo   = 'combattente'\n     and s.state   = 'chiuso'\n     and s.closed_at is not null\n     and s.closed_at > coalesce(c.last_regen_at, now());\n  giorni := extract(epoch from (now() - coalesce(c.last_regen_at, now()) - coalesce(v_scontro, interval '0'))) / 86400.0;\n  if giorni <= 0 then return; end if;\n  add_v := floor( coalesce(c.vita_max,0) * giorni / 3.0 );\n  add_c := floor( coalesce(c.chakra_max,0) * giorni / 2.0 );\n  if add_v <= 0 and add_c <= 0 then return; end if;\n  perform set_config('app.allow_vita_delta','1', true);\n  perform set_config('app.allow_chakra_delta','1', true);\n  -- [GUARD-002-R2] aperto qui, subito prima dell'UPDATE...\n  perform set_config('app.allow_regen_at','1', true);\n  update public.characters\n     set vita = least(coalesce(vita_max,0), coalesce(vita,0) + greatest(add_v,0)),\n         chakra = least(coalesce(chakra_max,0), coalesce(chakra,0) + greatest(add_c,0)),\n         last_regen_at = now()\n   where user_id = v_user;\n  -- ...e richiuso subito dopo, prima di qualunque altra cosa.\n  perform set_config('app.allow_regen_at','', true);\nend; $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "body_md5": "e7e536e6dc7371d24c1286e710efe2b5",
+        "signature": "_combat_impegnato(uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION public._combat_impegnato(p_user uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  select exists (select 1 from public.combat_participants p\n                   join public.combat_sessions s on s.id = p.session_id\n                  where p.user_id = p_user and s.state = 'aperto' and p.ruolo = 'combattente' and not p.fuori);\n$function$\n"
+      }
+    ],
+    "checked_at": "2026-09-09T06:35:01.378626+00:00",
+    "recent_migrations": [
+      {
+        "name": "combat_common_panels_sabaku_controlled_096",
+        "version": "20260908213806"
+      },
+      {
+        "name": "combat_common_096_stage_05",
+        "version": "20260908213747"
+      },
+      {
+        "name": "combat_common_096_stage_04",
+        "version": "20260908213744"
+      },
+      {
+        "name": "combat_common_096_stage_03",
+        "version": "20260908213742"
+      },
+      {
+        "name": "combat_common_096_stage_02",
+        "version": "20260908213741"
+      }
+    ]
+  },
+  "schema": {
+    "checks": [
+      {
+        "name": "combat_v2_sessions_source_chk",
+        "table": "combat_v2_sessions",
+        "definition": "CHECK (((source_kind = 'master'::text) = (master_session_id IS NOT NULL)))"
+      },
+      {
+        "name": "combat_v2_sessions_source_kind_check",
+        "table": "combat_v2_sessions",
+        "definition": "CHECK ((source_kind = ANY (ARRAY['ordinary'::text, 'master'::text])))"
+      },
+      {
+        "name": "combat_v2_sessions_state_check",
+        "table": "combat_v2_sessions",
+        "definition": "CHECK ((state = ANY (ARRAY['preparazione'::text, 'in_corso'::text, 'sospeso'::text, 'risolto'::text, 'chiuso'::text, 'annullato'::text])))"
+      },
+      {
+        "name": "combat_v2_sessions_terminale_chk",
+        "table": "combat_v2_sessions",
+        "definition": "CHECK (((state <> ALL (ARRAY['chiuso'::text, 'annullato'::text])) OR (closed_at IS NOT NULL)))"
+      },
+      {
+        "name": "combat_v2_actors_actor_kind_check",
+        "table": "combat_v2_actors",
+        "definition": "CHECK ((actor_kind = ANY (ARRAY['pg'::text, 'png'::text])))"
+      },
+      {
+        "name": "combat_v2_actors_controller_chk",
+        "table": "combat_v2_actors",
+        "definition": "CHECK (((actor_kind = 'png'::text) OR (controller_user IS NOT NULL)))"
+      },
+      {
+        "name": "combat_v2_actors_identity_chk",
+        "table": "combat_v2_actors",
+        "definition": "CHECK ((((actor_kind = 'pg'::text) AND (character_id IS NOT NULL) AND (png_instance_id IS NULL) AND (provider_instance_v1_id IS NULL) AND (companion_id IS NULL)) OR ((actor_kind = 'png'::text) AND (character_id IS NULL) AND (num_nonnulls(png_instance_id, provider_instance_v1_id, companion_id) = 1))))"
+      },
+      {
+        "name": "combat_v2_actors_mechanics_snapshot_check",
+        "table": "combat_v2_actors",
+        "definition": "CHECK ((jsonb_typeof(mechanics_snapshot) = 'object'::text))"
+      },
+      {
+        "name": "combat_v2_actors_position_m_check",
+        "table": "combat_v2_actors",
+        "definition": "CHECK (((position_m >= 0) AND (position_m <= 1000)))"
+      },
+      {
+        "name": "combat_v2_actors_state_check",
+        "table": "combat_v2_actors",
+        "definition": "CHECK ((state = ANY (ARRAY['attivo'::text, 'fuori'::text, 'ritirato'::text])))"
+      },
+      {
+        "name": "combat_v2_actors_team_key_check",
+        "table": "combat_v2_actors",
+        "definition": "CHECK (((char_length(btrim(team_key)) >= 1) AND (char_length(btrim(team_key)) <= 40)))"
+      }
+    ],
+    "columns": [
+      {
+        "type": "uuid",
+        "table": "activities",
+        "column": "session_id",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "uuid",
+        "table": "activities",
+        "column": "location_id",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "uuid",
+        "table": "activities",
+        "column": "scene_profile_id",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "uuid",
+        "table": "activities",
+        "column": "opener_character_id",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "bigint",
+        "table": "activities",
+        "column": "context_version",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "integer",
+        "table": "activities",
+        "column": "round_no",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "uuid",
+        "table": "activities",
+        "column": "exchange_id",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "uuid",
+        "table": "activities",
+        "column": "turn_actor_id",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "text",
+        "table": "activities",
+        "column": "phase",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "text",
+        "table": "activities",
+        "column": "policy_id",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "activities",
+        "column": "created_at",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "activities",
+        "column": "last_action_at",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "activities",
+        "column": "closed_at",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "uuid",
+        "table": "members",
+        "column": "session_id",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "uuid",
+        "table": "members",
+        "column": "actor_id",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "uuid",
+        "table": "members",
+        "column": "character_id",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "text",
+        "table": "members",
+        "column": "role",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "smallint",
+        "table": "members",
+        "column": "fighter_slot",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "members",
+        "column": "admitted_at",
+        "schema": "combat_consumer_private"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_participants",
+        "column": "id",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_participants",
+        "column": "session_id",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_participants",
+        "column": "user_id",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_participants",
+        "column": "character_id",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_participants",
+        "column": "character_name",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_participants",
+        "column": "ruolo",
+        "schema": "public"
+      },
+      {
+        "type": "integer",
+        "table": "combat_participants",
+        "column": "iniziativa",
+        "schema": "public"
+      },
+      {
+        "type": "integer",
+        "table": "combat_participants",
+        "column": "pos_m",
+        "schema": "public"
+      },
+      {
+        "type": "boolean",
+        "table": "combat_participants",
+        "column": "fuori",
+        "schema": "public"
+      },
+      {
+        "type": "integer",
+        "table": "combat_participants",
+        "column": "round_speso",
+        "schema": "public"
+      },
+      {
+        "type": "boolean",
+        "table": "combat_participants",
+        "column": "usato_principale",
+        "schema": "public"
+      },
+      {
+        "type": "boolean",
+        "table": "combat_participants",
+        "column": "usato_rapida",
+        "schema": "public"
+      },
+      {
+        "type": "boolean",
+        "table": "combat_participants",
+        "column": "usato_reazione",
+        "schema": "public"
+      },
+      {
+        "type": "boolean",
+        "table": "combat_participants",
+        "column": "usato_spostamento",
+        "schema": "public"
+      },
+      {
+        "type": "integer",
+        "table": "combat_participants",
+        "column": "sostituzione_round",
+        "schema": "public"
+      },
+      {
+        "type": "integer",
+        "table": "combat_participants",
+        "column": "guardia_round",
+        "schema": "public"
+      },
+      {
+        "type": "integer",
+        "table": "combat_participants",
+        "column": "mira_round",
+        "schema": "public"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "combat_participants",
+        "column": "joined_at",
+        "schema": "public"
+      },
+      {
+        "type": "integer",
+        "table": "combat_participants",
+        "column": "mossa_pendente",
+        "schema": "public"
+      },
+      {
+        "type": "smallint",
+        "table": "combat_participants",
+        "column": "slancio",
+        "schema": "public"
+      },
+      {
+        "type": "integer",
+        "table": "combat_participants",
+        "column": "diversivo_round",
+        "schema": "public"
+      },
+      {
+        "type": "boolean",
+        "table": "combat_participants",
+        "column": "copie_attive",
+        "schema": "public"
+      },
+      {
+        "type": "integer",
+        "table": "combat_participants",
+        "column": "copie_round",
+        "schema": "public"
+      },
+      {
+        "type": "smallint",
+        "table": "combat_participants",
+        "column": "copie_n",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_sessions",
+        "column": "id",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_sessions",
+        "column": "location_id",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_sessions",
+        "column": "kind",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_sessions",
+        "column": "master_user",
+        "schema": "public"
+      },
+      {
+        "type": "integer",
+        "table": "combat_sessions",
+        "column": "round",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_sessions",
+        "column": "fase",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_sessions",
+        "column": "turn_of",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_sessions",
+        "column": "state",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_sessions",
+        "column": "opened_by",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_sessions",
+        "column": "opener_name",
+        "schema": "public"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "combat_sessions",
+        "column": "created_at",
+        "schema": "public"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "combat_sessions",
+        "column": "last_action_at",
+        "schema": "public"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "combat_sessions",
+        "column": "closed_at",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_sessions",
+        "column": "closed_reason",
+        "schema": "public"
+      },
+      {
+        "type": "integer",
+        "table": "combat_sessions",
+        "column": "distanza_ingaggio",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_sessions",
+        "column": "scenario",
+        "schema": "public"
+      },
+      {
+        "type": "boolean",
+        "table": "combat_sessions",
+        "column": "lesiva",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_v2_actors",
+        "column": "id",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_v2_actors",
+        "column": "session_id",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_v2_actors",
+        "column": "actor_kind",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_v2_actors",
+        "column": "character_id",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_v2_actors",
+        "column": "png_instance_id",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_v2_actors",
+        "column": "controller_user",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_v2_actors",
+        "column": "team_key",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_v2_actors",
+        "column": "state",
+        "schema": "public"
+      },
+      {
+        "type": "integer",
+        "table": "combat_v2_actors",
+        "column": "position_m",
+        "schema": "public"
+      },
+      {
+        "type": "integer",
+        "table": "combat_v2_actors",
+        "column": "initiative_snapshot",
+        "schema": "public"
+      },
+      {
+        "type": "jsonb",
+        "table": "combat_v2_actors",
+        "column": "mechanics_snapshot",
+        "schema": "public"
+      },
+      {
+        "type": "bigint",
+        "table": "combat_v2_actors",
+        "column": "controller_version",
+        "schema": "public"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "combat_v2_actors",
+        "column": "created_at",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_v2_actors",
+        "column": "provider_instance_v1_id",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_v2_actors",
+        "column": "companion_id",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_v2_sessions",
+        "column": "id",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_v2_sessions",
+        "column": "source_kind",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_v2_sessions",
+        "column": "master_session_id",
+        "schema": "public"
+      },
+      {
+        "type": "uuid",
+        "table": "combat_v2_sessions",
+        "column": "location_id",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_v2_sessions",
+        "column": "state",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_v2_sessions",
+        "column": "state_before_suspend",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_v2_sessions",
+        "column": "engine_version",
+        "schema": "public"
+      },
+      {
+        "type": "text",
+        "table": "combat_v2_sessions",
+        "column": "resolver_version",
+        "schema": "public"
+      },
+      {
+        "type": "boolean",
+        "table": "combat_v2_sessions",
+        "column": "lesiva",
+        "schema": "public"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "combat_v2_sessions",
+        "column": "created_at",
+        "schema": "public"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "combat_v2_sessions",
+        "column": "closed_at",
+        "schema": "public"
+      }
+    ],
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+        "body_md5": "6c456f5afbcba2b3063f15d0f7bd2efb",
+        "signature": "applica_recupero(uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "body_md5": "e7e536e6dc7371d24c1286e710efe2b5",
+        "signature": "_combat_impegnato(uuid)"
+      }
+    ],
+    "checked_at": "2026-09-09T06:34:41.826187+00:00"
+  },
+  "production_changed": false,
+  "owner_check": "task origine Narratore conferma nessuna propria modifica; origine del drift non attribuita"
+}
