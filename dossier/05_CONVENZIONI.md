@@ -632,6 +632,8 @@ La procedura completa, con le due liste finali, sta nella skill **`gdr-chiusura`
 
 ## 14. Due chat insieme — la regola contro le sovrascritture
 
+**Applicazione dal punto 2,09/09:** `management/coordination/AVVIO_LAVORO.md` è la procedura comune. Il PM registra scope, contratti, dipendenze e owner con `management/tooling/task_guard.py`; acquisizione atomica dei file/risorse, verifica delle impronte e integrazione degli output attraverso `apply`. Le sessioni usano la stessa root canonica; copie isolate non assegnano autonomamente gli stessi asset. Il registro è cooperativo e locale: non intercetta editor esterni, non misura i costi provider né concede gate di rilascio. Le lezioni seguenti spiegano perché questi controlli sono necessari.
+
 *(convenzione adottata il 02/08/2026, e violata tre volte lo stesso giorno)*
 
 Il caricamento ora può essere eseguito direttamente dall'agente, ma GitHub non fonde automaticamente due versioni concorrenti dello stesso **file intero**. Le task possono condividere una cartella oppure usare copie isolate: **lo si verifica prima di scrivere**, senza dedurlo dal nome dell'app o dal testo dell'handoff. Restano obbligatori un solo owner per file e il confronto con la testa remota prima del push.

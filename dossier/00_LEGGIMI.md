@@ -1,11 +1,13 @@
 # 00 · LEGGIMI — porta d'ingresso al progetto
 
-> Allineamento documentale del 09/09/2026. Questa pagina si riscrive in posto. I documenti recepiscono decisioni e avanzamenti delle task aperte e archiviate; la costruzione del nuovo processo di lavoro è il passo successivo, non è già attivata.
+> Punto1 documentale completato; punto2 costruzione del processo, 09/09/2026. Questa pagina si riscrive in posto. Procedura operativa: `management/coordination/AVVIO_LAVORO.md`; incarichi e prenotazioni locali: `management/tooling/task_guard.py`. Le task precedenti sono archiviate, i lavori incompleti restano nei cantieri.
 
 ## Il progetto
 «The Untold Story» è un GDR play-by-chat in italiano, nell'universo alternativo di Naruto dopo la Notte della Volpe: nessun personaggio canonico esiste nel presente. Beta aperta dal 01/08/2026. Sito `https://theuntoldstory.it`, GitHub Pages, repository `antonello9311-design/theuntoldstory`; backend Supabase `tyhyxkslteigibktluml`. **«L'IA racconta, il server comanda»**: i giocatori scelgono, il motore determina conseguenze e valori, il narratore mette in scena i fatti autorizzati.
 
 ## Avvio di ogni task
+Antonello descrive il risultato; l’assistente gestisce il metodo tecnico. Seguire `management/coordination/AVVIO_LAVORO.md`: prima orientamento e mandato, poi assegnazione e acquisizione dello scope, lavoro parallelo sui rami indipendenti, verifica e consegna. Nessuna ripresa automatica di vecchi incarichi; le autorizzazioni mantengono i rispettivi perimetri.
+
 1. Leggere `AGENTS.md` nella radice e questa pagina: mandato, limiti, owner e procedure vigenti.
 2. Leggere `dossier/CONTESTO.md`, `dossier/01_STATO_ATTUALE.md` e `dossier/04_LAVORI_APERTI.md`: riferimenti del gioco, fotografia datata, cantieri e dipendenze correnti.
 3. Individuare l'area in `dossier/aree/00_COME_SI_USA.md`; leggere la sua scheda e soltanto i blocchi pertinenti delle fonti elencate.
