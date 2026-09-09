@@ -105,3 +105,5 @@
 - 09/09/2026 · STAFF-AI-RECOVERY-001 recupero live · HTTP1095=200/published,1provider/1830token/0retry,1Fato e nuovo exchange; parent/report e2PG/12superfici protetti, sole date rigenerazione diverse. UI confermata ROOT; audit centrale mancante registrato, scena aperta preservata.
 
 - 09/09/2026 · Chiusura task Narratore · Mandato completato e task archiviata su richiesta Antonello, monitor sospeso; consegna e referti conservati, seguiti al PM e owner Clan, cantiere condiviso non archiviato.
+
+- 09/09/2026 · IA-FATTI-CONTRATTO-001 · Ripresa documentale nella taskPM: collegamento descrizione/effetti mancante verificato live, regola di completezza e libertà narrativa ratificate, due documenti candidati · nessun codice/apply/provider nuovo del ramoIA.
