@@ -1,0 +1,73 @@
+{
+  "task_id": "NARRATIVE-CATALOG-ALIGN-CANDIDATE-001",
+  "status": "PASS",
+  "container": "tus_ordinary_compose_qa_db",
+  "database": "narrative_catalog_alignment_001",
+  "baseline_observed_at_utc": "2026-09-09 18:42:17.122827+00",
+  "production_version": "17.6",
+  "sql_submissions": 6,
+  "maximum_sql_submissions": 6,
+  "groups_expected": 4,
+  "groups_passed": 4,
+  "elapsed_seconds": 0.511,
+  "provider_calls": 0,
+  "production_mutations": 0,
+  "checks": [
+    {
+      "group": "create_database",
+      "pass": true,
+      "exit_code": 0,
+      "sql_sha256": "f1666f1224b41cba6f242a6fa0275fbab36ddab5021bf06635f5d7d5d92eb9fd",
+      "stdout": "CREATE DATABASE\n",
+      "stderr": ""
+    },
+    {
+      "group": "bootstrap",
+      "pass": true,
+      "exit_code": 0,
+      "sql_sha256": "66ff70762dcb548f1f67b05bb058eed0af9935dccefaa57c31400e32f74cad1e",
+      "stdout": "BEGIN\nSET\nCREATE TABLE\nCREATE TABLE\nALTER TABLE\nALTER TABLE\nALTER TABLE\nALTER TABLE\nALTER TABLE\nALTER TABLE\nALTER TABLE\nALTER TABLE\nALTER TABLE\nALTER TABLE\nALTER TABLE\nALTER TABLE\nALTER TABLE\nALTER TABLE\nINSERT 0 1\nINSERT 0 1\nINSERT 0 1\nCOMMIT\n",
+      "stderr": ""
+    },
+    {
+      "group": "G1_exact_update_all_other_columns",
+      "pass": true,
+      "exit_code": 0,
+      "sql_sha256": "8183ebc98e1142c74b101a1e3c2f439626741283638fd3c6e04708b65815a950",
+      "stdout": "BEGIN\nSET\nDO\nDO\nROLLBACK\n",
+      "stderr": ""
+    },
+    {
+      "group": "G2_stale_refused_no_partial",
+      "pass": true,
+      "exit_code": 0,
+      "sql_sha256": "18cf39f789ce6efe49161e8bdefe99cacc2c0602df7c78c1e86d6d233acc0fdf",
+      "stdout": "BEGIN\nSET\nUPDATE 1\nDO\nDO\nROLLBACK\n",
+      "stderr": ""
+    },
+    {
+      "group": "G3_second_apply_refused",
+      "pass": true,
+      "exit_code": 0,
+      "sql_sha256": "074ee0eddbddcadefd9f3ee352f9334944cb2106b1ec15d3f3f64e03ed5f1926",
+      "stdout": "BEGIN\nSET\nDO\nDO\nDO\nROLLBACK\n",
+      "stderr": ""
+    },
+    {
+      "group": "G4_commit_update_commit_recovery",
+      "pass": true,
+      "exit_code": 0,
+      "sql_sha256": "7e5cfb1c4d45b67c2a34ba55c3fabfd4ea9c43a3e391718ddda8c3fb7615444d",
+      "stdout": "BEGIN\nSET\nSET\nSET\nDO\nCOMMIT\nDO\nBEGIN\nSET\nSET\nSET\nDO\nCOMMIT\nDO\n",
+      "stderr": ""
+    }
+  ],
+  "install_sha256": "56729d1e2b93bae9f18aecec3259a6fe08f14315b0f03d36e3e58d15184c9878",
+  "recovery_sha256": "848ab29a3505b138e6e548980914c59b1ec492c7378ac20362eac863ba9b9d3b",
+  "runtime_limitations": [
+    "No Auth/RLS via API, UI, provider, live consumers or live game data",
+    "One synthetic parent row satisfies unchanged self-FK; parent mechanics not exercised",
+    "No concurrent-session race campaign; row locks and atomic guards exercised in one connection per group",
+    "No production apply; four groups do not qualify new tactics or narrative quality"
+  ]
+}
