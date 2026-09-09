@@ -368,3 +368,5 @@
 09/09/2026 · CLAN-RECOVERY-WINDOW-DEPOSITO-001 · Caricati14file del lettore privato recupero con blob esatti; nessun apply o uso pubblico · deposito concluso.
 
 09/09/2026 · CLAN-RACCORDO-LIVE-001 · Migrazione20260909154236 e smokeClone/Fato PASS,1provider2932token,12superfici protette identiche; P2 dissoluzione narrativa registrato · tranche conclusa, Clan ancora in lavoro.
+
+09/09/2026 · PM-CLAN-IA-PARALLELO-001 · Passa/Fato PASS1provider2601token e12superfici identiche; movimentoPG non offerto/presa assente, verificato catalogo non trasmesso al narratore e ratifica resa mosse · seguito con limiti registrati.

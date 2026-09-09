@@ -1,11 +1,12 @@
 # HANDOFF · CLAN-L1 · collaudo e seguito live
 
 ## TASK-ID
-PM-CLAN-COLLAUDO-LIVE-001 e CLAN-RACCORDO-LIVE-001 · tranche consegnata. Raccordo applicato, smokeClone/Fato PASS, caricamenti verificati; programmaClan ancora in lavoro. Tre casi live complessivi OFF/ON/Clone,1provider2932token. StessaStaffpreservata.
 
-Precedente consegna: PM-CLAN-RIPRESA-001 → CLAN-UTILITY-QUALIFICA-001 e CLAN-UCHIHA-PREP-001 · PM ·09/09/2026
+PM-CLAN-IA-PARALLELO-001 · seguito09/09. RaccordoCLAN-RACCORDO-LIVE-001 già concluso e preservato; nuovo contrattoIA su scope distinto.
 
 ## Scope toccato
+
+Nuovo seguito: STAFF_REMAINING_PLAN.md/RESULT.json, piano parallelo e riepiloghi. Una sola azione di prova; letture pertinenti del narratore/catalogo. Nessun codice o database applicativo modificato.
 Depositi completati09/09:31contenuti del processo più registro/consegna verificati;14file del lettore privato recupero verificati alla testa9edd1d2f15184f2923bbe791c663ba3caacca4d0. Gli inventari e i commit sono in PUBBLICAZIONE e RECOVERY_WINDOW_DEPOSIT.json. Raccordo applicato successivamente nella migrazione20260909154236; Uchiha non applicato.
 
 Ripresa corrente: qualifica locale del raccordo, candidato di acquisizione Uchiha, collaudo diretto Controllo OFF/ON e coordinamento PM. Il processo operativo è stato depositato separatamente su GitHub.
@@ -16,6 +17,8 @@ Pannelli comuni, runtime Marionettisti/Sabaku e catalogo Controllo/Trasporto/Clo
 combat-panel/1, combat-map/2, sabaku-transport-view/2.098 corregge solo geometry_sha256 di17scene dopo aggiunta is_impervious=false.099 riusa il consumer originale per apertura/accettazione e Common durante gli scambi. Candidato100 propone tempi di trasporto e recupero esplicito di un tentativo pre-provider, con nuova chiave e audit; NON applicato. Le protezioni e il report meccanico restano invarianti.
 
 ## Decisioni prese / OPEN
+
+**Ratifica Antonello09/09, resa delle tecniche:** con role abbozzate si valuta la singola mossa, fedeltà ai dati e resa accattivante; qualità complessiva rinviata a role complete. CloneSabbia: sagoma dell’evocatore e corpo di sabbia, che a fine/distruzione certificata perde compattezza e si infrange al suolo. Moltiplicazione: copie illusorie senza solidità, dissoluzione in nuvolette bianche. Il danno da solo non autorizza l’IA a dichiarare la fine. Sono identità narrative, senza cambiare formule, durata o cause server. Descrizione/effetti esistenti forniscono pochi riferimenti essenziali: niente coreografia, frasi obbligatorie o campi aggiuntivi imposti al giocatore. La role guida gesto, postura, ritmo e dettagli compatibili; il catalogo completa le lacune e previene contraddizioni; il motore decide l’esito. Nessun secondo archivio narrativo e nessuna inferenza meccanica dalla prosa.
 **Raccordo e smoke Clone conclusi09/09:** migrazione20260909154236 applicata una sola volta dopo review prodotto/recovery0/0/0 e preflight senza drift o report pendenti. Postflight3corpi/ACL esatti,496migrazioni; nessun flag, Edge, RLS o catalogo modificato. Clone inviato una sola volta dal sito alle15:43:42: creazione nativa, cattura initial_presence fallita secondo il motore, clone terminato/capture_failed e5sabbia rilasciata. Fato5199b592 pubblicato15:44:13 dal percorso ordinario,1provider/2932token/0retry; nuovo scambio b983ef4e, turno testperfunzioni, stessa scena aperta. Chakra simulatoRiuji85→80,PV55,sabbia15/15/impegnata0. Postflight15:45:42 contro15:37:49:2PG/12superfici identiche, inclusi timestamp. Smoke del raccordo PASS; non certifica presa riuscita/liberazione o interoClan. P2 narrativo CLONE-NARRATIVE-END-001: Fato non rende esplicita la dissoluzione; facts mostra capture_failed ma non proietta esplicitamente la fine. Nessuna rigenerazione. Fonte runtime/sabaku/candidato/CLAN_CONTINUATION_LIVE_RESULT.json; screenshot mostrato nella task.
 
 **Collaudo Staff diretto del 09/09, 13:52–13:56 UTC:** sulla stessa scena e4f36e1a, Controllo OFF e ON eseguiti dal sito con ricevute c570d389 e ea0acd11. OFF gratuito, ON costa5chakra soltanto simulati; Clone/Trasporto scompaiono con OFF e tornano con ON. Stato finale di prova: Controllo ON, PV55, chakra85, sabbia15/15 e impegnata0. Postflight13:56:29 contro preflight13:50:03:2PG/12superfici identiche, inclusi timestamp;0provider e0token, nessuna scena creata o chiusa. Prova conservata aperta su mandato. Tre schermate mostrate nella task, nessun file immagine depositato. Clone e attacco non inviati. Flussi assenti nella UI e nella verifica readonly14:01:21; non integrati. Fonte runtime/sabaku/candidato/STAFF_RESUME_PREFLIGHT.json.
@@ -25,6 +28,10 @@ Ratifica diretta Antonello09/09: (1) numeri delle risorse Aburame/Akimichi/Hoki 
 Mandato Antonello08/09: procedere con correzioni ed espansioni notturne, poi altri clan; scelte prodotto effettive al mattino, avanzare gli indipendenti. Stessa prova Staff protetta conRiuji/testperfunzioni aperta fra i blocchi, nessun reset. Utenti rinviati. Flusso offensivoSabaku già ratificato segue questa tranche. Nessuna decisione prodotto richiesta per097–100. Hyuga: distanza/area/bersagli già ratificati; vecchi drain5/10 nel deposito453 sono difetti tecnici da sostituire, non scelte aperte. Aburame: formulaColonia, rigenerazione e LiberazioneA recuperati dai pack; checklist corrette, nessuna nuova ratifica.
 
 ## Prove eseguite e risultato
+
+**Seguito Staff09/09,16:12–16:14UTC:** un solo Passa di testperfunzioni inviato dal sito, Fato b2373138 pubblicato16:13:06 e nuovo scambio7446e1ff/turnoRiuji/context29. Una chiamataLuna,2380input+221output=2601token,zero retry; postflight16:13:57 rispetto16:11:53:2PG/12superfici identiche, inclusi timestamp. Riuji simulatoPV55/chakra75/sabbia15 e0impegnata; ControlloON,TrasportoOFF. Nessuna presa attiva: liberazione non eseguibile. MovimentoPG autonomo assente nelle offerte; T2Trasporto non eseguito, nessun attacco sostitutivo. Stessa scena mantenuta aperta, nessun nuovo apply/deploy. Fonte runtime/sabaku/candidato/STAFF_REMAINING_RESULT.json nel cantiereClan.
+
+**Verifica diretta09/09,16:17–16:18UTC:** nel percorso ordinaryStaff il narratore combat_narratore_ai v23 riceve etichetta tecnica, fatti proiettati, role, luogo e Fato precedenti; non riceve description/danno_effetto del catalogo. Confermati corpi ordinary_context MD5ec6a66b6599cdfb3d80aea6c12c9dd43 e scene_snapshot_v2 MD5542eb2b95627522ee8e0f28507fdf29b, snapshot realeClone e ingressoeditorialeEdge. La schedaClone617484d6 contiene materiale/trappola e cause meccaniche di fine, ma non specifica chiaramente la somiglianza all’evocatore e la perdita di compattezza visiva. Collegamento al catalogo e completamento descrizione sono due lacune distinte; nessuna correzione live applicata. Referto STAFF_REMAINING_RESULT.json nel cantiereClan.
 
 **Checkpoint precedente alla ripresa — consegna per archiviazione task09/09, richiesta da Antonello tramite PM01a08137:** lavoro fermato a punto sicuro; nessun apply, deploy, provider o prova in corso e reviewer completato. Il cantiere/prodotto non è dichiarato chiuso e il goal resta incompleto. Ultimo controllo live12:14:04UTC: stessa Staff e4f36e1a, exchange87ef5749, azioneRiuji, closed_atNULL, values_written=false; nessun Clone inviato. Scena e storico preservati su mandato, nessun reset o cancellazione.
 
@@ -75,7 +82,9 @@ Sabaku preparato e Controllo ON verificato; Trasporto verificato su attivazione/
 
 ## Passaggio richiesto al PM
 
-Raccordo utility rilasciato e smokeClone/Fato PASS. Nel seguito circoscritto completare le mosse Sabaku già presenti: presa/liberazione nei casi reali disponibili e movimento PG autonomo per Trasporto, senza forzare successi o ripetere la campagna del raccordo. Poi integrare i Flussi, senza attendere tutti gli altri clan. Prima del nuovo seguito narrativo correggere il contratto dei fatti di fineClone e verificare la resa scenica sul difetto P2 osservato, senza rigenerare il Fato già pubblicato. Uchiha:13file candidati, inventory pin/permission Common/consumer e qualifica ancora aperti. Stessa Staff mantenuta aperta, nessuna nuova task per l’utente o apertura generale.
+Bozze editoriali CLAN-TESTI-NARRATIVI-001 in runtime/sabaku/candidato/TECHNIQUE_TEXT_PROPOSAL.md: descrizione ed effetto per le due tecniche da leggere ad Antonello, nessuna sostituzione del catalogo prima della valutazione.
+
+Raccordare il movimentoPG autonomo già previsto da REGOLE§4.2: offerta CONTROL nel percorso ordinary, capability e budget server, ledger condiviso e writer spaziale con hookClone; CommonPanel ha già le scelte direzione/distanza. Prima riconciliare i corpi DB correnti, poi candidata/review e gate separati. T2Trasporto e presa/liberazione restano non certificati; non cercare una presa positiva con retry. Il ramoIA integra le fonti catalogo e la ratifica narrativa nel proprio contratto. Dopo le mosseSabaku presenti vengono i Flussi, senza aspettare tutti gli altri clan. StessaStaff aperta, utenti070 rinviati.
 
 ## Inventario della ripresa precedente · riferimento storico
 
