@@ -1,5 +1,5 @@
 # AREA · Pubblicazione — cosa è online, cosa è in coda — scheda viva
-Allineamento09/09/2026 · seguito Staff PASS e contratto narrativo documentale reviewato0/0/0 depositati; testi tecniche revisione004 proposti. Nessun asset del sito o catalogo modificato in questa tranche.
+Allineamento 09/09/2026 · dieci riepiloghi del goal depositati e verificati; movimento e raccordo IA terminali rossi, fondazioni Hyūga consegnate localmente. Nessun nuovo asset, catalogo o runtime pubblicato.
 
 > **Regola dell'area.** `sito_live/` **non è ciò che è pubblicato**: è ciò che è pronto per esserlo. La verità è il file su GitHub (`antonello9311-design/theuntoldstory`, branch `main`, cartella root) e il dominio `https://theuntoldstory.it`. Ogni modifica aggiorna la riga corrente del file con build, byte e SHA; ogni caricamento registra commit, «caricato il» e «verificato il». Le evidenze precedenti restano qualificate per data, senza appendici di rettifica. Prima di patchare una pagina si riconcilia con la copia pubblicata (memoria: [[sito_live_non_e_pubblicato]], [[riconciliare_con_github]]).
 
@@ -73,6 +73,23 @@ Elenco esatto:31contenuti più questo registro, escluso dalla propria SHA. CLAUD
 | `management/tooling/test_task_plan.py` | 11677 | `a397e65bb54a58b7fd5fe39001cb980105e65217e950d7b223a40e835e57f913` |
 
 ## Lavori aperti — in ordine
+
+**Goal Clan e IA, consegna del 09/09 alle 17:31 UTC:** dieci documenti di coordinamento caricati e verificati tramite identità dei blob alla testa `0184886fe39522cc26b459e9b311ce76cf61c17c`; nessun conflitto. Commit selettivi: `31e8a9bfe9e3bb01d8ea5287ee70ac8007e39c7c`, `e1e82eb6f50b7702fc92886639809a47af7b6b47`, `8920bc4c4efc3ae740ecdb98dca4fb7cd7d44733`, `0184886fe39522cc26b459e9b311ce76cf61c17c`. Il goal e la ripresa automatica ogni 10 minuti restano attivi; i due cicli tecnici sono terminali ROSSI, richiesta nominata di un unico ciclo locale aggiuntivo pendente. Nessuna modifica a sito, catalogo, database, Edge, flag o dati di gioco: nessun nuovo controllo del dominio richiesto da questi documenti. I precedenti rilasci mantengono i propri checkpoint.
+
+| Documento di questa consegna | Byte | SHA-256 verificata |
+|---|---:|---|
+| `management/candidati/CLAN-L1_2026-09-01/PIANO_LAVORO.json` | 1839 | `2f891baf83a7bc4cd56eadd965d7c83a5ae775a61c4030448fe7e36b0429833d` |
+| `management/candidati/CLAN-L1_2026-09-01/SCHEDA.md` | 27952 | `9af6204efa067c1bcad185a33f8581bb6d42e49431ee22fc9ff434da554d2b4b` |
+| `management/candidati/CLAN-L1_2026-09-01/HANDOFF.md` | 34108 | `e618eebc8862bab81f1a14429f016f024d4eb434e4e68ab191e5bfdac335c208` |
+| `management/candidati/CLAN-L1_2026-09-01/STORICO.md` | 61140 | `3d3e31177311aeda93e3ae492328475556c4e8f3b96cf42b9d9ee2bef74e8ca2` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/SCHEDA.md` | 24899 | `ec57e65adf464d91e4b5092775fc1cf7482717ffe7a346c3e9f75fa35a7946cd` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/HANDOFF.md` | 6122 | `110aced58115cac2f4f8853adb2d78402948679f418797371a199df09ec5c2f7` |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/STORICO.md` | 27157 | `b1e6e3f76409e84f4c8c14cdc31c977e8bc4dfc5b344aba65ab6c732099b399f` |
+| `dossier/aree/CLAN.md` | 38107 | `39d6bde93061c9b2e4431d0d0e433223025866cc6129166770dd494c321737a6` |
+| `dossier/aree/IA_NARRATIVA.md` | 53117 | `20bbfd25ad1411dc42448885816283d9cc53a96dd1bc21ee89f47072109dbd32` |
+| `dossier/04_LAVORI_APERTI.md` | 7054 | `e59ccd0310c8b20f9ada88c43c9d18e7ab7c0b4ea458fd8a3df9b89a5fa207cf` |
+
+Questo registro viene caricato per ultimo ed è escluso dalla propria impronta. Restano locali e **non pronti al rilascio**: candidata `runtime/sabaku/candidato/PG_MOVEMENT_*` e relativi referti (finale 4/6, review 0/2/0); candidata `NARRATORE-UNIFICATO_2026-09-02/candidato/NARRATIVE_TECH_*` e referti (0/8 qualificati, review 0/1/0). Blocco per qualifica, non per autenticazione. Quattro fondazioni `runtime/hyuga/candidato/HYUGA_COMMON_*` consegnate localmente, fuori dallo scope di questo deposito: costruzione di fonti riuscita, runtime e rilascio non qualificati. Nessuna sorgente SQL rossa caricata come pronta; nessun apply/deploy implicito. I manifesti definitivi nei rispettivi candidati identificano i file conservati.
 
 **Raccordo Clan rilasciato e collaudato09/09:** qualifica locale16SQL/8gruppi/9sottocasi e due review pertinenti0/0/0; recovery installCOMMIT→recoveryCOMMIT verificata in copiaDocker. Migrazione20260909154236 applicata una sola volta, preflight9dipendenze/ACL senza drift e0reportpendenti, postflight3corpi/ACL esatti. SmokeClone/Fato PASS: creazione nativa, cattura fallita e fineClone coerenti col motore, Fato5199b592 pubblicato15:44:13,1provider2932token0retry. Postflight15:45:42 su12superfici/2PG identico alla baseline15:37:49. P2 resa narrativa della dissoluzione esplicita, nessuna rigenerazione. **43file sorgenti/referti/precedenti depositati e verificati byte per byte** in5commit da a305ea82a420779ceeec1a4da663e65c7cf0a2fb a b17621a67e85190f99275772d8842388288c3812. Inventario esatto nel confronto GitHub18f439ef8233fb9ce25c0034e737471b67293ebc...b17621a67e85190f99275772d8842388288c3812; impronte e provenienza nei manifesti CLAN_CONTINUATION_REVIEW_FINAL_MANIFEST/RELEASE_REVIEW_MANIFEST, più LIVE_GATE/LIVE_RESULT/STAFF_RESUME_PREFLIGHT. I19precedenti sono preservati e non riqualificati. Nessun Edge, flag, RLS, catalogo o asset sito modificato. Uchiha13file candidati resta locale e non qualificato: inventorypin/permissionCommon/consumer aperti.
 
