@@ -376,3 +376,7 @@
 09/09/2026 · PM-QA-BUDGET-005-001 · Antonello amplia a5aggregate/5controverifiche cumulative; movimento e IA ripresi dal2/5, gate invariati · regola applicata, qualifica in corso.
 09/09/2026 · QA-PASS02 · IA8/8 e controverifica0/0/0, arresto al verde; movimento4/6 e0/2/0, assegnata aggregata3/5 · nessun rilascio o provider.
 09/09/2026 · RELEASE-PREP · movimento3/5 e IA2/5 qualificati0/0/0; pacchetti concreti e recupero preparati, gate produzione pendenti · nessunapply/deploy/provider.
+
+- 09/09/2026 · PM-RECOVERY-EXTRA-MANDATE-001 · Antonello autorizza ulteriori revisioni mirate al banco dopo quinto007; assegnato008/sesto cumulativo, script invariati e quattro SQL solo dopo controverifica verde. Riletta preparazione Hyūga/Uchiha/Nara, nessun nuovo collaudo. · mandato e stati registrati localmente.
+
+09/09/2026 · PM-PARALLEL-CHECKPOINT-009 · Recovery0095/5 e review0/0/0; contratto PNG congelato, backend/UI e bootstrap Hyūga assegnati in parallelo · Verde locale distinto da rilascio; Riuji escluso.
