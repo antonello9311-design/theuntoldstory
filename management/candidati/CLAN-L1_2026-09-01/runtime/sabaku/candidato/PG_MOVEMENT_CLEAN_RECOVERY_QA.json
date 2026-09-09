@@ -1,0 +1,1844 @@
+{
+  "task": "PG-MOVEMENT-CLEAN-RECOVERY-009",
+  "state": "PASS",
+  "attempt_in_recovery_gate": 7,
+  "previous_terminal_attempts": [
+    "PG-MOVEMENT-RECOVERY-003",
+    "PG-MOVEMENT-RECOVERY-004",
+    "PG-MOVEMENT-CLEAN-RECOVERY-005",
+    "PG-MOVEMENT-CLEAN-RECOVERY-006",
+    "PG-MOVEMENT-CLEAN-RECOVERY-007",
+    "PG-MOVEMENT-CLEAN-RECOVERY-008"
+  ],
+  "started_at": "2026-09-09T19:35:48.984463+00:00",
+  "budget": {
+    "max_submission": 5,
+    "minutes": 12,
+    "provider": 0,
+    "production": 0,
+    "browser": 0
+  },
+  "inputs": {
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_CLEAN_BOOTSTRAP.sql": "9aa7df3dbed3c21866e67c53b463c2f0760439d789504c92a22b53719d8f395d",
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_CLEAN_PLAN.md": "aab3f3e3f35476ae4b0e561def2c65957eca1fa2539331c6696d602355ceb3d0",
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_CLEAN_MANIFEST.json": "482e4ebd29bdd58b92b8ae5b1544d4ec18c08284a758e2295c9b9e54379dbee0",
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_INSTALL.sql": "6fdb99b83f757300d3df99efa07e14adcebb73041909ebad8d5388e13ef63f47",
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_RECOVERY.sql": "52c6fb282a2b5ec37410d078fc5939336151334526091ba3756a23e418264649",
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_BASELINE.json": "8559f73c247da38224c0abc77ae982d62e2579a690a14c7ad9a02ee758d6561d",
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_REVIEW_PASS03.md": "c6e882b1c08dd164d541555d1497485a99da25648972841e47e6b28ec60b6b60",
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_REVIEW_PASS03_MANIFEST.json": "bc93c31ec41042acd5450f018e650079550978c1000c457935c7ea84fabd8a40",
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_RECOVERY_006_REVIEW.md": "06ad0e3d6ed2280ce19deb3ea481842cd5d67e31aabbff80bef34afba33402af",
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_RECOVERY_006_REVIEW_MANIFEST.json": "972f4363e354434ac287db5d2bfe5eac18275031023ab37deddc83fe5b53a5af",
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/_precedenti/pg-movement-clean-recovery-before-attempt04/PG_MOVEMENT_CLEAN_RECOVERY_QA.json": "5f67bdba4dc5c7ac60856fca876eeb7518688494f41af79730e06222457245e8",
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_RECOVERY_007_REVIEW.md": "41456b5381bce485522f7f8786aa120385da620654c46d6fc718dcb501343a5f",
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_RECOVERY_007_REVIEW_MANIFEST.json": "64f1cee5a7a66367bd32dcd2dc49c4ad44992de774b6e735d90b89d7ee9dc913",
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_RECOVERY_008_REVIEW.md": "268ad528a9453c63d9f3466eabfeda6f3a924ffcdbeedc11b2e0e2dfac2ca267",
+    "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/PG_MOVEMENT_RECOVERY_008_REVIEW_MANIFEST.json": "6b11d44a9d09d230678ab774eae4c647bdd24a61dfa096ba43c8fb83563e1871"
+  },
+  "database": "tus_pg_movement_clean_recovery_005",
+  "steps": [
+    {
+      "submission": 1,
+      "phase": "environment_schema_create_grant",
+      "pass": true,
+      "rows": [
+        {
+          "acl": "{supabase_admin=UC/supabase_admin,postgres=UC/supabase_admin}",
+          "owner": "supabase_admin",
+          "phase": "environment_grant_committed",
+          "schema": "combat_panel_private",
+          "database": "tus_pg_movement_clean_recovery_005",
+          "postgres_usage": true,
+          "postgres_create": true,
+          "postgres_superuser": false,
+          "only_authorized_schema_grant": true
+        }
+      ],
+      "error": null
+    },
+    {
+      "submission": 2,
+      "phase": "preflight_exact_existing_clean_database",
+      "pass": true,
+      "rows": [
+        {
+          "legacy_structure_md5": "53ec62cd274b663e0b469bad50805bbe",
+          "explicit_legacy_schemas": [
+            "pg_catalog",
+            "public",
+            "extensions",
+            "auth"
+          ]
+        },
+        {
+          "explicit_schemas": [
+            "pg_catalog"
+          ],
+          "identity_arguments": {
+            "auth.uid()": "",
+            "extensions.uuid_nil()": "",
+            "extensions.armor(bytea)": "bytea",
+            "extensions.dearmor(text)": "text",
+            "extensions.uuid_ns_dns()": "",
+            "extensions.uuid_ns_oid()": "",
+            "extensions.uuid_ns_url()": "",
+            "extensions.gen_salt(text)": "text",
+            "extensions.uuid_ns_x500()": "",
+            "extensions.crypt(text,text)": "text, text",
+            "extensions.digest(text,text)": "text, text",
+            "extensions.gen_random_uuid()": "",
+            "extensions.pgp_key_id(bytea)": "bytea",
+            "extensions.digest(bytea,text)": "bytea, text",
+            "extensions.uuid_generate_v1()": "",
+            "extensions.uuid_generate_v4()": "",
+            "extensions.hmac(text,text,text)": "text, text, text",
+            "extensions.uuid_generate_v1mc()": "",
+            "extensions.gen_salt(text,integer)": "text, integer",
+            "extensions.hmac(bytea,bytea,text)": "bytea, bytea, text",
+            "extensions.pgp_armor_headers(text)": "text, OUT key text, OUT value text",
+            "extensions.decrypt(bytea,bytea,text)": "bytea, bytea, text",
+            "extensions.encrypt(bytea,bytea,text)": "bytea, bytea, text",
+            "extensions.gen_random_bytes(integer)": "integer",
+            "public.combat_panel_commit_v1(jsonb)": "p_command jsonb",
+            "extensions.armor(bytea,text[],text[])": "bytea, text[], text[]",
+            "extensions.pgp_sym_encrypt(text,text)": "text, text",
+            "extensions.pgp_pub_encrypt(text,bytea)": "text, bytea",
+            "extensions.pgp_sym_decrypt(bytea,text)": "bytea, text",
+            "extensions.uuid_generate_v3(uuid,text)": "namespace uuid, name text",
+            "extensions.uuid_generate_v5(uuid,text)": "namespace uuid, name text",
+            "extensions.pgp_pub_decrypt(bytea,bytea)": "bytea, bytea",
+            "mission_internal.nb029h_json_hash(jsonb)": "p_value jsonb",
+            "extensions.pgp_sym_encrypt(text,text,text)": "text, text, text",
+            "clan_sabaku_private.consumer_options(jsonb)": "p jsonb",
+            "combat_panel_private.commit_ordinary(jsonb)": "p_command jsonb",
+            "extensions.pgp_pub_encrypt(text,bytea,text)": "text, bytea, text",
+            "extensions.pgp_sym_decrypt(bytea,text,text)": "bytea, text, text",
+            "extensions.pgp_pub_decrypt(bytea,bytea,text)": "bytea, bytea, text",
+            "extensions.pgp_sym_decrypt_bytea(bytea,text)": "bytea, text",
+            "extensions.pgp_sym_encrypt_bytea(bytea,text)": "bytea, text",
+            "combat_panel_private.owner_turn_context(uuid)": "p_actor uuid",
+            "extensions.decrypt_iv(bytea,bytea,bytea,text)": "bytea, bytea, bytea, text",
+            "extensions.encrypt_iv(bytea,bytea,bytea,text)": "bytea, bytea, bytea, text",
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea)": "bytea, bytea",
+            "extensions.pgp_pub_encrypt_bytea(bytea,bytea)": "bytea, bytea",
+            "combat_spatial.movement_commit(uuid,uuid,uuid)": "p_capability uuid, p_request_key uuid, p_root uuid",
+            "combat_panel_private.movement_budget(uuid,uuid)": "p_owner uuid, p_round uuid",
+            "clan_sabaku_private.commit_master_control(jsonb)": "p_command jsonb",
+            "combat_panel_private.movement_block_reason(uuid)": "p_body uuid",
+            "extensions.pgp_pub_decrypt(bytea,bytea,text,text)": "bytea, bytea, text, text",
+            "extensions.pgp_sym_decrypt_bytea(bytea,text,text)": "bytea, text, text",
+            "extensions.pgp_sym_encrypt_bytea(bytea,text,text)": "bytea, text, text",
+            "combat_spatial.movement_options(uuid,uuid,numeric)": "p_instance uuid, p_actor uuid, p_budget numeric",
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea,text)": "bytea, bytea, text",
+            "extensions.pgp_pub_encrypt_bytea(bytea,bytea,text)": "bytea, bytea, text",
+            "clan_marionettisti_private.movement_remaining(uuid)": "p_owner uuid",
+            "combat_panel_private.ordinary_projection(uuid,uuid)": "p_location uuid, p_actor uuid",
+            "combat_panel_private.movement_explanations(uuid,bigint)": "p_context uuid, p_expected bigint",
+            "combat_panel_private.ordinary_options(uuid,uuid,bigint)": "p_location uuid, p_actor uuid, p_expected bigint",
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea,text,text)": "bytea, bytea, text, text",
+            "combat_panel_private.movement_regions_for_body(uuid,uuid)": "p_instance uuid, p_actor uuid",
+            "combat_panel_private.resolve_selections(uuid,uuid[],jsonb)": "p_offer uuid, p_ids uuid[], p_inputs jsonb",
+            "combat_panel_private.add_choice(uuid,text,jsonb,numeric,text)": "p_group uuid, p_label text, p_payload jsonb, p_distance numeric, p_direction text",
+            "combat_panel_private.create_offer(uuid,bigint,text,text,text,boolean,jsonb)": "p_context uuid, p_expected bigint, p_kind text, p_operation text, p_label text, p_requires_role boolean, p_source jsonb"
+          },
+          "extension_memberships": {
+            "auth.uid()": null,
+            "extensions.uuid_nil()": "uuid-ossp",
+            "extensions.armor(bytea)": "pgcrypto",
+            "extensions.dearmor(text)": "pgcrypto",
+            "extensions.uuid_ns_dns()": "uuid-ossp",
+            "extensions.uuid_ns_oid()": "uuid-ossp",
+            "extensions.uuid_ns_url()": "uuid-ossp",
+            "extensions.gen_salt(text)": "pgcrypto",
+            "extensions.uuid_ns_x500()": "uuid-ossp",
+            "extensions.crypt(text,text)": "pgcrypto",
+            "extensions.digest(text,text)": "pgcrypto",
+            "extensions.gen_random_uuid()": "pgcrypto",
+            "extensions.pgp_key_id(bytea)": "pgcrypto",
+            "extensions.digest(bytea,text)": "pgcrypto",
+            "extensions.uuid_generate_v1()": "uuid-ossp",
+            "extensions.uuid_generate_v4()": "uuid-ossp",
+            "extensions.hmac(text,text,text)": "pgcrypto",
+            "extensions.uuid_generate_v1mc()": "uuid-ossp",
+            "extensions.gen_salt(text,integer)": "pgcrypto",
+            "extensions.hmac(bytea,bytea,text)": "pgcrypto",
+            "extensions.pgp_armor_headers(text)": "pgcrypto",
+            "extensions.decrypt(bytea,bytea,text)": "pgcrypto",
+            "extensions.encrypt(bytea,bytea,text)": "pgcrypto",
+            "extensions.gen_random_bytes(integer)": "pgcrypto",
+            "public.combat_panel_commit_v1(jsonb)": null,
+            "extensions.armor(bytea,text[],text[])": "pgcrypto",
+            "extensions.pgp_sym_encrypt(text,text)": "pgcrypto",
+            "extensions.pgp_pub_encrypt(text,bytea)": "pgcrypto",
+            "extensions.pgp_sym_decrypt(bytea,text)": "pgcrypto",
+            "extensions.uuid_generate_v3(uuid,text)": "uuid-ossp",
+            "extensions.uuid_generate_v5(uuid,text)": "uuid-ossp",
+            "extensions.pgp_pub_decrypt(bytea,bytea)": "pgcrypto",
+            "mission_internal.nb029h_json_hash(jsonb)": null,
+            "extensions.pgp_sym_encrypt(text,text,text)": "pgcrypto",
+            "clan_sabaku_private.consumer_options(jsonb)": null,
+            "combat_panel_private.commit_ordinary(jsonb)": null,
+            "extensions.pgp_pub_encrypt(text,bytea,text)": "pgcrypto",
+            "extensions.pgp_sym_decrypt(bytea,text,text)": "pgcrypto",
+            "extensions.pgp_pub_decrypt(bytea,bytea,text)": "pgcrypto",
+            "extensions.pgp_sym_decrypt_bytea(bytea,text)": "pgcrypto",
+            "extensions.pgp_sym_encrypt_bytea(bytea,text)": "pgcrypto",
+            "combat_panel_private.owner_turn_context(uuid)": null,
+            "extensions.decrypt_iv(bytea,bytea,bytea,text)": "pgcrypto",
+            "extensions.encrypt_iv(bytea,bytea,bytea,text)": "pgcrypto",
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea)": "pgcrypto",
+            "extensions.pgp_pub_encrypt_bytea(bytea,bytea)": "pgcrypto",
+            "combat_spatial.movement_commit(uuid,uuid,uuid)": null,
+            "combat_panel_private.movement_budget(uuid,uuid)": null,
+            "clan_sabaku_private.commit_master_control(jsonb)": null,
+            "combat_panel_private.movement_block_reason(uuid)": null,
+            "extensions.pgp_pub_decrypt(bytea,bytea,text,text)": "pgcrypto",
+            "extensions.pgp_sym_decrypt_bytea(bytea,text,text)": "pgcrypto",
+            "extensions.pgp_sym_encrypt_bytea(bytea,text,text)": "pgcrypto",
+            "combat_spatial.movement_options(uuid,uuid,numeric)": null,
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea,text)": "pgcrypto",
+            "extensions.pgp_pub_encrypt_bytea(bytea,bytea,text)": "pgcrypto",
+            "clan_marionettisti_private.movement_remaining(uuid)": null,
+            "combat_panel_private.ordinary_projection(uuid,uuid)": null,
+            "combat_panel_private.movement_explanations(uuid,bigint)": null,
+            "combat_panel_private.ordinary_options(uuid,uuid,bigint)": null,
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea,text,text)": "pgcrypto",
+            "combat_panel_private.movement_regions_for_body(uuid,uuid)": null,
+            "combat_panel_private.resolve_selections(uuid,uuid[],jsonb)": null,
+            "combat_panel_private.add_choice(uuid,text,jsonb,numeric,text)": null,
+            "combat_panel_private.create_offer(uuid,bigint,text,text,text,boolean,jsonb)": null
+          }
+        },
+        {
+          "at": "2026-09-09T19:35:49.299365+00:00",
+          "tables": 54,
+          "database": "tus_pg_movement_clean_recovery_005",
+          "functions": {
+            "auth.uid()": {
+              "acl": "{=X/supabase_auth_admin,supabase_auth_admin=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",
+              "md5": "ea3b41bf29e2ad573067939329aa088e",
+              "owner": "supabase_auth_admin"
+            },
+            "extensions.uuid_nil()": {
+              "acl": null,
+              "md5": "d5bf098ffa5f31313539aed0d5b80b18",
+              "owner": "supabase_admin"
+            },
+            "extensions.armor(bytea)": {
+              "acl": null,
+              "md5": "8b26fd3b767373f628d8296b22c58569",
+              "owner": "supabase_admin"
+            },
+            "extensions.dearmor(text)": {
+              "acl": null,
+              "md5": "8e4be29a02a595ea10e204c070e18b75",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_dns()": {
+              "acl": null,
+              "md5": "b1fb4043e40048f831decdb42d7c7e91",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_oid()": {
+              "acl": null,
+              "md5": "59d0fa7c59e1f7aa25dd2d1c7cb70090",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_url()": {
+              "acl": null,
+              "md5": "dffa53f4caafe3259e10923916be5802",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_salt(text)": {
+              "acl": null,
+              "md5": "0ab5bda2fff1fa217935db57c0fe0738",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_x500()": {
+              "acl": null,
+              "md5": "c6106df49914220b7eba8704d9770c25",
+              "owner": "supabase_admin"
+            },
+            "extensions.crypt(text,text)": {
+              "acl": null,
+              "md5": "f92effa5862ce095a56289da31c7f2f2",
+              "owner": "supabase_admin"
+            },
+            "extensions.digest(text,text)": {
+              "acl": null,
+              "md5": "95de9cf8798b911a1fe38c27bdb570de",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_random_uuid()": {
+              "acl": null,
+              "md5": "6504babb8130d35e393998bd2856ec61",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_key_id(bytea)": {
+              "acl": null,
+              "md5": "622562b45d5a075400d293c5a48c18e9",
+              "owner": "supabase_admin"
+            },
+            "extensions.digest(bytea,text)": {
+              "acl": null,
+              "md5": "85b88685f74a398b1ff164ad33eeaaca",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v1()": {
+              "acl": null,
+              "md5": "f2a7d7708f4ce5e8429ee5e57fa19842",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v4()": {
+              "acl": null,
+              "md5": "a3045e99488d2d755e53c33e5b0fb5d1",
+              "owner": "supabase_admin"
+            },
+            "extensions.hmac(text,text,text)": {
+              "acl": null,
+              "md5": "361d12259351f9df05ddf92c6bfd4224",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v1mc()": {
+              "acl": null,
+              "md5": "c404a846ca36b0d8f46d268dbc4be0c3",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_salt(text,integer)": {
+              "acl": null,
+              "md5": "60f792dd2967e22964c0ffcec9d34342",
+              "owner": "supabase_admin"
+            },
+            "extensions.hmac(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "791ceef3f202e631f7cc11017fbf00de",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_armor_headers(text)": {
+              "acl": null,
+              "md5": "a018f2bd7bcaae86efe1a9e7bd9a383b",
+              "owner": "supabase_admin"
+            },
+            "extensions.decrypt(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "18e4fb227e3460385309c2c880ce6346",
+              "owner": "supabase_admin"
+            },
+            "extensions.encrypt(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "bd196881d3cc43555e5b197d6050cc68",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_random_bytes(integer)": {
+              "acl": null,
+              "md5": "a7569a34c9be929beb24ef5670d42636",
+              "owner": "supabase_admin"
+            },
+            "public.combat_panel_commit_v1(jsonb)": {
+              "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+              "md5": "cff710fa9c152019ef520c0bc701754b",
+              "owner": "postgres"
+            },
+            "extensions.armor(bytea,text[],text[])": {
+              "acl": null,
+              "md5": "f8332991aecc898370b20b7d68b3f08c",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_encrypt(text,text)": {
+              "acl": null,
+              "md5": "89a109c79b6e5729b983220d745175c8",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_encrypt(text,bytea)": {
+              "acl": null,
+              "md5": "ef3c54e0a325783028c30a31d604253d",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt(bytea,text)": {
+              "acl": null,
+              "md5": "bd9033545bf69e27880836cc8611fb46",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v3(uuid,text)": {
+              "acl": null,
+              "md5": "7992559096f41242be92bb50ac5fca6e",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v5(uuid,text)": {
+              "acl": null,
+              "md5": "eac48925db03b4f5baa93a49e4e5c994",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_decrypt(bytea,bytea)": {
+              "acl": null,
+              "md5": "1d596379caf583a571a96539f01eb16b",
+              "owner": "supabase_admin"
+            },
+            "mission_internal.nb029h_json_hash(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "c902f2126ea87eb282506bdc4f5915d7",
+              "owner": "postgres"
+            },
+            "extensions.pgp_sym_encrypt(text,text,text)": {
+              "acl": null,
+              "md5": "51bcff8be418bd39d9a0e71cbaf6e42a",
+              "owner": "supabase_admin"
+            },
+            "clan_sabaku_private.consumer_options(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "2133d8387e8f9264ca11522c3b2ebc61",
+              "owner": "postgres"
+            },
+            "combat_panel_private.commit_ordinary(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "bd923a59094d9cb4c544fb1506d6d0af",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_encrypt(text,bytea,text)": {
+              "acl": null,
+              "md5": "bb91bfabebc1894a30d0f4fae6dccffe",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt(bytea,text,text)": {
+              "acl": null,
+              "md5": "46b4eb4a8190cf3f5a7285f992ba7d87",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_decrypt(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "85340917f0f739c0b8d6a6673e5012c3",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt_bytea(bytea,text)": {
+              "acl": null,
+              "md5": "365cce063e993d3823812d7ed2eed4bd",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_encrypt_bytea(bytea,text)": {
+              "acl": null,
+              "md5": "43fc83685de8a47784c8891e0c7eaf40",
+              "owner": "supabase_admin"
+            },
+            "combat_panel_private.owner_turn_context(uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "56291b63933136f509c818dd58c4bf10",
+              "owner": "postgres"
+            },
+            "extensions.decrypt_iv(bytea,bytea,bytea,text)": {
+              "acl": null,
+              "md5": "6378f3a8f61df6ae8edd0837fd8cb4d7",
+              "owner": "supabase_admin"
+            },
+            "extensions.encrypt_iv(bytea,bytea,bytea,text)": {
+              "acl": null,
+              "md5": "524e5bac5ae4a00c5a3ec1d72b98798f",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea)": {
+              "acl": null,
+              "md5": "9b91d112df744c646565d7e80ec151ea",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_encrypt_bytea(bytea,bytea)": {
+              "acl": null,
+              "md5": "5ef5954cdbe5741e2c1906898a6057c7",
+              "owner": "supabase_admin"
+            },
+            "combat_spatial.movement_commit(uuid,uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "0df0095cc3a9c8010cd2a17c6fed1501",
+              "owner": "postgres"
+            },
+            "combat_panel_private.movement_budget(uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "9d28b603b9bfe11aaa2653554f4f0c4a",
+              "owner": "postgres"
+            },
+            "clan_sabaku_private.commit_master_control(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "ea3c03d0884f7cd07e5d53621647f36a",
+              "owner": "postgres"
+            },
+            "combat_panel_private.movement_block_reason(uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "67e186509cc0dc04022e355ce23a10b9",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_decrypt(bytea,bytea,text,text)": {
+              "acl": null,
+              "md5": "fc84f59fd544cf2c70a3e65dbfdff1e7",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt_bytea(bytea,text,text)": {
+              "acl": null,
+              "md5": "247ac244802a2c8c9db4747d2ae0f515",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_encrypt_bytea(bytea,text,text)": {
+              "acl": null,
+              "md5": "f7f923af916f7b9c973ff303af271329",
+              "owner": "supabase_admin"
+            },
+            "combat_spatial.movement_options(uuid,uuid,numeric)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "cea9561628547a87b83cbda9e69822c3",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "00666f7e5e717d5ef4c7035a7858b380",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_encrypt_bytea(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "3062cd7c3d17815975f8720cbeabf0b6",
+              "owner": "supabase_admin"
+            },
+            "clan_marionettisti_private.movement_remaining(uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "a97a4b77a45079433b0118091a1e4828",
+              "owner": "postgres"
+            },
+            "combat_panel_private.ordinary_projection(uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "b893ec79aa42ff74116f4e0a7622850c",
+              "owner": "postgres"
+            },
+            "combat_panel_private.movement_explanations(uuid,bigint)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "4b099087c088ee48f0c344a68fcef38c",
+              "owner": "postgres"
+            },
+            "combat_panel_private.ordinary_options(uuid,uuid,bigint)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "752fc2aaf2a749b730ca50fcf8695cb9",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea,text,text)": {
+              "acl": null,
+              "md5": "07ee5afa371340ba85ae1d93e9dc8ad1",
+              "owner": "supabase_admin"
+            },
+            "combat_panel_private.movement_regions_for_body(uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "ead340b84ff231af3173cb28db302871",
+              "owner": "postgres"
+            },
+            "combat_panel_private.resolve_selections(uuid,uuid[],jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "736a5970c981e20260bf51dc9dff0bc2",
+              "owner": "postgres"
+            },
+            "combat_panel_private.add_choice(uuid,text,jsonb,numeric,text)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "d46463fcb4c38023ecac85ff1879889e",
+              "owner": "postgres"
+            },
+            "combat_panel_private.create_offer(uuid,bigint,text,text,text,boolean,jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "9dfe2da0b292de6370df2020c2166fe6",
+              "owner": "postgres"
+            }
+          },
+          "structure_md5": "f623a387e9fccc2a127eda5069181a3d",
+          "all_tables_zero_rows": true
+        }
+      ],
+      "error": null
+    },
+    {
+      "submission": 3,
+      "phase": "install_committed",
+      "pass": true,
+      "rows": [
+        {
+          "at": "2026-09-09T19:35:49.3976+00:00",
+          "tables": 54,
+          "database": "tus_pg_movement_clean_recovery_005",
+          "functions": {
+            "auth.uid()": {
+              "acl": "{=X/supabase_auth_admin,supabase_auth_admin=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",
+              "md5": "ea3b41bf29e2ad573067939329aa088e",
+              "owner": "supabase_auth_admin"
+            },
+            "extensions.uuid_nil()": {
+              "acl": null,
+              "md5": "d5bf098ffa5f31313539aed0d5b80b18",
+              "owner": "supabase_admin"
+            },
+            "extensions.armor(bytea)": {
+              "acl": null,
+              "md5": "8b26fd3b767373f628d8296b22c58569",
+              "owner": "supabase_admin"
+            },
+            "extensions.dearmor(text)": {
+              "acl": null,
+              "md5": "8e4be29a02a595ea10e204c070e18b75",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_dns()": {
+              "acl": null,
+              "md5": "b1fb4043e40048f831decdb42d7c7e91",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_oid()": {
+              "acl": null,
+              "md5": "59d0fa7c59e1f7aa25dd2d1c7cb70090",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_url()": {
+              "acl": null,
+              "md5": "dffa53f4caafe3259e10923916be5802",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_salt(text)": {
+              "acl": null,
+              "md5": "0ab5bda2fff1fa217935db57c0fe0738",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_x500()": {
+              "acl": null,
+              "md5": "c6106df49914220b7eba8704d9770c25",
+              "owner": "supabase_admin"
+            },
+            "extensions.crypt(text,text)": {
+              "acl": null,
+              "md5": "f92effa5862ce095a56289da31c7f2f2",
+              "owner": "supabase_admin"
+            },
+            "extensions.digest(text,text)": {
+              "acl": null,
+              "md5": "95de9cf8798b911a1fe38c27bdb570de",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_random_uuid()": {
+              "acl": null,
+              "md5": "6504babb8130d35e393998bd2856ec61",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_key_id(bytea)": {
+              "acl": null,
+              "md5": "622562b45d5a075400d293c5a48c18e9",
+              "owner": "supabase_admin"
+            },
+            "extensions.digest(bytea,text)": {
+              "acl": null,
+              "md5": "85b88685f74a398b1ff164ad33eeaaca",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v1()": {
+              "acl": null,
+              "md5": "f2a7d7708f4ce5e8429ee5e57fa19842",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v4()": {
+              "acl": null,
+              "md5": "a3045e99488d2d755e53c33e5b0fb5d1",
+              "owner": "supabase_admin"
+            },
+            "extensions.hmac(text,text,text)": {
+              "acl": null,
+              "md5": "361d12259351f9df05ddf92c6bfd4224",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v1mc()": {
+              "acl": null,
+              "md5": "c404a846ca36b0d8f46d268dbc4be0c3",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_salt(text,integer)": {
+              "acl": null,
+              "md5": "60f792dd2967e22964c0ffcec9d34342",
+              "owner": "supabase_admin"
+            },
+            "extensions.hmac(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "791ceef3f202e631f7cc11017fbf00de",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_armor_headers(text)": {
+              "acl": null,
+              "md5": "a018f2bd7bcaae86efe1a9e7bd9a383b",
+              "owner": "supabase_admin"
+            },
+            "extensions.decrypt(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "18e4fb227e3460385309c2c880ce6346",
+              "owner": "supabase_admin"
+            },
+            "extensions.encrypt(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "bd196881d3cc43555e5b197d6050cc68",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_random_bytes(integer)": {
+              "acl": null,
+              "md5": "a7569a34c9be929beb24ef5670d42636",
+              "owner": "supabase_admin"
+            },
+            "public.combat_panel_commit_v1(jsonb)": {
+              "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+              "md5": "84860632d828931cea773b83c583548e",
+              "owner": "postgres"
+            },
+            "extensions.armor(bytea,text[],text[])": {
+              "acl": null,
+              "md5": "f8332991aecc898370b20b7d68b3f08c",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_encrypt(text,text)": {
+              "acl": null,
+              "md5": "89a109c79b6e5729b983220d745175c8",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_encrypt(text,bytea)": {
+              "acl": null,
+              "md5": "ef3c54e0a325783028c30a31d604253d",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt(bytea,text)": {
+              "acl": null,
+              "md5": "bd9033545bf69e27880836cc8611fb46",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v3(uuid,text)": {
+              "acl": null,
+              "md5": "7992559096f41242be92bb50ac5fca6e",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v5(uuid,text)": {
+              "acl": null,
+              "md5": "eac48925db03b4f5baa93a49e4e5c994",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_decrypt(bytea,bytea)": {
+              "acl": null,
+              "md5": "1d596379caf583a571a96539f01eb16b",
+              "owner": "supabase_admin"
+            },
+            "mission_internal.nb029h_json_hash(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "c902f2126ea87eb282506bdc4f5915d7",
+              "owner": "postgres"
+            },
+            "extensions.pgp_sym_encrypt(text,text,text)": {
+              "acl": null,
+              "md5": "51bcff8be418bd39d9a0e71cbaf6e42a",
+              "owner": "supabase_admin"
+            },
+            "clan_sabaku_private.consumer_options(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "2133d8387e8f9264ca11522c3b2ebc61",
+              "owner": "postgres"
+            },
+            "combat_panel_private.commit_ordinary(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "bd923a59094d9cb4c544fb1506d6d0af",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_encrypt(text,bytea,text)": {
+              "acl": null,
+              "md5": "bb91bfabebc1894a30d0f4fae6dccffe",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt(bytea,text,text)": {
+              "acl": null,
+              "md5": "46b4eb4a8190cf3f5a7285f992ba7d87",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_decrypt(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "85340917f0f739c0b8d6a6673e5012c3",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt_bytea(bytea,text)": {
+              "acl": null,
+              "md5": "365cce063e993d3823812d7ed2eed4bd",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_encrypt_bytea(bytea,text)": {
+              "acl": null,
+              "md5": "43fc83685de8a47784c8891e0c7eaf40",
+              "owner": "supabase_admin"
+            },
+            "combat_panel_private.owner_turn_context(uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "56291b63933136f509c818dd58c4bf10",
+              "owner": "postgres"
+            },
+            "extensions.decrypt_iv(bytea,bytea,bytea,text)": {
+              "acl": null,
+              "md5": "6378f3a8f61df6ae8edd0837fd8cb4d7",
+              "owner": "supabase_admin"
+            },
+            "extensions.encrypt_iv(bytea,bytea,bytea,text)": {
+              "acl": null,
+              "md5": "524e5bac5ae4a00c5a3ec1d72b98798f",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea)": {
+              "acl": null,
+              "md5": "9b91d112df744c646565d7e80ec151ea",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_encrypt_bytea(bytea,bytea)": {
+              "acl": null,
+              "md5": "5ef5954cdbe5741e2c1906898a6057c7",
+              "owner": "supabase_admin"
+            },
+            "combat_panel_private.commit_pg_movement(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "737d8d43958cbe5be62d518eb6e1c67a",
+              "owner": "postgres"
+            },
+            "combat_spatial.movement_commit(uuid,uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "0df0095cc3a9c8010cd2a17c6fed1501",
+              "owner": "postgres"
+            },
+            "combat_panel_private.movement_budget(uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "9d28b603b9bfe11aaa2653554f4f0c4a",
+              "owner": "postgres"
+            },
+            "clan_sabaku_private.commit_master_control(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "ea3c03d0884f7cd07e5d53621647f36a",
+              "owner": "postgres"
+            },
+            "combat_panel_private.movement_block_reason(uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "67e186509cc0dc04022e355ce23a10b9",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_decrypt(bytea,bytea,text,text)": {
+              "acl": null,
+              "md5": "fc84f59fd544cf2c70a3e65dbfdff1e7",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt_bytea(bytea,text,text)": {
+              "acl": null,
+              "md5": "247ac244802a2c8c9db4747d2ae0f515",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_encrypt_bytea(bytea,text,text)": {
+              "acl": null,
+              "md5": "f7f923af916f7b9c973ff303af271329",
+              "owner": "supabase_admin"
+            },
+            "combat_spatial.movement_options(uuid,uuid,numeric)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "cea9561628547a87b83cbda9e69822c3",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "00666f7e5e717d5ef4c7035a7858b380",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_encrypt_bytea(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "3062cd7c3d17815975f8720cbeabf0b6",
+              "owner": "supabase_admin"
+            },
+            "clan_marionettisti_private.movement_remaining(uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "a97a4b77a45079433b0118091a1e4828",
+              "owner": "postgres"
+            },
+            "combat_panel_private.ordinary_projection(uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "b893ec79aa42ff74116f4e0a7622850c",
+              "owner": "postgres"
+            },
+            "combat_panel_private.pg_movement_offers(uuid,bigint)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "d6a6d6e09949d59cdc7a9ba90f9bf703",
+              "owner": "postgres"
+            },
+            "combat_panel_private.movement_explanations(uuid,bigint)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "4b099087c088ee48f0c344a68fcef38c",
+              "owner": "postgres"
+            },
+            "combat_panel_private.ordinary_options(uuid,uuid,bigint)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "a0258da001e61048b0adc2ba724a482a",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea,text,text)": {
+              "acl": null,
+              "md5": "07ee5afa371340ba85ae1d93e9dc8ad1",
+              "owner": "supabase_admin"
+            },
+            "combat_panel_private.movement_regions_for_body(uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "ead340b84ff231af3173cb28db302871",
+              "owner": "postgres"
+            },
+            "combat_panel_private.resolve_selections(uuid,uuid[],jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "736a5970c981e20260bf51dc9dff0bc2",
+              "owner": "postgres"
+            },
+            "combat_panel_private.add_choice(uuid,text,jsonb,numeric,text)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "d46463fcb4c38023ecac85ff1879889e",
+              "owner": "postgres"
+            },
+            "combat_panel_private.create_offer(uuid,bigint,text,text,text,boolean,jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "9dfe2da0b292de6370df2020c2166fe6",
+              "owner": "postgres"
+            }
+          },
+          "structure_md5": "f623a387e9fccc2a127eda5069181a3d",
+          "all_tables_zero_rows": true
+        }
+      ],
+      "error": null
+    },
+    {
+      "submission": 4,
+      "phase": "recovery_committed",
+      "pass": true,
+      "rows": [
+        {
+          "at": "2026-09-09T19:35:49.498283+00:00",
+          "tables": 54,
+          "database": "tus_pg_movement_clean_recovery_005",
+          "functions": {
+            "auth.uid()": {
+              "acl": "{=X/supabase_auth_admin,supabase_auth_admin=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",
+              "md5": "ea3b41bf29e2ad573067939329aa088e",
+              "owner": "supabase_auth_admin"
+            },
+            "extensions.uuid_nil()": {
+              "acl": null,
+              "md5": "d5bf098ffa5f31313539aed0d5b80b18",
+              "owner": "supabase_admin"
+            },
+            "extensions.armor(bytea)": {
+              "acl": null,
+              "md5": "8b26fd3b767373f628d8296b22c58569",
+              "owner": "supabase_admin"
+            },
+            "extensions.dearmor(text)": {
+              "acl": null,
+              "md5": "8e4be29a02a595ea10e204c070e18b75",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_dns()": {
+              "acl": null,
+              "md5": "b1fb4043e40048f831decdb42d7c7e91",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_oid()": {
+              "acl": null,
+              "md5": "59d0fa7c59e1f7aa25dd2d1c7cb70090",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_url()": {
+              "acl": null,
+              "md5": "dffa53f4caafe3259e10923916be5802",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_salt(text)": {
+              "acl": null,
+              "md5": "0ab5bda2fff1fa217935db57c0fe0738",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_x500()": {
+              "acl": null,
+              "md5": "c6106df49914220b7eba8704d9770c25",
+              "owner": "supabase_admin"
+            },
+            "extensions.crypt(text,text)": {
+              "acl": null,
+              "md5": "f92effa5862ce095a56289da31c7f2f2",
+              "owner": "supabase_admin"
+            },
+            "extensions.digest(text,text)": {
+              "acl": null,
+              "md5": "95de9cf8798b911a1fe38c27bdb570de",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_random_uuid()": {
+              "acl": null,
+              "md5": "6504babb8130d35e393998bd2856ec61",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_key_id(bytea)": {
+              "acl": null,
+              "md5": "622562b45d5a075400d293c5a48c18e9",
+              "owner": "supabase_admin"
+            },
+            "extensions.digest(bytea,text)": {
+              "acl": null,
+              "md5": "85b88685f74a398b1ff164ad33eeaaca",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v1()": {
+              "acl": null,
+              "md5": "f2a7d7708f4ce5e8429ee5e57fa19842",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v4()": {
+              "acl": null,
+              "md5": "a3045e99488d2d755e53c33e5b0fb5d1",
+              "owner": "supabase_admin"
+            },
+            "extensions.hmac(text,text,text)": {
+              "acl": null,
+              "md5": "361d12259351f9df05ddf92c6bfd4224",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v1mc()": {
+              "acl": null,
+              "md5": "c404a846ca36b0d8f46d268dbc4be0c3",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_salt(text,integer)": {
+              "acl": null,
+              "md5": "60f792dd2967e22964c0ffcec9d34342",
+              "owner": "supabase_admin"
+            },
+            "extensions.hmac(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "791ceef3f202e631f7cc11017fbf00de",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_armor_headers(text)": {
+              "acl": null,
+              "md5": "a018f2bd7bcaae86efe1a9e7bd9a383b",
+              "owner": "supabase_admin"
+            },
+            "extensions.decrypt(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "18e4fb227e3460385309c2c880ce6346",
+              "owner": "supabase_admin"
+            },
+            "extensions.encrypt(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "bd196881d3cc43555e5b197d6050cc68",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_random_bytes(integer)": {
+              "acl": null,
+              "md5": "a7569a34c9be929beb24ef5670d42636",
+              "owner": "supabase_admin"
+            },
+            "public.combat_panel_commit_v1(jsonb)": {
+              "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+              "md5": "cff710fa9c152019ef520c0bc701754b",
+              "owner": "postgres"
+            },
+            "extensions.armor(bytea,text[],text[])": {
+              "acl": null,
+              "md5": "f8332991aecc898370b20b7d68b3f08c",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_encrypt(text,text)": {
+              "acl": null,
+              "md5": "89a109c79b6e5729b983220d745175c8",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_encrypt(text,bytea)": {
+              "acl": null,
+              "md5": "ef3c54e0a325783028c30a31d604253d",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt(bytea,text)": {
+              "acl": null,
+              "md5": "bd9033545bf69e27880836cc8611fb46",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v3(uuid,text)": {
+              "acl": null,
+              "md5": "7992559096f41242be92bb50ac5fca6e",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v5(uuid,text)": {
+              "acl": null,
+              "md5": "eac48925db03b4f5baa93a49e4e5c994",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_decrypt(bytea,bytea)": {
+              "acl": null,
+              "md5": "1d596379caf583a571a96539f01eb16b",
+              "owner": "supabase_admin"
+            },
+            "mission_internal.nb029h_json_hash(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "c902f2126ea87eb282506bdc4f5915d7",
+              "owner": "postgres"
+            },
+            "extensions.pgp_sym_encrypt(text,text,text)": {
+              "acl": null,
+              "md5": "51bcff8be418bd39d9a0e71cbaf6e42a",
+              "owner": "supabase_admin"
+            },
+            "clan_sabaku_private.consumer_options(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "2133d8387e8f9264ca11522c3b2ebc61",
+              "owner": "postgres"
+            },
+            "combat_panel_private.commit_ordinary(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "bd923a59094d9cb4c544fb1506d6d0af",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_encrypt(text,bytea,text)": {
+              "acl": null,
+              "md5": "bb91bfabebc1894a30d0f4fae6dccffe",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt(bytea,text,text)": {
+              "acl": null,
+              "md5": "46b4eb4a8190cf3f5a7285f992ba7d87",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_decrypt(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "85340917f0f739c0b8d6a6673e5012c3",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt_bytea(bytea,text)": {
+              "acl": null,
+              "md5": "365cce063e993d3823812d7ed2eed4bd",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_encrypt_bytea(bytea,text)": {
+              "acl": null,
+              "md5": "43fc83685de8a47784c8891e0c7eaf40",
+              "owner": "supabase_admin"
+            },
+            "combat_panel_private.owner_turn_context(uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "56291b63933136f509c818dd58c4bf10",
+              "owner": "postgres"
+            },
+            "extensions.decrypt_iv(bytea,bytea,bytea,text)": {
+              "acl": null,
+              "md5": "6378f3a8f61df6ae8edd0837fd8cb4d7",
+              "owner": "supabase_admin"
+            },
+            "extensions.encrypt_iv(bytea,bytea,bytea,text)": {
+              "acl": null,
+              "md5": "524e5bac5ae4a00c5a3ec1d72b98798f",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea)": {
+              "acl": null,
+              "md5": "9b91d112df744c646565d7e80ec151ea",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_encrypt_bytea(bytea,bytea)": {
+              "acl": null,
+              "md5": "5ef5954cdbe5741e2c1906898a6057c7",
+              "owner": "supabase_admin"
+            },
+            "combat_panel_private.commit_pg_movement(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "21cc25b8706294bdcd4c371b5ce49727",
+              "owner": "postgres"
+            },
+            "combat_spatial.movement_commit(uuid,uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "0df0095cc3a9c8010cd2a17c6fed1501",
+              "owner": "postgres"
+            },
+            "combat_panel_private.movement_budget(uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "9d28b603b9bfe11aaa2653554f4f0c4a",
+              "owner": "postgres"
+            },
+            "clan_sabaku_private.commit_master_control(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "ea3c03d0884f7cd07e5d53621647f36a",
+              "owner": "postgres"
+            },
+            "combat_panel_private.movement_block_reason(uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "67e186509cc0dc04022e355ce23a10b9",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_decrypt(bytea,bytea,text,text)": {
+              "acl": null,
+              "md5": "fc84f59fd544cf2c70a3e65dbfdff1e7",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt_bytea(bytea,text,text)": {
+              "acl": null,
+              "md5": "247ac244802a2c8c9db4747d2ae0f515",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_encrypt_bytea(bytea,text,text)": {
+              "acl": null,
+              "md5": "f7f923af916f7b9c973ff303af271329",
+              "owner": "supabase_admin"
+            },
+            "combat_spatial.movement_options(uuid,uuid,numeric)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "cea9561628547a87b83cbda9e69822c3",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "00666f7e5e717d5ef4c7035a7858b380",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_encrypt_bytea(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "3062cd7c3d17815975f8720cbeabf0b6",
+              "owner": "supabase_admin"
+            },
+            "clan_marionettisti_private.movement_remaining(uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "a97a4b77a45079433b0118091a1e4828",
+              "owner": "postgres"
+            },
+            "combat_panel_private.ordinary_projection(uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "b893ec79aa42ff74116f4e0a7622850c",
+              "owner": "postgres"
+            },
+            "combat_panel_private.pg_movement_offers(uuid,bigint)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "7b423a0dccf83c1bb72fca393bb39867",
+              "owner": "postgres"
+            },
+            "combat_panel_private.movement_explanations(uuid,bigint)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "4b099087c088ee48f0c344a68fcef38c",
+              "owner": "postgres"
+            },
+            "combat_panel_private.ordinary_options(uuid,uuid,bigint)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "752fc2aaf2a749b730ca50fcf8695cb9",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea,text,text)": {
+              "acl": null,
+              "md5": "07ee5afa371340ba85ae1d93e9dc8ad1",
+              "owner": "supabase_admin"
+            },
+            "combat_panel_private.movement_regions_for_body(uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "ead340b84ff231af3173cb28db302871",
+              "owner": "postgres"
+            },
+            "combat_panel_private.resolve_selections(uuid,uuid[],jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "736a5970c981e20260bf51dc9dff0bc2",
+              "owner": "postgres"
+            },
+            "combat_panel_private.add_choice(uuid,text,jsonb,numeric,text)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "d46463fcb4c38023ecac85ff1879889e",
+              "owner": "postgres"
+            },
+            "combat_panel_private.create_offer(uuid,bigint,text,text,text,boolean,jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "9dfe2da0b292de6370df2020c2166fe6",
+              "owner": "postgres"
+            }
+          },
+          "structure_md5": "f623a387e9fccc2a127eda5069181a3d",
+          "all_tables_zero_rows": true
+        }
+      ],
+      "error": null
+    },
+    {
+      "submission": 5,
+      "phase": "postflight_inert_helpers_zero_rows",
+      "pass": true,
+      "rows": [
+        {
+          "helpers_inert": true
+        },
+        {
+          "at": "2026-09-09T19:35:49.597537+00:00",
+          "tables": 54,
+          "database": "tus_pg_movement_clean_recovery_005",
+          "functions": {
+            "auth.uid()": {
+              "acl": "{=X/supabase_auth_admin,supabase_auth_admin=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",
+              "md5": "ea3b41bf29e2ad573067939329aa088e",
+              "owner": "supabase_auth_admin"
+            },
+            "extensions.uuid_nil()": {
+              "acl": null,
+              "md5": "d5bf098ffa5f31313539aed0d5b80b18",
+              "owner": "supabase_admin"
+            },
+            "extensions.armor(bytea)": {
+              "acl": null,
+              "md5": "8b26fd3b767373f628d8296b22c58569",
+              "owner": "supabase_admin"
+            },
+            "extensions.dearmor(text)": {
+              "acl": null,
+              "md5": "8e4be29a02a595ea10e204c070e18b75",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_dns()": {
+              "acl": null,
+              "md5": "b1fb4043e40048f831decdb42d7c7e91",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_oid()": {
+              "acl": null,
+              "md5": "59d0fa7c59e1f7aa25dd2d1c7cb70090",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_url()": {
+              "acl": null,
+              "md5": "dffa53f4caafe3259e10923916be5802",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_salt(text)": {
+              "acl": null,
+              "md5": "0ab5bda2fff1fa217935db57c0fe0738",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_ns_x500()": {
+              "acl": null,
+              "md5": "c6106df49914220b7eba8704d9770c25",
+              "owner": "supabase_admin"
+            },
+            "extensions.crypt(text,text)": {
+              "acl": null,
+              "md5": "f92effa5862ce095a56289da31c7f2f2",
+              "owner": "supabase_admin"
+            },
+            "extensions.digest(text,text)": {
+              "acl": null,
+              "md5": "95de9cf8798b911a1fe38c27bdb570de",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_random_uuid()": {
+              "acl": null,
+              "md5": "6504babb8130d35e393998bd2856ec61",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_key_id(bytea)": {
+              "acl": null,
+              "md5": "622562b45d5a075400d293c5a48c18e9",
+              "owner": "supabase_admin"
+            },
+            "extensions.digest(bytea,text)": {
+              "acl": null,
+              "md5": "85b88685f74a398b1ff164ad33eeaaca",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v1()": {
+              "acl": null,
+              "md5": "f2a7d7708f4ce5e8429ee5e57fa19842",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v4()": {
+              "acl": null,
+              "md5": "a3045e99488d2d755e53c33e5b0fb5d1",
+              "owner": "supabase_admin"
+            },
+            "extensions.hmac(text,text,text)": {
+              "acl": null,
+              "md5": "361d12259351f9df05ddf92c6bfd4224",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v1mc()": {
+              "acl": null,
+              "md5": "c404a846ca36b0d8f46d268dbc4be0c3",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_salt(text,integer)": {
+              "acl": null,
+              "md5": "60f792dd2967e22964c0ffcec9d34342",
+              "owner": "supabase_admin"
+            },
+            "extensions.hmac(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "791ceef3f202e631f7cc11017fbf00de",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_armor_headers(text)": {
+              "acl": null,
+              "md5": "a018f2bd7bcaae86efe1a9e7bd9a383b",
+              "owner": "supabase_admin"
+            },
+            "extensions.decrypt(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "18e4fb227e3460385309c2c880ce6346",
+              "owner": "supabase_admin"
+            },
+            "extensions.encrypt(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "bd196881d3cc43555e5b197d6050cc68",
+              "owner": "supabase_admin"
+            },
+            "extensions.gen_random_bytes(integer)": {
+              "acl": null,
+              "md5": "a7569a34c9be929beb24ef5670d42636",
+              "owner": "supabase_admin"
+            },
+            "public.combat_panel_commit_v1(jsonb)": {
+              "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+              "md5": "cff710fa9c152019ef520c0bc701754b",
+              "owner": "postgres"
+            },
+            "extensions.armor(bytea,text[],text[])": {
+              "acl": null,
+              "md5": "f8332991aecc898370b20b7d68b3f08c",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_encrypt(text,text)": {
+              "acl": null,
+              "md5": "89a109c79b6e5729b983220d745175c8",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_encrypt(text,bytea)": {
+              "acl": null,
+              "md5": "ef3c54e0a325783028c30a31d604253d",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt(bytea,text)": {
+              "acl": null,
+              "md5": "bd9033545bf69e27880836cc8611fb46",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v3(uuid,text)": {
+              "acl": null,
+              "md5": "7992559096f41242be92bb50ac5fca6e",
+              "owner": "supabase_admin"
+            },
+            "extensions.uuid_generate_v5(uuid,text)": {
+              "acl": null,
+              "md5": "eac48925db03b4f5baa93a49e4e5c994",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_decrypt(bytea,bytea)": {
+              "acl": null,
+              "md5": "1d596379caf583a571a96539f01eb16b",
+              "owner": "supabase_admin"
+            },
+            "mission_internal.nb029h_json_hash(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "c902f2126ea87eb282506bdc4f5915d7",
+              "owner": "postgres"
+            },
+            "extensions.pgp_sym_encrypt(text,text,text)": {
+              "acl": null,
+              "md5": "51bcff8be418bd39d9a0e71cbaf6e42a",
+              "owner": "supabase_admin"
+            },
+            "clan_sabaku_private.consumer_options(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "2133d8387e8f9264ca11522c3b2ebc61",
+              "owner": "postgres"
+            },
+            "combat_panel_private.commit_ordinary(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "bd923a59094d9cb4c544fb1506d6d0af",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_encrypt(text,bytea,text)": {
+              "acl": null,
+              "md5": "bb91bfabebc1894a30d0f4fae6dccffe",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt(bytea,text,text)": {
+              "acl": null,
+              "md5": "46b4eb4a8190cf3f5a7285f992ba7d87",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_decrypt(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "85340917f0f739c0b8d6a6673e5012c3",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt_bytea(bytea,text)": {
+              "acl": null,
+              "md5": "365cce063e993d3823812d7ed2eed4bd",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_encrypt_bytea(bytea,text)": {
+              "acl": null,
+              "md5": "43fc83685de8a47784c8891e0c7eaf40",
+              "owner": "supabase_admin"
+            },
+            "combat_panel_private.owner_turn_context(uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "56291b63933136f509c818dd58c4bf10",
+              "owner": "postgres"
+            },
+            "extensions.decrypt_iv(bytea,bytea,bytea,text)": {
+              "acl": null,
+              "md5": "6378f3a8f61df6ae8edd0837fd8cb4d7",
+              "owner": "supabase_admin"
+            },
+            "extensions.encrypt_iv(bytea,bytea,bytea,text)": {
+              "acl": null,
+              "md5": "524e5bac5ae4a00c5a3ec1d72b98798f",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea)": {
+              "acl": null,
+              "md5": "9b91d112df744c646565d7e80ec151ea",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_encrypt_bytea(bytea,bytea)": {
+              "acl": null,
+              "md5": "5ef5954cdbe5741e2c1906898a6057c7",
+              "owner": "supabase_admin"
+            },
+            "combat_panel_private.commit_pg_movement(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "21cc25b8706294bdcd4c371b5ce49727",
+              "owner": "postgres"
+            },
+            "combat_spatial.movement_commit(uuid,uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "0df0095cc3a9c8010cd2a17c6fed1501",
+              "owner": "postgres"
+            },
+            "combat_panel_private.movement_budget(uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "9d28b603b9bfe11aaa2653554f4f0c4a",
+              "owner": "postgres"
+            },
+            "clan_sabaku_private.commit_master_control(jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "ea3c03d0884f7cd07e5d53621647f36a",
+              "owner": "postgres"
+            },
+            "combat_panel_private.movement_block_reason(uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "67e186509cc0dc04022e355ce23a10b9",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_decrypt(bytea,bytea,text,text)": {
+              "acl": null,
+              "md5": "fc84f59fd544cf2c70a3e65dbfdff1e7",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_decrypt_bytea(bytea,text,text)": {
+              "acl": null,
+              "md5": "247ac244802a2c8c9db4747d2ae0f515",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_sym_encrypt_bytea(bytea,text,text)": {
+              "acl": null,
+              "md5": "f7f923af916f7b9c973ff303af271329",
+              "owner": "supabase_admin"
+            },
+            "combat_spatial.movement_options(uuid,uuid,numeric)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "cea9561628547a87b83cbda9e69822c3",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "00666f7e5e717d5ef4c7035a7858b380",
+              "owner": "supabase_admin"
+            },
+            "extensions.pgp_pub_encrypt_bytea(bytea,bytea,text)": {
+              "acl": null,
+              "md5": "3062cd7c3d17815975f8720cbeabf0b6",
+              "owner": "supabase_admin"
+            },
+            "clan_marionettisti_private.movement_remaining(uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "a97a4b77a45079433b0118091a1e4828",
+              "owner": "postgres"
+            },
+            "combat_panel_private.ordinary_projection(uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "b893ec79aa42ff74116f4e0a7622850c",
+              "owner": "postgres"
+            },
+            "combat_panel_private.pg_movement_offers(uuid,bigint)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "7b423a0dccf83c1bb72fca393bb39867",
+              "owner": "postgres"
+            },
+            "combat_panel_private.movement_explanations(uuid,bigint)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "4b099087c088ee48f0c344a68fcef38c",
+              "owner": "postgres"
+            },
+            "combat_panel_private.ordinary_options(uuid,uuid,bigint)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "752fc2aaf2a749b730ca50fcf8695cb9",
+              "owner": "postgres"
+            },
+            "extensions.pgp_pub_decrypt_bytea(bytea,bytea,text,text)": {
+              "acl": null,
+              "md5": "07ee5afa371340ba85ae1d93e9dc8ad1",
+              "owner": "supabase_admin"
+            },
+            "combat_panel_private.movement_regions_for_body(uuid,uuid)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "ead340b84ff231af3173cb28db302871",
+              "owner": "postgres"
+            },
+            "combat_panel_private.resolve_selections(uuid,uuid[],jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "736a5970c981e20260bf51dc9dff0bc2",
+              "owner": "postgres"
+            },
+            "combat_panel_private.add_choice(uuid,text,jsonb,numeric,text)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "d46463fcb4c38023ecac85ff1879889e",
+              "owner": "postgres"
+            },
+            "combat_panel_private.create_offer(uuid,bigint,text,text,text,boolean,jsonb)": {
+              "acl": "{postgres=X/postgres}",
+              "md5": "9dfe2da0b292de6370df2020c2166fe6",
+              "owner": "postgres"
+            }
+          },
+          "structure_md5": "f623a387e9fccc2a127eda5069181a3d",
+          "all_tables_zero_rows": true
+        }
+      ],
+      "error": null
+    }
+  ],
+  "mutations_scope": "SoloDB005:GRANTCREATEschema alpostgreslocale;poi4SQL008identiche.Nessunruologlobale/copia/riga/chiave",
+  "limits": [
+    "Code-only: trigger e policy non installati, nessuna qualifica Auth/RLS/gameplay.",
+    "54tabelle vuote/19funzioni reali; nessuna history copiata. G1-G6 verde separato.",
+    "Settimo tentativo cumulativo,secondo aggiuntivo da mandatoespressoAntonello;nessunresetcontatore.",
+    "Nessun provider, browser, Riuji, scena o database produzione toccato."
+  ],
+  "prior_terminal_sha256": "5f67bdba4dc5c7ac60856fca876eeb7518688494f41af79730e06222457245e8",
+  "selector_correction": {
+    "canonical": "schema + function name + catalog proargtypes; deparser context pg_catalog identical for every role",
+    "legacy_structure_reconciliation": "Solo preflight: fingerprint005 confrontato esattamente nel contesto esplicito pg_catalog,public,extensions,auth; poi snapshot canonico pg_catalog usato identico nelle4fasi. Nessuna tolleranza hash.",
+    "prior_key_mapping": {
+      "uid()": "auth.uid()",
+      "clan_marionettisti_private.movement_remaining(uuid)": "clan_marionettisti_private.movement_remaining(uuid)",
+      "clan_sabaku_private.commit_master_control(jsonb)": "clan_sabaku_private.commit_master_control(jsonb)",
+      "clan_sabaku_private.consumer_options(jsonb)": "clan_sabaku_private.consumer_options(jsonb)",
+      "combat_panel_private.add_choice(uuid,text,jsonb,numeric,text)": "combat_panel_private.add_choice(uuid,text,jsonb,numeric,text)",
+      "combat_panel_private.commit_ordinary(jsonb)": "combat_panel_private.commit_ordinary(jsonb)",
+      "combat_panel_private.create_offer(uuid,bigint,text,text,text,boolean,jsonb)": "combat_panel_private.create_offer(uuid,bigint,text,text,text,boolean,jsonb)",
+      "combat_panel_private.movement_block_reason(uuid)": "combat_panel_private.movement_block_reason(uuid)",
+      "combat_panel_private.movement_budget(uuid,uuid)": "combat_panel_private.movement_budget(uuid,uuid)",
+      "combat_panel_private.movement_explanations(uuid,bigint)": "combat_panel_private.movement_explanations(uuid,bigint)",
+      "combat_panel_private.movement_regions_for_body(uuid,uuid)": "combat_panel_private.movement_regions_for_body(uuid,uuid)",
+      "combat_panel_private.ordinary_options(uuid,uuid,bigint)": "combat_panel_private.ordinary_options(uuid,uuid,bigint)",
+      "combat_panel_private.ordinary_projection(uuid,uuid)": "combat_panel_private.ordinary_projection(uuid,uuid)",
+      "combat_panel_private.owner_turn_context(uuid)": "combat_panel_private.owner_turn_context(uuid)",
+      "combat_panel_private.resolve_selections(uuid,uuid[],jsonb)": "combat_panel_private.resolve_selections(uuid,uuid[],jsonb)",
+      "combat_spatial.movement_commit(uuid,uuid,uuid)": "combat_spatial.movement_commit(uuid,uuid,uuid)",
+      "combat_spatial.movement_options(uuid,uuid,numeric)": "combat_spatial.movement_options(uuid,uuid,numeric)",
+      "mission_internal.nb029h_json_hash(jsonb)": "mission_internal.nb029h_json_hash(jsonb)",
+      "combat_panel_commit_v1(jsonb)": "public.combat_panel_commit_v1(jsonb)",
+      "armor(bytea)": "extensions.armor(bytea)",
+      "armor(bytea,text[],text[])": "extensions.armor(bytea,text[],text[])",
+      "crypt(text,text)": "extensions.crypt(text,text)",
+      "dearmor(text)": "extensions.dearmor(text)",
+      "decrypt(bytea,bytea,text)": "extensions.decrypt(bytea,bytea,text)",
+      "decrypt_iv(bytea,bytea,bytea,text)": "extensions.decrypt_iv(bytea,bytea,bytea,text)",
+      "digest(bytea,text)": "extensions.digest(bytea,text)",
+      "digest(text,text)": "extensions.digest(text,text)",
+      "encrypt(bytea,bytea,text)": "extensions.encrypt(bytea,bytea,text)",
+      "encrypt_iv(bytea,bytea,bytea,text)": "extensions.encrypt_iv(bytea,bytea,bytea,text)",
+      "extensions.gen_random_uuid()": "extensions.gen_random_uuid()",
+      "gen_random_bytes(integer)": "extensions.gen_random_bytes(integer)",
+      "gen_salt(text)": "extensions.gen_salt(text)",
+      "gen_salt(text,integer)": "extensions.gen_salt(text,integer)",
+      "hmac(bytea,bytea,text)": "extensions.hmac(bytea,bytea,text)",
+      "hmac(text,text,text)": "extensions.hmac(text,text,text)",
+      "pgp_armor_headers(text)": "extensions.pgp_armor_headers(text)",
+      "pgp_key_id(bytea)": "extensions.pgp_key_id(bytea)",
+      "pgp_pub_decrypt(bytea,bytea)": "extensions.pgp_pub_decrypt(bytea,bytea)",
+      "pgp_pub_decrypt(bytea,bytea,text)": "extensions.pgp_pub_decrypt(bytea,bytea,text)",
+      "pgp_pub_decrypt(bytea,bytea,text,text)": "extensions.pgp_pub_decrypt(bytea,bytea,text,text)",
+      "pgp_pub_decrypt_bytea(bytea,bytea)": "extensions.pgp_pub_decrypt_bytea(bytea,bytea)",
+      "pgp_pub_decrypt_bytea(bytea,bytea,text)": "extensions.pgp_pub_decrypt_bytea(bytea,bytea,text)",
+      "pgp_pub_decrypt_bytea(bytea,bytea,text,text)": "extensions.pgp_pub_decrypt_bytea(bytea,bytea,text,text)",
+      "pgp_pub_encrypt(text,bytea)": "extensions.pgp_pub_encrypt(text,bytea)",
+      "pgp_pub_encrypt(text,bytea,text)": "extensions.pgp_pub_encrypt(text,bytea,text)",
+      "pgp_pub_encrypt_bytea(bytea,bytea)": "extensions.pgp_pub_encrypt_bytea(bytea,bytea)",
+      "pgp_pub_encrypt_bytea(bytea,bytea,text)": "extensions.pgp_pub_encrypt_bytea(bytea,bytea,text)",
+      "pgp_sym_decrypt(bytea,text)": "extensions.pgp_sym_decrypt(bytea,text)",
+      "pgp_sym_decrypt(bytea,text,text)": "extensions.pgp_sym_decrypt(bytea,text,text)",
+      "pgp_sym_decrypt_bytea(bytea,text)": "extensions.pgp_sym_decrypt_bytea(bytea,text)",
+      "pgp_sym_decrypt_bytea(bytea,text,text)": "extensions.pgp_sym_decrypt_bytea(bytea,text,text)",
+      "pgp_sym_encrypt(text,text)": "extensions.pgp_sym_encrypt(text,text)",
+      "pgp_sym_encrypt(text,text,text)": "extensions.pgp_sym_encrypt(text,text,text)",
+      "pgp_sym_encrypt_bytea(bytea,text)": "extensions.pgp_sym_encrypt_bytea(bytea,text)",
+      "pgp_sym_encrypt_bytea(bytea,text,text)": "extensions.pgp_sym_encrypt_bytea(bytea,text,text)",
+      "uuid_generate_v1()": "extensions.uuid_generate_v1()",
+      "uuid_generate_v1mc()": "extensions.uuid_generate_v1mc()",
+      "uuid_generate_v3(uuid,text)": "extensions.uuid_generate_v3(uuid,text)",
+      "uuid_generate_v4()": "extensions.uuid_generate_v4()",
+      "uuid_generate_v5(uuid,text)": "extensions.uuid_generate_v5(uuid,text)",
+      "uuid_nil()": "extensions.uuid_nil()",
+      "uuid_ns_dns()": "extensions.uuid_ns_dns()",
+      "uuid_ns_oid()": "extensions.uuid_ns_oid()",
+      "uuid_ns_url()": "extensions.uuid_ns_url()",
+      "uuid_ns_x500()": "extensions.uuid_ns_x500()"
+    },
+    "native_identity_provenance": "19 definizioni nominali CREATE FUNCTION del bootstrap e corpi/ACL del manifest, ciascuna corrisponde univocamente al pin005.",
+    "extension_identity_provenance": "Le46funzioni residue provengono dalle sole2CREATE EXTENSION del bootstrap nella SCHEMA extensions. Il preflight verifica namespace+appartenenza reale pg_depend/pg_extension, oltre ai65MD5/owner/ACL005immutati.",
+    "md5_owner_acl_tolerance": false
+  },
+  "four_final_strings_static_check": {
+    "preflight_exact": true,
+    "postflight_exact": true,
+    "product_phases": [
+      {
+        "phase": "install_committed",
+        "product_source": "PG_MOVEMENT_INSTALL.sql",
+        "product_sha256": "6fdb99b83f757300d3df99efa07e14adcebb73041909ebad8d5388e13ef63f47",
+        "product_char_start": 51,
+        "product_char_end": 25073,
+        "execution_context_before_BEGIN": "SET search_path=pg_catalog,public,extensions,auth;",
+        "comparison_context_only_after_COMMIT": "SET search_path=pg_catalog;",
+        "exact_product_bytes_preserved": true
+      },
+      {
+        "phase": "recovery_committed",
+        "product_source": "PG_MOVEMENT_RECOVERY.sql",
+        "product_sha256": "52c6fb282a2b5ec37410d078fc5939336151334526091ba3756a23e418264649",
+        "product_char_start": 51,
+        "product_char_end": 10286,
+        "execution_context_before_BEGIN": "SET search_path=pg_catalog,public,extensions,auth;",
+        "comparison_context_only_after_COMMIT": "SET search_path=pg_catalog;",
+        "exact_product_bytes_preserved": true
+      }
+    ],
+    "sessions": "Ogni fase usa una nuova invocazione psql; nessun contesto ereditato dalla fase precedente.",
+    "transactions": "INSTALL eRECOVERY conservano BEGIN/COMMIT originali; i SET dei comparatori sono fuori e dopoCOMMIT. Il preflight epostflight non eseguono prodotto.",
+    "provider_or_new_cases": 0
+  },
+  "four_sql_comparison_to008": [
+    {
+      "phase": "preflight_exact_existing_clean_database",
+      "sha256_current": "459bbc8388d12c20903973912f1cce87e7665553271bcee4f2a64f3932b3ed17",
+      "sha256_008": "459bbc8388d12c20903973912f1cce87e7665553271bcee4f2a64f3932b3ed17",
+      "byte_identical": true
+    },
+    {
+      "phase": "install_committed",
+      "sha256_current": "051b820011e8459308f33a1232e9202c38a9937b730c2e7ed07f34880d8eba54",
+      "sha256_008": "051b820011e8459308f33a1232e9202c38a9937b730c2e7ed07f34880d8eba54",
+      "byte_identical": true
+    },
+    {
+      "phase": "recovery_committed",
+      "sha256_current": "9d7dfa54a9902d5959bf68da56b8c633ec4cc5e89cac16dcf90bba98b8d818eb",
+      "sha256_008": "9d7dfa54a9902d5959bf68da56b8c633ec4cc5e89cac16dcf90bba98b8d818eb",
+      "byte_identical": true
+    },
+    {
+      "phase": "postflight_inert_helpers_zero_rows",
+      "sha256_current": "3e3ad6fe37faec00263dd0027fd66a93fd0aaef6cbd95bb908d7936531f18caa",
+      "sha256_008": "3e3ad6fe37faec00263dd0027fd66a93fd0aaef6cbd95bb908d7936531f18caa",
+      "byte_identical": true
+    }
+  ],
+  "authorized_environment_correction": {
+    "source_diagnosis": "PG_MOVEMENT_RECOVERY_008_DIAGNOSIS.json",
+    "ddl": "GRANT CREATE ON SCHEMA combat_panel_private TO postgres",
+    "database": "tus_pg_movement_clean_recovery_005",
+    "global_role_changes": false,
+    "schema_owner_change": false,
+    "tables_or_application_data_changes": false,
+    "privilege_retained_only_in_isolated_database": true
+  },
+  "frozen_phases": [
+    {
+      "phase": "environment_schema_create_grant",
+      "database": "tus_pg_movement_clean_recovery_005",
+      "database_role": "supabase_admin",
+      "sql_sha256": "734bb7e5b5c45790ec9a67442cbd45b81207e81c4648fc91dde79d1b34936aff",
+      "exact_sql": "BEGIN;\nSET LOCAL lock_timeout='5s'; SET LOCAL statement_timeout='20s';\nSET LOCAL search_path=pg_catalog,public,extensions,auth;\nDO $environment_guard$ BEGIN\nIF current_database()<>'tus_pg_movement_clean_recovery_005' OR current_user<>'supabase_admin' THEN RAISE EXCEPTION 'qa_environment_target_role_mismatch';END IF;\nIF (SELECT pg_get_userbyid(nspowner) FROM pg_namespace WHERE nspname='combat_panel_private') IS DISTINCT FROM 'supabase_admin' OR (SELECT nspacl::text FROM pg_namespace WHERE nspname='combat_panel_private') IS DISTINCT FROM '{supabase_admin=UC/supabase_admin,postgres=U/supabase_admin}' THEN RAISE EXCEPTION 'qa_environment_original_acl_drift';END IF;\nIF NOT has_schema_privilege('postgres','combat_panel_private','USAGE') OR has_schema_privilege('postgres','combat_panel_private','CREATE') THEN RAISE EXCEPTION 'qa_environment_original_privilege_drift';END IF;\nIF (SELECT rolsuper FROM pg_roles WHERE rolname='postgres') IS DISTINCT FROM false OR (SELECT rolsuper FROM pg_roles WHERE rolname='supabase_admin') IS DISTINCT FROM true THEN RAISE EXCEPTION 'qa_environment_role_flags_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.ordinary_options(uuid,uuid,bigint)'::regprocedure)) IS DISTINCT FROM '752fc2aaf2a749b730ca50fcf8695cb9' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='combat_panel_private.ordinary_options(uuid,uuid,bigint)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='combat_panel_private.ordinary_options(uuid,uuid,bigint)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('public.combat_panel_commit_v1(jsonb)'::regprocedure)) IS DISTINCT FROM 'cff710fa9c152019ef520c0bc701754b' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='public.combat_panel_commit_v1(jsonb)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='public.combat_panel_commit_v1(jsonb)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres,authenticated=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.commit_ordinary(jsonb)'::regprocedure)) IS DISTINCT FROM 'bd923a59094d9cb4c544fb1506d6d0af' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='combat_panel_private.commit_ordinary(jsonb)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='combat_panel_private.commit_ordinary(jsonb)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('clan_sabaku_private.commit_master_control(jsonb)'::regprocedure)) IS DISTINCT FROM 'ea3c03d0884f7cd07e5d53621647f36a' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='clan_sabaku_private.commit_master_control(jsonb)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='clan_sabaku_private.commit_master_control(jsonb)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.movement_budget(uuid,uuid)'::regprocedure)) IS DISTINCT FROM '9d28b603b9bfe11aaa2653554f4f0c4a' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='combat_panel_private.movement_budget(uuid,uuid)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='combat_panel_private.movement_budget(uuid,uuid)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.movement_explanations(uuid,bigint)'::regprocedure)) IS DISTINCT FROM '4b099087c088ee48f0c344a68fcef38c' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='combat_panel_private.movement_explanations(uuid,bigint)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='combat_panel_private.movement_explanations(uuid,bigint)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('combat_spatial.movement_options(uuid,uuid,numeric)'::regprocedure)) IS DISTINCT FROM 'cea9561628547a87b83cbda9e69822c3' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='combat_spatial.movement_options(uuid,uuid,numeric)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='combat_spatial.movement_options(uuid,uuid,numeric)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('combat_spatial.movement_commit(uuid,uuid,uuid)'::regprocedure)) IS DISTINCT FROM '0df0095cc3a9c8010cd2a17c6fed1501' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='combat_spatial.movement_commit(uuid,uuid,uuid)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='combat_spatial.movement_commit(uuid,uuid,uuid)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('clan_marionettisti_private.movement_remaining(uuid)'::regprocedure)) IS DISTINCT FROM 'a97a4b77a45079433b0118091a1e4828' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='clan_marionettisti_private.movement_remaining(uuid)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='clan_marionettisti_private.movement_remaining(uuid)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('clan_sabaku_private.consumer_options(jsonb)'::regprocedure)) IS DISTINCT FROM '2133d8387e8f9264ca11522c3b2ebc61' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='clan_sabaku_private.consumer_options(jsonb)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='clan_sabaku_private.consumer_options(jsonb)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.resolve_selections(uuid,uuid[],jsonb)'::regprocedure)) IS DISTINCT FROM '736a5970c981e20260bf51dc9dff0bc2' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='combat_panel_private.resolve_selections(uuid,uuid[],jsonb)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='combat_panel_private.resolve_selections(uuid,uuid[],jsonb)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.ordinary_projection(uuid,uuid)'::regprocedure)) IS DISTINCT FROM 'b893ec79aa42ff74116f4e0a7622850c' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='combat_panel_private.ordinary_projection(uuid,uuid)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='combat_panel_private.ordinary_projection(uuid,uuid)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.movement_block_reason(uuid)'::regprocedure)) IS DISTINCT FROM '67e186509cc0dc04022e355ce23a10b9' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='combat_panel_private.movement_block_reason(uuid)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='combat_panel_private.movement_block_reason(uuid)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.movement_regions_for_body(uuid,uuid)'::regprocedure)) IS DISTINCT FROM 'ead340b84ff231af3173cb28db302871' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='combat_panel_private.movement_regions_for_body(uuid,uuid)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='combat_panel_private.movement_regions_for_body(uuid,uuid)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.create_offer(uuid,bigint,text,text,text,boolean,jsonb)'::regprocedure)) IS DISTINCT FROM '9dfe2da0b292de6370df2020c2166fe6' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='combat_panel_private.create_offer(uuid,bigint,text,text,text,boolean,jsonb)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='combat_panel_private.create_offer(uuid,bigint,text,text,text,boolean,jsonb)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.add_choice(uuid,text,jsonb,numeric,text)'::regprocedure)) IS DISTINCT FROM 'd46463fcb4c38023ecac85ff1879889e' OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='combat_panel_private.add_choice(uuid,text,jsonb,numeric,text)'::regprocedure) IS DISTINCT FROM 'postgres' OR (SELECT proacl::text FROM pg_proc WHERE oid='combat_panel_private.add_choice(uuid,text,jsonb,numeric,text)'::regprocedure) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'qa_setup_baseline_pin_acl_drift';END IF;\nIF to_regprocedure('combat_panel_private.pg_movement_offers(uuid,bigint)') IS NOT NULL OR to_regprocedure('combat_panel_private.commit_pg_movement(jsonb)') IS NOT NULL THEN RAISE EXCEPTION 'qa_environment_new_helpers_not_absent';END IF;\nEND $environment_guard$;\nGRANT CREATE ON SCHEMA combat_panel_private TO postgres;\nDO $environment_post$ BEGIN\nIF NOT has_schema_privilege('postgres','combat_panel_private','USAGE') OR NOT has_schema_privilege('postgres','combat_panel_private','CREATE') OR (SELECT nspacl::text FROM pg_namespace WHERE nspname='combat_panel_private') IS DISTINCT FROM '{supabase_admin=UC/supabase_admin,postgres=UC/supabase_admin}' OR (SELECT pg_get_userbyid(nspowner) FROM pg_namespace WHERE nspname='combat_panel_private') IS DISTINCT FROM 'supabase_admin' THEN RAISE EXCEPTION 'qa_environment_grant_attestation_failed';END IF;\nEND $environment_post$;\nCOMMIT;\nSELECT jsonb_build_object('database',current_database(),'phase','environment_grant_committed','schema','combat_panel_private','owner',(SELECT pg_get_userbyid(nspowner) FROM pg_namespace WHERE nspname='combat_panel_private'),'acl',(SELECT nspacl::text FROM pg_namespace WHERE nspname='combat_panel_private'),'postgres_usage',has_schema_privilege('postgres','combat_panel_private','USAGE'),'postgres_create',has_schema_privilege('postgres','combat_panel_private','CREATE'),'postgres_superuser',(SELECT rolsuper FROM pg_roles WHERE rolname='postgres'),'only_authorized_schema_grant',true)::text;\n"
+    },
+    {
+      "phase": "preflight_exact_existing_clean_database",
+      "database": "tus_pg_movement_clean_recovery_005",
+      "database_role": "supabase_admin",
+      "sql_sha256": "459bbc8388d12c20903973912f1cce87e7665553271bcee4f2a64f3932b3ed17",
+      "exact_sql": "SET search_path=pg_catalog,public,extensions,auth;\nSELECT jsonb_build_object('legacy_structure_md5',(SELECT md5(jsonb_build_object('tables',(SELECT jsonb_agg(jsonb_build_object('name',n.nspname||'.'||c.relname,'owner',pg_get_userbyid(c.relowner),'acl',c.relacl::text,'rls',c.relrowsecurity,'force_rls',c.relforcerowsecurity) ORDER BY n.nspname,c.relname) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema')),'columns',(SELECT jsonb_agg(jsonb_build_object('relation',a.attrelid::regclass::text,'name',a.attname,'type',format_type(a.atttypid,a.atttypmod),'notnull',a.attnotnull,'generated',a.attgenerated,'default',pg_get_expr(d.adbin,d.adrelid)) ORDER BY a.attrelid::regclass::text,a.attnum) FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum WHERE a.attnum>0 AND NOT a.attisdropped AND c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema')),'constraints',(SELECT jsonb_agg(jsonb_build_object('relation',c.conrelid::regclass::text,'name',c.conname,'definition',pg_get_constraintdef(c.oid,true)) ORDER BY c.conrelid::regclass::text,c.conname) FROM pg_constraint c WHERE c.conrelid IN(SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema'))),'indexes',(SELECT jsonb_agg(pg_get_indexdef(i.indexrelid) ORDER BY i.indexrelid::regclass::text) FROM pg_index i JOIN pg_class c ON c.oid=i.indrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname NOT IN('pg_catalog','information_schema')))::text)),'explicit_legacy_schemas',current_schemas(true))::text;\nSET search_path=pg_catalog;\nDO $zero$ DECLARE r record;n bigint;tables_n integer:=0;BEGIN\n IF current_database()<>'tus_pg_movement_clean_recovery_005' THEN RAISE EXCEPTION 'qa_wrong_database';END IF;\n FOR r IN SELECT n.nspname,c.relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema') LOOP\n EXECUTE format('SELECT count(*) FROM %I.%I',r.nspname,r.relname) INTO n;\n IF n<>0 THEN RAISE EXCEPTION 'qa_nonempty_table';END IF; tables_n:=tables_n+1;\n END LOOP; IF tables_n<>54 THEN RAISE EXCEPTION 'qa_table_count';END IF;\nEND $zero$;\nSELECT jsonb_build_object('identity_arguments',jsonb_object_agg(format('%I.%I(%s)',n.nspname,p.proname,array_to_string(ARRAY(SELECT pg_catalog.format_type(a.arg_oid,NULL) FROM unnest(p.proargtypes) WITH ORDINALITY a(arg_oid,ord) ORDER BY ord),',')),pg_get_function_identity_arguments(p.oid)),'extension_memberships',jsonb_object_agg(format('%I.%I(%s)',n.nspname,p.proname,array_to_string(ARRAY(SELECT pg_catalog.format_type(a.arg_oid,NULL) FROM unnest(p.proargtypes) WITH ORDINALITY a(arg_oid,ord) ORDER BY ord),',')),(SELECT e.extname FROM pg_depend d JOIN pg_extension e ON e.oid=d.refobjid WHERE d.classid='pg_proc'::regclass AND d.objid=p.oid AND d.refclassid='pg_extension'::regclass AND d.deptype='e')),'explicit_schemas',current_schemas(true))::text FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE p.prokind IN('f','p') AND n.nspname NOT LIKE 'pg_%' AND n.nspname<>'information_schema';SELECT jsonb_build_object('at',clock_timestamp(),'database',current_database(),'tables',54,'all_tables_zero_rows',true,'structure_md5',(SELECT md5(jsonb_build_object('tables',(SELECT jsonb_agg(jsonb_build_object('name',n.nspname||'.'||c.relname,'owner',pg_get_userbyid(c.relowner),'acl',c.relacl::text,'rls',c.relrowsecurity,'force_rls',c.relforcerowsecurity) ORDER BY n.nspname,c.relname) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema')),'columns',(SELECT jsonb_agg(jsonb_build_object('relation',a.attrelid::regclass::text,'name',a.attname,'type',format_type(a.atttypid,a.atttypmod),'notnull',a.attnotnull,'generated',a.attgenerated,'default',pg_get_expr(d.adbin,d.adrelid)) ORDER BY a.attrelid::regclass::text,a.attnum) FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum WHERE a.attnum>0 AND NOT a.attisdropped AND c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema')),'constraints',(SELECT jsonb_agg(jsonb_build_object('relation',c.conrelid::regclass::text,'name',c.conname,'definition',pg_get_constraintdef(c.oid,true)) ORDER BY c.conrelid::regclass::text,c.conname) FROM pg_constraint c WHERE c.conrelid IN(SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema'))),'indexes',(SELECT jsonb_agg(pg_get_indexdef(i.indexrelid) ORDER BY i.indexrelid::regclass::text) FROM pg_index i JOIN pg_class c ON c.oid=i.indrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname NOT IN('pg_catalog','information_schema')))::text)),'functions',(SELECT jsonb_object_agg(format('%I.%I(%s)',n.nspname,p.proname,array_to_string(ARRAY(SELECT pg_catalog.format_type(a.arg_oid,NULL) FROM unnest(p.proargtypes) WITH ORDINALITY a(arg_oid,ord) ORDER BY ord),',')),jsonb_build_object('md5',md5(pg_get_functiondef(p.oid)),'owner',pg_get_userbyid(p.proowner),'acl',p.proacl::text)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE p.prokind IN('f','p') AND n.nspname NOT LIKE 'pg_%' AND n.nspname<>'information_schema'))::text;"
+    },
+    {
+      "phase": "install_committed",
+      "database": "tus_pg_movement_clean_recovery_005",
+      "database_role": "postgres",
+      "sql_sha256": "051b820011e8459308f33a1232e9202c38a9937b730c2e7ed07f34880d8eba54",
+      "exact_sql": "SET search_path=pg_catalog,public,extensions,auth;\nBEGIN;\nSET LOCAL lock_timeout='5s'; SET LOCAL statement_timeout='20s';\nDO $pin$ BEGIN\nIF md5(pg_get_functiondef('combat_panel_private.ordinary_options(uuid,uuid,bigint)'::regprocedure)) IS DISTINCT FROM '752fc2aaf2a749b730ca50fcf8695cb9' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('public.combat_panel_commit_v1(jsonb)'::regprocedure)) IS DISTINCT FROM 'cff710fa9c152019ef520c0bc701754b' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.commit_ordinary(jsonb)'::regprocedure)) IS DISTINCT FROM 'bd923a59094d9cb4c544fb1506d6d0af' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('clan_sabaku_private.commit_master_control(jsonb)'::regprocedure)) IS DISTINCT FROM 'ea3c03d0884f7cd07e5d53621647f36a' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.movement_budget(uuid,uuid)'::regprocedure)) IS DISTINCT FROM '9d28b603b9bfe11aaa2653554f4f0c4a' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.movement_explanations(uuid,bigint)'::regprocedure)) IS DISTINCT FROM '4b099087c088ee48f0c344a68fcef38c' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('combat_spatial.movement_options(uuid,uuid,numeric)'::regprocedure)) IS DISTINCT FROM 'cea9561628547a87b83cbda9e69822c3' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('combat_spatial.movement_commit(uuid,uuid,uuid)'::regprocedure)) IS DISTINCT FROM '0df0095cc3a9c8010cd2a17c6fed1501' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('clan_marionettisti_private.movement_remaining(uuid)'::regprocedure)) IS DISTINCT FROM 'a97a4b77a45079433b0118091a1e4828' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('clan_sabaku_private.consumer_options(jsonb)'::regprocedure)) IS DISTINCT FROM '2133d8387e8f9264ca11522c3b2ebc61' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.resolve_selections(uuid,uuid[],jsonb)'::regprocedure)) IS DISTINCT FROM '736a5970c981e20260bf51dc9dff0bc2' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.ordinary_projection(uuid,uuid)'::regprocedure)) IS DISTINCT FROM 'b893ec79aa42ff74116f4e0a7622850c' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.movement_block_reason(uuid)'::regprocedure)) IS DISTINCT FROM '67e186509cc0dc04022e355ce23a10b9' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.movement_regions_for_body(uuid,uuid)'::regprocedure)) IS DISTINCT FROM 'ead340b84ff231af3173cb28db302871' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.create_offer(uuid,bigint,text,text,text,boolean,jsonb)'::regprocedure)) IS DISTINCT FROM '9dfe2da0b292de6370df2020c2166fe6' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.add_choice(uuid,text,jsonb,numeric,text)'::regprocedure)) IS DISTINCT FROM 'd46463fcb4c38023ecac85ff1879889e' THEN RAISE EXCEPTION 'pg_movement_baseline_drift';END IF;\nIF to_regprocedure('combat_panel_private.pg_movement_offers(uuid,bigint)') IS NOT NULL OR to_regprocedure('combat_panel_private.commit_pg_movement(jsonb)') IS NOT NULL THEN RAISE EXCEPTION 'pg_movement_already_present';END IF; END $pin$;\nCREATE FUNCTION combat_panel_private.pg_movement_offers(p_context uuid,p_expected bigint)\nRETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $fn$\nDECLARE c combat_panel_private.contexts%ROWTYPE; ctx combat_consumer_private.activities%ROWTYPE;\n a public.combat_v2_actors%ROWTYPE;b combat_spatial.actor_states%ROWTYPE;i combat_spatial.arena_instances%ROWTYPE;\n remaining numeric; step record; k text; prefix text; keys text[]:='{}'; item jsonb; caps jsonb:='[]';\n oid uuid;gid uuid;direction_id uuid;distances uuid;dir text;cap combat_spatial.movement_capabilities%ROWTYPE;\nBEGIN\n c:=combat_panel_private.owned_context(p_context,p_expected);\n IF c.activity_kind<>'ordinary_v2' OR c.command_actor_id IS NULL OR c.round_id IS NULL THEN RETURN;END IF;\n SELECT * INTO ctx FROM combat_consumer_private.activities WHERE session_id=c.activity_id;\n IF ctx.phase<>'action' OR ctx.turn_actor_id<>c.command_actor_id OR ctx.exchange_id<>c.round_id\n  OR ctx.policy_id<>'staff_test_no_persistent_resources_v1'\n  OR NOT combat_consumer_private.staff_test_allowed(c.location_id,ARRAY[auth.uid()],false)\n  OR NOT EXISTS(SELECT 1 FROM public.locations WHERE id=c.location_id AND is_test)\n  OR public.combat_v2_values_written(c.activity_id) THEN RETURN; END IF;\n SELECT * INTO STRICT a FROM public.combat_v2_actors WHERE id=c.command_actor_id AND session_id=c.activity_id\n  AND actor_kind='pg' AND companion_id IS NULL AND controller_user=auth.uid() AND state='attivo';\n IF combat_panel_private.movement_block_reason(a.id) IS NOT NULL THEN RETURN; END IF;\n remaining:=(combat_panel_private.movement_budget(a.id,c.round_id)->>'remaining_m')::numeric;\n IF remaining<1 THEN RETURN;END IF;\n IF EXISTS(SELECT 1 FROM combat_panel_private.offers WHERE context_id=c.id AND context_version=c.context_version\n  AND state='offered' AND source_payload->>'dispatch'='pg_movement') THEN RETURN;END IF;\n SELECT * INTO STRICT i FROM combat_spatial.arena_instances WHERE encounter_id=a.session_id AND context_source='ordinary' AND state='open';\n SELECT * INTO STRICT b FROM combat_spatial.actor_states WHERE instance_id=i.instance_id AND actor_id=a.id AND state='active';\n IF b.controller_principal_id IS DISTINCT FROM auth.uid() THEN RAISE EXCEPTION 'pg_movement_controller_stale' USING ERRCODE='40001';END IF;\n prefix:='pgmove:'||c.round_id||':'||b.body_version||':';\n FOR step IN SELECT d.dx,d.dy,d.direction,m.metres FROM (VALUES(1,0,'right'),(-1,0,'left'),(0,1,'down'),(0,-1,'up'))d(dx,dy,direction)\n  CROSS JOIN LATERAL generate_series(1,floor(remaining)::integer)m(metres) LOOP\n  k:=prefix||step.direction||':'||step.metres||':'||remaining;keys:=array_append(keys,k);\n  INSERT INTO combat_spatial.movement_semantic_choices(instance_id,actor_id,choice_key,endpoint_x_m,endpoint_y_m,max_budget_m,choice_version,enabled)\n   VALUES(i.instance_id,a.id,k,b.x_m+step.dx*step.metres,b.y_m+step.dy*step.metres,remaining,1,true)\n   ON CONFLICT(instance_id,actor_id,choice_key) DO NOTHING;\n END LOOP;\n UPDATE combat_spatial.movement_semantic_choices SET enabled=false,choice_version=choice_version+1\n  WHERE instance_id=i.instance_id AND actor_id=a.id AND enabled AND left(choice_key,7)='pgmove:' AND NOT(choice_key=ANY(keys));\n FOR item IN SELECT value FROM jsonb_array_elements(combat_spatial.movement_options(i.instance_id,a.id,remaining)) LOOP\n  IF item->>'intent'=ANY(keys) AND (item->>'distance_m')::numeric>0 THEN\n   SELECT * INTO STRICT cap FROM combat_spatial.movement_capabilities WHERE capability_id=(item->>'option_id')::uuid AND actor_id=a.id;\n   dir:=CASE WHEN cap.end_x_m>cap.start_x_m THEN 'right' WHEN cap.end_x_m<cap.start_x_m THEN 'left' WHEN cap.end_y_m>cap.start_y_m THEN 'down' ELSE 'up' END;\n   caps:=caps||jsonb_build_array(jsonb_build_object('capability_id',cap.capability_id,'direction',dir,'distance_m',item->'distance_m'));\n  END IF;\n END LOOP;\n IF jsonb_array_length(caps)=0 THEN RETURN;END IF;\n oid:=combat_panel_private.create_offer(c.id,c.context_version,'control','control','Muovi il personaggio',false,\n  jsonb_build_object('adapter','ordinary_v2','dispatch','pg_movement'));\n gid:=combat_panel_private.add_group(oid,'Direzione','movement_direction','single',1,1);\n FOREACH dir IN ARRAY ARRAY['up','right','down','left'] LOOP\n  IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(caps) WHERE value->>'direction'=dir) THEN CONTINUE;END IF;\n  direction_id:=combat_panel_private.add_choice(gid,CASE dir WHEN 'up' THEN 'Su' WHEN 'right' THEN 'Destra' WHEN 'down' THEN 'Giù' ELSE 'Sinistra' END,'{}'::jsonb,NULL,dir);\n  distances:=combat_panel_private.add_group(oid,'Distanza','movement_distance','single',1,1,direction_id);\n  FOR item IN SELECT DISTINCT ON ((value->>'distance_m')::numeric) value FROM jsonb_array_elements(caps)\n    WHERE value->>'direction'=dir ORDER BY (value->>'distance_m')::numeric,value->>'capability_id' LOOP\n   PERFORM combat_panel_private.add_choice(distances,(item->>'distance_m')::numeric::integer||' m',jsonb_build_object('movement_capability_id',item->'capability_id'),(item->>'distance_m')::numeric,dir);\n  END LOOP;\n END LOOP;\nEND $fn$;\nREVOKE ALL ON FUNCTION combat_panel_private.pg_movement_offers(uuid,bigint) FROM PUBLIC,anon,authenticated,service_role;\nGRANT EXECUTE ON FUNCTION combat_panel_private.pg_movement_offers(uuid,bigint) TO postgres;\nCREATE FUNCTION combat_panel_private.commit_pg_movement(p_command jsonb)\nRETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $fn$\nDECLARE p jsonb;uid uuid:=auth.uid();key uuid;fp text;prior combat_panel_private.request_receipts%ROWTYPE;\n o combat_panel_private.offers%ROWTYPE;c combat_panel_private.contexts%ROWTYPE;ctx combat_consumer_private.activities%ROWTYPE;\n a public.combat_v2_actors%ROWTYPE;cap combat_spatial.movement_capabilities%ROWTYPE;i combat_spatial.arena_instances%ROWTYPE;\n body combat_spatial.actor_states%ROWTYPE; cost_cap combat_panel_private.movement_cost_capabilities%ROWTYPE;\n env jsonb;resolved jsonb;selected uuid[];payload jsonb;cid uuid;count_caps integer:=0;remaining numeric;result jsonb;receipt jsonb;event jsonb;label text;eid uuid;\nBEGIN\n IF uid IS NULL THEN RAISE EXCEPTION 'panel_authentication_required' USING ERRCODE='28000';END IF;\n p:=combat_panel_private.validate_command(p_command);key:=(p->>'request_key')::uuid;fp:=public.combat_v2_sha256(p);\n PERFORM pg_advisory_xact_lock(hashtextextended('panel-request:'||uid::text||':'||key::text,731));\n SELECT * INTO prior FROM combat_panel_private.request_receipts WHERE principal_user=uid AND request_key=key;\n IF FOUND THEN\n  IF prior.command_fingerprint<>fp THEN RAISE EXCEPTION 'panel_request_key_conflict' USING ERRCODE='22023';END IF;\n  RETURN jsonb_set(prior.viewer_envelope,'{receipt,replayed}','true',false);\n END IF;\n SELECT * INTO STRICT o FROM combat_panel_private.offers WHERE id=(p->>'offer_id')::uuid AND principal_user=uid\n  AND kind='control' AND operation='control' AND source_payload->>'adapter'='ordinary_v2' AND source_payload->>'dispatch'='pg_movement';\n SELECT * INTO STRICT c FROM combat_panel_private.contexts WHERE id=o.context_id AND principal_user=uid;\n IF c.activity_kind<>'ordinary_v2' OR c.round_id IS NULL\n  OR c.location_id IS DISTINCT FROM (p->>'location_id')::uuid OR c.activity_id IS DISTINCT FROM (p->>'activity_id')::uuid\n  OR combat_panel_private.access_reason(c.location_id,'ordinary_v2') IS NOT NULL\n  OR combat_panel_private.location_adapter(c.location_id)<>'ordinary_v2' THEN RAISE EXCEPTION 'pg_movement_scope_invalid' USING ERRCODE='42501';END IF;\n PERFORM public.combat_v2_lock_round(c.round_id);\n env:=combat_panel_private.ordinary_projection(c.location_id,c.command_actor_id);\n IF env->>'status'<>'ready' THEN RAISE EXCEPTION 'panel_source_not_ready' USING ERRCODE='40001';END IF;\n PERFORM 1 FROM combat_panel_private.contexts WHERE id=c.id FOR UPDATE;\n c:=combat_panel_private.owned_context(c.id,(p->>'context_version')::bigint);\n SELECT * INTO STRICT o FROM combat_panel_private.offers WHERE id=o.id FOR UPDATE;\n IF o.state<>'offered' OR o.context_version<>c.context_version OR o.source_fingerprint IS DISTINCT FROM c.source_fingerprint\n  OR o.scene_version IS DISTINCT FROM c.scene_version OR o.actor_id IS DISTINCT FROM c.command_actor_id\n  OR length(btrim(p->>'narrative_text'))<>0 OR jsonb_array_length(p->'inputs')<>0 THEN\n  RAISE EXCEPTION 'panel_offer_not_available' USING ERRCODE='40001';END IF;\n SELECT * INTO STRICT ctx FROM combat_consumer_private.activities WHERE session_id=c.activity_id FOR UPDATE;\n IF ctx.phase<>'action' OR ctx.turn_actor_id<>c.command_actor_id OR ctx.exchange_id<>c.round_id\n  OR ctx.policy_id<>'staff_test_no_persistent_resources_v1' OR NOT combat_consumer_private.staff_test_allowed(c.location_id,ARRAY[uid],false)\n  OR NOT EXISTS(SELECT 1 FROM public.locations WHERE id=c.location_id AND is_test)\n  OR public.combat_v2_values_written(c.activity_id) THEN RAISE EXCEPTION 'pg_movement_scope_invalid' USING ERRCODE='42501';END IF;\n SELECT * INTO STRICT a FROM public.combat_v2_actors WHERE id=c.command_actor_id AND session_id=c.activity_id\n  AND actor_kind='pg' AND companion_id IS NULL AND controller_user=uid AND state='attivo' FOR UPDATE;\n IF combat_panel_private.movement_block_reason(a.id) IS NOT NULL THEN RAISE EXCEPTION 'panel_body_movement_blocked' USING ERRCODE='40001';END IF;\n SELECT coalesce(array_agg((value#>>'{}')::uuid),'{}'::uuid[]) INTO selected FROM jsonb_array_elements(p->'selected_option_ids');\n resolved:=combat_panel_private.resolve_selections(o.id,selected,p->'inputs');\n FOR payload IN SELECT choice->'payload' FROM jsonb_array_elements(resolved->'groups')g(v)\n  CROSS JOIN LATERAL jsonb_array_elements(v->'options')x(choice) LOOP\n  IF payload?'movement_capability_id' THEN count_caps:=count_caps+1;cid:=(payload->>'movement_capability_id')::uuid;END IF;\n END LOOP;\n IF count_caps<>1 OR cid IS NULL THEN RAISE EXCEPTION 'pg_movement_selection_invalid' USING ERRCODE='22023';END IF;\n SELECT * INTO STRICT cap FROM combat_spatial.movement_capabilities WHERE capability_id=cid AND actor_id=a.id FOR UPDATE;\n SELECT * INTO STRICT i FROM combat_spatial.arena_instances WHERE instance_id=cap.instance_id AND encounter_id=c.activity_id AND context_source='ordinary' AND state='open' FOR UPDATE;\n SELECT * INTO STRICT body FROM combat_spatial.actor_states WHERE instance_id=i.instance_id AND actor_id=a.id AND state='active' FOR UPDATE;\n SELECT * INTO STRICT cost_cap FROM combat_panel_private.movement_cost_capabilities WHERE capability_id=cid;\n remaining:=(combat_panel_private.movement_budget(a.id,c.round_id)->>'remaining_m')::numeric;\n IF cap.state<>'offered' OR cap.map_version<>i.map_version OR cap.actor_body_version<>body.body_version\n  OR body.controller_principal_id IS DISTINCT FROM uid OR (cap.start_x_m,cap.start_y_m) IS DISTINCT FROM (body.x_m,body.y_m)\n  OR left(cap.choice_key,length('pgmove:'||c.round_id||':'||body.body_version||':'))<>'pgmove:'||c.round_id||':'||body.body_version||':'\n  OR cost_cap.budget_m>remaining OR combat_spatial.distance_m(cap.start_x_m,cap.start_y_m,cap.end_x_m,cap.end_y_m)<=0\n  OR (cap.end_x_m<>cap.start_x_m AND cap.end_y_m<>cap.start_y_m) THEN RAISE EXCEPTION 'pg_movement_capability_stale' USING ERRCODE='40001';END IF;\n result:=combat_spatial.movement_commit(cid,key,o.id);eid:=(result->>'event_id')::uuid;\n INSERT INTO clan_marionettisti_private.movement_receipts(request_key,round_id,owner_actor_id,body_actor_id,capability_id,distance_m,result)\n  VALUES(key,c.round_id,a.id,a.id,cid,(result->>'d_eff_m')::numeric,result);\n UPDATE combat_consumer_private.activities SET context_version=context_version+1,last_action_at=clock_timestamp() WHERE session_id=c.activity_id;\n SELECT value->>'display_name' INTO label FROM jsonb_array_elements(env->'actors') WHERE value->>'actor_id'=a.id::text;\n env:=combat_panel_private.ordinary_projection(c.location_id,a.id);\n event:=jsonb_build_object('event_id',eid,'event_kind','movement','actor_id',a.id,'display_name',label,'label_version',c.context_version,\n  'target_actor_id',NULL,'target_display_name',NULL,'target_label_version',NULL,'summary',label||' si sposta di '||(result->>'d_eff_m')||' m.');\n receipt:=jsonb_build_object('receipt_id',eid,'request_key',key,'operation','control','replayed',false,'activity_id',c.activity_id,'round_id',c.round_id,\n  'context_version_before',o.context_version,'context_version_after',env#>'{context,version}','declaration_id',NULL,'report_id',NULL,\n  'values_written',false,'display_events',jsonb_build_array(event));\n env:=jsonb_set(env,'{receipt}',receipt);\n UPDATE combat_panel_private.offers SET state='consumed',consumed_request_key=key WHERE id=o.id;\n INSERT INTO combat_panel_private.request_receipts(principal_user,request_key,command_fingerprint,offer_id,event_id,viewer_envelope)\n  VALUES(uid,key,fp,o.id,eid,env);\n RETURN env;\nEND $fn$;\nREVOKE ALL ON FUNCTION combat_panel_private.commit_pg_movement(jsonb) FROM PUBLIC,anon,authenticated,service_role;\nGRANT EXECUTE ON FUNCTION combat_panel_private.commit_pg_movement(jsonb) TO postgres;\nCREATE OR REPLACE FUNCTION combat_panel_private.ordinary_options(p_location uuid, p_actor uuid, p_expected bigint)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE env jsonb; src jsonb; c combat_panel_private.contexts%ROWTYPE; rid uuid;\n item jsonb; companion_moves jsonb:='[]'; rendered jsonb; ignored uuid;\nBEGIN\n -- Ordine coerente con il commit del motore: round/sessione prima del\n -- contesto del nuovo pannello. Non si blocca il POV prima delle risorse.\n SELECT exchange_id INTO rid FROM combat_consumer_private.activities\n   WHERE location_id=p_location AND phase<>'closed';\n IF rid IS NOT NULL THEN PERFORM public.combat_v2_lock_round(rid);\n ELSE PERFORM 1 FROM public.locations WHERE id=p_location FOR UPDATE; END IF;\n env:=combat_panel_private.ordinary_projection(p_location,p_actor);\n IF env->>'status' IS DISTINCT FROM 'ready' THEN RETURN env; END IF;\n SELECT * INTO STRICT c FROM combat_panel_private.contexts WHERE location_id=p_location\n   AND principal_user=auth.uid() AND command_actor_id IS NOT DISTINCT FROM (env#>>'{viewer,command_actor_id}')::uuid;\n IF c.context_version IS DISTINCT FROM p_expected THEN\n   RAISE EXCEPTION 'panel_context_stale' USING ERRCODE='40001'; END IF;\n IF NOT EXISTS(SELECT 1 FROM combat_panel_private.offers WHERE context_id=c.id\n   AND context_version=c.context_version AND state='offered') THEN\n   src:=combat_panel_private.consumer_state_authoritative(p_location);\n   src:=combat_panel_private.consumer_options_authoritative(p_location,(src#>>'{context,version}')::bigint);\n   IF src->>'status' IS DISTINCT FROM 'ready' THEN\n     RAISE EXCEPTION 'panel_source_options_not_ready' USING ERRCODE='40001'; END IF;\n   -- I producer gia rilasciati possono preparare il link iniziale. Riprendere\n   -- la projection autorizzata e la nuova versione prima di importare offerte.\n   env:=combat_panel_private.ordinary_projection(p_location,p_actor);\n   SELECT * INTO STRICT c FROM combat_panel_private.contexts WHERE location_id=p_location\n     AND principal_user=auth.uid() AND command_actor_id IS NOT DISTINCT FROM (env#>>'{viewer,command_actor_id}')::uuid;\n   FOR item IN SELECT value FROM jsonb_array_elements(src->'offers') LOOP\n     IF jsonb_typeof(item->'companion_movement')='object' THEN\n       companion_moves:=companion_moves||jsonb_build_array(item);\n     ELSE\n       ignored:=combat_panel_private.import_ordinary_offer(c.id,c.context_version,item,(src#>>'{context,version}')::bigint);\n     END IF;\n   END LOOP;\n   IF jsonb_array_length(companion_moves)>0 THEN\n     ignored:=combat_panel_private.import_companion_moves(c.id,c.context_version,companion_moves,(src#>>'{context,version}')::bigint);\n   END IF;\n END IF;\n PERFORM combat_panel_private.multiplication_ordinary_attack_offers(c.id,c.context_version,env);\n PERFORM combat_panel_private.multiplication_companion_ordinary_offers(c.id,c.context_version,env);\n PERFORM combat_panel_private.multiplication_offers(c.id,c.context_version,env);\n PERFORM combat_panel_private.immobilization_escape_offers(c.id,c.context_version,env);\n PERFORM clan_sabaku_private.clone_offers(c.id,c.context_version,env);\n PERFORM combat_panel_private.pg_movement_offers(c.id,c.context_version);\n PERFORM combat_panel_private.master_open_offers(c.id,c.context_version);\n SELECT coalesce(jsonb_agg(combat_panel_private.offer_projection(id) ORDER BY created_at,id),'[]'::jsonb)\n   INTO rendered FROM combat_panel_private.offers WHERE context_id=c.id\n     AND context_version=c.context_version AND state='offered';\n RETURN jsonb_set(jsonb_set(env,'{offers}',rendered),'{movement_explanations}',\n   coalesce(combat_panel_private.movement_explanations(c.id,c.context_version),'null'::jsonb));\nEND $function$\n;\nCREATE OR REPLACE FUNCTION public.combat_panel_commit_v1(p_command jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE p jsonb; uid uuid:=auth.uid(); key uuid; fp text; adapter text; reason text;\n prior combat_panel_private.request_receipts%ROWTYPE; offer combat_panel_private.offers%ROWTYPE;\n code text; message text; recovery text;\nBEGIN\n IF uid IS NULL THEN RAISE EXCEPTION 'panel_authentication_required' USING ERRCODE='28000'; END IF;\n p:=combat_panel_private.validate_command(p_command); key:=(p->>'request_key')::uuid; fp:=public.combat_v2_sha256(p);\n PERFORM pg_advisory_xact_lock(hashtextextended('panel-request:'||uid::text||':'||key::text,731));\n SELECT * INTO prior FROM combat_panel_private.request_receipts WHERE principal_user=uid AND request_key=key;\n IF prior.request_key IS NOT NULL THEN\n   IF prior.command_fingerprint<>fp THEN RAISE EXCEPTION 'panel_request_key_conflict' USING ERRCODE='22023'; END IF;\n   RETURN jsonb_set(prior.viewer_envelope,'{receipt,replayed}','true',false);\n END IF;\n SELECT * INTO offer FROM combat_panel_private.offers WHERE id=(p->>'offer_id')::uuid AND principal_user=uid;\n IF offer.id IS NULL THEN RAISE EXCEPTION 'panel_offer_not_available' USING ERRCODE='42501'; END IF;\n adapter:=offer.source_payload->>'adapter';\n reason:=combat_panel_private.access_reason((p->>'location_id')::uuid,adapter);\n IF reason IS NOT NULL THEN RAISE EXCEPTION 'panel_access_rejected' USING ERRCODE='42501'; END IF;\n IF adapter IS DISTINCT FROM combat_panel_private.location_adapter((p->>'location_id')::uuid) THEN\n   RAISE EXCEPTION 'panel_context_stale' USING ERRCODE='40001'; END IF;\n IF offer.kind='administration' AND offer.operation='open'\n   AND offer.source_payload->>'dispatch'='master_session_open' THEN\n   RETURN combat_panel_private.commit_master_open(p); END IF;\n IF offer.kind='action' AND offer.operation='declare' AND offer.source_payload->>'dispatch'='sabaku_clone' THEN\n   RETURN clan_sabaku_private.commit_clone(p); END IF;\n IF offer.kind='action' AND offer.operation='declare' AND offer.source_payload->>'dispatch'='immobilization_escape' THEN\n   RETURN combat_panel_private.commit_immobilization_escape(p); END IF;\n IF offer.kind='action' AND offer.operation='declare' AND offer.source_payload->>'dispatch'='multiplication' THEN\n   RETURN combat_panel_private.commit_multiplication(p); END IF;\n IF adapter='ordinary_v2' AND offer.kind='control' AND offer.operation='control' AND offer.source_payload->>'dispatch'='pg_movement' THEN\n   RETURN combat_panel_private.commit_pg_movement(p); END IF;\n IF adapter='ordinary_v2' THEN RETURN combat_panel_private.commit_ordinary(p); END IF;\n IF adapter='master_v2' THEN\n   IF offer.kind='control' AND offer.source_payload->>'dispatch'='sabaku_control' THEN\n     RETURN clan_sabaku_private.commit_master_control(p); END IF;\n   IF offer.kind='control' AND offer.source_payload->>'dispatch'='companion_control' THEN\n     RETURN combat_panel_private.commit_master_companion(p); END IF;\n   IF offer.kind='administration' THEN RETURN combat_panel_private.commit_master_admin(p); END IF;\n   RETURN combat_panel_private.commit_master_actor(p);\n END IF;\n RAISE EXCEPTION 'panel_dispatch_not_available' USING ERRCODE='22023';\nEXCEPTION WHEN OTHERS THEN\n -- Questo ramo viene raggiunto dopo il rollback dell'intera sottotransazione\n -- della richiesta. Non comprende timeout/disconnessioni senza risposta DB.\n code:=CASE WHEN SQLSTATE='28000' THEN 'authentication_required'\n   WHEN SQLERRM='panel_request_key_conflict' THEN 'request_key_conflict'\n   WHEN SQLSTATE='42501' THEN 'not_authorized'\n   WHEN SQLSTATE='40001' THEN 'context_changed'\n   WHEN SQLSTATE LIKE '22%' THEN 'selection_rejected' ELSE 'operation_rejected' END;\n message:=CASE code WHEN 'authentication_required' THEN 'Accedi nuovamente per continuare.'\n   WHEN 'request_key_conflict' THEN 'Questa richiesta è già associata a un altro invio. Verifica lo stato prima di continuare.'\n   WHEN 'not_authorized' THEN 'Questa operazione non è disponibile per il tuo accesso.'\n   WHEN 'context_changed' THEN 'Lo scontro è cambiato. Rileggi lo stato e scegli di nuovo.'\n   WHEN 'selection_rejected' THEN 'Le scelte non sono più valide. Rileggi le opzioni.'\n   ELSE 'Il server ha rifiutato l’operazione. Rileggi lo stato; se il problema resta, informa lo staff.' END;\n recovery:=CASE WHEN code='authentication_required' THEN 'authenticate'\n   WHEN code='request_key_conflict' THEN 'contact_staff' ELSE 'refresh' END;\n RETURN jsonb_build_object('schema_version','combat-panel-error/1','status','rejected','request_key',key,\n   'code',code,'message',message,'recovery',recovery);\nEND $function$\n;\nCOMMIT;\n\nSET search_path=pg_catalog;\nSELECT jsonb_build_object('at',clock_timestamp(),'database',current_database(),'tables',54,'all_tables_zero_rows',true,'structure_md5',(SELECT md5(jsonb_build_object('tables',(SELECT jsonb_agg(jsonb_build_object('name',n.nspname||'.'||c.relname,'owner',pg_get_userbyid(c.relowner),'acl',c.relacl::text,'rls',c.relrowsecurity,'force_rls',c.relforcerowsecurity) ORDER BY n.nspname,c.relname) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema')),'columns',(SELECT jsonb_agg(jsonb_build_object('relation',a.attrelid::regclass::text,'name',a.attname,'type',format_type(a.atttypid,a.atttypmod),'notnull',a.attnotnull,'generated',a.attgenerated,'default',pg_get_expr(d.adbin,d.adrelid)) ORDER BY a.attrelid::regclass::text,a.attnum) FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum WHERE a.attnum>0 AND NOT a.attisdropped AND c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema')),'constraints',(SELECT jsonb_agg(jsonb_build_object('relation',c.conrelid::regclass::text,'name',c.conname,'definition',pg_get_constraintdef(c.oid,true)) ORDER BY c.conrelid::regclass::text,c.conname) FROM pg_constraint c WHERE c.conrelid IN(SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema'))),'indexes',(SELECT jsonb_agg(pg_get_indexdef(i.indexrelid) ORDER BY i.indexrelid::regclass::text) FROM pg_index i JOIN pg_class c ON c.oid=i.indrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname NOT IN('pg_catalog','information_schema')))::text)),'functions',(SELECT jsonb_object_agg(format('%I.%I(%s)',n.nspname,p.proname,array_to_string(ARRAY(SELECT pg_catalog.format_type(a.arg_oid,NULL) FROM unnest(p.proargtypes) WITH ORDINALITY a(arg_oid,ord) ORDER BY ord),',')),jsonb_build_object('md5',md5(pg_get_functiondef(p.oid)),'owner',pg_get_userbyid(p.proowner),'acl',p.proacl::text)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE p.prokind IN('f','p') AND n.nspname NOT LIKE 'pg_%' AND n.nspname<>'information_schema'))::text;"
+    },
+    {
+      "phase": "recovery_committed",
+      "database": "tus_pg_movement_clean_recovery_005",
+      "database_role": "postgres",
+      "sql_sha256": "9d7dfa54a9902d5959bf68da56b8c633ec4cc5e89cac16dcf90bba98b8d818eb",
+      "exact_sql": "SET search_path=pg_catalog,public,extensions,auth;\nBEGIN;\nSET LOCAL lock_timeout='5s';SET LOCAL statement_timeout='20s';\nDO $pin$ BEGIN\nIF md5(pg_get_functiondef('combat_panel_private.ordinary_options(uuid,uuid,bigint)'::regprocedure)) IS DISTINCT FROM 'a0258da001e61048b0adc2ba724a482a' THEN RAISE EXCEPTION 'pg_movement_recovery_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_commit_v1(jsonb)'::regprocedure)) IS DISTINCT FROM '84860632d828931cea773b83c583548e' THEN RAISE EXCEPTION 'pg_movement_recovery_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.pg_movement_offers(uuid,bigint)'::regprocedure)) IS DISTINCT FROM 'd6a6d6e09949d59cdc7a9ba90f9bf703' THEN RAISE EXCEPTION 'pg_movement_recovery_drift';END IF;\nIF md5(pg_get_functiondef('combat_panel_private.commit_pg_movement(jsonb)'::regprocedure)) IS DISTINCT FROM '737d8d43958cbe5be62d518eb6e1c67a' THEN RAISE EXCEPTION 'pg_movement_recovery_drift';END IF;END $pin$;\nCREATE OR REPLACE FUNCTION combat_panel_private.ordinary_options(p_location uuid, p_actor uuid, p_expected bigint)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE env jsonb; src jsonb; c combat_panel_private.contexts%ROWTYPE; rid uuid;\n item jsonb; companion_moves jsonb:='[]'; rendered jsonb; ignored uuid;\nBEGIN\n -- Ordine coerente con il commit del motore: round/sessione prima del\n -- contesto del nuovo pannello. Non si blocca il POV prima delle risorse.\n SELECT exchange_id INTO rid FROM combat_consumer_private.activities\n   WHERE location_id=p_location AND phase<>'closed';\n IF rid IS NOT NULL THEN PERFORM public.combat_v2_lock_round(rid);\n ELSE PERFORM 1 FROM public.locations WHERE id=p_location FOR UPDATE; END IF;\n env:=combat_panel_private.ordinary_projection(p_location,p_actor);\n IF env->>'status' IS DISTINCT FROM 'ready' THEN RETURN env; END IF;\n SELECT * INTO STRICT c FROM combat_panel_private.contexts WHERE location_id=p_location\n   AND principal_user=auth.uid() AND command_actor_id IS NOT DISTINCT FROM (env#>>'{viewer,command_actor_id}')::uuid;\n IF c.context_version IS DISTINCT FROM p_expected THEN\n   RAISE EXCEPTION 'panel_context_stale' USING ERRCODE='40001'; END IF;\n IF NOT EXISTS(SELECT 1 FROM combat_panel_private.offers WHERE context_id=c.id\n   AND context_version=c.context_version AND state='offered') THEN\n   src:=combat_panel_private.consumer_state_authoritative(p_location);\n   src:=combat_panel_private.consumer_options_authoritative(p_location,(src#>>'{context,version}')::bigint);\n   IF src->>'status' IS DISTINCT FROM 'ready' THEN\n     RAISE EXCEPTION 'panel_source_options_not_ready' USING ERRCODE='40001'; END IF;\n   -- I producer gia rilasciati possono preparare il link iniziale. Riprendere\n   -- la projection autorizzata e la nuova versione prima di importare offerte.\n   env:=combat_panel_private.ordinary_projection(p_location,p_actor);\n   SELECT * INTO STRICT c FROM combat_panel_private.contexts WHERE location_id=p_location\n     AND principal_user=auth.uid() AND command_actor_id IS NOT DISTINCT FROM (env#>>'{viewer,command_actor_id}')::uuid;\n   FOR item IN SELECT value FROM jsonb_array_elements(src->'offers') LOOP\n     IF jsonb_typeof(item->'companion_movement')='object' THEN\n       companion_moves:=companion_moves||jsonb_build_array(item);\n     ELSE\n       ignored:=combat_panel_private.import_ordinary_offer(c.id,c.context_version,item,(src#>>'{context,version}')::bigint);\n     END IF;\n   END LOOP;\n   IF jsonb_array_length(companion_moves)>0 THEN\n     ignored:=combat_panel_private.import_companion_moves(c.id,c.context_version,companion_moves,(src#>>'{context,version}')::bigint);\n   END IF;\n END IF;\n PERFORM combat_panel_private.multiplication_ordinary_attack_offers(c.id,c.context_version,env);\n PERFORM combat_panel_private.multiplication_companion_ordinary_offers(c.id,c.context_version,env);\n PERFORM combat_panel_private.multiplication_offers(c.id,c.context_version,env);\n PERFORM combat_panel_private.immobilization_escape_offers(c.id,c.context_version,env);\n PERFORM clan_sabaku_private.clone_offers(c.id,c.context_version,env);\n PERFORM combat_panel_private.master_open_offers(c.id,c.context_version);\n SELECT coalesce(jsonb_agg(combat_panel_private.offer_projection(id) ORDER BY created_at,id),'[]'::jsonb)\n   INTO rendered FROM combat_panel_private.offers WHERE context_id=c.id\n     AND context_version=c.context_version AND state='offered';\n RETURN jsonb_set(jsonb_set(env,'{offers}',rendered),'{movement_explanations}',\n   coalesce(combat_panel_private.movement_explanations(c.id,c.context_version),'null'::jsonb));\nEND $function$;\nCREATE OR REPLACE FUNCTION public.combat_panel_commit_v1(p_command jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE p jsonb; uid uuid:=auth.uid(); key uuid; fp text; adapter text; reason text;\n prior combat_panel_private.request_receipts%ROWTYPE; offer combat_panel_private.offers%ROWTYPE;\n code text; message text; recovery text;\nBEGIN\n IF uid IS NULL THEN RAISE EXCEPTION 'panel_authentication_required' USING ERRCODE='28000'; END IF;\n p:=combat_panel_private.validate_command(p_command); key:=(p->>'request_key')::uuid; fp:=public.combat_v2_sha256(p);\n PERFORM pg_advisory_xact_lock(hashtextextended('panel-request:'||uid::text||':'||key::text,731));\n SELECT * INTO prior FROM combat_panel_private.request_receipts WHERE principal_user=uid AND request_key=key;\n IF prior.request_key IS NOT NULL THEN\n   IF prior.command_fingerprint<>fp THEN RAISE EXCEPTION 'panel_request_key_conflict' USING ERRCODE='22023'; END IF;\n   RETURN jsonb_set(prior.viewer_envelope,'{receipt,replayed}','true',false);\n END IF;\n SELECT * INTO offer FROM combat_panel_private.offers WHERE id=(p->>'offer_id')::uuid AND principal_user=uid;\n IF offer.id IS NULL THEN RAISE EXCEPTION 'panel_offer_not_available' USING ERRCODE='42501'; END IF;\n adapter:=offer.source_payload->>'adapter';\n reason:=combat_panel_private.access_reason((p->>'location_id')::uuid,adapter);\n IF reason IS NOT NULL THEN RAISE EXCEPTION 'panel_access_rejected' USING ERRCODE='42501'; END IF;\n IF adapter IS DISTINCT FROM combat_panel_private.location_adapter((p->>'location_id')::uuid) THEN\n   RAISE EXCEPTION 'panel_context_stale' USING ERRCODE='40001'; END IF;\n IF offer.kind='administration' AND offer.operation='open'\n   AND offer.source_payload->>'dispatch'='master_session_open' THEN\n   RETURN combat_panel_private.commit_master_open(p); END IF;\n IF offer.kind='action' AND offer.operation='declare' AND offer.source_payload->>'dispatch'='sabaku_clone' THEN\n   RETURN clan_sabaku_private.commit_clone(p); END IF;\n IF offer.kind='action' AND offer.operation='declare' AND offer.source_payload->>'dispatch'='immobilization_escape' THEN\n   RETURN combat_panel_private.commit_immobilization_escape(p); END IF;\n IF offer.kind='action' AND offer.operation='declare' AND offer.source_payload->>'dispatch'='multiplication' THEN\n   RETURN combat_panel_private.commit_multiplication(p); END IF;\n IF adapter='ordinary_v2' THEN RETURN combat_panel_private.commit_ordinary(p); END IF;\n IF adapter='master_v2' THEN\n   IF offer.kind='control' AND offer.source_payload->>'dispatch'='sabaku_control' THEN\n     RETURN clan_sabaku_private.commit_master_control(p); END IF;\n   IF offer.kind='control' AND offer.source_payload->>'dispatch'='companion_control' THEN\n     RETURN combat_panel_private.commit_master_companion(p); END IF;\n   IF offer.kind='administration' THEN RETURN combat_panel_private.commit_master_admin(p); END IF;\n   RETURN combat_panel_private.commit_master_actor(p);\n END IF;\n RAISE EXCEPTION 'panel_dispatch_not_available' USING ERRCODE='22023';\nEXCEPTION WHEN OTHERS THEN\n -- Questo ramo viene raggiunto dopo il rollback dell'intera sottotransazione\n -- della richiesta. Non comprende timeout/disconnessioni senza risposta DB.\n code:=CASE WHEN SQLSTATE='28000' THEN 'authentication_required'\n   WHEN SQLERRM='panel_request_key_conflict' THEN 'request_key_conflict'\n   WHEN SQLSTATE='42501' THEN 'not_authorized'\n   WHEN SQLSTATE='40001' THEN 'context_changed'\n   WHEN SQLSTATE LIKE '22%' THEN 'selection_rejected' ELSE 'operation_rejected' END;\n message:=CASE code WHEN 'authentication_required' THEN 'Accedi nuovamente per continuare.'\n   WHEN 'request_key_conflict' THEN 'Questa richiesta è già associata a un altro invio. Verifica lo stato prima di continuare.'\n   WHEN 'not_authorized' THEN 'Questa operazione non è disponibile per il tuo accesso.'\n   WHEN 'context_changed' THEN 'Lo scontro è cambiato. Rileggi lo stato e scegli di nuovo.'\n   WHEN 'selection_rejected' THEN 'Le scelte non sono più valide. Rileggi le opzioni.'\n   ELSE 'Il server ha rifiutato l’operazione. Rileggi lo stato; se il problema resta, informa lo staff.' END;\n recovery:=CASE WHEN code='authentication_required' THEN 'authenticate'\n   WHEN code='request_key_conflict' THEN 'contact_staff' ELSE 'refresh' END;\n RETURN jsonb_build_object('schema_version','combat-panel-error/1','status','rejected','request_key',key,\n   'code',code,'message',message,'recovery',recovery);\nEND $function$;\nCREATE OR REPLACE FUNCTION combat_panel_private.pg_movement_offers(p_context uuid,p_expected bigint)\nRETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $inert$ BEGIN RETURN;END $inert$;\nCREATE OR REPLACE FUNCTION combat_panel_private.commit_pg_movement(p_command jsonb)\nRETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $inert$ BEGIN RAISE EXCEPTION 'pg_movement_recovered_inert' USING ERRCODE='55000';END $inert$;\nREVOKE ALL ON FUNCTION combat_panel_private.pg_movement_offers(uuid,bigint),combat_panel_private.commit_pg_movement(jsonb) FROM PUBLIC,anon,authenticated,service_role;\nGRANT EXECUTE ON FUNCTION combat_panel_private.pg_movement_offers(uuid,bigint),combat_panel_private.commit_pg_movement(jsonb) TO postgres;\nDO $post$ BEGIN\nIF md5(pg_get_functiondef('combat_panel_private.ordinary_options(uuid,uuid,bigint)'::regprocedure)) IS DISTINCT FROM '752fc2aaf2a749b730ca50fcf8695cb9' THEN RAISE EXCEPTION 'pg_movement_restore_mismatch';END IF;\nIF md5(pg_get_functiondef('public.combat_panel_commit_v1(jsonb)'::regprocedure)) IS DISTINCT FROM 'cff710fa9c152019ef520c0bc701754b' THEN RAISE EXCEPTION 'pg_movement_restore_mismatch';END IF;END $post$;\nCOMMIT;\n\nSET search_path=pg_catalog;\nSELECT jsonb_build_object('at',clock_timestamp(),'database',current_database(),'tables',54,'all_tables_zero_rows',true,'structure_md5',(SELECT md5(jsonb_build_object('tables',(SELECT jsonb_agg(jsonb_build_object('name',n.nspname||'.'||c.relname,'owner',pg_get_userbyid(c.relowner),'acl',c.relacl::text,'rls',c.relrowsecurity,'force_rls',c.relforcerowsecurity) ORDER BY n.nspname,c.relname) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema')),'columns',(SELECT jsonb_agg(jsonb_build_object('relation',a.attrelid::regclass::text,'name',a.attname,'type',format_type(a.atttypid,a.atttypmod),'notnull',a.attnotnull,'generated',a.attgenerated,'default',pg_get_expr(d.adbin,d.adrelid)) ORDER BY a.attrelid::regclass::text,a.attnum) FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum WHERE a.attnum>0 AND NOT a.attisdropped AND c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema')),'constraints',(SELECT jsonb_agg(jsonb_build_object('relation',c.conrelid::regclass::text,'name',c.conname,'definition',pg_get_constraintdef(c.oid,true)) ORDER BY c.conrelid::regclass::text,c.conname) FROM pg_constraint c WHERE c.conrelid IN(SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema'))),'indexes',(SELECT jsonb_agg(pg_get_indexdef(i.indexrelid) ORDER BY i.indexrelid::regclass::text) FROM pg_index i JOIN pg_class c ON c.oid=i.indrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname NOT IN('pg_catalog','information_schema')))::text)),'functions',(SELECT jsonb_object_agg(format('%I.%I(%s)',n.nspname,p.proname,array_to_string(ARRAY(SELECT pg_catalog.format_type(a.arg_oid,NULL) FROM unnest(p.proargtypes) WITH ORDINALITY a(arg_oid,ord) ORDER BY ord),',')),jsonb_build_object('md5',md5(pg_get_functiondef(p.oid)),'owner',pg_get_userbyid(p.proowner),'acl',p.proacl::text)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE p.prokind IN('f','p') AND n.nspname NOT LIKE 'pg_%' AND n.nspname<>'information_schema'))::text;"
+    },
+    {
+      "phase": "postflight_inert_helpers_zero_rows",
+      "database": "tus_pg_movement_clean_recovery_005",
+      "database_role": "supabase_admin",
+      "sql_sha256": "3e3ad6fe37faec00263dd0027fd66a93fd0aaef6cbd95bb908d7936531f18caa",
+      "exact_sql": "SET search_path=pg_catalog;\nDO $probes$ BEGIN\n PERFORM combat_panel_private.pg_movement_offers(NULL,NULL);\n BEGIN PERFORM combat_panel_private.commit_pg_movement('{}'::jsonb);RAISE EXCEPTION 'qa_helper_not_inert';EXCEPTION WHEN SQLSTATE '55000' THEN NULL;END;\nEND $probes$;\nSELECT jsonb_build_object('helpers_inert',true)::text;\nDO $zero$ DECLARE r record;n bigint;tables_n integer:=0;BEGIN\n IF current_database()<>'tus_pg_movement_clean_recovery_005' THEN RAISE EXCEPTION 'qa_wrong_database';END IF;\n FOR r IN SELECT n.nspname,c.relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema') LOOP\n EXECUTE format('SELECT count(*) FROM %I.%I',r.nspname,r.relname) INTO n;\n IF n<>0 THEN RAISE EXCEPTION 'qa_nonempty_table';END IF; tables_n:=tables_n+1;\n END LOOP; IF tables_n<>54 THEN RAISE EXCEPTION 'qa_table_count';END IF;\nEND $zero$;\nSELECT jsonb_build_object('at',clock_timestamp(),'database',current_database(),'tables',54,'all_tables_zero_rows',true,'structure_md5',(SELECT md5(jsonb_build_object('tables',(SELECT jsonb_agg(jsonb_build_object('name',n.nspname||'.'||c.relname,'owner',pg_get_userbyid(c.relowner),'acl',c.relacl::text,'rls',c.relrowsecurity,'force_rls',c.relforcerowsecurity) ORDER BY n.nspname,c.relname) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema')),'columns',(SELECT jsonb_agg(jsonb_build_object('relation',a.attrelid::regclass::text,'name',a.attname,'type',format_type(a.atttypid,a.atttypmod),'notnull',a.attnotnull,'generated',a.attgenerated,'default',pg_get_expr(d.adbin,d.adrelid)) ORDER BY a.attrelid::regclass::text,a.attnum) FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum WHERE a.attnum>0 AND NOT a.attisdropped AND c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema')),'constraints',(SELECT jsonb_agg(jsonb_build_object('relation',c.conrelid::regclass::text,'name',c.conname,'definition',pg_get_constraintdef(c.oid,true)) ORDER BY c.conrelid::regclass::text,c.conname) FROM pg_constraint c WHERE c.conrelid IN(SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname NOT IN('pg_catalog','information_schema'))),'indexes',(SELECT jsonb_agg(pg_get_indexdef(i.indexrelid) ORDER BY i.indexrelid::regclass::text) FROM pg_index i JOIN pg_class c ON c.oid=i.indrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname NOT IN('pg_catalog','information_schema')))::text)),'functions',(SELECT jsonb_object_agg(format('%I.%I(%s)',n.nspname,p.proname,array_to_string(ARRAY(SELECT pg_catalog.format_type(a.arg_oid,NULL) FROM unnest(p.proargtypes) WITH ORDINALITY a(arg_oid,ord) ORDER BY ord),',')),jsonb_build_object('md5',md5(pg_get_functiondef(p.oid)),'owner',pg_get_userbyid(p.proowner),'acl',p.proacl::text)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE p.prokind IN('f','p') AND n.nspname NOT LIKE 'pg_%' AND n.nspname<>'information_schema'))::text;"
+    }
+  ],
+  "runner_sha256": "bd9967e09da890067979a66520d341b8b009ef6cdecbdd1d1e34b5abe92004a5",
+  "verification": {
+    "all_previous_functions_owner_acl_exact": true,
+    "exactly_two_new_functions": true,
+    "installed_two_new_functions": true,
+    "new_helpers_private_owner_postgres": true,
+    "structure_exact": true,
+    "zero_rows_all54": true,
+    "helpers_inert_after_commit": true,
+    "install_committed": true,
+    "recovery_committed": true
+  },
+  "sql_submissions_total": 5,
+  "completed_at": "2026-09-09T19:35:49.636207+00:00",
+  "elapsed_seconds": 0.621,
+  "database_created": false,
+  "database_retained": true,
+  "no_retry": true,
+  "independent_static_review": {
+    "owner": "ROOT / PM",
+    "verdict": "PASS",
+    "P0": 0,
+    "P1": 0,
+    "P2": 0,
+    "evidence": "Setup/guardie/runner e15input verificate,4fasi SQL+ruoli identiche008,prima run;nessunSQLreviewer."
+  },
+  "final_independent_review": "PENDING_ROOT_AFTER_FROZEN_DELIVERY",
+  "cycle_stopped_on_green": true,
+  "completion": {
+    "attempt_cumulative": 7,
+    "additional_authorized_pass": 2,
+    "setup_grant_observed": {
+      "acl": "{supabase_admin=UC/supabase_admin,postgres=UC/supabase_admin}",
+      "owner": "supabase_admin",
+      "phase": "environment_grant_committed",
+      "schema": "combat_panel_private",
+      "database": "tus_pg_movement_clean_recovery_005",
+      "postgres_usage": true,
+      "postgres_create": true,
+      "postgres_superuser": false,
+      "only_authorized_schema_grant": true
+    },
+    "preflight_original_function_count": 65,
+    "postflight_function_count": 67,
+    "rows_on_all54_tables": 0,
+    "new_helpers_after_recovery": "2 reali,privatepostgres,inerti;nessunDROP",
+    "code_recovery_committed_qualified_locally": true,
+    "full_gameplay_auth_rls_qualification": false,
+    "db_retained": "tus_pg_movement_clean_recovery_005",
+    "next_install_unchanged_would_require_absent_helpers": "Il banco conserva le2helperinerti:nonripetereINSTALLchele richiedeassenti;nessunaripetizioneprevista."
+  },
+  "handoff": "PG-MOVEMENT-CLEAN-RECOVERY-009 · settimocumulativo/secondoaggiuntivoAntonello · scope2referti+diagnosi008durable+8copie008 · unicoGRANTCREATEschemasulDB005locale,nessunruologlobale/owner/prodotto · reviewstaticaROOT0/0/0,runPASS5/5:INSTALLCOMMIT→RECOVERYCOMMIT→postflight65pinACL+2helperinerti+54tabellevuote · cycleSTOPalverde · trigger/policy/Auth/RLS/gameplayesclusidaquestobanco;G1-G6verde separato · alPMreviewfinaleindipendentee preparazionegatenominativi,nessunapplyprodderivato."
+}
