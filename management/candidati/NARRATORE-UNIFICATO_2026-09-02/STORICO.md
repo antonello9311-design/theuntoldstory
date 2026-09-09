@@ -122,3 +122,17 @@
 - 09/09/2026 · PM-TACTICS-004-RECONCILIATION-001 · Riletti cinque corpi live: benefici Assalto/Copertura già rappresentati, catena da collaudare; spostamento Diversivo ancora da raccordare. Nessun bonus inventato o mutazione. · analisi locale, requisito004 aperto.
 
 09/09/2026 · PM-PARALLEL-CHECKPOINT-009 · Recovery0095/5 e review0/0/0; contratto PNG congelato, backend/UI e bootstrap Hyūga assegnati in parallelo · Verde locale distinto da rilascio; Riuji escluso.
+
+09/09/2026 · PM-PARALLEL-GREEN-CHECKPOINT-001 · Riuji autorizzato e smoke IA24/Clone003 PASS con12superfici protette identiche; PNG aggregata01 review0/0/0/controller10/10, bootstrap Hyūga005 compilato ma ACLrossa e006 preparato · Goal incompleto, nessun nuovo rilascio.
+
+09/09/2026 · PM-COMPILE006-FINAL-CHECKPOINT-001 · Banco006 COMPONENT_PASS alla quinta aggregata:4SQL/1,871s,565funzioni e inventario esatti; gate Movimento pronto e catalogo indicato come prossimo seguito editoriale ·0produzione/provider, gameplay ancora aperto.
+
+10/09/2026 · PM-NIGHT-LIVE-CHECKPOINT-001 · Movimento rilasciato20260909213847 e T2TrasportoPASS;catalogo2campiapplicato;attestazione8/8verde,PNG02review0/0/0 eFlussi15m/30/30/3/2ratificati · Risorseprotette12/12;goalcomplessivoincompleto.
+
+2026-09-10 · PM-SMOKE004-CHECKPOINT-002 · Clone004 attesta fonte aggiornata e fine in sabbia, dodici superfici protette identiche; resta limite editoriale e liberazione non eseguita. Consolidati stati live e incarichi PNG/Flussi. · PASS funzionale parziale; goal in lavoro.
+
+2026-09-10 · NARRATIVE-EDITORIAL-SCENE-RELEASE-001 · Supplemento scene-redaction/2:18/18 e review0/0/0, Edge25 rilasciata15/15esatti; nessuna mutazioneDB/catalogo/provider. · PostflightPASS; smoke stile aperto.
+
+2026-09-10 · PM-LIVE25-NEXT-CHECKPOINT-003 · IA25 live e smoke005 PASSfunzionale con limiteeditoriale; componenti Flussi001 consegnati e core002 avviato, banco PNGassembly02 conservato e vectors03 in costruzione. · Goal in lavoro; nessun Flusso/PNG live dichiarato.
+
+2026-09-10 · PM-MULTIPLICATION-GEOMETRY-CLARIFY-004 · Estensione9m spiegata da gruppo traslato largo5m;quattrocorpinativi confermati,nessundifetto riprodotto népatch. · Diagnosi conclusa.
