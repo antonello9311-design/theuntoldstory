@@ -1,12 +1,12 @@
 # HANDOFF · CLAN-L1 · collaudo e seguito live
 
 ## TASK-ID
-PM-CLAN-COLLAUDO-LIVE-001 · in lavoro. Mandato Antonello: collaudo e live delle parti mancanti; al rientro autorizzato il caricamento dei file pronti. Due casi live OFF/ON completati,0provider; stesso scontro preservato. Raccordo locale e review verdi, gate di rilascio ancora da completare.
+PM-CLAN-COLLAUDO-LIVE-001 e CLAN-RACCORDO-LIVE-001 · tranche consegnata. Raccordo applicato, smokeClone/Fato PASS, caricamenti verificati; programmaClan ancora in lavoro. Tre casi live complessivi OFF/ON/Clone,1provider2932token. StessaStaffpreservata.
 
 Precedente consegna: PM-CLAN-RIPRESA-001 → CLAN-UTILITY-QUALIFICA-001 e CLAN-UCHIHA-PREP-001 · PM ·09/09/2026
 
 ## Scope toccato
-Depositi completati09/09:31contenuti del processo più registro/consegna verificati;14file del lettore privato recupero verificati alla testa9edd1d2f15184f2923bbe791c663ba3caacca4d0. Gli inventari e i commit sono in PUBBLICAZIONE e RECOVERY_WINDOW_DEPOSIT.json. Nessun apply del raccordo o di Uchiha.
+Depositi completati09/09:31contenuti del processo più registro/consegna verificati;14file del lettore privato recupero verificati alla testa9edd1d2f15184f2923bbe791c663ba3caacca4d0. Gli inventari e i commit sono in PUBBLICAZIONE e RECOVERY_WINDOW_DEPOSIT.json. Raccordo applicato successivamente nella migrazione20260909154236; Uchiha non applicato.
 
 Ripresa corrente: qualifica locale del raccordo, candidato di acquisizione Uchiha, collaudo diretto Controllo OFF/ON e coordinamento PM. Il processo operativo è stato depositato separatamente su GitHub.
 
@@ -16,7 +16,7 @@ Pannelli comuni, runtime Marionettisti/Sabaku e catalogo Controllo/Trasporto/Clo
 combat-panel/1, combat-map/2, sabaku-transport-view/2.098 corregge solo geometry_sha256 di17scene dopo aggiunta is_impervious=false.099 riusa il consumer originale per apertura/accettazione e Common durante gli scambi. Candidato100 propone tempi di trasporto e recupero esplicito di un tentativo pre-provider, con nuova chiave e audit; NON applicato. Le protezioni e il report meccanico restano invarianti.
 
 ## Decisioni prese / OPEN
-**Ripresa Clan del 09/09 — stato corrente:** il nuovo contratto RACCORDO è qualificato localmente: 16/16 SQL, 8 gruppi e 9 sottocasi PASS, review iniziale indipendente 0/0/0 senza correzioni. INSTALL SHA9dc6fa7fd2f0520e9e3779a600d90587d2151d389ae00a839f85bec0b6619089 invariata. La creazione del Clone è nativa; la presa iniziale del caso liberazione è una fixture sintetica dichiarata e validata, poi il comando è nativo. Non sono certificati movimento, innesco spontaneo o vittoria della presa. I precedenti cicli terminali ROSSI restano conservati in19evidenze, senza riapertura. Preflight e recovery operativo del rilascio sono in preparazione; nessun apply, deploy o enable eseguito. Uchiha:13file candidati di acquisizione,8controlli statici PASS; inventory pin per generici e collegamento della permission al motore Common mancanti, qualifica PostgreSQL/UI ancora da eseguire. Gate OFF, catalogo pubblico invariato. Fonti: runtime/sabaku/candidato/CLAN_CONTINUATION_REVIEW_FINAL.md e runtime/uchiha/HANDOFF.md.
+**Raccordo e smoke Clone conclusi09/09:** migrazione20260909154236 applicata una sola volta dopo review prodotto/recovery0/0/0 e preflight senza drift o report pendenti. Postflight3corpi/ACL esatti,496migrazioni; nessun flag, Edge, RLS o catalogo modificato. Clone inviato una sola volta dal sito alle15:43:42: creazione nativa, cattura initial_presence fallita secondo il motore, clone terminato/capture_failed e5sabbia rilasciata. Fato5199b592 pubblicato15:44:13 dal percorso ordinario,1provider/2932token/0retry; nuovo scambio b983ef4e, turno testperfunzioni, stessa scena aperta. Chakra simulatoRiuji85→80,PV55,sabbia15/15/impegnata0. Postflight15:45:42 contro15:37:49:2PG/12superfici identiche, inclusi timestamp. Smoke del raccordo PASS; non certifica presa riuscita/liberazione o interoClan. P2 narrativo CLONE-NARRATIVE-END-001: Fato non rende esplicita la dissoluzione; facts mostra capture_failed ma non proietta esplicitamente la fine. Nessuna rigenerazione. Fonte runtime/sabaku/candidato/CLAN_CONTINUATION_LIVE_RESULT.json; screenshot mostrato nella task.
 
 **Collaudo Staff diretto del 09/09, 13:52–13:56 UTC:** sulla stessa scena e4f36e1a, Controllo OFF e ON eseguiti dal sito con ricevute c570d389 e ea0acd11. OFF gratuito, ON costa5chakra soltanto simulati; Clone/Trasporto scompaiono con OFF e tornano con ON. Stato finale di prova: Controllo ON, PV55, chakra85, sabbia15/15 e impegnata0. Postflight13:56:29 contro preflight13:50:03:2PG/12superfici identiche, inclusi timestamp;0provider e0token, nessuna scena creata o chiusa. Prova conservata aperta su mandato. Tre schermate mostrate nella task, nessun file immagine depositato. Clone e attacco non inviati. Flussi assenti nella UI e nella verifica readonly14:01:21; non integrati. Fonte runtime/sabaku/candidato/STAFF_RESUME_PREFLIGHT.json.
 
@@ -65,7 +65,7 @@ Narratore09/09: configurazione20/20 qualificata0/0/0 e successiva integrazione c
 
 ## Rischi o regressioni da verificare
 
-**Residui correnti:** recovery operativo/preflight/gate del raccordo e smoke reale; integrazione inventory pin/permission/consumer Uchiha. I finding CQ01/CQ02 del vecchio ciclo restano nel suo archivio terminale; non descrivono il nuovo contratto qualificato.
+**Residui correnti:** P2 narrativo fineClone, presa/liberazione e movimentoTrasporto; integrazione inventory pin/permission/consumer Uchiha. I finding CQ01/CQ02 del vecchio ciclo restano nel suo archivio terminale.
 
 Marionetta difesa09/09: Antonello approva terza difesa del PG tramite richiamo della propria marionetta,Fili attivi obbligatori,danno eccedente al PG. Richieste originali verificate nel task Narratore e CONTRACT/HANDOFF aggiornati. Due domande residue già inviate: economia del richiamo e tiro difensivo. Candidato privato di ripartizione danno preparato e verificato5/5 gruppi,3131combinazioni,3SQL/0provider,baseline locale invariata; nessuna offerta/movimento/difesa live introdotti. Fonte: runtime/marionettisti/candidato/DEFENSE_RECALL_PLAN.md e QA_DEFENSE_RECALL_SPLIT_RESULT.json.
 
@@ -75,7 +75,7 @@ Sabaku preparato e Controllo ON verificato; Trasporto verificato su attivazione/
 
 ## Passaggio richiesto al PM
 
-Completare il preflight e la verifica del recovery operativo del solo raccordo utility, poi il gate di rilascio e lo smoke Clone nella stessa Staff protetta. Il verde locale non autorizza automaticamente produzione. Chiudere i casi Sabaku già presenti e poi integrare i Flussi, senza aspettare il collaudo di tutti gli altri clan; ordine proposto all’utente, nessuna nuova regola di gioco dedotta. Il movimento PG autonomo per Trasporto resta distinto. Uchiha riparte dai13file congelati e dai due collegamenti comuni mancanti. Le vecchie task restano archiviate; scene e storico si preservano. I31contenuti del processo, il registro e la consegna di pubblicazione sono caricati e verificati; i candidati Clan mantengono inventari e gate distinti.
+Raccordo utility rilasciato e smokeClone/Fato PASS. Nel seguito circoscritto completare le mosse Sabaku già presenti: presa/liberazione nei casi reali disponibili e movimento PG autonomo per Trasporto, senza forzare successi o ripetere la campagna del raccordo. Poi integrare i Flussi, senza attendere tutti gli altri clan. Prima del nuovo seguito narrativo correggere il contratto dei fatti di fineClone e verificare la resa scenica sul difetto P2 osservato, senza rigenerare il Fato già pubblicato. Uchiha:13file candidati, inventory pin/permission Common/consumer e qualifica ancora aperti. Stessa Staff mantenuta aperta, nessuna nuova task per l’utente o apertura generale.
 
 ## Inventario della ripresa precedente · riferimento storico
 

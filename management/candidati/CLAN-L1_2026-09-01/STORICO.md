@@ -366,3 +366,5 @@
 09/09/2026 · PM-CLAN-COLLAUDO-LIVE-001 · Raccordo qualificato localmente16SQL/review0/0/0, Controllo OFF/ON live con postflight integro; Uchiha candidato con collegamenti mancanti · parziale, nessun apply del raccordo.
 
 09/09/2026 · CLAN-RECOVERY-WINDOW-DEPOSITO-001 · Caricati14file del lettore privato recupero con blob esatti; nessun apply o uso pubblico · deposito concluso.
+
+09/09/2026 · CLAN-RACCORDO-LIVE-001 · Migrazione20260909154236 e smokeClone/Fato PASS,1provider2932token,12superfici protette identiche; P2 dissoluzione narrativa registrato · tranche conclusa, Clan ancora in lavoro.
