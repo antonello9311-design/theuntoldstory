@@ -370,3 +370,6 @@
 09/09/2026 · CLAN-RACCORDO-LIVE-001 · Migrazione20260909154236 e smokeClone/Fato PASS,1provider2932token,12superfici protette identiche; P2 dissoluzione narrativa registrato · tranche conclusa, Clan ancora in lavoro.
 
 09/09/2026 · PM-CLAN-IA-PARALLELO-001 · Passa/Fato PASS1provider2601token e12superfici identiche; movimentoPG non offerto/presa assente, verificato catalogo non trasmesso al narratore e ratifica resa mosse · seguito con limiti registrati.
+
+09/09/2026 · PM-CLAN-IA-GOAL-001 · Goal e ripresa automatica attivi; avviati candidati indipendenti movimentoPG e raccordo narrativo, mappe/PNG durante espansione · in lavoro,0provider/nessun rilascio.
+09/09/2026 · PM-CLAN-IA-GOAL-001 finale · Movimento 4/6 e IA 0/8 qualificati, review terminali rosse; fondazioni Hyūga consegnate, richiesta eccezione per sole correzioni e ricertificazione · nessun rilascio/provider, goal incompleto.

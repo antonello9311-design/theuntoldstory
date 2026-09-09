@@ -2,11 +2,17 @@
 
 ## TASK-ID
 
-PM-CLAN-IA-PARALLELO-001 · seguito09/09. RaccordoCLAN-RACCORDO-LIVE-001 già concluso e preservato; nuovo contrattoIA su scope distinto.
+PM-CLAN-IA-GOAL-001 · mandato autonomo09/09. Tranche PM-CLAN-IA-PARALLELO-001 conclusa:17file depositati, confronto blob17/17 alla headaed055f7e68655f24d2e7cc83d06352a38bc8e33, zero drift. RaccordoCLAN-RACCORDO-LIVE-001 preservato. Goal attivo e heartbeat clan-l1-lavoro-notturno-unico ACTIVE ogni10min, stessa taskPM.
 
 ## Scope toccato
 
-Nuovo seguito: STAFF_REMAINING_PLAN.md/RESULT.json, piano parallelo e riepiloghi. Una sola azione di prova; letture pertinenti del narratore/catalogo. Nessun codice o database applicativo modificato.
+**Esiti finali del 09/09:** movimento PG: 4/6 gruppi PASS, controverifica finale 0 P0 / 2 P1 / 0 P2; raccordo fonti IA: 0/8 gruppi qualificati per errore di compilazione SQL, controverifica finale 0 P0 / 1 P1 / 0 P2. Entrambi i cicli sono terminali ROSSI, con sorgenti e referti congelati. Nessun nuovo apply, deploy, test Staff o provider. Richiesta ad Antonello una sola eccezione al budget di revisione: correzioni note, matrici complete G1–G6 e G1–G8, massimo 25 minuti per ramo, zero provider e produzione mutante; risposta ancora pendente. Nessuna ripresa dipendente prima della risposta.
+
+**Diagnosi e seguito concreto:** G2 movimento si ferma sull’ambiguità tra variabile e colonna `state` nel banco. G4 modifica solo il flag sintetico di mobilità e omette la transizione nativa del Clone: immobilizzazione registrata e nuova versione del Clone entrano nel fingerprint che rinnova contesto/offerte. Lettura di cinque definizioni vive alle 17:20:51 UTC, senza nuovi test: non certifica il percorso live e non trasforma G4 in PASS. Il seguito proposto verifica la transizione nativa coerente con il contratto Clone e mantiene esplicito il limite della mutazione sintetica; non allenta la guardia di proiezione. Per IA va corretto il confronto CASE di `NARRATIVE_TECH_INSTALL.sql`, riga 161, poi qualificato l’intero raccordo e recovery. Fonti definitive: `PG_MOVEMENT_REVIEW_FINAL.md` e `NARRATIVE_TECH_REVIEW_FINAL.md` nei rispettivi candidati.
+
+**Hyūga, preparazione indipendente conclusa:** HYUGA-COMMON-PREP-001 ha consegnato quattro file in `runtime/hyuga/candidato/`. Tre letture readonly produzione e costruzione relazionale locale 3/3 PASS, zero gameplay/provider. Raccolti 26 corpi e tre profili delegati; 21/22 pin Common invariati, `state_projection` ora include `scene_public_state_v2`, da preservare. Il catalogo Jūken conserva ancora la vecchia regola: variante ratificata separata, nessun aggiornamento live. È una fondazione di fonti, non un motore pronto né una qualifica gameplay; dipendenze ricorsive e bootstrap restano da completare. Ordine di rilascio Sabaku → Hyūga invariato. Goal e heartbeat ogni 10 minuti restano attivi, senza riaprire cicli terminali o ripetere notifiche invariate.
+
+Mandato corrente: Sabaku live e seguito altri clan; in parallelo IAordinary funzionante, poi multi-attore/quest/missioni. Le candidate movimento PG e raccordo narrativo sono congelate con i verdetti terminali riportati sopra. Scope tecnici disgiunti, PM integra solo piano/riepiloghi/deposito;25min per candidata/0provider, regia60min/0provider. Nessuna nuova mutazione produzione autorizzata per inferenza: review e gate nominativi restano distinti. Movimento dopo la principale resta limite separato del lifecycle. Il seguito Staff precedente ha eseguito una sola azione ed è concluso.
 Depositi completati09/09:31contenuti del processo più registro/consegna verificati;14file del lettore privato recupero verificati alla testa9edd1d2f15184f2923bbe791c663ba3caacca4d0. Gli inventari e i commit sono in PUBBLICAZIONE e RECOVERY_WINDOW_DEPOSIT.json. Raccordo applicato successivamente nella migrazione20260909154236; Uchiha non applicato.
 
 Ripresa corrente: qualifica locale del raccordo, candidato di acquisizione Uchiha, collaudo diretto Controllo OFF/ON e coordinamento PM. Il processo operativo è stato depositato separatamente su GitHub.
@@ -14,6 +20,8 @@ Ripresa corrente: qualifica locale del raccordo, candidato di acquisizione Uchih
 Pannelli comuni, runtime Marionettisti/Sabaku e catalogo Controllo/Trasporto/Clone. DB096 più migrazione recovery20260909093926, Edge23, LAND099 e regole84 (GitHub/locali riconciliati09/09; dominio non riverificato) pubblicati. Configurazione098 applicata. StaffPanel e SabakuStaff attivi; ordinario/MasterPanel e Sabaku pubblico disattivi. Nessuna apertura generale nuova.
 
 ## Contratti usati/modificati
+
+Preparazione Hyūga completata in lettura: successore di integrazione dopo baselineSabaku stabile, soli innesti dei moduli04/07/14/16/17/21/22 alle funzioniCommon vive; nessun override storico integrale. FixtureJūken coerente prima delle baseline/race, senza reimportare descrizione storica drain; recovery committata nel clone da verificare. Coperture residue: terminaliMaster, controller/versione, emittercounter nativi, profili delegated effettivi e armi/companion. Hyūga001 resta terminale codice0/0/0/readinessrossa;16Chiusure separata. Fonti runtime/hyuga/HANDOFF.md e candidato/REVIEW_HYUGA_FINAL.md, ordine e regole giàratificati. Nessuna candidataHyūga avviata su baseline instabile.
 combat-panel/1, combat-map/2, sabaku-transport-view/2.098 corregge solo geometry_sha256 di17scene dopo aggiunta is_impervious=false.099 riusa il consumer originale per apertura/accettazione e Common durante gli scambi. Candidato100 propone tempi di trasporto e recupero esplicito di un tentativo pre-provider, con nuova chiave e audit; NON applicato. Le protezioni e il report meccanico restano invarianti.
 
 ## Decisioni prese / OPEN
@@ -84,7 +92,7 @@ Sabaku preparato e Controllo ON verificato; Trasporto verificato su attivazione/
 
 Bozze editoriali CLAN-TESTI-NARRATIVI-001 in runtime/sabaku/candidato/TECHNIQUE_TEXT_PROPOSAL.md: descrizione ed effetto per le due tecniche da leggere ad Antonello, nessuna sostituzione del catalogo prima della valutazione.
 
-Raccordare il movimentoPG autonomo già previsto da REGOLE§4.2: offerta CONTROL nel percorso ordinary, capability e budget server, ledger condiviso e writer spaziale con hookClone; CommonPanel ha già le scelte direzione/distanza. Prima riconciliare i corpi DB correnti, poi candidata/review e gate separati. T2Trasporto e presa/liberazione restano non certificati; non cercare una presa positiva con retry. Il ramoIA integra le fonti catalogo e la ratifica narrativa nel proprio contratto. Dopo le mosseSabaku presenti vengono i Flussi, senza aspettare tutti gli altri clan. StessaStaff aperta, utenti070 rinviati.
+Attendere la risposta alla richiesta nominata di un unico ciclo aggiuntivo per i difetti descritti in Scope toccato. Se autorizzato: conservare i terminali, assegnare file e budget precisi, una correzione complessiva per ramo e una ricertificazione completa; nessun apply/deploy implicito. Non sostituire G4 con un campione favorevole: verificare la transizione nativa del Clone e conservare il limite osservato sul flag sintetico. Dopo qualifica, gate separati e smoke protetto. T2 Trasporto e presa/liberazione restano non certificati; movimento dopo la principale fuori dalla candidata. Dopo le mosse Sabaku presenti vengono i Flussi, senza aspettare gli altri clan; portata L1, formula/danno e tempi di reintegro restano OPEN già posti. Stessa Staff aperta, utenti070 rinviati. Fondazioni Hyūga disponibili per il successore senza riaprire Hyūga001.
 
 ## Inventario della ripresa precedente · riferimento storico
 
