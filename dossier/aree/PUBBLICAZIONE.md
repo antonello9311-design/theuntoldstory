@@ -1,5 +1,5 @@
 # AREA · Pubblicazione — cosa è online, cosa è in coda — scheda viva
-Allineamento09/09/2026 · IA Edge24 eSQL20260909183721 rilasciati;9evidenze/stati verificati suGitHub. Riuji escluso dai test; smoke con avversario simulato aperto.
+Allineamento 09/09/2026 · dieci sorgenti del catalogo narrativo qualificato depositate e verificate; nessun apply del catalogo. IA v24 già rilasciata, PNG di collaudo in preparazione.
 
 > **Regola dell'area.** `sito_live/` **non è ciò che è pubblicato**: è ciò che è pronto per esserlo. La verità è il file su GitHub (`antonello9311-design/theuntoldstory`, branch `main`, cartella root) e il dominio `https://theuntoldstory.it`. Ogni modifica aggiorna la riga corrente del file con build, byte e SHA; ogni caricamento registra commit, «caricato il» e «verificato il». Le evidenze precedenti restano qualificate per data, senza appendici di rettifica. Prima di patchare una pagina si riconcilia con la copia pubblicata (memoria: [[sito_live_non_e_pubblicato]], [[riconciliare_con_github]]).
 
@@ -44,23 +44,26 @@ Inventario storico integrale dei 31 file, con byte e SHA, conservato nella [vers
 
 **Rilascio IA09/09 autorizzato da Antonello:** combat_narratore_ai v24 ACTIVE,15/15moduli identici al bundle approvato, digestservizio`3ac47eb4420e65d01498c79e1dc558cb25461ccd920c3de1e84b993ed0c1dbfd`. Singola migrazione`20260909183721 narrative_tech_sources_staff_001`, registro497. Postflight18:37:46UTC: snapshot`a417e6a98201a2177cb8c244a736bb3c`, helper`955228bdc23c89cdb287198db57231b8`, ownerpostgres/ACLsolo postgres esatti; confermati readonly18:42:10. Flag e cataloghi immutati,0provider/test. L’aggancio è effettivo sui nuovi snapshotStaffammessi; prompt condiviso compatibilelegacy. NessunassetHTMLmodificato, nessunnuovo controllo dominio richiesto dal solo deposito documentale.
 
-**Deposito delle evidenze:**9/9file verificati byte per byte alla testa`480481a8554a2962622f1228af81462969b6cd8c`, quattrocommitselettivi dalla baseline`5876982061cc74f4ddc0939d180799d78519e9be`, nessunpercorsoestraneo o drift. Questo registro viene caricato per ultimo, escluso dalla propria impronta.
+**Deposito catalogo del 09/09:** dieci file esatti verificati nel commit [`2238b4d`](https://github.com/antonello9311-design/theuntoldstory/commit/2238b4d1d5e741dddd9ae2c197eb8fbe9da97f48), parent `f15622bef83beadf961f1b95e1c73dc618be3cc2`. Solo sorgenti, piano, prove e review: quattro gruppi locali PASS, sei SQL, review indipendente 0/0/0. Nessun apply del catalogo, nessun cambiamento al sito o nuova chiamata IA. La review non chiude il requisito tattico004 e il gate DB resta distinto. Il registro viene depositato per ultimo, escluso dalla propria impronta.
 
-| Evidenza o stato | Byte | SHA-256 verificata |
+| File nel candidato Narratore | Byte | SHA-256 verificata |
 |---|---:|---|
-| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/NARRATIVE_TECH_LIVE_GATE.md` | 2646 | `67a5f01c938f7b1e3b8db608c293518651d3e7967c5a201250f8ad1b74d664fd` |
-| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/NARRATIVE_TECH_LIVE_RESULT.json` | 4937 | `ebc68166b5a33ce5e8b6563ecab841f379e357d6096902be2977c90dc4bd4256` |
-| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/SCHEDA.md` | 28031 | `d6d9a8fa99e2eb3e521a1bcbc38e1a915c08eed1f154efd7db46a08d4250aed3` |
-| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/HANDOFF.md` | 9511 | `622298a40ef2a5d07295c21c7edefd5ccab1d6d944487c52e51528559a8aaaa6` |
-| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/STORICO.md` | 28064 | `386ad17b187252a0d626fab11d885502074d4e5128fc1085fb08ac6fa5f985b4` |
-| `dossier/aree/IA_NARRATIVA.md` | 56249 | `0d97de2ac232cd3a4e44d8ad25be48ef746cf682947c16660d204599f541785f` |
-| `dossier/aree/PIATTAFORMA.md` | 59384 | `89fa2209bcf244e806419ee2694791998b994a661be85fd29c4677dc8fc1febd` |
-| `dossier/aree/TEST_ROOM.md` | 25594 | `e4360257800d46d2e060403716178a8c1bb5cf3d0bcc2a39afc9ea23829b302e` |
-| `dossier/04_LAVORI_APERTI.md` | 9201 | `0a1c5bb44c04a0d8f0a5639ee413b22ee36ba896a0844c5362aaf574392c4b1a` |
+| `NARRATIVE_CATALOG_ALIGNMENT.json` | 19873 | `799d528962e2aa1017d8c74e402b8fbfa456d3bc7008c62aae11dd458ecbb23a` |
+| `NARRATIVE_CATALOG_ALIGNMENT.md` | 12005 | `5ff93921d75747d564b83ba1ec7f8dcd7371d3de85f6a956af23918ca2a1a704` |
+| `NARRATIVE_CATALOG_INSTALL.sql` | 11715 | `56729d1e2b93bae9f18aecec3259a6fe08f14315b0f03d36e3e58d15184c9878` |
+| `NARRATIVE_CATALOG_MANIFEST.json` | 3677 | `56248d2c33beaada3785e870e5411eae36a9f8d0644b2e06723808dd710b5a84` |
+| `NARRATIVE_CATALOG_PLAN.md` | 4759 | `31fb56fcc1c167d7646672171417b450b972bc24db032ff665fc18af69bd2d7f` |
+| `NARRATIVE_CATALOG_QA.json` | 2847 | `7bc7781bfcc76c9be00a5eb1eb79ec1f3e2cb740bdf1c3acb8016ce59508beef` |
+| `NARRATIVE_CATALOG_RECOVERY.sql` | 11716 | `848ab29a3505b138e6e548980914c59b1ec492c7378ac20362eac863ba9b9d3b` |
+| `NARRATIVE_CATALOG_REVIEW.md` | 6450 | `77bf8c721b44b1cf356bf96f2b9ee0c232cbd6c95a5c97cf5439682ff906cf9b` |
+| `NARRATIVE_CATALOG_REVIEW_MANIFEST.json` | 3087 | `c3d516634a3f89745a1b7079ad8829a487a32ad9f65e0149a3709e15d4d61b11` |
+| `NARRATIVE_CATALOG_RUNNER.py` | 24214 | `7345006e137a25f4d1bb222d48278c86edff8bc81b073a770626a4226b329ed7` |
 
-**Collaudo e nuova esclusione:** Antonello usa Riuji per giocare; nessuntest,azione,browser o chiusura della sua scena. Heartbeat allineato. Il percorsoordinary richiede2PGreali: testperfunzioni+mock non è ancora supportato sul sito e Master/PNG è una porta diversa. Smoke ancora aperto, nessuna certificazione live da mocklocali. Piano di avversariosintetico nativo in preparazione; nessunaccountfittizio oimpersonazione. TestRoomutenti e nuovi mapping rimangono aperti. La candidata dei due campi editoriali ha4/4proveDocker, review/apply ancora daottenere: non è catalogo live né completamento tattiche004.
+Inventario precedente delle nove evidenze del rilascio IA, con byte e SHA, conservato nel [registro verificato alla testa f15622b](https://github.com/antonello9311-design/theuntoldstory/blob/f15622bef83beadf961f1b95e1c73dc618be3cc2/dossier/aree/PUBBLICAZIONE.md).
 
-**Movimento locale:** prodotto3/5 verde6/6 e controverifica0/0/0; ripristinooperativo ancora aperto. Preflight003 identitànonricondotte poi chiarite nei seed;004 fermo per campocrittografico nonvuoto, senza copiarlo/estrarlo. NessunDBTEMPLATE creato o scriptINSTALL/RECOVERY eseguito inquelleprove. Preparazione bootstrap nativo pulito separata, nonqualifica giàcompleta. Referti preservati, Riuji intatto.
+**Collaudo e nuova esclusione:** Antonello usa Riuji per giocare; nessuntest,azione,browser o chiusura della sua scena. Heartbeat allineato. Il percorsoordinary richiede2PGreali: testperfunzioni+mock non è ancora supportato sul sito e Master/PNG è una porta diversa. Smoke ancora aperto, nessuna certificazione live da mocklocali. PNG permanente ratificato: richiamo rapido solo nelle Test Room, nuova istanza isolata per ogni prova, cataloghi Staff/utenti distinti. Piano allineato localmente, contratto e baseline ancora in completamento; nessun account fittizio o impersonazione. Piano PNG, nuova ratifica e ultimi riepiloghi locali non sono inclusi in questo deposito dei dieci file catalogo. TestRoomutenti e nuovi mapping rimangono aperti. La candidata dei due campi editoriali ha quattro gruppi Docker PASS e review 0/0/0; apply ancora da autorizzare nominativamente: non è catalogo live né completamento tattiche004.
+
+**Movimento locale:** prodotto3/5 verde6/6 e controverifica0/0/0; ripristinooperativo ancora aperto. Preflight003 identitànonricondotte poi chiarite nei seed;004 fermo per campocrittografico nonvuoto, senza copiarlo/estrarlo. NessunDBTEMPLATE creato o scriptINSTALL/RECOVERY eseguito inquelleprove. Bootstrap nativo pulito005 completato con54tabelle vuote, ma il terzo tentativo è fermo al confronto dei nomi prima di INSTALL. Il quarto006 è fermo alla reviewstatica del comparatore,0/0/1 e0SQL. Quinto e ultimo tentativo assegnato sulla sola correzione aggregata del banco; nessun nuovo risultato attestato. Referti preservati, Riuji intatto.
 
 **Depositi precedenti preservati:**30sorgenti/referti/bundle IA e9riepiloghi, poi registro, verificati alla testa`5876982061cc74f4ddc0939d180799d78519e9be`. [Inventari, impronte e commit](https://github.com/antonello9311-design/theuntoldstory/blob/5876982061cc74f4ddc0939d180799d78519e9be/dossier/aree/PUBBLICAZIONE.md). Regola5aggregate/5controverifiche cumulative e arresto alverde invariata. FondazioniHyūga e piano ESPANSIONE_MULTIATTORE restano preparazioni, non runtime qualificati.
 
