@@ -1,0 +1,17 @@
+[
+  {
+    "signature": "combat_consumer_private.narrative_allowed(uuid)",
+    "md5": "9ea79b4c6f08a99352413acb88685044",
+    "definition": "CREATE OR REPLACE FUNCTION combat_consumer_private.narrative_allowed(p_session uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n SELECT coalesce((SELECT CASE WHEN l.is_test THEN\n   c.policy_id='staff_test_no_persistent_resources_v1'\n   AND s.source_kind='ordinary' AND s.location_id=c.location_id\n   AND NOT public.combat_v2_values_written(s.id)\n   AND clan_marionettisti_private.roster_valid(s.id)\n   AND (SELECT count(DISTINCT a.controller_user)\n     FROM public.combat_v2_actors a\n     JOIN combat_consumer_private.members m ON m.session_id=a.session_id\n       AND m.actor_id=a.id AND m.character_id=a.character_id\n     JOIN public.characters ch ON ch.id=a.character_id AND ch.user_id=a.controller_user\n     WHERE a.session_id=s.id AND a.actor_kind='pg')=2\n   AND combat_consumer_private.staff_test_allowed(l.id,\n     ARRAY(SELECT a.controller_user FROM public.combat_v2_actors a\n       WHERE a.session_id=s.id AND a.actor_kind='pg' ORDER BY a.controller_user),true)\n ELSE (SELECT enabled AND provider_enabled\n   FROM combat_consumer_private.runtime_config WHERE singleton) END\n FROM combat_consumer_private.activities c\n JOIN public.combat_v2_sessions s ON s.id=c.session_id\n JOIN public.locations l ON l.id=c.location_id\n WHERE c.session_id=p_session AND c.phase<>'closed'),false)\n$function$\n"
+  },
+  {
+    "signature": "clan_marionettisti_private.is_dedicated_scene(uuid)",
+    "md5": "85c8f044f8383f4587a1d8175d9a0ec9",
+    "definition": "CREATE OR REPLACE FUNCTION clan_marionettisti_private.is_dedicated_scene(p_session uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n select exists(select 1 from combat_spatial.arena_instances where encounter_id=p_session\n   and (context_source in('marionetta_master','ordinary') or (context_source='panel_master' and exists(select 1 from public.combat_v2_sessions ms join combat_panel_private.master_panel_sessions mp on mp.master_session_id=ms.master_session_id where ms.id=p_session and ms.source_kind='master'))) and state='open'\n   and exists(select 1 from public.combat_v2_actors a where a.session_id=p_session and a.companion_id is not null))\n$function$\n"
+  },
+  {
+    "signature": "clan_marionettisti_private.narrative_attack_allowed(uuid)",
+    "md5": "2f8aaa28220e6af251144b4b23213272",
+    "definition": "CREATE OR REPLACE FUNCTION clan_marionettisti_private.narrative_attack_allowed(p_declaration uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n select exists(select 1 from public.combat_v2_declarations d where d.id=p_declaration and d.kind='attacco'\n  and (d.sanitized_intent#>>'{server_ability,source}'='mano' or exists(\n   select 1 from clan_marionettisti_private.offensive_profiles p\n   where p.declaration_id=d.id and p.round_id=d.round_id and p.owner_actor_id=d.actor_id\n    and p.target_actor_id=d.target_actor_id and p.profile_sha256=public.combat_v2_sha256(p.profile)\n    and d.sanitized_intent->>'ability_source'='clan'\n    and d.sanitized_intent->>'ability_id'='e361f7c3-f90b-47ec-bfee-ccbda21257d9')))\n$function$\n"
+  }
+]
