@@ -1,6 +1,6 @@
 # Le schede d'area — come si usano
 
-> Una scheda per area, riscritta in posto. Tetto: **150 righe**. Numeri e stati hanno data, fonte e perimetro: la scheda non sostituisce il database o il sito pubblicato. Questa pagina applica le regole di avvio esistenti; non attiva un nuovo processo.
+> Una scheda per area, riscritta in posto. Tetto: **150 righe**. Numeri e stati hanno data, fonte e perimetro: la scheda non sostituisce il database o il sito pubblicato. Il processo del punto 2 è in `management/coordination/AVVIO_LAVORO.md`: mandato, scope, prenotazioni, dipendenze e consegna.
 
 ## Chi avvia una task fa così
 1. Leggere `AGENTS.md`, poi `dossier/00_LEGGIMI.md`, `dossier/CONTESTO.md`, `dossier/01_STATO_ATTUALE.md` e `dossier/04_LAVORI_APERTI.md`. Il tabellone si riscrive in posto: si legge il quadro corrente, non si cerca una presunta ultima appendice datata.
@@ -23,7 +23,7 @@
 | PNG Builder, modello comune e raccordi dei PNG | `MISSIONI_IA.md` e `PIATTAFORMA.md`, poi il prodotto che lo usa |
 | land.html, scheda.html, admin.html, regole.html, leggibilità, pannello, legenda, CSS, refactor | `PAGINE.md` |
 | caricare su GitHub, cosa è online, SHA, build, REGOLE.md + regole.html, changelog | `PUBBLICAZIONE.md` |
-| database, migrazione, cron, Edge, RLS, advisor, GRANT, candidati, archiviazione, ambienti di prova | `PIATTAFORMA.md` |
+| database, migrazione, cron, Edge, RLS, advisor, GRANT, candidati, archiviazione, ambienti di prova, processo di lavoro e coordinamento | `PIATTAFORMA.md` |
 
 ## Lo scheletro della scheda
 ```

@@ -11,6 +11,8 @@ Allineamento documentale09/09/2026 · PM · **Produzione495 migrazioni/head20260
 
 ## Stato vivo
 
+**Punto2 — costruzione del processo09/09:** punto1 documentale completato localmente; guard27/27, sincronizzazione7/7 e YAML8/8 restano evidenze della consegna preliminare TASK-PM-AVVIO-001. PM-PROCESSO-002 completato localmente: pianificatore readonly, dipendenze e briefing12/12PASS, controverifica finale0/0/0. Installazione tramite guard e skill riallineate; esiti nella consegna. Upload rinviato per scelta di Antonello al rientro, lavoro locale autorizzato. Dopo punto2 ripresa Clan dalla task corrente a cura PM, senza riaprire altre task. Nessuna operazione Supabase o gameplay in questo incarico. Monitor sospesi e anti-stop Mac distinti.
+
 **Seguito owner09/09,11:38:54UTC — smoke Sabaku limitato PASS:** due normali Passa,2provider/3.971token e0retry; bind protetto Riuji e Controllo ON riusciti, chakra e giara soltanto simulati. Confronto finale2PG/12superfici senza differenze, anche nei timestamp. Stessa scena aperta. Fonte owner Clan: `runtime/sabaku/candidato/RECOVERY_BIND_LIVE_RESULT.json` e `RECOVERY_BIND_LIVE_ON.png`. È il PASS di bind/ON, non di Trasporto, Clone o dell’intero Clan; il successivo blocco richiede piano e budget prima delle azioni.
 
 
@@ -126,7 +128,7 @@ FingerprintconOID non portabile; arraySQL segmentato ≠ statementSHA; source_he
 
 ## Prossimo passo
 
-Seguire il flusso Docker/Test Room vigente e le consegne correnti Clan/Combat/Narratore. Il recupero Staff è concluso; per Sabaku il nuovo raccordo è qualificato e applicato: bind e smoke protetto restano all’owner, con il vecchio referto conservato. I limiti del ciclo generale restano distinti, senza riaperture implicite. Nessun repair del QA eliminato. Completare il deposito selettivo dei documenti allineati, poi passare alla costruzione del processo. Le due righe seguenti sono esiti storici del06/09, non il gate attuale né nuovi comandi di esecuzione.
+Punto2 completato secondo HANDOFFS/TASK-PM-PROCESSO-002.md: riprendere Clan con il nuovo processo e il mandato di Antonello. Nessun upload prima del suo rientro; la coda locale è in PUBBLICAZIONE. Nessun repair del QA eliminato né ripresa degli altri cantieri. Le righe seguenti sono esiti storici del06/09, non il gate attuale né nuovi comandi di esecuzione.
 
 SHARED-HOOK-ACTIVE-COMPAT-001 concluso06/09 00:54UTC: PARTIAL_DIFFERENTIAL_LOCK_NOT_EXERCISED,4/4gruppi coerenti/8bracci,10/24invii1.189s0provider/LIVE. ReviewunicaaggregataH4+controverifica0/0/0. Postflightpre/postidentico13core/50helper/2triggerenabledO/risorse/storici,OFFnetclaimbackend0cronOFF,nuovascenaassente; riserva rilasciata. ReportSHA32e76ad152278bb9b607a37e2d70b5ac2a69eb926f98e401640b77cfc415194e. Concorrenza/coreclosecompleta/INSERTpositivo non coperti,Q10nonchiuso. Prossimo passoPM: finestra sicura per eventuale deposito inerte nominato,non nuoveprove; produzioneintatta.
 READINESS-PROD-INERT-001 · 06/09/2026 00:29:59–00:32:04UTC:4/4lettureLIVE, head465/20260904233137,13pinMATCH/ownerACL acquisiti,8dipendenze+9tabelle presenti. Master1/combatMaster1/claim1, mismatch0: identità/tipo non dedotti, attività preservata. Pacchetto ENTRY+GateB3/3byte-exact. Nessunapply/deploy/enable/provider/push; STOP rilascio in attesa finestra sicura PM. Referto allineamento_consumer/qa/READINESS_PROD_INERT.md; IA separata IA_MINIMAL_READINESS.md.
