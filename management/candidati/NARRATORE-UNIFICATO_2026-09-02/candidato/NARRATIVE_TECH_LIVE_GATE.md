@@ -1,0 +1,13 @@
+# NARRATIVE-TECH-LIVE-001 · gate nominato09/09
+
+Rilasciato, smoke non eseguito. Antonello ha risposto «Autoirzzo» al rilascio nominato del narratore aggiornato e del collegamentoSQL nella Staff Test Room. Il precedente messaggio esclude Riuji dai test e richiede testperfunzioni/mock. Nessun consenso ulteriore dedotto per cataloghi, enable o altri rilasci.
+
+Pacchetto NARRATIVE_TECH_RELEASE_PLAN/MANIFEST, review2/5verde0/0/0 e8/8. Edge23 riconciliata15/15; unico deltaeditorial.mjs. Deploy15file entrypointindex.ts verify_jwtfalse comebaseline, poi unicoapplyNARRATIVE_TECH_INSTALL.sql SHA8e06605ec037da9806d3044170cbdc31b2aa25efd079208ad33eed41a0cc7496. RecoverySQL SHA7c93adeb41c88e9b9242b904e47d88529b15a81aa5de6f333a1f9225401f2847. Budget25min,0provider/0test per rilascio. Preflight18:36:04UTC:12pin/ACLvalidi,helperassente,0claimattive/0recoveryattive/0resolvedpendenti,Stafftrue. Nessuna installazione inerte promessa: hookeffettivo sui nuovi snapshotStaffammessi.
+
+Prima Edgecompatibile e verifica15/15byte; poi pinSQLripetuti eapplycertificato, postflightcorpi/ACL/migrazione. Nessun modificadatiPG/flag/catalogo. RecuperoSQLprima, conservareEdgecompatibile con snapshotnuovi; no rigenerazioni o cancellazioni.
+
+Smoke non eseguibile ora con testperfunzioni+mock: ricognizione3query18:35 conferma2PG reali nelle porteaccept_invitation,ordinary_open,scene_snapshot_v2 e candidatoINSTALL. Master/PNG usa percorso diverso, non sostituisceordinarycertificato. Nessunsecondoaccount,nessunaimpersonazione o usoRiuji. Rilascio autorizzato distinto dal collaudo, che resta aperto; serve supporto nativo ad attori sintetici. Nessuna dichiarazioneinuso/aperturagenerale.
+
+## Esito effettivo
+
+**Rilascio IA09/09, autorizzato da Antonello:** combat_narratore_ai v24 ACTIVE,15/15moduli esatti, bundle3ac47eb4420e65d01498c79e1dc558cb25461ccd920c3de1e84b993ed0c1dbfd. Migrazione20260909183721 narrative_tech_sources_staff_001 applicata una volta, registro497. Postflight18:37:46UTC: snapshot a417e6a98201a2177cb8c244a736bb3c e helper955228bdc23c89cdb287198db57231b8, ownerpostgres eACLsolo postgres esatti. Nessunflag/catalogo/datoPG modificato,0provider/test. Aggancio effettivo per nuovi snapshotStaffammessi; promptEdge condiviso compatibilelegacy. Riuji è riservato al gioco di Antonello: escluso da ogni test/azione/browser o chiusura. Smokecon testperfunzioni+mock ancora impossibile nel percorsoordinary che richiede2PGreali; porta avversariosintetico da integrare, nessunaimpersonazione o accountfittizio. Mocklocali noncertificano live. TestRoomutenti e altri mapping ancora aperti. Non dichiarato inuso o completamentoSabaku/IAgenerale.
