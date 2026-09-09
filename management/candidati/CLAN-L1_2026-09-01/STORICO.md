@@ -373,3 +373,5 @@
 
 09/09/2026 · PM-CLAN-IA-GOAL-001 · Goal e ripresa automatica attivi; avviati candidati indipendenti movimentoPG e raccordo narrativo, mappe/PNG durante espansione · in lavoro,0provider/nessun rilascio.
 09/09/2026 · PM-CLAN-IA-GOAL-001 finale · Movimento 4/6 e IA 0/8 qualificati, review terminali rosse; fondazioni Hyūga consegnate, richiesta eccezione per sole correzioni e ricertificazione · nessun rilascio/provider, goal incompleto.
+09/09/2026 · PM-QA-BUDGET-005-001 · Antonello amplia a5aggregate/5controverifiche cumulative; movimento e IA ripresi dal2/5, gate invariati · regola applicata, qualifica in corso.
+09/09/2026 · QA-PASS02 · IA8/8 e controverifica0/0/0, arresto al verde; movimento4/6 e0/2/0, assegnata aggregata3/5 · nessun rilascio o provider.
