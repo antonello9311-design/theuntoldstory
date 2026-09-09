@@ -1,5 +1,5 @@
 # AREA · Piattaforma — scheda viva
-Allineamento documentale09/09/2026 · PM · **Produzione495 migrazioni/head20260909112705; Combat Edge23 e Mission Edge18 distribuite. Recupero Staff e nuovo raccordo Sabaku rilasciati; branch QA permanente dismesso.**
+Allineamento09/09/2026 · verifica diretta15:42:52UTC:496migrazioni/head20260909154236. Raccordo narrativo utility applicato alle sole3funzioni private; Edge e flag invariati, smokeClone/Fato PASS,1provider2932token e postflight protetto integro.
 
 ## Fonti fondamentali
 1. Produzione in sola lettura per catalogo, registro e guardie correnti. Docker per prove ordinarie; eventuale branch temporaneo solo se autorizzato e realmente esistente. Il precedente QA permanente è dismesso: i suoi referti sono storici.
@@ -10,6 +10,8 @@ Allineamento documentale09/09/2026 · PM · **Produzione495 migrazioni/head20260
 6. dossier/aree/PUBBLICAZIONE.md per sorgenti pubblicate, Edge e sito.
 
 ## Stato vivo
+
+**Raccordo utility Clan, rilascio09/09 alle15:42UTC:** migrazione20260909154236 clan_utility_narrative_continuation, INSTALL SHA9dc6fa7fd2f0520e9e3779a600d90587d2151d389ae00a839f85bec0b6619089. Singolo apply nel mandato Antonello al collaudo/liveClan, gate PM nominato in CLAN_CONTINUATION_LIVE_GATE.md; prodotto e recovery review0/0/0. Preflight9dipendenze/ACL coincidenti, helper assente e0reportpendenti. Postflight15:42:52:3corpi/ACL/ownerpostgres esatti; nuova helper privata con GRANT esclusivo a postgres, nessun nuovo accesso pubblico.496migrazioni totali. Nessun Edge, RLS, catalogo o flag modificato; Staff era già ON, quindi apply operativo sul percorso pertinente. Stessa scena protetta e4f36e1a inaction/values_writtenfalse. Smoke unico Clone/Fato PASS al primo invio;1provider2932token, postflight15:45:42 senza differenze su12superfici/2PG. P2 narrativo sulla dissoluzione non esplicita, nessuna rigenerazione. Recovery operativa verificata su copiaDocker; non è stata eseguita in produzione. Fonti runtime/sabaku/candidato/CLAN_CONTINUATION_LIVE_RESULT.json e RELEASE_REVIEW.md.
 
 **Punto2 — costruzione del processo09/09:** punto1 documentale completato localmente; guard27/27, sincronizzazione7/7 e YAML8/8 restano evidenze della consegna preliminare TASK-PM-AVVIO-001. PM-PROCESSO-002 completato localmente: pianificatore readonly, dipendenze e briefing12/12PASS, controverifica finale0/0/0. Installazione tramite guard e skill riallineate; esiti nella consegna. Upload rinviato per scelta di Antonello al rientro, lavoro locale autorizzato. Dopo punto2 ripresa Clan dalla task corrente a cura PM, senza riaprire altre task. Nessuna operazione Supabase o gameplay in questo incarico. Monitor sospesi e anti-stop Mac distinti.
 
