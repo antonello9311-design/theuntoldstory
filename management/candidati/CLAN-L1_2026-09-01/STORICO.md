@@ -152,3 +152,217 @@
 2026-09-07 · Finestra Esame aggregata · Assegnata correzione unica DB/LAND sull’insieme chiuso12/16+review0/3/1; Sabaku salvato e ripresa automatica dopo consegna · Nessunapply o ulteriore autorizzazione richiesta.
 
 2026-09-07 · Pubblicazione accesso · LAND verifica nuovo pannelloSafariGitHub giàautenticato, senza credenziali o modifiche repository; ownershipGUI aLAND · Canale disponibile, upload/commit ancora non eseguiti.
+
+2026-09-07 · SABAKU-TRASPORTO-001 preparazione05 · ROOT aggiunge riserva persistente, transazione chakra/sabbia, projection e raccordo del budget reale nei moduli05/06; LAND ricompone UI sulla SESSION finale, aggancio Esame concluso · Codice non ancora collaudato o rilasciato; goal attivo.
+
+2026-09-07 · SABAKU-TRASPORTO-001 controlli e lifecycle · Aggiunti07/09/10, OFF server fuori turno, upkeep e rilascio automatico; parser10/10SQL/8PLpgSQL con2limiti espliciti · Preparazione, nessun QA integrato o apply.
+
+2026-09-07 · Priorità pannelli · Antonello richiede parità e completamento Scontro/multi-attore; Sabaku conservati offline e supporto comune coordinato con LAND, nessun Clan nell’Esame · Goal aperto, nessun rilascio incompleto.
+
+2026-09-07 · Parità pannelli ricognizione server · Otto funzioni vive e cinque gap documentati; mappa e diff07moduli trasmessi al piano unico LAND · Nessuna mutazione o collaudo, contratto da completare.
+
+2026-09-07 · Contratto pannelli · Definita candidata combat-panel/1 e comando da scelte opache; preservati scheduling/ruoli, movimento e ricevute server · Specifica scritta, nessuna RPC implementata o pubblicata.
+
+07/09/2026 · PARITA-PANNELLI-001 ordinary adapter · Contratto Nattori/movimento/narrativa raccordato e candidati01–04 con bridge ordinary e replay scritti; vincoli Master live verificati, vista LAND isolata pronta per integrazione · esito: preparazione, sintassi4/4SQL, nessuna QA reale/apply/rilascio.
+
+07/09/2026 · PARITA-PANNELLI-001 Master preparazione · Scritti claim/posizionamento Master2D, projection/mapN e hook chakra simulato; letti vincoli e writer vivi, sei SQL parserPASS, nessun banco integrato · esito: candidata incompleta,0apply/enable/provider.
+07/09/2026 · Parità pannelli modulo09 · Collegati portata e copertura2D nelle tre funzioni sorgenti, pin live riconfermati20:04;7SQLparsePASS/4PLpgSQLPASS,3limiti parser; QA e rilascio ancora assenti · in lavoro
+07/09/2026 · Parità pannelli modulo10 · Piani e risoluzione movimento principale2D nel proprio ordine;correttaCASE09,8SQLparsePASS/37di42routinePLpgSQL,5limiti namespace/ROWTYPE;integrazione eQA assenti · in lavoro
+07/09/2026 · Parità pannelli06/11/12 · Gateway, offerte/commitMaster+chat e gestione voto/sospensione/risoluzione/narrazione candidati;11SQLparsePASS52/57routine,5limiti parser;0QA/apply · in lavoro
+07/09/2026 · Parità pannelli13 · Testi dichiarazioni e report autorizzati, voto associato a offerta corrente;12SQLparsePASS55/60routine,5limiti parser;0QA/apply · in lavoro
+
+2026-09-08 - PARITA-PANNELLI-001 e SABAKU-COMMON - Pannelli16/17: budget unico e ingresso con mappa obbligatoria,16/16compilati. SabakuCommon11: stato reale canonico actor_state, proiezione vincolata e simulazione separata fuori dalle nove tabelle sigillate, due writer legacy esclusi durante lo scontro;11/11compilati, layout/vincoli/ACL Common invariati. Gate runtime locale non attestato per history migrazioni assente, nessuna falsificazione. Condizioni/terreni, adapter, mount, recovery e campagna aperti;0provider/apply live.
+
+08/09/2026 · COMMON-ELIGIBILITY-MARIONETTA-019 · Singolo controllo privato aggiornato al successore Marionetta verificato; review0/0/0 e runtime_release_assert live PASS, zero provider/PG · applicato e verificato
+08/09/2026 · SABAKU primo turno e contratti · Ingresso ordinary collegato allo stesso upkeep idempotente, delta PG17 compilato; destinazioni UI v2 riallineate,8gruppi invariati · candidato, non live
+08/09/2026 · PARITA recovery candidata · Ripristino8corpi/72pin e conservazione audit, nominalePG17 PASS/postflight72su72;16moduli apply invariati, recovery separata · in lavoro, nessun live
+08/09/2026 · SABAKU projection13 · Collegata vistaordinary al contratto comunev2, durata esplicita e valori server preservati; compilazione e8/8casi puriPASS, nessun live · in lavoro
+08/09/2026 · Pannelli18 turni personali · Identita per attore e lifecycle osservato dal motore, compilazione2basi; recovery17moduli aggiornata e nominale74/74PASS · candidato, zero live
+08/09/2026 · SABAKU CommonMaster14 · Contesto tipizzato e stessi costi/riserva anche per Master registrato, lifecycle collegato;13/13moduli compilati su copia isolata, comandi/bind/projection ancora aperti · in lavoro
+
+08/09/2026 · SABAKU-MASTER-15/16 · Binding protetto, controlli e projection collegati al pannello candidato; upkeep prima delle opzioni e receipt control_changed · Compilazione PASS00:22UTC, metadati3/3; nessun rilascio o gameplay certificato.
+
+08/09/2026 · MOVEMENT-EXPLANATIONS-17 · Producer delle cause da capability e saldi reali di prova, collegato a ordinary/Master; richiesta regola terreno naturale mancante · Compilazione PASS00:31UTC/metadati2/2; nessun live apply.
+
+08/09/2026 · MASTER-COMPANION-19/20 · Raccordati contesto e movimento Marionetta al Master; corretti filtro bersagli e trigger alla gittata del compagno, visibilita dalla mappa · Compilazioni PASS/metadati7/7+3/3; controlli UI e binding aperti, recovery da riallineare, nessun liveapply.
+
+08/09/2026 · MASTER-COMPANION-COMMANDS-21 · Collegati movimento/riallaccio/projection del compagno gia presente al pannello;36sorgenti ordinate nel manifest congiunto · CompilazionePASS00:55UTC/metadati3/3, binding ancora aperto; Staff9407 riconfermata aperta/invariata.
+
+08/09/2026 · PM-PRIORITA-PANNELLI · Recuperata fonte esatta della ratifica07/09 (PAGINE.md:47/task01a06e92): entrambi i pannelli completi prima di proseguire il rilascio Sabaku · Priorita riconciliata, nessun nuovo gate/apply.
+08/09/2026 · pannelli22 e correzione21 · Binding Marionetta Master compilato con profilo Staff canonico; defense_due raccordato al controllore, manifest37 e documenti riallineati · PASS compilazione/metadati; runtime, UI e gate ancora aperti.
+08/09/2026 · pannelli23 Moltiplicazione · Riconciliate regole/cap live e candidata storica; validazione figure2D e projection privata preparate · PASS16/16 casi puri, nessun runtime/apply; producer e commit aperti.
+08/09/2026 · pannelli24 profilo Moltiplicazione · Fonti PG, costi/turno/Fili e ACL preparati; chiesta scelta rappresentazione2D; actor_ability locale/live uguali · PASS compilazione e2controlli, PNG/runtime/UI ancora aperti.
+08/09/2026 · correzione binding semantici · Eliminati insieme3errori che bloccavano commit Sabaku/Marionetta e pubblicazione Master, pin e manifest aggiornati · Controverifica0finding funzioni ordinarie; trigger multi-tabella/runtime ancora da certificare.
+08/09/2026 · allineamento documenti e trigger · Handoff riscritti in posto, depositoCommon019 aggiornato a8/8, specializzazione statica29contesti non risolve limiti sui trigger · Nessun codice/DBlive modificato; prova runtime resta necessaria.
+
+08/09/2026 · pannelli25 aggregato · Corrette creazione Regia e autorità del comando, profilo Moltiplicazione PNG e candidato UI registrati; 40 sorgenti coerenti · compilazione locale, nessun rilascio.
+
+08/09/2026 · recovery congiunta40 · Ripristino21funzioni e2schede,122funzioni conservate e20trigger esterni disabilitati; Common019 preservato · nominale locale PASS, review/runtime pendenti.
+
+08/09/2026 · copie26 e Sabaku18 · Recuperata ratifica figure separate045/054; stato/lifecycle privato compilato, config Common5/5 preparata inerte ·42sorgenti, nessun rilascio.
+
+08/09/2026 · copie27 · Vista comune delle figure e mascheramento marker/distanza dell’originale; DTO affidato a LAND ·8/8check JSON,43sorgenti, nessun live.
+
+08/09/2026 · pannelli28–30 · Scelte private, raccordo resolver singolo/multi-target/Sostituzione ed esiti testuali autorizzati; manifest46,22controlli puri e4metadati PASS · locale, integrazione completa/review/live pendenti.
+
+08/09/2026 · pannelli31–32 · Dichiarazione composta e commit comune ordinary/Master con costo nativo e formazione atomica;6funzioni statiche e2metadati PASS,manifest48 · locale, producer e collaudo completo pendenti.
+
+08/09/2026 · pannelli33–34 · Disposizioni/capability e offerta unica Moltiplicazione collegate alle options comuni;8geometrie pure e2metadati PASS,manifest50 · candidato positivo, movimento0/figura bersaglio/runtime pendenti.
+
+08/09/2026 · MULTIPLICATION-TARGET-GEOMETRY-035 · preparati tre helper privati di distanza/percorso sulla figura bersaglio, compilazione e analisi senza finding; documenti allineati alla UI copies1 bbbc21a5 · candidato51, raccordo offerte/commit e runtime pendenti, nessun rilascio.
+
+08/09/2026 · MULTIPLICATION-AIM-MASTER-036/037 · collegata la scelta privata al controllo nativo e al producer/commit Master, cinque helper senza finding e quattro metadati preservati; corretta ambiguità f.mode · candidato53, ordinary/Assalto/marionetta/casuale/difesa e runtime pendenti, nessun rilascio.
+
+08/09/2026 · MULTIPLICATION-ORDINARY-TARGET-038 · collegati selettore figura, avvicinamento nativo e dichiarazione ordinary; sei funzioni compilate, quattro metadati conservati e tre avvisi ereditati · candidato54, nessuna prova Auth/UI o rilascio.
+
+08/09/2026 · MULTIPLICATION-DEFENSE-CHOICE-039 · collegata figura difensiva nei due pannelli/Sostituzione Master, sei funzioni compilate/quattro metadati conservati; corretto single→blank UI3055056f (4test PASS), allineato corpo Common019 locale · candidato55, registro migrazioni locale assente, baseline integrata e collaudo pendenti; nessun rilascio.
+
+08/09/2026 · MULTIPLICATION-ASSAULT-TARGET-040 · collegati producer, disposizioni, movimento e dichiarazione Assalto alla figura di Copertura/Diversivo, cinque funzioni senza finding e quattro metadati preservati · candidato56, nessuna prova Auth/UI o rilascio.
+- 08/09/2026 · MULTIPLICATION-COMPANION-ORIGIN-041 · origine marionetta e geometria figure condivisa compilate,6funzioni senza finding/2metadati conservati; consumer e resolver ancora da collegare · candidato57sorgenti,nessun Auth/gameplay/apply live.
+- 08/09/2026 · TERRENO-ORIGINALE-RATIFICA-042 · Antonello approva costo naturale2:1 e originale fermo a movimento0; contratti, schede e handoff riallineati · scelte chiuse,implementazione/coppia regole/QA ancora da completare.
+- 08/09/2026 · MULTIPLICATION-COMPANION-BIND-042 · dichiarazione/profilo/risoluzione e offerte Master raccordati alla figura marionetta,13funzioni compilate e7avvisi ereditati; ordinary pendente · candidato58sorgenti,nessun Auth/gameplay/live.
+- 08/09/2026 · MULTIPLICATION-ORDINARY-STATIONARY-043/044 · marionetta ordinary collegata a dichiarazione/profilo/resolver42 e originale0m implementato;5funzioni compilate,2avvisi ereditati,6geometrie pure PASS · candidato60sorgenti,nessun Auth/gameplay/live.
+08/09/2026 · PANELS45 · Aree impervie esplicite, nomi solo descrittivi; geometria e budget2:1 su unione di zone, otto casi puri PASS; esenzione Trasporto da precisare · candidato non live, raccordo autorità/mappa/movimento pendente.
+08/09/2026 · PANELS46–47 · Aree impervie esplicite collegate a costo condiviso, commit e projection ordinary/Master;12funzioni compilate,9metadati preservati,3avvisi ereditati · candidato non live;configurazione/UI/motivazioni e collaudo pendenti.
+08/09/2026 · PANELS48/UI-IMPERVIOUS · Ratifica malus solo PG/PNG fisici, marionetta esclusa1:1;motivazioni server e renderer comune raccordati,8test e anteprima sintetica PASS · candidato64sorgenti,non live.
+08/09/2026 · STAFF-COMBINED-SEQUENCE · Mandato Antonello: Controllo/Trasporto pronti prima di una sola run terreno/Sabaku/marionetta nella9407 aperta; rimossi smoke singoli anticipati · piano allineato, nessun collaudo o rilascio avviato.
+08/09/2026 · QA-BASELINE-ACL ·68ACL del solo database locale allineate ai permessi live; confronto effettivo274/274 senza differenze · produzione invariata, baseline integrata non ancora certificata.
+08/09/2026 · QA-TABLE-ACL/IMMOBILIZATION ·14permessi tabella corretti soltanto localmente;124tabelle confrontate, due delta previsti05/46; acquisito mandato effetto PG e liberazione, formula aperta · nessun apply o collaudo live.
+08/09/2026 · IMMOBILIZATION49 · Antonello approva prova Forza+Taijutsu vs pool presa,2d10,principale1/chakra0/parità trattiene; registro effetti e reader compilati,6casi puri PASS · candidato65sorgenti,comando/RNG/lifecycle/UI pendenti,non live.
+08/09/2026 · IMMOBILIZATION50–52/RULES · Collegati dichiarazione/RNG/offerta/commit/esiti/lifecycle, nuovi helper senza finding; regole candidate Markdown/HTML allineate; Antonello include Clone nella run ·68sorgenti candidate,nessun Auth/gameplay/live,parametri Clone aperti.
+08/09/2026 · CLONE-SCOPE/TRIGGER-BASELINE · Riconciliati scheda e handoff: Clone incluso nella prova congiunta, parametri ancora aperti; registrata corrispondenza metadata trigger25/25 · Nessun apply, enable o prova live.
+08/09/2026 · IMPERVIOUS-INSTANCE53 · Aree versionate per singolo scontro e raccordo comune a movimento/mappe;7funzioni senza finding,9validazioni pure PASS ·69sorgenti candidate,nessuna area live o prova gameplay.
+08/09/2026 · MULTIPLICATION-ATTACK-DRAW54 · Sorteggio offensivo privato collegato a producer/preparatore Master e resolver comune, senza doppia estrazione;5funzioni senza finding ·70sorgenti candidate,ordinary/Assalto e runtime pendenti,nessun live.
+08/09/2026 · MULTIPLICATION-ORDINARY-DRAW55 · Collegati estrazione ordinary, avvicinamento e marionetta al tiro unico54;9funzioni compilate,0nuovi finding,4helper con privilegi verificati ·71sorgenti candidate,Assalto/runtime pendenti,nessun live.
+08/09/2026 · MULTIPLICATION-ASSAULT-DRAW56 · Collegata estrazione Assalto alla disposizione propria fissa; separata estensione copie da movimento originale;6controlli puri PASS ·72sorgenti candidate,scelta su Assalto bersagliato ancora aperta,nessun live.
+08/09/2026 · NARRATIVE-FACTS57 · Riconciliata Edge v21 su8file e preparata proiezione privata degli esiti,11controlli puri PASS ·73sorgenti candidate,claim/Edge ancora da collegare,nessun provider/live.
+08/09/2026 · RATIFICA-CLONE-TRASPORTO-ASSALTO · Antonello approva pacchetto Clone, innesco immediato, esenzione generale Trasporto e inganno difensivo delle copie Assalto attive · Decisioni prodotto chiuse,implementazione e gate pendenti.
+08/09/2026 · NARRATIVE-CONTEXT58 · Collegati fatti, contesto, claim/consegna e candidato Edge v21;4validazioni DB e12gruppi Edge PASS ·74sorgenti candidate,nessun deploy/provider o collaudo reale.
+08/09/2026 · TRANSPORT-TERRAIN59 · Esenzione generale Trasporto collegata a movimento e testi catalogo/regole/UI;8test UI PASS ·75sorgenti candidate,nessuna attivazione o verifica live.
+08/09/2026 · SABAKU-CLONE-SOURCE60 · Entità/ricevuta tipizzata, collegamento immobilizzazione e ledger unico sabbia;6casi puri PASS ·76sorgenti candidate,producer/runtime pendenti.
+08/09/2026 · SABAKU-FLUSSO-SCOPE · Antonello richiede Flusso di Sabbia come integrazione offensiva dell’innata dopo la tranche corrente ·Registrato scope,funzionamento residuo e bilanciamento da definire,nessun codice/live.
+
+08/09/2026 · SABAKU-FLUSSO-RATIFICA · Antonello fissa azione principale unica, un flusso per bersaglio distinto, contundente e consumo di 5 chakra più 5 sabbia per flusso; contratto e handoff allineati · estensione successiva, bilanciamento finale, nessun runtime o rilascio.
+
+08/09/2026 · SABAKU-CLONE-CREAZIONE-INNESCO61–63 · Collegati quota/durata, creazione principale nativa, presa immediata e innesco delle formazioni; 79 sorgenti registrate · compilazione/statica locale senza nuovi finding, nessuna prova positiva integrata o pubblicazione; movimento, UI e narrazione pendenti.
+
+08/09/2026 · SABAKU-CLONE-MOVIMENTO64 · Preparata intercettazione del percorso e costo del tratto effettivo; 80 sorgenti registrate · geometria/statica PASS, chiamanti composti ancora da raccordare per evitare annullamento della presa; nessuna prova positiva o pubblicazione.
+
+08/09/2026 · SABAKU-CLONE-INTERRUZIONE65 · Ratificata principale disponibile dopo presa prima della dichiarazione; raccordati avvicinamento, Moltiplicazione e bridge composito con ricevute senza azione fittizia · 81 sorgenti, statica/privilegi PASS, comandi Auth/replay e collaudo live ancora da eseguire.
+
+08/09/2026 · SABAKU-CLONE-PANNELLO66 · Collegati comando/piazzamento e mappa tipizzata del Clone ai pannelli ordinary e Master · 82 sorgenti,9funzioni senza nuovi finding,10gruppi UI/4script PASS; nessuna prova Auth/browser/live o pubblicazione.
+
+08/09/2026 · SABAKU-CLONE-CATALOGO67 · Scheda Clone e regole81/82 allineate; baseline catalogo locale integrata da fonte pubblica QA-only, delta/backup e rifiuto riesecuzione verificati. · PASS locale, nessun rilascio; narrazione, Assalto, recovery e gate pendenti.
+
+08/09/2026 · SABAKU-CLONE-NARRAZIONE68 · Ricevute Clone collegate a fatti/contesto ordinary ed Edge, ordine presa-principale preservato; 4 funzioni e 17 gruppi di contratto verificati. · PASS locale, nessuna prova Auth/provider/live; Assalto e gate pendenti.
+
+08/09/2026 · ASSALTO-ATTIVO69 · Bersagliamento Assalto collegato a offerte, scelta, effetto per ruolo e chiusura; 11 funzioni, 12 casi puri e regole83 verificati. · PASS locale, campagna integrata/recovery/review e rilascio pendenti.
+
+08/09/2026 · RECOVERY85 · Ripristino completo rigenerato da baseline live e provato su copia isolata: 32 funzioni/3cataloghi, 21tabelle protette invarianti; rilettura conferma gap QA e registro locale assente. · PASS nominale, campagna integrata e review pendenti.
+
+08/09/2026 · COMMON-PORTABILITY85 · Recuperato il contratto QA di provenienza distinta: copia locale supera2guardie/3negativi senza history fittizia,266funzioni candidate immutate; schemaCommon live/locale identico. · Prerequisito PASS, matrice integrata e rilascio pendenti.
+
+- 08/09/2026 · INTEGRATED85-COLLECTION finale · ricertificazione stessa revisione17/18 parziali positivi, G10errore distanza; controverifica finale0/1/0, recovery corrente e race positive nei limiti,156/160SQL · CICLO TERMINATO ROSSO, nessun live; nuovo ciclo proposto e non autorizzato.
+- 08/09/2026 · CLAN-EDITORIAL-LIVE-CHECK · rilettura6 fonti live: redazione Marionettisti presente, tre righe Sabaku identiche ai baseline e ancora legacy · sola lettura, nessun rilascio o nuova prova; ciclo tecnico resta ROSSO.
+- 08/09/2026 · DISTANCE-CONTRACT-001 avvio autorizzato · causa4,83/4,82 riprodotta, correzione88 locale e20casi parziali positivi in3/24SQL; successiva ratifica misure sempre intere, regole candidate84 · diagonali da scegliere, nessun live.
+
+08/09/2026 · DISTANCE-CONTRACT-001/90 · Geometria interaL1 e mappaClone candidate; recovery e race locali positive, review in corso; Staff9407 rilevata già chiusa, delega18:32 registrata · non rilasciato.
+
+08/09/2026 · DISTANCE-CONTRACT-001/91 · Unica aggregata dopo review90;25/26 partial_pass, profilo Sostituzione mancante nel banco;24/24SQL, controverifica finale in corso · non rilasciato.
+
+08/09/2026 · DISTANCE-CONTRACT-001/91 finale · Controverifica0/0/1, residuo ricevuta decimale;25/26 partial_pass,24/24SQL; successore solo proposto · ciclo conclusoROSSO, non rilasciato.
+08/09/2026 ·92 · Autorizzazione nuovo ciclo, ricevuta intera verificata nel Master, Sostituzione/race/recovery positivi e screenshot catalogo live · in lavoro, non rilasciato.
+08/09/2026 ·93 · Validator copie allineato a griglia intera/L1,37esecuzioni positive e recovery corrente; collaudo affidato ad Antonello con Riuji e Ryutama · non rilasciato, controverifica finale in corso.
+08/09/2026 · receipt93 finale · Controverifica indipendente codice0/0/0; copertura completa e race93 non attestate, budget24/24 terminato, nessun rilascio live · ciclo terminale, readiness ROSSA.
+08/09/2026 · certificazione93 estesa ·24/30PASS,4errori banco,2parziali,24/24SQL; delega live Riuji/test ripresa e runtime Sabaku verificato assente · readiness incompleta,0mutazioni live.
+08/09/2026 · RECEIPT93 focused · Sei residui PASS10/12SQL in9,7min,0IA; copertura cumulativa30/30 con limiti; rilevato aggancio Sabaku a vecchia scena in3funzioni, correzione proposta · nessun rilascio/live
+08/09/2026 · STAFF-BIND-NEW-SCENE-001 candidata94 · Tre controlli corretti,19SQL/0IA,5PASS1partial e recovery nominale PASS; native close P0002 nella proiezione precedente blocca rilascio · nessun apply/deploy/enable/live
+
+08/09/2026 ·96 ·Chiusura Sabaku/recovery verdi, mandato notturno e rinvio scelte registrati ·QA locale0/0/0, rilascio in preparazione.
+
+08/09/2026 · release096 · Cinque parti private e unico apply atomico DB;293funzioni esatte/catalogo aggiornato,gateOFF · PASS applicazione inerte; Edge/UI/smoke pendenti.
+09/09/2026 · STAFF099/NARRATIVE100 · Apertura e movimento impervio verificati, motore risolto con risorse reali invariate; narratore503 pre-provider. Correzione100 con codice0/0/0 ma race non esercitata: cicloROSSO, nessun apply. Scena preservata, allineamento e catalogo candidatoHyuga proseguono.
+09/09/2026 · CLAN-RECON · Recuperati AburameColonia/rigenerazione/Liberazione già ratificati;3cataloghiHyuga e12testiClan preparati, rilevato doppio mappingUchiha; postflight12superfici invarianti di gioco · solo preparazione/letture, nessun rilascio aggiuntivo.
+09/09/2026 · HYUGA-LIFECYCLE-PREP · Sette overload/helper privati e config5/5 inattiva preparati sul Common;7corpi live invariati,18baseline/callsite verificati · nessun apply/compilazione/review, consumer e percezione ancora da completare.
+09/09/2026 · HYUGA-COMMON-CONTROLS · Preparati controlli ON/OFF e binding protetto, sei hook lifecycle e cinque raccordi consumer su baseline live;20funzioni con ACL private esplicite · solo candidato, controllo statico positivo, nessun apply/QA runtime.
+09/09/2026 · HYUGA-PRIVATE-VIEW · Preparati proiezione privata/fingerprint/patchUI, recuperato pin punto cieco exact application e mantenuta guardia Common ·6unitPASS, nessun browser/apply; producer e permission ancora da completare.
+09/09/2026 · HYUGA-SUBJECT-SOURCES · Preparato reader privato body/formazioni/Clone, individuato riconoscimento oculare senza target/range e precisata prosa candidata Jūken · solo preparazione, nessun apply o test live.
+09/09/2026 · HYUGA-PERCEPTION-RECOGNITION · Preparati fatti di esclusione, producer privato opaco e riconoscimento exact application entro10m; legacy fuori scope conservato · SQL solo statico, nessun apply/provider.
+
+2026-09-09 · HYUGA-preparazione corrente · Visibilità privata senza rientro nel pannello, riconoscimento entro la portata effettiva e kernel permission senza grant mappa; moduli04–16,34funzioni private/10raccordi · Controlli sorgente/ACL positivi; nessuna compilazione, review, apply o prova live.
+
+2026-09-09 · HYUGA-preparazione corrente · Offerte/commit opachi e formazione nascosta raccordati nel candidato17,37helper/13consumer; un tentativo DDL fallito, sintassi corretta · Non ricompilato né qualificato; rollback locale verificato,0provider e nessuna mutazione live.
+
+2026-09-09 · HYUGA-montaggio UI candidato · LAND099 e grafo9moduli riconciliati byte-exact, candidato10moduli/4syntax e3prove controller PASS; verificati limiti reali dei banchi SQL · HTML solo candidato, nessun sito/apply/provider; qualifica completa aperta.
+
+2026-09-09 · COMMON-portabilità candidato18 · Identificato sigillo vincoli legato agli OID,36definizioni uguali prod/locale; correzione e recovery preparate,3asserzioni predicato PASS · Nessun apply/review/qualifica completa; history e provenienza banco aperte.
+2026-09-09 · Hyūga banco adottato · Recuperata provenienza QA release96: guardia readonly PASS,58/60corpi coincidenti e2guardie portabili; proposta18 non applicata archiviata e rimossa dai prerequisiti · preparazione, nessuna qualifica/apply.
+2026-09-09 · Hyūga assembly QA · Compilazione14moduli fermata al05 per catalogo locale assente; rollback verificato e seed della sola riga pubblica Byakugan preparato · nessuna qualifica/runtime/apply.
+2026-09-09 · Hyūga compilazione completa ·14moduli compilati su PG adottato con catalogo pubblico esatto; corretti3terminatoriSQL17, rollback schema/funzioni/config/catalogo verificato · PASS compilazione, runtime/review/live da qualificare.
+2026-09-09 · Hyūga controllo statico aggregato · Corretto errore offerte links.state e separati trigger dichiarazione/turno;48funzioni PLpgSQL controllate,0errori/18warning da valutare, postflight baseline invariata · compilazione/statica, non runtime né review.
+2026-09-09 · Hyūga warning/fixture ·5warning nuovi risolti,12ereditati separati e1roster da verificare;48funzioni0errori, rollback verificato e fixture sintetiche identificate · preparazione funzionale, nessuna prova live.
+2026-09-09 · Hyūga readiness/recovery · Coverage corretta49PLpgSQL/51core; recovery inerte13consumer PASS e gate19 chiuso4gruppi PASS senza attestazioni positive · preparazione locale, counter/funzionale/review/live aperti.
+2026-09-09 · Hyūga recovery Staff · Preparato spegnimento protetto con terminale a costo0, scene/storico conservati e13consumer ripristinati; statica0finding/caso vuotoPASS, identità gate resa riproducibile · prova attiva/race/review/live ancora aperte.
+2026-09-09 · Hyūga Common/percezione · Tre flussi SQL locali sintetici PASS: costi/replay/upkeep/OFF, recovery attiva con scena/5receipt conservati, mappa e proiezione native con privacy, RPC pubbliche pannello preparazione/ON/OFF/replay; rollback completo,0provider · sviluppo, qualifica/review/live aperti.
+2026-09-09 · Pugno Gentile adattatore · Due helper privati preparati sul calcolatore comune,8gruppi PASS/0finding finali; tre source pin live riconciliati, raccordo dichiarazione/resolve ancora aperto · nessun apply/deploy.
+2026-09-09 · Pugno Gentile source/resolve · Moduli21–22 preparati con dotazioneStaff, freeze, source_lost e calcolo singolo/delegato; compilazione/defaultOFF/ACL PASS,2warning nativi invariati, rollback3consumer · qualifica funzionale e rilascio aperti.
+2026-09-09 · Pugno Gentile prova attacco · Corretto raccordo contatto ordinary/Master;2flussi RPC pubbliche locali PASS: freeze/replay/resolve e perditaByakugan con danno0,7superfici protette invariate prima del rollback · nessun live/apply/provider,qualifica aperta.
+2026-09-09 · Pugno Gentile setup pubblico · Offerta Staff gratuita candidata,3controlliRPC e2flussi attacco/lossPASS,profilo privato assente in4letture per2principal;statica16PL/0errori/2warning nativi · nonlive,gate/recovery estesi da completare.
+2026-09-09 · Hyūga readiness/recovery estese · Manifesti64/65,qualifiche separate24 con5gruppi/0finding PASS;2casi recovery locale PASS,rifiuto pendente e16consumer ripristinati dopo risoluzione,scena/storico/7superfici protette conservati · sviluppo locale,nessun apply/review/qualifica live.
+2026-09-09 · Hyūga Master protetto · Apertura/roster/mappa/3controlli pubbliciSQL e scambio attacco/parata/valutazioni/resolve PASS,profiloJūken usato e7superfici persistenti invariate; corretto solo il runner per le valutazioni umane obbligatorie · locale,nessun apply/review/qualifica live.
+2026-09-09 · Hyūga movimentoMaster/review · Movimento nativo3m,coordinate intere,round2/upkeep e4letture pubbliche×2principal PASS;31file congelati e prima review indipendenteHYUGA001 avviata,matrice finale fissata · nessun apply,delegated non verificato,3timeoutconnessione live.
+2026-09-09 · Aburame calcolo/raccordo · Capienza e split privati6gruppi/1760combinazioni PASS,0finding;documenti/validator riallineati alle ratifiche,recupero reale/ledger ancora da integrare · nessun apply/live.
+2026-09-09 · Hyūga review001 · Prima review0/1/0,HYG-01 geometriaJūken controcopia;31file senza drift,readinessROSSA,restano unica aggregata e finale · nessun deploy.
+
+09/09/2026 · HYUGA001 unica aggregata HYG-01 · Contatto Jūken legato alla figura della dichiarazione; due prove Master, regressioni e recovery locali PASS, manifesti64/65 rigenerati; cloneQA isolato creato e setup inerte preparato ma non eseguito · candidato, campagna/finale/live ancora aperti.
+2026-09-09 · HYUGA001 campagna finale ·24/24SQL,8funzionaliPASS/3parziali/1nonverificato,2racePASS,RECfallita per catalogo fixture; baseline e7superfici protette invariate,0provider · controverifica finale0/0/0,readinessROSSA e ciclo terminale,nessun live.
+2026-09-09 · Ridimensionamento Supabase ·2letture live riuscite05:38UTC,claimscaduto non recuperato,hashrecuperoAburameidentici e3profilidelegatiready;poi57P03shutdown/timeout · nessuna mutazione,stabilità non attestata.
+
+09/09/2026 · CLAN-PRODOTTO-RATIFICA · Recepiti sei punti di Antonello nei contratti e preparata coppia regolamento85; modalità reintegro Sabaku ancora da precisare · documenti candidati, nessun apply/deploy/pubblicazione.
+
+09/09/2026 · HOKI-RESERVOIR-001 · Contabilità privata candidata12/12 gruppi locali, inventario16cataloghi e dipendenze identitarie · baseline invariata, integrazione e release ancora aperte.
+
+09/09/2026 · CLAN-RECOVERY-WINDOW-001 · Lettore temporale: iniziale7/8, unica aggregata fixture-only, finale8/8 e review0/0/0; baseline live recupero riconciliata · componente verificato, nessuna mutazione produzione.
+- 09/09/2026 · CLAN-NARRATIVE-COVERAGE · verificata in sola lettura la proiezione narrativa live: copertura generale di passive ed effetti persistenti assente; verifica inserita nel completamento per tecnica e condivisa con owner narratore · esito: lacuna documentata, nessun apply o nuova campagna.
+- 09/09/2026 · ABURAME-LEDGER-PREP · registro Colonia/fonti/ricevute implementato,12/12 gruppi preparatori PASS; ricognizione acquisizione e permission canonica riconciliate · esito: locale con rollback invariato, adapter/qualifica/live mancanti.
+- 09/09/2026 · ABURAME-ACQUISITION-PREP · aggancio al possesso nativo e grant atomici implementati con gateOFF; finale10/10PASS dopo unica correzione fixture catalogo,04invariato · esito: locale con rollback, integrazione/qualifica/live pendenti.
+- 09/09/2026 · ABURAME-RECOVERY-PREP · preparati05/06 e schedaL1 completa13campi; finale preparatoria recuperoROSSA per riferimento SQL della receipt,nessun accredito e baseline invariata · esito: difetto conservato per integrazione,nessun apply/live.
+- 09/09/2026 · ABURAME-CAPACITY-OWNER-PREP ·07capienza permanente e vista proprietario implementati,8/8gruppi locali PASS; ricognizione del profilo Staff Sabaku identifica raccordo esclusivo mancante · esito: rollback invariato,recupero ancora rosso,nessun live.
+- 09/09/2026 · STAFF-PROFILE-AND-PUPPET-DEFENSE · mappati11consumer profilo Sabaku e distinta autorità corrente da storico; verificata assenza richiamo/intercettoPG nel consumer Marionetta e riallineato handoff obsoleto006 · esito: letture live/documenti,nessun apply o test aggiuntivo.
+09/09/2026 · MARIONETTA-RICHIAMO preparazione · Ratificati richiamo difensivo,Fili obbligatori ed eccedenza al PG; helper ripartizione5/5PASS e baseline invariata; due scelte residue in attesa · Nessun rilascio live.
+09/09/2026 · CLAN-STAFF08/09/10 · Preparati cambio profilo protetto,esclusività e consumerCommon; installazioni/pin/ACL PASS e baseline invariata; qualificazione positiva ancora aperta · Nessun live.
+09/09/2026 · NARRATORE composizione integrata finale · Banco100/10→20/20 rifiutato dalla guardia; ultima controverifica ROSSA,nessun retry o rilascio · Root prosegue Clan indipendenti.
+- 09/09/2026 · STAFF-PROFILE-FINAL · unica aggregata e finale19SQL/12gruppi:5PASS/7FAIL; cache Master del banco punta a scena chiusa,1P1 copertura residua; codice0/0/0, storico/template protetti · esito: terminale ROSSO,nessun apply/live; nuovo pacchetto Narratore assegnato su ambiente20/20 qualificato.
+- 09/09/2026 · ABURAME-INTEGRATION-PREP · corretto binding05, preparato batch11 esplicito senza refill; ricognizione Stafflive documenta assenza consumer recupero umano con2screenshot · esito: candidati non ricertificati,nessuna nuova narrazione/apply/live.
+- 09/09/2026 · STAFF-RECOVERY-CATALOG-CHECK · tre schede Marionettisti verificate dal sito con screenshot L1/Fili; recupero umano escluso da guardia Master partecipante, assegnato pianoIA controllato; narratore configurato finale31PASS/1FAIL · esito: catalogo pubblico confermato,collaudo/live ancora incompleti.
+- 09/09/2026 · DISPATCH1094-EVIDENCE · recuperato risultato tool originale correlato round/HTTP503/bodyerrore, impronta conservata e consegnata al Narratore · esito: evidenza positiva originale,assenza invii ulteriori ancora da attestare,nessun recupero live.
+
+- 09/09/2026 · STAFF-RECOVERY-NO-SEND · correlati risposta originale1094, Edge22 e claim a concessione unica con impronta del rilascio096; evidenze consegnate al recuperoIA; README Sabaku e matrice Hyuga riallineati · esito: sola lettura live/documenti, nessun apply/provider, scena conservata.
+
+- 09/09/2026 · SABAKU-FLOW-RESOURCE-PREP · preparati gate/fonte/consumo privati del Flusso e compilazioneDDL transazionalePASS1SQL/0provider; recuperati requisitiRisonanza ratificati e riallineati documentiUchiha · esito: nessun apply/collegamento runtime; due sole scelte Flusso residue inviate, collaudo live ancora aperto.
+
+- 09/09/2026 · STAFF-RECOVERY-LOCAL-GATE · acquisita controverifica0/0/0 e64/64PASS,110file senza drift; stessa scena/live reportattesa e risorse protette; pacchetto di rilascio assegnatoownerNarratore · esito: gate localeverde, nessunapply/provider; browserattende sbloccoMac, antistandby2ore attivo.
+
+- 09/09/2026 · STAFF-RECOVERY-CODE-RELEASE-GATE · gate PM assegnato all’unico executor Narratore per SQL109001B eEdge15file verificati; preflightverde e zeroaltriordinary; preparate5schedeUchiha complete con requisiti già ratificati · esito: postflightcodice atteso, nessun gateprovider/catalogoUchiha.
+09/09/2026 · Recupero Staff reale · Edge23 e DB applicati, HTTP200/Fato visibile,1POST/1830token,12superfici protette; rilevato blocco profiloSabaku su parentstorica · recuperoPASS/raccordoSabaku aperto.
+09/09/2026 · Sabaku recovery bind · Finale10gruppiPASS/2FAIL,codice0/0/0 ma coperturaROSSA; ciclo esaurito,0apply. Raccordo Uchiha individuato su consumerGitHub e regole acquisizione live · preparazione indipendente.
+
+09/09/2026 · STAFF-LIVE-MARIONETTA-ATTACK · Passa, movimento6m, attacco5chakra e parata3danni simulati; Fato automatico e12superfici identiche,2provider3847token · casoPASS, cicloClan ancora incompleto.
+
+09/09/2026 · SABAKU-RECOVERY-BIND ripresa autorizzata · Banco corretto,12gruppiPASS/review0/0/0,apply20260909112705 epostflight3/3; storicoimmutato · smokeStaff in corso.
+
+09/09/2026 · RECOVERY_BIND live smoke · Profilo Sabaku e Controllo ON riusciti dal sito; −5 chakra simulato, giara15, due Passa/3971 token, postflight12superfici invariato; stessa scena aperta · PASS limitato a bind/attivazione.
+
+09/09/2026 · Trasporto live · Costi, scadenza, mantenimento e isolamento PASS; movimento PG autonomo mancante e dispatch Clone da raccordare; scena aperta · PARZIALE,4542token/2provider.
+
+09/09/2026 · CLAN-CONTINUATION aggregata/finale · Correzioni statiche0/0/0; finale fermata al preflight che rifiuta9sessioni storiche chiuse,0gruppi funzionali/0provider; nuova funzione assente live e scena invariata12:14UTC · terminaleROSSO di qualifica0/1/0, nessun apply/retry.
+
+09/09/2026 · Consegna per archiviazione task · Fermate le preparazioni su mandato Antonello tramite PM; reviewer concluso, nessuna operazione mutante in corso, Staff aperta preservata;7impronte acquisizioneUchiha rilette · goal incompleto, nessun nuovo rilascio, ripresa al PM.
+
+- 09/09/2026 · PM-CLAN-RIPRESA-001 · punto2 completato, ripresaClan assegnata a qualifica banco conINSTALLinvariata e preparazioneUchiha indipendente; terminale preservato · locale,nessunapply/live/upload.
+
+09/09/2026 · PM-CLAN-CONSEGNA-FINALE-001 · Ripresa dopo punto2 con due incarichi paralleli: Uchiha piano verificato; qualifica utility iniziale14SQL/10PASS4FAIL, review0/2/1 e unica aggregata helper esplicitamente autorizzata, finale15SQL/12PASS3FAIL con postflight invariato · finale indipendente0/1/1 ROSSO TERMINALE, nessun apply/live/upload; precedenti preservati.
+
+09/09/2026 · PM-CLAN-COLLAUDO-LIVE-001 · Raccordo qualificato localmente16SQL/review0/0/0, Controllo OFF/ON live con postflight integro; Uchiha candidato con collegamenti mancanti · parziale, nessun apply del raccordo.
+
+09/09/2026 · CLAN-RECOVERY-WINDOW-DEPOSITO-001 · Caricati14file del lettore privato recupero con blob esatti; nessun apply o uso pubblico · deposito concluso.
