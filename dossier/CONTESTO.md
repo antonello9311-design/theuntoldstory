@@ -1,24 +1,28 @@
-# CONTESTO — la memoria compatta del progetto (gemello su disco della skill `gdr-contesto` v2 · 01/09/2026)
+# CONTESTO — memoria compatta del progetto · allineamento 09/09/2026
 
-> Questo file è la copia su disco della skill Claude `gdr-contesto`, così che anche Codex parta dagli stessi numeri. **Regola: una skill si aggiorna in due posti** — nell'account Claude e qui — e chi la cambia lo scrive nel referto. Se il database contraddice questa pagina, vince il database e questa pagina va corretta. Per lo STATO dei lavori non basta: si apre la scheda d'area in `dossier/aree/` (tabella in `dossier/aree/00_COME_SI_USA.md`).
+> Memoria condivisa su disco per Codex e Claude. Conteggi generali verificati il09/09 alle11:03:23UTC; regole e riferimenti tecnici conservano le date dei rispettivi blocchi. Il DB prevale per lo stato effettivo, le approvazioni di Antonello per il mandato. Le skill e istruzioni esterne non vengono aggiornate automaticamente: in caso di copia arretrata seguire AGENTS e fonti vive. Per lo stato dei lavori aprire la scheda in `dossier/aree/`, individuata con `00_COME_SI_USA.md`.
 
 ---
 
 ## 1. Cos'è il progetto, in dieci righe
 
-«The Untold Story»: GDR play-by-chat **in italiano**, ambientazione Naruto alternativa. Punto di divergenza: la **Notte della Volpe**, dodici anni fa. Nessun personaggio canonico esiste nel presente. Beta aperta dal **01.08.2026**; al 01/09: 78 profili, 73 personaggi.
+«The Untold Story»: GDR play-by-chat **in italiano**, ambientazione Naruto alternativa. Punto di divergenza: la **Notte della Volpe**, dodici anni fa. Nessun personaggio canonico esiste nel presente. Beta aperta dal **01.08.2026**; lettura aggregata09/09: **85 profili e78 personaggi**. Sono conteggi, non misure di attività o fidelizzazione.
 
 Frontend: pagine **HTML statiche e monolitiche**, `<style>` e `<script>` in linea, nessun framework, nessun build step. Hosting GitHub Pages — repo `antonello9311-design/theuntoldstory`, branch `main`, cartella `/(root)`. Dominio `https://theuntoldstory.it`.
 
-Backend Supabase (`tyhyxkslteigibktluml`, EU-Frankfurt) via MCP: PostgreSQL con RLS, al 01/09 **230 tabelle** in `public` (93 vuote: fondazioni inerti di Training, Ninja Book, Missioni, Combat V2), **705 funzioni** di cui 594 `SECURITY DEFINER` usate come API, **15 Edge Function**, **13 job `pg_cron`**. Registro migrazioni: vedi `dossier/aree/PIATTAFORMA.md` (455 al 02/09).
+Backend Supabase (`tyhyxkslteigibktluml`, EU-Frankfurt) via MCP. Lettura09/09: **233 tabelle base** in `public`, **805 funzioni**, di cui680 `SECURITY DEFINER`; **15 Edge Function distribuite**, **13 cron/12 attivi**. Registro: **495 migrazioni**, ultima `20260909112705`, confermate nella successiva lettura11:32:43UTC; dettaglio in `dossier/aree/PIATTAFORMA.md`. Conteggi e stato ACTIVE non certificano RLS, gate o funzionamento completo dei consumer.
 
 Principio architetturale: **«l'IA racconta, il server comanda»** — nessun valore di gioco è deciso dal client o dall'IA.
+
+**Ambienti di verifica — decisione Antonello 09/09/2026:** Docker/PostgreSQL reale per le prove ordinarie, poi rilascio autorizzato e controllato e collaudo nelle Test Room protette. Branch Supabase solo temporaneo per rischi d'integrazione non coperti adeguatamente, con autorizzazione al costo e termine di dismissione; nessun branch QA permanente. Il precedente QA è stato cancellato, senza toccare la produzione. Restano review, budget, recovery, preflight e gate nominativi. Locale e Auth/servizi Supabase reali non sono equivalenti; la Test Room condivide il DB e non rende sicura una migrazione. Fa fede `AGENTS.md` §Flusso database, che supera l'eccezione locale del 05/09 e i riferimenti storici all'obbligo del branch. Le copie della skill esterne al repository non sono state aggiornate da questa modifica.
 
 **Caricamento GitHub autonomo dopo il gate.** Quando un lavoro approvato è pronto e verificato, Codex o Claude caricano i soli file del task su `antonello9311-design/theuntoldstory`, branch `main`, salvo scope `offline-only` o `no deploy`. Prima riconciliano la testa remota; dopo registrano commit, SHA e verifica del dominio. Vietati force-push, riscritture e commit cumulativi. Se manca l'accesso autenticato, si ferma soltanto il caricamento e si consegna la lista esatta. `sito_live/` **non è ciò che è pubblicato**: il registro resta `dossier/aree/PUBBLICAZIONE.md`.
 
 ---
 
 ## 2. I numeri del motore
+
+Riferimenti del promemoria01/09, non una nuova verifica delle formule. Prima di implementare consultare regolamento vivo, contratto pertinente e schema attuale; questo allineamento non cambia regole, costi o soglie.
 
 ### Creazione del personaggio (§3)
 Otto caratteristiche: **Mente, Forza, Velocità, Resistenza, Ninjutsu, Genjutsu, Taijutsu, Fuuinjutsu**, più **Kekkei Genkai / Innata**. Base 10 ciascuna + **60 punti** da distribuire **a gruppi di 5**. Tetto a Deshi: **30**. Chi non eredita un cognome se lo sceglie (changelog 51).
@@ -33,7 +37,7 @@ XP di carriera: **2.500** → Genin · **9.000** → Chunin · **18.000** → Jo
 0–2.499 → **20** · 2.500–8.999 → **14** · 9.000–17.999 → **10** · 18.000+ → **7**.
 
 ### Il turno (§4.2)
-Un movimento + un'azione principale + un'azione rapida + una reazione difensiva. Nel motore V2 un round è una coppia attacco/difesa con un solo racconto. Tipi di dichiarazione principale: `attacco`, `movimento` (±15 m), `utilita` (azione non offensiva, nessun effetto meccanico), `passa`.
+Un movimento + un'azione principale + un'azione rapida + una reazione difensiva. Il promemoria della coppia attacco/difesa riguarda il duello V2; non definisce da solo il ciclo della Regia multi-attore. Per Scontro, Regia e raccordi correnti consultare `dossier/aree/COMBAT.md`. Tipi di dichiarazione principale: `attacco`, `movimento` (±15 m), `utilita` (azione non offensiva, nessun effetto meccanico), `passa`.
 
 ### Distanze (§4.5-4.6)
 Contatto **0–2 m** · Corta **3–10** · Media **10–30** · Lunga **30–60** · Fuori portata **>60**. Movimento = `⌊Velocità ÷ 10⌋ × 5` metri. Posizioni iniziali negli scontri: 0–60 m a passi di 5.
@@ -96,7 +100,7 @@ La divisione **non è il prezzo, è chi scrive il contenuto**.
 
 **Aburame · Akimichi · Dokugan · Hyuga · Inuzuka · Marionettisti · Nara · Sabaku · Uchiha.** Innate di livello 1-4 alle soglie KG **30 / 50 / 70 / 80**. Chiusi, assegnati dallo staff: **Hyuga, Uchiha, Sabaku**; gli altri via `clan_join_open`.
 
-Programma Clan L1 (gate OFF): l'Innata L1 ha un controllo server-side Attiva/Spegni che **non consuma l'azione principale**; Byakugan attivazione/upkeep 5, spegnimento gratuito, raggio 10 m, Jūken e 16 Chiusure separati; Sabaku Innata separata da Scudo/Clone/Trasporto. Le 36 righe innate sono un modello unico.
+Programma Clan L1 — riferimenti progettuali, stato dei gate e rilascio da leggere per tecnica in `dossier/aree/CLAN.md`, non un generico «tutto OFF»: l'Innata L1 ha un controllo server-side Attiva/Spegni che **non consuma l'azione principale**; Byakugan attivazione/upkeep 5, spegnimento gratuito, raggio 10 m, Jūken e 16 Chiusure separati; Sabaku Innata separata da Scudo/Clone/Trasporto. Le 36 righe innate sono un modello unico.
 
 **Uchiha**: livello 4 sblocca **una sola** variante S (Susanoo, Amaterasu, Kamui, Tsukuyomi). Le tecniche segrete richiedono lo **Sharingan Eterno** (ottenuto in gioco; cancella il malus di cecità; sblocca Susanoo Perfetto o Kotoamatsukami).
 
@@ -141,7 +145,7 @@ Passive: `consumption_type='passiva'` con `attivazione='istantanea'`; `'sguardo'
 
 `SB_URL = 'https://tyhyxkslteigibktluml.supabase.co'`, `SB_KEY = 'sb_publishable_…'`. `admin.html`: `EMB_EXTRA = {village, clan, rank, element, corp, corpspec, corpgrade, bijuu}` (manca `evofam`). `BIJUU = ['Shukaku','Matatabi','Isobu','Son Gokū','Kokuō','Saiken','Chōmei','Gyūki','Kurama']`. `CORP_SPEC_OPTS = { anbu:[infiltrazione, pedinamento, assassinio, sensoriale], medici:[chirurgia, tossicologia, cura-campo, combattimento] }`.
 
-Edge Function vive (02/09): `login-name` · `delete-account` · `academy_sensei_ai` · `academy_audit_ai` · `land_help_ai` · `combat_narratore_ai` · `exam_genin_ai` · `test_room_ai` · `exam_live_qa_worker_131q` · `ninja_book_test_room_canary` · `training_sensei_ai` (spenta) · `mission_narratore_ai` · `nodo_azzurro_canary_coordinator` · `png_media_attest_v1` · `mission_ai_board_opening`. Provider unico `gpt-5.6-luna`, reasoning high. Cron: elenco in `dossier/aree/PIATTAFORMA.md`.
+Elenco delle15 Edge distribuite confermato09/09 (ACTIVE non significa consumer abilitato): `login-name` · `delete-account` · `academy_sensei_ai` · `academy_audit_ai` · `land_help_ai` · `combat_narratore_ai` · `exam_genin_ai` · `test_room_ai` · `exam_live_qa_worker_131q` · `ninja_book_test_room_canary` · `training_sensei_ai` (stato del consumer nella scheda TRAINING) · `mission_narratore_ai` · `nodo_azzurro_canary_coordinator` · `png_media_attest_v1` · `mission_ai_board_opening`. Versioni verificate09/09: `combat_narratore_ai`23, `mission_narratore_ai`18, `exam_genin_ai`139. Modello, budget e policy si leggono nella consegna del singolo consumer; la lettura delle versioni non verifica i parametri di ogni chiamata. Cron: elenco in `dossier/aree/PIATTAFORMA.md`.
 
 ⚠️ **Per fermare l'IA dell'Esame si svuota `academy_ai_runtime.tick_token`, MAI il job `esame-tick`** (fa anche ripiego a 3′, secondo tentativo a 90″, chiuditore a 3 h).
 
@@ -155,9 +159,9 @@ Tutti i valori visibili sono **multipli di 5**. Nomi delle tecniche **in italian
 
 ## 9. Dove sta la verità, e come si leggono i file pesanti
 
-① il **database di produzione**; ② **`sito_live/REGOLE.md`** per il regolamento (changelog numerato solo lì; ultima riga **73**; **il numero libero si legge nel file vivo**); ③ le schede d'area `dossier/aree/*.md` per lo stato; ④ le specifiche in `claude/…` per le intenzioni di design (possono essere superate).
+Per il mandato valgono istruzioni e approvazioni di Antonello; per lo stato installato il **database di produzione interrogato**; per la pubblicazione GitHub e dominio; per il regolamento la coppia **`sito_live/REGOLE.md` / `regole.html`** riconciliata. Il numero libero del changelog si legge nel file vivo. Schede d'area e consegne documentano stato e prove con data; le specifiche in `claude/…` possono essere superate. Decisione, installazione, attivazione e collaudo non sono equivalenti.
 
-**Da dove si parte:** `AGENTS.md` → `dossier/00_LEGGIMI.md` → `dossier/aree/00_COME_SI_USA.md` → la scheda dell'area. `01_STATO_ATTUALE`, `03_CRONOLOGIA` e `04_LAVORI_APERTI` sono diari da 2.500 righe: solo con `grep` o per l'ultima sezione. `05_CONVENZIONI.md` prima di scrivere codice o SQL.
+**Avvio:** `AGENTS.md` → `dossier/00_LEGGIMI.md` → questo contesto e i riepiloghi brevi `01_STATO_ATTUALE.md` / `04_LAVORI_APERTI.md` → routing e scheda d'area → `SCHEDA.md` / `HANDOFF.md` del cantiere assegnato. I vecchi diari sono in `dossier/storico/`; `03_CRONOLOGIA_DECISIONI.md` e `02_INDICE_DOCUMENTI.md` si consultano per il blocco pertinente, senza rileggere tutto l'archivio. `05_CONVENZIONI.md` prima di codice o SQL, nelle sezioni applicabili.
 
 📖 **Non si legge mai un file intero se non è strettamente necessario.** In particolare: `claude/backup_db_ultimo.json` (529 KB), `claude/pagina_*.html` (fino a 349 KB), i pack PM in `management/coordination/` (fino a 519 KB), `REFERTO-2026-09-01-CODEX.md` (224 KB). Si localizza con `grep -n` e si legge solo l'intervallo.
 
@@ -176,10 +180,17 @@ Tutti i valori visibili sono **multipli di 5**. Nomi delle tecniche **in italian
 - **Un file, un owner alla volta.** Se un file è cambiato da quando l'hai letto, c'è un'altra sessione: fermati.
 - **Nessuna decisione operativa vive solo in un handoff**: cron, flag, gate, versioni vanno nella scheda d'area.
 
-### Da non toccare, mai
-L'account **`Riuji`** · le **14 classi CSS** costruite per concatenazione in JS · la **§7 di `migration_coerenza.sql`** · la protezione password compromesse di Supabase (spenta per scelta) · i **~139 warning** advisor su `SECURITY DEFINER` (sono l'architettura) · il job `esame-tick`.
+### Deroga permanente ai test staff — 06/09/2026
+Per il collaudo diretto di funzioni live, Antonello autorizza **testperfunzioni e Riuji nella Staff Test Room**, senza nuova richiesta né prove intermedie. Vale il percorso protetto esistente, con risorse reali e progressione invariate, chiusura della sola prova creata salvo mandato di mantenerla aperta e postflight; non è autorizzata un'accensione globale né un aggiramento delle protezioni. Un difetto concreto di isolamento ferma solo quel test. La regola completa in `AGENTS.md` §Test live diretti prevale sui divieti generici di usare Riuji nelle skill/importazioni; non consente cambi di account, credenziali o ruoli.
+
+### Allineamento permanente degli ambienti di test
+Test Room utenti e Staff Test Room devono ricevere ogni versione aggiornata testabile di Combat, pannelli, tecniche, narratori e servizi Edge, usando il percorso reale del prodotto in un contesto simulato protetto. Il rilascio comprende accessibilità e funzionamento nelle due stanze, senza trasferire permessi staff agli utenti. Collaudo funzionale direttamente live, senza ambiente locale obbligatorio; nessuna modifica a schede, risorse o progressione reali. Stato/messaggi/audit della prova sono separati; chiamate IA e relativi costi restano reali. Vedere `AGENTS.md` §Allineamento permanente per scope, chiusura e limiti: questa decisione non attesta che l'allineamento sia già realizzato.
+
+### Da non toccare, salvo la deroga di test sopra
+L'account **`Riuji`** · le **14 classi CSS** costruite per concatenazione in JS · la **§7 di `migration_coerenza.sql`** · la protezione password compromesse di Supabase (spenta per scelta) · i rilievi advisor preesistenti su `SECURITY DEFINER` (numeri storici, da valutare per caso senza correzioni indiscriminate) · il job `esame-tick`.
 
 ---
 
-## 11. Le skill Claude (invisibili a Codex: questo file e `AGENTS.md` sono il ponte)
+## 11. Skill di progetto disponibili secondo l’ambiente
+Le skill esposte a Codex o Claude si leggono dal catalogo della sessione. Questo file e `AGENTS.md` restano riferimenti condivisi; copie esterne obsolete non prevalgono sulle istruzioni correnti.
 `gdr-rotta` (scheda d'area giusta, per prima) · `gdr-contesto` (questo testo) · `gdr-regole-sync` · `gdr-sql` · `gdr-pagine` · `gdr-verifica` · `gdr-chiusura` (riscrive la scheda d'area, mai appende).

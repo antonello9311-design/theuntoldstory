@@ -1,49 +1,36 @@
-# 04 · LAVORI APERTI — il tabellone, e l'ordine «uno alla volta»
+# 04 · LAVORI APERTI — cantieri, dipendenze e prossimi passi
 
-> Una pagina, si **riscrive** in posto: niente sezioni datate. Il diario fino al 02/09 è in `storico/04_LAVORI_APERTI_diario_fino_20260902.md`. Il dettaglio di ogni voce è nella scheda d'area. **Regola d'ingresso: al massimo tre cantieri «in lavoro»**; un cantiere nuovo si apre solo quando uno passa «in uso» o viene parcheggiato per iscritto. «In uso» lo dichiara solo Antonello.
+> Allineamento documentale del 09/09/2026. Una pagina riscritta in posto; storia in `storico/04_LAVORI_APERTI_diario_fino_20260902.md`. Al massimo **tre cantieri in lavoro**; un nuovo cantiere richiede mandato PM e uno slot libero. «In uso» lo dichiara Antonello. Le finestre e i budget delle vecchie campagne non si riattivano leggendo questo tabellone.
 
-Riscritto il 04/09/2026 · task `STAFF-TEST-ROOM-GATE-001`.
+## I tre cantieri documentali aperti
+| Cantiere | Stato e dipendenza | Prossimo passo nel mandato esistente | Responsabili |
+|---|---|---|---|
+| `management/candidati/CLAN-L1_2026-09-01/` | in lavoro; rilasciare una tecnica completa alla volta. Recupero Staff e successivo caso Marionetta riusciti; Raccordo Sabaku corretto, qualificato e applicato alle11:27UTC; bind/ON verificati alle11:38UTC, Trasporto/Clone successivi; precedente referto preservato. | Seguire SCHEDA/HANDOFF correnti: preservare la stessa Staff, registrare i difetti UI della prova11:12 e proseguire i lavori indipendenti già assegnati, incluso il raccordo Uchiha. Nessun nuovo collaudo congiunto Hyūga/Uchiha prima della readiness. Per Sabaku bind/ON sono verificati; il prossimo blocco Trasporto/Clone richiede piano e budget dell’owner prima delle azioni. Nessuna riapertura degli altri cicli terminali. | PM, DB/COMBAT, LAND/RULES |
+| `management/candidati/COMBAT-COMPOSITE_2026-09-01/` | in lavoro; pannelli e contratti condivisi con Clan e Narratore. LAND099 e recupero Edge23 attestati; certificazione generale configurata ancora rossa. | Allineare il consumer ai contratti correnti e trattare i finding nei rispettivi mandati. Non ripetere il rilascio096 o aprire una nuova scena per effetto di un vecchio handoff. | COMBAT-CORE, DB-CORE, LAND-UI |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/` | cantiere condiviso aperto; task Narratore conclusa e archiviata. Esame e Combat hanno percorsi e prove distinti. Recupero singolo riuscito; successiva tranche ordinaria Passa+attacco attestata, con postflight protetto senza differenze. | Passaggio operativo al PM Clan; per l'Esame consolidare gli ultimi riscontri sulle ripetizioni e sul dialogo PNG. Campagna20 conclusa, nessuna ripetizione o rigenerazione da questo tabellone. | NARRATIVE-AI, QA, COMBAT, PM |
 
-## Il tabellone
-| Area | Stato | Cantiere | Prossimo passo | Chi |
-|---|---|---|---|---|
-| Documentale | **completato 03/09** | — | AGENTS v2 adottato nei tre cantieri; rinomini strutturali restano fuori scope | PM |
-| Clan L1 | **in lavoro** | `management/candidati/CLAN-L1_2026-09-01/` | consolidamento editoriale exact21 (solo documenti) | RULES-LORE + Antonello |
-| Combat V2 | **in lavoro** | `management/candidati/COMBAT-COMPOSITE_2026-09-01/` | Moltiplicazione: rebase sulla head LIVE verificata al gate | COMBAT-CORE/DB-CORE |
-| Esame Genin | in uso; fix REC all'apertura **proposto, non applicato** | `management/candidati/EXAM-REC-OPEN_2026-09-04/` | approvare piano; poi candidato DB, review e branch QA | DB-CORE + PM |
-| Narratore unificato (Esame ← modello Ronda) | **applicato inerte**: 4.7.1/prompt30 LIVE, 189/189, review 0/0/0, A08 e smoke completi verdi; QA inerte | `management/candidati/NARRATORE-UNIFICATO_2026-09-02/` | ciclo tecnico concluso; «in uso» solo su dichiarazione di Antonello | PM + NARRATIVE-AI + Antonello |
-| Test Room | in uso; gate Esame staff acceso; Tester avanzato parcheggiato | — | smoke Esame con partecipante alternativo; poi chiusura e ripristino flag | Antonello |
-| Missioni (umane) | pubblicato, mai usato | — | scoprire perché 0 prenotazioni: prova del flusso bacheca → prenotazione → Regia → esito | Antonello + LAND-UI |
-| Training V2 | pubblicato, quasi non giocato | — | leggere le sessioni abbandonate; un allenamento completo | QA + Antonello |
-| Missioni IA / Ninja Book / PNG Builder | applicato inerte | **parcheggiato** fino al canary | data del canary «Nodo Azzurro» | Antonello |
-| IA narrativa | in uso; follow-up separati dal rilascio | — | player bridge, ampiezza manovre, memoria anti-ripetizione, validazione qualitativa v119 | NARRATIVE-AI |
-| Accademia | in uso | — | le sette caselle di §1b (20 minuti) | Antonello |
-| Pagine | background HTML pubblicato, verificato e task chiuso07/09 su richiesta Antonello | `archivio/2026-09/candidati/SCHEDA-BACKGROUND-SICURO_2026-09-07/` | nessun residuo; preservare release nel cantiere Marionetta; commit9e5fb5e,16/16/review0/0/0 | SCHEDA-UI + PM |
-| Pubblicazione | 13 asset sito allineati; sorgenti, test, referti e documenti 4.7.1 caricati su `main` via Chrome (`AGENTS.md` locale è il 14° file di `sito_live/`) | — | mantenere il registro a regime | PM |
-| Piattaforma | history461; igiene arretrata | — | deposito della migrazione461; ratifica dei 15 `anon` + `pg_net` | Antonello + DB-CORE |
+**Task operative:** su richiesta Antonello09/09, «CHIUSA · CONSEGNATA · Unifica narrazione Combat» è archiviata con monitor sospeso; il suo mandato è concluso e la consegna resta nel cantiere condiviso. Unica task di implementazione in esecuzione: «Organizza rilascio tecniche clan», oltre al coordinamento documentale. Gli stati dei cantieri non sono conteggi delle task attive; i residui narrativi restano al PM, senza ripartenza automatica.
 
-## L'ordine, uno alla volta
-Ogni voce si chiude prima di aprire la successiva. Le voci con ✋ chiedono qualcosa ad Antonello; le altre le può fare un agente su mandato.
+**Ordine Clan conservato:** Marionetta → Sabaku → Hyūga → Uchiha → Nara; si supera temporaneamente un ramo con un vero blocco prodotto. Preparazioni indipendenti possono procedere in parallelo, con un owner per file e contratti condivisi coordinati. Le sei scelte del 09/09 sono già ratificate; gli OPEN residui sono quelli della scheda CLAN, non quelli delle task precedenti. Aburame/Akimichi/Hoki/Inuzuka conservano il rinvio di rilascio a dopo Missioni; le preparazioni interne autorizzate non sono aperture generali.
 
-1. ✅ **Documentale** — AGENTS v2 adottato: i tre cantieri hanno SCHEDA/HANDOFF/STORICO, schede d'area e dipendenze sono riconciliate; nessun candidato sigillato modificato. I rinomini strutturali restano fuori scope e si fanno solo a cartella ferma.
-2. ✅ **Narratore unificato — ciclo tecnico concluso**: 4.7.1 compatta il protocollo, supera 189/189 e review 0/0/0; A08 QA verde, produzione 9/9 byte-exact e smoke completo 10/10 senza ripieghi. Resta separata la coppia `REGOLE.md` + `regole.html`.
-3. ✋ **Fix REC Esame** — approvare `EXAM-REC-OPEN-001`: REC server-side prima dell'incipit Sistema/Fato, Test Room esclusa, nessun cambio pagina.
-4. ✋ **Test Room utenti** — Antonello completa in autonomia la QA 070: secondo account, sesto dispatch respinto, KO/ripristino del Manichino. Chiude una voce aperta dal 23/08.
-5. ✋ **Missioni umane: perché nessuno prenota** — 21 missioni in bacheca, 0 prenotazioni in un mese. Prova del flusso completo da giocatore (bacheca → iscrizione → conferma → Regia con Master umano → esito → ricompense). Se il flusso funziona, è comunicazione; se no, è un bug che vale più di qualunque fondazione IA.
-6. ✋ **Training V2** — le tre sessioni abbandonate/annullate in sola lettura, poi un allenamento completo nelle tre modalità.
-7. **Clan: consolidamento exact21** — Nara, Sabaku, Uchiha nel registro centrale; indice, validatori, manifesto. Solo documenti.
-8. **Combat: Moltiplicazione** — rebase sulla head LIVE verificata al gate, readiness e nuova review; nessun apply o caricamento implicito.
-9. **Combat: Sostituzione completa** — resolver server-authoritative (ancore, range 3/5/10/15, cooldown R1→R4, consumo 5, collisione fail-closed, commit e ricevuta). Finché manca, l'offerta non si usa.
-10. **Clan: runtime Marionettisti** (sul contratto ratificato) e poi **Hyūga** (ribasato su 455), uno alla volta, con suite PG17 ×2 e review 0/0/0.
-11. **IA narrativa, follow-up separati** — player bridge strutturato, ampiezza manovre, memoria anti-ripetizione, validazione qualitativa v119; poi adapter dello scambio Combat.
-12. ✋ **Missioni IA: il canary «Nodo Azzurro»** — con `testperfunzioni` + Tamako, budget 0,14, otto fasi. Poi il secondo run. Solo dopo i due run le Missioni full IA si dichiarano pronte.
-13. **PNG Builder: uso ordinario** — Admin collegato al Builder, owner object popolati, prime identità con gate nominativo, binding di fase nell'avvio missione.
-14. **Clan: verticali rimanenti** (Sabaku → Nara → Aburame/Hoki → Inuzuka → Uchiha), poi elementali Genin sul Combat comune, Staff Room, pubblicazione coordinata.
-15. **Sviluppo rinviato**: Tester avanzato con capability separata, scheda ombra, Esame ripetibile e Luna (decisione del 04/09; 7–10 giorni MVP, 12–18 con tutti i clan) · iniziativa manuale del Master, resolver per le azioni non offensive, PNG del Ninja Book nel menu della Regia umana, refactor di leggibilità, `guida.html` del motore, dismissione di «Combatti» legacy (decisione del 02/09).
-16. **Piattaforma** — ratifica 15 `anon` e `pg_net`; mappa delle 91 tabelle vuote per cantiere; FK senza indice dopo il traffico; 66 archivi C (programma 096).
+**Staff corrente:** Riuji e testperfunzioni nei percorsi protetti, stessa scena mantenuta aperta su mandato. Test Room utenti070 differita per questa tranche, con residuo di allineamento conservato. Il budget di ciascun blocco e il postflight sono gestiti dal suo owner, non da un limite notturno scaduto. Nessuna tecnica Clan nell'Esame per effetto di questi lavori.
 
-## Parcheggiati per iscritto (non si riaprono senza mandato)
-`QA-ESAME-REC-REAL-001` fino al rilascio del fix REC e a una seconda REC genuina · `TEST-ROOM-TESTER-AVANZATO` finché Antonello non dà un nuovo mandato · Ninja Book G11-* e 127D finché il canary non è giocato · voce narrativa 066/067 · proposte P2–P8 dell'analisi narrativa · TACTIC-015, 016, integrazione 040+042 (superate) · UI-005/UI-003 dell'Esame (da riverificare sul vivo prima di qualunque riuso) · Sensei IA dell'allenamento (finché V2 non è in uso) · `TASK-AI-ITALIANO-COMUNE-001`.
+## Altri lavori e decisioni da preservare
+| Area | Stato | Seguito |
+|---|---|---|
+| REC Esame | `EXAM-REC-OPEN_2026-09-04`: proposto, non applicato | Approvazione del piano ancora necessaria prima dello sviluppo; QA-ESAME-REC-REAL resta parcheggiato. Nuovo lavoro tecnico soltanto con slot/mandato. |
+| Missioni / PNG | Fondazioni e materiali presenti, uso automatico completo non attestato | Riconciliare il percorso della prossima missione con gli owner. PACK004 già ratificato per canary; guida generale già scritta ma da ratificare nel suo insieme. Mandato missioni miste con base Konoha e PNG via Builder conservato; nessuna data, spesa o nuovo run implicito. |
+| Narrativa / scene libere | Fonte comune e progetti di memoria già esistenti | Collegare contesto, azioni/difese e risultati server a una narrazione continua; verificare distribuzione per profilo. Scontro è un caso della Regia; IA senza autorità su valori, scelte o pensieri dei PG. Discovery scene libere123 da riconciliare, non da riscrivere da zero. |
+| Pagine | Rilasci attestati nel registro; background scheda chiuso il07/09 | Preservare i rilasci. Requisiti recuperati: editor ridimensionabile con bozza mantenuta, motivi delle limitazioni al movimento; proposta per rendere comprensibili le tecniche non disponibili. Priorità pannelli già assegnata. |
+| Training / Accademia | Checkpoint datati nelle aree | Riconciliare prove recenti e difetti concreti; non dedurre abbandoni da pochi eventi storici. Ratifica narrativa del singolo allenamento conservata senza effetti DB impliciti. |
+| Piattaforma | QA permanente ritirato; snapshot DB09/09,11:32UTC:495 migrazioni/head20260909112705 | Docker ordinario e Test Room protette. Branch temporaneo solo per rischio non coperto e costo autorizzato. Nessun repair del branch eliminato; igiene preesistente separata. |
+| Documenti / processo | Documenti allineati; verifica e deposito registrati in PUBBLICAZIONE; nuovo processo successivo | Consolidare fonti e consegne, poi costruire il processo di avvio e coordinamento. Solo quando pronto: passaggio ordinato delle task in corso, preservando il lavoro già svolto. |
+| Nuova utenza | Analisi da completare | Adulti italofoni, anche nuovi al play-by-chat, interessati a GDR/anime/manga/Naruto. Budget da definire dopo l'analisi; nessuna campagna o spesa avviata. |
 
-## Le tre liste con cui si chiude ogni sessione
-**Da caricare su GitHub:** nulla per `EXAM-REC-OPEN-001`; cantiere, QA parcheggiato e dossier sono su `main` nei commit `6cc2fb79…` → `144a3db03…`. Nessun file del sito e nessun SQL è stato caricato. **Immagini attese da Antonello:** 5 generiche (Tanto, Pillola militare, Razioni militari, Konoha-Altri Luoghi, Suna-Altri Luoghi), 2 emblemi medici (in stand-by), 6 emblemi `evofam`, 9 emblemi Cercoteri, avatar mancanti dei PNG, inclusi i 6 sfidanti dell'Esame. Le tavole di riferimento sono complete; il coprifronte di Konoha resta opzionale. **Decisioni che aspettano Antonello:** approvazione del piano `EXAM-REC-OPEN-001` · dichiarazione «in uso» della 4.7.1 · stato dopo il regolamento · data del canary · consolidamento exact21 · ratifica `anon`/`pg_net`.
+## Parcheggi e rinvii da rispettare
+`QA-ESAME-REC-REAL-001` fino al fix REC e alla seconda REC genuina · `TEST-ROOM-TESTER-AVANZATO` senza nuovo mandato · Ninja Book G11-* e127D nei rispettivi gate canary, da riconciliare con le consegne successive · voce narrativa066/067 e proposte P2–P8 storiche da confrontare con il consolidamento corrente · TACTIC-015/016 e integrazione040+042 superate · UI-005/UI-003 Esame da verificare sul vivo prima di riuso · Sensei IA Training secondo il gate dell'area · `TASK-AI-ITALIANO-COMUNE-001` storico, distinto dal successivo mandato della fonte editoriale comune.
+
+Restano proposte di sviluppo: Tester avanzato, iniziativa manuale Master, azioni non offensive, PNG del Book nella Regia umana, refactor delle pagine, guida del motore e ritiro degli avvii legacy preservando le sessioni esistenti. Non sono nuove task avviate da questo allineamento. Non si spostano o archiviano cantieri di altri owner automaticamente.
+
+## Consegne
+Ogni owner aggiorna SCHEDA, HANDOFF, STORICO e la propria area; il PM mantiene questo riepilogo. Stato dei caricamenti e inventario esatto in `aree/PUBBLICAZIONE.md`. Richieste immagini e decisioni prodotto si verificano nell'area prima di riproporle: vecchi conteggi non sono un fabbisogno corrente certificato. L'indice delle task conserva provenienza, decisioni valide e limiti del recupero; non occorre rileggere tutti gli archivi per iniziare un lavoro ordinario.

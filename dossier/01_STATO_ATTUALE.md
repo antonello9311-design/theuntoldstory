@@ -1,48 +1,28 @@
-# 01 · STATO ATTUALE — fotografia verificata a database il 02/09/2026, ore 16:30
+# 01 · STATO ATTUALE — fotografia del 09/09/2026
 
-> Una pagina, si **riscrive** in posto. La storia è in `storico/01_STATO_ATTUALE_diario_fino_20260902.md`. Il dettaglio per area è nelle schede `aree/*.md`. Se un numero qui contraddice il database, ha ragione il database.
+> Si riscrive in posto. Il diario precedente è in `storico/01_STATO_ATTUALE_diario_fino_20260902.md`. Stato operativo e limiti delle prove restano nelle schede d'area; questa fotografia non certifica tutti i percorsi del gioco.
 
-## Chi gioca, e quanto
-- **78 profili** (65 iscritti negli ultimi 30 giorni, 6 negli ultimi 7) · **73 personaggi**: 64 Deshi, 9 Genin · 2 personaggi di prova (`testperfunzioni`, `Tamako`) · 2 profili staff.
-- **Role in chat:** 129 registrate. Per settimana: 5 (27/07) · 39 (03/08) · 33 · 26 · 25 · **1** (dal 31/08). PG che hanno giocato una role: **9 negli ultimi 7 giorni, 22 negli ultimi 30**. La curva scende.
-- **Accademia:** 151 classi, 150 partecipazioni, 433 turni del Sensei IA. È la cosa più usata del gioco.
-- **Esame Genin:** 56 prove — **12 concluse (5 vinte, 7 perse), 44 annullate** (35 `cancelled`, 5 `timeout`, 4 senza motivo). Letti uno per uno il 02/09: **41 dei 44 sono QA** (Riuji 36, account di prova 5); i giocatori veri sono 7, con 6 esami conclusi e 1 abbandonato all'uscita (Rei). Il vero problema è un altro: **gli ultimi due esami veri (Tenma 29/08, Itsuki 30/08) sono andati interamente in ripiego** — digest non qualificato il primo, Edge v105 che pretendeva un campo inesistente il secondo. La v106 (31/08) è la correzione, mai provata da un giocatore.
-- **Scontri:** 14 sessioni del motore legacy, 3 del V2 (2 annullate, 1 in corso: la quest «Ronda» aperta dal servizio IA il 01/09).
-- **Allenamento V2:** 6 sessioni — 1 valida, 2 abbandonate, 1 annullata, 2 legacy. 10 abilità in `character_abilities` (8 attive, 2 in addestramento).
-- **Premi:** 0 richieste, 1 perk (punti caratteristica su Ryutama, d'ufficio). **Missioni:** 21 pubblicate, **0 prenotazioni, 0 svolte**. Clan: 6 richieste. 23 luoghi (1 di prova).
+## Verifica diretta del database
+Lettura aggregata di produzione del **09/09/2026, 11:03:23 UTC**: **85 profili, 78 personaggi, 355 tecniche di catalogo, 9 jutsu, 21 missioni, 7 lezioni, 12 abilità dei personaggi, 0 richieste premio e 52 emblemi**. Le righe del catalogo non attestano tecniche abilitate o collaudate; le righe emblema non attestano immagini caricate.
 
-## Cosa può fare un giocatore oggi (e cosa no)
-| Può | Stato | Non può ancora |
+Successiva lettura della piattaforma alle **11:32:43UTC**: **233 tabelle base e805 funzioni in `public`, di cui680 SECURITY DEFINER;495 migrazioni**, ultima `20260909112705`. Edge e cron restano quelli della lettura delle11:03:23UTC: **15 Edge distribuite ACTIVE; 13 cron, 12 attivi**, con `pilot-scadenza` spento. Verificate `combat_narratore_ai` v23, `mission_narratore_ai` v18 ed `exam_genin_ai` v139. Versione distribuita e percorso realmente abilitato sono verifiche distinte. Non è stato rieseguito un audit generale di permessi o sicurezza.
+
+I dati di utilizzo del 01–02/09 sono storici: non stabiliscono quanti giocatori siano attivi oggi né un tasso di abbandono. Esami e sessioni QA vanno separati dall'attività reale prima di misurare conversione e permanenza. Nessuna nuova lettura di role private, prova di gioco o chiamata al narratore è stata eseguita per questa fotografia.
+
+## Stato dei prodotti e prossimi riscontri
+| Area | Checkpoint da mantenere | Fonte corrente |
 |---|---|---|
-| Registrarsi, creare il PG, spendere i 60 punti, giocare role in chat con REC e XP giornalieri | in uso | — |
-| Fare le lezioni d'Accademia col Sensei IA | in uso | — |
-| Sostenere l'Esame Genin con PNG IA | in uso su LIVE v123/recovery; candidata 4.4 sul solo branch respinta dal gate dinamico | — |
-| Scontri V2 con Regia Master, multi-target, distanze, «Chiudi scena» | in uso (staff) | Sostituzione completa, iniziativa manuale, terminare senza KO era impossibile fino al 02/09 |
-| Allenare una tecnica (Training V2) | pubblicato, quasi non giocato | Sensei IA dell'allenamento (spento) |
-| Chiedere/comprare un premio, entrare in un clan aperto | pubblicato, mai usato | Innate e tecniche di clan Genin (gate OFF) |
-| Iscriversi a una missione in bacheca | pubblicato, **mai prenotata** | Missioni con Narratore IA (inerti), PNG del Ninja Book |
-| Test Room utenti contro il Manichino | in uso (5 dispatch il 25/08) | — |
+| Combat / Regia | Pannelli e percorso Staff rilasciati; recupero narrativo riuscito il 09/09. Il ciclo generale configurato resta rosso e concluso; non è certificato dal recupero singolo. | `aree/COMBAT.md` |
+| Clan | Stato per tecnica e percorso, non con un unico «tutto OFF». Caso Marionetta riuscito nella Staff09/09 alle11:12UTC, con movimento, attacco, difesa e Fato; difetti UI residui. Qualifica corretta e rilascio del raccordo Sabaku attestati dall’owner alle11:27UTC, migrazione confermata in sola lettura. Successivo bind/ON attestato PASS alle11:38:54UTC con risorse protette invariate; Trasporto/Clone non ancora certificati. Precedente referto rosso preservato. | `aree/CLAN.md` |
+| Narratore | Recupero Staff attestato alle 09:56 UTC: una chiamata, 1.830 token, risorse protette invariate. Successiva tranche ordinaria Passa+attacco attestata dall'owner alle11:12UTC: due chiamate,3.847 token,zero retry; postflight11:12:50 senza differenze sulle12 superfici protette. Audit centrale e chiarezza editoriale dello striscio restano questioni aperte. | `aree/IA_NARRATIVA.md` |
+| Esame Genin | Campagna di 20 prove conclusa. Percorso SESSION/CYCLE006/OPENING004 documentato su mission_narratore_ai v18; ultimi riscontri utente indicano ripetizioni e interazione PNG da migliorare. Difesa osservata, prova completa di quattro round e congedo non attestata. Fix REC all'apertura ancora proposto. | `aree/ESAME.md` |
+| Missioni / Ninja Book / PNG | Fondazioni, pacchetti editoriali e prove narrative già esistono. PACK004 è ratificato nel solo perimetro canary. Il percorso Esame e i Fato manuali del Nodo non certificano una missione automatica completa. | `aree/MISSIONI_IA.md` |
+| Training / Accademia | Conservare i checkpoint datati delle rispettive aree. La ratifica narrativa di un allenamento è un caso singolo, non una convalida automatica della progressione. Nessun nuovo collaudo effettuato in questo allineamento. | `aree/TRAINING.md`, `aree/ACCADEMIA.md` |
+| Test Room / UI | La Staff corrente è mantenuta aperta per mandato; Test Room utenti070 rinviata nella tranche Clan. Allineamento permanente delle due superfici resta un obiettivo con residui da verificare. | `aree/TEST_ROOM.md`, `aree/PAGINE.md` |
 
-## La piattaforma
-- **455 migrazioni** (head `20260902110040 master_v2_scene_close_001`); 104 dal 26/08 al 01/09, 7 il 02/09.
-- `public`: **230 tabelle, 91 vuote** (fondazioni inerti: Training 24, Ninja Book 23, Missioni 18, Combat 8, Master 5) · **716 funzioni** (605 SECURITY DEFINER; 15 eseguibili da `anon`, da ratificare) · **23 schemi privati** di programma (`combat_*`, `mission_*`, `png_builder_*`, `ninja_book_internal`, `clan_innata_private`…).
-- **15 Edge Function** (provider unico `gpt-5.6-luna`, reasoning high) · **13 cron** (12 attivi; `pilot-scadenza` spento, dichiarato) · `pg_net` in `public`.
-- Sicurezza: 0 SECDEF senza `search_path`; RLS ovunque; segreti solo nei Secrets delle Edge.
+## Pubblicazione e lavoro
+`PUBBLICAZIONE.md` registra i singoli file e le verifiche alle rispettive date. LAND099 è attestata dall'owner; la baseline GitHub dell’allineamento è main `0b83cbd502be8ebba40405949556aaeed3c1cb64`, senza nuovo collaudo del dominio. Non si dichiara che tutta `sito_live/` coincida oggi con il sito sulla base del controllo del 02/09.
 
-## Il sito
-`sito_live/` è completa dal 02/09: tutti i 14 file del sito (land 006, scheda, admin, regole.html, REGOLE.md al changelog 73, entra, guida, ambientazione, index, storia, clan, privacy, bijuu.js, AGENTS.md locale) coincidono con l'online, verificati per SHA. Registro: `aree/PUBBLICAZIONE.md`.
+Tre cantieri documentali restano aperti: Clan L1, Combat Composite, Narratore unificato. La task Narratore è stata conclusa e archiviata su richiesta Antonello, con monitor sospeso e consegna conservata; resta una sola task di implementazione attiva, «Organizza rilascio tecniche clan», oltre al coordinamento. Dipendenze e prossimi passi sono in `04_LAVORI_APERTI.md`. Il branch QA permanente è stato dismesso su richiesta di Antonello; vale il flusso Docker → rilascio controllato → Test Room di `AGENTS.md`.
 
-## Le aree, in una riga ciascuna
-| Area | Stato | Scheda |
-|---|---|---|
-| Esame Genin | in uso; Narratore 4.7.1 LIVE; fix REC automatica all'apertura proposto e non applicato | `aree/ESAME.md` |
-| Combat e Regia | in uso; Composite R13 live inerte; Sostituzione senza resolver | `aree/COMBAT.md` |
-| Missioni IA / Ninja Book / PNG Builder | tutto applicato **inerte**, mai giocato | `aree/MISSIONI_IA.md` |
-| Clan L1 e tecniche Genin | in lavoro (catena 450–453 live inerte, gate OFF) | `aree/CLAN.md` |
-| Accademia e Audit | in uso | `aree/ACCADEMIA.md` |
-| Training V2 | pubblicato, quasi non giocato | `aree/TRAINING.md` |
-| Test Room | in uso; zona franca dal 02/09 | `aree/TEST_ROOM.md` |
-| IA narrativa | in uso; espressività da costruire | `aree/IA_NARRATIVA.md` |
-| Pagine | allineate; refactor rinviato | `aree/PAGINE.md` |
-| Pubblicazione | coda vuota | `aree/PUBBLICAZIONE.md` |
-| Piattaforma | 455 migrazioni; regola d'ingresso da far rispettare | `aree/PIATTAFORMA.md` |
+La ricognizione delle task aperte e archiviate è in `02_INDICE_DOCUMENTI.md`; questo allineamento rende le decisioni reperibili nei documenti operativi. La costruzione del nuovo processo e il passaggio coordinato delle task sono successivi. Campagna pubblicitaria ancora da pianificare: adulti italofoni, anche nuovi al gioco via chat; budget da definire dopo l'analisi.

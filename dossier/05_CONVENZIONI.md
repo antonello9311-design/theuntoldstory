@@ -8,11 +8,11 @@
 
 **Si chiede prima.** Nessuna modifica al codice applicativo o al database senza approvazione. Quando il cambiamento è sostanziale, si mostra il piano e si aspetta.
 
-**Non si cancella.** Niente file eliminati, comandi distruttivi, reset, force-push, riscritture della storia o modifiche alla configurazione globale. Commit e push sono ammessi soltanto per i file pronti e verificati del task, dopo riconciliazione remota e secondo il gate di pubblicazione; mai includere file estranei. Per disattivare qualcosa si usa `is_active = false`, non `DELETE`. **Unica deroga dichiarata e approvata:** lo svuotamento dei luoghi con `is_test = true` (§16).
+**Non si cancella.** Niente file eliminati, comandi distruttivi, reset, force-push, riscritture della storia o modifiche alla configurazione globale. Commit e push sono ammessi soltanto per i file pronti e verificati del task, dopo riconciliazione remota e secondo il gate di pubblicazione; mai includere file estranei. Per disattivare qualcosa si usa `is_active = false`, non `DELETE`. **`is_test = true` non autorizza cancellazioni né dimostra l'isolamento:** nelle Test Room si conservano storico e audit (§16).
 
-**Una chat per file.** Due conversazioni aperte insieme non si accorgono l'una dell'altra: ognuna restituisce il file **intero**, e chi carica per secondo cancella il lavoro del primo. La regola e le eccezioni stanno in **§14**.
+**Un file, un owner alla volta.** Prima di scrivere si verifica se le task condividono la cartella o lavorano su copie isolate, e se il file è cambiato dall'ultima lettura. Il coordinamento e il controllo del drift sono obbligatori in entrambi i casi (§14).
 
-**La copia locale non è una fonte.** Prima di modificare una pagina si prende il file vero dal disco di Antonello (`~/Downloads`, via bridge) e si fa il diff. §14 punto 3.
+**La copia locale va riconciliata con quella pubblicata.** Prima di modificare una pagina si confronta `sito_live/` con la versione pubblicata su GitHub e con il registro `dossier/aree/PUBBLICAZIONE.md`; il sito pubblicato prevale sulla copia locale. `Downloads` e gli allegati sono copie da verificare, non una fonte prioritaria (§14 punto 3).
 
 **Si segnala ciò che si è corretto d'iniziativa** — e vale in entrambe le direzioni: un vincolo **aggiunto** va elencato perché Antonello lo verifichi, ma anche un vincolo **allentato**, che è più pericoloso perché non rompe niente subito.
 
@@ -61,8 +61,8 @@ Vale anche al contrario: se una sezione del pannello promette qualcosa che a dat
 
 **A ogni cambiamento di regole o di sistema si allineano sempre insieme `REGOLE.md` e `regole.html`.** Non uno solo dei due.
 
-- Il **changelog numerato esiste solo in `REGOLE.md`**, in fondo. `regole.html` non ha la tabella del changelog. Ultima riga scritta: **51** *(«Chi non eredita un cognome se lo sceglie», 08/08/2026)*. La prossima libera è la **52**. ⚠️ Se il numero qui non torna, la fonte è il fondo di `REGOLE.md`, non questa pagina.
-- ⚠️ **Le righe si scrivono in fila, e va verificato che lo siano.** Il 02/08 la 42 è finita **fra la 40 e la 41**, perché due chat hanno scritto lo stesso file: la 41 arrivava da una conversazione parallela sull'Accademia. Dopo aver aggiunto una riga, un `grep -n "^| 4[0-9] | "` di controllo costa un secondo.
+- Il **changelog numerato esiste solo in `REGOLE.md`**, in fondo. `regole.html` non ha la tabella del changelog. **La prossima riga libera si legge nel file vivo prima di scrivere**, mai da un numero conservato in questa pagina o in una skill.
+- ⚠️ **Le righe si scrivono in fila, e va verificato che lo siano.** Il 02/08 la 42 è finita **fra la 40 e la 41**, perché due chat hanno scritto lo stesso file: la 41 arrivava da una conversazione parallela sull'Accademia. Dopo aver aggiunto una riga si controllano l'ordine e l'assenza di numeri duplicati nel blocco effettivamente modificato.
 - Prima di modificare `regole.html`, farne un backup in `/tmp/`.
 - Dopo la modifica, **verificare il bilanciamento dei tag** (`p`, `ul`, `li`, `div`, `table`, `section`, e anche `tr`/`td`/`th` se si è toccata una tabella): un tag scompensato rompe silenziosamente il rendering.
 - Nel patch di `regole.html` le entità HTML vanno scritte come **UTF-8 letterale** (`—`, `·`, `è`, `§`), non come entità nominate.
@@ -76,7 +76,7 @@ Vale anche al contrario: se una sezione del pannello promette qualcosa che a dat
 
 Chiudendo una sessione ho ricopiato da `01` e `04` che il **changelog 39 era da scrivere**, mentre `05` — salvato più tardi lo stesso giorno — lo dava già per fatto. Il dossier si aggiorna a pezzi, da chat diverse, e **la data di salvataggio non è una gerarchia**: un file salvato dopo può contenere un paragrafo copiato da prima.
 
-La risposta non si sceglie fra i due documenti: **si guarda la fonte viva.** Per il regolamento è `regole.html` sul sito. Per i dati è il database. Per l'HTML è il file preso dal disco. Nello stesso controllo è emerso che anche i nomi della scala del Richiamo erano già stati corretti («Richiamo · 1…5»), mentre `04` li elencava ancora fra i lavori aperti.
+La risposta non si sceglie fra i due documenti: **si guarda la fonte viva.** Per il regolamento è `regole.html` sul sito, da tenere allineato a `REGOLE.md`. Per i dati è il database. Per l'HTML è la versione pubblicata, riconciliata con GitHub e con la copia locale. Nello stesso controllo è emerso che anche i nomi della scala del Richiamo erano già stati corretti («Richiamo · 1…5»), mentre `04` li elencava ancora fra i lavori aperti.
 
 **Prima di ricopiare un difetto da una fotografia vecchia, si verifica che sia ancora un difetto.**
 
@@ -477,7 +477,7 @@ Le immagini le genera e le carica Antonello.
 
 ## 10. Trappole dell'ambiente di lavoro
 
-Sono limiti pratici degli strumenti, non del progetto.
+Sono osservazioni nate negli ambienti usati nelle sessioni storiche. Prima di applicarle verificare strumenti, accessi e percorsi effettivamente disponibili; non descrivono automaticamente ogni task attuale.
 
 - **Lo strumento `Edit` fallisce sulle righe HTML lunghe e concatenate.** In quei casi si usa Python con `assert s.count(old) == 1` prima di sostituire.
 - **Ispezionare un file da shell non soddisfa la precondizione di lettura di `Edit`**: va letto con lo strumento `Read`.
@@ -487,14 +487,14 @@ Sono limiti pratici degli strumenti, non del progetto.
 - **Prima di aggiungere un nome in una pagina monolitica, cercarlo.** `admin.html` aveva già `loadAudit()`, `renderAudit()` e `#audit-list`, che sono il **registro dei movimenti dello staff** e non c'entrano nulla con l'audit dell'Accademia. Due cose con lo stesso nome nello stesso file non danno errore: danno confusione silenziosa, mesi dopo. Il pannello nuovo ha preso il prefisso `acc` (07/08).
 - **Nel codice, i caratteri che si somigliano si scrivono come escape.** In una regex che distingue `'` da `’`, o `"` da `“`, si scrive `’` e `“`: a occhio nudo, in un file da 400 KB, quei due caratteri sono indistinguibili e una svista non dà errore, dà un comportamento sbagliato.
 - Le pagine sono monolitiche: prima di toccarle si salva una copia in `/tmp/`, e alla fine si confrontano le dimensioni.
-- **Per modificare una pagina o `REGOLE.md`, farsi passare il file da Antonello** invece di aprire la copia nel progetto: la copia è vecchia e `project_read` non sa restituirne un pezzo.
+- **Per modificare una pagina o REGOLE.md, usare la copia accessibile riconciliata con le fonti pubblicate**, rispettando owner e drift. Chiedere il file ad Antonello soltanto se manca un accesso effettivo alla versione necessaria; non presumere che la cartella sia sempre vecchia.
 - **Il sorgente delle pagine non si legge da GitHub raw con `WebFetch`:** la conversione in markdown **scarta i blocchi `<script>`**, quindi il CSS arriva e il JavaScript no. Per vedere il codice serve il file vero.
 - 🔴 **E quella lettura è anche troncata, quindi risponde «non c'è» a qualunque cosa: un risultato negativo da una lettura troncata non è un risultato.** L'08/08, cercando `acadErr` nel `land.html` appena pubblicato, la risposta è stata «la stringa *lezione da poco* non compare»: sembrava il rilascio andato storto. Il testo ricevuto si fermava **dentro il CSS**, migliaia di righe prima della funzione. Lo stesso vale per `REGOLE.md`, che si interrompe a §12.3 e non raggiunge mai il changelog in fondo.
 
   > **Prima di credere a un «non c'è», si rifà la ricerca con una stringa di controllo che esiste di sicuro anche nella versione vecchia.** Se manca pure quella, la lettura non è arrivata fin lì e il negativo non dice niente sul file. Nel caso dell'08/08 le stringhe di controllo erano `Operazione non riuscita` e `Qui non si tengono lezioni`: mancavano entrambe, e il falso allarme è morto lì.
 
   È parente della trappola del build verde qui sotto, e ha lo stesso esito: **dichiarare rotto ciò che funziona.** Quando la verifica remota non basta, la si passa ad Antonello dicendo esattamente dove guardare — non si conclude al posto suo.
-- **Le skill non si modificano da qui:** i file in `~/.claude/skills/` sono una copia in sola lettura. Per aggiornarne una si prepara un `.skill` e si consegna con `SendUserFile`; se Antonello la salva non si può sapere, quindi si dice «consegnata», mai «salvata».
+- **Le skill dipendono dall’installazione effettiva:** verificare percorso, accessibilità e mandato prima di aggiornarle. Se l’ambiente consente soltanto la consegna di un pacchetto, distinguere «consegnato» da «installato»; non attribuire automaticamente ad Antonello un trasferimento eseguibile dall’agente.
 
 **Deroga esplicita ad `antigravity-protocol`.** Quella skill vieta al punto 1 di usare comandi shell per operare sui file. **Su questo repository quella direttiva non si applica**, perché `Edit` fallisce in modo sistematico sulle righe lunghe concatenate. Qui si usano `grep -n` per localizzare e Python con `assert` per sostituire. La deroga è scritta anche nella skill `gdr-pagine`; tutto il resto di `antigravity-protocol` resta valido.
 
@@ -612,19 +612,19 @@ Chi scrive le azioni in **Word o LibreOffice** e poi le incolla si porta dietro 
 
 *(convenzione adottata il 29/07/2026)*
 
-Il progetto ha accumulato **una ventina di documenti datati**. Ognuno è nato a fine di una sessione ed era vero solo quel giorno. Sono tutti marcati **⏸ SUPERATO** in `dossier/02_INDICE_DOCUMENTI.md`; nessuno è stato cancellato.
+La convenzione nacque dopo l'accumulo di **una ventina di documenti datati**: era il censimento del 29/07, non il conteggio attuale. Il catalogo e le classificazioni correnti stanno in `dossier/02_INDICE_DOCUMENTI.md`; una fonte storica conserva le sue decisioni e prove, senza diventare stato operativo del presente.
 
-**Da qui in avanti, a fine sessione non si crea un file nuovo.** Si aggiornano i documenti vivi:
+**A fine sessione non si crea un nuovo riepilogo datato.** L'owner aggiorna i documenti esistenti del proprio scope, secondo `AGENTS.md`:
 
-- **`dossier/01_STATO_ATTUALE.md`** si riscrive **sul posto**: è la fotografia del presente. I numeri si prendono dal database (skill `gdr-verifica`), non dalla memoria.
-- **`dossier/03_CRONOLOGIA_DECISIONI.md`** riceve **una riga per ogni decisione presa** — non per ogni attività svolta.
-- **`dossier/04_LAVORI_APERTI.md`** si allinea: le voci chiuse si tolgono, le nuove entrano nella priorità giusta.
+- nella **scheda d'area** riscrive `Stato vivo`, `Lavori aperti` e `Prossimo passo`, con fonte e data delle verifiche; cron, flag, gate, versioni Edge e migrazioni non possono restare soltanto nell'handoff;
+- nel **cantiere assegnato** aggiorna `SCHEDA.md`, sovrascrive `HANDOFF.md` nel formato previsto e registra la riga di `STORICO.md`; durante la transizione il percorso è `management/candidati/<CANTIERE>/`;
+- per le pubblicazioni aggiorna le righe pertinenti di **`dossier/aree/PUBBLICAZIONE.md`**, con SHA, commit e verifica, distinguendo un file pronto da uno effettivamente pubblicato.
 
-E, quando è cambiato qualcosa che li riguarda: `00_LEGGIMI.md` (numeri d'insieme, changelog, stato della beta), `02_INDICE_DOCUMENTI.md` (se sono nati documenti), `05_CONVENZIONI.md` (se è emersa una trappola nuova), `06_ISTRUZIONI_PROGETTO.md` (se è cambiato qualcosa di strutturale — e in quel caso **si ricorda ad Antonello di ricopiare il testo** nel campo Istruzioni).
+`01_STATO_ATTUALE.md`, `03_CRONOLOGIA_DECISIONI.md`, `04_LAVORI_APERTI.md` e gli altri documenti centrali si allineano quando pertinente, tramite l'owner incaricato dal PM: **non sono file da far riscrivere in parallelo a ogni task**. I numeri di backend provengono da una verifica del database, non dalla memoria. Se cambia `06_ISTRUZIONI_PROGETTO.md`, si segnala che la copia nelle istruzioni esterne deve essere aggiornata: il salvataggio su disco non la sincronizza.
 
-**L'unica eccezione** è una *specifica di design duratura*: può diventare un file in `claude/…`, con un nome **senza data**, registrato in `02_INDICE_DOCUMENTI.md`.
+Una *specifica di design duratura* si deposita soltanto nel percorso autorizzato dal PM, preferendo la fonte esistente; questa convenzione non autorizza nuovi cantieri, cartelle o guide duplicate.
 
-⚠️ **Il dossier lo aggiorna Claude, non Antonello.** Se una sessione si chiude senza toccarlo, quel lavoro non esiste per la sessione successiva.
+⚠️ **L'aggiornamento documentale è compito dell'agente incaricato, non di Antonello.** Un risultato deve essere recuperabile nella scheda e nel cantiere pertinenti, senza pretendere che la task successiva ritrovi la conversazione.
 
 La procedura completa, con le due liste finali, sta nella skill **`gdr-chiusura`**.
 
@@ -634,7 +634,7 @@ La procedura completa, con le due liste finali, sta nella skill **`gdr-chiusura`
 
 *(convenzione adottata il 02/08/2026, e violata tre volte lo stesso giorno)*
 
-Il caricamento ora può essere eseguito direttamente dall'agente, ma GitHub non fonde automaticamente due versioni concorrenti dello stesso **file intero**. Due chat aperte insieme sullo stesso file non si accorgono l'una dell'altra: resta obbligatorio un solo owner e il confronto con la testa remota prima del push.
+Il caricamento ora può essere eseguito direttamente dall'agente, ma GitHub non fonde automaticamente due versioni concorrenti dello stesso **file intero**. Le task possono condividere una cartella oppure usare copie isolate: **lo si verifica prima di scrivere**, senza dedurlo dal nome dell'app o dal testo dell'handoff. Restano obbligatori un solo owner per file e il confronto con la testa remota prima del push.
 
 Lo scenario che fa danno: `land.html` va alla chat A e alla chat B. A lo rimanda col pannello nuovo, Antonello carica. Poi B lo rimanda con la sua modifica — ma B era partita dalla copia di **prima**. Caricandolo **la pagina torna indietro nel tempo**.
 
@@ -644,11 +644,11 @@ Quello che salva è che **GitHub conserva la cronologia**: dal file, «History»
 
 **Le regole, in ordine di efficacia:**
 
-1. **Una chat per file.** È l'unica regola che non chiede disciplina nel momento sbagliato.
-2. **Sullo stesso file si va in fila, non in parallelo:** si chiude il giro — file caricato e verificato sul dominio — e solo allora il file *nuovo* passa all'altra chat.
-3. **🔴 La copia locale non è una fonte.** Prima di modificare una pagina si prende il file vero **dal disco di Antonello** (`~/Downloads`, con `device_list_dir` e `device_stage_files`) e si fa il diff con la propria copia. Il 02/08 questo passaggio ha salvato lavoro altrui **due volte su due**. Se le due copie divergono in entrambe le direzioni si fonde, non si sovrascrive.
-4. **Prima di caricare, si guarda la dimensione.** Se una chat restituisce un file più piccolo di quello online, manca qualcosa. E dopo il caricamento si ricontrolla che sia cresciuto: se la dimensione non cambia, il file non è salito.
-5. **A metà giornata, si rilegge il dossier prima di consegnare.**
+1. **Un file, un owner alla volta.** Il parallelismo riguarda scope indipendenti; conoscere la stessa cartella non sostituisce l'assegnazione.
+2. **Sullo stesso file si procede in sequenza:** il PM coordina il passaggio della versione verificata e delle prove. Prima della scrittura si ricontrolla l'impronta letta all'inizio; se è cambiata ci si ferma e si riconcilia con l'owner, senza sovrascrivere.
+3. **La copia locale si riconcilia con GitHub e con il pubblicato.** `Downloads` e gli allegati possono servire al confronto, ma non prevalgono sulla fonte pubblicata. Se le copie divergono in entrambe le direzioni si identifica il lavoro da conservare; un conflitto o drift blocca la scrittura o il caricamento interessato, non autorizza una sostituzione indiscriminata.
+4. **Byte, impronta e contenuto rispondono a domande diverse.** Una riduzione dei byte non dimostra una perdita, né una dimensione invariata dimostra che il caricamento sia fallito: si controllano diff, SHA, modifiche attese e regressioni pertinenti. Dopo la pubblicazione si verificano commit, dominio e marcatore di build.
+5. **Prima della consegna si rileggono gli aggiornamenti pertinenti** della scheda d'area, del cantiere e del registro di pubblicazione, senza riaprire tutto il dossier.
 
 **Vale anche per i documenti, non solo per le pagine.** Il changelog di `REGOLE.md` si è ritrovato le righe 41 e 42 in ordine invertito perché due chat lo hanno scritto: §3.
 
@@ -658,11 +658,11 @@ Quello che salva è che **GitHub conserva la cronologia**: dal file, «History»
 
 ---
 
-### ⚠️ Un handoff fra due chat trasporta il testo, non i file
+### ⚠️ Un handoff non garantisce la disponibilità dei file
 
 *(lezione del 07/08/2026, dal pannello dell'audit)*
 
-Ogni conversazione lavora in un contenitore suo, **isolato anche dalle altre conversazioni**: quella che ha il ponte alla cartella non vede i file prodotti dall'altra, e nessun handoff, per quanto dettagliato, glieli passa. Il documento di consegna descrive i file; i file vanno **allegati in chat** a chi deve collocarli, oppure riscritti dalla cartella da Antonello.
+La lezione del 07/08 riguardava ambienti isolati. **Non vale come descrizione automatica di ogni task attuale.** Chi riceve verifica percorso, accessibilità e SHA dei file dichiarati: se la cartella è condivisa i file possono essere già presenti; se l'ambiente è isolato devono essere trasferiti con un canale disponibile e autorizzato, poi verificati. Il testo dell'handoff da solo non trasferisce i file e non certifica che la copia raggiunta sia quella giusta. L'agente incaricato gestisce il passaggio nel proprio scope; non lo scarica automaticamente su Antonello.
 
 ⚠️ **Il modo in cui questo si nota tardi:** il file viene caricato su GitHub direttamente dai Downloads, il sito è giusto, tutti dichiarano chiuso — e la cartella resta indietro di una versione. Il controllo che lo smaschera in dieci secondi è l'impronta del file su disco confrontata con quella dichiarata nell'handoff. È successo il 07/08 con `admin.html`: sito a 269.573 byte, cartella ferma a 243.518 — **rimessa in pari la sera stessa**, dopo che il confronto delle impronte l'ha fatto vedere.
 
@@ -692,7 +692,7 @@ Ogni conversazione lavora in un contenitore suo, **isolato anche dalle altre con
 
 Caricare da lì avrebbe riportato indietro **l'intero gate del motore v1**: pannello guidato, suggeritore, breakpoint, §4.7 e §4.8, changelog 43 e 44. Non è la collisione fra due chat di §14 — è la stessa pagina che torna indietro da sola, perché la fonte del deploy non era mai stata aggiornata.
 
-⚠️ **Effetto su §14 punto 3.** Quella regola dice che «la copia locale non è una fonte» e che il file vero si prende da `~/Downloads`. **Vale ancora finché la cartella non è tenuta in pari.** Con questa convenzione rispettata, la fonte torna a essere `sito_live\` — ma la verifica resta obbligatoria: **prima di modificare una pagina si confrontano i byte** della copia in cartella con quelli dell'ultima consegna. Se non coincidono, la cartella è indietro e va riallineata prima di lavorarci.
+⚠️ **Effetto su §14 punto 3.** Il ricorso a `Downloads` descrive il recupero storico, non la precedenza attuale delle fonti. Prima di modificare una pagina si riconcilia `sito_live/` con GitHub e con il pubblicato, controllando SHA e diff. Una differenza di byte segnala una differenza da esaminare, non basta a stabilire quale copia sia più recente o corretta.
 
 ⚠️ **Due `REGOLE.md` nello stesso progetto.** Ce n'è uno anche nella radice (`C:\theuntoldstory\REGOLE.md`), 81.710 byte, fermo al 03/08 17:58 e diverso da quello di `sito_live\`. **Non è la fonte del deploy** e non va caricato. Finché resta lì è una trappola: due file con lo stesso nome e contenuti diversi.
 
@@ -714,7 +714,7 @@ Sono la memoria compatta di questo lavoro: servono a non dover rileggere i docum
 | `gdr-chiusura` | A fine sessione: gli aggiornamenti del dossier e le due liste finali, **senza creare file datati**. |
 | `interrogami` | Quando Antonello vuole essere grigliato prima di decidere. |
 
-⚠️ **Le skill sono arretrate, e non si aggiornano da sole:**
+⚠️ **Disallineamenti osservati nelle copie di agosto, da verificare sulle skill installate:**
 
 1. il **numero di changelog** in `gdr-regole-sync` e `gdr-contesto` — la fonte è **§3 di questa pagina**;
 2. la riga «Lumache (solo medici)» in `gdr-contesto`: **è falsa**, solo *Palmo trasmesso* e *Cura diffusa* sono riservate al Corpo Medico;
@@ -722,26 +722,21 @@ Sono la memoria compatta di questo lavoro: servono a non dover rileggere i docum
 4. **nessuna skill conosce il motore di combattimento**;
 5. il conteggio delle funzioni e delle skill, che cambia più in fretta del testo che lo cita.
 
-**Le skill non si modificano da una chat** (§10): si consegnano come file e le salva Antonello.
+Per l’aggiornamento delle skill valgono accessi e mandato effettivi descritti in §10; questo documento non ne autorizza né certifica una modifica.
 
 ---
 
-## 16. La Test Room — l'unico posto dove si cancella
+## 16. Le Test Room — prove reali con risorse protette
 
-*(deroga dichiarata e approvata il 02/08/2026)*
+**Regola vigente: `AGENTS.md`, autorizzazioni del 06/09 e flusso database del 09/09.** La descrizione del 02/08 riguardava un'implementazione precedente: non certifica le funzioni di oggi e non autorizza più uno svuotamento dello storico. Test Room utenti e Staff Test Room condividono il database di produzione; `is_test = true`, il nome della stanza o un messaggio di rassicurazione non dimostrano l'isolamento.
 
-Un luogo con `locations.is_test = true` è una **stanza di prova riservata allo staff**, esclusa dalla mappa. Lì dentro:
+- Si usano le versioni e i percorsi reali del prodotto, nel perimetro autorizzato della stanza. Lo stato della prova deve restare separato da personaggi, PV, chakra, inventario, XP, valuta, grado, progressione e risultati esterni; permessi e cataloghi staff non passano alla Test Room utenti. Disponibilità effettiva e lacune si verificano e si registrano nella scheda d'area, senza dedurle da questa regola.
+- Antonello ha autorizzato permanentemente **testperfunzioni e Riuji nella Staff Test Room**, tramite accessi e porte di test esistenti e con risorse protette. Non si richiede nuovamente il consenso ai due PG e, per il solo collaudo di una funzione già rilasciata, non si impongono preventivamente mock, campagne locali o review. Questa deroga non consente modifiche ad account, credenziali o ruoli, né accessi ad altri PG o fuori stanza.
+- Se il percorso usa risorse reali, aggira la protezione o restituisce un errore di sicurezza, **si ferma quella prova e si registra il difetto**. Ripristinare i valori dopo non equivale a isolarli. Nessuna fault injection, migrazione sperimentale o prova mutante fuori dai percorsi protetti autorizzati in produzione, neppure con `ROLLBACK`.
+- Chiamate IA limitate allo scopo, costi e quote dichiarati e misurati quando disponibili; conservare risultati e audit. **Nessuna cancellazione dello storico.** Si chiude soltanto la prova creata per quel collaudo, salvo mandato esplicito di mantenerla aperta; si preservano le scene altrui e si controllano risorse protette, effetti esterni e sessioni residue nel postflight.
+- L'autorizzazione al test non autorizza apply, deploy, enable o apertura generale. Eventuali deroghe di catalogo o tranche riservate allo staff valgono solo nel mandato specifico, non diventano permessi generali per ogni stanza.
 
-- `post_combat` e `post_heal` **tirano, calcolano e raccontano**, ma non toccano vita né chakra; il messaggio finisce con «prova: nessun valore è stato modificato»;
-- `post_message` non scala il chakra della tecnica selezionata;
-- PNG e oggetti sono **sospesi**: sei funzioni rifiutano con un messaggio esplicito;
-- le role non si aprono e `enter_location` non registra entrate né uscite;
-- l'ingresso è imposto dal server, non solo nascosto nel pannello;
-- messaggi e scontri **si cancellano** — job orario più il pulsante «Svuota la stanza».
-
-**È l'unico punto del progetto dove `DELETE` è ammesso**, ed è circoscritto ai luoghi con `is_test = true`. Una seconda deroga, dichiarata: **lì lo staff può accendere un'arte innata che non possiede**, altrimenti la stanza non servirebbe a provare il mantenimento.
-
-**Prima di aggiungere una funzione che scrive, si controlla se prende `p_location`:** se sì, deve sapere cosa fare in un luogo di prova. Il censimento del 02/08 ne ha trovate 22, di cui 11 da proteggere.
+Prima di introdurre o collaudare una funzione che scrive, l'owner controlla il percorso completo e le sue scritture: il solo parametro `p_location` o `is_test` non basta. Le evidenze correnti stanno in `dossier/aree/TEST_ROOM.md` e nella scheda del dominio interessato.
 
 ---
 
@@ -763,18 +758,13 @@ Corollario, dallo stesso giorno: **non domandare al modello ciò che il server s
 
 ## 18. L'ordine fra migrazione e Edge, nei due versi
 
-Quando una migrazione e una Edge cambiano insieme il contratto fra loro:
-
-- **All'andata:** prima la migrazione, poi la Edge. La funzione nuova accetta anche il payload vecchio; la Edge nuova con la funzione vecchia no.
-- **Al ritorno:** prima il rollback SQL, poi la Edge. Il contrario lascerebbe la Edge nuova a mandare campi che la funzione vecchia **ignora in silenzio** — nessun errore, nessun log, dati che semplicemente non arrivano.
-
-Va scritto in testa a ogni coppia candidata/rollback, perché il rollback si legge di fretta e di solito di notte.
+L’ordine di applicazione e recovery si definisce per la coppia concreta di migrazione e Edge, verificando la compatibilità fra versioni vecchie e nuove e gli effetti sui consumer. Non esiste un ordine universale «SQL prima» valido anche per ogni ritorno. Il piano del cantiere indica sequenza, condizioni di arresto e postflight, ed è verificato nel banco pertinente secondo AGENTS.md prima del rilascio autorizzato. La lezione storica è evitare una finestra in cui le due parti interpretano diversamente il contratto.
 
 ---
 
 ## 18bis. Il banco che muore alla riga uno — le guardie delle fixture, 11/08
 
-Un banco in `begin … rollback` comincia sempre creando personaggi finti. **Le guardie che
+Questa lezione riguarda fixture sintetiche nel banco isolato. Oggi sviluppo, concorrenza e recovery ordinari si provano su PostgreSQL reale in Docker; il racconto dell’esecuzione dell’11/08 in produzione non autorizza a ripeterla. **Le guardie che
 rifiutano *le fixture* vanno conosciute per prime**, perché fermano tutto prima che una sola
 asserzione venga misurata.
 
@@ -792,8 +782,7 @@ ricordarsene: e' **una guardia nell'assemblatore** che estrae dai template ogni 
 `characters.name` e lo passa per la regola vera, con la sua controprova - rimettere il nome
 cattivo e verificare che il montaggio muoia.
 
-⚠️ E `characters_guard` e `profiles_guard` tornano `NEW` **quando `auth.uid()` e' nullo**: una
-scrittura di servizio dentro un banco va fatta **senza JWT**, non col JWT di un giocatore.
+Nel banco storico `characters_guard` e `profiles_guard` restituivano `NEW` con `auth.uid()` nullo. È una proprietà della fixture da verificare sulla baseline corrente, non un’autorizzazione a bypassare guardie o impersonare PG reali. Eventuali contesti di servizio delle prove restano nell’ambiente isolato autorizzato.
 
 ## 18ter. «Verbatim» non si promette: o si sigilla, o si manda da psql — 11/08
 
@@ -808,9 +797,7 @@ sbagliato.
 - **Dove la chiamata e' obbligata, si sigilla**: il corpo va dentro una stringa dollar-quotata e
   il database ne verifica il `sha256` **prima** di eseguirlo. Se una battuta e' diversa, non
   gira niente.
-- **E si sigilla anche il risultato**: `pg_get_functiondef` restituisce esattamente il testo
-  del file `CREATE OR REPLACE …` depositato, quindi l'impronta della funzione **viva** si puo'
-  confrontare col `sha256` del file in `SHA256SUMS`. Va messo sia nel banco sia nel postflight.
+- **Si verifica anche il risultato installato:** `pg_get_functiondef` ricostruisce il comando e non garantisce i byte del file originale. Confrontare rappresentazioni omogenee, con estrazione e normalizzazione dichiarate, oppure corpi e metadati secondo il contratto del rilascio. Distinguere l’impronta del file trasmesso da quella della definizione installata; gli attesi provengono dalla baseline depositata. [Riferimento PostgreSQL](https://www.postgresql.org/docs/current/functions-info.html#FUNCTIONS-INFO-CATALOG-TABLE).
 
 ⚠️ **Dire com'e' stato eseguito.** Se il testo inviato e' stato riscritto invece di essere lo
 stesso file depositato, va scritto: la prova byte per byte del file resta da fare, e non si
@@ -940,11 +927,11 @@ rompere la prova. Il controllo si fa rimontando i file dal disco e confrontandol
 
 Vengono da `ROLE-REC-HISTORICAL-RECOVERY-009`, `ROLE-REC-AUTOSTART-006`, `EXAM-GENIN-DB003-ASSEMBLER-COVERAGE-004`, `EXAM-GENIN-DB003-MESSAGES-PNG-005`, `EXAM-GENIN-UI-005-R2-CAPORALI` e `PROJECT-STATE-ALIGN-007`. Nessuna sostituisce una regola già scritta sopra: dove il tema si tocca — §14 sulle due chat, §14bis sui file finiti, §18ter sul sigillo — queste la completano.
 
-### Le revisioni dello stesso task stanno in sottocartelle distinte, e una sola è canonica
+### Una sola revisione corrente nello stesso cantiere
 
-Quando due sessioni lavorano allo stesso candidato nascono due cartelle che si somigliano, e da fuori non si distingue quale sia stata provata. La regola: **ogni revisione ha la sua sottocartella, col numero nel nome**, e la revisione **canonica è dichiarata per iscritto dentro sé stessa** — un `00_REVISIONI_SUPERATE.md` che nomina le altre.
+La lezione storica resta distinguere senza ambiguità il candidato provato. **La disposizione vigente è quella di `AGENTS.md`:** la revisione sostituisce `candidato/` e `referti/`; la precedente si conserva in `_precedenti/<data>_<rev>/` dentro lo stesso cantiere. Non si aprono cartelle `_r2`, `_r3`, `_offline` o `_review` affiancate, né nuovi cartelli per supplire a una fonte corrente non aggiornata.
 
-⚠️ **E va detto il limite.** Il cartello sta nella cartella nuova, non in quelle superate: chi arriva da una di quelle **non lo vede**. Scriverlo là dentro significa aprire in scrittura una cartella contesa, e richiede un'autorizzazione esplicita. Finché non c'è, il rischio resta — dichiarato, non risolto.
+`SCHEDA.md` e `HANDOFF.md` identificano revisione, stato, prove e limiti attuali. Il passaggio rispetta l'owner e il controllo del drift: nessuna task riordina o riscrive una cartella contesa di propria iniziativa.
 
 ### Un manifest non può ridurre silenziosamente la copertura
 
@@ -956,18 +943,18 @@ Se l'elenco dei file che l'assemblatore verifica è più corto dell'insieme dei 
 
 ### Un file storico e un file vivo non sono intercambiabili
 
-Un verbale — un handoff, un preflight depositato, una fotografia del dossier — dice **com'era il mondo quel giorno**. Un file vivo dice **com'è adesso**. Non si legge l'uno per rispondere alla domanda dell'altro, e soprattutto **non si aggiorna un verbale per farlo somigliare al presente**: si perde la prova di che cosa era stato misurato quando la decisione fu presa.
+Un **referto depositato, un preflight o una copia archiviata** dice com'era il mondo nel momento della prova: si conserva immutabile e non si ritocca per farlo somigliare al presente. La **scheda d'area e `HANDOFF.md` corrente** descrivono invece lo stato attuale e si riscrivono in posto. Un handoff conservato fra i precedenti è storico; quello corrente non diventa immutabile solo perché è già stato consegnato.
 
-La regola pratica: **la fotografia si affianca, non si corregge.** Vale sul dossier come sugli handoff. Se una sezione storica è superata, accanto le si mette un riquadro datato che dice che cosa vale oggi, e il testo di prima resta alla lettera.
+Le schede vive indicano fonte, data e limiti delle prove storiche, distinguendo candidato, applicazione, attivazione e collaudo. Una fotografia superata non certifica il backend attuale né la chiusura di un blocco.
 
-### Una nota append-only rettifica lo stato senza alterare il verbale
+### Lo stato si corregge nella fonte viva, senza appendici di rettifica
 
-Il modo concreto di applicare la regola qui sopra su un file già consegnato:
+La regola vigente sostituisce la precedente pratica append-only:
 
-- la rettifica va **in coda** al file (o, per una nota di memoria, in un blocco «stato corrente» **in testa** più il campo `description`); il corpo non si tocca;
-- che l'aggiunta sia davvero un append **si misura, non si dichiara**: si rilegge il file nuovo dal disco e si ricalcola l'impronta dei **primi N byte**, che deve riprodurre esattamente quella di prima;
-- **la rettifica va messa dove la contraddizione si legge.** Se la frase superata compare in tre punti, correggerne uno lascia il documento in contraddizione con sé stesso;
-- e la rettifica va **ancorata al fatto giusto**. «Il blocco resta finché X non consegna» invecchia male: se la consegna avviene e il blocco resta, chi rilegge fra un mese lo dà per chiuso. Si ancora all'**applicazione**, non alla consegna.
+- si **riscrive il blocco pertinente** della scheda d'area, di `SCHEDA.md` o di `HANDOFF.md`, rispettando owner e impronta della versione letta; niente sezioni «Rettifica del…» o nuovi riepiloghi datati;
+- si **conservano i referti immutabili** come prove della revisione cui appartengono; lo stato corrente cita quale evidenza li supera e con quali limiti, senza alterarne corpo o risultato;
+- quando la stessa informazione operativa ricorre in più fonti vive, l'owner coordina l'allineamento delle righe pertinenti, senza far riscrivere i documenti centrali a tutte le task;
+- la chiusura si ancora al **fatto verificato e autorizzato**, non alla sola consegna: pronto, applicato, abilitato, provato e «in uso» restano stati distinti; «in uso» lo dichiara Antonello.
 
 ### Una migrazione applicata e registrata tardi deve dichiarare entrambe le ore
 
