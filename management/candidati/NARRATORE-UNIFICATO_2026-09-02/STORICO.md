@@ -82,3 +82,26 @@
 08/09/2026 · MISSION-EXAM-NIGHT-001 finale ·20prove reali chiuse,60chiamate/398523token; difese ripristinate e aggregata v16, qualità variabile con finding conservati · campagna completata, seguito alPM.
 08/09/2026 · MISSION-EXAM-EDITORIAL-REBUILD-001 · Prompt integrali CYCLE005/OPENING003 e sei schedePNG liberate dai copioni; Edge17 e DMLpersona verificati, QA4+3/review0/0/0 · applicato; singolo collaudo17906token concluso, isolamentoPASS/qualitàeditorialeNONraggiunta.
 - 08/09/2026 · MISSION-EXAM-EDITORIAL-INTERACTION-001 · Antonello accetta complessivamente il campione; precisati interpretazione delle note, raccordo visivo della copia e dialogo aperto senza limiti di frasi. Edge18/CYCLE006/OPENING004,19/19byteesatti,QA3/3+19syntax,review0/0/0; sei schede DB verificate senza limiti residui,0DML/0provider/0nuoveprove · rilasciato.
+08/09/2026 · EDITORIALE-COMUNE-001 piano · approvazioni editoriali registrate, fonte comune e dipendenza limiteDB500–1500 verificate · solo documenti,0apply/deploy/provider, tetto live invariato.
+09/09/2026 · COMBAT-NARRATIVE-SCENE-001 review1 · Candidata integrata SQL/Edge/editoriale congelata;16pinPASS e install locale annullata per errore IF/CASE,2/32submission e0provider · RED iniziale, unico referto indipendente in corso.
+09/09/2026 · COMBAT-NARRATIVE-SCENE-001 finale · Unica aggregata R1–R4; install/rinuncia nativa/16puri/postflightPASS, banco confronto-copie e loader impediscono certificazione completa,22submission e0provider · ROSSO terminale alPM,nessuna patch/riprova/rilascio.
+- 09/09/2026 · qualifica separata banco Narratore · 12 invii, 10 PASS/2 FAIL; loader e contesa qualificati, confronto e catalogo copie bloccati; regola marionettista confermata, composizione al PM · parziale, SCENE001 terminale preservato, zero provider/produzione.
+- 09/09/2026 · bootstrap banco e aggregata nominativa PM · catalogo allineato, selector canonico e close Common; controprova completa 4/4 PASS, 10 invii totali, postflight invariato · verde del solo banco, nuova integrazione non eseguita.
+
+- 09/09/2026 · COMBAT-INTEGRATED-COMMON aggregata finale · iniziale28/32PASS, review0/2/1; finale bloccata da guardia anti-diminuzione fixture20/20,3invii e isolamento invariato · ROSSO terminale, decisione al PM,0provider/produzione.
+
+- 09/09/2026 · configurazione banco20/20 · nuovo clone e identità sintetiche creati legalmente,3/4gruppiPASS; selector movimento non trova capability, rollback e isolamento verificati · configurazione pronta, qualifica incompleta;12SQL/0provider, vecchi cicli intatti.
+
+- 09/09/2026 · configurazione banco unica aggregata/finale · capability nativa senza traiettoria imposta, diagnostica completa;4/4gruppiPASS,5invii/1.042s, movimento+attacco offerto+close/isolamento · verde del solo ambiente, controverifica finale0/0/0; ramoowner2 non esercitato.
+
+- 09/09/2026 · CONFIGURED-INTEGRATION finale / STAFF-AI-RECOVERY contratto ·32/32SQL31PASS1FAIL36,679s, controverifica terminale0/1/0 perG12, CI-R1/R2chiusi e65file congelati; mandato PM recupero IA della stessa scena con parent immutabile, prova no-send aperta; nessuna produzione/provider.
+
+- 09/09/2026 · STAFF-AI-RECOVERY-001 aggregata/finale ·64/64PASS econtroverifica0/0/0; preflightproduzione16/16corpiACLverdi eparent/reportimmutati, pacchettoDB/EdgeesattoconnominativogatePMancoradaeseguire;0provider/mutazioniremote.
+
+- 09/09/2026 · STAFF-AI-RECOVERY-001 rilascio controllato DB/Edge · Gate PM eseguito una volta: migrazione20260909093926, postflight41/41 e5store protetti; narratorev23 con15/15sorgenti esatti. Parent/report/flag invariati,0provider; attestazione e dispatch pendenti.
+
+- 09/09/2026 · STAFF-AI-RECOVERY-001 porta operativa · Preparata attestazione e singola net.http_post atomiche con marker recovery:true; privilegi verificati, query status readonly verde09:51:22UTC. Browser disponibile; gate operativo pendente,0provider.
+
+- 09/09/2026 · STAFF-AI-RECOVERY-001 recupero live · HTTP1095=200/published,1provider/1830token/0retry,1Fato e nuovo exchange; parent/report e2PG/12superfici protetti, sole date rigenerazione diverse. UI confermata ROOT; audit centrale mancante registrato, scena aperta preservata.
+
+- 09/09/2026 · Chiusura task Narratore · Mandato completato e task archiviata su richiesta Antonello, monitor sospeso; consegna e referti conservati, seguiti al PM e owner Clan, cantiere condiviso non archiviato.
