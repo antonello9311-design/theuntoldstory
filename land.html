@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-COMMON-PANEL-UI-013" />
+  <meta name="tus-build" content="LAND-COMMON-PANEL-UI-014" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2407,7 +2407,7 @@ const COMMON_PANEL_LAYOUT_CSS = `
  .common-panel-active .common-panel-feedback{grid-column:1/-1;min-width:0}
  .common-panel-active .common-panel-feedback:empty{display:none}
  .common-panel-active .common-panel-feedback .mv2-field{margin:0}
- .common-panel-active>.common-panel-workspace{display:grid;grid-template-columns:minmax(0,1fr) clamp(220px,18vw,270px);grid-template-areas:"arena participants" "commands commands";grid-template-rows:minmax(300px,1fr) minmax(0,max-content);align-content:stretch;align-items:stretch;gap:12px;flex:1;width:100%;max-width:1640px;align-self:center;box-sizing:border-box;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:0 4px 6px 0}
+ .common-panel-active>.common-panel-workspace{display:grid;grid-template-columns:minmax(0,1fr) clamp(220px,18vw,270px);grid-template-areas:"arena participants" "commands commands";grid-template-rows:minmax(300px,2fr) minmax(170px,1fr);align-content:stretch;align-items:stretch;gap:12px;flex:1;width:100%;max-width:1640px;align-self:center;box-sizing:border-box;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:0 4px 6px 0}
  .common-panel-active .common-panel-map{grid-area:arena!important;justify-self:stretch;width:100%;max-width:none;display:flex;flex-direction:column;min-height:300px;overflow:hidden;margin:0;box-sizing:border-box}
  .common-panel-active .common-map-canvas{flex:1 1 auto;aspect-ratio:auto;width:100%;min-height:260px}
  .common-panel-active .common-panel-map>h4,.common-panel-active .common-panel-map>p{flex-shrink:0;margin:0 0 8px}
@@ -2415,7 +2415,7 @@ const COMMON_PANEL_LAYOUT_CSS = `
  .common-panel-active .common-panel-participants{grid-area:participants!important;width:100%;min-height:0;max-height:none;overflow:auto;overscroll-behavior:contain;margin:0;box-sizing:border-box}
  .common-panel-active .common-panel-participants .mv2-roster{display:grid;grid-template-columns:1fr;gap:10px;margin:12px 0 0!important;padding:0!important}
  .common-panel-active .common-panel-participants .mv2-note{margin:3px 0;font-size:12px}
- .common-panel-active .common-panel-sidebar{grid-area:commands!important;display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0;max-height:34vh;overflow:auto;overscroll-behavior:contain;padding-right:4px}
+ .common-panel-active .common-panel-sidebar{grid-area:commands!important;display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0;max-height:none;overflow:auto;overscroll-behavior:contain;padding-right:4px}
  .common-panel-active .common-panel-sidebar>.mv2-field{flex-shrink:0;margin:0;order:3}
  .common-panel-active .common-panel-sidebar>.common-panel-actions{order:0}
  .common-panel-active .common-panel-sidebar>.common-panel-administration{order:1}
@@ -2833,14 +2833,14 @@ function changeSingleChoice(group,value,selected,selectOption){
 function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,selectOption,setInput,setNarrative,prepare,retry}={},renderers={}){
   renderers={map:renderPanelMap,companion:renderPanelCompanion,sabaku_transport:renderPanelSabaku,...renderers};
   const doc=root.ownerDocument;installPanelLayout(doc);
-  let generation=0,current=null;
+  let generation=0,current=null,cachedMap=null,cachedMapKey=null;
   const node=(tag,value,parent)=>{const el=doc.createElement(tag);if(value!==undefined)el.textContent=String(value);if(parent)parent.append(el);return el;};
   const section=(parent,title)=>{const s=node('section',undefined,parent);s.className='mv2-field';node('h4',title,s);return s;};
   const note=(parent,value)=>{const p=node('p',value,parent);p.className='mv2-note';return p;};
   const token=()=>generation;
   const handler=(ticket,fn,...args)=>()=>{if(ticket!==generation||typeof fn!=='function')return;fn(...args);};
   function button(parent,label,fn,disabled=false){const b=node('button',label,parent);b.type='button';b.className='mv2-btn';b.disabled=disabled||typeof fn!=='function';if(fn)b.addEventListener('click',fn);return b;}
-  function clear(){generation++;current=null;sceneKey=null;disabledBeforeBusy=null;fullRenderWasBusy=true;root.removeAttribute("aria-busy");root.replaceChildren();}
+  function clear(){generation++;current=null;cachedMap=null;cachedMapKey=null;sceneKey=null;disabledBeforeBusy=null;fullRenderWasBusy=true;root.removeAttribute("aria-busy");root.replaceChildren();}
   function renderFeedback(model,parent){
     const last=model?.lastCommand;
     // Opzionale per i consumer privati: preserva anche il loro snapshot/rejection già valido.
@@ -2882,8 +2882,9 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
       root.setAttribute('aria-busy',String(model?.busy===true));
       return;
     }
-    disabledBeforeBusy=null;
+    restoreDisabled();
     renderFull(model);
+    if(model?.busy===true)busyLock();
     sceneKey=key;fullRenderWasBusy=model?.busy===true;baseCanPrepare=model?.canPrepare;
     root.setAttribute('aria-busy',String(model?.busy===true));
   }
@@ -2894,6 +2895,9 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     const focus=active&&root.contains(active)&&active.getAttribute('data-focus-key')?{key:active.getAttribute('data-focus-key'),start:active.selectionStart,end:active.selectionEnd}:null;
     generation++;current=model;const ticket=token();root.replaceChildren();
     const e=model?.envelope;
+    // Le scelte locali non cambiano la scena autorizzata: conserva immagini e legenda.
+    const nextMapKey=model?.validated===true&&e?.status==='ready'?JSON.stringify(e):null;
+    if(nextMapKey===null||nextMapKey!==cachedMapKey){cachedMap=null;cachedMapKey=null;}
     const header=node('header',undefined,root);header.className='common-panel-header';
     node('h3',model?.validated===true&&integer(e?.context?.round_no)?`Scontro · Round ${e.context.round_no}`:'Scontro',header);
     const toolbar=node('div',undefined,header);toolbar.className='common-panel-toolbar';toolbar.setAttribute('aria-label','Aggiornamento del pannello');
@@ -2911,7 +2915,10 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     const locked=model.busy===true||model.pending===true;
     const commandsReady=!locked&&model.optionsReady===true&&v.can_command===true;
     const workspace=node('div',undefined,root);workspace.className='common-panel-workspace';
-    const map=section(workspace,'Arena e posizioni');map.className+=' common-panel-map';map.setAttribute('aria-label','Arena e posizioni');
+    const reuseMap=cachedMap!==null&&cachedMapKey===nextMapKey;
+    const map=reuseMap?cachedMap:section(workspace,'Arena e posizioni');
+    if(reuseMap)workspace.append(map);
+    else{map.className+=' common-panel-map';map.setAttribute('aria-label','Arena e posizioni');}
     const sidebar=node('div',undefined,workspace);sidebar.className='common-panel-sidebar';sidebar.setAttribute('aria-label','Comandi e dettagli dello scontro');
     const info=section(workspace,'Partecipanti');info.className+=' common-panel-participants';
     note(info,(c.round_no===null?'':`Round ${c.round_no} · `)+c.phase_label);
@@ -2934,8 +2941,11 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
       const due=[];if(actor.action_due===true)due.push('azione');if(actor.defense_due===true)due.push('difesa');
       if(due.length)note(row,'Deve ancora consegnare: '+due.join(' e '));
     }
-    if(e.map!==null&&typeof renderers.map==='function')renderers.map(map,e,{legendOpen});
-    else note(map,'Mappa non disponibile in questa candidata. Nessuna posizione viene ricostruita.');
+    if(!reuseMap){
+      if(e.map!==null&&typeof renderers.map==='function')renderers.map(map,e,{legendOpen});
+      else note(map,'Mappa non disponibile in questa candidata. Nessuna posizione viene ricostruita.');
+      cachedMap=map;cachedMapKey=nextMapKey;
+    }
     for(const [field,title]of [['companion','Compagno'],['sabaku_transport','Controllo della sabbia']]){
       if(e[field]===null)continue;
       const block=section(sidebar,title);
