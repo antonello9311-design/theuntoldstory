@@ -1,0 +1,1216 @@
+{
+  "task_id": "FLOW-MULTIACTOR-NARRATIVE-CONTRACT-001",
+  "state": "CONTRATTO_CONSEGNATO_NON_IMPLEMENTATO",
+  "created_at_utc": "2026-09-10T00:37:23.903068+00:00",
+  "budget": {
+    "minutes": 25,
+    "readonly_queries_max": 2,
+    "readonly_queries_used": 2,
+    "tests": 0,
+    "provider_calls": 0,
+    "production_mutations": 0
+  },
+  "scope": [
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/FLOW_MULTIACTOR_NARRATIVE_CONTRACT.md",
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/FLOW_MULTIACTOR_NARRATIVE_CONTRACT.json"
+  ],
+  "inputs": [
+    {
+      "path": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/ESPANSIONE_MULTIATTORE.md",
+      "sha256": "37f4c3c69115d03461bf31965b74da65b85b1c2473824be5fb692cfff0e37683"
+    },
+    {
+      "path": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/flow_narrative_release/BASELINE.json",
+      "sha256": "ef65ddb677f2998833c65c437d8b1f13b5c4be329fbb4e8c20070f77ad2bbab8"
+    },
+    {
+      "path": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/flow_narrative_release/CONTRACT.md",
+      "sha256": "486ff372c8dc6960d3bc16833f3804493f49724915943d6b903c764668cb0af9"
+    },
+    {
+      "path": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/flow_narrative_release/flow.mjs",
+      "sha256": "ceefabdb6bd9e3cfe7e85c31b4a3805f76fbf7dae11ab0ad51994e9deff7722d"
+    },
+    {
+      "path": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/editorial_scene_release/runtime.ts",
+      "sha256": "9966c7551d603abe7015054b38001bae7568a9f107c4f99307709f20e989c909"
+    },
+    {
+      "path": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/editorial_scene_release/scene.mjs",
+      "sha256": "be436f9ad4bfca637f7bbc9a35e51bcbcc5e66128d5069b3f4300fcb6c90c5e7"
+    },
+    {
+      "path": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/editorial_scene_release/lifecycle.mjs",
+      "sha256": "2a8e353144e1158750048cf97b06959c9aa050f837c7041741ff0830316442fa"
+    },
+    {
+      "path": "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/flow_integrated_release/BASELINE.json",
+      "sha256": "85e9ac9b437c27ef79a991cad0253ae41e76d9986c8634f125afe0a44bc6738f"
+    },
+    {
+      "path": "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/flow_integrated_release/CONTRACT.md",
+      "sha256": "a840f9cee17336638d2dff64c89c91e2c37e4a4048e9055fabd13f0348e04e0b"
+    },
+    {
+      "path": "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/flow_integrated_release/MANIFEST.json",
+      "sha256": "abc062111d825f4473a382168a77fc05cfd38bd9a6fb4a04b4fda366e2a8fcba"
+    },
+    {
+      "path": "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/flow_defense_release/BASELINE.json",
+      "sha256": "de7b5b2a6fc3f6398ddf2f351d4b8aff42c686bb15b67b224c109e5daef8979d"
+    },
+    {
+      "path": "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/flow_defense_release/CONTRACT.md",
+      "sha256": "b9b9ff16afb7fb1ba90950c1d5a4229db8d98ccc42c81646ba99c978a23d38d6"
+    },
+    {
+      "path": "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/flow_defense_release/MANIFEST.json",
+      "sha256": "96895e85faadabbedec7305689a7a50ce074fe9626f15d23c48b23897fab3d35"
+    }
+  ],
+  "metadata": {
+    "q1": [
+      {
+        "observed_at": "2026-09-10 00:31:55.76566+00",
+        "signature": "combat_consumer_private.after_publish(uuid,uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION combat_consumer_private.after_publish(p_round uuid, p_next uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare ctx combat_consumer_private.activities%rowtype; r public.combat_v2_rounds%rowtype;\n  next_actor uuid;\nbegin\n  if not combat_consumer_private.owns_round(p_round) then return; end if;\n  select * into r from public.combat_v2_rounds where id=p_round;\n  select * into ctx from combat_consumer_private.activities where session_id=r.session_id for update;\n  if ctx.exchange_id is distinct from p_round or ctx.phase<>'resolved' or r.state<>'narrato'\n    or not exists(select 1 from public.combat_v2_round_reports where round_id=p_round\n      and narration_state='pubblicata' and message_id is not null) then\n    raise exception 'ordinary_publication_state_invalid';\n  end if;\n  if p_next is null then\n    if (select count(*) from public.combat_v2_actors where session_id=ctx.session_id and state='attivo' and companion_id is null)>=2 then\n      raise exception 'ordinary_next_missing';\n    end if;\n    perform combat_consumer_private.close_session(ctx.session_id);\n    return;\n  end if;\n  if not exists(select 1 from public.combat_v2_rounds where id=p_next and session_id=ctx.session_id\n    and round_no=r.round_no+1 and phase='raccolta_azioni') then\n    raise exception 'ordinary_next_invalid';\n  end if;\n  select m.actor_id into next_actor from combat_consumer_private.members m\n    join public.combat_v2_actors a on a.id=m.actor_id and a.session_id=m.session_id\n    where m.session_id=ctx.session_id and m.actor_id<>ctx.turn_actor_id and a.state='attivo';\n  if next_actor is null then raise exception 'ordinary_next_actor_invalid'; end if;\n  update combat_consumer_private.activities set exchange_id=p_next,turn_actor_id=next_actor,\n    round_no=ctx.round_no+case when mod(r.round_no,2)=0 then 1 else 0 end,\n    phase='action',context_version=context_version+1,last_action_at=clock_timestamp()\n    where session_id=ctx.session_id;\n  update combat_consumer_private.offers set state='revoked'\n    where session_id=ctx.session_id and state='offered';\nend $function$\n",
+        "md5": "272be131c10453ce8c39ac8c0d04067c",
+        "owner": "postgres",
+        "acl": "{postgres=X/postgres}"
+      },
+      {
+        "observed_at": "2026-09-10 00:31:55.765673+00",
+        "signature": "combat_consumer_private.before_publish(uuid,text,text,uuid,uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION combat_consumer_private.before_publish(p_round uuid, p_kind text, p_text text, p_request uuid, p_author uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare ctx combat_consumer_private.activities%rowtype; authority combat_consumer_private.narrative_authorities%rowtype;\n  text_sha text;\nbegin\n  if not combat_consumer_private.owns_round(p_round) then return; end if;\n  select * into ctx from combat_consumer_private.activities where exchange_id=p_round for update;\n  select * into authority from combat_consumer_private.narrative_authorities where session_id=ctx.session_id for update;\n  if ctx.phase is distinct from 'resolved' then raise exception 'ordinary_publish_context_invalid'; end if;\n  if exists(select 1 from combat_consumer_private.recovery_claims_v1 where round_id=p_round) then\n    if p_kind='fato_ia' and p_author is null and combat_consumer_private.is_service_request()\n      and exists(select 1 from combat_consumer_private.recovery_publish_authorizations_v1 p\n        join combat_consumer_private.recovery_claims_v1 c on c.id=p.claim_id\n        join combat_consumer_private.recovery_attempts_v1 a on a.claim_id=c.id\n        where p.round_id=p_round and p.request_key=p_request and p.transaction_id=txid_current()\n          and p.state='prepared' and a.state='generated'\n          and p.text_sha256=encode(extensions.digest(convert_to(p_text,'UTF8'),'sha256'),'hex')\n          and combat_consumer_private.recovery_current_v1(c.id)) then return; end if;\n    raise exception 'recovery_publish_authority_required';\n  end if;\n  if p_kind='fato_umano' and authority.mode='human' and p_author is not null and p_author=auth.uid()\n    and exists(select 1 from public.master_v2_sessions where id=authority.master_session_id\n      and master_user=auth.uid() and owner_kind='human' and stato='in_corso') then return; end if;\n  if p_kind<>'fato_ia' or p_author is not null or not combat_consumer_private.is_service_request() then\n    raise exception 'ordinary_narrative_authority_invalid';\n  end if;\n  text_sha:=encode(extensions.digest(convert_to(p_text,'UTF8'),'sha256'),'hex');\n  if authority.mode='ai_auto' and exists(select 1 from combat_consumer_private.publish_authorizations p\n    join combat_consumer_private.narrative_claims c on c.id=p.claim_id\n    where p.request_key=p_request and p.round_id=p_round and p.transaction_id=txid_current()\n      and p.state='prepared' and p.text_sha256=text_sha and c.state='claimed'\n      and c.context_version=ctx.context_version and c.control_version=authority.control_version) then return; end if;\n  if authority.mode='ai_review' and exists(select 1 from public.combat_v2_ai_narrative_previews v\n    join public.combat_v2_round_reports r on r.id=v.report_id and r.round_id=v.round_id\n    where v.round_id=p_round and v.state='approved' and v.report_sha256=r.mechanics_sha256\n      and v.body=btrim(p_text) and v.body_sha256=public.combat_v2_sha256(to_jsonb(btrim(p_text)))) then return; end if;\n  raise exception 'ordinary_narrative_authority_invalid';\nend $function$\n",
+        "md5": "61ab71c9116fa3938a4cebc362257b2a",
+        "owner": "postgres",
+        "acl": "{postgres=X/postgres}"
+      },
+      {
+        "observed_at": "2026-09-10 00:31:55.765675+00",
+        "signature": "combat_consumer_private.narrative_allowed(uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION combat_consumer_private.narrative_allowed(p_session uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n SELECT coalesce((SELECT CASE WHEN l.is_test THEN\n   c.policy_id='staff_test_no_persistent_resources_v1'\n   AND s.source_kind='ordinary' AND s.location_id=c.location_id\n   AND NOT public.combat_v2_values_written(s.id)\n   AND clan_marionettisti_private.roster_valid(s.id)\n   AND (SELECT count(DISTINCT a.controller_user)\n     FROM public.combat_v2_actors a\n     JOIN combat_consumer_private.members m ON m.session_id=a.session_id\n       AND m.actor_id=a.id AND m.character_id=a.character_id\n     JOIN public.characters ch ON ch.id=a.character_id AND ch.user_id=a.controller_user\n     WHERE a.session_id=s.id AND a.actor_kind='pg')=2\n   AND combat_consumer_private.staff_test_allowed(l.id,\n     ARRAY(SELECT a.controller_user FROM public.combat_v2_actors a\n       WHERE a.session_id=s.id AND a.actor_kind='pg' ORDER BY a.controller_user),true)\n ELSE (SELECT enabled AND provider_enabled\n   FROM combat_consumer_private.runtime_config WHERE singleton) END\n FROM combat_consumer_private.activities c\n JOIN public.combat_v2_sessions s ON s.id=c.session_id\n JOIN public.locations l ON l.id=c.location_id\n WHERE c.session_id=p_session AND c.phase<>'closed'),false)\n$function$\n",
+        "md5": "9ea79b4c6f08a99352413acb88685044",
+        "owner": "postgres",
+        "acl": "{postgres=X/postgres}"
+      },
+      {
+        "observed_at": "2026-09-10 00:31:55.765676+00",
+        "signature": "combat_consumer_private.narrative_master(uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION combat_consumer_private.narrative_master(p_session uuid)\n RETURNS uuid\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select a.master_session_id from combat_consumer_private.narrative_authorities a\n    join combat_consumer_private.activities c on c.session_id=a.session_id\n    where a.session_id=p_session and a.mode='human' and c.phase<>'closed'\n$function$\n",
+        "md5": "ace331dc06e83f0320dc71f0da276119",
+        "owner": "postgres",
+        "acl": "{postgres=X/postgres}"
+      },
+      {
+        "observed_at": "2026-09-10 00:31:55.765677+00",
+        "signature": "combat_v2_narrative_store(uuid,text,text,uuid,uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION public.combat_v2_narrative_store(p_round uuid, p_kind text, p_text text, p_request_key uuid, p_author uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n  v_r public.combat_v2_rounds%rowtype;\n  v_rep public.combat_v2_round_reports%rowtype;\n  v_location uuid;\n  v_narrative_id uuid;\n  v_message_id uuid;\n  v_result jsonb;\n  v_next uuid;\n  v_active_teams int;\nbegin\n  perform public.combat_v2_lock_round(p_round);\n  select * into v_r from public.combat_v2_rounds where id=p_round for update;\n  select * into v_rep from public.combat_v2_round_reports where round_id=p_round for update;\n  perform public.combat_v2_assert_operational(p_round,p_request_key,true);\n  perform combat_consumer_private.before_publish(p_round,p_kind,p_text,p_request_key,p_author);\n\n  if v_r.id is null or v_rep.id is null or v_r.state<>'risolto' then\n    perform public.combat_v2_fail('referto_non_completo','Il round non ha un referto risolto.',409,p_request_key,'{}');\n  end if;\n  if v_rep.narration_state='pubblicata' then\n    perform public.combat_v2_fail('round_gia_narrato','Il round è già narrato.',409,p_request_key,'{}');\n  end if;\n  if length(btrim(coalesce(p_text,''))) not between 1 and 5000 then\n    perform public.combat_v2_fail('intento_non_valido','Testo narrativo non valido.',422,p_request_key,'{}');\n  end if;\n\n  select s.location_id into v_location\n    from public.combat_v2_sessions s\n   where s.id=v_r.session_id;\n  if v_location is null then\n    perform public.combat_v2_fail('sessione_inesistente','Sessione inesistente.',404,p_request_key,'{}');\n  end if;\n\n  insert into public.combat_v2_narratives(\n    round_id,report_id,kind,body,author_user,request_key\n  ) values(\n    p_round,v_rep.id,p_kind,btrim(p_text),p_author,p_request_key\n  ) returning id into v_narrative_id;\n\n  -- Nessun sender_user e nessun character_id: in chat parla Fato; l'identità\n  -- reale resta nell'audit combat_v2_narratives.author_user. Il trigger REC\n  -- ignora la riga perché character_id è nullo.\n  insert into public.messages(location_id,character_id,author_name,body,kind)\n  values(v_location,null,'Fato',btrim(p_text),'fato')\n  returning id into v_message_id;\n\n  update public.combat_v2_round_reports\n     set narration_state='pubblicata',\n         narrator_kind=case when p_kind='fato_umano' then 'umano' else 'ia' end,\n         message_id=v_message_id,\n         narrated_at=clock_timestamp()\n   where id=v_rep.id;\n\n  update public.combat_v2_rounds\n     set phase='narrato',state='narrato',narrated_at=clock_timestamp()\n   where id=p_round;\n\n  select count(distinct team_key) into v_active_teams\n    from public.combat_v2_actors\n   where session_id=v_r.session_id and state='attivo' and companion_id is null;\n\n  if v_active_teams>=2 then\n    insert into public.combat_v2_rounds(session_id,round_no,evaluation_mode)\n    values(v_r.session_id,v_r.round_no+1,v_r.evaluation_mode)\n    returning id into v_next;\n  else\n    update public.combat_v2_sessions set state='risolto' where id=v_r.session_id;\n  end if;\n\n  v_result:=public.combat_v2_envelope(p_request_key,jsonb_build_object(\n    'narrative_id',v_narrative_id,\n    'message_id',v_message_id,\n    'next_round_id',v_next,\n    'encounter_resolved',v_active_teams<2\n  ));\n  perform combat_consumer_private.after_publish(p_round,v_next);\n  return v_result;\nend\n$function$\n",
+        "md5": "0e73f64916cb78337d524079bfec6fef",
+        "owner": "postgres",
+        "acl": "{postgres=X/postgres}"
+      },
+      {
+        "observed_at": "2026-09-10 00:31:55.765773+00",
+        "signature": "combat_v2_round_narrate_ai_apply(uuid,text,text,uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION public.combat_v2_round_narrate_ai_apply(p_round uuid, p_report_sha256 text, p_text text, p_request_key uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n  v_event jsonb;\n  v_event_id uuid;\n  v_result jsonb;\n  v_preview public.combat_v2_ai_narrative_previews%rowtype;\n  v_round public.combat_v2_rounds%rowtype;\n  v_report public.combat_v2_round_reports%rowtype;\n  v_location uuid;\n  v_message_id uuid;\n  v_narrative_id uuid;\n  v_next uuid;\nbegin\n  if not public.combat_v2_is_service() then\n    perform public.combat_v2_fail('controllo_revocato','Porta riservata al servizio.',403,p_request_key,'{}');\n  end if;\n  select * into v_preview\n    from public.combat_v2_ai_narrative_previews\n   where round_id=p_round and report_sha256=p_report_sha256\n     and body_sha256=public.combat_v2_sha256(to_jsonb(btrim(p_text))) and body=btrim(p_text)\n   for update;\n  if v_preview.id is null or v_preview.state<>'approved' then\n    perform public.combat_v2_fail('controllo_revocato','La narrazione IA richiede anteprima e approvazione Staff.',409,p_request_key,'{}');\n  end if;\n  v_event:=public.combat_v2_event_begin(\n    p_round,p_request_key,'combat_v2_round_narrate_ai_apply',\n    jsonb_build_object(\n      'round',p_round,'report_sha256',p_report_sha256,\n      'preview_id',v_preview.id,'text_sha256',v_preview.body_sha256\n    ),null\n  );\n  if (v_event->>'replay')::boolean then return v_event->'result'; end if;\n  v_event_id:=(v_event->>'event_id')::uuid;\n\n  perform public.combat_v2_lock_round(p_round);\n  select * into v_round from public.combat_v2_rounds where id=p_round for update;\n  select * into v_report from public.combat_v2_round_reports where round_id=p_round for update;\n\n  if v_round.state='narrato'\n     and v_report.narration_state='ritirata'\n     and v_report.message_id is null then\n    perform public.combat_v2_assert_operational(p_round,p_request_key,true);\n    select s.location_id into v_location\n      from public.combat_v2_sessions s\n     where s.id=v_round.session_id;\n    select nx.id into v_next\n      from public.combat_v2_rounds nx\n     where nx.session_id=v_round.session_id\n       and nx.round_no=v_round.round_no+1;\n    if v_location is null or v_next is null\n       or not exists (\n         select 1 from public.combat_v2_narrative_retractions nr\n          where nr.report_id=v_report.id\n       ) then\n      perform public.combat_v2_fail('referto_non_completo','Ripubblicazione non autorizzabile.',409,p_request_key,'{}');\n    end if;\n    update public.combat_v2_narratives\n       set body=btrim(p_text), kind='fato_ia', author_user=null, request_key=p_request_key\n     where round_id=p_round\n     returning id into v_narrative_id;\n    if v_narrative_id is null then\n      perform public.combat_v2_fail('referto_non_completo','Narrazione ritirata non trovata.',409,p_request_key,'{}');\n    end if;\n    insert into public.messages(location_id,character_id,author_name,body,kind)\n    values(v_location,null,'Fato',btrim(p_text),'fato')\n    returning id into v_message_id;\n    update public.combat_v2_round_reports\n       set narration_state='pubblicata', narrator_kind='ia',\n           message_id=v_message_id, narrated_at=clock_timestamp()\n     where id=v_report.id;\n    update public.combat_v2_ai_narrative_previews\n       set state='published',published_at=clock_timestamp()\n     where id=v_preview.id;\n    v_result:=public.combat_v2_envelope(p_request_key,jsonb_build_object(\n      'narrative_id',v_narrative_id,'message_id',v_message_id,\n      'next_round_id',v_next,'encounter_resolved',false,'replacement',true\n    ));\n    return public.combat_v2_event_complete(v_event_id,v_result);\n  end if;\n\n  v_result:=public.combat_v2_narrative_store(p_round,'fato_ia',p_text,p_request_key,null);\n  update public.combat_v2_ai_narrative_previews\n     set state='published',published_at=clock_timestamp()\n   where id=v_preview.id;\n  return public.combat_v2_event_complete(v_event_id,v_result);\nend\n$function$\n",
+        "md5": "c3550d459992bbba01ea7550c2cf0314",
+        "owner": "postgres",
+        "acl": "{postgres=X/postgres,service_role=X/postgres}"
+      },
+      {
+        "observed_at": "2026-09-10 00:31:55.765781+00",
+        "signature": "combat_v2_round_narrate_human(uuid,text,uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION public.combat_v2_round_narrate_human(p_round uuid, p_text text, p_request_key uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare v_uid uuid:=auth.uid(); v_m public.master_v2_sessions%rowtype; v_event jsonb; v_event_id uuid; v_result jsonb;\nbegin\n  if combat_consumer_private.owns_round(p_round) then perform public.combat_v2_lock_round(p_round); end if;\n  select m.* into v_m from public.combat_v2_rounds r join public.combat_v2_sessions s on s.id=r.session_id join public.master_v2_sessions m on m.id=coalesce(s.master_session_id,combat_consumer_private.narrative_master(s.id)) where r.id=p_round for update of m;\n  if v_m.id is null or v_m.master_user<>v_uid then perform public.combat_v2_fail('master_non_proprietario','Solo il Master corrente può narrare.',403,p_request_key,'{}'); end if;\n  v_event:=public.combat_v2_event_begin(p_round,p_request_key,'combat_v2_round_narrate_human',jsonb_build_object('round',p_round,'text',p_text),v_m.control_version);\n  if (v_event->>'replay')::boolean then return v_event->'result'; end if; v_event_id:=(v_event->>'event_id')::uuid;\n  v_result:=public.combat_v2_narrative_store(p_round,'fato_umano',p_text,p_request_key,v_uid);\n  return public.combat_v2_event_complete(v_event_id,v_result);\nend $function$\n",
+        "md5": "1a258ed683a2c91ea331e4e3b717dd48",
+        "owner": "postgres",
+        "acl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}"
+      },
+      {
+        "observed_at": "2026-09-10 00:31:55.76584+00",
+        "signature": "master_v2_ui_state(uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION public.master_v2_ui_state(p_location uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nBEGIN\n RETURN combat_panel_private.mask_native_state(combat_panel_private.master_state_authoritative(p_location));\nEND\n$function$\n",
+        "md5": "af2bb18972d4b43b850e6fd75ed56b87",
+        "owner": "postgres",
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}"
+      }
+    ],
+    "q2": {
+      "observed_at": "2026-09-10 00:33:27.041993+00",
+      "functions": [
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "md5": "119f144dbae63b4e756ea788e4095331",
+          "owner": "postgres",
+          "signature": "combat_consumer_scene_status_v2(uuid,text,uuid)",
+          "definition": "CREATE OR REPLACE FUNCTION public.combat_consumer_scene_status_v2(p_round uuid, p_report_sha256 text, p_request_key uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE id uuid;\nBEGIN\n  IF NOT combat_consumer_private.is_service_request() THEN RAISE EXCEPTION 'scene_service_required'; END IF;\n  SELECT a.claim_id INTO id FROM combat_consumer_private.scene_attempts_v2 a JOIN combat_consumer_private.narrative_claims c ON c.id=a.claim_id\n    WHERE a.round_id=p_round AND c.report_sha256=p_report_sha256 AND a.request_key=p_request_key;\n  IF id IS NULL THEN RETURN null; END IF;\n  RETURN combat_consumer_private.scene_record_v2(id);\nEND $function$\n"
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "md5": "5bc5cd86dd03ebe4687c7388131165a3",
+          "owner": "postgres",
+          "signature": "combat_consumer_narrative_claim_v1(uuid,text,uuid)",
+          "definition": "CREATE OR REPLACE FUNCTION public.combat_consumer_narrative_claim_v1(p_round uuid, p_report_sha256 text, p_request_key uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare ctx combat_consumer_private.activities%rowtype; report public.combat_v2_round_reports%rowtype;\n  authority combat_consumer_private.narrative_authorities%rowtype;\n  claim combat_consumer_private.narrative_claims%rowtype; payload jsonb;\nbegin\n  if not combat_consumer_private.is_service_request() then perform combat_consumer_private.fail('not_participant'); end if;\n  if p_request_key is null then perform combat_consumer_private.fail('identifier_invalid'); end if;\n  perform public.combat_v2_lock_round(p_round);\n  if exists(select 1 from combat_consumer_private.recovery_claims_v1 where round_id=p_round) then raise exception 'legacy_claim_recovery_fenced'; end if;\n  select * into ctx from combat_consumer_private.activities where exchange_id=p_round for update;\n  if ctx.session_id is null or ctx.phase<>'resolved' then\n    return jsonb_build_object('should_call_provider',false,'state','not_ready');\n  end if;\n  select * into report from public.combat_v2_round_reports where round_id=p_round for update;\n  select * into authority from combat_consumer_private.narrative_authorities where session_id=ctx.session_id for update;\n  select * into claim from combat_consumer_private.narrative_claims where round_id=p_round for update;\n  if claim.id is not null then\n    if claim.request_key<>p_request_key or claim.report_sha256 is distinct from p_report_sha256 then\n      perform combat_consumer_private.fail('request_key_conflict',p_request_key);\n    end if;\n    if claim.state='claimed' and claim.expires_at<clock_timestamp() then\n      update combat_consumer_private.narrative_claims set state='expired',failure_code='timeout' where id=claim.id;\n      claim.state:='expired';\n    end if;\n    -- Ripetizione non consegna di nuovo il permesso a chiamare il provider.\n    return jsonb_build_object('claim_id',claim.id,'should_call_provider',false,'state',claim.state,\n      'completion',claim.completion_result);\n  end if;\n  if not combat_consumer_private.narrative_allowed(ctx.session_id)\n    or authority.mode is distinct from 'ai_auto' then\n    return jsonb_build_object('should_call_provider',false,'state','disabled');\n  end if;\n  if report.id is null or report.mechanics_sha256 is distinct from p_report_sha256 or report.narration_state<>'attesa' then\n    perform combat_consumer_private.fail('context_stale',p_request_key);\n  end if;\n  payload:=combat_consumer_private.narrative_context(p_round);\n  insert into combat_consumer_private.narrative_claims(session_id,round_id,report_id,report_sha256,\n    context_version,control_version,context_payload,context_sha256,request_key,state,expires_at)\n    values(ctx.session_id,p_round,report.id,report.mechanics_sha256,ctx.context_version,authority.control_version,\n      payload,public.combat_v2_sha256(payload),p_request_key,'claimed',clock_timestamp()+interval '60 seconds') returning * into claim;\n  return jsonb_build_object('claim_id',claim.id,'should_call_provider',true,'state',claim.state,\n    'report_id',claim.report_id,'round_id',claim.round_id,\n    'report_sha256',claim.report_sha256,'context_sha256',claim.context_sha256,'control_version',claim.control_version,\n    'edge_revision',case when payload->>'genere'='rinuncia' then 'ordinary-rinuncia/1' when payload->>'genere'='azione_risolta' then 'ordinary-facts/1' else 'ordinary-adapter/1' end,'validator_revision',case when payload->>'genere'='rinuncia' then 'combat-rinuncia/1' when payload->>'genere'='azione_risolta' then 'combat-facts/1' else 'combat-narratore-v18-existing/1' end,\n    'provider','openai','model','gpt-5.6-luna','expires_at',claim.expires_at,'context',payload);\nend $function$\n"
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "md5": "55af27b8ee0746648d1f7676a1a4e97b",
+          "owner": "postgres",
+          "signature": "combat_consumer_scene_permit_v2(uuid,text,uuid,text,bigint)",
+          "definition": "CREATE OR REPLACE FUNCTION public.combat_consumer_scene_permit_v2(p_round uuid, p_report_sha256 text, p_request_key uuid, p_scene_sha256 text, p_control_version bigint)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE v_claim uuid; a combat_consumer_private.scene_attempts_v2%ROWTYPE; c combat_consumer_private.narrative_claims%ROWTYPE;\nBEGIN\n  v_claim:=combat_consumer_private.scene_lock_v2(p_round,p_report_sha256,p_request_key);\n  SELECT * INTO STRICT a FROM combat_consumer_private.scene_attempts_v2 WHERE claim_id=v_claim;\n  SELECT * INTO STRICT c FROM combat_consumer_private.narrative_claims WHERE narrative_claims.id=v_claim;\n  IF a.scene_sha256 IS DISTINCT FROM p_scene_sha256 OR c.control_version IS DISTINCT FROM p_control_version THEN RAISE EXCEPTION 'scene_permit_binding_changed'; END IF;\n  IF a.state<>'claimed' THEN RETURN combat_consumer_private.scene_record_v2(v_claim); END IF;\n  IF NOT combat_consumer_private.scene_current_v2(v_claim) OR c.expires_at<=clock_timestamp()+interval '13 seconds' THEN\n    UPDATE combat_consumer_private.scene_attempts_v2 SET state='failed',failure_code='context_or_lease_changed' WHERE claim_id=v_claim;\n    UPDATE combat_consumer_private.narrative_claims SET state='failed',failure_code='context_changed' WHERE narrative_claims.id=v_claim;\n    RETURN combat_consumer_private.scene_record_v2(v_claim);\n  END IF;\n  UPDATE combat_consumer_private.scene_attempts_v2 SET state='provider_reserved',permit_at=clock_timestamp() WHERE claim_id=v_claim;\n  UPDATE combat_consumer_private.narrative_claims SET expires_at=clock_timestamp()+interval '60 seconds' WHERE narrative_claims.id=v_claim;\n  RETURN combat_consumer_private.scene_record_v2(v_claim)||jsonb_build_object('granted_now',true);\nEND $function$\n"
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "md5": "c1e86541aa230e0d2438079895b0451f",
+          "owner": "postgres",
+          "signature": "combat_consumer_scene_save_v2(uuid,text,uuid,text)",
+          "definition": "CREATE OR REPLACE FUNCTION public.combat_consumer_scene_save_v2(p_round uuid, p_report_sha256 text, p_request_key uuid, p_result_text text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE v_claim uuid; a combat_consumer_private.scene_attempts_v2%ROWTYPE;\n  c combat_consumer_private.narrative_claims%ROWTYPE; result jsonb; fingerprint text;\nBEGIN\n  v_claim:=combat_consumer_private.scene_lock_v2(p_round,p_report_sha256,p_request_key);\n  IF p_result_text IS NULL OR octet_length(p_result_text)>65536 THEN RAISE EXCEPTION 'scene_delivery_transport_overflow'; END IF;\n  result:=p_result_text::jsonb;\n  PERFORM combat_consumer_private.validate_scene_result_v2(result);\n  fingerprint:=encode(extensions.digest(convert_to(p_result_text,'UTF8'),'sha256'),'hex');\n  SELECT * INTO STRICT a FROM combat_consumer_private.scene_attempts_v2 WHERE claim_id=v_claim;\n  SELECT * INTO STRICT c FROM combat_consumer_private.narrative_claims WHERE id=v_claim;\n  IF a.result_sha256 IS NOT NULL THEN\n    IF a.result_sha256 IS DISTINCT FROM fingerprint THEN RAISE EXCEPTION 'scene_result_conflict'; END IF;\n    RETURN combat_consumer_private.scene_record_v2(v_claim);\n  END IF;\n  IF a.state<>'provider_reserved' OR a.permit_at IS NULL OR c.expires_at<=clock_timestamp()\n    OR NOT combat_consumer_private.scene_current_v2(v_claim)\n    OR result->>'report_sha256' IS DISTINCT FROM c.report_sha256\n    OR result->>'context_sha256' IS DISTINCT FROM a.scene_sha256\n    OR (result->>'control_version')::bigint IS DISTINCT FROM c.control_version THEN\n    UPDATE combat_consumer_private.scene_attempts_v2 SET state='failed',failure_code='context_or_lease_changed' WHERE claim_id=v_claim;\n    UPDATE combat_consumer_private.narrative_claims SET state='failed',failure_code='context_changed' WHERE id=v_claim;\n    RETURN combat_consumer_private.scene_record_v2(v_claim);\n  END IF;\n  IF result->>'status'='succeeded' AND encode(extensions.digest(convert_to(result->>'text','UTF8'),'sha256'),'hex')\n    IS DISTINCT FROM result->>'text_sha256' THEN RAISE EXCEPTION 'scene_text_hash_changed'; END IF;\n  UPDATE combat_consumer_private.scene_attempts_v2 SET result_bytes=p_result_text,result_payload=result,result_sha256=fingerprint,\n    provider_response_id=result->>'provider_response_id',result_at=clock_timestamp(),\n    state=CASE WHEN result->>'status'='succeeded' THEN 'generated' ELSE 'failed' END,\n    failure_code=result->>'failure_code',completion=CASE WHEN result->>'status'='failed'\n      THEN jsonb_build_object('status','not_published','reason',result->>'failure_code') ELSE NULL END WHERE claim_id=v_claim;\n  IF result->>'status'='failed' THEN\n    UPDATE combat_consumer_private.narrative_claims SET state='failed',failure_code=result->>'failure_code',\n      provider_response_id=result->>'provider_response_id',provider_request_sha256=result->>'provider_request_sha256',\n      raw_output_sha256=result->>'raw_output_sha256' WHERE id=v_claim;\n  END IF;\n  RETURN combat_consumer_private.scene_record_v2(v_claim);\nEND $function$\n"
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "md5": "153777708128d14d5b482d08dad24f9e",
+          "owner": "postgres",
+          "signature": "combat_consumer_scene_complete_v2(uuid,text,uuid)",
+          "definition": "CREATE OR REPLACE FUNCTION public.combat_consumer_scene_complete_v2(p_round uuid, p_report_sha256 text, p_request_key uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE v_claim uuid; a combat_consumer_private.scene_attempts_v2%ROWTYPE; result jsonb; receipt jsonb;\nBEGIN\n  v_claim:=combat_consumer_private.scene_lock_v2(p_round,p_report_sha256,p_request_key);\n  SELECT * INTO STRICT a FROM combat_consumer_private.scene_attempts_v2 WHERE claim_id=v_claim;\n  IF a.state IN('published','failed') THEN RETURN combat_consumer_private.scene_record_v2(v_claim); END IF;\n  IF a.state<>'generated' OR a.result_payload IS NULL THEN RAISE EXCEPTION 'scene_result_not_ready'; END IF;\n  -- La generazione è già finita e persistita entro la lease: la consegna idempotente può proseguire dopo,\n  -- purché authority, report, stato protetto e versione contesto siano ancora identici.\n  IF NOT combat_consumer_private.scene_current_v2(v_claim) THEN\n    UPDATE combat_consumer_private.scene_attempts_v2 SET state='failed',failure_code='context_changed' WHERE claim_id=v_claim;\n    UPDATE combat_consumer_private.narrative_claims SET state='failed',failure_code='context_changed' WHERE id=v_claim;\n    RETURN combat_consumer_private.scene_record_v2(v_claim);\n  END IF;\n  result:=a.result_payload;\n  PERFORM combat_consumer_private.validate_scene_result_v2(result);\n  INSERT INTO combat_consumer_private.publish_authorizations\n    VALUES(p_request_key,p_round,v_claim,result->>'text_sha256',txid_current(),'prepared');\n  -- Stessa porta reale del prodotto, stessi trigger, ricevuta e isolamento. Nessun inserimento messaggi alternativo.\n  receipt:=public.combat_v2_narrative_store(p_round,'fato_ia',result->>'text',p_request_key,null);\n  UPDATE combat_consumer_private.publish_authorizations SET state='consumed' WHERE request_key=p_request_key;\n  UPDATE combat_consumer_private.narrative_claims SET state='completed',completion_sha256=public.combat_v2_sha256(result),\n    completion_result=receipt,provider_response_id=result->>'provider_response_id',provider_request_sha256=result->>'provider_request_sha256',\n    raw_output_sha256=result->>'raw_output_sha256' WHERE id=v_claim;\n  UPDATE combat_consumer_private.scene_attempts_v2 SET state='published',completion=receipt WHERE claim_id=v_claim;\n  RETURN combat_consumer_private.scene_record_v2(v_claim);\nEND $function$\n"
+        },
+        {
+          "acl": "{postgres=X/postgres}",
+          "md5": "75bfb1807f4941a7b89f8816f98002c8",
+          "owner": "postgres",
+          "signature": "combat_panel_private.master_state_authoritative(uuid)",
+          "definition": "CREATE OR REPLACE FUNCTION combat_panel_private.master_state_authoritative(p_location uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n  v_uid uuid:=auth.uid();\n  v_m public.master_v2_sessions%rowtype;\n  v_s public.combat_v2_sessions%rowtype;\n  v_r public.combat_v2_rounds%rowtype;\n  v_is_admin boolean:=false;\n  v_is_master boolean:=false;\n  v_is_participant boolean:=false;\nbegin\n  if v_uid is null then\n    perform public.combat_v2_fail('autenticazione_richiesta','Autenticazione richiesta.',401,null,'{}');\n  end if;\n\n  select * into v_m\n    from public.master_v2_sessions\n   where location_id=p_location and stato not in ('chiusa','annullata')\n   order by created_at desc limit 1;\n\n  if v_m.id is null then\n    return public.combat_v2_envelope(null,jsonb_build_object(\n      'viewer',jsonb_build_object('is_master',false,'is_admin',public.combat_v2_is_admin(v_uid)),\n      'master',null,'encounter',null,'actors','[]'::jsonb,'round',null,\n      'declarations','[]'::jsonb,'pending_defenses','[]'::jsonb,\n      'ratings_pending','[]'::jsonb,'report',null));\n  end if;\n\n  v_is_admin:=public.combat_v2_is_admin(v_uid);\n  v_is_master:=v_m.master_user=v_uid;\n  select exists(\n    select 1 from public.master_v2_participants p\n     where p.session_id=v_m.id and p.user_id_snapshot=v_uid\n       and p.engagement_state in ('attivo','sospeso')\n  ) into v_is_participant;\n\n  if not (v_is_master or v_is_admin or v_is_participant) then\n    perform public.combat_v2_fail('master_non_proprietario','Sessione non accessibile.',403,null,'{}');\n  end if;\n\n  select * into v_s\n    from public.combat_v2_sessions\n   where master_session_id=v_m.id and state not in ('chiuso','annullato')\n   order by created_at desc limit 1;\n\n  if v_s.id is not null then\n    select * into v_r\n      from public.combat_v2_rounds\n     where session_id=v_s.id\n     order by round_no desc limit 1;\n  end if;\n\n  return public.combat_v2_envelope(null,jsonb_build_object(\n    'viewer',jsonb_build_object(\n      'is_master',v_is_master,\n      'is_admin',v_is_admin,\n      'is_participant',v_is_participant),\n    'master',jsonb_build_object(\n      'id',v_m.id,'location_id',v_m.location_id,'tipo',v_m.tipo,\n      'stato',v_m.stato,\n      'control_version',v_m.control_version,'mission_id',v_m.mission_id,\n      'titolo',v_m.titolo,'suspended_at',v_m.suspended_at),\n    'encounter',case when v_s.id is null then null else jsonb_build_object(\n      'id',v_s.id,'state',v_s.state,'source_kind',v_s.source_kind,\n      'location_id',v_s.location_id,'lesiva',v_s.lesiva) end,\n    'actors',case when v_s.id is null then '[]'::jsonb else coalesce((\n      select jsonb_agg(jsonb_build_object(\n        'id',a.id,\n        'kind',a.actor_kind,\n        'name',coalesce(c.name,p.nome,pi.nome,'Attore'),\n        'character_id',a.character_id,\n        'team',a.team_key,\n        'state',a.state,\n        'position_m',a.position_m,\n        'initiative',a.initiative_snapshot,\n        'mine',a.controller_user=v_uid,\n        'has_action',exists(\n          select 1 from public.combat_v2_declarations d\n           where d.round_id=v_r.id and d.actor_id=a.id\n             and d.kind in ('attacco','movimento','utilita','passa')),\n        'reaction_used',exists(\n          select 1 from public.combat_v2_declarations d\n           join public.combat_v2_declarations x on x.id=d.parent_attack_id\n           where d.round_id=v_r.id and d.kind='difesa'\n             and x.target_actor_id=a.id),\n        'resources',case when v_is_master or v_is_admin or a.controller_user=v_uid\n          then jsonb_build_object(\n            'vita',a.mechanics_snapshot->'vita',\n            'vita_max',a.mechanics_snapshot->'vita_max',\n            'chakra',a.mechanics_snapshot->'chakra',\n            'chakra_max',a.mechanics_snapshot->'chakra_max')\n          else null end\n      ) order by a.initiative_snapshot desc,a.id)\n      from public.combat_v2_actors a\n      left join public.characters c on c.id=a.character_id\n      left join public.combat_v2_png_instances p on p.id=a.png_instance_id left join public.combat_v2_provider_instances_v1 pi on pi.id=a.provider_instance_v1_id\n      where a.session_id=v_s.id\n    ),'[]'::jsonb) end,\n    'round',case when v_r.id is null then null else jsonb_build_object(\n      'id',v_r.id,'no',v_r.round_no,'phase',v_r.phase,'state',v_r.state,\n      'evaluation_mode',v_r.evaluation_mode,'report_id',v_r.report_id,\n      'resolved_at',v_r.resolved_at,'narrated_at',v_r.narrated_at) end,\n    'declarations',case when v_r.id is null then '[]'::jsonb else coalesce((\n      select jsonb_agg(jsonb_build_object(\n        'id',d.id,'actor_id',d.actor_id,'actor_name',coalesce(ac.name,ap.nome,aip.nome,'Attore'),\n        'actor_kind',aa.actor_kind,'kind',d.kind,\n        'target_actor_id',d.target_actor_id,'target_name',coalesce(tc.name,tp.nome,tip.nome,'Attore'),\n        'parent_attack_id',d.parent_attack_id,'targets',(select coalesce(jsonb_agg(jsonb_build_object('attack_target_id',t.id,'ordinal',t.ordinal,'target_actor_id',t.target_actor_id,'state',t.state,'outcome',case when v_r.state in('risolto','narrazione','narrato')then t.outcome else null end)order by t.ordinal),'[]'::jsonb)from public.combat_v2_attack_targets t where t.attack_declaration_id=d.id),'coverage',(select coalesce(jsonb_agg(jsonb_build_object('attack_target_id',c.attack_target_id,'protected_actor_id',c.protected_actor_id,'mode',c.mode,'state',c.state)order by c.id),'[]'::jsonb)from public.combat_v2_defense_coverages c where c.defense_declaration_id=d.id),'state',d.state,'order_no',d.order_no,\n        'text',case when v_is_master or v_is_admin or aa.controller_user=v_uid\n                         or ta.controller_user=v_uid or v_r.state in ('risolto','narrazione','narrato')\n                    then d.declaration_text else '' end,\n        'choice',jsonb_strip_nulls(jsonb_build_object(\n          'kind',d.sanitized_intent->>'kind',\n          'reaction',d.sanitized_intent->>'reaction',\n          'ability_name',d.sanitized_intent->'server_ability'->>'name')),\n        'rating',case\n          when rr.id is null then null\n          when v_is_admin or (rr.source<>'revisione_admin' and (v_is_master or aa.controller_user=v_uid))\n          then jsonb_build_object('id',rr.id,'value',rr.value,'reason',rr.reason,\n                                 'source',rr.source,'created_at',rr.created_at)\n          else null end\n      ) order by d.order_no nulls last,d.created_at,d.id)\n      from public.combat_v2_declarations d\n      join public.combat_v2_actors aa on aa.id=d.actor_id\n      left join public.characters ac on ac.id=aa.character_id\n      left join public.combat_v2_png_instances ap on ap.id=aa.png_instance_id left join public.combat_v2_provider_instances_v1 aip on aip.id=aa.provider_instance_v1_id\n      left join public.combat_v2_actors ta on ta.id=d.target_actor_id\n      left join public.characters tc on tc.id=ta.character_id\n      left join public.combat_v2_png_instances tp on tp.id=ta.png_instance_id left join public.combat_v2_provider_instances_v1 tip on tip.id=ta.provider_instance_v1_id\n      left join lateral (\n        select r0.* from public.combat_v2_ratings r0\n         where r0.declaration_id=d.id and r0.is_active\n         order by r0.created_at desc limit 1\n      ) rr on true\n      where d.round_id=v_r.id\n        and (v_is_master or v_is_admin or aa.controller_user=v_uid\n             or ta.controller_user=v_uid or v_r.state in ('risolto','narrazione','narrato'))\n    ),'[]'::jsonb) end,\n    'pending_defenses',case when v_r.id is null then '[]'::jsonb else coalesce((\n      select jsonb_agg(jsonb_build_object(\n        'attack_declaration_id',d.id,\n        'attacker_actor_id',d.actor_id,\n        'attacker_name',coalesce(ac.name,ap.nome,aip.nome,'Attore'),\n        'target_actor_id',d.target_actor_id,\n        'target_name',coalesce(tc.name,tp.nome,tip.nome,'Attore'),\n        'text',case when v_is_master or v_is_admin or ta.controller_user=v_uid\n                    then d.declaration_text else '' end\n      ) order by d.created_at,d.id)\n      from public.combat_v2_declarations d\n      join public.combat_v2_actors aa on aa.id=d.actor_id\n      left join public.characters ac on ac.id=aa.character_id\n      left join public.combat_v2_png_instances ap on ap.id=aa.png_instance_id left join public.combat_v2_provider_instances_v1 aip on aip.id=aa.provider_instance_v1_id\n      join public.combat_v2_actors ta on ta.id=d.target_actor_id\n      left join public.characters tc on tc.id=ta.character_id\n      left join public.combat_v2_png_instances tp on tp.id=ta.png_instance_id left join public.combat_v2_provider_instances_v1 tip on tip.id=ta.provider_instance_v1_id\n      where d.round_id=v_r.id and d.kind='attacco'\n        and not exists(select 1 from public.combat_v2_declarations x\n                        where x.parent_attack_id=d.id and x.kind in ('difesa','nessuna'))\n        and (v_is_master or v_is_admin or ta.controller_user=v_uid)\n    ),'[]'::jsonb) end,\n    'ratings_pending',case when not (v_is_master or v_is_admin) or v_r.id is null\n      then '[]'::jsonb else coalesce((\n        select jsonb_agg(jsonb_build_object(\n          'declaration_id',d.id,'kind',d.kind,\n          'actor_id',d.actor_id,'actor_name',c.name,\n          'text',d.declaration_text\n        ) order by d.created_at,d.id)\n        from public.combat_v2_declarations d\n        join public.combat_v2_actors a on a.id=d.actor_id and a.actor_kind='pg'\n        join public.characters c on c.id=a.character_id\n        where d.round_id=v_r.id and d.kind in ('attacco','difesa')\n          and not exists(select 1 from public.combat_v2_ratings x\n                          where x.declaration_id=d.id and x.is_active)\n      ),'[]'::jsonb) end,\n    'report',case when v_r.id is null or not (v_is_master or v_is_admin) then null else (\n      select jsonb_build_object(\n        'id',q.id,'sha256',q.mechanics_sha256,'mechanics',q.mechanics,\n        'values_written',q.values_written,'narration_state',q.narration_state,\n        'narrator_kind',q.narrator_kind,'created_at',q.created_at)\n      from public.combat_v2_round_reports q where q.round_id=v_r.id\n    ) end\n  ));\nend\n$function$\n"
+        }
+      ],
+      "columns": [
+        {
+          "type": "uuid",
+          "table": "scene_attempts_v2",
+          "column": "claim_id",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "scene_attempts_v2",
+          "column": "request_key",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "scene_attempts_v2",
+          "column": "round_id",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "scene_attempts_v2",
+          "column": "session_id",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "jsonb",
+          "table": "scene_attempts_v2",
+          "column": "scene_payload",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "scene_attempts_v2",
+          "column": "scene_sha256",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "scene_attempts_v2",
+          "column": "state",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "timestamp with time zone",
+          "table": "scene_attempts_v2",
+          "column": "permit_at",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "text",
+          "table": "scene_attempts_v2",
+          "column": "result_bytes",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "jsonb",
+          "table": "scene_attempts_v2",
+          "column": "result_payload",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "text",
+          "table": "scene_attempts_v2",
+          "column": "result_sha256",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "text",
+          "table": "scene_attempts_v2",
+          "column": "provider_response_id",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "text",
+          "table": "scene_attempts_v2",
+          "column": "failure_code",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "jsonb",
+          "table": "scene_attempts_v2",
+          "column": "completion",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "timestamp with time zone",
+          "table": "scene_attempts_v2",
+          "column": "created_at",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "timestamp with time zone",
+          "table": "scene_attempts_v2",
+          "column": "result_at",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "timestamp with time zone",
+          "table": "scene_attempts_v2",
+          "column": "redelivery_at",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "text",
+          "table": "scene_attempts_v2",
+          "column": "redelivery_state",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "bigint",
+          "table": "scene_attempts_v2",
+          "column": "redelivery_request_id",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "uuid",
+          "table": "master_v2_sessions",
+          "column": "id",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "master_v2_sessions",
+          "column": "location_id",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "master_v2_sessions",
+          "column": "tipo",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "master_v2_sessions",
+          "column": "stato",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "master_v2_sessions",
+          "column": "master_user",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "bigint",
+          "table": "master_v2_sessions",
+          "column": "control_version",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "master_v2_sessions",
+          "column": "mission_id",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "text",
+          "table": "master_v2_sessions",
+          "column": "titolo",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "master_v2_sessions",
+          "column": "stato_pre_sospensione",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "timestamp with time zone",
+          "table": "master_v2_sessions",
+          "column": "created_at",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "timestamp with time zone",
+          "table": "master_v2_sessions",
+          "column": "suspended_at",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "timestamp with time zone",
+          "table": "master_v2_sessions",
+          "column": "closed_at",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "text",
+          "table": "master_v2_sessions",
+          "column": "close_reason",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "text",
+          "table": "master_v2_sessions",
+          "column": "quest_kind",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "text",
+          "table": "master_v2_sessions",
+          "column": "owner_kind",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_declarations",
+          "column": "id",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_declarations",
+          "column": "round_id",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_declarations",
+          "column": "actor_id",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "combat_v2_declarations",
+          "column": "kind",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_declarations",
+          "column": "parent_attack_id",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_declarations",
+          "column": "target_actor_id",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "jsonb",
+          "table": "combat_v2_declarations",
+          "column": "sanitized_intent",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "combat_v2_declarations",
+          "column": "declaration_text",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_declarations",
+          "column": "controller_user_snapshot",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "bigint",
+          "table": "combat_v2_declarations",
+          "column": "controller_version_snapshot",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_declarations",
+          "column": "request_key",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "combat_v2_declarations",
+          "column": "state",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "jsonb",
+          "table": "combat_v2_declarations",
+          "column": "outcome",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "integer",
+          "table": "combat_v2_declarations",
+          "column": "order_no",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "bigint",
+          "table": "combat_v2_declarations",
+          "column": "tie_break",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "jsonb",
+          "table": "combat_v2_declarations",
+          "column": "cost_snapshot",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "timestamp with time zone",
+          "table": "combat_v2_declarations",
+          "column": "created_at",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "timestamp with time zone",
+          "table": "combat_v2_declarations",
+          "column": "frozen_at",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_round_reports",
+          "column": "id",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_round_reports",
+          "column": "round_id",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "jsonb",
+          "table": "combat_v2_round_reports",
+          "column": "mechanics",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "combat_v2_round_reports",
+          "column": "mechanics_sha256",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "boolean",
+          "table": "combat_v2_round_reports",
+          "column": "values_written",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "combat_v2_round_reports",
+          "column": "engine_version",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "combat_v2_round_reports",
+          "column": "resolver_version",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "combat_v2_round_reports",
+          "column": "order_version",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "combat_v2_round_reports",
+          "column": "quality_version",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "combat_v2_round_reports",
+          "column": "narration_state",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "combat_v2_round_reports",
+          "column": "narrator_kind",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_round_reports",
+          "column": "message_id",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "timestamp with time zone",
+          "table": "combat_v2_round_reports",
+          "column": "created_at",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "timestamp with time zone",
+          "table": "combat_v2_round_reports",
+          "column": "narrated_at",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_narratives",
+          "column": "id",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_narratives",
+          "column": "round_id",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_narratives",
+          "column": "report_id",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "combat_v2_narratives",
+          "column": "kind",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "combat_v2_narratives",
+          "column": "voice_name",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "combat_v2_narratives",
+          "column": "body",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_narratives",
+          "column": "author_user",
+          "schema": "public",
+          "nullable": "YES"
+        },
+        {
+          "type": "uuid",
+          "table": "combat_v2_narratives",
+          "column": "request_key",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "timestamp with time zone",
+          "table": "combat_v2_narratives",
+          "column": "created_at",
+          "schema": "public",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "narrative_authorities",
+          "column": "session_id",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "narrative_authorities",
+          "column": "mode",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "bigint",
+          "table": "narrative_authorities",
+          "column": "control_version",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "narrative_authorities",
+          "column": "master_session_id",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "uuid",
+          "table": "narrative_claims",
+          "column": "id",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "narrative_claims",
+          "column": "session_id",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "narrative_claims",
+          "column": "round_id",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "narrative_claims",
+          "column": "report_id",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "narrative_claims",
+          "column": "report_sha256",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "bigint",
+          "table": "narrative_claims",
+          "column": "context_version",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "bigint",
+          "table": "narrative_claims",
+          "column": "control_version",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "jsonb",
+          "table": "narrative_claims",
+          "column": "context_payload",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "narrative_claims",
+          "column": "context_sha256",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "narrative_claims",
+          "column": "request_key",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "narrative_claims",
+          "column": "state",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "timestamp with time zone",
+          "table": "narrative_claims",
+          "column": "claimed_at",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "timestamp with time zone",
+          "table": "narrative_claims",
+          "column": "expires_at",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "narrative_claims",
+          "column": "completion_sha256",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "jsonb",
+          "table": "narrative_claims",
+          "column": "completion_result",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "text",
+          "table": "narrative_claims",
+          "column": "provider_response_id",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "text",
+          "table": "narrative_claims",
+          "column": "provider_request_sha256",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "text",
+          "table": "narrative_claims",
+          "column": "raw_output_sha256",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "text",
+          "table": "narrative_claims",
+          "column": "failure_code",
+          "schema": "combat_consumer_private",
+          "nullable": "YES"
+        },
+        {
+          "type": "uuid",
+          "table": "publish_authorizations",
+          "column": "request_key",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "publish_authorizations",
+          "column": "round_id",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "uuid",
+          "table": "publish_authorizations",
+          "column": "claim_id",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "publish_authorizations",
+          "column": "text_sha256",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "bigint",
+          "table": "publish_authorizations",
+          "column": "transaction_id",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        },
+        {
+          "type": "text",
+          "table": "publish_authorizations",
+          "column": "state",
+          "schema": "combat_consumer_private",
+          "nullable": "NO"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "narrative_authorities_check",
+          "table": "narrative_authorities",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK (((mode = 'human'::text) = (master_session_id IS NOT NULL)))"
+        },
+        {
+          "name": "narrative_authorities_control_version_check",
+          "table": "narrative_authorities",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK ((control_version > 0))"
+        },
+        {
+          "name": "narrative_authorities_master_session_id_fkey",
+          "table": "narrative_authorities",
+          "schema": "combat_consumer_private",
+          "definition": "FOREIGN KEY (master_session_id) REFERENCES master_v2_sessions(id)"
+        },
+        {
+          "name": "narrative_authorities_mode_check",
+          "table": "narrative_authorities",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK ((mode = ANY (ARRAY['ai_auto'::text, 'ai_review'::text, 'human'::text])))"
+        },
+        {
+          "name": "narrative_authorities_pkey",
+          "table": "narrative_authorities",
+          "schema": "combat_consumer_private",
+          "definition": "PRIMARY KEY (session_id)"
+        },
+        {
+          "name": "narrative_authorities_session_id_fkey",
+          "table": "narrative_authorities",
+          "schema": "combat_consumer_private",
+          "definition": "FOREIGN KEY (session_id) REFERENCES combat_consumer_private.activities(session_id)"
+        },
+        {
+          "name": "narrative_claims_check",
+          "table": "narrative_claims",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK (((state <> 'completed'::text) OR (provider_response_id IS NOT NULL)))"
+        },
+        {
+          "name": "narrative_claims_completion_sha256_check",
+          "table": "narrative_claims",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK (((completion_sha256 IS NULL) OR (completion_sha256 ~ '^[a-f0-9]{64}$'::text)))"
+        },
+        {
+          "name": "narrative_claims_context_sha256_check",
+          "table": "narrative_claims",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK ((context_sha256 ~ '^[a-f0-9]{64}$'::text))"
+        },
+        {
+          "name": "narrative_claims_pkey",
+          "table": "narrative_claims",
+          "schema": "combat_consumer_private",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "narrative_claims_report_id_fkey",
+          "table": "narrative_claims",
+          "schema": "combat_consumer_private",
+          "definition": "FOREIGN KEY (report_id) REFERENCES combat_v2_round_reports(id)"
+        },
+        {
+          "name": "narrative_claims_report_id_key",
+          "table": "narrative_claims",
+          "schema": "combat_consumer_private",
+          "definition": "UNIQUE (report_id)"
+        },
+        {
+          "name": "narrative_claims_report_sha256_check",
+          "table": "narrative_claims",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK ((report_sha256 ~ '^[a-f0-9]{64}$'::text))"
+        },
+        {
+          "name": "narrative_claims_request_key_key",
+          "table": "narrative_claims",
+          "schema": "combat_consumer_private",
+          "definition": "UNIQUE (request_key)"
+        },
+        {
+          "name": "narrative_claims_round_id_fkey",
+          "table": "narrative_claims",
+          "schema": "combat_consumer_private",
+          "definition": "FOREIGN KEY (round_id) REFERENCES combat_v2_rounds(id)"
+        },
+        {
+          "name": "narrative_claims_round_id_key",
+          "table": "narrative_claims",
+          "schema": "combat_consumer_private",
+          "definition": "UNIQUE (round_id)"
+        },
+        {
+          "name": "narrative_claims_session_id_fkey",
+          "table": "narrative_claims",
+          "schema": "combat_consumer_private",
+          "definition": "FOREIGN KEY (session_id) REFERENCES combat_consumer_private.activities(session_id)"
+        },
+        {
+          "name": "narrative_claims_state_check",
+          "table": "narrative_claims",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK ((state = ANY (ARRAY['claimed'::text, 'completed'::text, 'failed'::text, 'expired'::text])))"
+        },
+        {
+          "name": "publish_authorizations_claim_id_fkey",
+          "table": "publish_authorizations",
+          "schema": "combat_consumer_private",
+          "definition": "FOREIGN KEY (claim_id) REFERENCES combat_consumer_private.narrative_claims(id)"
+        },
+        {
+          "name": "publish_authorizations_claim_id_key",
+          "table": "publish_authorizations",
+          "schema": "combat_consumer_private",
+          "definition": "UNIQUE (claim_id)"
+        },
+        {
+          "name": "publish_authorizations_pkey",
+          "table": "publish_authorizations",
+          "schema": "combat_consumer_private",
+          "definition": "PRIMARY KEY (request_key)"
+        },
+        {
+          "name": "publish_authorizations_round_id_fkey",
+          "table": "publish_authorizations",
+          "schema": "combat_consumer_private",
+          "definition": "FOREIGN KEY (round_id) REFERENCES combat_v2_rounds(id)"
+        },
+        {
+          "name": "publish_authorizations_state_check",
+          "table": "publish_authorizations",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK ((state = ANY (ARRAY['prepared'::text, 'consumed'::text])))"
+        },
+        {
+          "name": "scene_attempts_v2_check",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK (((result_payload IS NULL) = (result_bytes IS NULL)))"
+        },
+        {
+          "name": "scene_attempts_v2_check1",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK (((result_payload IS NULL) = (result_sha256 IS NULL)))"
+        },
+        {
+          "name": "scene_attempts_v2_check2",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK (((state <> ALL (ARRAY['generated'::text, 'published'::text])) OR ((result_payload IS NOT NULL) AND (permit_at IS NOT NULL))))"
+        },
+        {
+          "name": "scene_attempts_v2_check3",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK (((state <> 'provider_reserved'::text) OR (permit_at IS NOT NULL)))"
+        },
+        {
+          "name": "scene_attempts_v2_check4",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK (((state <> 'published'::text) OR (completion IS NOT NULL)))"
+        },
+        {
+          "name": "scene_attempts_v2_claim_id_fkey",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "FOREIGN KEY (claim_id) REFERENCES combat_consumer_private.narrative_claims(id)"
+        },
+        {
+          "name": "scene_attempts_v2_pkey",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "PRIMARY KEY (claim_id)"
+        },
+        {
+          "name": "scene_attempts_v2_provider_response_id_key",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "UNIQUE (provider_response_id)"
+        },
+        {
+          "name": "scene_attempts_v2_redelivery_state_check",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK ((redelivery_state = ANY (ARRAY['reserved'::text, 'queued'::text, 'failed'::text])))"
+        },
+        {
+          "name": "scene_attempts_v2_request_key_key",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "UNIQUE (request_key)"
+        },
+        {
+          "name": "scene_attempts_v2_result_sha256_check",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK ((result_sha256 ~ '^[a-f0-9]{64}$'::text))"
+        },
+        {
+          "name": "scene_attempts_v2_round_id_fkey",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "FOREIGN KEY (round_id) REFERENCES combat_v2_rounds(id)"
+        },
+        {
+          "name": "scene_attempts_v2_round_id_key",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "UNIQUE (round_id)"
+        },
+        {
+          "name": "scene_attempts_v2_scene_sha256_check",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK ((scene_sha256 ~ '^[a-f0-9]{64}$'::text))"
+        },
+        {
+          "name": "scene_attempts_v2_session_id_fkey",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "FOREIGN KEY (session_id) REFERENCES combat_consumer_private.activities(session_id)"
+        },
+        {
+          "name": "scene_attempts_v2_state_check",
+          "table": "scene_attempts_v2",
+          "schema": "combat_consumer_private",
+          "definition": "CHECK ((state = ANY (ARRAY['claimed'::text, 'provider_reserved'::text, 'generated'::text, 'published'::text, 'failed'::text])))"
+        }
+      ]
+    },
+    "raw_files": [
+      {
+        "path": "/private/tmp/flow-multiactor-narrative/q1.raw.json",
+        "sha256": "1566518cfd57b24fcc2559bb399b98f24d14b8e7bb6b8141c47b6f302839218e"
+      },
+      {
+        "path": "/private/tmp/flow-multiactor-narrative/q2.raw.json",
+        "sha256": "ea2127edf9532e358b3d02b44faf92aae4c4ead552af583e47cc515a93525f83"
+      }
+    ]
+  },
+  "local_metadata_source": {
+    "path": "management/candidati/CLAN-L1_2026-09-01/runtime/hyuga/candidato/HYUGA_RUNTIME_METADATA.json",
+    "sha256": "148011847f0f9c557080c08801247d4163dd5bd40137f052be29e4779f58671a",
+    "observation": "2026-09-09",
+    "live_rechecked": [
+      "combat_panel_private.master_state_authoritative(uuid)"
+    ],
+    "not_rechecked": [
+      "combat_panel_private.master_map(uuid,uuid)"
+    ]
+  },
+  "contract": [
+    {
+      "section": "1. Esito e perimetro",
+      "content": "Contratto di costruzione, non implementazione né qualifica. Un incontro Master resta un unico incontro, con un unico round/referto e un unico racconto: ciascuna scarica contiene da uno a tre flussi distribuiti su uno–tre bersagli. Il numero degli attori della scena non coincide con il limite dei bersagli della singola scarica. Sostituzione può negare soltanto il bersaglio coperto; gli altri esiti rimangono quelli del server. Nessun ricalcolo, danno moltiplicato, nuova tattica o assegnazione di azioni/dialoghi ai PG.\n\nLa base è integrated005 più difese002, entrambi candidati immutabili e non qualificati come verticale completa. Il narratore Flussi001 è ordinary; il suo proiettore, anche esteso da difese002, non è un adapter Master. ESPANSIONE_MULTIATTORE conserva una ricognizione del 09/09: i suoi vecchi stati di rilascio non prevalgono sui pacchetti correnti. Questo documento non modifica PNG04, Movimento, Edge25 o il banco PNG.\n\nMissioni/quest e PNG liberi richiedono in seguito autorità, memoria e publisher propri. Non sono coperti automaticamente da questa prima estensione Master. Test Room utenti privata è un ramo distinto coordinato con avvio_review: user-test-scene/1, owner_private e nessun public.messages; non si simula la sua copertura con una scena Master pubblica."
+    },
+    {
+      "section": "2. Evidenza verificata e lacune effettive",
+      "content": "Due letture metadata, nessuna riga di gioco: definizioni/ACL e colonne/vincoli. La seconda è del 10/09/2026 00:33:27 UTC; timestamp della prima e MD5 integrali nel JSON allegato.\n\n`combat_panel_private.master_state_authoritative(uuid)` è la fonte nativa verificata del pannello: legge master_v2_sessions, combat_v2_sessions/actors/declarations, attack_targets e defense_coverages; il report completo è riservato Master/admin. Il pannello mascherato resta una vista per l'utente corrente, non una fonte già autorizzata al modello o al pubblico. `master_map(uuid,uuid)` è una fonte locale congelata del 09/09: interroga map_projection con viewer_grants e posizione attore; non è stata nuovamente interrogata in questa tranche.\n\n`public.combat_v2_round_narrate_human(uuid,text,uuid)` verifica master_user corrente e usa event_begin/store/event_complete. `combat_consumer_private.narrative_master(uuid)` riguarda un ordinary affidato a Master umano, non l'automazione Master. Le FK di narrative_authorities/narrative_claims/scene_attempts_v2 puntano a activities ordinary; il CHECK delle authority ammette master_session_id se e solo se mode=human. Non allentare questi vincoli né creare activities ordinarie fittizie.\n\n`public.combat_v2_round_narrate_ai_apply(uuid,text,text,uuid)` richiede service e preview approvata; non concede pubblicazione automatica Master. `before_publish` ritorna immediatamente per un round non posseduto da ordinary. Lo store nativo esiste e pubblica un Fato, aggiorna report/round e crea il round successivo: il publisher materiale è presente, mentre l'autorità automatica Master verificabile prima dello store manca nel percorso esaminato. Nessuna funzione pubblica il cui nome corrisponda a %master%narrat% è emersa dalla seconda query: ciò non costituisce inventario universale di ogni funzione dal nome diverso.\n\n`runtime.ts:35–78` lega l'orchestratore a ordinary_round_id e alle cinque scene RPC ordinary. `scene.mjs` ammette già roster PG/PNG non fissato a due; sono binding, fonti, proiettore Flussi e autorizzazioni a dover essere estesi, non soltanto un limite numerico."
+    },
+    {
+      "section": "3. Fonti e congelamento del contenuto",
+      "content": "Il produttore lavora sul report di `public.combat_v2_round_resolve(uuid,uuid)` AFTER005, dopo le risoluzioni native integrate da difese002. Riferimento definitivo: combat_v2_round_reports.id/round_id/mechanics_sha256/mechanics e versioni engine/resolver/order/quality. Non ricostruire un esito dalla situazione corrente.\n\n| Contenuto | Fonte precisa | Proiezione consentita |\n|---|---|---|\n| Identità del roster | combat_v2_actors del session_id; nomi PG da characters.name, PNG da combat_v2_png_instances.nome o provider_instances_v1.nome, come master_state_authoritative | actor.id opaco, nome autorizzato, kind PG/PNG; niente user_id, controller, character_id o persona privata |\n| Azioni e difese | combat_v2_declarations.id/actor_id/kind/declaration_text/parent_attack_id, confrontati con mechanics.declarations[id,actor,kind,parent,order,state] | actions actor_id/role/source_id; role completa attribuita; nessuna role inventata se vuota |\n| Bersagli | mechanics.attack_targets, legati a declaration/ordinal/target_actor_id | identificatore del partecipante narrabile e risultato esatto; l'ordinal è solo join interno |\n| Copertura | mechanics.defense_coverages: defense_declaration_id/attack_target_id/protected_actor_id/mode/state | soltanto difesa e bersaglio effettivamente coperti; non dedurre che tutta la scarica sia annullata |\n| Scarica | mechanics.sabaku_flows prodotto da clan_sabaku_private.flow_round_facts; flow_sources/consumptions usati solo come attestazioni private | conteggio totale e quota per bersaglio, impatto contundente, nessuna immobilizzazione, esiti discreti |\n| Sostituzione | target.outcome canonical_outcome=negato_sostituzione + attack_target/defense/flow hash e mechanics.substitution_receipts | solo substitution_negated sul target verificato; narratable relocation/anchor esclusivamente se pubblici |\n| Catalogo | source congelata della tecnica effettiva; clan_techniques.description/danno_effetto e jutsu.effect/limits | content con mapping_version e hash di fonte; mai inventare jutsu.description |\n| Ambiente e percezioni | arena_instances/template_version/map_version, viewer_grants, map_projection, stato oggetti e geometria nativi | testo scenico dei soli fatti pubblici, senza coordinate, originali, seed, figure index o unione dei punti di vista privati |\n| Memoria | combat_v2_narratives.body e report/message binding dei soli round precedenti nella medesima scena e destinazione | unità intere autorizzate con hash del testo; il ledger di hash da solo non è memoria |\n\nIl roster/nomi e le role non sono interamente contenuti nel referto: aggiungere un freeze narrativo alla transizione effettiva combat_v2_rounds.state→risolto, quando report e geometria finale esistono nella medesima transazione. Il nuovo hook proposto cattura il contenuto in un record narrativo privato separato dal referto meccanico. Non alterare mechanics_sha256 per aggiungere prosa. Niente ricostruzione tardiva di una mappa storica da stato corrente; round già risolti senza fonte congelata restano non acquisibili automaticamente.\n\nAudience della prima estensione: scene_public, destinazione Fato della location Master. I grants per observer non conferiscono automaticamente il diritto di pubblicare. Per ogni dettaglio privato necessario manca oggi una proiezione storica pubblico-scena: il nuovo proiettore deve derivare solo informazioni pubblicabili, conservare privatamente versione/policy/audience hash e rifiutare un contesto indispensabile non attestabile. Non inviare al modello una mappa Master/admin o la somma delle visioni dei PG. Le role native rese visibili dopo il resolve possono essere fonti pubbliche attribuite; testo/catalogo resta dato non istruzione. In caso di fonte obbligatoria ignota, rifiuto esplicito, non invenzione o troncamento.\n\nAutorità: esito e cessazioni dal report; caratteristiche statiche dal catalogo; gesto/postura/ritmo dalla role compatibile; memoria precedente subordinata ai fatti correnti. Catalogo non decide che un Clone sia terminato. Descrizioni cinematiche libere entro natura/materiale/consistenza, senza copione o coreografia imposta. Con role abbozzate si valuta la singola mossa, non la qualità completa della scena. Per questa tranche may_speak=false per ogni PG e PNG: si raccontano azioni PNG già dichiarate dal controller, senza generare nuovi dialoghi o decisioni autonome. Persona pubblica facoltativa, null se non attestata."
+    },
+    {
+      "section": "4. Envelope Master e fatti Flussi",
+      "content": "Proposta `domain=master_combat`, versione adapter `master-flow-scene/1`. Il dominio/surface/destinazione restano binding server autenticato, non campi liberamente accettati dal client. Riusare combat-scene/1 per l'envelope pubblico dove la shape già basta: session_id, round_id, report_sha256, control_version, location, actors[id,name,kind,persona,may_speak], actions[actor_id,role,source_id], resolved_facts, sources, selection. Il service riceve binding e snapshot dalla nuova RPC, mai dal body del client.\n\nDentro resolved_facts: fonti_tecniche con stesso contenuto canonico e hash fonte; flussi_server.schema_version=`master-flow-narrative/1`, events[] con `actor_id`, `technique_id`, `flows`, `damage_type:'contundente'`, `immobilization:false`, `targets:[{participant_id,flows,result}]`. Per evento: flows 1..3, targets 1..3 distinti, ogni quota 1..3 e somma quote=flows; un evento corrisponde privatamente a una sola dichiarazione parent. Il round può avere più eventi realmente risolti: non duplicare una scarica per target né limitarlo a tre attori. Identità target è partecipante narrabile, non indicazione della figura originale. Se le fonti della mossa non consentono il collegamento senza svelare informazioni private, la pubblicazione automatica di quel contesto resta negata.\n\nResult riusa semantica ordinary: attack_result hit/grazed/missed/copy_intercepted/substitution_negated/target_already_inoperative, target_inoperative boolean quando noto, eventuale copies attestato. Difese002 ha già eliminato il bisogno di inventare raw.sabaku_flow per Sostituzione: verificare il receipt del target, non richiedere un tiro inesistente. Nessun danno/PV/saldo/margine/RNG/formation_id/originale nel payload modello. Non inferire KO dal testo o negazione da damage=0.\n\nLe altre azioni del round devono avere una proiezione narrativa supportata e completa: riusare narrative_declaration_facts/outcome_facts solo sui kind già coperti, aggiungendo il binding ai target reali. Un evento non supportato non si omette per far sembrare coerente una scena parziale. Gesto e parole vengono dalle fonti attribuite; niente attacchi o dialoghi prodotti dal narratore.\n\nLimiti esistenti preservati: input 49152 byte, richiesta 65536, trasporto 5000 caratteri, output max9992 token. Contesto obbligatorio completo; eventuale passato incluso per unità intere. Overflow obbligatorio blocca prima del provider. Un nuovo schema più capiente richiederebbe scelta e budget separati, non incremento implicito."
+    },
+    {
+      "section": "5. Autorità e ciclo proposti, non disponibili",
+      "content": "Scelta tecnica minima: mantenere intatte le tabelle ordinary; introdurre due tabelle private del dominio Master, senza duplicare catalogo, motore o orchestratore. `combat_consumer_private.master_narrative_bindings_v1` identifica encounter→master/location/control_version, mode human/ai_auto, surface, destination, autorizzatore e versioni. Default human/gate off; solo il Master umano corrente può richiedere esplicitamente AI per quel contesto quando il gate nominato e la policy della stanza lo consentono. Nessuna conversione automatica di un Master umano, nessun service che si autoassegna consenso. La decisione di abilitare questa policy resta gate PM/utente, non ratifica fatta dal presente autore.\n\n`combat_consumer_private.master_scene_attempts_v1` conserva freeze del report, roster/role/percezioni/catalogo e hash, binding/control version, request unica, stato, permesso/lease, risultato validato, provider receipt, eventuale pubblicazione e completion. Unicità round_id/report_id/request_key/provider_response_id, FK reali combat_v2_sessions/master_v2_sessions/rounds/reports; relazione round→report→encounter verificata server. Stati snapshot_ready/claimed/provider_reserved/generated/published/failed; failure_code mantiene il motivo. Privata, nessun grant anon/authenticated né accesso diretto service alle tabelle; SECURITY DEFINER con owner postgres/search_path vuoto e grant esplicito alle sole porte necessarie. Non rimuovere vecchi CHECK/FK ordinary.\n\n1. Authority/request: nuova `public.combat_master_narrative_bind_v1(p_encounter uuid,p_mode text,p_expected_control_version bigint,p_request_key uuid)` autenticata; valida Master corrente, stato, source_kind=master, luogo e policy, nessuna mission/quest reale implicitamente ammessa. Idempotenza request e revoca incrementano versione, invalidando tentativi pendenti.\n2. Freeze/queue: nuovo hook di dominio su transizione reale risolto, non refresh. Congela solo binding consentito, risorse protette se TestRoom e fonti complete; un difetto narrativo registrabile rende il tentativo failed e non riscrive/ricalcola il combattimento. Nessun HTTP/provider nel trigger. La schedulazione sarà il dispatcher del dominio Master che legge solo tentativi pronti autorizzati; presenza di una coda non attesta che un worker sia installato.\n3. Claim/acquire: `public.combat_master_scene_acquire_v1(uuid,text,uuid)` solo servizio. Round/report/hash esatti, lock nativo e binding correnti; claim idempotente sul tentativo congelato. Restituisce stessa record shape necessaria a runSceneNarrative; acquire non concede provider. Service senza binding esplicito non può creare autorità.\n4. Status: `public.combat_master_scene_status_v1(uuid,text,uuid)` solo servizio, ripresenta snapshot/risultato congelati e stato, senza rileggere catalogo/mappe né concedere una chiamata.\n5. Permit: `public.combat_master_scene_permit_v1(uuid,text,uuid,text,bigint)` solo servizio; scene hash/control version/lease invariati, una sola transizione claimed→provider_reserved con granted_now. Stessi 300s per acquire e 60s per provider del lifecycle ordinary, salvo gate futuro esplicito; un timeout incerto si risolve via status, mai con seconda chiamata automatica.\n6. Save: `public.combat_master_scene_save_v1(uuid,text,uuid,text)` solo servizio; stessa validazione risultato/receipt/hash e stato lease, niente testo non vincolato al provider autorizzato. Record incompleto/troncato non è pubblicabile. Generation riuscita e memorizzata non autorizza ancora lo store.\n7. Complete: `public.combat_master_scene_complete_v1(uuid,text,uuid)` solo servizio; verifica generato, authority/stato/report/visibilità correnti e blocco operativo. Prepara autorizzazione transazionale sul tentativo con txid/request/text hash, chiama una volta combat_v2_narrative_store('fato_ia',author null), consuma autorizzazione e registra completion atomicamente. La ripetizione ritorna receipt; non crea un secondo messaggio/round né richiama provider.\n8. Publisher: estendere all'inizio di before_publish un ramo esplicito Master che richieda questa autorizzazione per l'auto, preservi human e il percorso preview approvata già esistente e non lasci passare un qualunque service. Lo store rimane unico per il dominio scene_public; non riusare la ripubblicazione ritirata per mascherare una prima consegna. Il ramo privato user_test non entra nello store pubblico e resta owner separato.\n\nErrori stabili proposti: master_scene_unauthorized, master_scene_binding_changed, master_scene_source_missing, master_scene_visibility_unproven, master_scene_not_ready, master_scene_hash_changed, master_scene_request_conflict, master_scene_result_invalid, master_scene_required_context_overflow. Admission/unknown/overflow prima del provider; revoca dopo save impedisce publish senza alterare la storia. Non confermare assenza totale di altri publisher dai soli nomi: durante implementazione il before/ACL di ogni corpo da modificare va pinzato e reconciliato."
+    },
+    {
+      "section": "6. Scope minimo del seguito e integrazione",
+      "content": "Nel medesimo candidato Narratore: nuovo modulo `flow_master_narrative_release/` con PLAN/CONTRACT/BASELINE/INSTALL/RECOVERY/MANIFEST/QA_PLAN/BUILD e bundle Edge completo pinzato. File proposti, non creati da questa tranche.\n\nSQL nuovo: le due tabelle di §5; helper privati `master_scene_current_v1(uuid)`, `master_scene_snapshot_v1(uuid)`, `master_flow_round_v1(uuid)`, `master_scene_record_v1(uuid)`, `master_scene_lock_v1(uuid,text,uuid)`, `master_scene_freeze_trigger_v1()` e `master_scene_dispatch_ready_v1()`; sei porte pubbliche bind+acquire/status/permit/save/complete. Il trigger di freeze è sull'evento risolto di combat_v2_rounds, dopo report presente; nessun innesto nel calcolo Flussi o nuovo algoritmo di danno. Il dispatcher deve riusare la stessa Edge con credenziali server già gestite e budget, non copiare segreti. Configurazione esatta di invocazione/scheduler ancora da recuperare in implementazione: le due query del contratto non la certificano.\n\nSQL modificato: `combat_consumer_private.before_publish(uuid,text,text,uuid,uuid)` per autorità Master. `public.combat_v2_narrative_store(uuid,text,text,uuid,uuid)` preferibilmente dependency byteimmutabile; modificarlo solo se l'integrazione dimostra un gap di destinazione protetta, con nuovo scope. Native human/ai preview, gateway, core, defense e offerta di controllo restano invarianti. Vincoli nuovi elencati in §5, nessun allentamento globale di guardie MISSION-003/005/006.\n\nEdge in copia: `runtime.ts` aggiunge sceneMaster usando runSceneNarrative; `index.ts` instrada master_round_id/report_sha256/request_key dal servizio, senza alterare la route ordinary; `flow.mjs` valida la variante Master e target multipli con gli stessi esiti; `editorial.mjs` raccorda il nuovo schema senza cambiare autorità o generare azioni. `scene.mjs` può restare byteimmutabile per scene_public: il suo schema già consente roster multiplo. Se la composizione con user-test-scene/1 richiede discriminator, va fatta in un'unica revisione del bundle con owner DB/NARRATIVE e consumer privato: nessuna sovrascrittura tra due release. lifecycle.mjs/common.mjs e trasporto riusati, non replicati.\n\nOrdine implementativo: freeze/proiezione e policy → persistence/authority/lease/publish → adapter Edge e validatore multibersaglio → dispatcher reale e gestione stato visibile → candidata integrata → stessa matrice G01–G10 → review/gate. Fissare nella UI Master l'attivazione esplicita e lo stato waiting/generated/failed/published, con fallback umano già nativo: consumer preciso da assegnare dopo freeze RPC. Non attivare ai_auto senza gesto verificabile.\n\nRecovery prima uso: gate OFF e nessun tentativo con storia/provider, ripristino before del ramo publish e disabilitazione del nuovo dispatch/trigger, lasciando strutture private inerti. Dopo provider o pubblicazione: stop nuovi permit, conservare snapshot/receipt/storia, consegnare o fermare tentativi secondo stato; nessuna cancellazione, rewind del round o risarcimento inventato. Procedura SQL esatta e ACL da qualificare con la candidata, non dichiarate già eseguibili dal contratto."
+    },
+    {
+      "section": "7. Verifiche previste e limiti",
+      "content": "Riusare G01–G10 della verticale, senza nuova campagna ora: G01 install/recovery/ACL e baseline; G02 admission/gate/Master corrente/surface; G03 scarica concentrata 1–3; G04 distribuzione 2–3 bersagli e un solo parent/racconto; G05 Sostituzione solo target coperto e receipt senza raw falso; G06 Moltiplicazione/figure/privacy; G07 freeze/refill/costi invariati e fonti canoniche; G08 revoca/versione/overflow/replay/concorrenza senza seconda call; G09 provider/Edge/editorialità sullo stesso bundle; G10 pubblicazione unica, UI, isolamento e regressioni ordinary/utente privato. Casi concreti e budget SQL/provider/token/tempo vanno assegnati dal PM al freeze, non ampliati implicitamente dal contratto.\n\nQualifica locale potrà attestare SQL/constraint/atomicità e receipt. Auth/RLS/API, scheduler/Edge, delivery e narrativa reale richiedono i gate e collaudi pertinenti; mock non equivalgono al percorso live. Con role abbozzate basta giudicare fedeltà e resa della singola mossa; scena completa resta da valutare su role complete.\n\nBlocchi implementativi precisi: proiezione pubblico-scena storica non presente nel report corrente; binding/attempts Master assenti nella pipeline esaminata; dispatcher automatico non collegato; proiettore e validatore Flussi Master da costruire. Catalogo e movimento non sono da rifare. Quest/missioni e dialoghi autonomi PNG rimangono fuori scope. L'accessibilità delle due Test Room va integra­ta con la loro policy; il contratto privato parallelo non è una prova del runtime utenti."
+    },
+    {
+      "section": "8. Handoff al PM",
+      "content": "FLOW-MULTIACTOR-NARRATIVE-CONTRACT-001 · Scope: due documenti nuovi · Contratti usati immutabili: integrated005, difese002, narrativa001, Edge25 e ESPANSIONE_MULTIATTORE. Decisioni: una scena, esiti target distinti, autorità di dominio separata dalle FK ordinary, stesso orchestratore/editorialità. Policy di enable proposta, non ratificata dall'autore. Prove svolte: 2 query metadata, controllo JSON/impronte/coerenza documentale; zero SQL mutanti, Docker, test, provider o browser. Rischi: audience storica, dispatcher effettivo, gate Master, composizione moduli con TestRoom utenti. Passaggio richiesto: assegnare candidata backend+Edge sullo scope §6, con pin dei corpi da innestare e configurazione dispatcher; nessuna nuova ricognizione generale necessaria."
+    }
+  ],
+  "markdown_sha256": "a3e6bf9c9ec3c9f248e767c5cdd5d12f9e53eed5ac2ff13e4d0a3f9850fdff1d",
+  "scope_boundaries": {
+    "ordinary_changed": false,
+    "png_changed": false,
+    "flow_core_changed": false,
+    "missions_qualified": false,
+    "new_policy_ratified_by_author": false,
+    "runtime_ready": false
+  }
+}

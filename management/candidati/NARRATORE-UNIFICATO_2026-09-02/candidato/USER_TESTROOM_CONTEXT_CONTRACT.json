@@ -1,0 +1,442 @@
+{
+  "schema_version": "user-testroom-context-contract/1",
+  "task_id": "USER-TESTROOM-COMMON-CONTEXT-001",
+  "status": "CONTRACT_ONLY_NOT_IMPLEMENTED_NOT_RELEASED",
+  "language": "it",
+  "scope": "Contesto privato PG+PNG, stesso core/capability/narratore",
+  "sources": [
+    {
+      "path": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/TESTROOM_PATHS_AUDIT.md",
+      "sha256": "6cd32aa98834b6d773255209f2abcddebc29da26fce64b7e101a40805065dc87",
+      "bytes": 14604
+    },
+    {
+      "path": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/TESTROOM_PATHS_AUDIT.json",
+      "sha256": "6c838811222d973b5b7d08d55977fe31d0173a75a173378e14d8f1d089500899",
+      "bytes": 154569
+    },
+    {
+      "path": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/STAFF_SYNTHETIC_MANIFEST.json",
+      "sha256": "9e995c4eb56c16ff3c396d38002b7c7fddfec16015e286086fd32d0bac3988cb",
+      "bytes": 47759
+    },
+    {
+      "path": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/STAFF_SYNTHETIC_INSTALL.sql",
+      "sha256": "8d6abf4a4480b2d9519631cbc99226eab7f2465d7259fc987f5900eb0c077b6b",
+      "bytes": 676225
+    },
+    {
+      "path": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/STAFF_SYNTHETIC_INTEGRATION_CONTRACT.md",
+      "sha256": "ebb2d911a5a86fc31fbfa2df50a9684e99bfe729162ad63eb6da797038d0a3ed",
+      "bytes": 7158
+    },
+    {
+      "path": "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/flow_integrated_release/MANIFEST.json",
+      "sha256": "abc062111d825f4473a382168a77fc05cfd38bd9a6fb4a04b4fda366e2a8fcba",
+      "bytes": 21708
+    },
+    {
+      "path": "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/flow_integrated_release/INSTALL.sql",
+      "sha256": "600e9b20f907a2b9db064291d8af20084e2baf1eace285fbac6516b08c9ec600",
+      "bytes": 386176
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "PNG04",
+      "state": "runtime_red_not_qualified",
+      "impact": "Factory/pool/close/PG+PNG devono qualificarsi prima del rilascio utenti",
+      "planning_available": true
+    },
+    {
+      "id": "FLOW005",
+      "state": "frozen_not_executed_not_releaseable",
+      "impact": "flow_offer_cap e riserva user mancanti, public_enabled non sufficiente",
+      "planning_available": true
+    },
+    {
+      "id": "HISTORY_PRESERVATION",
+      "migration": "20260910001509",
+      "state": "live_per_PM",
+      "action": "Nessun QA/apply/recovery ripetuto"
+    }
+  ],
+  "context": {
+    "registry": "combat_consumer_private.staff_test_contexts",
+    "single_authority": true,
+    "new_columns": [
+      "surface",
+      "policy_id",
+      "last_activity_at",
+      "close_reason"
+    ],
+    "owner_column": "operator_user (nome storico, principal proprietario per user_test)",
+    "surface": "user_test",
+    "policy": "user_test_private_no_persistent_resources_v1",
+    "identity": "test_context_id = combat_v2_sessions.id = activities.session_id",
+    "max_active_per_user": "one, preserving070",
+    "different_users_concurrent": true,
+    "profile": "test_opponent_profiles.surface=user_test, permanent",
+    "pg": "native pg actor, own real character",
+    "png": "native png actor + own native instance, no fake character/account",
+    "source_kind": "ordinary",
+    "lesiva": false,
+    "location": "Existing configured is_test metadata/template reference only; no public presence or occupation",
+    "child_binding_column": "staff_test_context_id retained compatibility",
+    "child_surface_column": "test_surface verified immutable copy in session/activity/location_claim",
+    "states": [
+      "initializing",
+      "active",
+      "closed"
+    ]
+  },
+  "rpc_proposals": [
+    {
+      "name": "public.test_room_user_profiles_v2",
+      "parameters": [],
+      "returns": "jsonb",
+      "envelope": "user-test/1",
+      "output_fields": [
+        "mode",
+        "profiles",
+        "active_test",
+        "legacy_active",
+        "quota"
+      ],
+      "effect": "Readiness e recupero propri, zero apertura/lease/IA",
+      "security_definer": true,
+      "grant": "authenticated; no anon; no direct private tables"
+    },
+    {
+      "name": "public.test_room_user_open_v2",
+      "parameters": [
+        {
+          "name": "p_opponent_offer",
+          "type": "uuid"
+        },
+        {
+          "name": "p_request_key",
+          "type": "uuid"
+        }
+      ],
+      "returns": "jsonb",
+      "envelope": "user-test/1",
+      "output_fields": [
+        "test",
+        "selected_actor_id",
+        "panel",
+        "quota",
+        "receipt"
+      ],
+      "effect": "Apertura nativa idempotente PG+PNG, crosslegacy lock",
+      "security_definer": true,
+      "grant": "authenticated; no anon; no direct private tables"
+    },
+    {
+      "name": "public.test_room_user_state_v2",
+      "parameters": [
+        {
+          "name": "p_test_context",
+          "type": "uuid"
+        },
+        {
+          "name": "p_command_actor",
+          "type": "uuid DEFAULT NULL"
+        }
+      ],
+      "returns": "jsonb",
+      "envelope": "user-test/1",
+      "output_fields": [
+        "test",
+        "selected_actor_id",
+        "panel",
+        "quota",
+        "receipt"
+      ],
+      "effect": "Propria vista; chiusura scaduta nativa possibile, no rinnovo",
+      "security_definer": true,
+      "grant": "authenticated; no anon; no direct private tables"
+    },
+    {
+      "name": "public.test_room_user_options_v2",
+      "parameters": [
+        {
+          "name": "p_test_context",
+          "type": "uuid"
+        },
+        {
+          "name": "p_command_actor",
+          "type": "uuid"
+        },
+        {
+          "name": "p_expected_context",
+          "type": "bigint"
+        }
+      ],
+      "returns": "jsonb",
+      "envelope": "user-test/1",
+      "output_fields": [
+        "test",
+        "selected_actor_id",
+        "panel",
+        "quota",
+        "receipt"
+      ],
+      "effect": "Offerte della propria prova/versione",
+      "security_definer": true,
+      "grant": "authenticated; no anon; no direct private tables"
+    },
+    {
+      "name": "public.test_room_user_commit_v2",
+      "parameters": [
+        {
+          "name": "p_command",
+          "type": "jsonb"
+        }
+      ],
+      "returns": "jsonb",
+      "envelope": "user-test/1",
+      "output_fields": [
+        "test",
+        "selected_actor_id",
+        "panel",
+        "quota",
+        "receipt"
+      ],
+      "effect": "Comando Common con binding esterno stretto",
+      "security_definer": true,
+      "grant": "authenticated; no anon; no direct private tables"
+    },
+    {
+      "name": "public.test_room_user_report_v2",
+      "parameters": [
+        {
+          "name": "p_test_context",
+          "type": "uuid"
+        },
+        {
+          "name": "p_report",
+          "type": "uuid"
+        }
+      ],
+      "returns": "jsonb",
+      "envelope": "user-test/1",
+      "output_fields": [
+        "report",
+        "narrative"
+      ],
+      "effect": "Referto proprio, anche storico",
+      "security_definer": true,
+      "grant": "authenticated; no anon; no direct private tables"
+    },
+    {
+      "name": "public.test_room_user_ai_reserve_v2",
+      "parameters": [
+        {
+          "name": "p_test_context",
+          "type": "uuid"
+        },
+        {
+          "name": "p_report",
+          "type": "uuid"
+        },
+        {
+          "name": "p_idempotency",
+          "type": "uuid"
+        }
+      ],
+      "returns": "jsonb",
+      "envelope": "user-test/1",
+      "output_fields": [
+        "reservation_id",
+        "status",
+        "idempotent",
+        "quota"
+      ],
+      "effect": "Prenotazione quota condivisa, nessun provider",
+      "security_definer": true,
+      "grant": "authenticated; no anon; no direct private tables"
+    }
+  ],
+  "dto": {
+    "response": "user-test/1",
+    "response_fields": [
+      "ok",
+      "request_key",
+      "data",
+      "error"
+    ],
+    "command": "user-test-command/1",
+    "command_fields": [
+      "test_context_id",
+      "command_actor_id",
+      "command:combat-panel-command/1"
+    ],
+    "panel": "combat-panel/1",
+    "map": "combat-map/2",
+    "activity_kind": "ordinary_v2",
+    "simulated": true,
+    "narrative_variant": "user-test-scene/1",
+    "narrative_surface": "user_test",
+    "narrative_visibility": "owner_private",
+    "role_source_visibility": "scene_private",
+    "catalog_source_visibility": "public",
+    "private_source_validator_condition": "Only user-test-scene/1 and matching frozen session_id; never global allowance",
+    "principal_to_model": false
+  },
+  "binding": {
+    "order": [
+      "auth.uid",
+      "owned test id+surface",
+      "owned PG actor",
+      "state+lease",
+      "native transaction authorization binding",
+      "common projection/dispatch",
+      "bound receipt"
+    ],
+    "fields": [
+      "principal",
+      "test",
+      "actor",
+      "operation",
+      "request",
+      "version",
+      "txid"
+    ],
+    "GUC_is_authority": false,
+    "helpers_proposed": [
+      "test_context_assert(test,actor,surface,operation)",
+      "test_context_bind(test,actor,request,operation)",
+      "test_context_project(test,actor)",
+      "test_context_dispatch(command)"
+    ],
+    "helper_acl": "postgres only",
+    "no_auth_impersonation": true,
+    "no_location_only_resolution": true
+  },
+  "resources": {
+    "source": "Native snapshot, ledger, reserves, lifecycle of the same product",
+    "initial_values": "Existing server profile/snapshot contract, no invented values",
+    "persistent_character_writeback": false,
+    "inventory_progression_rewards": false,
+    "offer_filter": "Owned AND eligible AND adapter qualified for user_test",
+    "flow_required_binding": "Own test reserve + owned innata; never staff_profiles or public_enabled bypass",
+    "ko_compatibility": "Native validated reset of Manichino preserves070 open proof; unresolved adapter blocks parity",
+    "png_controller": "Preserve070 fixed schivata/reactive behavior via native declarations/turn cadence. No new autonomous attacks/tactics or user control of PNG. PNG04 Staff-guided does not prove this adapter; missing native cadence blocks parity, no ad-hoc skip or assumed Passa."
+  },
+  "narrative": {
+    "manual": true,
+    "quota_limit": 5,
+    "day_boundary": "Existing _giornata_gioco,06:00",
+    "quota_table": "public.test_room_user_ai_quota shared070+new",
+    "reserve_before_network": true,
+    "repeated_report": "Same reservation, no second provider",
+    "failed_after_reserve": "Quota remains consumed, no provider retry",
+    "entry": "test_room_ai discriminated user-test-ai/1 adapter, legacy unchanged",
+    "orchestrator": "Same combat_narratore_ai acquire/status/permit/save/complete",
+    "new_private_relations": [
+      "combat_consumer_private.user_test_messages",
+      "combat_consumer_private.user_test_reports",
+      "combat_consumer_private.user_test_narrative_requests"
+    ],
+    "relations_are": "Private source/destination/quota receipts linked to native facts/claims; not another mechanics engine",
+    "service_helpers_proposed": [
+      "user_test_narrative_binding(reservation)",
+      "user_test_publish(claim,result)"
+    ],
+    "publish_destination": "Owner-bound private report from server claim; no public.messages",
+    "catalog": "Existing descriptions/effects/limits frozen; not additional catalogue",
+    "outcome_authority": "Server only; damage does not imply end",
+    "legacy_history_conversion": false,
+    "private_relations_security": "FORCE RLS, owner postgres, no direct PUBLIC/anon/authenticated/service_role grants; gateways verify owner and service binding"
+  },
+  "lifecycle": {
+    "crosslegacy_lock": "hashtextextended('user-test-open:'||auth.uid()::text,0)",
+    "legacy_open_delta": "Admission lock/exclusion only, mechanics unchanged",
+    "reload": [
+      "profiles",
+      "active_test",
+      "state with explicit test/own actor",
+      "options"
+    ],
+    "already_active": "One profiles reread, no automatic open",
+    "uncertain_command": "Keep request_key, recover receipt/state",
+    "close": "Native offered operation available to owner without admin privileges",
+    "dialog_close": "Not test close",
+    "idle": "Existing070 inactivity >2h, accepted action touches; reads/options do not renew",
+    "expiry_hook": "combat_consumer_private.expire_idle → user_test_expire_contexts → shared native close with receipt",
+    "expiry_dependency": "Verify current pin and existing scheduled reachability before integration; no implicit cron change",
+    "history_cleanup_change": false,
+    "new_test": "Explicit gesture, new instance and key, persistent profile remains"
+  },
+  "next_scopes": {
+    "base": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/user_testroom_release/",
+    "DB-CORE": [
+      "DB_INSTALL.sql",
+      "DB_RECOVERY.sql",
+      "DB_BASELINE.json",
+      "DB_MANIFEST.json",
+      "DB_PLAN.md"
+    ],
+    "LAND-UI": [
+      "LAND.html",
+      "LAND_BINDING.mjs",
+      "UI_PLAN.md",
+      "UI_VERIFY.mjs",
+      "UI_QA.json",
+      "UI_MANIFEST.json"
+    ],
+    "NARRATIVE-AI": [
+      "AI_PLAN.md",
+      "AI_BASELINE.json",
+      "AI_MANIFEST.json",
+      "test_room_ai/index.ts",
+      "combat_narratore_ai/index.ts",
+      "combat_narratore_ai/runtime.ts",
+      "combat_narratore_ai/scene.mjs",
+      "combat_narratore_ai/editorial.mjs",
+      "combat_narratore_ai/flow.mjs",
+      "combat_narratore_ai/user_test.mjs"
+    ],
+    "QA-PLAYTEST": [
+      "QA_PLAN.md",
+      "QA_RUNNER.py",
+      "QA_FIXTURE.sql",
+      "QA_RESULT.json",
+      "QA_MANIFEST.json"
+    ],
+    "created_now": false,
+    "shared_sql_owner": "DB-CORE including narrative binding/publisher SQL",
+    "integration_owner": "PM",
+    "parallel_rule": "UI/IA design on contract; execution only frozen dependencies ready"
+  },
+  "open_implementation_dependencies": [
+    "PNG runtime qualification",
+    "Native reactive PNG controller/cadence preserving070, not Staff operator control",
+    "Native KO/reset compatibility070",
+    "Private context registry/index/policy composition",
+    "Flow user binding and relevant adapter qualification",
+    "Private sources/strict validators/publisher",
+    "Shared quota and legacy/Common open exclusion",
+    "Scheduled native expiry hook pin/reachability"
+  ],
+  "operations": {
+    "readonly_queries": 0,
+    "sql_mutations": 0,
+    "docker": 0,
+    "provider": 0,
+    "browser": 0
+  },
+  "report": {
+    "path": "USER_TESTROOM_CONTEXT_CONTRACT.md",
+    "sha256": "f11e467c708101aedd34ac265746e9a7b928cee689b2bd93db9b620236f8c8b3"
+  },
+  "not_authorized": [
+    "implement endpoints/consumer in this task",
+    "enable",
+    "apply/deploy",
+    "new gameplay formulas/tactics",
+    "Staff privileges for users",
+    "rewrite prior outcomes"
+  ]
+}
