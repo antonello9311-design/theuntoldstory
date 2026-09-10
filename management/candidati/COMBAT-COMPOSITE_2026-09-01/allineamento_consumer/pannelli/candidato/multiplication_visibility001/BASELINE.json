@@ -1,0 +1,151 @@
+{
+  "task_id": "COMBAT-MULTIPLICATION-VISIBILITY-CANDIDATE-001",
+  "state": "NATIVE_SOURCES_FROZEN_NO_APPLY",
+  "live_metadata_observed_at": "2026-09-10T05:32:24.293472+00:00",
+  "freshness": "two function pins from authorized diagnosis012, no new query in this construction",
+  "functions": [
+    {
+      "acl": "{postgres=X/postgres}",
+      "config": [
+        "search_path=\"\""
+      ],
+      "proname": "body_visible_to_viewer",
+      "owner_name": "postgres",
+      "volatility": "s",
+      "schema_name": "combat_panel_private",
+      "definition_md5": "edc4e353722437fc5d17e7918c02b12c",
+      "security_definer": true,
+      "identity_arguments": "p_instance uuid, p_actor uuid",
+      "identity": "combat_panel_private.body_visible_to_viewer(uuid,uuid)",
+      "definition": "CREATE OR REPLACE FUNCTION combat_panel_private.body_visible_to_viewer(p_instance uuid, p_actor uuid)\n RETURNS boolean\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE i combat_spatial.arena_instances%ROWTYPE; s public.combat_v2_sessions%ROWTYPE;\n b combat_spatial.actor_states%ROWTYPE; src jsonb; native_map jsonb; round_no integer;\nBEGIN\n IF auth.uid() IS NULL THEN RETURN false; END IF;\n SELECT * INTO i FROM combat_spatial.arena_instances WHERE instance_id=p_instance AND state='open';\n IF NOT FOUND THEN RETURN false; END IF;\n SELECT * INTO s FROM public.combat_v2_sessions WHERE id=i.encounter_id\n   AND closed_at IS NULL AND state NOT IN ('chiuso','annullato');\n IF NOT FOUND THEN RETURN false; END IF;\n SELECT * INTO b FROM combat_spatial.actor_states WHERE instance_id=i.instance_id AND actor_id=p_actor AND state='active';\n IF NOT FOUND OR NOT EXISTS(SELECT 1 FROM public.combat_v2_actors WHERE id=b.actor_id AND session_id=s.id AND state='attivo') THEN RETURN false; END IF;\n IF i.context_source='ordinary' AND EXISTS(SELECT 1 FROM combat_consumer_private.activities\n   WHERE session_id=s.id AND location_id=s.location_id AND phase<>'closed') THEN\n   -- Projection privata già soggetta ad accesso, presenza, policy e membership.\n   -- Il grant geometrico del POV non deve essere scambiato per un grant nemico.\n   src:=combat_consumer_private.state_projection(s.location_id);\n   RETURN src->>'status'='ready' AND src#>>'{context,activity_id}'=s.id::text\n     AND EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(src#>'{map,actors}','[]')) a\n       WHERE a->>'actor_id'=p_actor::text);\n ELSIF i.context_source='panel_master' THEN\n   src:=public.master_v2_ui_state(s.location_id)->'data';\n   IF src#>>'{encounter,id}' IS DISTINCT FROM s.id::text THEN RETURN false; END IF;\n   round_no:=coalesce((src#>>'{round,no}')::integer,1);\n   native_map:=combat_spatial.map_projection(i.instance_id,auth.uid(),round_no);\n   RETURN EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(native_map->'actors','[]')) a\n     WHERE a->>'subject'=b.projection_subject_id::text);\n END IF;\n RETURN false;\nEND $function$\n",
+      "definition_sha256": "1a1959c660be81843af55eafa94b972b2085a127dd27a0366cca44da44812456",
+      "source": "management/candidati/CLAN-L1_2026-09-01/runtime/hyuga/candidato/HYUGA_RUNTIME_METADATA.json"
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "config": [
+        "search_path=\"\""
+      ],
+      "proname": "multiplication_prepare_declaration",
+      "owner_name": "postgres",
+      "volatility": "v",
+      "schema_name": "combat_panel_private",
+      "definition_md5": "7a3c2f8e8b7a05643ff5750d859a7c17",
+      "security_definer": true,
+      "identity_arguments": "p_round uuid, p_actor uuid, p_mode text, p_copies integer, p_figures jsonb, p_original integer, p_target uuid, p_movement uuid, p_request uuid",
+      "identity": "combat_panel_private.multiplication_prepare_declaration(uuid,uuid,text,integer,jsonb,integer,uuid,uuid,uuid)",
+      "definition": "CREATE OR REPLACE FUNCTION combat_panel_private.multiplication_prepare_declaration(p_round uuid, p_actor uuid, p_mode text, p_copies integer, p_figures jsonb, p_original integer, p_target uuid, p_movement uuid, p_request uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE a public.combat_v2_actors%ROWTYPE; b combat_spatial.actor_states%ROWTYPE;\n i combat_spatial.arena_instances%ROWTYPE; template combat_spatial.arena_templates%ROWTYPE;\n aim combat_panel_private.multiplication_attack_aims%ROWTYPE; target_geometry jsonb; target_x numeric; target_y numeric;\n cap combat_spatial.movement_capabilities%ROWTYPE; plan combat_panel_private.multiplication_declaration_plans%ROWTYPE;\n profile jsonb; original jsonb; budget jsonb; movement jsonb; origin_x numeric; origin_y numeric;\n endpoint_x numeric; endpoint_y numeric; distance numeric; fp text; cost integer; f jsonb;\nBEGIN\n IF auth.uid() IS NULL OR p_request IS NULL THEN RAISE EXCEPTION 'panel_authentication_required' USING ERRCODE='28000'; END IF;\n IF p_mode IS NULL OR p_mode NOT IN ('diversivo','copertura','assalto')\n   OR (p_mode='assalto') IS DISTINCT FROM (p_target IS NOT NULL) THEN\n   RAISE EXCEPTION 'panel_multiplication_mode_invalid' USING ERRCODE='22023'; END IF;\n PERFORM public.combat_v2_lock_round(p_round);\n SELECT * INTO aim FROM combat_panel_private.multiplication_attack_aims\n   WHERE request_key=p_request AND target_actor_id=p_target FOR UPDATE;\n IF aim.request_key IS NOT NULL AND (p_mode IS DISTINCT FROM 'assalto' OR aim.actor_id<>p_actor OR aim.round_id<>p_round\n   OR aim.principal_user IS DISTINCT FROM auth.uid() OR aim.prepared_transaction<>txid_current()\n   OR aim.attack_target_id IS NOT NULL) THEN\n   RAISE EXCEPTION 'panel_multiplication_assault_aim_invalid' USING ERRCODE='40001'; END IF;\n fp:=public.combat_v2_sha256(jsonb_build_object('round',p_round,'actor',p_actor,'mode',p_mode,\n   'copies',p_copies,'figures',p_figures,'original',p_original,'target',p_target,'movement',p_movement)\n     ||CASE WHEN aim.request_key IS NULL THEN '{}'::jsonb ELSE jsonb_build_object('target_formation',aim.formation_id,\n       'target_formation_version',aim.formation_version,'target_figure',aim.selected_index) END);\n SELECT * INTO plan FROM combat_panel_private.multiplication_declaration_plans WHERE request_key=p_request;\n IF plan.request_key IS NOT NULL THEN\n   IF plan.principal_user<>auth.uid() OR plan.fingerprint<>fp THEN\n     RAISE EXCEPTION 'panel_request_key_conflict' USING ERRCODE='22023'; END IF;\n   IF plan.declaration_id IS NULL AND plan.prepared_transaction<>txid_current() THEN\n     RAISE EXCEPTION 'panel_multiplication_plan_abandoned' USING ERRCODE='40001'; END IF;\n   RETURN;\n END IF;\n SELECT * INTO STRICT a FROM public.combat_v2_actors WHERE id=p_actor AND controller_user=auth.uid()\n   AND companion_id IS NULL AND state='attivo' FOR UPDATE;\n profile:=combat_panel_private.multiplication_actor_profile(a.id);\n IF profile IS NULL OR profile->>'round_id' IS DISTINCT FROM p_round::text\n   OR NOT coalesce((profile->>'available')::boolean,false) THEN\n   RAISE EXCEPTION 'panel_multiplication_not_available' USING ERRCODE='40001'; END IF;\n SELECT (value->>'chakra_cost')::integer INTO cost FROM jsonb_array_elements(profile->'copy_options')\n   WHERE (value->>'copies')::integer=p_copies;\n IF cost IS NULL OR NOT combat_panel_private.multiplication_formation_valid(p_figures,p_copies,(profile->>'copy_cap')::integer,p_original) THEN\n   RAISE EXCEPTION 'panel_multiplication_formation_invalid' USING ERRCODE='22023'; END IF;\n SELECT * INTO STRICT i FROM combat_spatial.arena_instances WHERE encounter_id=a.session_id AND state='open' FOR UPDATE;\n IF NOT combat_panel_private.shared_movement_scope(i.instance_id) THEN\n   RAISE EXCEPTION 'panel_multiplication_scene_invalid' USING ERRCODE='42501'; END IF;\n SELECT * INTO STRICT template FROM combat_spatial.arena_templates WHERE template_key=i.template_key AND template_version=i.template_version;\n SELECT * INTO STRICT b FROM combat_spatial.actor_states WHERE instance_id=i.instance_id AND actor_id=a.id AND state='active' FOR UPDATE;\n IF b.controller_principal_id IS DISTINCT FROM auth.uid() THEN\n   RAISE EXCEPTION 'panel_multiplication_controller_stale' USING ERRCODE='40001'; END IF;\n FOR f IN SELECT value FROM jsonb_array_elements(p_figures) LOOP\n   IF (f->>'x_m')::numeric NOT BETWEEN b.footprint_radius_m AND template.width_m-b.footprint_radius_m\n     OR (f->>'y_m')::numeric NOT BETWEEN b.footprint_radius_m AND template.height_m-b.footprint_radius_m THEN\n     RAISE EXCEPTION 'panel_multiplication_figure_outside_arena' USING ERRCODE='22023'; END IF;\n END LOOP;\n SELECT value INTO STRICT original FROM jsonb_array_elements(p_figures) WHERE (value->>'figure_index')::integer=p_original;\n origin_x:=b.x_m; origin_y:=b.y_m; endpoint_x:=(original->>'x_m')::numeric; endpoint_y:=(original->>'y_m')::numeric;\n distance:=combat_spatial.distance_m(origin_x,origin_y,endpoint_x,endpoint_y);\n budget:=combat_panel_private.movement_budget(a.id,p_round);\n IF distance>0 THEN\n   IF p_movement IS NULL OR (budget->>'spent_m')::numeric>0 OR distance>(budget->>'remaining_m')::numeric\n     OR combat_panel_private.movement_block_reason(a.id) IS NOT NULL THEN\n     RAISE EXCEPTION 'panel_multiplication_single_movement_required' USING ERRCODE='22023'; END IF;\n   SELECT * INTO STRICT cap FROM combat_spatial.movement_capabilities WHERE capability_id=p_movement FOR UPDATE;\n   IF cap.instance_id<>i.instance_id OR cap.actor_id<>a.id OR cap.state<>'offered'\n     OR cap.actor_body_version<>b.body_version OR cap.map_version<>i.map_version\n     OR (cap.start_x_m,cap.start_y_m,cap.end_x_m,cap.end_y_m) IS DISTINCT FROM (origin_x,origin_y,endpoint_x,endpoint_y)\n     OR combat_spatial.path_first_block_t(i.instance_id,a.id,origin_x,origin_y,endpoint_x,endpoint_y)<1 THEN\n     RAISE EXCEPTION 'panel_multiplication_movement_stale' USING ERRCODE='40001'; END IF;\n ELSIF p_movement IS NOT NULL THEN\n   RAISE EXCEPTION 'panel_multiplication_zero_movement_capability' USING ERRCODE='22023'; END IF;\n IF p_mode='assalto' THEN\n   PERFORM 1 FROM public.combat_v2_actors WHERE id=p_target AND session_id=a.session_id\n     AND state='attivo' AND team_key<>a.team_key FOR KEY SHARE;\n   IF NOT FOUND THEN RAISE EXCEPTION 'panel_multiplication_target_invalid' USING ERRCODE='22023'; END IF;\n   IF aim.request_key IS NOT NULL THEN\n     target_geometry:=combat_panel_private.multiplication_target_figure(a.id,p_target,aim.formation_id,aim.formation_version,aim.selected_index);\n     IF target_geometry IS DISTINCT FROM aim.geometry THEN RAISE EXCEPTION 'panel_multiplication_aim_stale' USING ERRCODE='40001'; END IF;\n     target_x:=(target_geometry#>>'{figure,x_m}')::numeric;target_y:=(target_geometry#>>'{figure,y_m}')::numeric;\n   ELSE\n     IF EXISTS(SELECT 1 FROM combat_panel_private.multiplication_formations WHERE actor_id=p_target AND state='active') THEN\n       RAISE EXCEPTION 'panel_multiplication_target_choice_required' USING ERRCODE='22023'; END IF;\n     SELECT tb.x_m,tb.y_m INTO STRICT target_x,target_y FROM combat_spatial.actor_states tb\n       WHERE tb.instance_id=i.instance_id AND tb.actor_id=p_target AND tb.state='active';\n   END IF;\n   IF NOT EXISTS(SELECT 1 FROM combat_spatial.viewer_grants WHERE instance_id=i.instance_id\n       AND viewer_principal_id=auth.uid() AND subject_actor_id=p_target AND can_view_map)\n     OR combat_spatial.distance_m(endpoint_x,endpoint_y,target_x,target_y)>2\n     OR (endpoint_x-origin_x)*(target_x-origin_x)+(endpoint_y-origin_y)*(target_y-origin_y)<0\n     OR (target_x-endpoint_x)*(target_x-origin_x)+(target_y-endpoint_y)*(target_y-origin_y)<0\n     OR combat_spatial.path_first_block_t(i.instance_id,a.id,endpoint_x,endpoint_y,target_x,target_y,p_target)<1 THEN\n     RAISE EXCEPTION 'panel_multiplication_assault_contact_invalid' USING ERRCODE='22023'; END IF;\n END IF;\n IF distance>0 THEN\n   movement:=combat_spatial.movement_commit(cap.capability_id,\n     md5(p_request::text||':multiplication-movement')::uuid,p_request);\n   IF combat_panel_private.movement_event_cost((movement->>'event_id')::uuid,distance)>(budget->>'remaining_m')::numeric THEN\n     RAISE EXCEPTION 'panel_multiplication_movement_budget_exceeded' USING ERRCODE='40001'; END IF;\n   IF clan_sabaku_private.clone_movement_interruption(cap.capability_id) IS NOT NULL THEN\n     PERFORM clan_sabaku_private.clone_record_interrupted_movement(cap.capability_id,p_round,a.id);\n     RETURN;\n   END IF;\n   SELECT * INTO STRICT b FROM combat_spatial.actor_states WHERE instance_id=i.instance_id AND actor_id=a.id;\n   IF (b.x_m,b.y_m) IS DISTINCT FROM (endpoint_x,endpoint_y) THEN\n     RAISE EXCEPTION 'panel_multiplication_original_not_reached' USING ERRCODE='40001'; END IF;\n END IF;\n IF aim.request_key IS NOT NULL THEN\n   -- Solo la geometria cambia dopo il movimento autorizzato della stessa TX.\n   -- Figura, formazione, versione e controllore restano quelli sigillati.\n   target_geometry:=combat_panel_private.multiplication_target_figure(a.id,p_target,aim.formation_id,aim.formation_version,aim.selected_index);\n   UPDATE combat_panel_private.multiplication_attack_aims SET geometry=target_geometry\n     WHERE request_key=p_request AND target_actor_id=p_target AND actor_id=a.id\n       AND prepared_transaction=txid_current() AND attack_target_id IS NULL;\n   IF NOT FOUND THEN RAISE EXCEPTION 'panel_multiplication_assault_aim_invalid' USING ERRCODE='40001'; END IF;\n END IF;\n INSERT INTO combat_panel_private.multiplication_declaration_plans(request_key,principal_user,prepared_transaction,\n   round_id,actor_id,instance_id,controller_version,source_body_version,mode,copies,copy_cap,chakra_cost,figures,\n   original_index,target_actor_id,movement_event_id,movement_m,fingerprint)\n VALUES(p_request,auth.uid(),txid_current(),p_round,a.id,i.instance_id,a.controller_version,b.body_version,\n   p_mode,p_copies,(profile->>'copy_cap')::integer,cost,p_figures,p_original,p_target,(movement->>'event_id')::uuid,distance,fp);\nEND $function$\n",
+      "definition_sha256": "3b344ec892b75f8be7da89f11e2d50e276588ea4a529227d61947c3ca284a0f8",
+      "source": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/multiplication_assault_smoke010/DIAGNOSIS.json"
+    }
+  ],
+  "replacement": {
+    "before": "   IF NOT EXISTS(SELECT 1 FROM combat_spatial.viewer_grants WHERE instance_id=i.instance_id\n       AND viewer_principal_id=auth.uid() AND subject_actor_id=p_target AND can_view_map)",
+    "after": "   IF combat_panel_private.body_visible_to_viewer(i.instance_id,p_target) IS DISTINCT FROM true",
+    "occurrences": 1,
+    "reason": "ordinary offer visibility uses native private projection, consumer must share authority and deny false/null"
+  },
+  "source_inputs": {
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/multiplication_assault_smoke012/DIAGNOSIS.md": {
+      "bytes": 5010,
+      "sha256": "62ce9e448c65ab3418fcc7aa8179f44d074c25d89ecdd6957a6edeb2744da2d6"
+    },
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/multiplication_assault_smoke012/DIAGNOSIS.json": {
+      "bytes": 10381,
+      "sha256": "16e99ba27912e98b03c0764c355c85d8b1fa63018930224d07991a07d984e60b"
+    },
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/multiplication_assault_smoke012/RESULT.json": {
+      "bytes": 23256,
+      "sha256": "41c1af5c0f9ca13e02e5ce295d72a9251368e3d069e6db75326a9ee7d8276ace"
+    },
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/multiplication_assault_smoke012/MANIFEST.json": {
+      "bytes": 3708,
+      "sha256": "d52d233846a649cd73261e3627a1220fa150993b43c94ca123d61e54879ba260"
+    },
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/multiplication_assault_smoke010/DIAGNOSIS.json": {
+      "bytes": 50329,
+      "sha256": "d01e794cb2bf0dd6e69f76b20d35f055168d6fdfd654dcc1f1db015177fc9fcd"
+    },
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/multiplication_assault_smoke011/DIAGNOSIS.json": {
+      "bytes": 43940,
+      "sha256": "b23cf8f0ac180a5042ba1b26f75f03c8b811b55d2fd0de4f50529fdfda6bda03"
+    },
+    "management/candidati/CLAN-L1_2026-09-01/runtime/hyuga/candidato/HYUGA_RUNTIME_METADATA.json": {
+      "bytes": 3616056,
+      "sha256": "148011847f0f9c557080c08801247d4163dd5bd40137f052be29e4779f58671a"
+    },
+    "management/candidati/CLAN-L1_2026-09-01/runtime/hyuga/candidato/HYUGA_RUNTIME_COMPILE_BOOTSTRAP.sql": {
+      "bytes": 2470471,
+      "sha256": "7347f3676ef73db95ce9b89410f0c4e8225f5158b1c448ab3078cd6d045d6f9e"
+    }
+  },
+  "package_sources": {
+    "BUILD.py": {
+      "bytes": 5195,
+      "sha256": "179075a2c7882f0132135b49f4a1ef77395b2d9c358e8f007bf43dee7a254d2c"
+    },
+    "PLAN.md": {
+      "bytes": 5692,
+      "sha256": "22e01122a5eee5c59c927519169eb16efe0f89cb085b9b9334a5a176a8c0e956"
+    },
+    "QA_PLAN.md": {
+      "bytes": 7061,
+      "sha256": "5767e40f52fc53dedc37c0f14faf4589184d7487bc8dab20a98576b9c9d72a44"
+    }
+  },
+  "evidence_current_diagnosis": {
+    "direct_target_grant_count": 0,
+    "round": 10,
+    "context_version": 53,
+    "type": "later snapshot, not captured request012"
+  },
+  "producer_reference": {
+    "function": "combat_panel_private.multiplication_layout_options_for_figure",
+    "visibility_call": "combat_panel_private.body_visible_to_viewer(i.instance_id,p_target)",
+    "lines": [
+      37,
+      39
+    ],
+    "source": "multiplication_assault_smoke011 frozen source references; no producer rewrite"
+  },
+  "QA_budget": {
+    "groups": 4,
+    "cases": 5,
+    "SQL_submissions_max": 8,
+    "seconds": 600,
+    "runs": 1,
+    "provider_calls": 0,
+    "browser": 0
+  },
+  "QA_prerequisites": [
+    {
+      "id": "NATIVE_TWO_PG_MATERIALIZER",
+      "status": "TO_PREPARE",
+      "requirement": "two synthetic native PG/profiles, ordinary membership/session/round/turn/arena and private projection valid with original triggers, no stub or fake history"
+    },
+    {
+      "id": "NATIVE_CATALOG_FIXTURE",
+      "status": "TO_RECONCILE_FOR_QA",
+      "requirement": "public approved jutsu/layout/catalog content and availability, costs/capacity from existing rules; do not infer game readiness from DDL"
+    },
+    {
+      "id": "NEGATIVE_STATE_REACHABILITY",
+      "status": "TO_ATTEST_IN_SETUP",
+      "requirement": "both negative visibility states must pass earlier native actor/profile/context prerequisites and reach visibility predicate; otherwise NOT_QUALIFIED, never unrelated error as PASS"
+    }
+  ],
+  "scope_exclusions": [
+    "SQL execution or production apply",
+    "new API/ACL/grant/data repair",
+    "PNG5/5 bank/review/candidate modifications",
+    "new game rules or counts",
+    "UI/Edge/consumer rewrite",
+    "R4 benchmark rerun"
+  ],
+  "review_budget": {
+    "initial_independent": 1,
+    "aggregated_revisions_max": 5,
+    "final_counterchecks_max": 5,
+    "stop_at_green": true
+  }
+}
