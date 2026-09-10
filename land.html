@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-COMMON-PANEL-UI-016" />
+  <meta name="tus-build" content="LAND-COMMON-PANEL-UI-019" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1557,6 +1557,331 @@
   </style>
 <style>.ordinary-map-section{margin-top:14px;padding:12px;border:1px solid var(--edge);border-radius:8px}.ordinary-map-section p{font-size:14px}.ordinary-map{display:block;width:100%;max-height:260px}.ordinary-map-section ul{font-size:14px;padding-left:18px}</style>
 <style id="common-panel-style">.combat-panel-common{padding:18px;line-height:1.5;overflow-wrap:anywhere}.combat-panel-common section{margin:12px 0}.combat-panel-common select,.combat-panel-common textarea,.combat-panel-common input[type=text]{max-width:100%;width:100%;box-sizing:border-box;font:inherit}.combat-panel-common textarea{min-height:140px}.combat-panel-common button{min-height:42px;margin:4px}.combat-panel-common fieldset{min-width:0}</style>
+<script id="map-figures-bundle">
+(()=>{const editor=(()=>{
+// MAP-FIGURES/1: editor cosmetico unico; nessun valore o comando di gioco.
+const UUID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+const KINDS=new Set(['character','png_template','ai_agent']);
+const PATH=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\/map-figures\/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\.(?:png|webp|jpg)$/i;
+const MAX_UPLOAD=3*1024*1024,MAX_INPUT=16*1024*1024;
+function validRecord(value,subject){
+  if(!value||value.schema_version!=='map-figure/1'||value.subject_kind!==subject.kind||value.subject_id!==subject.id||typeof value.can_edit!=='boolean'||!Number.isSafeInteger(value.revision)||value.revision<0||!(value.figure_path===null||typeof value.figure_path==='string'&&PATH.test(value.figure_path)))throw Error('invalid_response');
+  return {schema_version:value.schema_version,subject_kind:value.subject_kind,subject_id:value.subject_id,can_edit:value.can_edit,figure_path:value.figure_path,revision:value.revision};
+}
+function isConflict(error){return error?.code==='40001'||/\bmap_figure_revision_conflict\b/.test(error?.message||'');}
+async function imageType(file){
+  if(!file||!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size<12||file.size>MAX_INPUT)throw Error('invalid_file');
+  const a=new Uint8Array(await file.slice(0,12).arrayBuffer());
+  const png=[137,80,78,71,13,10,26,10].every((v,i)=>a[i]===v),jpg=a[0]===255&&a[1]===216&&a[2]===255;
+  const webp=String.fromCharCode(...a.slice(0,4))==='RIFF'&&String.fromCharCode(...a.slice(8,12))==='WEBP';
+  if(!(file.type==='image/png'&&png||file.type==='image/jpeg'&&jpg||file.type==='image/webp'&&webp))throw Error('invalid_file');
+}
+const CSS=`
+.map-figure-editor{box-sizing:border-box;width:min(700px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:20px;border:1px solid #64717c;border-radius:12px;background:#15212b;color:#edf1f5;font:14px/1.5 system-ui,sans-serif}
+.map-figure-editor::backdrop{background:#03070bcc}.map-figure-editor *{box-sizing:border-box}.map-figure-editor h2{font-size:20px;margin:0 0 10px;color:#f3cf88}.map-figure-editor p{margin:8px 0}.map-figure-editor button,.map-figure-editor input{font:inherit}.map-figure-editor button{min-height:42px;border:1px solid #637889;border-radius:6px;background:#273c4b;color:#fff;padding:8px 12px;cursor:pointer}.map-figure-editor button:disabled{opacity:.5;cursor:default}.map-figure-editor :focus-visible{outline:3px solid #f2c678;outline-offset:2px}.map-figure-editor label{display:block;margin:10px 0}.map-figure-editor input[type=range]{display:block;width:100%}.map-figure-editor input[type=file]{display:block;width:100%;max-width:100%;margin-top:6px}.map-figure-editor-grid{display:grid;grid-template-columns:minmax(0,256px) minmax(0,1fr);gap:20px;align-items:start}.map-figure-editor-canvas{display:block;width:100%;height:auto;border:1px solid #6b7780;background:repeating-conic-gradient(#d6d6d6 0% 25%,#fff 0% 50%) 50% / 16px 16px}.map-figure-editor-preview{display:flex;align-items:end;gap:20px;min-height:108px}.map-figure-editor-preview canvas{display:block;background:#344552;border:1px solid #607180}.map-figure-editor-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.map-figure-editor-status{min-height:24px;color:#f3cf88}.map-figure-editor-current{max-width:100px;max-height:84px;object-fit:contain}.map-figure-editor fieldset{min-width:0;border:0;padding:0;margin:0}.map-figure-editor small{color:#bac8d1}@media(max-width:560px){.map-figure-editor{padding:14px}.map-figure-editor-grid{grid-template-columns:1fr}.map-figure-editor-canvas{width:min(100%,220px);margin:auto}.map-figure-editor h2{font-size:19px}}
+`;
+
+function createMapFigureEditor({client,document:doc=globalThis.document,identity,onsaved=()=>{}}={}){
+  if(!doc?.createElement||typeof client?.rpc!=='function'||typeof client?.storage?.from!=='function'||typeof identity!=='function')throw Error('map_figure_editor_configuration');
+  const win=doc.defaultView||globalThis;
+  let epoch=0,disposed=false,active=null;
+  const principal=()=>{try{const id=identity()?.principal_id;return UUID.test(id||'')?id:null;}catch{return null;}};
+  const current=s=>!disposed&&active===s&&s.epoch===epoch&&principal()===s.owner;
+  function close(){
+    epoch++;const s=active;active=null;if(!s)return;
+    s.fileEpoch++;s.bitmap?.close?.();s.bitmap=null;
+    s.dialog.close?.();s.dialog.remove();if(s.focus?.isConnected)s.focus.focus?.();
+  }
+  function check(s){if(current(s))return true;if(active===s)close();return false;}
+  const auth=client.auth?.onAuthStateChange?.((event,session)=>{if(active&&(event==='SIGNED_OUT'||session?.user?.id!==active.owner))close();});
+  const onLogout=()=>close();win.addEventListener?.('tus:ordinary-logout',onLogout);
+  function status(s,message){if(check(s))s.status.textContent=message;}
+  function lock(s,busy){if(!check(s))return;s.busy=busy;s.dialog.setAttribute('aria-busy',String(busy));s.fields.disabled=busy||!s.record?.can_edit||s.conflict;s.save.disabled=busy||!s.bitmap||!s.record?.can_edit||s.conflict;s.portrait.disabled=busy||!s.record?.can_edit||s.conflict;}
+  function draw(s){
+    if(!check(s)||!s.bitmap)return;
+    const {canvas,bitmap}=s,ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);
+    const scale=Math.min(canvas.width/bitmap.width,canvas.height/bitmap.height)*Number(s.zoom.value)/100;
+    const width=bitmap.width*scale,height=bitmap.height*scale;
+    ctx.drawImage(bitmap,(canvas.width-width)/2+Number(s.x.value)*canvas.width/100,(canvas.height-height)/2+Number(s.y.value)*canvas.height/100,width,height);
+    for(const preview of s.previews){const pc=preview.getContext('2d');pc.clearRect(0,0,preview.width,preview.height);pc.drawImage(canvas,0,0,preview.width,preview.height);}
+  }
+  function edited(s){if(!check(s)||s.busy||s.conflict)return;s.upload=null;s.edit++;draw(s);status(s,'Anteprima aggiornata. La figura verrà salvata solo con «Salva figura».');}
+  async function chooseFile(s,file){
+    if(!check(s)||s.busy||!s.record?.can_edit||s.conflict)return;
+    const ticket=++s.fileEpoch;lock(s,true);status(s,'Lettura dell’immagine…');
+    let bitmap;
+    try{
+      await imageType(file);if(!check(s)||ticket!==s.fileEpoch)return;
+      bitmap=await win.createImageBitmap(file);if(!check(s)||ticket!==s.fileEpoch){bitmap.close?.();return;}
+      if(!bitmap.width||!bitmap.height||bitmap.width*bitmap.height>40_000_000)throw Error('invalid_file');
+      s.bitmap?.close?.();s.bitmap=bitmap;bitmap=null;s.upload=null;s.edit++;s.zoom.value='100';s.x.value=s.y.value='0';draw(s);
+      status(s,'Regola scala e posizione: il bordo delimita il ritaglio salvato. Lo sfondo a scacchi indica trasparenza.');
+    }catch{bitmap?.close?.();if(check(s)&&ticket===s.fileEpoch)status(s,'Immagine non utilizzabile. Scegli un PNG, JPEG o WebP valido, entro 16 MB e 40 megapixel. SVG e GIF non sono ammessi.');}
+    finally{if(check(s)&&ticket===s.fileEpoch){s.file.value='';lock(s,false);}}
+  }
+  async function save(s,usePortrait=false){
+    if(!check(s)||s.busy||s.conflict||!s.record?.can_edit||!usePortrait&&!s.bitmap)return false;
+    lock(s,true);status(s,usePortrait?'Ripristino del ritratto…':'Salvataggio della figura…');
+    const expected=s.record.revision;
+    try{
+      let path=null;
+      if(!usePortrait){
+        if(!s.upload){
+          const blob=await new Promise(resolve=>s.canvas.toBlob(resolve,'image/png'));if(!check(s))return false;
+          if(!blob||blob.type!=='image/png'||!blob.size||blob.size>MAX_UPLOAD)throw Error('normalization');
+          const id=win.crypto.randomUUID();if(!UUID.test(id))throw Error('normalization');
+          s.upload={path:s.owner+'/map-figures/'+id+'.png',blob,done:false};
+        }
+        const upload=s.upload;
+        if(!upload.done){
+          const response=await client.storage.from('avatars').upload(upload.path,upload.blob,{contentType:'image/png',cacheControl:'3600',upsert:false});
+          if(!check(s))return false;
+          if(response?.error){s.upload=null;throw Error('upload_failed');}upload.done=true;
+        }
+        path=upload.path;
+      }
+      if(!check(s))return false;
+      const response=await client.rpc('map_figure_save_v1',{p_subject_kind:s.subject.kind,p_subject_id:s.subject.id,p_storage_path:path,p_expected_revision:expected});
+      if(!check(s))return false;
+      if(response?.error){if(isConflict(response.error)){s.conflict=true;throw Error('revision_conflict');}throw Error('save_unconfirmed');}
+      const record=validRecord(response?.data,s.subject);
+      if(record.figure_path!==path||record.revision<expected)throw Error('save_unconfirmed');
+      s.record=record;
+      // Il server ha confermato: un errore del consumer non deve causare un nuovo upload/salvataggio.
+      close();try{Promise.resolve(onsaved(record)).catch(()=>{});}catch{/* L'host potrà rileggere la propria presentazione. */}
+      return true;
+    }catch(error){
+      if(check(s))status(s,error.message==='revision_conflict'?'La figura è stata modificata altrove. Chiudi e riapri l’editor per vedere la versione attuale; nessuna sovrascrittura eseguita.':error.message==='upload_failed'?'Caricamento non confermato. Puoi riprovare con «Salva figura».':error.message==='normalization'?'Non è stato possibile preparare un PNG entro 3 MB. Scegli un’altra immagine.':'Salvataggio non confermato. Riprova: la figura già caricata verrà riutilizzata.');
+      return false;
+    }finally{if(check(s))lock(s,false);}
+  }
+  async function open(kind,id){
+    if(disposed)throw Error('map_figure_editor_disposed');close();
+    const owner=principal();if(!owner||!KINDS.has(kind)||!UUID.test(id||''))return false;
+    if(!doc.getElementById('map-figure-editor-style')){const style=doc.createElement('style');style.id='map-figure-editor-style';style.textContent=CSS;doc.head.append(style);}
+    const s={epoch,owner,subject:{kind,id},record:null,busy:true,conflict:false,bitmap:null,upload:null,edit:0,fileEpoch:0,focus:doc.activeElement,previews:[]};active=s;
+    const node=(tag,text,parent)=>{const n=doc.createElement(tag);if(text!==undefined)n.textContent=text;parent?.append(n);return n;};
+    const dialog=node('dialog');s.dialog=dialog;dialog.className='map-figure-editor';dialog.setAttribute('aria-label','Miniatura mappa');
+    node('h2','Miniatura mappa',dialog);node('p','Carica una figura, scegli il ritaglio e controlla come appare nel pannello.',dialog);
+    node('small','Le immagini sono pubbliche. Il ritratto e le statistiche del personaggio restano invariati.',dialog);
+    s.status=node('p','Verifica dei permessi…',dialog);s.status.className='map-figure-editor-status';s.status.setAttribute('role','status');s.status.setAttribute('aria-live','polite');
+    s.current=node('p','',dialog);s.current.hidden=true;
+    const fields=node('fieldset',undefined,dialog);s.fields=fields;fields.disabled=true;node('legend','Immagine e ritaglio',fields);
+    const fileLabel=node('label','Carica immagine (PNG, JPEG o WebP)',fields);s.file=node('input',undefined,fileLabel);s.file.type='file';s.file.accept='image/png,image/jpeg,image/webp';s.file.addEventListener('change',()=>chooseFile(s,s.file.files?.[0]));
+    const grid=node('div',undefined,fields);grid.className='map-figure-editor-grid';s.canvas=node('canvas',undefined,grid);s.canvas.width=256;s.canvas.height=320;s.canvas.className='map-figure-editor-canvas';s.canvas.setAttribute('role','img');s.canvas.setAttribute('aria-label','Ritaglio finale della figura, proporzioni conservate');
+    const controls=node('div',undefined,grid);
+    const slider=(label,min,max,value)=>{const l=node('label',label,controls),input=node('input',undefined,l);input.type='range';input.min=String(min);input.max=String(max);input.step='1';input.value=String(value);input.addEventListener('input',()=>edited(s));return input;};
+    s.zoom=slider('Scala (%)',25,300,100);s.x=slider('Posizione orizzontale',-100,100,0);s.y=slider('Posizione verticale',-100,100,0);
+    const reset=node('button','Centra e mostra tutta la figura',controls);reset.type='button';reset.addEventListener('click',()=>{if(check(s)&&!s.busy&&!s.conflict){s.zoom.value='100';s.x.value=s.y.value='0';edited(s);}});
+    node('p','Anteprime alle dimensioni della mappa',controls);const previews=node('div',undefined,controls);previews.className='map-figure-editor-preview';
+    for(const height of [84,62]){const box=node('div',undefined,previews),canvas=node('canvas',undefined,box);canvas.width=Math.round(256*height/320);canvas.height=height;canvas.style.width=canvas.width+'px';canvas.style.height=height+'px';canvas.setAttribute('role','img');canvas.setAttribute('aria-label','Anteprima '+height+' pixel');s.previews.push(canvas);node('small',height+' px',box);}
+    const buttons=node('div',undefined,dialog);buttons.className='map-figure-editor-actions';
+    const button=(text,fn)=>{const n=node('button',text,buttons);n.type='button';n.addEventListener('click',fn);return n;};
+    s.save=button('Salva figura',()=>save(s));s.portrait=button('Usa ritratto',()=>save(s,true));const cancel=button('Annulla',close);s.save.disabled=s.portrait.disabled=true;
+    dialog.addEventListener('cancel',event=>{event.preventDefault();close();});dialog.addEventListener('close',()=>{if(active===s)close();});
+    doc.body.append(dialog);if(typeof dialog.showModal!=='function'){close();return false;}dialog.showModal();cancel.focus();
+    try{
+      const response=await client.rpc('map_figure_get_v1',{p_subject_kind:kind,p_subject_id:id});if(!check(s))return false;
+      if(response?.error)throw Error('read_failed');s.record=validRecord(response?.data,s.subject);
+      status(s,s.record.can_edit?'Scegli un’immagine oppure usa il ritratto esistente.':'Non hai il permesso di modificare questa figura.');
+      if(s.record.figure_path){
+        const url=client.storage.from('avatars').getPublicUrl(s.record.figure_path)?.data?.publicUrl;
+        // La URL è costruita dal client configurato e da un percorso canonico validato, mai da input arbitrario.
+        if(typeof url==='string'&&url.startsWith('https://')){s.current.hidden=false;node('span','Figura attuale: ',s.current);const img=node('img',undefined,s.current);img.className='map-figure-editor-current';img.alt='Figura attuale';img.src=url;img.addEventListener('error',()=>img.remove());}
+      }
+      return s.record.can_edit;
+    }catch{status(s,'Figura non disponibile. Chiudi e riapri l’editor per riprovare.');return false;}
+    finally{if(check(s))lock(s,false);}
+  }
+  function dispose(){if(disposed)return;close();disposed=true;auth?.data?.subscription?.unsubscribe?.();win.removeEventListener?.('tus:ordinary-logout',onLogout);}
+  return {open,close,dispose};
+}
+
+return {createMapFigureEditor};
+})();
+const resolver=(()=>{
+// MAP-FIGURE-SCENE/1: soltanto presentazione. Nessuna RPC di comando o geometria client.
+const UUID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+const FIGURE_PATH=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\/map-figures\/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\.(?:png|webp|jpg)$/i;
+const AVATARS='https://tyhyxkslteigibktluml.supabase.co/storage/v1/object/public/avatars/';
+const integer=x=>Number.isSafeInteger(x)&&x>=0;
+const nullableId=x=>x===null||typeof x==='string'&&UUID.test(x);
+const exact=(x,keys)=>x&&typeof x==='object'&&!Array.isArray(x)&&Object.keys(x).length===keys.length&&keys.every(k=>Object.hasOwn(x,k));
+const keys=['location_id','activity_id','activity_kind','viewer_actor_id','round_id','map_version','version','scene_version','phase','actor_ids'];
+function context(value){
+  if(!value||!UUID.test(value.location_id||'')||!UUID.test(value.activity_id||'')||!['ordinary_v2','master_v2'].includes(value.activity_kind)||!nullableId(value.viewer_actor_id??null)||!nullableId(value.round_id??null))return null;
+  const out={location_id:value.location_id,activity_id:value.activity_id,activity_kind:value.activity_kind,viewer_actor_id:value.viewer_actor_id??null,round_id:value.round_id??null,map_version:value.map_version??null,version:value.version??null,scene_version:value.scene_version??null,phase:value.phase??null,actor_ids:value.actor_ids??null};
+  if(['map_version','version','scene_version'].some(k=>out[k]!==null&&!integer(out[k]))||out.phase!==null&&typeof out.phase!=='string'||out.phase==='closed')return null;
+  if(out.actor_ids!==null){if(!Array.isArray(out.actor_ids)||out.actor_ids.some(x=>!UUID.test(x))||new Set(out.actor_ids).size!==out.actor_ids.length)return null;out.actor_ids=[...out.actor_ids].sort();}
+  return out;
+}
+function mapFigureContext(envelope){
+  if(envelope?.status!=='ready')return null;
+  const c=envelope.context;if(!c)return null;
+  return context({...c,round_id:c.round_id??c.exchange_id??null,viewer_actor_id:envelope.viewer?.command_actor_id??envelope.viewer?.actor_id??null,map_version:envelope.map?.map_version??null,actor_ids:Array.isArray(envelope.actors)?envelope.actors.map(a=>a.actor_id):null});
+}
+function signature(c){return c?JSON.stringify(keys.map(k=>c[k])):null;}
+function portraitURL(src){
+  const avatarOrigin='https://tyhyxkslteigibktluml.supabase.co';
+  if(typeof src!=='string'||src.length>2048||/[\\\s%#]/.test(src)||!src.startsWith(avatarOrigin+'/storage/v1/object/public/avatars/'))return null;
+  let u;try{u=new URL(src);}catch{return null;}
+  if(u.origin!==avatarOrigin||u.protocol!=='https:'||u.username||u.password||(u.search&&!/^\?v=[0-9]+$/.test(u.search)))return null;
+  const path=src.slice((avatarOrigin+'/storage/v1/object/public/avatars/').length).split('?')[0];
+  if(!/^[a-zA-Z0-9_/-]+(?:\.(?:png|webp|jpe?g))?$/i.test(path)||path.split('/').some(s=>!s||s==='.'||s==='..'))return null;
+  // Il ritratto PG nativo e' senza estensione; il bucket accetta solo raster.
+  if(!/\.(?:png|webp|jpe?g)$/i.test(path)&&!/^([0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})\/portrait$/i.test(path))return null;
+  return u.href;
+}
+function approvedAsset(value){
+  if(!value||typeof value.src!=='string')return null;
+  const src=value.src,embedded=/^data:image\/(?:png|webp);base64,[A-Za-z0-9+/=]+$/.test(src);
+  const local=src.length<=2048&&!/[\\\s?#]/.test(src)&&!src.startsWith('//')&&!/^[a-z][a-z0-9+.-]*:/i.test(src)&&/^(?:\.?\.?\/|[a-z0-9_/-])[a-z0-9_./-]*\.(?:png|webp)$/i.test(src);
+  if(!embedded&&!local)return null;
+  if(value.cell===undefined)return {src};const c=value.cell;
+  if(!c||!['column','row','columns','rows'].every(k=>Number.isSafeInteger(c[k]))||c.columns<1||c.rows<1||c.columns>8||c.rows>8||c.column<0||c.row<0||c.column>=c.columns||c.row>=c.rows)return null;
+  return {src,cell:{column:c.column,row:c.row,columns:c.columns,rows:c.rows}};
+}
+function sceneResponse(raw,expected){
+  if(!exact(raw,['schema_version','status','reason_code','context','map','actors','multiplication','assets'])||raw.schema_version!=='map-figure-scene/1'||!['ready','stale','unavailable'].includes(raw.status)||!(raw.reason_code===null||typeof raw.reason_code==='string')||!Array.isArray(raw.actors)||!Array.isArray(raw.assets))throw Error('scene_invalid');
+  if(raw.status!=='ready'){
+    if(raw.context!==null||raw.map!==null||raw.multiplication!==null||raw.actors.length||raw.assets.length)throw Error('scene_invalid');return raw;
+  }
+  const c=raw.context;
+  if(!exact(c,['location_id','activity_id','activity_kind','round_id','map_version','viewer_actor_id'])||c.location_id!==expected.location_id||c.activity_id!==expected.activity_id||c.activity_kind!==expected.activity_kind||!nullableId(c.round_id)||!nullableId(c.viewer_actor_id)||!integer(c.map_version)||expected.round_id!==null&&c.round_id!==expected.round_id||expected.map_version!==null&&c.map_version!==expected.map_version||expected.viewer_actor_id!==null&&c.viewer_actor_id!==expected.viewer_actor_id)throw Error('scene_stale');
+  if(raw.map?.schema_version!=='combat-map/2'||raw.map.readonly!==true||raw.map.map_version!==c.map_version||!Array.isArray(raw.map.actors)||!Array.isArray(raw.map.objects))throw Error('scene_invalid');
+  const ids=new Set();for(const a of raw.actors){if(!exact(a,['actor_id','display_name','kind'])||!UUID.test(a.actor_id||'')||typeof a.display_name!=='string'||!a.display_name.trim()||!['pg','png','companion'].includes(a.kind)||ids.has(a.actor_id))throw Error('scene_invalid');ids.add(a.actor_id);}
+  const assets=new Set();for(const a of raw.assets){if(!exact(a,['actor_id','figure_path','portrait_url','revision'])||!ids.has(a.actor_id)||assets.has(a.actor_id)||!integer(a.revision)||!(a.figure_path===null||typeof a.figure_path==='string'&&FIGURE_PATH.test(a.figure_path))||!(a.portrait_url===null||typeof a.portrait_url==='string'))throw Error('scene_invalid');assets.add(a.actor_id);}
+  if(raw.multiplication!==null&&(!exact(raw.multiplication,['schema_version','formations'])||raw.multiplication.schema_version!=='map-figure-formations/1'||!Array.isArray(raw.multiplication.formations)||raw.multiplication.formations.some(f=>Object.hasOwn(f,'original_index'))))throw Error('scene_invalid');
+  return raw; // La validazione completa della mappa/formazioni resta al renderer Common readonly.
+}
+
+function createMapFigureResolver({client,identity,location,getContext,renderCommonMap,renderReadonlyScene,baseVisuals=()=>null}={}){
+  if(typeof client?.rpc!=='function'||typeof identity!=='function'||typeof location!=='function'||typeof getContext!=='function')throw Error('map_figure_resolver_configuration');
+  let epoch=0,disposed=false,scopeKey=null,scopeOwner=null,cache=null,pending=null;
+  const stamps=new WeakMap();let serial=0;
+  function invalidate(){epoch++;scopeKey=null;scopeOwner=null;cache=null;pending=null;}
+  function live(){
+    if(disposed)return null;
+    try{const owner=identity()?.principal_id,place=location()?.id,c=context(getContext());if(!UUID.test(owner||'')||!c||place!==c.location_id)return null;return {owner,context:c,key:JSON.stringify([owner,place,signature(c)])};}catch{return null;}
+  }
+  function observe(){const value=live();if(scopeKey!==value?.key){invalidate();scopeKey=value?.key??null;scopeOwner=value?.owner??null;}return value;}
+  function isCurrent(token){const value=live();return !disposed&&token.epoch===epoch&&value?.key===token.key;}
+  const auth=client.auth?.onAuthStateChange?.((event,session)=>{if(event==='SIGNED_OUT'||scopeOwner&&session?.user?.id!==scopeOwner)invalidate();});
+  function sourceBase(value){try{const raw=typeof baseVisuals==='function'?baseVisuals(value):baseVisuals;return raw&&typeof raw==='object'?raw:{};}catch{return {};}}
+  function paintVisuals(scene,base,allowed=null){
+    const actors={};
+    if(scene.status==='ready')for(const asset of scene.assets){
+      if(allowed&&!allowed.has(asset.actor_id))continue;
+      const portrait=portraitURL(asset.portrait_url),saved=asset.figure_path?{src:AVATARS+asset.figure_path}:null;
+      // Usaritratto/drift (revision>0) non deve riattivare una vecchia figura preapprovata.
+      const primary=saved??(asset.revision===0?approvedAsset(base.actors?.[asset.actor_id]):null)??(portrait?{src:portrait}:null);
+      if(primary)actors[asset.actor_id]={...primary,...(portrait&&portrait!==primary.src?{portraitSrc:portrait}:{})};
+    }
+    return {...base,actors};
+  }
+  function request(value){
+    const token={epoch,key:value.key};
+    if(cache&&cache.key===value.key&&Date.now()-cache.time<15000)return Promise.resolve(cache.scene);
+    if(pending?.key===value.key)return pending.promise;
+    const task={key:value.key,promise:null};
+    task.promise=(async()=>{
+      try{
+        const c=value.context,result=await client.rpc('map_figure_scene_v1',{p_location:c.location_id,p_activity:c.activity_id,p_viewer_actor:c.viewer_actor_id,p_expected_round:c.round_id,p_expected_map_version:c.map_version});
+        if(!isCurrent(token)||result?.error)return null;
+        const scene=sceneResponse(result?.data,c);if(!isCurrent(token))return null;
+        cache={key:value.key,time:Date.now(),scene};return scene;
+      }catch{return null;}finally{if(pending===task)pending=null;}
+    })();pending=task;return task.promise;
+  }
+  function ticket(root,expected,options){
+    const value=observe();if(!root?.ownerDocument||!value||signature(expected)!==signature(value.context))return null;
+    const n=++serial,token={epoch,key:value.key};stamps.set(root,n);
+    return {value,current:()=>stamps.get(root)===n&&root.isConnected&&isCurrent(token)&&(!options.isCurrent||options.isCurrent())};
+  }
+  function paint(root,data,visuals,options,renderer){
+    const legend=root.querySelector?.('.common-map-legend'),scroll=legend?.scrollTop??0;
+    const legendOpen=legend?legend.hidden===false:options.legendOpen===true;
+    renderer(root,data,{...options,legendOpen,visuals});const next=root.querySelector?.('.common-map-legend');if(next)next.scrollTop=scroll;
+  }
+  function renderCommon(root,envelope,options={}){
+    if(typeof renderCommonMap!=='function')throw Error('map_figure_common_renderer_missing');
+    const expected=mapFigureContext(envelope),t=ticket(root,expected,options),base=sourceBase(envelope);
+    if(!t){root.replaceChildren();return Promise.resolve(false);}
+    const allowed=new Set(envelope.actors.map(a=>a.actor_id));
+    // Non azzera immagini già autorizzate a ogni poll/render dello stesso contesto.
+    if(cache?.key===t.value.key&&cache.scene.status==='ready'){
+      paint(root,envelope,paintVisuals(cache.scene,base,allowed),options,renderCommonMap);
+      if(Date.now()-cache.time<15000)return Promise.resolve(true);
+    }else{
+      // Nessuna figura preapprovata prima di conoscere revision: rimozioni esplicite rispettate.
+      paint(root,envelope,{...base,actors:{}},options,renderCommonMap);
+    }
+    return request(t.value).then(scene=>{
+      if(!t.current()||!scene||scene.status!=='ready')return false;
+      paint(root,envelope,paintVisuals(scene,base,allowed),options,renderCommonMap);return true;
+    }).catch(()=>false);
+  }
+  function renderReadonly(root,expectedValue=getContext(),options={}){
+    if(typeof renderReadonlyScene!=='function')throw Error('map_figure_readonly_renderer_missing');
+    const expected=context(expectedValue),t=ticket(root,expected,options);
+    if(t&&cache?.key===t.value.key&&cache.scene.status==='ready'&&Date.now()-cache.time<15000){paint(root,cache.scene,paintVisuals(cache.scene,sourceBase(cache.scene)),options,renderReadonlyScene);return Promise.resolve(true);}
+    root.replaceChildren();const note=root.ownerDocument.createElement('p');note.textContent=t?'Caricamento della mappa…':'Mappa non disponibile nel contesto corrente.';root.append(note);
+    if(!t)return Promise.resolve(false);
+    return request(t.value).then(scene=>{
+      if(!t.current())return false;
+      if(!scene||scene.status!=='ready'){note.textContent='Mappa non disponibile. Rileggi lo stato dello scontro.';return false;}
+      // Scena integra, non un envelope combat-panel fabbricato: callback readonly condivisa.
+      paint(root,scene,paintVisuals(scene,sourceBase(scene)),options,renderReadonlyScene);return true;
+    }).catch(()=>false);
+  }
+  function dispose(){if(disposed)return;invalidate();disposed=true;auth?.data?.subscription?.unsubscribe?.();}
+  return {renderCommon,renderReadonly,invalidate,dispose};
+}
+
+return {createMapFigureResolver,mapFigureContext};
+})();
+const host=(()=>{
+const {createMapFigureEditor}=editor;const {createMapFigureResolver,mapFigureContext}=resolver;
+// Un solo editor per pagina. Le mappe mantengono controller e permessi originali.
+function createMapFigureHost({client,document,identity,location,notice=()=>{}}){
+  let editor=null,disposed=false;const bindings=new Set();
+  function invalidate(){for(const b of bindings)b.resolver.invalidate();}
+  function repaint(){
+    invalidate();
+    for(const b of bindings)if(b.root?.isConnected&&b.envelope)b.resolver.renderCommon(b.root,b.envelope,b.options).catch(()=>{});
+  }
+  function open(kind,id){
+    if(disposed||!identity()?.principal_id)return false;
+    if(!editor)editor=createMapFigureEditor({client,document,identity,onsaved(){notice('Figura sulla mappa aggiornata.');repaint();}});
+    return editor.open(kind,id);
+  }
+  function attach(factory,host){
+    const common=document.defaultView?.TUSCommonPanel;
+    if(typeof factory!=='function'||typeof common?.renderCommonMap!=='function')throw Error('map_figure_host_unavailable');
+    const b={root:null,envelope:null,options:null,resolver:null};
+    b.resolver=createMapFigureResolver({client,identity:host.identity||identity,location:host.location||location,
+      getContext:()=>mapFigureContext(b.envelope),renderCommonMap:common.renderCommonMap,
+      renderReadonlyScene:common.renderReadonlyFigureMap,baseVisuals:host.visuals||(()=>null)});
+    bindings.add(b);
+    let child;
+    try{child=factory({...host,renderers:{...host.renderers,map(root,envelope,options){
+      b.root=root;b.envelope=envelope;b.options=options||{};
+      return b.resolver.renderCommon(root,envelope,b.options);
+    }}});}catch(e){b.resolver.dispose();bindings.delete(b);throw e;}
+    const originalInvalidate=child.invalidate?.bind(child),originalDispose=child.dispose?.bind(child);
+    child.invalidate=function(...args){b.resolver.invalidate();b.envelope=null;return originalInvalidate?.(...args);};
+    child.dispose=function(...args){b.resolver.dispose();bindings.delete(b);b.envelope=null;return originalDispose?.(...args);};
+    return child;
+  }
+  function close(){editor?.close();}
+  function dispose(){if(disposed)return;disposed=true;editor?.dispose();for(const b of bindings)b.resolver.dispose();bindings.clear();}
+  return {open,attach,invalidate,repaint,close,dispose};
+}
+
+return {createMapFigureHost};
+})();
+window.TUSMapFigures={...editor,...resolver,...host};})();
+</script>
 </head>
 <body>
   <div class="stage" id="stage">
@@ -2173,17 +2498,31 @@ const id=x=>typeof x==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
 const label=x=>typeof x==='string'&&x.trim().length>0;
 const states={available:'disponibile',reserved:'riservato',consumed_non_substitutable:'consumato · non sostituibile',blocked:'bloccato'};
-// Solo asset di presentazione locali o incorporati; nessuna URL ottenuta dal DTO.
+const avatarOrigin='https://tyhyxkslteigibktluml.supabase.co';
+function trustedAvatarSource(src){
+  if(typeof src!=='string'||src.length>2048||/[\\\s%#]/.test(src)||!src.startsWith(avatarOrigin+'/storage/v1/object/public/avatars/'))return null;
+  let u;try{u=new URL(src);}catch{return null;}
+  if(u.origin!==avatarOrigin||u.protocol!=='https:'||u.username||u.password||(u.search&&!/^\?v=[0-9]+$/.test(u.search)))return null;
+  const path=src.slice((avatarOrigin+'/storage/v1/object/public/avatars/').length).split('?')[0];
+  if(!/^[a-zA-Z0-9_/-]+(?:\.(?:png|webp|jpe?g))?$/i.test(path)||path.split('/').some(s=>!s||s==='.'||s==='..'))return null;
+  // Il ritratto PG nativo e' senza estensione; il bucket accetta solo raster.
+  if(!/\.(?:png|webp|jpe?g)$/i.test(path)&&!/^([0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})\/portrait$/i.test(path))return null;
+  return u.href;
+}
+// Embed/local preapprovati conservati; URL remote solo bucket avatars del progetto.
 function normalizeMapVisualAsset(value){
   if(!value||typeof value.src!=='string')return null;
   const src=value.src;
   const embedded=/^data:image\/(?:png|webp);base64,[A-Za-z0-9+/=]+$/.test(src);
   const local=src.length<=2048&&!/[\\\s?#]/.test(src)&&!src.startsWith('//')&&!/^[a-z][a-z0-9+.-]*:/i.test(src)&&/^(?:\.?\.?\/|[a-z0-9_/-])[a-z0-9_./-]*\.(?:png|webp)$/i.test(src);
-  if(!embedded&&!local)return null;
-  if(value.cell===undefined)return {src};
+  const remote=trustedAvatarSource(src);
+  if(!embedded&&!local&&!remote)return null;
+  const result={src:remote||src};
+  const portrait=trustedAvatarSource(value.portraitSrc);if(portrait&&portrait!==result.src)result.portraitSrc=portrait;
+  if(value.cell===undefined)return result;
   const c=value.cell;
   if(!c||!['column','row','columns','rows'].every(k=>Number.isSafeInteger(c[k]))||c.columns<1||c.rows<1||c.columns>8||c.rows>8||c.column<0||c.row<0||c.column>=c.columns||c.row>=c.rows)return null;
-  return {src,cell:{column:c.column,row:c.row,columns:c.columns,rows:c.rows}};
+  return {...result,cell:{column:c.column,row:c.row,columns:c.columns,rows:c.rows}};
 }
 function renderPanelMap(root,envelope,{legendOpen=false,visuals=null}={}){
   root.replaceChildren();const doc=root.ownerDocument,m=envelope?.map;
@@ -2210,6 +2549,62 @@ function renderPanelMap(root,envelope,{legendOpen=false,visuals=null}={}){
   const cloneKeys=['clone_id','owner_actor_id','owner_name','state','x_m','y_m','trigger_radius_m'];
   if(!Array.isArray(clones)||new Set(clones.map(c=>c?.clone_id)).size!==clones.length||!clones.every(c=>c&&Object.keys(c).length===cloneKeys.length&&cloneKeys.every(k=>Object.hasOwn(c,k))&&id(c.clone_id)&&id(c.owner_actor_id)&&byId.get(c.owner_actor_id)?.display_name===c.owner_name&&['armed','holding'].includes(c.state)&&finite(c.x_m)&&finite(c.y_m)&&c.x_m>=0&&c.x_m<=bounds.width_m&&c.y_m>=0&&c.y_m<=bounds.height_m&&c.trigger_radius_m===2))return fail();
   let formations;try{formations=validateMultiplication(envelope);}catch{return fail();}
+  return drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOriginal:true});
+}
+const exactVisual=(x,keys)=>x!==null&&typeof x==='object'&&!Array.isArray(x)&&Object.keys(x).length===keys.length&&keys.every(k=>Object.hasOwn(x,k));
+function validateReadonlyFormations(scene,byId){
+  const value=scene.multiplication;if(value===null)return [];
+  if(!exactVisual(value,['schema_version','formations'])||value.schema_version!=='map-figure-formations/1'||!Array.isArray(value.formations))throw Error('map_figure_visual_invalid');
+  const bounds=scene.map.bounds,owners=new Set(),ids=new Set();
+  for(const f of value.formations){
+    if(!exactVisual(f,['formation_id','actor_id','mode','state_version','figures'])||!id(f.formation_id)||ids.has(f.formation_id)||!id(f.actor_id)||owners.has(f.actor_id)||!byId.has(f.actor_id)||byId.get(f.actor_id).kind==='companion'||!['diversivo','copertura','assalto'].includes(f.mode)||!Number.isSafeInteger(f.state_version)||f.state_version<1||!Array.isArray(f.figures)||f.figures.length<2)throw Error('map_figure_visual_invalid');
+    ids.add(f.formation_id);owners.add(f.actor_id);const indices=new Set();
+    for(const p of f.figures){
+      if(!exactVisual(p,['figure_index','x_m','y_m'])||!Number.isSafeInteger(p.figure_index)||p.figure_index<1||p.figure_index>f.figures.length||indices.has(p.figure_index)||!finite(p.x_m)||!finite(p.y_m)||p.x_m<0||p.y_m<0||p.x_m>bounds.width_m||p.y_m>bounds.height_m)throw Error('map_figure_visual_invalid');
+      indices.add(p.figure_index);
+    }
+    // Nessun indice originale nel contratto visuale e nessuna deduzione dalle coordinate.
+    // Per POV altrui il marker corpo deve essere stato mascherato dal server.
+    if(scene.context.viewer_actor_id!==f.actor_id&&scene.map.actors.some(a=>a.actor_id===f.actor_id))throw Error('map_figure_visual_invalid');
+  }
+  return value.formations;
+}
+function validateReadonlyScene(scene){
+  if(!exactVisual(scene,['schema_version','status','reason_code','context','map','actors','multiplication','assets'])||scene.schema_version!=='map-figure-scene/1'||scene.status!=='ready'||scene.reason_code!==null)throw Error('map_figure_visual_invalid');
+  const c=scene.context,m=scene.map;
+  if(!exactVisual(c,['location_id','activity_id','activity_kind','round_id','map_version','viewer_actor_id'])||!id(c.location_id)||!id(c.activity_id)||!['ordinary_v2','master_v2'].includes(c.activity_kind)||(c.round_id!==null&&!id(c.round_id))||(c.viewer_actor_id!==null&&!id(c.viewer_actor_id))||!Number.isSafeInteger(c.map_version)||c.map_version<0)throw Error('map_figure_visual_invalid');
+  if(!m||m.schema_version!=='combat-map/2'||m.readonly!==true||m.map_version!==c.map_version||!label(m.label)||!finite(m.bounds?.width_m)||!finite(m.bounds?.height_m)||m.bounds.width_m<=0||m.bounds.height_m<=0||!Array.isArray(scene.actors)||!Array.isArray(m.actors)||!Array.isArray(m.objects)||!Array.isArray(scene.assets))throw Error('map_figure_visual_invalid');
+  const bounds=m.bounds,byId=new Map();
+  for(const a of scene.actors){if(!exactVisual(a,['actor_id','display_name','kind'])||!id(a.actor_id)||byId.has(a.actor_id)||!label(a.display_name)||!['pg','png','companion'].includes(a.kind))throw Error('map_figure_visual_invalid');byId.set(a.actor_id,a);}
+  const pos=a=>a&&finite(a.x_m)&&finite(a.y_m)&&finite(a.radius_m)&&a.radius_m>0&&a.x_m>=0&&a.y_m>=0&&a.x_m<=bounds.width_m&&a.y_m<=bounds.height_m;
+  if(new Set(m.actors.map(a=>a?.actor_id)).size!==m.actors.length||!m.actors.every(a=>id(a.actor_id)&&pos(a)&&typeof a.body_only==='boolean'&&byId.has(a.actor_id)&&(byId.get(a.actor_id).kind==='companion')===a.body_only))throw Error('map_figure_visual_invalid');
+  if(m.pov===null){if(c.viewer_actor_id!==null)throw Error('map_figure_visual_invalid');}
+  else if(!pos(m.pov)||m.pov.actor_id!==c.viewer_actor_id||m.actors.filter(a=>a.actor_id===c.viewer_actor_id).length!==1)throw Error('map_figure_visual_invalid');
+  const objectPosition=o=>{
+    const s=o.shape;if(!s||typeof s!=='object'||Array.isArray(s))return false;
+    if(o.shape_kind==='circle')return Object.keys(s).length===3&&pos(o)&&s.cx===o.x_m&&s.cy===o.y_m&&s.radius===o.radius_m;
+    return o.shape_kind==='aabb'&&Object.keys(s).length===4&&o.radius_m===null&&['min_x','min_y','max_x','max_y'].every(k=>finite(s[k]))&&s.min_x>=0&&s.min_y>=0&&s.max_x<=bounds.width_m&&s.max_y<=bounds.height_m&&s.min_x<s.max_x&&s.min_y<s.max_y&&o.x_m===(s.min_x+s.max_x)/2&&o.y_m===(s.min_y+s.max_y)/2;
+  };
+  if(new Set(m.objects.map(o=>o?.object_id)).size!==m.objects.length||!m.objects.every(o=>id(o.object_id)&&label(o.label)&&objectPosition(o)&&Object.hasOwn(states,o.state)&&typeof o.substitution_anchor_available==='boolean'&&typeof o.is_impervious==='boolean'&&(!o.is_impervious||(o.state==='available'&&!o.substitution_anchor_available&&(o.shape_kind!=='circle'||(o.x_m-o.radius_m>=0&&o.y_m-o.radius_m>=0&&o.x_m+o.radius_m<=bounds.width_m&&o.y_m+o.radius_m<=bounds.height_m))))&&(o.distance_from_viewer_m===null?m.pov===null:finite(o.distance_from_viewer_m)&&o.distance_from_viewer_m>=0&&m.pov!==null)))throw Error('map_figure_visual_invalid');
+  const clones=m.sabaku_clones??[],ck=['clone_id','owner_actor_id','owner_name','state','x_m','y_m','trigger_radius_m'];
+  if(!Array.isArray(clones)||new Set(clones.map(a=>a?.clone_id)).size!==clones.length||!clones.every(a=>exactVisual(a,ck)&&id(a.clone_id)&&id(a.owner_actor_id)&&byId.get(a.owner_actor_id)?.display_name===a.owner_name&&['armed','holding'].includes(a.state)&&finite(a.x_m)&&finite(a.y_m)&&a.x_m>=0&&a.y_m>=0&&a.x_m<=bounds.width_m&&a.y_m<=bounds.height_m&&a.trigger_radius_m===2))throw Error('map_figure_visual_invalid');
+  const formations=validateReadonlyFormations(scene,byId),visible=new Set([...m.actors.map(a=>a.actor_id),...formations.map(f=>f.actor_id),...clones.map(c=>c.owner_actor_id)]),assetIds=new Set();
+  if(scene.actors.some(a=>!visible.has(a.actor_id)))throw Error('map_figure_visual_invalid');
+  for(const a of scene.assets){
+    if(!exactVisual(a,['actor_id','figure_path','portrait_url','revision'])||!id(a.actor_id)||!byId.has(a.actor_id)||assetIds.has(a.actor_id)||!Number.isSafeInteger(a.revision)||a.revision<0||(a.figure_path!==null&&(typeof a.figure_path!=='string'||!/^([0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})\/map-figures\/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\.(?:png|webp|jpg)$/.test(a.figure_path)))||(a.portrait_url!==null&&typeof a.portrait_url!=='string'))throw Error('map_figure_visual_invalid');
+    assetIds.add(a.actor_id);
+  }
+  if(assetIds.size!==byId.size)throw Error('map_figure_visual_invalid');
+  return formations;
+}
+function renderReadonlyScene(root,scene,{legendOpen=false,visuals=null}={}){
+  root.replaceChildren();let formations;
+  try{formations=validateReadonlyScene(scene);}catch{const p=root.ownerDocument.createElement('p');p.textContent='Mappa non disponibile per questo contesto.';root.append(p);return;}
+  return drawMapScene(root,scene.map,scene.actors,formations,{legendOpen,visuals,revealOriginal:false});
+}
+function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOriginal}){
+  const doc=root.ownerDocument,bounds=m.bounds,byId=new Map(roster.map(a=>[a.actor_id,a])),clones=m.sabaku_clones??[];
+  const add=(tag,value,parent=root)=>{const el=doc.createElement(tag);el.textContent=value;parent.append(el);return el;};
   const formationOwners=new Set(formations.map(f=>f.actor_id));
   const toolbar=add('div','');toolbar.className='common-map-toolbar';
   add('h4',m.label,toolbar);
@@ -2229,16 +2624,33 @@ function renderPanelMap(root,envelope,{legendOpen=false,visuals=null}={}){
   const caption=(value,x,y,color='#352b1e')=>{const text=add('span',value,canvas);text.className='common-map-label';text.style.left=`${x/bounds.width_m*100}%`;text.style.top=`${y/bounds.height_m*100}%`;text.style.color=color;text.setAttribute('aria-hidden','true');};
   // Layer HTML: mantiene proporzioni di sprite/icone anche quando l'arena SVG si estende.
   // I marker nativi rimangono accessibili e tornano visibili se l'immagine non si carica.
-  const paintAsset=(value,x,y,kind,marker=null)=>{
-    const asset=normalizeMapVisualAsset(value);if(!asset)return false;
+  const paintAsset=(value,x,y,kind,marker=null,fallbackName=null)=>{
+    let initials=null;
+    if(kind==='actor'&&label(fallbackName)){
+      initials=add('span',fallbackName.trim().split(/\s+/).slice(0,2).map(s=>Array.from(s)[0]).join('').toLocaleUpperCase('it-IT'),canvas);
+      initials.className='common-map-label common-map-initials';initials.setAttribute('aria-hidden','true');
+      initials.style.left=`${x/bounds.width_m*100}%`;initials.style.top=`${y/bounds.height_m*100}%`;
+    }
+    let asset=normalizeMapVisualAsset(value);
+    if(!asset){const portrait=trustedAvatarSource(value?.portraitSrc);if(portrait)asset={src:portrait};}
+    if(!asset)return false;
     canvas.classList.add('common-map-with-art');
     const wrap=add('span','',canvas);wrap.className='common-map-art common-map-art-'+kind;wrap.setAttribute('aria-hidden','true');
     if(kind!=='background'){wrap.style.left=`${x/bounds.width_m*100}%`;wrap.style.top=`${y/bounds.height_m*100}%`;}
-    const img=doc.createElement('img');img.alt='';img.draggable=false;img.decoding='async';
-    if(asset.cell){const c=asset.cell;wrap.classList.add('common-map-art-atlas');img.style.width=`${c.columns*100}%`;img.style.height=`${c.rows*100}%`;img.style.left=`${-c.column*100}%`;img.style.top=`${-c.row*100}%`;}
-    img.addEventListener('load',()=>{if(marker)marker.style.opacity='0';});
-    img.addEventListener('error',()=>{if(marker)marker.style.opacity='';wrap.remove();});
-    wrap.append(img);img.src=asset.src;return true;
+    const sources=[asset,...(asset.portraitSrc?[{src:asset.portraitSrc}]:[])];
+    let generation=0;
+    const loadAt=index=>{
+      const stamp=++generation,current=sources[index];
+      if(marker)marker.style.opacity='';if(initials)initials.hidden=false;
+      wrap.classList.remove('common-map-art-atlas');wrap.replaceChildren();
+      if(!current){wrap.remove();return;}
+      const img=doc.createElement('img');img.alt='';img.draggable=false;img.decoding='async';
+      if(current.cell){const c=current.cell;wrap.classList.add('common-map-art-atlas');img.style.width=`${c.columns*100}%`;img.style.height=`${c.rows*100}%`;img.style.left=`${-c.column*100}%`;img.style.top=`${-c.row*100}%`;}
+      img.addEventListener('load',()=>{if(stamp!==generation)return;if(marker)marker.style.opacity='0';if(initials)initials.hidden=true;});
+      img.addEventListener('error',()=>{if(stamp===generation)loadAt(index+1);});
+      wrap.append(img);img.src=current.src;
+    };
+    loadAt(0);return true;
   };
   const scale=Math.min(bounds.width_m,bounds.height_m);
   const floor=shape('rect',{x:0,y:0,width:bounds.width_m,height:bounds.height_m,fill:'#f4ecd5',stroke:'#9e8b61','stroke-width':scale/150});
@@ -2269,6 +2681,7 @@ function renderPanelMap(root,envelope,{legendOpen=false,visuals=null}={}){
     const size=scale/60;
     const marker=shape('path',{d:`M ${c.x_m} ${c.y_m-size} L ${c.x_m+size} ${c.y_m} L ${c.x_m} ${c.y_m+size} L ${c.x_m-size} ${c.y_m} Z`,fill:color},cloneLayer);
     shape('title',{},marker).textContent=description;
+    paintAsset(visuals?.actors?.[c.owner_actor_id],c.x_m,c.y_m,'actor',marker,c.owner_name);
     caption('Clone',c.x_m,c.y_m-size*1.5,color);
   }
   for(const a of m.actors){
@@ -2276,7 +2689,7 @@ function renderPanelMap(root,envelope,{legendOpen=false,visuals=null}={}){
     const r=byId.get(a.actor_id),selected=a.actor_id===m.pov?.actor_id;
     const circle=shape('circle',{cx:a.x_m,cy:a.y_m,r:a.radius_m,fill:a.body_only?'#806336':selected?'#923c30':'#356b91'});
     shape('title',{},circle).textContent=r.display_name;
-    const pictured=paintAsset(visuals?.actors?.[a.actor_id],a.x_m,a.y_m,'actor',circle);
+    const pictured=paintAsset(visuals?.actors?.[a.actor_id],a.x_m,a.y_m,'actor',circle,r.display_name);
     caption(r.display_name,a.x_m,pictured?a.y_m:a.y_m-a.radius_m);
     if(pictured)canvas.lastChild.classList.add('common-map-label-below');
   }
@@ -2286,7 +2699,7 @@ function renderPanelMap(root,envelope,{legendOpen=false,visuals=null}={}){
   for(const formation of formations){
     const owner=byId.get(formation.actor_id);
     for(const point of [...formation.figures].sort((a,b)=>a.figure_index-b.figure_index)){
-      const original=formation.original_index!==null&&formation.original_index===point.figure_index;
+      const original=revealOriginal&&formation.original_index!==null&&formation.original_index===point.figure_index;
       const description=`${owner.display_name} · figura ${point.figure_index}`+(original?' · originale':'');
       const accessible=`${description} · (${point.x_m}, ${point.y_m}) m`;
       // Dimensione grafica uniforme: non rappresenta un raggio meccanico.
@@ -2294,7 +2707,7 @@ function renderPanelMap(root,envelope,{legendOpen=false,visuals=null}={}){
         tabindex:0,role:'img','aria-label':accessible,'data-figure-index':point.figure_index});
       shape('title',{},marker).textContent=accessible;
       // Stesso asset per tutte le figure: non si usa original_index per scegliere l'immagine.
-      const pictured=paintAsset(visuals?.actors?.[formation.actor_id],point.x_m,point.y_m,'actor',marker);
+      const pictured=paintAsset(visuals?.actors?.[formation.actor_id],point.x_m,point.y_m,'actor',marker,owner.display_name);
       const key=JSON.stringify([point.x_m,point.y_m]);
       if(!figureLabels.has(key))figureLabels.set(key,{x:point.x_m,y:point.y_m,labels:[],pictured:false});
       figureLabels.get(key).pictured ||= pictured;
@@ -2315,7 +2728,7 @@ function renderPanelMap(root,envelope,{legendOpen=false,visuals=null}={}){
   }
 }
 
-return {normalizeMapVisualAsset,renderPanelMap};
+return {normalizeMapVisualAsset,renderPanelMap,renderReadonlyScene};
 })();
 const module3=(()=>{
 // EXAM-LAYOUT-UI-012: solo disposizione, coordinate e dati invariati.
@@ -2610,7 +3023,8 @@ function selectionReady(offer,selected,inputs,narrativeText){
   return !offer.requires_role||!!narrativeText.trim();
 }
 
-return {isId,insist,classifyPanelRejection,isPlayerLifecycle,validatePanelEnvelope,selectionReady,flowSelectionTotal,flowOptionAllowed};
+
+return {isId,insist,classifyPanelRejection,isPlayerLifecycle,validatePanelEnvelope,flowSelectionTotal,flowOptionAllowed,selectionReady};
 })();
 const module5=(()=>{
 const {validatePanelEnvelope,classifyPanelRejection,selectionReady,flowOptionAllowed,isId,insist}=module6;
@@ -2733,6 +3147,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   async function retry(){return send();}
   return {snapshot,clear,invalidate,reportInteractionError,readState:()=>read(false),readOptions:()=>read(true),selectActor,selectOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
 }
+
 return {settleCopyChoices,createPanelController};
 })();
 const module9=(()=>{
@@ -2774,7 +3189,13 @@ function renderPanelCompanion(root,envelope){
   return renderCombatCompanion(root,{...envelope,viewer:{...envelope.viewer,actor_id:envelope.viewer.command_actor_id}});
 }
 
-function renderPanelSabaku(root,envelope){
+function renderPanelSandSummary(root,envelope,actorId){
+  root.replaceChildren();root.hidden=true;
+  if(!uuid(actorId)||actorId!==envelope.viewer.command_actor_id)return;
+  return renderPanelSabaku(root,envelope,{compact:true});
+}
+
+function renderPanelSabaku(root,envelope,{compact=false}={}){
   root.replaceChildren();root.hidden=true;
   const value=envelope.sabaku_transport;if(value===null)return;
   const add=(tag,text)=>{const el=root.ownerDocument.createElement(tag);el.textContent=text;root.append(el);return el;};
@@ -2786,6 +3207,15 @@ function renderPanelSabaku(root,envelope){
   if(!exact(t,['active','activation_chakra','sand_commit','upkeep_chakra','movement_bonus_m','expires_context'])||typeof t.active!=='boolean'||t.activation_chakra!==5||t.sand_commit!==5||t.upkeep_chakra!==0)return fail();
   if(t.active){const end=t.expires_context;if(!i.active||t.movement_bonus_m!==5||r.committed<5||!exact(end,['kind','id','label'])||!['ordinary_exchange','master_actor_turn'].includes(end.kind)||!uuid(end.id)||typeof end.label!=='string'||!end.label.trim())return fail();}
   else if(t.movement_bonus_m!==0||t.expires_context!==null)return fail();
+  if(compact){
+    root.hidden=false;root.setAttribute('role','status');root.setAttribute('aria-live','polite');
+    const caption=add('div','');caption.className='common-resource-caption';
+    const label=root.ownerDocument.createElement('span');label.textContent='Sabbia';
+    const amount=root.ownerDocument.createElement('strong');amount.textContent=`${r.available} disponibili`;
+    caption.append(label,amount);
+    const detail=add('p',`Impegnata: ${r.committed} · Capacità: ${r.capacity}`);detail.className='mv2-note';
+    return;
+  }
   root.hidden=false;add('h4','Controllo della sabbia');add('p',value.is_test?'Riserva di prova · separata dalla giara reale':'Riserva personale di sabbia');
   add('p','Innata: '+(i.active?'attiva':'inattiva'));add('p',`Attivazione ${i.activation_chakra} chakra · mantenimento ${i.upkeep_chakra} chakra al proprio turno · disattivazione ${i.deactivation_chakra} chakra.`);
   add('p',`Sabbia disponibile: ${r.available} · impegnata: ${r.committed} · corrente: ${r.current} / ${r.capacity}.`);
@@ -2794,7 +3224,7 @@ function renderPanelSabaku(root,envelope){
   add('p','Le attivazioni disponibili si scelgono dalle offerte del server.');
 }
 
-return {renderPanelCompanion,renderPanelSabaku};
+return {renderPanelCompanion,renderPanelSandSummary,renderPanelSabaku};
 })();
 const module7=(()=>{
 // EXAM-LAYOUT-UI-012: riuso DOM su snapshot equivalente, nessuna RPC.
@@ -2802,7 +3232,7 @@ const module7=(()=>{
 const {installPanelLayout}=module3;
 const {renderPanelMap}=module1;
 const {isPlayerLifecycle,flowSelectionTotal,flowOptionAllowed}=module6;
-const {renderPanelCompanion,renderPanelSabaku}=module8;
+const {renderPanelCompanion,renderPanelSabaku,renderPanelSandSummary}=module8;
 // Il controller validante è iniettato: questa vista non concede autorità.
 const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(x);
 const text=x=>typeof x==='string';
@@ -2944,6 +3374,10 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
         const r=actor.resources;
         for(const [key,label]of [['pv','PV'],['chakra','Chakra']])renderResourceBar(doc,row,key,label,r?.[key],actor.display_name);
       }
+      if(actor.actor_id===v.command_actor_id&&actor.resources!==null&&e.sabaku_transport!==null){
+        const sand=node('div',undefined,row);sand.className='common-resource common-resource-sand';
+        renderPanelSandSummary(sand,e,actor.actor_id);
+      }
       const due=[];if(actor.action_due===true)due.push('azione');if(actor.defense_due===true)due.push('difesa');
       if(due.length)note(row,'Deve ancora consegnare: '+due.join(' e '));
     }
@@ -3028,6 +3462,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     const selected=new Set(model.selectedOptionIds||[]);
     const flowTotal=flowSelectionTotal(offer,selected);
     if(flowTotal!==null){
+      note(area,'Costo previsto · '+offer.label);
       const counter=node('p',`Flussi assegnati: ${flowTotal} / ${offer.flow_budget.max_flows}`,area);
       counter.setAttribute('role','status');counter.setAttribute('aria-live','polite');counter.setAttribute('data-flow-budget','sabaku-flow-budget/1');
       if(offer.flow_budget.option_weights.length===0)note(area,'La quantità è fissata dalla scelta dell’azione.');
@@ -3165,44 +3600,62 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
 return {mountPanelSurface};
 })();
 const module0=(()=>{
-const {renderPanelMap}=module1;
+const {renderPanelMap,renderReadonlyScene,normalizeMapVisualAsset}=module1;
+const renderReadonlyFigureMap=renderReadonlyScene;
+const renderCommonMap=renderPanelMap;
+const normalizeFigureAsset=normalizeMapVisualAsset;
 const {activatePanelLayout}=module3;
 const {mountPanelSurface}=module4;
-const {isId,insist}=module6;
+const {isId,insist,validatePanelEnvelope}=module6;
 // Invito e accettazione riusano le porte pubblicate; le fasi giocate usano Common.
 // La selezione dipende solo dalla proiezione server, mai da un errore di commit.
 function attachPanelLand(host){
   if(typeof host.attachOpening!=='function')return attachCombatPanel(host);
-  let child=null,mode='opening',disposed=false,refreshing=null,generation=0;
-  const childHost={...host,accepted(receipt){host.accepted(receipt);queueMicrotask(()=>{if(!disposed)refresh();});}};
-  const pending=()=>mode==='opening'
-    ? !!(child?.controller?.pending||child?.controller?.busy)
-    : !!(child?.snapshot()?.pending||child?.snapshot()?.busy);
+  let child=null,mode='unknown',disposed=false,refreshing=null,generation=0,revocation=0;
+  const childHost={...host,requireManagedMaster:true,accepted(receipt){host.accepted(receipt);queueMicrotask(()=>{if(!disposed)refresh();});}};
+  const pending=()=>mode==='opening'?!!(child?.controller?.pending||child?.controller?.busy):!!(child?.snapshot()?.pending||child?.snapshot()?.busy);
+  const routingScope=()=>JSON.stringify([host.identity?.(),host.location?.()?.id,host.isExam?.()]);
   function install(next){
     const dialog=host.document.getElementById('ordinary-overlay');
-    const visible=dialog&&!dialog.hidden;
+    const visible=child?.ownsSurface?.()===true?child.currentSurface():(dialog&&!dialog.hidden?'ordinary':null);
     child?.dispose();mode=next;generation++;
-    child=next==='opening'?host.attachOpening(childHost):attachCombatPanel(childHost);
+    child=(next==='native'||next==='unknown')?null:next==='opening'?host.attachOpening(childHost):attachCombatPanel(childHost);
+    if(next==='native'||next==='unknown'){
+      const card=host.document.getElementById('ordinary-card'),entry=host.document.getElementById('ordinary-open');
+      if(card){card.hidden=true;card.style.display='none';}if(entry){entry.hidden=true;entry.disabled=true;}
+      if(next==='native')host.nativeMasterFallback?.(visible==='master');
+    }
     return visible;
   }
-  install('opening');
   function refresh(){
-    if(disposed)return Promise.resolve(false);
-    if(refreshing)return refreshing;
+    if(disposed)return Promise.resolve(false);if(refreshing)return refreshing;
     const task=(async()=>{
       if(pending())return false;
-      const current=child,stamp=generation;
-      await current.refresh();
-      if(disposed||child!==current||stamp!==generation||pending())return false;
-      const e=mode==='opening'?child.controller?.envelope:child.snapshot()?.envelope;
-      let next=mode;
-      if(mode==='opening'&&e?.status==='ready'&&isId(e.context?.activity_id)&&['action','defense','resolved','closed'].includes(e.context.phase))next='combat';
-      if(mode==='combat'&&e?.status==='ready'&&e.context?.phase==='setup')next='opening';
+      const current=child,stamp=generation,scope=routingScope(),revoked=revocation;
+      const valid=()=>!disposed&&child===current&&stamp===generation&&scope===routingScope()&&!pending();
+      const location=host.location()?.id;
+      if(!host.identity?.()||!isId(location)||host.isExam?.()){install('unknown');return false;}
+      let e,route='ordinary';
+      try{
+        const response=await host.rpc('combat_panel_state_v1',{p_location:location,p_actor:null});
+        if(!valid())return false;
+        insist(!response?.error,'panel_routing_read_failed');
+        e=validatePanelEnvelope(response.data,{state:true});
+        insist(e.status!=='ready'||e.context.location_id===location,'location_mismatch');
+        if(e.status!=='ready')route='unknown';
+        if(e.status==='ready'&&e.context.activity_kind==='master_v2'){
+          route=typeof host.allowCommonMaster==='function'?await host.allowCommonMaster(e):'unknown';
+          if(!valid())return false;
+        }
+      }catch{if(valid()&&mode!=='native'){current?.invalidate();host.routingUnknown?.();}return false;}
+      if(route==='native'){install('native');return false;}
+      if(route==='unknown'){if(mode!=='native'){current?.invalidate();host.routingUnknown?.();}return false;}
+      let next=e?.status==='ready'&&e.context?.phase==='setup'&&e.context.activity_kind!=='master_v2'?'opening':'combat';
       if(next!==mode){
         const wasVisible=install(next),newChild=child;
         await newChild.refresh();
-        if(!disposed&&child===newChild&&wasVisible)await newChild.open();
-      }
+        if(!disposed&&child===newChild&&revoked===revocation&&scope===routingScope()&&wasVisible)await newChild.open(wasVisible);
+      }else await current.refresh();
       return true;
     })();
     refreshing=task;
@@ -3210,20 +3663,22 @@ function attachPanelLand(host){
     return task;
   }
   async function open(which='ordinary'){
-    if(disposed)return false;
-    await refresh();if(disposed)return false;
-    if(mode==='opening')host.closeMaster?.();
-    return child.open(mode==='combat'?which:undefined);
+    if(disposed)return false;const scope=routingScope(),revoked=revocation;
+    await refresh();if(disposed||revoked!==revocation||scope!==routingScope()||(mode==='native'||mode==='unknown'))return false;
+    if(mode==='opening')host.closeMaster?.();return child.open(mode==='combat'?which:undefined);
   }
-  function invalidate(){generation++;refreshing=null;child?.invalidate();}
-  function dispose(){if(disposed)return;disposed=true;generation++;child?.dispose();child=null;}
+  function invalidate(){generation++;revocation++;refreshing=null;child?.invalidate();}
+  function dispose(){if(disposed)return;disposed=true;generation++;revocation++;child?.dispose();child=null;}
   return {open,refresh,invalidate,dispose,
-    handleSend:(...args)=>!disposed&&child.handleSend(...args),
-    ownsCurrent:()=>!disposed&&child.ownsCurrent(),
-    ownsSurface:()=>!disposed&&(child.ownsSurface?.()??false),
+    handleSend:(...args)=>{
+      if(disposed)return false;
+      if(host.masterRouteReserved?.()&&(!child?.ownsCurrent()||mode==='unknown')){host.notice('Verifica della Regia in corso: aggiorna il pannello prima di inviare.');return true;}
+      return mode!=='native'&&mode!=='unknown'&&!!child?.handleSend(...args);
+    },
+    ownsCurrent:()=>!disposed&&mode!=='native'&&!!child?.ownsCurrent(),
+    ownsSurface:()=>!disposed&&mode!=='native'&&(child?.ownsSurface?.()??false),
     currentSurface:()=>child?.currentSurface?.()??'ordinary',
-    clearPresentation:()=>child?.clearPresentation(),
-    snapshot:()=>mode==='combat'?child?.snapshot():null};
+    clearPresentation:()=>child?.clearPresentation(),snapshot:()=>mode==='combat'?child?.snapshot():null};
 }
 
 // Un solo controller e un solo nodo DOM per stanza/Auth, anche cambiando finestra.
@@ -3245,7 +3700,7 @@ function attachCombatPanel(host){
   let deactivateLayout=null;
   let panel=null,key=null,opened=false,surface='ordinary',generation=0,chatSubmitted=null,refreshing=null,disposed=false;
   function scope(){const who=host.identity?.(),place=host.location?.();return !disposed&&who&&isId(who.principal_id)&&(who.character_id===null||isId(who.character_id))&&isId(place?.id)&&!host.isExam?.()?JSON.stringify([who.principal_id,who.character_id,place.id]):null;}
-  function hide(){deactivateLayout?.();deactivateLayout=null;dialog.hidden=true;dialog.style.display='none';host.closeMaster?.();opened=false;}
+  function hide(){deactivateLayout?.();deactivateLayout=null;dialog.hidden=true;dialog.style.display='none';if(opened&&surface==='master')host.closeMaster?.();opened=false;}
   function invalidate(){generation++;key=null;chatSubmitted=null;refreshing=null;panel?.dispose();panel=null;root.replaceChildren();hide();showEntry();}
   function showEntry(){const allowed=!!scope();card.hidden=!allowed;card.style.display=allowed?'':'none';entry.hidden=!allowed;entry.disabled=!allowed;const note=doc.getElementById('ordinary-entry-note');if(note)note.textContent='Pannello comune: disponibilità e scelte sono verificate dal server.';}
   function ensure(){
@@ -3263,14 +3718,15 @@ function attachCombatPanel(host){
     return true;
   }
   async function open(which='ordinary'){
-    if(!ensure())return false;
-    const stamp=generation;surface=which;hide();opened=true;
+    if(!ensure()||!routeAllowed())return false;
+    const stamp=generation;hide();surface=which;opened=true;host.closeMaster?.();
     (which==='master'?master:ordinary).replaceChildren(root);
     if(which==='master')host.showMaster();else{dialog.hidden=false;dialog.style.display='flex';}
     deactivateLayout=activatePanelLayout({document:doc,root,body:which==='master'?master:ordinary,overlay:which==='master'?doc.getElementById('mv2ov'):dialog});
     if(refreshing)await refreshing;if(stamp!==generation)return false;
     const before=panel.snapshot();if(before.pending||before.busy)return true;
     const ok=await panel.open();if(stamp!==generation)return false;
+    if(!routeAllowed()){invalidate();host.routingUnknown?.();return false;}
     // Il binding del controller nasce con la prima lettura, non nel costruttore.
     if(ok&&!panel.snapshot().narrativeText&&host.readChat()&&!panel.snapshot().pending)await panel.setNarrative(host.readChat());
     return ok;
@@ -3279,10 +3735,12 @@ function attachCombatPanel(host){
     if(!ensure())return Promise.resolve(false);showEntry();
     if(refreshing)return refreshing;
     const m=panel.snapshot();if(m.pending||m.busy)return Promise.resolve(false);
-    const task=panel.refresh();refreshing=task;
+    const current=panel,stamp=generation;
+    const task=panel.refresh().then(ok=>{if(current===panel&&stamp===generation&&!routeAllowed()){const wasMaster=opened&&surface==='master';invalidate();host.routingUnknown?.();return false;}return ok;});refreshing=task;
     task.finally(()=>{if(refreshing===task)refreshing=null;});return task;
   }
-  function ownsCurrent(){return key===scope()&&!!panel?.snapshot().envelope?.context?.activity_id;}
+  function routeAllowed(){const e=panel?.snapshot().envelope;return host.requireManagedMaster!==true||e?.context?.activity_kind!=='master_v2'||host.isCommonMaster?.(e)===true;}
+  function ownsCurrent(){return routeAllowed()&&key===scope()&&!!panel?.snapshot().envelope?.context?.activity_id;}
   function handleSend(raw,narrative){
     if(!scope()||key!==scope()){invalidate();return false;}
     const m=panel?.snapshot();if(!m||!ownsCurrent())return false;
@@ -3299,13 +3757,13 @@ function attachCombatPanel(host){
   function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',hide);invalidate();root.remove();}
   showEntry();
   return {open,refresh,invalidate,dispose,handleSend,ownsCurrent,
-    ownsSurface:()=>opened&&key===scope(),
+    ownsSurface:()=>routeAllowed()&&opened&&key===scope(),
     currentSurface:()=>surface,
     clearPresentation:invalidate,
     snapshot:()=>panel?.snapshot()??null};
 }
 
-return {attachPanelLand,createVisualMapRenderer,attachCombatPanel};
+return {renderReadonlyFigureMap,renderCommonMap,normalizeFigureAsset,attachPanelLand,createVisualMapRenderer,attachCombatPanel};
 })();
 window.TUSCommonPanel=module0;
 })();
@@ -4461,28 +4919,83 @@ window.TUSOrdinary={attachOrdinaryLand};
       });
       var ORDINARY=null,ordinaryAuthId=null,ordinarySigningOut=false,ordinaryPanelMode=null;
       function commonPanelRoom(){return !!(cur&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test);}
+      function commonCombatRoom(){return commonPanelRoom()||!!(cur&&!cur.is_exam_room&&!cur.is_test);}
+      function commonMasterPrincipal(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId&&myId?myId:null;}
+      var commonArenaAttestation=null,commonMasterReadGeneration=0;
+      function commonMasterScope(){return JSON.stringify([commonMasterPrincipal(),myCharId||null,cur&&cur.id,MV2&&MV2.authEpoch||0]);}
+      function commonMasterKey(d){return JSON.stringify([commonMasterScope(),d&&d.master&&d.master.id,d&&d.encounter&&d.encounter.id]);}
+      function commonMasterRouteState(){
+        if(!commonCombatRoom()||!commonMasterPrincipal()||!MV2||MV2.locationId!==cur.id||MV2.principalId!==commonMasterPrincipal()||!MV2.data||!MV2.data.encounter)return 'not_combat';
+        return commonArenaAttestation&&commonArenaAttestation.key===commonMasterKey(MV2.data)?commonArenaAttestation.state:'unknown';
+      }
+      // Reserve this route during initial uncertainty: do not activate legacy commands.
+      function commonMasterCombat(){var state=commonMasterRouteState();return state==='managed'||state==='unknown';}
+      function commonMasterReady(){return commonMasterRouteState()==='managed';}
+      async function commonMasterAuthorize(d){
+        var scope=commonMasterScope(),mid=d&&d.master&&d.master.id,sid=d&&d.encounter&&d.encounter.id,location=cur&&cur.id;
+        if(!commonMasterPrincipal()||!mid||!sid||!commonCombatRoom())return 'unknown';
+        var key=commonMasterKey(d);
+        if(commonArenaAttestation&&commonArenaAttestation.key===key){
+          if(commonArenaAttestation.state==='managed'||commonArenaAttestation.state==='native')return commonArenaAttestation.state;
+          if(commonArenaAttestation.pending)return commonArenaAttestation.pending;
+        }
+        var att={key:key,state:'unknown',pending:null};commonArenaAttestation=att;
+        att.pending=(async function(){
+          try{
+            var r=await sb.rpc('universal_arena_state_v1',{p_master:mid}),v=r&&r.data;
+            if(commonArenaAttestation!==att||commonMasterScope()!==scope)return 'unknown';
+            if(!r.error&&v&&v.schema_version==='universal-arena-state/1'&&v.master_session_id===mid){
+              if(v.status==='ready'&&v.location_id===location)att.state='managed';
+              else if(v.status==='unavailable'&&v.reason==='native_unmanaged')att.state='native';
+            }
+            return att.state;
+          }catch(e){return 'unknown';}finally{if(commonArenaAttestation===att)att.pending=null;}
+        })();return att.pending;
+      }
+      async function commonMasterRoute(e){
+        var scope=commonMasterScope(),location=cur&&cur.id;
+        if(!commonMasterPrincipal()||!location||e.context.location_id!==location)return 'unknown';
+        try{
+          var r=await sb.rpc('master_v2_ui_state',{p_location:location});
+          if(commonMasterScope()!==scope||r&&r.error)return 'unknown';
+          var d=mv2Data(r)||{};
+          if(!d.master)return 'unknown';
+          if(!d.encounter)return e.context.activity_id===d.master.id?'native':'unknown';
+          if(e.context.activity_id!==d.encounter.id)return 'unknown';
+          var allowed=await commonMasterAuthorize(d);
+          return commonMasterScope()===scope?allowed:'unknown';
+        }catch(err){return 'unknown';}
+      }
       window.addEventListener('tus:ordinary-logout',function(){ordinarySigningOut=true;if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();});
       if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session){
         var id=session&&session.user?session.user.id:null;
-        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();}
+        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(MV2){MV2.authEpoch=(MV2.authEpoch||0)+1;MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.options={};}}
         ordinaryAuthId=id;
       });
       function ordinaryRefresh(){
         if(examRegia()?.ownsCombat()){if(ORDINARY){ORDINARY.dispose();ORDINARY=null;ordinaryPanelMode=null;}examRegia().refreshPanel();return;}
         esameHoldRefresh();
-        var mode=commonPanelRoom()?'common':'ordinary';
+        var mode=commonCombatRoom()?'common':'ordinary';
         if(ORDINARY&&ordinaryPanelMode!==mode){ORDINARY.dispose();ORDINARY=null;}
         ordinaryPanelMode=mode;
         var factory=mode==='common'?window.TUSCommonPanel&&window.TUSCommonPanel.attachPanelLand:window.TUSOrdinary&&window.TUSOrdinary.attachOrdinaryLand;
         if(!factory||!cur){if(ORDINARY)ORDINARY.invalidate();return;}
-        if(!ORDINARY) ORDINARY=factory({
+        if(!ORDINARY) ORDINARY=(mode==='common'?function(host){return mapFigureAttach(factory,host);}:factory)({
           document:document,location:function(){return cur;},
           showMaster:function(){var ov=document.getElementById('mv2ov'),bk=document.getElementById('mv2ov-backdrop');if(ov)ov.hidden=false;if(bk)bk.hidden=false;},
           closeMaster:mv2OvChiudi,
+          allowCommonMaster:commonMasterRoute,
+          isCommonMaster:function(e){return commonMasterReady()&&e&&e.context&&e.context.activity_id===MV2.data.encounter.id;},
+          masterRouteReserved:commonMasterCombat,
+          routingUnknown:function(){toast('Verifica della Regia non disponibile. Il percorso precedente resta invariato.');},
+          nativeMasterFallback:function(wasVisible){
+            if(commonMasterCombat())return;
+            if(MV2&&MV2.data&&cur&&MV2.locationId===cur.id&&MV2.principalId===commonMasterPrincipal()){mv2EnsureOptions();renderMasterV2();if(wasVisible)mv2OvApri();}
+          },
           attachOpening:window.TUSOrdinary&&window.TUSOrdinary.attachOrdinaryLand,
           principal:function(){return loggedIn&&myId&&myCharId?JSON.stringify([myId,myCharId]):null;},
           canRestoreTestResources:function(){return iAmStaff&&commonPanelRoom();},
-          identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId&&myId&&(commonPanelRoom()||myCharId)?{principal_id:myId,character_id:myCharId||null}:null;},
+          identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId&&myId&&(commonCombatRoom()||myCharId)?{principal_id:myId,character_id:myCharId||null}:null;},
           isExam:function(){return (!!(cur&&cur.is_exam_room)&&!(cur&&cur.is_test&&iAmStaff))||esScontroVivo();},
           otherCombat:function(){return !!(CMB&&CMB.aperto)||!!(MV2&&MV2.data&&MV2.data.encounter);},
           rpc:function(name,args){return sb.rpc(name,args);},requestKey:mv2Key,
@@ -4531,21 +5044,30 @@ window.TUSOrdinary={attachOrdinaryLand};
       function loadMasterV2(){
         if(examRegia()?.ownsCombat()){mv2Card(false);return;}
         if(!sb||!cur||MV2.loading||MV2.missingRpc) return;
-        if(cur.is_exam_room){ mv2Card(false); return; }
-        MV2.loading=true;
-        sb.rpc('master_v2_ui_state',{p_location:cur.id}).then(function(r){
-          MV2.loading=false;
+        if(cur.is_exam_room&&!(commonPanelRoom()&&iAmStaff)){ mv2Card(false); return; }
+        var masterPrincipal=commonMasterPrincipal(),masterEpoch=MV2.authEpoch||0;if(!masterPrincipal)return;MV2.loading=true;var masterLocation=cur.id;
+        var masterReadGeneration=++commonMasterReadGeneration;
+        sb.rpc('master_v2_ui_state',{p_location:masterLocation}).then(async function(r){
+          MV2.loading=false;if(!cur||cur.id!==masterLocation||commonMasterPrincipal()!==masterPrincipal||(MV2.authEpoch||0)!==masterEpoch)return;
           if(r&&r.error){
             var mm=(r.error.message||'').toLowerCase();
             if(mm.indexOf('master_v2_ui_state')>=0||mm.indexOf('schema cache')>=0){ MV2.missingRpc=true; mv2Card(false); }
-            else { MV2.data=null; MV2.serverSig=null; mv2Card(false); }
+            else { toast('Lettura della Regia non disponibile. Il percorso precedente resta invariato.'); }
             return;
           }
-          var next=mv2Data(r)||{},sig=mv2ServerSig(next),same=MV2.serverSig!==null&&sig!==null&&sig===MV2.serverSig;
-          MV2.data=next; mv2PruneDefenseDrafts(next); renderCombat(); if(!commonPanelRoom())mv2EnsureOptions();
-          if(same)return;
+          var previouslyCommon=commonMasterCombat();
+          var next=mv2Data(r)||{},sig=mv2ServerSig(next),same=MV2.serverSig!==null&&sig!==null&&sig===MV2.serverSig&&MV2.locationId===masterLocation&&MV2.principalId===masterPrincipal;
+          await commonMasterAuthorize(next);
+          if(masterReadGeneration!==commonMasterReadGeneration||!cur||cur.id!==masterLocation||commonMasterPrincipal()!==masterPrincipal||(MV2.authEpoch||0)!==masterEpoch)return;
+          MV2.data=next;MV2.locationId=masterLocation;MV2.principalId=masterPrincipal;mv2PruneDefenseDrafts(next);renderCombat();if(!commonMasterCombat())mv2EnsureOptions();
+          if(commonMasterCombat()&&!previouslyCommon){
+            var masterDialog=document.getElementById('mv2ov'),masterVisible=masterDialog&&!masterDialog.hidden;
+            ordinaryRefresh();if(masterVisible&&ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');
+          }
+          if(previouslyCommon&&!commonMasterCombat()&&ORDINARY){ORDINARY.invalidate();ordinaryRefresh();}
+          if(same&&previouslyCommon===commonMasterCombat())return;
           MV2.serverSig=sig; renderMasterV2();
-        },function(){ MV2.loading=false; mv2Card(false); });
+        },function(){ MV2.loading=false;if(!cur||cur.id!==masterLocation||commonMasterPrincipal()!==masterPrincipal||(MV2.authEpoch||0)!==masterEpoch)return;mv2Card(false); });
       }
       function mv2Actor(id){ var a=((MV2.data||{}).actors||[]).filter(function(x){return x.id===id;}); return a[0]||null; }
       function mv2MetersBetween(a,b){
@@ -4561,6 +5083,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       }
       function mv2ActorName(id){ var a=mv2Actor(id); return a?a.name:'Attore'; }
       function mv2EnsureOptions(){
+        if(commonMasterCombat())return;
         var d=MV2.data||{}, r=d.round;
         if(!r||!d.encounter||d.master&&d.master.stato==='sospesa') return;
         (d.actors||[]).filter(function(a){return a.mine&&a.state==='attivo';}).forEach(function(a){
@@ -4697,7 +5220,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       }
       function renderMasterV2(){
         if(examRegia()?.ownsCombat()){mv2Card(false);return;}
-        if(commonPanelRoom()&&ORDINARY&&ordinaryPanelMode==='common'){mv2Slim();return;}
+        if(commonMasterCombat()){ordinaryRefresh();mv2Slim();return;}
         var body=document.getElementById('mv2-body'), tag=document.getElementById('mv2-state'); if(!body||!cur) return;
         mv2CaptureDefenseDrafts();
         var d=MV2.data||{}, m=d.master, e=d.encounter, r=d.round, viewer=d.viewer||{};
@@ -4753,7 +5276,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         host.innerHTML='<div class="mv2-phase"><b>'+esc(m.titolo||m.tipo)+'</b><br>'+esc(m.tipo)+' \u00b7 '+esc(String(m.stato||'').replace(/_/g,' '))+(r?(' \u00b7 round '+r.no):'')+'</div>'+avviso
           +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2-ov="apri">Apri la Regia</button></div>';
       }
-      function mv2OvApri(){ if(examRegia()?.ownsCombat()){examRegia().openPanel('master');return;} if(commonPanelRoom()){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');else toast('Pannello comune non disponibile.');return;} if(!cur){ toast('Entra in una stanza per aprire la Regia'); return; }
+      function mv2OvApri(){ if(examRegia()?.ownsCombat()){examRegia().openPanel('master');return;} if(commonMasterCombat()){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');else toast('Pannello comune non disponibile.');return;} if(!cur){ toast('Entra in una stanza per aprire la Regia'); return; }
         var rr=document.getElementById('mv2-room'); if(rr) rr.textContent=cur.name||'stanza';
         var ov=document.getElementById('mv2ov'), bk=document.getElementById('mv2ov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false;
         renderMasterV2(); loadMasterV2(); }
@@ -4779,6 +5302,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         var _orf=document.getElementById('mv2-refresh'); if(_orf) _orf.addEventListener('click',function(){ MV2.setup=null; MV2.options={}; MV2.serverSig=null; loadMasterV2(); });
         document.addEventListener('keydown',function(e){ var _ov=document.getElementById('mv2ov'); if(e.key==='Escape'&&_ov&&!_ov.hidden) mv2OvChiudi(); });
         body.addEventListener('change',function(ev){
+          if(commonMasterCombat())return;
           var t=ev.target;
           if(t.id==='mv2-compose'){ MV2.composeMode=t.value; MV2.pngDraft=[]; renderMasterV2(); }
           if(t.hasAttribute('data-mv2-action-kind')){ var f=t.closest('[data-mv2-action-form]'), k=t.value; if(f){var tf=f.querySelector('[data-mv2-target-field]'),af=f.querySelector('[data-mv2-ability-field]'),mf=f.querySelector('[data-mv2-move-field]'),mp=f.querySelector('[data-mv2-multiplication]'); if(tf)tf.hidden=k!=='attacco'; if(af)af.hidden=k!=='attacco'; if(mf)mf.hidden=k!=='movimento'; if(mp)mp.hidden=true;} }
@@ -4786,7 +5310,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           if(t.hasAttribute('data-mv2-reaction')){ var fd=t.closest('[data-mv2-defense-form]'), aa=fd&&fd.querySelector('[data-mv2-defense-ability]'); if(aa)aa.hidden=t.value!=='tecnica'; }
         });
         body.addEventListener('click',function(ev){
-          var t=ev.target.closest('button'); if(!t||MV2.busy||!sb||!cur)return;
+          var t=ev.target.closest('button'); if(!t||MV2.busy||!sb||!cur||commonMasterCombat())return;
           var a=t.getAttribute('data-mv2');
           if(a==='kind-quest'||a==='kind-missione'||a==='kind-duello'){MV2.setupKind=a.slice(5);renderMasterV2();return;}
           if(a==='setup-cancel'){MV2.setupKind=null;renderMasterV2();return;}
@@ -7630,7 +8154,7 @@ function createExamRegiaHost(host) {
       client:sb,document:document,location:function(){return cur;},
       identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId&&myCharId?{principal_id:myId,character_id:myCharId}:null;},
       createSessionController:missionSessionLibrary.createSessionController,
-      attachCombatPanel:window.TUSCommonPanel&&window.TUSCommonPanel.attachCombatPanel,requestKey:mv2Key,
+      attachCombatPanel:function(host){return mapFigureAttach(window.TUSCommonPanel.attachCombatPanel,host);},requestKey:mv2Key,
       visualCatalog:function(context){return examRegiaLibrary.createExamVisualCatalog(Object.assign({},context,{assets:EXAM_REGIA_ART}));},
       readChat:function(){return input.value||'';},
       clearChat:function(){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';updCount();},
@@ -10220,6 +10744,7 @@ var nb028iTeardown=function(){};
             +(t.prestavolto?('<div class="mmeta" style="color:var(--red-deep)">◈ Prestavolto: '+esc(t.prestavolto)+'</div>'):'')
             +'<div class="mmeta">F '+t.forza+' · T '+t.taijutsu+' · V '+t.velocita+' · M '+t.mente+' · N '+t.ninjutsu+' · G '+t.genjutsu+' · R '+t.resistenza+' · Fu '+t.fuuinjutsu+' · KG '+t.kekkei_genkai+'</div>'
             +'<div class="mact"><button type="button" class="mbtn ghost" data-rgedit="'+t.id+'">Modifica</button>'
+            +(iAmStaff?'<button type="button" class="mbtn ghost" data-map-figure-png="'+t.id+'">Miniatura mappa</button>':'')
             +'<button type="button" class="mbtn ghost" data-rgtoggle="'+t.id+'">'+(off?'Riattiva':'Disattiva')+'</button></div></div>';
         }).join(''); }
         // — Nuovo modello / Modifica —
@@ -10255,6 +10780,7 @@ var nb028iTeardown=function(){};
         });
         body.addEventListener('click', async function(e){
           var t=e.target.closest('button'); if(!t||!sb) return;
+          if(t.hasAttribute('data-map-figure-png')){if(iAmStaff)mapFigureOpen('png_template',t.getAttribute('data-map-figure-png'));return;}
           if(t.hasAttribute('data-rgedit')){ REGIA.editId=t.getAttribute('data-rgedit'); REGIA.newOpen=true; renderRegia(); var fed=document.getElementById('rg-newform'); if(fed) fed.scrollIntoView({block:'center'}); return; }
           if(t.hasAttribute('data-rgcancel')){ REGIA.editId=null; REGIA.newOpen=false; renderRegia(); return; }
           if(t.hasAttribute('data-rgtoggle')){ var tid=t.getAttribute('data-rgtoggle'); var tp0=REGIA.tpls.filter(function(x){return x.id===tid;})[0]; var na=(tp0&&tp0.is_active!==false)?false:true; t.disabled=true; sb.from('png_templates').update({is_active:na}).eq('id',tid).then(function(r){ t.disabled=false; if(r&&r.error){ toast('Errore: '+(r.error.message||'')); return; } toast(na?'Modello riattivato':'Modello disattivato'); loadRegia(); }, function(){ t.disabled=false; toast('Errore'); }); return; }
@@ -10368,6 +10894,16 @@ var nb028iTeardown=function(){};
       function openPanel(){ panelOpen=true; var pn=document.getElementById('online-panel'), bk=document.getElementById('ov-backdrop'); if(pn)pn.hidden=false; if(bk)bk.hidden=false; renderPanel(); loadRoster(); }
       function closePanel(){ panelOpen=false; var pn=document.getElementById('online-panel'), bk=document.getElementById('ov-backdrop'); if(pn)pn.hidden=true; if(bk)bk.hidden=true; }
       /* ---- Annuario dei personaggi ---- */
+      var MAP_FIGURE_HOST=null;
+      function mapFigures(){
+        if(!MAP_FIGURE_HOST&&sb&&window.TUSMapFigures)MAP_FIGURE_HOST=window.TUSMapFigures.createMapFigureHost({client:sb,document:document,
+          identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId&&myId?{principal_id:myId}:null;},
+          location:function(){return cur;},notice:toast});
+        return MAP_FIGURE_HOST;
+      }
+      function mapFigureOpen(kind,id){var h=mapFigures();if(h)h.open(kind,id);}
+      function mapFigureAttach(factory,host){return mapFigures().attach(factory,host);}
+      window.addEventListener('tus:ordinary-logout',function(){if(MAP_FIGURE_HOST)MAP_FIGURE_HOST.dispose();MAP_FIGURE_HOST=null;});
       var ANNU=[], annuLoaded=false;
       function annuRow(c){
         var ava=c.avatar_url?('<img loading="lazy" src="'+esc(c.avatar_url)+'" alt="">'):('<span>'+esc((c.name||'?').charAt(0).toUpperCase())+'</span>');
@@ -10376,7 +10912,8 @@ var nb028iTeardown=function(){};
         var sub=[]; if(c.rank) sub.push(esc(c.rank)); if(c.clan) sub.push(esc(c.clan)+(c.clan_role==='Capo clan'?' (Capo)':''));
         var subH=sub.length?('<div class="annu-sub">'+sub.join(' · ')+'</div>'):'';
         var face=c.face_claim?('<span class="annu-face">Prestavolto: '+esc(c.face_claim)+'</span>'):'';
-        return '<div class="annu-row"><span class="annu-ava">'+ava+'</span><div class="annu-main"><div class="annu-name">'+nm+'</div>'+subH+face+'</div></div>';
+        var figure=c.char_id===myCharId?'<button type="button" class="mbtn ghost" data-map-figure-character="'+esc(c.char_id)+'">Miniatura mappa</button>':'';
+        return '<div class="annu-row"><span class="annu-ava">'+ava+'</span><div class="annu-main"><div class="annu-name">'+nm+'</div>'+subH+face+figure+'</div></div>';
       }
       function renderAnnu(){ var host=document.getElementById('annu-list'); if(!host) return;
         var term=((document.getElementById('annu-q')||{}).value||'').trim().toLowerCase();
@@ -10457,11 +10994,12 @@ var nb028iTeardown=function(){};
         });
       })();
       function openAnnu(){ closePanel(); var pn=document.getElementById('annu-panel'), bk=document.getElementById('ov-backdrop'); if(pn)pn.hidden=false; if(bk)bk.hidden=false; loadAnnu(); var q=document.getElementById('annu-q'); if(q) setTimeout(function(){ q.focus(); },60); }
-      function closeAnnu(){ var pn=document.getElementById('annu-panel'), bk=document.getElementById('ov-backdrop'); if(pn)pn.hidden=true; if(bk)bk.hidden=true; }
+      function closeAnnu(){ if(MAP_FIGURE_HOST)MAP_FIGURE_HOST.close();var pn=document.getElementById('annu-panel'), bk=document.getElementById('ov-backdrop'); if(pn)pn.hidden=true; if(bk)bk.hidden=true; }
       (function(){
         var ob=document.getElementById('online-btn'); if(ob) ob.addEventListener('click', openPanel); bindMail();
         var oc=document.getElementById('ovp-close'); if(oc) oc.addEventListener('click', closePanel);
         var bk=document.getElementById('ov-backdrop'); if(bk) bk.addEventListener('click', function(){ closePanel(); closeAnnu(); closeTk(); var _wp=document.getElementById('world-panel'); if(_wp)_wp.hidden=true; });
+        var anuList=document.getElementById('annu-list');if(anuList)anuList.addEventListener('click',function(e){var b=e.target.closest('[data-map-figure-character]');if(b&&b.getAttribute('data-map-figure-character')===myCharId)mapFigureOpen('character',myCharId);});
         var anb=document.getElementById('annu-btn'); if(anb) anb.addEventListener('click', openAnnu);
         var tss=document.getElementById('test-staff-btn'); if(tss) tss.addEventListener('click', function(){ var l=testLoc(); if(l) openRoom(l); else toast('La Test Room staff non risulta attiva.'); });
         var anc=document.getElementById('annu-close'); if(anc) anc.addEventListener('click', closeAnnu);
