@@ -1,0 +1,122 @@
+{
+  "task_id": "COMBAT-PANEL-REJECTION-REASONS-RELEASE-PREFLIGHT-001",
+  "status": "BEFORE_EXACT_READY_FOR_PM_GATE_NOT_APPLIED",
+  "project_id": "tyhyxkslteigibktluml",
+  "queries": 1,
+  "mutations": 0,
+  "cases": 0,
+  "provider_calls": 0,
+  "evidence": {
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "config": [
+          "search_path=\"\""
+        ],
+        "proname": "combat_panel_commit_v1",
+        "owner_name": "postgres",
+        "volatility": "v",
+        "schema_name": "public",
+        "definition_md5": "84860632d828931cea773b83c583548e",
+        "security_definer": true,
+        "identity_arguments": "p_command jsonb"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "config": [
+          "search_path=\"\""
+        ],
+        "proname": "combat_v2_fail",
+        "owner_name": "postgres",
+        "volatility": "v",
+        "schema_name": "public",
+        "definition_md5": "607dec1f81b9b0c310c91585315803f6",
+        "security_definer": false,
+        "identity_arguments": "p_code text, p_message text, p_status integer, p_request_key uuid, p_details jsonb"
+      }
+    ],
+    "observed_at": "2026-09-10T05:06:54.324367+00:00",
+    "matching_migrations": []
+  },
+  "query": "SELECT jsonb_build_object('observed_at',clock_timestamp(),'functions',coalesce((SELECT jsonb_agg(jsonb_build_object('schema_name',n.nspname,'proname',p.proname,'identity_arguments',pg_get_function_identity_arguments(p.oid),'definition_md5',md5(pg_get_functiondef(p.oid)),'owner_name',pg_get_userbyid(p.proowner),'acl',p.proacl::text,'security_definer',p.prosecdef,'volatility',p.provolatile,'config',p.proconfig) ORDER BY p.proname) FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace WHERE p.oid IN (to_regprocedure('public.combat_panel_commit_v1(jsonb)'),to_regprocedure('public.combat_v2_fail(text,text,integer,uuid,jsonb)'))),'[]'::jsonb),'matching_migrations',coalesce((SELECT jsonb_agg(jsonb_build_object('version',version,'name',name) ORDER BY version) FROM supabase_migrations.schema_migrations WHERE name ILIKE '%rejection%reason%' OR name ILIKE '%panel%rifiut%'),'[]'::jsonb)) AS release_preflight;",
+  "query_sha256": "634c860fd815839faa3b7a8fd688cd61c00fd06298b35135410e70cff603abc3",
+  "comparison": [
+    {
+      "function": "combat_panel_commit_v1",
+      "all_fields_equal": true,
+      "fields": [
+        "schema_name",
+        "proname",
+        "identity_arguments",
+        "definition_md5",
+        "owner_name",
+        "acl",
+        "security_definer",
+        "volatility",
+        "config"
+      ]
+    },
+    {
+      "function": "combat_v2_fail",
+      "all_fields_equal": true,
+      "fields": [
+        "schema_name",
+        "proname",
+        "identity_arguments",
+        "definition_md5",
+        "owner_name",
+        "acl",
+        "security_definer",
+        "volatility",
+        "config"
+      ]
+    }
+  ],
+  "source_pins": {
+    "INSTALL.sql": {
+      "bytes": 13710,
+      "sha256": "30ec1184eeadb0c708de330357c606f234108d6ca45ba9d284367b8b0f81963d"
+    },
+    "RECOVERY.sql": {
+      "bytes": 7943,
+      "sha256": "3f025c45c511c5af2725d8de139beecd63c116dc05d60efcb2bbd4c27cf218b2"
+    },
+    "MANIFEST.json": {
+      "bytes": 3072,
+      "sha256": "f5809d60bda326e0e167dbb39ac0c11d39daeb3586a9a2149c139787d275d81f"
+    },
+    "COUNTERCHECK002.md": {
+      "bytes": 2696,
+      "sha256": "0a9bf11a5b15094eb1d2a18e6c508a68ffa08af639f6177f7912675c6fb8aacb"
+    },
+    "COUNTERCHECK002_MANIFEST.json": {
+      "bytes": 5835,
+      "sha256": "8b93ad8f2fc5322feacbd7dde0440db90ff25123107d42c0d4ace57ddb9dbc95"
+    },
+    "QA_RESULT.json": {
+      "bytes": 21743,
+      "sha256": "b2062495196152c8d8710a80d35dd9e5629bbddb8ed7929f008239df90ca980e"
+    },
+    "QA_MANIFEST.json": {
+      "bytes": 5141,
+      "sha256": "f88ec680ae2e2ef315884d835bdc238b27cf20dff9ee9048ece86a4b6f241af2"
+    }
+  },
+  "expected_after_md5": "0ec7f7f1228b3f1afef03ad6323bf960",
+  "offline_inverse_delta": "PASS; every byte outside selection_rejected message branch unchanged",
+  "matching_migration_lookup": "Names matching rejection+reason or panel+rifiut; empty is not a full migration-history audit and does not replace function preimage pins",
+  "previous_qualification": {
+    "independent_countercheck": "0/0/0",
+    "component_cases": "9/9",
+    "groups": "4/4",
+    "SQL_submissions": 9,
+    "provider": 0,
+    "install_recovery_COMMIT": true
+  },
+  "limits": [
+    "Snapshot at observed_at only; INSTALL rechecks pins under cooperative release lock",
+    "No Auth/RLS/API/live UI check performed in this task",
+    "No PG/offers/role/session/provider payload queried",
+    "No apply authorized by this report; named single-apply gate belongs to PM"
+  ]
+}

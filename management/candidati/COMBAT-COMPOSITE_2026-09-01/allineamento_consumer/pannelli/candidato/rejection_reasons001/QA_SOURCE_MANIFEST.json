@@ -1,0 +1,79 @@
+{
+  "native_bootstrap": {
+    "path": "management/candidati/CLAN-L1_2026-09-01/runtime/hyuga/candidato/HYUGA_RUNTIME_COMPILE_BOOTSTRAP.sql",
+    "sha256": "7347f3676ef73db95ce9b89410f0c4e8225f5158b1c448ab3078cd6d045d6f9e",
+    "only_bootstrap_adaptation": "literal new database name in preparation guard; all DDL/native bodies/triggers/constraints preserved; native preparation row preserved, no history/RNG fabricated"
+  },
+  "metadata": {
+    "path": "management/candidati/CLAN-L1_2026-09-01/runtime/hyuga/candidato/HYUGA_RUNTIME_METADATA.json",
+    "sha256": "148011847f0f9c557080c08801247d4163dd5bd40137f052be29e4779f58671a"
+  },
+  "native_essential_functions": {
+    "auth.uid()": {
+      "definition_sha256": "7c1ff2ecbe653c9358b3115a2607db9573f88a2944ae4eca9e296a89cc5186a7",
+      "definition_md5": "ea3b41bf29e2ad573067939329aa088e"
+    },
+    "public.combat_v2_sha256(p_value jsonb)": {
+      "definition_sha256": "95779880830f3fe684664ac7cd89197e961abbc7d08b046728b4f6abdaca8a11",
+      "definition_md5": "4dc3868f16311c1fffdb3d6b2fd733ce"
+    },
+    "public.combat_v2_error_codes()": {
+      "definition_sha256": "a1f45f4795be8e5fbdd258627e6678c0a20ca67b4872e5c54cca13f6118d08c1",
+      "definition_md5": "d84d461d7a3919af7af62688a1436ee2"
+    },
+    "combat_panel_private.validate_command(p jsonb)": {
+      "definition_sha256": "6a0ae56ccd9c310c3b32128dd721f2aa3644913c1a438d609779d474ba45d954",
+      "definition_md5": "344b7fcd8dc0c0d9d58095737c0fb9c9"
+    },
+    "combat_panel_private.access_reason(p_location uuid, p_adapter text)": {
+      "definition_sha256": "946853cf21994b1bd924a4dcde1ac473583648f3ee9d7c2bdeac16bc9e8d916c",
+      "definition_md5": "4616c18ba0bdae3c6664a270d4b54980"
+    },
+    "combat_panel_private.location_adapter(p_location uuid)": {
+      "definition_sha256": "d72eb2861d54ee5fa09d92abdd1861e877ee2df1288cbfe4e7ca404acd80592b",
+      "definition_md5": "d46e9be884ec43cf33ba99cce7088a0c"
+    }
+  },
+  "native_gateway_fail": [
+    {
+      "schema_name": "public",
+      "proname": "combat_panel_commit_v1",
+      "identity_arguments": "p_command jsonb",
+      "definition_md5": "84860632d828931cea773b83c583548e",
+      "owner_name": "postgres",
+      "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+      "security_definer": true,
+      "volatility": "v",
+      "config": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.combat_panel_commit_v1(p_command jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE p jsonb; uid uuid:=auth.uid(); key uuid; fp text; adapter text; reason text;\n prior combat_panel_private.request_receipts%ROWTYPE; offer combat_panel_private.offers%ROWTYPE;\n code text; message text; recovery text;\nBEGIN\n IF uid IS NULL THEN RAISE EXCEPTION 'panel_authentication_required' USING ERRCODE='28000'; END IF;\n p:=combat_panel_private.validate_command(p_command); key:=(p->>'request_key')::uuid; fp:=public.combat_v2_sha256(p);\n PERFORM pg_advisory_xact_lock(hashtextextended('panel-request:'||uid::text||':'||key::text,731));\n SELECT * INTO prior FROM combat_panel_private.request_receipts WHERE principal_user=uid AND request_key=key;\n IF prior.request_key IS NOT NULL THEN\n   IF prior.command_fingerprint<>fp THEN RAISE EXCEPTION 'panel_request_key_conflict' USING ERRCODE='22023'; END IF;\n   RETURN jsonb_set(prior.viewer_envelope,'{receipt,replayed}','true',false);\n END IF;\n SELECT * INTO offer FROM combat_panel_private.offers WHERE id=(p->>'offer_id')::uuid AND principal_user=uid;\n IF offer.id IS NULL THEN RAISE EXCEPTION 'panel_offer_not_available' USING ERRCODE='42501'; END IF;\n adapter:=offer.source_payload->>'adapter';\n reason:=combat_panel_private.access_reason((p->>'location_id')::uuid,adapter);\n IF reason IS NOT NULL THEN RAISE EXCEPTION 'panel_access_rejected' USING ERRCODE='42501'; END IF;\n IF adapter IS DISTINCT FROM combat_panel_private.location_adapter((p->>'location_id')::uuid) THEN\n   RAISE EXCEPTION 'panel_context_stale' USING ERRCODE='40001'; END IF;\n IF offer.kind='administration' AND offer.operation='open'\n   AND offer.source_payload->>'dispatch'='master_session_open' THEN\n   RETURN combat_panel_private.commit_master_open(p); END IF;\n IF offer.kind='action' AND offer.operation='declare' AND offer.source_payload->>'dispatch'='sabaku_clone' THEN\n   RETURN clan_sabaku_private.commit_clone(p); END IF;\n IF offer.kind='action' AND offer.operation='declare' AND offer.source_payload->>'dispatch'='immobilization_escape' THEN\n   RETURN combat_panel_private.commit_immobilization_escape(p); END IF;\n IF offer.kind='action' AND offer.operation='declare' AND offer.source_payload->>'dispatch'='multiplication' THEN\n   RETURN combat_panel_private.commit_multiplication(p); END IF;\n IF adapter='ordinary_v2' AND offer.kind='control' AND offer.operation='control' AND offer.source_payload->>'dispatch'='pg_movement' THEN\n   RETURN combat_panel_private.commit_pg_movement(p); END IF;\n IF adapter='ordinary_v2' THEN RETURN combat_panel_private.commit_ordinary(p); END IF;\n IF adapter='master_v2' THEN\n   IF offer.kind='control' AND offer.source_payload->>'dispatch'='sabaku_control' THEN\n     RETURN clan_sabaku_private.commit_master_control(p); END IF;\n   IF offer.kind='control' AND offer.source_payload->>'dispatch'='companion_control' THEN\n     RETURN combat_panel_private.commit_master_companion(p); END IF;\n   IF offer.kind='administration' THEN RETURN combat_panel_private.commit_master_admin(p); END IF;\n   RETURN combat_panel_private.commit_master_actor(p);\n END IF;\n RAISE EXCEPTION 'panel_dispatch_not_available' USING ERRCODE='22023';\nEXCEPTION WHEN OTHERS THEN\n -- Questo ramo viene raggiunto dopo il rollback dell'intera sottotransazione\n -- della richiesta. Non comprende timeout/disconnessioni senza risposta DB.\n code:=CASE WHEN SQLSTATE='28000' THEN 'authentication_required'\n   WHEN SQLERRM='panel_request_key_conflict' THEN 'request_key_conflict'\n   WHEN SQLSTATE='42501' THEN 'not_authorized'\n   WHEN SQLSTATE='40001' THEN 'context_changed'\n   WHEN SQLSTATE LIKE '22%' THEN 'selection_rejected' ELSE 'operation_rejected' END;\n message:=CASE code WHEN 'authentication_required' THEN 'Accedi nuovamente per continuare.'\n   WHEN 'request_key_conflict' THEN 'Questa richiesta è già associata a un altro invio. Verifica lo stato prima di continuare.'\n   WHEN 'not_authorized' THEN 'Questa operazione non è disponibile per il tuo accesso.'\n   WHEN 'context_changed' THEN 'Lo scontro è cambiato. Rileggi lo stato e scegli di nuovo.'\n   WHEN 'selection_rejected' THEN 'Le scelte non sono più valide. Rileggi le opzioni.'\n   ELSE 'Il server ha rifiutato l’operazione. Rileggi lo stato; se il problema resta, informa lo staff.' END;\n recovery:=CASE WHEN code='authentication_required' THEN 'authenticate'\n   WHEN code='request_key_conflict' THEN 'contact_staff' ELSE 'refresh' END;\n RETURN jsonb_build_object('schema_version','combat-panel-error/1','status','rejected','request_key',key,\n   'code',code,'message',message,'recovery',recovery);\nEND $function$\n"
+    },
+    {
+      "schema_name": "public",
+      "proname": "combat_v2_fail",
+      "identity_arguments": "p_code text, p_message text, p_status integer, p_request_key uuid, p_details jsonb",
+      "definition_md5": "607dec1f81b9b0c310c91585315803f6",
+      "owner_name": "postgres",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "security_definer": false,
+      "volatility": "v",
+      "config": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.combat_v2_fail(p_code text, p_message text, p_status integer, p_request_key uuid DEFAULT NULL::uuid, p_details jsonb DEFAULT '{}'::jsonb)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin\n  if not (p_code=any(public.combat_v2_error_codes())) then\n    raise exception using errcode='P0001',message='COMBAT_V2_CODICE_ERRORE_NON_CANONICO';\n  end if;\n  raise sqlstate 'PGRST' using\n    message=jsonb_build_object('code',p_code,'message_it',p_message,\n      'retryable',p_status in (409,429,500,502,503,504),'request_key',p_request_key,\n      'details_sanitized',case when jsonb_typeof(coalesce(p_details,'{}'::jsonb))='object' then coalesce(p_details,'{}'::jsonb) else '{}'::jsonb end)::text,\n    detail=jsonb_build_object('status',p_status)::text;\nend $function$\n"
+    }
+  ],
+  "synthetic_boundaries": [
+    "combat_panel_private.commit_ordinary(jsonb) only; declared QA dispatcher writes local sentinel then native exception or minimal synthetic accepted receipt"
+  ],
+  "fixture": "one synthetic nominal auth.users row and native-trigger profile; native location/presence/context/admin ordinary offer, no characters/actors/sessions; local release gate ordinary enabled only for this dedicated DB",
+  "compile_scope": "native full corpus setup to avoid stubbing access and routing dependencies; no gameplay invoked or certified",
+  "SQL_runs": 0,
+  "phase_SQL": {
+    "01": "DO $pre$ BEGIN\nIF current_setting('server_version_num')::int<>170006 THEN RAISE EXCEPTION 'PG17.6 required'; END IF;\nIF EXISTS(SELECT 1 FROM pg_database WHERE datname='combat_panel_rejection_reasons_001') THEN RAISE EXCEPTION 'Dedicated DB exists; no reuse/reset'; END IF;\nIF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='supabase_admin' AND rolsuper) THEN RAISE EXCEPTION 'existing nominal setup role unavailable'; END IF;\nIF (SELECT count(*) FROM pg_roles WHERE rolname IN ('anon','authenticated','dashboard_user','pg_database_owner','postgres','service_role','supabase_admin','supabase_auth_admin'))<>8 THEN RAISE EXCEPTION 'nominal native roles absent'; END IF;\nEND $pre$;\nSELECT jsonb_build_object('DB_absent',true,'roles_present',true,'version',current_setting('server_version'));\nSELECT 'CREATE DATABASE combat_panel_rejection_reasons_001 TEMPLATE template0' WHERE NOT EXISTS(SELECT 1 FROM pg_database WHERE datname='combat_panel_rejection_reasons_001')\n\\gexec\n",
+    "03": "SET search_path=pg_catalog,public;\nDO $guard$ DECLARE o oid; BEGIN\no:=to_regprocedure('public.combat_panel_commit_v1(jsonb)'); IF o IS NULL THEN RAISE EXCEPTION 'panel_message_function_missing:%','public.combat_panel_commit_v1(jsonb)'; END IF;\nIF md5(pg_get_functiondef(o)) IS DISTINCT FROM '0ec7f7f1228b3f1afef03ad6323bf960' OR NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid=o AND pg_get_userbyid(p.proowner)='postgres' AND p.proacl::text IS NOT DISTINCT FROM '{postgres=X/postgres,authenticated=X/postgres}' AND p.prosecdef=true AND p.provolatile='v' AND p.proconfig IS NOT DISTINCT FROM ARRAY['search_path=\"\"']::text[]) THEN RAISE EXCEPTION 'panel_message_function_drift:%','public.combat_panel_commit_v1(jsonb)'; END IF;\no:=to_regprocedure('public.combat_v2_fail(text,text,integer,uuid,jsonb)'); IF o IS NULL THEN RAISE EXCEPTION 'panel_message_function_missing:%','public.combat_v2_fail(text,text,integer,uuid,jsonb)'; END IF;\nIF md5(pg_get_functiondef(o)) IS DISTINCT FROM '607dec1f81b9b0c310c91585315803f6' OR NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid=o AND pg_get_userbyid(p.proowner)='postgres' AND p.proacl::text IS NOT DISTINCT FROM '{postgres=X/postgres,service_role=X/postgres}' AND p.prosecdef=false AND p.provolatile='v' AND p.proconfig IS NOT DISTINCT FROM ARRAY['search_path=\"\"']::text[]) THEN RAISE EXCEPTION 'panel_message_function_drift:%','public.combat_v2_fail(text,text,integer,uuid,jsonb)'; END IF;\nEND $guard$;\nSELECT qa_rejection.record_case('G1_full_install','G1',true,jsonb_build_object('full_INSTALL_COMMIT',true,'after_md5','0ec7f7f1228b3f1afef03ad6323bf960','gateway_fail_owner_ACL_pins','exact')); SELECT to_jsonb(r) FROM qa_rejection.results r WHERE case_id='G1_full_install';\n",
+    "07": "SET search_path=pg_catalog,public;\nDO $guard$ DECLARE o oid; BEGIN\no:=to_regprocedure('public.combat_panel_commit_v1(jsonb)'); IF o IS NULL THEN RAISE EXCEPTION 'panel_message_function_missing:%','public.combat_panel_commit_v1(jsonb)'; END IF;\nIF md5(pg_get_functiondef(o)) IS DISTINCT FROM '0ec7f7f1228b3f1afef03ad6323bf960' OR NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid=o AND pg_get_userbyid(p.proowner)='postgres' AND p.proacl::text IS NOT DISTINCT FROM '{postgres=X/postgres,authenticated=X/postgres}' AND p.prosecdef=true AND p.provolatile='v' AND p.proconfig IS NOT DISTINCT FROM ARRAY['search_path=\"\"']::text[]) THEN RAISE EXCEPTION 'panel_message_function_drift:%','public.combat_panel_commit_v1(jsonb)'; END IF;\no:=to_regprocedure('public.combat_v2_fail(text,text,integer,uuid,jsonb)'); IF o IS NULL THEN RAISE EXCEPTION 'panel_message_function_missing:%','public.combat_v2_fail(text,text,integer,uuid,jsonb)'; END IF;\nIF md5(pg_get_functiondef(o)) IS DISTINCT FROM '607dec1f81b9b0c310c91585315803f6' OR NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid=o AND pg_get_userbyid(p.proowner)='postgres' AND p.proacl::text IS NOT DISTINCT FROM '{postgres=X/postgres,service_role=X/postgres}' AND p.prosecdef=false AND p.provolatile='v' AND p.proconfig IS NOT DISTINCT FROM ARRAY['search_path=\"\"']::text[]) THEN RAISE EXCEPTION 'panel_message_function_drift:%','public.combat_v2_fail(text,text,integer,uuid,jsonb)'; END IF;\nEND $guard$;\nINSERT INTO qa_rejection.snapshots SELECT 'before_recovery',qa_rejection.data_snapshot(); SELECT jsonb_build_object('saved',true,'data',qa_rejection.data_snapshot());\n",
+    "09": "SET search_path=pg_catalog,public;\nDO $guard$ DECLARE o oid; BEGIN\no:=to_regprocedure('public.combat_panel_commit_v1(jsonb)'); IF o IS NULL THEN RAISE EXCEPTION 'panel_message_function_missing:%','public.combat_panel_commit_v1(jsonb)'; END IF;\nIF md5(pg_get_functiondef(o)) IS DISTINCT FROM '84860632d828931cea773b83c583548e' OR NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid=o AND pg_get_userbyid(p.proowner)='postgres' AND p.proacl::text IS NOT DISTINCT FROM '{postgres=X/postgres,authenticated=X/postgres}' AND p.prosecdef=true AND p.provolatile='v' AND p.proconfig IS NOT DISTINCT FROM ARRAY['search_path=\"\"']::text[]) THEN RAISE EXCEPTION 'panel_message_function_drift:%','public.combat_panel_commit_v1(jsonb)'; END IF;\no:=to_regprocedure('public.combat_v2_fail(text,text,integer,uuid,jsonb)'); IF o IS NULL THEN RAISE EXCEPTION 'panel_message_function_missing:%','public.combat_v2_fail(text,text,integer,uuid,jsonb)'; END IF;\nIF md5(pg_get_functiondef(o)) IS DISTINCT FROM '607dec1f81b9b0c310c91585315803f6' OR NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid=o AND pg_get_userbyid(p.proowner)='postgres' AND p.proacl::text IS NOT DISTINCT FROM '{postgres=X/postgres,service_role=X/postgres}' AND p.prosecdef=false AND p.provolatile='v' AND p.proconfig IS NOT DISTINCT FROM ARRAY['search_path=\"\"']::text[]) THEN RAISE EXCEPTION 'panel_message_function_drift:%','public.combat_v2_fail(text,text,integer,uuid,jsonb)'; END IF;\nEND $guard$;\n"
+  }
+}

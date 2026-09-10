@@ -1,0 +1,341 @@
+{
+  "task_id": "COMBAT-PANEL-REJECTION-REASONS-QA-001",
+  "status": "COMPONENT_PASS",
+  "database": "combat_panel_rejection_reasons_001",
+  "sql_submissions": 9,
+  "max_sql_submissions": 9,
+  "runs": 1,
+  "groups_max": 4,
+  "subcases_max": 9,
+  "provider_calls": 0,
+  "tokens": 0,
+  "phases": [
+    {
+      "phase": "01_preflight_and_CREATE",
+      "database": "postgres",
+      "user": "supabase_admin",
+      "SQL_sha256": "b97e189fde9f74688fcb733b14ed4f3ffedb2867fffc2c0d3e42b9b0007d4fb3",
+      "status": "PASS",
+      "exit_code": 0,
+      "stdout": "{\"version\": \"17.6\", \"DB_absent\": true, \"roles_present\": true}\n",
+      "stderr": "",
+      "seconds": 0.108
+    },
+    {
+      "phase": "02_native_setup",
+      "database": "combat_panel_rejection_reasons_001",
+      "user": "supabase_admin",
+      "SQL_sha256": "c0c19f983400569f6786d9a032423848a79ba998946ea6a5dfb416ec026a5c3b",
+      "status": "PASS",
+      "exit_code": 0,
+      "stdout": "{\"setup\": \"native_bootstrap_with_synthetic_dispatcher\", \"characters\": 0, \"native_offers\": 1, \"native_profiles\": 1}\n",
+      "stderr": "NOTICE:  schema \"public\" already exists, skipping\n",
+      "seconds": 1.172
+    },
+    {
+      "phase": "03_INSTALL_COMMIT",
+      "database": "combat_panel_rejection_reasons_001",
+      "user": "postgres",
+      "SQL_sha256": "87fd39196f4da4bb3c4d2450f39483ed481e21653d59fd7f0cc7d03f939daca8",
+      "status": "PASS",
+      "exit_code": 0,
+      "stdout": "\n\n{\"passed\": true, \"case_id\": \"G1_full_install\", \"evidence\": {\"after_md5\": \"0ec7f7f1228b3f1afef03ad6323bf960\", \"full_INSTALL_COMMIT\": true, \"gateway_fail_owner_ACL_pins\": \"exact\"}, \"group_id\": \"G1\"}\n",
+      "stderr": "",
+      "seconds": 0.046
+    },
+    {
+      "phase": "04_G2",
+      "database": "combat_panel_rejection_reasons_001",
+      "user": "postgres",
+      "SQL_sha256": "251775401da934f60a619d62d7cac26cb3c5df613144f2eca8fbc1428ebb7440",
+      "status": "PASS",
+      "exit_code": 0,
+      "stdout": "[{\"passed\": true, \"case_id\": \"G2_dispatch_rollback\", \"evidence\": {\"receipts\": 0, \"response\": {\"code\": \"selection_rejected\", \"status\": \"rejected\", \"message\": \"Il numero di copie o la disposizione non rispettano i limiti disponibili della Moltiplicazione.\", \"recovery\": \"refresh\", \"request_key\": \"a2000000-0000-4000-8000-000000000002\", \"schema_version\": \"combat-panel-error/1\"}, \"sentinel_rows\": 0}, \"group_id\": \"G2\"}, {\"passed\": true, \"case_id\": \"G2_native_validator\", \"evidence\": {\"response\": {\"code\": \"selection_rejected\", \"status\": \"rejected\", \"message\": \"La richiesta non ha il formato previsto. Riapri il pannello prima di inviare.\", \"recovery\": \"refresh\", \"request_key\": null, \"schema_version\": \"combat-panel-error/1\"}, \"sentinel_rows\": 0}, \"group_id\": \"G2\"}]\n",
+      "stderr": "",
+      "seconds": 0.042
+    },
+    {
+      "phase": "05_G3",
+      "database": "combat_panel_rejection_reasons_001",
+      "user": "postgres",
+      "SQL_sha256": "1a3c1c8c853d3f763ed41cfd87180aaecb412369a241f8a95b2505b347fe0c19",
+      "status": "PASS",
+      "exit_code": 0,
+      "stdout": "[{\"passed\": true, \"case_id\": \"G3_conflict\", \"evidence\": {\"receipts\": 0, \"response\": {\"code\": \"request_key_conflict\", \"status\": \"rejected\", \"message\": \"Questa richiesta è già associata a un altro invio. Verifica lo stato prima di continuare.\", \"recovery\": \"contact_staff\", \"request_key\": \"a3000000-0000-4000-8000-000000000004\", \"schema_version\": \"combat-panel-error/1\"}, \"sentinel_rows\": 0, \"provider_calls\": 0}, \"group_id\": \"G3\"}, {\"passed\": true, \"case_id\": \"G3_context\", \"evidence\": {\"receipts\": 0, \"response\": {\"code\": \"context_changed\", \"status\": \"rejected\", \"message\": \"Lo scontro è cambiato. Rileggi lo stato e scegli di nuovo.\", \"recovery\": \"refresh\", \"request_key\": \"a3000000-0000-4000-8000-000000000002\", \"schema_version\": \"combat-panel-error/1\"}, \"sentinel_rows\": 0, \"provider_calls\": 0}, \"group_id\": \"G3\"}, {\"passed\": true, \"case_id\": \"G3_pgrst\", \"evidence\": {\"receipts\": 0, \"response\": {\"code\": \"operation_rejected\", \"status\": \"rejected\", \"message\": \"Il server ha rifiutato l’operazione. Rileggi lo stato; se il problema resta, informa lo staff.\", \"recovery\": \"refresh\", \"request_key\": \"a3000000-0000-4000-8000-000000000003\", \"schema_version\": \"combat-panel-error/1\"}, \"sentinel_rows\": 0, \"provider_calls\": 0}, \"group_id\": \"G3\"}, {\"passed\": true, \"case_id\": \"G3_unknown\", \"evidence\": {\"receipts\": 0, \"response\": {\"code\": \"selection_rejected\", \"status\": \"rejected\", \"message\": \"Le scelte non sono più valide. Rileggi le opzioni.\", \"recovery\": \"refresh\", \"request_key\": \"a3000000-0000-4000-8000-000000000001\", \"schema_version\": \"combat-panel-error/1\"}, \"sentinel_rows\": 0, \"provider_calls\": 0}, \"group_id\": \"G3\"}]\n",
+      "stderr": "",
+      "seconds": 0.04
+    },
+    {
+      "phase": "06_G4_success_replay",
+      "database": "combat_panel_rejection_reasons_001",
+      "user": "postgres",
+      "SQL_sha256": "c89405f2aed226ea4391033219aecc33b5f40605398f6279ada2ff521a62ac40",
+      "status": "PASS",
+      "exit_code": 0,
+      "stdout": "{\"passed\": true, \"case_id\": \"G4_success_replay\", \"evidence\": {\"first\": {\"status\": \"accepted\", \"receipt\": {\"event_id\": \"a7929706-370d-4dfb-8eb8-05085d22606c\", \"replayed\": false, \"request_key\": \"a4000000-0000-4000-8000-000000000001\"}, \"schema_version\": \"qa-synthetic-boundary/1\"}, \"replay\": {\"status\": \"accepted\", \"receipt\": {\"event_id\": \"a7929706-370d-4dfb-8eb8-05085d22606c\", \"replayed\": true, \"request_key\": \"a4000000-0000-4000-8000-000000000001\"}, \"schema_version\": \"qa-synthetic-boundary/1\"}, \"effects\": 1, \"receipts\": 1, \"boundary_synthetic\": true}, \"group_id\": \"G4\"}\n",
+      "stderr": "",
+      "seconds": 0.04
+    },
+    {
+      "phase": "07_before_recovery",
+      "database": "combat_panel_rejection_reasons_001",
+      "user": "postgres",
+      "SQL_sha256": "f11f389c53625b37337f60c1d67dcd43bd4d89036867ce14eb7eb2bbb217e31e",
+      "status": "PASS",
+      "exit_code": 0,
+      "stdout": "{\"data\": {\"offers\": [{\"id\": \"a1000000-0000-4000-8000-000000000004\", \"kind\": \"administration\", \"label\": \"Frontiera sintetica del banco\", \"state\": \"offered\", \"actor_id\": null, \"operation\": \"administration\", \"context_id\": \"a1000000-0000-4000-8000-000000000003\", \"created_at\": \"2026-09-10T05:02:21.480695+00:00\", \"requires_role\": false, \"scene_version\": 0, \"principal_user\": \"a1000000-0000-4000-8000-000000000001\", \"source_payload\": {\"adapter\": \"ordinary_v2\", \"qa_synthetic\": true}, \"context_version\": 1, \"source_fingerprint\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"consumed_request_key\": null}], \"receipts\": [{\"event_id\": \"a7929706-370d-4dfb-8eb8-05085d22606c\", \"offer_id\": \"a1000000-0000-4000-8000-000000000004\", \"created_at\": \"2026-09-10T05:02:21.653555+00:00\", \"request_key\": \"a4000000-0000-4000-8000-000000000001\", \"principal_user\": \"a1000000-0000-4000-8000-000000000001\", \"viewer_envelope\": {\"status\": \"accepted\", \"receipt\": {\"event_id\": \"a7929706-370d-4dfb-8eb8-05085d22606c\", \"replayed\": false, \"request_key\": \"a4000000-0000-4000-8000-000000000001\"}, \"schema_version\": \"qa-synthetic-boundary/1\"}, \"command_fingerprint\": \"b959e55bcfe767f4129d9c67f7ce63f8456c45dc6ca3cb6d5fd97ad1d8524032\"}], \"sentinel\": [{\"event_id\": \"a7929706-370d-4dfb-8eb8-05085d22606c\", \"request_key\": \"a4000000-0000-4000-8000-000000000001\"}], \"characters\": 0}, \"saved\": true}\n",
+      "stderr": "",
+      "seconds": 0.037
+    },
+    {
+      "phase": "08_RECOVERY_COMMIT",
+      "database": "combat_panel_rejection_reasons_001",
+      "user": "postgres",
+      "SQL_sha256": "3f025c45c511c5af2725d8de139beecd63c116dc05d60efcb2bbd4c27cf218b2",
+      "status": "PASS",
+      "exit_code": 0,
+      "stdout": "\n",
+      "stderr": "",
+      "seconds": 0.044
+    },
+    {
+      "phase": "09_postflight",
+      "database": "combat_panel_rejection_reasons_001",
+      "user": "postgres",
+      "SQL_sha256": "992f3adb2edb997b7c546b1632fed1671fc90aff619533eabbcae795f7dec57d",
+      "status": "PASS",
+      "exit_code": 0,
+      "stdout": "{\"cases\": 9, \"groups\": 4, \"passed\": 9, \"results\": [{\"passed\": true, \"case_id\": \"G1_full_install\", \"evidence\": {\"after_md5\": \"0ec7f7f1228b3f1afef03ad6323bf960\", \"full_INSTALL_COMMIT\": true, \"gateway_fail_owner_ACL_pins\": \"exact\"}, \"group_id\": \"G1\"}, {\"passed\": true, \"case_id\": \"G2_dispatch_rollback\", \"evidence\": {\"receipts\": 0, \"response\": {\"code\": \"selection_rejected\", \"status\": \"rejected\", \"message\": \"Il numero di copie o la disposizione non rispettano i limiti disponibili della Moltiplicazione.\", \"recovery\": \"refresh\", \"request_key\": \"a2000000-0000-4000-8000-000000000002\", \"schema_version\": \"combat-panel-error/1\"}, \"sentinel_rows\": 0}, \"group_id\": \"G2\"}, {\"passed\": true, \"case_id\": \"G2_native_validator\", \"evidence\": {\"response\": {\"code\": \"selection_rejected\", \"status\": \"rejected\", \"message\": \"La richiesta non ha il formato previsto. Riapri il pannello prima di inviare.\", \"recovery\": \"refresh\", \"request_key\": null, \"schema_version\": \"combat-panel-error/1\"}, \"sentinel_rows\": 0}, \"group_id\": \"G2\"}, {\"passed\": true, \"case_id\": \"G3_conflict\", \"evidence\": {\"receipts\": 0, \"response\": {\"code\": \"request_key_conflict\", \"status\": \"rejected\", \"message\": \"Questa richiesta è già associata a un altro invio. Verifica lo stato prima di continuare.\", \"recovery\": \"contact_staff\", \"request_key\": \"a3000000-0000-4000-8000-000000000004\", \"schema_version\": \"combat-panel-error/1\"}, \"sentinel_rows\": 0, \"provider_calls\": 0}, \"group_id\": \"G3\"}, {\"passed\": true, \"case_id\": \"G3_context\", \"evidence\": {\"receipts\": 0, \"response\": {\"code\": \"context_changed\", \"status\": \"rejected\", \"message\": \"Lo scontro è cambiato. Rileggi lo stato e scegli di nuovo.\", \"recovery\": \"refresh\", \"request_key\": \"a3000000-0000-4000-8000-000000000002\", \"schema_version\": \"combat-panel-error/1\"}, \"sentinel_rows\": 0, \"provider_calls\": 0}, \"group_id\": \"G3\"}, {\"passed\": true, \"case_id\": \"G3_pgrst\", \"evidence\": {\"receipts\": 0, \"response\": {\"code\": \"operation_rejected\", \"status\": \"rejected\", \"message\": \"Il server ha rifiutato l’operazione. Rileggi lo stato; se il problema resta, informa lo staff.\", \"recovery\": \"refresh\", \"request_key\": \"a3000000-0000-4000-8000-000000000003\", \"schema_version\": \"combat-panel-error/1\"}, \"sentinel_rows\": 0, \"provider_calls\": 0}, \"group_id\": \"G3\"}, {\"passed\": true, \"case_id\": \"G3_unknown\", \"evidence\": {\"receipts\": 0, \"response\": {\"code\": \"selection_rejected\", \"status\": \"rejected\", \"message\": \"Le scelte non sono più valide. Rileggi le opzioni.\", \"recovery\": \"refresh\", \"request_key\": \"a3000000-0000-4000-8000-000000000001\", \"schema_version\": \"combat-panel-error/1\"}, \"sentinel_rows\": 0, \"provider_calls\": 0}, \"group_id\": \"G3\"}, {\"passed\": true, \"case_id\": \"G4_recovery_preserves\", \"evidence\": {\"response\": {\"code\": \"selection_rejected\", \"status\": \"rejected\", \"message\": \"Le scelte non sono più valide. Rileggi le opzioni.\", \"recovery\": \"refresh\", \"request_key\": \"a4000000-0000-4000-8000-000000000002\", \"schema_version\": \"combat-panel-error/1\"}, \"characters\": 0, \"data_preserved\": true}, \"group_id\": \"G4\"}, {\"passed\": true, \"case_id\": \"G4_success_replay\", \"evidence\": {\"first\": {\"status\": \"accepted\", \"receipt\": {\"event_id\": \"a7929706-370d-4dfb-8eb8-05085d22606c\", \"replayed\": false, \"request_key\": \"a4000000-0000-4000-8000-000000000001\"}, \"schema_version\": \"qa-synthetic-boundary/1\"}, \"replay\": {\"status\": \"accepted\", \"receipt\": {\"event_id\": \"a7929706-370d-4dfb-8eb8-05085d22606c\", \"replayed\": true, \"request_key\": \"a4000000-0000-4000-8000-000000000001\"}, \"schema_version\": \"qa-synthetic-boundary/1\"}, \"effects\": 1, \"receipts\": 1, \"boundary_synthetic\": true}, \"group_id\": \"G4\"}], \"all_pass\": true, \"retained_data\": {\"offers\": [{\"id\": \"a1000000-0000-4000-8000-000000000004\", \"kind\": \"administration\", \"label\": \"Frontiera sintetica del banco\", \"state\": \"offered\", \"actor_id\": null, \"operation\": \"administration\", \"context_id\": \"a1000000-0000-4000-8000-000000000003\", \"created_at\": \"2026-09-10T05:02:21.480695+00:00\", \"requires_role\": false, \"scene_version\": 0, \"principal_user\": \"a1000000-0000-4000-8000-000000000001\", \"source_payload\": {\"adapter\": \"ordinary_v2\", \"qa_synthetic\": true}, \"context_version\": 1, \"source_fingerprint\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"consumed_request_key\": null}], \"receipts\": [{\"event_id\": \"a7929706-370d-4dfb-8eb8-05085d22606c\", \"offer_id\": \"a1000000-0000-4000-8000-000000000004\", \"created_at\": \"2026-09-10T05:02:21.653555+00:00\", \"request_key\": \"a4000000-0000-4000-8000-000000000001\", \"principal_user\": \"a1000000-0000-4000-8000-000000000001\", \"viewer_envelope\": {\"status\": \"accepted\", \"receipt\": {\"event_id\": \"a7929706-370d-4dfb-8eb8-05085d22606c\", \"replayed\": false, \"request_key\": \"a4000000-0000-4000-8000-000000000001\"}, \"schema_version\": \"qa-synthetic-boundary/1\"}, \"command_fingerprint\": \"b959e55bcfe767f4129d9c67f7ce63f8456c45dc6ca3cb6d5fd97ad1d8524032\"}], \"sentinel\": [{\"event_id\": \"a7929706-370d-4dfb-8eb8-05085d22606c\", \"request_key\": \"a4000000-0000-4000-8000-000000000001\"}], \"characters\": 0}}\n",
+      "stderr": "",
+      "seconds": 0.044
+    }
+  ],
+  "limits": [
+    "Complete real PostgreSQL gateway/validator/fail and native supporting access/routing bodies, but nominal local auth identity; no Supabase Auth/RLS/API verification",
+    "commit_ordinary is explicitly synthetic, no game logic/geometric validity/Assalto011 cause certified",
+    "Full native bootstrap retained with no historical migration rows or RNG/characters; no existing DB mutated"
+  ],
+  "environment": "EXACT_MATCH",
+  "environment_sha256": "883a7d319a08a975034b5159896e45be8486baf36ff8b83e0ffa1262c64ed16c",
+  "matrix": {
+    "cases": 9,
+    "groups": 4,
+    "passed": 9,
+    "results": [
+      {
+        "passed": true,
+        "case_id": "G1_full_install",
+        "evidence": {
+          "after_md5": "0ec7f7f1228b3f1afef03ad6323bf960",
+          "full_INSTALL_COMMIT": true,
+          "gateway_fail_owner_ACL_pins": "exact"
+        },
+        "group_id": "G1"
+      },
+      {
+        "passed": true,
+        "case_id": "G2_dispatch_rollback",
+        "evidence": {
+          "receipts": 0,
+          "response": {
+            "code": "selection_rejected",
+            "status": "rejected",
+            "message": "Il numero di copie o la disposizione non rispettano i limiti disponibili della Moltiplicazione.",
+            "recovery": "refresh",
+            "request_key": "a2000000-0000-4000-8000-000000000002",
+            "schema_version": "combat-panel-error/1"
+          },
+          "sentinel_rows": 0
+        },
+        "group_id": "G2"
+      },
+      {
+        "passed": true,
+        "case_id": "G2_native_validator",
+        "evidence": {
+          "response": {
+            "code": "selection_rejected",
+            "status": "rejected",
+            "message": "La richiesta non ha il formato previsto. Riapri il pannello prima di inviare.",
+            "recovery": "refresh",
+            "request_key": null,
+            "schema_version": "combat-panel-error/1"
+          },
+          "sentinel_rows": 0
+        },
+        "group_id": "G2"
+      },
+      {
+        "passed": true,
+        "case_id": "G3_conflict",
+        "evidence": {
+          "receipts": 0,
+          "response": {
+            "code": "request_key_conflict",
+            "status": "rejected",
+            "message": "Questa richiesta è già associata a un altro invio. Verifica lo stato prima di continuare.",
+            "recovery": "contact_staff",
+            "request_key": "a3000000-0000-4000-8000-000000000004",
+            "schema_version": "combat-panel-error/1"
+          },
+          "sentinel_rows": 0,
+          "provider_calls": 0
+        },
+        "group_id": "G3"
+      },
+      {
+        "passed": true,
+        "case_id": "G3_context",
+        "evidence": {
+          "receipts": 0,
+          "response": {
+            "code": "context_changed",
+            "status": "rejected",
+            "message": "Lo scontro è cambiato. Rileggi lo stato e scegli di nuovo.",
+            "recovery": "refresh",
+            "request_key": "a3000000-0000-4000-8000-000000000002",
+            "schema_version": "combat-panel-error/1"
+          },
+          "sentinel_rows": 0,
+          "provider_calls": 0
+        },
+        "group_id": "G3"
+      },
+      {
+        "passed": true,
+        "case_id": "G3_pgrst",
+        "evidence": {
+          "receipts": 0,
+          "response": {
+            "code": "operation_rejected",
+            "status": "rejected",
+            "message": "Il server ha rifiutato l’operazione. Rileggi lo stato; se il problema resta, informa lo staff.",
+            "recovery": "refresh",
+            "request_key": "a3000000-0000-4000-8000-000000000003",
+            "schema_version": "combat-panel-error/1"
+          },
+          "sentinel_rows": 0,
+          "provider_calls": 0
+        },
+        "group_id": "G3"
+      },
+      {
+        "passed": true,
+        "case_id": "G3_unknown",
+        "evidence": {
+          "receipts": 0,
+          "response": {
+            "code": "selection_rejected",
+            "status": "rejected",
+            "message": "Le scelte non sono più valide. Rileggi le opzioni.",
+            "recovery": "refresh",
+            "request_key": "a3000000-0000-4000-8000-000000000001",
+            "schema_version": "combat-panel-error/1"
+          },
+          "sentinel_rows": 0,
+          "provider_calls": 0
+        },
+        "group_id": "G3"
+      },
+      {
+        "passed": true,
+        "case_id": "G4_recovery_preserves",
+        "evidence": {
+          "response": {
+            "code": "selection_rejected",
+            "status": "rejected",
+            "message": "Le scelte non sono più valide. Rileggi le opzioni.",
+            "recovery": "refresh",
+            "request_key": "a4000000-0000-4000-8000-000000000002",
+            "schema_version": "combat-panel-error/1"
+          },
+          "characters": 0,
+          "data_preserved": true
+        },
+        "group_id": "G4"
+      },
+      {
+        "passed": true,
+        "case_id": "G4_success_replay",
+        "evidence": {
+          "first": {
+            "status": "accepted",
+            "receipt": {
+              "event_id": "a7929706-370d-4dfb-8eb8-05085d22606c",
+              "replayed": false,
+              "request_key": "a4000000-0000-4000-8000-000000000001"
+            },
+            "schema_version": "qa-synthetic-boundary/1"
+          },
+          "replay": {
+            "status": "accepted",
+            "receipt": {
+              "event_id": "a7929706-370d-4dfb-8eb8-05085d22606c",
+              "replayed": true,
+              "request_key": "a4000000-0000-4000-8000-000000000001"
+            },
+            "schema_version": "qa-synthetic-boundary/1"
+          },
+          "effects": 1,
+          "receipts": 1,
+          "boundary_synthetic": true
+        },
+        "group_id": "G4"
+      }
+    ],
+    "all_pass": true,
+    "retained_data": {
+      "offers": [
+        {
+          "id": "a1000000-0000-4000-8000-000000000004",
+          "kind": "administration",
+          "label": "Frontiera sintetica del banco",
+          "state": "offered",
+          "actor_id": null,
+          "operation": "administration",
+          "context_id": "a1000000-0000-4000-8000-000000000003",
+          "created_at": "2026-09-10T05:02:21.480695+00:00",
+          "requires_role": false,
+          "scene_version": 0,
+          "principal_user": "a1000000-0000-4000-8000-000000000001",
+          "source_payload": {
+            "adapter": "ordinary_v2",
+            "qa_synthetic": true
+          },
+          "context_version": 1,
+          "source_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "consumed_request_key": null
+        }
+      ],
+      "receipts": [
+        {
+          "event_id": "a7929706-370d-4dfb-8eb8-05085d22606c",
+          "offer_id": "a1000000-0000-4000-8000-000000000004",
+          "created_at": "2026-09-10T05:02:21.653555+00:00",
+          "request_key": "a4000000-0000-4000-8000-000000000001",
+          "principal_user": "a1000000-0000-4000-8000-000000000001",
+          "viewer_envelope": {
+            "status": "accepted",
+            "receipt": {
+              "event_id": "a7929706-370d-4dfb-8eb8-05085d22606c",
+              "replayed": false,
+              "request_key": "a4000000-0000-4000-8000-000000000001"
+            },
+            "schema_version": "qa-synthetic-boundary/1"
+          },
+          "command_fingerprint": "b959e55bcfe767f4129d9c67f7ce63f8456c45dc6ca3cb6d5fd97ad1d8524032"
+        }
+      ],
+      "sentinel": [
+        {
+          "event_id": "a7929706-370d-4dfb-8eb8-05085d22606c",
+          "request_key": "a4000000-0000-4000-8000-000000000001"
+        }
+      ],
+      "characters": 0
+    }
+  },
+  "elapsed_seconds": 1.649,
+  "container_and_database_preserved": true,
+  "retries": 0
+}

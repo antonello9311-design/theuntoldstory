@@ -1,0 +1,108 @@
+{
+  "task_id": "COMBAT-PANEL-REJECTION-REASONS-RELEASE-002",
+  "state": "APPLIED_VERIFIED_MESSAGES_ACTIVE_SMOKE_PENDING",
+  "authorization": "ROOT nominative single apply in Antonello mandate: all procedures necessary for Clan tests",
+  "project_id": "tyhyxkslteigibktluml",
+  "migration_name": "combat_panel_rejection_reasons002",
+  "migration_version": "20260910051050",
+  "apply_count": 1,
+  "readonly_queries": 1,
+  "retries": 0,
+  "recovery_calls": 0,
+  "provider_calls": 0,
+  "game_commands": 0,
+  "install": {
+    "path": "INSTALL.sql",
+    "bytes": 13710,
+    "sha256": "30ec1184eeadb0c708de330357c606f234108d6ca45ba9d284367b8b0f81963d",
+    "md5": "b40d8b60058ff3f677e8edd8fef8b4d1"
+  },
+  "raw_apply_response_saved_before_parsing": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"success\":true}"
+      }
+    ],
+    "isError": false
+  },
+  "raw_apply_response_sha256": "2009f43f81ed0e9275edcb44eea7c32e106a522483a98035b84c39e47b6aa694",
+  "postflight": {
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "config": [
+          "search_path=\"\""
+        ],
+        "proname": "combat_panel_commit_v1",
+        "owner_name": "postgres",
+        "volatility": "v",
+        "schema_name": "public",
+        "definition_md5": "0ec7f7f1228b3f1afef03ad6323bf960",
+        "security_definer": true,
+        "identity_arguments": "p_command jsonb"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "config": [
+          "search_path=\"\""
+        ],
+        "proname": "combat_v2_fail",
+        "owner_name": "postgres",
+        "volatility": "v",
+        "schema_name": "public",
+        "definition_md5": "607dec1f81b9b0c310c91585315803f6",
+        "security_definer": false,
+        "identity_arguments": "p_code text, p_message text, p_status integer, p_request_key uuid, p_details jsonb"
+      }
+    ],
+    "observed_at": "2026-09-10T05:11:11.785026+00:00",
+    "migration_receipts": [
+      {
+        "name": "combat_panel_rejection_reasons002",
+        "version": "20260910051050",
+        "statements_md5": "b40d8b60058ff3f677e8edd8fef8b4d1",
+        "statement_count": 1
+      }
+    ]
+  },
+  "postflight_query": "SELECT jsonb_build_object('observed_at',clock_timestamp(),'functions',coalesce((SELECT jsonb_agg(jsonb_build_object('schema_name',n.nspname,'proname',p.proname,'identity_arguments',pg_get_function_identity_arguments(p.oid),'definition_md5',md5(pg_get_functiondef(p.oid)),'owner_name',pg_get_userbyid(p.proowner),'acl',p.proacl::text,'security_definer',p.prosecdef,'volatility',p.provolatile,'config',p.proconfig) ORDER BY p.proname) FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace WHERE p.oid IN (to_regprocedure('public.combat_panel_commit_v1(jsonb)'),to_regprocedure('public.combat_v2_fail(text,text,integer,uuid,jsonb)'))),'[]'::jsonb),'migration_receipts',coalesce((SELECT jsonb_agg(jsonb_build_object('version',version,'name',name,'statement_count',cardinality(statements),'statements_md5',md5(array_to_string(statements,E'\\n'))) ORDER BY version) FROM supabase_migrations.schema_migrations WHERE name='combat_panel_rejection_reasons002'),'[]'::jsonb)) AS release_postflight;",
+  "postflight_query_sha256": "415603de09419d02eeab5787db94a52208482101df611932db9729e9d1c26d39",
+  "comparisons": [
+    {
+      "function": "combat_panel_commit_v1",
+      "expected_md5": "0ec7f7f1228b3f1afef03ad6323bf960",
+      "all_exact": true
+    },
+    {
+      "function": "combat_v2_fail",
+      "expected_md5": "607dec1f81b9b0c310c91585315803f6",
+      "all_exact": true
+    }
+  ],
+  "migration_statement_matches_full_frozen_INSTALL": true,
+  "effect": "Only public rejection messages, immediate for calls to existing shared function; not inert",
+  "unchanged": [
+    "function signature/owner/ACL/security_definer/search_path",
+    "API schema/code/request_key/recovery",
+    "authority/authentication checks",
+    "dispatch and rollback",
+    "combat_v2_fail body and permissions"
+  ],
+  "limits": [
+    "No Auth/RLS/API/UI smoke in this release",
+    "No claim that Assalto011 cause is solved",
+    "Test Room users legacy parity remains open",
+    "Smoke012 assigned separately; no new game command or provider call here"
+  ],
+  "sources": {
+    "INSTALL.sql": "30ec1184eeadb0c708de330357c606f234108d6ca45ba9d284367b8b0f81963d",
+    "RECOVERY.sql": "3f025c45c511c5af2725d8de139beecd63c116dc05d60efcb2bbd4c27cf218b2",
+    "COUNTERCHECK002.md": "0a9bf11a5b15094eb1d2a18e6c508a68ffa08af639f6177f7912675c6fb8aacb",
+    "COUNTERCHECK002_MANIFEST.json": "8b93ad8f2fc5322feacbd7dde0440db90ff25123107d42c0d4ace57ddb9dbc95",
+    "QA_RESULT.json": "b2062495196152c8d8710a80d35dd9e5629bbddb8ed7929f008239df90ca980e",
+    "QA_MANIFEST.json": "f88ec680ae2e2ef315884d835bdc238b27cf20dff9ee9048ece86a4b6f241af2",
+    "RELEASE_PLAN.md": "e1867a1519789006026dc220bdd141ec04910e6cbc3e239165cd1ac8db927b5f",
+    "RELEASE_PREFLIGHT.json": "24e3e304cd3de79167eed8017e5da24700d0fa59d60e5c15626599f3de2bbc06"
+  }
+}
