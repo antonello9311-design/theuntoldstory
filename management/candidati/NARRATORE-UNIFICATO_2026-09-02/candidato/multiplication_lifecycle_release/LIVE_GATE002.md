@@ -1,0 +1,11 @@
+# NARRATIVE-MULTIPLICATION-LIFECYCLE-LIVE-002 · applicata, metadati verificati, smoke UI pendente
+
+Antonello autorizza le procedure necessarie ai collaudi e alle correzioni Clan/IA; PM nomina un solo apply `narrative_multiplication_lifecycle_002`. INSTALL SHA ecd7ce67784038690790e3490f734cfd51bf3d54418e18ba912abfa2e3b73678. Solo la helper privata narrative_tech_sources_v1; nessun enable pubblico, modifica Edge/prompt, account, sessione o dato di gioco.
+
+Prerequisiti completati: review finale0020/0/0; helper invariata dalla componente0014/4; nuova guardia12/12osservazioni e wrapper002 completi COMMIT/recovery in8SQL,0,684s,0provider. Distinti i limiti del predicato tipizzato e dei wrapper su schema vuoto: non sono Auth/API/UI/concorrenza o provider. Sei semantiche native della scadenza confermate e pinzate.
+
+Preflight02:41:53UTC10/09:24/24pin BEFORE esatti, QUIET002 libero,18claim/13snapshot,scenaattesa presente,migrazioneassente. Claimlegacy non toccato, digest92467e9ce07e129b871b23fc6b141b75. La guardia campiona il tempo dopo i lock e ripete tutti i pin nella transazione; qualunque attempt/risultato sul claim scaduto mantiene il blocco.
+
+Un solo apply previsto; postflight separato su24pinAFTER,cardinalità,claimlegacyimmutato e registro. In caso risposta incerta leggere stato senza ripetere l’apply. Recovery soltanto prima di una nuova conclusione persistita, gate nominativo distinto; dopo uso correzione in avanti e storico conservato. Eventuale terza readonly verifica soltanto la proiezioneSTABLE delcaso006, senza riscrivere snapshot/Fato o chiamare il provider. Nuovo collaudo UI resta distinto; Safari cardCommon è ricomparsa spontaneamente,007 restaNOTRUN.
+
+Esito: singolo apply riuscito, migrazione20260910024243. Postflight02:42:58UTC24/24pinAFTEResatti,18claim/13snapshot eclaimlegacydigest92467e9ce07e129b871b23fc6b141b75 invariati. Recoverylive noneseguita. Terza readonly sulcaso006 rifiutata42501 narrative_tech_staff_scope_required dalla guardia preesistente invariata; nessuna proiezione restituita,nessunprovider/snapshotriscritto,retry o bypass. Non attribuita la clausola precisa: il perimetro corrente attività/round/policy/attori deve essere verificato nel percorso nativoUI. Tre letture totali conunrifiuto,0comandigioco/provider.

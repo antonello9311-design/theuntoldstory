@@ -1,0 +1,1833 @@
+{
+  "schema_version": "multiplication-lifecycle-baseline/1",
+  "collected_at": "2026-09-10",
+  "source_queries": 4,
+  "diagnostic_queries_separate": 2,
+  "functions": [
+    {
+      "schema": "combat_consumer_private",
+      "proname": "narrative_tech_sources_v1",
+      "identity": "combat_consumer_private.narrative_tech_sources_v1(uuid)",
+      "identity_args": "p_claim uuid",
+      "definition": "CREATE OR REPLACE FUNCTION combat_consumer_private.narrative_tech_sources_v1(p_claim uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE claim combat_consumer_private.narrative_claims%ROWTYPE;\n  unit public.combat_v2_rounds%ROWTYPE; ref record; event record; content jsonb;\n  sources jsonb:='[]'; endings jsonb:='[]'; native_id uuid; source_kind text;\nBEGIN\n SELECT * INTO STRICT claim FROM combat_consumer_private.narrative_claims WHERE id=p_claim;\n SELECT * INTO STRICT unit FROM public.combat_v2_rounds WHERE id=claim.round_id;\n IF unit.session_id IS DISTINCT FROM claim.session_id OR claim.context_payload->>'ordinary' IS DISTINCT FROM 'true'\n   OR claim.context_payload->>'genere' IS DISTINCT FROM 'azione_risolta' THEN\n   RAISE EXCEPTION 'narrative_tech_scope_invalid' USING ERRCODE='22023';\n END IF;\n IF NOT EXISTS(SELECT 1 FROM combat_consumer_private.activities staff_activity\n      JOIN public.combat_v2_sessions staff_session ON staff_session.id=staff_activity.session_id\n      JOIN public.locations staff_location ON staff_location.id=staff_activity.location_id\n      WHERE staff_activity.session_id=claim.session_id AND staff_activity.exchange_id=claim.round_id\n        AND staff_activity.phase='resolved' AND staff_activity.policy_id='staff_test_no_persistent_resources_v1'\n        AND staff_session.source_kind='ordinary' AND staff_session.location_id=staff_activity.location_id\n        AND staff_location.is_test AND NOT public.combat_v2_values_written(staff_session.id)\n        AND combat_consumer_private.staff_test_allowed(staff_location.id,\n          (SELECT array_agg(actor.controller_user ORDER BY actor.id)\n           FROM combat_consumer_private.members member JOIN public.combat_v2_actors actor\n             ON actor.id=member.actor_id AND actor.session_id=member.session_id\n             AND actor.character_id=member.character_id\n           WHERE member.session_id=claim.session_id),false)) THEN\n   RAISE EXCEPTION 'narrative_tech_staff_scope_required' USING ERRCODE='42501';\n END IF;\n -- Native rows certify use: no role-text/name lookup, no inventory scan.\n FOR ref IN\n  SELECT DISTINCT x.catalog,x.actor_id FROM (\n   SELECT 'clan_techniques'::text catalog,d.actor_id\n    FROM public.combat_v2_declarations d\n    WHERE d.round_id=claim.round_id AND d.state='risolta'\n      AND d.outcome->'sabaku_clone'->>'schema_version'='sabaku-clone/1'\n      AND d.kind='utilita'\n   UNION\n   SELECT 'clan_techniques',c.actor_id FROM clan_sabaku_private.clone_captures cc\n    JOIN clan_sabaku_private.clones c ON c.id=cc.clone_id\n    WHERE cc.round_id=claim.round_id AND c.session_id=claim.session_id\n   UNION\n   SELECT 'jutsu',f.actor_id FROM combat_panel_private.multiplication_formations f\n    JOIN public.combat_v2_declarations d ON d.id=f.declaration_id\n    WHERE f.session_id=claim.session_id AND d.round_id=claim.round_id AND d.state='risolta'\n   UNION\n   SELECT 'jutsu',f.actor_id FROM combat_panel_private.multiplication_resolutions mr\n    JOIN combat_panel_private.multiplication_formations f ON f.id=mr.formation_id\n    JOIN public.combat_v2_attack_targets t ON t.id=mr.attack_target_id\n    JOIN public.combat_v2_declarations d ON d.id=t.attack_declaration_id\n    WHERE f.session_id=claim.session_id AND d.round_id=claim.round_id AND d.state='risolta'\n      AND t.state IN('risolta','superflua')\n   UNION\n   SELECT 'jutsu',f.actor_id FROM clan_sabaku_private.clone_captures cc\n    JOIN combat_panel_private.multiplication_formations f ON f.id=cc.formation_id\n    WHERE cc.round_id=claim.round_id AND f.session_id=claim.session_id\n  ) x ORDER BY x.catalog,x.actor_id\n LOOP\n  IF NOT EXISTS(SELECT 1 FROM combat_consumer_private.members m\n    WHERE m.session_id=claim.session_id AND m.actor_id=ref.actor_id) THEN\n   RAISE EXCEPTION 'narrative_tech_actor_not_in_scene' USING ERRCODE='22023';\n  END IF;\n  IF ref.catalog='clan_techniques' THEN\n   native_id:='617484d6-af7b-41c3-a37f-615b22818421';\n   SELECT jsonb_build_object('id',id,'name',name,'description',description,'danno_effetto',danno_effetto)\n     INTO STRICT content FROM public.clan_techniques WHERE id=native_id;\n  ELSE\n   native_id:='c6e31b7b-38fe-4b4f-b3c7-05f3e922d193';\n   SELECT jsonb_build_object('id',id,'name_it',name_it,'effect',effect,'limits',limits)\n     INTO STRICT content FROM public.jutsu WHERE id=native_id;\n  END IF;\n  sources:=sources||jsonb_build_array(jsonb_build_object('catalog',ref.catalog,'technique_id',native_id,\n    'actor_id',ref.actor_id,'mapping_version','ordinary-tech/1','source_sha256',\n    encode(extensions.digest(convert_to(content::text,'UTF8'),'sha256'),'hex'),'content',content));\n END LOOP;\n -- Terminal event only when the native capture and native terminal state agree.\n -- No original index, figures, coordinates, dice, private stats, or inference from damage.\n FOR event IN\n  SELECT cc.id,cc.copy_hit,cc.result,c.actor_id,c.state,c.end_reason,c.ended_at,cc.created_at\n  FROM clan_sabaku_private.clone_captures cc JOIN clan_sabaku_private.clones c ON c.id=cc.clone_id\n  WHERE cc.round_id=claim.round_id AND c.session_id=claim.session_id\n  ORDER BY cc.created_at,cc.id\n LOOP\n  IF event.result->>'schema_version' IS DISTINCT FROM 'sabaku-clone-capture/1'\n    OR event.result->'copy_hit' IS DISTINCT FROM to_jsonb(event.copy_hit)\n    OR jsonb_typeof(event.result->'success') IS DISTINCT FROM 'boolean' THEN\n   RAISE EXCEPTION 'narrative_tech_capture_invalid' USING ERRCODE='22023';\n  END IF;\n  IF event.result->'success'='false'::jsonb THEN\n   IF event.state IS DISTINCT FROM 'ended' OR event.ended_at IS NULL\n    OR event.ended_at<event.created_at\n    OR event.end_reason IS DISTINCT FROM (CASE WHEN event.copy_hit THEN 'copy_triggered' ELSE 'capture_failed' END) THEN\n    RAISE EXCEPTION 'narrative_tech_terminal_event_missing' USING ERRCODE='22023';\n   END IF;\n   endings:=endings||jsonb_build_array(jsonb_build_object('tecnica','Clone di Sabbia','actor_id',event.actor_id,\n      'stato','terminato','causa',event.end_reason));\n  END IF;\n END LOOP;\n RETURN jsonb_build_object('fonti_tecniche',sources,'conclusioni_effetti_server',endings);\nEND $function$\n",
+      "md5": "955228bdc23c89cdb287198db57231b8",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "s"
+    },
+    {
+      "schema": "combat_consumer_private",
+      "proname": "scene_snapshot_v2",
+      "identity": "combat_consumer_private.scene_snapshot_v2(uuid)",
+      "identity_args": "p_claim uuid",
+      "definition": "CREATE OR REPLACE FUNCTION combat_consumer_private.scene_snapshot_v2(p_claim uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE c combat_consumer_private.narrative_claims%ROWTYPE;\n  activity combat_consumer_private.activities%ROWTYPE; row record; snap jsonb; candidate jsonb;\n  actors jsonb; actions jsonb:='[]'; sources jsonb:='[]'; role_count integer:=0;\n  prior_count integer:=0; included integer:=0; current_round integer; place public.locations%ROWTYPE;\n  body_sha text; facts jsonb;\nBEGIN\n  SELECT * INTO STRICT c FROM combat_consumer_private.narrative_claims WHERE id=p_claim;\n  SELECT * INTO STRICT activity FROM combat_consumer_private.activities WHERE session_id=c.session_id;\n  SELECT round_no INTO STRICT current_round FROM public.combat_v2_rounds WHERE id=c.round_id;\n  SELECT * INTO STRICT place FROM public.locations WHERE id=activity.location_id;\n  IF c.context_payload->>'genere' NOT IN('confronto','rinuncia','azione_risolta') THEN RAISE EXCEPTION 'scene_kind_unsupported'; END IF;\n  SELECT jsonb_agg(jsonb_build_object('id',m.actor_id,'name',ch.name,'kind','PG','persona',null,'may_speak',false) ORDER BY m.actor_id)\n    INTO actors FROM combat_consumer_private.members m JOIN public.characters ch ON ch.id=m.character_id\n    WHERE m.session_id=c.session_id;\n  IF jsonb_array_length(actors) IS DISTINCT FROM 2 THEN RAISE EXCEPTION 'scene_current_consumer_roster_unsupported'; END IF;\n  -- La descrizione del luogo è ambientazione pubblica. Event_note esclusa: nessuna nuova policy implicita.\n  IF nullif(btrim(place.description),'') IS NOT NULL THEN\n    sources:=sources||jsonb_build_array(jsonb_build_object('id','location:'||place.id,'session_id',c.session_id,\n      'round_id',c.round_id,'kind','setting','actor_id',null,'sequence',current_round,'body',place.description,\n      'sha256',encode(extensions.digest(convert_to(place.description,'UTF8'),'sha256'),'hex'),'visibility','public','complete',true));\n  END IF;\n  FOR row IN\n    SELECT d.id,d.actor_id,d.kind,m.id message_id,m.body,m.location_id,m.character_id,l.message_sha256,mem.character_id expected_character\n    FROM public.combat_v2_declarations d\n    JOIN combat_consumer_private.members mem ON mem.actor_id=d.actor_id AND mem.session_id=c.session_id\n    LEFT JOIN combat_consumer_private.declaration_messages l ON l.declaration_id=d.id\n    LEFT JOIN public.messages m ON m.id=l.message_id\n    WHERE d.round_id=c.round_id AND d.kind IN('attacco','utilita','passa','movimento','difesa','nessuna')\n    ORDER BY CASE WHEN d.kind IN('difesa','nessuna') THEN 1 ELSE 0 END,d.id\n  LOOP\n    IF row.message_id IS NULL OR row.location_id IS DISTINCT FROM activity.location_id\n      OR row.character_id IS DISTINCT FROM row.expected_character OR nullif(btrim(row.body),'') IS NULL\n      OR public._combat_narrative_sha(row.message_id) IS DISTINCT FROM row.message_sha256 THEN RAISE EXCEPTION 'scene_current_source_invalid'; END IF;\n    role_count:=role_count+1;\n    actions:=actions||jsonb_build_array(jsonb_build_object('actor_id',row.actor_id,\n      'role',CASE WHEN row.kind IN('difesa','nessuna') THEN 'difesa' ELSE 'azione' END,'source_id',row.message_id));\n    body_sha:=encode(extensions.digest(convert_to(row.body,'UTF8'),'sha256'),'hex');\n    sources:=sources||jsonb_build_array(jsonb_build_object('id',row.message_id,'session_id',c.session_id,'round_id',c.round_id,\n      'kind','role','actor_id',row.actor_id,'sequence',current_round,'body',row.body,'sha256',body_sha,'visibility','public','complete',true));\n  END LOOP;\n  IF role_count<>(CASE WHEN c.context_payload->>'genere'='confronto' OR c.context_payload->>'reazione' IS NOT NULL THEN 2 ELSE 1 END) THEN\n    RAISE EXCEPTION 'scene_current_actions_incomplete'; END IF;\n  -- Proiezione narrativa già prodotta dal server: nessuna lettura di mechanics_snapshot o ricalcolo.\n  facts:=c.context_payload-ARRAY['player_reports','gia_visto','ordinary','model'];\n  IF c.context_payload->>'ordinary'='true' AND c.context_payload->>'genere'='azione_risolta'\n    AND EXISTS(SELECT 1 FROM combat_consumer_private.activities staff_activity\n      JOIN public.combat_v2_sessions staff_session ON staff_session.id=staff_activity.session_id\n      JOIN public.locations staff_location ON staff_location.id=staff_activity.location_id\n      WHERE staff_activity.session_id=c.session_id AND staff_activity.exchange_id=c.round_id\n        AND staff_activity.phase='resolved' AND staff_activity.policy_id='staff_test_no_persistent_resources_v1'\n        AND staff_session.source_kind='ordinary' AND staff_session.location_id=staff_activity.location_id\n        AND staff_location.is_test AND NOT public.combat_v2_values_written(staff_session.id)\n        AND combat_consumer_private.staff_test_allowed(staff_location.id,\n          (SELECT array_agg(actor.controller_user ORDER BY actor.id)\n           FROM combat_consumer_private.members member JOIN public.combat_v2_actors actor\n             ON actor.id=member.actor_id AND actor.session_id=member.session_id\n             AND actor.character_id=member.character_id\n           WHERE member.session_id=c.session_id),false)) THEN\n    facts:=facts||combat_consumer_private.narrative_tech_sources_v1(c.id);\n  END IF;\n  SELECT count(*) INTO prior_count FROM public.combat_v2_narratives n JOIN public.combat_v2_rounds r ON r.id=n.round_id\n    WHERE r.session_id=c.session_id AND r.round_no<current_round AND r.state='narrato';\n  snap:=jsonb_build_object('schema_version','combat-scene/1','session_id',c.session_id,'round_id',c.round_id,\n    'report_sha256',c.report_sha256,'control_version',c.control_version,'location',place.name,\n    'actors',actors,'actions',actions,'resolved_facts',facts::text,'sources',sources,\n    'selection',jsonb_build_object('max_input_bytes',49152,'previous_available',prior_count,'previous_included',0));\n  IF octet_length(snap::text)>49152 THEN RAISE EXCEPTION 'scene_required_context_overflow'; END IF;\n  FOR row IN SELECT n.id,n.round_id,n.body,r.round_no FROM public.combat_v2_narratives n\n    JOIN public.combat_v2_rounds r ON r.id=n.round_id WHERE r.session_id=c.session_id AND r.round_no<current_round\n    AND r.state='narrato' ORDER BY r.round_no DESC,n.id\n  LOOP\n    candidate:=jsonb_set(snap,'{sources}',(snap->'sources')||jsonb_build_array(jsonb_build_object('id',row.id,\n      'session_id',c.session_id,'round_id',row.round_id,'kind','fato','actor_id',null,'sequence',row.round_no,'body',row.body,\n      'sha256',encode(extensions.digest(convert_to(row.body,'UTF8'),'sha256'),'hex'),'visibility','public','complete',true)));\n    candidate:=jsonb_set(candidate,'{selection,previous_included}',to_jsonb(included+1));\n    EXIT WHEN octet_length(candidate::text)>49152;\n    included:=included+1; snap:=candidate;\n  END LOOP;\n  RETURN snap;\nEND $function$\n",
+      "md5": "a417e6a98201a2177cb8c244a736bb3c",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "s"
+    },
+    {
+      "schema": "combat_panel_private",
+      "proname": "multiplication_attack_finish",
+      "identity": "combat_panel_private.multiplication_attack_finish(uuid)",
+      "identity_args": "p_target uuid",
+      "md5": "f60b492d859826ab5ecec533d2e55c24",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "v",
+      "source_definition_sha256": "acb73d8afd9cd9f4c21fd2c4796205ab92b63cd12cf14535ddde1a1739c9039c",
+      "source_evidence_lines": [
+        {
+          "line": 1,
+          "text": "CREATE OR REPLACE FUNCTION combat_panel_private.multiplication_attack_finish(p_target uuid)"
+        },
+        {
+          "line": 2,
+          "text": " RETURNS void"
+        },
+        {
+          "line": 3,
+          "text": " LANGUAGE plpgsql"
+        },
+        {
+          "line": 4,
+          "text": " SECURITY DEFINER"
+        },
+        {
+          "line": 5,
+          "text": " SET search_path TO ''"
+        },
+        {
+          "line": 12,
+          "text": "   JOIN public.combat_v2_declarations d ON d.id=t.attack_declaration_id"
+        },
+        {
+          "line": 13,
+          "text": "   WHERE r.attack_target_id=p_target ORDER BY r.formation_id LOOP"
+        },
+        {
+          "line": 14,
+          "text": "   PERFORM combat_panel_private.multiplication_finish(f.formation_id,"
+        },
+        {
+          "line": 15,
+          "text": "     CASE WHEN f.mode='assalto' AND f.declaration_id=f.attack_id AND f.actor_id=f.attacker_id"
+        },
+        {
+          "line": 16,
+          "text": "       THEN 'assault_resolved' ELSE 'first_attack' END);"
+        },
+        {
+          "line": 17,
+          "text": " END LOOP;"
+        },
+        {
+          "line": 18,
+          "text": "END $function$"
+        }
+      ],
+      "role_in_baseline": "Provenienza/pin dei writer; non invocato dalla proiezione né richiesto come motore completo nel banco componente."
+    },
+    {
+      "schema": "combat_panel_private",
+      "proname": "multiplication_finish",
+      "identity": "combat_panel_private.multiplication_finish(uuid,text)",
+      "identity_args": "p_formation uuid, p_reason text",
+      "md5": "37bcebd323ebc8efaf063e528447865f",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "v",
+      "source_definition_sha256": "673adee4fcbe8fea4703684ef1fb7764d311dedeb6ef0e63f73ec49e751a537b",
+      "source_evidence_lines": [
+        {
+          "line": 1,
+          "text": "CREATE OR REPLACE FUNCTION combat_panel_private.multiplication_finish(p_formation uuid, p_reason text)"
+        },
+        {
+          "line": 2,
+          "text": " RETURNS boolean"
+        },
+        {
+          "line": 3,
+          "text": " LANGUAGE plpgsql"
+        },
+        {
+          "line": 4,
+          "text": " SECURITY DEFINER"
+        },
+        {
+          "line": 5,
+          "text": " SET search_path TO ''"
+        },
+        {
+          "line": 8,
+          "text": "BEGIN"
+        },
+        {
+          "line": 9,
+          "text": " IF p_reason IS NULL OR p_reason NOT IN ('first_attack','assault_resolved','owner_next_action','owner_inoperative','combat_end','formation_invalid') THEN"
+        },
+        {
+          "line": 10,
+          "text": "   RAISE EXCEPTION 'panel_multiplication_finish_reason_invalid' USING ERRCODE='22023'; END IF;"
+        },
+        {
+          "line": 11,
+          "text": " SELECT * INTO STRICT f FROM combat_panel_private.multiplication_formations WHERE id=p_formation FOR UPDATE;"
+        },
+        {
+          "line": 12,
+          "text": " IF f.state<>'active' THEN RETURN false; END IF;"
+        },
+        {
+          "line": 13,
+          "text": " IF p_reason='assault_resolved' AND f.mode<>'assalto' THEN"
+        },
+        {
+          "line": 14,
+          "text": "   RAISE EXCEPTION 'panel_multiplication_mode_mismatch' USING ERRCODE='22023'; END IF;"
+        },
+        {
+          "line": 15,
+          "text": " UPDATE combat_panel_private.multiplication_formations SET"
+        },
+        {
+          "line": 16,
+          "text": "   state=CASE WHEN p_reason IN ('first_attack','assault_resolved') THEN 'consumed' ELSE 'expired' END,"
+        },
+        {
+          "line": 17,
+          "text": "   state_version=state_version+1,terminal_reason=p_reason,ended_at=clock_timestamp() WHERE id=f.id;"
+        },
+        {
+          "line": 18,
+          "text": " RETURN true;"
+        },
+        {
+          "line": 19,
+          "text": "END $function$"
+        }
+      ],
+      "role_in_baseline": "Provenienza/pin dei writer; non invocato dalla proiezione né richiesto come motore completo nel banco componente."
+    },
+    {
+      "schema": "combat_panel_private",
+      "proname": "multiplication_resolve_choice",
+      "identity": "combat_panel_private.multiplication_resolve_choice(uuid,uuid)",
+      "identity_args": "p_formation uuid, p_target uuid",
+      "md5": "a714486e7aa9d72dd447c928e2dbd6c4",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "v",
+      "source_definition_sha256": "2e7e32c245807f56069c94b5b785ee88f4c91aa8668764855a6b278c2a606a35",
+      "source_evidence_lines": [
+        {
+          "line": 46,
+          "text": "   idx:=combat_panel_private.multiplication_random_figure(f.copy_count+1,seed); how:='server_random';"
+        },
+        {
+          "line": 47,
+          "text": " END IF;"
+        },
+        {
+          "line": 48,
+          "text": " result:=CASE WHEN idx=f.original_index THEN 'original_found' ELSE 'copy_hit' END;"
+        },
+        {
+          "line": 49,
+          "text": " facts:=jsonb_build_object('schema_version','combat-multiplication-resolution/1',"
+        },
+        {
+          "line": 50,
+          "text": "   'formation_id',f.id,'attack_target_id',t.id,'mode',f.mode,'selected_index',idx,'choice_kind',how,'outcome',result,"
+        },
+        {
+          "line": 51,
+          "text": "   'rng_commitment',CASE WHEN seed IS NULL THEN NULL ELSE encode(extensions.digest(seed,'sha256'),'hex') END);"
+        },
+        {
+          "line": 52,
+          "text": " INSERT INTO combat_panel_private.multiplication_resolutions(formation_id,attack_target_id,chooser_actor_id,selected_index,choice_kind,outcome,rng_seed,facts,receipt_sha256)"
+        },
+        {
+          "line": 53,
+          "text": "   VALUES(f.id,t.id,a.id,idx,how,result,seed,facts,public.combat_v2_sha256(facts));"
+        },
+        {
+          "line": 54,
+          "text": " -- Il resolver applica questi fatti e termina la formazione nella stessa"
+        },
+        {
+          "line": 55,
+          "text": " -- transazione. Qui non si alterano difese, danni o dichiarazioni gia inviate."
+        },
+        {
+          "line": 56,
+          "text": " RETURN facts;"
+        }
+      ],
+      "role_in_baseline": "Provenienza/pin dei writer; non invocato dalla proiezione né richiesto come motore completo nel banco componente."
+    },
+    {
+      "schema": "combat_panel_private",
+      "proname": "multiplication_selection_immutable",
+      "identity": "combat_panel_private.multiplication_selection_immutable()",
+      "identity_args": "",
+      "md5": "245f77354bd850b318831f2a2a04bac3",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": false,
+      "provolatile": "v",
+      "source_definition_sha256": "5e6ca8a7a89ef9a1268dc450508f1742a9caa201aeaf3fb63d093fe83c181771",
+      "source_evidence_lines": [],
+      "role_in_baseline": "Provenienza/pin dei writer; non invocato dalla proiezione né richiesto come motore completo nel banco componente."
+    },
+    {
+      "schema": "combat_panel_private",
+      "proname": "multiplication_state_guard",
+      "identity": "combat_panel_private.multiplication_state_guard()",
+      "identity_args": "",
+      "md5": "f4729b355136bab6528798b8f12911f8",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "v",
+      "source_definition_sha256": "ffedce05035081cd6d4c50659ded2071cb7cdb520f13884ac9a2c16bc2657374",
+      "source_evidence_lines": [
+        {
+          "line": 11,
+          "text": "     IS DISTINCT FROM (to_jsonb(OLD)-ARRAY['state','state_version','terminal_reason','ended_at']) THEN"
+        },
+        {
+          "line": 12,
+          "text": "     RAISE EXCEPTION 'panel_multiplication_identity_immutable' USING ERRCODE='22023'; END IF;"
+        },
+        {
+          "line": 13,
+          "text": "   IF OLD.state<>'active' OR NEW.state='active' OR NEW.state_version<>OLD.state_version+1 THEN"
+        },
+        {
+          "line": 14,
+          "text": "     RAISE EXCEPTION 'panel_multiplication_terminal_invalid' USING ERRCODE='40001'; END IF;"
+        },
+        {
+          "line": 15,
+          "text": "   RETURN NEW;"
+        },
+        {
+          "line": 16,
+          "text": " END IF;"
+        },
+        {
+          "line": 17,
+          "text": " IF NEW.state<>'active' OR NEW.state_version<>1 OR NOT EXISTS("
+        },
+        {
+          "line": 18,
+          "text": "   SELECT 1 FROM public.combat_v2_declarations d"
+        },
+        {
+          "line": 19,
+          "text": "   JOIN public.combat_v2_rounds r ON r.id=d.round_id"
+        },
+        {
+          "line": 20,
+          "text": "   JOIN public.combat_v2_actors a ON a.id=d.actor_id AND a.session_id=r.session_id"
+        },
+        {
+          "line": 21,
+          "text": "   JOIN combat_spatial.arena_instances i ON i.instance_id=NEW.instance_id AND i.encounter_id=r.session_id AND i.state='open'"
+        }
+      ],
+      "role_in_baseline": "Provenienza/pin dei writer; non invocato dalla proiezione né richiesto come motore completo nel banco componente."
+    },
+    {
+      "schema": "public",
+      "proname": "combat_v2_sha256",
+      "identity": "combat_v2_sha256(jsonb)",
+      "identity_args": "p_value jsonb",
+      "definition": "CREATE OR REPLACE FUNCTION public.combat_v2_sha256(p_value jsonb)\n RETURNS text\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO ''\nAS $function$\n  select encode(extensions.digest(convert_to(coalesce(p_value,'null'::jsonb)::text,'UTF8'),'sha256'),'hex')\n$function$\n",
+      "md5": "4dc3868f16311c1fffdb3d6b2fd733ce",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": false,
+      "provolatile": "i"
+    },
+    {
+      "schema": "combat_panel_private",
+      "proname": "multiplication_assault_end",
+      "identity": "combat_panel_private.multiplication_assault_end()",
+      "identity_args": "",
+      "md5": "16ac1cebd0b314a09d07f8e93e764104",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "v",
+      "source_definition_sha256": "17b1c7607be769d3294153542d52371f0b9677aa7b0152e0f6fcf1fdeb236522",
+      "source_evidence_lines": [
+        {
+          "line": 7,
+          "text": "DECLARE fid uuid;"
+        },
+        {
+          "line": 8,
+          "text": "BEGIN"
+        },
+        {
+          "line": 9,
+          "text": " IF NEW.state IN ('risolta','superflua') AND OLD.state IS DISTINCT FROM NEW.state THEN"
+        },
+        {
+          "line": 10,
+          "text": "   FOR fid IN SELECT id FROM combat_panel_private.multiplication_formations"
+        },
+        {
+          "line": 11,
+          "text": "     WHERE declaration_id=NEW.id AND mode='assalto' AND state='active' ORDER BY id LOOP"
+        },
+        {
+          "line": 12,
+          "text": "     PERFORM combat_panel_private.multiplication_finish(fid,'assault_resolved');"
+        },
+        {
+          "line": 13,
+          "text": "   END LOOP;"
+        },
+        {
+          "line": 14,
+          "text": " END IF;"
+        },
+        {
+          "line": 15,
+          "text": " RETURN NEW;"
+        },
+        {
+          "line": 16,
+          "text": "END $function$"
+        }
+      ],
+      "role_in_baseline": "Provenienza/pin dei writer; non invocato dalla proiezione né richiesto come motore completo nel banco componente."
+    },
+    {
+      "schema": "combat_v2_multitarget_internal",
+      "proname": "resolve_parent",
+      "identity": "combat_v2_multitarget_internal.resolve_parent(uuid,uuid,uuid,boolean)",
+      "identity_args": "p_session uuid, p_round uuid, p_attack uuid, p_values boolean",
+      "md5": "ecca3d1eb3f65c5bf5badb76899181a1",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "v",
+      "source_definition_sha256": "e45f068f358943267bfd99cb136c73b3c11efd5a23c279990a458cb8f902f236",
+      "source_evidence_lines": [
+        {
+          "line": 71,
+          "text": "    END IF;"
+        },
+        {
+          "line": 72,
+          "text": "    receipt:=combat_v2_multitarget_internal.sha(child_outcome);"
+        },
+        {
+          "line": 73,
+          "text": "   update public.combat_v2_attack_targets set state='risolta',outcome=child_outcome,rng_receipt_sha256=receipt where id=t.id;"
+        },
+        {
+          "line": 74,
+          "text": "  end if;"
+        },
+        {
+          "line": 75,
+          "text": "  PERFORM combat_panel_private.multiplication_attack_finish(t.id);"
+        },
+        {
+          "line": 76,
+          "text": "   update public.combat_v2_defense_coverages set state='risolta'where id=c.id;"
+        },
+        {
+          "line": 77,
+          "text": "  children:=children||jsonb_build_array(child_outcome);"
+        },
+        {
+          "line": 78,
+          "text": " end loop;"
+        },
+        {
+          "line": 79,
+          "text": " update public.combat_v2_declarations dd set state='risolta',outcome=jsonb_build_object("
+        }
+      ],
+      "role_in_baseline": "Provenienza/pin dei writer; non invocato dalla proiezione né richiesto come motore completo nel banco componente."
+    },
+    {
+      "schema": "public",
+      "proname": "combat_v2_round_resolve",
+      "identity": "combat_v2_round_resolve(uuid,uuid)",
+      "identity_args": "p_round uuid, p_request_key uuid",
+      "md5": "ade52361f248f3e09a85825ac501d503",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "v",
+      "source_definition_sha256": "a01d434b59063025d3a8089bb96d66380d4edf65df6de5ae6f0e497411b84110",
+      "source_evidence_lines": [
+        {
+          "line": 178,
+          "text": "          'damage_applied',v_damage,'target_hp_after',v_new_hp,'ko',v_new_hp=0,'copies_outcome',case when v_reaction='copie' and v_final<0 then 'copia_colpita' when v_reaction='copie' then 'originale_individuato' end)||CASE WHEN jsonb_array_length(multiplication_facts)>0 THEN jsonb_build_object("
+        },
+        {
+          "line": 179,
+          "text": "            'multiplication',multiplication_facts,'multiplication_effect',multiplication_effect) ELSE '{}'::jsonb END where id=v_d.id;"
+        },
+        {
+          "line": 180,
+          "text": "        PERFORM combat_panel_private.multiplication_attack_finish(multiplication_target);"
+        },
+        {
+          "line": 181,
+          "text": "        update public.combat_v2_declarations set state='risolta',outcome=jsonb_build_object('linked_attack',v_d.id) where id=v_def.id;"
+        },
+        {
+          "line": 182,
+          "text": "      end if;"
+        },
+        {
+          "line": 183,
+          "text": "      else"
+        },
+        {
+          "line": 184,
+          "text": "        v_calc:=combat_v2_multitarget_internal.resolve_parent(v_s.id,p_round,v_d.id,v_values);"
+        },
+        {
+          "line": 218,
+          "text": "  insert into public.combat_v2_round_reports(round_id,mechanics,mechanics_sha256,values_written,engine_version,resolver_version,order_version,quality_version)"
+        },
+        {
+          "line": 219,
+          "text": "  values(p_round,v_report,v_sha,v_values,v_r.engine_version,v_r.resolver_version,v_r.order_version,v_r.quality_version) returning id into v_report_id;"
+        },
+        {
+          "line": 220,
+          "text": "  update public.combat_v2_rounds set phase='risolto',state='risolto',resolved_at=clock_timestamp(),report_id=v_report_id where id=p_round;"
+        },
+        {
+          "line": 221,
+          "text": "  if clan_marionettisti_private.is_dedicated_scene(v_s.id) then perform clan_marionettisti_private.settle_round_damage(v_report_id);end if;"
+        },
+        {
+          "line": 222,
+          "text": "  v_result:=public.combat_v2_envelope(p_request_key,jsonb_build_object('report_id',v_report_id,'report_sha256',v_sha,'mechanics',v_report));"
+        },
+        {
+          "line": 223,
+          "text": "  return public.combat_v2_event_complete(v_event_id,v_result);"
+        },
+        {
+          "line": 224,
+          "text": "end $function$"
+        }
+      ],
+      "role_in_baseline": "Provenienza/pin dei writer; non invocato dalla proiezione né richiesto come motore completo nel banco componente."
+    }
+  ],
+  "tables": [
+    {
+      "schema": "combat_panel_private",
+      "name": "multiplication_formations",
+      "owner": "postgres",
+      "acl": "{postgres=arwdDxtm/postgres}",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true,
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "session_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "round_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "actor_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "declaration_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "instance_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "source_body_version",
+          "type": "bigint",
+          "notnull": true
+        },
+        {
+          "name": "mode",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "copy_count",
+          "type": "integer",
+          "notnull": true
+        },
+        {
+          "name": "copy_cap",
+          "type": "integer",
+          "notnull": true
+        },
+        {
+          "name": "figures",
+          "type": "jsonb",
+          "notnull": true
+        },
+        {
+          "name": "original_index",
+          "type": "integer",
+          "notnull": true
+        },
+        {
+          "name": "state",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "state_version",
+          "type": "bigint",
+          "notnull": true
+        },
+        {
+          "name": "terminal_reason",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "name": "ended_at",
+          "type": "timestamp with time zone",
+          "notnull": false
+        }
+      ],
+      "constraints": [
+        {
+          "name": "multiplication_formations_actor_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (actor_id) REFERENCES combat_v2_actors(id)"
+        },
+        {
+          "name": "multiplication_formations_check",
+          "type": "c",
+          "definition": "CHECK ((copy_cap >= copy_count))"
+        },
+        {
+          "name": "multiplication_formations_check1",
+          "type": "c",
+          "definition": "CHECK (combat_panel_private.multiplication_formation_valid(figures, copy_count, copy_cap, original_index))"
+        },
+        {
+          "name": "multiplication_formations_check2",
+          "type": "c",
+          "definition": "CHECK (((state = 'active'::text) = (ended_at IS NULL)))"
+        },
+        {
+          "name": "multiplication_formations_check3",
+          "type": "c",
+          "definition": "CHECK (((state = 'active'::text) = (terminal_reason IS NULL)))"
+        },
+        {
+          "name": "multiplication_formations_check4",
+          "type": "c",
+          "definition": "CHECK (((state <> 'consumed'::text) OR (terminal_reason = ANY (ARRAY['first_attack'::text, 'assault_resolved'::text]))))"
+        },
+        {
+          "name": "multiplication_formations_check5",
+          "type": "c",
+          "definition": "CHECK (((state <> 'expired'::text) OR (terminal_reason <> ALL (ARRAY['first_attack'::text, 'assault_resolved'::text]))))"
+        },
+        {
+          "name": "multiplication_formations_copy_count_check",
+          "type": "c",
+          "definition": "CHECK ((copy_count > 0))"
+        },
+        {
+          "name": "multiplication_formations_declaration_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (declaration_id) REFERENCES combat_v2_declarations(id)"
+        },
+        {
+          "name": "multiplication_formations_declaration_id_key",
+          "type": "u",
+          "definition": "UNIQUE (declaration_id)"
+        },
+        {
+          "name": "multiplication_formations_instance_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (instance_id) REFERENCES combat_spatial.arena_instances(instance_id)"
+        },
+        {
+          "name": "multiplication_formations_mode_check",
+          "type": "c",
+          "definition": "CHECK ((mode = ANY (ARRAY['diversivo'::text, 'copertura'::text, 'assalto'::text])))"
+        },
+        {
+          "name": "multiplication_formations_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "multiplication_formations_round_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (round_id) REFERENCES combat_v2_rounds(id)"
+        },
+        {
+          "name": "multiplication_formations_session_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (session_id) REFERENCES combat_v2_sessions(id)"
+        },
+        {
+          "name": "multiplication_formations_source_body_version_check",
+          "type": "c",
+          "definition": "CHECK ((source_body_version > 0))"
+        },
+        {
+          "name": "multiplication_formations_state_check",
+          "type": "c",
+          "definition": "CHECK ((state = ANY (ARRAY['active'::text, 'consumed'::text, 'expired'::text])))"
+        },
+        {
+          "name": "multiplication_formations_state_version_check",
+          "type": "c",
+          "definition": "CHECK ((state_version > 0))"
+        },
+        {
+          "name": "multiplication_formations_terminal_reason_check",
+          "type": "c",
+          "definition": "CHECK ((terminal_reason = ANY (ARRAY['first_attack'::text, 'assault_resolved'::text, 'owner_next_action'::text, 'owner_inoperative'::text, 'combat_end'::text, 'formation_invalid'::text])))"
+        }
+      ],
+      "triggers": [
+        {
+          "name": "panel_multiplication_identity",
+          "enabled": "O",
+          "function": "combat_panel_private.multiplication_state_guard()",
+          "definition": "CREATE TRIGGER panel_multiplication_identity BEFORE INSERT OR UPDATE ON combat_panel_private.multiplication_formations FOR EACH ROW EXECUTE FUNCTION combat_panel_private.multiplication_state_guard()"
+        },
+        {
+          "name": "sabaku_clone_formation_created",
+          "enabled": "O",
+          "function": "clan_sabaku_private.clone_formation_trigger()",
+          "definition": "CREATE TRIGGER sabaku_clone_formation_created AFTER INSERT ON combat_panel_private.multiplication_formations FOR EACH ROW EXECUTE FUNCTION clan_sabaku_private.clone_formation_trigger()"
+        }
+      ]
+    },
+    {
+      "schema": "combat_panel_private",
+      "name": "multiplication_resolutions",
+      "owner": "postgres",
+      "acl": "{postgres=arwdDxtm/postgres}",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true,
+      "columns": [
+        {
+          "name": "formation_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "attack_target_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "chooser_actor_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "selected_index",
+          "type": "integer",
+          "notnull": true
+        },
+        {
+          "name": "choice_kind",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "outcome",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "rng_seed",
+          "type": "bytea",
+          "notnull": false
+        },
+        {
+          "name": "facts",
+          "type": "jsonb",
+          "notnull": true
+        },
+        {
+          "name": "receipt_sha256",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        }
+      ],
+      "constraints": [
+        {
+          "name": "multiplication_resolutions_attack_target_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (attack_target_id) REFERENCES combat_v2_attack_targets(id)"
+        },
+        {
+          "name": "multiplication_resolutions_check",
+          "type": "c",
+          "definition": "CHECK (((choice_kind = 'server_random'::text) = (rng_seed IS NOT NULL)))"
+        },
+        {
+          "name": "multiplication_resolutions_choice_kind_check",
+          "type": "c",
+          "definition": "CHECK ((choice_kind = ANY (ARRAY['explicit'::text, 'server_random'::text, 'formation_coverage'::text, 'active_dojutsu'::text])))"
+        },
+        {
+          "name": "multiplication_resolutions_chooser_actor_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (chooser_actor_id) REFERENCES combat_v2_actors(id)"
+        },
+        {
+          "name": "multiplication_resolutions_facts_check",
+          "type": "c",
+          "definition": "CHECK ((jsonb_typeof(facts) = 'object'::text))"
+        },
+        {
+          "name": "multiplication_resolutions_formation_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (formation_id) REFERENCES combat_panel_private.multiplication_formations(id)"
+        },
+        {
+          "name": "multiplication_resolutions_outcome_check",
+          "type": "c",
+          "definition": "CHECK ((outcome = ANY (ARRAY['copy_hit'::text, 'original_found'::text])))"
+        },
+        {
+          "name": "multiplication_resolutions_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (formation_id, attack_target_id)"
+        },
+        {
+          "name": "multiplication_resolutions_receipt_sha256_check",
+          "type": "c",
+          "definition": "CHECK ((receipt_sha256 ~ '^[0-9a-f]{64}$'::text))"
+        },
+        {
+          "name": "multiplication_resolutions_rng_seed_check",
+          "type": "c",
+          "definition": "CHECK (((rng_seed IS NULL) OR (octet_length(rng_seed) = 32)))"
+        },
+        {
+          "name": "multiplication_resolutions_selected_index_check",
+          "type": "c",
+          "definition": "CHECK ((selected_index > 0))"
+        }
+      ],
+      "triggers": [
+        {
+          "name": "panel_multiplication_resolution_immutable",
+          "enabled": "O",
+          "function": "combat_panel_private.multiplication_selection_immutable()",
+          "definition": "CREATE TRIGGER panel_multiplication_resolution_immutable BEFORE DELETE OR UPDATE ON combat_panel_private.multiplication_resolutions FOR EACH ROW EXECUTE FUNCTION combat_panel_private.multiplication_selection_immutable()"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "name": "combat_v2_attack_targets",
+      "owner": "postgres",
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arw/postgres}",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true,
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "round_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "attack_declaration_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "ordinal",
+          "type": "smallint",
+          "notnull": true
+        },
+        {
+          "name": "target_actor_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "target_controller_version",
+          "type": "bigint",
+          "notnull": true
+        },
+        {
+          "name": "target_position_m",
+          "type": "integer",
+          "notnull": true
+        },
+        {
+          "name": "state",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "outcome",
+          "type": "jsonb",
+          "notnull": false
+        },
+        {
+          "name": "rng_receipt_sha256",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        }
+      ],
+      "constraints": [
+        {
+          "name": "combat_v2_attack_targets_attack_declaration_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (attack_declaration_id) REFERENCES combat_v2_declarations(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "combat_v2_attack_targets_attack_declaration_id_ordinal_key",
+          "type": "u",
+          "definition": "UNIQUE (attack_declaration_id, ordinal)"
+        },
+        {
+          "name": "combat_v2_attack_targets_attack_declaration_id_target_actor_key",
+          "type": "u",
+          "definition": "UNIQUE (attack_declaration_id, target_actor_id)"
+        },
+        {
+          "name": "combat_v2_attack_targets_id_attack_declaration_id_key",
+          "type": "u",
+          "definition": "UNIQUE (id, attack_declaration_id)"
+        },
+        {
+          "name": "combat_v2_attack_targets_ordinal_check",
+          "type": "c",
+          "definition": "CHECK (((ordinal >= 1) AND (ordinal <= 3)))"
+        },
+        {
+          "name": "combat_v2_attack_targets_outcome_check",
+          "type": "c",
+          "definition": "CHECK (((outcome IS NULL) OR (jsonb_typeof(outcome) = 'object'::text)))"
+        },
+        {
+          "name": "combat_v2_attack_targets_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "combat_v2_attack_targets_rng_receipt_sha256_check",
+          "type": "c",
+          "definition": "CHECK (((rng_receipt_sha256 IS NULL) OR (rng_receipt_sha256 ~ '^[0-9a-f]{64}$'::text)))"
+        },
+        {
+          "name": "combat_v2_attack_targets_round_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (round_id) REFERENCES combat_v2_rounds(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "combat_v2_attack_targets_state_check",
+          "type": "c",
+          "definition": "CHECK ((state = ANY (ARRAY['attesa_difesa'::text, 'coperta'::text, 'risolta'::text, 'superflua'::text])))"
+        },
+        {
+          "name": "combat_v2_attack_targets_target_actor_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (target_actor_id) REFERENCES combat_v2_actors(id) ON DELETE RESTRICT"
+        }
+      ],
+      "triggers": [
+        {
+          "name": "panel_immobilization_attack",
+          "enabled": "O",
+          "function": "combat_panel_private.immobilization_attack_trigger()",
+          "definition": "CREATE TRIGGER panel_immobilization_attack AFTER INSERT OR UPDATE OF state, outcome ON public.combat_v2_attack_targets FOR EACH ROW EXECUTE FUNCTION combat_panel_private.immobilization_attack_trigger()"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "name": "combat_v2_declarations",
+      "owner": "postgres",
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true,
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "round_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "actor_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "kind",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "parent_attack_id",
+          "type": "uuid",
+          "notnull": false
+        },
+        {
+          "name": "target_actor_id",
+          "type": "uuid",
+          "notnull": false
+        },
+        {
+          "name": "sanitized_intent",
+          "type": "jsonb",
+          "notnull": true
+        },
+        {
+          "name": "declaration_text",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "controller_user_snapshot",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "controller_version_snapshot",
+          "type": "bigint",
+          "notnull": true
+        },
+        {
+          "name": "request_key",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "state",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "outcome",
+          "type": "jsonb",
+          "notnull": false
+        },
+        {
+          "name": "order_no",
+          "type": "integer",
+          "notnull": false
+        },
+        {
+          "name": "tie_break",
+          "type": "bigint",
+          "notnull": false
+        },
+        {
+          "name": "cost_snapshot",
+          "type": "jsonb",
+          "notnull": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        },
+        {
+          "name": "frozen_at",
+          "type": "timestamp with time zone",
+          "notnull": false
+        }
+      ],
+      "constraints": [
+        {
+          "name": "combat_v2_declarations_actor_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (actor_id) REFERENCES combat_v2_actors(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "combat_v2_declarations_cost_snapshot_check",
+          "type": "c",
+          "definition": "CHECK ((jsonb_typeof(cost_snapshot) = 'object'::text))"
+        },
+        {
+          "name": "combat_v2_declarations_declaration_text_check",
+          "type": "c",
+          "definition": "CHECK ((char_length(declaration_text) <= 5000))"
+        },
+        {
+          "name": "combat_v2_declarations_kind_check",
+          "type": "c",
+          "definition": "CHECK ((kind = ANY (ARRAY['attacco'::text, 'difesa'::text, 'movimento'::text, 'utilita'::text, 'passa'::text, 'nessuna'::text])))"
+        },
+        {
+          "name": "combat_v2_declarations_parent_attack_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (parent_attack_id) REFERENCES combat_v2_declarations(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "combat_v2_declarations_parent_chk",
+          "type": "c",
+          "definition": "CHECK (((kind = ANY (ARRAY['difesa'::text, 'nessuna'::text])) = (parent_attack_id IS NOT NULL)))"
+        },
+        {
+          "name": "combat_v2_declarations_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "combat_v2_declarations_round_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (round_id) REFERENCES combat_v2_rounds(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "combat_v2_declarations_round_id_request_key_key",
+          "type": "u",
+          "definition": "UNIQUE (round_id, request_key)"
+        },
+        {
+          "name": "combat_v2_declarations_sanitized_intent_check",
+          "type": "c",
+          "definition": "CHECK ((jsonb_typeof(sanitized_intent) = 'object'::text))"
+        },
+        {
+          "name": "combat_v2_declarations_state_check",
+          "type": "c",
+          "definition": "CHECK ((state = ANY (ARRAY['bozza_server'::text, 'inviata'::text, 'congelata'::text, 'risolta'::text, 'superflua'::text])))"
+        },
+        {
+          "name": "combat_v2_declarations_target_actor_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (target_actor_id) REFERENCES combat_v2_actors(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "combat_v2_declarations_target_chk",
+          "type": "c",
+          "definition": "CHECK (((kind <> 'attacco'::text) OR (target_actor_id IS NOT NULL)))"
+        }
+      ],
+      "triggers": [
+        {
+          "name": "combat_v2_declarations_multitarget_sync",
+          "enabled": "O",
+          "function": "combat_v2_multitarget_internal.sync_declaration()",
+          "definition": "CREATE TRIGGER combat_v2_declarations_multitarget_sync AFTER INSERT ON public.combat_v2_declarations FOR EACH ROW EXECUTE FUNCTION combat_v2_multitarget_internal.sync_declaration()"
+        },
+        {
+          "name": "marionetta_terminal_event",
+          "enabled": "O",
+          "function": "clan_marionettisti_private.declaration_terminal_trigger()",
+          "definition": "CREATE TRIGGER marionetta_terminal_event AFTER UPDATE OF state ON public.combat_v2_declarations FOR EACH ROW EXECUTE FUNCTION clan_marionettisti_private.declaration_terminal_trigger()"
+        },
+        {
+          "name": "panel_actor_turn_declaration",
+          "enabled": "O",
+          "function": "combat_panel_private.actor_turn_lifecycle()",
+          "definition": "CREATE TRIGGER panel_actor_turn_declaration AFTER INSERT OR UPDATE OF state ON public.combat_v2_declarations FOR EACH ROW EXECUTE FUNCTION combat_panel_private.actor_turn_lifecycle()"
+        },
+        {
+          "name": "panel_declaration_ready",
+          "enabled": "O",
+          "function": "combat_panel_private.master_entry_trigger()",
+          "definition": "CREATE TRIGGER panel_declaration_ready BEFORE INSERT OR UPDATE OF round_id, actor_id, kind ON public.combat_v2_declarations FOR EACH ROW EXECUTE FUNCTION combat_panel_private.master_entry_trigger()"
+        },
+        {
+          "name": "panel_multiplication_assault_end",
+          "enabled": "O",
+          "function": "combat_panel_private.multiplication_assault_end()",
+          "definition": "CREATE TRIGGER panel_multiplication_assault_end AFTER UPDATE OF state ON public.combat_v2_declarations FOR EACH ROW EXECUTE FUNCTION combat_panel_private.multiplication_assault_end()"
+        },
+        {
+          "name": "panel_multiplication_next_action",
+          "enabled": "O",
+          "function": "combat_panel_private.multiplication_next_action()",
+          "definition": "CREATE TRIGGER panel_multiplication_next_action BEFORE INSERT ON public.combat_v2_declarations FOR EACH ROW EXECUTE FUNCTION combat_panel_private.multiplication_next_action()"
+        },
+        {
+          "name": "sabaku_master_main",
+          "enabled": "O",
+          "function": "clan_sabaku_private.master_turn_lifecycle()",
+          "definition": "CREATE TRIGGER sabaku_master_main BEFORE INSERT ON public.combat_v2_declarations FOR EACH ROW EXECUTE FUNCTION clan_sabaku_private.master_turn_lifecycle()"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "name": "combat_v2_rounds",
+      "owner": "postgres",
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true,
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "session_id",
+          "type": "uuid",
+          "notnull": true
+        },
+        {
+          "name": "round_no",
+          "type": "integer",
+          "notnull": true
+        },
+        {
+          "name": "phase",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "state",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "engine_version",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "resolver_version",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "order_version",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "quality_version",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "evaluation_mode",
+          "type": "text",
+          "notnull": true
+        },
+        {
+          "name": "rng_order_commitment",
+          "type": "text",
+          "notnull": false
+        },
+        {
+          "name": "freeze_at",
+          "type": "timestamp with time zone",
+          "notnull": false
+        },
+        {
+          "name": "resolved_at",
+          "type": "timestamp with time zone",
+          "notnull": false
+        },
+        {
+          "name": "narrated_at",
+          "type": "timestamp with time zone",
+          "notnull": false
+        },
+        {
+          "name": "report_id",
+          "type": "uuid",
+          "notnull": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "notnull": true
+        }
+      ],
+      "constraints": [
+        {
+          "name": "combat_v2_rounds_evaluation_mode_check",
+          "type": "c",
+          "definition": "CHECK ((evaluation_mode = ANY (ARRAY['umana'::text, 'neutra'::text])))"
+        },
+        {
+          "name": "combat_v2_rounds_phase_check",
+          "type": "c",
+          "definition": "CHECK ((phase = ANY (ARRAY['raccolta_azioni'::text, 'raccolta_difese'::text, 'congelato'::text, 'valutazione'::text, 'risoluzione'::text, 'risolto'::text, 'narrazione'::text, 'narrato'::text])))"
+        },
+        {
+          "name": "combat_v2_rounds_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "combat_v2_rounds_rng_order_commitment_check",
+          "type": "c",
+          "definition": "CHECK (((rng_order_commitment IS NULL) OR (rng_order_commitment ~ '^[0-9a-f]{64}$'::text)))"
+        },
+        {
+          "name": "combat_v2_rounds_round_no_check",
+          "type": "c",
+          "definition": "CHECK ((round_no >= 1))"
+        },
+        {
+          "name": "combat_v2_rounds_session_id_fkey",
+          "type": "f",
+          "definition": "FOREIGN KEY (session_id) REFERENCES combat_v2_sessions(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "combat_v2_rounds_session_id_round_no_key",
+          "type": "u",
+          "definition": "UNIQUE (session_id, round_no)"
+        },
+        {
+          "name": "combat_v2_rounds_state_check",
+          "type": "c",
+          "definition": "CHECK ((state = ANY (ARRAY['raccolta_azioni'::text, 'raccolta_difese'::text, 'congelato'::text, 'valutazione'::text, 'risoluzione'::text, 'risolto'::text, 'narrazione'::text, 'narrato'::text])))"
+        }
+      ],
+      "triggers": [
+        {
+          "name": "marionetta_command_window",
+          "enabled": "O",
+          "function": "clan_marionettisti_private.round_window_trigger()",
+          "definition": "CREATE TRIGGER marionetta_command_window AFTER INSERT OR UPDATE OF phase ON public.combat_v2_rounds FOR EACH ROW EXECUTE FUNCTION clan_marionettisti_private.round_window_trigger()"
+        },
+        {
+          "name": "panel_actor_turn_round",
+          "enabled": "O",
+          "function": "combat_panel_private.actor_turn_lifecycle()",
+          "definition": "CREATE TRIGGER panel_actor_turn_round AFTER INSERT OR UPDATE OF phase ON public.combat_v2_rounds FOR EACH ROW EXECUTE FUNCTION combat_panel_private.actor_turn_lifecycle()"
+        },
+        {
+          "name": "sabaku_clone_round_end",
+          "enabled": "O",
+          "function": "clan_sabaku_private.clone_lifecycle_trigger()",
+          "definition": "CREATE TRIGGER sabaku_clone_round_end AFTER UPDATE OF phase ON public.combat_v2_rounds FOR EACH ROW EXECUTE FUNCTION clan_sabaku_private.clone_lifecycle_trigger()"
+        }
+      ]
+    }
+  ],
+  "diagnostic_evidence": {
+    "claim": "79151e81-7ace-4add-9019-e8539d453a3d",
+    "round": "95b9fe7f-9b6b-49c3-b402-242e2bbf0d65",
+    "ordinary": true,
+    "genere": "azione_risolta",
+    "reazione": "schivata",
+    "tecnica": "Colpo a mani nude",
+    "resolved_facts_type": "string",
+    "resolved_facts_valid_json": true,
+    "multiplication_catalog_sha256": "d5462f8b04c2cf23f9dd81f8fc3f8e7d570ef8351d4ceec0b7a1784d1ff51333",
+    "conclusioni_effetti_server": [],
+    "formation": "9908a7ed-45d2-4f61-a637-8cb2e2b1274a",
+    "receipt_sha256": "f39adc3fefe1a06e979d42b619b22d5d32308873d9ce30d74714ae18884b8bca",
+    "native_state": "consumed",
+    "native_reason": "first_attack",
+    "not_reexecuted": true
+  },
+  "real_game_data_copied": false,
+  "environment": {
+    "source_search_path": "\"\\$user\", public, extensions",
+    "server_version": "17.6",
+    "collected_at": "2026-09-10 01:21:19.277749+00",
+    "lifecycle_tables": [
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "name": "narrative_claims",
+        "owner": "postgres",
+        "schema": "combat_consumer_private",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "notnull": true
+          },
+          {
+            "name": "session_id",
+            "type": "uuid",
+            "notnull": true
+          },
+          {
+            "name": "round_id",
+            "type": "uuid",
+            "notnull": true
+          },
+          {
+            "name": "report_id",
+            "type": "uuid",
+            "notnull": true
+          },
+          {
+            "name": "report_sha256",
+            "type": "text",
+            "notnull": true
+          },
+          {
+            "name": "context_version",
+            "type": "bigint",
+            "notnull": true
+          },
+          {
+            "name": "control_version",
+            "type": "bigint",
+            "notnull": true
+          },
+          {
+            "name": "context_payload",
+            "type": "jsonb",
+            "notnull": true
+          },
+          {
+            "name": "context_sha256",
+            "type": "text",
+            "notnull": true
+          },
+          {
+            "name": "request_key",
+            "type": "uuid",
+            "notnull": true
+          },
+          {
+            "name": "state",
+            "type": "text",
+            "notnull": true
+          },
+          {
+            "name": "claimed_at",
+            "type": "timestamp with time zone",
+            "notnull": true
+          },
+          {
+            "name": "expires_at",
+            "type": "timestamp with time zone",
+            "notnull": true
+          },
+          {
+            "name": "completion_sha256",
+            "type": "text",
+            "notnull": false
+          },
+          {
+            "name": "completion_result",
+            "type": "jsonb",
+            "notnull": false
+          },
+          {
+            "name": "provider_response_id",
+            "type": "text",
+            "notnull": false
+          },
+          {
+            "name": "provider_request_sha256",
+            "type": "text",
+            "notnull": false
+          },
+          {
+            "name": "raw_output_sha256",
+            "type": "text",
+            "notnull": false
+          },
+          {
+            "name": "failure_code",
+            "type": "text",
+            "notnull": false
+          }
+        ],
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "name": "scene_attempts_v2",
+        "owner": "postgres",
+        "schema": "combat_consumer_private",
+        "columns": [
+          {
+            "name": "claim_id",
+            "type": "uuid",
+            "notnull": true
+          },
+          {
+            "name": "request_key",
+            "type": "uuid",
+            "notnull": true
+          },
+          {
+            "name": "round_id",
+            "type": "uuid",
+            "notnull": true
+          },
+          {
+            "name": "session_id",
+            "type": "uuid",
+            "notnull": true
+          },
+          {
+            "name": "scene_payload",
+            "type": "jsonb",
+            "notnull": true
+          },
+          {
+            "name": "scene_sha256",
+            "type": "text",
+            "notnull": true
+          },
+          {
+            "name": "state",
+            "type": "text",
+            "notnull": true
+          },
+          {
+            "name": "permit_at",
+            "type": "timestamp with time zone",
+            "notnull": false
+          },
+          {
+            "name": "result_bytes",
+            "type": "text",
+            "notnull": false
+          },
+          {
+            "name": "result_payload",
+            "type": "jsonb",
+            "notnull": false
+          },
+          {
+            "name": "result_sha256",
+            "type": "text",
+            "notnull": false
+          },
+          {
+            "name": "provider_response_id",
+            "type": "text",
+            "notnull": false
+          },
+          {
+            "name": "failure_code",
+            "type": "text",
+            "notnull": false
+          },
+          {
+            "name": "completion",
+            "type": "jsonb",
+            "notnull": false
+          },
+          {
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "notnull": true
+          },
+          {
+            "name": "result_at",
+            "type": "timestamp with time zone",
+            "notnull": false
+          },
+          {
+            "name": "redelivery_at",
+            "type": "timestamp with time zone",
+            "notnull": false
+          },
+          {
+            "name": "redelivery_state",
+            "type": "text",
+            "notnull": false
+          },
+          {
+            "name": "redelivery_request_id",
+            "type": "bigint",
+            "notnull": false
+          }
+        ],
+        "relrowsecurity": true,
+        "relforcerowsecurity": true
+      }
+    ]
+  },
+  "candidate": {
+    "target": "combat_consumer_private.narrative_tech_sources_v1(uuid)",
+    "before_md5": "955228bdc23c89cdb287198db57231b8",
+    "after_md5": "6d7cbbfbd1ecbae7f8efad6e7eeaca36",
+    "before_sha256": "eb2c231d52fb822d09ea1f80c275c1a4b4d6ad794abbbe1558b607f43ad2ff5d",
+    "after_sha256": "59d25d1a527958bd63e4cb3ebf8ad68665fdc301c13f76edc175d2e4625af9a7",
+    "changed_functions": 1,
+    "new_functions": 0,
+    "new_tables": 0,
+    "hook_changed": false,
+    "after_definition": "CREATE OR REPLACE FUNCTION combat_consumer_private.narrative_tech_sources_v1(p_claim uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE claim combat_consumer_private.narrative_claims%ROWTYPE;\n  unit public.combat_v2_rounds%ROWTYPE; ref record; event record; content jsonb;\n  sources jsonb:='[]'; endings jsonb:='[]'; native_id uuid; source_kind text; multiplication_seen uuid[]:=ARRAY[]::uuid[];\nBEGIN\n SELECT * INTO STRICT claim FROM combat_consumer_private.narrative_claims WHERE id=p_claim;\n SELECT * INTO STRICT unit FROM public.combat_v2_rounds WHERE id=claim.round_id;\n IF unit.session_id IS DISTINCT FROM claim.session_id OR claim.context_payload->>'ordinary' IS DISTINCT FROM 'true'\n   OR claim.context_payload->>'genere' IS DISTINCT FROM 'azione_risolta' THEN\n   RAISE EXCEPTION 'narrative_tech_scope_invalid' USING ERRCODE='22023';\n END IF;\n IF NOT EXISTS(SELECT 1 FROM combat_consumer_private.activities staff_activity\n      JOIN public.combat_v2_sessions staff_session ON staff_session.id=staff_activity.session_id\n      JOIN public.locations staff_location ON staff_location.id=staff_activity.location_id\n      WHERE staff_activity.session_id=claim.session_id AND staff_activity.exchange_id=claim.round_id\n        AND staff_activity.phase='resolved' AND staff_activity.policy_id='staff_test_no_persistent_resources_v1'\n        AND staff_session.source_kind='ordinary' AND staff_session.location_id=staff_activity.location_id\n        AND staff_location.is_test AND NOT public.combat_v2_values_written(staff_session.id)\n        AND combat_consumer_private.staff_test_allowed(staff_location.id,\n          (SELECT array_agg(actor.controller_user ORDER BY actor.id)\n           FROM combat_consumer_private.members member JOIN public.combat_v2_actors actor\n             ON actor.id=member.actor_id AND actor.session_id=member.session_id\n             AND actor.character_id=member.character_id\n           WHERE member.session_id=claim.session_id),false)) THEN\n   RAISE EXCEPTION 'narrative_tech_staff_scope_required' USING ERRCODE='42501';\n END IF;\n -- Native rows certify use: no role-text/name lookup, no inventory scan.\n FOR ref IN\n  SELECT DISTINCT x.catalog,x.actor_id FROM (\n   SELECT 'clan_techniques'::text catalog,d.actor_id\n    FROM public.combat_v2_declarations d\n    WHERE d.round_id=claim.round_id AND d.state='risolta'\n      AND d.outcome->'sabaku_clone'->>'schema_version'='sabaku-clone/1'\n      AND d.kind='utilita'\n   UNION\n   SELECT 'clan_techniques',c.actor_id FROM clan_sabaku_private.clone_captures cc\n    JOIN clan_sabaku_private.clones c ON c.id=cc.clone_id\n    WHERE cc.round_id=claim.round_id AND c.session_id=claim.session_id\n   UNION\n   SELECT 'jutsu',f.actor_id FROM combat_panel_private.multiplication_formations f\n    JOIN public.combat_v2_declarations d ON d.id=f.declaration_id\n    WHERE f.session_id=claim.session_id AND d.round_id=claim.round_id AND d.state='risolta'\n   UNION\n   SELECT 'jutsu',f.actor_id FROM combat_panel_private.multiplication_resolutions mr\n    JOIN combat_panel_private.multiplication_formations f ON f.id=mr.formation_id\n    JOIN public.combat_v2_attack_targets t ON t.id=mr.attack_target_id\n    JOIN public.combat_v2_declarations d ON d.id=t.attack_declaration_id\n    WHERE f.session_id=claim.session_id AND d.round_id=claim.round_id AND d.state='risolta'\n      AND t.state IN('risolta','superflua')\n   UNION\n   SELECT 'jutsu',f.actor_id FROM clan_sabaku_private.clone_captures cc\n    JOIN combat_panel_private.multiplication_formations f ON f.id=cc.formation_id\n    WHERE cc.round_id=claim.round_id AND f.session_id=claim.session_id\n  ) x ORDER BY x.catalog,x.actor_id\n LOOP\n  IF NOT EXISTS(SELECT 1 FROM combat_consumer_private.members m\n    WHERE m.session_id=claim.session_id AND m.actor_id=ref.actor_id) THEN\n   RAISE EXCEPTION 'narrative_tech_actor_not_in_scene' USING ERRCODE='22023';\n  END IF;\n  IF ref.catalog='clan_techniques' THEN\n   native_id:='617484d6-af7b-41c3-a37f-615b22818421';\n   SELECT jsonb_build_object('id',id,'name',name,'description',description,'danno_effetto',danno_effetto)\n     INTO STRICT content FROM public.clan_techniques WHERE id=native_id;\n  ELSE\n   native_id:='c6e31b7b-38fe-4b4f-b3c7-05f3e922d193';\n   SELECT jsonb_build_object('id',id,'name_it',name_it,'effect',effect,'limits',limits)\n     INTO STRICT content FROM public.jutsu WHERE id=native_id;\n  END IF;\n  sources:=sources||jsonb_build_array(jsonb_build_object('catalog',ref.catalog,'technique_id',native_id,\n    'actor_id',ref.actor_id,'mapping_version','ordinary-tech/1','source_sha256',\n    encode(extensions.digest(convert_to(content::text,'UTF8'),'sha256'),'hex'),'content',content));\n END LOOP;\n -- Terminal event only when the native capture and native terminal state agree.\n -- No original index, figures, coordinates, dice, private stats, or inference from damage.\n FOR event IN\n  SELECT cc.id,cc.copy_hit,cc.result,c.actor_id,c.state,c.end_reason,c.ended_at,cc.created_at\n  FROM clan_sabaku_private.clone_captures cc JOIN clan_sabaku_private.clones c ON c.id=cc.clone_id\n  WHERE cc.round_id=claim.round_id AND c.session_id=claim.session_id\n  ORDER BY cc.created_at,cc.id\n LOOP\n  IF event.result->>'schema_version' IS DISTINCT FROM 'sabaku-clone-capture/1'\n    OR event.result->'copy_hit' IS DISTINCT FROM to_jsonb(event.copy_hit)\n    OR jsonb_typeof(event.result->'success') IS DISTINCT FROM 'boolean' THEN\n   RAISE EXCEPTION 'narrative_tech_capture_invalid' USING ERRCODE='22023';\n  END IF;\n  IF event.result->'success'='false'::jsonb THEN\n   IF event.state IS DISTINCT FROM 'ended' OR event.ended_at IS NULL\n    OR event.ended_at<event.created_at\n    OR event.end_reason IS DISTINCT FROM (CASE WHEN event.copy_hit THEN 'copy_triggered' ELSE 'capture_failed' END) THEN\n    RAISE EXCEPTION 'narrative_tech_terminal_event_missing' USING ERRCODE='22023';\n   END IF;\n   endings:=endings||jsonb_build_array(jsonb_build_object('tecnica','Clone di Sabbia','actor_id',event.actor_id,\n      'stato','terminato','causa',event.end_reason));\n  END IF;\n END LOOP;\n\n -- Moltiplicazione: immutable resolution receipt + exact resolved target/round.\n -- Native terminal state alone is insufficient; never infer an ending from damage.\n FOR event IN\n  SELECT mr.formation_id, mr.attack_target_id, mr.facts, mr.receipt_sha256,\n    mr.created_at AS receipt_at, mr.choice_kind, mr.outcome AS choice_outcome,\n    f.actor_id, f.mode, f.state AS formation_state, f.terminal_reason, f.ended_at,\n    f.declaration_id AS formation_declaration, t.state AS target_state,\n    t.target_actor_id, t.outcome AS target_outcome,\n    d.id AS attack_id, d.actor_id AS attacker_id, d.state AS attack_state\n  FROM combat_panel_private.multiplication_resolutions mr\n  JOIN combat_panel_private.multiplication_formations f ON f.id=mr.formation_id\n  JOIN public.combat_v2_attack_targets t ON t.id=mr.attack_target_id\n  JOIN public.combat_v2_declarations d ON d.id=t.attack_declaration_id\n  WHERE f.session_id=claim.session_id AND t.round_id=claim.round_id\n    AND d.round_id=claim.round_id\n  ORDER BY mr.formation_id, mr.created_at, mr.attack_target_id\n LOOP\n  IF unit.resolved_at IS NULL OR unit.report_id IS DISTINCT FROM claim.report_id\n    OR unit.phase NOT IN ('risolto','narrato')\n    OR event.attack_state IS DISTINCT FROM 'risolta'\n    OR event.target_state IS DISTINCT FROM 'risolta'\n    OR jsonb_typeof(event.facts) IS DISTINCT FROM 'object'\n    OR event.facts->>'schema_version' IS DISTINCT FROM 'combat-multiplication-resolution/1'\n    OR event.facts->'formation_id' IS DISTINCT FROM to_jsonb(event.formation_id)\n    OR event.facts->'attack_target_id' IS DISTINCT FROM to_jsonb(event.attack_target_id)\n    OR event.facts->>'mode' IS DISTINCT FROM event.mode\n    OR event.facts->>'choice_kind' IS DISTINCT FROM event.choice_kind\n    OR event.facts->>'outcome' IS DISTINCT FROM event.choice_outcome\n    OR event.choice_outcome NOT IN ('original_found','copy_hit')\n    OR event.receipt_sha256 IS DISTINCT FROM public.combat_v2_sha256(event.facts)\n    OR jsonb_typeof(event.target_outcome->'multiplication') IS DISTINCT FROM 'array'\n    OR NOT EXISTS (\n      SELECT 1 FROM jsonb_array_elements(CASE\n        WHEN jsonb_typeof(event.target_outcome->'multiplication')='array'\n        THEN event.target_outcome->'multiplication' ELSE '[]'::jsonb END) item\n      WHERE item - 'role' = event.facts\n    ) THEN\n   RAISE EXCEPTION 'narrative_multiplication_receipt_invalid' USING ERRCODE='22023';\n  END IF;\n  IF event.formation_state IS DISTINCT FROM 'consumed'\n    OR event.ended_at IS NULL OR event.ended_at < event.receipt_at\n    OR event.ended_at > unit.resolved_at\n    OR event.terminal_reason IS DISTINCT FROM (CASE\n      WHEN event.mode='assalto' AND event.formation_declaration=event.attack_id\n        AND event.actor_id=event.attacker_id THEN 'assault_resolved'\n      ELSE 'first_attack' END)\n    OR NOT (\n      event.actor_id=event.target_actor_id OR\n      (event.mode='assalto' AND event.formation_declaration=event.attack_id\n        AND event.actor_id=event.attacker_id)\n    )\n    OR NOT EXISTS (SELECT 1 FROM combat_consumer_private.members m\n      WHERE m.session_id=claim.session_id AND m.actor_id=event.actor_id) THEN\n   RAISE EXCEPTION 'narrative_multiplication_terminal_event_invalid' USING ERRCODE='22023';\n  END IF;\n  IF NOT event.formation_id=ANY(multiplication_seen) THEN\n   endings:=endings||jsonb_build_array(jsonb_build_object(\n     'tecnica','Moltiplicazione del corpo','actor_id',event.actor_id,\n     'stato','terminato','causa',CASE event.terminal_reason\n       WHEN 'first_attack' THEN 'primo_attacco_risolto'\n       WHEN 'assault_resolved' THEN 'assalto_risolto' END));\n   multiplication_seen:=array_append(multiplication_seen,event.formation_id);\n  END IF;\n END LOOP;\n RETURN jsonb_build_object('fonti_tecniche',sources,'conclusioni_effetti_server',endings);\nEND $function$\n",
+    "preservation_exact_outside_insertions": true
+  },
+  "dependency_classification": {
+    "modified": [
+      "combat_consumer_private.narrative_tech_sources_v1(uuid)"
+    ],
+    "unchanged_hook": [
+      "combat_consumer_private.scene_snapshot_v2(uuid)"
+    ],
+    "direct_new_calls": [
+      "public.combat_v2_sha256(jsonb)"
+    ],
+    "native_writer_provenance_not_invoked_by_helper": [
+      "combat_panel_private.multiplication_attack_finish(uuid)",
+      "combat_panel_private.multiplication_finish(uuid,text)",
+      "combat_panel_private.multiplication_resolve_choice(uuid,uuid)",
+      "combat_panel_private.multiplication_selection_immutable()",
+      "combat_panel_private.multiplication_state_guard()",
+      "combat_panel_private.multiplication_assault_end()",
+      "combat_v2_multitarget_internal.resolve_parent(uuid,uuid,uuid,boolean)",
+      "combat_v2_round_resolve(uuid,uuid)"
+    ],
+    "relations_new_loop": [
+      "combat_panel_private.multiplication_resolutions",
+      "combat_panel_private.multiplication_formations",
+      "public.combat_v2_attack_targets",
+      "public.combat_v2_declarations",
+      "public.combat_v2_rounds"
+    ],
+    "relation_reused_members": "combat_consumer_private.members",
+    "relation_recovery_only": "combat_consumer_private.scene_attempts_v2",
+    "missing_local_bank_metadata": [
+      "combat_consumer_private.members",
+      "combat_consumer_private.activities",
+      "public.combat_v2_sessions",
+      "public.locations",
+      "clan_sabaku_private.clones",
+      "clan_sabaku_private.clone_captures",
+      "public.jutsu",
+      "public.clan_techniques"
+    ],
+    "missing_direct_legacy_function_source": [
+      "combat_consumer_private.staff_test_allowed(uuid,uuid[],boolean)",
+      "public.combat_v2_values_written(uuid)"
+    ],
+    "missing_means": "Non inventare DDL, autorizzazioni o fixture; riusare fonti native giàcongelate pertinenti dopo confronto pin nel futuro incarico QA."
+  },
+  "qa_prior_bench_reference": {
+    "source": "PM ricognizione readonly",
+    "files": [
+      "NARRATIVE_TECH_QA.py",
+      "NARRATIVE_TECH_QA.sql"
+    ],
+    "previous_outcome": "8/8 PostgreSQL17.6,9SQL,0.630s",
+    "limitation": "Schema minimo, senzaCHECK/FK/trigger/policy e check_function_bodies OFF: utile per proiezione, non certificazione transizioni native/Auth. Banco precedente non riusare o resettare.",
+    "qualification_target": "Componente SQL di proiezione, poi riscontro nativo protetto distinto. Non ricostruzione fullengine."
+  },
+  "quiet_source_functions": [
+    {
+      "observed_at": "2026-09-10 02:18:48.097559+00",
+      "identity": "public.combat_consumer_narrative_claim_v1(uuid,text,uuid)",
+      "definition": "CREATE OR REPLACE FUNCTION public.combat_consumer_narrative_claim_v1(p_round uuid, p_report_sha256 text, p_request_key uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare ctx combat_consumer_private.activities%rowtype; report public.combat_v2_round_reports%rowtype;\n  authority combat_consumer_private.narrative_authorities%rowtype;\n  claim combat_consumer_private.narrative_claims%rowtype; payload jsonb;\nbegin\n  if not combat_consumer_private.is_service_request() then perform combat_consumer_private.fail('not_participant'); end if;\n  if p_request_key is null then perform combat_consumer_private.fail('identifier_invalid'); end if;\n  perform public.combat_v2_lock_round(p_round);\n  if exists(select 1 from combat_consumer_private.recovery_claims_v1 where round_id=p_round) then raise exception 'legacy_claim_recovery_fenced'; end if;\n  select * into ctx from combat_consumer_private.activities where exchange_id=p_round for update;\n  if ctx.session_id is null or ctx.phase<>'resolved' then\n    return jsonb_build_object('should_call_provider',false,'state','not_ready');\n  end if;\n  select * into report from public.combat_v2_round_reports where round_id=p_round for update;\n  select * into authority from combat_consumer_private.narrative_authorities where session_id=ctx.session_id for update;\n  select * into claim from combat_consumer_private.narrative_claims where round_id=p_round for update;\n  if claim.id is not null then\n    if claim.request_key<>p_request_key or claim.report_sha256 is distinct from p_report_sha256 then\n      perform combat_consumer_private.fail('request_key_conflict',p_request_key);\n    end if;\n    if claim.state='claimed' and claim.expires_at<clock_timestamp() then\n      update combat_consumer_private.narrative_claims set state='expired',failure_code='timeout' where id=claim.id;\n      claim.state:='expired';\n    end if;\n    -- Ripetizione non consegna di nuovo il permesso a chiamare il provider.\n    return jsonb_build_object('claim_id',claim.id,'should_call_provider',false,'state',claim.state,\n      'completion',claim.completion_result);\n  end if;\n  if not combat_consumer_private.narrative_allowed(ctx.session_id)\n    or authority.mode is distinct from 'ai_auto' then\n    return jsonb_build_object('should_call_provider',false,'state','disabled');\n  end if;\n  if report.id is null or report.mechanics_sha256 is distinct from p_report_sha256 or report.narration_state<>'attesa' then\n    perform combat_consumer_private.fail('context_stale',p_request_key);\n  end if;\n  payload:=combat_consumer_private.narrative_context(p_round);\n  insert into combat_consumer_private.narrative_claims(session_id,round_id,report_id,report_sha256,\n    context_version,control_version,context_payload,context_sha256,request_key,state,expires_at)\n    values(ctx.session_id,p_round,report.id,report.mechanics_sha256,ctx.context_version,authority.control_version,\n      payload,public.combat_v2_sha256(payload),p_request_key,'claimed',clock_timestamp()+interval '60 seconds') returning * into claim;\n  return jsonb_build_object('claim_id',claim.id,'should_call_provider',true,'state',claim.state,\n    'report_id',claim.report_id,'round_id',claim.round_id,\n    'report_sha256',claim.report_sha256,'context_sha256',claim.context_sha256,'control_version',claim.control_version,\n    'edge_revision',case when payload->>'genere'='rinuncia' then 'ordinary-rinuncia/1' when payload->>'genere'='azione_risolta' then 'ordinary-facts/1' else 'ordinary-adapter/1' end,'validator_revision',case when payload->>'genere'='rinuncia' then 'combat-rinuncia/1' when payload->>'genere'='azione_risolta' then 'combat-facts/1' else 'combat-narratore-v18-existing/1' end,\n    'provider','openai','model','gpt-5.6-luna','expires_at',claim.expires_at,'context',payload);\nend $function$\n",
+      "definition_md5": "5bc5cd86dd03ebe4687c7388131165a3",
+      "body_md5": "12c3f2baa79bace96a75b985c84ef079",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "v",
+      "md5": "5bc5cd86dd03ebe4687c7388131165a3",
+      "definition_sha256": "9b30f80ddcd6a45695be698c9d3e0eebaec126f99029a23c1ed0aab53eff03c3",
+      "role_in_candidate": "read-only dependency pin: native claim/lease/attempt semantics; not modified"
+    },
+    {
+      "observed_at": "2026-09-10 02:18:48.097559+00",
+      "identity": "public.combat_consumer_narrative_complete_v1(uuid,jsonb,uuid)",
+      "definition": "CREATE OR REPLACE FUNCTION public.combat_consumer_narrative_complete_v1(p_claim uuid, p_result jsonb, p_request_key uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare claim combat_consumer_private.narrative_claims%rowtype;\n  ctx combat_consumer_private.activities%rowtype; authority combat_consumer_private.narrative_authorities%rowtype;\n  fingerprint text; result jsonb;\nbegin\n  if not combat_consumer_private.is_service_request() then perform combat_consumer_private.fail('not_participant'); end if;\n  perform combat_consumer_private.validate_narrative_result(p_result);\n  select * into claim from combat_consumer_private.narrative_claims where id=p_claim;\n  if claim.id is null or claim.request_key is distinct from p_request_key then\n    perform combat_consumer_private.fail('request_key_conflict',p_request_key);\n  end if;\n  perform public.combat_v2_lock_round(claim.round_id);\n  if exists(select 1 from combat_consumer_private.recovery_claims_v1 where round_id=claim.round_id) then raise exception 'legacy_claim_recovery_fenced'; end if;\n  select * into ctx from combat_consumer_private.activities where session_id=claim.session_id for update;\n  select * into authority from combat_consumer_private.narrative_authorities where session_id=claim.session_id for update;\n  select * into claim from combat_consumer_private.narrative_claims where id=p_claim for update;\n  if (p_result->>'edge_revision',p_result->>'validator_revision') is distinct from\n   (case when claim.context_payload->>'genere'='rinuncia' then 'ordinary-rinuncia/1' when claim.context_payload->>'genere'='azione_risolta' then 'ordinary-facts/1' else 'ordinary-adapter/1' end,\n    case when claim.context_payload->>'genere'='rinuncia' then 'combat-rinuncia/1' when claim.context_payload->>'genere'='azione_risolta' then 'combat-facts/1' else 'combat-narratore-v18-existing/1' end) then\n   raise exception 'rinuncia_result_context_revision_mismatch';end if;\n  fingerprint:=public.combat_v2_sha256(p_result);\n  if claim.completion_sha256 is not null then\n    if claim.completion_sha256<>fingerprint then perform combat_consumer_private.fail('request_key_conflict',p_request_key); end if;\n    return claim.completion_result;\n  end if;\n  if claim.state<>'claimed' or claim.expires_at<clock_timestamp() then\n    if claim.state='claimed' then update combat_consumer_private.narrative_claims set state='expired',failure_code='timeout' where id=p_claim; end if;\n    return jsonb_build_object('status','not_published','reason','claim_not_active');\n  end if;\n  if ctx.phase<>'resolved' or ctx.exchange_id is distinct from claim.round_id or ctx.context_version<>claim.context_version\n    or authority.mode is distinct from 'ai_auto' or authority.control_version<>claim.control_version\n    or not combat_consumer_private.narrative_allowed(ctx.session_id)\n    or p_result->>'report_sha256' is distinct from claim.report_sha256\n    or p_result->>'context_sha256' is distinct from claim.context_sha256\n    or (p_result->>'control_version')::bigint<>claim.control_version\n    or not exists(select 1 from public.combat_v2_round_reports where id=claim.report_id and round_id=claim.round_id\n      and mechanics_sha256=claim.report_sha256 and narration_state='attesa') then\n    update combat_consumer_private.narrative_claims set state='failed',failure_code='context_changed' where id=p_claim;\n    return jsonb_build_object('status','not_published','reason','context_changed');\n  end if;\n  if p_result->>'status'='failed' then\n    result:=jsonb_build_object('status','not_published','reason',p_result->>'failure_code');\n    update combat_consumer_private.narrative_claims set state='failed',failure_code=p_result->>'failure_code',\n      completion_sha256=fingerprint,completion_result=result,provider_response_id=p_result->>'provider_response_id',\n      provider_request_sha256=p_result->>'provider_request_sha256',raw_output_sha256=p_result->>'raw_output_sha256' where id=p_claim;\n    return result;\n  end if;\n  if encode(extensions.digest(convert_to(p_result->>'text','UTF8'),'sha256'),'hex') is distinct from p_result->>'text_sha256' then\n    raise exception 'narrative_text_hash_invalid';\n  end if;\n  insert into combat_consumer_private.publish_authorizations\n    values(p_request_key,claim.round_id,claim.id,p_result->>'text_sha256',txid_current(),'prepared');\n  result:=public.combat_v2_narrative_store(claim.round_id,'fato_ia',p_result->>'text',p_request_key,null);\n  update combat_consumer_private.publish_authorizations set state='consumed' where request_key=p_request_key;\n  update combat_consumer_private.narrative_claims set state='completed',completion_sha256=fingerprint,\n    completion_result=result,provider_response_id=p_result->>'provider_response_id',\n    provider_request_sha256=p_result->>'provider_request_sha256',raw_output_sha256=p_result->>'raw_output_sha256' where id=p_claim;\n  return result;\nend $function$\n",
+      "definition_md5": "1668f80c8d0503ec16d4b87f60e9d204",
+      "body_md5": "c35951c0b3b381a0c8a79b949c10fefb",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "v",
+      "md5": "1668f80c8d0503ec16d4b87f60e9d204",
+      "definition_sha256": "ad21ed95bee40c3d4594a4a484aa6426736b25ecdb1b60fe1255f5cecd3674c3",
+      "role_in_candidate": "read-only dependency pin: native claim/lease/attempt semantics; not modified"
+    },
+    {
+      "observed_at": "2026-09-10 02:18:48.097559+00",
+      "identity": "public.combat_consumer_scene_acquire_v2(uuid,text,uuid)",
+      "definition": "CREATE OR REPLACE FUNCTION public.combat_consumer_scene_acquire_v2(p_round uuid, p_report_sha256 text, p_request_key uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE a combat_consumer_private.scene_attempts_v2%ROWTYPE; c combat_consumer_private.narrative_claims%ROWTYPE; r jsonb; snapshot jsonb;\nBEGIN\n  IF NOT combat_consumer_private.is_service_request() THEN RAISE EXCEPTION 'scene_service_required'; END IF;\n  IF p_request_key IS NULL OR p_round IS NULL OR p_report_sha256 IS NULL OR p_report_sha256!~'^[a-f0-9]{64}$' THEN RAISE EXCEPTION 'scene_request_invalid'; END IF;\n  PERFORM public.combat_v2_lock_round(p_round);\n  SELECT * INTO a FROM combat_consumer_private.scene_attempts_v2 WHERE round_id=p_round;\n  IF a.claim_id IS NOT NULL THEN\n    PERFORM combat_consumer_private.scene_lock_v2(p_round,p_report_sha256,p_request_key);\n    RETURN combat_consumer_private.scene_record_v2(a.claim_id);\n  END IF;\n  IF EXISTS(SELECT 1 FROM combat_consumer_private.narrative_claims WHERE round_id=p_round) THEN\n    RAISE EXCEPTION 'scene_legacy_claim_not_migrated'; END IF;\n  -- La porta v1 mantiene tutte le guardie di admission, Staff, report, lock e authority.\n  -- Il suo flag non esce dalla v2: acquire non concede MAI il provider.\n  r:=public.combat_consumer_narrative_claim_v1(p_round,p_report_sha256,p_request_key);\n  IF r->>'should_call_provider' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'scene_not_ready'; END IF;\n  SELECT * INTO STRICT c FROM combat_consumer_private.narrative_claims WHERE id=(r->>'claim_id')::uuid;\n  snapshot:=combat_consumer_private.scene_snapshot_v2(c.id);\n  INSERT INTO combat_consumer_private.scene_attempts_v2(claim_id,request_key,round_id,session_id,scene_payload,scene_sha256,state)\n    VALUES(c.id,p_request_key,p_round,c.session_id,snapshot,public.combat_v2_sha256(snapshot),'claimed');\n  -- La finestra per acquisire il permesso è distinta dal tempo concesso al modello.\n  UPDATE combat_consumer_private.narrative_claims SET expires_at=clock_timestamp()+interval '300 seconds' WHERE id=c.id;\n  RETURN combat_consumer_private.scene_record_v2(c.id);\nEND $function$\n",
+      "definition_md5": "be12d9b6c331465ff4c338b8b66566d3",
+      "body_md5": "e9652c216847745b196805589b88558d",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "v",
+      "md5": "be12d9b6c331465ff4c338b8b66566d3",
+      "definition_sha256": "4ee86ec2652a9f21aa437800b3ba5cc3d3da77235f5b6f6f648dd28cac16c6ea",
+      "role_in_candidate": "read-only dependency pin: native claim/lease/attempt semantics; not modified"
+    },
+    {
+      "observed_at": "2026-09-10 02:18:48.097559+00",
+      "identity": "public.combat_consumer_scene_complete_v2(uuid,text,uuid)",
+      "definition": "CREATE OR REPLACE FUNCTION public.combat_consumer_scene_complete_v2(p_round uuid, p_report_sha256 text, p_request_key uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE v_claim uuid; a combat_consumer_private.scene_attempts_v2%ROWTYPE; result jsonb; receipt jsonb;\nBEGIN\n  v_claim:=combat_consumer_private.scene_lock_v2(p_round,p_report_sha256,p_request_key);\n  SELECT * INTO STRICT a FROM combat_consumer_private.scene_attempts_v2 WHERE claim_id=v_claim;\n  IF a.state IN('published','failed') THEN RETURN combat_consumer_private.scene_record_v2(v_claim); END IF;\n  IF a.state<>'generated' OR a.result_payload IS NULL THEN RAISE EXCEPTION 'scene_result_not_ready'; END IF;\n  -- La generazione è già finita e persistita entro la lease: la consegna idempotente può proseguire dopo,\n  -- purché authority, report, stato protetto e versione contesto siano ancora identici.\n  IF NOT combat_consumer_private.scene_current_v2(v_claim) THEN\n    UPDATE combat_consumer_private.scene_attempts_v2 SET state='failed',failure_code='context_changed' WHERE claim_id=v_claim;\n    UPDATE combat_consumer_private.narrative_claims SET state='failed',failure_code='context_changed' WHERE id=v_claim;\n    RETURN combat_consumer_private.scene_record_v2(v_claim);\n  END IF;\n  result:=a.result_payload;\n  PERFORM combat_consumer_private.validate_scene_result_v2(result);\n  INSERT INTO combat_consumer_private.publish_authorizations\n    VALUES(p_request_key,p_round,v_claim,result->>'text_sha256',txid_current(),'prepared');\n  -- Stessa porta reale del prodotto, stessi trigger, ricevuta e isolamento. Nessun inserimento messaggi alternativo.\n  receipt:=public.combat_v2_narrative_store(p_round,'fato_ia',result->>'text',p_request_key,null);\n  UPDATE combat_consumer_private.publish_authorizations SET state='consumed' WHERE request_key=p_request_key;\n  UPDATE combat_consumer_private.narrative_claims SET state='completed',completion_sha256=public.combat_v2_sha256(result),\n    completion_result=receipt,provider_response_id=result->>'provider_response_id',provider_request_sha256=result->>'provider_request_sha256',\n    raw_output_sha256=result->>'raw_output_sha256' WHERE id=v_claim;\n  UPDATE combat_consumer_private.scene_attempts_v2 SET state='published',completion=receipt WHERE claim_id=v_claim;\n  RETURN combat_consumer_private.scene_record_v2(v_claim);\nEND $function$\n",
+      "definition_md5": "153777708128d14d5b482d08dad24f9e",
+      "body_md5": "46fbbcd868e562f25d4fd450fe307197",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "v",
+      "md5": "153777708128d14d5b482d08dad24f9e",
+      "definition_sha256": "0fed44dc23d79db02d5d6386db633edd390e874e4cef1b8d750bd94f8a339824",
+      "role_in_candidate": "read-only dependency pin: native claim/lease/attempt semantics; not modified"
+    },
+    {
+      "observed_at": "2026-09-10 02:18:48.097559+00",
+      "identity": "public.combat_consumer_scene_permit_v2(uuid,text,uuid,text,bigint)",
+      "definition": "CREATE OR REPLACE FUNCTION public.combat_consumer_scene_permit_v2(p_round uuid, p_report_sha256 text, p_request_key uuid, p_scene_sha256 text, p_control_version bigint)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE v_claim uuid; a combat_consumer_private.scene_attempts_v2%ROWTYPE; c combat_consumer_private.narrative_claims%ROWTYPE;\nBEGIN\n  v_claim:=combat_consumer_private.scene_lock_v2(p_round,p_report_sha256,p_request_key);\n  SELECT * INTO STRICT a FROM combat_consumer_private.scene_attempts_v2 WHERE claim_id=v_claim;\n  SELECT * INTO STRICT c FROM combat_consumer_private.narrative_claims WHERE narrative_claims.id=v_claim;\n  IF a.scene_sha256 IS DISTINCT FROM p_scene_sha256 OR c.control_version IS DISTINCT FROM p_control_version THEN RAISE EXCEPTION 'scene_permit_binding_changed'; END IF;\n  IF a.state<>'claimed' THEN RETURN combat_consumer_private.scene_record_v2(v_claim); END IF;\n  IF NOT combat_consumer_private.scene_current_v2(v_claim) OR c.expires_at<=clock_timestamp()+interval '13 seconds' THEN\n    UPDATE combat_consumer_private.scene_attempts_v2 SET state='failed',failure_code='context_or_lease_changed' WHERE claim_id=v_claim;\n    UPDATE combat_consumer_private.narrative_claims SET state='failed',failure_code='context_changed' WHERE narrative_claims.id=v_claim;\n    RETURN combat_consumer_private.scene_record_v2(v_claim);\n  END IF;\n  UPDATE combat_consumer_private.scene_attempts_v2 SET state='provider_reserved',permit_at=clock_timestamp() WHERE claim_id=v_claim;\n  UPDATE combat_consumer_private.narrative_claims SET expires_at=clock_timestamp()+interval '60 seconds' WHERE narrative_claims.id=v_claim;\n  RETURN combat_consumer_private.scene_record_v2(v_claim)||jsonb_build_object('granted_now',true);\nEND $function$\n",
+      "definition_md5": "55af27b8ee0746648d1f7676a1a4e97b",
+      "body_md5": "7e74b2cd9b7874766603fd9066b6bef0",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "v",
+      "md5": "55af27b8ee0746648d1f7676a1a4e97b",
+      "definition_sha256": "9d5202925e6d0f381033186d386b162d78d875ddde956b19a39c28fcb1409512",
+      "role_in_candidate": "read-only dependency pin: native claim/lease/attempt semantics; not modified"
+    },
+    {
+      "observed_at": "2026-09-10 02:18:48.097559+00",
+      "identity": "public.combat_consumer_scene_save_v2(uuid,text,uuid,text)",
+      "definition": "CREATE OR REPLACE FUNCTION public.combat_consumer_scene_save_v2(p_round uuid, p_report_sha256 text, p_request_key uuid, p_result_text text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE v_claim uuid; a combat_consumer_private.scene_attempts_v2%ROWTYPE;\n  c combat_consumer_private.narrative_claims%ROWTYPE; result jsonb; fingerprint text;\nBEGIN\n  v_claim:=combat_consumer_private.scene_lock_v2(p_round,p_report_sha256,p_request_key);\n  IF p_result_text IS NULL OR octet_length(p_result_text)>65536 THEN RAISE EXCEPTION 'scene_delivery_transport_overflow'; END IF;\n  result:=p_result_text::jsonb;\n  PERFORM combat_consumer_private.validate_scene_result_v2(result);\n  fingerprint:=encode(extensions.digest(convert_to(p_result_text,'UTF8'),'sha256'),'hex');\n  SELECT * INTO STRICT a FROM combat_consumer_private.scene_attempts_v2 WHERE claim_id=v_claim;\n  SELECT * INTO STRICT c FROM combat_consumer_private.narrative_claims WHERE id=v_claim;\n  IF a.result_sha256 IS NOT NULL THEN\n    IF a.result_sha256 IS DISTINCT FROM fingerprint THEN RAISE EXCEPTION 'scene_result_conflict'; END IF;\n    RETURN combat_consumer_private.scene_record_v2(v_claim);\n  END IF;\n  IF a.state<>'provider_reserved' OR a.permit_at IS NULL OR c.expires_at<=clock_timestamp()\n    OR NOT combat_consumer_private.scene_current_v2(v_claim)\n    OR result->>'report_sha256' IS DISTINCT FROM c.report_sha256\n    OR result->>'context_sha256' IS DISTINCT FROM a.scene_sha256\n    OR (result->>'control_version')::bigint IS DISTINCT FROM c.control_version THEN\n    UPDATE combat_consumer_private.scene_attempts_v2 SET state='failed',failure_code='context_or_lease_changed' WHERE claim_id=v_claim;\n    UPDATE combat_consumer_private.narrative_claims SET state='failed',failure_code='context_changed' WHERE id=v_claim;\n    RETURN combat_consumer_private.scene_record_v2(v_claim);\n  END IF;\n  IF result->>'status'='succeeded' AND encode(extensions.digest(convert_to(result->>'text','UTF8'),'sha256'),'hex')\n    IS DISTINCT FROM result->>'text_sha256' THEN RAISE EXCEPTION 'scene_text_hash_changed'; END IF;\n  UPDATE combat_consumer_private.scene_attempts_v2 SET result_bytes=p_result_text,result_payload=result,result_sha256=fingerprint,\n    provider_response_id=result->>'provider_response_id',result_at=clock_timestamp(),\n    state=CASE WHEN result->>'status'='succeeded' THEN 'generated' ELSE 'failed' END,\n    failure_code=result->>'failure_code',completion=CASE WHEN result->>'status'='failed'\n      THEN jsonb_build_object('status','not_published','reason',result->>'failure_code') ELSE NULL END WHERE claim_id=v_claim;\n  IF result->>'status'='failed' THEN\n    UPDATE combat_consumer_private.narrative_claims SET state='failed',failure_code=result->>'failure_code',\n      provider_response_id=result->>'provider_response_id',provider_request_sha256=result->>'provider_request_sha256',\n      raw_output_sha256=result->>'raw_output_sha256' WHERE id=v_claim;\n  END IF;\n  RETURN combat_consumer_private.scene_record_v2(v_claim);\nEND $function$\n",
+      "definition_md5": "c1e86541aa230e0d2438079895b0451f",
+      "body_md5": "6ddae89ff0ea576a1a92163e3192163e",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "provolatile": "v",
+      "md5": "c1e86541aa230e0d2438079895b0451f",
+      "definition_sha256": "79de90db6b3de4fd2698f2da978932dc8f50116d77b164efd6a80a9eb1b46a90",
+      "role_in_candidate": "read-only dependency pin: native claim/lease/attempt semantics; not modified"
+    }
+  ],
+  "revision002": {
+    "task_id": "NARRATIVE-MULTIPLICATION-LIFECYCLE-AGGREGATA-002",
+    "revision": 2,
+    "aggregated_correction": 1,
+    "counter_reset": false,
+    "state": "CANDIDATE_NOT_APPLIED_NOT_QUALIFIED",
+    "readonly_queries_this_revision": 2,
+    "source_read_at": "2026-09-10 02:18:48.097559+00",
+    "legacy_boolean_evidence": {
+      "observed_at": "2026-09-10 02:19:02.192959+00",
+      "claim_id": "01fadb09-6e62-45ee-9456-2e9b9bc3647d",
+      "round_id": "b8788944-3079-4506-b073-5489a75ef701",
+      "state": "claimed",
+      "claimed_at": "2026-09-08 22:31:11.60653+00",
+      "expires_at": "2026-09-08 22:32:11.60653+00",
+      "strictly_expired": true,
+      "completion_sha256_null": true,
+      "completion_result_null": true,
+      "provider_response_id_null": true,
+      "provider_request_sha256_null": true,
+      "raw_output_sha256_null": true,
+      "attempts_for_claim": 0,
+      "attempts_for_round": 0
+    },
+    "before001_manifest_sha256": "fb173196bec2a9cbfa090bc709987b356a160dbd10d13c7b3b5b92436101bc9e",
+    "preserved_files": {
+      "BASELINE.json": "bf04df3fb27536a4cded47d875485b3812d6518ce60e9ee48fc95899b699736d",
+      "BUILD.py": "71f4ddc39a2805b38136b6f559e8e5ad67728cffd6142e4ed514be6e7bce4eaf",
+      "CONTRACT.md": "5536a80fd48392cdbe69e212aeb9acb00850fb18fa7d92654b8521da80193ee9",
+      "INSTALL.sql": "17be81bcd3bef9c85a24abc17f10010fa1ae12e06564fdcbc46f56f66810a3be",
+      "LIVE_GATE.md": "904e630be957c40da3c3c59bec175d9291eddd2636256dd3b4c4b24706ffc254",
+      "LIVE_RESULT.json": "04418ff7dad3b7b2769575df0fff211656b766dea3cd4247a388afc52d93717f",
+      "MANIFEST.json": "fb173196bec2a9cbfa090bc709987b356a160dbd10d13c7b3b5b92436101bc9e",
+      "PLAN.md": "c88756025d73ada21272ba3631c0a2e23fc98eec6e30e8e0746daec255e71a10",
+      "QA_CASES.sql": "72a7cfbb167e14334b7c526d32c4167e89ab6f0f6850b10b0d286605ffceb393",
+      "QA_ENVIRONMENT.json": "883a7d319a08a975034b5159896e45be8486baf36ff8b83e0ffa1262c64ed16c",
+      "QA_EXECUTION_PLAN.md": "9c460868077297fb560d830e2d47a678139b34942037036b530d3b38bf6208bc",
+      "QA_MANIFEST.json": "6121d17095bdf3c34bdc0dfac6adcd1cf939b32d9885954a2e44c4ff2c88fdb4",
+      "QA_PLAN.md": "902920cce6b871ff7db2af97953e3045ca7533039676e417aa7ca8692b98f0ed",
+      "QA_REPORT.md": "7c385b5c75d39f0e8f3fe83b15b1d11a7c137275102f51ffec8ed220d76f07a3",
+      "QA_RESULT.json": "33d40d000adafe21612597200b3ef13ccb7124e0e705ad887863457c58b1977f",
+      "QA_RUNNER.py": "9e37a05561ca11e88bc3ea28e74345cbca624918b2a44fa36b7959f64209bc8e",
+      "QA_SETUP.sql": "4321f741b78d0e6d8b2f101e60147d7a58350e95a1b3bac874c470f8a6b88643",
+      "RECOVERY.sql": "0ba547687368e0dae01f782653a0d1d855217ecd8bd5b5002ea0aa527eefdbe1",
+      "REVIEW.md": "3ebf00150d3db270f5ebcc6824f5190aa6540b261c5970ac5d8fa88d9cf0a0fd",
+      "REVIEW_MANIFEST.json": "99a3b3e1bb5211075796ae7cc166ea778b407845d75b9db125aaad8c24435c44",
+      "WRAPPER_MANIFEST.json": "180b43320c71e2fd694527011bf8c62361d5dda2deb6f03bd794c33ce4096541",
+      "WRAPPER_PLAN.md": "9bad4e49261bc9daa4712b0e2fd8ab89068774bda1e516d9edcdca7d305e2c6b",
+      "WRAPPER_REPORT.md": "7dbc7eaac18314e3bafcaa642a28e71a75a988f2078d482b3a1cec4ee3e0c853",
+      "WRAPPER_RESULT.json": "ef8b1e2a63f91cd4b6fd39a769b0e3fc5fb32866b77f8c102de1fc37af430b34",
+      "WRAPPER_RESULT_MANIFEST.json": "1955cada93efa2b22cff232e6efe15df85f644a22e34e8db3d81722ebcacd6d0",
+      "WRAPPER_RUNNER.py": "0adaaf88b1ba5f24d7b44206ae6fe8bab3b7909339dc268b565f1ad945a62a40",
+      "WRAPPER_SETUP.sql": "8abba256ea3086015c87d9cc4c93f51b09a6c107fe3ede9e71f3d979d5fc0873"
+    },
+    "empirical_finding": "QUIET counted a native legacy claimed record beyond lease with no attempt and five empty evidence fields as operational inflight",
+    "semantic_compatibility": "6/6 live body pins match examined native semantics. v1 clock_timestamp after locks blocks late completion; v2 generated delivery may outlive lease so any attempt stays blocking.",
+    "helper_after_unchanged_sha256": "59d25d1a527958bd63e4cb3ebf8ad68665fdc301c13f76edc175d2e4625af9a7",
+    "validation_inherited_only_001": {
+      "component": "4/4 PASS on001, not a002guard qualification",
+      "wrapper": "8/8 PASS on001, wrapper002 requires fresh qualification"
+    },
+    "non_actions": [
+      "No historic claim state/time/evidence changes",
+      "No renewed permission or provider calls",
+      "No terminalization to permit deployment",
+      "No SQL mutations, Docker or QA execution"
+    ]
+  }
+}
