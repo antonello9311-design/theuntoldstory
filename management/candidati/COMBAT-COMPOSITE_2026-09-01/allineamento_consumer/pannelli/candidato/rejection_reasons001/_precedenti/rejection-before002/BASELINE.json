@@ -1,0 +1,236 @@
+{
+  "task_id": "COMBAT-PANEL-REJECTION-REASONS-CANDIDATE-001",
+  "state": "FROZEN_CANDIDATE_NOT_EXECUTED",
+  "recorded_at_utc": "2026-09-10T04:30:47.002564+00:00",
+  "metadata_query": "SELECT n.nspname AS schema_name,p.proname,pg_get_function_identity_arguments(p.oid) AS identity_arguments,md5(pg_get_functiondef(p.oid)) AS definition_md5,pg_get_userbyid(p.proowner) AS owner_name,p.proacl::text AS acl,p.prosecdef AS security_definer,p.provolatile AS volatility,p.proconfig AS config,pg_get_functiondef(p.oid) AS definition FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.prokind='f' AND p.proname IN ('combat_panel_commit_v1','combat_v2_fail') ORDER BY p.proname,pg_get_function_identity_arguments(p.oid);",
+  "metadata_query_count": 1,
+  "functions": [
+    {
+      "schema_name": "public",
+      "proname": "combat_panel_commit_v1",
+      "identity_arguments": "p_command jsonb",
+      "definition_md5": "84860632d828931cea773b83c583548e",
+      "owner_name": "postgres",
+      "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+      "security_definer": true,
+      "volatility": "v",
+      "config": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.combat_panel_commit_v1(p_command jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE p jsonb; uid uuid:=auth.uid(); key uuid; fp text; adapter text; reason text;\n prior combat_panel_private.request_receipts%ROWTYPE; offer combat_panel_private.offers%ROWTYPE;\n code text; message text; recovery text;\nBEGIN\n IF uid IS NULL THEN RAISE EXCEPTION 'panel_authentication_required' USING ERRCODE='28000'; END IF;\n p:=combat_panel_private.validate_command(p_command); key:=(p->>'request_key')::uuid; fp:=public.combat_v2_sha256(p);\n PERFORM pg_advisory_xact_lock(hashtextextended('panel-request:'||uid::text||':'||key::text,731));\n SELECT * INTO prior FROM combat_panel_private.request_receipts WHERE principal_user=uid AND request_key=key;\n IF prior.request_key IS NOT NULL THEN\n   IF prior.command_fingerprint<>fp THEN RAISE EXCEPTION 'panel_request_key_conflict' USING ERRCODE='22023'; END IF;\n   RETURN jsonb_set(prior.viewer_envelope,'{receipt,replayed}','true',false);\n END IF;\n SELECT * INTO offer FROM combat_panel_private.offers WHERE id=(p->>'offer_id')::uuid AND principal_user=uid;\n IF offer.id IS NULL THEN RAISE EXCEPTION 'panel_offer_not_available' USING ERRCODE='42501'; END IF;\n adapter:=offer.source_payload->>'adapter';\n reason:=combat_panel_private.access_reason((p->>'location_id')::uuid,adapter);\n IF reason IS NOT NULL THEN RAISE EXCEPTION 'panel_access_rejected' USING ERRCODE='42501'; END IF;\n IF adapter IS DISTINCT FROM combat_panel_private.location_adapter((p->>'location_id')::uuid) THEN\n   RAISE EXCEPTION 'panel_context_stale' USING ERRCODE='40001'; END IF;\n IF offer.kind='administration' AND offer.operation='open'\n   AND offer.source_payload->>'dispatch'='master_session_open' THEN\n   RETURN combat_panel_private.commit_master_open(p); END IF;\n IF offer.kind='action' AND offer.operation='declare' AND offer.source_payload->>'dispatch'='sabaku_clone' THEN\n   RETURN clan_sabaku_private.commit_clone(p); END IF;\n IF offer.kind='action' AND offer.operation='declare' AND offer.source_payload->>'dispatch'='immobilization_escape' THEN\n   RETURN combat_panel_private.commit_immobilization_escape(p); END IF;\n IF offer.kind='action' AND offer.operation='declare' AND offer.source_payload->>'dispatch'='multiplication' THEN\n   RETURN combat_panel_private.commit_multiplication(p); END IF;\n IF adapter='ordinary_v2' AND offer.kind='control' AND offer.operation='control' AND offer.source_payload->>'dispatch'='pg_movement' THEN\n   RETURN combat_panel_private.commit_pg_movement(p); END IF;\n IF adapter='ordinary_v2' THEN RETURN combat_panel_private.commit_ordinary(p); END IF;\n IF adapter='master_v2' THEN\n   IF offer.kind='control' AND offer.source_payload->>'dispatch'='sabaku_control' THEN\n     RETURN clan_sabaku_private.commit_master_control(p); END IF;\n   IF offer.kind='control' AND offer.source_payload->>'dispatch'='companion_control' THEN\n     RETURN combat_panel_private.commit_master_companion(p); END IF;\n   IF offer.kind='administration' THEN RETURN combat_panel_private.commit_master_admin(p); END IF;\n   RETURN combat_panel_private.commit_master_actor(p);\n END IF;\n RAISE EXCEPTION 'panel_dispatch_not_available' USING ERRCODE='22023';\nEXCEPTION WHEN OTHERS THEN\n -- Questo ramo viene raggiunto dopo il rollback dell'intera sottotransazione\n -- della richiesta. Non comprende timeout/disconnessioni senza risposta DB.\n code:=CASE WHEN SQLSTATE='28000' THEN 'authentication_required'\n   WHEN SQLERRM='panel_request_key_conflict' THEN 'request_key_conflict'\n   WHEN SQLSTATE='42501' THEN 'not_authorized'\n   WHEN SQLSTATE='40001' THEN 'context_changed'\n   WHEN SQLSTATE LIKE '22%' THEN 'selection_rejected' ELSE 'operation_rejected' END;\n message:=CASE code WHEN 'authentication_required' THEN 'Accedi nuovamente per continuare.'\n   WHEN 'request_key_conflict' THEN 'Questa richiesta è già associata a un altro invio. Verifica lo stato prima di continuare.'\n   WHEN 'not_authorized' THEN 'Questa operazione non è disponibile per il tuo accesso.'\n   WHEN 'context_changed' THEN 'Lo scontro è cambiato. Rileggi lo stato e scegli di nuovo.'\n   WHEN 'selection_rejected' THEN 'Le scelte non sono più valide. Rileggi le opzioni.'\n   ELSE 'Il server ha rifiutato l’operazione. Rileggi lo stato; se il problema resta, informa lo staff.' END;\n recovery:=CASE WHEN code='authentication_required' THEN 'authenticate'\n   WHEN code='request_key_conflict' THEN 'contact_staff' ELSE 'refresh' END;\n RETURN jsonb_build_object('schema_version','combat-panel-error/1','status','rejected','request_key',key,\n   'code',code,'message',message,'recovery',recovery);\nEND $function$\n"
+    },
+    {
+      "schema_name": "public",
+      "proname": "combat_v2_fail",
+      "identity_arguments": "p_code text, p_message text, p_status integer, p_request_key uuid, p_details jsonb",
+      "definition_md5": "607dec1f81b9b0c310c91585315803f6",
+      "owner_name": "postgres",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "security_definer": false,
+      "volatility": "v",
+      "config": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.combat_v2_fail(p_code text, p_message text, p_status integer, p_request_key uuid DEFAULT NULL::uuid, p_details jsonb DEFAULT '{}'::jsonb)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin\n  if not (p_code=any(public.combat_v2_error_codes())) then\n    raise exception using errcode='P0001',message='COMBAT_V2_CODICE_ERRORE_NON_CANONICO';\n  end if;\n  raise sqlstate 'PGRST' using\n    message=jsonb_build_object('code',p_code,'message_it',p_message,\n      'retryable',p_status in (409,429,500,502,503,504),'request_key',p_request_key,\n      'details_sanitized',case when jsonb_typeof(coalesce(p_details,'{}'::jsonb))='object' then coalesce(p_details,'{}'::jsonb) else '{}'::jsonb end)::text,\n    detail=jsonb_build_object('status',p_status)::text;\nend $function$\n"
+    }
+  ],
+  "source_inputs": {
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/multiplication_assault_smoke010/DIAGNOSIS.json": {
+      "bytes": 50329,
+      "sha256": "d01e794cb2bf0dd6e69f76b20d35f055168d6fdfd654dcc1f1db015177fc9fcd"
+    },
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/multiplication_assault_smoke011/DIAGNOSIS.json": {
+      "bytes": 43940,
+      "sha256": "b23cf8f0ac180a5042ba1b26f75f03c8b811b55d2fd0de4f50529fdfda6bda03"
+    }
+  },
+  "mapping": [
+    {
+      "cause": "panel_command_shape_invalid",
+      "message": "La richiesta non ha il formato previsto. Riapri il pannello prima di inviare."
+    },
+    {
+      "cause": "panel_command_keys_invalid",
+      "message": "La richiesta non ha il formato previsto. Riapri il pannello prima di inviare."
+    },
+    {
+      "cause": "panel_contract_version_invalid",
+      "message": "La richiesta non ha il formato previsto. Riapri il pannello prima di inviare."
+    },
+    {
+      "cause": "panel_command_values_invalid",
+      "message": "La richiesta non ha il formato previsto. Riapri il pannello prima di inviare."
+    },
+    {
+      "cause": "panel_identifier_invalid",
+      "message": "La richiesta non identifica correttamente il contesto o le scelte. Rileggi il pannello."
+    },
+    {
+      "cause": "panel_option_identifier_invalid",
+      "message": "La richiesta non identifica correttamente il contesto o le scelte. Rileggi il pannello."
+    },
+    {
+      "cause": "panel_context_version_invalid",
+      "message": "La richiesta non identifica correttamente il contesto o le scelte. Rileggi il pannello."
+    },
+    {
+      "cause": "panel_duplicate_selection",
+      "message": "La selezione contiene elementi ripetuti o non validi. Rileggi le opzioni e scegli nuovamente."
+    },
+    {
+      "cause": "panel_selection_invalid",
+      "message": "La selezione contiene elementi ripetuti o non validi. Rileggi le opzioni e scegli nuovamente."
+    },
+    {
+      "cause": "panel_selection_not_offered",
+      "message": "Una delle scelte inviate non appartiene alle opzioni disponibili. Rileggi le opzioni."
+    },
+    {
+      "cause": "panel_choice_cardinality_or_dependency_invalid",
+      "message": "Manca una scelta richiesta oppure sono selezionate opzioni che dipendono da una scelta diversa."
+    },
+    {
+      "cause": "panel_input_shape_invalid",
+      "message": "Uno dei campi richiesti è mancante, ripetuto o non valido. Controlla i campi prima di inviare."
+    },
+    {
+      "cause": "panel_duplicate_input",
+      "message": "Uno dei campi richiesti è mancante, ripetuto o non valido. Controlla i campi prima di inviare."
+    },
+    {
+      "cause": "panel_input_cardinality_invalid",
+      "message": "Uno dei campi richiesti è mancante, ripetuto o non valido. Controlla i campi prima di inviare."
+    },
+    {
+      "cause": "panel_input_value_invalid",
+      "message": "Uno dei campi richiesti è mancante, ripetuto o non valido. Controlla i campi prima di inviare."
+    },
+    {
+      "cause": "panel_input_not_offered",
+      "message": "La richiesta contiene un campo non previsto per questa azione. Rileggi le opzioni."
+    },
+    {
+      "cause": "panel_activity_scope_invalid",
+      "message": "La richiesta non appartiene allo scontro o al luogo selezionato. Riapri il pannello."
+    },
+    {
+      "cause": "panel_role_required",
+      "message": "Questa dichiarazione richiede un testo di azione valido prima della conferma."
+    },
+    {
+      "cause": "panel_multiplication_selection_incomplete",
+      "message": "Completa le scelte di copie, modalità, disposizione e originale prima di confermare."
+    },
+    {
+      "cause": "panel_multiplication_selection_conflict",
+      "message": "Le scelte di modalità, copie, disposizione o bersaglio della Moltiplicazione sono incompatibili."
+    },
+    {
+      "cause": "panel_multiplication_mode_invalid",
+      "message": "La modalità scelta e la presenza del bersaglio non sono compatibili."
+    },
+    {
+      "cause": "panel_multiplication_formation_invalid",
+      "message": "Il numero di copie o la disposizione non rispettano i limiti disponibili della Moltiplicazione."
+    },
+    {
+      "cause": "panel_multiplication_figure_outside_arena",
+      "message": "La disposizione porta almeno una figura fuori dai confini dell’arena."
+    },
+    {
+      "cause": "panel_multiplication_single_movement_required",
+      "message": "Lo spostamento dell’originale non è disponibile. Controlla il movimento residuo e gli impedimenti."
+    },
+    {
+      "cause": "panel_multiplication_zero_movement_capability",
+      "message": "È stato richiesto uno spostamento, ma l’originale è nella posizione di partenza. Rileggi le opzioni."
+    },
+    {
+      "cause": "panel_multiplication_target_invalid",
+      "message": "Il bersaglio dell’assalto non è un avversario attivo in questo scontro."
+    },
+    {
+      "cause": "panel_multiplication_target_choice_required",
+      "message": "Per questo bersaglio occorre selezionare una figura tra quelle offerte."
+    },
+    {
+      "cause": "panel_multiplication_target_selection_conflict",
+      "message": "La selezione della figura per il bersaglio non è completa o contiene scelte incompatibili."
+    },
+    {
+      "cause": "panel_multiplication_target_selection_invalid",
+      "message": "La selezione della figura per il bersaglio non è completa o contiene scelte incompatibili."
+    },
+    {
+      "cause": "panel_attack_origin_invalid",
+      "message": "L’origine scelta per l’attacco non è consentita."
+    },
+    {
+      "cause": "panel_multiplication_assault_contact_invalid",
+      "message": "L’assalto non può raggiungere il bersaglio dalla posizione scelta: verifica visibilità, contatto, direzione e percorso."
+    },
+    {
+      "cause": "panel_multiplication_catalog_changed",
+      "message": "La tecnica non è utilizzabile con la configurazione attuale. Segnala il rifiuto allo staff."
+    },
+    {
+      "cause": "panel_multiplication_rank_unavailable",
+      "message": "Non è possibile determinare le copie disponibili per il rango del personaggio. Contatta lo staff."
+    },
+    {
+      "cause": "panel_multiplication_resources_invalid",
+      "message": "Non è possibile verificare le risorse disponibili per la Moltiplicazione. Contatta lo staff."
+    },
+    {
+      "cause": "panel_multiplication_cost_snapshot_invalid",
+      "message": "Non è possibile verificare le risorse disponibili per la Moltiplicazione. Contatta lo staff."
+    },
+    {
+      "cause": "panel_multiplication_npc_source_unavailable",
+      "message": "Questo attore non dispone di una fonte valida per usare la Moltiplicazione."
+    },
+    {
+      "cause": "panel_multiplication_actor_kind_invalid",
+      "message": "Questo attore non dispone di una fonte valida per usare la Moltiplicazione."
+    },
+    {
+      "cause": "immobilization_escape_action_conflict",
+      "message": "La stessa dichiarazione contiene azioni speciali incompatibili. Rileggi le opzioni e scegli una sola azione."
+    },
+    {
+      "cause": "sabaku_clone_action_conflict",
+      "message": "La stessa dichiarazione contiene azioni speciali incompatibili. Rileggi le opzioni e scegli una sola azione."
+    },
+    {
+      "cause": "panel_dispatch_not_available",
+      "message": "Questa azione non ha un percorso disponibile nel pannello. Segnala il rifiuto allo staff."
+    }
+  ],
+  "scope": "Only the message assignment for code=selection_rejected; exact SQLERRM literals, no raw error/JSON parsing",
+  "fail_semantics": "combat_v2_fail uses SQLSTATE PGRST and JSON message; existing operation_rejected classification remains unchanged",
+  "selection011_cause": "NOT_DETERMINED",
+  "package_sources": {
+    "BUILD.py": {
+      "bytes": 6386,
+      "sha256": "ed8bf12f34f194c7a464d13c6ba5c94636055cc8e3d7804fe8183cb9b16c6ae1"
+    },
+    "PLAN.md": {
+      "bytes": 4491,
+      "sha256": "189785aedd117148193c8d76324197cc1d4714b3f97d7046cde33034b3b6c762"
+    },
+    "QA_PLAN.md": {
+      "bytes": 6039,
+      "sha256": "ea85ad5e7ce8d7eddfa4972199200f897a33d234a4d14b36edb4adab04d84704"
+    }
+  },
+  "QA_budget": {
+    "groups": 4,
+    "subcases_max": 9,
+    "SQL_submissions_max": 9,
+    "minutes": 10,
+    "provider": 0,
+    "browser": 0,
+    "runs": 1,
+    "current_runs": 0
+  }
+}
