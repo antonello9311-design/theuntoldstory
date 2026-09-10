@@ -1,6 +1,6 @@
 # Avvio e coordinamento del lavoro
 
-Versione 1.2 · punto 2: costruzione del nuovo processo, autorizzata da Antonello il 09/09/2026 · verificata e installata localmente. Punto 1: documenti riordinati e decisioni consolidate, completato localmente. Il deposito GitHub è rinviato per richiesta di Antonello al suo rientro. La prima consegna tecnica TASK-PM-AVVIO-001 conserva l’etichetta storica «blocco1»; la numerazione corrente distingue documenti e processo. AGENTS mantiene i gate; questo file descrive l’esecuzione.
+Versione 1.2 · punto 2: costruzione del nuovo processo, autorizzata da Antonello il 09/09/2026 · verificata e installata localmente. Punto 1: documenti riordinati e decisioni consolidate, completato localmente. Antonello ha autorizzato la ripresa dei caricamenti: il deposito GitHub è selettivo e autonomo quando i file sono pronti, secondo i controlli e i gate distinti di AGENTS. La prima consegna tecnica TASK-PM-AVVIO-001 conserva l’etichetta storica «blocco1»; la numerazione corrente distingue documenti e processo. AGENTS mantiene i gate; questo file descrive l’esecuzione.
 
 ## Cosa deve fare Antonello
 
