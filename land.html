@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-EXAM-REGIA17-UI-009" />
+  <meta name="tus-build" content="LAND-EXAM-REGIA17-UI-011" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2365,7 +2365,7 @@ const COMMON_PANEL_LAYOUT_CSS = `
 .common-map-toolbar>h4{margin:0!important;min-width:0}
 .common-map-toggle{flex-shrink:0}
 .common-map-meta{font-size:12px;color:#b6c3d0;margin:8px 0}
-.common-map-canvas{position:relative;min-width:0;min-height:280px;overflow:hidden;flex:1;display:flex}
+.common-map-canvas{position:relative;min-width:0;min-height:0;overflow:hidden;flex:none;display:block;width:100%;aspect-ratio:1/1;box-sizing:border-box}
 .common-map-label{position:absolute;transform:translate(-50%,-110%);max-width:40%;font:600 13px/1.2 system-ui,sans-serif;text-align:center;pointer-events:none;text-shadow:0 1px 2px #fff8e6,0 -1px 2px #fff8e6;overflow-wrap:anywhere}
 /* Asset decorativi: i metri restano nel DTO, le dimensioni qui sono solo visive. */
 .common-map-art{position:absolute;display:block;pointer-events:none;user-select:none;z-index:2}
@@ -2381,7 +2381,7 @@ const COMMON_PANEL_LAYOUT_CSS = `
 .common-map-with-art .common-map-label{z-index:4;background:#fff8e6dc;border-radius:3px;padding:1px 3px}
 .common-map-label-below{transform:translate(-50%,12px)}
 @media(max-width:999px){.common-map-art-actor{width:50px;height:62px}.common-map-art-object{width:36px;height:36px}.common-map-label-below{transform:translate(-50%,9px)}}
-.common-map-canvas>.ordinary-map{display:block;width:100%;height:100%;min-height:280px;max-height:none!important;flex:1;margin:0}
+.common-map-canvas>.ordinary-map{position:absolute;inset:0;display:block;width:100%;height:100%;min-height:0;max-height:none!important;box-sizing:border-box;margin:0}
 .common-map-legend{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;flex:1;max-height:65vh;padding:4px 8px 12px 0;color:#c5d0dc;font-size:13px}
 .common-map-legend h5{color:#edc17a;font-size:15px;margin:6px 0 12px}
 .common-map-legend ul{padding-left:20px;margin:0}
@@ -2401,19 +2401,29 @@ const COMMON_PANEL_LAYOUT_CSS = `
  .combat-panel-common.common-panel-active{display:flex;flex-direction:column;flex:1;min-height:0;max-height:100%;overflow:hidden;gap:10px}
  .common-panel-active>.common-panel-header{flex-shrink:0;max-height:25vh;overflow:auto;padding:0 2px}
  .common-panel-active .common-panel-feedback .mv2-field{margin:0}
- .common-panel-active>.common-panel-workspace{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(340px,1fr);gap:16px;flex:1;min-height:0;overflow:hidden}
- .common-panel-active .common-panel-map{display:flex;flex-direction:column;min-height:0;overflow:hidden;margin:0}
+ .common-panel-active>.common-panel-workspace{display:grid;grid-template-columns:minmax(0,calc(100dvh - var(--combat-panel-top,0px) - 390px)) clamp(280px,24vw,380px);justify-content:center;grid-template-areas:"arena participants" "commands commands";grid-template-rows:max-content max-content;align-content:start;align-items:start;gap:16px;flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:0 8px 12px 0}
+ .common-panel-active .common-panel-map{grid-area:arena!important;justify-self:center;width:100%;max-width:calc(100dvh - var(--combat-panel-top,0px) - 390px);display:flex;flex-direction:column;min-height:0;overflow:hidden;margin:0}
  .common-panel-active .common-panel-map>h4,.common-panel-active .common-panel-map>p{flex-shrink:0;margin:0 0 8px}
- .common-panel-active .common-map-canvas{min-height:0}
- .common-panel-active .common-map-canvas>.ordinary-map{height:100%;min-height:0}
- .common-panel-active .common-map-legend{max-height:none}
- .common-panel-active .common-panel-sidebar{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:0 8px 12px 0}
+ .common-panel-active .common-map-legend{height:calc(100dvh - var(--combat-panel-top,0px) - 288px);max-height:none;flex:none}
+ .common-panel-active .common-panel-participants{grid-area:participants!important;width:100%;max-height:calc(100dvh - var(--combat-panel-top,0px) - 180px);overflow:auto;overscroll-behavior:contain;margin:0}
+ .common-panel-active .common-panel-participants .mv2-roster{display:grid;grid-template-columns:1fr;gap:10px;margin:12px 0 0!important;padding:0!important}
+ .common-panel-active .common-panel-participants .mv2-note{margin:3px 0;font-size:12px}
+ .common-panel-active .common-panel-sidebar{grid-area:commands!important;display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0}
  .common-panel-active .common-panel-sidebar>.mv2-field{flex-shrink:0;margin:0;order:3}
  .common-panel-active .common-panel-sidebar>.common-panel-actions{order:0}
  .common-panel-active .common-panel-sidebar>.common-panel-administration{order:1}
- .common-panel-active .common-panel-sidebar>.common-panel-participants{order:-1}
- .common-panel-active .common-panel-participants .mv2-roster{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
- .common-panel-active .common-panel-participants .mv2-note{margin:2px 0;font-size:11px}
+}
+@media(max-width:999px){
+ .common-panel-header>h3{flex-basis:100%;white-space:nowrap}
+ .common-panel-toolbar{width:100%}
+ .common-panel-workspace{display:flex;flex-direction:column;gap:12px;min-width:0}
+ .common-panel-workspace>.common-panel-map{order:0;width:100%;margin:0}
+ .common-panel-workspace>.common-panel-participants{order:1;width:100%;margin:0}
+ .common-panel-workspace>.common-panel-sidebar{order:2;width:100%;display:flex;flex-direction:column;gap:12px}
+ .common-panel-participants .mv2-roster{display:grid;grid-template-columns:1fr;gap:8px;margin:12px 0 0!important;padding:0!important}
+ .common-panel-sidebar>.mv2-field{margin:0;order:3}
+ .common-panel-sidebar>.common-panel-actions{order:0}
+ .common-panel-sidebar>.common-panel-administration{order:1}
 }
 `;
 
@@ -2797,7 +2807,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
   function render(model){
     const active=doc.activeElement;
     const legendOpen=root.querySelector?.('.common-map-legend')?.hidden===false;
-    const scrollPositions=['.common-panel-sidebar','.common-map-legend'].map(selector=>({selector,top:root.querySelector?.(selector)?.scrollTop||0}));
+    const scrollPositions=['.common-panel-workspace','.common-panel-participants','.common-panel-sidebar','.common-map-legend'].map(selector=>({selector,top:root.querySelector?.(selector)?.scrollTop||0}));
     const focus=active&&root.contains(active)&&active.getAttribute('data-focus-key')?{key:active.getAttribute('data-focus-key'),start:active.selectionStart,end:active.selectionEnd}:null;
     generation++;current=model;const ticket=token();root.replaceChildren();
     const e=model?.envelope;
@@ -2820,7 +2830,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     const workspace=node('div',undefined,root);workspace.className='common-panel-workspace';
     const map=section(workspace,'Arena e posizioni');map.className+=' common-panel-map';map.setAttribute('aria-label','Arena e posizioni');
     const sidebar=node('div',undefined,workspace);sidebar.className='common-panel-sidebar';sidebar.setAttribute('aria-label','Comandi e dettagli dello scontro');
-    const info=section(sidebar,'Partecipanti');info.className+=' common-panel-participants';
+    const info=section(workspace,'Partecipanti');info.className+=' common-panel-participants';
     note(info,(c.round_no===null?'':`Round ${c.round_no} · `)+c.phase_label);
     if(c.simulated)note(info,'Simulazione protetta · risorse separate dalle schede reali');
     const pickerLabel=node('label','Personaggio controllato',info),picker=node('select',undefined,pickerLabel);
@@ -7422,6 +7432,10 @@ function createExamRegiaHost(host) {
     box.replaceChildren();
     const text = value => { const p = doc.createElement('p'); p.textContent = value; box.append(p); };
     const button = (label,fn,disabled=false) => { const b = doc.createElement('button'); b.type = 'button'; b.className = 'esm-btn'; b.textContent = label; b.disabled = disabled; b.addEventListener('click',fn); box.append(b); };
+    if (readiness?.eligible && readiness.ready && !prova && !error) {
+      button('Sostieni esame',start,busy || uncertainOpen.has(key));
+      return true;
+    }
     const mode = raw?.mode ?? readiness?.mode;
     text(mode === 'ordinary' ? 'Esame Genin · Konoha. Al congedo valido vengono applicati i premi nativi dell’esame.' :
       mode === 'test' || mode === 'sample' ? 'Esame Genin · prova protetta, senza premi o avanzamento reale.' : 'Esame Genin · verifica della modalità in corso.');
