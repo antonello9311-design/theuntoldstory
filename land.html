@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-EXAM-REGIA17-UI-011" />
+  <meta name="tus-build" content="LAND-SABAKU-FLOW-UI-012" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2486,7 +2486,7 @@ function isPlayerLifecycle(o,c,v){
      (c.activity_kind===null&&c.activity_id===null&&c.phase==='setup'&&['open','join'].includes(o.operation)));
 }
 function offer(o,c,viewer){
-  shape(o,['offer_id','kind','operation','actor_id','label','context_version','scene_version','requires_role','choices','input_fields']);
+  shape(o,['offer_id','kind','operation','actor_id','label','context_version','scene_version','requires_role','choices','input_fields',...(Object.hasOwn(o,'flow_budget')?['flow_budget']:[])]);
   insist(isId(o.offer_id)&&['action','defense','control','administration'].includes(o.kind)&&name(o.operation)&&nullable(o.actor_id,isId)&&name(o.label)&&o.context_version===c.version&&o.scene_version===c.scene_version&&bool(o.requires_role)&&Array.isArray(o.choices)&&Array.isArray(o.input_fields));
   insist(o.actor_id===null||o.actor_id===viewer.command_actor_id);
   insist(o.kind!=='administration'||viewer.is_master||viewer.is_admin||isPlayerLifecycle(o,c,viewer));
@@ -2500,6 +2500,13 @@ function offer(o,c,viewer){
   for(const g of groups.values()){
     let p=g;const seen=new Set();
     while(p.depends_on!==null){insist(!seen.has(p.group_id)&&options.has(p.depends_on));seen.add(p.group_id);p=options.get(p.depends_on);}
+  }
+  if(Object.hasOwn(o,'flow_budget')){
+    const f=o.flow_budget;shape(f,['version','max_flows','option_weights']);
+    insist(o.kind==='action'&&o.operation==='declare'&&f.version==='sabaku-flow-budget/1'&&int(f.max_flows)&&f.max_flows>=1&&f.max_flows<=3&&Array.isArray(f.option_weights));
+    unique(f.option_weights,'option_id');
+    for(const w of f.option_weights){shape(w,['option_id','flows']);insist(isId(w.option_id)&&options.has(w.option_id)&&int(w.flows)&&w.flows>=1&&w.flows<=f.max_flows);}
+    insist(f.option_weights.length>0||o.choices.length===0);
   }
   for(const f of o.input_fields){shape(f,['input_id','label','value_type','required','max_length']);insist(isId(f.input_id)&&name(f.label)&&bool(f.required)&&(f.value_type==='text'?int(f.max_length):f.value_type==='boolean'&&f.max_length===null));}
 }
@@ -2556,6 +2563,23 @@ function validatePanelEnvelope(raw,{state=false}={}){
   validateMultiplication(e);movement(e.movement_explanations,e);narrative(e.narrative,c);receipt(e.receipt);roundDetails(e.round_details,e);return e;
 }
 
+// Presentation budget comes only from explicit server annotations, never labels or distances.
+function flowSelectionTotal(offer,selected){
+  const f=offer?.flow_budget;if(!f)return null;
+  if(f.option_weights.length===0)return f.max_flows;
+  const ids=new Set(selected);return f.option_weights.reduce((n,w)=>n+(ids.has(w.option_id)?w.flows:0),0);
+}
+function flowOptionAllowed(offer,selected,groupId,optionId,enabled=true){
+  if(!offer?.flow_budget||!enabled)return true;
+  const group=offer.choices.find(g=>g.group_id===groupId);if(!group)return false;
+  const next=new Set(selected);
+  if(group.selection_mode==='single')for(const o of group.options)next.delete(o.option_id);
+  next.add(optionId);
+  // Changing a parent removes weights in groups that are no longer active.
+  let changed;do{changed=false;for(const g of offer.choices)if(g.depends_on!==null&&!next.has(g.depends_on))for(const o of g.options)if(next.delete(o.option_id))changed=true;}while(changed);
+  return flowSelectionTotal(offer,next)<=offer.flow_budget.max_flows;
+}
+
 function selectionReady(offer,selected,inputs,narrativeText){
   if(!offer||!Array.isArray(selected)||new Set(selected).size!==selected.length||!Array.isArray(inputs)||new Set(inputs.map(x=>x.input_id)).size!==inputs.length||!str(narrativeText))return false;
   const active=new Set(selected),ids=new Set(offer.choices.flatMap(g=>g.options.map(o=>o.option_id)));
@@ -2563,13 +2587,14 @@ function selectionReady(offer,selected,inputs,narrativeText){
   for(const g of offer.choices){const n=g.options.filter(o=>active.has(o.option_id)).length,enabled=g.depends_on===null||active.has(g.depends_on);if(enabled?(n<g.min_selected||n>g.max_selected):n!==0)return false;}
   if(inputs.some(x=>!offer.input_fields.some(f=>f.input_id===x.input_id)))return false;
   for(const f of offer.input_fields){const x=inputs.find(x=>x.input_id===f.input_id);if(!x){if(f.required)return false;continue;}if(f.value_type==='text'){if(!str(x.value)||[...x.value].length>f.max_length||(f.required&&!x.value.trim()))return false;}else if(!bool(x.value))return false;}
+  const flowTotal=flowSelectionTotal(offer,selected);if(flowTotal!==null&&(flowTotal!==offer.flow_budget.max_flows))return false;
   return !offer.requires_role||!!narrativeText.trim();
 }
 
-return {isId,insist,classifyPanelRejection,isPlayerLifecycle,validatePanelEnvelope,selectionReady};
+return {isId,insist,classifyPanelRejection,isPlayerLifecycle,validatePanelEnvelope,selectionReady,flowSelectionTotal,flowOptionAllowed};
 })();
 const module5=(()=>{
-const {validatePanelEnvelope,classifyPanelRejection,selectionReady,isId,insist}=module6;
+const {validatePanelEnvelope,classifyPanelRejection,selectionReady,flowOptionAllowed,isId,insist}=module6;
 // Riceve soltanto gruppi già validati (dipendenze acicliche per ID opaco).
 function settleCopyChoices(offer,selected){
   const next=new Set(selected);
@@ -2590,14 +2615,16 @@ function settleCopyChoices(offer,selected){
 function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.randomUUID(),classifyRejection=classifyPanelRejection,onChange=()=>{}}){
   insist(typeof rpc==='function'&&typeof contextKey==='function'&&isId(locationId)&&typeof requestKey==='function','controller_configuration');
   let epoch=0,owner=null,busy=false,pending=null,envelope=null,optionsReady=false,error=null;
-  let selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='';
+  let selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='',narrativeContext=null;
   let rejection=null,refreshRequired=false,lastCommand=null,interactionError=null;
   const chosen=()=>envelope?.offers.find(o=>o.offer_id===selectedOfferId);
   const canPrepare=()=>!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command&&selectionReady(chosen(),selectedOptionIds,inputs,narrativeText);
   const snapshot=()=>({validated:envelope!==null,envelope:envelope?structuredClone(envelope):null,busy,pending:pending!==null,optionsReady,error,lastCommand:lastCommand?structuredClone(lastCommand):null,interactionError,rejection:rejection?structuredClone(rejection):null,refreshRequired,selectedOfferId,selectedOptionIds:[...selectedOptionIds],inputs:structuredClone(inputs),narrativeText,canPrepare:!!canPrepare()});
   const notify=()=>onChange(snapshot());
   const resetChoices=()=>{selectedOfferId=null;selectedOptionIds=[];inputs=[];optionsReady=false;};
-  function clear(){epoch++;owner=null;busy=false;pending=null;envelope=null;error=null;rejection=null;lastCommand=null;interactionError=null;refreshRequired=false;narrativeText='';resetChoices();notify();}
+  // The draft belongs to a verified identity/activity/actor, independently of presentation invalidation.
+  const narrativeContextFor=e=>e?.status==='ready'?JSON.stringify([owner,e.context.activity_id,e.viewer.command_actor_id]):null;
+  function clear(){epoch++;owner=null;busy=false;pending=null;envelope=null;error=null;rejection=null;lastCommand=null;interactionError=null;refreshRequired=false;narrativeText='';narrativeContext=null;resetChoices();notify();}
   // Identità/luogo diversi cancellano la presentazione; una versione nuova invalida solo le scelte.
   function invalidate(){
     if(owner===null||owner!==contextKey()){clear();return;}
@@ -2626,8 +2653,13 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
     const changed=e.status==='blocked'||!before||before.activity_id!==e.context.activity_id||before.version!==e.context.version||before.scene_version!==e.context.scene_version||oldActor!==e.viewer.command_actor_id;
     const keepOptions=!loaded&&!changed&&optionsReady;
     if(keepOptions)e={...e,offers:envelope.offers};
+    if(e.status==='ready'){
+      const nextNarrativeContext=narrativeContextFor(e);
+      if(narrativeText&&narrativeContext!==nextNarrativeContext)narrativeText='';
+      narrativeContext=nextNarrativeContext;
+    }
     envelope=e;if(changed)resetChoices();
-    if(e.status==='blocked'){if(!pending)narrativeText='';return;}
+    if(e.status==='blocked'){if(!pending){narrativeText='';narrativeContext=null;}return;}
     if(loaded){optionsReady=true;if(!chosen()){selectedOfferId=null;selectedOptionIds=[];inputs=[];}}
     else if(!keepOptions)optionsReady=false;
   }
@@ -2646,16 +2678,17 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
     finally{if(current(ticket,key)){busy=false;notify();}}
   }
   function editable(){requireCurrent();insist(!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command,'choices_unavailable');}
-  async function selectActor(actor){requireCurrent();insist(!busy&&!pending&&envelope?.viewer.controlled_actors.some(a=>a.actor_id===actor),'actor_unavailable');resetChoices();return read(false,actor);}
+  async function selectActor(actor){requireCurrent();insist(!busy&&!pending&&envelope?.viewer.controlled_actors.some(a=>a.actor_id===actor),'actor_unavailable');narrativeText='';narrativeContext=null;resetChoices();return read(false,actor);}
   function selectOffer(id){editable();insist(envelope.offers.some(o=>o.offer_id===id),'offer_unavailable');selectedOfferId=id;selectedOptionIds=settleCopyChoices(chosen(),[]);inputs=[];error=null;interactionError=null;notify();}
   function selectOption(groupId,id,enabled){
     editable();const o=chosen(),g=o?.choices.find(g=>g.group_id===groupId);insist(g&&g.options.some(x=>x.option_id===id)&&typeof enabled==='boolean','option_unavailable');
     insist(g.depends_on===null||selectedOptionIds.includes(g.depends_on),'dependency_missing');
+    insist(flowOptionAllowed(o,selectedOptionIds,groupId,id,enabled),'flow_budget_exceeded');
     const next=new Set(selectedOptionIds);if(g.selection_mode==='single')for(const x of g.options)next.delete(x.option_id);if(enabled)next.add(id);else next.delete(id);
     selectedOptionIds=settleCopyChoices(o,next);error=null;interactionError=null;notify();
   }
   function setInput(id,value){editable();const f=chosen()?.input_fields.find(f=>f.input_id===id);insist(f&&(f.value_type==='text'?typeof value==='string':typeof value==='boolean'),'input_unavailable');inputs=inputs.filter(x=>x.input_id!==id);inputs.push({input_id:id,value});notify();}
-  function setNarrative(value){requireCurrent();insist(!busy&&!pending&&typeof value==='string','narrative_unavailable');narrativeText=value;notify();}
+  function setNarrative(value){requireCurrent();insist(!busy&&!pending&&typeof value==='string','narrative_unavailable');narrativeText=value;narrativeContext=narrativeContextFor(envelope)??narrativeContext;notify();}
   function prepare(){
     editable();insist(canPrepare(),'selection_incomplete');const c=envelope.context,o=chosen(),key=requestKey();insist(isId(key),'request_key_invalid');
     return {schema_version:'combat-panel-command/1',request_key:key,location_id:locationId,activity_id:c.activity_id,context_version:c.version,offer_id:o.offer_id,selected_option_ids:[...selectedOptionIds].sort(),inputs:structuredClone(inputs).sort((a,b)=>a.input_id.localeCompare(b.input_id)),narrative_text:o.requires_role?narrativeText:''};
@@ -2673,7 +2706,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
         return null;
       }
       const e=validatePanelEnvelope(raw),r=e.receipt;insist(r?.request_key===command.request_key,'receipt_mismatch');
-      apply(e,true);pending=null;rejection=null;lastCommand={status:'confirmed',request_key:command.request_key,message:'Richiesta confermata dal server.',receipt:structuredClone(r)};interactionError=null;refreshRequired=false;narrativeText='';resetChoices();return structuredClone(r);
+      apply(e,true);pending=null;rejection=null;lastCommand={status:'confirmed',request_key:command.request_key,message:'Richiesta confermata dal server.',receipt:structuredClone(r)};interactionError=null;refreshRequired=false;narrativeText='';narrativeContext=null;resetChoices();return structuredClone(r);
     }catch(e){if(current(ticket,key)){lastCommand={status:'uncertain',request_key:command.request_key,message:'Esito incerto. Verifica lo stesso invio senza crearne un secondo.'};rejection=null;error=null;interactionError=null;optionsReady=false;}return null;}
     finally{if(current(ticket,key)){busy=false;notify();}}
   }
@@ -2681,7 +2714,6 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   async function retry(){return send();}
   return {snapshot,clear,invalidate,reportInteractionError,readState:()=>read(false),readOptions:()=>read(true),selectActor,selectOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
 }
-
 return {settleCopyChoices,createPanelController};
 })();
 const module9=(()=>{
@@ -2749,7 +2781,7 @@ const module7=(()=>{
 // Candidata di sola presentazione combat-panel/1. Nessuna RPC o formula di gioco.
 const {installPanelLayout}=module3;
 const {renderPanelMap}=module1;
-const {isPlayerLifecycle}=module6;
+const {isPlayerLifecycle,flowSelectionTotal,flowOptionAllowed}=module6;
 const {renderPanelCompanion,renderPanelSabaku}=module8;
 // Il controller validante è iniettato: questa vista non concede autorità.
 const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(x);
@@ -2877,9 +2909,23 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     const available=e.offers.filter(o=>o.context_version===c.version&&o.scene_version===c.scene_version);
     const administrative=o=>o.kind==='administration'&&!isPlayerLifecycle(o,c,v);
     const selected=available.find(o=>o.offer_id===model.selectedOfferId);
+    const flowOffers=available.filter(o=>!administrative(o)&&o.flow_budget);
+    let flowArea=null;
+    if(flowOffers.length){
+      const main=section(actions,'Azione principale');
+      const flows=node('details',undefined,main);flows.open=true;node('summary','Flussi di Sabbia',flows);
+      flowArea=section(flows,'Numero di Flussi');
+      const quantities=node('div',undefined,flowArea);quantities.className='common-offer-choices';quantities.setAttribute('role','group');quantities.setAttribute('aria-label','Numero di Flussi');
+      for(const offer of [...flowOffers].sort((a,b)=>a.flow_budget.max_flows-b.flow_budget.max_flows)){
+        const choice=button(quantities,String(offer.flow_budget.max_flows),handler(ticket,selectOffer,offer.offer_id),!commandsReady||!selectOffer);
+        choice.className+=' common-offer-choice';choice.setAttribute('aria-pressed',String(selected?.offer_id===offer.offer_id));choice.setAttribute('aria-label',offer.label);
+      }
+      if(selected?.flow_budget)flowArea=section(flows,'Assegna i Flussi');
+    }
     for(const [area,isAdminArea]of [[actions,false],[admin,true]]){
       if(isAdminArea&&admin.hidden)continue;
-      const offers=available.filter(o=>administrative(o)===isAdminArea);
+      const offers=available.filter(o=>administrative(o)===isAdminArea&&!o.flow_budget);
+      if(!isAdminArea&&flowOffers.length&&!offers.length)continue;
       if(offers.length>0&&offers.length<=6){
         const choices=node('div',undefined,area);choices.className='common-offer-choices';choices.setAttribute('role','group');choices.setAttribute('aria-label',isAdminArea?'Operazione autorizzata':'Scelta disponibile');
         for(const offer of offers){const choice=button(choices,offer.label,handler(ticket,selectOffer,offer.offer_id),!commandsReady||!selectOffer);choice.className+=' common-offer-choice';choice.setAttribute('aria-pressed',String(selected?.offer_id===offer.offer_id));}
@@ -2894,7 +2940,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
       if(!offers.length)note(area,'Nessuna offerta in questo momento.');
     }
     if(selected&&!(administrative(selected)&&admin.hidden)){
-      const area=administrative(selected)?admin:actions;
+      const area=selected.flow_budget?flowArea:administrative(selected)?admin:actions;
       renderOffer(area,selected,e,model,ticket,!commandsReady);
     }
     button(toolbar,'Rileggi lo stato',handler(ticket,readState),locked);
@@ -2914,6 +2960,13 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
   }
   function renderOffer(area,offer,envelope,model,ticket,disabled){
     const selected=new Set(model.selectedOptionIds||[]);
+    const flowTotal=flowSelectionTotal(offer,selected);
+    if(flowTotal!==null){
+      const counter=node('p',`Flussi assegnati: ${flowTotal} / ${offer.flow_budget.max_flows}`,area);
+      counter.setAttribute('role','status');counter.setAttribute('aria-live','polite');counter.setAttribute('data-flow-budget','sabaku-flow-budget/1');
+      if(offer.flow_budget.option_weights.length===0)note(area,'La quantità è fissata dalla scelta dell’azione.');
+      else note(area,flowTotal===0?'Assegna tutti i flussi ai bersagli scelti.':flowTotal===offer.flow_budget.max_flows?'Hai assegnato tutti i flussi disponibili per questa azione.':'Puoi assegnare ancora '+(offer.flow_budget.max_flows-flowTotal)+' flussi.');
+    }
     for(const group of offer.choices){
       if(!purposes.has(group.purpose)||group.depends_on!==null&&!selected.has(group.depends_on))continue;
       const field=node('fieldset',undefined,area);field.disabled=disabled||!selectOption;
@@ -2921,16 +2974,16 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
       if(group.selection_mode==='single'){
         if(group.options.length>0&&group.options.length<=6){
           const choices=node('div',undefined,field);choices.className='common-option-choices';choices.setAttribute('role','group');choices.setAttribute('aria-label',group.label);
-          for(const option of group.options){const choice=button(choices,option.label,()=>{if(ticket===generation&&selectOption)changeSingleChoice(group,selected.has(option.option_id)?'':option.option_id,selected,selectOption);},disabled||!selectOption);choice.className+=' common-option-choice';choice.setAttribute('aria-pressed',String(selected.has(option.option_id)));}
+          for(const option of group.options){const choice=button(choices,option.label,()=>{if(ticket===generation&&selectOption)changeSingleChoice(group,selected.has(option.option_id)?'':option.option_id,selected,selectOption);},disabled||!selectOption||(!selected.has(option.option_id)&&!flowOptionAllowed(offer,selected,group.group_id,option.option_id)));choice.className+=' common-option-choice';choice.setAttribute('aria-pressed',String(selected.has(option.option_id)));}
         }else{
           const select=node('select',undefined,field);select.className='mv2-select';select.setAttribute('aria-label',group.label);
           const blank=node('option','Seleziona',select);blank.value='';
-          for(const option of group.options){const item=node('option',option.label,select);item.value=option.option_id;item.selected=selected.has(option.option_id);}
+          for(const option of group.options){const item=node('option',option.label,select);item.value=option.option_id;item.selected=selected.has(option.option_id);item.disabled=!flowOptionAllowed(offer,selected,group.group_id,option.option_id);}
           select.addEventListener('change',()=>{if(ticket!==generation||!selectOption)return;changeSingleChoice(group,select.value,selected,selectOption);});
         }
       }else if(group.selection_mode==='multiple'){
         note(field,`Selezioni richieste: da ${group.min_selected} a ${group.max_selected}`);
-        for(const option of group.options){const label=node('label',undefined,field),input=node('input',undefined,label);input.type='checkbox';input.checked=selected.has(option.option_id);node('span',option.label,label);input.addEventListener('change',()=>{if(ticket===generation&&selectOption)selectOption(group.group_id,option.option_id,input.checked);});}
+        for(const option of group.options){const label=node('label',undefined,field),input=node('input',undefined,label);input.type='checkbox';input.checked=selected.has(option.option_id);input.disabled=!input.checked&&!flowOptionAllowed(offer,selected,group.group_id,option.option_id);node('span',option.label,label);input.addEventListener('change',()=>{if(ticket===generation&&selectOption)selectOption(group.group_id,option.option_id,input.checked);});}
       }
     }
     for(const spec of offer.input_fields){
