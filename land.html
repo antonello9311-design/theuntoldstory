@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-COMMON-PANEL-UI-014" />
+  <meta name="tus-build" content="LAND-COMMON-PANEL-UI-016" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2218,8 +2218,6 @@ function renderPanelMap(root,envelope,{legendOpen=false,visuals=null}={}){
   const canvas=add('div','');canvas.className='common-map-canvas';
   const legendPanel=add('section','');legendPanel.className='common-map-legend';legendPanel.setAttribute('aria-label','Oggetti della scena');
   add('h5','Oggetti della scena',legendPanel);
-  if(m.objects.some(o=>o.is_impervious))add('p','Il malus riguarda i personaggi fisici. Le marionette sono escluse. Trasporto di Sabbia attivo esenta da tutte le aree impervie.',legendPanel);
-  if(m.pov===null)add('p','Vista Master · nessun punto di vista attribuito a un personaggio',legendPanel);
   let showLegend=legendOpen===true;
   const present=()=>{canvas.hidden=showLegend;legendPanel.hidden=!showLegend;toggle.textContent=showLegend?'Torna alla mappa':'Legenda';toggle.setAttribute('aria-pressed',String(showLegend));};
   toggle.addEventListener('click',()=>{showLegend=!showLegend;present();});present();
@@ -2246,6 +2244,12 @@ function renderPanelMap(root,envelope,{legendOpen=false,visuals=null}={}){
   const floor=shape('rect',{x:0,y:0,width:bounds.width_m,height:bounds.height_m,fill:'#f4ecd5',stroke:'#9e8b61','stroke-width':scale/150});
   paintAsset(visuals?.background,0,0,'background',floor);
   const legend=add('ul','',legendPanel);
+  const legendObject=o=>{
+    const row=add('li','',legend);
+    const value=o.label+(o.distance_from_viewer_m===null?'':` · ${o.distance_from_viewer_m} m`);
+    if(o.state==='consumed_non_substitutable'){const used=add('s',value,row);used.setAttribute('aria-label',value+' · consumato');}
+    else row.textContent=value;
+  };
   if(!m.objects.length)add('p','Nessun oggetto disponibile in questa scena.',legendPanel);
   // Le zone stanno sotto i corpi: entrarvi non nasconde PG, PNG o copie.
   const terrainLayer=shape('g',{'data-layer':'impervious'});
@@ -2256,7 +2260,7 @@ function renderPanelMap(root,envelope,{legendOpen=false,visuals=null}={}){
     shape('title',{},area).textContent=description;
     // Un'icona non nasconde mai la superficie impervia e il suo perimetro.
     paintAsset(visuals?.objects?.[o.object_id],o.x_m,o.y_m,'object');
-    add('li',description,legend);
+    legendObject(o);
   }
   const cloneLayer=shape('g',{'data-layer':'sabaku-clones'});
   for(const c of clones){
@@ -2307,7 +2311,7 @@ function renderPanelMap(root,envelope,{legendOpen=false,visuals=null}={}){
     const object=o.shape_kind==='circle'?shape('circle',{cx:s.cx,cy:s.cy,r:s.radius,fill}):shape('rect',{x:s.min_x,y:s.min_y,width:s.max_x-s.min_x,height:s.max_y-s.min_y,fill});
     shape('title',{},object).textContent=o.label;
     paintAsset(visuals?.objects?.[o.object_id],o.x_m,o.y_m,'object',object);
-    add('li',o.label+' · '+states[o.state]+(o.distance_from_viewer_m===null?'':` · ${o.distance_from_viewer_m} m dal punto di vista`)+(o.substitution_anchor_available?' · ancora disponibile':''),legend);
+    legendObject(o);
   }
 }
 
@@ -2830,7 +2834,7 @@ function changeSingleChoice(group,value,selected,selectOption){
   }
 }
 
-function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,selectOption,setInput,setNarrative,prepare,retry}={},renderers={}){
+function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,selectOption,setInput,setNarrative,prepare,retry,restoreTestResources}={},renderers={}){
   renderers={map:renderPanelMap,companion:renderPanelCompanion,sabaku_transport:renderPanelSabaku,...renderers};
   const doc=root.ownerDocument;installPanelLayout(doc);
   let generation=0,current=null,cachedMap=null,cachedMapKey=null;
@@ -2847,10 +2851,11 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     if(last||model?.rejection){
       const feedback=section(parent,'Ultimo invio');feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
       const value=last||model.rejection;note(feedback,value.message);
-      if(value.status==='rejected')note(feedback,value.recovery==='authenticate'?'Verifica il normale accesso e rileggi lo stato.':value.recovery==='contact_staff'?'Contatta lo staff prima di un nuovo invio.':'Rileggi lo stato prima di scegliere nuovamente.');
+      if(value.status==='rejected')note(feedback,value.recovery==='authenticate'?'Verifica il normale accesso e premi Aggiorna.':value.recovery==='contact_staff'?'Contatta lo staff prima di un nuovo invio.':'Premi Aggiorna prima di scegliere nuovamente.');
     }
+    if(model?.restoreMessage)note(parent,model.restoreMessage);
     if(model?.interactionError)note(parent,model.interactionError);
-    if(model?.error)note(parent,model.pending&&!last?'Esito incerto. Verifica lo stesso invio senza crearne un secondo.':'Stato non disponibile. Rileggi lo stato.');
+    if(model?.error)note(parent,model.pending&&!last?'Esito incerto. Verifica lo stesso invio senza crearne un secondo.':'Stato non disponibile. Premi Aggiorna.');
   }
   // Busy e canPrepare (derivato da busy) non identificano una nuova scena.
   // Ogni altro campo, inclusi versioni, errori, selezioni e pending, resta nel confronto.
@@ -2903,14 +2908,14 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     const toolbar=node('div',undefined,header);toolbar.className='common-panel-toolbar';toolbar.setAttribute('aria-label','Aggiornamento del pannello');
     const feedback=node('div',undefined,header);feedback.className='common-panel-feedback';renderFeedback(model,feedback);
     if(model?.validated!==true||e?.schema_version!=='combat-panel/1'||!['ready','blocked'].includes(e.status)){
-      note(root,'Stato del pannello non disponibile.');button(toolbar,'Rileggi lo stato',handler(ticket,readState),model?.busy===true);if(model?.pending===true)button(toolbar,'Verifica lo stesso invio',handler(ticket,retry),model.busy===true);return;
+      note(root,'Stato del pannello non disponibile.');button(toolbar,'Aggiorna',handler(ticket,readState),model?.busy===true);if(model?.pending===true)button(toolbar,'Verifica lo stesso invio',handler(ticket,retry),model.busy===true);return;
     }
     if(e.status==='blocked'){
-      note(root,'Scontro non disponibile nel contesto corrente.');button(toolbar,'Rileggi lo stato',handler(ticket,readState),model.busy===true);if(model.pending===true)button(toolbar,'Verifica lo stesso invio',handler(ticket,retry),model.busy===true);return;
+      note(root,'Scontro non disponibile nel contesto corrente.');button(toolbar,'Aggiorna',handler(ticket,readState),model.busy===true);if(model.pending===true)button(toolbar,'Verifica lo stesso invio',handler(ticket,retry),model.busy===true);return;
     }
     const c=e.context,v=e.viewer;
     if(!c||!integer(c.version)||!v||!Array.isArray(v.controlled_actors)||!Array.isArray(e.actors)||!Array.isArray(e.offers)){
-      note(root,'Contesto incompleto. Rileggi lo stato.');button(toolbar,'Rileggi lo stato',handler(ticket,readState),model.busy===true);return;
+      note(root,'Contesto incompleto. Premi Aggiorna.');button(toolbar,'Aggiorna',handler(ticket,readState),model.busy===true);return;
     }
     const locked=model.busy===true||model.pending===true;
     const commandsReady=!locked&&model.optionsReady===true&&v.can_command===true;
@@ -2923,6 +2928,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     const info=section(workspace,'Partecipanti');info.className+=' common-panel-participants';
     note(info,(c.round_no===null?'':`Round ${c.round_no} · `)+c.phase_label);
     if(c.simulated)note(info,'Simulazione protetta · risorse separate dalle schede reali');
+    if(model.canRestoreTestResources===true)button(info,'Ripristina PV e chakra di prova',handler(ticket,restoreTestResources),locked);
     const pickerLabel=node('label','Personaggio controllato',info),picker=node('select',undefined,pickerLabel);
     pickerLabel.hidden=v.controlled_actors.length===1&&v.command_actor_id===v.controlled_actors[0].actor_id;
     picker.className='mv2-select';const empty=node('option','Seleziona',picker);empty.value='';
@@ -3004,8 +3010,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
       const area=selected.flow_budget?flowArea:administrative(selected)?admin:actions;
       renderOffer(area,selected,e,model,ticket,!commandsReady);
     }
-    button(toolbar,'Rileggi lo stato',handler(ticket,readState),locked);
-    button(toolbar,'Aggiorna le scelte',handler(ticket,readOptions),locked||model.refreshRequired===true||!v.can_command);
+    button(toolbar,'Aggiorna',handler(ticket,readState),locked);
     if(model.pending===true)button(toolbar,'Verifica lo stesso invio',handler(ticket,retry),model.busy===true);
     if(e.narrative&&(e.narrative.state!=='idle'||e.narrative.last_published!==null))renderNarrative(section(sidebar,'Fato e narrazione'),e);
     const lastReceipt=model.lastCommand?.status==='confirmed'?model.lastCommand.receipt:e.receipt;
@@ -3089,40 +3094,71 @@ return {renderResourceBar,changeSingleChoice,mountPanelView};
 const module4=(()=>{
 const {createPanelController}=module5;
 const {mountPanelView}=module7;
-const {insist}=module6;
+const {insist,isId}=module6;
 // Host unico per le due superfici. Nessuna chiamata alla costruzione e nessun
 // fallback verso invii legacy: il testo viaggia soltanto nel commit atomico.
-function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{},onDraft=()=>{},renderers={}}){
+function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{},onDraft=()=>{},renderers={},canRestoreTestResources=()=>false}){
   insist(root?.ownerDocument&&typeof client?.rpc==='function'&&typeof contextKey==='function','mount_configuration');
-  let disposed=false,view;
+  let disposed=false,view,restoring=false,restoreMessage=null,restoreActivity=null,restoreEpoch=0;
+  const allowed=m=>m.validated===true&&m.envelope?.status==='ready'&&
+    m.envelope.context?.simulated===true&&m.envelope.context.activity_kind==='ordinary_v2'&&
+    m.envelope.context.phase==='action'&&m.envelope.context.policy_id==='staff_test_no_persistent_resources_v1'&&
+    m.envelope.context.location_id===locationId&&isId(m.envelope.context.activity_id)&&
+    locationId==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&canRestoreTestResources()===true;
+  const presented=m=>({...m,busy:m.busy||restoring,canPrepare:m.canPrepare&&!restoring,
+    canRestoreTestResources:allowed(m),restoreMessage:m.envelope?.context?.activity_id===restoreActivity?restoreMessage:null});
+  const publish=model=>{if(!disposed){const m=presented(model);view?.render(m);onDraft(m);}};
   const controller=createPanelController({
     locationId,contextKey:()=>disposed?null:contextKey(),
     rpc:async(name,args)=>{const response=await client.rpc(name,args);if(response.error)throw Error('transport_unconfirmed');return response.data;},
-    onChange:model=>{if(!disposed){view?.render(model);onDraft(model);}}
+    onChange:publish
   });
-  const invoke=fn=>async(...args)=>{if(disposed)return null;try{return await fn(...args);}catch(e){if(!disposed)controller.reportInteractionError(e);return null;}};
+  const invoke=fn=>async(...args)=>{if(disposed||restoring)return null;try{return await fn(...args);}catch(e){if(!disposed)controller.reportInteractionError(e);return null;}};
   async function read(){if(!await controller.readState())return false;const m=controller.snapshot();if(m.envelope?.viewer.can_command&&!m.pending)return controller.readOptions();return true;}
+  async function restoreTestResources(){
+    const before=controller.snapshot(),key=contextKey();
+    if(disposed||restoring||before.busy||before.pending||!key||!allowed(before))return false;
+    const ticket=++restoreEpoch,activity=before.envelope.context.activity_id;
+    const current=()=>!disposed&&ticket===restoreEpoch&&contextKey()===key&&controller.snapshot().envelope?.context?.activity_id===activity;
+    restoring=true;restoreMessage=null;restoreActivity=activity;publish(before);
+    try{
+      const response=await client.rpc('combat_test_restore_resources_v1',{
+        p_location:locationId,p_session:before.envelope.context.activity_id});
+      if(!current())return false;
+      if(response?.error)throw Error(response.error.message||'Ripristino non riuscito.');
+      if(response?.data?.success!==true)throw Error('Ripristino non confermato dal server.');
+      restoreMessage='PV e chakra di prova ripristinati.';
+      const refreshed=await read();
+      if(!refreshed&&current())restoreMessage+=' Premi Aggiorna per rileggere lo stato.';
+      return true;
+    }catch(error){
+      if(current())restoreMessage=String(error?.message||'Ripristino non confermato. Premi Aggiorna.').slice(0,240);
+      return false;
+    }finally{
+      if(ticket===restoreEpoch){restoring=false;if(!disposed&&contextKey()===key)publish(controller.snapshot());}
+    }
+  }
   async function send(retry=false){
     const key=contextKey(),before=controller.snapshot(),receipt=await(retry?controller.retry():controller.submit());
     if(receipt&&!disposed&&contextKey()===key)await onConfirmed(receipt,before.narrativeText);
     return receipt;
   }
   view=mountPanelView(root,{
-    readState:invoke(read),readOptions:invoke(()=>controller.readOptions()),
+    readState:invoke(read),readOptions:invoke(()=>controller.readOptions()),restoreTestResources,
     selectActor:invoke(async actor=>{if(await controller.selectActor(actor))return controller.readOptions();return false;}),
     selectOffer:invoke(id=>controller.selectOffer(id)),selectOption:invoke((group,id,on)=>controller.selectOption(group,id,on)),
     setInput:invoke((id,value)=>controller.setInput(id,value)),setNarrative:invoke(value=>controller.setNarrative(value)),
     prepare:invoke(()=>send(false)),retry:invoke(()=>send(true))
   },renderers);
-  view.render(controller.snapshot());
+  view.render(presented(controller.snapshot()));
   return {
     open:invoke(read),
     refresh:invoke(()=>controller.readState()),
     setNarrative:invoke(value=>controller.setNarrative(value)),
     submit:invoke(()=>send(false)),
-    invalidate:()=>{if(!disposed)controller.invalidate();},
-    dispose:()=>{disposed=true;controller.clear();view.clear();},
-    snapshot:()=>controller.snapshot()
+    invalidate:()=>{restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;if(!disposed)controller.invalidate();},
+    dispose:()=>{disposed=true;restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;controller.clear();view.clear();},
+    snapshot:()=>presented(controller.snapshot())
   };
 }
 
@@ -3216,6 +3252,7 @@ function attachCombatPanel(host){
     const next=scope();if(next!==key)invalidate();if(!next)return false;if(panel)return true;
     key=next;const stamp=generation;ordinary.append(root);
     panel=mountPanelSurface({root,locationId:host.location().id,contextKey:scope,
+      canRestoreTestResources:()=>host.canRestoreTestResources?.()===true,
       client:{rpc:(name,args)=>host.rpc(name,args)},renderers:host.renderers??(host.visuals?{map:createVisualMapRenderer(host.visuals)}:undefined),
       onConfirmed:async(receipt,submitted)=>{
         if(stamp!==generation||key!==scope())return;
@@ -4444,6 +4481,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           closeMaster:mv2OvChiudi,
           attachOpening:window.TUSOrdinary&&window.TUSOrdinary.attachOrdinaryLand,
           principal:function(){return loggedIn&&myId&&myCharId?JSON.stringify([myId,myCharId]):null;},
+          canRestoreTestResources:function(){return iAmStaff&&commonPanelRoom();},
           identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId&&myId&&(commonPanelRoom()||myCharId)?{principal_id:myId,character_id:myCharId||null}:null;},
           isExam:function(){return (!!(cur&&cur.is_exam_room)&&!(cur&&cur.is_test&&iAmStaff))||esScontroVivo();},
           otherCombat:function(){return !!(CMB&&CMB.aperto)||!!(MV2&&MV2.data&&MV2.data.encounter);},
