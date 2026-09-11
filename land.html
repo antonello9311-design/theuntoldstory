@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-MISSION-CREATION-UI-001" />
+  <meta name="tus-build" content="TECH-FIELDS-UI001-LAND" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -10234,12 +10234,14 @@ var nb028iTeardown=function(){};
           var desc=o.description?('<div class="jdb-dsec"><div class="jdb-dh">Descrizione</div><p class="jdb-dp">'+esc(o.description).replace(/\n/g,'<br>')+'</p></div>'):'';
           var eff=o.danno_effetto||o.effect;
           var effH=eff?('<div class="jdb-dsec"><div class="jdb-dh">Effetto</div><p class="jdb-dp">'+esc(eff)+'</p></div>'):'';
-          var db=(o.danno_base!=null&&o.danno_base>0)?o.danno_base:((o.damage_base!=null&&o.damage_base>0)?o.damage_base:null);
+          var db=o.danno_base!=null?o.danno_base:o.damage_base;
+          var power=o.potenza!=null?o.potenza:o.power;
           var car='';
           car+=jdbRow('Distanza', o.gittata?(esc(o.gittata)+(o.portata?(' · '+esc(o.portata)):'')):(o.portata?esc(o.portata):''));
           car+=jdbRow('Attivazione', o.attivazione?(o.attivazione==='sigilli'?'con sigilli (disturbabile a contatto)':'istantanea'):'');
-          car+=jdbRow('Danno base', db!=null?(''+db):'');
-          car+=jdbRow('Potenza illusione', o.potenza!=null?(''+o.potenza):'');
+          car+=jdbRow('Danno base', db!=null?esc(db):'');
+          car+=jdbRow('Potenza', power!=null?esc(power):'');
+          car+=jdbRow('Difesa', o.difesa!=null&&String(o.difesa).trim()!==''?esc(o.difesa):'');
           car+=jdbRow('Bersaglio', o.bersaglio?esc(o.bersaglio):'');
           car+=jdbRow('Azione', (o.tipo_azione||o.action_type)?esc(o.tipo_azione||o.action_type):'');
           car+=jdbRow('Durata', o.durata?esc(o.durata):'');
@@ -10526,7 +10528,7 @@ var nb028iTeardown=function(){};
           if(JDB.loaded){ renderJutsuDB(); return; }
           var host=document.getElementById('jutsu-body'); if(host)host.innerHTML='<p class="jdb-empty">Caricamento…</p>';
           Promise.all([
-            sb.from('jutsu').select('id,name_it,name_romaji,category,nature,rank,power,requirements,chakra_cost,action_type,damage_base,effect,limits,kind').eq('is_active',true).order('sort'),
+            sb.from('jutsu').select('id,name_it,name_romaji,category,nature,rank,power,requirements,chakra_cost,action_type,damage_base,difesa,effect,limits,kind').eq('is_active',true).order('sort'),
             sb.from('clan_techniques').select('*').eq('is_active',true).order('sort').order('name')
           ]).then(function(rs){ JDB.jutsu=(rs[0]&&rs[0].data)||[]; JDB.tech=(rs[1]&&rs[1].data)||[]; JDB.byId={};
             JDB.jutsu.forEach(function(o){ o.__k='j'+o.id; JDB.byId[o.__k]=o; });

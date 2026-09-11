@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>La tua scheda — The Untold Story</title>
-<meta name="tus-build" content="SCHEDA-BACKGROUND-SICURO-001">
+<meta name="tus-build" content="TECH-FIELDS-UI001-SCHEDA">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preconnect" href="https://tyhyxkslteigibktluml.supabase.co" crossorigin />
@@ -1405,7 +1405,7 @@
       if(base){ for(k in base){ if(Object.prototype.hasOwnProperty.call(base,k)) t[k]=base[k]; } }
       /* my_abilities vince su ogni campo che restituisce: è la fonte server della riga posseduta */
       ['name','level','clan','category','xp_cost','danno_effetto','chakra_cost',
-       'consumption_type','grado','danno_base','disciplina','gittata','attivazione']
+       'consumption_type','grado','potenza','danno_base','difesa','disciplina','gittata','attivazione']
         .forEach(function(c){ if(a[c]!=null) t[c]=a[c]; });
       ['description','requirements','durata','bersaglio','uso','portata','difensiva','di_scena'].forEach(function(c){if(Object.prototype.hasOwnProperty.call(a,c))t[c]=a[c];});
       t.id=a.technique_id;
@@ -1461,9 +1461,11 @@
       var b1=[],b2=[],b3=[];
       if(t.category) b1.push('<div class="tkd"><b>Categoria</b> · '+esc(t.category)+'</div>');
       if(t.description) b1.push('<div class="tkd"><b>Descrizione</b> · '+esc(t.description).replace(/\n/g,'<br>')+'</div>');
-      var eff=t.danno_effetto||''; if(t.danno_base!=null&&t.danno_base>0) eff=(eff?eff+' · ':'')+'danno base '+t.danno_base;
+      var eff=t.danno_effetto||'';
       if(eff) b1.push('<div class="tkd"><b>Effetto</b> · '+esc(eff)+'</div>');
-      if(t.potenza!=null) b1.push('<div class="tkd"><b>Potenza illusione</b> · '+t.potenza+' <span class="hint">(Dispersione: serve Mente &ge; '+t.potenza+((t.grado==='A'||t.grado==='S')?' &mdash; grado '+esc(t.grado)+', immune al Kai base':'')+')</span></div>');
+      if(t.danno_base!=null) b1.push('<div class="tkd"><b>Danno base</b> · '+esc(t.danno_base)+'</div>');
+      if(t.difesa!=null&&String(t.difesa).trim()!=='') b1.push('<div class="tkd"><b>Difesa</b> · '+esc(t.difesa)+'</div>');
+      if(t.potenza!=null) b1.push('<div class="tkd"><b>Potenza</b> · '+esc(t.potenza)+(String(t.disciplina||'').toLowerCase()==='genjutsu'?' <span class="hint">(Dispersione: serve Mente &ge; '+esc(t.potenza)+((t.grado==='A'||t.grado==='S')?' &mdash; grado '+esc(t.grado)+', immune al Kai base':'')+')</span>':'')+'</div>');
       var tech=[]; if(t.portata)tech.push('portata '+esc(t.portata));
       var _g=t.gittata||techGittataDefault(t); if(_g)tech.push('gittata '+esc(_g)+(t.gittata?'':' <span class="hint">(def)</span>'));
       if(t.bersaglio)tech.push('bersaglio '+esc(t.bersaglio)); if(t.tipo_azione)tech.push('azione '+esc(t.tipo_azione));
@@ -1510,6 +1512,7 @@
       var _les=_l?(esc(_l.code)+' \u00b7 '+esc(_l.title)):'';
       var d='';
       if(j.effect) d+='<div class="tkd-blk"><div class="tkd-h">Effetto</div><div class="tkd"><b>Effetto</b> · '+esc(j.effect)+'</div></div>';
+      if(j.power!=null||j.damage_base!=null||(j.difesa!=null&&String(j.difesa).trim()!=='')) d+='<div class="tkd-blk"><div class="tkd-h">Caratteristiche</div>'+(j.power!=null?'<div class="tkd"><b>Potenza</b> · '+esc(j.power)+'</div>':'')+(j.damage_base!=null?'<div class="tkd"><b>Danno base</b> · '+esc(j.damage_base)+'</div>':'')+(j.difesa!=null&&String(j.difesa).trim()!==''?'<div class="tkd"><b>Difesa</b> · '+esc(j.difesa)+'</div>':'')+'</div>';
       d+='<div class="tkd-blk"><div class="tkd-h">Requisiti</div>'
         +(j.requirements?('<div class="tkd"><b>Requisiti</b> · '+esc(j.requirements)+'</div>'):'')
         +(j.limits?('<div class="tkd"><b>Limiti</b> · '+esc(j.limits)+'</div>'):'')
@@ -1676,7 +1679,7 @@
         return hasClan ? sb.from('clan_techniques').select('*').eq('clan',myChar.clan).eq('is_active',true).order('sort').order('name') : Promise.resolve({data:[]});
       }).then(function(r){
         TK.techs=(r&&r.data)||[]; TK.byId=byId;
-        return sb.from('jutsu').select('id,name_it,category,rank,effect,requirements,limits,chakra_cost,kind').eq('is_active',true).order('sort');
+        return sb.from('jutsu').select('id,name_it,category,rank,effect,requirements,limits,chakra_cost,kind,power,damage_base,difesa').eq('is_active',true).order('sort');
       }).then(function(jr){
         TK.base=(jr&&jr.data)||[];
         /* [02/08/2026] Due mappe per le Basi d'Accademia: quali il personaggio ha già

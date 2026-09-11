@@ -725,6 +725,7 @@ return {createMapFigureHost};
 })();
 window.TUSMapFigures={...editor,...resolver,...host};})();
 </script>
+<meta name="tus-build" content="TECH-FIELDS-UI001-ADMIN" />
 </head>
 <body>
   <div class="page">
@@ -889,6 +890,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
             <label>Caratteristica d'attacco<input id="basi-natural" maxlength="20" placeholder="mente · velocita"></label>
             <label>Disciplina d'attacco<input id="basi-discipline" maxlength="20" placeholder="ninjutsu"></label>
             <label>Danno base<input id="basi-damage" type="number" step="5" min="0" placeholder="vuoto se non fa danno"></label>
+            <label>Difesa <span class="opt">(facoltativa)</span><input id="basi-difesa" type="text" placeholder="Valore o formula di difesa della tecnica"></label>
             <label>Ordine<input id="basi-sort" type="number" step="1" placeholder="1"></label>
             <label class="chk"><input type="checkbox" id="basi-active" checked> Attiva (visibile in gioco)</label>
             <label class="full">Requisiti<input id="basi-req" maxlength="120" placeholder="es. Tecnica base di accademia"></label>
@@ -1316,8 +1318,9 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
             <label>Tipo di consumo<select id="tech-consume"><option value="ad_utilizzo">Ad utilizzo</option><option value="per_turno">Per turno</option><option value="passiva">Passiva / nessuno</option></select></label>
             <label>Consumo di chakra<input id="tech-chakra" type="number" step="1" min="0" placeholder="es. 10"></label>
             <label>Danno base <span class="opt">(valore di catalogo, distinto dalla Potenza e dal danno finale)</span><input id="tech-danno-base" type="number" step="1" min="0" placeholder="non definito"></label>
+            <label>Difesa <span class="opt">(facoltativa)</span><input id="tech-difesa" type="text" placeholder="Valore o formula di difesa della tecnica"></label>
             <label>Grado (jutsu · D–S)<input id="tech-grado" list="tech-ranks" maxlength="30" placeholder="es. C"></label>
-            <label>Potenza illusione <span class="opt">(solo genjutsu · Mente per spezzarlo con la Dispersione)</span><input id="tech-potenza" type="number" step="1" min="0" max="200" placeholder="es. 25 (C) · 40 (B) · 80 (S)"></label>
+            <label>Potenza <span class="opt">(nei genjutsu indica anche la soglia di Mente per la Dispersione)</span><input id="tech-potenza" type="number" step="1" min="0" max="200" placeholder="es. 25 (C) · 40 (B) · 80 (S)"></label>
             <label>Disciplina <span class="opt">(organizzazione: i Jutsu per disciplina, oppure Abilità per arti innate/segrete)</span><select id="tech-disc"><option value="Ninjutsu">Ninjutsu</option><option value="Taijutsu">Taijutsu</option><option value="Genjutsu">Genjutsu</option><option value="Fuuinjutsu">Fuuinjutsu</option><option value="Abilità">Abilità (innata / segreta)</option></select></label>
             <label>Portata <span class="opt">(descrittiva, testo libero)</span><input id="tech-portata" list="tech-ranges" maxlength="30" placeholder="es. Corto"></label>
             <label>Gittata <span class="opt">(meccanica: fascia di distanza)</span><select id="tech-gittata"><option value="">— default per tipo</option><option value="contatto">Contatto</option><option value="corta">Corta</option><option value="media">Media</option><option value="lunga">Lunga</option></select></label>
@@ -1878,7 +1881,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
     async function loadBasi(){ var r=await sb.from('jutsu').select('*').order('kind').order('sort'); BASI=(r&&r.data)||[]; renderBasi(); }
     function resetBasiForm(){
       editingBasi=null;
-      ['basi-name','basi-romaji','basi-category','basi-chakra','basi-natural','basi-discipline','basi-damage','basi-sort','basi-req','basi-effect','basi-limits','basi-defense'].forEach(function(k){ var e=$(k); if(e) e.value=''; });
+      ['basi-name','basi-romaji','basi-category','basi-chakra','basi-natural','basi-discipline','basi-damage','basi-difesa','basi-sort','basi-req','basi-effect','basi-limits','basi-defense'].forEach(function(k){ var e=$(k); if(e) e.value=''; });
       if($('basi-kind'))$('basi-kind').value='jutsu';
       if($('basi-rank'))$('basi-rank').value='';
       if($('basi-action'))$('basi-action').value='';
@@ -1902,6 +1905,9 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
         if(b.rank) meta.push('grado '+b.rank);
         if(b.chakra_cost) meta.push(b.chakra_cost+' chakra');
         if(b.action_type) meta.push(b.action_type);
+        if(b.power!=null) meta.push('Potenza '+String(b.power));
+        if(b.damage_base!=null) meta.push('Danno base '+String(b.damage_base));
+        if(b.difesa!=null&&String(b.difesa).trim()!=='') meta.push('Difesa '+String(b.difesa));
         var _bu={principale:'azione principale',rapida:'azione rapida',difesa:'solo in difesa',passiva:'passiva',fuori_scontro:'fuori dal combattimento'}[b.uso];
         meta.push(_bu?_bu:'uso da classificare');
         if(b.gittata) meta.push('⇢ '+b.gittata);
@@ -1939,6 +1945,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
           atk_natural:(($('basi-natural')||{}).value||'').trim()||null,
           atk_discipline:(($('basi-discipline')||{}).value||'').trim()||null,
           damage_base:n(($('basi-damage')||{}).value),
+          difesa:(($('basi-difesa')||{}).value||'').trim()||null,
           sort:n(($('basi-sort')||{}).value)||0,
           is_active:!!(($('basi-active')||{}).checked),
           requirements:(($('basi-req')||{}).value||'').trim()||null,
@@ -1963,7 +1970,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
           var set=function(id,v){ var el=$(id); if(el) el.value=(v!=null?v:''); };
           set('basi-name',b.name_it); set('basi-romaji',b.name_romaji); set('basi-category',b.category);
           set('basi-chakra',b.chakra_cost); set('basi-natural',b.atk_natural); set('basi-discipline',b.atk_discipline);
-          set('basi-damage',b.damage_base); set('basi-sort',b.sort); set('basi-req',b.requirements);
+          set('basi-damage',b.damage_base); set('basi-difesa',b.difesa); set('basi-sort',b.sort); set('basi-req',b.requirements);
           set('basi-effect',b.effect); set('basi-limits',b.limits); set('basi-defense',b.defense_hint);
           if($('basi-kind'))$('basi-kind').value=b.kind||'jutsu';
           if($('basi-rank'))$('basi-rank').value=b.rank||'';
@@ -3402,7 +3409,9 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       if(t.bersaglio)meta.push(esc(t.bersaglio));
       meta.push(techConsume(t.consumption_type)+(t.chakra_cost!=null?(' · '+t.chakra_cost+' chakra'):''));
       if(!t.is_active)meta.push('disattivata');
+      if(t.potenza!=null)meta.push('Potenza '+esc(String(t.potenza)));
       if(t.danno_base!=null)meta.push('Danno base '+esc(String(t.danno_base)));
+      if(t.difesa!=null&&String(t.difesa).trim()!=='')meta.push('Difesa '+esc(String(t.difesa)));
       if(t.durata)meta.push('Durata '+esc(t.durata));
       if(t.ricarica)meta.push('Ricarica '+esc(t.ricarica));
       var mech=[];
@@ -3501,7 +3510,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       });
       host.innerHTML=html;
     }
-    function resetTechForm(){editingTech=null;$('tech-name').value='';$('tech-clan').value='';$('tech-level').value='';$('tech-category').value='';$('tech-consume').value='ad_utilizzo';$('tech-chakra').value='';['tech-grado','tech-potenza','tech-danno-base','tech-portata','tech-gittata','tech-uso','tech-attivazione','tech-bersaglio','tech-azione','tech-durata','tech-ricarica','tech-xp','tech-train','tech-reqgrade','tech-reqstat','tech-reqval','tech-reqstat2','tech-reqval2','tech-effetto'].forEach(function(id){var el=$(id);if(el)el.value='';});$('tech-req').value='';$('tech-desc').value='';$('tech-active').checked=true;var _td=$('tech-difensiva');if(_td)_td.checked=false;var _tm=$('tech-macro');if(_tm)_tm.value=(techMacro||'clan');Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){x.checked=false;});var _em=$('tech-elemsmode');if(_em)_em.value='uno';if($('tech-disc'))$('tech-disc').value=((techMacro||'clan')==='abilita'?'Abilità':'Ninjutsu');techMacroFormSync();$('tech-reset').style.display='none';$('tech-editing').textContent='';$('tech-save').textContent='Salva tecnica';}
+    function resetTechForm(){editingTech=null;$('tech-name').value='';$('tech-clan').value='';$('tech-level').value='';$('tech-category').value='';$('tech-consume').value='ad_utilizzo';$('tech-chakra').value='';['tech-grado','tech-potenza','tech-danno-base','tech-difesa','tech-portata','tech-gittata','tech-uso','tech-attivazione','tech-bersaglio','tech-azione','tech-durata','tech-ricarica','tech-xp','tech-train','tech-reqgrade','tech-reqstat','tech-reqval','tech-reqstat2','tech-reqval2','tech-effetto'].forEach(function(id){var el=$(id);if(el)el.value='';});$('tech-req').value='';$('tech-desc').value='';$('tech-active').checked=true;var _td=$('tech-difensiva');if(_td)_td.checked=false;var _tm=$('tech-macro');if(_tm)_tm.value=(techMacro||'clan');Array.prototype.forEach.call(document.querySelectorAll('#tech-elems input[data-elem]'),function(x){x.checked=false;});var _em=$('tech-elemsmode');if(_em)_em.value='uno';if($('tech-disc'))$('tech-disc').value=((techMacro||'clan')==='abilita'?'Abilità':'Ninjutsu');techMacroFormSync();$('tech-reset').style.display='none';$('tech-editing').textContent='';$('tech-save').textContent='Salva tecnica';}
     function techMacroFormSync(){ var m=($('tech-macro')&&$('tech-macro').value)||'clan'; var cl=$('tech-clan'); if(cl){ cl.disabled=(m!=='clan'); if(m!=='clan') cl.value=''; cl.style.opacity=(m!=='clan')?'.5':''; } var dd=$('tech-disc'); if(dd && m==='abilita') dd.value='Abilità'; }
     function bindTechs(){
       var rb=$('tech-reset');if(rb)rb.addEventListener('click',function(){resetTechForm();admFormHide('tecniche');});
@@ -3520,6 +3529,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
         var _db=$('tech-danno-base').value.trim();
         if(_db!==''&&(!/^\d+$/.test(_db)||!Number.isSafeInteger(Number(_db)))){toast('Danno base: inserisci un intero non negativo oppure lascia vuoto.',true);return;}
         payload.danno_base=_db===''?null:Number(_db);
+        payload.difesa=$('tech-difesa').value.trim()||null;
         var _pot=$('tech-potenza')?$('tech-potenza').value.trim():''; payload.potenza=_pot!==''?(parseInt(_pot,10)||0):null;
         payload.disciplina=($('tech-disc')&&$('tech-disc').value)||null;
         payload.gittata=($('tech-gittata')&&$('tech-gittata').value)||null;
@@ -3564,6 +3574,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
         if($('tech-macro'))$('tech-macro').value=(t.macro||'clan');
         if($('tech-potenza'))$('tech-potenza').value=(t.potenza!=null?t.potenza:'');
         $('tech-danno-base').value=(t.danno_base!=null?t.danno_base:'');
+        $('tech-difesa').value=t.difesa==null?'':t.difesa;
         if($('tech-disc'))$('tech-disc').value=(t.disciplina||'Ninjutsu');
         if($('tech-gittata'))$('tech-gittata').value=(t.gittata||'');
         if($('tech-uso'))$('tech-uso').value=(t.uso||'');
