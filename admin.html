@@ -290,6 +290,98 @@
   /* NINJA-BOOK-027B CSS FINE */
 </style>
 <meta name="tus-clan-catalog-build" content="CLAN-CATALOGO-CANDIDATO-001">
+<script id="universal-arena-editor">
+(function(global){
+'use strict';
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function createArenaEditor({client,document:doc=global.document,identity,notice=()=>{}}){
+  let overlay=null,epoch=0,finish=null,authPrincipal,authEpoch=0;
+  client.auth.onAuthStateChange(function(event,session){
+    const next=session?.user?.id||null;
+    if(authPrincipal!==undefined&&authPrincipal!==next){authEpoch++;close();}
+    authPrincipal=next;
+  });
+  function who(){const v=identity?.();return typeof v==='string'&&UUID.test(v)&&(authPrincipal===undefined||authPrincipal===v)?v:null;}
+  function requireIdentity(expected){if(!expected||who()!==expected)throw Error('Accesso cambiato: riapri la configurazione.');}
+  async function rpc(name,args,principal){
+    requireIdentity(principal);const version=authEpoch;
+    const session=await client.auth.getSession();
+    if(session?.error||session?.data?.session?.user?.id!==principal||version!==authEpoch)throw Error('Accesso cambiato: riapri la configurazione.');
+    requireIdentity(principal);
+    const r=await client.rpc(name,args);requireIdentity(principal);
+    if(version!==authEpoch)throw Error('Accesso cambiato: verifica lo stato prima di ripetere.');
+    if(r?.error)throw r.error;return r?.data;
+  }
+  const context=()=>JSON.stringify([who(),authEpoch]);
+  const sameContext=stamp=>!!who()&&stamp===context();
+  async function createMission(payload,selected,stamp){
+    if(!sameContext(stamp))throw Error('Accesso cambiato: riapri il modulo missione.');
+    const id=await rpc('missione_crea_con_arena_v1',{...payload,p_template:selected.template_key,p_template_version:selected.template_version,p_zone:selected.zone_key},who());
+    if(!sameContext(stamp)||typeof id!=='string'||!UUID.test(id))throw Error('Pubblicazione non confermata: verifica la bacheca prima di ripetere.');
+    return id;
+  }
+  function catalogShape(x){
+    if(x?.schema_version!=='universal-arena-catalog/1'||!Array.isArray(x.templates)||!x.templates.length)throw Error('Nessuna mappa disponibile.');
+    for(const t of x.templates){if(typeof t.template_key!=='string'||!Number.isInteger(t.template_version)||t.template_version<1||typeof t.title!=='string'||!Number.isFinite(t.width_m)||!Number.isFinite(t.height_m)||!Array.isArray(t.zones)||!t.zones.length||t.zones.some(z=>typeof z.key!=='string'||typeof z.label!=='string'))throw Error('Catalogo mappe non valido.');}
+    return x.templates;
+  }
+  async function catalog(){const principal=who();return catalogShape(await rpc('universal_arena_catalog_v1',{},principal));}
+  function choice(t,z){return {template_key:t.template_key,template_version:t.template_version,zone_key:z.key,label:t.title+' · '+z.label};}
+  async function defaults(){const rows=await catalog(),t=rows.find(x=>x.template_key==='master_test_20x20_v1'&&x.template_version===1);if(!t)throw Error('Mappa generica non disponibile. Scegli una mappa.');return choice(t,t.zones.find(z=>z.key==='arena')||t.zones[0]);}
+  function close(result=null){epoch++;overlay?.remove();overlay=null;const done=finish;finish=null;done?.(result);}
+  function styles(){if(doc.getElementById('universal-arena-editor-style'))return;const s=doc.createElement('style');s.id='universal-arena-editor-style';s.textContent=`.ua-overlay{position:fixed;inset:0;z-index:2147482000;background:#050a10c9;display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}.ua-dialog{color:#e6edf2;background:#14212b;border:1px solid #486171;border-radius:14px;box-shadow:0 20px 70px #0009;width:min(560px,100%);max-height:90dvh;overflow:auto;padding:24px;font:15px/1.5 system-ui,sans-serif}.ua-dialog h2{font-size:21px;color:#ecc67a;margin:0 0 10px}.ua-dialog label{display:block;margin:16px 0 5px;font-weight:600}.ua-dialog select{width:100%;padding:10px;background:#213542;color:#f2f5f7;border:1px solid #5b7280;border-radius:7px;font:inherit}.ua-dialog p{margin:10px 0;color:#bccbd4}.ua-dialog .ua-status{min-height:24px;color:#edcc8c}.ua-buttons{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}.ua-dialog button{cursor:pointer;border:1px solid #587383;border-radius:7px;padding:9px 16px;background:#2c4555;color:white;font:inherit}.ua-dialog button:disabled{opacity:.5;cursor:default}.ua-dialog button:focus-visible,.ua-dialog select:focus-visible{outline:2px solid #efce83;outline-offset:3px}.ua-dialog .ua-primary{background:#b78535;color:#101a22;border-color:#deb76c;font-weight:650}`;doc.head.append(s);}
+  function el(tag,text,parent){const n=doc.createElement(tag);if(text!==undefined)n.textContent=text;if(parent)parent.append(n);return n;}
+  function message(error){if(error?.code==='40001')return 'La configurazione è cambiata. Chiudi e riapri per leggere la versione aggiornata.';return String(error?.message||'Operazione non riuscita. Riapri la configurazione per verificare lo stato.');}
+  function show({scope=null,targetId=null,title='',initial=null}={}){
+    close();styles();const principal=who(),stamp=epoch;
+    if(!principal)return Promise.resolve(null);
+    if(targetId&&(!UUID.test(targetId)||!['room','mission'].includes(scope)))return Promise.reject(Error('Destinazione non valida.'));
+    const previous=doc.activeElement;overlay=el('div');overlay.className='ua-overlay';
+    const dialog=el('section',undefined,overlay);dialog.className='ua-dialog';dialog.setAttribute('role','dialog');dialog.tabIndex=-1;dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-labelledby','ua-title');
+    const heading=el('h2','Mappa e zona dello scontro',dialog);heading.id='ua-title';
+    if(title)el('p',title,dialog);
+    el('p',scope==='room'?'Le nuove quest useranno la mappa di questa stanza. Le missioni usano la propria configurazione.':'La mappa viene fissata quando parte la missione. Le modifiche successive valgono per i nuovi avvii.',dialog);
+    const label=el('label','Mappa',dialog);label.htmlFor='ua-template';const map=el('select',undefined,dialog);map.id='ua-template';map.disabled=true;
+    const zl=el('label','Zona di combattimento',dialog);zl.htmlFor='ua-zone';const zone=el('select',undefined,dialog);zone.id='ua-zone';zone.disabled=true;
+    const info=el('p','',dialog),status=el('p','Caricamento delle mappe…',dialog);status.className='ua-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+    const buttons=el('div',undefined,dialog);buttons.className='ua-buttons';const cancel=el('button','Annulla',buttons),save=el('button',targetId?'Salva configurazione':'Usa questa mappa',buttons);cancel.type=save.type='button';save.className='ua-primary';save.disabled=true;
+    doc.body.append(overlay);cancel.focus();let busy=false,rows=[],revision=null;
+    const current=()=>stamp===epoch&&who()===principal&&overlay?.contains(dialog);
+    const exit=result=>{close(result);if(previous?.isConnected)previous.focus();};
+    cancel.onclick=()=>{if(!busy)exit();};
+    dialog.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();if(!busy)exit();}if(e.key==='Tab'){const items=[map,zone,cancel,save].filter(n=>!n.disabled);if(!items.length){e.preventDefault();dialog.focus();return;}const first=items[0],last=items[items.length-1];if(!items.includes(doc.activeElement)){e.preventDefault();(e.shiftKey?last:first).focus();return;}if(e.shiftKey&&doc.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&doc.activeElement===last){e.preventDefault();first.focus();}}});
+    function refreshZones(selected){const t=rows[Number(map.value)];zone.replaceChildren();if(!t){save.disabled=true;return;}t.zones.forEach(z=>{const o=el('option',z.label,zone);o.value=z.key;});if(selected&&t.zones.some(z=>z.key===selected))zone.value=selected;zone.disabled=false;info.textContent=t.width_m+' × '+t.height_m+' m · La zona identifica l’area in cui si svolgerà lo scontro.';save.disabled=false;}
+    map.onchange=()=>refreshZones();
+    save.onclick=async()=>{
+      if(busy||!current())return;const t=rows[Number(map.value)],z=t?.zones.find(x=>x.key===zone.value);if(!t||!z)return;const selected=choice(t,z);
+      if(!targetId){exit(selected);return;}
+      busy=true;cancel.disabled=save.disabled=map.disabled=zone.disabled=true;status.textContent='Salvataggio…';dialog.focus();
+      try{const r=await rpc('universal_arena_configure_v1',{p_scope:scope,p_target:targetId,p_template:selected.template_key,p_version:selected.template_version,p_zone:selected.zone_key,p_expected:revision},principal);if(!current())return;
+        if(r?.schema_version!=='universal-arena-config/1'||r.scope!==scope||r.target_id!==targetId||r.template_key!==selected.template_key||r.template_version!==selected.template_version||r.zone_key!==selected.zone_key)throw Error('Risposta inattesa: riapri la configurazione per verificare il salvataggio.');
+        notice('Configurazione mappa salvata');exit(selected);
+      }catch(e){if(current()){status.textContent=message(e);cancel.disabled=false;/* Una risposta incerta richiede rilettura esplicita, mai un secondo invio. */}}
+      finally{busy=false;}
+    };
+    const promise=new Promise(resolve=>{finish=resolve;});
+    (async()=>{try{
+      const result=await Promise.all([rpc('universal_arena_catalog_v1',{},principal),targetId?rpc('universal_arena_config_v1',{p_scope:scope,p_target:targetId},principal):Promise.resolve(null)]);
+      if(!current())return;rows=catalogShape(result[0]);const config=result[1];let selected=initial;
+      if(targetId){if(config?.schema_version!=='universal-arena-config/1'||config.scope!==scope||config.target_id!==targetId||!Number.isSafeInteger(config.revision)||config.revision<0)throw Error('Configurazione non valida.');revision=config.revision;selected=config;}
+      rows.forEach((t,i)=>{const o=el('option',t.title+' · '+t.width_m+' × '+t.height_m+' m',map);o.value=String(i);});
+      let index=rows.findIndex(t=>t.template_key===selected?.template_key&&t.template_version===selected?.template_version);
+      if(index<0&&(!selected||selected.revision===0))index=rows.findIndex(t=>t.template_key==='master_test_20x20_v1'&&t.template_version===1);
+      if(index<0)throw Error('La mappa configurata non è disponibile nel catalogo. Nessuna modifica effettuata.');
+      if(selected?.zone_key&&!rows[index].zones.some(z=>z.key===selected.zone_key))throw Error('La zona configurata non è disponibile. Nessuna modifica effettuata.');
+      map.value=String(index);map.disabled=false;refreshZones(selected?.zone_key);status.textContent=targetId&&revision===0?'Nessuna scelta salvata: viene proposta la mappa generica.':'Scegli la mappa e conferma.';map.focus();
+    }catch(e){if(current())status.textContent=message(e);}})();
+    return promise;
+  }
+  return {open:(scope,targetId,title)=>show({scope,targetId,title}),select:initial=>show({initial}),defaults,close,context,sameContext,createMission};
+}
+global.TUSArenaEditor=Object.freeze({createArenaEditor});
+})(window);
+
+</script>
 <script id="map-figures-bundle">
 (()=>{const editor=(()=>{
 // MAP-FIGURES/1: editor cosmetico unico; nessun valore o comando di gioco.
@@ -1463,6 +1555,12 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
     var CLANS=['Hyuga','Nara','Akimichi','Inuzuka','Aburame','Marionettisti','Sabaku','Dokugan','Uchiha'];
     var RANKS=['Deshi','Genin','Chunin','Jonin','Jonin Speciale','Kage Konoha','Kage Suna','Sannin'];
     var me=null, EMB={};
+    var ADMIN_ARENA_EDITOR=null;
+    function adminArena(scope,id,title){
+      if(!me||!sb)return;
+      if(!ADMIN_ARENA_EDITOR)ADMIN_ARENA_EDITOR=window.TUSArenaEditor.createArenaEditor({client:sb,document:document,identity:function(){return me?me.id:null;},notice:toast});
+      ADMIN_ARENA_EDITOR.open(scope,id,title).catch(function(){toast('Configurazione mappa non disponibile',true);});
+    }
     var MAP_FIGURE_EDITOR=null;
     function adminMapFigure(kind,id){
       if(!me||!sb||!window.TUSMapFigures)return;
@@ -1893,12 +1991,14 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
           (l.description?('<span class="ldesc">'+esc(l.description)+'</span>'):'')+'</div>'+
           '<div class="lacts">'+
             '<button class="mini-btn" data-locedit="'+l.id+'">Modifica</button>'+
+            (l.is_active?'<button class="mini-btn" data-locarena="'+l.id+'">Mappa scontro</button>':'')+
             '<button class="mini-btn" data-loctoggle="'+l.id+'">'+(l.is_active?'Disattiva':'Attiva')+'</button>'+
             '<button class="mini-btn danger" data-locdel="'+l.id+'">Elimina</button>'+
           '</div></div>';
       }).join('');
     }
     function bindLocs(){
+      $('loc-list').addEventListener('click',function(e){var b=e.target.closest('[data-locarena]');if(!b)return;var id=b.getAttribute('data-locarena'),loc=LOCS.find(function(l){return l.id===id;});if(loc)adminArena('room',id,loc.name);});
       $('loc-reset').addEventListener('click',function(){resetLocForm();admFormHide('luoghi');});
       $('loc-save').addEventListener('click',async function(){
         var name=$('loc-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}

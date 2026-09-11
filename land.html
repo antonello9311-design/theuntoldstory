@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-COMMON-PANEL-UI-019" />
+  <meta name="tus-build" content="LAND-COMMON-PANEL-UI-020" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1557,6 +1557,98 @@
   </style>
 <style>.ordinary-map-section{margin-top:14px;padding:12px;border:1px solid var(--edge);border-radius:8px}.ordinary-map-section p{font-size:14px}.ordinary-map{display:block;width:100%;max-height:260px}.ordinary-map-section ul{font-size:14px;padding-left:18px}</style>
 <style id="common-panel-style">.combat-panel-common{padding:18px;line-height:1.5;overflow-wrap:anywhere}.combat-panel-common section{margin:12px 0}.combat-panel-common select,.combat-panel-common textarea,.combat-panel-common input[type=text]{max-width:100%;width:100%;box-sizing:border-box;font:inherit}.combat-panel-common textarea{min-height:140px}.combat-panel-common button{min-height:42px;margin:4px}.combat-panel-common fieldset{min-width:0}</style>
+<script id="universal-arena-editor">
+(function(global){
+'use strict';
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function createArenaEditor({client,document:doc=global.document,identity,notice=()=>{}}){
+  let overlay=null,epoch=0,finish=null,authPrincipal,authEpoch=0;
+  client.auth.onAuthStateChange(function(event,session){
+    const next=session?.user?.id||null;
+    if(authPrincipal!==undefined&&authPrincipal!==next){authEpoch++;close();}
+    authPrincipal=next;
+  });
+  function who(){const v=identity?.();return typeof v==='string'&&UUID.test(v)&&(authPrincipal===undefined||authPrincipal===v)?v:null;}
+  function requireIdentity(expected){if(!expected||who()!==expected)throw Error('Accesso cambiato: riapri la configurazione.');}
+  async function rpc(name,args,principal){
+    requireIdentity(principal);const version=authEpoch;
+    const session=await client.auth.getSession();
+    if(session?.error||session?.data?.session?.user?.id!==principal||version!==authEpoch)throw Error('Accesso cambiato: riapri la configurazione.');
+    requireIdentity(principal);
+    const r=await client.rpc(name,args);requireIdentity(principal);
+    if(version!==authEpoch)throw Error('Accesso cambiato: verifica lo stato prima di ripetere.');
+    if(r?.error)throw r.error;return r?.data;
+  }
+  const context=()=>JSON.stringify([who(),authEpoch]);
+  const sameContext=stamp=>!!who()&&stamp===context();
+  async function createMission(payload,selected,stamp){
+    if(!sameContext(stamp))throw Error('Accesso cambiato: riapri il modulo missione.');
+    const id=await rpc('missione_crea_con_arena_v1',{...payload,p_template:selected.template_key,p_template_version:selected.template_version,p_zone:selected.zone_key},who());
+    if(!sameContext(stamp)||typeof id!=='string'||!UUID.test(id))throw Error('Pubblicazione non confermata: verifica la bacheca prima di ripetere.');
+    return id;
+  }
+  function catalogShape(x){
+    if(x?.schema_version!=='universal-arena-catalog/1'||!Array.isArray(x.templates)||!x.templates.length)throw Error('Nessuna mappa disponibile.');
+    for(const t of x.templates){if(typeof t.template_key!=='string'||!Number.isInteger(t.template_version)||t.template_version<1||typeof t.title!=='string'||!Number.isFinite(t.width_m)||!Number.isFinite(t.height_m)||!Array.isArray(t.zones)||!t.zones.length||t.zones.some(z=>typeof z.key!=='string'||typeof z.label!=='string'))throw Error('Catalogo mappe non valido.');}
+    return x.templates;
+  }
+  async function catalog(){const principal=who();return catalogShape(await rpc('universal_arena_catalog_v1',{},principal));}
+  function choice(t,z){return {template_key:t.template_key,template_version:t.template_version,zone_key:z.key,label:t.title+' · '+z.label};}
+  async function defaults(){const rows=await catalog(),t=rows.find(x=>x.template_key==='master_test_20x20_v1'&&x.template_version===1);if(!t)throw Error('Mappa generica non disponibile. Scegli una mappa.');return choice(t,t.zones.find(z=>z.key==='arena')||t.zones[0]);}
+  function close(result=null){epoch++;overlay?.remove();overlay=null;const done=finish;finish=null;done?.(result);}
+  function styles(){if(doc.getElementById('universal-arena-editor-style'))return;const s=doc.createElement('style');s.id='universal-arena-editor-style';s.textContent=`.ua-overlay{position:fixed;inset:0;z-index:2147482000;background:#050a10c9;display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}.ua-dialog{color:#e6edf2;background:#14212b;border:1px solid #486171;border-radius:14px;box-shadow:0 20px 70px #0009;width:min(560px,100%);max-height:90dvh;overflow:auto;padding:24px;font:15px/1.5 system-ui,sans-serif}.ua-dialog h2{font-size:21px;color:#ecc67a;margin:0 0 10px}.ua-dialog label{display:block;margin:16px 0 5px;font-weight:600}.ua-dialog select{width:100%;padding:10px;background:#213542;color:#f2f5f7;border:1px solid #5b7280;border-radius:7px;font:inherit}.ua-dialog p{margin:10px 0;color:#bccbd4}.ua-dialog .ua-status{min-height:24px;color:#edcc8c}.ua-buttons{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}.ua-dialog button{cursor:pointer;border:1px solid #587383;border-radius:7px;padding:9px 16px;background:#2c4555;color:white;font:inherit}.ua-dialog button:disabled{opacity:.5;cursor:default}.ua-dialog button:focus-visible,.ua-dialog select:focus-visible{outline:2px solid #efce83;outline-offset:3px}.ua-dialog .ua-primary{background:#b78535;color:#101a22;border-color:#deb76c;font-weight:650}`;doc.head.append(s);}
+  function el(tag,text,parent){const n=doc.createElement(tag);if(text!==undefined)n.textContent=text;if(parent)parent.append(n);return n;}
+  function message(error){if(error?.code==='40001')return 'La configurazione è cambiata. Chiudi e riapri per leggere la versione aggiornata.';return String(error?.message||'Operazione non riuscita. Riapri la configurazione per verificare lo stato.');}
+  function show({scope=null,targetId=null,title='',initial=null}={}){
+    close();styles();const principal=who(),stamp=epoch;
+    if(!principal)return Promise.resolve(null);
+    if(targetId&&(!UUID.test(targetId)||!['room','mission'].includes(scope)))return Promise.reject(Error('Destinazione non valida.'));
+    const previous=doc.activeElement;overlay=el('div');overlay.className='ua-overlay';
+    const dialog=el('section',undefined,overlay);dialog.className='ua-dialog';dialog.setAttribute('role','dialog');dialog.tabIndex=-1;dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-labelledby','ua-title');
+    const heading=el('h2','Mappa e zona dello scontro',dialog);heading.id='ua-title';
+    if(title)el('p',title,dialog);
+    el('p',scope==='room'?'Le nuove quest useranno la mappa di questa stanza. Le missioni usano la propria configurazione.':'La mappa viene fissata quando parte la missione. Le modifiche successive valgono per i nuovi avvii.',dialog);
+    const label=el('label','Mappa',dialog);label.htmlFor='ua-template';const map=el('select',undefined,dialog);map.id='ua-template';map.disabled=true;
+    const zl=el('label','Zona di combattimento',dialog);zl.htmlFor='ua-zone';const zone=el('select',undefined,dialog);zone.id='ua-zone';zone.disabled=true;
+    const info=el('p','',dialog),status=el('p','Caricamento delle mappe…',dialog);status.className='ua-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+    const buttons=el('div',undefined,dialog);buttons.className='ua-buttons';const cancel=el('button','Annulla',buttons),save=el('button',targetId?'Salva configurazione':'Usa questa mappa',buttons);cancel.type=save.type='button';save.className='ua-primary';save.disabled=true;
+    doc.body.append(overlay);cancel.focus();let busy=false,rows=[],revision=null;
+    const current=()=>stamp===epoch&&who()===principal&&overlay?.contains(dialog);
+    const exit=result=>{close(result);if(previous?.isConnected)previous.focus();};
+    cancel.onclick=()=>{if(!busy)exit();};
+    dialog.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();if(!busy)exit();}if(e.key==='Tab'){const items=[map,zone,cancel,save].filter(n=>!n.disabled);if(!items.length){e.preventDefault();dialog.focus();return;}const first=items[0],last=items[items.length-1];if(!items.includes(doc.activeElement)){e.preventDefault();(e.shiftKey?last:first).focus();return;}if(e.shiftKey&&doc.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&doc.activeElement===last){e.preventDefault();first.focus();}}});
+    function refreshZones(selected){const t=rows[Number(map.value)];zone.replaceChildren();if(!t){save.disabled=true;return;}t.zones.forEach(z=>{const o=el('option',z.label,zone);o.value=z.key;});if(selected&&t.zones.some(z=>z.key===selected))zone.value=selected;zone.disabled=false;info.textContent=t.width_m+' × '+t.height_m+' m · La zona identifica l’area in cui si svolgerà lo scontro.';save.disabled=false;}
+    map.onchange=()=>refreshZones();
+    save.onclick=async()=>{
+      if(busy||!current())return;const t=rows[Number(map.value)],z=t?.zones.find(x=>x.key===zone.value);if(!t||!z)return;const selected=choice(t,z);
+      if(!targetId){exit(selected);return;}
+      busy=true;cancel.disabled=save.disabled=map.disabled=zone.disabled=true;status.textContent='Salvataggio…';dialog.focus();
+      try{const r=await rpc('universal_arena_configure_v1',{p_scope:scope,p_target:targetId,p_template:selected.template_key,p_version:selected.template_version,p_zone:selected.zone_key,p_expected:revision},principal);if(!current())return;
+        if(r?.schema_version!=='universal-arena-config/1'||r.scope!==scope||r.target_id!==targetId||r.template_key!==selected.template_key||r.template_version!==selected.template_version||r.zone_key!==selected.zone_key)throw Error('Risposta inattesa: riapri la configurazione per verificare il salvataggio.');
+        notice('Configurazione mappa salvata');exit(selected);
+      }catch(e){if(current()){status.textContent=message(e);cancel.disabled=false;/* Una risposta incerta richiede rilettura esplicita, mai un secondo invio. */}}
+      finally{busy=false;}
+    };
+    const promise=new Promise(resolve=>{finish=resolve;});
+    (async()=>{try{
+      const result=await Promise.all([rpc('universal_arena_catalog_v1',{},principal),targetId?rpc('universal_arena_config_v1',{p_scope:scope,p_target:targetId},principal):Promise.resolve(null)]);
+      if(!current())return;rows=catalogShape(result[0]);const config=result[1];let selected=initial;
+      if(targetId){if(config?.schema_version!=='universal-arena-config/1'||config.scope!==scope||config.target_id!==targetId||!Number.isSafeInteger(config.revision)||config.revision<0)throw Error('Configurazione non valida.');revision=config.revision;selected=config;}
+      rows.forEach((t,i)=>{const o=el('option',t.title+' · '+t.width_m+' × '+t.height_m+' m',map);o.value=String(i);});
+      let index=rows.findIndex(t=>t.template_key===selected?.template_key&&t.template_version===selected?.template_version);
+      if(index<0&&(!selected||selected.revision===0))index=rows.findIndex(t=>t.template_key==='master_test_20x20_v1'&&t.template_version===1);
+      if(index<0)throw Error('La mappa configurata non è disponibile nel catalogo. Nessuna modifica effettuata.');
+      if(selected?.zone_key&&!rows[index].zones.some(z=>z.key===selected.zone_key))throw Error('La zona configurata non è disponibile. Nessuna modifica effettuata.');
+      map.value=String(index);map.disabled=false;refreshZones(selected?.zone_key);status.textContent=targetId&&revision===0?'Nessuna scelta salvata: viene proposta la mappa generica.':'Scegli la mappa e conferma.';map.focus();
+    }catch(e){if(current())status.textContent=message(e);}})();
+    return promise;
+  }
+  return {open:(scope,targetId,title)=>show({scope,targetId,title}),select:initial=>show({initial}),defaults,close,context,sameContext,createMission};
+}
+global.TUSArenaEditor=Object.freeze({createArenaEditor});
+})(window);
+
+</script>
 <script id="map-figures-bundle">
 (()=>{const editor=(()=>{
 // MAP-FIGURES/1: editor cosmetico unico; nessun valore o comando di gioco.
@@ -3200,13 +3292,26 @@ function renderPanelSabaku(root,envelope,{compact=false}={}){
   const value=envelope.sabaku_transport;if(value===null)return;
   const add=(tag,text)=>{const el=root.ownerDocument.createElement(tag);el.textContent=text;root.append(el);return el;};
   const fail=()=>{root.hidden=false;add('p','Stato della sabbia non disponibile.');};
-  if(envelope.status!=='ready'||!uuid(envelope.viewer.command_actor_id)||!exact(value,['contract_version','context_version','is_test','innata','reserve','transport'])||value.contract_version!=='sabaku-transport-view/2'||value.context_version!==envelope.context.version||typeof value.is_test!=='boolean')return fail();
+  if(envelope.status!=='ready'||!uuid(envelope.viewer.command_actor_id)||!(exact(value,['contract_version','context_version','is_test','innata','reserve','transport'])||exact(value,['contract_version','context_version','is_test','innata','reserve','transport','armor']))||value.contract_version!=='sabaku-transport-view/2'||value.context_version!==envelope.context.version||typeof value.is_test!=='boolean')return fail();
   const {innata:i,reserve:r,transport:t}=value;
   if(!exact(i,['active','activation_chakra','upkeep_chakra','deactivation_chakra'])||typeof i.active!=='boolean'||i.activation_chakra!==5||i.upkeep_chakra!==5||i.deactivation_chakra!==0)return fail();
   if(!exact(r,['current','committed','capacity','available'])||!Object.values(r).every(integer)||r.committed>r.current||r.current>r.capacity||r.available!==r.current-r.committed)return fail();
   if(!exact(t,['active','activation_chakra','sand_commit','upkeep_chakra','movement_bonus_m','expires_context'])||typeof t.active!=='boolean'||t.activation_chakra!==5||t.sand_commit!==5||t.upkeep_chakra!==0)return fail();
   if(t.active){const end=t.expires_context;if(!i.active||t.movement_bonus_m!==5||r.committed<5||!exact(end,['kind','id','label'])||!['ordinary_exchange','master_actor_turn'].includes(end.kind)||!uuid(end.id)||typeof end.label!=='string'||!end.label.trim())return fail();}
   else if(t.movement_bonus_m!==0||t.expires_context!==null)return fail();
+  const armor=value.armor;
+  const armorReasons={manual_off:'Disattivata volontariamente.',insufficient_sand:'Sabbia insufficiente per ricomporre l’armatura.',insufficient_chakra:'Chakra insufficiente per mantenere l’armatura.',innata_off:'Controllo della Sabbia disattivato.',owner_inoperative:'L’utilizzatore non può mantenere l’armatura.',owner_ko:'L’utilizzatore è fuori combattimento.',owner_absent:'L’utilizzatore non è più nella scena.',combat_end:'Lo scontro è terminato.',release_disabled:'Armatura al momento non disponibile.'};
+  if(Object.hasOwn(value,'armor')){
+    if(!exact(armor,['version','active','held','protection','upkeep_chakra','state_version','off_reason'])||armor.version!=='sabaku-armor-view/1'||typeof armor.active!=='boolean'||armor.held!==(armor.active?2:0)||armor.upkeep_chakra!==5||!integer(armor.state_version)||(armor.protection!==null&&(!integer(armor.protection)||armor.protection<10))||(armor.off_reason!==null&&!Object.hasOwn(armorReasons,armor.off_reason)))return fail();
+    if(armor.active&&(!i.active||armor.protection===null||r.committed<armor.held||armor.off_reason!==null))return fail();
+  }
+  const renderArmor=()=>{
+    if(armor===undefined)return;
+    add('h4','Armatura di Sabbia · '+(armor.active?'attiva':'inattiva'));
+    if(armor.protection!==null)add('p',`Difesa dell’armatura: ${armor.protection}.`);
+    add('p',`Mantenimento: ${armor.upkeep_chakra} chakra per turno · Sabbia impegnata: ${armor.held}.`);
+    if(!armor.active&&armor.off_reason!==null)add('p',armorReasons[armor.off_reason]);
+  };
   if(compact){
     root.hidden=false;root.setAttribute('role','status');root.setAttribute('aria-live','polite');
     const caption=add('div','');caption.className='common-resource-caption';
@@ -3214,6 +3319,7 @@ function renderPanelSabaku(root,envelope,{compact=false}={}){
     const amount=root.ownerDocument.createElement('strong');amount.textContent=`${r.available} disponibili`;
     caption.append(label,amount);
     const detail=add('p',`Impegnata: ${r.committed} · Capacità: ${r.capacity}`);detail.className='mv2-note';
+    renderArmor();
     return;
   }
   root.hidden=false;add('h4','Controllo della sabbia');add('p',value.is_test?'Riserva di prova · separata dalla giara reale':'Riserva personale di sabbia');
@@ -3221,6 +3327,7 @@ function renderPanelSabaku(root,envelope,{compact=false}={}){
   add('p',`Sabbia disponibile: ${r.available} · impegnata: ${r.committed} · corrente: ${r.current} / ${r.capacity}.`);
   add('h4','Trasporto di Sabbia · '+(t.active?'attivo':'inattivo'));add('p',`Attivazione ${t.activation_chakra} chakra · impegno ${t.sand_commit} sabbia · mantenimento ${t.upkeep_chakra} chakra.`);
   if(t.active){add('p',`Bonus al movimento ordinario: +${t.movement_bonus_m} m.`);add('p','Ignora il sovraccosto di tutte le aree impervie. Ostacoli e immobilizzazione restano validi.');add('p','Validità: '+t.expires_context.label);}
+  renderArmor();
   add('p','Le attivazioni disponibili si scelgono dalle offerte del server.');
 }
 
@@ -3588,7 +3695,7 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   view.render(presented(controller.snapshot()));
   return {
     open:invoke(read),
-    refresh:invoke(()=>controller.readState()),
+    refresh:invoke(read),
     setNarrative:invoke(value=>controller.setNarrative(value)),
     submit:invoke(()=>send(false)),
     invalidate:()=>{restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;if(!disposed)controller.invalidate();},
@@ -5118,13 +5225,15 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(k==='quest'){
           return '<div class="mv2-grid"><label class="mv2-field"><span>Titolo</span><input id="mv2-title" maxlength="100" placeholder="Titolo della quest"></label>'
             +'<label class="mv2-field"><span>Tipologia</span><select id="mv2-qkind"><option value="one_shot">Quest one-shot</option><option value="trama">Quest di trama</option></select></label></div>'
-            +'<p class="mv2-note">Nel passaggio successivo scegli PG, PNG e squadre.</p>'
+            +'<p class="mv2-note">La quest eredita la mappa della stanza. Nel passaggio successivo scegli PG, PNG e squadre.</p>'
+            +'<button class="mv2-btn ghost" type="button" data-ua-setup="room">Mappa della stanza</button>'
             +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="session-open">Apri la quest</button>'+indietro+'</div>';
         }
         if(k==='missione'){
           return '<label class="mv2-field"><span>Missione</span><select id="mv2-mission"><option value="">Scegli la missione</option>'
             +s.missions.map(function(m){return '<option value="'+m.id+'">'+esc(m.title)+' \u00b7 '+esc(m.grado||'\u2014')+'</option>';}).join('')+'</select></label>'
             +'<p class="mv2-note">Il titolo della regia \u00e8 quello della missione. Nel passaggio successivo scegli PG, PNG e squadre.</p>'
+            +'<button class="mv2-btn ghost" type="button" data-ua-setup="mission">Mappa e zona dello scontro</button>'
             +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="session-open">Apri la missione</button>'+indietro+'</div>';
         }
         return '<label class="mv2-field"><span>Titolo</span><input id="mv2-title" maxlength="100" placeholder="Titolo del duello"></label>'
@@ -10566,6 +10675,21 @@ var nb028iTeardown=function(){};
         });
       })();
 
+      var MISSION_ARENA_EDITOR=null;
+      function missionArenaEditor(){
+        if(!MISSION_ARENA_EDITOR)MISSION_ARENA_EDITOR=window.TUSArenaEditor.createArenaEditor({client:sb,document:document,
+          identity:function(){return !ordinarySigningOut&&loggedIn&&iAmStaff&&ordinaryAuthId===myId?myId:null;},notice:toast});
+        return MISSION_ARENA_EDITOR;
+      }
+      function openMissionArena(scope,id,title){
+        if(!iAmStaff||!id){toast('Scegli prima la missione.');return;}
+        missionArenaEditor().open(scope,id,title||'').catch(function(){toast('Configurazione mappa non disponibile');});
+      }
+      document.addEventListener('click',function(e){
+        var b=e.target.closest('[data-ua-setup]');if(!b||!iAmStaff)return;
+        if(b.getAttribute('data-ua-setup')==='room'){if(cur)openMissionArena('room',cur.id,cur.name);}
+        else {var s=document.getElementById('mv2-mission');openMissionArena('mission',s&&s.value,s&&s.selectedOptions[0]&&s.selectedOptions[0].textContent);}
+      });
       /* ===== MISSIONI: bacheca + registro ===== */
       function openMiss(){ if(!loggedIn){ toast('Accedi per vedere le missioni'); return; } var ov=document.getElementById('missov'), bk=document.getElementById('missov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false; var tn=document.getElementById('mtab-new'); if(tn) tn.style.display=iAmStaff?'':'none'; setMissTab('bacheca'); }
       function closeMiss(){ var ov=document.getElementById('missov'), bk=document.getElementById('missov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
@@ -10589,6 +10713,7 @@ var nb028iTeardown=function(){};
           else if(m.posso){ act+='<button class="mbtn" data-mjoin="'+m.id+'">Iscriviti</button>'; }
           else if(m.motivo){ act+='<span class="mnote">'+esc(m.motivo)+'</span>'; }
           if(iAmStaff){
+            act+='<button class="mbtn ghost" data-m-arena="'+m.id+'">Mappa e zona dello scontro</button>';
             if(m.status==='aperta' && m.n_iscritti>0){ act+='<input type="date" class="mp-date"> <button class="mbtn ghost" data-mprog="'+m.id+'">Programma</button>'; }
             if(m.status==='programmata'){ act+='<button class="mbtn" data-mok="'+m.id+'">Esito: riuscita</button><button class="mbtn ghost" data-mko="'+m.id+'">Fallita</button>'; }
             act+='<button class="mbtn ghost" data-mann="'+m.id+'">Annulla</button>';
@@ -10627,17 +10752,31 @@ var nb028iTeardown=function(){};
           +'<input id="mn-loc" type="text" maxlength="60" placeholder="Luogo suggerito (facolt.)"></div>'
           +'<textarea id="mn-brief" maxlength="600" placeholder="Briefing: la richiesta del villaggio come la leggeranno i giocatori…"></textarea>'
           +'<textarea id="mn-tag" maxlength="300" placeholder="Tag di trama (solo staff): indizio verso la quest generale…"></textarea>'
-          +'<div class="mact" style="margin-top:8px"><button class="mbtn" id="mn-crea">Pubblica sulla bacheca</button><span class="mnote">XP e Ryo si impostano da soli in base al grado.</span></div></div>';
-        var b=document.getElementById('mn-crea'); if(b) b.addEventListener('click', function(){
+          +'<div class="mact"><button class="mbtn ghost" type="button" id="mn-arena">Mappa e zona dello scontro</button><span class="mnote" id="mn-arena-note" role="status">Caricamento mappa…</span></div>'
+          +'<div class="mact" style="margin-top:8px"><button class="mbtn" id="mn-crea" disabled>Pubblica sulla bacheca</button><span class="mnote">XP e Ryo si impostano da soli in base al grado.</span></div></div>';
+        var arenaChoice=null,arenaBusy=false,arenaEpoch=0,arenaContext=missionArenaEditor().context();
+        var b=document.getElementById('mn-crea'),arenaButton=document.getElementById('mn-arena'),arenaNote=document.getElementById('mn-arena-note');
+        function setArena(choice){if(!b||!b.isConnected||!missionArenaEditor().sameContext(arenaContext))return;arenaChoice=choice;arenaNote.textContent=choice?choice.label:'Scegli una mappa prima di pubblicare.';b.disabled=!choice;}
+        var initialArenaEpoch=arenaEpoch;
+        missionArenaEditor().defaults().then(function(c){if(arenaEpoch===initialArenaEpoch&&!arenaBusy)setArena(c);},function(){if(arenaEpoch===initialArenaEpoch&&!arenaBusy)setArena(null);});
+        arenaButton.addEventListener('click',async function(){if(arenaBusy)return;arenaEpoch++;arenaBusy=true;arenaButton.disabled=true;b.disabled=true;
+          try{var c=await missionArenaEditor().select(arenaChoice);if(c)setArena(c);}
+          catch(e){if(arenaNote.isConnected)arenaNote.textContent='Impossibile caricare le mappe.';}
+          finally{arenaBusy=false;if(arenaButton.isConnected){arenaButton.disabled=false;b.disabled=!arenaChoice;}}
+        });
+        if(b) b.addEventListener('click', function(){
+          if(!iAmStaff||!arenaChoice||arenaBusy||!missionArenaEditor().sameContext(arenaContext))return;
+
           var t=(document.getElementById('mn-title').value||'').trim(), br=(document.getElementById('mn-brief').value||'').trim();
           if(!t||!br){ toast('Servono titolo e briefing'); return; }
           var tmin=parseInt(document.getElementById('mn-tmin').value,10), tmax=parseInt(document.getElementById('mn-tmax').value,10);
           if(tmin>tmax){ toast('Squadra: il minimo supera il massimo'); return; }
           b.disabled=true;
-          sb.rpc('missione_crea',{p_title:t,p_grado:document.getElementById('mn-grado').value,p_briefing:br,
+          arenaButton.disabled=true;
+          missionArenaEditor().createMission({p_title:t,p_grado:document.getElementById('mn-grado').value,p_briefing:br,
             p_village:(document.getElementById('mn-village').value||null),p_tag_trama:(document.getElementById('mn-tag').value||null),
-            p_team_min:tmin,p_team_max:tmax,p_location:(document.getElementById('mn-loc').value||null)})
-          .then(function(r){ b.disabled=false; if(r&&r.error){ toast('Errore: '+(r.error.message||'')); return; } toast('Missione pubblicata'); setMissTab('bacheca'); }, function(){ b.disabled=false; toast('Errore'); });
+            p_team_min:tmin,p_team_max:tmax,p_location:(document.getElementById('mn-loc').value||null)},arenaChoice,arenaContext)
+          .then(function(id){ if(!b.isConnected||!missionArenaEditor().sameContext(arenaContext))return; toast('Missione e mappa pubblicate'); setMissTab('bacheca'); }, function(error){ if(b.isConnected){arenaNote.textContent='Pubblicazione non confermata: verifica la bacheca prima di creare di nuovo la missione.';} toast(error&&error.message||'Verifica la bacheca prima di ripetere la pubblicazione.'); });
         });
       }
       (function(){
@@ -10650,6 +10789,7 @@ var nb028iTeardown=function(){};
         body.addEventListener('click', function(e){
           var t=e.target.closest('button'); if(!t||!sb) return;
           var card=t.closest('.mcard');
+          if(t.hasAttribute('data-m-arena')){openMissionArena('mission',t.getAttribute('data-m-arena'),card&&card.querySelector('.mname')&&card.querySelector('.mname').textContent);return;}
           if(t.hasAttribute('data-mjoin')){ var f=document.getElementById('mjf-'+t.getAttribute('data-mjoin')); if(f) f.classList.toggle('on'); return; }
           if(t.hasAttribute('data-msend')){ var id=t.getAttribute('data-msend'); var f2=document.getElementById('mjf-'+id); var d=f2?f2.querySelector('.mj-date').value:null; var no=f2?f2.querySelector('.mj-nota').value:null;
             t.disabled=true; sb.rpc('missione_iscrivi',{p_mission:id,p_data:(d||null),p_nota:(no||null)}).then(function(r){ t.disabled=false; if(r&&r.error){ toast(r.error.message||'Errore'); return; } toast('Iscrizione registrata'); loadMissBacheca(); }, function(){ t.disabled=false; toast('Errore'); }); return; }
