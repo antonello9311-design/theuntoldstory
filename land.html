@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="TECH-FIELDS-UI001-LAND" />
+  <meta name="tus-build" content="LAND-UNIFIED-FATO-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -4955,11 +4955,16 @@ window.TUSOrdinary={attachOrdinaryLand};
         msgsEl.innerHTML=html;
         if(nearBottom) msgsEl.scrollTop=msgsEl.scrollHeight;
       }
-      function loadMsgs(){
-        if(!sb||!cur) return;
-        sb.from('chat_messages_live').select('author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user,companion_body,character:characters(id,name,cognome,avatar_url,sex,rank,clan,clan_role,epithet),companion:character_companions(name,avatar_url,kind,grado)').eq('location_id',cur.id).order('created_at',{ascending:true}).limit(300).then(function(r){
-          if(r&&!r.error) renderMsgs(r.data);
-        }, function(){});
+      var msgReadGeneration=0;
+      function loadMsgs(expectedPublication){
+        if(!sb||!cur) return Promise.resolve(false);
+        var msgLocation=cur.id,msgPrincipal=myId,msgGeneration=++msgReadGeneration;
+        return sb.from('chat_messages_live').select('id,author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user,companion_body,character:characters(id,name,cognome,avatar_url,sex,rank,clan,clan_role,epithet),companion:character_companions(name,avatar_url,kind,grado)').eq('location_id',msgLocation).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(300).then(function(r){
+          if(!r||r.error||!cur||cur.id!==msgLocation||myId!==msgPrincipal||msgGeneration!==msgReadGeneration)return false;
+          var rows=(r.data||[]).slice().reverse();
+          if(expectedPublication&&!rows.some(function(m){return m.id===expectedPublication&&m.kind==='fato';}))return false;
+          renderMsgs(rows);return true;
+        },function(){return false;});
       }
       function renderWho(rows){
         rows=rows||[];
@@ -5209,6 +5214,11 @@ window.TUSOrdinary={attachOrdinaryLand};
           }
           var previouslyCommon=commonMasterCombat();
           var next=mv2Data(r)||{},sig=mv2ServerSig(next),same=MV2.serverSig!==null&&sig!==null&&sig===MV2.serverSig&&MV2.locationId===masterLocation&&MV2.principalId===masterPrincipal;
+          // La nuova finestra diventa interattiva solo dopo avere il suo Fato nella chat.
+          if(next.unified_publication_id!==undefined&&next.unified_publication_id!==null){
+            if(typeof next.unified_publication_id!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(next.unified_publication_id)||!(await loadMsgs(next.unified_publication_id)))return;
+            if(masterReadGeneration!==commonMasterReadGeneration||!cur||cur.id!==masterLocation||commonMasterPrincipal()!==masterPrincipal||(MV2.authEpoch||0)!==masterEpoch)return;
+          }
           await commonMasterAuthorize(next);
           if(masterReadGeneration!==commonMasterReadGeneration||!cur||cur.id!==masterLocation||commonMasterPrincipal()!==masterPrincipal||(MV2.authEpoch||0)!==masterEpoch)return;
           MV2.data=next;MV2.locationId=masterLocation;MV2.principalId=masterPrincipal;missionHumanPhaseRefresh(next);mv2PruneDefenseDrafts(next);renderCombat();if(!commonMasterCombat())mv2EnsureOptions();
@@ -10765,7 +10775,7 @@ var nb028iTeardown=function(){};
       var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null;
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-        if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=mission-generic-ui-1.2').then(function(mod){
+        if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=mission-unified-fato-ui-1.2').then(function(mod){
           MISSION_GENERIC_UI=mod.createMissionUI({client:sb,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             presentCharacters:async function(){var ids=(WHO||[]).map(function(w){return w.user_id;}).filter(Boolean);if(!ids.length)return [];var r=await sb.from('characters').select('id,name').in('user_id',ids);if(r.error)throw r.error;return r.data||[];},
