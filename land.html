@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-MISSION-GENERIC-UI-002" />
+  <meta name="tus-build" content="LAND-MISSION-CREATION-UI-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1540,7 +1540,10 @@
     html:not([data-testo]) .msg-motore{font-size:13.5px}
     html:not([data-testo]) .who-empty{font-size:13.5px}
   }
-  </style>
+  
+  #mission-human-controls:not([hidden]){flex:0 0 auto;max-height:35dvh;overflow:auto;overscroll-behavior:contain;padding:8px 14px;border-bottom:1px solid var(--rule,#8a6f43);background:linear-gradient(var(--paper-hi,#f1e6ca),var(--paper,#e7d6b2));color:var(--ink,#1d1206)}
+  #mission-human-controls[hidden]{display:none!important}
+</style>
 <style>
   #ordinary-body{padding:18px;line-height:1.5}
   #ordinary-body h3{font-family:'Cinzel',serif;margin:0 0 12px}
@@ -1595,16 +1598,33 @@ function createArenaEditor({client,document:doc=global.document,identity,notice=
   async function catalog(){const principal=who();return catalogShape(await rpc('universal_arena_catalog_v1',{},principal));}
   function choice(t,z){return {template_key:t.template_key,template_version:t.template_version,zone_key:z.key,label:t.title+' · '+z.label};}
   async function defaults(){const rows=await catalog(),t=rows.find(x=>x.template_key==='master_test_20x20_v1'&&x.template_version===1);if(!t)throw Error('Mappa generica non disponibile. Scegli una mappa.');return choice(t,t.zones.find(z=>z.key==='arena')||t.zones[0]);}
-  function close(result=null){epoch++;overlay?.remove();overlay=null;const done=finish;finish=null;done?.(result);}
-  function styles(){if(doc.getElementById('universal-arena-editor-style'))return;const s=doc.createElement('style');s.id='universal-arena-editor-style';s.textContent=`.ua-overlay{position:fixed;inset:0;z-index:2147482000;background:#050a10c9;display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}.ua-dialog{color:#e6edf2;background:#14212b;border:1px solid #486171;border-radius:14px;box-shadow:0 20px 70px #0009;width:min(560px,100%);max-height:90dvh;overflow:auto;padding:24px;font:15px/1.5 system-ui,sans-serif}.ua-dialog h2{font-size:21px;color:#ecc67a;margin:0 0 10px}.ua-dialog label{display:block;margin:16px 0 5px;font-weight:600}.ua-dialog select{width:100%;padding:10px;background:#213542;color:#f2f5f7;border:1px solid #5b7280;border-radius:7px;font:inherit}.ua-dialog p{margin:10px 0;color:#bccbd4}.ua-dialog .ua-status{min-height:24px;color:#edcc8c}.ua-buttons{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}.ua-dialog button{cursor:pointer;border:1px solid #587383;border-radius:7px;padding:9px 16px;background:#2c4555;color:white;font:inherit}.ua-dialog button:disabled{opacity:.5;cursor:default}.ua-dialog button:focus-visible,.ua-dialog select:focus-visible{outline:2px solid #efce83;outline-offset:3px}.ua-dialog .ua-primary{background:#b78535;color:#101a22;border-color:#deb76c;font-weight:650}`;doc.head.append(s);}
+  function close(result=null){epoch++;if(overlay?.open)overlay.close();overlay?.remove();overlay=null;const done=finish;finish=null;done?.(result);}
+  function styles(){if(doc.getElementById('universal-arena-editor-style'))return;const s=doc.createElement('style');s.id='universal-arena-editor-style';s.textContent=`.ua-overlay{position:fixed;inset:0;z-index:2147482000;width:100vw;max-width:none;height:100vh;height:100dvh;max-height:none;margin:0;border:0;background:rgba(20,14,6,.5);display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
+.ua-dialog{color-scheme:light;color:var(--ink,#1d1206);background:linear-gradient(var(--paper-hi,#f1e6ca),var(--paper,#e7d6b2));border:1.5px solid var(--rule,#8a6f43);border-radius:9px;box-shadow:0 24px 60px rgba(20,12,4,.5);width:min(560px,100%);min-width:0;max-height:calc(100vh - 36px);max-height:calc(100dvh - 36px);overflow:auto;overscroll-behavior:contain;padding:clamp(18px,4vw,28px);font:500 17px/1.5 'Cormorant Garamond',Georgia,serif;overflow-wrap:anywhere}
+.ua-dialog,.ua-dialog *{box-sizing:border-box}
+.ua-dialog h2{font-family:'Cinzel',serif;font-weight:700;font-size:clamp(16px,3vw,20px);line-height:1.4;letter-spacing:.08em;text-transform:uppercase;color:var(--ink,#1d1206);margin:0 0 16px;padding-bottom:14px;border-bottom:1px solid var(--rule,#8a6f43)}
+.ua-dialog label{display:block;margin:20px 0 7px;font-family:'Cinzel',serif;font-size:11px;font-weight:600;line-height:1.5;letter-spacing:.08em;text-transform:uppercase;color:var(--ink,#1d1206)}
+.ua-dialog select{display:block;width:100%;max-width:100%;min-width:0;min-height:44px;padding:10px 12px;background:rgba(255,252,244,.8);color:var(--ink,#1d1206);border:1px solid var(--rule,#8a6f43);border-radius:7px;font:600 18px/1.4 'Cormorant Garamond',Georgia,serif}
+.ua-dialog option{background:var(--paper-hi,#f1e6ca);color:var(--ink,#1d1206)}
+.ua-dialog p{margin:10px 0;color:var(--ink-soft,#584425)}
+.ua-dialog .ua-status{min-height:26px;color:var(--red-deep,#7c2413);font-weight:600}
+.ua-dialog .ua-buttons{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid var(--edge,#b79d6c)}
+.ua-dialog button{cursor:pointer;min-height:44px;max-width:100%;border:1px solid var(--edge,#b79d6c);border-radius:7px;padding:10px 16px;background:rgba(255,252,244,.6);color:var(--ink,#1d1206);font:600 11px/1.4 'Cinzel',serif;letter-spacing:.08em;text-transform:uppercase;white-space:normal;overflow-wrap:anywhere}
+.ua-dialog button:not(:disabled):hover{background:var(--paper-hi,#f1e6ca);border-color:var(--rule,#8a6f43)}
+.ua-dialog button:disabled,.ua-dialog select:disabled{opacity:.55;cursor:not-allowed}
+.ua-dialog button:focus-visible,.ua-dialog select:focus-visible{outline:2px solid var(--red-deep,#7c2413);outline-offset:3px}
+.ua-dialog .ua-primary{background:var(--red,#a6321d);color:#f6ead0;border-color:var(--red-deep,#7c2413)}
+.ua-dialog .ua-primary:not(:disabled):hover{background:var(--red-deep,#7c2413);border-color:var(--red-deep,#7c2413)}
+@media(max-width:480px){.ua-overlay{padding:12px}.ua-dialog{padding:18px;max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px)}.ua-dialog .ua-buttons{flex-direction:column;align-items:stretch}.ua-dialog button{width:100%}}
+.ua-overlay::backdrop{background:transparent}`;doc.head.append(s);}
   function el(tag,text,parent){const n=doc.createElement(tag);if(text!==undefined)n.textContent=text;if(parent)parent.append(n);return n;}
   function message(error){if(error?.code==='40001')return 'La configurazione è cambiata. Chiudi e riapri per leggere la versione aggiornata.';return String(error?.message||'Operazione non riuscita. Riapri la configurazione per verificare lo stato.');}
   function show({scope=null,targetId=null,title='',initial=null}={}){
     close();styles();const principal=who(),stamp=epoch;
     if(!principal)return Promise.resolve(null);
     if(targetId&&(!UUID.test(targetId)||!['room','mission'].includes(scope)))return Promise.reject(Error('Destinazione non valida.'));
-    const previous=doc.activeElement;overlay=el('div');overlay.className='ua-overlay';
-    const dialog=el('section',undefined,overlay);dialog.className='ua-dialog';dialog.setAttribute('role','dialog');dialog.tabIndex=-1;dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-labelledby','ua-title');
+    const previous=doc.activeElement;overlay=el('dialog');overlay.className='ua-overlay';overlay.setAttribute('aria-labelledby','ua-title');
+    const dialog=el('section',undefined,overlay);dialog.className='ua-dialog';dialog.tabIndex=-1;
     const heading=el('h2','Mappa e zona dello scontro',dialog);heading.id='ua-title';
     if(title)el('p',title,dialog);
     el('p',scope==='room'?'Le nuove quest useranno la mappa di questa stanza. Le missioni usano la propria configurazione.':'La mappa viene fissata quando parte la missione. Le modifiche successive valgono per i nuovi avvii.',dialog);
@@ -1612,10 +1632,11 @@ function createArenaEditor({client,document:doc=global.document,identity,notice=
     const zl=el('label','Zona di combattimento',dialog);zl.htmlFor='ua-zone';const zone=el('select',undefined,dialog);zone.id='ua-zone';zone.disabled=true;
     const info=el('p','',dialog),status=el('p','Caricamento delle mappe…',dialog);status.className='ua-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
     const buttons=el('div',undefined,dialog);buttons.className='ua-buttons';const cancel=el('button','Annulla',buttons),save=el('button',targetId?'Salva configurazione':'Usa questa mappa',buttons);cancel.type=save.type='button';save.className='ua-primary';save.disabled=true;
-    doc.body.append(overlay);cancel.focus();let busy=false,rows=[],revision=null;
+    doc.body.append(overlay);overlay.showModal();cancel.focus();let busy=false,rows=[],revision=null;
     const current=()=>stamp===epoch&&who()===principal&&overlay?.contains(dialog);
     const exit=result=>{close(result);if(previous?.isConnected)previous.focus();};
     cancel.onclick=()=>{if(!busy)exit();};
+    overlay.addEventListener('cancel',e=>{e.preventDefault();if(!busy)exit();});
     dialog.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();if(!busy)exit();}if(e.key==='Tab'){const items=[map,zone,cancel,save].filter(n=>!n.disabled);if(!items.length){e.preventDefault();dialog.focus();return;}const first=items[0],last=items[items.length-1];if(!items.includes(doc.activeElement)){e.preventDefault();(e.shiftKey?last:first).focus();return;}if(e.shiftKey&&doc.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&doc.activeElement===last){e.preventDefault();first.focus();}}});
     function refreshZones(selected){const t=rows[Number(map.value)];zone.replaceChildren();if(!t){save.disabled=true;return;}t.zones.forEach(z=>{const o=el('option',z.label,zone);o.value=z.key;});if(selected&&t.zones.some(z=>z.key===selected))zone.value=selected;zone.disabled=false;info.textContent=t.width_m+' × '+t.height_m+' m · La zona identifica l’area in cui si svolgerà lo scontro.';save.disabled=false;}
     map.onchange=()=>refreshZones();
@@ -1643,7 +1664,7 @@ function createArenaEditor({client,document:doc=global.document,identity,notice=
     }catch(e){if(current())status.textContent=message(e);}})();
     return promise;
   }
-  return {open:(scope,targetId,title)=>show({scope,targetId,title}),select:initial=>show({initial}),defaults,close,context,sameContext,createMission};
+  return {open:(scope,targetId,title)=>show({scope,targetId,title}),select:initial=>show({initial}),show,defaults,close,context,sameContext,createMission};
 }
 global.TUSArenaEditor=Object.freeze({createArenaEditor});
 })(window);
@@ -2201,6 +2222,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
         <span class="miss-title">Regia multi-attore — <span id="mv2-room">stanza</span></span>
         <button class="miss-tab" id="mv2-refresh" type="button">Aggiorna</button>
       </div>
+      <div id="mission-human-controls" hidden></div>
       <div class="miss-body" id="mv2-body"></div>
     </div>
   </div>
@@ -5098,7 +5120,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       window.addEventListener('tus:ordinary-logout',function(){ordinarySigningOut=true;if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();});
       if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session){
         var id=session&&session.user?session.user.id:null;
-        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(MV2){MV2.authEpoch=(MV2.authEpoch||0)+1;MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.options={};}}
+        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(MV2){MV2.authEpoch=(MV2.authEpoch||0)+1;MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.options={};}}
         ordinaryAuthId=id;
       });
       function ordinaryRefresh(){
@@ -5189,7 +5211,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           var next=mv2Data(r)||{},sig=mv2ServerSig(next),same=MV2.serverSig!==null&&sig!==null&&sig===MV2.serverSig&&MV2.locationId===masterLocation&&MV2.principalId===masterPrincipal;
           await commonMasterAuthorize(next);
           if(masterReadGeneration!==commonMasterReadGeneration||!cur||cur.id!==masterLocation||commonMasterPrincipal()!==masterPrincipal||(MV2.authEpoch||0)!==masterEpoch)return;
-          MV2.data=next;MV2.locationId=masterLocation;MV2.principalId=masterPrincipal;mv2PruneDefenseDrafts(next);renderCombat();if(!commonMasterCombat())mv2EnsureOptions();
+          MV2.data=next;MV2.locationId=masterLocation;MV2.principalId=masterPrincipal;missionHumanPhaseRefresh(next);mv2PruneDefenseDrafts(next);renderCombat();if(!commonMasterCombat())mv2EnsureOptions();
           if(commonMasterCombat()&&!previouslyCommon){
             var masterDialog=document.getElementById('mv2ov'),masterVisible=masterDialog&&!masterDialog.hidden;
             ordinaryRefresh();if(masterVisible&&ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');
@@ -5254,7 +5276,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         }
         if(k==='missione'){
           return '<label class="mv2-field"><span>Missione</span><select id="mv2-mission"><option value="">Scegli la missione</option>'
-            +s.missions.map(function(m){return '<option value="'+m.id+'">'+esc(m.title)+' \u00b7 '+esc(m.grado||'\u2014')+'</option>';}).join('')+'</select></label>'
+            +s.missions.map(function(m){return '<option value="'+m.id+'"'+(m.id===MISSION_CREATION_NATIVE_MISSION?' selected':'')+'>'+esc(m.title)+' \u00b7 '+esc(m.grado||'\u2014')+'</option>';}).join('')+'</select></label>'
             +'<p class="mv2-note">Il titolo della regia \u00e8 quello della missione. Nel passaggio successivo scegli PG, PNG e squadre.</p>'
             +'<button class="mv2-btn ghost" type="button" data-ua-setup="mission">Mappa e zona dello scontro</button>'
             +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="session-open">Apri la missione</button>'+indietro+'</div>';
@@ -5372,7 +5394,11 @@ window.TUSOrdinary={attachOrdinaryLand};
           mv2SetBody(body,h); return;
         }
         if(!e){
-          if(viewer.is_master){ if(!MV2.setup) mv2SetupLoad(); h+=mv2EncounterForm()+mv2SceneCloseBlock(m); }
+          if(viewer.is_master){
+            if(MISSION_CREATION_HUMAN_SESSION===m.id&&MISSION_CREATION_HUMAN_STATUS!=='unconfigured'){
+              h+='<p class="mv2-note">'+(MISSION_CREATION_HUMAN_STATUS==='ready'?'La missione segue le fasi configurate. Apri «Fasi e note della missione» per leggere il contesto e usare i comandi disponibili.':MISSION_CREATION_HUMAN_STATUS==='error'?'Lettura delle fasi non disponibile. Usa Aggiorna per riprovare.':'Caricamento delle fasi della missione…')+'</p>'+mv2SceneCloseBlock(m);
+            }else{if(!MV2.setup)mv2SetupLoad();h+=mv2EncounterForm()+mv2SceneCloseBlock(m);}
+          }
           else h+='<p class="mv2-wait">Il Master sta preparando lo scontro.</p>';
           mv2SetBody(body,h); return;
         }
@@ -9006,7 +9032,7 @@ var nb028iTeardown=function(){};
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -10698,11 +10724,47 @@ var nb028iTeardown=function(){};
         });
       })();
 
+      var MISSION_CREATION_HUMAN_SESSION=null,MISSION_CREATION_HUMAN_STATUS='unconfigured',MISSION_CREATION_HUMAN_EPOCH=0;
+      function missionHumanPhaseReset(){
+        MISSION_CREATION_HUMAN_EPOCH++;MISSION_CREATION_HUMAN_SESSION=null;MISSION_CREATION_HUMAN_STATUS='unconfigured';
+        var host=document.getElementById('mission-human-controls');if(host){host.replaceChildren();host.hidden=true;if(MISSION_CREATION_UI)MISSION_CREATION_UI.mountHuman(host,null);}
+      }
+      function missionHumanPhaseRefresh(data){
+        var host=document.getElementById('mission-human-controls');if(!host)return;
+        var master=data&&data.master,viewer=data&&data.viewer;
+        var session=master&&master.tipo==='quest'&&viewer&&viewer.is_master&&master.controller_kind!=='ai_service'&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===myId?master.id:null;
+        if(!session){missionHumanPhaseReset();return;}
+        if(MISSION_CREATION_HUMAN_SESSION!==session){MISSION_CREATION_HUMAN_SESSION=session;MISSION_CREATION_HUMAN_STATUS='loading';MISSION_CREATION_HUMAN_EPOCH++;host.replaceChildren();host.hidden=true;}
+        var stamp=MISSION_CREATION_HUMAN_EPOCH,locationId=cur&&cur.id,user=myId;
+        var same=function(){return stamp===MISSION_CREATION_HUMAN_EPOCH&&MISSION_CREATION_HUMAN_SESSION===session&&cur&&cur.id===locationId&&loggedIn&&!ordinarySigningOut&&myId===user&&ordinaryAuthId===user;};
+        missionCreationUI().then(function(ui){if(!same())return;return ui.mountHuman(host,session).then(function(result){
+          if(!same()||result&&result.stale)return;var state=result&&result.status;
+          if(['ready','unconfigured','error'].indexOf(state)<0)state='error';
+          var changed=MISSION_CREATION_HUMAN_STATUS!==state;MISSION_CREATION_HUMAN_STATUS=state;
+          if(changed&&!commonMasterCombat())renderMasterV2();
+        });}).catch(function(){if(!same())return;MISSION_CREATION_HUMAN_STATUS='error';host.hidden=false;host.classList.add('mc-human');host.replaceChildren();
+          var note=document.createElement('p');note.textContent='Fasi della missione non disponibili. Premi Aggiorna per riprovare.';host.appendChild(note);
+          if(!commonMasterCombat())renderMasterV2();
+        });
+      }
+      var MISSION_CREATION_UI=null,MISSION_CREATION_LOAD=null,MISSION_CREATION_NATIVE_MISSION=null;
+      function missionCreationUI(){
+        if(MISSION_CREATION_UI)return Promise.resolve(MISSION_CREATION_UI);
+        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mission-creation-ui.mjs?v=mission-creation-ui-1.0').then(function(mod){
+          MISSION_CREATION_UI=mod.createMissionCreationUI({client:sb,identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
+            isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
+            mapPicker:function(initial,title){return missionArenaEditor().show({initial:initial,title:title});},
+            presentCharacters:async function(){var ids=(WHO||[]).map(function(w){return w.user_id;}).filter(Boolean);if(!ids.length)return [];var r=await sb.from('characters').select('id,name').in('user_id',ids);if(r.error)throw r.error;return r.data||[];},
+            openNativeMaster:function(id){if(!cur){toast('Entra nella chat di ritrovo della missione.');return;}MISSION_CREATION_NATIVE_MISSION=id;if(!(MV2.data&&MV2.data.master)){MV2.setupKind='missione';MV2.setupOpen=true;}mv2OvApri();},
+            refresh:function(){loadMsgs();loadMasterV2();var tab=document.getElementById('mtab-bacheca');if(missOpenNow()&&tab&&tab.classList.contains('on'))loadMissBacheca();},
+            onCreated:function(){setMissTab('bacheca');}});return MISSION_CREATION_UI;
+        }).catch(function(e){MISSION_CREATION_LOAD=null;throw e;});return MISSION_CREATION_LOAD;
+      }
       var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null;
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-        if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=mission-generic-ui-1.1').then(function(mod){
-          MISSION_GENERIC_UI=mod.createMissionUI({client:sb,identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
+        if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=mission-generic-ui-1.2').then(function(mod){
+          MISSION_GENERIC_UI=mod.createMissionUI({client:sb,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             presentCharacters:async function(){var ids=(WHO||[]).map(function(w){return w.user_id;}).filter(Boolean);if(!ids.length)return [];var r=await sb.from('characters').select('id,name').in('user_id',ids);if(r.error)throw r.error;return r.data||[];},
             refresh:function(){loadMsgs();loadMasterV2();if(missOpenNow())loadMissBacheca();}});return MISSION_GENERIC_UI;
@@ -10751,7 +10813,7 @@ var nb028iTeardown=function(){};
           else if(m.posso){ act+='<button class="mbtn" data-mjoin="'+m.id+'">Iscriviti</button>'; }
           else if(m.motivo){ act+='<span class="mnote">'+esc(m.motivo)+'</span>'; }
           if(iAmStaff){
-            act+='<button class="mbtn ghost" data-m-arena="'+m.id+'">Mappa e zona dello scontro</button><button class="mbtn ghost" data-m-generic-editor="'+m.id+'">Configura regia IA</button><button class="mbtn ghost" data-m-generic-board="'+m.id+'">Avvio regia IA</button>';
+            act+='<button class="mbtn ghost" data-m-generic-editor="'+m.id+'">Configura missione e mappe</button><button class="mbtn ghost" data-m-generic-board="'+m.id+'">Avvio missione</button>';
             if(m.status==='aperta' && m.n_iscritti>0){ act+='<input type="date" class="mp-date"> <button class="mbtn ghost" data-mprog="'+m.id+'">Programma</button>'; }
             if(m.status==='programmata'){ act+='<button class="mbtn" data-mok="'+m.id+'">Esito: riuscita</button><button class="mbtn ghost" data-mko="'+m.id+'">Fallita</button>'; }
             act+='<button class="mbtn ghost" data-mann="'+m.id+'">Annulla</button>';
@@ -10780,43 +10842,9 @@ var nb028iTeardown=function(){};
             +premi+esito+'</div>';
         }).join('');
       }
-      function renderMissNew(){ var host=document.getElementById('miss-body'); if(!host) return;
-        if(!iAmStaff){ host.innerHTML=''; return; }
-        host.innerHTML='<div class="miss-new"><h4>Nuova richiesta del villaggio</h4>'
-          +'<div class="mn-grid"><input id="mn-title" type="text" maxlength="80" placeholder="Titolo">'
-          +'<select id="mn-grado"><option>D</option><option>C</option><option>B</option><option>A</option><option>S</option></select>'
-          +'<select id="mn-village"><option value="">Ogni villaggio</option><option>Konoha</option><option>Suna</option></select>'
-          +'<select id="mn-tmin" title="Squadra min"><option>1</option><option>2</option><option>3</option><option>4</option></select>'
-          +'<select id="mn-tmax" title="Squadra max"><option>1</option><option>2</option><option>3</option><option selected>4</option></select>'
-          +'<input id="mn-loc" type="text" maxlength="60" placeholder="Luogo suggerito (facolt.)"></div>'
-          +'<textarea id="mn-brief" maxlength="600" placeholder="Briefing: la richiesta del villaggio come la leggeranno i giocatori…"></textarea>'
-          +'<textarea id="mn-tag" maxlength="300" placeholder="Tag di trama (solo staff): indizio verso la quest generale…"></textarea>'
-          +'<div class="mact"><button class="mbtn ghost" type="button" id="mn-arena">Mappa e zona dello scontro</button><span class="mnote" id="mn-arena-note" role="status">Caricamento mappa…</span></div>'
-          +'<div class="mact" style="margin-top:8px"><button class="mbtn" id="mn-crea" disabled>Pubblica sulla bacheca</button><span class="mnote">XP e Ryo si impostano da soli in base al grado.</span></div></div>';
-        var arenaChoice=null,arenaBusy=false,arenaEpoch=0,arenaContext=missionArenaEditor().context();
-        var b=document.getElementById('mn-crea'),arenaButton=document.getElementById('mn-arena'),arenaNote=document.getElementById('mn-arena-note');
-        function setArena(choice){if(!b||!b.isConnected||!missionArenaEditor().sameContext(arenaContext))return;arenaChoice=choice;arenaNote.textContent=choice?choice.label:'Scegli una mappa prima di pubblicare.';b.disabled=!choice;}
-        var initialArenaEpoch=arenaEpoch;
-        missionArenaEditor().defaults().then(function(c){if(arenaEpoch===initialArenaEpoch&&!arenaBusy)setArena(c);},function(){if(arenaEpoch===initialArenaEpoch&&!arenaBusy)setArena(null);});
-        arenaButton.addEventListener('click',async function(){if(arenaBusy)return;arenaEpoch++;arenaBusy=true;arenaButton.disabled=true;b.disabled=true;
-          try{var c=await missionArenaEditor().select(arenaChoice);if(c)setArena(c);}
-          catch(e){if(arenaNote.isConnected)arenaNote.textContent='Impossibile caricare le mappe.';}
-          finally{arenaBusy=false;if(arenaButton.isConnected){arenaButton.disabled=false;b.disabled=!arenaChoice;}}
-        });
-        if(b) b.addEventListener('click', function(){
-          if(!iAmStaff||!arenaChoice||arenaBusy||!missionArenaEditor().sameContext(arenaContext))return;
-
-          var t=(document.getElementById('mn-title').value||'').trim(), br=(document.getElementById('mn-brief').value||'').trim();
-          if(!t||!br){ toast('Servono titolo e briefing'); return; }
-          var tmin=parseInt(document.getElementById('mn-tmin').value,10), tmax=parseInt(document.getElementById('mn-tmax').value,10);
-          if(tmin>tmax){ toast('Squadra: il minimo supera il massimo'); return; }
-          b.disabled=true;
-          arenaButton.disabled=true;
-          missionArenaEditor().createMission({p_title:t,p_grado:document.getElementById('mn-grado').value,p_briefing:br,
-            p_village:(document.getElementById('mn-village').value||null),p_tag_trama:(document.getElementById('mn-tag').value||null),
-            p_team_min:tmin,p_team_max:tmax,p_location:(document.getElementById('mn-loc').value||null)},arenaChoice,arenaContext)
-          .then(function(id){ if(!b.isConnected||!missionArenaEditor().sameContext(arenaContext))return; toast('Missione e mappa pubblicate'); setMissTab('bacheca'); }, function(error){ if(b.isConnected){arenaNote.textContent='Pubblicazione non confermata: verifica la bacheca prima di creare di nuovo la missione.';} toast(error&&error.message||'Verifica la bacheca prima di ripetere la pubblicazione.'); });
-        });
+      function renderMissNew(){var host=document.getElementById('miss-body');if(!host)return;host.replaceChildren();if(!iAmStaff)return;
+        var surface=document.createElement('div');surface.textContent='Caricamento editor della missione…';host.appendChild(surface);
+        missionCreationUI().then(function(ui){var tab=document.getElementById('mtab-new');if(surface.isConnected&&iAmStaff&&tab&&tab.classList.contains('on'))return ui.mountCreate(surface);}).catch(function(){if(surface.isConnected)surface.textContent='Editor non disponibile. Riapri Nuova missione per riprovare.';});
       }
       (function(){
         var nb=document.getElementById('miss-nav'); if(nb) nb.addEventListener('click', openMiss);
