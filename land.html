@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-COMMON-PANEL-UI-020" />
+  <meta name="tus-build" content="LAND-COMMON-PANEL-UI-021" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3139,7 +3139,7 @@ function settleCopyChoices(offer,selected){
 // rpc è una porta iniettata. Costruire il controller non effettua chiamate.
 function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.randomUUID(),classifyRejection=classifyPanelRejection,onChange=()=>{}}){
   insist(typeof rpc==='function'&&typeof contextKey==='function'&&isId(locationId)&&typeof requestKey==='function','controller_configuration');
-  let epoch=0,owner=null,busy=false,pending=null,envelope=null,optionsReady=false,error=null;
+  let epoch=0,owner=null,busy=false,pending=null,envelope=null,optionsReady=false,error=null,pollTicket=null;
   let selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='',narrativeContext=null;
   let rejection=null,refreshRequired=false,lastCommand=null,interactionError=null;
   const chosen=()=>envelope?.offers.find(o=>o.offer_id===selectedOfferId);
@@ -3202,6 +3202,21 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
     }catch(e){if(current(ticket,key)){error='read_failed';resetChoices();}return false;}
     finally{if(current(ticket,key)){busy=false;notify();}}
   }
+  // Il polling non blocca il form e non rinnova offerte valide. Una lettura esplicita,
+  // un invio o una revoca avanzano epoch e rendono inapplicabile la risposta precedente.
+  async function pollState(){
+    if(!bind()||busy||pending||pollTicket!==null)return false;
+    const ticket=++epoch,key=owner,actor=envelope?.viewer.command_actor_id??null;pollTicket=ticket;
+    try{
+      const raw=await rpc('combat_panel_state_v1',{p_location:locationId,p_actor:actor});
+      if(!current(ticket,key)||pending||busy)return false;
+      apply(validatePanelEnvelope(raw,{state:true}),false);
+      refreshRequired=false;error=null;notify();return true;
+    }catch(e){
+      if(current(ticket,key)){error='read_failed';resetChoices();notify();}
+      return false;
+    }finally{if(pollTicket===ticket)pollTicket=null;}
+  }
   function editable(){requireCurrent();insist(!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command,'choices_unavailable');}
   async function selectActor(actor){requireCurrent();insist(!busy&&!pending&&envelope?.viewer.controlled_actors.some(a=>a.actor_id===actor),'actor_unavailable');narrativeText='';narrativeContext=null;resetChoices();return read(false,actor);}
   function selectOffer(id){editable();insist(envelope.offers.some(o=>o.offer_id===id),'offer_unavailable');selectedOfferId=id;selectedOptionIds=settleCopyChoices(chosen(),[]);inputs=[];error=null;interactionError=null;notify();}
@@ -3237,7 +3252,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   }
   async function submit(){try{insist(!pending,'pending_command');pending=Object.freeze(prepare());return await send();}catch(e){reportInteractionError(e);return null;}}
   async function retry(){return send();}
-  return {snapshot,clear,invalidate,reportInteractionError,readState:()=>read(false),readOptions:()=>read(true),selectActor,selectOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
+  return {snapshot,clear,invalidate,reportInteractionError,readState:()=>read(false),pollState,readOptions:()=>read(true),selectActor,selectOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
 }
 
 return {settleCopyChoices,createPanelController};
@@ -3657,6 +3672,12 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   });
   const invoke=fn=>async(...args)=>{if(disposed||restoring)return null;try{return await fn(...args);}catch(e){if(!disposed)controller.reportInteractionError(e);return null;}};
   async function read(){if(!await controller.readState())return false;const m=controller.snapshot();if(m.envelope?.viewer.can_command&&!m.pending)return controller.readOptions();return true;}
+  async function poll(){
+    if(!await controller.pollState())return false;
+    const m=controller.snapshot();
+    if(m.envelope?.viewer.can_command&&!m.pending&&!m.optionsReady)return controller.readOptions();
+    return true;
+  }
   async function restoreTestResources(){
     const before=controller.snapshot(),key=contextKey();
     if(disposed||restoring||before.busy||before.pending||!key||!allowed(before))return false;
@@ -3695,7 +3716,7 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   view.render(presented(controller.snapshot()));
   return {
     open:invoke(read),
-    refresh:invoke(read),
+    refresh:invoke(poll),
     setNarrative:invoke(value=>controller.setNarrative(value)),
     submit:invoke(()=>send(false)),
     invalidate:()=>{restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;if(!disposed)controller.invalidate();},
