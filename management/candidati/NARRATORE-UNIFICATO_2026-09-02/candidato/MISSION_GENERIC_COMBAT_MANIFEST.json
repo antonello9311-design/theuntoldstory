@@ -1,0 +1,172 @@
+{
+  "task_id": "MISSION-GENERIC-COMBAT-001",
+  "status": "candidate_only_pending_independent_review",
+  "sha256": "cb80d82231f59473d4aa13584d3e9e7a3360ff0b90e2cf0d09e5b53310431b5a",
+  "bytes": 58263,
+  "sql_statements_parsed": 32,
+  "plpgsql_body_check": "not certified: parser cannot resolve private schemas/composite row types",
+  "source_pins": [
+    {
+      "function_name": "public.master_v2_encounter_open_ninja_book_v1_ai_service_core",
+      "args": "p_master_session uuid, p_pg_ids uuid[], p_actor_offers jsonb, p_team_map jsonb, p_request_key uuid, p_capability uuid",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres}",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "md5": "a5cf9a033b4913aee6cd27a8708c9b61"
+    },
+    {
+      "function_name": "combat_panel_private.enroll_master",
+      "args": "p_master uuid",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres}",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "md5": "3c4fedad2d3f12da837cbd6fdb2eccce"
+    },
+    {
+      "function_name": "combat_panel_private.master_entry_trigger",
+      "args": "",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres}",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "md5": "eb631425a179b3d96e4cae224900782d"
+    },
+    {
+      "function_name": "combat_panel_private.uses_simulated_pools",
+      "args": "p_session uuid",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres}",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "md5": "bbd85ffd70c2bcf58b9ecb54b5f9e069"
+    },
+    {
+      "function_name": "combat_spatial.exchange_owner_receipt",
+      "args": "p_instance uuid, p_round uuid",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "md5": "2a33b6c81ee49015986b25379396725d"
+    },
+    {
+      "function_name": "public.universal_arena_state_v1",
+      "args": "p_master uuid",
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "md5": "406819c3379cb206f751114e27393513"
+    }
+  ],
+  "core_delta": [
+    {
+      "old": "public.master_v2_encounter_open_ninja_book_v1_ai_service_core(",
+      "new": "mission_generic_owner.open_core("
+    },
+    {
+      "old": "begin\n  if v_cap is null then",
+      "new": "begin\n  perform mission_generic_owner.assert_combat_scope(p_master_session,v_cap);\n  if v_cap is null then"
+    },
+    {
+      "old": "       or v_b.lifecycle_state<>'approved' or v_b.active or not exists(select 1 from public.mission_run_canary_npcs cn join public.mission_run_canary_bindings cb on cb.master_session_id=cn.master_session_id join public.nb_mission_packages cp on cp.id=cb.package_id join mission_internal.mission_canary_profiles prof on prof.package_id=cp.id where cn.master_session_id=p_master_session and cn.mechanical_binding_id=v_b.id and cb.selected_by_kind='ai_service' and cb.selected_by_master_user is null and cb.selected_by_service_capability=v_cap and cp.package_key='nb029g_il_nodo_azzurro' and cp.lifecycle_state='approved' and not cp.active and cp.test_only and cp.team_exact=2 and v_b.id=any(prof.mechanical_binding_ids))",
+      "new": "       or v_b.lifecycle_state<>'approved' or not mission_generic_owner.binding_is_pinned(p_master_session,v_b.id)\n       or (not v_b.active and not exists(select 1 from public.locations where id=v_m.location_id and is_test))"
+    },
+    {
+      "old": "or v_mt.lifecycle_state<>'approved' or v_mt.active or v_mt.current_version_id<>v_mv.id",
+      "new": "or v_mt.lifecycle_state<>'approved' or (not v_mt.active and not exists(select 1 from public.locations where id=v_m.location_id and is_test)) or v_mt.current_version_id<>v_mv.id"
+    },
+    {
+      "old": "v_snap:=public.combat_v2_character_snapshot(v_pg); v_team:=",
+      "new": "v_snap:=mission_generic_owner.carry_snapshot(p_master_session,v_pg,null,public.combat_v2_character_snapshot(v_pg)); v_team:="
+    },
+    {
+      "old": "      'slancio',0,'abilities',v_mv.abilities);\n    insert into public.combat_v2_provider_instances_v1",
+      "new": "      'slancio',0,'abilities',v_mv.abilities);\n    v_snap:=mission_generic_owner.carry_snapshot(p_master_session,null,v_client,v_snap);\n    insert into public.combat_v2_provider_instances_v1"
+    },
+    {
+      "old": "'master_v2_encounter_open_ninja_book_v1',jsonb_build_object",
+      "new": "'mission_generic_combat_open',jsonb_build_object"
+    }
+  ],
+  "new_functions": 13,
+  "new_tables": [
+    "mission_generic_owner.encounters"
+  ],
+  "native_hooks": [
+    "combat_panel_private.enroll_master",
+    "combat_panel_private.master_entry_trigger",
+    "combat_panel_private.uses_simulated_pools",
+    "combat_spatial.exchange_owner_receipt",
+    "public.universal_arena_state_v1"
+  ],
+  "constraints_changed": [
+    "arena_instances_master_session_id_key UNIQUE(master_session_id) replaced with unique open-arena index; additive trigger keeps absolute uniqueness for legacy",
+    "encounters unique(master_session_id,run_control_version,encounter_key)",
+    "encounters unique(master_session_id,request_key)"
+  ],
+  "runtime_gate": "mission_generic_owner.runtime_policy off by default (DB candidate)",
+  "dependencies": [
+    "MISSION_GENERIC_DB.sql current staged shape",
+    "ROOT actor_principal/current_principal/master_state_authoritative Generic hooks",
+    "ROOT worker Common service choice and resolve/narrative integration"
+  ],
+  "provider_calls": 0,
+  "database_mutations": 0,
+  "browser_used": false,
+  "functional_live_verified": false,
+  "existing_core_preserved": true,
+  "legacy_uniqueness_preserved_by_trigger": true,
+  "resource_continuity": "PV/chakra from latest closed encounter same PG or stable NPC client_ref; max changes fail closed",
+  "protected_policy": "Staff exact native roster authorization, Generic frozen binding + capability + Common arena claim; no character test flags",
+  "foreign_key_dependencies_on_old_unique": 0,
+  "arena_master_reference_functions_observed": 28,
+  "revision": "A2",
+  "update_task": "MISSION-GENERIC-A2-SYNTAX",
+  "a1_sql_sha256": "cb80d82231f59473d4aa13584d3e9e7a3360ff0b90e2cf0d09e5b53310431b5a",
+  "sql_sha256": "cb80d82231f59473d4aa13584d3e9e7a3360ff0b90e2cf0d09e5b53310431b5a",
+  "sql_bytes": 58263,
+  "handoff_sha256": "d89857e235083b9329b6b80146ba327d7dfd78dcd8a6d52453efc12858bb80da",
+  "independent_review": "A1 C1 passed; A2 syntax counterreview pending",
+  "syntax_only": true,
+  "behavior_changes": false,
+  "applied_by_this_task": false,
+  "gameplay_tests": 0,
+  "grammar_check": {
+    "top_level": 32,
+    "direct_plpgsql_functions": 10,
+    "do_blocks": 6,
+    "result": "PASS with parser-only record erasure",
+    "schema_compilation": false,
+    "dynamic_ddl_executed": false
+  },
+  "A2_delta": [],
+  "composition_sql_sha256": {
+    "MISSION_GENERIC_DB.sql": "b7e42ea5a6b78d50d5289a356d7be96b550d30cdb305e99b02145cf53fc732ff",
+    "MISSION_GENERIC_PLAN_WRITER.sql": "2e7a81af83224fb7a6f98d83a3836f4b53ddbee1c61574ab41c3f344795e53ae",
+    "MISSION_GENERIC_OUTCOME.sql": "da8c285402f54f37c49261e79069069669f907de5f4177790c6d0e5fb562e2c7",
+    "MISSION_GENERIC_COMBAT.sql": "cb80d82231f59473d4aa13584d3e9e7a3360ff0b90e2cf0d09e5b53310431b5a",
+    "MISSION_GENERIC_PANEL.sql": "03ee8476754f4c231a0b5142f57bfb8d86c7b46f7432dc57bf966ff87242d2f9",
+    "MISSION_GENERIC_CLAN_OPTIONS.sql": "1af3ee0aaf385591b0af05bcb9d112878982f06483b38fcf68d3b355fcd225c4",
+    "MISSION_GENERIC_BOARD.sql": "f0827febfea3f6f86e20b745d69ac5b33102b8f2a5ec9250c14ca290637a1774",
+    "MISSION_GENERIC_DISPATCH.sql": "03d6d4c5158e7a72fe11e0721ccb97023e4de3c4ae2073070eb2efea4d0a7aa0",
+    "MISSION_GENERIC_SOURCES.sql": "b00cb739df02342f218575ef7f2b5359a439495ccb2fbfb65500165b50876152",
+    "MISSION_GENERIC_CHOICE_SOURCES.sql": "f9f7135332725e49a29946b58c1bfa0b96ed20e6b724823346a4744a67f71102",
+    "MISSION_GENERIC_PROVIDER_GATE.sql": "08a6bc63f598c5c8768d9640a4a8e0782dced24fc82db8a96d9fbb4ff2feb44d",
+    "MISSION_GENERIC_PROGRESS.sql": "f15b889b1ba36fd5dc3a6c4dbcae2466e8dd8b19f9bbcb90504f3a84577d9581"
+  }
+}

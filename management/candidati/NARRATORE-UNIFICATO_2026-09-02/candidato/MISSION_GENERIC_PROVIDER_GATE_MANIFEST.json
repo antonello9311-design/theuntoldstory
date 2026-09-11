@@ -1,0 +1,128 @@
+{
+  "task_id": "MISSION-GENERIC-PROVIDER-GATE-001",
+  "status": "candidate_not_applied",
+  "files": {
+    "MISSION_GENERIC_PROVIDER_GATE.sql": {
+      "bytes": 16370,
+      "sha256": "08a6bc63f598c5c8768d9640a4a8e0782dced24fc82db8a96d9fbb4ff2feb44d"
+    },
+    "MISSION_GENERIC_PROVIDER_GATE_HANDOFF.md": {
+      "bytes": 8673,
+      "sha256": "aa349b961be637bf1174c7b114754a8ded131c13b42f954aeb8c1bbea4f3f863"
+    }
+  },
+  "pins": [
+    {
+      "function": "public.mission_narrative_attempt_reserve_internal(text,uuid,integer,jsonb,text)",
+      "pin_kind": "pg_get_functiondef_sha256",
+      "sha256": "3aeec15d817c925edaeebaaa05e41dfe3ccaf2975b57f9667ef5aab9296b5930",
+      "change": "generic-only local policy gate"
+    },
+    {
+      "function": "public.mission_narrative_provider_authorize_internal(text,uuid,uuid,text)",
+      "pin_kind": "pg_get_functiondef_sha256",
+      "sha256": "9a6354cd4491c8373b71c55ec57da3b7fc674f5f65c6098947911c624e418a61",
+      "change": "generic-only local policy gate"
+    },
+    {
+      "function": "public.mission_narrative_provider_consume_internal(text,uuid,text)",
+      "pin_kind": "pg_get_functiondef_sha256",
+      "sha256": "4bb867ff39aa53274c6a1c27cf1bcfb9919c36f7d71ebad9a1f2b2664a5ba957",
+      "change": "generic transaction permit before consume"
+    },
+    {
+      "function": "public.mission_generic_dispatch_claim_v1(uuid,jsonb)",
+      "pin_kind": "prosrc_sha256",
+      "sha256": "ef3630bccd770a2f4b4557e37da9671e7178317f084b19dd1a3b9d606b495432",
+      "change": "generic dispatcher gate/permit"
+    },
+    {
+      "function": "public.mission_generic_dispatch_authorize_v1(uuid,uuid,text,jsonb)",
+      "pin_kind": "prosrc_sha256",
+      "sha256": "f145326d6e4a4299fd8c230f43c1706615936eba30177236a4e635c3b3ad9693",
+      "change": "generic dispatcher gate/permit"
+    },
+    {
+      "function": "public.mission_generic_dispatch_consume_v1(uuid,uuid,text,uuid,text)",
+      "pin_kind": "prosrc_sha256",
+      "sha256": "35176084208703a77d05c7c576ef9a714231ea636c0753c5f51925e136fc193f",
+      "change": "generic dispatcher gate/permit"
+    }
+  ],
+  "native_policy_updated": false,
+  "new_tables": 2,
+  "new_private_functions": 3,
+  "modified_native_functions": 3,
+  "modified_generic_functions": 3,
+  "sql_outer_statements": 20,
+  "plpgsql_compiled": false,
+  "provider_calls": 0,
+  "enable": false,
+  "apply": false,
+  "prices": "native runtime policy references only",
+  "new_gate_enabled": false,
+  "generic_quotes": "six explicit positive values required before enable; no default spend",
+  "correction": "A1 RT-R1-02",
+  "independent_review": "A1 C1 passed; A2 syntax counterreview pending",
+  "dispatch_input_sha256": "03d6d4c5158e7a72fe11e0721ccb97023e4de3c4ae2073070eb2efea4d0a7aa0",
+  "A1_pin_verification": "3 generic prosrc unchanged and verified; native pins unchanged",
+  "revision": "A2",
+  "update_task": "MISSION-GENERIC-A2-SYNTAX",
+  "a1_sql_sha256": "d19deced1ca6fdb0938009f2f38b99b7278634bc625ff13a1581378b54dde227",
+  "sql_sha256": "08a6bc63f598c5c8768d9640a4a8e0782dced24fc82db8a96d9fbb4ff2feb44d",
+  "bytes": 16370,
+  "sql_bytes": 16370,
+  "handoff_sha256": "aa349b961be637bf1174c7b114754a8ded131c13b42f954aeb8c1bbea4f3f863",
+  "syntax_only": true,
+  "behavior_changes": false,
+  "applied_by_this_task": false,
+  "gameplay_tests": 0,
+  "grammar_check": {
+    "top_level": 20,
+    "direct_plpgsql_functions": 3,
+    "do_blocks": 6,
+    "result": "PASS with parser-only record erasure",
+    "schema_compilation": false,
+    "dynamic_ddl_executed": false
+  },
+  "A2_delta": [
+    {
+      "file": "MISSION_GENERIC_PROVIDER_GATE.sql",
+      "old": "<>case p_stage when 'authorize' then 'claimed' else 'authorized' end",
+      "new": "<>(case p_stage when 'authorize' then 'claimed' else 'authorized' end)",
+      "line": 54
+    },
+    {
+      "file": "MISSION_GENERIC_PROVIDER_GATE.sql",
+      "old": "<>case p_stage when 'consume' then 'consume' else 'authorize' end",
+      "new": "<>(case p_stage when 'consume' then 'consume' else 'authorize' end)",
+      "line": 77
+    },
+    {
+      "file": "MISSION_GENERIC_PROVIDER_GATE.sql",
+      "old": "<>case p_stage when 'consume' then 'authorized' else 'claimed' end",
+      "new": "<>(case p_stage when 'consume' then 'authorized' else 'claimed' end)",
+      "line": 79
+    },
+    {
+      "file": "MISSION_GENERIC_PROVIDER_GATE.sql",
+      "old": "<>case p_stage when 'reserve' then 'claimed' when 'authorize' then 'reserved' else 'authorized' end",
+      "new": "<>(case p_stage when 'reserve' then 'claimed' when 'authorize' then 'reserved' else 'authorized' end)",
+      "line": 80
+    }
+  ],
+  "composition_sql_sha256": {
+    "MISSION_GENERIC_DB.sql": "b7e42ea5a6b78d50d5289a356d7be96b550d30cdb305e99b02145cf53fc732ff",
+    "MISSION_GENERIC_PLAN_WRITER.sql": "2e7a81af83224fb7a6f98d83a3836f4b53ddbee1c61574ab41c3f344795e53ae",
+    "MISSION_GENERIC_OUTCOME.sql": "da8c285402f54f37c49261e79069069669f907de5f4177790c6d0e5fb562e2c7",
+    "MISSION_GENERIC_COMBAT.sql": "cb80d82231f59473d4aa13584d3e9e7a3360ff0b90e2cf0d09e5b53310431b5a",
+    "MISSION_GENERIC_PANEL.sql": "03ee8476754f4c231a0b5142f57bfb8d86c7b46f7432dc57bf966ff87242d2f9",
+    "MISSION_GENERIC_CLAN_OPTIONS.sql": "1af3ee0aaf385591b0af05bcb9d112878982f06483b38fcf68d3b355fcd225c4",
+    "MISSION_GENERIC_BOARD.sql": "f0827febfea3f6f86e20b745d69ac5b33102b8f2a5ec9250c14ca290637a1774",
+    "MISSION_GENERIC_DISPATCH.sql": "03d6d4c5158e7a72fe11e0721ccb97023e4de3c4ae2073070eb2efea4d0a7aa0",
+    "MISSION_GENERIC_SOURCES.sql": "b00cb739df02342f218575ef7f2b5359a439495ccb2fbfb65500165b50876152",
+    "MISSION_GENERIC_CHOICE_SOURCES.sql": "f9f7135332725e49a29946b58c1bfa0b96ed20e6b724823346a4744a67f71102",
+    "MISSION_GENERIC_PROVIDER_GATE.sql": "08a6bc63f598c5c8768d9640a4a8e0782dced24fc82db8a96d9fbb4ff2feb44d",
+    "MISSION_GENERIC_PROGRESS.sql": "f15b889b1ba36fd5dc3a6c4dbcae2466e8dd8b19f9bbcb90504f3a84577d9581"
+  }
+}

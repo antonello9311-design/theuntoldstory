@@ -1,0 +1,106 @@
+{
+  "task_id": "MISSION-GENERIC-PROGRESS-A1",
+  "state": "candidate_not_applied",
+  "sql": {
+    "file": "MISSION_GENERIC_PROGRESS.sql",
+    "sha256": "f15b889b1ba36fd5dc3a6c4dbcae2466e8dd8b19f9bbcb90504f3a84577d9581",
+    "bytes": 34704
+  },
+  "native_pins": {
+    "public.combat_v2_round_resolve(uuid,uuid)": "74f50ecc6665bb0c9bc115dea2c58911",
+    "public.master_v2_close_ai_service_core(uuid,text,text,boolean,bigint,uuid,uuid)": "500814ab37bf0c968dcd4ebe12caccf0",
+    "public.missione_esito(uuid,boolean,text)": "e7e016791a9b24a3962ca6d7e697b699",
+    "combat_panel_private.enroll_master(uuid)_post_COMBAT": "3ace2632fdb641b78f9f4efc9ae1868f"
+  },
+  "dependency_file_sha256": {
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_CONTRACT.md": "636ac1a724cc0f83e85b9f34c36db6da1a8b6c8363e5f56eabaccfa235c4214b",
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_DB.sql": "b7e42ea5a6b78d50d5289a356d7be96b550d30cdb305e99b02145cf53fc732ff",
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_PLAN_WRITER.sql": "2e7a81af83224fb7a6f98d83a3836f4b53ddbee1c61574ab41c3f344795e53ae",
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_BOARD.sql": "f0827febfea3f6f86e20b745d69ac5b33102b8f2a5ec9250c14ca290637a1774",
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_COMBAT.sql": "cb80d82231f59473d4aa13584d3e9e7a3360ff0b90e2cf0d09e5b53310431b5a",
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_PANEL.sql": "03ee8476754f4c231a0b5142f57bfb8d86c7b46f7432dc57bf966ff87242d2f9",
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_SOURCES.sql": "b00cb739df02342f218575ef7f2b5359a439495ccb2fbfb65500165b50876152",
+    "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_DISPATCH.sql": "03d6d4c5158e7a72fe11e0721ccb97023e4de3c4ae2073070eb2efea4d0a7aa0"
+  },
+  "pending_composition_dependency": "Other owners A1 candidates to freeze before independent counterverification",
+  "new_functions": 12,
+  "new_private_tables": 1,
+  "modified_native_functions": [
+    "combat_panel_private.enroll_master(uuid)"
+  ],
+  "original_cores_preserved": true,
+  "resolver_reused": true,
+  "permissions": {
+    "public.mission_generic_progress_v1(uuid,uuid,uuid)": [
+      "service_role"
+    ],
+    "public.mission_generic_room_state_v1(uuid)": [
+      "authenticated"
+    ],
+    "all_other_new_objects": "private owner only; explicit revoke"
+  },
+  "static": {
+    "top_level_postgresql_parser_statements": 25,
+    "clone_unique_anchors": 10,
+    "status": "PASS",
+    "body_schema_compilation": "not executed"
+  },
+  "live_read_only": true,
+  "db_apply": false,
+  "provider_calls": 0,
+  "gameplay_tests": 0,
+  "local_recreated_environment": false,
+  "recovery": "Preserve all history; stop new admissions/dispatch, retain active Generic protection hooks; no reset/delete.",
+  "revision": "A2",
+  "addresses": [
+    "RT-R1-01"
+  ],
+  "baseline_sql_sha256": "2adebee444e769ceb09f184cfba2e32120909e756625f15e9cfa59e0da5cff93",
+  "delta": "Two phase/state predicates on existing PNG selection queries; PG main barrier and missing-main predicate retained",
+  "readonly_phase_sources": {
+    "combat_panel_private.master_projection(uuid,uuid)": "f7064f267d9379af6d257ebc109f9228",
+    "combat_panel_private.master_options(uuid,uuid,bigint)": "21035f617facadc874ceaaed8a9e4452",
+    "native_phase_transition": "combat_v2_action_declare updates phase/state to raccolta_difese iff v_done=expected_main_count"
+  },
+  "review_status": "awaiting aggregate A1 independent counterverification",
+  "update_task": "MISSION-GENERIC-A2-SYNTAX",
+  "a1_sql_sha256": "74d09ee600af60e3e331b8514d492eeb264fb5c99899c11d77dd08faab596c57",
+  "sql_sha256": "f15b889b1ba36fd5dc3a6c4dbcae2466e8dd8b19f9bbcb90504f3a84577d9581",
+  "bytes": 34704,
+  "sql_bytes": 34704,
+  "handoff_sha256": "0e5386130b684c5aea56e1260da43eea942282472d87aa7f345df4001ed5e0b1",
+  "independent_review": "A1 C1 passed; A2 syntax counterreview pending",
+  "syntax_only": true,
+  "behavior_changes": false,
+  "applied_by_this_task": false,
+  "grammar_check": {
+    "top_level": 25,
+    "direct_plpgsql_functions": 10,
+    "do_blocks": 3,
+    "result": "PASS with parser-only record erasure",
+    "schema_compilation": false,
+    "dynamic_ddl_executed": false
+  },
+  "A2_delta": [
+    {
+      "file": "MISSION_GENERIC_PROGRESS.sql",
+      "old": "<>case when p_outcome='success' then 'conclusa' else 'fallita' end",
+      "new": "<>(case when p_outcome='success' then 'conclusa' else 'fallita' end)",
+      "line": 30
+    }
+  ],
+  "composition_sql_sha256": {
+    "MISSION_GENERIC_DB.sql": "b7e42ea5a6b78d50d5289a356d7be96b550d30cdb305e99b02145cf53fc732ff",
+    "MISSION_GENERIC_PLAN_WRITER.sql": "2e7a81af83224fb7a6f98d83a3836f4b53ddbee1c61574ab41c3f344795e53ae",
+    "MISSION_GENERIC_OUTCOME.sql": "da8c285402f54f37c49261e79069069669f907de5f4177790c6d0e5fb562e2c7",
+    "MISSION_GENERIC_COMBAT.sql": "cb80d82231f59473d4aa13584d3e9e7a3360ff0b90e2cf0d09e5b53310431b5a",
+    "MISSION_GENERIC_PANEL.sql": "03ee8476754f4c231a0b5142f57bfb8d86c7b46f7432dc57bf966ff87242d2f9",
+    "MISSION_GENERIC_CLAN_OPTIONS.sql": "1af3ee0aaf385591b0af05bcb9d112878982f06483b38fcf68d3b355fcd225c4",
+    "MISSION_GENERIC_BOARD.sql": "f0827febfea3f6f86e20b745d69ac5b33102b8f2a5ec9250c14ca290637a1774",
+    "MISSION_GENERIC_DISPATCH.sql": "03d6d4c5158e7a72fe11e0721ccb97023e4de3c4ae2073070eb2efea4d0a7aa0",
+    "MISSION_GENERIC_SOURCES.sql": "b00cb739df02342f218575ef7f2b5359a439495ccb2fbfb65500165b50876152",
+    "MISSION_GENERIC_CHOICE_SOURCES.sql": "f9f7135332725e49a29946b58c1bfa0b96ed20e6b724823346a4744a67f71102",
+    "MISSION_GENERIC_PROVIDER_GATE.sql": "08a6bc63f598c5c8768d9640a4a8e0782dced24fc82db8a96d9fbb4ff2feb44d",
+    "MISSION_GENERIC_PROGRESS.sql": "f15b889b1ba36fd5dc3a6c4dbcae2466e8dd8b19f9bbcb90504f3a84577d9581"
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "id": "MISSION-GENERIC-001",
+  "title": "Missioni con gruppi variabili, trigger e incontri multipli",
+  "max_parallel": 4,
+  "tasks": [
+    {
+      "id": "MISSION-GENERIC-COORD-001",
+      "title": "Raccordo generico missioni: contratto e integrazione",
+      "owner": "PM-MISSION",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 1,
+      "depends_on": [],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_PLAN.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_CONTRACT.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_HANDOFF.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/SCHEDA.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/HANDOFF.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/STORICO.md",
+        "dossier/aree/MISSIONI_IA.md"
+      ],
+      "resources": [
+        "schema:contratto:mission-generic-v1"
+      ],
+      "inputs": [],
+      "acceptance": [
+        "Contratto per roster variabile, incontri multipli e trigger autoritativi",
+        "Riuso percorsi missione/Regia/Combat correnti e simulazione esistente",
+        "Consegna distingue codice, pubblicazione e collaudo effettivo"
+      ],
+      "authorization": "Antonello: Procedi e aggiornami dove serve, dopo proposta missioni generalizzate e 2–3 sessioni in chat diverse. Preservare sessioni concluse e attive; collaudo sito protetto, nessun banco locale ricreato.",
+      "budget": {
+        "minutes": 120,
+        "cases": 0,
+        "provider_calls": 0
+      }
+    },
+    {
+      "id": "MISSION-GENERIC-DB-001",
+      "title": "Configurazione e autorità trigger su controller missioni esistente",
+      "owner": "DB-MISSION",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 1,
+      "depends_on": [
+        "MISSION-GENERIC-COORD-001"
+      ],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_DB.sql",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_DB_HANDOFF.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_DB_MANIFEST.json"
+      ],
+      "resources": [],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_CONTRACT.md"
+      ],
+      "acceptance": [
+        "Config versionata senza duplicare macchina fasi",
+        "Wrapper costruisce evidence da fonti server; nessuna evidence arbitraria client",
+        "Permessi espliciti e candidato senza apply, ponte consumer documentato"
+      ],
+      "authorization": "Antonello: Procedi e aggiornami dove serve, dopo proposta missioni generalizzate e 2–3 sessioni in chat diverse. Preservare sessioni concluse e attive; collaudo sito protetto, nessun banco locale ricreato.",
+      "budget": {
+        "minutes": 120,
+        "cases": 0,
+        "provider_calls": 0
+      }
+    },
+    {
+      "id": "MISSION-GENERIC-EDGE-001",
+      "title": "Consumer missione generico sul narratore condiviso",
+      "owner": "NARRATIVE-MISSION",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 1,
+      "depends_on": [
+        "MISSION-GENERIC-COORD-001"
+      ],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission-generic-runtime.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission-generic-choice.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_EDGE_HANDOFF.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_EDGE_MANIFEST.json"
+      ],
+      "resources": [],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_GENERIC_CONTRACT.md"
+      ],
+      "acceptance": [
+        "Runtime a singolo evento senza hardcode Nodo/Esame",
+        "Scelte PNG da offerte server e prosa dopo tutte le ricevute",
+        "Provider budget/timeout e replay; nessun deploy"
+      ],
+      "authorization": "Antonello: Procedi e aggiornami dove serve, dopo proposta missioni generalizzate e 2–3 sessioni in chat diverse. Preservare sessioni concluse e attive; collaudo sito protetto, nessun banco locale ricreato.",
+      "budget": {
+        "minutes": 120,
+        "cases": 0,
+        "provider_calls": 0
+      }
+    }
+  ]
+}
