@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-COMMON-PANEL-UI-021" />
+  <meta name="tus-build" content="LAND-MISSION-GENERIC-UI-002" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2113,6 +2113,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
                 <div class="side-k">Esame Genin</div>
                 <div id="esm-body"></div>
               </div>
+              <div id="mission-generic-room" hidden></div>
               <div class="side-card mv2" id="mv2-card" hidden>
                 <div class="mv2-head"><div class="side-k">Regia Master</div><span class="mv2-state" id="mv2-state">V2</span></div>
                 <div id="mv2-slim"></div>
@@ -5170,6 +5171,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       }
       function mv2SetBody(body,html){body.innerHTML=html;mv2RestoreDefenseDrafts();}
       function loadMasterV2(){
+        missionGenericRoomRefresh();
         if(examRegia()?.ownsCombat()){mv2Card(false);return;}
         if(!sb||!cur||MV2.loading||MV2.missingRpc) return;
         if(cur.is_exam_room&&!(commonPanelRoom()&&iAmStaff)){ mv2Card(false); return; }
@@ -9004,7 +9006,7 @@ var nb028iTeardown=function(){};
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -10696,6 +10698,21 @@ var nb028iTeardown=function(){};
         });
       })();
 
+      var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null;
+      function missionGenericUI(){
+        if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
+        if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=mission-generic-ui-1.1').then(function(mod){
+          MISSION_GENERIC_UI=mod.createMissionUI({client:sb,identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
+            isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
+            presentCharacters:async function(){var ids=(WHO||[]).map(function(w){return w.user_id;}).filter(Boolean);if(!ids.length)return [];var r=await sb.from('characters').select('id,name').in('user_id',ids);if(r.error)throw r.error;return r.data||[];},
+            refresh:function(){loadMsgs();loadMasterV2();if(missOpenNow())loadMissBacheca();}});return MISSION_GENERIC_UI;
+        }).catch(function(e){MISSION_GENERIC_LOAD=null;throw e;});
+        return MISSION_GENERIC_LOAD;
+      }
+      function missionGenericRoomRefresh(){if(!loggedIn||!sb||!cur||(cur.is_exam_room&&!cur.is_test))return;
+        var host=document.getElementById('mission-generic-room');
+        missionGenericUI().then(function(ui){return ui.updateRoom(host);}).catch(function(){});
+      }
       var MISSION_ARENA_EDITOR=null;
       function missionArenaEditor(){
         if(!MISSION_ARENA_EDITOR)MISSION_ARENA_EDITOR=window.TUSArenaEditor.createArenaEditor({client:sb,document:document,
@@ -10721,7 +10738,7 @@ var nb028iTeardown=function(){};
       function fmtMD(d){ if(!d) return '—'; var x=new Date(d+'T00:00:00'); return ('0'+x.getDate()).slice(-2)+'/'+('0'+(x.getMonth()+1)).slice(-2)+'/'+x.getFullYear(); }
       function loadMissBacheca(){ if(!sb) return; sb.rpc('bacheca_missioni').then(function(r){ renderMissBacheca((r&&r.data)||[]); }, function(){ renderMissBacheca([]); }); }
       function renderMissBacheca(rows){ var host=document.getElementById('miss-body'); if(!host) return;
-        if(!rows.length){ host.innerHTML='<p class="miss-empty">Nessuna richiesta in bacheca, per ora: i villaggi sono tranquilli. Torna presto.</p>'; return; }
+        if(!rows.length){ host.innerHTML='<p class="miss-empty">Nessuna richiesta in bacheca, per ora: i villaggi sono tranquilli. Torna presto.</p>'; missionGenericUI().then(function(ui){return ui.decorateBoard(host);}).catch(function(){}); return; }
         host.innerHTML=rows.map(function(m){
           var vil=m.village?('<span class="mvil">'+esc(m.village)+'</span>'):'<span class="mvil">Ogni villaggio</span>';
           var stato=(m.status==='programmata')?('<span class="mvil" style="color:var(--red-deep);border-color:var(--red-deep)">'+fmtMD(m.data_missione)+(m.master_name?(' · '+esc(m.master_name)):'')+'</span>'):'';
@@ -10734,7 +10751,7 @@ var nb028iTeardown=function(){};
           else if(m.posso){ act+='<button class="mbtn" data-mjoin="'+m.id+'">Iscriviti</button>'; }
           else if(m.motivo){ act+='<span class="mnote">'+esc(m.motivo)+'</span>'; }
           if(iAmStaff){
-            act+='<button class="mbtn ghost" data-m-arena="'+m.id+'">Mappa e zona dello scontro</button>';
+            act+='<button class="mbtn ghost" data-m-arena="'+m.id+'">Mappa e zona dello scontro</button><button class="mbtn ghost" data-m-generic-editor="'+m.id+'">Configura regia IA</button><button class="mbtn ghost" data-m-generic-board="'+m.id+'">Avvio regia IA</button>';
             if(m.status==='aperta' && m.n_iscritti>0){ act+='<input type="date" class="mp-date"> <button class="mbtn ghost" data-mprog="'+m.id+'">Programma</button>'; }
             if(m.status==='programmata'){ act+='<button class="mbtn" data-mok="'+m.id+'">Esito: riuscita</button><button class="mbtn ghost" data-mko="'+m.id+'">Fallita</button>'; }
             act+='<button class="mbtn ghost" data-mann="'+m.id+'">Annulla</button>';
@@ -10746,6 +10763,7 @@ var nb028iTeardown=function(){};
             +iscr+prop+tag
             +'<div class="mact">'+act+'</div>'+joinForm+'</div>';
         }).join('');
+        missionGenericUI().then(function(ui){return ui.decorateBoard(host);}).catch(function(){});
       }
       function loadMissMie(){ if(!sb) return; sb.rpc('mie_missioni').then(function(r){ renderMissMie((r&&r.data)||[]); }, function(){ renderMissMie([]); }); }
       function renderMissMie(rows){ var host=document.getElementById('miss-body'); if(!host) return;
@@ -10810,6 +10828,8 @@ var nb028iTeardown=function(){};
         body.addEventListener('click', function(e){
           var t=e.target.closest('button'); if(!t||!sb) return;
           var card=t.closest('.mcard');
+          if(t.hasAttribute('data-m-generic-board')){if(iAmStaff)missionGenericUI().then(function(ui){return ui.board(t.getAttribute('data-m-generic-board'),card&&card.querySelector('.mname')&&card.querySelector('.mname').textContent);}).catch(function(){toast('Avvio regia non disponibile.');});return;}
+          if(t.hasAttribute('data-m-generic-editor')){if(iAmStaff)missionGenericUI().then(function(ui){return ui.editor(t.getAttribute('data-m-generic-editor'),card&&card.querySelector('.mname')&&card.querySelector('.mname').textContent);}).catch(function(){toast('Configurazione regia non disponibile.');});return;}
           if(t.hasAttribute('data-m-arena')){openMissionArena('mission',t.getAttribute('data-m-arena'),card&&card.querySelector('.mname')&&card.querySelector('.mname').textContent);return;}
           if(t.hasAttribute('data-mjoin')){ var f=document.getElementById('mjf-'+t.getAttribute('data-mjoin')); if(f) f.classList.toggle('on'); return; }
           if(t.hasAttribute('data-msend')){ var id=t.getAttribute('data-msend'); var f2=document.getElementById('mjf-'+id); var d=f2?f2.querySelector('.mj-date').value:null; var no=f2?f2.querySelector('.mj-nota').value:null;
