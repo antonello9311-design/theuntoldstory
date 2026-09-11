@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-UNIFIED-FATO-001" />
+  <meta name="tus-build" content="LAND-HUMAN-DUEL-INITIATIVE-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3511,9 +3511,13 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     picker.value=v.command_actor_id||'';picker.disabled=locked||!selectActor||v.controlled_actors.length===0;
     picker.addEventListener('change',()=>{if(ticket!==generation||!selectActor)return;const id=picker.value;if(v.controlled_actors.some(a=>a.actor_id===id))selectActor(id);});
     const roster=node('div',undefined,info);roster.className='mv2-roster';
+    const initiativeDuel=c.activity_kind==='master_v2'&&c.phase_label.startsWith('Duello a iniziativa ·');
+    const duelMain=initiativeDuel&&e.round_details?.declarations?.find(d=>['attacco','movimento','utilita','passa'].includes(d.kind));
+    const duelAttackerId=initiativeDuel?(c.phase==='action'?(e.actors.find(a=>a.action_due===true)?.actor_id||null):(duelMain?.actor_id||null)):null;
     for(const actor of e.actors){
       const row=node('div',undefined,roster);row.className='mv2-row';
       node('strong',actor.display_name,row);
+      if(initiativeDuel&&!actor.body_only&&actor.state==='active')note(row,actor.actor_id===duelAttackerId?'Attaccante':'Difensore');
       note(row,[(actor.team===null?'':`Squadra ${actor.team} · `)+(actorStateLabels[actor.state]||actor.state),finite(actor.distance_from_viewer_m)?`${actor.distance_from_viewer_m} m`:null].filter(Boolean).join(' · '));
       if(actor.resources!==null){
         const r=actor.resources;
