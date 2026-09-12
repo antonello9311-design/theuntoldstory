@@ -3061,7 +3061,7 @@ function offer(o,c,viewer){
     shape(g,['group_id','label','selection_mode','purpose','min_selected','max_selected','depends_on','options']);
     insist(isId(g.group_id)&&name(g.label)&&['single','multiple'].includes(g.selection_mode)&&purposes.includes(g.purpose)&&int(g.min_selected)&&int(g.max_selected)&&g.min_selected<=g.max_selected&&nullable(g.depends_on,isId)&&Array.isArray(g.options)&&g.max_selected<=g.options.length);
     insist(g.selection_mode!=='single'||g.max_selected<=1);groups.set(g.group_id,g);
-    for(const option of g.options){shape(option,['option_id','label','distance_m','direction']);insist(isId(option.option_id)&&!options.has(option.option_id)&&name(option.label)&&nullable(option.distance_m,num)&&nullable(option.direction,x=>['up','down','left','right','toward_target','away_from_target','stay'].includes(x)));options.set(option.option_id,g);}
+    for(const option of g.options){shape(option,['option_id','label','distance_m','direction']);insist(isId(option.option_id)&&!options.has(option.option_id)&&name(option.label)&&nullable(option.distance_m,num)&&nullable(option.direction,x=>['up','up_right','right','down_right','down','down_left','left','up_left','toward_target','away_from_target','stay'].includes(x)));options.set(option.option_id,g);}
   }
   for(const g of groups.values()){
     let p=g;const seen=new Set();
