@@ -3868,10 +3868,11 @@ const {isId,insist,validatePanelEnvelope}=module5;
 // La selezione dipende solo dalla proiezione server, mai da un errore di commit.
 function attachPanelLand(host){
   if(typeof host.attachOpening!=='function')return attachCombatPanel(host);
-  let child=null,mode='unknown',disposed=false,refreshing=null,generation=0,revocation=0;
+  let child=null,mode='unknown',disposed=false,refreshing=null,generation=0,revocation=0,routingWarning=null;
   const childHost={...host,requireManagedMaster:true,accepted(receipt){host.accepted(receipt);queueMicrotask(()=>{if(!disposed)refresh();});}};
   const pending=()=>mode==='opening'?!!(child?.controller?.pending||child?.controller?.busy):!!(child?.snapshot()?.pending||child?.snapshot()?.busy);
   const routingScope=()=>JSON.stringify([host.identity?.(),host.location?.()?.id,host.isExam?.()]);
+  function warnRouting(scope,reason){const key=JSON.stringify([scope,reason]);if(routingWarning===key)return;routingWarning=key;host.routingUnknown?.();}
   function install(next){
     const dialog=host.document.getElementById('ordinary-overlay');
     const visible=child?.ownsSurface?.()===true?child.currentSurface():(dialog&&!dialog.hidden?'ordinary':null);
@@ -3891,7 +3892,7 @@ function attachPanelLand(host){
       const current=child,stamp=generation,scope=routingScope(),revoked=revocation;
       const valid=()=>!disposed&&child===current&&stamp===generation&&scope===routingScope()&&!pending();
       const location=host.location()?.id;
-      if(!host.identity?.()||!isId(location)||host.isExam?.()){install('unknown');return false;}
+      if(!host.identity?.()||!isId(location)||host.isExam?.()){routingWarning=null;install('unknown');return false;}
       let e,route='ordinary';
       try{
         const response=await host.rpc('combat_panel_state_v1',{p_location:location,p_actor:null});
@@ -3904,9 +3905,14 @@ function attachPanelLand(host){
           route=typeof host.allowCommonMaster==='function'?await host.allowCommonMaster(e):'unknown';
           if(!valid())return false;
         }
-      }catch{if(valid()&&mode!=='native'){current?.invalidate();host.routingUnknown?.();}return false;}
-      if(route==='native'){install('native');return false;}
-      if(route==='unknown'){if(mode!=='native'){current?.invalidate();host.routingUnknown?.();}return false;}
+      }catch{if(valid()&&mode!=='native'){current?.invalidate();warnRouting(scope,'read_failed');}return false;}
+      if(route==='native'){routingWarning=null;install('native');return false;}
+      if(route==='unknown'){
+        if(e?.status==='blocked'&&e.reason_code==='no_active_session'){routingWarning=null;install('unknown');return false;}
+        if(mode!=='native'){current?.invalidate();warnRouting(scope,e?.reason_code||'route_unknown');}
+        return false;
+      }
+      routingWarning=null;
       let next=e?.status==='ready'&&e.context?.phase==='setup'&&e.context.activity_kind!=='master_v2'?'opening':'combat';
       if(next!==mode){
         const wasVisible=install(next),newChild=child;
