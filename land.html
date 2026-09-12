@@ -3420,9 +3420,26 @@ function renderMovementPreview(map,envelope,offer,selected){
   if(!canvas||!svg)return;
   canvas.querySelectorAll('[data-common-move-preview]').forEach(x=>x.remove());
   if(!offer)return;
-  const directionGroup=offer.choices.find(g=>g.purpose==='movement_direction');
+  const isMultiplication=offer.choices.some(g=>g.purpose==='copies')&&offer.choices.some(g=>g.purpose==='mode');
+  const modeGroup=isMultiplication?offer.choices.find(g=>g.purpose==='mode'&&g.options.some(o=>selected.has(o.option_id))):null;
+  const modeOption=modeGroup?.options.find(o=>selected.has(o.option_id));
+  const modeLabel=(modeOption?.label||'').trim();
+  if(/^assalto$/i.test(modeLabel)){
+    const targetGroup=offer.choices.find(g=>g.purpose==='target'&&g.depends_on===modeOption.option_id);
+    const targetOption=targetGroup?.options.find(o=>selected.has(o.option_id));
+    if(targetOption){
+      const note=canvas.ownerDocument.createElement('span');
+      note.textContent=`Assalto verso ${targetOption.label} · arrivo determinato dal server`;
+      note.className='common-move-preview-label';note.setAttribute('data-common-move-preview','');
+      note.style.left='50%';note.style.top='calc(100% - 28px)';canvas.append(note);
+    }
+    return;
+  }
+  // Ogni quantità/modalità di Moltiplicazione crea un ramo distinto.
+  // Segui il ramo che contiene davvero l'opzione selezionata, non il primo omonimo.
+  const directionGroup=offer.choices.find(g=>g.purpose==='movement_direction'&&g.options.some(o=>selected.has(o.option_id)));
   const directionOption=directionGroup?.options.find(o=>selected.has(o.option_id));
-  const distanceGroup=offer.choices.find(g=>g.purpose==='movement_distance'&&g.depends_on===directionOption?.option_id);
+  const distanceGroup=offer.choices.find(g=>g.purpose==='movement_distance'&&g.depends_on===directionOption?.option_id&&g.options.some(o=>selected.has(o.option_id)));
   const distanceOption=distanceGroup?.options.find(o=>selected.has(o.option_id));
   const dir=movementDirections[distanceOption?.direction||directionOption?.direction];
   const actor=envelope.map?.actors?.find(a=>a.actor_id===envelope.viewer.command_actor_id);
@@ -3434,16 +3451,16 @@ function renderMovementPreview(map,envelope,offer,selected){
   const line=doc.createElementNS(ns,'line');for(const[k,v]of Object.entries({x1:actor.x_m,y1:actor.y_m,x2:x,y2:y,stroke:'#f2bd61','stroke-width':Math.max(.08,Math.min(envelope.map.bounds.width_m,envelope.map.bounds.height_m)/100),'stroke-dasharray':'.32 .22'}))line.setAttribute(k,String(v));
   const end=doc.createElementNS(ns,'circle');for(const[k,v]of Object.entries({cx:x,cy:y,r:Math.max(.18,Math.min(envelope.map.bounds.width_m,envelope.map.bounds.height_m)/45),fill:'#f2bd61','fill-opacity':'.78',stroke:'#111b24','stroke-width':'.08'}))end.setAttribute(k,String(v));
   g.append(line,end);
-  const isMultiplication=offer.choices.some(g=>g.purpose==='copies')&&offer.choices.some(g=>g.purpose==='mode');
-  if(isMultiplication){
-    const layout=offer.choices.find(g=>g.purpose==='movement_distance'&&g.depends_on===directionOption?.option_id&&g.options.some(o=>selected.has(o.option_id)));
-    const layoutChoice=layout?.options.find(o=>selected.has(o.option_id));
-    const originals=offer.choices.find(g=>g.depends_on===layoutChoice?.option_id&&g.purpose==='generic');
-    const distances=(originals?.options||[]).map(o=>o.distance_m).filter(finite);
+  const showFormation=/^(diversivo|copertura)$/i.test(modeLabel);
+  if(showFormation){
+    // Il contratto pubblico espone prima del commit soltanto le posizioni
+    // ammesse per l'originale. Le figure complete arrivano dalla mappa server.
+    const originals=offer.choices.find(g=>g.depends_on===distanceOption.option_id&&g.purpose==='generic');
+    const distances=[...new Set((originals?.options||[]).map(o=>o.distance_m).filter(finite))];
     for(const d of distances){const step=(dir[2]!==0&&dir[3]!==0)?d/2:d,c=doc.createElementNS(ns,'circle');for(const[k,v]of Object.entries({cx:actor.x_m+dir[2]*step,cy:actor.y_m+dir[3]*step,r:Math.max(.14,Math.min(envelope.map.bounds.width_m,envelope.map.bounds.height_m)/58),fill:'#63b8e6','fill-opacity':'.48',stroke:'#f2bd61','stroke-width':'.06'}))c.setAttribute(k,String(v));g.append(c);}
   }
   svg.append(g);
-  const label=doc.createElement('span');label.textContent=isMultiplication?`Anteprima figure · ${dir[0]} fino a ${metres} m`:`Arrivo: ${dir[0]} ${metres} m`;canvas.append(label);label.className='common-move-preview-label';label.setAttribute('data-common-move-preview','');
+  const label=doc.createElement('span');label.textContent=showFormation?`Posizioni possibili dell’originale · ${dir[0]} fino a ${metres} m`:`Arrivo: ${dir[0]} ${metres} m`;canvas.append(label);label.className='common-move-preview-label';label.setAttribute('data-common-move-preview','');
   label.style.left=`clamp(58px, ${x/envelope.map.bounds.width_m*100}%, calc(100% - 58px))`;label.style.top=`clamp(22px, ${y/envelope.map.bounds.height_m*100}%, calc(100% - 22px))`;
 }
 
@@ -6394,7 +6411,7 @@ window.TUSOrdinary={attachOrdinaryLand};
            Da qui in poi la risposta e' scritta in fondo al pannello, e si
            legge senza aprire il sorgente. Non e' decorazione: e' la sola
            cosa che distingue un difetto da un file vecchio. */
-        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-FIGURE-WIZARD-001"+'</p>';
+        h+='<p class="az-d" style="margin:10px 0 0;opacity:.55">build '+"LAND-FIGURE-WIZARD-002"+'</p>';
         b.innerHTML=h;
         azNarrSync();
       }
@@ -8269,6 +8286,7 @@ function createExamRegiaHost(host) {
         if (ticket !== epoch || !owns()) return false;
         if (!ok || view()?.stage === 'stopped') { error = 'La prova è in pausa. Rileggi lo stato; nessuna chiamata IA viene ripetuta.'; auto = false; return false; }
         error = null;
+        if (raw?.draft?.recoverable === true) auto = false;
         if (raw.next === 'paused') { auto = false; error = 'La prova è in pausa. Rileggi lo stato prima di riprendere.'; }
         if (raw.closed) { auto = false; clearPanel(); host.releaseCombat?.(); }
         return true;
@@ -8329,6 +8347,27 @@ function createExamRegiaHost(host) {
   async function resume() {
     if (!owns() || !prova || busy || driving || raw?.closed) return false;
     await refresh(); if (!owns() || error || view()?.stage === 'stopped') return false;
+    if (raw?.draft?.recoverable === true) {
+      const ticket = epoch, oldReceipt = raw.receipt_id;
+      let recoveryFailed = false;
+      busy = true; auto = false; changed();
+      try {
+        const response = await host.client.rpc('esame_regia_recover_expired_choice',{p_prova:prova});
+        if (ticket !== epoch || !owns()) return false;
+        const recovered = response?.data;
+        if (response?.error || recovered?.ok !== true || recovered?.recovered !== true ||
+          !regiaId(recovered.receipt_id) || recovered.receipt_id === oldReceipt) throw Error('recovery_uncertain');
+      } catch (e) {
+        recoveryFailed = true;
+      } finally {
+        if (ticket === epoch) {
+          busy = false; await refresh();
+          if (recoveryFailed) error = 'Recupero non confermato. Premi Aggiorna prima di riprovare.';
+          changed();
+        }
+      }
+      if (recoveryFailed || !owns() || error || raw?.receipt_id === oldReceipt) return false;
+    }
     auto = true; return drive();
   }
   async function close() {
@@ -8413,6 +8452,7 @@ function createExamRegiaHost(host) {
     else if (prova && !raw) text('Recupero dello scontro in corso.');
     else if (canExit()) text('La prova è terminata: invia la tua role di congedo per concluderla.');
     else if (raw?.player_ready) text('Tocca a te: prepara la mossa nel pannello dello scontro e invia la role.');
+    else if (raw?.draft?.recoverable === true) text('La scelta del PNG non si è conclusa. Riprendi la prova per recuperare questa fase senza reinviare la tua azione.');
     else if (prova) text(auto ? 'Attendi l’avanzamento della scena.' : 'La prova è ferma. Riprendila quando sei pronto.');
     if (readiness?.eligible && readiness.ready && !prova) button('Sostieni esame',start,busy || uncertainOpen.has(key));
     if (raw?.closed && mode !== 'ordinary') button('Riparti da zero',restart,busy || driving);
