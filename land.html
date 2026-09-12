@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-HUMAN-DUEL-INITIATIVE-001" />
+  <meta name="tus-build" content="LAND-COMBAT-PANEL-OPEN-004" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1887,7 +1887,7 @@ function createMapFigureResolver({client,identity,location,getContext,renderComm
       if(allowed&&!allowed.has(asset.actor_id))continue;
       const portrait=portraitURL(asset.portrait_url),saved=asset.figure_path?{src:AVATARS+asset.figure_path}:null;
       // Usaritratto/drift (revision>0) non deve riattivare una vecchia figura preapprovata.
-      const primary=saved??(asset.revision===0?approvedAsset(base.actors?.[asset.actor_id]):null)??(portrait?{src:portrait}:null);
+      const primary=saved??(asset.revision===0?approvedAsset(base.actors?.[asset.actor_id]):null);
       if(primary)actors[asset.actor_id]={...primary,...(portrait&&portrait!==primary.src?{portraitSrc:portrait}:{})};
     }
     return {...base,actors};
@@ -2736,7 +2736,8 @@ function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOrigina
   const shape=(tag,attrs,parent=svg)=>{const el=doc.createElementNS(ns,tag);for(const[k,v]of Object.entries(attrs))el.setAttribute(k,String(v));parent.append(el);return el;};
   // Etichette HTML non deformate dal rapporto illustrativo del rettangolo SVG.
   // Sono sole coordinate di disegno; il DTO e le distanze del server restano intatti.
-  const caption=(value,x,y,color='#352b1e')=>{const text=add('span',value,canvas);text.className='common-map-label';text.style.left=`${x/bounds.width_m*100}%`;text.style.top=`${y/bounds.height_m*100}%`;text.style.color=color;text.setAttribute('aria-hidden','true');};
+  const visualCoordinate=(value,total,margin=44)=>`clamp(${margin}px, ${value/total*100}%, calc(100% - ${margin}px))`;
+  const caption=(value,x,y,color='#352b1e')=>{const text=add('span',value,canvas);text.className='common-map-label';text.style.left=visualCoordinate(x,bounds.width_m);text.style.top=visualCoordinate(y,bounds.height_m,24);text.style.color=color;text.setAttribute('aria-hidden','true');};
   // Layer HTML: mantiene proporzioni di sprite/icone anche quando l'arena SVG si estende.
   // I marker nativi rimangono accessibili e tornano visibili se l'immagine non si carica.
   const paintAsset=(value,x,y,kind,marker=null,fallbackName=null)=>{
@@ -2748,11 +2749,16 @@ function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOrigina
     }
     let asset=normalizeMapVisualAsset(value);
     if(!asset){const portrait=trustedAvatarSource(value?.portraitSrc);if(portrait)asset={src:portrait};}
+    if(!asset&&kind==='actor'){
+      const fallback=add('span','',canvas);fallback.className='common-map-figure-fallback';fallback.setAttribute('aria-hidden','true');
+      fallback.style.left=visualCoordinate(x,bounds.width_m);fallback.style.top=visualCoordinate(y,bounds.height_m);
+      if(marker)marker.style.opacity='0';if(initials)initials.hidden=true;canvas.classList.add('common-map-with-art');return true;
+    }
     if(!asset)return false;
     canvas.classList.add('common-map-with-art');
     const wrap=add('span','',canvas);wrap.className='common-map-art common-map-art-'+kind;wrap.setAttribute('aria-hidden','true');
-    if(kind!=='background'){wrap.style.left=`${x/bounds.width_m*100}%`;wrap.style.top=`${y/bounds.height_m*100}%`;}
-    const sources=[asset,...(asset.portraitSrc?[{src:asset.portraitSrc}]:[])];
+    if(kind!=='background'){wrap.style.left=kind==='actor'?visualCoordinate(x,bounds.width_m):`${x/bounds.width_m*100}%`;wrap.style.top=kind==='actor'?visualCoordinate(y,bounds.height_m):`${y/bounds.height_m*100}%`;}
+    const sources=[asset];
     let generation=0;
     const loadAt=index=>{
       const stamp=++generation,current=sources[index];
@@ -2894,9 +2900,9 @@ const COMMON_PANEL_LAYOUT_CSS = `
 .common-panel-feedback:empty{display:none}
 .common-panel-workspace,.common-panel-sidebar{min-width:0}
 .common-panel-map{min-width:0}
-.common-map-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
-.common-map-toolbar>h4{margin:0!important;min-width:0}
-.common-map-toggle{flex-shrink:0}
+.common-map-toolbar{position:relative;display:flex;align-items:center;justify-content:center;gap:12px;flex-shrink:0;min-height:34px;padding:0 88px}
+.common-map-toolbar>h4{margin:0!important;min-width:0;width:100%;text-align:center;color:#f2bd61!important;font-size:16px!important}
+.common-map-toggle{position:absolute;right:0;top:0;flex-shrink:0}
 .common-map-meta{font-size:12px;color:#b6c3d0;margin:8px 0}
 .common-map-canvas{position:relative;min-width:0;min-height:0;overflow:hidden;flex:none;display:block;width:100%;aspect-ratio:1/1;box-sizing:border-box}
 .common-map-label{position:absolute;transform:translate(-50%,-110%);max-width:40%;font:600 13px/1.2 system-ui,sans-serif;text-align:center;pointer-events:none;text-shadow:0 1px 2px #fff8e6,0 -1px 2px #fff8e6;overflow-wrap:anywhere}
@@ -2906,13 +2912,19 @@ const COMMON_PANEL_LAYOUT_CSS = `
 .common-map-art-background{inset:0;z-index:0;overflow:hidden}
 .common-map-art-background img{object-fit:fill}
 .common-map-canvas>.ordinary-map{position:relative;z-index:1;background:transparent!important}
-.common-map-art-actor{width:70px;height:84px;transform:translate(-50%,-88%);z-index:3}
+.common-map-art-actor{width:64px;height:82px;transform:translate(-50%,-88%);z-index:3}
+.common-map-figure-fallback{position:absolute;display:block;width:36px;height:70px;transform:translate(-50%,-88%);z-index:3;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45))}
+.common-map-figure-fallback::before{content:'';position:absolute;left:50%;top:0;width:18px;height:18px;transform:translateX(-50%);border-radius:50%;background:#253b4b;border:2px solid #efd18e}
+.common-map-figure-fallback::after{content:'';position:absolute;left:50%;top:17px;width:32px;height:51px;transform:translateX(-50%);background:linear-gradient(90deg,transparent 0 19%,#253b4b 20% 39%,transparent 40% 60%,#253b4b 61% 80%,transparent 81%),linear-gradient(#253b4b 0 64%,transparent 65%);clip-path:polygon(35% 0,65% 0,78% 48%,67% 48%,88% 100%,62% 100%,50% 66%,38% 100%,12% 100%,33% 48%,22% 48%);border-top:2px solid #efd18e}
 .common-map-art-object{width:48px;height:48px;transform:translate(-50%,-75%)}
 .common-map-canvas>.ordinary-map [data-figure-index]:focus{opacity:1!important;outline:2px solid #edc17a}
 .common-map-art-atlas{overflow:hidden}
 .common-map-art-atlas img{position:absolute;object-fit:fill}
 .common-map-with-art .common-map-label{z-index:4;background:#fff8e6dc;border-radius:3px;padding:1px 3px}
 .common-map-label-below{transform:translate(-50%,12px)}
+.common-move-preview-label{position:absolute;z-index:6;transform:translate(-50%,-50%);padding:4px 8px;border-radius:14px;background:#0b151ee8;border:1px solid #f2bd61;color:#ffe0a3;font:700 11px/1.2 system-ui,sans-serif;white-space:nowrap;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.45)}
+.common-movement-group .common-option-choices{display:grid;grid-template-columns:repeat(3,minmax(96px,1fr));gap:7px}
+.common-movement-group .common-option-choice{display:flex;align-items:center;justify-content:center;text-align:center}
 @media(max-width:999px){.common-map-art-actor{width:50px;height:62px}.common-map-art-object{width:36px;height:36px}.common-map-label-below{transform:translate(-50%,9px)}}
 .common-map-canvas>.ordinary-map{position:absolute;inset:0;display:block;width:100%;height:100%;min-height:0;max-height:none!important;box-sizing:border-box;margin:0}
 .common-map-legend{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;flex:1;max-height:65vh;padding:4px 8px 12px 0;color:#c5d0dc;font-size:13px}
@@ -2927,7 +2939,8 @@ const COMMON_PANEL_LAYOUT_CSS = `
  html.common-panel-open,body.common-panel-open{overflow:hidden!important;overscroll-behavior:none}
  .common-panel-overlay{position:fixed!important;inset:var(--combat-panel-top,0px) 0 0!important;padding:12px!important;box-sizing:border-box;align-items:stretch!important;justify-content:stretch!important;overflow:hidden!important}
  .common-panel-frame{position:relative;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;min-height:0;box-sizing:border-box;display:flex!important;flex-direction:column;gap:8px;padding:12px!important;margin:0!important;overflow:hidden!important;border-radius:8px!important}
- .common-panel-frame>.miss-head,.common-panel-frame>button{flex-shrink:0}
+ .common-panel-frame>.miss-head{display:none!important}
+ .common-panel-frame>button{flex-shrink:0}
  .common-panel-frame>.mailov-x{position:absolute;top:26px;left:26px;right:auto;margin:0;z-index:2;width:auto!important;height:32px!important;box-sizing:border-box;padding:6px 9px!important;font-size:12px!important;line-height:18px!important}
  .common-panel-frame>#ordinary-close{position:absolute;top:26px;left:26px;margin:0;z-index:2;height:32px!important;box-sizing:border-box;padding:6px 9px!important;font-size:12px!important;line-height:18px!important}
  .common-panel-host{display:flex;flex:1;min-width:0;min-height:0;overflow:hidden!important;padding:0!important}
@@ -2936,10 +2949,10 @@ const COMMON_PANEL_LAYOUT_CSS = `
  .common-panel-active>.common-panel-header>h3{grid-column:2;grid-row:1;text-align:center;white-space:nowrap;margin:0}
  .common-panel-active .common-panel-toolbar{grid-column:3;grid-row:1;justify-content:flex-end;flex-wrap:nowrap;gap:6px}
  .common-panel-active .common-panel-toolbar .mv2-btn{height:32px!important;box-sizing:border-box;padding:6px 9px!important;margin:0!important;font-size:12px!important;line-height:18px!important;white-space:nowrap}
- .common-panel-active .common-panel-feedback{grid-column:1/-1;min-width:0}
+ .common-panel-active .common-panel-feedback{grid-column:1/-1;min-width:0;max-height:44px;overflow:auto;scrollbar-gutter:stable}
  .common-panel-active .common-panel-feedback:empty{display:none}
  .common-panel-active .common-panel-feedback .mv2-field{margin:0}
- .common-panel-active>.common-panel-workspace{display:grid;grid-template-columns:minmax(0,1fr) clamp(220px,18vw,270px);grid-template-areas:"arena participants" "commands commands";grid-template-rows:minmax(300px,2fr) minmax(170px,1fr);align-content:stretch;align-items:stretch;gap:12px;flex:1;width:100%;max-width:1640px;align-self:center;box-sizing:border-box;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:0 4px 6px 0}
+ .common-panel-active>.common-panel-workspace{display:grid;grid-template-columns:minmax(0,1fr) clamp(220px,18vw,270px);grid-template-areas:"arena participants" "commands commands";grid-template-rows:minmax(300px,1fr) clamp(190px,28vh,270px);align-content:stretch;align-items:stretch;gap:12px;flex:1;width:100%;max-width:1640px;align-self:center;box-sizing:border-box;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:0 4px 6px 0}
  .common-panel-active .common-panel-map{grid-area:arena!important;justify-self:stretch;width:100%;max-width:none;display:flex;flex-direction:column;min-height:300px;overflow:hidden;margin:0;box-sizing:border-box}
  .common-panel-active .common-map-canvas{flex:1 1 auto;aspect-ratio:auto;width:100%;min-height:260px}
  .common-panel-active .common-panel-map>h4,.common-panel-active .common-panel-map>p{flex-shrink:0;margin:0 0 8px}
@@ -2999,7 +3012,7 @@ function activatePanelLayout({document:doc,root,body,overlay}){
 
 return {COMMON_PANEL_LAYOUT_CSS,installPanelLayout,activatePanelLayout};
 })();
-const module6=(()=>{
+const module5=(()=>{
 // Validazione della nuova famiglia. Nessun allentamento dei contratti legacy.
 const {validateMultiplication}=module2;
 const isId=x=>typeof x==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(x);
@@ -3042,7 +3055,7 @@ function offer(o,c,viewer){
     shape(g,['group_id','label','selection_mode','purpose','min_selected','max_selected','depends_on','options']);
     insist(isId(g.group_id)&&name(g.label)&&['single','multiple'].includes(g.selection_mode)&&purposes.includes(g.purpose)&&int(g.min_selected)&&int(g.max_selected)&&g.min_selected<=g.max_selected&&nullable(g.depends_on,isId)&&Array.isArray(g.options)&&g.max_selected<=g.options.length);
     insist(g.selection_mode!=='single'||g.max_selected<=1);groups.set(g.group_id,g);
-    for(const option of g.options){shape(option,['option_id','label','distance_m','direction']);insist(isId(option.option_id)&&!options.has(option.option_id)&&name(option.label)&&nullable(option.distance_m,num)&&nullable(option.direction,x=>['up','down','left','right','toward_target','away_from_target','stay','up_right','down_right','down_left','up_left'].includes(x)));options.set(option.option_id,g);}
+    for(const option of g.options){shape(option,['option_id','label','distance_m','direction']);insist(isId(option.option_id)&&!options.has(option.option_id)&&name(option.label)&&nullable(option.distance_m,num)&&nullable(option.direction,x=>['up','down','left','right','toward_target','away_from_target','stay'].includes(x)));options.set(option.option_id,g);}
   }
   for(const g of groups.values()){
     let p=g;const seen=new Set();
@@ -3141,8 +3154,8 @@ function selectionReady(offer,selected,inputs,narrativeText){
 
 return {isId,insist,classifyPanelRejection,isPlayerLifecycle,validatePanelEnvelope,flowSelectionTotal,flowOptionAllowed,selectionReady};
 })();
-const module5=(()=>{
-const {validatePanelEnvelope,classifyPanelRejection,selectionReady,flowOptionAllowed,isId,insist}=module6;
+const module4=(()=>{
+const {validatePanelEnvelope,classifyPanelRejection,selectionReady,flowOptionAllowed,isId,insist}=module5;
 // Riceve soltanto gruppi già validati (dipendenze acicliche per ID opaco).
 function settleCopyChoices(offer,selected){
   const next=new Set(selected);
@@ -3162,7 +3175,7 @@ function settleCopyChoices(offer,selected){
 // rpc è una porta iniettata. Costruire il controller non effettua chiamate.
 function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.randomUUID(),classifyRejection=classifyPanelRejection,onChange=()=>{}}){
   insist(typeof rpc==='function'&&typeof contextKey==='function'&&isId(locationId)&&typeof requestKey==='function','controller_configuration');
-  let epoch=0,owner=null,busy=false,pending=null,envelope=null,optionsReady=false,error=null,pollTicket=null;
+  let epoch=0,owner=null,busy=false,pending=null,envelope=null,optionsReady=false,error=null;
   let selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='',narrativeContext=null;
   let rejection=null,refreshRequired=false,lastCommand=null,interactionError=null;
   const chosen=()=>envelope?.offers.find(o=>o.offer_id===selectedOfferId);
@@ -3225,21 +3238,6 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
     }catch(e){if(current(ticket,key)){error='read_failed';resetChoices();}return false;}
     finally{if(current(ticket,key)){busy=false;notify();}}
   }
-  // Il polling non blocca il form e non rinnova offerte valide. Una lettura esplicita,
-  // un invio o una revoca avanzano epoch e rendono inapplicabile la risposta precedente.
-  async function pollState(){
-    if(!bind()||busy||pending||pollTicket!==null)return false;
-    const ticket=++epoch,key=owner,actor=envelope?.viewer.command_actor_id??null;pollTicket=ticket;
-    try{
-      const raw=await rpc('combat_panel_state_v1',{p_location:locationId,p_actor:actor});
-      if(!current(ticket,key)||pending||busy)return false;
-      apply(validatePanelEnvelope(raw,{state:true}),false);
-      refreshRequired=false;error=null;notify();return true;
-    }catch(e){
-      if(current(ticket,key)){error='read_failed';resetChoices();notify();}
-      return false;
-    }finally{if(pollTicket===ticket)pollTicket=null;}
-  }
   function editable(){requireCurrent();insist(!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command,'choices_unavailable');}
   async function selectActor(actor){requireCurrent();insist(!busy&&!pending&&envelope?.viewer.controlled_actors.some(a=>a.actor_id===actor),'actor_unavailable');narrativeText='';narrativeContext=null;resetChoices();return read(false,actor);}
   function selectOffer(id){editable();insist(envelope.offers.some(o=>o.offer_id===id),'offer_unavailable');selectedOfferId=id;selectedOptionIds=settleCopyChoices(chosen(),[]);inputs=[];error=null;interactionError=null;notify();}
@@ -3275,12 +3273,12 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   }
   async function submit(){try{insist(!pending,'pending_command');pending=Object.freeze(prepare());return await send();}catch(e){reportInteractionError(e);return null;}}
   async function retry(){return send();}
-  return {snapshot,clear,invalidate,reportInteractionError,readState:()=>read(false),pollState,readOptions:()=>read(true),selectActor,selectOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
+  return {snapshot,clear,invalidate,reportInteractionError,readState:()=>read(false),readOptions:()=>read(true),selectActor,selectOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
 }
 
 return {settleCopyChoices,createPanelController};
 })();
-const module9=(()=>{
+const module8=(()=>{
 // Proiezione propria opzionale; nessun costo, autorità o saldo ricostruito.
 function renderCombatCompanion(root,envelope){
   root.replaceChildren();root.hidden=true;
@@ -3308,8 +3306,8 @@ function renderCombatCompanion(root,envelope){
 
 return {renderCombatCompanion};
 })();
-const module8=(()=>{
-const {renderCombatCompanion}=module9;
+const module7=(()=>{
+const {renderCombatCompanion}=module8;
 const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(x);
 const integer=x=>Number.isSafeInteger(x)&&x>=0;
 const exact=(x,keys)=>x!==null&&typeof x==='object'&&!Array.isArray(x)&&Object.keys(x).length===keys.length&&keys.every(k=>Object.hasOwn(x,k));
@@ -3330,26 +3328,13 @@ function renderPanelSabaku(root,envelope,{compact=false}={}){
   const value=envelope.sabaku_transport;if(value===null)return;
   const add=(tag,text)=>{const el=root.ownerDocument.createElement(tag);el.textContent=text;root.append(el);return el;};
   const fail=()=>{root.hidden=false;add('p','Stato della sabbia non disponibile.');};
-  if(envelope.status!=='ready'||!uuid(envelope.viewer.command_actor_id)||!(exact(value,['contract_version','context_version','is_test','innata','reserve','transport'])||exact(value,['contract_version','context_version','is_test','innata','reserve','transport','armor']))||value.contract_version!=='sabaku-transport-view/2'||value.context_version!==envelope.context.version||typeof value.is_test!=='boolean')return fail();
+  if(envelope.status!=='ready'||!uuid(envelope.viewer.command_actor_id)||!exact(value,['contract_version','context_version','is_test','innata','reserve','transport'])||value.contract_version!=='sabaku-transport-view/2'||value.context_version!==envelope.context.version||typeof value.is_test!=='boolean')return fail();
   const {innata:i,reserve:r,transport:t}=value;
   if(!exact(i,['active','activation_chakra','upkeep_chakra','deactivation_chakra'])||typeof i.active!=='boolean'||i.activation_chakra!==5||i.upkeep_chakra!==5||i.deactivation_chakra!==0)return fail();
   if(!exact(r,['current','committed','capacity','available'])||!Object.values(r).every(integer)||r.committed>r.current||r.current>r.capacity||r.available!==r.current-r.committed)return fail();
   if(!exact(t,['active','activation_chakra','sand_commit','upkeep_chakra','movement_bonus_m','expires_context'])||typeof t.active!=='boolean'||t.activation_chakra!==5||t.sand_commit!==5||t.upkeep_chakra!==0)return fail();
   if(t.active){const end=t.expires_context;if(!i.active||t.movement_bonus_m!==5||r.committed<5||!exact(end,['kind','id','label'])||!['ordinary_exchange','master_actor_turn'].includes(end.kind)||!uuid(end.id)||typeof end.label!=='string'||!end.label.trim())return fail();}
   else if(t.movement_bonus_m!==0||t.expires_context!==null)return fail();
-  const armor=value.armor;
-  const armorReasons={manual_off:'Disattivata volontariamente.',insufficient_sand:'Sabbia insufficiente per ricomporre l’armatura.',insufficient_chakra:'Chakra insufficiente per mantenere l’armatura.',innata_off:'Controllo della Sabbia disattivato.',owner_inoperative:'L’utilizzatore non può mantenere l’armatura.',owner_ko:'L’utilizzatore è fuori combattimento.',owner_absent:'L’utilizzatore non è più nella scena.',combat_end:'Lo scontro è terminato.',release_disabled:'Armatura al momento non disponibile.'};
-  if(Object.hasOwn(value,'armor')){
-    if(!exact(armor,['version','active','held','protection','upkeep_chakra','state_version','off_reason'])||armor.version!=='sabaku-armor-view/1'||typeof armor.active!=='boolean'||armor.held!==(armor.active?2:0)||armor.upkeep_chakra!==5||!integer(armor.state_version)||(armor.protection!==null&&(!integer(armor.protection)||armor.protection<10))||(armor.off_reason!==null&&!Object.hasOwn(armorReasons,armor.off_reason)))return fail();
-    if(armor.active&&(!i.active||armor.protection===null||r.committed<armor.held||armor.off_reason!==null))return fail();
-  }
-  const renderArmor=()=>{
-    if(armor===undefined)return;
-    add('h4','Armatura di Sabbia · '+(armor.active?'attiva':'inattiva'));
-    if(armor.protection!==null)add('p',`Difesa dell’armatura: ${armor.protection}.`);
-    add('p',`Mantenimento: ${armor.upkeep_chakra} chakra per turno · Sabbia impegnata: ${armor.held}.`);
-    if(!armor.active&&armor.off_reason!==null)add('p',armorReasons[armor.off_reason]);
-  };
   if(compact){
     root.hidden=false;root.setAttribute('role','status');root.setAttribute('aria-live','polite');
     const caption=add('div','');caption.className='common-resource-caption';
@@ -3357,7 +3342,6 @@ function renderPanelSabaku(root,envelope,{compact=false}={}){
     const amount=root.ownerDocument.createElement('strong');amount.textContent=`${r.available} disponibili`;
     caption.append(label,amount);
     const detail=add('p',`Impegnata: ${r.committed} · Capacità: ${r.capacity}`);detail.className='mv2-note';
-    renderArmor();
     return;
   }
   root.hidden=false;add('h4','Controllo della sabbia');add('p',value.is_test?'Riserva di prova · separata dalla giara reale':'Riserva personale di sabbia');
@@ -3365,19 +3349,18 @@ function renderPanelSabaku(root,envelope,{compact=false}={}){
   add('p',`Sabbia disponibile: ${r.available} · impegnata: ${r.committed} · corrente: ${r.current} / ${r.capacity}.`);
   add('h4','Trasporto di Sabbia · '+(t.active?'attivo':'inattivo'));add('p',`Attivazione ${t.activation_chakra} chakra · impegno ${t.sand_commit} sabbia · mantenimento ${t.upkeep_chakra} chakra.`);
   if(t.active){add('p',`Bonus al movimento ordinario: +${t.movement_bonus_m} m.`);add('p','Ignora il sovraccosto di tutte le aree impervie. Ostacoli e immobilizzazione restano validi.');add('p','Validità: '+t.expires_context.label);}
-  renderArmor();
   add('p','Le attivazioni disponibili si scelgono dalle offerte del server.');
 }
 
 return {renderPanelCompanion,renderPanelSandSummary,renderPanelSabaku};
 })();
-const module7=(()=>{
+const module6=(()=>{
 // EXAM-LAYOUT-UI-012: riuso DOM su snapshot equivalente, nessuna RPC.
 // Candidata di sola presentazione combat-panel/1. Nessuna RPC o formula di gioco.
 const {installPanelLayout}=module3;
 const {renderPanelMap}=module1;
-const {isPlayerLifecycle,flowSelectionTotal,flowOptionAllowed}=module6;
-const {renderPanelCompanion,renderPanelSabaku,renderPanelSandSummary}=module8;
+const {isPlayerLifecycle,flowSelectionTotal,flowOptionAllowed}=module5;
+const {renderPanelCompanion,renderPanelSabaku,renderPanelSandSummary}=module7;
 // Il controller validante è iniettato: questa vista non concede autorità.
 const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(x);
 const text=x=>typeof x==='string';
@@ -3386,6 +3369,32 @@ const finite=x=>typeof x==='number'&&Number.isFinite(x)&&x>=0;
 const purposes=new Set(['generic','target','coverage','technique','mode','copies','movement_direction','movement_distance']);
 const actorStateLabels={active:'Attivo',out:'Fuori combattimento',withdrawn:'Ritirato'};
 const narrativeStates={idle:'Nessun esito in attesa',waiting:'Esito in attesa',running:'Narrazione in corso',published:'Esito pubblicato',failed:'Narrazione non riuscita',expired:'Attesa della narrazione scaduta'};
+
+const movementDirections={up:['↑','Su',0,-1],up_right:['↗','Alto a destra',1,-1],right:['→','Destra',1,0],down_right:['↘','Basso a destra',1,1],down:['↓','Giù',0,1],down_left:['↙','Basso a sinistra',-1,1],left:['←','Sinistra',-1,0],up_left:['↖','Alto a sinistra',-1,-1],toward_target:['◎','Verso il bersaglio',0,0],stay:['•','Resta sul posto',0,0]};
+function movementOptionLabel(option){const d=movementDirections[option?.direction];return d?`${d[0]} ${option.label}`:option.label;}
+function renderMovementPreview(map,envelope,offer,selected){
+  const canvas=map?.querySelector?.('.common-map-canvas'),svg=canvas?.querySelector?.('svg.ordinary-map');
+  if(!canvas||!svg)return;
+  canvas.querySelectorAll('[data-common-move-preview]').forEach(x=>x.remove());
+  if(!offer)return;
+  const directionGroup=offer.choices.find(g=>g.purpose==='movement_direction');
+  const directionOption=directionGroup?.options.find(o=>selected.has(o.option_id));
+  const distanceGroup=offer.choices.find(g=>g.purpose==='movement_distance'&&g.depends_on===directionOption?.option_id);
+  const distanceOption=distanceGroup?.options.find(o=>selected.has(o.option_id));
+  const dir=movementDirections[distanceOption?.direction||directionOption?.direction];
+  const actor=envelope.map?.actors?.find(a=>a.actor_id===envelope.viewer.command_actor_id);
+  const metres=distanceOption?.distance_m;
+  if(!dir||!actor||!finite(metres)||metres<=0||dir[2]===0&&dir[3]===0)return;
+  const steps=(dir[2]!==0&&dir[3]!==0)?metres/2:metres;
+  const x=actor.x_m+dir[2]*steps,y=actor.y_m+dir[3]*steps;
+  const doc=canvas.ownerDocument,ns='http://www.w3.org/2000/svg',g=doc.createElementNS(ns,'g');g.setAttribute('data-common-move-preview','');g.setAttribute('aria-hidden','true');
+  const line=doc.createElementNS(ns,'line');for(const[k,v]of Object.entries({x1:actor.x_m,y1:actor.y_m,x2:x,y2:y,stroke:'#f2bd61','stroke-width':Math.max(.08,Math.min(envelope.map.bounds.width_m,envelope.map.bounds.height_m)/100),'stroke-dasharray':'.32 .22'}))line.setAttribute(k,String(v));
+  const end=doc.createElementNS(ns,'circle');for(const[k,v]of Object.entries({cx:x,cy:y,r:Math.max(.18,Math.min(envelope.map.bounds.width_m,envelope.map.bounds.height_m)/45),fill:'#f2bd61','fill-opacity':'.78',stroke:'#111b24','stroke-width':'.08'}))end.setAttribute(k,String(v));
+  g.append(line,end);svg.append(g);
+  const label=doc.createElement('span');label.textContent=`Arrivo: ${dir[0]} ${metres} m`;canvas.append(label);label.className='common-move-preview-label';label.setAttribute('data-common-move-preview','');
+  label.style.left=`clamp(58px, ${x/envelope.map.bounds.width_m*100}%, calc(100% - 58px))`;label.style.top=`clamp(22px, ${y/envelope.map.bounds.height_m*100}%, calc(100% - 22px))`;
+}
+
 
 // Barre soltanto grafiche: valori e limiti vengono dal DTO, senza ricalcolo risorse.
 function renderResourceBar(doc,parent,key,label,value,ownerName=''){
@@ -3511,13 +3520,20 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     picker.value=v.command_actor_id||'';picker.disabled=locked||!selectActor||v.controlled_actors.length===0;
     picker.addEventListener('change',()=>{if(ticket!==generation||!selectActor)return;const id=picker.value;if(v.controlled_actors.some(a=>a.actor_id===id))selectActor(id);});
     const roster=node('div',undefined,info);roster.className='mv2-roster';
+    // Il duello a iniziativa è l'unico caso con ruoli binari. La Regia multi-attore
+    // conserva action_due/defense_due per ciascun attore senza inventare squadre o turni.
     const initiativeDuel=c.activity_kind==='master_v2'&&c.phase_label.startsWith('Duello a iniziativa ·');
     const duelMain=initiativeDuel&&e.round_details?.declarations?.find(d=>['attacco','movimento','utilita','passa'].includes(d.kind));
-    const duelAttackerId=initiativeDuel?(c.phase==='action'?(e.actors.find(a=>a.action_due===true)?.actor_id||null):(duelMain?.actor_id||null)):null;
     for(const actor of e.actors){
       const row=node('div',undefined,roster);row.className='mv2-row';
       node('strong',actor.display_name,row);
-      if(initiativeDuel&&!actor.body_only&&actor.state==='active')note(row,actor.actor_id===duelAttackerId?'Attaccante':'Difensore');
+      let duelRole=null;
+      if(initiativeDuel&&!actor.body_only&&actor.state==='active'){
+        if(c.phase==='action')duelRole=actor.action_due===true?'Attaccante':'Difensore';
+        else if(c.phase==='defense')duelRole=actor.defense_due===true?'Difensore':'Attaccante';
+        else if(duelMain)duelRole=actor.actor_id===duelMain.actor_id?'Attaccante':'Difensore';
+      }
+      if(duelRole)note(row,'Ruolo: '+duelRole);
       note(row,[(actor.team===null?'':`Squadra ${actor.team} · `)+(actorStateLabels[actor.state]||actor.state),finite(actor.distance_from_viewer_m)?`${actor.distance_from_viewer_m} m`:null].filter(Boolean).join(' · '));
       if(actor.resources!==null){
         const r=actor.resources;
@@ -3593,6 +3609,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
       const area=selected.flow_budget?flowArea:administrative(selected)?admin:actions;
       renderOffer(area,selected,e,model,ticket,!commandsReady);
     }
+    renderMovementPreview(map,e,selected,new Set(model.selectedOptionIds||[]));
     button(toolbar,'Aggiorna',handler(ticket,readState),locked);
     if(model.pending===true)button(toolbar,'Verifica lo stesso invio',handler(ticket,retry),model.busy===true);
     if(e.narrative&&(e.narrative.state!=='idle'||e.narrative.last_published!==null))renderNarrative(section(sidebar,'Fato e narrazione'),e);
@@ -3620,11 +3637,13 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     for(const group of offer.choices){
       if(!purposes.has(group.purpose)||group.depends_on!==null&&!selected.has(group.depends_on))continue;
       const field=node('fieldset',undefined,area);field.disabled=disabled||!selectOption;
-      node('legend',group.label,field);
+      if(group.purpose==='movement_direction'||group.purpose==='movement_distance')field.classList.add('common-movement-group');
+      const dependentDirection=group.purpose==='movement_distance'?offer.choices.flatMap(g=>g.options).find(o=>o.option_id===group.depends_on)?.direction:null;
+      node('legend',group.label+(dependentDirection&&movementDirections[dependentDirection]?` · ${movementDirections[dependentDirection][0]} ${movementDirections[dependentDirection][1]}`:''),field);
       if(group.selection_mode==='single'){
         if(group.options.length>0&&group.options.length<=6){
           const choices=node('div',undefined,field);choices.className='common-option-choices';choices.setAttribute('role','group');choices.setAttribute('aria-label',group.label);
-          for(const option of group.options){const choice=button(choices,option.label,()=>{if(ticket===generation&&selectOption)changeSingleChoice(group,selected.has(option.option_id)?'':option.option_id,selected,selectOption);},disabled||!selectOption||(!selected.has(option.option_id)&&!flowOptionAllowed(offer,selected,group.group_id,option.option_id)));choice.className+=' common-option-choice';choice.setAttribute('aria-pressed',String(selected.has(option.option_id)));}
+          for(const option of group.options){const choice=button(choices,group.purpose==='movement_direction'?movementOptionLabel(option):option.label,()=>{if(ticket===generation&&selectOption)changeSingleChoice(group,selected.has(option.option_id)?'':option.option_id,selected,selectOption);},disabled||!selectOption||(!selected.has(option.option_id)&&!flowOptionAllowed(offer,selected,group.group_id,option.option_id)));choice.className+=' common-option-choice';choice.setAttribute('aria-pressed',String(selected.has(option.option_id)));}
         }else{
           const select=node('select',undefined,field);select.className='mv2-select';select.setAttribute('aria-label',group.label);
           const blank=node('option','Seleziona',select);blank.value='';
@@ -3675,10 +3694,14 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
 
 return {renderResourceBar,changeSingleChoice,mountPanelView};
 })();
-const module4=(()=>{
-const {createPanelController}=module5;
-const {mountPanelView}=module7;
-const {insist,isId}=module6;
+const module0=(()=>{
+const {renderPanelMap,renderReadonlyScene,normalizeMapVisualAsset}=module1;
+const renderReadonlyFigureMap=renderReadonlyScene;
+const renderCommonMap=renderPanelMap;
+const normalizeFigureAsset=normalizeMapVisualAsset;
+const {activatePanelLayout}=module3;
+const {createPanelController}=module4;
+const {mountPanelView}=module6;
 // Host unico per le due superfici. Nessuna chiamata alla costruzione e nessun
 // fallback verso invii legacy: il testo viaggia soltanto nel commit atomico.
 function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{},onDraft=()=>{},renderers={},canRestoreTestResources=()=>false}){
@@ -3699,12 +3722,6 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   });
   const invoke=fn=>async(...args)=>{if(disposed||restoring)return null;try{return await fn(...args);}catch(e){if(!disposed)controller.reportInteractionError(e);return null;}};
   async function read(){if(!await controller.readState())return false;const m=controller.snapshot();if(m.envelope?.viewer.can_command&&!m.pending)return controller.readOptions();return true;}
-  async function poll(){
-    if(!await controller.pollState())return false;
-    const m=controller.snapshot();
-    if(m.envelope?.viewer.can_command&&!m.pending&&!m.optionsReady)return controller.readOptions();
-    return true;
-  }
   async function restoreTestResources(){
     const before=controller.snapshot(),key=contextKey();
     if(disposed||restoring||before.busy||before.pending||!key||!allowed(before))return false;
@@ -3743,7 +3760,7 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   view.render(presented(controller.snapshot()));
   return {
     open:invoke(read),
-    refresh:invoke(poll),
+    refresh:invoke(()=>controller.readState()),
     setNarrative:invoke(value=>controller.setNarrative(value)),
     submit:invoke(()=>send(false)),
     invalidate:()=>{restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;if(!disposed)controller.invalidate();},
@@ -3752,16 +3769,7 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   };
 }
 
-return {mountPanelSurface};
-})();
-const module0=(()=>{
-const {renderPanelMap,renderReadonlyScene,normalizeMapVisualAsset}=module1;
-const renderReadonlyFigureMap=renderReadonlyScene;
-const renderCommonMap=renderPanelMap;
-const normalizeFigureAsset=normalizeMapVisualAsset;
-const {activatePanelLayout}=module3;
-const {mountPanelSurface}=module4;
-const {isId,insist,validatePanelEnvelope}=module6;
+const {isId,insist,validatePanelEnvelope}=module5;
 // Invito e accettazione riusano le porte pubblicate; le fasi giocate usano Common.
 // La selezione dipende solo dalla proiezione server, mai da un errore di commit.
 function attachPanelLand(host){
@@ -4565,7 +4573,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       function normVirg(s){ return (s==null?'':String(s))
         .replace(/[\u201C\u201D\u201E\u201F\u2033\u3003\u301D\u301E\uFF02]/g,'"')
         .replace(/\u00A0/g,' '); }
-      function fmtBody(s){ var t=esc(normVirg(s));
+      function fmtBody(s){ var raw=normVirg(s).replace(/(?:[ \t]*\r?\n)+[ \t]*(?=(?:〈[^〈〉]{1,60}〉[ \t]*)+$)/g,' '); var t=esc(raw);
         t=t.replace(/&quot;([\s\S]*?)&quot;/g,'<span class="sp-say">&quot;$1&quot;</span>');
         t=t.replace(/«([\s\S]*?)»/g,'<span class="sp-say">«$1»</span>');
         t=t.replace(/&lt;((?:(?!&lt;|&gt;)[\s\S])+?)&gt;/g,'<span class="sp-say">&lt;$1&gt;</span>');
