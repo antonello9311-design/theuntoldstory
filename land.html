@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-ORDINARY-DUEL-ROLES-005" />
+  <meta name="tus-build" content="LAND-DUEL-MASTER-RACCORDO-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -745,6 +745,12 @@
   .mailov-slot{flex:1;min-height:0;display:flex}
   .mailov-slot .mbox{flex:1;min-height:0;box-shadow:0 24px 60px rgba(20,12,4,.5)}
   .mailov-slot .side-toggle{display:none}
+  .mailov.mv2-compact .mailov-card{width:min(500px,100%);height:auto;max-height:78vh}
+  .mailov.mv2-compact .mailov-slot{flex:0 1 auto}
+  .mailov.mv2-compact .mailov-slot .mbox{flex:0 1 auto;max-height:72vh}
+  #ordinary-overlay .ordinary-opening .ordinary-resources,#ordinary-overlay .ordinary-opening .ordinary-map-section,#ordinary-overlay .ordinary-opening .ordinary-companion,#ordinary-overlay .ordinary-opening .mv2-roster{display:none!important}
+  #ordinary-overlay .ordinary-opening .mv2-grid{grid-template-columns:1fr;margin-top:10px}
+  #ordinary-overlay .ordinary-opening h3{margin-bottom:6px}
   /* Missioni: overlay bacheca + registro */
   .missov-card{position:relative;width:min(700px,100%);height:min(86vh,820px);display:flex;flex-direction:column;background:linear-gradient(var(--paper-hi),var(--paper));border:1.5px solid var(--rule);box-shadow:0 24px 60px rgba(20,12,4,.5)}
   .miss-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--rule);flex-wrap:wrap}
@@ -4299,14 +4305,15 @@ function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=n
   let offerSignature='',moveSignature='';
   function options(el,items,placeholder,isMovement=false){el.replaceChildren();const first=node('option',placeholder);first.value='';el.append(first);for(const item of items){const o=node('option',item.label+(isMovement?' · spostamento '+String(item.distance_m).replace('.',',')+' m':''));o.value=item.offer_id;el.append(o);}}
   function render(){
-    const c=controller,e=c.envelope;status.textContent=e?.context?((Number.isSafeInteger(e.context.round_no)?'Round '+e.context.round_no+' · ':'')+phases[e.context.phase]):(e?'Scontro non disponibile':'Caricamento dello scontro…');
+    const c=controller,e=c.envelope,isOpening=e?.context?.phase==='waiting_join';root.classList.toggle('ordinary-opening',isOpening);heading.textContent=isOpening?'Sfida':'Scontro';status.textContent=e?.context?((Number.isSafeInteger(e.context.round_no)?'Round '+e.context.round_no+' · ':'')+phases[e.context.phase]):(e?'Scontro non disponibile':'Caricamento dello scontro…');
     const activeActors=(e?.actors||[]).filter(a=>a.state==='active'&&a.body_only!==true);
     const expected=activeActors.filter(a=>e?.context?.phase==='action'?a.is_turn_owner===true:e?.context?.phase==='defense'?a.is_turn_owner===false:false);
     if(activeActors.length===2&&expected.length===1)status.textContent+=' · Deve agire '+expected[0].display_name;
     const narrativeView=combatNarrativePresentation(e,c.error);
     if(narrativeView.suffix)status.textContent+=' · '+narrativeView.suffix;
+    roster.hidden=isOpening;resources.hidden=isOpening;map.hidden=isOpening;companion.hidden=isOpening;note.hidden=isOpening;
     roster.replaceChildren();for(const a of e?.actors||[]){roster.append(node('li',a.display_name+(a.distance_from_viewer_m===null?'':' · '+a.distance_from_viewer_m+' m da te')));}
-    renderPovResources(resources,e);renderCombatMap(map,e);renderCombatCompanion(companion,e);
+    if(!isOpening){renderPovResources(resources,e);renderCombatMap(map,e);renderCombatCompanion(companion,e);}
     const code=c.error||(e?.status==='blocked'?e.reason_code:null);
     notice.textContent=code?(reasons[code]||'Scelte non disponibili. Aggiorna lo stato dello scontro.'):(e?.context?.phase==='closed'?'Lo scontro è concluso.':(!e?.viewer.can_command?'In attesa del passaggio successivo.':(c.needsOptions?'Apri o aggiorna le scelte disponibili.':'')));
     if(narrativeView.notice!==null)notice.textContent=narrativeView.notice;
@@ -4318,7 +4325,7 @@ function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=n
     movement.value=c.movement||'';movement.disabled=select.disabled;movementLabel.hidden=moves.length===0;movementLabel.setAttribute('style',moves.length?'':'display:none');
     refresh.disabled=c.busy||!!c.pending||e?.status!=='ready'||!e?.viewer.can_command;
     send.disabled=!c.canSubmit();retry.hidden=!c.pending;retry.disabled=c.busy;
-    send.textContent=onConfirm&&['declare','defend'].includes(chosen?.operation)?'Prepara scelta':'Conferma scelta';
+    send.textContent=isOpening?(chosen?.operation==='open'?'Invia sfida':chosen?.operation==='join'?'Accetta':chosen?.operation==='close'?(chosen.label||'Rifiuta'):'Conferma'):onConfirm&&['declare','defend'].includes(chosen?.operation)?'Prepara scelta':'Conferma scelta';
     const r=e?.receipt;receipt.textContent=r?('Ricevuta registrata'+(r.replayed?' · invio già acquisito':'')+(r.values_written?' · valori applicati.':' · nessuna modifica ai valori in questo passaggio.')):'';
     events.replaceChildren();for(const event of r?.display_events||[])events.append(node('li',event.summary));
     const remembered=closeMemory.observe(presentationScope(),e);
@@ -4529,7 +4536,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       var toSel=document.getElementById('msg-to'), diceBtn=document.getElementById('dice-btn'), objBtn=document.getElementById('obj-btn');
       var nameEl=document.getElementById('room-name'), kindEl=document.getElementById('room-kind'), descEl=document.getElementById('room-desc'), meteoEl=document.getElementById('room-meteo');
       var backBtn=document.getElementById('room-back');
-      var LOCS=[], cur=null, poll=null, loggedIn=false, myId=null, myCharId=null, EMB={}, ROSTER=[], pendingWhisper=null, rosterPoll=null, ACT=[], iAmStaff=false, fatoMode=false, WHO=[], myVita=null, myChakra=null, myVitaMax=null, myChakraMax=null, myCorp=null;
+      var LOCS=[], cur=null, poll=null, presencePoll=null, lastWhoSig=null, loggedIn=false, myId=null, myCharId=null, EMB={}, ROSTER=[], pendingWhisper=null, rosterPoll=null, ACT=[], iAmStaff=false, fatoMode=false, WHO=[], myVita=null, myChakra=null, myVitaMax=null, myChakraMax=null, myCorp=null;
       function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
       /* ---- Correttore del browser: interruttore (i termini del mondo non sono errori) ---- */
       var spellOn=true; try{ spellOn=(localStorage.getItem('tus_spell')!=='0'); }catch(e){}
@@ -5024,9 +5031,11 @@ window.TUSOrdinary={attachOrdinaryLand};
       }
       function setFatoMode(on){
         fatoMode=!!on && !!iAmStaff;
-        var comp=document.querySelector('.composer'), btn=document.getElementById('fato-btn');
+        var comp=document.querySelector('.composer'), btn=document.getElementById('fato-btn'), masterBtn=document.getElementById('mv2-open-btn');
         if(comp) comp.classList.toggle('fato-on',fatoMode);
         if(btn){ btn.setAttribute('aria-pressed',fatoMode?'true':'false'); btn.textContent=fatoMode?'Torna al PG':'Entra come Fato'; }
+        if(masterBtn) masterBtn.style.display=fatoMode?'':'none';
+        if(!fatoMode&&typeof mv2OvChiudi==='function')mv2OvChiudi();
         if(fatoMode){
           if(toSel) toSel.value='';
           var pb=document.getElementById('png-box'); if(pb) pb.hidden=true;
@@ -5040,7 +5049,16 @@ window.TUSOrdinary={attachOrdinaryLand};
       window.addEventListener('pagehide',function(){ setFatoMode(false); });
       function loadWho(){
         if(!sb||!cur) return;
-        sb.rpc('who_here',{p_location:cur.id,p_minutes:8}).then(function(r){ if(r&&!r.error){ WHO=r.data||[]; renderWho(r.data); updateTargets(r.data); try{TRV2.sig=null;renderTraining();}catch(e){} } }, function(){});
+        var locationId=cur.id;
+        sb.rpc('who_here',{p_location:locationId,p_minutes:8}).then(function(r){
+          if(!cur||cur.id!==locationId||!r||r.error)return;
+          var rows=r.data||[],sig;
+          try{sig=JSON.stringify(rows.map(function(x){return [x.user_id||x.id||'',x.character_id||'',x.name||'',x.status||''];}).sort());}catch(e){sig=null;}
+          if(sig!==null&&sig===lastWhoSig)return;
+          lastWhoSig=sig;WHO=rows;renderWho(rows);updateTargets(rows);
+          try{TRV2.sig=null;renderTraining();}catch(e){}
+          loadMasterV2();ordinaryRefresh();
+        }, function(){});
       }
       function updateKOState(){ /* [R3] il pulsante che disabilitava e' stato ritirato: resta il badge, che e' l'unico avviso di KO ancora in barra. */ var badge=document.getElementById('ko-badge'); var ko=(myVita!=null && myVita<=0); if(badge){ badge.style.display=ko?'':'none'; } }
       function refreshMyVita(notificaPunti){ if(!sb||!myId) return; sb.from('characters').select('vita,vita_max,chakra,chakra_max,mente,corporation,unspent_points').eq('user_id',myId).maybeSingle().then(function(r){ if(r&&r.data){ myVita=(r.data.vita!=null?r.data.vita:null); myVitaMax=(r.data.vita_max!=null?r.data.vita_max:null); myChakra=(r.data.chakra!=null?r.data.chakra:null); myChakraMax=(r.data.chakra_max!=null?r.data.chakra_max:null); myCorp=(r.data.corporation!=null?r.data.corporation:null); var pts=Math.max(0,parseInt(r.data.unspent_points,10)||0); showPtsReminder(pts); if(notificaPunti&&pts>0) toast('Promozione completata: sei Genin. Hai '+pts+' punti statistica disponibili da assegnare nella Scheda.'); } updateVitals(); updateKOState();  },function(){}); }
@@ -5058,6 +5076,8 @@ window.TUSOrdinary={attachOrdinaryLand};
          Ora il rifiuto si vede una volta sola e riporta alla mappa. */
       function stanzaNegata(msg){
         if(poll){ clearInterval(poll); poll=null; }
+        if(presencePoll){ clearInterval(presencePoll); presencePoll=null; }
+        lastWhoSig=null;
         try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){}
         toast(msg||'Non puoi entrare in questo luogo');
         leaveRoom();
@@ -5182,12 +5202,12 @@ window.TUSOrdinary={attachOrdinaryLand};
       function refreshRoom(){ if(!cur) return; CMB_APRI=false; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); ordinaryRefresh(); }
 
       /* ---- MASTER-COMBAT-V2-LAND-UI-021: regia multi-attore ---- */
-      var MV2={data:null,loading:false,setup:null,setupOpen:false,pngDraft:[],options:{},busy:false,missingRpc:false,setupKind:null,serverSig:null,defenseDrafts:{}};
+      var MV2={data:null,loading:false,setup:null,setupOpen:false,pngDraft:[],options:{},busy:false,missingRpc:false,setupKind:null,serverSig:null,defenseDrafts:{},encounterDraft:null};
       function mv2Key(){ try{return crypto.randomUUID();}catch(e){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c==='x'?r:(r&3|8);return v.toString(16);});} }
       function mv2Data(r){ return r&&r.data&&r.data.data!==undefined?r.data.data:(r&&r.data?r.data:null); }
       function mv2Error(r,alt){ var e=r&&r.error, m=e&&(e.message||e.details||e.hint); if(!m) return alt||'Operazione non riuscita'; try{ var j=JSON.parse(m); return j.message||j.error||alt||m; }catch(_e){ return m; } }
       function mv2Rpc(name,args){ return sb.rpc(name,args).then(function(r){ if(r&&r.error) throw new Error(mv2Error(r)); return mv2Data(r); }); }
-      function mv2Card(show){ var c=document.getElementById('mv2-card'); if(c)c.hidden=!show; }
+      function mv2Card(show){ var c=document.getElementById('mv2-card'); if(c)c.hidden=!(show&&(!iAmStaff||fatoMode)); }
       /* [MV2-DRAFT-DEFENSE 01/09] Il poll della stanza continua a controllare il
          server, ma non ricostruisce il pannello quando lo stato autoritativo non
          cambia. Se cambia davvero, la bozza locale viene rimessa nel nuovo DOM. */
@@ -5288,11 +5308,10 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(!s) return '<p class="mv2-wait">Carico missioni e persone presenti…</p>';
         var k=MV2.setupKind||null;
         if(!k){
-          return '<p class="mv2-note">Cosa vuoi masterare in questa stanza?</p>'
-            +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="kind-quest">Apri una quest</button>'
-            +'<button class="mv2-btn" type="button" data-mv2="kind-missione">Apri una missione</button>'
-            +'<button class="mv2-btn" type="button" data-mv2="kind-duello">Apri un duello</button></div>'
-            +'<p class="mv2-note">Quest: una giocata libera, one-shot o di trama. Missione: masterizzi una missione della bacheca e il titolo \u00e8 il suo. Duello: PvP fra i presenti, con le posizioni iniziali in metri.</p>';
+          return '<p class="mv2-note">Scegli cosa vuoi condurre.</p>'
+            +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="kind-quest" title="Giocata libera o di trama">Quest</button>'
+            +'<button class="mv2-btn" type="button" data-mv2="kind-missione" title="Missione già preparata">Missione</button>'
+            +'<button class="mv2-btn" type="button" data-mv2="kind-duello" title="Scontro fra personaggi presenti">Duello</button></div>';
         }
         var indietro='<button class="mv2-btn ghost" type="button" data-mv2="setup-cancel">Indietro</button>';
         if(k==='quest'){
@@ -5314,7 +5333,14 @@ window.TUSOrdinary={attachOrdinaryLand};
           +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="session-open">Apri il duello</button>'+indietro+'</div>';
       }
       function mv2EncounterForm(){
-        var s=MV2.setup;
+        var s=MV2.setup,m=((MV2.data||{}).master||{}),draft=MV2.encounterDraft;
+        if(draft&&draft.master_id===m.id){
+          return '<div class="mv2-phase"><b>Scontro pronto</b><br>'+esc(draft.summary)+'</div>'
+            +'<p class="mv2-note">Puoi introdurre la scena come Fato prima di aprire il Round 1. Finché non avvii, i partecipanti non ricevono azioni meccaniche.</p>'
+            +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="encounter-intro">Scrivi incipit in chat</button>'
+            +'<button class="mv2-btn" type="button" data-mv2="encounter-start">'+(draft.introPlanned?'Avvia Round 1':'Avvia senza incipit')+'</button>'
+            +'<button class="mv2-btn ghost" type="button" data-mv2="encounter-edit">Modifica</button></div>';
+        }
         if(!s) return '<p class="mv2-wait">Carico persone e Ninja Book…</p>';
         var mode=MV2.composeMode||(((MV2.data||{}).master||{}).tipo==='duello'?'pg_pg':'png_pg');
         var pgs=s.pgs.map(function(p,i){ return '<div class="mv2-row"><div class="mv2-rowtop"><label class="mv2-name"><input type="checkbox" data-mv2-pg="'+p.id+'"> '+esc(p.name)+'</label><select class="mv2-select" data-mv2-team="'+p.id+'" style="width:74px"><option value="A">Team A</option><option value="B"'+(mode==='pg_pg'&&i%2?' selected':'')+'>Team B</option><option value="C">Team C</option><option value="D">Team D</option></select><input type="number" class="mv2-select" data-mv2-posn="'+p.id+'" min="0" max="60" step="5" value="0" title="Posizione iniziale in metri (0-60, passi di 5)" style="width:58px"><span class="mv2-res">m</span></div></div>'; }).join('');
@@ -5406,6 +5432,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         var body=document.getElementById('mv2-body'), tag=document.getElementById('mv2-state'); if(!body||!cur) return;
         mv2CaptureDefenseDrafts();
         var d=MV2.data||{}, m=d.master, e=d.encounter, r=d.round, viewer=d.viewer||{};
+        var masterDialog=document.getElementById('mv2ov');if(masterDialog)masterDialog.classList.toggle('mv2-compact',!m&&!MV2.setupKind);
         mv2Slim();
         if(!m){
           if(tag)tag.textContent='Disponibile';
@@ -5519,7 +5546,14 @@ window.TUSOrdinary={attachOrdinaryLand};
             var specs=[]; if(mode==='png_pg') MV2.pngDraft.forEach(function(p,i){var ni=body.querySelector('[data-mv2-png-name="'+i+'"]'),ti=body.querySelector('[data-mv2-png-team="'+i+'"]'),pi=body.querySelector('[data-mv2-pngpos="'+i+'"]');var pp=pi?parseInt(pi.value,10):0;specs.push({client_ref:p.client_ref,template_id:p.template_id,nome:(ni&&ni.value.trim())||p.label,pos:String(isNaN(pp)?0:pp)});teams[p.client_ref]=(ti&&ti.value)||'B';});
             var uniq={};Object.keys(teams).forEach(function(x){uniq[teams[x]]=1;});
             if((mode==='pg_pg'&&pg.length<2)||(mode==='png_pg'&&(!pg.length||!specs.length))){toast(mode==='pg_pg'?'Seleziona almeno due PG':'Seleziona almeno un PG e un PNG');return;} if(Object.keys(uniq).length<2){toast('Servono almeno due squadre diverse');return;}
-            mv2Busy(true);mv2Rpc('master_v2_encounter_open',{p_master_session:MV2.data.master.id,p_pg_ids:pg,p_png_specs:specs,p_team_map:teams,p_positions:poss,p_request_key:mv2Key()}).then(function(){MV2.pngDraft=[];mv2Busy(false);mv2Reload('Scontro multi-attore aperto');},function(e){mv2Busy(false);toast(e.message);});return;
+            var names=pg.map(function(id){var row=(MV2.setup.pgs||[]).filter(function(x){return x.id===id;})[0];return row?row.name:'PG';}).concat(specs.map(function(x){return x.nome||'PNG';}));
+            MV2.encounterDraft={master_id:MV2.data.master.id,pg:pg,specs:specs,teams:teams,positions:poss,summary:names.join(' · '),introPlanned:false};renderMasterV2();return;
+          }
+          if(a==='encounter-edit'){MV2.encounterDraft=null;renderMasterV2();return;}
+          if(a==='encounter-intro'){if(!MV2.encounterDraft)return;MV2.encounterDraft.introPlanned=true;mv2OvChiudi();setFatoMode(true);try{input.focus();}catch(e){}toast('Scrivi e pubblica l’inciso del Fato, poi riapri Regia scontri per avviare il Round 1.');return;}
+          if(a==='encounter-start'){
+            var draft=MV2.encounterDraft;if(!draft||!MV2.data||!MV2.data.master||draft.master_id!==MV2.data.master.id){toast('Preparazione non più valida: scegli di nuovo i partecipanti.');MV2.encounterDraft=null;renderMasterV2();return;}
+            mv2Busy(true);mv2Rpc('master_v2_encounter_open',{p_master_session:draft.master_id,p_pg_ids:draft.pg,p_png_specs:draft.specs,p_team_map:draft.teams,p_positions:draft.positions,p_request_key:mv2Key()}).then(function(){MV2.encounterDraft=null;MV2.pngDraft=[];mv2Busy(false);mv2Reload('Iniziativa tirata: Round 1 aperto');},function(e){mv2Busy(false);toast(e.message);});return;
           }
           if(t.hasAttribute('data-mv2-action-send')){
             var id=t.getAttribute('data-mv2-action-send'),f=t.closest('[data-mv2-action-form]'),kind=f.querySelector('[data-mv2-action-kind]').value,intent={kind:kind};
@@ -8082,7 +8116,7 @@ function createExamRegiaHost(host) {
   }
   const scopeKey = () => { const s = scope(); return s ? JSON.stringify(s) : null; };
   const owns = () => key !== null && key === scopeKey();
-  const claimsExam = () => !!scopeKey() && (!owns() || readiness?.legacy_fallback_allowed === false || readiness?.eligible !== false);
+  const claimsExam = () => !!scopeKey() && (host.forceClaim?.() === true || !owns() || readiness?.legacy_fallback_allowed === false || readiness?.eligible !== false);
   const ownsCombat = () => owns() && readiness?.eligible === true && !!prova && !!binding && raw?.closed !== true;
   // EXAM-CHAT-SCOPE-001: l'ingresso Esame in Test Room non riserva la chat senza prova.
   // Una prova posseduta resta protetta anche durante recupero/HOLD del binding.
@@ -8293,6 +8327,8 @@ function createExamRegiaHost(host) {
     const doc = host.document, card = doc.getElementById('esm-card'), body = doc.getElementById('esm-body');
     if (!card || !body) return true;
     card.hidden = false;
+    const ordinaryCard = doc.getElementById('ordinary-card');
+    if (ordinaryCard) ordinaryCard.hidden = true;
     let box = doc.getElementById('exam-regia-status');
     if (!box) { body.replaceChildren(); box = doc.createElement('section'); box.id = 'exam-regia-status'; body.append(box); }
     box.replaceChildren();
@@ -8303,13 +8339,9 @@ function createExamRegiaHost(host) {
       return true;
     }
     const mode = raw?.mode ?? readiness?.mode;
-    text(mode === 'ordinary' ? 'Esame Genin · Konoha. Al congedo valido vengono applicati i premi nativi dell’esame.' :
-      mode === 'test' || mode === 'sample' ? 'Esame Genin · prova protetta, senza premi o avanzamento reale.' : 'Esame Genin · verifica della modalità in corso.');
     const reward = raw?.reward ?? terminal?.reward;
     if (mode === 'ordinary' && raw?.closed && reward?.ok === true)
       text('Esame concluso · XP: '+reward.xp+' · Grado: '+reward.rank+'.');
-    const budget = raw?.budget ?? readiness?.budget;
-    if (budget) text('Chiamate IA: '+budget.used+' / '+budget.limit+'.');
     if (error) text(error);
     else if (!readiness) text('Verifica della disponibilità in corso.');
     else if (raw?.closed) text('Prova conclusa. Lo storico resta disponibile.');
@@ -8318,12 +8350,10 @@ function createExamRegiaHost(host) {
     else if (canExit()) text('La prova è terminata: invia la tua role di congedo per concluderla.');
     else if (raw?.player_ready) text('Tocca a te: prepara la mossa nel pannello dello scontro e invia la role.');
     else if (prova) text(auto ? 'Attendi l’avanzamento della scena.' : 'La prova è ferma. Riprendila quando sei pronto.');
-    if (readiness?.eligible && readiness.ready && !prova) button('Sostieni l’Esame Genin',start,busy || uncertainOpen.has(key));
+    if (readiness?.eligible && readiness.ready && !prova) button('Sostieni esame',start,busy || uncertainOpen.has(key));
     if (raw?.closed && mode !== 'ordinary') button('Riparti da zero',restart,busy || driving);
-    if (ownsCombat() && raw && !isExit()) button('Apri lo scontro',() => openPanel(),busy || driving);
-    if (prova && !raw?.closed && !auto) button('Riprendi la prova',resume,busy || driving);
-    if (prova && !raw?.closed) button(mode === 'ordinary' ? 'Interrompi senza premio' : 'Chiudi la prova',close,busy || driving || view()?.busy);
-    button('Rileggi lo stato',reread,busy || driving);
+    if (ownsCombat() && raw && !isExit() && canCommand()) button('Apri lo scontro',() => openPanel(),busy || driving);
+    if (prova && !raw?.closed && !auto && !error) button('Riprendi la prova',resume,busy || driving);
     return true;
   }
   return {load,refresh,render,start,resume,close,exit,restart,reread,reset,snapshot,claimsExam,blocksChat,ownsCombat,canCommand,canExit,canSend,openPanel,handleSend,
@@ -8345,6 +8375,7 @@ function createExamRegiaHost(host) {
       readChat:function(){return input.value||'';},
       clearChat:function(){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';updCount();},
       notice:toast,changed:function(){renderEsame();syncSendBtn();},
+      forceClaim:function(){return commonPanelRoom()&&iAmStaff;},
       showMaster:function(){var ov=document.getElementById('mv2ov'),bk=document.getElementById('mv2ov-backdrop');if(ov)ov.hidden=false;if(bk)bk.hidden=false;},
       closeMaster:mv2OvChiudi,
       claimCombat:function(){if(ORDINARY){ORDINARY.dispose();ORDINARY=null;ordinaryPanelMode=null;}mv2Card(false);},
@@ -9057,10 +9088,11 @@ var nb028iTeardown=function(){};
         /* il poll parte solo se il server ci fa entrare davvero */
         entraLuogo(function(){
           updateMeteo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); nb028iRefresh();
+          if(presencePoll) clearInterval(presencePoll); presencePoll=setInterval(loadWho,1000);
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -9577,7 +9609,7 @@ var nb028iTeardown=function(){};
           var _tbu=document.getElementById('test-btn'); if(_tbu) _tbu.style.display=loggedIn?'':'none';
           if(myId){ sb.from('characters').select('id').eq('user_id',myId).maybeSingle().then(function(g){ if(!(g&&g.data)){ try{ document.documentElement.style.visibility='hidden'; }catch(e){} location.replace('scheda.html'); } }, function(){}); }
           if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max,mente,corporation').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); myCorp=(cr.data.corporation!=null?cr.data.corporation:null); showPtsReminder(cr.data.unspent_points||0); caricaNomiEvidenza(); updateVitals(); updateKOState();  loadMyCompanion(); } }, function(){}); }
-          if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _mb=document.getElementById('mv2-open-btn'); if(_mb) _mb.style.display=iAmStaff?'':'none'; var _fr=document.getElementById('fato-toggle-row'); if(_fr) _fr.style.display=iAmStaff?'':'none'; if(!iAmStaff) setFatoMode(false); var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; var _tbs=document.getElementById('test-staff-btn'); if(_tbs) _tbs.style.display=iAmStaff?'':'none'; esameHoldRefresh(); try{ syncSendBtn(); }catch(e){} if(cur)loadMasterV2(); } }, function(){ setFatoMode(false); }); }
+          if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _mb=document.getElementById('mv2-open-btn'); if(_mb) _mb.style.display=(iAmStaff&&fatoMode)?'':'none'; var _fr=document.getElementById('fato-toggle-row'); if(_fr) _fr.style.display=iAmStaff?'':'none'; if(!iAmStaff) setFatoMode(false); var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; var _tbs=document.getElementById('test-staff-btn'); if(_tbs) _tbs.style.display=iAmStaff?'':'none'; esameHoldRefresh(); try{ syncSendBtn(); }catch(e){} if(cur)loadMasterV2(); } }, function(){ setFatoMode(false); }); }
           loadEmblems();
           renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); loadFlash(); calInit(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); sb.rpc('ensure_welcome').then(function(){ loadUnread(); loadConversations(); }, function(){ loadUnread(); loadConversations(); }); if(dmTarget){ var _dt=dmTarget; dmTarget=null; sb.from('characters').select('name').eq('user_id',_dt).maybeSingle().then(function(rr){ openCompose(_dt,(rr&&rr.data&&rr.data.name)||'utente'); }, function(){ openCompose(_dt,'utente'); }); } }
         }, function(){ loggedIn=false; renderLuoghi(); });
