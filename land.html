@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-COMBAT-PANEL-OPEN-004" />
+  <meta name="tus-build" content="LAND-ORDINARY-DUEL-ROLES-005" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3510,7 +3510,14 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     else{map.className+=' common-panel-map';map.setAttribute('aria-label','Arena e posizioni');}
     const sidebar=node('div',undefined,workspace);sidebar.className='common-panel-sidebar';sidebar.setAttribute('aria-label','Comandi e dettagli dello scontro');
     const info=section(workspace,'Partecipanti');info.className+=' common-panel-participants';
-    note(info,(c.round_no===null?'':`Round ${c.round_no} · `)+c.phase_label);
+    const activeDuelActors=e.actors.filter(actor=>!actor.body_only&&actor.state==='active');
+    const initiativeDuel=(c.activity_kind==='master_v2'&&c.phase_label.startsWith('Duello a iniziativa ·'))||
+      (c.activity_kind==='ordinary_v2'&&activeDuelActors.length===2&&['action','defense','resolved'].includes(c.phase));
+    const visiblePhase=initiativeDuel&&c.activity_kind==='ordinary_v2'?
+      (c.phase==='action'?'Duello a iniziativa · turno di attacco':
+       c.phase==='defense'?'Duello a iniziativa · risposta difensiva':'Duello a iniziativa · esito dello scambio'):
+      c.phase_label;
+    note(info,(c.round_no===null?'':`Round ${c.round_no} · `)+visiblePhase);
     if(c.simulated)note(info,'Simulazione protetta · risorse separate dalle schede reali');
     if(model.canRestoreTestResources===true)button(info,'Ripristina PV e chakra di prova',handler(ticket,restoreTestResources),locked);
     const pickerLabel=node('label','Personaggio controllato',info),picker=node('select',undefined,pickerLabel);
@@ -3522,14 +3529,13 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     const roster=node('div',undefined,info);roster.className='mv2-roster';
     // Il duello a iniziativa è l'unico caso con ruoli binari. La Regia multi-attore
     // conserva action_due/defense_due per ciascun attore senza inventare squadre o turni.
-    const initiativeDuel=c.activity_kind==='master_v2'&&c.phase_label.startsWith('Duello a iniziativa ·');
     const duelMain=initiativeDuel&&e.round_details?.declarations?.find(d=>['attacco','movimento','utilita','passa'].includes(d.kind));
     for(const actor of e.actors){
       const row=node('div',undefined,roster);row.className='mv2-row';
       node('strong',actor.display_name,row);
       let duelRole=null;
       if(initiativeDuel&&!actor.body_only&&actor.state==='active'){
-        if(c.phase==='action')duelRole=actor.action_due===true?'Attaccante':'Difensore';
+        if(c.phase==='action')duelRole=actor.action_due===true?'Attacca':'Attendi';
         else if(c.phase==='defense')duelRole=actor.defense_due===true?'Difensore':'Attaccante';
         else if(duelMain)duelRole=actor.actor_id===duelMain.actor_id?'Attaccante':'Difensore';
       }
