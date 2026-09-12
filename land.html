@@ -8185,9 +8185,9 @@ function createExamVisualCatalog({scope,state,assets}={}){
 // Host di ingresso e lifecycle. Render, offerte, tecniche e geometria sono Common.
 function createExamRegiaHost(host) {
   let key = null, epoch = 0, readiness = null, prova = null, binding = null, raw = null;
-  let controller = null, panel = null, busy = false, error = null, auto = false, driving = false;
+  let controller = null, panel = null, busy = false, error = null, auto = false, driving = false, resuming = false;
   let terminal = null;
-  let pendingDrive = false, loading = null, panelRPC = null, resetting = false;
+  let pendingDrive = false, loading = null, panelRPC = null, resetting = false, observing = false;
   const openRequests = new Map(), closeRequests = new Map(), exitRequests = new Map(), uncertainOpen = new Set();
   const notice = message => host.notice?.(message);
   function scope() {
@@ -8215,7 +8215,7 @@ function createExamRegiaHost(host) {
   function clearPanel() { panel?.dispose(); panel = null; panelRPC = null; }
   function reset() {
     resetting = true;
-    epoch++; key = null; auto = false; busy = false; driving = false; pendingDrive = false; loading = null;
+    epoch++; key = null; auto = false; busy = false; driving = false; resuming = false; pendingDrive = false; loading = null; observing = false;
     controller?.clear(); controller = null; clearPanel(); readiness = null; prova = null; binding = null; raw = null; terminal = null; error = null;
     resetting = false;
   }
@@ -8281,7 +8281,7 @@ function createExamRegiaHost(host) {
     const task = (async () => {
       if (!readiness && !await readReadiness()) return false;
       if (ticket !== epoch || !owns() || !readiness?.eligible || !prova || busy || driving) { changed(); return false; }
-      bind(); busy = true; changed();
+      bind(); observing = true; busy = true; changed();
       try {
         const ok = await controller.observe();
         if (ticket !== epoch || !owns()) return false;
@@ -8294,8 +8294,8 @@ function createExamRegiaHost(host) {
       } finally {
         if (ticket === epoch) {
           busy = false;
-          const currentPanel = ensurePanel(); if (currentPanel) await currentPanel.refresh();
-          changed();
+          try { const currentPanel = ensurePanel(); if (currentPanel) await currentPanel.refresh(); }
+          finally { observing = false; changed(); }
         }
       }
     })();
@@ -8346,30 +8346,39 @@ function createExamRegiaHost(host) {
     return refresh();
   }
   async function resume() {
-    if (!owns() || !prova || busy || driving || raw?.closed) return false;
-    await refresh(); if (!owns() || error || view()?.stage === 'stopped') return false;
-    if (raw?.draft?.recoverable === true) {
-      const ticket = epoch, oldReceipt = raw.receipt_id;
-      let recoveryFailed = false;
-      busy = true; auto = false; changed();
-      try {
-        const response = await host.client.rpc('esame_regia_recover_expired_choice',{p_prova:prova});
-        if (ticket !== epoch || !owns()) return false;
-        const recovered = response?.data;
-        if (response?.error || recovered?.ok !== true || recovered?.recovered !== true ||
-          !regiaId(recovered.receipt_id) || recovered.receipt_id === oldReceipt) throw Error('recovery_uncertain');
-      } catch (e) {
-        recoveryFailed = true;
-      } finally {
-        if (ticket === epoch) {
-          busy = false; await refresh();
-          if (recoveryFailed) error = 'Recupero non confermato. Premi Aggiorna prima di riprovare.';
-          changed();
+    if (resuming) return false;
+    const resumeTicket = epoch;
+    resuming = true; changed();
+    try {
+      if (observing && loading) { try { await loading; } catch { return false; } }
+      if (!owns() || !prova || busy || driving || raw?.closed) return false;
+      await refresh();
+      if (!owns() || !prova || busy || driving || raw?.closed || error || view()?.stage === 'stopped') return false;
+      if (raw?.draft?.recoverable === true) {
+        const ticket = epoch, oldReceipt = raw.receipt_id;
+        let recoveryFailed = false;
+        busy = true; auto = false; changed();
+        try {
+          const response = await host.client.rpc('esame_regia_recover_expired_choice',{p_prova:prova});
+          if (ticket !== epoch || !owns()) return false;
+          const recovered = response?.data;
+          if (response?.error || recovered?.ok !== true || recovered?.recovered !== true ||
+            !regiaId(recovered.receipt_id) || recovered.receipt_id === oldReceipt) throw Error('recovery_uncertain');
+        } catch (e) {
+          recoveryFailed = true;
+        } finally {
+          if (ticket === epoch) {
+            busy = false; await refresh();
+            if (recoveryFailed) error = 'Recupero non confermato. Premi Aggiorna prima di riprovare.';
+            changed();
+          }
         }
+        if (recoveryFailed || !owns() || error || raw?.receipt_id === oldReceipt) return false;
       }
-      if (recoveryFailed || !owns() || error || raw?.receipt_id === oldReceipt) return false;
+      auto = true; return await drive();
+    } finally {
+      if (resumeTicket === epoch) { resuming = false; changed(); }
     }
-    auto = true; return drive();
   }
   async function close() {
     if (!owns() || !prova || busy || driving || view()?.busy || raw?.closed) return false;
@@ -8435,12 +8444,14 @@ function createExamRegiaHost(host) {
     if (ordinaryCard) ordinaryCard.hidden = true;
     let box = doc.getElementById('exam-regia-status');
     if (!box) { body.replaceChildren(); box = doc.createElement('section'); box.id = 'exam-regia-status'; body.append(box); }
-    box.replaceChildren();
-    const text = value => { const p = doc.createElement('p'); p.textContent = value; box.append(p); };
-    const button = (label,fn,disabled=false) => { const b = doc.createElement('button'); b.type = 'button'; b.className = 'esm-btn'; b.textContent = label; b.disabled = disabled; b.addEventListener('click',fn); box.append(b); };
+    const fragment = doc.createDocumentFragment(), model = [];
+    const text = value => { const p = doc.createElement('p'); p.textContent = value; fragment.append(p); model.push(['text',value]); };
+    const button = (label,fn,disabled=false) => { const b = doc.createElement('button'); b.type = 'button'; b.className = 'esm-btn'; b.textContent = label; b.disabled = disabled; b.addEventListener('click',fn); fragment.append(b); model.push(['button',label,disabled]); };
+    const commit = () => { const signature = JSON.stringify(model); if (box.dataset.examRegiaPaint !== signature) { box.replaceChildren(fragment); box.dataset.examRegiaPaint = signature; } };
+    const controlsBusy = resuming || driving || (!observing && (busy || view()?.busy));
     if (readiness?.eligible && readiness.ready && !prova && !error) {
       button('Sostieni esame',start,busy || uncertainOpen.has(key));
-      return true;
+      commit(); return true;
     }
     const mode = raw?.mode ?? readiness?.mode;
     const reward = raw?.reward ?? terminal?.reward;
@@ -8451,15 +8462,15 @@ function createExamRegiaHost(host) {
     else if (raw?.closed) text('Prova conclusa. Lo storico resta disponibile.');
     else if (!prova && !readiness.ready) text('La prova non è ancora disponibile in questa stanza.');
     else if (prova && !raw) text('Recupero dello scontro in corso.');
-    else if (canExit()) text('La prova è terminata: invia la tua role di congedo per concluderla.');
+    else if (isExit() && raw?.player_ready === true) text('La prova è terminata: invia la tua role di congedo per concluderla.');
     else if (raw?.player_ready) text('Tocca a te: prepara la mossa nel pannello dello scontro e invia la role.');
     else if (raw?.draft?.recoverable === true) text('La scelta del PNG non si è conclusa. Riprendi la prova per recuperare questa fase senza reinviare la tua azione.');
     else if (prova) text(auto ? 'Attendi l’avanzamento della scena.' : 'La prova è ferma. Riprendila quando sei pronto.');
     if (readiness?.eligible && readiness.ready && !prova) button('Sostieni esame',start,busy || uncertainOpen.has(key));
     if (raw?.closed && mode !== 'ordinary') button('Riparti da zero',restart,busy || driving);
-    if (ownsCombat() && raw && !isExit() && canCommand()) button('Apri lo scontro',() => openPanel(),busy || driving);
-    if (prova && !raw?.closed && !auto && !error) button('Riprendi la prova',resume,busy || driving);
-    return true;
+    if (ownsCombat() && raw?.player_ready === true && raw?.next === 'player' && !error && !isExit()) button('Apri lo scontro',() => openPanel(),controlsBusy);
+    if (prova && !raw?.closed && !auto && !error) button('Riprendi la prova',resume,controlsBusy);
+    commit(); return true;
   }
   return {load,refresh,render,start,resume,close,exit,restart,reread,reset,snapshot,claimsExam,blocksChat,ownsCombat,canCommand,canExit,canSend,openPanel,handleSend,
     refreshPanel:() => ensurePanel()?.refresh() ?? Promise.resolve(false)};
