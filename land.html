@@ -3894,12 +3894,8 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   view.render(presented(controller.snapshot()));
   return {
     open:invoke(read),
-    refresh:invoke(async()=>{
-      if(!await controller.readState())return false;
-      const current=controller.snapshot();
-      if(current.envelope?.viewer.can_command&&!current.pending&&!current.optionsReady)return controller.readOptions();
-      return true;
-    }),
+    // Il refresh della scena non rigenera offerte: apertura e Aggiorna usano read().
+    refresh:invoke(()=>controller.readState()),
     setNarrative:invoke(value=>controller.setNarrative(value)),
     submit:invoke(()=>send(false)),
     invalidate:()=>{restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;if(!disposed)controller.invalidate();},
