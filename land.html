@@ -2682,8 +2682,8 @@ function normalizeMapVisualAsset(value){
   if(!c||!['column','row','columns','rows'].every(k=>Number.isSafeInteger(c[k]))||c.columns<1||c.rows<1||c.columns>8||c.rows>8||c.column<0||c.row<0||c.column>=c.columns||c.row>=c.rows)return null;
   return {...result,cell:{column:c.column,row:c.row,columns:c.columns,rows:c.rows}};
 }
-// MAP-FIGURE-LAYOUT-001: coordinate del DTO intatte; celle solo grafiche.
-// Ogni riquadro occupa una cella distinta. Se non entra, passa nell'elenco.
+// MAP-FIGURE-CUTOUT-002: coordinate del DTO intatte; celle solo grafiche.
+// Figure scontornate in celle trasparenti distinte; le eccedenze restano accessibili.
 function mapFigureSlots(points,width,height){
   const columns=Math.max(0,Math.floor((width-16)/104)),rows=Math.max(0,Math.floor((height-16)/120));
   const slots=[];
@@ -2811,16 +2811,15 @@ function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOrigina
   const shape=(tag,attrs,parent=svg)=>{const el=doc.createElementNS(ns,tag);for(const[k,v]of Object.entries(attrs))el.setAttribute(k,String(v));parent.append(el);return el;};
   const figures=[],rack=add('section','');rack.className='common-map-figure-rack';rack.hidden=true;
   rack.setAttribute('aria-label','Figure fuori dal riquadro della mappa');
-  const rackTitle=add('p','Altre figure · coordinate reali indicate sotto ogni immagine',rack);
+  const rackTitle=add('p','Altre figure',rack);
   const rackGrid=add('div','',rack);rackGrid.className='common-map-figure-grid';
-  const links=doc.createElementNS(ns,'svg');links.classList.add('common-map-figure-links');links.setAttribute('aria-hidden','true');canvas.append(links);
   const figureCard=(value,x,y,name,marker)=>{
     const card=add('div','',canvas);card.className='common-map-figure-card';
-    const number=figures.length+1,description=`${number} · ${name}`;
-    card.title=`${description} · (${x}, ${y}) m`;
+    const number=figures.length+1,description=name;
+    const accessible=marker?.querySelector('title')?.textContent||description;
+    card.title=accessible;card.setAttribute('role','img');card.setAttribute('aria-label',accessible);card.tabIndex=0;
     const portrait=add('span','',card);portrait.className='common-map-card-portrait common-map-card-fallback';
     const text=add('span',description,card);text.className='common-map-card-name';
-    const position=add('span',`(${x}, ${y}) m`,card);position.className='common-map-card-position';
     let asset=normalizeMapVisualAsset(value);
     if(!asset){const source=trustedAvatarSource(value?.portraitSrc);if(source)asset={src:source};}
     if(asset){
@@ -2830,8 +2829,8 @@ function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOrigina
       img.addEventListener('error',()=>{img.remove();portrait.classList.remove('common-map-card-atlas');portrait.classList.add('common-map-card-fallback');});
       portrait.append(img);img.src=asset.src;
     }
-    // Il marker resta sul punto server anche quando il ritratto viene allontanato.
-    if(marker)marker.setAttribute('data-map-card',String(number));
+    // Il server conserva il punto esatto; la figura è l'unico segno visibile.
+    if(marker){marker.setAttribute('data-map-card',String(number));marker.style.display='none';marker.setAttribute('aria-hidden','true');marker.removeAttribute('tabindex');}
     figures.push({card,x,y,number});return true;
   };
   // Layer HTML: mantiene proporzioni di sprite/icone anche quando l'arena SVG si estende.
@@ -2905,7 +2904,7 @@ function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOrigina
     for(const point of [...formation.figures].sort((a,b)=>a.figure_index-b.figure_index)){
       const original=revealOriginal&&formation.original_index!==null&&formation.original_index===point.figure_index;
       const description=`${owner.display_name} · figura ${point.figure_index}`+(original?' · originale':'');
-      const accessible=`${description} · (${point.x_m}, ${point.y_m}) m`;
+      const accessible=description;
       // Dimensione grafica uniforme: non rappresenta un raggio meccanico.
       const marker=shape('circle',{cx:point.x_m,cy:point.y_m,r:scale/55,fill:original?'#923c30':'#356b91',
         tabindex:0,role:'img','aria-label':accessible,'data-figure-index':point.figure_index});
@@ -2925,25 +2924,21 @@ function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOrigina
     const width=canvas.clientWidth,height=canvas.clientHeight;
     if(showLegend||width<=0||height<=0){rack.hidden=true;return;}
     const points=figures.map(f=>({x:f.x/bounds.width_m*width,y:f.y/bounds.height_m*height}));
-    const slots=mapFigureSlots(points,width,height);links.replaceChildren();
-    links.setAttribute('viewBox',`0 0 ${width} ${height}`);
+    const slots=mapFigureSlots(points,width,height);
     let overflow=0;
     figures.forEach((f,index)=>{
-      const slot=slots[index],point=points[index];
+      const slot=slots[index];
       if(slot){
         if(f.card.parentNode!==canvas)canvas.append(f.card);
         f.card.style.left=`${slot.left}px`;f.card.style.top=`${slot.top}px`;
-        shape('line',{x1:slot.left+48,y1:slot.top+80,x2:point.x,y2:point.y,stroke:'#483923','stroke-width':1.5,'stroke-dasharray':'3 2'},links);
-        shape('circle',{cx:point.x,cy:point.y,r:3,fill:'#f7e6b8',stroke:'#483923','stroke-width':1.5},links);
       }else{
         overflow++;if(f.card.parentNode!==rackGrid)rackGrid.append(f.card);
         f.card.style.left='';f.card.style.top='';
       }
     });
     rack.hidden=overflow===0;
-    rackTitle.textContent=`Altre figure (${overflow}) · coordinate reali sotto ogni immagine`;
+    rackTitle.textContent=`Altre figure (${overflow})`;
   };
-  meta.textContent+=' · immagini separate, punti e collegamenti indicano le posizioni reali';
   toggle.addEventListener('click',layoutFigures);
   watchMapLayout(root,canvas,layoutFigures);
 }
@@ -3081,18 +3076,16 @@ const COMMON_PANEL_LAYOUT_CSS = `
 }
 .common-panel-sidebar>.common-panel-movement,.common-panel-active .common-panel-sidebar>.common-panel-movement{order:-1}
 
-/* MAP-FIGURE-LAYOUT-001: riquadri disgiunti; nessuna coordinata di gioco modificata. */
+/* MAP-FIGURE-CUTOUT-002: figure scontornate disgiunte; posizioni server intatte. */
 .common-panel-map{overflow-y:auto!important}
 .common-panel-map>.common-map-canvas{flex-shrink:0}
-.common-map-figure-links{position:absolute;inset:0;width:100%;height:100%;z-index:5;pointer-events:none;overflow:hidden}
-.common-map-figure-card{position:absolute;width:96px;height:112px;box-sizing:border-box;padding:3px;display:flex;flex-direction:column;align-items:center;overflow:hidden;z-index:4;border:1px solid #7d704f;border-radius:6px;background:rgba(248,240,216,.94);color:#30281c;font:11px/1.2 system-ui,sans-serif}
-.common-map-card-portrait{display:block;position:relative;flex:none;width:56px;height:64px;max-width:100%;overflow:hidden}
+.common-map-figure-card{position:absolute;width:96px;height:112px;box-sizing:border-box;padding:0;display:flex;flex-direction:column;align-items:center;overflow:hidden;z-index:4;border:0;border-radius:0;background:transparent;color:#30281c;font:11px/1.2 system-ui,sans-serif}
+.common-map-card-portrait{display:block;position:relative;flex:none;width:90px;height:86px;max-width:100%;overflow:hidden}
 .common-map-card-portrait img{display:block;width:100%;height:100%;object-fit:contain}
 .common-map-card-atlas img{position:absolute;object-fit:fill;max-width:none}
 .common-map-card-fallback:before{content:'';position:absolute;width:14px;height:14px;left:calc(50% - 7px);top:3px;border-radius:50%;background:#635b4d}
 .common-map-card-fallback:after{content:'';position:absolute;width:28px;height:43px;left:calc(50% - 14px);top:20px;background:#635b4d;clip-path:polygon(28% 0,72% 0,100% 50%,79% 55%,68% 28%,66% 58%,87% 100%,62% 100%,50% 70%,38% 100%,13% 100%,34% 58%,32% 28%,21% 55%,0 50%)}
-.common-map-card-name{display:block;width:100%;height:27px;flex:none;overflow:hidden;text-align:center;overflow-wrap:anywhere;font-weight:600}
-.common-map-card-position{display:block;width:100%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px}
+.common-map-card-name{display:block;width:100%;height:26px;flex:none;overflow:hidden;text-align:center;overflow-wrap:anywhere;font-weight:600;text-shadow:0 0 3px #fff,1px 1px 1px #fff,-1px -1px 1px #fff}
 .common-map-figure-rack{flex:none;max-height:210px;overflow:auto;min-width:0;padding:6px;box-sizing:border-box;border-top:1px solid #7d704f}
 .common-map-figure-rack[hidden]{display:none!important}
 .common-map-figure-rack>p{font-size:11px;margin:0 0 6px}
