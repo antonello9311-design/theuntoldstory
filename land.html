@@ -3294,7 +3294,9 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
     const before=envelope?.context,oldActor=envelope?.viewer.command_actor_id;
     const changed=e.status==='blocked'||!before||before.activity_id!==e.context.activity_id||before.version!==e.context.version||before.scene_version!==e.context.scene_version||oldActor!==e.viewer.command_actor_id;
     const keepOptions=!loaded&&!changed&&optionsReady;
-    if(keepOptions)e={...e,offers:envelope.offers};
+    // Una lettura dello stato non include offerte né spiegazioni generate da options.
+    // A versione invariata mantieni entrambe: alternarle al poll ridisegna il pannello.
+    if(keepOptions)e={...e,offers:envelope.offers,movement_explanations:envelope.movement_explanations};
     if(e.status==='ready'){
       const nextNarrativeContext=narrativeContextFor(e);
       if(narrativeText&&narrativeContext!==nextNarrativeContext)narrativeText='';
@@ -3547,7 +3549,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
   const token=()=>generation;
   const handler=(ticket,fn,...args)=>()=>{if(ticket!==generation||typeof fn!=='function')return;fn(...args);};
   function button(parent,label,fn,disabled=false){const b=node('button',label,parent);b.type='button';b.className='mv2-btn';b.disabled=disabled||typeof fn!=='function';if(fn)b.addEventListener('click',fn);return b;}
-  function clear(){generation++;current=null;cachedMap=null;cachedMapKey=null;movementStepScope=null;movementStep=null;sceneKey=null;disabledBeforeBusy=null;fullRenderWasBusy=true;root.removeAttribute("aria-busy");root.replaceChildren();}
+  function clear(){generation++;current=null;cachedMap=null;cachedMapKey=null;movementStepScope=null;movementStep=null;sceneKey=null;disabledBeforeBusy=null;root.removeAttribute("aria-busy");root.replaceChildren();}
   function renderFeedback(model,parent){
     const last=model?.lastCommand;
     // Opzionale per i consumer privati: preserva anche il loro snapshot/rejection già valido.
@@ -3560,9 +3562,9 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     if(model?.interactionError)note(parent,model.interactionError);
     if(model?.error)note(parent,model.pending&&!last?'Esito incerto. Verifica lo stesso invio senza crearne un secondo.':'Stato non disponibile. Premi Aggiorna.');
   }
-  // Busy e canPrepare (derivato da busy) non identificano una nuova scena.
-  // Ogni altro campo, inclusi versioni, errori, selezioni e pending, resta nel confronto.
-  let sceneKey=null,baseCanPrepare=null,fullRenderWasBusy=true,disabledBeforeBusy=null;
+  // Il poll blocca i comandi per la durata della lettura, senza sostituire il DOM.
+  // Versioni, scena, offerte, selezioni ed errori restano nel confronto completo.
+  let sceneKey=null,disabledBeforeBusy=null;
   const stableKey=model=>JSON.stringify(Object.fromEntries(Object.entries(model||{}).filter(([key])=>key!=='busy'&&key!=='canPrepare'&&key!=='canConfirmMechanics')));
   function restoreDisabled(){
     if(!disabledBeforeBusy)return;
@@ -3584,7 +3586,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
   for(const type of ['click','change','input','submit'])root.addEventListener(type,blockBusyEvent,true);
   function render(model){
     const key=stableKey(model);
-    if(sceneKey===key&&!fullRenderWasBusy&&(model?.busy===true||model?.canPrepare===baseCanPrepare)){
+    if(sceneKey===key){
       current=model;
       if(model?.busy===true)busyLock();else restoreDisabled();
       root.setAttribute('aria-busy',String(model?.busy===true));
@@ -3593,7 +3595,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     restoreDisabled();
     renderFull(model);
     if(model?.busy===true)busyLock();
-    sceneKey=key;fullRenderWasBusy=model?.busy===true;baseCanPrepare=model?.canPrepare;
+    sceneKey=key;
     root.setAttribute('aria-busy',String(model?.busy===true));
   }
   function renderFull(model){
