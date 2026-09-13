@@ -3021,6 +3021,7 @@ const COMMON_PANEL_LAYOUT_CSS = `
  .common-panel-sidebar>.common-panel-actions{order:0}
  .common-panel-sidebar>.common-panel-administration{order:1}
 }
+.common-panel-sidebar>.common-panel-movement,.common-panel-active .common-panel-sidebar>.common-panel-movement{order:-1}
 `;
 
 function installPanelLayout(doc){
@@ -3285,6 +3286,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   function editable(){requireCurrent();insist(!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command,'choices_unavailable');}
   async function selectActor(actor){requireCurrent();insist(!busy&&!pending&&envelope?.viewer.controlled_actors.some(a=>a.actor_id===actor),'actor_unavailable');narrativeText='';narrativeContext=null;resetChoices();return read(false,actor);}
   function selectOffer(id){editable();insist(envelope.offers.some(o=>o.offer_id===id),'offer_unavailable');selectedOfferId=id;selectedOptionIds=settleCopyChoices(chosen(),[]);inputs=[];error=null;interactionError=null;notify();}
+  function clearOffer(){editable();selectedOfferId=null;selectedOptionIds=[];inputs=[];error=null;interactionError=null;notify();}
   function selectOption(groupId,id,enabled){
     editable();const o=chosen(),g=o?.choices.find(g=>g.group_id===groupId);insist(g&&g.options.some(x=>x.option_id===id)&&typeof enabled==='boolean','option_unavailable');
     insist(g.depends_on===null||selectedOptionIds.includes(g.depends_on),'dependency_missing');
@@ -3317,7 +3319,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   }
   async function submit(){try{insist(!pending,'pending_command');pending=Object.freeze(prepare());return await send();}catch(e){reportInteractionError(e);return null;}}
   async function retry(){return send();}
-  return {snapshot,clear,invalidate,reportInteractionError,readState:()=>read(false),readOptions:()=>read(true),selectActor,selectOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
+  return {snapshot,clear,invalidate,reportInteractionError,readState:()=>read(false),readOptions:()=>read(true),selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
 }
 
 return {settleCopyChoices,createPanelController};
@@ -3496,17 +3498,20 @@ function changeSingleChoice(group,value,selected,selectOption){
   }
 }
 
-function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,selectOption,setInput,setNarrative,prepare,retry,restoreTestResources}={},renderers={}){
+function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,prepare,retry,restoreTestResources}={},renderers={}){
   renderers={map:renderPanelMap,companion:renderPanelCompanion,sabaku_transport:renderPanelSabaku,...renderers};
   const doc=root.ownerDocument;installPanelLayout(doc);
   let generation=0,current=null,cachedMap=null,cachedMapKey=null;
+  let movementStepScope=null,movementStep=null;
+  const isMovementControl=o=>o?.kind==='control'&&o.operation==='control'&&
+    o.choices.some(g=>g.purpose==='movement_direction')&&o.choices.some(g=>g.purpose==='movement_distance');
   const node=(tag,value,parent)=>{const el=doc.createElement(tag);if(value!==undefined)el.textContent=String(value);if(parent)parent.append(el);return el;};
   const section=(parent,title)=>{const s=node('section',undefined,parent);s.className='mv2-field';node('h4',title,s);return s;};
   const note=(parent,value)=>{const p=node('p',value,parent);p.className='mv2-note';return p;};
   const token=()=>generation;
   const handler=(ticket,fn,...args)=>()=>{if(ticket!==generation||typeof fn!=='function')return;fn(...args);};
   function button(parent,label,fn,disabled=false){const b=node('button',label,parent);b.type='button';b.className='mv2-btn';b.disabled=disabled||typeof fn!=='function';if(fn)b.addEventListener('click',fn);return b;}
-  function clear(){generation++;current=null;cachedMap=null;cachedMapKey=null;sceneKey=null;disabledBeforeBusy=null;fullRenderWasBusy=true;root.removeAttribute("aria-busy");root.replaceChildren();}
+  function clear(){generation++;current=null;cachedMap=null;cachedMapKey=null;movementStepScope=null;movementStep=null;sceneKey=null;disabledBeforeBusy=null;fullRenderWasBusy=true;root.removeAttribute("aria-busy");root.replaceChildren();}
   function renderFeedback(model,parent){
     const last=model?.lastCommand;
     // Opzionale per i consumer privati: preserva anche il loro snapshot/rejection già valido.
@@ -3653,12 +3658,49 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
       }
       if(e.round_details.report){const report=section(details,e.round_details.report.title);for(const line of e.round_details.report.lines)note(report,line);}
     }
-    const actions=section(sidebar,'Azioni e difese');actions.className+=' common-panel-actions';
-    const admin=section(sidebar,'Gestione della scena');admin.className+=' common-panel-administration';
-    admin.hidden=!(v.is_master||v.is_admin);
     const available=e.offers.filter(o=>o.context_version===c.version&&o.scene_version===c.scene_version);
     const administrative=o=>o.kind==='administration'&&!isPlayerLifecycle(o,c,v);
     const selected=available.find(o=>o.offer_id===model.selectedOfferId);
+    const movementOffer=available.find(isMovementControl);
+    const actionStep=c.phase==='action'&&v.command_actor_id!==null&&!!(movementOffer||available.some(o=>o.kind==='action'&&o.operation==='declare'));
+    const nextMovementScope=JSON.stringify([c.activity_id,c.round_id,v.command_actor_id,c.phase]);
+    if(nextMovementScope!==movementStepScope){movementStepScope=nextMovementScope;movementStep=null;}
+    if(actionStep&&!movementOffer&&movementStep===null)movementStep='none';
+    const movementArea=actionStep?section(sidebar,'1 · Movimento'):null;
+    if(movementArea){
+      movementArea.className+=' common-panel-movement';
+      if(movementStep==='none'||movementStep==='done'){
+        note(movementArea,movementStep==='done'?'Movimento confermato. Ora scegli l’azione principale.':
+          movementOffer?'Nessun movimento. Ora scegli l’azione principale.':'Movimento non disponibile. Ora scegli l’azione principale.');
+        if(movementStep==='none'&&movementOffer)button(movementArea,'Cambia movimento',()=>{
+          if(ticket!==generation)return;movementStep=null;
+          if(selected&&clearOffer)clearOffer();else{sceneKey=null;render(current);}
+        },!commandsReady);
+      }else{
+        const choices=node('div',undefined,movementArea);choices.className='common-offer-choices';
+        const chooseMove=button(choices,'Movimento',()=>{
+          if(ticket!==generation||!movementOffer)return;
+          movementStep='move';
+          if(model.selectedOfferId!==movementOffer.offer_id)selectOffer?.(movementOffer.offer_id);
+          else{sceneKey=null;render(current);}
+        },!commandsReady||!movementOffer);
+        chooseMove.className+=' common-offer-choice';chooseMove.setAttribute('aria-pressed',String(movementStep==='move'));
+        const noMove=button(choices,'Nessun movimento',()=>{
+          if(ticket!==generation)return;
+          movementStep='none';
+          if(selected&&isMovementControl(selected)&&clearOffer)clearOffer();
+          else{sceneKey=null;render(current);}
+        },!commandsReady);
+        noMove.className+=' common-offer-choice';noMove.setAttribute('aria-pressed','false');
+        if(movementStep==='move'&&selected?.offer_id===movementOffer?.offer_id)
+          renderOffer(movementArea,selected,e,model,ticket,!commandsReady);
+        else if(!movementOffer)note(movementArea,'Nessuno spostamento disponibile in questo momento.');
+      }
+    }
+    const actions=section(sidebar,'Azioni e difese');actions.className+=' common-panel-actions';
+    actions.hidden=actionStep&&!['none','done'].includes(movementStep);
+    const admin=section(sidebar,'Gestione della scena');admin.className+=' common-panel-administration';
+    admin.hidden=!(v.is_master||v.is_admin);
     const flowOffers=available.filter(o=>!administrative(o)&&o.flow_budget);
     let flowArea=null;
     if(flowOffers.length){
@@ -3674,7 +3716,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     }
     for(const [area,isAdminArea]of [[actions,false],[admin,true]]){
       if(isAdminArea&&admin.hidden)continue;
-      const offers=available.filter(o=>administrative(o)===isAdminArea&&!o.flow_budget);
+      const offers=available.filter(o=>administrative(o)===isAdminArea&&!o.flow_budget&&!isMovementControl(o));
       if(!isAdminArea&&flowOffers.length&&!offers.length)continue;
       if(offers.length>0&&offers.length<=6){
         const choices=node('div',undefined,area);choices.className='common-offer-choices';choices.setAttribute('role','group');choices.setAttribute('aria-label',isAdminArea?'Operazione autorizzata':'Scelta disponibile');
@@ -3689,7 +3731,8 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
       }
       if(!offers.length)note(area,'Nessuna offerta in questo momento.');
     }
-    if(selected&&!(administrative(selected)&&admin.hidden)){
+    if(selected&&!isMovementControl(selected)&&!(administrative(selected)&&admin.hidden)&&
+       (administrative(selected)||!actions.hidden)){
       const area=selected.flow_budget?flowArea:administrative(selected)?admin:actions;
       renderOffer(area,selected,e,model,ticket,!commandsReady);
     }
@@ -3760,7 +3803,15 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
     }
     renderMovementReasons(area,envelope,offer,selected);
     if(offer.requires_role)note(area,'Invia le scelte con il messaggio nella chat della scena.');
-    else button(area,'Conferma scelta',handler(ticket,prepare),disabled||model.canPrepare!==true);
+    else button(area,'Conferma scelta',()=>{
+      if(ticket!==generation||!prepare)return;
+      const scope=movementStepScope;
+      Promise.resolve(prepare()).then(receipt=>{
+        if(isMovementControl(offer)&&receipt?.receipt_id&&scope===movementStepScope){
+          movementStep='done';sceneKey=null;render(current);
+        }
+      });
+    },disabled||model.canPrepare!==true);
   }
   function renderMovementReasons(area,e,offer,selected){
     const m=e.movement_explanations;if(m===null)return;
@@ -3847,7 +3898,7 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   view=mountPanelView(root,{
     readState:invoke(read),readOptions:invoke(()=>controller.readOptions()),restoreTestResources,
     selectActor:invoke(async actor=>{if(await controller.selectActor(actor))return controller.readOptions();return false;}),
-    selectOffer:invoke(id=>controller.selectOffer(id)),selectOption:invoke((group,id,on)=>controller.selectOption(group,id,on)),
+    selectOffer:invoke(id=>controller.selectOffer(id)),clearOffer:invoke(()=>controller.clearOffer()),selectOption:invoke((group,id,on)=>controller.selectOption(group,id,on)),
     setInput:invoke((id,value)=>controller.setInput(id,value)),setNarrative:invoke(value=>controller.setNarrative(value)),
     prepare:invoke(()=>send(false)),retry:invoke(()=>send(true))
   },renderers);
