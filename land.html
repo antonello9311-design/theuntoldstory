@@ -2919,7 +2919,8 @@ const COMMON_PANEL_LAYOUT_CSS = `
 .combat-panel-common input[type=checkbox]{accent-color:#d2a558}
 .common-offer-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
 .common-turn-stages{display:grid;grid-template-columns:repeat(4,minmax(190px,1fr));gap:10px;align-items:start;overflow-x:auto;padding-bottom:5px}
-.common-turn-stages>.mv2-field{min-width:190px;margin:0;box-sizing:border-box}
+.common-turn-stages>.mv2-field{min-width:190px;margin:0;box-sizing:border-box;grid-column:auto!important}
+.common-turn-stages>.mv2-field[hidden]{display:none!important}
 .common-turn-stages>.mv2-field>h4{margin-top:0}
 .common-turn-stages .common-offer-choices{display:flex;flex-wrap:wrap}
 .common-turn-stages .common-offer-choices>.mv2-btn{flex:1 1 130px}
@@ -3685,13 +3686,24 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     // Le offerte restano gli UUID opachi convalidati dal server.
     const innateControl=o=>o.kind==='control'&&!movementControl(o)&&/\b(?:Byakugan|Sharingan|Innata)\b/i.test(o.label);
     const selected=available.find(o=>o.offer_id===model.selectedOfferId);
+    const movementOffers=available.filter(movementControl);
+    const innateOffers=available.filter(innateControl);
+    const activeOffers=available.filter(o=>o.kind==='control'&&!movementControl(o)&&!innateControl(o));
+    const flowOffers=available.filter(o=>!administrative(o)&&o.flow_budget);
+    const mainOffers=available.filter(o=>!administrative(o)&&o.kind!=='control'&&!o.flow_budget);
+    movementStage.hidden=movementOffers.length===0;
+    innateStage.hidden=innateOffers.length===0;
+    activeStage.hidden=activeOffers.length===0;
+    mainStage.hidden=mainOffers.length===0&&flowOffers.length===0;
+    for(const [index,stage] of [movementStage,innateStage,activeStage,mainStage].filter(stage=>!stage.hidden).entries())
+      stage.querySelector('h4').textContent=`${index+1} · ${stage.querySelector('h4').textContent.split(' · ')[1]}`;
+    if(!available.length)note(actions,model.optionsReady?'Nessuna scelta disponibile in questo momento.':'Scelte in aggiornamento. Premi Aggiorna per caricarle dal server.');
     function offerButtons(area,offers,emptyLabel){
       if(!offers.length){note(area,emptyLabel);return;}
       if(offers.length>6){const label=node('label','Scelta disponibile',area),select=node('select',undefined,label);select.className='mv2-select';const blank=node('option','Seleziona',select);blank.value='';for(const offer of offers){const item=node('option',offer.label,select);item.value=offer.offer_id;}select.value=selected&&offers.some(o=>o.offer_id===selected.offer_id)?selected.offer_id:'';select.disabled=!commandsReady||!selectOffer;select.addEventListener('change',()=>{if(ticket===generation&&selectOffer&&offers.some(o=>o.offer_id===select.value))selectOffer(select.value);});return;}
       const choices=node('div',undefined,area);choices.className='common-offer-choices';choices.setAttribute('role','group');choices.setAttribute('aria-label',area.querySelector('h4')?.textContent||'Scelta disponibile');
       for(const offer of offers){const choice=button(choices,offer.label,handler(ticket,selectOffer,offer.offer_id),!commandsReady||!selectOffer);choice.className+=' common-offer-choice';choice.setAttribute('aria-pressed',String(selected?.offer_id===offer.offer_id));}
     }
-    const movementOffers=available.filter(movementControl);
     if(movementOffers.length){
       const gate=node('div',undefined,movementStage);gate.className='common-offer-choices';gate.setAttribute('role','group');gate.setAttribute('aria-label','Vuoi muoverti?');
       const yes=button(gate,'Sì, mi muovo',handler(ticket,selectOffer,movementOffers[0].offer_id),!commandsReady||!selectOffer);
@@ -3699,11 +3711,10 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
       const no=button(gate,'No, resto qui',()=>{if(ticket===generation&&clearOffer){clearOffer();Promise.resolve().then(()=>{const next=root.querySelector('.common-turn-stages');if(next)next.scrollLeft=next.scrollWidth;});}},locked||!clearOffer);
       no.className+=' common-offer-choice';
       if(movementOffers.length>1)offerButtons(movementStage,movementOffers,'');
-    }else note(movementStage,'Nessuno spostamento disponibile in questo momento.');
-    offerButtons(innateStage,available.filter(innateControl),'Nessuna attivazione innata disponibile.');
-    offerButtons(activeStage,available.filter(o=>o.kind==='control'&&!movementControl(o)&&!innateControl(o)),'Nessuna abilità attiva da selezionare.');
-    note(activeStage,'Le passive si applicano automaticamente quando le condizioni sono soddisfatte.');
-    const flowOffers=available.filter(o=>!administrative(o)&&o.flow_budget);
+    }
+    if(innateOffers.length)offerButtons(innateStage,innateOffers,'');
+    if(activeOffers.length)offerButtons(activeStage,activeOffers,'');
+    if(activeOffers.length)note(activeStage,'Le passive si applicano automaticamente quando le condizioni sono soddisfatte.');
     let flowArea=null;
     if(flowOffers.length){
       const flows=node('details',undefined,mainStage);flows.open=true;node('summary','Flussi di Sabbia',flows);
@@ -3715,7 +3726,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
       }
       if(selected?.flow_budget)flowArea=section(flows,'Assegna i Flussi');
     }
-    offerButtons(mainStage,available.filter(o=>!administrative(o)&&o.kind!=='control'&&!o.flow_budget),'Nessuna azione principale disponibile.');
+    if(mainOffers.length)offerButtons(mainStage,mainOffers,'');
     if(!admin.hidden)offerButtons(admin,available.filter(administrative),'Nessuna operazione di gestione disponibile.');
     if(selected&&!(administrative(selected)&&admin.hidden)){
       const area=selected.flow_budget?flowArea:administrative(selected)?admin:movementControl(selected)?movementStage:innateControl(selected)?innateStage:selected.kind==='control'?activeStage:mainStage;
@@ -3883,7 +3894,12 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   view.render(presented(controller.snapshot()));
   return {
     open:invoke(read),
-    refresh:invoke(()=>controller.readState()),
+    refresh:invoke(async()=>{
+      if(!await controller.readState())return false;
+      const current=controller.snapshot();
+      if(current.envelope?.viewer.can_command&&!current.pending&&!current.optionsReady)return controller.readOptions();
+      return true;
+    }),
     setNarrative:invoke(value=>controller.setNarrative(value)),
     submit:invoke(()=>send(false)),
     invalidate:()=>{restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;if(!disposed)controller.invalidate();},
