@@ -3236,7 +3236,7 @@ function settleCopyChoices(offer,selected){
 // rpc è una porta iniettata. Costruire il controller non effettua chiamate.
 function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.randomUUID(),classifyRejection=classifyPanelRejection,onChange=()=>{}}){
   insist(typeof rpc==='function'&&typeof contextKey==='function'&&isId(locationId)&&typeof requestKey==='function','controller_configuration');
-  let epoch=0,owner=null,busy=false,pending=null,envelope=null,optionsReady=false,error=null;
+  let epoch=0,owner=null,busy=false,pending=null,envelope=null,optionsReady=false,error=null,pollTicket=null;
   let selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='',narrativeContext=null;
   let rejection=null,refreshRequired=false,lastCommand=null,interactionError=null;
   const chosen=()=>envelope?.offers.find(o=>o.offer_id===selectedOfferId);
@@ -3299,6 +3299,21 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
     }catch(e){if(current(ticket,key)){error='read_failed';resetChoices();}return false;}
     finally{if(current(ticket,key)){busy=false;notify();}}
   }
+  // Il polling non blocca il form. Una lettura esplicita invalida la risposta
+  // precedente, mentre una scena invariata conserva opzioni e selezione.
+  async function pollState(){
+    if(!bind()||busy||pending||pollTicket!==null)return false;
+    const ticket=++epoch,key=owner,actor=envelope?.viewer.command_actor_id??null;pollTicket=ticket;
+    try{
+      const raw=await rpc('combat_panel_state_v1',{p_location:locationId,p_actor:actor});
+      if(!current(ticket,key)||pending||busy)return false;
+      apply(validatePanelEnvelope(raw,{state:true}),false);
+      refreshRequired=false;error=null;notify();return true;
+    }catch(e){
+      if(current(ticket,key)){error='read_failed';resetChoices();notify();}
+      return false;
+    }finally{if(pollTicket===ticket)pollTicket=null;}
+  }
   function editable(){requireCurrent();insist(!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command,'choices_unavailable');}
   async function selectActor(actor){requireCurrent();insist(!busy&&!pending&&envelope?.viewer.controlled_actors.some(a=>a.actor_id===actor),'actor_unavailable');narrativeText='';narrativeContext=null;resetChoices();return read(false,actor);}
   function selectOffer(id){editable();insist(envelope.offers.some(o=>o.offer_id===id),'offer_unavailable');selectedOfferId=id;selectedOptionIds=settleCopyChoices(chosen(),[]);inputs=[];error=null;interactionError=null;notify();}
@@ -3335,7 +3350,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   }
   async function submit(){try{insist(!pending,'pending_command');pending=Object.freeze(prepare());return await send();}catch(e){reportInteractionError(e);return null;}}
   async function retry(){return send();}
-  return {snapshot,clear,invalidate,reportInteractionError,readState:()=>read(false),readOptions:()=>read(true),selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
+  return {snapshot,clear,invalidate,reportInteractionError,readState:()=>read(false),pollState,readOptions:()=>read(true),selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
 }
 
 return {settleCopyChoices,createPanelController};
@@ -3894,8 +3909,8 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   view.render(presented(controller.snapshot()));
   return {
     open:invoke(read),
-    // Il refresh della scena non rigenera offerte: apertura e Aggiorna usano read().
-    refresh:invoke(()=>controller.readState()),
+    // Il polling conserva le offerte a versione invariata. Apri e Aggiorna leggono esplicitamente stato e offerte.
+    refresh:invoke(()=>controller.pollState()),
     setNarrative:invoke(value=>controller.setNarrative(value)),
     submit:invoke(()=>send(false)),
     invalidate:()=>{restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;if(!disposed)controller.invalidate();},
@@ -8189,7 +8204,7 @@ function createRegiaSessionAdapter({client, getProva, getBinding = () => null, a
   return {read, authorize, generate:legacy.generate, publish};
 }
 
-function createRegiaPanelRPC({client, scope, state, canCommand}) {
+function createRegiaPanelRPC({client, scope, state, canCommand, canReadOptions = canCommand}) {
   const requests = new Map();
   const names = {combat_panel_state_v1:'esame_regia_panel_state',combat_panel_options_v1:'esame_regia_panel_options',combat_panel_commit_v1:'esame_regia_panel_commit'};
   return async function rpc(name, args) {
@@ -8206,7 +8221,7 @@ function createRegiaPanelRPC({client, scope, state, canCommand}) {
       requests.set(command.request_key, signature); // Replay solo della richiesta identica, anche dopo risposta persa.
     } else {
       assertRegia(args?.p_location === before.location_id && (args.p_actor === null || args.p_actor === binding.player_actor_id), 'actor_not_authorized');
-      if (name === 'combat_panel_options_v1') assertRegia(canCommand(), 'player_hold');
+      if (name === 'combat_panel_options_v1') assertRegia(canReadOptions(), 'player_hold');
     }
     const response = await client.rpc(target, args);
     assertRegia(stamp === JSON.stringify([scope(),state()?.prova,state()?.binding]), 'context_changed');
@@ -8292,6 +8307,9 @@ function createExamRegiaHost(host) {
   const playerTurn = () => ownsCombat() && raw?.player_ready === true && raw.next === 'player' && !error && !busy && !driving && !view()?.busy;
   const isExit = () => raw?.phase === 'uscita' && raw?.status === 'congedo';
   const canCommand = () => playerTurn() && !isExit();
+  // La disponibilità del pannello deriva dalla prova attestata; un refresh
+  // temporaneamente busy non revoca il diritto di leggere le offerte.
+  const canReadPanelOptions = () => ownsCombat() && raw?.player_ready === true && raw.next === 'player' && !isExit();
   const canExit = () => playerTurn() && isExit();
   const canSend = () => canCommand() || canExit();
   function snapshot() { return {key,readiness,prova,binding,raw,busy,error,auto,driving,session:view(),ownsCombat:ownsCombat(),canCommand:canCommand(),canExit:canExit(),canSend:canSend()}; }
@@ -8325,7 +8343,7 @@ function createExamRegiaHost(host) {
     if (typeof host.attachCombatPanel !== 'function') { error = 'Il pannello dello scontro non è disponibile. Ricarica la pagina.'; auto = false; return null; }
     host.claimCombat?.();
     if (!panel) {
-      panelRPC = createRegiaPanelRPC({client:host.client,scope,state:() => raw,canCommand});
+      panelRPC = createRegiaPanelRPC({client:host.client,scope,state:() => raw,canCommand,canReadOptions:canReadPanelOptions});
       panel = host.attachCombatPanel({document:host.document,identity:host.identity,location:host.location,
         isExam:() => !ownsCombat(),rpc:(name,args) => panelRPC(name,args),
         visuals:envelope => resolveExamVisuals({envelope,scope:ownsCombat()?scope():null,readiness,state:raw,
