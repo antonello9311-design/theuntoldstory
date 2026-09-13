@@ -1396,6 +1396,8 @@
   }
 
   .azp{display:inline-flex;align-items:center;gap:4px;font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1px solid var(--red-deep);border-radius:7px;padding:4px 8px;cursor:pointer}
+  .common-choice-pill{max-width:min(260px,24vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .composer.fato-on .common-choice-pill{display:none!important}
   .azp[hidden]{display:none}
 
   .sug-pop{position:absolute;left:12px;bottom:64px;z-index:60;min-width:212px;max-width:min(330px,86vw);max-height:236px;overflow:auto;background:linear-gradient(var(--paper-hi),var(--paper));border:1px solid var(--edge);border-radius:9px;box-shadow:0 12px 32px rgba(20,12,4,.28)}
@@ -3217,7 +3219,7 @@ function automaticAssaultGroups(offer,selected){
   }
   return null;
 }
-function selectionReady(offer,selected,inputs,narrativeText){
+function selectionReady(offer,selected,inputs,narrativeText,requireNarrative=true){
   if(!offer||!Array.isArray(selected)||new Set(selected).size!==selected.length||!Array.isArray(inputs)||new Set(inputs.map(x=>x.input_id)).size!==inputs.length||!str(narrativeText))return false;
   const active=new Set(selected),ids=new Set(offer.choices.flatMap(g=>g.options.map(o=>o.option_id)));
   if(selected.some(id=>!ids.has(id)))return false;
@@ -3226,7 +3228,7 @@ function selectionReady(offer,selected,inputs,narrativeText){
   if(inputs.some(x=>!offer.input_fields.some(f=>f.input_id===x.input_id)))return false;
   for(const f of offer.input_fields){const x=inputs.find(x=>x.input_id===f.input_id);if(!x){if(f.required)return false;continue;}if(f.value_type==='text'){if(!str(x.value)||[...x.value].length>f.max_length||(f.required&&!x.value.trim()))return false;}else if(!bool(x.value))return false;}
   const flowTotal=flowSelectionTotal(offer,selected);if(flowTotal!==null&&(flowTotal!==offer.flow_budget.max_flows))return false;
-  return !offer.requires_role||!!narrativeText.trim();
+  return !requireNarrative||!offer.requires_role||!!narrativeText.trim();
 }
 
 
@@ -3257,8 +3259,9 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   let selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='',narrativeContext=null;
   let rejection=null,refreshRequired=false,lastCommand=null,interactionError=null;
   const chosen=()=>envelope?.offers.find(o=>o.offer_id===selectedOfferId);
+  const canConfirmMechanics=()=>!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command&&chosen()?.requires_role===true&&selectionReady(chosen(),selectedOptionIds,inputs,'',false);
   const canPrepare=()=>!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command&&selectionReady(chosen(),selectedOptionIds,inputs,narrativeText);
-  const snapshot=()=>({validated:envelope!==null,envelope:envelope?structuredClone(envelope):null,busy,pending:pending!==null,optionsReady,error,lastCommand:lastCommand?structuredClone(lastCommand):null,interactionError,rejection:rejection?structuredClone(rejection):null,refreshRequired,selectedOfferId,selectedOptionIds:[...selectedOptionIds],inputs:structuredClone(inputs),narrativeText,canPrepare:!!canPrepare()});
+  const snapshot=()=>({validated:envelope!==null,envelope:envelope?structuredClone(envelope):null,busy,pending:pending!==null,optionsReady,error,lastCommand:lastCommand?structuredClone(lastCommand):null,interactionError,rejection:rejection?structuredClone(rejection):null,refreshRequired,selectedOfferId,selectedOptionIds:[...selectedOptionIds],inputs:structuredClone(inputs),narrativeText,canPrepare:!!canPrepare(),canConfirmMechanics:!!canConfirmMechanics()});
   const notify=()=>onChange(snapshot());
   const resetChoices=()=>{selectedOfferId=null;selectedOptionIds=[];inputs=[];optionsReady=false;};
   // The draft belongs to a verified identity/activity/actor, independently of presentation invalidation.
@@ -3531,7 +3534,7 @@ function changeSingleChoice(group,value,selected,selectOption){
   }
 }
 
-function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,prepare,retry,restoreTestResources}={},renderers={}){
+function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,confirmDraft,prepare,retry,restoreTestResources}={},renderers={}){
   renderers={map:renderPanelMap,companion:renderPanelCompanion,sabaku_transport:renderPanelSabaku,...renderers};
   const doc=root.ownerDocument;installPanelLayout(doc);
   let generation=0,current=null,cachedMap=null,cachedMapKey=null;
@@ -3560,7 +3563,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
   // Busy e canPrepare (derivato da busy) non identificano una nuova scena.
   // Ogni altro campo, inclusi versioni, errori, selezioni e pending, resta nel confronto.
   let sceneKey=null,baseCanPrepare=null,fullRenderWasBusy=true,disabledBeforeBusy=null;
-  const stableKey=model=>JSON.stringify(Object.fromEntries(Object.entries(model||{}).filter(([key])=>key!=='busy'&&key!=='canPrepare')));
+  const stableKey=model=>JSON.stringify(Object.fromEntries(Object.entries(model||{}).filter(([key])=>key!=='busy'&&key!=='canPrepare'&&key!=='canConfirmMechanics')));
   function restoreDisabled(){
     if(!disabledBeforeBusy)return;
     for(const [control,disabled]of disabledBeforeBusy)if(root.contains(control))control.disabled=disabled;
@@ -3836,8 +3839,10 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
       input.addEventListener('input',()=>{if(ticket===generation&&setInput)setInput(spec.input_id,spec.value_type==='boolean'?input.checked:input.value);});
     }
     renderMovementReasons(area,envelope,offer,selected);
-    if(offer.requires_role)note(area,'Invia le scelte con il messaggio nella chat della scena.');
-    else button(area,'Conferma scelta',()=>{
+    if(offer.requires_role){
+      note(area,'Conferma la scelta, poi scrivi la role nella chat della scena. Il turno parte soltanto con Invia.');
+      button(area,'Conferma scelta',handler(ticket,confirmDraft),disabled||model.canConfirmMechanics!==true);
+    }else button(area,'Conferma scelta',()=>{
       if(ticket!==generation||!prepare)return;
       const scope=movementStepScope;
       Promise.resolve(prepare()).then(receipt=>{
@@ -3883,7 +3888,7 @@ const {createPanelController}=module4;
 const {mountPanelView}=module6;
 // Host unico per le due superfici. Nessuna chiamata alla costruzione e nessun
 // fallback verso invii legacy: il testo viaggia soltanto nel commit atomico.
-function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{},onDraft=()=>{},renderers={},canRestoreTestResources=()=>false}){
+function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{},onDraft=()=>{},confirmDraft=()=>{},renderers={},canRestoreTestResources=()=>false}){
   insist(root?.ownerDocument&&typeof client?.rpc==='function'&&typeof contextKey==='function','mount_configuration');
   let disposed=false,view,restoring=false,restoreMessage=null,restoreActivity=null,restoreEpoch=0;
   const allowed=m=>m.validated===true&&m.envelope?.status==='ready'&&
@@ -3891,7 +3896,7 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
     m.envelope.context.phase==='action'&&m.envelope.context.policy_id==='staff_test_no_persistent_resources_v1'&&
     m.envelope.context.location_id===locationId&&isId(m.envelope.context.activity_id)&&
     locationId==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&canRestoreTestResources()===true;
-  const presented=m=>({...m,busy:m.busy||restoring,canPrepare:m.canPrepare&&!restoring,
+  const presented=m=>({...m,busy:m.busy||restoring,canPrepare:m.canPrepare&&!restoring,canConfirmMechanics:m.canConfirmMechanics&&!restoring,
     canRestoreTestResources:allowed(m),restoreMessage:m.envelope?.context?.activity_id===restoreActivity?restoreMessage:null});
   const publish=model=>{if(!disposed){const m=presented(model);view?.render(m);onDraft(m);}};
   const controller=createPanelController({
@@ -3934,13 +3939,13 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
     selectActor:invoke(async actor=>{if(await controller.selectActor(actor))return controller.readOptions();return false;}),
     selectOffer:invoke(id=>controller.selectOffer(id)),clearOffer:invoke(()=>controller.clearOffer()),selectOption:invoke((group,id,on)=>controller.selectOption(group,id,on)),
     setInput:invoke((id,value)=>controller.setInput(id,value)),setNarrative:invoke(value=>controller.setNarrative(value)),
-    prepare:invoke(()=>send(false)),retry:invoke(()=>send(true))
+    confirmDraft:invoke(()=>confirmDraft(controller.snapshot())),prepare:invoke(()=>send(false)),retry:invoke(()=>send(true))
   },renderers);
   view.render(presented(controller.snapshot()));
   return {
     open:invoke(read),
     refresh:invoke(()=>controller.readState()),
-    setNarrative:invoke(value=>controller.setNarrative(value)),
+    setNarrative:invoke(value=>{controller.setNarrative(value);return true;}),
     submit:invoke(()=>send(false)),
     invalidate:()=>{restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;if(!disposed)controller.invalidate();},
     dispose:()=>{disposed=true;restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;controller.clear();view.clear();},
@@ -4046,10 +4051,37 @@ function attachCombatPanel(host){
   const dialog=doc.getElementById('ordinary-overlay'),close=doc.getElementById('ordinary-close');
   insist(ordinary&&master&&card&&entry&&dialog&&close,'land_mount_missing');
   let deactivateLayout=null;
-  let panel=null,key=null,opened=false,surface='ordinary',generation=0,chatSubmitted=null,refreshing=null,disposed=false;
+  let panel=null,key=null,opened=false,surface='ordinary',generation=0,chatSubmitted=null,refreshing=null,disposed=false,confirmedDraft=null;
+  const badges=['msg-send','ed-send'].map(id=>{
+    const send=doc.getElementById(id);if(!send)return null;
+    const badge=doc.createElement('button');badge.type='button';badge.className='azp common-choice-pill';badge.hidden=true;
+    badge.title='Scelta meccanica pronta: parte con la role quando premi Invia. Clic per modificarla.';
+    send.before(badge);badge.addEventListener('click',()=>open(surface));return badge;
+  }).filter(Boolean);
+  function draftSignature(m){
+    const e=m?.envelope,o=e?.offers?.find(o=>o.offer_id===m.selectedOfferId);
+    if(!m?.optionsReady||m.refreshRequired||e?.status!=='ready'||!e.viewer.can_command||!o?.requires_role||
+      !module5.selectionReady(o,m.selectedOptionIds,m.inputs,'',false))return null;
+    return JSON.stringify([e.context.activity_id,e.context.version,e.context.scene_version,
+      e.viewer.command_actor_id,o.offer_id,[...m.selectedOptionIds].sort(),m.inputs]);
+  }
+  function draftLabel(m){
+    const offer=m.envelope.offers.find(o=>o.offer_id===m.selectedOfferId),chosen=new Set(m.selectedOptionIds);
+    const parts=[offer.label];
+    for(const group of offer.choices){
+      if(!['mode','target'].includes(group.purpose))continue;
+      const selected=group.options.find(o=>chosen.has(o.option_id));if(selected)parts.push(selected.label);
+    }
+    return '⚔ '+parts.join(' · ');
+  }
+  function syncDraft(m){
+    const signature=draftSignature(m),visible=!!confirmedDraft&&signature===confirmedDraft.signature&&!m.pending;
+    if(confirmedDraft&&!visible&&(!signature||signature!==confirmedDraft.signature||m.pending))confirmedDraft=null;
+    for(const badge of badges){badge.hidden=!visible;if(visible)badge.textContent=confirmedDraft.label;}
+  }
   function scope(){const who=host.identity?.(),place=host.location?.();return !disposed&&who&&isId(who.principal_id)&&(who.character_id===null||isId(who.character_id))&&isId(place?.id)&&!host.isExam?.()?JSON.stringify([who.principal_id,who.character_id,place.id]):null;}
   function hide(){deactivateLayout?.();deactivateLayout=null;dialog.hidden=true;dialog.style.display='none';if(opened&&surface==='master')host.closeMaster?.();opened=false;}
-  function invalidate(){generation++;key=null;chatSubmitted=null;refreshing=null;panel?.dispose();panel=null;root.replaceChildren();hide();showEntry();}
+  function invalidate(){generation++;key=null;chatSubmitted=null;confirmedDraft=null;refreshing=null;panel?.dispose();panel=null;root.replaceChildren();hide();syncDraft(null);showEntry();}
   function showEntry(){const allowed=!!scope();card.hidden=!allowed;card.style.display=allowed?'':'none';entry.hidden=!allowed;entry.disabled=!allowed;const note=doc.getElementById('ordinary-entry-note');if(note)note.textContent='Pannello comune: disponibilità e scelte sono verificate dal server.';}
   function ensure(){
     const next=scope();if(next!==key)invalidate();if(!next)return false;if(panel)return true;
@@ -4057,10 +4089,14 @@ function attachCombatPanel(host){
     panel=mountPanelSurface({root,locationId:host.location().id,contextKey:scope,
       canRestoreTestResources:()=>host.canRestoreTestResources?.()===true,
       client:{rpc:(name,args)=>host.rpc(name,args)},renderers:host.renderers??(host.visuals?{map:createVisualMapRenderer(host.visuals)}:undefined),
+      onDraft:syncDraft,confirmDraft:m=>{
+        const signature=draftSignature(m);if(!m.canConfirmMechanics||!signature)return;
+        confirmedDraft={signature,label:draftLabel(m)};syncDraft(m);hide();doc.getElementById('msg-input')?.focus();
+      },
       onConfirmed:async(receipt,submitted)=>{
         if(stamp!==generation||key!==scope())return;
         if((chatSubmitted!==null&&host.readChat()===chatSubmitted)||(submitted&&host.readChat()===submitted))host.clearChat();
-        chatSubmitted=null;
+        chatSubmitted=null;confirmedDraft=null;syncDraft(panel?.snapshot());
         host.accepted(receipt);host.notice('Scelta acquisita dal server.');
       }});
     return true;
@@ -4096,13 +4132,14 @@ function attachCombatPanel(host){
     if(!m.envelope.viewer.can_command)return false;
     const offer=m.envelope.offers.find(o=>o.offer_id===m.selectedOfferId);
     if(!offer?.requires_role){host.notice('Scegli prima l’azione da collegare alla role nel pannello.');return true;}
+    if(!confirmedDraft||draftSignature(m)!==confirmedDraft.signature){host.notice('Conferma la scelta meccanica nel pannello prima di inviare la role.');return true;}
     // Un solo invio atomico, mai il successivo post_message della chat.
     const active=panel,stamp=generation;chatSubmitted=raw;
-    active.setNarrative(narrative).then(()=>{if(stamp===generation&&key===scope())return active.submit();});return true;
+    active.setNarrative(narrative).then(ok=>{if(ok===true&&stamp===generation&&key===scope())return active.submit();});return true;
   }
   const entryClick=()=>open('ordinary');
   entry.addEventListener('click',entryClick);close.addEventListener('click',hide);
-  function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',hide);invalidate();root.remove();}
+  function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',hide);invalidate();for(const badge of badges)badge.remove();root.remove();}
   showEntry();
   return {open,refresh,invalidate,dispose,handleSend,ownsCurrent,
     ownsSurface:()=>routeAllowed()&&opened&&key===scope(),
