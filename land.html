@@ -2682,8 +2682,40 @@ function normalizeMapVisualAsset(value){
   if(!c||!['column','row','columns','rows'].every(k=>Number.isSafeInteger(c[k]))||c.columns<1||c.rows<1||c.columns>8||c.rows>8||c.column<0||c.row<0||c.column>=c.columns||c.row>=c.rows)return null;
   return {...result,cell:{column:c.column,row:c.row,columns:c.columns,rows:c.rows}};
 }
+// MAP-FIGURE-LAYOUT-001: coordinate del DTO intatte; celle solo grafiche.
+// Ogni riquadro occupa una cella distinta. Se non entra, passa nell'elenco.
+function mapFigureSlots(points,width,height){
+  const columns=Math.max(0,Math.floor((width-16)/104)),rows=Math.max(0,Math.floor((height-16)/120));
+  const slots=[];
+  for(let row=0;row<rows;row++)for(let col=0;col<columns;col++)slots.push({left:8+col*104,top:8+row*120,width:96,height:112});
+  return points.map(point=>{
+    if(!slots.length)return null;
+    let best=0,distance=Infinity;
+    for(let i=0;i<slots.length;i++){
+      const slot=slots[i],d=(slot.left+48-point.x)**2+(slot.top+80-point.y)**2;
+      if(d<distance){distance=d;best=i;}
+    }
+    return slots.splice(best,1)[0];
+  });
+}
+const mapLayoutDisposers=new WeakMap();
+function watchMapLayout(root,canvas,layout){
+  const win=root.ownerDocument.defaultView;
+  let connected=canvas.isConnected,disposed=false;
+  const resize=()=>{if(!disposed){connected ||= canvas.isConnected;layout();}};
+  const observer=win?.ResizeObserver?new win.ResizeObserver(resize):null;
+  const mutations=win?.MutationObserver?new win.MutationObserver(()=>{
+    if(!root.contains(canvas)||(connected&&!canvas.isConnected))dispose();
+    else if(canvas.isConnected&&!connected)resize();
+  }):null;
+  const dispose=()=>{disposed=true;observer?.disconnect();mutations?.disconnect();win?.removeEventListener('resize',resize);mapLayoutDisposers.delete(root);};
+  mapLayoutDisposers.set(root,dispose);
+  observer?.observe(canvas);if(!observer)win?.addEventListener('resize',resize);
+  mutations?.observe(root.ownerDocument,{childList:true,subtree:true});
+  resize();
+}
 function renderPanelMap(root,envelope,{legendOpen=false,visuals=null}={}){
-  root.replaceChildren();const doc=root.ownerDocument,m=envelope?.map;
+  mapLayoutDisposers.get(root)?.();root.replaceChildren();const doc=root.ownerDocument,m=envelope?.map;
   const add=(tag,value,parent=root)=>{const el=doc.createElement(tag);el.textContent=value;parent.append(el);return el;};
   const fail=()=>add('p','Mappa non disponibile per questo contesto.');
   if(envelope?.schema_version!=='combat-panel/1'||envelope.status!=='ready'||m?.schema_version!=='combat-map/2'||m.readonly!==true||!Number.isSafeInteger(m.map_version)||m.map_version<0||!label(m.label))return fail();
@@ -2756,7 +2788,7 @@ function validateReadonlyScene(scene){
   return formations;
 }
 function renderReadonlyScene(root,scene,{legendOpen=false,visuals=null}={}){
-  root.replaceChildren();let formations;
+  mapLayoutDisposers.get(root)?.();root.replaceChildren();let formations;
   try{formations=validateReadonlyScene(scene);}catch{const p=root.ownerDocument.createElement('p');p.textContent='Mappa non disponibile per questo contesto.';root.append(p);return;}
   return drawMapScene(root,scene.map,scene.actors,formations,{legendOpen,visuals,revealOriginal:false});
 }
@@ -2777,30 +2809,42 @@ function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOrigina
   const ns='http://www.w3.org/2000/svg';
   const svg=doc.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${bounds.width_m} ${bounds.height_m}`);svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('role','img');svg.setAttribute('aria-label',m.label+' · posizioni autorizzate, vista illustrativa');svg.classList.add('ordinary-map');canvas.append(svg);
   const shape=(tag,attrs,parent=svg)=>{const el=doc.createElementNS(ns,tag);for(const[k,v]of Object.entries(attrs))el.setAttribute(k,String(v));parent.append(el);return el;};
-  // Etichette HTML non deformate dal rapporto illustrativo del rettangolo SVG.
-  // Sono sole coordinate di disegno; il DTO e le distanze del server restano intatti.
-  const visualCoordinate=(value,total,margin=44)=>`clamp(${margin}px, ${value/total*100}%, calc(100% - ${margin}px))`;
-  const caption=(value,x,y,color='#352b1e')=>{const text=add('span',value,canvas);text.className='common-map-label';text.style.left=visualCoordinate(x,bounds.width_m);text.style.top=visualCoordinate(y,bounds.height_m,24);text.style.color=color;text.setAttribute('aria-hidden','true');};
+  const figures=[],rack=add('section','');rack.className='common-map-figure-rack';rack.hidden=true;
+  rack.setAttribute('aria-label','Figure fuori dal riquadro della mappa');
+  const rackTitle=add('p','Altre figure · coordinate reali indicate sotto ogni immagine',rack);
+  const rackGrid=add('div','',rack);rackGrid.className='common-map-figure-grid';
+  const links=doc.createElementNS(ns,'svg');links.classList.add('common-map-figure-links');links.setAttribute('aria-hidden','true');canvas.append(links);
+  const figureCard=(value,x,y,name,marker)=>{
+    const card=add('div','',canvas);card.className='common-map-figure-card';
+    const number=figures.length+1,description=`${number} · ${name}`;
+    card.title=`${description} · (${x}, ${y}) m`;
+    const portrait=add('span','',card);portrait.className='common-map-card-portrait common-map-card-fallback';
+    const text=add('span',description,card);text.className='common-map-card-name';
+    const position=add('span',`(${x}, ${y}) m`,card);position.className='common-map-card-position';
+    let asset=normalizeMapVisualAsset(value);
+    if(!asset){const source=trustedAvatarSource(value?.portraitSrc);if(source)asset={src:source};}
+    if(asset){
+      const img=doc.createElement('img');img.alt='';img.draggable=false;img.decoding='async';
+      if(asset.cell){const c=asset.cell;portrait.classList.add('common-map-card-atlas');img.style.width=`${c.columns*100}%`;img.style.height=`${c.rows*100}%`;img.style.left=`${-c.column*100}%`;img.style.top=`${-c.row*100}%`;}
+      img.addEventListener('load',()=>portrait.classList.remove('common-map-card-fallback'));
+      img.addEventListener('error',()=>{img.remove();portrait.classList.remove('common-map-card-atlas');portrait.classList.add('common-map-card-fallback');});
+      portrait.append(img);img.src=asset.src;
+    }
+    // Il marker resta sul punto server anche quando il ritratto viene allontanato.
+    if(marker)marker.setAttribute('data-map-card',String(number));
+    figures.push({card,x,y,number});return true;
+  };
   // Layer HTML: mantiene proporzioni di sprite/icone anche quando l'arena SVG si estende.
   // I marker nativi rimangono accessibili e tornano visibili se l'immagine non si carica.
   const paintAsset=(value,x,y,kind,marker=null,fallbackName=null)=>{
-    let initials=null;
-    if(kind==='actor'&&label(fallbackName)){
-      initials=add('span',fallbackName.trim().split(/\s+/).slice(0,2).map(s=>Array.from(s)[0]).join('').toLocaleUpperCase('it-IT'),canvas);
-      initials.className='common-map-label common-map-initials';initials.setAttribute('aria-hidden','true');
-      initials.style.left=`${x/bounds.width_m*100}%`;initials.style.top=`${y/bounds.height_m*100}%`;
-    }
+    if(kind==='actor')return figureCard(value,x,y,fallbackName,marker);
+    const initials=null;
     let asset=normalizeMapVisualAsset(value);
     if(!asset){const portrait=trustedAvatarSource(value?.portraitSrc);if(portrait)asset={src:portrait};}
-    if(!asset&&kind==='actor'){
-      const fallback=add('span','',canvas);fallback.className='common-map-figure-fallback';fallback.setAttribute('aria-hidden','true');
-      fallback.style.left=visualCoordinate(x,bounds.width_m);fallback.style.top=visualCoordinate(y,bounds.height_m);
-      if(marker)marker.style.opacity='0';if(initials)initials.hidden=true;canvas.classList.add('common-map-with-art');return true;
-    }
     if(!asset)return false;
     canvas.classList.add('common-map-with-art');
     const wrap=add('span','',canvas);wrap.className='common-map-art common-map-art-'+kind;wrap.setAttribute('aria-hidden','true');
-    if(kind!=='background'){wrap.style.left=kind==='actor'?visualCoordinate(x,bounds.width_m):`${x/bounds.width_m*100}%`;wrap.style.top=kind==='actor'?visualCoordinate(y,bounds.height_m):`${y/bounds.height_m*100}%`;}
+    if(kind!=='background'){wrap.style.left=`${x/bounds.width_m*100}%`;wrap.style.top=`${y/bounds.height_m*100}%`;}
     const sources=[asset];
     let generation=0;
     const loadAt=index=>{
@@ -2845,21 +2889,17 @@ function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOrigina
     const size=scale/60;
     const marker=shape('path',{d:`M ${c.x_m} ${c.y_m-size} L ${c.x_m+size} ${c.y_m} L ${c.x_m} ${c.y_m+size} L ${c.x_m-size} ${c.y_m} Z`,fill:color},cloneLayer);
     shape('title',{},marker).textContent=description;
-    paintAsset(visuals?.actors?.[c.owner_actor_id],c.x_m,c.y_m,'actor',marker,c.owner_name);
-    caption('Clone',c.x_m,c.y_m-size*1.5,color);
+    paintAsset(visuals?.actors?.[c.owner_actor_id],c.x_m,c.y_m,'actor',marker,'Clone di '+c.owner_name);
+
   }
   for(const a of m.actors){
     if(formationOwners.has(a.actor_id))continue;
     const r=byId.get(a.actor_id),selected=a.actor_id===m.pov?.actor_id;
     const circle=shape('circle',{cx:a.x_m,cy:a.y_m,r:a.radius_m,fill:a.body_only?'#806336':selected?'#923c30':'#356b91'});
     shape('title',{},circle).textContent=r.display_name;
-    const pictured=paintAsset(visuals?.actors?.[a.actor_id],a.x_m,a.y_m,'actor',circle,r.display_name);
-    caption(r.display_name,a.x_m,pictured?a.y_m:a.y_m-a.radius_m);
-    if(pictured)canvas.lastChild.classList.add('common-map-label-below');
+    paintAsset(visuals?.actors?.[a.actor_id],a.x_m,a.y_m,'actor',circle,r.display_name);
   }
-  // Raggruppare soltanto le etichette: ogni figura conserva il proprio marker
-  // e la propria descrizione accessibile. Nessun punto viene spostato o usato per dedurre l'originale.
-  const figureLabels=new Map();
+  // Ordine pubblico delle figure: non dipende dall'identità nascosta dell'originale.
   for(const formation of formations){
     const owner=byId.get(formation.actor_id);
     for(const point of [...formation.figures].sort((a,b)=>a.figure_index-b.figure_index)){
@@ -2871,17 +2911,8 @@ function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOrigina
         tabindex:0,role:'img','aria-label':accessible,'data-figure-index':point.figure_index});
       shape('title',{},marker).textContent=accessible;
       // Stesso asset per tutte le figure: non si usa original_index per scegliere l'immagine.
-      const pictured=paintAsset(visuals?.actors?.[formation.actor_id],point.x_m,point.y_m,'actor',marker,owner.display_name);
-      const key=JSON.stringify([point.x_m,point.y_m]);
-      if(!figureLabels.has(key))figureLabels.set(key,{x:point.x_m,y:point.y_m,labels:[],pictured:false});
-      figureLabels.get(key).pictured ||= pictured;
-      figureLabels.get(key).labels.push(`${owner.display_name} ${point.figure_index}`);
+      paintAsset(visuals?.actors?.[formation.actor_id],point.x_m,point.y_m,'actor',marker,description);
     }
-  }
-  for(const group of figureLabels.values()){
-    const label=group.labels.join(' / ')+(group.labels.length>1?' · stessa posizione':'');
-    caption(label,group.x,group.pictured?group.y:group.y-scale/55);
-    if(group.pictured)canvas.lastChild.classList.add('common-map-label-below');
   }
   for(const o of m.objects.filter(o=>!o.is_impervious)){
     const fill=o.state==='available'?'#587349':'#8b8171',s=o.shape;
@@ -2890,6 +2921,31 @@ function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOrigina
     paintAsset(visuals?.objects?.[o.object_id],o.x_m,o.y_m,'object',object);
     legendObject(o);
   }
+  const layoutFigures=()=>{
+    const width=canvas.clientWidth,height=canvas.clientHeight;
+    if(showLegend||width<=0||height<=0){rack.hidden=true;return;}
+    const points=figures.map(f=>({x:f.x/bounds.width_m*width,y:f.y/bounds.height_m*height}));
+    const slots=mapFigureSlots(points,width,height);links.replaceChildren();
+    links.setAttribute('viewBox',`0 0 ${width} ${height}`);
+    let overflow=0;
+    figures.forEach((f,index)=>{
+      const slot=slots[index],point=points[index];
+      if(slot){
+        if(f.card.parentNode!==canvas)canvas.append(f.card);
+        f.card.style.left=`${slot.left}px`;f.card.style.top=`${slot.top}px`;
+        shape('line',{x1:slot.left+48,y1:slot.top+80,x2:point.x,y2:point.y,stroke:'#483923','stroke-width':1.5,'stroke-dasharray':'3 2'},links);
+        shape('circle',{cx:point.x,cy:point.y,r:3,fill:'#f7e6b8',stroke:'#483923','stroke-width':1.5},links);
+      }else{
+        overflow++;if(f.card.parentNode!==rackGrid)rackGrid.append(f.card);
+        f.card.style.left='';f.card.style.top='';
+      }
+    });
+    rack.hidden=overflow===0;
+    rackTitle.textContent=`Altre figure (${overflow}) · coordinate reali sotto ogni immagine`;
+  };
+  meta.textContent+=' · immagini separate, punti e collegamenti indicano le posizioni reali';
+  toggle.addEventListener('click',layoutFigures);
+  watchMapLayout(root,canvas,layoutFigures);
 }
 
 return {normalizeMapVisualAsset,renderPanelMap,renderReadonlyScene};
@@ -3024,6 +3080,24 @@ const COMMON_PANEL_LAYOUT_CSS = `
  .common-panel-sidebar>.common-panel-administration{order:1}
 }
 .common-panel-sidebar>.common-panel-movement,.common-panel-active .common-panel-sidebar>.common-panel-movement{order:-1}
+
+/* MAP-FIGURE-LAYOUT-001: riquadri disgiunti; nessuna coordinata di gioco modificata. */
+.common-panel-map{overflow-y:auto!important}
+.common-panel-map>.common-map-canvas{flex-shrink:0}
+.common-map-figure-links{position:absolute;inset:0;width:100%;height:100%;z-index:5;pointer-events:none;overflow:hidden}
+.common-map-figure-card{position:absolute;width:96px;height:112px;box-sizing:border-box;padding:3px;display:flex;flex-direction:column;align-items:center;overflow:hidden;z-index:4;border:1px solid #7d704f;border-radius:6px;background:rgba(248,240,216,.94);color:#30281c;font:11px/1.2 system-ui,sans-serif}
+.common-map-card-portrait{display:block;position:relative;flex:none;width:56px;height:64px;max-width:100%;overflow:hidden}
+.common-map-card-portrait img{display:block;width:100%;height:100%;object-fit:contain}
+.common-map-card-atlas img{position:absolute;object-fit:fill;max-width:none}
+.common-map-card-fallback:before{content:'';position:absolute;width:14px;height:14px;left:calc(50% - 7px);top:3px;border-radius:50%;background:#635b4d}
+.common-map-card-fallback:after{content:'';position:absolute;width:28px;height:43px;left:calc(50% - 14px);top:20px;background:#635b4d;clip-path:polygon(28% 0,72% 0,100% 50%,79% 55%,68% 28%,66% 58%,87% 100%,62% 100%,50% 70%,38% 100%,13% 100%,34% 58%,32% 28%,21% 55%,0 50%)}
+.common-map-card-name{display:block;width:100%;height:27px;flex:none;overflow:hidden;text-align:center;overflow-wrap:anywhere;font-weight:600}
+.common-map-card-position{display:block;width:100%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px}
+.common-map-figure-rack{flex:none;max-height:210px;overflow:auto;min-width:0;padding:6px;box-sizing:border-box;border-top:1px solid #7d704f}
+.common-map-figure-rack[hidden]{display:none!important}
+.common-map-figure-rack>p{font-size:11px;margin:0 0 6px}
+.common-map-figure-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(96px,100%),96px));gap:8px;min-width:0}
+.common-map-figure-grid>.common-map-figure-card{position:relative;width:100%;min-width:0}
 `;
 
 function installPanelLayout(doc){
