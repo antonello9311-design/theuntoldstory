@@ -2610,6 +2610,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- REGIA-READ-UI-001: controlli automatici senza toast; errori su richiesta esplicita. -->
   <!-- PANEL-POLL-STABLE-001: lettura periodica senza blocco delle scelte locali. -->
+  <!-- ACTION-FLOW-UI-001: movimento, innata e menu tecniche su offerte server tipizzate. -->
   <script id="common-panel-bundle">
 (()=>{
 const module2=(()=>{
@@ -3162,7 +3163,8 @@ function isPlayerLifecycle(o,c,v){
      (c.activity_kind===null&&c.activity_id===null&&c.phase==='setup'&&['open','join'].includes(o.operation)));
 }
 function offer(o,c,viewer){
-  shape(o,['offer_id','kind','operation','actor_id','label','context_version','scene_version','requires_role','choices','input_fields',...(Object.hasOwn(o,'flow_budget')?['flow_budget']:[])]);
+  shape(o,['offer_id','kind','operation','actor_id','label','context_version','scene_version','requires_role','choices','input_fields',...(Object.hasOwn(o,'flow_budget')?['flow_budget']:[]),...(Object.hasOwn(o,'ui_category')?['ui_category']:[])]);
+  if(Object.hasOwn(o,'ui_category'))insist(['innate','technique','basic','other'].includes(o.ui_category)&&(o.ui_category!=='innate'||o.kind==='control'&&o.operation==='control'));
   insist(isId(o.offer_id)&&['action','defense','control','administration'].includes(o.kind)&&name(o.operation)&&nullable(o.actor_id,isId)&&name(o.label)&&o.context_version===c.version&&o.scene_version===c.scene_version&&bool(o.requires_role)&&Array.isArray(o.choices)&&Array.isArray(o.input_fields));
   insist(o.actor_id===null||o.actor_id===viewer.command_actor_id);
   insist(o.kind!=='administration'||viewer.is_master||viewer.is_admin||isPlayerLifecycle(o,c,viewer));
@@ -3631,9 +3633,10 @@ function changeSingleChoice(group,value,selected,selectOption){
 
 function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,confirmDraft,prepare,retry,restoreTestResources}={},renderers={}){
   renderers={map:renderPanelMap,companion:renderPanelCompanion,sabaku_transport:renderPanelSabaku,...renderers};
-  const doc=root.ownerDocument;installPanelLayout(doc);
+  const doc=root.ownerDocument;installPanelLayout(doc);root.classList.add('common-panel-view');
+  if(!doc.getElementById('common-panel-flow-style')){const style=doc.createElement('style');style.id='common-panel-flow-style';style.textContent='.common-panel-view [hidden]{display:none!important}.common-panel-view .common-panel-movement{order:-2!important}.common-panel-view .common-panel-innate{order:-1!important}';doc.head.append(style);}
   let generation=0,current=null,cachedMap=null,cachedMapKey=null;
-  let movementStepScope=null,movementStep=null;
+  let movementStepScope=null,movementStep=null,innateStep=null,techniqueMenuOpen=false,techniqueGroup=null;
   const isMovementControl=o=>o?.kind==='control'&&o.operation==='control'&&
     o.choices.some(g=>g.purpose==='movement_direction')&&o.choices.some(g=>g.purpose==='movement_distance');
   const node=(tag,value,parent)=>{const el=doc.createElement(tag);if(value!==undefined)el.textContent=String(value);if(parent)parent.append(el);return el;};
@@ -3642,7 +3645,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
   const token=()=>generation;
   const handler=(ticket,fn,...args)=>()=>{if(ticket!==generation||typeof fn!=='function')return;fn(...args);};
   function button(parent,label,fn,disabled=false){const b=node('button',label,parent);b.type='button';b.className='mv2-btn';b.disabled=disabled||typeof fn!=='function';if(fn)b.addEventListener('click',fn);return b;}
-  function clear(){generation++;current=null;cachedMap=null;cachedMapKey=null;movementStepScope=null;movementStep=null;sceneKey=null;fullRenderWasBusy=true;disabledBeforeBusy=null;root.removeAttribute("aria-busy");root.replaceChildren();}
+  function clear(){generation++;current=null;cachedMap=null;cachedMapKey=null;movementStepScope=null;movementStep=null;innateStep=null;techniqueMenuOpen=false;techniqueGroup=null;sceneKey=null;fullRenderWasBusy=true;disabledBeforeBusy=null;root.removeAttribute("aria-busy");root.replaceChildren();}
   function renderFeedback(model,parent){
     const last=model?.lastCommand;
     // Opzionale per i consumer privati: preserva anche il loro snapshot/rejection già valido.
@@ -3795,14 +3798,16 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     const movementOffer=available.find(isMovementControl);
     const actionStep=c.phase==='action'&&v.command_actor_id!==null&&!!(movementOffer||available.some(o=>o.kind==='action'&&o.operation==='declare'));
     const nextMovementScope=JSON.stringify([c.activity_id,c.round_id,v.command_actor_id,c.phase]);
-    if(nextMovementScope!==movementStepScope){movementStepScope=nextMovementScope;movementStep=null;}
+    if(nextMovementScope!==movementStepScope){movementStepScope=nextMovementScope;movementStep=null;innateStep=null;techniqueMenuOpen=false;techniqueGroup=null;}
     if(actionStep&&!movementOffer&&movementStep===null)movementStep='none';
+    const guided=actionStep&&available.some(o=>Object.hasOwn(o,'ui_category'));
+    const innateOffers=guided?available.filter(o=>o.ui_category==='innate'):[];
     const movementArea=actionStep?section(sidebar,'1 · Movimento'):null;
     if(movementArea){
       movementArea.className+=' common-panel-movement';
       if(movementStep==='none'||movementStep==='done'){
-        note(movementArea,movementStep==='done'?'Movimento confermato. Ora scegli l’azione principale.':
-          movementOffer?'Nessun movimento. Ora scegli l’azione principale.':'Movimento non disponibile. Ora scegli l’azione principale.');
+        note(movementArea,movementStep==='done'?'Movimento confermato. Ora prosegui con la scelta successiva.':
+          movementOffer?'Nessun movimento. Ora prosegui con la scelta successiva.':'Movimento non disponibile. Ora prosegui con la scelta successiva.');
         if(movementStep==='none'&&movementOffer)button(movementArea,'Cambia movimento',()=>{
           if(ticket!==generation)return;movementStep=null;
           if(selected&&clearOffer)clearOffer();else{sceneKey=null;render(current);}
@@ -3828,13 +3833,29 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
         else if(!movementOffer)note(movementArea,'Nessuno spostamento disponibile in questo momento.');
       }
     }
-    const actions=section(sidebar,'Azioni e difese');actions.className+=' common-panel-actions';
-    actions.hidden=actionStep&&!['none','done'].includes(movementStep);
+    const movementReady=!actionStep||['none','done'].includes(movementStep);
+    let innateArea=null;
+    const refreshLocal=()=>{sceneKey=null;render(current);};
+    const clearSelection=()=>{sceneKey=null;if(selected&&clearOffer)clearOffer();else render(current);};
+    if(innateOffers.length){
+      innateArea=section(sidebar,'2 · Innata');innateArea.className+=' common-panel-innate';innateArea.style.order='-1';innateArea.hidden=!movementReady;
+      if(innateStep){
+        note(innateArea,innateStep==='done'?'Modifica dell’innata confermata.':'Mantieni lo stato attuale.');
+        button(innateArea,'Cambia scelta dell’innata',()=>{if(ticket!==generation)return;innateStep=null;techniqueMenuOpen=false;clearSelection();},!commandsReady);
+      }else{
+        const choices=node('div',undefined,innateArea);choices.className='common-offer-choices';
+        for(const offer of innateOffers){const choice=button(choices,offer.label,handler(ticket,selectOffer,offer.offer_id),!commandsReady);choice.className+=' common-offer-choice';choice.setAttribute('aria-pressed',String(selected?.offer_id===offer.offer_id));}
+        button(choices,'Mantieni lo stato attuale',()=>{if(ticket!==generation)return;innateStep='keep';clearSelection();},!commandsReady);
+        if(selected?.ui_category==='innate')renderOffer(innateArea,selected,e,model,ticket,!commandsReady);
+      }
+    }
+    const actions=section(sidebar,guided?(innateOffers.length?'3 · Tecnica o azione':'2 · Tecnica o azione'):'Azioni e difese');actions.className+=' common-panel-actions';
+    actions.hidden=!movementReady||!!(innateOffers.length&&!innateStep);
     const admin=section(sidebar,'Gestione della scena');admin.className+=' common-panel-administration';
     admin.hidden=!(v.is_master||v.is_admin);
     const flowOffers=available.filter(o=>!administrative(o)&&o.flow_budget);
     let flowArea=null;
-    if(flowOffers.length){
+    if(flowOffers.length&&(!guided||techniqueGroup==='flows'||selected?.flow_budget)){
       const main=section(actions,'Azione principale');
       const flows=node('details',undefined,main);flows.open=true;node('summary','Flussi di Sabbia',flows);
       flowArea=section(flows,'Numero di Flussi');
@@ -3847,7 +3868,24 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     }
     for(const [area,isAdminArea]of [[actions,false],[admin,true]]){
       if(isAdminArea&&admin.hidden)continue;
-      const offers=available.filter(o=>administrative(o)===isAdminArea&&!o.flow_budget&&!isMovementControl(o));
+      const offers=available.filter(o=>administrative(o)===isAdminArea&&!o.flow_budget&&!isMovementControl(o)&&(!guided||isAdminArea||!['innate','technique'].includes(o.ui_category)));
+      if(guided&&!isAdminArea){
+        const techniques=available.filter(o=>!administrative(o)&&o.ui_category==='technique'&&!o.flow_budget&&!isMovementControl(o));
+        const menu=node('div',undefined,area);menu.className='common-technique-menu';menu.style.marginBottom='12px';
+        const trigger=button(menu,'Tecniche disponibili',()=>{if(ticket!==generation)return;techniqueMenuOpen=!techniqueMenuOpen;refreshLocal();},!commandsReady||!techniques.length&&!flowOffers.length);
+        trigger.setAttribute('aria-expanded',String(techniqueMenuOpen));trigger.setAttribute('data-focus-key','technique-menu-toggle');
+        if(techniqueMenuOpen){
+          const label=node('label','Scegli una tecnica',menu),select=node('select',undefined,label);select.className='mv2-select';select.size=Math.min(7,techniques.length+(flowOffers.length?1:0)+1);select.style.cssText='display:block;width:100%;margin-top:8px;min-height:110px';select.setAttribute('data-focus-key','technique-menu');
+          const placeholder=node('option','Seleziona una tecnica',select);placeholder.value='';placeholder.disabled=true;
+          for(const offer of techniques){const item=node('option',offer.label,select);item.value=offer.offer_id;}
+          if(flowOffers.length){const item=node('option','Flussi di Sabbia',select);item.value='flows';}
+          select.value=selected?.flow_budget||techniqueGroup==='flows'?'flows':techniques.some(o=>o.offer_id===selected?.offer_id)?selected.offer_id:'';select.disabled=!commandsReady;
+          select.addEventListener('change',()=>{if(ticket!==generation||!selectOffer)return;const value=select.value;if(value!=='flows'&&!techniques.some(o=>o.offer_id===value))return;techniqueMenuOpen=false;techniqueGroup=value==='flows'?'flows':null;if(value==='flows')clearSelection();else{sceneKey=null;selectOffer(value);}});
+          select.addEventListener('keydown',event=>{if(event.key==='Escape'&&ticket===generation){techniqueMenuOpen=false;refreshLocal();root.querySelector('[data-focus-key="technique-menu-toggle"]')?.focus();}});
+        }
+        if(selected?.ui_category==='technique')note(menu,'Tecnica scelta: '+selected.label);
+        if(!techniques.length&&!flowOffers.length)note(menu,'Nessuna tecnica disponibile in questo momento.');
+      }
       if(!isAdminArea&&flowOffers.length&&!offers.length)continue;
       if(offers.length>0&&offers.length<=6){
         const choices=node('div',undefined,area);choices.className='common-offer-choices';choices.setAttribute('role','group');choices.setAttribute('aria-label',isAdminArea?'Operazione autorizzata':'Scelta disponibile');
@@ -3860,9 +3898,9 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
         select.disabled=!commandsReady||!selectOffer||offers.length===0;
         select.addEventListener('change',()=>{if(ticket!==generation||!selectOffer)return;if(offers.some(o=>o.offer_id===select.value))selectOffer(select.value);});
       }
-      if(!offers.length)note(area,'Nessuna offerta in questo momento.');
+      if(!offers.length&&(!guided||isAdminArea))note(area,'Nessuna offerta in questo momento.');
     }
-    if(selected&&!isMovementControl(selected)&&!(administrative(selected)&&admin.hidden)&&
+    if(selected&&!isMovementControl(selected)&&!(guided&&selected.ui_category==='innate')&&!(administrative(selected)&&admin.hidden)&&
        (administrative(selected)||!actions.hidden)){
       const area=selected.flow_budget?flowArea:administrative(selected)?admin:actions;
       renderOffer(area,selected,e,model,ticket,!commandsReady);
@@ -3943,6 +3981,8 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
       Promise.resolve(prepare()).then(receipt=>{
         if(isMovementControl(offer)&&receipt?.receipt_id&&scope===movementStepScope){
           movementStep='done';sceneKey=null;render(current);
+        }else if(offer.ui_category==='innate'&&receipt?.receipt_id&&scope===movementStepScope){
+          innateStep='done';sceneKey=null;render(current);
         }
       });
     },disabled||model.canPrepare!==true);
@@ -5493,6 +5533,15 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(MV2&&(id!==ordinaryAuthId||event==='SIGNED_OUT'))MV2.readRequested=false;
         ordinaryAuthId=id;
       });
+      var commonPanelUiUnavailable=false;
+      async function commonPanelUiRpc(name,args){
+        if(name!=='combat_panel_options_v1'||commonPanelUiUnavailable)return sb.rpc(name,args);
+        var result=await sb.rpc('combat_panel_options_ui_v1',args),error=result&&result.error;
+        if(error&&['PGRST202','42883'].includes(error.code)&&String(error.message||'').includes('combat_panel_options_ui_v1')){
+          commonPanelUiUnavailable=true;return sb.rpc(name,args);
+        }
+        return result;
+      }
       function ordinaryRefresh(){
         if(examRegia()?.ownsCombat()){if(ORDINARY){ORDINARY.dispose();ORDINARY=null;ordinaryPanelMode=null;}examRegia().refreshPanel();return;}
         esameHoldRefresh();
@@ -5519,7 +5568,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId&&myId&&(commonCombatRoom()||myCharId)?{principal_id:myId,character_id:myCharId||null}:null;},
           isExam:function(){return (!!(cur&&cur.is_exam_room)&&!(cur&&cur.is_test&&iAmStaff))||esScontroVivo();},
           otherCombat:function(){return !!(CMB&&CMB.aperto)||!!(MV2&&MV2.data&&MV2.data.encounter);},
-          rpc:function(name,args){return sb.rpc(name,args);},requestKey:mv2Key,
+          rpc:commonPanelUiRpc,requestKey:mv2Key,
           readChat:function(){return input.value||'';},
           clearChat:function(){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';updCount();},
           notice:toast,accepted:function(){syncSendBtn();loadMsgs();loadWho();loadRoleState();loadTrainingState();}
