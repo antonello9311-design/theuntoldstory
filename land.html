@@ -2609,6 +2609,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- REGIA-READ-UI-001: controlli automatici senza toast; errori su richiesta esplicita. -->
+  <!-- PANEL-POLL-STABLE-001: lettura periodica senza blocco delle scelte locali. -->
   <script id="common-panel-bundle">
 (()=>{
 const module2=(()=>{
@@ -3325,7 +3326,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   insist(typeof rpc==='function'&&typeof contextKey==='function'&&isId(locationId)&&typeof requestKey==='function','controller_configuration');
   let epoch=0,owner=null,busy=false,pending=null,envelope=null,optionsReady=false,error=null;
   let selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='',narrativeContext=null;
-  let rejection=null,refreshRequired=false,lastCommand=null,interactionError=null;
+  let rejection=null,refreshRequired=false,lastCommand=null,interactionError=null,polling=null;
   const chosen=()=>envelope?.offers.find(o=>o.offer_id===selectedOfferId);
   const canConfirmMechanics=()=>!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command&&chosen()?.requires_role===true&&selectionReady(chosen(),selectedOptionIds,inputs,'',false);
   const canPrepare=()=>!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command&&selectionReady(chosen(),selectedOptionIds,inputs,narrativeText);
@@ -3389,6 +3390,30 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
     }catch(e){if(current(ticket,key)){error='read_failed';resetChoices();}return false;}
     finally{if(current(ticket,key)){busy=false;notify();}}
   }
+  function markReadUnavailable(){
+    if(owner===null||owner!==contextKey()){clear();return;}
+    if(busy||pending)return;
+    epoch++;error='read_failed';refreshRequired=true;notify();
+  }
+  function pollState(){
+    if(polling)return polling;
+    if(!bind()||busy||pending)return Promise.resolve(false);
+    const ticket=++epoch,key=owner,actor=envelope?.viewer.command_actor_id??null;
+    const task=(async()=>{
+      try{
+        const raw=await rpc('combat_panel_state_v1',{p_location:locationId,p_actor:actor});
+        if(!current(ticket,key)||busy||pending)return false;
+        const next=validatePanelEnvelope(raw,{state:true}),before=JSON.stringify(snapshot());
+        apply(next,false);error=null;refreshRequired=false;
+        if(JSON.stringify(snapshot())!==before)notify();
+        return true;
+      }catch(e){
+        if(current(ticket,key)&&!busy&&!pending)markReadUnavailable();
+        return false;
+      }
+    })();
+    polling=task;task.finally(()=>{if(polling===task)polling=null;});return task;
+  }
   function editable(){requireCurrent();insist(!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command,'choices_unavailable');}
   async function selectActor(actor){requireCurrent();insist(!busy&&!pending&&envelope?.viewer.controlled_actors.some(a=>a.actor_id===actor),'actor_unavailable');narrativeText='';narrativeContext=null;resetChoices();return read(false,actor);}
   function selectOffer(id){editable();insist(envelope.offers.some(o=>o.offer_id===id),'offer_unavailable');selectedOfferId=id;selectedOptionIds=settleCopyChoices(chosen(),[]);inputs=[];error=null;interactionError=null;notify();}
@@ -3425,7 +3450,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   }
   async function submit(){try{insist(!pending,'pending_command');pending=Object.freeze(prepare());return await send();}catch(e){reportInteractionError(e);return null;}}
   async function retry(){return send();}
-  return {snapshot,clear,invalidate,reportInteractionError,readState:()=>read(false),readOptions:()=>read(true),selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
+  return {snapshot,clear,invalidate,markReadUnavailable,pollState,reportInteractionError,readState:()=>read(false),readOptions:()=>read(true),selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
 }
 
 return {settleCopyChoices,createPanelController};
@@ -4014,7 +4039,12 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   view.render(presented(controller.snapshot()));
   return {
     open:invoke(read),
-    refresh:invoke(()=>controller.readState()),
+    refresh:invoke(async()=>{
+      if(!await controller.pollState())return false;
+      const m=controller.snapshot();
+      return m.envelope?.viewer.can_command&&!m.pending&&!m.optionsReady?controller.readOptions():true;
+    }),
+    suspend:()=>{if(!disposed)controller.markReadUnavailable();},
     setNarrative:invoke(value=>{controller.setNarrative(value);return true;}),
     submit:invoke(()=>send(false)),
     invalidate:()=>{restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;if(!disposed)controller.invalidate();},
@@ -4066,11 +4096,11 @@ function attachPanelLand(host){
           route=typeof host.allowCommonMaster==='function'?await host.allowCommonMaster(e):'unknown';
           if(!valid())return false;
         }
-      }catch{if(valid()&&mode!=='native'){current?.invalidate();warnRouting(scope,'read_failed');}return false;}
+      }catch{if(valid()&&mode!=='native'){if(current?.suspend)current.suspend();else current?.invalidate();warnRouting(scope,'read_failed');}return false;}
       if(route==='native'){routingWarning=null;install('native');return false;}
       if(route==='unknown'){
         if(e?.status==='blocked'&&e.reason_code==='no_active_session'){routingWarning=null;install('unknown');return false;}
-        if(mode!=='native'){current?.invalidate();warnRouting(scope,e?.reason_code||'route_unknown');}
+        if(mode!=='native'){if(e?.status==='ready'&&current?.suspend)current.suspend();else current?.invalidate();warnRouting(scope,e?.reason_code||'route_unknown');}
         return false;
       }
       routingWarning=null;
@@ -4157,6 +4187,7 @@ function attachCombatPanel(host){
     for(const badge of badges){badge.hidden=!visible;if(visible)badge.textContent=confirmedDraft.label;}
   }
   function scope(){const who=host.identity?.(),place=host.location?.();return !disposed&&who&&isId(who.principal_id)&&(who.character_id===null||isId(who.character_id))&&isId(place?.id)&&!host.isExam?.()?JSON.stringify([who.principal_id,who.character_id,place.id]):null;}
+  function suspend(){panel?.suspend();}
   function hide(){deactivateLayout?.();deactivateLayout=null;dialog.hidden=true;dialog.style.display='none';if(opened&&surface==='master')host.closeMaster?.();opened=false;}
   function invalidate(){generation++;key=null;chatSubmitted=null;confirmedDraft=null;refreshing=null;panel?.dispose();panel=null;root.replaceChildren();hide();syncDraft(null);showEntry();}
   function showEntry(){const allowed=!!scope();card.hidden=!allowed;card.style.display=allowed?'':'none';entry.hidden=!allowed;entry.disabled=!allowed;const note=doc.getElementById('ordinary-entry-note');if(note)note.textContent='Pannello comune: disponibilità e scelte sono verificate dal server.';}
@@ -4218,7 +4249,7 @@ function attachCombatPanel(host){
   entry.addEventListener('click',entryClick);close.addEventListener('click',hide);
   function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',hide);invalidate();for(const badge of badges)badge.remove();root.remove();}
   showEntry();
-  return {open,refresh,invalidate,dispose,handleSend,ownsCurrent,
+  return {open,refresh,invalidate,suspend,dispose,handleSend,ownsCurrent,
     ownsSurface:()=>routeAllowed()&&opened&&key===scope(),
     currentSurface:()=>surface,
     clearPresentation:invalidate,
@@ -4589,9 +4620,11 @@ function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=n
   offerLabel.className='mv2-field';movementLabel.className='mv2-field';refresh.className='mv2-btn ghost';send.className='mv2-btn';retry.className='mv2-btn ghost';receipt.className='mv2-phase';events.className='mv2-roster';
   const companionPickerRoot=node('div');companionPickerRoot.className='mv2-field';form.append(companionPickerRoot);
   const companionPicker=mountMovementPicker(companionPickerRoot,controller,{node,onConfirm,readChat});
-  let offerSignature='',moveSignature='';
+  let offerSignature='',moveSignature='',renderSignature=null;
   function options(el,items,placeholder,isMovement=false){el.replaceChildren();const first=node('option',placeholder);first.value='';el.append(first);for(const item of items){const o=node('option',item.label+(isMovement?' · spostamento '+String(item.distance_m).replace('.',',')+' m':''));o.value=item.offer_id;el.append(o);}}
   function render(){
+    const signature=JSON.stringify([controller.envelope,controller.offers,controller.selected,controller.movement,controller.busy,controller.pending,controller.error,controller.needsOptions,presentationScope()]);
+    if(signature===renderSignature)return;renderSignature=signature;
     const c=controller,e=c.envelope,isOpening=e?.context?.phase==='waiting_join';root.classList.toggle('ordinary-opening',isOpening);heading.textContent=isOpening?'Sfida':'Scontro';status.textContent=e?.context?((Number.isSafeInteger(e.context.round_no)?'Round '+e.context.round_no+' · ':'')+phases[e.context.phase]):(e?'Scontro non disponibile':'Caricamento dello scontro…');
     const activeActors=(e?.actors||[]).filter(a=>a.state==='active'&&a.body_only!==true);
     const expected=activeActors.filter(a=>e?.context?.phase==='action'?a.is_turn_owner===true:e?.context?.phase==='defense'?a.is_turn_owner===false:false);
@@ -4622,7 +4655,7 @@ function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=n
   function handle(action){Promise.resolve().then(action).catch(e=>{controller.error=e.code||'invalid_projection';render();});}
   select.addEventListener('change',()=>handle(()=>controller.select(select.value)));
   movement.addEventListener('change',()=>handle(()=>controller.select(select.value,movement.value||null)));
-  refresh.addEventListener('click',()=>handle(()=>controller.openOptions()));
+  refresh.addEventListener('click',()=>handle(async()=>{await controller.poll();if(!controller.error&&controller.envelope?.status==='ready'&&controller.envelope.viewer.can_command)await controller.openOptions();}));
   send.addEventListener('click',()=>handle(()=>onConfirm?onConfirm(controller):controller.submit(readChat())));
   retry.addEventListener('click',()=>handle(()=>onRetry?onRetry(controller):controller.retry()));
   controller.onChange=render;render();return {render,clearPresentation(){companionPicker.clear();closeMemory.clear();lastClose.textContent='';lastClose.hidden=true;}};
@@ -4655,6 +4688,12 @@ function attachOrdinaryLand(host){
     presentation?.clearPresentation();presentation=null;controller=null;originScope=null;locationId=null;
     root.replaceChildren();visible(false);showEntry();
   }
+  function suspend(){
+    if(!controller||!localAllowed())return;
+    entryAllowed=false;stateRequest++;controller.sequence++;
+    controller.error='network_uncertain';controller.needsOptions=true;
+    controller.notify();showEntry();
+  }
   function current(c,stamp){return c===controller&&stamp===epoch&&originScope===scope()&&localAllowed();}
   function syncScope(){if((controller&&originScope!==scope())||!localAllowed())invalidate();}
   function sameLocation(){return originScope===scope()&&locationId===host.location()?.id;}
@@ -4677,12 +4716,12 @@ function attachOrdinaryLand(host){
       if(!current(created,stamp)||(name!=='combat_consumer_state_v1'&&!eligible()))throw new ConsumerError('context_stale');
       const isState=name==='combat_consumer_state_v1',ticket=isState?++stateRequest:null;
       let result;
-      try{result=await host.rpc(name,args);}catch(e){if(isState&&current(created,stamp)&&ticket===stateRequest)invalidate();throw e;}
+      try{result=await host.rpc(name,args);}catch(e){if(isState&&current(created,stamp)&&ticket===stateRequest)suspend();throw e;}
       if(!current(created,stamp)||(isState&&ticket!==stateRequest))throw new ConsumerError('context_stale');
       const payload=result&&Object.hasOwn(result,'data')?result.data:result;
       if(isState){
         try{
-          if(result?.error)throw new ConsumerError('network_uncertain');
+          if(result?.error){suspend();throw new ConsumerError('network_uncertain');}
           validateEnvelope(payload,{state:true});
           if(payload.context&&payload.context.activity_kind!=='ordinary_v2')throw new ConsumerError('adapter_not_ready');
           const grant=payload?.entry;
@@ -4691,7 +4730,7 @@ function attachOrdinaryLand(host){
             ||(grant.allowed&&payload.status!=='ready'))throw new ConsumerError('invalid_projection');
           if(!grant.allowed){invalidate();throw new ConsumerError('not_participant');}
           entryNarrativeErrorScope=null;entryAllowed=true;showEntry();
-        }catch(e){if(current(created,stamp))invalidate(e.code);throw e;}
+        }catch(e){if(current(created,stamp)&&e.code!=='network_uncertain')invalidate(e.code);throw e;}
       }
       if(payload?.context && payload.context.activity_kind!=='ordinary_v2')throw new ConsumerError('adapter_not_ready');
       return result;
@@ -4714,7 +4753,7 @@ function attachOrdinaryLand(host){
     syncScope();showEntry();if(!localAllowed())return;
     setup();const c=controller,stamp=epoch;
     if(c)await c.poll();
-    if(current(c,stamp)){presentation?.render();showEntry();}
+    if(current(c,stamp))showEntry();
   }
   function ownsCurrent(){return eligible()&&sameLocation()&&controller?.envelope?.context?.activity_kind==='ordinary_v2'&&!!controller.envelope.context.activity_id;}
   // Chiamato prima del normale post_message, dopo i rami Esame invariati.
@@ -4733,7 +4772,7 @@ function attachOrdinaryLand(host){
   entry.addEventListener('click',open);close.addEventListener('click',closeClick);
   function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',open);close.removeEventListener('click',closeClick);invalidate();}
   showEntry();visible(false);
-  return {open,refresh,handleSend,ownsCurrent,invalidate,dispose,clearPresentation(){presentation?.clearPresentation();},get controller(){return controller;}};
+  return {open,refresh,handleSend,ownsCurrent,invalidate,suspend,dispose,clearPresentation(){presentation?.clearPresentation();},get controller(){return controller;}};
 }
 
 window.TUSOrdinary={attachOrdinaryLand};
@@ -5487,7 +5526,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         });
         ORDINARY.refresh();
       }
-      function refreshRoom(){ if(!cur) return; CMB_APRI=false; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); ordinaryRefresh(); }
+      function refreshRoom(){ if(!cur) return; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); ordinaryRefresh(); }
 
       /* ---- MASTER-COMBAT-V2-LAND-UI-021: regia multi-attore ---- */
       var MV2={data:null,loading:false,setup:null,setupOpen:false,pngDraft:[],options:{},busy:false,missingRpc:false,setupKind:null,serverSig:null,defenseDrafts:{},encounterDraft:null};
@@ -5551,7 +5590,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           }
           await commonMasterAuthorize(next);
           if(masterReadGeneration!==commonMasterReadGeneration||!cur||cur.id!==masterLocation||commonMasterPrincipal()!==masterPrincipal||(MV2.authEpoch||0)!==masterEpoch)return;
-          MV2.data=next;MV2.locationId=masterLocation;MV2.principalId=masterPrincipal;missionHumanPhaseRefresh(next);mv2PruneDefenseDrafts(next);renderCombat();if(!commonMasterCombat())mv2EnsureOptions();
+          MV2.data=next;MV2.locationId=masterLocation;MV2.principalId=masterPrincipal;missionHumanPhaseRefresh(next);mv2PruneDefenseDrafts(next);if(!same)renderCombat();if(!commonMasterCombat())mv2EnsureOptions();
           if(commonMasterCombat()&&!previouslyCommon){
             var masterDialog=document.getElementById('mv2ov'),masterVisible=masterDialog&&!masterDialog.hidden;
             ordinaryRefresh();if(masterVisible&&ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');
@@ -5576,12 +5615,15 @@ window.TUSOrdinary={attachOrdinaryLand};
       function mv2ActorName(id){ var a=mv2Actor(id); return a?a.name:'Attore'; }
       function mv2EnsureOptions(){
         if(commonMasterCombat())return;
-        var d=MV2.data||{}, r=d.round;
-        if(!r||!d.encounter||d.master&&d.master.stato==='sospesa') return;
+        var d=MV2.data||{}, r=d.round,scope=commonMasterScope(),cache=MV2.options;
+        var current=function(){return scope===commonMasterScope()&&cache===MV2.options&&MV2.data?.round?.id===r?.id&&MV2.data?.encounter?.id===d.encounter?.id;};
+        if(!r||!d.encounter||d.master&&d.master.stato==='sospesa')return;
+        var optionsScope=JSON.stringify([scope,d.encounter.id,r.id]);
+        if(MV2.optionsScope!==optionsScope){MV2.optionsScope=optionsScope;MV2.options={};cache=MV2.options;}
         (d.actors||[]).filter(function(a){return a.mine&&a.state==='attivo';}).forEach(function(a){
           if(Object.prototype.hasOwnProperty.call(MV2.options,a.id)) return;
           MV2.options[a.id]=null;
-          sb.rpc('combat_v2_round_options',{p_round:r.id,p_actor:a.id}).then(function(x){ MV2.options[a.id]=x&&!x.error?(mv2Data(x)||{}):{}; renderMasterV2(); },function(){ MV2.options[a.id]={}; renderMasterV2(); });
+          sb.rpc('combat_v2_round_options',{p_round:r.id,p_actor:a.id}).then(function(x){if(!current())return;MV2.options[a.id]=x&&!x.error?(mv2Data(x)||{}):{};renderMasterV2();},function(){if(!current())return;MV2.options[a.id]={};renderMasterV2();});
         });
       }
       function mv2SetupLoad(){
@@ -5914,12 +5956,15 @@ window.TUSOrdinary={attachOrdinaryLand};
          nascosta e il comportamento e' quello di oggi. */
       function syncNarrAttesa(on){ var el=document.getElementById('narr-attesa'); if(el) el.hidden = !on; }
       function loadCombat(){ if(!sb||!cur){ syncNarrAttesa(false); return; }
-        sb.rpc('combat_state',{p_location:cur.id}).then(function(r){
-          CMB=(r&&!r.error&&r.data)||null;
+        var location=cur.id,principal=commonMasterPrincipal();
+        sb.rpc('combat_state',{p_location:location}).then(function(r){
+          if(!cur||cur.id!==location||commonMasterPrincipal()!==principal)return;
+          var next=(r&&!r.error&&r.data)||null,same=mv2ServerSig(CMB)===mv2ServerSig(next);
+          CMB=next;
           if(!(CMB&&CMB.aperto&&CMB.puo_comporre)) CMB_AZ=null;
           syncNarrAttesa(!!(CMB&&CMB.narrazione_attesa===true));
-          renderCombat(); syncAzPill(); try{TRV2.sig=null;renderTraining();}catch(e){}
-        }, function(){ CMB=null; syncNarrAttesa(false); renderCombat(); try{TRV2.sig=null;renderTraining();}catch(e){} }); }
+          if(!same){CMB_APRI=false;renderCombat();} syncAzPill(); try{TRV2.sig=null;renderTraining();}catch(e){}
+        }, function(){ if(!cur||cur.id!==location||commonMasterPrincipal()!==principal)return;CMB=null; syncNarrAttesa(false); renderCombat(); try{TRV2.sig=null;renderTraining();}catch(e){} }); }
       function csBar(v,max,cls){
         /* fuori dalla stanza di prova il server non manda i valori dell'avversario:
            in quel caso non si disegna nessuna barra, invece di disegnarne una vuota */
