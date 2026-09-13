@@ -4003,10 +4003,10 @@ function attachCombatPanel(host){
   const dialog=doc.getElementById('ordinary-overlay'),close=doc.getElementById('ordinary-close');
   insist(ordinary&&master&&card&&entry&&dialog&&close,'land_mount_missing');
   let deactivateLayout=null;
-  let panel=null,key=null,opened=false,surface='ordinary',generation=0,chatSubmitted=null,refreshing=null,disposed=false;
+  let panel=null,key=null,opened=false,surface='ordinary',generation=0,chatSubmitted=null,refreshing=null,opening=null,disposed=false;
   function scope(){const who=host.identity?.(),place=host.location?.();return !disposed&&who&&isId(who.principal_id)&&(who.character_id===null||isId(who.character_id))&&isId(place?.id)&&!host.isExam?.()?JSON.stringify([who.principal_id,who.character_id,place.id]):null;}
   function hide(){deactivateLayout?.();deactivateLayout=null;dialog.hidden=true;dialog.style.display='none';if(opened&&surface==='master')host.closeMaster?.();opened=false;}
-  function invalidate(){generation++;key=null;chatSubmitted=null;refreshing=null;panel?.dispose();panel=null;root.replaceChildren();hide();showEntry();}
+  function invalidate(){generation++;key=null;chatSubmitted=null;refreshing=null;opening=null;panel?.dispose();panel=null;root.replaceChildren();hide();showEntry();}
   function showEntry(){const allowed=!!scope();card.hidden=!allowed;card.style.display=allowed?'':'none';entry.hidden=!allowed;entry.disabled=!allowed;const note=doc.getElementById('ordinary-entry-note');if(note)note.textContent='Pannello comune: disponibilità e scelte sono verificate dal server.';}
   function ensure(){
     const next=scope();if(next!==key)invalidate();if(!next)return false;if(panel)return true;
@@ -4024,20 +4024,28 @@ function attachCombatPanel(host){
     return true;
   }
   async function open(which='ordinary'){
+    if(opening)return opening;
     if(!ensure()||!routeAllowed())return false;
     const stamp=generation;hide();surface=which;opened=true;host.closeMaster?.();
     (which==='master'?master:ordinary).replaceChildren(root);
     if(which==='master')host.showMaster();else{dialog.hidden=false;dialog.style.display='flex';}
     deactivateLayout=activatePanelLayout({document:doc,root,body:which==='master'?master:ordinary,overlay:which==='master'?doc.getElementById('mv2ov'):dialog});
-    if(refreshing)await refreshing;if(stamp!==generation)return false;
-    const before=panel.snapshot();if(before.pending||before.busy)return true;
-    const ok=await panel.open();if(stamp!==generation)return false;
-    if(!routeAllowed()){invalidate();host.routingUnknown?.();return false;}
-    // Il binding del controller nasce con la prima lettura, non nel costruttore.
-    if(ok&&!panel.snapshot().narrativeText&&host.readChat()&&!panel.snapshot().pending)await panel.setNarrative(host.readChat());
-    return ok;
+    // Il clic ha priorità: aspetta il refresh in corso e impedisce nuove letture
+    // dello stato finché il controller non ha chiesto anche le offerte.
+    const task=(async()=>{
+      if(refreshing)await refreshing;if(stamp!==generation)return false;
+      const before=panel.snapshot();if(before.pending)return true;
+      if(before.busy)return false;
+      const ok=await panel.open();if(stamp!==generation)return false;
+      if(!routeAllowed()){invalidate();host.routingUnknown?.();return false;}
+      if(ok&&!panel.snapshot().narrativeText&&host.readChat()&&!panel.snapshot().pending)await panel.setNarrative(host.readChat());
+      return ok;
+    })();
+    opening=task;
+    try{return await task;}finally{if(opening===task)opening=null;}
   }
   function refresh(){
+    if(opening)return Promise.resolve(false);
     if(!ensure())return Promise.resolve(false);showEntry();
     if(refreshing)return refreshing;
     const m=panel.snapshot();if(m.pending||m.busy)return Promise.resolve(false);
