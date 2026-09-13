@@ -3549,7 +3549,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
   const token=()=>generation;
   const handler=(ticket,fn,...args)=>()=>{if(ticket!==generation||typeof fn!=='function')return;fn(...args);};
   function button(parent,label,fn,disabled=false){const b=node('button',label,parent);b.type='button';b.className='mv2-btn';b.disabled=disabled||typeof fn!=='function';if(fn)b.addEventListener('click',fn);return b;}
-  function clear(){generation++;current=null;cachedMap=null;cachedMapKey=null;movementStepScope=null;movementStep=null;sceneKey=null;disabledBeforeBusy=null;root.removeAttribute("aria-busy");root.replaceChildren();}
+  function clear(){generation++;current=null;cachedMap=null;cachedMapKey=null;movementStepScope=null;movementStep=null;sceneKey=null;fullRenderWasBusy=true;disabledBeforeBusy=null;root.removeAttribute("aria-busy");root.replaceChildren();}
   function renderFeedback(model,parent){
     const last=model?.lastCommand;
     // Opzionale per i consumer privati: preserva anche il loro snapshot/rejection già valido.
@@ -3564,7 +3564,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
   }
   // Il poll blocca i comandi per la durata della lettura, senza sostituire il DOM.
   // Versioni, scena, offerte, selezioni ed errori restano nel confronto completo.
-  let sceneKey=null,disabledBeforeBusy=null;
+  let sceneKey=null,fullRenderWasBusy=true,disabledBeforeBusy=null;
   const stableKey=model=>JSON.stringify(Object.fromEntries(Object.entries(model||{}).filter(([key])=>key!=='busy'&&key!=='canPrepare'&&key!=='canConfirmMechanics')));
   function restoreDisabled(){
     if(!disabledBeforeBusy)return;
@@ -3586,7 +3586,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
   for(const type of ['click','change','input','submit'])root.addEventListener(type,blockBusyEvent,true);
   function render(model){
     const key=stableKey(model);
-    if(sceneKey===key){
+    if(sceneKey===key&&(!fullRenderWasBusy||model?.busy===true)){
       current=model;
       if(model?.busy===true)busyLock();else restoreDisabled();
       root.setAttribute('aria-busy',String(model?.busy===true));
@@ -3595,7 +3595,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     restoreDisabled();
     renderFull(model);
     if(model?.busy===true)busyLock();
-    sceneKey=key;
+    sceneKey=key;fullRenderWasBusy=model?.busy===true;
     root.setAttribute('aria-busy',String(model?.busy===true));
   }
   function renderFull(model){
