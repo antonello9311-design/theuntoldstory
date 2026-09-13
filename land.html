@@ -3185,11 +3185,44 @@ function flowOptionAllowed(offer,selected,groupId,optionId,enabled=true){
   return flowSelectionTotal(offer,next)<=offer.flow_budget.max_flows;
 }
 
+// Il pannello non seleziona coordinate: riconosce solo un ramo diretto che
+// il commit può completare usando opzioni valide già generate dal server.
+function automaticAssaultGroups(offer,selected){
+  if(!offer||offer.label!=='Moltiplicazione del corpo'||!offer.choices.some(g=>g.purpose==='copies')||!Array.isArray(selected))return null;
+  const chosen=new Set(selected);
+  const mode=offer.choices.find(g=>g.purpose==='mode'&&g.options.some(o=>chosen.has(o.option_id)&&o.label==='Assalto'));
+  const modeOption=mode?.options.find(o=>chosen.has(o.option_id)&&o.label==='Assalto');
+  const target=offer.choices.find(g=>g.purpose==='target'&&g.depends_on===modeOption?.option_id);
+  const targetOption=target?.options.find(o=>chosen.has(o.option_id));
+  if(!targetOption)return null;
+  const hidden=[];let parent=targetOption.option_id;
+  for(let depth=0;depth<offer.choices.length;depth++){
+    const children=offer.choices.filter(g=>g.depends_on===parent);
+    if(!children.length)return hidden.length?hidden:null;
+    if(children.length!==1)return null;
+    const group=children[0];
+    if(group.selection_mode!=='single'||group.min_selected!==1||group.max_selected!==1||
+      group.options.some(o=>chosen.has(o.option_id)))return null;
+    let option;
+    if(group.label==='Percorso dell’Assalto')option=group.options.find(o=>o.label==='Diretto');
+    else if(group.label.startsWith('Figura di '))option=group.options.find(o=>o.label==='Estrazione del server');
+    else if(group.label==='Distanza dal bersaglio')option=group.options.filter(o=>Number.isFinite(o.distance_m)&&o.distance_m>=0&&o.distance_m<=2)
+      .sort((a,b)=>a.distance_m-b.distance_m)[0];
+    else if(group.label==='Punto d’arrivo')option=group.options.filter(o=>Number.isFinite(o.distance_m)&&o.distance_m>=0&&o.distance_m<=5)
+      .sort((a,b)=>a.distance_m-b.distance_m)[0];
+    else if(group.label==='Originale · arrivo scelto'&&group.options.length===1&&
+      Number.isFinite(group.options[0].distance_m)&&group.options[0].distance_m<=5)option=group.options[0];
+    if(!option)return null;
+    hidden.push(group.group_id);parent=option.option_id;
+  }
+  return null;
+}
 function selectionReady(offer,selected,inputs,narrativeText){
   if(!offer||!Array.isArray(selected)||new Set(selected).size!==selected.length||!Array.isArray(inputs)||new Set(inputs.map(x=>x.input_id)).size!==inputs.length||!str(narrativeText))return false;
   const active=new Set(selected),ids=new Set(offer.choices.flatMap(g=>g.options.map(o=>o.option_id)));
   if(selected.some(id=>!ids.has(id)))return false;
-  for(const g of offer.choices){const n=g.options.filter(o=>active.has(o.option_id)).length,enabled=g.depends_on===null||active.has(g.depends_on);if(enabled?(n<g.min_selected||n>g.max_selected):n!==0)return false;}
+  const automatic=new Set(automaticAssaultGroups(offer,selected)||[]);
+  for(const g of offer.choices){const n=g.options.filter(o=>active.has(o.option_id)).length,enabled=g.depends_on===null||active.has(g.depends_on);if(automatic.has(g.group_id)){if(n!==0)return false;continue;}if(enabled?(n<g.min_selected||n>g.max_selected):n!==0)return false;}
   if(inputs.some(x=>!offer.input_fields.some(f=>f.input_id===x.input_id)))return false;
   for(const f of offer.input_fields){const x=inputs.find(x=>x.input_id===f.input_id);if(!x){if(f.required)return false;continue;}if(f.value_type==='text'){if(!str(x.value)||[...x.value].length>f.max_length||(f.required&&!x.value.trim()))return false;}else if(!bool(x.value))return false;}
   const flowTotal=flowSelectionTotal(offer,selected);if(flowTotal!==null&&(flowTotal!==offer.flow_budget.max_flows))return false;
@@ -3197,7 +3230,7 @@ function selectionReady(offer,selected,inputs,narrativeText){
 }
 
 
-return {isId,insist,classifyPanelRejection,isPlayerLifecycle,validatePanelEnvelope,flowSelectionTotal,flowOptionAllowed,selectionReady};
+return {isId,insist,classifyPanelRejection,isPlayerLifecycle,validatePanelEnvelope,flowSelectionTotal,flowOptionAllowed,automaticAssaultGroups,selectionReady};
 })();
 const module4=(()=>{
 const {validatePanelEnvelope,classifyPanelRejection,selectionReady,flowOptionAllowed,isId,insist}=module5;
@@ -3405,7 +3438,7 @@ const module6=(()=>{
 // Candidata di sola presentazione combat-panel/1. Nessuna RPC o formula di gioco.
 const {installPanelLayout}=module3;
 const {renderPanelMap}=module1;
-const {isPlayerLifecycle,flowSelectionTotal,flowOptionAllowed}=module5;
+const {isPlayerLifecycle,flowSelectionTotal,flowOptionAllowed,automaticAssaultGroups}=module5;
 const {renderPanelCompanion,renderPanelSabaku,renderPanelSandSummary}=module7;
 // Il controller validante è iniettato: questa vista non concede autorità.
 const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(x);
@@ -3763,9 +3796,10 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     }
     const sequence=offer.choices.some(g=>g.purpose==='copies')&&offer.choices.some(g=>g.purpose==='mode');
     const groupHost=sequence?node('div',undefined,area):area;if(sequence)groupHost.className='common-option-sequence';
+    const automatic=new Set(automaticAssaultGroups(offer,model.selectedOptionIds||[])||[]);
     const activeGroups=[];
     for(const group of offer.choices){
-      if(!purposes.has(group.purpose)||group.depends_on!==null&&!selected.has(group.depends_on))continue;
+      if(!purposes.has(group.purpose)||group.depends_on!==null&&!selected.has(group.depends_on)||automatic.has(group.group_id))continue;
       activeGroups.push(group);const options=displayGroupOptions(group,selected);
       const field=node('fieldset',undefined,groupHost);field.disabled=disabled||!selectOption;
       if(group.purpose==='movement_direction'||group.purpose==='movement_distance')field.classList.add('common-movement-group');
