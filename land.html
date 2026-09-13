@@ -3706,7 +3706,11 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     const activeOffers=available.filter(o=>o.kind==='control'&&!movementControl(o)&&!innateControl(o));
     const flowOffers=available.filter(o=>!administrative(o)&&o.flow_budget);
     const mainOffers=available.filter(o=>!administrative(o)&&o.kind!=='control'&&!o.flow_budget);
-    movementStage.hidden=movementOffers.length===0;
+    const selectedAssault=selected?.choices.some(g=>g.purpose==='mode'&&g.options.some(o=>
+      (model.selectedOptionIds||[]).includes(o.option_id)&&o.label==='Assalto'))===true;
+    const actionMoveOffers=mainOffers.filter(o=>o.choices.some(g=>g.purpose==='movement_direction')&&
+      o.choices.some(g=>g.purpose==='movement_distance'));
+    movementStage.hidden=(movementOffers.length===0&&actionMoveOffers.length===0)||selectedAssault;
     innateStage.hidden=innateOffers.length===0;
     activeStage.hidden=activeOffers.length===0;
     mainStage.hidden=mainOffers.length===0&&flowOffers.length===0;
@@ -3719,14 +3723,17 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
       const choices=node('div',undefined,area);choices.className='common-offer-choices';choices.setAttribute('role','group');choices.setAttribute('aria-label',area.querySelector('h4')?.textContent||'Scelta disponibile');
       for(const offer of offers){const choice=button(choices,offer.label,handler(ticket,selectOffer,offer.offer_id),!commandsReady||!selectOffer);choice.className+=' common-offer-choice';choice.setAttribute('aria-pressed',String(selected?.offer_id===offer.offer_id));}
     }
-    if(movementOffers.length){
-      const gate=node('div',undefined,movementStage);gate.className='common-offer-choices';gate.setAttribute('role','group');gate.setAttribute('aria-label','Vuoi muoverti?');
-      const yes=button(gate,'Sì, mi muovo',handler(ticket,selectOffer,movementOffers[0].offer_id),!commandsReady||!selectOffer);
-      yes.className+=' common-offer-choice';yes.setAttribute('aria-pressed',String(selected&&movementControl(selected)));
-      const no=button(gate,'No, resto qui',()=>{if(ticket===generation&&clearOffer){clearOffer();Promise.resolve().then(()=>{const next=root.querySelector('.common-turn-stages');if(next)next.scrollLeft=next.scrollWidth;});}},locked||!clearOffer);
-      no.className+=' common-offer-choice';
-      if(movementOffers.length>1)offerButtons(movementStage,movementOffers,'');
+    if(!movementStage.hidden){
+      if(movementOffers.length){
+        note(movementStage,'Facoltativo: scegli direzione e distanza, conferma il movimento, poi usa l’azione principale. Per restare fermo passa direttamente all’azione.');
+        offerButtons(movementStage,movementOffers,'');
+        if(model.lastCommand?.receipt?.display_events?.some(event=>event.event_kind==='movement'))
+          note(movementStage,'Movimento confermato: puoi scegliere la tecnica nello stesso round.');
+      }else if(actionMoveOffers.length){
+        note(movementStage,'Il movimento disponibile si sceglie dentro l’azione principale offerta dal server.');
+      }
     }
+    if(selectedAssault)note(mainStage,'Assalto comprende soltanto il proprio avanzamento fino a 5 m: non si somma al movimento generale.');
     if(innateOffers.length)offerButtons(innateStage,innateOffers,'');
     if(activeOffers.length)offerButtons(activeStage,activeOffers,'');
     if(activeOffers.length)note(activeStage,'Le passive si applicano automaticamente quando le condizioni sono soddisfatte.');
@@ -3815,7 +3822,9 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     }
     renderMovementReasons(area,envelope,offer,selected);
     if(offer.requires_role)note(area,'Invia le scelte con il messaggio nella chat della scena.');
-    else button(area,'Conferma scelta',handler(ticket,prepare),disabled||model.canPrepare!==true);
+    else button(area,offer.kind==='control'&&offer.choices.some(g=>g.purpose==='movement_direction')&&
+      offer.choices.some(g=>g.purpose==='movement_distance')?'Conferma movimento':'Conferma scelta',
+      handler(ticket,prepare),disabled||model.canPrepare!==true);
   }
   function renderMovementReasons(area,e,offer,selected){
     const m=e.movement_explanations;if(m===null)return;
@@ -3896,7 +3905,11 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   }
   async function send(retry=false){
     const key=contextKey(),before=controller.snapshot(),receipt=await(retry?controller.retry():controller.submit());
-    if(receipt&&!disposed&&contextKey()===key)await onConfirmed(receipt,before.narrativeText);
+    if(receipt&&!disposed&&contextKey()===key){
+      const submittedOffer=before.envelope?.offers?.find(offer=>offer.offer_id===before.selectedOfferId);
+      await onConfirmed(receipt,submittedOffer?.requires_role===true?before.narrativeText:null);
+      if(receipt.display_events?.some(event=>event.event_kind==='movement'))await read();
+    }
     return receipt;
   }
   view=mountPanelView(root,{
@@ -4045,12 +4058,13 @@ function attachCombatPanel(host){
     (which==='master'?master:ordinary).replaceChildren(root);
     if(which==='master')host.showMaster();else{dialog.hidden=false;dialog.style.display='flex';}
     deactivateLayout=activatePanelLayout({document:doc,root,body:which==='master'?master:ordinary,overlay:which==='master'?doc.getElementById('mv2ov'):dialog});
-    // Il clic ha priorità: aspetta il refresh in corso e impedisce nuove letture
-    // dello stato finché il controller non ha chiesto anche le offerte.
+    // Il clic apre subito: la lettura esplicita supera il polling in corso.
+    // Un altro clic riusa la stessa richiesta senza duplicare le offerte.
     const task=(async()=>{
-      if(refreshing)await refreshing;if(stamp!==generation)return false;
+      // La lettura esplicita ha priorità sul polling: il controller scarta la risposta periodica superata.
+      if(stamp!==generation)return false;
       const before=panel.snapshot();if(before.pending)return true;
-      if(before.busy)return false;
+      if(before.busy)return true; // La lettura esplicita già in corso aggiornerà la superficie aperta.
       const ok=await panel.open();if(stamp!==generation)return false;
       if(!routeAllowed()){invalidate();host.routingUnknown?.();return false;}
       if(ok&&!panel.snapshot().narrativeText&&host.readChat()&&!panel.snapshot().pending)await panel.setNarrative(host.readChat());
