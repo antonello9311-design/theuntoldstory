@@ -8504,7 +8504,9 @@ function createExamRegiaHost(host) {
   }
   function load() { enter(); if (!claimsExam()) return false; refresh(); return true; }
   async function openPanel(which = 'ordinary') {
-    await refresh(); const current = ensurePanel();
+    // Il pulsante è offerto soltanto con una prova combattibile già osservata.
+    // Apri subito la superficie: il controller legge stato e offerte dentro il pannello.
+    const current = ensurePanel();
     if (!current) { notice('Lo scontro non è ancora disponibile.'); return false; }
     return current.open(which);
   }
