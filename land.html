@@ -2608,6 +2608,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
   <audio id="bgm" loop preload="none"></audio>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- REGIA-READ-UI-001: controlli automatici senza toast; errori su richiesta esplicita. -->
   <script id="common-panel-bundle">
 (()=>{
 const module2=(()=>{
@@ -4031,7 +4032,7 @@ function attachPanelLand(host){
   const childHost={...host,requireManagedMaster:true,accepted(receipt){host.accepted(receipt);queueMicrotask(()=>{if(!disposed)refresh();});}};
   const pending=()=>mode==='opening'?!!(child?.controller?.pending||child?.controller?.busy):!!(child?.snapshot()?.pending||child?.snapshot()?.busy);
   const routingScope=()=>JSON.stringify([host.identity?.(),host.location?.()?.id,host.isExam?.()]);
-  function warnRouting(scope,reason){const key=JSON.stringify([scope,reason]);if(routingWarning===key)return;routingWarning=key;host.routingUnknown?.();}
+  function warnRouting(scope,reason){routingWarning=JSON.stringify([scope,reason]);}
   function install(next){
     const dialog=host.document.getElementById('ordinary-overlay');
     const visible=child?.ownsSurface?.()===true?child.currentSurface():(dialog&&!dialog.hidden?'ordinary':null);
@@ -4046,6 +4047,7 @@ function attachPanelLand(host){
   }
   function refresh(){
     if(disposed)return Promise.resolve(false);if(refreshing)return refreshing;
+    const refreshScope=routingScope(),refreshRevocation=revocation;
     const task=(async()=>{
       if(pending())return false;
       const current=child,stamp=generation,scope=routingScope(),revoked=revocation;
@@ -4079,15 +4081,21 @@ function attachPanelLand(host){
         if(!disposed&&child===newChild&&revoked===revocation&&scope===routingScope()&&wasVisible)await newChild.open(wasVisible);
       }else await current.refresh();
       return true;
-    })();
+    })().catch(()=>{if(!disposed&&refreshScope===routingScope()&&refreshRevocation===revocation)warnRouting(refreshScope,'child_read_failed');return false;});
     refreshing=task;
-    task.catch(()=>host.notice('Stato non aggiornato. Rileggi il pannello.')).finally(()=>{if(refreshing===task)refreshing=null;});
+    task.finally(()=>{if(refreshing===task)refreshing=null;});
     return task;
   }
   async function open(which='ordinary'){
     if(disposed)return false;const scope=routingScope(),revoked=revocation;
-    await refresh();if(disposed||revoked!==revocation||scope!==routingScope()||(mode==='native'||mode==='unknown'))return false;
-    if(mode==='opening')host.closeMaster?.();return child.open(mode==='combat'?which:undefined);
+    await refresh();if(disposed||revoked!==revocation||scope!==routingScope())return false;
+    if(routingWarning!==null){host.routingUnknown?.({explicit:true});return false;}
+    if(mode==='native'||mode==='unknown')return false;
+    if(mode==='opening')host.closeMaster?.();
+    const current=child,result=await child.open(mode==='combat'?which:undefined);
+    if(disposed||child!==current||revoked!==revocation||scope!==routingScope())return false;
+    if(mode==='opening'&&host.document.getElementById('ordinary-overlay')?.hidden!==false){host.routingUnknown?.({explicit:true});return false;}
+    return result;
   }
   function invalidate(){generation++;revocation++;refreshing=null;child?.invalidate();}
   function dispose(){if(disposed)return;disposed=true;generation++;revocation++;child?.dispose();child=null;}
@@ -4179,7 +4187,7 @@ function attachCombatPanel(host){
     if(refreshing)await refreshing;if(stamp!==generation)return false;
     const before=panel.snapshot();if(before.pending||before.busy)return true;
     const ok=await panel.open();if(stamp!==generation)return false;
-    if(!routeAllowed()){invalidate();host.routingUnknown?.();return false;}
+    if(!routeAllowed()){invalidate();host.routingUnknown?.({explicit:true});return false;}
     // Il binding del controller nasce con la prima lettura, non nel costruttore.
     if(ok&&!panel.snapshot().narrativeText&&host.readChat()&&!panel.snapshot().pending)await panel.setNarrative(host.readChat());
     return ok;
@@ -4189,7 +4197,7 @@ function attachCombatPanel(host){
     if(refreshing)return refreshing;
     const m=panel.snapshot();if(m.pending||m.busy)return Promise.resolve(false);
     const current=panel,stamp=generation;
-    const task=panel.refresh().then(ok=>{if(current===panel&&stamp===generation&&!routeAllowed()){const wasMaster=opened&&surface==='master';invalidate();host.routingUnknown?.();return false;}return ok;});refreshing=task;
+    const task=panel.refresh().then(ok=>{if(current===panel&&stamp===generation&&!routeAllowed()){invalidate();return false;}return ok;});refreshing=task;
     task.finally(()=>{if(refreshing===task)refreshing=null;});return task;
   }
   function routeAllowed(){const e=panel?.snapshot().envelope;return host.requireManagedMaster!==true||e?.context?.activity_kind!=='master_v2'||host.isCommonMaster?.(e)===true;}
@@ -5443,6 +5451,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session){
         var id=session&&session.user?session.user.id:null;
         if(id!==ordinaryAuthId||event==='SIGNED_OUT'){missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(MV2){MV2.authEpoch=(MV2.authEpoch||0)+1;MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.options={};}}
+        if(MV2&&(id!==ordinaryAuthId||event==='SIGNED_OUT'))MV2.readRequested=false;
         ordinaryAuthId=id;
       });
       function ordinaryRefresh(){
@@ -5460,7 +5469,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           allowCommonMaster:commonMasterRoute,
           isCommonMaster:function(e){return commonMasterReady()&&e&&e.context&&e.context.activity_id===MV2.data.encounter.id;},
           masterRouteReserved:commonMasterCombat,
-          routingUnknown:function(){toast('Verifica della Regia non disponibile. Il percorso precedente resta invariato.');},
+          routingUnknown:function(event){if(event?.explicit)toast('Non riesco a verificare il pannello. Riprova ad aprirlo.');},
           nativeMasterFallback:function(wasVisible){
             if(commonMasterCombat())return;
             if(MV2&&MV2.data&&cur&&MV2.locationId===cur.id&&MV2.principalId===commonMasterPrincipal()){mv2EnsureOptions();renderMasterV2();if(wasVisible)mv2OvApri();}
@@ -5514,19 +5523,23 @@ window.TUSOrdinary={attachOrdinaryLand};
         });
       }
       function mv2SetBody(body,html){body.innerHTML=html;mv2RestoreDefenseDrafts();}
-      function loadMasterV2(){
+      function loadMasterV2(explicit){
         missionGenericRoomRefresh();
         if(examRegia()?.ownsCombat()){mv2Card(false);return;}
-        if(!sb||!cur||MV2.loading||MV2.missingRpc) return;
+        if(!sb||!cur)return;
+        if(explicit===true)MV2.readRequested=true;
+        if(MV2.missingRpc){if(MV2.readRequested)toast('Regia non disponibile. Riprova dopo aver ricaricato la pagina.');MV2.readRequested=false;return;}
+        if(MV2.loading)return;
         if(cur.is_exam_room&&!(commonPanelRoom()&&iAmStaff)){ mv2Card(false); return; }
         var masterPrincipal=commonMasterPrincipal(),masterEpoch=MV2.authEpoch||0;if(!masterPrincipal)return;MV2.loading=true;var masterLocation=cur.id;
         var masterReadGeneration=++commonMasterReadGeneration;
         sb.rpc('master_v2_ui_state',{p_location:masterLocation}).then(async function(r){
           MV2.loading=false;if(!cur||cur.id!==masterLocation||commonMasterPrincipal()!==masterPrincipal||(MV2.authEpoch||0)!==masterEpoch)return;
+          var requested=MV2.readRequested===true;MV2.readRequested=false;
           if(r&&r.error){
             var mm=(r.error.message||'').toLowerCase();
             if(mm.indexOf('master_v2_ui_state')>=0||mm.indexOf('schema cache')>=0){ MV2.missingRpc=true; mv2Card(false); }
-            else { toast('Lettura della Regia non disponibile. Il percorso precedente resta invariato.'); }
+            if(requested)toast('Lettura della Regia non riuscita. Premi Aggiorna per riprovare.');
             return;
           }
           var previouslyCommon=commonMasterCombat();
@@ -5546,7 +5559,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           if(previouslyCommon&&!commonMasterCombat()&&ORDINARY){ORDINARY.invalidate();ordinaryRefresh();}
           if(same&&previouslyCommon===commonMasterCombat())return;
           MV2.serverSig=sig; renderMasterV2();
-        },function(){ MV2.loading=false;if(!cur||cur.id!==masterLocation||commonMasterPrincipal()!==masterPrincipal||(MV2.authEpoch||0)!==masterEpoch)return;mv2Card(false); });
+        },function(){ MV2.loading=false;if(!cur||cur.id!==masterLocation||commonMasterPrincipal()!==masterPrincipal||(MV2.authEpoch||0)!==masterEpoch)return;var requested=MV2.readRequested===true;MV2.readRequested=false;mv2Card(false);if(requested)toast('Lettura della Regia non riuscita. Premi Aggiorna per riprovare.'); });
       }
       function mv2Actor(id){ var a=((MV2.data||{}).actors||[]).filter(function(x){return x.id===id;}); return a[0]||null; }
       function mv2MetersBetween(a,b){
@@ -5771,7 +5784,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       function mv2OvApri(){ if(examRegia()?.ownsCombat()){examRegia().openPanel('master');return;} if(commonMasterCombat()){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');else toast('Pannello comune non disponibile.');return;} if(!cur){ toast('Entra in una stanza per aprire la Regia'); return; }
         var rr=document.getElementById('mv2-room'); if(rr) rr.textContent=cur.name||'stanza';
         var ov=document.getElementById('mv2ov'), bk=document.getElementById('mv2ov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false;
-        renderMasterV2(); loadMasterV2(); }
+        renderMasterV2(); loadMasterV2(true); }
       function mv2OvChiudi(){ var ov=document.getElementById('mv2ov'), bk=document.getElementById('mv2ov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
       function mv2Busy(on){ MV2.busy=on; var b=document.getElementById('mv2-body'); if(b) Array.prototype.forEach.call(b.querySelectorAll('button'),function(x){x.disabled=on;}); }
       function mv2Reload(msg){ MV2.options={}; MV2.serverSig=null; if(msg)toast(msg); loadMasterV2(); }
@@ -5791,7 +5804,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         var _ob=document.getElementById('mv2-open-btn'); if(_ob) _ob.addEventListener('click',mv2OvApri);
         var _ox=document.getElementById('mv2ov-x'); if(_ox) _ox.addEventListener('click',mv2OvChiudi);
         var _obk=document.getElementById('mv2ov-backdrop'); if(_obk) _obk.addEventListener('click',mv2OvChiudi);
-        var _orf=document.getElementById('mv2-refresh'); if(_orf) _orf.addEventListener('click',function(){ MV2.setup=null; MV2.options={}; MV2.serverSig=null; loadMasterV2(); });
+        var _orf=document.getElementById('mv2-refresh'); if(_orf) _orf.addEventListener('click',function(){ MV2.setup=null; MV2.options={}; MV2.serverSig=null; loadMasterV2(true); });
         document.addEventListener('keydown',function(e){ var _ov=document.getElementById('mv2ov'); if(e.key==='Escape'&&_ov&&!_ov.hidden) mv2OvChiudi(); });
         body.addEventListener('change',function(ev){
           if(commonMasterCombat())return;
@@ -9388,7 +9401,7 @@ var nb028iTeardown=function(){};
   };
 });
       function openRoom(l){
-        if(ORDINARY)ORDINARY.invalidate();cur=l; showView('room');  restorePlace(l.id);
+        if(ORDINARY)ORDINARY.invalidate();MV2.readRequested=false;cur=l; showView('room');  restorePlace(l.id);
         nameEl.textContent=l.name; kindEl.textContent=l.kind||''; descEl.textContent=l.description||'';
         var im=document.getElementById('room-img'), nt=document.getElementById('room-note');
         if(im){ if(l.image_url){ im.src=l.image_url; im.style.display='block'; } else { im.removeAttribute('src'); im.style.display='none'; } }
@@ -9405,7 +9418,7 @@ var nb028iTeardown=function(){};
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
