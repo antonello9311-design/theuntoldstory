@@ -1396,6 +1396,7 @@
   }
 
   .azp{display:inline-flex;align-items:center;gap:4px;font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#f6ead0;background:var(--red);border:1px solid var(--red-deep);border-radius:7px;padding:4px 8px;cursor:pointer}
+  .azp{max-width:min(45vw,460px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .azp[hidden]{display:none}
 
   .sug-pop{position:absolute;left:12px;bottom:64px;z-index:60;min-width:212px;max-width:min(330px,86vw);max-height:236px;overflow:auto;background:linear-gradient(var(--paper-hi),var(--paper));border:1px solid var(--edge);border-radius:9px;box-shadow:0 12px 32px rgba(20,12,4,.28)}
@@ -2917,6 +2918,14 @@ const COMMON_PANEL_LAYOUT_CSS = `
 .combat-panel-common :is(select,input,textarea):disabled{opacity:.5;cursor:not-allowed}
 .combat-panel-common input[type=checkbox]{accent-color:#d2a558}
 .common-offer-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.common-turn-stages{display:grid;grid-template-columns:repeat(4,minmax(190px,1fr));gap:10px;align-items:start;overflow-x:auto;padding-bottom:5px}
+.common-turn-stages>.mv2-field{min-width:190px;margin:0;box-sizing:border-box}
+.common-turn-stages>.mv2-field>h4{margin-top:0}
+.common-turn-stages .common-offer-choices{display:flex;flex-wrap:wrap}
+.common-turn-stages .common-offer-choices>.mv2-btn{flex:1 1 130px}
+.common-turn-stages .common-option-sequence{max-width:100%}
+@media(max-width:850px){.common-turn-stages{grid-template-columns:repeat(4,minmax(220px,78vw));scroll-snap-type:x proximity}.common-turn-stages>.mv2-field{scroll-snap-align:start}}
+
 .common-option-choices{display:flex;flex-wrap:wrap;gap:7px}
 .common-option-sequence{display:flex;align-items:stretch;gap:10px;overflow-x:auto;overscroll-behavior-inline:contain;padding:2px 2px 8px;scroll-snap-type:x proximity}
 .common-option-sequence>fieldset{flex:1 0 min(270px,78vw);max-width:360px;margin:0!important;scroll-snap-align:start}
@@ -3200,6 +3209,13 @@ return {isId,insist,classifyPanelRejection,isPlayerLifecycle,validatePanelEnvelo
 })();
 const module4=(()=>{
 const {validatePanelEnvelope,classifyPanelRejection,selectionReady,flowOptionAllowed,isId,insist}=module5;
+// Le scelte geometriche singole dell'Assalto restano capability opache del server.
+function autoAssaultGeometryGroup(offer,group,selected){
+  const assault=offer.choices.some(g=>g.purpose==='mode'&&g.options.some(o=>selected.has(o.option_id)&&o.label==='Assalto'));
+  return assault&&group.selection_mode==='single'&&group.min_selected===1&&group.max_selected===1&&group.options.length===1&&
+    (group.purpose==='movement_direction'||group.purpose==='movement_distance'||
+      group.purpose==='generic'&&group.label.startsWith('Originale · arrivo scelto'));
+}
 // Riceve soltanto gruppi già validati (dipendenze acicliche per ID opaco).
 function settleCopyChoices(offer,selected){
   const next=new Set(selected);
@@ -3209,7 +3225,7 @@ function settleCopyChoices(offer,selected){
     for(const group of offer.choices){
       const active=group.depends_on===null||next.has(group.depends_on);
       if(!active){for(const option of group.options)if(next.delete(option.option_id))changed=true;}
-      else if(group.purpose==='copies'&&group.selection_mode==='single'&&group.min_selected===1&&group.max_selected===1&&group.options.length===1){
+      else if((group.purpose==='copies'||autoAssaultGeometryGroup(offer,group,next))&&group.selection_mode==='single'&&group.min_selected===1&&group.max_selected===1&&group.options.length===1){
         const id=group.options[0].option_id;if(!next.has(id)){next.add(id);changed=true;}
       }
     }
@@ -3285,6 +3301,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   function editable(){requireCurrent();insist(!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command,'choices_unavailable');}
   async function selectActor(actor){requireCurrent();insist(!busy&&!pending&&envelope?.viewer.controlled_actors.some(a=>a.actor_id===actor),'actor_unavailable');narrativeText='';narrativeContext=null;resetChoices();return read(false,actor);}
   function selectOffer(id){editable();insist(envelope.offers.some(o=>o.offer_id===id),'offer_unavailable');selectedOfferId=id;selectedOptionIds=settleCopyChoices(chosen(),[]);inputs=[];error=null;interactionError=null;notify();}
+  function clearOffer(){editable();selectedOfferId=null;selectedOptionIds=[];inputs=[];error=null;interactionError=null;notify();}
   function selectOption(groupId,id,enabled){
     editable();const o=chosen(),g=o?.choices.find(g=>g.group_id===groupId);insist(g&&g.options.some(x=>x.option_id===id)&&typeof enabled==='boolean','option_unavailable');
     insist(g.depends_on===null||selectedOptionIds.includes(g.depends_on),'dependency_missing');
@@ -3317,7 +3334,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   }
   async function submit(){try{insist(!pending,'pending_command');pending=Object.freeze(prepare());return await send();}catch(e){reportInteractionError(e);return null;}}
   async function retry(){return send();}
-  return {snapshot,clear,invalidate,reportInteractionError,readState:()=>read(false),readOptions:()=>read(true),selectActor,selectOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
+  return {snapshot,clear,invalidate,reportInteractionError,readState:()=>read(false),readOptions:()=>read(true),selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
 }
 
 return {settleCopyChoices,createPanelController};
@@ -3496,7 +3513,7 @@ function changeSingleChoice(group,value,selected,selectOption){
   }
 }
 
-function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,selectOption,setInput,setNarrative,prepare,retry,restoreTestResources}={},renderers={}){
+function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,prepare,retry,restoreTestResources}={},renderers={}){
   renderers={map:renderPanelMap,companion:renderPanelCompanion,sabaku_transport:renderPanelSabaku,...renderers};
   const doc=root.ownerDocument;installPanelLayout(doc);
   let generation=0,current=null,cachedMap=null,cachedMapKey=null;
@@ -3558,7 +3575,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
   function renderFull(model){
     const active=doc.activeElement;
     const legendOpen=root.querySelector?.('.common-map-legend')?.hidden===false;
-    const scrollPositions=['.common-panel-workspace','.common-panel-participants','.common-panel-sidebar','.common-map-legend'].map(selector=>({selector,top:root.querySelector?.(selector)?.scrollTop||0}));
+    const scrollPositions=['.common-panel-workspace','.common-panel-participants','.common-panel-sidebar','.common-map-legend','.common-turn-stages'].map(selector=>({selector,top:root.querySelector?.(selector)?.scrollTop||0,left:root.querySelector?.(selector)?.scrollLeft||0}));
     const focus=active&&root.contains(active)&&active.getAttribute('data-focus-key')?{key:active.getAttribute('data-focus-key'),start:active.selectionStart,end:active.selectionEnd}:null;
     generation++;current=model;const ticket=token();root.replaceChildren();
     const e=model?.envelope;
@@ -3654,16 +3671,42 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
       if(e.round_details.report){const report=section(details,e.round_details.report.title);for(const line of e.round_details.report.lines)note(report,line);}
     }
     const actions=section(sidebar,'Azioni e difese');actions.className+=' common-panel-actions';
+    const stages=node('div',undefined,actions);stages.className='common-turn-stages';
+    const movementStage=section(stages,'1 · Movimento');
+    const innateStage=section(stages,'2 · Innata');
+    const activeStage=section(stages,'3 · Abilità attive');
+    const mainStage=section(stages,'4 · Azione principale');
     const admin=section(sidebar,'Gestione della scena');admin.className+=' common-panel-administration';
     admin.hidden=!(v.is_master||v.is_admin);
     const available=e.offers.filter(o=>o.context_version===c.version&&o.scene_version===c.scene_version);
     const administrative=o=>o.kind==='administration'&&!isPlayerLifecycle(o,c,v);
+    const movementControl=o=>o.kind==='control'&&o.choices.some(g=>g.purpose==='movement_direction')&&o.choices.some(g=>g.purpose==='movement_distance');
+    // Classificazione soltanto visiva: nessun effetto o diritto deriva dal nome.
+    // Le offerte restano gli UUID opachi convalidati dal server.
+    const innateControl=o=>o.kind==='control'&&!movementControl(o)&&/\b(?:Byakugan|Sharingan|Innata)\b/i.test(o.label);
     const selected=available.find(o=>o.offer_id===model.selectedOfferId);
+    function offerButtons(area,offers,emptyLabel){
+      if(!offers.length){note(area,emptyLabel);return;}
+      if(offers.length>6){const label=node('label','Scelta disponibile',area),select=node('select',undefined,label);select.className='mv2-select';const blank=node('option','Seleziona',select);blank.value='';for(const offer of offers){const item=node('option',offer.label,select);item.value=offer.offer_id;}select.value=selected&&offers.some(o=>o.offer_id===selected.offer_id)?selected.offer_id:'';select.disabled=!commandsReady||!selectOffer;select.addEventListener('change',()=>{if(ticket===generation&&selectOffer&&offers.some(o=>o.offer_id===select.value))selectOffer(select.value);});return;}
+      const choices=node('div',undefined,area);choices.className='common-offer-choices';choices.setAttribute('role','group');choices.setAttribute('aria-label',area.querySelector('h4')?.textContent||'Scelta disponibile');
+      for(const offer of offers){const choice=button(choices,offer.label,handler(ticket,selectOffer,offer.offer_id),!commandsReady||!selectOffer);choice.className+=' common-offer-choice';choice.setAttribute('aria-pressed',String(selected?.offer_id===offer.offer_id));}
+    }
+    const movementOffers=available.filter(movementControl);
+    if(movementOffers.length){
+      const gate=node('div',undefined,movementStage);gate.className='common-offer-choices';gate.setAttribute('role','group');gate.setAttribute('aria-label','Vuoi muoverti?');
+      const yes=button(gate,'Sì, mi muovo',handler(ticket,selectOffer,movementOffers[0].offer_id),!commandsReady||!selectOffer);
+      yes.className+=' common-offer-choice';yes.setAttribute('aria-pressed',String(selected&&movementControl(selected)));
+      const no=button(gate,'No, resto qui',()=>{if(ticket===generation&&clearOffer){clearOffer();Promise.resolve().then(()=>{const next=root.querySelector('.common-turn-stages');if(next)next.scrollLeft=next.scrollWidth;});}},locked||!clearOffer);
+      no.className+=' common-offer-choice';
+      if(movementOffers.length>1)offerButtons(movementStage,movementOffers,'');
+    }else note(movementStage,'Nessuno spostamento disponibile in questo momento.');
+    offerButtons(innateStage,available.filter(innateControl),'Nessuna attivazione innata disponibile.');
+    offerButtons(activeStage,available.filter(o=>o.kind==='control'&&!movementControl(o)&&!innateControl(o)),'Nessuna abilità attiva da selezionare.');
+    note(activeStage,'Le passive si applicano automaticamente quando le condizioni sono soddisfatte.');
     const flowOffers=available.filter(o=>!administrative(o)&&o.flow_budget);
     let flowArea=null;
     if(flowOffers.length){
-      const main=section(actions,'Azione principale');
-      const flows=node('details',undefined,main);flows.open=true;node('summary','Flussi di Sabbia',flows);
+      const flows=node('details',undefined,mainStage);flows.open=true;node('summary','Flussi di Sabbia',flows);
       flowArea=section(flows,'Numero di Flussi');
       const quantities=node('div',undefined,flowArea);quantities.className='common-offer-choices';quantities.setAttribute('role','group');quantities.setAttribute('aria-label','Numero di Flussi');
       for(const offer of [...flowOffers].sort((a,b)=>a.flow_budget.max_flows-b.flow_budget.max_flows)){
@@ -3672,25 +3715,10 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
       }
       if(selected?.flow_budget)flowArea=section(flows,'Assegna i Flussi');
     }
-    for(const [area,isAdminArea]of [[actions,false],[admin,true]]){
-      if(isAdminArea&&admin.hidden)continue;
-      const offers=available.filter(o=>administrative(o)===isAdminArea&&!o.flow_budget);
-      if(!isAdminArea&&flowOffers.length&&!offers.length)continue;
-      if(offers.length>0&&offers.length<=6){
-        const choices=node('div',undefined,area);choices.className='common-offer-choices';choices.setAttribute('role','group');choices.setAttribute('aria-label',isAdminArea?'Operazione autorizzata':'Scelta disponibile');
-        for(const offer of offers){const choice=button(choices,offer.label,handler(ticket,selectOffer,offer.offer_id),!commandsReady||!selectOffer);choice.className+=' common-offer-choice';choice.setAttribute('aria-pressed',String(selected?.offer_id===offer.offer_id));}
-      }else{
-        const label=node('label',isAdminArea?'Operazione autorizzata':'Scelta disponibile',area),select=node('select',undefined,label);
-        select.className='mv2-select';const placeholder=node('option','Seleziona',select);placeholder.value='';
-        for(const offer of offers){const item=node('option',offer.label,select);item.value=offer.offer_id;}
-        select.value=selected&&administrative(selected)===isAdminArea?selected.offer_id:'';
-        select.disabled=!commandsReady||!selectOffer||offers.length===0;
-        select.addEventListener('change',()=>{if(ticket!==generation||!selectOffer)return;if(offers.some(o=>o.offer_id===select.value))selectOffer(select.value);});
-      }
-      if(!offers.length)note(area,'Nessuna offerta in questo momento.');
-    }
+    offerButtons(mainStage,available.filter(o=>!administrative(o)&&o.kind!=='control'&&!o.flow_budget),'Nessuna azione principale disponibile.');
+    if(!admin.hidden)offerButtons(admin,available.filter(administrative),'Nessuna operazione di gestione disponibile.');
     if(selected&&!(administrative(selected)&&admin.hidden)){
-      const area=selected.flow_budget?flowArea:administrative(selected)?admin:actions;
+      const area=selected.flow_budget?flowArea:administrative(selected)?admin:movementControl(selected)?movementStage:innateControl(selected)?innateStage:selected.kind==='control'?activeStage:mainStage;
       renderOffer(area,selected,e,model,ticket,!commandsReady);
     }
     renderMovementPreview(map,e,selected,new Set(model.selectedOptionIds||[]));
@@ -3705,7 +3733,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
       if(typeof renderers.receipt==='function')renderers.receipt(receipt,lastReceipt);
       else for(const event of lastReceipt.display_events)note(receipt,event.summary);
     }
-    for(const saved of scrollPositions){const target=root.querySelector?.(saved.selector);if(target)target.scrollTop=saved.top;}
+    for(const saved of scrollPositions){const target=root.querySelector?.(saved.selector);if(target){target.scrollTop=saved.top;target.scrollLeft=saved.left;}}
     if(focus){const target=[...root.querySelectorAll('[data-focus-key]')].find(x=>x.getAttribute('data-focus-key')===focus.key);if(target&&!target.disabled){target.focus();if(typeof focus.start==='number'&&typeof target.setSelectionRange==='function')target.setSelectionRange(focus.start,focus.end);}}
   }
   function renderOffer(area,offer,envelope,model,ticket,disabled){
@@ -3718,11 +3746,12 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,sele
       if(offer.flow_budget.option_weights.length===0)note(area,'La quantità è fissata dalla scelta dell’azione.');
       else note(area,flowTotal===0?'Assegna tutti i flussi ai bersagli scelti.':flowTotal===offer.flow_budget.max_flows?'Hai assegnato tutti i flussi disponibili per questa azione.':'Puoi assegnare ancora '+(offer.flow_budget.max_flows-flowTotal)+' flussi.');
     }
-    const sequence=offer.choices.some(g=>g.purpose==='copies')&&offer.choices.some(g=>g.purpose==='mode');
+    const sequence=offer.choices.some(g=>g.purpose==='copies')&&offer.choices.some(g=>g.purpose==='mode')||offer.choices.some(g=>g.purpose==='movement_direction')&&offer.choices.some(g=>g.purpose==='movement_distance');
     const groupHost=sequence?node('div',undefined,area):area;if(sequence)groupHost.className='common-option-sequence';
     const activeGroups=[];
     for(const group of offer.choices){
       if(!purposes.has(group.purpose)||group.depends_on!==null&&!selected.has(group.depends_on))continue;
+      if(autoAssaultGeometryGroup(offer,group,selected)&&selected.has(group.options[0].option_id))continue;
       activeGroups.push(group);const options=displayGroupOptions(group,selected);
       const field=node('fieldset',undefined,groupHost);field.disabled=disabled||!selectOption;
       if(group.purpose==='movement_direction'||group.purpose==='movement_distance')field.classList.add('common-movement-group');
@@ -3847,7 +3876,7 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   view=mountPanelView(root,{
     readState:invoke(read),readOptions:invoke(()=>controller.readOptions()),restoreTestResources,
     selectActor:invoke(async actor=>{if(await controller.selectActor(actor))return controller.readOptions();return false;}),
-    selectOffer:invoke(id=>controller.selectOffer(id)),selectOption:invoke((group,id,on)=>controller.selectOption(group,id,on)),
+    selectOffer:invoke(id=>controller.selectOffer(id)),clearOffer:invoke(()=>controller.clearOffer()),selectOption:invoke((group,id,on)=>controller.selectOption(group,id,on)),
     setInput:invoke((id,value)=>controller.setInput(id,value)),setNarrative:invoke(value=>controller.setNarrative(value)),
     prepare:invoke(()=>send(false)),retry:invoke(()=>send(true))
   },renderers);
@@ -3863,7 +3892,7 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   };
 }
 
-const {isId,insist,validatePanelEnvelope}=module5;
+const {isId,insist,validatePanelEnvelope,selectionReady}=module5;
 // Invito e accettazione riusano le porte pubblicate; le fasi giocate usano Common.
 // La selezione dipende solo dalla proiezione server, mai da un errore di commit.
 function attachPanelLand(host){
@@ -3933,6 +3962,7 @@ function attachPanelLand(host){
   function invalidate(){generation++;revocation++;refreshing=null;child?.invalidate();}
   function dispose(){if(disposed)return;disposed=true;generation++;revocation++;child?.dispose();child=null;}
   return {open,refresh,invalidate,dispose,
+    draft:()=>mode==='combat'?(child?.draft?.()??null):null,
     handleSend:(...args)=>{
       if(disposed)return false;
       if(host.masterRouteReserved?.()&&(!child?.ownsCurrent()||mode==='unknown')){host.notice('Verifica della Regia in corso: aggiorna il pannello prima di inviare.');return true;}
@@ -3972,6 +4002,7 @@ function attachCombatPanel(host){
     panel=mountPanelSurface({root,locationId:host.location().id,contextKey:scope,
       canRestoreTestResources:()=>host.canRestoreTestResources?.()===true,
       client:{rpc:(name,args)=>host.rpc(name,args)},renderers:host.renderers??(host.visuals?{map:createVisualMapRenderer(host.visuals)}:undefined),
+      onDraft:()=>host.draftChanged?.(),
       onConfirmed:async(receipt,submitted)=>{
         if(stamp!==generation||key!==scope())return;
         if((chatSubmitted!==null&&host.readChat()===chatSubmitted)||(submitted&&host.readChat()===submitted))host.clearChat();
@@ -4003,6 +4034,18 @@ function attachCombatPanel(host){
     task.finally(()=>{if(refreshing===task)refreshing=null;});return task;
   }
   function routeAllowed(){const e=panel?.snapshot().envelope;return host.requireManagedMaster!==true||e?.context?.activity_kind!=='master_v2'||host.isCommonMaster?.(e)===true;}
+  // Riepilogo di sola lettura: usa la stessa validazione delle scelte del controller.
+  function draft(){
+    const m=panel?.snapshot(),e=m?.envelope;
+    if(!ownsCurrent()||m?.pending||m?.refreshRequired||m?.optionsReady!==true||
+      e?.status!=='ready'||e.viewer?.can_command!==true)return null;
+    const offer=e.offers.find(o=>o.offer_id===m.selectedOfferId);
+    if(!offer?.requires_role||!selectionReady(offer,m.selectedOptionIds,m.inputs,'role'))return null;
+    const ids=new Set(m.selectedOptionIds);
+    const options=offer.choices.flatMap(g=>g.options.filter(o=>ids.has(o.option_id)).map(o=>o.label));
+    const fields=m.inputs.map(x=>offer.input_fields.find(f=>f.input_id===x.input_id)?.label).filter(Boolean);
+    return {label:[offer.label,...new Set([...options,...fields])].join(' · ')};
+  }
   function ownsCurrent(){return routeAllowed()&&key===scope()&&!!panel?.snapshot().envelope?.context?.activity_id;}
   function handleSend(raw,narrative){
     if(!scope()||key!==scope()){invalidate();return false;}
@@ -4019,7 +4062,7 @@ function attachCombatPanel(host){
   entry.addEventListener('click',entryClick);close.addEventListener('click',hide);
   function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',hide);invalidate();root.remove();}
   showEntry();
-  return {open,refresh,invalidate,dispose,handleSend,ownsCurrent,
+  return {open,refresh,invalidate,dispose,handleSend,ownsCurrent,draft,
     ownsSurface:()=>routeAllowed()&&opened&&key===scope(),
     currentSurface:()=>surface,
     clearPresentation:invalidate,
@@ -5283,7 +5326,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           rpc:function(name,args){return sb.rpc(name,args);},requestKey:mv2Key,
           readChat:function(){return input.value||'';},
           clearChat:function(){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';updCount();},
-          notice:toast,accepted:function(){syncSendBtn();loadMsgs();loadWho();loadRoleState();loadTrainingState();}
+          notice:toast,draftChanged:syncAzPill,accepted:function(){syncSendBtn();loadMsgs();loadWho();loadRoleState();loadTrainingState();}
         });
         ORDINARY.refresh();
       }
@@ -5816,12 +5859,25 @@ window.TUSOrdinary={attachOrdinaryLand};
          pronta — «+5 m \u00b7 Colpo a mani nude» — perche' un riepilogo che non
          riepiloga niente non e' un riepilogo. Cliccarla riapre il pannello:
          e' la via per modificare, e c'era gia'. */
-      function syncAzPill(){ var on=!!CMB_AZ||!!ES_AZ;
-        var txt=ES_AZ?('\u2694 '+(ES_AZ_ETI||'Mossa pronta')):'\u2694 Azione pronta';
-        var tit=ES_AZ?'Mossa preparata: clic per modificarla. Parte con il prossimo messaggio della chat.'
-                     :'Hai un\u2019azione composta: parte insieme a questo messaggio';
+      function commonDraftOwner(){
+        if(fatoMode||(toSel&&toSel.value))return null;
+        try{
+          if(EXAM_REGIA?.ownsCombat())return EXAM_REGIA;
+          if(ORDINARY?.snapshot?.()?.envelope?.context?.activity_id)return ORDINARY;
+        }catch(e){}
+        return null;
+      }
+      function syncAzPill(){
+        var owner=commonDraftOwner(),common=owner?.draft?.()||null;
+        var on=owner?!!common:!!CMB_AZ||!!ES_AZ;
+        var textReady=!!(common&&input&&input.value.trim()&&turnoLen()<=5000&&sendGateOk()&&sendBtn&&!sendBtn.disabled);
+        var txt=common?('\u2694 '+(textReady?'Azione pronta · ':'Scelte pronte · ')+common.label)
+          :ES_AZ?('\u2694 '+(ES_AZ_ETI||'Mossa pronta')):'\u2694 Azione pronta';
+        var tit=common?common.label+(textReady?'. Testo pronto: parte con Invia.':'. Completa il testo nella chat, poi invia.')
+          :ES_AZ?'Mossa preparata: clic per modificarla. Parte con il prossimo messaggio della chat.'
+          :'Hai un\u2019azione composta: parte insieme a questo messaggio';
         ['az-pill','az-pill-ed'].forEach(function(id){ var e=azEl(id);
-          if(e){ e.hidden=!on; e.textContent=txt; e.title=tit; } }); }
+          if(e){if(e.hidden!==!on)e.hidden=!on;if(e.textContent!==txt)e.textContent=txt;if(e.title!==tit)e.title=tit;} }); }
       function azBozzaInit(){
         /* [COMBAT-040-042-R2] `copie` nasce a '1': e' il default scritto nel
            contratto congelato (§5.2). Se il campo non parte, il server assume 1
@@ -6647,6 +6703,8 @@ window.TUSOrdinary={attachOrdinaryLand};
             /* [071-A · FLUSSO UI §4] Due sorgenti, due aperture. `azApri()`
                chiede le opzioni allo Scontro e senza sessione aperta si
                ferma: sulla prova non riaprirebbe mai niente. */
+            var owner=commonDraftOwner();
+            if(owner){if(owner.draft?.())(owner===EXAM_REGIA?owner.openPanel():owner.open());return;}
             if(ES_AZ && esScontroVivo()) esComponi(); else azApri(); }); });
       })();
       (function(){ var host=document.getElementById('cmb-body'); if(!host) return;
@@ -8253,6 +8311,7 @@ function createExamRegiaHost(host) {
         visuals:envelope => resolveExamVisuals({envelope,scope:ownsCombat()?scope():null,readiness,state:raw,
           catalog:typeof host.visualCatalog==='function'?host.visualCatalog({scope:scope(),state:raw,readiness}):host.visualCatalog}),
         readChat:host.readChat,clearChat:host.clearChat,notice,
+        draftChanged:host.draftChanged,
         showMaster:host.showMaster,closeMaster:host.closeMaster,
         accepted(receipt) {
           // Il controller Common ha già attestato la stessa ricevuta e svuotato
@@ -8479,6 +8538,7 @@ function createExamRegiaHost(host) {
     commit(); return true;
   }
   return {load,refresh,render,start,resume,close,exit,restart,reread,reset,snapshot,claimsExam,blocksChat,ownsCombat,canCommand,canExit,canSend,openPanel,handleSend,
+    draft:()=>ownsCombat()?(panel?.draft?.()??null):null,
     refreshPanel:() => ensurePanel()?.refresh() ?? Promise.resolve(false)};
 }
 
@@ -8496,7 +8556,7 @@ function createExamRegiaHost(host) {
       visualCatalog:function(context){return examRegiaLibrary.createExamVisualCatalog(Object.assign({},context,{assets:EXAM_REGIA_ART}));},
       readChat:function(){return input.value||'';},
       clearChat:function(){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';updCount();},
-      notice:toast,changed:function(){renderEsame();syncSendBtn();},
+      notice:toast,draftChanged:syncAzPill,changed:function(){renderEsame();syncSendBtn();},
       forceClaim:function(){return commonPanelRoom()&&iAmStaff;},
       showMaster:function(){var ov=document.getElementById('mv2ov'),bk=document.getElementById('mv2ov-backdrop');if(ov)ov.hidden=false;if(bk)bk.hidden=false;},
       closeMaster:mv2OvChiudi,
@@ -9714,6 +9774,7 @@ var nb028iTeardown=function(){};
         if(occupata){ ok=false; ttl='La mossa \u00e8 in volo: aspetta la risposta del server'; }
         if(sendBtn){ sendBtn.disabled=!ok; sendBtn.title=ttl; }
         var eb=document.getElementById('ed-send'); if(eb){ eb.disabled=!ok; eb.title=ttl; }
+        syncAzPill();
       }
       function updCount(){ if(countEl&&input){ var n=turnoLen(); if(fatoMode){ countEl.textContent=n+' / 5000 · Fato'; countEl.classList.toggle('warn',n>5000); syncSendBtn(); return; } var senzaMin=(cur&&cur.is_test)||iAmStaff;
         if(!senzaMin && n<500){ countEl.textContent=n+' / 500 min'; countEl.classList.add('warn'); } else { countEl.textContent=n+' caratteri'; countEl.classList.remove('warn'); } } syncSendBtn(); }
