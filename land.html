@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-DUEL-MASTER-RACCORDO-001" />
+  <meta name="tus-build" content="LAND-MAP-GENERAL-STAFF-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1606,7 +1606,11 @@ function createArenaEditor({client,document:doc=global.document,identity,notice=
   }
   async function catalog(){const principal=who();return catalogShape(await rpc('universal_arena_catalog_v1',{},principal));}
   function choice(t,z){return {template_key:t.template_key,template_version:t.template_version,zone_key:z.key,label:t.title+' · '+z.label};}
-  async function defaults(){const rows=await catalog(),t=rows.find(x=>x.template_key==='master_test_20x20_v1'&&x.template_version===1);if(!t)throw Error('Mappa generica non disponibile. Scegli una mappa.');return choice(t,t.zones.find(z=>z.key==='arena')||t.zones[0]);}
+  function preferredDefaultMap(rows){
+    return rows.find(x=>x.template_key==='mission_map_default_10x10'&&x.template_version===1&&x.zones.some(z=>z.key==='arena'))
+      ||rows.find(x=>x.template_key==='master_test_20x20_v1'&&x.template_version===1);
+  }
+  async function defaults(){const rows=await catalog(),t=preferredDefaultMap(rows);if(!t)throw Error('Mappa generica non disponibile. Scegli una mappa.');return choice(t,t.zones.find(z=>z.key==='arena')||t.zones[0]);}
   function close(result=null){epoch++;if(overlay?.open)overlay.close();overlay?.remove();overlay=null;const done=finish;finish=null;done?.(result);}
   function styles(){if(doc.getElementById('universal-arena-editor-style'))return;const s=doc.createElement('style');s.id='universal-arena-editor-style';s.textContent=`.ua-overlay{position:fixed;inset:0;z-index:2147482000;width:100vw;max-width:none;height:100vh;height:100dvh;max-height:none;margin:0;border:0;background:rgba(20,14,6,.5);display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
 .ua-dialog{color-scheme:light;color:var(--ink,#1d1206);background:linear-gradient(var(--paper-hi,#f1e6ca),var(--paper,#e7d6b2));border:1.5px solid var(--rule,#8a6f43);border-radius:9px;box-shadow:0 24px 60px rgba(20,12,4,.5);width:min(560px,100%);min-width:0;max-height:calc(100vh - 36px);max-height:calc(100dvh - 36px);overflow:auto;overscroll-behavior:contain;padding:clamp(18px,4vw,28px);font:500 17px/1.5 'Cormorant Garamond',Georgia,serif;overflow-wrap:anywhere}
@@ -1665,8 +1669,9 @@ function createArenaEditor({client,document:doc=global.document,identity,notice=
       if(!current())return;rows=catalogShape(result[0]);const config=result[1];let selected=initial;
       if(targetId){if(config?.schema_version!=='universal-arena-config/1'||config.scope!==scope||config.target_id!==targetId||!Number.isSafeInteger(config.revision)||config.revision<0)throw Error('Configurazione non valida.');revision=config.revision;selected=config;}
       rows.forEach((t,i)=>{const o=el('option',t.title+' · '+t.width_m+' × '+t.height_m+' m',map);o.value=String(i);});
-      let index=rows.findIndex(t=>t.template_key===selected?.template_key&&t.template_version===selected?.template_version);
-      if(index<0&&(!selected||selected.revision===0))index=rows.findIndex(t=>t.template_key==='master_test_20x20_v1'&&t.template_version===1);
+      const unconfigured=!selected||(targetId&&revision===0);
+      const preferred=unconfigured?preferredDefaultMap(rows):null;
+      let index=unconfigured?rows.indexOf(preferred):rows.findIndex(t=>t.template_key===selected.template_key&&t.template_version===selected.template_version);
       if(index<0)throw Error('La mappa configurata non è disponibile nel catalogo. Nessuna modifica effettuata.');
       if(selected?.zone_key&&!rows[index].zones.some(z=>z.key===selected.zone_key))throw Error('La zona configurata non è disponibile. Nessuna modifica effettuata.');
       map.value=String(index);map.disabled=false;refreshZones(selected?.zone_key);status.textContent=targetId&&revision===0?'Nessuna scelta salvata: viene proposta la mappa generica.':'Scegli la mappa e conferma.';map.focus();
@@ -2671,6 +2676,18 @@ function trustedAvatarSource(src){
   return u.href;
 }
 // Embed/local preapprovati conservati; URL remote solo bucket avatars del progetto.
+// Solo il DTO server della mappa puo' abilitare lo sfondo versionato.
+function missionMapBackgroundFromDto(map){
+  const fields=['background_bucket','background_path','background_mime','background_sha256'];
+  if(fields.every(k=>map?.[k]===undefined||map[k]===null))return null;
+  if(fields.some(k=>typeof map?.[k]!=='string'))return false;
+  if(map.background_bucket!=='mission-map-images')return false;
+  const match=/^mission-maps\/(mission_map_[a-z0-9_]{1,48})\/v([1-9][0-9]{0,6})\/([a-f0-9]{64})\.(png|jpg|webp)$/.exec(map.background_path);
+  if(!match||match[3]!==map.background_sha256)return false;
+  const mime={png:'image/png',jpg:'image/jpeg',webp:'image/webp'}[match[4]];
+  if(map.background_mime!==mime)return false;
+  return {src:avatarOrigin+'/storage/v1/object/public/mission-map-images/'+map.background_path};
+}
 function normalizeMapVisualAsset(value){
   if(!value||typeof value.src!=='string')return null;
   const src=value.src;
@@ -2838,10 +2855,10 @@ function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOrigina
   };
   // Layer HTML: mantiene proporzioni di sprite/icone anche quando l'arena SVG si estende.
   // I marker nativi rimangono accessibili e tornano visibili se l'immagine non si carica.
-  const paintAsset=(value,x,y,kind,marker=null,fallbackName=null)=>{
+  const paintAsset=(value,x,y,kind,marker=null,fallbackName=null,serverAsset=null)=>{
     if(kind==='actor')return figureCard(value,x,y,fallbackName,marker);
     const initials=null;
-    let asset=normalizeMapVisualAsset(value);
+    let asset=serverAsset||normalizeMapVisualAsset(value);
     if(!asset){const portrait=trustedAvatarSource(value?.portraitSrc);if(portrait)asset={src:portrait};}
     if(!asset)return false;
     canvas.classList.add('common-map-with-art');
@@ -2864,7 +2881,8 @@ function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOrigina
   };
   const scale=Math.min(bounds.width_m,bounds.height_m);
   const floor=shape('rect',{x:0,y:0,width:bounds.width_m,height:bounds.height_m,fill:'#f4ecd5',stroke:'#9e8b61','stroke-width':scale/150});
-  paintAsset(visuals?.background,0,0,'background',floor);
+  const serverBackground=missionMapBackgroundFromDto(m);
+  paintAsset(serverBackground===null?visuals?.background:null,0,0,'background',floor,null,serverBackground||null);
   const legend=add('ul','',legendPanel);
   const legendObject=o=>{
     const row=add('li','',legend);
@@ -11232,7 +11250,7 @@ var nb028iTeardown=function(){};
       var MISSION_CREATION_UI=null,MISSION_CREATION_LOAD=null,MISSION_CREATION_NATIVE_MISSION=null;
       function missionCreationUI(){
         if(MISSION_CREATION_UI)return Promise.resolve(MISSION_CREATION_UI);
-        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mission-creation-ui.mjs?v=mission-creation-ui-1.0').then(function(mod){
+        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mission-creation-ui.general.asset.v3.mjs?v=mission-creation-ui-general-map-default10-3').then(function(mod){
           MISSION_CREATION_UI=mod.createMissionCreationUI({client:sb,identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             mapPicker:function(initial,title){return missionArenaEditor().show({initial:initial,title:title});},
