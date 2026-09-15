@@ -1665,8 +1665,9 @@ function createArenaEditor({client,document:doc=global.document,identity,notice=
     };
     const promise=new Promise(resolve=>{finish=resolve;});
     (async()=>{try{
-      const result=await Promise.all([rpc('universal_arena_catalog_v1',{},principal),targetId?rpc('universal_arena_config_v1',{p_scope:scope,p_target:targetId},principal):Promise.resolve(null)]);
-      if(!current())return;rows=catalogShape(result[0]);const config=result[1];let selected=initial;
+      const catalogCall=targetId?rpc('universal_arena_catalog_scoped_v1',{p_scope:scope,p_target:targetId},principal):rpc('universal_arena_catalog_v1',{},principal);
+      const result=await Promise.all([catalogCall,targetId?rpc('universal_arena_config_v1',{p_scope:scope,p_target:targetId},principal):Promise.resolve(null)]);
+      if(!current())return;if(targetId&&(result[0]?.scope!==scope||result[0]?.target_id!==targetId))throw Error('Catalogo mappe di un’altra destinazione. Riapri la configurazione.');rows=catalogShape(result[0]);const config=result[1];let selected=initial;
       if(targetId){if(config?.schema_version!=='universal-arena-config/1'||config.scope!==scope||config.target_id!==targetId||!Number.isSafeInteger(config.revision)||config.revision<0)throw Error('Configurazione non valida.');revision=config.revision;selected=config;}
       rows.forEach((t,i)=>{const o=el('option',t.title+' · '+t.width_m+' × '+t.height_m+' m',map);o.value=String(i);});
       const unconfigured=!selected||(targetId&&revision===0);
@@ -2702,6 +2703,22 @@ function normalizeMapVisualAsset(value){
   if(!c||!['column','row','columns','rows'].every(k=>Number.isSafeInteger(c[k]))||c.columns<1||c.rows<1||c.columns>8||c.rows>8||c.column<0||c.row<0||c.column>=c.columns||c.row>=c.rows)return null;
   return {...result,cell:{column:c.column,row:c.row,columns:c.columns,rows:c.rows}};
 }
+
+// MAP-VISUAL-TYPES-001: il DTO server abbina object_id a tipo/versione; l'atlas non decide regole.
+const mapVisualColumns=Object.freeze({sasso:0,tronco:1,cassa:2,macerie:3,cespuglio:4});
+const mapVisualAtlas='map-visual-type-atlas.v1.png';
+function mapObjectVisualsFromDto(map){
+  if(map.object_visuals===undefined||map.object_visuals===null)return new Map();
+  if(!Array.isArray(map.object_visuals)||map.object_visuals.length>map.objects.length)return false;
+  const objects=new Set(map.objects.map(o=>o.object_id)),result=new Map();
+  for(const row of map.object_visuals){
+    if(!row||typeof row!=='object'||Array.isArray(row)||Object.keys(row).sort().join(',')!=='object_id,visual_type,visual_version'||
+      !objects.has(row.object_id)||result.has(row.object_id)||!Object.hasOwn(mapVisualColumns,row.visual_type)||row.visual_version!==1)return false;
+    result.set(row.object_id,{src:mapVisualAtlas,cell:{column:mapVisualColumns[row.visual_type],row:0,columns:5,rows:1}});
+  }
+  return result;
+}
+
 // MAP-FIGURE-CUTOUT-002: coordinate del DTO intatte; celle solo grafiche.
 // Figure scontornate in celle trasparenti distinte; le eccedenze restano accessibili.
 function mapFigureSlots(points,width,height){
@@ -2755,6 +2772,7 @@ function renderPanelMap(root,envelope,{legendOpen=false,visuals=null}={}){
   if(m.pov===null){if(envelope.viewer.command_actor_id!==null||!(envelope.viewer.is_master||envelope.viewer.is_admin))return fail();}
   else if(!pos(m.pov)||m.pov.actor_id!==envelope.viewer.command_actor_id||m.actors.filter(a=>a.actor_id===m.pov.actor_id).length!==1)return fail();
   if(!m.objects.every(o=>id(o.object_id)&&label(o.label)&&objectPosition(o)&&Object.hasOwn(states,o.state)&&typeof o.substitution_anchor_available==='boolean'&&typeof o.is_impervious==='boolean'&&(!o.is_impervious||(o.state==='available'&&!o.substitution_anchor_available&&(o.shape_kind!=='circle'||(o.x_m-o.radius_m>=0&&o.y_m-o.radius_m>=0&&o.x_m+o.radius_m<=bounds.width_m&&o.y_m+o.radius_m<=bounds.height_m))))&&(o.distance_from_viewer_m===null?m.pov===null:finite(o.distance_from_viewer_m)&&o.distance_from_viewer_m>=0&&m.pov!==null)))return fail();
+  if(mapObjectVisualsFromDto(m)===false||missionMapBackgroundFromDto(m)===false)return fail();
   const clones=m.sabaku_clones??[];
   const cloneKeys=['clone_id','owner_actor_id','owner_name','state','x_m','y_m','trigger_radius_m'];
   if(!Array.isArray(clones)||new Set(clones.map(c=>c?.clone_id)).size!==clones.length||!clones.every(c=>c&&Object.keys(c).length===cloneKeys.length&&cloneKeys.every(k=>Object.hasOwn(c,k))&&id(c.clone_id)&&id(c.owner_actor_id)&&byId.get(c.owner_actor_id)?.display_name===c.owner_name&&['armed','holding'].includes(c.state)&&finite(c.x_m)&&finite(c.y_m)&&c.x_m>=0&&c.x_m<=bounds.width_m&&c.y_m>=0&&c.y_m<=bounds.height_m&&c.trigger_radius_m===2))return fail();
@@ -2796,6 +2814,7 @@ function validateReadonlyScene(scene){
     return o.shape_kind==='aabb'&&Object.keys(s).length===4&&o.radius_m===null&&['min_x','min_y','max_x','max_y'].every(k=>finite(s[k]))&&s.min_x>=0&&s.min_y>=0&&s.max_x<=bounds.width_m&&s.max_y<=bounds.height_m&&s.min_x<s.max_x&&s.min_y<s.max_y&&o.x_m===(s.min_x+s.max_x)/2&&o.y_m===(s.min_y+s.max_y)/2;
   };
   if(new Set(m.objects.map(o=>o?.object_id)).size!==m.objects.length||!m.objects.every(o=>id(o.object_id)&&label(o.label)&&objectPosition(o)&&Object.hasOwn(states,o.state)&&typeof o.substitution_anchor_available==='boolean'&&typeof o.is_impervious==='boolean'&&(!o.is_impervious||(o.state==='available'&&!o.substitution_anchor_available&&(o.shape_kind!=='circle'||(o.x_m-o.radius_m>=0&&o.y_m-o.radius_m>=0&&o.x_m+o.radius_m<=bounds.width_m&&o.y_m+o.radius_m<=bounds.height_m))))&&(o.distance_from_viewer_m===null?m.pov===null:finite(o.distance_from_viewer_m)&&o.distance_from_viewer_m>=0&&m.pov!==null)))throw Error('map_figure_visual_invalid');
+  if(mapObjectVisualsFromDto(m)===false||missionMapBackgroundFromDto(m)===false)throw Error('map_figure_visual_invalid');
   const clones=m.sabaku_clones??[],ck=['clone_id','owner_actor_id','owner_name','state','x_m','y_m','trigger_radius_m'];
   if(!Array.isArray(clones)||new Set(clones.map(a=>a?.clone_id)).size!==clones.length||!clones.every(a=>exactVisual(a,ck)&&id(a.clone_id)&&id(a.owner_actor_id)&&byId.get(a.owner_actor_id)?.display_name===a.owner_name&&['armed','holding'].includes(a.state)&&finite(a.x_m)&&finite(a.y_m)&&a.x_m>=0&&a.y_m>=0&&a.x_m<=bounds.width_m&&a.y_m<=bounds.height_m&&a.trigger_radius_m===2))throw Error('map_figure_visual_invalid');
   const formations=validateReadonlyFormations(scene,byId),visible=new Set([...m.actors.map(a=>a.actor_id),...formations.map(f=>f.actor_id),...clones.map(c=>c.owner_actor_id)]),assetIds=new Set();
@@ -2813,7 +2832,8 @@ function renderReadonlyScene(root,scene,{legendOpen=false,visuals=null}={}){
   return drawMapScene(root,scene.map,scene.actors,formations,{legendOpen,visuals,revealOriginal:false});
 }
 function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOriginal}){
-  const doc=root.ownerDocument,bounds=m.bounds,byId=new Map(roster.map(a=>[a.actor_id,a])),clones=m.sabaku_clones??[];
+  const doc=root.ownerDocument,bounds=m.bounds,byId=new Map(roster.map(a=>[a.actor_id,a])),clones=m.sabaku_clones??[],serverObjectVisuals=mapObjectVisualsFromDto(m);
+  const objectArt=o=>serverObjectVisuals.get(o.object_id)||visuals?.objects?.[o.object_id];
   const add=(tag,value,parent=root)=>{const el=doc.createElement(tag);el.textContent=value;parent.append(el);return el;};
   const formationOwners=new Set(formations.map(f=>f.actor_id));
   const toolbar=add('div','');toolbar.className='common-map-toolbar';
@@ -2899,7 +2919,7 @@ function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOrigina
     const description=o.label+' · area impervia · movimento dimezzato'+(o.distance_from_viewer_m===null?'':` · ${o.distance_from_viewer_m} m dal punto di vista`);
     shape('title',{},area).textContent=description;
     // Un'icona non nasconde mai la superficie impervia e il suo perimetro.
-    paintAsset(visuals?.objects?.[o.object_id],o.x_m,o.y_m,'object');
+    paintAsset(objectArt(o),o.x_m,o.y_m,'object');
     legendObject(o);
   }
   const cloneLayer=shape('g',{'data-layer':'sabaku-clones'});
@@ -2938,7 +2958,7 @@ function drawMapScene(root,m,roster,formations,{legendOpen,visuals,revealOrigina
     const fill=o.state==='available'?'#587349':'#8b8171',s=o.shape;
     const object=o.shape_kind==='circle'?shape('circle',{cx:s.cx,cy:s.cy,r:s.radius,fill}):shape('rect',{x:s.min_x,y:s.min_y,width:s.max_x-s.min_x,height:s.max_y-s.min_y,fill});
     shape('title',{},object).textContent=o.label;
-    paintAsset(visuals?.objects?.[o.object_id],o.x_m,o.y_m,'object',object);
+    paintAsset(objectArt(o),o.x_m,o.y_m,'object',object);
     legendObject(o);
   }
   const layoutFigures=()=>{
@@ -4545,13 +4565,62 @@ function renderCombatMap(root,envelope){
     !m.objects.every(o=>pos(o)&&name(o.object_id)&&name(o.label)&&finite(o.distance_from_viewer_m)&&o.distance_from_viewer_m>=0&&states.includes(o.state)&&typeof o.substitution_anchor_available==='boolean')){
     add('p','Mappa non disponibile per questo contesto.');return;
   }
+
+// MAP-VISUAL-TYPES-001: la vista ordinary storica rimane di sola lettura.
+if(new Set(m.objects.map(o=>o.object_id)).size!==m.objects.length){add('p','Mappa non disponibile per questo contesto.');return;}
+const visualColumns={sasso:0,tronco:1,cassa:2,macerie:3,cespuglio:4};
+const atlas='map-visual-type-atlas.v1.png';
+let objectVisuals=new Map();
+if(m.object_visuals!==undefined&&m.object_visuals!==null){
+  if(!Array.isArray(m.object_visuals)||m.object_visuals.length>m.objects.length){add('p','Mappa non disponibile per questo contesto.');return;}
+  const known=new Set(m.objects.map(o=>o.object_id));
+  for(const row of m.object_visuals){
+    if(!row||typeof row!=='object'||Array.isArray(row)||Object.keys(row).sort().join(',')!=='object_id,visual_type,visual_version'||
+      !known.has(row.object_id)||objectVisuals.has(row.object_id)||!Object.hasOwn(visualColumns,row.visual_type)||row.visual_version!==1){
+      add('p','Mappa non disponibile per questo contesto.');return;
+    }
+    objectVisuals.set(row.object_id,visualColumns[row.visual_type]);
+  }
+}
+const background=(()=>{
+  const fields=['background_bucket','background_path','background_mime','background_sha256'];
+  if(fields.every(k=>m[k]===undefined||m[k]===null))return null;
+  if(fields.some(k=>typeof m[k]!=='string')||m.background_bucket!=='mission-map-images')return false;
+  const match=/^mission-maps\/(mission_map_[a-z0-9_]{1,48})\/v([1-9][0-9]{0,6})\/([a-f0-9]{64})\.(png|jpg|webp)$/.exec(m.background_path);
+  if(!match||match[3]!==m.background_sha256||m.background_mime!==({png:'image/png',jpg:'image/jpeg',webp:'image/webp'}[match[4]]))return false;
+  return 'https://tyhyxkslteigibktluml.supabase.co/storage/v1/object/public/mission-map-images/'+m.background_path;
+})();
+if(background===false){add('p','Mappa non disponibile per questo contesto.');return;}
+
   add('h4',m.label+' · arena generica');
   add('p',`${bounds.width_m} × ${bounds.height_m} m · vista di sola lettura`);
+  const artboard=add('div','');artboard.className='ordinary-map-artboard';
+  artboard.style.position='relative';artboard.style.overflow='hidden';artboard.style.background='#f4ecd5';
+  artboard.style.width='100%';artboard.style.maxWidth=Math.min(520,260*bounds.width_m/bounds.height_m)+'px';
+  artboard.style.aspectRatio=`${bounds.width_m} / ${bounds.height_m}`;
   const ns='http://www.w3.org/2000/svg';
   const svg=doc.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${bounds.width_m} ${bounds.height_m}`);
-  svg.setAttribute('role','img');svg.setAttribute('aria-label',m.label+' con posizioni autorizzate dal server');svg.classList.add('ordinary-map');root.append(svg);
+  svg.setAttribute('preserveAspectRatio','none');svg.style.position='relative';svg.style.zIndex='1';
+  svg.style.width='100%';svg.style.height='100%';svg.style.maxHeight='none';
+  svg.setAttribute('role','img');svg.setAttribute('aria-label',m.label+' con posizioni autorizzate dal server');svg.classList.add('ordinary-map');artboard.append(svg);
   const shape=(tag,attrs,parent=svg)=>{const el=doc.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))el.setAttribute(k,String(v));parent.append(el);return el;};
-  shape('rect',{x:0,y:0,width:bounds.width_m,height:bounds.height_m,fill:'#f4ecd5',stroke:'#9e8b61','stroke-width':Math.min(bounds.width_m,bounds.height_m)/150});
+  const floor=shape('rect',{x:0,y:0,width:bounds.width_m,height:bounds.height_m,fill:'transparent',stroke:'#9e8b61','stroke-width':Math.min(bounds.width_m,bounds.height_m)/150});
+  if(background){
+    const img=doc.createElement('img');img.alt='';img.draggable=false;img.decoding='async';
+    img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:0;pointer-events:none';
+    img.addEventListener('load',()=>{floor.style.opacity='0';});img.addEventListener('error',()=>img.remove());
+    artboard.prepend(img);img.src=background;
+  }
+  const visualIcon=(o,marker)=>{
+    const column=objectVisuals.get(o.object_id);if(column===undefined)return;
+    const wrap=doc.createElement('span');wrap.setAttribute('aria-hidden','true');
+    wrap.style.cssText='position:absolute;width:48px;height:48px;overflow:hidden;transform:translate(-50%,-75%);z-index:0;pointer-events:none';
+    wrap.style.left=`${o.x_m/bounds.width_m*100}%`;wrap.style.top=`${o.y_m/bounds.height_m*100}%`;
+    const img=doc.createElement('img');img.alt='';img.draggable=false;img.decoding='async';
+    img.style.cssText=`position:absolute;width:500%;height:100%;max-width:none;left:${-column*100}%;top:0;object-fit:fill`;
+    img.addEventListener('load',()=>{marker.style.opacity='0';});img.addEventListener('error',()=>wrap.remove());
+    wrap.append(img);artboard.append(wrap);img.src=atlas;
+  };
   const legend=add('ul','');
   for(const a of m.actors){
     const r=roster.find(r=>r.actor_id===a.actor_id),mine=a.actor_id===m.pov.actor_id;
@@ -4564,6 +4633,7 @@ function renderCombatMap(root,envelope){
   for(const o of m.objects){
     const circle=shape('circle',{cx:o.x_m,cy:o.y_m,r:o.radius_m,fill:o.state==='available'?'#587349':'#8b8171'});
     const title=shape('title',{},circle);title.textContent=o.label;
+    visualIcon(o,circle);
     add('li',`${o.label} · ${o.distance_from_viewer_m} m da te · ${labels[o.state]}${o.substitution_anchor_available?' · ancora disponibile':''}`,legend);
   }
   add('p','La disponibilità di un oggetto non concede una tecnica: valgono soltanto le scelte offerte dal server.');
@@ -5720,6 +5790,7 @@ window.TUSOrdinary={attachOrdinaryLand};
             +'<label class="mv2-field"><span>Tipologia</span><select id="mv2-qkind"><option value="one_shot">Quest one-shot</option><option value="trama">Quest di trama</option></select></label></div>'
             +'<p class="mv2-note">La quest eredita la mappa della stanza. Nel passaggio successivo scegli PG, PNG e squadre.</p>'
             +'<button class="mv2-btn ghost" type="button" data-ua-setup="room">Mappa della stanza</button>'
+            +'<button class="mv2-btn ghost" type="button" data-map-binding-room>Oggetti e appigli della stanza</button>'
             +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="session-open">Apri la quest</button>'+indietro+'</div>';
         }
         if(k==='missione'){
@@ -9513,6 +9584,7 @@ var nb028iTeardown=function(){};
   };
 });
       function openRoom(l){
+        closeRoomObjectBinding();
         if(ORDINARY)ORDINARY.invalidate();MV2.readRequested=false;cur=l; showView('room');  restorePlace(l.id);
         nameEl.textContent=l.name; kindEl.textContent=l.kind||''; descEl.textContent=l.description||'';
         var im=document.getElementById('room-img'), nt=document.getElementById('room-note');
@@ -9530,7 +9602,7 @@ var nb028iTeardown=function(){};
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ closeRoomObjectBinding(); MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -11250,7 +11322,7 @@ var nb028iTeardown=function(){};
       var MISSION_CREATION_UI=null,MISSION_CREATION_LOAD=null,MISSION_CREATION_NATIVE_MISSION=null;
       function missionCreationUI(){
         if(MISSION_CREATION_UI)return Promise.resolve(MISSION_CREATION_UI);
-        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mission-creation-ui.general.asset.v3.mjs?v=mission-creation-ui-general-map-default10-3').then(function(mod){
+        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mission-creation-ui.general.asset.v4.mjs?v=mission-creation-ui-general-object-binding-5').then(function(mod){
           MISSION_CREATION_UI=mod.createMissionCreationUI({client:sb,identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             mapPicker:function(initial,title){return missionArenaEditor().show({initial:initial,title:title});},
@@ -11281,11 +11353,33 @@ var nb028iTeardown=function(){};
           identity:function(){return !ordinarySigningOut&&loggedIn&&iAmStaff&&ordinaryAuthId===myId?myId:null;},notice:toast});
         return MISSION_ARENA_EDITOR;
       }
+      var ROOM_OBJECT_BINDING_CLOSE=null;
+      function closeRoomObjectBinding(){var close=ROOM_OBJECT_BINDING_CLOSE;ROOM_OBJECT_BINDING_CLOSE=null;if(close)close();}
+      async function openRoomObjectBinding(){
+        if(!iAmStaff||!cur||!sb){toast('Apri prima una stanza.');return;}
+        closeRoomObjectBinding();
+        var roomId=cur.id;var d=document.createElement('dialog');d.setAttribute('aria-label','Oggetti e appigli della stanza');d.style.cssText='max-width:min(760px,96vw);width:96vw;max-height:90vh;overflow:auto;padding:22px;background:#efe4cb;color:#24190c;border:2px solid #8a6f43;border-radius:9px';
+        var close=document.createElement('button');close.type='button';close.textContent='Chiudi';var host=document.createElement('div');d.append(close,host);document.body.append(d);d.showModal();
+        var editor=null,closed=false;
+        function teardown(){if(closed)return;closed=true;editor?.dispose();if(d.open)d.close();d.remove();if(ROOM_OBJECT_BINDING_CLOSE===teardown)ROOM_OBJECT_BINDING_CLOSE=null;}
+        function ownsRoom(){return !closed&&d.isConnected&&cur?.id===roomId&&!ordinarySigningOut&&loggedIn&&iAmStaff&&ordinaryAuthId===myId;}
+        ROOM_OBJECT_BINDING_CLOSE=teardown;close.onclick=teardown;d.addEventListener('close',teardown);
+        try{
+          var config=await sb.rpc('universal_arena_config_v1',{p_scope:'room',p_target:roomId});
+          if(!ownsRoom()){teardown();return;}if(config.error)throw config.error;
+          var c=config.data;if(c?.schema_version!=='universal-arena-config/1'||c.target_id!==roomId||!Number.isSafeInteger(c.revision)||c.revision<1||!String(c.template_key||'').startsWith('mission_map_'))throw Error('Salva prima una mappa generale per questa stanza.');
+          var mod=await import('./MAP_OBJECT_BINDING_UI.asset.v1.mjs?v=map-object-binding-ui-3');if(!ownsRoom()){teardown();return;}
+          editor=mod.createMapBindingEditor({client:sb,identity:function(){return ownsRoom()?myId:null;},isStaff:ownsRoom,onSaved:function(){if(ownsRoom())toast('Bozza degli oggetti salvata: attivala per collegarla alla stanza.');},onActivated:async function(data){if(!ownsRoom())throw Error('Stanza cambiata: riapri il pannello.');var current=await sb.rpc('universal_arena_config_v1',{p_scope:'room',p_target:roomId});if(!ownsRoom())throw Error('Stanza cambiata: rileggi la configurazione.');if(current.error)throw current.error;var now=current.data;if(now?.schema_version!=='universal-arena-config/1'||now.target_id!==roomId||!Number.isSafeInteger(now.revision))throw Error('Configurazione stanza non disponibile.');c=now;if(now.template_key===data.variant.template_key&&now.template_version===data.variant.template_version&&now.zone_key===data.variant.zone_key){toast('Mappa personalizzata già collegata a questa stanza.');return;}var a=await sb.rpc('universal_arena_configure_v1',{p_scope:'room',p_target:roomId,p_template:data.variant.template_key,p_version:data.variant.template_version,p_zone:data.variant.zone_key,p_expected:now.revision});if(!ownsRoom())throw Error('Collegamento incerto: rileggi la configurazione.');if(a.error)throw a.error;var x=a.data;if(x?.schema_version!=='universal-arena-config/1'||x.scope!=='room'||x.target_id!==roomId||x.template_key!==data.variant.template_key||x.template_version!==data.variant.template_version||x.zone_key!==data.variant.zone_key)throw Error('Collegamento stanza non confermato: riapri la configurazione.');c=x;toast('Mappa personalizzata attiva per i nuovi scontri della stanza.');}});
+          await editor.mount(host,{scope_kind:'room',scope_id:roomId,parent:{template_key:c.template_key,template_version:c.template_version,zone_key:c.zone_key},roster:{pg_count:4,png_count:12}});
+          if(!ownsRoom())teardown();
+        }catch(e){if(!ownsRoom()){teardown();return;}var error=document.createElement('p');error.textContent=e.message||'Editor istanze non disponibile.';host.replaceChildren(error);}
+      }
       function openMissionArena(scope,id,title){
         if(!iAmStaff||!id){toast('Scegli prima la missione.');return;}
         missionArenaEditor().open(scope,id,title||'').catch(function(){toast('Configurazione mappa non disponibile');});
       }
       document.addEventListener('click',function(e){
+        if(e.target.closest('[data-map-binding-room]')){if(iAmStaff)openRoomObjectBinding();return;}
         var b=e.target.closest('[data-ua-setup]');if(!b||!iAmStaff)return;
         if(b.getAttribute('data-ua-setup')==='room'){if(cur)openMissionArena('room',cur.id,cur.name);}
         else {var s=document.getElementById('mv2-mission');openMissionArena('mission',s&&s.value,s&&s.selectedOptions[0]&&s.selectedOptions[0].textContent);}

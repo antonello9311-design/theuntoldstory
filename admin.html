@@ -382,8 +382,9 @@ function createArenaEditor({client,document:doc=global.document,identity,notice=
     };
     const promise=new Promise(resolve=>{finish=resolve;});
     (async()=>{try{
-      const result=await Promise.all([rpc('universal_arena_catalog_v1',{},principal),targetId?rpc('universal_arena_config_v1',{p_scope:scope,p_target:targetId},principal):Promise.resolve(null)]);
-      if(!current())return;rows=catalogShape(result[0]);const config=result[1];let selected=initial;
+      const catalogCall=targetId?rpc('universal_arena_catalog_scoped_v1',{p_scope:scope,p_target:targetId},principal):rpc('universal_arena_catalog_v1',{},principal);
+      const result=await Promise.all([catalogCall,targetId?rpc('universal_arena_config_v1',{p_scope:scope,p_target:targetId},principal):Promise.resolve(null)]);
+      if(!current())return;if(targetId&&(result[0]?.scope!==scope||result[0]?.target_id!==targetId))throw Error('Catalogo mappe di un’altra destinazione. Riapri la configurazione.');rows=catalogShape(result[0]);const config=result[1];let selected=initial;
       if(targetId){if(config?.schema_version!=='universal-arena-config/1'||config.scope!==scope||config.target_id!==targetId||!Number.isSafeInteger(config.revision)||config.revision<0)throw Error('Configurazione non valida.');revision=config.revision;selected=config;}
       rows.forEach((t,i)=>{const o=el('option',t.title+' · '+t.width_m+' × '+t.height_m+' m',map);o.value=String(i);});
       let index=rows.findIndex(t=>t.template_key===selected?.template_key&&t.template_version===selected?.template_version);
@@ -1582,6 +1583,32 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
       if(!ADMIN_ARENA_EDITOR)ADMIN_ARENA_EDITOR=window.TUSArenaEditor.createArenaEditor({client:sb,document:document,identity:function(){return me?me.id:null;},notice:toast});
       ADMIN_ARENA_EDITOR.open(scope,id,title).catch(function(){toast('Configurazione mappa non disponibile',true);});
     }
+    async function adminObjectBinding(id,title){
+      if(!me||!sb)return;
+      var d=document.createElement('dialog');d.setAttribute('aria-label','Oggetti e appigli del luogo');d.style.cssText='max-width:min(760px,96vw);width:96vw;max-height:90vh;overflow:auto;padding:22px;background:#efe4cb;color:#24190c;border:2px solid #8a6f43;border-radius:9px';
+      var close=document.createElement('button');close.type='button';close.textContent='Chiudi';var chooseHost=document.createElement('div'),host=document.createElement('div');d.append(close,chooseHost,host);document.body.append(d);d.showModal();
+      var editor=null,activeProfile=null;close.onclick=function(){editor?.dispose();d.close();};d.addEventListener('close',function(){editor?.dispose();d.remove();});
+      async function mountParent(parent){
+        if(!d.isConnected)return;editor?.dispose();
+        var mod=await import('./MAP_OBJECT_BINDING_UI.asset.v1.mjs?v=map-object-binding-ui-3');if(!d.isConnected)return;
+        editor=mod.createMapBindingEditor({client:sb,identity:function(){return me?me.id:null;},isStaff:function(){return !!me;},onSaved:function(){toast('Bozza degli oggetti salvata: attivala per collegarla al luogo.');},onActivated:async function(data){if(!d.isConnected)throw Error('Pannello chiuso: rileggi il luogo.');var current=await sb.rpc('map_binding_ordinary_parent_v1',{p_location_id:id});if(!d.isConnected)throw Error('Pannello chiuso: rileggi il luogo.');if(current.error)throw current.error;var now=current.data;if(now?.schema_version!=='map-binding-ordinary-parent/1'||now.location_id!==id||!now.profile?.id)throw Error('Profilo del luogo non disponibile: riapri il pannello.');activeProfile=now.profile.id;if(now.selectable===true&&now.parent?.template_key===data.variant.template_key&&now.parent?.template_version===data.variant.template_version&&now.parent?.zone_key===data.variant.zone_key){toast('Mappa personalizzata già collegata a questo luogo.');return;}var a=await sb.rpc('map_binding_attach_ordinary_v1',{p_location:id,p_expected_profile:activeProfile,p_expected_revision:data.revision});if(!d.isConnected)throw Error('Collegamento incerto: rileggi il luogo.');if(a.error)throw a.error;var x=a.data;if(x?.schema_version!=='map-binding-ordinary-attach/1'||x.status!=='attached'||x.location_id!==id||x.previous_profile_id!==activeProfile||!x.profile_id)throw Error('Collegamento non confermato: riapri il luogo.');activeProfile=x.profile_id;toast('Mappa personalizzata attiva per i nuovi scontri del luogo.');}});
+        await editor.mount(host,{scope_kind:'ordinary_location',scope_id:id,parent:parent,roster:{pg_count:4,png_count:12}});
+      }
+      try{
+        var result=await sb.rpc('map_binding_ordinary_parent_v1',{p_location_id:id});if(!d.isConnected)return;if(result.error)throw result.error;
+        var c=result.data;if(c?.schema_version!=='map-binding-ordinary-parent/1'||c.location_id!==id||typeof c.selectable!=='boolean')throw Error('Profilo ordinary non valido.');
+        activeProfile=c.profile?.id||null;if(!activeProfile)throw Error('Questo luogo non ha un profilo scontro collegabile.');
+        var activeParent=c.selectable&&c.parent?c.parent:null;
+        var info=document.createElement('p');info.textContent=activeParent?'La mappa attiva è preselezionata. Puoi scegliere un’altra mappa per creare una nuova revisione della bozza: la preview server verificherà geometria e asset; le scene storiche restano invariate.':'Il profilo ordinary attivo non offre una mappa generale utilizzabile. Scegli una mappa candidata per la bozza: la preview server verificherà geometria e asset. Il profilo esistente resta invariato.';chooseHost.append(info);
+        var catalog=await sb.rpc('mission_map_catalog_v1',{});if(!d.isConnected)return;if(catalog.error)throw catalog.error;
+        if(catalog.data?.schema_version!=='mission-map-catalog/1'||!Array.isArray(catalog.data.maps))throw Error('Catalogo mappe non valido.');
+        var rows=catalog.data.maps.filter(function(t){return t.selectable===true&&t.status==='ready'&&/^mission_map_[a-z0-9_]+$/.test(t.template_key||'')&&Number.isSafeInteger(t.template_version)&&t.template_version>0;});
+        if(activeParent&&!rows.some(function(t){return t.template_key===activeParent.template_key&&t.template_version===activeParent.template_version;}))rows.unshift({template_key:activeParent.template_key,template_version:activeParent.template_version,title:'Mappa attiva attestata'});
+        if(!rows.length)throw Error('Nessuna mappa generale candidata per questo luogo.');
+        var label=document.createElement('label');label.textContent='Mappa parent della bozza';var select=document.createElement('select');rows.forEach(function(t,i){var option=document.createElement('option');option.value=String(i);option.textContent=t.title+' · versione '+t.template_version;select.append(option);});var activeIndex=activeParent?rows.findIndex(function(t){return t.template_key===activeParent.template_key&&t.template_version===activeParent.template_version;}):-1;if(activeIndex>=0)select.value=String(activeIndex);label.append(select);
+        var confirm=document.createElement('button');confirm.type='button';confirm.textContent='Apri bozza su questa mappa';confirm.onclick=function(){var row=rows[Number(select.value)];if(!row)return;mountParent({template_key:row.template_key,template_version:row.template_version,zone_key:'arena'}).catch(function(e){if(d.isConnected){var error=document.createElement('p');error.textContent=e.message||'Editor non disponibile.';host.replaceChildren(error);}});};chooseHost.append(label,confirm);if(activeParent)await mountParent(activeParent);
+      }catch(e){if(d.isConnected){var error=document.createElement('p');error.textContent=e.message||'Editor istanze non disponibile.';host.replaceChildren(error);}}
+    }
     var MAP_FIGURE_EDITOR=null;
     function adminMapFigure(kind,id){
       if(!me||!sb||!window.TUSMapFigures)return;
@@ -2017,6 +2044,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
           '<div class="lacts">'+
             '<button class="mini-btn" data-locedit="'+l.id+'">Modifica</button>'+
             (l.is_active?'<button class="mini-btn" data-locarena="'+l.id+'">Mappa scontro</button>':'')+
+            (l.is_active?'<button class="mini-btn" data-locbinding="'+l.id+'">Oggetti e appigli</button>':'')+
             '<button class="mini-btn" data-loctoggle="'+l.id+'">'+(l.is_active?'Disattiva':'Attiva')+'</button>'+
             '<button class="mini-btn danger" data-locdel="'+l.id+'">Elimina</button>'+
           '</div></div>';
@@ -2024,6 +2052,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
     }
     function bindLocs(){
       $('loc-list').addEventListener('click',function(e){var b=e.target.closest('[data-locarena]');if(!b)return;var id=b.getAttribute('data-locarena'),loc=LOCS.find(function(l){return l.id===id;});if(loc)adminArena('room',id,loc.name);});
+      $('loc-list').addEventListener('click',function(e){var b=e.target.closest('[data-locbinding]');if(!b)return;var id=b.getAttribute('data-locbinding'),loc=LOCS.find(function(l){return l.id===id;});if(loc)adminObjectBinding(id,loc.name);});
       $('loc-reset').addEventListener('click',function(){resetLocForm();admFormHide('luoghi');});
       $('loc-save').addEventListener('click',async function(){
         var name=$('loc-name').value.trim();if(name.length<2){toast('Nome troppo corto',true);return;}
