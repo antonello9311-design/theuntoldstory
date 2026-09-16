@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-MAP-GENERAL-STAFF-001" />
+  <meta name="tus-build" content="LAND-SHION-PANEL-ERRORS-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -4243,6 +4243,26 @@ function attachCombatPanel(host){
     badge.title='Scelta meccanica pronta: parte con la role quando premi Invia. Clic per modificarla.';
     send.before(badge);badge.addEventListener('click',()=>open(surface));return badge;
   }).filter(Boolean);
+  // Feedback persistente accanto a Invia anche quando il pannello è chiuso.
+  const sendFeedback=['msg-send','ed-send'].map(id=>{
+    const send=doc.getElementById(id);if(!send)return null;
+    const box=doc.createElement('span');box.className='common-send-feedback';box.hidden=true;
+    box.setAttribute('role','status');box.setAttribute('aria-live','polite');
+    const message=doc.createElement('span'),action=doc.createElement('button');action.type='button';
+    action.className='mv2-btn';box.append(message,action);send.before(box);
+    action.addEventListener('click',()=>open(surface));return {box,message,action};
+  }).filter(Boolean);
+  function syncSendFeedback(m){
+    const last=m?.lastCommand,active=last&&['uncertain','rejected'].includes(last.status);
+    for(const item of sendFeedback){
+      item.box.hidden=!active;
+      if(active){
+        item.message.textContent=last.message+' Il testo della role è conservato. ';
+        item.action.textContent=last.status==='uncertain'?'Controlla invio':'Rivedi le scelte';
+        item.action.disabled=!!m.busy;
+      }else item.message.textContent='';
+    }
+  }
   function draftSignature(m){
     const e=m?.envelope,o=e?.offers?.find(o=>o.offer_id===m.selectedOfferId);
     if(!m?.optionsReady||m.refreshRequired||e?.status!=='ready'||!e.viewer.can_command||!o?.requires_role||
@@ -4260,6 +4280,7 @@ function attachCombatPanel(host){
     return '⚔ '+parts.join(' · ');
   }
   function syncDraft(m){
+    syncSendFeedback(m);
     const signature=draftSignature(m),visible=!!confirmedDraft&&signature===confirmedDraft.signature&&!m.pending;
     if(confirmedDraft&&!visible&&(!signature||signature!==confirmedDraft.signature||m.pending))confirmedDraft=null;
     for(const badge of badges){badge.hidden=!visible;if(visible)badge.textContent=confirmedDraft.label;}
@@ -4294,7 +4315,7 @@ function attachCombatPanel(host){
     if(which==='master')host.showMaster();else{dialog.hidden=false;dialog.style.display='flex';}
     deactivateLayout=activatePanelLayout({document:doc,root,body:which==='master'?master:ordinary,overlay:which==='master'?doc.getElementById('mv2ov'):dialog});
     if(refreshing)await refreshing;if(stamp!==generation)return false;
-    const before=panel.snapshot();if(before.pending||before.busy)return true;
+    const before=panel.snapshot();if(before.pending||before.busy||before.refreshRequired&&before.lastCommand?.status==='rejected')return true;
     const ok=await panel.open();if(stamp!==generation)return false;
     if(!routeAllowed()){invalidate();host.routingUnknown?.({explicit:true});return false;}
     // Il binding del controller nasce con la prima lettura, non nel costruttore.
@@ -4325,7 +4346,7 @@ function attachCombatPanel(host){
   }
   const entryClick=()=>open('ordinary');
   entry.addEventListener('click',entryClick);close.addEventListener('click',hide);
-  function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',hide);invalidate();for(const badge of badges)badge.remove();root.remove();}
+  function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',hide);invalidate();for(const badge of badges)badge.remove();for(const item of sendFeedback)item.box.remove();root.remove();}
   showEntry();
   return {open,refresh,invalidate,suspend,dispose,handleSend,ownsCurrent,
     ownsSurface:()=>routeAllowed()&&opened&&key===scope(),
