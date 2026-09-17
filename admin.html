@@ -1094,6 +1094,20 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
           </section>
           <!-- NINJA-BOOK-027B HTML FINE -->
 
+          <section class="adm-page" data-page="media-scorta" id="scorta-media-page" hidden aria-labelledby="scorta-media-title">
+            <div class="grp-title" id="scorta-media-title" style="margin-top:0">Media missione · Scorta Genin</div>
+            <p class="mgr-note">Percorso Admin protetto per caricare e collegare le tre sagome dei mercenari e il ritratto di Haruto. Ogni file viene caricato senza sovrascrittura, verificato dal server e approvato nel Ninja Book.</p>
+            <div class="nbe-card">
+              <div class="nbe-list" id="scorta-media-list">
+                <div class="nbe-repeat-row" data-scorta-media="genta"><strong>Genta · sagoma</strong><input type="file" accept="image/png" aria-label="PNG di Genta"><button type="button" class="btn" data-scorta-upload>Carica e collega</button><button type="button" class="mini-btn" data-scorta-resume>Completa oggetto già caricato</button><span class="nbe-status" role="status" aria-live="polite"></span></div>
+                <div class="nbe-repeat-row" data-scorta-media="ren"><strong>Ren · sagoma</strong><input type="file" accept="image/png" aria-label="PNG di Ren"><button type="button" class="btn" data-scorta-upload>Carica e collega</button><button type="button" class="mini-btn" data-scorta-resume>Completa oggetto già caricato</button><span class="nbe-status" role="status" aria-live="polite"></span></div>
+                <div class="nbe-repeat-row" data-scorta-media="suzu"><strong>Suzu · sagoma</strong><input type="file" accept="image/png" aria-label="PNG di Suzu"><button type="button" class="btn" data-scorta-upload>Carica e collega</button><button type="button" class="mini-btn" data-scorta-resume>Completa oggetto già caricato</button><span class="nbe-status" role="status" aria-live="polite"></span></div>
+                <div class="nbe-repeat-row" data-scorta-media="haruto"><strong>Haruto Sena · ritratto</strong><input type="file" accept="image/png" aria-label="PNG di Haruto Sena"><button type="button" class="btn" data-scorta-upload>Carica e collega</button><button type="button" class="mini-btn" data-scorta-resume>Completa oggetto già caricato</button><span class="nbe-status" role="status" aria-live="polite"></span></div>
+              </div>
+            </div>
+          </section>
+          <!-- SCORTA-MEDIA-ADMIN HTML FINE -->
+
           <section class="adm-page" data-page="pilot">
           <div class="grp-title" style="margin-top:0">Pilot scontri — Konoha - Mura</div>
           <p class="mgr-note">Playtest circoscritto del motore e del narratore fuori dalla Test Room. Vale solo per <b>Konoha - Mura</b> e per la coppia <b>Riuji</b> e <b>testperfunzioni</b>, per <b>24 ore</b>. Il luogo resta una chat normale: <code>is_test</code> non viene mai cambiato. PV e chakra si scalano davvero e vengono <b>fotografati all'avvio</b> e ripristinati alla chiusura.</p>
@@ -4188,6 +4202,60 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       window.__nb027bTest={rpcNames:Object.values(NBE_RPC),state:nbeState,setRole:function(r){nbeRole=r;document.querySelectorAll('.nbe-admin').forEach(function(b){b.hidden=nbeRole!=='admin';});},go:nbeSetStep,loadTemplate:nbeApplyTemplateDetail};
     }
     /* NINJA-BOOK-027B JS FINE */
+
+    /* SCORTA-MEDIA-ADMIN JS INIZIO */
+    var SCORTA_MEDIA_RELEASE='0dd44d7d0f7ff6379b5c716ee8660e4e11dfbb4f008a376bec97c1743788a8db';
+    var SCORTA_MEDIA={
+      genta:{path:'ninja-book/scorta_genin_genta/r1/assets/genta_sagoma_v1.png',sha256:'166144cb93e69b992c7b397c9d4f68ced36a91861ce44815244cac77a804c26c',bytes:1465345,version:'8cd1a089-db6b-4112-8d6b-7fe0c2774f63'},
+      ren:{path:'ninja-book/scorta_genin_ren/r1/assets/ren_sagoma_v1.png',sha256:'1d8722dd93093a2a0d23b9690f50e244016e7cf458e2539f745d21085e995d6b',bytes:1329128,version:'26b0668f-611e-42b4-b6ab-c4342e8d0a58'},
+      suzu:{path:'ninja-book/scorta_genin_suzu/r1/assets/suzu_sagoma_v1.png',sha256:'8f5d9693a514e3d20e793097bdf3b1706daa897a07ac773d72aa3a30f50c9902',bytes:1473666,version:'239d3d6d-f930-4b5c-9f93-83e7d8514113'},
+      haruto:{path:'ninja-book/scorta_genin_haruto_sena/r1/assets/haruto_ritratto_v1.png',sha256:'fb93d4b5d67039771c0a66255b0c5e12b7f2997f43c4b287e6476781b796a1bd',bytes:1586515,version:'60474aac-0efc-434e-bcfa-4019adaf184f'}
+    };
+    var SCORTA_UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    function scortaMediaStatus(row,text,error){var el=row.querySelector('.nbe-status');el.textContent=text;el.style.color=error?'var(--red-deep)':'';}
+    async function scortaMediaSha(file){var digest=await crypto.subtle.digest('SHA-256',await file.arrayBuffer());return Array.from(new Uint8Array(digest),function(x){return x.toString(16).padStart(2,'0');}).join('');}
+    function scortaMediaLoad(key){try{var v=JSON.parse(localStorage.getItem('tus_scorta_media_'+key)||'null');return v&&v.asset_key===key&&SCORTA_UUID.test(v.request_key||'')?v:null;}catch(e){return null;}}
+    function scortaMediaSave(key,state){localStorage.setItem('tus_scorta_media_'+key,JSON.stringify(state));}
+    function scortaMediaClear(key){localStorage.removeItem('tus_scorta_media_'+key);}
+    function scortaMediaGoodRegistration(data,key,replay){return data&&data.asset_key===key&&SCORTA_UUID.test(data.media_id||'')&&data.state==='review_registered'&&data.replayed===replay&&data.control_version===1&&data.template_version_id===SCORTA_MEDIA[key].version;}
+    async function scortaMediaRun(row,upload){
+      var key=row.getAttribute('data-scorta-media'),asset=SCORTA_MEDIA[key],buttons=row.querySelectorAll('button'),input=row.querySelector('input[type=file]'),file=input.files[0];
+      if(nbeRole!=='admin'||!asset){scortaMediaStatus(row,'Operazione riservata agli Admin.',true);return;}
+      buttons.forEach(function(b){b.disabled=true;});scortaMediaStatus(row,'Verifica dello stato server…',false);
+      try{
+        if(upload){
+          if(!file||file.type!=='image/png'||file.size!==asset.bytes)throw Error('Seleziona il PNG esatto previsto per questo personaggio.');
+          if(await scortaMediaSha(file)!==asset.sha256)throw Error('Il contenuto del PNG non coincide con l’asset approvato.');
+        }
+        var ticket=await sb.rpc('png_media_admin_ticket_scorta_v1',{p_asset_key:key});
+        if(ticket.error||ticket.data?.authorized!==true||ticket.data?.asset_key!==key)throw ticket.error||Error('Stato media non valido.');
+        var saved=scortaMediaLoad(key),registered=ticket.data.registered===true;
+        if(registered&&ticket.data.active===true&&ticket.data.media_state==='approved'){
+          scortaMediaClear(key);input.disabled=true;scortaMediaStatus(row,'Già collegato e approvato.',false);return;
+        }
+        var request=registered?ticket.data.request_key:(saved&&saved.request_key)||crypto.randomUUID();
+        if(!SCORTA_UUID.test(request||''))throw Error('Chiave di ripresa non valida.');
+        var state={asset_key:key,request_key:request,media_id:registered?ticket.data.media_id:(saved&&saved.media_id)||null,approval_key:(saved&&saved.approval_key)||null};
+        scortaMediaSave(key,state);
+        if(upload&&!registered){scortaMediaStatus(row,'Caricamento senza sovrascrittura…',false);var put=await sb.storage.from('avatars').upload(asset.path,file,{upsert:false,contentType:'image/png'});if(put.error)throw put.error;}
+        var body={asset_key:key,request_key:request,expected_release:SCORTA_MEDIA_RELEASE},expectedReplay=registered;
+        var first=await sb.functions.invoke('png_media_attest_v1',{body:body});if(first.error||!scortaMediaGoodRegistration(first.data,key,expectedReplay))throw first.error||Error('Registrazione media non valida.');
+        var replay=await sb.functions.invoke('png_media_attest_v1',{body:body});if(replay.error||!scortaMediaGoodRegistration(replay.data,key,true)||replay.data.media_id!==first.data.media_id)throw replay.error||Error('Replay di registrazione non valido.');
+        if(registered&&ticket.data.media_id!==first.data.media_id)throw Error('La ripresa non coincide con il media registrato.');
+        state.media_id=first.data.media_id;if(!state.approval_key)state.approval_key=crypto.randomUUID();scortaMediaSave(key,state);
+        var expected=registered?Number(ticket.data.control_version):Number(first.data.control_version),args={p_media:state.media_id,p_template_version:asset.version,p_expected_control_version:expected,p_request_key:state.approval_key};
+        var approved=await sb.rpc('nb_admin_media_approve',args);if(approved.error||approved.data?.media_id!==state.media_id||approved.data?.state!=='approved'||approved.data?.active!==true)throw approved.error||Error('Approvazione media non valida.');
+        var approvedReplay=await sb.rpc('nb_admin_media_approve',args);if(approvedReplay.error||JSON.stringify(approvedReplay.data)!==JSON.stringify(approved.data))throw approvedReplay.error||Error('Replay di approvazione non valido.');
+        scortaMediaClear(key);scortaMediaStatus(row,'Collegato e approvato · replay verificati.',false);input.disabled=true;
+      }catch(e){scortaMediaStatus(row,(e&&e.message)||'Operazione non completata. Usa “Completa oggetto già caricato” per riprendere.',true);}
+      finally{buttons.forEach(function(b){b.disabled=false;});}
+    }
+    function bindScortaMedia(){
+      var nav=$('scorta-media-nav'),page=$('scorta-media-page');if(!nav||!page)return;var admin=nbeRole==='admin';nav.hidden=!admin;page.hidden=!admin;if(!admin||page.getAttribute('data-bound')==='1')return;page.setAttribute('data-bound','1');
+      page.addEventListener('click',function(e){var row=e.target.closest('[data-scorta-media]');if(!row)return;if(e.target.closest('[data-scorta-upload]'))scortaMediaRun(row,true);else if(e.target.closest('[data-scorta-resume]'))scortaMediaRun(row,false);});
+      window.__scortaMediaAdminTest={assets:SCORTA_MEDIA,release:SCORTA_MEDIA_RELEASE,good:scortaMediaGoodRegistration,sha:scortaMediaSha,run:scortaMediaRun};
+    }
+    /* SCORTA-MEDIA-ADMIN JS FINE */
     async function init(){
       if(!sb){show('st-guest');return;}
       var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;
@@ -4195,7 +4263,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       var pr=await sb.from('profiles').select('role').eq('id',me.id).maybeSingle();
       var role=pr.data?pr.data.role:'player';
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
-      nbeRole=role;
+      nbeRole=role;bindScortaMedia();
       if(window.__TRAINING138A_MOCK__){show('st-mgr');admGo('allenamenti');bindTrainings();await loadTrainings();return;}
       if(window.__NB027B_MOCK__){show('st-mgr');admGo('ninja-editoriale');nbeWire();return;}
       show('st-mgr');
