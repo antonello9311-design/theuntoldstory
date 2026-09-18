@@ -72,7 +72,7 @@ Ogni azione che può riuscire o fallire — un attacco, una schivata, una tecnic
 
 **Come si risolve un colpo**
 
-- **Attacco contro difesa:** chi colpisce usa la capacità naturale + la disciplina adatte (Forza + Taijutsu per un colpo fisico, Mente + Ninjutsu per una tecnica); chi si difende usa **Velocità + Taijutsu** — per schivare **e per parare** — oppure **Velocità + Mente** per contrastare. ⚠️ La **Contromossa** non è in vigore nei duelli della land: lì ci si difende con schivata, parata, Sostituzione o una tecnica difensiva (§4.7).
+- **Attacco contro difesa:** chi colpisce usa la capacità naturale + la disciplina adatte (Forza + Taijutsu per un colpo fisico, Mente + Ninjutsu per una tecnica); chi si difende usa **Velocità + Taijutsu** — per schivare **e per parare** — oppure **Velocità + Mente** per contrastare. Una tecnica difensiva di Ninjutsu usa invece **Mente + Ninjutsu**. ⚠️ La **Contromossa** non è in vigore nei duelli della land: lì ci si difende con schivata, parata, Sostituzione o una tecnica difensiva (§4.7).
 - **Nettezza:** se l'attacco supera la difesa va a segno; il margine dice se è **di striscio, in pieno o devastante** — più è netto, più danni fa. Se resta sotto, il colpo **sfiora** e lascia comunque un quarto del danno pieno, minimo 1 PV. La Sostituzione è l'unica negazione totale.
 - **PV e Resistenza:** i danni tolgono Punti Vita; la Resistenza alza i PV e ne assorbe una parte. A 0 PV si è **fuori combattimento** (in libera: incapacitato, mai ucciso).
 - **Genjutsu:** non toglie PV — impone effetti/condizioni, si contrasta con la Mente e si rompe con una nuova contesa; chi conosce l'abilità **Dispersione** può tentare un rilascio deliberato, anche per liberare un alleato (§4.3).
@@ -96,6 +96,7 @@ Ogni azione che può riuscire o fallire — un attacco, una schivata, una tecnic
 |---|---|---|
 | Colpo fisico/arma | Forza + Taijutsu | Velocità + Taijutsu |
 | Ninjutsu offensivo | Mente + Ninjutsu | Velocità + Taijutsu / Velocità + Mente |
+| Ninjutsu difensivo | — | Mente + Ninjutsu |
 | Genjutsu | Mente + Genjutsu | Mente + Genjutsu |
 | Sigillo (Fuuinjutsu) | Mente + Fuuinjutsu | indicata dal sigillo |
 | Tecnica innata (Kekkei Genkai) | capacità indicata + Kekkei Genkai | indicata dalla tecnica |
@@ -373,6 +374,20 @@ Il chakra può essere trasformato in una **natura elementale** (nella scheda: *E
 - **Jutsu personalizzati (tecnica personale):** proponibili dalla scheda (sezione **Premi**); lo staff li valuta e, se approvati, li inserisce nei Rotoli. Costo maggiorato rispetto al grado: **D 115 · C 225 · B 340 · A 450 · S 565** (vedi §8.6). È lo strumento principale di caratterizzazione.
 
 > ✅ **Chiuso (15/07):** riserva di chakra, costi e consumo delle tecniche sono **fissati e attivi in produzione**, bilanciati in simulazione (20.000 duelli). Ogni valore è un multiplo di 5.
+
+### 5.3 Tecniche elementali pubblicate
+
+Danno, portata e costo sono mostrati nei campi della tecnica. Le descrizioni indicano la manifestazione del jutsu; l’effetto chiarisce ciò che può ottenere senza ripetere quei valori.
+
+#### Scudo di terra
+
+Dopo aver composto i sigilli, iniziando dal Serpente, il ninja modella il chakra Terra in uno scudo compatto davanti al corpo. All’impatto la superficie si incrina e, conclusa la difesa, si sfalda senza lasciare una parete stabile.
+
+**Effetto.** Lo scudo può attenuare o arrestare un attacco, assorbendone l’urto prima di sfaldarsi. Non può essere mantenuto come muro o copertura.
+
+**Durata.** Una singola difesa.
+
+**Requisiti.** Grado Genin o superiore, elemento Terra, Ninjutsu 30 e possesso della tecnica.
 
 ## 6. Sconfitta e allenamenti
 
@@ -842,3 +857,4 @@ Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da q
 | 88 | Rotazione Suprema Genin | Regole ratificate recepite: grado C, Genin con Kekkei Genkai 45 e Byakugan L1; una reazione e 10 chakra, Difesa 25 più contributo, riduzione in base alla copertura e sbalzo senza danni entro il raggio scelto di 1–3 metri. Coordinate e distanze seguono le misure intere comuni. |
 | 89 | Assalto con arretramento e ritorno | Regola ratificata il 13/09/2026: se già in zona contatto, l'Assalto può incorporare arretramento e ritorno alla posizione iniziale; entrambe le tratte consumano il budget di movimento, senza un secondo movimento ordinario. L'originale colpisce a contatto; il percorso è disponibile solo quando il server lo può validare. |
 | 90 | Assalto dopo il movimento e passive automatiche | Candidato 13/09/2026 (§4.5): Assalto usa fino a 5 m del budget rimasto dopo il movimento; arrivo e originale sono scelti dal server, bonus +2/+3 automatico per copie. Le passive come Risonanza Katon si applicano dal profilo della tecnica e compaiono come tag solo con bonus registrato. Supera il vincolo sul movimento della riga 89; da pubblicare insieme a motore e pannello. |
+| 91 | Scudo di terra: formula, testo e apertura | ✅ **Applicato** il 18/09/2026 (§4, §5.3): le tecniche difensive di Ninjutsu usano Mente + Ninjutsu; descrizione ed effetto separano la resa narrativa dai campi di costo, portata e danno. Scudo di terra è disponibile nei percorsi ordinario e Master ai personaggi che lo possiedono e ne rispettano i requisiti. |
