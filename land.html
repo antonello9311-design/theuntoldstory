@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-ELEMENTALI-MASTER-NARRATIVE-019" />
+  <meta name="tus-build" content="LAND-ELEMENTALI-CHALLENGE-PANEL-020" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -4289,14 +4289,14 @@ function attachCombatPanel(host){
   function suspend(){panel?.suspend();}
   function hide(){deactivateLayout?.();deactivateLayout=null;dialog.hidden=true;dialog.style.display='none';if(opened&&surface==='master')host.closeMaster?.();opened=false;}
   function invalidate(){generation++;key=null;chatSubmitted=null;confirmedDraft=null;refreshing=null;panel?.dispose();panel=null;root.replaceChildren();hide();syncDraft(null);showEntry();}
-  function showEntry(){const allowed=!!scope();card.hidden=!allowed;card.style.display=allowed?'':'none';entry.hidden=!allowed;entry.disabled=!allowed;const note=doc.getElementById('ordinary-entry-note');if(note)note.textContent='Pannello comune: disponibilità e scelte sono verificate dal server.';}
+  function showEntry(){const allowed=!!scope();card.hidden=!allowed;card.style.display=allowed?'':'none';entry.hidden=!allowed;entry.disabled=!allowed;const note=doc.getElementById('ordinary-entry-note');if(note){const m=panel?.snapshot(),pending=m?.envelope?.context?.phase==='waiting_join'&&m.envelope.context.activity_id!==null&&m.envelope.viewer?.can_command===true;note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent=pending?'Richiesta sfida in attesa':'Pannello comune: disponibilità e scelte sono verificate dal server.';}}
   function ensure(){
     const next=scope();if(next!==key)invalidate();if(!next)return false;if(panel)return true;
     key=next;const stamp=generation;ordinary.append(root);
     panel=mountPanelSurface({root,locationId:host.location().id,contextKey:scope,
       canRestoreTestResources:()=>host.canRestoreTestResources?.()===true,
       client:{rpc:(name,args)=>host.rpc(name,args)},renderers:host.renderers??(host.visuals?{map:createVisualMapRenderer(host.visuals)}:undefined),
-      onDraft:syncDraft,confirmDraft:m=>{
+      onDraft:m=>{syncDraft(m);showEntry();},confirmDraft:m=>{
         const signature=draftSignature(m);if(!m.canConfirmMechanics||!signature)return;
         confirmedDraft={signature,label:draftLabel(m)};syncDraft(m);hide();doc.getElementById('msg-input')?.focus();
       },
@@ -4720,7 +4720,7 @@ function mountMovementPicker(root,c,{node,onConfirm,readChat}){
   function render(){
     const current=key(),choices=movementChoices(c.offers);
     if(current!==signature||!ready())direction=null;
-    signature=current;root.hidden=choices.groups.length===0||disposed;
+    signature=current;root.hidden=choices.groups.length===0||disposed;root.style.display=root.hidden?'none':'';
     directionsRoot.replaceChildren();distancesRoot.replaceChildren();
     for(const group of choices.groups){
       const button=node('button',directions[group.direction]);button.type='button';button.className='mv2-btn ghost';
@@ -4774,7 +4774,8 @@ function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=n
   function render(){
     const signature=JSON.stringify([controller.envelope,controller.offers,controller.selected,controller.movement,controller.busy,controller.pending,controller.error,controller.needsOptions,presentationScope()]);
     if(signature===renderSignature)return;renderSignature=signature;
-    const c=controller,e=c.envelope,isOpening=e?.context?.phase==='waiting_join';root.classList.toggle('ordinary-opening',isOpening);heading.textContent=isOpening?'Sfida':'Scontro';status.textContent=e?.context?((Number.isSafeInteger(e.context.round_no)?'Round '+e.context.round_no+' · ':'')+phases[e.context.phase]):(e?'Scontro non disponibile':'Caricamento dello scontro…');
+    const c=controller,e=c.envelope,isOpening=e?.context?.phase==='waiting_join';
+    const pendingInvite=isOpening&&e.context.activity_id!==null;root.classList.toggle('ordinary-opening',isOpening);heading.textContent=isOpening?'Sfida':'Scontro';status.textContent=e?.context?((Number.isSafeInteger(e.context.round_no)?'Round '+e.context.round_no+' · ':'')+phases[e.context.phase]):(e?'Scontro non disponibile':'Caricamento dello scontro…');
     const activeActors=(e?.actors||[]).filter(a=>a.state==='active'&&a.body_only!==true);
     const expected=activeActors.filter(a=>e?.context?.phase==='action'?a.is_turn_owner===true:e?.context?.phase==='defense'?a.is_turn_owner===false:false);
     if(activeActors.length===2&&expected.length===1)status.textContent+=' · Deve agire '+expected[0].display_name;
@@ -4786,20 +4787,24 @@ function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=n
     const code=c.error||(e?.status==='blocked'?e.reason_code:null);
     notice.textContent=code?(reasons[code]||'Scelte non disponibili. Aggiorna lo stato dello scontro.'):(e?.context?.phase==='closed'?'Lo scontro è concluso.':(!e?.viewer.can_command?'In attesa del passaggio successivo.':(c.needsOptions?'Apri o aggiorna le scelte disponibili.':'')));
     if(narrativeView.notice!==null)notice.textContent=narrativeView.notice;
+    if(pendingInvite&&!code)notice.textContent='Richiesta sfida in attesa';
+    notice.hidden=isOpening&&!pendingInvite&&!code&&narrativeView.notice===null;notice.style.display=notice.hidden?'none':'';
     const normalOffers=companionPicker.render();
+    offerLabel.firstChild.nodeValue=isOpening?'Sfida partecipante':'Scelta offerta dal server';
     const sig=JSON.stringify(normalOffers);if(sig!==offerSignature){options(select,normalOffers,'Seleziona una scelta');offerSignature=sig;}
     select.value=c.selected||'';select.disabled=c.busy||!!c.pending||c.needsOptions;
     const chosen=c.offers.find(o=>o.offer_id===c.selected),moves=chosen?.movement_options||[];
     const ms=JSON.stringify([chosen?.movement_required,moves]);if(ms!==moveSignature){options(movement,moves,chosen?.movement_required?'Seleziona uno spostamento':'Nessuno spostamento',true);moveSignature=ms;}
     movement.value=c.movement||'';movement.disabled=select.disabled;movementLabel.hidden=moves.length===0;movementLabel.setAttribute('style',moves.length?'':'display:none');
+    refresh.hidden=isOpening;refresh.style.display=isOpening?'none':'';receipt.hidden=isOpening;receipt.style.display=isOpening?'none':'';events.hidden=isOpening;events.style.display=isOpening?'none':'';
     refresh.disabled=c.busy||!!c.pending||e?.status!=='ready'||!e?.viewer.can_command;
     send.disabled=!c.canSubmit();retry.hidden=!c.pending;retry.disabled=c.busy;
-    send.textContent=isOpening?(chosen?.operation==='open'?'Invia sfida':chosen?.operation==='join'?'Accetta':chosen?.operation==='close'?(chosen.label||'Rifiuta'):'Conferma'):onConfirm&&['declare','defend'].includes(chosen?.operation)?'Prepara scelta':'Conferma scelta';
+    send.textContent=isOpening?(chosen?.operation==='open'?"Invia l'invito":chosen?.operation==='join'?'Accetta':chosen?.operation==='close'?(chosen.label||'Rifiuta'):'Conferma'):onConfirm&&['declare','defend'].includes(chosen?.operation)?'Prepara scelta':'Conferma scelta';
     const r=e?.receipt;receipt.textContent=r?('Ricevuta registrata'+(r.replayed?' · invio già acquisito':'')+(r.values_written?' · valori applicati.':' · nessuna modifica ai valori in questo passaggio.')):'';
     events.replaceChildren();for(const event of r?.display_events||[])events.append(node('li',event.summary));
     const remembered=closeMemory.observe(presentationScope(),e);
     lastClose.textContent=remembered?'Ultima chiusura confermata · ricevuta '+remembered.receipt_id+'. Questa ricevuta non indica lo stato attuale.':'';
-    lastClose.hidden=!remembered;
+    lastClose.hidden=isOpening||!remembered;lastClose.style.display=lastClose.hidden?'none':'';
   }
   function handle(action){Promise.resolve().then(action).catch(e=>{controller.error=e.code||'invalid_projection';render();});}
   select.addEventListener('change',()=>handle(()=>controller.select(select.value)));
@@ -4829,7 +4834,7 @@ function attachOrdinaryLand(host){
   function localAllowed(){return !disposed&&!!scope()&&!host.isExam()&&!host.otherCombat();}
   function eligible(){return entryAllowed&&localAllowed()&&originScope===scope();}
   function visible(on){dialog.hidden=!on;dialog.style.display=on?'flex':'none';}
-  function showEntry(){const on=eligible(),available=localAllowed();card.hidden=!available;card.style.display=available?'':'none';entry.hidden=!on;entry.disabled=!on;const note=host.document.getElementById('ordinary-entry-note');if(entryNarrativeErrorScope!==scope())entryNarrativeErrorScope=null;if(note){note.setAttribute('role','status');note.textContent=entryNarrativeErrorScope?combatNarrativePresentation(null,'invalid_narrative_projection').notice:(on?'Duello gestito dal server. Le azioni si scrivono in chat.':'Scontro non disponibile in questo luogo o per questo personaggio.');}}
+  function showEntry(){const on=eligible(),available=localAllowed();card.hidden=!available;card.style.display=available?'':'none';entry.hidden=!on;entry.disabled=!on;const note=host.document.getElementById('ordinary-entry-note');if(entryNarrativeErrorScope!==scope())entryNarrativeErrorScope=null;if(note){const pending=controller?.envelope?.context?.phase==='waiting_join'&&controller.envelope.context.activity_id!==null&&controller.envelope.viewer?.can_command===true;note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent=entryNarrativeErrorScope?combatNarrativePresentation(null,'invalid_narrative_projection').notice:(pending?'Richiesta sfida in attesa':on?'Duello gestito dal server. Le azioni si scrivono in chat.':'Scontro non disponibile in questo luogo o per questo personaggio.');}}
   function invalidate(error=null){
     entryNarrativeErrorScope=error==='invalid_narrative_projection'&&localAllowed()?scope():null;
     epoch++;stateRequest++;entryAllowed=false;opening=false;prepared=null;rawSubmitted=null;
