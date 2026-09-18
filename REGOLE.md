@@ -389,6 +389,30 @@ Dopo aver composto i sigilli, iniziando dal Serpente, il ninja modella il chakra
 
 **Requisiti.** Grado Genin o superiore, elemento Terra, Ninjutsu 30 e possesso della tecnica.
 
+#### Frusta d’acqua
+
+Dopo aver composto i sigilli, iniziando dal Cane, il ninja modella il chakra Acqua in una frusta flessibile che serpeggia nell’aria e schiocca verso l’avversario, avvolgendolo per un istante quando trova presa.
+
+**Effetto.** Su un colpo pieno, la frusta può agganciare il bersaglio e trascinarlo verso chi la usa; ostacoli e terreno possono arrestare lo spostamento.
+
+**Regola.** Il trascinamento va scelto prima dell’invio e può spostare il bersaglio fino a 1 metro verso l’utilizzatore. Il server lo arresta prima della prima posizione o tratta illegale; non infligge danni da collisione e non si applica su sfioramento o colpo negato.
+
+**Durata.** Istantanea.
+
+**Requisiti.** Grado Genin o superiore, elemento Acqua, Ninjutsu 30 e possesso della tecnica.
+
+#### Proiettile d’acqua
+
+Dopo aver composto i sigilli, iniziando dal Cane, il ninja comprime il chakra Acqua in un proiettile denso che investe l’avversario con un impatto violento, inzuppandone abiti e corpo e appesantendone per breve tempo i movimenti.
+
+**Effetto.** Su un colpo pieno, l’acqua appesantisce il bersaglio e ne limita il movimento nel turno successivo.
+
+**Regola.** Nel prossimo turno personale del bersaglio il budget di movimento è ridotto di 2 metri, fino a un minimo di zero. L’effetto scade alla fine di quel turno anche se il bersaglio non si muove; mentre è presente non si somma e non si rinnova. Non modifica la Velocità né la scheda del personaggio.
+
+**Durata.** Impatto istantaneo; penalità nel prossimo turno personale del bersaglio, fino alla sua fine.
+
+**Requisiti.** Grado Genin o superiore, elemento Acqua, Ninjutsu 40 e possesso della tecnica.
+
 ## 6. Sconfitta e allenamenti
 
 I **Punti Vita**, i danni e la loro riduzione sono nel **§4 · Combattimento**. Qui contano le conseguenze in gioco.
@@ -858,3 +882,4 @@ Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da q
 | 89 | Assalto con arretramento e ritorno | Regola ratificata il 13/09/2026: se già in zona contatto, l'Assalto può incorporare arretramento e ritorno alla posizione iniziale; entrambe le tratte consumano il budget di movimento, senza un secondo movimento ordinario. L'originale colpisce a contatto; il percorso è disponibile solo quando il server lo può validare. |
 | 90 | Assalto dopo il movimento e passive automatiche | Candidato 13/09/2026 (§4.5): Assalto usa fino a 5 m del budget rimasto dopo il movimento; arrivo e originale sono scelti dal server, bonus +2/+3 automatico per copie. Le passive come Risonanza Katon si applicano dal profilo della tecnica e compaiono come tag solo con bonus registrato. Supera il vincolo sul movimento della riga 89; da pubblicare insieme a motore e pannello. |
 | 91 | Scudo di terra: formula, testo e apertura | ✅ **Applicato** il 18/09/2026 (§4, §5.3): le tecniche difensive di Ninjutsu usano Mente + Ninjutsu; descrizione ed effetto separano la resa narrativa dai campi di costo, portata e danno. Scudo di terra è disponibile nei percorsi ordinario e Master ai personaggi che lo possiedono e ne rispettano i requisiti. |
+| 92 | Frusta d’acqua e Proiettile d’acqua | ✅ **Applicato** il 18/09/2026 (§5.3): Frusta può trascinare fino a 1 m su colpo pieno, con arresto prima di una tratta o destinazione illegale e senza danni da collisione; Proiettile riduce di 2 m il movimento del prossimo turno personale, senza cumulo o rinnovo. Testi di descrizione ed effetto non duplicano portata, danno o costo. Entrambe sono disponibili nei percorsi ordinario e Master ai personaggi che le possiedono e ne rispettano i requisiti. |
