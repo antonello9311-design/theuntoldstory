@@ -413,6 +413,18 @@ Dopo aver composto i sigilli, iniziando dal Cane, il ninja comprime il chakra Ac
 
 **Requisiti.** Grado Genin o superiore, elemento Acqua, Ninjutsu 40 e possesso della tecnica.
 
+#### Grande sfondamento
+
+Dopo aver composto i sigilli, iniziando dall’Uccello, il ninja libera una forte folata di vento dal palmo, dirigendola verso un solo avversario.
+
+**Effetto.** Su un colpo pieno, la folata può respingere il bersaglio lungo la direzione dell’attacco; ostacoli, dislivelli e terreno possono arrestare lo spostamento.
+
+**Regola.** La respinta va scelta prima dell’invio e può spostare il bersaglio fino a 3 metri lungo la direzione dell’attacco. Il server la arresta prima della prima posizione o tratta illegale; non infligge danni da collisione, non coinvolge altri bersagli e non si applica su sfioramento o colpo negato. Può disperdere localmente fumo, nebbia o polvere comuni, ma non cancella automaticamente un occultamento prodotto da una tecnica.
+
+**Durata.** Istantanea.
+
+**Requisiti.** Grado Genin o superiore, elemento Vento, Ninjutsu 40 e possesso della tecnica.
+
 ## 6. Sconfitta e allenamenti
 
 I **Punti Vita**, i danni e la loro riduzione sono nel **§4 · Combattimento**. Qui contano le conseguenze in gioco.
@@ -883,3 +895,4 @@ Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da q
 | 90 | Assalto dopo il movimento e passive automatiche | Candidato 13/09/2026 (§4.5): Assalto usa fino a 5 m del budget rimasto dopo il movimento; arrivo e originale sono scelti dal server, bonus +2/+3 automatico per copie. Le passive come Risonanza Katon si applicano dal profilo della tecnica e compaiono come tag solo con bonus registrato. Supera il vincolo sul movimento della riga 89; da pubblicare insieme a motore e pannello. |
 | 91 | Scudo di terra: formula, testo e apertura | ✅ **Applicato** il 18/09/2026 (§4, §5.3): le tecniche difensive di Ninjutsu usano Mente + Ninjutsu; descrizione ed effetto separano la resa narrativa dai campi di costo, portata e danno. Scudo di terra è disponibile nei percorsi ordinario e Master ai personaggi che lo possiedono e ne rispettano i requisiti. |
 | 92 | Frusta d’acqua e Proiettile d’acqua | ✅ **Applicato** il 18/09/2026 (§5.3): Frusta può trascinare fino a 1 m su colpo pieno, con arresto prima di una tratta o destinazione illegale e senza danni da collisione; Proiettile riduce di 2 m il movimento del prossimo turno personale, senza cumulo o rinnovo. Testi di descrizione ed effetto non duplicano portata, danno o costo. Entrambe sono disponibili nei percorsi ordinario e Master ai personaggi che le possiedono e ne rispettano i requisiti. |
+| 93 | Grande sfondamento | ✅ **Applicato** il 18/09/2026 (§5.3): su colpo pieno può respingere il bersaglio fino a 3 m lungo la direzione dell’attacco; il server arresta lo spostamento prima di una posizione o tratta illegale, senza collisioni né bersagli secondari. Descrizione ed effetto non duplicano portata, danno o costo. La tecnica è disponibile nei percorsi ordinario e Master ai personaggi che la possiedono e ne rispettano i requisiti. |
