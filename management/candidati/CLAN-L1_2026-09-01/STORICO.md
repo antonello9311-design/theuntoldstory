@@ -649,3 +649,4 @@
 19/09/2026 · EDITORIALE-SPAZZATA-APPROVAL-061 · Descrizione, Effetto e Regola di Spazzata della Foglia approvati da Antonello e congelati · nessun apply o gate modificato, rilascio aggregato dopo tutte le revisioni.
 19/09/2026 · EDITORIALE-TURBINE-APPROVAL-062 · Turbine della Foglia approvata come unica scena offensiva con un confronto e un pacchetto; bonus limitato alla Parata · nessun apply o gate modificato.
 - 19/09/2026 · ELEMENTALI-TAIJUTSU-PUBLIC-BATCH-070 · pubblicate quattro elementali e cinque Taijutsu; ritirate dal catalogo sette versioni precedenti; regolamento changelog 95 al commit 71e732e · esito: review 0/0/0, migrazione, postflight e dominio PASS; Pages 729 riuscita.
+- 19/09/2026 · ELEMENTALI-TAIJUTSU-CLOSEOUT-071 · checklist Elementali/Taijutsu e documenti centrali allineati allo stato pubblico, arretrato rimosso dal tabellone · esito: chiusura documentale verificata, nessun caso aperto nel perimetro.
