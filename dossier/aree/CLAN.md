@@ -19,7 +19,7 @@ Precisazione Antonello10/09: Esame escluso dalle matrici e dai confronti di coll
 
 ## Stato vivo
 
-**Elementali e Taijutsu · checkpoint corrente 19/09/2026:** pubbliche sono Scudo di terra, Frusta d’acqua, Proiettile d’acqua e Grande sfondamento. Lancia di fulmine e Proiettile di roccia hanno superato il percorso ordinary 1vs1 nella Staff Test Room; le prove sono chiuse e le risorse reali risultano invariate. Lama di vento e Soffio di brace conservano le prove tecniche pertinenti precedenti; le quattro tecniche restano chiuse fino alla revisione editoriale. Scarica elettrica non è ancora qualificata: `scarica_contact027` corregge formula di contatto e postflight ma attende review indipendente, apply riservato e controprova. Le cinque Taijutsu ratificate hanno una candidata integrata `runtime001` completa e staticamente coerente, con pubblico OFF; 36/36 pin live coincidono e 26 corpi condivisi sono fissati, componente e recovery compilano, gli eventi usano la versione del profilo congelato, la validazione contatto distingue Scarica da Calcio ascendente, l’apertura si consuma soltanto su Parata/Schivata, `session_allowed` include il gate Taijutsu e il CHECK impone pubblico⇒Staff. Scheda e server di addestramento riconoscono il requisito Taijutsu e le soglie D 10 / C 25. Scarica ha superato la compilazione isolata di installer e recovery dopo la correzione del postflight. I recovery rifiutano ora la deriva della versione installata prima di qualunque ripristino: un corpo per Scarica e tutti i 26 raccordi condivisi per Taijutsu. Nessuna delle due candidate è stata applicata o collaudata live; nessuna nuova apertura o chiamata provider deriva da questo checkpoint.
+**Elementali e Taijutsu · stato conclusivo 19/09/2026:** nove elementali e cinque Taijutsu generici sono collaudati nei percorsi pertinenti, approvati editorialmente e pubblici. Review batch `0/0/0`, migrazione `elementali_taijutsu_public_batch_20260919_070`, cataloghi/gate 9/9 e testi 9/9 verificati; sette Taijutsu precedenti inattivi e conservati, zero assegnazioni o addestramenti da migrare. Regolamento changelog 95 online, Pages 729 e dominio verificati. Checklist finali in `elementali/CHECKLIST_COLLAUDO.md` e `runtime/taijutsu/CHECKLIST_COLLAUDO.md`; nessun caso aperto nel perimetro.
 
 **Suiton · apertura pubblica 18/09/2026:** Frusta d’acqua e Proiettile d’acqua sono state aperte agli utenti con la migrazione `20260918203958 suiton_public_release_20260918_024`, dopo review indipendente `0/0/0` e assert di eligibility `PASS`. I due gate risultano `enabled=true` e `public_enabled=true`; ACL restano `postgres`-only, owner/search path e pin verificati. Frusta ha superato il percorso Master multi-attore e il percorso ordinario 1vs1: il colpo pieno ha consumato 5 chakra simulati e inflitto 29 danni simulati; il trascinamento richiesto è stato correttamente negato con `no_legal_prefix` perché i combattenti erano già alla distanza minima senza sovrapposizione. Proiettile ha superato costo/danno e la penalità `mobilita_ridotta_2m`, rimossa alla fine del turno personale successivo. La sessione ordinaria è stata chiusa normalmente, storico preservato, nessuna sessione residua e risorse reali di testperfunzioni/Riuji invariate. Catalogo e regolamento riportano testi editoriali definitivi senza duplicare costo, danno o portata nei campi Effetto; coppia pubblicata nel commit `f43f78568e5bc2b04acf3a456274786ccf019b96` e verificata sul dominio. Restano sei elementali da completare; non sono state aperte da questo rilascio.**
 
@@ -284,7 +284,7 @@ Banco tus_hyuga_review001_qa: installazione candidata locale e due race eseguite
 
 ## Lavori aperti — priorità066 e backlog preservato
 
-- **Elementali/Taijutsu:** review `0/0/0` di Scarica e Taijutsu; apply Staff e controprova Scarica; apply Staff e collaudo ordinary/Master delle cinque Taijutsu. Dopo la revisione editoriale con Antonello, aprire soltanto le tecniche qualificate e approvate. Lancia e Roccia non richiedono un nuovo 1vs1; conservare i PASS già raccolti.
+- **Elementali/Taijutsu:** rilascio concluso; nessun arretrato aperto. Conservare evidenze e PASS, senza riaprire le scene.
 
 - **Rotazione corrente:** pubblica dal 20260911171449, due ordinary PASS; prova con Master espressamente rinviata a B10 non spuntata. Tre provider totali, zero retry, scene di prova chiuse e risorse reali invariate. Nessuna qualifica Master implicita.
 
@@ -330,11 +330,9 @@ Il pack storico PM-MOTORE §135 e Common §0.7 conservano il precedente drain Hy
 
 ## Prossimo passo
 
-1. Ottenere review indipendente `0/0/0` per `scarica_contact027`, applicarla nel perimetro Staff e ripetere il solo caso a contatto; se positivo, chiudere la qualifica tecnica.
-2. Ottenere review indipendente `0/0/0` per `runtime/taijutsu/candidato/runtime001`, applicare con gate pubblici OFF e collaudare i cinque Taijutsu nei percorsi ordinary e Master pertinenti, con isolamento e chiusura delle scene.
-3. Presentare ad Antonello descrizione, Effetto e Regola una tecnica alla volta; dopo approvazione, pubblicare le sole tecniche con QA positivo.
-
-Prossimo passo Elementali: completare tecniche e rami ancora non provati con budget separato, integrare Test Room utenti e rigenerare OPENING sulla baseline corrente. Regolamento91/editoriale pronti locali; catalogo/apertura soltanto al positivo. Conservare esiti Bruciatura, Lama, Scudo e narrazione già verificati.
+1. Elementali e Taijutsu generici: nessun prossimo passo; rilascio e documentazione chiusi.
+2. Proseguire soltanto gli altri lavori del cantiere già elencati: Armatura, punto cieco e casi Master pertinenti di Rotazione/Katon.
+3. Se un futuro delta modifica una tecnica generica, riaprire esclusivamente le regressioni interessate usando le checklist finali come baseline.
 
 Pulizia catalogo conclusa: sette voci disattivate, Tecnica delle 16 chiusure attiva e invariata, storico e policy conservati. Non ripetere apply o modificare assegnazioni dei PG. Rotazione resta pubblica e il regolamento pubblicato nel commit 925d794; la sola prova con Master rimane in B10 non spuntata. Nessuna nuova tecnica o attività di collaudo avviata da questa pulizia.
 
