@@ -425,6 +425,18 @@ Dopo aver composto i sigilli, iniziando dall’Uccello, il ninja libera una fort
 
 **Requisiti.** Grado Genin o superiore, elemento Vento, Ninjutsu 40 e possesso della tecnica.
 
+#### Soffio di brace
+
+Dopo aver composto i sigilli, iniziando dalla Tigre, il ninja emette un breve soffio di brace diretto verso un avversario. Quando il colpo lo raggiunge pienamente, le braci lambiscono la pelle e vi lasciano leggere scottature, spegnendosi rapidamente senza propagarsi nell’ambiente.
+
+**Effetto.** Un colpo pieno applica Bruciatura lieve.
+
+**Regola.** Alla fine del prossimo turno personale del bersaglio viene eseguito automaticamente un unico tiro di 1d100: da 1 a 75, la Bruciatura termina senza danni aggiuntivi; da 76 a 100, infligge una sola volta 2 PV di danno, entro il limite applicabile alla stessa azione, poi termina. Il tiro non consuma azioni o chakra e non si ripete. La Bruciatura non si somma, non si rinnova finché è presente e non si propaga. Sfioramenti e colpi negati non applicano Bruciatura.
+
+**Durata.** Fino alla fine del prossimo turno personale del bersaglio.
+
+**Requisiti.** Grado Genin o superiore, elemento Fuoco, Ninjutsu 30 e possesso della tecnica.
+
 ## 6. Sconfitta e allenamenti
 
 I **Punti Vita**, i danni e la loro riduzione sono nel **§4 · Combattimento**. Qui contano le conseguenze in gioco.
@@ -896,3 +908,4 @@ Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da q
 | 91 | Scudo di terra: formula, testo e apertura | ✅ **Applicato** il 18/09/2026 (§4, §5.3): le tecniche difensive di Ninjutsu usano Mente + Ninjutsu; descrizione ed effetto separano la resa narrativa dai campi di costo, portata e danno. Scudo di terra è disponibile nei percorsi ordinario e Master ai personaggi che lo possiedono e ne rispettano i requisiti. |
 | 92 | Frusta d’acqua e Proiettile d’acqua | ✅ **Applicato** il 18/09/2026 (§5.3): Frusta può trascinare fino a 1 m su colpo pieno, con arresto prima di una tratta o destinazione illegale e senza danni da collisione; Proiettile riduce di 2 m il movimento del prossimo turno personale, senza cumulo o rinnovo. Testi di descrizione ed effetto non duplicano portata, danno o costo. Entrambe sono disponibili nei percorsi ordinario e Master ai personaggi che le possiedono e ne rispettano i requisiti. |
 | 93 | Grande sfondamento | ✅ **Applicato** il 18/09/2026 (§5.3): su colpo pieno può respingere il bersaglio fino a 3 m lungo la direzione dell’attacco; il server arresta lo spostamento prima di una posizione o tratta illegale, senza collisioni né bersagli secondari. Descrizione ed effetto non duplicano portata, danno o costo. La tecnica è disponibile nei percorsi ordinario e Master ai personaggi che la possiedono e ne rispettano i requisiti. |
+| 94 | Soffio di brace | ✅ **Applicato** il 19/09/2026 (§5.3): su colpo pieno applica Bruciatura lieve; alla fine del prossimo turno personale del bersaglio un unico tiro automatico di 1d100 la conclude senza danno su 1–75 oppure infligge una sola volta 2 PV su 76–100, poi la conclude. Non si somma, non si rinnova, non si propaga e non si applica su sfioramenti o colpi negati. La tecnica è disponibile nei percorsi ordinario e Master ai personaggi che la possiedono e ne rispettano i requisiti. |
