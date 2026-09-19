@@ -437,6 +437,118 @@ Dopo aver composto i sigilli, iniziando dalla Tigre, il ninja emette un breve so
 
 **Requisiti.** Grado Genin o superiore, elemento Fuoco, Ninjutsu 30 e possesso della tecnica.
 
+#### Lama di vento
+
+Dopo aver composto i sigilli, iniziando dall’Uccello, il ninja concentra il chakra Vento sul filo della mano e lo libera in una sottile lama d’aria. Se raggiunge l’avversario, la pressione può incidere pelle e tessuti lasciando tagli netti.
+
+**Effetto.** La Parata è meno efficace contro la lama d’aria. Schivata, Sostituzione e tecniche difensive mantengono la loro normale efficacia.
+
+**Regola.** Contro Parata applica +1 soltanto al confronto per colpire. Non modifica danno, potenza o margine usato nel danno; non taglia automaticamente armi o oggetti resistenti.
+
+**Durata.** Istantanea.
+
+**Requisiti.** Grado Genin o superiore, elemento Vento, Ninjutsu 30 e possesso della tecnica.
+
+#### Scarica
+
+Dopo il sigillo della Lepre, il ninja raccoglie il chakra Fulmine nel palmo e lo libera al contatto in una scarica breve e concentrata. L’urto elettrico attraversa la parte colpita con un lampo secco e può lasciare i muscoli momentaneamente intorpiditi.
+
+**Effetto.** Parata e Schivata successive possono risultare più difficili. Sostituzione e tecniche difensive conservano la loro normale efficacia e non consumano l’apertura.
+
+**Regola.** Soltanto un colpo pieno a contatto applica una carica: -1 alla prima Parata o Schivata successiva, entro la fine del prossimo turno personale del bersaglio. Non si somma né si rinnova; non paralizza e non fa perdere azioni.
+
+**Durata.** Istantanea.
+
+**Requisiti.** Grado Genin o superiore, elemento Fulmine, Ninjutsu 30 e possesso della tecnica.
+
+#### Lancia di fulmine
+
+Dopo il sigillo della Lepre, il ninja comprime il chakra Fulmine in una lancia sottile e luminosa, quindi la scaglia lungo una traiettoria diretta. Il lampo attraversa rapidamente lo spazio e scarica la propria energia nel punto raggiunto.
+
+**Effetto.** La Schivata è meno efficace contro la rapidità della lancia. Parata, Sostituzione e tecniche difensive mantengono la loro normale efficacia.
+
+**Regola.** Contro Schivata applica +1 soltanto al confronto per colpire. Non modifica danno o potenza; non perfora automaticamente e non si propaga ad altri bersagli.
+
+**Durata.** Istantanea.
+
+**Requisiti.** Grado Genin o superiore, elemento Fulmine, Ninjutsu 40 e possesso della tecnica.
+
+#### Proiettile di roccia
+
+Dopo il sigillo del Serpente, il ninja concentra il chakra Terra e forma un proiettile di roccia compatto, che scaglia contro l’avversario con un impatto pesante e concentrato.
+
+**Effetto.** La Parata assorbe meno efficacemente la forza dell’impatto. Schivata, Sostituzione e tecniche difensive mantengono la loro normale efficacia.
+
+**Regola.** Contro Parata ignora fino a 2 punti della riduzione numerica del danno, senza portarla sotto zero. Non modifica Resistenza né l’esito del confronto e non distrugge automaticamente armature, scudi o coperture. Non richiede terra o roccia già presenti nella scena.
+
+**Durata.** Istantanea.
+
+**Requisiti.** Grado Genin o superiore, elemento Terra, Ninjutsu 40 e possesso della tecnica.
+
+### 5.4 Tecniche Taijutsu pubblicate
+
+Le sequenze composte sono una sola scena offensiva: un confronto e un pacchetto di danno. I modificatori indicati come “solo per colpire” non aumentano potenza, danno o margine di danno.
+
+#### Colpo concatenato del leone
+
+Il ninja apre con un calcio ascendente, incalza l’avversario con una rapida concatenazione di colpi ravvicinati e chiude con un calcio discendente verso terra. I diversi colpi compongono un’unica scena offensiva e rappresentano una sola tecnica continua, non azioni separate.
+
+**Effetto.** La difesa conserva tutte le normali possibilità contro l’intera sequenza.
+
+**Regola.** L’intera composizione viene risolta con un solo confronto e un solo pacchetto di danno. Non concede danni aggiuntivi da caduta, movimento forzato o perdita della difesa.
+
+**Durata.** Istantanea.
+
+**Requisiti.** Grado Genin o superiore, Taijutsu 25 e possesso della tecnica.
+
+#### Spazzata della Foglia
+
+Il ninja abbassa il baricentro e ruota rapidamente, distendendo la gamba contro gli appoggi dell’avversario. Il calcio basso cerca di spezzarne per un istante l’equilibrio e il passo.
+
+**Effetto.** La difesa può evitare o attenuare normalmente il colpo. Soltanto un impatto pieno compromette temporaneamente il movimento del bersaglio.
+
+**Regola.** Un colpo pieno non negato riduce di 2 metri, fino a un minimo di zero, il movimento disponibile nel prossimo turno personale del bersaglio. Non modifica Velocità o movimento già effettuato; non si applica su sfioramento o colpo negato e non si somma né si rinnova.
+
+**Durata.** Istantanea.
+
+**Requisiti.** Grado Genin o superiore, Taijutsu 10 e possesso della tecnica.
+
+#### Turbine della Foglia
+
+Il ninja entra in rotazione con un calcio alto che impegna la guardia e prosegue nello stesso movimento con un secondo calcio basso. Le due traiettorie compongono un’unica scena offensiva e una sola tecnica continua.
+
+**Effetto.** La Parata è meno efficace contro il rapido cambio d’altezza dei due calci. Schivata, Sostituzione e tecniche difensive mantengono la loro normale efficacia.
+
+**Regola.** Contro Parata applica +1 soltanto al confronto per colpire. L’intera sequenza usa un solo confronto e un solo pacchetto di danno; il bonus non aumenta il danno.
+
+**Durata.** Istantanea.
+
+**Requisiti.** Grado Genin o superiore, Taijutsu 10 e possesso della tecnica.
+
+#### Calcio ascendente della Foglia
+
+Il ninja raccoglie il corpo e libera dal basso un calcio ascendente diretto al busto o al mento dell’avversario. L’impatto cerca di sollevarne la postura e di aprire la guardia, mentre l’esecutore ricade nella stessa sequenza.
+
+**Effetto.** Un colpo pieno può rendere più difficile la prima Parata o Schivata successiva. Sostituzione e tecniche difensive restano pienamente efficaci e non consumano l’apertura.
+
+**Regola.** Un colpo pieno non negato applica una carica: -1 alla prima Parata o Schivata compatibile successiva. La carica resta fino al primo confronto compatibile o alla fine dello scontro; non si somma né si rinnova, non modifica la mitigazione e non causa perdita di azioni o sospensione in aria.
+
+**Durata.** Istantanea.
+
+**Requisiti.** Grado Genin o superiore, Taijutsu 25 e possesso della tecnica.
+
+#### Entrata dinamica
+
+Il ninja scatta in linea retta verso l’avversario, trasforma la rincorsa in uno slancio e conclude l’avvicinamento con un calcio volante frontale. La tecnica unisce corsa e impatto in un solo gesto continuo.
+
+**Effetto.** Dopo una rincorsa valida, Parata e Schivata sono meno efficaci contro l’impeto del calcio. Sostituzione e tecniche difensive mantengono la loro normale efficacia.
+
+**Regola.** Richiede una rincorsa rettilinea, continua e legale di almeno 5 metri, terminata entro 2 metri dal bersaglio. Contro Parata o Schivata applica +1 soltanto al confronto per colpire. Un percorso invalido viene rifiutato senza costo o dichiarazione; non ripiega in un colpo semplice e non concede inseguimenti gratuiti dopo Sostituzione.
+
+**Durata.** Istantanea.
+
+**Requisiti.** Grado Genin o superiore, Taijutsu 10 e possesso della tecnica.
+
 ## 6. Sconfitta e allenamenti
 
 I **Punti Vita**, i danni e la loro riduzione sono nel **§4 · Combattimento**. Qui contano le conseguenze in gioco.
@@ -909,3 +1021,4 @@ Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da q
 | 92 | Frusta d’acqua e Proiettile d’acqua | ✅ **Applicato** il 18/09/2026 (§5.3): Frusta può trascinare fino a 1 m su colpo pieno, con arresto prima di una tratta o destinazione illegale e senza danni da collisione; Proiettile riduce di 2 m il movimento del prossimo turno personale, senza cumulo o rinnovo. Testi di descrizione ed effetto non duplicano portata, danno o costo. Entrambe sono disponibili nei percorsi ordinario e Master ai personaggi che le possiedono e ne rispettano i requisiti. |
 | 93 | Grande sfondamento | ✅ **Applicato** il 18/09/2026 (§5.3): su colpo pieno può respingere il bersaglio fino a 3 m lungo la direzione dell’attacco; il server arresta lo spostamento prima di una posizione o tratta illegale, senza collisioni né bersagli secondari. Descrizione ed effetto non duplicano portata, danno o costo. La tecnica è disponibile nei percorsi ordinario e Master ai personaggi che la possiedono e ne rispettano i requisiti. |
 | 94 | Soffio di brace | ✅ **Applicato** il 19/09/2026 (§5.3): su colpo pieno applica Bruciatura lieve; alla fine del prossimo turno personale del bersaglio un unico tiro automatico di 1d100 la conclude senza danno su 1–75 oppure infligge una sola volta 2 PV su 76–100, poi la conclude. Non si somma, non si rinnova, non si propaga e non si applica su sfioramenti o colpi negati. La tecnica è disponibile nei percorsi ordinario e Master ai personaggi che la possiedono e ne rispettano i requisiti. |
+| 95 | Elementali e Taijutsu generici | ✅ **Applicato** il 19/09/2026 (§5.3–5.4): pubblicate Lama di vento, Scarica, Lancia di fulmine e Proiettile di roccia; pubblicate cinque Taijutsu della Foglia e ritirate conservativamente le sette voci precedenti. Bonus e malus al confronto non aumentano il danno; effetti successivi si applicano e si consumano secondo la finestra descritta dal server. |
