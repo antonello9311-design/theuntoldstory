@@ -728,6 +728,10 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
 </script>
 <meta name="tus-build" content="TECH-FIELDS-UI001-ADMIN" />
 <meta name="tus-scorta-media-admin-build" content="SCORTA-MEDIA-ADMIN-001" />
+
+  <style id="mission-rapid-editor-style">
+    .mission-rapid-editor{display:grid;gap:14px;color:var(--ink);max-width:1100px}.mission-rapid-editor *{box-sizing:border-box}.mission-rapid-editor h2,.mission-rapid-editor h3,.mission-rapid-editor h4{font-family:Cinzel,serif}.mission-rapid-editor .mr-card{border:1px solid var(--edge);border-radius:10px;padding:14px;background:rgba(255,252,244,.55)}.mission-rapid-editor .mr-subcard{border-top:1px solid var(--edge);padding:12px 0}.mission-rapid-editor label{display:grid;gap:5px;margin:9px 0;font-weight:700}.mission-rapid-editor input,.mission-rapid-editor textarea,.mission-rapid-editor select{width:100%;min-height:42px;padding:8px;border:1px solid var(--rule);border-radius:7px;background:#fffaf0;color:var(--ink);font:inherit}.mission-rapid-editor textarea{resize:vertical}.mission-rapid-editor button{min-height:42px;margin:5px 8px 5px 0}.mission-rapid-editor pre{max-height:340px;overflow:auto;white-space:pre-wrap;background:rgba(255,255,255,.45);padding:10px;border-radius:7px}.mission-rapid-editor [role=status]{white-space:pre-wrap;color:var(--red-deep)}
+  </style>
 </head>
 <body>
   <div class="page">
@@ -760,6 +764,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
             <button type="button" data-go="bacheche">Bacheche</button>
             <button type="button" data-go="ia">IA</button>
             <button type="button" data-go="ninja-editoriale">Ninja Book narrativo</button>
+            <button type="button" data-go="mission-rapid" id="mission-rapid-nav" hidden>Nuova missione rapida</button>
             <button type="button" data-go="media-scorta" id="scorta-media-nav" hidden>Media Scorta</button>
             <button type="button" data-go="aiuto">Aiuto</button>
             <button type="button" data-go="compagni">Compagni</button>
@@ -1095,6 +1100,14 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
             </div>
           </section>
           <!-- NINJA-BOOK-027B HTML FINE -->
+
+
+          <section class="adm-page" data-page="mission-rapid" id="mission-rapid-page" hidden aria-labelledby="mission-rapid-title">
+            <div class="grp-title" id="mission-rapid-title" style="margin-top:0">Nuova missione · trama e immagini</div>
+            <p class="mgr-note">Inserisci la trama, correggi fasi e PNG, collega immagini e mappa, poi pubblica soltanto dopo l’anteprima server completa.</p>
+            <div id="mission-rapid-host"></div>
+          </section>
+          <!-- MISSION-RAPID-EDITOR HTML FINE -->
 
           <section class="adm-page" data-page="media-scorta" id="scorta-media-page" hidden aria-labelledby="scorta-media-title">
             <div class="grp-title" id="scorta-media-title" style="margin-top:0">Media missione · Scorta Genin</div>
@@ -1563,6 +1576,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
       <div class="legend-item"><b>Bacheche</b><span>Sezioni delle bacheche mostrate nella land: categoria On&nbsp;game/Off, ordine e chi può scrivere.</span></div>
       <div class="legend-item"><b>IA</b><span>L’hub dei PNG, in cinque sotto-tab: <strong>Accademia</strong> (i sensei estratti a caso dal pool del villaggio), <strong>PNG Trama</strong> (il cast narrativo), <strong>Ninja Book</strong> (i modelli con statistiche che i master evocano in scena dalla Regia), <strong>Audit Accademia</strong> (il revisore che <strong>propone</strong> difetti senza correggerli) e <strong>Classi bloccate</strong> (le lezioni ferme, da leggere e sbloccare).</span></div>
       <div class="legend-item"><b>Ninja Book narrativo</b><span>Il workflow editoriale separato per identità, limiti, archi, memorie, relazioni, pool, atomi e scene dei PNG. Il server governa versioni e autorizzazioni; la preview mostra esclusivamente il contesto consegnato all’IA.</span></div>
+      <div class="legend-item"><b>Nuova missione rapida</b><span>Trasforma trama e immagini in una bozza modificabile, con fasi, PNG, mappa, condizioni e anteprima obbligatoria. La pubblicazione resta bloccata finché il server non valida e sigilla ogni riferimento.</span></div>
       <div class="legend-item"><b>Aiuto</b><span>Le <strong>voci</strong> sono l’unica cosa che il Custode dell’Archivio sa: se una risposta manca, manca la voce. Nome, tono, modello e interruttore del Custode stanno invece nella scheda <strong>IA</strong>. Da <strong>Prova una domanda</strong> lo interroghi come farebbe un giocatore, senza consumare il tetto giornaliero.</span></div>
       <div class="legend-item"><b>Compagni</b><span>Evocazioni, marionette e cani ninja creati dai giocatori dalla <strong>loro scheda</strong> (slot base: 1). Da qui assegni la <strong>taglia</strong> (baby → piccola → media → grande → leggendaria) e concedi <strong>slot extra</strong> a un personaggio.</span></div>
       <div class="legend-item"><b>Banda notizie</b><span>La notizia flash che scorre in cima alla mappa della land. Lascia vuoto per nasconderla.</span></div>
@@ -4205,6 +4219,35 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
     }
     /* NINJA-BOOK-027B JS FINE */
 
+
+    /* MISSION-RAPID-EDITOR JS INIZIO */
+    var missionRapidBound=false,missionRapidPicker=null,missionRapidMediaPending=new WeakMap();
+    async function missionRapidDigest(file){var bytes=await file.arrayBuffer(),hash=await crypto.subtle.digest('SHA-256',bytes);return Array.from(new Uint8Array(hash),function(x){return x.toString(16).padStart(2,'0');}).join('');}
+    async function missionRapidUpload(ctx){
+      if(nbeRole!=='admin'||!me||!ctx||!ctx.file)throw Error('Caricamento riservato agli Admin.');
+      var file=ctx.file;if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size<1||file.size>5*1024*1024)throw Error('Usa PNG, JPEG o WebP fino a 5 MB.');
+      var pending=missionRapidMediaPending.get(file);if(!pending){pending={request:crypto.randomUUID(),approval:crypto.randomUUID(),sha256:await missionRapidDigest(file)};missionRapidMediaPending.set(file,pending);}
+      var session=await sb.auth.getSession(),token=session?.data?.session?.access_token;if(session.error||session?.data?.session?.user?.id!==me.id||!token)throw Error('Sessione Admin cambiata.');
+      var response=await sb.functions.invoke('png_media_attest_v1',{body:file,headers:{'Content-Type':file.type,'x-mr-draft-id':ctx.draft_id,'x-mr-actor-key':ctx.actor_key,'x-mr-bundle-id':ctx.base_bundle_id,'x-mr-request-key':pending.request,'x-mr-sha256':pending.sha256,'x-mr-expected-release':'mission-rapid-media/2026-09-19.1',Authorization:'Bearer '+token}});
+      var registered=response.data;if(!registered&&response.error?.context?.json)registered=await response.error.context.json().catch(function(){return null;});
+      if(response.error||registered?.schema_version!=='mission-rapid-media-registration/1'&&registered?.schema_version!=='mission-rapid-media-ticket/1'||!SCORTA_UUID.test(registered?.media_id||'')||registered?.template_version_id==null||registered?.control_version!==1)throw response.error||Error('Attestazione missione non confermata.');
+      var approved=await sb.rpc('nb_admin_media_approve',{p_media:registered.media_id,p_template_version:registered.template_version_id,p_expected_control_version:registered.control_version,p_request_key:pending.approval});
+      if(approved.error||approved.data?.media_id!==registered.media_id||approved.data?.state!=='approved'||approved.data?.active!==true)throw approved.error||Error('Approvazione immagine non confermata.');
+      return{media_id:approved.data.media_id,template_version_id:registered.template_version_id,sha256:pending.sha256,state:'approved'};
+    }
+    async function bindMissionRapid(){
+      var nav=$('mission-rapid-nav'),page=$('mission-rapid-page'),host=$('mission-rapid-host'),admin=nbeRole==='admin';if(!nav||!page||!host)return;nav.hidden=!admin;page.hidden=!admin;if(!admin||missionRapidBound)return;
+      missionRapidBound=true;
+      try{
+        var modules=await Promise.all([import('./mission-rapid-editor.asset.v1.mjs'),import('./MAPPE_UI_PICKER.asset.v3.mjs')]);
+        missionRapidPicker=modules[1].createMissionMapPicker({client:sb,identity:function(){return me&&me.id;},isStaff:function(){return nbeRole==='admin';}});
+        var editor=modules[0].createMissionRapidEditor({client:sb,identity:function(){return me&&me.id;},isStaff:function(){return nbeRole==='admin';},uploadMedia:missionRapidUpload,chooseMap:function(ctx){var m=ctx.compiled?.mission||{},roster={pg_count:Number(m.team_max||1),png_count:Array.isArray(ctx.compiled?.actors)?ctx.compiled.actors.length:0};return missionRapidPicker.pick(ctx.current,'Missione rapida',roster);},notice:function(text){toast(text);},onPublished:function(){loadBoards();}});
+        await editor.mount(host);
+        window.__missionRapidAdminTest={version:modules[0].VERSION,upload:missionRapidUpload,editor:editor};
+      }catch(e){missionRapidBound=false;host.textContent=(e&&e.message)||'Editor rapido non disponibile.';}
+    }
+    /* MISSION-RAPID-EDITOR JS FINE */
+
     /* SCORTA-MEDIA-ADMIN JS INIZIO */
     var SCORTA_MEDIA_RELEASE='0dd44d7d0f7ff6379b5c716ee8660e4e11dfbb4f008a376bec97c1743788a8db';
     var SCORTA_MEDIA={
@@ -4265,7 +4308,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       var pr=await sb.from('profiles').select('role').eq('id',me.id).maybeSingle();
       var role=pr.data?pr.data.role:'player';
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
-      nbeRole=role;bindScortaMedia();
+      nbeRole=role;bindScortaMedia();await bindMissionRapid();
       if(window.__TRAINING138A_MOCK__){show('st-mgr');admGo('allenamenti');bindTrainings();await loadTrainings();return;}
       if(window.__NB027B_MOCK__){show('st-mgr');admGo('ninja-editoriale');nbeWire();return;}
       show('st-mgr');
