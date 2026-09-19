@@ -1,4 +1,10 @@
 - 03/09/2026 · PM-DOC-001 · adottati SCHEDA/HANDOFF/STORICO v2; exact21 aperto, history450–453 LIVE inerti e rebase futuro vincolato alla head LIVE del gate · esito: documentale, nessuna mutazione LIVE.
+
+11/09/2026 · TRANSPORT-EDITORIAL-APPROVED-001 · Testi Trasporto approvati pubblicati nel catalogo · review0/0/0 e postflight PASS; apertura funzionale nel pacchetto pubblico.
+
+10/09/2026 · INNATA-EDITORIAL-APPROVED-002 · Testo Innata validato da Antonello pubblicato nel catalogo · review0/0/0 e postflight PASS; apertura funzionale distinta.
+
+10/09/2026 · INNATA-EDITORIAL-COSTS-001 · Costi e attivazione tolti dall’effetto, metadati meccanici preservati · applicato DB, review0/0/0 e postflight PASS; sorgenti locali.
 - 05/09/2026 · EXACT21-CONSOLIDAMENTO-001 · consolidate Nara/Uchiha: 20 voci identificate, 17 ratificate e 3 Sabaku OPEN; review documentale 0/0/0; perimetro 20/21 e scelte Sabaku rinviati ad Antonello · esito: parziale, runtime non avviato e nessuna ricorrenza.
 - 05/09/2026 · RATIFICHE-PM-002 · Antonello conferma perimetro 20 e Innata Sabaku 5 attivazione/5 mantenimento per turno/OFF gratuito immediato non-main; residue scelte giara/medium, testo e tre schede · esito: ratifica documentale, nessun apply.
 - 05/09/2026 · SABAKU-GIARA-001 · propagate ratifiche costi e giara L1, recuperate tre proposte PM-MOTORE con numeri non ratificati, review0/0/0; ripresa unica01:10 massimo3ore subordinata a chiusura Esame per risorse comuni · esito: documentale verde, runtime non eseguito.
@@ -409,3 +415,237 @@
 - 10/09/2026 · NARRATIVE-MULTIPLICATION-LIFECYCLE-LIVE-002 · helper fineMoltiplicazione rilasciata20260910024243 e24/24pinpostesatti;claimlegacy/storiaimmutati,letturastorica42501nonbypassata · 1apply3readonly0provider,smokeUIpendente.
 - 10/09/2026 · PM-CLONE008-CHECKPOINT-022 · Clone008presa fallita nativa,Fato sfaldamento coerente,12/12risorseintatte;liberazioneNOTRUN,smokeMoltiplicazione009assegnato · 2UI/2provider9213token/6readonly,scenaaperta.
 - 10/09/2026 · PM-MOLTIPLICAZIONE009-CHECKPOINT-023 · Moltiplicazione009 conclusione server e nuvoletta PASS,12/12risorse intatte; qualità editoriale da rifinire · 3comandi/2provider10336token,scenaaperta; nessuna rigenerazione.
+- 10/09/2026 · PM-FLOW007-ASSALTO010-CHECKPOINT-025 · FusioneFlussi007 preservata ma incompatibile conPNG; Assalto010un tentativoUI/0accettati/0provider/12su12, fontegateway acquisita, feedbackCommon candidata6/6 e review in corso · Goal incompleto; scelteDiversivo ePNGpendenti.
+
+10/09/2026 · PM027 · Feedback Common001 pubblicato (28/28file, review0/0/0); smoke011 rifiuto leggibile persistente, Assalto non eseguito,12/12protezione e0provider; diagnosi statica distinta · Goal incompleto.
+
+10/09/2026 · PM-PROJECTION-REASONS-CHECKPOINT-029 · UI integrata locale dopo QA6/6 e counter0/0/0; rifiuti DB QA componente9/9,review0/0/0; recupero2 ratificato · Nessun nuovo live,rilascio e prova sito successivi; PNG/Diversivo aperti.
+
+10/09/2026 · PM-RELEASE-ASSALTO-CHECKPOINT-031 · UI030pubblicata31/31/9commit e DB002applicato;012rifiuto preciso persistente/1invio/5readonly/0provider/12su12,Assalto NON ESEGUITO; diagnosi05:32:24 conferma grantdiretto assente nel contesto attuale,correzioneautorità minima assegnata · Nessunrerun012,goal incompleto,PNG5/5 e decisioniDiversivo invariati.
+
+10/09/2026 · PM-PRIORITA-IA-PNG-STANDBY-032 · Priorità IA struttura funzionante, stile successivo su casi live completi nel repertorio; oggi PNGprova in standby e collaudi indipendenti con Riuji/testperfunzioni Staff protetta · Direttive documentali, checkpoint031 e terminalePNG5/5 preservati; visibilità001 in review,nessun test/apply.
+
+10/09/2026 · PM-CLAN-PARALLEL-CHECKPOINT-048 · Moltiplicazione aggregata1 controverifica0/0/0 integrata; Flussi017 attivazione/offerte/dichiarazione PASS, difeseFK bloccate e catalogo locale mancante confermato018; copie libere rinviate e altri clan in preparazione parallela · Nessun rilascio; bancoFlussi5/5 terminale, QA tattiche da completare.
+
+10/09/2026 · PM-CLAN-NATIVE-CHECKPOINT-049 · Clone005 install/recovery PASS,9SQL,gameplay fermo adaliasfixture42702; aggregata banco1 pronta in controverifica; catalogo portata Flussi verificato anche in produzione readonly; tattiche0014SQL/casi0,allowlist banco da correggere · Nessun nuovo live,3DBClone conservati e nessun rebootstrap.
+
+10/09/2026 · checkpoint050 · Clone006 G03 nativo positivo; tattiche002 componenti positivi e correzioni banco aggregate; occhi007 integrata non qualificata e Aburame avviato; proposta Flussi019 controverificata, sesto passaggio non autorizzato.
+
+10/09/2026 · checkpoint051 · Unico sesto Flussi autorizzato ed eseguito:1/2Flussi PASS,3Sostituzione pendente; tattiche003 supera ostacoli precedenti, due nuove cause banco raccolte; nessun rilascio.
+
+10/09/2026 · checkpoint052 · Aburame nucleo passivo integrato per review; occhi007 referto0/1/0 conservato e aggregata1 assegnata; nessun runtime aggiuntivo.
+
+10/09/2026 · checkpoint053 · Ratificati bonusFlussi0/+2/+3 e totale→bersagli, formula candidata integrata e regole88 allineate; diagnosi020 ancorefuoriportata; occhi controverifica0/0/0; tattiche004 e Clone007 ancora aperti.
+
+10/09/2026 · checkpoint054 · Clone008 G02/G04 verdi e costiG01 aperti; Tattiche005 diagnosi completata; nuovo totale Flussi e UI8/8 componente · locale, nessun rilascio.
+
+10/09/2026 · checkpoint055 · Tattiche006 ultima5/5 terminata rossa; raccordo chakra simulato ordinaryStaff in preparazione e graficaFlussiART001 verificata · nessun rilascio.
+
+10/09/2026 · checkpoint056 · Nuovo mandato sostanziale Assalto-only + Sostituzione live entro17, Copertura/Diversivo inerti da riprogettare separatamente; ciclo tattiche5/5 rosso preservato, nuova campagna da nominare dopo diagnosi. Aburame review statica0/0/0 depositata; Clone009 freeze d7d81bb9 non eseguito e in attesa · solo coordinamento documentale, nessun nuovo DB/rilascio o azzeramento budget.
+
+10/09/2026 · checkpoint057 · Clone009 locale PASS8fasi/8gruppi con verdi ereditati,8SQL/28cumulative, banco5/5 chiuso; pool50→45 e12superfici intatte, limiti liberazione/legacy espliciti. Assalto7corpi e contenuti review0/0/0, runtime/rilascio pendenti; unico owner Esame per composizione pools · nessuna produzione.
+
+10/09/2026 · checkpoint058 · Assalto run001 NOT_QUALIFIED3SQL: bootstrap23502 empty12 NULL, nessun INSTALL/gameplay; aggregata banco2/5 in preparazione suDBconservati. Gatelegacy reviewati ma nonrun; EsameR6rosso3/16 attende decisione nella propria task. Clone009 verde/limiti preservati; Aburame banco27file solo congelato, Safari identità verificata0gameplay · nessuna produzione o reset budget.
+
+10/09/2026 · PM-CLAN-NATIVE-CHECKPOINT-059 · Assalto004: due scambi nativi verdi, campagna incompleta su controllo offerte/recovery/postflight; Aburame INSTALL/G01 verde e banco3/5 nominato; Esame ripreso su supplementare7 autorizzato. Nessun nuovo live.
+10/09/2026 · PM-CLAN-NATIVE-CHECKPOINT-060 · Assalto005 e nucleo Aburame003 qualificati localmente; legacy001 qualificata, Byakugan008 review positiva e raccordo Esame missioni in corso · Goal aperto, nessun nuovo live attestato.
+10/09/2026 · PM-CLAN-NATIVE-CHECKPOINT-061 · Byakugan008 integrata dopo review0/0/0; fonti narrative già rilasciate distinte dai consumer ancora aperti · Nessun SQL/provider/live nuovo.
+10/09/2026 · PM-BYAKUGAN-CONTACT-062 · Ratificati riconoscimento certo Byakugan contro Assalto e offerta originale prima difesa; criterio recepito nel banco in preparazione · Nessun nuovo test o live attestato.
+10/09/2026 · PM-STAFF-WINDOW-063 · Finestra Staff16:11:49–17:11:49Roma recepita; nessun test live ancora effettuato · Gate e budget invariati.
+- 10/09/2026 · PM-CLAN-PROGRESS-064 · Flussi composizione003 controverificata e riconciliata, banco2PG+2PNG in preparazione; Byakugan001 arrestato prima gameplay per dipendenza mancante (4SQL,0provider); Clone release010 pronto come piano, raccordo minimo Test Room utenti individuato · esito: avanzamento locale, nessun nuovo rilascio o smoke live.
+- 10/09/2026 · PM-EYES-DEPENDENCY-065 · Diagnosi indipendente del blocco008: due funzioni Sharingan usano deposito errato; nominata unica correzione prodotto2/5 dei quattro riferimenti verso il deposito comune, senza nuove strutture · esito: preparazione, nessun retry SQL o live.
+- 10/09/2026 · PM-CLAN-QUALIFIED-RELEASE-066 · Applicata una volta clan_qualified_release001/20260910150742, postflight15:07:58UTC14/14 e ricevuta1 PASS; smoke sito pendente. Byakugan CLOSE003 PASS_WITH_DECLARED_SCOPE,16SQL cumulative; Esame7 rosso/8 in preparazione; Flussi37SQL e QA004 banco2/5 review rossa0/2/0 (arresto sicurezza e timeout PostgreSQL),0nuoveSQL · esito: rilascio circoscritto,0provider, nessun reset dei cicli o apertura globale.
+
+- 10/09/2026 · PM-GENIN-CHECKPOINT-069 · goal/monitor e matrice aggiornati, chiariti profili Palla distinti su pipeline comune; Sharingan review0/0/0 depositata e Hyuga avviato in copia; QAFlussi007 finale5/5 rosso0/2/0 senza esecuzione,41SQL cumulative · esito: progresso preparatorio, nessun nuovo rilascio.
+
+10/09/2026 · PM-FLOW-SUPPLEMENT-070 · Supplemento Flussi008 autorizzato ed eseguito: S01/S02 verdi, S03 fermata da pin pre-Assalto incompatibile; 44 SQL cumulative, 0 provider, nessun rilascio. Sharingan banco001 review ROOT verde e singola esecuzione nominata, risultato pendente.
+
+10/09/2026 · PM-CLAN-CHECKPOINT-071 · Flussi supplemento7 approvato su18 pin+42 metadati, nessuna run nuova ancora attestata; Sharingan diagnosi conferma storico preservato e due errori del banco, aggregata1/5 in preparazione. Armatura difensiva non avviata neppure localmente per precisazione Antonello; Clone presa automatica confermato in produzione readonly16:30:10UTC, smoke pendente.
+
+10/09/2026 · PM-CLAN-CHECKPOINT-072 · Flussi supplemento7 rosso48SQL: inventario pin incompleto,4 copie body pre-Assalto individuate e supplemento8 richiesto ma pendente. Sharingan install/recovery superati, setup fermo sul gate; diagnosi22SQL e aggregata2/5 in preparazione. Hyuga server31delta congelato, consumer staff/UI in sviluppo;0nuovo live.
+
+10/09/2026 · PM-CLAN-CHECKPOINT-073 · Sharingan QA003 review ROOT0/0/0, execution0037SQL fino29: Assalti ON/OFF PASS e S08 rosso per asserzione griglia; diagnosi readonly nominata; Hyuga consumer congelati con UI13/13 e SCENE1/1, composizione unica avviata; Flussi8 pendente, Armatura non avviata · Nessun nuovo live.
+
+10/09/2026 · PM-CLAN-CHECKPOINT-074 · Sharingan diagnosi corretta positiva a31SQL e seguito residuo in preparazione; Hyuga review iniziale0/1/0 e Palla0030/2/0, aggregate1/5 e2/5 nominate; riferimenti/evidenze depositati · Nessun nuovo live.
+
+10/09/2026 · PM-CLAN-CHECKPOINT-075 · Sharingan execution004 verde34SQL e guard rilasciato; readiness rivela delta Esame da preservare. Hyuga agg2 e Palla005 agg3 verdi statici. Antonello autorizza supplemento8 Flussi sole4body,48→59SQL massimo/11min/0provider/nolive; poststato007 nominato, campagna ancora non eseguita · Goal incompleto, avanzamento parallelo.
+
+10/09/2026 · PM-CLAN-CHECKPOINT-076 · Esame escluso esplicitamente da confronti/matrici clan; verifiche mirate per funzione e collegamenti reali. Flussi readonly007 positiva49SQL cumulative,0provider, stato attestato e guard006 rilasciato; QA010 in preparazione · Priorità chiusura Flussi/Clone/Trasporto, Armatura non avviata.
+
+10/09/2026 · PM-CLAN-CHECKPOINT-077 · Flussi supplemento8 rosso53SQL: S01–S03PASS, S04 geometria fixture invalida, seguito non eseguito e guard007 mantenuto. Diagnosi statica e proposta9 residua pronte e autorizzate; piano Armatura preparato, sviluppo non avviato · Nessun live/provider.
+
+10/09/2026 · PM-CLAN-CHECKPOINT-078 · Readonly008 Flussi54SQL: USE attestato, aspettativa REC troppo restrittiva valutata indipendentemente; ripresa7fasiUSE entro supplemento9, guard007/REC mantenuti. Banco Hyuga driver1 controverifica0/0/0 e campagna nominata · Nessuna produzione/provider.
+
+10/09/2026 · PM-CLAN-CHECKPOINT-079 · Flussi supplemento9: geometria accettata, aggancioMaster42501,55SQL cumulative e guard007 mantenuto. Hyuga campagna3SQL:01/02PASS,03errore sintassi; aggregata3 in preparazione · Qualifiche incomplete,0provider/live.
+
+10/09/2026 · PM-FLOW-LIVE-CHECKPOINT-001 · Flussi applicati con migrazione20260910191830, postflight45funzioni/6tabellePASS; staffON/publicOFF. UI012 pubblicata3908c75 e marcatore dominio verificato. Priorità esclusiva Flussi; collaudo diretto sito affidato ad Antonello e guidato da ROOT un caso per volta, nessuna prova ancora attestata. Nessun blocco Safari/UI automatica; vecchi banchi non ripartono · Goal incompleto, nessuna qualifica gameplay o dichiarazione in uso.
+
+10/09/2026 · PM-FLOW-SEAL-LIVE-CHECKPOINT-001 · Passa manuale risolta19:56:46UTC, turno Riuji round11/context61; rifiuto opzioni per due pin Esame obsoleti corretto con migrazione20260910201621 e sigilloPASS, review0/0/0. UI014 live esterna; offerte e attivazione utente Controllo Sabbia verificate, chakra simulato20→15 e Flussi1/2/3 visibili; esito attacchi pendente, staffON/publicOFF · Collaudo manuale guidato, nessuna ripresa banchi o qualifica gameplay.
+
+10/09/2026 · PM-FLOW-SINGLE-LIVE-CHECKPOINT-001 · Primo Flusso manuale PASS su attacco/difesa risolti, calcolo e consumi: danno36, PV99→63, chakra15→10, sabbia15→13, is_testtrue. Copie/concentrazione/distribuzione/Master e resa esito non attestati; chakra10 insufficiente per3 Flussi · Qualifica reale circoscritta, attesa prove manuali, goal incompleto.
+
+10/09/2026 · PM-STAFF-RESTORE-LIVE-CHECKPOINT-001 · RPC combat_test_restore_resources_v1 applicata20260910203933 dopo review0/0/0, postflight installata/runtimefalse; soli PV/chakra snapshot Staff ordinaria duePG. UI016 inreview, nessun ripristino ancora; massimi attesi Riuji80/105 e test105/155 · Attesa comando manuale,3Flussi non pronti per inferenza.
+
+10/09/2026 · PM-STAFF-RESTORE-FINAL-CHECKPOINT-001 · Ripristino sito riuscito dopo fix20260910205120/review002verde: Riuji80/105 e test105/155 ai massimi, risorse reali/snapshot estranei/marionetta/sabbia/turno invariati; context65→66. UI016 liveb29d7cdb, dominio e messaggio verificati,0provider · PrimoFlussoPASS conservato, attesa altri test manuali, nessun attacco/Passa ROOT.
+
+10/09/2026 · PM-FLOW-SITE-RESIDUAL-MANDATE-001 · Antonello autorizza ROOT a proseguire autonomamente sito RiujiChrome/testSafari, superando attesa manuale; guard20:56UTC60min/4casi/8provider/120kinput/10koutput. Passa21:02UTC inviato, narrazione pendente e nessun nuovo Flusso attestato; distribuzione ordinaria in analisi, copie Assalto non persistenti e C/D inerti · SingleFlow e restorePASS conservati, nessuna nuova qualifica.
+
+10/09/2026 · PM-FLOW-CONCENTRATED-LIVE-CHECKPOINT-001 · TreFlussi1bersaglioPASS: bonus+3,colpire−6→−3,danno8striscio senza bonusdanno,chakra100→85,sabbia15→9;reintegro+2/mantenimento5 e risorse reali invariate. Narrazione pubblicata21:05:08,2esitiIA/almeno2chiamate,token non misurati · Distribuzione/Master/copie aperti,successfalse del tiro non è FAILtest.
+
+10/09/2026 · PM-FLOW-SITE-PENDING-CHECKPOINT-001 · SecondoPassa21:06/pubblicato21:07,almeno3esitiIA; auditassente, chiamate/token non disponibili. Clone noneseguito per ChromeUserUnavailable, sbloccoMac richiesto; nessuna azionealtribrowser. Ordinary2PG previsto; Master richiedeRegia e stanza0b85senza profili/is_exam_roomtrue esclusa,nessuna riclassificazione. UI sabbia018-SAND in corso · Single/concentratiPASS conservati, entrambi obiettivi aperti.
+
+10/09/2026 · PM-FLOW-READONLY-CHECKPOINT-001 · Ultima lettura21:12:14UTC context73/round13/turnoRiuji; risorse reali e aggregato completo marionetta invariati, nessuna azione dopo secondoPassa. Sessione aperta preservata; UI018 in preparazione/nonlive · Solo deposito, nessuna nuova prova o chiusura.
+
+10/09/2026 · PM-FLOW-SAND-UI-CHECKPOINT-001 · UI018SAND review0/0/0 e sintassi4script/2moduliPASS, integrata locale SHA46044cf3; moduli7/8+build soltanto, Esame016 preservato e017 esclusa. Da caricare per browserUserUnavailable/CLIauthassente; remoto/live016b29d7 invariato · Mandato UI e collaudo aperti, nessuna prova/goalcomplete.
+
+10/09/2026 · PM-CLONE-SITE-MANDATE-001 · Antonello dispone soloClone, multibersaglioFlussi rinviato al fix C/D con copie persistenti; QA20min/2casi/3provider/40kinput/6koutput. Offerta visibile ma0azioni/0provider,Chrome noWindowsAvailable; richiesta selezioneClone senzaInvia. Flussi1/3 e refillPASS conservati; UI018 aowner019 · Nessun avvio meccanico, Regia/Master fuoriQA,goal incompleto.
+
+10/09/2026 · PM-CLONE-SITE-FINAL-001 · Caso reale creazione/presenza in zona/presa automatica senza tiro/liberazione27vs20PASS; Cloneended/escaped,quota5sbloccata,refill+2 e mantenimento5 corretti.2azioni/2narrazioni pubblicate/0retry,risorse reali e marionetta invariati; nota redazionale fineClone da esplicitare senza rerun · Qualifica Staff circoscritta,gateSabaku condiviso staffON/publicOFF eCommon ordinary/masterOFF conservati;copie/multibersaglio/pubblico nonattestati,sessione aperta preservata.
+
+11/09/2026 · SABAKU-PUBLIC-RELEASE-001 · Controllo, Flussi1–3 singolo, Trasporto e Clone aperti al pubblico con testi approvati, review0/0/0 e postflight pin/gate/risorse PASS; nuovo mandato notturno e Armatura attiva recepiti · rilascio nominato completato, programma clan aperto.
+
+11/09/2026 · CLAN-NIGHT-DECISIONS-001 · Ratificato ciclo Armatura consuma2/reimpegna2; occhi/Hyuga/Katon composti e review positiva delle funzioni, pin installer e integrazione Armatura in completamento · solo candidati, nessun nuovo apply/collaudo.
+
+11/09/2026 · CLAN-SITE-RELEASE-002 · Installati occhi/Hyuga/Katon20260910230822, StaffON e pubblicoOFF, dopo correzione ordineALTER del tentativo1 annullato · postflight134/ACL/reviewPASS, risorsePGinvariate; gameplaydaeseguire.
+
+11/09/2026 · CLAN-NINJUTSU-PRESET-APPLY-001 · Preset UchihaStaffNinjutsu30 installato20260910231309, solo snapshot alcomando normale · review0/0/0/postflightPASS; nessunPGreale o gameplay.
+
+11/09/2026 · CLAN-PANEL-COMPAT-APPLY-001 · due campi viewer rimossi, migrazione20260910232214 e postflight PASS; pannello riaperto, errore opzioni Sedici distinto in review · gameplay non ancora avviato.
+
+11/09/2026 · CLAN-SEDICI-READINESS-APPLY-001 · migrazione20260910233036 e pin/ACL PASS; precedente403 superato, riferimento id ambiguo emerso nella successiva richiesta sito · gameplay ancora non avviato.
+
+11/09/2026 · CLAN-KATON-OPTIONS-APPLY-001 · migrazione20260910233518 e2pin/ACL PASS; offerte sito ripristinate,2preset Hyuga confermati senza modifica schede reali · collaudo gameplay aperto.
+
+11/09/2026 · CLAN-ARMOR-INERT-APPLY-001 · migrazione20260910234536 e postflight PASS, entrambi gateOFF, UI020 e collaudo pendenti · nessun nuovo rilascio pubblico.
+
+11/09/2026 · CLAN-PANEL-DIAGNOSTIC-APPLY-001 · postflight diagnostica non coincide, rollback verificato e precedente funzione preservata · correzione statica affidata autore, nessun nuovo test.
+
+11/09/2026 · CLAN-SITE-TARGETED-PATCHES-001 · Diagnostica privata Sedici20260911001957 e visibilità Katon20260911002011 applicate dopo correzioni statiche/review0/0/0; postflightPASS, tranche001 consegnata con2scambi e isolamento positivo, nuove prove pendenti.
+
+11/09/2026 · CLAN-SEDICI-CONTACT-APPLY-001 · Migrazione20260911003916 raccorda contatto ordinarySedici alla mappa2D, review0/0/0 epostflightPASS; rifiuto precedente conservato, nuova prova sito pendente.
+
+11/09/2026 · CLAN-KATON-PREPARE-APPLY-001 · Migrazione20260911004240 corregge identificatoreprepare, review0/0/0 epostflightPASS; nuova prova raggiunge distinta guardia action_declare42/PGRST, nessuna apertura.
+
+11/09/2026 · CLAN-KATON-AUTHORITY-APPLY-001 · Migrazione20260911004902 allinea autorità2Palle, review0/0/0 epostflightPASS; UI fermata dal seal precedente, allineamento richiesto senza bypass. Tranche002 conservata, nessunaapertura.
+
+11/09/2026 · CLAN-KATON-SEAL-APPLY-001 · Migrazione20260911005551 aggiorna solo digestactor_ability recensita; review0/0/0, postflightbodyACL e asserzioneeligibility readonlyPASS. Nessun nuovoQA/provider, apertura pendente.
+11/09/2026 · CLAN-KATON-OFFER-BATCH-APPLY-001 · Ottimizzato caricamentoSuprema e distinti puntiEsplosiva dopo timeout57014 sito; migrazione20260911012812 · review0/0/0,3bodyACL e riaperturaoffertePASS, attaccoSuprema inQA003, nessuna apertura pubblica.
+11/09/2026 · CLAN-DEFENSE-DIAGNOSTIC-APPLY-001 · Audit privato esteso alle difese della prova autorizzata, migrazione20260911014758 · review0/0/0 e body/ACL/RLS PASS; nessun gameplay o nuovo permesso, QA003 parziale conservata.
+
+11/09/2026 · QA004–QA005 · Suprema concentrata e poi esplosiva con un bersaglio concluse sul sito, Risonanza solo al colpire e risorse reali invariate; conservati tutti i PASS. QA005 termina con 2 scambi/2 narrazioni, Sedici e Master/copie ancora aperti · parziale, nessuna nuova apertura pubblica.
+
+11/09/2026 · QA006 · Sedici sul sito accettate entro2m, costo10 una volta, danno24, effetto applicato e narrazione pubblicata; SharinganOFF gratuito; risorse reali invariate · PASS nel perimetro osservato, sovraccosto successivo/scadenza e Master/copie aperti.
+
+11/09/2026 · QA007 · Byakugan riconosce originale Assalto1, addebito15+5Sedici una volta e copia consumata; Passa concluso. Assalto2 contro Sharingan rifiutato senza addebito, causa non accertata · parziale, Master e scadenzaSedici aperti, nessuna nuova apertura pubblica.
+
+11/09/2026 · CLAN-PANEL-READONLY-DIAG-008 · Diagnosi mirata esclude vincoli audit e combinazione2copie/Figura3 come cause dimostrate; Safari ancora non accessibile, richiesto recupero manuale senza invii o modifiche · causa rifiuto aperta, QA007 conservata.
+
+11/09/2026 · CLAN-NIGHT-BLOCKED-HANDOFF-009 · Goal segnato bloccato dopo tre turni consecutivi con gli stessi impedimenti; monitor notturno unico messo in PAUSA. Ripresa dopo recupero Safari e disponibilità del canale di caricamento; caffeinate76445 ancora attivo. Nessun nuovo rilascio, collaudi e scena conservati.
+
+11/09/2026 · CLAN-INNATA-CHAT-TAGS-PM-001 · Ratificata indicazione Byakugan/Sharingan attivi in coda alle azioni; sufficiente al Master umano, nessun badge Fato richiesto · candidata in preparazione, non pubblicata.
+
+11/09/2026 · CLAN-INNATA-CHAT-TAGS-PM-001 / BYAKUGAN-PUBLIC-001 · Etichetta Byakugan ON/OFF e storico collaudati sul sito; migrazioni20260911063451 e20260911070248 applicate, Byakugan pubblico e altri gate chiusi, risorse reali invariate · PASS del perimetro, altri clan incompleti.
+
+11/09/2026 · CLAN-SHARINGAN-SITE-FINAL-001 · ON/etichetta Sharingan PASS, due scambi risolti e risorse reali invariate; Assalto2/OFF sospesi per difetto polling UI020 affidato a LAND-UI · Sharingan pubblicoOFF, review apertura0/0/0 separata.
+
+11/09/2026 · CLAN-SHARINGAN-FINAL-PM-001 · Assalto2/riconoscimento e ON/OFF/storico PASS; UI021 pubblicata e1c320c; migrazione20260911075609 apre solo Sharingan · postflight risorse/pin/ACL/gate PASS, altri clan invariati.
+
+11/09/2026 · CLAN-KATON-PM-INTEGRATION-001 / katon-resonance-scope001 · Migrazione 20260911081630 e confronto ordinario generica/Suprema con Sharingan attivo PASS; quattro scambi narrati e risorse reali invariate · Apertura pronta e revisionata 0/0/0, non applicata: caso Master richiede un terzo account autorizzato non partecipante.
+
+11/09/2026 · CLAN-KATON-PUBLIC-PM-INTEGRATION-003 · Migrazione 20260911084810 apre generica, Suprema e Risonanza su nuovo mandato esplicito; 25 pin/ACL e gate postflight PASS, requisiti preservati · Pubblico aperto; caso Master differito alla prova pubblica serale dell’utente, non dichiarato collaudato.
+
+11/09/2026 · CLAN-EDITORIAL-CHECKPOINT001 / PRESENTAZIONE_INNATE001 · Otto testi candidati con review0/0/0 e modello comune aggiornato; utente in lettura, fonti IA degli occhi incomplete individuate e consumer in preparazione · Nessun nuovo apply; Katon pubblico e prova Master differita preservati.
+
+11/09/2026 · CLAN-BYAKUGAN-BACK-DECISION001 · Ratificati malus difesa per attacco alle spalle Byakugan L1−3/L2−2/L3−1/L4zero; trigger server ancora da definire e Sharingan frontale non invertito · Nessuna implementazione o modifica alla candidata editoriale congelata.
+
+11/09/2026 · CLAN-BYAKUGAN-FACING-PLAN001 · Antonello ratifica orientamento automatico verso ultimo avversario affrontato nella propria ultima azione e conferma malus3/2/1/0; approva espressamente otto testi001 per pubblicazione · Orientamento deciso, implementazione non eseguita; piano minimo preparato, nessun apply editoriale attestato in questo checkpoint.
+
+11/09/2026 · CLAN-EDITORIAL-NARRATIVE-LIVE-PM001 · Otto testi pubblicati atomicamente09:25UTC8/8; migrazione20260911092737 narrative_catalog_fields002 applicata, review0020/0/0 e postflight6claim7identitàPASS · Otto identità supportate, Byakugan non nel corpus; audit8schede/trecampi occhi in lavoro, punto cieco non implementato, nessun provider o nuova scena.
+
+11/09/2026 · CLAN-CATALOG-FINAL-PM002 · Migrazione20260911094905 completa5righe e proiezione, review0/0/0; setteclaimconclusi con tutte8identità e UISharingan/SabakuPASS; copia Clone/Trasporto aggiornata daMANIFEST · Allineamento ordinario consegnato, riallaccio non osservato e punto cieco non implementato; nessun provider, depositoGitHub non attestato.
+
+11/09/2026 · CLAN-PG-DIAGONAL-CHECKPOINT001 · Migrazione20260911104821 diagonali riservateStaff applicata,6hash/ACL e2CHECK conformi; caso cardinale(10,9)→(10,8),budget20→19,round27 · QA ancora in corso, enableRegia generale non eseguito, IA non provata, zero provider.
+
+11/09/2026 · CLAN-PG-DIAGONAL-SITE-PARTIAL002 · PG Su1m e Alto a destra2m PASS nello stesso round27; fix whitelistLAND4stringhe pubblicato1792086e/PagesSuccess/DOMPASS, risorse reali invariate · Regia prepare/resolve e PNG IA non provati, enablegenerale non eseguito, zero provider o nuove scene.
+
+11/09/2026 · CLAN-PG-DIAGONAL-PUBLIC-CHECKPOINT003 · Migrazione20260911111804 pg_diagonal_movement001_public SUCCESS, Movimento Regia aperto su mandato Antonello; postflight MD5c1ea8759ad2c280b861e44c0de910e52/ACL invariati, ordinaryPGStaff invariato · PASS PG precedenti conservati, collaudo pubblico Regia/PNG affidato ad Antonello NON eseguito; Edge Missioni correzione preparata non deploy, Generic A2 OFF.
+
+11/09/2026 · PG-MOVEMENT-PUBLIC002-LIVE · Diagonali ordinary aperte con migrazione20260911115213, review0/0/0 e postflight2/2; Regia e turnazione invariati, nessun nuovo segmento · applicato; prova pubblica affidata ad Antonello.
+
+11/09/2026 · HYUGA-FINAL-CHECKPOINT-001 · Ordinary Juken/Sedici PASS con scadenza recuperata; Master Staff preparato e fix20260911125546 offerte verificato, Byakugan ON5chakra,0dichiarazioni/0provider; Invio rifiutato per confronto esatto cost_snapshot in juken_freeze dopo aggiunta active_techniques; correzione in preparazione · presentazione7c87763e/review0/0/0 e apertura pubblica NON applicate; checkpoint documentale.
+
+11/09/2026 · HYUGA-FINAL-CHECKPOINT-002 · Fix20260911130511 applicato e due Master PASS: Juken4danni/costo0/contributo11, Sedici parziale6/costo10/noJuken/noeffetto; ordinary pieno/durata riusati, prova chiusa13:14:30UTC e risorse reali invariate,0provider · PRESENTATION001 finale e5d2ef93/review0/0/0 NON applicata, gatefalse, attesa anteprima approvata dall’utente.
+
+11/09/2026 · HYUGA-FINAL-CHECKPOINT-003 · Presentazione approvata e gate pubblico applicati20260911134348, helper9f29230a/2righe e2claimreadonlyPASS; clan UI001 commit1e2a354e e DOMSedici25/20/testiPASS · nessun nuovo gameplay/provider; Difesa DB applicata20260911134800 con2colonne/2CHECK/1formula/helperd4f6af07, quattroUI pubblicate commitcc7964d03e799930028e70f7d10d90043c1c49a5 e DOMreadonly4/4PASS13:58UTC,0provider; Admin save solo review statica, nessuna apertura Armatura/Rotazione.
+- 11/09/2026 · ROTATION001-PM-CHECKPOINT · Avviata Rotazione difensiva con testi approvati e Potenza fisica base10 ratificata; contratti/piano congelati e implementazione parallela CORE/SPATIAL · preparazione, nessun nuovo rilascio o collaudo.
+
+11/09/2026 · ROTATION001-STAFF-INSTALL · Applicata migrazione20260911155940, nuova identità Genin e legacy inattive, gate Staff aperto/pubblico chiuso; review integrata0/0/0 dopo una aggregata e preflight54/54/postflightPASS · installata riservata, collaudo ancora da eseguire, zero provider prima QA.
+
+11/09/2026 · ROTATION001-SEAL-ALIGNMENT · Applicata migrazione 20260911162705: otto pin esatti, guard assertion PASS e offerte Rotazione operative sul sito; stessa prova ordinary con preset e Byakugan ON simulati · QA residuo attende Safari, nessun attacco/provider o apertura pubblica attestati.
+
+11/09/2026 · ROTATION001-NARRATIVE-ALIAS · Applicata migrazione 20260911165056, collisione alias SQL defense corretta, review 0/0/0 e postflight context object; vecchio duello ddf70de6… chiuso dal sito circa 16:55 UTC, storico preservato · una preparazione attacco/difesa, zero Rotazione/provider; nuovo QA in preparazione, pubblico OFF.
+
+11/09/2026 · ROTATION001-PUBLIC · Applicata migrazione 20260911171449 e nuova tecnica Genin attiva; due ordinary PASS con tre provider totali, zero retry e risorse reali invariate, prove chiuse · apertura parziale espressamente autorizzata, Master rinviato a B10 non spuntata; nessun «in uso» imposto.
+
+11/09/2026 · ROTATION001-RULES-PUBLIC · Pubblicati soltanto REGOLE.md e regole.html nel commit 925d79416373fca31905b38d7007adf0fc74bb40; copie esatte e canonici allineati, dominio positivo alle 17:24 UTC per Potenza fisica e tre paragrafi Rotazione · regolamento consegnato; nessuna nuova modifica catalogo attestata.
+
+11/09/2026 · CATALOG-CLEANUP001/002 · Applicate migrazioni 20260911172739 e 20260911173457: sette voci disattivate con postflight esatti; Tecnica delle 16 chiusure attiva e invariata, zero possessi/allenamenti interessati, storico e policy conservati · sette su sette concluse, nessun provider o nuova verifica UI; Rotazione e regolamento pubblici invariati.
+
+12/09/2026 · ELEMENTALI-EFFECTS-PM-002 · Priorità penalità→Suiton→altre elementali→Taijutsu; profili01/B4 review indipendenti0/0/0, moduli ancora non integrati · solo sorgenti locali, nessun rilascio.
+
+12/09/2026 · ELEMENTALI-PM-PREPARATION-004 · Ratifica Doton senza fonte ambientale, moduli penalità/Suiton e primi raccordi Common conservati con evidenze; nessuna installazione o apertura, integrazione dipendente da endpoint004. · candidato in lavoro
+
+12/09/2026 · ELEMENTALI-PM-PROGRESS-003 · Consumer07/10 e narrativa11 verificati separatamente,14 raccordi candidati preparati senza toccare owner Moltiplicazione; reviewCommon002 verde e freeze atteso. · non installato
+
+12/09/2026 · ELEMENTALI-PM-PREPARATION-004 · Candidato Suiton unico con34raccordiCommon+64helper, reviewaggregate0/0/0; freezeowner e storia conservati. · sorgenti locali non installate
+12/09/2026 · ELEMENTALI-STAFF-PANEL-COMPAT-005 · Pannello/servizio vivi compatibili con il candidato Suiton:33/33 pin,28/28 freeze, helper service-role preservato, review mirata0/0/0 · preparazione soltanto, nessuna installazione.
+12/09/2026 · ELEMENTALI-STAFF-RELEASE-PACKAGE-001 · Installer atomico Suiton Staff, enable2+1 e recovery conservativa preparati; statici181+6+6statement e review indipendente0/0/0 · pacchetto locale non installato.
+12/09/2026 · ELEMENTALI-OTHER-SOURCE-001 · Nucleo additivo cinque offensive elementali, Scarica chiusa al contatto e Scudo escluso; statici23SQL/review0/0/0 · solo candidato locale non installabile.
+12/09/2026 · ELEMENTALI-OTHER-CONSUMER-001 · Consumer helper per cinque offensive, offerte ordinary/Regia e prechoice Grande; statici19SQL/review0/0/0 · caller Common e resolver aperti, non installabile.
+12/09/2026 · ELEMENTALI-STAFF-SUITON-DEPLOY-001 · Installer Suiton migrato 20260912191445, postflight64funzioni/11tabelle e gate2+3OFF; enable rinviata per hotfix Esame · installato inerte, non collaudato.
+12/09/2026 · ELEMENTALI-SCUDO-SOURCE-001 · Fonte difensiva personale Scudo con parent/coverage/costo nativi, statici15SQL e review0/0/0 · candidata locale STOP, non installata.
+12/09/2026 · ELEMENTALI-STAFF-SUITON-ENABLE-001 · Gate riservati Frusta+Proiettile+penalità Proiettile attivati migrazione20260912192229, ACL/RLS/staffscope e fix Esame invariati · live Staff, collaudo da Antonello pendente, utenti chiusi.
+
+15/09/2026 · ELEMENTALI-ARCHIVE-CHECKPOINT-20260915 · Suiton Staff preservato e readonly confermato, altre elementali parziali e Taijutsu non iniziato; LAND nuova identificata e baseline Missioni finale ancora in lavorazione · task sospesa, future candidate da rigenerare come delta con AVVIO 1.4; nessuna modifica live/provider/scena.
+
+18/09/2026 · ELEMENTALI-CONTINUITY-20260918-001 · 98 funzioni riconciliate e review statica 0/0/0; Suiton conservato, Staff occupata da Regia Missioni preservata · gameplay non iniziato, zero provider.
+
+18/09/2026 · ELEMENTALI-SUITON-QA-20260918-002 · Missioni chiusa con266messaggi preservati; tre prove Suiton chiuse, refresh Master corretto e PASS, stato dichiarazioni/sigillo allineati con tre migrazioni e review0/0/0 · controprova offensiva pendente; discrepanza hash completo Riuji nel postflight da diagnosticare prima di altre prove, PV80/chakra105 invariati,0provider, nessuna apertura.
+
+18/09/2026 · ELEMENTALI-COMPLETE003 · Nove implementazioni Staff, durata Suiton e Passa corretti e collaudati, Soffio parziale e formatter corretto; testi pronti, tre prove chiuse, hash protetti invariati, provider0 · QA residuo, nessuna apertura.
+
+18/09/2026 · ELEMENTALI-RESUME006/RULES007/ORDINARY008/NARRATIVE009/SCUDO011-012 · Cinque delta applicati con review0/0/0; Bruciatura, Lama/Parata, ScudoMaster e narrazioneordinary controprovati, regolamento91/editoriale allineati; cinque prove chiuse e storico preservato,4provider/17893token · Staff soltanto, QA residuo e raccordoTestRoomutenti aperti; OPENING noninstallabile per drift, nessuna pubblicazione.
+18/09/2026 · ELEMENTALI-EDITORIAL-SOFFIO-015 · Testo di Soffio di brace approvato e allineato in COMPLETE_TEXTS, catalogo candidato e regolamento92; descrizione con leggere scottature, Effetto senza portata/costo/danno ripetuti · nessun apply DB, push o apertura.
+
+18/09/2026 · ELEMENTALI-SCUDO-ORDINARY-QA-016 · Duello IA chiuso con storico preservato; primo scambio narrato PASS, Scudo non qualificato perché mancava la preparazione nel turno precedente · NOT_QUALIFIED procedurale, 1 provider, nessun bug dedotto.
+
+18/09/2026 · ELEMENTALI-FRUSTA-MASTER-MULTI-QA-017 · Regia protetta con tre PG e mappa confermata; pannello azione partecipante assente su testperfunzioni e Tamako, invio bloccato prima della Frusta,0provider; scena non più attiva e storico preservato · BLOCKED_PRODUCT_DEFECT, multi-attore non approvato.
+
+18/09/2026 · ELEMENTALI-FRUSTA-MASTER-MULTI-QA-018 · Percorso corretto con APRI SCONTRO: Frusta su Riuji risolta a32 danni/costo5, nessun trascinamento e Tamako invariata; pubblicazione Master bloccata dal disallineamento Regia/compositore, scena chiusa e storico preservato,0provider · meccanica multi-attore PASS, end-to-end Master non approvato; tentativo017 riclassificato NOT_QUALIFIED_PROCEDURAL.
+18/09/2026 · ELEMENTALI-MASTER-NARRATIVE-ROUTING-019 · Delta LAND minimo instrada la role Fato al pannello comune prima del blocco MV2; test ordine/ordinary e6scriptPASS, build locale9156f059 · review indipendente/pubblicazione/controprova pendenti, nessun DB/provider.
+
+18/09/2026 · ELEMENTALI-FRUSTA-MASTER-MULTI-QA-019F · Build LAND-ELEMENTALI-MASTER-NARRATIVE-019 pubblicata; Frusta Master a36 danni/costo5, Tamako isolata, esito Fato pubblicato una sola volta e round avanzato; scena chiusa e storico preservato,0provider · PASS end-to-end del caso Master multi-attore.
+
+18/09/2026 · ELEMENTALI-CHALLENGE-PANEL-UI-020 · Build020 pubblicata: mittente con soli Sfida partecipante/Invia l’invito, destinatario con avviso server Richiesta sfida in attesa; staticiPASS, review0/0/0 e livePASS, invito pendente rifiutato con storico preservato,0provider · consegnato.
+18/09/2026 · ELEMENTALI-SCUDO-ORDINARY-QA-021 · Scudo ordinary preparato e usato contro pugno: costo5, danno residuo3, difesa singola e narrazione coerente; duello chiuso, zero sessioni residue, storico preservato,2provider · PASS.
+18/09/2026 · ELEMENTALI-SCUDO-PUBLIC-20260918-022 · Scudo di terra aperto al pubblico con catalogo/editoriale e formula Mente + Ninjutsu allineati; migrazione20260918192301, review0/0/0, postflight DB PASS, commit a4d3faca e dominio verificato · consegnato; altre otto elementali non aperte.
+18/09/2026 · ELEMENTALI-SUITON-PUBLIC-RELEASE-20260918-024 · Frusta d’acqua e Proiettile d’acqua aperte al pubblico con catalogo e regolamento allineati; migrazione20260918203958, review0/0/0, assert/postflight PASS, QA ordinario/Master pertinente positivo, risorse reali invariate e commit f43f7856 verificato sul dominio · consegnato; sei elementali restano chiuse.
+18/09/2026 · grande_sfondamento025 · QA ordinary PASS, review/controverifica 0/0/0 e migrazione pubblica 20260918212015 applicata; regolamento commit 4b2d9b6 e sorgenti commit a1dcb86, sei blob byte-identici e dominio verificato · esito VERDE / pubblicazione conclusa.
+19/09/2026 · ELEMENTALI-LANCIA-QA-028 · Lancia di fulmine ordinary 1vs1 collaudata nella Staff Test Room, sessione chiusa e risorse reali invariate · PASS Staff; editoriale/apertura pubblica pendenti.
+19/09/2026 · ELEMENTALI-ROCCIA-QA-029 · Proiettile di roccia ordinary 1vs1:35 grezzi/37 applicati, +2 contro Parata confinato al confronto e margine danno invariato; sessione chiusa e isolamento verificato · PASS Staff; editoriale/apertura pubblica pendenti.
+19/09/2026 · ELEMENTALI-SCARICA-CONTACT-FIX-027 · Formula di contatto e postflight corretti nella candidata, statici positivi e nessuna mutazione live · sospeso per review indipendente, apply riservato e controprova.
+19/09/2026 · TAIJUTSU-RUNTIME-001 · Candidata integrata delle cinque Taijutsu con 33 pin, cinque gate privati, percorsi ordinary/Master e recovery; statici positivi, nessuna mutazione live · sospeso per review indipendente, apply Staff e collaudo.
+19/09/2026 · ELEMENTALI-SCARICA-CONTACT-FIX-027-R3 · Rimossi formula ridondante e quoting SQL invalido dal postflight; installer e recovery compilati con pre/postflight isolati · candidata pronta per review, nessun apply Supabase.
+19/09/2026 · TAIJUTSU-RUNTIME-001-GATE · Aggiunti `session_allowed`, marker pubblico congelato e CHECK pubblico⇒Staff; 34/34 pin live, componente e recovery compilano fino a COMMIT · candidata pronta per review, nessun apply Supabase.
+19/09/2026 · TAIJUTSU-RUNTIME-001-EFFECT-CONTRACT · `apply_from_outcome` proietta `contract_version` dal profilo congelato con fallback elementale; 35/35 pin live e compilazione componente/recovery PASS · candidata pronta per review, nessun apply Supabase.
+19/09/2026 · TAIJUTSU-RUNTIME-001-CATALOG · Validazione contatto separata, apertura consumata solo da Parata/Schivata e percorso catalogo/addestramento Taijutsu verificato; 36/36 pin e 26 corpi condivisi, compile componente/recovery PASS · candidata pronta per review, nessun apply Supabase.
+19/09/2026 · RECOVERY-GUARDS-034 · Scarica pinza corpo candidato/witness/autorità e Taijutsu pinza tutti i 26 corpi condivisi installati prima del ripristino; compile complete PASS · candidate pronte per review, nessun apply Supabase.
+19/09/2026 · ELEMENTALI-TAIJUTSU-LIVE-CLOSE-053 · Cinque Taijutsu collaudate Staff; Entrata dinamica PASS con rincorsa6m/arrivo2m/danno28 simulato, combat e Master chiusi dal sito, storico preservato e schede reali invariate · collaudi tecnici conclusi; nove revisioni editoriali/aperture individuali pendenti.
+19/09/2026 · EDITORIALE-LAMA-APPROVAL-056 · Descrizione, Effetto e Regola di Lama di vento approvati da Antonello; testo congelato · nessun apply o gate modificato, rilascio rinviato a un unico passaggio dopo tutte le revisioni.
+19/09/2026 · EDITORIALE-SCARICA-APPROVAL-057 · Descrizione, Effetto e Regola di Scarica approvati da Antonello e congelati · nessun apply o gate modificato, rilascio aggregato dopo tutte le revisioni.
+19/09/2026 · EDITORIALE-LANCIA-APPROVAL-058 · Descrizione, Effetto e Regola di Lancia di fulmine approvati da Antonello e congelati · nessun apply o gate modificato, rilascio aggregato dopo tutte le revisioni.
+19/09/2026 · EDITORIALE-ROCCIA-APPROVAL-059 · Descrizione, Effetto e Regola di Proiettile di roccia approvati da Antonello e congelati · nessun apply o gate modificato, rilascio aggregato dopo tutte le revisioni.
+19/09/2026 · EDITORIALE-LEONE-APPROVAL-060 · Colpo concatenato del leone approvato con sequenza composta come unica scena offensiva, un confronto e un pacchetto; danno base25 verificato come massimo dei cinque Taijutsu · nessun apply o gate modificato.
+19/09/2026 · EDITORIALE-SPAZZATA-APPROVAL-061 · Descrizione, Effetto e Regola di Spazzata della Foglia approvati da Antonello e congelati · nessun apply o gate modificato, rilascio aggregato dopo tutte le revisioni.
+19/09/2026 · EDITORIALE-TURBINE-APPROVAL-062 · Turbine della Foglia approvata come unica scena offensiva con un confronto e un pacchetto; bonus limitato alla Parata · nessun apply o gate modificato.
+- 19/09/2026 · ELEMENTALI-TAIJUTSU-PUBLIC-BATCH-070 · pubblicate quattro elementali e cinque Taijutsu; ritirate dal catalogo sette versioni precedenti; regolamento changelog 95 al commit 71e732e · esito: review 0/0/0, migrazione e postflight PASS, dominio in propagazione.
