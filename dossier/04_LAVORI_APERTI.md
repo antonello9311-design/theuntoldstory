@@ -1,45 +1,45 @@
 # 04 · LAVORI APERTI — cantieri, dipendenze e prossimi passi
 
-> Allineamento documentale del 10/09/2026. Una pagina riscritta in posto; storia in `storico/04_LAVORI_APERTI_diario_fino_20260902.md`. Al massimo **tre cantieri in lavoro**; un nuovo cantiere richiede mandato PM e uno slot libero. «In uso» lo dichiara Antonello. Le finestre e i budget delle vecchie campagne non si riattivano leggendo questo tabellone.
-
-**Stato corrente:** movimento e Trasporto rilasciati e provati nella Staff protetta; narratore25 e fonti catalogo aggiornati. Smoke Clone004 e Moltiplicazione005 conservano i limiti osservati: non completano tutte le tattiche o la resa cinematografica. Cleanup utenti corretta live il10/09 con migrazione20260910001509; sessioni, referti, dispatch e quote vengono conservati. Queste sono evidenze datate delle aree, non un nuovo collaudo.
-
-**PNG permanente — STOP del ciclo5/5:** campagna nativa004 conclusa NOT_QUALIFIED con63 SQL cumulative, zero provider. Apertura/chiusura PG+PNG, permessi, scena legacy e recovery passano; avvicinamento PNG incompleto, controllo di chiusura senza comando valido e osservazione della concorrenza non risolta impediscono la qualifica completa. Diagnosi in `staff_native_execution004/FINAL005_TERMINAL_ANALYSIS.md` del candidato Narratore. Richiesta di massimo due correzioni aggregate aggiuntive pendente: niente patch, setup o nuove campagne PNG prima della risposta; niente rinomina o azzeramento dei conteggi. Banchi e storia restano preservati.
-
-**Rami indipendenti pronti:** Flussi005 compone core, offerte, pannello, fonti narrative, catalogo e regole; il modulo difese002 aggiunge Sostituzione sul singolo bersaglio e filtra le tecniche self prive di runtime. Integrazione006 assegnata, non ancora consegnata. Contratto privato Test Room utenti consegnato; pannello in costruzione sulla base HTML immutabile. Contratto Master/multi-attore consegnato; le attuali autorità ordinary non equivalgono a un publisher automatico Master. Nessuno di questi candidati è live o qualificato dal solo montaggio.
+> Allineamento del 19/09/2026. Al massimo tre cantieri restano «in lavoro»; le task archiviate non vengono riaperte. Le versioni e le prove esatte restano nelle schede d’area e negli handoff dei singoli incarichi.
 
 ## I tre cantieri aperti
 
-| Cantiere | Stato e dipendenza | Prossimo passo nel mandato esistente | Responsabili |
-|---|---|---|---|
-| `management/candidati/CLAN-L1_2026-09-01/` | in lavoro. Movimento20260909213847 e Trasporto PASS; smoke Clone/Moltiplicazione limitati ai casi osservati. PNG fermo al limite concordato; Flussi in copia. | Integrare difese Flussi, utenti e multi-attore sui contratti pronti; review/campagna sul pacchetto coerente. Completare presa/liberazione Clone, tattiche e movimento dopo principale. | PM, DB/COMBAT, LAND/RULES |
-| `management/candidati/COMBAT-COMPOSITE_2026-09-01/` | in lavoro; pannelli e contratti condivisi con Clan e Narratore. LAND099 attestata; certificazione generale configurata ancora rossa. | Modifiche condivise soltanto con owner e mandato pertinente. Non ripetere vecchi rilasci o aprire scene leggendo un handoff storico. | COMBAT-CORE, DB-CORE, LAND-UI |
-| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/` | in lavoro. Hook20260909183721, Edge25 e catalogo applicati; storico utenti protetto. PNG04 non live. | Attendere decisione sul seguito PNG; nel frattempo costruire raccordi Master e utenti, poi prove di fedeltà delle mosse e ampliamento verso quest/missioni/PNG. | NARRATIVE-AI, DB, QA, PM |
-
-**Qualifiche da non ripetere:** movimento prodotto3/5 e recovery009 verdi; rilascio e smoke successivi attestati nelle aree. Hyūga compile006 e attestazione strutturale8/8 PASS, con limiti espliciti: non sono gameplay/AuthAPI. Conservare banchi e receipt native; nessuna falsificazione degli identificatori o della history per superare un controllo. Uchiha conserva il candidato acquisizione/prerequisiti da integrare; Nara una base da riallineare.
-
-**Task operative:** stessa task PM, goal incompleto e ripresa ogni10min secondo l'ultima configurazione salvata di `clan-l1-lavoro-notturno-unico`; altri monitor distinti. Le task archiviate non vengono riaperte. Punto1 e punto2 completati e depositati. Ultimo deposito centrale verificato: main `2531669fdb4a02ba7a1229921f5bf14d54b436a7`; aggiornamenti successivi locali fino a deposito selettivo verificato. Il piano è `PIANO_LAVORO.json` nel cantiere Clan; il registro conferma owner effettivi, non la qualifica dei risultati. Nessun quarto cantiere.
-
-**Ordine Clan conservato:** Marionetta → Sabaku → Hyūga → Uchiha → Nara. Preparazioni indipendenti in parallelo; i rinvii Aburame/Akimichi/Hoki/Inuzuka a dopo Missioni restano per il rilascio. Non usare un ramo bloccato come prerequisito verde. Flussi L1:15m, massimo3 flussi e3 bersagli;2 sabbia e5 chakra per flusso, una principale; concentrazione migliora la probabilità di colpire senza sommare danni. Recupero2 sabbia a inizio proprio turno entro capienza, Clone/Trasporto restano impegnati. Base30 e Potenza30 provvisori; Mente+Ninjutsu e bonus+1 per flusso aggiuntivo restano scelte tecniche PM provvisorie, non nuovi numeri ratificati dall'utente.
-
-**Staff corrente:** Antonello ha nuovamente reso disponibili Riuji (Chrome) e testperfunzioni per i collaudi protetti tramite accessi normali. La scena `e4f36e1a-afaf-4d30-a06d-f2f17e6ac391` resta aperta, senza reset, reinvito o cancellazione della storia. Ultimo smoke005: Riuji/action/context41; verificare lo stato corrente prima di agire. Tutte le risorse reali restano protette; nessuna modifica di account o ruoli. La Test Room utenti070 resta operativa nel suo percorso esistente: il contratto Common privato non certifica ancora la parità. Quota unica5, narrazione manuale e permessi Staff distinti restano requisiti.
-
-## Altri lavori e decisioni da preservare
-| Area | Stato | Seguito |
+| Cantiere | Stato reale | Prossimo passo |
 |---|---|---|
-| REC Esame | `EXAM-REC-OPEN_2026-09-04`: proposto, non applicato | Approvazione del piano ancora necessaria prima dello sviluppo; QA-ESAME-REC-REAL resta parcheggiato. Nuovo lavoro tecnico soltanto con slot/mandato. |
-| Missioni / PNG | Fondazioni e materiali presenti, uso automatico completo non attestato | Riconciliare il percorso della prossima missione con gli owner. PACK004 già ratificato per canary; guida generale già scritta ma da ratificare nel suo insieme. Mandato missioni miste con base Konoha e PNG via Builder conservato; nessuna data, spesa o nuovo run implicito. |
-| Narrativa / scene libere | Fonte comune e progetti di memoria già esistenti | Collegare contesto, azioni/difese e risultati server a una narrazione continua; verificare distribuzione per profilo. Scontro è un caso della Regia; IA senza autorità su valori, scelte o pensieri dei PG. Discovery scene libere123 da riconciliare, non da riscrivere da zero. |
-| Pagine | Rilasci attestati nel registro; background scheda chiuso il07/09 | Preservare i rilasci. Requisiti recuperati: editor ridimensionabile con bozza mantenuta, motivi delle limitazioni al movimento; proposta per rendere comprensibili le tecniche non disponibili. Priorità pannelli già assegnata. |
-| Training / Accademia | Checkpoint datati nelle aree | Riconciliare prove recenti e difetti concreti; non dedurre abbandoni da pochi eventi storici. Ratifica narrativa del singolo allenamento conservata senza effetti DB impliciti. |
-| Piattaforma | QA permanente ritirato; ultima migrazione pertinente verificata10/09:20260910001509, preservazione storico Test Room | Docker ordinario e Test Room protette. Branch temporaneo solo per rischio non coperto e costo autorizzato. Nessun repair del branch eliminato; igiene preesistente separata. |
-| Documenti / processo | Punti1e2 completati e depositati;33blob esatti, inclusi registro e consegna | Processo operativo nella cartella; copie delle impostazioni esterne Claude/Cowork da verificare separatamente. |
-| Nuova utenza | Analisi da completare | Adulti italofoni, anche nuovi al play-by-chat, interessati a GDR/anime/manga/Naruto. Budget da definire dopo l'analisi; nessuna campagna o spesa avviata. |
+| `management/candidati/CLAN-L1_2026-09-01/` | Sabaku, Hyūga e Uchiha hanno rilasci pubblici circoscritti. Nove elementali e cinque Taijutsu generici sono collaudati nel perimetro pertinente, approvati editorialmente e pubblici; sette Taijutsu precedenti sono inattivi e conservati. | Collaudare e poi abilitare Armatura; implementare punto cieco; chiudere i casi Master pertinenti degli altri clan. Elementali/Taijutsu generici non hanno arretrato aperto. |
+| `management/candidati/COMBAT-COMPOSITE_2026-09-01/` | Common e movimento sono operativi; mappe/binding del 15/09 sono live. Copertura/Diversivo sono stati passati a un lavoro dedicato; il vecchio writer `MULTIPLICATION-RESUME-CORE-006` è stato rilasciato sospeso e non ha modificato i file. | Integrare il bivio della cessione iniziativa, impedire la pubblicazione del Fato prima della sua chiusura e collaudare nei percorsi reali. Comporre i delta sulla baseline corrente, senza riusare installer obsoleti. |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/` | Regole comuni, editor/default mappe e pannello Shion live. Scorta Staff 1 PG/3 PNG ha concluso Combat e resa con cleanup verde; runtime OFF. Questi rilasci sono chiusi documentalmente e non vanno riaperti tramite le vecchie task sospese. | Completare la review della recovery resa; in incarichi distinti, configurare accesso pubblico 3/3 e consegna finale della Scorta, ed eventualmente eseguire un nuovo smoke Shion senza riusare l’esame aperto. |
 
-## Parcheggi e rinvii da rispettare
-`QA-ESAME-REC-REAL-001` fino al fix REC e alla seconda REC genuina · `TEST-ROOM-TESTER-AVANZATO` senza nuovo mandato · Ninja Book G11-* e127D nei rispettivi gate canary, da riconciliare con le consegne successive · voce narrativa066/067 e proposte P2–P8 storiche da confrontare con il consolidamento corrente · TACTIC-015/016 e integrazione040+042 superate · UI-005/UI-003 Esame da verificare sul vivo prima di riuso · Sensei IA Training secondo il gate dell'area · `TASK-AI-ITALIANO-COMUNE-001` storico, distinto dal successivo mandato della fonte editoriale comune.
+## Funzioni già disponibili da non ricostruire
 
-Restano proposte di sviluppo: Tester avanzato, iniziativa manuale Master, azioni non offensive, PNG del Book nella Regia umana, refactor delle pagine, guida del motore e ritiro degli avvii legacy preservando le sessioni esistenti. Non sono nuove task avviate da questo allineamento. Non si spostano o archiviano cantieri di altri owner automaticamente.
+- Movimento ortogonale e diagonale senza consumo della principale nei percorsi già collegati.
+- Marionettisti, Controllo/Flussi singolo/Trasporto/Clone Sabaku, Byakugan/Jūken/Sedici/Rotazione e Sharingan/Palle di Fuoco/Risonanza nei rispettivi perimetri pubblicati.
+- Moltiplicazione Assalto con +2/+3, difesa normale e consumo delle copie; Sostituzione nel percorso difensivo.
+- Esame Genin automatico su Combat/Common2D; Tamako chiusa definitivamente con storico preservato.
+- Strato narrativo comune che legge fatti server, descrizione/effetto e contesto, senza attribuire all’IA valori o decisioni meccaniche.
+- Editor mappe generali, oggetti e binding per fase pubblicati il 15/09.
 
-## Consegne
-Ogni owner aggiorna SCHEDA, HANDOFF, STORICO e la propria area; il PM mantiene questo riepilogo. Stato dei caricamenti e inventario esatto in `aree/PUBBLICAZIONE.md`. Richieste immagini e decisioni prodotto si verificano nell'area prima di riproporle: vecchi conteggi non sono un fabbisogno corrente certificato. L'indice delle task conserva provenienza, decisioni valide e limiti del recupero; non occorre rileggere tutti gli archivi per iniziare un lavoro ordinario.
+## Lavori e verifiche ancora aperti
+
+| Priorità | Lavoro | Dipendenza o limite |
+|---|---|---|
+| 1 | Missione Full IA fino alla consegna e accesso 3 PG | Combat/resa 1 PG contro 3 PNG PASS; restano consegna finale, media/configurazione pubblica e normale accesso del team. Le risorse `db:produzione` e Staff Room non sono più trattenute dal collaudo. |
+| 1 | Copertura e Diversivo | Integrare cessione iniziativa, difesa successiva e pubblicazione unica del Fato. Nessun esito IA prima della chiusura del bivio. |
+| 2 | Armatura di Sabbia | Installata inerte: enable, Staff Test Room, correzioni chiare e apertura al positivo. |
+| 2 | Punto cieco Byakugan | Regola decisa; mancano facing/origine attacco e geometria posteriore autorevoli. |
+| 2 | Casi Master pertinenti | Rotazione, Katon e interazioni indicate nelle checklist; non ripetere i casi ordinary già verdi. |
+| 3 | Qualità Narratore | Osservare il prossimo Fato PNG v30 e casi completi di scontro/missione; registrare note editoriali specifiche. |
+| 3 | Immagini PNG sulla mappa | Trasformare i ritratti dell’annuario in ritagli coerenti con Tamako; requisito già annotato, implementazione non conclusa. |
+| 4 | Nuova utenza | Analisi mirata ad adulti italofoni, anche nuovi al play-by-chat e interessati a GDR/anime/manga; budget ancora da definire, nessuna spesa avviata. |
+
+## Stato Esame e IA da preservare
+
+Tamako non deve essere ripresa: l’esame è annullato/chiuso dal 14/09 e tutte le risorse sono state liberate. Una registrazione storica `TAMAKO-PAUSED-RECOVERY-20260913` risulta ancora `registered` nel task guard e contraddice lo stato vivo; va riconciliata dal suo owner, non eseguita. La prova Shion appartiene a un altro incarico e non va chiusa o modificata da task nuove.
+
+`mission_narratore_ai` v30 applica le regole comuni anche alla narrazione della scelta PNG dell’Esame. La ripetizione osservata il 13/09 precede questa versione. Il prossimo campione deve distinguere due casi: stessa tecnica meccanica consentita dal server e ripetizione stilistica della coreografia. Solo il secondo, se ancora presente, richiede un intervento editoriale.
+
+## Coordinamento e archiviazione
+
+I riepiloghi specialistici ESAME, IA_NARRATIVA, COMBAT e CLAN contengono checkpoint più dettagliati fino al 14–15/09. Le prenotazioni registrate di altri owner sui loro file restano intatte. Il goal Elementali/Taijutsu è completato; questa task viene archiviata dopo la consegna. Eventuali heartbeat restano gestiti separatamente. La sua consegna finale è in `management/coordination/HANDOFFS/CHAT-ORGANIZZA-LAVORO-CLOSEOUT.md`.
+
+Il processo uniforme resta `management/coordination/AVVIO_LAVORO.md`. Prima di ogni ripresa: identificare candidato e baseline viva, verificare owner e sessioni, comporre un solo delta integrato, collaudare sul percorso reale previsto e aggiornare SCHEDA/HANDOFF/STORICO dell’incarico. Non usare chat archiviate come fonte operativa quando esiste una scheda viva più recente.
