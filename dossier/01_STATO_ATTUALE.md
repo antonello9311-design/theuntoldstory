@@ -1,4 +1,4 @@
-# 01 · STATO ATTUALE — fotografia consolidata del 19/09/2026
+# 01 · STATO ATTUALE — fotografia consolidata del 20/09/2026
 
 > Si riscrive in posto. Il diario precedente è in `storico/01_STATO_ATTUALE_diario_fino_20260902.md`. Le schede d’area e i readback vivi restano le fonti di dettaglio; questa pagina distingue ciò che è pubblico, ciò che è riservato alla Staff e ciò che richiede ancora collaudo.
 
@@ -19,7 +19,7 @@ Le verifiche mirate successive prevalgono per i sistemi modificati. Il readback 
 | Moltiplicazione / Sostituzione | Assalto e Sostituzione seguono il resolver condiviso; Assalto usa bonus +2/+3 e difesa ordinaria. La conclusione delle copie è proiettata al Narratore. | Copertura e Diversivo restano fuori dal completamento finché il bivio di cessione iniziativa non viene integrato e collaudato senza anticipare il Fato. |
 | Esame Genin | Usa Combat/Common2D, Regia automatica e PNG IA senza Master umano. La prova Tamako è chiusa definitivamente dal 14/09 con storico, bozze e risorse preservati. La prova Shion appartiene a un altro lavoro e va conservata. | Valutare il prossimo attacco PNG prodotto da v30: la correzione comune raggiunge già la scelta narrativa, ma non vieta la stessa tecnica meccanica consecutiva. Il pulsante di chiusura mancante e gli altri rilievi UI restano separati. |
 | Narratore IA | Continuità, contesto del giocatore, resa scenica e distinzione fra fatti server e prosa sono condivisi fra Combat, Esame e Regia. Le tre Edge sopra sono vive. | L’architettura è integrata, ma la qualità non è certificata globalmente: raccogliere note editoriali su casi reali, senza aprire una nuova riscrittura preventiva dei prompt. |
-| Missioni / PNG / mappe | Editor mappe generali, oggetti e binding per fase sono pubblicati. Il motore distingue narratore, intenzione PNG e stato persistente; il server resta autorevole. | Il ciclo Full IA missione e la Regia multi-attore restano nel proprio cantiere; non dipendono più dal rilascio delle tecniche generiche. |
+| Missioni / PNG / mappe | Editor rapido live: da trama, fasi e immagini produce una bozza correggibile, profili PNG approvati, contesto narrativo e arena separati, anteprima obbligatoria e pubblicazione unica. Collaudo Staff concluso con arena 12×10, 2 PG + 3 PNG e `survive_rounds=3`; client `two-maps.4`, commit `3d251c8`. | Il primo run giocato delle missioni pubblicate resta una scelta operativa distinta. Il ciclo editor rapido è concluso e non va riaperto tramite le vecchie task sospese. |
 | Elementali / Taijutsu generici | Nove elementali e cinque Taijutsu sono pubblici, con catalogo, motore e regolamento allineati. Le sette tecniche Taijutsu sostituite sono inattive e conservate. | Campagna conclusa nel perimetro osservato; nuovi delta richiederanno soltanto regressioni pertinenti. |
 
 ## Processo, pubblicazione e continuità
@@ -28,6 +28,6 @@ Punto 1 documentale e punto 2 operativo sono completati. Ogni nuova task o ripre
 
 Il rilascio delle regole è attestato dal commit `71e732ed22d136dd71be34d8661427298fcce67e`; sorgenti ed evidenze del batch sono depositate fino al commit `90b05418b3f1121c8ddbc3aba3595f47ab601063`. Il workspace principale non contiene una directory `.git`; lo stato di pubblicazione si legge in `dossier/aree/PUBBLICAZIONE.md`. Alcuni sorgenti e documenti restano locali o in coda selettiva e non vanno caricati cumulativamente.
 
-Il goal notturno Elementali/Taijutsu è completato. La task viene archiviata dopo il deposito di questa chiusura; eventuali automazioni e l’anti-blocco del Mac restano servizi distinti.
+Il goal editor rapido è completato. Piani, schede d’area, pubblicazione, audit e guida d’uso sono allineati; questa chat viene archiviata dopo la chiusura del registro locale. Eventuali nuovi requisiti partono da un nuovo mandato e dalla baseline live, senza riaprire le task storiche sospese.
 
 Checkpoint di archiviazione: `management/coordination/HANDOFFS/CHAT-ORGANIZZA-LAVORO-CLOSEOUT.md`.
