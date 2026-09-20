@@ -1,0 +1,469 @@
+{
+  "id": "MISSION-RAPID-EDITOR-MVP-20260919",
+  "title": "Trama e immagini verso missione pronta",
+  "max_parallel": 3,
+  "tasks": [
+    {
+      "id": "MISSION-RAPID-BASELINE-001",
+      "title": "Congelare contratto e baseline dopo Adatta missione",
+      "owner": "PM-MISSION-RAPID",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": [],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/BASELINE.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/CONTRATTO_MVP.md"
+      ],
+      "resources": ["schema:contratto:mission-rapid-editor"],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/MISSION_CREATION_CONTRACT.md",
+        "management/coordination/HANDOFFS/ARCHITETTURA-PNG-NINJA-BOOK-2026-09-02.md",
+        "sito_live/mission-creation-ui.general.asset.v4.mjs"
+      ],
+      "acceptance": [
+        "Versioni e hash finali della task Adatta missione sono acquisiti prima di condividere contratti o runtime",
+        "Porte DB, media, mappe, Ninja Book e UI da riusare sono elencate senza duplicati",
+        "Contratto MVP congelato con non-obiettivi e criteri bloccanti"
+      ],
+      "authorization": "Mandato autonomo Antonello 19/09/2026; sola ricognizione e contratto, nessuna mutazione live.",
+      "budget": {"minutes": 120, "cases": 0, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-DB-001",
+      "title": "Bozze, resolver meccanico, condizioni, anteprima e publish atomico",
+      "owner": "DB-MISSION-RAPID",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 1,
+      "depends_on": ["MISSION-RAPID-BASELINE-001"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/INSTALL.sql",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/RECOVERY.sql",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/CONTRACT.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/HANDOFF.md"
+      ],
+      "resources": ["schema:contratto:mission-rapid-editor-db"],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/CONTRATTO_MVP.md"
+      ],
+      "acceptance": [
+        "Bozza versionata e privata con idempotenza e controlli owner/Staff",
+        "Statistiche, PV, chakra e tecniche provengono solo da cataloghi e profili approvati",
+        "Sei condizioni terminali valutabili senza SQL per singola missione",
+        "Preview seal invalida al drift e publish atomico non lascia aperture parziali",
+        "GRANT espliciti, recovery conservativa, controlli statici completi e casi integrati fissati per la Staff Test Room"
+      ],
+      "authorization": "Preparazione e controlli statici autorizzati; nessun Docker. Dopo review verde, il test integrato avviene esclusivamente nella Staff Test Room protetta.",
+      "budget": {"minutes": 420, "cases": 36, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-AUTHORING-001",
+      "title": "Compilatore IA strutturato per missione e PNG",
+      "owner": "NARRATIVE-MISSION-RAPID",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 1,
+      "depends_on": ["MISSION-RAPID-BASELINE-001"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/edge/mission_authoring_ai/index.ts",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/edge/mission_authoring_ai/runtime.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/edge/mission_authoring_ai/schema.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/edge/TEST.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/edge/HANDOFF.md"
+      ],
+      "resources": ["edge:mission_authoring_ai"],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/CONTRATTO_MVP.md"
+      ],
+      "acceptance": [
+        "Una risposta JSON stretta produce briefing, retroscena, fasi, transizioni, obiettivi e ruoli PNG",
+        "Nessun valore meccanico o tecnica viene accettato come autoritativo dall'output IA",
+        "Prompt e validatore distinguono pubblico, riservato e conoscenze dei PNG",
+        "Budget e telemetria sono finiti; nessun retry esplorativo"
+      ],
+      "authorization": "Sorgente e test statici autorizzati; deploy e chiamate provider restano nel rilascio dopo review.",
+      "budget": {"minutes": 300, "cases": 24, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-UI-001",
+      "title": "Modulo unico input, correzione e anteprima",
+      "owner": "LAND-MISSION-RAPID",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 1,
+      "depends_on": ["MISSION-RAPID-BASELINE-001"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/ui/mission-rapid-editor.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/ui/mission-rapid-editor.test.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/ui/HANDOFF.md"
+      ],
+      "resources": [],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/CONTRATTO_MVP.md",
+        "sito_live/mission-creation-ui.general.asset.v4.mjs"
+      ],
+      "acceptance": [
+        "Un solo modulo guida input, compilazione, correzione, approvazione e preview",
+        "Media associati tramite actor_key stabile con ambiguità bloccanti",
+        "Mappa specifica o default 10×10, dimensioni/oggetti e posizioni visibili",
+        "Pubblica resta disabilitato fino a preview verde e mostra tutti gli errori"
+      ],
+      "authorization": "Candidata isolata autorizzata; nessuna modifica a land.html fino al checkpoint di composizione.",
+      "budget": {"minutes": 360, "cases": 30, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-INTEGRATE-001",
+      "title": "Comporre DB, authoring, media, mappe e UI sulla baseline corrente",
+      "owner": "PM-MISSION-RAPID",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 1,
+      "depends_on": ["MISSION-RAPID-DB-001", "MISSION-RAPID-AUTHORING-001", "MISSION-RAPID-UI-001"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/INTEGRATION.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/MANIFEST.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/ui/land.html",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/ui/admin.html"
+      ],
+      "resources": ["schema:contratto:mission-rapid-editor-integration"],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/CONTRACT.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/edge/HANDOFF.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/ui/HANDOFF.md"
+      ],
+      "acceptance": [
+        "La composizione parte dalla versione consegnata da Adatta missione e dalla pubblicazione corrente",
+        "Un'unica identità lega SQL, Edge, moduli, hash, recovery e schema",
+        "Nessuna regressione sui percorsi Mission Creation, Scorta e Full IA esistenti"
+      ],
+      "authorization": "Composizione locale autorizzata; nessun apply/deploy o upload prima della review.",
+      "budget": {"minutes": 240, "cases": 24, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-AGG1-015",
+      "title": "Prima correzione aggregata della review rossa",
+      "owner": "DB-MISSION-RAPID",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-REVIEW-002"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/INSTALL.sql",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/edge/mission_authoring_ai/index.ts",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/ui/mission-rapid-editor.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/MANIFEST.json"
+      ],
+      "resources": ["schema:contratto:mission-rapid-editor", "edge:mission_authoring_ai"],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/REVIEW.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/RESULT.json"
+      ],
+      "acceptance": [
+        "Source e correzioni editoriali sono validate e persistite server-side",
+        "CORS e manifest coprono ogni percorso e dipendenza runtime",
+        "Le condizioni terminali consumano soltanto fatti nativi e non interferiscono con missioni senza regole rapide",
+        "Suite pure 144/144 verde"
+      ],
+      "authorization": "Autorizzazione completa del 19/09/2026; niente Docker, collaudo live solo dopo controreview verde nella Staff Test Room.",
+      "budget": {"minutes": 180, "cases": 150, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-REVIEW-002",
+      "title": "Review indipendente statica e matrice Staff della candidata review3",
+      "owner": "QA-PLAYTEST",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 1,
+      "depends_on": ["MISSION-RAPID-PNG-PROPOSALS-013"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/RESULT.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/REVIEW.md"
+      ],
+      "resources": [],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/MANIFEST.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/INTEGRATION.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/PLAN.md"
+      ],
+      "acceptance": [
+        "Review P0/P1/P2 = 0/0/0 sulla revisione finale",
+        "La review statica copre idempotenza, drift, autorità, cataloghi, media, mappe, condizioni, preview, publish e recovery; i casi funzionali sono predisposti per la Staff Test Room",
+        "Contatori aggregata/controverifica conservati entro il limite 5+5"
+      ],
+      "authorization": "Review statica e test puri autorizzati; nessun Docker, nessuna chiamata provider e nessuna mutazione live in questa task.",
+      "budget": {"minutes": 240, "cases": 48, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-COUNTERREVIEW-021",
+      "title": "Prima controreview indipendente dell'aggregata review5",
+      "owner": "QA-PLAYTEST",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-AGG1-015", "MISSION-RAPID-RECOVERY-018", "MISSION-RAPID-SCHEMA-019"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERREVIEW.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERRESULT.json"
+      ],
+      "resources": [],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/MANIFEST.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/INTEGRATION.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/RECOVERY.sql"
+      ],
+      "acceptance": [
+        "P0/P1/P2 = 0/0/0 sulla candidata congelata",
+        "Composizione con Mission Generic e recovery sono verificate sulla stessa baseline",
+        "Nessuna mutazione live, Docker o chiamata provider"
+      ],
+      "authorization": "Prima controverifica del budget 5+5; statica e pura, senza mutazioni live.",
+      "budget": {"minutes": 180, "cases": 160, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-AGG2-022",
+      "title": "Pin mappa, unicità terminale e manifest riproducibile",
+      "owner": "DB-MISSION-RAPID",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-COUNTERREVIEW-021"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/INSTALL.sql",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/edge/mission_authoring_ai/schema.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/ui/mission-rapid-editor.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/MANIFEST.json"
+      ],
+      "resources": ["schema:contratto:mission-rapid-editor", "edge:mission_authoring_ai"],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERREVIEW.md"
+      ],
+      "acceptance": [
+        "Mappa riletta e pinndata a key/version/spec, validità e capienza",
+        "Una sola regola nativa non standard per fase",
+        "Manifest completo e suite 148/148 verde"
+      ],
+      "authorization": "Seconda aggregata entro budget 5+5; nessun Docker o mutazione live.",
+      "budget": {"minutes": 150, "cases": 180, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-COUNTERREVIEW-023",
+      "title": "Seconda controreview indipendente dell'aggregata review6",
+      "owner": "QA-PLAYTEST",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-AGG2-022"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERREVIEW_2.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERRESULT_2.json"
+      ],
+      "resources": [],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/MANIFEST.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/INTEGRATION.md"
+      ],
+      "acceptance": ["P0/P1/P2 = 0/0/0", "Suite complete rieseguite", "Nessuna mutazione live"],
+      "authorization": "Seconda controverifica del budget 5+5; statica e pura.",
+      "budget": {"minutes": 180, "cases": 180, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-AGG3-024",
+      "title": "Attori protetti runtime, soglie intere e pin UI sorgente",
+      "owner": "DB-MISSION-RAPID",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-COUNTERREVIEW-023"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/INSTALL.sql",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/CONTRACT.test.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/MANIFEST.json"
+      ],
+      "resources": ["schema:contratto:mission-rapid-editor"],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERREVIEW_2.md"
+      ],
+      "acceptance": [
+        "Alleati e civili di fase sono risolvibili nell'actor map sulla squadra PG e resta almeno un avversario",
+        "Le soglie terminali DB sono matematicamente intere",
+        "Manifest pinna il modulo UI testato e sorgente/asset sono identici",
+        "Suite completa 151/151 verde"
+      ],
+      "authorization": "Terza aggregata entro budget 5+5; nessun Docker o mutazione live.",
+      "budget": {"minutes": 120, "cases": 180, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-COUNTERREVIEW-025",
+      "title": "Terza controreview indipendente dell'aggregata review7",
+      "owner": "QA-PLAYTEST",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-AGG3-024"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERREVIEW_3.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERRESULT_3.json"
+      ],
+      "resources": [],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/MANIFEST.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/INTEGRATION.md"
+      ],
+      "acceptance": ["P0/P1/P2 = 0/0/0", "Suite complete rieseguite", "Nessuna mutazione live"],
+      "authorization": "Terza controverifica del budget 5+5; statica e pura.",
+      "budget": {"minutes": 180, "cases": 180, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-AGG4-026",
+      "title": "Identità JSON degli attori fra scena e incontro",
+      "owner": "DB-MISSION-RAPID",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-COUNTERREVIEW-025"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/INSTALL.sql",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/CONTRACT.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/CONTRACT.test.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/MANIFEST.json"
+      ],
+      "resources": ["schema:contratto:mission-rapid-editor"],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERREVIEW_3.md"
+      ],
+      "acceptance": [
+        "Le fasi mechanical riusano lo stesso array JSON normalizzato per scena e incontro",
+        "Il contratto cross-component registra il vincolo MG_ENCOUNTER_ACTOR_SCOPE",
+        "Suite completa 152/152 verde"
+      ],
+      "authorization": "Quarta aggregata entro budget 5+5; nessun Docker o mutazione live.",
+      "budget": {"minutes": 90, "cases": 180, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-COUNTERREVIEW-027",
+      "title": "Quarta controreview indipendente dell'aggregata review8",
+      "owner": "QA-PLAYTEST",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-AGG4-026"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERREVIEW_4.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERRESULT_4.json"
+      ],
+      "resources": [],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/MANIFEST.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/INTEGRATION.md"
+      ],
+      "acceptance": ["P0/P1/P2 = 0/0/0", "Suite complete rieseguite", "Nessuna mutazione live"],
+      "authorization": "Quarta controverifica del budget 5+5; statica e pura.",
+      "budget": {"minutes": 180, "cases": 180, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-AGG5-028",
+      "title": "Correzione sintassi PostgreSQL dei confronti map mode",
+      "owner": "DB-MISSION-RAPID",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-COUNTERREVIEW-027"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/INSTALL.sql",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/CONTRACT.test.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/MANIFEST.json"
+      ],
+      "resources": ["schema:contratto:mission-rapid-editor"],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERREVIEW_4.md"
+      ],
+      "acceptance": [
+        "Entrambi i confronti map mode usano IS DISTINCT FROM (CASE ... END)",
+        "Il parser PostgreSQL vivo accetta la forma e l'apply fallito non ha lasciato stato",
+        "Suite completa 153/153 verde"
+      ],
+      "authorization": "Quinta e ultima aggregata entro budget 5+5; nessun Docker.",
+      "budget": {"minutes": 60, "cases": 180, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-COUNTERREVIEW-029",
+      "title": "Quinta controreview indipendente dell'aggregata review9",
+      "owner": "QA-PLAYTEST",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-AGG5-028"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERREVIEW_5.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERRESULT_5.json"
+      ],
+      "resources": [],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/MANIFEST.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/INTEGRATION.md"
+      ],
+      "acceptance": ["P0/P1/P2 = 0/0/0", "Suite complete rieseguite", "Nessuna mutazione persistente oltre al probe sintattico DO"],
+      "authorization": "Quinta e ultima controverifica del budget 5+5; statica e pura.",
+      "budget": {"minutes": 120, "cases": 180, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-AGG6-031",
+      "title": "Riconciliare hook terminale con la baseline viva unified_batches",
+      "owner": "DB-MISSION-RAPID",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-COUNTERREVIEW-029"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/INSTALL.sql",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/RECOVERY.sql",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/CONTRACT.test.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/MANIFEST.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/INTEGRATION.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/PIANO_LAVORO.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/AGGREGATE_6.md"
+      ],
+      "resources": ["schema:contratto:mission-rapid-editor"],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERREVIEW_5.md"
+      ],
+      "acceptance": [
+        "INSTALL e RECOVERY compongono l'hook sulla guardia unified_batches viva e identica",
+        "Il pin progress_step resta quello della baseline viva verificata",
+        "Suite completa verde e manifest coerente",
+        "Nessuna mutazione live"
+      ],
+      "authorization": "Eccezione esplicita dell'utente del 19/09/2026 al budget 5+5; nessun Docker.",
+      "budget": {"minutes": 90, "cases": 190, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-COUNTERREVIEW-032",
+      "title": "Sesta controreview indipendente della candidata review10",
+      "owner": "QA-PLAYTEST",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-AGG6-031"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERREVIEW_6.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/COUNTERRESULT_6.json"
+      ],
+      "resources": [],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/MANIFEST.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/INTEGRATION.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/AGGREGATE_6.md"
+      ],
+      "acceptance": ["P0/P1/P2 = 0/0/0", "Suite complete rieseguite", "Nessuna mutazione live"],
+      "authorization": "Sesta controverifica autorizzata esplicitamente dall'utente; statica e pura.",
+      "budget": {"minutes": 120, "cases": 190, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-RELEASE-001",
+      "title": "Rilascio controllato e collaudo trama più immagini",
+      "owner": "PM-RELEASE-QA",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 1,
+      "depends_on": ["MISSION-RAPID-COUNTERREVIEW-032"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/RELEASE.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/LIVE_QA.md"
+      ],
+      "resources": ["db:produzione", "edge:mission_authoring_ai", "browser:chrome", "staff:room", "github:main"],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/qa/REVIEW.md"
+      ],
+      "acceptance": [
+        "Apply/deploy/client corrispondono alla candidata congelata e hanno recovery verificata",
+        "Una missione di prova passa input, compilazione, correzione, media, mappa, preview e publish",
+        "Massimo quattro chiamate provider e nessun retry esplorativo",
+        "Postflight senza effetti su risorse PG, sessioni estranee o runtime della task Adatta missione"
+      ],
+      "authorization": "Mandato utente del 19/09/2026: niente Docker e nessuna Test Room utenti; dopo review e checkpoint di continuità, rilascio riservato e collaudo esclusivamente nella Staff Test Room protetta. Apply DB, deploy Edge, enable e apertura restano operazioni distinte e verificabili.",
+      "budget": {"minutes": 240, "cases": 12, "provider_calls": 4}
+    }
+  ]
+}
