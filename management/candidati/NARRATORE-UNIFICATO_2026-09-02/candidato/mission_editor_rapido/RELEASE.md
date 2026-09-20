@@ -8,6 +8,7 @@ Stato: **in uso tecnico — flusso trama + immagine → anteprima → pubblicazi
 - Install SQL SHA-256 `6840c4b15d8f0bd93e8b279511935c02c694af9266fa6ff5904dd103777f7525`; test contratto SHA-256 `20f2b28af5dc3f2bbd871593983252082b1511f95249bfc57004b873a58de494`.
 - Funzione tecnica live MD5 `66b271669c92a89db12f497fcb4ac098`; preview live MD5 `c988923b347cc600b85bb215ea025663`.
 - Client pubblico: commit `f4bb587095b6a2987ddf4c1c2212453345553dd9`.
+- Sorgenti e referti: 82/82 percorsi remoti byte-identici, commit da `3b07b4de29826e8d6ec265dcf683f8c417d966fc` a `cd7f5beef3a6e6e521383ddaf0a5916ab6175512` su `main`.
 
 ## Esito end-to-end
 
