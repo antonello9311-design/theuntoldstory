@@ -1,13 +1,13 @@
-TASK-ID · MISSION-RAPID-FINAL-RELEASE-063
+TASK-ID · MISSION-RAPID-DOCS-ARCHIVE-093
 
-Scope toccato · Chiusura editor rapido missioni live: quinta compilazione, immagine PNG attestata, anteprima completa, pubblicazione unificata e verifica Staff Test Room.
+Scope toccato · Allineamento finale di piani, fotografia, tabellone e schede vive; completamento delle procedure e preparazione all’archiviazione della chat.
 
-Contratti usati/modificati · Contratti Mission Rapid v1; funzione tecnica live MD5 `66b271669c92a89db12f497fcb4ac098`. Mission Creation preflight/create/board e “Adatta missioni” sono rimasti sui pin congelati.
+Contratti usati/modificati · Nessun contratto tecnico modificato. Riferimenti finali: `mission-rapid-publish-result/2`, client `mission-rapid-editor/2026-09-20.two-maps.4`, commit `3d251c8`.
 
-Decisioni prese / OPEN · Pubblicazione completata senza avviare la nuova missione con Riuji: due iscrizioni attive, inclusa Scorta, preservate. OPEN soltanto il run narrativo futuro con roster libero.
+Decisioni prese / OPEN · I piani storici sono completi; le task sospese precedenti non sono backlog. Nessun OPEN per l’editor rapido. Primo run giocato e nuovi requisiti sono incarichi distinti.
 
-Prove eseguite e risultato · Missione `471de6b6-1210-43fe-acb5-830670eff0df` aperta, piano approvato `6ec73695-38e7-455c-917c-425191fc939d`, una request, una recovery e due regole. Suite 172/172 complessive; review `0/0/0`; catalogo e stanza protetta verificati. Zero booking/sessioni della nuova missione e risorse PG invariate. Cinque chiamate provider, nessun Docker. Sorgenti e referti depositati su `main`, 82/82 percorsi esatti, fino a `cd7f5beef3a6e6e521383ddaf0a5916ab6175512`.
+Prove eseguite e risultato · JSON dei due piani validi; riferimenti missione, piano, build, commit e 97/97 test coerenti fra audit, SCHEDA, area e pubblicazione. Task guard finale pulito e senza drift.
 
-Rischi o regressioni da verificare · Terminale di resa non esercitato nella nuova missione per evitare conflitto con Scorta; nessuna regressione o residuo runtime rilevato.
+Rischi o regressioni da verificare · Nessuno per la chiusura documentale. L’archiviazione della chat non chiude né modifica missioni pubblicate.
 
-Passaggio richiesto al PM · Nessuno per la funzione editoriale o il deposito. Pianificare il primo run soltanto quando testperfunzioni e Riuji sono liberi dalle missioni correnti.
+Passaggio richiesto al PM · Nessuno. Archiviare la chat; per usare l’editor seguire `candidato/mission_editor_rapido/FLUSSO_UTILIZZO_EDITOR.md`.
