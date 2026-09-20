@@ -730,7 +730,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
 <meta name="tus-scorta-media-admin-build" content="SCORTA-MEDIA-ADMIN-001" />
 
   <style id="mission-rapid-editor-style">
-    .mission-rapid-editor{display:grid;gap:14px;color:var(--ink);max-width:1100px}.mission-rapid-editor *{box-sizing:border-box}.mission-rapid-editor h2,.mission-rapid-editor h3,.mission-rapid-editor h4{font-family:Cinzel,serif}.mission-rapid-editor .mr-card{border:1px solid var(--edge);border-radius:10px;padding:14px;background:rgba(255,252,244,.55)}.mission-rapid-editor .mr-subcard{border-top:1px solid var(--edge);padding:12px 0}.mission-rapid-editor label{display:grid;gap:5px;margin:9px 0;font-weight:700}.mission-rapid-editor input,.mission-rapid-editor textarea,.mission-rapid-editor select{width:100%;min-height:42px;padding:8px;border:1px solid var(--rule);border-radius:7px;background:#fffaf0;color:var(--ink);font:inherit}.mission-rapid-editor textarea{resize:vertical}.mission-rapid-editor button{min-height:42px;margin:5px 8px 5px 0}.mission-rapid-editor pre{max-height:340px;overflow:auto;white-space:pre-wrap;background:rgba(255,255,255,.45);padding:10px;border-radius:7px}.mission-rapid-editor [role=status]{white-space:pre-wrap;color:var(--red-deep)}
+    .mission-rapid-editor{display:grid;gap:14px;color:var(--ink);max-width:1100px}.mission-rapid-editor *{box-sizing:border-box}.mission-rapid-editor h2,.mission-rapid-editor h3,.mission-rapid-editor h4,.mission-rapid-editor h5{font-family:Cinzel,serif}.mission-rapid-editor .mr-card{border:1px solid var(--edge);border-radius:10px;padding:14px;background:rgba(255,252,244,.55)}.mission-rapid-editor .mr-subcard{border-top:1px solid var(--edge);padding:12px 0}.mission-rapid-editor label{display:grid;gap:5px;margin:9px 0;font-weight:700}.mission-rapid-editor input,.mission-rapid-editor textarea,.mission-rapid-editor select{width:100%;min-height:42px;padding:8px;border:1px solid var(--rule);border-radius:7px;background:#fffaf0;color:var(--ink);font:inherit}.mission-rapid-editor input[type=checkbox]{width:22px;min-height:22px}.mission-rapid-editor textarea{resize:vertical}.mission-rapid-editor button{min-height:42px;margin:5px 8px 5px 0}.mission-rapid-editor pre{max-height:340px;overflow:auto;white-space:pre-wrap;background:rgba(255,255,255,.45);padding:10px;border-radius:7px}.mission-rapid-editor .mr-preview-image{display:block;width:min(100%,760px);max-height:480px;object-fit:contain;border:1px solid var(--edge);border-radius:8px;background:#211a10}.mission-rapid-editor [role=status]{white-space:pre-wrap;color:var(--red-deep)}
   </style>
 </head>
 <body>
@@ -4221,7 +4221,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
 
 
     /* MISSION-RAPID-EDITOR JS INIZIO */
-    var missionRapidBound=false,missionRapidPicker=null,missionRapidMediaPending=new WeakMap();
+    var missionRapidBound=false,missionRapidPicker=null,missionRapidMediaPending=new WeakMap(),missionRapidContextPending=new WeakMap();
     async function missionRapidDigest(file){var bytes=await file.arrayBuffer(),hash=await crypto.subtle.digest('SHA-256',bytes);return Array.from(new Uint8Array(hash),function(x){return x.toString(16).padStart(2,'0');}).join('');}
     async function missionRapidUpload(ctx){
       if(nbeRole!=='admin'||!me||!ctx||!ctx.file)throw Error('Caricamento riservato agli Admin.');
@@ -4235,15 +4235,26 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       if(approved.error||approved.data?.media_id!==registered.media_id||approved.data?.state!=='approved'||approved.data?.active!==true)throw approved.error||Error('Approvazione immagine non confermata.');
       return{media_id:approved.data.media_id,template_version_id:registered.template_version_id,sha256:pending.sha256,state:'approved'};
     }
+    async function missionRapidContextUpload(ctx){
+      if(nbeRole!=='admin'||!me||!ctx||!ctx.file)throw Error('Caricamento del contesto riservato agli Admin.');
+      var file=ctx.file;if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size<1||file.size>4*1024*1024)throw Error('Usa PNG, JPEG o WebP fino a 4 MB.');
+      if(!['mission','phase'].includes(ctx.scope)||ctx.scope==='mission'&&ctx.phase_key!=null||ctx.scope==='phase'&&!ctx.phase_key)throw Error('Collegamento narrativo non valido.');
+      var pending=missionRapidContextPending.get(file),same=pending&&pending.draft===ctx.draft_id&&pending.scope===ctx.scope&&pending.phase===(ctx.phase_key||null);if(!same){pending={request:crypto.randomUUID(),sha256:pending?.sha256||await missionRapidDigest(file),draft:ctx.draft_id,scope:ctx.scope,phase:ctx.phase_key||null};missionRapidContextPending.set(file,pending);}
+      var session=await sb.auth.getSession(),token=session?.data?.session?.access_token;if(session.error||session?.data?.session?.user?.id!==me.id||!token)throw Error('Sessione Admin cambiata.');
+      var response=await sb.functions.invoke('mission_context_media_attest_v1',{body:file,headers:{'Content-Type':file.type,'x-mr-draft-id':ctx.draft_id,'x-mr-context-scope':ctx.scope,'x-mr-phase-key':ctx.phase_key||'','x-mr-request-key':pending.request,'x-mr-sha256':pending.sha256,'x-mr-expected-release':'mission-rapid-context-media/2026-09-20.1',Authorization:'Bearer '+token}});
+      var registered=response.data;if(!registered&&response.error?.context?.json)registered=await response.error.context.json().catch(function(){return null;});
+      if(response.error||registered?.schema_version!=='mission-rapid-context-media-registration/1'||!SCORTA_UUID.test(registered?.media_id||'')||registered?.bucket!=='location-images'||registered?.sha256!==pending.sha256)throw response.error||Error('Attestazione del contesto non confermata.');
+      return registered;
+    }
     async function bindMissionRapid(){
       var nav=$('mission-rapid-nav'),page=$('mission-rapid-page'),host=$('mission-rapid-host'),admin=nbeRole==='admin';if(!nav||!page||!host)return;nav.hidden=!admin;page.hidden=!admin;if(!admin||missionRapidBound)return;
       missionRapidBound=true;
       try{
         var modules=await Promise.all([import('./mission-rapid-editor.asset.v1.mjs'),import('./MAPPE_UI_PICKER.asset.v3.mjs')]);
         missionRapidPicker=modules[1].createMissionMapPicker({client:sb,identity:function(){return me&&me.id;},isStaff:function(){return nbeRole==='admin';}});
-        var editor=modules[0].createMissionRapidEditor({client:sb,identity:function(){return me&&me.id;},isStaff:function(){return nbeRole==='admin';},uploadMedia:missionRapidUpload,chooseMap:function(ctx){var m=ctx.compiled?.mission||{},roster={pg_count:Number(m.team_max||1),png_count:Array.isArray(ctx.compiled?.actors)?ctx.compiled.actors.length:0};return missionRapidPicker.pick(ctx.current,'Missione rapida',roster);},notice:function(text){toast(text);},onPublished:function(){loadBoards();}});
+        var editor=modules[0].createMissionRapidEditor({client:sb,identity:function(){return me&&me.id;},isStaff:function(){return nbeRole==='admin';},uploadMedia:missionRapidUpload,uploadContextMedia:missionRapidContextUpload,chooseMap:function(ctx){var m=ctx.compiled?.mission||{},counts=(ctx.compiled?.phases||[]).filter(function(p){return p.kind==='combat';}).map(function(p){return Array.isArray(p.actor_keys)?p.actor_keys.length:0;}),roster={pg_count:Number(m.team_max||1),png_count:Math.max(0,...counts)};return missionRapidPicker.pick(ctx.current,'Missione rapida',roster);},notice:function(text){toast(text);},onPublished:function(){loadBoards();}});
         await editor.mount(host);
-        window.__missionRapidAdminTest={version:modules[0].VERSION,upload:missionRapidUpload,editor:editor};
+        window.__missionRapidAdminTest={version:modules[0].VERSION,upload:missionRapidUpload,uploadContext:missionRapidContextUpload,editor:editor};
       }catch(e){missionRapidBound=false;host.textContent=(e&&e.message)||'Editor rapido non disponibile.';}
     }
     /* MISSION-RAPID-EDITOR JS FINE */

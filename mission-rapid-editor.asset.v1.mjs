@@ -1,6 +1,7 @@
-export const VERSION = 'mission-rapid-editor/2026-09-19.mvp3';
+export const VERSION = 'mission-rapid-editor/2026-09-20.two-maps.3';
 export const DRAFT_SCHEMA = 'mission-rapid-draft/1';
-export const PREVIEW_SCHEMA = 'mission-rapid-preview/1';
+export const PREVIEW_SCHEMA = 'mission-rapid-preview/2';
+export const PUBLISH_SCHEMA = 'mission-rapid-publish-result/2';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const copy = value => value == null ? value : structuredClone(value);
@@ -26,10 +27,11 @@ export function createInitialState(source = {}) {
     catalog: null,
     configuration: {
       gathering_location_id: '', village: '', tag_trama: '', actor_bindings: [],
-      map: {mode: 'default10', name: '', description: '', objects: [], positions: [], spec: null},
+      context_media: {media_id: null, scope: 'mission', phase_key: null, label: '', description: ''},
+      combat_map: {mode: 'default10', name: '', description: '', objects: [], positions: [], spec: null},
       budget: null
     },
-    uploads: [], mapUpload: null, preview: null, previewSeal: null,
+    uploads: [], contextFile: null, contextUpload: null, preview: null, previewSeal: null,
     dirty: true, busy: false, uncertainPublish: false, lastPublishRequest: null, published: null, message: ''
   };
 }
@@ -134,7 +136,18 @@ export function localBlockingErrors(state) {
     for (const [phase_key,count] of nativeByPhase) if (count>1) errors.push({code:'RULE_NATIVE_AMBIGUOUS',phase_key});
   }
   if (!UUID.test(state.configuration.gathering_location_id || '')) errors.push({code: 'LOCATION_REQUIRED'});
-  const map = state.configuration.map || {};
+  const context = state.configuration.context_media || {};
+  if (state.contextFile && context.media_id == null) errors.push({code: 'CONTEXT_MEDIA_MISSING'});
+  if (context.media_id != null) {
+    if (!UUID.test(context.media_id)) errors.push({code: 'CONTEXT_MEDIA_MISSING'});
+    if (!['mission', 'phase'].includes(context.scope)) errors.push({code: 'CONTEXT_MEDIA_SCOPE'});
+    if (context.scope === 'mission' && context.phase_key != null) errors.push({code: 'CONTEXT_MEDIA_SCOPE'});
+    if (context.scope === 'phase') {
+      const phase = state.compiled?.phases?.find(x => x.step_key === context.phase_key);
+      if (!phase || phase.kind === 'combat') errors.push({code: 'CONTEXT_MEDIA_SCOPE'});
+    }
+  }
+  const map = state.configuration.combat_map || {};
   if (!['default10', 'specific'].includes(map.mode)) errors.push({code: 'MAP_INVALID'});
   if (map.mode === 'specific' && (!clean(map.template_key) || !Number.isInteger(Number(map.template_version)) || Number(map.template_version) < 1 || map.spec?.template_key !== map.template_key)) errors.push({code: 'MAP_SPEC_REQUIRED'});
   const budget = state.configuration.budget;
@@ -149,6 +162,10 @@ export const canPublish = state => Boolean(
   state.preview.draft_version === state.controlVersion && !state.dirty && !state.busy && !state.published
 );
 
+export const isConfirmedPublishResult = result => Boolean(
+  result?.schema_version === PUBLISH_SCHEMA && result.state === 'open' && UUID.test(result.mission_id || '')
+);
+
 export function applyCompiled(state, result, catalog = state.catalog) {
   if (result?.schema_version !== 'mission-rapid-compile-state/1' && result?.schema_version !== 'mission-rapid-compile-result/1') throw Error('Risposta di compilazione non riconosciuta.');
   if (!UUID.test(result.draft_id || '') || !Number.isSafeInteger(result.control_version)) throw Error('Identità della bozza non valida.');
@@ -156,7 +173,7 @@ export function applyCompiled(state, result, catalog = state.catalog) {
   state.draftId = result.draft_id; state.controlVersion = result.control_version; state.compiled = copy(result.compiled);
   if (result.source) state.source = copy(result.source);
   state.configuration.actor_bindings = result.compiled.actors.map(actor => ({actor_key: actor.actor_key, base_bundle_id: proposeApprovedBundle(actor, catalog?.bundles || [])?.bundle_id || '', media_id: '', team: actor.team, approved: false}));
-  state.configuration.map.mode = result.compiled.map_request?.mode === 'specific' ? 'specific' : 'default10';
+  state.configuration.combat_map.mode = result.compiled.map_request?.mode === 'specific' ? 'specific' : 'default10';
   invalidatePreview(state); return state;
 }
 
@@ -169,7 +186,7 @@ export async function dispatchCompiler(client, requestKey) {
   return {confirmed: result.schema_version === 'mission-rapid-compile-result/1', result};
 }
 
-export function createMissionRapidEditor({client, identity, isStaff, uploadMedia, chooseMap, notice = () => {}, onPublished = () => {}, pollMs = 900, maxPolls = 80, runtimeBudget = null} = {}) {
+export function createMissionRapidEditor({client, identity, isStaff, uploadMedia, uploadContextMedia, chooseMap, notice = () => {}, onPublished = () => {}, pollMs = 900, maxPolls = 80, runtimeBudget = null} = {}) {
   if (!client?.rpc) throw Error('Client RPC richiesto.');
   let state = createInitialState(), host = null, epoch = 0;
   const user = () => typeof identity === 'function' ? identity() : identity;
@@ -214,16 +231,36 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
       invalidatePreview(state);
     } finally { state.busy = false; render(); }
   }
+  async function attestContextFile() {
+    if (!state.contextFile) return;
+    if (!state.draftId) { state.message = 'L’immagine di contesto è pronta: verrà attestata dopo la compilazione.'; render(); return; }
+    if (typeof uploadContextMedia !== 'function') throw Error('Caricamento del contesto narrativo non collegato.');
+    state.busy = true; setMessage('Caricamento e attestazione del contesto narrativo…');
+    try {
+      const context = state.configuration.context_media;
+      const result = await uploadContextMedia({file: state.contextFile, draft_id: state.draftId, scope: context.scope, phase_key: context.phase_key});
+      if (!UUID.test(result?.media_id || '')) throw Error('Attestazione del contesto narrativo non valida.');
+      state.contextUpload = {...copy(result), file_name: state.contextFile.name};
+      context.media_id = result.media_id;
+      state.message = 'Immagine di contesto attestata e collegata.';
+      invalidatePreview(state);
+    } finally { state.busy = false; render(); }
+  }
+  async function selectContextFile(file) {
+    state.contextFile = file || null; state.contextUpload = null; state.configuration.context_media.media_id = null;
+    invalidatePreview(state);
+    if (file) await attestContextFile(); else { state.message = 'Immagine di contesto rimossa.'; render(); }
+  }
   async function selectSpecificMap() {
     if (typeof chooseMap !== 'function') throw Error('Selettore mappa server non collegato.');
     state.busy = true; setMessage('Apro la configurazione della mappa…');
     try {
-      const result = await chooseMap({draft_id: state.draftId, compiled: copy(state.compiled), current: copy(state.configuration.map)});
+      const result = await chooseMap({draft_id: state.draftId, compiled: copy(state.compiled), current: copy(state.configuration.combat_map)});
       if (!result) { state.message = 'Selezione mappa annullata.'; return; }
       if (!clean(result.template_key) || !Number.isSafeInteger(result.template_version) || result.template_version < 1) throw Error('Versione mappa non valida.');
       const detail = await rpc('mission_map_detail_v1', {p_template: result.template_key, p_version: result.template_version});
       if (detail?.schema_version !== 'mission-map-detail/1' || detail.status !== 'ready' || detail.selectable !== true || detail.spec?.template_key !== result.template_key || detail.template_version !== result.template_version) throw Error('Dettaglio mappa non selezionabile.');
-      state.configuration.map = {...state.configuration.map, ...copy(result), mode: 'specific', spec: copy(detail.spec)};
+      state.configuration.combat_map = {...state.configuration.combat_map, ...copy(result), mode: 'specific', spec: copy(detail.spec)};
       invalidatePreview(state); state.message = 'Mappa specifica collegata; l’anteprima server ne controllerà capienza e posizioni.';
     } finally { state.busy = false; render(); }
   }
@@ -248,11 +285,11 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
         state.compileDispatched = true;
         const dispatched = await dispatchCompiler(client, state.compileRequest);
         dispatchIssue = dispatched.error || null;
-        if (dispatched.confirmed) { applyCompiled(state, dispatched.result); await loadCatalog(); state.message = 'Bozza pronta: correggi e approva prima dell’anteprima.'; return; }
+        if (dispatched.confirmed) { applyCompiled(state, dispatched.result); await loadCatalog(); if (state.contextFile) await attestContextFile(); state.message = 'Bozza pronta: correggi e approva prima dell’anteprima.'; return; }
       }
       for (let i = 0; i < maxPolls && stamp === epoch; i++) {
         const result = await rpc('mission_rapid_compile_state_v1', {p_request: state.compileRequest});
-        if (result.state === 'draft') { applyCompiled(state, result, state.catalog); await loadCatalog(); state.message = 'Bozza pronta: correggi e approva prima dell’anteprima.'; return; }
+        if (result.state === 'draft') { applyCompiled(state, result, state.catalog); await loadCatalog(); if (state.contextFile) await attestContextFile(); state.message = 'Bozza pronta: correggi e approva prima dell’anteprima.'; return; }
         if (result.state === 'failed') throw Error('Compilazione rifiutata: ' + (result.failure_code || 'errore non specificato'));
         await new Promise(resolve => setTimeout(resolve, pollMs));
       }
@@ -280,7 +317,7 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
     state.busy = true; state.lastPublishRequest ||= makeUuid(); render();
     try {
       const result = await rpc('mission_rapid_publish_v1', {p_draft: state.draftId, p_expected_version: state.controlVersion, p_preview_seal: state.previewSeal, p_request: state.lastPublishRequest});
-      if (result?.schema_version !== 'mission-rapid-publish-result/1' || result.state !== 'open' || !UUID.test(result.mission_id || '')) throw Error('Pubblicazione non confermata.');
+      if (!isConfirmedPublishResult(result)) throw Error('Pubblicazione non confermata.');
       state.published = result; state.uncertainPublish = false; state.message = 'Missione pubblicata e aperta.'; notice('Missione pubblicata'); onPublished(copy(result));
     } catch (error) {
       if (error.code && (/^(22|23)/.test(error.code) || ['40001', '42501', '55000'].includes(error.code))) state.lastPublishRequest = null;
@@ -299,6 +336,13 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
     const phases = section('Fasi e transizioni');
     state.compiled.phases.forEach((phase, i) => {
       const box = el('div', null, {class: 'mr-subcard'}); box.append(el('h4', `${i + 1}. ${phase.step_key}`), field('Titolo fase', input(phase.title, v => edit(() => phase.title = v))), field('Tipo', choice(['narrative','exploration','combat'], phase.kind, v => edit(() => phase.kind = v))), field('Obiettivo pubblico', input(phase.public_objective, v => edit(() => phase.public_objective = v), {rows: '2'})), field('Obiettivo riservato', input(phase.private_objective, v => edit(() => phase.private_objective = v), {rows: '2'})), field('Istruzioni di fase', input(phase.narrator_notes, v => edit(() => phase.narrator_notes = v), {rows: '2'})));
+      const phaseActors = el('fieldset'); phaseActors.append(el('legend', 'PNG presenti nella fase'));
+      for (const actor of state.compiled.actors) {
+        const check = el('input', null, {type: 'checkbox'}); check.checked = (phase.actor_keys || []).includes(actor.actor_key);
+        check.addEventListener('change', () => edit(() => { const keys = new Set(phase.actor_keys || []); if (check.checked) keys.add(actor.actor_key); else keys.delete(actor.actor_key); phase.actor_keys = [...keys]; }));
+        phaseActors.append(field(actorLabel(actor), check));
+      }
+      box.append(phaseActors);
       for (const transition of phase.transitions || []) { const tr = el('div', null, {class:'mr-subcard'}); tr.append(el('strong', `Passaggio · ${transition.transition_key}`), field('Quando', input(transition.when, v => edit(() => transition.when = v))), field('Destinazione', choice([['','Conclusione / nessuna'],...state.compiled.phases.map(x=>[x.step_key,x.title||x.step_key])], transition.to_step_key || '', v => edit(() => transition.to_step_key = v || null))), field('Risultato pubblico', input(transition.public_result, v => edit(() => transition.public_result = v), {rows:'2'})), field('Nota riservata', input(transition.private_note, v => edit(() => transition.private_note = v), {rows:'2'}))); box.append(tr); }
       phases.append(box);
     }); root.append(phases);
@@ -315,23 +359,55 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
       const approval = el('input', null, {type: 'checkbox'}); approval.checked = b.approved; approval.addEventListener('change', () => edit(() => b.approved = approval.checked)); box.append(field('Versione approvata dall’editore', approval)); actors.append(box);
     }
     const mediaInput = el('input', null, {type: 'file', accept: 'image/png,image/jpeg,image/webp', multiple: ''}); mediaInput.addEventListener('change', () => addActorUploads([...mediaInput.files]).catch(e => setMessage(e.message))); actors.prepend(field('Associa automaticamente immagini nominate come i PNG', mediaInput)); root.append(actors);
-    const map = section('Mappa'); const mode = el('select'); for (const x of [['default10', 'Default 10×10'], ['specific', 'Immagine specifica']]) mode.append(el('option', x[1], {value: x[0]})); mode.value = state.configuration.map.mode; mode.addEventListener('change', () => edit(() => state.configuration.map.mode = mode.value)); map.append(field('Tipo', mode));
-    if (state.configuration.map.mode === 'specific') map.append(button(state.configuration.map.template_key ? 'Cambia mappa configurata' : 'Scegli immagine e configura mappa', () => selectSpecificMap().catch(e => setMessage(e.message)), state.busy), el('p', state.configuration.map.template_key ? `${state.configuration.map.template_key} · versione ${state.configuration.map.template_version}` : 'Nessuna mappa specifica collegata.'), field('Nome', input(state.configuration.map.name, v => edit(() => state.configuration.map.name = v))), field('Dimensioni e oggetti importanti', input(state.configuration.map.description, v => edit(() => state.configuration.map.description = v), {rows: '3'})));
+    const context = section('Immagine di contesto narrativo');
+    const contextFile = el('input', null, {type: 'file', accept: 'image/png,image/jpeg,image/webp'});
+    contextFile.addEventListener('change', () => selectContextFile(contextFile.files?.[0] || null).catch(e => setMessage(e.message)));
+    const scope = choice([['mission','Intera missione'],['phase','Una fase narrativa']], state.configuration.context_media.scope, value => edit(() => { state.configuration.context_media.scope = value; state.configuration.context_media.phase_key = value === 'mission' ? null : state.compiled.phases.find(x => x.kind !== 'combat')?.step_key || null; state.configuration.context_media.media_id = null; state.contextUpload = null; }));
+    context.append(field('File di contesto · facoltativo', contextFile), field('Collegamento', scope));
+    if (state.configuration.context_media.scope === 'phase') context.append(field('Fase narrativa', choice(state.compiled.phases.filter(x => x.kind !== 'combat').map(x => [x.step_key, x.title || x.step_key]), state.configuration.context_media.phase_key || '', value => edit(() => { state.configuration.context_media.phase_key = value || null; state.configuration.context_media.media_id = null; state.contextUpload = null; }))));
+    context.append(field('Testo alternativo', input(state.configuration.context_media.label, v => edit(() => state.configuration.context_media.label = v))), field('Nota di contesto', input(state.configuration.context_media.description, v => edit(() => state.configuration.context_media.description = v), {rows: '3'})), el('p', state.contextUpload ? `${state.contextUpload.file_name} · attestata` : state.contextFile ? `${state.contextFile.name} · da attestare` : 'Nessuna immagine narrativa collegata.', {role:'status'}));
+    if (state.contextFile && !state.contextUpload) context.append(button('Attesta con questo collegamento', () => attestContextFile().catch(e => setMessage(e.message)), state.busy));
+    root.append(context);
+    const map = section('Arena di combattimento'); const mode = el('select'); for (const x of [['default10', 'Default 10×10'], ['specific', 'Immagine specifica']]) mode.append(el('option', x[1], {value: x[0]})); mode.value = state.configuration.combat_map.mode; mode.disabled = true; map.append(field('Tipo · fissato dalla compilazione', mode));
+    if (state.configuration.combat_map.mode === 'specific') map.append(button(state.configuration.combat_map.template_key ? 'Cambia arena configurata' : 'Scegli immagine e configura arena', () => selectSpecificMap().catch(e => setMessage(e.message)), state.busy), el('p', state.configuration.combat_map.template_key ? `${state.configuration.combat_map.template_key} · versione ${state.configuration.combat_map.template_version}` : 'Nessuna arena specifica collegata.'), field('Nome', input(state.configuration.combat_map.name, v => edit(() => state.configuration.combat_map.name = v))), field('Dimensioni e oggetti importanti', input(state.configuration.combat_map.description, v => edit(() => state.configuration.combat_map.description = v), {rows: '3'})));
+    else map.append(el('p', 'Il server userà la mappa 10×10 e calcolerà capienza e schieramento per ogni fase di combattimento.'));
     root.append(map);
     const rules = section('Condizioni terminali'), ruleTypes=['victory','defeat','surrender_after_exchanges','escape','protect_subject','reach_position','survive_rounds'];
     for (const rule of state.compiled.terminal_rules || []) { const box=el('div',null,{class:'mr-subcard'}); box.append(el('h4',rule.rule_key),field('Tipo',choice(ruleTypes,rule.type,v=>edit(()=>{rule.type=v;rule.threshold=['surrender_after_exchanges','survive_rounds'].includes(v)?(rule.threshold||1):null;if(v==='victory')rule.outcome='success';if(v==='defeat')rule.outcome='failure';}))),field('Fase',choice(state.compiled.phases.map(x=>[x.step_key,x.title||x.step_key]),rule.phase_key,v=>edit(()=>rule.phase_key=v))),field('Soggetto PNG/oggetto',input(rule.subject_key||'',v=>edit(()=>rule.subject_key=clean(v)||null))),field('Soglia',input(rule.threshold??'',v=>edit(()=>rule.threshold=v===''?null:Number(v)),{type:'number',min:'1',max:'99'})),field('Esito',choice([['success','Successo'],['failure','Fallimento']],rule.outcome,v=>edit(()=>rule.outcome=v))),button('Rimuovi condizione',()=>edit(()=>state.compiled.terminal_rules=state.compiled.terminal_rules.filter(x=>x!==rule))));rules.append(box); }
     rules.append(button('Aggiungi condizione',()=>edit(()=>{let n=state.compiled.terminal_rules.length+1,key=`regola_${n}`;while(state.compiled.terminal_rules.some(x=>x.rule_key===key))key=`regola_${++n}`;state.compiled.terminal_rules.push({rule_key:key,phase_key:state.compiled.phases[0].step_key,type:'victory',subject_key:null,threshold:null,outcome:'success',transition_key:null});}))); root.append(rules);
   }
+  function publicImageUrl(bucket, path) {
+    const allowedPath = bucket === 'location-images' ? /^mission-context\/[0-9a-f-]{36}\/[a-f0-9]{64}\.(png|jpg|webp)$/i.test(path || '') : bucket === 'mission-map-images' && /^mission-maps\/mission_map_[a-z0-9_]+\/v[0-9]+\/[a-f0-9]{64}\.(png|jpg|webp)$/i.test(path || '');
+    if (!allowedPath || typeof client.storage?.from !== 'function') return null;
+    const url = client.storage.from(bucket).getPublicUrl(path)?.data?.publicUrl;
+    return typeof url === 'string' && url ? url : null;
+  }
+  function renderMediaPreview(parent, media, alt) {
+    const bucket = media?.bucket || media?.background_bucket, path = media?.object_path || media?.background_path;
+    const url = publicImageUrl(bucket, path);
+    if (url) parent.append(el('img', null, {src: url, alt, class: 'mr-preview-image'}));
+    else parent.append(el('p', media ? 'Asset attestato; anteprima visuale non disponibile.' : 'Nessuna immagine collegata.'));
+  }
+  function renderArenaPreview(parent, combat) {
+    renderMediaPreview(parent, combat, 'Arena di combattimento');
+    for (const phase of combat?.placements_by_phase || []) {
+      const box = el('div', null, {class:'mr-subcard'}); box.append(el('h5', phase.step_key || 'Fase di combattimento'));
+      const list = el('ul'); for (const item of phase.placements || []) list.append(el('li', `${item.subject_key || item.actor_key || item.slot_key} · (${item.x_m}, ${item.y_m}) · ${item.kind || item.actor_kind || ''}`)); box.append(list); parent.append(box);
+    }
+  }
   function renderPreview(root) {
     if (!state.preview) return; const p = section('Anteprima obbligatoria');
     if (state.preview.errors?.length) renderErrors(p, state.preview.errors);
-    else { p.append(el('h4', 'Incipit'), el('p', state.preview.incipit || ''), el('h4', 'Sequenza fasi')); for (const phase of state.preview.phases || []) p.append(el('p', `${phase.step_key} · ${phase.public_objective || ''}`)); p.append(el('h4', 'Schede PNG'), el('pre', JSON.stringify(state.preview.actors || [], null, 2)), el('h4', 'Immagini'), el('pre', JSON.stringify(state.preview.images || [], null, 2)), el('h4', 'Mappa e partecipanti'), el('pre', JSON.stringify(state.preview.map || {}, null, 2)), el('h4', 'Condizioni terminali'), el('pre', JSON.stringify(state.preview.terminal_rules || [], null, 2)), el('h4', 'Budget Narratore'), el('pre', JSON.stringify(state.preview.budget || {}, null, 2))); }
+    else { p.append(el('h4', 'Incipit'), el('p', state.preview.incipit || ''), el('h4', 'Sequenza fasi')); for (const phase of state.preview.phases || []) p.append(el('p', `${phase.step_key} · ${phase.public_objective || ''}`)); p.append(el('h4', 'Schede PNG'), el('pre', JSON.stringify(state.preview.actors || [], null, 2)), el('h4', 'Immagini PNG'), el('pre', JSON.stringify(state.preview.images || [], null, 2)), el('h4', 'Contesto narrativo')); renderMediaPreview(p, state.preview.context_media?.asset || state.preview.context_media, state.preview.context_media?.label || 'Contesto narrativo'); p.append(el('pre', JSON.stringify(state.preview.context_media || null, null, 2)), el('h4', 'Arena, capienza e partecipanti')); renderArenaPreview(p, state.preview.combat_map); p.append(el('pre', JSON.stringify(state.preview.combat_map || {}, null, 2)), el('h4', 'Condizioni terminali'), el('pre', JSON.stringify(state.preview.terminal_rules || [], null, 2)), el('h4', 'Budget Narratore'), el('pre', JSON.stringify(state.preview.budget || {}, null, 2))); }
     root.append(p);
   }
   function render() {
     if (!host) return; host.replaceChildren(); host.classList.add('mission-rapid-editor');
     host.append(el('h2', 'Editor rapido missioni'), el('p', state.message || 'Inserisci trama, fasi e immagini. Il server mantiene l’autorità su meccaniche e pubblicazione.', {role: 'status', 'aria-live': 'polite'}));
-    const source = section('Trama e immagini'); source.append(field('Trama', input(state.source.plot, v => edit(() => { state.source.plot = v; state.compileRequest = null; state.compileDispatched = false; }), {rows: '8'})), field('Indicazioni sulle fasi · una per riga', input(state.source.phase_hints.join('\n'), v => edit(() => { state.source.phase_hints = v.split('\n').map(clean).filter(Boolean); state.compileRequest = null; state.compileDispatched = false; }), {rows: '4'})), button(state.compileRequest ? 'Riprendi compilazione' : 'Compila bozza', compile, state.busy)); host.append(source);
+    const source = section('Trama e immagini');
+    const specificMap = el('input', null, {type:'checkbox'}); specificMap.checked = state.source.has_map_image; specificMap.disabled = !!state.compileRequest; specificMap.addEventListener('change', () => edit(() => { state.source.has_map_image = specificMap.checked; state.compileRequest = null; state.compileDispatched = false; state.configuration.combat_map.mode = specificMap.checked ? 'specific' : 'default10'; }));
+    const earlyContext = el('input', null, {type:'file', accept:'image/png,image/jpeg,image/webp'}); earlyContext.disabled = state.busy; earlyContext.addEventListener('change', () => selectContextFile(earlyContext.files?.[0] || null).catch(e => setMessage(e.message)));
+    source.append(field('Trama', input(state.source.plot, v => edit(() => { state.source.plot = v; state.compileRequest = null; state.compileDispatched = false; }), {rows: '8'})), field('Indicazioni sulle fasi · una per riga', input(state.source.phase_hints.join('\n'), v => edit(() => { state.source.phase_hints = v.split('\n').map(clean).filter(Boolean); state.compileRequest = null; state.compileDispatched = false; }), {rows: '4'})), field('Immagine di contesto narrativo · facoltativa', earlyContext), field('Userò un’immagine specifica per l’arena', specificMap), button(state.compileRequest ? 'Riprendi compilazione' : 'Compila bozza', compile, state.busy)); host.append(source);
     renderCompiled(host); renderPreview(host);
     if (state.compiled) { const actions = section('Controllo finale'); actions.append(button('Salva e genera anteprima', saveAndPreview, state.busy), button(state.uncertainPublish ? 'Verifica stessa pubblicazione' : 'Pubblica e apri missione', publish, !canPublish(state))); host.append(actions); }
   }
