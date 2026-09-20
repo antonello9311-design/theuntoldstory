@@ -151,3 +151,117 @@
 - 10/09/2026 · NARRATIVE-MULTIPLICATION-LIFECYCLE-LIVE-002 · helper fineMoltiplicazione rilasciata20260910024243 e24/24pinpostesatti;claimlegacy/storiaimmutati,letturastorica42501nonbypassata · 1apply3readonly0provider,smokeUIpendente.
 - 10/09/2026 · PM-CLONE008-CHECKPOINT-022 · Clone008presa fallita nativa,Fato sfaldamento coerente,12/12risorseintatte;liberazioneNOTRUN,smokeMoltiplicazione009assegnato · 2UI/2provider9213token/6readonly,scenaaperta.
 - 10/09/2026 · PM-MOLTIPLICAZIONE009-CHECKPOINT-023 · Moltiplicazione009 conclusione server e nuvoletta PASS,12/12risorse intatte; qualità editoriale da rifinire · 3comandi/2provider10336token,scenaaperta; nessuna rigenerazione.
+- 10/09/2026 · PM-FLOW007-ASSALTO010-CHECKPOINT-025 · FusioneFlussi007 preservata ma incompatibile conPNG; Assalto010un tentativoUI/0accettati/0provider/12su12, fontegateway acquisita, feedbackCommon candidata6/6 e review in corso · Goal incompleto; scelteDiversivo ePNGpendenti.
+
+10/09/2026 · PM027 · Feedback Common001 pubblicato (28/28file, review0/0/0); smoke011 rifiuto leggibile persistente, Assalto non eseguito,12/12protezione e0provider; diagnosi statica distinta · Goal incompleto.
+
+10/09/2026 · PM-PROJECTION-REASONS-CHECKPOINT-029 · UI integrata locale dopo QA6/6 e counter0/0/0; rifiuti DB QA componente9/9,review0/0/0; recupero2 ratificato · Nessun nuovo live,rilascio e prova sito successivi; PNG/Diversivo aperti.
+
+10/09/2026 · PM-RELEASE-ASSALTO-CHECKPOINT-031 · UI030pubblicata31/31/9commit e DB002applicato;012rifiuto preciso persistente/1invio/5readonly/0provider/12su12,Assalto NON ESEGUITO; diagnosi05:32:24 conferma grantdiretto assente nel contesto attuale,correzioneautorità minima assegnata · Nessunrerun012,goal incompleto,PNG5/5 e decisioniDiversivo invariati.
+
+10/09/2026 · PM-PRIORITA-IA-PNG-STANDBY-032 · Priorità IA struttura funzionante, stile successivo su casi live completi nel repertorio; oggi PNGprova in standby e collaudi indipendenti con Riuji/testperfunzioni Staff protetta · Direttive documentali, checkpoint031 e terminalePNG5/5 preservati; visibilità001 in review,nessun test/apply.
+- 10/09/2026 · EXAM-REGIA17 avvio PM · Adattamento Esame a pannello e motore comuni autorizzato; cadenza Regia approvata, contratto e baseline in preparazione, QA solo nuovi raccordi · in lavoro, nessun nuovo rilascio o provider.
+- 10/09/2026 · EXAM-REGIA17-INTEGRATION-002 / PM-002 · congedo atomico, ripartenza e risposta SESSION integrati nelle copie UI/Edge;6/6+6/6PASS,0provider · candidato componente pronto, backend/scena e review integrata pendenti, nessun rilascio.
+- 10/09/2026 · EXAM-REGIA17-PM-DOC-003 / desktop Common e backend R0 · UI003 e anteprima desktop003 verificate graficamente, backend 16 casi refertati ROSSO/22 SQL/0 provider e recovery 70/70 PASS; review iniziale avviata, zero aggregate backend · candidato locale, nessun rilascio, obiettivo Tamako17 subordinato ai gate.
+- 10/09/2026 · EXAM-REGIA17-PM-DOC-004 · UI005 con Common unico, pannello meccanico/chat scena, barre e legenda oggetti:6/6 UI,4 gruppi browser e review0/0/0; backend R2 5/16 PASS,22 SQL / 0 provider,recovery 70/70 e controverifica2 in corso · candidato locale,nessun rilascio/livegame.
+- 10/09/2026 · EXAM-REGIA17-PM-DOC-005 · UI006/ART0016/6,review0/0/0,browser11/11 immagini con alpha reale,586.027byteasset/4ImageGen cumulative/0IAgioco; R5 finale8/16 ROSSO/22SQL/0provider,recovery73/73PASS,QA5 finale0/1/0 dopo quinta aggregata · candidato locale, nessun rilascio/gameplay, backend non completo.
+- 10/09/2026 · EXAM-REGIA17-PM-DOC-006 / NATIVE-PLAN-001 · Nuovo ordine esplicito Antonello postSTOP: preservare Sostieni→incipit unico→Round1 e adattare Regia/Fato, usando publisher PG/congedo nativo protetto e mantenendo sender check; sola aggregata supplementare ordinale6 in implementazione,16casi/80SQL/90min/0provider · storico1+5+5 e R5rosso preservati, UI006 locale invariata, dipendenze Clan pending, nessun backendverde/deploy/pronto17.
+- 10/09/2026 · EXAM-REGIA17-PM-DOC-007 · UI0076/6+review0/0/0 dopo unica aggregata labeloggetti,11asset in LAND1675888B e preview006 invariata; renderer Common usa marker senza immagini; preflight GitHubUI accessibile/main890368e,dry-run nonautenticato e0upload · backend6/poolcomunequalificato/Assalto-onlyruntimepending, storico preservato,nessun backendverde/provider/deploy/pronto17.
+- 10/09/2026 · EXAM-REGIA17-PM-DOC-008 · STOP R6 composta 3/16, 22 SQL/0 provider, review 0P0/1P1/1P2, recovery85/85/runtimeOFF/no binding attivo; P1 replay incipit e P2 tre fixture distinti dal core tecniche; UI007 e regole composte verdi locali, prova live testperfunzioni autorizzata ma non eseguita · supplemento6 consumato, nessuna nuova patch/produzione/pronto17.
+- 10/09/2026 · EXAM-REGIA17-PM-DOC-009 / R7-PLAN-001 · Antonello «Autorizzo» dopo STOPR6: una sola aggregata7 e controverifica, replay opening+3fixture/stessa16, storiaR0–R6 preservata; UI007/regole verdi locali, Assalto banco4/5 in review/vecchioINSTALL ritirato, live Safari2round7call solo dopoqualifica non eseguito · in lavoro, nessun deploy o nuovo test documentale.
+- 10/09/2026 · EXAM-REGIA17-PM-DOC-010 · Antonello sostituisce Fato unico con esitoA reale+attaccoPNG, difesaPG, esitoB e round successivo; R7 compilata sospesa prima campagna/0dinamiche, riuso in analisi e budget precedente7call da riallineare · storia preservata, nessun aumento chiamate/nuova prova/codice/deploy.
+- 10/09/2026 · EXAM-EXCHANGE-PM-DOC-011 · ExchangeV3riuso/contratto consegnato, backendinimplementazione; Edge6/6+review0/0/0, UI007compat008invariata, regoleparipeer§4.7, Assalto005/pool/legacy qualificati acquisiti; test9call/160ktoken/15min e traceprimoA ancora non eseguiti · storiaR0–R6/R7sospesa preservata, OPENfontitecniche/route/configurazione e overlayutenti,0upload/commit/deploy.
+- 10/09/2026 · EXAM-EXCHANGE-PM-DOC-012 · R7 terminale ROSSA 7/16, 22 SQL/1,919 s/0 provider; review 0P0/1P1/1P2 (lifecycle A→B e cap QA 13/17), recovery 100/100, 7 binding storici/0 attivi; nessun live o apply Esame, budget 7 esaurito e nuova aggregata soltanto proposta al PM · SOSPESO.
+- 10/09/2026 · EXAM-EXCHANGE-PM-DOC-013 · R8 INSTALLPASS, fixturewrong_qa_target prima dati:0/16raggiunti,4SQLtotali/0provider; recovery100/100+indiceoriginale/runtimeOFF/zeronuovestorie/zerodoppinonnarrati; review finale0P0/0P1/1P2, budget8consumato, nessun retry/live/apply · SOSPESO.
+- 10/09/2026 · EXAM-EXCHANGE-PM-DOC-014 · R9 ROSSA9/16,36SQL/0provider/recovery100+indicePASS/7storie/runtimeOFF; review0/0/2 (QAstate ambiguo e catalogo locale vuoto),12/13cascataG4; noaggregata10 implicita, IA+Combat+2D+premioKonoha incompleto e collaudo direttoTamako solo dopoqualifica/rilascio · SOSPESO.
+- 10/09/2026 · EXAM-EXCHANGE-PM-DOC-015 · R10 ROSSA14/16review0/0/1, duecauseR9chiuse; QA722terminalitàretroattiva errata→rollbackG5/caso13cascata, vera fineanticipata+uscitaPASS;38SQL(2live+14prep+22campagna)/0provider/recovery100+indice/7storie/OFF; nessun seguito11 o rilascio impliciti, premioKonoha/direttoTamako pendenti · SOSPESO.
+
+2026-09-10 · EXAM-LIVE60/R11/UI008 · Regia,Combat2D,Edge19 e premio nativo Konoha pubblicati e attivi;20/20 e review0/0/0,FirefoxTamako pronto;0provider,TestRoomutenti ancora distinta.
+2026-09-10 · EXAM-KONOHA-PNG-ART-001/UI009 · Kotoha e Tatsuma collegati con sprite RGBA,solo grafica;review0/0/0,root e dominio verificati,commit1b5a443393e125468ec3f613d1833cb20d9a549f.
+- 10/09/2026 · UI011 · Mappa quadrata14pollici,risorse laterali e comandi sotto; ingresso solo Sostieni incluso · commit3ee433cea5ed2f806ab7d814cce7d5230b221331,dominio verificato; nuove verifiche solo sito/TestRoom per mandato Antonello.
+
+10/09/2026 · UI013 · Layout Common, stabilità DOM, risorse PG/PNG e chat Test Room pubblicati; Flussi conservati · Pages e dominio verificati, collaudo utente in corso, commit 7ace2bc150883bda45ae85d60214d4103aa41bb6.
+
+10/09/2026 · UI014 · Mappa stabile al cambio delle scelte e nodo grafico riusato · Pubblicata, review0/0/0 e sintassi4/4, click live pendente.
+
+2026-09-10 · UI015 · Aggiorna unico e legenda essenziale con consumati barrati; review0/0/0, pubblicazione bloccata dal selettore browser · pronto da caricare.
+
+2026-09-10 · UI016 · UI015 integrata (Aggiorna unico/legenda essenziale) e ripristino risorse simulate staff; commit b29d7cd, dominio verificato, review0/0/0 · pubblicato, collaudo ripristino PM in corso.
+
+2026-09-10 · UI017 · Raccordo universale esclusa TestRoomutenti, codice0/0/0; nuoveRegie bloccate dalla configurazione arena multi · candidata nonrilasciata, decisione mappa pendente.
+
+11/09/2026 · UI019/MAP-FIGURES/UNIVERSAL-ARENA · Due pagine pubblicate daAntonello alcommit008ce2023303d2a57fb779e7986e8edc5ec2449f; byte-esatti, dominioUI019/admin e5gate verificatiattivi · consegnato; collaudogameplaydistinto.
+
+11/09/2026 · MISSION-ARENA-COMPLETION001 · Catalog/create atomico/freezeBoard applicati20260910225237 epostflight17/17;UI020+Armatura inlocale reviewverde,uploadimpedito;AIgenericcombatmancante · consegnaparziale,nessunprovider.
+
+11/09/2026 · UI020-REFRESH-COMPOSITION001 · Integrato exactdelta90341050 review0/0/0 perriletturaoffertedopoconferma;LANDfinale73cf4f74/1891267B,adminimmutata · localequalificato,nessunupload/browser.
+
+11/09/2026 · MISSION-ARENA-UI020-PUBLISH001 · Main008ce/UI019 riconciliata e coppiaUI020 intatta;ChromeGitHub autenticato,ma ilpicker mantieneApridisabilitato sul file corretto · nessunupload/commit,datiTestRoom invariati.
+
+11/09/2026 · UI020-PUBLISH001 · UI020 pubblicata11/09 con land.html e admin.html nel commit 6fcc7b25656964fa1a1de662ac871a09a3a8cd73, parent008ce2023303d2a57fb779e7986e8edc5ec2449f. Due soli file, SHA256 remoti identici ai candidati: land73cf4f74…/1891267B e admina384ae42…/399058B. Upload tramite estensione Chrome riuscito; precedente blocco del selettore nativo superato. Distribuzione e comandi sul dominio verificati; nessuna azione Combat, creazione missione, salvataggio configurazione o chiamata provider eseguita. Il ciclo IA generico resta aperto.
+
+11/09/2026 · MISSION-GENERIC-COORD001 · Contratto gruppi variabili, trigger e incontri multipli, riuso controller fasi vivo; implementazione avviata, nessun rilascio.
+
+11/09/2026 · MISSION-GENERIC-A2/UI002 · Install atomico20260911091449 e nuova Edgev1; C1/C2 verdi,18tabelle/84funzioni e11fileEdge verificati; sito d888c175/PagesSuccess e editorNodo readonly PASS; gateOFF, zero provider, QA completo pendente per PG occupati.
+
+11/09/2026 · MISSION-CREATION-A1 · Installato authoring completo e contesto narrativo/2, Edge2; sito03b589a/Pages671, correzioni premi/alias e Save/reopen reale revisione1 verificati12:28UTC · PASS editor, runtime IA OFF; Fato unico proposto, gameplay non eseguito.
+
+11/09/2026 · MISSION-CREATION-HUMAN-LEGACY-C5 · Corretto alias RPC che impediva returnnull delle questlibere proprie;20260911124157, review0/0/0 e postflightPASS · UIgatelegacyPASS nello stesso percorso attestato daownerQA, nessunasset/scena mutato.
+
+11/09/2026 · MISSION-UNIFIED-CAPACITY-INTEGRATION-001 · A1+CAP1installati, capacità49152/richiesta e45056editor, review0/0/0 e validatororiginalepositivo; UI/IAQArestano · inlavoro,gateOFF,0provider/costo.
+11/09/2026 · MISSION-UNIFIED-QA002-DELIVERY-001 · Editor revisione2 AI verificato e sei screen consegnati; avvio protetto fermo su archived, fix 0/0/0 non applicato per connettore assente · Generic OFF, zero provider/sessioni/costo.
+11/09/2026 · MISSION-UNIFIED-TEST-START-FIX-APPLY-001 · Rimosse quattro clausole `characters.archived` inesistenti nelle funzioni Generic/Creation; SQL ade4d1ac…, review0/0/0 e postflight quattro hash/backup/permessi PASS · installato direttamente e transazionalmente, Generic OFF, zero provider/gameplay.
+- 12/09/2026 · MISSION-SCORTA-GENIN-EDITORIALE-001 r1 · consolidati trama approvata, schede ridotte e otto asset per Riuji/Kirei/Hime · editoriale completo, server/test non eseguiti.
+- 12/09/2026 · MISSION-SCORTA-GENIN-CONFIG-002 · ratificati gradoD, calcoli risorse attuali e resa dopo3scambi; verificati pannelli senza salvataggi · DB prenotato da altra task, nessun collegamento nuovo o test avviato.
+- 12/09/2026 · EXAM-EDITORIAL-CONTINUITY-20260912 · prompt Esame v21 evita la ripetizione della role già pubblicata e narra i fatti nuovi server; review0/0/0, Node syntax PASS, bundle remoto verificato · esito: live, prossimo Fato Tamako da valutare,0provider di verifica.
+- 12/09/2026 · EXAM-EDITORIAL-PRESENT-20260912 · ripristinato presente narrativo e terza persona nel profilo Esame, dopo rilievo sul Fato precedente; review0/0/0, Node syntax PASS, Edge v22 remoto esatto · esito: live, prossimo Fato da valutare,0provider di verifica.
+12/09/2026 · EXAM-PANEL-FLICKER-20260912 · Stabilizzato host Esame durante il polling; 1916834 B, review 0/0/0, caricamento GitHub scelto da Antonello e verifica live pendenti.
+12/09/2026 · EXAM-PHYSICAL-ATTACK-PROMPT-20260912 · Choice002 specifica gesto e linea degli attacchi fisici PNG prima della difesa; Edge mission_narratore_ai v23, review0/0/0 e postflight27/27 · live, effetto sui prossimi attacchi da osservare; prova Tamako avanzata allo scambio2.
+12/09/2026 · EXAM-EDITORIAL-STYLE-20260912 · Profilo Fato Esame Narrative004 evita cronaca tecnica e ripetizioni, conserva sequenza server e separa i due esiti; Edge mission_narratore_ai v24, review finale0/0/0, sintassi e postflight27/27 PASS · live, prossimo Fato da valutare,0provider di verifica.
+
+- 13/09/2026 · MISSION-SCORTA-GENIN-MAPPA-007 · Arena TEST scelta e bozza a cinque fasi compilata; review P1 su resa non terminale e originale aperto, nessun salvataggio/avvio/provider · esito: preparazione locale, gate live aperti.
+-13/09/2026 · REGIA-ROLE-CONTEXT-001 · Pubblicata Genericv4: role/parlato solo contesto, nuove conseguenze e risposta PNG;3moduli,8composizioniPASS, review0/0/0,11/11remoti.0provider; sorgenti GitHub403, osservazione narrativa reale pendente.
+- 13/09/2026 · NARRATIVE-CINEMA-001 · Stile immersivo mappa/missione su Esamev27 e Regiav5; guardie editoriali riscritte,11composizioniPASS/review0/0/0/readback38file.0provider; GitHub403 in coda.
+13/09/2026 · MISSION-SCORTA-SURRENDER-CANDIDATE-008/HANDOFF-009 · Resa mission-scoped candidata dopo tre turni per lato, review statica finale0/0/0; Hime/Itsuki già chiusi e senza blocchi, missione non pubblicata su scelta di Antonello · esito: QA/apply/media/salvataggio aperti, Generic OFF.
+
+13/09/2026 · MISSION-SCORTA-LIVE-QA-011 · Resa installata inerte, missione annullata e revisione1 salvata per roster misto; prova Staff fallita sul fingerprint di arena decimale prima dei turni, runtime ripristinato OFF · esito: bloccato, nessuna pubblicazione.
+
+13/09/2026 · MISSION-MAPPE-GENERALI-DESIGN-014 · Definito contratto mappe riusabili per missioni IA/umane con dimensioni e ingressi interi facoltativi, raggio 0,5 m e limite 4PG/12PNG; candidati backend/UI avviati, correzione digest in coda · esito: design consegnato, nessun rilascio.
+
+13/09/2026 · COMBAT-ROLE-CONTEXT-001 · Combat Fato1vs1/Staff allineato Common3 con chiarezza esito; Edgev26,15/15readback,8/8composizioni,14/14sintassi, review0/0/0 · applicato, qualità prossimo Fato aperta,0provider.
+13/09/2026 · MISSION-MAP-GENERAL-INTEGRATION-019 · Candidata mappe 2–50 m/4PG12PNG con asset Edge attestato e UI CUTOUT-002 integrata, review backend/Edge e UI 0/0/0; release e QA live pendenti · esito: preparazione consegnata, nessun apply/deploy.
+
+14/09/2026 · MAP-GENERAL-STAFF-UI-20260914 · Quattro moduli e LAND pubblicati con blob 5/5 e build dominio verificato · UI Staff rilasciata, prova 10×10 aperta.
+14/09/2026 · MAP-DEFAULT10-STAFF-QA-20260914 · Template 10×10 ready, Staff 1vs1 ingresso/movimento/tecnica/Sostituzione offerta e inviata, due valutazioni Master; limite sei comandi prima dell’esito · scena chiusa e risorse/Esame invariati, collaudo parziale.
+14/09/2026 · MAP-DEFAULT10-STAFF-ROUND2-20260914 · Seconda scena Staff 10×10: attacco, Sostituzione B e voto attacco PASS; connessione interrompe voto difesa, round non risolto · scena chiusa, PG invariati, QA parziale.
+14/09/2026 · MAP-ADMIN-DEFAULT10-CANDIDATE-20260914 · Admin candidato propone 10×10 e ripiega su 20×20 senza cambiare scelte esplicite · locale, review 0/0/0 dopo una correzione; pubblicazione pendente.
+
+14/09/2026 · CONTEXT-CONTINUITY-ALL-AI-001 r2 · Regola lettura/continuità nei prompt narrativi di otto Edge, istruzioni contraddittorie riconciliate · ACTIVE e 95/95 file verificati, review 0/0/0, provider 0; GitHub 403.
+
+14/09/2026 · SCENIC-IMPACT-ALL-AI-001 r2 · Colore fisico distinto da effetti server, suoni facoltativi e inventario veti · 7 Edge pubblicate/80 file esatti, Combat27 mantenuta per prova altrui; review0/0/0,33casi,provider0; filtri lessicali invariati.
+
+14/09/2026 · COMBAT-SUBSTITUTION-NARRATIVE-001 · Esplicitato significato dei risultati server nel prompt SCENE,composto con SCENICr2 · Combat28 ACTIVE/15file esatti,review0/0/0,8casi/provider0; ricevuta dettagliata affidata DB,storico intatto.
+
+14/09/2026 · OPTICAL-COPIES-NARRATIVE-001 · Moltiplicazione: dissoluzione in fumo senza stati fisici, via veto globale copia_colpita · 7Edge live,Combat29 pendente;review0/0/0,12casi,provider0.
+
+- 15/09/2026 · SHION-PANEL-FIX-001 · candidata movimentoEsame e feedback invioCommon,13mirati+9regressioniPASS; nessunapply per coordinamentoScorta.
+16/09/2026 · MISSION-QA-THREE-EXCHANGES · Scorta Staff 1 PG/3 PNG: 6 round narrati, tre rese, Combat chiuso; cleanup d74d0a e postflight all_pass · runtime OFF, storico preservato, goal editor+resa concluso.
+16/09/2026 · MISSION-ORDINARY-RELEASE-V4-FINALIZE-20260916 · backend preflight/default e consumer v4 pubblicati, commit d0e80ce, dominio e Scorta specifica verificati · applicato inerte, postflight verde.
+17/09/2026 · NARRATORE-CLOSURE-CONSOLIDATION-20260917 · archiviati documentalmente mappe/default, mappa e QA resa Scorta e rilascio Shion; vecchie task dichiarate superate · cantiere resta in lavoro per recovery, apertura 3/3 e smoke separato.
+17/09/2026 · NARRATORE-FINALIZATION-CHECKPOINT-R2-20260917 · recovery resa riconciliata readonly con i corpi live, candidata Scorta v3 3/3 validata su radura originale e sequenza conclusiva fissata; media Book ancora assenti e gate Staff/review aperti · esito: preparazione finale consegnata, nessuna mutazione live.
+17/09/2026 · MISSION-SURRENDER-RECOVERY-REVIEW-R2 · recovery resa SHA 21242558 review indipendente VERDE P0/P1/P2 0/0/0, baseline live e trasformazioni selettive confermate; referto SHA f6a1e96dd9baadb1e70953bd418532dfe0186e60c33f07617350938d53d4dbe4 · esito: gate recovery chiuso, nessun apply.
+17/09/2026 · SCORTA-MEDIA-ATTEST-LIVE-20260917 · Admin build SCORTA-MEDIA-ADMIN-001 pubblicata, Edge attestazione v5/JWT verificata, quattro PNG caricati no-overwrite con replay, approvazione e resolver PASS; sei attestazioni e Nao/Tetsuma preservati · esito: media Scorta live, missione ancora annullata in attesa di sigillo v3/re-pin/apertura/smoke.
+17/09/2026 · SCORTA-FINAL-OPEN-20260917 · Piano Staff v3 3/3 sigillato e selezionato, resa re-pinata, missione aperta, Generic/provider attivi nel budget, Riuji iscritto 1/3; media e radura conformi, zero sessioni. Roster protetto Riuji/testperfunzioni/Tamako autorizzato ma avvio in attesa della presenza degli ultimi due nella Staff Test Room · esito: LIVE, smoke incipit pendente senza chiamate provider aggiuntive.
+17/09/2026 · TAMAKO-MASTER-ROLE-20260917 · Profilo Tamako promosso da player a master su mandato esplicito; una sola riga, personaggio/grado/villaggio/impronta invariati, conteggi admin1/master2/player94, zero provider/sessioni · esito: APPLICATO, refresh e accesso UI Staff Test Room da osservare.
+17/09/2026 · SCORTA-THREE-PG-SMOKE-20260917 · Roster Riuji/testperfunzioni/Tamako presente e selezionabile; unico avvio respinto MGB_STAFF_ROSTER_POLICY dalla policy live 1–2 principal e whitelist a due; zero sessioni/provider, risorse invariate · esito: SOSPESO, correzione DB minima e nuovo smoke da approvare.
+
+17/09/2026 · SCORTA-STAFF-ROSTER3-FIX-20260917 · Gate Staff esteso a Riuji/testperfunzioni/Tamako, review0/0/0 e avvio 3PG PASS; Edge stabile v14 rimuove preflight scaduto · work incipit ready, policy narrativa nativa OFF, zero provider; handoff a enable temporaneo.
+17/09/2026 · SCORTA-RUNTIME-SMOKE-20260917 · Incipit Full IA 3 PG PASS: 5.136 token, 0,00286075 USD, radura/media corretti; prova chiusa, risorse invariate e runtime ripristinato OFF · consegnato
+17/09/2026 · MISSION-GENERIC-OUTPUT20K-20260917 · Edge Generic v16 e policy/claim DB portate a 20.000 output token con budget 14 chiamate e fail-safe 65.536 byte; review finale 0/0/0, postflight inattivo e zero provider · esito: LIVE qualificato, smoke protetto sei attori pendente.
+17/09/2026 · MISSION-GENERIC-EDITORIAL-CLEAR-20260917 · Narratore missioni v17 distingue incipit/raccordo/esito e riceve roster/profili PNG; 14/14, review finale 0/0/0, replay Staff immutabile e 11/11 file live esatti · esito: LIVE qualificato, prima nuova prosa da osservare.
+18/09/2026 · MISSION-EDITORIAL-DIALOGUE-LIVE-20260918 · Generic v22/editorial-dialogue.3 e rank PG live; review0/0/0, 18/18, due raccordi Luna pubblicati, 23.582 token e 0,00921525 USD, runtime ripristinato OFF · esito: QA missione positivo su conoscenze/dialogo/continuità, residuo massimo-un-dettaglio non verbale aperto.
+19/09/2026 · MISSION-NPC-LIFECORE-AUDIT-20260919 · Edge Generic v24 e Life Core/audit privato live; review0/0/0, 31/31, smoke Staff 2/2 con 17.018 token e 0,008801 USD, claim ripristinata e admission OFF · esito: funzione PASS, continuità tronco PARZIALE e sessione Staff da chiudere via percorso ordinario.
+19/09/2026 · MISSION-LIFECORE-MULTIQUESTION-QA-20260919 · Due domande Riuji/Tamako pubblicate nello stesso intervallo; sessione già terminale senza can_tick, zero provider/Combat, admission ripristinata OFF 2/0.104576 · esito: SOSPESO, ripetere in nuova fase narrativa con due chiamate.
+19/09/2026 · MISSION-ROLE-WINDOW-FINAL-20260919 · Edge Generic v27 role-window live; test 40/40+34/34 e review0/0/0, zero provider; sessione Staff chiusa con SQL 00205def e postflight completo · esito: applicato inerte, prova corrente conclusa, osservazione Luna multi-domanda alla prossima missione attiva.
+19/09/2026 · MISSION-RAPID-RELEASE-043 · Editor rapido client/backend live; Staff 4/4 chiamate ha rivelato e corretto threshold JSON null e alias PL/pgSQL, due review0/0/0, validatore vivo positivo e Adatta invariata · esito: in lavoro, flusso E2E da ripetere con una nuova chiamata nominata.
+20/09/2026 · MISSION-RAPID-FINAL-RELEASE-063 · Quinta compilazione, immagine PNG, anteprima e publish unico completati; missione 471de6b6 aperta, piano approvato, recovery e due terminali, suite172/172 e review0/0/0 · esito: editor in uso tecnico, zero sessioni/risorse PG toccate e Scorta/Adatta missioni preservata.
