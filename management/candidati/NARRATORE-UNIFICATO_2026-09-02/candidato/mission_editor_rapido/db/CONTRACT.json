@@ -1,0 +1,100 @@
+{
+  "schema_version": "mission-rapid-db-contract/1",
+  "release": "mission-rapid-db/2026-09-19.mvp4",
+  "authority": {
+    "editorial_ai": ["mission", "phases", "actors", "terminal_rules", "map_request"],
+    "server_only": ["statistics", "pv", "chakra", "techniques", "bundle_versions", "media_attestations", "map_capacity", "preview_seal", "mission_plan", "publication", "recovery_receipt", "terminal_facts", "terminal_transition"],
+    "client": "renders proposals and sends editor choices; never supplies authoritative mechanics"
+  },
+  "draft": {
+    "schema_version": "mission-rapid-draft/1",
+    "required": ["source", "compiled", "configuration"],
+    "configuration": {
+      "required": ["gathering_location_id", "village", "tag_trama", "actor_bindings", "map", "budget"],
+      "actor_binding": {
+        "required": ["actor_key", "base_bundle_id", "media_id", "team", "approved"],
+        "team_values": ["alleati", "avversari", "civili"],
+        "rules": [
+          "base_bundle_id references a certified, active, adopted PNG Builder bundle whose Ninja Book identities already exist and are approved",
+          "media_id references an attestation for the same narrative template and version",
+          "approved must be true before preview can seal",
+          "identity, personality, behavior, knowledge and limits are a mission-scoped editorial overlay; mechanics, PV, chakra and techniques remain those of the approved source profile"
+        ]
+      },
+      "map": {
+        "modes": ["default10", "specific"],
+        "specific_required": ["template_key", "template_version", "spec"],
+        "preview_authority": "the server rereads mission_map_detail_v1 for the exact key/version, requires ready/selectable and exact spec equality, then blocks invalid geometry or insufficient capacity",
+        "default": "mission_map_bind_3ac00867783c8910b81a43b61015ce0b@1"
+      },
+      "budget": {
+        "required": ["max_calls", "max_cost_usd", "max_input_tokens", "max_output_tokens"],
+        "limits": {"max_calls": 64, "max_input_tokens": 49152, "max_output_tokens": 20000},
+        "rule": "the preview seals only the exact values currently admitted by Mission Generic and mission_narrative runtime policies"
+      }
+    }
+  },
+  "terminal_rules": {
+    "types": ["victory", "defeat", "surrender_after_exchanges", "escape", "protect_subject", "reach_position", "survive_rounds"],
+    "stored_as_data": true,
+    "native_inputs": ["narrated combat rounds", "native actor state", "current spatial actor state", "movement_settled event", "native object state", "completed Combat audit event"],
+    "result": ["matched", "rule_key", "outcome", "transition_key"],
+    "authority": "private server helper called by the pinned Mission Generic progress loop; no JSON event endpoint is executable by client or service_role",
+    "semantic_constraints": [
+      "victory always has success outcome",
+      "defeat always has failure outcome",
+      "escape, protect_subject and reach_position require a stable subject_key",
+      "surrender_after_exchanges and survive_rounds require an integer threshold from 1 to 99",
+      "every rule belongs to a combat phase",
+      "reach_position requires current geometric intersection after a committed movement_settled event",
+      "for mechanical phases the exact same normalized actor JSON array is used by the scene and its encounter; allies and civilians join pg_team while at least one opponent remains",
+      "multiple simultaneous native matches fail closed",
+      "at most one non-standard native rule is allowed for each combat phase in the MVP"
+    ]
+  },
+  "rpc": [
+    {"name":"mission_rapid_compile_request_v1","args":["p_request uuid","p_source jsonb"],"role":"authenticated","mutation":"idempotently creates a private queued draft"},
+    {"name":"mission_rapid_compile_state_v1","args":["p_request uuid"],"role":"authenticated","mutation":"readonly owner/staff state"},
+    {"name":"mission_rapid_catalog_v1","args":[],"role":"authenticated","mutation":"readonly adopted bundles whose exact mechanical binding and version are approved, including authoritative stats, PV, chakra and supported abilities; Mission Creation and map catalogs; exact current runtime budget"},
+    {"name":"mission_rapid_media_ticket_v1","args":["p_draft uuid","p_actor_key text","p_bundle uuid","p_request uuid","p_sha256 text","p_bytes bigint","p_mime text"],"role":"authenticated admin","mutation":"creates an expiring idempotent upload ticket bound to the owned draft, actor and adopted bundle"},
+    {"name":"mission_rapid_media_register_v1","args":["p_request uuid","p_sha256 text","p_bytes bigint","p_mime text","p_width integer","p_height integer"],"role":"service_role","mutation":"registers verified uploaded bytes as a review-state Ninja Book media version"},
+    {"name":"mission_rapid_compile_claim_v1","args":["p_user uuid","p_request uuid"],"role":"service_role","mutation":"claims one queued job and returns server policy plus source"},
+    {"name":"mission_rapid_compile_complete_v1","args":["p_user uuid","p_request uuid","p_document jsonb","p_telemetry jsonb"],"role":"service_role","mutation":"stores validated compiler output"},
+    {"name":"mission_rapid_compile_reject_v1","args":["p_user uuid","p_request uuid","p_code text","p_provider_calls integer"],"role":"service_role","mutation":"records a terminal failure without retry"},
+    {"name":"mission_rapid_draft_save_v1","args":["p_draft uuid","p_expected_version bigint","p_document jsonb"],"role":"authenticated","mutation":"CAS save; clears preview seal"},
+    {"name":"mission_rapid_preview_v1","args":["p_draft uuid","p_expected_version bigint"],"role":"authenticated","mutation":"validates all live dependencies and seals exact preview basis"},
+    {"name":"mission_rapid_publish_v1","args":["p_draft uuid","p_expected_version bigint","p_preview_seal text","p_request uuid"],"role":"authenticated","mutation":"idempotent atomic resolve of approved PNG profiles plus mission overlay, seal/select plan, bind rules/media/map, prepare recovery and open board"}
+  ],
+  "preview": {
+    "schema_version": "mission-rapid-preview/1",
+    "required": ["draft_id", "draft_version", "incipit", "phases", "actors", "images", "map", "terminal_rules", "budget", "errors", "preview_seal"],
+    "blocking_errors": ["PNG_UNAPPROVED", "BUNDLE_NOT_CERTIFIED", "BUNDLE_NOT_ACTIVE", "MECHANICS_NOT_APPROVED", "MEDIA_MISSING", "MEDIA_TEMPLATE_MISMATCH", "TECHNIQUE_UNSUPPORTED", "MAP_INVALID", "MAP_CAPACITY", "BUDGET_RUNTIME_MISMATCH", "REFERENCE_INVALID"]
+  },
+  "publication": {
+    "schema_version": "mission-rapid-publish-result/1",
+    "atomic": true,
+    "idempotency": "request UUID plus fingerprint",
+    "steps": ["revalidate preview basis", "resolve approved Ninja Book profiles and mission-scoped editorial overlays", "create and seal mission plan", "bind media, map and terminal rules", "store recovery receipt", "open board", "return mission and plan versions"],
+    "failure": "transaction rollback leaves draft editable and mission unopened"
+  },
+  "security": {
+    "private_schema": "mission_rapid_owner",
+    "tables": "RLS enabled and all privileges revoked from PUBLIC, anon and authenticated",
+    "public_functions": "SECURITY DEFINER, search_path empty, explicit grants; legacy mission_rapid_terminal_evaluate_v1 is an always-deny stub with no callable grant",
+    "runtime_composition": "progress_step is patched only from the exact live definition MD5; the first branch returns null for every mission without active rapid terminal rules; recovery restores the byte-equivalent stored function definition only if no later drift exists",
+    "staff_gate": "mission_ai_board_owner.staff_only()",
+    "media": "the existing named Scorta branch is unchanged; mission uploads use a separate private ticket ledger and the same png_media_attest_v1 Edge with no client Storage write",
+    "delete": false
+  },
+  "upstream_compatibility": {
+    "mission_generic_build": "mission-generic-ai/2026-09-19.role-window.1",
+    "mission_generic_progress_definition_md5": "0bc40e0ff963c26a63e218f2aa95dd94",
+    "encounter_actor_scope": "every encounter actor must be JSON-exactly present in scenes[].actors",
+    "composition": "mechanical scenes and their encounter reuse scene_actors without reconstructing either JSON array"
+  },
+  "test_environment": {
+    "docker": false,
+    "functional": "Staff Test Room protected path after static review and reserved release",
+    "stop_conditions": ["real character resource write", "authorization bypass", "unexpected external session", "provider budget exceeded"]
+  }
+}

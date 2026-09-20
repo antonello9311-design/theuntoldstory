@@ -1,0 +1,32 @@
+begin;
+
+do $apply$
+declare
+ current_definition text;
+ current_md5 text;
+ result_md5 text;
+ old_token constant text:='actor->';
+ new_token constant text:='q.editorial_actor->';
+ old_alias constant text:='q(actor) on true';
+ new_alias constant text:='q(editorial_actor) on true';
+begin
+ select pg_get_functiondef(p.oid),md5(p.prosrc) into strict current_definition,current_md5 from pg_proc p
+ where p.oid='mission_rapid_owner.technical_document(mission_rapid_owner.drafts,jsonb)'::regprocedure;
+ if current_md5='6ff11ad4312d7acf2f89f7f3498e47fc' then return;end if;
+ if current_md5<>'bb89a4e690197e5103a19002896779e9'
+  or (length(current_definition)-length(replace(current_definition,old_token,'')))/length(old_token)<>6
+  or (length(current_definition)-length(replace(current_definition,old_alias,'')))/length(old_alias)<>1
+ then raise exception 'MR_TECHNICAL_ACTOR_ALIAS_BASELINE_DRIFT' using errcode='40001';end if;
+ if md5((select prosrc from pg_proc where oid='mission_rapid_owner.preview_for(mission_rapid_owner.drafts)'::regprocedure))<>'c988923b347cc600b85bb215ea025663'
+  or md5((select prosrc from pg_proc where oid='public.mission_creation_preflight_v2(jsonb)'::regprocedure))<>'2bfa56c88e45c52eb4495ee1f7c5d870'
+  or md5((select prosrc from pg_proc where oid='public.mission_create_complete_v1(uuid,jsonb)'::regprocedure))<>'8a512021ec0335f6eddb8b859607b056'
+ then raise exception 'MR_TECHNICAL_ACTOR_ALIAS_DEPENDENCY_DRIFT' using errcode='40001';end if;
+ execute replace(replace(current_definition,old_token,new_token),old_alias,new_alias);
+ select md5(p.prosrc) into strict result_md5 from pg_proc p
+ where p.oid='mission_rapid_owner.technical_document(mission_rapid_owner.drafts,jsonb)'::regprocedure;
+ if result_md5<>'6ff11ad4312d7acf2f89f7f3498e47fc'
+ then raise exception 'MR_TECHNICAL_ACTOR_ALIAS_INSTALL_MISMATCH' using errcode='40001';end if;
+end
+$apply$;
+
+commit;
