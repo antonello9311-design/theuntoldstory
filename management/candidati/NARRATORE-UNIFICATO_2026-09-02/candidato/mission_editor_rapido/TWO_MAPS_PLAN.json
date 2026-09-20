@@ -1,0 +1,163 @@
+{
+  "id": "MISSION-RAPID-TWO-MAPS-20260920",
+  "title": "Separare contesto narrativo e arena nell'editor rapido",
+  "max_parallel": 1,
+  "status": "complete",
+  "completed_at": "2026-09-20",
+  "completion": {
+    "closing_task": "MISSION-RAPID-TWO-MAPS-CLOSE-092",
+    "mission_id": "9fde6256-e33a-4057-bc55-63fa304bf5ba",
+    "plan_version_id": "db7626b5-a7a8-41de-b73f-5a6d82bdf636",
+    "client_version": "mission-rapid-editor/2026-09-20.two-maps.4",
+    "commit": "3d251c8",
+    "tests": "97/97 PASS",
+    "result": "Contesto narrativo e arena meccanica separati in anteprima e pubblicazione; capienza 2 PG + 3 PNG; Adatta missioni invariato."
+  },
+  "tasks": [
+    {
+      "id": "MISSION-RAPID-TWO-MAPS-CONTRACT-067",
+      "title": "Congelare contratto, baseline e pin di non interferenza",
+      "owner": "PM-MISSION-RAPID",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": [],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/TWO_MAPS_CONTRACT.md"
+      ],
+      "resources": ["schema:contratto:mission-rapid-two-maps"],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/CONTRATTO_MVP.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/db/INSTALL.sql",
+        "sito_live/mission-creation-ui.general.asset.v4.mjs"
+      ],
+      "acceptance": [
+        "Asset narrativo e arena hanno autorità, storage, preview e pubblicazione distinti",
+        "Le tre porte Mission Creation di Adatta missioni restano sui pin vivi"
+      ],
+      "authorization": "Mandato Antonello 20/09/2026; SQL dopo approvazione esplicita del piano mostrato",
+      "budget": {"minutes": 45, "cases": 8, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-TWO-MAPS-BACKEND-068",
+      "title": "Implementare media di contesto, preview v2 e pubblicazione separata",
+      "owner": "DB-MISSION-RAPID",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-TWO-MAPS-CONTRACT-067"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/two_maps/INSTALL.sql",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/two_maps/RECOVERY.sql",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/two_maps/CONTRACT.json",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/two_maps/mission_context_media_attest_v1/index.ts",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/two_maps/mission_context_media_attest_v1/runtime.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/two_maps/backend.test.mjs"
+      ],
+      "resources": [
+        "schema:contratto:mission-rapid-two-maps-db",
+        "edge:mission_context_media_attest_v1"
+      ],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/TWO_MAPS_CONTRACT.md"
+      ],
+      "acceptance": [
+        "Contesto attestato solo via Edge e conservato in tabelle private",
+        "Anteprima calcola capienza e posizioni per ogni fase di combattimento",
+        "Pubblicazione e recovery conservano contesto e arena separati",
+        "GRANT espliciti e pin condivisi verificati"
+      ],
+      "authorization": "Da registrare soltanto dopo approvazione esplicita del piano SQL",
+      "budget": {"minutes": 180, "cases": 24, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-TWO-MAPS-UI-069",
+      "title": "Estendere editor, anteprima visuale e guida d'uso",
+      "owner": "LAND-MISSION-RAPID",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-TWO-MAPS-CONTRACT-067"],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/ui/mission-rapid-editor.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/ui/mission-rapid-editor.asset.v1.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/ui/admin.html",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/ui/mission-rapid-editor.test.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/ui/admin-integration.test.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/FLUSSO_UTILIZZO_EDITOR.md"
+      ],
+      "resources": ["schema:contratto:mission-rapid-two-maps-ui"],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/TWO_MAPS_CONTRACT.md"
+      ],
+      "acceptance": [
+        "Due selettori distinti per immagine narrativa e arena",
+        "Anteprima mostra entrambe e marker nominati",
+        "Flusso d'uso completo documentato"
+      ],
+      "authorization": "Mandato Antonello 20/09/2026; integrazione condivisa solo dopo riconciliazione",
+      "budget": {"minutes": 150, "cases": 24, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-TWO-MAPS-REVIEW-070",
+      "title": "Review indipendente e matrice statica integrata",
+      "owner": "QA-PLAYTEST",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": [
+        "MISSION-RAPID-TWO-MAPS-BACKEND-068",
+        "MISSION-RAPID-TWO-MAPS-UI-069"
+      ],
+      "files": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/two_maps/REVIEW.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/two_maps/RESULT.json"
+      ],
+      "resources": [],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/two_maps/INSTALL.sql",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/ui/mission-rapid-editor.mjs"
+      ],
+      "acceptance": [
+        "Referto 0/0/0 o finding aggregati entro il budget del cantiere",
+        "Test coprono separazione, drift, capienza, posizioni e idempotenza"
+      ],
+      "authorization": "Review richiesta da AGENTS; nessun provider",
+      "budget": {"minutes": 90, "cases": 32, "provider_calls": 0}
+    },
+    {
+      "id": "MISSION-RAPID-TWO-MAPS-RELEASE-071",
+      "title": "Applicare, pubblicare e collaudare nella Staff Test Room",
+      "owner": "PM-RELEASE-QA",
+      "cantiere": "NARRATORE-UNIFICATO_2026-09-02",
+      "priority": 0,
+      "depends_on": ["MISSION-RAPID-TWO-MAPS-REVIEW-070"],
+      "files": [
+        "sito_live/admin.html",
+        "sito_live/mission-rapid-editor.asset.v1.mjs",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/two_maps/LIVE_QA.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/HANDOFF.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/SCHEDA.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/HANDOFF.md",
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/STORICO.md",
+        "dossier/aree/MISSIONI_IA.md",
+        "dossier/aree/PIATTAFORMA.md",
+        "dossier/aree/PUBBLICAZIONE.md"
+      ],
+      "resources": [
+        "db:produzione",
+        "edge:mission_context_media_attest_v1",
+        "browser:chrome",
+        "staff:room",
+        "github:main"
+      ],
+      "inputs": [
+        "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/mission_editor_rapido/two_maps/RESULT.json"
+      ],
+      "acceptance": [
+        "Una bozza con due immagini supera anteprima e pubblicazione",
+        "Staff Test Room mostra contesto e arena separati con roster collocato",
+        "Risorse dei PG e sessioni estranee restano invariate",
+        "Pin Adatta missioni invariati nel postflight"
+      ],
+      "authorization": "Mandato autonomo Antonello 20/09/2026; nessun Docker; collaudo live protetto",
+      "budget": {"minutes": 150, "cases": 12, "provider_calls": 1}
+    }
+  ]
+}
