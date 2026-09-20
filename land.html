@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-SABAKU-ARMOR-021" />
+  <meta name="tus-build" content="LAND-SABAKU-ARMOR-PASSIVE-022" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3553,16 +3553,23 @@ function renderPanelSabaku(root,envelope,{compact=false}={}){
   if(t.active){const end=t.expires_context;if(!i.active||t.movement_bonus_m!==5||r.committed<5||!exact(end,['kind','id','label'])||!['ordinary_exchange','master_actor_turn'].includes(end.kind)||!uuid(end.id)||typeof end.label!=='string'||!end.label.trim())return fail();}
   else if(t.movement_bonus_m!==0||t.expires_context!==null)return fail();
   const armor=value.armor;
-  const armorReasons={manual_off:'Disattivata volontariamente.',insufficient_sand:'Sabbia insufficiente per ricomporre l’armatura.',insufficient_chakra:'Chakra insufficiente per mantenere l’armatura.',innata_off:'Controllo della Sabbia disattivato.',owner_inoperative:'L’utilizzatore non può mantenere l’armatura.',owner_ko:'L’utilizzatore è fuori combattimento.',owner_absent:'L’utilizzatore non è più nella scena.',combat_end:'Lo scontro è terminato.',release_disabled:'Armatura al momento non disponibile.'};
+  const armorReasons={consumed:'Rivestimento consumato: ripristino automatico all’inizio del prossimo turno.',manual_off:'Passiva disattivata volontariamente.',insufficient_sand:'Sabbia insufficiente: il ripristino resta in attesa.',insufficient_chakra:'Chakra insufficiente: il ripristino resta in attesa.',innata_off:'Controllo della Sabbia disattivato.',owner_inoperative:'L’utilizzatore non può mantenere l’armatura.',owner_ko:'L’utilizzatore è fuori combattimento.',owner_absent:'L’utilizzatore non è più nella scena.',combat_end:'Lo scontro è terminato.',release_disabled:'Armatura al momento non disponibile.'};
   if(Object.hasOwn(value,'armor')){
-    if(!exact(armor,['version','active','held','protection','upkeep_chakra','state_version','off_reason'])||armor.version!=='sabaku-armor-view/1'||typeof armor.active!=='boolean'||armor.held!==(armor.active?2:0)||armor.upkeep_chakra!==5||!integer(armor.state_version)||(armor.protection!==null&&(!integer(armor.protection)||armor.protection<10))||(armor.off_reason!==null&&!Object.hasOwn(armorReasons,armor.off_reason)))return fail();
+    const legacy=exact(armor,['version','active','held','protection','upkeep_chakra','state_version','off_reason'])&&armor.version==='sabaku-armor-view/1';
+    const passive=exact(armor,['version','enabled','active','restore_pending','held','protection','upkeep_chakra','restore_sand','state_version','off_reason'])&&armor.version==='sabaku-armor-view/2';
+    if(!(legacy||passive)||typeof armor.active!=='boolean'||(passive&&(typeof armor.enabled!=='boolean'||armor.restore_pending!==(armor.enabled&&!armor.active&&i.active)||armor.active&&!armor.enabled||armor.restore_sand!==2))||armor.held!==(armor.active?2:0)||armor.upkeep_chakra!==5||!integer(armor.state_version)||(armor.protection!==null&&(!integer(armor.protection)||armor.protection<10))||(armor.off_reason!==null&&!Object.hasOwn(armorReasons,armor.off_reason)))return fail();
     if(armor.active&&(!i.active||armor.protection===null||r.committed<armor.held||armor.off_reason!==null))return fail();
   }
   const renderArmor=()=>{
     if(armor===undefined)return;
-    add('h4','Armatura di Sabbia · '+(armor.active?'attiva':'inattiva'));
-    if(armor.protection!==null)add('p',`Difesa dell’armatura: ${armor.protection}.`);
-    add('p',`Mantenimento: ${armor.upkeep_chakra} chakra per turno · Sabbia impegnata: ${armor.held}.`);
+    const enabled=armor.version==='sabaku-armor-view/1'?armor.active:armor.enabled;
+    const pending=armor.version==='sabaku-armor-view/2'&&armor.restore_pending;
+    const restoreSand=armor.version==='sabaku-armor-view/2'?armor.restore_sand:2;
+    const state=armor.active?'attiva':enabled?(pending?'abilitata · in ripristino':'abilitata'):'disattivata';
+    add('h4','Armatura di Sabbia · '+state);
+    if(armor.protection!==null)add('p',`Protezione dell’armatura: ${armor.protection}.`);
+    add('p',`Mantenimento: ${armor.upkeep_chakra} chakra per turno · Ripristino: ${restoreSand} sabbia · Sabbia impegnata: ${armor.held}.`);
+    if(pending)add('p',`Al prossimo turno tenta il ripristino con ${armor.upkeep_chakra} chakra e ${restoreSand} sabbia.`);
     if(!armor.active&&armor.off_reason!==null)add('p',armorReasons[armor.off_reason]);
   };
   if(compact){
