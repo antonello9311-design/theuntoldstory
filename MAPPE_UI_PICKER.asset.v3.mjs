@@ -1,5 +1,5 @@
 import { createGeneralMapForm } from './MAPPE_UI_FORM.mjs';
-import { BUCKET, createMapAssetInput, createMapAssetPanel, specWithMapAsset, backgroundUrlFromCatalog } from './MAPPE_UI_ASSET.v2.mjs';
+import { BUCKET, createMapAssetInput, createMapAssetPanel, specWithMapAsset, backgroundUrlFromCatalog } from './MAPPE_UI_ASSET.v2.mjs?v=20260920-preview-fallback-1';
 
 export const VERSION = 'mission-map-picker/default10-candidate-3';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

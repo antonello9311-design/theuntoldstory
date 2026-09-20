@@ -98,6 +98,10 @@ export function backgroundUrlFromCatalog(client, row) {
   return url;
 }
 
+export function localPreviewUrl(URLObject, file) {
+  return typeof URLObject?.createObjectURL === 'function' ? URLObject.createObjectURL(file) : null;
+}
+
 export function createMapAssetInput(host, { onSelected = () => {}, URLObject = globalThis.URL } = {}) {
   if (!host?.ownerDocument) throw Error('Contenitore asset non disponibile.');
   const doc = host.ownerDocument;
@@ -108,7 +112,7 @@ export function createMapAssetInput(host, { onSelected = () => {}, URLObject = g
   const status = doc.createElement('p'); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
   host.append(label, preview, status);
   let objectUrl = null, sequence = 0, selected = null;
-  const clear = () => { if (objectUrl) URLObject.revokeObjectURL(objectUrl); objectUrl = null; preview.removeAttribute('src'); preview.hidden = true; selected = null; };
+  const clear = () => { if (objectUrl && typeof URLObject?.revokeObjectURL === 'function') URLObject.revokeObjectURL(objectUrl); objectUrl = null; preview.removeAttribute('src'); preview.hidden = true; selected = null; };
   input.addEventListener('change', async () => {
     const stamp = ++sequence; clear(); const file = input.files?.[0];
     if (!file) { status.textContent = 'Nessuna immagine selezionata.'; onSelected(null); return; }
@@ -116,7 +120,8 @@ export function createMapAssetInput(host, { onSelected = () => {}, URLObject = g
     try {
       const inspected = await inspectMapRaster(file);
       if (stamp !== sequence) return;
-      objectUrl = URLObject.createObjectURL(file); preview.src = objectUrl; preview.hidden = false;
+      objectUrl = localPreviewUrl(URLObject, file);
+      if (objectUrl) { preview.src = objectUrl; preview.hidden = false; }
       selected = { file, inspected }; status.textContent = 'Anteprima locale pronta. Il caricamento non è ancora avvenuto.';
       onSelected(selected);
     } catch (error) { if (stamp === sequence) { status.textContent = error.message; onSelected(null); } }
