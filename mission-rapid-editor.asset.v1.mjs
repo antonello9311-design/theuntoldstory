@@ -1,4 +1,4 @@
-export const VERSION = 'mission-rapid-editor/2026-09-20.two-maps.3';
+export const VERSION = 'mission-rapid-editor/2026-09-20.two-maps.4';
 export const DRAFT_SCHEMA = 'mission-rapid-draft/1';
 export const PREVIEW_SCHEMA = 'mission-rapid-preview/2';
 export const PUBLISH_SCHEMA = 'mission-rapid-publish-result/2';
@@ -71,6 +71,15 @@ export function autoLinkMedia(actors = [], uploads = []) {
   }
   for (const upload of uploads) if (![...Object.values(linked)].includes(upload) && !ambiguous.some(a => a.uploads.includes(upload.media_id || upload.file_name))) unassigned.push(upload);
   return {linked, ambiguous, unassigned};
+}
+
+export function compatibleActorUploads(uploads = [], bindings = [], actorKey = '') {
+  const target = bindings.find(binding => binding.actor_key === actorKey);
+  return uploads.filter(upload => {
+    if (upload.actor_key === actorKey) return true;
+    const owner = bindings.find(binding => binding.actor_key === upload.actor_key);
+    return Boolean(target?.base_bundle_id && owner?.base_bundle_id === target.base_bundle_id);
+  });
 }
 
 export function proposeApprovedBundle(actor, bundles = []) {
@@ -353,7 +362,8 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
       for (const [label,path] of [['Conoscenze pubbliche','public_knowledge'],['Conoscenze riservate','private_knowledge'],['Limiti','limits']]) box.append(field(label,input((actor[path]||[]).join('\n'),v=>edit(()=>actor[path]=v.split('\n').map(clean).filter(Boolean)),{rows:'3'})));
       const bundle = el('select'); bundle.append(el('option', 'Scegli profilo approvato…', {value: ''})); for (const x of state.catalog?.bundles || []) bundle.append(el('option', `${x.display_name || x.bundle_id} · ${mechanicalSummary(x)}`, {value: x.bundle_id})); bundle.value = b.base_bundle_id; bundle.addEventListener('change', () => edit(() => b.base_bundle_id = bundle.value)); box.append(field('Profilo meccanico approvato', bundle));
       if (b.base_bundle_id) box.append(el('p', `Bozza meccanica proposta: ${mechanicalSummary((state.catalog?.bundles || []).find(x => x.bundle_id === b.base_bundle_id))}`));
-      const media = el('select'); media.append(el('option', 'Scegli immagine attestata…', {value: ''})); for (const x of state.uploads.filter(x => x.actor_key === actor.actor_key)) media.append(el('option', x.file_name, {value: x.media_id})); media.value = b.media_id; media.addEventListener('change', () => bindUpload(actor.actor_key, media.value)); box.append(field('Immagine', media));
+      const compatibleUploads = compatibleActorUploads(state.uploads, state.configuration.actor_bindings, actor.actor_key);
+      const media = el('select'); media.append(el('option', 'Scegli immagine attestata…', {value: ''})); for (const x of compatibleUploads) media.append(el('option', x.file_name, {value: x.media_id})); media.value = b.media_id; media.addEventListener('change', () => bindUpload(actor.actor_key, media.value)); box.append(field('Immagine', media));
       const actorFile = el('input', null, {type: 'file', accept: 'image/png,image/jpeg,image/webp'}); actorFile.addEventListener('change', () => addActorUploads([...actorFile.files], actor.actor_key).catch(e => setMessage(e.message))); box.append(field('Carica e attesta per questo PNG', actorFile));
       const team = el('select'); for (const x of ['alleati', 'avversari', 'civili']) team.append(el('option', x, {value: x})); team.value = b.team; team.addEventListener('change', () => edit(() => b.team = team.value)); box.append(field('Schieramento', team));
       const approval = el('input', null, {type: 'checkbox'}); approval.checked = b.approved; approval.addEventListener('change', () => edit(() => b.approved = approval.checked)); box.append(field('Versione approvata dall’editore', approval)); actors.append(box);
