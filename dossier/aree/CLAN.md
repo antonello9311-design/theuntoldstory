@@ -1,5 +1,9 @@
 # AREA · Clan, innate e tecniche Genin — scheda viva
 
+**Cataloghi selettivi Regole/Clan · live 21/09/2026:** `regole.html` build `RULES-TECH-CATALOG-001` e `clan.html` build `CLAN-TECH-CATALOG-002` sono pubblicati nel commit `ed2842a7aeec2125f70df53e7c3f94adb74e87df`; deploy Pages 764 riuscito. Sul dominio Regole parte chiuso e mostra una sola tecnica dopo la scelta; Clan Sabaku parte chiuso, offre 18 tecniche, apre una sola scheda completa e non contiene `(def)`. JavaScript 4/4 e 3/3 valido.
+
+**Armatura di Sabbia · pubblica 21/09/2026:** migrazione `20260921122347 sabaku_armor_public_enable_20260921` applicata dopo review indipendente `0/0/0`. Gate Staff e pubblico ON; catalogo attivo/passiva. RLS e FORCE RLS restano attivi, anon/authenticated/service_role senza SELECT/INSERT/UPDATE/DELETE, zero policy e trigger applicativi. Il ramo sabbia insufficiente è coperto dall’autorità condivisa di consumo e interruzione del Controllo della Sabbia già validata, come ratificato da Antonello. La precedente prova interrotta dalla rete resta documentata, senza effetti reali.
+
 **Rilascio pubblico Elementali e Taijutsu · 19/09/2026:** applicata la migrazione `elementali_taijutsu_public_batch_20260919_070` dopo review indipendente `0/0/0`. Aperti quattro elementali — Lama di vento, Scarica, Lancia di fulmine e Proiettile di roccia — e cinque Taijutsu — Colpo concatenato del leone, Spazzata della Foglia, Turbine della Foglia, Calcio ascendente della Foglia ed Entrata dinamica. I nove cataloghi e gate sono attivi e pubblici; le sette precedenti tecniche Taijutsu sono inattive ma conservate, senza assegnazioni o addestramenti da migrare. Regolamento Markdown/HTML sincronizzato con changelog 95 e pubblicato nel commit `71e732ed22d136dd71be34d8661427298fcce67e`; REGOLE.md 187734 B SHA-256 `9b4fae7a32128bf6b0a495f49a6168042511c392764111027154fe971a117233`, regole.html 206430 B SHA-256 `49b8f028d951ff9651e62733c7eaf57f793046bbb8ba0721b449b27780e7391e`. Postflight: testi 9/9 esatti, cataloghi/gate 9/9, vecchi Taijutsu 7/7 inattivi, zero assegnazioni e addestramenti interessati; risorse reali invariate (Riuji 80/105, testperfunzioni 105/155).
 
 **Grande sfondamento · live DB 18/09/2026:** ordinary 1vs1 PASS con respinta 3 m, costo e danno simulati corretti, collisione 0 e isolamento reale confermato. Migrazione 20260918212015 applicata dopo review e controverifica 0/0/0; solo il gate della tecnica è pubblico, catalogo editoriale allineato e recovery conservativa pronta. Regolamento pubblicato nel commit `4b2d9b6dc3139732b4cabaed5a15b9eca82e3f04` e sorgenti nel commit `a1dcb86640903942201bd75016e9c42371f9ff1d`; sei blob byte-identici e dominio verificato. Restano cinque elementali non pubbliche.
@@ -18,6 +22,8 @@ Precisazione Antonello10/09: Esame escluso dalle matrici e dai confronti di coll
 7. `sito_live/REGOLE.md` §§3,5.1,8 dopo riconciliazione con la pubblicazione; `gdr-contesto` per le convenzioni, non come fotografia attuale.
 
 ## Stato vivo
+
+**Armatura di Sabbia · qualifica conclusa:** nucleo meccanico, toggle, consumo, ripristino al turno, chakra insufficiente, chiusura, isolamento e narrazione sono PASS. Il Narratore descrive intercettazione e frattura senza spiegare né anticipare la ricomposizione. Il caso sabbia insufficiente condivide la stessa autorità server di consumo/interruzione già validata per il Controllo della Sabbia; apertura pubblica eseguita il 21/09.**
 
 **Elementali e Taijutsu · stato conclusivo 19/09/2026:** nove elementali e cinque Taijutsu generici sono collaudati nei percorsi pertinenti, approvati editorialmente e pubblici. Review batch `0/0/0`, migrazione `elementali_taijutsu_public_batch_20260919_070`, cataloghi/gate 9/9 e testi 9/9 verificati; sette Taijutsu precedenti inattivi e conservati, zero assegnazioni o addestramenti da migrare. Regolamento changelog 95 online, Pages 729 e dominio verificati. Checklist finali in `elementali/CHECKLIST_COLLAUDO.md` e `runtime/taijutsu/CHECKLIST_COLLAUDO.md`; nessun caso aperto nel perimetro.
 
@@ -290,7 +296,7 @@ Banco tus_hyuga_review001_qa: installazione candidata locale e due race eseguite
 
 1. Allineamento otto schede concluso nel perimetro verificato: migrazione20260911094905,5/5righe e7claim con8identitàPASS; UISharingan/Sabaku positiva. Riallaccio non osservato, punto cieco non implementato e mapping Master/Esame/Test Room utenti escluso.
 2. Katon: due Palle e Risonanza pubbliche; prova con Master differita alla sessione pubblica serale di Antonello. Conservare i PASS ordinari.
-3. Sabaku: Controllo, Flussi1–3 singolo, Trasporto e Clone pubblici. Armatura inerte da collaudare nel mandato pertinente. Flussi multibersaglio rinviati; nessuna riapertura dei banchi storici.
+3. Sabaku: Controllo, Flussi1–3 singolo, Trasporto e Clone pubblici. Armatura disponibile solo Staff: nucleo meccanico positivo, pubblico OFF; restano revisione editoriale, controprova narrativa, insufficienza sabbia/chakra e terminale KO/uscita. Flussi multibersaglio rinviati; nessuna riapertura dei banchi storici.
 4. Byakugan/Sharingan e Juken/Sedici pubblici; presentazione Hyuga approvata e applicata20260911134348. Ordinary e due Master pertinenti PASS, prova chiusa, risorse reali invariate e0provider; pieno/scadenza Master non osservati. Estensione Difesa e quattro UI pubblicate e verificate in lettura. Altri clan restano ai propri owner.
 5. Copertura e Diversivo restano inerti e affidati alla task di riprogettazione; Esame e Missioni restano agli owner specifici. I limiti storici delle due Test Room non vengono ricertificati da questa revisione editoriale.
 
@@ -331,7 +337,7 @@ Il pack storico PM-MOTORE §135 e Common §0.7 conservano il precedente drain Hy
 ## Prossimo passo
 
 1. Elementali e Taijutsu generici: nessun prossimo passo; rilascio e documentazione chiusi.
-2. Proseguire soltanto gli altri lavori del cantiere già elencati: Armatura, punto cieco e casi Master pertinenti di Rotazione/Katon.
+2. Armatura: approvare il testo editoriale, correggere e controprovare il solo impatto parziale; completare insufficienza sabbia/chakra e KO/uscita prima dell’apertura pubblica. Proseguire separatamente punto cieco e casi Master pertinenti di Rotazione/Katon.
 3. Se un futuro delta modifica una tecnica generica, riaprire esclusivamente le regressioni interessate usando le checklist finali come baseline.
 
 Pulizia catalogo conclusa: sette voci disattivate, Tecnica delle 16 chiusure attiva e invariata, storico e policy conservati. Non ripetere apply o modificare assegnazioni dei PG. Rotazione resta pubblica e il regolamento pubblicato nel commit 925d794; la sola prova con Master rimane in B10 non spuntata. Nessuna nuova tecnica o attività di collaudo avviata da questa pulizia.
