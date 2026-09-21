@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-ABURAME-GENIN-023" />
+  <meta name="tus-build" content="LAND-ABURAME-GENIN-024" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3712,7 +3712,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
   const doc=root.ownerDocument;installPanelLayout(doc);root.classList.add('common-panel-view');
   if(!doc.getElementById('common-panel-flow-style')){const style=doc.createElement('style');style.id='common-panel-flow-style';style.textContent='.common-panel-view [hidden]{display:none!important}.common-panel-view .common-panel-movement{order:-2!important}.common-panel-view .common-panel-innate{order:-1!important}';doc.head.append(style);}
   let generation=0,current=null,cachedMap=null,cachedMapKey=null;
-  let movementStepScope=null,movementStep=null,innateStep=null,techniqueMenuOpen=false,techniqueGroup=null;
+  let movementStepScope=null,movementStep=null,innateStep=null,techniqueMenuOpen=false,techniqueGroup=null,aburameCloneScope=null,aburameCloneMenuOpen=false,aburameCloneDirection=null;
   const isMovementControl=o=>o?.kind==='control'&&o.operation==='control'&&
     o.choices.some(g=>g.purpose==='movement_direction')&&o.choices.some(g=>g.purpose==='movement_distance');
   const node=(tag,value,parent)=>{const el=doc.createElement(tag);if(value!==undefined)el.textContent=String(value);if(parent)parent.append(el);return el;};
@@ -3721,7 +3721,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
   const token=()=>generation;
   const handler=(ticket,fn,...args)=>()=>{if(ticket!==generation||typeof fn!=='function')return;fn(...args);};
   function button(parent,label,fn,disabled=false){const b=node('button',label,parent);b.type='button';b.className='mv2-btn';b.disabled=disabled||typeof fn!=='function';if(fn)b.addEventListener('click',fn);return b;}
-  function clear(){generation++;current=null;cachedMap=null;cachedMapKey=null;movementStepScope=null;movementStep=null;innateStep=null;techniqueMenuOpen=false;techniqueGroup=null;sceneKey=null;fullRenderWasBusy=true;disabledBeforeBusy=null;root.removeAttribute("aria-busy");root.replaceChildren();}
+  function clear(){generation++;current=null;cachedMap=null;cachedMapKey=null;movementStepScope=null;movementStep=null;innateStep=null;techniqueMenuOpen=false;techniqueGroup=null;aburameCloneScope=null;aburameCloneMenuOpen=false;aburameCloneDirection=null;sceneKey=null;fullRenderWasBusy=true;disabledBeforeBusy=null;root.removeAttribute("aria-busy");root.replaceChildren();}
   function renderFeedback(model,parent){
     const last=model?.lastCommand;
     // Opzionale per i consumer privati: preserva anche il loro snapshot/rejection già valido.
@@ -3879,6 +3879,8 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     const actionStep=c.phase==='action'&&v.command_actor_id!==null&&!!(movementOffer||available.some(o=>o.kind==='action'&&o.operation==='declare'));
     const nextMovementScope=JSON.stringify([c.activity_id,c.round_id,v.command_actor_id,c.phase]);
     if(nextMovementScope!==movementStepScope){movementStepScope=nextMovementScope;movementStep=null;innateStep=null;techniqueMenuOpen=false;techniqueGroup=null;}
+    const nextAburameCloneScope=JSON.stringify([c.activity_id,c.round_id,v.command_actor_id,c.phase,c.version,c.scene_version]);
+    if(nextAburameCloneScope!==aburameCloneScope){aburameCloneScope=nextAburameCloneScope;aburameCloneMenuOpen=false;aburameCloneDirection=null;}
     if(actionStep&&!movementOffer&&movementStep===null)movementStep='none';
     const guided=actionStep&&available.some(o=>Object.hasOwn(o,'ui_category'));
     const innateOffers=guided?available.filter(o=>o.ui_category==='innate'):[];
@@ -3948,7 +3950,9 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     }
     for(const [area,isAdminArea]of [[actions,false],[admin,true]]){
       if(isAdminArea&&admin.hidden)continue;
-      const offers=available.filter(o=>administrative(o)===isAdminArea&&!o.flow_budget&&!isMovementControl(o)&&(!guided||isAdminArea||!['innate','technique'].includes(o.ui_category)));
+      const areaOffers=available.filter(o=>administrative(o)===isAdminArea&&!o.flow_budget&&!isMovementControl(o)&&(!guided||isAdminArea||!['innate','technique'].includes(o.ui_category)));
+      const isAburameCloneOffer=o=>!isAdminArea&&o.kind==='defense'&&o.operation==='defend'&&/^Clone d['’]Insetti · /u.test(o.label);
+      const cloneOffers=areaOffers.filter(isAburameCloneOffer),offers=areaOffers.filter(o=>!isAburameCloneOffer(o));
       if(guided&&!isAdminArea){
         const techniques=available.filter(o=>!administrative(o)&&o.ui_category==='technique'&&!o.flow_budget&&!isMovementControl(o));
         const menu=node('div',undefined,area);menu.className='common-technique-menu';menu.style.marginBottom='12px';
@@ -3966,19 +3970,41 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
         if(selected?.ui_category==='technique')note(menu,'Tecnica scelta: '+selected.label);
         if(!techniques.length&&!flowOffers.length)note(menu,'Nessuna tecnica disponibile in questo momento.');
       }
-      if(!isAdminArea&&flowOffers.length&&!offers.length)continue;
-      if(offers.length>0&&offers.length<=6){
+      if(!isAdminArea&&flowOffers.length&&!offers.length&&!cloneOffers.length)continue;
+      const selectedClone=cloneOffers.find(o=>o.offer_id===selected?.offer_id)||null;
+      const chooseRegular=id=>{if(ticket!==generation||!selectOffer)return;aburameCloneMenuOpen=false;aburameCloneDirection=null;sceneKey=null;selectOffer(id);};
+      const openClone=()=>{if(ticket!==generation||!selectOffer)return;aburameCloneMenuOpen=true;aburameCloneDirection=null;clearSelection();};
+      const displayCount=offers.length+(cloneOffers.length?1:0);
+      if(displayCount>0&&displayCount<=6){
         const choices=node('div',undefined,area);choices.className='common-offer-choices';choices.setAttribute('role','group');choices.setAttribute('aria-label',isAdminArea?'Operazione autorizzata':'Scelta disponibile');
-        for(const offer of offers){const choice=button(choices,offer.label,handler(ticket,selectOffer,offer.offer_id),!commandsReady||!selectOffer);choice.className+=' common-offer-choice';choice.setAttribute('aria-pressed',String(selected?.offer_id===offer.offer_id));}
+        for(const offer of offers){const choice=button(choices,offer.label,()=>chooseRegular(offer.offer_id),!commandsReady||!selectOffer);choice.className+=' common-offer-choice';choice.setAttribute('aria-pressed',String(selected?.offer_id===offer.offer_id));}
+        if(cloneOffers.length){const choice=button(choices,"Clone d'Insetti",openClone,!commandsReady||!selectOffer);choice.className+=' common-offer-choice';choice.setAttribute('aria-pressed',String(aburameCloneMenuOpen||selectedClone!==null));choice.setAttribute('aria-expanded',String(aburameCloneMenuOpen));}
       }else{
         const label=node('label',isAdminArea?'Operazione autorizzata':'Scelta disponibile',area),select=node('select',undefined,label);
         select.className='mv2-select';const placeholder=node('option','Seleziona',select);placeholder.value='';
         for(const offer of offers){const item=node('option',offer.label,select);item.value=offer.offer_id;}
-        select.value=selected&&administrative(selected)===isAdminArea?selected.offer_id:'';
-        select.disabled=!commandsReady||!selectOffer||offers.length===0;
-        select.addEventListener('change',()=>{if(ticket!==generation||!selectOffer)return;if(offers.some(o=>o.offer_id===select.value))selectOffer(select.value);});
+        if(cloneOffers.length){const item=node('option',"Clone d'Insetti",select);item.value='aburame-clone';}
+        select.value=aburameCloneMenuOpen||selectedClone?'aburame-clone':selected&&administrative(selected)===isAdminArea?selected.offer_id:'';
+        select.disabled=!commandsReady||!selectOffer||displayCount===0;
+        select.addEventListener('change',()=>{if(ticket!==generation||!selectOffer)return;if(select.value==='aburame-clone')openClone();else if(offers.some(o=>o.offer_id===select.value))chooseRegular(select.value);});
       }
-      if(!offers.length&&(!guided||isAdminArea))note(area,'Nessuna offerta in questo momento.');
+      if(aburameCloneMenuOpen&&cloneOffers.length){
+        const placement=section(area,"Posizionamento del Clone d'Insetti");
+        const parsed=cloneOffers.map(offer=>{const stay=/resta in posizione/i.test(offer.label),parts=offer.label.split(' · ').map(x=>x.trim()),distance=stay?0:Number((offer.label.match(/(\d+(?:[.,]\d+)?)\s*m\b/u)||[])[1]?.replace(',','.'));return {offer,stay,direction:stay?'Resta sul posto':parts[1]||'Posizione',distance:Number.isFinite(distance)?distance:null};});
+        const stay=parsed.find(x=>x.stay),moves=parsed.filter(x=>!x.stay),directions=[...new Set(moves.map(x=>x.direction))];
+        note(placement,'Scegli prima la direzione e poi la distanza autorizzata dal server.');
+        const directionChoices=node('div',undefined,placement);directionChoices.className='common-offer-choices';directionChoices.setAttribute('role','group');directionChoices.setAttribute('aria-label','Direzione del riposizionamento');
+        if(stay){const choice=button(directionChoices,'• Resta sul posto',()=>chooseRegular(stay.offer.offer_id),!commandsReady||!selectOffer);choice.className+=' common-offer-choice';}
+        for(const direction of directions){const choice=button(directionChoices,direction,()=>{if(ticket!==generation)return;aburameCloneDirection=direction;sceneKey=null;render(current);},!commandsReady||!selectOffer);choice.className+=' common-offer-choice';choice.setAttribute('aria-pressed',String(aburameCloneDirection===direction));}
+        if(aburameCloneDirection){
+          const distances=moves.filter(x=>x.direction===aburameCloneDirection).sort((a,b)=>(a.distance??99)-(b.distance??99));
+          const distanceChoices=node('div',undefined,placement);distanceChoices.className='common-offer-choices';distanceChoices.setAttribute('role','group');distanceChoices.setAttribute('aria-label','Distanza del riposizionamento');
+          const duplicateDistances=new Map();for(const item of distances){const key=item.distance===null?'?':String(item.distance);duplicateDistances.set(key,(duplicateDistances.get(key)||0)+1);}
+          for(const item of distances){const key=item.distance===null?'?':String(item.distance),base=item.distance===null?item.offer.label:String(item.distance).replace('.',',')+' m',destination=item.offer.label.split(' · ').slice(3).join(' · ');const label=(duplicateDistances.get(key)||0)>1&&destination?base+' · '+destination:base;const choice=button(distanceChoices,label,()=>chooseRegular(item.offer.offer_id),!commandsReady||!selectOffer);choice.className+=' common-offer-choice';}
+        }
+        button(placement,'← Torna alle difese',()=>{if(ticket!==generation)return;aburameCloneMenuOpen=false;aburameCloneDirection=null;sceneKey=null;render(current);},!commandsReady);
+      }else if(selectedClone)note(area,'Posizionamento scelto: '+selectedClone.label.replace(/^Clone d['’]Insetti · /u,''));
+      if(!displayCount&&(!guided||isAdminArea))note(area,'Nessuna offerta in questo momento.');
     }
     if(selected&&!isMovementControl(selected)&&!(guided&&selected.ui_category==='innate')&&!(administrative(selected)&&admin.hidden)&&
        (administrative(selected)||!actions.hidden)){

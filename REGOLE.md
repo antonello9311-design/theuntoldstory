@@ -549,6 +549,36 @@ Il ninja scatta in linea retta verso l’avversario, trasforma la rincorsa in un
 
 **Requisiti.** Grado Genin o superiore, Taijutsu 10 e possesso della tecnica.
 
+### 5.5 Tecniche Aburame pubblicate
+
+#### Insetti Parassiti Distruttivi
+
+Arte segreta della famiglia Aburame, fondata sulla simbiosi tra il ninja e una Colonia Kikaichū ospitata nel proprio corpo. È una maestria passiva: non richiede azione, attivazione, chakra o mantenimento.
+
+**Effetto.** Inizializza la Colonia Kikaichū e la Rigenerazione Simbiotica. La capienza massima è **20 + 5 × ⌊Kekkei Genkai permanente ÷ 10⌋**. Le unità impegnate dalle tecniche non sono disponibili finché la relativa fonte non termina; le perdite e il recupero riguardano la Colonia, non le statistiche del personaggio.
+
+**Requisiti.** Clan Aburame, grado Genin, Kekkei Genkai 30 e possesso della tecnica.
+
+#### Liberazione dei Kikaichū
+
+L’Aburame libera una parte della Colonia contro un avversario entro 5 metri. Gli insetti raggiungono il bersaglio e si nutrono del chakra che attraversa il suo corpo senza infliggere danni ai Punti Vita.
+
+**Effetto.** Usa l’azione principale, costa 5 chakra e impegna 5 unità Colonia. Sul successo pieno assorbe fino a 5 chakra e lo sciame resta agganciato a un solo bersaglio. All’inizio di ogni turno successivo dell’utilizzatore costa 5 chakra e assorbe di nuovo fino a 5 chakra; distanza e linea di vista successive non interrompono l’effetto.
+
+**Regola.** L’utilizzatore può interrompere gratuitamente la tecnica dal pannello. Il bersaglio può tentare di liberarsi con la propria azione principale, senza costo in chakra: il successo pieno termina l’effetto, mentre un risultato inferiore lo mantiene. La tecnica termina anche se il mantenimento non può essere pagato, uno dei partecipanti lascia lo scontro o il combattimento si conclude. Nessun esito produce cali permanenti delle statistiche.
+
+**Requisiti.** Insetti Parassiti Distruttivi L1, grado Genin, Kekkei Genkai 30 e possesso della tecnica.
+
+#### Clone d’Insetti
+
+Quando un attacco diretto sta per raggiungerlo, l’Aburame addensa parte della Colonia in una copia che si interpone e si disperde dopo la risoluzione.
+
+**Effetto.** È una difesa contro un solo attacco diretto compatibile: costa 10 chakra e impegna 10 unità Colonia. Sostituisce la difesa ordinaria, riduce il danno secondo la propria Potenza e sul successo pieno lo annulla. In quel caso l’utilizzatore può restare fermo oppure riposizionarsi da 1 a 3 metri scegliendo una destinazione offerta dal server.
+
+**Regola.** Non è disponibile contro attacchi ad area, Genjutsu o fonti mentali, danni interni, ambientali o inevitabili. Se l’utilizzatore non può muoversi, resta disponibile soltanto la posizione attuale. La perdita di Colonia dipende dalla Potenza dell’attacco e dall’eventuale vulnerabilità elementale; il Clone non crea un attore persistente e termina con quella singola difesa.
+
+**Requisiti.** Insetti Parassiti Distruttivi L1, grado Genin, Kekkei Genkai 40 e possesso della tecnica.
+
 ## 6. Sconfitta e allenamenti
 
 I **Punti Vita**, i danni e la loro riduzione sono nel **§4 · Combattimento**. Qui contano le conseguenze in gioco.
@@ -1022,3 +1052,4 @@ Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da q
 | 93 | Grande sfondamento | ✅ **Applicato** il 18/09/2026 (§5.3): su colpo pieno può respingere il bersaglio fino a 3 m lungo la direzione dell’attacco; il server arresta lo spostamento prima di una posizione o tratta illegale, senza collisioni né bersagli secondari. Descrizione ed effetto non duplicano portata, danno o costo. La tecnica è disponibile nei percorsi ordinario e Master ai personaggi che la possiedono e ne rispettano i requisiti. |
 | 94 | Soffio di brace | ✅ **Applicato** il 19/09/2026 (§5.3): su colpo pieno applica Bruciatura lieve; alla fine del prossimo turno personale del bersaglio un unico tiro automatico di 1d100 la conclude senza danno su 1–75 oppure infligge una sola volta 2 PV su 76–100, poi la conclude. Non si somma, non si rinnova, non si propaga e non si applica su sfioramenti o colpi negati. La tecnica è disponibile nei percorsi ordinario e Master ai personaggi che la possiedono e ne rispettano i requisiti. |
 | 95 | Elementali e Taijutsu generici | ✅ **Applicato** il 19/09/2026 (§5.3–5.4): pubblicate Lama di vento, Scarica, Lancia di fulmine e Proiettile di roccia; pubblicate cinque Taijutsu della Foglia e ritirate conservativamente le sette voci precedenti. Bonus e malus al confronto non aumentano il danno; effetti successivi si applicano e si consumano secondo la finestra descritta dal server. |
+| 96 | Tecniche Aburame Genin | ✅ **Applicato** il 21/09/2026 (§5.5): Insetti Parassiti Distruttivi inizializza la Colonia senza azione o costo; Liberazione impegna 5 unità, assorbe chakra senza danni ai PV e offre interruzione e prova di liberazione; Clone d’Insetti difende da una fonte diretta compatibile e, sul pieno, può riposizionare di 0–3 metri. Nessun effetto riduce permanentemente le statistiche. |
