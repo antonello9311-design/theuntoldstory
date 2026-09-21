@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-SABAKU-ARMOR-PASSIVE-022" />
+  <meta name="tus-build" content="LAND-ABURAME-GENIN-023" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3260,11 +3260,12 @@ function roundDetails(d,e){
 
 function validatePanelEnvelope(raw,{state=false}={}){
   const e=structuredClone(raw);
-  shape(e,['schema_version','status','reason_code','context','viewer','actors','map','offers','movement_explanations','companion','sabaku_transport','multiplication','narrative','receipt','round_details']);
+  if(!Object.prototype.hasOwnProperty.call(e,'aburame_colony'))e.aburame_colony=null;
+  shape(e,['schema_version','status','reason_code','context','viewer','actors','map','offers','movement_explanations','companion','sabaku_transport','aburame_colony','multiplication','narrative','receipt','round_details']);
   insist(e.schema_version==='combat-panel/1'&&['ready','blocked'].includes(e.status)&&nullable(e.reason_code,str)&&Array.isArray(e.actors)&&Array.isArray(e.offers));
   const v=e.viewer;shape(v,['command_actor_id','controlled_actors','is_master','is_admin','can_command']);insist(nullable(v.command_actor_id,isId)&&Array.isArray(v.controlled_actors)&&bool(v.is_master)&&bool(v.is_admin)&&bool(v.can_command));
   for(const a of v.controlled_actors){shape(a,['actor_id','label']);insist(isId(a.actor_id)&&name(a.label));}unique(v.controlled_actors,'actor_id');
-  if(e.status==='blocked'){insist(e.context===null&&!v.can_command&&v.command_actor_id===null&&v.controlled_actors.length===0&&e.actors.length===0&&e.offers.length===0&&['map','movement_explanations','companion','sabaku_transport','multiplication','narrative','receipt','round_details'].every(k=>e[k]===null));return e;}
+  if(e.status==='blocked'){insist(e.context===null&&!v.can_command&&v.command_actor_id===null&&v.controlled_actors.length===0&&e.actors.length===0&&e.offers.length===0&&['map','movement_explanations','companion','sabaku_transport','aburame_colony','multiplication','narrative','receipt','round_details'].every(k=>e[k]===null));return e;}
   const c=e.context;shape(c,['activity_id','activity_kind','location_id','round_id','round_no','phase','phase_label','version','scene_version','policy_id','simulated']);
   insist(nullable(c.activity_id,isId)&&nullable(c.activity_kind,x=>['ordinary_v2','master_v2'].includes(x))&&isId(c.location_id)&&nullable(c.round_id,isId)&&nullable(c.round_no,int)&&['setup','action','defense','review','resolving','resolved','suspended','closed'].includes(c.phase)&&name(c.phase_label)&&int(c.version)&&nullable(c.scene_version,int)&&name(c.policy_id)&&bool(c.simulated));
   insist(c.phase==='setup'||isId(c.activity_id)&&c.activity_kind!==null);
@@ -3276,6 +3277,7 @@ function validatePanelEnvelope(raw,{state=false}={}){
   // Projection geometriche/di dominio hanno validatori propri nei renderer.
   // Qui vengono versionate e isolate; non sono mai lette dal controller comandi.
   for(const [key,version,field]of [['map','combat-map/2','schema_version'],['companion','combat-companion/1','schema_version'],['sabaku_transport','sabaku-transport-view/2','contract_version']])if(e[key]!==null)insist(obj(e[key])&&e[key][field]===version);
+  if(e.aburame_colony!==null){const q=e.aburame_colony;shape(q,['contract_version','is_test','current','maximum','committed','available','revision']);insist(q.contract_version==='aburame-colony-view/1'&&bool(q.is_test)&&[q.current,q.maximum,q.committed,q.available,q.revision].every(int)&&q.revision>0&&q.committed<=q.current&&q.current<=q.maximum&&q.available===q.current-q.committed);}
   validateMultiplication(e);movement(e.movement_explanations,e);narrative(e.narrative,c);receipt(e.receipt);roundDetails(e.round_details,e);return e;
 }
 
@@ -3591,7 +3593,21 @@ function renderPanelSabaku(root,envelope,{compact=false}={}){
   add('p','Le attivazioni disponibili si scelgono dalle offerte del server.');
 }
 
-return {renderPanelCompanion,renderPanelSandSummary,renderPanelSabaku};
+
+function renderPanelAburame(root,envelope,{compact=false}={}){
+  root.replaceChildren();root.hidden=true;
+  const value=envelope.aburame_colony;if(value===null)return;
+  const add=(tag,text)=>{const el=root.ownerDocument.createElement(tag);el.textContent=text;root.append(el);return el;};
+  const valid=exact(value,['contract_version','is_test','current','maximum','committed','available','revision'])&&value.contract_version==='aburame-colony-view/1'&&typeof value.is_test==='boolean'&&
+    [value.current,value.maximum,value.committed,value.available,value.revision].every(integer)&&value.revision>0&&value.committed<=value.current&&value.current<=value.maximum&&value.available===value.current-value.committed;
+  root.hidden=false;if(!valid){add('p','Stato della colonia non disponibile.');return;}
+  if(compact){root.setAttribute('role','status');root.setAttribute('aria-live','polite');const caption=add('div','');caption.className='common-resource-caption';const label=root.ownerDocument.createElement('span');label.textContent='Colonia Kikaichū';const amount=root.ownerDocument.createElement('strong');amount.textContent=`${value.available} disponibili`;caption.append(label,amount);const detail=add('p',`Impegnati: ${value.committed} · Vivi: ${value.current} / ${value.maximum}`);detail.className='mv2-note';return;}
+  add('h4','Colonia Kikaichū');add('p',value.is_test?'Colonia di prova · separata dalle risorse del personaggio':'Colonia personale');
+  add('p',`Insetti disponibili: ${value.available} · impegnati: ${value.committed} · vivi: ${value.current} / ${value.maximum}.`);
+  add('p','Le quote impegnate rientrano quando la tecnica termina; le perdite restano sottratte fino alla rigenerazione prevista.');
+}
+
+return {renderPanelCompanion,renderPanelSandSummary,renderPanelSabaku,renderPanelAburame};
 })();
 const module6=(()=>{
 // EXAM-LAYOUT-UI-012: riuso DOM su snapshot equivalente, nessuna RPC.
@@ -3599,7 +3615,7 @@ const module6=(()=>{
 const {installPanelLayout}=module3;
 const {renderPanelMap}=module1;
 const {isPlayerLifecycle,flowSelectionTotal,flowOptionAllowed,automaticAssaultGroups}=module5;
-const {renderPanelCompanion,renderPanelSabaku,renderPanelSandSummary}=module7;
+const {renderPanelCompanion,renderPanelSabaku,renderPanelSandSummary,renderPanelAburame}=module7;
 // Il controller validante è iniettato: questa vista non concede autorità.
 const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(x);
 const text=x=>typeof x==='string';
@@ -3692,7 +3708,7 @@ function changeSingleChoice(group,value,selected,selectOption){
 }
 
 function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,confirmDraft,prepare,retry,restoreTestResources}={},renderers={}){
-  renderers={map:renderPanelMap,companion:renderPanelCompanion,sabaku_transport:renderPanelSabaku,...renderers};
+  renderers={map:renderPanelMap,companion:renderPanelCompanion,sabaku_transport:renderPanelSabaku,aburame_colony:renderPanelAburame,...renderers};
   const doc=root.ownerDocument;installPanelLayout(doc);root.classList.add('common-panel-view');
   if(!doc.getElementById('common-panel-flow-style')){const style=doc.createElement('style');style.id='common-panel-flow-style';style.textContent='.common-panel-view [hidden]{display:none!important}.common-panel-view .common-panel-movement{order:-2!important}.common-panel-view .common-panel-innate{order:-1!important}';doc.head.append(style);}
   let generation=0,current=null,cachedMap=null,cachedMapKey=null;
@@ -3826,6 +3842,10 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
         const sand=node('div',undefined,row);sand.className='common-resource common-resource-sand';
         renderPanelSandSummary(sand,e,actor.actor_id);
       }
+      if(actor.actor_id===v.command_actor_id&&actor.resources!==null&&e.aburame_colony!==null){
+        const colony=node('div',undefined,row);colony.className='common-resource common-resource-aburame';
+        renderPanelAburame(colony,e,{compact:true});
+      }
       const due=[];if(actor.action_due===true)due.push('azione');if(actor.defense_due===true)due.push('difesa');
       if(due.length)note(row,'Deve ancora consegnare: '+due.join(' e '));
     }
@@ -3834,7 +3854,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
       else note(map,'Mappa non disponibile in questa candidata. Nessuna posizione viene ricostruita.');
       cachedMap=map;cachedMapKey=nextMapKey;
     }
-    for(const [field,title]of [['companion','Compagno'],['sabaku_transport','Controllo della sabbia']]){
+    for(const [field,title]of [['companion','Compagno'],['sabaku_transport','Controllo della sabbia'],['aburame_colony','Colonia Kikaichū']]){
       if(e[field]===null)continue;
       const block=section(sidebar,title);
       if(typeof renderers[field]==='function')renderers[field](block,e);
