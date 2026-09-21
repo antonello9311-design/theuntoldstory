@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
-<meta name="tus-build" content="TECH-FIELDS-UI001-CLAN" />
+<meta name="tus-build" content="CLAN-TECH-CATALOG-002" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>I Clan · The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -111,6 +111,17 @@
   .hier-desc{color:var(--ink-soft)}
 
   /* ===== Tecniche del clan ===== */
+  .tech-catalog{margin-top:8px;border:1px solid var(--edge);border-radius:11px;background:rgba(255,250,235,.5);overflow:hidden}
+  .tech-catalog>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;font-family:'Cinzel',serif;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);background:rgba(124,36,19,.06)}
+  .tech-catalog>summary::-webkit-details-marker{display:none}
+  .tech-catalog>summary::after{content:'+';font-size:19px;line-height:1}
+  .tech-catalog[open]>summary::after{content:'−'}
+  .tech-catalog-body{padding:14px 15px 16px}
+  .tech-catalog-label{display:block;margin-bottom:7px;font-family:'Cinzel',serif;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+  .tech-catalog-select{width:100%;padding:10px 12px;border:1px solid var(--edge);border-radius:7px;background:var(--paper-hi);color:var(--ink);font:inherit}
+  .tech-catalog-detail{margin-top:14px}
+  .tech-catalog-detail[hidden]{display:none}
+
   .tech-grid{display:flex;flex-direction:column;gap:12px;margin-top:6px}
   .tech-card{border:1px solid var(--edge);border-radius:11px;background:rgba(255,250,235,.5);padding:13px 16px}
   .tc-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
@@ -204,7 +215,7 @@
       {name:'Hyuga',village:'Konoha',is_gated:true},{name:'Uchiha',village:'Konoha',is_gated:true},
       {name:'Nara',village:'Konoha',is_gated:false},{name:'Akimichi',village:'Konoha',is_gated:false},
       {name:'Inuzuka',village:'Konoha',is_gated:false},{name:'Aburame',village:'Konoha',is_gated:false},
-      {name:'Sabaku',village:'Suna',is_gated:false},{name:'Marionettisti',village:'Suna',is_gated:false},
+      {name:'Sabaku',village:'Suna',is_gated:true},{name:'Marionettisti',village:'Suna',is_gated:false},
       {name:'Dokugan',village:'Suna',is_gated:false}
     ];
     var EMB={};
@@ -270,7 +281,7 @@
         '<h1>'+esc(c.name)+'</h1>'+
         '<div class="ch-vil">'+esc(c.village||'')+(vilLabel?(' · '+esc(vilLabel)):'')+'</div>';
       if(c.is_gated){
-        html+='<div class="gated-note">'+LOCK+'<div><b>Clan ad accesso ristretto</b><p>Questo clan non è accessibile liberamente. Per farne parte serve un <strong>background approvato dallo staff</strong> in fase di creazione, oppure lo <strong>sblocco dell’abilità durante il gioco</strong>, dopo una valutazione dello staff. Il clan e il ruolo vengono assegnati dallo staff.</p></div></div>';
+        html+='<div class="gated-note">'+LOCK+'<div><b>Clan ad accesso ristretto</b><p>Questo clan non è accessibile liberamente. La richiesta si presenta dalla <strong>scheda</strong>, allegando il <strong>background del personaggio</strong>; lo staff valuta il background e assegna il clan quando lo approva.</p></div></div>';
       }
       html+='</div>';
 
@@ -286,7 +297,7 @@
       var techs=[];
       try{var rt=await sb.from('clan_techniques').select('*').eq('clan',c.name).eq('is_active',true).order('level').order('sort').order('name');techs=(rt&&rt.data)||[];}catch(e){}
       if(techs.length){
-        html+='<div class="sec"><h3>Tecniche del clan</h3><div class="tech-grid">'+techs.map(techCard).join('')+'</div></div>';
+        html+='<div class="sec"><h3>Tecniche del clan</h3>'+clanTechniquePicker(techs)+'</div>';
       }
 
       // members
@@ -320,6 +331,7 @@
 
       html+='<div class="story-return"><a href="clan.html">← Tutti i clan</a><a href="ambientazione.html">Ambientazione</a></div>';
       $('main').innerHTML=html;
+      if(techs.length)mountClanTechniquePicker(techs);
       document.title=c.name+' — I Clan — The Untold Story';
     }
 
@@ -354,6 +366,25 @@
       }
       return '<div class="doc">'+out.join('')+'</div>';
     }
+    function clanTechniquePicker(techs){
+      return '<details class="tech-catalog clan-tech-catalog"><summary>Tecniche</summary><div class="tech-catalog-body">'+
+        '<label class="tech-catalog-label" for="clan-tech-select">Scegli una tecnica</label>'+
+        '<select class="tech-catalog-select" id="clan-tech-select"><option value="">Seleziona una tecnica…</option>'+
+        techs.map(function(t,i){return '<option value="'+i+'">'+esc(t.name)+'</option>';}).join('')+
+        '</select><div class="tech-catalog-detail" id="clan-tech-detail" aria-live="polite" hidden></div></div></details>';
+    }
+    function mountClanTechniquePicker(techs){
+      var select=$('clan-tech-select'),detail=$('clan-tech-detail');
+      if(!select||!detail)return;
+      select.addEventListener('change',function(){
+        detail.replaceChildren();
+        if(select.value===''){detail.hidden=true;return;}
+        var index=Number(select.value);
+        if(!Number.isSafeInteger(index)||index<0||index>=techs.length){detail.hidden=true;return;}
+        detail.innerHTML=techCard(techs[index]);
+        detail.hidden=false;
+      });
+    }
     function techConsume(v){return {ad_utilizzo:'Ad utilizzo',per_turno:'Per turno',passiva:'Passiva'}[v]||'';}
     function techGittataDefault(t){ var d=String(t&&t.disciplina||'').toLowerCase(); if(d==='taijutsu')return 'contatto'; if(d==='genjutsu')return 'corta'; if(d==='fuuinjutsu')return 'contatto'; if(d==='ninjutsu')return 'media'; return ''; }
     function techAttivDefault(t){ if(t&&t.is_innata) return 'istantanea'; var d=String(t&&t.disciplina||'').toLowerCase(); if(d==='taijutsu'||d==='abilità'||d==='abilita') return 'istantanea'; if(String(t&&t.macro||'').toLowerCase()==='abilita') return 'istantanea'; return 'sigilli'; }
@@ -361,7 +392,7 @@
       var parts=[];
       if(t.category)parts.push(esc(t.category));
       if(t.portata)parts.push(esc(t.portata));
-      var _g=t.gittata||techGittataDefault(t); if(_g)parts.push('gittata '+esc(_g)+(t.gittata?'':' (def)'));
+      var _g=t.gittata||techGittataDefault(t); if(_g)parts.push('gittata '+esc(_g));
       var cons=techConsume(t.consumption_type); if(cons)parts.push(cons);
       if(t.chakra_cost!=null)parts.push(esc(t.chakra_cost)+' chakra');
       var det=[];

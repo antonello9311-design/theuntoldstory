@@ -3,6 +3,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
+<meta name="tus-build" content="RULES-TECH-CATALOG-001" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Regole · The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -140,6 +141,20 @@
     .rtable{font-size:13px;min-width:400px}
     .rtable th,.rtable td{padding:5px 7px}
   }
+
+  /* Catalogo tecniche: una sola scheda completa alla volta. */
+  .tech-catalog{margin:16px 0 22px;border:1px solid var(--edge);background:rgba(255,255,255,.28)}
+  .tech-catalog>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;font-family:'Cinzel',serif;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep);background:rgba(166,50,29,.06)}
+  .tech-catalog>summary::-webkit-details-marker{display:none}
+  .tech-catalog>summary::after{content:'+';font-size:19px;line-height:1}
+  .tech-catalog[open]>summary::after{content:'−'}
+  .tech-catalog-body{padding:14px 15px 16px}
+  .tech-catalog-label{display:block;margin-bottom:7px;font-family:'Cinzel',serif;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+  .tech-catalog-select{width:100%;max-width:560px;padding:10px 12px;border:1px solid var(--edge);background:var(--paper-hi);color:var(--ink);font:inherit}
+  .tech-catalog-detail{margin-top:16px;padding:15px 17px;border:1px solid var(--edge);border-left:3px solid var(--red);background:rgba(255,255,255,.38)}
+  .tech-catalog-detail[hidden]{display:none}
+  .published-tech-card h4{margin-top:0}
+
   details.formula{margin:14px 0}
   details.formula>summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:7px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-deep);border:1px solid var(--rule);padding:7px 13px;background:rgba(166,50,29,.05);transition:.15s}
   details.formula>summary:hover{background:rgba(166,50,29,.1)}
@@ -509,93 +524,119 @@
               <li><strong>Slot tecniche.</strong> Ogni tecnica appresa o in addestramento occupa uno <strong>slot</strong>; le <strong>tecniche innate del clan non occupano slot</strong>. Slot base per grado: <strong>Deshi e Genin 5 · Chunin 7 · Jonin 9 · Jonin Speciale e oltre 11</strong>. In più la <strong>Mente aggiunge slot bonus = ⌊Mente ÷ 20⌋</strong> (fino a +5). Infine puoi acquistare fino a <strong>4 slot extra</strong> con l'XP (200 · 350 · 500 · 650) dalla scheda, pagina Jutsu.</li>
             </ul>
             <p class="pending-note">Riserva e consumi sono <strong>fissati e attivi</strong>: pool di chakra dalla formula del <a href="#s4">§4</a>, costi uniformi per grado (D 5 → S 40), danni bilanciati in simulazione su ventimila duelli. Ogni valore è un multiplo di 5.</p>
-            <h3>5.3 · Tecniche elementali pubblicate</h3>
-            <p>Danno, portata e costo sono mostrati nei campi della tecnica. Le descrizioni indicano la manifestazione del jutsu; l’effetto chiarisce ciò che può ottenere senza ripetere quei valori.</p>
-            <h4>Scudo di terra</h4>
+            <h3>5.3 · Tecniche pubblicate</h3>
+            <p>Apri il catalogo e scegli una tecnica: il testo completo compare soltanto dopo la selezione. Per le elementali, danno, portata e costo sono nei campi della tecnica; per le sequenze Taijutsu vale un solo confronto e un solo pacchetto di danno.</p>
+            <details class="tech-catalog" id="published-techniques">
+              <summary>Tecniche</summary>
+              <div class="tech-catalog-body">
+                <label class="tech-catalog-label" for="published-tech-select">Scegli una tecnica</label>
+                <select class="tech-catalog-select" id="published-tech-select">
+                  <option value="">Seleziona una tecnica…</option>
+                  <optgroup label="Elementali">
+                    <option value="published-tech-1">Scudo di terra</option>
+                    <option value="published-tech-2">Frusta d’acqua</option>
+                    <option value="published-tech-3">Proiettile d’acqua</option>
+                    <option value="published-tech-4">Grande sfondamento</option>
+                    <option value="published-tech-5">Soffio di brace</option>
+                    <option value="published-tech-6">Lama di vento</option>
+                    <option value="published-tech-7">Scarica</option>
+                    <option value="published-tech-8">Lancia di fulmine</option>
+                    <option value="published-tech-9">Proiettile di roccia</option>
+                  </optgroup>
+                  <optgroup label="Taijutsu">
+                    <option value="published-tech-10">Colpo concatenato del leone</option>
+                    <option value="published-tech-11">Spazzata della Foglia</option>
+                    <option value="published-tech-12">Turbine della Foglia</option>
+                    <option value="published-tech-13">Calcio ascendente della Foglia</option>
+                    <option value="published-tech-14">Entrata dinamica</option>
+                  </optgroup>
+                </select>
+                <div class="tech-catalog-detail" id="published-tech-detail" aria-live="polite" hidden></div>
+              </div>
+              <template id="published-tech-1"><article class="published-tech-card" aria-label="Scudo di terra"><h4>Scudo di terra</h4>
             <p>Dopo aver composto i sigilli, iniziando dal Serpente, il ninja modella il chakra Terra in uno scudo compatto davanti al corpo. All’impatto la superficie si incrina e, conclusa la difesa, si sfalda senza lasciare una parete stabile.</p>
             <p><strong>Effetto. </strong>Lo scudo può attenuare o arrestare un attacco, assorbendone l’urto prima di sfaldarsi. Non può essere mantenuto come muro o copertura.</p>
             <p><strong>Durata. </strong>Una singola difesa.</p>
-            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Terra, Ninjutsu 30 e possesso della tecnica.</p>
-            <h4>Frusta d’acqua</h4>
+            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Terra, Ninjutsu 30 e possesso della tecnica.</p></article></template>
+              <template id="published-tech-2"><article class="published-tech-card" aria-label="Frusta d’acqua"><h4>Frusta d’acqua</h4>
             <p>Dopo aver composto i sigilli, iniziando dal Cane, il ninja modella il chakra Acqua in una frusta flessibile che serpeggia nell’aria e schiocca verso l’avversario, avvolgendolo per un istante quando trova presa.</p>
             <p><strong>Effetto. </strong>Su un colpo pieno, la frusta può agganciare il bersaglio e trascinarlo verso chi la usa; ostacoli e terreno possono arrestare lo spostamento.</p>
             <p><strong>Regola. </strong>Il trascinamento va scelto prima dell’invio e può spostare il bersaglio fino a 1 metro verso l’utilizzatore. Il server lo arresta prima della prima posizione o tratta illegale; non infligge danni da collisione e non si applica su sfioramento o colpo negato.</p>
             <p><strong>Durata. </strong>Istantanea.</p>
-            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Acqua, Ninjutsu 30 e possesso della tecnica.</p>
-            <h4>Proiettile d’acqua</h4>
+            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Acqua, Ninjutsu 30 e possesso della tecnica.</p></article></template>
+              <template id="published-tech-3"><article class="published-tech-card" aria-label="Proiettile d’acqua"><h4>Proiettile d’acqua</h4>
             <p>Dopo aver composto i sigilli, iniziando dal Cane, il ninja comprime il chakra Acqua in un proiettile denso che investe l’avversario con un impatto violento, inzuppandone abiti e corpo e appesantendone per breve tempo i movimenti.</p>
             <p><strong>Effetto. </strong>Su un colpo pieno, l’acqua appesantisce il bersaglio e ne limita il movimento nel turno successivo.</p>
             <p><strong>Regola. </strong>Nel prossimo turno personale del bersaglio il budget di movimento è ridotto di 2 metri, fino a un minimo di zero. L’effetto scade alla fine di quel turno anche se il bersaglio non si muove; mentre è presente non si somma e non si rinnova. Non modifica la Velocità né la scheda del personaggio.</p>
             <p><strong>Durata. </strong>Impatto istantaneo; penalità nel prossimo turno personale del bersaglio, fino alla sua fine.</p>
-            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Acqua, Ninjutsu 40 e possesso della tecnica.</p>
-            <h4>Grande sfondamento</h4>
+            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Acqua, Ninjutsu 40 e possesso della tecnica.</p></article></template>
+              <template id="published-tech-4"><article class="published-tech-card" aria-label="Grande sfondamento"><h4>Grande sfondamento</h4>
             <p>Dopo aver composto i sigilli, iniziando dall’Uccello, il ninja libera una forte folata di vento dal palmo, dirigendola verso un solo avversario.</p>
             <p><strong>Effetto. </strong>Su un colpo pieno, la folata può respingere il bersaglio lungo la direzione dell’attacco; ostacoli, dislivelli e terreno possono arrestare lo spostamento.</p>
             <p><strong>Regola. </strong>La respinta va scelta prima dell’invio e può spostare il bersaglio fino a 3 metri lungo la direzione dell’attacco. Il server la arresta prima della prima posizione o tratta illegale; non infligge danni da collisione, non coinvolge altri bersagli e non si applica su sfioramento o colpo negato. Può disperdere localmente fumo, nebbia o polvere comuni, ma non cancella automaticamente un occultamento prodotto da una tecnica.</p>
             <p><strong>Durata. </strong>Istantanea.</p>
-            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Vento, Ninjutsu 40 e possesso della tecnica.</p>
-            <h4>Soffio di brace</h4>
+            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Vento, Ninjutsu 40 e possesso della tecnica.</p></article></template>
+              <template id="published-tech-5"><article class="published-tech-card" aria-label="Soffio di brace"><h4>Soffio di brace</h4>
             <p>Dopo aver composto i sigilli, iniziando dalla Tigre, il ninja emette un breve soffio di brace diretto verso un avversario. Quando il colpo lo raggiunge pienamente, le braci lambiscono la pelle e vi lasciano leggere scottature, spegnendosi rapidamente senza propagarsi nell’ambiente.</p>
             <p><strong>Effetto. </strong>Un colpo pieno applica Bruciatura lieve.</p>
             <p><strong>Regola. </strong>Alla fine del prossimo turno personale del bersaglio viene eseguito automaticamente un unico tiro di 1d100: da 1 a 75, la Bruciatura termina senza danni aggiuntivi; da 76 a 100, infligge una sola volta 2 PV di danno, entro il limite applicabile alla stessa azione, poi termina. Il tiro non consuma azioni o chakra e non si ripete. La Bruciatura non si somma, non si rinnova finché è presente e non si propaga. Sfioramenti e colpi negati non applicano Bruciatura.</p>
             <p><strong>Durata. </strong>Fino alla fine del prossimo turno personale del bersaglio.</p>
-            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Fuoco, Ninjutsu 30 e possesso della tecnica.</p>
-            <h4>Lama di vento</h4>
+            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Fuoco, Ninjutsu 30 e possesso della tecnica.</p></article></template>
+              <template id="published-tech-6"><article class="published-tech-card" aria-label="Lama di vento"><h4>Lama di vento</h4>
             <p>Dopo aver composto i sigilli, iniziando dall’Uccello, il ninja concentra il chakra Vento sul filo della mano e lo libera in una sottile lama d’aria. Se raggiunge l’avversario, la pressione può incidere pelle e tessuti lasciando tagli netti.</p>
             <p><strong>Effetto. </strong>La Parata è meno efficace contro la lama d’aria. Schivata, Sostituzione e tecniche difensive mantengono la loro normale efficacia.</p>
             <p><strong>Regola. </strong>Contro Parata applica +1 soltanto al confronto per colpire. Non modifica danno, potenza o margine usato nel danno; non taglia automaticamente armi o oggetti resistenti.</p>
             <p><strong>Durata. </strong>Istantanea.</p>
-            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Vento, Ninjutsu 30 e possesso della tecnica.</p>
-            <h4>Scarica</h4>
+            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Vento, Ninjutsu 30 e possesso della tecnica.</p></article></template>
+              <template id="published-tech-7"><article class="published-tech-card" aria-label="Scarica"><h4>Scarica</h4>
             <p>Dopo il sigillo della Lepre, il ninja raccoglie il chakra Fulmine nel palmo e lo libera al contatto in una scarica breve e concentrata. L’urto elettrico attraversa la parte colpita con un lampo secco e può lasciare i muscoli momentaneamente intorpiditi.</p>
             <p><strong>Effetto. </strong>Parata e Schivata successive possono risultare più difficili. Sostituzione e tecniche difensive conservano la loro normale efficacia e non consumano l’apertura.</p>
             <p><strong>Regola. </strong>Soltanto un colpo pieno a contatto applica una carica: -1 alla prima Parata o Schivata successiva, entro la fine del prossimo turno personale del bersaglio. Non si somma né si rinnova; non paralizza e non fa perdere azioni.</p>
             <p><strong>Durata. </strong>Istantanea.</p>
-            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Fulmine, Ninjutsu 30 e possesso della tecnica.</p>
-            <h4>Lancia di fulmine</h4>
+            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Fulmine, Ninjutsu 30 e possesso della tecnica.</p></article></template>
+              <template id="published-tech-8"><article class="published-tech-card" aria-label="Lancia di fulmine"><h4>Lancia di fulmine</h4>
             <p>Dopo il sigillo della Lepre, il ninja comprime il chakra Fulmine in una lancia sottile e luminosa, quindi la scaglia lungo una traiettoria diretta. Il lampo attraversa rapidamente lo spazio e scarica la propria energia nel punto raggiunto.</p>
             <p><strong>Effetto. </strong>La Schivata è meno efficace contro la rapidità della lancia. Parata, Sostituzione e tecniche difensive mantengono la loro normale efficacia.</p>
             <p><strong>Regola. </strong>Contro Schivata applica +1 soltanto al confronto per colpire. Non modifica danno o potenza; non perfora automaticamente e non si propaga ad altri bersagli.</p>
             <p><strong>Durata. </strong>Istantanea.</p>
-            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Fulmine, Ninjutsu 40 e possesso della tecnica.</p>
-            <h4>Proiettile di roccia</h4>
+            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Fulmine, Ninjutsu 40 e possesso della tecnica.</p></article></template>
+              <template id="published-tech-9"><article class="published-tech-card" aria-label="Proiettile di roccia"><h4>Proiettile di roccia</h4>
             <p>Dopo il sigillo del Serpente, il ninja concentra il chakra Terra e forma un proiettile di roccia compatto, che scaglia contro l’avversario con un impatto pesante e concentrato.</p>
             <p><strong>Effetto. </strong>La Parata assorbe meno efficacemente la forza dell’impatto. Schivata, Sostituzione e tecniche difensive mantengono la loro normale efficacia.</p>
             <p><strong>Regola. </strong>Contro Parata ignora fino a 2 punti della riduzione numerica del danno, senza portarla sotto zero. Non modifica Resistenza né l’esito del confronto e non distrugge automaticamente armature, scudi o coperture. Non richiede terra o roccia già presenti nella scena.</p>
             <p><strong>Durata. </strong>Istantanea.</p>
-            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Terra, Ninjutsu 40 e possesso della tecnica.</p>
-            <h3>5.4 · Tecniche Taijutsu pubblicate</h3>
-            <p>Le sequenze composte sono una sola scena offensiva: un confronto e un pacchetto di danno. I modificatori indicati come “solo per colpire” non aumentano potenza, danno o margine di danno.</p>
-            <h4>Colpo concatenato del leone</h4>
+            <p><strong>Requisiti. </strong>Grado Genin o superiore, elemento Terra, Ninjutsu 40 e possesso della tecnica.</p></article></template>
+              <template id="published-tech-10"><article class="published-tech-card" aria-label="Colpo concatenato del leone"><h4>Colpo concatenato del leone</h4>
             <p>Il ninja apre con un calcio ascendente, incalza l’avversario con una rapida concatenazione di colpi ravvicinati e chiude con un calcio discendente verso terra. I diversi colpi compongono un’unica scena offensiva e rappresentano una sola tecnica continua, non azioni separate.</p>
             <p><strong>Effetto. </strong>La difesa conserva tutte le normali possibilità contro l’intera sequenza.</p>
             <p><strong>Regola. </strong>L’intera composizione viene risolta con un solo confronto e un solo pacchetto di danno. Non concede danni aggiuntivi da caduta, movimento forzato o perdita della difesa.</p>
             <p><strong>Durata. </strong>Istantanea.</p>
-            <p><strong>Requisiti. </strong>Grado Genin o superiore, Taijutsu 25 e possesso della tecnica.</p>
-            <h4>Spazzata della Foglia</h4>
+            <p><strong>Requisiti. </strong>Grado Genin o superiore, Taijutsu 25 e possesso della tecnica.</p></article></template>
+              <template id="published-tech-11"><article class="published-tech-card" aria-label="Spazzata della Foglia"><h4>Spazzata della Foglia</h4>
             <p>Il ninja abbassa il baricentro e ruota rapidamente, distendendo la gamba contro gli appoggi dell’avversario. Il calcio basso cerca di spezzarne per un istante l’equilibrio e il passo.</p>
             <p><strong>Effetto. </strong>La difesa può evitare o attenuare normalmente il colpo. Soltanto un impatto pieno compromette temporaneamente il movimento del bersaglio.</p>
             <p><strong>Regola. </strong>Un colpo pieno non negato riduce di 2 metri, fino a un minimo di zero, il movimento disponibile nel prossimo turno personale del bersaglio. Non modifica Velocità o movimento già effettuato; non si applica su sfioramento o colpo negato e non si somma né si rinnova.</p>
             <p><strong>Durata. </strong>Istantanea.</p>
-            <p><strong>Requisiti. </strong>Grado Genin o superiore, Taijutsu 10 e possesso della tecnica.</p>
-            <h4>Turbine della Foglia</h4>
+            <p><strong>Requisiti. </strong>Grado Genin o superiore, Taijutsu 10 e possesso della tecnica.</p></article></template>
+              <template id="published-tech-12"><article class="published-tech-card" aria-label="Turbine della Foglia"><h4>Turbine della Foglia</h4>
             <p>Il ninja entra in rotazione con un calcio alto che impegna la guardia e prosegue nello stesso movimento con un secondo calcio basso. Le due traiettorie compongono un’unica scena offensiva e una sola tecnica continua.</p>
             <p><strong>Effetto. </strong>La Parata è meno efficace contro il rapido cambio d’altezza dei due calci. Schivata, Sostituzione e tecniche difensive mantengono la loro normale efficacia.</p>
             <p><strong>Regola. </strong>Contro Parata applica +1 soltanto al confronto per colpire. L’intera sequenza usa un solo confronto e un solo pacchetto di danno; il bonus non aumenta il danno.</p>
             <p><strong>Durata. </strong>Istantanea.</p>
-            <p><strong>Requisiti. </strong>Grado Genin o superiore, Taijutsu 10 e possesso della tecnica.</p>
-            <h4>Calcio ascendente della Foglia</h4>
+            <p><strong>Requisiti. </strong>Grado Genin o superiore, Taijutsu 10 e possesso della tecnica.</p></article></template>
+              <template id="published-tech-13"><article class="published-tech-card" aria-label="Calcio ascendente della Foglia"><h4>Calcio ascendente della Foglia</h4>
             <p>Il ninja raccoglie il corpo e libera dal basso un calcio ascendente diretto al busto o al mento dell’avversario. L’impatto cerca di sollevarne la postura e di aprire la guardia, mentre l’esecutore ricade nella stessa sequenza.</p>
             <p><strong>Effetto. </strong>Un colpo pieno può rendere più difficile la prima Parata o Schivata successiva. Sostituzione e tecniche difensive restano pienamente efficaci e non consumano l’apertura.</p>
             <p><strong>Regola. </strong>Un colpo pieno non negato applica una carica: -1 alla prima Parata o Schivata compatibile successiva. La carica resta fino al primo confronto compatibile o alla fine dello scontro; non si somma né si rinnova, non modifica la mitigazione e non causa perdita di azioni o sospensione in aria.</p>
             <p><strong>Durata. </strong>Istantanea.</p>
-            <p><strong>Requisiti. </strong>Grado Genin o superiore, Taijutsu 25 e possesso della tecnica.</p>
-            <h4>Entrata dinamica</h4>
+            <p><strong>Requisiti. </strong>Grado Genin o superiore, Taijutsu 25 e possesso della tecnica.</p></article></template>
+              <template id="published-tech-14"><article class="published-tech-card" aria-label="Entrata dinamica"><h4>Entrata dinamica</h4>
             <p>Il ninja scatta in linea retta verso l’avversario, trasforma la rincorsa in uno slancio e conclude l’avvicinamento con un calcio volante frontale. La tecnica unisce corsa e impatto in un solo gesto continuo.</p>
             <p><strong>Effetto. </strong>Dopo una rincorsa valida, Parata e Schivata sono meno efficaci contro l’impeto del calcio. Sostituzione e tecniche difensive mantengono la loro normale efficacia.</p>
             <p><strong>Regola. </strong>Richiede una rincorsa rettilinea, continua e legale di almeno 5 metri, terminata entro 2 metri dal bersaglio. Contro Parata o Schivata applica +1 soltanto al confronto per colpire. Un percorso invalido viene rifiutato senza costo o dichiarazione; non ripiega in un colpo semplice e non concede inseguimenti gratuiti dopo Sostituzione.</p>
             <p><strong>Durata. </strong>Istantanea.</p>
-            <p><strong>Requisiti. </strong>Grado Genin o superiore, Taijutsu 10 e possesso della tecnica.</p>
+            <p><strong>Requisiti. </strong>Grado Genin o superiore, Taijutsu 10 e possesso della tecnica.</p></article></template>
+            </details>
           </section>
 
           <section class="sec" id="s6">
@@ -1263,6 +1304,21 @@
     document.getElementById('tus-age-no').onclick=function(){ window.location.href='https://www.google.com/'; };
   }
   if(document.body) build(); else document.addEventListener('DOMContentLoaded', build);
+})();
+</script>
+
+<script>
+(function(){
+  var select=document.getElementById('published-tech-select');
+  var detail=document.getElementById('published-tech-detail');
+  if(!select||!detail)return;
+  select.addEventListener('change',function(){
+    detail.replaceChildren();
+    var template=document.getElementById(select.value);
+    if(!select.value||!template){detail.hidden=true;return;}
+    detail.appendChild(template.content.cloneNode(true));
+    detail.hidden=false;
+  });
 })();
 </script>
 </body>
