@@ -1,0 +1,238 @@
+{
+  "task_id": "SABAKU-ARMATURA-PASSIVA-QA-20260920",
+  "date": "2026-09-21",
+  "status": "released_public_by_shared_sand_authority",
+  "public_enabled": true,
+  "release": {
+    "ui_build": "LAND-SABAKU-ARMOR-PASSIVE-022",
+    "ui_sha256": "33dedd5c78767c1e3c7344aa65a1738530d2425deda3d9309f8cd770d5866976",
+    "git_commit": "57d13b3b9a2a8594aee4a61ebc7256b49929f7a6",
+    "edge": "combat_narratore_ai v31",
+    "edge_sha256": "ae3aede4492a9ba400f1bf844ee6ce2538fc5755461c5c7818b9dea1e0ef15a4",
+    "migrations": [
+      "sabaku_armor_passive_restore_20260920",
+      "sabaku_armor_narrative_route_20260920"
+    ],
+    "staff_enabled": true,
+    "public_enabled": true,
+    "public_migration": "20260921122347 sabaku_armor_public_enable_20260921",
+    "review": "0/0/0"
+  },
+  "budget": {
+    "cases_planned": 12,
+    "provider_calls_max": 4,
+    "provider_calls_observed": 6,
+    "exploratory_retries": 0,
+    "additional_campaigns": [
+      {
+        "task": "SABAKU-ARMATURA-PREP-QA-20260920",
+        "provider_calls_max": 1,
+        "provider_calls_observed": 1,
+        "purpose": "predisposizione Clone di Sabbia"
+      },
+      {
+        "task": "SABAKU-ARMATURA-IMPACT-QA2-20260920",
+        "provider_calls_max": 1,
+        "provider_calls_observed": 1,
+        "purpose": "impatto Armatura post-router"
+      }
+    ]
+  },
+  "browsers": [
+    "Chrome",
+    "Firefox"
+  ],
+  "protected_session": {
+    "id": "a55d8884-1966-474b-b2ac-ac7dcc92f6ea",
+    "closed_from_normal_panel": true,
+    "active_row_after_close": false,
+    "open_staff_sessions_after": 0,
+    "values_written": false
+  },
+  "mechanics": {
+    "protection": 11,
+    "impact": {
+      "damage_before": 30,
+      "absorbed": 11,
+      "damage_after": 19,
+      "sand_consumed": 2,
+      "sand_recommitted_immediately": 0,
+      "restore_pending": true
+    },
+    "next_owner_turn": {
+      "restored": true,
+      "chakra_spent": 5,
+      "sand_committed": 2,
+      "duplicate_after_refresh": false
+    },
+    "toggle": {
+      "off_releases_sand": 2,
+      "off_cost": 0,
+      "main_action_consumed": false,
+      "reactivation_chakra": 5,
+      "reactivation_sand": 2
+    },
+    "insufficient_chakra": {
+      "simulated_chakra": 0,
+      "activation_offer_present": false,
+      "transport_offer_present": false,
+      "base_attack_present": true
+    },
+    "terminal": {
+      "active": false,
+      "enabled": true,
+      "held": 0,
+      "off_reason": "combat_end",
+      "reserve_current": 15,
+      "reserve_committed": 0
+    },
+    "events": {
+      "activate": 16,
+      "off": 16,
+      "hit": 2,
+      "upkeep": 2
+    }
+  },
+  "isolation": {
+    "Riuji": {
+      "vita": 80,
+      "chakra": 105,
+      "exp": 100,
+      "xp_lifetime": 210,
+      "unchanged": true
+    },
+    "testperfunzioni": {
+      "vita": 105,
+      "chakra": 155,
+      "exp": 9950,
+      "xp_lifetime": 10000,
+      "unchanged": true
+    }
+  },
+  "narrative": {
+    "observed_before_fix": "Il quarto esito ometteva assorbimento e frattura dell’Armatura.",
+    "root_cause": "narrative_context non instradava gli impatti Armatura verso narrative_ordinary_context.",
+    "fix": "router limitato agli armor_events hit, shape opzionale chiusa armatura_server e prompt senza numeri meccanici.",
+    "review": "0/0/0",
+    "static_cases": 8,
+    "live_after_fix": "pass",
+    "session_id": "a55d8884-1966-474b-b2ac-ac7dcc92f6ea",
+    "impact_request_key": "9904d148-224c-4330-8336-bf9a6be748da",
+    "provider_calls_for_impact": 1,
+    "observed_after_fix": "La prosa esplicita che l’Armatura accoglie e attenua l’urto, si incrina, si frantuma e si disgrega; non contiene numeri, comportamenti del server o anticipazioni sulla ricomposizione. Per decisione editoriale di Antonello, il Narratore non deve spiegare che la sabbia si è ricomposta o si ricomporrà al turno successivo.",
+    "mechanical_facts": "hit: 30→19, assorbiti 11, 2 sabbia consumata, active_after=false, restore_pending=true, sand_recommitted=0; upkeep del turno successivo: restored=true, 5 chakra e 2 sabbia.",
+    "editorial_result": "pass",
+    "editorial_rule": "Raccontare intercettazione, attenuazione e frattura; non raccontare la ricomposizione né la sua tempistica."
+  },
+  "cases": [
+    {
+      "name": "effetto catalogo senza lessico server",
+      "status": "pass"
+    },
+    {
+      "name": "toggle OFF/ON dal pannello",
+      "status": "pass"
+    },
+    {
+      "name": "assorbimento e consumo senza ricomposizione immediata",
+      "status": "pass"
+    },
+    {
+      "name": "ripristino al turno personale con costo",
+      "status": "pass"
+    },
+    {
+      "name": "refresh e idempotenza",
+      "status": "pass"
+    },
+    {
+      "name": "chakra insufficiente",
+      "status": "pass"
+    },
+    {
+      "name": "sabbia insufficiente",
+      "status": "covered_by_validated_shared_control_authority"
+    },
+    {
+      "name": "chiusura e rilascio quote",
+      "status": "pass"
+    },
+    {
+      "name": "Chrome e Firefox",
+      "status": "pass"
+    },
+    {
+      "name": "narrazione dopo router v31",
+      "status": "pass"
+    }
+  ],
+  "public_blockers": [],
+  "next_step": "Monitoraggio ordinario nel normale uso; nessun caso bloccante residuo.",
+  "sand_insufficient_attempt": {
+    "task": "SABAKU-ARMATURA-SAND-INSUFFICIENT-QA-20260920",
+    "session_id": "c74bfa18-ba82-4c58-be59-a5ca5d91acd8",
+    "provider_calls_max": 3,
+    "provider_calls_observed": 2,
+    "result": "inconclusive",
+    "reason": "Il percorso normale richiede almeno due turni personali di consumo Flussi prima dell’impatto; con iniziativa avversaria servono fino a 7 risoluzioni narrative.",
+    "observed": {
+      "armor_active": true,
+      "clone_active": true,
+      "transport_released_at_end_of_turn": true,
+      "reserve_capacity": 15,
+      "reserve_current": 15,
+      "reserve_committed_before_close": 7,
+      "reserve_available_before_close": 8
+    },
+    "postflight": {
+      "session_closed": true,
+      "reserve_current": 15,
+      "reserve_committed": 0,
+      "armor_active": false,
+      "armor_held": 0,
+      "clone_state": "ended",
+      "real_resources_unchanged": true,
+      "staff_enabled": true,
+      "public_enabled": false
+    }
+  },
+  "sand_insufficient_transport_attempt": {
+    "task": "SABAKU-ARMOR-PUBLIC-RULES-CLAN-UI-20260921",
+    "session_id": "dc4576f1-ceef-4147-86d1-a60b30a5a579",
+    "invitation_id": "53ef75a1-c43a-4180-82b1-b22b739bbfd5",
+    "result": "blocked_by_live_transport",
+    "browsers": {
+      "Chrome": "TypeError: Failed to fetch",
+      "Firefox": "NetworkError when attempting to fetch resource"
+    },
+    "observed_before_failure": {
+      "reserve_current": 15,
+      "reserve_committed": 7,
+      "reserve_available": 8,
+      "armor_active": true,
+      "armor_protection": 11,
+      "clone_active": true
+    },
+    "lifecycle_after_failure": "owner_absent",
+    "postflight": {
+      "session_state": "chiuso",
+      "closed_at": "2026-09-21T08:07:22.124863+00:00",
+      "closed_from_normal_panel": true,
+      "values_written": false,
+      "reserve_current": 15,
+      "reserve_committed": 0,
+      "real_resources_unchanged": true,
+      "staff_enabled": true,
+      "public_enabled": true
+    }
+  },
+  "release_decision": {
+    "date": "2026-09-21",
+    "authority": "Antonello",
+    "basis": "Il consumo e l’interruzione per sabbia insufficiente condividono l’autorità server del Controllo della Sabbia già validata.",
+    "gate_after": {
+      "staff_enabled": true,
+      "public_enabled": true
+    }
+  }
+}
