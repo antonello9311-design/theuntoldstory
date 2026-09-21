@@ -1,13 +1,15 @@
-TASK-ID · ELEMENTALI-TAIJUTSU-CLOSEOUT-20260919-071
+# SABAKU-ARMOR-PUBLIC-RULES-CLAN-UI-20260921
 
-Scope toccato · chiusura documentale del rilascio delle nove tecniche elementali generiche e delle cinque Taijutsu, con aggiornamento delle checklist, della fotografia, del tabellone e dell’area Clan.
+TASK-ID · SABAKU-ARMOR-PUBLIC-RULES-CLAN-UI-20260921
 
-Contratti usati/modificati · nessun contratto runtime modificato. Rilette le evidenze `PUBLIC_BATCH_RESULT.json`, `runtime001/LIVE_RESULT.json` e `OPENING_LIFECYCLE_LIVE_RESULT.json`; aggiornati soltanto documenti e checklist.
+Scope toccato · Apertura pubblica di Armatura di Sabbia; pubblicazione dei cataloghi selettivi `regole.html` e `clan.html`; registrazione del collaudo e del rilascio.
 
-Decisioni prese / OPEN · il rilascio Elementali/Taijutsu è concluso e non compare più tra i lavori aperti. I PASS restano circoscritti ai percorsi osservati nelle checklist; nuove combinazioni future richiedono regressioni mirate. OPEN: nessuno nel perimetro.
+Contratti usati/modificati · `sabaku-armor-view/2`, autorità condivisa del consumo sabbia, pannello Combat V2 ordinario. UI Regole `RULES-TECH-CATALOG-001`; UI Clan `CLAN-TECH-CATALOG-002`. Migrazione `20260921122347 sabaku_armor_public_enable_20260921`.
 
-Prove eseguite e risultato · verifica documentale incrociata con review `0/0/0`, postflight live, cataloghi/gate pubblici, Pages 729 e dominio. Le checklist riportano nove elementali e cinque Taijutsu conclusi; vecchi Taijutsu 7/7 inattivi e conservati; risorse reali invariate.
+Decisioni prese / OPEN · Antonello ha ratificato l’equivalenza del ramo sabbia insufficiente con l’interruzione già validata delle tecniche per controllo della sabbia. Armatura è pubblica: Staff ON e pubblico ON. Nessun caso bloccante resta aperto; la precedente perdita di rete è conservata come limite della prova diretta, senza effetti sulle risorse reali.
 
-Rischi o regressioni da verificare · nessun limite materiale aperto per questo rilascio. Le checklist non certificano interazioni non osservate o introdotte da modifiche future.
+Prove eseguite e risultato · Review indipendente SQL `0/0/0`; pin delle due migrazioni e delle sette funzioni critiche; postflight gate/catalogo/RLS/ACL/policy/trigger PASS. JavaScript Regole 4/4 e Clan 3/3 valido. Deploy Pages 764 riuscito sul commit `ed2842a7aeec2125f70df53e7c3f94adb74e87df`; dominio verificato: Regole chiuso con una sola card dopo la scelta, Clan Sabaku chiuso con 18 opzioni, Armatura selezionabile e una sola scheda completa.
 
-Passaggio richiesto al PM · nessuno. Documentazione pronta per deposito selettivo e archiviazione della task.
+Rischi o regressioni da verificare · Solo monitoraggio nel normale uso. Recovery conservativa disponibile per riportare `public_enabled=false` lasciando Staff ON.
+
+Passaggio richiesto al PM · Nessuno: rilascio pubblico completato e verificato.

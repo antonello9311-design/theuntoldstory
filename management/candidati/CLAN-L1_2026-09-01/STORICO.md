@@ -1,3 +1,9 @@
+21/09/2026 · SABAKU-ARMOR-PUBLIC-ENABLE-20260921-004 · Armatura pubblica con gate Staff/pubblico ON, review 0/0/0 e postflight sicurezza PASS; cataloghi Regole/Clan online al commit ed2842a7 e Pages 764 verificata · esito: rilascio completato.
+
+21/09/2026 · SABAKU-ARMOR-PUBLIC-RULES-CLAN-UI-20260921 · cataloghi Regole/Clan convertiti a selezione singola e verificati; secondo tentativo sabbia insufficiente interrotto da errore rete su entrambi i browser, sessione chiusa e isolamento confermato · esito: UI pronta alla pubblicazione, Armatura pubblico OFF.
+
+20/09/2026 · SABAKU-ARMATURA-PASSIVA-QA-20260920 · passiva con ripristino al turno, UI022, Edge v31 e router narrativo applicati; meccanica Chrome/Firefox positiva, chakra insufficiente positivo, prova chiusa e isolamento verificato · esito: Staff parziale, pubblico OFF; restano controprova narrativa post-fix e sabbia insufficiente.
+
 - 03/09/2026 · PM-DOC-001 · adottati SCHEDA/HANDOFF/STORICO v2; exact21 aperto, history450–453 LIVE inerti e rebase futuro vincolato alla head LIVE del gate · esito: documentale, nessuna mutazione LIVE.
 
 11/09/2026 · TRANSPORT-EDITORIAL-APPROVED-001 · Testi Trasporto approvati pubblicati nel catalogo · review0/0/0 e postflight PASS; apertura funzionale nel pacchetto pubblico.
@@ -650,3 +656,7 @@
 19/09/2026 · EDITORIALE-TURBINE-APPROVAL-062 · Turbine della Foglia approvata come unica scena offensiva con un confronto e un pacchetto; bonus limitato alla Parata · nessun apply o gate modificato.
 - 19/09/2026 · ELEMENTALI-TAIJUTSU-PUBLIC-BATCH-070 · pubblicate quattro elementali e cinque Taijutsu; ritirate dal catalogo sette versioni precedenti; regolamento changelog 95 al commit 71e732e · esito: review 0/0/0, migrazione, postflight e dominio PASS; Pages 729 riuscita.
 - 19/09/2026 · ELEMENTALI-TAIJUTSU-CLOSEOUT-071 · checklist Elementali/Taijutsu e documenti centrali allineati allo stato pubblico, arretrato rimosso dal tabellone · esito: chiusura documentale verificata, nessun caso aperto nel perimetro.
+2026-09-20 · SABAKU-ARMATURA-LIVE-QA-20260920 · Armatura Staff collaudata sul nucleo meccanico e isolata; pubblico OFF, revisione editoriale e rami terminali mancanti consegnati · PARZIALE POSITIVO
+2026-09-20 · SABAKU-ARMATURA-IMPACT-QA2-20260920 · controprova post-router: meccanica e isolamento PASS; prosa corretta su assorbimento e frattura ma senza ricomposizione differita esplicita; pubblico OFF · PARZIALE EDITORIALE
+2026-09-20 · SABAKU-ARMATURA-NARRATIVA-RATIFICA-20260920 · Antonello ratifica che il Narratore non descrive né anticipa la ricomposizione; controprova post-router riclassificata PASS · resta solo il caso sabbia insufficiente, pubblico OFF.
+2026-09-20 · SABAKU-ARMATURA-SAND-INSUFFICIENT-QA-20260920 · tentativo pannello normale chiuso al budget 2/3 prima di raggiungere sabbia <2; Trasporto liberato a fine turno, postflight e isolamento PASS · caso ancora OPEN, pubblico OFF.

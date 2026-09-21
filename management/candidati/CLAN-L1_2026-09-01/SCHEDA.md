@@ -1,5 +1,11 @@
 in uso · 19/09/2026 · Nove tecniche pubblicate in batch; catalogo e regolamento sincronizzati.
 
+**Cataloghi selettivi Regole/Clan · live 21/09/2026:** `regole.html` build `RULES-TECH-CATALOG-001` e `clan.html` build `CLAN-TECH-CATALOG-002` sono pubblicati nel commit `ed2842a7aeec2125f70df53e7c3f94adb74e87df`; deploy Pages 764 riuscito. Sul dominio Regole parte chiuso e mostra una sola tecnica dopo la scelta; Clan Sabaku parte chiuso, offre 18 tecniche, apre una sola scheda completa e non contiene `(def)`. JavaScript 4/4 e 3/3 valido.
+
+**Armatura di Sabbia · pubblica 21/09/2026:** migrazione `20260921122347 sabaku_armor_public_enable_20260921` applicata dopo review indipendente `0/0/0`. Gate Staff e pubblico ON; catalogo attivo/passiva. RLS e FORCE RLS restano attivi, anon/authenticated/service_role senza SELECT/INSERT/UPDATE/DELETE, zero policy e trigger applicativi. Il ramo sabbia insufficiente è coperto dall’autorità condivisa di consumo e interruzione del Controllo della Sabbia già validata, come ratificato da Antonello. La precedente prova interrotta dalla rete resta documentata, senza effetti reali.
+
+**Armatura di Sabbia · collaudo concluso:** meccanica, toggle, consumo, ripristino al turno, chakra insufficiente, chiusura, isolamento e narrativa sono PASS. Il caso sabbia insufficiente riusa l’autorità condivisa già validata e non resta bloccante.**
+
 **Chiusura documentale · 19/09/2026:** checklist Elementali e Taijutsu riscritte sullo stato effettivo: nove elementali e cinque Taijutsu collaudati nel rispettivo perimetro, editorialmente approvati e pubblici. Nessun caso tecnico/editoriale resta aperto per questo rilascio; eventuali interazioni future sono regressioni di nuovi delta, non arretrato della campagna conclusa. Fonti finali: `elementali/CHECKLIST_COLLAUDO.md`, `runtime/taijutsu/CHECKLIST_COLLAUDO.md` e `runtime/PUBLIC_BATCH_RESULT.json`.
 
 
