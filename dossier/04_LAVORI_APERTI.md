@@ -1,12 +1,12 @@
 # 04 · LAVORI APERTI — cantieri, dipendenze e prossimi passi
 
-> Allineamento del 20/09/2026. Al massimo tre cantieri restano «in lavoro»; le task archiviate non vengono riaperte. Le versioni e le prove esatte restano nelle schede d’area e negli handoff dei singoli incarichi.
+> Allineamento del 21/09/2026. Al massimo tre cantieri restano «in lavoro»; le task archiviate non vengono riaperte. Le versioni e le prove esatte restano nelle schede d’area e negli handoff dei singoli incarichi.
 
 ## I tre cantieri aperti
 
 | Cantiere | Stato reale | Prossimo passo |
 |---|---|---|
-| `management/candidati/CLAN-L1_2026-09-01/` | Sabaku, Hyūga e Uchiha hanno rilasci pubblici circoscritti. Nove elementali e cinque Taijutsu generici sono collaudati nel perimetro pertinente, approvati editorialmente e pubblici; sette Taijutsu precedenti sono inattivi e conservati. | Collaudare e poi abilitare Armatura; implementare punto cieco; chiudere i casi Master pertinenti degli altri clan. Elementali/Taijutsu generici non hanno arretrato aperto. |
+| `management/candidati/CLAN-L1_2026-09-01/` | Sabaku, Hyūga e Uchiha hanno rilasci pubblici circoscritti. Nove elementali e cinque Taijutsu generici sono pubblici. Armatura di Sabbia è pubblica; cataloghi selettivi Regole/Clan online. | Implementare punto cieco e chiudere i casi Master pertinenti degli altri clan; osservare Armatura nel normale uso senza riaprire il collaudo concluso. |
 | `management/candidati/COMBAT-COMPOSITE_2026-09-01/` | Common e movimento sono operativi; mappe/binding del 15/09 sono live. Copertura/Diversivo sono stati passati a un lavoro dedicato; il vecchio writer `MULTIPLICATION-RESUME-CORE-006` è stato rilasciato sospeso e non ha modificato i file. | Integrare il bivio della cessione iniziativa, impedire la pubblicazione del Fato prima della sua chiusura e collaudare nei percorsi reali. Comporre i delta sulla baseline corrente, senza riusare installer obsoleti. |
 | `management/candidati/NARRATORE-UNIFICATO_2026-09-02/` | Editor rapido live e collaudato: compilatore, bozze PNG, contesto narrativo, arena separata, anteprima e pubblicazione unica. Missione a due mappe aperta con 2 PG + 3 PNG; `Adatta missioni` invariato. Le task sospese precedenti sono storico. | Nessun seguito per l’editor rapido. Restano separati soltanto i lavori già nominati su Scorta, qualità narrativa ed Esame; un nuovo requisito dell’editor richiede un nuovo mandato. |
 
@@ -26,7 +26,7 @@
 |---|---|---|
 | 1 | Primo run giocato della Scorta già pubblicata | È distinto dall’editor rapido, che è concluso. Eseguirlo solo quando il roster previsto è libero e senza riaprire le task di sviluppo dell’editor. |
 | 1 | Copertura e Diversivo | Integrare cessione iniziativa, difesa successiva e pubblicazione unica del Fato. Nessun esito IA prima della chiusura del bivio. |
-| 2 | Armatura di Sabbia | Installata inerte: enable, Staff Test Room, correzioni chiare e apertura al positivo. |
+| 2 | Armatura di Sabbia | Pubblicata il 21/09 dopo review 0/0/0 e apertura del gate; nessun caso bloccante residuo. |
 | 2 | Punto cieco Byakugan | Regola decisa; mancano facing/origine attacco e geometria posteriore autorevoli. |
 | 2 | Casi Master pertinenti | Rotazione, Katon e interazioni indicate nelle checklist; non ripetere i casi ordinary già verdi. |
 | 3 | Qualità Narratore | Osservare il prossimo Fato PNG v30 e casi completi di scontro/missione; registrare note editoriali specifiche. |

@@ -1,4 +1,4 @@
-# 01 · STATO ATTUALE — fotografia consolidata del 20/09/2026
+# 01 · STATO ATTUALE — fotografia consolidata del 21/09/2026
 
 > Si riscrive in posto. Il diario precedente è in `storico/01_STATO_ATTUALE_diario_fino_20260902.md`. Le schede d’area e i readback vivi restano le fonti di dettaglio; questa pagina distingue ciò che è pubblico, ciò che è riservato alla Staff e ciò che richiede ancora collaudo.
 
@@ -13,7 +13,7 @@ Le verifiche mirate successive prevalgono per i sistemi modificati. Il readback 
 | Area | Stato corrente | Verifica o seguito necessario |
 |---|---|---|
 | Combat / Regia | Motore Common, pannelli ordinary/Staff e movimento ortogonale/diagonale sono operativi. Mappe 10×10 e collegamenti per fase sono pubblicati; il percorso Full IA Missioni sta ancora componendo funzioni e configurazione condivise. | Completare il collaudo Master e multi-attore sui casi indicati nelle checklist vive. Copertura e Diversivo della Moltiplicazione sono in un lavoro separato: il precedente writer sospeso è stato liberato senza modifiche. |
-| Sabaku | Pubblici Controllo della Sabbia, Flussi 1–3 concentrati sul singolo bersaglio, Trasporto e Clone di Sabbia. I casi osservati hanno conservato le risorse reali della Test Room. | Flussi multibersaglio restano rinviati. Armatura di Sabbia è installata inerte, con testo/formula approvati ma senza enable e collaudo. |
+| Sabaku | Pubblici Controllo della Sabbia, Flussi 1–3 sul singolo bersaglio, Trasporto, Clone e Armatura di Sabbia. Armatura è una passiva gestita dal pannello, con consumo e ricomposizione server-side già collaudati. | Flussi multibersaglio restano rinviati. Armatura è pubblica dal 21/09: il ramo sabbia insufficiente usa la stessa autorità condivisa di consumo/interruzione del Controllo della Sabbia già validata; monitoraggio ordinario, nessun blocco aperto. |
 | Hyūga | Pubblici Byakugan, Pugno Gentile, Tecnica delle Sedici Chiusure e Rotazione Suprema. Potenza, Danno base e Difesa sono esposti nelle UI previste. Rotazione ha due casi ordinary positivi. | Rotazione con Master resta da provare. Il malus del punto cieco −3/−2/−1/0 è deciso ma non implementato. |
 | Uchiha | Pubblici Sharingan, Palla di Fuoco generica, Palla di Fuoco Suprema e Risonanza Katon. La Risonanza vale solo per i Katon Uchiha compatibili e non per la tecnica generica. | Percorso Master e osservazione live pubblica restano da attestare. |
 | Moltiplicazione / Sostituzione | Assalto e Sostituzione seguono il resolver condiviso; Assalto usa bonus +2/+3 e difesa ordinaria. La conclusione delle copie è proiettata al Narratore. | Copertura e Diversivo restano fuori dal completamento finché il bivio di cessione iniziativa non viene integrato e collaudato senza anticipare il Fato. |
