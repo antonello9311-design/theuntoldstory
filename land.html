@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-INUZUKA-GENIN-COMMON-006" />
+  <meta name="tus-build" content="LAND-INUZUKA-GENIN-COMMON-007" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -4757,7 +4757,8 @@ class CombatConsumer {
     requireValue(movementId===null || offer.movement_options.some(m=>m.offer_id===movementId),'movement_not_available');
     this.selected=offerId;this.movement=movementId;this.error=null;this.notify();
   }
-  canSubmit(){return !this.busy&&!this.pending&&!this.needsOptions&&this.envelope?.status==='ready'&&this.envelope.viewer.can_command&&this.offers.some(o=>o.offer_id===this.selected && typeof o.movement_required==='boolean' && (!o.movement_required || o.movement_options.some(m=>m.offer_id===this.movement)));}
+  canStage(){return !this.busy&&!this.pending&&!this.needsOptions&&this.envelope?.status==='ready'&&this.offers.some(o=>o.offer_id===this.selected && typeof o.movement_required==='boolean' && (!o.movement_required || o.movement_options.some(m=>m.offer_id===this.movement)));}
+  canSubmit(){return this.canStage()&&this.envelope.viewer.can_command;}
   async submit(narrativeText='',companion=null){
     requireValue(this.canSubmit(),'offer_not_available');requireValue(typeof narrativeText==='string');
     const o=this.offers.find(o=>o.offer_id===this.selected),c=this.envelope.context;requireValue(o.companion_context_required!==true||(companion&&text(companion.id)&&text(companion.body)),'offer_not_available');
@@ -5059,8 +5060,9 @@ function mountConsumer(root,controller,{readChat=()=>'',onConfirm=null,onRetry=n
     movement.value=c.movement||'';movement.disabled=select.disabled;movementLabel.hidden=moves.length===0;movementLabel.setAttribute('style',moves.length?'':'display:none');
     refresh.hidden=isOpening;refresh.style.display=isOpening?'none':'';receipt.hidden=isOpening;receipt.style.display=isOpening?'none':'';events.hidden=isOpening;events.style.display=isOpening?'none':'';
     refresh.disabled=c.busy||!!c.pending||e?.status!=='ready'||!e?.viewer.can_command;
-    send.disabled=!c.canSubmit();retry.hidden=!c.pending;retry.disabled=c.busy;
-    send.textContent=isOpening?(chosen?.operation==='open'?"Invia l'invito":chosen?.operation==='join'?'Accetta':chosen?.operation==='close'?(chosen.label||'Rifiuta'):'Conferma'):onConfirm&&['declare','defend'].includes(chosen?.operation)?'Prepara scelta':'Conferma scelta';
+    const stageable=!!onConfirm&&(['declare','defend'].includes(chosen?.operation)||chosen?.companion_context_required===true);
+    send.disabled=stageable?!c.canStage():!c.canSubmit();retry.hidden=!c.pending;retry.disabled=c.busy;
+    send.textContent=isOpening?(chosen?.operation==='open'?"Invia l'invito":chosen?.operation==='join'?'Accetta':chosen?.operation==='close'?(chosen.label||'Rifiuta'):'Conferma'):stageable?'Prepara scelta':'Conferma scelta';
     const r=e?.receipt;receipt.textContent=r?('Ricevuta registrata'+(r.replayed?' · invio già acquisito':'')+(r.values_written?' · valori applicati.':' · nessuna modifica ai valori in questo passaggio.')):'';
     events.replaceChildren();for(const event of r?.display_events||[])events.append(node('li',event.summary));
     const remembered=closeMemory.observe(presentationScope(),e);
@@ -5153,12 +5155,13 @@ function attachOrdinaryLand(host){
     }});
     controller=created;
     presentation=mountConsumer(root,controller,{presentationScope,onConfirm:async c=>{
-      if(!current(c,stamp)||!c.canSubmit())throw new ConsumerError('offer_not_available');
+      if(!current(c,stamp))throw new ConsumerError('offer_not_available');
       const offer=c.offers.find(o=>o.offer_id===c.selected);
-      // La preparazione locale non invia nulla: conserva la scelta anche se un poll
-      // transitorio ha sospeso l'ingresso. L'invio resta bloccato da ownsCurrent().
-      if(['declare','defend'].includes(offer?.operation)||offer?.companion_context_required===true){prepared=selectionKey(c);visible(false);host.syncSendGate?.();host.notice(offer?.companion_context_required===true?'Scelta del ninken pronta. Completa anche la sua azione in chat, poi premi Invia.':'Scelta pronta. Invia la role dalla chat.');return;}
-      if(!eligible())throw new ConsumerError('offer_not_available');
+      const stageable=['declare','defend'].includes(offer?.operation)||offer?.companion_context_required===true;
+      // La preparazione locale non invia nulla: valida scelta e posizionamento,
+      // ma non dipende da un poll transitorio. L'invio resta autoritativo.
+      if(stageable){if(!c.canStage())throw new ConsumerError('offer_not_available');prepared=selectionKey(c);visible(false);host.syncSendGate?.();host.notice(offer?.companion_context_required===true?'Scelta del ninken pronta. Completa anche la sua azione in chat, poi premi Invia.':'Scelta pronta. Invia la role dalla chat.');return;}
+      if(!eligible()||!c.canSubmit())throw new ConsumerError('offer_not_available');
       await submit();
     },onRetry:async c=>{if(!current(c,stamp)||!eligible())throw new ConsumerError('context_stale');const r=await c.retry();if(current(c,stamp))accepted(r);}});
   }
