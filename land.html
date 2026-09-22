@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-USER-TESTROOM-COMMON-004" />
+  <meta name="tus-build" content="LAND-ROOM-ENTRY-005" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -9861,7 +9861,14 @@ var nb028iTeardown=function(){};
     constants:{targetUserId:TARGET_USER_ID,testRoomId:TEST_ROOM_ID,eventRef:EVENT_REF,requestKey:REQUEST_KEY,testInput:TEST_INPUT}
   };
 });
-      function openRoom(l){
+            /* [LAND-ROOM-ENTRY-005 · 22/09/2026] openRoom vive prima del modulo Test Room utenti.
+         La pulizia deve quindi esistere già in questo script e non dipendere dalla dichiarazione privata successiva. */
+      function truReleaseInvalidate(){
+        if(window.TRU_RELEASE002){window.TRU_RELEASE002.invalidate();window.TRU_RELEASE002=null;}
+        var ov=document.getElementById('truv'),bk=document.getElementById('truv-backdrop');
+        if(ov)ov.hidden=true;if(bk)bk.hidden=true;
+      }
+function openRoom(l){
         truReleaseInvalidate();
         closeRoomObjectBinding();
         if(ORDINARY)ORDINARY.invalidate();MV2.readRequested=false;cur=l; showView('room');  restorePlace(l.id);
