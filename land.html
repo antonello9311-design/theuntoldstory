@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-USER-TESTROOM-COMMON-002" />
+  <meta name="tus-build" content="LAND-USER-TESTROOM-COMMON-003" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -5895,7 +5895,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       window.addEventListener('tus:ordinary-logout',function(){ordinarySigningOut=true;if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();});
       if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session){
         var id=session&&session.user?session.user.id:null;
-        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(TRU_RELEASE002){TRU_RELEASE002.invalidate();TRU_RELEASE002=null;}if(event==='SIGNED_OUT')closeTestRoomUser();if(MV2){MV2.authEpoch=(MV2.authEpoch||0)+1;MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.options={};}}
+        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(window.TRU_RELEASE002){window.TRU_RELEASE002.invalidate();window.TRU_RELEASE002=null;}if(event==='SIGNED_OUT')closeTestRoomUser();if(MV2){MV2.authEpoch=(MV2.authEpoch||0)+1;MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.options={};}}
         if(MV2&&(id!==ordinaryAuthId||event==='SIGNED_OUT'))MV2.readRequested=false;
         ordinaryAuthId=id;
       });
@@ -9895,7 +9895,7 @@ var nb028iTeardown=function(){};
         var to=toSel?toSel.value:'';
         var placeEl=document.getElementById('msg-place'); var place=placeEl?placeEl.value.trim().replace(/[【】]/g,'').slice(0,60):'';
         var pbody=(place && !to)?('【'+place+'】 '+t):t;
-        if(TRU_RELEASE002&&TRU_RELEASE002.handleSend(t,pbody,{recipient:to,fato:fatoMode,companionText:pTxt,after:after}))return;
+        if(window.TRU_RELEASE002&&window.TRU_RELEASE002.handleSend(t,pbody,{recipient:to,fato:fatoMode,companionText:pTxt,after:after}))return;
         if(!to&&examRegia()?.blocksChat()){if(fatoMode){toast('Disattiva la voce Fato per inviare la tua role nell’Esame.');return;}if(examRegia().handleSend(t,pbody))return;}
         if(!to&&fatoMode&&commonMasterCombat()&&ORDINARY&&ORDINARY.handleSend(t,pbody)) return;
         if(fatoMode){
@@ -10376,8 +10376,8 @@ var nb028iTeardown=function(){};
         return turnoLen()>=500;
       }
       function syncSendBtn(){
-        if(TRU_RELEASE002?.ownsCurrent()){
-          var text=input?.value||'',ready=TRU_RELEASE002.canSend()&&!!text.trim()&&[...text].length<=2500,tip=ready?'Invia descrizione e scelta nella prova privata':'Completa e conferma la scelta della prova; descrizione da 1 a 2500 caratteri';
+        if(window.TRU_RELEASE002?.ownsCurrent()){
+          var text=input?.value||'',ready=window.TRU_RELEASE002.canSend()&&!!text.trim()&&[...text].length<=2500,tip=ready?'Invia descrizione e scelta nella prova privata':'Completa e conferma la scelta della prova; descrizione da 1 a 2500 caratteri';
           for(var id of ['msg-send','ed-send']){var button=document.getElementById(id);if(button){button.disabled=!ready;button.title=tip;}}return;
         }
         var ok=sendGateOk(), ttl=ok?'':'Un turno di role vuole almeno 500 caratteri';
@@ -11219,17 +11219,17 @@ var nb028iTeardown=function(){};
         }
 
         /* ===== TEST ROOM UTENTI 070 · RELEASE002 su Combat/Common ===== */
-        var TRU_RELEASE002=null,TRU_LAYOUT_STOP=null;
+        window.TRU_RELEASE002=null;var TRU_LAYOUT_STOP=null;
         function truReleaseIdentity(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId&&myId&&myCharId?{principal_id:myId,character_id:myCharId}:null;}
         function truReleaseRpc(name,args){return sb.rpc(name,args||{});}
         function truReleaseInvoke(name,options){return sb.functions.invoke(name,options||{});}
         function truReleaseLegacy(){toast('La nuova Test Room non è ancora disponibile per questo accesso.');}
-        function truReleaseInvalidate(){if(TRU_RELEASE002){TRU_RELEASE002.invalidate();TRU_RELEASE002=null;}closeTestRoomUser();}
+        function truReleaseInvalidate(){if(window.TRU_RELEASE002){window.TRU_RELEASE002.invalidate();window.TRU_RELEASE002=null;}closeTestRoomUser();}
         window.addEventListener('tus:ordinary-logout',truReleaseInvalidate);
         function truReleaseEnsure(){
-          if(TRU_RELEASE002)return TRU_RELEASE002;
-          TRU_RELEASE002=moduleUserTestRelease002.attach({document:document,identity:truReleaseIdentity,rpc:truReleaseRpc,invoke:truReleaseInvoke,storage:window.sessionStorage,notice:toast,legacy:truReleaseLegacy,location:function(){return cur;},hide:closeTestRoomUser,composerChanged:syncSendBtn,readChat:function(){return input.value||'';},clearChat:function(){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';updCount();}});
-          return TRU_RELEASE002;
+          if(window.TRU_RELEASE002)return window.TRU_RELEASE002;
+          window.TRU_RELEASE002=moduleUserTestRelease002.attach({document:document,identity:truReleaseIdentity,rpc:truReleaseRpc,invoke:truReleaseInvoke,storage:window.sessionStorage,notice:toast,legacy:truReleaseLegacy,location:function(){return cur;},hide:closeTestRoomUser,composerChanged:syncSendBtn,readChat:function(){return input.value||'';},clearChat:function(){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';updCount();}});
+          return window.TRU_RELEASE002;
         }
         function truReleaseLayout(){
           if(TRU_LAYOUT_STOP)return;
