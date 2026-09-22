@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-ROOM-ENTRY-005" />
+  <meta name="tus-build" content="LAND-INUZUKA-GENIN-COMMON-005" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3201,7 +3201,8 @@ function isPlayerLifecycle(o,c,v){
      (c.activity_kind===null&&c.activity_id===null&&c.phase==='setup'&&['open','join'].includes(o.operation)));
 }
 function offer(o,c,viewer){
-  shape(o,['offer_id','kind','operation','actor_id','label','context_version','scene_version','requires_role','choices','input_fields',...(Object.hasOwn(o,'flow_budget')?['flow_budget']:[]),...(Object.hasOwn(o,'ui_category')?['ui_category']:[])]);
+  shape(o,['offer_id','kind','operation','actor_id','label','context_version','scene_version','requires_role','choices','input_fields',...(Object.hasOwn(o,'flow_budget')?['flow_budget']:[]),...(Object.hasOwn(o,'ui_category')?['ui_category']:[]),...(Object.hasOwn(o,'companion_context_required')?['companion_context_required']:[])]);
+  if(Object.hasOwn(o,'companion_context_required'))insist(typeof o.companion_context_required==='boolean'&&(!o.companion_context_required||o.requires_role===true));
   if(Object.hasOwn(o,'ui_category'))insist(['innate','technique','basic','other'].includes(o.ui_category)&&(o.ui_category!=='innate'||o.kind==='control'&&o.operation==='control'));
   insist(isId(o.offer_id)&&['action','defense','control','administration'].includes(o.kind)&&name(o.operation)&&nullable(o.actor_id,isId)&&name(o.label)&&o.context_version===c.version&&o.scene_version===c.scene_version&&bool(o.requires_role)&&Array.isArray(o.choices)&&Array.isArray(o.input_fields));
   insist(o.actor_id===null||o.actor_id===viewer.command_actor_id);
@@ -3270,7 +3271,7 @@ function validatePanelEnvelope(raw,{state=false}={}){
   insist(nullable(c.activity_id,isId)&&nullable(c.activity_kind,x=>['ordinary_v2','master_v2'].includes(x))&&isId(c.location_id)&&nullable(c.round_id,isId)&&nullable(c.round_no,int)&&['setup','action','defense','review','resolving','resolved','suspended','closed'].includes(c.phase)&&name(c.phase_label)&&int(c.version)&&nullable(c.scene_version,int)&&name(c.policy_id)&&bool(c.simulated));
   insist(c.phase==='setup'||isId(c.activity_id)&&c.activity_kind!==null);
   unique(e.actors,'actor_id');
-  for(const a of e.actors){shape(a,['actor_id','kind','body_only','display_name','team','state','mine','action_due','defense_due','resources','distance_from_viewer_m']);insist(isId(a.actor_id)&&['pg','png','companion'].includes(a.kind)&&bool(a.body_only)&&(a.kind==='companion')===a.body_only&&name(a.display_name)&&nullable(a.team,str)&&['active','out','withdrawn'].includes(a.state)&&bool(a.mine)&&a.mine===(a.actor_id===v.command_actor_id)&&bool(a.action_due)&&bool(a.defense_due)&&nullable(a.distance_from_viewer_m,num));if(a.body_only)insist(!a.action_due&&!a.defense_due);if(a.resources!==null){shape(a.resources,['pv','chakra','simulated']);insist(bool(a.resources.simulated));for(const k of ['pv','chakra']){shape(a.resources[k],['current','max']);insist(num(a.resources[k].current)&&num(a.resources[k].max)&&a.resources[k].current<=a.resources[k].max);}}}
+  for(const a of e.actors){const linked=Object.hasOwn(a,'companion_id')||Object.hasOwn(a,'avatar_url');shape(a,['actor_id','kind','body_only','display_name','team','state','mine','action_due','defense_due','resources','distance_from_viewer_m',...(linked?['avatar_url','companion_id']:[])]);insist(isId(a.actor_id)&&['pg','png','companion'].includes(a.kind)&&bool(a.body_only)&&(a.kind==='companion')===a.body_only&&name(a.display_name)&&nullable(a.team,str)&&['active','out','withdrawn'].includes(a.state)&&bool(a.mine)&&a.mine===(a.actor_id===v.command_actor_id)&&bool(a.action_due)&&bool(a.defense_due)&&nullable(a.distance_from_viewer_m,num));if(linked)insist(a.kind==='companion'&&nullable(a.avatar_url,str)&&isId(a.companion_id));if(a.body_only)insist(!a.action_due&&!a.defense_due);if(a.resources!==null){shape(a.resources,['pv','chakra','simulated']);insist(bool(a.resources.simulated));for(const k of ['pv','chakra']){shape(a.resources[k],['current','max']);insist(num(a.resources[k].current)&&num(a.resources[k].max)&&a.resources[k].current<=a.resources[k].max);}}}
   insist(v.command_actor_id===null||v.controlled_actors.some(a=>a.actor_id===v.command_actor_id));
   insist(v.controlled_actors.every(a=>e.actors.some(r=>r.actor_id===a.actor_id&&!r.body_only)));
   insist(!state||e.offers.length===0);insist(v.can_command||e.offers.length===0);unique(e.offers,'offer_id');for(const o of e.offers)offer(o,c,v);
@@ -3367,17 +3368,18 @@ function settleCopyChoices(offer,selected){
 function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.randomUUID(),classifyRejection=classifyPanelRejection,onChange=()=>{}}){
   insist(typeof rpc==='function'&&typeof contextKey==='function'&&isId(locationId)&&typeof requestKey==='function','controller_configuration');
   let epoch=0,owner=null,busy=false,pending=null,envelope=null,optionsReady=false,error=null;
-  let selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='',narrativeContext=null;
+  let selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='',narrativeContext=null,companionContext=null;
   let rejection=null,refreshRequired=false,lastCommand=null,interactionError=null,polling=null;
   const chosen=()=>envelope?.offers.find(o=>o.offer_id===selectedOfferId);
   const canConfirmMechanics=()=>!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command&&chosen()?.requires_role===true&&selectionReady(chosen(),selectedOptionIds,inputs,'',false);
-  const canPrepare=()=>!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command&&selectionReady(chosen(),selectedOptionIds,inputs,narrativeText);
-  const snapshot=()=>({validated:envelope!==null,envelope:envelope?structuredClone(envelope):null,busy,pending:pending!==null,optionsReady,error,lastCommand:lastCommand?structuredClone(lastCommand):null,interactionError,rejection:rejection?structuredClone(rejection):null,refreshRequired,selectedOfferId,selectedOptionIds:[...selectedOptionIds],inputs:structuredClone(inputs),narrativeText,canPrepare:!!canPrepare(),canConfirmMechanics:!!canConfirmMechanics()});
+  const companionReady=()=>chosen()?.companion_context_required!==true||!!(companionContext&&isId(companionContext.id)&&typeof companionContext.body==='string'&&companionContext.body.trim());
+  const canPrepare=()=>!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command&&selectionReady(chosen(),selectedOptionIds,inputs,narrativeText)&&companionReady();
+  const snapshot=()=>({validated:envelope!==null,envelope:envelope?structuredClone(envelope):null,busy,pending:pending!==null,optionsReady,error,lastCommand:lastCommand?structuredClone(lastCommand):null,interactionError,rejection:rejection?structuredClone(rejection):null,refreshRequired,selectedOfferId,selectedOptionIds:[...selectedOptionIds],inputs:structuredClone(inputs),narrativeText,companionContext:companionContext?structuredClone(companionContext):null,canPrepare:!!canPrepare(),canConfirmMechanics:!!canConfirmMechanics()});
   const notify=()=>onChange(snapshot());
   const resetChoices=()=>{selectedOfferId=null;selectedOptionIds=[];inputs=[];optionsReady=false;};
   // The draft belongs to a verified identity/activity/actor, independently of presentation invalidation.
   const narrativeContextFor=e=>e?.status==='ready'?JSON.stringify([owner,e.context.activity_id,e.viewer.command_actor_id]):null;
-  function clear(){epoch++;owner=null;busy=false;pending=null;envelope=null;error=null;rejection=null;lastCommand=null;interactionError=null;refreshRequired=false;narrativeText='';narrativeContext=null;resetChoices();notify();}
+  function clear(){epoch++;owner=null;busy=false;pending=null;envelope=null;error=null;rejection=null;lastCommand=null;interactionError=null;refreshRequired=false;narrativeText='';narrativeContext=null;companionContext=null;resetChoices();notify();}
   // Identità/luogo diversi cancellano la presentazione; una versione nuova invalida solo le scelte.
   function invalidate(){
     if(owner===null||owner!==contextKey()){clear();return;}
@@ -3469,9 +3471,10 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   }
   function setInput(id,value){editable();const f=chosen()?.input_fields.find(f=>f.input_id===id);insist(f&&(f.value_type==='text'?typeof value==='string':typeof value==='boolean'),'input_unavailable');inputs=inputs.filter(x=>x.input_id!==id);inputs.push({input_id:id,value});notify();}
   function setNarrative(value){requireCurrent();insist(!busy&&!pending&&typeof value==='string','narrative_unavailable');narrativeText=value;narrativeContext=narrativeContextFor(envelope)??narrativeContext;notify();}
+  function setCompanionContext(value){requireCurrent();insist(!busy&&!pending&&(value===null||value&&isId(value.id)&&typeof value.body==='string'),'narrative_unavailable');companionContext=value?{id:value.id,body:value.body}:null;notify();}
   function prepare(){
     editable();insist(canPrepare(),'selection_incomplete');const c=envelope.context,o=chosen(),key=requestKey();insist(isId(key),'request_key_invalid');
-    return {schema_version:'combat-panel-command/1',request_key:key,location_id:locationId,activity_id:c.activity_id,context_version:c.version,offer_id:o.offer_id,selected_option_ids:[...selectedOptionIds].sort(),inputs:structuredClone(inputs).sort((a,b)=>a.input_id.localeCompare(b.input_id)),narrative_text:o.requires_role?narrativeText:''};
+    return {schema_version:'combat-panel-command/1',request_key:key,location_id:locationId,activity_id:c.activity_id,context_version:c.version,offer_id:o.offer_id,selected_option_ids:[...selectedOptionIds].sort(),inputs:structuredClone(inputs).sort((a,b)=>a.input_id.localeCompare(b.input_id)),narrative_text:o.requires_role?narrativeText:'',companion_id:o.companion_context_required?companionContext.id:null,companion_body:o.companion_context_required?companionContext.body:''};
   }
   async function send(){
     requireCurrent();insist(pending&&!busy,'no_pending_command');const ticket=++epoch,key=owner,command=pending;busy=true;error=null;notify();
@@ -3486,13 +3489,13 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
         return null;
       }
       const e=validatePanelEnvelope(raw),r=e.receipt;insist(r?.request_key===command.request_key,'receipt_mismatch');
-      apply(e,true);pending=null;rejection=null;lastCommand={status:'confirmed',request_key:command.request_key,message:'Richiesta confermata dal server.',receipt:structuredClone(r)};interactionError=null;refreshRequired=false;narrativeText='';narrativeContext=null;resetChoices();return structuredClone(r);
+      apply(e,true);pending=null;rejection=null;lastCommand={status:'confirmed',request_key:command.request_key,message:'Richiesta confermata dal server.',receipt:structuredClone(r)};interactionError=null;refreshRequired=false;narrativeText='';narrativeContext=null;companionContext=null;resetChoices();return structuredClone(r);
     }catch(e){if(current(ticket,key)){lastCommand={status:'uncertain',request_key:command.request_key,message:'Esito incerto. Verifica lo stesso invio senza crearne un secondo.'};rejection=null;error=null;interactionError=null;optionsReady=false;}return null;}
     finally{if(current(ticket,key)){busy=false;notify();}}
   }
   async function submit(){try{insist(!pending,'pending_command');pending=Object.freeze(prepare());return await send();}catch(e){reportInteractionError(e);return null;}}
   async function retry(){return send();}
-  return {snapshot,clear,invalidate,markReadUnavailable,pollState,reportInteractionError,readState:()=>read(false),readOptions:()=>read(true),selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,prepare,submit,retry};
+  return {snapshot,clear,invalidate,markReadUnavailable,pollState,reportInteractionError,readState:()=>read(false),readOptions:()=>read(true),selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,setCompanionContext,prepare,submit,retry};
 }
 
 return {settleCopyChoices,createPanelController};
@@ -4141,7 +4144,7 @@ function quota(q){insist(obj(q)&&q.limit===5&&integer(q.used)&&q.used<=5&&q.rema
 const closeOffer=(o,p)=>o?.kind==='administration'&&o.operation==='close'&&p?.context?.policy_id===POLICY&&p.context.simulated===true&&p.context.activity_kind==='ordinary_v2';
 function createController({rpc,invoke,scope,storage,requestKey=()=>crypto.randomUUID(),onChange=()=>{}}){
  let owner=scope(),epoch=0,busy=false,mode=null,profiles=[],active=null,legacyActive=false,data=null,report=null,q=null,error=null;
- let pending=null,openPending=null,draft=null,aiAttempts={},selectedProfile=null,selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='',optionsReady=false;
+ let pending=null,openPending=null,draft=null,aiAttempts={},selectedProfile=null,selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='',companionContext=null,optionsReady=false;
  const storeKey=()=>owner?'tus_user_test_v1:'+owner:null;
  const current=()=>!!owner&&owner===scope();
  const chosen=()=>data?.panel.offers.find(o=>o.offer_id===selectedOfferId);
@@ -4155,8 +4158,8 @@ function createController({rpc,invoke,scope,storage,requestKey=()=>crypto.random
  function confirmDraft(p){if(sameDraft(p.test_context_id,p.command_actor_id)&&draft.text===p.command.narrative_text){draft=null;narrativeText='';}}
  function save(){try{insist(storage&&storeKey(),'storage_unavailable');storage.setItem(storeKey(),JSON.stringify({mode,pending,openPending,aiAttempts,draft}));}catch{throw fault('storage_unavailable');}}
  try{const z=JSON.parse(storage?.getItem(storeKey())||'null');if(obj(z)){mode=z.mode==='common_private_v1'?z.mode:null;pending=obj(z.pending)?z.pending:null;openPending=obj(z.openPending)?z.openPending:null;aiAttempts=obj(z.aiAttempts)?z.aiAttempts:{};draft=validDraft(z.draft)?z.draft:null;if(pendingBinding())preservePendingDraft();}}catch{}
- const resetChoices=()=>{selectedOfferId=null;selectedOptionIds=[];inputs=[];optionsReady=false;};
- const snapshot=()=>({validated:!!data,envelope:data?.panel?structuredClone(data.panel):null,data:data?structuredClone(data):null,report:report?structuredClone(report):null,reportId:reportId(),quota:q?structuredClone(q):null,mode,profiles:structuredClone(profiles),activeTest:active?structuredClone(active):null,legacyActive,selectedProfile,busy,pending:!!pending,error:error?.message||null,errorCode:error?.code||null,requestKey:pending?.command?.request_key||openPending?.key||error?.key||null,openUncertain:!!openPending,optionsReady,selectedOfferId,selectedOptionIds:[...selectedOptionIds],inputs:structuredClone(inputs),narrativeText,rejection:null,refreshRequired:false,canPrepare:!!(current()&&!busy&&!pending&&!openPending&&optionsReady&&canUse(chosen())&&selectionReady(chosen(),selectedOptionIds,inputs,narrativeText)),canConfirmMechanics:!!(current()&&!busy&&!pending&&!openPending&&optionsReady&&canUse(chosen())&&chosen()?.requires_role===true&&selectionReady(chosen(),selectedOptionIds,inputs,'',false)),canReadState:!!(current()&&!busy&&recoveryBinding()),canOpen:!!(current()&&!draft&&mode==='common_private_v1'&&!busy&&!pending&&!openPending&&!active&&!legacyActive&&!data&&selectedProfile),canResume:!!(current()&&!busy&&active),canNarrate:!!(current()&&!busy&&report&&q?.remaining>0&&report.narrative?.state==='idle'&&!aiAttempts[report.report.report_id]),canNew:!!(current()&&!busy&&!pending&&!openPending&&data?.test.state==='closed')});
+ const resetChoices=()=>{selectedOfferId=null;selectedOptionIds=[];inputs=[];companionContext=null;optionsReady=false;};
+ const snapshot=()=>({validated:!!data,envelope:data?.panel?structuredClone(data.panel):null,data:data?structuredClone(data):null,report:report?structuredClone(report):null,reportId:reportId(),quota:q?structuredClone(q):null,mode,profiles:structuredClone(profiles),activeTest:active?structuredClone(active):null,legacyActive,selectedProfile,busy,pending:!!pending,error:error?.message||null,errorCode:error?.code||null,requestKey:pending?.command?.request_key||openPending?.key||error?.key||null,openUncertain:!!openPending,optionsReady,selectedOfferId,selectedOptionIds:[...selectedOptionIds],inputs:structuredClone(inputs),narrativeText,companionContext:companionContext?structuredClone(companionContext):null,rejection:null,refreshRequired:false,canPrepare:!!(current()&&!busy&&!pending&&!openPending&&optionsReady&&canUse(chosen())&&selectionReady(chosen(),selectedOptionIds,inputs,narrativeText)&&(chosen()?.companion_context_required!==true||!!(companionContext&&id(companionContext.id)&&companionContext.body.trim()))),canConfirmMechanics:!!(current()&&!busy&&!pending&&!openPending&&optionsReady&&canUse(chosen())&&chosen()?.requires_role===true&&selectionReady(chosen(),selectedOptionIds,inputs,'',false)),canReadState:!!(current()&&!busy&&recoveryBinding()),canOpen:!!(current()&&!draft&&mode==='common_private_v1'&&!busy&&!pending&&!openPending&&!active&&!legacyActive&&!data&&selectedProfile),canResume:!!(current()&&!busy&&active),canNarrate:!!(current()&&!busy&&report&&q?.remaining>0&&report.narrative?.state==='idle'&&!aiAttempts[report.report.report_id]),canNew:!!(current()&&!busy&&!pending&&!openPending&&data?.test.state==='closed')});
  const notify=()=>onChange(snapshot());
  function clear(){epoch++;owner=null;busy=false;data=null;report=null;q=null;profiles=[];active=null;pending=null;openPending=null;draft=null;aiAttempts={};narrativeText='';resetChoices();notify();}
  function check(){if(!current()){clear();throw fault('authentication_required');}}
@@ -4194,8 +4197,8 @@ function createController({rpc,invoke,scope,storage,requestKey=()=>crypto.random
  function selectOffer(x){editable();insist(data.panel.offers.some(o=>o.offer_id===x&&canUse(o)),'offer_not_valid');selectedOfferId=x;selectedOptionIds=settleCopyChoices(chosen(),[]);inputs=[];notify();}
  function selectOption(group,x,on){editable();const o=chosen(),g=o?.choices.find(g=>g.group_id===group);insist(g&&g.options.some(p=>p.option_id===x)&&typeof on==='boolean'&&(g.depends_on===null||selectedOptionIds.includes(g.depends_on)),'invalid_command');insist(flowOptionAllowed(o,selectedOptionIds,group,x,on),'flow_budget_exceeded');const next=new Set(selectedOptionIds);if(g.selection_mode==='single')g.options.forEach(p=>next.delete(p.option_id));if(on)next.add(x);else next.delete(x);selectedOptionIds=settleCopyChoices(o,next);notify();}
  function setInput(x,value){editable();const f=chosen()?.input_fields.find(f=>f.input_id===x);insist(f&&typeof value===(f.value_type==='text'?'string':'boolean'),'invalid_command');inputs=inputs.filter(p=>p.input_id!==x);inputs.push({input_id:x,value});notify();}
- function setNarrative(value){editable();insist(typeof value==='string');narrativeText=value;draft={test_context_id:data.test.id,command_actor_id:data.selected_actor_id,context_version:data.panel.context.version,text:value};try{save();}catch(e){error=e;notify();throw e;}notify();}
- function prepare(){check();insist(snapshot().canPrepare,'invalid_command');const c=data.panel.context;return {schema_version:'user-test-command/1',test_context_id:data.test.id,command_actor_id:data.selected_actor_id,command:{schema_version:'combat-panel-command/1',request_key:requestKey(),location_id:c.location_id,activity_id:c.activity_id,context_version:c.version,offer_id:selectedOfferId,selected_option_ids:[...selectedOptionIds].sort(),inputs:structuredClone(inputs).sort((a,b)=>a.input_id.localeCompare(b.input_id)),narrative_text:chosen().requires_role?narrativeText:''}};}
+ function setCompanionContext(value){editable();insist(value===null||(obj(value)&&id(value.id)&&typeof value.body==='string'&&value.body.trim()),'invalid_command');companionContext=value?{id:value.id,body:value.body.trim()}:null;notify();} function setNarrative(value){editable();insist(typeof value==='string');narrativeText=value;draft={test_context_id:data.test.id,command_actor_id:data.selected_actor_id,context_version:data.panel.context.version,text:value};try{save();}catch(e){error=e;notify();throw e;}notify();}
+ function prepare(){check();insist(snapshot().canPrepare,'invalid_command');const c=data.panel.context;return {schema_version:'user-test-command/1',test_context_id:data.test.id,command_actor_id:data.selected_actor_id,command:{schema_version:'combat-panel-command/1',request_key:requestKey(),location_id:c.location_id,activity_id:c.activity_id,context_version:c.version,offer_id:selectedOfferId,selected_option_ids:[...selectedOptionIds].sort(),inputs:structuredClone(inputs).sort((a,b)=>a.input_id.localeCompare(b.input_id)),narrative_text:chosen().requires_role?narrativeText:'',companion_id:chosen().companion_context_required?companionContext.id:null,companion_body:chosen().companion_context_required?companionContext.body:''}};}
  async function send(){check();const binding=pendingBinding();insist(binding&&(!data||(binding.test===data.test.id&&binding.actor===data.selected_actor_id)),'invalid_command');const p=structuredClone(pending);const ok=await call('test_room_user_commit_v2',{p_command:p},d=>{insist(d.panel?.receipt?.request_key===p.command.request_key);accept(d,true,p.test_context_id,p.command_actor_id);pending=null;confirmDraft(p);save();},p.command.request_key);if(!ok&&error?.definitive){preservePendingDraft(p);pending=null;save();resetChoices();notify();}return ok;}
  async function submit(){const p=prepare();insist(id(p.command.request_key));pending=p;try{save();}catch(e){pending=null;error=e;notify();return false;}return send();}
  async function newTest(){check();insist(snapshot().canNew,'context_closed');draft=null;narrativeText='';save();data=null;report=null;selectedProfile=null;resetChoices();await loadProfiles();}
@@ -4208,7 +4211,7 @@ function createController({rpc,invoke,scope,storage,requestKey=()=>crypto.random
  async function narrate(){check();insist(snapshot().canNarrate,'narration_unavailable');const r=report.report.report_id,t=data.test.id,k=requestKey();insist(id(k));aiAttempts[r]=k;try{save();}catch(e){delete aiAttempts[r];error=e;notify();return false;}
   const ticket=++epoch;busy=true;error=null;notify();try{const response=await invoke('test_room_ai',{body:{schema_version:'user-test-ai/1',test_context_id:t,report_id:r,idempotency_key:k}});if(ticket!==epoch||!current())return false;const d=unwrap(response);if(d.quota)q=quota(d.quota);return true;}catch(e){if(ticket===epoch&&current())error=e?.code?e:fault('transport_unconfirmed',k);return false;}finally{if(ticket===epoch&&current()){busy=false;notify();await readReport();}}}
  function pickClose(){check();insist(data,'context_closed');const o=data.panel.offers.find(o=>closeOffer(o,data.panel));insist(o,'offer_not_valid');selectOffer(o.offer_id);}
- return {snapshot,clear,loadProfiles,selectProfile,open,retryOpen:sendOpen,resume,readState,readOptions,selectOffer,selectOption,setInput,setNarrative,prepare,submit,retry:send,newTest,readReport,narrate,pickClose};
+ return {snapshot,clear,loadProfiles,selectProfile,open,retryOpen:sendOpen,resume,readState,readOptions,selectOffer,selectOption,setInput,setNarrative,setCompanionContext,prepare,submit,retry:send,newTest,readReport,narrate,pickClose};
 }
 function attach(host){
  const doc=host.document;let controller=null,view=null,key=null,body=null,summary=null,actions=null,panelRoot=null,reportRoot=null,confirmedDraft=null,generation=0;
@@ -4240,18 +4243,18 @@ function attach(host){
   if(key!==scope()){invalidate();return false;}
   if(!ownsCurrent())return false;
   const m=controller.snapshot();
-  if(meta.recipient||meta.fato||meta.companionText){host.notice('La prova privata usa la descrizione del PG: disattiva Fato, destinatario privato e testo PNG prima di inviare.');return true;}
+  if(meta.recipient||meta.fato){host.notice('La prova privata usa la descrizione del PG: disattiva Fato e destinatario privato prima di inviare.');return true;} const offer=m.envelope?.offers?.find(o=>o.offer_id===m.selectedOfferId),needsCompanion=offer?.companion_context_required===true; if(needsCompanion&&(!meta.companion||meta.companion.kind!=='cane_ninja'||!id(meta.companion.id)||!String(meta.companionText||'').trim())){host.notice('Completa anche l’azione del ninken prima di inviare.');return true;} if(!needsCompanion&&meta.companionText){host.notice('Il testo del compagno richiede una scelta meccanica del ninken.');return true;}
   if(m.busy||m.pending){host.notice('Invio in corso o incerto: verifica la stessa richiesta nella prova.');return true;}
   if(!confirmedDraft||confirmedDraft!==draftSignature(m)){host.notice('Completa e conferma la scelta della prova prima di inviare la descrizione.');return true;}
   if(typeof narrative!=='string'||!narrative.trim()||[...narrative].length>2500){host.notice('Scrivi una descrizione della prova da 1 a 2500 caratteri.');return true;}
   const active=controller,stamp=generation,binding=key;
   // Nessun post_message: testo e scelta viaggiano nello stesso commit privato.
   safe(async()=>{
-   active.setNarrative(narrative);
+   active.setCompanionContext(needsCompanion?{id:meta.companion.id,body:String(meta.companionText)}:null); active.setNarrative(narrative);
    if(stamp!==generation||binding!==scope()||active!==controller||!active.snapshot().canPrepare)return;
    const ok=await active.submit();
    if(stamp!==generation||binding!==scope()||active!==controller)return;
-   if(ok){confirmedDraft=null;if(host.readChat?.()===raw){host.clearChat?.();if(typeof meta.after==='function')meta.after();}syncDraft(active.snapshot());host.notice('Scelta e descrizione acquisite nella prova privata.');}
+   if(ok){confirmedDraft=null;if(host.readChat?.()===raw&&(!needsCompanion||host.readCompanion?.()===String(meta.companionText).trim())){host.clearChat?.(needsCompanion?String(meta.companionText).trim():null);if(typeof meta.after==='function')meta.after();}syncDraft(active.snapshot());host.notice('Scelta e descrizione acquisite nella prova privata.');}
   })();return true;
  }
  function render(m){syncDraft(m);if(!body)return;summary.replaceChildren();actions.replaceChildren();reportRoot.replaceChildren();
@@ -4286,12 +4289,12 @@ function attach(host){
  function invalidate(){generation++;confirmedDraft=null;key=null;for(const n of composerStatus)n.remove();composerStatus.length=0;controller?.clear();controller=null;view?.clear();view=null;body?.remove();body=null;host.composerChanged?.();}
  function ensure(){const k=scope();if(k!==key)invalidate();if(!k)return false;if(controller)return true;key=k;for(const id of ['msg-send','ed-send']){const send=doc.getElementById(id);if(send){const n=node('span','Prova privata',null);n.className='azp';n.setAttribute('role','status');n.setAttribute('aria-live','polite');send.before(n);composerStatus.push(n);}}const container=doc.getElementById('truv-body');container.replaceChildren();body=node('div',null,container);summary=node('div',null,body);summary.setAttribute('aria-live','polite');actions=node('div',null,body);actions.className='tru-actions';panelRoot=node('div',null,body);panelRoot.className='combat-panel-common';reportRoot=node('section',null,body);
   controller=createController({rpc:host.rpc,invoke:host.invoke,scope,storage:host.storage,onChange:render});
-  view=mountPanelView(panelRoot,{readState:safe(()=>controller.readState()),readOptions:safe(()=>controller.readOptions()),selectOffer:safe(x=>controller.selectOffer(x)),selectOption:safe((g,x,on)=>controller.selectOption(g,x,on)),setInput:safe((x,v)=>controller.setInput(x,v)),setNarrative:safe(v=>controller.setNarrative(v)),confirmDraft:safe(confirmMechanics),prepare:safe(()=>controller.submit()),retry:safe(()=>controller.retry())},{narrative:(root)=>{node('p','La narrazione è privata e parte soltanto dal pulsante Chiedi narrazione IA dell’esito.',root);}});
+  view=mountPanelView(panelRoot,{readState:safe(()=>controller.readState()),readOptions:safe(()=>controller.readOptions()),selectOffer:safe(x=>controller.selectOffer(x)),selectOption:safe((g,x,on)=>controller.selectOption(g,x,on)),setInput:safe((x,v)=>controller.setInput(x,v)),setNarrative:safe(v=>controller.setNarrative(v)),setCompanionContext:safe(v=>controller.setCompanionContext(v)),confirmDraft:safe(confirmMechanics),prepare:safe(()=>controller.submit()),retry:safe(()=>controller.retry())},{narrative:(root)=>{node('p','La narrazione è privata e parte soltanto dal pulsante Chiedi narrazione IA dell’esito.',root);}});
   render(controller.snapshot());return true;
  }
  async function open(){if(!ensure())return false;const m=controller.snapshot();if(!m.data&&!m.busy){await controller.loadProfiles();const next=controller?.snapshot();if(!next)return false;if(next.mode==='legacy_070'||next.legacyActive){invalidate();host.legacy();return true;}if(next.activeTest&&!next.pending)await controller.resume();}else if(!m.busy&&!m.pending)await controller.readState();return true;}
  function refresh(){if(key!==null&&scope()!==key)invalidate();}
- return {open,refresh,invalidate,handleSend,ownsCurrent,canSend:()=>ownsCurrent()&&!!confirmedDraft&&confirmedDraft===draftSignature(controller.snapshot()),snapshot:()=>controller?.snapshot()||null};
+ return {open,refresh,invalidate,handleSend,ownsCurrent,canSend:()=>ownsCurrent()&&!!confirmedDraft&&confirmedDraft===draftSignature(controller.snapshot()),companionGate:()=>{const m=controller?.snapshot(),offer=m?.envelope?.offers?.find(o=>o.offer_id===m.selectedOfferId);return {required:offer?.companion_context_required===true,mechanicsReady:!!confirmedDraft&&confirmedDraft===draftSignature(m)};},snapshot:()=>controller?.snapshot()||null};
 }
 return {createController,attach,unwrap};
 }
@@ -4376,6 +4379,7 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
     }),
     suspend:()=>{if(!disposed)controller.markReadUnavailable();},
     setNarrative:invoke(value=>{controller.setNarrative(value);return true;}),
+    setCompanionContext:invoke(value=>{controller.setCompanionContext(value);return true;}),
     submit:invoke(()=>send(false)),
     invalidate:()=>{restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;if(!disposed)controller.invalidate();},
     dispose:()=>{disposed=true;restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;controller.clear();view.clear();},
@@ -4468,7 +4472,7 @@ function attachPanelLand(host){
     ownsCurrent:()=>!disposed&&mode!=='native'&&!!child?.ownsCurrent(),
     ownsSurface:()=>!disposed&&mode!=='native'&&(child?.ownsSurface?.()??false),
     currentSurface:()=>child?.currentSurface?.()??'ordinary',
-    clearPresentation:()=>child?.clearPresentation(),snapshot:()=>mode==='combat'?child?.snapshot():null};
+    clearPresentation:()=>child?.clearPresentation(),snapshot:()=>mode==='combat'?child?.snapshot():null,companionGate:()=>child?.companionGate?.()??{required:false,mechanicsReady:false}};
 }
 
 // Un solo controller e un solo nodo DOM per stanza/Auth, anche cambiando finestra.
@@ -4488,7 +4492,7 @@ function attachCombatPanel(host){
   const dialog=doc.getElementById('ordinary-overlay'),close=doc.getElementById('ordinary-close');
   insist(ordinary&&master&&card&&entry&&dialog&&close,'land_mount_missing');
   let deactivateLayout=null;
-  let panel=null,key=null,opened=false,surface='ordinary',generation=0,chatSubmitted=null,refreshing=null,disposed=false,confirmedDraft=null;
+  let panel=null,key=null,opened=false,surface='ordinary',generation=0,chatSubmitted=null,companionSubmitted=null,refreshing=null,disposed=false,confirmedDraft=null;
   const badges=['msg-send','ed-send'].map(id=>{
     const send=doc.getElementById(id);if(!send)return null;
     const badge=doc.createElement('button');badge.type='button';badge.className='azp common-choice-pill';badge.hidden=true;
@@ -4532,7 +4536,7 @@ function attachCombatPanel(host){
     return '⚔ '+parts.join(' · ');
   }
   function syncDraft(m){
-    syncSendFeedback(m);
+    syncSendFeedback(m);host.syncSendGate?.();
     const signature=draftSignature(m),visible=!!confirmedDraft&&signature===confirmedDraft.signature&&!m.pending;
     if(confirmedDraft&&!visible&&(!signature||signature!==confirmedDraft.signature||m.pending))confirmedDraft=null;
     for(const badge of badges){badge.hidden=!visible;if(visible)badge.textContent=confirmedDraft.label;}
@@ -4540,7 +4544,7 @@ function attachCombatPanel(host){
   function scope(){const who=host.identity?.(),place=host.location?.();return !disposed&&who&&isId(who.principal_id)&&(who.character_id===null||isId(who.character_id))&&isId(place?.id)&&!host.isExam?.()?JSON.stringify([who.principal_id,who.character_id,place.id]):null;}
   function suspend(){panel?.suspend();}
   function hide(){deactivateLayout?.();deactivateLayout=null;dialog.hidden=true;dialog.style.display='none';if(opened&&surface==='master')host.closeMaster?.();opened=false;}
-  function invalidate(){generation++;key=null;chatSubmitted=null;confirmedDraft=null;refreshing=null;panel?.dispose();panel=null;root.replaceChildren();hide();syncDraft(null);showEntry();}
+  function invalidate(){generation++;key=null;chatSubmitted=null;companionSubmitted=null;confirmedDraft=null;refreshing=null;panel?.dispose();panel=null;root.replaceChildren();hide();syncDraft(null);showEntry();}
   function showEntry(){const allowed=!!scope();card.hidden=!allowed;card.style.display=allowed?'':'none';entry.hidden=!allowed;entry.disabled=!allowed;const note=doc.getElementById('ordinary-entry-note');if(note){const m=panel?.snapshot(),pending=m?.envelope?.context?.phase==='waiting_join'&&m.envelope.context.activity_id!==null&&m.envelope.viewer?.can_command===true;note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent=pending?'Richiesta sfida in attesa':'Pannello comune: disponibilità e scelte sono verificate dal server.';}}
   function ensure(){
     const next=scope();if(next!==key)invalidate();if(!next)return false;if(panel)return true;
@@ -4554,8 +4558,9 @@ function attachCombatPanel(host){
       },
       onConfirmed:async(receipt,submitted)=>{
         if(stamp!==generation||key!==scope())return;
-        if((chatSubmitted!==null&&host.readChat()===chatSubmitted)||(submitted&&host.readChat()===submitted))host.clearChat();
-        chatSubmitted=null;confirmedDraft=null;syncDraft(panel?.snapshot());
+        if(((chatSubmitted!==null&&host.readChat()===chatSubmitted)||(submitted&&host.readChat()===submitted))&&
+          (companionSubmitted===null||host.readCompanion?.()===companionSubmitted))host.clearChat(companionSubmitted);
+        chatSubmitted=null;companionSubmitted=null;confirmedDraft=null;syncDraft(panel?.snapshot());
         host.accepted(receipt);host.notice('Scelta acquisita dal server.');
       }});
     return true;
@@ -4584,7 +4589,7 @@ function attachCombatPanel(host){
   }
   function routeAllowed(){const e=panel?.snapshot().envelope;return host.requireManagedMaster!==true||e?.context?.activity_kind!=='master_v2'||host.isCommonMaster?.(e)===true;}
   function ownsCurrent(){return routeAllowed()&&key===scope()&&!!panel?.snapshot().envelope?.context?.activity_id;}
-  function handleSend(raw,narrative){
+  function handleSend(raw,narrative,companionText='',companion=null){
     if(!scope()||key!==scope()){invalidate();return false;}
     const m=panel?.snapshot();if(!m||!ownsCurrent())return false;
     if(m.pending||m.busy){host.notice('Invio in corso o incerto: verifica la stessa richiesta dal pannello.');return true;}
@@ -4592,15 +4597,19 @@ function attachCombatPanel(host){
     const offer=m.envelope.offers.find(o=>o.offer_id===m.selectedOfferId);
     if(!offer?.requires_role){host.notice('Scegli prima l’azione da collegare alla role nel pannello.');return true;}
     if(!confirmedDraft||draftSignature(m)!==confirmedDraft.signature){host.notice('Conferma la scelta meccanica nel pannello prima di inviare la role.');return true;}
+    const needsCompanion=offer.companion_context_required===true;
+    if(needsCompanion&&(!companion||companion.kind!=='cane_ninja'||!isId(companion.id)||!String(companionText||'').trim())){host.notice('Completa anche l’azione del ninken prima di inviare.');return true;}
     // Un solo invio atomico, mai il successivo post_message della chat.
-    const active=panel,stamp=generation;chatSubmitted=raw;
-    active.setNarrative(narrative).then(ok=>{if(ok===true&&stamp===generation&&key===scope())return active.submit();});return true;
+    const active=panel,stamp=generation;chatSubmitted=raw;companionSubmitted=needsCompanion?String(companionText).trim():null;
+    Promise.resolve(needsCompanion?active.setCompanionContext({id:companion.id,body:String(companionText)}):active.setCompanionContext(null))
+      .then(ok=>ok===true&&active.setNarrative(narrative)).then(ok=>{if(ok===true&&stamp===generation&&key===scope())return active.submit();});return true;
   }
   const entryClick=()=>open('ordinary');
   entry.addEventListener('click',entryClick);close.addEventListener('click',hide);
   function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',hide);invalidate();for(const badge of badges)badge.remove();for(const item of sendFeedback)item.box.remove();root.remove();}
   showEntry();
   return {open,refresh,invalidate,suspend,dispose,handleSend,ownsCurrent,
+    companionGate:()=>{const m=panel?.snapshot(),offer=m?.envelope?.offers?.find(o=>o.offer_id===m.selectedOfferId);return {required:offer?.companion_context_required===true,mechanicsReady:!!confirmedDraft&&draftSignature(m)===confirmedDraft.signature};},
     ownsSurface:()=>routeAllowed()&&opened&&key===scope(),
     currentSurface:()=>surface,
     clearPresentation:invalidate,
@@ -4749,10 +4758,10 @@ class CombatConsumer {
     this.selected=offerId;this.movement=movementId;this.error=null;this.notify();
   }
   canSubmit(){return !this.busy&&!this.pending&&!this.needsOptions&&this.envelope?.status==='ready'&&this.envelope.viewer.can_command&&this.offers.some(o=>o.offer_id===this.selected && typeof o.movement_required==='boolean' && (!o.movement_required || o.movement_options.some(m=>m.offer_id===this.movement)));}
-  async submit(narrativeText=''){
+  async submit(narrativeText='',companion=null){
     requireValue(this.canSubmit(),'offer_not_available');requireValue(typeof narrativeText==='string');
-    const o=this.offers.find(o=>o.offer_id===this.selected),c=this.envelope.context;
-    this.pending=Object.freeze({schema_version:'combat-consumer-command/1',operation:o.operation,location_id:this.locationId,activity_id:c.activity_id,exchange_id:c.exchange_id,context_version:c.version,offer_id:o.offer_id,movement_offer_id:this.movement,request_key:this.requestKey(),narrative_text:narrativeText});
+    const o=this.offers.find(o=>o.offer_id===this.selected),c=this.envelope.context;requireValue(o.companion_context_required!==true||(companion&&text(companion.id)&&text(companion.body)),'offer_not_available');
+    this.pending=Object.freeze({schema_version:'combat-consumer-command/1',operation:o.operation,location_id:this.locationId,activity_id:c.activity_id,exchange_id:c.exchange_id,context_version:c.version,offer_id:o.offer_id,movement_offer_id:this.movement,request_key:this.requestKey(),narrative_text:narrativeText,companion_id:o.companion_context_required?companion.id:null,companion_body:o.companion_context_required?companion.body:''});
     return this.sendPending();
   }
   async retry(){requireValue(this.pending&&!this.busy,'no_pending_command');return this.sendPending();}
@@ -5071,7 +5080,7 @@ return{mountConsumer};})();
 const {mountConsumer}=view;
 // Innesto privato LAND: nessuna RPC aggiuntiva o rilettura di dati di gioco dal DOM.
 function attachOrdinaryLand(host){
-  let controller=null,locationId=null,prepared=null,rawSubmitted=null,opening=false,presentation=null,disposed=false;
+  let controller=null,locationId=null,prepared=null,rawSubmitted=null,companionSubmitted=null,opening=false,presentation=null,disposed=false;
   let originScope=null,epoch=0,stateRequest=0,entryAllowed=false,entryNarrativeErrorScope=null;
   const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   function scope(){
@@ -5089,7 +5098,7 @@ function attachOrdinaryLand(host){
   function showEntry(){const on=eligible(),available=localAllowed();card.hidden=!available;card.style.display=available?'':'none';entry.hidden=!on;entry.disabled=!on;const note=host.document.getElementById('ordinary-entry-note');if(entryNarrativeErrorScope!==scope())entryNarrativeErrorScope=null;if(note){const pending=controller?.envelope?.context?.phase==='waiting_join'&&controller.envelope.context.activity_id!==null&&controller.envelope.viewer?.can_command===true;note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent=entryNarrativeErrorScope?combatNarrativePresentation(null,'invalid_narrative_projection').notice:(pending?'Richiesta sfida in attesa':on?'Duello gestito dal server. Le azioni si scrivono in chat.':'Scontro non disponibile in questo luogo o per questo personaggio.');}}
   function invalidate(error=null){
     entryNarrativeErrorScope=error==='invalid_narrative_projection'&&localAllowed()?scope():null;
-    epoch++;stateRequest++;entryAllowed=false;opening=false;prepared=null;rawSubmitted=null;
+    epoch++;stateRequest++;entryAllowed=false;opening=false;prepared=null;rawSubmitted=null;companionSubmitted=null;
     if(controller){controller.sequence++;controller.onChange=()=>{};}
     presentation?.clearPresentation();presentation=null;controller=null;originScope=null;locationId=null;
     root.replaceChildren();visible(false);showEntry();
@@ -5105,8 +5114,9 @@ function attachOrdinaryLand(host){
   function sameLocation(){return originScope===scope()&&locationId===host.location()?.id;}
   function accepted(r){
     if(!r||!eligible()||!sameLocation())return;
-    if(rawSubmitted!==null&&host.readChat().trim()===rawSubmitted)host.clearChat();
-    rawSubmitted=null;prepared=null;host.accepted(r);host.notice('Scelta acquisita dal server.');
+    if(rawSubmitted!==null&&host.readChat().trim()===rawSubmitted&&
+      (companionSubmitted===null||host.readCompanion?.()===companionSubmitted))host.clearChat(companionSubmitted);
+    rawSubmitted=null;companionSubmitted=null;prepared=null;host.accepted(r);host.notice('Scelta acquisita dal server.');
   }
   async function submit(){
     const origin=controller,stamp=epoch;
@@ -5116,7 +5126,7 @@ function attachOrdinaryLand(host){
   function setup(){
     syncScope();if(controller&&sameLocation())return;
     if(!localAllowed())return;
-    locationId=host.location().id;prepared=null;rawSubmitted=null;
+    locationId=host.location().id;prepared=null;rawSubmitted=null;companionSubmitted=null;
     originScope=scope();const stamp=epoch,binding=JSON.parse(originScope);
     const created=new CombatConsumer({locationId,requestKey:host.requestKey,rpc:async(name,args)=>{
       if(!current(created,stamp)||(name!=='combat_consumer_state_v1'&&!eligible()))throw new ConsumerError('context_stale');
@@ -5145,7 +5155,7 @@ function attachOrdinaryLand(host){
     presentation=mountConsumer(root,controller,{presentationScope,onConfirm:async c=>{
       if(!current(c,stamp)||!eligible()||!c.canSubmit())throw new ConsumerError('offer_not_available');
       const offer=c.offers.find(o=>o.offer_id===c.selected);
-      if(['declare','defend'].includes(offer?.operation)){prepared=selectionKey(c);visible(false);host.notice('Scelta pronta. Invia la role dalla chat.');return;}
+      if(['declare','defend'].includes(offer?.operation)||offer?.companion_context_required===true){prepared=selectionKey(c);visible(false);host.syncSendGate?.();host.notice(offer?.companion_context_required===true?'Scelta del ninken pronta. Completa anche la sua azione in chat, poi premi Invia.':'Scelta pronta. Invia la role dalla chat.');return;}
       await submit();
     },onRetry:async c=>{if(!current(c,stamp)||!eligible())throw new ConsumerError('context_stale');const r=await c.retry();if(current(c,stamp))accepted(r);}});
   }
@@ -5163,7 +5173,7 @@ function attachOrdinaryLand(host){
   }
   function ownsCurrent(){return eligible()&&sameLocation()&&controller?.envelope?.context?.activity_kind==='ordinary_v2'&&!!controller.envelope.context.activity_id;}
   // Chiamato prima del normale post_message, dopo i rami Esame invariati.
-  function handleSend(raw,narrative){
+  function handleSend(raw,narrative,companionText='',companion=null){
     syncScope();
     if(!ownsCurrent())return false;
     const c=controller,stamp=epoch;
@@ -5171,14 +5181,16 @@ function attachOrdinaryLand(host){
     if(c.pending||c.busy){visible(true);host.notice('Invio in corso o da verificare: non creare un secondo invio.');return true;}
     if(!c.envelope.viewer.can_command)return false; // normale chat, nessun avanzamento meccanico
     if(!c.canSubmit()||prepared!==selectionKey(c)){visible(true);host.notice('Seleziona e prepara la scelta dello scontro prima di inviare.');return true;}
-    rawSubmitted=raw.trim();c.submit(narrative).then(r=>{if(current(c,stamp))accepted(r);}).catch(()=>{if(current(c,stamp)&&eligible())host.notice('Invio non confermato. Conserva la role e verifica lo stesso invio.');});
+    const offer=c.offers.find(o=>o.offer_id===c.selected),needsCompanion=offer?.companion_context_required===true;
+    if(needsCompanion&&(!companion||companion.kind!=='cane_ninja'||!text(companion.id)||!String(companionText||'').trim())){host.notice('Completa anche l’azione del ninken prima di inviare.');return true;}
+    rawSubmitted=raw.trim();companionSubmitted=needsCompanion?String(companionText).trim():null;c.submit(narrative,needsCompanion?{id:companion.id,body:companionSubmitted}:null).then(r=>{if(current(c,stamp))accepted(r);}).catch(()=>{if(current(c,stamp)&&eligible())host.notice('Invio non confermato. Conserva la role e verifica lo stesso invio.');});
     return true;
   }
   const closeClick=()=>visible(false);
   entry.addEventListener('click',open);close.addEventListener('click',closeClick);
   function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',open);close.removeEventListener('click',closeClick);invalidate();}
   showEntry();visible(false);
-  return {open,refresh,handleSend,ownsCurrent,invalidate,suspend,dispose,clearPresentation(){presentation?.clearPresentation();},get controller(){return controller;}};
+  return {open,refresh,handleSend,ownsCurrent,invalidate,suspend,dispose,clearPresentation(){presentation?.clearPresentation();},companionGate(){const c=controller,offer=c?.offers?.find(o=>o.offer_id===c.selected);return {required:offer?.companion_context_required===true,mechanicsReady:!!c&&prepared===selectionKey(c)};},get controller(){return controller;}};
 }
 
 window.TUSOrdinary={attachOrdinaryLand};
@@ -5936,8 +5948,9 @@ window.TUSOrdinary={attachOrdinaryLand};
           otherCombat:function(){return !!(CMB&&CMB.aperto)||!!(MV2&&MV2.data&&MV2.data.encounter);},
           rpc:commonPanelUiRpc,requestKey:mv2Key,
           readChat:function(){return input.value||'';},
-          clearChat:function(){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';updCount();},
-          notice:toast,accepted:function(){syncSendBtn();loadMsgs();loadWho();loadRoleState();loadTrainingState();}
+          readCompanion:function(){var pi=document.getElementById('png-input');return pi?pi.value.trim():'';},
+          clearChat:function(companionExpected){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';clearPngDraft(companionExpected);updCount();},
+          notice:toast,syncSendGate:syncSendBtn,accepted:function(){syncSendBtn();loadMsgs();loadWho();loadRoleState();loadTrainingState();}
         });
         ORDINARY.refresh();
       }
@@ -9628,6 +9641,7 @@ function createExamRegiaHost(host) {
       }
       /* ---- Compagno PNG del giocatore ---- */
       var myComp=null;
+      function clearPngDraft(expected){ if(expected===null||expected===undefined)return;var pi=document.getElementById('png-input'),ep=document.getElementById('ed-png');if(pi&&pi.value.trim()===expected){pi.value='';if(ep&&ep.value.trim()===expected)ep.value='';} }
       function pngIcon(k){ return k==='marionetta'?'\uD83C\uDFAD':(k==='cane_ninja'?'\uD83D\uDC3E':'\uD83D\uDC0D'); }
       function loadMyCompanion(){ if(!sb||!myCharId){ return; }
         sb.from('character_companions').select('id,name,kind,grado').eq('character_id',myCharId).eq('is_active',true).order('created_at').limit(1).maybeSingle().then(function(r){
@@ -9649,9 +9663,9 @@ function createExamRegiaHost(host) {
           if(!b.hidden){ var pi=document.getElementById('png-input'); if(pi) setTimeout(function(){ try{ pi.focus(); }catch(e){} },40); }
         });
         var ep=document.getElementById('ed-png');
-        if(ep) ep.addEventListener('input', function(){ var pi=document.getElementById('png-input'); if(pi) pi.value=ep.value; });
+        if(ep) ep.addEventListener('input', function(){ var pi=document.getElementById('png-input'); if(pi) pi.value=ep.value; updCount(); });
         var pi2=document.getElementById('png-input');
-        if(pi2) pi2.addEventListener('input', function(){ var ep2=document.getElementById('ed-png'); if(ep2) ep2.value=pi2.value; });
+        if(pi2) pi2.addEventListener('input', function(){ var ep2=document.getElementById('ed-png'); if(ep2) ep2.value=pi2.value; updCount(); });
       })();
       /* ---- Tag luogo persistente: una volta inserito resta, per stanza, finché il player non lo cambia ---- */
       function restorePlace(id){ var pl=document.getElementById('msg-place'); if(!pl) return; var v=''; try{ v=(JSON.parse(localStorage.getItem('tus_place')||'{}'))[id]||''; }catch(e){} pl.value=v; }
@@ -9861,14 +9875,14 @@ var nb028iTeardown=function(){};
     constants:{targetUserId:TARGET_USER_ID,testRoomId:TEST_ROOM_ID,eventRef:EVENT_REF,requestKey:REQUEST_KEY,testInput:TEST_INPUT}
   };
 });
-            /* [LAND-ROOM-ENTRY-005 · 22/09/2026] openRoom vive prima del modulo Test Room utenti.
+      /* [LAND-ROOM-ENTRY-005 · 22/09/2026] openRoom vive prima del modulo Test Room utenti.
          La pulizia deve quindi esistere già in questo script e non dipendere dalla dichiarazione privata successiva. */
       function truReleaseInvalidate(){
         if(window.TRU_RELEASE002){window.TRU_RELEASE002.invalidate();window.TRU_RELEASE002=null;}
         var ov=document.getElementById('truv'),bk=document.getElementById('truv-backdrop');
         if(ov)ov.hidden=true;if(bk)bk.hidden=true;
       }
-function openRoom(l){
+      function openRoom(l){
         truReleaseInvalidate();
         closeRoomObjectBinding();
         if(ORDINARY)ORDINARY.invalidate();MV2.readRequested=false;cur=l; showView('room');  restorePlace(l.id);
@@ -9902,9 +9916,9 @@ function openRoom(l){
         var to=toSel?toSel.value:'';
         var placeEl=document.getElementById('msg-place'); var place=placeEl?placeEl.value.trim().replace(/[【】]/g,'').slice(0,60):'';
         var pbody=(place && !to)?('【'+place+'】 '+t):t;
-        if(window.TRU_RELEASE002&&window.TRU_RELEASE002.handleSend(t,pbody,{recipient:to,fato:fatoMode,companionText:pTxt,after:after}))return;
+        if(window.TRU_RELEASE002&&window.TRU_RELEASE002.handleSend(t,pbody,{recipient:to,fato:fatoMode,companionText:pTxt,companion:myComp,after:after}))return;
         if(!to&&examRegia()?.blocksChat()){if(fatoMode){toast('Disattiva la voce Fato per inviare la tua role nell’Esame.');return;}if(examRegia().handleSend(t,pbody))return;}
-        if(!to&&fatoMode&&commonMasterCombat()&&ORDINARY&&ORDINARY.handleSend(t,pbody)) return;
+        if(!to&&fatoMode&&commonMasterCombat()&&ORDINARY&&ORDINARY.handleSend(t,pbody,pTxt,myComp)) return;
         if(fatoMode){
           if(MV2.data&&MV2.data.encounter){ toast('Durante uno scontro V2 pubblica l’esito dal pannello Regia Master: così referto, chat e round restano collegati.'); return; }
           if(!t.trim()){ toast('Scrivi l\'esito del Fato'); return; }
@@ -9986,7 +10000,7 @@ function openRoom(l){
           }
           esInvia(ES_AZ, t, t); return;
         }
-        if(!to && ORDINARY && ORDINARY.handleSend(t,pbody)) return;
+        if(!to && ORDINARY && ORDINARY.handleSend(t,pbody,pTxt,myComp)) return;
         sendBtn.disabled=true;
         var prm={p_location:cur.id,p_body:pbody};
         if(!to && pTxt && myComp){ prm.p_companion=myComp.id; prm.p_companion_body=pTxt; }
@@ -10384,7 +10398,7 @@ function openRoom(l){
       }
       function syncSendBtn(){
         if(window.TRU_RELEASE002?.ownsCurrent()){
-          var text=input?.value||'',ready=window.TRU_RELEASE002.canSend()&&!!text.trim()&&[...text].length<=2500,tip=ready?'Invia descrizione e scelta nella prova privata':'Completa e conferma la scelta della prova; descrizione da 1 a 2500 caratteri';
+          var text=input?.value||'',gate=window.TRU_RELEASE002.companionGate?.()||{required:false,mechanicsReady:false},pi=document.getElementById('png-input'),dogReady=!gate.required||!!(myComp&&myComp.kind==='cane_ninja'&&pi&&(pi.value||'').trim()),ready=window.TRU_RELEASE002.canSend()&&dogReady&&!!text.trim()&&[...text].length<=2500,tip=ready?'Invia descrizione e scelta nella prova privata':(gate.required&&!dogReady?'Scrivi anche l’azione del ninken':'Completa e conferma la scelta della prova; descrizione da 1 a 2500 caratteri');
           for(var id of ['msg-send','ed-send']){var button=document.getElementById(id);if(button){button.disabled=!ready;button.title=tip;}}return;
         }
         var ok=sendGateOk(), ttl=ok?'':'Un turno di role vuole almeno 500 caratteri';
@@ -10392,6 +10406,8 @@ function openRoom(l){
         var occupata=false;
         try{ occupata=!!(ES&&ES.busy); }catch(e){ occupata=false; }
         if(occupata){ ok=false; ttl='La mossa \u00e8 in volo: aspetta la risposta del server'; }
+        var cg=null;try{ cg=ORDINARY&&ORDINARY.companionGate?ORDINARY.companionGate():null; }catch(e){ cg=null; }
+        if(cg&&cg.required){var pi=document.getElementById('png-input'),readyDog=!!(myComp&&myComp.kind==='cane_ninja'&&pi&&(pi.value||'').trim());if(!cg.mechanicsReady||!readyDog){ok=false;ttl=!cg.mechanicsReady?'Conferma la scelta meccanica del ninken':'Scrivi anche l’azione del ninken';}}
         if(sendBtn){ sendBtn.disabled=!ok; sendBtn.title=ttl; }
         var eb=document.getElementById('ed-send'); if(eb){ eb.disabled=!ok; eb.title=ttl; }
       }
@@ -11235,7 +11251,7 @@ function openRoom(l){
         window.addEventListener('tus:ordinary-logout',truReleaseInvalidate);
         function truReleaseEnsure(){
           if(window.TRU_RELEASE002)return window.TRU_RELEASE002;
-          window.TRU_RELEASE002=window.moduleUserTestRelease002.attach({document:document,identity:truReleaseIdentity,rpc:truReleaseRpc,invoke:truReleaseInvoke,storage:window.sessionStorage,notice:toast,legacy:truReleaseLegacy,location:function(){return cur;},hide:closeTestRoomUser,composerChanged:syncSendBtn,readChat:function(){return input.value||'';},clearChat:function(){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';updCount();}});
+          window.TRU_RELEASE002=window.moduleUserTestRelease002.attach({document:document,identity:truReleaseIdentity,rpc:truReleaseRpc,invoke:truReleaseInvoke,storage:window.sessionStorage,notice:toast,legacy:truReleaseLegacy,location:function(){return cur;},hide:closeTestRoomUser,composerChanged:syncSendBtn,readChat:function(){return input.value||'';},readCompanion:function(){var pi=document.getElementById('png-input');return pi?pi.value.trim():'';},clearChat:function(companionExpected){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';clearPngDraft(companionExpected);updCount();}});
           return window.TRU_RELEASE002;
         }
         function truReleaseLayout(){
