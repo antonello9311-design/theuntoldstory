@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-INUZUKA-GENIN-COMMON-008" />
+  <meta name="tus-build" content="LAND-INUZUKA-GENIN-COMMON-009" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -4372,10 +4372,10 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   view.render(presented(controller.snapshot()));
   return {
     open:invoke(read),
-    refresh:invoke(async()=>{
+    refresh:invoke(async(withOptions=true)=>{
       if(!await controller.pollState())return false;
       const m=controller.snapshot();
-      return m.envelope?.viewer.can_command&&!m.pending&&!m.optionsReady?controller.readOptions():true;
+      return withOptions&&m.envelope?.viewer.can_command&&!m.pending&&!m.optionsReady?controller.readOptions():true;
     }),
     suspend:()=>{if(!disposed)controller.markReadUnavailable();},
     setNarrative:invoke(value=>{controller.setNarrative(value);return true;}),
@@ -4584,7 +4584,8 @@ function attachCombatPanel(host){
     if(refreshing)return refreshing;
     const m=panel.snapshot();if(m.pending||m.busy)return Promise.resolve(false);
     const current=panel,stamp=generation;
-    const task=panel.refresh().then(ok=>{if(current===panel&&stamp===generation&&!routeAllowed()){invalidate();return false;}return ok;});refreshing=task;
+    // Il poll mantiene lo stato aggiornato; le offerte si caricano quando il pannello e aperto.
+    const task=panel.refresh(opened).then(ok=>{if(current===panel&&stamp===generation&&!routeAllowed()){invalidate();return false;}return ok;});refreshing=task;
     task.finally(()=>{if(refreshing===task)refreshing=null;});return task;
   }
   function routeAllowed(){const e=panel?.snapshot().envelope;return host.requireManagedMaster!==true||e?.context?.activity_kind!=='master_v2'||host.isCommonMaster?.(e)===true;}
