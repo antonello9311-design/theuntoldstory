@@ -4119,6 +4119,190 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
 
 return {renderResourceBar,changeSingleChoice,mountPanelView};
 })();
+// USER-TESTROOM-UI-AGGREGATE-002. Adapter privato; nessuna formula o autorità di gioco.
+function createUserTestModuleRelease002(common){
+const {validatePanelEnvelope,selectionReady,settleCopyChoices,flowOptionAllowed,mountPanelView}=common;
+const POLICY='user_test_private_no_persistent_resources_v1';
+const id=x=>typeof x==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(x);
+const obj=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
+const integer=x=>Number.isSafeInteger(x)&&x>=0;
+const insist=(v,c='projection_invalid')=>{if(!v)throw fault(c);};
+const errors={authentication_required:'Accedi nuovamente per continuare.',projection_invalid:'La prova ha restituito dati incompleti. Rileggi lo stato.',transport_unconfirmed:'Conferma non ricevuta. Verifica la stessa richiesta senza crearne un’altra.',release_not_enabled:'La nuova prova non è ancora disponibile.',context_not_owned:'Questa prova non è disponibile per il tuo accesso.',actor_not_controlled:'Il personaggio selezionato non è controllabile.',context_stale:'La scena è cambiata. Rileggi le scelte.',context_changed:'La scena è cambiata. Rileggi la prova.',offer_expired:'La scelta è scaduta. Aggiorna il pannello.',offer_not_valid:'Questa scelta non è più disponibile.',selection_rejected:'La scelta non è stata accettata. Rileggi il pannello.',operation_rejected:'La richiesta non è stata accettata.',not_authorized:'Non puoi eseguire questa richiesta.',request_key_conflict:'Il riferimento è già legato a un’altra richiesta. Contatta lo staff.',test_already_active:'Hai già una prova aperta. Riprendila senza aprirne un’altra.',legacy_test_active:'Riprendi prima la prova precedente.',context_closed:'La prova è terminata. Lo storico resta consultabile.',quota_ia_esaurita:'Hai usato le cinque narrazioni di questa giornata.',invalid_command:'Completa le scelte richieste.',storage_unavailable:'Il browser non può conservare la richiesta. Nessun nuovo invio è stato eseguito.',narration_unavailable:'La narrazione non è disponibile per questo esito.',flow_budget_exceeded:'La scelta supera i flussi disponibili.'};
+function fault(code,key=null,definitive=false){return Object.assign(new Error(errors[code]||errors.projection_invalid),{code,key,definitive});}
+function unwrap(r,key=null){
+ if(r?.error)throw fault(['PGRST202','42883'].includes(r.error.code)?'release_not_enabled':'transport_unconfirmed',key);
+ const e=r?.data;insist(obj(e)&&e.schema_version==='user-test/1'&&typeof e.ok==='boolean'&&(e.request_key===null||id(e.request_key)));
+ if(key!==null)insist(e.request_key===key);
+ if(e.ok){insist(obj(e.data)&&e.error===null);return e.data;}
+ insist(e.data===null&&obj(e.error)&&typeof e.error.code==='string'&&typeof e.error.message==='string'&&typeof e.error.recovery==='string');
+ throw fault(e.error.code,key,Object.hasOwn(errors,e.error.code)&&!['transport_unconfirmed','projection_invalid'].includes(e.error.code));
+}
+function quota(q){insist(obj(q)&&q.limit===5&&integer(q.used)&&q.used<=5&&q.remaining===5-q.used);return structuredClone(q);}
+const closeOffer=(o,p)=>o?.kind==='administration'&&o.operation==='close'&&p?.context?.policy_id===POLICY&&p.context.simulated===true&&p.context.activity_kind==='ordinary_v2';
+function createController({rpc,invoke,scope,storage,requestKey=()=>crypto.randomUUID(),onChange=()=>{}}){
+ let owner=scope(),epoch=0,busy=false,mode=null,profiles=[],active=null,legacyActive=false,data=null,report=null,q=null,error=null;
+ let pending=null,openPending=null,draft=null,aiAttempts={},selectedProfile=null,selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='',optionsReady=false;
+ const storeKey=()=>owner?'tus_user_test_v1:'+owner:null;
+ const current=()=>!!owner&&owner===scope();
+ const chosen=()=>data?.panel.offers.find(o=>o.offer_id===selectedOfferId);
+ const canUse=o=>data?.test.state==='active'&&data.panel.status==='ready'&&(data.panel.viewer.can_command||closeOffer(o,data.panel));
+ const reportId=()=>data?.panel.receipt?.report_id||data?.panel.round_details?.report?.report_id||data?.panel.narrative?.report_id||null;
+ const pendingBinding=()=>pending&&id(pending.test_context_id)&&id(pending.command_actor_id)&&id(pending.command?.request_key)&&pending.command.activity_id===pending.test_context_id&&typeof pending.command.narrative_text==='string'?{test:pending.test_context_id,actor:pending.command_actor_id,version:integer(pending.command.context_version)?pending.command.context_version:null}:null;
+ const validDraft=d=>obj(d)&&id(d.test_context_id)&&id(d.command_actor_id)&&typeof d.text==='string'&&(d.context_version===null||integer(d.context_version));
+ const sameDraft=(test,actor)=>validDraft(draft)&&draft.test_context_id===test&&draft.command_actor_id===actor;
+ const recoveryBinding=()=>data?{test:data.test.id,actor:data.selected_actor_id,version:data.panel.context.version}:pendingBinding()||(validDraft(draft)?{test:draft.test_context_id,actor:draft.command_actor_id,version:draft.context_version}:null);
+ function preservePendingDraft(p=pending){if(p&&id(p.test_context_id)&&id(p.command_actor_id)&&typeof p.command?.narrative_text==='string'&&p.command.narrative_text!==''){draft={test_context_id:p.test_context_id,command_actor_id:p.command_actor_id,context_version:integer(p.command.context_version)?p.command.context_version:null,text:p.command.narrative_text};narrativeText=draft.text;}}
+ function confirmDraft(p){if(sameDraft(p.test_context_id,p.command_actor_id)&&draft.text===p.command.narrative_text){draft=null;narrativeText='';}}
+ function save(){try{insist(storage&&storeKey(),'storage_unavailable');storage.setItem(storeKey(),JSON.stringify({mode,pending,openPending,aiAttempts,draft}));}catch{throw fault('storage_unavailable');}}
+ try{const z=JSON.parse(storage?.getItem(storeKey())||'null');if(obj(z)){mode=z.mode==='common_private_v1'?z.mode:null;pending=obj(z.pending)?z.pending:null;openPending=obj(z.openPending)?z.openPending:null;aiAttempts=obj(z.aiAttempts)?z.aiAttempts:{};draft=validDraft(z.draft)?z.draft:null;if(pendingBinding())preservePendingDraft();}}catch{}
+ const resetChoices=()=>{selectedOfferId=null;selectedOptionIds=[];inputs=[];optionsReady=false;};
+ const snapshot=()=>({validated:!!data,envelope:data?.panel?structuredClone(data.panel):null,data:data?structuredClone(data):null,report:report?structuredClone(report):null,reportId:reportId(),quota:q?structuredClone(q):null,mode,profiles:structuredClone(profiles),activeTest:active?structuredClone(active):null,legacyActive,selectedProfile,busy,pending:!!pending,error:error?.message||null,errorCode:error?.code||null,requestKey:pending?.command?.request_key||openPending?.key||error?.key||null,openUncertain:!!openPending,optionsReady,selectedOfferId,selectedOptionIds:[...selectedOptionIds],inputs:structuredClone(inputs),narrativeText,rejection:null,refreshRequired:false,canPrepare:!!(current()&&!busy&&!pending&&!openPending&&optionsReady&&canUse(chosen())&&selectionReady(chosen(),selectedOptionIds,inputs,narrativeText)),canConfirmMechanics:!!(current()&&!busy&&!pending&&!openPending&&optionsReady&&canUse(chosen())&&chosen()?.requires_role===true&&selectionReady(chosen(),selectedOptionIds,inputs,'',false)),canReadState:!!(current()&&!busy&&recoveryBinding()),canOpen:!!(current()&&!draft&&mode==='common_private_v1'&&!busy&&!pending&&!openPending&&!active&&!legacyActive&&!data&&selectedProfile),canResume:!!(current()&&!busy&&active),canNarrate:!!(current()&&!busy&&report&&q?.remaining>0&&report.narrative?.state==='idle'&&!aiAttempts[report.report.report_id]),canNew:!!(current()&&!busy&&!pending&&!openPending&&data?.test.state==='closed')});
+ const notify=()=>onChange(snapshot());
+ function clear(){epoch++;owner=null;busy=false;data=null;report=null;q=null;profiles=[];active=null;pending=null;openPending=null;draft=null;aiAttempts={};narrativeText='';resetChoices();notify();}
+ function check(){if(!current()){clear();throw fault('authentication_required');}}
+ async function call(name,args,consume,key=null){check();if(busy)return false;const ticket=++epoch;busy=true;error=null;notify();try{const r=await rpc(name,args);if(ticket!==epoch||!current())return false;consume(unwrap(r,key));return true;}catch(e){if(ticket===epoch&&current()){error=e?.code?e:fault('projection_invalid',key);optionsReady=false;}return false;}finally{if(ticket===epoch&&current()){busy=false;notify();}}}
+ function accept(raw,withOptions,expectedTest=data?.test.id,expectedActor=data?.selected_actor_id,minimum=null){
+  const d=structuredClone(raw);insist(obj(d.test)&&id(d.test.id)&&d.test.surface==='user_test'&&['active','closed'].includes(d.test.state)&&typeof d.test.expires_at==='string'&&Number.isFinite(Date.parse(d.test.expires_at))&&id(d.selected_actor_id));
+  insist(!expectedTest||d.test.id===expectedTest);insist(!expectedActor||d.selected_actor_id===expectedActor);
+  const remembered=pendingBinding();if(pending)insist(remembered&&d.test.id===remembered.test&&d.selected_actor_id===remembered.actor,'context_changed');
+  if(draft)insist(sameDraft(d.test.id,d.selected_actor_id),'context_changed');
+  const p=validatePanelEnvelope(d.panel);insist(p.status==='ready'&&p.context.activity_id===d.test.id&&p.context.activity_kind==='ordinary_v2'&&p.context.policy_id===POLICY&&p.context.simulated===true&&p.viewer.command_actor_id===d.selected_actor_id);
+  insist(p.viewer.controlled_actors.length===1&&p.viewer.controlled_actors[0].actor_id===d.selected_actor_id&&p.actors.some(a=>a.actor_id===d.selected_actor_id&&a.kind==='pg')&&p.actors.every(a=>!a.resources||a.resources.simulated===true));
+  insist(minimum===null||p.context.version>=minimum);insist(JSON.stringify(d.receipt)===JSON.stringify(p.receipt));insist(!p.receipt||p.receipt.values_written===false);
+  if(d.test.state==='closed')insist(p.context.phase==='closed'&&p.offers.length===0&&!p.viewer.can_command);
+  if(!withOptions)insist(p.offers.length===0);
+  q=quota(d.quota);const previous=reportId();data={...d,panel:p};active=null;resetChoices();optionsReady=withOptions&&d.test.state==='active';
+  if(previous!==reportId())report=null;
+  if(sameDraft(d.test.id,d.selected_actor_id))narrativeText=draft.text;
+  if(pending&&p.receipt?.request_key===pending.command?.request_key){const confirmed=pending;pending=null;confirmDraft(confirmed);save();}
+ }
+ async function loadProfiles(){const sticky=mode==='common_private_v1'||!!pending||!!openPending;const ok=await call('test_room_user_profiles_v2',{},d=>{
+  insist(['legacy_070','common_private_v1'].includes(d.mode)&&Array.isArray(d.profiles)&&typeof d.legacy_active==='boolean'&&Object.hasOwn(d,'active_test'));
+  insist(!(sticky&&d.mode==='legacy_070'),'release_not_enabled');
+  const a=d.active_test;insist(a===null||(obj(a)&&id(a.test_context_id)&&id(a.selected_actor_id)&&integer(a.context_version)&&Number.isFinite(Date.parse(a.expires_at))));
+  insist(!a||!d.legacy_active);insist(d.profiles.every(p=>id(p.offer_id)&&id(p.profile_id)&&integer(p.revision)&&typeof p.label==='string'&&p.label.trim()&&Number.isFinite(Date.parse(p.expires_at))));
+  mode=d.mode;profiles=structuredClone(d.profiles);active=a?structuredClone(a):null;legacyActive=d.legacy_active;q=quota(d.quota);save();
+ });if(!ok&&!sticky&&error?.code==='release_not_enabled'){mode='legacy_070';error=null;notify();return true;}return ok;}
+ function selectProfile(offer){check();insist(!busy&&!pending&&!openPending&&!active&&!legacyActive&&!data&&profiles.some(p=>p.offer_id===offer),'invalid_command');selectedProfile=offer;notify();}
+ async function sendOpen(){check();insist(openPending&&id(openPending.key)&&id(openPending.offer),'invalid_command');const k=structuredClone(openPending);const ok=await call('test_room_user_open_v2',{p_opponent_offer:k.offer,p_request_key:k.key},d=>{accept(d,true,null,null);openPending=null;save();},k.key);
+  if(!ok&&error?.definitive){const original=error;openPending=null;save();if(original.code==='test_already_active'){await loadProfiles();if(current()){error=original;notify();}}}return ok;}
+ async function open(){check();insist(snapshot().canOpen,'invalid_command');openPending={offer:selectedProfile,key:requestKey()};insist(id(openPending.key));try{save();}catch(e){openPending=null;error=e;notify();return false;}return sendOpen();}
+ async function resume(){check();insist(snapshot().canResume,'context_not_owned');const a=structuredClone(active);const ok=await call('test_room_user_state_v2',{p_test_context:a.test_context_id,p_command_actor:a.selected_actor_id},d=>{accept(d,false,a.test_context_id,a.selected_actor_id,a.context_version);if(openPending){openPending=null;save();}});if(ok&&!pending)await readOptions();return ok;}
+ async function readState(){check();const recovered=recoveryBinding();if(!recovered)return false;const {actor:a,test:t,version:v}=recovered;const ok=await call('test_room_user_state_v2',{p_test_context:t,p_command_actor:a},d=>accept(d,false,t,a,v));if(ok&&!pending)await readOptions();return ok;}
+ async function readOptions(){check();if(!data||busy||pending||data.test.state!=='active')return false;const t=data.test.id,a=data.selected_actor_id,v=data.panel.context.version;return call('test_room_user_options_v2',{p_test_context:t,p_command_actor:a,p_expected_context:v},d=>{insist(d.panel?.context?.version===v);accept(d,true,t,a,v);});}
+ function editable(){check();insist(!busy&&!pending&&!openPending&&optionsReady&&data?.test.state==='active','invalid_command');}
+ function selectOffer(x){editable();insist(data.panel.offers.some(o=>o.offer_id===x&&canUse(o)),'offer_not_valid');selectedOfferId=x;selectedOptionIds=settleCopyChoices(chosen(),[]);inputs=[];notify();}
+ function selectOption(group,x,on){editable();const o=chosen(),g=o?.choices.find(g=>g.group_id===group);insist(g&&g.options.some(p=>p.option_id===x)&&typeof on==='boolean'&&(g.depends_on===null||selectedOptionIds.includes(g.depends_on)),'invalid_command');insist(flowOptionAllowed(o,selectedOptionIds,group,x,on),'flow_budget_exceeded');const next=new Set(selectedOptionIds);if(g.selection_mode==='single')g.options.forEach(p=>next.delete(p.option_id));if(on)next.add(x);else next.delete(x);selectedOptionIds=settleCopyChoices(o,next);notify();}
+ function setInput(x,value){editable();const f=chosen()?.input_fields.find(f=>f.input_id===x);insist(f&&typeof value===(f.value_type==='text'?'string':'boolean'),'invalid_command');inputs=inputs.filter(p=>p.input_id!==x);inputs.push({input_id:x,value});notify();}
+ function setNarrative(value){editable();insist(typeof value==='string');narrativeText=value;draft={test_context_id:data.test.id,command_actor_id:data.selected_actor_id,context_version:data.panel.context.version,text:value};try{save();}catch(e){error=e;notify();throw e;}notify();}
+ function prepare(){check();insist(snapshot().canPrepare,'invalid_command');const c=data.panel.context;return {schema_version:'user-test-command/1',test_context_id:data.test.id,command_actor_id:data.selected_actor_id,command:{schema_version:'combat-panel-command/1',request_key:requestKey(),location_id:c.location_id,activity_id:c.activity_id,context_version:c.version,offer_id:selectedOfferId,selected_option_ids:[...selectedOptionIds].sort(),inputs:structuredClone(inputs).sort((a,b)=>a.input_id.localeCompare(b.input_id)),narrative_text:chosen().requires_role?narrativeText:''}};}
+ async function send(){check();const binding=pendingBinding();insist(binding&&(!data||(binding.test===data.test.id&&binding.actor===data.selected_actor_id)),'invalid_command');const p=structuredClone(pending);const ok=await call('test_room_user_commit_v2',{p_command:p},d=>{insist(d.panel?.receipt?.request_key===p.command.request_key);accept(d,true,p.test_context_id,p.command_actor_id);pending=null;confirmDraft(p);save();},p.command.request_key);if(!ok&&error?.definitive){preservePendingDraft(p);pending=null;save();resetChoices();notify();}return ok;}
+ async function submit(){const p=prepare();insist(id(p.command.request_key));pending=p;try{save();}catch(e){pending=null;error=e;notify();return false;}return send();}
+ async function newTest(){check();insist(snapshot().canNew,'context_closed');draft=null;narrativeText='';save();data=null;report=null;selectedProfile=null;resetChoices();await loadProfiles();}
+ async function readReport(){check();const r=reportId();if(!data||!id(r))return false;const t=data.test.id;return call('test_room_user_report_v2',{p_test_context:t,p_report:r},d=>{
+  insist(obj(d.report)&&d.report.report_id===r&&typeof d.report.title==='string'&&Array.isArray(d.report.lines)&&d.report.lines.every(x=>typeof x==='string'));
+  const n=d.narrative;insist(obj(n)&&n.report_id===r);
+  validatePanelEnvelope({...data.panel,narrative:n,round_details:{schema_version:'combat-panel-round-details/1',round_id:data.panel.context.round_id,declarations:[],report:d.report}});
+  report=structuredClone(d);
+ });}
+ async function narrate(){check();insist(snapshot().canNarrate,'narration_unavailable');const r=report.report.report_id,t=data.test.id,k=requestKey();insist(id(k));aiAttempts[r]=k;try{save();}catch(e){delete aiAttempts[r];error=e;notify();return false;}
+  const ticket=++epoch;busy=true;error=null;notify();try{const response=await invoke('test_room_ai',{body:{schema_version:'user-test-ai/1',test_context_id:t,report_id:r,idempotency_key:k}});if(ticket!==epoch||!current())return false;const d=unwrap(response);if(d.quota)q=quota(d.quota);return true;}catch(e){if(ticket===epoch&&current())error=e?.code?e:fault('transport_unconfirmed',k);return false;}finally{if(ticket===epoch&&current()){busy=false;notify();await readReport();}}}
+ function pickClose(){check();insist(data,'context_closed');const o=data.panel.offers.find(o=>closeOffer(o,data.panel));insist(o,'offer_not_valid');selectOffer(o.offer_id);}
+ return {snapshot,clear,loadProfiles,selectProfile,open,retryOpen:sendOpen,resume,readState,readOptions,selectOffer,selectOption,setInput,setNarrative,prepare,submit,retry:send,newTest,readReport,narrate,pickClose};
+}
+function attach(host){
+ const doc=host.document;let controller=null,view=null,key=null,body=null,summary=null,actions=null,panelRoot=null,reportRoot=null,confirmedDraft=null,generation=0;
+ const composerStatus=[];
+ const scope=()=>{const c=host.identity();return c&&id(c.principal_id)&&id(c.character_id)?JSON.stringify([c.principal_id,c.character_id,host.location?.()?.id||null]):null;};
+ const node=(tag,text,parent)=>{const n=doc.createElement(tag);if(text!==null)n.textContent=text;if(parent)parent.append(n);return n;};
+ const safe=fn=>(...args)=>{try{return Promise.resolve(fn(...args)).catch(()=>host.notice('Operazione non disponibile. Rileggi la prova.'));}catch{host.notice('Operazione non disponibile. Rileggi la prova.');}};
+ function button(label,fn,disabled=false,parent=actions){const b=node('button',label,parent);b.type='button';b.className='tru-btn';b.disabled=disabled;b.onclick=safe(fn);return b;}
+ // Conferma limitata a identita, luogo, prova, attore, versione e scelte correnti.
+ function draftSignature(m){
+  if(!m?.canConfirmMechanics)return null;
+  const c=m.envelope.context;
+  return JSON.stringify([key,m.data.test.id,m.data.selected_actor_id,c.version,c.scene_version,m.selectedOfferId,[...m.selectedOptionIds].sort(),[...m.inputs].sort((a,b)=>a.input_id.localeCompare(b.input_id))]);
+ }
+ function ownsCurrent(){return key!==null&&key===scope()&&!!controller&&(controller.snapshot().data?.test.state==='active'||controller.snapshot().pending);}
+ function syncDraft(m){
+  const signature=draftSignature(m);
+  if(confirmedDraft&&confirmedDraft!==signature)confirmedDraft=null;
+  for(const n of composerStatus){n.hidden=!ownsCurrent();n.textContent=m?.pending?'Prova privata · verifica l’invio dal pannello':confirmedDraft?'Prova privata · scelta pronta: Invia collega la descrizione':'Prova privata · completa e conferma la scelta nel pannello';}
+  host.composerChanged?.();
+ }
+ function confirmMechanics(){
+  const m=controller?.snapshot(),signature=draftSignature(m);
+  if(key!==scope()||!signature)return;
+  confirmedDraft=signature;syncDraft(m);host.hide?.();doc.getElementById('msg-input')?.focus();
+  host.notice('Scelta pronta per la prova privata. Scrivi la descrizione e premi Invia.');
+ }
+ function handleSend(raw,narrative,meta={}){
+  if(key!==scope()){invalidate();return false;}
+  if(!ownsCurrent())return false;
+  const m=controller.snapshot();
+  if(meta.recipient||meta.fato||meta.companionText){host.notice('La prova privata usa la descrizione del PG: disattiva Fato, destinatario privato e testo PNG prima di inviare.');return true;}
+  if(m.busy||m.pending){host.notice('Invio in corso o incerto: verifica la stessa richiesta nella prova.');return true;}
+  if(!confirmedDraft||confirmedDraft!==draftSignature(m)){host.notice('Completa e conferma la scelta della prova prima di inviare la descrizione.');return true;}
+  if(typeof narrative!=='string'||!narrative.trim()||[...narrative].length>2500){host.notice('Scrivi una descrizione della prova da 1 a 2500 caratteri.');return true;}
+  const active=controller,stamp=generation,binding=key;
+  // Nessun post_message: testo e scelta viaggiano nello stesso commit privato.
+  safe(async()=>{
+   active.setNarrative(narrative);
+   if(stamp!==generation||binding!==scope()||active!==controller||!active.snapshot().canPrepare)return;
+   const ok=await active.submit();
+   if(stamp!==generation||binding!==scope()||active!==controller)return;
+   if(ok){confirmedDraft=null;if(host.readChat?.()===raw){host.clearChat?.();if(typeof meta.after==='function')meta.after();}syncDraft(active.snapshot());host.notice('Scelta e descrizione acquisite nella prova privata.');}
+  })();return true;
+ }
+ function render(m){syncDraft(m);if(!body)return;summary.replaceChildren();actions.replaceChildren();reportRoot.replaceChildren();
+  node('p','Prova privata · risorse separate dalle schede reali. Nascondere la finestra conserva la prova.',summary);
+  if(m.quota)node('p',`Narrazioni usate: ${m.quota.used} / ${m.quota.limit}`+(m.quota.resets_at?' · Ripristino '+new Date(m.quota.resets_at).toLocaleString('it-IT') :''),summary);
+  if(m.error)node('p',m.error,summary).setAttribute('role','alert');
+  if(m.requestKey)node('p','Riferimento richiesta: '+m.requestKey,summary);
+  if(m.busy)node('p','Attendo la risposta del server…',summary);
+  if(m.mode==='legacy_070'||m.legacyActive){button('Riprendi il percorso precedente',()=>host.legacy(),m.busy);panelRoot.hidden=true;return;}
+  if(m.pending){button('Rileggi la conferma',()=>controller.readState(),!m.canReadState);if(!m.data)button('Verifica lo stesso invio',()=>controller.retry(),m.busy);}
+  else if(!m.data&&m.canReadState)button('Rileggi la prova',()=>controller.readState(),m.busy);
+  if(!m.data){
+   if(m.activeTest)button('Riprendi prova',()=>controller.resume(),!m.canResume);
+   else if(m.mode==='common_private_v1'&&!m.pending){
+    const label=node('label','Avversario di prova',actions),select=node('select',null,label);select.className='tru-select';node('option','Scegli un avversario',select).value='';for(const p of m.profiles){const o=node('option',p.label,select);o.value=p.offer_id;}select.value=m.selectedProfile||'';select.disabled=m.busy||m.openUncertain;select.onchange=safe(()=>controller.selectProfile(select.value));
+    button('Apri prova',()=>controller.open(),!m.canOpen);
+   }
+   button('Aggiorna disponibilità',()=>controller.loadProfiles(),m.busy);
+   if(m.openUncertain)button('Verifica la stessa apertura',()=>controller.retryOpen(),m.busy);
+  }
+  panelRoot.hidden=!m.data;
+  if(m.data){view.render(m);if(m.data.test.state==='active')button('Chiudi prova',()=>controller.pickClose(),m.busy||m.pending||!m.optionsReady||!m.envelope.offers.some(o=>closeOffer(o,m.envelope)));else node('p','Prova terminata. Lo storico resta consultabile.',summary);
+   if(m.canNew)button('Nuova prova',()=>controller.newTest());
+   if(m.reportId)button('Leggi / aggiorna esito',()=>controller.readReport(),m.busy);
+  }
+  if(m.report){node('h4',m.report.report.title,reportRoot);for(const line of m.report.report.lines)node('p',line,reportRoot);const n=m.report.narrative;
+   const labels={idle:'Puoi richiedere una narrazione.',waiting:'Narrazione in attesa.',running:'Narrazione in corso.',published:'Narrazione disponibile.',failed:'Narrazione non riuscita. L’esito resta valido; il tentativo consumato non si ripete.',expired:'Attesa terminata. L’esito resta valido.'};node('p',labels[n.state],reportRoot);
+   if(n.last_published)node('p',n.last_published.text,reportRoot).style.whiteSpace='pre-wrap';
+   button('Chiedi narrazione IA',()=>controller.narrate(),!m.canNarrate,reportRoot);
+  }
+ }
+ function invalidate(){generation++;confirmedDraft=null;key=null;for(const n of composerStatus)n.remove();composerStatus.length=0;controller?.clear();controller=null;view?.clear();view=null;body?.remove();body=null;host.composerChanged?.();}
+ function ensure(){const k=scope();if(k!==key)invalidate();if(!k)return false;if(controller)return true;key=k;for(const id of ['msg-send','ed-send']){const send=doc.getElementById(id);if(send){const n=node('span','Prova privata',null);n.className='azp';n.setAttribute('role','status');n.setAttribute('aria-live','polite');send.before(n);composerStatus.push(n);}}const container=doc.getElementById('truv-body');container.replaceChildren();body=node('div',null,container);summary=node('div',null,body);summary.setAttribute('aria-live','polite');actions=node('div',null,body);actions.className='tru-actions';panelRoot=node('div',null,body);panelRoot.className='combat-panel-common';reportRoot=node('section',null,body);
+  controller=createController({rpc:host.rpc,invoke:host.invoke,scope,storage:host.storage,onChange:render});
+  view=mountPanelView(panelRoot,{readState:safe(()=>controller.readState()),readOptions:safe(()=>controller.readOptions()),selectOffer:safe(x=>controller.selectOffer(x)),selectOption:safe((g,x,on)=>controller.selectOption(g,x,on)),setInput:safe((x,v)=>controller.setInput(x,v)),setNarrative:safe(v=>controller.setNarrative(v)),confirmDraft:safe(confirmMechanics),prepare:safe(()=>controller.submit()),retry:safe(()=>controller.retry())},{narrative:(root)=>{node('p','La narrazione è privata e parte soltanto dal pulsante Chiedi narrazione IA dell’esito.',root);}});
+  render(controller.snapshot());return true;
+ }
+ async function open(){if(!ensure())return false;const m=controller.snapshot();if(!m.data&&!m.busy){await controller.loadProfiles();const next=controller?.snapshot();if(!next)return false;if(next.mode==='legacy_070'||next.legacyActive){invalidate();host.legacy();return true;}if(next.activeTest&&!next.pending)await controller.resume();}else if(!m.busy&&!m.pending)await controller.readState();return true;}
+ function refresh(){if(key!==null&&scope()!==key)invalidate();}
+ return {open,refresh,invalidate,handleSend,ownsCurrent,canSend:()=>ownsCurrent()&&!!confirmedDraft&&confirmedDraft===draftSignature(controller.snapshot()),snapshot:()=>controller?.snapshot()||null};
+}
+return {createController,attach,unwrap};
+}
+
+const moduleUserTestRelease002=createUserTestModuleRelease002({
+  validatePanelEnvelope:module5.validatePanelEnvelope,
+  selectionReady:module5.selectionReady,
+  settleCopyChoices:module4.settleCopyChoices,
+  flowOptionAllowed:module5.flowOptionAllowed,
+  mountPanelView:module6.mountPanelView
+});
 const module0=(()=>{
 const {renderPanelMap,renderReadonlyScene,normalizeMapVisualAsset}=module1;
 const renderReadonlyFigureMap=renderReadonlyScene;
@@ -5711,7 +5895,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       window.addEventListener('tus:ordinary-logout',function(){ordinarySigningOut=true;if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();});
       if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session){
         var id=session&&session.user?session.user.id:null;
-        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(MV2){MV2.authEpoch=(MV2.authEpoch||0)+1;MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.options={};}}
+        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(TRU_RELEASE002){TRU_RELEASE002.invalidate();TRU_RELEASE002=null;}if(event==='SIGNED_OUT')closeTestRoomUser();if(MV2){MV2.authEpoch=(MV2.authEpoch||0)+1;MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.options={};}}
         if(MV2&&(id!==ordinaryAuthId||event==='SIGNED_OUT'))MV2.readRequested=false;
         ordinaryAuthId=id;
       });
@@ -9678,6 +9862,7 @@ var nb028iTeardown=function(){};
   };
 });
       function openRoom(l){
+        truReleaseInvalidate();
         closeRoomObjectBinding();
         if(ORDINARY)ORDINARY.invalidate();MV2.readRequested=false;cur=l; showView('room');  restorePlace(l.id);
         nameEl.textContent=l.name; kindEl.textContent=l.kind||''; descEl.textContent=l.description||'';
@@ -9696,7 +9881,7 @@ var nb028iTeardown=function(){};
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ closeRoomObjectBinding(); MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ truReleaseInvalidate(); closeRoomObjectBinding(); MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -9710,6 +9895,7 @@ var nb028iTeardown=function(){};
         var to=toSel?toSel.value:'';
         var placeEl=document.getElementById('msg-place'); var place=placeEl?placeEl.value.trim().replace(/[【】]/g,'').slice(0,60):'';
         var pbody=(place && !to)?('【'+place+'】 '+t):t;
+        if(TRU_RELEASE002&&TRU_RELEASE002.handleSend(t,pbody,{recipient:to,fato:fatoMode,companionText:pTxt,after:after}))return;
         if(!to&&examRegia()?.blocksChat()){if(fatoMode){toast('Disattiva la voce Fato per inviare la tua role nell’Esame.');return;}if(examRegia().handleSend(t,pbody))return;}
         if(!to&&fatoMode&&commonMasterCombat()&&ORDINARY&&ORDINARY.handleSend(t,pbody)) return;
         if(fatoMode){
@@ -10190,6 +10376,10 @@ var nb028iTeardown=function(){};
         return turnoLen()>=500;
       }
       function syncSendBtn(){
+        if(TRU_RELEASE002?.ownsCurrent()){
+          var text=input?.value||'',ready=TRU_RELEASE002.canSend()&&!!text.trim()&&[...text].length<=2500,tip=ready?'Invia descrizione e scelta nella prova privata':'Completa e conferma la scelta della prova; descrizione da 1 a 2500 caratteri';
+          for(var id of ['msg-send','ed-send']){var button=document.getElementById(id);if(button){button.disabled=!ready;button.title=tip;}}return;
+        }
         var ok=sendGateOk(), ttl=ok?'':'Un turno di role vuole almeno 500 caratteri';
         if(!fatoMode&&!(toSel&&toSel.value)&&examRegia()?.blocksChat()&&!examRegia().canSend()){ok=false;ttl='Attendi il tuo turno o rileggi lo stato della prova';}
         var occupata=false;
@@ -11028,88 +11218,34 @@ var nb028iTeardown=function(){};
           }
         }
 
-        /* ===== TEST ROOM UTENTI 070 · sandbox privata, nessun luogo fisico ===== */
-        var TRU={busy:false,state:null,techniques:[],report:null,error:''};
-        function truEl(id){ return document.getElementById(id); }
-        function truErr(e){
-          var s=String((e&&e.message)||e||'errore').toLowerCase();
-          var m={autenticazione_richiesta:'Accedi per usare la Test Room.',personaggio_richiesto:'Serve un personaggio per aprire la prova.',manichino_non_configurato:'Il Manichino mock non è disponibile.',prova_non_aperta:'Apri prima una prova.',bersaglio_non_valido:'Il bersaglio ammesso è soltanto il Manichino mock.',sorgente_non_valida:'Tecnica non riconosciuta.',azione_non_valida:'Azione non riconosciuta.',tecnica_non_disponibile:'Questa tecnica non è disponibile per il tuo personaggio.',chakra_insufficiente:'Il tuo chakra reale non basta per provare questa tecnica.',quota_ia_esaurita:'Hai già usato le cinque narrazioni IA di questa giornata.',referto_non_tuo:'Questo referto non appartiene alla tua prova.'};
-          for(var k in m){ if(s.indexOf(k)>=0) return m[k]; }
-          return 'La Test Room non risponde in questo momento. Il personaggio non è stato modificato.';
+        /* ===== TEST ROOM UTENTI 070 · RELEASE002 su Combat/Common ===== */
+        var TRU_RELEASE002=null,TRU_LAYOUT_STOP=null;
+        function truReleaseIdentity(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId&&myId&&myCharId?{principal_id:myId,character_id:myCharId}:null;}
+        function truReleaseRpc(name,args){return sb.rpc(name,args||{});}
+        function truReleaseInvoke(name,options){return sb.functions.invoke(name,options||{});}
+        function truReleaseLegacy(){toast('La nuova Test Room non è ancora disponibile per questo accesso.');}
+        function truReleaseInvalidate(){if(TRU_RELEASE002){TRU_RELEASE002.invalidate();TRU_RELEASE002=null;}closeTestRoomUser();}
+        window.addEventListener('tus:ordinary-logout',truReleaseInvalidate);
+        function truReleaseEnsure(){
+          if(TRU_RELEASE002)return TRU_RELEASE002;
+          TRU_RELEASE002=moduleUserTestRelease002.attach({document:document,identity:truReleaseIdentity,rpc:truReleaseRpc,invoke:truReleaseInvoke,storage:window.sessionStorage,notice:toast,legacy:truReleaseLegacy,location:function(){return cur;},hide:closeTestRoomUser,composerChanged:syncSendBtn,readChat:function(){return input.value||'';},clearChat:function(){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';updCount();}});
+          return TRU_RELEASE002;
         }
-        function truResetText(q){
-          if(!q||!q.resets_at) return '';
-          try{return 'La quota riparte '+new Intl.DateTimeFormat('it-IT',{timeZone:'Europe/Rome',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(q.resets_at))+'.';}catch(e){return '';}
+        function truReleaseLayout(){
+          if(TRU_LAYOUT_STOP)return;
+          var overlay=document.getElementById('truv'),body=document.getElementById('truv-body'),root=body&&body.querySelector('.combat-panel-common');
+          if(overlay&&body&&root)TRU_LAYOUT_STOP=module3.activatePanelLayout({document:document,root:root,body:body,overlay:overlay});
         }
-        function truMech(m){
-          if(!m) return '';
-          var labels={action:'Azione',technique:'Tecnica',target:'Bersaglio',activation:'Attivazione',chakra_cost:'Costo richiesto',reaction:'Reazione del manichino',dado_att:'Tiro attacco',dado_dif:'Tiro difesa',atk_tot:'Totale attacco',def_tot:'Totale difesa',margine:'Margine',danno_grezzo:'Danno grezzo',danno_applicato:'Danno simulato',mock_hp_prima:'PV manichino prima',mock_hp_dopo:'PV manichino dopo',ko:'KO simulato',mock_reset:'Ripristino automatico',striscio:'Sfioramento',colpito:'Colpito',cap_attivo:'Tetto applicato',activated:'Attivata'};
-          var order=['action','technique','target','activation','chakra_cost','reaction','dado_att','dado_dif','atk_tot','def_tot','margine','danno_grezzo','danno_applicato','mock_hp_prima','mock_hp_dopo','ko','mock_reset','striscio','colpito','cap_attivo','activated'];
-          var h='<div class="tru-mech">';
-          order.forEach(function(k){ if(m[k]===undefined||m[k]===null) return; var v=m[k]; if(typeof v==='boolean') v=v?'Sì':'No'; if(k==='chakra_cost') v=v+' chakra'; h+='<div class="tru-kv"><span>'+labels[k]+'</span><strong>'+esc(String(v))+'</strong></div>'; });
-          return h+'</div><p class="tru-safe">Valori reali scritti: no. L’esito resta confinato a questa prova.</p>';
+        async function openTestRoomUser(){
+          if(!truReleaseIdentity()){toast('Accedi con un personaggio per usare la Test Room.');return;}
+          var ov=document.getElementById('truv'),bk=document.getElementById('truv-backdrop');if(ov)ov.hidden=false;if(bk)bk.hidden=false;
+          var pending=truReleaseEnsure().open();truReleaseLayout();await pending;truReleaseLayout();
         }
-        function truPlain(v){
-          return String(v||'')
-            .replace(/^\s{0,3}#{1,6}\s*/gm,'')
-            .replace(/^\s*>\s?/gm,'')
-            .replace(/(\*\*|__)(.*?)\1/g,'$2')
-            .replace(/[*_`~]/g,'')
-            .replace(/\s+/g,' ')
-            .trim();
+        function closeTestRoomUser(){
+          var ov=document.getElementById('truv'),bk=document.getElementById('truv-backdrop');if(ov)ov.hidden=true;if(bk)bk.hidden=true;
+          if(TRU_LAYOUT_STOP){TRU_LAYOUT_STOP();TRU_LAYOUT_STOP=null;}
         }
-        function truRender(){
-          var host=truEl('truv-body'); if(!host) return;
-          var st=TRU.state||{}, sess=st.session||null, q=st.quota||{used:0,remaining:5,limit:5};
-          var rep=TRU.report||st.last_report||null, used=+(q.used||0), limit=+(q.limit||5);
-          var h='<p class="tru-intro"><strong>Nessuna conseguenza sul personaggio.</strong> Prova le tecniche che possiedi contro il Manichino mock. PV, chakra, progressi, oggetti e statistiche non cambiano. L’esito meccanico funziona anche senza IA.</p>';
-          h+='<div class="tru-status"><span class="tru-chip '+(sess?'ok':'')+'">'+(sess?'Prova aperta':'Nessuna prova aperta')+'</span><span class="tru-chip '+(used>=limit?'limit':'')+'">IA '+used+'/'+limit+' usate</span></div>';
-          if(TRU.error) h+='<p class="tru-err">'+esc(TRU.error)+'</p>';
-          if(TRU.busy) h+='<p class="tru-wait">Attendo la risposta del server…</p>';
-          if(!sess){
-            h+='<div class="tru-actions"><button class="tru-btn" id="tru-open" type="button"'+(TRU.busy?' disabled':'')+'>Avvia prova</button><button class="tru-btn ghost" id="tru-reload-empty" type="button"'+(TRU.busy?' disabled':'')+'>Aggiorna</button></div>';
-          } else {
-            h+='<section class="tru-section"><h4>Prova tecnica</h4><div class="tru-row"><span class="tru-label">Bersaglio</span><strong>Manichino mock</strong></div><div class="tru-row"><label class="tru-label" for="tru-tech">Tecnica posseduta</label><select class="tru-select" id="tru-tech">';
-            if(!TRU.techniques.length) h+='<option value="">Nessuna tecnica disponibile</option>';
-            TRU.techniques.forEach(function(t){ h+='<option value="'+esc(t.source+'|'+t.technique_id)+'">'+esc(t.name)+' · '+esc(t.activation||'istantanea')+' · '+Number(t.chakra_cost||0)+' chakra</option>'; });
-            h+='</select></div><div class="tru-actions"><button class="tru-btn ghost" id="tru-activate" type="button"'+(TRU.busy||!TRU.techniques.length?' disabled':'')+'>Attiva</button><button class="tru-btn" id="tru-use" type="button"'+(TRU.busy||!TRU.techniques.length?' disabled':'')+'>Usa sul Manichino</button><button class="tru-btn ghost" id="tru-close" type="button"'+(TRU.busy?' disabled':'')+'>Chiudi prova</button></div></section>';
-          }
-          if(rep&&rep.mechanics){
-            h+='<section class="tru-section"><h4>Esito meccanico</h4>'+truMech(rep.mechanics);
-            if(rep.ai_status==='completata'&&rep.ai_text) h+='<div class="tru-ai"><h5>Narrazione di prova</h5><p>'+esc(truPlain(rep.ai_text))+'</p></div>';
-            else if(rep.ai_status==='prenotata') h+='<div class="tru-ai"><h5>Narrazione in elaborazione</h5><p>Il gettone è stato prenotato. Aggiorna per leggere il risultato.</p></div>';
-            else if(rep.ai_status==='fallita') h+='<p class="tru-err">La narrazione IA non è riuscita. L’esito meccanico resta valido e il gettone risulta consumato. Esegui una nuova azione per creare un nuovo referto e riprovare.</p>';
-            h+='<div class="tru-actions"><button class="tru-btn" id="tru-ai" type="button"'+(TRU.busy||used>=limit||rep.ai_status==='completata'||rep.ai_status==='prenotata'||rep.ai_status==='fallita'?' disabled':'')+'>Chiedi narrazione IA</button><button class="tru-btn ghost" id="tru-reload-report" type="button"'+(TRU.busy?' disabled':'')+'>Aggiorna</button></div><div class="tru-reset">'+esc(truResetText(q))+'</div></section>';
-          }
-          host.innerHTML=h; truBind();
-        }
-        function truCall(name,args){ return sb.rpc(name,args||{}).then(function(r){ if(r&&r.error) throw r.error; return r?r.data:null; }); }
-        async function truLoad(){
-          if(!sb||!loggedIn) return;
-          TRU.busy=true; TRU.error=''; truRender();
-          try{ var z=await Promise.all([truCall('test_room_user_state'),truCall('test_room_user_techniques')]); TRU.state=z[0]||{}; TRU.techniques=z[1]||[]; TRU.report=(TRU.state&&TRU.state.last_report)||null; if(TRU.report&&TRU.report.id){TRU.report=await truCall('test_room_user_report',{p_report:TRU.report.id})||TRU.report;} }
-          catch(e){ TRU.error=truErr(e); }
-          TRU.busy=false; truRender();
-        }
-        async function truOpenSession(){ TRU.busy=true;TRU.error='';truRender();try{TRU.state=await truCall('test_room_user_open');TRU.techniques=await truCall('test_room_user_techniques')||[];}catch(e){TRU.error=truErr(e);}TRU.busy=false;truRender(); }
-        async function truAction(kind){
-          var sel=truEl('tru-tech'), raw=sel?sel.value:'', p=raw.split('|'); if(p.length!==2) return;
-          TRU.busy=true;TRU.error='';truRender();
-          try{var d=await truCall('test_room_user_action',{p_source:p[0],p_technique:p[1],p_action:kind,p_target:'manichino'});TRU.report=d?{id:d.report_id,mechanics:d.mechanics,ai_status:'non_richiesta'}:null;if(TRU.state&&d&&d.quota)TRU.state.quota=d.quota;}
-          catch(e){TRU.error=truErr(e);}TRU.busy=false;truRender();
-        }
-        function truIdem(id){var k='tus_tru_ai_'+id,v='';try{v=sessionStorage.getItem(k)||'';if(!v){v=crypto.randomUUID();sessionStorage.setItem(k,v);}}catch(e){v=crypto.randomUUID();}return v;}
-        async function truAI(){
-          var rep=TRU.report||(TRU.state&&TRU.state.last_report); if(!rep||!rep.id||!sb) return;
-          TRU.busy=true;TRU.error='';rep.ai_status='prenotata';truRender();
-          try{var r=await sb.functions.invoke('test_room_ai',{body:{report_id:rep.id,idempotency_key:truIdem(rep.id)}});var d=r&&r.data;if(r&&r.error)throw r.error;if(d&&d.report)TRU.report=d.report;if(TRU.state&&d&&d.quota){TRU.state.quota={used:d.quota.used,remaining:d.quota.remaining,limit:d.quota.limit||5,resets_at:(TRU.state.quota||{}).resets_at};}if(d&&!d.ok&&d.error)TRU.error=(d.error==='quota_ia_esaurita')?'Hai già usato le cinque narrazioni IA di questa giornata.':'La narrazione non è riuscita; l’esito meccanico resta valido.';}
-          catch(e){TRU.error=truErr(e); await truLoad(); return;}TRU.busy=false;truRender();
-        }
-        async function truCloseSession(){TRU.busy=true;TRU.error='';truRender();try{await truCall('test_room_user_close');TRU.state=null;TRU.report=null;await truLoad();return;}catch(e){TRU.error=truErr(e);}TRU.busy=false;truRender();}
-        function truBind(){var b=truEl('tru-open');if(b)b.onclick=truOpenSession;b=truEl('tru-activate');if(b)b.onclick=function(){truAction('attiva');};b=truEl('tru-use');if(b)b.onclick=function(){truAction('usa');};b=truEl('tru-ai');if(b)b.onclick=truAI;b=truEl('tru-close');if(b)b.onclick=truCloseSession;b=truEl('tru-reload-empty');if(b)b.onclick=truLoad;b=truEl('tru-reload-report');if(b)b.onclick=truLoad;}
-        function openTestRoomUser(){if(!loggedIn){toast('Accedi per usare la Test Room');return;}var ov=truEl('truv'),bk=truEl('truv-backdrop');if(ov)ov.hidden=false;if(bk)bk.hidden=false;truLoad();}
-        function closeTestRoomUser(){var ov=truEl('truv'),bk=truEl('truv-backdrop');if(ov)ov.hidden=true;if(bk)bk.hidden=true;}
-        (function(){var x=truEl('truv-x'),bk=truEl('truv-backdrop'),tbu=truEl('test-btn');if(x)x.addEventListener('click',closeTestRoomUser);if(bk)bk.addEventListener('click',closeTestRoomUser);if(tbu)tbu.addEventListener('click',openTestRoomUser);document.addEventListener('keydown',function(e){var ov=truEl('truv');if(e.key==='Escape'&&ov&&!ov.hidden)closeTestRoomUser();});})();
+        (function(){var x=document.getElementById('truv-x'),bk=document.getElementById('truv-backdrop'),tbu=document.getElementById('test-btn');if(x)x.addEventListener('click',closeTestRoomUser);if(bk)bk.addEventListener('click',closeTestRoomUser);if(tbu)tbu.addEventListener('click',openTestRoomUser);document.addEventListener('keydown',function(e){var ov=document.getElementById('truv');if(e.key==='Escape'&&ov&&!ov.hidden)closeTestRoomUser();});})();
 
         /* ===== Tavolo di Aiuto (31/07/2026) =====
            Interroga la Edge Function land_help_ai, che risponde solo con quanto
