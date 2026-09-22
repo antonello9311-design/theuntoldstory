@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="tus-build" content="LAND-INUZUKA-GENIN-COMMON-007" />
+  <meta name="tus-build" content="LAND-INUZUKA-GENIN-COMMON-008" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3202,7 +3202,7 @@ function isPlayerLifecycle(o,c,v){
 }
 function offer(o,c,viewer){
   shape(o,['offer_id','kind','operation','actor_id','label','context_version','scene_version','requires_role','choices','input_fields',...(Object.hasOwn(o,'flow_budget')?['flow_budget']:[]),...(Object.hasOwn(o,'ui_category')?['ui_category']:[]),...(Object.hasOwn(o,'companion_context_required')?['companion_context_required']:[])]);
-  if(Object.hasOwn(o,'companion_context_required'))insist(typeof o.companion_context_required==='boolean'&&(!o.companion_context_required||o.requires_role===true));
+  if(Object.hasOwn(o,'companion_context_required'))insist(typeof o.companion_context_required==='boolean'&&(!o.companion_context_required||o.requires_role===true||o.kind==='control'&&o.operation==='control'));
   if(Object.hasOwn(o,'ui_category'))insist(['innate','technique','basic','other'].includes(o.ui_category)&&(o.ui_category!=='innate'||o.kind==='control'&&o.operation==='control'));
   insist(isId(o.offer_id)&&['action','defense','control','administration'].includes(o.kind)&&name(o.operation)&&nullable(o.actor_id,isId)&&name(o.label)&&o.context_version===c.version&&o.scene_version===c.scene_version&&bool(o.requires_role)&&Array.isArray(o.choices)&&Array.isArray(o.input_fields));
   insist(o.actor_id===null||o.actor_id===viewer.command_actor_id);
@@ -3371,7 +3371,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   let selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='',narrativeContext=null,companionContext=null;
   let rejection=null,refreshRequired=false,lastCommand=null,interactionError=null,polling=null;
   const chosen=()=>envelope?.offers.find(o=>o.offer_id===selectedOfferId);
-  const canConfirmMechanics=()=>!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command&&chosen()?.requires_role===true&&selectionReady(chosen(),selectedOptionIds,inputs,'',false);
+  const canConfirmMechanics=()=>!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command&&(chosen()?.requires_role===true||chosen()?.companion_context_required===true)&&selectionReady(chosen(),selectedOptionIds,inputs,'',false);
   const companionReady=()=>chosen()?.companion_context_required!==true||!!(companionContext&&isId(companionContext.id)&&typeof companionContext.body==='string'&&companionContext.body.trim());
   const canPrepare=()=>!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command&&selectionReady(chosen(),selectedOptionIds,inputs,narrativeText)&&companionReady();
   const snapshot=()=>({validated:envelope!==null,envelope:envelope?structuredClone(envelope):null,busy,pending:pending!==null,optionsReady,error,lastCommand:lastCommand?structuredClone(lastCommand):null,interactionError,rejection:rejection?structuredClone(rejection):null,refreshRequired,selectedOfferId,selectedOptionIds:[...selectedOptionIds],inputs:structuredClone(inputs),narrativeText,companionContext:companionContext?structuredClone(companionContext):null,canPrepare:!!canPrepare(),canConfirmMechanics:!!canConfirmMechanics()});
@@ -3474,7 +3474,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   function setCompanionContext(value){requireCurrent();insist(!busy&&!pending&&(value===null||value&&isId(value.id)&&typeof value.body==='string'),'narrative_unavailable');companionContext=value?{id:value.id,body:value.body}:null;notify();}
   function prepare(){
     editable();insist(canPrepare(),'selection_incomplete');const c=envelope.context,o=chosen(),key=requestKey();insist(isId(key),'request_key_invalid');
-    return {schema_version:'combat-panel-command/1',request_key:key,location_id:locationId,activity_id:c.activity_id,context_version:c.version,offer_id:o.offer_id,selected_option_ids:[...selectedOptionIds].sort(),inputs:structuredClone(inputs).sort((a,b)=>a.input_id.localeCompare(b.input_id)),narrative_text:o.requires_role?narrativeText:'',companion_id:o.companion_context_required?companionContext.id:null,companion_body:o.companion_context_required?companionContext.body:''};
+    return {schema_version:'combat-panel-command/1',request_key:key,location_id:locationId,activity_id:c.activity_id,context_version:c.version,offer_id:o.offer_id,selected_option_ids:[...selectedOptionIds].sort(),inputs:structuredClone(inputs).sort((a,b)=>a.input_id.localeCompare(b.input_id)),narrative_text:(o.requires_role||o.companion_context_required)?narrativeText:'',companion_id:o.companion_context_required?companionContext.id:null,companion_body:o.companion_context_required?companionContext.body:''};
   }
   async function send(){
     requireCurrent();insist(pending&&!busy,'no_pending_command');const ticket=++epoch,key=owner,command=pending;busy=true;error=null;notify();
@@ -4081,7 +4081,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
       input.addEventListener('input',()=>{if(ticket===generation&&setInput)setInput(spec.input_id,spec.value_type==='boolean'?input.checked:input.value);});
     }
     renderMovementReasons(area,envelope,offer,selected);
-    if(offer.requires_role){
+    if(offer.requires_role||offer.companion_context_required===true){
       note(area,'Conferma la scelta, poi scrivi la role nella chat della scena. Il turno parte soltanto con Invia.');
       button(area,'Conferma scelta',handler(ticket,confirmDraft),disabled||model.canConfirmMechanics!==true);
     }else button(area,'Conferma scelta',()=>{
@@ -4159,7 +4159,7 @@ function createController({rpc,invoke,scope,storage,requestKey=()=>crypto.random
  function save(){try{insist(storage&&storeKey(),'storage_unavailable');storage.setItem(storeKey(),JSON.stringify({mode,pending,openPending,aiAttempts,draft}));}catch{throw fault('storage_unavailable');}}
  try{const z=JSON.parse(storage?.getItem(storeKey())||'null');if(obj(z)){mode=z.mode==='common_private_v1'?z.mode:null;pending=obj(z.pending)?z.pending:null;openPending=obj(z.openPending)?z.openPending:null;aiAttempts=obj(z.aiAttempts)?z.aiAttempts:{};draft=validDraft(z.draft)?z.draft:null;if(pendingBinding())preservePendingDraft();}}catch{}
  const resetChoices=()=>{selectedOfferId=null;selectedOptionIds=[];inputs=[];companionContext=null;optionsReady=false;};
- const snapshot=()=>({validated:!!data,envelope:data?.panel?structuredClone(data.panel):null,data:data?structuredClone(data):null,report:report?structuredClone(report):null,reportId:reportId(),quota:q?structuredClone(q):null,mode,profiles:structuredClone(profiles),activeTest:active?structuredClone(active):null,legacyActive,selectedProfile,busy,pending:!!pending,error:error?.message||null,errorCode:error?.code||null,requestKey:pending?.command?.request_key||openPending?.key||error?.key||null,openUncertain:!!openPending,optionsReady,selectedOfferId,selectedOptionIds:[...selectedOptionIds],inputs:structuredClone(inputs),narrativeText,companionContext:companionContext?structuredClone(companionContext):null,rejection:null,refreshRequired:false,canPrepare:!!(current()&&!busy&&!pending&&!openPending&&optionsReady&&canUse(chosen())&&selectionReady(chosen(),selectedOptionIds,inputs,narrativeText)&&(chosen()?.companion_context_required!==true||!!(companionContext&&id(companionContext.id)&&companionContext.body.trim()))),canConfirmMechanics:!!(current()&&!busy&&!pending&&!openPending&&optionsReady&&canUse(chosen())&&chosen()?.requires_role===true&&selectionReady(chosen(),selectedOptionIds,inputs,'',false)),canReadState:!!(current()&&!busy&&recoveryBinding()),canOpen:!!(current()&&!draft&&mode==='common_private_v1'&&!busy&&!pending&&!openPending&&!active&&!legacyActive&&!data&&selectedProfile),canResume:!!(current()&&!busy&&active),canNarrate:!!(current()&&!busy&&report&&q?.remaining>0&&report.narrative?.state==='idle'&&!aiAttempts[report.report.report_id]),canNew:!!(current()&&!busy&&!pending&&!openPending&&data?.test.state==='closed')});
+ const snapshot=()=>({validated:!!data,envelope:data?.panel?structuredClone(data.panel):null,data:data?structuredClone(data):null,report:report?structuredClone(report):null,reportId:reportId(),quota:q?structuredClone(q):null,mode,profiles:structuredClone(profiles),activeTest:active?structuredClone(active):null,legacyActive,selectedProfile,busy,pending:!!pending,error:error?.message||null,errorCode:error?.code||null,requestKey:pending?.command?.request_key||openPending?.key||error?.key||null,openUncertain:!!openPending,optionsReady,selectedOfferId,selectedOptionIds:[...selectedOptionIds],inputs:structuredClone(inputs),narrativeText,companionContext:companionContext?structuredClone(companionContext):null,rejection:null,refreshRequired:false,canPrepare:!!(current()&&!busy&&!pending&&!openPending&&optionsReady&&canUse(chosen())&&selectionReady(chosen(),selectedOptionIds,inputs,narrativeText)&&(chosen()?.companion_context_required!==true||!!(companionContext&&id(companionContext.id)&&companionContext.body.trim()))),canConfirmMechanics:!!(current()&&!busy&&!pending&&!openPending&&optionsReady&&canUse(chosen())&&(chosen()?.requires_role===true||chosen()?.companion_context_required===true)&&selectionReady(chosen(),selectedOptionIds,inputs,'',false)),canReadState:!!(current()&&!busy&&recoveryBinding()),canOpen:!!(current()&&!draft&&mode==='common_private_v1'&&!busy&&!pending&&!openPending&&!active&&!legacyActive&&!data&&selectedProfile),canResume:!!(current()&&!busy&&active),canNarrate:!!(current()&&!busy&&report&&q?.remaining>0&&report.narrative?.state==='idle'&&!aiAttempts[report.report.report_id]),canNew:!!(current()&&!busy&&!pending&&!openPending&&data?.test.state==='closed')});
  const notify=()=>onChange(snapshot());
  function clear(){epoch++;owner=null;busy=false;data=null;report=null;q=null;profiles=[];active=null;pending=null;openPending=null;draft=null;aiAttempts={};narrativeText='';resetChoices();notify();}
  function check(){if(!current()){clear();throw fault('authentication_required');}}
@@ -4198,7 +4198,7 @@ function createController({rpc,invoke,scope,storage,requestKey=()=>crypto.random
  function selectOption(group,x,on){editable();const o=chosen(),g=o?.choices.find(g=>g.group_id===group);insist(g&&g.options.some(p=>p.option_id===x)&&typeof on==='boolean'&&(g.depends_on===null||selectedOptionIds.includes(g.depends_on)),'invalid_command');insist(flowOptionAllowed(o,selectedOptionIds,group,x,on),'flow_budget_exceeded');const next=new Set(selectedOptionIds);if(g.selection_mode==='single')g.options.forEach(p=>next.delete(p.option_id));if(on)next.add(x);else next.delete(x);selectedOptionIds=settleCopyChoices(o,next);notify();}
  function setInput(x,value){editable();const f=chosen()?.input_fields.find(f=>f.input_id===x);insist(f&&typeof value===(f.value_type==='text'?'string':'boolean'),'invalid_command');inputs=inputs.filter(p=>p.input_id!==x);inputs.push({input_id:x,value});notify();}
  function setCompanionContext(value){editable();insist(value===null||(obj(value)&&id(value.id)&&typeof value.body==='string'&&value.body.trim()),'invalid_command');companionContext=value?{id:value.id,body:value.body.trim()}:null;notify();} function setNarrative(value){editable();insist(typeof value==='string');narrativeText=value;draft={test_context_id:data.test.id,command_actor_id:data.selected_actor_id,context_version:data.panel.context.version,text:value};try{save();}catch(e){error=e;notify();throw e;}notify();}
- function prepare(){check();insist(snapshot().canPrepare,'invalid_command');const c=data.panel.context;return {schema_version:'user-test-command/1',test_context_id:data.test.id,command_actor_id:data.selected_actor_id,command:{schema_version:'combat-panel-command/1',request_key:requestKey(),location_id:c.location_id,activity_id:c.activity_id,context_version:c.version,offer_id:selectedOfferId,selected_option_ids:[...selectedOptionIds].sort(),inputs:structuredClone(inputs).sort((a,b)=>a.input_id.localeCompare(b.input_id)),narrative_text:chosen().requires_role?narrativeText:'',companion_id:chosen().companion_context_required?companionContext.id:null,companion_body:chosen().companion_context_required?companionContext.body:''}};}
+ function prepare(){check();insist(snapshot().canPrepare,'invalid_command');const c=data.panel.context;return {schema_version:'user-test-command/1',test_context_id:data.test.id,command_actor_id:data.selected_actor_id,command:{schema_version:'combat-panel-command/1',request_key:requestKey(),location_id:c.location_id,activity_id:c.activity_id,context_version:c.version,offer_id:selectedOfferId,selected_option_ids:[...selectedOptionIds].sort(),inputs:structuredClone(inputs).sort((a,b)=>a.input_id.localeCompare(b.input_id)),narrative_text:(chosen().requires_role||chosen().companion_context_required)?narrativeText:'',companion_id:chosen().companion_context_required?companionContext.id:null,companion_body:chosen().companion_context_required?companionContext.body:''}};}
  async function send(){check();const binding=pendingBinding();insist(binding&&(!data||(binding.test===data.test.id&&binding.actor===data.selected_actor_id)),'invalid_command');const p=structuredClone(pending);const ok=await call('test_room_user_commit_v2',{p_command:p},d=>{insist(d.panel?.receipt?.request_key===p.command.request_key);accept(d,true,p.test_context_id,p.command_actor_id);pending=null;confirmDraft(p);save();},p.command.request_key);if(!ok&&error?.definitive){preservePendingDraft(p);pending=null;save();resetChoices();notify();}return ok;}
  async function submit(){const p=prepare();insist(id(p.command.request_key));pending=p;try{save();}catch(e){pending=null;error=e;notify();return false;}return send();}
  async function newTest(){check();insist(snapshot().canNew,'context_closed');draft=null;narrativeText='';save();data=null;report=null;selectedProfile=null;resetChoices();await loadProfiles();}
@@ -4521,7 +4521,7 @@ function attachCombatPanel(host){
   }
   function draftSignature(m){
     const e=m?.envelope,o=e?.offers?.find(o=>o.offer_id===m.selectedOfferId);
-    if(!m?.optionsReady||m.refreshRequired||e?.status!=='ready'||!e.viewer.can_command||!o?.requires_role||
+    if(!m?.optionsReady||m.refreshRequired||e?.status!=='ready'||!e.viewer.can_command||!(o?.requires_role||o?.companion_context_required===true)||
       !module5.selectionReady(o,m.selectedOptionIds,m.inputs,'',false))return null;
     return JSON.stringify([e.context.activity_id,e.context.version,e.context.scene_version,
       e.viewer.command_actor_id,o.offer_id,[...m.selectedOptionIds].sort(),m.inputs]);
@@ -4595,7 +4595,7 @@ function attachCombatPanel(host){
     if(m.pending||m.busy){host.notice('Invio in corso o incerto: verifica la stessa richiesta dal pannello.');return true;}
     if(!m.envelope.viewer.can_command)return false;
     const offer=m.envelope.offers.find(o=>o.offer_id===m.selectedOfferId);
-    if(!offer?.requires_role){host.notice('Scegli prima l’azione da collegare alla role nel pannello.');return true;}
+    if(!(offer?.requires_role||offer?.companion_context_required===true)){host.notice('Scegli prima l’azione da collegare alla role nel pannello.');return true;}
     if(!confirmedDraft||draftSignature(m)!==confirmedDraft.signature){host.notice('Conferma la scelta meccanica nel pannello prima di inviare la role.');return true;}
     const needsCompanion=offer.companion_context_required===true;
     if(needsCompanion&&(!companion||companion.kind!=='cane_ninja'||!isId(companion.id)||!String(companionText||'').trim())){host.notice('Completa anche l’azione del ninken prima di inviare.');return true;}
