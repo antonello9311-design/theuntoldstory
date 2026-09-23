@@ -405,7 +405,7 @@ global.TUSArenaEditor=Object.freeze({createArenaEditor});
 (()=>{const editor=(()=>{
 // MAP-FIGURES/1: editor cosmetico unico; nessun valore o comando di gioco.
 const UUID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
-const KINDS=new Set(['character','png_template','ai_agent']);
+const KINDS=new Set(['character','png_template','ai_agent','nb_template']);
 const PATH=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\/map-figures\/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\.(?:png|webp|jpg)$/i;
 const MAX_UPLOAD=3*1024*1024,MAX_INPUT=16*1024*1024;
 function validRecord(value,subject){
@@ -766,6 +766,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
             <button type="button" data-go="ninja-editoriale">Ninja Book narrativo</button>
             <button type="button" data-go="mission-rapid" id="mission-rapid-nav" hidden>Nuova missione rapida</button>
             <button type="button" data-go="media-scorta" id="scorta-media-nav" hidden>Media Scorta</button>
+            <button type="button" data-go="media-academy" id="academy-media-nav" hidden>Media Accademia</button>
             <button type="button" data-go="aiuto">Aiuto</button>
             <button type="button" data-go="compagni">Compagni</button>
             <button type="button" data-go="notizie">Banda notizie</button>
@@ -1122,6 +1123,18 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
             </div>
           </section>
           <!-- SCORTA-MEDIA-ADMIN HTML FINE -->
+
+          <section class="adm-page" data-page="media-academy" id="academy-media-page" hidden aria-labelledby="academy-media-title">
+            <div class="grp-title" id="academy-media-title" style="margin-top:0">Media missioni · Accademia</div>
+            <p class="mgr-note">Carica i quattro ritratti PNG approvati. Il server verifica i byte e li collega al Ninja Book. Per ciascun template, «Segnaposto mappa» salva separatamente la figura trasparente; le mappe di missione restano asset distinti.</p>
+            <div class="nbe-card"><div class="nbe-list">
+              <div class="nbe-repeat-row" data-academy-media="academy_kenta"><strong>Kenta Arai · ritratto</strong><input type="file" accept="image/png" aria-label="PNG ritratto Kenta"><button type="button" class="btn" data-academy-upload>Carica / completa</button><button type="button" class="btn" data-academy-marker>Segnaposto mappa</button><span class="nbe-status" role="status" aria-live="polite"></span></div>
+              <div class="nbe-repeat-row" data-academy-media="academy_nami"><strong>Nami Kasei · ritratto</strong><input type="file" accept="image/png" aria-label="PNG ritratto Nami"><button type="button" class="btn" data-academy-upload>Carica / completa</button><button type="button" class="btn" data-academy-marker>Segnaposto mappa</button><span class="nbe-status" role="status" aria-live="polite"></span></div>
+              <div class="nbe-repeat-row" data-academy-media="academy_otome"><strong>Otome Fujita · ritratto</strong><input type="file" accept="image/png" aria-label="PNG ritratto Otome"><button type="button" class="btn" data-academy-upload>Carica / completa</button><button type="button" class="btn" data-academy-marker>Segnaposto mappa</button><span class="nbe-status" role="status" aria-live="polite"></span></div>
+              <div class="nbe-repeat-row" data-academy-media="academy_tetsuna"><strong>Tetsuna Hōji · ritratto</strong><input type="file" accept="image/png" aria-label="PNG ritratto Tetsuna"><button type="button" class="btn" data-academy-upload>Carica / completa</button><button type="button" class="btn" data-academy-marker>Segnaposto mappa</button><span class="nbe-status" role="status" aria-live="polite"></span></div>
+            </div></div>
+          </section>
+          <!-- ACADEMY-MEDIA-ADMIN HTML FINE -->
 
           <section class="adm-page" data-page="pilot">
           <div class="grp-title" style="margin-top:0">Pilot scontri — Konoha - Mura</div>
@@ -4319,7 +4332,8 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       var pr=await sb.from('profiles').select('role').eq('id',me.id).maybeSingle();
       var role=pr.data?pr.data.role:'player';
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
-      nbeRole=role;bindScortaMedia();await bindMissionRapid();
+      nbeRole=role;bindScortaMedia();
+      try{var academyMedia=await import('./ACADEMY_MEDIA_ADMIN.mjs?v=20260923-3');academyMedia.bindAcademyMediaPanel({client:sb,role:role,principalId:me.id});}catch(e){console.warn('[academy-media] modulo non disponibile',e);}await bindMissionRapid();
       if(window.__TRAINING138A_MOCK__){show('st-mgr');admGo('allenamenti');bindTrainings();await loadTrainings();return;}
       if(window.__NB027B_MOCK__){show('st-mgr');admGo('ninja-editoriale');nbeWire();return;}
       show('st-mgr');
