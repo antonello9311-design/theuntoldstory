@@ -30,10 +30,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  async function board(mission,title){
   if(isStaff()&&typeof creationBoard==='function'&&await creationBoard(mission,title))return;
-  const user=identity(),d=dialog('Missione IA Â· '+title),status=el('p','Caricamentoâ€¦',{role:'status'}),area=el('div',null);d.append(status,area);
+  const user=identity(),d=dialog('Missione IA · '+title),status=el('p','Caricamento…',{role:'status'}),area=el('div',null);d.append(status,area);
   async function load(){const response=await rpc('mission_generic_board_state_v1',{p_mission:mission},user);if(!d.isConnected)return;
    const state=response.missions.find(x=>x.mission_id===mission);area.replaceChildren();
-   if(!state){status.textContent='La regia IA non Ã¨ configurata per questa missione.';}
+   if(!state){status.textContent='La regia IA non è configurata per questa missione.';}
    else{status.textContent=(state.master_session_id?'Missione avviata.':state.available?'Iscrizioni aperte.':'Avvio non disponibile.')+' Partecipanti: '+state.participants+' (da '+state.team_min+' a '+state.team_max+').';
     async function act(fn){area.querySelectorAll('button').forEach(b=>b.disabled=true);try{await fn();await load();refresh();}catch(e){status.textContent='Operazione non confermata: aggiorna prima di ripetere. '+e.message;}}
     if(state.can_join)area.append(button('Partecipa',()=>act(()=>rpc('mission_generic_board_join_v1',{p_mission:mission,p_request:id()},user))));
@@ -48,7 +48,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     if(loc?.is_test){const details=el('details',null);details.append(el('summary','Prova protetta dello staff in questa stanza'));const picks=new Set(),row=el('div',null);
      details.append(row);area.append(details);const start=button('Avvia prova protetta',async e=>{if(!picks.size)return;e.currentTarget.disabled=true;try{
        await rpc('mission_generic_staff_test_start_v1',{p_source_mission:mission,p_location:loc.id,p_roster:[...picks],p_request:id()},user);
-       status.textContent='Prova creata. La regia prepara lâ€™apertura nella chat.';refresh();d.close();
+       status.textContent='Prova creata. La regia prepara l’apertura nella chat.';refresh();d.close();
       }catch(err){status.textContent='Avvio non confermato: aggiorna per verificare. '+err.message;}});start.disabled=true;details.append(start);
      const roster=await presentCharacters();if(!d.isConnected||currentLocation()?.id!==loc.id)return;
      for(const c of roster){const label=el('label',c.name,{class:'mg-inline-check'}),check=el('input',null,{type:'checkbox'});check.addEventListener('change',()=>{if(check.checked)picks.add(c.id);else picks.delete(c.id);start.disabled=picks.size<1||picks.size>4;});label.prepend(check);row.append(label);}
@@ -59,11 +59,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   try{await load();}catch(e){status.textContent=e.message;}
  }
  async function sources(){
-  if(!isStaff())return;const user=identity(),d=dialog('Archivio missioni'),status=el('p','Caricamentoâ€¦',{role:'status'});d.append(status);
+  if(!isStaff())return;const user=identity(),d=dialog('Archivio missioni'),status=el('p','Caricamento…',{role:'status'});d.append(status);
   try{const r=await client.from('missions').select('id,title,status').order('title');if(!valid(user)||!d.isConnected)return;if(r.error)throw Error(r.error.message);
    const items=r.data||[];if(!items.length){status.textContent='Nessuna missione disponibile.';return;}let chosen=items[0].id;
-   status.textContent='Puoi configurare o provare anche una missione giÃ  conclusa. La prova protetta conserva la missione originale e il suo risultato.';
-   d.append(field('Missione sorgente',select(items.map(m=>({value:m.id,label:m.title+' Â· '+m.status})),chosen,v=>chosen=v)),
+   status.textContent='Puoi configurare o provare anche una missione già conclusa. La prova protetta conserva la missione originale e il suo risultato.';
+   d.append(field('Missione sorgente',select(items.map(m=>({value:m.id,label:m.title+' · '+m.status})),chosen,v=>chosen=v)),
     button('Configura missione',()=>{const m=items.find(x=>x.id===chosen);editor(m.id,m.title);}),
     button('Avvio o prova protetta',()=>{const m=items.find(x=>x.id===chosen);board(m.id,m.title);}));
   }catch(e){status.textContent=e.message;}
@@ -118,13 +118,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(state.review_required===true)return 'La scena richiede una valutazione dello staff prima di continuare.';
   const choice=choiceRequests.get(choiceKey(state));
   if(choice?.inFlight)return 'Invio della scelta in corso. La lettura della stanza continua.';
-  if(choice?.phase==='uncertain')return 'La scelta non Ã¨ ancora confermata. Verifica la stessa scelta prima di inviarne unâ€™altra.';
-  if(choice?.phase==='confirmed')return 'Scelta confermata. Aggiornamento della fase in corsoâ€¦';
-  if(choice?.phase==='rejected')return 'La scelta Ã¨ stata respinta. Aggiorna lo stato prima di scegliere nuovamente.';
+  if(choice?.phase==='uncertain')return 'La scelta non è ancora confermata. Verifica la stessa scelta prima di inviarne un’altra.';
+  if(choice?.phase==='confirmed')return 'Scelta confermata. Aggiornamento della fase in corso…';
+  if(choice?.phase==='rejected')return 'La scelta è stata respinta. Aggiorna lo stato prima di scegliere nuovamente.';
   const parsed=processingFor(state);if(!parsed.valid)return 'Stato di elaborazione non disponibile. Aggiorna; nessun nuovo invio automatico.';
    const p=parsed.value,a=currentAttempt(state);
    if(p?.state==='failed')return 'Il Fato richiede una verifica dello staff. Nessun nuovo tentativo automatico.';
-   if(p?.state==='uncertain')return 'Lâ€™esito del Fato non Ã¨ ancora confermato. Lo stato si aggiorna senza ripetere lâ€™invio.';
+   if(p?.state==='uncertain')return 'L’esito del Fato non è ancora confermato. Lo stato si aggiorna senza ripetere l’invio.';
    const flow=academyFlow(state);
    if(flow==='waiting_roles')return 'In attesa delle role';
    if(flow==='evaluating')return 'Il Fato sta valutando la scena';
@@ -136,7 +136,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(a?.outcome==='failed')return 'Il Fato richiede una verifica dello staff. Nessun nuovo tentativo automatico.';
   if(a?.inFlight||a?.outcome==='waiting')return 'Il Fato sta preparando la scena. Puoi attendere qui: lo stato si aggiorna automaticamente.';
   if(p?.state==='completed')return p.message_id?'Il Fato ha pubblicato il racconto nella chat.':'Elaborazione completata. Lo stato della missione si aggiorna automaticamente.';
-  return state.state==='preparazione'?'Il Fato sta preparando lâ€™apertura della missione.':state.can_tick?'Missione in corso.':'La missione Ã¨ in pausa o conclusa.';
+  return state.state==='preparazione'?'Il Fato sta preparando l’apertura della missione.':state.can_tick?'Missione in corso.':'La missione è in pausa o conclusa.';
  }
   function choicesAllowed(state){
    if(academyFlow(state)!==null)return false;
@@ -149,7 +149,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!host||!state)return;style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
   if(!title||!status||!actions){host.replaceChildren();host.className='mg-room';title=el('strong','',{'data-mg-room-title':''});status=el('p','',{'data-mg-room-status':'',role:'status','aria-live':'polite','aria-atomic':'true'});actions=el('div',null,{'data-mg-room-actions':''});host.append(title,status,actions,button('Aggiorna regia',()=>updateRoom(host,{manual:true})));roomSignature='';}
-  host.hidden=false;const heading='Missione Â· '+(state.objective||state.step_key||'');if(title.textContent!==heading)title.textContent=heading;
+  host.hidden=false;const heading='Missione · '+(state.objective||state.step_key||'');if(title.textContent!==heading)title.textContent=heading;
    const flow=academyFlow(state),choices=flow===null?(Array.isArray(state.choices)?state.choices:state.choices?.choices||[]):[];
    const sig=JSON.stringify([state.session_id,state.step_key,state.objective,flow,state.flow_publication_id,choices,state.choice_context?.master_control_version,state.choice_context?.run_control_version]);
   if(sig!==roomSignature){roomSignature=sig;actions.replaceChildren();
