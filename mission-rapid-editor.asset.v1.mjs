@@ -1,4 +1,4 @@
-export const VERSION = 'mission-rapid-editor/2026-09-20.two-maps.4';
+export const VERSION = 'mission-rapid-editor/2026-09-23.context-only.staff-reservation.1';
 export const DRAFT_SCHEMA = 'mission-rapid-draft/1';
 export const PREVIEW_SCHEMA = 'mission-rapid-preview/2';
 export const PUBLISH_SCHEMA = 'mission-rapid-publish-result/2';
@@ -10,6 +10,7 @@ const slug = value => clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g, 
 const words = value => new Set(slug(value).split(/\s+/).filter(x => x.length > 1));
 const makeUuid = () => crypto.randomUUID();
 const GRADE_RANKS = Object.freeze({D: ['deshi','academy'], C: ['genin'], B: ['chunin'], A: ['jonin'], S: ['kage','sannin']});
+export const hasCombatPhases = compiled => Array.isArray(compiled?.phases) && compiled.phases.some(phase => phase?.kind === 'combat');
 
 export function createInitialState(source = {}) {
   return {
@@ -157,7 +158,9 @@ export function localBlockingErrors(state) {
     }
   }
   const map = state.configuration.combat_map || {};
-  if (!['default10', 'specific'].includes(map.mode)) errors.push({code: 'MAP_INVALID'});
+  if (!['none', 'default10', 'specific'].includes(map.mode)) errors.push({code: 'MAP_INVALID'});
+  if (map.mode === 'none' && (hasCombatPhases(state.compiled) || !UUID.test(context.media_id || ''))) errors.push({code: 'CONTEXT_ONLY_INVALID'});
+  if (map.mode !== 'none' && state.compiled && !hasCombatPhases(state.compiled)) errors.push({code: 'CONTEXT_ONLY_REQUIRED'});
   if (map.mode === 'specific' && (!clean(map.template_key) || !Number.isInteger(Number(map.template_version)) || Number(map.template_version) < 1 || map.spec?.template_key !== map.template_key)) errors.push({code: 'MAP_SPEC_REQUIRED'});
   const budget = state.configuration.budget;
   if (!budget || !Number.isInteger(Number(budget.max_calls)) || Number(budget.max_calls) < 1 || !(Number(budget.max_cost_usd) > 0) || !Number.isInteger(Number(budget.max_input_tokens)) || !Number.isInteger(Number(budget.max_output_tokens))) errors.push({code: 'BUDGET_REQUIRED'});
@@ -172,7 +175,10 @@ export const canPublish = state => Boolean(
 );
 
 export const isConfirmedPublishResult = result => Boolean(
-  result?.schema_version === PUBLISH_SCHEMA && result.state === 'open' && UUID.test(result.mission_id || '')
+  result?.schema_version === PUBLISH_SCHEMA && UUID.test(result.mission_id || '') && (
+    result.state === 'open' ||
+    (result.state === 'reserved' && result.reservation_scope === 'academy_staff' && result.board?.state === 'staff_reserved')
+  )
 );
 
 export function applyCompiled(state, result, catalog = state.catalog) {
@@ -182,7 +188,7 @@ export function applyCompiled(state, result, catalog = state.catalog) {
   state.draftId = result.draft_id; state.controlVersion = result.control_version; state.compiled = copy(result.compiled);
   if (result.source) state.source = copy(result.source);
   state.configuration.actor_bindings = result.compiled.actors.map(actor => ({actor_key: actor.actor_key, base_bundle_id: proposeApprovedBundle(actor, catalog?.bundles || [])?.bundle_id || '', media_id: '', team: actor.team, approved: false}));
-  state.configuration.combat_map.mode = result.compiled.map_request?.mode === 'specific' ? 'specific' : 'default10';
+  state.configuration.combat_map.mode = hasCombatPhases(result.compiled) ? (result.compiled.map_request?.mode === 'specific' ? 'specific' : 'default10') : 'none';
   invalidatePreview(state); return state;
 }
 
@@ -327,7 +333,10 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
     try {
       const result = await rpc('mission_rapid_publish_v1', {p_draft: state.draftId, p_expected_version: state.controlVersion, p_preview_seal: state.previewSeal, p_request: state.lastPublishRequest});
       if (!isConfirmedPublishResult(result)) throw Error('Pubblicazione non confermata.');
-      state.published = result; state.uncertainPublish = false; state.message = 'Missione pubblicata e aperta.'; notice('Missione pubblicata'); onPublished(copy(result));
+      state.published = result; state.uncertainPublish = false;
+      const reserved = result.state === 'reserved';
+      state.message = reserved ? 'Missione creata e riservata alla prova Staff. Le iscrizioni non sono aperte.' : 'Missione pubblicata e aperta.';
+      notice(reserved ? 'Missione riservata alla Staff' : 'Missione pubblicata'); onPublished(copy(result));
     } catch (error) {
       if (error.code && (/^(22|23)/.test(error.code) || ['40001', '42501', '55000'].includes(error.code))) state.lastPublishRequest = null;
       else state.uncertainPublish = true;
@@ -378,8 +387,9 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
     context.append(field('Testo alternativo', input(state.configuration.context_media.label, v => edit(() => state.configuration.context_media.label = v))), field('Nota di contesto', input(state.configuration.context_media.description, v => edit(() => state.configuration.context_media.description = v), {rows: '3'})), el('p', state.contextUpload ? `${state.contextUpload.file_name} · attestata` : state.contextFile ? `${state.contextFile.name} · da attestare` : 'Nessuna immagine narrativa collegata.', {role:'status'}));
     if (state.contextFile && !state.contextUpload) context.append(button('Attesta con questo collegamento', () => attestContextFile().catch(e => setMessage(e.message)), state.busy));
     root.append(context);
-    const map = section('Arena di combattimento'); const mode = el('select'); for (const x of [['default10', 'Default 10×10'], ['specific', 'Immagine specifica']]) mode.append(el('option', x[1], {value: x[0]})); mode.value = state.configuration.combat_map.mode; mode.disabled = true; map.append(field('Tipo · fissato dalla compilazione', mode));
+    const map = section('Arena di combattimento'); const mode = el('select'); for (const x of [['none', 'Nessuna · solo contesto'], ['default10', 'Default 10×10'], ['specific', 'Immagine specifica']]) mode.append(el('option', x[1], {value: x[0]})); mode.value = state.configuration.combat_map.mode; mode.disabled = true; map.append(field('Tipo · fissato dalla compilazione', mode));
     if (state.configuration.combat_map.mode === 'specific') map.append(button(state.configuration.combat_map.template_key ? 'Cambia arena configurata' : 'Scegli immagine e configura arena', () => selectSpecificMap().catch(e => setMessage(e.message)), state.busy), el('p', state.configuration.combat_map.template_key ? `${state.configuration.combat_map.template_key} · versione ${state.configuration.combat_map.template_version}` : 'Nessuna arena specifica collegata.'), field('Nome', input(state.configuration.combat_map.name, v => edit(() => state.configuration.combat_map.name = v))), field('Dimensioni e oggetti importanti', input(state.configuration.combat_map.description, v => edit(() => state.configuration.combat_map.description = v), {rows: '3'})));
+    else if (state.configuration.combat_map.mode === 'none') map.append(el('p', 'Missione narrativa senza fasi di combattimento: viene mostrata soltanto l’immagine di contesto attestata.'));
     else map.append(el('p', 'Il server userà la mappa 10×10 e calcolerà capienza e schieramento per ogni fase di combattimento.'));
     root.append(map);
     const rules = section('Condizioni terminali'), ruleTypes=['victory','defeat','surrender_after_exchanges','escape','protect_subject','reach_position','survive_rounds'];
@@ -408,7 +418,7 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
   function renderPreview(root) {
     if (!state.preview) return; const p = section('Anteprima obbligatoria');
     if (state.preview.errors?.length) renderErrors(p, state.preview.errors);
-    else { p.append(el('h4', 'Incipit'), el('p', state.preview.incipit || ''), el('h4', 'Sequenza fasi')); for (const phase of state.preview.phases || []) p.append(el('p', `${phase.step_key} · ${phase.public_objective || ''}`)); p.append(el('h4', 'Schede PNG'), el('pre', JSON.stringify(state.preview.actors || [], null, 2)), el('h4', 'Immagini PNG'), el('pre', JSON.stringify(state.preview.images || [], null, 2)), el('h4', 'Contesto narrativo')); renderMediaPreview(p, state.preview.context_media?.asset || state.preview.context_media, state.preview.context_media?.label || 'Contesto narrativo'); p.append(el('pre', JSON.stringify(state.preview.context_media || null, null, 2)), el('h4', 'Arena, capienza e partecipanti')); renderArenaPreview(p, state.preview.combat_map); p.append(el('pre', JSON.stringify(state.preview.combat_map || {}, null, 2)), el('h4', 'Condizioni terminali'), el('pre', JSON.stringify(state.preview.terminal_rules || [], null, 2)), el('h4', 'Budget Narratore'), el('pre', JSON.stringify(state.preview.budget || {}, null, 2))); }
+    else { p.append(el('h4', 'Incipit'), el('p', state.preview.incipit || ''), el('h4', 'Sequenza fasi')); for (const phase of state.preview.phases || []) p.append(el('p', `${phase.step_key} · ${phase.public_objective || ''}`)); p.append(el('h4', 'Schede PNG'), el('pre', JSON.stringify(state.preview.actors || [], null, 2)), el('h4', 'Immagini PNG'), el('pre', JSON.stringify(state.preview.images || [], null, 2)), el('h4', 'Contesto narrativo')); renderMediaPreview(p, state.preview.context_media?.asset || state.preview.context_media, state.preview.context_media?.label || 'Contesto narrativo'); p.append(el('pre', JSON.stringify(state.preview.context_media || null, null, 2))); if (state.preview.combat_map && state.preview.combat_map !== null) { p.append(el('h4', 'Arena, capienza e partecipanti')); renderArenaPreview(p, state.preview.combat_map); p.append(el('pre', JSON.stringify(state.preview.combat_map, null, 2))); } else p.append(el('p', 'Nessuna arena: missione con sola mappa contestuale.')); p.append(el('h4', 'Condizioni terminali'), el('pre', JSON.stringify(state.preview.terminal_rules || [], null, 2)), el('h4', 'Budget Narratore'), el('pre', JSON.stringify(state.preview.budget || {}, null, 2))); }
     root.append(p);
   }
   function render() {
@@ -419,7 +429,7 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
     const earlyContext = el('input', null, {type:'file', accept:'image/png,image/jpeg,image/webp'}); earlyContext.disabled = state.busy; earlyContext.addEventListener('change', () => selectContextFile(earlyContext.files?.[0] || null).catch(e => setMessage(e.message)));
     source.append(field('Trama', input(state.source.plot, v => edit(() => { state.source.plot = v; state.compileRequest = null; state.compileDispatched = false; }), {rows: '8'})), field('Indicazioni sulle fasi · una per riga', input(state.source.phase_hints.join('\n'), v => edit(() => { state.source.phase_hints = v.split('\n').map(clean).filter(Boolean); state.compileRequest = null; state.compileDispatched = false; }), {rows: '4'})), field('Immagine di contesto narrativo · facoltativa', earlyContext), field('Userò un’immagine specifica per l’arena', specificMap), button(state.compileRequest ? 'Riprendi compilazione' : 'Compila bozza', compile, state.busy)); host.append(source);
     renderCompiled(host); renderPreview(host);
-    if (state.compiled) { const actions = section('Controllo finale'); actions.append(button('Salva e genera anteprima', saveAndPreview, state.busy), button(state.uncertainPublish ? 'Verifica stessa pubblicazione' : 'Pubblica e apri missione', publish, !canPublish(state))); host.append(actions); }
+    if (state.compiled) { const actions = section('Controllo finale'); actions.append(button('Salva e genera anteprima', saveAndPreview, state.busy), button(state.uncertainPublish ? 'Verifica stessa pubblicazione' : 'Pubblica missione', publish, !canPublish(state))); host.append(actions); }
   }
   async function mount(target, seed = {}) {
     if (!target?.isConnected) throw Error('Contenitore editor non disponibile.'); if (!allowed()) throw Error('Accesso riservato allo Staff.');
