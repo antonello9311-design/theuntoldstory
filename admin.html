@@ -4263,7 +4263,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       var nav=$('mission-rapid-nav'),page=$('mission-rapid-page'),host=$('mission-rapid-host'),admin=nbeRole==='admin';if(!nav||!page||!host)return;nav.hidden=!admin;page.hidden=!admin;if(!admin||missionRapidBound)return;
       missionRapidBound=true;
       try{
-        var modules=await Promise.all([import('./mission-rapid-editor.asset.v1.mjs?v=20260923-context-only-staff-reservation-1'),import('./MAPPE_UI_PICKER.asset.v3.mjs?v=20260920-preview-fallback-1')]);
+        var modules=await Promise.all([import('./mission-rapid-editor.asset.v1.mjs?v=20260923-context-only-staff-reservation-scope-guard-1'),import('./MAPPE_UI_PICKER.asset.v3.mjs?v=20260920-preview-fallback-1')]);
         missionRapidPicker=modules[1].createMissionMapPicker({client:sb,identity:function(){return me&&me.id;},isStaff:function(){return nbeRole==='admin';}});
         var editor=modules[0].createMissionRapidEditor({client:sb,identity:function(){return me&&me.id;},isStaff:function(){return nbeRole==='admin';},uploadMedia:missionRapidUpload,uploadContextMedia:missionRapidContextUpload,chooseMap:function(ctx){var m=ctx.compiled?.mission||{},counts=(ctx.compiled?.phases||[]).filter(function(p){return p.kind==='combat';}).map(function(p){return Array.isArray(p.actor_keys)?p.actor_keys.length:0;}),roster={pg_count:Number(m.team_max||1),png_count:Math.max(0,...counts)};return missionRapidPicker.pick(ctx.current,'Missione rapida',roster);},notice:function(text){toast(text);},onPublished:function(){loadBoards();}});
         await editor.mount(host);

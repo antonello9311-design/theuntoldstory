@@ -1,4 +1,4 @@
-export const VERSION = 'mission-rapid-editor/2026-09-23.context-only.staff-reservation.1';
+export const VERSION = 'mission-rapid-editor/2026-09-23.context-only.staff-reservation.scope-guard.1';
 export const DRAFT_SCHEMA = 'mission-rapid-draft/1';
 export const PREVIEW_SCHEMA = 'mission-rapid-preview/2';
 export const PUBLISH_SCHEMA = 'mission-rapid-publish-result/2';
@@ -11,6 +11,8 @@ const words = value => new Set(slug(value).split(/\s+/).filter(x => x.length > 1
 const makeUuid = () => crypto.randomUUID();
 const GRADE_RANKS = Object.freeze({D: ['deshi','academy'], C: ['genin'], B: ['chunin'], A: ['jonin'], S: ['kage','sannin']});
 export const hasCombatPhases = compiled => Array.isArray(compiled?.phases) && compiled.phases.some(phase => phase?.kind === 'combat');
+export const actorNeedsCombat = (compiled, actorKey) => Array.isArray(compiled?.phases) && compiled.phases.some(phase => phase?.kind === 'combat' && Array.isArray(phase.actor_keys) && phase.actor_keys.includes(actorKey));
+export const bundleAllowsCombat = bundle => Array.isArray(bundle?.mechanics?.document?.consumer_scopes) && bundle.mechanics.document.consumer_scopes.includes('combat_v2');
 
 export function createInitialState(source = {}) {
   return {
@@ -83,11 +85,11 @@ export function compatibleActorUploads(uploads = [], bindings = [], actorKey = '
   });
 }
 
-export function proposeApprovedBundle(actor, bundles = []) {
+export function proposeApprovedBundle(actor, bundles = [], combatRequired = false) {
   const request = actor?.mechanical_request || {};
   const actorTokens = words([actor?.role, actor?.identity, actor?.personality, actor?.behavior, request.combat_role, ...(request.archetype_tags || [])].join(' '));
   const admittedRanks = GRADE_RANKS[request.desired_grade] || [];
-  const scored = bundles.filter(bundle => UUID.test(bundle?.bundle_id || '') && bundle?.mechanical_profile && Array.isArray(bundle.mechanical_profile.abilities)).map(bundle => {
+  const scored = bundles.filter(bundle => UUID.test(bundle?.bundle_id || '') && bundle?.mechanical_profile && Array.isArray(bundle.mechanical_profile.abilities) && (!combatRequired || bundleAllowsCombat(bundle))).map(bundle => {
     const profile = bundle.mechanical_profile;
     const searchable = words([bundle.display_name, profile.rank, profile.archetype, JSON.stringify(bundle.mechanics?.document?.skeleton || {})].join(' '));
     const overlap = [...actorTokens].filter(token => searchable.has(token)).length;
@@ -126,6 +128,8 @@ export function localBlockingErrors(state) {
       if (!binding) errors.push({code: 'ACTOR_BINDING_MISSING', actor_key: key});
       else {
         if (!UUID.test(binding.base_bundle_id || '')) errors.push({code: 'BUNDLE_REQUIRED', actor_key: key});
+        const selectedBundle = (state.catalog?.bundles || []).find(x => x.bundle_id === binding.base_bundle_id);
+        if (selectedBundle && actorNeedsCombat(state.compiled, key) && !bundleAllowsCombat(selectedBundle)) errors.push({code: 'BUNDLE_COMBAT_SCOPE', actor_key: key});
         if (!UUID.test(binding.media_id || '')) errors.push({code: 'MEDIA_MISSING', actor_key: key});
         if (!['alleati', 'avversari', 'civili'].includes(binding.team)) errors.push({code: 'TEAM_INVALID', actor_key: key});
         if (binding.approved !== true) errors.push({code: 'PNG_UNAPPROVED', actor_key: key});
@@ -187,7 +191,7 @@ export function applyCompiled(state, result, catalog = state.catalog) {
   if (!result.compiled || !Array.isArray(result.compiled.actors) || !Array.isArray(result.compiled.phases)) throw Error('Documento compilato incompleto.');
   state.draftId = result.draft_id; state.controlVersion = result.control_version; state.compiled = copy(result.compiled);
   if (result.source) state.source = copy(result.source);
-  state.configuration.actor_bindings = result.compiled.actors.map(actor => ({actor_key: actor.actor_key, base_bundle_id: proposeApprovedBundle(actor, catalog?.bundles || [])?.bundle_id || '', media_id: '', team: actor.team, approved: false}));
+  state.configuration.actor_bindings = result.compiled.actors.map(actor => ({actor_key: actor.actor_key, base_bundle_id: proposeApprovedBundle(actor, catalog?.bundles || [], actorNeedsCombat(result.compiled, actor.actor_key))?.bundle_id || '', media_id: '', team: actor.team, approved: false}));
   state.configuration.combat_map.mode = hasCombatPhases(result.compiled) ? (result.compiled.map_request?.mode === 'specific' ? 'specific' : 'default10') : 'none';
   invalidatePreview(state); return state;
 }
@@ -369,7 +373,7 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
       const b = state.configuration.actor_bindings.find(x => x.actor_key === actor.actor_key), box = el('div', null, {class: 'mr-subcard'}); box.append(el('h4', actorLabel(actor)));
       for (const [label, path, rows] of [['Nome','display_name',null],['Ruolo','role',null],['Identità','identity','3'],['Personalità','personality','3'],['Comportamento','behavior','3']]) box.append(field(label,input(actor[path],v=>edit(()=>actor[path]=v),rows?{rows}:{})));
       for (const [label,path] of [['Conoscenze pubbliche','public_knowledge'],['Conoscenze riservate','private_knowledge'],['Limiti','limits']]) box.append(field(label,input((actor[path]||[]).join('\n'),v=>edit(()=>actor[path]=v.split('\n').map(clean).filter(Boolean)),{rows:'3'})));
-      const bundle = el('select'); bundle.append(el('option', 'Scegli profilo approvato…', {value: ''})); for (const x of state.catalog?.bundles || []) bundle.append(el('option', `${x.display_name || x.bundle_id} · ${mechanicalSummary(x)}`, {value: x.bundle_id})); bundle.value = b.base_bundle_id; bundle.addEventListener('change', () => edit(() => b.base_bundle_id = bundle.value)); box.append(field('Profilo meccanico approvato', bundle));
+      const bundle = el('select'); bundle.append(el('option', 'Scegli profilo approvato…', {value: ''})); for (const x of state.catalog?.bundles || []) if (!actorNeedsCombat(state.compiled, actor.actor_key) || bundleAllowsCombat(x)) bundle.append(el('option', `${x.display_name || x.bundle_id} · ${mechanicalSummary(x)}`, {value: x.bundle_id})); bundle.value = b.base_bundle_id; bundle.addEventListener('change', () => edit(() => b.base_bundle_id = bundle.value)); box.append(field('Profilo meccanico approvato', bundle));
       if (b.base_bundle_id) box.append(el('p', `Bozza meccanica proposta: ${mechanicalSummary((state.catalog?.bundles || []).find(x => x.bundle_id === b.base_bundle_id))}`));
       const compatibleUploads = compatibleActorUploads(state.uploads, state.configuration.actor_bindings, actor.actor_key);
       const media = el('select'); media.append(el('option', 'Scegli immagine attestata…', {value: ''})); for (const x of compatibleUploads) media.append(el('option', x.file_name, {value: x.media_id})); media.value = b.media_id; media.addEventListener('change', () => bindUpload(actor.actor_key, media.value)); box.append(field('Immagine', media));
