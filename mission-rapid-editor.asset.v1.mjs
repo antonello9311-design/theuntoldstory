@@ -1,4 +1,4 @@
-export const VERSION = 'mission-rapid-editor/2026-09-23.context-only.staff-reservation.scope-guard.1';
+export const VERSION = 'mission-rapid-editor/2026-09-24.structural-repair.1';
 export const DRAFT_SCHEMA = 'mission-rapid-draft/1';
 export const PREVIEW_SCHEMA = 'mission-rapid-preview/2';
 export const PUBLISH_SCHEMA = 'mission-rapid-publish-result/2';
@@ -13,6 +13,42 @@ const GRADE_RANKS = Object.freeze({D: ['deshi','academy'], C: ['genin'], B: ['ch
 export const hasCombatPhases = compiled => Array.isArray(compiled?.phases) && compiled.phases.some(phase => phase?.kind === 'combat');
 export const actorNeedsCombat = (compiled, actorKey) => Array.isArray(compiled?.phases) && compiled.phases.some(phase => phase?.kind === 'combat' && Array.isArray(phase.actor_keys) && phase.actor_keys.includes(actorKey));
 export const bundleAllowsCombat = bundle => Array.isArray(bundle?.mechanics?.document?.consumer_scopes) && bundle.mechanics.document.consumer_scopes.includes('combat_v2');
+
+// Le chiavi fanno parte del contratto server: la correzione editoriale aggiorna
+// ogni riferimento meccanico prima di richiedere una nuova anteprima autorevole.
+export function renamePhaseKey(compiled, configuration, oldKey, nextValue, contextUpload = null) {
+  const nextKey = clean(nextValue);
+  if (!/^[a-z][a-z0-9_]{1,47}$/.test(nextKey) || ['rapid_success','rapid_failure'].includes(nextKey)) throw Error('Chiave fase non valida o riservata.');
+  const phase = compiled?.phases?.find(x => x.step_key === oldKey);
+  if (!phase) throw Error('Fase da correggere non trovata.');
+  if (nextKey === oldKey) return false;
+  if (compiled.phases.some(x => x.step_key === nextKey)) throw Error('Chiave fase già presente.');
+  if (configuration?.context_media?.phase_key === oldKey && (configuration.context_media.media_id || contextUpload)) throw Error('La fase ha un’immagine attestata: non cambiare la chiave senza un nuovo caricamento.');
+  phase.step_key = nextKey;
+  for (const item of compiled.phases) for (const transition of item.transitions || []) {
+    if (transition.to_step_key === oldKey) transition.to_step_key = nextKey;
+  }
+  for (const rule of compiled.terminal_rules || []) if (rule.phase_key === oldKey) rule.phase_key = nextKey;
+  if (configuration?.context_media?.phase_key === oldKey) configuration.context_media.phase_key = nextKey;
+  return true;
+}
+
+export function removeDraftActor(state, actorKey) {
+  if (!state?.compiled?.actors?.some(x => x.actor_key === actorKey)) throw Error('PNG da rimuovere non trovato.');
+  if (actorNeedsCombat(state.compiled, actorKey)) throw Error('Un PNG dello scontro non può essere rimosso qui.');
+  if ((state.compiled.terminal_rules || []).some(x => x.subject_key === actorKey)) throw Error('Il PNG è soggetto di una condizione terminale.');
+  if ((state.uploads || []).some(x => x.actor_key === actorKey) || (state.configuration?.actor_bindings || []).some(x => x.actor_key === actorKey && x.media_id)) throw Error('Il PNG ha già un’immagine attestata: conservare il binding.');
+  state.compiled.actors = state.compiled.actors.filter(x => x.actor_key !== actorKey);
+  for (const phase of state.compiled.phases || []) phase.actor_keys = (phase.actor_keys || []).filter(x => x !== actorKey);
+  state.configuration.actor_bindings = (state.configuration.actor_bindings || []).filter(x => x.actor_key !== actorKey);
+  return true;
+}
+
+export function isResumableFreshDraft(result) {
+  return result?.schema_version === 'mission-rapid-compile-state/1' && result.state === 'draft'
+    && result.control_version === 2 && UUID.test(result.draft_id || '')
+    && !!result.source && Array.isArray(result.compiled?.actors) && Array.isArray(result.compiled?.phases);
+}
 
 export function createInitialState(source = {}) {
   return {
@@ -207,7 +243,7 @@ export async function dispatchCompiler(client, requestKey) {
 
 export function createMissionRapidEditor({client, identity, isStaff, uploadMedia, uploadContextMedia, chooseMap, notice = () => {}, onPublished = () => {}, pollMs = 900, maxPolls = 80, runtimeBudget = null} = {}) {
   if (!client?.rpc) throw Error('Client RPC richiesto.');
-  let state = createInitialState(), host = null, epoch = 0;
+  let state = createInitialState(), host = null, epoch = 0, resumeRequestKey = '';
   const user = () => typeof identity === 'function' ? identity() : identity;
   const allowed = () => (typeof isStaff === 'function' ? isStaff() : isStaff) === true && UUID.test(user() || '');
   async function rpc(name, args) {
@@ -316,6 +352,20 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
     } catch (error) { state.message = error.message; }
     finally { state.busy = false; render(); }
   }
+  async function resumeFreshDraft() {
+    const requestKey = clean(resumeRequestKey);
+    if (state.busy) return;
+    if (!UUID.test(requestKey)) { state.message = 'Inserisci l’ID della richiesta originale.'; return render(); }
+    state.busy = true; render();
+    try {
+      const result = await rpc('mission_rapid_compile_state_v1', {p_request: requestKey});
+      if (!isResumableFreshDraft(result)) throw Error('Solo una bozza appena compilata, non ancora salvata, può essere ripresa qui.');
+      state.compileRequest = requestKey; state.compileDispatched = true;
+      applyCompiled(state, result, state.catalog);
+      state.message = 'Bozza appena compilata ripresa senza nuova chiamata IA; completa le correzioni e l’anteprima.';
+    } catch (error) { state.message = error.message; }
+    finally { state.busy = false; render(); }
+  }
   async function saveAndPreview() {
     if (state.busy) return;
     const errors = localBlockingErrors(state); if (errors.length) { state.message = 'Correggi gli errori locali prima dell’anteprima.'; state.preview = {schema_version: PREVIEW_SCHEMA, errors}; return render(); }
@@ -358,6 +408,11 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
     const phases = section('Fasi e transizioni');
     state.compiled.phases.forEach((phase, i) => {
       const box = el('div', null, {class: 'mr-subcard'}); box.append(el('h4', `${i + 1}. ${phase.step_key}`), field('Titolo fase', input(phase.title, v => edit(() => phase.title = v))), field('Tipo', choice(['narrative','exploration','combat'], phase.kind, v => edit(() => phase.kind = v))), field('Obiettivo pubblico', input(phase.public_objective, v => edit(() => phase.public_objective = v), {rows: '2'})), field('Obiettivo riservato', input(phase.private_objective, v => edit(() => phase.private_objective = v), {rows: '2'})), field('Istruzioni di fase', input(phase.narrator_notes, v => edit(() => phase.narrator_notes = v), {rows: '2'})));
+      const keyInput = el('input', null, {type: 'text', maxlength: '48'}); keyInput.value = phase.step_key;
+      box.append(field('Chiave fase', keyInput), button('Applica chiave fase', () => {
+        try { edit(() => renamePhaseKey(state.compiled, state.configuration, phase.step_key, keyInput.value, state.contextUpload)); }
+        catch (error) { setMessage(error.message); }
+      }));
       const phaseActors = el('fieldset'); phaseActors.append(el('legend', 'PNG presenti nella fase'));
       for (const actor of state.compiled.actors) {
         const check = el('input', null, {type: 'checkbox'}); check.checked = (phase.actor_keys || []).includes(actor.actor_key);
@@ -380,6 +435,10 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
       const actorFile = el('input', null, {type: 'file', accept: 'image/png,image/jpeg,image/webp'}); actorFile.addEventListener('change', () => addActorUploads([...actorFile.files], actor.actor_key).catch(e => setMessage(e.message))); box.append(field('Carica e attesta per questo PNG', actorFile));
       const team = el('select'); for (const x of ['alleati', 'avversari', 'civili']) team.append(el('option', x, {value: x})); team.value = b.team; team.addEventListener('change', () => edit(() => b.team = team.value)); box.append(field('Schieramento', team));
       const approval = el('input', null, {type: 'checkbox'}); approval.checked = b.approved; approval.addEventListener('change', () => edit(() => b.approved = approval.checked)); box.append(field('Versione approvata dall’editore', approval)); actors.append(box);
+      box.append(button('Rimuovi PNG proposto', () => {
+        try { edit(() => removeDraftActor(state, actor.actor_key)); }
+        catch (error) { setMessage(error.message); }
+      }, actorNeedsCombat(state.compiled, actor.actor_key)));
     }
     const mediaInput = el('input', null, {type: 'file', accept: 'image/png,image/jpeg,image/webp', multiple: ''}); mediaInput.addEventListener('change', () => addActorUploads([...mediaInput.files]).catch(e => setMessage(e.message))); actors.prepend(field('Associa automaticamente immagini nominate come i PNG', mediaInput)); root.append(actors);
     const context = section('Immagine di contesto narrativo');
@@ -432,6 +491,11 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
     const specificMap = el('input', null, {type:'checkbox'}); specificMap.checked = state.source.has_map_image; specificMap.disabled = !!state.compileRequest; specificMap.addEventListener('change', () => edit(() => { state.source.has_map_image = specificMap.checked; state.compileRequest = null; state.compileDispatched = false; state.configuration.combat_map.mode = specificMap.checked ? 'specific' : 'default10'; }));
     const earlyContext = el('input', null, {type:'file', accept:'image/png,image/jpeg,image/webp'}); earlyContext.disabled = state.busy; earlyContext.addEventListener('change', () => selectContextFile(earlyContext.files?.[0] || null).catch(e => setMessage(e.message)));
     source.append(field('Trama', input(state.source.plot, v => edit(() => { state.source.plot = v; state.compileRequest = null; state.compileDispatched = false; }), {rows: '8'})), field('Indicazioni sulle fasi · una per riga', input(state.source.phase_hints.join('\n'), v => edit(() => { state.source.phase_hints = v.split('\n').map(clean).filter(Boolean); state.compileRequest = null; state.compileDispatched = false; }), {rows: '4'})), field('Immagine di contesto narrativo · facoltativa', earlyContext), field('Userò un’immagine specifica per l’arena', specificMap), button(state.compileRequest ? 'Riprendi compilazione' : 'Compila bozza', compile, state.busy)); host.append(source);
+    if (!state.compiled) {
+      const requestInput = el('input', null, {type:'text', placeholder:'ID richiesta originale'}); requestInput.value = resumeRequestKey;
+      requestInput.addEventListener('input', () => { resumeRequestKey = requestInput.value; });
+      source.append(field('Riprendi bozza appena compilata · ID richiesta', requestInput), button('Carica bozza senza IA', resumeFreshDraft, state.busy));
+    }
     renderCompiled(host); renderPreview(host);
     if (state.compiled) { const actions = section('Controllo finale'); actions.append(button('Salva e genera anteprima', saveAndPreview, state.busy), button(state.uncertainPublish ? 'Verifica stessa pubblicazione' : 'Pubblica missione', publish, !canPublish(state))); host.append(actions); }
   }
