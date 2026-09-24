@@ -1,4 +1,5 @@
-export const VERSION='mission-academy-role-flow-ui/3';
+export const VERSION='mission-academy-role-flow-ui/4';
+const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
 const el=(tag,text,attrs={})=>{const n=document.createElement(tag);if(text!==null)n.textContent=text;for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;};
@@ -161,8 +162,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   else if(retry)retry.remove();
   const processing=processingFor(state),claim=processing.value;
   let resume=host.querySelector('[data-mg-claim-resume]');
-  if(isStaff()&&currentLocation()?.is_test&&state.can_tick&&state.review_required!==true&&processing.valid&&state.session_id==='2489ef5d-619d-4162-bcc6-bb6b7093b130'&&claim?.state==='uncertain'){
-   if(!resume){resume=button('Riprendi la stessa richiesta',()=>maybeDispatch(roomState,syncRoom(host),true));resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
+  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&state.can_tick&&state.review_required!==true&&processing.valid&&claim?.state==='uncertain'){
+   if(!resume){resume=button('Verifica o riprendi la stessa richiesta',()=>maybeDispatch(roomState,syncRoom(host),true));resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
    const key=JSON.stringify([cacheUser,state.session_id,'work:'+claim.work_id+':'+claim.revision+':reclaim']);
    resume.disabled=!!roomError||liveAttempt(state)||attempts.has(key);
   }else if(resume)resume.remove();
@@ -193,7 +194,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function maybeDispatch(state,t,reclaim=false){
   const parsed=processingFor(state),p=parsed.value;if(!roomCurrent(t)||!parsed.valid||state.review_required===true||!state.can_tick||choiceRequests.has(choiceKey(state))||liveAttempt(state))return;
-  if(reclaim&&(!isStaff()||!t.loc?.is_test||state.session_id!=='2489ef5d-619d-4162-bcc6-bb6b7093b130'||p?.state!=='uncertain'))return;
+  if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||p?.state!=='uncertain'))return;
   if(p&&['authorized','provider_started','failed'].includes(p.state)||p&&['claimed','uncertain'].includes(p.state)&&!reclaim)return;
   const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?':reclaim':''):'tick:'+state.progress_key;
   const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey))return;
