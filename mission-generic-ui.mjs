@@ -1,4 +1,4 @@
-export const VERSION='mission-academy-role-flow-ui/1';
+export const VERSION='mission-academy-role-flow-ui/2';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
 const el=(tag,text,attrs={})=>{const n=document.createElement(tag);if(text!==null)n.textContent=text;for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;};
@@ -159,6 +159,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const pending=choiceRequests.get(choiceKey(state));let retry=host.querySelector('[data-mg-choice-retry]');
   if(pending?.phase==='uncertain'){if(!retry){retry=button('Verifica la stessa scelta',()=>submitChoice(host,null,true));retry.setAttribute('data-mg-choice-retry','');host.append(retry);}retry.disabled=state.review_required===true||pending.inFlight;}
   else if(retry)retry.remove();
+  const processing=processingFor(state),claim=processing.value;
+  let resume=host.querySelector('[data-mg-claim-resume]');
+  if(isStaff()&&currentLocation()?.is_test&&state.can_tick&&state.review_required!==true&&processing.valid&&claim?.state==='claimed'){
+   if(!resume){resume=button('Riprendi la stessa richiesta',()=>maybeDispatch(roomState,syncRoom(host),true));resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
+   const key=JSON.stringify([cacheUser,state.session_id,'work:'+claim.work_id+':'+claim.revision+':reclaim']);
+   resume.disabled=!!roomError||liveAttempt(state)||attempts.has(key);
+  }else if(resume)resume.remove();
   const text=statusText(state);if(status.textContent!==text)status.textContent=text;
  }
  function definitiveChoiceError(error){const code=error?.code;return typeof code==='string'&&(/^(22|23)/.test(code)||['42501','40001','55000','P0001'].includes(code));}
@@ -184,13 +191,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(roomCurrent(t)){paintRoom(host,roomState);await updateRoom(host,{manual:true});refresh();}
   }
  }
- function maybeDispatch(state,t){
+ function maybeDispatch(state,t,reclaim=false){
   const parsed=processingFor(state),p=parsed.value;if(!roomCurrent(t)||!parsed.valid||state.review_required===true||!state.can_tick||choiceRequests.has(choiceKey(state))||liveAttempt(state))return;
-  if(p&&['claimed','authorized','provider_started','failed','uncertain'].includes(p.state))return;
-  const key=p?.state==='ready'?'work:'+p.work_id+':'+p.revision:'tick:'+state.progress_key;
+  if(reclaim&&(!isStaff()||!t.loc?.is_test||p?.state!=='claimed'))return;
+  if(p&&['authorized','provider_started','failed','uncertain'].includes(p.state)||p?.state==='claimed'&&!reclaim)return;
+  const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?':reclaim':''):'tick:'+state.progress_key;
   const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey))return;
-  const body=p?.state==='ready'?clone(p.request):{schema_version:'mission-generic-tick/1',master_session_id:state.session_id,request_key:id()};
-  const a={user:t.user,session:state.session_id,key,work:p?.state==='ready'?p.work_id:null,body:Object.freeze(body),inFlight:true,outcome:'pending'};attempts.set(storeKey,a);paintRoom(roomHost,state);
+  const body=p&&(p.state==='ready'||reclaim)?clone(p.request):{schema_version:'mission-generic-tick/1',master_session_id:state.session_id,request_key:id()};
+  const a={user:t.user,session:state.session_id,key,work:p&&(p.state==='ready'||reclaim)?p.work_id:null,body:Object.freeze(body),inFlight:true,outcome:'pending'};attempts.set(storeKey,a);paintRoom(roomHost,state);
   // Detached from the read lock: polling continues while the provider works.
   void (async()=>{
    try{
