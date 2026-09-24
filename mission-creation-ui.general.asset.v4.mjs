@@ -1,9 +1,10 @@
 import {createMissionMapPicker} from './MAPPE_UI_PICKER.asset.v3.mjs';
 import {createMapBindingEditor} from './MAP_OBJECT_BINDING_UI.asset.v1.mjs';
-export const VERSION='mission-creation-ui/general-default-preflight-6';
+export const VERSION='mission-creation-ui/academy-entry-safe-7';
 const copy=value=>structuredClone(value);
 const uuid=()=>crypto.randomUUID();
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ACADEMY_ENTRY_SOURCES=new Set(['5878822d-dc03-4ac2-ad0b-1547f0ab3fc0','8fdeaafa-20dd-4192-b4c9-d59ac4dcd24a']);
 const node=(tag,text,attrs={})=>{const n=document.createElement(tag);if(text!==null)n.textContent=text;for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);return n;};
 const button=(text,fn,secondary=false)=>{const n=node('button',text,{type:'button',class:'mbtn'+(secondary?' ghost':'')});n.addEventListener('click',fn);return n;};
 const field=(text,control)=>{const n=node('label',text,{class:'mc-field'});n.append(control);return n;};
@@ -33,6 +34,7 @@ function loadPlan(model,detail,revision){
  model.scenes=detail.plan.steps.map(step=>{const cfg=def.scenes.find(s=>s.step_key===step.step_key);if(!cfg)throw Error('Configurazione di una fase mancante.');const s=newPhase(step.step_key);Object.assign(s,{kind:step.kind,public_objective:step.public_objective,actors:cfg.actors.map(a=>a.actor_key),actor_specs:Object.fromEntries(cfg.actors.map(a=>[a.actor_key,copy(a)])),fighters:(cfg.encounters[0]?.actors||[]).map(a=>a.actor_key),encounter:copy(cfg.encounters[0]||null),encounter_key:cfg.encounters[0]?.encounter_key||'enc_'+step.step_key,pg_team:cfg.encounters[0]?.pg_team||'squadra',terminal:revision.settings?.terminal_steps?.find(t=>t.step_key===step.step_key)?.outcome||'',triggers:cfg.triggers.map(t=>{const tr=detail.plan.transitions.find(x=>x.transition_key===t.transition_key);if(!tr)throw Error('Passaggio della fase mancante.');return {...copy(t),transition:copy(tr),to:tr.to_step_key};})});return s;});
  const latestBase=model.catalog?.versions?.filter(v=>v.plan_id===revision.plan_id).sort((a,b)=>b.version-a.version)[0];if(!latestBase?.plan_version_id)throw Error('Baseline del piano non disponibile: riapri la configurazione.');model.initial=detail.plan.initial_step_key;model.base=latestBase.plan_version_id;model.revision=revision;
 }
+function definitionIsSpecialized(detail,revision){const def=detail.definitions?.find(x=>x.id===revision.definition_id)?.definition;return !!def?.scenes?.some(s=>(s.encounters||[]).length>1||(s.triggers||[]).some(t=>!['player_choice','combat_terminal'].includes(t.source_kind)));}
 function applyEditorial(model,data){
  model.mission={...model.mission,...copy(data.mission||{})};model.editorial={plot_private:data.editorial?.plot_private||'',setting:{...setting(),...copy(data.editorial?.setting||{})}};
  for(const s of model.scenes){const e=data.editorial?.scenes?.find(x=>x.step_key===s.step_key);s.editorial=e?{...phaseEditorial(s.step_key),...copy(e),setting:{...setting(),...copy(e.setting||{})}}:phaseEditorial(s.step_key);s.arena=copy(data.arenas?.find(x=>x.step_key===s.step_key)||null);}
@@ -79,10 +81,10 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
  let epoch=0,currentDialog=null,principal=identity(),createRecord=null;
  const generalMapPicker=createMissionMapPicker({client,identity,isStaff});
   let bindingEditor=null;
- const views=new Map(),edits=new Map(),humans=new Map(),humanStarts=new Map();
+ const views=new Map(),edits=new Map(),specialPendings=new Map(),humans=new Map(),humanStarts=new Map();
  const valid=(user,stamp=epoch)=>!!user&&principal===user&&identity()===user&&stamp===epoch;
  function syncIdentity(){const next=identity();if(next!==principal){generalMapPicker.dispose();clear({forget:true});principal=next;}}
- function clear({forget=false}={}){bindingEditor?.dispose();bindingEditor=null;epoch++;for(const host of views.keys())host.replaceChildren();views.clear();for(const host of humans.keys()){host.replaceChildren();host.hidden=true;}humans.clear();if(forget){createRecord=null;edits.clear();humanStarts.clear();}if(currentDialog){currentDialog.close();currentDialog.remove();currentDialog=null;}}
+ function clear({forget=false}={}){bindingEditor?.dispose();bindingEditor=null;epoch++;for(const host of views.keys())host.replaceChildren();views.clear();for(const host of humans.keys()){host.replaceChildren();host.hidden=true;}humans.clear();if(forget){createRecord=null;edits.clear();specialPendings.clear();humanStarts.clear();}if(currentDialog){currentDialog.close();currentDialog.remove();currentDialog=null;}}
  client.auth?.onAuthStateChange?.((event,session)=>{const next=session?.user?.id||null;if(next!==principal){clear({forget:true});principal=next;}});
  async function rpc(name,args,user=identity(),stamp=epoch){
   if(!valid(user,stamp))throw Error('Accesso cambiato: riapri la missione.');
@@ -155,6 +157,44 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
    else{rec.uncertain=true;rec.message='Salvataggio non confermato. Usa “Verifica lo stesso salvataggio”: riprende la stessa richiesta senza creare una seconda missione. '+e.message;}
   }finally{rec.busy=false;updateRecord(rec);}
  }
+ function specializedDocument(source,entry){
+  const {metadata,detail,chosen}=source;
+  const def=detail.definitions?.find(x=>x.id===chosen.definition_id)?.definition;
+  const plan=detail.plan;
+  if(!def||!plan||!Array.isArray(plan.steps)||!Array.isArray(plan.transitions)||!Array.isArray(chosen.settings?.terminal_steps))throw Error('Revisione specializzata incompleta: nessun dato cambiato.');
+  const editorial=copy(metadata.editorial),scene=editorial.scenes?.find(x=>x.step_key==='briefing');
+  if(!scene||typeof scene.entry_public!=='string')throw Error('Incipit della fase iniziale non disponibile.');
+  scene.entry_public=entry.trim();
+  const mission=metadata.mission;
+  return {schema_version:'mission-creation-document/1',mission:{title:mission.title,grado:mission.grado,briefing:mission.briefing,village:mission.village,tag_trama:mission.tag_trama,team_min:mission.team_min,team_max:mission.team_max,direction_mode:mission.direction_mode,gathering_location_id:mission.gathering_location_id},plan:{schema_version:'mission-generic-plan-document/1',base_plan_version_id:chosen.plan_version_id,initial_step_key:plan.initial_step_key,steps:plan.steps.map(s=>({step_key:s.step_key,kind:s.kind,public_objective:s.public_objective})),transitions:plan.transitions.map(t=>({transition_key:t.transition_key,from_step_key:t.from_step_key,to_step_key:t.to_step_key,event_kind:t.event_kind,priority:t.priority})),definition:copy(def),terminal_steps:copy(chosen.settings.terminal_steps)},editorial,arenas:copy(metadata.arenas)};
+ }
+ function mountSpecialized(view,source){
+  if(!ACADEMY_ENTRY_SOURCES.has(view.mission)||source.chosen.plan_version_id!==source.planCatalog.selected_plan_version_id)throw Error('Questa revisione specializzata non è modificabile qui.');
+  const original=source.metadata.editorial?.scenes?.find(x=>x.step_key==='briefing')?.entry_public;
+  if(typeof original!=='string')throw Error('Incipit della fase iniziale non disponibile.');
+  const pendingKey=view.user+':'+view.mission+':'+source.chosen.plan_version_id;
+  let pending=specialPendings.get(pendingKey)||null,entry=pending?.entry||original,busy=false,saved=false;
+  const note=node('p','Solo l’incipit editoriale della fase iniziale. Eventi, PNG, mappe e passaggi rimangono nella revisione specializzata esistente.',{class:'mc-help'});
+  const editor=text(entry,v=>{if(pending)return;entry=v;},4000);
+  const action=button('Salva nuova revisione editoriale',()=>commit());
+  const status=view.status;
+  const redraw=()=>{action.disabled=busy||saved||!!pending&&entry!==pending.entry;editor.disabled=busy||saved||!!pending;action.textContent=pending?'Verifica lo stesso salvataggio':'Salva nuova revisione editoriale';};
+  async function commit(){if(busy||saved||!valid(view.user,view.epoch))return;
+   if(!pending){if(entry.trim().length<80){status.textContent='Completa l’incipit prima di salvarlo.';return;}pending={entry:entry.trim(),request:uuid(),document:specializedDocument(source,entry)};specialPendings.set(pendingKey,pending);}
+   busy=true;status.textContent='Controllo della revisione specializzata…';redraw();
+   try{const preflight=await rpc('mission_creation_preflight_v2',{p_document:copy(pending.document)},view.user,view.epoch);
+    if(preflight?.schema_version!=='mission-creation-preflight/2'||preflight.ok!==true)throw Object.assign(Error((preflight?.errors||[]).map(x=>x.detail||x.code).join('; ')||'Controllo finale non superato.'),{code:'22023'});
+    status.textContent='Controllo superato. Salvataggio della nuova revisione…';
+    const result=await rpc('mission_revision_complete_v1',{p_mission:view.mission,p_request:pending.request,p_expected_mission_sha256:source.planCatalog.mission_sha256,p_expected_selection_version:source.planCatalog.selection_control_version,p_document:copy(pending.document)},view.user,view.epoch);
+    if(result?.schema_version!=='mission-creation-result/1'||result.state!=='configured'||result.mission_id!==view.mission||!UUID.test(result.plan_version_id||''))throw Error('Risposta del salvataggio non confermata.');
+    saved=true;specialPendings.delete(pendingKey);status.textContent='Nuova revisione editoriale '+result.version+' salvata. Solo i prossimi avvii useranno il nuovo incipit.';notice('Nuovo incipit salvato');refresh();
+   }catch(error){if(!valid(view.user,view.epoch))return;
+    if(error.code&&(/^(22|23)/.test(error.code)||['42501','40001','55000','P0001'].includes(error.code))){pending=null;specialPendings.delete(pendingKey);status.textContent='Salvataggio rifiutato: '+error.message+' Riapri l’editor se la missione è cambiata.';}
+    else status.textContent='Esito non confermato. Verifica lo stesso salvataggio, senza creare una seconda richiesta. '+error.message;
+   }finally{busy=false;redraw();}
+  }
+  view.host.append(note,field('Incipit editoriale · briefing',editor),node('div',null,{class:'mc-actions'}));view.host.lastChild.append(action);status.textContent='Modifica mirata pronta; nessuna missione o sessione è stata avviata.';redraw();
+ }
  async function prepare(host,{mission=null,title='',revision=null}={}){
   syncIdentity();if(!host||!host.isConnected||!isStaff()||!identity())return;styles();const user=identity(),stamp=epoch;
   const view={host,user,epoch:stamp,mission,record:null,form:null,save:null,status:null};views.set(host,view);host.replaceChildren();host.classList.add('mc-editor');
@@ -171,7 +211,9 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
      const revisions=planCatalog.versions.filter(x=>x.generic_ready).sort((a,b)=>b.version-a.version),chosenId=revision||initialMeta.plan_version_id||planCatalog.selected_plan_version_id||revisions[0]?.plan_version_id||null,chosen=revisions.find(x=>x.plan_version_id===chosenId);
      if(chosenId&&!chosen)throw Error('La revisione richiesta non è modificabile in questo editor.');
      const model=blank();model.catalog=planCatalog;let metadata=initialMeta;
-     if(chosen){const detail=await rpc('mission_generic_editor_v1',{p_plan_version:chosen.plan_version_id},user,stamp);if(!active(view))return;loadPlan(model,detail,chosen);if(chosen.plan_version_id!==initialMeta.plan_version_id)metadata=await rpc('mission_creation_editor_v1',{p_mission:mission,p_plan_version:chosen.plan_version_id},user,stamp);}
+     if(chosen){const detail=await rpc('mission_generic_editor_v1',{p_plan_version:chosen.plan_version_id},user,stamp);if(!active(view))return;if(chosen.plan_version_id!==initialMeta.plan_version_id)metadata=await rpc('mission_creation_editor_v1',{p_mission:mission,p_plan_version:chosen.plan_version_id},user,stamp);if(!active(view))return;
+      if(definitionIsSpecialized(detail,chosen)){mountSpecialized(view,{metadata,detail,chosen,planCatalog});return;}
+      loadPlan(model,detail,chosen);}
      if(!active(view))return;if(metadata.configured&&!chosen)throw Error('La configurazione completa non ha una revisione disponibile. Nessuna modifica effettuata.');applyEditorial(model,metadata);rec=record(model);rec.mission=mission;rec.revisions=revisions;edits.set(mission+':'+(chosenId||'legacy'),rec);
     }
    }
