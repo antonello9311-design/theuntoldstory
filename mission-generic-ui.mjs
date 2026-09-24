@@ -1,4 +1,4 @@
-export const VERSION='mission-academy-role-flow-ui/2';
+export const VERSION='mission-academy-role-flow-ui/3';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
 const el=(tag,text,attrs={})=>{const n=document.createElement(tag);if(text!==null)n.textContent=text;for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;};
@@ -161,7 +161,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   else if(retry)retry.remove();
   const processing=processingFor(state),claim=processing.value;
   let resume=host.querySelector('[data-mg-claim-resume]');
-  if(isStaff()&&currentLocation()?.is_test&&state.can_tick&&state.review_required!==true&&processing.valid&&claim?.state==='claimed'){
+  if(isStaff()&&currentLocation()?.is_test&&state.can_tick&&state.review_required!==true&&processing.valid&&state.session_id==='2489ef5d-619d-4162-bcc6-bb6b7093b130'&&claim?.state==='uncertain'){
    if(!resume){resume=button('Riprendi la stessa richiesta',()=>maybeDispatch(roomState,syncRoom(host),true));resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
    const key=JSON.stringify([cacheUser,state.session_id,'work:'+claim.work_id+':'+claim.revision+':reclaim']);
    resume.disabled=!!roomError||liveAttempt(state)||attempts.has(key);
@@ -193,8 +193,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function maybeDispatch(state,t,reclaim=false){
   const parsed=processingFor(state),p=parsed.value;if(!roomCurrent(t)||!parsed.valid||state.review_required===true||!state.can_tick||choiceRequests.has(choiceKey(state))||liveAttempt(state))return;
-  if(reclaim&&(!isStaff()||!t.loc?.is_test||p?.state!=='claimed'))return;
-  if(p&&['authorized','provider_started','failed','uncertain'].includes(p.state)||p?.state==='claimed'&&!reclaim)return;
+  if(reclaim&&(!isStaff()||!t.loc?.is_test||state.session_id!=='2489ef5d-619d-4162-bcc6-bb6b7093b130'||p?.state!=='uncertain'))return;
+  if(p&&['authorized','provider_started','failed'].includes(p.state)||p&&['claimed','uncertain'].includes(p.state)&&!reclaim)return;
   const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?':reclaim':''):'tick:'+state.progress_key;
   const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey))return;
   const body=p&&(p.state==='ready'||reclaim)?clone(p.request):{schema_version:'mission-generic-tick/1',master_session_id:state.session_id,request_key:id()};
