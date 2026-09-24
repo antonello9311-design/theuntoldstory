@@ -1,4 +1,4 @@
-export const VERSION = 'mission-rapid-editor/2026-09-24.structural-repair.1';
+export const VERSION = 'mission-rapid-editor/2026-09-24.academy-reseal.1';
 export const DRAFT_SCHEMA = 'mission-rapid-draft/1';
 export const PREVIEW_SCHEMA = 'mission-rapid-preview/2';
 export const PUBLISH_SCHEMA = 'mission-rapid-publish-result/2';
@@ -9,6 +9,10 @@ const clean = value => String(value ?? '').trim();
 const slug = value => clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 const words = value => new Set(slug(value).split(/\s+/).filter(x => x.length > 1));
 const makeUuid = () => crypto.randomUUID();
+const ACADEMY_RESEAL_SOURCES = Object.freeze([
+  {id: '8fdeaafa-20dd-4192-b4c9-d59ac4dcd24a', label: 'I tre fuggitivi della signora Otome'},
+  {id: '5878822d-dc03-4ac2-ad0b-1547f0ab3fc0', label: 'Prima della tempesta'}
+]);
 const GRADE_RANKS = Object.freeze({D: ['deshi','academy'], C: ['genin'], B: ['chunin'], A: ['jonin'], S: ['kage','sannin']});
 export const hasCombatPhases = compiled => Array.isArray(compiled?.phases) && compiled.phases.some(phase => phase?.kind === 'combat');
 export const actorNeedsCombat = (compiled, actorKey) => Array.isArray(compiled?.phases) && compiled.phases.some(phase => phase?.kind === 'combat' && Array.isArray(phase.actor_keys) && phase.actor_keys.includes(actorKey));
@@ -244,6 +248,7 @@ export async function dispatchCompiler(client, requestKey) {
 export function createMissionRapidEditor({client, identity, isStaff, uploadMedia, uploadContextMedia, chooseMap, notice = () => {}, onPublished = () => {}, pollMs = 900, maxPolls = 80, runtimeBudget = null} = {}) {
   if (!client?.rpc) throw Error('Client RPC richiesto.');
   let state = createInitialState(), host = null, epoch = 0, resumeRequestKey = '';
+  let resealBusy = false, resealMessage = '', resealResults = {};
   const user = () => typeof identity === 'function' ? identity() : identity;
   const allowed = () => (typeof isStaff === 'function' ? isStaff() : isStaff) === true && UUID.test(user() || '');
   async function rpc(name, args) {
@@ -397,6 +402,28 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
       state.message = (state.uncertainPublish ? 'Esito non confermato: ripeti con la stessa richiesta. ' : 'Pubblicazione rifiutata. ') + error.message;
     } finally { state.busy = false; render(); }
   }
+  async function resealAcademySource(missionId) {
+    if (resealBusy || !ACADEMY_RESEAL_SOURCES.some(x => x.id === missionId)) return;
+    const storageKey = `academy-reseal-v1:${user()}:${missionId}`;
+    let requestKey;
+    try {
+      requestKey = localStorage.getItem(storageKey);
+      if (!UUID.test(requestKey || '')) {
+        requestKey = makeUuid();
+        localStorage.setItem(storageKey, requestKey);
+      }
+    } catch { resealMessage = 'Archivio locale non disponibile: impossibile garantire il retry della stessa richiesta.'; return render(); }
+    resealBusy = true; resealMessage = 'Verifico il sigillo e la selezione corrente…'; render();
+    try {
+      const result = await rpc('mission_academy_reseal_v1', {p_mission: missionId, p_request: requestKey});
+      if (!['resealed', 'already_resealed'].includes(result?.state)
+          || !UUID.test(result?.plan_version_id || '')
+          || !UUID.test(result?.previous_plan_version_id || '')) throw Error('Risposta di riparazione non confermata.');
+      resealResults[missionId] = result;
+      resealMessage = 'Selezione corrente v2 confermata. La ricevuta della pubblicazione originale resta storicamente v1.';
+    } catch (error) { resealMessage = `Riparazione non confermata: ${error.message}. Riprova con la stessa richiesta.`; }
+    finally { resealBusy = false; render(); }
+  }
   function renderCompiled(root) {
     if (!state.compiled) return;
     const mission = section('Missione proposta'), meta = state.compiled.mission;
@@ -498,6 +525,15 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
     }
     renderCompiled(host); renderPreview(host);
     if (state.compiled) { const actions = section('Controllo finale'); actions.append(button('Salva e genera anteprima', saveAndPreview, state.busy), button(state.uncertainPublish ? 'Verifica stessa pubblicazione' : 'Pubblica missione', publish, !canPublish(state))); host.append(actions); }
+    const academyRepair = section('Riparazione selezione Academy · solo proprietario Staff');
+    academyRepair.append(el('p', 'Le due pubblicazioni riservate conservano la ricevuta originale v1. Questa operazione sigilla e seleziona una v2 senza aprire iscrizioni o missioni.'));
+    for (const source of ACADEMY_RESEAL_SOURCES) {
+      const selected = resealResults[source.id];
+      academyRepair.append(button(`Sigilla v2 · ${source.label}`, () => resealAcademySource(source.id), resealBusy || !!selected),
+        el('p', selected ? `v2 selezionata: ${selected.plan_version_id}` : 'In attesa di verifica.'));
+    }
+    academyRepair.append(el('p', resealMessage, {role: 'status', 'aria-live': 'polite'}));
+    host.append(academyRepair);
   }
   async function mount(target, seed = {}) {
     if (!target?.isConnected) throw Error('Contenitore editor non disponibile.'); if (!allowed()) throw Error('Accesso riservato allo Staff.');
