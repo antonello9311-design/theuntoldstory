@@ -1,6 +1,6 @@
 import {createMissionMapPicker} from './MAPPE_UI_PICKER.asset.v3.mjs';
 import {createMapBindingEditor} from './MAP_OBJECT_BINDING_UI.asset.v1.mjs';
-export const VERSION='mission-creation-ui/academy-entry-safe-7';
+export const VERSION='mission-creation-ui/human-peaceful-1';
 const copy=value=>structuredClone(value);
 const uuid=()=>crypto.randomUUID();
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -60,7 +60,7 @@ function value(model,catalog){
    if(s.arena)arenas.push({step_key:s.step_key,template_key:s.arena.template_key,template_version:s.arena.template_version,zone_key:s.arena.zone_key});
   }
   const activeTriggers=s.terminal?[]:s.triggers;if(!s.terminal&&!activeTriggers.length)throw Error('Aggiungi un passaggio alle fasi che non concludono la missione.');
-  if(s.kind==='mechanical'){const outcomes=activeTriggers.map(t=>t.combat_outcome||'any');const complete=outcomes.length===1&&outcomes[0]==='any'||outcomes.length===3&&['pg_win','pg_loss','draw'].every(k=>outcomes.includes(k));if(!complete)throw Error('Dopo ogni scontro prevedi un solo passaggio per qualsiasi esito oppure tutti e tre i passaggi: vittoria dei PG, sconfitta dei PG e pareggio. Completa anche le loro destinazioni.');}
+  if(s.kind==='mechanical'){const outcomes=activeTriggers.map(t=>t.combat_outcome||'any'),core=outcomes.filter(x=>x!=='peaceful');const complete=(core.length===1&&core[0]==='any'||core.length===3&&['pg_win','pg_loss','draw'].every(k=>core.includes(k)))&&outcomes.filter(x=>x==='peaceful').length<=1;if(!complete)throw Error('Prevedi una via per qualsiasi esito o le tre vie vittoria, sconfitta e pareggio; puoi aggiungere una sola uscita senza conflitto.');const peaceful=activeTriggers.find(t=>t.combat_outcome==='peaceful');if(peaceful&&scenes.find(x=>x.step_key===peaceful.to)?.kind!=='narrative')throw Error('La chiusura senza conflitto deve portare a una fase narrativa.');}
   const triggers=activeTriggers.map(t=>{if(!t.to||!scenes.some(x=>x.step_key===t.to)||!t.label?.trim())throw Error('Completa la destinazione e il testo di ogni passaggio.');const tk=t.transition_key||s.step_key+'_'+t.trigger_key;
    transitions.push({transition_key:tk,from_step_key:s.step_key,to_step_key:t.to,event_kind:t.transition?.event_kind||tk,priority:t.transition?.priority??0});
    const x={trigger_key:t.trigger_key,transition_key:tk,source_kind:s.kind==='mechanical'?'combat_terminal':'player_choice',fact_code:t.fact_code||(s.kind==='mechanical'?'combat_terminal_confirmed':'player_choice_confirmed'),label:t.label};
@@ -132,7 +132,7 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
       });
       arena.append(note,pick,draftNote,bind,bindingHost);if(s.arena)arena.append(button('Usa il default 10×10',()=>{bindingEditor?.dispose();bindingEditor=null;s.arena=null;s.bindingDraft=null;render(view);},true));body.append(arena);}
    if(!s.terminal){const flows=card('Passaggi e conseguenze');
-    for(const t of s.triggers){const line=node('section',null,{class:'mc-card'});const choices=s.kind==='mechanical'?[{value:'any',label:'Scontro terminato · qualsiasi esito'},{value:'pg_win',label:'Vittoria dei PG'},{value:'pg_loss',label:'Sconfitta dei PG'},{value:'draw',label:'Nessuna squadra vincitrice'}]:[{value:'player_choice',label:'Scelta del giocatore / passaggio del Master'}];
+    for(const t of s.triggers){const line=node('section',null,{class:'mc-card'});const choices=s.kind==='mechanical'?[{value:'any',label:'Scontro terminato · qualsiasi esito'},{value:'pg_win',label:'Vittoria dei PG'},{value:'pg_loss',label:'Sconfitta dei PG'},{value:'draw',label:'Nessuna squadra vincitrice'},{value:'peaceful',label:'Chiusura senza conflitto · fase narrativa'}]:[{value:'player_choice',label:'Scelta del giocatore / passaggio del Master'}];
      line.append(row(field('Quando si attiva',select(choices,s.kind==='mechanical'?(t.combat_outcome||'any'):'player_choice',v=>{if(s.kind==='mechanical')t.combat_outcome=v;})),field('Etichetta del passaggio',input(t.label,v=>t.label=v))),field('Fase di destinazione',select([{value:'',label:'Scegli una fase'},...m.scenes.map(x=>({value:x.step_key,label:phaseName(x,m.scenes.indexOf(x))+(x===s?' · questa fase':'')}))],t.to,v=>t.to=v)));
      if(!t.editorial)t.editorial=copy(s.editorial.consequences.find(c=>c.transition_key===(t.transition_key||s.step_key+'_'+t.trigger_key))||{public_fact:'',private_note:''});line.append(field('Conseguenza pubblica possibile · dopo il passaggio',text(t.editorial.public_fact,v=>t.editorial.public_fact=v)),field('Conseguenza riservata alla regia',text(t.editorial.private_note,v=>t.editorial.private_note=v)),button('Rimuovi passaggio',()=>{s.triggers=s.triggers.filter(x=>x!==t);render(view);},true));flows.append(line);
     }
@@ -254,12 +254,23 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
     if(Number.isSafeInteger(state.roster_count))content.append(node('p','PG della squadra: '+state.roster_count+(state.roster_ready===true?' · squadra confermata':state.roster_ready===false?' · conferma in attesa':''),{class:'mc-help'}));
     if(state.roster_ready===false||state.blocked_reason){const reasons={'Serve il roster confermato della missione.':'Conferma la squadra della missione con il numero di PG previsto dalle iscrizioni.',MC_CONFIRMED_ROSTER_REQUIRED:'La squadra non è ancora confermata. Completa le iscrizioni e la conferma previste per questa missione.',confirmed_roster_required:'La squadra non è ancora confermata. Completa le iscrizioni e la conferma previste per questa missione.',roster_not_ready:'La squadra non è ancora pronta per iniziare.'};const raw=typeof state.blocked_reason==='string'?state.blocked_reason:'';content.append(node('p',reasons[raw]||raw||'Avvio in attesa della conferma della squadra.',{class:'mc-status',role:'status'}));}
     const status=node('p',h.pending?'Un comando non è ancora confermato. Verifica lo stesso comando prima di procedere.':h.lastError||'',{class:'mc-status',role:'status','aria-live':'polite'}),actions=node('div',null,{class:'mc-actions'});content.append(status,actions);
+    async function closePeacefully(){
+     if(!same()||h.busy)return;const body=(h.closeDraft||'').trim();if(!h.pending){if(body.length<20||body.length>5000){status.textContent='Scrivi un esito del Fato di 20–5000 caratteri.';return;}h.pending={p_action:'close_noncombat',p_session:session,p_expected_version:state.control_version,p_trigger_key:state.peaceful_trigger_key,p_body:body,p_request:uuid()};}
+     if(h.pending.p_action!=='close_noncombat')return;h.busy=true;host.querySelectorAll('button').forEach(b=>b.disabled=true);status.textContent='Pubblicazione dell’esito e chiusura in corso…';
+     try{const args={p_session:h.pending.p_session,p_expected_version:h.pending.p_expected_version,p_trigger_key:h.pending.p_trigger_key,p_body:h.pending.p_body,p_request:h.pending.p_request};await rpc('mission_human_combat_close_peaceful_v1',args,user,stamp);if(!same())return;h.pending=null;h.closeDraft='';h.lastError='';h.signature='';refresh();}
+     catch(e){if(!same())return;if(e.code&&(/^(22|23)/.test(e.code)||['42501','40001','55000','P0001'].includes(e.code)))h.pending=null;h.lastError='Chiusura non confermata. '+e.message;if(e.code==='42501')showError(e);else status.textContent=h.lastError;}
+     finally{h.busy=false;if(same()){h.signature='';await mountHuman(host,session);}}
+    }
+    if(state.can_close_noncombat===true&&!h.pending||h.pending?.p_action==='close_noncombat'){
+     const closeBox=card('Chiusura senza conflitto'),draft=text(h.pending?.p_body||h.closeDraft||'',v=>{h.closeDraft=v;},5000);draft.setAttribute('aria-label','Esito del Fato che chiude l’incontro');draft.style.cssText='width:100%;min-height:110px;padding:9px 11px;border:1px solid var(--rule,#8a6f43);border-radius:7px;background:rgba(255,252,244,.8);color:var(--ink,#1d1206);font:500 17px/1.4 Georgia,serif;resize:vertical';closeBox.append(node('p','Scrivi come si conclude l’incontro. Il server pubblicherà questo Fato e aprirà la fase narrativa successiva con un solo comando.'),field('Esito del Fato',draft),status,button(h.pending?.p_action==='close_noncombat'?'Verifica la stessa chiusura':'Pubblica Fato e chiudi scontro',closePeacefully));host.prepend(closeBox);
+    }
     async function act(action,trigger=null){if(!same()||h.busy)return;if(!h.pending)h.pending={p_session:session,p_expected_version:state.control_version,p_action:action,p_trigger_key:trigger,p_request:uuid()};h.busy=true;host.querySelectorAll('button').forEach(b=>b.disabled=true);status.textContent='Esecuzione del comando…';
      try{await rpc('mission_human_phase_action_v1',copy(h.pending),user,stamp);if(!same())return;h.pending=null;h.lastError='';h.signature='';refresh();}
      catch(e){if(!same())return;if(e.code&&(/^(22|23)/.test(e.code)||['42501','40001','55000','P0001'].includes(e.code)))h.pending=null;h.lastError='Comando non confermato. '+e.message;if(e.code==='42501')showError(e);else status.textContent=h.lastError;}
      finally{h.busy=false;if(same()){h.signature='';await mountHuman(host,session);}}
     }
-    if(h.pending)actions.append(button('Verifica lo stesso comando',()=>act(h.pending.p_action,h.pending.p_trigger_key)));
+    if(h.pending?.p_action==='close_noncombat'){}
+    else if(h.pending)actions.append(button('Verifica lo stesso comando',()=>act(h.pending.p_action,h.pending.p_trigger_key)));
     else{if(state.can_open_encounter===true)actions.append(button('Apri lo scontro della fase',()=>act('open_encounter')));for(const t of state.transitions){if(typeof t.trigger_key==='string'&&typeof t.label==='string')actions.append(button(t.label,()=>act('advance',t.trigger_key)));}}
     actions.append(button('Aggiorna fase',()=>{h.signature='';mountHuman(host,session);},true));return h.result;
    }catch(e){return showError(e);}

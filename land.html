@@ -5715,8 +5715,9 @@ window.TUSOrdinary={attachOrdinaryLand};
     })();
       (function(){ var px=document.getElementById('pts-x'); if(px) px.addEventListener('click',function(){ var el=document.getElementById('pts-reminder'); if(el) el.hidden=true; }); })();
       var PIN='<svg class="pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
-      function renderMsgs(rows){
+      function renderMsgs(rows,fatoSupersessions){
         rows=rows||[];
+        fatoSupersessions=fatoSupersessions||{};
         var _nuovi=[];
         rows.forEach(function(m){ if(m && m.kind==='sensei' && m.author_name) _nuovi.push(m.author_name); });
         if(_nuovi.length) nomiAggiorna(_nuovi);
@@ -5736,7 +5737,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           }
           if(m.kind==='cura'){ return '<div class="msg-cura">'+HEAL+'<span>'+esc(m.body)+'</span></div>'; }
           if(m.kind==='motore'){ if(!iAmStaff) return ''; return '<div class="msg-motore"><span class="mm-k">motore</span><span>'+esc(m.body)+'</span></div>'; }
-          if(m.kind==='fato'){ var fb=m.body||'', fp=''; var fm=fb.match(/^【([^】]{1,60})】\s*([\s\S]*)$/); if(fm){ fp=fm[1]; fb=fm[2]; } return '<div class="msg-fato"><div class="mf-head"><span class="mf-k">Fato</span><span class="m-time">'+fmt(m.created_at)+'</span></div>'+(fp?'<span class="m-place">'+PIN+esc(fp)+'</span>':'')+'<div class="mf-body">'+fmtBody(fb)+'</div></div>'; }
+          if(m.kind==='fato'){ var fb=m.body||'', fp='', fs=fatoSupersessions[m.id]||''; var fm=fb.match(/^【([^】]{1,60})】\s*([\s\S]*)$/); if(fm){ fp=fm[1]; fb=fm[2]; } return '<div class="msg-fato"><div class="mf-head"><span class="mf-k">Fato'+(fs==='superseded'?' · esito superato':(fs==='reissuing'?' · in revisione':''))+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div>'+(fp?'<span class="m-place">'+PIN+esc(fp)+'</span>':'')+'<div class="mf-body">'+fmtBody(fb)+'</div></div>'; }
           if(m.kind==='sistema'&&m.author_name==='Il narratore'){ return '<div class="msg-narratore"><div class="mn-head"><span class="mn-k">Il narratore</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="mn-body">'+fmtNarratore(m.body)+'</div></div>'; }
           /* [COMBAT-040-042-R2] Le due righe pubbliche del Diversivo viaggiano
              su kind='sistema' (decisione PM 2): la SCENICA ha per autore il nome
@@ -5779,11 +5780,16 @@ window.TUSOrdinary={attachOrdinaryLand};
       function loadMsgs(expectedPublication){
         if(!sb||!cur) return Promise.resolve(false);
         var msgLocation=cur.id,msgPrincipal=myId,msgGeneration=++msgReadGeneration;
-        return sb.from('chat_messages_live').select('id,author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user,companion_body,character:characters(id,name,cognome,avatar_url,sex,rank,clan,clan_role,epithet),companion:character_companions(name,avatar_url,kind,grado)').eq('location_id',msgLocation).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(300).then(function(r){
+        var msgRequest=sb.from('chat_messages_live').select('id,author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user,companion_body,character:characters(id,name,cognome,avatar_url,sex,rank,clan,clan_role,epithet),companion:character_companions(name,avatar_url,kind,grado)').eq('location_id',msgLocation).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(300);
+        var fateRequest=msgLocation==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&iAmStaff?sb.rpc('mission_staff_fato_supersessions_v1',{p_location:msgLocation}):Promise.resolve({data:[]});
+        return Promise.all([msgRequest,fateRequest]).then(function(result){
+          var r=result[0],fr=result[1];
           if(!r||r.error||!cur||cur.id!==msgLocation||myId!==msgPrincipal||msgGeneration!==msgReadGeneration)return false;
           var rows=(r.data||[]).slice().reverse();
           if(expectedPublication&&!rows.some(function(m){return m.id===expectedPublication&&m.kind==='fato';}))return false;
-          renderMsgs(rows);return true;
+          var fateStatuses={};
+          if(fr&&!fr.error&&Array.isArray(fr.data))fr.data.forEach(function(f){if(f&&f.message_id&&(f.status==='superseded'||f.status==='reissuing'))fateStatuses[f.message_id]=f.status;});
+          renderMsgs(rows,fateStatuses);return true;
         },function(){return false;});
       }
       function renderWho(rows){
@@ -11646,7 +11652,7 @@ var nb028iTeardown=function(){};
       var MISSION_CREATION_UI=null,MISSION_CREATION_LOAD=null,MISSION_CREATION_NATIVE_MISSION=null;
       function missionCreationUI(){
         if(MISSION_CREATION_UI)return Promise.resolve(MISSION_CREATION_UI);
-        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mission-creation-ui.general.asset.v4.mjs?v=mission-creation-ui-academy-entry-safe-7').then(function(mod){
+        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mission-creation-ui.general.asset.v4.mjs?v=mission-creation-ui-human-peaceful-1').then(function(mod){
           MISSION_CREATION_UI=mod.createMissionCreationUI({client:sb,identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             mapPicker:function(initial,title){return missionArenaEditor().show({initial:initial,title:title});},
