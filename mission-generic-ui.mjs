@@ -1,4 +1,5 @@
-export const VERSION='mission-academy-role-flow-ui/4';
+import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=mission-staff-fato-regen-1';
+export const VERSION='mission-academy-role-flow-ui/5';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -15,6 +16,7 @@ function style(){if(styled)return;styled=true;const n=el('style',null);n.textCon
 
 export function createMissionUI({client,identity,isStaff,currentLocation,presentCharacters=async()=>[],creationEditor=null,creationBoard=null,notice=()=>{},refresh=()=>{}}){
  let currentDialog=null,roomEpoch=0,roomSignature='',roomState=null;
+ const regen=createStaffFatoRegen({client,identity,isStaff,currentLocation,refresh});
  const valid=(user)=>!!user&&identity()===user;
  async function rpc(name,args,user=identity()){
   if(!valid(user))throw Error('Accedi nuovamente per continuare.');
@@ -228,9 +230,9 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const key=choiceKey(state),pending=choiceRequests.get(key);
    // Only a confirmed RPC/rejection followed by an authoritative read unlocks choices.
    if(pending&&!pending.inFlight&&['confirmed','rejected'].includes(pending.phase)&&t.readSequence>pending.settledAfterRead)choiceRequests.delete(key);
-   paintRoom(host,state);if(!manual)maybeDispatch(state,t);
+   paintRoom(host,state);await regen.update(host,state);if(!manual)maybeDispatch(state,t);
   }catch(error){if(roomCurrent(t)&&roomState){roomError='Aggiornamento non disponibile. I comandi restano sospesi; premi Aggiorna regia.';paintRoom(host,roomState);}}
   finally{if(roomRead===t)roomRead=null;}
  }
- return {editor,board,decorateBoard,updateRoom,dispose(){roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';if(currentDialog)currentDialog.close();},version:VERSION};
+ return {editor,board,decorateBoard,updateRoom,dispose(){regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';if(currentDialog)currentDialog.close();},version:VERSION};
 }
