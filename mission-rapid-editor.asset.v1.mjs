@@ -1,4 +1,4 @@
-export const VERSION = 'mission-rapid-editor/2026-09-24.academy-reseal.1';
+export const VERSION = 'mission-rapid-editor/2026-09-26.npc-entry-candidate.1';
 export const DRAFT_SCHEMA = 'mission-rapid-draft/1';
 export const PREVIEW_SCHEMA = 'mission-rapid-preview/2';
 export const PUBLISH_SCHEMA = 'mission-rapid-publish-result/2';
@@ -14,9 +14,26 @@ const ACADEMY_RESEAL_SOURCES = Object.freeze([
   {id: '5878822d-dc03-4ac2-ad0b-1547f0ab3fc0', label: 'Prima della tempesta'}
 ]);
 const GRADE_RANKS = Object.freeze({D: ['deshi','academy'], C: ['genin'], B: ['chunin'], A: ['jonin'], S: ['kage','sannin']});
-export const hasCombatPhases = compiled => Array.isArray(compiled?.phases) && compiled.phases.some(phase => phase?.kind === 'combat');
-export const actorNeedsCombat = (compiled, actorKey) => Array.isArray(compiled?.phases) && compiled.phases.some(phase => phase?.kind === 'combat' && Array.isArray(phase.actor_keys) && phase.actor_keys.includes(actorKey));
+export const hasCombatPhases = compiled => Array.isArray(compiled?.phases) && compiled.phases.some(phase =>
+  phase?.kind === 'combat' || phase?.entry_policies?.some(policy => policy.offense_allowed === true));
+export const actorNeedsCombat = (compiled, actorKey) => Array.isArray(compiled?.phases) && compiled.phases.some(phase =>
+  Array.isArray(phase.actor_keys) && phase.actor_keys.includes(actorKey) &&
+  (phase.kind === 'combat' || phase.entry_policies?.some(policy => policy.actor_key === actorKey && policy.offense_allowed === true)));
 export const bundleAllowsCombat = bundle => Array.isArray(bundle?.mechanics?.document?.consumer_scopes) && bundle.mechanics.document.consumer_scopes.includes('combat_v2');
+const ENTRY_CAPABILITIES = Object.freeze(['speak','gesture','utility','offense']);
+const entryPolicyDefault = actorKey => ({actor_key: actorKey, visible_on_enter: true, visibility_trigger_key: null, entry_capabilities: ['speak','gesture','utility'], offense_allowed: false});
+
+export function setPhaseActorEntryPolicy(phase, actorKey, patch) {
+  if (!Array.isArray(phase?.actor_keys) || !phase.actor_keys.includes(actorKey)) throw Error('Il PNG non è presente in questa fase.');
+  if (!Array.isArray(phase.entry_policies)) phase.entry_policies = [];
+  const index = phase.entry_policies.findIndex(item => item.actor_key === actorKey);
+  if (patch === null) { if (index >= 0) phase.entry_policies.splice(index, 1); return; }
+  const next = {...(index >= 0 ? phase.entry_policies[index] : entryPolicyDefault(actorKey)), ...patch, actor_key: actorKey};
+  if (next.visible_on_enter === true) next.visibility_trigger_key = null;
+  if (next.offense_allowed === true && !next.entry_capabilities.includes('offense')) next.entry_capabilities = [...next.entry_capabilities, 'offense'];
+  if (next.offense_allowed === false) next.entry_capabilities = next.entry_capabilities.filter(x => x !== 'offense');
+  if (index >= 0) phase.entry_policies[index] = next; else phase.entry_policies.push(next);
+}
 
 // Le chiavi fanno parte del contratto server: la correzione editoriale aggiorna
 // ogni riferimento meccanico prima di richiedere una nuova anteprima autorevole.
@@ -43,7 +60,10 @@ export function removeDraftActor(state, actorKey) {
   if ((state.compiled.terminal_rules || []).some(x => x.subject_key === actorKey)) throw Error('Il PNG è soggetto di una condizione terminale.');
   if ((state.uploads || []).some(x => x.actor_key === actorKey) || (state.configuration?.actor_bindings || []).some(x => x.actor_key === actorKey && x.media_id)) throw Error('Il PNG ha già un’immagine attestata: conservare il binding.');
   state.compiled.actors = state.compiled.actors.filter(x => x.actor_key !== actorKey);
-  for (const phase of state.compiled.phases || []) phase.actor_keys = (phase.actor_keys || []).filter(x => x !== actorKey);
+  for (const phase of state.compiled.phases || []) {
+    phase.actor_keys = (phase.actor_keys || []).filter(x => x !== actorKey);
+    if (Array.isArray(phase.entry_policies)) phase.entry_policies = phase.entry_policies.filter(x => x.actor_key !== actorKey);
+  }
   state.configuration.actor_bindings = (state.configuration.actor_bindings || []).filter(x => x.actor_key !== actorKey);
   return true;
 }
@@ -176,6 +196,23 @@ export function localBlockingErrors(state) {
       }
     }
     if (bindings.some(x => !actorKeys.has(x.actor_key))) errors.push({code: 'ACTOR_BINDING_UNKNOWN'});
+    for (const phase of state.compiled.phases) {
+      if (phase.entry_policies === undefined) continue;
+      if (!Array.isArray(phase.entry_policies)) { errors.push({code:'ENTRY_POLICY_ARRAY',phase_key:phase.step_key}); continue; }
+      const seen = new Set();
+      for (const policy of phase.entry_policies) {
+        const key = policy?.actor_key;
+        if (!actorKeys.has(key) || !(phase.actor_keys || []).includes(key) || seen.has(key)) errors.push({code:'ENTRY_POLICY_ACTOR',phase_key:phase.step_key,actor_key:key});
+        seen.add(key);
+        const caps = policy?.entry_capabilities;
+        if (typeof policy?.visible_on_enter !== 'boolean' || typeof policy?.offense_allowed !== 'boolean'
+          || !Array.isArray(caps) || new Set(caps).size !== caps.length || caps.some(x => !ENTRY_CAPABILITIES.includes(x))
+          || policy.visible_on_enter && policy.visibility_trigger_key !== null
+          || !policy.visible_on_enter && !/^[a-z][a-z0-9_]{1,47}$/.test(policy.visibility_trigger_key || '')
+          || policy.offense_allowed !== caps.includes('offense')) errors.push({code:'ENTRY_POLICY_INVALID',phase_key:phase.step_key,actor_key:key});
+        if (phase.kind !== 'combat' && policy?.offense_allowed === true) errors.push({code:'ENTRY_POLICY_REQUIRES_COMBAT_PHASE',phase_key:phase.step_key,actor_key:key});
+      }
+    }
     for (const rule of state.compiled.terminal_rules || []) {
       const phase = state.compiled.phases.find(x => x.step_key === rule.phase_key);
       if (phase?.kind !== 'combat') errors.push({code:'RULE_PHASE_INVALID',rule_key:rule.rule_key});
@@ -443,10 +480,43 @@ export function createMissionRapidEditor({client, identity, isStaff, uploadMedia
       const phaseActors = el('fieldset'); phaseActors.append(el('legend', 'PNG presenti nella fase'));
       for (const actor of state.compiled.actors) {
         const check = el('input', null, {type: 'checkbox'}); check.checked = (phase.actor_keys || []).includes(actor.actor_key);
-        check.addEventListener('change', () => edit(() => { const keys = new Set(phase.actor_keys || []); if (check.checked) keys.add(actor.actor_key); else keys.delete(actor.actor_key); phase.actor_keys = [...keys]; }));
+        check.addEventListener('change', () => edit(() => {
+          const keys = new Set(phase.actor_keys || []);
+          if (check.checked) keys.add(actor.actor_key); else keys.delete(actor.actor_key);
+          phase.actor_keys = [...keys];
+          if (!check.checked && Array.isArray(phase.entry_policies)) phase.entry_policies = phase.entry_policies.filter(x => x.actor_key !== actor.actor_key);
+        }));
         phaseActors.append(field(actorLabel(actor), check));
       }
       box.append(phaseActors);
+      for (const actor of state.compiled.actors.filter(a => (phase.actor_keys || []).includes(a.actor_key))) {
+        const policy = phase.entry_policies?.find(x => x.actor_key === actor.actor_key);
+        const entry = el('fieldset', null, {class:'mr-subcard'}); entry.append(el('legend', `Ingresso · ${actorLabel(actor)}`));
+        const explicit = el('input', null, {type:'checkbox'}); explicit.checked = !!policy;
+        explicit.addEventListener('change', () => edit(() => setPhaseActorEntryPolicy(phase, actor.actor_key, explicit.checked ? {} : null)));
+        entry.append(field('Configura comportamento d’ingresso (altrimenti resta legacy)', explicit));
+        if (policy) {
+          const visible = el('input', null, {type:'checkbox'}); visible.checked = policy.visible_on_enter;
+          visible.addEventListener('change', () => edit(() => setPhaseActorEntryPolicy(phase, actor.actor_key, {visible_on_enter:visible.checked})));
+          entry.append(field('Visibile all’arrivo nella fase', visible));
+          if (!policy.visible_on_enter) entry.append(field('Trigger che lo rende visibile', input(policy.visibility_trigger_key || '', value => edit(() => setPhaseActorEntryPolicy(phase, actor.actor_key, {visibility_trigger_key:clean(value)})), {maxlength:'48'})));
+          for (const [kind,label] of [['speak','Può parlare'],['gesture','Può agire con gesti'],['utility','Può compiere azioni non offensive']]) {
+            const toggle = el('input', null, {type:'checkbox'}); toggle.checked = policy.entry_capabilities.includes(kind);
+            toggle.addEventListener('change', () => edit(() => {
+              const capabilities = new Set(policy.entry_capabilities);
+              if (toggle.checked) capabilities.add(kind); else capabilities.delete(kind);
+              setPhaseActorEntryPolicy(phase, actor.actor_key, {entry_capabilities:ENTRY_CAPABILITIES.filter(x => capabilities.has(x))});
+            }));
+            entry.append(field(label, toggle));
+          }
+          const offense = el('input', null, {type:'checkbox'}); offense.checked = policy.offense_allowed;
+          offense.disabled = phase.kind !== 'combat' && !policy.offense_allowed;
+          offense.addEventListener('change', () => edit(() => setPhaseActorEntryPolicy(phase, actor.actor_key, {offense_allowed:offense.checked})));
+          entry.append(field('Può iniziare azioni offensive', offense));
+          if (phase.kind !== 'combat') entry.append(el('p', 'L’iniziativa offensiva richiede una fase Combat e un incontro certificato; qui restano possibili parola e azioni non offensive.'));
+        }
+        box.append(entry);
+      }
       for (const transition of phase.transitions || []) { const tr = el('div', null, {class:'mr-subcard'}); tr.append(el('strong', `Passaggio · ${transition.transition_key}`), field('Quando', input(transition.when, v => edit(() => transition.when = v))), field('Destinazione', choice([['','Conclusione / nessuna'],...state.compiled.phases.map(x=>[x.step_key,x.title||x.step_key])], transition.to_step_key || '', v => edit(() => transition.to_step_key = v || null))), field('Risultato pubblico', input(transition.public_result, v => edit(() => transition.public_result = v), {rows:'2'})), field('Nota riservata', input(transition.private_note, v => edit(() => transition.private_note = v), {rows:'2'}))); box.append(tr); }
       phases.append(box);
     }); root.append(phases);
