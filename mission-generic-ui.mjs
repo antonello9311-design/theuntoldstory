@@ -380,8 +380,9 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    // Only a confirmed RPC/rejection followed by an authoritative read unlocks choices.
    if(pending&&!pending.inFlight&&['confirmed','rejected'].includes(pending.phase)&&t.readSequence>pending.settledAfterRead)choiceRequests.delete(key);
    paintRoom(host,state);await regen.update(host,state);
+   const projected=processingFor(state);
    if(!manual||staffAcademyRole(state,t.loc)?.reason==='ready_to_evaluate'
-    &&(processingFor(state).value===null||processingFor(state).value?.state==='failed'))maybeDispatch(state,t);
+    &&projected.valid&&(!projected.value||['completed','failed'].includes(projected.value.state)))maybeDispatch(state,t);
   }catch(error){if(roomCurrent(t)&&roomState){roomError='Aggiornamento non disponibile. I comandi restano sospesi; premi Aggiorna regia.';paintRoom(host,roomState);}}
   finally{if(roomRead===t)roomRead=null;}
  }
