@@ -185,6 +185,9 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     if(a.staffTickState==='replayed')return 'Il server ha riconosciuto la ricevuta della valutazione precedente. Attendi la pubblicazione o verifica il work; non inviare un nuovo tick.';
     if(a.staffTickState==='issued')return 'Valutazione registrata dal server. Il Fato sta preparando la scena; se non compare un work, lo Staff deve verificare la ricevuta.';
    }
+   if(flow==='combat_started'&&p?.state==='failed')return 'Scontro iniziato. La lavorazione del PNG richiede una verifica dello Staff; non ripetere l’azione.';
+   if(flow==='combat_started'&&p?.state==='uncertain')return 'Scontro iniziato. L’esito non è confermato; lo stato si aggiorna senza ripetere l’azione.';
+   if(flow==='combat_started')return 'Scontro iniziato. Il server sta raccogliendo le dichiarazioni e aggiorna il round.';
    if(role){
     if(role.reason==='own_role_invalid'||role.detail==='role_gate_mismatch')return roleStatusText(role,flow);
     if(role.reason==='recoverable_not_started'&&a?.outcome==='uncertain')return 'Ripresa della stessa richiesta non confermata. Le role sono conservate; lo Staff deve controllare la ricevuta prima di qualunque nuovo tentativo.';
@@ -345,14 +348,15 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(unresolvedTickForSession(state))return; // Same-session uncertainty blocks a new tick even when role revision changes.
   const role=roleProgress(state);
   const staffAcademy=isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc?.is_test===true&&academyFlow(state)!==null;
+  const staffCombat=staffAcademy&&academyFlow(state)==='combat_started'&&UUID.test(state.flow_publication_id||'');
   if(staffAcademy&&!role)return; // Never fall back to a browser UUID when the Staff projection is missing.
-  if(role&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started':role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
+  if(role&&!staffCombat&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started':role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
   if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(p?.state==='uncertain'||p?.state==='ready'&&role?.reason==='recoverable_not_started'&&p.finalized_at===null)))return;
   if(p&&['authorized','provider_started'].includes(p.state)||p?.state==='failed'&&!(staffAcademy&&role?.reason==='ready_to_evaluate')
    ||p&&['claimed','uncertain'].includes(p.state)&&!reclaim)return;
   const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?(p.state==='ready'?':reclaim-ready':':reclaim'):''):'tick:'+state.progress_key;
   const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey))return;
-  const staffRole=staffAcademyRole(state,t.loc),staffTick=!reclaim&&staffRole?.reason==='ready_to_evaluate'&&(!p||['completed','failed'].includes(p.state));
+  const staffRole=staffAcademyRole(state,t.loc),staffTick=!reclaim&&!staffCombat&&staffRole?.reason==='ready_to_evaluate'&&(!p||['completed','failed'].includes(p.state));
   const body=p&&(p.state==='ready'||reclaim)?clone(p.request):staffTick
    ?{schema_version:'mission-generic-staff-tick/1',master_session_id:state.session_id,source_revision:staffRole.revision}
    :{schema_version:'mission-generic-tick/1',master_session_id:state.session_id,request_key:id()};
@@ -397,7 +401,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(pending&&!pending.inFlight&&['confirmed','rejected'].includes(pending.phase)&&t.readSequence>pending.settledAfterRead)choiceRequests.delete(key);
    paintRoom(host,state);await regen.update(host,state);
    const projected=processingFor(state);
-   if(!manual||staffAcademyRole(state,t.loc)?.reason==='ready_to_evaluate'
+   if(!manual||academyFlow(state)==='combat_started'||staffAcademyRole(state,t.loc)?.reason==='ready_to_evaluate'
     &&projected.valid&&(!projected.value||['completed','failed'].includes(projected.value.state)))maybeDispatch(state,t);
   }catch(error){if(roomCurrent(t)&&roomState){roomError='Aggiornamento non disponibile. I comandi restano sospesi; premi Aggiorna regia.';paintRoom(host,roomState);}}
   finally{if(roomRead===t)roomRead=null;}
