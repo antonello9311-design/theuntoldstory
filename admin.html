@@ -1107,6 +1107,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
             <div class="grp-title" id="mission-rapid-title" style="margin-top:0">Nuova missione · trama e immagini</div>
             <p class="mgr-note">Inserisci la trama, correggi fasi e PNG, collega immagini e mappa, poi pubblica soltanto dopo l’anteprima server completa.</p>
             <div id="mission-rapid-host"></div>
+            <div id="academy-source-v4-host" class="mission-rapid-editor"></div>
           </section>
           <!-- MISSION-RAPID-EDITOR HTML FINE -->
 
@@ -4267,6 +4268,8 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
         missionRapidPicker=modules[1].createMissionMapPicker({client:sb,identity:function(){return me&&me.id;},isStaff:function(){return nbeRole==='admin';}});
         var editor=modules[0].createMissionRapidEditor({client:sb,identity:function(){return me&&me.id;},isStaff:function(){return nbeRole==='admin';},uploadMedia:missionRapidUpload,uploadContextMedia:missionRapidContextUpload,chooseMap:function(ctx){var m=ctx.compiled?.mission||{},counts=(ctx.compiled?.phases||[]).filter(function(p){return p.kind==='combat';}).map(function(p){return Array.isArray(p.actor_keys)?p.actor_keys.length:0;}),roster={pg_count:Number(m.team_max||1),png_count:Math.max(0,...counts)};return missionRapidPicker.pick(ctx.current,'Missione rapida',roster);},notice:function(text){toast(text);},onPublished:function(){loadBoards();}});
         await editor.mount(host);
+        var sourceRoot=$('academy-source-v4-host');
+        if(sourceRoot)try{var sourceModule=await import('./academy-source-v4-admin.mjs?v=academy-source-v4-admin-1');sourceModule.createAcademySourceV4Admin({client:sb,identity:function(){return me&&me.id;},isStaff:function(){return nbeRole==='admin';}}).mount(sourceRoot);}catch(sourceError){sourceRoot.textContent='Revisione Suna v4 non disponibile: '+(sourceError&&sourceError.message||'modulo non caricato');}
         window.__missionRapidAdminTest={version:modules[0].VERSION,upload:missionRapidUpload,uploadContext:missionRapidContextUpload,editor:editor};
       }catch(e){missionRapidBound=false;host.textContent=(e&&e.message)||'Editor rapido non disponibile.';}
     }
