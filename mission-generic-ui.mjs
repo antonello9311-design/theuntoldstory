@@ -280,6 +280,17 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    ||!state?.can_tick||!parsed.valid||work?.state!=='failed'||role?.reason!=='failed')return;
   const token={session:state.session_id,work:work.work_id};staffRoleRecovery=token;paintRoom(host,state);
   try{
+   const retry=await rpc('mission_staff_retry_failed_director_v1',
+    {p_session:token.session,p_failed_director:token.work},t.user);
+   if(!roomCurrent(t)||staffRoleRecovery!==token)return;
+   if(retry?.schema_version!=='mission-staff-director-retry/1'
+    ||!['released','not_applicable'].includes(retry.status))
+    throw Error('staff_director_retry_unconfirmed');
+   if(retry.status==='released'){
+    await updateRoom(host,{manual:false});
+    return;
+ }
+
    const result=await rpc('mission_staff_resume_identical_role_v1',
     {p_session:token.session,p_failed_director:token.work},t.user);
    if(!roomCurrent(t)||staffRoleRecovery!==token)return;
