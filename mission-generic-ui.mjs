@@ -86,13 +86,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const academyStates=new Set(['waiting_roles','evaluating','new_scene','combat_started']);
   const roleReasons=new Set(['own_role_missing','own_role_invalid','waiting_other_roles','ready_to_evaluate','provider_processing','recoverable_not_started','uncertain','failed','review_required','published']);
   const nextActors=new Set(['player','other_players','system','staff','none']);
- let roomScope=null,roomRead=null,roomHost=null,roomError='',cacheUser=null,readSequence=0,staffResumeRead=null;
+ let roomScope=null,roomRead=null,roomHost=null,roomError='',cacheUser=null,readSequence=0,staffResumeRead=null,staffRoleRecovery=null;
  const attempts=new Map(),choiceRequests=new Map();
  function scopeFor(user,loc){return user&&loc?.id?JSON.stringify([user,loc.id]):null;}
  function syncRoom(host){
   const user=identity(),loc=currentLocation(),scope=scopeFor(user,loc);
   if(cacheUser!==user){cacheUser=user;attempts.clear();choiceRequests.clear();}
-  if(scope!==roomScope||host!==roomHost){roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';staffResumeRead=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
+  if(scope!==roomScope||host!==roomHost){roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';staffResumeRead=null;staffRoleRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
   return {user,loc,scope,epoch:roomEpoch};
  }
  const roomCurrent=t=>t.scope===roomScope&&t.epoch===roomEpoch&&valid(t.user)&&scopeFor(identity(),currentLocation())===t.scope&&roomHost?.isConnected;
@@ -240,6 +240,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const key=JSON.stringify([cacheUser,state.session_id,'work:'+claim.work_id+':'+claim.revision+suffix]);
    resume.disabled=!!roomError||!!staffResumeRead||liveAttempt(state)||attempts.has(key);
   }else if(resume)resume.remove();
+  let roleRecovery=host.querySelector('[data-mg-role-recovery]');
+  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test
+   &&state.can_tick&&processing.valid&&claim?.state==='failed'&&role?.reason==='failed'){
+   if(!roleRecovery){roleRecovery=button('Verifica recupero della Regia',()=>staffRecoverIdenticalRole(host));roleRecovery.setAttribute('data-mg-role-recovery','');host.append(roleRecovery);}
+   roleRecovery.disabled=!!roomError||!!staffRoleRecovery||liveAttempt(state);
+  }else if(roleRecovery)roleRecovery.remove();
   let tickCheck=host.querySelector('[data-mg-tick-check]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&unresolvedTickForSession(state)){
    if(!tickCheck){tickCheck=button('Verifica invio',()=>updateRoom(host,{manual:true}));tickCheck.setAttribute('data-mg-tick-check','');host.append(tickCheck);}
@@ -267,6 +273,22 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    maybeDispatch(fresh,t,true); // processing.request is validated and reused byte-for-byte as a JS object.
   }catch{if(roomCurrent(t)&&staffResumeRead===token){roomError='Verifica della richiesta non riuscita. Nessun nuovo invio: aggiorna la regia e ricontrolla la stessa richiesta.';paintRoom(host,roomState);}}
   finally{if(staffResumeRead===token){staffResumeRead=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
+ }
+ async function staffRecoverIdenticalRole(host){
+  const t=syncRoom(host),state=roomState,parsed=processingFor(state),work=parsed.value,role=state&&roleProgress(state);
+  if(!roomCurrent(t)||staffRoleRecovery||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test
+   ||!state?.can_tick||!parsed.valid||work?.state!=='failed'||role?.reason!=='failed')return;
+  const token={session:state.session_id,work:work.work_id};staffRoleRecovery=token;paintRoom(host,state);
+  try{
+   const result=await rpc('mission_staff_resume_identical_role_v1',
+    {p_session:token.session,p_failed_director:token.work},t.user);
+   if(!roomCurrent(t)||staffRoleRecovery!==token)return;
+   if(result?.schema_version!=='mission-staff-role-resume/1'||result.work?.state!=='ready')
+    throw Error('staff_role_recovery_unconfirmed');
+   await updateRoom(host,{manual:true});
+  }catch{
+   if(roomCurrent(t)&&staffRoleRecovery===token){roomError='Questa scena non soddisfa i requisiti del recupero sicuro. Le role restano conservate; lo Staff deve verificare il work.';paintRoom(host,roomState);}
+  }finally{if(staffRoleRecovery===token){staffRoleRecovery=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
  }
   async function submitChoice(host,trigger,retry=false){
    const t=syncRoom(host),state=roomState;if(!state||!roomCurrent(t)||state.review_required===true||academyFlow(state)!==null)return;
