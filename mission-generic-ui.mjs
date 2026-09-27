@@ -190,6 +190,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     if(role.reason==='recoverable_not_started'&&a?.outcome==='uncertain')return 'Ripresa della stessa richiesta non confermata. Le role sono conservate; lo Staff deve controllare la ricevuta prima di qualunque nuovo tentativo.';
     if(role.reason==='recoverable_not_started'&&(a?.inFlight||a?.outcome==='waiting'))return 'Verifica della stessa richiesta in corso. Le role sono conservate; attendi il nuovo stato server.';
     if(p?.state==='uncertain')return roleStatusText({...role,reason:'uncertain'},flow);
+    if(p?.state==='failed'&&role.reason==='ready_to_evaluate'&&staffAcademyRole(state)!==null)return roleStatusText(role,flow);
     if(p?.state==='failed')return roleStatusText({...role,reason:'failed'},flow);
     return roleStatusText(role,flow);
    }
@@ -331,10 +332,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(staffAcademy&&!role)return; // Never fall back to a browser UUID when the Staff projection is missing.
   if(role&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started':role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
   if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(p?.state==='uncertain'||p?.state==='ready'&&role?.reason==='recoverable_not_started'&&p.finalized_at===null)))return;
-  if(p&&['authorized','provider_started','failed'].includes(p.state)||p&&['claimed','uncertain'].includes(p.state)&&!reclaim)return;
+  if(p&&['authorized','provider_started'].includes(p.state)||p?.state==='failed'&&!(staffAcademy&&role?.reason==='ready_to_evaluate')
+   ||p&&['claimed','uncertain'].includes(p.state)&&!reclaim)return;
   const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?(p.state==='ready'?':reclaim-ready':':reclaim'):''):'tick:'+state.progress_key;
   const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey))return;
-  const staffRole=staffAcademyRole(state,t.loc),staffTick=!reclaim&&staffRole?.reason==='ready_to_evaluate'&&(!p||p.state==='completed');
+  const staffRole=staffAcademyRole(state,t.loc),staffTick=!reclaim&&staffRole?.reason==='ready_to_evaluate'&&(!p||['completed','failed'].includes(p.state));
   const body=p&&(p.state==='ready'||reclaim)?clone(p.request):staffTick
    ?{schema_version:'mission-generic-staff-tick/1',master_session_id:state.session_id,source_revision:staffRole.revision}
    :{schema_version:'mission-generic-tick/1',master_session_id:state.session_id,request_key:id()};
