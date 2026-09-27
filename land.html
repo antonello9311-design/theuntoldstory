@@ -10085,11 +10085,21 @@ var nb028iTeardown=function(){};
            una sola chiamata, una sola transazione. Se il server rifiuta l'azione,
            il messaggio non viene nemmeno scritto. */
         var guidata = !to && !!CMB_AZ && !!(CMB&&CMB.aperto&&CMB.puo_comporre);
+        var missionRoleReceipt=null;
+        var academySubmitCandidate=!to&&!guidata&&!fatoMode&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test===true;
+        function missionRoleFeedback(message,kind){
+          var box=document.getElementById('mission-role-submit-feedback');
+          if(!box){box=document.createElement('p');box.id='mission-role-submit-feedback';box.setAttribute('role','status');box.setAttribute('aria-live','polite');input.parentNode.append(box);}
+          box.textContent=message;box.dataset.kind=kind;
+        }
         var req = to ? sb.rpc('post_whisper',{p_location:cur.id,p_recipient:to,p_body:t})
                      : (guidata ? sb.rpc('combat_azione',{p_location:cur.id, p_testo:pbody, p_azione:CMB_AZ,
                                                           p_companion:(prm.p_companion||null),
                                                           p_companion_body:(prm.p_companion_body||null)})
-                                : sb.rpc('post_message', prm));
+                                : academySubmitCandidate
+                                  ? missionGenericUI().then(function(ui){return ui.submitRole({characterId:myCharId,body:pbody,hasCompanion:!!pTxt,hasTechnique:!!SUG_SCELTA});})
+                                    .then(function(result){if(!result.handled)return sb.rpc('post_message',prm);missionRoleReceipt=result.receipt;return {data:result.receipt,error:null};})
+                                  : sb.rpc('post_message', prm));
         req.then(function(r){
           syncSendBtn();
           if(r&&r.error){ var raw=(r.error.message||''); var m=raw.toLowerCase();
@@ -10103,6 +10113,12 @@ var nb028iTeardown=function(){};
                     : (/destinatario/.test(m) ? 'Destinatario non valido'
                     : ((raw && !tecnico && raw.length<=200) ? raw : 'Impossibile inviare')));
             toast(msg); return; }
+          if(missionRoleReceipt){
+            missionRoleFeedback(missionRoleReceipt.mission_valid
+              ?'Role acquisita per questa missione. Il Fato valuterà le azioni dei partecipanti.'
+              :'Role pubblicata, ma non idonea alla fase della missione. Non conta per la valutazione: controlla il pannello e correggi.',
+              missionRoleReceipt.mission_valid?'accepted':'invalid');
+          }
           input.value=''; updCount(); sugScegli(null);
           if(guidata){ CMB_AZ=null; syncAzPill();
             var st=(r&&r.data&&r.data.stato)||null; if(st){ CMB=st; renderCombat(); } }
@@ -10113,7 +10129,10 @@ var nb028iTeardown=function(){};
              A dirlo resta role_open_here, non il conteggio dei caratteri. */
           loadMsgs(); loadWho(); loadRoleState(); loadTrainingState();
           if(typeof after==='function') after();
-        }, function(){ syncSendBtn(); toast('Impossibile inviare'); });
+        }, function(error){ syncSendBtn();
+          if(academySubmitCandidate){var message=error&&error.message||'Invio non confermato. Verifica la chat e lo stato della missione prima di riprovare.';missionRoleFeedback(message,'rejected');toast(message);}
+          else toast('Impossibile inviare');
+        });
       }
       /* ============================================================
          Suggeritore delle scene libere: si apre digitando [ e inserisce
@@ -11665,7 +11684,7 @@ var nb028iTeardown=function(){};
       var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null;
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=mission-staff-fato-regen-1').then(function(mod){
+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=mission-academy-flow-v4-staff-client-1').then(function(mod){
           MISSION_GENERIC_UI=mod.createMissionUI({client:sb,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             presentCharacters:async function(){var ids=(WHO||[]).map(function(w){return w.user_id;}).filter(Boolean);if(!ids.length)return [];var r=await sb.from('characters').select('id,name').in('user_id',ids);if(r.error)throw r.error;return r.data||[];},

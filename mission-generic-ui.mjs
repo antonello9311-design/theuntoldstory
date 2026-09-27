@@ -1,5 +1,5 @@
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=mission-staff-fato-regen-1';
-export const VERSION='mission-academy-role-flow-ui/5';
+export const VERSION='mission-academy-flow-v4-staff-client/1-candidate';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -84,13 +84,15 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  const SHA=/^[0-9a-f]{64}$/;
   const workStates=new Set(['ready','claimed','authorized','provider_started','completed','failed','uncertain']);
   const academyStates=new Set(['waiting_roles','evaluating','new_scene','combat_started']);
- let roomScope=null,roomRead=null,roomHost=null,roomError='',cacheUser=null,readSequence=0;
+  const roleReasons=new Set(['own_role_missing','own_role_invalid','waiting_other_roles','ready_to_evaluate','provider_processing','recoverable_not_started','uncertain','failed','review_required','published']);
+  const nextActors=new Set(['player','other_players','system','staff','none']);
+ let roomScope=null,roomRead=null,roomHost=null,roomError='',cacheUser=null,readSequence=0,staffResumeRead=null;
  const attempts=new Map(),choiceRequests=new Map();
  function scopeFor(user,loc){return user&&loc?.id?JSON.stringify([user,loc.id]):null;}
  function syncRoom(host){
   const user=identity(),loc=currentLocation(),scope=scopeFor(user,loc);
   if(cacheUser!==user){cacheUser=user;attempts.clear();choiceRequests.clear();}
-  if(scope!==roomScope||host!==roomHost){roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
+  if(scope!==roomScope||host!==roomHost){roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';staffResumeRead=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
   return {user,loc,scope,epoch:roomEpoch};
  }
  const roomCurrent=t=>t.scope===roomScope&&t.epoch===roomEpoch&&valid(t.user)&&scopeFor(identity(),currentLocation())===t.scope&&roomHost?.isConnected;
@@ -116,9 +118,59 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     ||(['new_scene','combat_started'].includes(flow)&&publication===null))throw Error('mission_academy_flow_invalid');
    return flow;
   }
+  function roleProgress(state){
+   const fields=['flow_reason','next_actor','roles_received','roles_required','source_revision'];
+   if(!fields.some(k=>Object.hasOwn(state,k)))return null; // Legacy projection remains readable.
+   if(!fields.every(k=>Object.hasOwn(state,k)))throw Error('mission_role_progress_shape');
+   const {flow_reason:reason,next_actor:actor,roles_received:received,roles_required:required,source_revision:revision}=state;
+   const detail=state.flow_detail;
+   if(!roleReasons.has(reason)||!nextActors.has(actor)||!Number.isSafeInteger(required)||required<1||required>4
+    ||!Number.isSafeInteger(received)||received<0||received>required||!SHA.test(revision||''))throw Error('mission_role_progress_invalid');
+   if(!(detail===undefined||detail===null||['latest_role_not_eligible','character_mismatch','left_before_submission','role_gate_mismatch'].includes(detail)))throw Error('mission_role_detail_invalid');
+   if(['latest_role_not_eligible','character_mismatch','left_before_submission'].includes(detail)&&reason!=='own_role_invalid')throw Error('mission_role_detail_reason_invalid');
+   return {reason,actor,received,required,revision,detail:detail??null};
+  }
+  function staffAcademyRole(state,loc=currentLocation()){
+   if(!isStaff()||loc?.id!==STAFF_TEST_ROOM||loc?.is_test!==true||academyFlow(state)===null)return null;
+   return roleProgress(state);
+  }
+  function roleStatusText(progress,flow){
+   if(!progress)return null;
+   const {reason,received,required,detail}=progress;
+   switch(reason){
+    case 'own_role_missing':return flow==='new_scene'
+      ?'Nuova scena · Il Fato ha aperto la fase successiva. Scrivi la tua role per continuare.'
+      :'In attesa delle role · Scrivi la tua role per continuare.';
+    case 'own_role_invalid':return detail==='left_before_submission'
+      ?'La tua partecipazione non è più attiva. Un’altra role non sblocca la missione: contatta lo Staff per verifica o riammissione.'
+      :detail==='character_mismatch'||detail==='latest_role_not_eligible'
+      ?'La tua ultima role non è collegata al PG iscritto alla missione. Seleziona quel personaggio e invia una nuova role; il messaggio precedente resta nello storico.'
+      :'La tua ultima role non è idonea per questa fase. Verifica il motivo con lo Staff prima di inviarne un’altra.';
+    case 'waiting_other_roles':return `In attesa delle role · ${received}/${required} ricevute. Manca ${required-received===1?'un partecipante':`${required-received} partecipanti`}; la valutazione partirà quando avranno scritto.`;
+    case 'ready_to_evaluate':return 'Il Fato sta valutando la scena · Le role necessarie sono state ricevute; non serve premere Avanza.';
+    case 'provider_processing':return 'Il Fato sta elaborando la scena · Attendi l’esito, senza reinviare la stessa role.';
+    case 'recoverable_not_started':return 'La valutazione non è confermata come avviata. Le role sono conservate; lo Staff deve verificare la stessa richiesta prima di riprenderla.';
+    case 'uncertain':return 'Esito non ancora confermato. Le role sono conservate; lo Staff deve verificare la stessa richiesta, senza ripeterla alla cieca.';
+    case 'failed':
+    case 'review_required':return detail==='role_gate_mismatch'
+      ?'Le role visibili non soddisfano ancora il controllo server della fase. Non inviarne altre alla cieca: lo Staff deve verificare il vincolo e sbloccare la scena.'
+      :'Il Fato è fermo. Le role sono conservate; lo Staff deve verificare e sbloccare questa scena.';
+    case 'published':return flow==='combat_started'?'Scontro iniziato · Dichiara l’azione nel pannello Scontro.':'Nuova scena · Puoi scrivere una nuova role.';
+   }
+   return null;
+  }
+  function unresolvedTickForSession(state){
+   if(staffAcademyRole(state)===null)return null;
+   const processing=processingFor(state);if(!processing.valid)return null;
+   const work=processing.value,publication=state.flow_publication_id??null;
+   return [...attempts.values()].reverse().find(a=>a.user===cacheUser&&a.session===state.session_id&&a.kind==='tick'
+    &&a.outcome==='uncertain'&&!a.inFlight
+    &&!(work?.work_id&&work.work_id!==a.prior_work_id)
+    &&!(publication&&publication!==a.prior_publication_id))||null;
+  }
   function statusText(state){
   if(roomError)return roomError;
-  if(state.review_required===true)return 'La scena richiede una valutazione dello staff prima di continuare.';
+  if(state.review_required===true&&roleProgress(state)===null)return 'La scena richiede una valutazione dello staff prima di continuare.';
   const choice=choiceRequests.get(choiceKey(state));
   if(choice?.inFlight)return 'Invio della scelta in corso. La lettura della stanza continua.';
   if(choice?.phase==='uncertain')return 'La scelta non è ancora confermata. Verifica la stessa scelta prima di inviarne un’altra.';
@@ -126,9 +178,23 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(choice?.phase==='rejected')return 'La scelta è stata respinta. Aggiorna lo stato prima di scegliere nuovamente.';
   const parsed=processingFor(state);if(!parsed.valid)return 'Stato di elaborazione non disponibile. Aggiorna; nessun nuovo invio automatico.';
    const p=parsed.value,a=currentAttempt(state);
+   const flow=academyFlow(state),role=roleProgress(state);
+   if(unresolvedTickForSession(state))return 'Un invio precedente della valutazione non è confermato, anche dopo nuove role. Le role sono conservate; lo Staff può verificare l’invio. Se non compare un work, serve un recupero server, non un nuovo tick.';
+   if(a?.staffTickState&&['confirmed','waiting'].includes(a.outcome)&&role?.revision===a.staffTickSource&&role.reason!=='published'){
+    if(a.staffTickState==='existing_work')return 'Il server ha trovato una lavorazione già aperta. Nessun nuovo tick è stato creato; verifica lo stato della stessa richiesta.';
+    if(a.staffTickState==='replayed')return 'Il server ha riconosciuto la ricevuta della valutazione precedente. Attendi la pubblicazione o verifica il work; non inviare un nuovo tick.';
+    if(a.staffTickState==='issued')return 'Valutazione registrata dal server. Il Fato sta preparando la scena; se non compare un work, lo Staff deve verificare la ricevuta.';
+   }
+   if(role){
+    if(role.reason==='own_role_invalid'||role.detail==='role_gate_mismatch')return roleStatusText(role,flow);
+    if(role.reason==='recoverable_not_started'&&a?.outcome==='uncertain')return 'Ripresa della stessa richiesta non confermata. Le role sono conservate; lo Staff deve controllare la ricevuta prima di qualunque nuovo tentativo.';
+    if(role.reason==='recoverable_not_started'&&(a?.inFlight||a?.outcome==='waiting'))return 'Verifica della stessa richiesta in corso. Le role sono conservate; attendi il nuovo stato server.';
+    if(p?.state==='uncertain')return roleStatusText({...role,reason:'uncertain'},flow);
+    if(p?.state==='failed')return roleStatusText({...role,reason:'failed'},flow);
+    return roleStatusText(role,flow);
+   }
    if(p?.state==='failed')return 'Il Fato richiede una verifica dello staff. Nessun nuovo tentativo automatico.';
    if(p?.state==='uncertain')return 'L’esito del Fato non è ancora confermato. Lo stato si aggiorna senza ripetere l’invio.';
-   const flow=academyFlow(state);
    if(flow==='waiting_roles')return 'In attesa delle role';
    if(flow==='evaluating')return 'Il Fato sta valutando la scena';
    if(flow==='new_scene')return 'Nuova scena';
@@ -163,15 +229,45 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(pending?.phase==='uncertain'){if(!retry){retry=button('Verifica la stessa scelta',()=>submitChoice(host,null,true));retry.setAttribute('data-mg-choice-retry','');host.append(retry);}retry.disabled=state.review_required===true||pending.inFlight;}
   else if(retry)retry.remove();
   const processing=processingFor(state),claim=processing.value;
+  const role=roleProgress(state);
+  const readyRecovery=role?.reason==='recoverable_not_started'&&claim?.state==='ready'&&claim.finalized_at===null;
+  const uncertainRecovery=claim?.state==='uncertain'&&(!role||role.reason==='uncertain');
   let resume=host.querySelector('[data-mg-claim-resume]');
-  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&state.can_tick&&state.review_required!==true&&processing.valid&&claim?.state==='uncertain'){
-   if(!resume){resume=button('Verifica o riprendi la stessa richiesta',()=>maybeDispatch(roomState,syncRoom(host),true));resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
-   const key=JSON.stringify([cacheUser,state.session_id,'work:'+claim.work_id+':'+claim.revision+':reclaim']);
-   resume.disabled=!!roomError||liveAttempt(state)||attempts.has(key);
+  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&state.can_tick&&state.review_required!==true&&processing.valid&&(readyRecovery||uncertainRecovery)){
+   if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(p?.state==='ready'&&r?.reason==='recoverable_not_started')void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
+   resume.textContent=readyRecovery?'Verifica e riprendi la stessa richiesta':'Verifica o riprendi la stessa richiesta';
+   const suffix=readyRecovery?':reclaim-ready':':reclaim';
+   const key=JSON.stringify([cacheUser,state.session_id,'work:'+claim.work_id+':'+claim.revision+suffix]);
+   resume.disabled=!!roomError||!!staffResumeRead||liveAttempt(state)||attempts.has(key);
   }else if(resume)resume.remove();
+  let tickCheck=host.querySelector('[data-mg-tick-check]');
+  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&unresolvedTickForSession(state)){
+   if(!tickCheck){tickCheck=button('Verifica invio',()=>updateRoom(host,{manual:true}));tickCheck.setAttribute('data-mg-tick-check','');host.append(tickCheck);}
+   tickCheck.disabled=!!roomError;
+  }else if(tickCheck)tickCheck.remove();
   const text=statusText(state);if(status.textContent!==text)status.textContent=text;
  }
  function definitiveChoiceError(error){const code=error?.code;return typeof code==='string'&&(/^(22|23)/.test(code)||['42501','40001','55000','P0001'].includes(code));}
+ async function staffResumeReady(host){
+  const t=syncRoom(host),old=roomState,oldClaim=old&&processingFor(old).value,oldRole=old&&roleProgress(old);
+  if(!roomCurrent(t)||staffResumeRead||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!old?.can_tick||old?.review_required===true
+   ||oldClaim?.state!=='ready'||oldClaim.finalized_at!==null||oldRole?.reason!=='recoverable_not_started')return;
+  const token={session:old.session_id,work:oldClaim.work_id,event:oldClaim.event_id,revision:oldClaim.revision,request_key:oldClaim.request_key,request_json:JSON.stringify(oldClaim.request),source_revision:oldRole.revision};
+  staffResumeRead=token;paintRoom(host,old);
+  try{
+   const fresh=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
+   if(!roomCurrent(t)||staffResumeRead!==token)return;
+   const parsed=fresh&&processingFor(fresh),claim=parsed?.value,role=fresh&&roleProgress(fresh);
+   if(!fresh||!parsed.valid)throw Error('staff_ready_readback_invalid');
+   roomState=fresh;roomError='';paintRoom(host,fresh);
+   if(fresh.session_id!==token.session||fresh.review_required===true||!fresh.can_tick||claim?.state!=='ready'||claim.finalized_at!==null
+    ||claim.work_id!==token.work||claim.event_id!==token.event||claim.revision!==token.revision||claim.request_key!==token.request_key
+    ||JSON.stringify(claim.request)!==token.request_json||role?.reason!=='recoverable_not_started'
+    ||role.revision!==token.source_revision)return; // State changed: no second request is created.
+   maybeDispatch(fresh,t,true); // processing.request is validated and reused byte-for-byte as a JS object.
+  }catch{if(roomCurrent(t)&&staffResumeRead===token){roomError='Verifica della richiesta non riuscita. Nessun nuovo invio: aggiorna la regia e ricontrolla la stessa richiesta.';paintRoom(host,roomState);}}
+  finally{if(staffResumeRead===token){staffResumeRead=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
+ }
   async function submitChoice(host,trigger,retry=false){
    const t=syncRoom(host),state=roomState;if(!state||!roomCurrent(t)||state.review_required===true||academyFlow(state)!==null)return;
   const key=choiceKey(state);let pending=choiceRequests.get(key);
@@ -196,17 +292,34 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function maybeDispatch(state,t,reclaim=false){
   const parsed=processingFor(state),p=parsed.value;if(!roomCurrent(t)||!parsed.valid||state.review_required===true||!state.can_tick||choiceRequests.has(choiceKey(state))||liveAttempt(state))return;
-  if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||p?.state!=='uncertain'))return;
+  if(unresolvedTickForSession(state))return; // Same-session uncertainty blocks a new tick even when role revision changes.
+  const role=roleProgress(state);
+  const staffAcademy=isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc?.is_test===true&&academyFlow(state)!==null;
+  if(staffAcademy&&!role)return; // Never fall back to a browser UUID when the Staff projection is missing.
+  if(role&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started':role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
+  if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(p?.state==='uncertain'||p?.state==='ready'&&role?.reason==='recoverable_not_started'&&p.finalized_at===null)))return;
   if(p&&['authorized','provider_started','failed'].includes(p.state)||p&&['claimed','uncertain'].includes(p.state)&&!reclaim)return;
-  const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?':reclaim':''):'tick:'+state.progress_key;
+  const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?(p.state==='ready'?':reclaim-ready':':reclaim'):''):'tick:'+state.progress_key;
   const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey))return;
-  const body=p&&(p.state==='ready'||reclaim)?clone(p.request):{schema_version:'mission-generic-tick/1',master_session_id:state.session_id,request_key:id()};
-  const a={user:t.user,session:state.session_id,key,work:p&&(p.state==='ready'||reclaim)?p.work_id:null,body:Object.freeze(body),inFlight:true,outcome:'pending'};attempts.set(storeKey,a);paintRoom(roomHost,state);
+  const staffRole=staffAcademyRole(state,t.loc),staffTick=!reclaim&&staffRole?.reason==='ready_to_evaluate'&&(!p||p.state==='completed');
+  const body=p&&(p.state==='ready'||reclaim)?clone(p.request):staffTick
+   ?{schema_version:'mission-generic-staff-tick/1',master_session_id:state.session_id,source_revision:staffRole.revision}
+   :{schema_version:'mission-generic-tick/1',master_session_id:state.session_id,request_key:id()};
+  const a={user:t.user,session:state.session_id,key,kind:key.startsWith('tick:')?'tick':'work',work:p&&(p.state==='ready'||reclaim)?p.work_id:null,
+   prior_work_id:p?.work_id??null,prior_publication_id:state.flow_publication_id??null,staffTickSource:staffTick?staffRole.revision:null,
+   staffTickState:null,body:Object.freeze(body),inFlight:true,outcome:'pending'};attempts.set(storeKey,a);paintRoom(roomHost,state);
   // Detached from the read lock: polling continues while the provider works.
   void (async()=>{
    try{
     const {data,error}=await client.functions.invoke('mission_generic_ai',{body:clone(a.body)});
     if(error)throw error;
+    if(staffTick){
+     const tick=data?.staff_tick;
+     if(data?.schema_version!=='mission-generic-progress/1'||data.master_session_id!==state.session_id
+      ||!['issued','replayed','existing_work'].includes(tick?.state)||tick.source_revision!==a.staffTickSource
+      ||!(tick.request_key===null||UUID.test(tick.request_key||'')))throw Error('staff_tick_response_invalid');
+     a.staffTickState=tick.state;
+    }
     const code=data?.delivery?.code||data?.code;
     if(code==='MISSION_EVENT_UNCERTAIN'||data?.state==='uncertain')a.outcome='uncertain';
     else if(code==='MISSION_EVENT_FAILED'||data?.state==='failed')a.outcome='failed';
@@ -226,6 +339,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(!state){roomState=null;roomSignature='';roomError='';host.replaceChildren();host.hidden=true;return;}
     if(!UUID.test(state.session_id||'')||typeof state.step_key!=='string')throw Error('room_state_invalid');
     academyFlow(state); // The server owns both the phase and the Fato publication receipt.
+    roleProgress(state); // A partial reason/remedy projection cannot authorize a dispatch.
    roomState=state;roomError='';
    const key=choiceKey(state),pending=choiceRequests.get(key);
    // Only a confirmed RPC/rejection followed by an authoritative read unlocks choices.
@@ -234,5 +348,37 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }catch(error){if(roomCurrent(t)&&roomState){roomError='Aggiornamento non disponibile. I comandi restano sospesi; premi Aggiorna regia.';paintRoom(host,roomState);}}
   finally{if(roomRead===t)roomRead=null;}
  }
- return {editor,board,decorateBoard,updateRoom,dispose(){regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';if(currentDialog)currentDialog.close();},version:VERSION};
+ async function submitRole({characterId,body,hasCompanion=false,hasTechnique=false}){
+  const user=identity(),loc=currentLocation();
+  if(loc?.id!==STAFF_TEST_ROOM||loc?.is_test!==true)return {handled:false};
+  if(!user)throw Error('Accedi nuovamente prima di inviare la role.');
+  const state=await rpc('mission_generic_room_state_v1',{p_location:loc.id},user);
+  if(!valid(user)||currentLocation()?.id!==loc.id)throw Error('Invio non confermato: stanza o sessione cambiata. Verifica la chat prima di riprovare.');
+  if(!state)return {handled:false};
+  if(!UUID.test(state.session_id||''))throw Error('Sessione missione non confermata. Nessun invio: aggiorna la regia.');
+  const flow=academyFlow(state);
+  if(flow===null)return {handled:false};
+  if(roleProgress(state)===null)throw Error('Stato delle role non disponibile. Nessun invio: aggiorna la regia.');
+  if(hasCompanion||hasTechnique)throw Error('La role della missione non può includere un’azione di compagno o tecnica tramite la chat. Togli la selezione e usa il pannello previsto.');
+  if(!UUID.test(characterId||''))throw Error('Seleziona il personaggio partecipante prima di inviare la role.');
+  if(typeof body!=='string'||!body.trim())throw Error('Scrivi la role prima di inviarla.');
+  const response=await client.rpc('mission_role_submit_v1',{p_session:state.session_id,p_character:characterId,p_body:body});
+  if(response.error){
+   const raw=String(response.error.message||'');
+   const labels={ROLE_SUBMIT_AUTH_REQUIRED:'Sessione scaduta: accedi di nuovo.',ROLE_SUBMIT_SCOPE_CLOSED:'La fase di missione non è più aperta: aggiorna la regia.',
+    ROLE_SUBMIT_CHARACTER_INVALID:'Il personaggio selezionato non appartiene al tuo account.',ROLE_SUBMIT_NOT_PARTICIPANT:'Il personaggio selezionato non partecipa a questa missione.',
+    ROLE_SUBMIT_EMPTY:'Scrivi la role prima di inviarla.',ROLE_SUBMIT_CHARACTER_DRIFT:'Il personaggio è cambiato durante l’invio: verifica la chat e chiedi allo Staff.'};
+   const code=Object.keys(labels).find(k=>raw.includes(k));
+   throw Error(code?labels[code]:'Invio non confermato. Verifica la chat e lo stato della missione prima di riprovare.');
+  }
+  const receipt=response.data;
+  if(receipt?.schema_version!=='mission-role-submit/1'||receipt.master_session_id!==state.session_id
+   ||receipt.accepted!==true||!UUID.test(receipt.message_id||'')||typeof receipt.mission_valid!=='boolean'
+   ||!SHA.test(receipt.source_revision||'')||!(receipt.invalid_reason===null||typeof receipt.invalid_reason==='string'))
+   throw Error('Ricevuta della role non confermata. Verifica la chat e lo stato della missione prima di riprovare.');
+  if(!valid(user)||currentLocation()?.id!==loc.id)throw Error('Role inviata ma sessione cambiata: verifica la chat prima di continuare.');
+  if(roomHost)void updateRoom(roomHost,{manual:true});
+  return {handled:true,receipt};
+ }
+ return {editor,board,decorateBoard,updateRoom,submitRole,dispose(){regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';if(currentDialog)currentDialog.close();},version:VERSION};
 }
