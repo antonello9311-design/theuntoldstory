@@ -121,6 +121,12 @@
     background:var(--ink);color:var(--paper-hi);font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
     padding:10px 18px;border-radius:8px;opacity:0;transition:.25s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
   .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast.combat-blocking{z-index:110;bottom:22px;pointer-events:auto;display:flex;align-items:center;gap:12px;
+    width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box;text-align:left;line-height:1.45}
+  .toast.combat-blocking[hidden]{display:none}
+  .toast.combat-blocking button{flex:none;border:1px solid currentColor;border-radius:5px;padding:6px 9px;
+    background:transparent;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer}
+  body.combat-has-blocking-toast #toast{bottom:104px}
   @media(prefers-reduced-motion:reduce){
     .land{animation:none;clip-path:inset(0 0 0 0)}
     .scroll{display:none}
@@ -4538,25 +4544,21 @@ function attachCombatPanel(host){
     badge.title='Scelta meccanica pronta: parte con la role quando premi Invia. Clic per modificarla.';
     send.before(badge);badge.addEventListener('click',()=>open(surface));return badge;
   }).filter(Boolean);
-  // Feedback persistente accanto a Invia anche quando il pannello è chiuso.
-  const sendFeedback=['msg-send','ed-send'].map(id=>{
-    const send=doc.getElementById(id);if(!send)return null;
-    const box=doc.createElement('span');box.className='common-send-feedback';box.hidden=true;
-    box.setAttribute('role','status');box.setAttribute('aria-live','polite');
-    const message=doc.createElement('span'),action=doc.createElement('button');action.type='button';
-    action.className='mv2-btn';box.append(message,action);send.before(box);
-    action.addEventListener('click',()=>open(surface));return {box,message,action};
-  }).filter(Boolean);
+  // Un blocco resta fuori dalla chat e dal composer finché la scelta non è risolta.
+  const blockingToast=doc.createElement('div');blockingToast.className='toast combat-blocking';blockingToast.hidden=true;
+  blockingToast.setAttribute('role','alert');blockingToast.setAttribute('aria-live','assertive');
+  const blockingMessage=doc.createElement('span'),blockingAction=doc.createElement('button');blockingAction.type='button';
+  blockingToast.append(blockingMessage,blockingAction);doc.body.append(blockingToast);
+  blockingAction.addEventListener('click',()=>open(surface));
   function syncSendFeedback(m){
     const last=m?.lastCommand,active=last&&['uncertain','rejected'].includes(last.status);
-    for(const item of sendFeedback){
-      item.box.hidden=!active;
-      if(active){
-        item.message.textContent=last.message+' Il testo della role è conservato. ';
-        item.action.textContent=last.status==='uncertain'?'Controlla invio':'Rivedi le scelte';
-        item.action.disabled=!!m.busy;
-      }else item.message.textContent='';
-    }
+    blockingToast.hidden=!active;blockingToast.classList.toggle('show',!!active);
+    doc.body.classList.toggle('combat-has-blocking-toast',!!active);
+    if(active){
+      blockingMessage.textContent=last.message+' Il testo della role è conservato.';
+      blockingAction.textContent=last.status==='uncertain'?'Controlla invio':'Rivedi le scelte';
+      blockingAction.disabled=!!m.busy;
+    }else blockingMessage.textContent='';
   }
   function draftSignature(m){
     const e=m?.envelope,o=e?.offers?.find(o=>o.offer_id===m.selectedOfferId);
@@ -4646,7 +4648,7 @@ function attachCombatPanel(host){
   }
   const entryClick=()=>open('ordinary');
   entry.addEventListener('click',entryClick);close.addEventListener('click',hide);
-  function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',hide);invalidate();for(const badge of badges)badge.remove();for(const item of sendFeedback)item.box.remove();root.remove();}
+  function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',hide);invalidate();for(const badge of badges)badge.remove();blockingToast.remove();doc.body.classList.remove('combat-has-blocking-toast');root.remove();}
   showEntry();
   return {open,refresh,invalidate,suspend,dispose,handleSend,ownsCurrent,closeMasterSurface:()=>{if(surface==='master')hide();},
     companionGate:()=>{const m=panel?.snapshot(),offer=m?.envelope?.offers?.find(o=>o.offer_id===m.selectedOfferId);return {required:offer?.companion_context_required===true,mechanicsReady:!!confirmedDraft&&draftSignature(m)===confirmedDraft.signature};},
