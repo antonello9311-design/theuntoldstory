@@ -86,13 +86,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const academyStates=new Set(['waiting_roles','evaluating','new_scene','combat_started']);
   const roleReasons=new Set(['own_role_missing','own_role_invalid','waiting_other_roles','ready_to_evaluate','provider_processing','recoverable_not_started','uncertain','failed','review_required','published']);
   const nextActors=new Set(['player','other_players','system','staff','none']);
- let roomScope=null,roomRead=null,roomHost=null,roomError='',cacheUser=null,readSequence=0,staffResumeRead=null,staffRoleRecovery=null;
- const attempts=new Map(),choiceRequests=new Map();
+ let roomScope=null,roomRead=null,roomHost=null,roomError='',cacheUser=null,readSequence=0,staffResumeRead=null,staffRoleRecovery=null,staffChoiceRecovery=null;
+ const attempts=new Map(),choiceRequests=new Map(),cachedChoiceRecoveries=new Set();
  function scopeFor(user,loc){return user&&loc?.id?JSON.stringify([user,loc.id]):null;}
  function syncRoom(host){
   const user=identity(),loc=currentLocation(),scope=scopeFor(user,loc);
-  if(cacheUser!==user){cacheUser=user;attempts.clear();choiceRequests.clear();}
-  if(scope!==roomScope||host!==roomHost){roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';staffResumeRead=null;staffRoleRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
+  if(cacheUser!==user){cacheUser=user;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();}
+  if(scope!==roomScope||host!==roomHost){roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
   return {user,loc,scope,epoch:roomEpoch};
  }
  const roomCurrent=t=>t.scope===roomScope&&t.epoch===roomEpoch&&valid(t.user)&&scopeFor(identity(),currentLocation())===t.scope&&roomHost?.isConnected;
@@ -250,6 +250,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(!roleRecovery){roleRecovery=button('Verifica recupero del Fato o della Regia',()=>staffRecoverIdenticalRole(host));roleRecovery.setAttribute('data-mg-role-recovery','');host.append(roleRecovery);}
    roleRecovery.disabled=!!roomError||!!staffRoleRecovery||liveAttempt(state);
   }else if(roleRecovery)roleRecovery.remove();
+  let combatRecovery=host.querySelector('[data-mg-combat-recovery]');
+  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test
+   &&flow==='combat_started'&&state.can_tick&&state.review_required!==true
+   &&processing.valid&&claim?.state==='failed'&&claim.finalized_at!==null){
+   if(!combatRecovery){combatRecovery=button('Verifica e recupera la lavorazione dello scontro',()=>staffRecoverCachedChoice(host));combatRecovery.setAttribute('data-mg-combat-recovery','');host.append(combatRecovery);}
+   combatRecovery.disabled=!!roomError||!!staffChoiceRecovery||liveAttempt(state)||cachedChoiceRecoveries.has(claim.work_id);
+  }else if(combatRecovery)combatRecovery.remove();
   let tickCheck=host.querySelector('[data-mg-tick-check]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&unresolvedTickForSession(state)){
    if(!tickCheck){tickCheck=button('Verifica invio',()=>updateRoom(host,{manual:true}));tickCheck.setAttribute('data-mg-tick-check','');host.append(tickCheck);}
@@ -258,6 +265,32 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const text=statusText(state);if(status.textContent!==text)status.textContent=text;
  }
  function definitiveChoiceError(error){const code=error?.code;return typeof code==='string'&&(/^(22|23)/.test(code)||['42501','40001','55000','P0001'].includes(code));}
+ async function staffRecoverCachedChoice(host){
+  const t=syncRoom(host),state=roomState,parsed=processingFor(state),work=parsed.value;
+  if(!roomCurrent(t)||staffChoiceRecovery||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test
+   ||academyFlow(state)!=='combat_started'||!state?.can_tick||state.review_required===true
+   ||!parsed.valid||work?.state!=='failed'||work.finalized_at===null
+   ||cachedChoiceRecoveries.has(work.work_id))return;
+  const token={session:state.session_id,work:work.work_id,request:JSON.stringify(work.request)};
+  staffChoiceRecovery=token;cachedChoiceRecoveries.add(work.work_id);paintRoom(host,state);
+  try{
+   const {data,error}=await client.functions.invoke('mission_generic_ai',{body:JSON.parse(token.request)});
+   const delivery=data?.delivery??data;
+   if(error||delivery?.code!=='MISSION_EVENT_COMPLETE'||!UUID.test(delivery.receipt_id||''))
+    throw Error('cached_choice_receipt_unconfirmed');
+   if(!roomCurrent(t)||staffChoiceRecovery!==token)return;
+   const readback=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
+   if(!roomCurrent(t)||staffChoiceRecovery!==token)return;
+   const fresh=processingFor(readback);
+   if(!fresh.valid||readback.session_id!==token.session
+    ||fresh.value?.work_id===token.work&&fresh.value.state==='failed')
+    throw Error('cached_choice_recovery_not_applied');
+   roomState=readback;roomError='';paintRoom(host,readback);
+   await updateRoom(host,{manual:true});refresh();
+  }catch{
+   if(roomCurrent(t)&&staffChoiceRecovery===token){roomError='Lavorazione non recuperata automaticamente. La role e l’esito IA restano conservati; lo Staff deve verificare il work prima di nuove azioni.';paintRoom(host,roomState);}
+  }finally{if(staffChoiceRecovery===token){staffChoiceRecovery=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
+ }
  async function staffResumeReady(host){
   const t=syncRoom(host),old=roomState,oldClaim=old&&processingFor(old).value,oldRole=old&&roleProgress(old);
   if(!roomCurrent(t)||staffResumeRead||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!old?.can_tick||old?.review_required===true
