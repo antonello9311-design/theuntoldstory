@@ -3993,8 +3993,101 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
       var n=$('pg-note'); if(n) n.textContent=PG.length+(PG.length===1?' personaggio':' personaggi');
     }
     function pgFind(id){ for(var i=0;i<PG.length;i++){ if(PG[i].id===id) return PG[i]; } return null; }
+var EHM_STAFF_CLIENT_ENABLED=true;
+var EHM_STAFF_VIEW=null;
+var EHM_STAFF_LIB=(function(){
+const STAFF_UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const STAFF_KINDS={promotion:'Promozione a Genin',reward:'XP dell’esame'};
+const STAFF_REASONS={invalid_input:'Dati non validi.',exam_unavailable:'Esame non disponibile.',staff_required:'Ruolo Staff non disponibile.',closure_mismatch:'Conclusione cambiata: rileggi lo stato.',already_decided:'Decisione già registrata.',completed_protected_exam_required:'Serve un esame protetto concluso normalmente.',not_qualified:'Decisioni non abilitate per questa prova.',not_eligible:'Prova non idonea.',exam_policy_ambiguous:'Configurazione esame da riconciliare.',native_rank_reconciliation_required:'Grado da riconciliare.',prerequisites_missing:'Requisiti non soddisfatti.',prior_progression_reconciliation_required:'Progressione precedente da riconciliare.',entitlement_other_exam:'Decisioni già collegate a un’altra prova.',technical_failure:'Operazione non completata dal server.',real_origin_unavailable:'Origine o abilitazione reale non disponibili.',policy_unavailable:'Policy reale non disponibile.',prior_award_reconciliation_required:'Attribuzioni precedenti da riconciliare.',provenance_changed:'Provenienza della progressione da riconciliare.',native_postcondition_failed:'Attribuzione non confermata dai controlli server.',execution_mode_unavailable:'Modalità della prova non attestata.',completed_exam_required:'Serve una prova conclusa normalmente.'};
+const STAFF_REAL_REASONS=new Set(['invalid_input','real_origin_unavailable','staff_required','policy_unavailable','prior_award_reconciliation_required','prerequisites_missing','provenance_changed','already_decided','native_postcondition_failed','technical_failure']);
+const STAFF_TEST_REASONS=new Set(['invalid_input','exam_unavailable','staff_required','closure_mismatch','already_decided','completed_protected_exam_required','not_qualified','not_eligible','exam_policy_ambiguous','native_rank_reconciliation_required','prerequisites_missing','prior_progression_reconciliation_required','entitlement_other_exam','technical_failure']);
+function staffCheck(ok){if(!ok)throw Error('Contratto Staff non compatibile. Richiesta conservata.');}
+function staffExact(o,keys){staffCheck(o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).length===keys.length&&keys.every(k=>Object.hasOwn(o,k)));}
+function staffMode(m){staffCheck(m==='staff_test'||m==='ordinary');return m==='staff_test';}
+function staffPolicy(p,mode){const sim=staffMode(mode);const keys=['schema','lesson_id','xp_amount','target_rank','pool_target','requirements'];if(sim)keys.push('pool_delta_if_applied','pool_source','simulated','native_triggers_executed');staffExact(p,keys);
+ staffCheck(p.schema===(sim?'exam-human-staff-policy/1':'exam-human-staff-real-policy/1')&&STAFF_UUID.test(p.lesson_id)&&p.target_rank==='Genin'&&typeof p.requirements==='string'&&['xp_amount','pool_target'].every(k=>Number.isFinite(p[k])&&p[k]>=0));
+ if(sim)staffCheck(p.simulated===true&&p.native_triggers_executed===false&&Number.isFinite(p.pool_delta_if_applied)&&p.pool_delta_if_applied>=0&&typeof p.pool_source==='string');return p;
+}
+function staffState(s,character){
+ staffCheck(s&&s.schema==='exam-human-staff-decisions/2'&&typeof s.available==='boolean');
+ if(!s.available){staffExact(s,['schema','available','mode','reason_code']);staffCheck(s.mode===null||['staff_test','ordinary'].includes(s.mode));staffCheck(typeof s.reason_code==='string');return s;}
+ staffExact(s,['schema','available','mode','exam_id','character_id','closure_id','state','simulated','qualified','reason_code','policy','decisions','actions','applied']);
+ const sim=staffMode(s.mode);staffExact(s.actions,['promotion','reward']);staffExact(s.applied,['promotion','reward']);
+ staffCheck(STAFF_UUID.test(s.exam_id)&&s.character_id===character&&STAFF_UUID.test(s.closure_id)&&s.state==='closed'&&s.simulated===sim&&typeof s.qualified==='boolean'&&['promotion','reward'].every(k=>typeof s.actions[k]==='boolean'&&typeof s.applied[k]==='boolean')&&Array.isArray(s.decisions));
+ if(sim)staffCheck(!s.applied.promotion&&!s.applied.reward);
+ if(s.policy!==null)staffPolicy(s.policy,s.mode);
+ if(s.actions.promotion||s.actions.reward)staffCheck(s.qualified&&s.policy!==null);
+ for(const d of s.decisions){staffCheck(d&&STAFF_UUID.test(d.decision_id)&&d.closure_id===s.closure_id&&Object.hasOwn(STAFF_KINDS,d.kind)&&d.simulated===sim&&d.applied_to_real_character===!sim&&typeof d.created_at==='string');if(!sim)staffCheck(s.applied[d.kind]===true);staffCheck(s.actions[d.kind]===false);}
+ return s;
+}
+function validateStaffDecisionReceipt(r,p,expectedMode='staff_test'){
+ staffExact(r,['schema','status','request_key','mode','receipt']);staffCheck(r.schema==='exam-human-staff-operation/2'&&r.request_key===p.p_request&&['unknown','committed','rejected'].includes(r.status));
+ if(r.status==='unknown'){staffCheck(r.mode===null&&r.receipt===null);return r;}
+ const sim=staffMode(r.mode);staffCheck(r.mode===expectedMode);const d=r.receipt,committed=r.status==='committed';
+ const keys=['schema','status','request_key','exam_id','closure_id','kind','simulated','promotion_applied','rewards_applied'];keys.push(...(committed?['decision_id','policy']:['reason_code']));if(committed&&!sim)keys.push('before','after','xp_log_id');staffExact(d,keys);
+ staffCheck(d.schema===(sim?'exam-human-staff-decision-receipt/1':'exam-human-staff-real-receipt/1')&&d.status===r.status&&d.request_key===p.p_request&&d.exam_id===p.p_exam&&d.closure_id===p.p_closure&&d.kind===p.p_kind&&d.simulated===sim);
+ staffCheck(d.promotion_applied===(!sim&&committed&&d.kind==='promotion')&&d.rewards_applied===(!sim&&committed&&d.kind==='reward'));
+ if(committed){staffCheck(STAFF_UUID.test(d.decision_id));staffPolicy(d.policy,r.mode);if(!sim){for(const snap of [d.before,d.after]){staffExact(snap,['rank','unspent_points','pool_concesso','exp','xp_lifetime']);staffCheck(snap.rank===null||typeof snap.rank==='string');for(const k of ['unspent_points','pool_concesso','exp','xp_lifetime'])staffCheck(snap[k]===null||Number.isFinite(snap[k]));}staffCheck(d.xp_log_id===null||STAFF_UUID.test(d.xp_log_id));}}
+ else staffCheck((sim?STAFF_TEST_REASONS:STAFF_REAL_REASONS).has(d.reason_code));return r;
+}
+function mountStaffExamDecisions(container,{client,principalId,characterId,storage=globalThis.sessionStorage}){
+ if(!client||!STAFF_UUID.test(principalId)||!STAFF_UUID.test(characterId))throw Error('Contesto Staff incompleto.');
+ const key=`exam-human-staff-decision/1:${principalId}`,draftKey=`exam-human-staff-draft/1:${principalId}:${characterId}`;
+ let pending=null,exams=[],busy=false,disposed=false,staff=false,note='',lastReceipt=null,draft=storage.getItem(draftKey)||'';
+ try{pending=JSON.parse(storage.getItem(key)||'null');if(pending&&(!STAFF_UUID.test(pending.character_id)||!['p_exam','p_closure','p_request'].every(k=>STAFF_UUID.test(pending.command?.[k]))||!Object.hasOwn(STAFF_KINDS,pending.command.p_kind)||typeof pending.command.p_reason!=='string'||(pending.expected_mode!==undefined&&!['staff_test','ordinary'].includes(pending.expected_mode))))throw Error();}catch{pending={corrupt:true};}
+ const node=(tag,text,parent)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(parent)parent.append(n);return n;};
+ const status=node('p');status.setAttribute('aria-live','polite');const content=node('div');
+ const title=node('strong','Esame con Master · decisioni Staff');
+ const warning=node('p','La modalità è attestata dal server per ogni prova. Le decisioni simulate non attribuiscono nulla; quelle reali applicano promozione o XP solo dopo conferma della ricevuta.');
+ const reasonLabel=node('label','Motivazione Staff'),reason=node('textarea',undefined,reasonLabel);reason.maxLength=5000;reason.value=draft;
+ const refreshButton=node('button','Aggiorna / recupera ricevuta'),retry=node('button','Riprova la stessa decisione');
+ for(const b of [refreshButton,retry]){b.type='button';b.className='mini-btn';}
+ container.replaceChildren(title,warning,status,content,reasonLabel,refreshButton,retry);
+ function alive(){if(disposed)throw Error('Contesto cambiato. Richiesta conservata.');}
+ function invalidate(){disposed=true;staff=false;for(const n of container.querySelectorAll('button,textarea'))n.disabled=true;status.textContent='Accesso cambiato. Richieste e motivazione conservate.';}
+ async function identity(){alive();const r=await client.auth.getSession();alive();if(r.error||r.data?.session?.user?.id!==principalId){invalidate();throw Error('Accesso cambiato.');}}
+ async function authority(){await identity();const r=await client.from('profiles').select('role').eq('id',principalId).maybeSingle();alive();staff=!r.error&&['admin','master'].includes(r.data?.role);return staff;}
+ async function rpc(name,args){await identity();const r=await client.rpc(name,args);await identity();if(r.error||r.data==null)throw Error('Risposta non confermata. Conserva la richiesta e rileggi.');return r.data;}
+ function render(){if(disposed)return;status.textContent=note||(pending?'Decisione da verificare. Nessuna nuova decisione consentita.':'');reason.disabled=busy||!!pending||!staff;refreshButton.disabled=busy;retry.hidden=!pending||pending.corrupt;retry.disabled=busy||!staff;
+  content.replaceChildren();for(const s of exams){const box=node('section',undefined,content);if(!s.available){node('p',STAFF_REASONS[s.reason_code]||'Prova non disponibile.',box);continue;}const sim=s.mode==='staff_test';node('strong',sim?'Esame concluso · simulazione senza attribuzioni':'Esame concluso · attribuzioni reali',box);
+   if(s.policy){node('p',`Policy prevista: grado ${s.policy.target_rank}; pool obiettivo ${s.policy.pool_target}.`,box);if(sim)node('p',`Punti previsti da concedere: ${s.policy.pool_delta_if_applied}. Simulazione: non assegnati.`,box);node('p',`XP configurati per l’esame: ${s.policy.xp_amount}. La policy non è una ricevuta di accredito.`,box);}
+   if(s.reason_code)node('p',STAFF_REASONS[s.reason_code]||'Disponibilità da verificare con lo Staff.',box);
+   for(const d of s.decisions)node('p',`${STAFF_KINDS[d.kind]}: ${sim?'decisione simulata registrata, nessuna attribuzione':'attribuzione reale registrata dal server'}.`,box);
+   for(const kind of ['promotion','reward']){const b=node('button',sim?`Registra ${kind==='promotion'?'promozione':'XP esame'} simulata`:(kind==='promotion'?'Conferma promozione reale a Genin':'Conferma assegnazione XP esame reali'),box);b.type='button';b.className='mini-btn';b.disabled=busy||!!pending||!staff||!s.actions[kind];b.addEventListener('click',()=>start(s,kind));}
+  }
+  if(lastReceipt?.mode==='ordinary'&&lastReceipt.status==='committed'){const actual=node('section',undefined,content);node('strong','Risultato della tua ricevuta reale',actual);for(const[label,k]of [['Grado','rank'],['Punti disponibili','unspent_points'],['Pool concesso','pool_concesso'],['XP','exp'],['XP carriera','xp_lifetime']])node('p',`${label}: prima ${lastReceipt.receipt.before[k]??'non disponibile'}; dopo ${lastReceipt.receipt.after[k]??'non disponibile'}.`,actual);}
+  if(!exams.length&&!pending)node('p',staff?'Nessun esame concluso disponibile per questo PG.':'È disponibile soltanto il recupero delle proprie ricevute.',content);
+ }
+ async function recover(){if(!pending||pending.corrupt)return false;const saved=pending,p=saved.command;const r=validateStaffDecisionReceipt(await rpc('esame_human_staff_decision_operation_v1',{p_request:p.p_request}),p,saved.expected_mode??'staff_test');if(r.status==='unknown')return false;
+  const raw=storage.getItem(key);if(JSON.stringify(JSON.parse(raw||'null'))!==JSON.stringify(saved))throw Error('Richiesta locale cambiata: conservata.');
+  storage.setItem(`exam-human-staff-receipt/1:${principalId}:${p.p_request}`,JSON.stringify({request:saved,receipt:r,draft:storage.getItem(`exam-human-staff-draft/1:${principalId}:${saved.character_id}`)}));storage.removeItem(key);pending=null;
+  lastReceipt=r;note=r.status==='committed'?(r.mode==='staff_test'?'Decisione simulata registrata. Nessuna attribuzione reale.':'Attribuzione reale confermata dalla ricevuta server.'):STAFF_REASONS[r.receipt.reason_code];return true;
+ }
+ async function load(){exams=[];if(!await authority())return;const d=await rpc('esame_human_staff_decisions_v1',{p_character:characterId});if(d.schema!=='exam-human-staff-discovery/2'||d.character_id!==characterId||!Array.isArray(d.exams))throw Error('Elenco esami non compatibile.');exams=d.exams.map(s=>staffState(s,characterId));}
+ async function refresh(){if(busy||disposed)return;busy=true;render();try{await recover();await load();}catch(e){exams=[];staff=false;note=e.message;}finally{busy=false;render();}}
+ async function sendSaved(){if(busy||disposed||!pending||pending.corrupt)return;busy=true;render();try{
+  if(await recover()){await load();return;}if(!await authority())throw Error('Ruolo revocato: solo recupero della ricevuta.');
+  const p=pending.command;const s=staffState(await rpc('esame_human_staff_decision_state_v1',{p_exam:p.p_exam}),pending.character_id);
+  if(!s.available||s.exam_id!==p.p_exam||s.mode!==(pending.expected_mode??'staff_test')||s.closure_id!==p.p_closure||!s.qualified)throw Error('Contesto non più disponibile. Richiesta conservata per sola lettura.');
+  // La categoria già consumata deve poter ricevere un esito autorevole per questa stessa UUID.
+  if(!s.actions[p.p_kind]&&!s.decisions.some(d=>d.kind===p.p_kind))throw Error('Azione non più disponibile. Richiesta conservata per sola lettura.');
+  if(!await authority())throw Error('Ruolo revocato: nessun invio.');
+  validateStaffDecisionReceipt(await rpc('esame_human_staff_decision_v1',p),p,pending.expected_mode??'staff_test');await recover();await load();
+ }catch(e){note=e.message;}finally{busy=false;render();}}
+ async function start(s,kind){if(busy||disposed||pending||!staff||!s.actions[kind])return;const motivation=reason.value.trim();if(!motivation||motivation.length>5000){note='Scrivi una motivazione da 1 a 5000 caratteri.';render();return;}
+  const next={character_id:characterId,expected_mode:s.mode,command:{p_exam:s.exam_id,p_closure:s.closure_id,p_request:crypto.randomUUID(),p_kind:kind,p_reason:motivation}};
+  try{storage.setItem(key,JSON.stringify(next));pending=next;}catch{note='Recupero locale non disponibile: nessun invio.';render();return;}await sendSaved();
+ }
+ reason.addEventListener('input',()=>{draft=reason.value;try{storage.setItem(draftKey,draft);}catch{note='Motivazione non salvata localmente.';}});
+ refreshButton.addEventListener('click',refresh);retry.addEventListener('click',sendSaved);
+ const subscription=client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||session?.user?.id!==principalId)invalidate();})?.data?.subscription;
+ render();return{refresh,dispose(){disposed=true;subscription?.unsubscribe();container.replaceChildren();}};
+}
+
+return {mount:mountStaffExamDecisions};})();
     function pgPanel(c){
       var a=pgOpen.act, t='';
+      if(a==='exam'&&EHM_STAFF_CLIENT_ENABLED)return '<div id="ehm-staff-inline" class="ldesc" style="width:100%"></div>';
       if(a==='xp')    t='<label class="full">Quanti XP <input id="pg-in" type="number" step="5" value="100"></label><label class="full">Motivo, che finisce nel registro <input id="pg-in2" type="text" value="collaudo" maxlength="80"></label>';
       if(a==='ryo')   t='<label class="full">Ryo da aggiungere, con il meno per toglierli <input id="pg-in" type="number" step="10" value="100"></label>';
       if(a==='punti') t='<label class="full">Punti caratteristica da aggiungere <input id="pg-in" type="number" step="5" value="5"></label>';
@@ -4006,6 +4099,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
         +'<button class="mini-btn" type="button" data-pgno="1">Annulla</button></div></div>';
     }
     function renderPg(){
+      if(EHM_STAFF_VIEW){EHM_STAFF_VIEW.dispose();EHM_STAFF_VIEW=null;}
       var host=$('pg-list'); if(!host) return;
       var q=((($('pg-q')||{}).value)||'').trim().toLowerCase();
       var rows=PG.filter(function(c){
@@ -4023,6 +4117,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
           +'<span class="lmeta"> · '+(c.money==null?'?':c.money)+' Ryo</span>'
           +((c.unspent_points>0)?('<span class="lmeta lnote"> · '+c.unspent_points+' punti da assegnare</span>'):'');
         var acts='<div class="lacts">'
+          +(EHM_STAFF_CLIENT_ENABLED?'<button class="mini-btn" type="button" data-pgact="exam" data-id="'+esc(c.id)+'">Esame Master</button>':'')
           +'<button class="mini-btn" type="button" data-pgact="xp" data-id="'+c.id+'">Dai XP</button>'
           +'<button class="mini-btn" type="button" data-pgact="ryo" data-id="'+c.id+'">Ryo</button>'
           +'<button class="mini-btn" type="button" data-pgact="punti" data-id="'+c.id+'">Punti</button>'
@@ -4033,6 +4128,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
         var box=(pgOpen&&pgOpen.id===c.id)?pgPanel(c):'';
         return '<div class="locrow"><div class="lmain"><span class="lname">'+esc(c.name)+'</span><span class="lkind">'+esc(c.rank||'—')+'</span>'+meta+'</div>'+acts+box+'</div>';
       }).join('');
+      if(EHM_STAFF_CLIENT_ENABLED&&pgOpen&&pgOpen.act==='exam'&&me&&$('ehm-staff-inline')){EHM_STAFF_VIEW=EHM_STAFF_LIB.mount($('ehm-staff-inline'),{client:sb,principalId:me.id,characterId:pgOpen.id});EHM_STAFF_VIEW.refresh();}
     }
     async function pgEsegui(c){
       var a=pgOpen.act, v=($('pg-in')?Number($('pg-in').value):0), m=($('pg-in2')?($('pg-in2').value||'').trim():'');
