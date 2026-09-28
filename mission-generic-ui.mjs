@@ -235,7 +235,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const processing=processingFor(state),claim=processing.value;
   const role=roleProgress(state);
   const readyRecovery=role?.reason==='recoverable_not_started'&&claim?.state==='ready'&&claim.finalized_at===null;
-  const uncertainRecovery=claim?.state==='uncertain'&&(!role||role.reason==='uncertain');
+  const uncertainRecovery=claim?.state==='uncertain'&&(!role||role.reason==='uncertain'||academyFlow(state)==='combat_started');
   let resume=host.querySelector('[data-mg-claim-resume]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&state.can_tick&&state.review_required!==true&&processing.valid&&(readyRecovery||uncertainRecovery)){
    if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(p?.state==='ready'&&r?.reason==='recoverable_not_started')void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
