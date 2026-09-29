@@ -14,7 +14,7 @@ function style(){if(styled)return;styled=true;const n=el('style',null);n.textCon
 .mg-dialog::backdrop{background:#0009}.mg-dialog button,.mg-dialog input,.mg-dialog select,.mg-dialog textarea{font:inherit;padding:8px;border-radius:6px;border:1px solid #8e8669;max-width:100%;box-sizing:border-box}.mg-dialog button{cursor:pointer}.mg-dialog button:disabled{opacity:.55;cursor:wait}.mg-dialog textarea{width:100%;min-height:80px}.mg-field{display:flex;flex-direction:column;gap:5px;margin:8px 0}.mg-row{display:flex;flex-wrap:wrap;align-items:end;gap:10px}.mg-row>.mg-field{flex:1;min-width:160px}.mg-scene{border:1px solid #b8b09c;border-radius:8px;padding:14px;margin:12px 0;background:#fff9}.mg-status{min-height:1.4em}.mg-dialog h3,.mg-dialog h4{margin:8px 0}.mg-room{padding:10px 14px;border:1px solid #a89a75;border-radius:8px;margin:8px 0}.mg-room [role=status]{margin:4px 0}.mg-room button{margin:4px}.mg-dialog summary{cursor:pointer;font-weight:bold}.mg-inline-check{display:inline-flex;align-items:center;gap:5px;margin:5px 12px 5px 0}
 `;document.head.append(n);}
 
-export function createMissionUI({client,identity,isStaff,currentLocation,presentCharacters=async()=>[],creationEditor=null,creationBoard=null,notice=()=>{},refresh=()=>{}}){
+export function createMissionUI({client,identity,isStaff,currentLocation,presentCharacters=async()=>[],creationEditor=null,creationBoard=null,notice=()=>{},refresh=()=>{},openCombat=()=>{}}){
  let currentDialog=null,roomEpoch=0,roomSignature='',roomState=null;
  const regen=createStaffFatoRegen({client,identity,isStaff,currentLocation,refresh});
  const valid=(user)=>!!user&&identity()===user;
@@ -87,12 +87,73 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const roleReasons=new Set(['own_role_missing','own_role_invalid','waiting_other_roles','ready_to_evaluate','provider_processing','recoverable_not_started','uncertain','failed','review_required','published']);
   const nextActors=new Set(['player','other_players','system','staff','none']);
  let roomScope=null,roomRead=null,roomHost=null,roomError='',cacheUser=null,readSequence=0,staffResumeRead=null,staffRoleRecovery=null,staffChoiceRecovery=null;
+ let entryState=null,entryPending=null,entryError='',entryReplayReady=false;
+ const entryKey=(user,session)=>`regia-combat-entry/1:${user}:${session}`;
+ function validEntry(x,session,request=null){return x?.schema==='regia-combat-entry/1'&&x.master_session_id===session
+  &&['unavailable','ready','prepared','open',...(request===null?[]:['not_found'])].includes(x.status)
+  &&(x.step_key===null||typeof x.step_key==='string')
+  &&(x.run_control_version===null||Number.isSafeInteger(x.run_control_version))
+  &&(x.entry_revision===null||Number.isSafeInteger(x.entry_revision))
+  &&typeof x.can_prepare==='boolean'&&typeof x.can_open_panel==='boolean'
+  &&[null,'REGIA_ENTRY_UNAVAILABLE','REGIA_TURN_AUTHORITY_REQUIRED','REGIA_FATO_PENDING','REGIA_NOT_YOUR_TURN','REGIA_OPERATION_NOT_FOUND'].includes(x.reason_code)
+  &&['encounter_id','opening_round_id','public_round_id','publication_id'].every(k=>x[k]===null||UUID.test(x[k]||''))
+  &&['main','defense','reaction'].every(k=>typeof x.permissions?.[k]==='boolean')
+  &&(request===null?x.request_key===null:x.status==='not_found'?x.request_key===null&&x.reason_code==='REGIA_OPERATION_NOT_FOUND':x.request_key===request);}
+ async function readEntry(state,user){
+  entryState=null;entryError='';entryPending=null;entryReplayReady=false;
+  if(state.state!=='in_corso')return; // La riserva Staff e l'apertura pubblica sono autorità del reader server.
+  const key=entryKey(user,state.session_id);let saved=null;
+  try{saved=JSON.parse(sessionStorage.getItem(key)||'null');}catch{entryError='Ingresso da verificare: richiesta locale non leggibile.';return;}
+  if(saved){if(saved.session!==state.session_id||!UUID.test(saved.request_key||'')){entryError='Ingresso da verificare: richiesta locale non leggibile.';return;}entryPending=saved;}
+  try{
+   const value=await rpc('regia_combat_entry_state_v1',{p_master_session:state.session_id},user);
+   if(!validEntry(value,state.session_id))throw Error('entry_contract');
+   entryState=value;
+   if(saved){const receipt=await rpc('regia_combat_entry_receipt_v1',{p_master_session:state.session_id,p_request_key:saved.request_key},user);
+    if(!validEntry(receipt,state.session_id,saved.request_key))throw Error('entry_receipt');
+    if(receipt.status==='not_found'){entryReplayReady=true;entryError='Ricevuta assente: puoi ripetere la stessa apertura conservata.';}
+    else if(['prepared','open'].includes(receipt.status)){sessionStorage.removeItem(key);entryPending=null;}
+   }
+  }catch{entryError='Ingresso Regia non verificabile: nessun comando inviato.';}
+ }
+ async function prepareEntry(host,state){
+  const user=identity(),e=entryState;if(!valid(user)||!e?.can_prepare||entryPending||!Number.isSafeInteger(e.entry_revision)||state.session_id!==roomState?.session_id)return;
+  const key=entryKey(user,state.session_id),request_key=id(),saved={session:state.session_id,request_key,revision:e.entry_revision};
+  try{sessionStorage.setItem(key,JSON.stringify(saved));entryPending=saved;}catch{entryError='Recupero locale indisponibile: nessun comando inviato.';paintRoom(host,state);return;}
+  paintRoom(host,state);
+  try{const result=await rpc('regia_combat_entry_prepare_v1',{p_master_session:state.session_id,p_expected_revision:saved.revision,p_request_key:request_key},user);
+   if(!validEntry(result,state.session_id,request_key))throw Error('entry_prepare');
+   if(['prepared','open'].includes(result.status)){sessionStorage.removeItem(key);entryPending=null;}
+  }catch{entryError='Ingresso incerto: verifica la stessa richiesta.';}
+  await updateRoom(host,{manual:true});
+ }
+
+ async function retryEntry(host,state){
+  const t=syncRoom(host);
+  if(!roomCurrent(t)||!entryReplayReady||!entryPending||!entryState||roomState?.session_id!==state?.session_id)return;
+  const saved=entryPending,user=t.user,session=roomState.session_id;
+  if(saved.session!==session||!UUID.test(saved.request_key||'')||!Number.isSafeInteger(saved.revision))return;
+  entryReplayReady=false;paintRoom(host,roomState);
+  try{
+   const receipt=await rpc('regia_combat_entry_receipt_v1',
+    {p_master_session:session,p_request_key:saved.request_key},user);
+   if(!roomCurrent(t)||!validEntry(receipt,session,saved.request_key))throw Error('entry_receipt_unconfirmed');
+   if(receipt.status==='not_found'){
+    const result=await rpc('regia_combat_entry_prepare_v1',
+     {p_master_session:saved.session,p_expected_revision:saved.revision,p_request_key:saved.request_key},user);
+    if(!roomCurrent(t)||!validEntry(result,session,saved.request_key)||!['prepared','open'].includes(result.status))throw Error('entry_retry_unconfirmed');
+   }else if(!['prepared','open'].includes(receipt.status))throw Error('entry_receipt_unconfirmed');
+   sessionStorage.removeItem(entryKey(user,session));entryPending=null;entryError='';
+  }catch{entryError='Ingresso non confermato: richiesta conservata.';}
+  if(roomCurrent(t))await updateRoom(host,{manual:true});
+ }
+
  const attempts=new Map(),choiceRequests=new Map(),cachedChoiceRecoveries=new Set();
  function scopeFor(user,loc){return user&&loc?.id?JSON.stringify([user,loc.id]):null;}
  function syncRoom(host){
   const user=identity(),loc=currentLocation(),scope=scopeFor(user,loc);
   if(cacheUser!==user){cacheUser=user;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();}
-  if(scope!==roomScope||host!==roomHost){roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
+  if(scope!==roomScope||host!==roomHost){roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';entryReplayReady=false;staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
   return {user,loc,scope,epoch:roomEpoch};
  }
  const roomCurrent=t=>t.scope===roomScope&&t.epoch===roomEpoch&&valid(t.user)&&scopeFor(identity(),currentLocation())===t.scope&&roomHost?.isConnected;
@@ -262,6 +323,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(!tickCheck){tickCheck=button('Verifica invio',()=>updateRoom(host,{manual:true}));tickCheck.setAttribute('data-mg-tick-check','');host.append(tickCheck);}
    tickCheck.disabled=!!roomError;
   }else if(tickCheck)tickCheck.remove();
+  let entryButton=host.querySelector('[data-mg-combat-entry]'),panelButton=host.querySelector('[data-mg-combat-panel]'),entryNotice=host.querySelector('[data-mg-combat-notice]'),entryRetry=host.querySelector('[data-mg-combat-entry-retry]');
+  if(entryState?.can_prepare&&!entryPending){if(!entryButton){entryButton=button('Apri scontro',()=>prepareEntry(host,roomState));entryButton.setAttribute('data-mg-combat-entry','');host.append(entryButton);}entryButton.disabled=!!roomError;}else entryButton?.remove();
+  if(entryState?.can_open_panel){if(!panelButton){panelButton=button('Scegli l’azione nel pannello Scontro',()=>openCombat());panelButton.setAttribute('data-mg-combat-panel','');host.append(panelButton);}panelButton.disabled=!!roomError||!!entryPending;}else panelButton?.remove();
+  if(entryPending&&entryReplayReady){if(!entryRetry){entryRetry=button('Ripeti la stessa apertura',()=>retryEntry(host,roomState));entryRetry.setAttribute('data-mg-combat-entry-retry','');host.append(entryRetry);}entryRetry.disabled=!!roomError;}else entryRetry?.remove();
+  const entryText=entryError|| (entryPending?'Ingresso incerto: verifica la stessa richiesta prima di agire.':entryState?.reason_code==='REGIA_FATO_PENDING'?'Il Fato deve essere pubblicato prima della scelta meccanica.':entryState?.reason_code==='REGIA_NOT_YOUR_TURN'?'Pannello consultabile: attendi il tuo turno.':'');
+  if(entryText){if(!entryNotice){entryNotice=el('p','',{role:'status','data-mg-combat-notice':''});host.append(entryNotice);}entryNotice.textContent=entryText;}else entryNotice?.remove();
   const text=statusText(state);if(status.textContent!==text)status.textContent=text;
  }
  function definitiveChoiceError(error){const code=error?.code;return typeof code==='string'&&(/^(22|23)/.test(code)||['42501','40001','55000','P0001'].includes(code));}
@@ -428,7 +495,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     if(!UUID.test(state.session_id||'')||typeof state.step_key!=='string')throw Error('room_state_invalid');
     academyFlow(state); // The server owns both the phase and the Fato publication receipt.
     roleProgress(state); // A partial reason/remedy projection cannot authorize a dispatch.
-   roomState=state;roomError='';
+   roomState=state;roomError='';await readEntry(state,t.user);if(!roomCurrent(t))return;
    const key=choiceKey(state),pending=choiceRequests.get(key);
    // Only a confirmed RPC/rejection followed by an authoritative read unlocks choices.
    if(pending&&!pending.inFlight&&['confirmed','rejected'].includes(pending.phase)&&t.readSequence>pending.settledAfterRead)choiceRequests.delete(key);
@@ -449,6 +516,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!UUID.test(state.session_id||''))throw Error('Sessione missione non confermata. Nessun invio: aggiorna la regia.');
   const flow=academyFlow(state);
   if(flow===null)return {handled:false};
+  // Durante Combat la role meccanica passa soltanto dal pannello nativo.
+  // Una prosa libera resta una chat ordinaria e non avanza il round.
+  if(flow==='combat_started'){
+   if(hasCompanion||hasTechnique)throw Error('Il Master sta preparando l’esito: usa il pannello dello scontro per la risposta meccanica. La selezione non sarà inviata come chat.');
+   return {handled:false};
+  }
   if(roleProgress(state)===null)throw Error('Stato delle role non disponibile. Nessun invio: aggiorna la regia.');
   if(hasCompanion||hasTechnique)throw Error('La role della missione non può includere un’azione di compagno o tecnica tramite la chat. Togli la selezione e usa il pannello previsto.');
   if(!UUID.test(characterId||''))throw Error('Seleziona il personaggio partecipante prima di inviare la role.');
@@ -471,5 +544,5 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(roomHost)void updateRoom(roomHost,{manual:true});
   return {handled:true,receipt};
  }
- return {editor,board,decorateBoard,updateRoom,submitRole,dispose(){regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';if(currentDialog)currentDialog.close();},version:VERSION};
+ return {editor,board,decorateBoard,updateRoom,submitRole,dispose(){regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};
 }

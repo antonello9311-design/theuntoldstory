@@ -1,6 +1,6 @@
 import {createMissionMapPicker} from './MAPPE_UI_PICKER.asset.v3.mjs';
 import {createMapBindingEditor} from './MAP_OBJECT_BINDING_UI.asset.v1.mjs';
-export const VERSION='mission-creation-ui/human-peaceful-1';
+export const VERSION='mission-creation-ui/human-staff-optin-5';
 const copy=value=>structuredClone(value);
 const uuid=()=>crypto.randomUUID();
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -20,7 +20,7 @@ const profileKey=a=>a.mechanical_binding_id?'m:'+a.mechanical_binding_id:a.narra
 const phaseName=(s,i)=>s.public_objective?.split('\n')[0].slice(0,65)||'Fase '+(i+1);
 export const arenaFitsRoster=(arena,pg,png)=>!Number.isInteger(arena?.capacity_16)||pg+png<=arena.capacity_16;
 function styles(){if(document.getElementById('mission-creation-style'))return;const s=node('style',null,{id:'mission-creation-style'});s.textContent=`
-.mc-editor,.mc-human{color:var(--ink,#1d1206);font:500 17px/1.5 'Cormorant Garamond',Georgia,serif;min-width:0;color-scheme:light;overflow-wrap:anywhere}.mc-editor *,.mc-human *{box-sizing:border-box}.mc-editor h2,.mc-editor h3,.mc-editor h4,.mc-human h3{font-family:'Cinzel',serif;line-height:1.4;color:var(--ink,#1d1206);margin:0 0 12px}.mc-editor h2{font-size:20px}.mc-editor h3,.mc-human h3{font-size:15px;letter-spacing:.06em}.mc-editor h4{font-size:13px}.mc-card{padding:16px;margin:12px 0;border:1px solid var(--edge,#b79d6c);border-radius:9px;background:rgba(255,252,244,.6)}.mc-field{display:flex;flex-direction:column;gap:5px;margin:10px 0;min-width:0;flex:1;font-weight:600}.mc-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}.mc-row>.mc-field{flex:1 1 180px}.mc-editor input,.mc-editor select,.mc-editor textarea{width:100%;min-width:0;max-width:100%;min-height:44px;padding:9px 11px;border:1px solid var(--rule,#8a6f43);border-radius:7px;background:rgba(255,252,244,.8);color:var(--ink,#1d1206);font:500 17px/1.4 'Cormorant Garamond',Georgia,serif}.mc-editor textarea{resize:vertical;min-height:90px}.mc-editor .mc-check{display:flex;align-items:center;gap:8px;margin:10px 0}.mc-editor .mc-check input{width:20px;min-height:20px;height:20px;flex:none;accent-color:var(--red,#a6321d)}.mc-editor button,.mc-human button{font:600 11px/1.4 'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;min-height:44px;padding:10px 14px;border:1px solid var(--red-deep,#7c2413);border-radius:7px;background:var(--red,#a6321d);color:#f6ead0;cursor:pointer;white-space:normal;max-width:100%}.mc-editor button.ghost,.mc-human button.ghost{background:transparent;color:var(--ink,#1d1206);border-color:var(--edge,#b79d6c)}.mc-editor button:disabled,.mc-human button:disabled{opacity:.55;cursor:not-allowed}.mc-editor button:focus-visible,.mc-editor input:focus-visible,.mc-editor select:focus-visible,.mc-editor textarea:focus-visible,.mc-editor summary:focus-visible,.mc-human button:focus-visible,.mc-human summary:focus-visible{outline:2px solid var(--red-deep,#7c2413);outline-offset:3px}.mc-editor summary,.mc-human summary{cursor:pointer;font-family:'Cinzel',serif;font-size:13px;font-weight:600;padding:8px 0}.mc-editor details>section{margin-top:8px}.mc-help{color:var(--ink-soft,#584425);margin:8px 0}.mc-status{min-height:26px;color:var(--red-deep,#7c2413);margin:12px 0}.mc-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 0}.mc-private{border-left:3px solid var(--rule,#8a6f43);padding-left:12px;margin:12px 0}.mc-dialog{width:min(1100px,96vw);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto;overscroll-behavior:contain;margin:auto;padding:20px;border:1.5px solid var(--rule,#8a6f43);border-radius:9px;background:linear-gradient(var(--paper-hi,#f1e6ca),var(--paper,#e7d6b2));color:var(--ink,#1d1206)}.mc-dialog::backdrop{background:rgba(20,14,6,.5)}.mc-human p{white-space:pre-wrap}.mc-chip{display:inline-block;padding:3px 8px;border:1px solid var(--edge,#b79d6c);border-radius:7px;font-size:14px;margin:4px 0}.mc-summary{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.mc-editor .mc-phase{margin:14px 0}.mc-error{font-weight:600}.mc-editor fieldset{min-width:0;border:0;margin:0;padding:0}.mc-editor fieldset:disabled{opacity:.8}@media(max-width:600px){.mc-dialog{padding:12px}.mc-card{padding:12px}.mc-row{align-items:stretch}.mc-row>.mc-field{flex-basis:100%}.mc-actions{align-items:stretch;flex-direction:column}.mc-actions button{width:100%}.mc-editor .mc-check{align-items:flex-start}}
+.mc-editor,.mc-human{color:var(--ink,#1d1206);font:500 17px/1.5 'Cormorant Garamond',Georgia,serif;min-width:0;color-scheme:light;overflow-wrap:anywhere}.mc-editor *,.mc-human *{box-sizing:border-box}.mc-editor h2,.mc-editor h3,.mc-editor h4,.mc-human h3{font-family:'Cinzel',serif;line-height:1.4;color:var(--ink,#1d1206);margin:0 0 12px}.mc-editor h2{font-size:20px}.mc-editor h3,.mc-human h3{font-size:15px;letter-spacing:.06em}.mc-editor h4{font-size:13px}.mc-card{padding:16px;margin:12px 0;border:1px solid var(--edge,#b79d6c);border-radius:9px;background:rgba(255,252,244,.6)}.mc-field{display:flex;flex-direction:column;gap:5px;margin:10px 0;min-width:0;flex:1;font-weight:600}.mc-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}.mc-row>.mc-field{flex:1 1 180px}.mc-editor input,.mc-editor select,.mc-editor textarea{width:100%;min-width:0;max-width:100%;min-height:44px;padding:9px 11px;border:1px solid var(--rule,#8a6f43);border-radius:7px;background:rgba(255,252,244,.8);color:var(--ink,#1d1206);font:500 17px/1.4 'Cormorant Garamond',Georgia,serif}.mc-editor textarea{resize:vertical;min-height:90px}.mc-editor .mc-check{display:flex;align-items:center;gap:8px;margin:10px 0}.mc-editor .mc-check input{width:20px;min-height:20px;height:20px;flex:none;accent-color:var(--red,#a6321d)}.mc-editor button,.mc-human button{font:600 11px/1.4 'Cinzel',serif;letter-spacing:.06em;text-transform:uppercase;min-height:44px;padding:10px 14px;border:1px solid var(--red-deep,#7c2413);border-radius:7px;background:var(--red,#a6321d);color:#f6ead0;cursor:pointer;white-space:normal;max-width:100%}.mc-editor button.ghost,.mc-human button.ghost{background:transparent;color:var(--ink,#1d1206);border-color:var(--edge,#b79d6c)}.mc-editor button:disabled,.mc-human button:disabled{opacity:.55;cursor:not-allowed}.mc-editor button:focus-visible,.mc-editor input:focus-visible,.mc-editor select:focus-visible,.mc-editor textarea:focus-visible,.mc-editor summary:focus-visible,.mc-human button:focus-visible,.mc-human textarea:focus-visible,.mc-human summary:focus-visible{outline:2px solid var(--red-deep,#7c2413);outline-offset:3px}.mc-editor summary,.mc-human summary{cursor:pointer;font-family:'Cinzel',serif;font-size:13px;font-weight:600;padding:8px 0}.mc-editor details>section{margin-top:8px}.mc-help{color:var(--ink-soft,#584425);margin:8px 0}.mc-status{min-height:26px;color:var(--red-deep,#7c2413);margin:12px 0}.mc-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 0}.mc-private{border-left:3px solid var(--rule,#8a6f43);padding-left:12px;margin:12px 0}.mc-dialog{width:min(1100px,96vw);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto;overscroll-behavior:contain;margin:auto;padding:20px;border:1.5px solid var(--rule,#8a6f43);border-radius:9px;background:linear-gradient(var(--paper-hi,#f1e6ca),var(--paper,#e7d6b2));color:var(--ink,#1d1206)}.mc-dialog::backdrop{background:rgba(20,14,6,.5)}.mc-human p{white-space:pre-wrap}.mc-chip{display:inline-block;padding:3px 8px;border:1px solid var(--edge,#b79d6c);border-radius:7px;font-size:14px;margin:4px 0}.mc-summary{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.mc-editor .mc-phase{margin:14px 0}.mc-error{font-weight:600}.mc-editor fieldset{min-width:0;border:0;margin:0;padding:0}.mc-editor fieldset:disabled{opacity:.8}@media(max-width:600px){.mc-dialog{padding:12px}.mc-card{padding:12px}.mc-row{align-items:stretch}.mc-row>.mc-field{flex-basis:100%}.mc-actions{align-items:stretch;flex-direction:column}.mc-actions button{width:100%}.mc-editor .mc-check{align-items:flex-start}}
 `;document.head.append(s);}
 
 // Actor identity, per-phase actor specs and native trigger keys follow Generic 1.1.
@@ -236,7 +236,10 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
   syncIdentity();const user=identity(),stamp=epoch;
   if(!host)return {status:'unconfigured',master_session_id:null};styles();
   if(!user||!UUID.test(session||'')){humans.delete(host);host.replaceChildren();host.hidden=true;return {status:'unconfigured',master_session_id:null};}
-  let h=humans.get(host);if(!h||h.session!==session||h.user!==user){h={session,user,signature:'',busy:false,pending:null,readPromise:null,result:null};humans.set(host,h);host.replaceChildren();host.hidden=true;}
+  const fatoKey='mission-human-fato/1:'+user+':'+session;
+  const saveFato=pending=>{try{if(pending)sessionStorage.setItem(fatoKey,JSON.stringify(pending));else sessionStorage.removeItem(fatoKey);return true;}catch{return false;}};
+  const loadFato=()=>{try{const p=JSON.parse(sessionStorage.getItem(fatoKey)||'null');return p?.p_session===session&&UUID.test(p.p_event||'')&&UUID.test(p.p_request||'')&&typeof p.p_body==='string'&&p.p_body.length>=1&&p.p_body.length<=5000?p:null;}catch{return null;}};
+  let h=humans.get(host);if(!h||h.session!==session||h.user!==user){h={session,user,signature:'',busy:false,pending:null,fatoPending:loadFato(),fatoDraft:'',readPromise:null,result:null};humans.set(host,h);host.replaceChildren();host.hidden=true;}
   if(h.readPromise)return h.readPromise;if(h.busy)return {...(h.result||{status:'error',master_session_id:session}),pending:true};
   const same=()=>humans.get(host)===h&&host.isConnected&&valid(user,stamp);
   const stale=()=>({status:'error',master_session_id:session,stale:true});
@@ -249,11 +252,41 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
    try{const state=await rpc('mission_human_phase_state_v1',{p_session:session},user,stamp);if(!same())return stale();
     if(state===null){host.replaceChildren();host.hidden=true;h.signature='';h.result={status:'unconfigured',master_session_id:session};return h.result;}
     if(state?.schema_version!=='mission-human-phase-state/1'||state.master_session_id!==session||!Array.isArray(state.transitions))throw Error('Stato delle fasi non disponibile.');
-    h.result={status:'ready',master_session_id:session,session_state:state.session_state||null,closed:state.closed===true};
-    const signature=JSON.stringify([state,h.pending,h.lastError||'']);if(signature===h.signature)return h.result;const wasOpen=host.querySelector('[data-mc-human-phases]')?.open||false;h.signature=signature;host.replaceChildren();host.hidden=false;host.classList.add('mc-human');const panel=node('details',null,{'data-mc-human-phases':''});panel.open=wasOpen;panel.append(node('summary','Fasi e note della missione'));const content=node('div',null);panel.append(content);host.append(panel);content.append(node('h3',state.closed===true?'Missione conclusa':'Missione · fase corrente'),node('p',state.objective||state.step_key||''));humanContext(content,state.director_context);
+    const fato=state.pending_fato?.schema==='mission-human-fato/1'&&UUID.test(state.pending_fato.event_id||'')?state.pending_fato:null;
+    if(state.awaiting_fato===true&&!fato)throw Error('Il fatto da narrare non è disponibile: aggiorna la fase.');
+    if(state.awaiting_fato===true&&h.pending)h.pending=null;
+    h.result={status:'ready',master_session_id:session,session_state:state.session_state||null,closed:state.closed===true,awaiting_fato:state.awaiting_fato===true};
+    const signature=JSON.stringify([state,h.pending,h.fatoPending,h.lastError||'']);if(signature===h.signature)return h.result;const wasOpen=host.querySelector('[data-mc-human-phases]')?.open||false;h.signature=signature;host.replaceChildren();host.hidden=false;host.classList.add('mc-human');const panel=node('details',null,{'data-mc-human-phases':''});panel.open=wasOpen;panel.append(node('summary','Fasi e note della missione'));const content=node('div',null);panel.append(content);host.append(panel);content.append(node('h3',state.closed===true?'Missione conclusa':'Missione · fase corrente'),node('p',state.objective||state.step_key||''));humanContext(content,state.director_context);
     if(Number.isSafeInteger(state.roster_count))content.append(node('p','PG della squadra: '+state.roster_count+(state.roster_ready===true?' · squadra confermata':state.roster_ready===false?' · conferma in attesa':''),{class:'mc-help'}));
     if(state.roster_ready===false||state.blocked_reason){const reasons={'Serve il roster confermato della missione.':'Conferma la squadra della missione con il numero di PG previsto dalle iscrizioni.',MC_CONFIRMED_ROSTER_REQUIRED:'La squadra non è ancora confermata. Completa le iscrizioni e la conferma previste per questa missione.',confirmed_roster_required:'La squadra non è ancora confermata. Completa le iscrizioni e la conferma previste per questa missione.',roster_not_ready:'La squadra non è ancora pronta per iniziare.'};const raw=typeof state.blocked_reason==='string'?state.blocked_reason:'';content.append(node('p',reasons[raw]||raw||'Avvio in attesa della conferma della squadra.',{class:'mc-status',role:'status'}));}
-    const status=node('p',h.pending?'Un comando non è ancora confermato. Verifica lo stesso comando prima di procedere.':h.lastError||'',{class:'mc-status',role:'status','aria-live':'polite'}),actions=node('div',null,{class:'mc-actions'});content.append(status,actions);
+    const status=node('p',h.lastError|| (h.fatoPending?'Il Fato non è ancora confermato. Verifica la stessa pubblicazione.':h.pending?'Un comando non è ancora confermato. Verifica lo stesso comando prima di procedere.':''),{class:'mc-status',role:'status','aria-live':'polite'}),actions=node('div',null,{class:'mc-actions'});content.append(status,actions);
+     async function publishFato(){
+      if(!same()||h.busy||(!h.fatoPending&&(!fato||fato.can_publish!==true)))return;
+      if(!h.fatoPending){const body=(h.fatoDraft||'').trim();if(body.length<1||body.length>5000){status.textContent='Scrivi un Fato di 1–5000 caratteri.';return;}
+       const pending={p_session:session,p_event:fato.event_id,p_body:body,p_request:uuid()};
+       if(!saveFato(pending)){status.textContent='Impossibile conservare la richiesta nel browser. La pubblicazione è sospesa.';return;}h.fatoPending=pending;}
+      h.busy=true;host.querySelectorAll('button').forEach(b=>b.disabled=true);status.textContent='Pubblicazione del Fato in corso…';
+      try{const receipt=await rpc('mission_human_fato_publish_v1',copy(h.fatoPending),user,stamp);if(!same())return;
+       if(receipt?.schema!=='mission-human-fato-publication/1'||receipt.status!=='published'||receipt.event_id!==h.fatoPending.p_event||receipt.request_key!==h.fatoPending.p_request||!UUID.test(receipt.publication_id||'')||!UUID.test(receipt.message_id||''))throw Error('Ricevuta del Fato non verificabile.');
+       h.fatoPending=null;saveFato(null);h.fatoDraft='';h.lastError='';h.signature='';refresh();
+      }catch(e){if(!same())return;h.lastError='Pubblicazione non confermata. Verifica la stessa richiesta. '+e.message;if(e.code==='42501')showError(e);else status.textContent=h.lastError;}
+      finally{h.busy=false;if(same()){h.signature='';await mountHuman(host,session);}}
+     }
+    if(state.awaiting_fato===true){
+     const box=card('Fato del Master'),draft=text(h.fatoPending?.p_body||h.fatoDraft||'',v=>{h.fatoDraft=v;},5000);
+     draft.setAttribute('aria-label','Racconto del Fato dopo la prova');draft.style.cssText='width:100%;min-height:120px;padding:9px 11px;border:1px solid var(--rule,#8a6f43);border-radius:7px;background:rgba(255,252,244,.8);color:var(--ink,#1d1206);font:600 18px/1.5 Georgia,serif;resize:vertical';draft.disabled=!!h.fatoPending||fato?.can_publish!==true;
+     box.append(node('p','Il fatto della prova è pronto. Racconta l’esito ai giocatori: la fase successiva si aprirà dopo la pubblicazione del Fato.'),field('Testo del Fato',draft));
+     const mismatch=!!h.fatoPending&&h.fatoPending.p_event!==fato?.event_id;
+     if(mismatch){box.append(node('p','Una pubblicazione precedente è ancora da verificare. Usa la stessa richiesta prima di raccontare il fatto corrente.',{class:'mc-status',role:'status'}),button('Verifica pubblicazione precedente',publishFato));}
+     else if(h.fatoPending||fato?.can_publish===true)box.append(button(h.fatoPending?'Verifica la stessa pubblicazione':'Pubblica Fato',publishFato));
+     else box.append(node('p','La pubblicazione è in attesa dell’autorizzazione del server.',{class:'mc-status',role:'status'}));
+     content.insertBefore(box,status);
+    }else if(h.fatoPending){
+     const recovery=card('Verifica Fato precedente'),saved=text(h.fatoPending.p_body,()=>{},5000);
+     saved.setAttribute('aria-label','Testo del Fato già inviato');saved.style.cssText='width:100%;min-height:100px;padding:9px 11px;border:1px solid var(--rule,#8a6f43);border-radius:7px;background:rgba(255,252,244,.8);color:var(--ink,#1d1206);font:600 18px/1.5 Georgia,serif;resize:vertical';saved.disabled=true;
+     recovery.append(node('p','La fase è cambiata, ma la ricevuta della pubblicazione precedente non è stata confermata in questo browser. Verifica la richiesta originale senza crearne una nuova.'),field('Testo già inviato',saved),button('Verifica la stessa pubblicazione',publishFato));
+     content.insertBefore(recovery,status);
+    }
     async function closePeacefully(){
      if(!same()||h.busy)return;const body=(h.closeDraft||'').trim();if(!h.pending){if(body.length<20||body.length>5000){status.textContent='Scrivi un esito del Fato di 20–5000 caratteri.';return;}h.pending={p_action:'close_noncombat',p_session:session,p_expected_version:state.control_version,p_trigger_key:state.peaceful_trigger_key,p_body:body,p_request:uuid()};}
      if(h.pending.p_action!=='close_noncombat')return;h.busy=true;host.querySelectorAll('button').forEach(b=>b.disabled=true);status.textContent='Pubblicazione dell’esito e chiusura in corso…';
@@ -261,7 +294,7 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
      catch(e){if(!same())return;if(e.code&&(/^(22|23)/.test(e.code)||['42501','40001','55000','P0001'].includes(e.code)))h.pending=null;h.lastError='Chiusura non confermata. '+e.message;if(e.code==='42501')showError(e);else status.textContent=h.lastError;}
      finally{h.busy=false;if(same()){h.signature='';await mountHuman(host,session);}}
     }
-    if(state.can_close_noncombat===true&&!h.pending||h.pending?.p_action==='close_noncombat'){
+    if(state.awaiting_fato!==true&&((state.can_close_noncombat===true&&!h.pending)||h.pending?.p_action==='close_noncombat')){
      const closeBox=card('Chiusura senza conflitto'),draft=text(h.pending?.p_body||h.closeDraft||'',v=>{h.closeDraft=v;},5000);draft.setAttribute('aria-label','Esito del Fato che chiude l’incontro');draft.style.cssText='width:100%;min-height:110px;padding:9px 11px;border:1px solid var(--rule,#8a6f43);border-radius:7px;background:rgba(255,252,244,.8);color:var(--ink,#1d1206);font:500 17px/1.4 Georgia,serif;resize:vertical';closeBox.append(node('p','Scrivi come si conclude l’incontro. Il server pubblicherà questo Fato e aprirà la fase narrativa successiva con un solo comando.'),field('Esito del Fato',draft),status,button(h.pending?.p_action==='close_noncombat'?'Verifica la stessa chiusura':'Pubblica Fato e chiudi scontro',closePeacefully));host.prepend(closeBox);
     }
     async function act(action,trigger=null){if(!same()||h.busy)return;if(!h.pending)h.pending={p_session:session,p_expected_version:state.control_version,p_action:action,p_trigger_key:trigger,p_request:uuid()};h.busy=true;host.querySelectorAll('button').forEach(b=>b.disabled=true);status.textContent='Esecuzione del comando…';
@@ -269,7 +302,8 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
      catch(e){if(!same())return;if(e.code&&(/^(22|23)/.test(e.code)||['42501','40001','55000','P0001'].includes(e.code)))h.pending=null;h.lastError='Comando non confermato. '+e.message;if(e.code==='42501')showError(e);else status.textContent=h.lastError;}
      finally{h.busy=false;if(same()){h.signature='';await mountHuman(host,session);}}
     }
-    if(h.pending?.p_action==='close_noncombat'){}
+    if(state.awaiting_fato===true){} // Il server trattiene le azioni della nuova fase fino alla ricevuta del Fato.
+    else if(h.pending?.p_action==='close_noncombat'){}
     else if(h.pending)actions.append(button('Verifica lo stesso comando',()=>act(h.pending.p_action,h.pending.p_trigger_key)));
     else{if(state.can_open_encounter===true)actions.append(button('Apri lo scontro della fase',()=>act('open_encounter')));for(const t of state.transitions){if(typeof t.trigger_key==='string'&&typeof t.label==='string')actions.append(button(t.label,()=>act('advance',t.trigger_key)));}}
     actions.append(button('Aggiorna fase',()=>{h.signature='';mountHuman(host,session);},true));return h.result;
@@ -291,25 +325,105 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
    if(meta.mission.gathering_location_id&&meta.mission.gathering_location_id!==loc.id){area.append(node('p','Entra nella chat di ritrovo selezionata per questa missione.'));return true;}
    area.append(button('Apri Regia Master',()=>{if(!same())return;d.close();openNativeMaster(mission);}));return true;
   }
+  if(loc.id!=='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'){
+   status.textContent='Questa preparazione è disponibile nella sola Staff Test Room.';return true;
+  }
   status.textContent='Prova protetta con Master umano. Scegli da 1 a 4 PG presenti; il server verifica stanza, roster e risorse di prova.';
-  const key=user+':'+mission+':'+loc.id;let run=humanStarts.get(key);
+  const key=user+':'+mission+':'+loc.id,storeKey='mission-human-staff-start/5/'+key;
+  const startReceipt=r=>r?.schema_version==='mission-human-test-start/1'&&UUID.test(r.master_session_id||'')&&r.source_mission_id===mission&&r.simulation===true&&r.direction_mode==='human';
+  const optinReceipt=(r,p)=>!!p&&r?.schema_version==='regia-round-optin/1'&&r.status==='reserved'&&r.master_session_id===p.p_master_session&&r.request_key===p.p_request_key;
+  let run=humanStarts.get(key);
+  const saveRun=()=>{
+   if(!same())throw Error('Accesso o stanza cambiati: riapri la preparazione.');
+   const saved=JSON.stringify({schema_version:'mission-human-staff-start/5',user,mission,location:loc.id,
+    request:run.request,roster:run.roster,result:run.result,optin:run.optin,optin_receipt:run.optinReceipt});
+   try{sessionStorage.setItem(storeKey,saved);if(sessionStorage.getItem(storeKey)!==saved)throw Error('storage');}
+   catch{throw Error('Recupero della preparazione non salvato: nessuna ulteriore richiesta può essere inviata.');}
+  };
+  try{
+   if(!run){const raw=sessionStorage.getItem(storeKey);if(raw){const saved=JSON.parse(raw);
+    if(saved?.schema_version!=='mission-human-staff-start/5'||saved.user!==user||saved.mission!==mission||saved.location!==loc.id||
+       !UUID.test(saved.request||'')||!Array.isArray(saved.roster)||saved.roster.length<1||saved.roster.length>4||
+       saved.roster.some(x=>!UUID.test(x||''))||new Set(saved.roster).size!==saved.roster.length||
+       (saved.result!==null&&!startReceipt(saved.result))||
+       (saved.optin!==null&&(!saved.result||saved.optin.p_master_session!==saved.result.master_session_id||!UUID.test(saved.optin.p_request_key||'')))||
+       (saved.optin_receipt!==null&&!optinReceipt(saved.optin_receipt,saved.optin)))throw Error('Recupero della preparazione non verificabile.');
+    run={request:saved.request,roster:copy(saved.roster),picks:new Set(saved.roster),result:saved.result,
+     optin:saved.optin,optinReceipt:saved.optin_receipt,busy:false};humanStarts.set(key,run);
+   }}
+  }catch(e){status.textContent='Impossibile recuperare la preparazione precedente. Nessun nuovo avvio è consentito. '+e.message;return true;}
+  async function readPreparation(){
+   const previous=await rpc('mission_human_phase_state_v1',{p_session:run.result.master_session_id},user,stamp);
+   if(!same())throw Error('Accesso o stanza cambiati.');
+   if(previous?.schema_version!=='mission-human-phase-state/1'||previous.master_session_id!==run.result.master_session_id||typeof previous.closed!=='boolean'||
+      !['preparazione','in_corso','chiusa','annullata'].includes(previous.session_state))throw Error('Stato della prova precedente non confermato.');
+   return previous;
+  }
   if(run?.result){
    status.textContent='Verifica dello stato della prova precedente…';
-   try{const previous=await rpc('mission_human_phase_state_v1',{p_session:run.result.master_session_id},user,stamp);if(!same())return true;
-    if(previous?.schema_version!=='mission-human-phase-state/1'||previous.master_session_id!==run.result.master_session_id||typeof previous.closed!=='boolean')throw Error('Stato della prova precedente non confermato.');
-    if(previous.closed===true){if(!['chiusa','annullata'].includes(previous.session_state))throw Error('Chiusura della prova precedente non confermata.');run=null;humanStarts.delete(key);status.textContent='La prova precedente è chiusa. Scegli la squadra per una nuova prova protetta.';}
-   }catch(e){if(same()){status.textContent='Impossibile confermare la chiusura della prova precedente. Un nuovo avvio resta disabilitato. '+e.message;area.append(button('Aggiorna stato della prova',()=>routeBoard(mission,title),true));}return true;}
+   try{const previous=await readPreparation();
+    if(previous.closed===true){if(!['chiusa','annullata'].includes(previous.session_state))throw Error('Chiusura della prova precedente non confermata.');
+     // Rimuove soltanto il puntatore di recupero alla propria prova terminale; storico server intatto.
+     sessionStorage.removeItem(storeKey);run=null;humanStarts.delete(key);status.textContent='La prova precedente è chiusa. Scegli la squadra per una nuova prova protetta.';
+    }
+   }catch(e){if(same()){status.textContent='Impossibile confermare lo stato della prova precedente. Un nuovo avvio resta disabilitato. '+e.message;area.append(button('Aggiorna stato della prova',()=>routeBoard(mission,title),true));}return true;}
   }
-  if(!run){run={request:null,roster:null,picks:new Set(),busy:false,result:null};humanStarts.set(key,run);}const roster=node('fieldset',null),actions=node('div',null,{class:'mc-actions'});area.append(roster,actions);
+  if(!run){run={request:null,roster:null,picks:new Set(),busy:false,result:null,optin:null,optinReceipt:null};humanStarts.set(key,run);}
+  const roster=node('fieldset',null),actions=node('div',null,{class:'mc-actions'}),preparation=node('div',null);area.append(roster,actions,preparation);
+  const openConfirmed=()=>{if(!same()||run.busy||!startReceipt(run.result)||!optinReceipt(run.optinReceipt,run.optin))return;d.close();openNativeMaster(mission);};
+  const drawPreparation=()=>{
+   preparation.replaceChildren();if(!run.result)return;
+   if(optinReceipt(run.optinReceipt,run.optin)){
+    status.textContent='Preparazione della Regia confermata. Puoi proseguire nella stanza.';
+    preparation.append(button('Apri Regia Master',openConfirmed));
+   }else{
+    status.textContent='Prova creata; preparazione della Regia non ancora confermata. Non avviare una seconda prova.';
+    const confirm=button(run.optin?'Conferma la stessa preparazione':'Conferma preparazione Regia',()=>confirmOptin());confirm.disabled=run.busy;preparation.append(confirm);
+   }
+  };
+  async function confirmOptin(){
+   if(!same()||run.busy||!startReceipt(run.result)||optinReceipt(run.optinReceipt,run.optin))return;
+   run.busy=true;start.disabled=true;preparation.querySelectorAll('button').forEach(b=>b.disabled=true);
+   try{
+    saveRun(); // Anche la receipt start deve essere durevole prima di qualsiasi passo successivo.
+    // La cattura server start→session_open lascia la nuova sessione in preparazione.
+    // Il reader conferma lo stato; la RPC optin verifica anche l'assenza di encounter.
+    const previous=await readPreparation();
+    if(previous.closed||previous.session_state!=='preparazione')throw Error('La sessione non è più in preparazione. La richiesta resta conservata; aggiorna lo stato con lo Staff.');
+    run.optin??={p_master_session:run.result.master_session_id,p_request_key:uuid()};
+    if(run.optin.p_master_session!==run.result.master_session_id)throw Error('Sessione di recupero differente.');
+    saveRun();status.textContent='Conferma della preparazione Regia…';
+    const receipt=await rpc('regia_round_human_optin_v1',copy(run.optin),user,stamp);
+    if(!same())return;
+    if(!optinReceipt(receipt,run.optin))throw Error('Ricevuta della preparazione non verificabile.');
+    // Solo una conferma salvata abilita l'apertura; errore storage conserva la UUID per il replay.
+    const old=run.optinReceipt;run.optinReceipt=copy(receipt);
+    try{saveRun();}catch(e){run.optinReceipt=old;throw e;}
+    refresh();
+   }catch(e){if(same())status.textContent='Preparazione non confermata. Conserva la stessa sessione e richiesta. '+e.message;}
+   finally{run.busy=false;if(same()){const message=status.textContent;drawPreparation();if(!optinReceipt(run.optinReceipt,run.optin))status.textContent=message;start.disabled=!!run.result;}}
+  }
   const start=button(run.request?'Verifica lo stesso avvio':'Avvia prova protetta',async()=>{
-   if(!same()||run.busy||run.result)return;if(!run.request){if(run.picks.size<1||run.picks.size>4)return;run.request=uuid();run.roster=[...run.picks];}
+   if(!same()||run.busy||run.result)return;
+   if(!run.request){if(run.picks.size<1||run.picks.size>4)return;run.request=uuid();run.roster=[...run.picks];}
    run.busy=true;start.disabled=true;roster.disabled=true;status.textContent='Avvio della prova protetta…';
-   try{const r=await rpc('mission_human_staff_test_start_v1',{p_source_mission:mission,p_location:loc.id,p_roster:run.roster,p_request:run.request},user,stamp);if(!UUID.test(r?.master_session_id||''))throw Error('Avvio non confermato.');run.result=r;if(same()){status.textContent='Prova aperta. Prosegui dalla Regia Master nella stanza.';refresh();area.append(button('Apri Regia Master',()=>{if(same()){d.close();openNativeMaster(mission);}}));}}
-   catch(e){if(!same())return;if(e.code&&(/^(22|23)/.test(e.code)||['42501','40001','55000','P0001'].includes(e.code))){run.request=null;run.roster=null;roster.disabled=false;}status.textContent='Avvio non confermato. '+(run.request?'Verifica la stessa richiesta, senza aprire una seconda prova. ':'')+e.message;}
+   let startStored=false;
+   try{
+    saveRun();
+    const receipt=await rpc('mission_human_staff_test_start_v1',{p_source_mission:mission,p_location:loc.id,p_roster:copy(run.roster),p_request:run.request},user,stamp);
+    if(!same())return;
+    if(!startReceipt(receipt))throw Error('Avvio non confermato.');
+    run.result=copy(receipt);saveRun();startStored=true;refresh();
+   }catch(e){if(same())status.textContent='Avvio non confermato. Conserva lo stesso avvio, senza aprire una seconda prova. '+e.message;}
    finally{run.busy=false;if(same()){start.textContent=run.request?'Verifica lo stesso avvio':'Avvia prova protetta';start.disabled=!!run.result||(!run.request&&(run.picks.size<1||run.picks.size>4));}}
+   if(same()&&run.result){const message=status.textContent;drawPreparation();if(startStored)await confirmOptin();else status.textContent=message;}
   });start.disabled=true;actions.append(start,button('Aggiorna avvio',()=>routeBoard(mission,title),true));
-  try{const characters=await presentCharacters();if(!same())return;for(const c of characters){if(!UUID.test(c.id||''))continue;roster.append(check(c.name,run.picks.has(c.id),on=>{if(run.request)return;if(on)run.picks.add(c.id);else run.picks.delete(c.id);start.disabled=run.picks.size<1||run.picks.size>4;}));}if(!characters.length)roster.append(node('p','Nessun PG presente nella stanza.'));roster.disabled=!!run.request;start.disabled=run.busy||!!run.result||(!run.request&&(run.picks.size<1||run.picks.size>4));if(run.result){status.textContent='Questa prova è già stata aperta. Puoi riprenderla dalla Regia Master.';area.append(button('Apri Regia Master',()=>{if(same()){d.close();openNativeMaster(mission);}}));}}
-  catch(e){if(same())status.textContent='Elenco dei presenti non disponibile. '+e.message;}return true;
+  try{const characters=await presentCharacters();if(!same())return true;
+   for(const c of characters){if(!UUID.test(c.id||''))continue;roster.append(check(c.name,run.picks.has(c.id),on=>{if(run.request)return;if(on)run.picks.add(c.id);else run.picks.delete(c.id);start.disabled=run.picks.size<1||run.picks.size>4;}));}
+   if(!characters.length)roster.append(node('p','Nessun PG presente nella stanza.'));
+   roster.disabled=!!run.request;start.disabled=run.busy||!!run.result||(!run.request&&(run.picks.size<1||run.picks.size>4));drawPreparation();
+  }catch(e){if(same())status.textContent='Elenco dei presenti non disponibile. '+e.message;}
+  return true;
  }
  return {mountCreate,editor,mountHuman,routeBoard,dispose:()=>{generalMapPicker.dispose();clear();},version:VERSION};
 }
