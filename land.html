@@ -9688,6 +9688,12 @@ function validateRoundFacts(f, isMaster) {
 function mountExamHumanRound(container, { client, examId, authScope, storage = globalThis.sessionStorage }) {
   const storageKey = `exam-human-round/1:${authScope}:${examId}`;
   let pending, state = null, actor = null, busy = false, disposed = false, error = '';
+  let offerSet = null, renderedOfferSet = null, formLocks = [], rpcDiagnostic = '';
+  function offerContext(value) {
+    if (value?.status !== 'ready' || !value.context) return null;
+    return JSON.stringify([value.exam_id,value.context.location_id,value.context.activity_id,value.context.round_id,value.context.version,value.command_actor_id,value.is_master,actor]);
+  }
+  function activeOffers() { return state?.actions?.load_options === true && offerSet?.context === offerContext(state) ? offerSet : null; }
   try { pending = JSON.parse(storage.getItem(storageKey) || 'null'); }
   catch { pending = { corrupt: true }; }
   function element(tag, text, parent) {
@@ -9700,7 +9706,9 @@ function mountExamHumanRound(container, { client, examId, authScope, storage = g
   const roster = element('p'), facts = element('div'), offers = element('div');
   const refreshButton = element('button', 'Aggiorna / recupera'), retryButton = element('button', 'Ripeti la stessa richiesta');
   for (const b of [refreshButton, retryButton]) { b.type = 'button'; b.className = 'esm-btn'; }
-  container.replaceChildren(head, notice, actorSelect, roster, facts, offers, refreshButton, retryButton);
+  const optionsButton = element('button', 'Carica azioni disponibili'); optionsButton.type = 'button'; optionsButton.className = 'esm-btn';
+  const diagnostic = element('p'); diagnostic.setAttribute('aria-live', 'polite');
+  container.replaceChildren(head, notice, diagnostic, actorSelect, roster, facts, optionsButton, offers, refreshButton, retryButton);
   function save(p) { storage.setItem(storageKey, JSON.stringify(p)); pending = p; }
   function consume(response) {
     if (!pending || pending.corrupt || response?.schema !== 'exam-human-round-receipt/1'
@@ -9714,10 +9722,16 @@ function mountExamHumanRound(container, { client, examId, authScope, storage = g
   }
   async function rpc(name, args) {
     const result = await client.rpc(name, args);
-    if (result.error) throw new Error('Risposta non confermata. Conservata la richiesta da verificare.');
+    if (result.error) {
+      const messages = {'57014':'Tempo massimo della richiesta superato.','55P03':'Risorsa momentaneamente occupata.','40001':'Operazione concorrente: verifica la ricevuta.','40P01':'Concorrenza rilevata: verifica la ricevuta.','42501':'Operazione non autorizzata.'};
+      const code = typeof result.error.code === 'string' && /^(?:[0-9A-Z]{5}|PGRST[0-9]{3})$/.test(result.error.code) ? result.error.code : null;
+      const phase = name === 'esame_human_round_commit_v1' ? 'Invio' : name === 'esame_human_round_operation_v1' ? 'Ricevuta' : 'Stato';
+      rpcDiagnostic = `${phase}: ${code ? `codice ${code}. ` : ''}${messages[code] || 'Errore RPC non classificato.'} La richiesta non è considerata rifiutata.`;
+      throw new Error('Risposta non confermata. Conservata la richiesta da verificare.');
+    }
     return result.data;
   }
-  function renderOffer(offer) {
+  function renderOffer(offer, source) {
     const form = element('form', undefined, offers); form.style.marginBlock = '10px';
     element('strong', offer.label, form);
     const selections = new Map(), controls = new Map();
@@ -9753,10 +9767,13 @@ function mountExamHumanRound(container, { client, examId, authScope, storage = g
     const text = element('textarea', undefined, roleLabel); text.rows = 4; text.required = Boolean(offer.requires_role);
     text.style.cssText = 'width:100%;box-sizing:border-box;background:var(--paper-hi,#f1e6ca);color:inherit';
     const submit = element('button', offer.label, form); submit.type = 'submit'; submit.className = 'esm-btn';
-    for (const input of form.querySelectorAll('input,textarea,button')) input.disabled = busy || Boolean(pending);
-    updateDependencies();
+    const lockForm = () => {
+      for (const input of form.querySelectorAll('input,textarea,button')) input.disabled = busy || Boolean(pending) || activeOffers() !== source;
+      updateDependencies();
+    };
+    formLocks.push(lockForm); lockForm();
     form.addEventListener('submit', async event => {
-      event.preventDefault(); if (busy || pending || !state?.actions?.command) return;
+      event.preventDefault(); if (busy || pending || activeOffers() !== source || !source.command) return;
       const command = { schema_version: 'combat-panel-command/1', request_key: globalThis.crypto.randomUUID(),
         location_id: state.context.location_id, activity_id: state.context.activity_id, context_version: state.context.version,
         offer_id: offer.offer_id, selected_option_ids: [...selections].filter(([, el]) => el.checked && !el.disabled).map(([id]) => id),
@@ -9812,6 +9829,12 @@ function mountExamHumanRound(container, { client, examId, authScope, storage = g
     notice.textContent = error || (pending ? 'Richiesta da verificare: nessuna nuova azione consentita.'
       : state?.status === 'ready' ? 'Azioni disponibili determinate dal server. Un unico Fato conclude il round.'
       : 'Round non disponibile o non ancora qualificato.');
+    const command = pending?.command;
+    const validId = value => typeof value === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(value) ? value : 'non disponibile';
+    const version = Number.isSafeInteger(command?.context_version) ? String(command.context_version) : 'non disponibile';
+    const inputTypes = Array.isArray(command?.inputs) ? command.inputs.map(item => item?.value === null ? 'null' : Array.isArray(item?.value) ? 'array' : typeof item?.value).join(', ') : 'non disponibile';
+    const meta = command ? `Richiesta ${validId(command.request_key)} · offerta ${validId(command.offer_id)} · versione ${version} · tipi input: ${inputTypes} · testo ${typeof command.narrative_text}, lunghezza ${typeof command.narrative_text === 'string' ? command.narrative_text.length : 'non disponibile'}.` : '';
+    diagnostic.textContent = [rpcDiagnostic, meta].filter(Boolean).join(' '); diagnostic.hidden = !diagnostic.textContent;
     actorSelect.replaceChildren();
     if (state?.is_master) { const o = element('option', 'Conduzione del Master', actorSelect); o.value = ''; }
     for (const a of state?.controlled_actors || []) { const o = element('option', a.label, actorSelect); o.value = a.actor_id; }
@@ -9820,31 +9843,41 @@ function mountExamHumanRound(container, { client, examId, authScope, storage = g
     roster.textContent = current ? `Prossima dichiarazione: ${current.display_name}.` : (state?.context?.phase_label || '');
     facts.replaceChildren();
     if (state?.facts) renderFacts(state.facts);
-    offers.replaceChildren();
-    if (state?.status === 'ready') for (const offer of state.offers || []) renderOffer(offer);
+    const currentOffers = activeOffers();
+    if (renderedOfferSet !== currentOffers) {
+      offers.replaceChildren(); formLocks = []; renderedOfferSet = currentOffers;
+      if (currentOffers) for (const offer of currentOffers.offers) renderOffer(offer, currentOffers);
+    }
+    for (const lock of formLocks) lock();
+    optionsButton.disabled = busy || Boolean(pending) || state?.actions?.load_options !== true;
     refreshButton.disabled = busy; retryButton.hidden = !pending || pending.corrupt; retryButton.disabled = busy;
   }
-  async function refresh() {
+  async function refresh(wantOptions = false) {
     if (busy || disposed) return;
+    const requestOptions = wantOptions === true && !pending && state?.actions?.load_options === true;
     busy = true; render();
     try {
       if (pending && !pending.corrupt) consume(await rpc('esame_human_round_operation_v1', { p_exam: examId, p_request: pending.command.request_key }));
-      const value = await rpc('esame_human_round_state_v1', { p_exam: examId, p_actor: actor, p_options: !pending });
+      const value = await rpc('esame_human_round_state_v1', { p_exam: examId, p_actor: actor, p_options: requestOptions });
       if (value?.schema !== 'exam-human-round/1' || (value.status === 'ready' && (value.exam_id !== examId || !Array.isArray(value.offers)))) throw new Error('Contratto round non compatibile.');
       validateRoundFacts(value.facts, value.is_master);
+      if (value.status === 'ready' && (typeof value.options_loaded !== 'boolean' || typeof value.actions?.load_options !== 'boolean' || typeof value.actions?.command !== 'boolean' || (!requestOptions && value.options_loaded) || (value.options_loaded && !value.actions.load_options) || (!value.options_loaded && (value.offers.length > 0 || value.actions.command)))) throw new Error('Contratto offerte round non compatibile.');
       state = value;
       if (!state.is_master && state.command_actor_id) actor = state.command_actor_id;
-    } catch (e) { state = null; error = e.message; }
+      if (pending || state.status !== 'ready' || !state.actions.load_options || offerSet?.context !== offerContext(state)) offerSet = null;
+      if (!pending && value.options_loaded) offerSet = {context:offerContext(state), offers:value.offers, command:value.actions.command};
+    } catch (e) { state = null; offerSet = null; error = e.message; }
     finally { busy = false; render(); }
   }
   async function sendSaved() {
     if (busy || !pending || pending.corrupt || disposed) return;
-    busy = true; error = ''; render();
+    busy = true; error = ''; offerSet = null; render();
     try { consume(await rpc('esame_human_round_commit_v1', { p_exam: examId, p_command: pending.command })); }
     catch (e) { error = e.message; } // Mai interpretare errore retry come rollback dell'invio precedente.
     finally { busy = false; await refresh(); }
   }
-  actorSelect.addEventListener('change', () => { actor = actorSelect.value || null; error = ''; refresh(); });
+  actorSelect.addEventListener('change', () => { actor = actorSelect.value || null; offerSet = null; error = ''; refresh(); });
+  optionsButton.addEventListener('click', () => { if (!busy && !pending && state?.actions?.load_options === true) refresh(true); });
   refreshButton.addEventListener('click', () => { error = ''; refresh(); });
   retryButton.addEventListener('click', async () => { await refresh(); if (pending) await sendSaved(); });
   render();
