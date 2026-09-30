@@ -2299,6 +2299,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
         <span class="miss-title">Missioni</span>
         <button class="miss-tab on" id="mtab-bacheca" type="button">Bacheca</button>
         <button class="miss-tab" id="mtab-mie" type="button">Le mie</button>
+        <button class="miss-tab" id="mtab-quest-runtime" type="button" hidden>Quest assegnata</button>
         <button class="miss-tab" id="mtab-new" type="button" style="display:none">+ Nuova</button>
       </div>
       <div class="miss-body" id="miss-body"></div>
@@ -11868,6 +11869,8 @@ var nb028iTeardown=function(){};
         }
         if(!to && MV2.data?.encounter&&!commonMasterCombat()){var nativeRegiaBlock=mv2RegiaReason(!!SUG_SCELTA||!!pTxt||!!CMB_AZ);if(nativeRegiaBlock){toast(nativeRegiaBlock);return;}}
         if(!to && ORDINARY?.blockingReason){var regiaBlock=ORDINARY.blockingReason({hasTechnique:!!SUG_SCELTA,companionText:pTxt});if(regiaBlock){toast(regiaBlock);return;}}
+        var abortSendSession=MV2?.data?.master?.id||MISSION_GENERIC_UI?.sessionId?.();
+        if(!to&&abortSendSession&&STAFF_ABORT.staffAbortBlocked(myId,abortSendSession)){toast('Annullamento da riconciliare: la role resta in composizione.');return;}
         if(!to && ORDINARY && ORDINARY.handleSend(t,pbody,pTxt,myComp)) return;
         sendBtn.disabled=true;
         var prm={p_location:cur.id,p_body:pbody};
@@ -13476,10 +13479,216 @@ var nb028iTeardown=function(){};
             onCreated:function(){setMissTab('bacheca');}});return MISSION_CREATION_UI;
         }).catch(function(e){MISSION_CREATION_LOAD=null;throw e;});return MISSION_CREATION_LOAD;
       }
+      // QUEST_RUNTIME/1 · sola candidata, nessun gate server acceso dal client.
+      var STAFF_ABORT=(function(){
+// Consumer esclusivo della porta abort Staff; nessun motore o writer di gameplay.
+const ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const sharedKey=Symbol.for('tus.staff-abort-coordination/1'),guarded=Symbol.for('tus.staff-abort-guarded/1');
+const shared=globalThis[sharedKey]||(globalThis[sharedKey]={records:new Map(),writers:new Map()});
+const positive=x=>Number.isSafeInteger(x)&&x>0;
+const key=(actor,session)=>`${actor}/${session}`;
+const reasons=new Set(['STAFF_ABORT_UNAVAILABLE','STAFF_ABORT_TERMINAL_OR_CLOSING','STAFF_ABORT_NOT_QUIESCENT','STAFF_ABORT_STALE','STAFF_ABORT_QUEST_PERMIT','STAFF_ABORT_POSTCONDITION']);
+const bad=()=>{throw Error('Ricevuta di annullamento non coerente. Rileggi la stessa richiesta.');};
+function args(p){if(!p||Object.keys(p).sort().join()!==['p_session','p_expected_master_version','p_expected_run_version','p_request'].sort().join()||!ID.test(p.p_session)||!ID.test(p.p_request)||!positive(p.p_expected_master_version)||!positive(p.p_expected_run_version))bad();return p;}
+function receipt(v,p){args(p);if(v?.schema!=='staff-simulation-abort/1'||v.request_key!==p.p_request||v.master_session_id!==p.p_session||v.operation_id!==p.p_request||v.expected_master_version!==p.p_expected_master_version||v.expected_run_version!==p.p_expected_run_version)bad();if(v.status==='annullata'){if(v.resources_protected!==true||!ID.test(v.audit_event_id||'')||!positive(v.master_control_version)||!positive(v.run_control_version)||v.master_control_version<=p.p_expected_master_version||v.run_control_version<=p.p_expected_run_version)bad();}else if(v.status==='rejected'){if(!reasons.has(v.reason_code))bad();}else bad();return v;}
+// Solo writer nominati di questa scena. Reader, whisper e RPC estranee passano invariati.
+const directWriters=new Set(['mission_generic_choose_v1','mission_role_submit_v1','mission_staff_resume_identical_role_v1','mission_staff_retry_failed_director_v1','mission_staff_fato_regenerate_v1','regia_combat_entry_prepare_v1','master_v2_encounter_open','master_v2_scene_close','regia_round_advance_v1','regia_round_advance_v2','regia_round_publish_v1']);
+const contextWriters=new Set(['mission_factory_quest_start_v1','mission_factory_quest_prepare_v1','mission_factory_quest_episode_roster_assign_v1','mission_factory_quest_enrollment_v1','combat_panel_commit_v1','combat_v2_action_declare','combat_v2_defense_declare','combat_v2_rating_save','combat_v2_round_resolve','combat_v2_round_narrate_human','combat_v2_round_next','combat_v2_session_close','combat_azione','post_message','post_fato_manual','post_item_use','png_attacca_pg','png_attacco_combinato','png_evoca','png_ritira']);
+function staffAbortJournalSessions(actor,storage=globalThis.sessionStorage){
+ if(!ID.test(actor||''))return [];const prefix=`staff-simulation-abort-journal/1/${actor}/`,sessions=[];
+ try{for(let i=0;i<storage.length;i++){const k=storage.key(i);if(!k?.startsWith(prefix))continue;const id=k.slice(prefix.length);if(!ID.test(id))continue;const j=JSON.parse(storage.getItem(k));if(j?.schema!=='staff-abort-journal/1'||j.actor!==actor||j.session!==id)bad();if(j.pending){args(j.pending);if(j.pending.p_session!==id)bad();}if(j.committed){receipt(j.committed,{p_session:id,p_request:j.committed.request_key,p_expected_master_version:j.committed.expected_master_version,p_expected_run_version:j.committed.expected_run_version});if(j.committed.status!=='annullata')bad();}if(j.pending||j.committed)sessions.push(id);}}catch{throw Error('Recupero locale non verificabile. Nessun esito confermato.');}
+ return [...new Set(sessions)].sort();
+}
+function staffAbortBlocked(actor,session){const v=shared.records.get(key(actor,session));return !!v&&(v.pending!==null||v.committed!==null);}
+function guardStaffAbortClient(client,{identity,session,location}={}){
+ if(client?.[guarded])client=client[guarded];
+ function wrap(fn,name,p){
+  const actor=identity?.();let scope=null;
+  if(directWriters.has(name))scope=p?.p_session||p?.p_master_session||p?.master_session_id;
+  else if(name==='provider:mission_generic_ai')scope=p?.master_session_id;
+  else if(contextWriters.has(name)){
+   if(p?.p_location&&p.p_location!==location?.())return fn();
+   scope=p?.p_command?.master_session_id||p?.p_master_session||session?.();
+  }else return fn();
+  const k=ID.test(actor||'')&&ID.test(scope||'')?key(actor,scope):null;if(!k)return fn();
+  if(staffAbortBlocked(actor,scope))return Promise.resolve({data:null,error:{message:'Annullamento da riconciliare: i comandi della prova sono sospesi.'}});
+  shared.writers.set(k,(shared.writers.get(k)||0)+1);
+  return Promise.resolve().then(fn).finally(()=>{const n=(shared.writers.get(k)||1)-1;if(n)shared.writers.set(k,n);else shared.writers.delete(k);});
+ }
+ const functions=client.functions?new Proxy(client.functions,{get(t,p){if(p==='invoke')return (name,options)=>wrap(()=>t.invoke(name,options),'provider:'+name,options?.body);const v=Reflect.get(t,p);return typeof v==='function'?v.bind(t):v;}}):null;
+ return new Proxy(client,{get(t,p){if(p===guarded)return t;if(p==='rpc')return (name,payload,...rest)=>wrap(()=>t.rpc(name,payload,...rest),name,payload);if(p==='functions')return functions;const v=Reflect.get(t,p);return typeof v==='function'?v.bind(t):v;}});
+}
+function createStaffAbortController({client,identity,isCurrent=()=>true,storage=globalThis.sessionStorage,onCommitted=()=>{}}={}){
+ const actor=identity();if(!ID.test(actor||''))throw Error('Accesso Staff non valido.');
+ let session=null,current=null,host=null,busy=false,disposed=false,epoch=0,ui=null,lastMessage='',notified=null;
+ const valid=t=>!disposed&&identity()===actor&&isCurrent()&&epoch===t;
+ const storageKey=s=>`staff-simulation-abort-journal/1/${key(actor,s)}`;
+ function load(s){let raw;try{raw=storage.getItem(storageKey(s));}catch{throw Error('Recupero locale non disponibile: annullamento non inviato.');}let v={schema:'staff-abort-journal/1',actor,session:s,pending:null,committed:null,rejected:null};if(raw){try{v=JSON.parse(raw);}catch{bad();}if(v.schema!=='staff-abort-journal/1'||v.actor!==actor||v.session!==s)bad();if(v.pending){args(v.pending);if(v.pending.p_session!==s)bad();}if(v.committed)receipt(v.committed,{p_session:s,p_request:v.committed.request_key,p_expected_master_version:v.committed.expected_master_version,p_expected_run_version:v.committed.expected_run_version});if(v.committed&&v.committed.status!=='annullata')bad();}shared.records.set(key(actor,s),v);return v;}
+ function store(v){if(!valid(epoch))throw Error('Contesto cambiato.');const text=JSON.stringify(v);shared.records.set(key(actor,v.session),v);try{storage.setItem(storageKey(v.session),text);if(storage.getItem(storageKey(v.session))!==text)throw Error();}catch{throw Error('Recupero locale non confermato: richiesta conservata e comandi sospesi.');}return v;}
+ async function authenticate(t){if(!valid(t))throw Error('Contesto cambiato.');const auth=await client.auth.getSession();if(!valid(t)||auth.error||auth.data?.session?.user?.id!==actor)throw Error('Accesso cambiato: nessun esito presunto.');}
+ async function rpc(name,p,t){await authenticate(t);const r=await client.rpc(name,p);if(!valid(t))throw Error('Contesto cambiato: rileggi la richiesta.');if(r.error)throw r.error;return r.data;}
+ function settle(v,p){const r=receipt(v,p),j=load(session);if(j.pending&&JSON.stringify(j.pending)!==JSON.stringify(p))bad();if(r.status==='annullata'){j.committed=r;j.pending=null;}else{j.rejected=r;j.pending=null;}store(j);return r;}
+ async function recover(t){const j=load(session);if(!j.pending)return j;const p=j.pending,r=await rpc('mission_staff_simulation_abort_receipt_v1',{p_session:session,p_request:p.p_request},t);if(r?.schema!=='staff-simulation-abort-recovery/1'||r.master_session_id!==session||r.request_key!==p.p_request||!['not_found','pending','committed','rejected'].includes(r.status))bad();if(['pending','not_found'].includes(r.status)){if(r.receipt!==null)bad();return j;}const expected=r.status==='committed'?'annullata':'rejected';if(r.receipt?.status!==expected)bad();settle(r.receipt,p);return load(session);}
+ function draw(message){if(message!==undefined)lastMessage=message;message=lastMessage;if(!host?.isConnected)return;if(!ui){host.replaceChildren();const status=document.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');const controls=document.createElement('div');controls.style.cssText='display:flex;gap:10px;flex-wrap:wrap';host.append(status,controls);ui={status,controls};host.style.cssText='font-size:18px;font-weight:550;line-height:1.5;color:#302517;background:#f6edda;border:1px solid #b69a65;padding:12px;border-radius:8px';}ui.controls.replaceChildren();const j=shared.records.get(key(actor,session));
+ host.hidden=!(current?.can_abort||j?.pending||j?.committed||j?.rejected||message);ui.status.textContent=message|| (j?.committed?'Prova annullata. Fato e storico conservati.':j?.pending?'Annullamento da riconciliare. Comandi sospesi; bozze conservate.':j?.rejected?'Annullamento rifiutato dal server. Rileggi lo stato prima di una nuova operazione.':'');
+ function button(text,fn){const b=document.createElement('button');b.type='button';b.textContent=text;b.disabled=busy;b.style.cssText='font:inherit;min-height:44px;padding:9px 14px';b.onclick=fn;ui.controls.append(b);}
+ if(j?.committed)return;if(j?.pending){button('Verifica la stessa richiesta',()=>void refresh());button('Ripeti lo stesso annullamento',()=>void send(true));return;}if(current?.can_abort)button('Annulla prova',()=>void send(false));if(j?.rejected||message)button('Aggiorna disponibilità',()=>void refresh());
+ }
+ async function committed(j,t){if(j.committed&&valid(t)&&notified!==j.committed.request_key){notified=j.committed.request_key;await onCommitted(j.committed);}}
+ async function refresh(){if(busy||!session||!valid(epoch))return;const t=epoch;busy=true;lastMessage='';draw();try{await authenticate(t);const j=await recover(t);if(!valid(t))return;if(j.committed){current=null;draw();await committed(j,t);return;}const v=await rpc('mission_staff_simulation_abort_state_v1',{p_session:session},t);if(v?.schema!=='staff-simulation-abort-state/1'||v.master_session_id!==session||!['active','terminal','annullata'].includes(v.status)||typeof v.can_abort!=='boolean'||v.reason_code!==null&&!reasons.has(v.reason_code))bad();if(v.status==='annullata'&&v.receipt){const r=v.receipt,p={p_session:session,p_request:r.request_key,p_expected_master_version:r.expected_master_version,p_expected_run_version:r.expected_run_version};if(r.status!=='annullata')bad();settle(r,p);current=null;await committed(load(session),t);}else{if(!positive(v.master_control_version)||!positive(v.run_control_version)||v.can_abort&&(v.status!=='active'||v.reason_code!==null)||v.receipt!==null)bad();current=v;}
+ draw();}catch{if(valid(t)){current=null;draw('Annullamento non verificabile. Nessun esito confermato; aggiorna la stessa richiesta.');}}finally{if(valid(t)){busy=false;draw();}}}
+ async function send(replay){if(busy||!session||!valid(epoch))return;const t=epoch;let j=load(session),p;if(replay){if(!j.pending)return;p=j.pending;}else{if(j.pending||j.committed||!current?.can_abort)return;if((shared.writers.get(key(actor,session))||0)>0){draw('Un comando della prova è ancora in corso. Attendi e aggiorna disponibilità.');return;}p=Object.freeze({p_session:session,p_expected_master_version:current.master_control_version,p_expected_run_version:current.run_control_version,p_request:crypto.randomUUID()});j.pending=p;try{store(j);}catch{draw('Recupero locale non disponibile: nessun annullamento inviato, comandi sospesi.');return;}}
+ busy=true;draw();try{settle(await rpc('mission_staff_simulation_abort_v1',p,t),p);}catch{if(valid(t)){try{await recover(t);}catch{/* Pending remains; no automatic mutation replay. */}}}finally{if(valid(t)){busy=false;current=null;draw();await committed(load(session),t);if(!load(session).pending&&!load(session).committed)await refresh();}}}
+ return {mount:async (element,id)=>{if(!ID.test(id||'')||!element?.isConnected)return;if(host!==element)ui=null;host=element;if(session!==id){epoch++;session=id;current=null;ui=null;lastMessage='';load(id);}await refresh();},blocked:id=>staffAbortBlocked(actor,id),invalidate:()=>{epoch++;session=null;host=null;ui=null;current=null;busy=false;lastMessage='';notified=null;},dispose:()=>{disposed=true;epoch++;session=null;host=null;ui=null;current=null;busy=false;}};
+}
+
+return {createStaffAbortController,guardStaffAbortClient,staffAbortBlocked,staffAbortJournalSessions};})();
+      // Proxy locale della scena: conserva le porte native, sospende solo i writer mentre abort è incerto/committed.
+      sb=STAFF_ABORT.guardStaffAbortClient(sb,{identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
+        session:function(){return MV2?.data?.master?.id||MISSION_GENERIC_UI?.sessionId?.();},location:function(){return cur?.id;}});
+      var QUEST_RUNTIME_API=(function(){
+const {guardStaffAbortClient}=STAFF_ABORT;
+// Consumer Quest runtime/1. Nessuna porta service, provider o autorità meccanica client.
+const QUEST_RUNTIME_BUILD='quest-runtime-ui/1';
+const QUEST_STAFF_LOCATION='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const SHA=/^[0-9a-f]{64}$/i;
+const phases=['enrollment_open','prepared','opening_pending','started','closing_pending','terminal','uncertain','unavailable'];
+const fail=()=>{throw Error('Risposta Quest non coerente: rileggi lo stato.');};
+const id=v=>{if(!UUID.test(v||''))fail();return v;};
+const nullableId=v=>v===null?null:id(v);
+const integer=v=>{if(!Number.isSafeInteger(v)||v<1)fail();return v;};
+const bool=v=>{if(typeof v!=='boolean')fail();return v;};
+const schema=(v,s)=>{if(!v||v.schema_version!==s)fail();return v;};
+const pick=(v,keys)=>Object.fromEntries(keys.map(k=>[k,v[k]]));
+const roster=v=>{if(!Array.isArray(v)||v.length<1||v.length>4||new Set(v).size!==v.length)fail();v.forEach(id);return [...v];};
+function assignment(v){schema(v,'mission-factory-quest-roster/1');id(v.roster_assignment_id);id(v.draft_id);integer(v.roster_version);roster(v.member_character_ids);if(v.member_count!==v.member_character_ids.length||v.state!=='assigned')fail();return pick(v,['schema_version','roster_assignment_id','draft_id','roster_version','member_character_ids','member_count','state']);}
+function participant(v,episode){schema(v,'quest-episode-participant-state/1');if(v.quest_episode_id!==episode||!phases.includes(v.phase))fail();id(v.character_id);bool(v.enrollment_open);bool(v.ready);if(![null,'joined','withdrawn'].includes(v.enrollment_state))fail();if(v.enrollment_control_version!==null)integer(v.enrollment_control_version);if(v.present_now!==null)bool(v.present_now);const actions={};for(const k of ['join','withdraw','ready'])actions[k]=bool(v.actions?.[k]);nullableId(v.native_session_id);if(['started','closing_pending','terminal'].includes(v.phase)){id(v.native_session_id);}else if(v.native_session_id!==null)fail();let terminal=null;if(v.phase==='terminal'){const t=schema(v.terminal,'quest-episode-terminal-public/1');if(t.quest_episode_id!==episode||!['success','failure'].includes(t.outcome)||t.reward_state!=='pending_staff'||t.next_episode_eligible!==false)fail();id(t.native_terminal_receipt_id);terminal=pick(t,['schema_version','quest_episode_id','native_terminal_receipt_id','outcome','reward_state','next_episode_eligible']);}else if(v.terminal!==null)fail();return {...pick(v,['schema_version','quest_episode_id','character_id','phase','enrollment_open','enrollment_state','ready','enrollment_control_version','present_now','native_session_id']),actions,terminal};}
+function episodeState(v,episode){schema(v,'quest-episode-runtime-state/1');if(v.quest_episode_id!==episode)fail();id(v.quest_arc_id);integer(v.episode_ordinal);if(!SHA.test(v.source_sha256||''))fail();nullableId(v.previous_episode_terminal_receipt_id);nullableId(v.native_session_id);nullableId(v.prepare_request_key);nullableId(v.start_request_key);bool(v.enrollment_open);bool(v.prepare_ready);if(!['source_only','published','prepared','opening_pending','started','closing_pending','terminal','uncertain','draft','cancelled','open','in_progress','completed','failed'].includes(v.state))fail();const actions={};for(const k of ['assign_roster','prepare','start'])actions[k]=bool(v.actions?.[k]);return {...pick(v,['schema_version','quest_arc_id','quest_episode_id','episode_ordinal','source_sha256','previous_episode_terminal_receipt_id','native_session_id','prepare_request_key','start_request_key','state','enrollment_open','prepare_ready']),assignment:assignment(v.assignment),actions};}
+function enrollment(v,p){schema(v,'quest-episode-enrollment/1');if(v.request_key!==p.p_request||v.quest_episode_id!==p.p_episode||!['joined','withdrawn'].includes(v.state))fail();id(v.character_id);id(v.roster_assignment_id);bool(v.ready);integer(v.control_version);if(!SHA.test(v.source_sha256||''))fail();if(p.p_operation==='withdraw'&&v.state!=='withdrawn'||p.p_operation!=='withdraw'&&v.state!=='joined'||p.p_operation==='ready'&&v.ready!==p.p_ready)fail();return pick(v,['schema_version','request_key','quest_episode_id','character_id','state','ready','control_version']);}
+function prepare(v,p){schema(v,'quest-episode-prepare/1');if(v.request_key!==p.p_request||v.quest_arc_id!==p.p_arc||v.quest_episode_id!==p.p_episode||v.location_id!==p.p_location||v.state!=='prepared'||v.opening_publication_id!==null)fail();id(v.native_session_id);id(v.plan_version_id);integer(v.control_version);for(const k of ['source_sha256','plan_sha256','roster_snapshot_sha256','staff_release_sha256'])if(!SHA.test(v[k]||''))fail();return pick(v,['schema_version','request_key','quest_arc_id','quest_episode_id','native_session_id','location_id','state','control_version','opening_publication_id']);}
+function start(v,p){schema(v,'quest-episode-start/1');if(v.request_key!==p.p_request||v.prepare_request_key!==p.p_prepare_request||!['opening_pending','started','uncertain'].includes(v.state))fail();id(v.native_session_id);id(v.start_event_id);nullableId(v.opening_publication_id);integer(v.run_control_version);if(!['not_authorized','authorized','started','success','unknown_billable','failed_no_call'].includes(v.provider_attempt_state))fail();if(v.state==='started')id(v.opening_publication_id);return pick(v,['schema_version','request_key','prepare_request_key','state','native_session_id','start_event_id','opening_publication_id','run_control_version','provider_attempt_state']);}
+const mutations={
+ enrollment:{rpc:'mission_factory_quest_enrollment_v1',validate:enrollment},
+ prepare:{rpc:'mission_factory_quest_prepare_v1',validate:prepare},
+ start:{rpc:'mission_factory_quest_start_v1',validate:start},
+ assign:{rpc:'mission_factory_quest_episode_roster_assign_v1',validate:(v,p)=>{schema(v,'quest-episode-roster-assigned/1');if(v.request_key!==p.p_request||v.quest_episode_id!==p.p_episode)fail();id(v.quest_arc_id);const a=assignment(v.assignment);if(JSON.stringify([...a.member_character_ids].sort())!==JSON.stringify([...p.p_character_ids].sort()))fail();return {schema_version:v.schema_version,request_key:v.request_key,quest_arc_id:v.quest_arc_id,quest_episode_id:v.quest_episode_id,assignment:a};}}
+};
+function params(op,p,episode){id(p.p_request);const keys={enrollment:['p_episode','p_operation','p_ready','p_expected_version','p_request'],prepare:['p_arc','p_episode','p_location','p_roster','p_request'],start:['p_prepare_request','p_expected_control_version','p_request'],assign:['p_episode','p_character_ids','p_request']}[op];if(!keys||Object.keys(p).sort().join()!==[...keys].sort().join())fail();if(op!=='start'&&p.p_episode!==episode)fail();if(op==='enrollment'){if(!['join','withdraw','ready'].includes(p.p_operation))fail();if(p.p_operation==='join'){if(p.p_ready!==null||p.p_expected_version!==null)fail();}else{integer(p.p_expected_version);if(p.p_operation==='ready')bool(p.p_ready);else if(p.p_ready!==null)fail();}}if(op==='prepare'){id(p.p_arc);if(p.p_location!==QUEST_STAFF_LOCATION)fail();roster(p.p_roster);}if(op==='start'){id(p.p_prepare_request);integer(p.p_expected_control_version);}if(op==='assign')roster(p.p_character_ids);return JSON.parse(JSON.stringify(p));}
+function createQuestRuntimeApi(client,{identity,isCurrent=()=>true,currentSession=()=>null,storage=globalThis.sessionStorage}={}){
+ if(typeof client?.rpc!=='function'||typeof identity!=='function')fail();
+ client=guardStaffAbortClient(client,{identity,session:currentSession});
+ const owner=()=>{if(!isCurrent())throw Error('Contesto cambiato: riapri Quest.');return id(identity());};
+ const same=actor=>{if(owner()!==actor)throw Error('Accesso cambiato: riapri il pannello Quest.');};
+ async function call(name,p){const actor=owner();if(typeof client.auth?.getSession!=='function')throw Error('Accesso Quest non verificabile.');const auth=await client.auth.getSession();same(actor);if(auth.error||auth.data?.session?.user?.id!==actor)throw Error('Accedi nuovamente prima di usare Quest.');const r=await client.rpc(name,p);same(actor);if(r.error)throw r.error;return r.data;}
+ const key=(actor,episode)=>`quest-runtime-journal/1/${actor}/${id(episode)}`;
+ function read(episode){const actor=owner();let raw;try{raw=storage.getItem(key(actor,episode));}catch{throw Error('Recupero locale non disponibile: nessun comando inviato.');}if(!raw)return {schema_version:'quest-runtime-journal/1',actor,episode,pending:null,receipts:{}};let v;try{v=JSON.parse(raw);}catch{fail();}if(v.schema_version!=='quest-runtime-journal/1'||v.actor!==actor||v.episode!==episode||!v.receipts||typeof v.receipts!=='object')fail();if(v.pending){params(v.pending.operation,v.pending.params,episode);if(!mutations[v.pending.operation])fail();}return v;}
+ function write(v){same(v.actor);const encoded=JSON.stringify(v);try{storage.setItem(key(v.actor,v.episode),encoded);if(storage.getItem(key(v.actor,v.episode))!==encoded)throw Error();}catch{throw Error('Richiesta conservata solo in memoria: recupero locale non disponibile. Nessun nuovo comando inviato.');}return v;}
+ function confirm(episode,op,p,value){const v=read(episode);if(!v.pending||v.pending.operation!==op||JSON.stringify(v.pending.params)!==JSON.stringify(p))fail();v.receipts[op]={params:p,receipt:value};v.pending=null;write(v);return value;}
+ async function runState(request){id(request);const v=schema(await call('mission_factory_quest_run_state_v1',{p_request:request}),'quest-episode-run-state/1');if(v.request_key!==request||!['unknown','prepared','opening_pending','started','closing_pending','terminal','uncertain'].includes(v.state))fail();if(v.state==='unknown'){if(v.operation!==null||v.receipt!==null||v.run_control_version!==null||v.opening_publication_id!==null)fail();}else{if(!['prepare','start','terminal'].includes(v.operation))fail();integer(v.run_control_version);nullableId(v.opening_publication_id);if(['started','closing_pending','terminal'].includes(v.state))id(v.opening_publication_id);}
+ if(v.state!=='unknown'&&v.state!=='uncertain'){
+ const expected=v.state==='terminal'?'quest-episode-terminal/1':`quest-episode-${v.operation}/1`;
+ schema(v.receipt,expected);id(v.receipt.native_session_id);
+ if(v.state!=='terminal'&&v.receipt.request_key!==request)fail();
+ if(v.state==='terminal'){id(v.receipt.quest_episode_id);id(v.receipt.native_terminal_receipt_id);if(!['success','failure'].includes(v.receipt.outcome)||v.receipt.reward_state!=='pending_staff'||v.receipt.next_episode_eligible!==false)fail();}
+ }
+ // Private Staff receipt non è mai propagata al pannello partecipanti.
+ return v;}
+ async function recover(episode){const v=read(episode),pending=v.pending;if(!pending)return null;const {operation:op,params:p}=pending;if(op==='assign')return {state:'unknown',retry_explicit:true};if(op==='enrollment'){const r=schema(await call('mission_factory_quest_enrollment_request_state_v1',{p_request:p.p_request}),'quest-episode-enrollment-request-state/1');if(r.request_key!==p.p_request||!['committed','unknown'].includes(r.state)||r.state==='unknown'&&r.receipt!==null)fail();if(r.state==='committed')return {state:'committed',receipt:confirm(episode,op,p,enrollment(r.receipt,p))};return {state:'unknown',retry_explicit:true};}const r=await runState(p.p_request);if(r.state==='unknown'||r.state==='uncertain')return {state:r.state,retry_explicit:true};if(r.operation!==op)fail();if(r.receipt?.schema_version===`quest-episode-${op}/1`)confirm(episode,op,p,mutations[op].validate(r.receipt,p));else if(['closing_pending','terminal','started'].includes(r.state)){// La request resta recuperabile: receipt storica sostituita dal reader corrente.
+ const j=read(episode);j.receipts[op]={params:p,receipt:null,confirmed_state:r.state};j.pending=null;write(j);
+ }else fail();return {state:r.state,run:r};}
+ async function send(episode,op,p,{replay=false}={}){id(episode);const original=params(op,p,episode),journal=read(episode);if(replay){if(!journal.pending||journal.pending.operation!==op||JSON.stringify(journal.pending.params)!==JSON.stringify(original))fail();}else{if(journal.pending)throw Error('Una richiesta è da riconciliare: aggiorna prima il suo stato.');journal.pending={operation:op,params:original};write(journal);}try{return confirm(episode,op,original,mutations[op].validate(await call(mutations[op].rpc,original),original));}catch(error){
+ // Solo rigetti iscrizione nominati dal contratto consentono liberare la richiesta.
+ if(op==='enrollment'&&['MF_QUEST_ENROLLMENT_CLOSED','MF_QUEST_CHARACTER_BUSY','MF_QUEST_NOT_JOINED','MF_QUEST_ENROLLMENT_CAS','MF_QUEST_ENROLLMENT_SOURCE_DRIFT'].some(code=>String(error.message||'').includes(code))){const r=await recover(episode);if(r?.state==='committed')return r.receipt;const st=await call('mission_factory_quest_participant_state_v1',{p_episode:episode});participant(st,episode);const j=read(episode);if(j.pending&&JSON.stringify(j.pending.params)===JSON.stringify(original)){j.pending=null;write(j);throw Error('Iscrizione non eseguita: lo stato è stato riletto. Scegli nuovamente dopo aver verificato la squadra.');}}
+ throw Error('Operazione non confermata. Usa Aggiorna stato; la stessa richiesta viene conservata.');}}
+ return {build:QUEST_RUNTIME_BUILD,journal:read,send,recover,runState,
+ participant:async episode=>participant(await call('mission_factory_quest_participant_state_v1',{p_episode:id(episode)}),episode),
+ episode:async episode=>episodeState(await call('mission_factory_quest_episode_state_v1',{p_episode:id(episode)}),episode),
+ replay:async episode=>{const pending=read(episode).pending;if(!pending)throw Error('Nessuna richiesta da ripetere.');return send(episode,pending.operation,pending.params,{replay:true});}};
+}
+
+return {createQuestRuntimeApi,QUEST_STAFF_LOCATION};})();
+      var QUEST_RUNTIME_UI=(function(){
+const {createStaffAbortController}=STAFF_ABORT;
+const {createQuestRuntimeApi,QUEST_STAFF_LOCATION}=QUEST_RUNTIME_API;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const labels={source_only:'Puntata da preparare',open:'Iscrizioni aperte',in_progress:'Puntata in corso',completed:'Puntata conclusa',failed:'Puntata conclusa',cancelled:'Puntata annullata',enrollment_open:'Iscrizioni aperte',prepared:'Squadra preparata: la scena non è ancora iniziata',opening_pending:'In attesa del Fato iniziale',started:'Scena pubblicata',closing_pending:'In attesa del Fato conclusivo',terminal:'Puntata conclusa',uncertain:'Esito da riconciliare',unavailable:'Puntata non disponibile',unknown:'Richiesta da riconciliare'};
+const el=(tag,text='')=>{const n=document.createElement(tag);n.textContent=text;return n;};
+function skin(root){root.style.cssText='box-sizing:border-box;max-width:100%;padding:16px;background:#f6edda;color:#302517;border:1px solid #b69a65;border-radius:10px;font-size:18px;font-weight:550;line-height:1.55;overflow-wrap:anywhere';}
+const uuid=()=>crypto.randomUUID();
+function shell(root,title){skin(root);const heading=el('h3',title),message=el('p'),body=el('div'),tools=el('div');message.setAttribute('role','status');message.setAttribute('aria-live','polite');tools.style.cssText='display:flex;gap:10px;flex-wrap:wrap';root.replaceChildren(heading,message,body,tools);return {message,body,tools};}
+function button(root,text,handler,disabled=false){const b=el('button',text);b.type='button';b.disabled=disabled;b.style.cssText='min-height:44px;padding:10px 14px;font:inherit;color:#572d23;border:1px solid #b69a65;border-radius:7px;background:#fff8e7';b.addEventListener('click',handler);root.append(b);return b;}
+// Il pannello legge il proprio PG; nessuna receipt Staff o continuity entra nel DOM.
+function mountQuestParticipant(root,{client,identity,isCurrent=()=>true,onScene=()=>{}}={}){
+ const api=createQuestRuntimeApi(client,{identity,isCurrent:()=>!disposed&&root.isConnected&&isCurrent()}),ui=shell(root,'Quest assegnata');let episode=null,state=null,epoch=0,disposed=false,busy=false;
+ const actor=identity();
+ const valid=t=>!disposed&&root.isConnected&&identity()===actor&&isCurrent()&&t===epoch;
+ function inactive(){ui.body.replaceChildren();ui.tools.replaceChildren();ui.message.textContent='Contesto cambiato: riapri Quest dalla scheda Missioni.';}
+ function controls(){ui.tools.replaceChildren();if(!valid(epoch)){inactive();return;}const pending=api.journal(episode).pending;
+  button(ui.tools,'Aggiorna stato',()=>void refresh(),busy);
+  if(pending){button(ui.tools,'Ripeti la stessa richiesta',()=>void act(()=>api.replay(episode)),busy);return;}
+  if(!state||busy)return;
+  const request=(operation,ready)=>({p_episode:episode,p_operation:operation,p_ready:ready,p_expected_version:operation==='join'?null:state.enrollment_control_version,p_request:uuid()});
+  if(state.actions.join)button(ui.tools,'Iscriviti',()=>void act(()=>api.send(episode,'enrollment',request('join',null))));
+  if(state.actions.withdraw)button(ui.tools,'Ritira iscrizione',()=>void act(()=>api.send(episode,'enrollment',request('withdraw',null))));
+  if(state.actions.ready)button(ui.tools,state.ready?'Non sono pronto':'Sono pronto',()=>void act(()=>api.send(episode,'enrollment',request('ready',!state.ready))));
+  if(state.phase==='started')button(ui.tools,'Vai alla scena',()=>void scene());
+ }
+ function draw(){ui.body.replaceChildren();ui.body.append(el('p',labels[state.phase]));ui.body.append(el('p',`Iscrizione: ${state.enrollment_state==='joined'?'confermata':state.enrollment_state==='withdrawn'?'ritirata':'da confermare'}. Prontezza: ${state.ready?'confermata':'da confermare'}.`));ui.body.append(el('p',`Presenza nella chat: ${state.present_now===null?'non disponibile':state.present_now?'presente':'non presente'}.`));if(state.terminal){ui.body.append(el('p',state.terminal.outcome==='success'?'Puntata riuscita.':'Puntata conclusa senza successo.'));ui.body.append(el('p','Premi in attesa della gestione Staff. L’eventuale puntata successiva richiede una nuova iscrizione.'));}controls();}
+ async function refresh(){if(!episode||busy)return;const t=++epoch;busy=true;ui.message.textContent='Lettura dello stato…';controls();try{const recovery=await api.recover(episode);if(!valid(t))return;const value=await api.participant(episode);if(!valid(t))return;state=value;ui.message.textContent=recovery&&['unknown','uncertain'].includes(recovery.state)?'Richiesta ancora da riconciliare: nessun comando reinviato.':'';draw();}catch(e){if(valid(t)){state=null;ui.body.replaceChildren();ui.message.textContent='Stato Quest non disponibile. Nessuna azione viene confermata.';}}finally{busy=false;if(valid(t))controls();else inactive();}}
+ async function act(fn){if(busy||!valid(epoch))return;const t=epoch;busy=true;controls();let error=null;try{await fn();}catch(e){error=e.message||'Operazione non confermata.';}finally{busy=false;}if(!valid(t)){inactive();return;}await refresh();if(error&&valid(epoch))ui.message.textContent=error;}
+ async function scene(){if(busy||!valid(epoch))return;const t=epoch;busy=true;controls();try{const latest=await api.participant(episode);if(!valid(t))return;state=latest;draw();if(latest.phase==='started')await onScene({session:latest.native_session_id,character:latest.character_id,episode});else ui.message.textContent='La scena non è disponibile per nuove azioni.';}catch{if(valid(t))ui.message.textContent='Scena non confermata: aggiorna lo stato.';}finally{busy=false;if(valid(t))controls();}}
+ return {open:async id=>{if(busy)throw Error('Lettura in corso: attendi.');if(!UUID.test(id||'')||identity()!==actor)throw Error('Puntata non disponibile.');episode=id;state=null;epoch++;await refresh();},dispose:()=>{disposed=true;epoch++;root.replaceChildren();}};
+}
+// N+1 è un gesto Staff esplicito su una puntata esistente: nessuna generazione client.
+function mountQuestStaffRuntime(root,{client,identity,isCurrent=()=>true,onScene=()=>{}}={}){
+ const api=createQuestRuntimeApi(client,{identity,isCurrent:()=>!disposed&&root.isConnected&&isCurrent(),currentSession:()=>state?.native_session_id}),ui=shell(root,'Gestione puntata Quest');let episode=null,state=null,run=null,epoch=0,disposed=false,busy=false;
+ const actor=identity(),valid=t=>!disposed&&root.isConnected&&identity()===actor&&isCurrent()&&t===epoch;
+ const abortHost=el('div');abortHost.hidden=true;root.append(abortHost);
+ let abortBinding=null;
+ const abort=createStaffAbortController({client,identity,isCurrent:()=>!!abortBinding&&valid(abortBinding.epoch)&&episode===abortBinding.episode&&state?.native_session_id===abortBinding.session,onCommitted:r=>{if(!abortBinding||!valid(abortBinding.epoch)||episode!==abortBinding.episode||state?.native_session_id!==r.master_session_id)return;state=run=null;ui.tools.replaceChildren();ui.body.replaceChildren(el('p','Prova annullata. Fato e storico conservati; nessun esito o premio attribuito.'));ui.message.textContent='';}});
+
+ const form=el('div'),input=el('input'),rosterInput=el('textarea');input.placeholder='ID della puntata pubblicata Staff';input.setAttribute('aria-label','ID puntata Quest Staff');rosterInput.placeholder='Da 1 a 4 ID PG assegnabili, uno per riga';rosterInput.setAttribute('aria-label','Roster della puntata successiva');for(const n of [input,rosterInput])n.style.cssText='box-sizing:border-box;width:100%;font:inherit;padding:10px;color:#302517;background:#fff8e7;border:1px solid #b69a65';form.append(input);ui.body.before(form);button(form,'Apri puntata',()=>void open(input.value.trim()));
+ function controls(){ui.tools.replaceChildren();if(!valid(epoch)){ui.message.textContent='Accesso cambiato: riapri l’editor.';return;}button(ui.tools,'Aggiorna stato',()=>void refresh(),busy||!episode);if(!state||busy||!episode||abort.blocked(state.native_session_id))return;const pending=api.journal(episode).pending;
+ if(pending){button(ui.tools,'Ripeti la stessa richiesta',()=>void act(()=>api.replay(episode)));return;}
+ if(state.actions.assign_roster&&state.episode_ordinal>1&&state.previous_episode_terminal_receipt_id){if(!rosterInput.isConnected)ui.body.append(rosterInput);button(ui.tools,'Assegna squadra alla puntata',()=>{const ids=rosterInput.value.split(/[\s,;]+/).filter(Boolean);if(ids.length<1||ids.length>4||new Set(ids).size!==ids.length||ids.some(x=>!UUID.test(x))){ui.message.textContent='Scegli da 1 a 4 PG distinti.';return;}void act(()=>api.send(episode,'assign',{p_episode:episode,p_character_ids:ids,p_request:uuid()}));});}
+ if(state.actions.prepare&&state.prepare_ready)button(ui.tools,'Prepara la squadra nella Staff Test Room',()=>void act(()=>api.send(episode,'prepare',{p_arc:state.quest_arc_id,p_episode:episode,p_location:QUEST_STAFF_LOCATION,p_roster:state.assignment.member_character_ids,p_request:uuid()})));
+ if(state.actions.start&&run?.state==='prepared'&&run.operation==='prepare'&&state.prepare_request_key===run.request_key)button(ui.tools,'Avvia Quest IA',()=>void act(()=>api.send(episode,'start',{p_prepare_request:state.prepare_request_key,p_expected_control_version:run.run_control_version,p_request:uuid()})));
+ if(run?.state==='started')button(ui.tools,'Vai alla scena',()=>void scene());
+ }
+ function draw(){ui.body.replaceChildren();ui.body.append(el('p',`Puntata ${state.episode_ordinal} · ${labels[run?.state]||labels[state.state]||'Stato non operativo'}`));ui.body.append(el('p',`Squadra assegnata: ${state.assignment.member_count} PG. Iscrizioni ${state.enrollment_open?'aperte':'chiuse'}; preparazione ${state.prepare_ready?'disponibile':'non disponibile'}.`));ui.body.append(el('p','L’assegnazione non iscrive i PG e non conferma la loro prontezza o presenza.'));ui.body.append(el('p','Annullamento protetto ancora da integrare: questa candidata non è abilitabile al collaudo. Premi e sostituzioni durante la puntata restano da qualificare.'));if(state.episode_ordinal>1)ui.body.append(el('p','La puntata precedente deve avere il Fato conclusivo pubblicato. Nessun avvio automatico della successiva.'));controls();}
+ async function refresh(){if(!episode||busy)return;abort.invalidate();abortBinding=null;abortHost.hidden=true;const t=++epoch;busy=true;controls();ui.message.textContent='Lettura dello stato…';try{const recovery=await api.recover(episode);if(!valid(t))return;const s=await api.episode(episode);if(!valid(t))return;state=s;if(s.native_session_id){abortBinding={epoch:t,episode,session:s.native_session_id};await abort.mount(abortHost,s.native_session_id);if(!valid(t))return;if(abort.blocked(s.native_session_id)){ui.tools.replaceChildren();return;}}else{abortHost.hidden=true;}let r=null;const request=s.start_request_key||s.prepare_request_key;if(request)r=await api.runState(request);if(!valid(t))return;if(r?.receipt?.native_session_id&&r.receipt.native_session_id!==s.native_session_id)throw Error('Sessione divergente.');run=r;ui.message.textContent=recovery&&['unknown','uncertain'].includes(recovery.state)?'Richiesta da riconciliare: UUID e payload conservati.':'';draw();}catch(e){if(valid(t)){state=run=null;ui.body.replaceChildren();ui.message.textContent='Puntata non disponibile: nessun avvio confermato.';}}finally{busy=false;if(valid(t))controls();}}
+ async function act(fn){if(busy||!valid(epoch))return;const t=epoch;busy=true;controls();let error=null;try{await fn();}catch(e){error=e.message||'Operazione non confermata.';}finally{busy=false;}if(!valid(t))return;await refresh();if(error&&valid(epoch))ui.message.textContent=error;}
+ async function scene(){if(busy||!valid(epoch)||!state?.start_request_key)return;const t=epoch;busy=true;controls();try{const fresh=await api.runState(state.start_request_key);if(!valid(t))return;if(fresh.state!=='started'||!fresh.opening_publication_id){ui.message.textContent='Attendi la conferma del Fato iniziale.';return;}await onScene({session:state.native_session_id,episode});}catch{if(valid(t))ui.message.textContent='Scena non confermata.';}finally{busy=false;if(valid(t))controls();}}
+ async function open(id){if(busy)return;if(!UUID.test(id||'')){ui.message.textContent='Inserisci un ID puntata valido.';return;}abort.invalidate();abortBinding=null;abortHost.hidden=true;episode=id;input.value=id;state=run=null;epoch++;await refresh();}
+ return {open,dispose:()=>{abort.dispose();disposed=true;epoch++;root.replaceChildren();}};
+}
+
+return {mountQuestParticipant,mountQuestStaffRuntime};})();
+      function questEpisodeLink(){
+        var params=new URLSearchParams(location.search),staff=params.get('quest_staff_episode'),participant=params.get('quest_episode');
+        var id=staff||participant;if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id||''))return null;
+        return {episode:id,staff:!!staff};
+      }
+      async function openQuestEpisodePanel(target){
+        if(!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||target.staff&&!iAmStaff)return;
+        var actor=myId,room=cur&&cur.id||null,closed=false,panel=null;
+        var d=document.createElement('dialog');d.setAttribute('aria-label','Quest');
+        d.style.cssText='width:min(760px,94vw);max-width:94vw;max-height:88vh;box-sizing:border-box;overflow:auto;background:#f6edda;border:1px solid #b69a65;border-radius:10px;padding:12px';
+        var x=document.createElement('button');x.type='button';x.textContent='Chiudi';x.style.cssText='min-height:44px;font-size:18px';var host=document.createElement('section');d.append(x,host);document.body.append(d);d.showModal();
+        function same(){return !closed&&d.isConnected&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===actor&&myId===actor&&(cur&&cur.id||null)===room&&(!target.staff||iAmStaff);}
+        function close(){if(closed)return;closed=true;panel?.dispose();if(d.open)d.close();d.remove();}
+        x.onclick=close;d.addEventListener('close',close);
+        var mount=target.staff?QUEST_RUNTIME_UI.mountQuestStaffRuntime:QUEST_RUNTIME_UI.mountQuestParticipant;
+        try{panel=mount(host,{client:sb,identity:function(){return same()?actor:null;},isCurrent:same,onScene:async function(){
+          if(!same())return;if(!cur||cur.id!==QUEST_RUNTIME_API.QUEST_STAFF_LOCATION){toast('Entra nella Staff Test Room per raggiungere questa scena riservata.');return;}
+          close();closeMiss();loadMsgs();loadMasterV2();ordinaryRefresh();
+        }});await panel.open(target.episode);if(!same())close();}catch(e){if(same())host.textContent='Quest non disponibile per questo accesso. Riapri il pannello per rileggere lo stato.';else close();}
+      }
       var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null;
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=mission-academy-flow-v4-regia-entry-ui-1').then(function(mod){
+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=mission-staff-abort-ui-agg1').then(function(mod){
           MISSION_GENERIC_UI=mod.createMissionUI({client:sb,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             openCombat:function(){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')void ORDINARY.open('ordinary');else toast('Pannello Scontro non disponibile in questa scena.');},
@@ -13591,6 +13800,10 @@ var nb028iTeardown=function(){};
         var bk=document.getElementById('missov-backdrop'); if(bk) bk.addEventListener('click', closeMiss);
         document.addEventListener('keydown', function(e){ if(e.key==='Escape' && missOpenNow()) closeMiss(); });
         [['mtab-bacheca','bacheca'],['mtab-mie','mie'],['mtab-new','new']].forEach(function(p){ var el=document.getElementById(p[0]); if(el) el.addEventListener('click', function(){ setMissTab(p[1]); }); });
+        var questLink=questEpisodeLink(),questButton=document.getElementById('mtab-quest-runtime');
+        if(questButton&&questLink){questButton.hidden=false;questButton.addEventListener('click',function(){void openQuestEpisodePanel(questLink);});}
+        // Le card future possono fornire l'episodio pubblico senza inventare una discovery RPC.
+        document.getElementById('miss-body')?.addEventListener('click',function(e){var q=e.target.closest('[data-quest-episode]');if(q)void openQuestEpisodePanel({episode:q.getAttribute('data-quest-episode'),staff:false});});
         var body=document.getElementById('miss-body'); if(!body) return;
         body.addEventListener('click', function(e){
           var t=e.target.closest('button'); if(!t||!sb) return;

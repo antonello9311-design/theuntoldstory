@@ -1,3 +1,4 @@
+import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=mission-staff-fato-regen-1';
 export const VERSION='mission-academy-flow-v4-staff-client/1-candidate';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
@@ -16,6 +17,22 @@ function style(){if(styled)return;styled=true;const n=el('style',null);n.textCon
 
 export function createMissionUI({client,identity,isStaff,currentLocation,presentCharacters=async()=>[],creationEditor=null,creationBoard=null,notice=()=>{},refresh=()=>{},openCombat=()=>{}}){
  let currentDialog=null,roomEpoch=0,roomSignature='',roomState=null;
+ client=guardStaffAbortClient(client,{identity,session:()=>roomState?.session_id,location:()=>currentLocation()?.id});
+ const aborts=new Map();let abortActor=null;
+ function abortBlocked(id){return staffAbortBlocked(identity(),id);}
+ async function mountAborts(host,state,t){
+  if(t.loc.id!==STAFF_TEST_ROOM||t.loc.is_test!==true)return;
+  if(abortActor!==t.user){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=t.user;}
+  const ids=[...new Set([...(state?[state.session_id]:[]),...staffAbortJournalSessions(t.user)])];
+  host.querySelector('[data-staff-abort-recovery]')?.remove();
+  const recovery=el('div',null,{'data-staff-abort-recovery':''});host.append(recovery);
+  for(const id of ids){if(!roomCurrent(t))return;const ah=el('div',null,{'data-staff-abort':''});recovery.append(ah);
+   let c=aborts.get(id);if(!c){c=createStaffAbortController({client,identity,isCurrent:()=>roomCurrent(t),onCommitted:r=>{if(roomCurrent(t)&&roomState?.session_id===r.master_session_id){roomState=null;roomSignature='';const recoveryHost=roomHost?.querySelector('[data-staff-abort-recovery]');if(recoveryHost){roomHost.replaceChildren(recoveryHost);roomHost.hidden=false;}notice('Prova annullata. Fato e storico conservati.');}}});aborts.set(id,c);}
+   // Controller contesto catturato: ricrea a ogni epoch stanza, mai riattivare il precedente utente.
+   await c.mount(ah,id);if(!roomCurrent(t))return;
+  }
+  if(!roomState){host.replaceChildren(recovery);host.hidden=!ids.length;}
+ }
  const regen=createStaffFatoRegen({client,identity,isStaff,currentLocation,refresh});
  const valid=(user)=>!!user&&identity()===user;
  async function rpc(name,args,user=identity()){
@@ -153,7 +170,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function syncRoom(host){
   const user=identity(),loc=currentLocation(),scope=scopeFor(user,loc);
   if(cacheUser!==user){cacheUser=user;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();}
-  if(scope!==roomScope||host!==roomHost){roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';entryReplayReady=false;staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
+  if(scope!==roomScope||host!==roomHost){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';entryReplayReady=false;staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
   return {user,loc,scope,epoch:roomEpoch};
  }
  const roomCurrent=t=>t.scope===roomScope&&t.epoch===roomEpoch&&valid(t.user)&&scopeFor(identity(),currentLocation())===t.scope&&roomHost?.isConnected;
@@ -280,7 +297,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&state.choice_context?.narration_pending!==true&&(!p||p.state==='completed');
  }
  function paintRoom(host,state){
-  if(!host||!state)return;style();
+  if(!host||!state)return;if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
   if(!title||!status||!actions){host.replaceChildren();host.className='mg-room';title=el('strong','',{'data-mg-room-title':''});status=el('p','',{'data-mg-room-status':'',role:'status','aria-live':'polite','aria-atomic':'true'});actions=el('div',null,{'data-mg-room-actions':''});host.append(title,status,actions,button('Aggiorna regia',()=>updateRoom(host,{manual:true})));roomSignature='';}
   host.hidden=false;const heading='Missione · '+(state.objective||state.step_key||'');if(title.textContent!==heading)title.textContent=heading;
@@ -491,7 +508,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   try{
    const state=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
    if(!roomCurrent(t))return;
-   if(!state){roomState=null;roomSignature='';roomError='';host.replaceChildren();host.hidden=true;return;}
+   if(!state){roomState=null;roomSignature='';roomError='';host.replaceChildren();host.hidden=true;await mountAborts(host,null,t);return;}
     if(!UUID.test(state.session_id||'')||typeof state.step_key!=='string')throw Error('room_state_invalid');
     academyFlow(state); // The server owns both the phase and the Fato publication receipt.
     roleProgress(state); // A partial reason/remedy projection cannot authorize a dispatch.
@@ -499,11 +516,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const key=choiceKey(state),pending=choiceRequests.get(key);
    // Only a confirmed RPC/rejection followed by an authoritative read unlocks choices.
    if(pending&&!pending.inFlight&&['confirmed','rejected'].includes(pending.phase)&&t.readSequence>pending.settledAfterRead)choiceRequests.delete(key);
-   paintRoom(host,state);await regen.update(host,state);
+   paintRoom(host,state);
+   await mountAborts(host,state,t);if(!roomCurrent(t)||!roomState)return;
+   if(abortBlocked(state.session_id))return;await regen.update(host,state);
    const projected=processingFor(state);
    if(!manual||academyFlow(state)==='combat_started'||staffAcademyRole(state,t.loc)?.reason==='ready_to_evaluate'
     &&projected.valid&&(!projected.value||['completed','failed'].includes(projected.value.state)))maybeDispatch(state,t);
-  }catch(error){if(roomCurrent(t)&&roomState){roomError='Aggiornamento non disponibile. I comandi restano sospesi; premi Aggiorna regia.';paintRoom(host,roomState);}}
+  }catch(error){if(roomCurrent(t)){roomError='Aggiornamento non disponibile. I comandi restano sospesi; premi Aggiorna regia.';if(roomState)paintRoom(host,roomState);else{host.replaceChildren(el('p','Recupero della prova non verificabile. Nessun esito confermato.'));host.hidden=false;}}}
   finally{if(roomRead===t)roomRead=null;}
  }
  async function submitRole({characterId,body,hasCompanion=false,hasTechnique=false}){
@@ -544,5 +563,5 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(roomHost)void updateRoom(roomHost,{manual:true});
   return {handled:true,receipt};
  }
- return {editor,board,decorateBoard,updateRoom,submitRole,dispose(){regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};
+ return {editor,board,decorateBoard,updateRoom,submitRole,sessionId:()=>roomState?.session_id,dispose(){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};
 }
