@@ -1,6 +1,6 @@
 import {createMissionMapPicker} from './MAPPE_UI_PICKER.asset.v3.mjs';
 import {createMapBindingEditor} from './MAP_OBJECT_BINDING_UI.asset.v1.mjs';
-export const VERSION='mission-creation-ui/human-staff-optin-5';
+export const VERSION='mission-creation-ui/human-staff-close-candidate-53';
 const copy=value=>structuredClone(value);
 const uuid=()=>crypto.randomUUID();
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -232,7 +232,114 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
   for(const a of ctx.actors||[]){add('Ruolo del PNG · '+a.actor_key,a.role_in_phase);add('Obiettivo riservato',a.goal_private);add('Conoscenze del PNG',a.known_facts_private);add('Aspetto pubblico',a.public_portrayal);}
   for(const c of ctx.consequences||[]){add('Conseguenza possibile · '+c.transition_key,c.public_fact);add('Nota riservata',c.private_note);}host.append(box);
  }
- async function mountHuman(host,session){
+ // C53: the journal permits UI recovery; server ownership/protection remain authoritative.
+ const STAFF_CLOSE_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
+ const closePrefix=who=>'mission-human-close/1/'+who+'/';
+ const positive=v=>Number.isSafeInteger(v)&&v>0;
+ function validateCloseJournal(v,who,session){
+  const a=v?.args;
+  if(v?.schema!=='mission-human-close/1'||v.user!==who||v.location!==STAFF_CLOSE_ROOM||v.session!==session||
+   !UUID.test(session||'')||!a||Object.keys(a).sort().join(',')!=='p_close_role,p_expected_control_version,p_mission_note,p_mission_outcome,p_request_key,p_session'||
+   a.p_session!==session||a.p_close_role!==false||!positive(a.p_expected_control_version)||!UUID.test(a.p_request_key||'')||
+   !['successo','fallimento'].includes(a.p_mission_outcome)||(a.p_mission_note!==null&&typeof a.p_mission_note!=='string')||
+   (a.p_mission_note?.length||0)>5000||!Number.isSafeInteger(v.completed)||v.completed<0||v.completed>6||!['pending','closed'].includes(v.status))throw Error('Recupero della chiusura non verificabile.');
+  return v;
+ }
+ function pendingHumanCloseSession(){
+  syncIdentity();const who=identity();if(!who||currentLocation()?.id!==STAFF_CLOSE_ROOM||currentLocation()?.is_test!==true)return null;
+  const found=[];
+  for(let i=0;i<sessionStorage.length;i++){const k=sessionStorage.key(i);if(!k?.startsWith(closePrefix(who)))continue;
+   const sid=k.slice(closePrefix(who).length),v=validateCloseJournal(JSON.parse(sessionStorage.getItem(k)),who,sid);
+   if(v.status==='pending')found.push(sid);
+  }
+  if(found.length>1)throw Error('Più chiusure pendenti: nessuna sessione scelta automaticamente.');return found[0]||null;
+ }
+ function protectedStart(session,who){
+  const matches=[];
+  for(let i=0;i<sessionStorage.length;i++){
+   const key=sessionStorage.key(i);if(!key?.startsWith('mission-human-staff-start/5/'+who+':'))continue;
+   const v=JSON.parse(sessionStorage.getItem(key)),r=v?.result;
+   if(r?.master_session_id!==session)continue;
+   if(v.schema_version!=='mission-human-staff-start/5'||v.user!==who||v.location!==STAFF_CLOSE_ROOM||
+    !UUID.test(v.mission||'')||key!=='mission-human-staff-start/5/'+who+':'+v.mission+':'+STAFF_CLOSE_ROOM||!UUID.test(v.request||'')||
+    !Array.isArray(v.roster)||v.roster.length<1||v.roster.length>4||v.roster.some(x=>!UUID.test(x||''))||new Set(v.roster).size!==v.roster.length||
+    r.schema_version!=='mission-human-test-start/1'||r.source_mission_id!==v.mission||r.simulation!==true||r.direction_mode!=='human')throw Error('Ricevuta protetta della prova non verificabile.');
+   matches.push(v);
+  }
+  if(matches.length!==1)throw Error('Recupera la ricevuta originale della preparazione protetta.');return matches[0];
+ }
+ function phaseForClose(v,session){
+  if(!['mission-human-phase-state/1','mission-human-phase-state/2'].includes(v?.schema_version)||v.master_session_id!==session||
+   typeof v.closed!=='boolean'||!Array.isArray(v.transitions))throw Error('Stato autorevole della chiusura non verificabile.');return v;
+ }
+ async function humanCloseControls(host,h,state,context,user,stamp,same){
+  h.closeContext=context||h.closeContext;const ctx=h.closeContext;
+  if(!ctx||typeof ctx.current!=='function'||typeof ctx.lock!=='function'||typeof ctx.externalBusy!=='function')return;
+  const key=closePrefix(user)+h.session;
+  const signal=()=>ctx.lock({session:h.session,args:h.closeJournal?.status==='pending'?copy(h.closeJournal.args):null,blocked:!!h.closeError||h.closeJournal?.status==='pending'||h.closeRunning===true,busy:h.busy});
+  const persist=v=>{if(!same()||!ctx.current())throw Error('Accesso o stanza cambiati.');try{const raw=JSON.stringify(v);sessionStorage.setItem(key,raw);if(sessionStorage.getItem(key)!==raw)throw Error('Recupero locale non confermato.');h.closeJournal=copy(v);signal();}catch(e){h.closeError=e.message;signal();throw e;}};
+  try{const raw=sessionStorage.getItem(key);h.closeJournal=raw?validateCloseJournal(JSON.parse(raw),user,h.session):null;}
+  catch(e){h.closeError=e.message;signal();}
+  const pending=h.closeJournal?.status==='pending';
+  if(!pending&&!h.closeError&&(!ctx.current()||ctx.masterView!==true||ctx.viewer?.is_master!==true||ctx.master?.id!==h.session||ctx.location?.id!==STAFF_CLOSE_ROOM||ctx.location?.is_test!==true))return;
+  if(!pending&&!h.closeError&&!(state.closed===false&&state.phase_kind==='narrative'&&state.transitions.length===0&&state.can_open_encounter===false&&state.awaiting_fato!==true))return;
+  let eligibilityError='';if(!pending&&!h.closeError){try{protectedStart(h.session,user);}catch(e){eligibilityError=e.message;}}
+  const box=card('Chiusura attività'),status=node('p',h.closeError||eligibilityError||h.closeMessage||'Concludi la prova dopo aver pubblicato il Fato finale. Nessun premio o avanzamento reale viene attribuito.',{class:'mc-status',role:'status','aria-live':'polite'});box.setAttribute('data-mc-human-close','');box.append(status);host.append(box);
+  const blocked=()=>h.pending||h.fatoPending||state.awaiting_fato===true||ctx.externalBusy()||ctx.master?.suspended_at!==null;
+  const controls=node('div',null,{class:'mc-actions'});box.append(controls);
+  const outcome=select([{value:'successo',label:'Successo'},{value:'fallimento',label:'Fallimento'}],h.closeJournal?.args.p_mission_outcome||h.closeOutcome||'successo',v=>h.closeOutcome=v);
+  const note=text(h.closeJournal?.args.p_mission_note||h.closeNote||'',v=>h.closeNote=v,5000);
+  if(!pending&&!h.closeError){outcome.disabled=note.disabled=false;box.insertBefore(field('Esito della prova',outcome),status);box.insertBefore(field('Nota conclusiva del Master',note),status);}
+  async function settleClosed(fresh){
+   if(fresh.closed!==true||fresh.session_state!=='chiusa')return false;
+   if(h.closeJournal){persist({...h.closeJournal,status:'closed'});}h.closeError=null;signal();status.textContent='Attività chiusa: storico conservato, nessun premio reale assegnato.';notice(status.textContent);refresh();return true;
+  }
+  async function run(recover){
+   if(!same()||!ctx.current()||h.busy||h.closeError)return;
+   let attemptedNative=0;h.closeRunning=true;h.busy=true;signal();host.querySelectorAll('button').forEach(b=>b.disabled=true);
+   try{
+    let fresh=phaseForClose(await rpc('mission_human_phase_state_v1',{p_session:h.session},user,stamp),h.session);
+    if(!same()||!ctx.current())throw Error('Contesto cambiato: richiesta conservata.');
+    if(await settleClosed(fresh))return;
+    protectedStart(h.session,user);
+    if(ctx.masterView!==true||ctx.viewer?.is_master!==true||ctx.master?.id!==h.session||ctx.location?.id!==STAFF_CLOSE_ROOM||ctx.location?.is_test!==true||ctx.master.suspended_at!==null||ctx.externalBusy())throw Error('La propria Regia Master deve essere libera e riletta prima della chiusura.');
+    if(!recover){
+     if(h.closeJournal?.status==='pending'||blocked()||fresh.awaiting_fato!==false||fresh.phase_kind!=='narrative'||fresh.transitions.length!==0||fresh.can_open_encounter!==false||fresh.master_control_version!==ctx.master.control_version)throw Error('La fase conclusiva non è ancora disponibile.');
+     const args={p_session:h.session,p_mission_outcome:outcome.value,p_mission_note:note.value.trim()||null,p_close_role:false,p_expected_control_version:fresh.master_control_version,p_request_key:uuid()};
+     validateCloseJournal({schema:'mission-human-close/1',user,location:STAFF_CLOSE_ROOM,session:h.session,args,completed:0,status:'pending'},user,h.session);
+     // Signal the lock synchronously before persisting or sending any mutation.
+     h.closeJournal={schema:'mission-human-close/1',user,location:STAFF_CLOSE_ROOM,session:h.session,args,completed:0,status:'pending'};signal();persist(h.closeJournal);
+    }
+    if(h.closeJournal?.status!=='pending')throw Error('Nessuna richiesta originale da riprendere.');
+    const args=copy(h.closeJournal.args);status.textContent='Chiusura in corso…';
+    for(let i=0;i<6;i++){
+     if(!same()||!ctx.current())throw Error('Contesto cambiato: richiesta conservata.');
+     attemptedNative++;const raw=await rpc('master_v2_close',copy(args),user,stamp);
+     const result=raw?.data?.data??raw?.data??raw;
+     if(!same()||!ctx.current())throw Error('Contesto cambiato: verifica la stessa chiusura.');
+     if(!['chiusura','chiusa'].includes(result?.state)||!Number.isSafeInteger(result.completed_steps)||result.completed_steps<0||result.completed_steps>6||result.completed_steps<h.closeJournal.completed)throw Error('Ricevuta della chiusura non verificabile.');
+     persist({...h.closeJournal,completed:result.completed_steps});
+     if(result.state==='chiusa'){
+      fresh=phaseForClose(await rpc('mission_human_phase_state_v1',{p_session:h.session},user,stamp),h.session);
+      if(!same()||!ctx.current()||!await settleClosed(fresh))throw Error('Chiusura ricevuta, conferma autorevole ancora in attesa.');return;
+     }
+     if(result.next_retry_same_key!==true)throw Error('Avanzamento della chiusura non confermato.');
+    }
+    throw Error('Limite dei sei passi raggiunto. Verifica la stessa richiesta.');
+   }catch(e){if(same()){
+    // Only this exact first-call terminal veto is before the Native event and writes.
+    if(!recover&&attemptedNative===1&&h.closeJournal?.completed===0&&e.code==='55000'&&String(e.message).includes('MC_TERMINAL_STEP_REQUIRED')){try{sessionStorage.removeItem(key);if(sessionStorage.getItem(key)!==null)throw Error('Recupero locale non confermato.');h.closeJournal=null;signal();}catch(storage){h.closeError=storage.message;signal();}}
+    h.closeMessage='Chiusura non confermata. '+e.message;status.textContent=h.closeMessage;
+    if(h.closeJournal?.status==='pending')signal();}}
+   finally{h.closeRunning=false;h.busy=false;signal();if(same()){h.signature='';await mountHuman(host,h.session,h.closeContext);}}
+  }
+  if(pending){const b=button('Verifica la stessa chiusura',()=>run(true));b.setAttribute('data-mc-close-recovery','');b.disabled=!!h.closeError;controls.append(b);}
+  else if(!h.closeError&&state.closed!==true){const b=button('Chiudi attività',()=>run(false));b.disabled=!!eligibilityError||blocked();controls.append(b);}
+  if(h.closeError){const b=button('Rileggi recupero locale',()=>{h.closeError=null;h.signature='';mountHuman(host,h.session,h.closeContext);},true);b.setAttribute('data-mc-close-recovery','');controls.append(b);}
+  signal();
+ }
+
+ async function mountHuman(host,session,closeContext=null){
   syncIdentity();const user=identity(),stamp=epoch;
   if(!host)return {status:'unconfigured',master_session_id:null};styles();
   if(!user||!UUID.test(session||'')){humans.delete(host);host.replaceChildren();host.hidden=true;return {status:'unconfigured',master_session_id:null};}
@@ -240,12 +347,14 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
   const saveFato=pending=>{try{if(pending)sessionStorage.setItem(fatoKey,JSON.stringify(pending));else sessionStorage.removeItem(fatoKey);return true;}catch{return false;}};
   const loadFato=()=>{try{const p=JSON.parse(sessionStorage.getItem(fatoKey)||'null');return p?.p_session===session&&UUID.test(p.p_event||'')&&UUID.test(p.p_request||'')&&typeof p.p_body==='string'&&p.p_body.length>=1&&p.p_body.length<=5000?p:null;}catch{return null;}};
   let h=humans.get(host);if(!h||h.session!==session||h.user!==user){h={session,user,signature:'',busy:false,pending:null,fatoPending:loadFato(),fatoDraft:'',readPromise:null,result:null};humans.set(host,h);host.replaceChildren();host.hidden=true;}
+  h.closeContext=closeContext||h.closeContext;
+  if(h.closeContext){try{const saved=sessionStorage.getItem(closePrefix(user)+session);h.closeJournal=saved?validateCloseJournal(JSON.parse(saved),user,session):null;}catch(e){h.closeError=e.message;}h.closeContext.lock({session,args:h.closeJournal?.status==='pending'?copy(h.closeJournal.args):null,blocked:!!h.closeError||h.closeJournal?.status==='pending'||h.closeRunning===true,busy:h.busy});}
   if(h.readPromise)return h.readPromise;if(h.busy)return {...(h.result||{status:'error',master_session_id:session}),pending:true};
   const same=()=>humans.get(host)===h&&host.isConnected&&valid(user,stamp);
   const stale=()=>({status:'error',master_session_id:session,stale:true});
   function showError(error){
    if(!same())return stale();const denied=error?.code==='42501',sig='error:'+String(error?.code||'read');
-   if(h.signature!==sig){host.replaceChildren();host.hidden=false;host.classList.add('mc-human');host.append(node('p',denied?'Non hai più il permesso di leggere questa regia. I contenuti riservati sono stati rimossi.':'Impossibile leggere le fasi della missione. Aggiorna per riprovare; i comandi precedenti restano sospesi.',{class:'mc-status',role:'status'}),button('Aggiorna fase',()=>{h.signature='';mountHuman(host,session);},true));}
+   if(h.signature!==sig){host.replaceChildren();host.hidden=false;host.classList.add('mc-human');host.append(node('p',denied?'Non hai più il permesso di leggere questa regia. I contenuti riservati sono stati rimossi.':'Impossibile leggere le fasi della missione. Aggiorna per riprovare; i comandi precedenti restano sospesi.',{class:'mc-status',role:'status'}),button('Aggiorna fase',()=>{h.signature='';mountHuman(host,session,h.closeContext);},true));}
    h.signature=sig;h.result={status:'error',master_session_id:session,permission_denied:denied};return h.result;
   }
   h.readPromise=(async()=>{
@@ -256,12 +365,12 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
     if(state.awaiting_fato===true&&!fato)throw Error('Il fatto da narrare non è disponibile: aggiorna la fase.');
     if(state.awaiting_fato===true&&h.pending)h.pending=null;
     h.result={status:'ready',master_session_id:session,session_state:state.session_state||null,closed:state.closed===true,awaiting_fato:state.awaiting_fato===true};
-    const signature=JSON.stringify([state,h.pending,h.fatoPending,h.lastError||'']);if(signature===h.signature)return h.result;const wasOpen=host.querySelector('[data-mc-human-phases]')?.open||false;h.signature=signature;host.replaceChildren();host.hidden=false;host.classList.add('mc-human');const panel=node('details',null,{'data-mc-human-phases':''});panel.open=wasOpen;panel.append(node('summary','Fasi e note della missione'));const content=node('div',null);panel.append(content);host.append(panel);content.append(node('h3',state.closed===true?'Missione conclusa':'Missione · fase corrente'),node('p',state.objective||state.step_key||''));humanContext(content,state.director_context);
+    const signature=JSON.stringify([state,h.pending,h.fatoPending,h.lastError||'',h.closeJournal,h.closeError||'',h.closeContext?.masterView,h.closeContext?.master?.control_version]);if(signature===h.signature)return h.result;const wasOpen=host.querySelector('[data-mc-human-phases]')?.open||false;h.signature=signature;host.replaceChildren();host.hidden=false;host.classList.add('mc-human');const panel=node('details',null,{'data-mc-human-phases':''});panel.open=wasOpen;panel.append(node('summary','Fasi e note della missione'));const content=node('div',null);panel.append(content);host.append(panel);content.append(node('h3',state.closed===true?'Missione conclusa':'Missione · fase corrente'),node('p',state.objective||state.step_key||''));humanContext(content,state.director_context);
     if(Number.isSafeInteger(state.roster_count))content.append(node('p','PG della squadra: '+state.roster_count+(state.roster_ready===true?' · squadra confermata':state.roster_ready===false?' · conferma in attesa':''),{class:'mc-help'}));
     if(state.roster_ready===false||state.blocked_reason){const reasons={'Serve il roster confermato della missione.':'Conferma la squadra della missione con il numero di PG previsto dalle iscrizioni.',MC_CONFIRMED_ROSTER_REQUIRED:'La squadra non è ancora confermata. Completa le iscrizioni e la conferma previste per questa missione.',confirmed_roster_required:'La squadra non è ancora confermata. Completa le iscrizioni e la conferma previste per questa missione.',roster_not_ready:'La squadra non è ancora pronta per iniziare.'};const raw=typeof state.blocked_reason==='string'?state.blocked_reason:'';content.append(node('p',reasons[raw]||raw||'Avvio in attesa della conferma della squadra.',{class:'mc-status',role:'status'}));}
     const status=node('p',h.lastError|| (h.fatoPending?'Il Fato non è ancora confermato. Verifica la stessa pubblicazione.':h.pending?'Un comando non è ancora confermato. Verifica lo stesso comando prima di procedere.':''),{class:'mc-status',role:'status','aria-live':'polite'}),actions=node('div',null,{class:'mc-actions'});content.append(status,actions);
      async function publishFato(){
-      if(!same()||h.busy||(!h.fatoPending&&(!fato||fato.can_publish!==true)))return;
+      if(!same()||h.closeError||h.closeJournal?.status==='pending'||h.busy||(!h.fatoPending&&(!fato||fato.can_publish!==true)))return;
       if(!h.fatoPending){const body=(h.fatoDraft||'').trim();if(body.length<1||body.length>5000){status.textContent='Scrivi un Fato di 1–5000 caratteri.';return;}
        const pending={p_session:session,p_event:fato.event_id,p_body:body,p_request:uuid()};
        if(!saveFato(pending)){status.textContent='Impossibile conservare la richiesta nel browser. La pubblicazione è sospesa.';return;}h.fatoPending=pending;}
@@ -270,7 +379,7 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
        if(receipt?.schema!=='mission-human-fato-publication/1'||receipt.status!=='published'||receipt.event_id!==h.fatoPending.p_event||receipt.request_key!==h.fatoPending.p_request||!UUID.test(receipt.publication_id||'')||!UUID.test(receipt.message_id||''))throw Error('Ricevuta del Fato non verificabile.');
        h.fatoPending=null;saveFato(null);h.fatoDraft='';h.lastError='';h.signature='';refresh();
       }catch(e){if(!same())return;h.lastError='Pubblicazione non confermata. Verifica la stessa richiesta. '+e.message;if(e.code==='42501')showError(e);else status.textContent=h.lastError;}
-      finally{h.busy=false;if(same()){h.signature='';await mountHuman(host,session);}}
+      finally{h.busy=false;if(same()){h.signature='';await mountHuman(host,session,h.closeContext);}}
      }
     if(state.awaiting_fato===true){
      const box=card('Fato del Master'),draft=text(h.fatoPending?.p_body||h.fatoDraft||'',v=>{h.fatoDraft=v;},5000);
@@ -288,25 +397,28 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
      content.insertBefore(recovery,status);
     }
     async function closePeacefully(){
-     if(!same()||h.busy)return;const body=(h.closeDraft||'').trim();if(!h.pending){if(body.length<20||body.length>5000){status.textContent='Scrivi un esito del Fato di 20–5000 caratteri.';return;}h.pending={p_action:'close_noncombat',p_session:session,p_expected_version:state.control_version,p_trigger_key:state.peaceful_trigger_key,p_body:body,p_request:uuid()};}
+     if(!same()||h.closeError||h.closeJournal?.status==='pending'||h.busy)return;const body=(h.closeDraft||'').trim();if(!h.pending){if(body.length<20||body.length>5000){status.textContent='Scrivi un esito del Fato di 20–5000 caratteri.';return;}h.pending={p_action:'close_noncombat',p_session:session,p_expected_version:state.control_version,p_trigger_key:state.peaceful_trigger_key,p_body:body,p_request:uuid()};}
      if(h.pending.p_action!=='close_noncombat')return;h.busy=true;host.querySelectorAll('button').forEach(b=>b.disabled=true);status.textContent='Pubblicazione dell’esito e chiusura in corso…';
      try{const args={p_session:h.pending.p_session,p_expected_version:h.pending.p_expected_version,p_trigger_key:h.pending.p_trigger_key,p_body:h.pending.p_body,p_request:h.pending.p_request};await rpc('mission_human_combat_close_peaceful_v1',args,user,stamp);if(!same())return;h.pending=null;h.closeDraft='';h.lastError='';h.signature='';refresh();}
      catch(e){if(!same())return;if(e.code&&(/^(22|23)/.test(e.code)||['42501','40001','55000','P0001'].includes(e.code)))h.pending=null;h.lastError='Chiusura non confermata. '+e.message;if(e.code==='42501')showError(e);else status.textContent=h.lastError;}
-     finally{h.busy=false;if(same()){h.signature='';await mountHuman(host,session);}}
+     finally{h.busy=false;if(same()){h.signature='';await mountHuman(host,session,h.closeContext);}}
     }
     if(state.awaiting_fato!==true&&((state.can_close_noncombat===true&&!h.pending)||h.pending?.p_action==='close_noncombat')){
      const closeBox=card('Chiusura senza conflitto'),draft=text(h.pending?.p_body||h.closeDraft||'',v=>{h.closeDraft=v;},5000);draft.setAttribute('aria-label','Esito del Fato che chiude l’incontro');draft.style.cssText='width:100%;min-height:110px;padding:9px 11px;border:1px solid var(--rule,#8a6f43);border-radius:7px;background:rgba(255,252,244,.8);color:var(--ink,#1d1206);font:500 17px/1.4 Georgia,serif;resize:vertical';closeBox.append(node('p','Scrivi come si conclude l’incontro. Il server pubblicherà questo Fato e aprirà la fase narrativa successiva con un solo comando.'),field('Esito del Fato',draft),status,button(h.pending?.p_action==='close_noncombat'?'Verifica la stessa chiusura':'Pubblica Fato e chiudi scontro',closePeacefully));host.prepend(closeBox);
     }
-    async function act(action,trigger=null){if(!same()||h.busy)return;if(!h.pending)h.pending={p_session:session,p_expected_version:state.control_version,p_action:action,p_trigger_key:trigger,p_request:uuid()};h.busy=true;host.querySelectorAll('button').forEach(b=>b.disabled=true);status.textContent='Esecuzione del comando…';
+    async function act(action,trigger=null){if(!same()||h.closeError||h.closeJournal?.status==='pending'||h.busy)return;if(!h.pending)h.pending={p_session:session,p_expected_version:state.control_version,p_action:action,p_trigger_key:trigger,p_request:uuid()};h.busy=true;host.querySelectorAll('button').forEach(b=>b.disabled=true);status.textContent='Esecuzione del comando…';
      try{await rpc('mission_human_phase_action_v1',copy(h.pending),user,stamp);if(!same())return;h.pending=null;h.lastError='';h.signature='';refresh();}
      catch(e){if(!same())return;if(e.code&&(/^(22|23)/.test(e.code)||['42501','40001','55000','P0001'].includes(e.code)))h.pending=null;h.lastError='Comando non confermato. '+e.message;if(e.code==='42501')showError(e);else status.textContent=h.lastError;}
-     finally{h.busy=false;if(same()){h.signature='';await mountHuman(host,session);}}
+     finally{h.busy=false;if(same()){h.signature='';await mountHuman(host,session,h.closeContext);}}
     }
     if(state.awaiting_fato===true){} // Il server trattiene le azioni della nuova fase fino alla ricevuta del Fato.
     else if(h.pending?.p_action==='close_noncombat'){}
     else if(h.pending)actions.append(button('Verifica lo stesso comando',()=>act(h.pending.p_action,h.pending.p_trigger_key)));
     else{if(state.can_open_encounter===true)actions.append(button('Apri lo scontro della fase',()=>act('open_encounter')));for(const t of state.transitions){if(typeof t.trigger_key==='string'&&typeof t.label==='string')actions.append(button(t.label,()=>act('advance',t.trigger_key)));}}
-    actions.append(button('Aggiorna fase',()=>{h.signature='';mountHuman(host,session);},true));return h.result;
+    actions.append(button('Aggiorna fase',()=>{h.signature='';mountHuman(host,session,h.closeContext);},true));
+    await humanCloseControls(host,h,state,h.closeContext,user,stamp,same);
+    if(h.closeError||h.closeJournal?.status==='pending')for(const b of host.querySelectorAll('button:not([data-mc-close-recovery])'))b.disabled=true;
+    return h.result;
    }catch(e){return showError(e);}
   })().finally(()=>{h.readPromise=null;});return h.readPromise;
  }
@@ -425,5 +537,5 @@ export function createMissionCreationUI({client,identity,isStaff,currentLocation
   }catch(e){if(same())status.textContent='Elenco dei presenti non disponibile. '+e.message;}
   return true;
  }
- return {mountCreate,editor,mountHuman,routeBoard,dispose:()=>{generalMapPicker.dispose();clear();},version:VERSION};
+ return {mountCreate,editor,mountHuman,routeBoard,pendingHumanCloseSession,dispose:()=>{generalMapPicker.dispose();clear();},version:VERSION};
 }

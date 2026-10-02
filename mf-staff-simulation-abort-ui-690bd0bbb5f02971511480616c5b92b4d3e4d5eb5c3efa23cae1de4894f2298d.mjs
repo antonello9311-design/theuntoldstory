@@ -1,0 +1,85 @@
+// Consumer esclusivo della porta abort Staff; nessun motore o writer di gameplay.
+const ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const sharedKey=Symbol.for('tus.staff-abort-coordination/1'),guarded=Symbol.for('tus.staff-abort-guarded/1');
+const shared=globalThis[sharedKey]||(globalThis[sharedKey]={records:new Map(),writers:new Map()});
+const positive=x=>Number.isSafeInteger(x)&&x>0;
+const key=(actor,session)=>`${actor}/${session}`;
+const reasons=new Set(['STAFF_ABORT_UNAVAILABLE','STAFF_ABORT_TERMINAL_OR_CLOSING','STAFF_ABORT_NOT_QUIESCENT','STAFF_ABORT_STALE','STAFF_ABORT_QUEST_PERMIT','STAFF_ABORT_POSTCONDITION']);
+const bad=()=>{throw Error('Ricevuta di annullamento non coerente. Rileggi la stessa richiesta.');};
+function args(p){if(!p||Object.keys(p).sort().join()!==['p_session','p_expected_master_version','p_expected_run_version','p_request'].sort().join()||!ID.test(p.p_session)||!ID.test(p.p_request)||!positive(p.p_expected_master_version)||!positive(p.p_expected_run_version))bad();return p;}
+function receipt(v,p){args(p);if(v?.schema!=='staff-simulation-abort/1'||v.request_key!==p.p_request||v.master_session_id!==p.p_session||v.operation_id!==p.p_request||v.expected_master_version!==p.p_expected_master_version||v.expected_run_version!==p.p_expected_run_version)bad();if(v.status==='annullata'){if(v.resources_protected!==true||!ID.test(v.audit_event_id||'')||!positive(v.master_control_version)||!positive(v.run_control_version)||v.master_control_version<=p.p_expected_master_version||v.run_control_version<=p.p_expected_run_version)bad();}else if(v.status==='rejected'){if(!reasons.has(v.reason_code))bad();}else bad();return v;}
+// Solo writer nominati di questa scena. Reader, whisper e RPC estranee passano invariati.
+const directWriters=new Set(['mission_generic_choose_v1','mission_role_submit_v1','mission_staff_resume_identical_role_v1','mission_staff_retry_failed_director_v1','mission_staff_fato_regenerate_v1','regia_combat_entry_prepare_v1','master_v2_encounter_open','master_v2_scene_close','regia_round_advance_v1','regia_round_advance_v2','regia_round_publish_v1']);
+const contextWriters=new Set(['mission_factory_quest_start_v1','mission_factory_quest_prepare_v1','mission_factory_quest_episode_roster_assign_v1','mission_factory_quest_enrollment_v1','combat_panel_commit_v1','combat_v2_action_declare','combat_v2_defense_declare','combat_v2_rating_save','combat_v2_round_resolve','combat_v2_round_narrate_human','combat_v2_round_next','combat_v2_session_close','combat_azione','post_message','post_fato_manual','post_item_use','png_attacca_pg','png_attacco_combinato','png_evoca','png_ritira']);
+export function staffAbortJournalSessions(actor,storage=globalThis.sessionStorage){
+ if(!ID.test(actor||''))return [];const prefix=`staff-simulation-abort-journal/1/${actor}/`,sessions=[];
+ try{for(let i=0;i<storage.length;i++){const k=storage.key(i);if(!k?.startsWith(prefix))continue;const id=k.slice(prefix.length);if(!ID.test(id))continue;const j=JSON.parse(storage.getItem(k));if(j?.schema!=='staff-abort-journal/1'||j.actor!==actor||j.session!==id)bad();if(j.pending){args(j.pending);if(j.pending.p_session!==id)bad();}if(j.committed){receipt(j.committed,{p_session:id,p_request:j.committed.request_key,p_expected_master_version:j.committed.expected_master_version,p_expected_run_version:j.committed.expected_run_version});if(j.committed.status!=='annullata')bad();}if(j.pending||j.committed)sessions.push(id);}}catch{throw Error('Recupero locale non verificabile. Nessun esito confermato.');}
+ return [...new Set(sessions)].sort();
+}
+export function staffAbortBlocked(actor,session){const v=shared.records.get(key(actor,session));return !!v&&(v.pending!==null||v.committed!==null);}
+const rewardWriters=new Set(['mission_factory_quest_reward_apply_v2','mission_factory_quest_reward_staff_extra_v2']);
+const rewardBindingKeys=['schema_version','actor_auth_id','arc_id','terminal_receipt_id','decision_id','native_session_id','terminal_episode_id','arc_source_sha256','policy_sha256','native_master_control_version','native_run_control_version','effect_mode','qualification_sha256','binding_sha256'];
+const bindingSha=x=>typeof x==='string'&&/^[0-9a-f]{64}$/i.test(x);
+const bindingId=x=>typeof x==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(x);
+function rewardBindingMatches(b,name,p,actor){
+ if(!b||typeof b!=='object'||Array.isArray(b)||Object.keys(b).sort().join()!==[...rewardBindingKeys].sort().join()||b.schema_version!=='quest-reward-abort-binding/1')return false;
+ if(['actor_auth_id','arc_id','terminal_receipt_id','native_session_id','terminal_episode_id'].some(k=>!bindingId(b[k]))||b.decision_id!==null&&!bindingId(b.decision_id))return false;
+ if(['arc_source_sha256','policy_sha256','qualification_sha256','binding_sha256'].some(k=>!bindingSha(b[k]))||!positive(b.native_master_control_version)||!positive(b.native_run_control_version)||!['simulation','real'].includes(b.effect_mode)||b.actor_auth_id!==actor||b.arc_id!==p?.p_arc)return false;
+ return name==='mission_factory_quest_reward_apply_v2'?b.decision_id===null&&b.terminal_receipt_id===p?.p_terminal_receipt&&b.arc_source_sha256===p?.p_expected_arc_source_sha256&&b.policy_sha256===p?.p_expected_policy_sha256:b.decision_id!==null;
+}
+export function guardStaffAbortClient(client,{identity,session,location,rewardBinding}={}){
+ if(client?.[guarded])client=client[guarded];
+ function wrap(fn,name,p){
+  const actor=identity?.();let scope=null;
+  if(rewardWriters.has(name)){
+   const error=message=>({data:null,error:{message}}),supplied=rewardBinding?.(name,p);
+   if(supplied===null||supplied===undefined)return Promise.resolve(error('QUEST_REWARD_ABORT_BINDING_REQUIRED'));
+   const binding=Object.freeze({...supplied});
+   if(!rewardBindingMatches(binding,name,p,actor))return Promise.resolve(error('QUEST_REWARD_ABORT_BINDING_MISMATCH'));
+   scope=binding.native_session_id;const k=key(actor,scope);
+   if(staffAbortBlocked(actor,scope))return Promise.resolve(error('Annullamento da riconciliare: i comandi della prova sono sospesi.'));
+   shared.writers.set(k,(shared.writers.get(k)||0)+1);
+   return Promise.resolve().then(()=>{
+    const fresh=rewardBinding?.(name,p);
+    if(identity?.()!==actor||!rewardBindingMatches(fresh,name,p,actor)||rewardBindingKeys.some(k=>fresh[k]!==binding[k]))return error('QUEST_REWARD_ABORT_BINDING_MISMATCH');
+    if(staffAbortBlocked(actor,scope))return error('Annullamento da riconciliare: i comandi della prova sono sospesi.');
+    return fn();
+   }).finally(()=>{const n=(shared.writers.get(k)||1)-1;if(n)shared.writers.set(k,n);else shared.writers.delete(k);});
+  }
+  if(directWriters.has(name))scope=p?.p_session||p?.p_master_session||p?.master_session_id;
+  else if(name==='provider:mission_generic_ai')scope=p?.master_session_id;
+  else if(contextWriters.has(name)){
+   if(p?.p_location&&p.p_location!==location?.())return fn();
+   scope=p?.p_command?.master_session_id||p?.p_master_session||session?.();
+  }else return fn();
+  const k=ID.test(actor||'')&&ID.test(scope||'')?key(actor,scope):null;if(!k)return fn();
+  if(staffAbortBlocked(actor,scope))return Promise.resolve({data:null,error:{message:'Annullamento da riconciliare: i comandi della prova sono sospesi.'}});
+  shared.writers.set(k,(shared.writers.get(k)||0)+1);
+  return Promise.resolve().then(fn).finally(()=>{const n=(shared.writers.get(k)||1)-1;if(n)shared.writers.set(k,n);else shared.writers.delete(k);});
+ }
+ const functions=client.functions?new Proxy(client.functions,{get(t,p){if(p==='invoke')return (name,options)=>wrap(()=>t.invoke(name,options),'provider:'+name,options?.body);const v=Reflect.get(t,p);return typeof v==='function'?v.bind(t):v;}}):null;
+ return new Proxy(client,{get(t,p){if(p===guarded)return t;if(p==='rpc')return (name,payload,...rest)=>wrap(()=>t.rpc(name,payload,...rest),name,payload);if(p==='functions')return functions;const v=Reflect.get(t,p);return typeof v==='function'?v.bind(t):v;}});
+}
+export function createStaffAbortController({client,identity,isCurrent=()=>true,storage=globalThis.sessionStorage,onCommitted=()=>{}}={}){
+ const actor=identity();if(!ID.test(actor||''))throw Error('Accesso Staff non valido.');
+ let session=null,current=null,host=null,busy=false,disposed=false,epoch=0,ui=null,lastMessage='',notified=null;
+ const valid=t=>!disposed&&identity()===actor&&isCurrent()&&epoch===t;
+ const storageKey=s=>`staff-simulation-abort-journal/1/${key(actor,s)}`;
+ function load(s){let raw;try{raw=storage.getItem(storageKey(s));}catch{throw Error('Recupero locale non disponibile: annullamento non inviato.');}let v={schema:'staff-abort-journal/1',actor,session:s,pending:null,committed:null,rejected:null};if(raw){try{v=JSON.parse(raw);}catch{bad();}if(v.schema!=='staff-abort-journal/1'||v.actor!==actor||v.session!==s)bad();if(v.pending){args(v.pending);if(v.pending.p_session!==s)bad();}if(v.committed)receipt(v.committed,{p_session:s,p_request:v.committed.request_key,p_expected_master_version:v.committed.expected_master_version,p_expected_run_version:v.committed.expected_run_version});if(v.committed&&v.committed.status!=='annullata')bad();}shared.records.set(key(actor,s),v);return v;}
+ function store(v){if(!valid(epoch))throw Error('Contesto cambiato.');const text=JSON.stringify(v);shared.records.set(key(actor,v.session),v);try{storage.setItem(storageKey(v.session),text);if(storage.getItem(storageKey(v.session))!==text)throw Error();}catch{throw Error('Recupero locale non confermato: richiesta conservata e comandi sospesi.');}return v;}
+ async function authenticate(t){if(!valid(t))throw Error('Contesto cambiato.');const auth=await client.auth.getSession();if(!valid(t)||auth.error||auth.data?.session?.user?.id!==actor)throw Error('Accesso cambiato: nessun esito presunto.');}
+ async function rpc(name,p,t){await authenticate(t);const r=await client.rpc(name,p);if(!valid(t))throw Error('Contesto cambiato: rileggi la richiesta.');if(r.error)throw r.error;return r.data;}
+ function settle(v,p){const r=receipt(v,p),j=load(session);if(j.pending&&JSON.stringify(j.pending)!==JSON.stringify(p))bad();if(r.status==='annullata'){j.committed=r;j.pending=null;}else{j.rejected=r;j.pending=null;}store(j);return r;}
+ async function recover(t){const j=load(session);if(!j.pending)return j;const p=j.pending,r=await rpc('mission_staff_simulation_abort_receipt_v1',{p_session:session,p_request:p.p_request},t);if(r?.schema!=='staff-simulation-abort-recovery/1'||r.master_session_id!==session||r.request_key!==p.p_request||!['not_found','pending','committed','rejected'].includes(r.status))bad();if(['pending','not_found'].includes(r.status)){if(r.receipt!==null)bad();return j;}const expected=r.status==='committed'?'annullata':'rejected';if(r.receipt?.status!==expected)bad();settle(r.receipt,p);return load(session);}
+ function draw(message){if(message!==undefined)lastMessage=message;message=lastMessage;if(!host?.isConnected)return;if(!ui){host.replaceChildren();const status=document.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');const controls=document.createElement('div');controls.style.cssText='display:flex;gap:10px;flex-wrap:wrap';host.append(status,controls);ui={status,controls};host.style.cssText='font-size:18px;font-weight:550;line-height:1.5;color:#302517;background:#f6edda;border:1px solid #b69a65;padding:12px;border-radius:8px';}ui.controls.replaceChildren();const j=shared.records.get(key(actor,session));
+ host.hidden=!(current?.can_abort||j?.pending||j?.committed||j?.rejected||message);ui.status.textContent=message|| (j?.committed?'Prova annullata. Fato e storico conservati.':j?.pending?'Annullamento da riconciliare. Comandi sospesi; bozze conservate.':j?.rejected?'Annullamento rifiutato dal server. Rileggi lo stato prima di una nuova operazione.':'');
+ function button(text,fn){const b=document.createElement('button');b.type='button';b.textContent=text;b.disabled=busy;b.style.cssText='font:inherit;min-height:44px;padding:9px 14px';b.onclick=fn;ui.controls.append(b);}
+ if(j?.committed)return;if(j?.pending){button('Verifica la stessa richiesta',()=>void refresh());button('Ripeti lo stesso annullamento',()=>void send(true));return;}if(current?.can_abort)button('Annulla prova',()=>void send(false));if(j?.rejected||message)button('Aggiorna disponibilità',()=>void refresh());
+ }
+ async function committed(j,t){if(j.committed&&valid(t)&&notified!==j.committed.request_key){notified=j.committed.request_key;await onCommitted(j.committed);}}
+ async function refresh(){if(busy||!session||!valid(epoch))return;const t=epoch;busy=true;lastMessage='';draw();try{await authenticate(t);const j=await recover(t);if(!valid(t))return;if(j.committed){current=null;draw();await committed(j,t);return;}const v=await rpc('mission_staff_simulation_abort_state_v1',{p_session:session},t);if(v?.schema!=='staff-simulation-abort-state/1'||v.master_session_id!==session||!['active','terminal','annullata'].includes(v.status)||typeof v.can_abort!=='boolean'||v.reason_code!==null&&!reasons.has(v.reason_code))bad();if(v.status==='annullata'&&v.receipt){const r=v.receipt,p={p_session:session,p_request:r.request_key,p_expected_master_version:r.expected_master_version,p_expected_run_version:r.expected_run_version};if(r.status!=='annullata')bad();settle(r,p);current=null;await committed(load(session),t);}else{if(!positive(v.master_control_version)||!positive(v.run_control_version)||v.can_abort&&(v.status!=='active'||v.reason_code!==null)||v.receipt!==null)bad();current=v;}
+ draw();}catch{if(valid(t)){current=null;draw('Annullamento non verificabile. Nessun esito confermato; aggiorna la stessa richiesta.');}}finally{if(valid(t)){busy=false;draw();}}}
+ async function send(replay){if(busy||!session||!valid(epoch))return;const t=epoch;let j=load(session),p;if(replay){if(!j.pending)return;p=j.pending;}else{if(j.pending||j.committed||!current?.can_abort)return;if((shared.writers.get(key(actor,session))||0)>0){draw('Un comando della prova è ancora in corso. Attendi e aggiorna disponibilità.');return;}p=Object.freeze({p_session:session,p_expected_master_version:current.master_control_version,p_expected_run_version:current.run_control_version,p_request:crypto.randomUUID()});j.pending=p;try{store(j);}catch{draw('Recupero locale non disponibile: nessun annullamento inviato, comandi sospesi.');return;}}
+ busy=true;draw();try{settle(await rpc('mission_staff_simulation_abort_v1',p,t),p);}catch{if(valid(t)){try{await recover(t);}catch{/* Pending remains; no automatic mutation replay. */}}}finally{if(valid(t)){busy=false;current=null;draw();await committed(load(session),t);if(!load(session).pending&&!load(session).committed)await refresh();}}}
+ return {mount:async (element,id)=>{if(!ID.test(id||'')||!element?.isConnected)return;if(host!==element)ui=null;host=element;if(session!==id){epoch++;session=id;current=null;ui=null;lastMessage='';load(id);}await refresh();},blocked:id=>staffAbortBlocked(actor,id),invalidate:()=>{epoch++;session=null;host=null;ui=null;current=null;busy=false;lastMessage='';notified=null;},dispose:()=>{disposed=true;epoch++;session=null;host=null;ui=null;current=null;busy=false;}};
+}

@@ -732,6 +732,40 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
   <style id="mission-rapid-editor-style">
     .mission-rapid-editor{display:grid;gap:14px;color:var(--ink);max-width:1100px}.mission-rapid-editor *{box-sizing:border-box}.mission-rapid-editor h2,.mission-rapid-editor h3,.mission-rapid-editor h4,.mission-rapid-editor h5{font-family:Cinzel,serif}.mission-rapid-editor .mr-card{border:1px solid var(--edge);border-radius:10px;padding:14px;background:rgba(255,252,244,.55)}.mission-rapid-editor .mr-subcard{border-top:1px solid var(--edge);padding:12px 0}.mission-rapid-editor label{display:grid;gap:5px;margin:9px 0;font-weight:700}.mission-rapid-editor input,.mission-rapid-editor textarea,.mission-rapid-editor select{width:100%;min-height:42px;padding:8px;border:1px solid var(--rule);border-radius:7px;background:#fffaf0;color:var(--ink);font:inherit}.mission-rapid-editor input[type=checkbox]{width:22px;min-height:22px}.mission-rapid-editor textarea{resize:vertical}.mission-rapid-editor button{min-height:42px;margin:5px 8px 5px 0}.mission-rapid-editor pre{max-height:340px;overflow:auto;white-space:pre-wrap;background:rgba(255,255,255,.45);padding:10px;border-radius:7px}.mission-rapid-editor .mr-preview-image{display:block;width:min(100%,760px);max-height:480px;object-fit:contain;border:1px solid var(--edge);border-radius:8px;background:#211a10}.mission-rapid-editor [role=status]{white-space:pre-wrap;color:var(--red-deep)}
   </style>
+  <style id="mission-factory-editor-style">
+    #mission-editor-host{max-width:1180px;margin:22px auto 48px;color:var(--ink)}
+    #mission-editor-host *{box-sizing:border-box}
+    .mission-factory-admin-entry{display:grid;gap:18px}
+    .mission-factory-admin-entry>h2{font-family:'Cinzel Decorative',serif;font-size:clamp(24px,3vw,32px);margin:0;color:var(--ink)}
+    .mission-factory-admin-entry>p{margin:0;color:var(--ink-soft);font-size:17px;line-height:1.45;max-width:70ch}
+    .mission-factory-entry-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:9px;padding:13px;border:1px solid var(--edge);background:rgba(255,250,235,.55)}
+    .mission-factory-entry-toolbar input{flex:1 1 220px;min-width:180px}
+    .mission-factory-editor{display:grid;gap:16px}
+    .mission-factory-editor>h2{font-family:'Cinzel',serif;font-size:16px;letter-spacing:.08em;text-transform:uppercase;margin:4px 0 0;color:var(--red-deep)}
+    .mission-factory-editor .mf-stage-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:4px 0 8px}
+    .mission-factory-quest-editor .mf-stage-nav{grid-template-columns:repeat(5,minmax(0,1fr))}
+    .mission-factory-editor .mf-stage-nav button{min-height:60px;text-align:left;font-family:'Cinzel',serif;font-size:11px;line-height:1.45;letter-spacing:.05em;background:rgba(255,250,235,.45);border:1px solid var(--edge);color:var(--ink)}
+    .mission-factory-editor .mf-stage-nav button[aria-current="step"]{background:var(--ink);border-color:var(--ink);color:var(--paper-hi)}
+    .mission-factory-editor .mf-card{padding:19px 21px;border:1px solid var(--edge);background:rgba(255,250,235,.62);box-shadow:0 6px 22px rgba(43,29,14,.05);margin:0 0 14px}
+    .mission-factory-editor .mf-card .mf-card{background:rgba(255,255,255,.32);box-shadow:none;margin:15px 0}
+    .mission-factory-editor .mf-card h3{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep);margin:0 0 14px}
+    .mission-factory-editor .mf-card .mf-card h3{color:var(--ink);font-size:12px}
+    .mission-factory-editor label{display:grid;gap:6px;margin:12px 0;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+    .mission-factory-editor input,.mission-factory-editor textarea,.mission-factory-editor select,.mission-factory-entry-toolbar input{width:100%;min-height:42px;padding:9px 11px;border:1px solid var(--edge);background:#fffaf0;color:var(--ink);font:16px 'Cormorant Garamond',Georgia,serif;letter-spacing:normal;text-transform:none}
+    .mission-factory-editor textarea{min-height:102px;resize:vertical}
+    .mission-factory-editor input[type="checkbox"]{width:20px;min-height:20px}
+    .mission-factory-editor input[type="file"]{padding:7px}
+    .mission-factory-editor button,.mission-factory-entry-toolbar button{min-height:40px;padding:9px 14px;border:1px solid var(--rule);background:transparent;color:var(--ink);font-family:'Cinzel',serif;font-size:11px;letter-spacing:.05em;cursor:pointer}
+    .mission-factory-editor button:hover,.mission-factory-entry-toolbar button:hover{background:rgba(166,50,29,.08)}
+    .mission-factory-editor button:disabled{opacity:.52;cursor:not-allowed}
+    .mission-factory-entry-toolbar button[aria-current="page"]{background:var(--red-deep);border-color:var(--red-deep);color:#fffaf0}
+    .mission-factory-editor .mf-map-row,.mission-factory-editor .mf-npc-binding{border-top:1px solid var(--edge);padding:12px 0}
+    .mission-factory-editor .mf-map-row strong,.mission-factory-editor .mf-npc-binding strong{font-family:'Cinzel',serif;font-size:12px}
+    .mission-factory-editor .mf-map-row small{display:block;color:var(--ink-soft)}
+    .mission-factory-editor .mf-controls{display:flex;justify-content:space-between;gap:10px;margin-top:4px}
+    .mission-factory-editor .mf-status{min-height:1.4em;color:var(--red-deep);margin:0}
+    @media(max-width:760px){.mission-factory-editor .mf-stage-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.mission-factory-editor .mf-card{padding:14px}.mission-factory-entry-toolbar{align-items:stretch}.mission-factory-entry-toolbar input{flex-basis:100%}}
+  </style>
 </head>
 <body>
   <div class="page">
@@ -764,6 +798,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
             <button type="button" data-go="bacheche">Bacheche</button>
             <button type="button" data-go="ia">IA</button>
             <button type="button" data-go="ninja-editoriale">Ninja Book narrativo</button>
+            <button type="button" data-go="mission-editor" id="mission-editor-nav" hidden>Editor missioni</button>
             <button type="button" data-go="mission-rapid" id="mission-rapid-nav" hidden>Nuova missione rapida</button>
             <button type="button" data-go="media-scorta" id="scorta-media-nav" hidden>Media Scorta</button>
             <button type="button" data-go="media-academy" id="academy-media-nav" hidden>Media Accademia</button>
@@ -1103,6 +1138,10 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
           <!-- NINJA-BOOK-027B HTML FINE -->
 
 
+          <section class="adm-page" data-page="mission-editor" id="mission-editor-page" hidden aria-labelledby="mission-editor-title">
+            <div class="grp-title" id="mission-editor-title" style="margin-top:0">Editor missioni</div>
+            <div id="mission-editor-host"></div>
+          </section>
           <section class="adm-page" data-page="mission-rapid" id="mission-rapid-page" hidden aria-labelledby="mission-rapid-title">
             <div class="grp-title" id="mission-rapid-title" style="margin-top:0">Nuova missione · trama e immagini</div>
             <p class="mgr-note">Inserisci la trama, correggi fasi e PNG, collega immagini e mappa, poi pubblica soltanto dopo l’anteprima server completa.</p>
@@ -1590,7 +1629,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
       <div class="legend-item"><b>Bacheche</b><span>Sezioni delle bacheche mostrate nella land: categoria On&nbsp;game/Off, ordine e chi può scrivere.</span></div>
       <div class="legend-item"><b>IA</b><span>L’hub dei PNG, in cinque sotto-tab: <strong>Accademia</strong> (i sensei estratti a caso dal pool del villaggio), <strong>PNG Trama</strong> (il cast narrativo), <strong>Ninja Book</strong> (i modelli con statistiche che i master evocano in scena dalla Regia), <strong>Audit Accademia</strong> (il revisore che <strong>propone</strong> difetti senza correggerli) e <strong>Classi bloccate</strong> (le lezioni ferme, da leggere e sbloccare).</span></div>
       <div class="legend-item"><b>Ninja Book narrativo</b><span>Il workflow editoriale separato per identità, limiti, archi, memorie, relazioni, pool, atomi e scene dei PNG. Il server governa versioni e autorizzazioni; la preview mostra esclusivamente il contesto consegnato all’IA.</span></div>
-      <div class="legend-item"><b>Nuova missione rapida</b><span>Trasforma trama e immagini in una bozza modificabile, con fasi, PNG, mappa, condizioni e anteprima obbligatoria. La pubblicazione resta bloccata finché il server non valida e sigilla ogni riferimento.</span></div>
+      <div class="legend-item"><b>Editor missioni</b><span>Un unico percorso editoriale per trama, fasi, PNG, immagini e mappe, con anteprima obbligatoria e pubblicazione solo dopo la validazione server. Le bozze precedenti si riaprono dallo stesso pannello.</span></div>
       <div class="legend-item"><b>Aiuto</b><span>Le <strong>voci</strong> sono l’unica cosa che il Custode dell’Archivio sa: se una risposta manca, manca la voce. Nome, tono, modello e interruttore del Custode stanno invece nella scheda <strong>IA</strong>. Da <strong>Prova una domanda</strong> lo interroghi come farebbe un giocatore, senza consumare il tetto giornaliero.</span></div>
       <div class="legend-item"><b>Compagni</b><span>Evocazioni, marionette e cani ninja creati dai giocatori dalla <strong>loro scheda</strong> (slot base: 1). Da qui assegni la <strong>taglia</strong> (baby → piccola → media → grande → leggendaria) e concedi <strong>slot extra</strong> a un personaggio.</span></div>
       <div class="legend-item"><b>Banda notizie</b><span>La notizia flash che scorre in cima alla mappa della land. Lascia vuoto per nasconderla.</span></div>
@@ -3785,6 +3824,7 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
     function admFormHide(page){var w=admFormWrap(page);if(w)w.hidden=true;}
     function admHideAllForms(){var ws=document.querySelectorAll('.cat-formwrap');for(var i=0;i<ws.length;i++)ws[i].hidden=true;}
     function admGo(page){
+      if(nbeRole==='master'&&page!=='mission-editor')return;
       var pg=document.querySelectorAll('.adm-page'); for(var i=0;i<pg.length;i++){pg[i].classList.toggle('on',pg[i].getAttribute('data-page')===page);}
       var bt=document.querySelectorAll('#adm-nav button'); for(var j=0;j<bt.length;j++){bt[j].classList.toggle('on',bt[j].getAttribute('data-go')===page);}
       admHideAllForms();
@@ -4286,12 +4326,13 @@ return {mount:mountStaffExamDecisions};})();
     function nbeFillRepeat(id,values){var h=nbeEl(id);if(!h)return;h.innerHTML='';(values||[]).forEach(function(v){nbeAddRepeat(id,v);});var min=Number(h.getAttribute('data-repeat-min')||0);while(h.children.length<min)nbeAddRepeat(id,'');}
     function nbeArr(v){return v?[v]:[];}
     function nbeTemplatePayload(){return{
+      mechanical_template_id:nbeState.template?.mechanical_template_id||null,
       skeleton:{identity:{name:nbeVal('nbe-display-name'),role:nbeVal('nbe-identity-role'),origin:nbeVal('nbe-identity-origin')},voice:{register:nbeVal('nbe-voice-register'),rhythm:nbeVal('nbe-voice-rhythm')},gestures:{posture:nbeVal('nbe-gestures-posture')},motivations:nbeArr(nbeVal('nbe-motivations')),goals:nbeArr(nbeVal('nbe-goals')),fears:nbeArr(nbeVal('nbe-fears')),fragility:nbeArr(nbeVal('nbe-fragility')),resilience:nbeArr(nbeVal('nbe-resilience')),character_errors:nbeRepeat('nbe-errors'),recovery:nbeRepeat('nbe-recovery'),knowledge_limits:{absent:nbeRepeat('nbe-absent')},relationships:nbeArr(nbeVal('nbe-relationships-signal')).map(function(x){return{signal:x};}),conduct:{success:nbeVal('nbe-conduct-success')},continuity:{emotional_endings:nbeRepeat('nbe-endings')},forbidden:nbeArr(nbeVal('nbe-forbidden')),fallback:{mode:nbeVal('nbe-fallback-mode')||'human'}},
       knowledge_boundary:{known:nbeRepeat('nbe-known'),absent:nbeRepeat('nbe-absent')},fallback_profile:{code:nbeVal('nbe-fallback-code')||'book_unavailable',text:nbeVal('nbe-fallback-text')}
     };}
     function nbeSetTemplateMeta(){var t=nbeState.template,e=nbeEl('nbe-template-meta'),r=nbeEl('nbe-review-summary');if(!t){e.textContent='Nessun template selezionato.';r.textContent='Seleziona o crea un template.';return;}var s='ID: '+t.id+' · stato: '+(t.state||'—')+' · control_version: '+t.control_version+(t.version_no?' · versione '+t.version_no:'');e.textContent=s;r.textContent=s;}
-    function nbeAdoptResponse(d){if(!d||!nbeState.template)return;if(d.template_id&&d.template_id!==nbeState.template.id)return;if(d.control_version!=null)nbeState.template.control_version=Number(d.control_version);if(d.state)nbeState.template.state=d.state;if(d.version_id)nbeState.template.version_id=d.version_id;if(d.version_no)nbeState.template.version_no=d.version_no;nbeSetTemplateMeta();}
-    function nbeApplyTemplateDetail(d){if(!d||!d.template)return;var t=d.template,versions=d.versions||[],v=versions.find(function(x){return x.id===t.current_version_id;})||versions.slice().sort(function(a,b){return (b.version_no||0)-(a.version_no||0);})[0]||{};nbeState.template={id:t.id,control_version:Number(t.control_version||0),state:t.lifecycle_state,version_id:v.id||t.current_version_id,version_no:v.version_no};nbeEl('nbe-template-key').value=t.template_key||'';nbeEl('nbe-display-name').value=t.display_name||'';nbeEl('nbe-village').value=t.village_scope||'';var s=v.skeleton||{},kb=v.knowledge_boundary||{},fb=v.fallback_profile||{};nbeEl('nbe-identity-role').value=(s.identity&&s.identity.role)||'';nbeEl('nbe-identity-origin').value=(s.identity&&s.identity.origin)||'';nbeEl('nbe-voice-register').value=(s.voice&&s.voice.register)||'';nbeEl('nbe-voice-rhythm').value=(s.voice&&s.voice.rhythm)||'';nbeEl('nbe-gestures-posture').value=(s.gestures&&s.gestures.posture)||'';['motivations','goals','fears','fragility','resilience','forbidden'].forEach(function(k){nbeEl('nbe-'+(k==='forbidden'?'forbidden':k)).value=Array.isArray(s[k])?s[k].join('; '):'';});nbeEl('nbe-conduct-success').value=(s.conduct&&s.conduct.success)||'';nbeEl('nbe-relationships-signal').value=(s.relationships&&s.relationships[0]&&s.relationships[0].signal)||'';nbeEl('nbe-fallback-mode').value=(s.fallback&&s.fallback.mode)||'human';nbeFillRepeat('nbe-errors',s.character_errors);nbeFillRepeat('nbe-recovery',s.recovery);nbeFillRepeat('nbe-endings',s.continuity&&s.continuity.emotional_endings);nbeFillRepeat('nbe-known',kb.known);nbeFillRepeat('nbe-absent',(kb.absent||(s.knowledge_limits&&s.knowledge_limits.absent)));nbeEl('nbe-fallback-code').value=fb.code||'book_unavailable';nbeEl('nbe-fallback-text').value=fb.text||'';nbeSetTemplateMeta();}
+    function nbeAdoptResponse(d){if(!d||!nbeState.template)return;if(d.template_id&&d.template_id!==nbeState.template.id)return;if(d.control_version!=null)nbeState.template.control_version=Number(d.control_version);if(d.state)nbeState.template.state=d.state;if(d.version_id&&d.version_id!==nbeState.template.version_id){nbeState.template.version_id=d.version_id;nbeState.template.mechanical_template_id=null;}if(d.version_no)nbeState.template.version_no=d.version_no;nbeSetTemplateMeta();}
+    function nbeApplyTemplateDetail(d){if(!d||!d.template)return;var t=d.template,versions=d.versions||[],v=versions.filter(function(x){return x.review_state==='draft'||x.review_state==='review';}).sort(function(a,b){return (b.version_no||0)-(a.version_no||0);})[0]||versions.find(function(x){return x.id===t.current_version_id;})||versions.slice().sort(function(a,b){return (b.version_no||0)-(a.version_no||0);})[0]||{};nbeState.template={id:t.id,control_version:Number(t.control_version||0),state:t.lifecycle_state,version_id:v.id||t.current_version_id,version_no:v.version_no,mechanical_template_id:v.mechanical_template_id||null};nbeEl('nbe-template-key').value=t.template_key||'';nbeEl('nbe-display-name').value=t.display_name||'';nbeEl('nbe-village').value=t.village_scope||'';var s=v.skeleton||{},kb=v.knowledge_boundary||{},fb=v.fallback_profile||{};nbeEl('nbe-identity-role').value=(s.identity&&s.identity.role)||'';nbeEl('nbe-identity-origin').value=(s.identity&&s.identity.origin)||'';nbeEl('nbe-voice-register').value=(s.voice&&s.voice.register)||'';nbeEl('nbe-voice-rhythm').value=(s.voice&&s.voice.rhythm)||'';nbeEl('nbe-gestures-posture').value=(s.gestures&&s.gestures.posture)||'';['motivations','goals','fears','fragility','resilience','forbidden'].forEach(function(k){nbeEl('nbe-'+(k==='forbidden'?'forbidden':k)).value=Array.isArray(s[k])?s[k].join('; '):'';});nbeEl('nbe-conduct-success').value=(s.conduct&&s.conduct.success)||'';nbeEl('nbe-relationships-signal').value=(s.relationships&&s.relationships[0]&&s.relationships[0].signal)||'';nbeEl('nbe-fallback-mode').value=(s.fallback&&s.fallback.mode)||'human';nbeFillRepeat('nbe-errors',s.character_errors);nbeFillRepeat('nbe-recovery',s.recovery);nbeFillRepeat('nbe-endings',s.continuity&&s.continuity.emotional_endings);nbeFillRepeat('nbe-known',kb.known);nbeFillRepeat('nbe-absent',(kb.absent||(s.knowledge_limits&&s.knowledge_limits.absent)));nbeEl('nbe-fallback-code').value=fb.code||'book_unavailable';nbeEl('nbe-fallback-text').value=fb.text||'';nbeSetTemplateMeta();}
     async function nbeGet(kind,id,apply){var r=await nbeRpc(NBE_RPC.get,{p_kind:kind,p_id:id});if(r.error){nbeStatus(nbeMessage(r.error),true);return null;}if(!r||!nbeGood(r.data)){nbeStatus('Risposta di dettaglio malformata.',true);return null;}if(apply&&kind==='template')nbeApplyTemplateDetail(r.data);return r.data;}
     async function nbeLoadList(direction){var limit=Math.min(100,Math.max(1,nbeNum('nbe-list-limit',50))),state=nbeVal('nbe-list-state')||null,kind=nbeVal('nbe-list-kind')||'template';if(direction==='next'&&nbeState.next){nbeState.cursors.push(nbeState.next);nbeState.cursor=nbeState.next;}if(direction==='prev'&&nbeState.cursors.length>1){nbeState.cursors.pop();nbeState.cursor=nbeState.cursors[nbeState.cursors.length-1];}if(!direction){nbeState.cursors=[null];nbeState.cursor=null;}var r=await nbeRpc(NBE_RPC.list,{p_kind:kind,p_state:state,p_cursor:nbeState.cursor,p_limit:limit});var host=nbeEl('nbe-template-list');if(r.error){host.textContent=nbeMessage(r.error);return;}var d=r.data||{},items=Array.isArray(d.items)?d.items:[];host.innerHTML='';items.forEach(function(x){var b=document.createElement('button');b.type='button';b.setAttribute('data-nbe-kind',kind);b.setAttribute('data-nbe-id',x.id);b.textContent=(x.display_name||x.title||x.template_key||x.pool_key||x.arc_key||x.id)+' · '+(x.lifecycle_state||x.state||'—')+' · controllo '+x.control_version;b.onclick=async function(){var detail=await nbeGet(kind,x.id,kind==='template');if(detail&&kind!=='template'){nbeEl('nbe-get-output').textContent=JSON.stringify(detail,null,2);if(kind==='pool'){nbeEl('nbe-pool-id').value=x.id;nbeEl('nbe-pool-cv').value=x.control_version;}if(kind==='story_arc'){nbeEl('nbe-arc-id').value=x.id;nbeEl('nbe-arc-cv').value=x.control_version;}}};host.append(b);});if(!items.length)host.textContent='Nessun elemento in questa pagina.';nbeState.next=d.next_cursor||null;nbeEl('nbe-list-next').disabled=!nbeState.next;nbeEl('nbe-list-prev').disabled=nbeState.cursors.length<=1;}
     function nbeSetCv(id,d){if(d&&d.id)nbeEl(id.replace('-cv','-id')).value=d.id;if(d&&d.control_version!=null)nbeEl(id).value=d.control_version;}
@@ -4369,6 +4410,198 @@ return {mount:mountStaffExamDecisions};})();
         window.__missionRapidAdminTest={version:modules[0].VERSION,upload:missionRapidUpload,uploadContext:missionRapidContextUpload,editor:editor};
       }catch(e){missionRapidBound=false;host.textContent=(e&&e.message)||'Editor rapido non disponibile.';}
     }
+    /* MISSION-FACTORY-ADMIN JS INIZIO · delta isolato, non pubblicato */
+    async function bindMissionFactory(){
+      var nav=$('mission-editor-nav'),page=$('mission-editor-page'),host=$('mission-editor-host');
+      if(!nav||!page||!host)return;
+      nav.hidden=true;page.hidden=true;
+      var mfPrincipal=me&&me.id,mfRole=nbeRole;
+      var mfLegacyNav=$('mission-rapid-nav'),mfLegacyPage=$('mission-rapid-page'),mfBookNav=document.querySelector('#adm-nav button[data-go="ninja-editoriale"]');
+      var mfLegacyVisibility=[mfLegacyNav?.hidden,mfLegacyPage?.hidden,mfBookNav?.hidden];
+      try{
+        var mfRevision='fbb35e4382ab54b2f2fdfd8d5fe2300afb664a416724f43096dfc7491ccc09f2',mfManifestSha='ff8418ce331214b851d9075fe8a262542d6eb68843a9632aad91b4d846b18372';
+        if(!mfRevision||!mfManifestSha)return;
+        var mfBuild='mission-factory-admin/2:'+mfRevision;
+        var mfManifestResponse=await fetch('./mission-factory-release-manifest.v2.json?sha='+mfManifestSha,{cache:'no-store'});
+        if(!mfManifestResponse.ok)throw Error('Editor missioni non disponibile; usa il percorso precedente.');
+        var mfManifestBytes=await mfManifestResponse.arrayBuffer();
+        var mfHex=async function(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),function(x){return x.toString(16).padStart(2,'0');}).join('');};
+        if(await mfHex(mfManifestBytes)!==mfManifestSha)throw Error('Pacchetto editor non verificato.');
+        var mfManifest=JSON.parse(new TextDecoder().decode(mfManifestBytes));
+        if(mfManifest.schema_version!=='mission-factory-ui-package/2'||!Array.isArray(mfManifest.files)||mfManifest.files.length!==27)throw Error('Pacchetto editor incompleto.');
+        var mfSources=new Map(),mfLogical=new Map(),mfBlobUrls=new Map(),mfLoading=new Set();
+        for(var mfFile of mfManifest.files){
+          if(!/^mf-[A-Za-z0-9_.-]+-[0-9a-f]{64}\.mjs$/.test(mfFile.asset)||mfFile.asset_sha256!==mfFile.asset.slice(-68,-4)||!Array.isArray(mfFile.dependencies)||mfSources.has(mfFile.asset)||mfLogical.has(mfFile.logical_name))throw Error('Grafo editor non valido.');
+          var mfResponse=await fetch('./'+mfFile.asset,{cache:'no-store'});
+          if(!mfResponse.ok)throw Error('Modulo editor non disponibile.');
+          var mfBytes=await mfResponse.arrayBuffer();
+          if(mfBytes.byteLength!==mfFile.bytes||await mfHex(mfBytes)!==mfFile.asset_sha256)throw Error('Modulo editor non verificato.');
+          mfSources.set(mfFile.asset,{file:mfFile,text:new TextDecoder('utf-8',{fatal:true}).decode(mfBytes)});
+          mfLogical.set(mfFile.logical_name,mfFile.asset);
+        }
+        var mfRevoke=function(){for(var url of mfBlobUrls.values())URL.revokeObjectURL(url);mfBlobUrls.clear();};
+        var mfUrl=function(asset){
+          if(mfBlobUrls.has(asset))return mfBlobUrls.get(asset);
+          var source=mfSources.get(asset);if(!source||mfLoading.has(asset))throw Error('Dipendenza editor non disponibile.');
+          mfLoading.add(asset);var text=source.text;
+          for(var dep of source.file.dependencies){
+            if(!dep||dep.specifier!=='./'+dep.asset||typeof dep.statement!=='string'||text.split(dep.statement).length!==2)throw Error('Import editor non verificato.');
+            var quote=dep.statement.includes("'"+dep.specifier+"'")?"'":'"';
+            var literal=quote+dep.specifier+quote;
+            if(dep.statement.split(literal).length!==2)throw Error('Import editor ambiguo.');
+            text=text.replace(dep.statement,dep.statement.replace(literal,quote+mfUrl(dep.asset)+quote));
+          }
+          var url=URL.createObjectURL(new Blob([text],{type:'text/javascript'}));mfBlobUrls.set(asset,url);mfLoading.delete(asset);return url;
+        };
+        var mfImport=async function(logical){var asset=mfLogical.get(logical);if(!asset)throw Error('Modulo editor assente.');return import(mfUrl(asset));};
+        // Tutte le dipendenze eseguite derivano dai byte appena verificati, senza secondo fetch/import URL.
+        try{for(var asset of mfSources.keys())mfUrl(asset);}catch(error){mfRevoke();throw error;}
+        window.addEventListener('pagehide',function(event){if(!event.persisted)mfRevoke();});
+        var gate=await sb.rpc('mission_factory_editor_ready_v1',{p_client_build:mfBuild});
+        var ready=gate.data;
+        if(gate.error||ready?.schema_version!=='mission-factory-editor-ready/1'||ready.state!=='enabled'||ready.scope!=='staff'||ready.client_build!==mfBuild||ready.revision_sha256!==mfRevision){mfRevoke();return;}
+        if(!me||me.id!==mfPrincipal||nbeRole!==mfRole)throw Error('Accesso editor cambiato.');
+        var modules=await Promise.all([mfImport('admin-entry.mjs'),mfImport('legacy-drafts.mjs'),mfImport('MAPPE_UI_PICKER.asset.v3.mjs'),mfImport('npc-combat-controller.mjs'),mfImport('npc-media-adapter.mjs'),mfImport('npc-media-panel.mjs')]);
+        if(!me||me.id!==mfPrincipal||nbeRole!==mfRole)throw Error('Accesso editor cambiato.');
+        nbeWire();
+        var nativeMapPicker=modules[2].createMissionMapPicker({client:sb,identity:function(){return me&&me.id;},isStaff:function(){return me&&me.id===mfPrincipal&&(nbeRole==='admin'||nbeRole==='master');}});
+        var mapPicker=modules[2].createMissionMapPicker({client:sb,identity:function(){return me&&me.id;},isStaff:function(){return nbeRole==='admin'||nbeRole==='master';}});
+        var factoryMount=modules[0].mountUnifiedMissionAdmin(host,{client:sb,role:nbeRole,identity:function(){return me&&me.id;},
+          mountNpcWorkspace:function(ctx){
+            var book=document.querySelector('.adm-page[data-page="ninja-editoriale"]');
+            if(!book||!ctx||!ctx.host)throw Error('Ninja Book narrativo non disponibile.');
+            var marker=document.createComment('Ninja Book editoriale: posizione precedente');
+            book.parentNode.insertBefore(marker,book);
+            book.classList.remove('adm-page','on');book.removeAttribute('data-page');
+            ctx.host.appendChild(book);
+            var templatePanel=book.querySelector('[data-nbestep-panel="template"]');
+            var reviewPanel=book.querySelector('[data-nbestep-panel="review"]');
+            if(!templatePanel||!reviewPanel)throw Error('Passaggi Ninja Book non disponibili.');
+            var combatHost=document.createElement('div'),combatReviewHost=document.createElement('div');
+            combatHost.className='mission-factory-npc-workspace';
+            combatReviewHost.className='mission-factory-npc-workspace';
+            templatePanel.append(combatHost);reviewPanel.append(combatReviewHost);
+            var mediaHost=document.createElement('div'),mediaReviewHost=document.createElement('div');
+            mediaHost.className='mission-factory-npc-workspace';mediaReviewHost.className='mission-factory-npc-workspace';
+            templatePanel.append(mediaHost);reviewPanel.append(mediaReviewHost);
+            var mediaPanel=null;
+            var synchronizing=false;
+            function narrativeIdentity(){return nbeState.template?.id&&nbeState.template?.version_id?
+              {template_id:nbeState.template.id,narrative_version_id:nbeState.template.version_id}:null;}
+            async function readNarrativeBinding(){
+              var id=nbeState.template?.id;if(!id)return null;
+              var d=await nbeGet('template',id,false);
+              if(!d?.template)throw Error('Dettaglio Ninja Book non verificabile.');
+              var versions=Array.isArray(d.versions)?d.versions:[];
+              var v=versions.filter(function(x){return x.review_state==='draft'||x.review_state==='review';})
+                .sort(function(a,b){return (b.version_no||0)-(a.version_no||0);})[0]||
+                versions.find(function(x){return x.id===d.template.current_version_id;});
+              if(!v)return null;
+              return {template_id:d.template.id,narrative_version_id:v.id,
+                mechanical_template_id:v.mechanical_template_id||null,
+                content_sha256:v.content_sha256,review_state:v.review_state,
+                current_version_id:d.template.current_version_id,lifecycle_state:d.template.lifecycle_state};
+            }
+            var combatController=modules[3].mountNpcCombatController({
+              host:combatHost,reviewHost:combatReviewHost,client:sb,role:nbeRole,
+              getIdentity:narrativeIdentity,readNarrativeBinding:readNarrativeBinding,
+              syncNarrativeBinding:async function({identity,mechanical_template_id,button}){
+                if(!nbeState.template||nbeState.template.id!==identity.template_id||
+                    nbeState.template.version_id!==identity.narrative_version_id)
+                  throw Error('La versione narrativa è cambiata: ricarica la scheda.');
+                synchronizing=true;
+                try{
+                  var response=await nbeMutate(button,NBE_RPC.templateSave,{
+                    p_template:identity.template_id,
+                    p_expected_control_version:nbeState.template.control_version,
+                    p_payload:Object.assign({},nbeTemplatePayload(),{mechanical_template_id:mechanical_template_id})
+                  },function(d){nbeAdoptResponse(d);},{kind:'template',id:identity.template_id});
+                  if(!response)throw Error('Secondo salvataggio Ninja Book non confermato.');
+                  if(response.template_id!==identity.template_id||
+                     response.version_id!==identity.narrative_version_id)
+                    throw Error('Il secondo salvataggio ha cambiato versione narrativa: ricarica il PNG.');
+                  var binding=await readNarrativeBinding();
+                  if(binding?.template_id!==identity.template_id||
+                     binding.narrative_version_id!==identity.narrative_version_id||
+                     binding.mechanical_template_id!==mechanical_template_id||
+                     binding.content_sha256!==response.content_sha256)
+                    throw Error('Collegamento Ninja Book non attestato dal readback.');
+                  nbeState.template.mechanical_template_id=mechanical_template_id;
+                  if(mediaPanel)void mediaPanel.refresh();
+                  return binding;
+                }finally{synchronizing=false;}
+              },notice:function(message,error){nbeStatus(message,error);}
+            });
+            var mediaAdapter=modules[4].createNpcMediaAdapter({client:sb,getBinding:readNarrativeBinding});
+            mediaPanel=modules[5].mountNpcMediaPanel({host:mediaHost,reviewHost:mediaReviewHost,
+              adapter:mediaAdapter,role:nbeRole,getBinding:readNarrativeBinding,
+              notice:function(message,error){nbeStatus(message,error);}});
+            var nativeApply=nbeApplyTemplateDetail,nativeAdopt=nbeAdoptResponse;
+            nbeApplyTemplateDetail=function(d){nativeApply(d);void combatController.refresh();void mediaPanel.refresh();};
+            nbeAdoptResponse=function(d){var before=narrativeIdentity();nativeAdopt(d);
+              if(!synchronizing){
+                if(before?.narrative_version_id!==narrativeIdentity()?.narrative_version_id)void combatController.refresh();
+                void mediaPanel.refresh();
+              }};
+            var submitButton=nbeEl('nbe-template-submit'),approveButton=nbeEl('nbe-template-approve');
+            var nativeSubmit=submitButton.onclick,nativeApprove=approveButton.onclick;
+            submitButton.onclick=function(){var gate=combatController.nativeGate('submit');
+              if(!gate.ok){nbeStatus(gate.reason,true);return;}
+              var id=nbeState.template.id;void (async function(){var result=await combatController.submitReview();
+                if(result)await nbeGet('template',id,true);})();};
+            approveButton.onclick=function(){var gate=combatController.nativeGate('approve');
+              if(!gate.ok){nbeStatus(gate.reason,true);return;}
+              var id=nbeState.template.id;void (async function(){var result=await combatController.approve();
+                if(result)await nbeGet('template',id,true);})();};
+            if(narrativeIdentity()){void combatController.refresh();void mediaPanel.refresh();}
+            return {
+              showCatalog:function(){nbeSetStep('template');nbeLoadList();},
+              startNew:function(){
+                combatController.reset();mediaPanel.reset();nbeState.template=null;nbeState.templateFresh=null;
+                book.querySelectorAll('[data-nbestep-panel="template"] input,[data-nbestep-panel="template"] textarea,[data-nbestep-panel="template"] select,[data-nbestep-panel="boundary"] input,[data-nbestep-panel="boundary"] textarea,[data-nbestep-panel="boundary"] select').forEach(function(el){if(el.type==='checkbox')el.checked=false;else if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});
+                nbeEl('nbe-list-limit').value='50';nbeEl('nbe-list-kind').value='template';
+                ['nbe-errors','nbe-recovery','nbe-endings','nbe-known','nbe-absent'].forEach(function(id){nbeFillRepeat(id,[]);});
+                nbeSetTemplateMeta();nbeSetStep('template');
+              },
+              dispose:function(){combatController.dispose();mediaPanel.dispose();combatHost.remove();combatReviewHost.remove();mediaHost.remove();mediaReviewHost.remove();
+                nbeApplyTemplateDetail=nativeApply;nbeAdoptResponse=nativeAdopt;
+                submitButton.onclick=nativeSubmit;approveButton.onclick=nativeApprove;
+                if(marker.parentNode){marker.parentNode.insertBefore(book,marker);marker.remove();book.classList.add('adm-page');book.setAttribute('data-page','ninja-editoriale');}}
+            };
+          },
+          chooseNativeMap:async function(ctx){if(!me||me.id!==mfPrincipal||nbeRole!==mfRole)throw Error('Accesso mappa cambiato.');var picked=await nativeMapPicker.pick(ctx.current,ctx.title,ctx.roster);if(!me||me.id!==mfPrincipal||nbeRole!==mfRole)throw Error('Accesso mappa cambiato.');if(!picked)throw Error('Selezione mappa annullata.');if(typeof picked.template_key!=='string'||!Number.isSafeInteger(picked.template_version)||picked.template_version<1||typeof picked.zone_key!=='string'||!picked.zone_key.trim())throw Error('Mappa e zona non attestate.');return {template_key:picked.template_key,template_version:picked.template_version,zone_key:picked.zone_key};},
+          disposeNativeMap:function(){nativeMapPicker.dispose();},
+          chooseArena:async function(ctx){var picked=await mapPicker.pick(ctx.current,ctx.title,ctx.roster);if(!picked)throw Error('Selezione arena annullata.');if(typeof picked.zone_key!=='string'||!picked.zone_key.trim())throw Error('Zona arena non attestata.');return {template_key:picked.template_key,template_version:picked.template_version,zone_key:picked.zone_key};},
+          mountLegacyDrafts:function(opts){return modules[1].mountLegacyDrafts(opts);},
+          mountRapidExisting:async function(opts){
+            if(nbeRole!=='admin')throw Error('La bozza Rapid originale appartiene al percorso Admin.');
+            var rapid=await mfImport('mission-rapid-editor.asset.v1.mjs');
+            if(typeof rapid.createMissionRapidEditor!=='function')throw Error('Editor Rapid non disponibile.');
+            var editor=rapid.createMissionRapidEditor({client:sb,identity:function(){return me&&me.id;},
+              isStaff:function(){return nbeRole==='admin';},uploadMedia:missionRapidUpload,
+              uploadContextMedia:missionRapidContextUpload,
+              chooseMap:function(ctx){var m=ctx.compiled?.mission||{},counts=(ctx.compiled?.phases||[]).filter(function(p){return p.kind==='combat';}).map(function(p){return Array.isArray(p.actor_keys)?p.actor_keys.length:0;}),roster={pg_count:Number(m.team_max||1),png_count:Math.max(0,...counts)};return missionRapidPicker.pick(ctx.current,'Bozza Rapid originale',roster);},
+              notice:function(text){toast(text);},onPublished:function(){loadBoards();}});
+            if(typeof editor.mountExisting!=='function')throw Error('Ripresa Rapid non ancora integrata.');
+            await editor.mountExisting(opts.host,opts.snapshot);return editor;
+          },notice:function(text){toast(text);},onPublished:function(){loadBoards();}});
+        if(!factoryMount||typeof factoryMount.open!=='function')throw Error('Editor missioni non montato.');
+        if(!me||me.id!==mfPrincipal||nbeRole!==mfRole){factoryMount.dispose();nativeMapPicker.dispose();mapPicker.dispose();throw Error('Accesso editor cambiato.');}
+        var mfDisposed=false,mfAuth=null;
+        var mfDispose=function(){if(mfDisposed)return;mfDisposed=true;factoryMount.dispose();nativeMapPicker.dispose();mapPicker.dispose();mfAuth?.data?.subscription?.unsubscribe?.();};
+        mfAuth=sb.auth.onAuthStateChange(function(_event,session){if(session?.user?.id!==mfPrincipal){mfDispose();nav.hidden=true;page.hidden=true;}});
+        window.addEventListener('pagehide',mfDispose,{once:true});
+        window.addEventListener('pageshow',function(event){if(event.persisted)window.location.reload();});
+        nav.hidden=false;page.hidden=false;
+        var rapidNav=$('mission-rapid-nav'),rapidPage=$('mission-rapid-page');
+        if(rapidNav)rapidNav.hidden=true;if(rapidPage)rapidPage.hidden=true;
+        var nbeNav=document.querySelector('#adm-nav button[data-go="ninja-editoriale"]');
+        if(nbeNav)nbeNav.hidden=true;
+        var savedPage='';try{savedPage=localStorage.getItem('tus_adm_tab')||'';}catch(_e){}
+        if(savedPage==='ninja-editoriale'||savedPage==='mission-rapid')admGo('mission-editor');
+      }catch(e){if(typeof mfDispose==='function')mfDispose();if(typeof mfRevoke==='function')mfRevoke();if(mfRole==='admin'){if(mfLegacyNav)mfLegacyNav.hidden=mfLegacyVisibility[0];if(mfLegacyPage)mfLegacyPage.hidden=mfLegacyVisibility[1];if(mfBookNav)mfBookNav.hidden=mfLegacyVisibility[2];}nav.hidden=true;page.hidden=true;host.textContent='Editor missioni non disponibile. Il percorso precedente resta disponibile.';toast(host.textContent);}
+    }
+    /* MISSION-FACTORY-ADMIN JS FINE */
     /* MISSION-RAPID-EDITOR JS FINE */
 
     /* SCORTA-MEDIA-ADMIN JS INIZIO */
@@ -4431,8 +4664,17 @@ return {mount:mountStaffExamDecisions};})();
       var pr=await sb.from('profiles').select('role').eq('id',me.id).maybeSingle();
       var role=pr.data?pr.data.role:'player';
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
-      nbeRole=role;bindScortaMedia();
-      try{var academyMedia=await import('./ACADEMY_MEDIA_ADMIN.mjs?v=20260923-3');academyMedia.bindAcademyMediaPanel({client:sb,role:role,principalId:me.id});}catch(e){console.warn('[academy-media] modulo non disponibile',e);}await bindMissionRapid();
+      nbeRole=role;
+      if(role==='master'){
+        document.querySelectorAll('#adm-nav button[data-go]').forEach(function(b){b.hidden=true;});
+        await bindMissionFactory();show('st-mgr');
+        var masterPage=$('mission-editor-page'),masterHost=$('mission-editor-host');
+        if(masterPage)masterPage.hidden=false;
+        if($('mission-editor-nav')?.hidden&&masterHost)masterHost.textContent='Editor missioni non ancora disponibile per questa versione. Nessun ingresso Admin aggiuntivo è abilitato.';
+        admGo('mission-editor');return;
+      }
+      bindScortaMedia();
+      try{var academyMedia=await import('./ACADEMY_MEDIA_ADMIN.mjs?v=20260923-3');academyMedia.bindAcademyMediaPanel({client:sb,role:role,principalId:me.id});}catch(e){console.warn('[academy-media] modulo non disponibile',e);}await bindMissionRapid();await bindMissionFactory();
       if(window.__TRAINING138A_MOCK__){show('st-mgr');admGo('allenamenti');bindTrainings();await loadTrainings();return;}
       if(window.__NB027B_MOCK__){show('st-mgr');admGo('ninja-editoriale');nbeWire();return;}
       show('st-mgr');
