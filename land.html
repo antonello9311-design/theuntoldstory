@@ -9843,6 +9843,8 @@ function mountExamCombat(container, { client, examId, authScope, storage = globa
   const uuid = v => typeof v === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(v);
   let state = null, pending = null, busy = false, disposed = false, error = '', retryReady = false;
   let entry = null, entrySession = null, entryPending = null, entryError = '', entryReplayReady = false;
+  // authScope isola solo il recupero locale. Il ruolo appartiene al DTO server dell'Esame.
+  let viewer = null;
   try { entryPending = JSON.parse(storage.getItem(entryKey) || 'null'); }
   catch { entryPending = { corrupt: true }; entryError = 'Richiesta d’ingresso non leggibile: conserva i dati e chiedi verifica.'; }
   function entryEnvelope(value, request = null, receipt = false) {
@@ -9885,21 +9887,27 @@ function mountExamCombat(container, { client, examId, authScope, storage = globa
     for (const a of state?.actors || []) {
       const row = document.createElement('li'); row.textContent = `${a.name || a.kind}${a.controlled_by_me ? ' · sotto il tuo controllo' : ''}`; order.append(row);
     }
-    const legacy = entry?.status === 'unavailable';
-    label.hidden = Boolean(state?.encounter_id) || !legacy; open.hidden = !legacy || !state?.actions?.open;
-    open.disabled = busy || Boolean(pending) || !state?.actions?.open; body.disabled = busy || Boolean(pending);
-    verify.disabled = busy; retry.hidden = !pending || pending.corrupt; retry.disabled = busy || !retryReady || !state?.available || !state?.actions?.open;
+    const master = viewer?.actor === 'master';
+    const masterPanel = master && viewer.phase === 'combat' && uuid(state?.encounter_id) && uuid(state?.round_id);
+    label.hidden = Boolean(state?.encounter_id) || !master || !state?.actions?.open;
+    open.hidden = !master || !state?.actions?.open;
+    open.disabled = busy || Boolean(pending) || !master || !state?.actions?.open; body.disabled = busy || Boolean(pending) || !master;
+    verify.disabled = busy; retry.hidden = !pending || pending.corrupt; retry.disabled = busy || !retryReady || !state?.available || !master || !state?.actions?.open;
     entryNote.textContent = entryError || (entryPending ? 'Ingresso incerto: verifica la stessa richiesta, senza crearne un’altra.'
       : entry?.reason_code === 'REGIA_FATO_PENDING' ? 'Il Fato non è ancora pubblico: puoi consultare il pannello, ma non inviare una scelta meccanica.'
       : entry?.reason_code === 'REGIA_NOT_YOUR_TURN' ? 'Il pannello è consultabile; attende il tuo turno autorizzato.'
       : entry?.can_open_panel ? 'Il pannello mostra soltanto le azioni autorizzate dal server.' : '');
-    entryOpen.hidden = !entry?.can_prepare; entryOpen.disabled = busy || Boolean(entryPending) || !entry?.can_prepare;
-    entryPanel.hidden = !entry?.can_open_panel; entryPanel.disabled = busy || Boolean(entryPending) || !entry?.can_open_panel;
-    entryRecover.hidden = !entryPending; entryRecover.disabled = busy || entryPending?.corrupt === true;
+    entryOpen.hidden = viewer?.actor !== 'pg' || !entry?.can_prepare;
+    entryOpen.disabled = busy || Boolean(entryPending) || viewer?.actor !== 'pg' || !entry?.can_prepare;
+    entryPanel.textContent = master ? 'Apri il pannello Scontro' : 'Scegli l’azione nel pannello Scontro';
+    entryPanel.hidden = !masterPanel && !entry?.can_open_panel;
+    entryPanel.disabled = busy || Boolean(entryPending) || (!masterPanel && !entry?.can_open_panel);
+    entryRecover.hidden = !entryPending || viewer?.actor !== 'pg';
+    entryRecover.disabled = busy || viewer?.actor !== 'pg' || entryPending?.corrupt === true;
   }
   async function recover() {
     retryReady = false;
-    if (!pending || pending.corrupt) return;
+    if (viewer?.actor !== 'master' || !pending || pending.corrupt) return;
     const response = await client.rpc('esame_human_combat_open_operation_v1', {p_exam:examId,p_request:pending.p_request});
     if (response.error) throw Error('Apertura non confermata: richiesta conservata.');
     const r = validateOpenOperation(response.data, pending);
@@ -9913,9 +9921,18 @@ function mountExamCombat(container, { client, examId, authScope, storage = globa
   }
   async function readEntry() {
     const narrative = await client.rpc('esame_human_narrative_state_v1', {p_exam:examId});
-    if (narrative.error || narrative.data?.schema_version !== 'exam-human-narrative/1'
-      || !narrative.data.available || !uuid(narrative.data.master_session_id)) { entry = null; entrySession = null; return; }
-    entrySession = narrative.data.master_session_id;
+    if (narrative.error) throw Error('Autorità della prova non verificabile.');
+    const n = narrative.data;
+    if (!n || n.schema_version !== 'exam-human-narrative/1' || typeof n.available !== 'boolean') throw Error('Autorità della prova non compatibile.');
+    if (!n.available) return;
+    if (n.exam_request_id !== examId || !uuid(n.master_session_id) || !Number.isSafeInteger(n.control_version)
+      || n.control_version !== state?.control_version || !['pg','master'].includes(n.actor)
+      || !['prepared','await_role','await_master','combat','closed'].includes(n.phase)) throw Error('Autorità della prova cambiata o non compatibile: verifica lo stato.');
+    viewer = n;
+    // Il Master conduce con le RPC Esame. Regia entry accetta solo owner/PG attivo.
+    if (n.actor === 'master') return;
+    if (n.phase === 'closed') return;
+    entrySession = n.master_session_id;
     const result = await client.rpc('regia_combat_entry_state_v1', {p_master_session:entrySession});
     if (result.error) throw Error('Ingresso Regia non verificabile.');
     entry = entryEnvelope(result.data);
@@ -9923,7 +9940,7 @@ function mountExamCombat(container, { client, examId, authScope, storage = globa
   }
   async function recoverEntry(replayNotFound = false) {
     entryReplayReady = false;
-    if (!entryPending || entryPending.corrupt || !uuid(entrySession)) return;
+    if (viewer?.actor !== 'pg' || !entryPending || entryPending.corrupt || !uuid(entrySession)) return;
     const saved = entryPending;
     if (saved.session !== entrySession || !uuid(saved.request_key) || !Number.isSafeInteger(saved.revision)) throw Error('Richiesta d’ingresso di un’altra sessione: dati conservati.');
     const result = await client.rpc('regia_combat_entry_receipt_v1', {p_master_session:entrySession,p_request_key:saved.request_key});
@@ -9942,21 +9959,29 @@ function mountExamCombat(container, { client, examId, authScope, storage = globa
   }
   async function refresh() {
     if (busy || disposed) return;
-    busy = true; retryReady = false; error = ''; render();
+    busy = true; retryReady = false; error = ''; entryError = '';
+    viewer = null; entry = null; entrySession = null; entryReplayReady = false; render();
     try {
-      await recover();
       const response = await client.rpc('esame_human_combat_state_v1', { p_exam: examId });
       if (response.error) throw new Error('Stato non disponibile.');
       const s = response.data;
-      if (!s || s.schema_version !== 'exam-human-combat/1' || (s.available && s.exam_request_id !== examId)) throw new Error('Stato non compatibile.');
-      if (s.available && (!Array.isArray(s.actors) || ['declare','defend','resolve','publish','peaceful','close'].some(a => s.actions?.[a] !== false))) throw new Error('Contratto azioni non compatibile.');
+      if (!s || s.schema_version !== 'exam-human-combat/1' || typeof s.available !== 'boolean' || (s.available && (s.exam_request_id !== examId || !Number.isSafeInteger(s.control_version)))) throw new Error('Stato non compatibile.');
+      if (s.available && (!Array.isArray(s.actors) || typeof s.actions?.open !== 'boolean' || ['declare','defend','resolve','publish','peaceful','close'].some(a => s.actions?.[a] !== false))) throw new Error('Contratto azioni non compatibile.');
       state = s;
-      await readEntry();
-    } catch (e) { state = null; entry = null; error = e.message; }
+      if (s.available) {
+        try { await readEntry(); }
+        catch (e) { entry = null; entryError = e.message; }
+        // Errore dell'ingresso PG non scarta lo snapshot Esame già valido.
+        if (viewer?.actor === 'master') {
+          try { await recover(); }
+          catch (e) { error = e.message; }
+        }
+      }
+    } catch (e) { state = null; viewer = null; entry = null; error = e.message; }
     finally { busy = false; render(); }
   }
   open.addEventListener('click', async () => {
-    if (busy || pending || !state?.actions?.open || !body.value.trim()) return;
+    if (busy || pending || viewer?.actor !== 'master' || !state?.actions?.open || !body.value.trim()) return;
     pending = { p_exam: examId, p_cause_role: state.cause_role, p_body: body.value.trim(), p_expected_version: state.control_version, p_request: globalThis.crypto.randomUUID() };
     try { storage.setItem(key, JSON.stringify(pending)); }
     catch { pending = null; error = 'Salvataggio recupero non disponibile: nessun invio eseguito.'; render(); return; }
@@ -9972,7 +9997,7 @@ function mountExamCombat(container, { client, examId, authScope, storage = globa
   retry.addEventListener('click', async () => {
     if (busy || disposed || !pending || pending.corrupt) return;
     await refresh();
-    if (disposed || busy || !pending || !retryReady || !state?.available || !state?.actions?.open || state.control_version !== pending.p_expected_version || state.cause_role !== pending.p_cause_role) return;
+    if (disposed || busy || viewer?.actor !== 'master' || !pending || !retryReady || !state?.available || !state?.actions?.open || state.control_version !== pending.p_expected_version || state.cause_role !== pending.p_cause_role) return;
     busy = true; retryReady = false; render();
     try {
       const r = await client.rpc('esame_human_combat_open_v1', pending);
@@ -9982,7 +10007,7 @@ function mountExamCombat(container, { client, examId, authScope, storage = globa
     finally { busy = false; if (!disposed) await refresh(); }
   });
   entryOpen.addEventListener('click', async () => {
-    if (busy || entryPending || !entry?.can_prepare || !uuid(entrySession) || !Number.isSafeInteger(entry.entry_revision)) return;
+    if (busy || viewer?.actor !== 'pg' || entryPending || !entry?.can_prepare || !uuid(entrySession) || !Number.isSafeInteger(entry.entry_revision)) return;
     const request_key = globalThis.crypto.randomUUID();
     entryPending = {request_key,session:entrySession,revision:entry.entry_revision};
     try { storage.setItem(entryKey,JSON.stringify(entryPending)); }
@@ -9997,12 +10022,16 @@ function mountExamCombat(container, { client, examId, authScope, storage = globa
   });
   entryRecover.addEventListener('click',async()=>{
     await refresh();
-    if (!entryReplayReady || !entryPending || busy || disposed) return;
+    if (viewer?.actor !== 'pg' || !entryReplayReady || !entryPending || busy || disposed) return;
     busy=true;render();
     try { await recoverEntry(true); } catch { entryError='Ingresso non confermato: richiesta conservata.'; }
     finally { busy=false; await refresh(); }
   });
-  entryPanel.addEventListener('click',()=>{if(entry?.can_open_panel)openRound();});
+  entryPanel.addEventListener('click',()=>{
+    if (busy || entryPending || disposed) return;
+    if ((viewer?.actor === 'pg' && entry?.can_open_panel)
+      || (viewer?.actor === 'master' && viewer.phase === 'combat' && uuid(state?.encounter_id) && uuid(state?.round_id))) openRound();
+  });
   verify.addEventListener('click', refresh);
   render(); // zero RPC al mount; il lifecycle host chiama refresh.
   return { refresh, dispose() { disposed = true; container.replaceChildren(); } };
