@@ -14165,12 +14165,35 @@ function mountQuestStaffRuntime(root,{client,identity,isCurrent=()=>true,onScene
 }
 
 return {mountQuestParticipant,mountQuestStaffRuntime};})();
+      async function openHumanQuestEpisodePanel(episode,asPg,asSession){
+        if(!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||(!asPg&&!iAmStaff))return;
+        var actor=myId,room=cur&&cur.id||null,closed=false,panel=null,d=document.createElement('dialog');
+        d.setAttribute('aria-label','Regia umana Quest');d.style.cssText='width:min(760px,94vw);max-height:88vh;overflow:auto;background:#f6edda;border:1px solid #b69a65;padding:12px';
+        var x=document.createElement('button'),host=document.createElement('section'),successorNotice=document.createElement('section');successorNotice.setAttribute('role','status');x.type='button';x.textContent='Chiudi';d.append(x,host,successorNotice);document.body.append(d);d.showModal();
+        function same(){return !closed&&d.isConnected&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===actor&&myId===actor&&(cur&&cur.id||null)===room&&(asPg||iAmStaff);}
+        function close(){if(closed)return;closed=true;panel?.dispose();if(d.open)d.close();d.remove();}
+        x.onclick=close;d.addEventListener('close',close);
+        try{var mods=await Promise.all([import('./mf-human-quest-runtime-ui-dedb9fbea29889e2019e4c002f699afd36ab5df23ac263c52e113e1b6b7f341c.mjs'),import('./mf-quest-runtime-api-805a43a0eace173a378ca1973e2f174a425748c1e1d74f3f60a9e472f9a9c4af.mjs')]);if(!same()){close();return;}
+          var api=mods[1].createQuestRuntimeApi(sb,{identity:function(){return same()?actor:null;},isCurrent:same});
+          panel=mods[0][asPg?'mountHumanQuestParticipant':'mountHumanQuestRuntime'](host,{client:sb,api:api,identity:function(){return same()?actor:null;},isCurrent:same,
+            onFato:async function(v){if(same())await loadMsgs(v.publication_id);},onNext:async function(v){
+              if(!same()||asPg)throw Error('Conduzione Master non disponibile.');var next=await api.episode(v.episode);if(!same()||next.quest_episode_id!==v.episode||next.source_sha256!==v.source_sha256||next.episode_ordinal!==v.ordinal)throw Error('Fonte della puntata successiva cambiata.');
+              successorNotice.replaceChildren();var msg=document.createElement('p'),link=document.createElement('a');msg.textContent='Puntata '+v.ordinal+' identificata dal server. Seleziona la sua versione Master nell’Editor prima di prepararla; nessun avvio automatico.';link.href='./admin.html';link.textContent='Apri Editor unificato';successorNotice.append(msg,link);
+            },onScene:async function(v){
+              if(!same())throw Error('Accesso cambiato.');if(!cur||cur.id!==v.location)throw Error('Entra nella Staff Test Room per la scena Human.');
+              var a=await sb.auth.getUser();if(a.error||a.data?.user?.id!==actor||!same())throw Error('Accesso Staff non confermato.');
+              var r=await sb.rpc('master_v2_ui_state',{p_location:cur.id});if(r.error||!same()||mv2Data(r)?.master?.id!==v.session||(!asPg&&mv2Data(r)?.viewer?.is_master!==true)||(asPg&&myCharId!==v.character))throw Error('Autorità della scena non confermata.');
+              close();closeMiss();loadMsgs();loadMasterV2(true);ordinaryRefresh();mv2OvApri();
+            }});if(asSession)await panel.openSession(episode);else await panel.openEpisode(episode);
+        }catch(e){if(same())host.textContent=e.message||'Regia Human non disponibile: richieste conservate.';else close();}
+      }
       function questEpisodeLink(){
-        var params=new URLSearchParams(location.search),staff=params.get('quest_staff_episode'),participant=params.get('quest_episode');
-        var id=staff||participant;if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id||''))return null;
-        return {episode:id,staff:!!staff};
+        var params=new URLSearchParams(location.search),human=params.get('quest_human_episode'),humanPg=params.get('quest_human_pg_episode'),humanSession=params.get('quest_human_session'),staff=params.get('quest_staff_episode'),participant=params.get('quest_episode');
+        var id=humanSession||humanPg||human||staff||participant;if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id||''))return null;
+        return {episode:id,staff:!!staff,human:!!human||!!humanPg||!!humanSession,humanPg:!!humanPg,humanSession:!!humanSession};
       }
       async function openQuestEpisodePanel(target){
+        if(target.human)return openHumanQuestEpisodePanel(target.episode,target.humanPg,target.humanSession);
         if(!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||target.staff&&!iAmStaff)return;
         var actor=myId,room=cur&&cur.id||null,closed=false,panel=null;
         var d=document.createElement('dialog');d.setAttribute('aria-label','Quest');

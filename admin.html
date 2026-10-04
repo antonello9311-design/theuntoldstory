@@ -4420,7 +4420,7 @@ return {mount:mountStaffExamDecisions};})();
       var mfLegacyNav=$('mission-rapid-nav'),mfLegacyPage=$('mission-rapid-page'),mfBookNav=document.querySelector('#adm-nav button[data-go="ninja-editoriale"]');
       var mfLegacyVisibility=[mfLegacyNav?.hidden,mfLegacyPage?.hidden,mfBookNav?.hidden];
       try{
-        var mfRevision='fbb35e4382ab54b2f2fdfd8d5fe2300afb664a416724f43096dfc7491ccc09f2',mfManifestSha='3fde160af1caaf7eca09cc055617d247c0c2efec906f33e8442ca43357c895f3';
+        var mfRevision='fbb35e4382ab54b2f2fdfd8d5fe2300afb664a416724f43096dfc7491ccc09f2',mfManifestSha='64b3c9203182ff4e5403c1b816f391774ff2ad5214f52aee9209c6b978832ac4';
         if(!mfRevision||!mfManifestSha)return;
         var mfBuild='mission-factory-admin/2:'+mfRevision;
         var mfManifestResponse=await fetch('./mission-factory-release-manifest.v2.json?sha='+mfManifestSha,{cache:'no-store'});
@@ -4429,7 +4429,7 @@ return {mount:mountStaffExamDecisions};})();
         var mfHex=async function(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),function(x){return x.toString(16).padStart(2,'0');}).join('');};
         if(await mfHex(mfManifestBytes)!==mfManifestSha)throw Error('Pacchetto editor non verificato.');
         var mfManifest=JSON.parse(new TextDecoder().decode(mfManifestBytes));
-        if(mfManifest.schema_version!=='mission-factory-ui-package/2'||!Array.isArray(mfManifest.files)||mfManifest.files.length!==27)throw Error('Pacchetto editor incompleto.');
+        if(mfManifest.schema_version!=='mission-factory-ui-package/2'||!Array.isArray(mfManifest.files)||mfManifest.files.length!==30)throw Error('Pacchetto editor incompleto.');
         var mfSources=new Map(),mfLogical=new Map(),mfBlobUrls=new Map(),mfLoading=new Set();
         for(var mfFile of mfManifest.files){
           if(!/^mf-[A-Za-z0-9_.-]+-[0-9a-f]{64}\.mjs$/.test(mfFile.asset)||mfFile.asset_sha256!==mfFile.asset.slice(-68,-4)||!Array.isArray(mfFile.dependencies)||mfSources.has(mfFile.asset)||mfLogical.has(mfFile.logical_name))throw Error('Grafo editor non valido.');
@@ -4584,7 +4584,7 @@ return {mount:mountStaffExamDecisions};})();
               chooseMap:function(ctx){var m=ctx.compiled?.mission||{},counts=(ctx.compiled?.phases||[]).filter(function(p){return p.kind==='combat';}).map(function(p){return Array.isArray(p.actor_keys)?p.actor_keys.length:0;}),roster={pg_count:Number(m.team_max||1),png_count:Math.max(0,...counts)};return missionRapidPicker.pick(ctx.current,'Bozza Rapid originale',roster);},
               notice:function(text){toast(text);},onPublished:function(){loadBoards();}});
             if(typeof editor.mountExisting!=='function')throw Error('Ripresa Rapid non ancora integrata.');
-            await editor.mountExisting(opts.host,opts.snapshot);return editor;
+            if(opts.existingOnly===false&&opts.snapshot==null){await editor.mount(opts.host);}else{await editor.mountExisting(opts.host,opts.snapshot);}return editor;
           },notice:function(text){toast(text);},onPublished:function(){loadBoards();}});
         if(!factoryMount||typeof factoryMount.open!=='function')throw Error('Editor missioni non montato.');
         if(!me||me.id!==mfPrincipal||nbeRole!==mfRole){factoryMount.dispose();nativeMapPicker.dispose();mapPicker.dispose();throw Error('Accesso editor cambiato.');}
