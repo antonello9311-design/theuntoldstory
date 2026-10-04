@@ -10776,6 +10776,8 @@ function mountExamHumanSunaPreparation(container,{client,authScope,location,stor
 
 return {H2_PENDING_PREFIX,h2PendingKey,validateH2Pending,validateH2State,validateH2Receipt,validateH2Current,mountExamHumanSunaPreparation};})();
 modules['board']=(function(){
+// C636: validatore UUID canonico locale al modulo Board; nessun lookup in altre IIFE.
+const BOARD_REQUEST_UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const {mountExamHumanSunaPreparation,validateH2State,validateH2Receipt,validateH2Current}=modules['sunaPreparation'];
 function validateClaimOperation(r, p) {
   if (r?.schema !== 'exam-human-claim-operation/1' || r.request_key !== p.p_request_key || !['unknown','committed','rejected'].includes(r.status)) throw Error('Ricevuta non compatibile.');
@@ -10838,15 +10840,23 @@ function mountExamHumanBoard(container, { client, location, authScope, storage, 
     finally { busy = false; render(); }
   }
   async function refresh() {
-    if (busy || disposed || sunaLocked) return; busy = true; render();
+    if (busy || disposed || sunaLocked) return; const previous = selected; busy = true; render();
     try {
       if (await recover()) return;
       board = await rpc('esame_human_master_board_v1', { p_location: location });
-      if (board?.schema !== 'exam-human-board/1' || (board.available && (board.location_id !== location || !Array.isArray(board.requests)))) throw Error('Elenco non compatibile.');
-      rows.replaceChildren(); selected = null;
+      if (board?.schema !== 'exam-human-board/1' || typeof board.available !== 'boolean' || (board.available && (board.location_id !== location || !Array.isArray(board.requests)))) throw Error('Elenco non compatibile.');
+      const matches = board.available && previous ? board.requests.filter(r => r?.exam_id === previous.exam_id) : [];
+      const current = matches.length === 1 ? matches[0] : null;
+      const compatible = !pending && current && typeof current.exam_id === 'string' && BOARD_REQUEST_UUID.test(current.exam_id) && typeof current.candidate_name === 'string'
+        && Number.isSafeInteger(current.control_version) && current.control_version > 0
+        && current.state === 'waiting' && current.can_claim === true && current.assigned_to_me === false
+        && ['exam_id','candidate_name','state','control_version','can_claim','assigned_to_me'].every(k => current[k] === previous[k]);
+      selected = compatible ? current : null;
+      if (!selected) { profiles.replaceChildren(); await sunaPreparation?.select(null); }
+      rows.replaceChildren();
       for (const r of board.requests || []) { const b = node('button', `${r.candidate_name} · ${r.assigned_to_me ? 'Apri la tua prova' : 'Richiesta da accettare'}`); b.type = 'button'; b.className = 'esm-btn'; b.addEventListener('click', () => choose(r)); rows.append(b); }
-      status.textContent = pending ? 'Presa in carico da verificare: scelta PNG bloccata.' : !board.available ? 'Richieste Master non disponibili in questo contesto.' : !board.requests.length ? 'Nessuna richiesta disponibile.' : 'Richieste autorizzate nella Staff Test Room.';
-    } catch (e) { status.textContent = e.message; }
+      status.textContent = pending ? 'Presa in carico da verificare: scelta PNG bloccata.' : selected ? 'Scegli il Deshi avversario prima della presa in carico. Il sensei resta di contesto.' : !board.available ? 'Richieste Master non disponibili in questo contesto.' : !board.requests.length ? 'Nessuna richiesta disponibile.' : 'Richieste autorizzate nella Staff Test Room.';
+    } catch (e) { board = null; selected = null; profiles.replaceChildren(); rows.replaceChildren(); await sunaPreparation?.select(null); status.textContent = e.message; }
     finally { busy = false; render(); }
   }
   async function sendSaved() {
