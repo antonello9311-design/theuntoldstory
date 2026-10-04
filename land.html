@@ -9582,6 +9582,7 @@ function createExamChoice({openAI,readHumanState,requestHuman,readHumanRequest,s
  const saved=storage.getItem(slot);if(saved){const v=JSON.parse(saved);if(v.mode!=='human'||!UUID.test(v.request_key)||v.location!==location)throw Error('EHM_PENDING_INVALID');pending=v;}
  function retryAllowed(){return retryReady&&pending!==null&&pending.location===location&&state?.human_available===true&&state.active===null&&!state.blocks_ai&&UUID.test(state.character_id)&&!aiChosen&&!['closed','cancelled'].includes(lastReceipt?.state);}
  function snapshot(){const locked=busy||pending!==null||state===null||state.blocks_ai||aiChosen;return {busy,loaded:state!==null,pending:pending!==null,active:state?.active??null,receipt:state?.active??lastReceipt,error,
+  entryBasis:state===null?null:JSON.stringify([state.character_id,state.human_available,state.blocks_ai,state.reason_code??null]),
   humanReason:state?.reason_code?REASONS[state.reason_code]??'Richiesta non disponibile.':null,
   canRetryHuman:!busy&&retryAllowed(),canChooseAI:!locked&&aiAvailable()===true,canRequestHuman:!locked&&state.human_available===true};}
  function notify(){if(disposed)return;changed(snapshot());for(const listener of listeners)listener(snapshot());}
@@ -9642,20 +9643,23 @@ function createExamChoice({openAI,readHumanState,requestHuman,readHumanRequest,s
  }
  return {choose,retry,refresh,recover:refresh,snapshot,subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},dispose(){disposed=true;listeners.clear();}};
 }
-function mountExamEntry(document,container,controller,{onError=()=>{}}={}) {
- let expanded=false;container.replaceChildren();
+function mountExamEntry(document,container,controller,{onError=()=>{},presentation={expanded:false,basis:null}}={}) {
+ // C643: espansione solo di presentazione, separata da controller, journal e autorità server.
+ container.replaceChildren();
  const body=document.createElement('div');body.className='esm-human-entry';container.append(body);
  const text=(parent,copy,cls='esm-hint')=>{const p=document.createElement('p');p.className=cls;p.textContent=copy;parent.append(p);};
  function button(parent,label,action,{disabled=false,ghost=false}={}){const b=document.createElement('button');b.type='button';b.className='esm-btn'+(ghost?' ghost':'');b.textContent=label;b.disabled=disabled;b.addEventListener('click',()=>Promise.resolve().then(action).catch(onError));parent.append(b);return b;}
  function render(){
   const s=controller.snapshot();body.replaceChildren();
+  if(s.receipt||s.pending){presentation.expanded=false;presentation.basis=null;}
+  else if(s.entryBasis!==null){if(presentation.basis!==null&&presentation.basis!==s.entryBasis)presentation.expanded=false;presentation.basis=s.entryBasis;}
   if(s.receipt||s.pending){
    text(body,s.pending?'Richiesta da verificare':LABELS[s.receipt.state]);
    text(body,s.pending?'Rileggi lo stato: non viene inviata una seconda richiesta.':'La conduzione resta affidata al Master fino alla chiusura.');
    if(s.error)text(body,s.error,'esm-warn');button(body,'Aggiorna',controller.refresh,{disabled:s.busy,ghost:true});
    if(s.pending&&s.canRetryHuman)button(body,'Riprova la stessa richiesta',controller.retry,{disabled:s.busy,ghost:true});return;
   }
-  if(!expanded){text(body,'Quando sei pronto, scegli come sostenere la tua prova Genin.');button(body,'Sostieni esame',()=>{expanded=true;render();});return;}
+  if(!presentation.expanded){text(body,'Quando sei pronto, scegli come sostenere la tua prova Genin.');button(body,'Sostieni esame',()=>{presentation.expanded=true;render();});return;}
   text(body,'Scegli chi conduce la prova.');
   for(const [mode,title,copy,label,enabled] of [
    ['ai','IA','Conduzione automatica, secondo il percorso attuale dell’esame.','Scegli IA',s.canChooseAI],
@@ -9665,7 +9669,7 @@ function mountExamEntry(document,container,controller,{onError=()=>{}}={}) {
   if(!s.loaded)text(body,'Disponibilità da verificare.');else if(s.humanReason)text(body,s.humanReason);
   if(s.error)text(body,s.error,'esm-warn');
   button(body,'Aggiorna disponibilità',controller.refresh,{disabled:s.busy,ghost:true});
-  button(body,'Torna indietro',()=>{expanded=false;render();},{disabled:s.busy,ghost:true});
+  button(body,'Torna indietro',()=>{presentation.expanded=false;render();},{disabled:s.busy,ghost:true});
  }
  const unsubscribe=controller.subscribe(render);render();
  // Bootstrap esplicito dell'host controller.refresh(), NON dal clic Sostieni esame.
@@ -10925,12 +10929,13 @@ const WRITES = new Set(['esame_human_suna_prepare_v1','esame_human_request_v1','
 // Solo questi reader autorizzano già l’audit della UUID propria senza ruolo Master corrente.
 const OWN_RECEIPT_RECOVERY = new Set(['board','open','narrative','round','continuity','cancel']);
 // context.version cambia anche alla revoca del ruolo; subscribeContext segnala Auth, ruolo e luogo.
-function mountExamHumanHost(container, { client, context, getContext, subscribeContext, openAI, aiAvailable, storage = globalThis.sessionStorage }) {
+function mountExamHumanHost(container, { client, context, getContext, subscribeContext, openAI, aiAvailable, storage = globalThis.sessionStorage, entryPresentation = {expanded:false,basis:null} }) {
   if (!context?.userId || !context.location || !context.version || !getContext || !subscribeContext || !openAI || !aiAvailable) throw Error('Contesto host incompleto.');
   const identity = c => JSON.stringify([c?.userId,c?.location,c?.version,c?.isMaster]);
   const initial = identity(context), scope = context.userId, location = context.location;
   let disposed = false, generation = 0, inflight = 0, refreshing = false, queued = false, child = null, mode = null, examId = null, state = null;
   let executionMode = null;
+  let entryReadRemount = false;
   const validReceiptContext = r => ['staff_test','ordinary'].includes(r?.execution_mode) && r.resources_protected === true
     && r.simulated === (r.execution_mode === 'staff_test') && (!executionMode || r.execution_mode === executionMode);
   const drafts = new Map();
@@ -10942,10 +10947,10 @@ function mountExamHumanHost(container, { client, context, getContext, subscribeC
   function draftFields() { return [...content.querySelectorAll('textarea,input')].map((n,i)=>[n,JSON.stringify([n.closest('form')?.querySelector('strong')?.textContent||'',n.closest('label')?.textContent||'',n.name,n.type,['checkbox','radio'].includes(n.type)?n.value:i])]); }
   function keepDraft(force = false) { let pending;try{pending=pendingMode();}catch{return;}if (!mode || (pending && !force)) return; const old=drafts.get(`${examId}:${mode}`)||new Map();for(const[n,k]of draftFields())old.set(k,{value:n.value,checked:n.checked});drafts.set(`${examId}:${mode}`,old); }
   function restoreDraft() { const saved=drafts.get(`${examId}:${mode}`);if(!saved)return;for(const[n,k]of draftFields()){const v=saved.get(k);if(v&&!n.disabled){if(['checkbox','radio'].includes(n.type)){n.checked=v.checked;n.dispatchEvent(new Event('change',{bubbles:true}));}else n.value=v.value;}} }
-  function stopChild(preserve = false) { keepDraft(preserve); generation++; child?.dispose(); child = null; mode = null; }
+  function stopChild(preserve = false, keepEntry = false) { entryReadRemount=keepEntry===true&&(mode==='entry'||entryReadRemount);if(!keepEntry){entryPresentation.expanded=false;entryPresentation.basis=null;}keepDraft(preserve); generation++; child?.dispose(); child = null; mode = null; }
   let unsubscribe = () => {}, authSubscription = null;
   function invalidate() {
-    if (disposed) return; keepDraft(); disposed = true; generation++; child?.dispose(); child=null;mode=null; unsubscribe(); authSubscription?.unsubscribe();
+    if (disposed) return; entryPresentation.expanded=false;entryPresentation.basis=null;keepDraft(); disposed = true; generation++; child?.dispose(); child=null;mode=null; unsubscribe(); authSubscription?.unsubscribe();
     nav.replaceChildren(); verify.disabled = true; status.textContent = 'Contesto aggiornato: riapri Esame. Le richieste da verificare sono conservate.';
   }
   function pendingMode() {
@@ -11019,13 +11024,13 @@ function mountExamHumanHost(container, { client, context, getContext, subscribeC
     const pending=pendingMode(); if (pending&&pending!==next) return;
     if (!availableModes().includes(next)&&pending!==next) return;
     if (next===mode) { keepDraft(); await child?.refresh(); restoreDraft(); return; }
-    stopChild(); mode=next; const token=generation, env=resources(token);
+    stopChild(false,next==='entry'&&mode===null&&entryReadRemount&&!examId&&!pending); mode=next; const token=generation, env=resources(token);
     const options={...env,examId,authScope:scope,executionMode};
     if (next==='entry') {
       const controller=createExamChoice({...createExamHumanRPC(env.client,location),storage:env.storage,scope:`${scope}:${location}`,location,
         aiAvailable:()=>{ assertContext();return aiAvailable()===true; },openAI:handoffAI,
         changed:s=>{if(s.active&&!s.pending)selectExam(s.active.exam_request_id);}});
-      const view=mountExamEntry(document,content,controller);child={refresh:controller.refresh,dispose(){view.dispose();controller.dispose();}};
+      const view=mountExamEntry(document,content,controller,{presentation:entryPresentation});child={refresh:controller.refresh,dispose(){view.dispose();controller.dispose();}};
     } else if(next==='board') child=mountExamHumanBoard(content,{...env,location,authScope:scope,onSelect:selectExam,onPendingChange:renderNav});
     else if(next==='narrative') { const controller=createExamNarrative(options);const unmount=mountExamNarrative(content,controller);child={refresh:controller.refresh,dispose(){unmount();controller.dispose();}}; }
     else if(next==='open') child=mountExamCombat(content,{...options,openRound:()=>switchMode('round')});
@@ -11154,7 +11159,7 @@ function mountExamHumanHost(container, { client, context, getContext, subscribeC
       const next=pending||(modes.includes(mode)?mode:modes[0]);
       status.textContent=state?.terminal?(state.state==='cancelled'?'Prova annullata senza valutazione. Nessuna promozione o premio.':'Prova conclusa e valutata: promozione e premi sono separati.'):pending?'Verifica la richiesta precedente prima di altre operazioni.':examId? 'Esame con Master · '+({waiting:'in attesa di presa in carico',prepared:'preparazione',narrative:'narrazione',combat:'combattimento'}[state.state]||'stato aggiornato') : '';
       if(next) await switchMode(next); else stopChild();
-    }catch(e){stopChild();status.textContent=e.message;}
+    }catch(e){stopChild(false,!examId&&(mode==='entry'||entryReadRemount));status.textContent=e.message;}
     finally{refreshing=false;renderNav();}
   }
   verify.addEventListener('click',refresh);
@@ -11164,7 +11169,7 @@ function mountExamHumanHost(container, { client, context, getContext, subscribeC
   const env=resources(generation); mode='entry';
   const entry=createExamChoice({...createExamHumanRPC(env.client,location),storage:env.storage,scope:`${scope}:${location}`,location,
     aiAvailable:()=>{assertContext();return aiAvailable()===true;},openAI:handoffAI,changed:s=>{if(s.active&&!s.pending)selectExam(s.active.exam_request_id);}});
-  const entryView=mountExamEntry(document,content,entry);child={refresh:entry.refresh,dispose(){entryView.dispose();entry.dispose();}};
+  const entryView=mountExamEntry(document,content,entry,{presentation:entryPresentation});child={refresh:entry.refresh,dispose(){entryView.dispose();entry.dispose();}};
   renderNav();
   return { refresh, invalidate, dispose:invalidate };
 }
@@ -11174,7 +11179,7 @@ return modules['host'];})();
 // EXAM-HUMAN-LAND-20260926 — candidata source-only; riserva server separata.
 var EHM_CLIENT_ENABLED=true;
 var EHM_ORDINARY_CLIENT_ENABLED=false;
-var EHM_LAND={instance:null,key:null,version:1,loading:null,ai:false,active:false,left:true,master:false,listeners:new Set()};
+var EHM_LAND={instance:null,key:null,version:1,loading:null,ai:false,active:false,left:true,master:false,entryPresentation:{expanded:false,basis:null},listeners:new Set()};
 function examHumanContext(){
   if(!EHM_CLIENT_ENABLED||EHM_LAND.left||ordinarySigningOut||!loggedIn||ordinaryAuthId!==myId||!myCharId||!cur)return null;
   const staff=cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test===true;
@@ -11183,10 +11188,11 @@ function examHumanContext(){
   if(!staff&&!ordinary)return null;
   return {userId:myId,location:cur.id,version:String(EHM_LAND.version),isMaster:EHM_LAND.master};
 }
-function examHumanInvalidate(){
+function examHumanInvalidate(keepEntry=false){
+  const entryView=keepEntry&&examHumanContext()?{expanded:EHM_LAND.entryPresentation.expanded,basis:EHM_LAND.entryPresentation.basis,scope:EHM_LAND.entryPresentation.scope}:{expanded:false,basis:null};
   EHM_LAND.version++;EHM_LAND.key=null;EHM_LAND.active=false;
   for(const fn of [...EHM_LAND.listeners])fn();
-  EHM_LAND.instance?.dispose();EHM_LAND.instance=null;EHM_LAND.listeners.clear();
+  EHM_LAND.instance?.dispose();EHM_LAND.instance=null;EHM_LAND.listeners.clear();EHM_LAND.entryPresentation=entryView;
 }
 function examHumanEnter(){examHumanInvalidate();EHM_LAND.left=false;EHM_LAND.ai=false;EHM_LAND.master=false;}
 function examHumanLeave(){EHM_LAND.left=true;EHM_LAND.ai=false;examHumanInvalidate();}
@@ -11207,6 +11213,8 @@ function examHumanRender(){
   const body=document.getElementById('esm-body'),card=document.getElementById('esm-card');if(!body||!card)return true;
   card.hidden=false;
   const key=JSON.stringify(context);
+  // C646: solo la presentazione segue identità Auth/PG/luogo/ruolo stabile; key/epoch dell'autorità restano invariati.
+  if(EHM_LAND.entryPresentation.scope!==JSON.stringify([context.userId,myCharId,context.location,context.isMaster]))Object.assign(EHM_LAND.entryPresentation,{expanded:false,basis:null,scope:JSON.stringify([context.userId,myCharId,context.location,context.isMaster])});
   if(EHM_LAND.instance&&EHM_LAND.key===key)return true;
   if(EHM_LAND.instance)examHumanInvalidate();
   const fresh=examHumanContext(),ticket=EHM_LAND.version;
@@ -11221,7 +11229,7 @@ function examHumanRender(){
   EHM_LAND.instance=EXAM_HUMAN_LIB.mountExamHumanHost(body,{client,context:fresh,getContext:examHumanContext,
     subscribeContext:fn=>{EHM_LAND.listeners.add(fn);return()=>EHM_LAND.listeners.delete(fn);},
     aiAvailable:()=>{const v=ai?.snapshot();return !EHM_LAND.active&&v?.readiness?.eligible===true&&v.readiness.ready===true&&!v.prova&&!v.busy&&!v.driving&&!v.error;},
-    openAI:async()=>{EHM_LAND.ai=true;examHumanInvalidate();return ai.start();}
+    openAI:async()=>{EHM_LAND.ai=true;examHumanInvalidate();return ai.start();},entryPresentation:EHM_LAND.entryPresentation
   });
   return true; // Nessuna RPC dal render o dal clic Sostieni esame.
 }
@@ -11235,7 +11243,7 @@ function examHumanLoad(){
     // Bootstrap separato: ruolo proprio vivo e readiness originale IA, nessun provider.
     const role=await sb.from('profiles').select('role').eq('id',who).maybeSingle();
     if(ticket!==EHM_LAND.version||myId!==who||cur?.id!==where)return;
-    if(role.error||!role.data){examHumanInvalidate();return;}
+    if(role.error||!role.data){examHumanInvalidate(true);return;}
     const master=['master','admin'].includes(role.data.role);
     if(EHM_LAND.master!==master){examHumanInvalidate();EHM_LAND.master=master;examHumanRender();}
     const generation=EHM_LAND.version;
@@ -11245,7 +11253,7 @@ function examHumanLoad(){
     await EHM_LAND.instance?.refresh();
   })();
   EHM_LAND.loading=task;
-  task.catch(()=>{if(ticket===EHM_LAND.version)examHumanInvalidate();}).finally(()=>{if(EHM_LAND.loading===task)EHM_LAND.loading=null;});
+  task.catch(()=>{if(ticket===EHM_LAND.version)examHumanInvalidate(true);}).finally(()=>{if(EHM_LAND.loading===task)EHM_LAND.loading=null;});
   return true;
 }
 window.addEventListener('tus:ordinary-logout',examHumanLeave);
