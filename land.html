@@ -2227,6 +2227,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
                 <div class="side-k">Esame Genin</div>
                 <div id="esm-body"></div>
               </div>
+              <div id="mission-d100-room" class="side-card mc-human" hidden aria-label="Prova D100 della missione"></div>
               <div id="mission-generic-room" hidden></div>
               <div class="side-card mv2" id="mv2-card" hidden>
                 <div class="mv2-head"><div class="side-k">Regia Master</div><span class="mv2-state" id="mv2-state">V2</span></div>
@@ -5924,7 +5925,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         var sig=rid+'|'+html;
         if(sig===lastMsgsSig) return;   // nessun messaggio nuovo/cambiato → niente ridisegno → niente flicker sull’emblema/avatar
         var nearBottom=(msgsEl.scrollHeight-msgsEl.scrollTop-msgsEl.clientHeight)<80;
-        lastMsgsSig=sig;
+        lastMsgsSig=sig;if(typeof missionD100Notify==='function')missionD100Notify();
         msgsEl.innerHTML=html;
         if(nearBottom) msgsEl.scrollTop=msgsEl.scrollHeight;
       }
@@ -5995,7 +5996,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           var eb=document.getElementById('ed-overlay'); if(eb) eb.hidden=true;
           sugScegli(null);
         }
-        updateToStyle(); updCount();if(typeof missionHumanPhaseRefresh==='function')missionHumanPhaseRefresh(MV2?.data);
+        updateToStyle(); updCount();if(typeof missionHumanPhaseRefresh==='function')missionHumanPhaseRefresh(MV2?.data);if(typeof missionD100Refresh==='function')missionD100Refresh(MV2?.data);
       }
       (function(){ var b=document.getElementById('fato-btn'); if(b) b.addEventListener('click',function(){ setFatoMode(!fatoMode); }); })();
       window.addEventListener('tus:fato-reset',function(){ setFatoMode(false); });
@@ -6116,12 +6117,13 @@ window.TUSOrdinary={attachOrdinaryLand};
           return commonMasterScope()===scope?allowed:'unknown';
         }catch(err){return 'unknown';}
       }
-      window.addEventListener('tus:ordinary-logout',function(){ordinarySigningOut=true;if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();});
+      window.addEventListener('tus:ordinary-logout',function(){esLegacyDisposeStale(true);missionD100Reset();ordinarySigningOut=true;if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();});
       if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session){
         var id=session&&session.user?session.user.id:null;
-        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){uiPostreviewStaffReset();missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(window.TRU_RELEASE002){window.TRU_RELEASE002.invalidate();window.TRU_RELEASE002=null;}if(event==='SIGNED_OUT')closeTestRoomUser();if(MV2){MV2.authEpoch=(MV2.authEpoch||0)+1;MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.regia=null;MV2.regiaSignature=null;MV2.regiaDraft='';MV2.regiaDirection={turn_kind:'',actor_ids:[]};MV2.scortaContext=false;MV2.scortaRoom=null;MV2.scortaScope=null;MV2.options={};}}
+        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){esLegacyDisposeStale(true);uiPostreviewStaffReset();missionD100Reset();missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(window.TRU_RELEASE002){window.TRU_RELEASE002.invalidate();window.TRU_RELEASE002=null;}if(event==='SIGNED_OUT')closeTestRoomUser();if(MV2){MV2.authEpoch=(MV2.authEpoch||0)+1;MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.regia=null;MV2.regiaSignature=null;MV2.regiaDraft='';MV2.regiaDirection={turn_kind:'',actor_ids:[]};MV2.scortaContext=false;MV2.scortaRoom=null;MV2.scortaScope=null;MV2.options={};}}
         if(MV2&&(id!==ordinaryAuthId||event==='SIGNED_OUT'))MV2.readRequested=false;
         ordinaryAuthId=id;
+        esLegacyDisposeStale();syncSendBtn();
       });
       // C53: only this Auth's protected human Staff scene is locked; Native guards remain authoritative.
       var MISSION_HUMAN_CLOSE_LOCK=null,MISSION_HUMAN_CLOSE_WRITERS=new Map();
@@ -6360,7 +6362,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           MV2.scortaContext=nextScorta||inheritScorta;MV2.scortaScope=MV2.scortaContext?scortaScope:null;MV2.scortaRoom=nextScortaRoom;
           same=same&&MV2.regiaSignature===nextRegiaSignature;MV2.regia=nextRegia;MV2.regiaSignature=nextRegiaSignature;
           if(MV2.data?.master?.id!==next.master?.id)MV2.regiaDirection={turn_kind:'',actor_ids:[]};
-          MV2.data=next;MV2.locationId=masterLocation;MV2.principalId=masterPrincipal;mv2TopSync();missionHumanPhaseRefresh(next);mv2PruneDefenseDrafts(next);if(!same)renderCombat();if(!commonMasterCombat())mv2EnsureOptions();
+          MV2.data=next;MV2.locationId=masterLocation;MV2.principalId=masterPrincipal;mv2TopSync();missionHumanPhaseRefresh(next);missionD100Refresh(next);mv2PruneDefenseDrafts(next);if(!same)renderCombat();if(!commonMasterCombat())mv2EnsureOptions();
           if(commonMasterCombat()&&!previouslyCommon){
             var masterDialog=document.getElementById('mv2ov'),masterVisible=masterDialog&&!masterDialog.hidden;
             ordinaryRefresh();if(masterVisible&&ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');
@@ -8626,10 +8628,77 @@ window.TUSOrdinary={attachOrdinaryLand};
           ES_IA.inVolo=false;
         });
       }
-      function esAccetta(d){ ES.dato=d||null; ES.errore=''; ES.carico=false; ES.seq++; ES.scontrino=esScontrino(ES.dato);
+      /* C698: identità della sola prova Legacy aperta dal server per il PG corrente.
+         Non è un permesso: il sender Native conserva tutte le proprie guardie. */
+      function esLegacyContext(s){
+        if(!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||!myId||!myCharId||!cur?.is_exam_room||!s)return null;
+        if(examHumanOwnsScene()||examRegia()?.claimsExam()||missionSessionOwn())return null;
+        return {owner:ES,key:JSON.stringify([myId,myCharId,cur.id,String(s),MV2.authEpoch]),session:String(s),prova:null};
+      }
+      function esLegacyCurrent(c){
+        var now=c&&esLegacyContext(esSess());
+        return !!(now&&c.owner===ES&&c.key===now.key);
+      }
+      /* C704: prenotazioni della sola Legacy, mai un lock di Human o Missione. */
+      function esLegacyReserve(c,kind){
+        if(!c||!esLegacyCurrent(c))return null;
+        var f={owner:ES,ap:ES_AP,context:c,kind:kind};
+        ES.legacyFlight=f;
+        if(kind==='open')ES_AP.legacyFlight=f;
+        return f;
+      }
+      function esLegacyDrop(c){
+        if(!c||c.owner!==ES)return;
+        /* Solo dati attribuiti alla Legacy invalidata; mai il dato di una scena nuova. */
+        if(!ES.dato?.prova?.id||c.prova&&String(ES.dato.prova.id)===c.prova){
+          ES.dato=null;ES.scontrino=null;ES.carico=false;ES.errore='';
+        }
+        ES.legacyContext=null;ES.sess=null;ES.seq++;esSig=null;
+        esAperturaReset();
+        ES_AZ=null;ES_AZ_ETI='';syncAzPill();
+      }
+      function esLegacyRelease(f){
+        if(!f)return true; // I percorsi non Legacy conservano il proprio lifecycle.
+        var owned=f.owner.legacyFlight===f;
+        var local=owned&&f.owner===ES&&f.ap===ES_AP;
+        var current=!!(local&&esLegacyCurrent(f.context));
+        if(owned){
+          f.owner.legacyFlight=null; f.owner.busy=false;
+          if(f.ap.legacyFlight===f){f.ap.legacyFlight=null;f.ap.inVolo=false;}
+        }
+        if(local&&!current)esLegacyDrop(f.context);
+        return current;
+      }
+      function esLegacyDisposeStale(force){
+        if(!ES)return false;
+        var c=ES.legacyContext,f=ES.legacyFlight,cid=esProvaIdClasse();
+        if(!c&&!f)return false;
+        var replaced=!!(cid&&c&&c.prova&&String(cid)!==c.prova);
+        if(!force&&!replaced&&(!c||esLegacyCurrent(c))&&(!f||esLegacyCurrent(f.context)))return false;
+        if(f){
+          var local=f.owner===ES&&f.owner.legacyFlight===f&&f.ap===ES_AP;
+          var current=esLegacyCurrent(f.context);
+          esLegacyRelease(f);
+          if(local&&!current)return true; // release ha già invalidato questo solo owner.
+        }
+        esLegacyDrop(c||(f&&f.context));
+        return true;
+      }
+      function esLegacyOwn(pid){
+        var c=ES.legacyContext;
+        return !!(esLegacyCurrent(c)&&c.prova&&String(pid)===c.prova);
+      }
+      function esLegacyFatoPending(){
+        var d=ES.dato,p=d&&d.prova;
+        return !!(p&&esLegacyOwn(p.id)&&p.stato==='aperta'&&d.narrazione_attesa===true&&p.tuo_turno===false);
+      }
+      function esAccetta(d,legacyContext){
+        var lc=legacyContext||ES.legacyContext;
+        ES.legacyContext=(esLegacyCurrent(lc)&&d?.prova?.id&&(!lc.prova||lc.prova===String(d.prova.id)))?Object.assign({},lc,{prova:String(d.prova.id)}):null;
+        ES.dato=d||null; ES.errore=''; ES.carico=false; ES.seq++; ES.scontrino=esScontrino(ES.dato);
         /* Qui e in nessun altro posto: `esAccetta` e' il punto unico in cui
            uno stato nuovo entra in pagina. */
-        try{ esIASpinta(); }catch(e){} missionSessionAccepted(); }
+        try{ esIASpinta(); }catch(e){} missionSessionAccepted(); syncSendBtn(); }
 
       /* [R3] Lo SCONTRINO della prova: le chiavi con cui il server identifica ciò
          su cui stiamo lavorando — l'id della prova, l'id dell'elenco di opzioni
@@ -8705,6 +8774,7 @@ window.TUSOrdinary={attachOrdinaryLand};
          abbiamo letto, si legge subito; a prova già letta si ridisegna e basta,
          così non si raddoppiano le letture a ogni giro. */
       function esClasseCambiata(){
+        esLegacyDisposeStale();
         /* [R3] Se la classe annuncia una prova DIVERSA da quella che abbiamo in
            mano, quella in mano è scaduta: si butta insieme al suo scontrino,
            prima di rileggere. Alzare `ES.seq` fa cadere per strada le letture
@@ -8722,7 +8792,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(esArena() && !ES.dato){ loadEsame(); return; }
         renderEsame();
       }
-      function loadEsame(){if(examHumanLoad())return;if(examRegia()?.load())return;if(missionSessionLoad())return;return loadEsameLegacy();}
+      function loadEsame(){esLegacyDisposeStale();if(examHumanLoad())return;if(examRegia()?.load())return;if(missionSessionLoad())return;return loadEsameLegacy();}
       function loadEsameLegacy(){
         /* [069] La domanda al server sta PRIMA della guardia. Se stesse dopo,
            il gate non verrebbe mai chiesto: la guardia lo trova chiuso, esce,
@@ -8735,11 +8805,11 @@ window.TUSOrdinary={attachOrdinaryLand};
         /* [069-R2] Nessuna prova in mano: e' qui che l'apertura si chiede da
            sola. `esEntra` e' guardata, quindi passare di qui a ogni giro dei
            nove secondi non costa una seconda chiamata. */
-        if(!pid){ esEntra(); renderEsame(); return; }
+        if(!pid||!esLegacyOwn(pid)){ esEntra(); renderEsame(); return; }
         if(!ES.dato){ ES.carico=true; esSig=null; }
-        var n=++ES.seq, sc0={ prova:String(pid), opz:null, scambio:null };
+        var n=++ES.seq, sc0={ prova:String(pid), opz:null, scambio:null },legacyRead=ES.legacyContext;
         sb.rpc('esame_prova_stato',{p_prova:pid}).then(function(r){
-          if(n!==ES.seq) return;
+          if(n!==ES.seq||!esLegacyCurrent(legacyRead)) return;
           /* [R3] Due guardie, e non è ridondanza. Il contatore coglie la risposta
              partita prima di un'altra richiesta; lo SCONTRINO coglie la risposta
              partita su una prova che nel frattempo il server ha lasciato indietro —
@@ -8748,10 +8818,10 @@ window.TUSOrdinary={attachOrdinaryLand};
           if(esScaduto(sc0)) return;
           ES.carico=false;
           if(r&&r.error){ ES.errore=esFrase(r.error); renderEsame(); return; }
-          esAccetta((r&&r.data)||null);
+          esAccetta((r&&r.data)||null,legacyRead);
           if(!ES.dato) ES.scontrino=null;
           renderEsame();
-        }, function(){ if(n!==ES.seq) return; ES.carico=false; ES.errore=ES_RETE; renderEsame(); });
+        }, function(){ if(n!==ES.seq||!esLegacyCurrent(legacyRead)) return; ES.carico=false; ES.errore=ES_RETE; renderEsame(); });
       }
 
       /* MISSION-EXAM-OPENING-001: campione privato, nessuna chiamata al montaggio. */
@@ -11432,20 +11502,24 @@ if(sb?.auth?.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session)
          nove secondi che tornano; `tentativi` e `prossimo` gestiscono soltanto
          guasti transitori, senza trasformare la LAND in un cron. */
       function esEntra(){
+        esLegacyDisposeStale();
         if(missionSessionLegacyBlocked())return;
         if(missionOpeningEligible())return; // Nessun recupero mutante o retry del vecchio percorso per il campione.
         var s=esSess(); if(!esArena()||ES.busy||!s) return;
         if(ES_AP.inVolo) return;
-        if(ES_AP.chiesta && ES_AP.sess===s) return;
+        if(ES_AP.chiesta && ES_AP.sess===s && (ES_AP.tentativi>=3||esLegacyOwn(esProvaId()))) return;
         /* [108] Un rifiuto transitorio non resta agganciato per tutta la vita
            della pagina. Il giro ordinario della stanza può riprovare al
            massimo tre volte, con 15 secondi fra i tentativi. Non è polling
            aggressivo e non può produrre una coda infinita. */
         if(ES_AP.sess===s && Date.now()<ES_AP.prossimo) return;
+        var legacyOpen=esLegacyContext(s); if(!legacyOpen)return;
+        var legacyOpenFlight=esLegacyReserve(legacyOpen,'open');
         ES_AP.sess=s; ES_AP.inVolo=true; ES_AP.rifiuto='';
         ES.busy=true; ES.carico=false; ES.errore=''; esSig=null; renderEsame();
         sb.rpc('esame_prova_apri',{p_session:s}).then(function(r){
-          ES.busy=false; ES_AP.inVolo=false; esSig=null;
+          if(!esLegacyRelease(legacyOpenFlight)){esLegacyDisposeStale();syncSendBtn();return;}
+          esSig=null;
           /* Il rifiuto dell'apertura NON diventa `ES.errore`: quello disegna
              un «Riprova», e un «Riprova» qui sarebbe di nuovo un'azione
              chiesta al candidato per far muovere qualcosa che non deve
@@ -11461,9 +11535,10 @@ if(sb?.auth?.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session)
             renderEsame(); return;
           }
           ES_AP.chiesta=true; ES_AP.tentativi=0; ES_AP.prossimo=0;
-          esAccetta((r&&r.data)||null); renderEsame(); loadMsgs();
+          esAccetta((r&&r.data)||null,legacyOpen); renderEsame(); loadMsgs();
         }, function(){
-          ES.busy=false; ES_AP.inVolo=false; ES.carico=false; ES_AP.tentativi++;
+          if(!esLegacyRelease(legacyOpenFlight)){esLegacyDisposeStale();syncSendBtn();return;}
+          ES.carico=false; ES_AP.tentativi++;
           ES_AP.chiesta=ES_AP.tentativi>=3; ES_AP.prossimo=Date.now()+15000;
           ES_AP.rifiuto=ES_AP.chiesta
             ? 'Il server non ha completato l\'avvio. Lo staff è stato avvisato.'
@@ -11575,6 +11650,7 @@ if(sb?.auth?.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session)
          Il tetto sta QUI e in nessun altro posto: una guardia sola, sulla porta
          sola, così non esiste una seconda rete che copra il buco della prima. */
       function esInvia(az, testo, grezzo){
+        esLegacyDisposeStale();
         if(missionSessionLegacyBlocked()&&!missionSessionPlayer()){azErr("Attendi lo stato autorizzato della prova.");return;}
         var d=ES.dato; if(!sb||!d||!d.prova||ES.busy) return;
         var az2=esNormalizza(az);
@@ -11586,11 +11662,13 @@ if(sb?.auth?.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session)
         if(nch>ES_TESTO_MAX){ azErr('Il turno supera i '+ES_TESTO_MAX+' caratteri: adesso ne conta '+nch+'. Accorcialo prima di applicare.'); return; }
         /* Lo scontrino su cui QUESTA azione è stata composta: se al ritorno il
            server ne ha già uno diverso, la risposta è vecchia e si scarta. */
-        var sc=ES.scontrino;
+        var sc=ES.scontrino,legacyAction=ES.legacyContext;
+        var legacyActionFlight=esLegacyReserve(legacyAction,'action');
         ES.busy=true; var b=azEl('az-applica'); if(b) b.disabled=true;
         syncSendBtn();
         sb.rpc('esame_prova_azione',{p_prova:d.prova.id, p_azione:az2, p_testo:txt}).then(function(r){
-          ES.busy=false; if(b) b.disabled=false;
+          if(!esLegacyRelease(legacyActionFlight)||legacyAction&&!esLegacyCurrent(legacyAction)){esLegacyDisposeStale();syncSendBtn();return;}
+          if(!legacyActionFlight)ES.busy=false; if(b) b.disabled=false;
           syncSendBtn();
           if(esScaduto(sc)) return;
           if(r&&r.error){
@@ -11626,12 +11704,13 @@ if(sb?.auth?.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session)
           /* La risposta della manovra chiude la metà: si rilegge subito lo stato
              invece di aspettare il polling, senza dedurre il nuovo turno. */
           if(az2.tipo==='manovra') loadEsame();
-        }, function(){ ES.busy=false; if(b) b.disabled=false; syncSendBtn(); azErr(ES_RETE); });
+        }, function(){ if(!esLegacyRelease(legacyActionFlight)||legacyAction&&!esLegacyCurrent(legacyAction)){esLegacyDisposeStale();syncSendBtn();return;} if(!legacyActionFlight)ES.busy=false; if(b) b.disabled=false; syncSendBtn(); azErr(ES_RETE); });
       }
       /* [098] La role d'uscita è ancora un messaggio di gioco, ma non è una
          mossa: il server la pubblica e chiude prova, sessione e promozione in
          un solo commit. Nessun payload di combattimento attraversa la porta. */
       function esInviaUscita(testo, grezzo){
+        esLegacyDisposeStale();
         if(missionSessionLegacyBlocked()){toast("Usa Chiudi il campione: nessuna uscita con premi reali.");return;}
         var d=ES.dato; if(!sb||!d||!d.prova||ES.busy) return;
         var txt=String(testo==null?'':testo).replace(/\s+$/,'');
@@ -11639,9 +11718,10 @@ if(sb?.auth?.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session)
         if(!txt.trim()){ toast('Scrivi la role con cui lasci l\u2019aula.'); return; }
         var nch=esTestoLen(txt);
         if(nch>ES_TESTO_MAX){ toast('La role supera i '+ES_TESTO_MAX+' caratteri: adesso ne conta '+nch+'.'); return; }
-        var sc=ES.scontrino; ES.busy=true; syncSendBtn(); renderEsame();
+        var sc=ES.scontrino,legacyExit=ES.legacyContext,legacyExitFlight=esLegacyReserve(ES.legacyContext,'exit'); ES.busy=true; syncSendBtn(); renderEsame();
         sb.rpc('esame_prova_uscita',{p_prova:d.prova.id,p_testo:txt}).then(function(r){
-          ES.busy=false; syncSendBtn();
+          if(!esLegacyRelease(legacyExitFlight)||legacyExit&&!esLegacyCurrent(legacyExit)){esLegacyDisposeStale();syncSendBtn();return;}
+          if(!legacyExitFlight)ES.busy=false; syncSendBtn();
           if(esScaduto(sc)) return;
           if(r&&r.error){ toast(esFrase(r.error)); renderEsame(); return; }
           var dat=(r&&r.data)||null;
@@ -11650,9 +11730,9 @@ if(sb?.auth?.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session)
           var ch=(dat&&dat.chiusura)||null;
           var promosso=!!(ch&&ch.ok&&!ch.isolata&&ch.rank==='Genin');
           updCount(); renderEsame(); loadMsgs(); loadAcadClass(); refreshMyVita(promosso);
-        },function(){ ES.busy=false; syncSendBtn(); toast(ES_RETE); renderEsame(); });
+        },function(){ if(!esLegacyRelease(legacyExitFlight)||legacyExit&&!esLegacyCurrent(legacyExit)){esLegacyDisposeStale();syncSendBtn();return;} if(!legacyExitFlight)ES.busy=false; syncSendBtn(); toast(ES_RETE); renderEsame(); });
       }
-      function renderEsame(){if(examHumanRender())return;if(examRegia()?.render())return;if(missionSessionRender())return;return renderEsameLegacy();}
+      function renderEsame(){esLegacyDisposeStale();if(examHumanRender())return;if(examRegia()?.render())return;if(missionSessionRender())return;return renderEsameLegacy();}
       function renderEsameLegacy(){
         var card=esEl('esm-card'), body=esEl('esm-body'); if(!card||!body) return;
         if(!esArena()){ card.hidden=true; esSig=null; return; }
@@ -11981,7 +12061,7 @@ var nb028iTeardown=function(){};
         if(ov)ov.hidden=true;if(bk)bk.hidden=true;
       }
       function openRoom(l){
-        truReleaseInvalidate();
+        missionD100Reset();truReleaseInvalidate();
         closeRoomObjectBinding();
         if(ORDINARY)ORDINARY.invalidate();uiPostreviewStaffReset();MV2.readRequested=false;MV2.scortaContext=false;MV2.scortaRoom=null;MV2.scortaScope=null;mv2OvChiudi();cur=l; examHumanEnter(); showView('room');  restorePlace(l.id);
         nameEl.textContent=l.name; kindEl.textContent=l.kind||''; descEl.textContent=l.description||'';
@@ -12000,7 +12080,7 @@ var nb028iTeardown=function(){};
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ examHumanLeave(); truReleaseInvalidate(); closeRoomObjectBinding(); MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; uiPostreviewStaffReset();WHO=[];PRESENTI_IDS={};cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.regia=null; MV2.regiaSignature=null; MV2.regiaDraft=''; MV2.regiaDirection={turn_kind:'',actor_ids:[]}; MV2.scortaContext=false; MV2.scortaRoom=null; MV2.scortaScope=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ missionD100Reset();examHumanLeave(); truReleaseInvalidate(); closeRoomObjectBinding(); MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; uiPostreviewStaffReset();WHO=[];PRESENTI_IDS={};cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.regia=null; MV2.regiaSignature=null; MV2.regiaDraft=''; MV2.regiaDirection={turn_kind:'',actor_ids:[]}; MV2.scortaContext=false; MV2.scortaRoom=null; MV2.scortaScope=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -12013,6 +12093,7 @@ var nb028iTeardown=function(){};
         var pIn=document.getElementById('png-input'); var pTxt=(myComp&&pIn)?(pIn.value||'').trim():'';
         if((!t.trim()&&!pTxt)||!cur||!sb) return;
         var to=toSel?toSel.value:'';
+        if(!to&&!fatoMode&&esLegacyFatoPending()){toast('Attendi l’incipit o l’esito pubblico del Fato prima di inviare.');return;}
         if(!to&&missionHumanCloseBlocked()){toast('Chiusura della propria prova da riconciliare: la role resta in composizione.');return;}
         var placeEl=document.getElementById('msg-place'); var place=placeEl?placeEl.value.trim().replace(/[【】]/g,'').slice(0,60):'';
         var pbody=(place && !to)?('【'+place+'】 '+t):t;
@@ -12453,8 +12534,8 @@ var nb028iTeardown=function(){};
         b=document.getElementById('legend-x'); if(b) b.addEventListener('click', closeLeg);
         b=document.getElementById('legend-bk'); if(b) b.addEventListener('click', closeLeg);
         document.addEventListener('keydown', function(e){ if(e.key==='Escape' && lo && !lo.hidden) closeLeg(); }); })();
-      function rollDice(){ if(!cur||!sb||!diceBtn) return; diceBtn.disabled=true;
-        sb.rpc('post_dice',{p_location:cur.id,p_sides:100}).then(function(r){ diceBtn.disabled=false; if(r&&r.error){ toast('Impossibile lanciare il dado'); return; } loadMsgs(); }, function(){ diceBtn.disabled=false; toast('Impossibile lanciare il dado'); }); }
+      async function rollDice(){ if(!cur||!sb||!diceBtn) return;var diceLocation=cur.id,dicePrincipal=myId;diceBtn.disabled=true;try{if(!(await missionD100BeforeDice())||!cur||cur.id!==diceLocation||myId!==dicePrincipal){diceBtn.disabled=false;return;}}catch(_d100read){diceBtn.disabled=false;toast('Prova D100 non confermata: aggiorna la scena.');return;}
+        sb.rpc('post_dice',{p_location:cur.id,p_sides:100}).then(function(r){ diceBtn.disabled=false; if(r&&r.error){ toast('Impossibile lanciare il dado'); return; } loadMsgs();missionD100Notify(); }, function(){ diceBtn.disabled=false; toast('Impossibile lanciare il dado'); }); }
       if(diceBtn){ diceBtn.addEventListener('click', rollDice); }
       /* [08/08/2026 - LAND-CHAT-LEGACY-003-R3] Qui viveva la finestra «Azioni di
          scena» (attacco a un PNG e Dispersione), a sua volta erede della vecchia
@@ -12521,11 +12602,13 @@ var nb028iTeardown=function(){};
         return turnoLen()>=500;
       }
       function syncSendBtn(){
+        esLegacyDisposeStale();
         if(window.TRU_RELEASE002?.ownsCurrent()){
           var text=input?.value||'',gate=window.TRU_RELEASE002.companionGate?.()||{required:false,mechanicsReady:false},pi=document.getElementById('png-input'),dogReady=!gate.required||!!(myComp&&myComp.kind==='cane_ninja'&&pi&&(pi.value||'').trim()),ready=window.TRU_RELEASE002.canSend()&&dogReady&&!!text.trim()&&[...text].length<=2500,tip=ready?'Invia descrizione e scelta nella prova privata':(gate.required&&!dogReady?'Scrivi anche l’azione del ninken':'Completa e conferma la scelta della prova; descrizione da 1 a 2500 caratteri');
           for(var id of ['msg-send','ed-send']){var button=document.getElementById(id);if(button){button.disabled=!ready;button.title=tip;}}return;
         }
         var ok=sendGateOk(), ttl=ok?'':'Un turno di role vuole almeno 500 caratteri';
+        if(!fatoMode&&!(toSel&&toSel.value)&&esLegacyFatoPending()){ok=false;ttl='Attendi l’incipit o l’esito pubblico del Fato prima di inviare';}
         if(!(toSel&&toSel.value)&&missionHumanCloseBlocked()){ok=false;ttl='Chiusura della propria prova da riconciliare';}
         if(!fatoMode&&!(toSel&&toSel.value)&&examRegia()?.blocksChat()&&!examRegia().canSend()){ok=false;ttl='Attendi il tuo turno o rileggi lo stato della prova';}
         var occupata=false;
@@ -12553,7 +12636,7 @@ var nb028iTeardown=function(){};
           if(loggedIn){ try{ sessionStorage.setItem('tus_in_land','1'); }catch(e){} }
           var _tbu=document.getElementById('test-btn'); if(_tbu) _tbu.style.display=loggedIn?'':'none';
           if(myId){ sb.from('characters').select('id').eq('user_id',myId).maybeSingle().then(function(g){ if(!(g&&g.data)){ try{ document.documentElement.style.visibility='hidden'; }catch(e){} location.replace('scheda.html'); } }, function(){}); }
-          if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max,mente,corporation').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); myCorp=(cr.data.corporation!=null?cr.data.corporation:null); showPtsReminder(cr.data.unspent_points||0); caricaNomiEvidenza(); updateVitals(); updateKOState();  loadMyCompanion(); } }, function(){}); }
+          if(myId){ sb.from('characters').select('id,unspent_points,clan,clan_role,vita,vita_max,chakra,chakra_max,mente,corporation').eq('user_id',myId).maybeSingle().then(function(cr){ if(cr&&cr.data){ myCharId=cr.data.id; esLegacyDisposeStale(); myClan=cr.data.clan||''; myClanRole=cr.data.clan_role||''; myVita=(cr.data.vita!=null?cr.data.vita:null); myVitaMax=(cr.data.vita_max!=null?cr.data.vita_max:null); myChakra=(cr.data.chakra!=null?cr.data.chakra:null); myChakraMax=(cr.data.chakra_max!=null?cr.data.chakra_max:null); myCorp=(cr.data.corporation!=null?cr.data.corporation:null); showPtsReminder(cr.data.unspent_points||0); caricaNomiEvidenza(); updateVitals(); updateKOState();  loadMyCompanion(); } }, function(){}); }
           if(myId){ sb.from('profiles').select('role').eq('id',myId).maybeSingle().then(function(pr){ if(pr&&pr.data){ iAmStaff=(pr.data.role==='master'||pr.data.role==='admin'); var _rb=document.getElementById('regia-btn'); if(_rb) _rb.style.display=iAmStaff?'':'none'; var _mb=document.getElementById('mv2-open-btn'); if(_mb) _mb.style.display=(iAmStaff&&fatoMode)?'':'none'; var _fr=document.getElementById('fato-toggle-row'); if(_fr) _fr.style.display=iAmStaff?'':'none'; if(!iAmStaff) setFatoMode(false); var _an=document.getElementById('admin-nav'); if(_an) _an.style.display=iAmStaff?'':'none'; var _tbs=document.getElementById('test-staff-btn'); if(_tbs) _tbs.style.display=iAmStaff?'':'none'; esameHoldRefresh(); try{ syncSendBtn(); }catch(e){} if(cur)loadMasterV2(); } }, function(){ setFatoMode(false); }); }
           loadEmblems();
           renderLuoghi(); if(loggedIn){ sb.rpc('enter_land').then(function(){ loadLuoghi(function(resumed){ if(!resumed) sb.rpc('enter_location',{p_location:null}).then(function(){},function(){}); }); loadRoster(); loadActivity(); loadFlash(); calInit(); }, function(){ loadLuoghi(); loadRoster(); }); startRosterPoll(); sb.rpc('ensure_welcome').then(function(){ loadUnread(); loadConversations(); }, function(){ loadUnread(); loadConversations(); }); if(dmTarget){ var _dt=dmTarget; dmTarget=null; sb.from('characters').select('name').eq('user_id',_dt).maybeSingle().then(function(rr){ openCompose(_dt,(rr&&rr.data&&rr.data.name)||'utente'); }, function(){ openCompose(_dt,'utente'); }); } }
@@ -13677,6 +13760,36 @@ var nb028iTeardown=function(){};
         });
       })();
 
+      // C679: solo Mission Native Staff; Esame/Quest/Academy/Legacy restano nei loro consumer.
+      var MISSION_D100_PANEL=null,MISSION_D100_CONTEXT=null,MISSION_D100_GENERATION=0,MISSION_D100_STATE=null,MISSION_D100_LAST=null,MISSION_D100_UNAVAILABLE=new Set(),MISSION_D100_SEEN=new Set();
+      function missionD100Reset(){MISSION_D100_GENERATION++;if(MISSION_D100_PANEL)MISSION_D100_PANEL.dispose();MISSION_D100_PANEL=null;MISSION_D100_CONTEXT=null;MISSION_D100_STATE=null;MISSION_D100_LAST=null;MISSION_D100_UNAVAILABLE.clear();MISSION_D100_SEEN.clear();var host=document.getElementById('mission-d100-room');if(host){host.replaceChildren();host.hidden=true;}}
+      function missionD100Current(c){return c&&cur&&cur.id===c.location&&loggedIn&&!ordinarySigningOut&&myId===c.principal&&ordinaryAuthId===c.principal&&(MV2?.authEpoch||0)===c.authEpoch&&(c.view==='master'?(fatoMode===true&&iAmStaff):fatoMode!==true&&myCharId===c.character);}
+      async function missionD100EnsureFato(id,c,current){if(!current())return false;var key=c.principal+'/'+c.session+'/'+id;if(MISSION_D100_SEEN.has(key))return true;if(await loadMsgs(id)&&current()){MISSION_D100_SEEN.add(key);return true;}if(!current())return false;var r=await sb.from('chat_messages_live').select('id,kind,body').eq('id',id).eq('location_id',c.location).maybeSingle();if(!current()||r.error||r.data?.id!==id||r.data.kind!=='fato'||typeof r.data.body!=='string')return false;var host=document.getElementById('mission-d100-room'),history=host&&host.querySelector('[data-d100-publications]');if(!host)return false;if(!history){history=document.createElement('section');history.setAttribute('data-d100-publications','');host.append(history);}var item=document.createElement('details'),title=document.createElement('summary'),body=document.createElement('p');title.textContent='Fato pubblico della prova';body.textContent=r.data.body;item.append(title,body);item.open=true;history.append(item);MISSION_D100_SEEN.add(key);return true;}
+      function missionD100Notify(){if(MISSION_D100_PANEL&&missionD100Current(MISSION_D100_CONTEXT))void MISSION_D100_PANEL.refresh();}
+      async function missionD100BeforeDice(){var c=MISSION_D100_CONTEXT,p=MISSION_D100_PANEL;if(!p||!missionD100Current(c))return true;var fresh=await p.refresh();if(!missionD100Current(c)||MISSION_D100_PANEL!==p)return false;if(!fresh)return MISSION_D100_UNAVAILABLE.has(c.session+'/'+c.view+'/'+c.character);var managed=fresh.role_scope!==null||fresh.bindings.some(function(b){return b.step_key===fresh.visible_step_key&&b.run_control_version===fresh.visible_run_control_version;});if(!managed)return true;if(!p.diceAllowed()){toast('Attendi il tuo ruolo o il Fato della prova D100.');return false;}return true;}
+      function missionD100Refresh(data){var host=document.getElementById('mission-d100-room');if(!host)return;
+        if(!cur||cur.id!=='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'||cur.is_test!==true||!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||examHumanOwnsScene()||examRegia()?.ownsCombat()){missionD100Reset();return;}
+        var master=data&&data.master,viewer=data&&data.viewer,session=master&&master.tipo==='quest'&&master.mission_id?master.id:null;
+        if(master&&!session){missionD100Reset();return;}
+        if(!session&&!MISSION_D100_LAST){try{var remembered=JSON.parse(sessionStorage.getItem('mission-d100-session-journal/1/'+myId+'/'+cur.id)||'null');if(remembered&&Object.keys(remembered).sort().join(',')==='location,principal,schema_version,session'&&remembered.schema_version==='mission-d100-session-journal/1'&&remembered.principal===myId&&remembered.location===cur.id&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(remembered.session))MISSION_D100_LAST=remembered;}catch(_remembered){}}
+        if(!session&&MISSION_D100_LAST&&MISSION_D100_LAST.principal===myId&&MISSION_D100_LAST.location===cur.id)session=MISSION_D100_LAST.session;
+        if(!session)return;var view=fatoMode===true&&iAmStaff?'master':'player',character=view==='master'?null:myCharId;if(view==='player'&&!character){missionD100Reset();return;}
+        if(view==='master'&&master&&(!viewer?.is_master||master.controller_kind==='ai_service')){missionD100Reset();return;}
+        var c={principal:myId,location:cur.id,session:session,view:view,character:character,authEpoch:MV2?.authEpoch||0},key=JSON.stringify(c);
+        if(MISSION_D100_UNAVAILABLE.has(session+'/'+view+'/'+character)){host.hidden=true;return;}
+        MISSION_D100_LAST={principal:myId,location:cur.id,session:session};
+        if(MISSION_D100_CONTEXT&&JSON.stringify(MISSION_D100_CONTEXT)===key&&MISSION_D100_PANEL){missionD100Notify();return;}
+        if(MISSION_D100_PANEL)MISSION_D100_PANEL.dispose();MISSION_D100_PANEL=null;MISSION_D100_CONTEXT=c;MISSION_D100_STATE=null;host.replaceChildren();host.hidden=true;var stamp=++MISSION_D100_GENERATION;
+        var current=function(){return stamp===MISSION_D100_GENERATION&&MISSION_D100_CONTEXT===c&&missionD100Current(c);};
+        missionCreationUI().then(function(ui){if(!current())return;var labels={};(WHO||[]).forEach(function(w){var id=w.char_id||w.character_id;if(id&&w.name)labels[id]=w.name;});
+          MISSION_D100_PANEL=ui.mountD100(host,session,{viewerMode:view,characterId:function(){return current()?character:null;},locationId:c.location,labels:labels,isCurrent:current,
+            ensureFato:function(id){return missionD100EnsureFato(id,c,current);},
+            onState:function(state){if(!current())return;MISSION_D100_STATE=state;if(state){var remembered={schema_version:'mission-d100-session-journal/1',principal:myId,location:c.location,session:c.session};MISSION_D100_LAST=remembered;try{sessionStorage.setItem('mission-d100-session-journal/1/'+myId+'/'+c.location,JSON.stringify(remembered));}catch(_sessionJournal){}}host.hidden=!state||!state.role_scope&&!state.bindings.length;},
+            onError:function(e){if(!current())return;MISSION_D100_STATE=null;var msg=e.message||'';if(msg.indexOf('MF_D100_STATE_NATIVE_SCOPE')>=0||msg.indexOf('MF_D100_STATE_PAIR_REQUIRED')>=0){MISSION_D100_UNAVAILABLE.add(session+'/'+view+'/'+character);host.hidden=true;}else{host.hidden=false;}}
+          });
+        }).catch(function(){if(current()){MISSION_D100_STATE=null;host.hidden=false;host.textContent='Prova D100 non disponibile: nessun nuovo comando inviato.';}});
+      }
+      window.addEventListener('pagehide',missionD100Reset);
       var MISSION_CREATION_HUMAN_SESSION=null,MISSION_CREATION_HUMAN_STATUS='unconfigured',MISSION_CREATION_HUMAN_EPOCH=0;
       function missionHumanPhaseReset(){
         MISSION_CREATION_HUMAN_EPOCH++;MISSION_CREATION_HUMAN_SESSION=null;MISSION_CREATION_HUMAN_STATUS='unconfigured';
@@ -13712,7 +13825,7 @@ var nb028iTeardown=function(){};
       var MISSION_CREATION_UI=null,MISSION_CREATION_LOAD=null,MISSION_CREATION_NATIVE_MISSION=null;
       function missionCreationUI(){
         if(MISSION_CREATION_UI)return Promise.resolve(MISSION_CREATION_UI);
-        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mission-creation-ui.general.asset.v4.mjs?v=mc-human-close-101ad038dfe23a267c9276dcc86240c89653fb25922c43cbbf83e7a89252d445').then(function(mod){
+        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mf-mission-creation-ui-draft-candidate-9a9cb6471611b6f57796d239075ca69f6aa550cb1d89940c7193f0778f7ea50a.mjs').then(function(mod){
           MISSION_CREATION_UI=mod.createMissionCreationUI({client:sb,identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             mapPicker:function(initial,title){return missionArenaEditor().show({initial:initial,title:title});},
