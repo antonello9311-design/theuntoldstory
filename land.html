@@ -6012,18 +6012,33 @@ window.TUSOrdinary={attachOrdinaryLand};
       (function(){ var b=document.getElementById('fato-btn'); if(b) b.addEventListener('click',function(){ setFatoMode(!fatoMode); }); })();
       window.addEventListener('tus:fato-reset',function(){ setFatoMode(false); });
       window.addEventListener('pagehide',function(){ setFatoMode(false); });
+      var BACKGROUND_READS=null;
+      function backgroundReadScope(params){return JSON.stringify([myId,ordinaryAuthId,loggedIn,ordinarySigningOut,MV2&&MV2.authEpoch||0,cur&&cur.id||null,myCharId||null,params]);}
+      function backgroundRead(name,params,request,apply){
+        if(!sb||!loggedIn||!myId||ordinarySigningOut)return Promise.resolve(false);
+        var key=backgroundReadScope(params),slots=BACKGROUND_READS||(BACKGROUND_READS=Object.create(null)),slot=slots[name];
+        if(slot&&slot.pending){if(slot.key!==key)slot.invalidated=true;return slot.key===key&&!slot.invalidated?slot.pending:Promise.resolve(false);}
+        if(!slot||slot.key!==key||slot.invalidated){slot={key:key,pending:null,errors:0,nextAt:0,invalidated:false};slots[name]=slot;}
+        if(Date.now()<slot.nextAt)return Promise.resolve(false);
+        var current=function(){return slots[name]===slot&&!slot.invalidated&&backgroundReadScope(params)===key&&loggedIn&&!ordinarySigningOut;},token={promise:null};
+        token.promise=Promise.resolve().then(function(){if(!current())throw Error('Contesto lettura cambiato.');return request();}).then(function(r){
+          if(!current())return false;if(!r||typeof r!=='object'||r.error||!Object.prototype.hasOwnProperty.call(r,'data'))throw Error('Lettura non disponibile.');
+          apply(r);slot.errors=0;slot.nextAt=0;return true;
+        }).catch(function(){if(current()){slot.errors=Math.min(slot.errors+1,5);slot.nextAt=Date.now()+Math.min(30000,2000*Math.pow(2,slot.errors-1));}return false;}).finally(function(){if(slots[name]===slot&&slot.pending===token.promise)slot.pending=null;});
+        slot.pending=token.promise;return token.promise;
+      }
       function loadWho(){
         if(!sb||!cur) return;
         var locationId=cur.id;
-        sb.rpc('who_here',{p_location:locationId,p_minutes:8}).then(function(r){
-          if(!cur||cur.id!==locationId||!r||r.error)return;
+        return backgroundRead('who',{location:locationId,minutes:8},function(){return sb.rpc('who_here',{p_location:locationId,p_minutes:8});},function(r){
+          if(!Array.isArray(r.data))throw Error('Presenze non disponibili.');
           var rows=r.data||[],sig;
           try{sig=JSON.stringify(rows.map(function(x){return [x.user_id||x.id||'',x.character_id||'',x.name||'',x.status||''];}).sort());}catch(e){sig=null;}
           if(sig!==null&&sig===lastWhoSig)return;
           lastWhoSig=sig;WHO=rows;PRESENTI_IDS={};rows.forEach(function(w){if(w.char_id)PRESENTI_IDS[w.char_id]=true;});renderWho(rows);updateTargets(rows);if(uiPostreviewStaff())loadMsgs();
           try{TRV2.sig=null;renderTraining();}catch(e){}
           loadMasterV2();ordinaryRefresh();
-        }, function(){});
+        });
       }
       function updateKOState(){ /* [R3] il pulsante che disabilitava e' stato ritirato: resta il badge, che e' l'unico avviso di KO ancora in barra. */ var badge=document.getElementById('ko-badge'); var ko=(myVita!=null && myVita<=0); if(badge){ badge.style.display=ko?'':'none'; } }
       function refreshMyVita(notificaPunti){ if(!sb||!myId) return; sb.from('characters').select('vita,vita_max,chakra,chakra_max,mente,corporation,unspent_points').eq('user_id',myId).maybeSingle().then(function(r){ if(r&&r.data){ myVita=(r.data.vita!=null?r.data.vita:null); myVitaMax=(r.data.vita_max!=null?r.data.vita_max:null); myChakra=(r.data.chakra!=null?r.data.chakra:null); myChakraMax=(r.data.chakra_max!=null?r.data.chakra_max:null); myCorp=(r.data.corporation!=null?r.data.corporation:null); var pts=Math.max(0,parseInt(r.data.unspent_points,10)||0); showPtsReminder(pts); if(notificaPunti&&pts>0) toast('Promozione completata: sei Genin. Hai '+pts+' punti statistica disponibili da assegnare nella Scheda.'); } updateVitals(); updateKOState();  },function(){}); }
@@ -12665,13 +12680,13 @@ var nb028iTeardown=function(){};
       function updateMyStatusDot(){ var meRow=myRosterRow(), dot=document.querySelector('#online-btn .ob-dot'); if(!dot||!meRow) return; dot.style.background=statusColor(meRow.status); dot.title=statusLabel(meRow.status); }
       function roleBadge(r){ var m={admin:['A','Admin'],staff:['S','Staff'],master:['M','Master']}; var v=m[r]; return v?'<span class="rl-badge rl-'+r+'" title="'+v[1]+'">'+v[0]+'</span>':''; }
       function updateOnlineCount(){ var n=ROSTER.length; var a=document.getElementById('online-n'); if(a) a.textContent=n; var m=document.getElementById('map-count'); if(m) m.textContent=n; updateMyStatusDot(); }
-      function loadRoster(){ if(!sb||!loggedIn) return; sb.rpc('online_roster',{p_minutes:8}).then(function(r){ if(r&&!r.error){ ROSTER=r.data||[]; rosterLoaded=true; updateOnlineCount(); if(panelOpen) renderPanel(); } }, function(){}); }
+      function loadRoster(){ return backgroundRead('roster',{minutes:8},function(){return sb.rpc('online_roster',{p_minutes:8});},function(r){if(!Array.isArray(r.data))throw Error('Elenco non disponibile.');ROSTER=r.data;rosterLoaded=true;updateOnlineCount();if(panelOpen)renderPanel();}); }
       function startRosterPoll(){ if(rosterPoll) return; rosterPoll=setInterval(function(){ loadRoster(); loadActivity(); loadFlash(); loadUnread(); loadConversations(); }, 12000); }
       function acTimeAgo(iso){ var t=new Date(iso).getTime(); if(!t) return ''; var sec=Math.max(0,(Date.now()-t)/1000); var m=Math.floor(sec/60); if(m<1) return 'adesso'; if(m<60) return m+' min fa'; var h=Math.floor(m/60); if(h<24) return h+' h fa'; return Math.floor(h/24)+' g fa'; }
       function acLine(e){ var nm='<b>'+esc(e.name||'—')+'</b>'; if(e.event_type==='enter'){ return e.location_name ? ('<span class="ac-in">▸</span> '+nm+' è entrato in <i>'+esc(e.location_name)+'</i>') : ('<span class="ac-in">▸</span> '+nm+' è entrato nella Land'); } return e.location_name ? ('<span class="ac-out">◂</span> '+nm+' ha lasciato <i>'+esc(e.location_name)+'</i>') : ('<span class="ac-out">◂</span> '+nm+' ha lasciato la Land'); }
       function renderActivity(){ var host=document.getElementById('ac-list'); if(!host) return; var _cn=document.getElementById('ac-count'); if(_cn) _cn.textContent = ACT.length ? ('· '+ACT.length+(ACT.length===1?' movimento':' movimenti')) : '· nessuno'; if(!ACT.length){ host.innerHTML='<span class="who-empty">Nessun movimento recente.</span>'; return; } host.innerHTML=ACT.map(function(e){ return '<div class="ac-row"><span class="ac-txt">'+acLine(e)+'</span><span class="ac-t">'+acTimeAgo(e.created_at)+'</span></div>'; }).join(''); }
-      function loadActivity(){ if(!sb||!loggedIn) return; sb.rpc('recent_activity',{p_limit:12}).then(function(r){ if(r&&!r.error){ ACT=r.data||[]; renderActivity(); } }, function(){}); }
-      function loadFlash(){ if(!sb||!loggedIn) return; sb.from('app_settings').select('value').eq('key','flash_news').maybeSingle().then(function(r){ setFlash((r&&r.data&&r.data.value)?String(r.data.value).trim():''); }, function(){}); }
+      function loadActivity(){ return backgroundRead('activity',{limit:12},function(){return sb.rpc('recent_activity',{p_limit:12});},function(r){if(!Array.isArray(r.data))throw Error('Attività non disponibile.');ACT=r.data;renderActivity();}); }
+      function loadFlash(){ return backgroundRead('flash',{key:'flash_news'},function(){return sb.from('app_settings').select('value').eq('key','flash_news').maybeSingle();},function(r){if(r.data!==null&&(typeof r.data!=='object'||Array.isArray(r.data)))throw Error('Notizie non disponibili.');setFlash(r.data&&r.data.value?String(r.data.value).trim():'');}); }
       function setFlash(txt){ var band=document.getElementById('newsband'), el=document.getElementById('nb-text'); if(!band||!el) return; if(txt){ if(el.textContent!==txt){ el.textContent=txt; var dur=Math.max(12, Math.round(txt.length*0.32)); el.style.animationDuration=dur+'s'; } band.hidden=false; } else { band.hidden=true; el.textContent=''; } }
 
       /* ===== BACHECHE ===== */
@@ -12818,7 +12833,7 @@ var nb028iTeardown=function(){};
       function canMulti(){ return !!(iAmStaff || myClanRole==='Capo clan'); }
       function fmtDM(iso){ try{ var d=new Date(iso), now=new Date(); if(d.toDateString()===now.toDateString()) return d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } }
       var mailPanelOpen=false;
-      function loadUnread(){ if(!sb||!loggedIn) return; sb.rpc('dm_unread').then(function(r){ var n=(r&&typeof r.data==='number')?r.data:0; var bd=document.getElementById('mail-badge'); if(bd){ bd.textContent=n>99?'99+':n; bd.classList.toggle('on',n>0); } var nd=document.getElementById('tb-new'); if(nd){ nd.hidden=!(n>0)||mailPanelOpen; } }, function(){}); }
+      function loadUnread(){ return backgroundRead('unread',null,function(){return sb.rpc('dm_unread');},function(r){if(typeof r.data!=='number'||!Number.isFinite(r.data))throw Error('Messaggi non disponibili.');var n=r.data;var bd=document.getElementById('mail-badge');if(bd){bd.textContent=n>99?'99+':n;bd.classList.toggle('on',n>0);}var nd=document.getElementById('tb-new');if(nd)nd.hidden=!(n>0)||mailPanelOpen;}); }
       function openMail(){ if(!loggedIn){ toast('Accedi per leggere i messaggi'); return; } var mb=document.getElementById('mbox'), slot=document.getElementById('mailov-slot'); if(mb&&slot&&mb.parentNode!==slot){ slot.appendChild(mb); } var ov=document.getElementById('mailov'), bk=document.getElementById('mailov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false; mailPanelOpen=true; var nd=document.getElementById('tb-new'); if(nd)nd.hidden=true; showMailList(); if(sb){ loadConversations(); loadUnread(); } }
       function closeMail(){ var mb=document.getElementById('mbox'), home=document.getElementById('side-right'); if(mb&&home&&mb.parentNode!==home){ home.appendChild(mb); } var ov=document.getElementById('mailov'), bk=document.getElementById('mailov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; mailPanelOpen=false; syncSideHeights(); }
       (function(){ var b=document.getElementById('mail-nav'); if(b) b.addEventListener('click', openMail); var x=document.getElementById('mailov-x'); if(x) x.addEventListener('click', closeMail); var bk=document.getElementById('mailov-backdrop'); if(bk) bk.addEventListener('click', closeMail); document.addEventListener('keydown', function(e){ if(e.key==='Escape' && mailPanelOpen) closeMail(); }); })();
@@ -13779,8 +13794,17 @@ var nb028iTeardown=function(){};
       async function missionD100EnsureFato(id,c,current){if(!current())return false;var key=c.principal+'/'+c.session+'/'+id;if(MISSION_D100_SEEN.has(key))return true;if(await loadMsgs(id)&&current()){MISSION_D100_SEEN.add(key);return true;}if(!current())return false;var r=await sb.from('chat_messages_live').select('id,kind,body').eq('id',id).eq('location_id',c.location).maybeSingle();if(!current()||r.error||r.data?.id!==id||r.data.kind!=='fato'||typeof r.data.body!=='string')return false;var host=document.getElementById('mission-d100-room'),history=host&&host.querySelector('[data-d100-publications]');if(!host)return false;if(!history){history=document.createElement('section');history.setAttribute('data-d100-publications','');host.append(history);}var item=document.createElement('details'),title=document.createElement('summary'),body=document.createElement('p');title.textContent='Fato pubblico della prova';body.textContent=r.data.body;item.append(title,body);item.open=true;history.append(item);MISSION_D100_SEEN.add(key);return true;}
       function missionD100NegativeKey(c){return JSON.stringify([c.principal,c.location,c.session,c.view,c.character,c.authEpoch]);}
       function missionD100Negative(c){return MISSION_D100_CONTEXT===c&&missionD100Current(c)&&MISSION_D100_UNAVAILABLE.has(missionD100NegativeKey(c));}
-      function missionD100Notify(){if(MISSION_D100_PANEL&&missionD100Current(MISSION_D100_CONTEXT)&&!missionD100Negative(MISSION_D100_CONTEXT))void MISSION_D100_PANEL.refresh();}
-      async function missionD100BeforeDice(){var c=MISSION_D100_CONTEXT,p=MISSION_D100_PANEL;if(!c)return true;if(!missionD100Current(c))return false;if(missionD100Negative(c))return true;if(!p)return true;var fresh=await p.refresh();if(!missionD100Current(c)||MISSION_D100_CONTEXT!==c)return false;if(missionD100Negative(c))return true;if(MISSION_D100_PANEL!==p||!fresh)return false;var managed=fresh.role_scope!==null||fresh.bindings.some(function(b){return b.step_key===fresh.visible_step_key&&b.run_control_version===fresh.visible_run_control_version;});if(!managed)return true;if(!p.diceAllowed()){toast('Attendi il tuo ruolo o il Fato della prova D100.');return false;}return true;}
+      var MISSION_D100_READ=null;
+      function missionD100ReadSlot(c,p){var stamp=MISSION_D100_GENERATION,s=MISSION_D100_READ;if(!s||s.context!==c||s.panel!==p||s.stamp!==stamp){s={context:c,panel:p,stamp:stamp,pending:null,errors:0,nextAt:0,revision:0};MISSION_D100_READ=s;}return s;}
+      function missionD100ReadCurrent(s){return MISSION_D100_READ===s&&MISSION_D100_GENERATION===s.stamp&&MISSION_D100_CONTEXT===s.context&&MISSION_D100_PANEL===s.panel&&missionD100Current(s.context);}
+      function missionD100ReadFailed(s){s.errors=Math.min(s.errors+1,5);s.nextAt=Date.now()+Math.min(30000,2000*Math.pow(2,s.errors-1));}
+      function missionD100Read(c,p){
+        if(!c||!p||MISSION_D100_CONTEXT!==c||MISSION_D100_PANEL!==p||!missionD100Current(c)||missionD100Negative(c))return Promise.resolve(null);
+        var s=missionD100ReadSlot(c,p);if(s.pending)return s.pending;if(Date.now()<s.nextAt)return Promise.resolve(null);var before=s.revision,token={promise:null};
+        token.promise=Promise.resolve().then(function(){if(!missionD100ReadCurrent(s))return null;return p.refresh();}).then(function(fresh){if(!missionD100ReadCurrent(s))return null;if(!fresh||s.revision<=before){missionD100ReadFailed(s);return null;}s.errors=0;s.nextAt=0;return fresh;}).catch(function(){if(missionD100ReadCurrent(s))missionD100ReadFailed(s);return null;}).finally(function(){if(MISSION_D100_READ===s&&s.pending===token.promise)s.pending=null;});s.pending=token.promise;return token.promise;
+      }
+      function missionD100Notify(){if(MISSION_D100_PANEL&&missionD100Current(MISSION_D100_CONTEXT)&&!missionD100Negative(MISSION_D100_CONTEXT))void missionD100Read(MISSION_D100_CONTEXT,MISSION_D100_PANEL);}
+      async function missionD100BeforeDice(){var c=MISSION_D100_CONTEXT,p=MISSION_D100_PANEL;if(!c)return true;if(!missionD100Current(c))return false;if(missionD100Negative(c))return true;if(!p)return true;var fresh=await missionD100Read(c,p);if(!missionD100Current(c)||MISSION_D100_CONTEXT!==c)return false;if(missionD100Negative(c))return true;if(MISSION_D100_PANEL!==p||!fresh)return false;var managed=fresh.role_scope!==null||fresh.bindings.some(function(b){return b.step_key===fresh.visible_step_key&&b.run_control_version===fresh.visible_run_control_version;});if(!managed)return true;if(!p.diceAllowed()){toast('Attendi il tuo ruolo o il Fato della prova D100.');return false;}return true;}
       function missionD100Refresh(data){var host=document.getElementById('mission-d100-room');if(!host)return;
         if(!cur||cur.id!=='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'||cur.is_test!==true||!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||examHumanOwnsScene()||examRegia()?.ownsCombat()){missionD100Reset();return;}
         var master=data&&data.master,viewer=data&&data.viewer,session=master&&master.tipo==='quest'&&master.mission_id?master.id:null;
@@ -13798,8 +13822,8 @@ var nb028iTeardown=function(){};
         missionCreationUI().then(function(ui){if(!current())return;var labels={};(WHO||[]).forEach(function(w){var id=w.char_id||w.character_id;if(id&&w.name)labels[id]=w.name;});
           var mountedPanel=ui.mountD100(host,session,{viewerMode:view,characterId:function(){return current()?character:null;},locationId:c.location,labels:labels,isCurrent:current,
             ensureFato:function(id){return missionD100EnsureFato(id,c,current);},
-            onState:function(state){if(!current())return;MISSION_D100_STATE=state;if(state){var remembered={schema_version:'mission-d100-session-journal/1',principal:myId,location:c.location,session:c.session};MISSION_D100_LAST=remembered;try{sessionStorage.setItem('mission-d100-session-journal/1/'+myId+'/'+c.location,JSON.stringify(remembered));}catch(_sessionJournal){}}host.hidden=!state||!state.role_scope&&!state.bindings.length;},
-            onError:function(e){if(!current())return;MISSION_D100_STATE=null;var msg=e.message||'';if(msg.indexOf('MF_D100_STATE_NATIVE_SCOPE')>=0||msg.indexOf('MF_D100_STATE_PAIR_REQUIRED')>=0){if(!mountedPanel||MISSION_D100_PANEL!==mountedPanel)return;MISSION_D100_UNAVAILABLE.add(missionD100NegativeKey(c));MISSION_D100_GENERATION++;MISSION_D100_PANEL=null;mountedPanel.dispose();host.replaceChildren();host.hidden=true;}else{host.hidden=false;}}
+            onState:function(state){if(!current())return;MISSION_D100_STATE=state;if(state&&mountedPanel&&MISSION_D100_PANEL===mountedPanel)missionD100ReadSlot(c,mountedPanel).revision++;if(state){var remembered={schema_version:'mission-d100-session-journal/1',principal:myId,location:c.location,session:c.session};MISSION_D100_LAST=remembered;try{sessionStorage.setItem('mission-d100-session-journal/1/'+myId+'/'+c.location,JSON.stringify(remembered));}catch(_sessionJournal){}}host.hidden=!state||!state.role_scope&&!state.bindings.length;},
+            onError:function(e){if(!current())return;MISSION_D100_STATE=null;var msg=e.message||'';if(msg.indexOf('MF_D100_STATE_NATIVE_SCOPE')>=0||msg.indexOf('MF_D100_STATE_PAIR_REQUIRED')>=0){if(!mountedPanel||MISSION_D100_PANEL!==mountedPanel)return;MISSION_D100_UNAVAILABLE.add(missionD100NegativeKey(c));MISSION_D100_GENERATION++;MISSION_D100_PANEL=null;mountedPanel.dispose();host.replaceChildren();host.hidden=true;}else{if(mountedPanel&&MISSION_D100_PANEL===mountedPanel){var readSlot=missionD100ReadSlot(c,mountedPanel);if(!readSlot.pending)missionD100ReadFailed(readSlot);}host.hidden=false;}}
           });MISSION_D100_PANEL=mountedPanel;
         }).catch(function(){if(current()){MISSION_D100_STATE=null;host.hidden=false;host.textContent='Prova D100 non disponibile: nessun nuovo comando inviato.';}});
       }
@@ -14666,7 +14690,7 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       })();
       function showMailList(){ var lv=document.getElementById('mail-list-view'), tv=document.getElementById('mail-thread-view'); if(lv)lv.hidden=false; if(tv)tv.hidden=true; curDmUser=null; }
       function showMailThread(){ var lv=document.getElementById('mail-list-view'), tv=document.getElementById('mail-thread-view'); if(lv)lv.hidden=true; if(tv)tv.hidden=false; }
-      function loadConversations(){ if(!sb) return; var done=function(r){ mailConvs=(r&&r.data)||[]; renderConversations(); }; var fail=function(){ mailConvs=[]; renderConversations(); }; if(mailTerm){ sb.rpc('dm_search',{p_term:mailTerm,p_field:mailField}).then(done,fail); } else { sb.rpc('dm_conversations').then(done,fail); } }
+      function loadConversations(){var term=mailTerm,field=mailField;return backgroundRead('conversations',{term:term,field:field},function(){return term?sb.rpc('dm_search',{p_term:term,p_field:field}):sb.rpc('dm_conversations');},function(r){if(term!==mailTerm||field!==mailField)throw Error('Ricerca cambiata.');if(!Array.isArray(r.data))throw Error('Conversazioni non disponibili.');mailConvs=r.data;renderConversations();}); }
       function renderConversations(){ var host=document.getElementById('mail-conversations'); if(!host)return;
         if(!mailConvs.length){ host.innerHTML='<div class="mail-empty">'+(mailTerm?'Nessun messaggio trovato.':'Nessun messaggio. Usa «+» per scriverne uno.')+'</div>'; return; }
         host.innerHTML=mailConvs.map(function(c,i){ var un=c.unread>0; var offic=!!c.is_official;
