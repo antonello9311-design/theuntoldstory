@@ -4609,6 +4609,17 @@ function attachCombatPanel(host){
     }catch(error){if(stamp===generation&&identity===scope()){regiaState=null;regiaScope=expected;regiaReadError=error.message;}}
     host.syncSendGate?.();renderRegiaControls();
   }
+  function canPreparePrivatePng(e,session){
+    const viewer=e?.viewer,actorId=viewer?.command_actor_id,prep=regiaState?.master;
+    const actor=Array.isArray(e?.actors)?e.actors.find(a=>a.actor_id===actorId):null;
+    return host.isFatoComposer?.()===true && viewer?.is_master===true && viewer?.can_command===true
+      && isId(actorId) && Array.isArray(viewer.controlled_actors) && viewer.controlled_actors.some(a=>a.actor_id===actorId)
+      && actor?.kind==='png' && actor.state==='active' && actor.mine===true
+      && regiaState?.status==='ready' && regiaState.activity_id===session && regiaState.actor_id===actorId
+      && prep?.schema_version==='regia-round-preparation/1' && prep.state==='private' && prep.side==='png'
+      && isId(e?.context?.round_id) && prep.next_round_id===e.context.round_id
+      && Array.isArray(prep.legal_png_slots) && prep.legal_png_slots.some(s=>s.actor_id===actorId && s.action_due===true);
+  }
   function blockingReason(meta={}){
     const e=panel?.snapshot().envelope,session=host.regiaSession?.(e),identity=scope();
     if(!identity||e?.context?.activity_kind!=='master_v2')return null;
@@ -4618,7 +4629,7 @@ function attachCombatPanel(host){
     const expected=JSON.stringify([identity,session,e.context.activity_id]);
     if(regiaScope!==expected||regiaReadError)return 'Stato del round da rileggere: aggiorna la Regia prima di inviare la scelta.';
     if(regiaState?.status==='blocked')return 'Stato del round incoerente: la scelta è sospesa.';
-    if(regiaState?.status==='ready'&&regiaState.public?.reason_code==='regia_fato_pending')return 'Il Master sta preparando l’esito. La scelta non è stata inviata.';
+    if(regiaState?.status==='ready'&&regiaState.public?.reason_code==='regia_fato_pending'&&!canPreparePrivatePng(e,session))return 'Il Master sta preparando l’esito. La scelta non è stata inviata.';
     if(e.viewer?.can_command!==true)return 'Attendi il turno autorizzato dal server. La scelta non è stata inviata.';
     return null;
   }
@@ -6167,6 +6178,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           masterRouteReserved:commonMasterCombat,
           regiaSession:function(e){return e?.context?.activity_kind==='master_v2'&&MV2?.data?.encounter?.id===e.context.activity_id?MV2.data.master?.id:null;},
           regiaPublished:function(){loadMsgs();loadMasterV2(true);},
+          isFatoComposer:function(){return fatoMode===true;},
           routingUnknown:function(event){if(event?.explicit)toast('Non riesco a verificare il pannello. Riprova ad aprirlo.');},
           nativeMasterFallback:function(wasVisible){
             if(commonMasterCombat())return;
