@@ -6,6 +6,7 @@
   <meta name="tus-build" content="LAND-INUZUKA-GENIN-COMMON-009" />
   <meta name="tus-human-rapid-build" content="mission-creation-ui-human-rapid-6" />
   <meta name="tus-quest-runtime-build" content="completion7-binding/1" />
+  <meta name="tus-fato-history-build" content="C1236-H3-HISTORY-AGG15-STAFF" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -5509,7 +5510,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       var UI_POSTREVIEW_STAFF_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b',UI_POSTREVIEW_STAFF_AUTH=false,UI_POSTREVIEW_TECH_AUTH=false,UI_POSTREVIEW_STAFF_EPOCH=0;
       function uiPostreviewStaff(){return !!(UI_POSTREVIEW_STAFF_AUTH&&loggedIn&&iAmStaff&&!ordinarySigningOut&&ordinaryAuthId===myId&&myId&&cur&&cur.id===UI_POSTREVIEW_STAFF_ROOM&&cur.is_test===true);}
       function uiPostreviewTech(){return !!(UI_POSTREVIEW_TECH_AUTH&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===myId&&myId&&myCharId&&cur);}
-      function uiPostreviewStaffReset(){UI_POSTREVIEW_STAFF_EPOCH++;UI_POSTREVIEW_STAFF_AUTH=false;UI_POSTREVIEW_TECH_AUTH=false;document.body.removeAttribute('data-scorta-ui-staff');document.body.removeAttribute('data-scorta-tech-ui');closeTk();}
+      function uiPostreviewStaffReset(){msgFatoHistory=null;msgReadGeneration++;UI_POSTREVIEW_STAFF_EPOCH++;UI_POSTREVIEW_STAFF_AUTH=false;UI_POSTREVIEW_TECH_AUTH=false;document.body.removeAttribute('data-scorta-ui-staff');document.body.removeAttribute('data-scorta-tech-ui');closeTk();}
       function uiPostreviewStaffAccept(room,principal,epoch){if(epoch!==UI_POSTREVIEW_STAFF_EPOCH||!cur||cur.id!==room||!myId||myId!==principal||ordinaryAuthId!==principal)return;UI_POSTREVIEW_TECH_AUTH=!!(loggedIn&&!ordinarySigningOut&&myCharId);if(UI_POSTREVIEW_TECH_AUTH)document.body.setAttribute('data-scorta-tech-ui','1');else document.body.removeAttribute('data-scorta-tech-ui');UI_POSTREVIEW_STAFF_AUTH=!!(loggedIn&&iAmStaff&&!ordinarySigningOut&&room===UI_POSTREVIEW_STAFF_ROOM&&cur.is_test===true);if(UI_POSTREVIEW_STAFF_AUTH)document.body.setAttribute('data-scorta-ui-staff','1');else document.body.removeAttribute('data-scorta-ui-staff');}
       var NOMI_RE=null, NOMI_SET={}, NOMI_IDS={}, PRESENTI_IDS={};
       function nomiAggiorna(lista){
@@ -5940,17 +5941,42 @@ window.TUSOrdinary={attachOrdinaryLand};
         msgsEl.innerHTML=html;
         if(nearBottom) msgsEl.scrollTop=msgsEl.scrollHeight;
       }
-      var msgReadGeneration=0;
+      var msgReadGeneration=0,msgFatoHistory=null;
+      function msgFatoHistoryCurrent(){return !!(msgFatoHistory&&uiPostreviewStaff()&&msgFatoHistory.location===cur.id&&msgFatoHistory.principal===myId&&msgFatoHistory.epoch===UI_POSTREVIEW_STAFF_EPOCH&&msgFatoHistory.authEpoch===(MV2.authEpoch||0));}
+      function msgFatoHistorySet(next){
+        var pub=next&&next.unified_publication_id,session=next&&next.master&&next.master.id;
+        if(!uiPostreviewStaff()||!session||typeof pub!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(pub)){if(msgFatoHistory)msgReadGeneration++;msgFatoHistory=null;return;}
+        if(msgFatoHistoryCurrent()&&msgFatoHistory.session===session&&msgFatoHistory.publication===pub)return;
+        msgReadGeneration++;
+        msgFatoHistory={location:cur.id,principal:myId,epoch:UI_POSTREVIEW_STAFF_EPOCH,authEpoch:MV2.authEpoch||0,session:session,publication:pub,row:null};
+      }
       function loadMsgs(expectedPublication){
         if(!sb||!cur) return Promise.resolve(false);
+        if(expectedPublication!=null&&(typeof expectedPublication!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(expectedPublication)))return Promise.resolve(false);
         var msgLocation=cur.id,msgPrincipal=myId,msgGeneration=++msgReadGeneration;
-        var msgRequest=sb.from('chat_messages_live').select('id,author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user,companion_body,character:characters(id,name,cognome,avatar_url,sex,rank,clan,clan_role,epithet),companion:character_companions(name,avatar_url,kind,grado)').eq('location_id',msgLocation).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(300);
+        var retained=msgFatoHistoryCurrent()?msgFatoHistory:null;
+        if(!expectedPublication&&retained)expectedPublication=retained.publication;
+        var msgProjection='id,author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user,companion_body,character:characters(id,name,cognome,avatar_url,sex,rank,clan,clan_role,epithet),companion:character_companions(name,avatar_url,kind,grado)';
+        var msgRequest=sb.from('chat_messages_live').select(msgProjection).eq('location_id',msgLocation).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(300);
         var fateRequest=msgLocation==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&iAmStaff?sb.rpc('mission_staff_fato_supersessions_v1',{p_location:msgLocation}):Promise.resolve({data:[]});
-        return Promise.all([msgRequest,fateRequest]).then(function(result){
+        return Promise.all([msgRequest,fateRequest]).then(async function(result){
           var r=result[0],fr=result[1];
           if(!r||r.error||!cur||cur.id!==msgLocation||myId!==msgPrincipal||msgGeneration!==msgReadGeneration)return false;
           var rows=(r.data||[]).slice().reverse();
-          if(expectedPublication&&!rows.some(function(m){return m.id===expectedPublication&&m.kind==='fato';}))return false;
+          if(expectedPublication&&!rows.some(function(m){return m.id===expectedPublication&&m.kind==='fato';})){
+            // Staff: recupera soltanto il Fato già pubblicato richiesto dal server, anche oltre le 12 ore della vista live.
+            if(msgLocation!==UI_POSTREVIEW_STAFF_ROOM||!uiPostreviewStaff())return false;
+            var history;
+            if(retained&&retained.publication===expectedPublication&&retained.row)history={data:retained.row};
+            else try{
+              history=await sb.from('messages').select(msgProjection).eq('id',expectedPublication).eq('location_id',msgLocation).eq('kind','fato').maybeSingle();
+            }catch(_historyRead){return false;}
+            if(!cur||cur.id!==msgLocation||myId!==msgPrincipal||msgGeneration!==msgReadGeneration||!uiPostreviewStaff())return false;
+            if(!history||history.error||!history.data||history.data.id!==expectedPublication||history.data.kind!=='fato'||typeof history.data.body!=='string')return false;
+            if(retained&&msgFatoHistory===retained&&retained.publication===expectedPublication)retained.row=history.data;
+            rows.push(history.data);
+            rows.sort(function(a,b){var d=new Date(a.created_at)-new Date(b.created_at);return d||String(a.id).localeCompare(String(b.id));});
+          }
           var fateStatuses={};
           if(fr&&!fr.error&&Array.isArray(fr.data))fr.data.forEach(function(f){if(f&&f.message_id&&(f.status==='superseded'||f.status==='reissuing'))fateStatuses[f.message_id]=f.status;});
           renderMsgs(rows,fateStatuses);return true;
@@ -6373,6 +6399,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           }
           var previouslyCommon=commonMasterCombat(),previouslyScortaGate=mv2ScortaGate(),previouslyScortaContext=MV2.scortaContext;
           var next=mv2Data(r)||{},sig=mv2ServerSig(next),same=MV2.serverSig!==null&&sig!==null&&sig===MV2.serverSig&&MV2.locationId===masterLocation&&MV2.principalId===masterPrincipal;
+          msgFatoHistorySet(next);
           // La nuova finestra diventa interattiva solo dopo avere il suo Fato nella chat.
           if(next.unified_publication_id!==undefined&&next.unified_publication_id!==null){
             if(typeof next.unified_publication_id!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(next.unified_publication_id)||!(await loadMsgs(next.unified_publication_id)))return;
