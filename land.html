@@ -9,7 +9,7 @@
   <meta name="tus-fato-history-build" content="C1236-H3-HISTORY-AGG15-STAFF" />
   <meta name="tus-master-report-ui-build" content="C1236-MASTER-REPORT-UI-001" />
   <meta name="tus-human-close-recovery-build" content="C1236-HUMAN-CLOSE-RECOVERY-001" />
-  <meta name="tus-regia-actor-receipt-build" content="C1241-HUMAN-ROSTER-LIMITS-002" />
+  <meta name="tus-regia-actor-receipt-build" content="C1244-REGIA-PG-PUBLICATION-GATE-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -4582,7 +4582,7 @@ function attachCombatPanel(host){
   insist(ordinary&&master&&card&&entry&&dialog&&close,'land_mount_missing');
   let deactivateLayout=null;
   let panel=null,key=null,opened=false,surface='ordinary',generation=0,chatSubmitted=null,companionSubmitted=null,refreshing=null,disposed=false,confirmedDraft=null;
-  let regiaState=null,regiaScope=null,regiaReadError=null,regiaReadToken=0,regiaReading=null,regiaObservedBinding=null;
+  let regiaState=null,regiaScope=null,regiaReadError=null,regiaReadToken=0,regiaReading=null,regiaObservedBinding=null,regiaOptedInScope=null;
   let regiaDraft='',regiaDirection={turn_kind:'',actor_ids:[]};const regiaControls=doc.createElement('section');regiaControls.className='combat-panel-common';regiaControls.setAttribute('aria-live','polite');
   const badges=['msg-send','ed-send'].map(id=>{
     const send=doc.getElementById(id);if(!send)return null;
@@ -4634,6 +4634,10 @@ function attachCombatPanel(host){
     return identity&&isId(session)&&e?.context?.activity_kind==='master_v2'
       ?JSON.stringify([identity,session,e.context.activity_id,e.context.round_id,e.viewer?.command_actor_id||null]):null;
   }
+  function regiaSessionScope(e){
+    const identity=scope(),session=host.regiaSession?.(e);
+    return identity&&isId(session)&&e?.context?.activity_kind==='master_v2'?JSON.stringify([identity,session]):null;
+  }
   async function readRegiaPublication(){
     const e=panel?.snapshot().envelope,session=host.regiaSession?.(e),stamp=generation,identity=scope();
     if(!identity||!isId(session)||e?.context?.activity_kind!=='master_v2'){
@@ -4654,6 +4658,7 @@ function attachCombatPanel(host){
         || value.status==='blocked'&&value.reason_code!=='regia_state_inconsistent'
         || value.status==='ready'&&(value.activity_id!==session||value.public?.schema_version!=='regia-round-public/1'))throw Error('Contratto pubblicazione non compatibile.');
       regiaState=value;regiaScope=expected;regiaReadError=null;
+      regiaOptedInScope=value.status==='unavailable'?null:regiaSessionScope(e);
     }catch(error){if(valid()){regiaState=null;regiaScope=expected;regiaReadError=error.message;}}
     if(valid()){host.syncSendGate?.();renderRegiaControls();}
     })();
@@ -4675,12 +4680,18 @@ function attachCombatPanel(host){
     const e=panel?.snapshot().envelope,session=host.regiaSession?.(e),identity=scope();
     if(!identity||e?.context?.activity_kind!=='master_v2')return null;
     const mechanical=!!(confirmedDraft||panel?.snapshot().selectedOfferId||meta.hasTechnique||meta.companionText);
-    if(!mechanical)return null; // La prosa libera conserva il normale percorso chat.
-    if(!isId(session))return 'Sessione Regia da verificare: la scelta meccanica non è stata inviata.';
+    // La role PG attende lo stesso Fato delle scelte, anche senza una bozza meccanica.
+    // L'attestazione resta legata alla sessione mentre il nuovo round viene riletto.
+    const pgComposer=host.isFatoComposer?.()!==true&&Array.isArray(e.actors)
+      &&e.actors.some(a=>a.kind==='pg'&&a.mine===true&&a.state==='active');
+    const sessionScope=regiaSessionScope(e),optedIn=!!sessionScope&&(regiaOptedInScope===sessionScope||host.regiaOptedIn?.(e)===true);
+    if(!mechanical&&!(pgComposer&&optedIn))return null;
+    if(!isId(session))return 'Sessione Regia da verificare: la role e la scelta restano in composizione.';
     const expected=regiaBinding(e);
-    if(regiaScope!==expected||regiaReadError)return 'Stato del round da rileggere: aggiorna la Regia prima di inviare la scelta.';
-    if(regiaState?.status==='blocked')return 'Stato del round incoerente: la scelta è sospesa.';
-    if(regiaState?.status==='ready'&&regiaState.public?.reason_code==='regia_fato_pending'&&!canPreparePrivatePng(e,session))return 'Il Master sta preparando l’esito. La scelta non è stata inviata.';
+    if(regiaScope!==expected||regiaReadError)return 'Stato del round da rileggere: aggiorna la Regia prima di inviare la role o la scelta.';
+    if(regiaState?.status==='blocked')return 'Stato del round incoerente: la role e la scelta restano in composizione.';
+    if(regiaState?.status==='ready'&&regiaState.public?.reason_code==='regia_fato_pending'&&!canPreparePrivatePng(e,session))return 'Attendi l’esito pubblico del Fato prima di inviare la role o la scelta.';
+    if(!mechanical)return null;
     if(e.viewer?.can_command!==true)return 'Attendi il turno autorizzato dal server. La scelta non è stata inviata.';
     return null;
   }
@@ -4797,7 +4808,7 @@ function attachCombatPanel(host){
   }
   function suspend(){panel?.suspend();}
   function hide(){deactivateLayout?.();deactivateLayout=null;dialog.hidden=true;dialog.style.display='none';if(opened&&surface==='master')host.closeMaster?.();opened=false;}
-  function invalidate(){generation++;key=null;chatSubmitted=null;companionSubmitted=null;confirmedDraft=null;refreshing=null;regiaState=null;regiaScope=null;regiaReadError=null;regiaReadToken++;regiaReading=null;regiaObservedBinding=null;regiaDirection={turn_kind:'',actor_ids:[]};panel?.dispose();panel=null;root.replaceChildren();hide();syncDraft(null);showEntry();}
+  function invalidate(){generation++;key=null;chatSubmitted=null;companionSubmitted=null;confirmedDraft=null;refreshing=null;regiaState=null;regiaScope=null;regiaReadError=null;regiaReadToken++;regiaReading=null;regiaObservedBinding=null;regiaOptedInScope=null;regiaDirection={turn_kind:'',actor_ids:[]};panel?.dispose();panel=null;root.replaceChildren();hide();syncDraft(null);showEntry();}
   function showEntry(){const allowed=!!scope();card.hidden=!allowed;card.style.display=allowed?'':'none';entry.hidden=!allowed;entry.disabled=!allowed;const note=doc.getElementById('ordinary-entry-note');if(note){const m=panel?.snapshot(),pending=m?.envelope?.context?.phase==='waiting_join'&&m.envelope.context.activity_id!==null&&m.envelope.viewer?.can_command===true;note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent=pending?'Richiesta sfida in attesa':'Pannello comune: disponibilità e scelte sono verificate dal server.';}}
   function ensure(){
     const next=scope();if(next!==key)invalidate();if(!next)return false;if(panel)return true;
@@ -6277,6 +6288,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           masterRouteReserved:commonMasterCombat,
           regiaSession:function(e){return e?.context?.activity_kind==='master_v2'&&MV2?.data?.encounter?.id===e.context.activity_id?MV2.data.master?.id:null;},
           regiaPublished:function(){loadMsgs();loadMasterV2(true);},
+          regiaOptedIn:function(e){return e?.context?.activity_kind==='master_v2'&&e.context.activity_id===MV2?.data?.encounter?.id&&mv2RegiaOptedIn();},
           isFatoComposer:function(){return fatoMode===true;},
           routingUnknown:function(event){if(event?.explicit)toast('Non riesco a verificare il pannello. Riprova ad aprirlo.');},
           nativeMasterFallback:function(wasVisible){
@@ -6345,10 +6357,13 @@ window.TUSOrdinary={attachOrdinaryLand};
           &&prep.state==='private'&&prep.side==='png'&&Array.isArray(prep.legal_png_slots)
           &&prep.legal_png_slots.some(function(slot){return slot?.actor_id===actorId&&slot.action_due===true;}));
       }
+      function mv2RegiaScope(){return commonMasterPrincipal()&&cur?.id&&MV2.data?.master?.id&&MV2.locationId===cur.id&&MV2.principalId===commonMasterPrincipal()?JSON.stringify([commonMasterPrincipal(),cur.id,MV2.data.master.id]):null;}
+      function mv2RegiaOptedIn(){var scope=mv2RegiaScope();return !!scope&&MV2.regiaOptedInScope===scope;}
       function mv2RegiaReason(hasMechanical){
-        if(!hasMechanical||!MV2.data?.master?.id||MV2.data.master.mission_id===SCORTA_MISSION_ID)return null;
-        if(!MV2.regia||MV2.regia.status==='blocked')return 'Stato del round da verificare: nessuna scelta meccanica inviata.';
-        if(MV2.regia.status==='ready'&&MV2.regia.public?.reason_code==='regia_fato_pending')return 'Il Master sta preparando l’esito. La scelta non è stata inviata.';
+        var pgComposer=!fatoMode&&(MV2.data?.actors||[]).some(function(a){return a.kind==='pg'&&a.mine===true&&a.state==='attivo';});
+        if((!hasMechanical&&!(pgComposer&&mv2RegiaOptedIn()))||!MV2.data?.master?.id||MV2.data.master.mission_id===SCORTA_MISSION_ID)return null;
+        if(!MV2.regia||MV2.regia.status==='blocked')return 'Stato del round da verificare: la role e la scelta restano in composizione.';
+        if(MV2.regia.status==='ready'&&MV2.regia.public?.reason_code==='regia_fato_pending')return 'Attendi l’esito pubblico del Fato prima di inviare la role o la scelta.';
         return null;
       }
       function mv2DirectionContext(master){
@@ -6474,7 +6489,10 @@ window.TUSOrdinary={attachOrdinaryLand};
           MV2.scortaContext=nextScorta||inheritScorta;MV2.scortaScope=MV2.scortaContext?scortaScope:null;MV2.scortaRoom=nextScortaRoom;
           same=same&&MV2.regiaSignature===nextRegiaSignature;MV2.regia=nextRegia;MV2.regiaSignature=nextRegiaSignature;
           if(MV2.data?.master?.id!==next.master?.id)MV2.regiaDirection={turn_kind:'',actor_ids:[]};
-          MV2.data=next;MV2.locationId=masterLocation;MV2.principalId=masterPrincipal;mv2TopSync();missionHumanPhaseRefresh(next);missionD100Refresh(next);mv2PruneDefenseDrafts(next);if(!same)renderCombat();if(!commonMasterCombat())mv2EnsureOptions();
+          MV2.data=next;MV2.locationId=masterLocation;MV2.principalId=masterPrincipal;
+          if(nextRegia?.status==='ready'||nextRegia?.status==='blocked'&&nextRegia.reason_code==='regia_state_inconsistent')MV2.regiaOptedInScope=mv2RegiaScope();
+          else if(nextRegia?.status==='unavailable'&&nextRegia.reason_code==='not_opted_in')MV2.regiaOptedInScope=null;
+          syncSendBtn();mv2TopSync();missionHumanPhaseRefresh(next);missionD100Refresh(next);mv2PruneDefenseDrafts(next);if(!same)renderCombat();if(!commonMasterCombat())mv2EnsureOptions();
           if(commonMasterCombat()&&!previouslyCommon){
             var masterDialog=document.getElementById('mv2ov'),masterVisible=masterDialog&&!masterDialog.hidden;
             ordinaryRefresh();if(masterVisible&&ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');
@@ -12206,6 +12224,7 @@ var nb028iTeardown=function(){};
         var pIn=document.getElementById('png-input'); var pTxt=(myComp&&pIn)?(pIn.value||'').trim():'';
         if((!t.trim()&&!pTxt)||!cur||!sb) return;
         var to=toSel?toSel.value:'';
+        if(!to&&!fatoMode&&MV2.data?.encounter){var pgPublicationBlock=mv2RegiaReason(false);if(pgPublicationBlock){toast(pgPublicationBlock);return;}}
         if(!to&&!fatoMode&&esLegacyFatoPending()){toast('Attendi l’incipit o l’esito pubblico del Fato prima di inviare.');return;}
         if(!to&&missionHumanCloseBlocked()){toast('Chiusura della propria prova da riconciliare: la role resta in composizione.');return;}
         var placeEl=document.getElementById('msg-place'); var place=placeEl?placeEl.value.trim().replace(/[【】]/g,'').slice(0,60):'';
@@ -12721,6 +12740,7 @@ var nb028iTeardown=function(){};
           for(var id of ['msg-send','ed-send']){var button=document.getElementById(id);if(button){button.disabled=!ready;button.title=tip;}}return;
         }
         var ok=sendGateOk(), ttl=ok?'':'Un turno di role vuole almeno 500 caratteri';
+        if(!fatoMode&&!(toSel&&toSel.value)&&MV2.data?.encounter){var pgPublicationGate=mv2RegiaReason(false);if(pgPublicationGate){ok=false;ttl=pgPublicationGate;}}
         if(!fatoMode&&!(toSel&&toSel.value)&&esLegacyFatoPending()){ok=false;ttl='Attendi l’incipit o l’esito pubblico del Fato prima di inviare';}
         if(!(toSel&&toSel.value)&&missionHumanCloseBlocked()){ok=false;ttl='Chiusura della propria prova da riconciliare';}
         if(!fatoMode&&!(toSel&&toSel.value)&&examRegia()?.blocksChat()&&!examRegia().canSend()){ok=false;ttl='Attendi il tuo turno o rileggi lo stato della prova';}
