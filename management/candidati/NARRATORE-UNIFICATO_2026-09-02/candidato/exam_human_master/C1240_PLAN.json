@@ -1,0 +1,112 @@
+{
+  "task": "C1240-H5-HUMAN-2PG2PNG-STAFF-RESUME-20261009",
+  "main": "9d119f922c214081e62ddcb3a4dc3a2aad8c85da",
+  "client_build": "C1238-HUMAN-CLOSE-HISTORY-001",
+  "files": [
+    {
+      "path": "land.html",
+      "bytes": 2294465,
+      "sha256": "0a34cd264e52071cebe888510732d6ef1ac2ccfa91d6cc66c2273175f692236e",
+      "remote_exact": true
+    },
+    {
+      "path": "mf-mission-human-close-recovery-dec69b9c6c5e7aad704b823525bcc8ecebfd2a0a59e7b5c42074290d4fd1e3e7.mjs",
+      "bytes": 102314,
+      "sha256": "dec69b9c6c5e7aad704b823525bcc8ecebfd2a0a59e7b5c42074290d4fd1e3e7",
+      "remote_exact": true
+    }
+  ],
+  "budget": {
+    "minutes": 35,
+    "delivery_minutes": 5,
+    "cases": 1,
+    "sql_readonly_max": 6,
+    "server_gameplay_dispatch_max": 28,
+    "ui_access_max": 60,
+    "provider_calls": 0,
+    "provider_tokens": 0
+  },
+  "cases": [
+    "Roster2PG/2PNG tramite H4 disponibile, Riuji supervisore e combattente naturale",
+    "PG prima del Fato non agisce meccanicamente; unico Fato di apertura",
+    "Azioni/difese di entrambi i PG con ricevute corrette per attore; PNG legali nel turno consentito",
+    "Risoluzione round e pubblicazione unica, poi ritorno narrativo e chiusura protetta"
+  ],
+  "limits": [
+    "Non provocare guasti/interruzioni; nessun journal fabbricato",
+    "IA e4PNG esclusi da questa sola campagna; nuovo budget prima di altri casi",
+    "Abilitazione ordinaria solo con admission e qualifica complete; Staff PASS non sostituisce gatebackend"
+  ],
+  "next_block_preparation": {
+    "priority": "Fonte H5 multi-PG e selettore coerente prima del backend ordinary",
+    "status": "PREPARED_REVIEWED_SOURCE_ONLY_NOT_INSTALLER_NOT_APPLIED",
+    "live_source_md5": "6ec31bbf6f7dcc93285a772c74056284",
+    "live_ddl_md5": "f17166eea7f4655c7bdf90b1e9362beb",
+    "candidate_source_md5": "edc4d0a02979a49a87a014e53a10dfca",
+    "candidate_sha256": "5ce662977518ae4549561c3349054d928bdb9fc28b233c76a7f8257ae31229d1",
+    "candidate_sql": "CREATE OR REPLACE FUNCTION public.mission_human_staff_source_create_v1(p_request uuid, p_document jsonb, p_location uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE old record;pf jsonb;validation jsonb;m jsonb;\n mid uuid;doc_sha text;result jsonb;scene jsonb;enc jsonb;actor jsonb;enc_count integer:=0;\nBEGIN\n IF auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' OR p_request IS NULL\n OR p_location IS DISTINCT FROM '0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid\n THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_AUTHORITY' USING ERRCODE='42501'; END IF;\n PERFORM mission_ai_board_owner.staff_only();\n PERFORM 1 FROM public.locations WHERE id=p_location AND is_active AND is_test FOR SHARE;\n IF NOT FOUND OR NOT public.master_v2_is_master(auth.uid())\n OR combat_consumer_private.staff_test_allowed(p_location,ARRAY[auth.uid()],false) IS DISTINCT FROM true\n THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_AUTHORITY' USING ERRCODE='42501'; END IF;\n doc_sha:=mission_internal.fingerprint(p_document);\n PERFORM pg_advisory_xact_lock(hashtextextended('mission-create:'||p_request::text,611));\n SELECT * INTO old FROM mission_creation_owner.h3_staff_source_requests WHERE request_key=p_request;\n IF FOUND THEN\n  IF old.actor_user IS DISTINCT FROM auth.uid() OR old.document_sha256 IS DISTINCT FROM doc_sha\n  THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_REPLAY_CONFLICT' USING ERRCODE='40001'; END IF;\n  RETURN old.result;\n END IF;\n IF EXISTS(SELECT 1 FROM mission_creation_owner.requests WHERE request_key=p_request)\n THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_REQUEST_CONFLICT' USING ERRCODE='40001'; END IF;\n pf:=mission_creation_owner.preflight_document_v2(p_document);\n IF (pf->>'ok')::boolean IS DISTINCT FROM true\n THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_PREFLIGHT:%',pf->'errors' USING ERRCODE='22023'; END IF;\n m:=p_document->'mission';\n IF m->>'direction_mode' IS DISTINCT FROM 'human'\n OR (m->>'team_min' IN ('1','2','3','4')) IS NOT TRUE\n OR (m->>'team_max' IN ('1','2','3','4')) IS NOT TRUE\n OR (m->>'team_min')::integer > (m->>'team_max')::integer\n OR p_document#>>'{plan,base_plan_version_id}' IS NOT NULL\n THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_SCOPE' USING ERRCODE='22023'; END IF;\n FOR scene IN SELECT value FROM jsonb_array_elements(p_document#>'{plan,definition,scenes}') LOOP\n  FOR enc IN SELECT value FROM jsonb_array_elements(coalesce(scene->'encounters','[]'::jsonb)) LOOP\n   enc_count:=enc_count+1;\n   IF (jsonb_array_length(enc->'actors') BETWEEN 1 AND 4) IS NOT TRUE\n   THEN RAISE EXCEPTION 'H4_STAFF_SOURCE_PNG_COUNT' USING ERRCODE='22023'; END IF;\n   IF EXISTS(SELECT 1 FROM jsonb_array_elements(enc->'actors') a WHERE nullif(a->>'actor_key','') IS NULL)\n    OR (SELECT count(DISTINCT a->>'actor_key') FROM jsonb_array_elements(enc->'actors') a) <> jsonb_array_length(enc->'actors')\n   THEN RAISE EXCEPTION 'H4_STAFF_SOURCE_DISTINCT_ACTORS' USING ERRCODE='22023'; END IF;\n   FOR actor IN SELECT value FROM jsonb_array_elements(enc->'actors') LOOP\n    IF actor->>'mechanical_binding_id' IS DISTINCT FROM '66a6628d-d465-4103-b74b-2184f4b07d04'\n    THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_APPROVED_PROFILE_REQUIRED' USING ERRCODE='42501'; END IF;\n   END LOOP;\n  END LOOP;\n END LOOP;\n IF enc_count<>1 THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_ONE_ENCOUNTER' USING ERRCODE='22023'; END IF;\n validation:=mission_creation_owner.map_binding_guard_mission_publish_v1(p_document,mission_creation_owner.validate_document(p_document));\n mid:=public.missione_crea(m->>'title',m->>'grado',m->>'briefing',nullif(m->>'village',''),m->>'tag_trama',(m->>'team_min')::integer,(m->>'team_max')::integer,validation->>'gathering_name',30,0);\n -- La stessa transazione non espone mai la fonte aperta alla bacheca o alle iscrizioni.\n UPDATE public.missions SET status='annullata' WHERE id=mid AND status='aperta';\n IF NOT FOUND THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_RESERVATION_FAILED'; END IF;\n result:=mission_creation_owner.save_complete(mid,p_request,mission_internal.fingerprint(mission_generic_owner.mission_editor_snapshot(mid)),0,p_document);\n IF result->>'schema_version' IS DISTINCT FROM 'mission-creation-result/1'\n OR result->>'mission_id' IS DISTINCT FROM mid::text OR result->>'state' IS DISTINCT FROM 'configured'\n OR NOT EXISTS(SELECT 1 FROM public.missions WHERE id=mid AND status='annullata' AND xp_reward=30 AND ryo_reward=0\n AND team_min=(m->>'team_min')::integer AND team_max=(m->>'team_max')::integer)\n THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_POSTCONDITION'; END IF;\n INSERT INTO mission_creation_owner.h3_staff_source_requests(request_key,actor_user,document_sha256,mission_id,result)\n VALUES(p_request,auth.uid(),doc_sha,mid,result);\n RETURN result;\nEND $function$\n;\n",
+    "baseline_sql": "CREATE OR REPLACE FUNCTION public.mission_human_staff_source_create_v1(p_request uuid, p_document jsonb, p_location uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE old record;pf jsonb;validation jsonb;m jsonb;\n mid uuid;doc_sha text;result jsonb;scene jsonb;enc jsonb;actor jsonb;enc_count integer:=0;\nBEGIN\n IF auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' OR p_request IS NULL\n OR p_location IS DISTINCT FROM '0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid\n THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_AUTHORITY' USING ERRCODE='42501'; END IF;\n PERFORM mission_ai_board_owner.staff_only();\n PERFORM 1 FROM public.locations WHERE id=p_location AND is_active AND is_test FOR SHARE;\n IF NOT FOUND OR NOT public.master_v2_is_master(auth.uid())\n OR combat_consumer_private.staff_test_allowed(p_location,ARRAY[auth.uid()],false) IS DISTINCT FROM true\n THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_AUTHORITY' USING ERRCODE='42501'; END IF;\n doc_sha:=mission_internal.fingerprint(p_document);\n PERFORM pg_advisory_xact_lock(hashtextextended('mission-create:'||p_request::text,611));\n SELECT * INTO old FROM mission_creation_owner.h3_staff_source_requests WHERE request_key=p_request;\n IF FOUND THEN\n  IF old.actor_user IS DISTINCT FROM auth.uid() OR old.document_sha256 IS DISTINCT FROM doc_sha\n  THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_REPLAY_CONFLICT' USING ERRCODE='40001'; END IF;\n  RETURN old.result;\n END IF;\n IF EXISTS(SELECT 1 FROM mission_creation_owner.requests WHERE request_key=p_request)\n THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_REQUEST_CONFLICT' USING ERRCODE='40001'; END IF;\n pf:=mission_creation_owner.preflight_document_v2(p_document);\n IF (pf->>'ok')::boolean IS DISTINCT FROM true\n THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_PREFLIGHT:%',pf->'errors' USING ERRCODE='22023'; END IF;\n m:=p_document->'mission';\n IF m->>'direction_mode' IS DISTINCT FROM 'human' OR m->>'team_min' IS DISTINCT FROM '1'\n OR m->>'team_max' IS DISTINCT FROM '1' OR p_document#>>'{plan,base_plan_version_id}' IS NOT NULL\n THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_SCOPE' USING ERRCODE='22023'; END IF;\n FOR scene IN SELECT value FROM jsonb_array_elements(p_document#>'{plan,definition,scenes}') LOOP\n  FOR enc IN SELECT value FROM jsonb_array_elements(coalesce(scene->'encounters','[]'::jsonb)) LOOP\n   enc_count:=enc_count+1;\n   IF (jsonb_array_length(enc->'actors') BETWEEN 1 AND 4) IS NOT TRUE\n   THEN RAISE EXCEPTION 'H4_STAFF_SOURCE_PNG_COUNT' USING ERRCODE='22023'; END IF;\n   IF EXISTS(SELECT 1 FROM jsonb_array_elements(enc->'actors') a WHERE nullif(a->>'actor_key','') IS NULL)\n    OR (SELECT count(DISTINCT a->>'actor_key') FROM jsonb_array_elements(enc->'actors') a) <> jsonb_array_length(enc->'actors')\n   THEN RAISE EXCEPTION 'H4_STAFF_SOURCE_DISTINCT_ACTORS' USING ERRCODE='22023'; END IF;\n   FOR actor IN SELECT value FROM jsonb_array_elements(enc->'actors') LOOP\n    IF actor->>'mechanical_binding_id' IS DISTINCT FROM '66a6628d-d465-4103-b74b-2184f4b07d04'\n    THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_APPROVED_PROFILE_REQUIRED' USING ERRCODE='42501'; END IF;\n   END LOOP;\n  END LOOP;\n END LOOP;\n IF enc_count<>1 THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_ONE_ENCOUNTER' USING ERRCODE='22023'; END IF;\n validation:=mission_creation_owner.map_binding_guard_mission_publish_v1(p_document,mission_creation_owner.validate_document(p_document));\n mid:=public.missione_crea(m->>'title',m->>'grado',m->>'briefing',nullif(m->>'village',''),m->>'tag_trama',1,1,validation->>'gathering_name',30,0);\n -- La stessa transazione non espone mai la fonte aperta alla bacheca o alle iscrizioni.\n UPDATE public.missions SET status='annullata' WHERE id=mid AND status='aperta';\n IF NOT FOUND THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_RESERVATION_FAILED'; END IF;\n result:=mission_creation_owner.save_complete(mid,p_request,mission_internal.fingerprint(mission_generic_owner.mission_editor_snapshot(mid)),0,p_document);\n IF result->>'schema_version' IS DISTINCT FROM 'mission-creation-result/1'\n OR result->>'mission_id' IS DISTINCT FROM mid::text OR result->>'state' IS DISTINCT FROM 'configured'\n OR NOT EXISTS(SELECT 1 FROM public.missions WHERE id=mid AND status='annullata' AND xp_reward=30 AND ryo_reward=0)\n THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_POSTCONDITION'; END IF;\n INSERT INTO mission_creation_owner.h3_staff_source_requests(request_key,actor_user,document_sha256,mission_id,result)\n VALUES(p_request,auth.uid(),doc_sha,mid,result);\n RETURN result;\nEND $function$\n;\n",
+    "precise_finding": "Il server start compara cardinality(roster) ai limiti della source: H4=1/1. Creator Staff accetta solo1/1 e missione_crea riceve1/1. UI di avvio mostra sempre1..4: incoerenza authoring/consumer, nessun difetto provato nel resolver.",
+    "source_requirements": [
+      "Solo Staff canonica, auth/staff/master e test_allowed invariati; nessun allargamento pubblico",
+      "Min/max da1a4 validati con rifiuto null e ordine min<=max; missione_crea usa gli stessi valori e postcondizione li conferma",
+      "Nuova fonte H5 da normale editor con team2/2 e2PNG approvati; fonteH4 e ricevute vecchie intatte",
+      "Firme, owner, ACL, SECDEF e search_path invariati; nuova migration/recovery CAS richiede preflight intero fresco e review prima apply"
+    ],
+    "ui_requirements": [
+      "Lettura limiti min/max autorevoli da mission_creation_editor_v1; non usare catalogo o il limite globale4 in sostituzione della source",
+      "Etichetta e pulsante Avvia seguono i limiti effettivi, inclusa H4=1/1; vecchio journal pending incompatibile non viene reinterpretato",
+      "Richiesta H4 appena rifiutata resta distinta e senza receipt; introdurre recupero del rifiuto terminale solo con prova server della mancata creazione, mantenendo unknown su timeout/errori rete",
+      "Non fabbricare richieste/ledger/sessioni né mutare vecchi snapshot; fonte nuova implica identità/run nuova"
+    ],
+    "runtime_start_change": false,
+    "history_or_h4_change": false,
+    "admission_public_change": false,
+    "qa_needed": [
+      "Fonte nuova2/2 tramite editor, normale rosterRiuji+Tamako",
+      "UnicoFato/turnazione e round2PG2PNG conRiujiMaster+PG; niente4PG fittizi",
+      "Vecchia H4 offreunPG e preserva lo storico; stessi errori ambigui mantengono recovery",
+      "Postflight48campi/Staff0/sessione propria chiusa"
+    ],
+    "ordinary_followup": "Dopo H5 resta il delta pacifico/admission ordinary già pianificato in C1239; nessuna apertura da questa review statica.",
+    "review": {
+      "status": "GREEN_SOURCE_ONLY",
+      "findings": "0/0/0",
+      "reviewer": "/root/h3_history_review",
+      "candidate_sha256": "5ce662977518ae4549561c3349054d928bdb9fc28b233c76a7f8257ae31229d1",
+      "candidate_body_md5": "edc4d0a02979a49a87a014e53a10dfca",
+      "sql_ast_statements": 1,
+      "plpgsql_parse_functions": 1,
+      "scope": "Solo candidata sorgente creator Staff; UI, installer/recovery/CAS, apply, QA e apertura non qualificati",
+      "preserved": "Staff/auth/master/test_allowed/Genta1..4distinti/replay/unencounter/annullata/30XP0Ryo",
+      "counters": "C1237/C1238 preservati, nessun azzeramento"
+    }
+  },
+  "current_checkpoint": {
+    "at_utc": "2026-10-09T17:58:17.218486Z",
+    "five_functions_match": "Observed source/DDL in UI screenshot; MD5 unchanged vs C1238/C1237",
+    "resources_and_flags_readback": "PENDING: native Monaco input currently not received",
+    "ui_roster": "Riuji and Tamako selected naturally; protected start button enabled, not clicked",
+    "sessions_created": 0,
+    "provider_calls": 0
+  },
+  "resume_of": "C1239-H5-HUMAN-2PG2PNG-STAFF-20261009",
+  "previous_counters": {
+    "readonly_executed": 1,
+    "gameplay": 0,
+    "provider": 0,
+    "h5_pass": false
+  },
+  "h5_observed_result": {
+    "attempt": "REJECTED_MC_TEST_ROSTER_SIZE",
+    "gameplay_sessions_created": 0,
+    "diagnosis_at": "2026-10-09T18:10:49.983457+00:00",
+    "source_creator_acl": "{postgres=X/postgres,authenticated=X/postgres}",
+    "postflight_at": "2026-10-09T18:14:28.29946+00:00",
+    "protected_md5": "d41adde267a202a8ff4c6c194eb0a09f",
+    "staff_master": 0,
+    "staff_combat": 0,
+    "staff_claims": 0,
+    "ordinary_exams_enabled_ready": 2
+  }
+}
