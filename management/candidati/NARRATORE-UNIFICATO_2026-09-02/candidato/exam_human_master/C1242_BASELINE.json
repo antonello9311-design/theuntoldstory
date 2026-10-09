@@ -1,0 +1,230 @@
+{
+  "live": {
+    "map": {
+      "key": "mission_map_scorta_radura",
+      "errors": [],
+      "radius": 0.5,
+      "version": 1,
+      "contract": "arena-template/general-v1"
+    },
+    "master": {
+      "id": "6ed892dc-ff74-467e-b656-b3960dc17bdc",
+      "state": "preparazione",
+      "location": "0b85f354-9cdb-47e1-baf9-3d266bb7e06b"
+    },
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres}",
+        "ddl": "CREATE OR REPLACE FUNCTION mission_creation_owner.bind_human_arena(p_master uuid, p_encounter uuid, p_request uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare e mission_creation_owner.human_encounters;b mission_generic_owner.run_bindings;m public.master_v2_sessions;\n t combat_spatial.arena_templates;src jsonb;pid uuid;claim uuid;iid uuid;policy text;chosen boolean;\n a record;slot record;radius numeric;principal uuid;\nbegin\n select * into strict e from mission_creation_owner.human_encounters where encounter_id=p_encounter and master_session_id=p_master;\n if NOT mission_generic_owner.regia_entry_permit_valid_v1(p_master,p_request) then\n  perform mission_creation_owner.human_assert(p_master);\n end if;\n select * into strict m from public.master_v2_sessions where id=p_master for update;\n select * into strict b from mission_generic_owner.run_bindings where master_session_id=p_master;\n src:=mission_creation_owner.arena_for_step(p_master,e.step_key);\n select * into strict t from combat_spatial.arena_templates\n where template_key=src->>'template_key' and template_version=(src->>'template_version')::integer and status='ready' for share;\n perform 1 from combat_spatial.arena_slots where template_key=t.template_key and template_version=t.template_version order by slot_key for share;\n perform 1 from combat_spatial.arena_objects where template_key=t.template_key and template_version=t.template_version order by object_key for share;\n if src->>'zone_key'<>'arena' or src->>'catalog_sha256' is distinct from combat_panel_private.universal_arena_hash(t.template_key,t.template_version)\n or t.geometry_hash is distinct from combat_spatial.geometry_fingerprint(t.template_key,t.template_version)\n or combat_spatial.template_errors(t.template_key,t.template_version)<>'[]'::jsonb\n then raise exception 'MG_ARENA_FROZEN_CATALOG_DRIFT' using errcode='40001';end if;\n if exists(select 1 from combat_spatial.arena_instances where encounter_id=p_encounter)\n or exists(select 1 from public.combat_v2_declarations d join public.combat_v2_rounds r on r.id=d.round_id where r.session_id=p_encounter)\n then raise exception 'MG_ARENA_ALREADY_BOUND_OR_DECLARED';end if;\n policy:=case when (select is_test from public.locations where id=m.location_id)\n then 'staff_test_no_persistent_resources_v1' else 'master_game_resources_v1' end;\n pid:=mission_ai_service_owner.uuid5(p_encounter,'generic-arena-profile');\n claim:=mission_ai_service_owner.uuid5(p_encounter,'generic-arena-claim');\n iid:=mission_ai_service_owner.uuid5(p_encounter,'generic-arena-instance');\n insert into combat_panel_private.master_panel_sessions(master_session_id,location_id,policy_id)\n values(p_master,m.location_id,policy) on conflict(master_session_id) do nothing;\n if not exists(select 1 from combat_panel_private.master_panel_sessions where master_session_id=p_master and location_id=m.location_id and policy_id=policy)\n then raise exception 'MG_ARENA_PANEL_POLICY_CONFLICT';end if;\n insert into combat_panel_private.master_scene_profiles(id,location_id,label,template_key,template_version,profile_version,geometry_fingerprint,policy_id,visibility_mode,enabled)\n values(pid,m.location_id,'Arena missione',t.template_key,t.template_version,1,t.geometry_hash,policy,'participants',true);\n insert into combat_panel_private.master_scene_claims(id,profile_id,profile_version,master_session_id,encounter_id,\n template_key,template_version,authority_principal_id,authority_control_version,geometry_fingerprint,roster_fingerprint,policy_id,visibility_mode)\n values(claim,pid,1,p_master,p_encounter,t.template_key,t.template_version,m.master_user,m.control_version,\n t.geometry_hash,combat_panel_private.master_roster_fingerprint(p_encounter),policy,'participants');\n insert into combat_spatial.arena_instances(instance_id,master_session_id,encounter_id,binding_id,template_key,template_version,map_version,state,context_source,panel_claim_id)\n values(iid,p_master,p_encounter,null,t.template_key,t.template_version,1,'open','panel_master',claim);\n -- Le opzioni e le collisioni derivano dal catalogo server; nessuna coordinata IA/client.\n for a in select * from public.combat_v2_actors where session_id=p_encounter and state='attivo' order by actor_kind,id loop\n  radius:=t.actor_radius_m;chosen:=false;\n  for slot in select * from combat_spatial.arena_slots where template_key=t.template_key and template_version=t.template_version\n  and actor_kind=upper(a.actor_kind) order by slot_key loop\n   if clan_marionettisti_private.scene_slot_legal(t.template_key,t.template_version,round(slot.x_m),round(slot.y_m),radius)\n   and not exists(select 1 from combat_spatial.actor_states z where z.instance_id=iid and\n   (z.slot_key=slot.slot_key or combat_spatial.distance_m(z.x_m,z.y_m,round(slot.x_m),round(slot.y_m))<=z.footprint_radius_m+radius)) then\n    principal:=case when a.actor_kind='pg' then a.controller_user else m.master_user end;\n    insert into combat_panel_private.master_placement_options(claim_id,actor_id,slot_key,x_m,y_m,radius_m)\n    values(claim,a.id,slot.slot_key,round(slot.x_m),round(slot.y_m),radius);\n    insert into combat_spatial.actor_states(instance_id,actor_id,actor_kind,slot_key,controller_principal_id,projection_subject_id,x_m,y_m,footprint_radius_m,body_version,state)\n    values(iid,a.id,upper(a.actor_kind),slot.slot_key,principal,gen_random_uuid(),round(slot.x_m),round(slot.y_m),radius,1,'active');\n    chosen:=true;exit;\n   end if;\n  end loop;\n  if not chosen then raise exception 'MG_ARENA_LEGAL_SLOTS_INSUFFICIENT' using errcode='22023';end if;\n end loop;\n insert into combat_spatial.viewer_grants(instance_id,viewer_principal_id,subject_actor_id,can_view_map,can_view_objects,grant_version)\n select iid,v.controller_principal_id,z.actor_id,true,true,1 from combat_spatial.actor_states z\n cross join (select distinct controller_principal_id from combat_spatial.actor_states where instance_id=iid) v where z.instance_id=iid;\n insert into combat_spatial.object_states(instance_id,object_key,state,state_version)\n select iid,object_key,case when substitutable then 'available' else 'blocked' end,1 from combat_spatial.arena_objects\n where template_key=t.template_key and template_version=t.template_version;\n for a in select * from combat_spatial.actor_states where instance_id=iid loop\n  if combat_spatial.path_first_block_t(iid,a.actor_id,a.x_m,a.y_m,a.x_m,a.y_m,null)<1\n  then raise exception 'MG_ARENA_FINAL_OCCUPANCY_INVALID' using errcode='22023';end if;\n end loop;\n return jsonb_build_object('instance_id',iid,'claim_id',claim,'map_version',1);\nend $function$\n",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "secdef": true,
+        "ddl_md5": "eaf1cb72f887c5739561c90c82005cbd",
+        "signature": "mission_creation_owner.bind_human_arena(uuid,uuid,uuid)",
+        "source_md5": "e6104abcb437d4685076962cd417710e"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "ddl": "CREATE OR REPLACE FUNCTION mission_creation_owner.general_choose_points(p_points jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n IMMUTABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare lx integer[]:=array[]::integer[];ly integer[]:=array[]::integer[];\n rx integer[]:=array[]::integer[];ry integer[]:=array[]::integer[];\n ml integer[];mr integer[];pr integer[];ql integer[];vl boolean[];vr boolean[];\n n_l integer;n_r integer;u integer;v integer;u0 integer;head integer;found_v integer;prev_v integer;\n point jsonb;chosen jsonb:='[]'::jsonb;result jsonb;\nbegin\n for point in select value from jsonb_array_elements(p_points) order by (value->>'y')::integer,(value->>'x')::integer loop\n  if mod((point->>'x')::integer+(point->>'y')::integer,2)=0 then\n   lx:=array_append(lx,(point->>'x')::integer);ly:=array_append(ly,(point->>'y')::integer);\n  else\n   rx:=array_append(rx,(point->>'x')::integer);ry:=array_append(ry,(point->>'y')::integer);\n  end if;\n end loop;\n n_l:=cardinality(lx);n_r:=cardinality(rx);\n if n_l>=16 or n_r>=16 then\n  if n_l>=n_r then\n   for u in 1..least(n_l,16) loop chosen:=chosen||jsonb_build_array(jsonb_build_object('x',lx[u],'y',ly[u]));end loop;\n  else\n   for v in 1..least(n_r,16) loop chosen:=chosen||jsonb_build_array(jsonb_build_object('x',rx[v],'y',ry[v]));end loop;\n  end if;\n  return (select coalesce(jsonb_agg(value order by (value->>'y')::integer,(value->>'x')::integer),'[]'::jsonb) from jsonb_array_elements(chosen));\n end if;\n -- Qui n_l+n_r <= 30: matching massimo bipartito con cammini aumentanti BFS.\n ml:=array_fill(0,array[n_l]);mr:=array_fill(0,array[n_r]);\n for u0 in 1..n_l loop\n  vl:=array_fill(false,array[n_l]);vr:=array_fill(false,array[n_r]);pr:=array_fill(0,array[n_r]);\n  ql:=array[u0];vl[u0]:=true;head:=1;found_v:=0;\n  while head<=cardinality(ql) and found_v=0 loop\n   u:=ql[head];head:=head+1;\n   for v in 1..n_r loop\n    if not vr[v] and abs(lx[u]-rx[v])+abs(ly[u]-ry[v])=1 then\n     vr[v]:=true;pr[v]:=u;\n     if mr[v]=0 then found_v:=v;exit;end if;\n     if not vl[mr[v]] then vl[mr[v]]:=true;ql:=array_append(ql,mr[v]);end if;\n    end if;\n   end loop;\n  end loop;\n  v:=found_v;\n  while v<>0 loop\n   u:=pr[v];prev_v:=ml[u];ml[u]:=v;mr[v]:=u;v:=prev_v;\n  end loop;\n end loop;\n -- Dalle sinistre non accoppiate: cammini alternanti -> complemento della copertura minima.\n vl:=array_fill(false,array[n_l]);vr:=array_fill(false,array[n_r]);ql:=array[]::integer[];\n for u in 1..n_l loop if ml[u]=0 then vl[u]:=true;ql:=array_append(ql,u);end if;end loop;\n head:=1;\n while head<=cardinality(ql) loop\n  u:=ql[head];head:=head+1;\n  for v in 1..n_r loop\n   if not vr[v] and ml[u]<>v and abs(lx[u]-rx[v])+abs(ly[u]-ry[v])=1 then\n    vr[v]:=true;\n    if mr[v]<>0 and not vl[mr[v]] then vl[mr[v]]:=true;ql:=array_append(ql,mr[v]);end if;\n   end if;\n  end loop;\n end loop;\n for u in 1..n_l loop if vl[u] then chosen:=chosen||jsonb_build_array(jsonb_build_object('x',lx[u],'y',ly[u]));end if;end loop;\n for v in 1..n_r loop if not vr[v] then chosen:=chosen||jsonb_build_array(jsonb_build_object('x',rx[v],'y',ry[v]));end if;end loop;\n return (select coalesce(jsonb_agg(value order by (value->>'y')::integer,(value->>'x')::integer),'[]'::jsonb)\n  from (select value from jsonb_array_elements(chosen) order by (value->>'y')::integer,(value->>'x')::integer limit 16) z);\nend $function$\n",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "secdef": true,
+        "ddl_md5": "b5a2d35d26c4231d84ee2592982239f1",
+        "signature": "mission_creation_owner.general_choose_points(jsonb)",
+        "source_md5": "738b9fb1fc7026e2950b27927b89ce4b"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "ddl": "CREATE OR REPLACE FUNCTION mission_creation_owner.general_plan_positions(p_template text, p_version integer, p_pg integer, p_png integer)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare t combat_spatial.arena_templates;h record;point jsonb;all_points jsonb:='[]'::jsonb;\n hints_pg jsonb:='[]'::jsonb;hints_png jsonb:='[]'::jsonb;available jsonb:='[]'::jsonb;\n chosen jsonb:='[]'::jsonb;fallback jsonb;out_pg jsonb;out_png jsonb;\n x integer;y integer;close_to_hint boolean;\nbegin\n if p_pg not between 0 and 4 or p_png not between 0 and 12 or p_pg+p_png=0 then\n  raise exception 'MC_GENERAL_ROSTER_INVALID' using errcode='22023';end if;\n select * into strict t from combat_spatial.arena_templates where template_key=p_template and template_version=p_version\n  and contract_version='arena-template/general-v1' and status='ready';\n if combat_spatial.template_errors(p_template,p_version)<>'[]'::jsonb then\n  raise exception 'MC_GENERAL_MAP_INVALID' using errcode='22023';end if;\n for y in 1..t.height_m::integer-1 loop\n  for x in 1..t.width_m::integer-1 loop\n   if clan_marionettisti_private.scene_slot_legal(p_template,p_version,x,y,0.5)\n   then all_points:=all_points||jsonb_build_array(jsonb_build_object('x',x,'y',y));end if;\n  end loop;\n end loop;\n -- Prima i suggerimenti PG, poi PNG, ma solo se non collidono tra loro.\n for h in select * from combat_spatial.arena_slots where template_key=p_template and template_version=p_version\n  order by case actor_kind when 'PG' then 0 else 1 end,slot_key loop\n  if (h.actor_kind='PG' and jsonb_array_length(hints_pg)>=p_pg) or\n   (h.actor_kind='PNG' and jsonb_array_length(hints_png)>=p_png) then continue;end if;\n  x:=h.x_m::integer;y:=h.y_m::integer;\n  if not clan_marionettisti_private.scene_slot_legal(p_template,p_version,x,y,0.5)\n  or exists(select 1 from jsonb_array_elements(hints_pg||hints_png) z\n   where abs((z->>'x')::integer-x)+abs((z->>'y')::integer-y)<=1) then continue;end if;\n  point:=jsonb_build_object('x',x,'y',y,'slot_key',h.slot_key);\n  if h.actor_kind='PG' then hints_pg:=hints_pg||jsonb_build_array(point);\n  else hints_png:=hints_png||jsonb_build_array(point);end if;\n end loop;\n for point in select value from jsonb_array_elements(all_points) loop\n  x:=(point->>'x')::integer;y:=(point->>'y')::integer;\n  if not exists(select 1 from jsonb_array_elements(hints_pg||hints_png) z\n   where abs((z->>'x')::integer-x)+abs((z->>'y')::integer-y)<=1)\n  then available:=available||jsonb_build_array(point);end if;\n end loop;\n fallback:=mission_creation_owner.general_choose_points(available);\n if jsonb_array_length(fallback)+jsonb_array_length(hints_pg)+jsonb_array_length(hints_png)<p_pg+p_png then\n  -- Nessun suggerimento \u00e8 obbligatorio: il massimo insieme indipendente decide.\n  hints_pg:='[]'::jsonb;hints_png:='[]'::jsonb;\n  fallback:=mission_creation_owner.general_choose_points(all_points);\n end if;\n if jsonb_array_length(fallback)<p_pg+p_png-jsonb_array_length(hints_pg)-jsonb_array_length(hints_png)\n then raise exception 'MC_GENERAL_MAP_CAPACITY' using errcode='22023';end if;\n out_pg:=hints_pg;out_png:=hints_png;\n for point in select value from jsonb_array_elements(fallback) loop\n  exit when jsonb_array_length(out_pg)>=p_pg and jsonb_array_length(out_png)>=p_png;\n  x:=(point->>'x')::integer;y:=(point->>'y')::integer;\n  if jsonb_array_length(out_pg)<p_pg then\n   out_pg:=out_pg||jsonb_build_array(point||jsonb_build_object('slot_key','AUTO-PG-'||lpad(x::text,2,'0')||'-'||lpad(y::text,2,'0')));\n  else\n   out_png:=out_png||jsonb_build_array(point||jsonb_build_object('slot_key','AUTO-PNG-'||lpad(x::text,2,'0')||'-'||lpad(y::text,2,'0')));\n  end if;\n end loop;\n return out_pg||out_png;\nend $function$\n",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "secdef": true,
+        "ddl_md5": "bf5bdc1bf00ffd8e75131f9c0a955825",
+        "signature": "mission_creation_owner.general_plan_positions(text,integer,integer,integer)",
+        "source_md5": "2626e239e2d10755c6f27c2731476236"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "master_placement_options_actor_id_fkey",
+        "table": "combat_panel_private.master_placement_options",
+        "definition": "FOREIGN KEY (actor_id) REFERENCES combat_v2_actors(id)"
+      },
+      {
+        "name": "master_placement_options_claim_id_actor_id_slot_key_key",
+        "table": "combat_panel_private.master_placement_options",
+        "definition": "UNIQUE (claim_id, actor_id, slot_key)"
+      },
+      {
+        "name": "master_placement_options_claim_id_fkey",
+        "table": "combat_panel_private.master_placement_options",
+        "definition": "FOREIGN KEY (claim_id) REFERENCES combat_panel_private.master_scene_claims(id)"
+      },
+      {
+        "name": "master_placement_options_pkey",
+        "table": "combat_panel_private.master_placement_options",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "master_placement_options_radius_m_check",
+        "table": "combat_panel_private.master_placement_options",
+        "definition": "CHECK (((radius_m > (0)::numeric) AND (radius_m <> ALL (ARRAY['NaN'::numeric, 'Infinity'::numeric]))))"
+      },
+      {
+        "name": "master_placement_options_x_m_check",
+        "table": "combat_panel_private.master_placement_options",
+        "definition": "CHECK (((x_m >= (0)::numeric) AND (x_m <> ALL (ARRAY['NaN'::numeric, 'Infinity'::numeric]))))"
+      },
+      {
+        "name": "master_placement_options_y_m_check",
+        "table": "combat_panel_private.master_placement_options",
+        "definition": "CHECK (((y_m >= (0)::numeric) AND (y_m <> ALL (ARRAY['NaN'::numeric, 'Infinity'::numeric]))))"
+      },
+      {
+        "name": "actor_states_actor_kind_check",
+        "table": "combat_spatial.actor_states",
+        "definition": "CHECK ((actor_kind = ANY (ARRAY['PG'::text, 'PNG'::text])))"
+      },
+      {
+        "name": "actor_states_body_version_check",
+        "table": "combat_spatial.actor_states",
+        "definition": "CHECK ((body_version > 0))"
+      },
+      {
+        "name": "actor_states_footprint_radius_m_check",
+        "table": "combat_spatial.actor_states",
+        "definition": "CHECK ((footprint_radius_m > (0)::numeric))"
+      },
+      {
+        "name": "actor_states_instance_id_fkey",
+        "table": "combat_spatial.actor_states",
+        "definition": "FOREIGN KEY (instance_id) REFERENCES combat_spatial.arena_instances(instance_id)"
+      },
+      {
+        "name": "actor_states_instance_id_projection_subject_id_key",
+        "table": "combat_spatial.actor_states",
+        "definition": "UNIQUE (instance_id, projection_subject_id)"
+      },
+      {
+        "name": "actor_states_instance_id_slot_key_key",
+        "table": "combat_spatial.actor_states",
+        "definition": "UNIQUE (instance_id, slot_key)"
+      },
+      {
+        "name": "actor_states_pkey",
+        "table": "combat_spatial.actor_states",
+        "definition": "PRIMARY KEY (instance_id, actor_id)"
+      },
+      {
+        "name": "actor_states_state_check",
+        "table": "combat_spatial.actor_states",
+        "definition": "CHECK ((state = ANY (ARRAY['active'::text, 'removed'::text])))"
+      }
+    ]
+  },
+  "preflight": {
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "secdef": true,
+        "ddl_md5": "0542bf77cf7de7aaab86f417081d0921",
+        "signature": "clan_marionettisti_private.scene_slot_legal(text,integer,numeric,numeric,numeric)",
+        "source_md5": "f9aee1e4ac853c2291dabfa0db45bff8"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "secdef": true,
+        "ddl_md5": "4611920469706f8d0b56345b39dc5478",
+        "signature": "combat_spatial.template_errors(text,integer)",
+        "source_md5": "168b5e4047516083612b098bbdb02d53"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "secdef": true,
+        "ddl_md5": "64240b718db9c55cb6039a8dce4d6c1b",
+        "signature": "mission_creation_owner.human_assert(uuid)",
+        "source_md5": "1ce886cdc79e7119ec47b59f52185c32"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "secdef": true,
+        "ddl_md5": "a0c5ff84b03ad800f0e6f58730a03457",
+        "signature": "mission_creation_owner.human_open(uuid,uuid)",
+        "source_md5": "fc283362174d39a7cdabfbc4f67d2c4f"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "secdef": true,
+        "ddl_md5": "f3ed41062c17be0782d5ca7d2e213276",
+        "signature": "mission_generic_owner.regia_entry_permit_valid_v1(uuid,uuid)",
+        "source_md5": "4339bcf8ff9b8210be3196f8e355f0ae"
+      }
+    ],
+    "postflight": {
+      "at": "2026-10-09T19:18:28.106965+00:00",
+      "rows": 2,
+      "h5_master": {
+        "id": "6ed892dc-ff74-467e-b656-b3960dc17bdc",
+        "state": "preparazione",
+        "closed_at": null
+      },
+      "exam_enabled": 2,
+      "staff_claims": 1,
+      "staff_combat": 0,
+      "staff_master": 1,
+      "fields_per_pg": 24,
+      "h5_encounters": 0,
+      "protected_md5": "d41adde267a202a8ff4c6c194eb0a09f"
+    }
+  },
+  "static": {
+    "INSTALL.sql": {
+      "AST": 7,
+      "PLpgsql": [
+        "DO0",
+        "DO1",
+        "binder_rowtypes_to_record_parser_only"
+      ],
+      "result": "PASS",
+      "gameplay": false
+    },
+    "RECOVERY.sql": {
+      "AST": 7,
+      "PLpgsql": [
+        "DO0",
+        "DO1",
+        "binder_rowtypes_to_record_parser_only"
+      ],
+      "result": "PASS",
+      "gameplay": false
+    }
+  },
+  "binder_baseline": "CREATE OR REPLACE FUNCTION mission_creation_owner.bind_human_arena(p_master uuid, p_encounter uuid, p_request uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare e mission_creation_owner.human_encounters;b mission_generic_owner.run_bindings;m public.master_v2_sessions;\n t combat_spatial.arena_templates;src jsonb;pid uuid;claim uuid;iid uuid;policy text;chosen boolean;\n a record;slot record;radius numeric;principal uuid;\nbegin\n select * into strict e from mission_creation_owner.human_encounters where encounter_id=p_encounter and master_session_id=p_master;\n if NOT mission_generic_owner.regia_entry_permit_valid_v1(p_master,p_request) then\n  perform mission_creation_owner.human_assert(p_master);\n end if;\n select * into strict m from public.master_v2_sessions where id=p_master for update;\n select * into strict b from mission_generic_owner.run_bindings where master_session_id=p_master;\n src:=mission_creation_owner.arena_for_step(p_master,e.step_key);\n select * into strict t from combat_spatial.arena_templates\n where template_key=src->>'template_key' and template_version=(src->>'template_version')::integer and status='ready' for share;\n perform 1 from combat_spatial.arena_slots where template_key=t.template_key and template_version=t.template_version order by slot_key for share;\n perform 1 from combat_spatial.arena_objects where template_key=t.template_key and template_version=t.template_version order by object_key for share;\n if src->>'zone_key'<>'arena' or src->>'catalog_sha256' is distinct from combat_panel_private.universal_arena_hash(t.template_key,t.template_version)\n or t.geometry_hash is distinct from combat_spatial.geometry_fingerprint(t.template_key,t.template_version)\n or combat_spatial.template_errors(t.template_key,t.template_version)<>'[]'::jsonb\n then raise exception 'MG_ARENA_FROZEN_CATALOG_DRIFT' using errcode='40001';end if;\n if exists(select 1 from combat_spatial.arena_instances where encounter_id=p_encounter)\n or exists(select 1 from public.combat_v2_declarations d join public.combat_v2_rounds r on r.id=d.round_id where r.session_id=p_encounter)\n then raise exception 'MG_ARENA_ALREADY_BOUND_OR_DECLARED';end if;\n policy:=case when (select is_test from public.locations where id=m.location_id)\n then 'staff_test_no_persistent_resources_v1' else 'master_game_resources_v1' end;\n pid:=mission_ai_service_owner.uuid5(p_encounter,'generic-arena-profile');\n claim:=mission_ai_service_owner.uuid5(p_encounter,'generic-arena-claim');\n iid:=mission_ai_service_owner.uuid5(p_encounter,'generic-arena-instance');\n insert into combat_panel_private.master_panel_sessions(master_session_id,location_id,policy_id)\n values(p_master,m.location_id,policy) on conflict(master_session_id) do nothing;\n if not exists(select 1 from combat_panel_private.master_panel_sessions where master_session_id=p_master and location_id=m.location_id and policy_id=policy)\n then raise exception 'MG_ARENA_PANEL_POLICY_CONFLICT';end if;\n insert into combat_panel_private.master_scene_profiles(id,location_id,label,template_key,template_version,profile_version,geometry_fingerprint,policy_id,visibility_mode,enabled)\n values(pid,m.location_id,'Arena missione',t.template_key,t.template_version,1,t.geometry_hash,policy,'participants',true);\n insert into combat_panel_private.master_scene_claims(id,profile_id,profile_version,master_session_id,encounter_id,\n template_key,template_version,authority_principal_id,authority_control_version,geometry_fingerprint,roster_fingerprint,policy_id,visibility_mode)\n values(claim,pid,1,p_master,p_encounter,t.template_key,t.template_version,m.master_user,m.control_version,\n t.geometry_hash,combat_panel_private.master_roster_fingerprint(p_encounter),policy,'participants');\n insert into combat_spatial.arena_instances(instance_id,master_session_id,encounter_id,binding_id,template_key,template_version,map_version,state,context_source,panel_claim_id)\n values(iid,p_master,p_encounter,null,t.template_key,t.template_version,1,'open','panel_master',claim);\n -- Le opzioni e le collisioni derivano dal catalogo server; nessuna coordinata IA/client.\n for a in select * from public.combat_v2_actors where session_id=p_encounter and state='attivo' order by actor_kind,id loop\n  radius:=t.actor_radius_m;chosen:=false;\n  for slot in select * from combat_spatial.arena_slots where template_key=t.template_key and template_version=t.template_version\n  and actor_kind=upper(a.actor_kind) order by slot_key loop\n   if clan_marionettisti_private.scene_slot_legal(t.template_key,t.template_version,round(slot.x_m),round(slot.y_m),radius)\n   and not exists(select 1 from combat_spatial.actor_states z where z.instance_id=iid and\n   (z.slot_key=slot.slot_key or combat_spatial.distance_m(z.x_m,z.y_m,round(slot.x_m),round(slot.y_m))<=z.footprint_radius_m+radius)) then\n    principal:=case when a.actor_kind='pg' then a.controller_user else m.master_user end;\n    insert into combat_panel_private.master_placement_options(claim_id,actor_id,slot_key,x_m,y_m,radius_m)\n    values(claim,a.id,slot.slot_key,round(slot.x_m),round(slot.y_m),radius);\n    insert into combat_spatial.actor_states(instance_id,actor_id,actor_kind,slot_key,controller_principal_id,projection_subject_id,x_m,y_m,footprint_radius_m,body_version,state)\n    values(iid,a.id,upper(a.actor_kind),slot.slot_key,principal,gen_random_uuid(),round(slot.x_m),round(slot.y_m),radius,1,'active');\n    chosen:=true;exit;\n   end if;\n  end loop;\n  if not chosen then raise exception 'MG_ARENA_LEGAL_SLOTS_INSUFFICIENT' using errcode='22023';end if;\n end loop;\n insert into combat_spatial.viewer_grants(instance_id,viewer_principal_id,subject_actor_id,can_view_map,can_view_objects,grant_version)\n select iid,v.controller_principal_id,z.actor_id,true,true,1 from combat_spatial.actor_states z\n cross join (select distinct controller_principal_id from combat_spatial.actor_states where instance_id=iid) v where z.instance_id=iid;\n insert into combat_spatial.object_states(instance_id,object_key,state,state_version)\n select iid,object_key,case when substitutable then 'available' else 'blocked' end,1 from combat_spatial.arena_objects\n where template_key=t.template_key and template_version=t.template_version;\n for a in select * from combat_spatial.actor_states where instance_id=iid loop\n  if combat_spatial.path_first_block_t(iid,a.actor_id,a.x_m,a.y_m,a.x_m,a.y_m,null)<1\n  then raise exception 'MG_ARENA_FINAL_OCCUPANCY_INVALID' using errcode='22023';end if;\n end loop;\n return jsonb_build_object('instance_id',iid,'claim_id',claim,'map_version',1);\nend $function$\n",
+  "binder_candidate": "CREATE OR REPLACE FUNCTION mission_creation_owner.bind_human_arena(p_master uuid, p_encounter uuid, p_request uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare e mission_creation_owner.human_encounters;b mission_generic_owner.run_bindings;m public.master_v2_sessions;\n t combat_spatial.arena_templates;src jsonb;pid uuid;claim uuid;iid uuid;policy text;chosen boolean;\n a record;slot record;radius numeric;principal uuid;\n positions jsonb;pg_count integer;png_count integer;actor_index integer:=0;\nbegin\n select * into strict e from mission_creation_owner.human_encounters where encounter_id=p_encounter and master_session_id=p_master;\n if NOT mission_generic_owner.regia_entry_permit_valid_v1(p_master,p_request) then\n  perform mission_creation_owner.human_assert(p_master);\n end if;\n select * into strict m from public.master_v2_sessions where id=p_master for update;\n select * into strict b from mission_generic_owner.run_bindings where master_session_id=p_master;\n src:=mission_creation_owner.arena_for_step(p_master,e.step_key);\n select * into strict t from combat_spatial.arena_templates\n where template_key=src->>'template_key' and template_version=(src->>'template_version')::integer and status='ready' for share;\n perform 1 from combat_spatial.arena_slots where template_key=t.template_key and template_version=t.template_version order by slot_key for share;\n perform 1 from combat_spatial.arena_objects where template_key=t.template_key and template_version=t.template_version order by object_key for share;\n if src->>'zone_key'<>'arena' or src->>'catalog_sha256' is distinct from combat_panel_private.universal_arena_hash(t.template_key,t.template_version)\n or t.geometry_hash is distinct from combat_spatial.geometry_fingerprint(t.template_key,t.template_version)\n or combat_spatial.template_errors(t.template_key,t.template_version)<>'[]'::jsonb\n then raise exception 'MG_ARENA_FROZEN_CATALOG_DRIFT' using errcode='40001';end if;\n if exists(select 1 from combat_spatial.arena_instances where encounter_id=p_encounter)\n or exists(select 1 from public.combat_v2_declarations d join public.combat_v2_rounds r on r.id=d.round_id where r.session_id=p_encounter)\n then raise exception 'MG_ARENA_ALREADY_BOUND_OR_DECLARED';end if;\n policy:=case when (select is_test from public.locations where id=m.location_id)\n then 'staff_test_no_persistent_resources_v1' else 'master_game_resources_v1' end;\n pid:=mission_ai_service_owner.uuid5(p_encounter,'generic-arena-profile');\n claim:=mission_ai_service_owner.uuid5(p_encounter,'generic-arena-claim');\n iid:=mission_ai_service_owner.uuid5(p_encounter,'generic-arena-instance');\n insert into combat_panel_private.master_panel_sessions(master_session_id,location_id,policy_id)\n values(p_master,m.location_id,policy) on conflict(master_session_id) do nothing;\n if not exists(select 1 from combat_panel_private.master_panel_sessions where master_session_id=p_master and location_id=m.location_id and policy_id=policy)\n then raise exception 'MG_ARENA_PANEL_POLICY_CONFLICT';end if;\n insert into combat_panel_private.master_scene_profiles(id,location_id,label,template_key,template_version,profile_version,geometry_fingerprint,policy_id,visibility_mode,enabled)\n values(pid,m.location_id,'Arena missione',t.template_key,t.template_version,1,t.geometry_hash,policy,'participants',true);\n insert into combat_panel_private.master_scene_claims(id,profile_id,profile_version,master_session_id,encounter_id,\n template_key,template_version,authority_principal_id,authority_control_version,geometry_fingerprint,roster_fingerprint,policy_id,visibility_mode)\n values(claim,pid,1,p_master,p_encounter,t.template_key,t.template_version,m.master_user,m.control_version,\n t.geometry_hash,combat_panel_private.master_roster_fingerprint(p_encounter),policy,'participants');\n insert into combat_spatial.arena_instances(instance_id,master_session_id,encounter_id,binding_id,template_key,template_version,map_version,state,context_source,panel_claim_id)\n values(iid,p_master,p_encounter,null,t.template_key,t.template_version,1,'open','panel_master',claim);\n -- General-v1: suggerimenti facoltativi; il generatore server restituisce PG prima dei PNG.\n if t.contract_version='arena-template/general-v1' then\n  select count(*) filter(where actor_kind='pg'),count(*) filter(where actor_kind='png')\n  into pg_count,png_count from public.combat_v2_actors where session_id=p_encounter and state='attivo';\n  if t.actor_radius_m is distinct from 0.5 or exists(select 1 from public.combat_v2_actors\n   where session_id=p_encounter and state='attivo' and actor_kind not in ('pg','png'))\n  then raise exception 'MG_GENERAL_ROSTER_INVALID' using errcode='22023';end if;\n  positions:=mission_creation_owner.general_plan_positions(t.template_key,t.template_version,pg_count,png_count);\n  if jsonb_array_length(positions) is distinct from pg_count+png_count\n  then raise exception 'MG_GENERAL_POSITION_COUNT' using errcode='22023';end if;\n end if;\n -- Le opzioni e le collisioni derivano dal catalogo server; nessuna coordinata IA/client.\n for a in select * from public.combat_v2_actors where session_id=p_encounter and state='attivo' order by actor_kind,id loop\n  radius:=t.actor_radius_m;chosen:=false;\n  actor_index:=actor_index+1;\n  for slot in\n   select v.slot_key,v.x_m,v.y_m from (\n    select h.slot_key,h.x_m,h.y_m from combat_spatial.arena_slots h\n     where positions is null and h.template_key=t.template_key and h.template_version=t.template_version\n     and h.actor_kind=upper(a.actor_kind)\n    union all\n    select q.value->>'slot_key',(q.value->>'x')::numeric,(q.value->>'y')::numeric\n     from jsonb_array_elements(coalesce(positions,'[]'::jsonb)) with ordinality q(value,ordinal)\n     where positions is not null and q.ordinal=actor_index\n   ) v order by v.slot_key loop\n   if clan_marionettisti_private.scene_slot_legal(t.template_key,t.template_version,round(slot.x_m),round(slot.y_m),radius)\n   and not exists(select 1 from combat_spatial.actor_states z where z.instance_id=iid and\n   (z.slot_key=slot.slot_key or combat_spatial.distance_m(z.x_m,z.y_m,round(slot.x_m),round(slot.y_m))<=z.footprint_radius_m+radius)) then\n    principal:=case when a.actor_kind='pg' then a.controller_user else m.master_user end;\n    insert into combat_panel_private.master_placement_options(claim_id,actor_id,slot_key,x_m,y_m,radius_m)\n    values(claim,a.id,slot.slot_key,round(slot.x_m),round(slot.y_m),radius);\n    insert into combat_spatial.actor_states(instance_id,actor_id,actor_kind,slot_key,controller_principal_id,projection_subject_id,x_m,y_m,footprint_radius_m,body_version,state)\n    values(iid,a.id,upper(a.actor_kind),slot.slot_key,principal,gen_random_uuid(),round(slot.x_m),round(slot.y_m),radius,1,'active');\n    chosen:=true;exit;\n   end if;\n  end loop;\n  if not chosen then raise exception 'MG_ARENA_LEGAL_SLOTS_INSUFFICIENT' using errcode='22023';end if;\n end loop;\n insert into combat_spatial.viewer_grants(instance_id,viewer_principal_id,subject_actor_id,can_view_map,can_view_objects,grant_version)\n select iid,v.controller_principal_id,z.actor_id,true,true,1 from combat_spatial.actor_states z\n cross join (select distinct controller_principal_id from combat_spatial.actor_states where instance_id=iid) v where z.instance_id=iid;\n insert into combat_spatial.object_states(instance_id,object_key,state,state_version)\n select iid,object_key,case when substitutable then 'available' else 'blocked' end,1 from combat_spatial.arena_objects\n where template_key=t.template_key and template_version=t.template_version;\n for a in select * from combat_spatial.actor_states where instance_id=iid loop\n  if combat_spatial.path_first_block_t(iid,a.actor_id,a.x_m,a.y_m,a.x_m,a.y_m,null)<1\n  then raise exception 'MG_ARENA_FINAL_OCCUPANCY_INVALID' using errcode='22023';end if;\n end loop;\n return jsonb_build_object('instance_id',iid,'claim_id',claim,'map_version',1);\nend $function$\n"
+}
