@@ -1,0 +1,37 @@
+{
+  "task": "C1237 H4 actor publication receipt",
+  "revision": "UI001 initial",
+  "status": "GREEN",
+  "counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "runtime": "NOT_RUN",
+  "hashes": {
+    "LAND_BASELINE.html": "5a1f69b5f3d32518893294d96a3f1d3c07b813ea872adbde260e45e8c168d225",
+    "publish/land.html": "f4965b546fd3cf8273529d32e63111488f1beb25c73e1e33bd65fb9d4ba69145",
+    "UI_DIFF.patch": "ba981116169c102fb278ecce74c263a18be6d5353556fc5f3586675e516d95bc"
+  },
+  "checks": [
+    "Delta esatto del diff congelato; CSS invariato, nessuna modifica SQL o protocollo RPC.",
+    "regiaBinding include identità/principal/personaggio/stanza, sessioneMaster, activity_id, round_id e command_actor_id. Il blocco di invio usa lo stesso binding.",
+    "Cambio binding onDraft invalida state/scope/error e attiva lettura sola quando cambia binding; scelte, testo, opzioni e keystroke non cambiano binding e non avviano una RPC aggiuntiva.",
+    "Richieste concorrenti per stesso binding sono coalescate; letture per nuovo binding incrementano token e risposta/error/render tardivi sono scartati per token/generation/binding.",
+    "invalidate/dispose incrementa generation e token, rimuove pendingreading e binding osservato; finally della vecchia promise non rimuove quella successiva.",
+    "Durante lettura lo stato è nullo: mechanical blockingReason richiede binding corrispondente e resta fail-closed.",
+    "canPreparePrivatePng conserva tutte le guardie su Fato composer, Master, can_command, actor ownership/kind/state, matching actor_id, prep privata, next_round_id e legal_png_slots. Barriera PG invariata.",
+    "Percorsi senza Regia/ordinary/PvP/esame restano esclusi dal nuovo binding; prosa libera mantiene il flusso precedente.",
+    "onDraft init con panel ancora nullo non esegue RPC, open/refresh mantengono le letture esplicite già previste; nessun loop notify/read/render introdotto."
+  ],
+  "findings": [],
+  "syntax_status": "Owner: node --check dei6script PASS, SHA candidata f4965b54… confermato dal reviewer. Reviewer: composizione e semantica statica; gameplay NOT_RUN.",
+  "runtime_required": [
+    "Controprova dello switch tra due PNG nella stessa preparazione privata, scelta consegnata per l’attore selezionato.",
+    "Fato unico e barriera PG; ricezione corretto stato dopo comando e round successivo."
+  ],
+  "script_count_independent": {
+    "baseline": 8,
+    "candidate": 8
+  }
+}
