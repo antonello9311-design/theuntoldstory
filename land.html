@@ -9,7 +9,7 @@
   <meta name="tus-fato-history-build" content="C1236-H3-HISTORY-AGG15-STAFF" />
   <meta name="tus-master-report-ui-build" content="C1236-MASTER-REPORT-UI-001" />
   <meta name="tus-human-close-recovery-build" content="C1236-HUMAN-CLOSE-RECOVERY-001" />
-  <meta name="tus-regia-actor-receipt-build" content="C1237-ACTOR-RECEIPT-001" />
+  <meta name="tus-regia-actor-receipt-build" content="C1238-HUMAN-CLOSE-HISTORY-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -5999,10 +5999,10 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(nearBottom) msgsEl.scrollTop=msgsEl.scrollHeight;
       }
       var msgReadGeneration=0,msgFatoHistory=null;
-      function msgFatoHistoryCurrent(){return !!(msgFatoHistory&&uiPostreviewStaff()&&msgFatoHistory.location===cur.id&&msgFatoHistory.principal===myId&&msgFatoHistory.epoch===UI_POSTREVIEW_STAFF_EPOCH&&msgFatoHistory.authEpoch===(MV2.authEpoch||0));}
+      function msgFatoHistoryCurrent(){return !!(msgFatoHistory&&cur&&commonMasterPrincipal()===msgFatoHistory.principal&&msgFatoHistory.location===cur.id&&msgFatoHistory.epoch===UI_POSTREVIEW_STAFF_EPOCH&&msgFatoHistory.authEpoch===(MV2.authEpoch||0));}
       function msgFatoHistorySet(next){
         var pub=next&&next.unified_publication_id,session=next&&next.master&&next.master.id;
-        if(!uiPostreviewStaff()||!session||typeof pub!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(pub)){if(msgFatoHistory)msgReadGeneration++;msgFatoHistory=null;return;}
+        if(!commonMasterPrincipal()||!cur||!session||next.master.location_id!==cur.id||!(next.viewer?.is_master===true||next.viewer?.is_participant===true)||typeof pub!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(pub)){if(msgFatoHistory)msgReadGeneration++;msgFatoHistory=null;return;}
         if(msgFatoHistoryCurrent()&&msgFatoHistory.session===session&&msgFatoHistory.publication===pub)return;
         msgReadGeneration++;
         msgFatoHistory={location:cur.id,principal:myId,epoch:UI_POSTREVIEW_STAFF_EPOCH,authEpoch:MV2.authEpoch||0,session:session,publication:pub,row:null};
@@ -6021,14 +6021,15 @@ window.TUSOrdinary={attachOrdinaryLand};
           if(!r||r.error||!cur||cur.id!==msgLocation||myId!==msgPrincipal||msgGeneration!==msgReadGeneration)return false;
           var rows=(r.data||[]).slice().reverse();
           if(expectedPublication&&!rows.some(function(m){return m.id===expectedPublication&&m.kind==='fato';})){
-            // Staff: recupera soltanto il Fato già pubblicato richiesto dal server, anche oltre le 12 ore della vista live.
-            if(msgLocation!==UI_POSTREVIEW_STAFF_ROOM||!uiPostreviewStaff())return false;
+            // Recupera solo il Fato richiesto dalla proiezione Regia autorizzata, attraverso le RLS esistenti.
+            var historyStaff=msgLocation===UI_POSTREVIEW_STAFF_ROOM&&uiPostreviewStaff(),historyEpoch=UI_POSTREVIEW_STAFF_EPOCH,historyAuthEpoch=MV2.authEpoch||0;
+            if(!historyStaff&&(!retained||!msgFatoHistoryCurrent()||retained.publication!==expectedPublication))return false;
             var history;
             if(retained&&retained.publication===expectedPublication&&retained.row)history={data:retained.row};
             else try{
               history=await sb.from('messages').select(msgProjection).eq('id',expectedPublication).eq('location_id',msgLocation).eq('kind','fato').maybeSingle();
             }catch(_historyRead){return false;}
-            if(!cur||cur.id!==msgLocation||myId!==msgPrincipal||msgGeneration!==msgReadGeneration||!uiPostreviewStaff())return false;
+            if(!cur||cur.id!==msgLocation||myId!==msgPrincipal||msgGeneration!==msgReadGeneration||(historyStaff?(!uiPostreviewStaff()||historyEpoch!==UI_POSTREVIEW_STAFF_EPOCH||historyAuthEpoch!==(MV2.authEpoch||0)):(!msgFatoHistoryCurrent()||msgFatoHistory!==retained)))return false;
             if(!history||history.error||!history.data||history.data.id!==expectedPublication||history.data.kind!=='fato'||typeof history.data.body!=='string')return false;
             if(retained&&msgFatoHistory===retained&&retained.publication===expectedPublication)retained.row=history.data;
             rows.push(history.data);
@@ -6237,10 +6238,10 @@ window.TUSOrdinary={attachOrdinaryLand};
       // C53: only this Auth's protected human Staff scene is locked; Native guards remain authoritative.
       var MISSION_HUMAN_CLOSE_LOCK=null,MISSION_HUMAN_CLOSE_WRITERS=new Map();
       function missionHumanCloseScope(){return JSON.stringify([commonMasterPrincipal(),cur&&cur.id,MV2?.data?.master?.id||MISSION_HUMAN_CLOSE_LOCK?.session||null]);}
-      function missionHumanCloseBlocked(){var p=MISSION_HUMAN_CLOSE_LOCK;return !!(p&&p.blocked&&p.principal===commonMasterPrincipal()&&p.location===cur?.id&&cur?.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test&&(!MV2?.data?.master?.id||!p.session||MV2.data.master.id===p.session));}
+      function missionHumanCloseBlocked(){var p=MISSION_HUMAN_CLOSE_LOCK;return !!(p&&p.blocked&&p.principal===commonMasterPrincipal()&&p.location===cur?.id&&(cur?.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test||cur?.is_test!==true)&&(!MV2?.data?.master?.id||!p.session||MV2.data.master.id===p.session));}
       function missionHumanCloseWriter(name){return (/^(combat_v2_|combat_panel_(prepare|commit)|regia_round_(advance|publish)|mission_human_(phase_action|fato_publish|combat_close|rapid_terminal)|mission_staff_simulation_abort_v1$)/.test(name)||name==='regia_combat_entry_prepare_v1'||/^master_v2_/.test(name))&&!new Set(['master_v2_ui_state','master_v2_round_options','master_v2_action_options','master_v2_png_catalog','master_v2_formation_options','master_v2_encounter_options','combat_v2_round_state','combat_v2_actor_options']).has(name);}
       function missionHumanCloseGuardClient(client){return new Proxy(client,{get:function(target,key){if(key!=='rpc'){var value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;}return function(name,args){
-        var scoped=!!(cur?.is_test&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&commonMasterPrincipal()&&(MV2?.data?.master?.id||MISSION_HUMAN_CLOSE_LOCK?.session));
+        var scoped=!!(commonMasterPrincipal()&&cur&&(cur.is_test&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'||cur.is_test!==true&&(MISSION_CREATION_HUMAN_STATUS==='ready'&&MISSION_CREATION_HUMAN_SESSION===MV2?.data?.master?.id||MISSION_HUMAN_CLOSE_LOCK?.location===cur.id))&&(MV2?.data?.master?.id||MISSION_HUMAN_CLOSE_LOCK?.session));
         var lock=MISSION_HUMAN_CLOSE_LOCK,entry=name==='regia_combat_entry_prepare_v1',entrySession=entry&&args?.p_master_session;
         var ownEntry=entry&&!!entrySession&&(entrySession===MV2?.data?.master?.id||(entrySession===lock?.session&&lock.principal===commonMasterPrincipal()&&lock.location===cur?.id));
         var write=scoped&&missionHumanCloseWriter(name)&&(!entry||ownEntry),scope=entry&&ownEntry?JSON.stringify([commonMasterPrincipal(),cur.id,entrySession]):missionHumanCloseScope();
@@ -6713,7 +6714,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           if(!regiaPending&&prep.can_publish)h+='<label class="mv2-field"><span>Un solo Fato: referto precedente e nuovi tentativi</span><textarea id="mv2-regia-fato" maxlength="5000" placeholder="Intreccia tutti i PNG pertinenti nello stesso esito.">'+esc(MV2.regiaDraft||'')+'</textarea></label><button class="mv2-btn" type="button" data-mv2="regia-publish">Pubblica Fato e apri le risposte</button>';
         }else if(viewer.is_master&&MV2.regia?.status==='blocked')h+='<p class="mv2-note">Stato del round da verificare: pubblicazione sospesa.</p>';
         else if(viewer.is_master&&d.report&&d.report.narration_state!=='pubblicata') h+='<label class="mv2-field"><span>Resoconto cinematografico del Fato</span><textarea id="mv2-narrative" maxlength="5000" placeholder="Raccogli la turnazione e racconta l’esito per tutti. I dialoghi tra virgolette saranno evidenziati in rosso."></textarea></label><button class="mv2-btn" type="button" data-mv2="narrate">Pubblica esito e avanza</button>';
-        if(viewer.is_master&&e.state==='risolto'&&r&&r.state==='narrato') h+=(m.tipo==='quest'?'<div class="mv2-grid"><label class="mv2-field"><span>Esito quest</span><select id="mv2-close-outcome"><option value="successo">Successo</option><option value="fallimento">Fallimento</option></select></label><label class="mv2-field"><span>Nota finale</span><input id="mv2-close-note" maxlength="1000"></label></div>':'<label class="mv2-field"><span>Nota finale</span><input id="mv2-close-note" maxlength="1000"></label>')+'<label class="mv2-note"><input id="mv2-close-role" type="checkbox"> Chiudi anche le REC collegate alla giocata</label><button class="mv2-btn" type="button" data-mv2="close">Chiudi attività</button>';
+        if(viewer.is_master&&e.state==='risolto'&&r&&r.state==='narrato'&&!(MISSION_CREATION_HUMAN_SESSION===m.id&&MISSION_CREATION_HUMAN_STATUS!=='unconfigured')) h+=(m.tipo==='quest'?'<div class="mv2-grid"><label class="mv2-field"><span>Esito quest</span><select id="mv2-close-outcome"><option value="successo">Successo</option><option value="fallimento">Fallimento</option></select></label><label class="mv2-field"><span>Nota finale</span><input id="mv2-close-note" maxlength="1000"></label></div>':'<label class="mv2-field"><span>Nota finale</span><input id="mv2-close-note" maxlength="1000"></label>')+'<label class="mv2-note"><input id="mv2-close-role" type="checkbox"> Chiudi anche le REC collegate alla giocata</label><button class="mv2-btn" type="button" data-mv2="close">Chiudi attività</button>';
         if(viewer.is_master&&e.state!=='risolto') h+='<label class="mv2-field"><span>Motivo della sospensione</span><input id="mv2-suspend-reason" maxlength="500" placeholder="Es. giocata da riprendere alla prossima sessione"></label><div class="mv2-actions"><button class="mv2-btn ghost" type="button" data-mv2="suspend">Congela e sospendi</button></div>'+mv2SceneCloseBlock(m);
         if(viewer.is_admin&&!viewer.is_master) h+='<label class="mv2-field"><span>Motivo subentro Admin</span><input data-mv2-override-reason maxlength="500"></label><button class="mv2-btn warn" type="button" data-mv2="admin-override">Rimuovi e subentra</button>';
         mv2SetBody(body,h);
@@ -6831,6 +6832,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           if(a==='suspend'){var reason=((document.getElementById('mv2-suspend-reason')||{}).value||'').trim();if(reason.length<3){toast('Indica perché la giocata viene sospesa');return;}mv2Busy(true);mv2Rpc('master_v2_suspend',{p_session:MV2.data.master.id,p_mode:'emergenza',p_reason:reason,p_expected_control_version:MV2.data.master.control_version,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Quest congelata: i personaggi restano impegnati');},function(e){mv2Busy(false);toast(e.message);});return;}
           if(a==='resume'){mv2Busy(true);mv2Rpc('master_v2_resume',{p_session:MV2.data.master.id,p_expected_control_version:MV2.data.master.control_version,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Quest ripresa dal checkpoint');},function(e){mv2Busy(false);toast(e.message);});return;}
           if(a==='admin-override'){var rr=(((body.querySelector('[data-mv2-override-reason]')||{}).value)||'').trim();if(rr.length<3){toast('Indica il motivo del subentro');return;}mv2Busy(true);mv2Rpc('master_v2_admin_override',{p_session:MV2.data.master.id,p_reason:rr,p_expected_control_version:MV2.data.master.control_version,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Subentro Admin registrato; la sessione è sospesa');},function(e){mv2Busy(false);toast(e.message);});return;}
+          if(a==='close'&&MISSION_CREATION_HUMAN_SESSION===MV2.data?.master?.id&&MISSION_CREATION_HUMAN_STATUS!=='unconfigured'){toast('Concludi la missione da Fasi e note, usando la ricevuta del server.');return;}
           if(a==='close'){var out=MV2.data.master.tipo==='quest'?((document.getElementById('mv2-close-outcome')||{}).value||'successo'):null,note=((document.getElementById('mv2-close-note')||{}).value||'').trim(),closeRole=!!((document.getElementById('mv2-close-role')||{}).checked),closeKey=mv2Key(),n=0;mv2Busy(true);var step=function(){if(n++>=5){mv2Busy(false);mv2Reload('Attività chiusa e depositata');return;}mv2Rpc('master_v2_close',{p_session:MV2.data.master.id,p_mission_outcome:out,p_mission_note:note||null,p_close_role:closeRole,p_expected_control_version:MV2.data.master.control_version,p_request_key:closeKey}).then(step,function(e){mv2Busy(false);toast(e.message);});};step();return;}
         });
       })();
@@ -13925,7 +13927,7 @@ var nb028iTeardown=function(){};
         var current=function(){return cur&&cur.id===locationId&&loggedIn&&!ordinarySigningOut&&myId===user&&ordinaryAuthId===user&&(MV2?.authEpoch||0)===authEpoch;};
         missionCreationUI().then(function(ui){
           if(!current())return;var session=nativeSession;
-          if(!session){try{session=ui.pendingHumanCloseSession();}catch(e){if(cur?.is_test&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'){MISSION_HUMAN_CLOSE_LOCK={principal:user,location:cur.id,session:null,args:null,blocked:true};syncSendBtn();}throw e;}}
+          if(!session){try{session=ui.pendingHumanCloseSession();}catch(e){if(cur&&current()){MISSION_HUMAN_CLOSE_LOCK={principal:user,location:cur.id,session:null,args:null,blocked:true};syncSendBtn();}throw e;}}
           if(!session){missionHumanPhaseReset();return;}
           if(MISSION_CREATION_HUMAN_SESSION!==session){MISSION_CREATION_HUMAN_SESSION=session;MISSION_CREATION_HUMAN_STATUS='loading';MISSION_CREATION_HUMAN_EPOCH++;host.replaceChildren();host.hidden=true;}
           var stamp=MISSION_CREATION_HUMAN_EPOCH;
@@ -13947,7 +13949,7 @@ var nb028iTeardown=function(){};
       var MISSION_CREATION_UI=null,MISSION_CREATION_LOAD=null,MISSION_CREATION_NATIVE_MISSION=null;
       function missionCreationUI(){
         if(MISSION_CREATION_UI)return Promise.resolve(MISSION_CREATION_UI);
-        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mf-mission-human-close-recovery-cb7993ce89655678a31d9b0ac7951db197b9c8cc6948e561289f46156ceb11ae.mjs').then(function(mod){
+        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mf-mission-human-close-recovery-dec69b9c6c5e7aad704b823525bcc8ecebfd2a0a59e7b5c42074290d4fd1e3e7.mjs').then(function(mod){
           MISSION_CREATION_UI=mod.createMissionCreationUI({client:sb,identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             mapPicker:function(initial,title){return missionArenaEditor().show({initial:initial,title:title});},
