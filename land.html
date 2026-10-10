@@ -9,7 +9,7 @@
   <meta name="tus-fato-history-build" content="C1236-H3-HISTORY-AGG15-STAFF" />
   <meta name="tus-master-report-ui-build" content="C1236-MASTER-REPORT-UI-001" />
   <meta name="tus-human-close-recovery-build" content="C1236-HUMAN-CLOSE-RECOVERY-001" />
-  <meta name="tus-regia-actor-receipt-build" content="C1244-REGIA-PG-PUBLICATION-GATE-001" />
+  <meta name="tus-regia-actor-receipt-build" content="C1244-REGIA-PG-PUBLICATION-GATE-002" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -4748,6 +4748,25 @@ function attachCombatPanel(host){
       await readRegiaPublication();
     }catch{host.notice('Esito Regia incerto: verifica la stessa richiesta.');renderRegiaControls();}
   }
+  async function regiaRecoverRejectedPublication(p,error){
+    if(p.kind!=='publish'||error?.message!=='REGIA_PREPARATION_STALE')return false;
+    const session=p.args.p_master_session,k=regiaPendingKey();
+    const response=await host.rpc('regia_round_publication_state_v1',{p_master_session:session,p_actor:null});
+    const state=response?.data,m=state?.master;
+    if(response?.error||state?.schema_version!=='regia-round-publication-state/1'||state.status!=='ready'
+      ||state.activity_id!==session||state.public?.reason_code!=='regia_fato_pending'
+      ||m?.schema_version!=='regia-round-preparation/1'||m.state!=='private'||m.window_id!==p.args.p_window
+      ||m.can_publish!==true||!Number.isSafeInteger(m.preparation_revision)
+      ||!Number.isSafeInteger(p.args.p_expected_revision)||m.preparation_revision===p.args.p_expected_revision)return false;
+    const check=await host.rpc('regia_round_operation_receipt_v1',{p_master_session:session,p_request_key:p.request_key});
+    if(check?.error||check.data?.schema_version!=='regia-round-operation/1'||check.data.status!=='not_found'
+      ||check.data.request_key!==p.request_key||!k||JSON.stringify(regiaPending())!==JSON.stringify(p))return false;
+    globalThis.sessionStorage.setItem(k+':rejected:'+p.request_key,JSON.stringify({status:'rejected',reason:'REGIA_PREPARATION_STALE',pending:p}));
+    globalThis.sessionStorage.removeItem(k);
+    regiaDraft=p.args.p_body;regiaState=state;
+    host.notice('La richiesta precedente è stata rifiutata e conservata. Rileggi il Fato e pubblicalo con la revisione aggiornata.');
+    renderRegiaControls();return true;
+  }
   async function regiaRecover(){
     const p=regiaPending(),session=host.regiaSession?.(panel?.snapshot().envelope);
     if(!p||p.corrupt||!isId(session)||p.args?.p_master_session!==session||p.args?.p_request_key!==p.request_key)return;
@@ -4760,7 +4779,10 @@ function attachCombatPanel(host){
         const name=p.rpc_name||(p.kind==='publish'?'regia_round_publish_v1':p.kind==='advance'?(p.args?.p_direction?'regia_round_advance_v2':'regia_round_advance_v1'):null);
         if(!['regia_round_advance_v1','regia_round_advance_v2','regia_round_publish_v1'].includes(name))throw Error('Operazione salvata non compatibile.');
         const retry=await host.rpc(name,p.args);
-        if(retry?.error)throw Error('Il server ha rifiutato il replay.');
+        if(retry?.error){
+          if(await regiaRecoverRejectedPublication(p,retry.error))return;
+          throw Error('Il server ha rifiutato il replay.');
+        }
         receipt=retry.data;if(!regiaSettle(receipt,p))throw Error('Replay senza ricevuta finale.');
       }
       if(p.kind==='publish'){regiaDraft='';host.regiaPublished?.();}
@@ -6406,6 +6428,22 @@ window.TUSOrdinary={attachOrdinaryLand};
           if(kind==='publish')MV2.regiaDraft='';mv2Busy(false);mv2Reload(kind==='advance'?'Round successivo preparato in privato.':'Fato pubblicato e finestra aperta.');
         }catch(error){mv2Busy(false);toast('Esito incerto: verifica la stessa richiesta dal pannello.');renderMasterV2();}
       }
+      async function mv2RegiaRecoverRejectedPublication(p,error){
+        if(p.kind!=='publish'||error?.message!=='REGIA_PREPARATION_STALE')return false;
+        var session=p.args.p_master_session,key=mv2RegiaPendingKey();
+        var state=await mv2Rpc('regia_round_publication_state_v1',{p_master_session:session,p_actor:null}),prep=state?.master;
+        if(state?.schema_version!=='regia-round-publication-state/1'||state.status!=='ready'
+          ||state.activity_id!==session||state.public?.reason_code!=='regia_fato_pending'
+          ||prep?.schema_version!=='regia-round-preparation/1'||prep.state!=='private'||prep.window_id!==p.args.p_window
+          ||prep.can_publish!==true||!Number.isSafeInteger(prep.preparation_revision)
+          ||!Number.isSafeInteger(p.args.p_expected_revision)||prep.preparation_revision===p.args.p_expected_revision)return false;
+        var check=await mv2Rpc('regia_round_operation_receipt_v1',{p_master_session:session,p_request_key:p.request_key});
+        if(check?.schema_version!=='regia-round-operation/1'||check.status!=='not_found'
+          ||check.request_key!==p.request_key||!key||JSON.stringify(mv2RegiaPending())!==JSON.stringify(p))return false;
+        sessionStorage.setItem(key+':rejected:'+p.request_key,JSON.stringify({status:'rejected',reason:'REGIA_PREPARATION_STALE',pending:p}));
+        sessionStorage.removeItem(key);MV2.regiaDraft=p.args.p_body;MV2.regia=state;
+        return true;
+      }
       async function mv2RegiaRecover(){
         var pending=mv2RegiaPending(),m=MV2.data?.master;
         if(!pending||pending.corrupt||!m||pending.args?.p_master_session!==m.id||pending.args?.p_request_key!==pending.request_key)return;
@@ -6416,7 +6454,13 @@ window.TUSOrdinary={attachOrdinaryLand};
             if(receipt?.schema_version!=='regia-round-operation/1'||receipt.status!=='not_found'||receipt.request_key!==pending.request_key)throw Error('Ricevuta ancora incerta.');
             var name=pending.rpc_name||(pending.kind==='publish'?'regia_round_publish_v1':pending.kind==='advance'?(pending.args?.p_direction?'regia_round_advance_v2':'regia_round_advance_v1'):null);
             if(!['regia_round_advance_v1','regia_round_advance_v2','regia_round_publish_v1'].includes(name))throw Error('Operazione salvata non compatibile.');
-            receipt=await mv2Rpc(name,pending.args);
+            try{receipt=await mv2Rpc(name,pending.args);}
+            catch(error){
+              if(await mv2RegiaRecoverRejectedPublication(pending,error)){
+                mv2Busy(false);toast('La richiesta precedente è stata rifiutata e conservata. Rileggi il Fato e pubblicalo con la revisione aggiornata.');renderMasterV2();return;
+              }
+              throw error;
+            }
             if(!mv2RegiaSettle(receipt,pending))throw Error('Replay senza ricevuta finale.');
           }
           mv2Busy(false);mv2Reload('Ricevuta Regia confermata.');
