@@ -9,7 +9,7 @@
   <meta name="tus-fato-history-build" content="C1236-H3-HISTORY-AGG15-STAFF" />
   <meta name="tus-master-report-ui-build" content="C1236-MASTER-REPORT-UI-001" />
   <meta name="tus-human-close-recovery-build" content="C1236-HUMAN-CLOSE-RECOVERY-001" />
-  <meta name="tus-regia-actor-receipt-build" content="C1244-REGIA-PG-PUBLICATION-GATE-002" />
+  <meta name="tus-regia-actor-receipt-build" content="C1244-REGIA-PG-PUBLICATION-GATE-003" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -4749,6 +4749,8 @@ function attachCombatPanel(host){
     }catch{host.notice('Esito Regia incerto: verifica la stessa richiesta.');renderRegiaControls();}
   }
   async function regiaRecoverRejectedPublication(p,error){
+    const staffRecovery=()=>{const room=host.location?.();return room?.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&room.is_test===true&&host.canRestoreTestResources?.()===true;};
+    if(!staffRecovery())return false;
     if(p.kind!=='publish'||error?.message!=='REGIA_PREPARATION_STALE')return false;
     const session=p.args.p_master_session,k=regiaPendingKey();
     const response=await host.rpc('regia_round_publication_state_v1',{p_master_session:session,p_actor:null});
@@ -4761,6 +4763,7 @@ function attachCombatPanel(host){
     const check=await host.rpc('regia_round_operation_receipt_v1',{p_master_session:session,p_request_key:p.request_key});
     if(check?.error||check.data?.schema_version!=='regia-round-operation/1'||check.data.status!=='not_found'
       ||check.data.request_key!==p.request_key||!k||JSON.stringify(regiaPending())!==JSON.stringify(p))return false;
+    if(!staffRecovery())return false;
     globalThis.sessionStorage.setItem(k+':rejected:'+p.request_key,JSON.stringify({status:'rejected',reason:'REGIA_PREPARATION_STALE',pending:p}));
     globalThis.sessionStorage.removeItem(k);
     regiaDraft=p.args.p_body;regiaState=state;
@@ -6429,6 +6432,8 @@ window.TUSOrdinary={attachOrdinaryLand};
         }catch(error){mv2Busy(false);toast('Esito incerto: verifica la stessa richiesta dal pannello.');renderMasterV2();}
       }
       async function mv2RegiaRecoverRejectedPublication(p,error){
+        var staffRecovery=()=>cur?.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test===true&&iAmStaff===true;
+        if(!staffRecovery())return false;
         if(p.kind!=='publish'||error?.message!=='REGIA_PREPARATION_STALE')return false;
         var session=p.args.p_master_session,key=mv2RegiaPendingKey();
         var state=await mv2Rpc('regia_round_publication_state_v1',{p_master_session:session,p_actor:null}),prep=state?.master;
@@ -6440,6 +6445,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         var check=await mv2Rpc('regia_round_operation_receipt_v1',{p_master_session:session,p_request_key:p.request_key});
         if(check?.schema_version!=='regia-round-operation/1'||check.status!=='not_found'
           ||check.request_key!==p.request_key||!key||JSON.stringify(mv2RegiaPending())!==JSON.stringify(p))return false;
+        if(!staffRecovery())return false;
         sessionStorage.setItem(key+':rejected:'+p.request_key,JSON.stringify({status:'rejected',reason:'REGIA_PREPARATION_STALE',pending:p}));
         sessionStorage.removeItem(key);MV2.regiaDraft=p.args.p_body;MV2.regia=state;
         return true;
