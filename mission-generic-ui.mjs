@@ -464,6 +464,57 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(roomCurrent(t)){paintRoom(host,roomState);await updateRoom(host,{manual:true});refresh();}
   }
  }
+ function sameChainRequest(a,b){
+  const valid=q=>q&&Object.keys(q).length===5&&q.schema_version==='mission-generic-request/1'
+   &&UUID.test(q.master_session_id||'')&&UUID.test(q.event_id||'')&&UUID.test(q.request_key||'')
+   &&Number.isSafeInteger(q.expected_revision)&&q.expected_revision>0;
+  return valid(a)&&valid(b)&&a.master_session_id===b.master_session_id&&a.event_id===b.event_id
+   &&a.request_key===b.request_key&&a.expected_revision===b.expected_revision;
+ }
+ // One automatic successor, only through the authenticated server parent-qualified read.
+ // Neither a generic ready work nor a failed/uncertain result authorizes this path.
+ async function continueDirectorNarration(data,parent,t){
+  const delivery=data?.delivery??data;
+  if(delivery?.status!==200||delivery.code!=='MISSION_EVENT_COMPLETE'||!UUID.test(delivery.receipt_id||'')
+   ||!roomCurrent(t)||abortBlocked(parent.session))return;
+  const parentRequest=parent.body.schema_version==='mission-generic-request/1'?parent.body:data?.dispatch;
+  if(!sameChainRequest(parentRequest,parentRequest)||parentRequest.master_session_id!==parent.session)return;
+  const read=await client.functions.invoke('mission_generic_ai',{body:{
+   schema_version:'mission-director-narration-read/1',parent_request:clone(parentRequest),parent_receipt_id:delivery.receipt_id}});
+  if(!roomCurrent(t)||read.error||abortBlocked(parent.session))return;
+  const proof=read.data,fields=['schema_version','status','parent_request','parent_receipt_id','parent_work_id','child_work_id','child_kind','source_window_id','child_request'];
+  if(!proof||Object.keys(proof).length!==fields.length||!fields.every(k=>Object.hasOwn(proof,k))
+   ||proof.schema_version!=='mission-director-narration-chain/1'||!['none','ready'].includes(proof.status)
+   ||!sameChainRequest(proof.parent_request,parentRequest)||proof.parent_receipt_id!==delivery.receipt_id)return;
+  if(proof.status==='none')return;
+  if(!UUID.test(proof.parent_work_id||'')||!UUID.test(proof.child_work_id||'')||proof.parent_work_id===proof.child_work_id
+   ||proof.child_kind!=='narration'||!UUID.test(proof.source_window_id||'')
+   ||!sameChainRequest(proof.child_request,proof.child_request)
+   ||proof.child_request.master_session_id!==parent.session||proof.child_request.event_id===parentRequest.event_id
+   ||proof.child_request.request_key===parentRequest.request_key)return;
+  const fresh=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
+  if(!roomCurrent(t)||abortBlocked(parent.session)||fresh?.session_id!==parent.session||fresh.review_required===true||!fresh.can_tick)return;
+  const parsed=processingFor(fresh),work=parsed.value;
+  if(!parsed.valid||work?.state!=='ready'||work.finalized_at!==null||work.work_id!==proof.child_work_id
+   ||!sameChainRequest(work.request,proof.child_request)||JSON.stringify(work.request)!==JSON.stringify(proof.child_request))return;
+  const key='work:'+work.work_id+':'+work.revision,storeKey=JSON.stringify([t.user,parent.session,key]);
+  if(attempts.has(storeKey)||[...attempts.values()].some(a=>a!==parent&&a.user===t.user&&a.session===parent.session&&a.inFlight))return;
+  const a={user:t.user,session:parent.session,key,kind:'work',work:work.work_id,prior_work_id:work.work_id,
+   prior_publication_id:fresh.flow_publication_id??null,staffTickSource:null,staffTickState:null,
+   body:Object.freeze(clone(proof.child_request)),inFlight:true,outcome:'pending'};
+  attempts.set(storeKey,a);roomState=fresh;paintRoom(roomHost,fresh);
+  try{
+   const {data:result,error}=await client.functions.invoke('mission_generic_ai',{body:clone(a.body)});
+   if(error)throw error;
+   const code=result?.delivery?.code||result?.code;
+   if(code==='MISSION_EVENT_UNCERTAIN'||result?.state==='uncertain')a.outcome='uncertain';
+   else if(code==='MISSION_EVENT_FAILED'||result?.state==='failed')a.outcome='failed';
+   else if(result?.delivery?.status===202||result?.status===202)a.outcome='waiting';
+   else if(result&&typeof result==='object')a.outcome='confirmed';else a.outcome='uncertain';
+  }catch{a.outcome='uncertain';}
+  finally{a.inFlight=false;}
+  // No recursion, retry or third work. The caller's normal readback displays the child's authoritative result.
+ }
  function maybeDispatch(state,t,reclaim=false){
   const parsed=processingFor(state),p=parsed.value;if(!roomCurrent(t)||!parsed.valid||state.review_required===true||!state.can_tick||choiceRequests.has(choiceKey(state))||liveAttempt(state))return;
   if(unresolvedTickForSession(state))return; // Same-session uncertainty blocks a new tick even when role revision changes.
@@ -501,6 +552,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     else if(code==='MISSION_EVENT_FAILED'||data?.state==='failed')a.outcome='failed';
     else if(data?.delivery?.status===202||data?.status===202)a.outcome='waiting';
     else if(data&&typeof data==='object')a.outcome='confirmed';else a.outcome='uncertain';
+    if(a.outcome==='confirmed')await continueDirectorNarration(data,a,t).catch(()=>{});
    }catch{a.outcome='uncertain';}
    finally{a.inFlight=false;if(roomCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true});refresh();}}
   })().catch(()=>{});
