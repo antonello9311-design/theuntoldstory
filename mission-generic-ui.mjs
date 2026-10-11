@@ -189,7 +189,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    ||!(p.message_id===null||UUID.test(p.message_id||''))||q?.schema_version!=='mission-generic-request/1'||q.master_session_id!==state.session_id||q.event_id!==p.event_id||q.request_key!==p.request_key||q.expected_revision!==p.revision)return {valid:false,value:null};
   return {valid:true,value:p};
  }
- function currentAttempt(state){return [...attempts.values()].reverse().find(a=>a.user===cacheUser&&a.session===state.session_id&&(a.key==='tick:'+state.progress_key||a.work===state.processing?.work_id))||null;}
+ function currentAttempt(state){return [...attempts.values()].reverse().find(a=>a.user===cacheUser&&a.session===state.session_id&&(a.key==='tick:'+state.progress_key||a.tickRecoveryKey&&a.key==='tick:'+state.progress_key+':recovery:'+a.tickRecoveryKey||a.work===state.processing?.work_id))||null;}
   function liveAttempt(state){return [...attempts.values()].some(a=>a.user===cacheUser&&a.session===state.session_id&&a.inFlight);}
   function academyFlow(state){
    const hasState=Object.hasOwn(state,'flow_state'),hasPublication=Object.hasOwn(state,'flow_publication_id');
@@ -241,6 +241,63 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     case 'published':return flow==='combat_started'?'Scontro iniziato · Dichiara l’azione nel pannello Scontro.':'Nuova scena · Puoi scrivere una nuova role.';
    }
    return null;
+  }
+  function tickStatusFor(state,t={user:identity(),loc:currentLocation()}){
+   const applicable=isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc?.is_test===true
+    &&state?.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9';
+   if(!applicable)return {applicable:false,valid:true,value:null};
+   const x=state.staff_tick_status;
+   const fields=['schema_version','master_session_id','source_revision','request_key','owned_by_me','state',
+    'work_id','work_state','retry_request_key','can_resume','recovery_key','acknowledged_retry_from_work_id'];
+   const uuidOrNull=x=>x===null||UUID.test(x||'');
+   if(!x||Array.isArray(x)||Object.keys(x).length!==fields.length||!fields.every(k=>Object.hasOwn(x,k))
+    ||x.schema_version!=='mission-generic-staff-tick-status/2'||x.master_session_id!==state.session_id
+    ||!SHA.test(x.source_revision||'')||x.source_revision!==state.source_revision
+    ||!['absent','attested','released','blocked'].includes(x.state)
+    ||typeof x.owned_by_me!=='boolean'||typeof x.can_resume!=='boolean'
+    ||!['request_key','work_id','retry_request_key','recovery_key','acknowledged_retry_from_work_id'].every(k=>uuidOrNull(x[k]))
+    ||!(x.work_state===null||workStates.has(x.work_state)))return {applicable:true,valid:false,value:null};
+   if(x.state==='absent'){
+    if(x.owned_by_me||x.can_resume||['request_key','work_id','work_state','retry_request_key','recovery_key','acknowledged_retry_from_work_id'].some(k=>x[k]!==null))
+     return {applicable:true,valid:false,value:null};
+   }else if(x.state==='blocked'){
+    if(x.can_resume||['work_id','work_state','retry_request_key','recovery_key','acknowledged_retry_from_work_id'].some(k=>x[k]!==null))
+     return {applicable:true,valid:false,value:null};
+   }else{
+    if(!UUID.test(x.request_key||'')||!UUID.test(x.work_id||'')||!workStates.has(x.work_state))
+     return {applicable:true,valid:false,value:null};
+    if(x.acknowledged_retry_from_work_id===x.work_id)return {applicable:true,valid:false,value:null};
+    if(x.state==='attested'&&(x.can_resume||x.retry_request_key!==null||x.recovery_key!==null))
+     return {applicable:true,valid:false,value:null};
+    if(x.state==='released'&&(x.work_state!=='failed'||x.recovery_key!==x.work_id
+     ||x.can_resume&&(!x.owned_by_me||!UUID.test(x.retry_request_key||'')||x.retry_request_key===x.request_key)))
+     return {applicable:true,valid:false,value:null};
+   }
+   return {applicable:true,valid:true,value:x};
+  }
+  function reconcileTickAttempts(state,t,projection=tickStatusFor(state,t)){
+   if(!projection.applicable||!projection.valid||!roomCurrent(t))return;
+   const receipt=projection.value;
+   if(!['attested','released'].includes(receipt.state)||!UUID.test(receipt.request_key||''))return;
+   for(const a of attempts.values()){
+    if(a.user!==t.user||a.session!==state.session_id||a.kind!=='tick'||a.inFlight||a.outcome!=='uncertain'
+     ||a.staffTickSource!==receipt.source_revision||a.body?.schema_version!=='mission-generic-staff-tick/1'
+     ||Object.keys(a.body).length!==3||a.body.master_session_id!==state.session_id
+     ||a.body.source_revision!==receipt.source_revision)continue;
+    // Own retry needs its exact successor ACK; a released predecessor with no successor proves no retry delivery.
+    if(receipt.owned_by_me&&a.tickRecoveryKey&&receipt.acknowledged_retry_from_work_id!==a.tickRecoveryKey)continue;
+    // Unique immutable tick ownership is authoritative; no record/nonce is removed or replaced.
+    a.outcome=receipt.owned_by_me?'confirmed':'delegated';
+    a.staffTickReceiptKey=receipt.request_key;
+    a.staffTickState=receipt.owned_by_me?'replayed':null;
+   }
+  }
+  function mayCreateStaffTick(projection){
+   if(!projection.applicable)return true;
+   if(!projection.valid)return false;
+   const x=projection.value;
+   // Absent is the first-tick case, not evidence of another Staff owner. Existing normal gates still apply.
+   return x.state==='absent'||x.state==='released'&&x.owned_by_me&&x.can_resume;
   }
   function unresolvedTickForSession(state){
    if(staffAcademyRole(state)===null)return null;
@@ -303,7 +360,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1264-count-terminal-1');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1264-tick-receipt-3');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -347,7 +404,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }else if(combatRecovery)combatRecovery.remove();
   let tickCheck=host.querySelector('[data-mg-tick-check]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&unresolvedTickForSession(state)){
-   if(!tickCheck){tickCheck=button('Verifica invio',()=>updateRoom(host,{manual:true}));tickCheck.setAttribute('data-mg-tick-check','');host.append(tickCheck);}
+   if(!tickCheck){tickCheck=button('Verifica invio',()=>updateRoom(host,{manual:true,verifyOnly:true}));tickCheck.setAttribute('data-mg-tick-check','');host.append(tickCheck);}
    tickCheck.disabled=!!roomError;
   }else if(tickCheck)tickCheck.remove();
   let entryButton=host.querySelector('[data-mg-combat-entry]'),panelButton=host.querySelector('[data-mg-combat-panel]'),entryNotice=host.querySelector('[data-mg-combat-notice]'),entryRetry=host.querySelector('[data-mg-combat-entry-retry]');
@@ -357,6 +414,18 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const entryText=entryError|| (entryPending?'Ingresso incerto: verifica la stessa richiesta prima di agire.':entryState?.reason_code==='REGIA_FATO_PENDING'?'Il Fato deve essere pubblicato prima della scelta meccanica.':entryState?.reason_code==='REGIA_NOT_YOUR_TURN'?'Pannello consultabile: attendi il tuo turno.':'');
   if(entryText){if(!entryNotice){entryNotice=el('p','',{role:'status','data-mg-combat-notice':''});host.append(entryNotice);}entryNotice.textContent=entryText;}else entryNotice?.remove();
   const text=statusText(state);if(status.textContent!==text)status.textContent=text;
+  const tickProjection=tickStatusFor(state);
+  let tickOwnerNotice=host.querySelector('[data-mg-tick-owner-status]');
+  const receipt=tickProjection.value;
+  const tickText=tickProjection.applicable&&!tickProjection.valid
+   ?'Ricevuta della valutazione non verificabile. Le role restano conservate: usa Verifica invio o Aggiorna regia.'
+   :receipt?.state==='blocked'?'Ricevuta della valutazione in attesa di verifica Staff. Nessun nuovo invio automatico.'
+   :receipt&&['attested','released'].includes(receipt.state)&&!receipt.owned_by_me
+    ?'La valutazione è affidata a un altro Staff. Le tue role e le azioni consentite dal server restano disponibili.'
+   :receipt?.state==='released'&&!receipt.can_resume?'La ricevuta precedente è conservata. La ripresa non è ancora autorizzata dal server.':'';
+  if(tickText){if(!tickOwnerNotice){tickOwnerNotice=el('p','',{role:'status','data-mg-tick-owner-status':''});host.append(tickOwnerNotice);}tickOwnerNotice.textContent=tickText;}
+  else tickOwnerNotice?.remove();
+
   const feedbackKey=JSON.stringify([cacheUser,state.session_id]),feedback=chainFeedback.get(feedbackKey);
   let chainNotice=host.querySelector('[data-mg-chain-status]');
   const staffScene=isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM
@@ -598,15 +667,20 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(claimedVerification||p?.state==='uncertain'||p?.state==='ready'&&role?.reason==='recoverable_not_started'&&p.finalized_at===null)))return;
   if(p&&['authorized','provider_started'].includes(p.state)||p?.state==='failed'&&!(staffAcademy&&role?.reason==='ready_to_evaluate')
    ||p&&['claimed','uncertain'].includes(p.state)&&!reclaim)return;
-  const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?(claimedVerification?':reconcile-claimed':p.state==='ready'?':reclaim-ready':':reclaim'):''):'tick:'+state.progress_key;
-  const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey))return;
   const staffRole=staffAcademyRole(state,t.loc),staffTick=!reclaim&&!staffCombat&&staffRole?.reason==='ready_to_evaluate'&&(!p||['completed','failed'].includes(p.state));
+  const tickProjection=tickStatusFor(state,t);
+  if(staffTick&&!mayCreateStaffTick(tickProjection))return;
+  const recoveryKey=staffTick&&tickProjection.applicable&&tickProjection.valid&&tickProjection.value.can_resume
+   ?tickProjection.value.recovery_key:null;
+  const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?(claimedVerification?':reconcile-claimed':p.state==='ready'?':reclaim-ready':':reclaim'):'')
+   :'tick:'+state.progress_key+(recoveryKey?':recovery:'+recoveryKey:'');
+  const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey))return;
   const body=p&&(p.state==='ready'||reclaim)?clone(p.request):staffTick
    ?{schema_version:'mission-generic-staff-tick/1',master_session_id:state.session_id,source_revision:staffRole.revision}
    :{schema_version:'mission-generic-tick/1',master_session_id:state.session_id,request_key:id()};
   const a={user:t.user,session:state.session_id,key,kind:key.startsWith('tick:')?'tick':'work',work:p&&(p.state==='ready'||reclaim)?p.work_id:null,
    prior_work_id:p?.work_id??null,prior_publication_id:state.flow_publication_id??null,staffTickSource:staffTick?staffRole.revision:null,
-   staffTickState:null,body:Object.freeze(body),inFlight:true,outcome:'pending'};attempts.set(storeKey,a);paintRoom(roomHost,state);
+   staffTickState:null,tickRecoveryKey:recoveryKey,body:Object.freeze(body),inFlight:true,outcome:'pending'};attempts.set(storeKey,a);paintRoom(roomHost,state);
   // Detached from the read lock: polling continues while the provider works.
   void (async()=>{
    try{
@@ -634,7 +708,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    finally{a.inFlight=false;if(roomCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true});refresh();}}
   })().catch(()=>{});
  }
- async function updateRoom(host,{manual=false}={}){
+ async function updateRoom(host,{manual=false,verifyOnly=false}={}){
   if(!host)return;const t=syncRoom(host);
   if(!t.user||!t.loc){host.replaceChildren();host.hidden=true;return;}
   if(roomRead)return;t.readSequence=++readSequence;roomRead=t;
@@ -645,7 +719,9 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     if(!UUID.test(state.session_id||'')||typeof state.step_key!=='string')throw Error('room_state_invalid');
     academyFlow(state); // The server owns both the phase and the Fato publication receipt.
     roleProgress(state); // A partial reason/remedy projection cannot authorize a dispatch.
-   roomState=state;roomError='';await readEntry(state,t.user);if(!roomCurrent(t))return;
+   roomState=state;roomError='';
+   reconcileTickAttempts(state,t);
+   await readEntry(state,t.user);if(!roomCurrent(t))return;
    const key=choiceKey(state),pending=choiceRequests.get(key);
    // Only a confirmed RPC/rejection followed by an authoritative read unlocks choices.
    if(pending&&!pending.inFlight&&['confirmed','rejected'].includes(pending.phase)&&t.readSequence>pending.settledAfterRead)choiceRequests.delete(key);
@@ -653,8 +729,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    await mountAborts(host,state,t);if(!roomCurrent(t)||!roomState)return;
    if(abortBlocked(state.session_id))return;await regen.update(host,state);
    const projected=processingFor(state);
-   if(!manual||academyFlow(state)==='combat_started'||staffAcademyRole(state,t.loc)?.reason==='ready_to_evaluate'
-    &&projected.valid&&(!projected.value||['completed','failed'].includes(projected.value.state)))maybeDispatch(state,t);
+   if(!verifyOnly&&(!manual||academyFlow(state)==='combat_started'||staffAcademyRole(state,t.loc)?.reason==='ready_to_evaluate'
+    &&projected.valid&&(!projected.value||['completed','failed'].includes(projected.value.state))))maybeDispatch(state,t);
   }catch(error){if(roomCurrent(t)){roomError='Aggiornamento non disponibile. I comandi restano sospesi; premi Aggiorna regia.';if(roomState)paintRoom(host,roomState);else{host.replaceChildren(el('p','Recupero della prova non verificabile. Nessun esito confermato.'));host.hidden=false;}}}
   finally{if(roomRead===t)roomRead=null;}
  }
