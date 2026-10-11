@@ -173,11 +173,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function scopeFor(user,loc){return user&&loc?.id?JSON.stringify([user,loc.id]):null;}
  function syncRoom(host){
   const user=identity(),loc=currentLocation(),scope=scopeFor(user,loc);
-  if(cacheUser!==user){cacheUser=user;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();}
+  if(cacheUser!==user){cacheUser=user;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();chainFeedback.clear();}
   if(scope!==roomScope||host!==roomHost){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';entryReplayReady=false;staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
   return {user,loc,scope,epoch:roomEpoch};
  }
  const roomCurrent=t=>t.scope===roomScope&&t.epoch===roomEpoch&&valid(t.user)&&scopeFor(identity(),currentLocation())===t.scope&&roomHost?.isConnected;
+ const chainFeedback=new Map();
  const choiceKey=s=>JSON.stringify([cacheUser,s.session_id]);
  function processingFor(state){
   if(!state||!UUID.test(state.session_id||'')||!SHA.test(state.progress_key||'')||!Object.hasOwn(state,'processing'))return {valid:false,value:null};
@@ -301,7 +302,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&state.choice_context?.narration_pending!==true&&(!p||p.state==='completed');
  }
  function paintRoom(host,state){
-  if(!host||!state)return;if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
+  if(!host||!state)return;
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1264-count-terminal-1');
+  else host.removeAttribute('data-mg-build');
+  if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
   if(!title||!status||!actions){host.replaceChildren();host.className='mg-room';title=el('strong','',{'data-mg-room-title':''});status=el('p','',{'data-mg-room-status':'',role:'status','aria-live':'polite','aria-atomic':'true'});actions=el('div',null,{'data-mg-room-actions':''});host.append(title,status,actions,button('Aggiorna regia',()=>updateRoom(host,{manual:true})));roomSignature='';}
   host.hidden=false;const heading='Missione · '+(state.objective||state.step_key||'');if(title.textContent!==heading)title.textContent=heading;
@@ -318,13 +322,15 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const role=roleProgress(state);
   const readyRecovery=role?.reason==='recoverable_not_started'&&claim?.state==='ready'&&claim.finalized_at===null;
   const uncertainRecovery=claim?.state==='uncertain'&&(!role||role.reason==='uncertain'||academyFlow(state)==='combat_started');
+  const claimedRecovery=processing.valid&&staffClaimReconciliationAllowed(state,{loc:currentLocation(),user:cacheUser},claim);
   let resume=host.querySelector('[data-mg-claim-resume]');
-  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&state.can_tick&&state.review_required!==true&&processing.valid&&(readyRecovery||uncertainRecovery)){
-   if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(p?.state==='ready'&&r?.reason==='recoverable_not_started')void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
-   resume.textContent=readyRecovery?'Verifica e riprendi la stessa richiesta':'Verifica o riprendi la stessa richiesta';
-   const suffix=readyRecovery?':reclaim-ready':':reclaim';
+  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&processing.valid
+   &&(claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
+   if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(p?.state==='claimed')void staffReconcileClaimed(host);else if(p?.state==='ready'&&r?.reason==='recoverable_not_started')void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
+   resume.textContent=claimedRecovery?'Verifica la stessa ricevuta':readyRecovery?'Verifica e riprendi la stessa richiesta':'Verifica o riprendi la stessa richiesta';
+   const suffix=claimedRecovery?':reconcile-claimed':readyRecovery?':reclaim-ready':':reclaim';
    const key=JSON.stringify([cacheUser,state.session_id,'work:'+claim.work_id+':'+claim.revision+suffix]);
-   resume.disabled=!!roomError||!!staffResumeRead||liveAttempt(state)||attempts.has(key);
+   resume.disabled=!!roomError||!!staffResumeRead||liveAttempt(state)||attempts.has(key)||abortBlocked(state.session_id);
   }else if(resume)resume.remove();
   let roleRecovery=host.querySelector('[data-mg-role-recovery]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test
@@ -351,6 +357,27 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const entryText=entryError|| (entryPending?'Ingresso incerto: verifica la stessa richiesta prima di agire.':entryState?.reason_code==='REGIA_FATO_PENDING'?'Il Fato deve essere pubblicato prima della scelta meccanica.':entryState?.reason_code==='REGIA_NOT_YOUR_TURN'?'Pannello consultabile: attendi il tuo turno.':'');
   if(entryText){if(!entryNotice){entryNotice=el('p','',{role:'status','data-mg-combat-notice':''});host.append(entryNotice);}entryNotice.textContent=entryText;}else entryNotice?.remove();
   const text=statusText(state);if(status.textContent!==text)status.textContent=text;
+  const feedbackKey=JSON.stringify([cacheUser,state.session_id]),feedback=chainFeedback.get(feedbackKey);
+  let chainNotice=host.querySelector('[data-mg-chain-status]');
+  const staffScene=isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM
+   &&state.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9';
+  if(feedback&&(state.flow_publication_id&&state.flow_publication_id!==feedback.publication_before
+   ||state.processing?.state==='failed'))chainFeedback.delete(feedbackKey);
+  const activeFeedback=staffScene?chainFeedback.get(feedbackKey):null;
+  if(activeFeedback&&activeFeedback.reason!=='child_confirmed'){
+   const reasons={parent_unconfirmed:'conferma della valutazione ancora assente',parent_request_unavailable:'ricevuta della richiesta non disponibile',
+    server_proof_unconfirmed:'verifica server non confermata',server_proof_invalid:'ricevuta server non riconosciuta',
+    server_proof_none:'nessuna prosecuzione attestata dal server',child_request_invalid:'ricevuta del racconto non riconosciuta',
+    context_changed:'stanza o accesso cambiati',room_state_changed:'stato della scena cambiato',abort_pending:'annullamento ancora da riconciliare',
+    child_review_required:'scena in attesa di verifica Staff',child_tick_suspended:'prosecuzione sospesa dal server',
+    child_projection_invalid:'stato del racconto non riconosciuto',child_projection_changed:'lavorazione del racconto cambiata',
+    child_tuple_mismatch:'ricevute della richiesta discordanti',child_already_attempted:'richiesta del racconto già inviata',
+    child_other_inflight:'un altro invio è ancora in corso',child_failed:'racconto fermato dal server',child_unconfirmed:'pubblicazione non ancora confermata',
+    verification_error:'verifica non disponibile'};
+   if(!chainNotice){chainNotice=el('p','',{role:'status','data-mg-chain-status':''});host.append(chainNotice);}
+   chainNotice.setAttribute('data-mg-chain-reason',activeFeedback.reason);
+   chainNotice.textContent='Raccordo del racconto: '+(reasons[activeFeedback.reason]||'verifica richiesta')+'. Le role restano conservate; non reinviarle.';
+  }else chainNotice?.remove();
  }
  function definitiveChoiceError(error){const code=error?.code;return typeof code==='string'&&(/^(22|23)/.test(code)||['42501','40001','55000','P0001'].includes(code));}
  async function staffRecoverCachedChoice(host){
@@ -378,6 +405,35 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }catch{
    if(roomCurrent(t)&&staffChoiceRecovery===token){roomError='Lavorazione non recuperata automaticamente. La role e l’esito IA restano conservati; lo Staff deve verificare il work prima di nuove azioni.';paintRoom(host,roomState);}
   }finally{if(staffChoiceRecovery===token){staffChoiceRecovery=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
+ }
+ function staffClaimReconciliationAllowed(state,t,work=state&&processingFor(state).value){
+  return isStaff()&&t?.loc?.id===STAFF_TEST_ROOM&&t.loc.is_test===true
+   &&state?.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'
+   &&['f0856d53-83a6-4de0-bc0c-12c87916e665','b4952ed5-5ce0-49c0-9f2b-8fd5dcd89b4b'].includes(t.user)
+   &&work?.state==='claimed'&&work.finalized_at===null;
+ }
+ async function staffReconcileClaimed(host){
+  const t=syncRoom(host),old=roomState,parsed=old&&processingFor(old),claim=parsed?.value;
+  if(!roomCurrent(t)||staffResumeRead||!parsed?.valid||!staffClaimReconciliationAllowed(old,t,claim)
+   ||liveAttempt(old)||abortBlocked(old.session_id))return;
+  const token={session:old.session_id,work:claim.work_id,event:claim.event_id,revision:claim.revision,
+   request_key:claim.request_key,request:clone(claim.request)};
+  staffResumeRead=token;paintRoom(host,old);
+  try{
+   const fresh=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
+   if(!roomCurrent(t)||staffResumeRead!==token)return;
+   const parsedFresh=fresh&&processingFor(fresh),current=parsedFresh?.value;
+   if(!fresh||!parsedFresh.valid)throw Error('claimed_readback_invalid');
+   roomState=fresh;roomError='';paintRoom(host,fresh);
+   if(fresh.session_id!==token.session||!staffClaimReconciliationAllowed(fresh,t,current)
+    ||current.work_id!==token.work||current.event_id!==token.event||current.revision!==token.revision
+    ||current.request_key!==token.request_key||!sameChainRequest(current.request,token.request)
+    ||abortBlocked(fresh.session_id))return;
+   // Technical reconciliation of this already-claimed request, never a new tick or new generation.
+   // The composed claim/status producer alone attests Count and may terminalize the known overflow.
+   maybeDispatch(fresh,t,true);
+  }catch{if(roomCurrent(t)&&staffResumeRead===token){roomError='Verifica della stessa ricevuta non riuscita. Nessuna nuova richiesta: aggiorna la regia prima di ricontrollare.';paintRoom(host,roomState);}}
+  finally{if(staffResumeRead===token){staffResumeRead=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
  }
  async function staffResumeReady(host){
   const t=syncRoom(host),old=roomState,oldClaim=old&&processingFor(old).value,oldRole=old&&roleProgress(old);
@@ -475,30 +531,42 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  // Neither a generic ready work nor a failed/uncertain result authorizes this path.
  async function continueDirectorNarration(data,parent,t){
   const delivery=data?.delivery??data;
-  if(delivery?.status!==200||delivery.code!=='MISSION_EVENT_COMPLETE'||!UUID.test(delivery.receipt_id||'')
-   ||!roomCurrent(t)||abortBlocked(parent.session))return;
+  if(!roomCurrent(t))return 'context_changed';
+  if(abortBlocked(parent.session))return 'abort_pending';
+  if(delivery?.status!==200||delivery.code!=='MISSION_EVENT_COMPLETE'||!UUID.test(delivery.receipt_id||''))return 'parent_unconfirmed';
   const parentRequest=parent.body.schema_version==='mission-generic-request/1'?parent.body:data?.dispatch;
-  if(!sameChainRequest(parentRequest,parentRequest)||parentRequest.master_session_id!==parent.session)return;
+  if(!sameChainRequest(parentRequest,parentRequest)||parentRequest.master_session_id!==parent.session)return 'parent_request_unavailable';
   const read=await client.functions.invoke('mission_generic_ai',{body:{
    schema_version:'mission-director-narration-read/1',parent_request:clone(parentRequest),parent_receipt_id:delivery.receipt_id}});
-  if(!roomCurrent(t)||read.error||abortBlocked(parent.session))return;
+  if(!roomCurrent(t))return 'context_changed';
+  if(abortBlocked(parent.session))return 'abort_pending';
+  if(read.error)return 'server_proof_unconfirmed';
   const proof=read.data,fields=['schema_version','status','parent_request','parent_receipt_id','parent_work_id','child_work_id','child_kind','source_window_id','child_request'];
   if(!proof||Object.keys(proof).length!==fields.length||!fields.every(k=>Object.hasOwn(proof,k))
    ||proof.schema_version!=='mission-director-narration-chain/1'||!['none','ready'].includes(proof.status)
-   ||!sameChainRequest(proof.parent_request,parentRequest)||proof.parent_receipt_id!==delivery.receipt_id)return;
-  if(proof.status==='none')return;
+   ||!sameChainRequest(proof.parent_request,parentRequest)||proof.parent_receipt_id!==delivery.receipt_id)return 'server_proof_invalid';
+  if(proof.status==='none')return 'server_proof_none';
   if(!UUID.test(proof.parent_work_id||'')||!UUID.test(proof.child_work_id||'')||proof.parent_work_id===proof.child_work_id
    ||proof.child_kind!=='narration'||!UUID.test(proof.source_window_id||'')
    ||!sameChainRequest(proof.child_request,proof.child_request)
    ||proof.child_request.master_session_id!==parent.session||proof.child_request.event_id===parentRequest.event_id
-   ||proof.child_request.request_key===parentRequest.request_key)return;
+   ||proof.child_request.request_key===parentRequest.request_key)return 'child_request_invalid';
   const fresh=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
-  if(!roomCurrent(t)||abortBlocked(parent.session)||fresh?.session_id!==parent.session||fresh.review_required===true||!fresh.can_tick)return;
+  if(!roomCurrent(t)||fresh?.session_id!==parent.session)return 'room_state_changed';
+  if(abortBlocked(parent.session))return 'abort_pending';
+  if(fresh.review_required===true)return 'child_review_required';
+  if(!fresh.can_tick)return 'child_tick_suspended';
   const parsed=processingFor(fresh),work=parsed.value;
-  if(!parsed.valid||work?.state!=='ready'||work.finalized_at!==null||work.work_id!==proof.child_work_id
-   ||!sameChainRequest(work.request,proof.child_request)||JSON.stringify(work.request)!==JSON.stringify(proof.child_request))return;
+  if(!parsed.valid)return 'child_projection_invalid';
+  if(work?.state!=='ready'||work.finalized_at!==null||work.work_id!==proof.child_work_id)return 'child_projection_changed';
+  if(!sameChainRequest(work.request,proof.child_request))return 'child_tuple_mismatch';
+  // REQUEST/1 is an exact typed tuple, not JSON text. Key order is not an idempotency or Count hash input.
+  if(JSON.stringify(work.request)!==JSON.stringify(proof.child_request)&&isStaff()&&t.loc?.id===STAFF_TEST_ROOM
+   &&parent.session==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9')
+   console.info('regia_chain_diagnostic','child_request_key_order_normalized');
   const key='work:'+work.work_id+':'+work.revision,storeKey=JSON.stringify([t.user,parent.session,key]);
-  if(attempts.has(storeKey)||[...attempts.values()].some(a=>a!==parent&&a.user===t.user&&a.session===parent.session&&a.inFlight))return;
+  if(attempts.has(storeKey))return 'child_already_attempted';
+  if([...attempts.values()].some(a=>a!==parent&&a.user===t.user&&a.session===parent.session&&a.inFlight))return 'child_other_inflight';
   const a={user:t.user,session:parent.session,key,kind:'work',work:work.work_id,prior_work_id:work.work_id,
    prior_publication_id:fresh.flow_publication_id??null,staffTickSource:null,staffTickState:null,
    body:Object.freeze(clone(proof.child_request)),inFlight:true,outcome:'pending'};
@@ -514,19 +582,23 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }catch{a.outcome='uncertain';}
   finally{a.inFlight=false;}
   // No recursion, retry or third work. The caller's normal readback displays the child's authoritative result.
+  return a.outcome==='confirmed'?'child_confirmed':a.outcome==='failed'?'child_failed':'child_unconfirmed';
  }
  function maybeDispatch(state,t,reclaim=false){
-  const parsed=processingFor(state),p=parsed.value;if(!roomCurrent(t)||!parsed.valid||state.review_required===true||!state.can_tick||choiceRequests.has(choiceKey(state))||liveAttempt(state))return;
-  if(unresolvedTickForSession(state))return; // Same-session uncertainty blocks a new tick even when role revision changes.
+  const parsed=processingFor(state),p=parsed.value;
+  const claimedVerification=reclaim&&parsed.valid&&staffClaimReconciliationAllowed(state,t,p);
+  if(!roomCurrent(t)||!parsed.valid||state.review_required===true&&!claimedVerification
+   ||!state.can_tick&&!claimedVerification||choiceRequests.has(choiceKey(state))||liveAttempt(state)||abortBlocked(state.session_id))return;
+  if(unresolvedTickForSession(state)&&!claimedVerification)return; // A known claimed request may be reconciled; no new tick is permitted.
   const role=roleProgress(state);
   const staffAcademy=isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc?.is_test===true&&academyFlow(state)!==null;
   const staffCombat=staffAcademy&&academyFlow(state)==='combat_started'&&UUID.test(state.flow_publication_id||'');
   if(staffAcademy&&!role)return; // Never fall back to a browser UUID when the Staff projection is missing.
-  if(role&&!staffCombat&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started':role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
-  if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(p?.state==='uncertain'||p?.state==='ready'&&role?.reason==='recoverable_not_started'&&p.finalized_at===null)))return;
+  if(role&&!staffCombat&&!claimedVerification&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started':role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
+  if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(claimedVerification||p?.state==='uncertain'||p?.state==='ready'&&role?.reason==='recoverable_not_started'&&p.finalized_at===null)))return;
   if(p&&['authorized','provider_started'].includes(p.state)||p?.state==='failed'&&!(staffAcademy&&role?.reason==='ready_to_evaluate')
    ||p&&['claimed','uncertain'].includes(p.state)&&!reclaim)return;
-  const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?(p.state==='ready'?':reclaim-ready':':reclaim'):''):'tick:'+state.progress_key;
+  const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?(claimedVerification?':reconcile-claimed':p.state==='ready'?':reclaim-ready':':reclaim'):''):'tick:'+state.progress_key;
   const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey))return;
   const staffRole=staffAcademyRole(state,t.loc),staffTick=!reclaim&&!staffCombat&&staffRole?.reason==='ready_to_evaluate'&&(!p||['completed','failed'].includes(p.state));
   const body=p&&(p.state==='ready'||reclaim)?clone(p.request):staffTick
@@ -552,7 +624,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     else if(code==='MISSION_EVENT_FAILED'||data?.state==='failed')a.outcome='failed';
     else if(data?.delivery?.status===202||data?.status===202)a.outcome='waiting';
     else if(data&&typeof data==='object')a.outcome='confirmed';else a.outcome='uncertain';
-    if(a.outcome==='confirmed')await continueDirectorNarration(data,a,t).catch(()=>{});
+    const chainReason=a.outcome==='confirmed'?await continueDirectorNarration(data,a,t).catch(()=>'verification_error')
+     :a.outcome==='uncertain'?'parent_unconfirmed':null;
+    if(chainReason&&roomCurrent(t)&&isStaff()&&t.loc?.id===STAFF_TEST_ROOM
+     &&state.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9')
+     {chainFeedback.set(JSON.stringify([t.user,state.session_id]),{reason:chainReason,publication_before:a.prior_publication_id});
+     console.info('regia_chain_diagnostic',chainReason);}
    }catch{a.outcome='uncertain';}
    finally{a.inFlight=false;if(roomCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true});refresh();}}
   })().catch(()=>{});
