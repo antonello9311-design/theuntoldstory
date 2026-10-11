@@ -480,7 +480,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function scopedFailedNarrationRecovery(state,work){
   return state?.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'
-   &&work?.work_id==='42341080-7f78-494e-9adf-85de7cfce038'&&work.state==='failed'&&work.finalized_at!==null;
+   &&['42341080-7f78-494e-9adf-85de7cfce038','c88958e7-8983-4332-a14e-095076f967f4'].includes(work?.work_id)&&work.state==='failed'&&work.finalized_at!==null;
  }
  function staffClaimReconciliationAllowed(state,t,work=state&&processingFor(state).value){
   return isStaff()&&t?.loc?.id===STAFF_TEST_ROOM&&t.loc.is_test===true
