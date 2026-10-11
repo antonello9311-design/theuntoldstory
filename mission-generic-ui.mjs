@@ -173,12 +173,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function scopeFor(user,loc){return user&&loc?.id?JSON.stringify([user,loc.id]):null;}
  function syncRoom(host){
   const user=identity(),loc=currentLocation(),scope=scopeFor(user,loc);
-  if(cacheUser!==user){cacheUser=user;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();chainFeedback.clear();}
+  if(cacheUser!==user){cacheUser=user;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();chainFeedback.clear();recoveredWriters.clear();}
   if(scope!==roomScope||host!==roomHost){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';entryReplayReady=false;staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
   return {user,loc,scope,epoch:roomEpoch};
  }
  const roomCurrent=t=>t.scope===roomScope&&t.epoch===roomEpoch&&valid(t.user)&&scopeFor(identity(),currentLocation())===t.scope&&roomHost?.isConnected;
- const chainFeedback=new Map();
+ const chainFeedback=new Map(),recoveredWriters=new Set();
+ const recoveredWriterKey=(user,session,work)=>JSON.stringify([user,session,work]);
  const choiceKey=s=>JSON.stringify([cacheUser,s.session_id]);
  function processingFor(state){
   if(!state||!UUID.test(state.session_id||'')||!SHA.test(state.progress_key||'')||!Object.hasOwn(state,'processing'))return {valid:false,value:null};
@@ -360,7 +361,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1264-tick-receipt-3');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1264-narration-recovery-4');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -377,13 +378,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   else if(retry)retry.remove();
   const processing=processingFor(state),claim=processing.value;
   const role=roleProgress(state);
-  const readyRecovery=role?.reason==='recoverable_not_started'&&claim?.state==='ready'&&claim.finalized_at===null;
+  const readyRecovery=claim?.state==='ready'&&claim.finalized_at===null
+   &&(role?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,state.session_id,claim.work_id)));
   const uncertainRecovery=claim?.state==='uncertain'&&(!role||role.reason==='uncertain'||academyFlow(state)==='combat_started');
   const claimedRecovery=processing.valid&&staffClaimReconciliationAllowed(state,{loc:currentLocation(),user:cacheUser},claim);
   let resume=host.querySelector('[data-mg-claim-resume]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&processing.valid
    &&(claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
-   if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(p?.state==='claimed')void staffReconcileClaimed(host);else if(p?.state==='ready'&&r?.reason==='recoverable_not_started')void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
+   if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(p?.state==='claimed')void staffReconcileClaimed(host);else if(p?.state==='ready'&&(r?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,s.session_id,p.work_id))))void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
    resume.textContent=claimedRecovery?'Verifica la stessa ricevuta':readyRecovery?'Verifica e riprendi la stessa richiesta':'Verifica o riprendi la stessa richiesta';
    const suffix=claimedRecovery?':reconcile-claimed':readyRecovery?':reclaim-ready':':reclaim';
    const key=JSON.stringify([cacheUser,state.session_id,'work:'+claim.work_id+':'+claim.revision+suffix]);
@@ -391,9 +393,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }else if(resume)resume.remove();
   let roleRecovery=host.querySelector('[data-mg-role-recovery]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test
-   &&state.can_tick&&processing.valid&&claim?.state==='failed'&&role?.reason==='failed'){
+   &&processing.valid&&claim?.state==='failed'
+   &&(scopedFailedNarrationRecovery(state,claim)||state.can_tick&&role?.reason==='failed')){
    if(!roleRecovery){roleRecovery=button('Verifica recupero del Fato o della Regia',()=>staffRecoverIdenticalRole(host));roleRecovery.setAttribute('data-mg-role-recovery','');host.append(roleRecovery);}
-   roleRecovery.disabled=!!roomError||!!staffRoleRecovery||liveAttempt(state);
+   roleRecovery.disabled=!!roomError||!!staffRoleRecovery||liveAttempt(state)||abortBlocked(state.session_id);
   }else if(roleRecovery)roleRecovery.remove();
   let combatRecovery=host.querySelector('[data-mg-combat-recovery]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test
@@ -475,6 +478,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(roomCurrent(t)&&staffChoiceRecovery===token){roomError='Lavorazione non recuperata automaticamente. La role e l’esito IA restano conservati; lo Staff deve verificare il work prima di nuove azioni.';paintRoom(host,roomState);}
   }finally{if(staffChoiceRecovery===token){staffChoiceRecovery=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
  }
+ function scopedFailedNarrationRecovery(state,work){
+  return state?.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'
+   &&work?.work_id==='42341080-7f78-494e-9adf-85de7cfce038'&&work.state==='failed'&&work.finalized_at!==null;
+ }
  function staffClaimReconciliationAllowed(state,t,work=state&&processingFor(state).value){
   return isStaff()&&t?.loc?.id===STAFF_TEST_ROOM&&t.loc.is_test===true
    &&state?.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'
@@ -507,7 +514,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  async function staffResumeReady(host){
   const t=syncRoom(host),old=roomState,oldClaim=old&&processingFor(old).value,oldRole=old&&roleProgress(old);
   if(!roomCurrent(t)||staffResumeRead||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!old?.can_tick||old?.review_required===true
-   ||oldClaim?.state!=='ready'||oldClaim.finalized_at!==null||oldRole?.reason!=='recoverable_not_started')return;
+   ||oldClaim?.state!=='ready'||oldClaim.finalized_at!==null||!oldRole
+   ||!(oldRole?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(t.user,old.session_id,oldClaim.work_id))))return;
   const token={session:old.session_id,work:oldClaim.work_id,event:oldClaim.event_id,revision:oldClaim.revision,request_key:oldClaim.request_key,request_json:JSON.stringify(oldClaim.request),source_revision:oldRole.revision};
   staffResumeRead=token;paintRoom(host,old);
   try{
@@ -518,7 +526,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    roomState=fresh;roomError='';paintRoom(host,fresh);
    if(fresh.session_id!==token.session||fresh.review_required===true||!fresh.can_tick||claim?.state!=='ready'||claim.finalized_at!==null
     ||claim.work_id!==token.work||claim.event_id!==token.event||claim.revision!==token.revision||claim.request_key!==token.request_key
-    ||JSON.stringify(claim.request)!==token.request_json||role?.reason!=='recoverable_not_started'
+    ||JSON.stringify(claim.request)!==token.request_json
+    ||!(role?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(t.user,fresh.session_id,claim.work_id)))
     ||role.revision!==token.source_revision)return; // State changed: no second request is created.
    maybeDispatch(fresh,t,true); // processing.request is validated and reused byte-for-byte as a JS object.
   }catch{if(roomCurrent(t)&&staffResumeRead===token){roomError='Verifica della richiesta non riuscita. Nessun nuovo invio: aggiorna la regia e ricontrolla la stessa richiesta.';paintRoom(host,roomState);}}
@@ -526,8 +535,9 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  async function staffRecoverIdenticalRole(host){
   const t=syncRoom(host),state=roomState,parsed=processingFor(state),work=parsed.value,role=state&&roleProgress(state);
-  if(!roomCurrent(t)||staffRoleRecovery||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test
-   ||!state?.can_tick||!parsed.valid||work?.state!=='failed'||role?.reason!=='failed')return;
+  if(!roomCurrent(t)||staffRoleRecovery||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||abortBlocked(state?.session_id)
+   ||!parsed.valid||work?.state!=='failed'
+   ||!(scopedFailedNarrationRecovery(state,work)||state?.can_tick&&role?.reason==='failed'))return;
   const token={session:state.session_id,work:work.work_id};staffRoleRecovery=token;paintRoom(host,state);
   try{
    const cached=await client.functions.invoke('mission_generic_ai',{body:{
@@ -540,8 +550,21 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     throw Error('staff_cached_publication_unconfirmed');
    }
    if(cached.data?.schema_version!=='mission-generic-staff-cached-publication/1'
-    ||!['published','not_applicable'].includes(cached.data.status))
+    ||!['published','not_applicable','recovered'].includes(cached.data.status))
     throw Error('staff_cached_publication_invalid');
+   if(cached.data.status==='recovered'){
+    const r=cached.data,fields=['schema_version','status','master_session_id','work_id','replayed'];
+    if(Object.keys(r).length!==fields.length||!fields.every(k=>Object.hasOwn(r,k))
+     ||r.master_session_id!==token.session||!UUID.test(r.work_id||'')||r.work_id===token.work||typeof r.replayed!=='boolean')
+     throw Error('staff_count_recovery_invalid');
+    recoveredWriters.add(recoveredWriterKey(t.user,token.session,r.work_id));
+    await updateRoom(host,{manual:true,verifyOnly:true});
+    if(!roomCurrent(t)||staffRoleRecovery!==token)return;
+    const fresh=roomState,writer=fresh&&processingFor(fresh);
+    if(fresh?.session_id!==token.session||!writer?.valid||writer.value?.work_id!==r.work_id
+     ||writer.value.state!=='ready'||writer.value.finalized_at!==null)throw Error('staff_count_recovery_readback_unconfirmed');
+    roomError='';paintRoom(host,fresh);refresh();return; // Prepared, never published and never auto-generated here.
+   }
    if(cached.data.status==='published'){
     await updateRoom(host,{manual:true});refresh();return;
    }
@@ -656,6 +679,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function maybeDispatch(state,t,reclaim=false){
   const parsed=processingFor(state),p=parsed.value;
   const claimedVerification=reclaim&&parsed.valid&&staffClaimReconciliationAllowed(state,t,p);
+  const recoveredReady=p?.state==='ready'&&recoveredWriters.has(recoveredWriterKey(t.user,state.session_id,p.work_id));
+  if(recoveredReady&&!reclaim)return;
   if(!roomCurrent(t)||!parsed.valid||state.review_required===true&&!claimedVerification
    ||!state.can_tick&&!claimedVerification||choiceRequests.has(choiceKey(state))||liveAttempt(state)||abortBlocked(state.session_id))return;
   if(unresolvedTickForSession(state)&&!claimedVerification)return; // A known claimed request may be reconciled; no new tick is permitted.
@@ -663,8 +688,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const staffAcademy=isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc?.is_test===true&&academyFlow(state)!==null;
   const staffCombat=staffAcademy&&academyFlow(state)==='combat_started'&&UUID.test(state.flow_publication_id||'');
   if(staffAcademy&&!role)return; // Never fall back to a browser UUID when the Staff projection is missing.
-  if(role&&!staffCombat&&!claimedVerification&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started':role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
-  if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(claimedVerification||p?.state==='uncertain'||p?.state==='ready'&&role?.reason==='recoverable_not_started'&&p.finalized_at===null)))return;
+  if(role&&!staffCombat&&!claimedVerification&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started'||recoveredReady:role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
+  if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(claimedVerification||p?.state==='uncertain'||p?.state==='ready'&&(role?.reason==='recoverable_not_started'||recoveredReady)&&p.finalized_at===null)))return;
   if(p&&['authorized','provider_started'].includes(p.state)||p?.state==='failed'&&!(staffAcademy&&role?.reason==='ready_to_evaluate')
    ||p&&['claimed','uncertain'].includes(p.state)&&!reclaim)return;
   const staffRole=staffAcademyRole(state,t.loc),staffTick=!reclaim&&!staffCombat&&staffRole?.reason==='ready_to_evaluate'&&(!p||['completed','failed'].includes(p.state));
