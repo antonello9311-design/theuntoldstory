@@ -1,0 +1,73 @@
+{
+  "schema_version": "c889-context24-source-contract/1",
+  "approved_financial_contract": {
+    "schema_version": "c889-context24-contract/1",
+    "scene_id": "ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9",
+    "work_id": "48e1bdcd-f044-be8c-1923-54d38e7e822c",
+    "batch_id": "32e674f6-f1b8-4273-973e-7da88ed2c5b9",
+    "old_work_id": "c88958e7-8983-4332-a14e-095076f967f4",
+    "input_tokens": 24000,
+    "output_tokens": 20000,
+    "Count_upper_cost_usd": "0.0124",
+    "Generation_upper_cost_usd": "0.0124",
+    "input_usd_million": "0.1",
+    "output_usd_million": "0.5",
+    "generation_limit": 14,
+    "HTTP_limit": 28,
+    "scene_cost_cap_usd": "0.3136",
+    "policy_version": 2,
+    "legacy_input_limit": 12000,
+    "legacy_contract_preserved": true
+  },
+  "financial_contract_sha256": "13421de48d6dddbb8c6628fd6a294b90746b3d2b79e56bf617456a5d3cc8e090",
+  "provider_input_contract": {
+    "schema_version": "mission-generic-provider-input/3",
+    "input_tokens_limit": 24000,
+    "policy_version": 2,
+    "http_calls_per_generation": 2,
+    "scope": {
+      "schema_version": "c889-context24-work-scope/1",
+      "session_id": "ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9",
+      "work_id": "48e1bdcd-f044-be8c-1923-54d38e7e822c",
+      "batch_id": "32e674f6-f1b8-4273-973e-7da88ed2c5b9",
+      "old_work_id": "c88958e7-8983-4332-a14e-095076f967f4",
+      "financial_qualification_sha256": "REQUIRES_GENUINE_NEW_FINANCIAL_QUALIFICATION_SHA256",
+      "count_reserve_usd": "0.0124",
+      "generation_reserve_usd": "0.0124"
+    },
+    "pricing": {
+      "model": "gpt-6-luna",
+      "reasoning_effort": "high",
+      "store": false,
+      "max_output_tokens": 20000,
+      "input_usd_million": 0.1,
+      "output_usd_million": 0.5,
+      "count_upper_cost_usd": "0.0124",
+      "generation_upper_cost_usd": "0.0124"
+    },
+    "byte_bounds": {
+      "max_input_bytes": 49152,
+      "max_request_bytes": 131072
+    }
+  },
+  "provider_input_keys_exact": 7,
+  "scope_keys_exact": 8,
+  "legacy_input_contract_1_exact4keys12K_preserved": true,
+  "financial_config_required": {
+    "schema_version": "c889-context24-policy/1",
+    "scene_id": "ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9",
+    "work_id": "48e1bdcd-f044-be8c-1923-54d38e7e822c",
+    "input_tokens_limit": 24000,
+    "output_tokens_limit": 20000,
+    "count_upper_cost_usd": "0.0124",
+    "generation_upper_cost_usd": "0.0124",
+    "count_reserve_contract_sha256": "13421de48d6dddbb8c6628fd6a294b90746b3d2b79e56bf617456a5d3cc8e090",
+    "financial_qualification_sha256": "GENUINE_NEW_REVIEWED_ARTIFACT_SHA_REQUIRED"
+  },
+  "Root_native_admission_proof": "encodeSHA256(jsonb_build_object schema_versionc889-context24-native-admission/1 exactlyasScopeHelper; matched da.C7proof)",
+  "base_policyglobal12Kunchanged": true,
+  "scopeHelperflagsOFFstaysinertbecausecontext24missingnewRoot/noadmissionqual": true,
+  "class_proof": "EXISTS(SELECT 1 FROM mission_generic_owner.work_items c24old JOIN mission_generic_owner.unified_batches c24batch ON c24batch.id=w.authority_receipt_id\n JOIN mission_narrative_internal.dispatch_receipts c24receipt ON c24receipt.id=c24old.dispatch_receipt_id\n WHERE c24old.id='c88958e7-8983-4332-a14e-095076f967f4'::uuid AND w.id='48e1bdcd-f044-be8c-1923-54d38e7e822c'::uuid AND w.master_session_id='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'::uuid\n AND w.id=md5('C889:work:'||c24old.id::text)::uuid AND w.event_id=md5('C889:event:'||c24old.id::text)::uuid AND w.request_key=md5('C889:request:'||c24old.id::text)::uuid\n AND w.dedupe_key='c889-count-reissue:'||c24old.id::text AND w.kind='narration' AND w.payload->>'schema_version'='mission-generic-narration/3'\n AND c24batch.id='32e674f6-f1b8-4273-973e-7da88ed2c5b9'::uuid AND c24batch.master_session_id=w.master_session_id AND c24batch.writer_work_id=w.id AND c24batch.state IN('ready','published') AND c24batch.message_id IS NOT DISTINCT FROM w.message_id\n AND c24batch.composition_kind='combat_resolved_no_pending' AND c24batch.source_window_id IS NULL AND c24batch.next_round_id IS NULL\n AND c24old.master_session_id=w.master_session_id AND c24old.authority_receipt_id=c24batch.id AND c24old.state='failed'\n AND c24old.result->>'schema_version'='mission-count-overflow-failure/1' AND c24old.result->>'failure_code'='MISSION_INPUT_COUNT_OVERFLOW'\n AND c24old.result->>'input_tokens'='14811' AND c24old.result->>'max_input_tokens'='12000' AND c24old.result->>'generation_http_calls'='0'\n AND c24old.result_sha256=public.combat_v2_sha256(c24old.result) AND c24old.authorization_id IS NULL AND c24old.dispatch_id IS NULL\n AND w.payload=c24old.payload AND w.payload=c24batch.payload AND w.payload_sha256=c24old.payload_sha256 AND w.payload_sha256=c24batch.payload_sha256\n AND w.payload_sha256='da8c38c23db1c04ceaaaedfb7b5ead1b43c18c1ee60b069696ba36d832c9da78'\n AND w.run_control_version=c24old.run_control_version AND w.definition_sha256=c24old.definition_sha256 AND w.revision=c24old.revision\n AND c24receipt.status='failed' AND c24receipt.finalized_at IS NOT NULL AND c24receipt.dispatch_count=0 AND c24receipt.charged_cost_usd=0\n AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_attempts c24attempt WHERE c24attempt.receipt_id=c24receipt.id)\n AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.provider_authorizations c24auth WHERE c24auth.receipt_id=c24receipt.id)\n AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_audit c24audit WHERE c24audit.receipt_id=c24receipt.id AND c24audit.event_code='generic_count_overflow_terminal'\n  AND c24audit.details->>'work_id'=c24old.id::text AND c24audit.details->>'receipt_id'=c24old.receipt_id::text AND c24audit.details->>'result_sha256'=c24old.result_sha256)\n AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_audit c24audit WHERE c24audit.receipt_id=c24receipt.id AND c24audit.event_code='c889_count_narration_reissued'\n  AND c24audit.details->>'old_work_id'=c24old.id::text AND c24audit.details->>'work_id'=w.id::text AND c24audit.details->>'batch_id'=c24batch.id::text\n  AND c24audit.details->>'payload_sha256'=w.payload_sha256 AND c24audit.details->>'generation_http_calls'='0'))",
+  "sameCapPriceModelsActorsHistory": true,
+  "byte_bounds_note": "EXACTcurrentCLAIMlimits max_input_bytes49152/max_request_bytes131072; no DoScapraise."
+}
