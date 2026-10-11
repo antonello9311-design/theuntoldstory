@@ -1,0 +1,8 @@
+C1264-BIND-CODE-ONLY-STAGE-20261011 · Correzione server installata, QA NON conclusa
+
+Scope toccato · Solo bind_arena_native alias r→combat_round_row, firma/owner/ACL invariati. Nessun altro codice, dato gameplay, flag, scadenza o risorsa reale modificata.
+Contratti · Bind fonte d825→c7efaaf5c649a5d69f3d1f620f8bec2c; cachedc681 invariato; R3/Edge60/UI621509 e quattro CFG invariati. Composizione diagnostica transitoria; nessuna nuova R qualificata.
+Decisioni · Installer3884 e review15d36 0/0/0. Mac bloccato prima installazione UI: QA precedente sospesa e risorse rilasciate, nessun rinnovo/accesso/provider. Installer code-only distinto elimina soltanto la linea dei tre rinnovi dal parenta9fe.
+Prove · Pre14:57:46, apply SUCCESS, post14:58:06 fontebindc7/DDLmd5a7b152820563030497ba2b7c13ce3bad, quattroCFG uguali, resources48 digestd41adde267a202a8ff4c6c194eb0a09f invarianti, G8/Count10/HTTP18 immutati. Due readonly senza errori, unapply, zeroUI/provider. Work86 failed/messageNULL/rawacc92 conservato; quiescentFALSE non aggirata.
+OPEN · Una pubblicazione normale cached della stessa scena ce7/work86, poi scontro2PG2PNG/round/ritorno narrativo/chiusura protetta e postflight. Nuova review metadata-only15min da genuinepost prima rinnovo, mai riapplicare parenta9fe con baseline d825 ormai superata. Candidato canonicalrenderer richiede genuinecompleted86/quiescentTrue e review finale, non inferire PASS dai sorgenti.
+Passaggio PM · Mac sbloccato con RiujiFirefox/TamakoChrome necessario solo per ripresa reale. Nessuna nuova role/generazione/scena o apertura pubblica autorizzata da questo solo esito. Conservare prezzi/caps/counterhistory, non riprendere altri backlog.
