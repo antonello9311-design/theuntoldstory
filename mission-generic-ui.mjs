@@ -78,6 +78,80 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }
   try{await load();}catch(e){status.textContent=e.message;}
  }
+ // C1266 Native preparation: metadata only; server admission remains authoritative.
+ const NATIVE_PREPARE_SOURCE='5878822d-dc03-4ac2-ad0b-1547f0ab3fc0';
+ const NATIVE_PREPARE_AI='24b1e44a-5597-4fb0-95bd-fb13647764b2';
+ const NATIVE_PREPARE_AI_SHA='3d75f8577ac8d173b3f3bf68f3fe7b8bdafd22bf6f2093eadd9882275aebe4d3';
+ const nativePrepareBusy=new Set();
+ const nativeExact=(v,keys)=>!!v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).sort().join('|')===[...keys].sort().join('|');
+ function nativePrepareReceipt(r,e,request){
+  const c=r?.configure_receipt,a=r?.ai,h=r?.human;
+  if(!nativeExact(r,['schema_version','mission_id','request_key','source_mission_sha256','selection_control_version','ai','human','configure_receipt','config_version','state'])
+   ||r.schema_version!=='mission-native-source-prepare/1'||r.mission_id!==e.p_mission||r.request_key!==request||r.source_mission_sha256!==e.p_expected_source_sha256
+   ||r.selection_control_version!==e.p_expected_selection_version||r.state!=='draft'||!Number.isSafeInteger(r.config_version)||r.config_version<=0
+   ||!nativeExact(a,['plan_version_id','plan_sha256','document_sha256'])||a.plan_version_id!==e.p_ai_plan_version||a.plan_sha256!==e.p_expected_ai_plan_sha256||!SHA.test(a.document_sha256||'')
+   ||!nativeExact(h,['plan_version_id','plan_sha256','document_sha256','definition_id','definition_sha256'])||!UUID.test(h.plan_version_id||'')||h.plan_version_id===a.plan_version_id
+   ||!UUID.test(h.definition_id||'')||!['plan_sha256','document_sha256','definition_sha256'].every(k=>SHA.test(h[k]||''))
+   ||!nativeExact(c,['schema_version','mission_id','config_version','ai_plan_version_id','ai_plan_sha256','human_plan_version_id','human_plan_sha256','capability_sha256','state','request_key'])
+   ||c.schema_version!=='mission-launch-configure/1'||c.mission_id!==e.p_mission||c.config_version!==r.config_version||c.state!=='draft'
+   ||c.ai_plan_version_id!==a.plan_version_id||c.ai_plan_sha256!==a.plan_sha256||c.human_plan_version_id!==h.plan_version_id||c.human_plan_sha256!==h.plan_sha256
+   ||!SHA.test(c.capability_sha256||'')||!UUID.test(c.request_key||'')||c.request_key===request)throw Error('Ricevuta Native non riconosciuta: conserva la stessa richiesta e chiedi verifica allo Staff.');
+  return r;
+ }
+ async function nativePrepareMetadata(user){
+  const mission=NATIVE_PREPARE_SOURCE;
+  const catalog=await rpc('mission_generic_plan_catalog_v1',{p_mission:mission},user);
+  if(catalog?.schema_version!=='mission-generic-plan-catalog/1'||catalog.mission?.mission_id!==mission||!SHA.test(catalog.mission_sha256||'')
+   ||catalog.selected_plan_version_id!==NATIVE_PREPARE_AI||!Number.isSafeInteger(catalog.selection_control_version)||catalog.selection_control_version<0||!Array.isArray(catalog.versions))throw Error('La sorgente o la revisione AI non coincide con la predisposizione autorizzata.');
+  const matches=catalog.versions.filter(x=>x.plan_version_id===catalog.selected_plan_version_id),ai=matches[0];
+  if(matches.length!==1||ai.state!=='approvata'||ai.generic_ready!==true||ai.plan_sha256!==NATIVE_PREPARE_AI_SHA)throw Error('Revisione AI selezionata non pronta.');
+  const meta=await rpc('mission_creation_editor_v1',{p_mission:mission,p_plan_version:ai.plan_version_id},user);
+  if(meta?.schema_version!=='mission-creation-editor/1'||meta.plan_version_id!==ai.plan_version_id||meta.configured!==true||meta.mission?.direction_mode!=='ai'||meta.mission.gathering_location_id!==STAFF_TEST_ROOM)throw Error('Predisposizione disponibile solo per la sorgente AI nella stanza Staff prevista.');
+  const boardState=await rpc('mission_generic_board_state_v1',{p_mission:mission},user);
+  if(!Array.isArray(boardState?.missions))throw Error('Stato degli avvii non disponibile.');
+  const boards=boardState.missions.filter(x=>x.mission_id===mission);
+  if(boards.length>1||boards.some(x=>x.master_session_id!==null||x.available!==false))throw Error('La sorgente ha un avvio attivo: predisposizione sospesa.');
+  // DTO permits CAS0 for the approved first preparation; the RPC rechecks actual capability absence.
+  return {p_mission:mission,p_expected_source_sha256:catalog.mission_sha256,p_ai_plan_version:ai.plan_version_id,p_expected_ai_plan_sha256:ai.plan_sha256,p_expected_selection_version:catalog.selection_control_version,p_expected_config_version:0};
+ }
+ function nativePrepareJournal(key,e){
+  const raw=localStorage.getItem(key);if(raw===null)return null;let j;
+  try{j=JSON.parse(raw);}catch{throw Error('Journal della predisposizione illeggibile: serve verifica Staff, nessuna nuova richiesta.');}
+  if(!nativeExact(j,['schema_version','request_key','expected','receipt'])||j.schema_version!=='c1266-native-prepare-journal/1'||!UUID.test(j.request_key||'')
+   ||!nativeExact(j.expected,Object.keys(e))||JSON.stringify(j.expected)!==JSON.stringify(e))throw Error('Journal della predisposizione incoerente: serve verifica Staff, nessuna nuova richiesta.');
+  if(j.receipt!==null)nativePrepareReceipt(j.receipt,e,j.request_key);return j;
+ }
+ async function mountNativePrepare(host,mission,user,current){
+  host.replaceChildren();host.hidden=true;
+  const inScope=()=>current()&&valid(user)&&isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true&&mission===NATIVE_PREPARE_SOURCE&&!roomState?.session_id;
+  if(!inScope())return;
+  const status=el('p','Verifica della predisposizione…',{role:'status',class:'mg-status','aria-live':'polite'});host.hidden=false;host.append(status);
+  try{
+   const expected=await nativePrepareMetadata(user);if(!inScope())return;
+   const prefix='tus:c1266:native-prepare:1:'+user+':'+expected.p_mission+':';
+   const key=prefix+JSON.stringify([expected.p_ai_plan_version,expected.p_expected_ai_plan_sha256,expected.p_expected_source_sha256,expected.p_expected_selection_version,expected.p_expected_config_version]);
+   for(let i=0;i<localStorage.length;i++){const previous=localStorage.key(i);if(previous?.startsWith(prefix)&&previous!==key)throw Error('Metadati cambiati rispetto alla richiesta conservata: serve verifica Staff; nessuna nuova richiesta.');}
+   let journal=nativePrepareJournal(key,expected);
+   status.textContent='Predisposizione tecnica della prova · richiede abilitazione Staff. Il piano Human non abilita il gioco con Master umano.';
+   const action=button(journal?'Verifica predisposizione':'Predisponi prova',async()=>{
+    if(!inScope()||nativePrepareBusy.has(key))return;nativePrepareBusy.add(key);action.disabled=true;
+    try{
+     if(typeof navigator.locks?.request!=='function')throw Error('Il browser non offre il blocco sicuro del journal. Usa un browser supportato per conservare la stessa richiesta.');
+     await navigator.locks.request(key,{mode:'exclusive'},async()=>{
+      if(!inScope())return;journal=nativePrepareJournal(key,expected);
+      if(!journal){journal={schema_version:'c1266-native-prepare-journal/1',request_key:id(),expected,receipt:null};localStorage.setItem(key,JSON.stringify(journal));}
+      status.textContent='Verifica della stessa predisposizione…';
+      const result=await rpc('mission_native_source_prepare_v1',{...expected,p_request:journal.request_key},user);
+      nativePrepareReceipt(result,expected,journal.request_key);journal.receipt=result;localStorage.setItem(key,JSON.stringify(journal));
+      if(!inScope())return;
+      const fresh=await nativePrepareMetadata(user);if(JSON.stringify(fresh)!==JSON.stringify(expected))throw Error('Ricevuta conservata, ma metadati della sorgente cambiati: serve verifica Staff.');
+      status.textContent='Predisposizione tecnica confermata. Il piano Human è un artefatto tecnico; il gioco con Master umano resta disabilitato.';refresh();
+     });
+    }catch(e){if(inScope())status.textContent='Predisposizione non confermata. La stessa richiesta resta conservata; verifica abilitazione e ricevuta con lo Staff. '+e.message;}
+    finally{nativePrepareBusy.delete(key);if(inScope()){action.disabled=false;action.textContent='Verifica predisposizione';}}
+   });host.append(action);
+  }catch(e){if(inScope())status.textContent='Predisposizione non disponibile. '+e.message;}
+ }
  async function sources(){
   if(!isStaff())return;const user=identity(),d=dialog('Archivio missioni'),status=el('p','Caricamento…',{role:'status'});d.append(status);
   try{const r=await rpc('mission_staff_catalog_state_v1',{},user);if(!valid(user)||!d.isConnected)return;
@@ -87,9 +161,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    let chosen=null,showArchived=false;const controls=el('div',null),picker=select([],null,v=>{chosen=v;sync();}),configure=button('Configura missione',()=>{if(!valid(user)||!isStaff()||!d.isConnected)return;const m=items.find(x=>x.id===chosen);if(m?.kind==='source')editor(m.id,m.title);}),start=button('Avvio o prova protetta',()=>{if(!valid(user)||!isStaff()||!d.isConnected)return;const m=items.find(x=>x.id===chosen);if(m?.kind==='source')board(m.id,m.title);});
    const archivedCount=items.filter(m=>m.archived).length;
    const show=el('input',null,{type:'checkbox'}),toggle=el('label',null,{class:'mg-inline-check'});toggle.append(show,document.createTextNode('Mostra prove concluse ('+archivedCount+')'));show.addEventListener('change',()=>{showArchived=show.checked;render();});
-   const sync=()=>{const m=items.find(x=>x.id===chosen),source=m?.kind==='source';configure.disabled=start.disabled=!source;status.textContent=m?.kind==='protected_test'?(m.archived?'Prova conclusa: storico conservato. Per una nuova prova scegli la missione sorgente.':'Prova protetta: conserva la sessione corrente. Per configurare o avviare una nuova prova scegli la missione sorgente.'):'Le prove concluse sono archiviate automaticamente. La missione originale resta disponibile per configurazione e nuove prove.';};
+   const nativeHost=el('div',null,{'data-c1266-native-prepare':''});let nativeRead=0;
+   const sync=()=>{const m=items.find(x=>x.id===chosen),source=m?.kind==='source';const sequence=++nativeRead;void mountNativePrepare(nativeHost,source?m.id:null,user,()=>d.isConnected&&sequence===nativeRead&&chosen===m?.id);configure.disabled=start.disabled=!source;status.textContent=m?.kind==='protected_test'?(m.archived?'Prova conclusa: storico conservato. Per una nuova prova scegli la missione sorgente.':'Prova protetta: conserva la sessione corrente. Per configurare o avviare una nuova prova scegli la missione sorgente.'):'Le prove concluse sono archiviate automaticamente. La missione originale resta disponibile per configurazione e nuove prove.';};
    const render=()=>{const visible=items.filter(m=>showArchived||!m.archived);if(!visible.some(m=>m.id===chosen))chosen=visible[0]?.id??null;picker.replaceChildren();for(const m of visible)picker.append(el('option',m.title+' · '+(m.kind==='protected_test'?(m.archived?'prova conclusa':'prova protetta'):m.status),{value:m.id}));if(chosen)picker.value=chosen;picker.disabled=!visible.length;sync();if(!visible.length)status.textContent='Nessuna missione disponibile.';};
-   controls.append(toggle,field('Missione sorgente',picker),configure,start);d.append(controls);render();
+   controls.append(toggle,field('Missione sorgente',picker),configure,start);d.append(controls,nativeHost);render();
   }catch(e){status.textContent=e.message;}
  }
  async function decorateBoard(host){const user=identity();if(!user||!host)return;
@@ -243,11 +318,26 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    }
    return null;
   }
+  function driverFor(state){
+   if(!state||!Object.hasOwn(state,'driver_state'))return {optedIn:false,valid:true,value:null};
+   const d=state.driver_state,fields=['schema_version','master_session_id','source_revision','kind','tick_status'];
+   if(!d||Array.isArray(d)||Object.keys(d).length!==fields.length||!fields.every(k=>Object.hasOwn(d,k))
+    ||d.schema_version!=='mission-driver-state/1'||!UUID.test(state.session_id||'')||d.master_session_id!==state.session_id
+    ||!['tick','native','none'].includes(d.kind)
+    ||!(SHA.test(d.source_revision||'')||d.source_revision===null&&d.kind==='none')
+    ||!(d.source_revision===state.source_revision
+     ||d.kind==='none'&&d.source_revision===null&&!Object.hasOwn(state,'source_revision'))
+    ||d.kind!=='tick'&&d.tick_status!==null)return {optedIn:true,valid:false,value:null};
+   return {optedIn:true,valid:true,value:d};
+  }
   function tickStatusFor(state,t={user:identity(),loc:currentLocation()}){
+   const driver=driverFor(state);
+   if(driver.optedIn&&!driver.valid)return {applicable:true,valid:false,value:null,driver};
+   if(driver.optedIn&&driver.value.kind!=='tick')return {applicable:false,valid:true,value:null,driver};
    const applicable=isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc?.is_test===true
-    &&state?.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9';
-   if(!applicable)return {applicable:false,valid:true,value:null};
-   const x=state.staff_tick_status;
+    &&(driver.optedIn||state?.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9');
+   if(!applicable)return {applicable:false,valid:true,value:null,driver};
+   const x=driver.optedIn?driver.value.tick_status:state.staff_tick_status;
    const fields=['schema_version','master_session_id','source_revision','request_key','owned_by_me','state',
     'work_id','work_state','retry_request_key','can_resume','recovery_key','acknowledged_retry_from_work_id'];
    const uuidOrNull=x=>x===null||UUID.test(x||'');
@@ -294,6 +384,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    }
   }
   function mayCreateStaffTick(projection){
+   if(projection.driver?.optedIn&&(!projection.driver.valid||projection.driver.value.kind!=='tick'))return false;
    if(!projection.applicable)return true;
    if(!projection.valid)return false;
    const x=projection.value;
@@ -431,13 +522,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
 
   const feedbackKey=JSON.stringify([cacheUser,state.session_id]),feedback=chainFeedback.get(feedbackKey);
   let chainNotice=host.querySelector('[data-mg-chain-status]');
+  const sceneDriver=driverFor(state);
   const staffScene=isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM
-   &&state.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9';
-  if(feedback&&(state.flow_publication_id&&state.flow_publication_id!==feedback.publication_before
-   ||state.processing?.state==='failed'))chainFeedback.delete(feedbackKey);
+   &&(state.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'||sceneDriver.optedIn&&sceneDriver.valid);
+  if(feedback&&chainPublicationConfirmed(state,feedback))chainFeedback.delete(feedbackKey);
   const activeFeedback=staffScene?chainFeedback.get(feedbackKey):null;
-  if(activeFeedback&&activeFeedback.reason!=='child_confirmed'){
-   const reasons={parent_unconfirmed:'conferma della valutazione ancora assente',parent_request_unavailable:'ricevuta della richiesta non disponibile',
+  if(activeFeedback){
+   const reasons={child_confirmed:'pubblicazione della stessa richiesta da verificare',parent_unconfirmed:'conferma della valutazione ancora assente',parent_request_unavailable:'ricevuta della richiesta non disponibile',
     server_proof_unconfirmed:'verifica server non confermata',server_proof_invalid:'ricevuta server non riconosciuta',
     server_proof_none:'nessuna prosecuzione attestata dal server',child_request_invalid:'ricevuta del racconto non riconosciuta',
     context_changed:'stanza o accesso cambiati',room_state_changed:'stato della scena cambiato',abort_pending:'annullamento ancora da riconciliare',
@@ -619,6 +710,20 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return valid(a)&&valid(b)&&a.master_session_id===b.master_session_id&&a.event_id===b.event_id
    &&a.request_key===b.request_key&&a.expected_revision===b.expected_revision;
  }
+ // A work completion alone does not attest a public Fato. Match the exact request and writer.
+ function chainPublicationConfirmed(state,feedback){
+  const parsed=processingFor(state),p=parsed.value,target=feedback?.target;
+  return !!(parsed.valid&&target&&target.user===cacheUser&&target.session===state.session_id
+   &&UUID.test(target.work||'')&&p?.work_id===target.work&&p.state==='completed'
+   &&p.finalized_at!==null&&UUID.test(p.message_id||'')
+   &&sameChainRequest(p.request,target.request)&&p.revision===target.request.expected_revision);
+ }
+ function chainTarget(attempt,request=attempt.body){
+  if(!UUID.test(attempt.work||'')||!sameChainRequest(request,request)
+   ||request.master_session_id!==attempt.session)return null;
+  return Object.freeze({user:attempt.user,session:attempt.session,work:attempt.work,
+   request:Object.freeze(clone(request))});
+ }
  // One automatic successor, only through the authenticated server parent-qualified read.
  // Neither a generic ready work nor a failed/uncertain result authorizes this path.
  async function continueDirectorNarration(data,parent,t){
@@ -662,6 +767,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const a={user:t.user,session:parent.session,key,kind:'work',work:work.work_id,prior_work_id:work.work_id,
    prior_publication_id:fresh.flow_publication_id??null,staffTickSource:null,staffTickState:null,
    body:Object.freeze(clone(proof.child_request)),inFlight:true,outcome:'pending'};
+  parent.chainTarget=chainTarget(a);
   attempts.set(storeKey,a);roomState=fresh;paintRoom(roomHost,fresh);
   try{
    const {data:result,error}=await client.functions.invoke('mission_generic_ai',{body:clone(a.body)});
@@ -726,8 +832,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     const chainReason=a.outcome==='confirmed'?await continueDirectorNarration(data,a,t).catch(()=>'verification_error')
      :a.outcome==='uncertain'?'parent_unconfirmed':null;
     if(chainReason&&roomCurrent(t)&&isStaff()&&t.loc?.id===STAFF_TEST_ROOM
-     &&state.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9')
-     {chainFeedback.set(JSON.stringify([t.user,state.session_id]),{reason:chainReason,publication_before:a.prior_publication_id});
+     &&(state.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'||driverFor(state).optedIn&&driverFor(state).valid))
+     {chainFeedback.set(JSON.stringify([t.user,state.session_id]),{reason:chainReason,target:a.chainTarget??chainTarget(a,data?.dispatch??a.body)});
      console.info('regia_chain_diagnostic',chainReason);}
    }catch{a.outcome='uncertain';}
    finally{a.inFlight=false;if(roomCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true});refresh();}}
