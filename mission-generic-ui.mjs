@@ -106,7 +106,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const matches=catalog.versions.filter(x=>x.plan_version_id===catalog.selected_plan_version_id),ai=matches[0];
   if(matches.length!==1||ai.state!=='approvata'||ai.generic_ready!==true||ai.plan_sha256!==NATIVE_PREPARE_AI_SHA)throw Error('Revisione AI selezionata non pronta.');
   const meta=await rpc('mission_creation_editor_v1',{p_mission:mission,p_plan_version:ai.plan_version_id},user);
-  if(meta?.schema_version!=='mission-creation-editor/1'||meta.plan_version_id!==ai.plan_version_id||meta.configured!==true||meta.mission?.direction_mode!=='ai'||meta.mission.gathering_location_id!==STAFF_TEST_ROOM)throw Error('Predisposizione disponibile solo per la sorgente AI nella stanza Staff prevista.');
+  if(meta?.schema_version!=='mission-creation-editor/1'||meta.plan_version_id!==ai.plan_version_id||meta.configured!==true||meta.mission?.direction_mode!=='ai'||meta.mission.gathering_location_id!=='df44f5d3-bff4-4e32-bf29-19c3b0f3b1d2')throw Error('Predisposizione disponibile solo per la sorgente AI con il luogo di raccolta autorizzato.');
   const boardState=await rpc('mission_generic_board_state_v1',{p_mission:mission},user);
   if(!Array.isArray(boardState?.missions))throw Error('Stato degli avvii non disponibile.');
   const boards=boardState.missions.filter(x=>x.mission_id===mission);
