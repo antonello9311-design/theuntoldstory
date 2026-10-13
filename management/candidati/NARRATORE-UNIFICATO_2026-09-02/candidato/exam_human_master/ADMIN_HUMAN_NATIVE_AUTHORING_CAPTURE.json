@@ -1,0 +1,50 @@
+{
+  "at": "2026-10-13T16:45:15.692585+00:00",
+  "functions": [
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "authenticated=X/postgres"
+      ],
+      "ddl": "CREATE OR REPLACE FUNCTION public.mission_factory_catalog_v4()\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare r jsonb;g mission_factory_owner.quest_fixed30_admission;protected boolean;begin\n r:=public.mission_factory_catalog_v2();\n select * into strict g from mission_factory_owner.quest_fixed30_admission where singleton for share;\n protected:=g.public_staff_enabled and g.staff_enabled and g.qualification_sha256 is not null\n and g.public_staff_qualification_sha256 is not null and auth.uid()=any(g.allowed_auth_ids) and cardinality(g.allowed_auth_ids)=2\n and exists(select 1 from mission_factory_owner.drafts d where d.id=g.public_staff_draft_id and d.control_version=g.public_staff_draft_version\n and d.document_sha256=g.public_staff_source_sha256 and mission_factory_owner.sha(d.document)=g.public_staff_source_sha256);\n return r||jsonb_build_object('schema_version','mission-factory-catalog/4',\n 'public_open_qualified',coalesce(protected,false) or coalesce((r->>'public_open_qualified')::boolean,false),\n 'public_open_reason_code',case when protected then null else r->>'public_open_reason_code' end,\n 'execution_context',jsonb_build_object('protected_public_quest_available',coalesce(protected,false),\n 'mode',case when protected then 'staff_simulation' else null end,'public_general_available',coalesce((r->>'public_open_qualified')::boolean,false),\n 'source_draft_id',case when protected then g.public_staff_draft_id else null end,\n 'source_draft_version',case when protected then g.public_staff_draft_version else null end,\n 'source_sha256',case when protected then g.public_staff_source_sha256 else null end,\n 'qualification_sha256',case when protected then g.public_staff_qualification_sha256 else null end,\n 'logical_visibilities',case when protected then jsonb_build_array('open','scheduled') else '[]'::jsonb end,\n 'location_id',case when protected then '0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid else null end));\nend $function$\n",
+      "oid": "278423",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "ddl_md5": "7900289e36fbb7cbcea15c27cd3d9e55",
+      "body_md5": "2d79f37d2140544c6764f99f82359f21",
+      "signature": "mission_factory_catalog_v4()"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "authenticated=X/postgres"
+      ],
+      "ddl": "CREATE OR REPLACE FUNCTION public.mission_factory_create_v1(p_request uuid, p_source jsonb, p_catalog_version text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare c mission_factory_owner.catalog_versions; prior mission_factory_owner.requests;\n        doc jsonb; fp text; did uuid; result jsonb;\nbegin\n  if jsonb_typeof(p_source)<>'object' or not (p_source ? 'schema_version')\n    then return mission_factory_owner.legacy_create_v1(p_request,p_source,p_catalog_version); end if;\n  if p_source->>'schema_version' is distinct from 'mission-factory-create/2'\n     or not mission_factory_owner.keys_exact_v2(p_source,array['schema_version','content_kind','title','quest_kind'])\n     or p_source->>'content_kind' is distinct from 'quest_ai'\n     or coalesce(p_source->>'quest_kind','') not in('one_shot','trama')\n     or nullif(btrim(p_source->>'title'),'') is null\n     or p_request is null\n    then raise exception 'MF_QUEST_CREATE_INPUT' using errcode='22023'; end if;\n  perform mission_factory_owner.assert_editor(auth.uid());\n  fp:=mission_factory_owner.sha(jsonb_build_object('op','create','source',p_source,'catalog_version',p_catalog_version));\n  perform pg_advisory_xact_lock(hashtextextended(p_request::text,24092026));\n  select * into prior from mission_factory_owner.requests where request_key=p_request;\n  if found then\n    if prior.actor_user<>auth.uid() or prior.operation<>'create' or prior.fingerprint<>fp\n      then raise exception 'MF_REQUEST_CONFLICT' using errcode='40001'; end if;\n    return prior.result;\n  end if;\n  perform mission_factory_owner.manual_authoring_assert_v1('create',null);\n\n  if not mission_factory_owner.quest_catalog_qualified_v2(p_catalog_version)\n    then raise exception 'MF_QUEST_CATALOG_UNQUALIFIED' using errcode='55000'; end if;\n  select * into strict c from mission_factory_owner.catalog_versions\n    where version=p_catalog_version and active and qualified;\n  doc:=jsonb_build_object('schema_version','mission-factory-draft/2','content_kind','quest_ai',\n    'catalog_version',c.version,'npc_bindings','[]'::jsonb,'budget_policy_id',null,\n    'quest',jsonb_build_object('title',p_source->>'title','plot_private','',\n      'quest_kind',p_source->>'quest_kind','roster_assignment_id',null,'episodes','[]'::jsonb),\n    'variants',jsonb_build_object('ai',jsonb_build_object('state','missing','mode','ai','document',null)));\n  perform mission_factory_owner.validate_quest_draft_v2(doc);\n  insert into mission_factory_owner.drafts(author_user,document,document_sha256,catalog_version)\n    values(auth.uid(),doc,mission_factory_owner.sha(doc),c.version) returning id into did;\n  result:=jsonb_build_object('schema_version','mission-factory-draft-created/2','request_key',p_request,\n    'draft_id',did,'control_version',1,'content_kind','quest_ai','document',doc);\n  insert into mission_factory_owner.requests(request_key,actor_user,operation,fingerprint,draft_id,result)\n    values(p_request,auth.uid(),'create',fp,did,result);\n  return result;\nend $function$\n",
+      "oid": "276308",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "ddl_md5": "8aa82ac39caa36f98ef02dc163f7b071",
+      "body_md5": "7e4731b6cf9c7eac57f5c0bf1b4b2fb5",
+      "signature": "mission_factory_create_v1(uuid,jsonb,text)"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "authenticated=X/postgres"
+      ],
+      "ddl": "CREATE OR REPLACE FUNCTION public.mission_factory_save_v1(p_draft uuid, p_expected_version bigint, p_document jsonb, p_request uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare d mission_factory_owner.drafts; prior mission_factory_owner.requests;\n        doc jsonb; fp text; result jsonb; next_version bigint;\nbegin\n  select * into strict d from mission_factory_owner.drafts where id=p_draft;\n  perform mission_factory_owner.assert_editor(d.author_user);\n  if d.document->>'schema_version' is distinct from 'mission-factory-draft/2' then\n    if p_document->>'schema_version'='mission-factory-draft/2'\n      then raise exception 'MF_KIND_MISMATCH' using errcode='22023'; end if;\n    return mission_factory_owner.legacy_save_v1(p_draft,p_expected_version,p_document,p_request);\n  end if;\n  if p_request is null or p_document->>'content_kind' is distinct from 'quest_ai'\n     or p_document->>'schema_version' is distinct from 'mission-factory-draft/2'\n    then raise exception 'MF_KIND_MISMATCH' using errcode='22023'; end if;\n  doc:=mission_factory_owner.validate_quest_draft_v2(p_document);\n  fp:=mission_factory_owner.sha(jsonb_build_object('op','save','draft_id',p_draft,\n    'expected_version',p_expected_version,'document',doc));\n  perform pg_advisory_xact_lock(hashtextextended(p_request::text,24092027));\n  select * into prior from mission_factory_owner.requests where request_key=p_request;\n  if found then\n    if prior.actor_user<>auth.uid() or prior.operation<>'save' or prior.fingerprint<>fp\n      then raise exception 'MF_REQUEST_CONFLICT' using errcode='40001'; end if;\n    return prior.result;\n  end if;\n  perform mission_factory_owner.manual_authoring_assert_v1('save',null);\n\n  select * into strict d from mission_factory_owner.drafts where id=p_draft for update;\n  perform mission_factory_owner.assert_editor(d.author_user);\n  if d.document->>'schema_version' is distinct from 'mission-factory-draft/2'\n     or d.document->>'content_kind' is distinct from 'quest_ai'\n     or d.state not in('draft','previewed')\n     or d.control_version<>p_expected_version\n     or d.catalog_version is distinct from doc->>'catalog_version'\n     or d.document#>>'{quest,quest_kind}' is distinct from doc#>>'{quest,quest_kind}'\n     or d.document#>>'{quest,roster_assignment_id}' is distinct from doc#>>'{quest,roster_assignment_id}'\n     or d.document->'variants' is distinct from doc->'variants'\n    then raise exception 'MF_DRAFT_DRIFT' using errcode='40001'; end if;\n  -- Il roster si cambia solo tramite porta Staff CAS dedicata, non nel salvataggio JSON.\n  update mission_factory_owner.drafts set document=doc,document_sha256=mission_factory_owner.sha(doc),\n    control_version=control_version+1,state='draft',preview_seal=null,preview_basis=null,\n    updated_at=clock_timestamp() where id=d.id returning control_version into next_version;\n  result:=jsonb_build_object('schema_version','mission-factory-draft-save/2',\n    'request_key',p_request,'draft_id',d.id,'control_version',next_version,'content_kind','quest_ai');\n  insert into mission_factory_owner.requests(request_key,actor_user,operation,fingerprint,draft_id,result)\n    values(p_request,auth.uid(),'save',fp,d.id,result);\n  return result;\nend $function$\n",
+      "oid": "276310",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "ddl_md5": "7bab4f2c44d607a1e66a242109741996",
+      "body_md5": "005499d5db4adec1d66a9b2e27be0783",
+      "signature": "mission_factory_save_v1(uuid,bigint,jsonb,uuid)"
+    }
+  ]
+}

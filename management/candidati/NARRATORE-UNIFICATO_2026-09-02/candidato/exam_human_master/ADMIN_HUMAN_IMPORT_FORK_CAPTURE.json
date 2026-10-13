@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-13T16:44:11.300184+00:00",
+  "functions": [
+    {
+      "acl": [
+        "postgres=X/postgres"
+      ],
+      "ddl": "CREATE OR REPLACE FUNCTION mission_factory_owner.c474_import_fork_v1(p_original uuid, p_original_version bigint, p_target uuid, p_target_version bigint, p_request uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE t mission_factory_owner.c464_transfer_sources;\nBEGIN\n SELECT * INTO t FROM mission_factory_owner.c464_transfer_sources WHERE target_draft_id=p_original AND target_version=p_original_version;\n IF NOT FOUND THEN RETURN;END IF;\n PERFORM mission_factory_owner.c464_fork_transfer_v1(extensions.uuid_generate_v5(p_request,'g2-dual-fork'),t.id,p_target,p_target_version);\nEND $function$\n",
+      "oid": "280216",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "ddl_md5": "ae4b02dff87708753992256025259939",
+      "body_md5": "96ae95f8ce3fbd6f1f675170094d3b0c",
+      "signature": "mission_factory_owner.c474_import_fork_v1(uuid,bigint,uuid,bigint,uuid)"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "actual_expressions": [
+    "SELECT NOT((rows_now->'manual') @> (expected->'manual') AND (expected->'manual') @> (rows_now->'manual'))",
+    "SELECT NOT((rows_now->'manual') @> (ev#>'{expected_rows,manual}') AND (ev#>'{expected_rows,manual}') @> (rows_now->'manual'))"
+  ],
+  "audit": [
+    {
+      "file": "HUMAN_MANUAL_CFG_AGG2_CANDIDATE.sql",
+      "json_extractions_explicitly_parenthesized": 41,
+      "containment_count": 2,
+      "containment_lines": [
+        "OR NOT((rows_now->'manual') @> (expected->'manual') AND (expected->'manual') @> (rows_now->'manual'))"
+      ],
+      "outer_statements": 5
+    },
+    {
+      "file": "HUMAN_MANUAL_CFG_AGG2_RECOVERY.sql",
+      "json_extractions_explicitly_parenthesized": 28,
+      "containment_count": 2,
+      "containment_lines": [
+        "OR NOT((rows_now->'manual') @> (ev#>'{expected_rows,manual}') AND (ev#>'{expected_rows,manual}') @> (rows_now->'manual'))"
+      ],
+      "outer_statements": 5
+    }
+  ],
+  "AST_result": "containment->left/rightJSONextraction; noboolarrow",
+  "limits": "sourceAST and outergrammar only; noDBcatalog binding, noinstallability orruntimePASS",
+  "historical_failure": "AGG1apply1 42883 bool->unknown before anyINSERT/UPDATE; preserved"
+}
