@@ -183,7 +183,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const roleReasons=new Set(['own_role_missing','own_role_invalid','waiting_other_roles','ready_to_evaluate','provider_processing','recoverable_not_started','uncertain','failed','review_required','published']);
   const nextActors=new Set(['player','other_players','system','staff','none']);
  let roomScope=null,roomRead=null,roomHost=null,roomError='',cacheUser=null,readSequence=0,staffResumeRead=null,staffRoleRecovery=null,staffChoiceRecovery=null;
- let entryState=null,entryPending=null,entryError='',entryReplayReady=false;
+ let entryState=null,entryPending=null,entryError='',entryReplayReady=false,countStatusRead=null,countStatusNotice='',countStatusSession=null;
  const entryKey=(user,session)=>`regia-combat-entry/1:${user}:${session}`;
  function validEntry(x,session,request=null){return x?.schema==='regia-combat-entry/1'&&x.master_session_id===session
   &&['unavailable','ready','prepared','open',...(request===null?[]:['not_found'])].includes(x.status)
@@ -249,7 +249,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function syncRoom(host){
   const user=identity(),loc=currentLocation(),scope=scopeFor(user,loc);
   if(cacheUser!==user){cacheUser=user;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();chainFeedback.clear();recoveredWriters.clear();}
-  if(scope!==roomScope||host!==roomHost){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';entryReplayReady=false;staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
+  if(scope!==roomScope||host!==roomHost){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';entryReplayReady=false;countStatusRead=null;countStatusNotice='';countStatusSession=null;staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
   return {user,loc,scope,epoch:roomEpoch};
  }
  const roomCurrent=t=>t.scope===roomScope&&t.epoch===roomEpoch&&valid(t.user)&&scopeFor(identity(),currentLocation())===t.scope&&roomHost?.isConnected;
@@ -264,6 +264,63 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    ||typeof p.created_at!=='string'||!Number.isFinite(Date.parse(p.created_at))||!(p.finalized_at===null||typeof p.finalized_at==='string'&&Number.isFinite(Date.parse(p.finalized_at)))
    ||!(p.message_id===null||UUID.test(p.message_id||''))||q?.schema_version!=='mission-generic-request/1'||q.master_session_id!==state.session_id||q.event_id!==p.event_id||q.request_key!==p.request_key||q.expected_revision!==p.revision)return {valid:false,value:null};
   return {valid:true,value:p};
+ }
+ // Count reconciliation is a server-attested technical status action, never a work retry.
+ const countProjectionKeys=['schema_version','work_id','master_session_id','event_id','request_key','revision','dispatch_receipt_id','measurement_id','generation_request_sha256','policy_snapshot_sha256','release_sha256','failure_code','operation'];
+ const countStatusRequestKeys=['schema_version','work_id','master_session_id','event_id','request_key','expected_revision','dispatch_receipt_id','measurement_id','generation_request_sha256','policy_snapshot_sha256','release_sha256','failure_code'];
+ const countStatusResponseKeys=['schema_version','master_session_id','work_id','event_id','request_key','revision','receipt_id','result_sha256','state','retry','provider_retry_allowed'];
+ const hasCountProjection=state=>!!state&&Object.hasOwn(state,'count_reconciliation')&&state.count_reconciliation!==null;
+ function countStatusProjection(state){
+  if(!hasCountProjection(state))return null;
+  const x=state.count_reconciliation,p=processingFor(state),w=p.value,q=w?.request;
+  if(!nativeExact(x,countProjectionKeys)||x.schema_version!=='mission-generic-count-reconciliation/1'||x.operation!=='status_only'
+   ||!['MISSION_INPUT_COUNT_UNKNOWN','MISSION_INPUT_COUNT_OVERFLOW'].includes(x.failure_code)
+   ||!['work_id','master_session_id','event_id','request_key','dispatch_receipt_id','measurement_id'].every(k=>UUID.test(x[k]||''))
+   ||!['generation_request_sha256','policy_snapshot_sha256','release_sha256'].every(k=>SHA.test(x[k]||''))
+   ||!Number.isSafeInteger(x.revision)||x.revision<1||!p.valid||!['claimed','uncertain'].includes(w?.state)
+   ||w.finalized_at!==null||w.message_id!==null||x.master_session_id!==state.session_id
+   ||x.work_id!==w.work_id||x.event_id!==w.event_id||x.request_key!==w.request_key||x.revision!==w.revision
+   ||!nativeExact(q,['schema_version','master_session_id','event_id','request_key','expected_revision'])
+   ||q.schema_version!=='mission-generic-request/1'||q.master_session_id!==x.master_session_id
+   ||q.event_id!==x.event_id||q.request_key!==x.request_key||q.expected_revision!==x.revision)return null;
+  return x;
+ }
+ function countStatusTuple(x){return JSON.stringify(countProjectionKeys.map(k=>x[k]));}
+ function countStatusRequest(x){
+  const request={schema_version:'mission-generic-count-status/1',work_id:x.work_id,master_session_id:x.master_session_id,
+   event_id:x.event_id,request_key:x.request_key,expected_revision:x.revision,dispatch_receipt_id:x.dispatch_receipt_id,
+   measurement_id:x.measurement_id,generation_request_sha256:x.generation_request_sha256,
+   policy_snapshot_sha256:x.policy_snapshot_sha256,release_sha256:x.release_sha256,failure_code:x.failure_code};
+  if(!nativeExact(request,countStatusRequestKeys))throw Error('count_status_request_shape');return request;
+ }
+ function countStatusResponse(r,x){
+  if(!nativeExact(r,countStatusResponseKeys)||r.schema_version!=='mission-generic-count-status-response/1'
+   ||r.master_session_id!==x.master_session_id||r.work_id!==x.work_id||r.event_id!==x.event_id
+   ||r.request_key!==x.request_key||r.revision!==x.revision||!UUID.test(r.receipt_id||'')
+   ||!SHA.test(r.result_sha256||'')||r.state!=='failed'||r.retry!==false||r.provider_retry_allowed!==false)
+   throw Error('count_status_response_unconfirmed');return r;
+ }
+ async function reconcileCountStatus(host){
+  const t=syncRoom(host),old=roomState,proof=countStatusProjection(old);
+  if(!roomCurrent(t)||!proof||countStatusRead||liveAttempt(old)||abortBlocked(old.session_id))return;
+  const token={scope:t.scope,session:proof.master_session_id,tuple:countStatusTuple(proof),request:Object.freeze(clone(countStatusRequest(proof)))};
+  countStatusRead=token;countStatusSession=token.session;countStatusNotice='Verifica tecnica della stessa ricevuta in corso…';paintRoom(host,old);
+  try{
+   const fresh=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
+   if(!roomCurrent(t)||countStatusRead!==token)return;
+   const current=countStatusProjection(fresh);roomState=fresh;roomError='';
+   if(!current||countStatusTuple(current)!==token.tuple||liveAttempt(fresh)||abortBlocked(fresh.session_id))
+    throw Error('count_status_context_changed');
+   // This dedicated HTTP shape routes only to db.status; no claim/count/generation is dispatched.
+   const result=await client.functions.invoke('mission_generic_ai',{body:clone(token.request)});
+   if(!roomCurrent(t)||countStatusRead!==token)return;
+   if(result.error)throw Error('count_status_transport_unconfirmed');
+   countStatusResponse(result.data,current);
+   countStatusNotice='Ricevuta tecnica confermata: il lavoro è fallito, senza nuovo tentativo provider. Lo storico resta conservato.';
+   await updateRoom(host,{manual:true,verifyOnly:true});
+  }catch{
+   if(roomCurrent(t)&&countStatusRead===token){countStatusNotice='Ricevuta tecnica non confermata. Aggiorna la regia per rileggere la stessa richiesta; nessun nuovo Count o racconto è avviato.';paintRoom(host,roomState);}
+  }finally{if(countStatusRead===token){countStatusRead=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
  }
  function currentAttempt(state){return [...attempts.values()].reverse().find(a=>a.user===cacheUser&&a.session===state.session_id&&(a.key==='tick:'+state.progress_key||a.tickRecoveryKey&&a.key==='tick:'+state.progress_key+':recovery:'+a.tickRecoveryKey||a.work===state.processing?.work_id))||null;}
   function liveAttempt(state){return [...attempts.values()].some(a=>a.user===cacheUser&&a.session===state.session_id&&a.inFlight);}
@@ -469,13 +526,21 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   else if(retry)retry.remove();
   const processing=processingFor(state),claim=processing.value;
   const role=roleProgress(state);
+  const countProof=countStatusProjection(state),countReserved=hasCountProjection(state);
+  let countCheck=host.querySelector('[data-mg-count-status]'),countNotice=host.querySelector('[data-mg-count-status-notice]');
+  if(countProof){
+   if(!countCheck){countCheck=button('Verifica la stessa ricevuta tecnica',()=>reconcileCountStatus(host));countCheck.setAttribute('data-mg-count-status','');host.append(countCheck);}
+   countCheck.disabled=!!roomError||!!countStatusRead||liveAttempt(state)||abortBlocked(state.session_id);
+  }else countCheck?.remove();
+  const countText=countReserved&&!countProof?'Ricevuta Count non verificabile: nessun nuovo tentativo è autorizzato. Aggiorna la regia.':state.session_id===countStatusSession?countStatusNotice:'';
+  if(countText){if(!countNotice){countNotice=el('p','',{role:'status','data-mg-count-status-notice':''});host.append(countNotice);}countNotice.textContent=countText;}else countNotice?.remove();
   const readyRecovery=claim?.state==='ready'&&claim.finalized_at===null
    &&(role?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,state.session_id,claim.work_id)));
   const uncertainRecovery=claim?.state==='uncertain'&&(!role||role.reason==='uncertain'||academyFlow(state)==='combat_started');
   const claimedRecovery=processing.valid&&staffClaimReconciliationAllowed(state,{loc:currentLocation(),user:cacheUser},claim);
   let resume=host.querySelector('[data-mg-claim-resume]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&processing.valid
-   &&(claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
+   &&!countReserved&&(claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
    if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(p?.state==='claimed')void staffReconcileClaimed(host);else if(p?.state==='ready'&&(r?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,s.session_id,p.work_id))))void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
    resume.textContent=claimedRecovery?'Verifica la stessa ricevuta':readyRecovery?'Verifica e riprendi la stessa richiesta':'Verifica o riprendi la stessa richiesta';
    const suffix=claimedRecovery?':reconcile-claimed':readyRecovery?':reclaim-ready':':reclaim';
@@ -784,6 +849,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return a.outcome==='confirmed'?'child_confirmed':a.outcome==='failed'?'child_failed':'child_unconfirmed';
  }
  function maybeDispatch(state,t,reclaim=false){
+  if(hasCountProjection(state))return; // Only the explicit technical status consumer may handle this proof.
   const parsed=processingFor(state),p=parsed.value;
   const claimedVerification=reclaim&&parsed.valid&&staffClaimReconciliationAllowed(state,t,p);
   const recoveredReady=p?.state==='ready'&&recoveredWriters.has(recoveredWriterKey(t.user,state.session_id,p.work_id));
