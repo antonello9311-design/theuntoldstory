@@ -575,7 +575,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function staffClaimReconciliationAllowed(state,t,work=state&&processingFor(state).value){
   return isStaff()&&t?.loc?.id===STAFF_TEST_ROOM&&t.loc.is_test===true
-   &&state?.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'
+   &&(state?.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'
+     ||state?.session_id==='9ac00210-4c88-4c0c-a443-95e3d6740a28'&&work?.work_id==='d8b37311-6010-4a07-95d3-5e65a33c756d')
    &&['f0856d53-83a6-4de0-bc0c-12c87916e665','b4952ed5-5ce0-49c0-9f2b-8fd5dcd89b4b'].includes(t.user)
    &&work?.state==='claimed'&&work.finalized_at===null;
  }
