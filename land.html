@@ -6271,7 +6271,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       window.addEventListener('tus:ordinary-logout',function(){esLegacyDisposeStale(true);missionD100Reset();ordinarySigningOut=true;if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();});
       if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session){
         var id=session&&session.user?session.user.id:null;
-        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){esLegacyDisposeStale(true);uiPostreviewStaffReset();missionD100Reset();missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(window.TRU_RELEASE002){window.TRU_RELEASE002.invalidate();window.TRU_RELEASE002=null;}if(event==='SIGNED_OUT')closeTestRoomUser();if(MV2){MV2.authEpoch=(MV2.authEpoch||0)+1;MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.regia=null;MV2.regiaSignature=null;MV2.regiaDraft='';MV2.regiaDirection={turn_kind:'',actor_ids:[]};MV2.scortaContext=false;MV2.scortaRoom=null;MV2.scortaScope=null;MV2.options={};}}
+        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){esLegacyDisposeStale(true);uiPostreviewStaffReset();missionD100Reset();missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(window.TRU_RELEASE002){window.TRU_RELEASE002.invalidate();window.TRU_RELEASE002=null;}if(event==='SIGNED_OUT')closeTestRoomUser();if(MV2){MV2.authEpoch=(MV2.authEpoch||0)+1;mv2ClearPrepInputs();MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.regia=null;MV2.regiaSignature=null;MV2.regiaDraft='';MV2.regiaDirection={turn_kind:'',actor_ids:[]};MV2.scortaContext=false;MV2.scortaRoom=null;MV2.scortaScope=null;MV2.options={};}}
         if(MV2&&(id!==ordinaryAuthId||event==='SIGNED_OUT'))MV2.readRequested=false;
         ordinaryAuthId=id;
         esLegacyDisposeStale();syncSendBtn();
@@ -6507,7 +6507,42 @@ window.TUSOrdinary={attachOrdinaryLand};
           if(re)re.value=dr.reaction||'schivata'; if(ab&&dr.ability)ab.value=dr.ability; if(af&&re)af.hidden=re.value!=='tecnica';
         });
       }
-      function mv2SetBody(body,html){body.innerHTML=html;mv2RestoreDefenseDrafts();}
+      // Staff preparation inputs are local drafts; every command still uses the existing server RPC.
+      function mv2PrepInputScope(){
+        var d=MV2.data||{},m=d.master,principal=commonMasterPrincipal();
+        if(!cur||cur.id!=='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'||!principal||!m||d.encounter||d.viewer?.is_master!==true||m.closed_at||m.stato==='sospesa'||m.stato==='chiusa'||m.stato==='annullata')return null;
+        var base=JSON.stringify([principal,myCharId||null,MV2.authEpoch||0,cur.id,m.id,m.master_user||null,m.tipo]);
+        var mode=MV2.composeMode||(m.tipo==='duello'?'pg_pg':'png_pg');
+        return {base:base,key:JSON.stringify([base,mode]),mode:mode};
+      }
+      function mv2ClearPrepInputs(){
+        if(!MV2.prepInputs)return;
+        MV2.prepInputs=null;MV2.pngDraft=[];MV2.encounterDraft=null;
+      }
+      function mv2CapturePrepInputs(body){
+        var scope=mv2PrepInputScope(),previous=MV2.prepInputs;
+        if(!scope){mv2ClearPrepInputs();return;}
+        if(!previous){MV2.pngDraft=[];MV2.encounterDraft=null;MV2.composeMode=null;scope=mv2PrepInputScope();}
+        if(previous&&previous.base!==scope.base){mv2ClearPrepInputs();MV2.composeMode=null;scope=mv2PrepInputScope();}
+        if(previous&&previous.scope!==scope.key)mv2ClearPrepInputs();
+        var draft=MV2.prepInputs;
+        if(!draft||draft.scope!==scope.key)draft=MV2.prepInputs={base:scope.base,scope:scope.key,pg:{},png:{},template:''};
+        if(!body||body.__mv2PrepScope!==scope.key||!body.querySelector('#mv2-compose'))return;
+        body.querySelectorAll('[data-mv2-pg]').forEach(function(x){var id=x.getAttribute('data-mv2-pg'),team=body.querySelector('[data-mv2-team="'+id+'"]'),pos=body.querySelector('[data-mv2-posn="'+id+'"]');draft.pg[id]={checked:x.checked,team:team?team.value:'A',pos:pos?pos.value:'0'};});
+        var selector=body.querySelector('#mv2-png-template');draft.template=selector?selector.value:'';
+        (body.__mv2PrepRefs||[]).forEach(function(ref,i){var name=body.querySelector('[data-mv2-png-name="'+i+'"]'),team=body.querySelector('[data-mv2-png-team="'+i+'"]'),pos=body.querySelector('[data-mv2-pngpos="'+i+'"]');if(name)draft.png[ref]={name:name.value,team:team?team.value:'B',pos:pos?pos.value:'0'};});
+      }
+      function mv2RestorePrepInputs(body){
+        var scope=mv2PrepInputScope(),draft=MV2.prepInputs;
+        body.__mv2PrepScope=null;body.__mv2PrepRefs=[];
+        if(!scope||!body.querySelector('#mv2-compose'))return;
+        body.__mv2PrepScope=scope.key;body.__mv2PrepRefs=MV2.pngDraft.map(function(x){return x.client_ref;});
+        if(!draft||draft.scope!==scope.key)return;
+        body.querySelectorAll('[data-mv2-pg]').forEach(function(x){var id=x.getAttribute('data-mv2-pg'),saved=draft.pg[id];if(!saved)return;x.checked=saved.checked;var team=body.querySelector('[data-mv2-team="'+id+'"]'),pos=body.querySelector('[data-mv2-posn="'+id+'"]');if(team&&Array.from(team.options).some(function(o){return o.value===saved.team;}))team.value=saved.team;if(pos)pos.value=saved.pos;});
+        var selector=body.querySelector('#mv2-png-template');if(selector&&Array.from(selector.options).some(function(o){return o.value===draft.template;}))selector.value=draft.template;
+        body.__mv2PrepRefs.forEach(function(ref,i){var saved=draft.png[ref];if(!saved)return;var name=body.querySelector('[data-mv2-png-name="'+i+'"]'),team=body.querySelector('[data-mv2-png-team="'+i+'"]'),pos=body.querySelector('[data-mv2-pngpos="'+i+'"]');if(name)name.value=saved.name;if(team&&Array.from(team.options).some(function(o){return o.value===saved.team;}))team.value=saved.team;if(pos)pos.value=saved.pos;});
+      }
+      function mv2SetBody(body,html){mv2CapturePrepInputs(body);body.innerHTML=html;mv2RestoreDefenseDrafts();mv2RestorePrepInputs(body);}
       function loadMasterV2(explicit){
         if(examHumanOwnsScene())return;
         missionGenericRoomRefresh();
@@ -6722,6 +6757,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         return '<div class="mv2-report"><div class="mv2-phase"><b>Risultati effettivi del motore</b><br>'+(rep.values_written?'Valori applicati ai personaggi.':'Prova non lesiva: valori non applicati.')+'</div>'+(rows||'<p class="mv2-wait">Nessun esito meccanico.</p>')+'</div>';
       }
       function renderMasterV2(){
+        mv2CapturePrepInputs(document.getElementById('mv2-body'));
         if(examHumanOwnsScene()){mv2Card(false);return;}
         if(examRegia()?.ownsCombat()){mv2Card(false);return;}
         if(commonMasterCombat()){ordinaryRefresh();mv2Slim();return;}
@@ -6834,6 +6870,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         var _obk=document.getElementById('mv2ov-backdrop'); if(_obk) _obk.addEventListener('click',mv2OvChiudi);
         var _orf=document.getElementById('mv2-refresh'); if(_orf) _orf.addEventListener('click',function(){ MV2.setup=null; MV2.options={}; MV2.serverSig=null; loadMasterV2(true); });
         document.addEventListener('keydown',function(e){ var _ov=document.getElementById('mv2ov'); if(e.key==='Escape'&&_ov&&!_ov.hidden) mv2OvChiudi(); });
+        body.addEventListener('input',function(){mv2CapturePrepInputs(body);});
         body.addEventListener('change',function(ev){
           if(commonMasterCombat())return;
           var t=ev.target;
@@ -12269,7 +12306,7 @@ var nb028iTeardown=function(){};
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ missionD100Reset();examHumanLeave(); truReleaseInvalidate(); closeRoomObjectBinding(); MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; uiPostreviewStaffReset();WHO=[];PRESENTI_IDS={};cur=null; CMB=null; MV2.data=null; MV2.serverSig=null; MV2.regia=null; MV2.regiaSignature=null; MV2.regiaDraft=''; MV2.regiaDirection={turn_kind:'',actor_ids:[]}; MV2.scortaContext=false; MV2.scortaRoom=null; MV2.scortaScope=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ missionD100Reset();examHumanLeave(); truReleaseInvalidate(); closeRoomObjectBinding(); MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; uiPostreviewStaffReset();WHO=[];PRESENTI_IDS={};cur=null; CMB=null; mv2ClearPrepInputs();MV2.data=null; MV2.serverSig=null; MV2.regia=null; MV2.regiaSignature=null; MV2.regiaDraft=''; MV2.regiaDirection={turn_kind:'',actor_ids:[]}; MV2.scortaContext=false; MV2.scortaRoom=null; MV2.scortaScope=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
