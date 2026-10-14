@@ -1,0 +1,11 @@
+# Controverifica CFG 5/5 — GREEN 0/0/0 SOURCE
+
+Reviewer indipendente DB-CORE-CFG5-INDEPENDENT, autore distinto DB-CORE-CFG5/human_cfg_counter4. Candidata `a7ae49505dfb316f1efa366081f59d83a740681626e440735210d184ba24fac3`; recovery `48ca27d57fc0e4632998fcd5eca890c09532b3f32d47b640cfa9ee37afbdfa99`. Tutti gli hash dei cinque input enumerati nel manifest corrispondono ai file congelati.
+
+Baseline readonly09:30:45: righe intere, pin funzioni, guardie pubbliche e gate sono identici ai literal CAS della candidata; Staff0/arcs0/runs0. Sei ABI complete conformi al parent backend realmente installato1b8beb, inclusi C40881562f, C444654d, NPCc0a699. Nessun replay di corpi. Parser completo candidato5SQL/1PL e recovery5SQL/1PL PASS, con sola copia parser DO→CREATE e ready→record; precedenza JSON contenimento esplicitamente parentetizzata.
+
+Rinnovo minimo: non prima09:42:43.535715UTC, due admission attuali R37 enabled/scadute, sole bound_at/expires_at; C416 tramite normale Rootregister e C444120min. Lock/CAS coprono controlli/admission/provider/readiness/pubblico; lease attive, scene presenti, drift o attori non protetti bloccano. Nessuna scrittura ai quattro flag già attivi, C463/C464/provider/readiness/pubblico o vecchie admission. Pre/post invarianti conservano lo storico; il rinnovo non prepara scene né abilita pubblico/provider.
+
+Authority template NULL intenzionale: non è installabile da sola. Root deve materializzare nuova request, mandato/ref/hash veri, review5 0/0/0, review parent installato, baseline fresca e permit entro15min. Le vecchie authority scadute non valgono; review statica non attesta l'autenticità di questi input. Recovery richiede propria postimage esatta con request/review e normale chiusura della sola scena propria; disabilita soltanto due admission correnti/C416/C444 e conserva corpi e storico.
+
+Verdetto GREEN 0/0/0 esclusivamente sorgente, baseline catturata e contratto di materializzazione. Preflight vivo fresco e nuova autorità Root restano necessari; nessun PASS binding/install/runtime. Questa è l'ultima controverifica5 cumulativa della stessa CFG: inizialeRED, agg1applyFAIL e agg2/3/4PASS preservati, nessun reset/agg6 implicito. Nessun DB mutante/UI/apply/provider o caso locale. Source74/WIP invariati. Budget5min/casi0/provider0.

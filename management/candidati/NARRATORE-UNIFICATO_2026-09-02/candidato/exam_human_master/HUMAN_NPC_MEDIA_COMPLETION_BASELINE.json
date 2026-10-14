@@ -1,0 +1,131 @@
+{
+  "captured_at": "2026-10-14T09:46:54Z",
+  "refs": [
+    {
+      "bundle_id": "aec1177c-6173-4575-9259-b9135259da1d",
+      "canonical": {
+        "id": "7d5258c0-6560-4c74-bc3e-6c52ba1ebb28",
+        "mime": "image/png",
+        "bytes": 2774288,
+        "bucket": "avatars",
+        "sha256": "7507ddaede8b77c13ed2716895729e80d1c4b8b9c0e60cf43c443b6b4aa59bde",
+        "asset_id": "mr_0e116da9fc44431ca87e91d65159932a",
+        "object_path": "ninja-book/academy_nami_kasei/r1/assets/mr_0e116da9fc44431ca87e91d65159932a_v1.png",
+        "verified_sha256": "7507ddaede8b77c13ed2716895729e80d1c4b8b9c0e60cf43c443b6b4aa59bde"
+      },
+      "version_id": "daef66b3-3660-443c-af23-6a7b8351e06e",
+      "payload_sha": "56fca86e7d622cf53f794307fbee9ec2e0858bb7333155fe7e39844c4dd0935e",
+      "template_id": "82afcf8c-0a2c-447a-b9a5-0cf6a8b067b7",
+      "bundle_sha256": "e68f8491e44ee39a7cdece91e46233df3961f8fd527604642eb5c77081386997",
+      "bundle_row_sha": "46dbf5833eb68ada4dea92f5be527518419a6ba75a2f810826abf5bc14bcf725",
+      "dependency_sha": "d81dc5254672633b55876e5ac5dc70742b57b9685edcf9b9215dea8270bcfa53",
+      "binding_row_sha": "4d1a0c7bcac50147ff8bd647b204d55363a9b9ee400708b7910962d7fbba202e",
+      "template_current": "daef66b3-3660-443c-af23-6a7b8351e06e",
+      "narrative_row_sha": "0737087d375f7c1b2374d243550d4666851128c548dde418b79d5dcd09375b69",
+      "mechanical_row_sha": "d7ac5345c5f47fa278f7a4eac7bf29fcfb856dbae0cef7a400883ea55735f305",
+      "mechanical_binding_id": "5a329d4f-8add-47e9-84a6-e70f669375e5",
+      "mechanical_version_id": "88eabccc-ec40-49fe-abc2-8a8e6391b8b2",
+      "narrative_content_sha": "82f94df8b3cf728799f15c3dcb47ae50bd3b0457b19455184205558fd0e3cb2c"
+    },
+    {
+      "bundle_id": "7bb53e62-f30c-4c94-b464-8b37a9291cdf",
+      "canonical": {
+        "id": "cb0a95de-3c61-4ca8-8b3f-ec5b3adf9c92",
+        "mime": "image/png",
+        "bytes": 2525641,
+        "bucket": "avatars",
+        "sha256": "316fa42b3a7e85123d9b8e6027182f427a4330cf9b7ab664d665718d76e183b7",
+        "asset_id": "mr_ff8e5297e11045878941434803f1418c",
+        "object_path": "ninja-book/academy_tetsuna_hoji/r1/assets/mr_ff8e5297e11045878941434803f1418c_v1.png",
+        "verified_sha256": "316fa42b3a7e85123d9b8e6027182f427a4330cf9b7ab664d665718d76e183b7"
+      },
+      "version_id": "e962b36d-69ba-41ff-9d9f-4b91934cc226",
+      "payload_sha": "d598530416e83c8c4026c965384aa6f1925854669476119587f9f88eeea8e101",
+      "template_id": "0aaecee9-7e33-4e91-9a95-af1d691f3a40",
+      "bundle_sha256": "7e08d81e4787fdf0a9c58d437dae9bda7f129cf65818fe6d47a8ea4fac667c3a",
+      "bundle_row_sha": "19edd848f2a91a00ae45c3c2264f0e1134445e7cf80f209412ba4e9e6958989c",
+      "dependency_sha": "3ed762d597e4f7fc3d8c0c639567d9469419fd37045a7be8b52b7a3d2b04abd5",
+      "binding_row_sha": "276376bad55b051371f278f01b671248445ab10d3bc50f50e09452f47ac5425a",
+      "template_current": "e962b36d-69ba-41ff-9d9f-4b91934cc226",
+      "narrative_row_sha": "2c2d45c0a99e623b17f02c3a942f062353df94dfd098bbc771f4ce55cbb6192a",
+      "mechanical_row_sha": "62a651378d7c47a5b7660c0ff251ffdfc42ba7f25074d7a862d32ee8ff68a94c",
+      "mechanical_binding_id": "bb9bb7b7-3fca-418a-b067-fe246dd82d4c",
+      "mechanical_version_id": "444a3afc-dc9f-40e6-bc81-1e26e79b9b8c",
+      "narrative_content_sha": "86c3d4da1eaa347067899f99598d43f1cb65bbc09d7bb4e88100bea526117940"
+    }
+  ],
+  "ports": [
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "authenticated=X/postgres"
+      ],
+      "ddl": "CREATE OR REPLACE FUNCTION public.npc_media_ticket_v1(p_template uuid, p_narrative_version uuid, p_kind text, p_request uuid, p_sha256 text, p_bytes bigint, p_mime text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare v_uid uuid:=auth.uid(); v_admin boolean; t public.nb_templates%rowtype;\n        v public.nb_template_versions%rowtype;\n        h png_builder_internal.npc_combat_draft_heads%rowtype;\n        old png_builder_internal.npc_media_tickets%rowtype;\n        latest uuid; ext text; v_path text; v_asset_id text;\nbegin\n  if v_uid is null or not public.is_staff() then raise exception 'NPC_MEDIA_AUTH' using errcode='42501'; end if;\n  if p_template is null or p_narrative_version is null or p_request is null or\n     coalesce(p_kind,'') not in ('portrait','marker') or coalesce(p_sha256,'') !~ '^[0-9a-f]{64}$' or\n     coalesce(p_bytes,0) not between 1 and 4194304 or\n     coalesce(p_mime,'') not in ('image/png','image/jpeg','image/webp')\n    then raise exception 'NPC_MEDIA_INPUT' using errcode='22023'; end if;\n  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_request::text,25092025));\n  select p.role='admin' into v_admin from public.profiles p where p.id=v_uid;\n  select * into t from public.nb_templates where id=p_template for update;\n  if not found or t.deactivated_at is not null or\n     (t.created_by is distinct from v_uid and not coalesce(v_admin,false))\n    then raise exception 'NPC_MEDIA_AUTH' using errcode='42501'; end if;\n  select * into old from png_builder_internal.npc_media_tickets where request_key=p_request;\n  if found then\n    if old.actor_id is distinct from v_uid or old.template_id is distinct from p_template or\n       old.narrative_version_id is distinct from p_narrative_version or\n       old.kind is distinct from p_kind or old.sha256 is distinct from p_sha256 or\n       old.bytes is distinct from p_bytes or old.mime_type is distinct from p_mime\n      then raise exception 'NPC_MEDIA_REQUEST_MISMATCH' using errcode='22023'; end if;\n    select * into v from public.nb_template_versions\n      where id=p_narrative_version and template_id=p_template;\n    select x.id into latest from public.nb_template_versions x\n      where x.template_id=p_template and x.review_state='draft'\n      order by x.version_no desc limit 1;\n    if v.id is null or v.content_sha256 is distinct from old.narrative_content_sha256 or\n       v.mechanical_template_id is distinct from old.mechanical_template_id or\n       (latest is not null and latest is distinct from p_narrative_version) or\n       (v.review_state='approved' and t.current_version_id is distinct from p_narrative_version) or\n       (old.state='pending' and v.review_state<>'draft')\n      then raise exception 'NPC_MEDIA_STALE' using errcode='55000'; end if;\n    return png_builder_internal.npc_media_ticket_view_v1(old);\n  end if;\n  select * into v from public.nb_template_versions\n    where id=p_narrative_version and template_id=p_template for update;\n  select * into h from png_builder_internal.npc_combat_draft_heads\n    where narrative_template_id=p_template and narrative_version_id=p_narrative_version for share;\n  select x.id into latest from public.nb_template_versions x\n    where x.template_id=p_template and x.review_state='draft'\n    order by x.version_no desc limit 1;\n  if v.id is null or v.review_state<>'draft' or latest is distinct from p_narrative_version or\n     (v.mechanical_template_id is null and h.narrative_template_id is not null and\n       (h.combat is distinct from false or h.mechanical_template_id is not null or\n        h.review_state<>'draft')) or\n     (v.mechanical_template_id is not null and\n       (h.narrative_template_id is null or h.combat is distinct from true or\n        h.review_state<>'draft' or\n        v.mechanical_template_id is distinct from h.mechanical_template_id))\n    then raise exception 'NPC_MEDIA_STALE' using errcode='55000'; end if;\n  ext:=case p_mime when 'image/png' then 'png' when 'image/jpeg' then 'jpg' else 'webp' end;\n  -- Preserve the live NBE media object_path CHECK and asset_id CHECK.\n  -- Request and full byte hash make the path unique without an upsert.\n  v_asset_id:='npc_'||p_kind||'_'||replace(p_request::text,'-','')||'_'||p_sha256;\n  v_path:='ninja-book/'||t.template_key||'/r'||v.version_no::text||\n    '/assets/'||v_asset_id||'_v1.'||ext;\n  insert into png_builder_internal.npc_media_tickets(\n    request_key,actor_id,template_id,narrative_version_id,kind,asset_id,object_path,\n    sha256,bytes,mime_type,narrative_content_sha256,mechanical_template_id)\n  values(p_request,v_uid,p_template,p_narrative_version,p_kind,v_asset_id,v_path,\n    p_sha256,p_bytes,p_mime,v.content_sha256,v.mechanical_template_id)\n  returning * into old;\n  return png_builder_internal.npc_media_ticket_view_v1(old);\nend $function$\n",
+      "ddl_md5": "a384b9c2e0e29e858c41bdbfcab242b5",
+      "signature": "npc_media_ticket_v1(uuid,uuid,text,uuid,text,bigint,text)"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "ddl": "CREATE OR REPLACE FUNCTION public.npc_media_register_v1(p_request uuid, p_sha256 text, p_bytes bigint, p_mime text, p_width integer, p_height integer)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n  x png_builder_internal.npc_media_tickets%rowtype;\n  t public.nb_templates%rowtype;\n  v public.nb_template_versions%rowtype;\n  h png_builder_internal.npc_combat_draft_heads%rowtype;\n  latest uuid;\n  obj_mime text;\n  obj_bytes bigint;\n  receipt jsonb;\nbegin\n  if coalesce(auth.jwt()->>'role','')<>'service_role' then\n    raise exception 'NPC_MEDIA_SERVICE_REQUIRED' using errcode='42501';\n  end if;\n  if p_request is null or coalesce(p_sha256,'') !~ '^[0-9a-f]{64}$' or\n     coalesce(p_bytes,0) not between 1 and 4194304 or\n     coalesce(p_mime,'') not in ('image/png','image/jpeg','image/webp') or\n     coalesce(p_width,0) not between 1 and 8192 or\n     coalesce(p_height,0) not between 1 and 8192 then\n    raise exception 'NPC_MEDIA_INPUT' using errcode='22023';\n  end if;\n\n  select * into x from png_builder_internal.npc_media_tickets\n    where request_key=p_request for update;\n  if not found then raise exception 'NPC_MEDIA_TICKET_MISSING' using errcode='55000'; end if;\n  if x.sha256 is distinct from p_sha256 or x.bytes is distinct from p_bytes or\n     x.mime_type is distinct from p_mime then\n    raise exception 'NPC_MEDIA_REQUEST_MISMATCH' using errcode='22023';\n  end if;\n  if x.state='registered' or x.state='approved' then\n    if x.width_px is distinct from p_width or x.height_px is distinct from p_height or\n       x.registration is null then\n      raise exception 'NPC_MEDIA_REQUEST_MISMATCH' using errcode='22023';\n    end if;\n    return x.registration;\n  end if;\n  if x.state<>'pending' or x.expires_at<=clock_timestamp() then\n    raise exception 'NPC_MEDIA_EXPIRED' using errcode='55000';\n  end if;\n\n  select * into t from public.nb_templates where id=x.template_id for update;\n  select * into v from public.nb_template_versions\n    where id=x.narrative_version_id and template_id=x.template_id for update;\n  select * into h from png_builder_internal.npc_combat_draft_heads\n    where narrative_template_id=x.template_id and narrative_version_id=x.narrative_version_id\n    for share;\n  select q.id into latest from public.nb_template_versions q\n    where q.template_id=x.template_id and q.review_state='draft'\n    order by q.version_no desc limit 1;\n  if t.id is null or t.deactivated_at is not null or\n     v.id is null or v.review_state<>'draft' or\n     latest is distinct from x.narrative_version_id or\n     h.narrative_template_id is null or h.review_state<>'draft' or\n     v.content_sha256 is distinct from x.narrative_content_sha256 or\n     v.mechanical_template_id is distinct from x.mechanical_template_id or\n     h.mechanical_template_id is distinct from x.mechanical_template_id then\n    raise exception 'NPC_MEDIA_STALE' using errcode='55000';\n  end if;\n\n  select o.metadata->>'mimetype',(o.metadata->>'size')::bigint\n    into obj_mime,obj_bytes from storage.objects o\n    where o.bucket_id=x.bucket and o.name=x.object_path;\n  if not found or obj_mime is distinct from x.mime_type or\n     obj_bytes is distinct from x.bytes then\n    raise exception 'NPC_MEDIA_STORAGE_DRIFT' using errcode='55000';\n  end if;\n\n  receipt:=pg_catalog.jsonb_build_object(\n    'schema_version','npc-media-registration/1',\n    'request_key',x.request_key,'template_id',x.template_id,\n    'narrative_version_id',x.narrative_version_id,'kind',x.kind,\n    'media_id',x.media_id,'asset_id',x.asset_id,\n    'bucket',x.bucket,'object_path',x.object_path,\n    'sha256',x.sha256,'bytes',x.bytes,'mime_type',x.mime_type,\n    'width_px',p_width,'height_px',p_height,\n    'narrative_content_sha256',x.narrative_content_sha256,\n    'mechanical_template_id',x.mechanical_template_id,\n    'state','registered');\n  update png_builder_internal.npc_media_tickets\n    set state='registered',width_px=p_width,height_px=p_height,\n        registration=receipt,registered_at=clock_timestamp()\n    where request_key=x.request_key;\n  return receipt;\nend $function$\n",
+      "ddl_md5": "59efb59d651bc78fafabd3d4ea97abf9",
+      "signature": "npc_media_register_v1(uuid,text,bigint,text,integer,integer)"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "authenticated=X/postgres"
+      ],
+      "ddl": "CREATE OR REPLACE FUNCTION public.npc_media_approve_pair_v1(p_template uuid, p_narrative_version uuid, p_portrait_request uuid, p_marker_request uuid, p_request_key uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n  actor uuid:=auth.uid();\n  t public.nb_templates%rowtype;\n  v public.nb_template_versions%rowtype;\n  h png_builder_internal.npc_combat_draft_heads%rowtype;\n  portrait png_builder_internal.npc_media_tickets%rowtype;\n  marker png_builder_internal.npc_media_tickets%rowtype;\n  prior png_builder_internal.npc_media_pairs%rowtype;\n  old_media public.nb_template_media_versions%rowtype;\n  old_marker png_builder_internal.npc_marker_versions%rowtype;\n  media_no integer;\n  marker_no integer;\n  fp text;\n  mime_check text;\n  bytes_check bigint;\n  approved jsonb;\n  receipt jsonb;\nbegin\n  if actor is null or not public.is_staff() or not exists(\n    select 1 from public.profiles p where p.id=actor and p.role='admin') then\n    raise exception 'NPC_MEDIA_ADMIN_REQUIRED' using errcode='42501';\n  end if;\n  if p_template is null or p_narrative_version is null or p_portrait_request is null or\n     p_marker_request is null or p_request_key is null or\n     p_portrait_request=p_marker_request then\n    raise exception 'NPC_MEDIA_INPUT' using errcode='22023';\n  end if;\n  fp:=ninja_book_internal.json_hash(pg_catalog.jsonb_build_object(\n    'template',p_template,'version',p_narrative_version,\n    'portrait',p_portrait_request,'marker',p_marker_request));\n  perform pg_catalog.pg_advisory_xact_lock(\n    pg_catalog.hashtextextended('npc-media-pair:'||p_request_key::text,25092025));\n  select * into prior from png_builder_internal.npc_media_pairs\n    where request_key=p_request_key;\n  if found then\n    if prior.fingerprint is distinct from fp then\n      raise exception 'NPC_MEDIA_REQUEST_MISMATCH' using errcode='22023';\n    end if;\n    return prior.response || pg_catalog.jsonb_build_object('replayed',true);\n  end if;\n\n  select * into t from public.nb_templates where id=p_template for update;\n  select * into v from public.nb_template_versions\n    where id=p_narrative_version and template_id=p_template for update;\n  select * into h from png_builder_internal.npc_combat_draft_heads\n    where narrative_template_id=p_template and narrative_version_id=p_narrative_version\n    for share;\n  if t.id is null or t.deactivated_at is not null or\n     t.lifecycle_state<>'approved' or t.current_version_id is distinct from p_narrative_version or\n     v.id is null or v.review_state<>'approved' or\n     (v.mechanical_template_id is null and h.narrative_template_id is not null and\n       (h.combat is distinct from false or h.mechanical_template_id is not null or\n        h.review_state<>'approved')) or\n     (v.mechanical_template_id is not null and\n       (h.narrative_template_id is null or h.combat is distinct from true or\n        h.review_state<>'approved' or\n        v.mechanical_template_id is distinct from h.mechanical_template_id)) then\n    raise exception 'NPC_MEDIA_STALE' using errcode='55000';\n  end if;\n  perform 1 from png_builder_internal.npc_media_tickets x\n    where x.request_key in (p_portrait_request,p_marker_request)\n    order by x.request_key for update;\n  select * into portrait from png_builder_internal.npc_media_tickets\n    where request_key=p_portrait_request;\n  select * into marker from png_builder_internal.npc_media_tickets\n    where request_key=p_marker_request;\n  if portrait.request_key is null or marker.request_key is null or\n     portrait.kind<>'portrait' or marker.kind<>'marker' or\n     portrait.state<>'registered' or marker.state<>'registered' or\n     portrait.template_id is distinct from p_template or marker.template_id is distinct from p_template or\n     portrait.narrative_version_id is distinct from p_narrative_version or\n     marker.narrative_version_id is distinct from p_narrative_version or\n     portrait.narrative_content_sha256 is distinct from v.content_sha256 or\n     marker.narrative_content_sha256 is distinct from v.content_sha256 or\n     portrait.mechanical_template_id is distinct from v.mechanical_template_id or\n     marker.mechanical_template_id is distinct from v.mechanical_template_id then\n    raise exception 'NPC_MEDIA_STALE' using errcode='55000';\n  end if;\n  if exists(select 1 from png_builder_internal.npc_media_pairs q\n      where q.narrative_version_id=p_narrative_version and q.state='approved') then\n    raise exception 'NPC_MEDIA_PAIR_EXISTS' using errcode='55000';\n  end if;\n  select o.metadata->>'mimetype',(o.metadata->>'size')::bigint\n    into mime_check,bytes_check from storage.objects o\n    where o.bucket_id=portrait.bucket and o.name=portrait.object_path;\n  if not found or mime_check is distinct from portrait.mime_type or\n     bytes_check is distinct from portrait.bytes then\n    raise exception 'NPC_MEDIA_STORAGE_DRIFT' using errcode='55000';\n  end if;\n  select o.metadata->>'mimetype',(o.metadata->>'size')::bigint\n    into mime_check,bytes_check from storage.objects o\n    where o.bucket_id=marker.bucket and o.name=marker.object_path;\n  if not found or mime_check is distinct from marker.mime_type or\n     bytes_check is distinct from marker.bytes then\n    raise exception 'NPC_MEDIA_STORAGE_DRIFT' using errcode='55000';\n  end if;\n\n  select * into old_media from public.nb_template_media_versions\n    where template_id=p_template and active for update;\n  select coalesce(max(q.media_version_no),0)+1 into media_no\n    from public.nb_template_media_versions q where q.template_id=p_template;\n  if old_media.id is null and media_no>1 then\n    select * into old_media from public.nb_template_media_versions q\n      where q.template_id=p_template and q.media_version_no=media_no-1 and\n        q.lifecycle_state='inactive' and q.approved_at is not null and\n        q.superseded_by_media_id is null for update;\n    if old_media.id is null then\n      raise exception 'NPC_MEDIA_SUPERSESSION_REQUIRED' using errcode='55000';\n    end if;\n  end if;\n  insert into public.nb_template_media_versions(\n    id,template_id,template_version_id,media_version_no,supersedes_media_id,\n    schema_version,asset_id,asset_version,kind,bucket,object_path,\n    sha256,verified_sha256,mime_type,width_px,height_px,bytes,alt_text,\n    provenance,lifecycle_state,active,created_by,reviewed_by,reviewed_at)\n  values(\n    portrait.media_id,p_template,p_narrative_version,media_no,old_media.id,\n    'ninja-book-media/1.1',portrait.asset_id,1,'canonical_full_body',\n    portrait.bucket,portrait.object_path,portrait.sha256,portrait.sha256,\n    portrait.mime_type,portrait.width_px,portrait.height_px,portrait.bytes,\n    'Ritratto a figura intera di '||t.display_name,\n    pg_catalog.jsonb_build_object(\n      'source_task','MISSION-FACTORY-PNG-MEDIA-PAIR-20260925',\n      'provider',pg_catalog.jsonb_build_object('name','staff_upload'),\n      'generated_at',portrait.registered_at,\n      'verification',pg_catalog.jsonb_build_object(\n        'method','edge_byte_sha256','request_key',portrait.request_key,\n        'verified_sha256',portrait.sha256)),\n    'review',false,portrait.actor_id,actor,clock_timestamp());\n  approved:=public.nb_admin_media_approve(\n    portrait.media_id,p_narrative_version,1,\n    extensions.uuid_generate_v5(p_request_key,'npc-media-portrait-approve/1'));\n  if approved->>'state' is distinct from 'approved' or\n     (approved->>'media_id')::uuid is distinct from portrait.media_id then\n    raise exception 'NPC_MEDIA_APPROVAL_FAILED' using errcode='55000';\n  end if;\n\n  select * into old_marker from png_builder_internal.npc_marker_versions\n    where template_id=p_template and active for update;\n  select coalesce(max(q.marker_version_no),0)+1 into marker_no\n    from png_builder_internal.npc_marker_versions q where q.template_id=p_template;\n  -- Insert inactive first: the prior marker can then point to this existing row.\n  insert into png_builder_internal.npc_marker_versions(\n    id,template_id,narrative_version_id,marker_version_no,supersedes_marker_id,\n    asset_id,bucket,object_path,sha256,mime_type,bytes,width_px,height_px,\n    active,state,created_by,approved_by)\n  values(marker.media_id,p_template,p_narrative_version,marker_no,old_marker.id,\n    marker.asset_id,marker.bucket,marker.object_path,marker.sha256,\n    marker.mime_type,marker.bytes,marker.width_px,marker.height_px,\n    false,'inactive',marker.actor_id,actor);\n  if old_marker.id is not null then\n    update png_builder_internal.npc_marker_versions\n      set active=false,state='superseded',superseded_by_marker_id=marker.media_id\n      where id=old_marker.id;\n  end if;\n  update png_builder_internal.npc_marker_versions\n    set active=true,state='approved' where id=marker.media_id;\n\n  receipt:=pg_catalog.jsonb_build_object(\n    'schema_version','npc-media-pair/1','request_key',p_request_key,\n    'replayed',false,\n    'template_id',p_template,'narrative_version_id',p_narrative_version,\n    'portrait_media_id',portrait.media_id,'portrait_sha256',portrait.sha256,\n    'marker_media_id',marker.media_id,'marker_sha256',marker.sha256,\n    'narrative_content_sha256',v.content_sha256,\n    'mechanical_template_id',v.mechanical_template_id,\n    'state','approved','active',true);\n  insert into png_builder_internal.npc_media_pairs(\n    request_key,template_id,narrative_version_id,portrait_request,marker_request,\n    narrative_content_sha256,mechanical_template_id,actor_id,fingerprint,response)\n  values(p_request_key,p_template,p_narrative_version,p_portrait_request,p_marker_request,\n    v.content_sha256,v.mechanical_template_id,actor,fp,receipt);\n  update png_builder_internal.npc_media_tickets set state='approved',approved_at=clock_timestamp()\n    where request_key in (p_portrait_request,p_marker_request);\n  return receipt;\nend $function$\n",
+      "ddl_md5": "bfc2309a66950a10d2d3234c943bbb64",
+      "signature": "npc_media_approve_pair_v1(uuid,uuid,uuid,uuid,uuid)"
+    }
+  ],
+  "adapter_sha": "5485ef6f01266c53692ebdecc3bd5fa64dafe0fbcfaf6421b39ac6dadd1817ac",
+  "panel_sha": "3b8aa02e307f0352efadf30ce7b35c7dd48c17001539f676a38aadd09b1b86ca",
+  "edge_live": "ABSENT mission_factory_npc_media_attest_v1",
+  "unrelated_edge": "png_media_attest_v1 version9 unchanged",
+  "aggregate1_live_parent_read": {
+    "date": "2026-10-14",
+    "rows": [
+      {
+        "signature": "combat_consumer_private.staff_test_allowed(uuid,uuid[],boolean)",
+        "ddl_md5": "255e8d73cdd7c3814132d71f0f45b1b5",
+        "owner": "postgres",
+        "acl": "{postgres=X/postgres}"
+      },
+      {
+        "signature": "npc_media_ticket_v1(uuid,uuid,text,uuid,text,bigint,text)",
+        "ddl_md5": "a384b9c2e0e29e858c41bdbfcab242b5",
+        "owner": "postgres",
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}"
+      },
+      {
+        "signature": "npc_media_register_v1(uuid,text,bigint,text,integer,integer)",
+        "ddl_md5": "59efb59d651bc78fafabd3d4ea97abf9",
+        "owner": "postgres",
+        "acl": "{postgres=X/postgres,service_role=X/postgres}"
+      },
+      {
+        "signature": "npc_media_approve_pair_v1(uuid,uuid,uuid,uuid,uuid)",
+        "ddl_md5": "bfc2309a66950a10d2d3234c943bbb64",
+        "owner": "postgres",
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}"
+      },
+      {
+        "signature": "mission_factory_owner.c416_kind_live_v1()",
+        "ddl_md5": "ca836584b84f114ede05277e91610235",
+        "owner": "postgres",
+        "acl": "{postgres=X/postgres}"
+      },
+      {
+        "signature": "mission_factory_owner.c444_enabled_v1()",
+        "ddl_md5": "2b8d0af96cf3601f48bbfe9f862c9823",
+        "owner": "postgres",
+        "acl": "{postgres=X/postgres}"
+      }
+    ]
+  }
+}

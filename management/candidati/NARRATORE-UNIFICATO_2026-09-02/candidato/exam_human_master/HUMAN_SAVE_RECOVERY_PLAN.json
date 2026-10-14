@@ -1,0 +1,208 @@
+{
+  "scope": "source-only readonly recovery + API/core, existing UI caller, no apply/deploy/QA",
+  "authorization": "Root explicit14Oct09:28UTC",
+  "budget": {
+    "minutes": 20,
+    "cases": 0,
+    "provider": 0
+  },
+  "contract": "9exactfields; unknown frozen, knownrejected attested samekey correctedpayload, confirmed receipts no duplicatewrite/WIPreplace",
+  "publication": "NEW API/core contenthash -> questUI/APIimports/adminentry -> manifest -> Admin manifestsha; Root integration only",
+  "guards": "oneatomicinstall;fresh4parentDDL/fullc444/quiescence/newRPCabsence; nooldpinreplay",
+  "recovery": "revoke newRPC Auth only, retaincode/rows/history; client rollbackgraph guarded",
+  "aggregate": 2,
+  "current_human_aggregate": 6,
+  "runtime_scope": {
+    "draft": "e6d1b561-cc76-4fb9-8e4e-b73ffc86b6be",
+    "location": "0b85f354-9cdb-47e1-baf9-3d266bb7e06b",
+    "release": "37dac90525b249f53fc0404b50adb4ed92df0123649326c99260bf656119d806",
+    "guards": [
+      {
+        "nspname": "combat_consumer_private",
+        "proname": "staff_test_allowed",
+        "args": "p_location uuid, p_principals uuid[], p_provider boolean",
+        "ddl_md5": "255e8d73cdd7c3814132d71f0f45b1b5",
+        "definition": "CREATE OR REPLACE FUNCTION combat_consumer_private.staff_test_allowed(p_location uuid, p_principals uuid[], p_provider boolean DEFAULT false)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n SELECT coalesce(\n   p_location IS NOT NULL AND p_provider IS NOT NULL\n   AND cardinality(p_principals) BETWEEN 1 AND 3\n   AND array_position(p_principals,NULL) IS NULL\n   AND EXISTS (\n     SELECT 1 FROM combat_consumer_private.runtime_config cfg\n     JOIN public.locations l ON l.id=cfg.staff_test_location_id\n     WHERE cfg.singleton AND cfg.staff_test_enabled\n       AND (NOT p_provider OR cfg.staff_test_provider_enabled)\n       AND l.id=p_location AND l.is_active AND l.is_test\n       AND p_principals <@ cfg.staff_test_principals\n       AND (SELECT count(*) FROM public.profiles p\n         WHERE p.id=ANY(cfg.staff_test_principals) AND p.role IN ('admin','master'))=cardinality(cfg.staff_test_principals)\n       -- Il flag is_exam_room non equivale a un esame; lo stato reale s\u00ec.\n       -- NULL/shape sconosciuta non costituiscono prova di assenza.\n       AND NOT EXISTS (SELECT 1 FROM public.academy_class_sessions s\n         WHERE s.location_id=l.id AND s.state IS DISTINCT FROM 'closed')\n       AND NOT EXISTS (SELECT 1 FROM public.esame_prove e\n         JOIN public.academy_class_sessions s ON s.id=e.class_session_id\n         WHERE s.location_id=l.id AND (e.stato='aperta' OR e.stato IS NULL))\n   ),false)\n$function$\n",
+        "acl": "{postgres=X/postgres}",
+        "oid": 43060,
+        "owner": "postgres",
+        "proconfig": [
+          "search_path=\"\""
+        ]
+      },
+      {
+        "nspname": "mission_factory_owner",
+        "proname": "c416_kind_live_v1",
+        "args": "",
+        "ddl_md5": "ca836584b84f114ede05277e91610235",
+        "definition": "CREATE OR REPLACE FUNCTION mission_factory_owner.c416_kind_live_v1()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nSELECT EXISTS(SELECT 1 FROM mission_factory_owner.c416_kind_admission k JOIN mission_factory_owner.catalog_versions c ON c.version=k.catalog_version AND c.document_sha256=k.catalog_sha256 WHERE k.singleton AND k.enabled AND k.bound_at<=statement_timestamp() AND k.expires_at>statement_timestamp() AND c.active AND c.qualified AND c.document_sha256=mission_factory_owner.sha(c.document));\n$function$\n",
+        "acl": "{postgres=X/postgres}",
+        "oid": 279676,
+        "owner": "postgres",
+        "proconfig": [
+          "search_path=\"\""
+        ]
+      },
+      {
+        "nspname": "mission_factory_owner",
+        "proname": "c444_enabled_v1",
+        "args": "",
+        "ddl_md5": "2b8d0af96cf3601f48bbfe9f862c9823",
+        "definition": "CREATE OR REPLACE FUNCTION mission_factory_owner.c444_enabled_v1()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$ SELECT coalesce((SELECT enabled AND bound_at<=statement_timestamp() AND expires_at>statement_timestamp() FROM mission_factory_owner.c444_runtime_control WHERE singleton),false) $function$\n",
+        "acl": "{postgres=X/postgres}",
+        "oid": 279768,
+        "owner": "postgres",
+        "proconfig": [
+          "search_path=\"\""
+        ]
+      },
+      {
+        "nspname": "public",
+        "proname": "is_staff",
+        "args": "",
+        "ddl_md5": "da3d2441d69193629f7ee3d795bb1c3a",
+        "definition": "CREATE OR REPLACE FUNCTION public.is_staff()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  select exists(select 1 from public.profiles where id = auth.uid() and role in ('master','admin'));\n$function$\n",
+        "acl": "{postgres=X/postgres,service_role=X/postgres,anon=X/postgres,authenticated=X/postgres}",
+        "oid": 17767,
+        "owner": "postgres",
+        "proconfig": [
+          "search_path=public"
+        ]
+      }
+    ],
+    "lease": "C416/C444/manual save admission must be live; CFG5 Rootrenew first"
+  },
+  "history": "InitialRED0/1/0 preserved; aggregate1 sameHuman5 noreset",
+  "installability_correction": {
+    "defect": "42883 name[] IS DISTINCT FROM text[] in ACLpostflight",
+    "failed_installer": "98c2b6b10f128603b7547adc82db3ae8cebe1688d10a47a228e9ed990807ba8a",
+    "previous_green_review": {
+      "status": "GREEN_SOURCE",
+      "review_findings": [
+        0,
+        0,
+        0
+      ],
+      "reviewer": "human_cfg_counter4",
+      "author": "human_quest_audit",
+      "aggregate": 1,
+      "current_human_aggregate": 5,
+      "counter_reset": false,
+      "candidate_sha256": "98c2b6b10f128603b7547adc82db3ae8cebe1688d10a47a228e9ed990807ba8a",
+      "recovery_sha256": "0ad8792b80129a810cd493b66e5d79cd88f1c2a21807c40066040dfc29dcc595",
+      "api_sha256": "72d132ca723cf9e794bc38e2226659ebc7426b4ca48a1f68dd5e9e6a5555b5a9",
+      "core_sha256": "803f1c0543553a34c5e4bd75cc7eec67916e49f1d6b21c69b501fcf21e4962fe",
+      "manifest_sha256": "32f455db8e81a70cbc6d35c14d213b31d1a8b35a037a457f3f83aada53bfb1b3",
+      "at": "2026-10-14T09:52:22.128898+00:00",
+      "history": {
+        "initial_review": {
+          "status": "RED_SOURCE",
+          "review_findings": [
+            0,
+            1,
+            0
+          ],
+          "reviewer": "human_cfg_counter4",
+          "author": "human_quest_audit",
+          "candidate_sha256": "2981a5edc021b4b9d7532148ac79d8989163a2daf08e11f8ddb0a0d9e46537f2",
+          "api_sha256": "72d132ca723cf9e794bc38e2226659ebc7426b4ca48a1f68dd5e9e6a5555b5a9",
+          "core_sha256": "803f1c0543553a34c5e4bd75cc7eec67916e49f1d6b21c69b501fcf21e4962fe",
+          "manifest_sha256": "f6407310e653c5089ad1d61993eb5e9e8c276df5d29a9a8231bb6fbd56a050fb",
+          "at": "2026-10-14T09:45:48.476362+00:00",
+          "history": "legacyC492/fourcurrentaggregates/namedHumanexception preserved; thisreview is no budget reset",
+          "findings": [
+            {
+              "id": "HUMAN-SAVE-RECOVERY-F1",
+              "priority": "P1",
+              "file": "HUMAN_SAVE_RECOVERY_CANDIDATE.sql",
+              "lines": [
+                7,
+                11
+              ],
+              "title": "Nuova porta recovery non riservata inizialmente alla Staff propria",
+              "evidence": "Runtime asserts only auth.uid/editor, owner and content_kind quest_ai, then grants authenticated; no own allowed bozza e6d1/currenttwoStaffactor/admissionlease/Staffscope guard. Installer Staffquiescence is one-time, does not reserve subsequent RPCcalls.",
+              "impact": "Any ordinary editor owning any quest draft can use newly installed recovery endpoint outside initial Staff mandate; ownauthor alone is not server Staff reservation. Readonly operation does not waive scope requirement.",
+              "requested_change": "Add closed fail-closed server runtime guard for current authorized Staff identities, own named test draft and active scoped admission/lease/protected Staff context. Keep normal request lock, fingerprint, unknown/rejected semantics and no global availability expansion."
+            }
+          ],
+          "checks": {
+            "allmanifestbyteshashes": "PASS",
+            "fullouterSQLAST": "PASS 5 statements",
+            "functionPLAST": "PASS1 composite\u2192record parsercopy only",
+            "declaredbodyMD5": "PASS14acac2fa1f1e749cd8591a44188e612",
+            "same_request_advisory_seed": "PASS24092027 matches publishedsave",
+            "confirmedfingerprint_owner_op_draft_receipt": "PASSsource",
+            "unknown_not_cleared": "PASSsource",
+            "rejected_payload_key_evidence_history_preserved": "PASSsource",
+            "confirmed_clears_pending_so_future_save_uses_newkey": "PASSsource",
+            "ninefield_exactAPIshape": "PASSsource",
+            "recovery_only_revokes_newAuthRPC": "PASSsource",
+            "JSsyntax_independent": "NOT_RUN systemnode unavailable; authorstaticbaseline consulted"
+          },
+          "limits": [
+            "SOURCE-only independentreview noDBUIprovider/mutabletest/mock",
+            "Root actualparent/full30graph review stillrequired aftercorrection",
+            "Backend receipt attests narrow arena rejection only, not proof of everyfailedsave",
+            "Auth/lease/protectedruntime unknown until Stafftest; nofunctionalPASS"
+          ]
+        },
+        "initial_review_sha256": "489cd3d4bd1dcb48022d12d4bb978fcd356dcb5de523d2574f7e6507d06501cd",
+        "legacy": "C492/fourcurrentaggregates/namedHumanexception preserved",
+        "counter_reset": false
+      },
+      "findings": [],
+      "resolved_findings": [
+        {
+          "id": "HUMAN-SAVE-RECOVERY-F1",
+          "result": "RESOLVED_SOURCE",
+          "guards": "namedownbozza e6d1/R37active manualsavelease/is_staff/currentC416allowedAuthlive/C444lease/protectedStaffprincipals, failclosed42501 before advisory/document read; installeradds4scopeproducerDDLpins"
+        }
+      ],
+      "checks": {
+        "allmanifestbyteshashes": "PASS",
+        "fullouterSQLAST": "PASS 5 statements",
+        "functionPLAST": "PASS1 composite\u2192record parsercopy only",
+        "declaredbodyMD5": "PASS1a0c51b62173632e9a4206ab134e2588",
+        "same_request_advisory_seed": "PASS24092027 matches publishedsave",
+        "confirmedfingerprint_owner_op_draft_receipt": "PASSsource",
+        "unknown_not_cleared": "PASSsource",
+        "rejected_payload_key_evidence_history_preserved": "PASSsource",
+        "confirmed_clears_pending_so_future_save_uses_newkey": "PASSsource",
+        "ninefield_exactAPIshape": "PASSsource",
+        "recovery_only_revokes_newAuthRPC": "PASSsource",
+        "JSsyntax_independent": "PASS bundledNode --check bothAPI/core",
+        "Staff_reservation_F1": "PASS own e6d1 draft + is_staff + C416live/allowed_auth + C444lease + protectedStaffallowed + R37manualsavelease",
+        "C444_actual_parent_runtime": "PASS source runtimecompleteassert and installerfreshfullDDL parentCAS; actualbinding Rootpreflight stillrequired",
+        "scope_guard_parent_pins": "PASS explicitis_staff/staff_test_allowed/C416live/C444enabled currentDDL beforeCREATE"
+      },
+      "limits": [
+        "SOURCEonly noDBUIprovider/mock/gameplay performed",
+        "Installer runs atomically only after Root freshliveparent/fullgraph review and genuine authority; noapplydonebyreviewer",
+        "CFG5 renewal required before recoveryRPC invocation; currentexpiredlease correctlyfailsclosed",
+        "Runtime Auth/lease/rejectedclear/unknownfreeze confirmedreceipt/WIP and graph remain StaffQA scope, no inferredPASS",
+        "PrivatehelpersGRANT unchanged, newAuthRPCscope closed toownnamedDraft/currentallowedStaffprincipals; no generalrelease"
+      ]
+    },
+    "rollback_evidence": {
+      "source": "Root readonly13:50:49UTC",
+      "recovery_rpc": "NULL",
+      "partial_scene_count": 0,
+      "atomic_failure": true
+    },
+    "authority": "Named existing C9 fullconsumer exception cycles until resolution, usertoday installrecovery; not CFG6",
+    "proof": {
+      "old_sha256": "98c2b6b10f128603b7547adc82db3ae8cebe1688d10a47a228e9ed990807ba8a",
+      "new_sha256": "20057104f4c32a0722ecf1946fea03836bb4dc5647c0bd460bc8cb75d4efbd73",
+      "inverse_exact": true,
+      "single_change": "postflight array_agg(...)::text[]",
+      "whole_sql_statements": 5,
+      "whole_PL": 3,
+      "rpc_body_unchanged": true,
+      "untouched": {
+        "RECOVERY.sql": "0ad8792b80129a810cd493b66e5d79cd88f1c2a21807c40066040dfc29dcc595",
+        "API.mjs": "72d132ca723cf9e794bc38e2226659ebc7426b4ca48a1f68dd5e9e6a5555b5a9",
+        "CORE.mjs": "803f1c0543553a34c5e4bd75cc7eec67916e49f1d6b21c69b501fcf21e4962fe"
+      }
+    }
+  }
+}

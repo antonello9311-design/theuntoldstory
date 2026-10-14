@@ -1,0 +1,2 @@
+DO $recovery$ BEGIN IF current_user<>'postgres' OR md5((SELECT prosrc FROM pg_proc WHERE oid='public.mission_factory_quest_save_recovery_v1(uuid,bigint,jsonb,uuid)'::regprocedure)) IS DISTINCT FROM '1a0c51b62173632e9a4206ab134e2588' THEN RAISE EXCEPTION 'MF_SAVE_RECOVERY_STOP_CAS';END IF;END $recovery$;
+REVOKE EXECUTE ON FUNCTION public.mission_factory_quest_save_recovery_v1(uuid,bigint,jsonb,uuid) FROM authenticated;
