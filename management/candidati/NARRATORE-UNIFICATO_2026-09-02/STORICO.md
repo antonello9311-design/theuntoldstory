@@ -879,3 +879,4 @@
 14/10/2026 · HUMAN-MEDIA-RECOVERY · Recovery/CFG5 GREEN source, media RED0/1/0; nessuna installazione/upload/gameplay, budget terminato e WIP conservato · INCOMPLETO.
 14/10/2026 · HUMAN-MEDIA-RECOVERY-RESUME · Riserva media/Edge/recovery/ACLsuccessore installate, Admin8530c85 e36fonti29dd8d0 verificati;1uploadpending/0coppie, attesa dialogoFirefox, StaffNOT_STARTED · INCOMPLETO/WIPpreservato.
 14/10/2026 · HUMAN-MEDIA-RECOVERY-CONTINUE / Recovery4Human8 + Media2Human9 + Media3Human10 ·4upload/2coppie approved, recovery normalUISaveCV5 samekeyPASS;2difetti backend composti/reviewed/installati, leaseexpired e gameplay NOT_RUN;48risorse/storicoWIP invariati · PARZIALE/APPLICATO INERTE.
+14/10/2026 · CFG6eccezioneutente +Human11 · Staffrenew120minsameAuth2 verificata,2PNGauthoringSELECTABLE; importSQLparenthesescorrected/reviewed/installed,30source39c4544exact; MaclockedprimaUIrecovery, gameplayNOT_RUN/WIPintatto · INCOMPLETO.
