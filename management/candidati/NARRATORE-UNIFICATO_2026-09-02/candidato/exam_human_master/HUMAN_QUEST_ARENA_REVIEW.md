@@ -1,0 +1,9 @@
+# Review aggregata arena — GREEN 0/0/0
+
+UI SHA `7c81b1e93c5e3fe0238e25bed915cf14123a9fe326c8112b893cbe5a4f4dbc47`; entry `802802e61e26ba63b58e2be1d8cbdb29c6a2bbcf0430002644c1fff4f13a1af2`; manifest `1bebbdfbd75638bec9d800447cb4ba032a3c591e0dc4bf1d55e9d28a7c303524`; Admin `1eeb906db927da1bd0b6d40671b9f19adbbeb0fde50580383f6d31b3dd388e77`; plan `555c69de00b1d0bde2ccace884ebf1159b23bf2b203ffad7399ef9e06ba7e890`.
+
+Il delta UI produce una scelta solo da map-reference/1 ready/qualified, content-kind già ammesso e zone_keys attestato contenente arena. Proietta template/version/zone arena e label locale. Non inventa una zona assente; setter a tre campi e validatori/server restano invariati. Reverse UI circoscritto alla sola proiezione; reverse entry esatto al solo import; reverse Admin esatto al solo manifestSHA. Grafo manifest verificato integralmente: 30 asset, due modificati, 28 immutati, byte/SHA e dipendenze corrispondenti; metadati/contratti esterni all'elenco files invariati. Node check dei due moduli PASS.
+
+La cattura readiness R37 identifica nella canonical ui soltanto LAND, mission-generic-ui e mission-creation-ui; non include questo manifest/entry/Admin. Questo delta di presentazione non modifica i contratti business o la disponibilità e può conservare R37 come parent. Va registrata una distinta composizione Admin con i quattro hash nuovi e review presente: R37 da sola non certifica questi asset. Nessun repin o pretesa di uguaglianza con una nuova canonical readiness necessaria per questa sola correzione. Preflight fresco deve confermare readiness/contratti e baseline pubblicata attuali, ownership e assenza di drift.
+
+GREEN 0/0/0 sulla candidata coerente statica; non PASS UI/runtime. Il catalogo PNG vuoto per coppie media assenti resta un blocker separato del caso completo. Nessun apply/deploy/QA, modifica DB, attivazione o replay Source74. Storico e deadline empirica originaria conservati; nessun reset.
