@@ -1,0 +1,144 @@
+{
+  "at": "2026-10-14T22:28:53.533716+00:00",
+  "R37same": true,
+  "new4ports": [
+    {
+      "acl": "{postgres=X/postgres}",
+      "oid": "309630",
+      "exact": true,
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "ddl_md5": "d8dc33df04c8af255c10c1b5eeeddd74",
+      "returns": "trigger",
+      "body_md5": "16517cd874c4897f58f1aabf66dd84c4",
+      "arg_names": null,
+      "signature": "mission_factory_owner.c444_peaceful_receipt_immutable_v1()"
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "oid": "309632",
+      "exact": true,
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "ddl_md5": "c8a3ae40989ed03207cdb52345922aee",
+      "returns": "boolean",
+      "body_md5": "e8d77615e458459fffcf4b41c9bd7976",
+      "arg_names": [
+        "p_session",
+        "p_encounter"
+      ],
+      "signature": "mission_factory_owner.c444_peaceful_complete_v1(uuid,uuid)"
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "oid": "309633",
+      "exact": true,
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "ddl_md5": "e9978bffeca4dc6bfd6f0877cf492f3b",
+      "returns": "jsonb",
+      "body_md5": "df6ab18436e9573cc8102bdddb285c2e",
+      "arg_names": [
+        "p_session",
+        "p_encounter"
+      ],
+      "signature": "mission_factory_owner.c444_peaceful_boundary_v1(uuid,uuid)"
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "oid": "309637",
+      "exact": true,
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "ddl_md5": "99a201e6ce212e220e0400dfe8f36581",
+      "returns": "uuid",
+      "body_md5": "b2f0b994bf444cdd91e1542e4197eb35",
+      "arg_names": [
+        "p_session",
+        "p_encounter",
+        "p_request"
+      ],
+      "signature": "mission_factory_owner.c444_peaceful_close_v1(uuid,uuid,uuid)"
+    }
+  ],
+  "protected": {
+    "at": "2026-10-14T22:28:53.541782+00:00",
+    "rows": 2,
+    "fields_per_pg": 24,
+    "protected_md5": "d41adde267a202a8ff4c6c194eb0a09f"
+  },
+  "gates_same": true,
+  "scope15_same": true,
+  "scope_counts": {
+    "run": 1,
+    "quest": 1,
+    "round": 2,
+    "actors": 4,
+    "combat": 1,
+    "events": 0,
+    "ledger": 8,
+    "master": 1,
+    "offers": 2,
+    "report": 1,
+    "batches": 2,
+    "ratings": 2,
+    "windows": 2,
+    "narratives": 1,
+    "declarations": 4
+  },
+  "protected_same": true,
+  "other_staff_open": 0,
+  "full42ABIexpected": true,
+  "newtable_metadata": {
+    "acl": "{postgres=arwdDxtm/postgres}",
+    "rls": true,
+    "owner": "postgres",
+    "policies": 0,
+    "triggers": [
+      {
+        "enabled": "O",
+        "definition": "CREATE TRIGGER c444_peaceful_receipt_immutable BEFORE DELETE OR UPDATE ON mission_factory_owner.c444_peaceful_native_receipts_v1 FOR EACH ROW EXECUTE FUNCTION mission_factory_owner.c444_peaceful_receipt_immutable_v1()",
+        "function_body_md5": "16517cd874c4897f58f1aabf66dd84c4"
+      }
+    ],
+    "anon_access": false,
+    "constraints": {
+      "c": 6,
+      "f": 8,
+      "p": 1,
+      "u": 4
+    },
+    "service_access": false,
+    "authenticated_access": false,
+    "constraint_definitions": [
+      "FOREIGN KEY (abandoned_round_id) REFERENCES combat_v2_rounds(id)",
+      "FOREIGN KEY (actor_user) REFERENCES profiles(id)",
+      "CHECK ((decision_key = 'combat.peaceful'::text))",
+      "FOREIGN KEY (encounter_id) REFERENCES combat_v2_sessions(id)",
+      "FOREIGN KEY (event_id) REFERENCES combat_v2_events(id)",
+      "UNIQUE (event_id)",
+      "CHECK ((event_sha256 ~ '^[0-9a-f]{64}$'::text))",
+      "FOREIGN KEY (fato_message_id) REFERENCES messages(id)",
+      "UNIQUE (fato_message_id)",
+      "CHECK ((fato_sha256 ~ '^[0-9a-f]{64}$'::text))",
+      "FOREIGN KEY (narrated_round_id) REFERENCES combat_v2_rounds(id)",
+      "PRIMARY KEY (encounter_id)",
+      "FOREIGN KEY (report_id) REFERENCES combat_v2_round_reports(id)",
+      "CHECK ((report_sha256 ~ '^[0-9a-f]{64}$'::text))",
+      "UNIQUE (request_key)",
+      "CHECK ((run_version > 0))",
+      "FOREIGN KEY (session_id) REFERENCES master_v2_sessions(id)",
+      "UNIQUE (session_id, run_version)",
+      "CHECK ((source_sha256 ~ '^[0-9a-f]{64}$'::text))"
+    ]
+  },
+  "full_controls_manual_provider_same": true
+}
