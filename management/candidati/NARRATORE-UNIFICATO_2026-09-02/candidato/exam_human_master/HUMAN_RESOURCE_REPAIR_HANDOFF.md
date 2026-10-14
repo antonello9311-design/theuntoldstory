@@ -1,8 +1,17 @@
-TASK-ID · HUMAN-RESOURCE-CONTRACT-REPAIR-20261014 · IN LAVORO
+TASK-ID · HUMAN-RESOURCE-CONTRACT-REPAIR-20261014 · INCOMPLETO: QA IN ATTESA SBLOCCO MANUALE MAC
 
-Scope · Delta backend minimo C352/catalogo/qualifier, sole Staff; Fato Combat e duepuntate.
-Contratti · Baseline viva in acquisizione, modeTEST immutato.
-Decisioni/OPEN · ConservareWIP/Source74/conteggi; nessunprovider/pubblico.
-Prove · QA non avviato in questa ripresa.
-Rischi · Coerenza producer/catalog/qualification/recovery da recensire.
-PassaggioPM · Completamento nel mandato diretto14ottobre.
+Scope toccato · Correzione backend e collaudo Human con PNG/mappe e quest strutturate a due puntate nella sola Staff; WIP preservato.
+
+Contratti usati/modificati · NativeResourceSource/2 identifica numeri e risorse selezionate, disponibilitàTEST distinta; legacy/1 integralmentehashed con modeALL come sola provenienza. Getter proietta rigorosamente13arene storiche e rifiuta missing/modified/duplicate; extraArenaSuna nonapprovata resta esclusaDTO. WriterRootstorico chiuso per/2, C408/C444 derivati dal vivo/C360wrapper esistente preservato. Delta successivo can_decide booleano nonnullable: Auth/decisions/schema/ACL unchanged. ClientAdminc88 eLANDd0cd immutati.
+
+Decisioni prese / OPEN · 14/10/2026: contratto C352 corretto/installato dopo initialRED0/1/0→AGG1GREEN0/0/0; migrazione20261014072953,5helperSource2numeric/selected13projection/C408/C444/materializeroldRootfailclosed. RuntimeTEST invariato,14global vs13selected distinto senza qualificare nuovaArenaSuna, UUID/documenti/receipt/resourcehistory preservati. CFGAGG4counter4GREEN0/0/0 rinnovata solo dopoexpiry07:42:43UTC, stessi2R37/C416/C444 fino09:42:43UTC, C463falsevuoto/G2/provider/readiness/pubblico immutati. NormalEditorCreate ora committa bozzae6d1b561-cc76-4fb9-8e4e-b73ffc86b6be/CV1: C352superato. SuccessivoMF_QUEST_SENSITIVE_SHAPE corretto con unica espressione booleanpublicSensitiveStatev1, AGG2GREEN0/0/0/migrazione20261014075629/bodya9b97352. RiverificaUI e Fato/Combat/seconda puntata NON_RUN perMaclocked. Post07:58:35UTC StaffMaster/Combat/arcs/runs0,48PGcampiD41immutati,0provider. Source74 e storia/conteggi conservati.
+
+Prove eseguite e risultato · ParserSQL/PL, reviewindipendenteinitialRED F1, unicaAGG1/counterGREEN0/0/0; apply TX/postmetadati97+16/pureselectedidentity riusciti. Create normale sul sito PASS/bozzaCV1, quindi erroreReadReview osservato e corretto AGG2/counter2GREEN0/0/0. Nessun Master/arco/run oFato/Combat creato inquesta campagna. Postfingerprint d41adde267a202a8ff4c6c194eb0a09f,2PG24campi invariati. Zero provider/0tokenIA.
+
+Rischi o regressioni da verificare · Nuovo booleano UI da riverificare; editing2puntate/PNG/mappe, import/pubblicazioneHuman, prepare/C463exactownoptin/start, Fato/Combat/ritorno/terminale/successore/secondo terminale e questlibera restano NONQUALIFICATI. La bozza esistente deve essere riaperta, non ricreata. Non inferirePASSdaSource/installazione.
+
+Budget e storico · Root180min06:58:31→09:58:31UTC, Q2avviato07:44:12→09:04:12UTC80min,provider0; limite nonazzerato dopo difetto/bloccoMac. Nessuna scenadachiudere. CFGhistory initialRED/agg1FAIL42883/agg2PASS/agg3PASS/agg4PASS4of5; Stage1/HumanC492agg4/eccezioni30Sep/globalhistory intatti. Backendinitial40b6RED conservato, b666installed/0a2currentdelta e contro1/2green distinti; futureSource74dependencydrift da ricomporre dall’owner, niente replay/reinstalloldbodies.
+
+Deposito ·20source/evidencef179d8b1f5a2212d5d21d2f36a4609a6ab8a88f7,20blobMATCH; includono b666primaAGG2. Delta empirico e prove finali da deposito selettivo; sharedDossier aggiornato locale, senza overwrite remoto nonriconciliato.
+
+Passaggio richiesto al PM · Dopo sblocco manuale usare accessi normaliFirefoxRiuji/ChromeTamako e riaprire e6d1. Freshpreflight/checkowner/actual6corpi+CFG+client prima ripresa. Se scaduto budgetcaso olease, dichiarare nuova campagna pertinente e comporre rinnovo minimale recensito senza resetconteggi o reuseenvelopescadute. C463 resta inerte: congelare solo dopo prepare reale e reviewID/receipt; bind propri2sessioni se necessario conclosedfirstproof, senza SQLgameplay/impersonazione/Docker. Nessuna apertura generale autorizzata daquesta consegna.
