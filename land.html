@@ -7,6 +7,7 @@
   <meta name="tus-human-rapid-build" content="mission-creation-ui-human-rapid-6" />
   <meta name="tus-quest-runtime-build" content="completion7-binding/1" />
   <meta name="tus-human-quest-suspend-build" content="HUMAN22-OWN-STAFF-PRE-ENCOUNTER-001" />
+  <meta name="tus-human-regia-read-click-build" content="HUMAN29-REGIA-READ-CLICK-001" />
   <meta name="tus-fato-history-build" content="C1236-H3-HISTORY-AGG15-STAFF" />
   <meta name="tus-master-report-ui-build" content="C1236-MASTER-REPORT-UI-001" />
   <meta name="tus-human-close-recovery-build" content="C1236-HUMAN-CLOSE-RECOVERY-001" />
@@ -4726,9 +4727,30 @@ function attachCombatPanel(host){
     if(pending.kind==='publish'&&(receipt.schema_version!=='regia-round-publication/1'||!isId(receipt.message_id)||!isId(receipt.publication_id)))return false;
     const k=regiaPendingKey();if(!k)return false;globalThis.sessionStorage.removeItem(k);if(pending.kind==='advance')regiaDirection={turn_kind:'',actor_ids:[]};return true;
   }
+  let regiaWriteLock=null;
   async function regiaWrite(kind){
-    const m=regiaState?.master,session=host.regiaSession?.(panel?.snapshot().envelope),k=regiaPendingKey();
-    if(!k||!m||regiaPending()||regiaState?.status!=='ready'||!(kind==='advance'?m.can_prepare:m.can_publish))return;
+    if(regiaWriteLock){host.notice('Comando Regia già in preparazione: attendi la conferma.');return;}
+    const lock={};regiaWriteLock=lock;
+    try{
+    const stamp=generation,identity=scope(),binding=regiaBinding(panel?.snapshot().envelope),k=regiaPendingKey();
+    const clickedDirection=JSON.stringify(regiaDirection),clickedDraft=regiaDraft;
+    if(!identity||!binding||!k){host.notice('Identità Regia non disponibile: aggiorna lo stato. Il testo è conservato.');return;}
+    const reading=regiaReading;
+    if(reading){
+      if(reading.binding!==binding){host.notice('Lettura Regia di una scena diversa: aggiorna lo stato. Il testo è conservato.');return;}
+      try{await reading.promise;}catch{host.notice('Lettura Regia non completata: aggiorna lo stato. Il testo è conservato.');return;}
+    }
+    if(stamp!==generation||identity!==scope()||binding!==regiaBinding(panel?.snapshot().envelope)||k!==regiaPendingKey()){
+      host.notice('Il contesto Regia è cambiato: rileggi lo stato prima di confermare. Il testo è conservato.');return;
+    }
+    if(JSON.stringify(regiaDirection)!==clickedDirection||regiaDraft!==clickedDraft){
+      host.notice('Le scelte o il testo sono cambiati durante la lettura: conferma nuovamente.');return;
+    }
+    const m=regiaState?.master,session=host.regiaSession?.(panel?.snapshot().envelope);
+    if(regiaPending()){host.notice('Richiesta Regia da recuperare: verifica la stessa richiesta.');return;}
+    if(regiaReading||regiaScope!==binding||!m||regiaState?.status!=='ready'||!(kind==='advance'?m.can_prepare:m.can_publish)){
+      host.notice('Stato Regia non pronto: aggiorna e conferma nuovamente. Il testo è conservato.');return;
+    }
     const request_key=globalThis.crypto.randomUUID();
     const direction=kind==='advance'?regiaDirectionContext(m):null,terminal=direction?.terminal===true;
     const args=kind==='advance' ? terminal
@@ -4749,6 +4771,7 @@ function attachCombatPanel(host){
       if(kind==='publish'){regiaDraft='';host.regiaPublished?.();}
       await readRegiaPublication();
     }catch{host.notice('Esito Regia incerto: verifica la stessa richiesta.');renderRegiaControls();}
+    }finally{if(regiaWriteLock===lock)regiaWriteLock=null;}
   }
   async function regiaRecoverRejectedPublication(p,error){
     const recoveryScope=regiaSessionScope(panel?.snapshot().envelope),recoveryGeneration=generation;
