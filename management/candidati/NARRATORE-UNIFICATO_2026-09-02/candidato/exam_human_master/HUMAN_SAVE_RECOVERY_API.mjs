@@ -171,7 +171,14 @@ export function createQuestAwareFactoryApi(client, {identity,isCurrent} = {}) {
     return structuredClone(v);
   };
   return {
-    saveRecovery:readSaveRecovery,
+    saveRecovery:async(params)=>{
+      const actor=owner(),current=await client.questSaveAttempt({request_key:params.request_key,draft_id:params.draft_id});assertOwner(actor);
+      if(current.actor!==actor||current.request_key!==params.request_key||current.payload.draft_id!==params.draft_id||current.payload.expected_version!==params.expected_version)fail('MF_SAVE_RECOVERY_TRANSPORT_SCOPE');
+      const recovery=await readSaveRecovery({...structuredClone(current.payload),request_key:params.request_key});assertOwner(actor);
+      const ack=await client.questSaveAttempt({request_key:params.request_key,draft_id:params.draft_id});assertOwner(actor);
+      if(ack.actor!==actor||ack.request_key!==current.request_key||ack.fingerprint!==current.fingerprint||JSON.stringify(ack.payload)!==JSON.stringify(current.payload)||recovery.state==='rejected'&&ack.phase!=='rejected')fail('MF_SAVE_RECOVERY_TRANSPORT_UNACKNOWLEDGED');
+      return {schema_version:'quest-save-client-recovery/1',recovery,current_payload:structuredClone(current.payload),transport_fingerprint:ack.fingerprint,transport_phase:ack.phase};
+    },
     d100DraftPolicies:async ({draft_id,expected_version})=>{
       if(!UUID.test(draft_id||'')||!Number.isSafeInteger(expected_version)||expected_version<1)fail('MF_QUEST_D100_DRAFT');
       const actor=owner(),r=await client.rpc('mission_factory_quest_d100_draft_policy_catalog_v1',{p_draft:draft_id,p_expected_version:expected_version});assertOwner(actor);if(r.error)throw r.error;

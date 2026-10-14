@@ -1,0 +1,104 @@
+{
+  "status": "GREEN_SOURCE_INTEGRATED",
+  "review_findings": [
+    0,
+    0,
+    0
+  ],
+  "reviewer": "media_integrated_review",
+  "at": "2026-10-14T15:28:47.837573+00:00",
+  "aggregate": 4,
+  "current_human_aggregate": 8,
+  "CFG_aggregate": 5,
+  "no_reset": true,
+  "history": "Preserves Recovery3RED F2 and earlier initialRED/AGG1GREEN/98cfailed42883rollback/AGG2GREEN200571installed/realbeforeRPCtransportfailure; namedHumanresolution exception continuation, no CFG6.",
+  "artifact_hashes": {
+    "HUMAN_SAVE_RECOVERY_TRANSPORT.mjs": "08d1c71d975ad0fe5330298beb9fc60bd7b5e861d0e7bb9c3944b57528efcf6e",
+    "HUMAN_SAVE_RECOVERY_API.mjs": "7be202dab084a47066859b1617f8f979556c6117ae4c9bc46a5a70b6bbf84d85",
+    "HUMAN_SAVE_RECOVERY_CORE.mjs": "c888100343f3ca1a61fdad6de3b37379192abd3edf3f79e602400dfaecfdd5be",
+    "HUMAN_SAVE_RECOVERY_UI.mjs": "9d85958ffdc7b2d5f67811b24ced9a9c759d943ad4ef52f82c5d8e0e67295763",
+    "HUMAN_SAVE_RECOVERY_MANIFEST.json": "1816308bbcaa1c2459f909b129d473868a65111f863792033e105a6e61e83a31",
+    "HUMAN_RECOVERY4_GRAPH_ADMIN.html": "a1b4be6ccb68afbea2c2a5acc3d620bf472cb38f16db79ca9a73e1fcb93342b9",
+    "HUMAN_RECOVERY4_GRAPH_MANIFEST.json": "58959dfec34dfe9aee1c2b2f39dc720774c661544c424c33b04a0f0e179568f4",
+    "HUMAN_RECOVERY4_GRAPH_PROOF.json": "9321bf25fc1069070bffc5ef1b62316cff62509f31d22ca58a1abe27595dfa75"
+  },
+  "counter3_review": {
+    "status": "RED_SOURCE",
+    "review_findings": [
+      0,
+      1,
+      0
+    ],
+    "reviewer": "media_integrated_review",
+    "at": "2026-10-14T15:02:53.749016+00:00",
+    "aggregate": 3,
+    "current_human_aggregate": 7,
+    "CFG_aggregate": 5,
+    "history": "InitialRED/Recovery1GREEN/98cinstall42883atomicrollback/Recovery2GREEN200571installed/realtransportbeforeRPCfailure preserved. No reset and no CFG6.",
+    "artifact_hashes": {
+      "HUMAN_SAVE_RECOVERY_TRANSPORT.mjs": "8ad2de8c7abc1080e59ba966a789c6450934ec08ff99d0734956d2bee9e6b556",
+      "HUMAN_SAVE_RECOVERY_API.mjs": "72d132ca723cf9e794bc38e2226659ebc7426b4ca48a1f68dd5e9e6a5555b5a9",
+      "HUMAN_SAVE_RECOVERY_CORE.mjs": "79dd09eda219e576ed90c1f9562f2325c4ff040f7bcb3c05c6d808031ee86a8e",
+      "HUMAN_SAVE_RECOVERY_UI.mjs": "9d85958ffdc7b2d5f67811b24ced9a9c759d943ad4ef52f82c5d8e0e67295763",
+      "HUMAN_SAVE_RECOVERY_MANIFEST.json": "0e92a5c2049bd43c32c652c64af06058dbd91e747b4a6b35862c81ec7ba8a137"
+    },
+    "findings": [
+      {
+        "id": "HUMAN-SAVE-RECOVERY-F2",
+        "priority": "P1",
+        "file": "HUMAN_SAVE_RECOVERY_CORE.mjs",
+        "lines": [
+          342,
+          346
+        ],
+        "title": "Old rejected proof unfreezes CORE for a genuinely unknown corrected submission",
+        "evidence": "After old arena-invalid body is authoritatively rejected, save()164-170 replaces pendingSave.payload with corrected WIP but retains rejected_payload and recovery_evidence. If corrected same-key save truly dispatches and remains unknown, recoverPending342 always probes retained old rejected_payload, and344-346 sets entire current pendingSave state rejected from that old-body proof. Transport166-167 correctly refuses this proof for the new pending journal because canonical(probe)!=canonical(record.args); its phase remains pending. Core/transport then describe two different authoritative states for same key.",
+        "scenario": "Initial A is rejected→transport A released; explicit corrected B same-key sends and becomes uncertain→requestStateunknown→readRecovery(A) returns rejected while durable transport stillpending(B)→Core says recovered/rejected and setDocument155 allows edits although B is still truly unknown; next Save with C is blocked by transport158. No double mutation occurs, but true-unknown freeze and coherent recoverable UI contract are broken, and recovery cannot inspect the actual current B when old rejection remains.",
+        "impact": "Normal UI falsely reports recovered and enables WIP edits for an uncertain current submission. The strict transport correctly prevents unsafe changed-body replay, leaving the user in another unrecoverable/incorrectly labelled mismatch. Root explicit acceptance requirement true-unknown stays frozen is not met.",
+        "request": "Keep current Core pending state unknown/frozen when the verified rejection belongs only to an older body and current durable transport is a different pending attempt. Reconcile/probe the exact current durable save record (actor/key/op/args/fingerprint) or expose a closed principal-bound local acknowledgement of the rejection transition to CORE; only permit CORErejected and corrected explicit next save when that exact underlying record is rejected. Preserve old payload/proof/history, current WIP/CV and same key; no journal clearing/newkey/auto retry or broad validator loosening.",
+        "counter": "One aggregate finding, no author edits during review."
+      }
+    ],
+    "checks": {
+      "syntax4": "Node--check TRANSPORT/API/CORE/UI PASS, frozen hashes match Root.",
+      "positive_transport": "Strict quest namespace+rpcsave only, actualactor/currentAuth/epoch, old pending fingerprint integrity, exact old args probe and closed9key evidence, same key/history retained. Changed body blocked for genuine pending transport; ordinary namespace unaffected.",
+      "positive_UI_WIP": "Restore persists current_document/control_version; normal recovery reader rendered docnull/docpresent. No storage clearing/newkey, API/server unchanged; explicit Save remains required.",
+      "unknown_defense": "Transport prevents unsafe changed args; CORE state transition still contradicts current pending record and needs aggregate correction.",
+      "graph": "Final recomposed graph not provided at report time; RED constituent blocks dependent graph publication. Four constituent syntax/static review is not runtime PASS."
+    },
+    "limits": [
+      "RED blocks this client publication/replay; prior installed DB/media unaffected.",
+      "No runtime/apply/provider/UI/gameplay executed by reviewer; no local execution or mock.",
+      "Root must preserve counter3/Human7 and collect next aggregate under already named resolution mandate; no reset or CFG6."
+    ],
+    "operations": {
+      "DB": 0,
+      "UI": 0,
+      "provider": 0,
+      "gameplay": 0
+    }
+  },
+  "findings": [],
+  "checks": {
+    "F2": "CLOSED static. questSaveAttempt reads only current principal-bound exact namespacequest/save op/key/draft/document-kind/schema/fingerprint durable journal with current Auth before/after. API ignores stale rejected_payload when selecting probe and uses exact current durable payload. Re-read ACK must retain actor/key/fingerprint/payload; rejected proof must correspond to currentphase rejected. CORE accepts closed5key local client wrapper and unlocks only ACKrejected of actual current attempt.",
+    "current_unknown": "CorrectedB truly sent and current pending: API probes B instead of oldA. Backendunknown yields currentACKpending and CORE remains unknown/pending. OldA rejection history cannot unlock B; different-body changedkey remains transportfrozen.",
+    "real_beforeRPC_defect": "If COREpayload alreadynewWIP while durabletransportstilloldA because earlier send failed beforeRPC, API probes actualA and exactACKrejected permits subsequent explicit correctedSave SAMEkey. Current unsaved WIP/CV preserved; oldbody/proof/history retained. No new key or auto save.",
+    "WIP_reload_UI": "Current document/CV retained in recoverySnapshot and restored validated; neither rejected norconfirmed readback overwrites currentdocument. UIrecoveryreader accessible with docnull or docpresent. Explicit ordinary nextsave only; trueunknown blocks setDocument and transportchangedargs.",
+    "Auth_lifecycle": "Actual current identity/isCurrent/client session checked before journalread/networkcontinuations and after ACK; accepted oldactor replies stay in original namespace. No fake Auth, no generic validator loosening or crossnamespace unlock.",
+    "server_ports": "No DBdelta/backendproof9keys/whitelist/grants changed; ordinary mission lifecycle journal and existingprovider/media paths retain guards. Local5key recovery DTO is separate from closed9key server DTO.",
+    "fullgraph": "Independent30asset hash/bytes/importset/statements/dependencies/Node checks PASS; four producer bodies equal after only import-hash normalization. Five changedlogical transport/questAPI/Core/UI/ENTRY; 25parent assets hash/bytes unchanged. Admin a1b4...469400B only manifest58959...27220B hash delta relative to captured live6fea/310ede parent; R37 unchanged. FourAdmininline script syntax independentPASS.",
+    "composition": "QuestAPI constructs createEditorLifecycleTransport(namespacequest) from newsharedmodule before invoking questSaveAttempt; fullENTRY imports exact newQuestAPI. No accidental RAWclient missing-method mismatch. Correct producer/consumer composition pinned."
+  },
+  "limits": [
+    "GREEN static integrated client/source only. Normal sourcepublication/domain/clientreload and same-key normal UIrecovery/save must prove actual success; no runtimePASS asserted.",
+    "Fresh current Git/domain owner/head/sourcegraph baseline and no-namespace drift required before publish.",
+    "No apply, DBquery/mutation, UIoperation, providercall, gameplay or mock/localapp execution by reviewer."
+  ],
+  "operations": {
+    "DB": 0,
+    "UI": 0,
+    "provider_calls": 0,
+    "gameplay": 0
+  },
+  "budget_minutes_cap": 8
+}

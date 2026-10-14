@@ -55,7 +55,7 @@ export class QuestFactoryEditor {
     pending_create:this.pendingCreate?.key??null,pending_save:this.pendingSave?.key??null,
     pending_roster:this.pendingRoster?.key??null,pending_compile:this.pendingCompile,
     pending_variant:this.pendingVariant?.key??null,pending_publish:this.pendingPublish?.key??null,pending_reward_policy:this.pendingRewardPolicy?.key??null,
-    save_recovery_history:copy(this.saveRecoveryHistory),
+    save_recovery_history:copy(this.saveRecoveryHistory),current_document:copy(this.document),current_control_version:this.controlVersion,
     pending_payloads:{pendingCreate:copy(this.pendingCreate),pendingSave:copy(this.pendingSave),pendingRoster:copy(this.pendingRoster),pendingCompile:copy(this.pendingCompile),pendingVariant:copy(this.pendingVariant),pendingPublish:copy(this.pendingPublish),pendingRewardPolicy:copy(this.pendingRewardPolicy)}};}
   restoreRecovery(snapshot){this.invalidateSchedule();
     if(snapshot?.schema_version!=='mission-factory-quest-recovery/1'||snapshot.content_kind!==KIND)
@@ -71,6 +71,8 @@ export class QuestFactoryEditor {
     this.pendingPublish=key(snapshot.pending_publish)?{key:snapshot.pending_publish,payload:null}:null;
     this.pendingRewardPolicy=key(snapshot.pending_reward_policy)?{key:snapshot.pending_reward_policy}:null;
     if(snapshot.pending_payloads){for(const property of ['pendingCreate', 'pendingSave', 'pendingRoster', 'pendingCompile', 'pendingVariant', 'pendingPublish', 'pendingRewardPolicy']){const original=this[property],saved=snapshot.pending_payloads[property];const a=typeof original==='string'?original:original?.key,b=typeof saved==='string'?saved:saved?.key;if((a||null)!==(b||null))throw Error('Journal recovery incoerente.');this[property]=copy(saved);}}
+    const recoveredDocument=snapshot.current_document??this.pendingSave?.payload?.document;const recoveredVersion=snapshot.current_control_version??this.pendingSave?.payload?.expected_version;
+    if(recoveredDocument){documentShape(recoveredDocument);if(!Number.isSafeInteger(recoveredVersion)||recoveredVersion<1)fail('MF_QUEST_RECOVERY_VERSION');this.document=copy(recoveredDocument);this.controlVersion=recoveredVersion;this.savedDocument=false;}
   }
   async loadCatalog(){this.invalidateSchedule();
     const value=await this.api.catalog();
@@ -337,9 +339,12 @@ export class QuestFactoryEditor {
       let effective=state;
       if(operation==='save'&&state.state==='unknown'&&this[property].payload){
         const pending=this[property];
-        const recovery=await this.api.saveRecovery({...copy(pending.payload),request_key:request});
+        const local=await this.api.saveRecovery({...copy(pending.payload),request_key:request});
+        if(!local||Object.keys(local).sort().join()!==['schema_version','recovery','current_payload','transport_fingerprint','transport_phase'].sort().join()||local.schema_version!=='quest-save-client-recovery/1'||!SHA.test(local.transport_fingerprint||'')||!['pending','rejected','answered'].includes(local.transport_phase)||local.current_payload?.draft_id!==pending.payload.draft_id||local.current_payload.expected_version!==pending.payload.expected_version)fail('MF_SAVE_RECOVERY_TRANSPORT_ACK');
+        const recovery=local.recovery,currentPayload=local.current_payload;
         if(recovery.state==='rejected'){
-          this[property]={...pending,state:'rejected',rejected_payload:copy(pending.payload),recovery_evidence:copy(recovery)};
+          if(local.transport_phase!=='rejected')fail('MF_SAVE_RECOVERY_TRANSPORT_ACK');
+          this[property]={...pending,state:'rejected',rejected_payload:copy(currentPayload),recovery_evidence:copy(recovery)};
           if(pending.state!=='rejected')this.saveRecoveryHistory.push(copy(this[property]));this.checkpoint(this.recoverySnapshot());states.push({operation,state:'rejected'});recoveredSave=true;continue;
         }
         if(recovery.state==='confirmed')effective={...state,state:'confirmed',result:recovery.confirmed_result};
@@ -363,7 +368,7 @@ export class QuestFactoryEditor {
     if(this.pendingRewardPolicy)states.push({operation:'reward_policy',state:(await this.readRewardPolicy()).state});
     if(this.pendingCompile||this.proposalRequest)states.push({operation:'compile',state:(await this.readCompile()).state});
     if(this.pendingPublish||this.publishedRequest)states.push({operation:'publish',state:(await this.refreshDelivery()).state});
-    if(this.draftId&&!recoveredSave&&!states.some(x=>x.state==='unknown'))await this.open(this.draftId);
+    if(this.draftId&&!this.document&&!recoveredSave&&!states.some(x=>x.state==='unknown'))await this.open(this.draftId);
     return states;
   }
 }
