@@ -6,6 +6,7 @@
   <meta name="tus-build" content="LAND-INUZUKA-GENIN-COMMON-009" />
   <meta name="tus-human-rapid-build" content="mission-creation-ui-human-rapid-6" />
   <meta name="tus-quest-runtime-build" content="completion7-binding/1" />
+  <meta name="tus-human-quest-suspend-build" content="HUMAN22-OWN-STAFF-PRE-ENCOUNTER-001" />
   <meta name="tus-fato-history-build" content="C1236-H3-HISTORY-AGG15-STAFF" />
   <meta name="tus-master-report-ui-build" content="C1236-MASTER-REPORT-UI-001" />
   <meta name="tus-human-close-recovery-build" content="C1236-HUMAN-CLOSE-RECOVERY-001" />
@@ -6783,6 +6784,10 @@ window.TUSOrdinary={attachOrdinaryLand};
         }
         if(!e){
           if(viewer.is_master){
+            // HUMAN22 temporary recovery surface: exact owned Staff Human scene, before an encounter.
+            if(cur&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&m.location_id===cur.id&&m.id==='97d2a684-956d-57ad-8d84-aca627dd9e5c'&&m.tipo==='quest'&&m.mission_id===null&&m.stato==='in_corso'&&m.suspended_at===null&&commonMasterPrincipal()==='f0856d53-83a6-4de0-bc0c-12c87916e665'){
+              h+='<label class="mv2-field"><span>Motivo della sospensione</span><input id="mv2-suspend-reason" maxlength="500" placeholder="Es. correzione della scena prima del combattimento"></label><div class="mv2-actions"><button class="mv2-btn ghost" type="button" data-mv2="suspend">Congela e sospendi</button></div>';
+            }
             if(MISSION_CREATION_HUMAN_SESSION===m.id&&MISSION_CREATION_HUMAN_STATUS!=='unconfigured'){
               h+='<p class="mv2-note">'+(MISSION_CREATION_HUMAN_STATUS==='ready'?'La missione segue le fasi configurate. Apri «Fasi e note della missione» per leggere il contesto e usare i comandi disponibili.':MISSION_CREATION_HUMAN_STATUS==='error'?'Lettura delle fasi non disponibile. Usa Aggiorna per riprovare.':'Caricamento delle fasi della missione…')+'</p>'+mv2SceneCloseBlock(m);
             }else{if(!MV2.setup)mv2SetupLoad();h+=mv2EncounterForm()+mv2SceneCloseBlock(m);}
