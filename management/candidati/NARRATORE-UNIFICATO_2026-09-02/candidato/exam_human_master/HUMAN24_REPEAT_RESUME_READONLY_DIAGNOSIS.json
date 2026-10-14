@@ -1,0 +1,137 @@
+{
+  "scope": "Repeated Native suspend/resume after Human24 normalUI click diagnosis",
+  "readonly": true,
+  "QA_stop": "2026-10-14T20:14:00Z",
+  "events": {
+    "at": "2026-10-14T20:15:00.386329+00:00",
+    "checkpoint_rows": [
+      {
+        "id": "a960a4a6-518c-47d9-aea0-864dc9212489",
+        "active": false,
+        "sha256": "46d3b37cb3387f9c27bc71e92b553db01f69082bbfa06a6fd75f3e640c75d8dc",
+        "version": 2,
+        "hash_valid": true,
+        "resumed_at": "2026-10-14T20:09:09.028504+00:00",
+        "suspended_at": "2026-10-14T20:07:47.147167+00:00",
+        "translation_applied_at": "2026-10-14T20:09:09.028504+00:00"
+      },
+      {
+        "id": "df788d74-6ec9-42af-8485-1b9216ad17bf",
+        "active": true,
+        "sha256": "38e987d5a5e7762b7fbf7b7da5afe2d26a839cd12f8d829b7905f336e74a61c1",
+        "version": 2,
+        "hash_valid": true,
+        "resumed_at": null,
+        "suspended_at": "2026-10-14T20:10:49.616943+00:00",
+        "translation_applied_at": null
+      }
+    ],
+    "lifecycle_events": [
+      {
+        "status": "completata",
+        "operation": "master_v2_suspend",
+        "created_at": "2026-10-14T20:07:47.134894+00:00",
+        "request_key": "37488458-2745-4a7b-929d-cd84cee679ff",
+        "result_state": "sospesa",
+        "control_version": 2
+      },
+      {
+        "status": "completata",
+        "operation": "master_v2_resume",
+        "created_at": "2026-10-14T20:09:09.027705+00:00",
+        "request_key": "744979dc-fd30-49b1-9901-3372f322ca2f",
+        "result_state": "in_corso",
+        "control_version": 2
+      },
+      {
+        "status": "completata",
+        "operation": "master_v2_suspend",
+        "created_at": "2026-10-14T20:10:49.609733+00:00",
+        "request_key": "2c7a22a7-aba5-4e07-8150-9a9b0208de18",
+        "result_state": "sospesa",
+        "control_version": 2
+      }
+    ]
+  },
+  "normal_sources": [
+    {
+      "signature": "master_v2_resume(uuid,bigint,uuid)",
+      "body_md5": "f93081b87c166d9aca2b76b18ce85653",
+      "definition": "CREATE OR REPLACE FUNCTION public.master_v2_resume(p_session uuid, p_expected_control_version bigint, p_request_key uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare v_uid uuid:=auth.uid(); v_m public.master_v2_sessions%rowtype; v_cp public.master_v2_mechanical_checkpoints%rowtype; v_event jsonb; v_event_id uuid; v_delta interval; v_result jsonb;\nbegin\n  perform public.master_v2_lock_scope(p_session);\n  select * into v_m from public.master_v2_sessions where id=p_session for update;\n  if v_m.id is null or v_m.stato<>'sospesa' then perform public.combat_v2_fail('ripresa_non_consentita','Sessione non sospesa.',409,p_request_key,'{}'); end if;\n  if v_m.master_user<>v_uid then perform public.combat_v2_fail('master_non_proprietario','Solo il Master corrente pu\u00f2 riprendere.',403,p_request_key,'{}'); end if;\n  if v_m.control_version<>p_expected_control_version then perform public.combat_v2_fail('versione_controllo_obsoleta','Versione controllo obsoleta.',409,p_request_key,'{}'); end if;\n  select * into v_cp from public.master_v2_mechanical_checkpoints where master_session_id=p_session and active for update;\n  if v_cp.id is null or v_cp.sha256<>public.combat_v2_sha256(v_cp.payload) then perform public.combat_v2_fail('checkpoint_non_valido','Checkpoint mancante o alterato.',409,p_request_key,'{}'); end if;\n  v_event:=public.combat_v2_event_begin(p_session,p_request_key,'master_v2_resume',jsonb_build_object('expected',p_expected_control_version),p_expected_control_version);\n  if (v_event->>'replay')::boolean then return v_event->'result'; end if; v_event_id:=(v_event->>'event_id')::uuid;\n  v_delta:=clock_timestamp()-v_cp.suspended_at;\n  update public.master_v2_mechanical_checkpoints set active=false,resumed_at=clock_timestamp(),pause_delta=v_delta,translation_applied_at=clock_timestamp() where id=v_cp.id and translation_applied_at is null;\n  update public.master_v2_sessions set stato=coalesce(stato_pre_sospensione,'in_corso'),stato_pre_sospensione=null,suspended_at=null where id=p_session;\n  if v_m.tipo='quest' and mission_internal.runtime_enabled()\n     and exists(select 1 from public.mission_run_state where master_session_id=p_session and run_phase='sospesa') then\n    perform mission_internal.sync_lifecycle(p_session,p_request_key,v_m.control_version,\n      (select control_version from public.mission_run_state where master_session_id=p_session),\n      (select stato from public.master_v2_sessions where id=p_session));\n  end if;\n  update public.combat_v2_sessions set state=coalesce(state_before_suspend,'in_corso'),state_before_suspend=null where master_session_id=p_session and state='sospeso';\n  update public.master_v2_participants set engagement_state='attivo' where session_id=p_session and engagement_state='sospeso';\n  v_result:=public.combat_v2_envelope(p_request_key,jsonb_build_object('state','in_corso','pause_delta',v_delta::text,'translation_applied_once',true));\n  return public.combat_v2_event_complete(v_event_id,v_result);\nend $function$\n"
+    },
+    {
+      "signature": "master_v2_suspend(uuid,text,text,bigint,uuid)",
+      "body_md5": "c742683c050a8fb6e23c01635d5b0ad0",
+      "definition": "CREATE OR REPLACE FUNCTION public.master_v2_suspend(p_session uuid, p_mode text, p_reason text, p_expected_control_version bigint, p_request_key uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare v_uid uuid:=auth.uid(); v_m public.master_v2_sessions%rowtype; v_event jsonb; v_event_id uuid; v_cp uuid; v_result jsonb;\nbegin\n  perform public.master_v2_lock_scope(p_session);\n  select * into v_m from public.master_v2_sessions where id=p_session for update;\n  if v_m.id is null then perform public.combat_v2_fail('sessione_inesistente','Sessione inesistente.',404,p_request_key,'{}'); end if;\n  if v_m.master_user<>v_uid and not public.combat_v2_is_admin(v_uid) then perform public.combat_v2_fail('master_non_proprietario','Solo il Master corrente o Admin pu\u00f2 sospendere.',403,p_request_key,'{}'); end if;\n  if v_m.control_version<>p_expected_control_version then perform public.combat_v2_fail('versione_controllo_obsoleta','Versione controllo obsoleta.',409,p_request_key,'{}'); end if;\n  if p_mode not in ('normale','emergenza') then perform public.combat_v2_fail('checkpoint_non_valido','Modalit\u00e0 checkpoint non valida.',422,p_request_key,'{}'); end if;\n  if v_m.stato not in ('preparazione','in_corso') then perform public.combat_v2_fail('sessione_non_operativa','Sessione non sospendibile.',409,p_request_key,'{}'); end if;\n  if p_mode='normale' and exists(select 1 from public.combat_v2_sessions s join public.combat_v2_rounds r on r.session_id=s.id where s.master_session_id=p_session and r.state<>'narrato') then\n    perform public.combat_v2_fail('sospensione_non_a_fine_round','La sospensione normale richiede fine round narrato.',409,p_request_key,'{}'); end if;\n  v_event:=public.combat_v2_event_begin(p_session,p_request_key,'master_v2_suspend',jsonb_build_object('mode',p_mode,'reason',p_reason,'expected',p_expected_control_version),p_expected_control_version);\n  if (v_event->>'replay')::boolean then return v_event->'result'; end if; v_event_id:=(v_event->>'event_id')::uuid;\n  v_cp:=public.master_v2_make_checkpoint(p_session,p_mode,p_reason);\n  update public.master_v2_sessions set stato_pre_sospensione=stato,stato='sospesa',suspended_at=clock_timestamp() where id=p_session;\n  if v_m.tipo='quest' and mission_internal.runtime_enabled()\n     and exists(select 1 from public.mission_run_state where master_session_id=p_session and run_phase in ('preparazione','in_corso')) then\n    perform mission_internal.sync_lifecycle(p_session,p_request_key,v_m.control_version,\n      (select control_version from public.mission_run_state where master_session_id=p_session),'sospesa');\n  end if;\n  update public.combat_v2_sessions set state_before_suspend=state,state='sospeso' where master_session_id=p_session and state not in ('chiuso','annullato');\n  update public.master_v2_participants set engagement_state='sospeso' where session_id=p_session and engagement_state='attivo';\n  v_result:=public.combat_v2_envelope(p_request_key,jsonb_build_object('checkpoint_id',v_cp,'state','sospesa'));\n  return public.combat_v2_event_complete(v_event_id,v_result);\nend $function$\n"
+    }
+  ],
+  "event_begin": {
+    "signature": "combat_v2_event_begin(uuid,uuid,text,jsonb,bigint)",
+    "body_md5": "1030842755c15d4a601dc06a179e9b79",
+    "definition": "CREATE OR REPLACE FUNCTION public.combat_v2_event_begin(p_scope uuid, p_request_key uuid, p_operation text, p_payload jsonb, p_control_version bigint DEFAULT NULL::bigint)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare v_fp text; v_event public.combat_v2_events%rowtype; v_caller uuid:=auth.uid();\nbegin\n  perform exam_human_private.assert_native_dispatch_v1(p_scope,p_request_key,p_operation);\n  perform exam_regia_private.assert_event_dispatch(p_scope,p_request_key,p_operation);\n  if p_request_key is null then perform public.combat_v2_fail('chiave_idempotenza_non_valida','Chiave di idempotenza obbligatoria.',422,null,'{}'); end if;\n  v_fp:=public.combat_v2_sha256(jsonb_build_object('operation',p_operation,'payload',coalesce(p_payload,'{}'::jsonb),'caller',v_caller,'scope',p_scope));\n  select * into v_event from public.combat_v2_events where scope_id=p_scope and request_key=p_request_key for update;\n  if v_event.id is not null then\n    if v_event.request_fingerprint<>v_fp or v_event.operation_kind<>p_operation then\n      perform public.combat_v2_fail('chiave_riusata_per_altra_operazione','La chiave \u00e8 gi\u00e0 associata a un altro payload.',409,p_request_key,'{}');\n    end if;\n    if v_event.status='completata' then return jsonb_build_object('replay',true,'result',v_event.result,'event_id',v_event.id); end if;\n    if v_event.status='in_corso' and p_operation<>'master_v2_close' then\n      perform public.combat_v2_fail('operazione_in_corso','Operazione gi\u00e0 in corso.',409,p_request_key,'{}');\n    end if;\n    return jsonb_build_object('replay',false,'resume',true,'event_id',v_event.id);\n  end if;\n  insert into public.combat_v2_events(scope_id,request_key,operation_kind,request_fingerprint,caller,control_version)\n  values(p_scope,p_request_key,p_operation,v_fp,v_caller,p_control_version) returning id into v_event.id;\n  return jsonb_build_object('replay',false,'resume',false,'event_id',v_event.id);\nend $function$\n"
+  },
+  "late_errors": [
+    {
+      "context": "PL/pgSQL function public.regia_round_publication_state_v1(uuid,uuid) line 33 at RAISE",
+      "event_message": "REGIA_ACCESS_DENIED",
+      "sql_state": "42501",
+      "timestamp": "2026-10-14T20:13:57.936000"
+    },
+    {
+      "context": "PL/pgSQL function mission_generic_owner.regia_human_direction_context_v1(uuid) line 12 at RAISE\nPL/pgSQL function public.regia_round_publication_state_v1(uuid,uuid) line 42 at RETURN",
+      "event_message": "C395_HUMAN_ACTIVE_STAFF_SCOPE_REQUIRED",
+      "sql_state": "42501",
+      "timestamp": "2026-10-14T20:13:50.882000"
+    },
+    {
+      "context": "PL/pgSQL function public.regia_round_publication_state_v1(uuid,uuid) line 33 at RAISE",
+      "event_message": "REGIA_ACCESS_DENIED",
+      "sql_state": "42501",
+      "timestamp": "2026-10-14T20:13:48.886000"
+    },
+    {
+      "context": "PL/pgSQL function mission_generic_owner.regia_human_direction_context_v1(uuid) line 12 at RAISE\nPL/pgSQL function public.regia_round_publication_state_v1(uuid,uuid) line 42 at RETURN",
+      "event_message": "C395_HUMAN_ACTIVE_STAFF_SCOPE_REQUIRED",
+      "sql_state": "42501",
+      "timestamp": "2026-10-14T20:13:41.907000"
+    },
+    {
+      "context": "PL/pgSQL function public.regia_round_publication_state_v1(uuid,uuid) line 33 at RAISE",
+      "event_message": "REGIA_ACCESS_DENIED",
+      "sql_state": "42501",
+      "timestamp": "2026-10-14T20:13:39.894000"
+    }
+  ],
+  "dispatch_aggregate": [
+    {
+      "latest_resume_log": "1970-01-01T00:00:00.000000",
+      "resume_log_count": 0,
+      "source": "edge_logs"
+    },
+    {
+      "latest_resume_log": "1970-01-01T00:00:00.000000",
+      "resume_log_count": 0,
+      "source": "postgres_logs"
+    }
+  ],
+  "client": {
+    "file": "HUMAN22_PRE_ENCOUNTER_SUSPEND_LAND.html",
+    "sha256": "fc1fd74d4e916de520d807bad60138ce060ff5e1b4666626aafe6dc0893a2541",
+    "key_generator": "mv2Key() crypto.randomUUID everyclick; fallbackrandomuuid; no persistent resumejournal",
+    "handler": "resume invokesRPCnewUUID ownserverMV2.data.master.id/CV, exacthandlerunchanged",
+    "early_guard": "bodyclick ignores ifbusy/noapp/noRoom/commonMasterCombat; no statement aboutactualUIbusy becauseunobserved"
+  },
+  "finding": "No secondresume lifecycleevent andzeroRPCpath/contextlogcounts20:12:30\u219220:14:15; evidence indicateslastclick didnotdispatch, possibleUIearlyguard/clickmiss, notprovenbackendidempotency",
+  "limitations": [
+    "Absenceoflogs is scopedtime/availablelogfields notproofallnetwork",
+    "No furtherclick/retry/gameplay afterdeadline",
+    "No patchrequestedwithoutconcreterootcause"
+  ],
+  "counts": {
+    "SQL_metadata": 2,
+    "SQL_state": 1,
+    "logs_readonly": 2,
+    "mutations": 0,
+    "provider": 0
+  }
+}

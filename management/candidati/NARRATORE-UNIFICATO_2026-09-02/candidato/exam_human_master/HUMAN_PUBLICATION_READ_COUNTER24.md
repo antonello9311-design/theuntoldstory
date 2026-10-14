@@ -1,0 +1,1 @@
+Human24 GREEN_SOURCE0/0/0 · Solo Human p_open=false omette2FORSHARE. Null/true/nonHuman conservano locks; guardie c416/source invarianti. C408/C444 inversefull exact, recovery closure42501 conservativa. Parse7SQL5PL eachPASS, suspendedpreflight obbligatorio. RuntimeNOT_RUN, CombatnoRows non attestato risolto, provider0/mut0/counters preserved.
