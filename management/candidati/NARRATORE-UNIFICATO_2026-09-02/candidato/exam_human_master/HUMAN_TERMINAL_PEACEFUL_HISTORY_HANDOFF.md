@@ -1,0 +1,9 @@
+TASK-ID · HUMAN31-NATIVE-TERMINAL-PEACEFUL-HISTORY-SOURCE-20261015
+Scope · Stessa quest Human Staff, fase3 terminal.result dopo chiusura peaceful reale Human30; nessun nuovo caso/reset.
+Contratti · Nuovo private STABLE c444_peaceful_history_complete_v1: prova immutabile ancorata encounter storico fase2/CV2, evento chiusura/report/Fato esatti; passaggio committed stesso request peaceful al terminale fase3/CV3, auth Master Staff, stessa sorgente e gate finiti. Mantiene tutte le verifiche H30 del round2vuoto nominato, mai falso narrato.
+Producer/consumer · terminal_prepare conserva replay/lock/route/CAS/barriera/DTO e ammette unfinished solo attraverso helper storico valido; C408 e C444 composti dalla baseline H30/CFG9 attuale. complete H30/current fact/outcome/phaseaction/terminal_publish/terminal_confirmed/binder13 invariati. UI terminale esistente, nessun HTML.
+Schema · Una funzione nuova privata postgres EXECUTE soltanto, REVOKEALL PUBLIC/anon/authenticated/service_role. Nessuna tabella/CHECK/FK/trigger/RLS/policy nuova o modificata.
+Prove · WholeSQL13, DOguard/post2 e PL4 PASS; recoverySQL4/DO1 PASS. 47 full ABI, 20 scope hash completi comprendono receipt/encounter/missionevents/outbox/closeevent. Actualtransition request SHA coincide con proof.request. Baseline22:41:15UTC; R37/gates/date/Auth/scena invariati. Installer soleDDL, no gameplay.
+Recovery · Disabilita esclusivamente C444 exactpostimage con autorità Root fresca; preserva date/array/corpi/receipt/history.
+OPEN · Review indipendente pertinente e materiale fresco obbligatori; installazione/terminale/seconda puntata NOT_RUN. Mac bloccato e preread Auth distinto dalla guardia backend, nessun retry UUID creato.
+Passaggio PM · Review completa, fresh readonly preflight/material/apply riservato, recuperare stesso comando Native solo dal client normale dopo sblocco; prova terminale e seconda puntata separati.
