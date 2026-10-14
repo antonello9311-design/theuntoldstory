@@ -1,0 +1,13 @@
+# Controverifica aggregata 1 — GREEN 0/0/0
+
+Candidata: 47.928 byte, SHA-256 `b666a511b23c6b4c45c5748e56761cc8474bd18c1ffdc283c9fc5671295cdf82`. Recovery `6e2de8f1094a519d19b186d1a992dd31936ccaebb637f2aba85de0dd12cd1f62`; manifest `052c86ddc9d5a20f26a830c9eeac6f4b78f519dea4e918a0d8058ca26da1a3e0`.
+
+F1 risolto nel sorgente integrato. Getter e DO finale ricostruiscono l'identità corrente limitandola alle chiavi/versioni del selettore storico immutabile. Le 13 chiavi storiche sono uniche. Il confronto dell'intero array ordinato e di tutti gli altri campi rifiuta risorse selezionate mancanti, modificate o duplicate; soltanto le risorse aggiunte non selezionate vengono escluse dalla proiezione. L'inventario corrente globale resta completo e il DTO/documento/id pubblici restano invariati. I 14 elementi correnti e 13 selezionati sono distinti: non è dichiarata una falsa uguaglianza globale. Hash del documento/source, schema legacy, policy numeriche/narrative/premi e mode TEST conservano le rispettive verifiche rigorose.
+
+La postcondizione esegue `c444_runtime_ports_complete_assert_v1()` metadata-only, che verifica composizione c408/97 e c444/16, e un DO indipendente per integrità e identità selezionata senza Auth simulata o gameplay. La catena deve eseguire nella stessa transazione preflight, cinque CREATE e due DO postflight.
+
+Verificati gli otto statement SQL della candidata e lo statement della recovery, oltre agli otto programmi PL e uno della recovery. Tre tipi compositi DECLARE sono stati normalizzati esclusivamente nella copia del parser. Tutti i cinque body hash corrispondono al manifest e alla recovery; header/firme/default/security/volatility/config sono invariati. Il reverse dei qualifier è esatto: c408 modifica soltanto tre hash helper e il pin del wrapper c360 già vivo; c444 modifica soltanto il pin c408. Le 97 tuple vive senza differenze, catturate nella review iniziale alle 07:14 UTC, restano evidenza di baseline, non preflight per l'apply.
+
+Recovery coerente e conservativa: disabilita il solo selettore proprio da CV1 a CV2 e conserva codice, dati e storico. Nessuna modifica a schema, ACL, constraint, gate, policy runtime, premi, arena Esame o Source74. Invariati Admin/LAND/R37 e provider zero.
+
+Verdetto limitato alla composizione statica: GREEN 0/0/0. Restano necessari preflight vivo fresco, autorità Root corrente e operazione atomica autorizzata; il parsing non certifica i binding o l'esecuzione. Staff due puntate/C463 restano NOT_RUN. Nessun apply, DB mutante, UI, fixture o nuovo caso esplorativo eseguito. Review iniziale RED e conteggi storici preservati; questa è la controverifica della sola aggregata 1, senza reset.
