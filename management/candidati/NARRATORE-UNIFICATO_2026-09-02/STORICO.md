@@ -890,3 +890,7 @@
 15/10/2026 · CFG10 · Rinnovo Staff stesso caso/Auth2 installato20261015052203, post48ABI/20scope/protected/old2receipt/newproof PASS; normalreload scopre mismatch getter inchiusura, Human32 inpreparazione · parziale/provider0/noreset.
 15/10/2026 · Human32 · Getter e pinC444 installati20261015053419/review0/0/0/post49ABI20scope48risorse PASS; normalNativegetter e recovery stessa92a8 PASS, Fato terminale646pubclickedonce nonconfermato/Macribloccato · parziale/secondaNOT_RUN/provider0/noreset.
 15/10/2026 · Chiusura finestra notturna · Stop08:00 e heartbeatPAUSED, postflightreadonly08:07 prima ancora closing_pending/secondaNOT_RUN,48risorse intatte/provider0/WIP e contatori conservati · consegna parziale, task sospesa.
+
+15/10/2026 · Human34 aggregata1 / UI33 preview · Install terminale recensito0/0/0, post50ABI20scope48 protette invarianti; stessa pubblicazione7d8 fallisce per route ambiguo, secondaNOT_RUN. Anteprima inline Staff02678d, correzione visuale in corso, provider0.
+
+15/10/2026 · Human34agg2→agg3 / Human33agg2 · Prima chiusa con ricevuta unica e Fato; seconda iscrizioni pronte, prepare23505 osservato. Fix lifecycle/binder installato0/0/0/post52ABI20scope48 invarianti, recoverybc70NOT_RUNperfinestranativa. UI003Staffbe46PagesSUCCESS/screensPENDING; provider0/storicointegro.

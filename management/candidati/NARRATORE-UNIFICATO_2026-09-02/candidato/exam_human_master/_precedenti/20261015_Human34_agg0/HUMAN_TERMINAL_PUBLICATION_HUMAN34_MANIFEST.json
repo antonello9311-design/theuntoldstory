@@ -1,0 +1,64 @@
+{
+  "status": "SOURCE_FROZEN_REVIEW_REQUIRED",
+  "Human_aggregate": 34,
+  "history": "Human1-33/CFG1-11 preserved sameoriginalcase provider0 noreset",
+  "parent": "ActualCFG11/H32 (UI33orthogonalsource only)",
+  "baseline_at": "2026-10-15T06:39:31.601492+00:00",
+  "full_ABI_count": 50,
+  "scope_count": 20,
+  "before_after": {
+    "before": {
+      "mission_factory_quest_human_terminal_publish_v1": "770a3a4d053e3e9ef1d60b11563d44f6",
+      "c408_stage1_complete_assert_v1": "3df2a408465f4debd6478fcc8b528dbf",
+      "c444_runtime_ports_complete_assert_v1": "4e57209577fbaf245081e44d69c62117"
+    },
+    "after": {
+      "mission_factory_quest_human_terminal_publish_v1": "be6a837ac0297b620c80293b6001712b",
+      "c408_stage1_complete_assert_v1": "efac855b604f1530ab871593ef720bc3",
+      "c444_runtime_ports_complete_assert_v1": "a3c74dd358bfe72443fcc6f51392db84"
+    },
+    "original_key_needle": "or ev.request_key_sha256 is distinct from mission_internal.request_key_sha256(p_request)",
+    "independent_key_proof": "or (ev.request_key_sha256 is distinct from mission_internal.request_key_sha256(p_request)\n          and not exists(select 1 from mission_creation_owner.human_actions h\n            join mission_factory_owner.quest_decision_receipts dr\n              on dr.id=(ev.result->>'decision_receipt_id')::uuid\n             and dr.session_id=p_session and dr.episode_id=q.episode_id\n             and dr.source_sha256=q.source_sha256 and dr.plan_version_id=q.plan_version_id\n             and dr.step_key=ev.step_after and dr.run_control_version=ev.version_before\n            where h.master_session_id=p_session and h.actor_user=m.master_user\n              and mission_internal.request_key_sha256(h.request_key)=ev.request_key_sha256\n              and h.result=ev.result\n              and ev.result->>'native_session_id'=p_session::text\n              and ev.result->>'close_event_id'=p_event::text\n              and ev.result->>'step_key'=ev.step_after\n              and ev.result->>'run_version_before'=ev.version_before::text\n              and ev.result->>'run_version_after'=ev.version_after::text))",
+    "reload": "\n  select * into strict ob from public.mission_run_outbox\n    where event_id=p_event and master_session_id=p_session for share;",
+    "parent": "ActualCFG11/H32; C412writer and NativeUI journals unchanged",
+    "new_schema": "none"
+  },
+  "independent_pubkey": "NewfulloriginalNativechain required onlywhen pubUUID != oldcloseUUID; preservesoldvalidsame-key authoritybranch",
+  "fresh_outbox": "reSELECTsameevent/sessionFORSHAREimmediatelyafterc412writer",
+  "static": "WholeSQL10 DO2 PL3 / recoverySQL4DO1 PASS; wholeinverse3defs exact",
+  "new_schema": "No new function, table, CHECK, FK, trigger, GRANT, RLS, policy orACLchange",
+  "C412_writer_unchanged": "a00e737d3e0363a7244c199b4707dc67",
+  "root_GUC": "tus_human34.root_evidence",
+  "root_schema": "human-terminal-publication-root/1",
+  "root_operation": "install_staff_terminal_publication",
+  "root_keys": [
+    "schema_version",
+    "operation",
+    "source_sha256",
+    "baseline_sha256",
+    "review_sha256",
+    "review_findings",
+    "authority_sha256",
+    "permit_expires_at"
+  ],
+  "apply": "NOT_RUN",
+  "runtime": "NOT_RUN",
+  "files": {
+    "HUMAN_TERMINAL_PUBLICATION_HUMAN34_CANDIDATE.sql": {
+      "bytes": 108473,
+      "sha256": "a061aee7bf6162c47ad6fc3d50e697c3dfa9f7e73fd48c0b5ecc60455d04e432"
+    },
+    "HUMAN_TERMINAL_PUBLICATION_HUMAN34_RECOVERY.sql": {
+      "bytes": 1093,
+      "sha256": "659224363f9a5101f70a15fc212f93d231a6a21ab04ab294e97f7996442bfb7d"
+    },
+    "HUMAN_TERMINAL_PUBLICATION_HUMAN34_BASELINE.json": {
+      "bytes": 54545,
+      "sha256": "7f224295805851d383d1c359e20399f65d67e8fd121208357668c902b69742c9"
+    },
+    "HUMAN_TERMINAL_PUBLICATION_HUMAN34_HANDOFF.md": {
+      "bytes": 2241,
+      "sha256": "beefe94655744b3e25840d54a180809abbcbedacd044ea53c8d0da5f0a4c5cfa"
+    }
+  }
+}

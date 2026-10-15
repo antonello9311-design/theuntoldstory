@@ -1,0 +1,36 @@
+{
+  "human_counter": 34,
+  "findings": [
+    0,
+    1,
+    0
+  ],
+  "status": "RED_SOURCE_COMPOSITION",
+  "reviewed_at": "2026-10-15T06:42:04.688346+00:00",
+  "source_sha256": "a061aee7bf6162c47ad6fc3d50e697c3dfa9f7e73fd48c0b5ecc60455d04e432",
+  "recovery_sha256": "659224363f9a5101f70a15fc212f93d231a6a21ab04ab294e97f7996442bfb7d",
+  "baseline_sha256": "7f224295805851d383d1c359e20399f65d67e8fd121208357668c902b69742c9",
+  "finding_details": [
+    {
+      "priority": "P1",
+      "title": "Independent publication UUID remains incompatible with terminal confirmation and successor",
+      "producer": "public.mission_factory_quest_human_terminal_publish_v1 newbodybe6a837ac0297b620c80293b6001712b",
+      "consumer": "mission_factory_owner.c444_terminal_confirmed_v1 actualbody95504e51b86b13df5b02a175043cc4b7 read live during review",
+      "evidence": "Publisher now accepts originalcloseevent with distinctpublicationp_request and stores p_request in quest_terminal_receipts.request_key and receipt.request_key. Unchanged confirmation getter still returnsNULL if ev.request_key_sha256 IS DISTINCT FROM request_key_sha256(tr.request_key). Actualclose92a8 versus originalpublication7d8 are proven distinct. Thus publication may commit but confirmation fails and Native next_episode/C463 secondbinder cannot recognize firstterminal.",
+      "required_correction": "Compose full producer-consumer contract preserving publicationjournal/idempotency and immutable originalcloseauthority; retain strict default samekeypath and require equivalent authoritativecloseproof for independentkey. Include affected body/ABI/pin and conditional secondbinder compatibility; no generic guard removal."
+    }
+  ],
+  "passed_checks": [
+    "Independentwhole3defs inverse exact; changes only scopedproof+outboxreload+coherentC408/C444pins.",
+    "Outbox reload after c412 writer addresses stale localrecord without changing writerbody/bodyfingerprint/journalkey.",
+    "Current publisher Auth/locationMasterlocks/typedroute/replay/DTO remain unchanged apart from named delta.",
+    "Runtime Native terminal controlOps uses original journalp_request and terminalDTO accepts publisherterminalreceipt shape; no clientAPI loosening needed.",
+    "WholeSQL10/PL5includingDO; recovery4SQL/1PL PASS.",
+    "Installer50ABI20scope/control/gates/R37/protected48 CAS/finite8keyauthority; recovery disablesonlyexactC444postimage/history preserved."
+  ],
+  "limits": [
+    "Do not materialize/apply this RED revision.",
+    "No gameplay/AuthSQL/provider/retry performed by reviewer.",
+    "Human34 RED and allpriorcounters/history retained; noreset."
+  ]
+}
