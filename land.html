@@ -9,6 +9,7 @@
   <meta name="tus-human-quest-suspend-build" content="HUMAN22-OWN-STAFF-PRE-ENCOUNTER-001" />
   <meta name="tus-human-regia-read-click-build" content="HUMAN29-REGIA-READ-CLICK-001" />
   <meta name="tus-human-inline-workspace-build" content="HUMAN33-INLINE-WORKSPACE-006" />
+  <meta name="tus-human-ordinary-build" content="HUMAN-ORDINARY-AGG1-INLINE-001" />
   <meta name="tus-fato-history-build" content="C1236-H3-HISTORY-AGG15-STAFF" />
   <meta name="tus-master-report-ui-build" content="C1236-MASTER-REPORT-UI-001" />
   <meta name="tus-human-close-recovery-build" content="C1236-HUMAN-CLOSE-RECOVERY-001" />
@@ -14594,11 +14595,12 @@ function mountQuestStaffRuntime(root,{client,identity,isCurrent=()=>true,onScene
 }
 
 return {mountQuestParticipant,mountQuestStaffRuntime};})();
-      var HUMAN_INLINE=null;
-      function humanInlineAllowed(){return !!(loggedIn&&!ordinarySigningOut&&ordinaryAuthId===myId&&cur&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test);}
+      var HUMAN_INLINE=null,HUMAN_ORDINARY_ACCESS=null,HUMAN_ROUTE_EPOCH=0;
+      function humanInlineLegacyAllowed(){return !!(loggedIn&&!ordinarySigningOut&&ordinaryAuthId===myId&&cur&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test);}
+      function humanInlineAllowed(){var a=HUMAN_ORDINARY_ACCESS;return humanInlineLegacyAllowed()||!!(loggedIn&&!ordinarySigningOut&&ordinaryAuthId===myId&&cur&&a&&a.actor===myId&&a.room===cur.id&&a.route.availability_scope==='public');}
       function humanInlineCurrent(){return !!(HUMAN_INLINE&&humanInlineAllowed()&&HUMAN_INLINE.actor===myId&&HUMAN_INLINE.room===cur.id);}
       function humanInlineReset(){
-        var w=HUMAN_INLINE;HUMAN_INLINE=null;if(!w)return;
+        var w=HUMAN_INLINE;HUMAN_INLINE=null;HUMAN_ORDINARY_ACCESS=null;HUMAN_ROUTE_EPOCH++;if(!w)return;
         for(var frame of w.frames.values()){frame.closed=true;frame.panel?.dispose();}
         if(w.registryCard&&w.registryHome)w.registryHome.append(w.registryCard);
         var root=document.getElementById('human-inline-workspace');if(root)root.hidden=true;
@@ -14606,7 +14608,7 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       }
       function humanInlineEnsure(){
         if(!humanInlineAllowed())return null;
-        if(!humanInlineCurrent())humanInlineReset();
+        if(!humanInlineCurrent()){var priorAccess=HUMAN_ORDINARY_ACCESS;humanInlineReset();if(priorAccess&&priorAccess.actor===myId&&priorAccess.room===cur.id)HUMAN_ORDINARY_ACCESS=priorAccess;}
         if(!HUMAN_INLINE){
           var root=document.getElementById('human-inline-workspace');if(!root)return null;
           HUMAN_INLINE={actor:myId,room:cur.id,frames:new Map(),selected:null,registryHome:null,registryCard:null};
@@ -14641,6 +14643,36 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
         document.getElementById('human-inline-regia')?.addEventListener('click',function(){if(!humanInlineCombatHost()){toast('Apri la scena dalla puntata per confermare la Regia corrente.');return;}mv2OvApri();});
       })();
       async function openHumanQuestEpisodePanel(episode,asPg,asSession){
+        if(asSession){if(!humanInlineLegacyAllowed()){toast('Entra nella Staff Test Room per riaprire questa sessione conservata.');return;}return openLegacyHumanQuestEpisodePanel(episode,asPg,true);}
+        if(!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||!cur||(!asPg&&!iAmStaff))return;
+        var actor=myId,room=cur.id,readEpoch=++HUMAN_ROUTE_EPOCH;
+        function routeCurrent(){return loggedIn&&!ordinarySigningOut&&ordinaryAuthId===actor&&myId===actor&&cur?.id===room&&HUMAN_ROUTE_EPOCH===readEpoch;}
+        try{
+          var mod=await import('./mf-human-ordinary-consumer-d1e20064f4111928622b8b485e3efdacfb5d852fda9019c406cfbfe034ed410c.mjs');if(!routeCurrent())return;
+          var auth=await sb.auth.getUser();if(!routeCurrent()||auth.error||auth.data?.user?.id!==actor)throw Error('Accesso normale non confermato.');
+          var result=await sb.rpc('mission_factory_quest_human_route_v1',{p_episode:episode});if(!routeCurrent())return;if(result.error)throw result.error;
+          var route=mod.validateHumanQuestRoute(result.data,episode),mode=asPg?'participant':'master';if(!route.viewer_modes.includes(mode))throw Error('Accesso alla puntata non disponibile.');
+          if(route.availability_scope==='staff'){if(!humanInlineLegacyAllowed()||route.execution_context!=='staff_simulation')throw Error('Questa prova richiede la Staff Test Room.');return openLegacyHumanQuestEpisodePanel(episode,asPg,false);}
+          if(route.availability_scope!=='public')throw Error('Puntata non disponibile.');
+          HUMAN_ORDINARY_ACCESS={actor:actor,room:room,episode:episode,route:route};var w=humanInlineEnsure();if(!w)throw Error('Contesto della scena cambiato.');
+          var identity=JSON.stringify([episode,!!asPg,false,'ordinary']),frame=w.frames.get(identity);
+          if(frame){w.selected=frame;for(var item of w.frames.values())item.element.hidden=item!==frame;humanInlineShow('quest');return;}
+          var host=document.createElement('section');frame={panel:null,element:host,closed:false,sceneSession:null,route:route,preparedSession:null};w.frames.set(identity,frame);w.selected=frame;
+          for(var item of w.frames.values())item.element.hidden=item!==frame;document.getElementById('human-inline-quest').append(host);humanInlineShow('quest');
+          function same(){return !frame.closed&&humanInlineCurrent()&&HUMAN_INLINE===w&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===actor&&myId===actor&&cur?.id===room&&(asPg||iAmStaff);}
+          frame.panel=mod[asPg?'mountHumanOrdinaryParticipant':'mountHumanOrdinaryEpisode'](host,{client:sb,identity:function(){return same()?actor:null;},isCurrent:same,
+            onPrepared:async function(v){if(!same()||v.schema_version!=='quest-human-episode-prepare/1'||v.quest_episode_id!==episode)throw Error('Preparazione della scena non confermata.');frame.preparedSession=v.native_session_id;},
+            onScene:async function(v){
+              if(!same()||v.schema_version!=='human-ordinary-scene-link/1'||v.episode!==episode||v.location!==room||v.execution_context!==route.execution_context)throw Error('Apri il luogo della scena confermato dal server.');
+              var a=await sb.auth.getUser();if(!same()||a.error||a.data?.user?.id!==actor)throw Error('Accesso alla scena cambiato.');
+              var current=await sb.rpc('master_v2_ui_state',{p_location:room}),data=mv2Data(current);if(!same()||current.error||data?.master?.id!==v.session||(asPg?data?.viewer?.is_participant!==true:data?.viewer?.is_master!==true))throw Error('Autorità della scena non confermata.');
+              frame.sceneSession=v.session;await loadMsgs();if(!same())return;await loadMasterV2(true);if(!same())return;ordinaryRefresh();
+              if(commonMasterCombat()&&ORDINARY&&ordinaryPanelMode==='common')await ORDINARY.open(asPg?'ordinary':'master');else humanInlineShow('quest');document.getElementById('msg-input')?.focus();
+            }});
+          await frame.panel.open(episode);if(same()&&w.selected===frame)document.getElementById('human-inline-status').textContent='';
+        }catch(e){if((frame?humanInlineCurrent()&&HUMAN_INLINE===w&&w.selected===frame&&!frame.closed:routeCurrent())&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===actor&&myId===actor&&cur?.id===room){var out=document.getElementById('human-inline-status');if(out&&!out.closest('[hidden]'))out.textContent=e.message||'Puntata non disponibile; richieste conservate.';else toast(e.message||'Puntata non disponibile.');}}
+      }
+      async function openLegacyHumanQuestEpisodePanel(episode,asPg,asSession){
         if(!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||(!asPg&&!iAmStaff))return;
         var w=humanInlineEnsure();if(!w){toast('Entra nella Staff Test Room per aprire questa puntata.');return;}
         var actor=myId,room=cur.id,identity=JSON.stringify([episode,!!asPg,!!asSession]),frame=w.frames.get(identity);

@@ -4588,8 +4588,23 @@ return {mount:mountStaffExamDecisions};})();
           },notice:function(text){toast(text);},onPublished:function(){loadBoards();}});
         if(!factoryMount||typeof factoryMount.open!=='function')throw Error('Editor missioni non montato.');
         if(!me||me.id!==mfPrincipal||nbeRole!==mfRole){factoryMount.dispose();nativeMapPicker.dispose();mapPicker.dispose();throw Error('Accesso editor cambiato.');}
+        var mfOrdinaryDisposed=false,mfOrdinaryMount=null,mfOrdinaryUrl=null;
+        var mfOrdinaryAlive=function(){return !mfOrdinaryDisposed&&!!me&&me.id===mfPrincipal&&nbeRole===mfRole&&host.isConnected;};
+        var mfOrdinaryResponse=await fetch('./mf-human-ordinary-consumer-d1e20064f4111928622b8b485e3efdacfb5d852fda9019c406cfbfe034ed410c.mjs',{cache:'no-store'});
+        if(!mfOrdinaryResponse.ok)throw Error('Modulo Quest non disponibile.');
+        var mfOrdinaryBytes=await mfOrdinaryResponse.arrayBuffer();
+        if(mfOrdinaryBytes.byteLength!==64505||await mfHex(mfOrdinaryBytes)!=='d1e20064f4111928622b8b485e3efdacfb5d852fda9019c406cfbfe034ed410c')throw Error('Modulo Quest non verificato.');
+        var mfOrdinaryText=new TextDecoder('utf-8',{fatal:true}).decode(mfOrdinaryBytes);
+        var mfOrdinaryDependency="'./mf-quest-runtime-api-805a43a0eace173a378ca1973e2f174a425748c1e1d74f3f60a9e472f9a9c4af.mjs'";
+        if(mfOrdinaryText.split(mfOrdinaryDependency).length!==2)throw Error('Dipendenza Quest non verificata.');
+        mfOrdinaryText=mfOrdinaryText.replace(mfOrdinaryDependency,JSON.stringify(mfUrl(mfLogical.get('quest-runtime-api.mjs'))));
+        mfOrdinaryUrl=URL.createObjectURL(new Blob([mfOrdinaryText],{type:'text/javascript'}));
+        var mfOrdinaryModule=await import(mfOrdinaryUrl),mfOrdinaryApiModule=await mfImport('quest-editor-api.mjs');
+        if(!mfOrdinaryAlive()||typeof mfOrdinaryModule.mountHumanOrdinaryAdmin!=='function')throw Error('Contesto Quest cambiato.');
+        var mfOrdinaryApi=mfOrdinaryApiModule.createQuestAwareFactoryApi(sb,{identity:function(){return me&&me.id;},isCurrent:mfOrdinaryAlive});
+        mfOrdinaryMount=mfOrdinaryModule.mountHumanOrdinaryAdmin(host,{client:sb,api:mfOrdinaryApi,identity:function(){return me&&me.id;},isCurrent:mfOrdinaryAlive,readEditor:function(){var e=factoryMount.questEditor;return {draft_id:e.draftId,control_version:e.controlVersion,dirty:!e.savedDocument,pending:!!(e.pendingCreate||e.pendingSave||e.pendingRoster||e.pendingCompile||e.pendingVariant||e.pendingPublish||e.pendingRewardPolicy)};},readNpcTemplate:function(id){return nbeGet('template',id,false);}});
         var mfDisposed=false,mfAuth=null;
-        var mfDispose=function(){if(mfDisposed)return;mfDisposed=true;factoryMount.dispose();nativeMapPicker.dispose();mapPicker.dispose();mfAuth?.data?.subscription?.unsubscribe?.();};
+        var mfDispose=function(){if(mfDisposed)return;mfDisposed=true;mfOrdinaryDisposed=true;mfOrdinaryMount?.dispose();if(mfOrdinaryUrl)URL.revokeObjectURL(mfOrdinaryUrl);factoryMount.dispose();nativeMapPicker.dispose();mapPicker.dispose();mfAuth?.data?.subscription?.unsubscribe?.();};
         mfAuth=sb.auth.onAuthStateChange(function(_event,session){if(session?.user?.id!==mfPrincipal){mfDispose();nav.hidden=true;page.hidden=true;}});
         window.addEventListener('pagehide',mfDispose,{once:true});
         window.addEventListener('pageshow',function(event){if(event.persisted)window.location.reload();});
@@ -4600,7 +4615,7 @@ return {mount:mountStaffExamDecisions};})();
         if(nbeNav)nbeNav.hidden=true;
         var savedPage='';try{savedPage=localStorage.getItem('tus_adm_tab')||'';}catch(_e){}
         if(savedPage==='ninja-editoriale'||savedPage==='mission-rapid')admGo('mission-editor');
-      }catch(e){if(typeof mfDispose==='function')mfDispose();if(typeof mfRevoke==='function')mfRevoke();if(mfRole==='admin'){if(mfLegacyNav)mfLegacyNav.hidden=mfLegacyVisibility[0];if(mfLegacyPage)mfLegacyPage.hidden=mfLegacyVisibility[1];if(mfBookNav)mfBookNav.hidden=mfLegacyVisibility[2];}nav.hidden=true;page.hidden=true;host.textContent='Editor missioni non disponibile. Il percorso precedente resta disponibile.';toast(host.textContent);}
+      }catch(e){if(typeof mfOrdinaryDisposed!=='undefined')mfOrdinaryDisposed=true;if(typeof mfOrdinaryMount!=='undefined')mfOrdinaryMount?.dispose();if(typeof mfOrdinaryUrl!=='undefined'&&mfOrdinaryUrl)URL.revokeObjectURL(mfOrdinaryUrl);if(typeof mfDispose==='function')mfDispose();if(typeof mfRevoke==='function')mfRevoke();if(mfRole==='admin'){if(mfLegacyNav)mfLegacyNav.hidden=mfLegacyVisibility[0];if(mfLegacyPage)mfLegacyPage.hidden=mfLegacyVisibility[1];if(mfBookNav)mfBookNav.hidden=mfLegacyVisibility[2];}nav.hidden=true;page.hidden=true;host.textContent='Editor missioni non disponibile. Il percorso precedente resta disponibile.';toast(host.textContent);}
     }
     /* MISSION-FACTORY-ADMIN JS FINE */
     /* MISSION-RAPID-EDITOR JS FINE */
