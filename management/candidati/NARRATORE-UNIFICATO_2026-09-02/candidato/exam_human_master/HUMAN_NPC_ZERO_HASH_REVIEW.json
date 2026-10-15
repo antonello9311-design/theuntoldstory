@@ -1,0 +1,40 @@
+{
+  "schema_version": "zero-hash-append-independent-review/1",
+  "result": "GREEN",
+  "counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "source_sha256": "b51f1f827b86b5f005b8caa15f8c87ba8910a172fcd1dbe84f41268e84bc2a6d",
+  "source_bytes": 22133,
+  "recovery_sha256": "812575e9eaef672162f0774afeb6aec81062e4c51542347ade252c7166416013",
+  "manifest_sha256": "9cd9f8f1ceae6da8c4e4a32c782cb76ce2be3581bd0eaa7dc675b0a5e3b97bc0",
+  "prior_review_sha256": "9b6665ed1d2b44003568204c1dbc26bd93865e28d9994c5ed794278d2b57715d",
+  "closed_findings": {
+    "HASH-LIFECYCLE-F1": "Nessun UPDATE MV; append approved MV con UUID default server/version max+1 sotto lock MT, supersedes old; MT.current/head/binding puntano tutti newMV. Vecchia MV e trigger invariati.",
+    "HASH-INVERSE-F2": "REPRODUCE_WHOLE_INVERSE.py eseguito: namedfunction inverse byteexact a recovery812575 senza normalizzare whitespace."
+  },
+  "static": {
+    "whole_sql_statements": 3,
+    "whole_plpgsql_functions": 3,
+    "recovery_sql_plpgsql": "PASS",
+    "inverse3": "BYTE_EXACT",
+    "canonical_hash13": "Identico seal; copied schema/profile/gameplay fields espliciti, approved content hash postINSERT verificato contro oldMV e body validato.",
+    "atomicity": "NBE approve, newMV, mutable pointers, binding, head CV e request ledger stessa transazione; failure rollback.",
+    "idempotency": "Original request key advisorylock/fingerprint/actor/oldresponse replay invariati prima append; no secondo append su replay.",
+    "authorization": "AuthStaff+admin/ownership/unavailable/expectedCV/old binding/hash guards originali preservati.",
+    "constraints": "50vincoli/6trigger capture lifecycle: FK supersedes, deferred MT.current, unique versionno/binding e schema/profile checks compatibili. No constraint/trigger/schema/ACL changes.",
+    "alias_audit": "Nuove PL approved_mv/next_version non collidono con aliasSQL v; vecchi alias/guardie restano byteexact dalla inverse.",
+    "consumers": "npc_combat_state proietta headMV; source custom esige newapproved binding/head/MT exact e hash canonico; runtime2 callsite disgiunto.",
+    "ordinary_S67": "Nessuna funzione67/S5ab/seal/IA/resourcepolicy modificata."
+  },
+  "limits": [
+    "SOURCE_ONLY: installer integrato5def, metadataCAS/pin e review materiale sono operazioni separate.",
+    "Approvazione daUI e postflight oldMV unchanged/newMV+pointer agreement restano NOT_RUN; nessun PASS runtime.",
+    "Recovery fornita ripristina producer baseline e preserva dati/storia; non costituisce certificazione del vecchio percorso approvazione."
+  ],
+  "apply": "NOT_PERFORMED",
+  "gameplay_cases": 0,
+  "provider_calls": 0
+}

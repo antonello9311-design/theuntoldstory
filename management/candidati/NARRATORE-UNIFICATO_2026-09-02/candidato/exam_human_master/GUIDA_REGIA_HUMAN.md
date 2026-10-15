@@ -11,7 +11,7 @@ La quest collega contenuti tramite identificativi e versioni: non contiene una l
 | Contenuto | Requisito effettivo | Limite |
 |---|---|---|
 | PNG narrativo | riferimento valido al bundle narrativo; coppia ritratto/marker corrente risolta dal server, esattamente corrispondente ai media del bundle | non abilita automaticamente il combattimento |
-| PNG Combat | template/versione narrativa approvati e correnti, legame meccanico approvato, bundle canonico adottato, media approvati correnti | il raccordo `Certifica profilo Combat` qui esaminato ammette meccaniche esistenti di tipo `legacy`; non crea nuove statistiche o capacità |
+| PNG Combat | narrativa e scheda meccanica approvate e correnti, media approvati, bundle canonico adottato e verifica nella bozza salvata | il percorso `npc_custom` creato da zero è collaudato in Human Native Staff; il raccordo Human ordinario pubblico resta limitato a `legacy` |
 | Immagine di contesto | ticket attivo della specifica bozza/puntata/fase, upload registrato, SHA/MIME/dimensione coerenti con Storage | una URL o un’immagine generica non basta |
 | Arena di combattimento | `template_key` e `template_version` esistenti, stato `ready`, impronta geometrica coerente e zero errori di template | l’immagine non crea geometria, ostacoli o regole spaziali |
 
@@ -19,12 +19,12 @@ La certificazione canonica usa i normali producer Builder `stage → validate �
 
 ## Preparare PNG e mappe
 
-1. Nell’editor normale preparare e approvare il profilo narrativo. Per un PNG da scontro selezionare un legame meccanico `legacy` già approvato e compatibile: il pulsante qui descritto non crea una nuova meccanica. Preparare ritratto e marker con il percorso media esistente e approvare la coppia.
+1. Nell’editor usare **Crea PNG libero**, compilare identità, conoscenze e fallback umani e salvare la nuova scheda Combat con statistiche e riferimenti consentiti. Caricare e registrare ritratto e sagoma; inviare la review congiunta e approvare la versione e la coppia media. L’approvazione conserva la versione meccanica precedente e ne crea una nuova approvata. Adottare il bundle con la certificazione Builder. Questo percorso da zero è verificato nella Staff; per Human ordinario pubblico usare ancora il raccordo `legacy` approvato.
 2. Inserire i riferimenti dei PNG e le mappe nelle puntate/fasi della bozza Native. Un PNG che combatte deve avere il relativo riferimento Combat valido; mantenere anche le sue presenze narrative previste.
 3. Per un’arena scegliere il template e la versione qualificati; per il contesto caricare l’immagine con il ticket della fase. Sono due riferimenti distinti.
 4. Nel riquadro **Quest con Master**, premere **Leggi la bozza Native salvata**. Per i profili pertinenti usare **Certifica profilo Combat: …**. Dopo una nuova certificazione selezionare i riferimenti realmente restituiti nell’editor e salvare nuovamente la bozza Native. Non continuare usando il vecchio bundle.
 
-Il bottone di certificazione non è un editor universale di PNG: adotta la fonte approvata esistente. L’audit qui svolto non certifica l’intero percorso di creazione da zero del Builder o l’autoring di un nuovo template arena; tali percorsi vanno documentati dalle rispettive superfici prima di prometterne la disponibilità agli utenti.
+Per il nuovo PNG certificato scegliere il bundle realmente restituito, associarlo alla fase di scontro con la relativa arena e salvare. Premere **Verifica PNG Combat nella bozza salvata**: solo la qualifica server rende il profilo selezionabile in quel contesto. Il bundle adottato da solo può riportare correttamente «non ancora idoneo agli scontri». Nel collaudo Iori, creato da zero, ha superato questo passaggio e giocato uno scambio Human completo. La creazione di un nuovo template arena non è stata collaudata: qui si è riutilizzata una mappa valida esistente. Nuovi contenuti compatibili non richiedono codice dedicato al nome del PNG; il supporto custom pubblico ordinario resta distinto dalla prova Staff.
 
 ## Creare e pubblicare la quest
 
@@ -48,6 +48,8 @@ Usare la vista Quest/Regia inline di LAND, conservando chat e testo del Fato. Pu
 Se la fase offre Combat, aprire lo scontro dal comando disponibile e usare la Regia ordinaria per intenzioni, difese, valutazione e risoluzione. Il server determina i fatti meccanici; la pubblicazione del Fato rende giocabile il passaggio successivo. Il ritorno pacifico è disponibile soltanto quando il server lo consente. Alla fine preparare la conclusione, pubblicare il Fato conclusivo e attendere la conferma terminale. Per passare alla seconda puntata usare il successore mostrato dalla quest: si prepara e avvia il nuovo episodio dal contesto autorevole della prima conclusione, mantenendo continuità e roster verificati. La chiusura della prima non significa che la seconda sia già partita.
 
 In presenza di richiesta incerta usare **Rileggi la stessa richiesta** e, quando previsto, **Ripeti la stessa richiesta**. Conservare testo e identificativo originali: non creare una nuova richiesta per aggirare un esito non confermato. Premi e risorse rimangono server-side; una simulazione Staff senza premi reali non prova l’erogazione ordinaria.
+
+Prima di chiudere pacificamente uno scontro, risolvere il round e pubblicarne il Fato tramite **Round e Fato → Avanza round**. Lasciare vuoto il nuovo round, rileggere la conduzione e usare **combat.peaceful** quando offerto; il server chiude lo scontro e apre la fase narrativa. Raccogliere le role richieste, preparare il terminale e pubblicare la conclusione senza premi. Se un invio diventa obsoleto, conservare testo e richiesta, rileggere lo stato e seguire il recupero normale; non duplicare il turno. Nel caso Tamako la riapertura normale della vista ha conservato la role e permesso l’invio.
 
 ## Fonti e copertura
 
