@@ -8,6 +8,7 @@
   <meta name="tus-quest-runtime-build" content="completion7-binding/1" />
   <meta name="tus-human-quest-suspend-build" content="HUMAN22-OWN-STAFF-PRE-ENCOUNTER-001" />
   <meta name="tus-human-regia-read-click-build" content="HUMAN29-REGIA-READ-CLICK-001" />
+  <meta name="tus-human-inline-workspace-build" content="HUMAN33-INLINE-WORKSPACE-001" />
   <meta name="tus-fato-history-build" content="C1236-H3-HISTORY-AGG15-STAFF" />
   <meta name="tus-master-report-ui-build" content="C1236-MASTER-REPORT-UI-001" />
   <meta name="tus-human-close-recovery-build" content="C1236-HUMAN-CLOSE-RECOVERY-001" />
@@ -2095,6 +2096,21 @@ return {createMapFigureHost};
 })();
 window.TUSMapFigures={...editor,...resolver,...host};})();
 </script>
+<style>
+/* Human33: one in-flow surface; existing app shell and chat stay mounted. */
+.h33-workspace{margin:12px 0;border:1px solid var(--line,#b69a65);border-radius:12px;background:var(--paper,#f6edda);color:var(--ink,#29221c);padding:16px;box-sizing:border-box;}
+.h33-workspace[hidden],.h33-workspace [hidden]{display:none!important;}
+.h33-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.h33-head h2{margin:0;font-size:20px;}.h33-kicker{margin:0 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.72;}
+.h33-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0;border-bottom:1px solid var(--line,#b69a65);padding-bottom:12px;}
+.h33-workspace button{min-height:40px;cursor:pointer;}.h33-tabs button[aria-pressed=true]{background:#432d23;color:#fff4dc;border-color:#432d23;}
+.h33-status{margin:8px 0;}.h33-workspace .missov-card{width:auto;max-width:none;max-height:none;box-shadow:none;border:0;background:transparent;padding:0;overflow:visible;}
+.h33-workspace .miss-body{max-height:none;overflow:visible;}.h33-workspace #missov-x{display:none;}
+.h33-workspace .mf-card{max-width:none;padding:0;}.h33-workspace textarea{display:block;width:100%;box-sizing:border-box;min-height:140px;line-height:1.6;margin:12px 0;}
+.h33-workspace input,.h33-workspace select{max-width:100%;box-sizing:border-box;}.h33-workspace section{min-width:0;}
+.h33-workspace .combat-panel-common{max-width:none;width:100%;box-sizing:border-box;}
+@media(max-width:720px){.h33-workspace{padding:12px;margin:10px 0;}.h33-head{align-items:flex-start;}.h33-tabs button{flex:1 1 auto;}.h33-workspace textarea{font-size:16px;}}
+</style>
 </head>
 <body>
   <div class="stage" id="stage">
@@ -2200,6 +2216,14 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
               <div><dt>Risultato</dt><dd id="nb028i-result">In attesa</dd></div>
             </dl>
             <button class="nb028i-run" id="nb028i-run" type="button" disabled>Esegui mock + replay</button>
+          </section>
+          <section id="human-inline-workspace" class="h33-workspace" hidden aria-labelledby="human-inline-title">
+            <header class="h33-head"><div><p class="h33-kicker">Missioni e Quest</p><h2 id="human-inline-title">La tua avventura</h2></div><button class="tb-btn" type="button" id="human-inline-scene">Torna alla scena</button></header>
+            <nav class="h33-tabs" aria-label="Quest e conduzione"><button class="tb-btn" type="button" data-h33-view="registry" aria-pressed="false">Registro</button><button class="tb-btn" type="button" data-h33-view="quest" aria-pressed="false">Puntata attiva</button><button class="tb-btn" type="button" id="human-inline-regia">Regia della scena</button></nav>
+            <p id="human-inline-status" class="h33-status" role="status" aria-live="polite"></p>
+            <section id="human-inline-registry" hidden aria-label="Registro missioni e quest"></section>
+            <section id="human-inline-quest" hidden aria-label="Puntata Human"></section>
+            <section id="human-inline-combat" hidden aria-label="Regia della scena Human"></section>
           </section>
           <div class="room-grid">
             <section class="chat">
@@ -4583,7 +4607,7 @@ function attachCombatPanel(host){
   const card=doc.getElementById('ordinary-card'),entry=doc.getElementById('ordinary-open');
   const dialog=doc.getElementById('ordinary-overlay'),close=doc.getElementById('ordinary-close');
   insist(ordinary&&master&&card&&entry&&dialog&&close,'land_mount_missing');
-  let deactivateLayout=null;
+  let deactivateLayout=null,inlineBody=null;
   let panel=null,key=null,opened=false,surface='ordinary',generation=0,chatSubmitted=null,companionSubmitted=null,refreshing=null,disposed=false,confirmedDraft=null;
   let regiaState=null,regiaScope=null,regiaReadError=null,regiaReadToken=0,regiaReading=null,regiaObservedBinding=null,regiaOptedInScope=null;
   let regiaDraft='',regiaDirection={turn_kind:'',actor_ids:[]};const regiaControls=doc.createElement('section');regiaControls.className='combat-panel-common';regiaControls.setAttribute('aria-live','polite');
@@ -4665,7 +4689,7 @@ function attachCombatPanel(host){
     }catch(error){if(valid()){regiaState=null;regiaScope=expected;regiaReadError=error.message;}}
     if(valid()){host.syncSendGate?.();renderRegiaControls();}
     })();
-    regiaReading={binding:expected,promise};
+    regiaReading={binding:expected,promise};if(inlineBody)renderRegiaControls();
     try{await promise;}finally{if(regiaReading?.promise===promise)regiaReading=null;}
   }
   function canPreparePrivatePng(e,session){
@@ -4825,6 +4849,7 @@ function attachCombatPanel(host){
     if(surface!=='master'||!opened)return;
     const old=regiaControls.querySelector('textarea');if(old)regiaDraft=old.value;
     regiaControls.replaceChildren();const state=regiaState;
+    if(inlineBody&&!state&&regiaReading){const progress=doc.createElement('p');progress.setAttribute('role','status');progress.textContent='Lettura della Regia in corso. Le scelte e il testo restano conservati.';regiaControls.append(progress);return;}
     if(regiaReadError||state?.status==='blocked'){
       const p=doc.createElement('p');p.textContent='Pubblicazione non verificabile: i comandi del round restano sospesi.';regiaControls.append(p);return;
     }
@@ -4861,7 +4886,7 @@ function attachCombatPanel(host){
       const button=doc.createElement('button');button.type='button';button.textContent='Pubblica Fato e apri le risposte';button.addEventListener('click',()=>regiaWrite('publish'));regiaControls.append(button);}
   }
   function suspend(){panel?.suspend();}
-  function hide(){deactivateLayout?.();deactivateLayout=null;dialog.hidden=true;dialog.style.display='none';if(opened&&surface==='master')host.closeMaster?.();opened=false;}
+  function hide(){deactivateLayout?.();deactivateLayout=null;if(inlineBody){inlineBody.hidden=true;inlineBody=null;}dialog.hidden=true;dialog.style.display='none';if(opened&&surface==='master')host.closeMaster?.();opened=false;}
   function invalidate(){generation++;key=null;chatSubmitted=null;companionSubmitted=null;confirmedDraft=null;refreshing=null;regiaState=null;regiaScope=null;regiaReadError=null;regiaReadToken++;regiaReading=null;regiaObservedBinding=null;regiaOptedInScope=null;regiaDirection={turn_kind:'',actor_ids:[]};panel?.dispose();panel=null;root.replaceChildren();hide();syncDraft(null);showEntry();}
   function showEntry(){const allowed=!!scope();card.hidden=!allowed;card.style.display=allowed?'':'none';entry.hidden=!allowed;entry.disabled=!allowed;const note=doc.getElementById('ordinary-entry-note');if(note){const m=panel?.snapshot(),pending=m?.envelope?.context?.phase==='waiting_join'&&m.envelope.context.activity_id!==null&&m.envelope.viewer?.can_command===true;note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent=pending?'Richiesta sfida in attesa':'Pannello comune: disponibilità e scelte sono verificate dal server.';}}
   function ensure(){
@@ -4879,7 +4904,7 @@ function attachCombatPanel(host){
         syncDraft(m);showEntry();
       },confirmDraft:m=>{
         const signature=draftSignature(m);if(!m.canConfirmMechanics||!signature)return;
-        confirmedDraft={signature,label:draftLabel(m)};syncDraft(m);hide();doc.getElementById('msg-input')?.focus();
+        confirmedDraft={signature,label:draftLabel(m)};syncDraft(m);if(!inlineBody)hide();doc.getElementById('msg-input')?.focus();
       },
       onConfirmed:async(receipt,submitted)=>{
         if(stamp!==generation||key!==scope())return;
@@ -4893,9 +4918,13 @@ function attachCombatPanel(host){
   async function open(which='ordinary'){
     if(!ensure()||!routeAllowed())return false;
     const stamp=generation;hide();surface=which;opened=true;host.closeMaster?.();
-    (which==='master'?master:ordinary).replaceChildren(root,...(which==='master'?[regiaControls]:[]));renderRegiaControls();
-    if(which==='master')host.showMaster();else{dialog.hidden=false;dialog.style.display='flex';}
-    deactivateLayout=activatePanelLayout({document:doc,root,body:which==='master'?master:ordinary,overlay:which==='master'?doc.getElementById('mv2ov'):dialog});
+    inlineBody=host.inlineHost?.(which,panel?.snapshot().envelope)||null;
+    (inlineBody||(which==='master'?master:ordinary)).replaceChildren(root,...(which==='master'?[regiaControls]:[]));renderRegiaControls();
+    if(inlineBody){inlineBody.hidden=false;host.showInline?.();}
+    else{
+      if(which==='master')host.showMaster();else{dialog.hidden=false;dialog.style.display='flex';}
+      deactivateLayout=activatePanelLayout({document:doc,root,body:which==='master'?master:ordinary,overlay:which==='master'?doc.getElementById('mv2ov'):dialog});
+    }
     if(refreshing)await refreshing;if(stamp!==generation)return false;
     const before=panel.snapshot();if(before.pending||before.busy||before.refreshRequired&&before.lastCommand?.status==='rejected')return true;
     const ok=await panel.open();if(stamp!==generation)return false;await readRegiaPublication();if(stamp!==generation)return false;
@@ -6295,7 +6324,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       window.addEventListener('tus:ordinary-logout',function(){esLegacyDisposeStale(true);missionD100Reset();ordinarySigningOut=true;if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();});
       if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session){
         var id=session&&session.user?session.user.id:null;
-        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){esLegacyDisposeStale(true);uiPostreviewStaffReset();missionD100Reset();missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(window.TRU_RELEASE002){window.TRU_RELEASE002.invalidate();window.TRU_RELEASE002=null;}if(event==='SIGNED_OUT')closeTestRoomUser();if(MV2){MV2.authEpoch=(MV2.authEpoch||0)+1;mv2ClearPrepInputs();MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.regia=null;MV2.regiaSignature=null;MV2.regiaDraft='';MV2.regiaDirection={turn_kind:'',actor_ids:[]};MV2.scortaContext=false;MV2.scortaRoom=null;MV2.scortaScope=null;MV2.options={};}}
+        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){humanInlineReset();esLegacyDisposeStale(true);uiPostreviewStaffReset();missionD100Reset();missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(window.TRU_RELEASE002){window.TRU_RELEASE002.invalidate();window.TRU_RELEASE002=null;}if(event==='SIGNED_OUT')closeTestRoomUser();if(MV2){MV2.authEpoch=(MV2.authEpoch||0)+1;mv2ClearPrepInputs();MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.regia=null;MV2.regiaSignature=null;MV2.regiaDraft='';MV2.regiaDirection={turn_kind:'',actor_ids:[]};MV2.scortaContext=false;MV2.scortaRoom=null;MV2.scortaScope=null;MV2.options={};}}
         if(MV2&&(id!==ordinaryAuthId||event==='SIGNED_OUT'))MV2.readRequested=false;
         ordinaryAuthId=id;
         esLegacyDisposeStale();syncSendBtn();
@@ -6335,6 +6364,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(!factory||!cur){if(ORDINARY)ORDINARY.invalidate();return;}
         if(!ORDINARY) ORDINARY=(mode==='common'?function(host){return mapFigureAttach(factory,host);}:factory)({
           document:document,location:function(){return cur;},
+          inlineHost:function(){return humanInlineCombatHost();},showInline:function(){humanInlineShow('combat');},
           showMaster:function(){var ov=document.getElementById('mv2ov'),bk=document.getElementById('mv2ov-backdrop');if(ov)ov.hidden=false;if(bk)bk.hidden=false;},
           closeMaster:mv2OvChiudi,
           allowCommonMaster:commonMasterRoute,
@@ -6873,7 +6903,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         host.innerHTML='<div class="mv2-phase"><b>'+esc(m.titolo||m.tipo)+'</b><br>'+esc(m.tipo)+' \u00b7 '+esc(String(m.stato||'').replace(/_/g,' '))+(r?(' \u00b7 round '+r.no):'')+'</div>'+avviso
           +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2-ov="apri">Apri la Regia</button></div>';
       }
-      function mv2OvApri(){ if(MV2.scortaContext&&!mv2ScortaGate()){mv2ScortaClose();return;} if(examRegia()?.ownsCombat()){examRegia().openPanel('master');return;} if(commonMasterCombat()){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');else toast('Pannello comune non disponibile.');return;} if(!cur){ toast('Entra in una stanza per aprire la Regia'); return; }
+      function mv2OvApri(){ if(MV2.scortaContext&&!mv2ScortaGate()){mv2ScortaClose();return;} if(examRegia()?.ownsCombat()){examRegia().openPanel('master');return;} if(commonMasterCombat()){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');else toast('Pannello comune non disponibile.');return;} if(humanInlineCombatHost()){humanInlineShow('quest');return;} if(!cur){ toast('Entra in una stanza per aprire la Regia'); return; }
         var rr=document.getElementById('mv2-room'); if(rr) rr.textContent=cur.name||'stanza';
         var ov=document.getElementById('mv2ov'), bk=document.getElementById('mv2ov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false;
         renderMasterV2(); loadMasterV2(true); }
@@ -12334,7 +12364,7 @@ var nb028iTeardown=function(){};
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ missionD100Reset();examHumanLeave(); truReleaseInvalidate(); closeRoomObjectBinding(); MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; uiPostreviewStaffReset();WHO=[];PRESENTI_IDS={};cur=null; CMB=null; mv2ClearPrepInputs();MV2.data=null; MV2.serverSig=null; MV2.regia=null; MV2.regiaSignature=null; MV2.regiaDraft=''; MV2.regiaDirection={turn_kind:'',actor_ids:[]}; MV2.scortaContext=false; MV2.scortaRoom=null; MV2.scortaScope=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ humanInlineReset();missionD100Reset();examHumanLeave(); truReleaseInvalidate(); closeRoomObjectBinding(); MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; uiPostreviewStaffReset();WHO=[];PRESENTI_IDS={};cur=null; CMB=null; mv2ClearPrepInputs();MV2.data=null; MV2.serverSig=null; MV2.regia=null; MV2.regiaSignature=null; MV2.regiaDraft=''; MV2.regiaDirection={turn_kind:'',actor_ids:[]}; MV2.scortaContext=false; MV2.scortaRoom=null; MV2.scortaScope=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -14563,17 +14593,64 @@ function mountQuestStaffRuntime(root,{client,identity,isCurrent=()=>true,onScene
 }
 
 return {mountQuestParticipant,mountQuestStaffRuntime};})();
+      var HUMAN_INLINE=null;
+      function humanInlineAllowed(){return !!(loggedIn&&!ordinarySigningOut&&ordinaryAuthId===myId&&cur&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test);}
+      function humanInlineCurrent(){return !!(HUMAN_INLINE&&humanInlineAllowed()&&HUMAN_INLINE.actor===myId&&HUMAN_INLINE.room===cur.id);}
+      function humanInlineReset(){
+        var w=HUMAN_INLINE;HUMAN_INLINE=null;if(!w)return;
+        for(var frame of w.frames.values()){frame.closed=true;frame.panel?.dispose();}
+        if(w.registryCard&&w.registryHome)w.registryHome.append(w.registryCard);
+        var root=document.getElementById('human-inline-workspace');if(root)root.hidden=true;
+        for(var id of ['human-inline-registry','human-inline-quest','human-inline-combat'])document.getElementById(id)?.replaceChildren();
+      }
+      function humanInlineEnsure(){
+        if(!humanInlineAllowed())return null;
+        if(!humanInlineCurrent())humanInlineReset();
+        if(!HUMAN_INLINE){
+          var root=document.getElementById('human-inline-workspace');if(!root)return null;
+          HUMAN_INLINE={actor:myId,room:cur.id,frames:new Map(),selected:null,registryHome:null,registryCard:null};
+        }
+        return HUMAN_INLINE;
+      }
+      function humanInlineShow(view){
+        var w=humanInlineEnsure();if(!w)return false;
+        var root=document.getElementById('human-inline-workspace');root.hidden=false;
+        for(var pair of [['registry','human-inline-registry'],['quest','human-inline-quest'],['combat','human-inline-combat']])document.getElementById(pair[1]).hidden=pair[0]!==view;
+        root.querySelectorAll('[data-h33-view]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-h33-view')===view));});
+        document.getElementById('human-inline-regia').setAttribute('aria-pressed',String(view==='combat'));
+        return true;
+      }
+      function humanInlineCombatHost(){
+        if(!humanInlineCurrent())return null;var f=HUMAN_INLINE.selected,m=MV2?.data?.master;
+        return f&&!f.closed&&f.sceneSession&&m?.id===f.sceneSession&&MV2.locationId===cur.id&&MV2.principalId===myId?document.getElementById('human-inline-combat'):null;
+      }
+      function humanInlineRegistry(){
+        var w=humanInlineEnsure();if(!w)return false;
+        var target=questEpisodeLink();if(!target?.human&&!w.selected)return false;
+        var ov=document.getElementById('missov'),card=w.registryCard||ov?.querySelector('.missov-card');
+        if(!card)return false;
+        if(!w.registryCard){w.registryHome=card.parentElement;w.registryCard=card;document.getElementById('human-inline-registry').append(card);}
+        if(ov)ov.hidden=true;var bk=document.getElementById('missov-backdrop');if(bk)bk.hidden=true;
+        if(!humanInlineShow('registry'))return false;
+        document.getElementById('mtab-new').style.display=iAmStaff?'':'none';setMissTab('bacheca');return true;
+      }
+      (function(){
+        document.querySelectorAll('[data-h33-view]').forEach(function(b){b.addEventListener('click',function(){var v=b.getAttribute('data-h33-view');if(v==='registry')humanInlineRegistry();else if(humanInlineCurrent()&&HUMAN_INLINE.selected)humanInlineShow('quest');else{var q=questEpisodeLink();if(q?.human)void openHumanQuestEpisodePanel(q.episode,q.humanPg,q.humanSession);}});});
+        document.getElementById('human-inline-scene')?.addEventListener('click',function(){if(!humanInlineCurrent())return;document.getElementById('human-inline-workspace').hidden=true;document.getElementById('msg-input')?.focus();});
+        document.getElementById('human-inline-regia')?.addEventListener('click',function(){if(!humanInlineCombatHost()){toast('Apri la scena dalla puntata per confermare la Regia corrente.');return;}mv2OvApri();});
+      })();
       async function openHumanQuestEpisodePanel(episode,asPg,asSession){
         if(!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||(!asPg&&!iAmStaff))return;
-        var actor=myId,room=cur&&cur.id||null,closed=false,panel=null,d=document.createElement('dialog');
-        d.setAttribute('aria-label','Regia umana Quest');d.style.cssText='width:min(760px,94vw);max-height:88vh;overflow:auto;background:#f6edda;border:1px solid #b69a65;padding:12px';
-        var x=document.createElement('button'),host=document.createElement('section'),successorNotice=document.createElement('section');successorNotice.setAttribute('role','status');x.type='button';x.textContent='Chiudi';d.append(x,host,successorNotice);document.body.append(d);d.showModal();
-        function same(){return !closed&&d.isConnected&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===actor&&myId===actor&&(cur&&cur.id||null)===room&&(asPg||iAmStaff);}
-        function close(){if(closed)return;closed=true;panel?.dispose();if(d.open)d.close();d.remove();}
-        x.onclick=close;d.addEventListener('close',close);
-        try{var mods=await Promise.all([import('./mf-human-quest-runtime-ui-dedb9fbea29889e2019e4c002f699afd36ab5df23ac263c52e113e1b6b7f341c.mjs'),import('./mf-quest-runtime-api-805a43a0eace173a378ca1973e2f174a425748c1e1d74f3f60a9e472f9a9c4af.mjs')]);if(!same()){close();return;}
+        var w=humanInlineEnsure();if(!w){toast('Entra nella Staff Test Room per aprire questa puntata Human.');return;}
+        var actor=myId,room=cur.id,identity=JSON.stringify([episode,!!asPg,!!asSession]),frame=w.frames.get(identity);
+        if(frame){w.selected=frame;for(var stored of w.frames.values())stored.element.hidden=stored!==frame;humanInlineShow('quest');document.getElementById('human-inline-status').textContent='Puntata riaperta. Testi e richieste originali sono conservati.';return;}
+        var host=document.createElement('section'),successorNotice=document.createElement('section'),element=document.createElement('div');successorNotice.setAttribute('role','status');element.append(host,successorNotice);
+        frame={panel:null,element,closed:false,sceneSession:null};w.frames.set(identity,frame);w.selected=frame;
+        for(var stored of w.frames.values())stored.element.hidden=stored!==frame;document.getElementById('human-inline-quest').append(element);humanInlineShow('quest');document.getElementById('human-inline-status').textContent='Lettura della puntata…';
+        function same(){return !frame.closed&&humanInlineCurrent()&&HUMAN_INLINE===w&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===actor&&myId===actor&&cur?.id===room&&(asPg||iAmStaff);}
+        try{var mods=await Promise.all([import('./mf-human-quest-runtime-ui-71322a4e75b741f4f645267d9b3582f7b4805eb78a5c5b1fe97a970c927956b9.mjs'),import('./mf-quest-runtime-api-805a43a0eace173a378ca1973e2f174a425748c1e1d74f3f60a9e472f9a9c4af.mjs')]);if(!same())return;
           var api=mods[1].createQuestRuntimeApi(sb,{identity:function(){return same()?actor:null;},isCurrent:same});
-          panel=mods[0][asPg?'mountHumanQuestParticipant':'mountHumanQuestRuntime'](host,{client:sb,api:api,identity:function(){return same()?actor:null;},isCurrent:same,
+          frame.panel=mods[0][asPg?'mountHumanQuestParticipant':'mountHumanQuestRuntime'](host,{client:sb,api:api,identity:function(){return same()?actor:null;},isCurrent:same,
             onFato:async function(v){if(same())await loadMsgs(v.publication_id);},onNext:async function(v){
               if(!same()||asPg)throw Error('Conduzione Master non disponibile.');var next=await api.episode(v.episode);if(!same()||next.quest_episode_id!==v.episode||next.source_sha256!==v.source_sha256||next.episode_ordinal!==v.ordinal)throw Error('Fonte della puntata successiva cambiata.');
               successorNotice.replaceChildren();var msg=document.createElement('p'),link=document.createElement('a');msg.textContent='Puntata '+v.ordinal+' identificata dal server. Seleziona la sua versione Master nell’Editor prima di prepararla; nessun avvio automatico.';link.href='./admin.html';link.textContent='Apri Editor unificato';successorNotice.append(msg,link);
@@ -14581,9 +14658,12 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
               if(!same())throw Error('Accesso cambiato.');if(!cur||cur.id!==v.location)throw Error('Entra nella Staff Test Room per la scena Human.');
               var a=await sb.auth.getUser();if(a.error||a.data?.user?.id!==actor||!same())throw Error('Accesso Staff non confermato.');
               var r=await sb.rpc('master_v2_ui_state',{p_location:cur.id});if(r.error||!same()||mv2Data(r)?.master?.id!==v.session||(!asPg&&mv2Data(r)?.viewer?.is_master!==true)||(asPg&&myCharId!==v.character))throw Error('Autorità della scena non confermata.');
-              close();closeMiss();loadMsgs();loadMasterV2(true);ordinaryRefresh();mv2OvApri();
-            }});if(asSession)await panel.openSession(episode);else await panel.openEpisode(episode);
-        }catch(e){if(same())host.textContent=e.message||'Regia Human non disponibile: richieste conservate.';else close();}
+              frame.sceneSession=v.session;loadMsgs();loadMasterV2(true);ordinaryRefresh();
+              if(commonMasterCombat()&&ORDINARY&&ordinaryPanelMode==='common')await ORDINARY.open(asPg?'ordinary':'master');else humanInlineShow('quest');
+              document.getElementById('msg-input')?.focus();
+            }});if(asSession){await frame.panel.openSession(episode);if(same())frame.sceneSession=episode;}else await frame.panel.openEpisode(episode);
+          if(same()&&w.selected===frame)document.getElementById('human-inline-status').textContent='La puntata e la scena restano nella LAND. Le azioni disponibili sono confermate dal server.';
+        }catch(e){if(same()&&w.selected===frame)document.getElementById('human-inline-status').textContent=e.message||'Regia Human non disponibile: richieste conservate.';}
       }
       function questEpisodeLink(){
         var params=new URLSearchParams(location.search),human=params.get('quest_human_episode'),humanPg=params.get('quest_human_pg_episode'),humanSession=params.get('quest_human_session'),staff=params.get('quest_staff_episode'),participant=params.get('quest_episode');
@@ -14660,8 +14740,8 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
         else {var s=document.getElementById('mv2-mission');openMissionArena('mission',s&&s.value,s&&s.selectedOptions[0]&&s.selectedOptions[0].textContent);}
       });
       /* ===== MISSIONI: bacheca + registro ===== */
-      function openMiss(){ if(!loggedIn){ toast('Accedi per vedere le missioni'); return; } var ov=document.getElementById('missov'), bk=document.getElementById('missov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false; var tn=document.getElementById('mtab-new'); if(tn) tn.style.display=iAmStaff?'':'none'; setMissTab('bacheca'); }
-      function closeMiss(){ var ov=document.getElementById('missov'), bk=document.getElementById('missov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
+      function openMiss(){ if(!loggedIn){ toast('Accedi per vedere le missioni'); return; } if(humanInlineRegistry())return; var ov=document.getElementById('missov'), bk=document.getElementById('missov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false; var tn=document.getElementById('mtab-new'); if(tn) tn.style.display=iAmStaff?'':'none'; setMissTab('bacheca'); }
+      function closeMiss(){if(humanInlineCurrent())document.getElementById('human-inline-workspace').hidden=true; var ov=document.getElementById('missov'), bk=document.getElementById('missov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
       function missOpenNow(){ var ov=document.getElementById('missov'); return !!(ov && !ov.hidden); }
       function setMissTab(t){ [['mtab-bacheca','bacheca'],['mtab-mie','mie'],['mtab-new','new']].forEach(function(p){ var el=document.getElementById(p[0]); if(el) el.classList.toggle('on', p[1]===t); });
         var host=document.getElementById('miss-body'); if(host) host.innerHTML='<p class="miss-empty">Caricamento…</p>';
