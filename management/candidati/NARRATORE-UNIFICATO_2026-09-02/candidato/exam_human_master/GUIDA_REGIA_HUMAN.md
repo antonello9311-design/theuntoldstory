@@ -1,6 +1,6 @@
 # Regia con Master, PNG e mappe
 
-**Guida operativa · disponibilità ordinaria non ancora aperta al 15/10/2026.** Audit documentale dei sorgenti congelati Source67 e consumer; nessun nuovo collaudo, apply o rinnovo. Il precedente percorso Staff completato non certifica l’apertura ordinaria: Source67 è installata inerte, configurazione e qualifica ordinaria restano da eseguire.
+**Regia Human aperta in LAND dal 15/10/2026.** Il collaudo Staff di Fato, Combat, chiusura e seconda puntata è stato accettato da Antonello per il rilascio. Apertura verificata sul backend alle18:17 italiane: 17/17 controlli positivi, provider IA di LAND a zero e WIP conservato. Il collaudo ordinario e i premi reali non sono stati rieseguiti.
 
 ## Cosa si può riutilizzare
 
@@ -69,8 +69,8 @@ Queste righe dimostrano contratti e consumer presenti nei sorgenti. Non costitui
 |---|---|
 | Staff precedente: Fato, Combat, conclusione prima puntata, seconda puntata e conclusione | PASS, entrambe le scene chiuse; 48 campi reali invariati e zero provider |
 | UI inline e rimozione delle descrizioni Human richieste | Pubblicate; LAND/Admin/module nel commit `51f7bb88e08a5b8aae342ed11386640a907ab026`, Pages SUCCESS |
-| Backend ordinario67 | Installato inerte, migrazione `20261015124453`; postflight18/18 |
-| Configurazione Staff della nuova versione e identità Human | Config5 recensita 0/0/0, non applicata; readback13:05:23UTC: gate OFF e zero identità/qualifiche Human |
-| Collaudo ordinario e apertura utenti | NOT_STARTED / NON APERTA; autorizzazione ricevuta, esecuzione ancora pendente |
+| Base ordinaria67 | Installata inizialmente inerte con `20261015124453`; integrata dal successivo delta OwnerAccepted11, apertura `20261015161741` verificata17/17 |
+| Ammissione Human e identità di rilascio | Apertura verificata Root 15/10/2026 16:17:53 UTC/20261015161741/7a992b068c1611bdb9fea6a931814c1afa43277f552a539b54e230f988032feb; materialreview e448595fc995097134ab013cb84b0921f89b8a742922d710cd9ab2458c2e93be, S `5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366`; gate Human proprio, IA generica invariata |
+| Collaudo e apertura utenti | Staff PASS accettato per LAND; apertura verificata tecnicamente. Ordinary runtime e premio reale NOT_RUN, nessun nuovo PASS giocato dichiarato |
 
-Nella prova in lavorazione, la richiesta locale CV7 preparata è conservata e non inviata. Prima di prepararne una nuova vanno aggiornati i due riferimenti PNG alle coppie media attuali mediante i normali pulsanti di certificazione e salvataggio Native. Il Mac bloccato impedisce questi passaggi; non è richiesta un’altra autorizzazione procedurale.
+La bozza Native CV7 e la richiesta locale1d427 preparata ma non inviata restano conservate. Prima di riusare quella bozza aggiornare i due riferimenti PNG legacy con i normali pulsanti di certificazione e salvataggio Native. Le coppie ritratto/marker sono già approvate: non ripetere upload/approvazione per correggere un riferimento obsoleto. Nuove quest devono usare profili PNG approvati/canonici compatibili e mappe valide/versionate; nessuna immagine arbitraria o meccanica non supportata viene accettata. La disponibilità Human ordinaria non dipende da un rinnovo della lease Staff; nessuna nuova QA giocata è richiesta dal mandato di accettazione.

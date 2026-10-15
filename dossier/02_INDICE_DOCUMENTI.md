@@ -459,6 +459,8 @@ I sette documenti che rendono inutile leggere tutto il resto.
 
 ## E · Missioni, trama, contenuti
 
+Guida operativa: [Regia Human — PNG e mappe di scontro](/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/GUIDA_REGIA_HUMAN.md). Editor, media approvati, profili Combat, arena, Fato e puntate; capacità e limiti dei nuovi contenuti. Il collaudo Staff pregresso è PASS ed è stato accettato da Antonello per LAND. Apertura Human verificata soltanto dopo il postflight Root: APPLIED_AT=15/10/2026 16:17:53 UTC, migrazione 20261015161741, review 7a992b068c1611bdb9fea6a931814c1afa43277f552a539b54e230f988032feb; release S `5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366`, SourceOwnerAccepted `f29cbf27da7a413c31b229348ef34d83b0791edc2131d23eadaa1465026ab3bd`. Ordinary runtime e premio reale restano NOT_RUN; nessun nuovo caso giocato o rinnovo Staff richiesto. Ammissione Human propria attiva; gate generico IA public_enabled=false, quattro campi IA Count/budget NULL invariati; soltanto tre metadati release/policy/qualificazione associati alla vera S. Provider0, counter ordinario5 e storico preservati. Le fonti storiche conservano le date originarie.
+
 | Documento | Data | Stato | In una riga |
 |---|---|---|---|
 | `claude/proposta_trama_2026-07-17.md` | 17/07 | **ESEGUITO** | La trama d'apertura. Il Kazekage è **Rina, «la Dama di Ferro»**. Tre faglie: il cappello vuoto di Konoha, la fame di Suna, la mano invisibile. Convergenza: l'Esame di Chūnin. |
