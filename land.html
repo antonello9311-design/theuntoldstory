@@ -8,7 +8,7 @@
   <meta name="tus-quest-runtime-build" content="completion7-binding/1" />
   <meta name="tus-human-quest-suspend-build" content="HUMAN22-OWN-STAFF-PRE-ENCOUNTER-001" />
   <meta name="tus-human-regia-read-click-build" content="HUMAN29-REGIA-READ-CLICK-001" />
-  <meta name="tus-human-inline-workspace-build" content="HUMAN33-INLINE-WORKSPACE-005" />
+  <meta name="tus-human-inline-workspace-build" content="HUMAN33-INLINE-WORKSPACE-006" />
   <meta name="tus-fato-history-build" content="C1236-H3-HISTORY-AGG15-STAFF" />
   <meta name="tus-master-report-ui-build" content="C1236-MASTER-REPORT-UI-001" />
   <meta name="tus-human-close-recovery-build" content="C1236-HUMAN-CLOSE-RECOVERY-001" />
@@ -2223,7 +2223,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
             <nav class="h33-tabs" aria-label="Quest e conduzione"><button class="tb-btn" type="button" data-h33-view="registry" aria-pressed="false">Registro</button><button class="tb-btn" type="button" data-h33-view="quest" aria-pressed="false">Puntata attiva</button><button class="tb-btn" type="button" id="human-inline-regia">Regia della scena</button></nav>
             <p id="human-inline-status" class="h33-status" role="status" aria-live="polite"></p>
             <section id="human-inline-registry" hidden aria-label="Registro missioni e quest"></section>
-            <section id="human-inline-quest" hidden aria-label="Puntata Human"></section>
+            <section id="human-inline-quest" hidden aria-label="Puntata"></section>
             <section id="human-inline-combat" hidden aria-label="Regia della scena Human"></section>
           </section>
           <div class="room-grid">
@@ -14642,14 +14642,14 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       })();
       async function openHumanQuestEpisodePanel(episode,asPg,asSession){
         if(!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||(!asPg&&!iAmStaff))return;
-        var w=humanInlineEnsure();if(!w){toast('Entra nella Staff Test Room per aprire questa puntata Human.');return;}
+        var w=humanInlineEnsure();if(!w){toast('Entra nella Staff Test Room per aprire questa puntata.');return;}
         var actor=myId,room=cur.id,identity=JSON.stringify([episode,!!asPg,!!asSession]),frame=w.frames.get(identity);
         if(frame){w.selected=frame;for(var stored of w.frames.values())stored.element.hidden=stored!==frame;humanInlineShow('quest');document.getElementById('human-inline-status').textContent='Puntata riaperta. Testi e richieste originali sono conservati.';return;}
         var host=document.createElement('section'),successorNotice=document.createElement('section'),element=document.createElement('div');successorNotice.setAttribute('role','status');element.append(host,successorNotice);
         frame={panel:null,element,closed:false,sceneSession:null};w.frames.set(identity,frame);w.selected=frame;
         for(var stored of w.frames.values())stored.element.hidden=stored!==frame;document.getElementById('human-inline-quest').append(element);humanInlineShow('quest');document.getElementById('human-inline-status').textContent='Lettura della puntata…';
         function same(){return !frame.closed&&humanInlineCurrent()&&HUMAN_INLINE===w&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===actor&&myId===actor&&cur?.id===room&&(asPg||iAmStaff);}
-        try{var mods=await Promise.all([import('./mf-human-quest-runtime-ui-9424adeecf4bbbad782626f657d807fcbf78b44ee51fabc387b2f0f3922916c4.mjs'),import('./mf-quest-runtime-api-805a43a0eace173a378ca1973e2f174a425748c1e1d74f3f60a9e472f9a9c4af.mjs')]);if(!same())return;
+        try{var mods=await Promise.all([import('./mf-human-quest-runtime-ui-843a3e99aee105e2f5eae3e8f318922bc0a8b39712234abe0cbb0ef7e7f17fdc.mjs'),import('./mf-quest-runtime-api-805a43a0eace173a378ca1973e2f174a425748c1e1d74f3f60a9e472f9a9c4af.mjs')]);if(!same())return;
           var api=mods[1].createQuestRuntimeApi(sb,{identity:function(){return same()?actor:null;},isCurrent:same});
           frame.panel=mods[0][asPg?'mountHumanQuestParticipant':'mountHumanQuestRuntime'](host,{client:sb,api:api,identity:function(){return same()?actor:null;},isCurrent:same,
             onFato:async function(v){if(same())await loadMsgs(v.publication_id);},onNext:async function(v){
@@ -14663,7 +14663,7 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
               if(commonMasterCombat()&&ORDINARY&&ordinaryPanelMode==='common')await ORDINARY.open(asPg?'ordinary':'master');else humanInlineShow('quest');
               document.getElementById('msg-input')?.focus();
             }});if(asSession){await frame.panel.openSession(episode);if(same())frame.sceneSession=episode;}else await frame.panel.openEpisode(episode);
-          if(same()&&w.selected===frame)document.getElementById('human-inline-status').textContent='La puntata e la scena restano nella LAND. Le azioni disponibili sono confermate dal server.';
+          if(same()&&w.selected===frame)document.getElementById('human-inline-status').textContent='';
         }catch(e){if(same()&&w.selected===frame)document.getElementById('human-inline-status').textContent=e.message||'Regia Human non disponibile: richieste conservate.';}
       }
       function questEpisodeLink(){
