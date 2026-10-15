@@ -894,3 +894,5 @@
 15/10/2026 · Human34 aggregata1 / UI33 preview · Install terminale recensito0/0/0, post50ABI20scope48 protette invarianti; stessa pubblicazione7d8 fallisce per route ambiguo, secondaNOT_RUN. Anteprima inline Staff02678d, correzione visuale in corso, provider0.
 
 15/10/2026 · Human34agg2→agg3 / Human33agg2 · Prima chiusa con ricevuta unica e Fato; seconda iscrizioni pronte, prepare23505 osservato. Fix lifecycle/binder installato0/0/0/post52ABI20scope48 invarianti, recoverybc70NOT_RUNperfinestranativa. UI003Staffbe46PagesSUCCESS/screensPENDING; provider0/storicointegro.
+
+15/10/2026 · Human34agg3 / binder2 / UI33agg3 · Stessabc70 recuperata e seconda giocata finoalFato conclusivo; postflight07:53:33 entrambechiuse/1receiptpubciascuna/ownopen0/48d41 invarianti. Provider0, collaudoHumanPASS; UI004review0/0/0Staffpreview, screenshot e ordinaryrelease pendenti.

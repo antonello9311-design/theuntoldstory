@@ -1,7 +1,5 @@
-TASK-ID · HUMAN33-AGG2-COLOR-SOURCE-20261015 · stesso33correzione2
-Scope toccato · Selettore CSS attivo e meta003.
-Contratti usati/modificati · Nessuno; JS6/renderer9424/API/Auth/journal identici.
-Decisioni prese / OPEN · Specificita attiva maggiore per contrasto; solaanteprimaStaff.
-Prove eseguite e risultato · Wholeinverse2 sostituzioni e6JSexact/nodecheckPASS.
-Rischi o regressioni da verificare · Contrasto reale desktop/narrow/screenspending.
-Passaggio richiesto al PM · Review indipendente poiStaffpreview eapprovazioneutente.
+TASK Human33 aggregata4 · Autore delegato media_integrated_review
+
+Fonte isolata dalla004ca18: soltanto build005 e media860 minheight320/max50vh; desktop e tutti6script/renderer invariati. Inversa byteexact e NodePASS.
+
+Nessun editcanonico/DB/browser/pubblicazione. Review indipendente da altro reviewer necessaria, nessuna autoqualifica0/0/0. Runtime/screenshot e approvazione utente pending. Root integra con guard dopo review.
