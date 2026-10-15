@@ -1,30 +1,14 @@
 [
   {
-    "before": "const fail=m=>{throw Error(m);},el=(t,text='')=>{const e=document.createElement(t);e.textContent=text;return e;};",
-    "after": "const fail=m=>{throw Error(m);},el=(t,text='')=>{\n const e=document.createElement(t);e.textContent=text;\n if(['p','small'].includes(t)&&typeof text==='string'&&/^(Richiesta|UUID|Versione Master|Sessione preparata)/.test(text)&&(/\\b[0-9a-f]{8}-[0-9a-f-]{27,}\\b|\\b[0-9a-f]{64}\\b/i.test(text))){\n  const audit=document.createElement('details'),label=document.createElement('summary');audit.className='h33-audit';label.textContent=text.startsWith('Sessione preparata')?'Preparazione confermata \u00b7 dettagli':text.startsWith('Versione Master')?'Versione Master corrente \u00b7 dettagli':'Richiesta conservata \u00b7 dettagli';audit.append(label,e);return audit;\n }\n return e;\n};\nfunction humanViewStatus(root,busy,pending=false){\n root.setAttribute('aria-busy',String(busy));\n const note=el('p',busy?'Operazione in corso. Attendi la conferma: il testo e la richiesta sono conservati.':pending?'Una richiesta \u00e8 da verificare. Recupera la stessa richiesta prima di proseguire.':'');\n note.setAttribute('role','status');note.setAttribute('aria-live','polite');if(note.textContent)root.append(note);\n}\nfunction humanReason(code){return ({READY:'Disponibile',FATO_PENDING:'In attesa del Fato',TERMINAL:'Puntata conclusa',NOT_ACTIVE:'La scena non \u00e8 attiva',DISABLED:'Al momento non disponibile',NATIVE_ROLE_DIRECTION_REQUIRED:'Attendi le risposte dei PG prima di proseguire.',NATIVE_COMBAT_NOT_COMPLETE:'Completa lo scontro prima di proseguire.',NATIVE_ENROLLMENT_CLOSED:'Le iscrizioni non sono ancora aperte.',CURRENT_EPISODE_NOT_TERMINAL:'Concludi prima la puntata corrente.',TERMINAL_PUBLICATION_NOT_CONFIRMED:'Pubblica prima il Fato conclusivo.',SUCCESSOR_ALREADY_PREPARED:'La prossima puntata \u00e8 gi\u00e0 preparata.'})[code]||'Stato da verificare: '+code;}\n"
+    "before": "function humanReason(code){",
+    "after": "function humanPhaseName(value){return ({prepared:'Preparata',opening_pending:'In attesa del Fato iniziale',started:'In corso',closing_pending:'In attesa del Fato conclusivo',terminal:'Conclusa',enrollment_open:'Iscrizioni aperte',uncertain:'Esito da verificare',unavailable:'Non disponibile',cancelled:'Annullata',in_progress:'In corso',source_only:'Da preparare',completed:'Completata',failed:'Conclusa senza successo'})[value]||'Stato da verificare';}\nfunction humanReason(code){"
   },
   {
-    "before": "root.replaceChildren();root.className='mf-card';root.append",
-    "after": "root.replaceChildren();root.className='mf-card';humanViewStatus(root,busy,!!(journal?.pending||controlJournal?.pending));root.append"
+    "before": "paragraph('Stato '+view.phase+' \u00b7 '+(view.ready?'pronto':'non pronto'))",
+    "after": "paragraph(humanPhaseName(view.phase)+' \u00b7 '+(view.ready?'Pronto':'Non pronto'))"
   },
   {
-    "before": "'Fase '+v.current_step_key+' \u00b7 '+v.reason_code",
-    "after": "'Fase '+v.current_step_key+' \u00b7 '+humanReason(v.reason_code)"
-  },
-  {
-    "before": "el('small',x.reason_code)",
-    "after": "el('small',humanReason(x.reason_code))"
-  },
-  {
-    "before": "function paragraph(text){const p=document.createElement('p');p.textContent=text;return p;}",
-    "after": "function paragraph(text){return el('p',text);}"
-  },
-  {
-    "before": "function draw(){root.replaceChildren();root.append(paragraph(message));",
-    "after": "function draw(){root.replaceChildren();humanViewStatus(root,busy);root.append(paragraph(message));"
-  },
-  {
-    "before": "const j=api.journal(ep);if(j.pending){root.append(paragraph('UUID personale",
-    "after": "const j=api.journal(ep);if(j.pending){root.append(paragraph('Una richiesta personale \u00e8 da recuperare prima di proseguire.'));root.append(paragraph('UUID personale"
+    "before": "'Stato '+state.state+' \u00b7 '+state.assignment.member_count",
+    "after": "humanPhaseName(state.state)+' \u00b7 '+state.assignment.member_count"
   }
 ]
