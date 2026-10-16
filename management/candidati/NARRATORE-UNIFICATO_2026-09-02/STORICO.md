@@ -900,3 +900,4 @@
 
 15/10/2026 · HUMAN-NPC-ZERO · Nuovo Iori da editor con media/approvazione append-only/Builder, questHuman con arena, Combat e chiusura;48protette eprovider0 · PASS Staff, customordinarioNONAPERTO; WIP/counterpreservati.
 16/10/2026 · HUMAN-CUSTOM-ORDINARY agg3 · NativeSave/Create e raccordo custom generico ABI87 installatiStaff20261016064820 dopo review000; primoattempt42702 rollbackconservato, CpubblicoFALSE/MacLOCKED/QA NOT_RUN/provider0.
+16/10/2026 · HUMAN-CUSTOM-ORDINARY agg4 diagnosi · NativeIoriCV7 e bindingSELECTABLEPASS; certificazione Human bloccata dahardraise npc_reference custom, richiesta conservata,0scene/48same/provider0; correzione daC→C2 solo preparazione, non installata.

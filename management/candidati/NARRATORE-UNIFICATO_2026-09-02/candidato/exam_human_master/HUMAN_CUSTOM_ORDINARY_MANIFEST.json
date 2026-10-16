@@ -1,6 +1,6 @@
 {
   "schema_version": "human-custom-ordinary-canonical-manifest/1",
-  "state": "STAFF_INSTALLED_MAC_LOCKED_QA_NOT_RUN_PUBLIC_DISABLED",
+  "state": "BUDGET_ENDED_PARTIAL_AUTHORING_SOURCE_AGG4_NOT_INSTALLABLE_CUSTOM_PUBLIC_DISABLED",
   "whole_freeze": {
     "schema_version": "human-custom-ordinary-whole-freeze/1",
     "state": "FROZEN_AGGREGATE3_WRAPPER_FOR_COUNTERCHECK3",
@@ -2086,5 +2086,203 @@
     "readback": "EXACT_ALL_BLOBS_NON_TRUNCATED",
     "site_files_changed": 0
   },
-  "remaining_local": "Solo ricevuta del deposito corrente nei documenti di consegna; nessun nuovo client o feature pubblica abilitata"
+  "remaining_local": "Solo ricevuta del deposito corrente nei documenti di consegna; nessun nuovo client o feature pubblica abilitata",
+  "final_post": {
+    "controls": {
+      "at": "2026-10-16T08:10:22.413952+00:00",
+      "staff_gate": false,
+      "staff_open": 0,
+      "kind_expired": true,
+      "custom_public": false,
+      "identity_valid": true,
+      "runtime_expired": true
+    },
+    "protected": {
+      "at": "2026-10-16T08:10:21.286422+00:00",
+      "rows": 2,
+      "fields_per_pg": 24,
+      "protected_md5": "d41adde267a202a8ff4c6c194eb0a09f"
+    }
+  },
+  "pending_aggregate4": {
+    "status": "SOURCE_ONLY_NOT_INSTALLABLE_NOT_REVIEWED_NOT_APPLIED",
+    "manifest": {
+      "schema_version": "human-custom-ordinary-aggregate4-handoff/1",
+      "status": "SOURCE_ONLY_NOT_INSTALLABLE",
+      "aggregate": 4,
+      "baseline_current_C": "3efd7bf067f83ed750cf7edd4bebc1f4352b75fb7f7bc43f46c9e5908732b0a0",
+      "candidate_graph": 88,
+      "source_definitions": 2,
+      "review": "PENDING",
+      "apply": false,
+      "runtime_QA": "NOT_RUN",
+      "public_open": "BLOCKED_PENDING_REAL_NEW_CASE_PROOF",
+      "provider_calls": 0,
+      "files": [
+        {
+          "path": "/private/tmp/tus-human-custom-ordinary/backend/aggregate4/DELTA_SOURCE.sql",
+          "bytes": 23423,
+          "sha256": "bde8b13cc298b66a822bd92e80aae59ddd68584a0fbe7993dfe0af23a59e236a"
+        },
+        {
+          "path": "/private/tmp/tus-human-custom-ordinary/backend/aggregate4/INVERSE_PROOF_ONLY.sql",
+          "bytes": 23208,
+          "sha256": "51c1306a13989e16f387cfe0b1f6b5e86b51def7029cc7be820be14f21b027dc"
+        },
+        {
+          "path": "/private/tmp/tus-human-custom-ordinary/backend/aggregate4/TARGET_DELTA_METADATA.json",
+          "bytes": 722,
+          "sha256": "afbbcbc90897ca1355fc8aed8bd81d12dd456c77c3a04b9d2fd7e5722d76949f"
+        },
+        {
+          "path": "/private/tmp/tus-human-custom-ordinary/backend/aggregate4/C_GRAPH_88_SIGNATURES.json",
+          "bytes": 8035,
+          "sha256": "d57c8ae894bde22e0dfe5e7b2442296a47039e66a66a282bd84b63cfde437ea0"
+        },
+        {
+          "path": "/private/tmp/tus-human-custom-ordinary/backend/aggregate4/STATIC_PROOF.json",
+          "bytes": 1052,
+          "sha256": "7cb7164a04aa084de9c29dacf53ffc42fd3fa2a2c212cabfecd923f43153248d"
+        },
+        {
+          "path": "/private/tmp/tus-human-custom-ordinary/backend/aggregate4/ACTUAL_BASELINE.json",
+          "bytes": 112326,
+          "sha256": "ce371017ef65392381851d7e9866755fbafcd738a12f52a486119b712d0b2cde"
+        },
+        {
+          "path": "/private/tmp/tus-human-custom-ordinary/backend/aggregate4/ACTUAL_CALLERS.json",
+          "bytes": 111685,
+          "sha256": "076ba9b774cd5f9b284844511f7dc4aa16bd35c14c13cd83178c69c733d4c4b5"
+        },
+        {
+          "path": "/private/tmp/tus-human-custom-ordinary/backend/aggregate4/ACTUAL_ALL_DELTA_PIN_REFERENCES.json",
+          "bytes": 446,
+          "sha256": "6244d6188cca65862a579035080a55fcf1dcb4427c4f3da64aa4339ad97a52c5"
+        },
+        {
+          "path": "/private/tmp/tus-human-custom-ordinary/backend/aggregate4/HANDOFF.md",
+          "bytes": 5457,
+          "sha256": "29e68a0fddfc9313c0a3d834d3cc4101190d291703741e25c0094c2404a637aa"
+        }
+      ]
+    },
+    "delta_sql": "CREATE OR REPLACE FUNCTION mission_factory_owner.npc_reference(p_npc uuid, p_version uuid, p_combat boolean)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare b png_builder_internal.bundles; n public.nb_templates; nv public.nb_template_versions;\n        mb public.nb_mechanical_bindings; mv public.nb_mechanical_versions;\n        v_dep jsonb; v_expected_sha text;\nbegin\n  if p_npc is null or p_version is null then raise exception 'MF_NPC_REF_REQUIRED' using errcode='22023'; end if;\n  select * into b from png_builder_internal.bundles where id=p_version and template_id=p_npc;\n  if found and b.ownership_mode='planned' then\n    raise exception 'MF_PLANNED_NOT_ACTIVATED' using errcode='55000';\n  end if;\n  if not found or b.status<>'certified' or b.disabled_at is not null or b.ownership_mode<>'adopted'\n     then raise exception 'MF_NPC_NOT_AVAILABLE' using errcode='55000'; end if;\n  if b.bundle_kind='narrative' then\n    if p_combat then raise exception 'MF_NPC_NARRATIVE_NO_COMBAT' using errcode='55000';end if;\n    if b.mechanical_template_id is not null or b.mechanical_version_id is not null\n      or b.mechanical_binding_id is not null or b.owns_upstream\n      or not ('narrator_adapter'=any(b.consumer_scopes))\n      or 'combat_v2'=any(b.consumer_scopes) or 'master_v2'=any(b.consumer_scopes)\n      or (b.consumer_scopes <@ array['surface','narrator_adapter','dry_run']::text[]) is not true\n      or b.certified_payload->>'bundle_kind'<>'narrative'\n      or b.certified_payload#>>'{document,bundle_kind}'<>'narrative'\n      or b.dependency_manifest->>'bundle_kind'<>'narrative'\n      or b.dependency_manifest->>'ownership_mode'<>'adopted'\n      or b.dependency_manifest->>'certified_payload_sha256'\n           is distinct from png_builder_internal.sha(b.certified_payload)\n      then raise exception 'MF_NPC_NARRATIVE_STALE' using errcode='55000';end if;\n    v_dep:=png_builder_internal.narrative_dependency_v1(b.certified_payload->'document');\n    if b.dependency_manifest - 'ownership_mode' - 'certified_payload_sha256' is distinct from v_dep\n      or b.template_id<>(v_dep->>'source_template_id')::uuid\n      or b.narrative_version_id<>(v_dep->>'source_template_version_id')::uuid\n      or b.media_ids is distinct from array[(v_dep->>'portrait_media_id')::uuid,(v_dep->>'marker_media_id')::uuid]\n      then raise exception 'MF_NPC_NARRATIVE_STALE' using errcode='55000';end if;\n    v_expected_sha:=png_builder_internal.sha(jsonb_build_object(\n      'bundle_kind','narrative','draft_sha',v_dep->>'document_sha256',\n      'template_id',b.template_id,'narrative_version_id',b.narrative_version_id,\n      'media_ids',to_jsonb(b.media_ids),\n      'consumer_scopes',b.certified_payload#>'{document,consumer_scopes}',\n      'deps',b.dependency_manifest,'payload',b.certified_payload));\n    if b.bundle_sha256 is distinct from v_expected_sha\n      then raise exception 'MF_NPC_NARRATIVE_HASH_DRIFT' using errcode='55000';end if;\n    return jsonb_build_object('schema_version','mission-factory-npc-reference/1',\n      'npc_id',b.template_id,'npc_version_id',b.id,'bundle_sha256',b.bundle_sha256,\n      'bundle_kind','narrative','narrative_version_id',b.narrative_version_id,\n      'mechanical_version_id',null,'mechanical_binding_id',null,\n      'combat',false,'capabilities',jsonb_build_array('narrative'));\n  end if;\n  if b.bundle_kind<>'combat' or b.mechanical_template_id is null\n    or b.mechanical_version_id is null or b.mechanical_binding_id is null\n    then raise exception 'MF_NPC_KIND_STALE' using errcode='55000';end if;\n  select * into n from public.nb_templates where id=b.template_id;\n  select * into nv from public.nb_template_versions where id=b.narrative_version_id and template_id=b.template_id;\n  if n.id is null or n.lifecycle_state<>'approved' or n.deactivated_at is not null\n     or nv.id is null or nv.review_state<>'approved'\n     or not ('narrator_adapter'=any(b.consumer_scopes))\n     or b.dependency_manifest->>'certified_payload_sha256'<>png_builder_internal.sha(b.certified_payload)\n     or coalesce(b.bundle_sha256,'') !~ '^[0-9a-f]{64}$'\n     or cardinality(b.media_ids)<>(select count(*)::integer from public.nb_template_media_versions med\n       where med.id=any(b.media_ids) and med.template_id=b.template_id\n         and med.template_version_id=b.narrative_version_id and med.sha256 ~ '^[0-9a-f]{64}$')\n     then raise exception 'MF_NPC_NARRATIVE_STALE' using errcode='55000'; end if;\n  if p_combat then\n    if not ('combat_v2'=any(b.consumer_scopes)) or not ('master_v2'=any(b.consumer_scopes)) or not (coalesce(b.certified_payload#>'{document,consumer_scopes}','[]'::jsonb) ? 'combat_v2')\n       then raise exception 'MF_NPC_COMBAT_SCOPE' using errcode='55000'; end if;\n    select * into mb from public.nb_mechanical_bindings where id=b.mechanical_binding_id\n      and narrative_template_id=b.template_id and narrative_version_id=b.narrative_version_id\n      and mechanical_template_id=b.mechanical_template_id and mechanical_version_id=b.mechanical_version_id;\n    select * into mv from public.nb_mechanical_versions where id=b.mechanical_version_id and template_id=b.mechanical_template_id;\n    if mb.id is null or mb.lifecycle_state<>'approved' or not mb.active or mv.id is null or mv.review_state<>'approved'\n       then raise exception 'MF_NPC_MECHANICS_STALE' using errcode='55000'; end if;\n    if mv.profile_kind='npc_custom' then\n      -- Canonical source quality only. Authoring/runtime authority remains at each caller.\n      -- The existing attestor binds current approved narrative/mechanical heads, immutable\n      -- mechanical hash/profile, approved portrait+marker pair, source document and bundle.\n      perform png_builder_internal.npc_custom_combat_attest_assert_v1(\n        b.template_id,b.narrative_version_id,b.id);\n    end if;\n  end if;\n  return jsonb_build_object('schema_version','mission-factory-npc-reference/1',\n    'npc_id',b.template_id,'npc_version_id',b.id,'bundle_sha256',b.bundle_sha256,\n    'narrative_version_id',b.narrative_version_id,'mechanical_version_id',b.mechanical_version_id,\n    'mechanical_binding_id',b.mechanical_binding_id,'combat',p_combat);\nend $function$;\n\nCREATE OR REPLACE FUNCTION mission_factory_owner.human_compatibility_identity_v1(p_release text, p_active boolean)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE old_identity mission_public_owner.public_qualification_attestations_v1;old_release mission_public_owner.release_admissions_v1;\n current_release mission_public_owner.release_admissions_v1;proof mission_public_owner.public_qualification_attestations_v1;\n base_tuple jsonb;v jsonb;result jsonb;graph jsonb;actual jsonb;historical jsonb;records integer:=0;key text;\nBEGIN\n IF p_release IS DISTINCT FROM '5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366' OR p_active IS NULL THEN RETURN NULL;END IF;\n -- Literal false uses the unchanged full historical identity checks, never active compatibility.\n historical:=mission_factory_owner.human_ordinary_release_identity_v1(p_release,false);\n IF historical IS NULL OR historical->>'revision_sha256' IS DISTINCT FROM p_release OR historical->>'observed_revision_sha256' IS DISTINCT FROM p_release THEN RETURN NULL;END IF;\n SELECT * INTO old_release FROM mission_public_owner.release_admissions_v1 WHERE release_sha256=p_release;\n key:=mission_factory_owner.sha(jsonb_build_object('schema_version','human-release-identity-key/1','human_release_sha256',p_release));\n SELECT * INTO old_identity FROM mission_public_owner.public_qualification_attestations_v1 WHERE release_sha256=key;\n IF old_release.release_sha256 IS NULL OR old_identity.release_sha256 IS NULL OR old_identity.created_by IS DISTINCT FROM 'postgres'::name\n OR old_identity.payload_sha256 IS DISTINCT FROM mission_factory_owner.sha(old_identity.payload)\n OR old_identity.payload->>'schema_version' IS DISTINCT FROM 'human-ordinary-release-identity/1'\n OR old_identity.payload->>'human_release_sha256' IS DISTINCT FROM p_release\n OR old_identity.payload->>'canonical_preimage' IS NULL\n OR encode(extensions.digest(convert_to(old_identity.payload->>'canonical_preimage','UTF8'),'sha256'),'hex') IS DISTINCT FROM p_release\n OR old_identity.payload->'canonical_tuple' IS DISTINCT FROM (old_identity.payload->>'canonical_preimage')::jsonb\n OR old_identity.payload->>'source_review_ref' IS DISTINCT FROM old_release.independent_review_ref THEN RETURN NULL;END IF;\n base_tuple:=old_identity.payload->'canonical_tuple';\n FOR proof IN SELECT * FROM mission_public_owner.public_qualification_attestations_v1 WHERE payload->>'schema_version'='human-release-compatibility/1' AND payload->>'base_release_sha256'=p_release LOOP\n  IF proof.created_by IS DISTINCT FROM 'postgres'::name OR proof.payload_sha256 IS DISTINCT FROM mission_factory_owner.sha(proof.payload)\n  OR NOT mission_factory_owner.keys_exact_v2(proof.payload,ARRAY['schema_version','base_release_sha256','base_canonical_tuple_sha256','current_release_sha256','current_canonical_tuple','independent_review_ref','review_sha256','review_findings','semantic_manifest_sha256','compatible_scope','ordinary_custom_runtime_qa'])\n  OR proof.payload->>'base_canonical_tuple_sha256' IS DISTINCT FROM p_release\n  OR proof.payload->>'compatible_scope' IS DISTINCT FROM 'legacy-human-ordinary'\n  OR proof.payload->>'ordinary_custom_runtime_qa' IS DISTINCT FROM 'NOT_RUN'\n  OR proof.payload->'review_findings' IS DISTINCT FROM '{\"P0\":0,\"P1\":0,\"P2\":0}'::jsonb\n  OR coalesce(proof.payload->>'review_sha256','')!~'^[0-9a-f]{64}$' OR coalesce(proof.payload->>'semantic_manifest_sha256','')!~'^[0-9a-f]{64}$'\n  OR nullif(btrim(proof.payload->>'independent_review_ref'),'') IS NULL THEN CONTINUE;END IF;\n  v:=proof.payload->'current_canonical_tuple';\n  IF NOT mission_factory_owner.keys_exact_v2(v,ARRAY['schema_version','base_release_sha256','db_core','client','edge','config'])\n  OR v->>'schema_version' IS DISTINCT FROM 'human-custom-ordinary-release-tuple/1'\n  OR v->>'base_release_sha256' IS DISTINCT FROM p_release\n  OR proof.payload->>'current_release_sha256' IS DISTINCT FROM mission_factory_owner.sha(v)\n  OR proof.release_sha256 IS DISTINCT FROM mission_factory_owner.sha(jsonb_build_object('schema_version','human-release-compatibility-key/1','base_release_sha256',p_release,'current_release_sha256',mission_factory_owner.sha(v)))\n  OR v#>>'{db_core,sha256}' IS DISTINCT FROM mission_factory_owner.sha(v#>'{db_core,functions}')\n  OR v#>>'{client,sha256}' IS DISTINCT FROM mission_factory_owner.sha(v#>'{client,bindings}')\n  OR v#>'{client,bindings}' IS DISTINCT FROM base_tuple#>'{client,bindings}'\n  OR v#>>'{edge,sha256}' IS DISTINCT FROM mission_factory_owner.sha(v#>'{edge,bindings}')\n  OR v#>>'{edge,bindings,npc_media_attest,sha256}' IS DISTINCT FROM '135e95a86cd357fa7badf29eb62418e058589a4c2bec9c164f850dcfda1bf266'\n  OR v#>'{edge,bindings,npc_media_attest,version}' IS DISTINCT FROM '2'::jsonb\n  OR v#>'{edge,bindings,npc_media_attest,verify_jwt}' IS DISTINCT FROM 'true'::jsonb\n  OR v#>>'{config,sha256}' IS DISTINCT FROM mission_factory_owner.sha(v#>'{config,policy}') THEN CONTINUE;END IF;\n  SELECT * INTO current_release FROM mission_public_owner.release_admissions_v1 WHERE release_sha256=mission_factory_owner.sha(v);\n  IF current_release.release_sha256 IS NULL OR current_release.contract_version IS DISTINCT FROM 'mission-public-admission/1'\n  OR current_release.db_sha256 IS DISTINCT FROM v#>>'{db_core,sha256}' OR current_release.client_sha256 IS DISTINCT FROM v#>>'{client,sha256}'\n  OR current_release.edge_sha256 IS DISTINCT FROM v#>>'{edge,sha256}' OR current_release.configuration_sha256 IS DISTINCT FROM v#>>'{config,sha256}'\n  OR current_release.independent_review_ref IS DISTINCT FROM proof.payload->>'independent_review_ref'\n  OR proof.positive_staff_evidence_ref IS DISTINCT FROM 'SOURCE_REVIEW_ONLY:'||current_release.independent_review_ref\n  OR current_release.staff_evidence_ref IS DISTINCT FROM 'AUTHORIZED_TEST_MANIFEST:'||proof.authorized_test_manifest_ref THEN CONTINUE;END IF;\n  graph:=v#>'{db_core,functions}';\n  IF jsonb_typeof(graph) IS DISTINCT FROM 'array' OR jsonb_array_length(graph)<>88\n  OR (SELECT jsonb_agg(to_jsonb(z->>'lookup_signature') ORDER BY z->>'lookup_signature') FROM jsonb_array_elements(graph)z) IS DISTINCT FROM (SELECT jsonb_agg(to_jsonb(value) ORDER BY value) FROM jsonb_array_elements_text($closed$[\"mission_factory_owner.c395_active_human_assert_v1(pg_catalog.uuid)\",\"mission_factory_owner.c395_prepare_assert_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid,pg_catalog.uuid)\",\"mission_factory_owner.c395_revision_issue_v1(uuid,bigint,uuid,uuid,uuid)\",\"mission_factory_owner.c407_identity_v1(pg_catalog.uuid)\",\"mission_factory_owner.c408_stage1_complete_assert_v1()\",\"mission_factory_owner.c412_read_identity_v1(pg_catalog.uuid)\",\"mission_factory_owner.c416_arc_assert_v1(pg_catalog.uuid,pg_catalog.bool)\",\"mission_factory_owner.c416_draft_assert_v1(pg_catalog.uuid,pg_catalog.bool)\",\"mission_factory_owner.c444_action_scope_v1(pg_catalog.uuid)\",\"mission_factory_owner.c444_enrollment_open_v1(pg_catalog.uuid)\",\"mission_factory_owner.c444_enrollment_v1(pg_catalog.uuid,pg_catalog.text,pg_catalog.bool,pg_catalog.int8,pg_catalog.uuid)\",\"mission_factory_owner.c444_peaceful_boundary_v1(pg_catalog.uuid,pg_catalog.uuid)\",\"mission_factory_owner.c444_peaceful_complete_v1(pg_catalog.uuid,pg_catalog.uuid)\",\"mission_factory_owner.c444_peaceful_history_complete_v1(pg_catalog.uuid,pg_catalog.uuid)\",\"mission_factory_owner.c444_read_identity_v1(pg_catalog.uuid)\",\"mission_factory_owner.c444_runtime_ports_complete_assert_v1()\",\"mission_factory_owner.c444_source_read_assert_v1(pg_catalog.uuid)\",\"mission_factory_owner.c444_terminal_participants_finish_v1(pg_catalog.uuid,pg_catalog.uuid)\",\"mission_factory_owner.c463_optin_complete_assert_v1()\",\"mission_factory_owner.c463_optin_identity_v1(pg_catalog.uuid)\",\"mission_factory_owner.human_compatibility_identity_v1(text,boolean)\",\"mission_factory_owner.human_custom_ordinary_capability_v1(uuid,boolean)\",\"mission_factory_owner.human_custom_source_assert_v1(uuid,boolean)\",\"mission_factory_owner.human_existing_legacy_media_pair_v1(pg_catalog.uuid,pg_catalog.uuid)\",\"mission_factory_owner.human_ordinary_arc_scope_v1(pg_catalog.uuid,pg_catalog.bool)\",\"mission_factory_owner.human_ordinary_authoring_qualification_v1(pg_catalog.text)\",\"mission_factory_owner.human_ordinary_authority_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text)\",\"mission_factory_owner.human_ordinary_deep_validate_v1(pg_catalog.uuid,pg_catalog.jsonb)\",\"mission_factory_owner.human_ordinary_enrollment_open_v1(pg_catalog.uuid)\",\"mission_factory_owner.human_ordinary_execution_read_assert_v1(pg_catalog.uuid,pg_catalog.bool)\",\"mission_factory_owner.human_ordinary_final_terminal_v1(pg_catalog.uuid)\",\"mission_factory_owner.human_ordinary_npc_bundle_assert_v1(pg_catalog.uuid)\",\"mission_factory_owner.human_ordinary_participants_finish_v1(pg_catalog.uuid,pg_catalog.uuid)\",\"mission_factory_owner.human_ordinary_peaceful_boundary_v1(pg_catalog.uuid,pg_catalog.uuid)\",\"mission_factory_owner.human_ordinary_peaceful_complete_v1(pg_catalog.uuid,pg_catalog.uuid)\",\"mission_factory_owner.human_ordinary_peaceful_history_complete_v1(pg_catalog.uuid,pg_catalog.uuid)\",\"mission_factory_owner.human_ordinary_preview_basis_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.bool)\",\"mission_factory_owner.human_ordinary_release_identity_v1(pg_catalog.text,pg_catalog.bool)\",\"mission_factory_owner.human_ordinary_release_read_assert_v1(pg_catalog.text,pg_catalog.uuid,pg_catalog.bool)\",\"mission_factory_owner.human_ordinary_reward_apply_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.uuid)\",\"mission_factory_owner.human_ordinary_reward_authority_v1(pg_catalog.uuid,pg_catalog.uuid)\",\"mission_factory_owner.human_ordinary_source_v1(pg_catalog.uuid,pg_catalog.bool)\",\"mission_factory_owner.human_ordinary_terminal_core_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.uuid)\",\"mission_factory_owner.human_release_observation_valid_v1(jsonb,text,boolean)\",\"mission_factory_owner.npc_custom_authoring_check_v1(uuid,bigint,text,boolean)\",\"mission_factory_owner.npc_custom_combat_runtime_assert_v1(uuid,uuid,uuid,uuid)\",\"mission_factory_owner.npc_item_v2(uuid,uuid,text,boolean)\",\"mission_factory_owner.npc_reference(uuid,uuid,boolean)\",\"mission_factory_owner.quest_combat_insert_guard_v1()\",\"mission_factory_owner.quest_compile_check_v1(pg_catalog.uuid)\",\"mission_factory_owner.quest_compile_v1(pg_catalog.uuid)\",\"mission_factory_owner.quest_deep_validate_v2(uuid,jsonb)\",\"mission_factory_owner.quest_execution_assert_v4(pg_catalog.uuid,pg_catalog.bool)\",\"mission_factory_owner.quest_public_open_v3(uuid)\",\"mission_factory_owner.quest_publication_scope_v3(pg_catalog.uuid,pg_catalog.bool)\",\"mission_public_owner.human_positive_qualification_attest_v1(pg_catalog.text,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.jsonb)\",\"mission_public_owner.human_positive_qualification_v1(pg_catalog.text,pg_catalog.bool)\",\"mission_public_owner.human_session_allowed_v1(pg_catalog.uuid)\",\"png_builder_internal.npc_custom_combat_attest_assert_v1(uuid,uuid,uuid)\",\"png_builder_internal.npc_custom_combat_source_v1(uuid,uuid)\",\"png_builder_internal.npc_media_pair_resolve_v1(uuid,uuid)\",\"public.master_v2_encounter_open_ninja_book_v1_human_ai_core(uuid,uuid[],jsonb,jsonb,uuid)\",\"public.mission_factory_create_v1(uuid,jsonb,text)\",\"public.mission_factory_npc_certify_combat_v1(uuid,uuid,uuid)\",\"public.mission_factory_npc_certify_existing_combat_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.uuid)\",\"public.mission_factory_npc_certify_existing_combat_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid)\",\"public.mission_factory_quest_d100_bind_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.int8,pg_catalog.uuid)\",\"public.mission_factory_quest_d100_binding_scope_v1(pg_catalog.uuid)\",\"public.mission_factory_quest_human_d100_consume_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)\",\"public.mission_factory_quest_human_ordinary_authoring_receipt_v1(pg_catalog.uuid,pg_catalog.text)\",\"public.mission_factory_quest_human_ordinary_control_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)\",\"public.mission_factory_quest_human_ordinary_create_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.jsonb,pg_catalog._uuid,pg_catalog.uuid)\",\"public.mission_factory_quest_human_ordinary_episode_context_v1(pg_catalog.uuid)\",\"public.mission_factory_quest_human_ordinary_import_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.jsonb,pg_catalog._uuid,pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid)\",\"public.mission_factory_quest_human_ordinary_lifecycle_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)\",\"public.mission_factory_quest_human_ordinary_participant_state_v1(pg_catalog.uuid)\",\"public.mission_factory_quest_human_ordinary_preview_v1(pg_catalog.uuid,pg_catalog.int8)\",\"public.mission_factory_quest_human_ordinary_publish_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text,pg_catalog.uuid,pg_catalog.text,pg_catalog.timestamptz)\",\"public.mission_factory_quest_human_ordinary_runtime_state_v1(pg_catalog.uuid)\",\"public.mission_factory_quest_human_ordinary_terminal_publish_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.uuid)\",\"public.mission_factory_quest_human_regia_optin_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text,pg_catalog.uuid)\",\"public.mission_factory_quest_human_route_v1(pg_catalog.uuid)\",\"public.mission_factory_quest_human_runtime_state_v1(pg_catalog.uuid)\",\"public.mission_factory_quest_human_successor_scope_v1(pg_catalog.uuid)\",\"public.mission_factory_save_v1(uuid,bigint,jsonb,uuid)\",\"public.npc_combat_approve_v1(uuid,uuid,bigint,uuid)\",\"public.npc_combat_save_v1(uuid,uuid,bigint,uuid,jsonb)\",\"public.npc_combat_submit_review_v1(uuid,uuid,bigint,uuid)\"]$closed$::jsonb))\n  OR EXISTS(SELECT 1 FROM jsonb_array_elements(graph)x WHERE x->>'oid' IS NULL OR coalesce(x->>'oid','')!~'^[1-9][0-9]*$') THEN CONTINUE;END IF;\n  IF p_active THEN\n   SELECT jsonb_agg(jsonb_build_object('lookup_signature',x->>'lookup_signature','oid',proc.oid::text,'body_md5',md5(proc.prosrc),'input_arg_types',(SELECT coalesce(jsonb_agg(format('%I.%I',n.nspname,t.typname) ORDER BY z.ord),'[]'::jsonb) FROM unnest(proc.proargtypes::oid[])WITH ORDINALITY z(id,ord) JOIN pg_type t ON t.oid=z.id JOIN pg_namespace n ON n.oid=t.typnamespace),'all_arg_types',(SELECT coalesce(jsonb_agg(format('%I.%I',n.nspname,t.typname) ORDER BY z.ord),'[]'::jsonb) FROM unnest(coalesce(proc.proallargtypes,proc.proargtypes::oid[]))WITH ORDINALITY z(id,ord) JOIN pg_type t ON t.oid=z.id JOIN pg_namespace n ON n.oid=t.typnamespace),'arg_names',coalesce(to_jsonb(proc.proargnames),'null'::jsonb),'arg_modes',to_jsonb(coalesce(proc.proargmodes,array_fill('i'::\"char\",ARRAY[proc.pronargs]))),'return_type',(SELECT format('%I.%I',n.nspname,t.typname) FROM pg_type t JOIN pg_namespace n ON n.oid=t.typnamespace WHERE t.oid=proc.prorettype),'returns_set',proc.proretset,'default_arg_count',proc.pronargdefaults,'defaults',pg_get_expr(proc.proargdefaults,0),'variadic_type',CASE WHEN proc.provariadic=0 THEN NULL ELSE (SELECT format('%I.%I',n.nspname,t.typname) FROM pg_type t JOIN pg_namespace n ON n.oid=t.typnamespace WHERE t.oid=proc.provariadic) END,'strict',proc.proisstrict,'volatility',proc.provolatile::text,'parallel',proc.proparallel::text,'security_definer',proc.prosecdef,'language',(SELECT lanname FROM pg_language WHERE oid=proc.prolang),'configuration',proc.proconfig,'owner',pg_get_userbyid(proc.proowner),'execute',(SELECT coalesce(jsonb_agg(CASE WHEN acl.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(acl.grantee) END ORDER BY CASE WHEN acl.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(acl.grantee) END),'[]'::jsonb) FROM aclexplode(coalesce(proc.proacl,acldefault('f',proc.proowner)))acl WHERE acl.privilege_type='EXECUTE')) ORDER BY x->>'lookup_signature') INTO actual FROM jsonb_array_elements(graph)x JOIN pg_proc proc ON proc.oid=to_regprocedure(x->>'lookup_signature');\n   IF actual IS DISTINCT FROM (SELECT jsonb_agg(x ORDER BY x->>'lookup_signature') FROM jsonb_array_elements(graph)x)\n   OR EXISTS(SELECT 1 FROM jsonb_array_elements(graph)x JOIN pg_proc proc ON proc.oid=to_regprocedure(x->>'lookup_signature') WHERE proc.proleakproof OR EXISTS(SELECT 1 FROM aclexplode(coalesce(proc.proacl,acldefault('f',proc.proowner)))a WHERE a.is_grantable)) THEN CONTINUE;END IF;\n  END IF;\n  records:=records+1;\n  result:=jsonb_build_object('schema_version','human-compatible-release-identity/1','singleton',true,'provenance_release_sha256',p_release,'revision_sha256',p_release,'observed_revision_sha256',current_release.release_sha256,'canonical_preimage',old_identity.payload->>'canonical_preimage','client_build','human-ordinary/1:'||p_release,'state','enabled','scope','staff','independent_review_ref',old_release.independent_review_ref,'observed_independent_review_ref',current_release.independent_review_ref,'staff_guards_verified',true,'published_assets_verified',true,'observed_canonical_tuple',v,'compatibility_sha256',proof.payload_sha256);\n END LOOP;\n IF records<>1 THEN RETURN NULL;END IF;RETURN result;\nEXCEPTION WHEN invalid_text_representation OR invalid_parameter_value THEN RETURN NULL;\nEND $function$;\n",
+    "delta_sha256": "bde8b13cc298b66a822bd92e80aae59ddd68584a0fbe7993dfe0af23a59e236a",
+    "handoff": "# Aggregata4 — sorgente soltanto, NOT_INSTALLABLE\n\nTask Human custom ordinary pubblico; ordinary5/OwnerAccepted3 e nuovo custom aggregate1–3 preservati. Il caso attuale si ferma alle08:10UTC16/10/2026: zero provider, nessun import Human né scena. Native Iori salvata normalmente CV7 SHA `072f1c1f6ea68166b971d492c91fcd70daf5804ac3452491e8e6aa47d939d0a9`; richiesta di certificazione fallita atomicamente conservata nell'interfaccia. Nessun retry/apply in questa consegna.\n\n## Difetto osservato e codice\n\n`mission_factory_owner.npc_reference(uuid,uuid,boolean)`, OID276346, body `f3c55d7521a4eb5dbd25dbcc68f3e544`, rifiuta incondizionatamente ogni MV `npc_custom` quando p_combat=true, dopo le verifiche esistenti bundle/binding/NV/MV/media approvati. È il motivo di `MF_NPC_CUSTOM_COMBAT_UNQUALIFIED` nella normale certificazione08:03:14.\n\n`DELTA_SOURCE.sql` contiene SOLO2 definizioni derivate dai corpi vivi:\n\n1. npc_reference: il solo hardraise custom diventa la chiamata canonica `png_builder_internal.npc_custom_combat_attest_assert_v1(template,NV,bundle)`. Essa lega current narrative/mechanical head, hash meccanico, binding approvato, coppia portrait/marker, documento/source/dependency/bundle immutabili. Stesso DTO9chiavi; tutti gli altri byte della definizione sono preservati. Non usa impropriamente runtimeassert che richiede MasterSID/transazione. Nessun gate temporale nel validatore qualità: autorità di authoring/scene/azioni rimane nei caller.\n2. human_compatibility_identity_v1: chiusura ABI87→88 includendo npc_reference, medesima verifica integrale, firme/header/OID reali; nessuna eccezione per fingere S5 osservata dopo il cambio.\n\n`INVERSE_PROOF_ONLY.sql` è solo la dimostrazione statica delle2 inverse esatte. NON è recovery operativa dopo nuove identity/receipt. SQL e PL completi PASS. Global pin scan dei4hash body/DDL delle2funzioni: ZERO riferimenti in altre funzioni; C408/C444/C463 non richiedono modifiche per questo delta. Nessun corpo Source29 installato viene reinstallato.\n\n## Caller e letture\n\n15 caller diretti acquisiti in ACTUAL_CALLERS.json. Le porte pubbliche catalog/version certificazione richiedono assert_editor o Staff/ownership. I caller di compilazione/anteprima/authoring/runtime conservano i controlli HumanC e contesto server già installati. Metadata di qualità visibili agli editorStaff già autorizzati sono espressamente ammessi dal PM; nessuna nuova scena/azione è abilitata dalla proiezione.\n\nLa sola porta diretta STABLE è `mission_factory_npc_certify_existing_combat_receipt_v1`: il ramo custom installato rende la ricevuta immutabile memorizzata prima del vecchio ramo che chiama npc_reference; dunque la modifica non introduce locking nel nuovo receiptGET. Gli altri14caller sono VOLATILE. Il validatore qualità riusa l'attestor esistente, che legge current source con FOR SHARE; non si dichiara un nuovo pure-reader universale. Le letture storiche custom non devono richiedere Cstage vivo: source_assert p_active=false e canonicalreceipt restano invariati.\n\n## Integrazione Root ancora necessaria — nessun installer pronto\n\nBaseline realmente installata: Source29 SHA `4c01a324e7dec6cfbcd1d88e3c55f74420c304ea0503f70557c0e3896dde5586`; observedC=`3efd7bf067f83ed750cf7edd4bebc1f4352b75fb7f7bc43f46c9e5908732b0a0`, schema typedcompat valido; S5 è solo provenienza storica. Nuove4private helper sono già presenti. NON riusare il vecchio preflight installer che pretende observedS5 o assenza helper.\n\nPer rendere installabile la prossima versione, Root deve comporre una transazione nuova da questa baseline:\n\n- preflight fresco completo88 ABI, Source29/C87 identity/admission/proof/controlli/schema, NativeCV7 e protected48; confronto observedC87 esatto prima del DDL;\n- applicare esclusivamente le2definizioni del delta, mantenendo grant/owner/signature/OID attuali;\n- confrontare tutti88header reali postDDL, calcolare C2 dalla tupla completa attuale (stesso algoritmo `identity/ABI_RECORD_EXPRESSION.sql`, actualOID obbligatori), stesso client/Edge verificato e configurazione realmente autorizzata;\n- appendere admissionC2 false, shadowparent del compatibilitykey false, nuova attestazione immutabile S5→C2 con nuova review/semanticmanifest che documenta il passaggio C87→C2. Conservare integralmente S5, C87, precedenti compatibility/prove/receipt; nessun pin-only swap e nessun vecchio corpo ripristinato;\n- verificare observedC2 tipizzata e tutti invarianti fullpost. Il cambio osservazione e l'appendC2 devono essere atomici; niente intervallo committato senza identità valida;\n- recovery operativa gate-only sulla nuovaC2, preservando tutti i reader/identity/storia; inverse2 solo per prova o reversal pre-release esplicitamente privo di nuove righe.\n\nNon esiste ancora wrapper C87→C2, materiale finito, review indipendente aggregata4 o nuovo budget Staff. Di conseguenza NOT_INSTALLABLE. Non è autorizzato riutilizzare la scadenza08:10 per continuare: una futura campagna richiede una nuova finestra nominata, senza reset dei contatori.\n\n## OPEN\n\nL'OPEN precedente resta source-only e NON eseguibile per C2 prima di un vero caso ordinary custom positivo. Il nuovo C2gate/public_enabled resta false. Nessuna prova IoriStaff storica, source-review, salvataggio o qualifica editor costituisce ordinaryQA PASS. Il template OPEN dovrà essere ricomposto con actualC2, gate/postimage esatti e prova reale; attualmente non esiste ricevuta positiva di questo caso.\n",
+    "files": [
+      {
+        "name": "ACTUAL_ALL_DELTA_PIN_REFERENCES.json",
+        "sha256": "6244d6188cca65862a579035080a55fcf1dcb4427c4f3da64aa4339ad97a52c5",
+        "bytes": 446
+      },
+      {
+        "name": "STATIC_PROOF.json",
+        "sha256": "7cb7164a04aa084de9c29dacf53ffc42fd3fa2a2c212cabfecd923f43153248d",
+        "bytes": 1052
+      },
+      {
+        "name": "ACTUAL_CALLERS.json",
+        "sha256": "076ba9b774cd5f9b284844511f7dc4aa16bd35c14c13cd83178c69c733d4c4b5",
+        "bytes": 111685
+      },
+      {
+        "name": "INVERSE_PROOF_ONLY.sql",
+        "sha256": "51c1306a13989e16f387cfe0b1f6b5e86b51def7029cc7be820be14f21b027dc",
+        "bytes": 23208
+      },
+      {
+        "name": "C_GRAPH_88_SIGNATURES.json",
+        "sha256": "d57c8ae894bde22e0dfe5e7b2442296a47039e66a66a282bd84b63cfde437ea0",
+        "bytes": 8035
+      },
+      {
+        "name": "build_delta.py",
+        "sha256": "0705063b042bea92b72c5dbc99c150d00d331f430fda3c0fa95d94f097a244c8",
+        "bytes": 4199
+      },
+      {
+        "name": "MANIFEST.json",
+        "sha256": "42bd106ff5124dc298f686265aa68ff4f26fdb8d30859a4b3ab75c5960b4855c",
+        "bytes": 2371
+      },
+      {
+        "name": "TARGET_DELTA_METADATA.json",
+        "sha256": "afbbcbc90897ca1355fc8aed8bd81d12dd456c77c3a04b9d2fd7e5722d76949f",
+        "bytes": 722
+      },
+      {
+        "name": "HANDOFF.md",
+        "sha256": "29e68a0fddfc9313c0a3d834d3cc4101190d291703741e25c0094c2404a637aa",
+        "bytes": 5457
+      },
+      {
+        "name": "ACTUAL_BASELINE.json",
+        "sha256": "ce371017ef65392381851d7e9866755fbafcd738a12f52a486119b712d0b2cde",
+        "bytes": 112326
+      },
+      {
+        "name": "DELTA_SOURCE.sql",
+        "sha256": "bde8b13cc298b66a822bd92e80aae59ddd68584a0fbe7993dfe0af23a59e236a",
+        "bytes": 23423
+      }
+    ]
+  },
+  "authoring_progress": {
+    "native": {
+      "at": "2026-10-16T08:04:59.315224+00:00",
+      "native": {
+        "cv": 7,
+        "id": "b2aa11b4-5f8b-43c9-bbb8-1db7a85739f9",
+        "sha256": "072f1c1f6ea68166b971d492c91fcd70daf5804ac3452491e8e6aa47d939d0a9"
+      },
+      "staff_open": 0,
+      "original_wip": {
+        "cv": 7,
+        "id": "e6d1b561-cc76-4fb9-8e4e-b73ffc86b6be",
+        "sha256": "f3877c2a7d20ec7cd4bee71925e2090402905a8ea1d00d469eb4c72b04ae1946"
+      },
+      "npc_reference": {
+        "oid": "276346",
+        "body_md5": "f3c55d7521a4eb5dbd25dbcc68f3e544"
+      }
+    },
+    "protected": {
+      "at": "2026-10-16T08:05:01.2878+00:00",
+      "rows": 2,
+      "fields_per_pg": 24,
+      "protected_md5": "d41adde267a202a8ff4c6c194eb0a09f"
+    },
+    "authoring": {
+      "save": "PASS_NATIVE_CV7_NORMAL_UI",
+      "policy": "Selected existing qualified fixed30 through UI; no new policy created",
+      "custom_binding": "PASS_SELECTABLE_NORMAL_UI",
+      "canonical": "BLOCKED_MF_NPC_CUSTOM_COMBAT_UNQUALIFIED",
+      "canonical_error_at": "2026-10-16T08:03:14.723Z",
+      "recovery": "Normal reread performed; original request preserved, no blind replay",
+      "human_import": "NOT_RUN",
+      "Fato": "NOT_RUN",
+      "Combat": "NOT_RUN",
+      "terminal": "NOT_RUN"
+    },
+    "source_diagnosis": {
+      "function": "mission_factory_owner.npc_reference(uuid,uuid,boolean)",
+      "oid": "276346",
+      "body_md5": "f3c55d7521a4eb5dbd25dbcc68f3e544",
+      "cause": "Explicit hardraise for npc_custom after approved binding/MV/media checks",
+      "aggregate4": "SOURCE_PREPARATION_FROM_ACTUAL_C_ONLY_NOT_APPLIED"
+    },
+    "anti_sleep": {
+      "pid": 25899,
+      "command": "caffeinate -di -t 7200",
+      "verified_assertions": [
+        "PreventUserIdleSystemSleep",
+        "PreventUserIdleDisplaySleep"
+      ],
+      "expires_approx_UTC": "2026-10-16T10:01:50Z",
+      "security_lock_unchanged": true
+    },
+    "provider_calls": 0,
+    "provider_tokens": 0,
+    "real_mutations": false
+  }
 }
