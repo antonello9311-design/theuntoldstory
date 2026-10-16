@@ -16,4 +16,4 @@ Fato, movimento/attacco Riuji, azione non offensiva Tamako, parata Iori, valutaz
 Seconda puntata PASS storico distinto, non nuova prova custom multipuntata. Premi reali e nuova geometria arena NOT_RUN. Correzione cosmetica non ancora pubblicata. Contatori1iniziale/16aggregate/16controverifiche e storici5/3/NPC1 conservati;14RED non installata.
 
 ## Passaggio richiesto al PM
-Completare deposito selettivo Git/readback e schermate. Il cosmetico facoltativo resta source-only e non appartiene alla versione pubblicata. Il rilascio funzionale C9 è già verificato; non trasformare documentazione o sorgenteUI in ulteriore gameplayPASS.
+Deposito Git selettivo f0365c11f0e83f3e4cc19300830d1b38d1224c8a completato:136file byte/SHA verificati, client invariato e dominio ricaricato. Schermate consegnate per approvazione visiva. Il cosmetico facoltativo resta source-only e non appartiene alla versione pubblicata. Il rilascio funzionale C9 è già verificato; non trasformare documentazione o sorgenteUI in ulteriore gameplayPASS.

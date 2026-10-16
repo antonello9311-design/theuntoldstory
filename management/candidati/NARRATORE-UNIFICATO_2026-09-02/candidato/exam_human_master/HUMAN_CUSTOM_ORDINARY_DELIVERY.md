@@ -16,4 +16,4 @@ Fato/Combat/report unico/chiusura pacifica/ritorno narrativo/duePG/terminale suc
 Seconda puntata PASS storico distinto; questa prova custom comprendeva una puntata. Premi reali NOT_RUN. Cosmetico candidato non pubblicato. Nessun reset/WIPperso né chiamata provider.
 
 ## Passaggio richiesto al PM
-Deposito Git selettivo in avanzamento; ricevuta con commit e readback verrà collegata qui. Schermate da approvazione visiva del proprietario: HUMAN_CUSTOM_ORDINARY_FINAL.png e HUMAN_CUSTOM_ORDINARY_NPC_APPROVED.png.
+Deposito Git selettivo f0365c11f0e83f3e4cc19300830d1b38d1224c8a completato:135percorsi cambiati,136file verificati contro tree7c88c4ba1548b1fabe4f2fafc27929df5a7e7874, readback non troncato. Ricevuta HUMAN_CUSTOM_ORDINARY_PUBLICATION_RECEIPT.json. Schermate da approvazione visiva del proprietario: HUMAN_CUSTOM_ORDINARY_FINAL.png e HUMAN_CUSTOM_ORDINARY_NPC_APPROVED.png.
