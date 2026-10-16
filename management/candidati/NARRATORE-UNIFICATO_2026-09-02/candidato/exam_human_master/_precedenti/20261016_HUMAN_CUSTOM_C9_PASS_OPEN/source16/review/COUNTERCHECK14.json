@@ -1,0 +1,321 @@
+{
+  "schema_version": "human-custom-independent-countercheck14/1",
+  "status": "RED_BLOCKED_SOURCE_COUNTERCHECK14_NO_APPLY",
+  "at_utc": "2026-10-16T20:45:01.416705+00:00",
+  "reviewer": "media_integrated_review independent nonauthor",
+  "findings": [
+    0,
+    1,
+    0
+  ],
+  "findings_by_priority": {
+    "P0": 0,
+    "P1": 1,
+    "P2": 0
+  },
+  "finding_details": [
+    {
+      "id": "AGG14-F1",
+      "priority": "P1",
+      "block": "Old Staff preservation / exception-producing ordinary authority evaluation boundary",
+      "file": "/private/tmp/tus-human-custom-ordinary/backend/aggregate14/DELTA_SOURCE.sql",
+      "line": 17,
+      "title": "Ordinary throwing validator is only Boolean-gated inside the shared Staff SQL predicate",
+      "evidence": "New expression OR(publicscope AND executionallowed AND human_ordinary_arc_scope_v1(source.arc_id,true) IS TRUE) is a SQL BoolExpr, not a CASE/procedural control-flow guard. Actual callee wrapper always constructs current ordinary context first; variant raises HUMAN_SERVER_COMMAND_CONTEXT_INVALID when unavailable before testing whether arc is public. This call path is captured in ORDINARY_SCOPE_ACTUAL_CALL_CHAIN.json. Original Staff branch did not require this current ordinary context; c407/c444 priorchecks do not impose it for availabilityStaff.",
+      "impact": "SQL AND/OR ordering is not a guaranteed evaluation barrier for an exception-producing STABLE function. The source therefore does not prove the specified ordinary-only evaluation/oldStaff independence: a valid oldStaff branch may encounter ordinary context42501 if that ordinaryidentity is unavailable/drifted. IS TRUE only normalizes a returnedBoolean and cannot absorb an exception. This is a static exception/equivalence defect, not an observed new runtime failure or unauthorized grant.",
+      "required_direction": "Owner must use an explicit expression/procedural evaluation boundary so originalStaff success never invokes the ordinary authority, while public ordinary still requires the exact existing arc_scope(true) IS TRUE and every common/Auth guard. Preserve outsidepublic negative and no genericbypass. No patch performed."
+    }
+  ],
+  "source_sha256": "06962fb30183ba5ccd7df3381837f0255c5e55698e707736163072ab98a4c7a0",
+  "installer_template_sha256": "2e489ad9f2bb74fd73ad9db7ca311f0387fd615572eee981262874fbe21da6d4",
+  "install_manifest_sha256": "59180b6c811e03978590614b9766a89e5a02d64ed1c2e5c91a7276277d9f83fe",
+  "whole_freeze_sha256": "6a60c725b2d7b26bbf931a68b84c1299237813249815718a2f29d39847eefc52",
+  "authority_sha256": "611e904562cfb675e311101fb5c795e69779b4b452a1f4269fee5d677540ea82",
+  "open_template_sha256": "8a45e5834811d07aa26fd9e95b06a5bd652a8216945368630a251d1d948eabb8",
+  "recovery_sha256": "3f626df82d393c663d7d420899a1ee93adf6236c3db0912de5a8a4ece83e5e12",
+  "counter": {
+    "initial": 1,
+    "aggregate": 14,
+    "countercheck": 14,
+    "continuing_user_mandate": true,
+    "history_reset": false,
+    "prior13_partial_runtime_preserved": true
+  },
+  "frozen_integrity": {
+    "files": 68,
+    "all_hashes_supplied_sizes_exact": true,
+    "final_recheck": true
+  },
+  "fixed_matrix": [
+    {
+      "criterion": 1,
+      "text": "Exact complete integrated source, SQL AST and PLpgSQL static checks; no local DB or gameplay",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 2,
+      "text": "No guard deletion, timeout increase, GUC or cross-request cache",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 3,
+      "text": "Private verified-context constructor actual identity(true) once, closed internal caller graph; backend/transaction/statement/Auth binding is secondary validation, no client supplied authority",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 4,
+      "text": "Existing public RPC signatures and ACL unchanged; new helpers private, PUBLIC/anon/authenticated/service revoked and postgres grant explicit",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 5,
+      "text": "Same guards and observations in private context variants; no proof leak into DTO/receipt/persistent audit",
+      "status": "RED",
+      "findings": [
+        "AGG14-F1"
+      ]
+    },
+    {
+      "criterion": 6,
+      "text": "c395/c407/c412 gameplay, locks/CAS/barriers/journals unchanged except strictly necessary declared composition",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 7,
+      "text": "Actual full graph identity includes all new functions, owner/ACL/body/schema binding; staff-only/public OPEN predicates equivalent",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 8,
+      "text": "Current started scene and pending request preserved; no reprepare, optin, START, role or Fato duplication",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 9,
+      "text": "Installer whole composition and data/config CAS executable statically; statement-start exact120 lease, actual commit receipt, fresh QA30 only after successful install",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 10,
+      "text": "Recovery conservative on actual installed C7/full102, preserve historical registry/native/import/protected48; never DELETE/reset",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 11,
+      "text": "No gameplay PASS or public OPEN inferred from static review; one frozen aggregate, one referto, no micro patches during counter",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 12,
+      "text": "F1: inspect PL variables against all SQL range aliases and bare whole-row references across whole installer, including both events captures; standalone parse insufficient",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 13,
+      "text": "F2: preserve actual previous historical false/null contract transitively through all changed callers; no new current identity(true) requirement in historical customsource path",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 14,
+      "text": "Cryptographic CAS constants use exact baseline fullJSONB canonical server sha, no guessed Python serialization; proof maps every old snapshot to newdigest and counts, aliasbindings entireSQL audited",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 15,
+      "text": "Single atomic install, no staged partial apply or remote/DBfilesystem loading; allSQL/PL parsed, unchanged components retain prior proofs; changed predicates require complete new equivalence review",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 16,
+      "text": "Measure SQL and serialized/doubleJSON request bytes below known9success1808848doublebytes, targetSQL≤1.2MB; noapply to discover limit",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 17,
+      "text": "No QA30/Staff120 start attributed to failedHTTP11; sourceGREEN11 and exactmaterialGREEN11 preserved as historical, no migration11claimed",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 18,
+      "text": "SQL three valued logic preserved: each original WHERE predicate requires TRUE, null must never become authorization pass; no generic exception swallowing",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 19,
+      "text": "No new live/current identity dependency on historical false/null lease or custom paths; same OPEN true public predicate after flags",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 20,
+      "text": "Only new private verifier and strictly necessary callers/identity/ABI/sigils differ from actual C6 full101 release df0a3edc0e6708119e8816db2ca63e571d126eeb9334aeeaf085c94a652ddf38; minimal delta, no C5 body reinstalls",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 21,
+      "text": "One integrated full102 expected if new verifier only; newhelper postgres-only ACLexplicit; no public context parameter/cache/GUC/timeout increase or C395/C407/C412 gameplay/locks/CAS/barrier changes",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 22,
+      "text": "Compact atomic transport remains below accepted9 size; equivalent canonical registryCAS, source12/review12/failureevidence and cumulative windows preserved",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 23,
+      "text": "Static complexity claims are not runtime latency PASS; only same normal UI pendingrequest at Staff establishes phaseadvance/Combat/closure success",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 24,
+      "text": "Correct only observed Human direction_context/publication_state42501 contract and necessary dependencies, no guard removal or generic bypass",
+      "status": "RED",
+      "findings": [
+        "AGG14-F1"
+      ]
+    },
+    {
+      "criterion": 25,
+      "text": "Preserve exact Auth/master/participants/room/Staff/current and historical certification distinction, new custom approved NPC path from actual current source",
+      "status": "RED",
+      "findings": [
+        "AGG14-F1"
+      ]
+    },
+    {
+      "criterion": 26,
+      "text": "Preserve already-committed fase2/runCV2/round1/Iori+2PG/arena, openingFato published; no second Combat or advance replay",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 27,
+      "text": "New graph identity and all embedded dependent pins composed from actual C7; declare minimal changed functions and public API/ACL unchanged or explicit justification",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 28,
+      "text": "No repeat unauthorized getter path until correction qualifies; normal protected UI only after install; no SQL actor impersonation or gameplay",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    },
+    {
+      "criterion": 29,
+      "text": "All observed errors and QA13 partial retained; no static PASS for Master offers, round or closure",
+      "status": "PASS_STATIC_PERTINENT",
+      "findings": []
+    }
+  ],
+  "criteria_interpretation": "Authoritative14baseline/dispatch is installedC7full102 plus capturedexistinggetter outsideoldgraph→full103,2CREATE/no newhelper. Inherited criteria bullets20/21 mention C6/newverifier/full102; interpreted only as minimaldelta/closedgraph invariants, not permission to replayobsoleteC6. Actualsource andcontract14 unambiguouslyC7/103.",
+  "composition": {
+    "source_CREATE": 2,
+    "expected_graph103": 103,
+    "preheaders_existing103": 103,
+    "all2bodies_match_expected": true,
+    "existing103OID_header_ACL_preserved": true,
+    "unchanged101fullmetadata": true,
+    "new_helpers": 0,
+    "getter_whole_inverse_exact_old_actualMD5": true,
+    "getter_DTO_and_all_otherbody_exact": true,
+    "common_guards": "Procedural c407identity+c444readassert precede SQL scope; Master/auth/started/open/not suspended/location/commonstates retained. OriginalStaff predicate exactlypresent; commonlocationequality added redundant to c407.",
+    "ordinary_negative_truth": "Publiccondition alone neveraccepts; helperresult mustIS TRUE. NonMaster/unauth/notstarted/closed/suspended/sourceMasterlocationmismatch deny independently. Unknownexecutiondenied; helperFALSE/NULLdoesnotpass.",
+    "new_ordinary_only_evaluation_guarantee": false,
+    "reason": "Ordinaryhelper is a SQL BoolExpr operand, no CASE or proceduralIF isolates call from originalStaff alternative. Callable helper freshconstructor precedes arc scope checks andmayRAISE on unavailablecurrentordinaryidentity. SQLexpressionevaluationorder is not an authority boundary."
+  },
+  "authorization_static": {
+    "common_guards": "c407identity+c444readassert executed procedurally before branch. ExistingMaster/Authrole/qstarted/closednull/suspendednull/states retained. source/masterlocation equality added common (already identityguard).",
+    "original_Staff_predicate": "Original room+availabilityStaff+executionStaffSim present exactly asfirstalternative; wholegetterinverse afteronepredicatefragment replacement matchesactualoldMD5. All remaining body/DTO/optin/participants/report/arena/resourcepolicy/narration conditions byteexact. Exception F1 new potential ordinaryevaluation dependency.",
+    "ordinary_truth_negatives": "availabilitypublic alone neverpasses. execution mustStaffSim/publicReal, arc_scope result IS TRUE, source/arc binding tied bypriorreadassert. WrongMaster/unauth/closed/suspended/notstarted/wronglocation fail common. ReturnedFALSE/NULL fromarc_scope rejects. NoSQLfaultnegative executed.",
+    "public_real": "Existing arc_scope/currentqualification/rewardpolicy/publicOPENauthority required. No genericG2 enable or arbitrarypublicallowlist.",
+    "historic_callee": "Existingordinaryarc_scope(true) wrapper obtains freshcurrentidentity before innerarcscopeearlyreturn; cannot be treated astotalnonthrowingBoolean test. F1 requires explicit evaluation segregation."
+  },
+  "installer": {
+    "actual_parent": "C7release84cb72aa676f3234ff924e562ee4cde48ca0996a3c28a6c654826b4ee2314e78 full102; full103actualpreheader includesalreadyexistinggetterOID beforecomposition.",
+    "minimaldelta": "Onlygetterbody+compatibilityclosedgraph102→103. All103existingOID/header/ACL retained,101unchangedbody/header. NoC408/C444 producerpins affected; no bodyreinstall.",
+    "scope": "Startedfase2/runCV2/qCV3/MasterCV2, encounter9f5ad733 round12c201fb threeactors2PG+Iori, offerconsumed/arena/positions preserved.22ownrowset count/hash pre/post including spatial/claims/declarations/reports/resources; no2ndCombat/advance/role/Fato replay.",
+    "CAS": "Whole23admission/16attestation canonicaldigest6f6e9f034d3fa4825c4a9e548a9cde2e751269c824b0213222c92f2f475bc30b, originalrows/counts/locks/controls/WIP/48 retained. NoSQLmutationreview.",
+    "lease": "Same2Auth/room/operations,4date rows atactualauthorizedstatementtimestamp+exact120min; noCHECK/schema change. NewQA30onlysuccessfulcommit.",
+    "atomicity": "One BEGIN/COMMIT compactinstaller, no stagedapply/remote/DBfilesystem/dynamicgameplay; no tables/types/constraints/RLS/triggers/GRANT/API changes.",
+    "materializer": "Frozen script genuineAuthority14/source/review14GREEN binding,closed10key<=10minutepermit, onlymarker insertion andsizechecksbeforewrite. RED14 blocks emission/apply qualification.",
+    "recovery_OPEN": "Conservativeexactpostimagegate-only recovery preserves scene/bodies/history. ExistingOPENfullplayedPASS/afterOPENpublicpredicate/provider0/48/simreward gates untouched. No publicopen now."
+  },
+  "syntax": {
+    "SQL_statements": 23,
+    "PL_units": 8,
+    "expressions": 276,
+    "alias_collisions": 0,
+    "unparsed": 0,
+    "scope": "Wholeinstaller/source/OPEN/recovery including PLdefault/RHS/barewhole-row aliases; parse doesnotprove exception-safeBoolean authorityevaluation."
+  },
+  "fresh_live_preflight": {
+    "at": "2026-10-16T20:43:26.019542+00:00",
+    "full103_pre": true,
+    "unsafe_zero": true,
+    "controls_exact": true,
+    "own_scope_exact": true,
+    "protected48_exact": true,
+    "registry_old_exact": true,
+    "current_identity_exact": true,
+    "combat_full_scope_exact": true
+  },
+  "transport": {
+    "template_bytes": 413425,
+    "projected_SQL_bytes": 416544,
+    "projected_JSON_bytes": 458826,
+    "projected_double_JSON_bytes": 542870,
+    "below_known9success": true,
+    "actual_material": "NOT_EMITTED_NOT_REVIEWED",
+    "no_threshold_probe_or_APIlimit_claim": true
+  },
+  "evidence": [
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/aggregate14/FRESH_PREFLIGHT_READONLY.json",
+      "sha256": "7a074ea2f91765d99db0188febaaa62facef5ed2b0d64d396234b14f7e82f397"
+    },
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/aggregate14/INDEPENDENT_BINDINGS_PROOF.json",
+      "sha256": "a2c2f06416d2b5d79b1009c51647b52718b42ecfedb156759f508952ba65ac38"
+    },
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/aggregate14/INDEPENDENT_COMPOSITION_PROOF.json",
+      "sha256": "52d8a8ed9cec593e28ae02171d52f4bd23b251351b3359da53aa8383141610e4"
+    },
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/aggregate14/ORDINARY_SCOPE_ACTUAL_CALL_CHAIN.json",
+      "sha256": "1cd0ca4d203ef8f7a176c650e0bbab55c39b90ac7e84b0c0a7d3f5f70513122a"
+    },
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/aggregate14/independent_bindings.py",
+      "sha256": "ec7f61b813ae04348875b9c761af4ac93a25e134f500f69e93060c1cf8fb6237"
+    }
+  ],
+  "operations": "Readonly frozenmetadata/capturedcallchain and freshfullpreflight plusindependentSQL/PLAST/localstaging only. No sourcepatch/author microdialogue/SQLmutation/Authimpersonation/browser/provider/gameplay orfaultinjection.",
+  "limits": [
+    "RED14 blocks installation; no securitygetter retry from this review.",
+    "OldC7 advance/openingFato/CombatopenPASS remains partial; noactions/report/terminal acquired.",
+    "No actualwrong-Staff exception reproduced; F1 is the static guaranteed-evaluation/authority-independence gap required bymatrix.",
+    "SameWIP/pendingcase/48/provider0 andcumulative14history retained. Furthercorrection requiresRootfixedscope/freeze undercontinuingmandate."
+  ]
+}

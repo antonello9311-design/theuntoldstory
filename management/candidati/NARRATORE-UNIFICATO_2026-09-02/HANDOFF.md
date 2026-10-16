@@ -1,8 +1,19 @@
-TASK-ID · HUMAN-CUSTOM-ORDINARY-PUBLIC-20261015
-Scope toccato · Raccordo custom Humanordinario e anti-sospensione richiesto dall'utente.
-Contratti usati/modificati · InstallataSource29 4c01a324/C3efd7bf0/ABI87, reviewcounter3 38f7884a0/0/0 e migration20261016064820. Client51f7/EdgeV2 invariati. C2/ABI88 solo fonteproposta, NOT_INSTALLABLE.
-Decisioni prese / OPEN · Mac sbloccato08:01; caffeinate-di7200 PID25899/sessione69877 verificato fino~10:01UTC/12:01Roma, password/lockimmutati. BudgetQA06:10–08:10UTC16/10TERMINATO. Nessunrinnovo/nuovoapply. CpublicFALSE e gStaffFALSE.
-Prove eseguite e risultato · NativeIori b2aa CV6→7 normaleUI+policy30esistente SALVATA SHA072f1c1f; VerificaPNGCombatSELECTABLE. CanonicalHumanFAIL MF_NPC_CUSTOM_COMBAT_UNQUALIFIED08:03:14, normaleRileggistessarequesteseguita: pendingconservatoFirefoxtab9, nonreplay. NessunHumanimport/scena/Fato/Combat/terminale nuovo. Post08:10:22:0sceneStaff/48d41addeinvariato/leasekind-runtimeexpired/currentidentityvalid/publicfalse/gfalse/provider0.
-Rischi o regressioni da verificare · npc_reference276346/f3c55d75 hadivietocustomincondizionato. Aggregata4 DELTA_SOURCE bde8b13cc298b66a822bd92e80aae59ddd68584a0fbe7993dfe0af23a59e236a sostituiscehardraiseconattestcanonico+closedgraph88; solo2defs/SQLPLinversePASS/globalpin0/15calleranalizzati. Nonreviewed, NONINSTALLABILE: mancawrapperatomico daactualC87→C2, configfinitareale/recovery/reviewcounter4 e nuovafinestraStaff. Fonteproposta+manifest+handoffinteri embedded HUMAN_CUSTOM_ORDINARY_MANIFEST.pending_aggregate4; originalitmpbackend/aggregate4. NonriusareinstallerchepretendeobservedS5/helperassenti.
-Passaggio richiesto al PM · PreservareinstallataC87, historyS5/C87/compat62cc, tutte ricevute/counteroldordinary5/Owner3/NPC1/initial1agg4counter3. Prossimo: composizione/reviewdeltaC2 poi mandatofinitoStaff; recuperareSTESSApendingcanonicalFirefox9, nonnuova richiesta. NativeIoriCV7nuovapreservata, vecchiaNativee6dCV7SHAf387 e import1d427UNSENT/tab4-5intatti. NoPASS/aperturacustompubblicofinchécasogiocatocompleto.
-Deposito · GiàGit992cf761+df32a95f verificati; aggiornamenti esito08:10 e fonteagg4/immagine da depositareselettivamente. NessunHTMLnuovo. Soloquesta campagna sospesa; antiidlecontinuaautonomamentefino12:01senzaQA.
+# HUMAN-CUSTOM-ORDINARY-PUBLIC-20261015
+
+## Scope toccato
+Raccordo ordinario pubblico dei PNG custom approvati/certificati con quest Human, Combat e arena valida. Stessa Staff Test Room, stessi due account, WIP e storico conservati.
+
+## Contratti usati/modificati
+C9/full111, releasea65259745010e998aee598a7b85f23ac3e7e2645d4c8628eead2ee2767c33c21; install20261016212211, OPEN20261016212656. API/DTO/client39337/mediaEdgeV2 invariati. Fonte16/review/materiale0/0/0 nelle prove canoniche.
+
+## Decisioni prese / OPEN
+Percorso custom aperto dopo PASS effettivo. Provider0, nessun premio reale, nessun reset. Candidata cosmetica nomi c39d6e verificata solo in sorgente: richiede raccordo tipizzato della presentazione prima della sua pubblicazione, conservato come miglioramento facoltativo source-only; analisi17 fermata senzaDDL o installazione. Non rigiocare Combat o chiusura acquisiti.
+
+## Prove eseguite e risultato
+Fato, movimento/attacco Riuji, azione non offensiva Tamako, parata Iori, valutazione neutra, report5aeb80a8 con19danni simulati e unico Fato1fff4968; chiusura pacifica, transizione/due role, terminal535535b1 successo/pub7ca6ae7d. Post21:24:57:2PGfinalizzati, ownopen0, Combat+arenachiusi,48MD5d41adde267a202a8ff4c6c194eb0a09f invariato, rewards30simulati/effective0, valueswrittenfalse, tutti provider0. OPEN post21:27:13 pubblicoTRUE/positivo1/identityvalid/historicalfalsevalid, gateIAimmutati.
+
+## Rischi o regressioni da verificare
+Seconda puntata PASS storico distinto, non nuova prova custom multipuntata. Premi reali e nuova geometria arena NOT_RUN. Correzione cosmetica non ancora pubblicata. Contatori1iniziale/16aggregate/16controverifiche e storici5/3/NPC1 conservati;14RED non installata.
+
+## Passaggio richiesto al PM
+Completare deposito selettivo Git/readback e schermate. Il cosmetico facoltativo resta source-only e non appartiene alla versione pubblicata. Il rilascio funzionale C9 è già verificato; non trasformare documentazione o sorgenteUI in ulteriore gameplayPASS.

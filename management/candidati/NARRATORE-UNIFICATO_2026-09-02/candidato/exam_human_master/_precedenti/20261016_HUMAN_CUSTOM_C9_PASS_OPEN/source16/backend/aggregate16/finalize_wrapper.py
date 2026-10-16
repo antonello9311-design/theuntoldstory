@@ -1,0 +1,35 @@
+from pathlib import Path
+import json,re,hashlib
+from pglast import parser
+A=Path(__file__).parent;P=A.parent.parent
+ns={};exec(compile((A/'build_installer.py').read_text().split('head=f')[0],'build_prefix','exec'),ns)
+D=lambda x:'$cas$'+json.dumps(x,separators=(',',':'))+'$cas$::jsonb'
+b=json.loads((A/'BASELINE.json').read_text());scope=json.loads((A/'ACTIVE_SCOPE.json').read_text());q=(A/'ACTIVE_SCOPE_QUERY.sql').read_text().strip();assert q.startswith('SELECT ')and q.endswith(' AS evidence;');expr=q[7:-len(' AS evidence;')]
+guard=' IF '+expr+' IS DISTINCT FROM '+D(scope)+" THEN RAISE EXCEPTION 'HUMAN_EXISTING_COMBAT_FULL_SCOPE_DRIFT';END IF;\n"
+locks=""" PERFORM 1 FROM mission_factory_owner.manual_authoring_admissions_v1 lock_manual WHERE actor_user IN('f0856d53-83a6-4de0-bc0c-12c87916e665','b4952ed5-5ce0-49c0-9f2b-8fd5dcd89b4b') AND release_sha256='37dac90525b249f53fc0404b50adb4ed92df0123649326c99260bf656119d806' ORDER BY actor_user FOR UPDATE;
+ PERFORM 1 FROM mission_factory_owner.drafts lock_draft WHERE id IN('b2aa11b4-5f8b-43c9-bbb8-1db7a85739f9','e6d1b561-cc76-4fb9-8e4e-b73ffc86b6be') ORDER BY id FOR SHARE;
+ PERFORM 1 FROM mission_factory_owner.quest_run_sources lock_q WHERE session_id='9845891c-2e02-5ba6-8b45-68ff9f2fe268' FOR UPDATE;
+ PERFORM 1 FROM public.master_v2_sessions lock_m WHERE id='9845891c-2e02-5ba6-8b45-68ff9f2fe268' FOR UPDATE;
+ PERFORM 1 FROM public.mission_run_state lock_run WHERE master_session_id='9845891c-2e02-5ba6-8b45-68ff9f2fe268' FOR UPDATE;
+ PERFORM 1 FROM public.master_v2_participants lock_part WHERE session_id='9845891c-2e02-5ba6-8b45-68ff9f2fe268' ORDER BY character_id FOR UPDATE;
+"""
+locks+=""" PERFORM 1 FROM mission_factory_owner.c395_prepared_sources lock_prepared WHERE session_id='9845891c-2e02-5ba6-8b45-68ff9f2fe268' FOR SHARE;
+ PERFORM 1 FROM mission_factory_owner.c384_human_bindings lock_human_binding WHERE session_id='9845891c-2e02-5ba6-8b45-68ff9f2fe268' FOR SHARE;
+ PERFORM 1 FROM mission_generic_owner.run_bindings lock_run_binding WHERE master_session_id='9845891c-2e02-5ba6-8b45-68ff9f2fe268' FOR SHARE;
+ PERFORM 1 FROM mission_factory_owner.c463_optin_receipts lock_optin WHERE session_id='9845891c-2e02-5ba6-8b45-68ff9f2fe268' ORDER BY request_key FOR SHARE;
+ PERFORM 1 FROM public.mission_run_events lock_event WHERE master_session_id='9845891c-2e02-5ba6-8b45-68ff9f2fe268' ORDER BY id FOR SHARE;
+ PERFORM 1 FROM public.mission_run_outbox lock_outbox WHERE master_session_id='9845891c-2e02-5ba6-8b45-68ff9f2fe268' FOR SHARE;
+ PERFORM 1 FROM public.messages lock_role WHERE id IN('94c8bb51-2587-4393-804a-156594bd2103','598cbc02-9bd5-491d-974d-c33a4018e561') FOR SHARE;
+"""
+for key,(table,cond) in json.loads((A/'ACTIVE_SCOPE_TABLE_MAP.json').read_text()).items():locks+=' PERFORM 1 FROM '+table+' lock_'+key+' WHERE '+cond+' FOR SHARE;\n'
+s=(A/'INSTALL_TEMPLATE.sql').read_text();s=s.replace(' LOCK TABLE mission_public_owner.release_admissions_v1',locks+' LOCK TABLE mission_public_owner.release_admissions_v1',1);s=s.replace('END $root_pre$;',guard+'END $root_pre$;').replace('END $root_bind_C$;',guard+'END $root_bind_C$;');parser.parse_sql_json(s);parser.parse_plpgsql_json(s);(A/'INSTALL_TEMPLATE.sql').write_text(s)
+act=ns['actual'];pre=ns['pre']['headers'];post=ns['post'];old=ns['base_read'];registry=ns['base_records'];ownread=ns['own_scope_read'];ownex=ns['own_scope_expected'];prot=ns['protected_expr'];protex=ns['protected_expected'];unsafe=ns['unsafe'];base=ns['base']
+preq="SELECT jsonb_build_object('at',clock_timestamp(),'full111_pre',"+act+' IS NOT DISTINCT FROM '+D(pre)+",'unsafe_zero',NOT("+unsafe+"),'registry_old_exact',"+old+' IS NOT DISTINCT FROM '+D(registry)+",'own_scope_exact',"+ownread+' IS NOT DISTINCT FROM '+D(ownex)+",'combat_full_scope_exact',"+expr+' IS NOT DISTINCT FROM '+D(scope)+",'controls_exact',"+' AND '.join('(SELECT to_jsonb(cx) FROM mission_factory_owner.'+tab+' cx WHERE singleton) IS NOT DISTINCT FROM '+D(b[key])for key,tab in [('kind','c416_kind_admission'),('runtime','c444_runtime_control'),('fixed30','quest_fixed30_admission')])+",'current_identity_exact',mission_factory_owner.human_ordinary_release_identity_v1('"+base+"',true) IS NOT DISTINCT FROM "+D(b['current_identity'])+",'protected48_exact',("+prot+")-'at' IS NOT DISTINCT FROM "+D(protex)+") AS preflight;"
+postheader="NOT EXISTS(SELECT 1 FROM jsonb_array_elements("+D(post)+") eh LEFT JOIN jsonb_array_elements("+act+") ah ON ah->>'lookup_signature'=eh->>'lookup_signature' WHERE ah IS NULL OR ah-'oid' IS DISTINCT FROM eh-'oid' OR (eh->>'oid' IS NOT NULL AND ah->>'oid' IS DISTINCT FROM eh->>'oid') OR coalesce(ah->>'oid','')!~'^[1-9][0-9]*$')"
+postq="WITH obs AS(SELECT mission_factory_owner.human_ordinary_release_identity_v1('"+base+"',true)j), lp AS(SELECT att.payload FROM mission_public_owner.public_qualification_attestations_v1 att,obs WHERE att.payload->>'schema_version'='human-custom-staff-lease-renewal/1' AND att.payload->>'current_release_sha256'=j->>'observed_revision_sha256' AND att.payload->>'session_id'='9845891c-2e02-5ba6-8b45-68ff9f2fe268') SELECT jsonb_build_object('at',clock_timestamp(),'actual_release',j->>'observed_revision_sha256','full111_post',"+postheader+",'old_registry_exact',"+old+' IS NOT DISTINCT FROM '+D(registry)+",'own_scope_exact',"+ownread+' IS NOT DISTINCT FROM '+D(ownex)+",'combat_full_scope_exact',"+expr+' IS NOT DISTINCT FROM '+D(scope)+",'lease_valid',mission_factory_owner.human_staff_lease_valid_v1(j,'22765216-5f14-573f-86e4-60c402941ec9',true),'lease_from',(SELECT payload->>'effective_from' FROM lp),'lease_expiry',(SELECT payload->>'expires_at' FROM lp),'lease_120',(SELECT (payload->>'expires_at')::timestamptz=(payload->>'effective_from')::timestamptz+interval '2 hours' FROM lp),'fixed30_unchanged',(SELECT to_jsonb(px) FROM mission_factory_owner.quest_fixed30_admission px WHERE singleton) IS NOT DISTINCT FROM "+D(b['fixed30'])+",'protected48_exact',("+prot+")-'at' IS NOT DISTINCT FROM "+D(protex)+") AS postflight FROM obs;"
+for name,q in [('PREFLIGHT_READONLY.sql',preq),('POSTFLIGHT_READONLY.sql',postq)]:q='BEGIN READ ONLY;SET LOCAL search_path=pg_catalog,public,extensions;\n'+q+'\nROLLBACK;\n';parser.parse_sql_json(q);(A/name).write_text(q)
+# Freeze the exact full snapshot and its independently captured PostgreSQL canonical digest.
+(A/'REGISTRY_EXPECTED_FULL.json').write_text(json.dumps(registry,indent=2));raw=json.loads((A/'REGISTRY_HASH_RAW.json').read_text());v=json.loads(raw['content'][0]['text'])['result'];tag=re.search(r'<untrusted-data-[^>]+>',v).group();z=v.split(tag)[2].split('</untrusted-data-')[0];z=json.loads('"'+z+'"')if z.lstrip().startswith('\\n')else z;p=json.loads(z)[0];assert(p['admission_count'],p['attestation_count'])==(26,18);(A/'REGISTRY_HASH_READONLY_PROOF.json').write_text(json.dumps(p,indent=2));
+O=A/'uncompacted';O.mkdir(exist_ok=True)
+for name in ['INSTALL_TEMPLATE.sql','PREFLIGHT_READONLY.sql','POSTFLIGHT_READONLY.sql']:(O/name).write_bytes((A/name).read_bytes())
+print('finalized',len(s.encode()))

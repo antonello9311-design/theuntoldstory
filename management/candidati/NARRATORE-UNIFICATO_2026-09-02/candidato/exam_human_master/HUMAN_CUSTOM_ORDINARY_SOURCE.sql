@@ -1,10 +1,134 @@
-CREATE OR REPLACE FUNCTION mission_factory_owner.human_custom_ordinary_capability_v1(p_draft uuid,p_public boolean) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $function$
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_context_bound_v1(p_context jsonb, p_base text)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+BEGIN
+ RETURN p_base='5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366'
+ AND p_context->>'schema_version'='human-server-command-context/1' AND (p_context->>'backend_pid')::integer=pg_backend_pid()
+ AND (p_context->>'transaction_started_at')::timestamptz=transaction_timestamp() AND (p_context->>'statement_started_at')::timestamptz=statement_timestamp()
+ AND (p_context->>'principal') IS NOT DISTINCT FROM auth.uid()::text AND (p_context->>'auth_role') IS NOT DISTINCT FROM auth.role()
+ AND p_context->>'base_release_sha256'=p_base
+ AND p_context#>>'{observation,schema_version}'='human-compatible-release-identity/1' AND p_context#>>'{observation,provenance_release_sha256}'=p_base
+ AND p_context#>>'{observation,revision_sha256}'=p_base AND p_context#>>'{observation,state}'='enabled'
+ AND p_context#>>'{observation,scope}'='staff' AND p_context#>'{observation,staff_guards_verified}'='true'::jsonb AND p_context#>'{observation,published_assets_verified}'='true'::jsonb
+ AND p_context#>>'{observation,canonical_preimage}' IS NOT NULL
+ AND p_context#>>'{observation,observed_revision_sha256}' IS NOT NULL;
+EXCEPTION WHEN invalid_text_representation OR datetime_field_overflow THEN RETURN false;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_authority_verified_v1(p_draft uuid, p_version bigint, p_source text, p_context jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE observation jsonb;g mission_factory_owner.quest_fixed30_admission;d mission_factory_owner.drafts;
+ ready mission_factory_owner.editor_release_readiness;rel mission_public_owner.release_admissions_v1;
+ roster mission_factory_owner.quest_roster_assignments;policy mission_factory_owner.quest_reward_policy_versions;
+ n integer;policy_text text;expected_qual text;
+BEGIN
+ IF mission_factory_owner.human_context_bound_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_SERVER_COMMAND_CONTEXT_INVALID' USING ERRCODE='42501';END IF;
+
+ IF p_draft IS NULL OR p_version IS NULL OR p_source IS NULL THEN RETURN NULL;END IF;
+ SELECT * INTO d FROM mission_factory_owner.drafts WHERE id=p_draft;
+ SELECT * INTO g FROM mission_factory_owner.quest_fixed30_admission WHERE singleton;
+ observation:=(p_context->'observation');IF mission_factory_owner.human_context_bound_v1(p_context,CASE WHEN g.public_staff_draft_id=p_draft THEN g.public_staff_release_sha256 ELSE g.public_release_sha256 END) IS DISTINCT FROM true THEN RETURN NULL;END IF;
+ SELECT * INTO ready FROM jsonb_populate_record(NULL::mission_factory_owner.editor_release_readiness,observation);
+ IF d.id IS NULL OR g.singleton IS NULL OR ready.singleton IS NULL
+ OR d.control_version IS DISTINCT FROM p_version OR d.document_sha256 IS DISTINCT FROM p_source
+ OR mission_factory_owner.sha(d.document) IS DISTINCT FROM p_source
+ OR d.document->>'schema_version' IS DISTINCT FROM 'mission-factory-draft/3'
+ OR d.document->>'content_kind' IS DISTINCT FROM 'quest_human' OR d.state NOT IN('draft','previewed','published')
+ OR ready.state<>'enabled' OR ready.scope<>'staff' OR mission_factory_owner.human_context_bound_v1(p_context,ready.revision_sha256) IS DISTINCT FROM true
+ OR NOT ready.staff_guards_verified OR NOT ready.published_assets_verified
+ OR encode(extensions.digest(convert_to(ready.canonical_preimage,'UTF8'),'sha256'),'hex') IS DISTINCT FROM ready.revision_sha256
+ OR jsonb_typeof(d.document#>'{quest,episodes}') IS DISTINCT FROM 'array'
+ THEN RETURN NULL;END IF;
+ n:=jsonb_array_length(d.document#>'{quest,episodes}');IF n<1 THEN RETURN NULL;END IF;
+ policy_text:=d.document#>>ARRAY['quest','episodes',(n-1)::text,'terminal_rules','reward_policy_id'];
+ SELECT * INTO policy FROM mission_factory_owner.quest_reward_policy_versions WHERE id::text=policy_text AND qualified AND scope='staff';
+ SELECT * INTO roster FROM mission_factory_owner.quest_roster_assignments
+ WHERE id::text=d.document#>>'{quest,roster_assignment_id}' AND draft_id=d.id AND active;
+ IF policy.id IS NULL OR roster.id IS NULL OR mission_factory_owner.sha(policy.document) IS DISTINCT FROM policy.document_sha256
+ OR policy.document IS DISTINCT FROM mission_factory_owner.quest_reward_fixed30_document_v2()
+ THEN RETURN NULL;END IF;
+ IF g.public_staff_draft_id=p_draft THEN
+  SELECT * INTO rel FROM mission_public_owner.release_admissions_v1 WHERE release_sha256=CASE WHEN observation->>'schema_version'='human-compatible-release-identity/1' THEN observation->>'observed_revision_sha256' ELSE g.public_staff_release_sha256 END;
+  IF NOT g.public_staff_enabled OR mission_factory_owner.c416_kind_live_v1() IS DISTINCT FROM true OR mission_factory_owner.c444_enabled_v1() IS DISTINCT FROM true
+  OR g.public_staff_draft_version IS DISTINCT FROM p_version OR g.public_staff_source_sha256 IS DISTINCT FROM p_source
+  OR g.public_staff_release_sha256 IS DISTINCT FROM ready.revision_sha256 OR rel.release_sha256 IS NULL
+  OR rel.contract_version<>'mission-public-admission/1' OR rel.independent_review_ref IS DISTINCT FROM (CASE WHEN observation->>'schema_version'='human-compatible-release-identity/1' THEN observation->>'observed_independent_review_ref' ELSE ready.independent_review_ref END)
+  OR rel.staff_evidence_ref IS DISTINCT FROM 'AUTHORIZED_TEST_MANIFEST:'||g.public_staff_test_manifest_ref
+  OR g.allowed_auth_ids IS DISTINCT FROM (SELECT allowed_auth_ids FROM mission_factory_owner.c416_kind_admission WHERE singleton) OR cardinality(g.allowed_auth_ids) IS DISTINCT FROM 2 OR array_position(g.allowed_auth_ids,NULL) IS NOT NULL
+  OR NOT(g.allowed_auth_ids @> ARRAY['f0856d53-83a6-4de0-bc0c-12c87916e665'::uuid,'b4952ed5-5ce0-49c0-9f2b-8fd5dcd89b4b'::uuid])
+  OR NOT(d.author_user=ANY(g.allowed_auth_ids))
+  OR NOT EXISTS(SELECT 1 FROM public.locations WHERE id='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid AND is_active AND is_test)
+  OR EXISTS(SELECT 1 FROM unnest(roster.member_character_ids)x(id) LEFT JOIN public.characters c ON c.id=x.id
+   WHERE c.id IS NULL OR NOT(c.user_id=ANY(g.allowed_auth_ids)))
+  OR NOT EXISTS(SELECT 1 FROM mission_factory_owner.quest_fixed30_policy_requests qr
+   JOIN mission_factory_owner.catalog_versions cv ON cv.version=d.catalog_version AND cv.active AND cv.qualified
+   WHERE qr.policy_id=policy.id AND qr.document_sha256=policy.document_sha256
+   AND qr.catalog_version=cv.version AND qr.catalog_sha256=cv.document_sha256)
+  THEN RETURN NULL;END IF;
+  IF observation->>'schema_version'='human-compatible-release-identity/1' THEN
+  expected_qual:=mission_factory_owner.sha(jsonb_build_object('schema_version','quest-human-public-staff-compatible-context/1','release_sha256',ready.revision_sha256,'observed_release_sha256',observation->>'observed_revision_sha256','compatibility_sha256',observation->>'compatibility_sha256',
+   'db_sha256',rel.db_sha256,'edge_sha256',rel.edge_sha256,'client_sha256',rel.client_sha256,'config_sha256',rel.configuration_sha256,
+   'independent_review_ref',rel.independent_review_ref,'authorized_test_manifest_ref',g.public_staff_test_manifest_ref,
+   'draft_id',p_draft,'draft_version',p_version,'source_sha256',p_source,'allowed_auth_ids',g.allowed_auth_ids,
+   'human_kind_request',(SELECT request_key FROM mission_factory_owner.c416_kind_admission WHERE singleton),'human_kind_review_sha256',(SELECT review_sha256 FROM mission_factory_owner.c416_kind_admission WHERE singleton),'location_id','0b85f354-9cdb-47e1-baf9-3d266bb7e06b'));
+  ELSE
+  expected_qual:=mission_factory_owner.sha(jsonb_build_object('schema_version','quest-human-public-staff-context/1','release_sha256',rel.release_sha256,
+   'db_sha256',rel.db_sha256,'edge_sha256',rel.edge_sha256,'client_sha256',rel.client_sha256,'config_sha256',rel.configuration_sha256,
+   'independent_review_ref',rel.independent_review_ref,'authorized_test_manifest_ref',g.public_staff_test_manifest_ref,
+   'draft_id',p_draft,'draft_version',p_version,'source_sha256',p_source,'allowed_auth_ids',g.allowed_auth_ids,
+   'human_kind_request',(SELECT request_key FROM mission_factory_owner.c416_kind_admission WHERE singleton),'human_kind_review_sha256',(SELECT review_sha256 FROM mission_factory_owner.c416_kind_admission WHERE singleton),'location_id','0b85f354-9cdb-47e1-baf9-3d266bb7e06b'));
+  END IF;
+  IF g.public_staff_qualification_sha256 IS DISTINCT FROM expected_qual THEN
+   IF EXISTS(SELECT 1 FROM mission_factory_owner.quest_arcs hc_existing WHERE hc_existing.draft_id=p_draft AND hc_existing.draft_version=p_version AND hc_existing.source_sha256=p_source AND (mission_factory_owner.human_staff_context_records_v1(observation,observation->>'observed_revision_sha256',hc_existing.id,'legacy_current',g) OR mission_factory_owner.human_staff_lease_valid_verified_v1(observation,hc_existing.id,true,p_context))) THEN
+    expected_qual:=g.public_staff_qualification_sha256;
+   ELSE RETURN NULL;END IF;
+  END IF;
+  RETURN jsonb_build_object('execution_context','staff_simulation','target','staff','revision_sha256',CASE WHEN observation->>'schema_version'='human-compatible-release-identity/1' THEN ready.revision_sha256 ELSE rel.release_sha256 END,
+   'qualification_sha256',expected_qual,'allowed_auth_ids',to_jsonb(g.allowed_auth_ids),'location_id','0b85f354-9cdb-47e1-baf9-3d266bb7e06b');
+ END IF;
+ IF (NOT g.public_enabled AND (mission_public_owner.human_positive_qualification_v1(g.public_release_sha256,true)->>'schema_version' IS NOT DISTINCT FROM 'human-owner-accepted-release/1') IS DISTINCT FROM true) OR g.public_release_sha256 IS DISTINCT FROM ready.revision_sha256
+ OR (g.public_policy_id IS DISTINCT FROM policy.id AND NOT(EXISTS(SELECT 1 FROM mission_factory_owner.quest_reward_policy_versions hp_new JOIN mission_factory_owner.quest_reward_policy_versions hp_old ON hp_old.id=g.public_policy_id
+ WHERE hp_new.id=policy.id AND hp_new.qualified AND hp_old.qualified AND hp_new.scope='staff' AND hp_old.scope='staff' AND hp_new.document_sha256='34197acc065af70dc89ac15d54c19044f4e5af07c91b5869eb0b360a0fcfef19' AND hp_old.document_sha256=hp_new.document_sha256 AND hp_new.document IS NOT DISTINCT FROM hp_old.document AND hp_new.document IS NOT DISTINCT FROM mission_factory_owner.quest_reward_fixed30_document_v2() AND mission_factory_owner.sha(hp_new.document)=hp_new.document_sha256 AND mission_factory_owner.sha(hp_old.document)=hp_old.document_sha256
+ AND EXISTS(SELECT 1 FROM mission_factory_owner.quest_fixed30_policy_requests hp_q JOIN mission_factory_owner.catalog_versions hp_cv ON hp_cv.version=hp_q.catalog_version AND hp_cv.active AND hp_cv.qualified AND hp_cv.document_sha256=hp_q.catalog_sha256 AND hp_cv.document_sha256=mission_factory_owner.sha(hp_cv.document) WHERE hp_q.policy_id=hp_new.id AND hp_q.document_sha256=hp_new.document_sha256 AND hp_q.catalog_version=d.catalog_version)))) OR g.public_qualification_sha256 IS NULL
+ OR mission_public_owner.human_positive_qualification_v1(g.public_release_sha256,true) IS NULL THEN RETURN NULL;END IF;
+ RETURN jsonb_build_object('execution_context','public_real','target','public','revision_sha256',g.public_release_sha256,
+ 'qualification_sha256',g.public_qualification_sha256,'allowed_auth_ids','[]'::jsonb,'location_id',NULL);
+END $function$;
+
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_authority_with_context_v1(p_draft uuid, p_version bigint, p_source text, p_context jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+BEGIN
+ IF mission_factory_owner.human_verified_context_valid_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_SERVER_COMMAND_CONTEXT_INVALID' USING ERRCODE='42501';END IF;
+ RETURN mission_factory_owner.human_ordinary_authority_verified_v1(p_draft,p_version,p_source,p_context);
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_custom_ordinary_capability_verified_v1(p_draft uuid, p_public boolean, p_context jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
 DECLARE observed jsonb;ct jsonb;ad mission_public_owner.release_admissions_v1;g mission_factory_owner.quest_fixed30_admission;
  pos mission_public_owner.public_qualification_attestations_v1;src mission_factory_owner.quest_run_sources;ar mission_factory_owner.quest_arcs;tr mission_factory_owner.quest_terminal_receipts;
  csha text;keysha text;own_draft uuid;mode text;force_staff boolean:=false;
 BEGIN
+ IF mission_factory_owner.human_context_bound_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_SERVER_COMMAND_CONTEXT_INVALID' USING ERRCODE='42501';END IF;
+
  IF p_public IS NULL OR auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' THEN RETURN NULL;END IF;
- observed:=mission_factory_owner.human_ordinary_release_identity_v1('5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366',true);
+ observed:=(p_context->'observation');
  IF observed->>'schema_version' IS DISTINCT FROM 'human-compatible-release-identity/1' OR observed->>'provenance_release_sha256' IS DISTINCT FROM '5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366' OR observed->>'observed_revision_sha256' IS NULL OR observed->>'observed_revision_sha256'='5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366' THEN RETURN NULL;END IF;
  csha:=observed->>'observed_revision_sha256';ct:=observed->'observed_canonical_tuple';
  SELECT * INTO STRICT g FROM mission_factory_owner.quest_fixed30_admission WHERE singleton;
@@ -23,7 +147,7 @@ BEGIN
  SELECT * INTO tr FROM mission_factory_owner.quest_terminal_receipts WHERE id=(pos.payload->>'terminal_receipt_id')::uuid;
  IF src.state='terminal' AND src.availability_scope='public' AND src.execution_context='staff_simulation' AND src.public_release_sha256='5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366' AND src.location_id='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid
  AND src.terminal_receipt_id=tr.id AND tr.session_id=src.session_id AND tr.source_sha256=src.source_sha256 AND tr.outcome='success' AND tr.publication_id IS NOT NULL AND ar.state='completed' AND cardinality(ar.execution_auth_ids)=2 AND cardinality(ar.member_character_ids)=2
- AND EXISTS(SELECT 1 FROM mission_public_owner.public_qualification_attestations_v1 sp WHERE sp.release_sha256=mission_factory_owner.sha(jsonb_build_object('schema_version','human-custom-source-key/1','publication_request',ar.publication_request)) AND sp.created_by='postgres'::name AND sp.payload->>'schema_version'='human-custom-source/1' AND sp.payload->>'capability_sha256'=csha AND sp.payload->>'source_sha256'=ar.source_sha256 AND sp.payload->>'arc_id'=ar.id::text AND sp.payload_sha256=mission_factory_owner.sha(sp.payload))
+ AND EXISTS(SELECT 1 FROM mission_public_owner.public_qualification_attestations_v1 sp WHERE sp.release_sha256=mission_factory_owner.sha(jsonb_build_object('schema_version','human-custom-source-key/1','publication_request',ar.publication_request)) AND sp.created_by='postgres'::name AND sp.payload->>'schema_version'='human-custom-source/1' AND (sp.payload->>'capability_sha256'=csha OR (sp.payload->>'capability_sha256' IS DISTINCT FROM csha AND (mission_factory_owner.human_staff_context_records_v1(observed,csha,ar.id,'continuity_historical',g) OR mission_factory_owner.human_staff_lease_valid_verified_v1(observed,ar.id,false,p_context)))) AND sp.payload->>'source_sha256'=ar.source_sha256 AND sp.payload->>'arc_id'=ar.id::text AND sp.payload_sha256=mission_factory_owner.sha(sp.payload))
  AND EXISTS(SELECT 1 FROM public.master_v2_sessions mm WHERE mm.id=src.session_id AND mm.owner_kind='human' AND mm.stato='chiusa' AND mm.closed_at IS NOT NULL)
  AND EXISTS(SELECT 1 FROM public.mission_run_outbox ox WHERE ox.event_id=tr.close_event_id AND ox.master_session_id=src.session_id AND ox.state='published' AND ox.publication_id=tr.publication_id)
  AND EXISTS(SELECT 1 FROM public.combat_v2_sessions cs JOIN public.combat_v2_rounds cr ON cr.session_id=cs.id JOIN public.combat_v2_round_reports rp ON rp.round_id=cr.id JOIN mission_generic_owner.regia_human_windows_v1 hw ON hw.master_session_id=src.session_id AND hw.encounter_id=cs.id AND hw.source_report_id=rp.id AND hw.source_report_sha256=rp.mechanics_sha256 AND hw.message_id=rp.message_id WHERE cs.id=(pos.payload->>'encounter_id')::uuid AND cs.master_session_id=src.session_id AND cs.state='chiuso' AND cs.closed_at IS NOT NULL AND rp.id=(pos.payload->>'report_id')::uuid AND rp.narration_state='pubblicata' AND rp.values_written=false AND hw.state='published' AND (SELECT count(*) FROM public.combat_v2_narratives nn WHERE nn.report_id=rp.id AND nn.kind='fato_umano')=1)
@@ -44,630 +168,107 @@ BEGIN
  THEN mode:='staff_simulation';END IF;
  IF mode IS NULL AND NOT p_public AND g.public_staff_enabled AND own_draft=g.public_staff_draft_id
  AND g.public_staff_release_sha256='5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366' AND g.public_staff_test_manifest_ref=ct#>>'{config,policy,custom_staff_manifest_ref}'
- AND coalesce(ct#>>'{config,policy,custom_staff_expires_at}','')<>'' AND clock_timestamp()<(ct#>>'{config,policy,custom_staff_expires_at}')::timestamptz
+ AND (coalesce(ct#>>'{config,policy,custom_staff_expires_at}','')<>'' AND clock_timestamp()<(ct#>>'{config,policy,custom_staff_expires_at}')::timestamptz OR EXISTS(SELECT 1 FROM mission_factory_owner.quest_arcs lease_cap_arc WHERE lease_cap_arc.draft_id=own_draft AND mission_factory_owner.human_staff_lease_valid_verified_v1(observed,lease_cap_arc.id,true,p_context)))
  AND mission_factory_owner.c416_kind_live_v1() IS TRUE AND mission_factory_owner.c444_enabled_v1() IS TRUE
  AND cardinality(g.allowed_auth_ids)=2 AND auth.uid()=ANY(g.allowed_auth_ids)
- AND mission_factory_owner.human_ordinary_authority_v1(own_draft,g.public_staff_draft_version,g.public_staff_source_sha256)->>'execution_context'='staff_simulation'
+ AND mission_factory_owner.human_ordinary_authority_verified_v1(own_draft,g.public_staff_draft_version,g.public_staff_source_sha256,p_context)->>'execution_context'='staff_simulation'
  THEN mode:='staff_simulation';END IF;
  IF mode IS NULL THEN RETURN NULL;END IF;
  RETURN jsonb_build_object('schema_version','human-custom-capability/1','capability_sha256',csha,'base_release_sha256','5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366','execution_context',mode,'staff_manifest_ref',ct#>>'{config,policy,custom_staff_manifest_ref}','draft_id',own_draft);
 END
 $function$;
 
-CREATE OR REPLACE FUNCTION mission_factory_owner.human_custom_source_assert_v1(p_draft uuid,p_active boolean) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $function$
-DECLARE d mission_factory_owner.drafts;ar mission_factory_owner.quest_arcs;sp mission_public_owner.public_qualification_attestations_v1;cap jsonb;observed jsonb;
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_custom_ordinary_capability_with_context_v1(p_draft uuid, p_public boolean, p_context jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
 BEGIN
- IF p_active IS NULL OR p_draft IS NULL OR auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' THEN RAISE EXCEPTION 'HUMAN_CUSTOM_SOURCE_AUTH' USING ERRCODE='42501';END IF;
- SELECT * INTO STRICT d FROM mission_factory_owner.drafts WHERE id=p_draft;
- SELECT * INTO STRICT ar FROM mission_factory_owner.quest_arcs WHERE draft_id=d.id AND source_sha256=d.document_sha256;
- SELECT * INTO sp FROM mission_public_owner.public_qualification_attestations_v1 WHERE release_sha256=mission_factory_owner.sha(jsonb_build_object('schema_version','human-custom-source-key/1','publication_request',ar.publication_request));
- IF NOT mission_factory_owner.keys_exact_v2(sp.payload,ARRAY['schema_version','capability_sha256','base_release_sha256','publication_request','draft_id','draft_version','source_sha256','arc_id','actor_user']) OR sp.created_by IS DISTINCT FROM 'postgres'::name OR sp.payload_sha256 IS DISTINCT FROM mission_factory_owner.sha(sp.payload)
- OR sp.payload->>'schema_version' IS DISTINCT FROM 'human-custom-source/1' OR sp.payload->>'base_release_sha256' IS DISTINCT FROM '5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366'
- OR sp.payload->>'publication_request' IS DISTINCT FROM ar.publication_request::text OR sp.payload->>'draft_id' IS DISTINCT FROM d.id::text OR sp.payload->>'draft_version' IS DISTINCT FROM ar.draft_version::text
- OR sp.payload->>'source_sha256' IS DISTINCT FROM ar.source_sha256 OR sp.payload->>'arc_id' IS DISTINCT FROM ar.id::text OR sp.payload->>'actor_user' IS DISTINCT FROM ar.created_by::text
- OR ar.public_release_sha256 IS DISTINCT FROM '5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366' OR ar.availability_scope IS DISTINCT FROM 'public' OR ar.source_document IS DISTINCT FROM d.document OR ar.source_sha256 IS DISTINCT FROM mission_factory_owner.sha(d.document)
- THEN RAISE EXCEPTION 'HUMAN_CUSTOM_SOURCE_PROVENANCE_DRIFT' USING ERRCODE='40001';END IF;
- IF NOT EXISTS(SELECT 1 FROM mission_public_owner.release_admissions_v1 cr WHERE cr.release_sha256=sp.payload->>'capability_sha256' AND cr.contract_version='mission-public-admission/1') THEN RAISE EXCEPTION 'HUMAN_CUSTOM_SOURCE_RELEASE_HISTORY_MISSING' USING ERRCODE='40001';END IF;
- IF p_active THEN
- observed:=mission_factory_owner.human_ordinary_release_identity_v1('5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366',true);
- IF sp.payload->>'capability_sha256' IS DISTINCT FROM observed->>'observed_revision_sha256' THEN RAISE EXCEPTION 'HUMAN_CUSTOM_SOURCE_CURRENT_RELEASE_DRIFT' USING ERRCODE='40001';END IF;
- cap:=mission_factory_owner.human_custom_ordinary_capability_v1(p_draft,ar.execution_context='public_real');
- IF cap IS NULL OR cap->>'capability_sha256' IS DISTINCT FROM sp.payload->>'capability_sha256' OR cap->>'execution_context' IS DISTINCT FROM ar.execution_context THEN RAISE EXCEPTION 'HUMAN_CUSTOM_SOURCE_NOT_QUALIFIED' USING ERRCODE='55000';END IF;END IF;
- RETURN sp.payload;
-END
+ IF mission_factory_owner.human_verified_context_valid_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_SERVER_COMMAND_CONTEXT_INVALID' USING ERRCODE='42501';END IF;
+ RETURN mission_factory_owner.human_custom_ordinary_capability_verified_v1(p_draft,p_public,p_context);
+END;
 $function$;
 
-CREATE OR REPLACE FUNCTION mission_factory_owner.human_existing_legacy_media_pair_v1(p_template uuid, p_narrative_version uuid)
- RETURNS jsonb
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_staff_lease_valid_verified_v1(p_observation jsonb, p_arc uuid, p_active boolean, p_context jsonb)
+ RETURNS boolean
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO ''
 AS $function$
-declare
-  t public.nb_templates%rowtype;
-  v public.nb_template_versions%rowtype;
-  h png_builder_internal.npc_combat_draft_heads%rowtype;
-  pair png_builder_internal.npc_media_pairs%rowtype;
-  pt png_builder_internal.npc_media_tickets%rowtype;
-  mt png_builder_internal.npc_media_tickets%rowtype;
-  portrait public.nb_template_media_versions%rowtype;
-  marker png_builder_internal.npc_marker_versions%rowtype;
-begin
-  IF EXISTS(SELECT 1 FROM public.nb_mechanical_bindings cb JOIN public.nb_mechanical_versions cv ON cv.id=cb.mechanical_version_id AND cv.template_id=cb.mechanical_template_id WHERE cb.narrative_template_id=p_template AND cb.narrative_version_id=p_narrative_version AND cb.active AND cb.lifecycle_state='approved' AND cv.profile_kind='npc_custom' AND cv.review_state='approved' AND EXISTS(SELECT 1 FROM public.nb_mechanical_templates ct JOIN png_builder_internal.npc_combat_draft_heads ch ON ch.mechanical_template_id=ct.id AND ch.mechanical_version_id=cv.id AND ch.narrative_template_id=p_template AND ch.narrative_version_id=p_narrative_version AND ch.combat AND ch.review_state='approved' WHERE ct.id=cb.mechanical_template_id AND ct.active AND ct.lifecycle_state='approved' AND ct.current_version_id=cv.id)) THEN
-   RETURN png_builder_internal.npc_media_pair_resolve_v1(p_template,p_narrative_version);
+DECLARE lease_record mission_public_owner.public_qualification_attestations_v1;lease_payload jsonb;lease_parent mission_public_owner.release_admissions_v1;lease_oldcp mission_public_owner.public_qualification_attestations_v1;lease_oldctx mission_public_owner.public_qualification_attestations_v1;lease_historical jsonb;g mission_factory_owner.quest_fixed30_admission;lease_arc mission_factory_owner.quest_arcs;lease_q mission_factory_owner.quest_run_sources;lease_episode mission_factory_owner.quest_episodes;lease_m public.master_v2_sessions;lease_from timestamptz;lease_until timestamptz;lease_matches integer:=0;
+BEGIN
+ IF mission_factory_owner.human_context_bound_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_SERVER_COMMAND_CONTEXT_INVALID' USING ERRCODE='42501';END IF;
+ IF p_observation IS DISTINCT FROM (p_context->'observation') THEN RETURN false;END IF;
+
+ IF p_active IS NULL OR p_arc IS NULL OR mission_factory_owner.human_context_bound_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RETURN false;END IF;
+ SELECT * INTO lease_arc FROM mission_factory_owner.quest_arcs WHERE id=p_arc;
+ IF lease_arc.id IS NULL OR lease_arc.availability_scope IS DISTINCT FROM 'public' OR lease_arc.execution_context IS DISTINCT FROM 'staff_simulation' OR lease_arc.source_document->>'content_kind' IS DISTINCT FROM 'quest_human' THEN RETURN false;END IF;
+ FOR lease_record IN SELECT * FROM mission_public_owner.public_qualification_attestations_v1 WHERE payload->>'schema_version'='human-custom-staff-lease-renewal/1' AND payload->>'current_release_sha256'=p_observation->>'observed_revision_sha256' AND payload->>'arc_id'=p_arc::text LOOP
+  lease_payload:=lease_record.payload;
+  SELECT * INTO lease_oldctx FROM mission_public_owner.public_qualification_attestations_v1 WHERE payload_sha256=lease_payload->>'predecessor_context_sha256' AND payload->>'current_release_sha256'=lease_payload->>'predecessor_release_sha256' AND payload->>'arc_id'=p_arc::text;
+  IF p_active THEN
+   SELECT * INTO g FROM mission_factory_owner.quest_fixed30_admission WHERE singleton;
+  ELSE
+   -- History is proved by the immutable predecessor context, never by current mutable gates.
+   SELECT * INTO g FROM jsonb_populate_record(NULL::mission_factory_owner.quest_fixed30_admission,lease_oldctx.payload->'predecessor_fixed30');
   END IF;
-  if p_template is null or p_narrative_version is null then
-    raise exception 'NPC_BUILDER_MEDIA_INPUT' using errcode='22023';
-  end if;
-  select * into t from public.nb_templates where id=p_template;
-  select * into v from public.nb_template_versions
-    where id=p_narrative_version and template_id=p_template;
-  select * into h from png_builder_internal.npc_combat_draft_heads
-    where narrative_template_id=p_template and narrative_version_id=p_narrative_version;
-  select * into pair from png_builder_internal.npc_media_pairs
-    where template_id=p_template and narrative_version_id=p_narrative_version
-      and state='approved';
-  if t.id is null or t.deactivated_at is not null or
-     t.lifecycle_state<>'approved' or
-     t.current_version_id is distinct from p_narrative_version or
-     v.id is null or v.review_state<>'approved' or
-     (v.mechanical_template_id is null and h.narrative_template_id is not null and
-       (h.combat is distinct from false or h.mechanical_template_id is not null or
-        h.review_state<>'approved')) or
-     (v.mechanical_template_id is not null and
-       NOT EXISTS(SELECT 1 FROM public.nb_mechanical_bindings lb JOIN public.nb_mechanical_templates lt ON lt.id=lb.mechanical_template_id JOIN public.nb_mechanical_versions lv ON lv.id=lb.mechanical_version_id AND lv.template_id=lt.id WHERE lb.narrative_template_id=t.id AND lb.narrative_version_id=v.id AND lb.active AND lb.lifecycle_state='approved' AND lt.id=v.mechanical_template_id AND lt.active AND lt.lifecycle_state='approved' AND lt.current_version_id=lv.id AND lv.review_state='approved' AND lv.profile_kind='legacy')) or
-     pair.request_key is null or
-     pair.narrative_content_sha256 is distinct from v.content_sha256 or
-     pair.mechanical_template_id is distinct from v.mechanical_template_id then
-    raise exception 'NPC_BUILDER_MEDIA_STALE' using errcode='55000';
-  end if;
-  select * into pt from png_builder_internal.npc_media_tickets
-    where request_key=pair.portrait_request;
-  select * into mt from png_builder_internal.npc_media_tickets
-    where request_key=pair.marker_request;
-  select * into portrait from public.nb_template_media_versions
-    where id=pt.media_id and template_id=p_template and
-      template_version_id=p_narrative_version;
-  select * into marker from png_builder_internal.npc_marker_versions
-    where id=mt.media_id and template_id=p_template and
-      narrative_version_id=p_narrative_version;
-  if pt.request_key is null or mt.request_key is null or
-     pt.kind<>'portrait' or mt.kind<>'marker' or
-     pt.template_id is distinct from p_template or
-     mt.template_id is distinct from p_template or
-     pt.state<>'approved' or mt.state<>'approved' or
-     pt.narrative_version_id is distinct from p_narrative_version or
-     mt.narrative_version_id is distinct from p_narrative_version or
-     pt.narrative_content_sha256 is distinct from v.content_sha256 or
-     mt.narrative_content_sha256 is distinct from v.content_sha256 or
-     pt.mechanical_template_id is distinct from v.mechanical_template_id or
-     mt.mechanical_template_id is distinct from v.mechanical_template_id or
-     portrait.id is null or portrait.lifecycle_state<>'approved' or not portrait.active or
-     portrait.kind<>'canonical_full_body' or
-     portrait.sha256 is distinct from pt.sha256 or
-     portrait.verified_sha256 is distinct from pt.sha256 or
-     portrait.asset_id is distinct from pt.asset_id or
-     portrait.bucket is distinct from pt.bucket or
-     portrait.object_path is distinct from pt.object_path or
-     portrait.mime_type is distinct from pt.mime_type or
-     portrait.bytes is distinct from pt.bytes or
-     marker.id is null or marker.state<>'approved' or not marker.active or
-     marker.sha256 is distinct from mt.sha256 or
-     marker.asset_id is distinct from mt.asset_id or
-     marker.bucket is distinct from mt.bucket or
-     marker.object_path is distinct from mt.object_path or
-     marker.mime_type is distinct from mt.mime_type or
-     marker.bytes is distinct from mt.bytes then
-    raise exception 'NPC_BUILDER_MEDIA_STALE' using errcode='55000';
-  end if;
-  return pg_catalog.jsonb_build_object(
-    'schema_version','npc-builder-media-pair/1',
-    'template_id',p_template,'narrative_version_id',p_narrative_version,
-    'narrative_content_sha256',v.content_sha256,
-    'mechanical_template_id',v.mechanical_template_id,
-    'pair_request_key',pair.request_key,
-    'portrait_media_id',portrait.id,'portrait_sha256',portrait.sha256,
-    'portrait_asset_id',portrait.asset_id,
-    'marker_media_id',marker.id,'marker_sha256',marker.sha256,
-    'marker_asset_id',marker.asset_id);
-end $function$;
-
-CREATE OR REPLACE FUNCTION public.mission_factory_npc_certify_existing_combat_v1(p_template uuid, p_narrative_version uuid, p_expected_template_control bigint, p_request uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-DECLARE u uuid:=auth.uid();t public.nb_templates;nv public.nb_template_versions;mb public.nb_mechanical_bindings;
- mt public.nb_mechanical_templates;mv public.nb_mechanical_versions;pair jsonb;doc jsonb;med jsonb;abilities jsonb;
- stage jsonb;validation jsonb;compiled jsonb;bn png_builder_internal.bundles;ref jsonb;
-BEGIN
- IF u IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' OR public.is_staff() IS DISTINCT FROM true OR p_request IS NULL
- OR p_template IS NULL OR p_narrative_version IS NULL OR p_expected_template_control IS NULL
- THEN RAISE EXCEPTION 'HUMAN_CANONICAL_NPC_NORMAL_STAFF_REQUIRED' USING ERRCODE='42501';END IF;
- IF mission_factory_owner.human_ordinary_authoring_qualification_v1((SELECT hq.payload->>'catalog_version' FROM mission_public_owner.public_qualification_attestations_v1 hq JOIN mission_factory_owner.quest_fixed30_admission hg ON hg.singleton AND hg.public_release_sha256=hq.release_sha256)) IS NULL THEN PERFORM mission_factory_owner.manual_authoring_assert_v1('npc_combat',NULL);END IF;
- PERFORM pg_advisory_xact_lock(hashtextextended('human-existing-canonical:'||p_request::text,26101501));
- SELECT * INTO STRICT t FROM public.nb_templates WHERE id=p_template FOR UPDATE;
- SELECT * INTO STRICT nv FROM public.nb_template_versions WHERE id=p_narrative_version AND template_id=p_template FOR SHARE;
- IF t.control_version IS DISTINCT FROM p_expected_template_control OR t.current_version_id IS DISTINCT FROM nv.id
- OR t.lifecycle_state<>'approved' OR t.deactivated_at IS NOT NULL OR nv.review_state<>'approved'
- OR (t.created_by IS DISTINCT FROM u AND NOT EXISTS(SELECT 1 FROM public.profiles pr WHERE pr.id=u AND pr.role='admin'))
- THEN RAISE EXCEPTION 'HUMAN_CANONICAL_NPC_SOURCE_CAS' USING ERRCODE='40001';END IF;
- IF (SELECT count(*) FROM public.nb_mechanical_bindings x WHERE x.narrative_template_id=t.id AND x.narrative_version_id=nv.id AND x.active AND x.lifecycle_state='approved')<>1
- THEN RAISE EXCEPTION 'HUMAN_CANONICAL_NPC_BINDING_REQUIRED' USING ERRCODE='55000';END IF;
- SELECT * INTO STRICT mb FROM public.nb_mechanical_bindings WHERE narrative_template_id=t.id AND narrative_version_id=nv.id AND active AND lifecycle_state='approved' FOR SHARE;
- SELECT * INTO STRICT mt FROM public.nb_mechanical_templates WHERE id=mb.mechanical_template_id FOR SHARE;
- SELECT * INTO STRICT mv FROM public.nb_mechanical_versions WHERE id=mb.mechanical_version_id AND template_id=mt.id FOR SHARE;
- IF mv.profile_kind='npc_custom' THEN
-  IF mission_factory_owner.human_custom_ordinary_capability_v1(NULL,false) IS NULL THEN RAISE EXCEPTION 'HUMAN_CUSTOM_CANONICAL_CAPABILITY_REQUIRED' USING ERRCODE='42501';END IF;
-  PERFORM public.mission_factory_npc_certify_combat_v1(t.id,nv.id,p_request);
-  SELECT cb.* INTO STRICT bn FROM png_builder_internal.bundles cb JOIN png_builder_internal.npc_custom_combat_attests ca ON ca.bundle_id=cb.id WHERE cb.template_id=t.id AND cb.narrative_version_id=nv.id AND cb.mechanical_version_id=mv.id AND cb.mechanical_binding_id=mb.id AND cb.status='certified' AND cb.ownership_mode='adopted' AND cb.disabled_at IS NULL;
-  pair:=mission_factory_owner.human_existing_legacy_media_pair_v1(t.id,nv.id);ref:=mission_factory_owner.npc_reference(t.id,bn.id,true);
-  doc:=jsonb_build_object('schema_version','human-existing-canonical-npc/1','request_key',p_request,'template_id',t.id,'narrative_version_id',nv.id,'mechanical_binding_id',mb.id,'npc_version_id',bn.id,'bundle_sha256',bn.bundle_sha256,'pair_request_key',pair->>'pair_request_key','status','certified','reference',ref);
-  med:=jsonb_build_object('schema_version','human-custom-canonical-receipt/1','actor_user',u,'template_id',t.id,'narrative_version_id',nv.id,'receipt',doc);
-  INSERT INTO mission_public_owner.release_admissions_v1(release_sha256,contract_version,db_sha256,edge_sha256,client_sha256,configuration_sha256,independent_review_ref,staff_evidence_ref,qualified_at,public_enabled)
- SELECT mission_factory_owner.sha(jsonb_build_object('schema_version','human-custom-canonical-key/1','request_key',p_request)),cr.contract_version,cr.db_sha256,cr.edge_sha256,cr.client_sha256,cr.configuration_sha256,cr.independent_review_ref,'SOURCE_RECORD_ONLY:HUMAN_CUSTOM_CANONICAL_RECEIPT',cr.qualified_at,false FROM mission_public_owner.release_admissions_v1 cr WHERE cr.release_sha256=mission_factory_owner.human_custom_ordinary_capability_v1(NULL,false)->>'capability_sha256' ON CONFLICT(release_sha256) DO NOTHING;
- IF NOT EXISTS(SELECT 1 FROM mission_public_owner.release_admissions_v1 sr JOIN mission_public_owner.release_admissions_v1 cr ON cr.release_sha256=mission_factory_owner.human_custom_ordinary_capability_v1(NULL,false)->>'capability_sha256' WHERE sr.release_sha256=mission_factory_owner.sha(jsonb_build_object('schema_version','human-custom-canonical-key/1','request_key',p_request)) AND sr.public_enabled=false AND sr.staff_evidence_ref='SOURCE_RECORD_ONLY:HUMAN_CUSTOM_CANONICAL_RECEIPT' AND sr.contract_version=cr.contract_version AND sr.db_sha256=cr.db_sha256 AND sr.edge_sha256=cr.edge_sha256 AND sr.client_sha256=cr.client_sha256 AND sr.configuration_sha256=cr.configuration_sha256 AND sr.independent_review_ref=cr.independent_review_ref AND sr.qualified_at=cr.qualified_at) THEN RAISE EXCEPTION 'HUMAN_CUSTOM_SOURCE_PARENT_ADMISSION_CONFLICT' USING ERRCODE='40001';END IF;
-  INSERT INTO mission_public_owner.public_qualification_attestations_v1(release_sha256,request_key,payload,payload_sha256,positive_staff_evidence_ref,authorized_test_manifest_ref)
-  VALUES(mission_factory_owner.sha(jsonb_build_object('schema_version','human-custom-canonical-key/1','request_key',p_request)),extensions.uuid_generate_v5(p_request,'human-custom-canonical-receipt/1'),med,mission_factory_owner.sha(med),'HUMAN_CUSTOM_CANONICAL_RECEIPT','NONE:CANONICAL_RECEIPT_NOT_QUALIFICATION') ON CONFLICT(release_sha256) DO NOTHING;
-  IF NOT EXISTS(SELECT 1 FROM mission_public_owner.public_qualification_attestations_v1 cp WHERE cp.release_sha256=mission_factory_owner.sha(jsonb_build_object('schema_version','human-custom-canonical-key/1','request_key',p_request)) AND cp.created_by='postgres'::name AND cp.payload IS NOT DISTINCT FROM med AND cp.payload_sha256=mission_factory_owner.sha(med)) THEN RAISE EXCEPTION 'HUMAN_CUSTOM_CANONICAL_REQUEST_CONFLICT' USING ERRCODE='40001';END IF;
-  RETURN doc;
- END IF;
- IF nv.mechanical_template_id IS DISTINCT FROM mt.id OR mt.current_version_id IS DISTINCT FROM mv.id
- OR mt.lifecycle_state<>'approved' OR NOT mt.active OR mv.review_state<>'approved' OR mv.profile_kind IS DISTINCT FROM 'legacy'
- THEN RAISE EXCEPTION 'HUMAN_CANONICAL_EXISTING_MECHANICS_REQUIRED' USING ERRCODE='55000';END IF;
- pair:=mission_factory_owner.human_existing_legacy_media_pair_v1(t.id,nv.id);
- IF pair->>'mechanical_template_id' IS DISTINCT FROM mt.id::text OR pair->>'narrative_content_sha256' IS DISTINCT FROM nv.content_sha256
- THEN RAISE EXCEPTION 'HUMAN_CANONICAL_MEDIA_PAIR_DRIFT' USING ERRCODE='55000';END IF;
- SELECT coalesce(jsonb_agg(to_jsonb(m.id) ORDER BY m.media_version_no,m.id),'[]'::jsonb) INTO med
- FROM public.nb_template_media_versions m WHERE m.template_id=t.id AND m.template_version_id=nv.id
- AND m.lifecycle_state='approved' AND m.active AND m.sha256=m.verified_sha256;
- IF jsonb_array_length(med)=0 OR NOT(med ? (pair->>'portrait_media_id'))
- THEN RAISE EXCEPTION 'HUMAN_CANONICAL_APPROVED_MEDIA_REQUIRED' USING ERRCODE='55000';END IF;
- SELECT coalesce(jsonb_agg(jsonb_build_object('source',ar.source,'ability_id',ar.ability_id) ORDER BY ar.ordinal),'[]'::jsonb)
- INTO abilities FROM public.nb_mechanical_ability_profile_refs_v1 ar WHERE ar.mechanical_template_id=mt.id AND ar.lifecycle_state='approved' AND ar.active;
- doc:=jsonb_build_object('schema_version','png-builder-sheet/1.0','template_key',t.template_key,'display_name',t.display_name,'village_scope',t.village_scope,
- 'source_template_id',t.id,'source_template_version_id',nv.id,'source_mechanical_template_id',mt.id,'source_mechanical_version_id',mv.id,
- 'skeleton',nv.skeleton,'knowledge_boundary',nv.knowledge_boundary,'fallback_profile',nv.fallback_profile,'media_ids',med,'ability_refs',abilities,
- 'consumer_scopes',jsonb_build_array('surface','narrator_adapter','master_v2','combat_v2'));
- stage:=public.png_builder_stage_v1(extensions.uuid_generate_v5(p_request,'human-existing-canonical:stage/1'),doc);
- validation:=public.png_builder_validate_v1(extensions.uuid_generate_v5(p_request,'human-existing-canonical:validate/1'),(stage->>'draft_id')::uuid,(stage->>'control_version')::bigint);
- IF validation->>'status' IS DISTINCT FROM 'green' THEN RAISE EXCEPTION 'HUMAN_CANONICAL_BUILDER_BLOCKED' USING ERRCODE='55000';END IF;
- compiled:=public.png_builder_compile_v1(extensions.uuid_generate_v5(p_request,'human-existing-canonical:compile/1'),(stage->>'draft_id')::uuid,(validation->>'control_version')::bigint,validation->>'report_sha256');
- IF compiled->>'status' IS DISTINCT FROM 'certified' OR compiled->>'readiness' IS DISTINCT FROM 'staged' OR compiled->'enabled' IS DISTINCT FROM 'false'::jsonb
- THEN RAISE EXCEPTION 'HUMAN_CANONICAL_BUILDER_NOT_ADOPTED' USING ERRCODE='55000';END IF;
- SELECT * INTO STRICT bn FROM png_builder_internal.bundles WHERE id=(compiled->>'bundle_id')::uuid FOR SHARE;
- IF bn.template_id IS DISTINCT FROM t.id OR bn.narrative_version_id IS DISTINCT FROM nv.id OR bn.ownership_mode IS DISTINCT FROM 'adopted'
- OR bn.mechanical_binding_id IS DISTINCT FROM mb.id OR bn.certified_payload->'document' IS DISTINCT FROM doc
- OR bn.bundle_sha256 IS DISTINCT FROM compiled->>'bundle_sha256'
- THEN RAISE EXCEPTION 'HUMAN_CANONICAL_BUILDER_RECEIPT_DRIFT' USING ERRCODE='55000';END IF;
- ref:=mission_factory_owner.npc_reference(t.id,bn.id,true);
- RETURN jsonb_build_object('schema_version','human-existing-canonical-npc/1','request_key',p_request,'template_id',t.id,
- 'narrative_version_id',nv.id,'mechanical_binding_id',mb.id,'npc_version_id',bn.id,'bundle_sha256',bn.bundle_sha256,
- 'pair_request_key',pair->>'pair_request_key','status','certified','reference',ref);
-END $function$;
-
-CREATE OR REPLACE FUNCTION public.mission_factory_npc_certify_combat_v1(p_template uuid, p_narrative_version uuid, p_request uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-declare actor uuid:=auth.uid(); t public.nb_templates%rowtype;
-  req png_builder_internal.npc_custom_combat_certify_requests%rowtype;
-  a png_builder_internal.npc_custom_combat_attests%rowtype;
-  source jsonb; doc jsonb; stage jsonb; validation jsonb; compiled jsonb;
-  state jsonb; fp text; bid uuid; bsha text; existing png_builder_internal.bundles%rowtype;
-begin
-  if actor is null or not public.is_staff() or p_request is null then
-    raise exception 'MF_NPC_CUSTOM_AUTH' using errcode='42501';end if;
-  perform pg_catalog.pg_advisory_xact_lock(
-    pg_catalog.hashtextextended('npc-custom-combat-certify:'||p_request::text,26092601));
-  fp:=png_builder_internal.sha(pg_catalog.jsonb_build_object(
-    'op','certify-combat/1','template_id',p_template,
-    'narrative_version_id',p_narrative_version));
-  select * into req from png_builder_internal.npc_custom_combat_certify_requests
-    where request_key=p_request for update;
-  if req.request_key is not null then
-    if req.fingerprint is distinct from fp or req.template_id is distinct from p_template
-       or req.narrative_version_id is distinct from p_narrative_version
-       or req.actor_id is distinct from actor then
-      raise exception 'MF_NPC_CUSTOM_REQUEST_CONFLICT' using errcode='55000';end if;
-    return public.mission_factory_npc_combat_status_v1(
-      p_template,p_narrative_version,p_request);
-  end if;
-
-  if mission_factory_owner.human_custom_ordinary_capability_v1(NULL,false) is null then
-   perform mission_factory_owner.manual_authoring_assert_v1('npc_combat',null);
-  else
-   if mission_factory_owner.human_custom_ordinary_capability_v1(NULL,false)->>'execution_context'='staff_simulation' and not exists(select 1 from mission_factory_owner.drafts cd cross join lateral jsonb_array_elements(cd.document->'npc_bindings') ca join png_builder_internal.bundles cb on cb.id=(ca->>'npc_version_id')::uuid where cd.id=(mission_factory_owner.human_custom_ordinary_capability_v1(NULL,false)->>'draft_id')::uuid and cb.template_id=p_template and cb.narrative_version_id=p_narrative_version) then raise exception 'HUMAN_CUSTOM_CERTIFICATE_STAFF_SOURCE_REQUIRED' using errcode='42501';end if;
-  end if;
-  select * into t from public.nb_templates where id=p_template for update;
-  if t.id is null or (t.created_by is distinct from actor and not exists(
-       select 1 from public.profiles p where p.id=actor and p.role='admin')) then
-    raise exception 'MF_NPC_CUSTOM_AUTH' using errcode='42501';end if;
-  source:=png_builder_internal.npc_custom_combat_source_v1(p_template,p_narrative_version);
-  doc:=source->'document';
-  select * into a from png_builder_internal.npc_custom_combat_attests
-    where template_id=p_template and narrative_version_id=p_narrative_version for update;
-  if a.bundle_id is not null then
-    perform png_builder_internal.npc_custom_combat_attest_assert_v1(
-      p_template,p_narrative_version,a.bundle_id);
-    bid:=a.bundle_id;bsha:=a.bundle_sha256;
-  else
-    -- A certified bundle without the trusted marker attestation is not adopted
-    -- by this gateway; it requires recovery/review, not a second blind compile.
-    if exists(select 1 from png_builder_internal.bundles b
-      where b.template_id=p_template and b.narrative_version_id=p_narrative_version
-        and b.status='certified' and b.disabled_at is null)
-    then raise exception 'MF_NPC_CUSTOM_EXISTING_BUNDLE_UNATTESTED' using errcode='55000';end if;
-    stage:=public.png_builder_stage_v1(
-      extensions.uuid_generate_v5(p_request,'stage-combat-custom/1'),doc);
-    validation:=public.png_builder_validate_v1(
-      extensions.uuid_generate_v5(p_request,'validate-combat-custom/1'),
-      (stage->>'draft_id')::uuid,(stage->>'control_version')::bigint);
-    if validation->>'status'<>'green' then
-      raise exception 'MF_NPC_CUSTOM_BUILDER_BLOCKED' using errcode='55000';end if;
-    compiled:=public.png_builder_compile_v1(
-      extensions.uuid_generate_v5(p_request,'compile-combat-custom/1'),
-      (stage->>'draft_id')::uuid,(validation->>'control_version')::bigint,
-      validation->>'report_sha256');
-    if compiled->>'status'<>'certified' or compiled->>'readiness'<>'staged'
-      or (compiled->>'enabled')::boolean is distinct from false then
-      raise exception 'MF_NPC_CUSTOM_BUILDER_DRIFT' using errcode='55000';end if;
-    bid:=(compiled->>'bundle_id')::uuid;bsha:=compiled->>'bundle_sha256';
-    select * into existing from png_builder_internal.bundles where id=bid;
-    if existing.id is null or existing.ownership_mode<>'adopted'
-       or existing.bundle_kind<>'combat' or existing.template_id is distinct from p_template
-       or existing.narrative_version_id is distinct from p_narrative_version
-       or existing.certified_payload#>'{document}' is distinct from doc
-       or existing.bundle_sha256 is distinct from bsha
-    then raise exception 'MF_NPC_CUSTOM_BUILDER_DRIFT' using errcode='55000';end if;
-    insert into png_builder_internal.npc_custom_combat_attests(
-      bundle_id,template_id,narrative_version_id,mechanical_version_id,
-      pair_request_key,bundle_sha256,dependency_sha256)
-    values(bid,p_template,p_narrative_version,
-      (source->>'mechanical_version_id')::uuid,
-      (source->>'pair_request_key')::uuid,bsha,source->>'dependency_sha256');
-  end if;
-  perform png_builder_internal.npc_custom_combat_attest_assert_v1(
-    p_template,p_narrative_version,bid);
-  state:=pg_catalog.jsonb_build_object(
-    'schema_version','mission-factory-npc-combat-certification-state/1',
-    'template_id',p_template,'narrative_version_id',p_narrative_version,
-    'bundle_kind','combat','status','adopted','npc_id',p_template,
-    'npc_version_id',bid,'bundle_sha256',bsha,'combat_eligible',false,
-    'request_key',p_request,'replayed',false);
-  insert into png_builder_internal.npc_custom_combat_certify_requests(
-    request_key,actor_id,template_id,narrative_version_id,fingerprint,bundle_id,response)
-  values(p_request,actor,p_template,p_narrative_version,fp,bid,state);
-  return state;
-end $function$;
-
-CREATE OR REPLACE FUNCTION public.mission_factory_npc_certify_existing_combat_receipt_v1(p_template uuid, p_narrative_version uuid, p_request uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-DECLARE t public.nb_templates;b png_builder_internal.bundles;compiled jsonb;pair jsonb;receipt jsonb;
-BEGIN
- IF auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' OR public.is_staff() IS DISTINCT FROM true OR p_template IS NULL OR p_narrative_version IS NULL OR p_request IS NULL THEN RAISE EXCEPTION 'HUMAN_CANONICAL_RECEIPT_NORMAL_STAFF_REQUIRED' USING ERRCODE='42501';END IF;
- SELECT * INTO STRICT t FROM public.nb_templates WHERE id=p_template;
- IF t.created_by IS DISTINCT FROM auth.uid() AND NOT EXISTS(SELECT 1 FROM public.profiles pr WHERE pr.id=auth.uid() AND pr.role='admin') THEN RAISE EXCEPTION 'HUMAN_CANONICAL_RECEIPT_OWNER_REQUIRED' USING ERRCODE='42501';END IF;
- SELECT cp.payload->'receipt' INTO receipt FROM mission_public_owner.public_qualification_attestations_v1 cp WHERE cp.release_sha256=mission_factory_owner.sha(jsonb_build_object('schema_version','human-custom-canonical-key/1','request_key',p_request)) AND cp.created_by='postgres'::name AND cp.payload_sha256=mission_factory_owner.sha(cp.payload) AND cp.payload->>'schema_version'='human-custom-canonical-receipt/1' AND cp.payload->>'actor_user'=auth.uid()::text AND cp.payload->>'template_id'=p_template::text AND cp.payload->>'narrative_version_id'=p_narrative_version::text;
- IF receipt IS NOT NULL THEN RETURN jsonb_build_object('schema_version','human-existing-canonical-npc-receipt/1','request_key',p_request,'state','committed','receipt',receipt);END IF;
- SELECT br.response INTO compiled FROM png_builder_internal.requests br WHERE br.request_key=extensions.uuid_generate_v5(p_request,'human-existing-canonical:compile/1') AND br.operation='compile';
- IF compiled->>'status'='certified' THEN
- SELECT * INTO STRICT b FROM png_builder_internal.bundles WHERE id=(compiled->>'bundle_id')::uuid AND template_id=p_template AND narrative_version_id=p_narrative_version AND ownership_mode='adopted' AND NOT owns_upstream;
- pair:=mission_factory_owner.human_existing_legacy_media_pair_v1(p_template,p_narrative_version);
- receipt:=jsonb_build_object('schema_version','human-existing-canonical-npc/1','request_key',p_request,'template_id',b.template_id,'narrative_version_id',b.narrative_version_id,'mechanical_binding_id',b.mechanical_binding_id,'npc_version_id',b.id,'bundle_sha256',b.bundle_sha256,'pair_request_key',pair->>'pair_request_key','status','certified','reference',mission_factory_owner.npc_reference(b.template_id,b.id,true));
- END IF;
- RETURN jsonb_build_object('schema_version','human-existing-canonical-npc-receipt/1','request_key',p_request,'state',CASE WHEN receipt IS NULL THEN 'not_found' ELSE 'committed' END,'receipt',receipt);
-END $function$;
-
-CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_npc_bundle_assert_v1(p_draft uuid)
- RETURNS void
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-DECLARE d mission_factory_owner.drafts;a jsonb;b png_builder_internal.bundles;pair jsonb;ref jsonb;
-BEGIN
- SELECT * INTO STRICT d FROM mission_factory_owner.drafts WHERE id=p_draft;
- IF auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' OR d.author_user IS DISTINCT FROM auth.uid()
- OR d.document->>'content_kind' IS DISTINCT FROM 'quest_human' OR d.document_sha256 IS DISTINCT FROM mission_factory_owner.sha(d.document)
- THEN RAISE EXCEPTION 'HUMAN_ORDINARY_NPC_DRAFT_AUTHORITY' USING ERRCODE='42501';END IF;
- PERFORM mission_factory_owner.validate_quest_draft_v2(d.document);
- FOR a IN SELECT value FROM jsonb_array_elements(d.document->'npc_bindings') LOOP
- SELECT * INTO STRICT b FROM png_builder_internal.bundles WHERE id=(a->>'npc_version_id')::uuid AND template_id=(a->>'npc_id')::uuid;
- ref:=mission_factory_owner.npc_reference(b.template_id,b.id,(a->>'combat')::boolean);
- IF b.bundle_kind='narrative' THEN
- pair:=png_builder_internal.npc_media_pair_resolve_v1(b.template_id,b.narrative_version_id);
- IF b.media_ids IS DISTINCT FROM ARRAY[(pair->>'portrait_media_id')::uuid,(pair->>'marker_media_id')::uuid] THEN RAISE EXCEPTION 'HUMAN_ORDINARY_NARRATIVE_MEDIA_STALE' USING ERRCODE='55000';END IF;
- CONTINUE;END IF;
- IF EXISTS(SELECT 1 FROM public.nb_mechanical_versions cm WHERE cm.id=b.mechanical_version_id AND cm.profile_kind='npc_custom') THEN
-  IF mission_factory_owner.human_custom_ordinary_capability_v1(p_draft,false) IS NULL THEN RAISE EXCEPTION 'HUMAN_CUSTOM_CAPABILITY_NOT_QUALIFIED' USING ERRCODE='55000';END IF;
-  PERFORM png_builder_internal.npc_custom_combat_attest_assert_v1(b.template_id,b.narrative_version_id,b.id);
-  IF b.ownership_mode IS DISTINCT FROM 'adopted' OR b.owns_upstream IS DISTINCT FROM false OR b.certified_payload->'document' IS DISTINCT FROM (png_builder_internal.npc_custom_combat_source_v1(b.template_id,b.narrative_version_id)->'document') THEN RAISE EXCEPTION 'HUMAN_CUSTOM_CANONICAL_BUNDLE_DRIFT' USING ERRCODE='55000';END IF;
-  CONTINUE;
- END IF;
- pair:=mission_factory_owner.human_existing_legacy_media_pair_v1(b.template_id,b.narrative_version_id);
- IF b.certified_payload->>'schema_version' IS DISTINCT FROM 'png-builder-certified-payload/1.0'
- OR b.ownership_mode IS DISTINCT FROM 'adopted' OR b.owns_upstream IS DISTINCT FROM false
- OR NOT EXISTS(SELECT 1 FROM public.nb_templates t WHERE t.id=b.template_id AND t.current_version_id=b.narrative_version_id AND t.lifecycle_state='approved' AND t.deactivated_at IS NULL)
- OR b.certified_payload#>'{document,media_ids}' IS DISTINCT FROM to_jsonb(b.media_ids)
- OR NOT(to_jsonb(b.media_ids) ? (pair->>'portrait_media_id')) OR to_jsonb(b.media_ids) IS DISTINCT FROM (SELECT coalesce(jsonb_agg(to_jsonb(cm.id) ORDER BY cm.media_version_no,cm.id),'[]'::jsonb) FROM public.nb_template_media_versions cm WHERE cm.template_id=b.template_id AND cm.template_version_id=b.narrative_version_id AND cm.lifecycle_state='approved' AND cm.active AND cm.sha256=cm.verified_sha256)
- OR (a->>'combat'='true' AND NOT EXISTS(SELECT 1 FROM public.nb_mechanical_versions v WHERE v.id=b.mechanical_version_id AND v.profile_kind='legacy' AND v.review_state='approved'))
- THEN RAISE EXCEPTION 'HUMAN_ORDINARY_CANONICAL_BUNDLE_REQUIRED' USING ERRCODE='55000';END IF;
+  SELECT * INTO lease_parent FROM mission_public_owner.release_admissions_v1 WHERE release_sha256=lease_record.release_sha256;
+  IF lease_record.created_by IS DISTINCT FROM 'postgres'::name OR lease_record.payload_sha256 IS DISTINCT FROM mission_factory_owner.sha(lease_payload) OR mission_factory_owner.keys_exact_v2(lease_payload,ARRAY['schema_version', 'renewal_id', 'base_release_sha256', 'predecessor_release_sha256', 'current_release_sha256', 'current_db_sha256', 'predecessor_context_sha256', 'predecessor_source_payload_sha256', 'arc_id', 'draft_id', 'draft_version', 'source_sha256', 'session_id', 'assigned_master', 'allowed_auth_ids', 'location_id', 'allowed_operations', 'effective_from', 'expires_at', 'root_authority_sha256', 'independent_review_ref', 'review_sha256', 'semantic_manifest_sha256']) IS DISTINCT FROM true
+  OR lease_record.request_key::text IS DISTINCT FROM lease_payload->>'renewal_id'
+  OR lease_record.release_sha256 IS DISTINCT FROM mission_factory_owner.sha(jsonb_build_object('schema_version','human-custom-staff-lease-renewal-key/1','arc_id',p_arc,'current_release_sha256',p_observation->>'observed_revision_sha256','renewal_id',lease_payload->>'renewal_id'))
+  OR lease_parent.public_enabled IS DISTINCT FROM false OR lease_parent.staff_evidence_ref IS DISTINCT FROM 'SOURCE_RECORD_ONLY:HUMAN_CUSTOM_STAFF_LEASE_RENEWAL' OR lease_parent.db_sha256 IS DISTINCT FROM p_observation#>>'{observed_canonical_tuple,db_core,sha256}'
+  OR NOT EXISTS(SELECT 1 FROM mission_public_owner.release_admissions_v1 lease_current_ad WHERE release_sha256=p_observation->>'observed_revision_sha256' AND (to_jsonb(lease_parent)-'release_sha256'-'created_at'-'staff_evidence_ref'-'public_enabled') IS NOT DISTINCT FROM (to_jsonb(lease_current_ad)-'release_sha256'-'created_at'-'staff_evidence_ref'-'public_enabled'))
+  OR NOT EXISTS(SELECT 1 FROM mission_public_owner.public_qualification_attestations_v1 lease_current_cp WHERE payload_sha256=p_observation->>'compatibility_sha256' AND created_by='postgres'::name AND payload_sha256=mission_factory_owner.sha(payload) AND payload->>'current_release_sha256'=p_observation->>'observed_revision_sha256' AND payload->>'review_sha256'=lease_payload->>'review_sha256' AND payload->>'semantic_manifest_sha256'=lease_payload->>'semantic_manifest_sha256')
+  OR lease_payload->>'base_release_sha256' IS DISTINCT FROM '5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366' OR lease_payload->>'current_db_sha256' IS DISTINCT FROM p_observation#>>'{observed_canonical_tuple,db_core,sha256}'
+  OR lease_payload->>'independent_review_ref' IS DISTINCT FROM p_observation->>'observed_independent_review_ref' OR lease_record.positive_staff_evidence_ref IS DISTINCT FROM 'SOURCE_REVIEW_ONLY:'||(lease_payload->>'independent_review_ref') OR lease_record.authorized_test_manifest_ref IS DISTINCT FROM g.public_staff_test_manifest_ref
+  OR coalesce(lease_payload->>'root_authority_sha256','')!~'^[0-9a-f]{64}$' OR coalesce(lease_payload->>'review_sha256','')!~'^[0-9a-f]{64}$' OR coalesce(lease_payload->>'semantic_manifest_sha256','')!~'^[0-9a-f]{64}$'
+  OR lease_payload->>'draft_id' IS DISTINCT FROM lease_arc.draft_id::text OR lease_payload->>'draft_version' IS DISTINCT FROM lease_arc.draft_version::text OR lease_payload->>'source_sha256' IS DISTINCT FROM lease_arc.source_sha256
+  OR lease_payload->'allowed_auth_ids' IS DISTINCT FROM to_jsonb(lease_arc.execution_auth_ids) OR lease_payload->'allowed_auth_ids' IS DISTINCT FROM to_jsonb(g.allowed_auth_ids) OR cardinality(g.allowed_auth_ids) IS DISTINCT FROM 2
+  OR lease_payload->'allowed_operations' IS DISTINCT FROM '["prepare_receipt","optin_receipt","start","fato","combat","phase_action","terminal","reward_simulation","close"]'::jsonb OR lease_payload->>'location_id' IS DISTINCT FROM '0b85f354-9cdb-47e1-baf9-3d266bb7e06b'
+  THEN CONTINUE;END IF;
+  SELECT * INTO lease_q FROM mission_factory_owner.quest_run_sources WHERE session_id=(lease_payload->>'session_id')::uuid;
+  SELECT * INTO lease_m FROM public.master_v2_sessions WHERE id=lease_q.session_id;
+  SELECT * INTO lease_episode FROM mission_factory_owner.quest_episodes WHERE id=lease_q.episode_id;
+  IF lease_q.session_id IS NULL OR lease_q.arc_id IS DISTINCT FROM p_arc OR lease_episode.id IS NULL OR lease_episode.arc_id IS DISTINCT FROM p_arc OR lease_q.source_sha256 IS DISTINCT FROM lease_episode.source_sha256 OR lease_q.execution_qualification_sha256 IS DISTINCT FROM lease_arc.execution_qualification_sha256 OR lease_q.roster_character_ids IS DISTINCT FROM lease_arc.member_character_ids OR lease_q.location_id::text IS DISTINCT FROM lease_payload->>'location_id' OR lease_m.location_id IS DISTINCT FROM lease_q.location_id OR lease_m.master_user::text IS DISTINCT FROM lease_payload->>'assigned_master' OR NOT(lease_m.master_user=ANY(g.allowed_auth_ids)) OR lease_m.owner_kind IS DISTINCT FROM 'human' OR lease_m.tipo IS DISTINCT FROM 'quest' OR lease_m.mission_id IS NOT NULL THEN CONTINUE;END IF;
+  SELECT * INTO lease_oldcp FROM mission_public_owner.public_qualification_attestations_v1 WHERE payload->>'schema_version'='human-release-compatibility/1' AND payload->>'current_release_sha256'=lease_payload->>'predecessor_release_sha256';
+  SELECT * INTO lease_oldctx FROM mission_public_owner.public_qualification_attestations_v1 WHERE payload_sha256=lease_payload->>'predecessor_context_sha256' AND payload->>'current_release_sha256'=lease_payload->>'predecessor_release_sha256' AND payload->>'arc_id'=p_arc::text;
+  IF lease_oldcp.created_by IS DISTINCT FROM 'postgres'::name OR lease_oldcp.payload_sha256 IS DISTINCT FROM mission_factory_owner.sha(lease_oldcp.payload) OR lease_oldctx.created_by IS DISTINCT FROM 'postgres'::name OR lease_oldctx.payload_sha256 IS DISTINCT FROM mission_factory_owner.sha(lease_oldctx.payload) OR lease_oldctx.payload->>'source_payload_sha256' IS DISTINCT FROM lease_payload->>'predecessor_source_payload_sha256' OR lease_oldcp.payload->'current_canonical_tuple' IS NULL OR mission_factory_owner.sha(lease_oldcp.payload->'current_canonical_tuple') IS DISTINCT FROM lease_payload->>'predecessor_release_sha256' THEN CONTINUE;END IF;
+  -- Historical input below is derived from the immutable predecessor proof, never returned as the current observation.
+  lease_historical:=p_observation||jsonb_build_object('observed_revision_sha256',lease_payload->>'predecessor_release_sha256','observed_canonical_tuple',lease_oldcp.payload->'current_canonical_tuple','observed_independent_review_ref',lease_oldcp.payload->>'independent_review_ref','compatibility_sha256',lease_oldcp.payload_sha256);
+  IF (mission_factory_owner.human_staff_context_records_v1(lease_historical,lease_historical->>'observed_revision_sha256',p_arc,CASE WHEN p_active THEN 'lease_active' ELSE 'lease_historical' END,g)) IS DISTINCT FROM true THEN CONTINUE;END IF;
+  lease_from:=(lease_payload->>'effective_from')::timestamptz;lease_until:=(lease_payload->>'expires_at')::timestamptz;
+  IF lease_from IS NULL OR lease_until IS NULL OR lease_until IS DISTINCT FROM lease_from+interval '2 hours' OR lease_record.created_at<lease_from OR lease_record.created_at>lease_from+interval '5 minutes' THEN CONTINUE;END IF;
+  IF p_active AND (clock_timestamp()<lease_from OR clock_timestamp()>=lease_until OR mission_factory_owner.c416_kind_live_v1() IS DISTINCT FROM true OR mission_factory_owner.c444_enabled_v1() IS DISTINCT FROM true OR NOT EXISTS(SELECT 1 FROM mission_factory_owner.c416_kind_admission lease_k WHERE singleton AND bound_at=lease_from AND expires_at=lease_until AND to_jsonb(allowed_auth_ids)=lease_payload->'allowed_auth_ids') OR NOT EXISTS(SELECT 1 FROM mission_factory_owner.c444_runtime_control lease_r WHERE singleton AND bound_at=lease_from AND expires_at=lease_until)) THEN CONTINUE;END IF;
+  lease_matches:=lease_matches+1;
  END LOOP;
+ RETURN CASE WHEN p_active THEN lease_matches=1 ELSE lease_matches>0 END;
+EXCEPTION WHEN invalid_text_representation OR invalid_datetime_format OR datetime_field_overflow OR invalid_parameter_value THEN RETURN false;
 END $function$;
 
-CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_preview_basis_v1(p_draft uuid, p_version bigint, p_lock boolean)
- RETURNS jsonb
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_staff_lease_valid_with_context_v1(p_observation jsonb, p_arc uuid, p_active boolean, p_context jsonb)
+ RETURNS boolean
  LANGUAGE plpgsql
- SECURITY DEFINER
+ STABLE SECURITY DEFINER
  SET search_path TO ''
 AS $function$
-declare d mission_factory_owner.drafts; c mission_factory_owner.catalog_versions;
- roster mission_factory_owner.quest_roster_assignments; review mission_factory_owner.sensitive_reviews;
- bn png_builder_internal.bundles; med mission_factory_owner.context_media_tickets;
- doc jsonb; actor jsonb; ep jsonb; maprow jsonb; ref jsonb; media_ref jsonb;
- npc_refs jsonb:='[]'; map_refs jsonb:='[]'; media_refs jsonb:='[]';
- budget jsonb; policy jsonb; release_sha text; authority jsonb; reward_id uuid; episode_count integer;
-begin
- PERFORM mission_factory_owner.c474_transfer_refresh_v1(p_draft,p_version);
- if p_lock is null then raise exception 'MF_QUEST_PREVIEW_LOCK_INPUT' using errcode='22023';end if;
- select * into strict d from mission_factory_owner.drafts where id=p_draft;
- perform mission_factory_owner.assert_editor(d.author_user);
- if d.control_version<>p_version or d.state not in('draft','previewed') then
-  raise exception 'MF_QUEST_PREVIEW_DRAFT_DRIFT' using errcode='40001';end if;
- doc:=mission_factory_owner.validate_quest_draft_v2(d.document);
- if mission_factory_owner.sha(doc) is distinct from d.document_sha256 then
-  raise exception 'MF_QUEST_PREVIEW_DOCUMENT_DRIFT' using errcode='40001';end if;
- episode_count:=jsonb_array_length(doc#>'{quest,episodes}');
- reward_id:=(doc#>>array['quest','episodes',(episode_count-1)::text,'terminal_rules','reward_policy_id'])::uuid;
- if p_lock then
-  -- Il chiamante ha già acquisito il draft; ordine stabile e NOWAIT, nessun retry automatico.
-  perform 1 from mission_factory_owner.catalog_versions where version=d.catalog_version for share nowait;
-  perform 1 from mission_factory_owner.quest_roster_assignments where draft_id=d.id and active for share nowait;
-  perform 1 from mission_factory_owner.sensitive_reviews where draft_id=d.id order by request_key for share nowait;
-  perform 1 from mission_factory_owner.quest_reward_policy_versions where id=reward_id for share nowait;
-  perform 1 from mission_factory_owner.quest_fixed30_policy_requests where policy_id=reward_id for share nowait;
-  perform 1 from mission_factory_owner.quest_fixed30_admission where singleton for share nowait;
-  perform 1 from mission_factory_owner.budget_policy_selection where singleton for share nowait;
-  perform 1 from mission_factory_owner.budget_policy_versions where id=(select active_policy_id from mission_factory_owner.budget_policy_selection where singleton) for share nowait;
-  perform 1 from mission_public_owner.release_admissions_v1 where release_sha256=(SELECT CASE WHEN g.public_staff_draft_id=p_draft THEN g.public_staff_release_sha256 ELSE g.public_release_sha256 END FROM mission_factory_owner.quest_fixed30_admission g WHERE g.singleton) for share nowait;
-  perform 1 from mission_factory_owner.provider_authoring_runtime where singleton for share nowait;
-  perform 1 from mission_generic_owner.runtime_policy where singleton for share nowait;
-  perform 1 from mission_narrative_internal.runtime_policy where singleton for share nowait;
- end if;
- select * into strict c from mission_factory_owner.catalog_versions where version=d.catalog_version and active and qualified;
- authority:=mission_factory_owner.human_ordinary_authority_v1(d.id,d.control_version,d.document_sha256);
- IF authority IS NULL THEN RAISE EXCEPTION 'HUMAN_ORDINARY_AUTHORING_UNQUALIFIED' USING ERRCODE='55000';END IF;
- PERFORM mission_factory_owner.c416_draft_assert_v1(d.id,false);
- PERFORM mission_factory_owner.human_ordinary_npc_bundle_assert_v1(d.id);
- if not exists(select 1 from mission_factory_owner.quest_fixed30_policy_requests qr
-   join mission_factory_owner.quest_reward_policy_versions rp on rp.id=qr.policy_id
-   where qr.policy_id=reward_id and qr.document_sha256=rp.document_sha256
-     and qr.catalog_version=c.version and qr.catalog_sha256=c.document_sha256
-     and rp.qualified and rp.scope='staff' and rp.document=mission_factory_owner.quest_reward_fixed30_document_v2()) then
-  raise exception 'MF_QUEST_REWARD_CATALOG_UNQUALIFIED' using errcode='55000';end if;
- select * into strict roster from mission_factory_owner.quest_roster_assignments
-  where draft_id=d.id and id=(doc#>>'{quest,roster_assignment_id}')::uuid and active;
- if d.sensitive_review_required then
-  select * into review from mission_factory_owner.sensitive_reviews where draft_id=d.id and document_sha256=d.document_sha256
-   order by requested_at desc,request_key desc limit 1;
-  if review.status is distinct from 'approved' then raise exception 'MF_QUEST_SENSITIVE_REVIEW_REQUIRED' using errcode='55000';end if;
- end if;
- budget:=mission_factory_owner.active_budget_policy();
- if budget->>'policy_id' is distinct from doc->>'budget_policy_id' then
-  raise exception 'MF_QUEST_BUDGET_STALE' using errcode='55000';end if;
- policy:=mission_factory_owner.quest_reward_policy_checked_v2(reward_id);
- release_sha:=authority->>'revision_sha256';
- for actor in select value from jsonb_array_elements(doc->'npc_bindings') order by value->>'npc_version_id',value->>'actor_key' loop
-  if p_lock then
-   perform 1 from public.nb_templates where id=(actor->>'npc_id')::uuid for update nowait;
-   select * into strict bn from png_builder_internal.bundles where id=(actor->>'npc_version_id')::uuid for update nowait;
-   perform 1 from public.nb_template_versions where id=bn.narrative_version_id for update nowait;
-   perform 1 from public.nb_mechanical_versions where id=bn.mechanical_version_id for share nowait;
-   perform 1 from public.nb_mechanical_bindings where narrative_template_id=bn.template_id and narrative_version_id=bn.narrative_version_id order by id for share nowait;
-   perform 1 from png_builder_internal.npc_combat_draft_heads where narrative_template_id=bn.template_id and narrative_version_id=bn.narrative_version_id for share nowait;
-   perform 1 from png_builder_internal.npc_media_pairs where template_id=bn.template_id and narrative_version_id=bn.narrative_version_id order by request_key for share nowait;
-   perform 1 from png_builder_internal.npc_media_tickets where template_id=bn.template_id and narrative_version_id=bn.narrative_version_id order by request_key for share nowait;
-   perform 1 from public.nb_template_media_versions where template_id=bn.template_id and template_version_id=bn.narrative_version_id order by id for share nowait;
-   perform 1 from png_builder_internal.npc_marker_versions where template_id=bn.template_id and narrative_version_id=bn.narrative_version_id order by id for share nowait;
-   perform 1 from png_builder_internal.npc_custom_combat_attests where bundle_id=bn.id for share nowait;
-  end if;
-  ref:=mission_factory_owner.npc_reference((actor->>'npc_id')::uuid,(actor->>'npc_version_id')::uuid,(actor->>'combat')::boolean);
-  media_ref:=mission_factory_owner.human_existing_legacy_media_pair_v1((actor->>'npc_id')::uuid,(ref->>'narrative_version_id')::uuid);
-  npc_refs:=npc_refs||jsonb_build_array(jsonb_build_object('actor_key',actor->>'actor_key','reference',ref,'media_pair',media_ref));
- end loop;
- for ep in select value from jsonb_array_elements(doc#>'{quest,episodes}') loop
-  for maprow in select value from jsonb_array_elements(ep->'maps') order by value->>'step_key' loop
-   if maprow->>'context_media_id' is not null then
-    if p_lock then
-     perform 1 from mission_factory_owner.context_media_tickets where media_id=(maprow->>'context_media_id')::uuid and draft_id=d.id for share nowait;
-    end if;
-    select * into strict med from mission_factory_owner.context_media_tickets where media_id=(maprow->>'context_media_id')::uuid
-     and draft_id=d.id and content_kind='quest_human' and episode_key=ep->>'episode_key' and step_key=maprow->>'step_key' and active;
-    if p_lock then
-     perform 1 from storage.objects where bucket_id='location-images' and name=med.object_path for share nowait;
-    end if;
-    if med.registered_at is null or med.result->>'sha256' is distinct from med.sha256
-     or not exists(select 1 from storage.objects where bucket_id='location-images' and name=med.object_path
-      and metadata->>'mimetype'=med.mime_type and (metadata->>'size')::bigint=med.bytes) then
-     raise exception 'MF_QUEST_MEDIA_STALE' using errcode='55000';end if;
-    media_refs:=media_refs||jsonb_build_array(jsonb_build_object('episode_key',ep->>'episode_key','step_key',maprow->>'step_key',
-     'media_id',med.media_id,'sha256',med.sha256,'mime_type',med.mime_type,'bytes',med.bytes));
-   end if;
-   if jsonb_typeof(maprow->'arena_ref')='object' then
-    ref:=maprow->'arena_ref';
-    if p_lock then
-     perform 1 from combat_spatial.arena_templates where template_key=ref->>'template_key'
-      and template_version=(ref->>'template_version')::integer for update nowait;
-     perform 1 from combat_spatial.arena_objects where template_key=ref->>'template_key'
-      and template_version=(ref->>'template_version')::integer order by object_key for share nowait;
-    end if;
-    if not exists(select 1 from combat_spatial.arena_templates where template_key=ref->>'template_key'
-     and template_version=(ref->>'template_version')::integer and status='ready'
-     and geometry_hash=combat_spatial.geometry_fingerprint(template_key,template_version))
-     or combat_spatial.template_errors(ref->>'template_key',(ref->>'template_version')::integer)<>'[]'::jsonb then
-     raise exception 'MF_QUEST_ARENA_UNQUALIFIED' using errcode='55000';end if;
-    map_refs:=map_refs||jsonb_build_array(jsonb_build_object('episode_key',ep->>'episode_key','step_key',maprow->>'step_key','reference',ref,
-     'geometry_hash',combat_spatial.geometry_fingerprint(ref->>'template_key',(ref->>'template_version')::integer)));
-   end if;
-  end loop;
- end loop;
- return mission_factory_owner.c464_preview_overlay_v1(p_draft,p_version,jsonb_build_object('schema_version','mission-factory-quest-preview-basis/1',
-  'draft_id',d.id,'draft_version',d.control_version,'document_sha256',d.document_sha256,
-  'catalog_version',c.version,'catalog_sha256',c.document_sha256,'variant_sha256',mission_factory_owner.sha(doc#>'{variants,human,document}'),
-  'roster_assignment_id',roster.id,'roster_version',roster.roster_version,'roster_sha256',mission_factory_owner.sha(to_jsonb(roster.member_character_ids)),
-  'review_request',review.request_key,'review_decision',review.decision_key,'reward_policy_id',reward_id,'reward_policy_sha256',policy->>'policy_sha256',
-  'budget',budget,'release_sha256',release_sha,'public_staff_context',(select jsonb_build_object('enabled',g.public_staff_enabled,'release_sha256',g.public_staff_release_sha256,'qualification_sha256',g.public_staff_qualification_sha256,'draft_id',g.public_staff_draft_id,'draft_version',g.public_staff_draft_version,'source_sha256',g.public_staff_source_sha256) from mission_factory_owner.quest_fixed30_admission g where singleton),'public_applicability', (select jsonb_build_object('enabled',(g.public_enabled OR (mission_public_owner.human_positive_qualification_v1(g.public_release_sha256,true)->>'schema_version' IS NOT DISTINCT FROM 'human-owner-accepted-release/1')),'release_sha256',g.public_release_sha256,'policy_id',g.public_policy_id,'qualification_sha256',g.public_qualification_sha256,'call_limit',g.public_call_limit,'cost_budget_usd',g.public_cost_budget_usd,'count_qualification_sha256',g.public_count_qualification_sha256,'count_upper_cost_usd',g.public_count_upper_cost_usd) from mission_factory_owner.quest_fixed30_admission g where singleton),  'npc_refs',npc_refs,'map_refs',map_refs,'media_refs',media_refs)
-  ||CASE WHEN EXISTS(SELECT 1 FROM jsonb_array_elements(doc->'npc_bindings') cx JOIN png_builder_internal.bundles cb ON cb.id=(cx->>'npc_version_id')::uuid JOIN public.nb_mechanical_versions cm ON cm.id=cb.mechanical_version_id WHERE cm.profile_kind='npc_custom') THEN jsonb_build_object('custom_capability',mission_factory_owner.human_custom_ordinary_capability_v1(p_draft,false)) ELSE '{}'::jsonb END);
-end $function$;
+BEGIN
+ IF mission_factory_owner.human_verified_context_valid_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_SERVER_COMMAND_CONTEXT_INVALID' USING ERRCODE='42501';END IF;
+ RETURN mission_factory_owner.human_staff_lease_valid_verified_v1(p_observation,p_arc,p_active,p_context);
+END;
+$function$;
 
-CREATE OR REPLACE FUNCTION public.mission_factory_quest_human_ordinary_publish_v1(p_draft uuid, p_expected_version bigint, p_preview_seal text, p_request uuid, p_visibility text, p_scheduled_at timestamp with time zone)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-<<publisher>>
-declare d mission_factory_owner.drafts; prior mission_factory_owner.publications;
-        roster mission_factory_owner.quest_roster_assignments; doc jsonb; ep jsonb;
-        locked_basis jsonb; preview jsonb; policy jsonb; fp text; source_sha text; policy_text text; release_sha text;
-        policy_id uuid; arc_id uuid; episode_id uuid; first_episode_id uuid;
-        episode_count integer; ord bigint; receipt jsonb; delivery jsonb; execution text; authority jsonb; ad mission_factory_owner.quest_fixed30_admission;
-begin
-  if auth.uid() is null or p_draft is null or p_request is null
-     or p_expected_version is null or coalesce(p_preview_seal,'') !~ '^[0-9a-f]{64}$'
-  then raise exception 'MF_QUEST_PUBLISH_INPUT' using errcode='22023'; end if;
-  if p_visibility IS DISTINCT FROM 'open' or (p_visibility='scheduled' and (p_scheduled_at is null or p_scheduled_at<=statement_timestamp())) or (p_visibility='open' and p_scheduled_at is not null) then raise exception 'MF_QUEST_PUBLIC_PUBLISH_INPUT' using errcode='22023';end if;
-  fp:=mission_factory_owner.sha(jsonb_build_object('kind','quest_human_ordinary/1','draft_id',p_draft,
-    'expected_version',p_expected_version,'preview_seal',p_preview_seal,
-    'visibility',p_visibility,'scheduled_at',p_scheduled_at));
-  perform pg_advisory_xact_lock(hashtextextended(p_request::text,25092028));
-  select * into prior from mission_factory_owner.publications where request_key=p_request;
-  if found then
-    if prior.actor_user<>auth.uid() or prior.content_kind<>'quest_human' or prior.fingerprint<>fp
-    then raise exception 'MF_QUEST_PUBLISH_REQUEST_CONFLICT' using errcode='40001'; end if;
-    if prior.state not in('staff','open','scheduled') or prior.receipt is null then
-      raise exception 'MF_QUEST_PUBLISH_REQUEST_PENDING' using errcode='40001'; end if;
-    return prior.receipt;
-  end if;
-  perform mission_factory_owner.assert_editor(auth.uid());
-
-  select * into d from mission_factory_owner.drafts where id=p_draft for update;
-  if not found then raise exception 'MF_DRAFT_NOT_FOUND' using errcode='P0002'; end if;
-  perform mission_factory_owner.assert_editor(d.author_user);
-  PERFORM mission_factory_owner.c416_draft_assert_v1(p_draft,false);
- authority:=mission_factory_owner.human_ordinary_authority_v1(p_draft,p_expected_version,d.document_sha256);
- IF authority IS NULL THEN RAISE EXCEPTION 'HUMAN_ORDINARY_PUBLISH_UNQUALIFIED' USING ERRCODE='55000';END IF;
- execution:=authority->>'execution_context';
- PERFORM mission_factory_owner.human_ordinary_npc_bundle_assert_v1(p_draft);
- select * into strict ad from mission_factory_owner.quest_fixed30_admission where singleton for share;
- release_sha:=authority->>'revision_sha256';
-  if d.control_version<>p_expected_version or d.state not in('draft','previewed')
-     or d.document->>'schema_version' is distinct from 'mission-factory-draft/3'
-     or d.document->>'content_kind' is distinct from 'quest_human'
-     or exists(select 1 from mission_factory_owner.publications
-       where draft_id=p_draft and operation_kind='direct')
-  then raise exception 'MF_QUEST_PUBLISH_DRAFT_DRIFT' using errcode='40001'; end if;
-  doc:=mission_factory_owner.validate_quest_draft_v2(d.document);
-  source_sha:=mission_factory_owner.sha(doc);
-  if d.document_sha256<>source_sha or d.catalog_version<>doc->>'catalog_version'
-  then raise exception 'MF_QUEST_PUBLISH_SOURCE_DRIFT' using errcode='40001'; end if;
-  locked_basis:=mission_factory_owner.human_ordinary_preview_basis_v1(p_draft,p_expected_version,true);
-  if mission_factory_owner.sha(locked_basis) is distinct from p_preview_seal then
-    raise exception 'MF_QUEST_PUBLISH_DEPENDENCY_DRIFT' using errcode='40001';end if;
-  preview:=public.mission_factory_quest_human_ordinary_preview_v1(p_draft,p_expected_version);
-  if preview->>'schema_version' is distinct from 'quest-human-preview/3'
-     or preview->'errors'<>'[]'::jsonb
-     or preview->>'preview_seal' is distinct from p_preview_seal
-  then raise exception 'MF_QUEST_PUBLISH_PREVIEW_DRIFT' using errcode='40001'; end if;
-  select * into roster from mission_factory_owner.quest_roster_assignments
-    where id=(doc#>>'{quest,roster_assignment_id}')::uuid
-      and draft_id=p_draft and active for share;
-  if roster.id is null then raise exception 'MF_QUEST_PUBLISH_ROSTER' using errcode='55000'; end if;
-  episode_count:=jsonb_array_length(doc#>'{quest,episodes}');
-  for ep,ord in select value,ordinality from jsonb_array_elements(doc#>'{quest,episodes}')
-    with ordinality x(value,ordinality) loop
-    policy_text:=ep#>>'{terminal_rules,reward_policy_id}';
-    if ord<episode_count and policy_text is not null then
-      raise exception 'MF_QUEST_REWARD_ONLY_FINAL_EPISODE' using errcode='22023'; end if;
-  end loop;
-  policy_text:=doc#>>array['quest','episodes',(episode_count-1)::text,'terminal_rules','reward_policy_id'];
-  if coalesce(policy_text,'') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-  then raise exception 'MF_QUEST_REWARD_POLICY_REQUIRED' using errcode='22023'; end if;
-  policy_id:=policy_text::uuid;
-  policy:=mission_factory_owner.quest_reward_policy_checked_v2(policy_id);
-  IF execution='public_real' THEN PERFORM mission_factory_owner.human_ordinary_release_read_assert_v1(release_sha,policy_id,true);ELSIF EXISTS(SELECT 1 FROM unnest(roster.member_character_ids)x(id) LEFT JOIN public.characters c ON c.id=x.id WHERE c.id IS NULL OR NOT(c.user_id=ANY(ad.allowed_auth_ids))) THEN RAISE EXCEPTION 'HUMAN_ORDINARY_PROTECTED_ROSTER';END IF;
-  if policy->>'policy_sha256' is distinct from locked_basis->>'reward_policy_sha256'
-     or release_sha is distinct from locked_basis->>'release_sha256' then
-    raise exception 'MF_QUEST_PUBLISH_POLICY_DRIFT' using errcode='40001';end if;
-  arc_id:=extensions.uuid_generate_v5(p_request,'mission-factory:quest-arc/2');
-  insert into mission_factory_owner.publications(
-    request_key,operation_kind,draft_id,draft_version,actor_user,fingerprint,preview_seal,
-    visibility,target,due_at,state,transaction_id,backend_pid,content_kind,release_revision_sha256)
-  values(p_request,'direct',p_draft,p_expected_version,auth.uid(),fp,p_preview_seal,
-    case when execution='staff_simulation' and p_visibility='open' then 'staff' else p_visibility end,case when execution='staff_simulation' then 'staff' else 'public' end,p_scheduled_at,'preparing',txid_current(),pg_backend_pid(),'quest_human',release_sha);
-  insert into mission_factory_owner.quest_arcs(
-    id,publication_request,draft_id,draft_version,source_document,source_sha256,quest_kind,
-    reward_policy_id,reward_policy_sha256,roster_assignment_id,member_character_ids,created_by,availability_scope,public_release_sha256,state,execution_context,execution_qualification_sha256,execution_auth_ids,logical_visibility,logical_due_at)
-  values(arc_id,p_request,p_draft,p_expected_version,doc,source_sha,doc#>>'{quest,quest_kind}',
-    policy_id,policy->>'policy_sha256',roster.id,roster.member_character_ids,auth.uid(),'public',release_sha,CASE WHEN p_visibility='open' THEN 'public_source' ELSE 'scheduled_source' END,execution,CASE WHEN execution='staff_simulation' THEN ad.public_staff_qualification_sha256 ELSE NULL END,CASE WHEN execution='staff_simulation' THEN ad.allowed_auth_ids ELSE NULL END,p_visibility,p_scheduled_at);
-  for ep,ord in select value,ordinality from jsonb_array_elements(doc#>'{quest,episodes}')
-    with ordinality x(value,ordinality) loop
-    episode_id:=extensions.uuid_generate_v5(arc_id,'mission-factory:quest-episode/2:'||ord::text);
-    insert into mission_factory_owner.quest_episodes(
-      id,arc_id,ordinal,episode_key,source_document,source_sha256,roster_assignment_id,member_character_ids)
-    values(episode_id,arc_id,ord::integer,ep->>'episode_key',ep,mission_factory_owner.sha(ep),roster.id,roster.member_character_ids);
-    if ord=1 then first_episode_id:=episode_id; end if;
-  end loop;
-  receipt:=jsonb_build_object('schema_version','quest-human-publish-receipt/3',
-    'request_key',p_request,'draft_id',p_draft,'content_kind','quest_human',
-    'quest_kind',doc#>>'{quest,quest_kind}','state',case when execution='staff_simulation' and p_visibility='open' then 'staff' else p_visibility end,'visibility',case when execution='staff_simulation' and p_visibility='open' then 'staff' else p_visibility end,
-    'scheduled_at',p_scheduled_at,'mission_id',null,'quest_arc_id',arc_id,
-    'quest_episode_id',first_episode_id,'source_sha256',source_sha,
-    'config_version',null,'activation_id',null);
-  delivery:=jsonb_build_object('schema_version','quest-human-delivery/3',
-    'content_kind','quest_human','state',case when execution='staff_simulation' and p_visibility='open' then 'staff' else p_visibility end,'mission_id',null,'quest_arc_id',arc_id,
-    'quest_episode_id',first_episode_id,'opened_at',case when p_visibility='open' and execution='public_real' then clock_timestamp() else null end,
-    'reason_code',case when p_visibility='scheduled' then 'MF_QUEST_SCHEDULE_PENDING' when execution='staff_simulation' then 'MF_QUEST_PUBLIC_STAFF_RESERVED' else null end);
-  update mission_factory_owner.publications set state=case when execution='staff_simulation' and p_visibility='open' then 'staff' else p_visibility end,quest_arc_id=arc_id,
-    quest_episode_id=first_episode_id,source_sha256=source_sha,receipt=publisher.receipt,
-    delivery=publisher.delivery,updated_at=clock_timestamp()
-    where request_key=p_request and state='preparing' and transaction_id=txid_current()
-      and backend_pid=pg_backend_pid();
-  if not found then raise exception 'MF_QUEST_PUBLISH_FINALIZE_LOST' using errcode='40001'; end if;
-  update mission_factory_owner.drafts set state='published',publish_request=p_request,
-    updated_at=clock_timestamp() where id=p_draft and control_version=p_expected_version;
-  if not found then raise exception 'MF_QUEST_DRAFT_FINALIZE_LOST' using errcode='40001'; end if;
-  IF locked_basis ? 'custom_capability' THEN
-  INSERT INTO mission_public_owner.release_admissions_v1(release_sha256,contract_version,db_sha256,edge_sha256,client_sha256,configuration_sha256,independent_review_ref,staff_evidence_ref,qualified_at,public_enabled)
- SELECT mission_factory_owner.sha(jsonb_build_object('schema_version','human-custom-source-key/1','publication_request',p_request)),cr.contract_version,cr.db_sha256,cr.edge_sha256,cr.client_sha256,cr.configuration_sha256,cr.independent_review_ref,'SOURCE_RECORD_ONLY:HUMAN_CUSTOM_SOURCE_PROVENANCE',cr.qualified_at,false FROM mission_public_owner.release_admissions_v1 cr WHERE cr.release_sha256=locked_basis#>>'{custom_capability,capability_sha256}' ON CONFLICT(release_sha256) DO NOTHING;
- IF NOT EXISTS(SELECT 1 FROM mission_public_owner.release_admissions_v1 sr JOIN mission_public_owner.release_admissions_v1 cr ON cr.release_sha256=locked_basis#>>'{custom_capability,capability_sha256}' WHERE sr.release_sha256=mission_factory_owner.sha(jsonb_build_object('schema_version','human-custom-source-key/1','publication_request',p_request)) AND sr.public_enabled=false AND sr.staff_evidence_ref='SOURCE_RECORD_ONLY:HUMAN_CUSTOM_SOURCE_PROVENANCE' AND sr.contract_version=cr.contract_version AND sr.db_sha256=cr.db_sha256 AND sr.edge_sha256=cr.edge_sha256 AND sr.client_sha256=cr.client_sha256 AND sr.configuration_sha256=cr.configuration_sha256 AND sr.independent_review_ref=cr.independent_review_ref AND sr.qualified_at=cr.qualified_at) THEN RAISE EXCEPTION 'HUMAN_CUSTOM_SOURCE_PARENT_ADMISSION_CONFLICT' USING ERRCODE='40001';END IF;
-   insert into mission_public_owner.public_qualification_attestations_v1(release_sha256,request_key,payload,payload_sha256,positive_staff_evidence_ref,authorized_test_manifest_ref)
-   select mission_factory_owner.sha(jsonb_build_object('schema_version','human-custom-source-key/1','publication_request',p_request)),extensions.uuid_generate_v5(p_request,'human-custom-source/1'),cx.proof,mission_factory_owner.sha(cx.proof),'HUMAN_CUSTOM_SOURCE_PROVENANCE',locked_basis#>>'{custom_capability,staff_manifest_ref}'
-   from (select jsonb_build_object('schema_version','human-custom-source/1','capability_sha256',locked_basis#>>'{custom_capability,capability_sha256}','base_release_sha256','5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366','publication_request',p_request,'draft_id',p_draft,'draft_version',p_expected_version,'source_sha256',source_sha,'arc_id',arc_id,'actor_user',auth.uid()) proof) cx;
-  END IF;
-  for episode_id in select id from mission_factory_owner.quest_episodes where quest_episodes.arc_id=publisher.arc_id order by ordinal loop
-    perform mission_factory_owner.quest_compile_v1(episode_id);
-  end loop;
-  return receipt;
-end $function$;
-
-CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_source_v1(p_session uuid, p_master boolean)
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_source_verified_v1(p_session uuid, p_master boolean, p_context jsonb)
  RETURNS jsonb
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO ''
 AS $function$
 DECLARE q mission_factory_owner.quest_run_sources;a mission_factory_owner.quest_arcs;m public.master_v2_sessions;
- b mission_factory_owner.c384_human_bindings;loc public.locations;u uuid:=auth.uid();proof jsonb;policy mission_factory_owner.quest_reward_policy_versions;
+ b mission_factory_owner.c384_human_bindings;loc public.locations;u uuid:=auth.uid();proof jsonb;authority_bundle jsonb;policy mission_factory_owner.quest_reward_policy_versions;
 BEGIN
+ IF mission_factory_owner.human_context_bound_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_SERVER_COMMAND_CONTEXT_INVALID' USING ERRCODE='42501';END IF;
+
  IF u IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' OR p_session IS NULL OR p_master IS NULL THEN RETURN NULL;END IF;
  SELECT * INTO q FROM mission_factory_owner.quest_run_sources WHERE session_id=p_session;
  SELECT * INTO a FROM mission_factory_owner.quest_arcs WHERE id=q.arc_id;
@@ -685,885 +286,36 @@ BEGIN
  OR (p_master AND (u IS DISTINCT FROM m.master_user OR public.master_v2_is_master(u) IS DISTINCT FROM true))
  OR (NOT p_master AND u IS DISTINCT FROM m.master_user AND NOT EXISTS(SELECT 1 FROM public.characters c WHERE c.id=ANY(q.roster_character_ids) AND c.user_id=u))
  THEN RETURN NULL;END IF;
- IF mission_factory_owner.human_ordinary_arc_scope_v1(a.id,q.state NOT IN('terminal','cancelled')) IS DISTINCT FROM true THEN RETURN NULL;END IF;
- IF EXISTS(SELECT 1 FROM jsonb_array_elements(a.source_document->'npc_bindings') ca JOIN png_builder_internal.bundles cb ON cb.id=(ca->>'npc_version_id')::uuid JOIN public.nb_mechanical_versions cm ON cm.id=cb.mechanical_version_id WHERE cm.profile_kind='npc_custom') THEN PERFORM mission_factory_owner.human_custom_source_assert_v1(a.draft_id,q.state NOT IN('terminal','cancelled'));END IF;
+ IF q.state NOT IN('terminal','cancelled') THEN
+  proof:=mission_factory_owner.human_ordinary_authority_verified_v1(a.draft_id,a.draft_version,a.source_sha256,p_context);
+  IF proof IS NOT NULL THEN authority_bundle:=jsonb_build_object('arc_id',a.id,'draft_id',a.draft_id,'draft_version',a.draft_version,'source_sha256',a.source_sha256,'observation_sha256',p_context->>'observation_sha256','authority',proof);END IF;
+ END IF;
+ IF mission_factory_owner.human_ordinary_arc_scope_verified_v1(a.id,q.state NOT IN('terminal','cancelled'),p_context,authority_bundle) IS DISTINCT FROM true THEN RETURN NULL;END IF;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(a.source_document->'npc_bindings') ca JOIN png_builder_internal.bundles cb ON cb.id=(ca->>'npc_version_id')::uuid JOIN public.nb_mechanical_versions cm ON cm.id=cb.mechanical_version_id WHERE cm.profile_kind='npc_custom') THEN PERFORM mission_factory_owner.human_custom_source_assert_verified_v1(a.draft_id,q.state NOT IN('terminal','cancelled'),p_context,authority_bundle);END IF;
  SELECT * INTO policy FROM mission_factory_owner.quest_reward_policy_versions WHERE id=a.reward_policy_id;
  IF policy.id IS NULL OR policy.document_sha256 IS DISTINCT FROM a.reward_policy_sha256
  OR policy.document_sha256 IS DISTINCT FROM mission_factory_owner.sha(policy.document)
  OR policy.document IS DISTINCT FROM mission_factory_owner.quest_reward_fixed30_document_v2()
- OR (a.execution_context='public_real' AND q.state NOT IN('terminal','cancelled') AND NOT EXISTS(SELECT 1 FROM mission_factory_owner.quest_fixed30_admission g WHERE g.singleton AND (g.public_enabled OR (mission_public_owner.human_positive_qualification_v1(a.public_release_sha256,true)->>'schema_version' IS NOT DISTINCT FROM 'human-owner-accepted-release/1')) AND g.public_release_sha256=a.public_release_sha256 AND g.public_policy_id=a.reward_policy_id AND g.public_qualification_sha256 IS NOT NULL))
+ OR (a.execution_context='public_real' AND q.state NOT IN('terminal','cancelled') AND NOT EXISTS(SELECT 1 FROM mission_factory_owner.quest_fixed30_admission g WHERE g.singleton AND (g.public_enabled OR (mission_public_owner.human_positive_qualification_v1(a.public_release_sha256,true)->>'schema_version' IS NOT DISTINCT FROM 'human-owner-accepted-release/1')) AND g.public_release_sha256=a.public_release_sha256 AND (g.public_policy_id=a.reward_policy_id OR EXISTS(SELECT 1 FROM mission_factory_owner.quest_reward_policy_versions hp_new JOIN mission_factory_owner.quest_reward_policy_versions hp_old ON hp_old.id=g.public_policy_id
+ WHERE hp_new.id=a.reward_policy_id AND hp_new.qualified AND hp_old.qualified AND hp_new.scope='staff' AND hp_old.scope='staff' AND hp_new.document_sha256='34197acc065af70dc89ac15d54c19044f4e5af07c91b5869eb0b360a0fcfef19' AND hp_old.document_sha256=hp_new.document_sha256 AND hp_new.document IS NOT DISTINCT FROM hp_old.document AND hp_new.document IS NOT DISTINCT FROM mission_factory_owner.quest_reward_fixed30_document_v2() AND mission_factory_owner.sha(hp_new.document)=hp_new.document_sha256 AND mission_factory_owner.sha(hp_old.document)=hp_old.document_sha256
+ AND EXISTS(SELECT 1 FROM mission_factory_owner.quest_fixed30_policy_requests hp_q JOIN mission_factory_owner.catalog_versions hp_cv ON hp_cv.version=hp_q.catalog_version AND hp_cv.active AND hp_cv.qualified AND hp_cv.document_sha256=hp_q.catalog_sha256 AND hp_cv.document_sha256=mission_factory_owner.sha(hp_cv.document) WHERE hp_q.policy_id=hp_new.id AND hp_q.document_sha256=hp_new.document_sha256 AND hp_q.catalog_version=a.source_document->>'catalog_version'))) AND g.public_qualification_sha256 IS NOT NULL))
  THEN RETURN NULL;END IF;
  RETURN jsonb_build_object('schema_version','human-ordinary-source/1','native_session_id',p_session,'quest_arc_id',q.arc_id,'quest_episode_id',q.episode_id,'source_sha256',q.source_sha256,'release_sha256',a.public_release_sha256,'execution_context',a.execution_context,'location_id',q.location_id,'assigned_master',m.master_user,'roster_character_ids',q.roster_character_ids,'effect_mode',CASE WHEN a.execution_context='public_real' THEN 'real' ELSE 'simulation' END,'reward_policy_id',a.reward_policy_id,'reward_policy_sha256',a.reward_policy_sha256);
 END $function$;
 
-CREATE OR REPLACE FUNCTION mission_factory_owner.quest_deep_validate_v2(p_draft uuid, p_document jsonb)
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_source_with_context_v1(p_session uuid, p_master boolean, p_context jsonb)
  RETURNS jsonb
  LANGUAGE plpgsql
- SECURITY DEFINER
+ STABLE SECURITY DEFINER
  SET search_path TO ''
 AS $function$
-<<validator>>
-declare errors jsonb:='[]'::jsonb; e jsonb; ph jsonb; t jsonb; m jsonb; a jsonb; b jsonb;
-        cap jsonb; cat jsonb; caps jsonb; ref jsonb; phase_keys text[]; actor_keys text[];
-        bound_keys text[]:='{}'; media mission_factory_owner.context_media_tickets;
-        arena combat_spatial.arena_templates; episode_key text; step_key text; ident uuid;
-        d mission_factory_owner.drafts%rowtype; item jsonb;
-begin
- IF p_document->>'content_kind'='quest_human' AND EXISTS(SELECT 1 FROM mission_factory_owner.quest_arcs oa WHERE oa.draft_id=p_draft AND oa.source_sha256=mission_factory_owner.sha(p_document) AND oa.availability_scope='public' AND oa.source_document IS NOT DISTINCT FROM p_document AND mission_factory_owner.human_ordinary_arc_scope_v1(oa.id,false)) THEN
-  RETURN mission_factory_owner.human_ordinary_deep_validate_v1(p_draft,p_document);
- END IF;
-  if p_draft is null or NOT ((p_document->>'schema_version'='mission-factory-draft/2' AND p_document->>'content_kind'='quest_ai') OR (p_document->>'schema_version'='mission-factory-draft/3' AND p_document->>'content_kind'='quest_human'))
-  then raise exception 'MF_QUEST_DEEP_INPUT' using errcode='22023'; end if;
-  perform mission_factory_owner.validate_quest_draft_v2(p_document);
-  select * into d from mission_factory_owner.drafts where id=p_draft;
-  if d.id is null or d.document is distinct from p_document
-     or d.document_sha256 is distinct from mission_factory_owner.sha(p_document) then
-    raise exception 'MF_NPC_AUTHORING_DRAFT_STALE' using errcode='40001'; end if;
-  cat:=public.mission_factory_catalog_v2(); caps:=cat->'capabilities';
-  for b in select value from jsonb_array_elements(p_document->'npc_bindings') loop
-    if b->>'actor_key'=any(bound_keys) then
-      errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_NPC_DUPLICATE','path','npc_bindings'));
-    else bound_keys:=bound_keys||(b->>'actor_key'); end if;
-    for a in select value from jsonb_array_elements(b->'phase_keys') loop
-      if jsonb_typeof(a) is distinct from 'string' or not exists(
-        select 1 from jsonb_array_elements(p_document#>'{quest,episodes}') ep,
-                      jsonb_array_elements(ep.value->'phases') pp
-        where (ep.value->>'episode_key')||'/'||(pp.value->>'step_key')=a#>>'{}') then
-        errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_NPC_PHASE_BINDING',
-          'path','npc_bindings'));
-      end if;
-    end loop;
-    if coalesce(b->>'npc_id','') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-       or coalesce(b->>'npc_version_id','') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    then errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_NPC_ID','path','npc_bindings'));
-    else
-      begin
-        item:=mission_factory_owner.npc_item_v2(
-          (b->>'npc_id')::uuid,(b->>'npc_version_id')::uuid,p_document->>'content_kind',false);
-        ref:=mission_factory_owner.npc_reference_context_v1(
-          p_draft,d.control_version,b->>'actor_key',d.state='published');
-        if ref->>'bundle_sha256' is null
-           or item->>'bundle_sha256' is distinct from ref->>'bundle_sha256' then
-          errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_NPC_STALE','path','npc_bindings'));
-        end if;
-      exception when SQLSTATE '55000' then
-        errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_NPC_UNQUALIFIED','path','npc_bindings'));
-      end;
-    end if;
-  end loop;
-  for e in select value from jsonb_array_elements(p_document#>'{quest,episodes}') loop
-    episode_key:=e->>'episode_key'; phase_keys:='{}'; actor_keys:='{}';
-    for ph in select value from jsonb_array_elements(e->'phases') loop
-      step_key:=ph->>'step_key'; phase_keys:=phase_keys||step_key;
-      perform mission_factory_owner.c360_native_phase_assert_v1(ph);
-      select value into cap from jsonb_array_elements(coalesce(caps,'[]'::jsonb)) x
-        where x.value->>'key'=ph->>'capability_key' and x.value->>'qualified'='true' AND (p_document->>'content_kind'<>'quest_human' OR mission_factory_owner.c416_cap_allowed_v1(x.value,'quest_human')) limit 1;
-      if cap is null then
-        errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_CAPABILITY_UNQUALIFIED',
-          'path','quest.episodes.'||episode_key||'.phases.'||step_key));
-      else
-        for t in select value from jsonb_array_elements(ph->'transition_options') loop
-          if not (coalesce(cap->'decision_keys','[]'::jsonb) ? (t->>'decision_key')) then
-            errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_DECISION_UNQUALIFIED',
-              'path','quest.episodes.'||episode_key||'.phases.'||step_key));
-          end if;
-        end loop;
-      end if;
-    end loop;
-    for ph in select value from jsonb_array_elements(e->'phases') loop
-      for t in select value from jsonb_array_elements(ph->'transition_options') loop
-        if t->>'to_step_key' is not null and not (t->>'to_step_key'=any(phase_keys)) then
-          errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_TRANSITION_TARGET',
-            'path','quest.episodes.'||episode_key||'.phases.'||(ph->>'step_key')));
-        end if;
-      end loop;
-    end loop;
-    if not (e#>>'{terminal_rules,terminal_step_key}'=any(phase_keys)) then
-      errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_TERMINAL_STEP',
-        'path','quest.episodes.'||episode_key||'.terminal_rules'));
-    end if;
-    if not exists(select 1 from jsonb_array_elements(coalesce(caps,'[]'::jsonb)) x
-      where x.value->>'key'=e#>>'{terminal_rules,outcome_capability_key}'
-        and x.value->>'family'='terminal' and x.value->>'qualified'='true') then
-      errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_TERMINAL_CAPABILITY',
-        'path','quest.episodes.'||episode_key||'.terminal_rules'));
-    end if;
-    for a in select value from jsonb_array_elements(e->'npc_actor_keys') loop
-      if jsonb_typeof(a) is distinct from 'string' or not (a#>>'{}'=any(bound_keys))
-         or a#>>'{}'=any(actor_keys) then
-        errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_EPISODE_NPC_BINDING',
-          'path','quest.episodes.'||episode_key||'.npc_actor_keys'));
-      else actor_keys:=actor_keys||(a#>>'{}'); end if;
-    end loop;
-    for m in select value from jsonb_array_elements(e->'maps') loop
-      step_key:=m->>'step_key';
-      if m->>'context_media_id' is not null then
-        if coalesce(m->>'context_media_id','') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then
-          errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_MEDIA_ID',
-            'path','quest.episodes.'||episode_key||'.maps.'||step_key));
-        else
-          select * into media from mission_factory_owner.context_media_tickets
-            where media_id=(m->>'context_media_id')::uuid and draft_id=p_draft
-              and content_kind=p_document->>'content_kind' and episode_key=validator.episode_key
-              and step_key=validator.step_key and active;
-          if media.media_id is null or media.registered_at is null
-             or media.result->>'schema_version' is distinct from 'mission-factory-context-media-registration/2'
-             or media.result->>'sha256' is distinct from media.sha256
-             or not exists(select 1 from storage.objects o
-                 where o.bucket_id='location-images' and o.name=media.object_path) then
-            errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_MEDIA_STALE',
-              'path','quest.episodes.'||episode_key||'.maps.'||step_key));
-          end if;
-        end if;
-      end if;
-      if jsonb_typeof(m->'arena_ref')='object' then
-        ref:=m->'arena_ref';
-        if coalesce(ref->>'template_version','') !~ '^[1-9][0-9]{0,8}$' then
-          errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_ARENA_VERSION',
-            'path','quest.episodes.'||episode_key||'.maps.'||step_key));
-        else
-          select * into arena from combat_spatial.arena_templates
-            where template_key=ref->>'template_key'
-              and template_version=(ref->>'template_version')::integer;
-          if arena.template_key is null then
-            errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_ARENA_UNQUALIFIED',
-              'path','quest.episodes.'||episode_key||'.maps.'||step_key));
-          elsif arena.status<>'ready'
-             or combat_spatial.template_errors(arena.template_key,arena.template_version)<>'[]'::jsonb
-             or arena.geometry_hash is distinct from
-                combat_spatial.geometry_fingerprint(arena.template_key,arena.template_version) then
-            errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_QUEST_ARENA_UNQUALIFIED',
-              'path','quest.episodes.'||episode_key||'.maps.'||step_key));
-          end if;
-        end if;
-      end if;
-    end loop;
-  end loop;
-  return errors;
-end $function$;
-
-CREATE OR REPLACE FUNCTION mission_factory_owner.c395_revision_issue_v1(p_lineage uuid, p_version bigint, p_arc uuid, p_episode uuid, p_request uuid)
- RETURNS uuid
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-DECLARE v mission_factory_owner.c384_authoring_versions;e mission_factory_owner.quest_episodes;a mission_factory_owner.quest_arcs;
-h mission_factory_owner.c395_quest_revisions;ep jsonb;arenas jsonb;rid uuid;u uuid:=auth.uid();
 BEGIN
-IF u IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' OR p_request IS NULL
-THEN RAISE EXCEPTION 'C395_NORMAL_AUTH_REVISION_REQUIRED' USING ERRCODE='42501';END IF;
-PERFORM mission_factory_owner.assert_editor(u);
-PERFORM pg_advisory_xact_lock(hashtextextended('c395-revision:'||p_episode::text,395));
-SELECT * INTO h FROM mission_factory_owner.c395_quest_revisions WHERE episode_id=p_episode;
-IF FOUND THEN
-IF (h.lineage_id,h.authoring_version,h.arc_id,h.assigned_master,h.request_key) IS DISTINCT FROM (p_lineage,p_version,p_arc,u,p_request)
-THEN RAISE EXCEPTION 'C395_REVISION_REQUEST_CONFLICT' USING ERRCODE='22023';END IF;RETURN h.id;
-END IF;
-SELECT * INTO STRICT v FROM mission_factory_owner.c384_authoring_versions WHERE lineage_id=p_lineage AND version=p_version FOR SHARE;
-SELECT * INTO STRICT e FROM mission_factory_owner.quest_episodes WHERE id=p_episode AND arc_id=p_arc FOR SHARE;
-SELECT * INTO STRICT a FROM mission_factory_owner.quest_arcs WHERE id=p_arc FOR SHARE;
-SELECT value INTO STRICT ep FROM jsonb_array_elements(v.document#>'{quest,episodes}') x WHERE value->>'episode_key'=e.episode_key;
-IF v.author_user IS DISTINCT FROM u OR a.created_by IS DISTINCT FROM u OR v.document#>>'{variants,human,state}' IS DISTINCT FROM 'complete'
-OR ep IS DISTINCT FROM e.source_document OR e.source_sha256 IS DISTINCT FROM mission_factory_owner.sha(ep)
-OR ((a.availability_scope IS DISTINCT FROM 'staff' OR a.execution_context IS DISTINCT FROM 'staff_simulation') AND NOT(a.availability_scope='public' AND a.source_document->>'content_kind'='quest_human' AND mission_factory_owner.human_ordinary_arc_scope_v1(a.id,true)))
-OR e.state IS DISTINCT FROM 'source_only' OR v.document#>>'{quest,quest_kind}' IS DISTINCT FROM a.quest_kind
-OR NOT EXISTS(SELECT 1 FROM mission_factory_owner.c395_control WHERE singleton AND prepare_enabled)
-THEN RAISE EXCEPTION 'C395_IMMUTABLE_COMMON_SOURCE_REQUIRED' USING ERRCODE='42501';END IF;
-PERFORM mission_factory_owner.c384_validate_dual_draft_v3(v.document);
-IF mission_factory_owner.quest_compile_check_v1(e.id) IS DISTINCT FROM '[]'::jsonb
-THEN RAISE EXCEPTION 'C395_NATIVE_COMPILE_QUALIFICATION_REQUIRED' USING ERRCODE='42501';END IF;
--- Arena refs are authored/versioned; no UUID or qualification is invented.
-SELECT coalesce(jsonb_agg(jsonb_build_object('step_key',x.value->>'step_key',
-'template_key',x.value#>>'{arena_ref,template_key}','template_version',x.value#>'{arena_ref,template_version}',
-'zone_key',x.value#>>'{arena_ref,zone_key}',
-'catalog_sha256',combat_panel_private.universal_arena_hash(x.value#>>'{arena_ref,template_key}',(x.value#>>'{arena_ref,template_version}')::integer)) ORDER BY x.value->>'step_key'),'[]'::jsonb)
-INTO arenas FROM jsonb_array_elements(ep->'maps') x WHERE jsonb_typeof(x.value->'arena_ref')='object';
-rid:=extensions.uuid_generate_v5(p_request,'mission-factory:human-quest-revision/1');
-INSERT INTO mission_factory_owner.c395_quest_revisions(id,lineage_id,authoring_version,arc_id,episode_id,assigned_master,source_sha256,document,document_sha256,arena_sources,request_key)
-VALUES(rid,p_lineage,p_version,p_arc,p_episode,u,e.source_sha256,v.document#>'{variants,human,document}',
-mission_factory_owner.sha(v.document#>'{variants,human,document}'),arenas,p_request);
-RETURN rid;
-END $function$;
-
-CREATE OR REPLACE FUNCTION public.master_v2_encounter_open_ninja_book_v1_human_ai_core(p_master_session uuid, p_pg_ids uuid[], p_actor_offers jsonb, p_team_map jsonb, p_request_key uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-declare
-  v_uid uuid:=auth.uid(); v_m public.master_v2_sessions%rowtype; v_event jsonb; v_event_id uuid;
-  v_enc uuid; v_round uuid; v_pg uuid; v_snap jsonb; v_team text; v_spec jsonb;
-  v_offer public.master_v2_nb_actor_offers_v1%rowtype; v_nt public.nb_templates%rowtype;
-  v_nv public.nb_template_versions%rowtype; v_b public.nb_mechanical_bindings%rowtype;
-  v_mt public.nb_mechanical_templates%rowtype; v_mv public.nb_mechanical_versions%rowtype;
-  v_instance uuid; v_mode text; v_result jsonb; v_count integer; v_client uuid; v_offer_ref uuid; v_quest_source mission_factory_owner.quest_run_sources; v_is_human_quest boolean; v_custom_bundle uuid;
-begin
-  perform mission_creation_owner.assert_human_open(p_master_session,p_request_key,p_pg_ids,p_actor_offers,p_team_map);
-  if v_uid is null then perform public.master_v2_nb_fail_v1('autenticazione_richiesta','Autenticazione richiesta.',401,p_request_key); end if;
-  select * into v_m from public.master_v2_sessions where id=p_master_session;
-  if v_m.id is null then perform public.master_v2_nb_fail_v1('sessione_inesistente','Sessione Master inesistente.',404,p_request_key); end if;
-  if v_m.master_user<>v_uid and NOT mission_generic_owner.regia_entry_permit_valid_v1(p_master_session,p_request_key) then perform public.master_v2_nb_fail_v1('master_non_proprietario','Solo il Master corrente può aprire lo scontro.',403,p_request_key); end if;
-  v_is_human_quest:=mission_factory_owner.c395_human_mode_v1(p_master_session);
-  IF v_is_human_quest THEN SELECT * INTO STRICT v_quest_source FROM mission_factory_owner.quest_run_sources WHERE session_id=p_master_session FOR SHARE;PERFORM mission_factory_owner.c407_active_v1(p_master_session,'admission');END IF;
-  if v_m.tipo<>'quest' or (NOT v_is_human_quest AND v_m.mission_id is null) OR (v_is_human_quest AND (v_m.mission_id IS NOT NULL OR v_quest_source.state IS DISTINCT FROM 'started')) or v_m.stato not in ('preparazione','in_corso') then
-    perform public.master_v2_nb_fail_v1('sessione_non_operativa','Sessione missione non operativa.',409,p_request_key);
-  end if;
-  if p_pg_ids is null or cardinality(p_pg_ids)<1 or cardinality(p_pg_ids)>12
-     or p_actor_offers is null or jsonb_typeof(p_actor_offers)<>'array'
-     or jsonb_array_length(p_actor_offers)<1 or jsonb_array_length(p_actor_offers)>12
-     or p_team_map is null or jsonb_typeof(p_team_map)<>'object' then
-    perform public.master_v2_nb_fail_v1('intento_non_valido','Elenco attori non valido.',422,p_request_key);
-  end if;
-  select count(distinct x) into v_count from unnest(p_pg_ids) x;
-  if v_count<>cardinality(p_pg_ids) then perform public.master_v2_nb_fail_v1('intento_non_valido','PG duplicato.',422,p_request_key); end if;
-  if exists(select 1 from public.characters c where c.id=any(p_pg_ids) and c.user_id=v_uid) and not (public.is_staff() and exists(select 1 from public.locations l where l.id=v_m.location_id and l.is_test)) then
-    perform public.master_v2_nb_fail_v1('attore_non_controllato','Il Master corrente non può essere un attore PG.',422,p_request_key);
-  end if;
-  if (select count(*) from public.characters c where c.id=any(p_pg_ids))<>cardinality(p_pg_ids) then
-    perform public.master_v2_nb_fail_v1('intento_non_valido','Uno o più PG non esistono.',422,p_request_key);
-  end if;
-  if exists(select 1 from jsonb_array_elements(p_actor_offers) x
-    where jsonb_typeof(x)<>'object' or public.combat_v2_has_forbidden_key(x)
-       or exists(select 1 from jsonb_object_keys(x) k where k not in ('client_ref','provider','offer_ref'))
-       or (select count(*) from jsonb_object_keys(x))<>3) then
-    perform public.master_v2_nb_fail_v1('campo_meccanico_vietato','Payload provider non valido.',422,p_request_key);
-  end if;
-  if exists(select 1 from jsonb_array_elements(p_actor_offers) x where x->>'provider'<>'ninja_book') then
-    perform public.master_v2_nb_fail_v1('riferimento_provider_non_valido','Provider non valido.',422,p_request_key);
-  end if;
-  begin
-    if (select count(distinct (x->>'client_ref')::uuid) from jsonb_array_elements(p_actor_offers) x)<>jsonb_array_length(p_actor_offers)
-       or (select count(distinct (x->>'offer_ref')::uuid) from jsonb_array_elements(p_actor_offers) x)<>jsonb_array_length(p_actor_offers) then
-      perform public.master_v2_nb_fail_v1('intento_non_valido','Identità provider duplicata.',422,p_request_key);
-    end if;
-  exception when invalid_text_representation then
-    perform public.master_v2_nb_fail_v1('intento_non_valido','Riferimento provider non valido.',422,p_request_key);
-  end;
-  if (select count(*) from jsonb_object_keys(p_team_map))<>
-       cardinality(p_pg_ids)+jsonb_array_length(p_actor_offers)
-     or exists(select 1 from jsonb_object_keys(p_team_map) k
-       where not (k=any(array(select x::text from unnest(p_pg_ids) x))
-                  or k=any(array(select x->>'client_ref' from jsonb_array_elements(p_actor_offers) x)))) then
-    perform public.master_v2_nb_fail_v1('intento_non_valido','Mappa squadre non esatta.',422,p_request_key);
-  end if;
-
-  perform 1 from public.locations l where l.id=v_m.location_id order by l.id for update;
-  perform combat_gate_private.master_claim_assert(p_master_session,v_m.location_id);
-  perform 1 from public.characters c where c.id=any(p_pg_ids) order by c.id for key share;
-  perform public.master_v2_lock_scope(p_master_session);
-  select * into v_m from public.master_v2_sessions where id=p_master_session for update;
-  if v_m.master_user<>v_uid and NOT mission_generic_owner.regia_entry_permit_valid_v1(p_master_session,p_request_key) then perform public.master_v2_nb_fail_v1('master_non_proprietario','Controllo Master cambiato durante l’apertura.',409,p_request_key); end if;
-  if v_m.tipo<>'quest' or v_m.stato not in ('preparazione','in_corso') then
-    perform public.master_v2_nb_fail_v1('sessione_non_operativa','Sessione non più operativa.',409,p_request_key);
-  end if;
-  v_event:=public.combat_v2_event_begin(p_master_session,p_request_key,
-    'master_v2_encounter_open_ninja_book_v1',jsonb_build_object('pg',p_pg_ids,'actors',p_actor_offers,'teams',p_team_map),v_m.control_version);
-  if (v_event->>'replay')::boolean then
-    v_event_id:=(v_event->>'event_id')::uuid;
-    insert into public.master_v2_nb_offer_audit_v1(offer_ref,event_id,action,actor_user)
-    select (x->>'offer_ref')::uuid,v_event_id,'replay',v_uid from jsonb_array_elements(p_actor_offers) x
-    on conflict do nothing;
-    return v_event->'result';
-  end if;
-  v_event_id:=(v_event->>'event_id')::uuid;
-  if exists(select 1 from public.combat_sessions where location_id=v_m.location_id and state='aperto')
-     or exists(select 1 from public.combat_v2_sessions where location_id=v_m.location_id AND user_test_context_id IS NULL and state not in ('chiuso','annullato')) then
-    perform public.master_v2_nb_fail_v1('scontro_gia_aperto_nel_luogo','Esiste già uno scontro nel luogo.',409,p_request_key);
-  end if;
-
-  -- Ordine lock: sessione Master -> offer UUID -> narrative/binding/mechanical UUID.
-  perform 1 from public.master_v2_nb_actor_offers_v1 o
-   where o.offer_ref in (select (x->>'offer_ref')::uuid from jsonb_array_elements(p_actor_offers) x)
-   order by o.offer_ref for update;
-  if (select count(*) from public.master_v2_nb_actor_offers_v1 o
-      where o.offer_ref in (select (x->>'offer_ref')::uuid from jsonb_array_elements(p_actor_offers) x))<>jsonb_array_length(p_actor_offers) then
-    perform public.master_v2_nb_fail_v1('opzione_non_offerta','Opzione non offerta.',422,p_request_key);
-  end if;
-  perform 1 from public.nb_template_versions v where v.id in(
-    select o.narrative_version_id from public.master_v2_nb_actor_offers_v1 o
-    where o.offer_ref in(select (x->>'offer_ref')::uuid from jsonb_array_elements(p_actor_offers)x)) order by v.id for update;
-  perform 1 from public.nb_templates t where t.id in(
-    select o.narrative_template_id from public.master_v2_nb_actor_offers_v1 o
-    where o.offer_ref in(select (x->>'offer_ref')::uuid from jsonb_array_elements(p_actor_offers)x)) order by t.id for update;
-  perform 1 from public.nb_mechanical_bindings b where b.narrative_version_id in(
-    select o.narrative_version_id from public.master_v2_nb_actor_offers_v1 o
-    where o.offer_ref in(select (x->>'offer_ref')::uuid from jsonb_array_elements(p_actor_offers)x)) order by b.id for update;
-  perform 1 from public.nb_mechanical_versions v where v.id in(
-    select o.mechanical_version_id from public.master_v2_nb_actor_offers_v1 o
-    where o.offer_ref in(select (x->>'offer_ref')::uuid from jsonb_array_elements(p_actor_offers)x)) order by v.id for update;
-  perform 1 from public.nb_mechanical_templates t where t.id in(
-    select o.mechanical_template_id from public.master_v2_nb_actor_offers_v1 o
-    where o.offer_ref in(select (x->>'offer_ref')::uuid from jsonb_array_elements(p_actor_offers)x)) order by t.id for update;
-
-  -- Risolve e congela tutto prima del primo INSERT di sessione/istanza.
-  for v_spec in select value from jsonb_array_elements(p_actor_offers) order by value->>'offer_ref' loop
-    v_client:=(v_spec->>'client_ref')::uuid; v_offer_ref:=(v_spec->>'offer_ref')::uuid;
-    select * into v_offer from public.master_v2_nb_actor_offers_v1 where offer_ref=v_offer_ref;
-    if v_offer.master_session_id<>p_master_session OR (v_is_human_quest AND (v_offer.source_kind IS DISTINCT FROM 'quest' OR v_offer.mission_id IS NOT NULL OR v_offer.quest_episode_id IS DISTINCT FROM v_quest_source.episode_id OR v_offer.quest_source_sha256 IS DISTINCT FROM v_quest_source.source_sha256)) OR (NOT v_is_human_quest AND (v_offer.source_kind IS DISTINCT FROM 'mission' OR v_offer.mission_id IS DISTINCT FROM v_m.mission_id))
-       or v_offer.recipient_user<>v_m.master_user or v_offer.lifecycle_state<>'offerta'
-       or v_offer.expires_at<=clock_timestamp() then
-      perform public.master_v2_nb_fail_v1('opzione_non_offerta','Opzione non offerta.',422,p_request_key);
-    end if;
-    select * into v_nv from public.nb_template_versions where id=v_offer.narrative_version_id and template_id=v_offer.narrative_template_id;
-    select * into v_nt from public.nb_templates where id=v_offer.narrative_template_id;
-    select * into v_b from public.nb_mechanical_bindings where narrative_version_id=v_offer.narrative_version_id;
-    select * into v_mv from public.nb_mechanical_versions where id=v_offer.mechanical_version_id and template_id=v_offer.mechanical_template_id;
-    select * into v_mt from public.nb_mechanical_templates where id=v_offer.mechanical_template_id;
-
-    -- Canonical custom bundle must pass the Human Native Staff gate before any insert.
-    IF v_mv.profile_kind='npc_custom' AND v_is_human_quest AND v_m.owner_kind='human'
-      AND ((v_m.location_id='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid AND v_quest_source.availability_scope='staff' AND v_quest_source.execution_context='staff_simulation') OR (v_quest_source.availability_scope='public' AND mission_factory_owner.human_ordinary_source_v1(p_master_session,true) IS NOT NULL)) THEN
-      IF (SELECT count(*) FROM png_builder_internal.bundles custom_bundle JOIN png_builder_internal.npc_custom_combat_attests custom_attest ON custom_attest.bundle_id=custom_bundle.id
-          WHERE custom_bundle.template_id=v_offer.narrative_template_id AND custom_bundle.narrative_version_id=v_offer.narrative_version_id
-          AND custom_bundle.mechanical_version_id=v_offer.mechanical_version_id AND custom_bundle.mechanical_binding_id=v_b.id
-          AND custom_bundle.status='certified' AND custom_bundle.ownership_mode='adopted' AND custom_bundle.disabled_at IS NULL)<>1
-      THEN PERFORM public.master_v2_nb_fail_v1('opzione_non_offerta','Bundle PNG non disponibile.',422,p_request_key);END IF;
-      SELECT custom_bundle.id INTO STRICT v_custom_bundle FROM png_builder_internal.bundles custom_bundle JOIN png_builder_internal.npc_custom_combat_attests custom_attest ON custom_attest.bundle_id=custom_bundle.id
-       WHERE custom_bundle.template_id=v_offer.narrative_template_id AND custom_bundle.narrative_version_id=v_offer.narrative_version_id
-       AND custom_bundle.mechanical_version_id=v_offer.mechanical_version_id AND custom_bundle.mechanical_binding_id=v_b.id
-       AND custom_bundle.status='certified' AND custom_bundle.ownership_mode='adopted' AND custom_bundle.disabled_at IS NULL;
-      PERFORM mission_factory_owner.npc_custom_combat_runtime_assert_v1(p_master_session,NULL,v_offer_ref,v_custom_bundle);
-    END IF;
-    if v_nt.id is null or v_nv.id is null or v_b.id is null or v_mt.id is null or v_mv.id is null
-       or v_nt.lifecycle_state<>'approved' or v_nt.current_version_id<>v_nv.id or v_nv.review_state<>'approved'
-       or v_b.lifecycle_state<>'approved' or not v_b.active
-       or v_b.mechanical_template_id<>v_mt.id or v_b.mechanical_version_id<>v_mv.id
-       or v_mt.lifecycle_state<>'approved' or not v_mt.active or v_mt.current_version_id<>v_mv.id
-       or v_mv.review_state<>'approved' then
-      perform public.master_v2_nb_fail_v1('opzione_non_offerta','Opzione non offerta.',422,p_request_key);
-    end if;
-    if v_offer.expected_master_control_version<>v_m.control_version
-       or v_offer.expected_narrative_template_control_version<>v_nt.control_version
-       or v_offer.expected_narrative_version_control_version<>v_nv.control_version
-       or v_offer.expected_binding_control_version<>v_b.control_version
-       or v_offer.expected_mechanical_template_control_version<>v_mt.control_version
-       or v_offer.expected_mechanical_version_control_version<>v_mv.control_version
-       or v_offer.expected_narrative_sha256<>v_nv.content_sha256
-       or v_offer.expected_mechanical_sha256<>v_mv.content_sha256 then
-      perform public.master_v2_nb_fail_v1('versione_provider_obsoleta','L’offerta provider è obsoleta.',409,p_request_key);
-    end if;
-    v_team:=nullif(btrim(p_team_map->>v_client::text),'');
-    if v_team is null then perform public.master_v2_nb_fail_v1('intento_non_valido','Squadra provider mancante.',422,p_request_key); end if;
-  end loop;
-
-  insert into public.combat_v2_sessions(source_kind,master_session_id,location_id,state,lesiva)
-  values('master',p_master_session,v_m.location_id,'in_corso',not exists(select 1 from public.locations l where l.id=v_m.location_id and l.is_test)) returning id into v_enc;
-  foreach v_pg in array p_pg_ids loop
-    v_snap:=mission_creation_owner.carry_snapshot(p_master_session,v_pg,null,public.combat_v2_character_snapshot(v_pg)); v_team:=nullif(btrim(p_team_map->>v_pg::text),'');
-    if v_snap is null or v_team is null then perform public.master_v2_nb_fail_v1('intento_non_valido','Snapshot o squadra PG non disponibile.',422,p_request_key); end if;
-    insert into public.combat_v2_actors(session_id,actor_kind,character_id,controller_user,team_key,position_m,initiative_snapshot,mechanics_snapshot)
-    select v_enc,'pg',c.id,c.user_id,v_team,0,c.velocita,v_snap from public.characters c where c.id=v_pg;
-    insert into public.master_v2_participants(session_id,character_id,user_id_snapshot)
-    select p_master_session,c.id,c.user_id from public.characters c where c.id=v_pg on conflict(session_id,character_id) do nothing;
-  end loop;
-  for v_spec in select value from jsonb_array_elements(p_actor_offers) order by value->>'offer_ref' loop
-    v_client:=(v_spec->>'client_ref')::uuid; v_offer_ref:=(v_spec->>'offer_ref')::uuid;
-    select * into v_offer from public.master_v2_nb_actor_offers_v1 where offer_ref=v_offer_ref;
-    select * into v_nt from public.nb_templates where id=v_offer.narrative_template_id;
-    select * into v_mv from public.nb_mechanical_versions where id=v_offer.mechanical_version_id;
-    v_team:=nullif(btrim(p_team_map->>v_client::text),'');
-    v_snap:=jsonb_build_object('name',v_nt.display_name,'vita',v_mv.vita_max,'vita_max',v_mv.vita_max,
-      'chakra',v_mv.chakra_max,'chakra_max',v_mv.chakra_max,
-      'taijutsu',(v_mv.stats->>'taijutsu')::integer,'ninjutsu',(v_mv.stats->>'ninjutsu')::integer,
-      'genjutsu',(v_mv.stats->>'genjutsu')::integer,'forza',(v_mv.stats->>'forza')::integer,
-      'velocita',(v_mv.stats->>'velocita')::integer,'mente',(v_mv.stats->>'mente')::integer,
-      'resistenza',(v_mv.stats->>'resistenza')::integer,'fuuinjutsu',(v_mv.stats->>'fuuinjutsu')::integer,
-      'slancio',0,'abilities',v_mv.abilities);
-    v_snap:=mission_creation_owner.carry_snapshot(p_master_session,null,v_client,v_snap);
-    insert into public.combat_v2_provider_instances_v1(session_id,client_ref,provider,offer_ref,
-      narrative_template_ref,narrative_version_ref,mechanical_template_ref,mechanical_version_ref,
-      source_sha256,snapshot_sha256,nome,snapshot)
-    values(v_enc,v_client,'ninja_book',v_offer_ref,v_offer.narrative_template_id,v_offer.narrative_version_id,
-      v_offer.mechanical_template_id,v_offer.mechanical_version_id,v_mv.content_sha256,public.combat_v2_sha256(v_snap),v_nt.display_name,v_snap)
-    returning id into v_instance;
-    insert into public.combat_v2_actors(session_id,actor_kind,provider_instance_v1_id,controller_user,team_key,position_m,initiative_snapshot,mechanics_snapshot)
-    values(v_enc,'png',v_instance,v_m.master_user,v_team,0,(v_mv.stats->>'velocita')::integer,v_snap);
-    update public.master_v2_nb_actor_offers_v1 set lifecycle_state='consumata',consumed_event_id=v_event_id,
-      consumed_at=clock_timestamp(),control_version=control_version+1,updated_at=clock_timestamp() where offer_ref=v_offer_ref;
-    insert into public.master_v2_nb_offer_audit_v1(offer_ref,event_id,action,actor_user,details)
-    values(v_offer_ref,v_event_id,'consumo',v_uid,jsonb_build_object('provider_instance_id',v_instance));
-  end loop;
-  select case when v_m.master_user is null then 'neutra' else 'umana' end into v_mode;
-  insert into public.combat_v2_rounds(session_id,round_no,evaluation_mode) values(v_enc,1,v_mode) returning id into v_round;
-  update public.master_v2_sessions set stato='in_corso' where id=p_master_session;
-  if v_m.tipo='quest' and mission_internal.runtime_enabled()
-     and exists(select 1 from public.mission_run_state where master_session_id=p_master_session and run_phase='preparazione') then
-    perform mission_internal.sync_lifecycle(p_master_session,p_request_key,v_m.control_version,
-      (select control_version from public.mission_run_state where master_session_id=p_master_session),'in_corso');
-  end if;
-  v_result:=public.combat_v2_envelope(p_request_key,jsonb_build_object('encounter_id',v_enc,'round_id',v_round,'evaluation_mode',v_mode));
-  return public.combat_v2_event_complete(v_event_id,v_result);
-end
+ IF mission_factory_owner.human_verified_context_valid_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_SERVER_COMMAND_CONTEXT_INVALID' USING ERRCODE='42501';END IF;
+ RETURN mission_factory_owner.human_ordinary_source_verified_v1(p_session,p_master,p_context);
+END;
 $function$;
 
-CREATE OR REPLACE FUNCTION mission_factory_owner.npc_custom_combat_runtime_assert_v1(p_master_session uuid, p_capability uuid, p_offer_ref uuid, p_bundle_version uuid)
- RETURNS void
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-declare m public.master_v2_sessions%rowtype;
-  o public.master_v2_nb_actor_offers_v1%rowtype;
-  bn png_builder_internal.bundles%rowtype; mv public.nb_mechanical_versions%rowtype;
-  q mission_factory_owner.quest_run_sources%rowtype;
-  r public.mission_run_state%rowtype;
-  rb mission_generic_owner.run_bindings%rowtype;
-  scene jsonb; att jsonb; k text; n bigint;
-begin
-
-  -- New capability: normal Human Native Staff only. Existing AI branch below is byte-exact.
-  IF p_capability IS NULL AND EXISTS(SELECT 1 FROM mission_factory_owner.quest_run_sources oc WHERE oc.session_id=p_master_session AND oc.availability_scope='public') THEN
-   DECLARE v_human_actor uuid:=auth.uid();v_human_allowed_auth_ids uuid[];
-   BEGIN
-    IF v_human_actor IS NULL OR auth.role() IS DISTINCT FROM 'authenticated'
-    OR public.is_staff() IS DISTINCT FROM true OR public.master_v2_is_master(v_human_actor) IS DISTINCT FROM true
-    OR p_master_session IS NULL OR p_offer_ref IS NULL OR p_bundle_version IS NULL
-    THEN RAISE EXCEPTION 'HUMAN_CUSTOM_STAFF_AUTH_REQUIRED' USING ERRCODE='42501';END IF;
-    SELECT * INTO STRICT m FROM public.master_v2_sessions WHERE id=p_master_session FOR SHARE;
-    SELECT * INTO STRICT q FROM mission_factory_owner.quest_run_sources WHERE session_id=p_master_session FOR SHARE;
-    SELECT * INTO STRICT r FROM public.mission_run_state WHERE master_session_id=p_master_session FOR SHARE;
-    IF m.owner_kind IS DISTINCT FROM 'human' OR m.master_user IS DISTINCT FROM v_human_actor OR m.tipo IS DISTINCT FROM 'quest' OR m.mission_id IS NOT NULL OR m.closed_at IS NOT NULL OR m.suspended_at IS NOT NULL OR m.stato NOT IN('preparazione','in_corso')
-    OR q.state IS DISTINCT FROM 'started' OR q.availability_scope IS DISTINCT FROM 'public' OR q.execution_context NOT IN('staff_simulation','public_real') OR q.location_id IS DISTINCT FROM m.location_id
-    OR r.source_kind IS DISTINCT FROM 'quest' OR r.quest_episode_id IS DISTINCT FROM q.episode_id OR r.run_phase IS DISTINCT FROM 'in_corso' OR r.current_step_key IS NULL
-    OR mission_factory_owner.human_ordinary_source_v1(p_master_session,true) IS NULL
-    OR NOT EXISTS(SELECT 1 FROM mission_creation_owner.human_open_admissions admission WHERE admission.master_session_id=p_master_session AND admission.transaction_id=txid_current() AND admission.backend_pid=pg_backend_pid() AND admission.actor_user=v_human_actor)
-    THEN RAISE EXCEPTION 'HUMAN_CUSTOM_ORDINARY_SCOPE_REQUIRED' USING ERRCODE='42501';END IF;
-    PERFORM mission_factory_owner.human_custom_source_assert_v1((SELECT ca.draft_id FROM mission_factory_owner.quest_arcs ca WHERE ca.id=q.arc_id),true);
-    PERFORM mission_factory_owner.c407_active_v1(p_master_session,'admission');
-    PERFORM mission_factory_owner.quest_run_source_assert_v1(p_master_session);
-    SELECT * INTO STRICT o FROM public.master_v2_nb_actor_offers_v1 WHERE offer_ref=p_offer_ref FOR SHARE;
-    SELECT * INTO STRICT bn FROM png_builder_internal.bundles WHERE id=p_bundle_version FOR SHARE;
-    IF bn.bundle_kind IS DISTINCT FROM 'combat' OR bn.status IS DISTINCT FROM 'certified' OR bn.ownership_mode IS DISTINCT FROM 'adopted' OR bn.disabled_at IS NOT NULL
-    OR o.master_session_id IS DISTINCT FROM p_master_session OR o.mission_id IS NOT NULL OR o.source_kind IS DISTINCT FROM 'quest'
-    OR o.quest_episode_id IS DISTINCT FROM q.episode_id OR o.quest_source_sha256 IS DISTINCT FROM q.source_sha256
-    OR o.recipient_kind IS DISTINCT FROM 'human' OR o.recipient_user IS DISTINCT FROM v_human_actor
-    OR o.recipient_service_capability IS NOT NULL OR o.created_by_service_capability IS NOT NULL OR o.created_by IS DISTINCT FROM v_human_actor
-    OR o.lifecycle_state IS DISTINCT FROM 'offerta' OR o.expires_at IS NULL OR o.expires_at<=clock_timestamp()
-    OR o.expected_master_control_version IS DISTINCT FROM m.control_version
-    OR o.narrative_template_id IS DISTINCT FROM bn.template_id OR o.narrative_version_id IS DISTINCT FROM bn.narrative_version_id
-    OR o.mechanical_template_id IS DISTINCT FROM bn.mechanical_template_id OR o.mechanical_version_id IS DISTINCT FROM bn.mechanical_version_id
-    THEN RAISE EXCEPTION 'HUMAN_CUSTOM_OFFER_BUNDLE_STALE' USING ERRCODE='55000';END IF;
-    att:=png_builder_internal.npc_custom_combat_attest_assert_v1(bn.template_id,bn.narrative_version_id,bn.id);
-    IF att->>'bundle_sha256' IS DISTINCT FROM bn.bundle_sha256 THEN RAISE EXCEPTION 'HUMAN_CUSTOM_ATTEST_STALE' USING ERRCODE='55000';END IF;
-    SELECT * INTO STRICT mv FROM public.nb_mechanical_versions WHERE id=bn.mechanical_version_id AND template_id=bn.mechanical_template_id FOR SHARE;
-    IF mv.profile_kind IS DISTINCT FROM 'npc_custom' OR mv.review_state IS DISTINCT FROM 'approved' OR mv.content_sha256 IS DISTINCT FROM o.expected_mechanical_sha256
-    OR mv.vita_max IS NULL OR mv.vita_max<=0 OR mv.chakra_max IS NULL OR mv.chakra_max<0 OR mv.abilities IS DISTINCT FROM '[]'::jsonb
-    OR png_builder_internal.npc_combat_stats_safe(mv.stats) IS DISTINCT FROM true
-    THEN RAISE EXCEPTION 'HUMAN_CUSTOM_MECHANICS_STALE' USING ERRCODE='55000';END IF;
-    scene:=mission_factory_owner.quest_scene_v1(p_master_session,r.current_step_key);
-    IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(scene->'encounters','[]'::jsonb)) encounter_row,
-       LATERAL jsonb_array_elements(coalesce(encounter_row.value->'actors','[]'::jsonb)) actor_row
-       WHERE actor_row.value->>'combat'='true' AND actor_row.value->>'npc_id'=bn.template_id::text
-       AND actor_row.value->>'npc_version_id'=bn.id::text AND actor_row.value->>'npc_bundle_sha256'=bn.bundle_sha256
-       AND actor_row.value->>'mechanical_binding_id'=bn.mechanical_binding_id::text)
-    THEN RAISE EXCEPTION 'HUMAN_CUSTOM_SOURCE_ACTOR_STALE' USING ERRCODE='55000';END IF;
-    RETURN;
-   END;
-  END IF;
-  IF p_capability IS NULL THEN
-   DECLARE v_human_actor uuid:=auth.uid();v_human_allowed_auth_ids uuid[];
-   BEGIN
-    IF v_human_actor IS NULL OR auth.role() IS DISTINCT FROM 'authenticated'
-    OR public.is_staff() IS DISTINCT FROM true OR public.master_v2_is_master(v_human_actor) IS DISTINCT FROM true
-    OR p_master_session IS NULL OR p_offer_ref IS NULL OR p_bundle_version IS NULL
-    THEN RAISE EXCEPTION 'HUMAN_CUSTOM_STAFF_AUTH_REQUIRED' USING ERRCODE='42501';END IF;
-    SELECT * INTO STRICT m FROM public.master_v2_sessions WHERE id=p_master_session FOR SHARE;
-    SELECT * INTO STRICT q FROM mission_factory_owner.quest_run_sources WHERE session_id=p_master_session FOR SHARE;
-    SELECT * INTO STRICT r FROM public.mission_run_state WHERE master_session_id=p_master_session FOR SHARE;
-    SELECT allowed_auth_ids INTO STRICT v_human_allowed_auth_ids FROM mission_factory_owner.c416_kind_admission WHERE singleton FOR SHARE;
-    IF m.owner_kind IS DISTINCT FROM 'human' OR m.master_user IS DISTINCT FROM v_human_actor OR m.tipo IS DISTINCT FROM 'quest' OR m.mission_id IS NOT NULL
-    OR m.stato IS NULL OR m.stato NOT IN('preparazione','in_corso') OR m.closed_at IS NOT NULL OR m.suspended_at IS NOT NULL
-    OR m.location_id IS DISTINCT FROM '0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid
-    OR NOT EXISTS(SELECT 1 FROM public.locations location WHERE location.id=m.location_id AND location.is_active AND location.is_test)
-    OR q.state IS DISTINCT FROM 'started' OR q.availability_scope IS DISTINCT FROM 'staff' OR q.execution_context IS DISTINCT FROM 'staff_simulation'
-    OR q.public_release_sha256 IS NOT NULL OR q.location_id IS DISTINCT FROM m.location_id
-    OR q.staff_release_sha256 IS DISTINCT FROM mission_factory_owner.staff_release_sha_v1()
-    OR r.source_kind IS DISTINCT FROM 'quest' OR r.quest_episode_id IS DISTINCT FROM q.episode_id OR r.run_phase IS DISTINCT FROM 'in_corso' OR r.current_step_key IS NULL
-    OR mission_factory_owner.c395_human_mode_v1(p_master_session) IS DISTINCT FROM true
-    OR mission_factory_owner.c416_kind_live_v1() IS DISTINCT FROM true OR mission_factory_owner.c444_enabled_v1() IS DISTINCT FROM true
-    OR cardinality(v_human_allowed_auth_ids) IS DISTINCT FROM 2 OR array_position(v_human_allowed_auth_ids,NULL) IS NOT NULL
-    OR NOT(v_human_actor=ANY(v_human_allowed_auth_ids)) OR cardinality(q.roster_character_ids) IS DISTINCT FROM 2
-    OR EXISTS(SELECT 1 FROM unnest(q.roster_character_ids) member(id) LEFT JOIN public.characters character_row ON character_row.id=member.id
-       WHERE character_row.id IS NULL OR character_row.user_id IS NULL OR NOT(character_row.user_id=ANY(v_human_allowed_auth_ids)))
-    OR NOT EXISTS(SELECT 1 FROM mission_creation_owner.human_open_admissions admission WHERE admission.master_session_id=p_master_session
-       AND admission.transaction_id=txid_current() AND admission.backend_pid=pg_backend_pid() AND admission.actor_user=v_human_actor)
-    THEN RAISE EXCEPTION 'HUMAN_CUSTOM_NATIVE_STAFF_SCOPE_REQUIRED' USING ERRCODE='42501';END IF;
-    PERFORM mission_factory_owner.c407_active_v1(p_master_session,'admission');
-    PERFORM mission_factory_owner.quest_run_source_assert_v1(p_master_session);
-    SELECT * INTO STRICT o FROM public.master_v2_nb_actor_offers_v1 WHERE offer_ref=p_offer_ref FOR SHARE;
-    SELECT * INTO STRICT bn FROM png_builder_internal.bundles WHERE id=p_bundle_version FOR SHARE;
-    IF bn.bundle_kind IS DISTINCT FROM 'combat' OR bn.status IS DISTINCT FROM 'certified' OR bn.ownership_mode IS DISTINCT FROM 'adopted' OR bn.disabled_at IS NOT NULL
-    OR o.master_session_id IS DISTINCT FROM p_master_session OR o.mission_id IS NOT NULL OR o.source_kind IS DISTINCT FROM 'quest'
-    OR o.quest_episode_id IS DISTINCT FROM q.episode_id OR o.quest_source_sha256 IS DISTINCT FROM q.source_sha256
-    OR o.recipient_kind IS DISTINCT FROM 'human' OR o.recipient_user IS DISTINCT FROM v_human_actor
-    OR o.recipient_service_capability IS NOT NULL OR o.created_by_service_capability IS NOT NULL OR o.created_by IS DISTINCT FROM v_human_actor
-    OR o.lifecycle_state IS DISTINCT FROM 'offerta' OR o.expires_at IS NULL OR o.expires_at<=clock_timestamp()
-    OR o.expected_master_control_version IS DISTINCT FROM m.control_version
-    OR o.narrative_template_id IS DISTINCT FROM bn.template_id OR o.narrative_version_id IS DISTINCT FROM bn.narrative_version_id
-    OR o.mechanical_template_id IS DISTINCT FROM bn.mechanical_template_id OR o.mechanical_version_id IS DISTINCT FROM bn.mechanical_version_id
-    THEN RAISE EXCEPTION 'HUMAN_CUSTOM_OFFER_BUNDLE_STALE' USING ERRCODE='55000';END IF;
-    att:=png_builder_internal.npc_custom_combat_attest_assert_v1(bn.template_id,bn.narrative_version_id,bn.id);
-    IF att->>'bundle_sha256' IS DISTINCT FROM bn.bundle_sha256 THEN RAISE EXCEPTION 'HUMAN_CUSTOM_ATTEST_STALE' USING ERRCODE='55000';END IF;
-    SELECT * INTO STRICT mv FROM public.nb_mechanical_versions WHERE id=bn.mechanical_version_id AND template_id=bn.mechanical_template_id FOR SHARE;
-    IF mv.profile_kind IS DISTINCT FROM 'npc_custom' OR mv.review_state IS DISTINCT FROM 'approved' OR mv.content_sha256 IS DISTINCT FROM o.expected_mechanical_sha256
-    OR mv.vita_max IS NULL OR mv.vita_max<=0 OR mv.chakra_max IS NULL OR mv.chakra_max<0 OR mv.abilities IS DISTINCT FROM '[]'::jsonb
-    OR png_builder_internal.npc_combat_stats_safe(mv.stats) IS DISTINCT FROM true
-    THEN RAISE EXCEPTION 'HUMAN_CUSTOM_MECHANICS_STALE' USING ERRCODE='55000';END IF;
-    scene:=mission_factory_owner.quest_scene_v1(p_master_session,r.current_step_key);
-    IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(scene->'encounters','[]'::jsonb)) encounter_row,
-       LATERAL jsonb_array_elements(coalesce(encounter_row.value->'actors','[]'::jsonb)) actor_row
-       WHERE actor_row.value->>'combat'='true' AND actor_row.value->>'npc_id'=bn.template_id::text
-       AND actor_row.value->>'npc_version_id'=bn.id::text AND actor_row.value->>'npc_bundle_sha256'=bn.bundle_sha256
-       AND actor_row.value->>'mechanical_binding_id'=bn.mechanical_binding_id::text)
-    THEN RAISE EXCEPTION 'HUMAN_CUSTOM_SOURCE_ACTOR_STALE' USING ERRCODE='55000';END IF;
-    RETURN;
-   END;
-  END IF;
-  if p_master_session is null or p_capability is null
-     or p_offer_ref is null or p_bundle_version is null then
-    raise exception 'MF_NPC_CUSTOM_RUNTIME_INPUT' using errcode='22023'; end if;
-  perform mission_generic_owner.assert_combat_scope(p_master_session,p_capability);
-  select * into m from public.master_v2_sessions where id=p_master_session for share;
-  if m.id is null or m.stato not in('preparazione','in_corso') or m.closed_at is not null
-     or m.suspended_at is not null
-     or not exists(select 1 from public.locations l where l.id=m.location_id
-       and l.id='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid
-       and l.is_active and l.is_test) then
-    raise exception 'MF_NPC_CUSTOM_RUNTIME_STAFF_ONLY' using errcode='42501'; end if;
-  select * into o from public.master_v2_nb_actor_offers_v1
-    where offer_ref=p_offer_ref for share;
-  select * into bn from png_builder_internal.bundles where id=p_bundle_version for share;
-  if o.offer_ref is null or bn.id is null or bn.bundle_kind<>'combat'
-     or o.master_session_id is distinct from p_master_session
-     or o.recipient_kind<>'ai_service' or o.recipient_service_capability is distinct from p_capability
-     or o.lifecycle_state<>'offerta' or o.expires_at<=clock_timestamp()
-     or o.narrative_template_id is distinct from bn.template_id
-     or o.narrative_version_id is distinct from bn.narrative_version_id
-     or o.mechanical_template_id is distinct from bn.mechanical_template_id
-     or o.mechanical_version_id is distinct from bn.mechanical_version_id then
-    raise exception 'MF_NPC_CUSTOM_RUNTIME_OFFER_STALE' using errcode='55000'; end if;
-  att:=png_builder_internal.npc_custom_combat_attest_assert_v1(
-    bn.template_id,bn.narrative_version_id,bn.id);
-  if att->>'bundle_sha256' is distinct from bn.bundle_sha256 then
-    raise exception 'MF_NPC_CUSTOM_RUNTIME_BUNDLE_STALE' using errcode='55000'; end if;
-  select * into mv from public.nb_mechanical_versions
-    where id=bn.mechanical_version_id and template_id=bn.mechanical_template_id for share;
-  if mv.id is null or mv.profile_kind<>'npc_custom' or mv.review_state<>'approved'
-     or mv.content_sha256 is distinct from o.expected_mechanical_sha256
-     or mv.vita_max<=0 or mv.chakra_max<0 or mv.abilities is distinct from '[]'::jsonb
-     or jsonb_typeof(mv.stats) is distinct from 'object' then
-    raise exception 'MF_NPC_CUSTOM_RUNTIME_MECHANICS_STALE' using errcode='55000'; end if;
-  foreach k in array array['taijutsu','ninjutsu','genjutsu','forza','velocita','mente','resistenza','fuuinjutsu'] loop
-    if coalesce(mv.stats->>k,'') !~ '^[0-9]{1,10}$' then
-      raise exception 'MF_NPC_CUSTOM_RUNTIME_STATS' using errcode='55000'; end if;
-    n:=(mv.stats->>k)::bigint;
-    if n>2147483647 then
-      raise exception 'MF_NPC_CUSTOM_RUNTIME_STATS' using errcode='55000'; end if;
-  end loop;
-  select * into q from mission_factory_owner.quest_run_sources
-    where session_id=p_master_session for share;
-  if q.session_id is not null then
-    select * into r from public.mission_run_state
-      where master_session_id=p_master_session for share;
-    if q.state<>'started' or r.source_kind<>'quest'
-       or r.quest_episode_id is distinct from q.episode_id
-       or r.run_phase<>'in_corso' or r.current_step_key is null
-       or o.source_kind<>'quest' or o.quest_episode_id is distinct from q.episode_id
-       or o.quest_source_sha256 is distinct from q.source_sha256 then
-      raise exception 'MF_NPC_CUSTOM_RUNTIME_SOURCE_STALE' using errcode='55000'; end if;
-    scene:=mission_factory_owner.quest_scene_v1(p_master_session,r.current_step_key);
-    if not exists(select 1 from jsonb_array_elements(coalesce(scene->'encounters','[]'::jsonb)) en,
-      lateral jsonb_array_elements(coalesce(en.value->'actors','[]'::jsonb)) a
-      where a.value->>'combat'='true'
-        and a.value->>'npc_id'=bn.template_id::text
-        and a.value->>'npc_version_id'=bn.id::text
-        and a.value->>'npc_bundle_sha256'=bn.bundle_sha256
-        and a.value->>'mechanical_binding_id'=bn.mechanical_binding_id::text) then
-      raise exception 'MF_NPC_CUSTOM_RUNTIME_SOURCE_STALE' using errcode='55000'; end if;
-  else
-    select * into rb from mission_generic_owner.run_bindings
-      where master_session_id=p_master_session for share;
-    select * into r from public.mission_run_state
-      where master_session_id=p_master_session for share;
-    if rb.master_session_id is null or r.master_session_id is null
-       or r.source_kind<>'mission' or r.run_phase<>'in_corso'
-       or r.current_step_key is null or o.source_kind<>'mission'
-       or o.mission_id is distinct from m.mission_id
-       or rb.snapshot_sha256 is distinct from mission_internal.fingerprint(rb.snapshot)
-       or rb.snapshot->>'plan_version_id' is distinct from r.plan_version_id::text
-       or not exists(select 1 from jsonb_array_elements(
-           coalesce(rb.snapshot->'npc_bundle_pins','[]'::jsonb)) p
-           where p.value->>'npc_id'=bn.template_id::text
-             and p.value->>'npc_version_id'=bn.id::text
-             and p.value->>'plan_version_id'=r.plan_version_id::text
-             and p.value->'phase_keys' ? r.current_step_key
-             and p.value->>'bundle_sha256'=bn.bundle_sha256
-             and p.value->>'mechanical_binding_id'=bn.mechanical_binding_id::text) then
-      -- Existing Mission run snapshots do not yet carry this new pin.
-      raise exception 'MF_NPC_CUSTOM_RUNTIME_SOURCE_STALE' using errcode='55000'; end if;
-  end if;
-end $function$;
-
-CREATE OR REPLACE FUNCTION mission_factory_owner.npc_custom_authoring_check_v1(p_draft uuid, p_expected_version bigint, p_actor_key text, p_allow_published boolean)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-declare d mission_factory_owner.drafts%rowtype; c mission_factory_owner.catalog_versions%rowtype;
-  b jsonb; matched_binding jsonb; ph jsonb; ep jsonb; maprow jsonb; detail jsonb; mapcheck jsonb;
-  bn png_builder_internal.bundles%rowtype; ref jsonb; att jsonb;
-  errors jsonb:='[]'::jsonb; phases jsonb:='[]'::jsonb;
-  kind text; path text; pk text; epkey text; release_sha text;
-  npc uuid; version_id uuid; bundle_sha text; idx integer:=0; found_binding boolean:=false;
-  found_phase boolean; map_count integer; selected_count integer; binding_count integer;
-  legacy_presence boolean:=false; combat_phase_seen boolean:=false; custom_presence boolean:=false;
-begin
-  if p_draft is null or p_expected_version is null or nullif(btrim(p_actor_key),'') is null
-    then raise exception 'MF_NPC_AUTHORING_INPUT' using errcode='22023'; end if;
-  select * into d from mission_factory_owner.drafts where id=p_draft;
-  if d.id is null then raise exception 'MF_DRAFT_NOT_FOUND' using errcode='P0002'; end if;
-  if d.control_version is distinct from p_expected_version
-     or d.document_sha256 is distinct from mission_factory_owner.sha(d.document)
-     or p_allow_published is null
-     or (d.state not in('draft','previewed')
-       and not (p_allow_published and d.state='published' and (mission_launch_owner.c11_native_published_draft_v1(d.id,d.control_version) OR exists(
-         select 1 from mission_factory_owner.publications pub
-           where pub.draft_id=d.id and pub.draft_version=d.control_version
-             and pub.state='staff' and pub.target='staff'
-             and pub.release_revision_sha256 is not null))))
-    then raise exception 'MF_NPC_AUTHORING_DRAFT_STALE' using errcode='40001'; end if;
-  kind:=case when d.document->>'schema_version'='mission-factory-draft/1' then 'mission'
-             when d.document->>'schema_version'='mission-factory-draft/2'
-                  and d.document->>'content_kind'='quest_ai' then 'quest_ai'
-             WHEN d.document->>'schema_version'='mission-factory-draft/3' AND d.document->>'content_kind'='quest_human' THEN 'quest_human' else null end;
-  if kind is null or jsonb_typeof(d.document->'npc_bindings') is distinct from 'array'
-    then raise exception 'MF_NPC_AUTHORING_DRAFT_STALE' using errcode='40001'; end if;
-  for b in select value from jsonb_array_elements(d.document->'npc_bindings') loop
-    if b->>'actor_key'=p_actor_key then
-      if found_binding then
-        errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_NPC_AUTHORING_BINDING_INVALID',
-          'path','npc_bindings['||idx||']','phase_key',null));
-      else
-        found_binding:=true; path:='npc_bindings['||idx||']'; matched_binding:=b;
-      end if;
-    end if;
-    idx:=idx+1;
-  end loop;
-  b:=coalesce(matched_binding,'{}'::jsonb);
-  if jsonb_typeof(b->'phase_keys') is distinct from 'array'
-     or jsonb_typeof(b->'combat') is distinct from 'boolean'
-     or b->>'combat' is distinct from 'true' then
-    errors:=errors||jsonb_build_array(jsonb_build_object(
-      'code','MF_NPC_AUTHORING_BINDING_INVALID','path',coalesce(path,'npc_bindings'),
-      'phase_key',null));
-  elsif jsonb_array_length(b->'phase_keys')=0 then
-    errors:=errors||jsonb_build_array(jsonb_build_object(
-      'code','MF_NPC_AUTHORING_BINDING_INVALID','path',coalesce(path,'npc_bindings'),
-      'phase_key',null));
-  end if;
-  if found_binding and coalesce(b->>'npc_id','') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-     and coalesce(b->>'npc_version_id','') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then
-    npc:=(b->>'npc_id')::uuid; version_id:=(b->>'npc_version_id')::uuid;
-    select * into bn from png_builder_internal.bundles
-      where id=version_id and template_id=npc;
-    if bn.id is null or bn.bundle_kind is distinct from 'combat' then
-      errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_NPC_AUTHORING_BUNDLE_STALE',
-        'path',coalesce(path,'npc_bindings'),'phase_key',null));
-    else
-      begin
-        ref:=mission_factory_owner.npc_reference(npc,version_id,false);
-        att:=png_builder_internal.npc_combat_authoring_attest_v2(
-          npc,bn.narrative_version_id,version_id);
-        if ref->>'bundle_sha256' is distinct from att->>'bundle_sha256' then
-          raise exception 'MF_NPC_CUSTOM_BUNDLE_STALE' using errcode='55000'; end if;
-        bundle_sha:=bn.bundle_sha256;
-        custom_presence:=EXISTS(SELECT 1 FROM public.nb_mechanical_versions cpm WHERE cpm.id=bn.mechanical_version_id AND cpm.profile_kind='npc_custom' AND cpm.review_state='approved') AND mission_factory_owner.human_custom_ordinary_capability_v1(d.id,false) IS NOT NULL;
-        legacy_presence:=kind IN('quest_ai','quest_human') AND d.author_user=auth.uid() AND version_id IN('aec1177c-6173-4575-9259-b9135259da1d'::uuid,'7bb53e62-f30c-4c94-b464-8b37a9291cdf'::uuid) AND png_builder_internal.npc_media_completion_staff_v1(auth.uid()) IS TRUE;
-      exception when sqlstate '55000' then
-        errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_NPC_AUTHORING_BUNDLE_STALE',
-          'path',coalesce(path,'npc_bindings'),'phase_key',null));
-      end;
-    end if;
-  else
-    errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_NPC_AUTHORING_BINDING_INVALID',
-      'path',coalesce(path,'npc_bindings'),'phase_key',null));
-  end if;
-  select * into c from mission_factory_owner.catalog_versions
-    where version=d.catalog_version and active and qualified;
-  if c.version is null or c.document_sha256 is distinct from mission_factory_owner.sha(c.document)
-     or (kind='quest_ai' and not mission_factory_owner.quest_catalog_qualified_v2(c.version))
-     OR (kind='quest_human' AND NOT mission_factory_owner.c416_kind_live_v1() AND NOT custom_presence) then
-    errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_NPC_AUTHORING_SOURCE_UNQUALIFIED',
-      'path','catalog_version','phase_key',null));
-  end if;
-  begin
-    release_sha:=mission_factory_owner.staff_release_sha_v1();
-  exception when sqlstate '55000' then
-    errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_NPC_AUTHORING_SOURCE_UNQUALIFIED',
-      'path','staff_release','phase_key',null));
-  end;
-  if jsonb_typeof(b->'phase_keys')='array' then
-    for ph in select value from jsonb_array_elements(b->'phase_keys') loop
-      if jsonb_typeof(ph) is distinct from 'string' then
-        errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_NPC_AUTHORING_PHASE_INVALID',
-          'path',coalesce(path,'npc_bindings')||'.phase_keys','phase_key',null));
-        continue;
-      end if;
-      pk:=ph#>>'{}'; phases:=phases||jsonb_build_array(pk); found_phase:=false;
-      if kind='mission' then
-        for ep in select value from jsonb_array_elements(coalesce(d.document->'phases','[]'::jsonb)) loop
-          if ep->>'step_key'=pk then
-            found_phase:=true;
-            if ep->>'kind' is distinct from 'combat'
-               or (jsonb_typeof(ep->'actor_keys')='array' and not (ep->'actor_keys' ? p_actor_key))
-               or c.version is null or not exists(
-                   select 1 from jsonb_array_elements(coalesce(c.document->'capabilities','[]'::jsonb)) x
-                    where x.value->>'key'=ep->>'capability_key' and x.value->>'qualified'='true') then
-              errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_NPC_AUTHORING_PHASE_INVALID',
-                'path','phases.'||pk,'phase_key',pk));
-            end if;
-            select x.value into maprow from jsonb_array_elements(coalesce(d.document->'maps','[]'::jsonb)) x
-              where x.value->>'step_key'=pk;
-            if maprow is null or jsonb_typeof(maprow->'combat_map') is distinct from 'object' then
-              errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_NPC_AUTHORING_ARENA_INVALID',
-                'path','phases.'||pk,'phase_key',pk));
-            else
-              begin
-                detail:=public.mission_map_detail_v1(maprow#>>'{combat_map,template_key}',
-                  (maprow#>>'{combat_map,template_version}')::integer);
-                selected_count:=(select count(*)::integer from jsonb_array_elements(d.document->'npc_bindings') x
-                  where x.value->'phase_keys' ? pk);
-                mapcheck:=public.mission_map_preview_v1(detail->'spec',
-                  case when coalesce(d.document#>>'{mission,team_max}','') ~ '^[1-4]$'
-                    then (d.document#>>'{mission,team_max}')::integer else 4 end,selected_count);
-                if detail->>'status' is distinct from 'ready'
-                   or coalesce((detail->>'selectable')::boolean,false) is not true
-                   or coalesce((mapcheck->>'valid')::boolean,false) is not true
-                   or coalesce((mapcheck->>'can_fit')::boolean,false) is not true then
-                  raise exception 'MF_ARENA_INVALID' using errcode='55000'; end if;
-              exception when sqlstate '55000' or invalid_text_representation then
-                errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_NPC_AUTHORING_ARENA_INVALID',
-                  'path','phases.'||pk,'phase_key',pk));
-              end;
-            end if;
-            exit;
-          end if;
-        end loop;
-      else
-        for ep in select value from jsonb_array_elements(coalesce(d.document#>'{quest,episodes}','[]'::jsonb)) loop
-          epkey:=ep->>'episode_key';
-          if not (ep->'npc_actor_keys' ? p_actor_key) then continue; end if;
-          for maprow in select value from jsonb_array_elements(coalesce(ep->'phases','[]'::jsonb)) loop
-            if epkey||'/'||(maprow->>'step_key')=pk then
-              found_phase:=true;
-              -- Presence and Combat qualification are different contracts. Only the exact already-attested Legacy Staff bundles may remain present in these closed server-qualified narrative capabilities.
-              if (legacy_presence OR custom_presence) AND maprow->>'capability_key' IN('narrative.scene','terminal.result') AND c.version IS NOT NULL AND EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(c.document->'capabilities','[]'::jsonb)) cap WHERE cap.value->>'key'=maprow->>'capability_key' AND cap.value->>'qualified'='true' AND cap.value->>'kind'='narrative') THEN EXIT;END IF;
-              if maprow->>'capability_key'='combat.encounter' THEN combat_phase_seen:=true;END IF;
-              if maprow->>'capability_key' is distinct from 'combat.encounter' then
-                errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_NPC_AUTHORING_PHASE_INVALID',
-                  'path','quest.episodes.'||epkey||'.phases.'||(maprow->>'step_key'),'phase_key',pk));
-              end if;
-              select x.value into detail from jsonb_array_elements(coalesce(ep->'maps','[]'::jsonb)) x
-                where x.value->>'step_key'=maprow->>'step_key';
-              if jsonb_typeof(detail->'arena_ref') is distinct from 'object'
-                 or coalesce(detail#>>'{arena_ref,template_version}','') !~ '^[1-9][0-9]{0,8}$'
-                 or not exists(select 1 from combat_spatial.arena_templates a
-                    where a.template_key=detail#>>'{arena_ref,template_key}'
-                      and a.template_version=(detail#>>'{arena_ref,template_version}')::integer
-                      and a.status='ready'
-                      and combat_spatial.template_errors(a.template_key,a.template_version)='[]'::jsonb
-                      and a.geometry_hash is not distinct from
-                        combat_spatial.geometry_fingerprint(a.template_key,a.template_version)) then
-                errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_NPC_AUTHORING_ARENA_INVALID',
-                  'path','quest.episodes.'||epkey||'.maps.'||(maprow->>'step_key'),'phase_key',pk));
-              end if;
-              exit;
-            end if;
-          end loop;
-          if found_phase then exit; end if;
-        end loop;
-      end if;
-      if not found_phase then
-        errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_NPC_AUTHORING_PHASE_INVALID',
-          'path',coalesce(path,'npc_bindings')||'.phase_keys','phase_key',pk));
-      end if;
-    end loop;
-  end if;
-  IF legacy_presence AND NOT combat_phase_seen THEN errors:=errors||jsonb_build_array(jsonb_build_object('code','MF_NPC_AUTHORING_PHASE_INVALID','path',coalesce(path,'npc_bindings')||'.phase_keys','phase_key',null));END IF;
-  return jsonb_build_object('schema_version','mission-factory-npc-authoring-check/1',
-    'draft_id',d.id,'draft_control_version',d.control_version,'draft_sha256',d.document_sha256,
-    'content_kind',kind,'actor_key',p_actor_key,'npc_id',npc,'npc_version_id',version_id,
-    'bundle_sha256',bundle_sha,'phase_keys',phases,
-    'status',case when errors='[]'::jsonb then 'selectable' else 'blocked' end,
-    'staff_selectable',errors='[]'::jsonb,'reason_code',errors->0->>'code',
-    'errors',errors,'staff_release_sha256',release_sha);
-end $function$;
-
-CREATE OR REPLACE FUNCTION mission_factory_owner.npc_item_v2(p_npc uuid, p_version uuid, p_content_kind text, p_require_combat boolean)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-declare c mission_factory_owner.catalog_versions; b png_builder_internal.bundles;
-        n public.nb_templates; nv public.nb_template_versions;
-        base_ref jsonb; combat_ref jsonb; media jsonb; scopes text[]:='{}'; combat_ok boolean:=false; staff_candidate boolean:=false;
-begin
-  if p_content_kind not in('mission','quest_ai','quest_human','archive') or p_content_kind is null
-     or p_require_combat is null or p_npc is null or p_version is null
-  then raise exception 'MF_NPC_V2_INPUT' using errcode='22023'; end if;
-  select * into c from mission_factory_owner.catalog_versions where active and qualified;
-  if c.version is null or mission_factory_owner.sha(c.document)<>c.document_sha256
-    then raise exception 'MF_NPC_V2_CATALOG' using errcode='55000'; end if;
-  scopes:=pg_catalog.array_append(scopes,'mission');
-  if mission_factory_owner.quest_catalog_qualified_v2(c.version)
-    then scopes:=pg_catalog.array_append(scopes,'quest_ai'); end if;
-  IF mission_factory_owner.c416_kind_live_v1() OR (EXISTS(SELECT 1 FROM png_builder_internal.bundles pcb JOIN public.nb_mechanical_versions pcm ON pcm.id=pcb.mechanical_version_id WHERE pcb.id=p_version AND pcb.template_id=p_npc AND pcm.profile_kind='npc_custom' AND pcm.review_state='approved') AND mission_factory_owner.human_custom_ordinary_capability_v1(NULL,false) IS NOT NULL) THEN scopes:=pg_catalog.array_append(scopes,'quest_human');END IF;
-  if exists(select 1 from jsonb_array_elements(coalesce(c.document->'content_kinds','[]'::jsonb)) x
-      where x.value->>'kind'='archive' and x.value->>'qualified'='true')
-    then scopes:=pg_catalog.array_append(scopes,'archive'); end if;
-  if not p_content_kind=any(scopes) then
-    raise exception 'MF_NPC_V2_CONTENT_UNQUALIFIED' using errcode='55000'; end if;
-  base_ref:=mission_factory_owner.npc_reference(p_npc,p_version,false);
-  begin
-    combat_ref:=mission_factory_owner.npc_reference(p_npc,p_version,true);
-    combat_ok:=true;
-  exception when SQLSTATE '55000' then combat_ok:=false;
-  end;
-  if p_require_combat and not combat_ok then
-    raise exception 'MF_NPC_V2_COMBAT_UNQUALIFIED' using errcode='55000'; end if;
-  select * into b from png_builder_internal.bundles where id=p_version and template_id=p_npc;
-  select * into n from public.nb_templates where id=b.template_id;
-  select * into nv from public.nb_template_versions where id=b.narrative_version_id;
-  media:=png_builder_internal.npc_media_pair_resolve_v1(p_npc,b.narrative_version_id);
-  if b.bundle_kind='combat' and public.is_staff() is true then
-    begin
-      perform png_builder_internal.npc_combat_authoring_attest_v2(
-        b.template_id,b.narrative_version_id,b.id);
-      staff_candidate:=true;
-    exception when SQLSTATE '55000' then staff_candidate:=false; end;
-  end if;
-  if b.id is null or n.id is null or nv.id is null
-     or media->>'schema_version' is distinct from 'npc-builder-media-pair/1'
-     or media->>'narrative_version_id' is distinct from b.narrative_version_id::text
-     or base_ref->>'bundle_sha256' is distinct from b.bundle_sha256
-  then raise exception 'MF_NPC_V2_STALE' using errcode='55000'; end if;
-  return jsonb_build_object('npc_id',p_npc,'npc_version_id',p_version,
-    'name',n.display_name,'version',nv.version_no,
-    'bundle_sha256',b.bundle_sha256,'usage_scopes',to_jsonb(scopes),
-    'bundle_kind',b.bundle_kind,
-    'capabilities',case when combat_ok then jsonb_build_array('narrative','combat') else jsonb_build_array('narrative') end,
-    'combat',combat_ok,'staff_authoring_candidate',staff_candidate,
-    'portrait_media_id',media->'portrait_media_id',
-    'portrait_sha256',media->>'portrait_sha256',
-    'marker_media_id',media->'marker_media_id',
-    'marker_sha256',media->>'marker_sha256');
-end $function$;
-
-CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_arc_scope_v1(p_arc uuid, p_live boolean)
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_arc_scope_verified_v1(p_arc uuid, p_live boolean, p_context jsonb, p_authority_bundle jsonb)
  RETURNS boolean
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
@@ -1571,6 +323,8 @@ CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_arc_scope_v1(p_a
 AS $function$
 DECLARE a mission_factory_owner.quest_arcs;pub mission_factory_owner.publications;d mission_factory_owner.drafts;h mission_factory_owner.c416_human_draft_sources;
 BEGIN
+ IF mission_factory_owner.human_context_bound_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_SERVER_COMMAND_CONTEXT_INVALID' USING ERRCODE='42501';END IF;
+
  IF auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' OR p_arc IS NULL OR p_live IS NULL THEN RETURN false;END IF;
  SELECT * INTO a FROM mission_factory_owner.quest_arcs WHERE id=p_arc;
  SELECT * INTO pub FROM mission_factory_owner.publications WHERE request_key=a.publication_request;
@@ -1593,132 +347,133 @@ BEGIN
   IF pub.target IS DISTINCT FROM 'staff' OR pub.state IS DISTINCT FROM 'staff' OR cardinality(a.execution_auth_ids) IS DISTINCT FROM 2 OR NOT coalesce(auth.uid()=ANY(a.execution_auth_ids),false) THEN RETURN false;END IF;
  END IF;
  -- Existing exact public-Staff manifest or real release+reward binding; no new flag or actor list.
- PERFORM mission_factory_owner.human_ordinary_execution_read_assert_v1(a.id,p_live);
+ PERFORM mission_factory_owner.human_ordinary_execution_read_assert_verified_v1(a.id,p_live,p_context,p_authority_bundle);
  RETURN true;
 END $function$;
 
-CREATE OR REPLACE FUNCTION mission_factory_owner.quest_public_open_v3(p_arc uuid)
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_arc_scope_with_context_v1(p_arc uuid, p_live boolean, p_context jsonb)
  RETURNS boolean
- LANGUAGE sql
+ LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO ''
 AS $function$
- select exists(select 1 from mission_factory_owner.quest_arcs a join mission_factory_owner.publications p on p.request_key=a.publication_request
- where a.id=p_arc and (NOT(a.availability_scope='public' AND a.execution_context='staff_simulation' AND a.source_document->>'content_kind'='quest_human') OR (auth.role()='authenticated' AND cardinality(a.execution_auth_ids)=2 AND coalesce(auth.uid()=ANY(a.execution_auth_ids),false))) and ((a.availability_scope='staff' and p.target='staff' and p.state='staff')
- or (a.availability_scope='public' and p.target=case when a.execution_context='staff_simulation' then 'staff' else 'public' end and p.release_revision_sha256=a.public_release_sha256 and
- (p.state=case when a.execution_context='staff_simulation' then 'staff' else 'open' end or (p.state='scheduled' and exists(select 1 from mission_factory_owner.publications c where c.parent_request=p.request_key
- and c.operation_kind='scheduled_delivery' and c.state=case when a.execution_context='staff_simulation' then 'staff' else 'open' end and c.target=case when a.execution_context='staff_simulation' then 'staff' else 'public' end and c.content_kind='quest_ai'
- and c.quest_arc_id=a.id and c.source_sha256=a.source_sha256 and c.release_revision_sha256=a.public_release_sha256
- and c.delivery->>'state'=case when a.execution_context='staff_simulation' then 'staff' else 'open' end and c.delivery->>'quest_arc_id'=a.id::text))))));
+BEGIN
+ IF mission_factory_owner.human_verified_context_valid_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_SERVER_COMMAND_CONTEXT_INVALID' USING ERRCODE='42501';END IF;
+ RETURN mission_factory_owner.human_ordinary_arc_scope_verified_v1(p_arc,p_live,p_context,NULL::jsonb);
+END;
 $function$;
 
-CREATE OR REPLACE FUNCTION public.mission_factory_save_v1(p_draft uuid, p_expected_version bigint, p_document jsonb, p_request uuid)
- RETURNS jsonb
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_execution_read_assert_verified_v1(p_arc uuid, p_active boolean, p_context jsonb, p_authority_bundle jsonb)
+ RETURNS void
  LANGUAGE plpgsql
- SECURITY DEFINER
+ STABLE SECURITY DEFINER
  SET search_path TO ''
 AS $function$
-declare d mission_factory_owner.drafts; prior mission_factory_owner.requests;
-        doc jsonb; fp text; result jsonb; next_version bigint;
+declare a mission_factory_owner.quest_arcs;g mission_factory_owner.quest_fixed30_admission;rel mission_public_owner.release_admissions_v1;proof jsonb;
 begin
-  select * into strict d from mission_factory_owner.drafts where id=p_draft;
-  perform mission_factory_owner.assert_editor(d.author_user);
-  if d.document->>'schema_version' is distinct from 'mission-factory-draft/2' then
-    if p_document->>'schema_version'='mission-factory-draft/2'
-      then raise exception 'MF_KIND_MISMATCH' using errcode='22023'; end if;
-    return mission_factory_owner.legacy_save_v1(p_draft,p_expected_version,p_document,p_request);
-  end if;
-  if p_request is null or p_document->>'content_kind' is distinct from 'quest_ai'
-     or p_document->>'schema_version' is distinct from 'mission-factory-draft/2'
-    then raise exception 'MF_KIND_MISMATCH' using errcode='22023'; end if;
-  doc:=mission_factory_owner.validate_quest_draft_v2(p_document);
-  fp:=mission_factory_owner.sha(jsonb_build_object('op','save','draft_id',p_draft,
-    'expected_version',p_expected_version,'document',doc));
-  perform pg_advisory_xact_lock(hashtextextended(p_request::text,24092027));
-  select * into prior from mission_factory_owner.requests where request_key=p_request;
-  if found then
-    if prior.actor_user<>auth.uid() or prior.operation<>'save' or prior.fingerprint<>fp
-      then raise exception 'MF_REQUEST_CONFLICT' using errcode='40001'; end if;
-    return prior.result;
-  end if;
-  IF (public.is_staff() IS TRUE AND auth.role()='authenticated' AND d.author_user=auth.uid() AND mission_factory_owner.human_custom_ordinary_capability_v1(p_draft,false) IS NOT NULL) IS DISTINCT FROM true THEN
-  perform mission_factory_owner.manual_authoring_assert_v1('save',null);
-  END IF;
+ IF mission_factory_owner.human_context_bound_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_SERVER_COMMAND_CONTEXT_INVALID' USING ERRCODE='42501';END IF;
 
-  select * into strict d from mission_factory_owner.drafts where id=p_draft for update;
-  perform mission_factory_owner.assert_editor(d.author_user);
-  if d.document->>'schema_version' is distinct from 'mission-factory-draft/2'
-     or d.document->>'content_kind' is distinct from 'quest_ai'
-     or d.state not in('draft','previewed')
-     or d.control_version<>p_expected_version
-     or d.catalog_version is distinct from doc->>'catalog_version'
-     or d.document#>>'{quest,quest_kind}' is distinct from doc#>>'{quest,quest_kind}'
-     or d.document#>>'{quest,roster_assignment_id}' is distinct from doc#>>'{quest,roster_assignment_id}'
-     or d.document->'variants' is distinct from doc->'variants'
-    then raise exception 'MF_DRAFT_DRIFT' using errcode='40001'; end if;
-  -- Il roster si cambia solo tramite porta Staff CAS dedicata, non nel salvataggio JSON.
-  update mission_factory_owner.drafts set document=doc,document_sha256=mission_factory_owner.sha(doc),
-    control_version=control_version+1,state='draft',preview_seal=null,preview_basis=null,
-    updated_at=clock_timestamp() where id=d.id returning control_version into next_version;
-  result:=jsonb_build_object('schema_version','mission-factory-draft-save/2',
-    'request_key',p_request,'draft_id',d.id,'control_version',next_version,'content_kind','quest_ai');
-  insert into mission_factory_owner.requests(request_key,actor_user,operation,fingerprint,draft_id,result)
-    values(p_request,auth.uid(),'save',fp,d.id,result);
-  return result;
+ select * into strict a from mission_factory_owner.quest_arcs where id=p_arc;
+ IF a.availability_scope IS DISTINCT FROM 'public' OR a.source_document->>'content_kind' IS DISTINCT FROM 'quest_human' THEN RAISE EXCEPTION 'HUMAN_ORDINARY_EXECUTION_KIND_REQUIRED' USING ERRCODE='42501';END IF;
+ IF p_authority_bundle IS NOT NULL AND (mission_factory_owner.keys_exact_v2(p_authority_bundle,ARRAY['arc_id','draft_id','draft_version','source_sha256','observation_sha256','authority']) IS DISTINCT FROM true OR p_authority_bundle->>'arc_id' IS DISTINCT FROM a.id::text OR p_authority_bundle->>'draft_id' IS DISTINCT FROM a.draft_id::text OR p_authority_bundle->>'draft_version' IS DISTINCT FROM a.draft_version::text OR p_authority_bundle->>'source_sha256' IS DISTINCT FROM a.source_sha256 OR p_authority_bundle->>'observation_sha256' IS DISTINCT FROM p_context->>'observation_sha256' OR jsonb_typeof(p_authority_bundle->'authority') IS DISTINCT FROM 'object') THEN RAISE EXCEPTION 'HUMAN_PRIVATE_AUTHORITY_BINDING_INVALID' USING ERRCODE='42501';END IF;
+ if p_active then
+  IF p_authority_bundle IS NULL THEN proof:=mission_factory_owner.human_ordinary_authority_verified_v1(a.draft_id,a.draft_version,a.source_sha256,p_context);ELSE proof:=p_authority_bundle->'authority';END IF;
+  if proof is null or proof->>'execution_context' is distinct from a.execution_context or proof->>'revision_sha256' is distinct from a.public_release_sha256
+  or(a.execution_context='staff_simulation' and (proof->>'qualification_sha256' is distinct from a.execution_qualification_sha256 or proof->'allowed_auth_ids' is distinct from to_jsonb(a.execution_auth_ids)))
+  then raise exception 'MF_QUEST_EXECUTION_AUTHORITY_DRIFT' using errcode='55000';end if;
+ end if;
+ if a.execution_context='public_real' then perform mission_factory_owner.human_ordinary_release_read_assert_v1(a.public_release_sha256,a.reward_policy_id,p_active);return;end if;
+ if a.execution_qualification_sha256 is null or cardinality(a.execution_auth_ids)<>2 or array_position(a.execution_auth_ids,null) is not null
+ or(select count(distinct x) from unnest(a.execution_auth_ids)x)<>2
+ or a.source_sha256<>mission_factory_owner.sha(a.source_document)
+ then raise exception 'MF_QUEST_STAFF_CONTEXT_SOURCE_DRIFT' using errcode='40001';end if;
+ select * into strict rel from mission_public_owner.release_admissions_v1 where release_sha256=a.public_release_sha256;
+ if rel.contract_version<>'mission-public-admission/1' or nullif(btrim(rel.independent_review_ref),'') is null
+ then raise exception 'MF_QUEST_STAFF_CONTEXT_RELEASE_UNQUALIFIED' using errcode='55000';end if;
+ if p_active then
+  select * into strict g from mission_factory_owner.quest_fixed30_admission where singleton;
+  if not g.public_staff_enabled or mission_factory_owner.c416_kind_live_v1() IS DISTINCT FROM true or mission_factory_owner.c444_enabled_v1() IS DISTINCT FROM true
+  or g.public_staff_qualification_sha256 is distinct from a.execution_qualification_sha256
+  or g.public_staff_release_sha256 is distinct from a.public_release_sha256 or g.allowed_auth_ids is distinct from a.execution_auth_ids
+  or g.public_staff_draft_id<>a.draft_id or g.public_staff_draft_version<>a.draft_version or g.public_staff_source_sha256<>a.source_sha256
+  then raise exception 'MF_QUEST_STAFF_CONTEXT_UNQUALIFIED' using errcode='55000';end if;
+ end if;
+ if exists(select 1 from unnest(a.member_character_ids)x(id) left join public.characters c on c.id=x.id
+ where c.id is null or not(c.user_id=any(a.execution_auth_ids)))
+ then raise exception 'MF_QUEST_STAFF_CONTEXT_ACTOR_SCOPE' using errcode='42501';end if;
 end $function$;
 
-CREATE OR REPLACE FUNCTION public.mission_factory_create_v1(p_request uuid, p_source jsonb, p_catalog_version text)
- RETURNS jsonb
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_execution_read_assert_with_context_v1(p_arc uuid, p_active boolean, p_context jsonb)
+ RETURNS void
  LANGUAGE plpgsql
- SECURITY DEFINER
+ STABLE SECURITY DEFINER
  SET search_path TO ''
 AS $function$
-declare c mission_factory_owner.catalog_versions; prior mission_factory_owner.requests;
-        doc jsonb; fp text; did uuid; result jsonb;
-begin
-  if jsonb_typeof(p_source)<>'object' or not (p_source ? 'schema_version')
-    then return mission_factory_owner.legacy_create_v1(p_request,p_source,p_catalog_version); end if;
-  if p_source->>'schema_version' is distinct from 'mission-factory-create/2'
-     or not mission_factory_owner.keys_exact_v2(p_source,array['schema_version','content_kind','title','quest_kind'])
-     or p_source->>'content_kind' is distinct from 'quest_ai'
-     or coalesce(p_source->>'quest_kind','') not in('one_shot','trama')
-     or nullif(btrim(p_source->>'title'),'') is null
-     or p_request is null
-    then raise exception 'MF_QUEST_CREATE_INPUT' using errcode='22023'; end if;
-  perform mission_factory_owner.assert_editor(auth.uid());
-  fp:=mission_factory_owner.sha(jsonb_build_object('op','create','source',p_source,'catalog_version',p_catalog_version));
-  perform pg_advisory_xact_lock(hashtextextended(p_request::text,24092026));
-  select * into prior from mission_factory_owner.requests where request_key=p_request;
-  if found then
-    if prior.actor_user<>auth.uid() or prior.operation<>'create' or prior.fingerprint<>fp
-      then raise exception 'MF_REQUEST_CONFLICT' using errcode='40001'; end if;
-    return prior.result;
-  end if;
-  IF (public.is_staff() IS TRUE AND auth.role()='authenticated' AND mission_factory_owner.human_custom_ordinary_capability_v1(NULL,true)->>'execution_context'='public_real') IS DISTINCT FROM true THEN
-  perform mission_factory_owner.manual_authoring_assert_v1('create',null);
-  END IF;
+BEGIN
+ IF mission_factory_owner.human_verified_context_valid_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_SERVER_COMMAND_CONTEXT_INVALID' USING ERRCODE='42501';END IF;
+ PERFORM mission_factory_owner.human_ordinary_execution_read_assert_verified_v1(p_arc,p_active,p_context,NULL::jsonb);
+ RETURN;
+END;
+$function$;
 
-  if not mission_factory_owner.quest_catalog_qualified_v2(p_catalog_version)
-    then raise exception 'MF_QUEST_CATALOG_UNQUALIFIED' using errcode='55000'; end if;
-  select * into strict c from mission_factory_owner.catalog_versions
-    where version=p_catalog_version and active and qualified;
-  doc:=jsonb_build_object('schema_version','mission-factory-draft/2','content_kind','quest_ai',
-    'catalog_version',c.version,'npc_bindings','[]'::jsonb,'budget_policy_id',null,
-    'quest',jsonb_build_object('title',p_source->>'title','plot_private','',
-      'quest_kind',p_source->>'quest_kind','roster_assignment_id',null,'episodes','[]'::jsonb),
-    'variants',jsonb_build_object('ai',jsonb_build_object('state','missing','mode','ai','document',null)));
-  perform mission_factory_owner.validate_quest_draft_v2(doc);
-  insert into mission_factory_owner.drafts(author_user,document,document_sha256,catalog_version)
-    values(auth.uid(),doc,mission_factory_owner.sha(doc),c.version) returning id into did;
-  result:=jsonb_build_object('schema_version','mission-factory-draft-created/2','request_key',p_request,
-    'draft_id',did,'control_version',1,'content_kind','quest_ai','document',doc);
-  insert into mission_factory_owner.requests(request_key,actor_user,operation,fingerprint,draft_id,result)
-    values(p_request,auth.uid(),'create',fp,did,result);
-  return result;
-end $function$;
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_custom_source_assert_verified_v1(p_draft uuid, p_active boolean, p_context jsonb, p_authority_bundle jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE d mission_factory_owner.drafts;ar mission_factory_owner.quest_arcs;sp mission_public_owner.public_qualification_attestations_v1;cap jsonb;observed jsonb;continuity_authorized boolean:=false;verified_authority jsonb;
+BEGIN
+ IF p_active THEN
 
-CREATE FUNCTION mission_factory_owner.human_compatibility_identity_v1(p_release text,p_active boolean)
-RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path='' AS $function$
+ IF mission_factory_owner.human_context_bound_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_SERVER_COMMAND_CONTEXT_INVALID' USING ERRCODE='42501';END IF;
+ END IF;
+
+ IF p_active IS NULL OR p_draft IS NULL OR auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' THEN RAISE EXCEPTION 'HUMAN_CUSTOM_SOURCE_AUTH' USING ERRCODE='42501';END IF;
+ SELECT * INTO STRICT d FROM mission_factory_owner.drafts WHERE id=p_draft;
+ SELECT * INTO STRICT ar FROM mission_factory_owner.quest_arcs WHERE draft_id=d.id AND source_sha256=d.document_sha256;
+ SELECT * INTO sp FROM mission_public_owner.public_qualification_attestations_v1 WHERE release_sha256=mission_factory_owner.sha(jsonb_build_object('schema_version','human-custom-source-key/1','publication_request',ar.publication_request));
+ IF NOT mission_factory_owner.keys_exact_v2(sp.payload,ARRAY['schema_version','capability_sha256','base_release_sha256','publication_request','draft_id','draft_version','source_sha256','arc_id','actor_user']) OR sp.created_by IS DISTINCT FROM 'postgres'::name OR sp.payload_sha256 IS DISTINCT FROM mission_factory_owner.sha(sp.payload)
+ OR sp.payload->>'schema_version' IS DISTINCT FROM 'human-custom-source/1' OR sp.payload->>'base_release_sha256' IS DISTINCT FROM '5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366'
+ OR sp.payload->>'publication_request' IS DISTINCT FROM ar.publication_request::text OR sp.payload->>'draft_id' IS DISTINCT FROM d.id::text OR sp.payload->>'draft_version' IS DISTINCT FROM ar.draft_version::text
+ OR sp.payload->>'source_sha256' IS DISTINCT FROM ar.source_sha256 OR sp.payload->>'arc_id' IS DISTINCT FROM ar.id::text OR sp.payload->>'actor_user' IS DISTINCT FROM ar.created_by::text
+ OR ar.public_release_sha256 IS DISTINCT FROM '5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366' OR ar.availability_scope IS DISTINCT FROM 'public' OR ar.source_document IS DISTINCT FROM d.document OR ar.source_sha256 IS DISTINCT FROM mission_factory_owner.sha(d.document)
+ THEN RAISE EXCEPTION 'HUMAN_CUSTOM_SOURCE_PROVENANCE_DRIFT' USING ERRCODE='40001';END IF;
+ IF NOT EXISTS(SELECT 1 FROM mission_public_owner.release_admissions_v1 cr WHERE cr.release_sha256=sp.payload->>'capability_sha256' AND cr.contract_version='mission-public-admission/1') THEN RAISE EXCEPTION 'HUMAN_CUSTOM_SOURCE_RELEASE_HISTORY_MISSING' USING ERRCODE='40001';END IF;
+ IF p_authority_bundle IS NOT NULL AND (mission_factory_owner.keys_exact_v2(p_authority_bundle,ARRAY['arc_id','draft_id','draft_version','source_sha256','observation_sha256','authority']) IS DISTINCT FROM true OR p_authority_bundle->>'arc_id' IS DISTINCT FROM ar.id::text OR p_authority_bundle->>'draft_id' IS DISTINCT FROM ar.draft_id::text OR p_authority_bundle->>'draft_version' IS DISTINCT FROM ar.draft_version::text OR p_authority_bundle->>'source_sha256' IS DISTINCT FROM ar.source_sha256 OR p_authority_bundle->>'observation_sha256' IS DISTINCT FROM p_context->>'observation_sha256' OR jsonb_typeof(p_authority_bundle->'authority') IS DISTINCT FROM 'object') THEN RAISE EXCEPTION 'HUMAN_PRIVATE_AUTHORITY_BINDING_INVALID' USING ERRCODE='42501';END IF;
+ IF p_active THEN
+ observed:=(p_context->'observation');
+ IF sp.payload->>'capability_sha256' IS DISTINCT FROM observed->>'observed_revision_sha256' THEN
+  IF ar.execution_context='staff_simulation' THEN IF p_authority_bundle IS NULL THEN verified_authority:=mission_factory_owner.human_ordinary_authority_verified_v1(ar.draft_id,ar.draft_version,ar.source_sha256,p_context);ELSE verified_authority:=p_authority_bundle->'authority';END IF;END IF;
+  IF ar.execution_context='staff_simulation' AND (verified_authority->>'qualification_sha256') IS NOT DISTINCT FROM ar.execution_qualification_sha256 THEN continuity_authorized:=true;
+  ELSE RAISE EXCEPTION 'HUMAN_CUSTOM_SOURCE_CURRENT_RELEASE_DRIFT' USING ERRCODE='40001';END IF;
+ END IF;
+ cap:=mission_factory_owner.human_custom_ordinary_capability_verified_v1(p_draft,ar.execution_context='public_real',p_context);
+ IF cap IS NULL OR (cap->>'capability_sha256' IS DISTINCT FROM sp.payload->>'capability_sha256' AND NOT(continuity_authorized AND cap->>'capability_sha256'=observed->>'observed_revision_sha256')) OR cap->>'execution_context' IS DISTINCT FROM ar.execution_context THEN RAISE EXCEPTION 'HUMAN_CUSTOM_SOURCE_NOT_QUALIFIED' USING ERRCODE='55000';END IF;END IF;
+ RETURN sp.payload;
+END
+$function$;
+
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_custom_source_assert_with_context_v1(p_draft uuid, p_active boolean, p_context jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+BEGIN
+ IF p_active THEN
+ IF mission_factory_owner.human_verified_context_valid_v1(p_context,'5ab4234b32294cc26472855447e6230f62c5e07308768816ae0c2ea304d94366') IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_SERVER_COMMAND_CONTEXT_INVALID' USING ERRCODE='42501';END IF;
+ END IF;
+ RETURN mission_factory_owner.human_custom_source_assert_verified_v1(p_draft,p_active,p_context,NULL::jsonb);
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION mission_factory_owner.human_compatibility_identity_v1(p_release text, p_active boolean)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
 DECLARE old_identity mission_public_owner.public_qualification_attestations_v1;old_release mission_public_owner.release_admissions_v1;
  current_release mission_public_owner.release_admissions_v1;proof mission_public_owner.public_qualification_attestations_v1;
  base_tuple jsonb;v jsonb;result jsonb;graph jsonb;actual jsonb;historical jsonb;records integer:=0;key text;
@@ -1770,8 +525,8 @@ BEGIN
   OR proof.positive_staff_evidence_ref IS DISTINCT FROM 'SOURCE_REVIEW_ONLY:'||current_release.independent_review_ref
   OR current_release.staff_evidence_ref IS DISTINCT FROM 'AUTHORIZED_TEST_MANIFEST:'||proof.authorized_test_manifest_ref THEN CONTINUE;END IF;
   graph:=v#>'{db_core,functions}';
-  IF jsonb_typeof(graph) IS DISTINCT FROM 'array' OR jsonb_array_length(graph)<>87
-  OR (SELECT jsonb_agg(to_jsonb(z->>'lookup_signature') ORDER BY z->>'lookup_signature') FROM jsonb_array_elements(graph)z) IS DISTINCT FROM (SELECT jsonb_agg(to_jsonb(value) ORDER BY value) FROM jsonb_array_elements_text($closed$["mission_factory_owner.c395_active_human_assert_v1(pg_catalog.uuid)","mission_factory_owner.c395_prepare_assert_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c395_revision_issue_v1(uuid,bigint,uuid,uuid,uuid)","mission_factory_owner.c407_identity_v1(pg_catalog.uuid)","mission_factory_owner.c408_stage1_complete_assert_v1()","mission_factory_owner.c412_read_identity_v1(pg_catalog.uuid)","mission_factory_owner.c416_arc_assert_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.c416_draft_assert_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.c444_action_scope_v1(pg_catalog.uuid)","mission_factory_owner.c444_enrollment_open_v1(pg_catalog.uuid)","mission_factory_owner.c444_enrollment_v1(pg_catalog.uuid,pg_catalog.text,pg_catalog.bool,pg_catalog.int8,pg_catalog.uuid)","mission_factory_owner.c444_peaceful_boundary_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c444_peaceful_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c444_peaceful_history_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c444_read_identity_v1(pg_catalog.uuid)","mission_factory_owner.c444_runtime_ports_complete_assert_v1()","mission_factory_owner.c444_source_read_assert_v1(pg_catalog.uuid)","mission_factory_owner.c444_terminal_participants_finish_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c463_optin_complete_assert_v1()","mission_factory_owner.c463_optin_identity_v1(pg_catalog.uuid)","mission_factory_owner.human_compatibility_identity_v1(text,boolean)","mission_factory_owner.human_custom_ordinary_capability_v1(uuid,boolean)","mission_factory_owner.human_custom_source_assert_v1(uuid,boolean)","mission_factory_owner.human_existing_legacy_media_pair_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_arc_scope_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.human_ordinary_authoring_qualification_v1(pg_catalog.text)","mission_factory_owner.human_ordinary_authority_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text)","mission_factory_owner.human_ordinary_deep_validate_v1(pg_catalog.uuid,pg_catalog.jsonb)","mission_factory_owner.human_ordinary_enrollment_open_v1(pg_catalog.uuid)","mission_factory_owner.human_ordinary_execution_read_assert_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.human_ordinary_final_terminal_v1(pg_catalog.uuid)","mission_factory_owner.human_ordinary_npc_bundle_assert_v1(pg_catalog.uuid)","mission_factory_owner.human_ordinary_participants_finish_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_peaceful_boundary_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_peaceful_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_peaceful_history_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_preview_basis_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.bool)","mission_factory_owner.human_ordinary_release_identity_v1(pg_catalog.text,pg_catalog.bool)","mission_factory_owner.human_ordinary_release_read_assert_v1(pg_catalog.text,pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.human_ordinary_reward_apply_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.uuid)","mission_factory_owner.human_ordinary_reward_authority_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_source_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.human_ordinary_terminal_core_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.uuid)","mission_factory_owner.human_release_observation_valid_v1(jsonb,text,boolean)","mission_factory_owner.npc_custom_authoring_check_v1(uuid,bigint,text,boolean)","mission_factory_owner.npc_custom_combat_runtime_assert_v1(uuid,uuid,uuid,uuid)","mission_factory_owner.npc_item_v2(uuid,uuid,text,boolean)","mission_factory_owner.quest_combat_insert_guard_v1()","mission_factory_owner.quest_compile_check_v1(pg_catalog.uuid)","mission_factory_owner.quest_compile_v1(pg_catalog.uuid)","mission_factory_owner.quest_deep_validate_v2(uuid,jsonb)","mission_factory_owner.quest_execution_assert_v4(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.quest_public_open_v3(uuid)","mission_factory_owner.quest_publication_scope_v3(pg_catalog.uuid,pg_catalog.bool)","mission_public_owner.human_positive_qualification_attest_v1(pg_catalog.text,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.jsonb)","mission_public_owner.human_positive_qualification_v1(pg_catalog.text,pg_catalog.bool)","mission_public_owner.human_session_allowed_v1(pg_catalog.uuid)","png_builder_internal.npc_custom_combat_attest_assert_v1(uuid,uuid,uuid)","png_builder_internal.npc_custom_combat_source_v1(uuid,uuid)","png_builder_internal.npc_media_pair_resolve_v1(uuid,uuid)","public.master_v2_encounter_open_ninja_book_v1_human_ai_core(uuid,uuid[],jsonb,jsonb,uuid)","public.mission_factory_create_v1(uuid,jsonb,text)","public.mission_factory_npc_certify_combat_v1(uuid,uuid,uuid)","public.mission_factory_npc_certify_existing_combat_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.uuid)","public.mission_factory_npc_certify_existing_combat_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid)","public.mission_factory_quest_d100_bind_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.int8,pg_catalog.uuid)","public.mission_factory_quest_d100_binding_scope_v1(pg_catalog.uuid)","public.mission_factory_quest_human_d100_consume_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)","public.mission_factory_quest_human_ordinary_authoring_receipt_v1(pg_catalog.uuid,pg_catalog.text)","public.mission_factory_quest_human_ordinary_control_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)","public.mission_factory_quest_human_ordinary_create_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.jsonb,pg_catalog._uuid,pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_episode_context_v1(pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_import_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.jsonb,pg_catalog._uuid,pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_lifecycle_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)","public.mission_factory_quest_human_ordinary_participant_state_v1(pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_preview_v1(pg_catalog.uuid,pg_catalog.int8)","public.mission_factory_quest_human_ordinary_publish_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text,pg_catalog.uuid,pg_catalog.text,pg_catalog.timestamptz)","public.mission_factory_quest_human_ordinary_runtime_state_v1(pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_terminal_publish_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.uuid)","public.mission_factory_quest_human_regia_optin_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text,pg_catalog.uuid)","public.mission_factory_quest_human_route_v1(pg_catalog.uuid)","public.mission_factory_quest_human_runtime_state_v1(pg_catalog.uuid)","public.mission_factory_quest_human_successor_scope_v1(pg_catalog.uuid)","public.mission_factory_save_v1(uuid,bigint,jsonb,uuid)","public.npc_combat_approve_v1(uuid,uuid,bigint,uuid)","public.npc_combat_save_v1(uuid,uuid,bigint,uuid,jsonb)","public.npc_combat_submit_review_v1(uuid,uuid,bigint,uuid)"]$closed$::jsonb))
+  IF jsonb_typeof(graph) IS DISTINCT FROM 'array' OR jsonb_array_length(graph)<>111
+  OR (SELECT jsonb_agg(to_jsonb(z->>'lookup_signature') ORDER BY z->>'lookup_signature') FROM jsonb_array_elements(graph)z) IS DISTINCT FROM (SELECT jsonb_agg(to_jsonb(value) ORDER BY value) FROM jsonb_array_elements_text($closed$["mission_factory_owner.c384_human_bind_seal_v1(uuid,uuid,bigint,uuid,uuid,uuid)","mission_factory_owner.c395_active_human_assert_v1(pg_catalog.uuid)","mission_factory_owner.c395_binding_insert_assert_v1(uuid,uuid,jsonb,text)","mission_factory_owner.c395_prepare_assert_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c395_revision_issue_v1(uuid,bigint,uuid,uuid,uuid)","mission_factory_owner.c407_identity_v1(pg_catalog.uuid)","mission_factory_owner.c408_stage1_complete_assert_v1()","mission_factory_owner.c412_read_identity_v1(pg_catalog.uuid)","mission_factory_owner.c416_arc_assert_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.c416_draft_assert_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.c444_action_scope_v1(pg_catalog.uuid)","mission_factory_owner.c444_enrollment_open_v1(pg_catalog.uuid)","mission_factory_owner.c444_enrollment_v1(pg_catalog.uuid,pg_catalog.text,pg_catalog.bool,pg_catalog.int8,pg_catalog.uuid)","mission_factory_owner.c444_peaceful_boundary_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c444_peaceful_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c444_peaceful_history_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c444_read_identity_v1(pg_catalog.uuid)","mission_factory_owner.c444_runtime_ports_complete_assert_v1()","mission_factory_owner.c444_source_read_assert_v1(pg_catalog.uuid)","mission_factory_owner.c444_terminal_participants_finish_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c463_optin_complete_assert_v1()","mission_factory_owner.c463_optin_identity_v1(pg_catalog.uuid)","mission_factory_owner.human_compatibility_identity_v1(text,boolean)","mission_factory_owner.human_context_bound_v1(jsonb,text)","mission_factory_owner.human_custom_ordinary_capability_v1(uuid,boolean)","mission_factory_owner.human_custom_ordinary_capability_verified_v1(uuid,boolean,jsonb)","mission_factory_owner.human_custom_ordinary_capability_with_context_v1(uuid,boolean,jsonb)","mission_factory_owner.human_custom_source_assert_v1(uuid,boolean)","mission_factory_owner.human_custom_source_assert_verified_v1(uuid,boolean,jsonb,jsonb)","mission_factory_owner.human_custom_source_assert_with_context_v1(uuid,boolean,jsonb)","mission_factory_owner.human_existing_legacy_media_pair_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_arc_scope_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.human_ordinary_arc_scope_verified_v1(uuid,boolean,jsonb,jsonb)","mission_factory_owner.human_ordinary_arc_scope_with_context_v1(uuid,boolean,jsonb)","mission_factory_owner.human_ordinary_authoring_qualification_v1(pg_catalog.text)","mission_factory_owner.human_ordinary_authority_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text)","mission_factory_owner.human_ordinary_authority_verified_v1(uuid,bigint,text,jsonb)","mission_factory_owner.human_ordinary_authority_with_context_v1(uuid,bigint,text,jsonb)","mission_factory_owner.human_ordinary_deep_validate_v1(pg_catalog.uuid,pg_catalog.jsonb)","mission_factory_owner.human_ordinary_enrollment_open_v1(pg_catalog.uuid)","mission_factory_owner.human_ordinary_execution_read_assert_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.human_ordinary_execution_read_assert_verified_v1(uuid,boolean,jsonb,jsonb)","mission_factory_owner.human_ordinary_execution_read_assert_with_context_v1(uuid,boolean,jsonb)","mission_factory_owner.human_ordinary_final_terminal_v1(pg_catalog.uuid)","mission_factory_owner.human_ordinary_npc_bundle_assert_v1(pg_catalog.uuid)","mission_factory_owner.human_ordinary_participants_finish_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_peaceful_boundary_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_peaceful_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_peaceful_history_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_preview_basis_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.bool)","mission_factory_owner.human_ordinary_release_identity_v1(pg_catalog.text,pg_catalog.bool)","mission_factory_owner.human_ordinary_release_read_assert_v1(pg_catalog.text,pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.human_ordinary_reward_apply_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.uuid)","mission_factory_owner.human_ordinary_reward_authority_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_source_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.human_ordinary_source_verified_v1(uuid,boolean,jsonb)","mission_factory_owner.human_ordinary_source_with_context_v1(uuid,boolean,jsonb)","mission_factory_owner.human_ordinary_terminal_core_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.uuid)","mission_factory_owner.human_release_observation_valid_v1(jsonb,text,boolean)","mission_factory_owner.human_staff_context_records_v1(jsonb,text,uuid,text,mission_factory_owner.quest_fixed30_admission)","mission_factory_owner.human_staff_lease_valid_v1(jsonb,uuid,boolean)","mission_factory_owner.human_staff_lease_valid_verified_v1(jsonb,uuid,boolean,jsonb)","mission_factory_owner.human_staff_lease_valid_with_context_v1(jsonb,uuid,boolean,jsonb)","mission_factory_owner.human_verified_context_v1(text)","mission_factory_owner.human_verified_context_valid_v1(jsonb,text)","mission_factory_owner.npc_custom_authoring_check_v1(uuid,bigint,text,boolean)","mission_factory_owner.npc_custom_combat_runtime_assert_v1(uuid,uuid,uuid,uuid)","mission_factory_owner.npc_item_v2(uuid,uuid,text,boolean)","mission_factory_owner.npc_reference(uuid,uuid,boolean)","mission_factory_owner.quest_combat_insert_guard_v1()","mission_factory_owner.quest_compile_check_v1(pg_catalog.uuid)","mission_factory_owner.quest_compile_v1(pg_catalog.uuid)","mission_factory_owner.quest_deep_validate_v2(uuid,jsonb)","mission_factory_owner.quest_execution_assert_v4(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.quest_public_open_v3(uuid)","mission_factory_owner.quest_publication_scope_v3(pg_catalog.uuid,pg_catalog.bool)","mission_generic_owner.regia_human_direction_context_v1(uuid)","mission_public_owner.human_positive_qualification_attest_v1(pg_catalog.text,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.jsonb)","mission_public_owner.human_positive_qualification_v1(pg_catalog.text,pg_catalog.bool)","mission_public_owner.human_session_allowed_v1(pg_catalog.uuid)","png_builder_internal.npc_custom_combat_attest_assert_v1(uuid,uuid,uuid)","png_builder_internal.npc_custom_combat_source_v1(uuid,uuid)","png_builder_internal.npc_media_pair_resolve_v1(uuid,uuid)","public.master_v2_encounter_open_ninja_book_v1_human_ai_core(uuid,uuid[],jsonb,jsonb,uuid)","public.mission_factory_create_v1(uuid,jsonb,text)","public.mission_factory_npc_certify_combat_v1(uuid,uuid,uuid)","public.mission_factory_npc_certify_existing_combat_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.uuid)","public.mission_factory_npc_certify_existing_combat_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid)","public.mission_factory_quest_d100_bind_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.int8,pg_catalog.uuid)","public.mission_factory_quest_d100_binding_scope_v1(pg_catalog.uuid)","public.mission_factory_quest_episode_state_v2(uuid)","public.mission_factory_quest_human_d100_consume_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)","public.mission_factory_quest_human_ordinary_authoring_receipt_v1(pg_catalog.uuid,pg_catalog.text)","public.mission_factory_quest_human_ordinary_control_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)","public.mission_factory_quest_human_ordinary_create_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.jsonb,pg_catalog._uuid,pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_episode_context_v1(pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_import_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.jsonb,pg_catalog._uuid,pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_lifecycle_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)","public.mission_factory_quest_human_ordinary_participant_state_v1(pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_preview_v1(pg_catalog.uuid,pg_catalog.int8)","public.mission_factory_quest_human_ordinary_publish_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text,pg_catalog.uuid,pg_catalog.text,pg_catalog.timestamptz)","public.mission_factory_quest_human_ordinary_runtime_state_v1(pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_terminal_publish_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.uuid)","public.mission_factory_quest_human_regia_optin_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text,pg_catalog.uuid)","public.mission_factory_quest_human_route_v1(pg_catalog.uuid)","public.mission_factory_quest_human_runtime_state_v1(pg_catalog.uuid)","public.mission_factory_quest_human_successor_scope_v1(pg_catalog.uuid)","public.mission_factory_save_v1(uuid,bigint,jsonb,uuid)","public.npc_combat_approve_v1(uuid,uuid,bigint,uuid)","public.npc_combat_save_v1(uuid,uuid,bigint,uuid,jsonb)","public.npc_combat_submit_review_v1(uuid,uuid,bigint,uuid)"]$closed$::jsonb))
   OR EXISTS(SELECT 1 FROM jsonb_array_elements(graph)x WHERE x->>'oid' IS NULL OR coalesce(x->>'oid','')!~'^[1-9][0-9]*$') THEN CONTINUE;END IF;
   IF p_active THEN
    SELECT jsonb_agg(jsonb_build_object('lookup_signature',x->>'lookup_signature','oid',proc.oid::text,'body_md5',md5(proc.prosrc),'input_arg_types',(SELECT coalesce(jsonb_agg(format('%I.%I',n.nspname,t.typname) ORDER BY z.ord),'[]'::jsonb) FROM unnest(proc.proargtypes::oid[])WITH ORDINALITY z(id,ord) JOIN pg_type t ON t.oid=z.id JOIN pg_namespace n ON n.oid=t.typnamespace),'all_arg_types',(SELECT coalesce(jsonb_agg(format('%I.%I',n.nspname,t.typname) ORDER BY z.ord),'[]'::jsonb) FROM unnest(coalesce(proc.proallargtypes,proc.proargtypes::oid[]))WITH ORDINALITY z(id,ord) JOIN pg_type t ON t.oid=z.id JOIN pg_namespace n ON n.oid=t.typnamespace),'arg_names',coalesce(to_jsonb(proc.proargnames),'null'::jsonb),'arg_modes',to_jsonb(coalesce(proc.proargmodes,array_fill('i'::"char",ARRAY[proc.pronargs]))),'return_type',(SELECT format('%I.%I',n.nspname,t.typname) FROM pg_type t JOIN pg_namespace n ON n.oid=t.typnamespace WHERE t.oid=proc.prorettype),'returns_set',proc.proretset,'default_arg_count',proc.pronargdefaults,'defaults',pg_get_expr(proc.proargdefaults,0),'variadic_type',CASE WHEN proc.provariadic=0 THEN NULL ELSE (SELECT format('%I.%I',n.nspname,t.typname) FROM pg_type t JOIN pg_namespace n ON n.oid=t.typnamespace WHERE t.oid=proc.provariadic) END,'strict',proc.proisstrict,'volatility',proc.provolatile::text,'parallel',proc.proparallel::text,'security_definer',proc.prosecdef,'language',(SELECT lanname FROM pg_language WHERE oid=proc.prolang),'configuration',proc.proconfig,'owner',pg_get_userbyid(proc.proowner),'execute',(SELECT coalesce(jsonb_agg(CASE WHEN acl.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(acl.grantee) END ORDER BY CASE WHEN acl.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(acl.grantee) END),'[]'::jsonb) FROM aclexplode(coalesce(proc.proacl,acldefault('f',proc.proowner)))acl WHERE acl.privilege_type='EXECUTE')) ORDER BY x->>'lookup_signature') INTO actual FROM jsonb_array_elements(graph)x JOIN pg_proc proc ON proc.oid=to_regprocedure(x->>'lookup_signature');
@@ -1785,435 +540,26 @@ BEGIN
 EXCEPTION WHEN invalid_text_representation OR invalid_parameter_value THEN RETURN NULL;
 END $function$;
 
-CREATE FUNCTION mission_factory_owner.human_release_observation_valid_v1(p_observation jsonb,p_release text,p_active boolean)
-RETURNS boolean LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path='' AS $function$
-DECLARE actual jsonb;
-BEGIN
- IF p_observation IS NULL OR p_active IS NULL OR p_release IS NULL OR p_release!~'^[0-9a-f]{64}$'
- OR p_observation->>'revision_sha256' IS DISTINCT FROM p_release OR p_observation->>'canonical_preimage' IS NULL
- OR encode(extensions.digest(convert_to(p_observation->>'canonical_preimage','UTF8'),'sha256'),'hex') IS DISTINCT FROM p_release
- OR p_observation->>'state' IS DISTINCT FROM 'enabled' OR p_observation->>'scope' IS DISTINCT FROM 'staff'
- OR p_observation->'staff_guards_verified' IS DISTINCT FROM 'true'::jsonb OR p_observation->'published_assets_verified' IS DISTINCT FROM 'true'::jsonb THEN RETURN false;END IF;
- IF p_active THEN
-  actual:=mission_factory_owner.human_compatibility_identity_v1(p_release,true);
-  IF actual IS NOT NULL THEN RETURN p_observation IS NOT DISTINCT FROM actual;END IF;
-  actual:=mission_factory_owner.human_ordinary_release_identity_v1(p_release,true);
-  RETURN actual IS NOT NULL AND p_observation IS NOT DISTINCT FROM actual AND p_observation->>'observed_revision_sha256'=p_release;
- END IF;
- -- Historical provenance only; never authorizes an active command or current ABI.
- RETURN p_observation->>'observed_revision_sha256'=p_release AND p_observation->>'schema_version' IS NULL;
-EXCEPTION WHEN invalid_text_representation THEN RETURN false;
-END $function$;
+REVOKE ALL ON FUNCTION mission_factory_owner.human_context_bound_v1(jsonb,text) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION mission_factory_owner.human_context_bound_v1(jsonb,text) TO postgres;
 
-CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_release_identity_v1(p_release text, p_active boolean)
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-DECLARE compat jsonb;identity_key text;identity mission_public_owner.public_qualification_attestations_v1;
- r mission_public_owner.release_admissions_v1;b mission_public_owner.release_admissions_v1;v_owner_release_tuple jsonb;v jsonb;preimage text;
-BEGIN
- IF p_release IS NULL OR p_active IS NULL OR p_release!~'^[0-9a-f]{64}$' OR p_release='37dac90525b249f53fc0404b50adb4ed92df0123649326c99260bf656119d806' THEN RETURN NULL;END IF;
- IF p_active THEN compat:=mission_factory_owner.human_compatibility_identity_v1(p_release,true);IF compat IS NOT NULL THEN RETURN compat;END IF;END IF;
- identity_key:=mission_factory_owner.sha(jsonb_build_object('schema_version','human-release-identity-key/1','human_release_sha256',p_release));
- SELECT * INTO identity FROM mission_public_owner.public_qualification_attestations_v1 WHERE release_sha256=identity_key;
- SELECT * INTO r FROM mission_public_owner.release_admissions_v1 WHERE release_sha256=p_release;
- SELECT * INTO b FROM mission_public_owner.release_admissions_v1 WHERE release_sha256=identity_key;
- IF identity.release_sha256 IS NULL OR r.release_sha256 IS NULL OR b.release_sha256 IS NULL OR b.public_enabled
- OR identity.created_by IS DISTINCT FROM 'postgres'::name OR identity.payload_sha256 IS DISTINCT FROM mission_factory_owner.sha(identity.payload)
- OR identity.positive_staff_evidence_ref IS DISTINCT FROM 'SOURCE_REVIEW_ONLY:'||r.independent_review_ref
- OR identity.authorized_test_manifest_ref IS DISTINCT FROM substring(r.staff_evidence_ref FROM length('AUTHORIZED_TEST_MANIFEST:')+1)
- OR r.staff_evidence_ref NOT LIKE 'AUTHORIZED_TEST_MANIFEST:%'
- OR NOT mission_factory_owner.keys_exact_v2(identity.payload,ARRAY['schema_version','revision_sha256','human_release_sha256','canonical_preimage','canonical_tuple','source_review_ref','review_findings','actual_client_binding_sha256','actual_edge_binding_sha256','provider_calls','staff_guards_verified','published_assets_verified','observed_revision_sha256'])
- OR identity.payload->>'schema_version' IS DISTINCT FROM 'human-ordinary-release-identity/1'
- OR identity.payload->'staff_guards_verified' IS DISTINCT FROM 'true'::jsonb OR identity.payload->'published_assets_verified' IS DISTINCT FROM 'true'::jsonb OR identity.payload->>'observed_revision_sha256' IS DISTINCT FROM p_release
- OR identity.payload->>'revision_sha256' IS DISTINCT FROM identity_key OR identity.payload->>'human_release_sha256' IS DISTINCT FROM p_release
- OR identity.payload->>'source_review_ref' IS DISTINCT FROM r.independent_review_ref
- OR identity.payload->'review_findings' IS DISTINCT FROM '{"P0":0,"P1":0,"P2":0}'::jsonb OR identity.payload->'provider_calls' IS DISTINCT FROM '0'::jsonb
- OR r.contract_version IS DISTINCT FROM 'mission-public-admission/1' OR b.contract_version IS DISTINCT FROM r.contract_version
- OR b.independent_review_ref IS DISTINCT FROM r.independent_review_ref OR b.staff_evidence_ref IS DISTINCT FROM 'HUMAN_IDENTITY_SOURCE_ONLY:'||p_release
- OR b.db_sha256 IS DISTINCT FROM r.db_sha256 OR b.edge_sha256 IS DISTINCT FROM r.edge_sha256 OR b.client_sha256 IS DISTINCT FROM r.client_sha256 OR b.configuration_sha256 IS DISTINCT FROM r.configuration_sha256
- THEN RETURN NULL;END IF;
- preimage:=identity.payload->>'canonical_preimage';v_owner_release_tuple:=identity.payload->'canonical_tuple';
- IF preimage IS NULL OR encode(extensions.digest(convert_to(preimage,'UTF8'),'sha256'),'hex') IS DISTINCT FROM p_release
- OR preimage::jsonb IS DISTINCT FROM v_owner_release_tuple OR NOT mission_factory_owner.keys_exact_v2(v_owner_release_tuple,ARRAY['schema_version','db_core','client','edge','config','legacy_dependency'])
- OR v_owner_release_tuple->>'schema_version' IS DISTINCT FROM 'human-ordinary-release-tuple/1' OR v_owner_release_tuple->>'legacy_dependency' IS DISTINCT FROM '37dac90525b249f53fc0404b50adb4ed92df0123649326c99260bf656119d806'
- OR NOT mission_factory_owner.keys_exact_v2(v_owner_release_tuple->'db_core',ARRAY['sha256','functions']) OR v_owner_release_tuple#>>'{db_core,sha256}' IS DISTINCT FROM r.db_sha256
- OR mission_factory_owner.sha(v_owner_release_tuple#>'{db_core,functions}') IS DISTINCT FROM r.db_sha256
- OR v_owner_release_tuple#>>'{client,sha256}' IS DISTINCT FROM r.client_sha256 OR v_owner_release_tuple#>>'{edge,sha256}' IS DISTINCT FROM r.edge_sha256 OR v_owner_release_tuple#>>'{config,sha256}' IS DISTINCT FROM r.configuration_sha256
- OR mission_factory_owner.sha(v_owner_release_tuple#>'{client,bindings}') IS DISTINCT FROM r.client_sha256 OR mission_factory_owner.sha(v_owner_release_tuple#>'{edge,bindings}') IS DISTINCT FROM r.edge_sha256 OR mission_factory_owner.sha(v_owner_release_tuple#>'{config,policy}') IS DISTINCT FROM r.configuration_sha256
- OR identity.payload->>'actual_client_binding_sha256' IS DISTINCT FROM r.client_sha256 OR identity.payload->>'actual_edge_binding_sha256' IS DISTINCT FROM r.edge_sha256
- OR jsonb_typeof(v_owner_release_tuple#>'{db_core,functions}') IS DISTINCT FROM 'array'
- THEN RETURN NULL;END IF;
- IF (SELECT jsonb_agg(x->>'lookup_signature' ORDER BY x->>'lookup_signature') FROM jsonb_array_elements(v_owner_release_tuple#>'{db_core,functions}')x) IS DISTINCT FROM $human_signatures$["mission_factory_owner.c395_active_human_assert_v1(pg_catalog.uuid)","mission_factory_owner.c395_prepare_assert_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c407_identity_v1(pg_catalog.uuid)","mission_factory_owner.c408_stage1_complete_assert_v1()","mission_factory_owner.c412_read_identity_v1(pg_catalog.uuid)","mission_factory_owner.c416_arc_assert_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.c416_draft_assert_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.c444_action_scope_v1(pg_catalog.uuid)","mission_factory_owner.c444_enrollment_open_v1(pg_catalog.uuid)","mission_factory_owner.c444_enrollment_v1(pg_catalog.uuid,pg_catalog.text,pg_catalog.bool,pg_catalog.int8,pg_catalog.uuid)","mission_factory_owner.c444_peaceful_boundary_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c444_peaceful_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c444_peaceful_history_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c444_read_identity_v1(pg_catalog.uuid)","mission_factory_owner.c444_runtime_ports_complete_assert_v1()","mission_factory_owner.c444_source_read_assert_v1(pg_catalog.uuid)","mission_factory_owner.c444_terminal_participants_finish_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.c463_optin_complete_assert_v1()","mission_factory_owner.c463_optin_identity_v1(pg_catalog.uuid)","mission_factory_owner.human_existing_legacy_media_pair_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_arc_scope_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.human_ordinary_authoring_qualification_v1(pg_catalog.text)","mission_factory_owner.human_ordinary_authority_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text)","mission_factory_owner.human_ordinary_deep_validate_v1(pg_catalog.uuid,pg_catalog.jsonb)","mission_factory_owner.human_ordinary_enrollment_open_v1(pg_catalog.uuid)","mission_factory_owner.human_ordinary_execution_read_assert_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.human_ordinary_final_terminal_v1(pg_catalog.uuid)","mission_factory_owner.human_ordinary_npc_bundle_assert_v1(pg_catalog.uuid)","mission_factory_owner.human_ordinary_participants_finish_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_peaceful_boundary_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_peaceful_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_peaceful_history_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_preview_basis_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.bool)","mission_factory_owner.human_ordinary_release_identity_v1(pg_catalog.text,pg_catalog.bool)","mission_factory_owner.human_ordinary_release_read_assert_v1(pg_catalog.text,pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.human_ordinary_reward_apply_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.uuid)","mission_factory_owner.human_ordinary_reward_authority_v1(pg_catalog.uuid,pg_catalog.uuid)","mission_factory_owner.human_ordinary_source_v1(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.human_ordinary_terminal_core_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.uuid)","mission_factory_owner.quest_combat_insert_guard_v1()","mission_factory_owner.quest_compile_check_v1(pg_catalog.uuid)","mission_factory_owner.quest_compile_v1(pg_catalog.uuid)","mission_factory_owner.quest_execution_assert_v4(pg_catalog.uuid,pg_catalog.bool)","mission_factory_owner.quest_publication_scope_v3(pg_catalog.uuid,pg_catalog.bool)","mission_public_owner.human_positive_qualification_attest_v1(pg_catalog.text,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.jsonb)","mission_public_owner.human_positive_qualification_v1(pg_catalog.text,pg_catalog.bool)","mission_public_owner.human_session_allowed_v1(pg_catalog.uuid)","public.mission_factory_npc_certify_existing_combat_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.uuid)","public.mission_factory_npc_certify_existing_combat_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid)","public.mission_factory_quest_d100_bind_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.int8,pg_catalog.uuid)","public.mission_factory_quest_d100_binding_scope_v1(pg_catalog.uuid)","public.mission_factory_quest_human_d100_consume_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)","public.mission_factory_quest_human_ordinary_authoring_receipt_v1(pg_catalog.uuid,pg_catalog.text)","public.mission_factory_quest_human_ordinary_control_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)","public.mission_factory_quest_human_ordinary_create_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.jsonb,pg_catalog._uuid,pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_episode_context_v1(pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_import_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.jsonb,pg_catalog._uuid,pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_lifecycle_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)","public.mission_factory_quest_human_ordinary_participant_state_v1(pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_preview_v1(pg_catalog.uuid,pg_catalog.int8)","public.mission_factory_quest_human_ordinary_publish_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text,pg_catalog.uuid,pg_catalog.text,pg_catalog.timestamptz)","public.mission_factory_quest_human_ordinary_runtime_state_v1(pg_catalog.uuid)","public.mission_factory_quest_human_ordinary_terminal_publish_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.uuid)","public.mission_factory_quest_human_regia_optin_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text,pg_catalog.uuid)","public.mission_factory_quest_human_route_v1(pg_catalog.uuid)","public.mission_factory_quest_human_runtime_state_v1(pg_catalog.uuid)","public.mission_factory_quest_human_successor_scope_v1(pg_catalog.uuid)"]$human_signatures$::jsonb
- OR EXISTS(SELECT 1 FROM jsonb_array_elements(v_owner_release_tuple#>'{db_core,functions}')x WHERE coalesce(x->>'oid','')!~'^[1-9][0-9]*$') THEN RETURN NULL;END IF;
- IF p_active THEN
- IF EXISTS(SELECT 1 FROM jsonb_array_elements((v_owner_release_tuple#>'{db_core,functions}')) expected LEFT JOIN pg_catalog.pg_proc proc ON proc.oid=pg_catalog.to_regprocedure(expected->>'lookup_signature') WHERE proc.oid IS NULL OR (expected->>'oid' IS NOT NULL AND proc.oid::text IS DISTINCT FROM expected->>'oid') OR md5(proc.prosrc) IS DISTINCT FROM expected->>'body_md5' OR proc.proargtypes::text IS DISTINCT FROM coalesce((SELECT string_agg(pg_catalog.to_regtype(t)::oid::text,' ' ORDER BY ord) FROM jsonb_array_elements_text(expected->'input_arg_types') WITH ORDINALITY x(t,ord)),'') OR coalesce((SELECT jsonb_agg(pg_catalog.format('%I.%I',tn.nspname,t.typname) ORDER BY u.ord) FROM unnest(coalesce(proc.proallargtypes,proc.proargtypes::oid[])) WITH ORDINALITY u(id,ord) JOIN pg_catalog.pg_type t ON t.oid=u.id JOIN pg_catalog.pg_namespace tn ON tn.oid=t.typnamespace),'[]'::jsonb) IS DISTINCT FROM expected->'all_arg_types' OR to_jsonb(coalesce(proc.proargmodes,array_fill('i'::"char",ARRAY[proc.pronargs]))) IS DISTINCT FROM expected->'arg_modes' OR coalesce(to_jsonb(proc.proargnames),'null'::jsonb) IS DISTINCT FROM expected->'arg_names' OR proc.prorettype IS DISTINCT FROM pg_catalog.to_regtype(expected->>'return_type') OR proc.proretset OR proc.pronargdefaults<>0 OR proc.proargdefaults IS NOT NULL OR proc.provariadic<>0 OR proc.proisstrict OR proc.provolatile::text IS DISTINCT FROM expected->>'volatility' OR proc.proparallel<>'u' OR proc.prosecdef IS DISTINCT FROM (expected->>'security_definer')::boolean OR (SELECT lanname FROM pg_catalog.pg_language WHERE oid=proc.prolang) IS DISTINCT FROM expected->>'language' OR to_jsonb(proc.proconfig) IS DISTINCT FROM expected->'configuration' OR pg_catalog.pg_get_userbyid(proc.proowner)<>'postgres' OR proc.proleakproof OR coalesce((SELECT jsonb_agg(CASE WHEN acl.grantee=0 THEN 'PUBLIC' ELSE pg_catalog.pg_get_userbyid(acl.grantee) END ORDER BY CASE WHEN acl.grantee=0 THEN 'PUBLIC' ELSE pg_catalog.pg_get_userbyid(acl.grantee) END) FROM pg_catalog.aclexplode(coalesce(proc.proacl,pg_catalog.acldefault('f',proc.proowner))) acl WHERE acl.privilege_type='EXECUTE'),'[]'::jsonb) IS DISTINCT FROM expected->'execute' OR EXISTS(SELECT 1 FROM pg_catalog.aclexplode(coalesce(proc.proacl,pg_catalog.acldefault('f',proc.proowner))) acl WHERE acl.is_grantable)) THEN RAISE EXCEPTION 'HUMAN_RELEASE_CURRENT_ABI_DRIFT' USING ERRCODE='40001';END IF;
+REVOKE ALL ON FUNCTION mission_factory_owner.human_ordinary_authority_verified_v1(uuid,bigint,text,jsonb) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION mission_factory_owner.human_ordinary_authority_verified_v1(uuid,bigint,text,jsonb) TO postgres;
 
- END IF;
- RETURN jsonb_build_object('singleton',true,'canonical_preimage',preimage,'revision_sha256',p_release,'client_build','human-ordinary/1:'||p_release,'state','enabled','scope','staff','observed_revision_sha256',p_release,'independent_review_ref',r.independent_review_ref,'staff_guards_verified',true,'published_assets_verified',true);
-EXCEPTION WHEN invalid_text_representation THEN RETURN NULL;
-END $function$
-;
+REVOKE ALL ON FUNCTION mission_factory_owner.human_custom_ordinary_capability_verified_v1(uuid,boolean,jsonb) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION mission_factory_owner.human_custom_ordinary_capability_verified_v1(uuid,boolean,jsonb) TO postgres;
 
-CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_authority_v1(p_draft uuid, p_version bigint, p_source text)
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-DECLARE observation jsonb;g mission_factory_owner.quest_fixed30_admission;d mission_factory_owner.drafts;
- ready mission_factory_owner.editor_release_readiness;rel mission_public_owner.release_admissions_v1;
- roster mission_factory_owner.quest_roster_assignments;policy mission_factory_owner.quest_reward_policy_versions;
- n integer;policy_text text;expected_qual text;
-BEGIN
- IF p_draft IS NULL OR p_version IS NULL OR p_source IS NULL THEN RETURN NULL;END IF;
- SELECT * INTO d FROM mission_factory_owner.drafts WHERE id=p_draft;
- SELECT * INTO g FROM mission_factory_owner.quest_fixed30_admission WHERE singleton;
- observation:=mission_factory_owner.human_ordinary_release_identity_v1(CASE WHEN g.public_staff_draft_id=p_draft THEN g.public_staff_release_sha256 ELSE g.public_release_sha256 END,true);IF mission_factory_owner.human_release_observation_valid_v1(observation,CASE WHEN g.public_staff_draft_id=p_draft THEN g.public_staff_release_sha256 ELSE g.public_release_sha256 END,true) IS DISTINCT FROM true THEN RETURN NULL;END IF;
- SELECT * INTO ready FROM jsonb_populate_record(NULL::mission_factory_owner.editor_release_readiness,observation);
- IF d.id IS NULL OR g.singleton IS NULL OR ready.singleton IS NULL
- OR d.control_version IS DISTINCT FROM p_version OR d.document_sha256 IS DISTINCT FROM p_source
- OR mission_factory_owner.sha(d.document) IS DISTINCT FROM p_source
- OR d.document->>'schema_version' IS DISTINCT FROM 'mission-factory-draft/3'
- OR d.document->>'content_kind' IS DISTINCT FROM 'quest_human' OR d.state NOT IN('draft','previewed','published')
- OR ready.state<>'enabled' OR ready.scope<>'staff' OR mission_factory_owner.human_release_observation_valid_v1(observation,ready.revision_sha256,true) IS DISTINCT FROM true
- OR NOT ready.staff_guards_verified OR NOT ready.published_assets_verified
- OR encode(extensions.digest(convert_to(ready.canonical_preimage,'UTF8'),'sha256'),'hex') IS DISTINCT FROM ready.revision_sha256
- OR jsonb_typeof(d.document#>'{quest,episodes}') IS DISTINCT FROM 'array'
- THEN RETURN NULL;END IF;
- n:=jsonb_array_length(d.document#>'{quest,episodes}');IF n<1 THEN RETURN NULL;END IF;
- policy_text:=d.document#>>ARRAY['quest','episodes',(n-1)::text,'terminal_rules','reward_policy_id'];
- SELECT * INTO policy FROM mission_factory_owner.quest_reward_policy_versions WHERE id::text=policy_text AND qualified AND scope='staff';
- SELECT * INTO roster FROM mission_factory_owner.quest_roster_assignments
- WHERE id::text=d.document#>>'{quest,roster_assignment_id}' AND draft_id=d.id AND active;
- IF policy.id IS NULL OR roster.id IS NULL OR mission_factory_owner.sha(policy.document) IS DISTINCT FROM policy.document_sha256
- OR policy.document IS DISTINCT FROM mission_factory_owner.quest_reward_fixed30_document_v2()
- THEN RETURN NULL;END IF;
- IF g.public_staff_draft_id=p_draft THEN
-  SELECT * INTO rel FROM mission_public_owner.release_admissions_v1 WHERE release_sha256=CASE WHEN observation->>'schema_version'='human-compatible-release-identity/1' THEN observation->>'observed_revision_sha256' ELSE g.public_staff_release_sha256 END;
-  IF NOT g.public_staff_enabled OR mission_factory_owner.c416_kind_live_v1() IS DISTINCT FROM true OR mission_factory_owner.c444_enabled_v1() IS DISTINCT FROM true
-  OR g.public_staff_draft_version IS DISTINCT FROM p_version OR g.public_staff_source_sha256 IS DISTINCT FROM p_source
-  OR g.public_staff_release_sha256 IS DISTINCT FROM ready.revision_sha256 OR rel.release_sha256 IS NULL
-  OR rel.contract_version<>'mission-public-admission/1' OR rel.independent_review_ref IS DISTINCT FROM (CASE WHEN observation->>'schema_version'='human-compatible-release-identity/1' THEN observation->>'observed_independent_review_ref' ELSE ready.independent_review_ref END)
-  OR rel.staff_evidence_ref IS DISTINCT FROM 'AUTHORIZED_TEST_MANIFEST:'||g.public_staff_test_manifest_ref
-  OR g.allowed_auth_ids IS DISTINCT FROM (SELECT allowed_auth_ids FROM mission_factory_owner.c416_kind_admission WHERE singleton) OR cardinality(g.allowed_auth_ids) IS DISTINCT FROM 2 OR array_position(g.allowed_auth_ids,NULL) IS NOT NULL
-  OR NOT(g.allowed_auth_ids @> ARRAY['f0856d53-83a6-4de0-bc0c-12c87916e665'::uuid,'b4952ed5-5ce0-49c0-9f2b-8fd5dcd89b4b'::uuid])
-  OR NOT(d.author_user=ANY(g.allowed_auth_ids))
-  OR NOT EXISTS(SELECT 1 FROM public.locations WHERE id='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid AND is_active AND is_test)
-  OR EXISTS(SELECT 1 FROM unnest(roster.member_character_ids)x(id) LEFT JOIN public.characters c ON c.id=x.id
-   WHERE c.id IS NULL OR NOT(c.user_id=ANY(g.allowed_auth_ids)))
-  OR NOT EXISTS(SELECT 1 FROM mission_factory_owner.quest_fixed30_policy_requests qr
-   JOIN mission_factory_owner.catalog_versions cv ON cv.version=d.catalog_version AND cv.active AND cv.qualified
-   WHERE qr.policy_id=policy.id AND qr.document_sha256=policy.document_sha256
-   AND qr.catalog_version=cv.version AND qr.catalog_sha256=cv.document_sha256)
-  THEN RETURN NULL;END IF;
-  IF observation->>'schema_version'='human-compatible-release-identity/1' THEN
-  expected_qual:=mission_factory_owner.sha(jsonb_build_object('schema_version','quest-human-public-staff-compatible-context/1','release_sha256',ready.revision_sha256,'observed_release_sha256',observation->>'observed_revision_sha256','compatibility_sha256',observation->>'compatibility_sha256',
-   'db_sha256',rel.db_sha256,'edge_sha256',rel.edge_sha256,'client_sha256',rel.client_sha256,'config_sha256',rel.configuration_sha256,
-   'independent_review_ref',rel.independent_review_ref,'authorized_test_manifest_ref',g.public_staff_test_manifest_ref,
-   'draft_id',p_draft,'draft_version',p_version,'source_sha256',p_source,'allowed_auth_ids',g.allowed_auth_ids,
-   'human_kind_request',(SELECT request_key FROM mission_factory_owner.c416_kind_admission WHERE singleton),'human_kind_review_sha256',(SELECT review_sha256 FROM mission_factory_owner.c416_kind_admission WHERE singleton),'location_id','0b85f354-9cdb-47e1-baf9-3d266bb7e06b'));
-  ELSE
-  expected_qual:=mission_factory_owner.sha(jsonb_build_object('schema_version','quest-human-public-staff-context/1','release_sha256',rel.release_sha256,
-   'db_sha256',rel.db_sha256,'edge_sha256',rel.edge_sha256,'client_sha256',rel.client_sha256,'config_sha256',rel.configuration_sha256,
-   'independent_review_ref',rel.independent_review_ref,'authorized_test_manifest_ref',g.public_staff_test_manifest_ref,
-   'draft_id',p_draft,'draft_version',p_version,'source_sha256',p_source,'allowed_auth_ids',g.allowed_auth_ids,
-   'human_kind_request',(SELECT request_key FROM mission_factory_owner.c416_kind_admission WHERE singleton),'human_kind_review_sha256',(SELECT review_sha256 FROM mission_factory_owner.c416_kind_admission WHERE singleton),'location_id','0b85f354-9cdb-47e1-baf9-3d266bb7e06b'));
-  END IF;
-  IF g.public_staff_qualification_sha256 IS DISTINCT FROM expected_qual THEN RETURN NULL;END IF;
-  RETURN jsonb_build_object('execution_context','staff_simulation','target','staff','revision_sha256',CASE WHEN observation->>'schema_version'='human-compatible-release-identity/1' THEN ready.revision_sha256 ELSE rel.release_sha256 END,
-   'qualification_sha256',expected_qual,'allowed_auth_ids',to_jsonb(g.allowed_auth_ids),'location_id','0b85f354-9cdb-47e1-baf9-3d266bb7e06b');
- END IF;
- IF (NOT g.public_enabled AND (mission_public_owner.human_positive_qualification_v1(g.public_release_sha256,true)->>'schema_version' IS NOT DISTINCT FROM 'human-owner-accepted-release/1') IS DISTINCT FROM true) OR g.public_release_sha256 IS DISTINCT FROM ready.revision_sha256
- OR g.public_policy_id IS DISTINCT FROM policy.id OR g.public_qualification_sha256 IS NULL
- OR mission_public_owner.human_positive_qualification_v1(g.public_release_sha256,true) IS NULL THEN RETURN NULL;END IF;
- RETURN jsonb_build_object('execution_context','public_real','target','public','revision_sha256',g.public_release_sha256,
- 'qualification_sha256',g.public_qualification_sha256,'allowed_auth_ids','[]'::jsonb,'location_id',NULL);
-END $function$
-;
+REVOKE ALL ON FUNCTION mission_factory_owner.human_staff_lease_valid_verified_v1(jsonb,uuid,boolean,jsonb) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION mission_factory_owner.human_staff_lease_valid_verified_v1(jsonb,uuid,boolean,jsonb) TO postgres;
 
-CREATE OR REPLACE FUNCTION mission_factory_owner.human_ordinary_release_read_assert_v1(p_release text, p_policy uuid, p_enabled boolean)
- RETURNS void
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-declare g mission_factory_owner.quest_fixed30_admission; rel mission_public_owner.release_admissions_v1; checked jsonb;observation jsonb;
-begin
- select * into strict rel from mission_public_owner.release_admissions_v1 where release_sha256=p_release;
- if nullif(btrim(rel.independent_review_ref),'') is null or nullif(btrim(rel.staff_evidence_ref),'') is null
- or rel.contract_version<>'mission-public-admission/1' then raise exception 'MF_QUEST_PUBLIC_RELEASE_UNQUALIFIED' using errcode='55000';end if;
- checked:=mission_factory_owner.quest_reward_policy_checked_v2(p_policy);
- if p_enabled then
- observation:=mission_factory_owner.human_ordinary_release_identity_v1(p_release,true);IF mission_factory_owner.human_release_observation_valid_v1(observation,p_release,true) IS DISTINCT FROM true THEN RAISE EXCEPTION 'MF_QUEST_CURRENT_OBSERVATION_REQUIRED' USING ERRCODE='55000';END IF;
- if mission_public_owner.human_positive_qualification_v1(p_release,true) is null then raise exception 'MF_QUEST_STAFF_EVIDENCE_NOT_POSITIVE' using errcode='55000';end if;
-  select * into strict g from mission_factory_owner.quest_fixed30_admission where singleton;
-  if not rel.public_enabled or (not g.public_enabled and (mission_public_owner.human_positive_qualification_v1(p_release,true)->>'schema_version' IS NOT DISTINCT FROM 'human-owner-accepted-release/1') IS DISTINCT FROM true) or g.public_release_sha256 is distinct from p_release
-  or g.public_policy_id is distinct from p_policy or g.public_qualification_sha256 is null
-  then raise exception 'MF_QUEST_PUBLIC_RELEASE_UNQUALIFIED' using errcode='55000';end if;
- end if;
-end $function$
-;
+REVOKE ALL ON FUNCTION mission_factory_owner.human_ordinary_source_verified_v1(uuid,boolean,jsonb) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION mission_factory_owner.human_ordinary_source_verified_v1(uuid,boolean,jsonb) TO postgres;
 
-CREATE OR REPLACE FUNCTION mission_public_owner.human_positive_qualification_v1(p_release text, p_active boolean)
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-DECLARE observation jsonb;q mission_public_owner.public_qualification_attestations_v1;rel mission_public_owner.release_admissions_v1;
- ready mission_factory_owner.editor_release_readiness;t jsonb;f jsonb;
- one mission_factory_owner.quest_run_sources;two mission_factory_owner.quest_run_sources;
- terminal mission_factory_owner.quest_terminal_receipts;binding_one mission_factory_owner.c384_human_bindings;binding_two mission_factory_owner.c384_human_bindings;
- expected_cases jsonb:='["human_authoring_png_maps","human_save_recovery","human_combat_single_fato","human_terminal","human_successor_started"]'::jsonb;
- expected_consumers jsonb:='["authoring","publish","prepare","start","runtime","regia_optin","combat_open","combat_fato","combat_terminal","terminal_publish","successor","rewards","land_master","land_player"]'::jsonb;
-BEGIN
- IF p_release IS NULL OR p_active IS NULL OR p_release!~'^[0-9a-f]{64}$' THEN RETURN NULL;END IF;
- -- No foundation-only release: all new ordinary ports and the strict canonical PNG checker must exist in the reviewed tuple.
- IF p_active AND (pg_catalog.to_regprocedure('public.mission_factory_quest_human_ordinary_publish_v1(uuid,bigint,text,uuid,text,timestamp with time zone)') IS NULL
- OR pg_catalog.to_regprocedure('public.mission_factory_quest_human_ordinary_runtime_state_v1(uuid)') IS NULL
- OR pg_catalog.to_regprocedure('public.mission_factory_quest_human_ordinary_terminal_publish_v1(uuid,uuid,text,uuid)') IS NULL
- OR pg_catalog.to_regprocedure('public.mission_factory_quest_human_ordinary_control_receipt_v1(uuid,uuid,text)') IS NULL
- OR pg_catalog.to_regprocedure('mission_factory_owner.human_ordinary_npc_bundle_assert_v1(uuid)') IS NULL) THEN RETURN NULL;END IF;
- SELECT * INTO q FROM mission_public_owner.public_qualification_attestations_v1 WHERE release_sha256=p_release;
+REVOKE ALL ON FUNCTION mission_factory_owner.human_ordinary_arc_scope_verified_v1(uuid,boolean,jsonb,jsonb) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION mission_factory_owner.human_ordinary_arc_scope_verified_v1(uuid,boolean,jsonb,jsonb) TO postgres;
 
- IF q.payload->>'schema_version'='human-owner-accepted-release/1' THEN
- DECLARE oa jsonb:=q.payload->'owner_acceptance';cv jsonb:=q.payload->'cross_version_assessment';
- BEGIN
- IF NOT mission_factory_owner.keys_exact_v2(oa,ARRAY['decision_id','mandate_ref','mandate_sha256','quote','owner_identity_ref','accepted_scope','legacy_evidence_ref','legacy_evidence_sha256','ordinary_runtime_qa','ordinary_real_reward_runtime','release_basis'])
- OR oa->>'decision_id' IS DISTINCT FROM 'HUMAN-OWNER-STAFF-ACCEPTANCE-20261015'
- OR oa->>'mandate_sha256' IS DISTINCT FROM '3d4a5b2dbfc60aa1a9a21e49468809cd45b8150e141d743544fda3a89495726d'
- OR oa->>'quote' IS DISTINCT FROM 'il collaudo in staff room valida per la land completa e rilascia'
- OR oa->>'owner_identity_ref' IS DISTINCT FROM 'Antonello; direct user message in current Codex task'
- OR oa->'accepted_scope' IS DISTINCT FROM '["Human Regia LAND", "quest authoring with approved PNG and compatible maps", "Human Combat and single Fato", "terminal and second episode", "public opening of reviewed integrated Human version"]'::jsonb
- OR nullif(btrim(oa->>'mandate_ref'),'') IS NULL
- OR oa->>'legacy_evidence_ref' IS DISTINCT FROM 'HUMAN_FINAL_TWO_EPISODE_POSTFLIGHT_PROOF.json'
- OR oa->>'legacy_evidence_sha256' IS DISTINCT FROM '4c271ab0ce162bfa4cd474976b890aa15409a0f03439daee673550075ecbc222'
- OR oa->>'ordinary_runtime_qa' IS DISTINCT FROM 'NOT_RUN'
- OR oa->>'ordinary_real_reward_runtime' IS DISTINCT FROM 'NOT_RUN'
- OR oa->>'release_basis' IS DISTINCT FROM 'owner_acceptance_of_legacy_staff_test'
- OR NOT mission_factory_owner.keys_exact_v2(cv,ARRAY['legacy_evidence_sha256','integrated_tuple_sha256','review_ref','reviewed_delta_manifest_sha256','published_assets_manifest_sha256','unplayed_behaviors'])
- OR cv->>'legacy_evidence_sha256' IS DISTINCT FROM oa->>'legacy_evidence_sha256'
- OR cv->>'integrated_tuple_sha256' IS DISTINCT FROM p_release
- OR cv->>'review_ref' IS DISTINCT FROM q.payload->>'independent_review_ref'
- OR coalesce(cv->>'reviewed_delta_manifest_sha256','')!~'^[0-9a-f]{64}$'
- OR coalesce(cv->>'published_assets_manifest_sha256','')!~'^[0-9a-f]{64}$'
- OR cv->'unplayed_behaviors' IS DISTINCT FROM '["ordinary_runtime_qa","ordinary_real_reward_runtime","new_ordinary_bootstrap"]'::jsonb
- THEN RETURN NULL;END IF;
- SELECT * INTO rel FROM mission_public_owner.release_admissions_v1 WHERE release_sha256=p_release;
- IF NOT FOUND THEN RETURN NULL;END IF;
- observation:=mission_factory_owner.human_ordinary_release_identity_v1(p_release,p_active);IF mission_factory_owner.human_release_observation_valid_v1(observation,p_release,p_active) IS DISTINCT FROM true THEN RETURN NULL;END IF;
- SELECT * INTO ready FROM jsonb_populate_record(NULL::mission_factory_owner.editor_release_readiness,observation);
- IF ready.singleton IS DISTINCT FROM true THEN RETURN NULL;END IF;
- IF p_active THEN
-  IF NOT FOUND OR ready.canonical_preimage IS NULL THEN RETURN NULL;END IF;t:=ready.canonical_preimage::jsonb;
- ELSE t:=q.payload->'canonical_tuple';IF jsonb_typeof(t) IS DISTINCT FROM 'object' THEN RETURN NULL;END IF;END IF;
- IF NOT mission_factory_owner.keys_exact_v2(q.payload,ARRAY['schema_version','revision_sha256','canonical_tuple','actual_edge_binding_sha256','actual_client_binding_sha256','independent_review_ref','review_findings','provider_calls','consumer_contracts','staff_proof','owner_acceptance','cross_version_assessment','catalog_version','catalog_sha256','capability_keys']) OR q.payload->'capability_keys' IS DISTINCT FROM '["narrative.scene","combat.encounter","d100.native","terminal.result"]'::jsonb OR NOT EXISTS(SELECT 1 FROM mission_factory_owner.catalog_versions hc WHERE hc.version=q.payload->>'catalog_version' AND hc.document_sha256=q.payload->>'catalog_sha256' AND hc.document_sha256=mission_factory_owner.sha(hc.document) AND hc.qualified AND (NOT p_active OR hc.active)) OR q.payload_sha256 IS DISTINCT FROM mission_factory_owner.sha(q.payload)
- OR q.payload->>'revision_sha256' IS DISTINCT FROM p_release OR q.created_by IS DISTINCT FROM 'postgres'::name
- OR (p_active AND (ready.revision_sha256 IS DISTINCT FROM p_release OR mission_factory_owner.human_release_observation_valid_v1(observation,p_release,p_active) IS DISTINCT FROM true
- OR ready.state IS DISTINCT FROM 'enabled' OR ready.scope IS DISTINCT FROM 'staff'
- OR ready.staff_guards_verified IS DISTINCT FROM true OR ready.published_assets_verified IS DISTINCT FROM true
- OR ready.independent_review_ref IS DISTINCT FROM q.payload->>'independent_review_ref'))
- OR rel.independent_review_ref IS DISTINCT FROM q.payload->>'independent_review_ref'
- OR rel.staff_evidence_ref IS DISTINCT FROM 'AUTHORIZED_TEST_MANIFEST:'||q.authorized_test_manifest_ref
- OR nullif(btrim(q.positive_staff_evidence_ref),'') IS NULL
- OR rel.contract_version IS DISTINCT FROM 'mission-public-admission/1'
- OR rel.db_sha256 IS DISTINCT FROM t#>>'{db_core,sha256}' OR rel.configuration_sha256 IS DISTINCT FROM t#>>'{config,sha256}'
- OR rel.edge_sha256 IS DISTINCT FROM q.payload->>'actual_edge_binding_sha256'
- OR rel.client_sha256 IS DISTINCT FROM q.payload->>'actual_client_binding_sha256'
- OR q.payload->'canonical_tuple' IS DISTINCT FROM t
- OR q.payload->'review_findings' IS DISTINCT FROM '{"P0":0,"P1":0,"P2":0}'::jsonb
- OR q.payload->>'provider_calls' IS DISTINCT FROM '0'
- OR jsonb_typeof(q.payload->'consumer_contracts') IS DISTINCT FROM 'array'
- OR (p_active AND rel.public_enabled IS DISTINCT FROM true) THEN RETURN NULL;END IF;
- IF (SELECT jsonb_agg(x->>'contract' ORDER BY n) FROM jsonb_array_elements(q.payload->'consumer_contracts') WITH ORDINALITY z(x,n)) IS DISTINCT FROM expected_consumers
- OR EXISTS(SELECT 1 FROM jsonb_array_elements(q.payload->'consumer_contracts')z(x) WHERE NOT mission_factory_owner.keys_exact_v2(x,ARRAY['contract','sha256','verified']) OR x->'verified' IS DISTINCT FROM 'true'::jsonb OR coalesce(x->>'sha256','')!~'^[0-9a-f]{64}$') THEN RETURN NULL;END IF;
+REVOKE ALL ON FUNCTION mission_factory_owner.human_ordinary_execution_read_assert_verified_v1(uuid,boolean,jsonb,jsonb) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION mission_factory_owner.human_ordinary_execution_read_assert_verified_v1(uuid,boolean,jsonb,jsonb) TO postgres;
 
- f:=q.payload->'staff_proof';
- IF NOT mission_factory_owner.keys_exact_v2(f,ARRAY['first_session','second_session','first_terminal_receipt','combat_encounter','combat_report','protected_before_md5','protected_after_md5'])
- OR coalesce(f->>'protected_before_md5','')!~'^[0-9a-f]{32}$' OR f->>'protected_before_md5' IS DISTINCT FROM f->>'protected_after_md5'
- OR EXISTS(SELECT 1 FROM jsonb_each_text(f)z(k,v) WHERE k IN('first_session','second_session','first_terminal_receipt','combat_encounter','combat_report') AND coalesce(v,'')!~'^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$') THEN RETURN NULL;END IF;
- SELECT * INTO one FROM mission_factory_owner.quest_run_sources WHERE session_id=(f->>'first_session')::uuid;
- SELECT * INTO two FROM mission_factory_owner.quest_run_sources WHERE session_id=(f->>'second_session')::uuid;
- SELECT * INTO terminal FROM mission_factory_owner.quest_terminal_receipts WHERE id=(f->>'first_terminal_receipt')::uuid;
- SELECT * INTO binding_one FROM mission_factory_owner.c384_human_bindings WHERE session_id=one.session_id;
- SELECT * INTO binding_two FROM mission_factory_owner.c384_human_bindings WHERE session_id=two.session_id;
- IF one.session_id IS NULL OR two.session_id IS NULL OR one.session_id=two.session_id OR terminal.id IS NULL
- OR one.state IS DISTINCT FROM 'terminal' OR one.terminal_receipt_id IS DISTINCT FROM terminal.id
- OR terminal.session_id IS DISTINCT FROM one.session_id OR terminal.source_sha256 IS DISTINCT FROM one.source_sha256
- OR terminal.publication_id IS NULL OR terminal.outcome IS DISTINCT FROM 'success'
- OR one.session_id IS DISTINCT FROM '97d2a684-956d-57ad-8d84-aca627dd9e5c'::uuid OR two.session_id IS DISTINCT FROM 'e5aa6156-c725-5e99-b4f3-b798977affd5'::uuid
- OR one.availability_scope IS DISTINCT FROM 'staff' OR two.availability_scope IS DISTINCT FROM 'staff' OR one.public_release_sha256 IS NOT NULL OR two.public_release_sha256 IS NOT NULL
- OR NOT EXISTS(SELECT 1 FROM mission_factory_owner.quest_arcs qa WHERE qa.id=one.arc_id AND qa.availability_scope='staff' AND qa.execution_context='staff_simulation' AND qa.public_release_sha256 IS NULL AND qa.state='completed' AND cardinality(qa.member_character_ids)=2)
- OR one.execution_context IS DISTINCT FROM 'staff_simulation' OR two.execution_context IS DISTINCT FROM 'staff_simulation'
- OR one.location_id IS DISTINCT FROM '0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid OR two.location_id IS DISTINCT FROM one.location_id
- OR one.episode_ordinal IS DISTINCT FROM 1 OR two.episode_ordinal IS DISTINCT FROM 2 OR two.arc_id IS DISTINCT FROM one.arc_id
- OR two.state IS DISTINCT FROM 'terminal' OR two.terminal_receipt_id IS NULL OR two.started_at IS NULL OR two.opening_publication_id IS NULL
- OR two.previous_episode_terminal_receipt_id IS DISTINCT FROM terminal.id
- OR two.continuity_sha256 IS DISTINCT FROM terminal.continuity_private_sha256
- OR one.roster_character_ids IS DISTINCT FROM two.roster_character_ids OR cardinality(one.roster_character_ids) IS DISTINCT FROM 2
- OR NOT EXISTS(SELECT 1 FROM mission_factory_owner.quest_terminal_receipts tr WHERE tr.id=two.terminal_receipt_id AND tr.session_id=two.session_id AND tr.source_sha256=two.source_sha256 AND tr.outcome='success' AND tr.publication_id IS NOT NULL AND EXISTS(SELECT 1 FROM public.mission_run_outbox ox WHERE ox.event_id=tr.close_event_id AND ox.master_session_id=two.session_id AND ox.state='published' AND ox.publication_id=tr.publication_id))
- OR NOT EXISTS(SELECT 1 FROM public.master_v2_sessions mm WHERE mm.id=two.session_id AND mm.owner_kind='human' AND mm.tipo='quest' AND mm.stato='chiusa' AND mm.closed_at IS NOT NULL)
- OR binding_one.lineage_id IS NULL OR binding_two.lineage_id IS DISTINCT FROM binding_one.lineage_id
- OR binding_two.authoring_version IS DISTINCT FROM binding_one.authoring_version OR binding_two.assigned_master IS DISTINCT FROM binding_one.assigned_master
- OR NOT EXISTS(SELECT 1 FROM public.master_v2_sessions m WHERE m.id=one.session_id AND m.owner_kind='human' AND m.tipo='quest' AND m.stato='chiusa' AND m.closed_at IS NOT NULL)
- OR NOT EXISTS(SELECT 1 FROM public.mission_run_outbox o WHERE o.event_id=terminal.close_event_id AND o.master_session_id=one.session_id AND o.state='published' AND o.publication_id=terminal.publication_id)
- OR NOT EXISTS(SELECT 1 FROM public.combat_v2_sessions c JOIN public.combat_v2_round_reports r ON r.round_id IN(SELECT id FROM public.combat_v2_rounds WHERE session_id=c.id) JOIN mission_generic_owner.regia_human_windows_v1 w ON w.master_session_id=one.session_id AND w.encounter_id=c.id AND w.source_report_id=r.id AND w.source_report_sha256=r.mechanics_sha256 WHERE c.id=(f->>'combat_encounter')::uuid AND c.master_session_id=one.session_id AND c.state='chiuso' AND c.closed_at IS NOT NULL AND r.id=(f->>'combat_report')::uuid AND r.narration_state='pubblicata' AND w.state='published' AND w.message_id=r.message_id)
- OR (SELECT count(*) FROM public.combat_v2_narratives n WHERE n.report_id=(f->>'combat_report')::uuid AND n.kind='fato_umano') IS DISTINCT FROM 1::bigint
- THEN RETURN NULL;END IF;
-
-
- IF f->>'first_terminal_receipt' IS DISTINCT FROM '279e18dc-d54d-4f20-b8a2-0d001e57cddf'
- OR f->>'combat_encounter' IS DISTINCT FROM 'd5510d61-54d2-4a55-885e-5b534b42fbab'
- OR f->>'combat_report' IS DISTINCT FROM '43f40e7f-e635-43c7-9969-2ba96333439e'
- OR f->>'protected_before_md5' IS DISTINCT FROM 'd41adde267a202a8ff4c6c194eb0a09f'
- OR f->>'protected_after_md5' IS DISTINCT FROM 'd41adde267a202a8ff4c6c194eb0a09f'
- OR one.source_sha256 IS DISTINCT FROM '9dc80ff40032878dbad45f933b2e0469e6d0f3d55c7f8b029e0b5d1f4dc1c61c'
- OR two.source_sha256 IS DISTINCT FROM '70b529814c308bc764422696eb7f32dd983852e2e617ededd6b0cd9649b53a4d'
- OR two.terminal_receipt_id IS DISTINCT FROM 'd784c7c8-09a5-4096-aa8d-1174c4472fa6'
- THEN RETURN NULL;END IF;
- RETURN q.payload||jsonb_build_object('positive_staff_evidence_ref',q.positive_staff_evidence_ref,'attestation_sha256',q.payload_sha256,'request_key',q.request_key);
- END;
- END IF;
- IF NOT FOUND OR q.payload->>'schema_version' IS DISTINCT FROM 'human-positive-staff-qualification/1' THEN RETURN NULL;END IF;
- SELECT * INTO rel FROM mission_public_owner.release_admissions_v1 WHERE release_sha256=p_release;
- IF NOT FOUND THEN RETURN NULL;END IF;
- observation:=mission_factory_owner.human_ordinary_release_identity_v1(p_release,p_active);IF mission_factory_owner.human_release_observation_valid_v1(observation,p_release,p_active) IS DISTINCT FROM true THEN RETURN NULL;END IF;
- SELECT * INTO ready FROM jsonb_populate_record(NULL::mission_factory_owner.editor_release_readiness,observation);
- IF ready.singleton IS DISTINCT FROM true THEN RETURN NULL;END IF;
- IF p_active THEN
-  IF NOT FOUND OR ready.canonical_preimage IS NULL THEN RETURN NULL;END IF;t:=ready.canonical_preimage::jsonb;
- ELSE t:=q.payload->'canonical_tuple';IF jsonb_typeof(t) IS DISTINCT FROM 'object' THEN RETURN NULL;END IF;END IF;
- IF NOT mission_factory_owner.keys_exact_v2(q.payload,ARRAY['schema_version','revision_sha256','canonical_tuple','actual_edge_binding_sha256','actual_client_binding_sha256','independent_review_ref','review_findings','case_ids','provider_calls','case_evidence','consumer_contracts','staff_proof','catalog_version','catalog_sha256','capability_keys']) OR q.payload->'capability_keys' IS DISTINCT FROM '["narrative.scene","combat.encounter","d100.native","terminal.result"]'::jsonb OR NOT EXISTS(SELECT 1 FROM mission_factory_owner.catalog_versions hc WHERE hc.version=q.payload->>'catalog_version' AND hc.document_sha256=q.payload->>'catalog_sha256' AND hc.document_sha256=mission_factory_owner.sha(hc.document) AND hc.qualified AND (NOT p_active OR hc.active)) OR q.payload_sha256 IS DISTINCT FROM mission_factory_owner.sha(q.payload)
- OR q.payload->>'revision_sha256' IS DISTINCT FROM p_release OR q.created_by IS DISTINCT FROM 'postgres'::name
- OR (p_active AND (ready.revision_sha256 IS DISTINCT FROM p_release OR mission_factory_owner.human_release_observation_valid_v1(observation,p_release,p_active) IS DISTINCT FROM true
- OR ready.state IS DISTINCT FROM 'enabled' OR ready.scope IS DISTINCT FROM 'staff'
- OR ready.staff_guards_verified IS DISTINCT FROM true OR ready.published_assets_verified IS DISTINCT FROM true
- OR ready.independent_review_ref IS DISTINCT FROM q.payload->>'independent_review_ref'))
- OR rel.independent_review_ref IS DISTINCT FROM q.payload->>'independent_review_ref'
- OR rel.staff_evidence_ref IS DISTINCT FROM 'AUTHORIZED_TEST_MANIFEST:'||q.authorized_test_manifest_ref
- OR nullif(btrim(q.positive_staff_evidence_ref),'') IS NULL
- OR rel.contract_version IS DISTINCT FROM 'mission-public-admission/1'
- OR rel.db_sha256 IS DISTINCT FROM t#>>'{db_core,sha256}' OR rel.configuration_sha256 IS DISTINCT FROM t#>>'{config,sha256}'
- OR rel.edge_sha256 IS DISTINCT FROM q.payload->>'actual_edge_binding_sha256'
- OR rel.client_sha256 IS DISTINCT FROM q.payload->>'actual_client_binding_sha256'
- OR q.payload->'canonical_tuple' IS DISTINCT FROM t
- OR q.payload->'review_findings' IS DISTINCT FROM '{"P0":0,"P1":0,"P2":0}'::jsonb
- OR q.payload->'case_ids' IS DISTINCT FROM expected_cases
- OR q.payload->>'provider_calls' IS DISTINCT FROM '0'
- OR jsonb_typeof(q.payload->'case_evidence') IS DISTINCT FROM 'array'
- OR jsonb_typeof(q.payload->'consumer_contracts') IS DISTINCT FROM 'array'
- OR (p_active AND rel.public_enabled IS DISTINCT FROM true) THEN RETURN NULL;END IF;
- IF (SELECT jsonb_agg(x->>'case_id' ORDER BY n) FROM jsonb_array_elements(q.payload->'case_evidence') WITH ORDINALITY z(x,n)) IS DISTINCT FROM expected_cases
- OR EXISTS(SELECT 1 FROM jsonb_array_elements(q.payload->'case_evidence')z(x) WHERE NOT mission_factory_owner.keys_exact_v2(x,ARRAY['case_id','status','evidence_ref','evidence_sha256']) OR x->>'status' IS DISTINCT FROM 'PASS' OR nullif(btrim(x->>'evidence_ref'),'') IS NULL OR coalesce(x->>'evidence_sha256','')!~'^[0-9a-f]{64}$')
- OR (SELECT jsonb_agg(x->>'contract' ORDER BY n) FROM jsonb_array_elements(q.payload->'consumer_contracts') WITH ORDINALITY z(x,n)) IS DISTINCT FROM expected_consumers
- OR EXISTS(SELECT 1 FROM jsonb_array_elements(q.payload->'consumer_contracts')z(x) WHERE NOT mission_factory_owner.keys_exact_v2(x,ARRAY['contract','sha256','verified']) OR x->'verified' IS DISTINCT FROM 'true'::jsonb OR coalesce(x->>'sha256','')!~'^[0-9a-f]{64}$') THEN RETURN NULL;END IF;
- f:=q.payload->'staff_proof';
- IF NOT mission_factory_owner.keys_exact_v2(f,ARRAY['first_session','second_session','first_terminal_receipt','combat_encounter','combat_report','protected_before_md5','protected_after_md5'])
- OR coalesce(f->>'protected_before_md5','')!~'^[0-9a-f]{32}$' OR f->>'protected_before_md5' IS DISTINCT FROM f->>'protected_after_md5'
- OR EXISTS(SELECT 1 FROM jsonb_each_text(f)z(k,v) WHERE k IN('first_session','second_session','first_terminal_receipt','combat_encounter','combat_report') AND coalesce(v,'')!~'^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$') THEN RETURN NULL;END IF;
- SELECT * INTO one FROM mission_factory_owner.quest_run_sources WHERE session_id=(f->>'first_session')::uuid;
- SELECT * INTO two FROM mission_factory_owner.quest_run_sources WHERE session_id=(f->>'second_session')::uuid;
- SELECT * INTO terminal FROM mission_factory_owner.quest_terminal_receipts WHERE id=(f->>'first_terminal_receipt')::uuid;
- SELECT * INTO binding_one FROM mission_factory_owner.c384_human_bindings WHERE session_id=one.session_id;
- SELECT * INTO binding_two FROM mission_factory_owner.c384_human_bindings WHERE session_id=two.session_id;
- IF one.session_id IS NULL OR two.session_id IS NULL OR one.session_id=two.session_id OR terminal.id IS NULL
- OR one.state IS DISTINCT FROM 'terminal' OR one.terminal_receipt_id IS DISTINCT FROM terminal.id
- OR terminal.session_id IS DISTINCT FROM one.session_id OR terminal.source_sha256 IS DISTINCT FROM one.source_sha256
- OR terminal.publication_id IS NULL OR terminal.outcome IS DISTINCT FROM 'success'
- OR one.availability_scope IS DISTINCT FROM 'public' OR two.availability_scope IS DISTINCT FROM 'public' OR one.public_release_sha256 IS DISTINCT FROM p_release OR two.public_release_sha256 IS DISTINCT FROM p_release OR NOT EXISTS(SELECT 1 FROM mission_factory_owner.quest_arcs qa WHERE qa.id=one.arc_id AND qa.availability_scope='public' AND qa.execution_context='staff_simulation' AND qa.public_release_sha256=p_release AND qa.state='completed' AND cardinality(qa.execution_auth_ids)=2)
- OR one.execution_context IS DISTINCT FROM 'staff_simulation' OR two.execution_context IS DISTINCT FROM 'staff_simulation'
- OR one.location_id IS DISTINCT FROM '0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid OR two.location_id IS DISTINCT FROM one.location_id
- OR one.episode_ordinal IS DISTINCT FROM 1 OR two.episode_ordinal IS DISTINCT FROM 2 OR two.arc_id IS DISTINCT FROM one.arc_id
- OR two.state IS DISTINCT FROM 'terminal' OR two.terminal_receipt_id IS NULL OR two.started_at IS NULL OR two.opening_publication_id IS NULL
- OR two.previous_episode_terminal_receipt_id IS DISTINCT FROM terminal.id
- OR two.continuity_sha256 IS DISTINCT FROM terminal.continuity_private_sha256
- OR NOT EXISTS(SELECT 1 FROM mission_factory_owner.quest_reward_decisions_v2 rd WHERE rd.arc_id=one.arc_id AND rd.terminal_receipt_id=two.terminal_receipt_id AND rd.effect_mode='simulation' AND rd.receipt->>'state'='simulated' AND rd.receipt->>'computed_xp_per_recipient'='30' AND rd.receipt->>'effective_xp_per_recipient'='0' AND rd.receipt->>'ryo_per_recipient'='0' AND rd.receipt->'items'='[]'::jsonb) OR one.roster_character_ids IS DISTINCT FROM two.roster_character_ids OR cardinality(one.roster_character_ids) IS DISTINCT FROM 2
- OR binding_one.lineage_id IS NULL OR binding_two.lineage_id IS DISTINCT FROM binding_one.lineage_id
- OR binding_two.authoring_version IS DISTINCT FROM binding_one.authoring_version OR binding_two.assigned_master IS DISTINCT FROM binding_one.assigned_master
- OR NOT EXISTS(SELECT 1 FROM public.master_v2_sessions m WHERE m.id=one.session_id AND m.owner_kind='human' AND m.tipo='quest' AND m.stato='chiusa' AND m.closed_at IS NOT NULL)
- OR NOT EXISTS(SELECT 1 FROM public.mission_run_outbox o WHERE o.event_id=terminal.close_event_id AND o.master_session_id=one.session_id AND o.state='published' AND o.publication_id=terminal.publication_id)
- OR NOT EXISTS(SELECT 1 FROM public.combat_v2_sessions c JOIN public.combat_v2_round_reports r ON r.round_id IN(SELECT id FROM public.combat_v2_rounds WHERE session_id=c.id) JOIN mission_generic_owner.regia_human_windows_v1 w ON w.master_session_id=one.session_id AND w.encounter_id=c.id AND w.source_report_id=r.id AND w.source_report_sha256=r.mechanics_sha256 WHERE c.id=(f->>'combat_encounter')::uuid AND c.master_session_id=one.session_id AND c.state='chiuso' AND c.closed_at IS NOT NULL AND r.id=(f->>'combat_report')::uuid AND r.narration_state='pubblicata' AND w.state='published' AND w.message_id=r.message_id)
- OR (SELECT count(*) FROM public.combat_v2_narratives n WHERE n.report_id=(f->>'combat_report')::uuid AND n.kind='fato_umano') IS DISTINCT FROM 1::bigint
- THEN RETURN NULL;END IF;
- RETURN q.payload||jsonb_build_object('positive_staff_evidence_ref',q.positive_staff_evidence_ref,'attestation_sha256',q.payload_sha256,'request_key',q.request_key);
-EXCEPTION WHEN invalid_text_representation THEN RETURN NULL;
-END $function$
-;
-
-CREATE OR REPLACE FUNCTION mission_public_owner.human_positive_qualification_attest_v1(p_release text, p_request uuid, p_manifest_ref text, p_positive_ref text, p_payload jsonb)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-DECLARE observation jsonb;old mission_public_owner.public_qualification_attestations_v1;ready mission_factory_owner.editor_release_readiness;verified jsonb;
-BEGIN
- IF current_user IS DISTINCT FROM 'postgres'::name OR auth.uid() IS NOT NULL OR p_request IS NULL OR coalesce(p_release,'')!~'^[0-9a-f]{64}$' OR nullif(btrim(p_manifest_ref),'') IS NULL OR nullif(btrim(p_positive_ref),'') IS NULL
- THEN RAISE EXCEPTION 'HUMAN_POSITIVE_ROOT_INPUT_REQUIRED' USING ERRCODE='42501';END IF;
- IF p_payload->>'schema_version' NOT IN('human-positive-staff-qualification/1','human-owner-accepted-release/1') OR p_payload->>'schema_version' IS NULL THEN RAISE EXCEPTION 'HUMAN_POSITIVE_ATTESTATION_TYPE_REQUIRED' USING ERRCODE='22023';END IF;
- PERFORM pg_advisory_xact_lock(hashtextextended('human-positive:'||p_release,26101502));
- SELECT * INTO old FROM mission_public_owner.public_qualification_attestations_v1 WHERE release_sha256=p_release OR request_key=p_request FOR UPDATE;
- IF old.release_sha256 IS NOT NULL THEN
-  IF old.release_sha256 IS DISTINCT FROM p_release OR old.request_key IS DISTINCT FROM p_request OR old.payload IS DISTINCT FROM p_payload OR old.payload_sha256 IS DISTINCT FROM mission_factory_owner.sha(p_payload) OR old.authorized_test_manifest_ref IS DISTINCT FROM p_manifest_ref OR old.positive_staff_evidence_ref IS DISTINCT FROM p_positive_ref THEN RAISE EXCEPTION 'HUMAN_POSITIVE_ATTESTATION_IMMUTABLE_CONFLICT' USING ERRCODE='40001';END IF;
-  RETURN mission_public_owner.human_positive_qualification_v1(p_release,false);
- END IF;
- PERFORM 1 FROM mission_public_owner.release_admissions_v1 WHERE release_sha256=p_release FOR SHARE;
- observation:=mission_factory_owner.human_ordinary_release_identity_v1(p_release,true);IF mission_factory_owner.human_release_observation_valid_v1(observation,p_release,true) IS DISTINCT FROM true THEN RAISE EXCEPTION 'HUMAN_POSITIVE_CURRENT_OBSERVATION_REQUIRED' USING ERRCODE='40001';END IF;
- SELECT * INTO STRICT ready FROM jsonb_populate_record(NULL::mission_factory_owner.editor_release_readiness,observation);
- IF ready.revision_sha256 IS DISTINCT FROM p_release OR mission_factory_owner.human_release_observation_valid_v1(observation,p_release,true) IS DISTINCT FROM true OR ready.canonical_preimage::jsonb IS DISTINCT FROM p_payload->'canonical_tuple' OR ready.state<>'enabled' OR ready.scope<>'staff' OR ready.staff_guards_verified IS DISTINCT FROM true OR ready.published_assets_verified IS DISTINCT FROM true OR ready.independent_review_ref IS DISTINCT FROM p_payload->>'independent_review_ref' THEN RAISE EXCEPTION 'HUMAN_POSITIVE_CURRENT_TUPLE_REQUIRED' USING ERRCODE='40001';END IF;
- INSERT INTO mission_public_owner.public_qualification_attestations_v1(release_sha256,request_key,payload,payload_sha256,positive_staff_evidence_ref,authorized_test_manifest_ref,created_by)
- VALUES(p_release,p_request,p_payload,mission_factory_owner.sha(p_payload),p_positive_ref,p_manifest_ref,'postgres');
- verified:=mission_public_owner.human_positive_qualification_v1(p_release,false);
- IF verified IS NULL THEN RAISE EXCEPTION 'HUMAN_POSITIVE_ACTUAL_STAFF_CHAIN_NOT_PROVEN' USING ERRCODE='55000';END IF;
- RETURN verified;
-END $function$
-;
-
-CREATE OR REPLACE FUNCTION mission_factory_owner.c408_stage1_complete_assert_v1()
- RETURNS void
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-BEGIN
-
- IF NOT EXISTS(SELECT 1 FROM pg_proc p JOIN pg_language l ON l.oid=p.prolang WHERE p.oid=to_regprocedure('mission_factory_owner.c416_kind_lease_receipt_immutable_v1()') AND md5(p.prosrc)='e3b1a89bf0565b24e5d280037264489e' AND p.proowner='postgres'::regrole AND p.proacl::text='{postgres=X/postgres}' AND p.prosecdef AND p.provolatile='v' AND p.proconfig=ARRAY['search_path=""']::text[] AND p.prokind='f' AND p.proparallel='u' AND NOT p.proisstrict AND p.provariadic=0 AND p.proargmodes IS NULL AND p.proallargtypes IS NULL AND p.proargdefaults IS NULL AND p.proargnames IS NULL AND p.proargtypes::text='' AND p.prorettype='trigger'::regtype AND NOT p.proretset AND p.pronargdefaults=0 AND l.lanname='plpgsql') THEN RAISE EXCEPTION 'HUMAN27_IMMUTABLE_PROOF_ABI';END IF;
- IF NOT EXISTS(SELECT 1 FROM pg_class t WHERE t.oid='mission_factory_owner.c416_kind_lease_continuity_receipts_v1'::regclass AND t.relowner='postgres'::regrole AND t.relrowsecurity) OR EXISTS(SELECT 1 FROM pg_policy WHERE polrelid='mission_factory_owner.c416_kind_lease_continuity_receipts_v1'::regclass) OR EXISTS(SELECT 1 FROM unnest(ARRAY['anon','authenticated','service_role']) role_name WHERE has_table_privilege(role_name,'mission_factory_owner.c416_kind_lease_continuity_receipts_v1','SELECT,INSERT,UPDATE,DELETE')) OR NOT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='mission_factory_owner.c416_kind_lease_continuity_receipts_v1'::regclass AND tgfoid='mission_factory_owner.c416_kind_lease_receipt_immutable_v1()'::regprocedure AND tgname='c416_kind_lease_receipt_immutable' AND tgenabled='O') THEN RAISE EXCEPTION 'HUMAN27_PRIVATE_PROOF_TABLE_GUARD';END IF;
-
- IF NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_language l ON l.oid=p.prolang WHERE p.oid=pg_catalog.to_regprocedure('mission_factory_owner.c416_kind_renewal_continuity_v1(uuid,uuid,uuid)') AND md5(p.prosrc)='6506ed9ff5fd3acda1d2c11e22faf602' AND p.proowner='postgres'::regrole AND p.proacl::text='{postgres=X/postgres}' AND p.prosecdef AND p.provolatile='s' AND p.proconfig=ARRAY['search_path=""']::text[] AND p.prokind='f' AND p.proparallel='u' AND NOT p.proisstrict AND p.provariadic=0 AND p.proargmodes IS NULL AND p.proallargtypes IS NULL AND p.proargdefaults IS NULL AND p.prorettype='boolean'::regtype AND NOT p.proretset AND p.pronargdefaults=0 AND p.proargnames=ARRAY['p_draft','p_original_request','p_author']::text[] AND p.proargtypes::text='2950 2950 2950' AND l.lanname='sql') THEN RAISE EXCEPTION 'HUMAN16_CONTINUITY_CERTIFICATE_HELPER_ABI';END IF;
- IF NOT EXISTS(SELECT 1 FROM mission_factory_owner.c422_install_progress WHERE singleton AND complete AND next_unit=20 AND source_input_sha256='8085b8a1127f9d2d86301eafac37e2f6c70fb48cde55f2a9f5bfdcc94eee7093') THEN RAISE EXCEPTION 'C422_COMPOSED_HUMAN_QUALIFICATION_REQUIRED' USING ERRCODE='42501';END IF;
- IF NOT EXISTS(SELECT 1 FROM mission_factory_owner.c408_install_progress WHERE singleton AND source_input_sha256='17d5690518e455e22925aaf3f3d0f44bdd82ae86df6872fa7aea621a6a7e98b3' AND complete AND next_unit=16 AND target_ddl_qualification_sha256~'^[0-9a-f]{64}$') THEN RAISE EXCEPTION 'C408_ALL_UNITS_AND_ACTUAL_DDL_QUALIFICATION_REQUIRED' USING ERRCODE='42501';END IF;
- IF EXISTS(SELECT 1 FROM (SELECT jsonb_build_array(('["mission_academy_owner","mission_creation_owner","mission_factory_owner","mission_public_owner","public"]'::jsonb->>(p->>0)::int)||'.'||(p->>1)||'('||coalesce((SELECT string_agg('["mission_factory_owner.quest_run_sources","pg_catalog._text","pg_catalog._uuid","pg_catalog.bool","pg_catalog.int4","pg_catalog.int8","pg_catalog.jsonb","pg_catalog.text","pg_catalog.timestamptz","pg_catalog.uuid","public.mission_plan_transitions","public.mission_run_state"]'::jsonb->>v::int,',' ORDER BY o) FROM jsonb_array_elements_text(p->2)WITH ORDINALITY AS z(v,o)),'')||')',p->3)||('[[true,"v","postgres",["search_path=\"\""],["postgres"]],[true,"s","postgres",["search_path=\"\""],["postgres"]],[false,"v","postgres",["search_path=\"\""],["postgres"]],[true,"s","postgres",["search_path=\"\""],["authenticated","postgres"]],[false,"i","postgres",["search_path=\"\""],["postgres"]],[true,"v","postgres",["search_path=\"\""],["authenticated","postgres"]],[true,"v","postgres",["search_path=\"\""],["postgres","service_role"]]]'::jsonb->(p->>4)::int) AS e FROM jsonb_array_elements('[[2,"c347_receipt_immutable_v1",[],"0126db34638caad0c40be6769c1d9d4e",0],[2,"c347_native_facts_v1",[9,7,9,7],"a222ed36c37b64f89dbe2b69cc5c8430",0],[2,"c347_issue_native_receipt_v1",[9,7,9,7,9],"a57dbd085d2e61ce319e670ed5fb1f20",0],[2,"c347_validate_native_receipt_v1",[6,9,7,8],"5b2a22345f2be306c891ee74b836b4cf",0],[2,"c352_history_immutable_v1",[],"b0a870be4f5fe115f082be38a514e783",0],[2,"c352_native_resource_source_v1",[],"5902f4292ef7b167aa1ad664255fdcee",1],[2,"c352_prepare_resource_v1",[6],"e40a932dcdd73e39068268e94f8345d0",2],[2,"c352_resource_catalog_v1",[],"b77c874e033de63803c9958672d36fe1",1],[4,"mission_factory_catalog_v1",[],"0b3a4e84fd53535061dd2bb2365d7f0f",3],[4,"mission_factory_catalog_v2",[],"8cf99c6a615ad5eeac3eabddcbe6f4f7",1],[0,"c353_effective_threshold_v1",[4,4,4],"49ffebf8d9071f694d38c9146fa545e3",4],[2,"c353_d100_immutable_v1",[],"3c87bd34a14a37b09572b82b96346392",0],[4,"mission_factory_quest_d100_policy_catalog_v1",[9],"7776317a0494bc7399fdb1300707771b",5],[4,"mission_factory_quest_d100_bind_receipt_v1",[9],"6ccdcab28455c1ce108fe8658a2ee4f9",5],[4,"mission_factory_quest_d100_bind_v1",[9,9,7,7,9,9,7,7,5,9],"2023b899654293017124287546b0d422",5],[2,"c353_after_d100_v1",[9,9,9,4],"e5d1694567e73c4d52775b3377d0ba14",0],[2,"c353_d100_receipt_assert_v1",[9,9],"dd1f942ea6854165e06a160625c1c4e7",0],[0,"after_d100",[9,9,9,4],"ce9c2580b8752105427d3a3b0291286c",0],[2,"c360_phase_shape_v1",[6],"f2e2c8743c7ac168d7a78b806ee74f1f",4],[2,"c360_native_phase_assert_v1",[6],"e61d7db8292f98acdb2518077f3601f3",1],[4,"mission_factory_quest_d100_draft_policy_catalog_v1",[9,5],"da84606351828d80fdada5b64c2af7f8",3],[4,"mission_factory_quest_d100_wakeup_scope_v1",[9,9],"ffc02816fcc5e335ba7899fa72eb3fe5",6],[4,"mission_factory_quest_d100_pending_v1",[9],"57e7babb21507b6df6ca4d0d5c1aee35",6],[4,"mission_factory_quest_d100_consume_v1",[9,9,7],"d2ce506b547f1d7082194d57d1739dc7",6],[2,"validate_quest_draft_v2",[6],"0da0e5522287738b33f17b90d7a1c432",4],[2,"quest_deep_validate_v2",[9,6],"9ff8a4a12bd627a081beeaee99621663",0],[2,"quest_compile_v1",[9],"1d81e439ff50ce77887e08d23bf0d338",0],[2,"quest_compile_check_v1",[9],"78a87e6bf0ba9ee815e7d4b81f41141a",1],[2,"quest_preview_basis_v1",[9,5,3],"21939a37af4b02c54d34719be2745e23",0],[2,"quest_decision_issue_v1",[9,9,5,7,7,9,7],"2fc5c1e420c123f032d2f2108e604ad9",0],[2,"quest_validate_evidence_v1",[11,10,6,8],"8475b5d8c73c3e1717961d6542e8cc99",0],[2,"c360_activate_staff_catalog_v1",[6],"94832819f80c8bb3f99dc0fcf45c721c",0],[4,"mission_factory_quest_d100_binding_scope_v1",[9],"286393de5567d6688c4a7a14a3b8db99",5],[2,"c384_validate_variant_v2",[6,6,7],"0c74df4b6335a21c24b7ba1eed34a069",4],[2,"c384_validate_dual_draft_v3",[6],"aaf868bba0da5b5eaece8bebf85f286c",4],[2,"c384_immutable_v1",[],"32299e2f2f941b22708fb8efd5f86c67",0],[2,"c384_dual_save_v1",[9,5,6,9],"ef79df6cbdd4ed5f700aaae4345f2cc5",0],[2,"c384_human_identity_v1",[9],"d51d2239739d5d5dfe264a2877d52d37",1],[2,"c384_human_publication_replay_v1",[9,9,7,5,9],"28da0ea196460f7810a67fafe3a786be",1],[2,"c384_human_bind_seal_v1",[9,9,5,9,9,9],"f7859e1d6b17f93a6fe7a54a0fc0f0d9",0],[2,"c395_prepare_assert_v1",[9,5,9,9],"eaf732a542605d74eb5d379cf98a6b55",0],[2,"c395_revision_issue_v1",[9,5,9,9,9],"d894ac6236119c1ec9bc774ba736487d",0],[2,"c395_binding_projection_v1",[0],"0b66c70fde49fea2925ce146ccd2f23b",1],[2,"c395_binding_insert_assert_v1",[9,9,6,7],"baa7abfe2e70335660d32b26cd77e888",0],[2,"c395_revision_assert_v1",[9],"00ecc50309178677bec990dce0e93daa",1],[2,"c395_human_mode_v1",[9],"98c2dd9142429998bfc8d137aee19c40",1],[2,"c395_active_human_assert_v1",[9],"760eaa6b906b3abdb22ca16f9b6008d3",0],[2,"c395_start_assert_v1",[9],"d0f82355e6d1ef9897edc76a26c96d54",0],[4,"mission_factory_quest_human_prepare_v1",[9,9,9,2,9,5,9],"4d4f8c035681036fa034579094b56eff",5],[4,"mission_factory_quest_human_start_v1",[9,5,9],"8b72b71be42b248c1ca85b3eccadcaf9",5],[2,"c395_source_assert_v1",[9],"56dc0aaf7b5cde324f58947752510d50",0],[2,"quest_run_binding_guard_v1",[],"5efa189afcb8e3639054b42efaa37d2f",0],[1,"is_human",[9],"f9f3cfd42b5f9a0059247a97e8167881",1],[1,"human_assert",[9],"1ce886cdc79e7119ec47b59f52185c32",0],[2,"quest_run_source_assert_v1",[9],"0fb2f5aca06a41479f22c1ecf07738ee",0],[1,"route_human_outbox",[],"e909272590bc59976f63ce6f3a44e914",0],[2,"c407_identity_v1",[9],"d1336d6bc7204d52dd99f68a188e46c0",1],[2,"c407_active_v1",[9,7],"ee1cd8d251f1eebbc056baf69b019239",0],[2,"c407_enroll_v1",[9],"e6d59bd7d1515ecea0388626cde25a5a",0],[2,"c407_arena_v1",[9,7],"ce8a15514bc292939a455f687bea04c1",1],[4,"mission_factory_quest_human_fato_publish_v1",[9,9,7,9],"77ec29bb0d60fde6d9d5cc08d446d168",5],[4,"mission_factory_quest_human_d100_consume_v1",[9,9,7],"0bac323ee5035d7bd582c04eab149c37",5],[1,"human_enroll",[9],"a73a003f10d4a1cff816635cf9990ccb",0],[1,"arena_for_step",[9,7],"1e6146a461ce898ec9d846b92d936f95",1],[1,"human_open",[9,9],"cf39dfb2460cbe8d9bdb228f110d5d20",0],[3,"human_fato_scope_allowed_v2",[9],"c9f378ec6523f9d035435fa2fb353e34",1],[2,"quest_apply_authority_v1",[9,9,5,5,7,7,9,7,9],"09d2cd933b2f09f39cd3da13bcb9ffba",0],[2,"c412_read_identity_v1",[9],"b1f3919776daf43cfdda9dc5ab5532e1",1],[2,"c412_revision_provenance_v1",[9],"707f715cbe2b964406560dd9c0b83b94",1],[2,"c412_source_assert_v1",[9],"a9526ea4216b8ba83d9097ebc0c92fef",0],[4,"mission_factory_quest_dual_save_v3",[9,5,6,9],"9a8b197d1d78ad0a928ca2b4de99b7f8",5],[4,"mission_factory_quest_dual_get_v3",[9,5],"8e7e961d7882cec1d327081df78cd17c",3],[2,"c412_fact_issue_v1",[9,9,5,7,7,9,7],"57855bb63e3db4470a7b2e13c4f3f496",0],[2,"c412_fact_assert_v1",[9,9,5,7,7,7],"bc2377f4dd9a6c9d838b0a62889546e1",1],[4,"mission_factory_quest_human_terminal_prepare_v1",[9,9,5,9],"ecffb06f0c14d5d9b17552ad0114df17",5],[4,"mission_factory_quest_human_terminal_publish_v1",[9,9,7,9],"f16a46c10e8662168f51bd15a336ff57",5],[4,"mission_factory_quest_human_phase_action_v1",[9,5,7,7,9],"818a865448f60df8b35ecae1e2c90c56",5],[4,"mission_factory_quest_human_round_publish_v1",[9,9,7,5,9],"054ae3e2c80bb9bca9c209048021bd19",5],[2,"c412_manual_fato_write_v1",[9,9,7,9],"a00e737d3e0363a7244c199b4707dc67",0],[2,"c416_kind_live_v1",[],"96766167969aff87b3b11452fd15c598",1],[2,"c416_cap_allowed_v1",[6,7],"86e797ff93036bafaab6867253618b45",1],[2,"c416_root_kind_register_v1",[7,7,1,2,9,6],"e664dbaa69f3f6ced90c6eb81952f8bc",0],[2,"c416_draft_assert_v1",[9,3],"3c1f4cf2c97cda4092f4977f204dca4e",1],[2,"c416_arc_assert_v1",[9,3],"6b70eadf2f626427750ccaf3837eda41",1],[4,"mission_factory_quest_dual_create_v3",[9,5,6,2,9],"1262390e33c3c3e885216b26bb1e609d",5],[2,"c416_validate_human_draft_v3",[6],"b36495eebd3071f3c62bb715e19b068a",4],[2,"c416_preview_basis_v3",[9,5,3],"5b5982b93629c7ca47e2d9679693cda9",0],[4,"mission_factory_quest_human_preview_v3",[9,5],"89efad0cce80f20c2b3f29ed9e5df565",5],[4,"mission_factory_quest_human_publish_v3",[9,5,7,9,7,8],"55ada638bbf2e5dd6c92ca882141afb5",5],[2,"npc_item_v2",[9,9,7,3],"a3c14f7a77fe95e876bf30feaa3d8d2b",0],[2,"npc_custom_authoring_check_v1",[9,5,7,3],"565e9bd98569d45bd48b638301fc1c6f",0],[2,"quest_publication_scope_v3",[9,3],"d06b4a3379491d53daf4caccaacb4652",0],[2,"quest_roster_scope_assert_v3",[9,9,2],"cb8a7829e234612c84a9d21673c71e9c",0],[4,"mission_factory_context_media_ticket_v2",[9,7,7,9,7,5,7],"d6a233ac4e184c550625ee11a2dbf173",5],[4,"mission_factory_context_media_register_v2",[9,7,5,7,4,4],"a483d59ca8f9cbc742da777db08c6dee",6],[4,"mission_factory_context_media_catalog_v2",[9,7],"a5c4f7faaeeeb65e40dd344df600add9",3],[4,"mission_factory_quest_dual_import_v3",[9,5,6,2,9,5,9],"811bd99d9fce22b8b9714485ea4dae98",5]]'::jsonb) AS z(p)) AS seal LEFT JOIN pg_proc f ON f.oid=to_regprocedure(e->>0) WHERE f.oid IS NULL OR md5(f.prosrc) IS DISTINCT FROM e->>1 OR f.prosecdef IS DISTINCT FROM (e->>2)::boolean OR f.provolatile::text IS DISTINCT FROM e->>3 OR pg_get_userbyid(f.proowner) IS DISTINCT FROM e->>4 OR to_jsonb(f.proconfig) IS DISTINCT FROM e->5 OR coalesce((SELECT jsonb_agg(CASE WHEN a.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END ORDER BY CASE WHEN a.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END) FROM aclexplode(coalesce(f.proacl,acldefault('f',f.proowner))) a WHERE a.privilege_type='EXECUTE'),'[]'::jsonb) IS DISTINCT FROM e->6 OR EXISTS(SELECT 1 FROM aclexplode(coalesce(f.proacl,acldefault('f',f.proowner))) a WHERE a.is_grantable)) THEN RAISE EXCEPTION 'C408_COMPLETE_FUNCTION_CAS' USING ERRCODE='40001';END IF;
-
- IF EXISTS(SELECT 1 FROM jsonb_array_elements($human_ordinary_abi$[{"lookup_signature":"mission_public_owner.human_positive_qualification_v1(pg_catalog.text,pg_catalog.bool)","oid":null,"body_md5":"2b59d179030ae80ba39aed42f1c40c07","input_arg_types":["pg_catalog.text","pg_catalog.bool"],"all_arg_types":["pg_catalog.text","pg_catalog.bool"],"arg_names":["p_release","p_active"],"arg_modes":["i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_source_v1(pg_catalog.uuid,pg_catalog.bool)","oid":null,"body_md5":"a48ac40a488ecc958c8cb660da12278c","input_arg_types":["pg_catalog.uuid","pg_catalog.bool"],"all_arg_types":["pg_catalog.uuid","pg_catalog.bool"],"arg_names":["p_session","p_master"],"arg_modes":["i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.c395_prepare_assert_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid,pg_catalog.uuid)","oid":"279609","body_md5":"eaf732a542605d74eb5d379cf98a6b55","input_arg_types":["pg_catalog.uuid","pg_catalog.int8","pg_catalog.uuid","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.int8","pg_catalog.uuid","pg_catalog.uuid"],"arg_names":["p_lineage","p_version","p_episode","p_location"],"arg_modes":["i","i","i","i"],"return_type":"pg_catalog.void","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.c395_active_human_assert_v1(pg_catalog.uuid)","oid":"279615","body_md5":"760eaa6b906b3abdb22ca16f9b6008d3","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_session"],"arg_modes":["i"],"return_type":"pg_catalog.void","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.c463_optin_identity_v1(pg_catalog.uuid)","oid":"279871","body_md5":"61ba7be39c1a38048d5d013186db8a95","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_session"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"public.mission_factory_npc_certify_existing_combat_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid)","oid":null,"body_md5":"bc8f7c19b89ae2a3bbe25b735ece73e8","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.int8","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.int8","pg_catalog.uuid"],"arg_names":["p_template","p_narrative_version","p_expected_template_control","p_request"],"arg_modes":["i","i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_authority_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text)","oid":null,"body_md5":"05a915d89a848f74d12bd2d9019f4105","input_arg_types":["pg_catalog.uuid","pg_catalog.int8","pg_catalog.text"],"all_arg_types":["pg_catalog.uuid","pg_catalog.int8","pg_catalog.text"],"arg_names":["p_draft","p_version","p_source"],"arg_modes":["i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_preview_basis_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.bool)","oid":null,"body_md5":"c0ecb9bffb6fb83868b97e7aeaa069a6","input_arg_types":["pg_catalog.uuid","pg_catalog.int8","pg_catalog.bool"],"all_arg_types":["pg_catalog.uuid","pg_catalog.int8","pg_catalog.bool"],"arg_names":["p_draft","p_version","p_lock"],"arg_modes":["i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_npc_bundle_assert_v1(pg_catalog.uuid)","oid":null,"body_md5":"4e72e2aed34117256badd9e44e30d4d0","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_draft"],"arg_modes":["i"],"return_type":"pg_catalog.void","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"public.mission_factory_quest_human_ordinary_publish_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text,pg_catalog.uuid,pg_catalog.text,pg_catalog.timestamptz)","oid":null,"body_md5":"61d04e96b7d9372e75360b437c7cd016","input_arg_types":["pg_catalog.uuid","pg_catalog.int8","pg_catalog.text","pg_catalog.uuid","pg_catalog.text","pg_catalog.timestamptz"],"all_arg_types":["pg_catalog.uuid","pg_catalog.int8","pg_catalog.text","pg_catalog.uuid","pg_catalog.text","pg_catalog.timestamptz"],"arg_names":["p_draft","p_expected_version","p_preview_seal","p_request","p_visibility","p_scheduled_at"],"arg_modes":["i","i","i","i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_terminal_core_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.uuid)","oid":null,"body_md5":"fc994d9a9dc65574d8df96866ec58cfc","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text","pg_catalog.uuid"],"arg_names":["p_session","p_event","p_body","p_request"],"arg_modes":["i","i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"public.mission_factory_quest_human_ordinary_terminal_publish_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.uuid)","oid":null,"body_md5":"af7281c2382eb8ef13964746c99342f7","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text","pg_catalog.uuid"],"arg_names":["p_session","p_event","p_body","p_request"],"arg_modes":["i","i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"public.mission_factory_quest_human_ordinary_preview_v1(pg_catalog.uuid,pg_catalog.int8)","oid":null,"body_md5":"afbe6c11755b5cc88f0bbf09ac24bd29","input_arg_types":["pg_catalog.uuid","pg_catalog.int8"],"all_arg_types":["pg_catalog.uuid","pg_catalog.int8"],"arg_names":["p_draft","p_expected_version"],"arg_modes":["i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_arc_scope_v1(pg_catalog.uuid,pg_catalog.bool)","oid":null,"body_md5":"5a7975f6aa51da40111716ba3f418f91","input_arg_types":["pg_catalog.uuid","pg_catalog.bool"],"all_arg_types":["pg_catalog.uuid","pg_catalog.bool"],"arg_names":["p_arc","p_live"],"arg_modes":["i","i"],"return_type":"pg_catalog.bool","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.c416_draft_assert_v1(pg_catalog.uuid,pg_catalog.bool)","oid":"279679","body_md5":"3c1f4cf2c97cda4092f4977f204dca4e","input_arg_types":["pg_catalog.uuid","pg_catalog.bool"],"all_arg_types":["pg_catalog.uuid","pg_catalog.bool"],"arg_names":["p_draft","p_live"],"arg_modes":["i","i"],"return_type":"pg_catalog.void","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.c416_arc_assert_v1(pg_catalog.uuid,pg_catalog.bool)","oid":"279680","body_md5":"6b70eadf2f626427750ccaf3837eda41","input_arg_types":["pg_catalog.uuid","pg_catalog.bool"],"all_arg_types":["pg_catalog.uuid","pg_catalog.bool"],"arg_names":["p_arc","p_live"],"arg_modes":["i","i"],"return_type":"pg_catalog.void","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.c412_read_identity_v1(pg_catalog.uuid)","oid":"279643","body_md5":"b1f3919776daf43cfdda9dc5ab5532e1","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_session"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.c444_read_identity_v1(pg_catalog.uuid)","oid":"279770","body_md5":"1d451274a2d12685125d34c2a0be5d0a","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_session"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.c444_action_scope_v1(pg_catalog.uuid)","oid":"279811","body_md5":"2d68f757738cb9ff6a14c62d17fc7a7e","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_session"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"public.mission_factory_quest_human_runtime_state_v1(pg_catalog.uuid)","oid":"279816","body_md5":"9a7cd7954f164f32e1b8b6531c40d51d","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_session"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"mission_factory_owner.c444_enrollment_open_v1(pg_catalog.uuid)","oid":"279779","body_md5":"480480b66e0447de0674a4fe5c2ac131","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_episode"],"arg_modes":["i"],"return_type":"pg_catalog.bool","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.c444_enrollment_v1(pg_catalog.uuid,pg_catalog.text,pg_catalog.bool,pg_catalog.int8,pg_catalog.uuid)","oid":"279781","body_md5":"5fd76a8791efd28f332e35c30e8180b7","input_arg_types":["pg_catalog.uuid","pg_catalog.text","pg_catalog.bool","pg_catalog.int8","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.text","pg_catalog.bool","pg_catalog.int8","pg_catalog.uuid"],"arg_names":["p_episode","p_operation","p_ready","p_expected_version","p_request"],"arg_modes":["i","i","i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"public.mission_factory_quest_human_successor_scope_v1(pg_catalog.uuid)","oid":"279885","body_md5":"c8e14eabaffe8a545d57bd7ea4f63ca8","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_session"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"public.mission_factory_quest_human_regia_optin_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.text,pg_catalog.uuid)","oid":"279875","body_md5":"e39527159924608bb7d92af5acaa3f03","input_arg_types":["pg_catalog.uuid","pg_catalog.int8","pg_catalog.text","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.int8","pg_catalog.text","pg_catalog.uuid"],"arg_names":["p_session","p_expected_control_version","p_expected_source_sha256","p_request"],"arg_modes":["i","i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"mission_public_owner.human_session_allowed_v1(pg_catalog.uuid)","oid":"276557","body_md5":"3952216511ee7293c1b2d67686dcbb96","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_session"],"arg_modes":["i"],"return_type":"pg_catalog.bool","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"sql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.quest_combat_insert_guard_v1()","oid":"276435","body_md5":"5e3ac70a66adf8e3f9ecd32dd7c3c140","input_arg_types":[],"all_arg_types":[],"arg_names":null,"arg_modes":[],"return_type":"pg_catalog.trigger","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_peaceful_boundary_v1(pg_catalog.uuid,pg_catalog.uuid)","oid":null,"body_md5":"1274d6c2b56e7f5666322028f86d11e6","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"arg_names":["p_session","p_encounter"],"arg_modes":["i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.c444_peaceful_boundary_v1(pg_catalog.uuid,pg_catalog.uuid)","oid":"309633","body_md5":"bcbf33ddaaac5a150e9896b6b9d0b922","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"arg_names":["p_session","p_encounter"],"arg_modes":["i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_peaceful_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","oid":null,"body_md5":"ca2d29a1930c6be7112c6300d4807b91","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"arg_names":["p_session","p_encounter"],"arg_modes":["i","i"],"return_type":"pg_catalog.bool","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.c444_peaceful_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","oid":"309632","body_md5":"00edebfa01abbd25f65ff6a2307a7032","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"arg_names":["p_session","p_encounter"],"arg_modes":["i","i"],"return_type":"pg_catalog.bool","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_peaceful_history_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","oid":null,"body_md5":"c4793328058d58c6418d1acfa0b126bf","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"arg_names":["p_session","p_encounter"],"arg_modes":["i","i"],"return_type":"pg_catalog.bool","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.c444_peaceful_history_complete_v1(pg_catalog.uuid,pg_catalog.uuid)","oid":"309644","body_md5":"d0362b376ec98d5c9188df053bb6225e","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"arg_names":["p_session","p_encounter"],"arg_modes":["i","i"],"return_type":"pg_catalog.bool","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_participants_finish_v1(pg_catalog.uuid,pg_catalog.uuid)","oid":null,"body_md5":"6f43f176c3653c1fd945e8a394a13ef0","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"arg_names":["p_session","p_receipt"],"arg_modes":["i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.c444_terminal_participants_finish_v1(pg_catalog.uuid,pg_catalog.uuid)","oid":"309679","body_md5":"5970cacc41fa7fbb2e0cd206f95964a0","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"arg_names":["p_session","p_receipt"],"arg_modes":["i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_existing_legacy_media_pair_v1(pg_catalog.uuid,pg_catalog.uuid)","oid":null,"body_md5":"b926bc9d27a79b555ddcdd6283938c55","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"arg_names":["p_template","p_narrative_version"],"arg_modes":["i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_deep_validate_v1(pg_catalog.uuid,pg_catalog.jsonb)","oid":null,"body_md5":"3c1c4714dc75826fd9cb0c4e226c859b","input_arg_types":["pg_catalog.uuid","pg_catalog.jsonb"],"all_arg_types":["pg_catalog.uuid","pg_catalog.jsonb"],"arg_names":["p_draft","p_document"],"arg_modes":["i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"public.mission_factory_quest_human_ordinary_runtime_state_v1(pg_catalog.uuid)","oid":null,"body_md5":"9cc2c8670b062193d5e0c7b9a3d76f5b","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_session"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"public.mission_factory_quest_human_ordinary_control_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)","oid":null,"body_md5":"39c0e10513ca49c2eb9893398edba1ee","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text"],"arg_names":["p_session","p_request","p_operation"],"arg_modes":["i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"public.mission_factory_quest_d100_binding_scope_v1(pg_catalog.uuid)","oid":"279184","body_md5":"286393de5567d6688c4a7a14a3b8db99","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_session"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"public.mission_factory_quest_d100_bind_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.int8,pg_catalog.uuid)","oid":"279106","body_md5":"2023b899654293017124287546b0d422","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text","pg_catalog.text","pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text","pg_catalog.text","pg_catalog.int8","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text","pg_catalog.text","pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text","pg_catalog.text","pg_catalog.int8","pg_catalog.uuid"],"arg_names":["p_session","p_policy_mission","p_policy_step","p_native_policy_sha256","p_guide","p_support","p_success_decision","p_complication_decision","p_expected_run_version","p_request"],"arg_modes":["i","i","i","i","i","i","i","i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"public.mission_factory_quest_human_d100_consume_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)","oid":"279639","body_md5":"0bac323ee5035d7bd582c04eab149c37","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text"],"arg_names":["p_session","p_receipt","p_source_sha256"],"arg_modes":["i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_release_read_assert_v1(pg_catalog.text,pg_catalog.uuid,pg_catalog.bool)","oid":null,"body_md5":"437223d0134a7bca0a8eac96c3aeb97d","input_arg_types":["pg_catalog.text","pg_catalog.uuid","pg_catalog.bool"],"all_arg_types":["pg_catalog.text","pg_catalog.uuid","pg_catalog.bool"],"arg_names":["p_release","p_policy","p_enabled"],"arg_modes":["i","i","i"],"return_type":"pg_catalog.void","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_execution_read_assert_v1(pg_catalog.uuid,pg_catalog.bool)","oid":null,"body_md5":"b754033959bd35fdf349de6bd492f793","input_arg_types":["pg_catalog.uuid","pg_catalog.bool"],"all_arg_types":["pg_catalog.uuid","pg_catalog.bool"],"arg_names":["p_arc","p_active"],"arg_modes":["i","i"],"return_type":"pg_catalog.void","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.c444_source_read_assert_v1(pg_catalog.uuid)","oid":"279772","body_md5":"a9976ab03577ce9699ac6340228e751a","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_session"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.quest_publication_scope_v3(pg_catalog.uuid,pg_catalog.bool)","oid":"278326","body_md5":"d06b4a3379491d53daf4caccaacb4652","input_arg_types":["pg_catalog.uuid","pg_catalog.bool"],"all_arg_types":["pg_catalog.uuid","pg_catalog.bool"],"arg_names":["p_arc","p_open"],"arg_modes":["i","i"],"return_type":"pg_catalog.text","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_enrollment_open_v1(pg_catalog.uuid)","oid":null,"body_md5":"60c12510ed282730928da7d0643bb7b9","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_episode"],"arg_modes":["i"],"return_type":"pg_catalog.bool","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_authoring_qualification_v1(pg_catalog.text)","oid":null,"body_md5":"343c7c7f758821e520d98be648c7b402","input_arg_types":["pg_catalog.text"],"all_arg_types":["pg_catalog.text"],"arg_names":["p_catalog"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"public.mission_factory_quest_human_ordinary_create_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.jsonb,pg_catalog._uuid,pg_catalog.uuid)","oid":null,"body_md5":"8602b81e16772315960866ca15859c6a","input_arg_types":["pg_catalog.uuid","pg_catalog.int8","pg_catalog.jsonb","pg_catalog._uuid","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.int8","pg_catalog.jsonb","pg_catalog._uuid","pg_catalog.uuid"],"arg_names":["p_lineage","p_expected_version","p_document","p_roster","p_request"],"arg_modes":["i","i","i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"public.mission_factory_quest_human_ordinary_import_v1(pg_catalog.uuid,pg_catalog.int8,pg_catalog.jsonb,pg_catalog._uuid,pg_catalog.uuid,pg_catalog.int8,pg_catalog.uuid)","oid":null,"body_md5":"22bb7c4e8b8366c775283a019a16637c","input_arg_types":["pg_catalog.uuid","pg_catalog.int8","pg_catalog.jsonb","pg_catalog._uuid","pg_catalog.uuid","pg_catalog.int8","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.int8","pg_catalog.jsonb","pg_catalog._uuid","pg_catalog.uuid","pg_catalog.int8","pg_catalog.uuid"],"arg_names":["p_native_draft","p_native_version","p_human_variant","p_roster","p_lineage","p_expected_version","p_request"],"arg_modes":["i","i","i","i","i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"mission_public_owner.human_positive_qualification_attest_v1(pg_catalog.text,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.jsonb)","oid":null,"body_md5":"c72ef389216004112982a6790332af6c","input_arg_types":["pg_catalog.text","pg_catalog.uuid","pg_catalog.text","pg_catalog.text","pg_catalog.jsonb"],"all_arg_types":["pg_catalog.text","pg_catalog.uuid","pg_catalog.text","pg_catalog.text","pg_catalog.jsonb"],"arg_names":["p_release","p_request","p_manifest_ref","p_positive_ref","p_payload"],"arg_modes":["i","i","i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.quest_compile_check_v1(pg_catalog.uuid)","oid":"276419","body_md5":"78a87e6bf0ba9ee815e7d4b81f41141a","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_episode"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"public.mission_factory_quest_human_ordinary_episode_context_v1(pg_catalog.uuid)","oid":null,"body_md5":"5b44ee8f694a7473241534a4de59f6ca","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_episode"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"public.mission_factory_quest_human_ordinary_participant_state_v1(pg_catalog.uuid)","oid":null,"body_md5":"d9a291e77368d6ad54a244f567b59e4d","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_episode"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"public.mission_factory_quest_human_ordinary_authoring_receipt_v1(pg_catalog.uuid,pg_catalog.text)","oid":null,"body_md5":"906a5dd7b32f5c0e1295f53a42b58be0","input_arg_types":["pg_catalog.uuid","pg_catalog.text"],"all_arg_types":["pg_catalog.uuid","pg_catalog.text"],"arg_names":["p_request","p_operation"],"arg_modes":["i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"mission_factory_owner.quest_execution_assert_v4(pg_catalog.uuid,pg_catalog.bool)","oid":"278417","body_md5":"8e3e60f91421f1c3b724375a3e01cb4e","input_arg_types":["pg_catalog.uuid","pg_catalog.bool"],"all_arg_types":["pg_catalog.uuid","pg_catalog.bool"],"arg_names":["p_arc","p_active"],"arg_modes":["i","i"],"return_type":"pg_catalog.void","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_reward_authority_v1(pg_catalog.uuid,pg_catalog.uuid)","oid":null,"body_md5":"b11983e5cd3ece9cc0577a3be0083b85","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid"],"arg_names":["p_arc","p_terminal"],"arg_modes":["i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_reward_apply_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text,pg_catalog.text,pg_catalog.uuid)","oid":null,"body_md5":"8d71df2665c6a6a461ca187610cf912b","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text","pg_catalog.text","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text","pg_catalog.text","pg_catalog.uuid"],"arg_names":["p_arc","p_terminal_receipt","p_expected_arc_source_sha256","p_expected_policy_sha256","p_request"],"arg_modes":["i","i","i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.quest_compile_v1(pg_catalog.uuid)","oid":"276421","body_md5":"1d81e439ff50ce77887e08d23bf0d338","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_episode"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"v","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"public.mission_factory_npc_certify_existing_combat_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.uuid)","oid":null,"body_md5":"1dffc4e7985ceb787fce9bdf128e5f57","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.uuid"],"arg_names":["p_template","p_narrative_version","p_request"],"arg_modes":["i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"public.mission_factory_quest_human_ordinary_lifecycle_receipt_v1(pg_catalog.uuid,pg_catalog.uuid,pg_catalog.text)","oid":null,"body_md5":"9c29556c739778afc512bf0028a1e19c","input_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text"],"all_arg_types":["pg_catalog.uuid","pg_catalog.uuid","pg_catalog.text"],"arg_names":["p_episode","p_request","p_operation"],"arg_modes":["i","i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"mission_factory_owner.c407_identity_v1(pg_catalog.uuid)","oid":"279634","body_md5":"d1336d6bc7204d52dd99f68a188e46c0","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_session"],"arg_modes":["i"],"return_type":"pg_catalog.void","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_final_terminal_v1(pg_catalog.uuid)","oid":null,"body_md5":"88e0c7127e307c75fa648d0c79500ec9","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_arc"],"arg_modes":["i"],"return_type":"pg_catalog.uuid","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]},{"lookup_signature":"public.mission_factory_quest_human_route_v1(pg_catalog.uuid)","oid":null,"body_md5":"7d6e829f831f31bbad2e93ee0e434a8d","input_arg_types":["pg_catalog.uuid"],"all_arg_types":["pg_catalog.uuid"],"arg_names":["p_episode"],"arg_modes":["i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["authenticated","postgres"]},{"lookup_signature":"mission_factory_owner.human_ordinary_release_identity_v1(pg_catalog.text,pg_catalog.bool)","oid":null,"body_md5":"433c3b7bd02d0f2dcaa42f8e4d551021","input_arg_types":["pg_catalog.text","pg_catalog.bool"],"all_arg_types":["pg_catalog.text","pg_catalog.bool"],"arg_names":["p_release","p_active"],"arg_modes":["i","i"],"return_type":"pg_catalog.jsonb","returns_set":false,"default_arg_count":0,"variadic_type":null,"strict":false,"volatility":"s","parallel":"u","security_definer":true,"language":"plpgsql","configuration":["search_path=\"\""],"owner":"postgres","execute":["postgres"]}]$human_ordinary_abi$::jsonb) expected LEFT JOIN pg_catalog.pg_proc proc ON proc.oid=pg_catalog.to_regprocedure(expected->>'lookup_signature') WHERE proc.oid IS NULL OR (expected->>'oid' IS NOT NULL AND proc.oid::text IS DISTINCT FROM expected->>'oid') OR md5(proc.prosrc) IS DISTINCT FROM expected->>'body_md5' OR proc.proargtypes::text IS DISTINCT FROM coalesce((SELECT string_agg(pg_catalog.to_regtype(t)::oid::text,' ' ORDER BY ord) FROM jsonb_array_elements_text(expected->'input_arg_types') WITH ORDINALITY x(t,ord)),'') OR coalesce((SELECT jsonb_agg(pg_catalog.format('%I.%I',tn.nspname,t.typname) ORDER BY u.ord) FROM unnest(coalesce(proc.proallargtypes,proc.proargtypes::oid[])) WITH ORDINALITY u(id,ord) JOIN pg_catalog.pg_type t ON t.oid=u.id JOIN pg_catalog.pg_namespace tn ON tn.oid=t.typnamespace),'[]'::jsonb) IS DISTINCT FROM expected->'all_arg_types' OR to_jsonb(coalesce(proc.proargmodes,array_fill('i'::"char",ARRAY[proc.pronargs]))) IS DISTINCT FROM expected->'arg_modes' OR coalesce(to_jsonb(proc.proargnames),'null'::jsonb) IS DISTINCT FROM expected->'arg_names' OR proc.prorettype IS DISTINCT FROM pg_catalog.to_regtype(expected->>'return_type') OR proc.proretset OR proc.pronargdefaults<>0 OR proc.proargdefaults IS NOT NULL OR proc.provariadic<>0 OR proc.proisstrict OR proc.provolatile::text IS DISTINCT FROM expected->>'volatility' OR proc.proparallel<>'u' OR proc.prosecdef IS DISTINCT FROM (expected->>'security_definer')::boolean OR (SELECT lanname FROM pg_catalog.pg_language WHERE oid=proc.prolang) IS DISTINCT FROM expected->>'language' OR to_jsonb(proc.proconfig) IS DISTINCT FROM expected->'configuration' OR pg_catalog.pg_get_userbyid(proc.proowner)<>'postgres' OR proc.proleakproof OR coalesce((SELECT jsonb_agg(CASE WHEN acl.grantee=0 THEN 'PUBLIC' ELSE pg_catalog.pg_get_userbyid(acl.grantee) END ORDER BY CASE WHEN acl.grantee=0 THEN 'PUBLIC' ELSE pg_catalog.pg_get_userbyid(acl.grantee) END) FROM pg_catalog.aclexplode(coalesce(proc.proacl,pg_catalog.acldefault('f',proc.proowner))) acl WHERE acl.privilege_type='EXECUTE'),'[]'::jsonb) IS DISTINCT FROM expected->'execute' OR EXISTS(SELECT 1 FROM pg_catalog.aclexplode(coalesce(proc.proacl,pg_catalog.acldefault('f',proc.proowner))) acl WHERE acl.is_grantable)) THEN RAISE EXCEPTION 'HUMAN_ORDINARY_COMPLETE_AUTHORITY_ABI' USING ERRCODE='40001';END IF;
-END $function$;
-
-CREATE OR REPLACE FUNCTION mission_factory_owner.c444_runtime_ports_complete_assert_v1()
- RETURNS void
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$BEGIN
- IF NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid=pg_catalog.to_regprocedure('mission_factory_owner.c444_terminal_participants_finish_v1(uuid,uuid)') AND p.proowner='postgres'::regrole AND p.proacl::text='{postgres=X/postgres}' AND p.proconfig=ARRAY['search_path=""']::text[] AND p.prosecdef AND p.provolatile='v' AND p.prorettype='jsonb'::regtype AND md5(p.prosrc)='5970cacc41fa7fbb2e0cd206f95964a0') THEN RAISE EXCEPTION 'HUMAN34_PARTICIPANTS_PRIVATE_PORT_DRIFT';END IF;
- IF NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid=pg_catalog.to_regprocedure('mission_factory_owner.c444_peaceful_history_complete_v1(uuid,uuid)') AND p.proowner='postgres'::regrole AND p.proacl::text='{postgres=X/postgres}' AND p.proconfig=ARRAY['search_path=""']::text[] AND p.prosecdef AND p.provolatile='s' AND p.prorettype='boolean'::regtype AND md5(p.prosrc)='d0362b376ec98d5c9188df053bb6225e') THEN RAISE EXCEPTION 'HUMAN31_PRIVATE_HISTORY_PORT_DRIFT';END IF;
- IF NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid=pg_catalog.to_regprocedure('mission_factory_owner.c444_peaceful_receipt_immutable_v1()') AND p.proowner='postgres'::regrole AND p.proacl::text='{postgres=X/postgres}' AND p.proconfig=ARRAY['search_path=""']::text[] AND p.prosecdef AND p.provolatile='v' AND p.prorettype='trigger'::regtype AND md5(p.prosrc)='16517cd874c4897f58f1aabf66dd84c4') THEN RAISE EXCEPTION 'HUMAN30_PRIVATE_PORT_DRIFT';END IF;
- IF NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid=pg_catalog.to_regprocedure('mission_factory_owner.c444_peaceful_complete_v1(uuid,uuid)') AND p.proowner='postgres'::regrole AND p.proacl::text='{postgres=X/postgres}' AND p.proconfig=ARRAY['search_path=""']::text[] AND p.prosecdef AND p.provolatile='s' AND p.prorettype='boolean'::regtype AND md5(p.prosrc)='00edebfa01abbd25f65ff6a2307a7032') THEN RAISE EXCEPTION 'HUMAN30_PRIVATE_PORT_DRIFT';END IF;
- IF NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid=pg_catalog.to_regprocedure('mission_factory_owner.c444_peaceful_boundary_v1(uuid,uuid)') AND p.proowner='postgres'::regrole AND p.proacl::text='{postgres=X/postgres}' AND p.proconfig=ARRAY['search_path=""']::text[] AND p.prosecdef AND p.provolatile='s' AND p.prorettype='jsonb'::regtype AND md5(p.prosrc)='bcbf33ddaaac5a150e9896b6b9d0b922') THEN RAISE EXCEPTION 'HUMAN30_PRIVATE_PORT_DRIFT';END IF;
- IF NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid=pg_catalog.to_regprocedure('mission_factory_owner.c444_peaceful_close_v1(uuid,uuid,uuid)') AND p.proowner='postgres'::regrole AND p.proacl::text='{postgres=X/postgres}' AND p.proconfig=ARRAY['search_path=""']::text[] AND p.prosecdef AND p.provolatile='v' AND p.prorettype='uuid'::regtype AND md5(p.prosrc)='b2f0b994bf444cdd91e1542e4197eb35') THEN RAISE EXCEPTION 'HUMAN30_PRIVATE_PORT_DRIFT';END IF;
- IF NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid='50701'::oid AND pg_get_userbyid(p.proowner)='postgres' AND p.proacl::text='{postgres=X/postgres}' AND p.proconfig=ARRAY['search_path=""']::text[] AND p.prosecdef AND p.provolatile='s' AND md5(p.prosrc)='440de1076de422bb54ffddad64044ca3') THEN RAISE EXCEPTION 'HUMAN30_OUTCOME_PORT_DRIFT';END IF;
-IF EXISTS(SELECT 1 FROM jsonb_array_elements($c501_pins$[{"all_arg_types":[],"arg_modes":[],"arg_names":null,"body_md5":"b310b8f19813bd2d070edf19203d9d9d","configuration":["search_path=\"\""],"default_arg_count":0,"execute":["postgres"],"input_arg_types":[],"language":"plpgsql","lookup_signature":"mission_factory_owner.c408_stage1_complete_assert_v1()","oid":"279179","owner":"postgres","parallel":"u","return_type":"pg_catalog.void","returns_set":false,"security_definer":true,"strict":false,"variadic_type":null,"volatility":"s"}]$c501_pins$::jsonb) c501_expected LEFT JOIN pg_catalog.pg_proc c501_proc ON c501_proc.oid=pg_catalog.to_regprocedure(c501_expected->>'lookup_signature') WHERE c501_proc.oid IS NULL OR (c501_expected->>'oid' IS NOT NULL AND c501_proc.oid::text IS DISTINCT FROM c501_expected->>'oid') OR md5(c501_proc.prosrc) IS DISTINCT FROM c501_expected->>'body_md5' OR c501_proc.proargtypes::text IS DISTINCT FROM coalesce((SELECT string_agg(pg_catalog.to_regtype(c501_argtype)::oid::text,' ' ORDER BY c501_ord)FROM jsonb_array_elements_text(c501_expected->'input_arg_types')WITH ORDINALITY c501_inputs(c501_argtype,c501_ord)),'') OR coalesce((SELECT jsonb_agg(pg_catalog.format('%I.%I',c501_ns.nspname,c501_type.typname) ORDER BY c501_ord)FROM unnest(coalesce(c501_proc.proallargtypes,c501_proc.proargtypes::oid[]))WITH ORDINALITY c501_all(c501_type_oid,c501_ord)JOIN pg_catalog.pg_type c501_type ON c501_type.oid=c501_type_oid JOIN pg_catalog.pg_namespace c501_ns ON c501_ns.oid=c501_type.typnamespace),'[]'::jsonb) IS DISTINCT FROM c501_expected->'all_arg_types' OR to_jsonb(coalesce(c501_proc.proargmodes,array_fill('i'::"char",ARRAY[c501_proc.pronargs]))) IS DISTINCT FROM c501_expected->'arg_modes' OR coalesce(to_jsonb(c501_proc.proargnames),'null'::jsonb) IS DISTINCT FROM c501_expected->'arg_names' OR c501_proc.prorettype IS DISTINCT FROM pg_catalog.to_regtype(c501_expected->>'return_type') OR c501_proc.proretset IS DISTINCT FROM(c501_expected->>'returns_set')::boolean OR c501_proc.pronargdefaults IS DISTINCT FROM(c501_expected->>'default_arg_count')::integer OR (c501_proc.pronargdefaults=0 AND c501_proc.proargdefaults IS NOT NULL) OR c501_proc.provariadic IS DISTINCT FROM coalesce(pg_catalog.to_regtype(c501_expected->>'variadic_type')::oid,0::oid) OR c501_proc.proisstrict IS DISTINCT FROM(c501_expected->>'strict')::boolean OR c501_proc.provolatile::text IS DISTINCT FROM c501_expected->>'volatility' OR c501_proc.proparallel::text IS DISTINCT FROM c501_expected->>'parallel' OR c501_proc.prosecdef IS DISTINCT FROM(c501_expected->>'security_definer')::boolean OR(SELECT lanname FROM pg_catalog.pg_language WHERE oid=c501_proc.prolang)IS DISTINCT FROM c501_expected->>'language' OR to_jsonb(c501_proc.proconfig) IS DISTINCT FROM c501_expected->'configuration' OR pg_catalog.pg_get_userbyid(c501_proc.proowner)IS DISTINCT FROM c501_expected->>'owner' OR c501_proc.proleakproof OR coalesce((SELECT jsonb_agg(CASE WHEN c501_acl.grantee=0 THEN 'PUBLIC' ELSE pg_catalog.pg_get_userbyid(c501_acl.grantee)END ORDER BY CASE WHEN c501_acl.grantee=0 THEN 'PUBLIC' ELSE pg_catalog.pg_get_userbyid(c501_acl.grantee)END)FROM pg_catalog.aclexplode(coalesce(c501_proc.proacl,pg_catalog.acldefault('f',c501_proc.proowner)))c501_acl WHERE c501_acl.privilege_type='EXECUTE'),'[]'::jsonb)IS DISTINCT FROM c501_expected->'execute' OR EXISTS(SELECT 1 FROM pg_catalog.aclexplode(coalesce(c501_proc.proacl,pg_catalog.acldefault('f',c501_proc.proowner)))c501_acl WHERE c501_acl.is_grantable))THEN RAISE EXCEPTION 'C501_CURRENT_HUMAN_QUALIFIER_ABI_CAS' USING ERRCODE='40001';END IF;
-PERFORM mission_factory_owner.c408_stage1_complete_assert_v1();
-IF NOT EXISTS(SELECT 1 FROM mission_factory_owner.c444_install_progress WHERE singleton AND complete AND next_unit=26 AND source_input_sha256='9c814c08fba12afbdec246b477a73c0047d318b51dc7c83a23050bd9da9e0aa9')THEN RAISE EXCEPTION 'C501_SOURCE_FAMILY_COMPLETE_PREFIX_REQUIRED';END IF;
-IF EXISTS(SELECT 1 FROM jsonb_array_elements((SELECT jsonb_agg('{"configuration":["search_path=\"\""],"default_arg_count":0,"owner":"postgres","parallel":"u","returns_set":false,"security_definer":true,"strict":false,"variadic_type":null}'::jsonb||p)FROM jsonb_array_elements('[{"all_arg_types":[],"arg_modes":[],"arg_names":null,"body_md5":"75fcad93b0da5fee0fc6b7af652a5e85","execute":["postgres"],"input_arg_types":[],"language":"sql","lookup_signature":"mission_factory_owner.c444_enabled_v1()","oid":null,"return_type":"pg_catalog.bool","volatility":"s"},{"all_arg_types":["pg_catalog.uuid"],"arg_modes":["i"],"arg_names":["p_session"],"body_md5":"1d451274a2d12685125d34c2a0be5d0a","execute":["postgres"],"input_arg_types":["pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"mission_factory_owner.c444_read_identity_v1(pg_catalog.uuid)","oid":null,"return_type":"pg_catalog.jsonb","volatility":"s"},{"all_arg_types":["pg_catalog.uuid"],"arg_modes":["i"],"arg_names":["p_session"],"body_md5":"a9976ab03577ce9699ac6340228e751a","execute":["postgres"],"input_arg_types":["pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"mission_factory_owner.c444_source_read_assert_v1(pg_catalog.uuid)","oid":null,"return_type":"pg_catalog.jsonb","volatility":"v"},{"all_arg_types":["pg_catalog.uuid"],"arg_modes":["i"],"arg_names":["p_episode"],"body_md5":"3ea3a2a0749910a979216b801a09bb2e","execute":["postgres"],"input_arg_types":["pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"mission_factory_owner.c444_episode_read_assert_v1(pg_catalog.uuid)","oid":null,"return_type":"pg_catalog.void","volatility":"s"},{"all_arg_types":["pg_catalog.uuid"],"arg_modes":["i"],"arg_names":["p_episode"],"body_md5":"480480b66e0447de0674a4fe5c2ac131","execute":["postgres"],"input_arg_types":["pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"mission_factory_owner.c444_enrollment_open_v1(pg_catalog.uuid)","oid":null,"return_type":"pg_catalog.bool","volatility":"v"},{"all_arg_types":["pg_catalog.uuid","pg_catalog.text","pg_catalog.bool","pg_catalog.int8","pg_catalog.uuid"],"arg_modes":["i","i","i","i","i"],"arg_names":["p_episode","p_operation","p_ready","p_expected_version","p_request"],"body_md5":"5fd76a8791efd28f332e35c30e8180b7","execute":["postgres"],"input_arg_types":["pg_catalog.uuid","pg_catalog.text","pg_catalog.bool","pg_catalog.int8","pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"mission_factory_owner.c444_enrollment_v1(pg_catalog.uuid,pg_catalog.text,pg_catalog.bool,pg_catalog.int8,pg_catalog.uuid)","oid":null,"return_type":"pg_catalog.jsonb","volatility":"v"},{"all_arg_types":["pg_catalog.uuid","pg_catalog.text","pg_catalog.bool","pg_catalog.int8","pg_catalog.uuid"],"arg_modes":["i","i","i","i","i"],"arg_names":["p_episode","p_operation","p_ready","p_expected_version","p_request"],"body_md5":"555a2c26cd901ba41d34c5365aa89755","execute":["authenticated","postgres"],"input_arg_types":["pg_catalog.uuid","pg_catalog.text","pg_catalog.bool","pg_catalog.int8","pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"public.mission_factory_quest_enrollment_v1(pg_catalog.uuid,pg_catalog.text,pg_catalog.bool,pg_catalog.int8,pg_catalog.uuid)","oid":"276409","return_type":"pg_catalog.jsonb","volatility":"v"},{"all_arg_types":["pg_catalog.uuid"],"arg_modes":["i"],"arg_names":["p_session"],"body_md5":"cbbc333b9f46016de31ca4d804b5cd26","execute":["postgres"],"input_arg_types":["pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"mission_factory_owner.c444_terminal_confirmed_v1(pg_catalog.uuid)","oid":null,"return_type":"pg_catalog.jsonb","volatility":"v"},{"all_arg_types":["pg_catalog.uuid"],"arg_modes":["i"],"arg_names":["p_session"],"body_md5":"1c6a6240f27b3add37546175768633a2","execute":["postgres"],"input_arg_types":["pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"mission_factory_owner.quest_terminal_confirmed_v1(pg_catalog.uuid)","oid":"276431","return_type":"pg_catalog.jsonb","volatility":"v"},{"all_arg_types":["pg_catalog.uuid"],"arg_modes":["i"],"arg_names":["p_episode"],"body_md5":"5fa62eda7260904e189b55b06088254b","execute":["postgres"],"input_arg_types":["pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"mission_factory_owner.c444_participant_state_v1(pg_catalog.uuid)","oid":null,"return_type":"pg_catalog.jsonb","volatility":"v"},{"all_arg_types":["pg_catalog.uuid"],"arg_modes":["i"],"arg_names":["p_episode"],"body_md5":"2169f3ddfbae60cf757cd2c555a9e2f7","execute":["authenticated","postgres"],"input_arg_types":["pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"public.mission_factory_quest_participant_state_v1(pg_catalog.uuid)","oid":"276446","return_type":"pg_catalog.jsonb","volatility":"v"},{"all_arg_types":["pg_catalog.uuid"],"arg_modes":["i"],"arg_names":["p_request"],"body_md5":"d06ad7832dd3bc64fc0d0472d9965534","execute":["postgres"],"input_arg_types":["pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"mission_factory_owner.c444_run_state_v1(pg_catalog.uuid)","oid":null,"return_type":"pg_catalog.jsonb","volatility":"v"},{"all_arg_types":["pg_catalog.uuid"],"arg_modes":["i"],"arg_names":["p_request"],"body_md5":"17a33bc8b9d5bdd4468aa582002cb7fa","execute":["authenticated","postgres"],"input_arg_types":["pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"public.mission_factory_quest_run_state_v1(pg_catalog.uuid)","oid":"276432","return_type":"pg_catalog.jsonb","volatility":"v"},{"all_arg_types":["pg_catalog.uuid"],"arg_modes":["i"],"arg_names":["p_session"],"body_md5":"2d68f757738cb9ff6a14c62d17fc7a7e","execute":["postgres"],"input_arg_types":["pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"mission_factory_owner.c444_action_scope_v1(pg_catalog.uuid)","oid":null,"return_type":"pg_catalog.jsonb","volatility":"v"},{"all_arg_types":["pg_catalog.uuid"],"arg_modes":["i"],"arg_names":["p_session"],"body_md5":"9a7cd7954f164f32e1b8b6531c40d51d","execute":["authenticated","postgres"],"input_arg_types":["pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"public.mission_factory_quest_human_runtime_state_v1(pg_catalog.uuid)","oid":null,"return_type":"pg_catalog.jsonb","volatility":"v"},{"all_arg_types":["pg_catalog.uuid"],"arg_modes":["i"],"arg_names":["p_session"],"body_md5":"0bda32f1607eb10808df90b042f5473a","execute":["authenticated","postgres"],"input_arg_types":["pg_catalog.uuid"],"language":"plpgsql","lookup_signature":"public.mission_human_phase_state_v1(pg_catalog.uuid)","oid":"50702","return_type":"pg_catalog.jsonb","volatility":"s"}]'::jsonb)z(p))) c501_expected LEFT JOIN pg_catalog.pg_proc c501_proc ON c501_proc.oid=pg_catalog.to_regprocedure(c501_expected->>'lookup_signature') WHERE c501_proc.oid IS NULL OR (c501_expected->>'oid' IS NOT NULL AND c501_proc.oid::text IS DISTINCT FROM c501_expected->>'oid') OR md5(c501_proc.prosrc) IS DISTINCT FROM c501_expected->>'body_md5' OR c501_proc.proargtypes::text IS DISTINCT FROM coalesce((SELECT string_agg(pg_catalog.to_regtype(c501_argtype)::oid::text,' ' ORDER BY c501_ord)FROM jsonb_array_elements_text(c501_expected->'input_arg_types')WITH ORDINALITY c501_inputs(c501_argtype,c501_ord)),'') OR coalesce((SELECT jsonb_agg(pg_catalog.format('%I.%I',c501_ns.nspname,c501_type.typname) ORDER BY c501_ord)FROM unnest(coalesce(c501_proc.proallargtypes,c501_proc.proargtypes::oid[]))WITH ORDINALITY c501_all(c501_type_oid,c501_ord)JOIN pg_catalog.pg_type c501_type ON c501_type.oid=c501_type_oid JOIN pg_catalog.pg_namespace c501_ns ON c501_ns.oid=c501_type.typnamespace),'[]'::jsonb) IS DISTINCT FROM c501_expected->'all_arg_types' OR to_jsonb(coalesce(c501_proc.proargmodes,array_fill('i'::"char",ARRAY[c501_proc.pronargs]))) IS DISTINCT FROM c501_expected->'arg_modes' OR coalesce(to_jsonb(c501_proc.proargnames),'null'::jsonb) IS DISTINCT FROM c501_expected->'arg_names' OR c501_proc.prorettype IS DISTINCT FROM pg_catalog.to_regtype(c501_expected->>'return_type') OR c501_proc.proretset IS DISTINCT FROM(c501_expected->>'returns_set')::boolean OR c501_proc.pronargdefaults IS DISTINCT FROM(c501_expected->>'default_arg_count')::integer OR (c501_proc.pronargdefaults=0 AND c501_proc.proargdefaults IS NOT NULL) OR c501_proc.provariadic IS DISTINCT FROM coalesce(pg_catalog.to_regtype(c501_expected->>'variadic_type')::oid,0::oid) OR c501_proc.proisstrict IS DISTINCT FROM(c501_expected->>'strict')::boolean OR c501_proc.provolatile::text IS DISTINCT FROM c501_expected->>'volatility' OR c501_proc.proparallel::text IS DISTINCT FROM c501_expected->>'parallel' OR c501_proc.prosecdef IS DISTINCT FROM(c501_expected->>'security_definer')::boolean OR(SELECT lanname FROM pg_catalog.pg_language WHERE oid=c501_proc.prolang)IS DISTINCT FROM c501_expected->>'language' OR to_jsonb(c501_proc.proconfig) IS DISTINCT FROM c501_expected->'configuration' OR pg_catalog.pg_get_userbyid(c501_proc.proowner)IS DISTINCT FROM c501_expected->>'owner' OR c501_proc.proleakproof OR coalesce((SELECT jsonb_agg(CASE WHEN c501_acl.grantee=0 THEN 'PUBLIC' ELSE pg_catalog.pg_get_userbyid(c501_acl.grantee)END ORDER BY CASE WHEN c501_acl.grantee=0 THEN 'PUBLIC' ELSE pg_catalog.pg_get_userbyid(c501_acl.grantee)END)FROM pg_catalog.aclexplode(coalesce(c501_proc.proacl,pg_catalog.acldefault('f',c501_proc.proowner)))c501_acl WHERE c501_acl.privilege_type='EXECUTE'),'[]'::jsonb)IS DISTINCT FROM c501_expected->'execute' OR EXISTS(SELECT 1 FROM pg_catalog.aclexplode(coalesce(c501_proc.proacl,pg_catalog.acldefault('f',c501_proc.proowner)))c501_acl WHERE c501_acl.is_grantable))THEN RAISE EXCEPTION 'C501_PORTS_EFFECTIVE_FULL_ABI_ACL_CAS' USING ERRCODE='40001';END IF;
-END$function$;
-REVOKE ALL ON FUNCTION mission_factory_owner.human_custom_ordinary_capability_v1(uuid,boolean) FROM PUBLIC,anon,authenticated,service_role;
-GRANT EXECUTE ON FUNCTION mission_factory_owner.human_custom_ordinary_capability_v1(uuid,boolean) TO postgres;
-REVOKE ALL ON FUNCTION mission_factory_owner.human_custom_source_assert_v1(uuid,boolean) FROM PUBLIC,anon,authenticated,service_role;
-GRANT EXECUTE ON FUNCTION mission_factory_owner.human_custom_source_assert_v1(uuid,boolean) TO postgres;
-REVOKE ALL ON FUNCTION mission_factory_owner.human_compatibility_identity_v1(text,boolean) FROM PUBLIC,anon,authenticated,service_role;
-GRANT EXECUTE ON FUNCTION mission_factory_owner.human_compatibility_identity_v1(text,boolean) TO postgres;
-REVOKE ALL ON FUNCTION mission_factory_owner.human_release_observation_valid_v1(jsonb,text,boolean) FROM PUBLIC,anon,authenticated,service_role;
-GRANT EXECUTE ON FUNCTION mission_factory_owner.human_release_observation_valid_v1(jsonb,text,boolean) TO postgres;
+REVOKE ALL ON FUNCTION mission_factory_owner.human_custom_source_assert_verified_v1(uuid,boolean,jsonb,jsonb) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION mission_factory_owner.human_custom_source_assert_verified_v1(uuid,boolean,jsonb,jsonb) TO postgres;
