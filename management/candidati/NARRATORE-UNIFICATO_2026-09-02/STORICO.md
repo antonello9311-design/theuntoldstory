@@ -899,3 +899,4 @@
 15/10/2026 · Human34agg3 / binder2 / UI33agg3 · Stessabc70 recuperata e seconda giocata finoalFato conclusivo; postflight07:53:33 entrambechiuse/1receiptpubciascuna/ownopen0/48d41 invarianti. Provider0, collaudoHumanPASS; UI004review0/0/0Staffpreview, screenshot e ordinaryrelease pendenti.
 
 15/10/2026 · HUMAN-NPC-ZERO · Nuovo Iori da editor con media/approvazione append-only/Builder, questHuman con arena, Combat e chiusura;48protette eprovider0 · PASS Staff, customordinarioNONAPERTO; WIP/counterpreservati.
+16/10/2026 · HUMAN-CUSTOM-ORDINARY agg3 · NativeSave/Create e raccordo custom generico ABI87 installatiStaff20261016064820 dopo review000; primoattempt42702 rollbackconservato, CpubblicoFALSE/MacLOCKED/QA NOT_RUN/provider0.

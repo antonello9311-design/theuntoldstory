@@ -1,0 +1,7 @@
+TASK-ID · HUMAN-CUSTOM-ORDINARY-PUBLIC-20261015
+Scope toccato · Raccordo generico PNGcustom Humanordinario, NativeSave/Create e ABI87; client/Edgeimmutati.
+Contratti usati/modificati · Fonte29 4c01a324; C3efd7bf0 osservazione reale/S5abprovenienza immutabile/compat62cc921e; consumerd1e2, finitereservaStaff Auth2 e media/canonicali generici.
+Decisioni prese / OPEN · Agg3/counter3GREEN38f7884a0/0/0, materialeb67b/materialreview06ab7e27. Install COMMITTED20261016064820. CustomCpubblicoFALSE, positivoStaffassente. MacLOCKED: chiestosblocco, nessunbypass. Budget06:10–08:10UTC16/10, caso1/provider0.
+Prove eseguite e risultato · Primoattempt42702rollbackcompleto; corretti root_att/root_acl con audit2224expr0conflitti. Install2riuscita, postfullABI87exact/identityvalid/48d41adde invariato/fixed30same/0scene. C416/C444 solodate06:10→08:10. RuntimecustomordinarioNOT_RUN.
+Rischi o regressioni da verificare · Dopo sblocco normaleNativeIori b2aaCV6→7, VerificaPNGCombat, QuestconMaster/LeggiNative/certifica/importconferma; Rootfase2 envelope13chiavireali noUUIDfuturo; preview/pub normale, Fato/Combat/report/peaceful/terminale; post48/provider0/0scene; OPENstessaCsolodopoPASS. NessunpremiorealeprovatodalQAStaff.
+Passaggio richiesto al PM · Proseguire stessa prova, stessiPGTamako/Riuji/Stafflocation0b85. Non toccare vecchiaNativee6dCV7/import1d427UNSENT e tabs. Initial1agg3counter3, oldordinary5/Owner3/NPC1 preservati. Deadline08:10UTC; se termina senzaQA disabilitare soloeventualegStaffpropria conrecoveryesatta. Finora gStaffmaiabilitata, Cgiàfalse.

@@ -1,0 +1,276 @@
+{
+  "schema_version": "human-custom-ordinary-independent-review/1",
+  "status": "RED_COMPLETE_INITIAL_REVIEW",
+  "at_utc": "2026-10-16T06:27:47.174470+00:00",
+  "reviewer": "media_integrated_review",
+  "task_id": "HUMAN-CUSTOM-ORDINARY-PUBLIC-20261015",
+  "findings": [
+    0,
+    2,
+    0
+  ],
+  "findings_by_priority": {
+    "P0": 0,
+    "P1": 2,
+    "P2": 0
+  },
+  "source_sha256": "64e2636e9e635c23a8c4839b7ada36497a4ee757feebd691b09cd65166e3b078",
+  "whole_freeze_sha256": "e58d431abcf0f6521f7e984c38b1092cc167df7eefaccdd38e9ab0b05d5bef5d",
+  "frozen_files": [
+    {
+      "name": "backend/HUMAN_CUSTOM_ORDINARY_SOURCE.sql",
+      "bytes": 286179,
+      "sha256": "64e2636e9e635c23a8c4839b7ada36497a4ee757feebd691b09cd65166e3b078"
+    },
+    {
+      "name": "INSTALL_TEMPLATE.sql",
+      "bytes": 754913,
+      "sha256": "35f1b6a3e82c3e0c8e8103a6f1fa6783aab81513786b676dab595a83fc1d1089"
+    },
+    {
+      "name": "EXPECTED_POST_ABI.json",
+      "bytes": 75926,
+      "sha256": "a7b0e952718ddb0f150f318e1d5675afbc6c3d2e49e08f3f18fb33f8ac586b4c"
+    },
+    {
+      "name": "backend/STAFF_BIND_AFTER_IMPORT_TEMPLATE.sql",
+      "bytes": 9860,
+      "sha256": "f47281ad120bd3246b6dc5cea7089e4ff0ccc5c8ece9f98c9d13a28cd4d193a3"
+    },
+    {
+      "name": "backend/OPEN_AFTER_STAFF_PASS_TEMPLATE.sql",
+      "bytes": 14888,
+      "sha256": "f9850597e4b635f833eb3206f5c36c46a14c1b8ba372282ee1e5ae13edfbb00e"
+    },
+    {
+      "name": "backend/RECOVERY_GATE_ONLY_TEMPLATE.sql",
+      "bytes": 2945,
+      "sha256": "3f626df82d393c663d7d420899a1ee93adf6236c3db0912de5a8a4ece83e5e12"
+    },
+    {
+      "name": "backend/STAFF_LEASE_FRAGMENT.sql",
+      "bytes": 2729,
+      "sha256": "83e3656f212ca83fe3361df00cb42886a4cd71f70b8911a85c09bc7614925666"
+    },
+    {
+      "name": "backend/HUMAN_CUSTOM_ORDINARY_MANIFEST.json",
+      "bytes": 6783,
+      "sha256": "7adb18443f7247a9ea188e62308b16b67d7ebe887f693226c81d84a90ac7e025"
+    },
+    {
+      "name": "ROOT_WHOLE_STATIC_PROOF.json",
+      "bytes": 5774,
+      "sha256": "feb97219b96c126a23dba80b1b25a8599bc9f30cb8ba5c9cb461230e668a0ef9"
+    },
+    {
+      "name": "SEMANTIC_MANIFEST.json",
+      "bytes": 9340,
+      "sha256": "03baf647184994b760823f043aab2f8427c64cda6652dee7ffd3c81d0c4dd051"
+    },
+    {
+      "name": "build_root_installer.py",
+      "bytes": 14873,
+      "sha256": "4837aa1e8e5110d0984561c0c8ca6663a2a31232bf3f1ef09c37effe243f26e9"
+    },
+    {
+      "name": "CASE_PLAN.json",
+      "bytes": 2333,
+      "sha256": "8ac93d85c66453689c5673a85d15f97330296f0c18d7963b23d7c631f1435de1"
+    }
+  ],
+  "issues": [
+    {
+      "id": "F1",
+      "priority": "P1",
+      "blocks": [
+        "D_AUTHORING_GRAPH",
+        "F_STAFF_RESERVE"
+      ],
+      "title": "Il salvataggio Native richiesto conserva la dipendenza dalle admission manuali scadute",
+      "trigger": "Normale modifica titolo e Salva di Native Iori b2aa11b4-5f8b-43c9-bbb8-1db7a85739f9 CV6→CV7 con nuova richiesta, prima della Verifica PNG Combat salvata e dell’import ordinario.",
+      "evidence": [
+        "Il consumer Editor invoca public.mission_factory_save_v1(p_draft,p_expected_version,p_document,p_request).",
+        "La definizione viva di mission_factory_save_v1, riga 30 della copia ACTUAL, chiama incondizionatamente manual_authoring_assert_v1('save',NULL) dopo il solo replay e prima dell’UPDATE della bozza.",
+        "manual_authoring_assert_v1 conserva il percorso public_authoring_allowed_v1(false), altrimenti esige admission manuale enabled con expires_at futuro.",
+        "Lettura viva del 16/10: public_authoring_gate enabled=false/provider_enabled=false; entrambe le admission R37 scadono 2026-10-15T19:02:41Z. Valori esatti e captured_at in FRESH_NATIVE_AUTHORING_GATES.json.",
+        "Né mission_factory_save_v1 né manual_authoring_assert_v1/public_authoring_allowed_v1 sono ridefinite nelle 27 funzioni della candidata. STAFF_LEASE_FRAGMENT rinnova esclusivamente C416/C444 fino alle 08:10, non le admission manuali.",
+        "Il catalogo Native permanente e la nuova capacità custom intervengono su picker/check/certificazione; nessuna di esse viene consultata dalla chiamata Save sopra."
+      ],
+      "impact": "Il caso fisso non raggiunge CV7 dal percorso normale: dal codice si determina il rifiuto MF_MANUAL_AUTHORING_STAFF_SCOPE (non eseguito come prova). La stessa lacuna resta per il salvataggio futuro di nuovi Native. La replay di una richiesta già completata non copre questa nuova modifica e non costituisce soluzione.",
+      "required_correction": "Comporre l’autorità di salvataggio Native nel percorso esistente con un ramo Human stretto e server-side, coerente con C/catálogo/ownership e con la riserva del caso; preservare validazione, CAS, request fingerprint e journal. Includere la porta Save e le sue dipendenze effettive nell’inventario e nei seal pertinenti. Non riattivare genericamente l’authoring IA e non considerare sufficiente la sola qualificazione del picker.",
+      "runtime_observed": false
+    },
+    {
+      "id": "F2",
+      "priority": "P1",
+      "blocks": [
+        "D_AUTHORING_GRAPH",
+        "F_STAFF_RESERVE",
+        "H_CLIENT_RECOVERY"
+      ],
+      "title": "Fase2 richiede un planned publish UUID che il consumer normale crea soltanto durante il click di invio",
+      "trigger": "Materializzazione della riserva Staff prima di pubblicare il nuovo Human draft importato.",
+      "evidence": [
+        "Consumer pubblicato invariato d1e20064f4111928622b8b485e3efdacfb5d852fda9019c406cfbfe034ed410c, 64505 byte: azione Pubblica la quest crea p_request:crypto.randomUUID() dentro onclick/work e lo passa direttamente a factory.send(publish).",
+        "STAFF_BIND_AFTER_IMPORT_TEMPLATE richiede publish_request_key nelle 14 chiavi chiuse e usa il valore soltanto in NOT EXISTS publications WHERE request_key=... (riga31).",
+        "La chiave non entra nella qualification, non viene conservata dal gate e non viene verificata dal publisher successivo. Il client invariato non espone un passaggio di preparazione/rilettura della futura chiave prima dell’invio."
+      ],
+      "impact": "Non esiste un valore genuino pianificato dal normale consumer disponibile per la materializzazione precedente al click. Un UUID inventato da Root non corrisponde alla futura operazione UI e il suo NOT EXISTS non dimostra l’assenza di una pubblicazione della bozza/versione autorizzata. Il click preventivo non è un percorso di preparazione sicuro né è previsto nel caso fisso.",
+      "required_correction": "Allineare il contratto della fase2 all’unità autorevole realmente disponibile: draft ID/version/source e assenza della relativa pubblicazione. Eliminare il falso requisito di UUID UI anticipato e il controllo non correlato, oppure introdurre esplicitamente una preparazione normale e immutabile nel consumer (fuori dall’attuale promessa client invariato). Non provocare un publish fallito per ottenere una chiave e non fabbricare prova UI.",
+      "runtime_observed": false
+    }
+  ],
+  "matrix": [
+    {
+      "id": "A_AUTH",
+      "status": "STATIC_COVERED_NO_ADDITIONAL_FINDING",
+      "assessment": "Auth/owner/Master/roster server-side, helper nuovi postgres-only, search_path vuoto e header/ACL esistenti preservati. Nessuna impersonazione o esecuzione Auth di test.",
+      "runtime": "NOT_RUN"
+    },
+    {
+      "id": "B_BASE_C_IDENTITY",
+      "status": "STATIC_COVERED_NO_ADDITIONAL_FINDING",
+      "assessment": "Compatibilità tipizzata distingue provenienza S5 e C osservata, full85 effettiva; 81 porte esistenti/OID e 4 nuove assenti verificati vivi. C deriva dagli OID reali dopo CREATE; nessun OID nuovo fabbricato e nessun autoriferimento C.",
+      "runtime": "NOT_RUN"
+    },
+    {
+      "id": "C_NEWPNG",
+      "status": "STATIC_COVERED_NO_ADDITIONAL_FINDING",
+      "assessment": "Ramo custom canonico corrente approvato, binding/hash/media/head autorevoli, niente hardcode Iori nel criterio del profilo; legacy ricostruibile. Nuove versioni e certificati preservano storia.",
+      "runtime": "NOT_RUN"
+    },
+    {
+      "id": "D_AUTHORING_GRAPH",
+      "status": "RED_F1",
+      "assessment": "Tracciati certificazione, receipt, compiler/deep validator, preview, publish, runtime e dipendenze. F1 impedisce la chiusura del percorso NativeSave richiesto: inventario85 non include tale dipendenza operativa.",
+      "runtime": "NOT_RUN"
+    },
+    {
+      "id": "E_PROJECTIONS",
+      "status": "STATIC_COVERED_NO_ADDITIONAL_FINDING",
+      "assessment": "Availability public distinta da execution_context staff_simulation. Arc scope e public_open riservano anche letture ai due Auth; tre tabelle private FORCE RLS/postgres-only/zero policy confermate vive.",
+      "runtime": "NOT_RUN"
+    },
+    {
+      "id": "F_STAFF_RESERVE",
+      "status": "RED_F1",
+      "assessment": "Fase2 lega bozza/versione/SHA/controlli/Auth2 al contesto server e verifica 48 campi. Rinnovo date C416/C444 coerente con 06:10→08:10; F1 resta prima dell’import. Materiale effettivo non ancora emesso. F2: publish_request_key non disponibile prima del normale invio e non legato al gate.",
+      "runtime": "NOT_RUN"
+    },
+    {
+      "id": "G_RUNTIME",
+      "status": "STATIC_COVERED_NO_ADDITIONAL_FINDING",
+      "assessment": "Ramo custom usa gli stessi offer/core/admission/tx/backend/Auth e fonti immutabili. Risorse/premi basati su execution_context: quest_is_simulation_v4 e reward authority usano staff_simulation, non sola availability. Provider zero e 48 invarianti richiesti nell’apertura. Nessun runtime nuovo eseguito.",
+      "runtime": "NOT_RUN"
+    },
+    {
+      "id": "H_CLIENT_RECOVERY",
+      "status": "RED_F2",
+      "assessment": "RPC/DTO/client esistenti conservati; journal e idempotenza non sostituiti. Letture storiche usano identità/prova immutabili con active=false; comandi attivi richiedono C effettiva. Vecchie UI non esercitate in questa review. F2: la fase2 presuppone una futura chiave publish non preparabile dal consumer attuale.",
+      "runtime": "NOT_RUN"
+    },
+    {
+      "id": "I_INSTALL_RECOVERY",
+      "status": "STATIC_COVERED_NO_ADDITIONAL_FINDING",
+      "assessment": "Intero installer e template parse indipendente; 27 definizioni installate equivalenti AST alla fonte, full85 post coerente, 23 esistenti solo body delta, 4 nuovi ACL privati. Full pre85 viva identica. Recovery disabilita gate propri e conserva codice/prove/storia; nessun rollback dei corpi operativo.",
+      "runtime": "NOT_RUN"
+    },
+    {
+      "id": "J_OPENING",
+      "status": "STATIC_COVERED_NO_ADDITIONAL_FINDING",
+      "assessment": "C resta public_enabled=false e SOURCE_REVIEW_ONLY/NOT_RUN prima QA. Apertura distinta richiede nuovo terminale custom/Combat/Fato/simreward/48/provider0 e prova source per arc/intero draft, non solo prima puntata. Nessun vecchio OwnerAccepted usato come PASS custom.",
+      "runtime": "NOT_RUN"
+    }
+  ],
+  "independent_checks": {
+    "all_frozen_hashes_exact": true,
+    "SQL_and_PL_units_parsed": 60,
+    "PL_expression_AST_alias_collisions": 0,
+    "qualified_relations_checked_live": 76,
+    "qualified_relations_missing": 0,
+    "effective_ABI_ports": 85,
+    "existing_full_ABI_OID_owner_ACL_live_exact": 81,
+    "new_absent": 4,
+    "source_functions": 27,
+    "source_installer_function_AST_exact": true,
+    "expected_post_ABI_metadata_errors": 0,
+    "shared_and_seal_inverse_bodies_independently_reconstructed": 18,
+    "identity_five_inverse_evidence_and_semantics_reviewed": true,
+    "source_mutations": 0,
+    "DB_mutations": 0,
+    "gameplay_calls": 0,
+    "provider_calls": 0
+  },
+  "counter_continuity": {
+    "ordinary_existing": 5,
+    "OwnerAccepted_existing": 3,
+    "previous_newNPC_aggregate": 1,
+    "this_scope_initial": 1,
+    "this_scope_corrections": 0,
+    "this_scope_counterchecks": 0,
+    "reset": false
+  },
+  "authority_scope": {
+    "resume": "2026-10-16 user riprendi via Root",
+    "fixed_case": "Native Iori CV6→CV7; salvataggio e Verifica PNG Combat salvata; nuovo import ordinario protetto; Fato/Combat/report/Fato/peaceful/terminale",
+    "case_limit": 1,
+    "provider_calls_limit": 0,
+    "deadline_utc": "2026-10-16T08:10:00Z",
+    "no_apply_authorized_by_this_review": true
+  },
+  "limits": [
+    "Questo referto non autorizza installazione o apertura: F1/F2 bloccano la candidata end-to-end.",
+    "Nessuna nuova QA ordinaria custom, nessun PASS Staff/publicReal/premi reali; tutto il caso resta NOT_RUN.",
+    "Dopo aggregata congelata occorre unica controverifica pertinente completa; materiali Root reali devono essere verificati separatamente con ID/versioni/SHA/journal effettivi e permit finito.",
+    "La preparazione statica non certifica comportamento UI/Auth/RLS/Storage/Realtimes/provider del caso giocato."
+  ],
+  "evidence": [
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/INDEPENDENT_STATIC_PROOF.json",
+      "sha256": "b2d3aa101c0e0bcdede7ea12632020c8a143ae54937419d599dee4ad9e3af06e"
+    },
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/INDEPENDENT_ABI_SOURCE_PROOF.json",
+      "sha256": "94cf50dcb5b61c02268c26ab0fe827c64bc6ef201f6ae2817f5ee06119a454d4"
+    },
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/INDEPENDENT_INVERSE_PROOF.json",
+      "sha256": "95c4cbec0fb80add88a52b497ecd60c93452618cca20c7ca14effe88e6874e1f"
+    },
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/FRESH_ABI_READONLY.json",
+      "sha256": "8f047a3bff29ea34cef8555ce4b659ade79817d9f24689a9b06a2251cd63d95d"
+    },
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/ACTUAL_RELATIONS_READONLY.json",
+      "sha256": "cf4a03608dc996838e7b6850715a25b7105e7abdcfc0f018ecfe8397e5f0f926"
+    },
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/FRESH_RESERVATION_RLS.json",
+      "sha256": "b735cab227f3527e9867cf7b71f30dd57fd3613d5ce7810fa6205d1ef8f21779"
+    },
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/ACTUAL_NATIVE_SAVE_CHAIN.json",
+      "sha256": "d3cdabb988c1dff91eea563d0b22b668bb0ac415d58fdee097a9bafa2c93bf5e"
+    },
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/FRESH_NATIVE_AUTHORING_GATES.json",
+      "sha256": "49ef897af8d70629b1bc6d24a08fd4e2d41bcb19e0903062298c3291bf700b06"
+    },
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/FRESH_REWARD_DEFS.json",
+      "sha256": "c99262626a3dfdd653ba8d4ae26cb7658ad7700550d68c8977d1d9a53064460d"
+    },
+    {
+      "path": "/private/tmp/tus-human-custom-ordinary/review/FRESH_EFFECT_MODE_DEFS.json",
+      "sha256": "f81440bbd725ac2316564cff845043cff5c19d8847e2fd2f0f5ae9a0b971bbba"
+    }
+  ],
+  "final_UI_contract_input": {
+    "root_input": "Durante il medesimo passaggio iniziale, dopo prima deposizione; nessun nuovo source freeze, correzione o controverifica.",
+    "consumer_path": "/private/tmp/tus-human-land-integration/ordinary_agg2/HUMAN_ORDINARY_RELEASE_CONSUMER.mjs",
+    "consumer_sha256": "d1e20064f4111928622b8b485e3efdacfb5d852fda9019c406cfbfe034ed410c",
+    "previous_report_sha256": "a0e7c63986477b0d2b9a7f85d2f22f7da3d2bd39462f38ffbd96c5826f761f2b",
+    "previous_snapshot": "/private/tmp/tus-human-custom-ordinary/review/_precedenti/20261016_initial_report_before_final_UI_input"
+  }
+}
