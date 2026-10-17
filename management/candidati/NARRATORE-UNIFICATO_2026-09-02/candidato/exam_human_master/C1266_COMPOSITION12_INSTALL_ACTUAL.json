@@ -1,0 +1,199 @@
+{
+  "schema_version": "c1266-composition12-install-actual/1",
+  "status": "RED_REJECTED_AT_PRE_GUARD_ROLLED_BACK",
+  "attempts": 1,
+  "migration_name": "c1266_composition12_recovery_bundle11",
+  "installer_ref": {
+    "path": "/private/tmp/c1266-composition12-staff-20261017/recovery/INSTALL.sql",
+    "sha256": "32f7669c5767bde7f9f46c19858a89e5d8ed4cfc3b8d0d3c3219e6f37bb8fb7a",
+    "bytes": 506801
+  },
+  "tool_response": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"error\":{\"name\":\"HttpException\",\"message\":\"Failed to apply database migration: ERROR:  P0001: C1266_COMPOSITION12_CONFIG_CAS_DRIFT readiness\\nCONTEXT:  PL/pgSQL function inline_code_block line 12 at RAISE\\n\"}}"
+      }
+    ],
+    "structuredContent": {
+      "error_code": "INVALID_ARGUMENT"
+    },
+    "isError": true
+  },
+  "tool_response_ref": {
+    "path": "/private/tmp/c1266-composition12-staff-20261017/POSTFAILED_INSTALL_RAW.json",
+    "sha256": "68c876ba90ad6409a227a0daeaf7899bd1dc604f7cd49ef634a820519a264f4a",
+    "bytes": 382
+  },
+  "diagnosis": {
+    "schema_version": "c1266-composition12-install-rejection-independent-review/1",
+    "classification": "INDEPENDENT_READONLY_DIAGNOSIS_NO_PATCH_NO_NEW_GREEN",
+    "reviewed_at": "2026-10-17T16:37:45.245420+00:00",
+    "authority_scope": "Diagnosi circoscritta readonly del singolo apply12 rifiutato, senza retry o correzioni. REVIEW12 congelato e storia preservati.",
+    "finding_counts": {
+      "P0": 0,
+      "P1": 1,
+      "P2": 0
+    },
+    "verdict": "RED_INSTALLATION_BLOCKED_STOP_PM",
+    "findings": [
+      {
+        "id": "R12-INSTALL-P1-01",
+        "priority": "P1",
+        "file": "/private/tmp/c1266-composition12-staff-20261017/recovery/INSTALL.sql",
+        "line": 17,
+        "generator_file": "/private/tmp/c1266-composition12-staff-20261017/recovery/build_composition12.py",
+        "cause": "La sostituzione globale nel guard renderer da C1266_PREREQ9 a C1266_COMPOSITION12 modifica anche i valori storici delle righe serialize nei letterali CAS, anziché limitarsi ai marcatori diagnostici.",
+        "proof": "Il letterale readiness dell’installer differisce da BASE/PREFLIGHT/POSTFAILED soltanto nei campi canonical_preimage e independent_review_ref. Applicando quella identica sostituzione globale alla readiness reale si ottiene esattamente il letterale atteso errato. Nel canonical_preimage sono mutate7 occorrenze; independent_review_ref punta già al referto12 invece del referto9 storico.",
+        "effect": "La condizione IS DISTINCT FROM è vera sulla baseline corretta: P0001 C1266_COMPOSITION12_CONFIG_CAS_DRIFT readiness. Il rifiuto è deterministico e protettivo; non prova drift vivo. Il gate viene prima di CREATE FUNCTION. Entrambi i blocchi CAS INSTALL pre/post contengono il medesimo difetto. RECOVERY usa il ramo recovery del renderer, privo dei7CASletterali: non vi è questo specifico difetto readiness; la precedente menzione di RECOVERY nello stesso finding era eccessiva e viene corretta qui.",
+        "scope": "Nessun allentamento delle guardie, riscrittura della Root storica, modifica dei pin o retry è autorizzato da questo referto. Una futura correzione richiede un mandato PM/umano pertinente oltre il limite cumulativo."
+      }
+    ],
+    "evidence": {
+      "installer_sha256": "32f7669c5767bde7f9f46c19858a89e5d8ed4cfc3b8d0d3c3219e6f37bb8fb7a",
+      "literal_readiness_equal_actual": false,
+      "mismatching_fields": [
+        "canonical_preimage",
+        "independent_review_ref"
+      ],
+      "other_six_config_rows_literal_equal_BASE": true,
+      "actual_readiness_equal_BASE_PREFLIGHT_POSTFAILED": true,
+      "historical_preimage_actual_sha256": "782da950576e1f5112bb782f14ecacb25769f601ec3c53950ee0f7a69bc36af5",
+      "mutated_preimage_literal_sha256": "3c5bbd3a5a5eb6e6e0d1f8b27a473f94c3e0bf8a3934e03a176dccbacdbeeb65",
+      "actual_preimage_chars": 115002,
+      "literal_preimage_chars": 115044,
+      "replacement_occurrences_preimage": 7,
+      "full_readiness_matches_exact_global_substitution": true,
+      "SQL_and_guard_PL_grammar": "PASS_SYNTAX; valid syntax cannot prove CAS values correct",
+      "apply_error": "P0001 C1266_COMPOSITION12_CONFIG_CAS_DRIFT readiness; inlinecode line12, communicated directly by parent; no new apply performed",
+      "postfailure_capture": "2026-10-17T16:37:12.771773+00:00",
+      "postfailure_full113_schema7_configrows_activity_equal_BASE_except_capture": true,
+      "all_INSTALL_CAS_groups": {
+        "groups": 2,
+        "rows_each": 7,
+        "readiness_mismatch_each": true,
+        "other6_equal_each": true
+      },
+      "RECOVERY_guard_has_readiness_CAS_literal": false,
+      "canonical_INSTALL_RECOVERY_byteexact_private": true,
+      "postfailed_LIVE_HUMAN_PROTECTED_LEDGER_equal_BASE_except_captured_at": true
+    },
+    "prior_review_limit": "REVIEW12 0/0/0 è preservato come referto storico. La sua verifica CAS delle righe era insufficiente: confrontava le righe pianificate di baseline ma non rilevò la trasformazione dei valori dentro i letterali dell’installer. La presente evidenza ne invalida la conclusione di installabilità; non modifica il documento congelato e non emette un nuovo verde.",
+    "status": {
+      "installation12": "RED_ROLLED_BACK_NO_SUCCESS_CLAIM",
+      "source_review12": "HISTORICAL_0_0_0_WITH_MISSED_INSTALLER_FINDING_NOW_RECORDED",
+      "Edge11_deploy": "NOT_RUN",
+      "Root12_REGISTER_ENABLE": "NOT_RUN",
+      "Staff12": "NOT_RUN",
+      "provider_calls_this_diagnosis": 0,
+      "SQL_execution_this_diagnosis": 0,
+      "source_changes_this_diagnosis": 0,
+      "next_step": "STOP_PM_NO_PATCH_NO_RETRY"
+    },
+    "reviewed_refs": [
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/recovery/INSTALL.sql",
+        "sha256": "32f7669c5767bde7f9f46c19858a89e5d8ed4cfc3b8d0d3c3219e6f37bb8fb7a",
+        "bytes": 506801
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/recovery/RECOVERY.sql",
+        "sha256": "734b5462c602c198eb9508bd573d1438a7fd1790065e81ce9965c9927154af2c",
+        "bytes": 99446
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/recovery/build_composition12.py",
+        "sha256": "cf0704fd2dd3a1b4765ebcbc17044fc5ee1ccdcefcf933f3af663575240253ce",
+        "bytes": 17495
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/BASE_LIVE.json",
+        "sha256": "64c13a05c9ada80977a7c266ea6c07c20f8494c69000708e3e89685c3d71a4e7",
+        "bytes": 204123
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/BASE_LIVE_RAW.json",
+        "sha256": "3321f4649ad715963961e7ebee5a23f8459639a5a234b43a3b81944a7fda3893",
+        "bytes": 271763
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/PREFLIGHT_LIVE.json",
+        "sha256": "f8ebfc53926e903d9fce45040b16f6780a27c37400f9b8162f7b0765c7e8dfef",
+        "bytes": 204124
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/PREFLIGHT_RAW_LIVE.json",
+        "sha256": "17dbf9b8f4f638f84589875a4dbf044080afd9c7c3458968ad18814405122f12",
+        "bytes": 271807
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/POSTFAILED_LIVE_ACTUAL.json",
+        "sha256": "147a6546a752b5d351149e5082c92a9cc2b5e5de2f780b51ab2ebeb3946309d1",
+        "bytes": 204124
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/POSTFAILED_LIVE_RAW.json",
+        "sha256": "3020ae09b748ba614f258316ff6c345b28968a563761d9a690e3ea5cab01a239",
+        "bytes": 271807
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/review_final/REVIEW12.json",
+        "sha256": "4dd0fde6b2470a3633acb4f66550154c10eeef1178d122aade18092a8a894d1c",
+        "bytes": 82724
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/POSTFAILED_HUMAN_ACTUAL.json",
+        "sha256": "46cc28c8adb1ac4d324b74c93f0038de52cf3c1817ba59f09474b402c671a2ea",
+        "bytes": 97609
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/POSTFAILED_HUMAN_RAW.json",
+        "sha256": "1708235b7a6b7520fd1517e60d676a0c83299bdbdcdef1fd27564fa07873a084",
+        "bytes": 103641
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/POSTFAILED_PROTECTED_ACTUAL.json",
+        "sha256": "38a65f382266fb609c7b4abd232be0301480bc980861c56b2f6dc3b38d4bad2e",
+        "bytes": 270
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/POSTFAILED_PROTECTED_RAW.json",
+        "sha256": "2d2347b7b561ba24a2b6087b5c2bc85a9a432b2346603019b64f37804d4a0c8a",
+        "bytes": 982
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/POSTFAILED_LEDGER_ACTUAL.json",
+        "sha256": "e04fb8fcd579e4861238ddd029a55a1b13e1df9a3596bab4e019999e061eb412",
+        "bytes": 474
+      },
+      {
+        "path": "/private/tmp/c1266-composition12-staff-20261017/POSTFAILED_LEDGER_RAW.json",
+        "sha256": "893d7eb89bb3f2f10b2553ba8d14072b23fe67b564e4b8533c1afdb0f8982dce",
+        "bytes": 1170
+      }
+    ],
+    "report_correction": "Preservata copia iniziale per trasparenza. Correzione del solo perimetro diagnostico RECOVERY, nessun cambiamento a finding P1, esito rosso o sorgenti.",
+    "initial_report_ref": {
+      "path": "/private/tmp/c1266-composition12-staff-20261017/review_final/INSTALL_REJECTION_REVIEW_initial_preserved.json",
+      "sha256": "af39564e3866bfdf96c807e44257c3555ecd4b7c104150cccd390d29d74981ea",
+      "bytes": 6054
+    }
+  },
+  "source_review12_historical": "0/0/0 retained; conclusion of installability invalidated by R12-INSTALL-P1-01",
+  "source_changes_after_freeze": 0,
+  "retry": 0,
+  "DB_function_or_config_changes": 0,
+  "proposed_next_aggregate": {
+    "id": 13,
+    "status": "DESCRIBED_ONLY_NOT_AUTHORIZED_NOT_WRITTEN",
+    "scope": [
+      "Remove global replacement on rendered SQL from installer generator; rename only diagnostic labels without transforming serialized values",
+      "Regenerate installer pre/post CAS from genuine baseline; compare all14 SQL AST CAS literal payloads to corresponding original7 rows including canonical_preimage bytes and revision hash",
+      "Keep recovery function tuple8+11, all113 metadata/schema7, Root emitter, bundle11, UI, grants and Human unchanged",
+      "Single freeze and independent complete counterreview; only after0/0/0 plus fresh preflight resume already scoped install/Staff within same cumulative residuals"
+    ],
+    "budget_refill": false,
+    "provider_calls_to_prepare": 0,
+    "reason_new_exception_required": "AGENTS.md:48 cumulative ceiling already exceeded; no implicit patch after aggregate12 rejection"
+  }
+}

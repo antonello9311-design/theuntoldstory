@@ -1,3 +1,5 @@
+17/10/2026 · C1266 composizione12/installazione · Unico apply respinto da CONFIG_CAS_DRIFT readiness prima del CREATE: renderer globale altera preimage/riferimenti storici CAS; review finale50466540 R12-INSTALL-P1-01 0/1/0, verde sorgente4dd storico non qualifica installabilità. Baseline/Human48/HOLD/Edge72/Root782d e ledger10C+7G=17HTTP/$0.1392557 invariati; deploy/Root12/Staff12 NOT_RUN, prodotto NOT_PASSED9. Proposta13 documentale soltanto, nessuna patch/refill/reset. · ROSSO / STOP PM.
+
 17/10/2026 · C1266 AGG11/controreview11 sorgenti · Filtro Count allineato al wireID con forma chiusa e legacy invariato; reviewVERDE0/0/0,14syntaxPASS, runtime10 congelato eHistory10RED preservata;0provider/DB/deploy/QA, Human112+7/48/ledger/HOLD esatti · SOURCE11_QUALIFIED / PROVIDER_AND_RUNTIME_NOT_RUN / PRODUCT_NOT_PASSED9.
 
 17/10/2026 · C1266 diagnosi/AGG10/controreview10 sorgente · Lossless295quote e63.658byte verificati, ma consumer diagnostico incompatibile col nuovo wire; reviewROSSA0/0/1,0provider/mutazioni, Human112+7/48/ledger/HOLD invariati · SOURCE_RED_R10-P2-01 / STOP_PM / nessuna11 implicita.
