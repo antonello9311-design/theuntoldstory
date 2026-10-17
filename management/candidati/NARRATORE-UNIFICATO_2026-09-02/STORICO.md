@@ -1,3 +1,5 @@
+17/10/2026 · C1266 diagnosi schema e proposta osservativa · Schema autentico recuperato, causa400 nonprovata/perdita diagnostica certa;0provider/0appmutation,4/4 e quinta inutilizzata, Human/HOLD/48intatti; proposta1file noninstallata, logstorici/login o deroga budget in attesa · DIAGNOSI PARZIALE/RUNTIME BLOCKED.
+
 17/10/2026 · C1266 composizione3/install69 e aggregata4/counter4/install70 · Due incipit automatici e role PASS circoscritti; CountDirector400schema persiste, runtimeBLOCKED/chiusura normaleNOT_RUN. Sole scene21fb/a853 chiuse tecnicamente viaUI eDB,6HTTP/$0.0510607 cumulativi, async4/4 Root1/1, nessunaagg5/retry. RECOVER_HOLD182533 qualificato/applicato; post11:59:55.225364UTC seiOFF/attività0/113schema7/Rootbyteclock/Human48 invariati; storico eHumanaccepted originale nel bundleinstall69 preservati · NOT_PASSED, safeHOLD verificato.
 
 17/10/2026 · Human/UI approvazione e chiusura · Antonello approva le schermate UI23 e richiede la chiusura; incarico concluso e accettato, QA23/OPEN24 e tutti i WIP, storici e prove conservati · CLOSED_ACCEPTED
