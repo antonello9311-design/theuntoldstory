@@ -177,12 +177,28 @@ def enable(x,live,hh,authority):
  assert browser['normal_authorized_access']is True and browser['Mac_unlocked']is True and sorted(browser['actors'])==ACTORS
  assert browser['profile_names']=={'Firefox':'Riuji','Chrome':'Tamako'}and browser['profile_identity_verified']is True
  assert datetime.timedelta(0)<=now-instant(browser['captured_at'])<=datetime.timedelta(minutes=5),'BROWSER_EXPIRED'
- qa=verified(x['QA_budget_ref']);assert qa['approved']is True and qa['operation']=='Staff_FULL_QA'and qa['root_sha256']==R and qa['duration_minutes']==30
- assert qa['max_count_calls']==40 and qa['max_generation_calls']==40 and qa['max_provider_http_calls']==80 and qa['max_reserved_usd']=='0.992'
+ qa=verified(x['QA_budget_ref']);assert qa['approved']is True and qa['root_sha256']==R and qa['duration_minutes']==30
+ observation=qa['operation']=='Staff_SCHEMA_OBSERVATION'
+ if observation:
+  # OBS1 is a separately nominated observation, never a relabelled FULL_QA ceiling.
+  budget={'max_count_calls':3,'max_generation_calls':3,'max_provider_http_calls':6,'max_reserved_usd':'0.075','max_scenes':1,'retries_allowed':False,'includes_incipit':True}
+  assert qa['observation_id']=='OBS1'and authority['observation_id']=='OBS1','OBSERVATION_SCOPE_REQUIRED'
+  assert all(type(qa[k])is int for k in ['max_count_calls','max_generation_calls','max_provider_http_calls','max_scenes'])
+  assert {k:qa[k]for k in budget}==budget and authority['operational_budget']==budget,'OBSERVATION_BUDGET_REQUIRED'
+  case=verified(qa['case_plan_ref']);green(x['actual_review_ref'],[qa['case_plan_ref']])
+  assert case['observation_id']=='OBS1'and case['operational_budget']==budget,'OBSERVATION_CASE_REQUIRED'
+ else:
+  assert qa['operation']=='Staff_FULL_QA'and qa.get('observation_id')is None and authority.get('observation_id')is None,'QA_OPERATION_SCOPE_REQUIRED'
+  assert qa['max_count_calls']==40 and qa['max_generation_calls']==40 and qa['max_provider_http_calls']==80 and qa['max_reserved_usd']=='0.992'
  assert qa['actors']==ACTORS and qa['location_id']==LOC and qa['current_phase_roles_required']is True and qa['future_roles_invented']is False
  compatibility=verified(x['operational_budget_compatibility_ref']);assert compatibility['native_compatible']is True and compatibility['ordinary_limits_unchanged']is True
  assert compatibility['evidence_kind']=='INDEPENDENT_NATIVE_CONSUMER_SOURCE_AND_GENUINE_CURRENT_CONFIG'and compatibility['review_ref']==x['source_review_ref']
  assert compatibility['Root_sha256']==R and compatibility['QA_budget_ref']==x['QA_budget_ref'],'UNPROVEN_OPERATIONAL_BUDGET'
+ if observation:
+  assert compatibility['observation_id']=='OBS1'and compatibility['operational_budget']==budget,'UNPROVEN_OBSERVATION_BUDGET'
+  assert compatibility['case_plan_ref']==qa['case_plan_ref'],'UNPROVEN_OBSERVATION_CASE'
+  assert compatibility['automatic_path_upper_bound']=={'count_calls':3,'generation_calls':3,'provider_http_calls':6},'UNPROVEN_OBSERVATION_BOUND'
+  assert compatibility['all_automatic_branches_covered']is True and compatibility['no_retry_verified']is True,'UNPROVEN_OBSERVATION_BRANCHES'
  green(x['actual_review_ref'],[x['browser_ref'],x['QA_budget_ref'],x['operational_budget_compatibility_ref']])
  deadline=min(instant(policy['expires_at']),instant(live['captured_at'])+datetime.timedelta(minutes=5),instant(browser['captured_at'])+datetime.timedelta(minutes=5),instant(authority['expires_at']),instant(qa['expires_at']))
  assert deadline>now and (instant(policy['expires_at'])-now)>=datetime.timedelta(seconds=360),'INSUFFICIENT_ROOT_WINDOW'

@@ -937,3 +937,4 @@
 17/10/2026 · HUMAN-ACTOR-LABEL aggregata21 · C10/full112 installata0/0/0 e client68d29/Pages957; Human3pubblicataStaff e2PGpronti/start/Fato/role/transizione/aperturaCombat; STOP07:21 inlineclipped e erroreletturamascherato;14comandi/noCombatmoves,48same/provider0 · PARTIAL_NOT_PASSED_NOT_OPEN
 
 17/10/2026 · HUMAN-ACTOR-LABEL aggregata22 · C11c27a/full112 installata0/0/0, client88ba/Pages958/8DOMexact; noCombatinline/noauto e explicitpanel+nomi/select/reread osservati, STOP07:56:47 nomiPGcompressi da checkboxwidth100%;14comandiimmutati/48same/provider0, archivio132file · PARTIAL_UI_LAYOUT_NOT_PASSED_NOT_OPEN
+17/10/2026 · C1266 OBS1 eccezionale + Root2 · Edge71/readback14, unascena4HTTP/$0,029749:DirectorPASS/writerpreproviderRED, abortproprio/HOLDpost13:57 Human48intatti; nuovaquinta preparazione mirata · OBS1 CONCLUSA/HOLD, prodottoNOT_PASSED, nessunreset.
