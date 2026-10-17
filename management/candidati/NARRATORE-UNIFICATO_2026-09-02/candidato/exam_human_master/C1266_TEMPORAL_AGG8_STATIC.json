@@ -1,0 +1,179 @@
+{
+  "schema_version": "c1266-temporal8-static/1",
+  "classification": "SOURCE_STATIC_ONLY_NOT_FUNCTIONAL_QA",
+  "node_check": {
+    "RUNTIME.mjs": "PASS",
+    "INDEX.ts": "PASS",
+    "application_import": 0
+  },
+  "AST": {
+    "schema_version": "c1266-temporal8-static-ast/1",
+    "parser": "Node bundled Acorn 8.17.0",
+    "sourceType": "module",
+    "changed_top_functions": [
+      "bindC1266LiteralEvidence",
+      "directorRequest",
+      "runMissionEvent"
+    ],
+    "new_top_functions": [
+      "c1266JointDecisionInput",
+      "c1266JointProviderSchema"
+    ],
+    "existing_directorDecision_byte_exact": true,
+    "runMissionEvent_only_mapping_call_changed": true,
+    "legacyRoleSchema_byte_exact": true,
+    "original_evidence_validated_before_declarations": true,
+    "all_declarations_before_copy_materialization": true,
+    "expanded_cap_then_existing_temporal_validation": true,
+    "decision_assigned_only_after_existing_directorDecision": true,
+    "new_wire_logger": "Closed literal trace paths/keys, bounded integers/booleans and validated work UUID; no quotes or model error string",
+    "application_imports": 0,
+    "gameplay_executions": 0,
+    "fixtures": 0,
+    "provider": 0,
+    "limitations": "AST/source invariants only, no runtime semantics or live schema acceptance claim"
+  },
+  "schema_data_projection": {
+    "schema_version": "c1266-temporal8-static-schema-projection/1",
+    "classification": "STATIC_SHAPE_PROJECTION_OF_GENUINE_OBS1_SCHEMA_NOT_APP_EXECUTION",
+    "genuine_schema_capture_ref": {
+      "path": "/private/tmp/c1266-schema-diagnosis-20261017/OBS1_SCHEMA_ACTUAL_PRIVATE.json",
+      "sha256": "a0bc8cd22564bd61d90a638b1cfa5078369dc6743ac3ee6c8e8156e1c0791a95"
+    },
+    "before_metrics": {
+      "enum_entries_in_definitions": 424,
+      "expanded_enum_entries": 934,
+      "schema_string_size_codepoints": 20013,
+      "max_object_depth": 6,
+      "property_definitions": 111,
+      "closed_required_errors": []
+    },
+    "after_metrics": {
+      "enum_entries_in_definitions": 424,
+      "expanded_enum_entries": 934,
+      "schema_string_size_codepoints": 20103,
+      "max_object_depth": 7,
+      "property_definitions": 117,
+      "closed_required_errors": []
+    },
+    "role_quote_catalogs_unchanged": true,
+    "new_dynamic_corpus_sampled": false,
+    "new_model_output_or_fixture": false,
+    "provider_calls": 0,
+    "limits": "One genuine historical schema shape analyzed as JSON data, not a generated current request or runtime acceptance proof. Runtime retains both literal/expanded enum limits and final byte caps; no quote catalog published."
+  },
+  "bundle": {
+    "files": 14,
+    "modified": 2,
+    "unchanged": 12,
+    "changed_files": [
+      {
+        "name": "mission-generic-index.ts",
+        "before_sha256": "0bb352ab46c341a31791981a451eaa08719b773aa6d263dd5b4faf05477de09c",
+        "after_sha256": "fd7c88ce861ec8b1e9a56bb3ba1b08500a48430c270ec0282d498891b922dcfb",
+        "before_bytes": 21014,
+        "after_bytes": 21221,
+        "private_source": {
+          "path": "/private/tmp/c1266-temporal8-20261017/C1266_TEMPORAL_AGG8_INDEX.ts",
+          "sha256": "fd7c88ce861ec8b1e9a56bb3ba1b08500a48430c270ec0282d498891b922dcfb",
+          "bytes": 21221
+        },
+        "diff": "--- Edge71/mission-generic-index.ts\n+++ Aggregate8/mission-generic-index.ts\n@@ -46,7 +46,7 @@\n   'source_role_ids','source_evidence','role_interpretation','master_session_id','source_revision','roster_sha256',\n   'interpretations','user_id','role_id','role_sha256','intents','intent','destination','kind','step_key','public_proof',\n   'source_id','source_kind','source_sha256','quote','temporal','timing','anchor_intent_index','prerequisite',\n-  'condition_quote','relation_evidence','opportunity_id','action_kind','entry_side','world_reaction_intent',\n+  'condition_quote','relation_evidence','joint_witness','current_intent_index','evidence','opportunity_id','action_kind','entry_side','world_reaction_intent',\n   'npc_intents','actor_key','speech_intent','entry_kind','profile_audit','progression','current_intent',\n   'movement_role_ids','guidance_fato_id','guidance_quote','context_basis','basis_source_id','basis_quote']);\n function countSchemaDiagnosticContext3(path,schema){\n@@ -205,13 +205,13 @@\n   const sha=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);\n   if(!record(schema)||schema.type!=='object'||schema.additionalProperties!==false||!record(schema.properties)\n     ||!Array.isArray(schema.required)||!schema.required.includes('role_interpretation')\n-    ||single(schema.properties.schema_version)!=='mission-director-proposal/4')return false;\n+    ||!['mission-director-proposal/4','mission-director-joint-witness/1'].includes(single(schema.properties.schema_version)))return false;\n   const role=schema.properties.role_interpretation;\n   const fields=['schema_version','master_session_id','source_window_id','source_revision','roster_sha256','interpretations'];\n   if(!record(role)||role.type!=='object'||role.additionalProperties!==false||!record(role.properties)\n     ||Object.keys(role.properties).length!==fields.length||!fields.every(k=>Object.hasOwn(role.properties,k))\n     ||!Array.isArray(role.required)||role.required.length!==fields.length||!fields.every(k=>role.required.includes(k))\n-    ||single(role.properties.schema_version)!=='mission-role-interpretation/2'\n+    ||single(role.properties.schema_version)!==(single(schema.properties.schema_version)==='mission-director-joint-witness/1'?'mission-role-joint-witness/1':'mission-role-interpretation/2')\n     ||!uuid(single(role.properties.master_session_id))||!uuid(single(role.properties.source_window_id))\n     ||single(role.properties.source_window_id)!==single(schema.properties.source_window_id)\n     ||!sha(single(role.properties.source_revision))||!sha(single(role.properties.roster_sha256)))return false;\n"
+      },
+      {
+        "name": "mission-generic-runtime.mjs",
+        "before_sha256": "b495e1df3796678a73bbd9e96fa924edc50d0cca8f3c4e8c01701a3731164e15",
+        "after_sha256": "38ef965084b8cdf73dce0348df5e8ec143e3f596d4d2aa403afcb65739c92763",
+        "before_bytes": 254473,
+        "after_bytes": 266168,
+        "private_source": {
+          "path": "/private/tmp/c1266-temporal8-20261017/C1266_TEMPORAL_AGG8_RUNTIME.mjs",
+          "sha256": "38ef965084b8cdf73dce0348df5e8ec143e3f596d4d2aa403afcb65739c92763",
+          "bytes": 266168
+        },
+        "diff": "--- Edge71/mission-generic-runtime.mjs\n+++ Aggregate8/mission-generic-runtime.mjs\n@@ -164,7 +164,8 @@\n })();\n \n \n-// Temporal helperE51 new APIs byteexact; reuse the already exact Schema7b namespace.\n+// Temporal helperE51 contract preserved; AGG8 tightens IF to the existing SQL single-witness predicate.\n+// Reuse the already exact Schema7b namespace; standalone historical helper source remains immutable.\n const TemporalRoleSchema=(()=>{const LegacyRoleSchema=RoleIntentSchema;\n const TEMPORAL_CONTRACT_SHA256='64adc5a2eec27bc4ac02ffa3d9f8afd485f3a1f9ea4879b9ccfe1c3bb5b32cc2';\n const TEMPORAL_ROOT_FREEZE_SHA256='07b03a9724a86c6bef338e2f1aad8baa7a86a6d5c65be918db70ef70ea42f84d';\n@@ -224,8 +225,9 @@\n       }else{\n         const source=a.roleSourcesById.get(row.role_id);\n         if(t.prerequisite!=='condition_observed'||!literal(t.condition_quote)||!source.body.includes(t.condition_quote)||!quotes.length)fail('CONDITION_INVALID');\n-        if(!quotes.some(q=>q.includes(t.condition_quote)&&atom.evidence.some(e=>q.includes(e.quote)))\n-          ||(anchor&&!quotes.some(q=>anchor.evidence.some(e=>q.includes(e.quote)))))fail('CONDITION_LITERAL_COVERAGE_INVALID');\n+        // Same single-witness predicate as the unchanged SQL temporal validator.\n+        if(!quotes.some(q=>q.includes(t.condition_quote)&&atom.evidence.some(e=>q.includes(e.quote))\n+          &&(!anchor||anchor.evidence.some(e=>q.includes(e.quote)))))fail('CONDITION_LITERAL_COVERAGE_INVALID');\n       }\n     }\n   }\n@@ -527,6 +529,137 @@\n   }\n   roleIntentSources.set(a,{descriptor:d,context,authority,policies});\n }\n+// Private provider representation only. A witness explicitly attributes one literal\n+// span to the named current intent, its named anchor (when any), and their relation.\n+// This never repairs an old DTO4 response or chooses a temporal relationship.\n+const C1266_JOINT_WIRE='mission-director-joint-witness/1';\n+const C1266_JOINT_INTERPRETATION='mission-role-joint-witness/1';\n+const c1266JointRequests=new WeakMap();\n+const C1266_JOINT_RULE='Protocollo privato mission-director-joint-witness/1, interpretazione mission-role-joint-witness/1. Ogni joint_witness è una tua dichiarazione esplicita: evidence.quote sostiene l’intento corrente current_intent_index, l’intento precedente anchor_intent_index quando presente E il loro legame temporale. Indici da zero nella stessa riga/role. Non basta che lo span contenga parole: dichiara il testimone soltanto se il suo significato sostiene tutti gli atti nominati e il legame. Per after il testimone è obbligatorio e nomina la stessa ancora precedente indicata in temporal.anchor_intent_index; per if è obbligatorio, nomina l’eventuale stessa ancora e contiene letteralmente anche condition_quote. Per now/unresolved joint_witness è null. Mantieni le evidence originali pertinenti di ogni intento; il server materializza la tua attribuzione congiunta aggiungendo esattamente quel testimone alle evidence dei soli intenti che hai nominato e alla relation_evidence dell’intento corrente. Nessuna concatenazione, normalizzazione, scelta di nuove quote o nuova relazione dal server. Una dichiarazione non valida viene respinta, non trasformata in unresolved; nessuna prova di consenso, arrivo o condizione realizzata è inventata.';\n+function c1266JointProviderSchema(schema,roster,roleRefs){\n+  schema.properties.schema_version={type:'string',enum:[C1266_JOINT_WIRE]};\n+  const interpretation=schema.properties.role_interpretation;\n+  interpretation.properties.schema_version={type:'string',enum:[C1266_JOINT_INTERPRETATION]};\n+  const rows=interpretation.properties.interpretations.items.anyOf;\n+  for(let i=0;i<rows.length;i++){\n+    const t=rows[i].properties.intents.items.properties.temporal,row=roster.participants[i];\n+    if(!Array.isArray(t.required)||t.required.filter(k=>k==='relation_evidence').length!==1)throw Error('MISSION_C1266_JOINT_SCHEMA_BINDING');\n+    t.required=t.required.map(k=>k==='relation_evidence'?'joint_witness':k);\n+    delete t.properties.relation_evidence;\n+    t.properties.joint_witness=row.role_status!=='valid'?{type:'null'}:{anyOf:[{\n+      type:'object',description:'Model declaration: the exact evidence quote supports the current named intent, the named earlier anchor when present, AND their temporal relation; for if the same quote also contains condition_quote. The model explicitly attributes this evidence to both named intents. No server inference or repair.',additionalProperties:false,required:['current_intent_index','anchor_intent_index','evidence'],properties:{\n+        current_intent_index:{type:'integer',minimum:0,maximum:7},\n+        anchor_intent_index:{anyOf:[{type:'integer',minimum:0,maximum:7},{type:'null'}]},\n+        evidence:{type:'object',additionalProperties:false,required:['role_id','role_sha256','quote'],properties:{\n+          role_id:{type:'string',enum:[row.role_id]},role_sha256:{type:'string',enum:[row.role_sha256]},quote:{...roleRefs.get(row.role_id)}}}\n+      }},{type:'null'}]};\n+  }\n+}\n+function c1266JointDecisionInput(value,work){\n+  const binding=c1266JointRequests.get(work);\n+  if(!binding)return value; // Unrelated /2, Quest /3 and legacy transports retain their own strict DTO contract.\n+  const trace={path:'wire',row_index:null,intent_index:null,anchor_index:null,witness_length:null,condition_length:null,\n+    same_role:null,quote_bound:null,condition_covered:null,current_determined:null,anchor_determined:null};\n+  const invalid=()=>{throw Error('MISSION_C1266_JOINT_WIRE_INVALID');};\n+  try{\n+    // Revalidate attested work; WeakMap membership also requires this request's schema producer to have run.\n+    validateC1266ExecutionAttestation(work);\n+    if(!exact(value,['schema_version','source_window_id','source_role_ids','source_evidence','opportunity_id','action_kind','entry_side','world_reaction_intent','npc_intents','profile_audit',...(hasFeature(work,'director_progression')?['progression']:[]),'role_interpretation'])\n+      ||value.schema_version!==C1266_JOINT_WIRE||bytes(value)>60000||binding.payload_sha256!==work.payload_sha256)invalid();\n+    const descriptor=roleFor(work).descriptor,authority=roleFor(work).authority,roster=descriptor.role_roster;\n+    if(binding.source_window_id!==roster.source_window_id||binding.source_revision!==roster.source_revision||binding.roster_sha256!==roster.roster_sha256)invalid();\n+    const v=value.role_interpretation;\n+    trace.path='interpretation';\n+    if(!exact(v,['schema_version','master_session_id','source_window_id','source_revision','roster_sha256','interpretations'])\n+      ||v.schema_version!==C1266_JOINT_INTERPRETATION||!Array.isArray(v.interpretations)\n+      ||v.interpretations.length!==roster.participants.length\n+      ||['master_session_id','source_window_id','source_revision','roster_sha256'].some(k=>v[k]!==roster[k]))invalid();\n+    // Validate all ORIGINAL non-temporal evidence, destinations, roster and intent order\n+    // before any new evidence attribution. A bad original quote is never replaced.\n+    const shared={...v,schema_version:'mission-role-interpretation/1',interpretations:v.interpretations.map((row,i)=>{\n+      trace.row_index=i<=127?i:null;trace.path='row';\n+      if(!exact(row,['user_id','role_id','role_sha256','intents'])||!Array.isArray(row.intents)\n+        ||row.intents.length<1||row.intents.length>8)invalid();\n+      return {...row,intents:row.intents.map((atom,j)=>{\n+        trace.intent_index=j;trace.path='atom';\n+        if(!exact(atom,['intent','destination','evidence','temporal']))invalid();\n+        const {temporal,...plain}=atom;return plain;\n+      })};\n+    })};\n+    trace.path='original_evidence';trace.row_index=null;trace.intent_index=null;\n+    RoleIntentSchema.validateRoleInterpretation(shared,authority);\n+    const declarations=[];\n+    // Pass one validates every declaration against original indices; no arrays mutated here.\n+    for(let i=0;i<v.interpretations.length;i++){\n+      const row=v.interpretations[i],source=authority.roleSourcesById.get(row.role_id);\n+      trace.row_index=i<=127?i:null;\n+      for(let j=0;j<row.intents.length;j++){\n+        const atom=row.intents[j],t=atom.temporal;\n+        Object.assign(trace,{path:'temporal',intent_index:j,anchor_index:null,witness_length:null,condition_length:null,\n+          same_role:null,quote_bound:null,condition_covered:null,current_determined:atom.intent!=='undetermined',anchor_determined:null});\n+        if(!exact(t,['timing','anchor_intent_index','prerequisite','condition_quote','joint_witness'])\n+          ||!['now','after','if','unresolved'].includes(t.timing)\n+          ||!['none','attempt_declared','server_resolution','condition_observed','undetermined'].includes(t.prerequisite))invalid();\n+        const idx=t.anchor_intent_index,earlier=Number.isSafeInteger(idx)&&idx>=0&&idx<j;\n+        if(idx!==null&&!earlier)invalid();\n+        trace.anchor_index=earlier?idx:null;\n+        const anchor=earlier?row.intents[idx]:null;\n+        trace.anchor_determined=anchor?anchor.intent!=='undetermined':null;\n+        if(anchor?.intent==='undetermined'||(atom.intent==='undetermined'&&t.timing!=='unresolved'))invalid();\n+        if(t.timing==='now'||t.timing==='unresolved'){\n+          if(idx!==null||t.condition_quote!==null||t.joint_witness!==null\n+            ||t.prerequisite!==(t.timing==='now'?'none':'undetermined'))invalid();\n+          continue;\n+        }\n+        if(t.timing==='after'&&(!earlier||!['attempt_declared','server_resolution'].includes(t.prerequisite)||t.condition_quote!==null))invalid();\n+        if(t.timing==='if'&&t.prerequisite!=='condition_observed')invalid();\n+        const witness=t.joint_witness;trace.path='joint_witness';\n+        if(!exact(witness,['current_intent_index','anchor_intent_index','evidence'])\n+          ||witness.current_intent_index!==j||witness.anchor_intent_index!==idx||atom.intent==='undetermined')invalid();\n+        const e=witness.evidence;\n+        if(!exact(e,['role_id','role_sha256','quote']))invalid();\n+        trace.same_role=e.role_id===row.role_id&&e.role_sha256===row.role_sha256;\n+        trace.witness_length=typeof e.quote==='string'?Math.min(e.quote.length,60001):null;\n+        trace.quote_bound=trace.same_role&&typeof e.quote==='string'&&e.quote.length>0&&e.quote.length<=300\n+          &&typeof source?.body==='string'&&source.role_sha256===row.role_sha256&&source.body.includes(e.quote)\n+          &&binding.roleQuotes.get(row.role_id)?.has(e.quote)===true;\n+        if(!trace.quote_bound)invalid();\n+        if(t.timing==='if'){\n+          trace.path='condition';trace.condition_length=typeof t.condition_quote==='string'?Math.min(t.condition_quote.length,60001):null;\n+          trace.condition_covered=typeof t.condition_quote==='string'&&t.condition_quote.length>0&&t.condition_quote.length<=300\n+            &&e.quote.includes(t.condition_quote)&&binding.roleQuotes.get(row.role_id)?.has(t.condition_quote)===true;\n+          if(!trace.condition_covered)invalid();\n+        }\n+        declarations.push({row_index:i,intent_index:j,anchor_index:idx,evidence:{...e}});\n+      }\n+    }\n+    // Pass two materializes only model-declared attributions, on a wholly separate copy.\n+    const out=JSON.parse(JSON.stringify(value));out.schema_version='mission-director-proposal/4';\n+    const interpretation=out.role_interpretation;interpretation.schema_version='mission-role-interpretation/2';\n+    for(const row of interpretation.interpretations)for(const atom of row.intents){\n+      const {joint_witness,...temporal}=atom.temporal;atom.temporal={...temporal,relation_evidence:[]};\n+    }\n+    const append=(atom,e)=>{if(!atom.evidence.some(old=>old.role_id===e.role_id&&old.role_sha256===e.role_sha256&&old.quote===e.quote))atom.evidence.push({...e});};\n+    for(const declaration of declarations){\n+      const row=interpretation.interpretations[declaration.row_index],atom=row.intents[declaration.intent_index],e=declaration.evidence;\n+      append(atom,e);\n+      if(declaration.anchor_index!==null)append(row.intents[declaration.anchor_index],e);\n+      atom.temporal.relation_evidence=[{...e}];\n+    }\n+    Object.assign(trace,{path:'materialized',row_index:null,intent_index:null,anchor_index:null,witness_length:null,condition_length:null,\n+      same_role:null,quote_bound:null,condition_covered:null,current_determined:null,anchor_determined:null});\n+    // Expanded interpretation and DTO are checked, never pruned to fit their caps.\n+    if(bytes(out)>60000||bytes(interpretation)>work.limits.max_input_bytes)invalid();\n+    TemporalRoleSchema.validateTemporalRoleInterpretation(interpretation,authority);\n+    return out; // directorDecision still validates the complete existing DTO and all semantic invariants.\n+  }catch{\n+    // Closed structural diagnostics only. No model text, role body, quote, IDs of PG or dynamic error message.\n+    console.warn('mission_temporal_joint_rejected',{schema_version:'mission-temporal-joint-diagnostic/1',\n+      work_id:uuid(work.work_id)?work.work_id:null,...trace});\n+    throw Error('MISSION_C1266_JOINT_WIRE_INVALID');\n+  }\n+}\n+\n // Closed C1266 provider-schema producer. It never rewrites role facts or accepts model evidence.\n function c1266LiteralFragments(body, limit, role, budget) {\n   const bad=()=>{throw Error('MISSION_C1266_LITERAL_SOURCE_INVALID');};\n@@ -666,6 +799,7 @@\n   }\n   if(schema.$defs&&Object.keys(definitions).some(key=>Object.hasOwn(schema.$defs,key)))throw Error('MISSION_C1266_LITERAL_SCHEMA_BINDING');\n   schema.$defs={...(schema.$defs||{}),...definitions};\n+  c1266JointProviderSchema(schema,roster,roleRefs);\n   // Provider protocol limits, not scene/economic limits. Never trim a corpus to manufacture a passing request.\n   let enumCount=0,stringSize=0;\n   const visit=node=>{\n@@ -685,6 +819,13 @@\n   visit(schema);\n   if(enumCount>1000||stringSize>120000)throw Error('MISSION_C1266_LITERAL_SCHEMA_LIMIT');\n   expandedEnumCount(schema);\n+  const roleQuotes=new Map();\n+  for(const [roleId,ref]of roleRefs){\n+    const name=ref.$ref.slice('#/$defs/'.length);\n+    roleQuotes.set(roleId,new Set(definitions[name].enum));\n+  }\n+  c1266JointRequests.set(work,{roleQuotes,payload_sha256:work.payload_sha256,\n+    source_window_id:roster.source_window_id,source_revision:roster.source_revision,roster_sha256:roster.roster_sha256});\n   return true;\n }\n \n@@ -1908,7 +2049,7 @@\n     directorProviderRequest.payload.input[1].content[0].text=JSON.stringify(body);\n     directorProviderRequest.payload.input[0].content[0].text=directorProviderRequest.payload.input[0].content[0].text.replace(\"Regola di avanzamento valida per qualunque missione Full IA. Valuta le role nuove complete e la progressione attestata dal Fato precedente: il numero di role non fa avanzare da solo, ma ogni tentativo pertinente deve avere una conseguenza distinta. La memoria privata riporta solo informazioni e sviluppi già comunicati, non è una role né prova meccanica. Una finestra con più PG è un singolo momento narrativo: due role di movimento nella stessa finestra non sono due avanzamenti successivi. Valuta il primo o il successivo movimento dalla progressione precedente della medesima fase attestata dal server e già narrata nel Fato pubblico; un progresso di un’altra fase non conta come movimento precedente. Se un precedente Fato della stessa fase ha orientato un primo movimento verso l’unica meta narrativa raggiungibile, un nuovo movimento coerente deve selezionare la transizione offerta, salvo ostacolo, bivio o deviazione con conseguenze materiali attestati. Non chiedere al PG di nominare una meta ancora ignota. Per context indica in progression.context_basis la ragione reale: material_obstacle o material_branch richiedono una citazione letterale del piano privato; interaction, divergence e conflict una citazione dalla role o dal Fato pubblico disponibile. Non inventare ostacoli per ritardare. Se la scelta devia, produci conseguenze proprie senza forzarla verso il binario. Una transizione verso PNG non apre Combat senza contatto e condizioni previste.\",ROLE_DIRECTOR_RULE)+'\\n\\n'+ROLE_DIRECTOR_RULE;\n     if(temporalRoleFlag(work))directorProviderRequest.payload.input[0].content[0].text+='\\n\\n'+TEMPORAL_DIRECTOR_RULE;\n-    if(literalEvidence)directorProviderRequest.payload.input[0].content[0].text+='\\n\\nLe quote degli intenti sono citazioni letterali del corpus chiuso nello schema: non riscrivere o normalizzare testo e spazi. Per after e if scegli uno span che contenga anche le citazioni dell\\'atomo, dell\\'ancora precedente e della condizione quando richiesta. Una citazione disponibile non prova consenso, arrivo, condizione realizzata o esecuzione futura. Se il legame non è comprovabile usa unresolved, conservando tutti gli intenti realmente dichiarati.';\n+    if(literalEvidence)directorProviderRequest.payload.input[0].content[0].text+='\\n\\n'+C1266_JOINT_RULE;\n     if(bytes(directorProviderRequest.payload)>work.limits.max_request_bytes)throw Error('MISSION_ROLE_DIRECTOR_REQUEST_OVERFLOW');\n   }\n   return directorProviderRequest;\n@@ -2417,7 +2558,7 @@\n   'source_role_ids','source_evidence','role_interpretation','master_session_id','source_revision','roster_sha256',\n   'interpretations','user_id','role_id','role_sha256','intents','intent','destination','kind','step_key','public_proof',\n   'source_id','source_kind','source_sha256','quote','temporal','timing','anchor_intent_index','prerequisite',\n-  'condition_quote','relation_evidence','opportunity_id','action_kind','entry_side','world_reaction_intent',\n+  'condition_quote','relation_evidence','joint_witness','current_intent_index','evidence','opportunity_id','action_kind','entry_side','world_reaction_intent',\n   'npc_intents','actor_key','speech_intent','entry_kind','profile_audit','progression','current_intent',\n   'movement_role_ids','guidance_fato_id','guidance_quote','context_basis','basis_source_id','basis_quote']);\n function countSchemaDiagnosticContext3(path,schema){\n@@ -2680,7 +2821,8 @@\n       }\n     } else if(work.kind==='director'){\n       const profile_audit=checkedAudit(received.realization?.profile_audit,auditActorKeys(work.payload));\n-      const decision=directorDecision(received.realization,work);\n+      const decisionInput=c1266JointDecisionInput(received.realization,work);\n+      const decision=directorDecision(decisionInput,work);\n       result={ok:true,decision,command:null,text:null,profile_audit,\n         ...(hasFeature(work,'director_progression')?{progression_audit:received.realization.progression}:{})};\n     } else if(work.payload?.schema_version==='mission-generic-narration/4'){\n"
+      }
+    ],
+    "unchanged_files": [
+      {
+        "name": "mission-generic-http.mjs",
+        "sha256": "93b4037046e9f64c731a9f1a17a455378fb03babbcdc1bd6f2397f0fd5379b27",
+        "bytes": 23645
+      },
+      {
+        "name": "exam_regia17/edge/src/shared-scene/editorial.mjs",
+        "sha256": "8f04bfc747c1d3acf93960e9ba2ac295d27ab0baf552e9e35d35b13d203b8300",
+        "bytes": 5369
+      },
+      {
+        "name": "exam_regia17/edge/src/shared-scene/common.mjs",
+        "sha256": "8b8ecc621a0753567ae3c5b8f8dc01ea958bd6a2284ad893449415f81cc7f7dd",
+        "bytes": 9284
+      },
+      {
+        "name": "exam_regia17/edge/src/shared-scene/scene.mjs",
+        "sha256": "be436f9ad4bfca637f7bbc9a35e51bcbcc5e66128d5069b3f4300fcb6c90c5e7",
+        "bytes": 6700
+      },
+      {
+        "name": "exam_regia17/edge/src/shared-scene/staff-common.mjs",
+        "sha256": "e316c7569c3bd79fbdac21322fd1dc7027a213578ceb022a89fbd50546ea0ed7",
+        "bytes": 6765
+      },
+      {
+        "name": "exam_regia17/edge/src/shared-scene/narrative-master.mjs",
+        "sha256": "1560429c7c503d4d9dd78ef22c58394c8781fa9efed7d2ba61863d29630983a2",
+        "bytes": 7437
+      },
+      {
+        "name": "exam_regia17/edge/src/contracts.mjs",
+        "sha256": "0ad88b84c3e083fc6cb333119d603daf23b3cd465d30285fba6aba5b1bb2f3b7",
+        "bytes": 3947
+      },
+      {
+        "name": "mission-generic-choice.mjs",
+        "sha256": "7690b4e5ac91ea6bc7573ba238ee5883f2175935856833ca584759f7f20fe776",
+        "bytes": 9237
+      },
+      {
+        "name": "exam_regia17/edge/src/shared-panel/validate.mjs",
+        "sha256": "972533fbe65ecfa7a954a5610d6ee6aedb317f4d99955a0a0ed1fecb715e613d",
+        "bytes": 14018
+      },
+      {
+        "name": "exam_regia17/edge/src/shared-panel/multiplication.mjs",
+        "sha256": "d038e1052633d6ba8df80526a4b4b4a29be8b96024248619400008e5c2b1f7fe",
+        "bytes": 2611
+      },
+      {
+        "name": "mission-director-narration-read.mjs",
+        "sha256": "5b82fb2ab74a3eaf6b56502a25fd7f69ef3a7c285ad2edae27ae15686930e1b7",
+        "bytes": 4052
+      },
+      {
+        "name": "exam_regia17/edge/src/provider.mjs",
+        "sha256": "f7e5671ca353b15d7f8b9a427cef4e596d07296b41970e1776939bdd7b77c0dc",
+        "bytes": 1238
+      }
+    ],
+    "base_Edge": 71,
+    "new_version": "PENDING_NOT_DEPLOYED"
+  },
+  "count_logger_reverse_three_changes_reconstructs_index71_byte_exact": true,
+  "diagnostic_privacy": "Closed trace path literals, indices/length bounds and booleans; no error.message/role/quote raw value in added console object",
+  "Count_schema_context_bound24_and_vocabulary_unchanged_except3keys": true,
+  "old_DTO_semantic_validator": "directorDecision and LegacyRoleSchema byteexact; Temporal IF only tightened to SQL",
+  "source_checks_only": true,
+  "local_model_outputs_or_functional_fixtures": 0,
+  "provider_calls": 0,
+  "database_calls": 0,
+  "risk_limits": [
+    "No current request or provider schema acceptance executed. Historical genuine schema JSON projection is static evidence only, not future runtime PASS.",
+    "Model may still make false or unsupported semantic declarations; unchanged validators and future Staff must assess actual results.",
+    "Added diagnostics are private console best effort and nondurable; unknown failures outside adapter retain existing diagnostics.",
+    "Materialized output can exceed unchangedcaps and fail closed, with original cost ledger preserved.",
+    "Old Count400 cause remains unproven, no exploratory retry or budget authority."
+  ],
+  "runtime": "NOT_RUN_PRODUCT6_RED",
+  "counterreview8": "PENDING_SINGLE_FROZEN_REVIEW"
+}

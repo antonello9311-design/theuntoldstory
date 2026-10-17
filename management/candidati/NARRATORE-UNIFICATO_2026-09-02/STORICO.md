@@ -1,3 +1,5 @@
+17/10/2026 · C1266 AGG8/controverifica8 source-only · Wire con testimone congiunto esplicito e decoder, IF stretto SQL, Count diagnostic compatibile; review0/0/0, nessun install/QA/provider, HOLD/Human/48 e14HTTP/$0,1137409 preservati · SOURCE_QUALIFIED / RUNTIME8_NOT_RUN / PRODUCT_RED6.
+
 17/10/2026 · C1266 AGG7 cleanup-only · Migrazione20261017143906 PASS, abort UI normale propria sessione committed29d4d0c0 e chiusa14:39:17, HOLD Root2 applicato:113after7/schema7/Human112/48invariati,0attività e6OFF. Cleanup0HTTP/$0, cumulativi14/$0,1137409; runtimeRED6 temporale resta irrisolto, writerNOT_REACHED, nessuna ripresaQA · CLEANUP_HOLD_PASS / PRODUCT_RUNTIME_RED6.
 
 17/10/2026 · C1266 AGG6/eccezione1 · Installazione20261017141446 PASS; prima finestra Director runtimeRED temporale dopoCount/Gen, writer nonraggiunto. Sessionepropriac21baa ancoraaperta/abortbloccato/HOLD_NOT_APPLIED;STOPPM,nessuna7. Nuovi4HTTP/$0,0329312,cumulativi14/$0,1137409,Human48invariati · RUNTIME_NOT_PASSED / CLEANUP_BLOCKED.
