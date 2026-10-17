@@ -12,4 +12,4 @@ Conteggi · Cleanup0Count/0Gen/0HTTP/$0. Cumulativi8Count6Gen14HTTP/$0,1137409,8
 
 Rischi o regressioni da verificare · Difetto temporale ancora irrisolto, causa minima da determinare senza allargare il validatore. Nessuna ripresa provider o apertura IA. Ultimo controllo indipendente cleanup: /private/tmp/c1266-cleanup7-20261017/review/INDEPENDENT_FINAL_POSTFLIGHT_REVIEW.json; stato referto disponibile nel riferimento SHA del QA_RESULT.
 
-Passaggio richiesto al PM · Consegna e deposito Git selettivo pendenti; nessun nuovo commit dichiarato. Eventuale sviluppo/QA narrativo richiede nuovo scope e autorizzazione, senza riusare il residuo aritmetico come mandato. Conservare tutti i referti e la storia5/6/7.
+Passaggio richiesto al PM · Consegna completata; deposito Git selettivo verificato300f4d81ac3fc9634dbebfbc5bfe8510ca174665 (65file, tree1e7ac7dd,0rimozioni,0file sito/asset). Eventuale sviluppo/QA narrativo richiede nuovo scope e autorizzazione, senza riusare il residuo aritmetico come mandato. Conservare tutti i referti e la storia5/6/7.
