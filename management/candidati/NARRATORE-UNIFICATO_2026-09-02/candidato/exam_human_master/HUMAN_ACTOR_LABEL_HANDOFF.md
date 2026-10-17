@@ -1,4 +1,4 @@
-# HUMAN-ACTOR-LABEL-PUBLIC-20261017 · Consegna finale
+# HUMAN-ACTOR-LABEL-PUBLIC-20261017 · Concluso e accettato da Antonello
 
 ## Scope toccato
 Regia Human: nomi PG e PNG leggibili, checkbox locali corretti e Combat aperto soltanto dal comando esplicito nel pannello dedicato. Nessun Combat inline nella chat o nel workspace Human e nessuna apertura automatica entrando nella puntata. La conduzione narrativa inline resta disponibile.
@@ -16,4 +16,4 @@ QA23 PASS sulla stessa scena `27f18cba-26ae-55b3-9b72-3d59bb79b99d`: nomi PG/PNG
 La nuova prova custom multipuntata e i premi reali restano NOT_RUN. C9 e la seconda puntata Staff conservano i rispettivi PASS storici distinti. Le schermate native Cua sono JPEG/JFIF con estensione PNG storica, conservate byte per byte senza conversione. Nessuna riapertura dei casi conclusi o modifica al lavoro C1266.
 
 ## Passaggio richiesto al PM
-Collaudo e apertura completati; consegna delle schermate per approvazione estetica. Resta distinto il lavoro C1266; nuova prova custom multipuntata e premi reali NOT_RUN. Deposito selettivo completato nel commit `e5774b68eac11ecf424ce8db2f1f8ccca9e5e765` (27 file pertinenti, SHA degli oggetti verificati).
+Approvazione estetica di Antonello registrata il 17/10/2026: «Approvo le schermate». Incarico Human/UI concluso su richiesta esplicita; WIP, storico, contatori e prove dei collaudi conservati. Nessun nuovo test o intervento su codice, database o configurazione. Resta distinto il lavoro C1266; nuova prova custom multipuntata e premi reali NOT_RUN. Deposito selettivo completato nel commit `e5774b68eac11ecf424ce8db2f1f8ccca9e5e765` (27 file pertinenti, SHA degli oggetti verificati).

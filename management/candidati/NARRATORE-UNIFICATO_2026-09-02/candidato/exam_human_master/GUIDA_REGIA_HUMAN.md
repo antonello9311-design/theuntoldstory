@@ -1,6 +1,6 @@
 # Regia con Master, PNG e mappe
 
-**Regia Human aperta alla LAND dopo QA23 PASS e OPEN24 verificato.** Il collaudo Staff del17/10 ha confermato nomi PG/PNG leggibili, selezione e rilettura, Combat soltanto nel pannello dedicato su comando esplicito, Fati, ritorno narrativo e conclusione. Provider IA0, premi soltanto simulati con effetto reale0,48campi protetti e WIP conservati. OPEN24 è stato applicato; il postflight Root delle08:33:37.194064UTC conferma disponibilità pubblica attiva, riserva Staff spenta e stessa identità C12.
+**Regia Human aperta alla LAND dopo QA23 PASS e OPEN24 verificato.** Il collaudo Staff del17/10 ha confermato nomi PG/PNG leggibili, selezione e rilettura, Combat soltanto nel pannello dedicato su comando esplicito, Fati, ritorno narrativo e conclusione. Provider IA0, premi soltanto simulati con effetto reale0,48campi protetti e WIP conservati. OPEN24 è stato applicato; il postflight Root delle08:33:37.194064UTC conferma disponibilità pubblica attiva, riserva Staff spenta e stessa identità C12. Schermate approvate da Antonello il 17/10/2026; incarico Human/UI concluso e accettato.
 
 <!-- OPEN24 verificato08:33:37.194064UTC; migrazione20261017083331; postfinale08:34:19.624645UTC tutte17flagTRUE. -->
 
