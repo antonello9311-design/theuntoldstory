@@ -16,4 +16,4 @@ QA23 PASS sulla stessa scena `27f18cba-26ae-55b3-9b72-3d59bb79b99d`: nomi PG/PNG
 La nuova prova custom multipuntata e i premi reali restano NOT_RUN. C9 e la seconda puntata Staff conservano i rispettivi PASS storici distinti. Le schermate native Cua sono JPEG/JFIF con estensione PNG storica, conservate byte per byte senza conversione. Nessuna riapertura dei casi conclusi o modifica al lavoro C1266.
 
 ## Passaggio richiesto al PM
-Collaudo e apertura completati; consegna delle schermate per approvazione estetica. Resta distinto il lavoro C1266; nuova prova custom multipuntata e premi reali NOT_RUN. Deposito selettivo in completamento.
+Collaudo e apertura completati; consegna delle schermate per approvazione estetica. Resta distinto il lavoro C1266; nuova prova custom multipuntata e premi reali NOT_RUN. Deposito selettivo completato nel commit `e5774b68eac11ecf424ce8db2f1f8ccca9e5e765` (27 file pertinenti, SHA degli oggetti verificati).
