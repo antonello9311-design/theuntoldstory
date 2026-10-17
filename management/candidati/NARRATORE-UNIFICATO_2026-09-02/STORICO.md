@@ -1,3 +1,5 @@
+17/10/2026 · C1266 AGG11/controreview11 sorgenti · Filtro Count allineato al wireID con forma chiusa e legacy invariato; reviewVERDE0/0/0,14syntaxPASS, runtime10 congelato eHistory10RED preservata;0provider/DB/deploy/QA, Human112+7/48/ledger/HOLD esatti · SOURCE11_QUALIFIED / PROVIDER_AND_RUNTIME_NOT_RUN / PRODUCT_NOT_PASSED9.
+
 17/10/2026 · C1266 diagnosi/AGG10/controreview10 sorgente · Lossless295quote e63.658byte verificati, ma consumer diagnostico incompatibile col nuovo wire; reviewROSSA0/0/1,0provider/mutazioni, Human112+7/48/ledger/HOLD invariati · SOURCE_RED_R10-P2-01 / STOP_PM / nessuna11 implicita.
 
 17/10/2026 · C1266 prerequisiti9/installazione8 · Source0/0/0 e installazioni/REGISTER/ENABLE verificati; incipit completed ma Count Director400, causa non isolata e temporale8 non raggiunta. Recupero/abort proprio/HOLD PASS, postflight15:46:07 attività0/113/schema7/Human112+7/48 invariati. Cumulativo10C7G17HTTP/$0,1392557, nessun retry/reset · QA_NOT_PASSED / TECHNICAL_CLOSURE_HOLD_PASS0/0/0 / PRODUCT_RED0/1/0 / RITORNO_PM.
