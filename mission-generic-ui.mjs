@@ -244,11 +244,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(roomCurrent(t))await updateRoom(host,{manual:true});
  }
 
- const attempts=new Map(),choiceRequests=new Map(),cachedChoiceRecoveries=new Set();
+ const attempts=new Map(),choiceRequests=new Map(),cachedChoiceRecoveries=new Set(),asyncWorks=new Map();
  function scopeFor(user,loc){return user&&loc?.id?JSON.stringify([user,loc.id]):null;}
  function syncRoom(host){
   const user=identity(),loc=currentLocation(),scope=scopeFor(user,loc);
-  if(cacheUser!==user){cacheUser=user;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();chainFeedback.clear();recoveredWriters.clear();}
+  if(cacheUser!==user){cacheUser=user;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();chainFeedback.clear();recoveredWriters.clear();asyncWorks.clear();}
   if(scope!==roomScope||host!==roomHost){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';entryReplayReady=false;countStatusRead=null;countStatusNotice='';countStatusSession=null;staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
   return {user,loc,scope,epoch:roomEpoch};
  }
@@ -467,6 +467,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(choice?.phase==='rejected')return 'La scelta è stata respinta. Aggiorna lo stato prima di scegliere nuovamente.';
   const parsed=processingFor(state);if(!parsed.valid)return 'Stato di elaborazione non disponibile. Aggiorna; nessun nuovo invio automatico.';
    const p=parsed.value,a=currentAttempt(state);
+   const asyncMessage=asyncNotice(state);if(asyncMessage)return asyncMessage;
    const flow=academyFlow(state),role=roleProgress(state);
    if(unresolvedTickForSession(state))return 'Un invio precedente della valutazione non è confermato, anche dopo nuove role. Le role sono conservate; lo Staff può verificare l’invio. Se non compare un work, serve un recupero server, non un nuovo tick.';
    if(a?.staffTickState&&['confirmed','waiting'].includes(a.outcome)&&role?.revision===a.staffTickSource&&role.reason!=='published'){
@@ -503,7 +504,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   function choicesAllowed(state){
    if(academyFlow(state)!==null)return false;
    const parsed=processingFor(state),p=parsed.value,a=currentAttempt(state);
-  const unresolved=a&&['uncertain','failed','waiting'].includes(a.outcome)&&!(p?.state==='completed'&&a.work===p.work_id);
+  const unresolved=asyncBlocked(state)||a&&['uncertain','failed','waiting'].includes(a.outcome)&&!(p?.state==='completed'&&a.work===p.work_id);
   return state.review_required!==true&&parsed.valid&&!unresolved&&Number.isSafeInteger(state.choice_context?.master_control_version)&&Number.isSafeInteger(state.choice_context?.run_control_version)&&!roomError&&!choiceRequests.has(choiceKey(state))&&!liveAttempt(state)&&state.state==='in_corso'
    &&state.choice_context?.narration_pending!==true&&(!p||p.state==='completed');
  }
@@ -776,6 +777,212 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return valid(a)&&valid(b)&&a.master_session_id===b.master_session_id&&a.event_id===b.event_id
    &&a.request_key===b.request_key&&a.expected_revision===b.expected_revision;
  }
+ // Async delivery is bound to an authenticated closed acknowledgement. Reservation remains server-side.
+ // A status read never claims work or resends role/provider input.
+ const asyncPendingKeys=['status','code','schema_version','work_id','master_session_id','event_id','request_key','revision','retry','provider_retry_allowed'];
+ const asyncStatusKeys=['schema_version','work_id','master_session_id','event_id','request_key','revision','state','receipt_id','result_sha256','retry','provider_retry_allowed'];
+ const asyncStates=new Set(['ready','claimed','authorized','provider_started','uncertain','completed','failed']);
+ const asyncBudget=Object.freeze({maxReads:50,maxMs:380000,minReadMs:8000});
+ const asyncCurrent=t=>roomCurrent(t)&&valid(t.user);
+ const asyncKey=(user,work,request)=>JSON.stringify([user,request.master_session_id,work,request.event_id,request.request_key,request.expected_revision]);
+ function asyncStatusProof(value,record){
+  const q=record.request;
+  if(!nativeExact(value,asyncStatusKeys)||value.schema_version!=='mission-generic-async-status-response/1'
+   ||value.work_id!==record.work||value.master_session_id!==q.master_session_id||value.event_id!==q.event_id
+   ||value.request_key!==q.request_key||value.revision!==q.expected_revision||!asyncStates.has(value.state)
+   ||!(value.receipt_id===null||UUID.test(value.receipt_id||''))||!(value.result_sha256===null||SHA.test(value.result_sha256||''))
+   ||value.retry!==false||value.provider_retry_allowed!==false
+   ||value.state==='completed'&&(!UUID.test(value.receipt_id||'')||!SHA.test(value.result_sha256||'')))
+   throw Error('async_status_unconfirmed');
+  return Object.freeze(clone(value));
+ }
+ function asyncRecord(parent,request,work,allowChain=false,accepted=false){
+  if(!sameChainRequest(request,request)||request.master_session_id!==parent.session||!UUID.test(work||'')
+   ||parent.work!==null&&parent.work!==work)throw Error('async_request_unconfirmed');
+  const k=parent.journalKey?'journal:'+parent.journalKey:asyncKey(parent.user,work,request);let record=asyncWorks.get(k);
+  if(!record){record={user:parent.user,session:parent.session,work,request:Object.freeze(clone(request)),parent,
+   started:performance.now(),lastRead:-Infinity,reads:0,busy:false,state:'waiting',failure:null,proof:null,
+   allowChain,accepted,chainStarted:false,chainDone:false};asyncWorks.set(k,record);}
+  else if(accepted){record.accepted=true;record.allowChain=allowChain;record.parent=parent;record.work=work;record.request=Object.freeze(clone(request));}
+  if(parent.journalKey)record.journalKey=parent.journalKey;
+  parent.work=work;parent.asyncRequest=record.request;parent.asyncKey=k;return record;
+ }
+ function acceptAsyncPending(data,parent,t,allowChain=true){
+  const delivery=data?.delivery??data;if(delivery?.status!==202||!asyncCurrent(t))return false;
+  const request=parent.body.schema_version==='mission-generic-request/1'?parent.body:data?.dispatch;
+  if(!nativeExact(delivery,asyncPendingKeys)||delivery.schema_version!=='mission-generic-pending/1'
+   ||delivery.code!=='MISSION_EVENT_PENDING'||delivery.retry!==false||delivery.provider_retry_allowed!==false
+   ||!sameChainRequest(request,request)||delivery.master_session_id!==parent.session
+   ||delivery.event_id!==request.event_id||delivery.request_key!==request.request_key||delivery.revision!==request.expected_revision)
+   throw Error('async_pending_unconfirmed');
+  asyncRecord(parent,request,delivery.work_id,allowChain,true);parent.outcome='waiting';return true;
+ }
+ function asyncBlocked(state){
+  return [...asyncWorks.values()].some(r=>r.user===cacheUser&&r.session===state.session_id
+   &&!r.inactive&&(r.accepted||r.journalKey)&&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone));
+ }
+ function asyncNotice(state){
+  const r=[...asyncWorks.values()].reverse().find(r=>r.user===cacheUser&&r.session===state.session_id
+   &&(!state.processing||state.processing.work_id===r.work));
+  if(!r)return null;
+  if(r.failure==='budget')return 'La verifica automatica ha raggiunto il limite. La stessa richiesta resta conservata; serve verifica Staff, senza un nuovo invio.';
+  if(r.transportNotice&&!r.failure)return 'Lettura temporaneamente non disponibile. La verifica della stessa richiesta continua entro il limite, senza ripetere la generazione.';
+  if(r.failure)return 'Stato della stessa richiesta non confermato. Nessun nuovo invio: verifica la regia con lo Staff.';
+  if(r.state==='uncertain')return 'Esito della generazione incerto. Le role restano conservate; nessun nuovo tentativo o racconto viene avviato.';
+  if(r.state==='failed')return 'Generazione fermata dal server. Le role e lo storico restano conservati; serve verifica Staff.';
+  return null;
+ }
+ // Journal = reference and observation budget, never ownership or permission to generate.
+ const asyncJournalSchema='mission-async-journal/1';
+ const recoveryKeys=['schema_version','status','request','work_id','state','receipt_id','result_sha256','kind','retry','provider_retry_allowed'];
+ const journalPrefix=(u,s)=>`${asyncJournalSchema}:${u}:${s}:`;
+ const selectorKey=s=>s.kind==='staff_tick'?`tick:${s.source_revision}`:`work:${s.request.event_id}:${s.request.request_key}:${s.request.expected_revision}`;
+ function selectorFor(body){
+  if(sameChainRequest(body,body))return {kind:'request',request:clone(body)};
+  if(nativeExact(body,['schema_version','master_session_id','source_revision'])&&body.schema_version==='mission-generic-staff-tick/1'&&UUID.test(body.master_session_id||'')&&SHA.test(body.source_revision||''))return {kind:'staff_tick',source_revision:body.source_revision};
+  return null;
+ }
+ function readJournal(key,user,session){
+  const raw=localStorage.getItem(key);if(raw===null)return null;const j=JSON.parse(raw),s=j?.selector;
+  const selectorValid=nativeExact(s,['kind','source_revision'])&&s.kind==='staff_tick'&&SHA.test(s.source_revision||'')
+   ||nativeExact(s,['kind','request'])&&s.kind==='request'&&sameChainRequest(s.request,s.request)&&s.request.master_session_id===session;
+  if(!nativeExact(j,['schema_version','user','session','selector','started','reads','lastRead','done'])||j.schema_version!==asyncJournalSchema||j.user!==user||j.session!==session
+   ||!selectorValid||key!==journalPrefix(user,session)+selectorKey(s)||!Number.isSafeInteger(j.started)||j.started<=0||j.started>Date.now()
+   ||!Number.isSafeInteger(j.reads)||j.reads<0||j.reads>asyncBudget.maxReads||!Number.isSafeInteger(j.lastRead)||j.lastRead<0||typeof j.done!=='boolean')throw Error('async_journal_invalid');
+  return j;
+ }
+ function saveJournal(key,j){localStorage.setItem(key,JSON.stringify(j));}
+ function attachJournal(j,key){
+  if([...asyncWorks.values()].some(r=>r.journalKey===key))return;
+  const body=j.selector.kind==='request'?clone(j.selector.request):{schema_version:'mission-generic-staff-tick/1',master_session_id:j.session,source_revision:j.selector.source_revision};
+  const parent={user:j.user,session:j.session,key,kind:j.selector.kind==='staff_tick'?'tick':'work',work:null,body:Object.freeze(body),inFlight:false,outcome:'waiting',journalKey:key};
+  const k='journal:'+key;parent.asyncKey=k;
+  asyncWorks.set(k,{user:j.user,session:j.session,work:null,request:null,parent,selector:clone(j.selector),journalKey:key,started:performance.now(),lastRead:-Infinity,reads:0,busy:false,state:'waiting',failure:null,proof:null,allowChain:false,accepted:false,chainDone:false});
+ }
+ function restoreJournals(state,t){
+  if(!asyncCurrent(t))return;const prefix=journalPrefix(t.user,state.session_id);let count=0;
+  for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key?.startsWith(prefix))continue;
+   if(++count>128)throw Error('async_journal_limit');const j=readJournal(key,t.user,state.session_id);if(j&&!j.done)attachJournal(j,key);
+  }
+ }
+ function staffNoWork(data,parent){
+  const fields=['schema_version','master_session_id','state','dispatch','staff_tick'];
+  if(parent.body.schema_version!=='mission-generic-staff-tick/1'||!data||data.dispatch!==null)return false;
+  if(!(nativeExact(data,fields)||nativeExact(data,[...fields,'reason_code'])&&data.reason_code==='MGPG_C7_RUN_BUDGET_STOP'&&data.state==='paused')
+   ||data.schema_version!=='mission-generic-progress/1'||data.master_session_id!==parent.session||typeof data.state!=='string'||!/^[a-z][a-z0-9_]{0,63}$/.test(data.state)
+   ||!nativeExact(data.staff_tick,['state','source_revision','request_key'])||!['issued','replayed','existing_work'].includes(data.staff_tick.state)
+   ||data.staff_tick.source_revision!==parent.body.source_revision||!(data.staff_tick.request_key===null||UUID.test(data.staff_tick.request_key||'')))throw Error('async_no_work_invalid');
+  return true; // Authenticated synchronous acknowledgement, no public completion or generated Fato.
+ }
+ async function invokeAsyncOnce(parent,t){
+  const selector=selectorFor(parent.body),driver=driverFor(roomState);
+  // This source delta targets the opted-in Staff driver, not unrelated synchronous consumers.
+  if(!(selector&&isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc.is_test===true&&driver.optedIn&&driver.valid))return client.functions.invoke('mission_generic_ai',{body:clone(parent.body)});
+  if(!navigator.locks?.request)throw Error('async_journal_lock_unavailable');
+  const key=journalPrefix(t.user,parent.session)+selectorKey(selector);parent.journalKey=key;
+  return navigator.locks.request(key,{mode:'exclusive'},async()=>{
+   if(!asyncCurrent(t)||abortBlocked(parent.session))throw Error('async_context_changed');
+   const old=readJournal(key,t.user,parent.session);if(old){if(!old.done)attachJournal(old,key);throw Error('async_already_submitted');}
+   const j={schema_version:asyncJournalSchema,user:t.user,session:parent.session,selector,started:Date.now(),reads:0,lastRead:0,done:false};
+   saveJournal(key,j);attachJournal(j,key); // Persist before HTTP; an uncertain send is never repeated.
+   const response=await client.functions.invoke('mission_generic_ai',{body:clone(parent.body)});
+   const delivery=response.data?.delivery??response.data;
+   if(!response.error&&(staffNoWork(response.data,parent)||delivery?.status===200&&['MISSION_EVENT_COMPLETE','MISSION_EVENT_FAILED'].includes(delivery.code)&&UUID.test(delivery.receipt_id||''))){
+    j.done=true;saveJournal(key,j);const r=asyncWorks.get('journal:'+key);if(r)r.inactive=true;
+   } // A confirmed synchronous terminal reply needs no new async observer.
+   return response;
+  });
+ }
+ function spendAsyncRead(r){
+  if(r.journalKey){const j=readJournal(r.journalKey,r.user,r.session);
+   if(!j||j.done||j.reads>=asyncBudget.maxReads||Date.now()-j.started>=asyncBudget.maxMs)throw Error('async_budget');
+   j.reads++;j.lastRead=Date.now();saveJournal(r.journalKey,j);r.reads=j.reads;
+  }else if(r.reads>=asyncBudget.maxReads||performance.now()-r.started>=asyncBudget.maxMs)throw Error('async_budget');else r.reads++;
+ }
+ const transientReadCodes=new Set(['08000','08001','08003','08006','08007','40001','40P01','55P03','57014','53300','57P01','57P02','57P03']);
+ function transientReadCause(e,status){
+  const code=typeof e?.code==='string'?e.code:'';
+  if(code)return transientReadCodes.has(code);
+  return status===0||['AbortError','TimeoutError','FunctionsFetchError'].includes(e?.name)||e?.name==='TypeError'&&/fetch|network/i.test(e.message||'');
+ }
+ async function boundedAsyncRead(r,read){
+  spendAsyncRead(r);
+  const remaining=r.journalKey?asyncBudget.maxMs-(Date.now()-readJournal(r.journalKey,r.user,r.session).started):asyncBudget.maxMs-(performance.now()-r.started);
+  if(remaining<=0)throw Error('async_budget');
+  let timer;const controller=new AbortController();
+  try{return await Promise.race([read(controller.signal),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Object.assign(Error('async_read_timeout'),{asyncRetryable:true}));},Math.min(10000,remaining));})]);}
+  finally{clearTimeout(timer);}
+ }
+ async function asyncRead(body,r){
+  return boundedAsyncRead(r,async signal=>{
+   let response;try{response=await client.functions.invoke('mission_generic_ai',{body,signal});}
+   catch(e){throw Object.assign(Error('async_read_transport'),{asyncRetryable:transientReadCause(e)});}
+   if(response.error){
+    const status=response.error.context?.status;
+    const prefix={'mission-generic-async-recover/1':'MISSION_ASYNC_RECOVERY','mission-generic-async-status/1':'MISSION_ASYNC_STATUS','mission-director-narration-read/1':'MISSION_DIRECTOR_NARRATION_READ'}[body.schema_version];
+    let proof;try{proof=await response.error.context?.json();}catch{}
+    const retryable=nativeExact(proof,['code','retry','provider_retry_allowed','read_retry_allowed'])&&proof.code===prefix+'_TRANSIENT'&&status===503&&proof.retry===false&&proof.provider_retry_allowed===false&&proof.read_retry_allowed===true;
+    throw Object.assign(Error('async_read_unconfirmed'),{asyncRetryable:retryable||status===undefined&&transientReadCause(response.error)});
+   }
+   return response.data;
+  });
+ }
+ async function asyncRoomRead(r,t){
+  return boundedAsyncRead(r,async signal=>{
+   if(!valid(t.user))throw Error('async_context_changed');
+   let result;try{let query=client.rpc('mission_generic_room_state_v1',{p_location:t.loc.id});if(typeof query.abortSignal==='function')query=query.abortSignal(signal);result=await query;}
+   catch(e){throw Object.assign(Error('async_room_read_unconfirmed'),{asyncRetryable:transientReadCause(e)});}
+   if(!valid(t.user))throw Error('async_context_changed');
+   if(result.error)throw Object.assign(Error('async_room_read_unconfirmed'),{asyncRetryable:transientReadCause(result.error,result.status)});
+   return result.data;
+  });
+ }
+ function recoveryProof(v,r){
+  if(!nativeExact(v,recoveryKeys)||v.schema_version!=='mission-generic-async-recovery/1'||!['owned','none','no_work'].includes(v.status)||v.retry!==false||v.provider_retry_allowed!==false)throw Error('async_recovery_invalid');
+  if(v.status==='none'||v.status==='no_work'){
+   if(['request','work_id','state','receipt_id','result_sha256','kind'].some(k=>v[k]!==null)||v.status==='no_work'&&r.selector.kind!=='staff_tick')throw Error('async_recovery_invalid');
+   if(v.status==='no_work'){const j=readJournal(r.journalKey,r.user,r.session);if(!j)throw Error('async_journal_invalid');j.done=true;saveJournal(r.journalKey,j);r.inactive=true;r.transportNotice=false;}
+   return null;
+  }
+  if(!sameChainRequest(v.request,v.request)||v.request.master_session_id!==r.session||!UUID.test(v.work_id||'')||!['director','narration','choice'].includes(v.kind)
+   ||r.selector.kind==='request'&&!sameChainRequest(v.request,r.selector.request))throw Error('async_recovery_invalid');
+  const q=v.request,proof=asyncStatusProof({schema_version:'mission-generic-async-status-response/1',work_id:v.work_id,master_session_id:q.master_session_id,event_id:q.event_id,request_key:q.request_key,revision:q.expected_revision,state:v.state,receipt_id:v.receipt_id,result_sha256:v.result_sha256,retry:false,provider_retry_allowed:false},{...r,work:v.work_id,request:q});
+  r.work=v.work_id;r.request=Object.freeze(clone(q));r.accepted=true;r.allowChain=v.kind==='director';r.parent.work=v.work_id;r.parent.asyncRequest=r.request;
+  return proof; // Server-owned recovery projection; never a synthetic EVENT_COMPLETE ACK.
+ }
+ function finishJournal(r){if(r.journalKey&&r.state==='completed'&&(!r.allowChain||r.chainDone)){const j=readJournal(r.journalKey,r.user,r.session);if(j){j.done=true;saveJournal(r.journalKey,j);}}}
+ function observeAsyncWork(state,t){
+  if(!asyncCurrent(t)||hasCountProjection(state)||abortBlocked(state.session_id)||!processingFor(state).valid)return;
+  const r=[...asyncWorks.values()].find(r=>(r.accepted||r.journalKey)&&r.user===t.user&&r.session===state.session_id&&!r.inactive&&!r.busy&&!r.failure&&!['uncertain','failed'].includes(r.state)&&(r.state!=='completed'||r.allowChain&&!r.chainDone));
+  if(!r||performance.now()-r.lastRead<asyncBudget.minReadMs)return;
+  r.busy=true;r.lastRead=performance.now();let parent=null;
+  const observe=async()=>{
+   parent=r.parent;parent.inFlight=true;
+   try{
+    if(!asyncCurrent(t)||abortBlocked(r.session))return;
+    if(r.journalKey){const j=readJournal(r.journalKey,r.user,r.session);if(j?.done){r.inactive=true;return;} // Local closure ends observation only; public completion still needs room/server proof.
+     if(j&&Date.now()-j.lastRead<asyncBudget.minReadMs)return;}
+    let proof=r.proof;
+    if(r.state!=='completed'){
+     if(!r.accepted){const data=await asyncRead({schema_version:'mission-generic-async-recover/1',master_session_id:r.session,selector:clone(r.selector)},r);
+      if(!asyncCurrent(t)||abortBlocked(r.session))return;proof=recoveryProof(data,r);
+      if(r.inactive)return;if(!proof){r.transportNotice=true;return;} // Claim may still be committing: read only, never infer zero sends.
+     }else{const data=await asyncRead({schema_version:'mission-generic-async-status/1',request:clone(r.request)},r);if(!asyncCurrent(t)||abortBlocked(r.session))return;proof=asyncStatusProof(data,r);}
+     r.proof=proof;r.state=proof.state;r.transportNotice=false;parent.outcome=proof.state==='completed'?'confirmed':['failed','uncertain'].includes(proof.state)?proof.state:'waiting';
+    }
+    if(r.state==='completed'&&r.allowChain&&!r.chainDone){
+     const reason=await continueDirectorNarration(null,parent,t,proof);if(!asyncCurrent(t))return;
+     r.chainDone=['server_proof_none','child_confirmed','child_failed','child_unconfirmed','child_already_attempted'].includes(reason);
+     if(!r.chainDone&&!['server_proof_unconfirmed','context_changed','room_state_changed','child_other_inflight','child_tick_suspended','abort_pending'].includes(reason))r.failure='status_unconfirmed';
+     chainFeedback.set(JSON.stringify([t.user,r.session]),{reason,target:parent.chainTarget??chainTarget(parent,r.request)});
+    }
+    finishJournal(r);
+   }catch(e){if(asyncCurrent(t)){if(e.asyncRetryable)r.transportNotice=true;else{r.failure=e.message==='async_budget'?'budget':'status_unconfirmed';parent.outcome='uncertain';}}}
+   finally{r.busy=false;if(parent)parent.inFlight=false;if(asyncCurrent(t)&&roomState?.session_id===r.session){paintRoom(roomHost,roomState);refresh();}}
+  };
+  const run=r.journalKey&&navigator.locks?.request?navigator.locks.request(r.journalKey,{mode:'exclusive'},observe):observe();
+  void run.catch(()=>{r.busy=false;if(parent)parent.inFlight=false;r.failure='status_unconfirmed';});
+ }
  // A work completion alone does not attest a public Fato. Match the exact request and writer.
  function chainPublicationConfirmed(state,feedback){
   const parsed=processingFor(state),p=parsed.value,target=feedback?.target;
@@ -792,29 +999,40 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  // One automatic successor, only through the authenticated server parent-qualified read.
  // Neither a generic ready work nor a failed/uncertain result authorizes this path.
- async function continueDirectorNarration(data,parent,t){
+ async function continueDirectorNarration(data,parent,t,completedProof=null){
   const delivery=data?.delivery??data;
   if(!roomCurrent(t))return 'context_changed';
   if(abortBlocked(parent.session))return 'abort_pending';
-  if(delivery?.status!==200||delivery.code!=='MISSION_EVENT_COMPLETE'||!UUID.test(delivery.receipt_id||''))return 'parent_unconfirmed';
-  const parentRequest=parent.body.schema_version==='mission-generic-request/1'?parent.body:data?.dispatch;
+  const record=parent.asyncKey&&asyncWorks.get(parent.asyncKey);
+  if(completedProof){
+   if(!asyncCurrent(t)||!record||!record.accepted||!record.allowChain||record.proof!==completedProof||record.state!=='completed'
+    ||asyncStatusProof(completedProof,record).state!=='completed')return 'parent_unconfirmed';
+  }else if(delivery?.status!==200||delivery.code!=='MISSION_EVENT_COMPLETE'||!UUID.test(delivery.receipt_id||''))return 'parent_unconfirmed';
+  const parentReceipt=completedProof?.receipt_id??delivery.receipt_id;
+  const parentRequest=completedProof?record.request:parent.body.schema_version==='mission-generic-request/1'?parent.body:data?.dispatch;
   if(!sameChainRequest(parentRequest,parentRequest)||parentRequest.master_session_id!==parent.session)return 'parent_request_unavailable';
-  const read=await client.functions.invoke('mission_generic_ai',{body:{
-   schema_version:'mission-director-narration-read/1',parent_request:clone(parentRequest),parent_receipt_id:delivery.receipt_id}});
+  if(!completedProof&&parent.chainReadStarted)return 'child_already_attempted';
+  if(!completedProof)parent.chainReadStarted=true; // Legacy synchronous path unchanged. Async readonly errors remain retryable.
+  const readBody={schema_version:'mission-director-narration-read/1',parent_request:clone(parentRequest),parent_receipt_id:parentReceipt};
+  const read=completedProof?{data:await asyncRead(readBody,record)}:await client.functions.invoke('mission_generic_ai',{body:readBody});
   if(!roomCurrent(t))return 'context_changed';
   if(abortBlocked(parent.session))return 'abort_pending';
   if(read.error)return 'server_proof_unconfirmed';
   const proof=read.data,fields=['schema_version','status','parent_request','parent_receipt_id','parent_work_id','child_work_id','child_kind','source_window_id','child_request'];
   if(!proof||Object.keys(proof).length!==fields.length||!fields.every(k=>Object.hasOwn(proof,k))
    ||proof.schema_version!=='mission-director-narration-chain/1'||!['none','ready'].includes(proof.status)
-   ||!sameChainRequest(proof.parent_request,parentRequest)||proof.parent_receipt_id!==delivery.receipt_id)return 'server_proof_invalid';
-  if(proof.status==='none')return 'server_proof_none';
+   ||!sameChainRequest(proof.parent_request,parentRequest)||proof.parent_receipt_id!==parentReceipt)return 'server_proof_invalid';
+  if(proof.status==='none'){
+   if(['parent_work_id','child_work_id','child_kind','source_window_id','child_request'].some(k=>proof[k]!==null))return 'server_proof_invalid';
+   return 'server_proof_none';
+  }
+  if(completedProof&&proof.parent_work_id!==record.work)return 'server_proof_invalid';
   if(!UUID.test(proof.parent_work_id||'')||!UUID.test(proof.child_work_id||'')||proof.parent_work_id===proof.child_work_id
    ||proof.child_kind!=='narration'||!UUID.test(proof.source_window_id||'')
    ||!sameChainRequest(proof.child_request,proof.child_request)
    ||proof.child_request.master_session_id!==parent.session||proof.child_request.event_id===parentRequest.event_id
    ||proof.child_request.request_key===parentRequest.request_key)return 'child_request_invalid';
-  const fresh=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
+  const fresh=completedProof?await asyncRoomRead(record,t):await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
   if(!roomCurrent(t)||fresh?.session_id!==parent.session)return 'room_state_changed';
   if(abortBlocked(parent.session))return 'abort_pending';
   if(fresh.review_required===true)return 'child_review_required';
@@ -836,12 +1054,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   parent.chainTarget=chainTarget(a);
   attempts.set(storeKey,a);roomState=fresh;paintRoom(roomHost,fresh);
   try{
-   const {data:result,error}=await client.functions.invoke('mission_generic_ai',{body:clone(a.body)});
+   const {data:result,error}=await invokeAsyncOnce(a,t);
    if(error)throw error;
+   const asyncPending=acceptAsyncPending(result,a,t,false);
    const code=result?.delivery?.code||result?.code;
    if(code==='MISSION_EVENT_UNCERTAIN'||result?.state==='uncertain')a.outcome='uncertain';
    else if(code==='MISSION_EVENT_FAILED'||result?.state==='failed')a.outcome='failed';
-   else if(result?.delivery?.status===202||result?.status===202)a.outcome='waiting';
+   else if(asyncPending||result?.delivery?.status===202||result?.status===202)a.outcome='waiting';
    else if(result&&typeof result==='object')a.outcome='confirmed';else a.outcome='uncertain';
   }catch{a.outcome='uncertain';}
   finally{a.inFlight=false;}
@@ -849,6 +1068,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return a.outcome==='confirmed'?'child_confirmed':a.outcome==='failed'?'child_failed':'child_unconfirmed';
  }
  function maybeDispatch(state,t,reclaim=false){
+  if(asyncBlocked(state))return; // An accepted async request is observed, never re-dispatched.
   if(hasCountProjection(state))return; // Only the explicit technical status consumer may handle this proof.
   const parsed=processingFor(state),p=parsed.value;
   const claimedVerification=reclaim&&parsed.valid&&staffClaimReconciliationAllowed(state,t,p);
@@ -882,7 +1102,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   // Detached from the read lock: polling continues while the provider works.
   void (async()=>{
    try{
-    const {data,error}=await client.functions.invoke('mission_generic_ai',{body:clone(a.body)});
+    const {data,error}=await invokeAsyncOnce(a,t);
     if(error)throw error;
     if(staffTick){
      const tick=data?.staff_tick;
@@ -891,10 +1111,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
       ||!(tick.request_key===null||UUID.test(tick.request_key||'')))throw Error('staff_tick_response_invalid');
      a.staffTickState=tick.state;
     }
+    const asyncPending=acceptAsyncPending(data,a,t);
     const code=data?.delivery?.code||data?.code;
     if(code==='MISSION_EVENT_UNCERTAIN'||data?.state==='uncertain')a.outcome='uncertain';
     else if(code==='MISSION_EVENT_FAILED'||data?.state==='failed')a.outcome='failed';
-    else if(data?.delivery?.status===202||data?.status===202)a.outcome='waiting';
+    else if(asyncPending||data?.delivery?.status===202||data?.status===202)a.outcome='waiting';
     else if(data&&typeof data==='object')a.outcome='confirmed';else a.outcome='uncertain';
     const chainReason=a.outcome==='confirmed'?await continueDirectorNarration(data,a,t).catch(()=>'verification_error')
      :a.outcome==='uncertain'?'parent_unconfirmed':null;
@@ -918,6 +1139,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     academyFlow(state); // The server owns both the phase and the Fato publication receipt.
     roleProgress(state); // A partial reason/remedy projection cannot authorize a dispatch.
    roomState=state;roomError='';
+   restoreJournals(state,t);
    reconcileTickAttempts(state,t);
    await readEntry(state,t.user);if(!roomCurrent(t))return;
    const key=choiceKey(state),pending=choiceRequests.get(key);
@@ -926,6 +1148,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    paintRoom(host,state);
    await mountAborts(host,state,t);if(!roomCurrent(t)||!roomState)return;
    if(abortBlocked(state.session_id))return;await regen.update(host,state);
+   observeAsyncWork(state,t);
    const projected=processingFor(state);
    if(!verifyOnly&&(!manual||academyFlow(state)==='combat_started'||staffAcademyRole(state,t.loc)?.reason==='ready_to_evaluate'
     &&projected.valid&&(!projected.value||['completed','failed'].includes(projected.value.state))))maybeDispatch(state,t);
