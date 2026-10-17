@@ -1,0 +1,524 @@
+{
+  "schema_version": "c1266-generation-timeout-async-runtime-independent-review/1",
+  "task": "C1266-GENERATION-TIMEOUT-ASYNC-RUNTIME-REVIEW-20261013",
+  "reviewer": "REVIEWER-C1266-ASYNC-RUNTIME",
+  "reviewed_at": "2026-10-13T11:44:56.140889+00:00",
+  "classification": "SOURCE_ONLY_RUNTIMECODE_REVIEW_RED_AGGREGATE_NO_FULL_ROOT_REVIEW",
+  "verdict": "0/1/2",
+  "counts": {
+    "P0": 0,
+    "P1": 1,
+    "P2": 2
+  },
+  "findings": [
+    {
+      "id": "R1",
+      "priority": "P1",
+      "title": "Conservare il parent pendente quando la proiezione passa al writer pronto",
+      "file": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_UI_SOURCE.mjs",
+      "start": 837,
+      "end": 850,
+      "producer_anchors": [
+        {
+          "file": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_COUNT_PROOF_PERMANENT_SOURCE.sql",
+          "start": 585,
+          "end": 647
+        },
+        {
+          "file": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_INSTALL.sql",
+          "start": 1760,
+          "end": 1761
+        }
+      ],
+      "trigger": "Own accepted202 Director is still waiting in asyncWorks; server finalizes Director and enqueues ready Narration before next status read. Native room projection now shows childready instead of completedparent.",
+      "evidence": "observeAsyncWork looks up only processing.work_id. With readychild it neither finds parent nor creates a new readonly record (ready excluded). Waitingparent fallback requires !work, so is not evaluated. asyncBlocked also ignores acceptedparent when processing is another work (822). NativeunifiedDirector1ea1 enqueueswriter beforereturn; roomreader ee8a prioritizes anyactive work overcompleted.",
+      "effect": "Parent completion receipt is never read on this normal interleaving; continueDirectorNarration requires that completedProof. Childwriter can remain ready, no next Fato. Success becomes timing-dependent on whether status read happens before room projection changes.",
+      "correction_requested": "Within same session/actor/epoch keep observing the owned acceptedparent immutabletuple even when freshprojection shows its newerreadychild; statusRPC remainsreadonly and parentqualified continuation once. Do not claim genericchild or invent200 from202.",
+      "required_counterverification": "Source trace and pertinent Staff case where completedDirector/readywriter is already current before nextpoll; exactlyone parentstatus/qualifiedchild dispatch, singleFato, no role/providerrepeat.",
+      "release_scope": "Block proposed async runtimeDBEdgeUI release; appliedtechnicalAbort qualification unchanged."
+    },
+    {
+      "id": "R2",
+      "priority": "P2",
+      "title": "Limitare la ricostruzione dell osservatore al contratto asincrono C1266",
+      "file": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_UI_SOURCE.mjs",
+      "start": 838,
+      "end": 847,
+      "producer_anchors": [
+        {
+          "file": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_DB_DELTA.sql",
+          "start": 72,
+          "end": 82
+        },
+        {
+          "file": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_UI_SOURCE.mjs",
+          "start": 1031,
+          "end": 1036
+        },
+        {
+          "file": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_UI_SOURCE.mjs",
+          "start": 824,
+          "end": 832
+        }
+      ],
+      "trigger": "Legacy/synchronous scene exposes a claimed/completed/failed native processing work, has no acceptedPENDING record and no saved work-key parent.chainReadStarted (for example original dispatch stored as tick-key).",
+      "evidence": "Unconditional observeAsyncWork reconstructs an observer from any processing tuple across mission scopes; onlynativeprojection shape is checked, not async/C1266eligibility. Backendnewstatus accepts only c1266_historical_work attestation staff_mission/ordinary_mission, rejects unrelatedwork. Tickdispatch parent is stored under tick key, while reconstruction creates work key, so existing sync chainReadStarted does not necessarily suppress it.",
+      "effect": "New extraHTTP503 followed by record.failure=status_unconfirmed and falsefailure notice can follow a successful synchronouslegacy work. LegacyUI behavior is changed despite source intent to preserve D100/unrelatedsync. No unauthorizedprovider call proved.",
+      "correction_requested": "Observe acceptedasync records and only serverattested eligible reconstructedC1266 work; preserve legacy synchronous observation and outcomes. Do not infer asynceligibility merely from sharednativeprocessing shape or broaden statusRPC to accept unrelatedscopes.",
+      "required_counterverification": "Source cross-scope trace plus pertinent existing sync/legacy path: no newasyncstatus call/errornotice; C1266reopen remainsreadonly/noautomaticclaim.",
+      "release_scope": "Correct in same aggregate before asyncUI publication; no legacyRuntime certification from thisreview."
+    },
+    {
+      "id": "R3",
+      "priority": "P2",
+      "title": "Accettare il ramo chiuso none prima di confrontare il parent_work_id",
+      "file": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_UI_SOURCE.mjs",
+      "start": 907,
+      "end": 912,
+      "producer_anchors": [
+        {
+          "file": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_EDGE_BUNDLE_FILES.json",
+          "member": "mission-director-narration-read.mjs",
+          "start": 16,
+          "end": 24
+        }
+      ],
+      "trigger": "Ownasync completedProof is valid and parentqualified reader returns valid closedstatusnone (no Narration successor).",
+      "evidence": "Unchanged reader ABI requires parent_work_id/child_work_id/child_kind/source_window_id/child_request allNULL for statusnone. UI compares proof.parent_work_id to nonnull record.work before branching on proof.status===none. Therefore every valid none reply on completedProof path returns server_proof_invalid.",
+      "effect": "A normal no-successor outcome is falsely reported as invalid proof; it can leave misleading chainfeedback even when work/Fato already completed. This is a sourcecontract branch defect, no livebranch claimedtested.",
+      "correction_requested": "Validate exactnone/null branch first. Enforce parent_work_id===ownedrecord.work for readybranch with existing closedchildshape checks. Keep onechain/read guard and no generic validatorrelaxation.",
+      "required_counterverification": "StaticclosedABI branch check and pertinent Staff no-successor observation when reachable: none accepted withoutnewGen/childclaim; readybranch still requires exactparentwork.",
+      "release_scope": "Same asyncUI aggregate; no extraexploratory provider generation to obtain thisbranch."
+    }
+  ],
+  "scope": {
+    "Backendfreeze": "265ef5c6ecf1ad8a5c5e8b2c4089041b7bbdf7776fd143553b82ca903d73de31",
+    "Backendmanifest": "d6d0b5f2e880af105ff2d21933b9a41d0cd2392c23e743967b750702fac1ed71",
+    "DBdelta": "54967d604c57c8afa3498c389f9f89af2c3aee36efdabc972e4309b9d46c6cb4",
+    "Edgebundle": "e8f924429bff731359563497966f3f4dc42e4361a900d04b684b8c032eaac946",
+    "SDK": "fae76034c197485ce23a070cd45b7c70d4ccaaf5181fd9c39ef23dfcc7bd76ec",
+    "UI": "d09996dcafbec5a0029f631e9b632820922082cdc8e5395a6c4791e7ff0444c6",
+    "UIbytes": 99832,
+    "UIhunks": 15,
+    "UIfreeze": "077a18c1a88a0ea5378a6b03628f2ec50bfc2fbd35df9274a7b05afa555ce699",
+    "UImanifest": "c70b2c23d7d6d43e782470a297c9f72295661d8a8fb6bc775b9caf1488cf3dd0",
+    "baselineUI": "3d6391e624a674993b52630a9d10e400f262d0014643c5f245b7022cc9195072",
+    "technical": "6ca758/f596 priorpertinent Source000 then RootreportednormalAbortcommitted8039, PG48d729unchanged/Staff0. Importedactual d8c32/post605109, not replayed or freshlyverifiedhere.",
+    "excluded": [
+      "Root113semanticcontrol/builder",
+      "HOLD/Register/enable/clockrenewal",
+      "actualinstall/deploy/publicrelease",
+      "gameplay/missioncomplete/normalend/Combat certification"
+    ]
+  },
+  "independent_static": {
+    "SQL": {
+      "C1266_GENERATION_TIMEOUT_ASYNC_DB_DELTA.sql": {
+        "statements": 12,
+        "sha256": "54967d604c57c8afa3498c389f9f89af2c3aee36efdabc972e4309b9d46c6cb4",
+        "functions": [
+          {
+            "signature": "CREATE FUNCTION public.mission_generic_dispatch_async_status_v1(p_user uuid,p_request jsonb)",
+            "md5": "6077d36f1dee78569c0d276455f5ed13",
+            "PL_parse": "CATALOG_LIMIT"
+          },
+          {
+            "signature": "CREATE OR REPLACE FUNCTION public.mission_generic_dispatch_claim_v1(p_user uuid, p_request jsonb)",
+            "md5": "ceaeeca8735508e68a9afe5b505aedf6",
+            "PL_parse": "CATALOG_LIMIT"
+          },
+          {
+            "signature": "CREATE OR REPLACE FUNCTION public.mission_generic_dispatch_authorize_v1(p_work uuid, p_lease uuid, p_worker_token text, p_policy jsonb)",
+            "md5": "6b63629512c5e22ae4e51ec741cbc946",
+            "PL_parse": "CATALOG_LIMIT"
+          }
+        ],
+        "DO": [
+          {
+            "tag": "$baseline$",
+            "PL_parse": "GRAMMAR_PASS"
+          },
+          {
+            "tag": "$staff_hold$",
+            "PL_parse": "GRAMMAR_PASS"
+          },
+          {
+            "tag": "$new_observer$",
+            "PL_parse": "GRAMMAR_PASS"
+          },
+          {
+            "tag": "$async_post$",
+            "PL_parse": "GRAMMAR_PASS"
+          }
+        ]
+      },
+      "C1266_GENERATION_TIMEOUT_ASYNC_RECOVERY.sql": {
+        "statements": 8,
+        "sha256": "de8878976b8624db3b006647cf657665c7ff0540c6efabac89ce64cd72209e4e",
+        "functions": [
+          {
+            "signature": "CREATE OR REPLACE FUNCTION public.mission_generic_dispatch_claim_v1(p_user uuid, p_request jsonb)",
+            "md5": "1c4ce5a60bd575249783892cb2cbbd52",
+            "PL_parse": "CATALOG_LIMIT"
+          },
+          {
+            "signature": "CREATE OR REPLACE FUNCTION public.mission_generic_dispatch_authorize_v1(p_work uuid, p_lease uuid, p_worker_token text, p_policy jsonb)",
+            "md5": "d42b7199823b1f6e4a9937f061440457",
+            "PL_parse": "CATALOG_LIMIT"
+          }
+        ],
+        "DO": [
+          {
+            "tag": "$staff_hold$",
+            "PL_parse": "GRAMMAR_PASS"
+          },
+          {
+            "tag": "$recovery_guard$",
+            "PL_parse": "GRAMMAR_PASS"
+          }
+        ]
+      }
+    },
+    "Node": {
+      "syntax": [
+        {
+          "name": "mission-generic-index.ts",
+          "syntax": 0,
+          "message": ""
+        },
+        {
+          "name": "mission-generic-http.mjs",
+          "syntax": 0,
+          "message": ""
+        },
+        {
+          "name": "mission-generic-runtime.mjs",
+          "syntax": 0,
+          "message": ""
+        },
+        {
+          "name": "exam_regia17/edge/src/shared-scene/editorial.mjs",
+          "syntax": 0,
+          "message": ""
+        },
+        {
+          "name": "exam_regia17/edge/src/shared-scene/common.mjs",
+          "syntax": 0,
+          "message": ""
+        },
+        {
+          "name": "exam_regia17/edge/src/shared-scene/scene.mjs",
+          "syntax": 0,
+          "message": ""
+        },
+        {
+          "name": "exam_regia17/edge/src/shared-scene/staff-common.mjs",
+          "syntax": 0,
+          "message": ""
+        },
+        {
+          "name": "exam_regia17/edge/src/shared-scene/narrative-master.mjs",
+          "syntax": 0,
+          "message": ""
+        },
+        {
+          "name": "exam_regia17/edge/src/contracts.mjs",
+          "syntax": 0,
+          "message": ""
+        },
+        {
+          "name": "mission-generic-choice.mjs",
+          "syntax": 0,
+          "message": ""
+        },
+        {
+          "name": "exam_regia17/edge/src/shared-panel/validate.mjs",
+          "syntax": 0,
+          "message": ""
+        },
+        {
+          "name": "exam_regia17/edge/src/shared-panel/multiplication.mjs",
+          "syntax": 0,
+          "message": ""
+        },
+        {
+          "name": "mission-director-narration-read.mjs",
+          "syntax": 0,
+          "message": ""
+        },
+        {
+          "name": "exam_regia17/edge/src/provider.mjs",
+          "syntax": 0,
+          "message": ""
+        },
+        {
+          "name": "UI_SOURCE",
+          "syntax": 0,
+          "message": ""
+        }
+      ],
+      "relative_graph": [
+        {
+          "from": "mission-generic-index.ts",
+          "to": "mission-generic-http.mjs",
+          "present": true
+        },
+        {
+          "from": "mission-generic-index.ts",
+          "to": "exam_regia17/edge/src/provider.mjs",
+          "present": true
+        },
+        {
+          "from": "mission-generic-http.mjs",
+          "to": "mission-generic-runtime.mjs",
+          "present": true
+        },
+        {
+          "from": "mission-generic-http.mjs",
+          "to": "mission-director-narration-read.mjs",
+          "present": true
+        },
+        {
+          "from": "mission-generic-http.mjs",
+          "to": "exam_regia17/edge/src/shared-scene/scene.mjs",
+          "present": true
+        },
+        {
+          "from": "mission-generic-runtime.mjs",
+          "to": "exam_regia17/edge/src/shared-scene/editorial.mjs",
+          "present": true
+        },
+        {
+          "from": "mission-generic-runtime.mjs",
+          "to": "exam_regia17/edge/src/shared-scene/common.mjs",
+          "present": true
+        },
+        {
+          "from": "mission-generic-runtime.mjs",
+          "to": "exam_regia17/edge/src/shared-scene/staff-common.mjs",
+          "present": true
+        },
+        {
+          "from": "mission-generic-runtime.mjs",
+          "to": "exam_regia17/edge/src/shared-scene/scene.mjs",
+          "present": true
+        },
+        {
+          "from": "mission-generic-runtime.mjs",
+          "to": "exam_regia17/edge/src/contracts.mjs",
+          "present": true
+        },
+        {
+          "from": "exam_regia17/edge/src/shared-scene/editorial.mjs",
+          "to": "exam_regia17/edge/src/shared-scene/common.mjs",
+          "present": true
+        },
+        {
+          "from": "exam_regia17/edge/src/shared-scene/editorial.mjs",
+          "to": "exam_regia17/edge/src/shared-scene/scene.mjs",
+          "present": true
+        },
+        {
+          "from": "exam_regia17/edge/src/shared-scene/staff-common.mjs",
+          "to": "exam_regia17/edge/src/shared-scene/narrative-master.mjs",
+          "present": true
+        },
+        {
+          "from": "mission-generic-choice.mjs",
+          "to": "exam_regia17/edge/src/shared-scene/common.mjs",
+          "present": true
+        },
+        {
+          "from": "mission-generic-choice.mjs",
+          "to": "exam_regia17/edge/src/shared-panel/validate.mjs",
+          "present": true
+        },
+        {
+          "from": "mission-generic-choice.mjs",
+          "to": "exam_regia17/edge/src/contracts.mjs",
+          "present": true
+        },
+        {
+          "from": "exam_regia17/edge/src/shared-panel/validate.mjs",
+          "to": "exam_regia17/edge/src/shared-panel/multiplication.mjs",
+          "present": true
+        },
+        {
+          "from": "mission-director-narration-read.mjs",
+          "to": "mission-generic-runtime.mjs",
+          "present": true
+        }
+      ],
+      "appimports": 0
+    },
+    "backendfreeze_leaves_verified": 13,
+    "UI_freeze_leaves_verified": 8,
+    "edge14files_changed": 3,
+    "edge11unchanged_byteexact": true,
+    "UI_baseline_reverse": "Independent15hunk difference from exactpublishedbaseline3d; code notexecuted/imported.",
+    "PL_limit": "Private catalog row-type lookup CATALOG_LIMIT on all3new/replaced PLbodies and2recoverybodies, matching sourceparserlimit; do not claim PLexecutionPASS. WholeSQL12/recovery8 and6DOgrammarPASS.",
+    "statement_errors_found": false
+  },
+  "covered_source_topics": [
+    {
+      "topic": "Preclaim and ownership",
+      "result": "COVERED_STATIC",
+      "evidence": "prepare validates request/provider then one10sclaim, requires claimed/granted_nowtrue, freezes fivepublicscopeIDs into opaqueWeakMap bound same request/db/provider. run deletes handle once, uses persistedclaim withoutsecondclaim. WaitUntil registration precedesrelease; failedregistration cannotdispatch provider. Closedpending10fields only forownregisteredwork."
+    },
+    {
+      "topic": "240sGen/360swork deadlines",
+      "result": "COVERED_STATIC_RUNTIME_OPEN",
+      "evidence": "Nativeclaim names only c26/c5authority;240Gen/360work,360inside immutablefiniteStaff expiry, legacy120/180. Countmax120; nativeGenerationreserve<=260/remainingWork underexisting300cap. Monotonicruntime clipsGen to remainingwork/overall minus20finalizemargin; overall<=380. Doesnotoverrideplatform400 or warmworker residual lifetime."
+    },
+    {
+      "topic": "NativeCount/schema/accounting",
+      "result": "COVERED_STATIC",
+      "evidence": "Existingcountprojection/Countproof/consume/markSent/finalizer paths retained, noGenretry, scope4/5/6validate strict.24K20K/.0124model/pricing andordinary14Gen28HTTP/.3136/globalquotas unchanged. No refund or accounting rewrite."
+    },
+    {
+      "topic": "Readonly status/Auth",
+      "result": "COVERED_STATIC_WITH_R2_UI_SCOPE_FINDING",
+      "evidence": "NewRPC STABLE/serviceonly/privateexecutionauthority, exactfivefield request, p_user verifiedAuthderived bygateway. Admin/master orcurrentcharacter-user-snapshot participant; closedterminalformerparticipant requires finalizedreceipt. Reader calls onlyhistoricalproof/work_status, noCountterminalizer/leaseRoot/provider/ledger mutation. Gateway closed11fieldDTO; UI exact11statusfields (contract prose says12 butcodeSDK agree11). R2coversbadconsumer scope selection."
+    },
+    {
+      "topic": "200/202/chain/barrier",
+      "result": "PARTIAL_STATIC_R1_R3_BLOCK",
+      "evidence": "Pending notcompletion; resultreceiptUUID+SHA/tuple/work verified beforeownacceptedoneparentchain; no202fabricated200, childallowChainfalse no recursion, context/abort checks. But R1losesparent onreadychild and R3rejectsnone. Currentpublication/servermechanicsbarrier unchanged; Source code alone proves no gameplayPASS."
+    },
+    {
+      "topic": "Polling finite budget",
+      "result": "COVERED_STATIC_WITH_R1_R2_FINDINGS",
+      "evidence": "Perwork50reads/min7sec/max350sec, record retained onmanualrefresh; transport/mismatch/unknown/budget stops and no provider resend. Actor/room epoch/session/abort guard retained. Sameinstanceownedack maychain; fullreloadwithoutack readonly only and explicit continuation remainsOPEN. R1/R2 independent scope/selection flaws."
+    },
+    {
+      "topic": "DB installation composition",
+      "result": "COVERED_STATIC_ROOT_OPEN",
+      "evidence": "12statementdelta installs onlystatus/claimauth, no technicalreinstall. Advisorylock andbaseline11CAS nowtechquiescentd2bab, committedownabort/HOLD/quiescence/newobserverabsent/proofbody guards; explicit serviceRolegrant andpostbody/ACL. Claimceae/auth6b63 source deltas minimal vs genuine1c4/d42. Root113/config identity must coverallcurrent112 plusobserver beforeactualapply."
+    },
+    {
+      "topic": "Recovery",
+      "result": "COVERED_STATIC_FINALCOMPOSITION_OPEN",
+      "evidence": "8statementrecovery underHOLD/ownabort/noaliveprovider andthreecandidatebodyhashguard restores exact1c4/d42, revokesobserverclients/service whilepreservingowneronlysource, history/resources/charges. NoDROPDELETE/rootretime. PairedEdge/UIrecovery must be reconciled with currentfinalcomposition, notblindaf197 deploy."
+    },
+    {
+      "topic": "Graph and unchanged paths",
+      "result": "COVERED_STATIC_WITH_UI_R2",
+      "evidence": "14members closed18relativeimports; 3changedentry/http/runtime,11membersbyteexactincludingprovider/schema/choice/directorread/sharedmodules. Syntax14+UI PASS only. Legacybackend passes samepreparedclaim synchronously unlessnamed240profile; UIlegacy observation regression is R2."
+    }
+  ],
+  "remaining_gates": [
+    "Fix R1/R2/R3 in oneaggregate under samefamily/mandate and counterverify frozenrevision; no reviewerpatches or microphonefixcycles here.",
+    "Root113producer/config/schema/semanticcontrol stillOPEN; require one eventual independentaggregate covering actualwhole DB/Edge/UI/config/recovery/Rootidentity beforeinstallation. This redcode review is not thatfinalaggregate.",
+    "Fresh genuineSourceheaders/ACL/OID/Edge68/14af197/UIpublishedb09/helpera01 baseline preflight andexplicitHOLD/apply/deploy/Register/enable authorizations distinct; nooldRoot37repin/clockrenewal.",
+    "ActualStafflimited2PG2PNG with Fati/phases/mechanics/singleFato/defensebarrier/return/normalend andPG48postflight remainsNOT_RUN; technicalAbort8039doesnotcoverthese.",
+    "Warmworker400 residual actuallifetime unproven; Count120+Gen240 work360 clipping notguaranteed400isolate lifetime. Qualify inStaff withinfiniteRoot/budget, no alternatebench/retries.",
+    "Oldnamedtechnicalcertificate covers only historical0711/5bb8; futureUNCERTAINcleanup is not automaticallyqualified byoldAbortPASS.",
+    "Fullreload withoutownacceptedack is statusonly; noautomaticNarrationrestore promised. Scope gap must stayOPEN untilrealauthorized continuation handled."
+  ],
+  "family_accounting": {
+    "same_candidate": "C1264/C889/C1266 noreset",
+    "technical_review": "f596 retained separatepertinent000, now appliedownAbortbyRoot",
+    "this_pass": "Runtimecode independentaggregated review0/1/2; adds to familyhistory, not newcounterorigin. No source corrections made byreviewer.",
+    "prior_cycle_totals": "Parentfamilyledger/userderogation authoritative; neither initialoldcycles nor correction/counter counts re-derived/reset/relabelled here."
+  },
+  "operations_actual": {
+    "SQL": 0,
+    "UI": 0,
+    "Git": 0,
+    "Edge": 0,
+    "provider": 0,
+    "helpers": 0,
+    "application_imports": 0,
+    "fixtures": 0,
+    "code_edits": 0,
+    "newRoot": 0,
+    "gameplay_cases": 0
+  },
+  "source_refs": [
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_FREEZE.json",
+      "sha256": "265ef5c6ecf1ad8a5c5e8b2c4089041b7bbdf7776fd143553b82ca903d73de31",
+      "bytes": 7010
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_MANIFEST.json",
+      "sha256": "d6d0b5f2e880af105ff2d21933b9a41d0cd2392c23e743967b750702fac1ed71",
+      "bytes": 7289
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_DB_DELTA.sql",
+      "sha256": "54967d604c57c8afa3498c389f9f89af2c3aee36efdabc972e4309b9d46c6cb4",
+      "bytes": 32460
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_EDGE_BUNDLE_FILES.json",
+      "sha256": "e8f924429bff731359563497966f3f4dc42e4361a900d04b684b8c032eaac946",
+      "bytes": 360531
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_SDK_DELTA.json",
+      "sha256": "fae76034c197485ce23a070cd45b7c70d4ccaaf5181fd9c39ef23dfcc7bd76ec",
+      "bytes": 3241
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_UI_SOURCE.mjs",
+      "sha256": "d09996dcafbec5a0029f631e9b632820922082cdc8e5395a6c4791e7ff0444c6",
+      "bytes": 99832
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_UI_FREEZE.json",
+      "sha256": "077a18c1a88a0ea5378a6b03628f2ec50bfc2fbd35df9274a7b05afa555ce699",
+      "bytes": 2711
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_UI_MANIFEST.json",
+      "sha256": "c70b2c23d7d6d43e782470a297c9f72295661d8a8fb6bc775b9caf1488cf3dd0",
+      "bytes": 3430
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_RECOVERY.sql",
+      "sha256": "de8878976b8624db3b006647cf657665c7ff0540c6efabac89ce64cd72209e4e",
+      "bytes": 23746
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_RECOVERY_PROTOCOL.json",
+      "sha256": "a0e0618e0da5f5cadb9f49c72af78a0ab171b3aa9df194e7291e8895be3607e3",
+      "bytes": 1809
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_CONTRACT.json",
+      "sha256": "8b9d1674e77bbd9f27447d8619da2b140561217b5e93b75e40625af6882b26a0",
+      "bytes": 4266
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_UI_CONTRACT.json",
+      "sha256": "123d291124229ed6f3c52898f7679cf5634d79c9e4dafc9b9cde1b10973cb672",
+      "bytes": 2502
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_TECHNICAL_ABORT_LIVE_ACTUAL.json",
+      "sha256": "d8c32d8e832d856052251a5e8f3bcbbf63b1557e728984e503b4b004c4701e0d",
+      "bytes": 26067
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_TECHNICAL_ABORT_LIVE_POST_RAW.json",
+      "sha256": "6051091b8ffe2b04c17154777a5f831aea8fd8e405f2b675b860861affd5518b",
+      "bytes": 24123
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_COUNT_PROOF_PERMANENT_SOURCE.sql",
+      "sha256": "e43589ce71d0bde42d09a2140338dfb6499ca7b60060f7a1d7537ea64a0c1c36",
+      "bytes": 82567
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_INSTALL.sql",
+      "sha256": "33e824fe2cfe2d5ccc857e700465dda6381ee7612c89fb1b22a80a684fa3a268",
+      "bytes": 653790
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_COUNT_DIAG3_CURRENT85_OPERATOR_BASELINE_ACTUAL.json",
+      "sha256": "910470f824e0ec1a6435bfb384ee96637aee23e5878e6545eba4acb2554a9140",
+      "bytes": 389755
+    }
+  ]
+}

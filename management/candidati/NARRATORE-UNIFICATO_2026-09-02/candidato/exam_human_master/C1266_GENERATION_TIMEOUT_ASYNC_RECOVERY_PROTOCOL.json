@@ -1,0 +1,84 @@
+{
+  "schema_version": "c1266-timeout-async-recovery-protocol/1",
+  "classification": "SOURCE_CONSERVATIVE_RECOVERY_NOT_EXECUTED",
+  "technical_recovery": {
+    "source": "embeddedTECHNICAL_ABORT_BUNDLE.recovery exactSHAa0066a7bb79cc51ac00ae339daa51777fea26c2a8e3c1e3166bac8a7858f4c69",
+    "scope": "restorequiescent exactcapturednativeDDL; keepnewproofsourceinert owneronly; preserve Root/clock/ownscene/roles/costs/audit/history",
+    "guard": "candidatebody hashes mustmatch currentactual; driftSTOP; neverDROP/DELETE orresumeterminal work"
+  },
+  "async_recovery": {
+    "source": "C1266_GENERATION_TIMEOUT_ASYNC_RECOVERY.sql",
+    "scope": "onlyclaim/auth nativecapturedbodies; revoke newobserver fromservice/clients, keephistory andowneronlysource; maintainHOLD",
+    "guard": "must match candidatebodyhashes +normalowntechnicalclose/HOLD/noactiveprovider; driftSTOP; actual laterintegrated change needs rebase recovery instead ofoverwriting"
+  },
+  "edge_recovery": {
+    "source": "historical14baselineaf197 fullfiles; must reconcile freshlycapturedcurrentbundle atactualoperation; no stale blinddeploy",
+    "deployment": "afterHOLD/quiescence and explicitcontrolledrecoverymandate; avoidUIAPI mismatch bycomposing pairedUI/API recovery",
+    "data": "no refunds, resets, role replay, workstate rewrites orduplicateFato"
+  },
+  "postflight": [
+    "actualrestoredbody hashes/ACL/signatures/OID against capturedbaseline",
+    "newhelperACL closed andno clients/service execution exceptqualifiednewpath ifstillused",
+    "HOLD stable andoldRoot37 stillimmutableexpired noenable",
+    "protectedresources/ownsessionclosed/audit/billablereserves unchanged",
+    "runtime eligibility with new currentSource/control verified, neveroldRootrepin"
+  ],
+  "automatic_recovery": false,
+  "runtime": "NOT_RUN",
+  "observation_recovery": {
+    "request_schema": "mission-generic-async-recover/1",
+    "request_fields": [
+      "schema_version",
+      "master_session_id",
+      "selector"
+    ],
+    "selectors": {
+      "request": [
+        "kind",
+        "request"
+      ],
+      "staff_tick": [
+        "kind",
+        "source_revision"
+      ]
+    },
+    "response_schema": "mission-generic-async-recovery/1",
+    "response_fields": [
+      "schema_version",
+      "status",
+      "request",
+      "work_id",
+      "state",
+      "receipt_id",
+      "result_sha256",
+      "kind",
+      "retry",
+      "provider_retry_allowed"
+    ],
+    "status": [
+      "owned",
+      "none",
+      "no_work"
+    ],
+    "authority": "Existing service-only STABLE status RPC extended with closed alternative request. Authenticated actor, immutable audit marker unique per new dispatch receipt; request, envelope and owner hashes verified. Staff tick parent reconstructed from existing ledger/progress; never from current child projection. No legacy backfill. Marker proves claim, not worker schedule.",
+    "producer": [
+      "claim audit event c1266_async_owner_v1",
+      "async_status_v1 recovery branch",
+      "HTTP getUser + closed recovery route"
+    ],
+    "consumer": [
+      "Staff driver durable journal selector",
+      "UI readonly ownership recovery and finite observer",
+      "existing parent-qualified narration reader"
+    ],
+    "unchanged": [
+      "Native envelope byte construction",
+      "claim/authorize/status signatures and ACL",
+      "original pending/status DTOs",
+      "roles/phase/Fato publication barriers",
+      "provider policy, model and financial quotas"
+    ],
+    "no_work": "staff_tick only, own persisted verified progress receipt dispatch null, current Staff scope and no pending work. Closes journal without publication proof."
+  },
+  "audit_history": "New marker retained in immutable existing audit even when conservative body recovery is used; no cleanup/backfill/delete."
+}

@@ -1,0 +1,167 @@
+{
+  "schema_version": "c1266-generation-timeout-async-sdk-delta/2",
+  "classification": "SOURCE_RECOVERY_EXTENSION_CLOSED_ORIGINAL_DTOS_UNCHANGED",
+  "gateway": "mission_generic_ai",
+  "producer_bundle_base": "af1971c49f320aab5f4d80399c41df63b0cf0bd89268c916e13591dbace324c6",
+  "delivery_pending": {
+    "http_status": 202,
+    "exact_fields": [
+      "status",
+      "code",
+      "schema_version",
+      "work_id",
+      "master_session_id",
+      "event_id",
+      "request_key",
+      "revision",
+      "retry",
+      "provider_retry_allowed"
+    ],
+    "constants": {
+      "status": 202,
+      "code": "MISSION_EVENT_PENDING",
+      "schema_version": "mission-generic-pending/1",
+      "retry": false,
+      "provider_retry_allowed": false
+    },
+    "placement": "direct response or existing progress.delivery / progress.staff_tick + delivery"
+  },
+  "status_request": {
+    "exact_fields": [
+      "schema_version",
+      "request"
+    ],
+    "schema_version": "mission-generic-async-status/1",
+    "request_exact_fields": [
+      "schema_version",
+      "master_session_id",
+      "event_id",
+      "request_key",
+      "expected_revision"
+    ],
+    "request_schema_version": "mission-generic-request/1",
+    "binding": "retain the same immutable request; never resend role or generate a new request_key"
+  },
+  "status_response": {
+    "http_status": 200,
+    "exact_fields": [
+      "schema_version",
+      "work_id",
+      "master_session_id",
+      "event_id",
+      "request_key",
+      "revision",
+      "state",
+      "receipt_id",
+      "result_sha256",
+      "retry",
+      "provider_retry_allowed"
+    ],
+    "schema_version": "mission-generic-async-status-response/1",
+    "state": [
+      "ready",
+      "claimed",
+      "authorized",
+      "provider_started",
+      "uncertain",
+      "completed",
+      "failed"
+    ],
+    "receipt_id": "UUID|null",
+    "result_sha256": "SHA256|null",
+    "retry": false,
+    "provider_retry_allowed": false
+  },
+  "consumer_rules": [
+    "202 means processing, not complete, no publication or gameplay unlock",
+    "Observe status against the same session/event/request/revision and work_id from pending ack; no provider retry",
+    "Existing_work/claim uncertain responses do not authorize another claim; observe existing projection/status only",
+    "Completed requires matching native receipt UUID and result SHA before exactly one directorNarrationRead/next transition for that parent",
+    "Do not fabricate a synchronous 200 EVENT_COMPLETE from 202; use explicit confirmed completed transition bound to parent receipt",
+    "Failed/uncertain stops generation and preserves billable/accounting evidence; expose normal own Staff technical abort when certified",
+    "Refresh/reopen observes current native work; never resends submitted roles or schedules a second worker",
+    "Bound status observation by finite operational budget; polling provider Responses forbidden; status-only RPC does not reserve Count/Gen",
+    "Durable journal is a reference only. After reload/lost ACK require server-owned recovery before chaining.",
+    "Readonly transport failures consume the same persistent finite budget; no provider retry.",
+    "Durable journal is a reference only. After reload/lost ACK require server-owned recovery before chaining.",
+    "Readonly transport failures consume the same persistent finite budget; no provider retry."
+  ],
+  "open": [
+    "Source independent aggregate3 counterreview pending; no installation or Staff proof",
+    "Ordinary latency/capacity remains separately unqualified; this UI recovery targets opted-in Staff driver"
+  ],
+  "recovery": {
+    "request_schema": "mission-generic-async-recover/1",
+    "request_fields": [
+      "schema_version",
+      "master_session_id",
+      "selector"
+    ],
+    "selectors": {
+      "request": [
+        "kind",
+        "request"
+      ],
+      "staff_tick": [
+        "kind",
+        "source_revision"
+      ]
+    },
+    "response_schema": "mission-generic-async-recovery/1",
+    "response_fields": [
+      "schema_version",
+      "status",
+      "request",
+      "work_id",
+      "state",
+      "receipt_id",
+      "result_sha256",
+      "kind",
+      "retry",
+      "provider_retry_allowed"
+    ],
+    "status": [
+      "owned",
+      "none",
+      "no_work"
+    ],
+    "authority": "Existing service-only STABLE status RPC extended with closed alternative request. Authenticated actor, immutable audit marker unique per new dispatch receipt; request, envelope and owner hashes verified. Staff tick parent reconstructed from existing ledger/progress; never from current child projection. No legacy backfill. Marker proves claim, not worker schedule.",
+    "producer": [
+      "claim audit event c1266_async_owner_v1",
+      "async_status_v1 recovery branch",
+      "HTTP getUser + closed recovery route"
+    ],
+    "consumer": [
+      "Staff driver durable journal selector",
+      "UI readonly ownership recovery and finite observer",
+      "existing parent-qualified narration reader"
+    ],
+    "unchanged": [
+      "Native envelope byte construction",
+      "claim/authorize/status signatures and ACL",
+      "original pending/status DTOs",
+      "roles/phase/Fato publication barriers",
+      "provider policy, model and financial quotas"
+    ],
+    "no_work": "staff_tick only, own persisted verified progress receipt dispatch null, current Staff scope and no pending work. Closes journal without publication proof."
+  },
+  "read_failure": {
+    "fields": [
+      "code",
+      "retry",
+      "provider_retry_allowed",
+      "read_retry_allowed"
+    ],
+    "prefixes": [
+      "MISSION_ASYNC_RECOVERY",
+      "MISSION_ASYNC_STATUS",
+      "MISSION_DIRECTOR_NARRATION_READ"
+    ],
+    "classes": {
+      "TRANSIENT": 503,
+      "FORBIDDEN": 403,
+      "INVALID": 422
+    },
+    "read_retry_allowed": "true only TRANSIENT, unknown errors fail closed"
+  }
+}

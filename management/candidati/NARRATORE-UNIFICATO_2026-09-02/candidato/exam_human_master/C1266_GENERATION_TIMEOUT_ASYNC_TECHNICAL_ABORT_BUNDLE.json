@@ -1,0 +1,264 @@
+{
+  "schema_version": "c1266-generation-timeout-technical-abort-bundle/1",
+  "classification": "SOURCE_FROZEN_REVIEW_READY_NO_APPLY",
+  "installer": {
+    "name": "C1266_GENERATION_TIMEOUT_ASYNC_TECHNICAL_ABORT_SOURCE.sql",
+    "content": "-- SOURCE ONLY: separable technical abort availability correction; not gameplay closure.\n-- No Root/core registration, clock renewal, provider, financial settlement or gameplay mutation.\nBEGIN;\nSELECT pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('C1266:GENERIC-AI:AVAILABILITY',0));\nDO $baseline$\nBEGIN\n IF EXISTS(SELECT 1 FROM (VALUES\n('mission_generic_owner.c1266_clean_staff_admission_v1(uuid,boolean,boolean)','308958','ddf38f4d3b39114d74bd00ba6a2310ac','d3efa550240b4cfe4fe571a559caef24','{postgres=X/postgres}','postgres','plpgsql','v',true,'[\"search_path=\\\"\\\"\"]'::jsonb),\n('mission_staff_abort_private.quiescent_v1(uuid)','261521','3d9108cf9f1dba7c740ecc4e829aa553','414a802170529b43f5fe7348af7905ac','{postgres=X/postgres}','postgres','sql','s',true,'[\"search_path=\\\"\\\"\"]'::jsonb),\n('public.mission_generic_dispatch_finalize_v1(uuid,text,text,text)','50414','8ec3a46b6ccf9367604f4d94f1ce7560','2c9874697871e6f14644c86b3a2abae0','{postgres=X/postgres,service_role=X/postgres}','postgres','plpgsql','v',true,'[\"search_path=\\\"\\\"\"]'::jsonb),\n('public.mission_narrative_attempt_reserve_internal(text,uuid,integer,jsonb,text)','35929','dbfdc0f6b0bc421c55e49c51d61b3103','cf331376c5a1205367228c287d8ae372','{postgres=X/postgres,anon=X/postgres}','postgres','plpgsql','v',true,'[\"search_path=\\\"\\\"\"]'::jsonb),\n('mission_staff_abort_private.source_v1(uuid)','261520','1f73a4af64288375b2958def5ee21923','4fd3054b232421df9398b8c1359512f4','{postgres=X/postgres}','postgres','plpgsql','v',true,'[\"search_path=\\\"\\\"\"]'::jsonb),\n('public.mission_generic_dispatch_authorize_v1(uuid,uuid,text,jsonb)','50412','d42b7199823b1f6e4a9937f061440457','d8cc2e59d5c48e3a99b7b19a37ad027f','{postgres=X/postgres,service_role=X/postgres}','postgres','plpgsql','v',true,'[\"search_path=\\\"\\\"\"]'::jsonb),\n('public.mission_generic_dispatch_claim_v1(uuid,jsonb)','50410','1c4ce5a60bd575249783892cb2cbbd52','e6a1e6a69998f85427af9fd7bd13a942','{postgres=X/postgres,service_role=X/postgres}','postgres','plpgsql','v',true,'[\"search_path=\\\"\\\"\"]'::jsonb),\n('public.mission_generic_dispatch_consume_v1(uuid,uuid,text,uuid,text)','50413','9f562ade3085ec571e1710a6eeb41901','a99aba7ce1a32aada299abcaa6d20001','{postgres=X/postgres,service_role=X/postgres}','postgres','plpgsql','v',true,'[\"search_path=\\\"\\\"\"]'::jsonb),\n('public.mission_generic_input_count_start_v1(uuid,uuid,text,text)','278279','21a49c40890c157da7ec7c4abc32751d','767b3b25dec1eeed3e78bbf61aceb887','{postgres=X/postgres,service_role=X/postgres}','postgres','plpgsql','v',true,'[\"search_path=\\\"\\\"\"]'::jsonb),\n('public.mission_staff_simulation_abort_state_v1(uuid)','261522','ca5e9cece7e9d53f97250848f674a8a8','9d7131c725aaaaf700878fc34687aa68','{postgres=X/postgres,authenticated=X/postgres}','postgres','plpgsql','v',true,'[\"search_path=\\\"\\\"\"]'::jsonb),\n('public.mission_staff_simulation_abort_v1(uuid,bigint,bigint,uuid)','261524','e5186651b4bdabb04dcb27a412c8d8d1','518dc28a889dc531a8f2dd5c5d8701d4','{postgres=X/postgres,authenticated=X/postgres}','postgres','plpgsql','v',true,'[\"search_path=\\\"\\\"\"]'::jsonb)\n ) expected(signature,oid,source_md5,ddl_md5,acl,owner,language,volatility,secdef,config)\n LEFT JOIN pg_catalog.pg_proc p ON p.oid=to_regprocedure(expected.signature)\n LEFT JOIN pg_catalog.pg_language l ON l.oid=p.prolang\n WHERE p.oid IS NULL OR p.oid::text IS DISTINCT FROM expected.oid\n OR md5(p.prosrc) IS DISTINCT FROM expected.source_md5 OR md5(pg_get_functiondef(p.oid)) IS DISTINCT FROM expected.ddl_md5\n OR p.proacl::text IS DISTINCT FROM expected.acl OR pg_get_userbyid(p.proowner) IS DISTINCT FROM expected.owner\n OR l.lanname IS DISTINCT FROM expected.language OR p.provolatile::text IS DISTINCT FROM expected.volatility\n OR p.prosecdef IS DISTINCT FROM expected.secdef OR to_jsonb(p.proconfig) IS DISTINCT FROM expected.config)\n THEN RAISE EXCEPTION 'C1266_TIMEOUT_BASELINE_DRIFT' USING ERRCODE='40001';END IF;\nEND $baseline$;\nDO $new_name$\nBEGIN\n IF to_regprocedure('mission_generic_owner.c1266_generation_timeout_terminal_proof_v1(uuid)') IS NOT NULL\n THEN RAISE EXCEPTION 'C1266_TIMEOUT_PROOF_ALREADY_EXISTS' USING ERRCODE='40001';END IF;\nEND $new_name$;\n-- SOURCE ONLY: new narrow terminal certificate; no mutation/accounting settlement.\nCREATE OR REPLACE FUNCTION mission_generic_owner.c1266_generation_timeout_terminal_proof_v1(p_work uuid)\nRETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO '' AS $proof$\nSELECT jsonb_build_object('schema_version','c1266-generation-timeout-terminal/1',\n 'work_id',w.id,'master_session_id',w.master_session_id,'dispatch_receipt_id',d.id,\n 'receipt_id',w.receipt_id,'result_sha256',w.result_sha256,\n 'retained_generation_cost_usd',d.charged_cost_usd,'provider_outcome','unknown_billable')\nFROM mission_generic_owner.work_items w\nJOIN mission_narrative_internal.dispatch_receipts d ON d.id=w.dispatch_receipt_id\nJOIN mission_narrative_internal.provider_authorizations z ON z.id=w.authorization_id AND z.receipt_id=d.id\nJOIN mission_narrative_internal.dispatch_attempts a ON a.id=z.attempt_id AND a.receipt_id=d.id\nWHERE w.id=p_work AND w.id='0711e2fb-5d12-439a-b07e-e5ce20899266'::uuid\nAND w.master_session_id='5bb8dc0d-fe30-4ff5-bb50-1cfda2aee780'::uuid\nAND d.id='1795a0eb-b7a3-4437-a766-834db9098f91'::uuid\nAND w.state='uncertain' AND w.kind='director' AND w.finalized_at IS NOT NULL\nAND w.receipt_id IS NOT NULL AND w.message_id IS NULL AND w.lease_expires_at<=statement_timestamp()\nAND w.result->>'ok'='false' AND w.result->>'outcome_uncertain'='true'\nAND w.result->'failure_codes'='[\"provider_outcome_unknown\"]'::jsonb\nAND w.result->>'provider_calls'='1'\nAND w.result_sha256='3de0dd4a17e3abd8be94892d6c6b9004eb89ea7e991bd2cd3e0285636c2cdb3e'\nAND w.payload_sha256=public.combat_v2_sha256(w.payload)\nAND mission_generic_owner.c1266_historical_work_v1(w.id)->>'execution_context'='staff_mission'\nAND mission_generic_owner.c1266_historical_work_v1(w.id)#>>'{admission,resource_scope}'='staff_simulation'\nAND d.master_session_id=w.master_session_id AND d.authority_receipt_id=w.id\nAND d.request_key=w.request_key AND d.renderer_version='mission-generic-runtime/1'\nAND d.event_kind='mission_generic_event' AND d.status='unknown_billable'\nAND d.dispatch_count=1 AND d.finalized_at IS NOT NULL\nAND d.lease_token_sha256 IS NULL AND d.lease_expires_at IS NULL\nAND z.finalize_token_sha256 IS NULL\nAND a.id='6d264cc7-d8be-4bdd-91b3-3033833db574'::uuid\nAND a.status='unknown_billable' AND a.finalized_at IS NOT NULL\nAND a.actual_cost_usd=0.0124 AND d.charged_cost_usd=0.0124 AND d.upper_bound_cost_usd=0.0124\nAND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_attempts pending\n WHERE pending.receipt_id=d.id AND(pending.finalized_at IS NULL OR pending.status<>'unknown_billable'))\nAND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_audit counted\n WHERE counted.receipt_id=d.id AND counted.event_code='c8_count_success'\n AND counted.details->>'work_id'=w.id::text AND counted.details->>'state'='success'\n AND counted.details->>'generation_allowed'='true' AND counted.details->>'count_http_calls'='1'\n AND counted.details->>'generation_http_calls'='0')\nAND EXISTS(SELECT 1 FROM staff_ai_quota_private.calls paid\n WHERE paid.producer='mission_generic_ai' AND paid.source_id=d.id AND paid.scope_id=w.master_session_id\n AND paid.call_no=1 AND paid.state='unknown_billable' AND paid.reserved_usd=0.0124)\nAND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_audit started\n JOIN mission_narrative_internal.dispatch_audit counted ON counted.receipt_id=started.receipt_id AND counted.event_code='c8_count_success'\n JOIN staff_ai_quota_private.calls count_paid ON count_paid.id=(started.details->>'shared_count_ticket')::uuid\n WHERE started.receipt_id=d.id AND started.event_code='c8_count_started'\n AND started.details->>'measurement_id'=counted.details->>'measurement_id'\n AND started.details->>'generation_request_sha256'=counted.details->>'generation_request_sha256'\n AND count_paid.producer='mission_generic_ai' AND count_paid.source_id=d.id AND count_paid.scope_id=w.master_session_id\n AND count_paid.call_no=2 AND count_paid.state='unknown_billable' AND count_paid.reserved_usd=0.0124\n AND count_paid.charged_usd IS NULL)\nAND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_audit audit\n WHERE audit.receipt_id=d.id AND audit.event_code='generic_finalized'\n AND audit.details->>'work_id'=w.id::text AND audit.details->>'receipt_id'=w.receipt_id::text\n AND audit.details->>'result_sha256'=w.result_sha256\n AND audit.details->>'result_jsonb_sha256'=public.combat_v2_sha256(w.result)\n AND audit.details->>'state'='uncertain' AND audit.details->>'outcome_uncertain'='true'\n AND audit.details->'message_id'='null'::jsonb AND audit.details->'command_receipt'='null'::jsonb\n AND audit.details->'application_error_code'='null'::jsonb\n AND audit.details->'application_error_sqlstate'='null'::jsonb)\nAND NOT EXISTS(SELECT 1 FROM mission_generic_owner.unified_batches b\n WHERE b.master_session_id=w.master_session_id AND b.decision_work_id=w.id)\nAND NOT EXISTS(SELECT 1 FROM mission_generic_owner.work_items child\n WHERE child.master_session_id=w.master_session_id AND child.kind='narration'\n AND child.authority_receipt_id=w.authority_receipt_id)\nAND NOT EXISTS(SELECT 1 FROM public.combat_v2_sessions combat WHERE combat.master_session_id=w.master_session_id)\n$proof$;\nREVOKE ALL ON FUNCTION mission_generic_owner.c1266_generation_timeout_terminal_proof_v1(uuid) FROM PUBLIC,anon,authenticated,service_role;\nGRANT EXECUTE ON FUNCTION mission_generic_owner.c1266_generation_timeout_terminal_proof_v1(uuid) TO postgres;\nCREATE OR REPLACE FUNCTION mission_staff_abort_private.quiescent_v1(p_session uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n select not exists(select 1 from mission_generic_owner.work_items w where w.master_session_id=p_session\n  and not ((mission_generic_owner.c1266_generation_timeout_terminal_proof_v1(w.id)IS NOT NULL) OR (mission_generic_owner.c1266_count_terminal_proof_v1(w.id,true)IS NOT NULL) OR ((w.id='d8b37311-6010-4a07-95d3-5e65a33c756d'::uuid AND w.master_session_id='9ac00210-4c88-4c0c-a443-95e3d6740a28'::uuid\n AND w.kind='director'AND w.payload->>'schema_version'='mission-director-work/4'AND w.state='failed'\n AND w.finalized_at IS NOT NULL AND w.receipt_id IS NOT NULL AND w.message_id IS NULL\n AND w.authorization_id IS NULL AND w.dispatch_id IS NULL AND w.lease_expires_at<=clock_timestamp()\n AND w.payload_sha256=public.combat_v2_sha256(w.payload)AND w.result_sha256=public.combat_v2_sha256(w.result)\n AND w.result->>'schema_version'='mission-input-count-unknown-failure/1'\n AND w.result->'failure_codes'='[\"MISSION_INPUT_COUNT_UNKNOWN\"]'::jsonb\n AND w.result->>'outcome_uncertain'='false'AND w.result->>'count_outcome_unknown'='true'\n AND w.result->>'count_http_calls'='1'AND w.result->>'generation_http_calls'='0'\n AND w.result->>'count_cost_state'='unknown_billable'AND w.result->'count_reserve_usd'='0.0124'::jsonb\n AND mission_generic_owner.c1266_historical_work_v1(w.id)->>'execution_context'='staff_mission'\n AND mission_generic_owner.c1266_historical_work_v1(w.id)#>>'{admission,resource_scope}'='staff_simulation'\n AND NOT EXISTS(SELECT 1 FROM mission_generic_owner.unified_batches cleanup_batch WHERE cleanup_batch.master_session_id=w.master_session_id)\n AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_receipts cleanup_receipt\n JOIN mission_narrative_internal.dispatch_audit cleanup_terminal ON cleanup_terminal.receipt_id=cleanup_receipt.id AND cleanup_terminal.event_code='generic_count_unknown_terminal'\n JOIN mission_narrative_internal.dispatch_audit cleanup_proof ON cleanup_proof.receipt_id=cleanup_receipt.id AND cleanup_proof.event_code='c8_count_unknown'\n JOIN staff_ai_quota_private.calls cleanup_count ON cleanup_count.id=(cleanup_terminal.details->>'count_ticket')::uuid\n WHERE cleanup_receipt.id=w.dispatch_receipt_id AND cleanup_receipt.master_session_id=w.master_session_id AND cleanup_receipt.authority_receipt_id=w.id\n AND cleanup_receipt.status='failed'AND cleanup_receipt.finalized_at IS NOT NULL AND cleanup_receipt.dispatch_count=0\n AND cleanup_receipt.charged_cost_usd=0 AND cleanup_receipt.upper_bound_cost_usd IS NULL\n AND cleanup_terminal.details->>'schema_version'='c1266-count-unknown-terminal/1'\n AND cleanup_terminal.details->>'work_id'=w.id::text AND cleanup_terminal.details->>'receipt_id'=w.receipt_id::text\n AND cleanup_terminal.details->>'payload_sha256'=w.payload_sha256 AND cleanup_terminal.details->>'result_sha256'=w.result_sha256\n AND cleanup_terminal.details->>'measurement_id'=cleanup_proof.details->>'measurement_id'\n AND cleanup_terminal.details->>'generation_request_sha256'=cleanup_proof.details->>'generation_request_sha256'\n AND cleanup_proof.details->>'state'='unknown'AND cleanup_proof.details->>'generation_allowed'='false'\n AND cleanup_proof.details->>'count_http_calls'='1'AND cleanup_proof.details->>'generation_http_calls'='0'\n AND cleanup_count.producer='mission_generic_ai'AND cleanup_count.source_id=cleanup_receipt.id\n AND cleanup_count.scope_id=w.master_session_id AND cleanup_count.call_no=2 AND cleanup_count.state='unknown_billable'\n AND cleanup_count.charged_usd IS NULL AND cleanup_count.reserved_usd=0.0124\n AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_attempts cleanup_attempt WHERE cleanup_attempt.receipt_id=cleanup_receipt.id)\n AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.provider_authorizations cleanup_auth WHERE cleanup_auth.receipt_id=cleanup_receipt.id)\n AND NOT EXISTS(SELECT 1 FROM staff_ai_quota_private.calls cleanup_gen WHERE cleanup_gen.source_id=cleanup_receipt.id AND cleanup_gen.scope_id=w.master_session_id AND cleanup_gen.call_no=1)))IS TRUE) OR ((w.state='failed' AND w.kind='director'\n AND w.payload->>'schema_version'='mission-director-work/4'\n AND w.finalized_at IS NOT NULL AND w.receipt_id IS NOT NULL AND w.message_id IS NULL\n AND w.lease_expires_at IS NOT NULL AND w.lease_expires_at<=clock_timestamp()\n AND w.result->>'ok'='false' AND w.result->>'outcome_uncertain'='false'\n AND w.result->'failure_codes'='[\"MISSION_ROLE_ROLE_EVIDENCE_UNBOUND\"]'::jsonb\n AND jsonb_typeof(w.result->'decision')='null' AND jsonb_typeof(w.result->'command')='null'\n AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_audit terminal_final_audit WHERE terminal_final_audit.receipt_id=w.dispatch_receipt_id AND terminal_final_audit.event_code='generic_finalized' AND terminal_final_audit.details->>'work_id'=w.id::text AND terminal_final_audit.details->>'receipt_id'=w.receipt_id::text AND terminal_final_audit.details->>'result_sha256'=w.result_sha256 AND terminal_final_audit.details->>'result_jsonb_sha256'=public.combat_v2_sha256(w.result) AND terminal_final_audit.details->>'state'='failed' AND terminal_final_audit.details->>'cost_basis'='exact' AND terminal_final_audit.details->>'stale'='false' AND terminal_final_audit.details->>'outcome_uncertain'='false' AND jsonb_typeof(terminal_final_audit.details->'message_id')='null' AND jsonb_typeof(terminal_final_audit.details->'command_receipt')='null' AND jsonb_typeof(terminal_final_audit.details->'application_error_code')='null' AND jsonb_typeof(terminal_final_audit.details->'application_error_sqlstate')='null')\n AND w.payload_sha256=public.combat_v2_sha256(w.payload)\n -- Only immutable named C1266 protected Staff authority: live availability may be OFF for normal cleanup.\n AND mission_generic_owner.c1266_historical_work_v1(w.id)->>'execution_context'='staff_mission'\n AND mission_generic_owner.c1266_historical_work_v1(w.id)#>>'{admission,kind}'='staff_finite'\n AND mission_generic_owner.c1266_historical_work_v1(w.id)#>>'{admission,resource_scope}'='staff_simulation'\n AND mission_generic_owner.c1266_historical_work_v1(w.id)#>>'{admission,location_id}'='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'\n AND EXISTS(SELECT 1 FROM public.master_v2_sessions protected_master\n  JOIN public.locations protected_location ON protected_location.id=protected_master.location_id\n  WHERE protected_master.id=w.master_session_id AND protected_master.owner_kind='ai_service'\n  AND protected_master.location_id='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'\n  AND protected_location.is_active AND protected_location.is_test)\n -- A failed validation before a decision cannot have issued a writer or any unified batch/effect.\n AND NOT EXISTS(SELECT 1 FROM mission_generic_owner.unified_batches issued_batch\n  WHERE issued_batch.master_session_id=w.master_session_id AND issued_batch.decision_work_id=w.id)\n AND NOT EXISTS(SELECT 1 FROM mission_generic_owner.work_items issued_writer\n  WHERE issued_writer.master_session_id=w.master_session_id AND issued_writer.kind='narration'\n  AND issued_writer.authority_receipt_id=w.authority_receipt_id)\n AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_receipts paid_receipt\n  JOIN mission_narrative_internal.provider_authorizations paid_authorization\n   ON paid_authorization.id=w.authorization_id AND paid_authorization.receipt_id=paid_receipt.id\n  JOIN mission_narrative_internal.dispatch_attempts paid_attempt\n   ON paid_attempt.id=paid_authorization.attempt_id AND paid_attempt.receipt_id=paid_receipt.id\n  WHERE paid_receipt.id=w.dispatch_receipt_id AND paid_receipt.master_session_id=w.master_session_id\n  AND paid_receipt.authority_receipt_id=w.id AND paid_receipt.request_key=w.request_key\n  AND paid_receipt.event_kind='mission_generic_event' AND paid_receipt.renderer_version='mission-generic-runtime/1'\n  AND paid_receipt.status='success' AND paid_receipt.finalized_at IS NOT NULL AND paid_receipt.dispatch_count=1\n  AND paid_receipt.charged_cost_usd IS NOT NULL AND paid_receipt.charged_cost_usd>=0\n  AND paid_receipt.charged_cost_usd<=paid_receipt.upper_bound_cost_usd\n  AND paid_attempt.status='success' AND paid_attempt.finalized_at IS NOT NULL\n  AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_attempts unresolved_attempt\n   WHERE unresolved_attempt.receipt_id=paid_receipt.id\n   AND(unresolved_attempt.status<>'success' OR unresolved_attempt.finalized_at IS NULL))\n  AND EXISTS(SELECT 1 FROM staff_ai_quota_private.calls settled_generation\n   WHERE settled_generation.source_id=paid_receipt.id AND settled_generation.scope_id=w.master_session_id\n   AND settled_generation.call_no=1 AND settled_generation.state='settled'\n   AND settled_generation.charged_usd=paid_receipt.charged_cost_usd))) IS TRUE) OR (w.state='failed' AND w.result->>'schema_version'='mission-count-overflow-failure/1'\n AND w.result->'failure_codes'='[\"MISSION_INPUT_COUNT_OVERFLOW\"]'::jsonb\n AND w.result->>'outcome_uncertain'='false' AND w.result->>'provider_calls'='0'\n AND w.authorization_id IS NULL AND w.dispatch_id IS NULL AND w.finalized_at IS NOT NULL AND w.receipt_id IS NOT NULL\n AND w.result_sha256=public.combat_v2_sha256(w.result) AND w.payload_sha256=public.combat_v2_sha256(w.payload)\n AND w.master_session_id='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'::uuid\n AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_receipts d\n JOIN mission_narrative_internal.dispatch_audit a ON a.receipt_id=d.id AND a.event_code='generic_count_overflow_terminal'\n JOIN mission_narrative_internal.dispatch_audit cp ON cp.receipt_id=d.id AND cp.event_code='c8_count_success'\n JOIN staff_ai_quota_private.calls ct ON ct.id=(a.details->>'count_ticket')::uuid\n WHERE d.id=w.dispatch_receipt_id AND d.master_session_id=w.master_session_id AND d.authority_receipt_id=w.id\n AND d.status='failed' AND d.dispatch_count=0 AND d.finalized_at IS NOT NULL AND d.charged_cost_usd=0 AND d.upper_bound_cost_usd IS NULL\n AND a.details->>'schema_version'='c1264-count-overflow-terminal/1' AND a.details->>'work_id'=w.id::text\n AND a.details->>'receipt_id'=w.receipt_id::text AND a.details->>'result_sha256'=w.result_sha256\n AND a.details->>'source_window_id'=w.authority_receipt_id::text AND a.details->>'payload_sha256'=w.payload_sha256\n AND cp.details->>'measurement_id'=a.details->>'measurement_id' AND cp.details->>'state'='success'\n AND cp.details->>'generation_allowed'='false' AND (cp.details->>'input_tokens')::integer>12000\n AND cp.details->>'max_input_tokens'='12000' AND cp.details->>'generation_http_calls'='0'\n AND ct.producer='mission_generic_ai' AND ct.scope_id=w.master_session_id AND ct.source_id=d.id AND ct.call_no=2\n AND ct.state='unknown_billable' AND ct.charged_usd IS NULL AND ct.reserved_usd=0.0112\n AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_attempts da WHERE da.receipt_id=d.id)\n AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.provider_authorizations pa WHERE pa.receipt_id=d.id))) OR (w.master_session_id='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'::uuid AND w.state='failed' AND w.finalized_at IS NOT NULL AND w.result->>'outcome_uncertain'='false' AND mission_generic_owner.role_source_released_v4(w.authority_receipt_id) AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_receipts d WHERE d.id=w.dispatch_receipt_id AND d.status IN('success','fallback') AND d.finalized_at IS NOT NULL AND d.dispatch_count=1 AND EXISTS(SELECT 1 FROM staff_ai_quota_private.calls settled WHERE settled.source_id=d.id AND settled.scope_id=w.master_session_id AND settled.call_no=1 AND settled.state='settled' AND settled.charged_usd=d.charged_cost_usd))) OR (w.state='completed' and exists(select 1 from mission_narrative_internal.dispatch_receipts d where d.id=w.dispatch_receipt_id and d.master_session_id=p_session and d.status='success' and d.finalized_at is not null) and not exists(select 1 from mission_narrative_internal.dispatch_attempts a where a.receipt_id=w.dispatch_receipt_id and (a.status<>'success' or a.finalized_at is null))) or (w.state='ready' and w.lease_id is null and w.dispatch_receipt_id is null\n       and w.authorization_id is null and w.dispatch_id is null)\n or (w.state='failed' and w.authorization_id is null and w.dispatch_id is null\n and w.finalized_at is not null and w.receipt_id is not null\n and w.payload_sha256=public.combat_v2_sha256(w.payload)\n and w.result_sha256=public.combat_v2_sha256(w.result)\n and w.result=jsonb_build_object('schema_version','mission-generic-pre-provider-failure/1',\n 'work_id',w.id,'master_session_id',w.master_session_id,'event_id',w.event_id,'request_key',w.request_key,\n 'revision',w.revision,'ok',false,'failure_code',w.result->>'failure_code','provider_calls',0,'charged_cost_usd',0)\n and w.result->>'failure_code' in('work_validation_failed','request_validation_failed')\n and exists(select 1 from mission_generic_owner.dispatch_admissions ad\n join public.master_v2_sessions ms on ms.id=ad.master_session_id\n join public.locations l on l.id=ms.location_id\n where ad.master_session_id=p_session and ad.c7_budget_enforced\n and ad.c7_budget_qualification_sha256 ~ '^[0-9a-f]{64}$'\n and ms.owner_kind='ai_service' and l.is_test and l.is_active)\n and exists(select 1 from mission_narrative_internal.dispatch_receipts d\n where d.id=w.dispatch_receipt_id and d.master_session_id=p_session and d.authority_receipt_id=w.id\n and d.request_key=w.request_key and d.event_kind='mission_generic_event'\n and d.renderer_version='mission-generic-runtime/1' and d.status='failed' and d.finalized_at is not null\n and d.dispatch_count=0 and d.charged_cost_usd=0 and d.upper_bound_cost_usd=0\n and d.lease_token_sha256 is null and d.lease_expires_at is null\n and not exists(select 1 from mission_narrative_internal.dispatch_attempts da where da.receipt_id=d.id)\n and not exists(select 1 from mission_narrative_internal.provider_authorizations pa where pa.receipt_id=d.id)\n and exists(select 1 from mission_narrative_internal.dispatch_audit audit\n where audit.receipt_id=d.id and audit.event_code='generic_pre_provider_failed'\n and audit.details=jsonb_build_object('work_id',w.id,'receipt_id',w.receipt_id,\n 'failure_code',w.result->>'failure_code','provider_calls',0,'charged_cost_usd',0,'result_sha256',w.result_sha256))))))\n and not exists(select 1 from public.combat_v2_sessions s where s.master_session_id=p_session\n  and (public.combat_v2_values_written(s.id) is distinct from false or combat_panel_private.uses_simulated_pools(s.id) is distinct from true))\n$function$;\nDO $technical_post$\nDECLARE proof jsonb;\nBEGIN\n proof:=mission_generic_owner.c1266_generation_timeout_terminal_proof_v1('0711e2fb-5d12-439a-b07e-e5ce20899266'::uuid);\n IF proof IS NULL OR proof->>'master_session_id'<>'5bb8dc0d-fe30-4ff5-bb50-1cfda2aee780'\n OR proof->>'result_sha256'<>'3de0dd4a17e3abd8be94892d6c6b9004eb89ea7e991bd2cd3e0285636c2cdb3e'\n OR md5((SELECT prosrc FROM pg_catalog.pg_proc WHERE oid=to_regprocedure('mission_staff_abort_private.quiescent_v1(uuid)'))) <> 'd2babd5767a55995f6478a9db2b58e46'\n OR md5((SELECT prosrc FROM pg_catalog.pg_proc WHERE oid=to_regprocedure('mission_generic_owner.c1266_generation_timeout_terminal_proof_v1(uuid)'))) <> 'fba30ab2b365491e1c257855dece874b'\n THEN RAISE EXCEPTION 'C1266_TIMEOUT_TECHNICAL_CERTIFICATE_CLOSED' USING ERRCODE='40001';END IF;\n IF EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid=to_regprocedure('mission_staff_abort_private.quiescent_v1(uuid)')\n AND (p.proacl::text IS DISTINCT FROM '{postgres=X/postgres}' OR pg_get_userbyid(p.proowner)<>'postgres'))\n OR EXISTS(SELECT 1 FROM pg_catalog.pg_proc p WHERE p.oid=to_regprocedure('mission_generic_owner.c1266_generation_timeout_terminal_proof_v1(uuid)')\n AND (p.proacl::text IS DISTINCT FROM '{postgres=X/postgres}' OR pg_get_userbyid(p.proowner)<>'postgres'))\n THEN RAISE EXCEPTION 'C1266_TIMEOUT_TECHNICAL_ACL_DRIFT' USING ERRCODE='40001';END IF;\nEND $technical_post$;\nCOMMIT;\n",
+    "sha256": "2787eaee104df4f685343ddb51bd5a7d2ba41349995a257b67ab043e639a5ccf"
+  },
+  "recovery": {
+    "name": "TECHNICAL_RECOVERY.sql",
+    "content": "-- Conservative recovery: no DROP, DELETE, state reset, accounting refund or Root renewal.\nBEGIN;\nSELECT pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('C1266:GENERIC-AI:AVAILABILITY',0));\nDO $recover_guard$\nBEGIN\n IF md5((SELECT prosrc FROM pg_catalog.pg_proc WHERE oid=to_regprocedure('mission_staff_abort_private.quiescent_v1(uuid)'))) IS DISTINCT FROM 'd2babd5767a55995f6478a9db2b58e46'\n OR md5((SELECT prosrc FROM pg_catalog.pg_proc WHERE oid=to_regprocedure('mission_generic_owner.c1266_generation_timeout_terminal_proof_v1(uuid)'))) IS DISTINCT FROM 'fba30ab2b365491e1c257855dece874b'\n THEN RAISE EXCEPTION 'C1266_TIMEOUT_RECOVERY_DRIFT' USING ERRCODE='40001';END IF;\nEND $recover_guard$;\nCREATE OR REPLACE FUNCTION mission_staff_abort_private.quiescent_v1(p_session uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n select not exists(select 1 from mission_generic_owner.work_items w where w.master_session_id=p_session\n  and not ((mission_generic_owner.c1266_count_terminal_proof_v1(w.id,true)IS NOT NULL) OR ((w.id='d8b37311-6010-4a07-95d3-5e65a33c756d'::uuid AND w.master_session_id='9ac00210-4c88-4c0c-a443-95e3d6740a28'::uuid\n AND w.kind='director'AND w.payload->>'schema_version'='mission-director-work/4'AND w.state='failed'\n AND w.finalized_at IS NOT NULL AND w.receipt_id IS NOT NULL AND w.message_id IS NULL\n AND w.authorization_id IS NULL AND w.dispatch_id IS NULL AND w.lease_expires_at<=clock_timestamp()\n AND w.payload_sha256=public.combat_v2_sha256(w.payload)AND w.result_sha256=public.combat_v2_sha256(w.result)\n AND w.result->>'schema_version'='mission-input-count-unknown-failure/1'\n AND w.result->'failure_codes'='[\"MISSION_INPUT_COUNT_UNKNOWN\"]'::jsonb\n AND w.result->>'outcome_uncertain'='false'AND w.result->>'count_outcome_unknown'='true'\n AND w.result->>'count_http_calls'='1'AND w.result->>'generation_http_calls'='0'\n AND w.result->>'count_cost_state'='unknown_billable'AND w.result->'count_reserve_usd'='0.0124'::jsonb\n AND mission_generic_owner.c1266_historical_work_v1(w.id)->>'execution_context'='staff_mission'\n AND mission_generic_owner.c1266_historical_work_v1(w.id)#>>'{admission,resource_scope}'='staff_simulation'\n AND NOT EXISTS(SELECT 1 FROM mission_generic_owner.unified_batches cleanup_batch WHERE cleanup_batch.master_session_id=w.master_session_id)\n AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_receipts cleanup_receipt\n JOIN mission_narrative_internal.dispatch_audit cleanup_terminal ON cleanup_terminal.receipt_id=cleanup_receipt.id AND cleanup_terminal.event_code='generic_count_unknown_terminal'\n JOIN mission_narrative_internal.dispatch_audit cleanup_proof ON cleanup_proof.receipt_id=cleanup_receipt.id AND cleanup_proof.event_code='c8_count_unknown'\n JOIN staff_ai_quota_private.calls cleanup_count ON cleanup_count.id=(cleanup_terminal.details->>'count_ticket')::uuid\n WHERE cleanup_receipt.id=w.dispatch_receipt_id AND cleanup_receipt.master_session_id=w.master_session_id AND cleanup_receipt.authority_receipt_id=w.id\n AND cleanup_receipt.status='failed'AND cleanup_receipt.finalized_at IS NOT NULL AND cleanup_receipt.dispatch_count=0\n AND cleanup_receipt.charged_cost_usd=0 AND cleanup_receipt.upper_bound_cost_usd IS NULL\n AND cleanup_terminal.details->>'schema_version'='c1266-count-unknown-terminal/1'\n AND cleanup_terminal.details->>'work_id'=w.id::text AND cleanup_terminal.details->>'receipt_id'=w.receipt_id::text\n AND cleanup_terminal.details->>'payload_sha256'=w.payload_sha256 AND cleanup_terminal.details->>'result_sha256'=w.result_sha256\n AND cleanup_terminal.details->>'measurement_id'=cleanup_proof.details->>'measurement_id'\n AND cleanup_terminal.details->>'generation_request_sha256'=cleanup_proof.details->>'generation_request_sha256'\n AND cleanup_proof.details->>'state'='unknown'AND cleanup_proof.details->>'generation_allowed'='false'\n AND cleanup_proof.details->>'count_http_calls'='1'AND cleanup_proof.details->>'generation_http_calls'='0'\n AND cleanup_count.producer='mission_generic_ai'AND cleanup_count.source_id=cleanup_receipt.id\n AND cleanup_count.scope_id=w.master_session_id AND cleanup_count.call_no=2 AND cleanup_count.state='unknown_billable'\n AND cleanup_count.charged_usd IS NULL AND cleanup_count.reserved_usd=0.0124\n AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_attempts cleanup_attempt WHERE cleanup_attempt.receipt_id=cleanup_receipt.id)\n AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.provider_authorizations cleanup_auth WHERE cleanup_auth.receipt_id=cleanup_receipt.id)\n AND NOT EXISTS(SELECT 1 FROM staff_ai_quota_private.calls cleanup_gen WHERE cleanup_gen.source_id=cleanup_receipt.id AND cleanup_gen.scope_id=w.master_session_id AND cleanup_gen.call_no=1)))IS TRUE) OR ((w.state='failed' AND w.kind='director'\n AND w.payload->>'schema_version'='mission-director-work/4'\n AND w.finalized_at IS NOT NULL AND w.receipt_id IS NOT NULL AND w.message_id IS NULL\n AND w.lease_expires_at IS NOT NULL AND w.lease_expires_at<=clock_timestamp()\n AND w.result->>'ok'='false' AND w.result->>'outcome_uncertain'='false'\n AND w.result->'failure_codes'='[\"MISSION_ROLE_ROLE_EVIDENCE_UNBOUND\"]'::jsonb\n AND jsonb_typeof(w.result->'decision')='null' AND jsonb_typeof(w.result->'command')='null'\n AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_audit terminal_final_audit WHERE terminal_final_audit.receipt_id=w.dispatch_receipt_id AND terminal_final_audit.event_code='generic_finalized' AND terminal_final_audit.details->>'work_id'=w.id::text AND terminal_final_audit.details->>'receipt_id'=w.receipt_id::text AND terminal_final_audit.details->>'result_sha256'=w.result_sha256 AND terminal_final_audit.details->>'result_jsonb_sha256'=public.combat_v2_sha256(w.result) AND terminal_final_audit.details->>'state'='failed' AND terminal_final_audit.details->>'cost_basis'='exact' AND terminal_final_audit.details->>'stale'='false' AND terminal_final_audit.details->>'outcome_uncertain'='false' AND jsonb_typeof(terminal_final_audit.details->'message_id')='null' AND jsonb_typeof(terminal_final_audit.details->'command_receipt')='null' AND jsonb_typeof(terminal_final_audit.details->'application_error_code')='null' AND jsonb_typeof(terminal_final_audit.details->'application_error_sqlstate')='null')\n AND w.payload_sha256=public.combat_v2_sha256(w.payload)\n -- Only immutable named C1266 protected Staff authority: live availability may be OFF for normal cleanup.\n AND mission_generic_owner.c1266_historical_work_v1(w.id)->>'execution_context'='staff_mission'\n AND mission_generic_owner.c1266_historical_work_v1(w.id)#>>'{admission,kind}'='staff_finite'\n AND mission_generic_owner.c1266_historical_work_v1(w.id)#>>'{admission,resource_scope}'='staff_simulation'\n AND mission_generic_owner.c1266_historical_work_v1(w.id)#>>'{admission,location_id}'='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'\n AND EXISTS(SELECT 1 FROM public.master_v2_sessions protected_master\n  JOIN public.locations protected_location ON protected_location.id=protected_master.location_id\n  WHERE protected_master.id=w.master_session_id AND protected_master.owner_kind='ai_service'\n  AND protected_master.location_id='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'\n  AND protected_location.is_active AND protected_location.is_test)\n -- A failed validation before a decision cannot have issued a writer or any unified batch/effect.\n AND NOT EXISTS(SELECT 1 FROM mission_generic_owner.unified_batches issued_batch\n  WHERE issued_batch.master_session_id=w.master_session_id AND issued_batch.decision_work_id=w.id)\n AND NOT EXISTS(SELECT 1 FROM mission_generic_owner.work_items issued_writer\n  WHERE issued_writer.master_session_id=w.master_session_id AND issued_writer.kind='narration'\n  AND issued_writer.authority_receipt_id=w.authority_receipt_id)\n AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_receipts paid_receipt\n  JOIN mission_narrative_internal.provider_authorizations paid_authorization\n   ON paid_authorization.id=w.authorization_id AND paid_authorization.receipt_id=paid_receipt.id\n  JOIN mission_narrative_internal.dispatch_attempts paid_attempt\n   ON paid_attempt.id=paid_authorization.attempt_id AND paid_attempt.receipt_id=paid_receipt.id\n  WHERE paid_receipt.id=w.dispatch_receipt_id AND paid_receipt.master_session_id=w.master_session_id\n  AND paid_receipt.authority_receipt_id=w.id AND paid_receipt.request_key=w.request_key\n  AND paid_receipt.event_kind='mission_generic_event' AND paid_receipt.renderer_version='mission-generic-runtime/1'\n  AND paid_receipt.status='success' AND paid_receipt.finalized_at IS NOT NULL AND paid_receipt.dispatch_count=1\n  AND paid_receipt.charged_cost_usd IS NOT NULL AND paid_receipt.charged_cost_usd>=0\n  AND paid_receipt.charged_cost_usd<=paid_receipt.upper_bound_cost_usd\n  AND paid_attempt.status='success' AND paid_attempt.finalized_at IS NOT NULL\n  AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_attempts unresolved_attempt\n   WHERE unresolved_attempt.receipt_id=paid_receipt.id\n   AND(unresolved_attempt.status<>'success' OR unresolved_attempt.finalized_at IS NULL))\n  AND EXISTS(SELECT 1 FROM staff_ai_quota_private.calls settled_generation\n   WHERE settled_generation.source_id=paid_receipt.id AND settled_generation.scope_id=w.master_session_id\n   AND settled_generation.call_no=1 AND settled_generation.state='settled'\n   AND settled_generation.charged_usd=paid_receipt.charged_cost_usd))) IS TRUE) OR (w.state='failed' AND w.result->>'schema_version'='mission-count-overflow-failure/1'\n AND w.result->'failure_codes'='[\"MISSION_INPUT_COUNT_OVERFLOW\"]'::jsonb\n AND w.result->>'outcome_uncertain'='false' AND w.result->>'provider_calls'='0'\n AND w.authorization_id IS NULL AND w.dispatch_id IS NULL AND w.finalized_at IS NOT NULL AND w.receipt_id IS NOT NULL\n AND w.result_sha256=public.combat_v2_sha256(w.result) AND w.payload_sha256=public.combat_v2_sha256(w.payload)\n AND w.master_session_id='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'::uuid\n AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_receipts d\n JOIN mission_narrative_internal.dispatch_audit a ON a.receipt_id=d.id AND a.event_code='generic_count_overflow_terminal'\n JOIN mission_narrative_internal.dispatch_audit cp ON cp.receipt_id=d.id AND cp.event_code='c8_count_success'\n JOIN staff_ai_quota_private.calls ct ON ct.id=(a.details->>'count_ticket')::uuid\n WHERE d.id=w.dispatch_receipt_id AND d.master_session_id=w.master_session_id AND d.authority_receipt_id=w.id\n AND d.status='failed' AND d.dispatch_count=0 AND d.finalized_at IS NOT NULL AND d.charged_cost_usd=0 AND d.upper_bound_cost_usd IS NULL\n AND a.details->>'schema_version'='c1264-count-overflow-terminal/1' AND a.details->>'work_id'=w.id::text\n AND a.details->>'receipt_id'=w.receipt_id::text AND a.details->>'result_sha256'=w.result_sha256\n AND a.details->>'source_window_id'=w.authority_receipt_id::text AND a.details->>'payload_sha256'=w.payload_sha256\n AND cp.details->>'measurement_id'=a.details->>'measurement_id' AND cp.details->>'state'='success'\n AND cp.details->>'generation_allowed'='false' AND (cp.details->>'input_tokens')::integer>12000\n AND cp.details->>'max_input_tokens'='12000' AND cp.details->>'generation_http_calls'='0'\n AND ct.producer='mission_generic_ai' AND ct.scope_id=w.master_session_id AND ct.source_id=d.id AND ct.call_no=2\n AND ct.state='unknown_billable' AND ct.charged_usd IS NULL AND ct.reserved_usd=0.0112\n AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_attempts da WHERE da.receipt_id=d.id)\n AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.provider_authorizations pa WHERE pa.receipt_id=d.id))) OR (w.master_session_id='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'::uuid AND w.state='failed' AND w.finalized_at IS NOT NULL AND w.result->>'outcome_uncertain'='false' AND mission_generic_owner.role_source_released_v4(w.authority_receipt_id) AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_receipts d WHERE d.id=w.dispatch_receipt_id AND d.status IN('success','fallback') AND d.finalized_at IS NOT NULL AND d.dispatch_count=1 AND EXISTS(SELECT 1 FROM staff_ai_quota_private.calls settled WHERE settled.source_id=d.id AND settled.scope_id=w.master_session_id AND settled.call_no=1 AND settled.state='settled' AND settled.charged_usd=d.charged_cost_usd))) OR (w.state='completed' and exists(select 1 from mission_narrative_internal.dispatch_receipts d where d.id=w.dispatch_receipt_id and d.master_session_id=p_session and d.status='success' and d.finalized_at is not null) and not exists(select 1 from mission_narrative_internal.dispatch_attempts a where a.receipt_id=w.dispatch_receipt_id and (a.status<>'success' or a.finalized_at is null))) or (w.state='ready' and w.lease_id is null and w.dispatch_receipt_id is null\n       and w.authorization_id is null and w.dispatch_id is null)\n or (w.state='failed' and w.authorization_id is null and w.dispatch_id is null\n and w.finalized_at is not null and w.receipt_id is not null\n and w.payload_sha256=public.combat_v2_sha256(w.payload)\n and w.result_sha256=public.combat_v2_sha256(w.result)\n and w.result=jsonb_build_object('schema_version','mission-generic-pre-provider-failure/1',\n 'work_id',w.id,'master_session_id',w.master_session_id,'event_id',w.event_id,'request_key',w.request_key,\n 'revision',w.revision,'ok',false,'failure_code',w.result->>'failure_code','provider_calls',0,'charged_cost_usd',0)\n and w.result->>'failure_code' in('work_validation_failed','request_validation_failed')\n and exists(select 1 from mission_generic_owner.dispatch_admissions ad\n join public.master_v2_sessions ms on ms.id=ad.master_session_id\n join public.locations l on l.id=ms.location_id\n where ad.master_session_id=p_session and ad.c7_budget_enforced\n and ad.c7_budget_qualification_sha256 ~ '^[0-9a-f]{64}$'\n and ms.owner_kind='ai_service' and l.is_test and l.is_active)\n and exists(select 1 from mission_narrative_internal.dispatch_receipts d\n where d.id=w.dispatch_receipt_id and d.master_session_id=p_session and d.authority_receipt_id=w.id\n and d.request_key=w.request_key and d.event_kind='mission_generic_event'\n and d.renderer_version='mission-generic-runtime/1' and d.status='failed' and d.finalized_at is not null\n and d.dispatch_count=0 and d.charged_cost_usd=0 and d.upper_bound_cost_usd=0\n and d.lease_token_sha256 is null and d.lease_expires_at is null\n and not exists(select 1 from mission_narrative_internal.dispatch_attempts da where da.receipt_id=d.id)\n and not exists(select 1 from mission_narrative_internal.provider_authorizations pa where pa.receipt_id=d.id)\n and exists(select 1 from mission_narrative_internal.dispatch_audit audit\n where audit.receipt_id=d.id and audit.event_code='generic_pre_provider_failed'\n and audit.details=jsonb_build_object('work_id',w.id,'receipt_id',w.receipt_id,\n 'failure_code',w.result->>'failure_code','provider_calls',0,'charged_cost_usd',0,'result_sha256',w.result_sha256))))))\n and not exists(select 1 from public.combat_v2_sessions s where s.master_session_id=p_session\n  and (public.combat_v2_values_written(s.id) is distinct from false or combat_panel_private.uses_simulated_pools(s.id) is distinct from true))\n$function$;\nREVOKE ALL ON FUNCTION mission_generic_owner.c1266_generation_timeout_terminal_proof_v1(uuid) FROM PUBLIC,anon,authenticated,service_role;\n-- Unreachable helper source retained, with its owner-only ACL, to preserve provenance.\nCOMMIT;\n",
+    "sha256": "a0066a7bb79cc51ac00ae339daa51777fea26c2a8e3c1e3166bac8a7858f4c69"
+  },
+  "contract": {
+    "schema_version": "c1266-generation-timeout-close-certificate/1",
+    "classification": "SOURCE_ONLY_NORMAL_ABORT_GATE_CORRECTION",
+    "scope": {
+      "master_session_id": "5bb8dc0d-fe30-4ff5-bb50-1cfda2aee780",
+      "work_id": "0711e2fb-5d12-439a-b07e-e5ce20899266",
+      "dispatch_receipt_id": "1795a0eb-b7a3-4437-a766-834db9098f91",
+      "generation_attempt_id": "6d264cc7-d8be-4bdd-91b3-3033833db574",
+      "result_sha256": "3de0dd4a17e3abd8be94892d6c6b9004eb89ea7e991bd2cd3e0285636c2cdb3e"
+    },
+    "requirements": [
+      "native finalized uncertain result unchanged; Genunknown_billable0.0124 and Countunknown_billable0.0124 retained",
+      "expired own work lease; dispatch lease/nulltoken and finalize token null; finalizer terminal state rejects late different result",
+      "immutable historical work admission Staff simulation, checksum and named source authority; no currentRoot/gates/clock delegatedpermission",
+      "no writer/unified batch/Combat from this failed Director; no result/publication/mechanicalcommand fabricated",
+      "normal authenticated Staff source_v1/abort policy/expectedControlVersions/capability invariants remain unchanged",
+      "installer only adds terminal proof and quiescent OR for named terminalWork; actual normalabort remains lateroperation",
+      "Root37/time expired immutable and headerCore111 drift explicit; no renewal/re-pin; original runtime grant does not authorize Gen",
+      "postflight actual proof/normal user abort receipt/protectedresources/ownsessionclosed required before fullasync install andHOLD"
+    ],
+    "not_authorized_by_certificate": [
+      "provider retry",
+      "any Root renewal",
+      "financial refund/reset",
+      "another scene/actor cleanup",
+      "normal narrative ending qualification",
+      "public release"
+    ],
+    "root_control_compatibility": {
+      "historical_authority": "c1266_historical_work_v1 uses immutable work contract and board/binding snapshots; source states no live gates/release/clock",
+      "normal_abort": "source_v1 and abort RPC retained; neither source body enters Runtime Root85 core111 validator",
+      "core111_after_technical_apply": "intentionally diverges in quiescent leaf; obsolete expired Root cannot be resumed; integrator must compose/register new full identity for async, not repin old Root"
+    },
+    "runtime_proof": "NOT_RUN",
+    "normal_abort": "NOT_RUN"
+  },
+  "baseline": {
+    "captured_at": "2026-10-13 10:15:06.107484+00",
+    "source_ref": "C1266_TIMEOUT_ASYNC_CONTINUITY_SOURCE_FUNDEFS.json",
+    "source_sha256": "a54896fbf9c6e192b199a416e38c26484561108665b3ebcc6f2e27d1b3f11666",
+    "headers": [
+      {
+        "acl": "{postgres=X/postgres}",
+        "oid": "308958",
+        "owner": "postgres",
+        "ddl_md5": "d3efa550240b4cfe4fe571a559caef24",
+        "language": "plpgsql",
+        "proconfig": [
+          "search_path=\"\""
+        ],
+        "prosecdef": true,
+        "signature": "mission_generic_owner.c1266_clean_staff_admission_v1(uuid,boolean,boolean)",
+        "source_md5": "ddf38f4d3b39114d74bd00ba6a2310ac",
+        "provolatile": "v"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "oid": "261521",
+        "owner": "postgres",
+        "ddl_md5": "414a802170529b43f5fe7348af7905ac",
+        "language": "sql",
+        "proconfig": [
+          "search_path=\"\""
+        ],
+        "prosecdef": true,
+        "signature": "mission_staff_abort_private.quiescent_v1(uuid)",
+        "source_md5": "3d9108cf9f1dba7c740ecc4e829aa553",
+        "provolatile": "s"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "oid": "50414",
+        "owner": "postgres",
+        "ddl_md5": "2c9874697871e6f14644c86b3a2abae0",
+        "language": "plpgsql",
+        "proconfig": [
+          "search_path=\"\""
+        ],
+        "prosecdef": true,
+        "signature": "public.mission_generic_dispatch_finalize_v1(uuid,text,text,text)",
+        "source_md5": "8ec3a46b6ccf9367604f4d94f1ce7560",
+        "provolatile": "v"
+      },
+      {
+        "acl": "{postgres=X/postgres,anon=X/postgres}",
+        "oid": "35929",
+        "owner": "postgres",
+        "ddl_md5": "cf331376c5a1205367228c287d8ae372",
+        "language": "plpgsql",
+        "proconfig": [
+          "search_path=\"\""
+        ],
+        "prosecdef": true,
+        "signature": "public.mission_narrative_attempt_reserve_internal(text,uuid,integer,jsonb,text)",
+        "source_md5": "dbfdc0f6b0bc421c55e49c51d61b3103",
+        "provolatile": "v"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "oid": "261520",
+        "owner": "postgres",
+        "ddl_md5": "4fd3054b232421df9398b8c1359512f4",
+        "language": "plpgsql",
+        "proconfig": [
+          "search_path=\"\""
+        ],
+        "prosecdef": true,
+        "signature": "mission_staff_abort_private.source_v1(uuid)",
+        "source_md5": "1f73a4af64288375b2958def5ee21923",
+        "provolatile": "v"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "oid": "50412",
+        "owner": "postgres",
+        "ddl_md5": "d8cc2e59d5c48e3a99b7b19a37ad027f",
+        "language": "plpgsql",
+        "proconfig": [
+          "search_path=\"\""
+        ],
+        "prosecdef": true,
+        "signature": "public.mission_generic_dispatch_authorize_v1(uuid,uuid,text,jsonb)",
+        "source_md5": "d42b7199823b1f6e4a9937f061440457",
+        "provolatile": "v"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "oid": "50410",
+        "owner": "postgres",
+        "ddl_md5": "e6a1e6a69998f85427af9fd7bd13a942",
+        "language": "plpgsql",
+        "proconfig": [
+          "search_path=\"\""
+        ],
+        "prosecdef": true,
+        "signature": "public.mission_generic_dispatch_claim_v1(uuid,jsonb)",
+        "source_md5": "1c4ce5a60bd575249783892cb2cbbd52",
+        "provolatile": "v"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "oid": "50413",
+        "owner": "postgres",
+        "ddl_md5": "a99aba7ce1a32aada299abcaa6d20001",
+        "language": "plpgsql",
+        "proconfig": [
+          "search_path=\"\""
+        ],
+        "prosecdef": true,
+        "signature": "public.mission_generic_dispatch_consume_v1(uuid,uuid,text,uuid,text)",
+        "source_md5": "9f562ade3085ec571e1710a6eeb41901",
+        "provolatile": "v"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "oid": "278279",
+        "owner": "postgres",
+        "ddl_md5": "767b3b25dec1eeed3e78bbf61aceb887",
+        "language": "plpgsql",
+        "proconfig": [
+          "search_path=\"\""
+        ],
+        "prosecdef": true,
+        "signature": "public.mission_generic_input_count_start_v1(uuid,uuid,text,text)",
+        "source_md5": "21a49c40890c157da7ec7c4abc32751d",
+        "provolatile": "v"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "oid": "261522",
+        "owner": "postgres",
+        "ddl_md5": "9d7131c725aaaaf700878fc34687aa68",
+        "language": "plpgsql",
+        "proconfig": [
+          "search_path=\"\""
+        ],
+        "prosecdef": true,
+        "signature": "public.mission_staff_simulation_abort_state_v1(uuid)",
+        "source_md5": "ca5e9cece7e9d53f97250848f674a8a8",
+        "provolatile": "v"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "oid": "261524",
+        "owner": "postgres",
+        "ddl_md5": "518dc28a889dc531a8f2dd5c5d8701d4",
+        "language": "plpgsql",
+        "proconfig": [
+          "search_path=\"\""
+        ],
+        "prosecdef": true,
+        "signature": "public.mission_staff_simulation_abort_v1(uuid,bigint,bigint,uuid)",
+        "source_md5": "e5186651b4bdabb04dcb27a412c8d8d1",
+        "provolatile": "v"
+      }
+    ]
+  },
+  "static": {
+    "classification": "STATIC_GRAMMAR_AND_SOURCE_ONLY_NO_DATABASE_EXECUTION",
+    "parser": "pglastv8.5/parser.parse_sql_json bundledPython3.12",
+    "results": [
+      {
+        "file": "C1266_GENERATION_TIMEOUT_ASYNC_TECHNICAL_ABORT_SOURCE.sql",
+        "sha256": "2787eaee104df4f685343ddb51bd5a7d2ba41349995a257b67ab043e639a5ccf",
+        "sql_ast": "PASS",
+        "statements": 10,
+        "bodies": [
+          {
+            "sha256": "c8715ec7e959a512bcfa74bcc66af54b58a10dd7a29002f77ecb8eb2ad5cda15",
+            "sql_body_ast": "PASS",
+            "statements": 1
+          },
+          {
+            "sha256": "f62898718ebfe1d8d6c98bec4ebcc6cdd25e88bee1441528d662227381ae9814",
+            "sql_body_ast": "PASS",
+            "statements": 1
+          }
+        ]
+      },
+      {
+        "file": "TECHNICAL_RECOVERY.sql",
+        "sha256": "a0066a7bb79cc51ac00ae339daa51777fea26c2a8e3c1e3166bac8a7858f4c69",
+        "sql_ast": "PASS",
+        "statements": 6,
+        "bodies": [
+          {
+            "sha256": "18f1496979a225da34d6623b9b70a2d042b7cd6c5ddd2abdc68ae420a059c5ba",
+            "sql_body_ast": "PASS",
+            "statements": 1
+          }
+        ]
+      }
+    ],
+    "constraints_added_or_relaxed": [],
+    "existing_acl_signature_oid_changes": [],
+    "new_helper_acl": "postgres EXECUTE only; explicit REVOKE PUBLIC,anon,authenticated,service_role",
+    "review": "NOT_RUN",
+    "provider_calls": 0,
+    "database_calls_by_this_task": 0,
+    "gameplay_cases": 0
+  },
+  "freeze": {
+    "classification": "IMMUTABLE_SEPARABLE_TECH_SOURCE_NOT_RUNTIME_QUALIFICATION",
+    "installer_sha256": "2787eaee104df4f685343ddb51bd5a7d2ba41349995a257b67ab043e639a5ccf",
+    "recovery_sha256": "a0066a7bb79cc51ac00ae339daa51777fea26c2a8e3c1e3166bac8a7858f4c69",
+    "contract_sha256": "14faf7e0ffc1de5667f20faab0f83b55b8940cc23c63b12e1c83ab51e8f2c7d3",
+    "source_budget": "same FINISH45+5 10:44:29→11:29:29+delivery11:34:29; preceding35+5+5/25+5 preserved; review counts unchanged",
+    "no_live_operations": true
+  },
+  "handoff": "Narrow separable Source installment ready for independent review. No apply/deploy/helpers/provider/QA executed. Own scene remains open; safe normal abort requires positive independent review plus fresh exact baseline/ownterminal preflight and explicit named apply, then normal authenticated Abort receipt/postflight. Core111/Root expired historical tuple not re-pinned or renewed. Full async/consumerUI Source composition separate. Budget and review cumulative unchanged."
+}

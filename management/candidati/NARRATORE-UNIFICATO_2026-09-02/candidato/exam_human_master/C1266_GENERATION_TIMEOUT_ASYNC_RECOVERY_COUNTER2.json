@@ -1,0 +1,60 @@
+{
+  "schema_version": "c1266-independent-source-review/1",
+  "reviewer": "independent_review",
+  "aggregate": 2,
+  "counterreview": 2,
+  "verdict": "SOURCE_ONLY_RED",
+  "finding_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 3
+  },
+  "manifest_sha256": "dfb8fffb8eb43c21d145215d7fc57f65814342640f65c04da26da0dd3e54d217",
+  "manifest_refs": "30/30 unchanged at start and end",
+  "findings": [
+    {
+      "id": "F1",
+      "priority": 2,
+      "file": "C1266_GENERATION_TIMEOUT_ASYNC_UI_SOURCE.mjs",
+      "line": 992,
+      "cause": "Readonly room-state await lacks finite timeout while holding journal Web Lock; busy/inFlight can remain forever.",
+      "fix": "Bound room RPC by10s and remaining observation time, release lock; retry read only."
+    },
+    {
+      "id": "F2",
+      "priority": 2,
+      "file": "C1266_GENERATION_TIMEOUT_ASYNC_UI_SOURCE.mjs",
+      "line": 897,
+      "cause": "RPC cause erased; HTTP maps Auth/schema and DTO errors to503/409, UI retries all. Room read blanket retryable.",
+      "fix": "Closed safe failure classes through adapter and readonly endpoints; retry only transport/timeout/explicit transient SQLSTATE."
+    },
+    {
+      "id": "F3",
+      "priority": 2,
+      "file": "C1266_GENERATION_TIMEOUT_ASYNC_UI_SOURCE.mjs",
+      "line": 879,
+      "cause": "Valid Staff progress.dispatch null does not close pre-send journal; lostACK recovery validates null as work request.",
+      "fix": "Validate synchronous no-dispatch progress and close reference; server-owned no_work proof for lostACK distinct from unobservable none."
+    }
+  ],
+  "validation": {
+    "UI_Edge14_grammar": "PASS",
+    "SQL_AST": "12/12/8 PASS_GRAMMAR_ONLY",
+    "PL": "rowtype declarations substituted record, not catalog resolution",
+    "Native_envelope": "unchanged",
+    "foreign_legacy": "no adoption",
+    "recovery_work_reload": "present no resend",
+    "parent_child": "F1/F2 remain",
+    "transport_auth": "RED F2",
+    "no_dispatch_tick": "RED F3",
+    "Fato_barrier": "parent complete not publication",
+    "SQL_inventory": "AST no keyword false positive"
+  },
+  "not_verified": [
+    "live baseline",
+    "actual installation",
+    "Auth/RLS runtime",
+    "Staff2PG2PNG"
+  ],
+  "history_reset": false
+}
