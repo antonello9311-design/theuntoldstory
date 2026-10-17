@@ -1,3 +1,5 @@
+17/10/2026 · C1266 prerequisiti9/installazione8 · Source0/0/0 e installazioni/REGISTER/ENABLE verificati; incipit completed ma Count Director400, causa non isolata e temporale8 non raggiunta. Recupero/abort proprio/HOLD PASS, postflight15:46:07 attività0/113/schema7/Human112+7/48 invariati. Cumulativo10C7G17HTTP/$0,1392557, nessun retry/reset · QA_NOT_PASSED / TECHNICAL_CLOSURE_HOLD_PASS0/0/0 / PRODUCT_RED0/1/0 / RITORNO_PM.
+
 17/10/2026 · C1266 AGG8/controverifica8 source-only · Wire con testimone congiunto esplicito e decoder, IF stretto SQL, Count diagnostic compatibile; review0/0/0, nessun install/QA/provider, HOLD/Human/48 e14HTTP/$0,1137409 preservati · SOURCE_QUALIFIED / RUNTIME8_NOT_RUN / PRODUCT_RED6.
 
 17/10/2026 · C1266 AGG7 cleanup-only · Migrazione20261017143906 PASS, abort UI normale propria sessione committed29d4d0c0 e chiusa14:39:17, HOLD Root2 applicato:113after7/schema7/Human112/48invariati,0attività e6OFF. Cleanup0HTTP/$0, cumulativi14/$0,1137409; runtimeRED6 temporale resta irrisolto, writerNOT_REACHED, nessuna ripresaQA · CLEANUP_HOLD_PASS / PRODUCT_RUNTIME_RED6.
