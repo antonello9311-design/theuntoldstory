@@ -1,3 +1,7 @@
+17/10/2026 · C1266 AGG7 cleanup-only · Migrazione20261017143906 PASS, abort UI normale propria sessione committed29d4d0c0 e chiusa14:39:17, HOLD Root2 applicato:113after7/schema7/Human112/48invariati,0attività e6OFF. Cleanup0HTTP/$0, cumulativi14/$0,1137409; runtimeRED6 temporale resta irrisolto, writerNOT_REACHED, nessuna ripresaQA · CLEANUP_HOLD_PASS / PRODUCT_RUNTIME_RED6.
+
+17/10/2026 · C1266 AGG6/eccezione1 · Installazione20261017141446 PASS; prima finestra Director runtimeRED temporale dopoCount/Gen, writer nonraggiunto. Sessionepropriac21baa ancoraaperta/abortbloccato/HOLD_NOT_APPLIED;STOPPM,nessuna7. Nuovi4HTTP/$0,0329312,cumulativi14/$0,1137409,Human48invariati · RUNTIME_NOT_PASSED / CLEANUP_BLOCKED.
+
 17/10/2026 · C1266 diagnosi schema e proposta osservativa · Schema autentico recuperato, causa400 nonprovata/perdita diagnostica certa;0provider/0appmutation,4/4 e quinta inutilizzata, Human/HOLD/48intatti; proposta1file noninstallata, logstorici/login o deroga budget in attesa · DIAGNOSI PARZIALE/RUNTIME BLOCKED.
 
 17/10/2026 · C1266 composizione3/install69 e aggregata4/counter4/install70 · Due incipit automatici e role PASS circoscritti; CountDirector400schema persiste, runtimeBLOCKED/chiusura normaleNOT_RUN. Sole scene21fb/a853 chiuse tecnicamente viaUI eDB,6HTTP/$0.0510607 cumulativi, async4/4 Root1/1, nessunaagg5/retry. RECOVER_HOLD182533 qualificato/applicato; post11:59:55.225364UTC seiOFF/attività0/113schema7/Rootbyteclock/Human48 invariati; storico eHumanaccepted originale nel bundleinstall69 preservati · NOT_PASSED, safeHOLD verificato.
@@ -938,3 +942,4 @@
 
 17/10/2026 · HUMAN-ACTOR-LABEL aggregata22 · C11c27a/full112 installata0/0/0, client88ba/Pages958/8DOMexact; noCombatinline/noauto e explicitpanel+nomi/select/reread osservati, STOP07:56:47 nomiPGcompressi da checkboxwidth100%;14comandiimmutati/48same/provider0, archivio132file · PARTIAL_UI_LAYOUT_NOT_PASSED_NOT_OPEN
 17/10/2026 · C1266 OBS1 eccezionale + Root2 · Edge71/readback14, unascena4HTTP/$0,029749:DirectorPASS/writerpreproviderRED, abortproprio/HOLDpost13:57 Human48intatti; nuovaquinta preparazione mirata · OBS1 CONCLUSA/HOLD, prodottoNOT_PASSED, nessunreset.
+17/10/2026 · C1266 AGG5/COUNTER5 · producerwriter mirato, unica installazione respinta daOIDCAS primaCREATE; postHOLD113/Human48intatti,0provider; refertofinaleRED0/1/0equalifica000ritirata · STOPPM, eccezionebudgetPENDING/nessuna6a, conteggistoriciconservati.

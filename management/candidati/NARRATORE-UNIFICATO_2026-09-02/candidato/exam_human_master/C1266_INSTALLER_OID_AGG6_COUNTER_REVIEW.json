@@ -1,0 +1,801 @@
+{
+  "schema_version": "c1266-aggregate6-independent-source-composition-review/1",
+  "classification": "EXPLICIT_EXCEPTION1_SOURCE_AND_CAPTURED_INSTALL_MATERIAL_0_0_0",
+  "finding_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "findings": [],
+  "review_completed_at": "2026-10-17T14:14:30.665462+00:00",
+  "aggregate_correction": 6,
+  "counterreview": 6,
+  "explicit_additional_exception": 1,
+  "counterreview_status": "SOURCE_PASS_RUNTIME_QA_PENDING",
+  "scope": "Tre cast OID autorizzati, installer/recovery integrali e composizione della stessa candidata; nessuna settima correzione.",
+  "resolved_findings": [
+    {
+      "id": "AGG5-F1",
+      "resolution": "Solo3cast p.oid::bigint; prova readonly113 strict mismatch0.",
+      "historical_final_review": {
+        "path": "/private/tmp/c1266-aggregate5-writer-20261017/review/AGGREGATE5_FINAL_REVIEW.json",
+        "sha256": "87aea5a90fac6a05f1c6e831a242aa59f56e9a1fc5098696142e3e66953e5bb7",
+        "bytes": 9679
+      }
+    }
+  ],
+  "historical_qualification_policy": "Il referto5 finale resta rosso; la vecchia installqual8b239 resta ritirata. Questa qualifica6 deriva dalla correzione autorizzata e nuove prove, non da reset.",
+  "backend_freeze_ref": {
+    "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_FREEZE.json",
+    "sha256": "5af6b5a6f5435cf6eef7c59fac6d74fa1bbac628f2886e44c54caa2bc577e09b",
+    "bytes": 18590
+  },
+  "manifest_ref": {
+    "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_MANIFEST.json",
+    "sha256": "78f94c7c49535ba07f3f669672d3e5d60d27e1a90e9d3ce7f984fe99a8e98284",
+    "bytes": 20121
+  },
+  "installer_ref": {
+    "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_INSTALLER_OID_AGG6_INSTALL.sql",
+    "sha256": "b3b233f657a90c7071756e63f33eb84f7d9f6af71851a117e86c5f9e3a43fef4",
+    "bytes": 88408
+  },
+  "recovery_ref": {
+    "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_INSTALLER_OID_AGG6_RECOVERY.sql",
+    "sha256": "409d9b9b51b84019e229fcfd79f3d6d315e9bac0b23bfac53da77800573f6122",
+    "bytes": 40094
+  },
+  "producer_ref": {
+    "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_SOURCE.sql",
+    "sha256": "5fe3912c5fb96ee89d25989dca9d85f9d952d5648e2114f261e6bce77dff1dfa",
+    "bytes": 8871
+  },
+  "parse_results": [
+    {
+      "file": "INSTALL",
+      "AST": [
+        "TransactionStmt",
+        "VariableSetStmt",
+        "VariableSetStmt",
+        "DoStmt",
+        "CreateFunctionStmt",
+        "AlterOwnerStmt",
+        "GrantStmt",
+        "DoStmt",
+        "TransactionStmt"
+      ],
+      "PLgrammar": "PASS",
+      "PL_normalization": "Only preexisting ub/uw catalog composite declarations replaced by record for syntax grammar, no runtime",
+      "PLfunctions": 3,
+      "exact_casts": 2,
+      "reverse_byte_exact": true
+    },
+    {
+      "file": "RECOVERY",
+      "AST": [
+        "TransactionStmt",
+        "VariableSetStmt",
+        "VariableSetStmt",
+        "DoStmt",
+        "TransactionStmt"
+      ],
+      "PLgrammar": "PASS",
+      "PL_normalization": "Only preexisting ub/uw catalog composite declarations replaced by record for syntax grammar, no runtime",
+      "PLfunctions": 1,
+      "exact_casts": 1,
+      "reverse_byte_exact": true
+    }
+  ],
+  "matrix": [
+    {
+      "case": "Eccezione e freeze6",
+      "result": "PASS_SOURCE",
+      "evidence": "Unica correzione aggiuntiva autorizzata direttamente. Canonici10+archivi6 riletti esatti. Tutti WRITER_AGG5_* preservati, referto5rosso87aea e iniziale8b239 ritirato restano immutati; nessun reset o Root3."
+    },
+    {
+      "case": "Tre soli cast e causa verificata",
+      "result": "PASS_SOURCE_AND_GENUINE_CATALOG",
+      "evidence": "INSTALL righe13/148 e RECOVERY riga14: p.oid::bigint. Reversione dei soli3cast ricostruisce byte per byte i file5. OID unsigned32bit rappresentabile in bigint senza perdita. Nessun campo/hash atteso/predicato/riga di producer cambia."
+    },
+    {
+      "case": "Confronto chiuso113 dopo cast",
+      "result": "PASS_GENUINE_READONLY",
+      "evidence": "Cattura14:13:26.434251:113 header presenti, exact_corrected_constructor_mismatches=0. Query SELECT con stesso costruttore corretto e stesso expected113. Nessuna rimozione/normalizzazione indiscriminata dei campi. La query su disco conserva un’etichetta di output storica native_oid_type_mismatches; l’espressione verificata è già p.oid::bigint, il raw espone exact_corrected_constructor_mismatches."
+    },
+    {
+      "case": "Installer SQL completo e permessi",
+      "result": "PASS_STATIC_WITH_CAPTURED_BASELINE",
+      "evidence": "AST9statement e PLgrammar3blocchi; una CREATE OR REPLACE identica SOURCE5 b062fc, stesso ownerpostgres/GRANT e search_path. Postcheck113 attende un solo nuovo body/DDL;112 altri restano identici. CAS113 e hash7righe, locks, owner e quiescenza invariati. Nessuna mutazione config o dati."
+    },
+    {
+      "case": "Recovery conservativa",
+      "result": "PASS_STATIC",
+      "evidence": "AST5 e PLgrammar1blocco; solo guardie/locks, nuovo body conservato. CAST corretto anche qui. Se futureconfig cambia, questa verificaHOLD si ferma: usare distinto Root RECOVER_HOLD fresco, senza ripristinare corpi o retimare Root."
+    },
+    {
+      "case": "Preflight fresco composizione",
+      "result": "PASS_CAPTURED_BASELINE",
+      "evidence": "DB14:13:23.086822 uguale failed-installpost14:08:40 escluso timestamp:113header/schema7/7rowsHOLD/activity0. Human11214:13:24.603891 ugualeOPEN24/current14:05 per tutti campi catturati;2identity e3transitive invariati. HumanD4cf/fixed30,48SHA d729 eEdge71 full14 exact.",
+      "limit": "Freshness più prudente 2026-10-17T14:18:22.426174+00:00. Schema7 è verificata dal preflight esterno, non dal soloCAS7righe SQL."
+    },
+    {
+      "case": "Causa writer osservata",
+      "result": "PASS_SOURCE_REASSESSED_UNCHANGED",
+      "evidence": "Log genuino MISSION_NARRATIVE_CONTEXT_INVALID, workfailed preprovider0. Contextshape21keys contro19chiavi ammesse: soli extra public_destination_sources/role_progression_basis; metadata binding iniziali validi. Distinto dal Count400 storico.",
+      "evidence_basis": "Riuso limitato a foglie byte-identiche e fatti nuovamente confrontati; non riabilita la vecchia qualifica di installazione."
+    },
+    {
+      "case": "Delta minimo e guardia /4",
+      "result": "PASS_SOURCE_REASSESSED_UNCHANGED",
+      "evidence": "SOURCE lines57-62 unico inserimento; prima esige scopeC1266v2 e disposition/interpretationv2. Proiezione solo c1266_roles + Director/4 + ctx/srcctx presenti. Legacy /1-/2-/3, nullcontexts, no source window e codice Combat fuori ramo byteidentici.",
+      "evidence_basis": "Riuso limitato a foglie byte-identiche e fatti nuovamente confrontati; non riabilita la vecchia qualifica di installazione."
+    },
+    {
+      "case": "Separazione sorgente e destinazione",
+      "result": "PASS_SOURCE_REASSESSED_UNCHANGED",
+      "evidence": "ctx e srcctx sono valori jsonb locali distinti; rimozione esatta2chiavi da ctx prima result. srcctx:=uw.context e tutte sue assegnazioni immutate. Non muta ub.context/uw.context, fonti/body, knowledge, attori, fatti, continuity, prior_progression, transizioni o report.",
+      "evidence_basis": "Riuso limitato a foglie byte-identiche e fatti nuovamente confrontati; non riabilita la vecchia qualifica di installazione."
+    },
+    {
+      "case": "Contratto chiuso e attestazione",
+      "result": "PASS_SOURCE_REASSESSED_UNCHANGED",
+      "evidence": "Edge71runtime408,458-488,1648-1655,2272-2282: source_context resta nodo attestato via WeakMap/objectidentity; solo quel nodo accetta metadata role. Il mission_context proiettato mantiene19chiavi. Nessun consumer o allowlist allargato; eventuali altri campi invalidi restano rifiutati.",
+      "evidence_basis": "Riuso limitato a foglie byte-identiche e fatti nuovamente confrontati; non riabilita la vecchia qualifica di installazione."
+    },
+    {
+      "case": "Hash e pubblicazione unica",
+      "result": "PASS_SOURCE_REASSESSED_UNCHANGED",
+      "evidence": "Proiezione precede costruzione payload/hashing; publication path ricalcola stesso unified_batch_payload e confronta payload congelato. Barrier/receipt/windows/offense slots/finalize immutati. Nessun replay dei vecchi work; cattura quiescente e vecchia prova annullata primaapply.",
+      "limit": "Fato completo e transizione atomica nella candidata5 restano QA_NOT_RUN.",
+      "evidence_basis": "Riuso limitato a foglie byte-identiche e fatti nuovamente confrontati; non riabilita la vecchia qualifica di installazione."
+    },
+    {
+      "case": "Composizione Edge/UI/Root",
+      "result": "PASS_SOURCE_REASSESSED_UNCHANGED",
+      "evidence": "Edge71live14/14byteexactbundle1a715,UI1478/UIFREEZE240c,Root2builder0893/contract56e8/freeze5cc2 eNativebaseline910/a548 invariati. Riuso review precedente solo sulle foglieSHAimmutate. Nessun nuovo deployEdge/UI necessario.",
+      "evidence_basis": "Riuso limitato a foglie byte-identiche e fatti nuovamente confrontati; non riabilita la vecchia qualifica di installazione."
+    },
+    {
+      "case": "Async recovery/idempotenza",
+      "result": "PASS_SOURCE_REASSESSED_UNCHANGED",
+      "evidence": "HTTP/reader/UI/journal/workselectors/parent-child/lostACK/reload/locks/errorABI/bounds immutati agli hash reviewagg3/agg4/OBS1. Osservazione UI50letture/380s/8s/10s conserva budget; nessuna nuova possibilità di duplicare provider o pubblicazione.",
+      "evidence_basis": "Riuso limitato a foglie byte-identiche e fatti nuovamente confrontati; non riabilita la vecchia qualifica di installazione."
+    },
+    {
+      "case": "Barriera role corrente",
+      "result": "PASS_SOURCE_REASSESSED_UNCHANGED",
+      "evidence": "Rolewindow, unified_roles_ready e unified_advance presenti nella cattura14:13:24 con bodyMD5 dad5f2/d4e083/5485cc esatti rispetto fonti11:05. Lettura delle funzioni conferma role presenti valide e consumo delle finestre/epoch; nessuna role futura aggiunta dal delta.",
+      "evidence_basis": "Riuso limitato a foglie byte-identiche e fatti nuovamente confrontati; non riabilita la vecchia qualifica di installazione."
+    },
+    {
+      "case": "Compatibilita Human esplicita",
+      "result": "PASS_SOURCE_REASSESSED_UNCHANGED",
+      "evidence": "Fresh11214:13:24.603891 identica alla cattura14:05 confrontataOPEN24; owner/ACL/body/metadata invariati. Corpi identity attuali closed112 e legacy escludono unified_batch_payload. Nessun CIDHuman/pin/row modificato. D4cf/fixed30 invariati.",
+      "limit": "Identity runtime non invocata; prova di esclusione target dai grafi correnti e preservazione delle rispettive fonti, non collaudoHuman.",
+      "evidence_basis": "Riuso limitato a foglie byte-identiche e fatti nuovamente confrontati; non riabilita la vecchia qualifica di installazione."
+    },
+    {
+      "case": "Confini Root e budget",
+      "result": "PASS_SOURCE_REASSESSED_UNCHANGED",
+      "evidence": "Nuovo body cambia identitaDB: oldRoot521b nonriusabile néretimabile. REGISTER develegarenuovo113/Edge71/UI1478/freeze5; ENABLEseparato con genuinaauthority/fullQAcompatibilità. Storico10HTTP/.0808097 conservato; residui34Count36Gen70HTTP/.9111903,entro40/40/80/.992cumulativi. Ordinary14/28/.3136 eStaffnullcaps immutati.",
+      "limit": "Nessuna nuovaRoot/authority/approvazioneQA generata dalreferto.",
+      "evidence_basis": "Riuso limitato a foglie byte-identiche e fatti nuovamente confrontati; non riabilita la vecchia qualifica di installazione."
+    }
+  ],
+  "current_phase_role_barrier_verified": true,
+  "no_future_role_assumption": true,
+  "barrier_scope": "Proprietà sorgente invariata e3bodyMD5 genuini attuali; non risultato gameplay.",
+  "installation_material": {
+    "qualified": true,
+    "scope": "Solo installer b3b233... inHOLD prima nuovaRoot; zero provider e zeroenable",
+    "freshness_expiry": "2026-10-17T14:18:22.426174+00:00",
+    "preflight_DB_captured_at": "2026-10-17T14:13:23.086822+00:00",
+    "Human112_captured_at": "2026-10-17T14:13:24.603891+00:00",
+    "strict_metadata_comparison": {
+      "headers": 113,
+      "mismatch": 0,
+      "captured_at": "2026-10-17T14:13:26.434251+00:00"
+    },
+    "apply_executed": false
+  },
+  "QA_matrix": [
+    {
+      "case": "2PG/2PNG e primo Fato",
+      "result": "QA_NOT_RUN",
+      "required_evidence": "Accessi normali, attori realmente presenti; interpretazione delle due role e unicoFato conPNG pertinenti."
+    },
+    {
+      "case": "Tre Fati e fasi",
+      "result": "QA_NOT_RUN",
+      "required_evidence": "Tre avanzamenti effettivi con sole role della fase corrente, nessun riuso/futuro inventato; pertinenza narrativaverificata."
+    },
+    {
+      "case": "Combat e conseguenze server",
+      "result": "QA_NOT_RUN",
+      "required_evidence": "Percorso realeprotetto, intenzioniPNG legali, reportautorevole,nessun valoreIA/client o doppiaapplicazione."
+    },
+    {
+      "case": "Async/reload/recovery pertinente",
+      "result": "QA_NOT_RUN",
+      "required_evidence": "Identita richiestawork/receipt,terminaleautorevole eassenza doppieCount/Gen/pubblicazione nelpercorso realmenteincontrato."
+    },
+    {
+      "case": "Chiusura normale",
+      "result": "QA_NOT_RUN",
+      "required_evidence": "Ricevuta terminale normale,storico conservato,0sessioniresidue,postflightHuman/protected; annullamento tecnico non vale comechiusuraprodotto."
+    }
+  ],
+  "QA_status": "NOT_RUN_AGGREGATE6",
+  "normal_product_closure": "NOT_PASSED",
+  "case_plan_ref": {
+    "path": "/private/tmp/c1266-aggregate5-writer-20261017/STAFF_QA_CASE_PLAN.json",
+    "sha256": "215564d625cf4c214fe9827fbff85e8625812ff1df7493150de2ec962e30d8a1",
+    "bytes": 17749
+  },
+  "history": {
+    "async_aggregate": 6,
+    "async_counterreview_source_completed": 6,
+    "last_permitted_additional_counterreview": true,
+    "Root_aggregate": 2,
+    "Root_counterreview": 2,
+    "OBS1_exception": "chiusa separata",
+    "aggregate5_final": "RED_PRESERVED",
+    "cumulative_Count": 6,
+    "cumulative_Generation": 4,
+    "cumulative_HTTP": 10,
+    "cumulative_USD": "0.0808097",
+    "remaining_Count": 34,
+    "remaining_Generation": 36,
+    "remaining_HTTP": 70,
+    "remaining_USD": "0.9111903",
+    "runtime_minutes_max": 30,
+    "reset": false,
+    "on_red": "STOP_PM_NO_AGGREGATE7"
+  },
+  "limits": [
+    "Qualifica su sorgenti e materiale esatto, non dichiarazione di installazione riuscita: leggere postapply113 con solo producerb062fc/DDL1f1189,Human112/48/HOLD eRoot invariati.",
+    "REGISTER eENABLE successivi sono operazioni distinte connuovi inputgenuini e reviewmateriali. OldRoot521b non può eseguire nuovaidentitàDB. Root2builder0893/contract56e8 invariati.",
+    "UI1478 e relativi file sono invariati rispetto proveGitpubblicate giàverificate; nuova cattura14:13 qui riguarda DB/Human/Edge. Nessuna ripubblicazioneUI richiesta daldelta.",
+    "QA Staff originale resta NOT_RUN:2PG2PNG,almeno3Fati,fasi,Combat echiusuranormale. D/Ncondizionali solo secasi realmenteofferti; nessuna copertura totale dedotta. Budgetresiduo invariato,verifica dell’intera catenaautomatica primaognitrigger e stop seboundignoto.",
+    "Causa storicaCount400 non dimostrata; fonte6 non certifica tutti glischemi provider névalidatori successivi delwriter.",
+    "Parser PL usa solo sostituzione ub/uw rowtype→record; non esegue DB/fixture/gameplay. Reviewer0provider/DB/browser e nessun editing applicativo."
+  ],
+  "reviewed_refs": [
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/C1266_GENERATION_TIMEOUT_ASYNC_PLAN.json",
+      "sha256": "1db74908906a94f53594618a90566e901ea8a12da648c29770e26061fecd775b",
+      "bytes": 7968
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/C1266_GENERATION_TIMEOUT_ASYNC_EDGE_BUNDLE_FILES.json",
+      "sha256": "1a71503c0ebdc8e0938342934f27bd14f8bcbc0b036ac1eab26b3ae71c61adc8",
+      "bytes": 376361
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/C1266_GENERATION_TIMEOUT_ASYNC_EDGE_DIFF.json",
+      "sha256": "268d28f3913293ec7eca3f75df71ac0e618c28d997d5db7dfb81d4b3c1a6a29b",
+      "bytes": 584
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/C1266_GENERATION_TIMEOUT_ASYNC_STATIC.json",
+      "sha256": "72e25c370aa56dace90a9c517f966aaedec110cb5efbb3ee58ee5dd02e46193c",
+      "bytes": 6798
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/C1266_GENERATION_TIMEOUT_ASYNC_MANIFEST.json",
+      "sha256": "78f94c7c49535ba07f3f669672d3e5d60d27e1a90e9d3ce7f984fe99a8e98284",
+      "bytes": 20121
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/C1266_GENERATION_TIMEOUT_ASYNC_FREEZE.json",
+      "sha256": "5af6b5a6f5435cf6eef7c59fac6d74fa1bbac628f2886e44c54caa2bc577e09b",
+      "bytes": 18590
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/C1266_INSTALLER_OID_AGG6_INSTALL.sql",
+      "sha256": "b3b233f657a90c7071756e63f33eb84f7d9f6af71851a117e86c5f9e3a43fef4",
+      "bytes": 88408
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/C1266_INSTALLER_OID_AGG6_RECOVERY.sql",
+      "sha256": "409d9b9b51b84019e229fcfd79f3d6d315e9bac0b23bfac53da77800573f6122",
+      "bytes": 40094
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/C1266_INSTALLER_OID_AGG6_CONTRACT.json",
+      "sha256": "e8a708b2c6f7a2c93de9144617888d3fede7c2b7880534dbb68266bbd33da064",
+      "bytes": 15392
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/C1266_INSTALLER_OID_AGG6_STATIC.json",
+      "sha256": "6e22c6b18184789b1c5695615c48a7208aff72eab52450e6714c275d2e08c55f",
+      "bytes": 5547
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/archive6/C1266_GENERATION_TIMEOUT_ASYNC_PLAN.json",
+      "sha256": "95946936b7367dde4d5fc0325bdb29a32d06605d06dc3f501b1ab3aedd320803",
+      "bytes": 6960
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/archive6/C1266_GENERATION_TIMEOUT_ASYNC_EDGE_BUNDLE_FILES.json",
+      "sha256": "1a71503c0ebdc8e0938342934f27bd14f8bcbc0b036ac1eab26b3ae71c61adc8",
+      "bytes": 376361
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/archive6/C1266_GENERATION_TIMEOUT_ASYNC_EDGE_DIFF.json",
+      "sha256": "e3050a2fa6dd3c7c040845780f42e797ced9e8b68b019b872e36174f6d26ceb6",
+      "bytes": 546
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/archive6/C1266_GENERATION_TIMEOUT_ASYNC_STATIC.json",
+      "sha256": "e6e2b26698f9fd73ff11d4279713038d1be5383dc917a7179c5d27eac34f4b6e",
+      "bytes": 5988
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/archive6/C1266_GENERATION_TIMEOUT_ASYNC_MANIFEST.json",
+      "sha256": "dc36a3effc25a9e473f1f8070c9b87708e2c8359b826d36f523a35a1ba29791e",
+      "bytes": 16569
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/archive6/C1266_GENERATION_TIMEOUT_ASYNC_FREEZE.json",
+      "sha256": "767dddbfe3951f89db76a151a5431f34ef12525e093f8bf22a389c939274f12e",
+      "bytes": 15657
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_BASELINE.json",
+      "sha256": "9bff1b986b837e961961475a5195b4c05c653eebb30068ce795a831face9ed0e",
+      "bytes": 123948
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_CONTRACT.json",
+      "sha256": "17c79c0a007e92141f666145caee4a66ee775437e253287e01a4b8c836b32a99",
+      "bytes": 2856
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_COUNTER_REVIEW.json",
+      "sha256": "87aea5a90fac6a05f1c6e831a242aa59f56e9a1fc5098696142e3e66953e5bb7",
+      "bytes": 9679
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_HANDOFF.md",
+      "sha256": "e9c5de156044a8b4c331bea1f8aeafbdb70b0685301b3aaca2a644d51985b359",
+      "bytes": 2509
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_INSTALL.sql",
+      "sha256": "597195f490ba6dc805b5cf1b8049f2738d6d14fc206714ab9b5ff6fe6baf9dc6",
+      "bytes": 88392
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_INSTALL_ACTUAL.json",
+      "sha256": "e81a3861c1579aaa34321a90eb83f3b77525988763cbae2d88c3618ef6c1a1f1",
+      "bytes": 52123
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_OPERATIONS.json",
+      "sha256": "3885d87c67c5e8c30e55f55d6b2f7fe7d57c925172ecfe204f6c6df109d8b816",
+      "bytes": 3500
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_POSTFLIGHT.json",
+      "sha256": "62675061fff06f6313cc4d363d20dba14b49637c0e8028cb85ecfc48e1a3c753",
+      "bytes": 644
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_QA_RESULT.json",
+      "sha256": "6437cfbef700ce9faa62c3b0174ab0022824ee55ce2572cbb564a1673f7071b5",
+      "bytes": 354
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_RECOVERY.sql",
+      "sha256": "113e9448f79a4f2c6d1a09019039927e74bd8c4cdbab7154322b095476042166",
+      "bytes": 40086
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_SOURCE.sql",
+      "sha256": "5fe3912c5fb96ee89d25989dca9d85f9d952d5648e2114f261e6bce77dff1dfa",
+      "bytes": 8871
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_SOURCE_BEFORE.sql",
+      "sha256": "576688cd3b505446677ace9b9545d7eb0a48714bd43526393550cf1433258b67",
+      "bytes": 8493
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_STATIC.json",
+      "sha256": "49cc9610561490aa79312a8e109af8c0a26a2a1ce89e268272a1238a878ca68f",
+      "bytes": 2864
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_BASELINE.json",
+      "sha256": "f14c072760eec8c58e69bb7118eb57554d03a87c5324154fe7bb7396e0aef3ea",
+      "bytes": 11556
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_CONTRACT.json",
+      "sha256": "f071812d90b7566b0107a935aa8eb0b96872c8b35d36d415352e03542e04da38",
+      "bytes": 6136
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_CLOSURE_CERT_CONTRACT.json",
+      "sha256": "3b92aaa15611c15447bfe8e11c768cedb49f48c158fe1eb99a89721b162c8f0e",
+      "bytes": 2346
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_DB_DELTA.sql",
+      "sha256": "48625081f6bb755c07bdfe86299c7f98de093c55fa441c10892b45535ac5cfe9",
+      "bytes": 44456
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_CONFIG_REQUIREMENTS.json",
+      "sha256": "452e53b4bac82cab101058fdef15b413a7647573bb0fed85ba64661ea8073372",
+      "bytes": 4012
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_RECOVERY_PROTOCOL.json",
+      "sha256": "d881bec5525e0c33cedfc673faca7e6d6abe5bf42ae3861d7c62353c4ab225d0",
+      "bytes": 3810
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_TECHNICAL_ABORT_SOURCE.sql",
+      "sha256": "2787eaee104df4f685343ddb51bd5a7d2ba41349995a257b67ab043e639a5ccf",
+      "bytes": 25523
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_ASYNC_SOURCE.sql",
+      "sha256": "9939ce80f856ef9407db8b01d70bddf841bc502aef031699643e3aa6d49c8cfa",
+      "bytes": 44165
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_RECOVERY.sql",
+      "sha256": "8e4142a71ce2de855353198ac7535b55c7c86d84df4c969ac356fa68c1aae77c",
+      "bytes": 23746
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_TECHNICAL_ABORT_LIVE_POST_RAW.json",
+      "sha256": "6051091b8ffe2b04c17154777a5f831aea8fd8e405f2b675b860861affd5518b",
+      "bytes": 24123
+    },
+    {
+      "path": "/private/tmp/c1266-observation1-20261017/TASK_SPEC.json",
+      "sha256": "91a692284f223edfa1a59625f073f22b29397091f6517fe336c886fe3b134eea",
+      "bytes": 7501
+    },
+    {
+      "path": "/private/tmp/c1266-observation1-20261017/OBS1_EDGE_READBACK_PROOF.json",
+      "sha256": "d3a5074a9edb050a23643747b9828f1a1636fff278164251f01df52276c6469b",
+      "bytes": 301
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_UI_SOURCE.mjs",
+      "sha256": "1478f2a819fb1ef6067209e87fcf0b167699e11f5d383fb35d61fe714e1c9679",
+      "bytes": 110895
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_UI_FREEZE.json",
+      "sha256": "240cf80e1efce431b852e19bbfb6c940879d92c41e5510a5a0b73be77ddb8f21",
+      "bytes": 3140
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_ROOT_BUILDER.py",
+      "sha256": "0893d18148bc0193bdce7a755f405535b38c5b417f5a7622229b22eccbe01fa9",
+      "bytes": 34389
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_ROOT_CONTRACT.json",
+      "sha256": "56e8be729252dca0ce2cf51e9a82e6c473d7de7e2322b663370502dc260d4fcc",
+      "bytes": 4499
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_ROOT_FREEZE.json",
+      "sha256": "5cc21f789986d301edb08c4407a41dbd6863a86d4feda4eea8e393ef8f457cc2",
+      "bytes": 3868
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_SCHEMA_OBSERVATION_ROOT2_REVIEW.json",
+      "sha256": "895057ae06cf7c7dac23e0a339dd3354ddc9139b9514eea45274ca1607cc04f5",
+      "bytes": 58126
+    },
+    {
+      "path": "/private/tmp/c1266-observation1-20261017/FINAL_POSTFLIGHT.json",
+      "sha256": "ece98237b53e0a1f207bc4232b86979b4a31387c0244df36e1fe23daca7746b3",
+      "bytes": 552
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/BASELINE_CONFIG_HASHES_RAW.json",
+      "sha256": "4fa8465ce249addfbc43e0830d7bbbb87774eeb51ce51bb72b6c68255ff82b10",
+      "bytes": 1314
+    },
+    {
+      "path": "/private/tmp/c1266-observation1-20261017/FINAL_HUMAN_RAW.json",
+      "sha256": "1a5536373900c843dcb5de8dc8dba60e7e39435c1fbb028ab8c38bb6ad25090d",
+      "bytes": 1214
+    },
+    {
+      "path": "/private/tmp/c1266-observation1-20261017/FINAL_PROTECTED_RAW.json",
+      "sha256": "a148ff6c5fe7d6426263b89a592049324fefe87276a95008b36cd17e7b164bf7",
+      "bytes": 940
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/INSTALL_CAS_ALL113_DIAGNOSIS_RAW.json",
+      "sha256": "f567ca86f393a93f8b84d44b035a9dcc1ac2dd537992b7abdc7a7a3d90146e99",
+      "bytes": 805
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/INSTALL_APPLY_RAW.json",
+      "sha256": "498f270b8c5dbfbc4322d2d401b5c714132da487a027217156203a6754219df0",
+      "bytes": 351
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/FAILED_INSTALL_POSTFLIGHT.json",
+      "sha256": "62675061fff06f6313cc4d363d20dba14b49637c0e8028cb85ecfc48e1a3c753",
+      "bytes": 644
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/review/AGGREGATE5_FINAL_REVIEW.json",
+      "sha256": "87aea5a90fac6a05f1c6e831a242aa59f56e9a1fc5098696142e3e66953e5bb7",
+      "bytes": 9679
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/HUMAN_IDENTITY_CURRENT_RAW.json",
+      "sha256": "a198c1f622e3f484c75d129b72e127c0e427c633cb503751252abd82ac5d5524",
+      "bytes": 103131
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/HUMAN_IDENTITY_CURRENT_ACTUAL.json",
+      "sha256": "8c88c7a8272ddbcaf837ad807b5f162e8ddb15b710abe400cb4b746c69c8975b",
+      "bytes": 97113
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/HUMAN_IDENTITY_CURRENT_ANALYSIS.json",
+      "sha256": "000d525a5095683473eab9096dfb3d201446dd9061ee9cafbadb6e6ec2a3e007",
+      "bytes": 4103
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/review/HUMAN_SOURCE_IMPACT.json",
+      "sha256": "a150dbda5f696127d8ec3e97567f3849388c11cdcad825cfd3c37a8cc10d8d9a",
+      "bytes": 3316
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/REPLACEMENT_MAP.json",
+      "sha256": "d662c8f19eddea4677f9535219e37840fb79c905d3b0f891e336f7b5e3bc0961",
+      "bytes": 12137
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/C1266_WRITER_AGG5_SOURCE_BEFORE.sql",
+      "sha256": "576688cd3b505446677ace9b9545d7eb0a48714bd43526393550cf1433258b67",
+      "bytes": 8493
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/C1266_WRITER_AGG5_SOURCE.sql",
+      "sha256": "5fe3912c5fb96ee89d25989dca9d85f9d952d5648e2114f261e6bce77dff1dfa",
+      "bytes": 8871
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/C1266_WRITER_AGG5_INSTALL.sql",
+      "sha256": "597195f490ba6dc805b5cf1b8049f2738d6d14fc206714ab9b5ff6fe6baf9dc6",
+      "bytes": 88392
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/C1266_WRITER_AGG5_RECOVERY.sql",
+      "sha256": "113e9448f79a4f2c6d1a09019039927e74bd8c4cdbab7154322b095476042166",
+      "bytes": 40086
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_COUNT_DIAG3_CURRENT85_OPERATOR_BASELINE_ACTUAL.json",
+      "sha256": "910470f824e0ec1a6435bfb384ee96637aee23e5878e6545eba4acb2554a9140",
+      "bytes": 389755
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_TIMEOUT_ASYNC_CONTINUITY_SOURCE_FUNDEFS.json",
+      "sha256": "a54896fbf9c6e192b199a416e38c26484561108665b3ebcc6f2e27d1b3f11666",
+      "bytes": 58683
+    },
+    {
+      "path": "/private/tmp/c1266-observation1-20261017/ops/root2/C1266_GENERATION_TIMEOUT_ASYNC_ROOT_BUILDER.py",
+      "sha256": "0893d18148bc0193bdce7a755f405535b38c5b417f5a7622229b22eccbe01fa9",
+      "bytes": 34389
+    },
+    {
+      "path": "/private/tmp/c1266-observation1-20261017/ops/root2/C1266_GENERATION_TIMEOUT_ASYNC_ROOT_CONTRACT.json",
+      "sha256": "56e8be729252dca0ce2cf51e9a82e6c473d7de7e2322b663370502dc260d4fcc",
+      "bytes": 4499
+    },
+    {
+      "path": "/private/tmp/c1266-observation1-20261017/ops/root2/C1266_GENERATION_TIMEOUT_ASYNC_ROOT_FREEZE.json",
+      "sha256": "5cc21f789986d301edb08c4407a41dbd6863a86d4feda4eea8e393ef8f457cc2",
+      "bytes": 3868
+    },
+    {
+      "path": "/private/tmp/c1266-observation1-20261017/ops/root2/archive/C1266_GENERATION_TIMEOUT_ASYNC_ROOT_BUILDER.py",
+      "sha256": "bc109a0c1a23ca3e40be8b75455267f9d753efe3dd6d1e6f1219aa667caf2810",
+      "bytes": 32875
+    },
+    {
+      "path": "/private/tmp/c1266-observation1-20261017/ops/root2/archive/C1266_GENERATION_TIMEOUT_ASYNC_ROOT_CONTRACT.json",
+      "sha256": "54ee5b50a976cf2b89b1b34f8cf19081b0207660ae845f2f2da79ac324e64f5f",
+      "bytes": 3359
+    },
+    {
+      "path": "/private/tmp/c1266-observation1-20261017/ops/root2/archive/C1266_GENERATION_TIMEOUT_ASYNC_ROOT_FREEZE.json",
+      "sha256": "60fb9273eeeeae6211bd074a946cce2141f3d125cfb2c7a01f19278765d05d52",
+      "bytes": 3284
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_UI_BASELINE_SOURCE.mjs",
+      "sha256": "3d6391e624a674993b52630a9d10e400f262d0014643c5f245b7022cc9195072",
+      "bytes": 91073
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/_precedenti/20261017_HUMAN_ACTOR_LABEL_AGG23_PASS_OPEN24/backend23_proposal/SOURCE23.sql",
+      "sha256": "0c81ecc9db3cd0e412b1458b1070dcd4ed6df6923dcad6cafd7a024e8380a863",
+      "bytes": 46748
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/HUMAN_IDENTITY_CURRENT_READONLY.sql",
+      "sha256": "96ae0548d70d4fe291b02d5230c3e59782d42d7766e047558dcf8d397ba2b195",
+      "bytes": 12059
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_OPENING_SOURCE.sql",
+      "sha256": "0474733190fd76841cd6e3e9c0819bc7d81a17fbfb4f86c763c5709fafa71db5",
+      "bytes": 334144
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/review/AGGREGATE5_SOURCE_COMPOSITION_REVIEW.json",
+      "sha256": "8b2396785138f37f5e297c8675b20df504ae97f0b8745122ae6e3e68a47e0d28",
+      "bytes": 36976
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/STAFF_QA_CASE_PLAN.json",
+      "sha256": "215564d625cf4c214fe9827fbff85e8625812ff1df7493150de2ec962e30d8a1",
+      "bytes": 17749
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_PLAN.json",
+      "sha256": "1db74908906a94f53594618a90566e901ea8a12da648c29770e26061fecd775b",
+      "bytes": 7968
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_EDGE_BUNDLE_FILES.json",
+      "sha256": "1a71503c0ebdc8e0938342934f27bd14f8bcbc0b036ac1eab26b3ae71c61adc8",
+      "bytes": 376361
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_EDGE_DIFF.json",
+      "sha256": "268d28f3913293ec7eca3f75df71ac0e618c28d997d5db7dfb81d4b3c1a6a29b",
+      "bytes": 584
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_STATIC.json",
+      "sha256": "72e25c370aa56dace90a9c517f966aaedec110cb5efbb3ee58ee5dd02e46193c",
+      "bytes": 6798
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_MANIFEST.json",
+      "sha256": "78f94c7c49535ba07f3f669672d3e5d60d27e1a90e9d3ce7f984fe99a8e98284",
+      "bytes": 20121
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_GENERATION_TIMEOUT_ASYNC_FREEZE.json",
+      "sha256": "5af6b5a6f5435cf6eef7c59fac6d74fa1bbac628f2886e44c54caa2bc577e09b",
+      "bytes": 18590
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_INSTALLER_OID_AGG6_INSTALL.sql",
+      "sha256": "b3b233f657a90c7071756e63f33eb84f7d9f6af71851a117e86c5f9e3a43fef4",
+      "bytes": 88408
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_INSTALLER_OID_AGG6_RECOVERY.sql",
+      "sha256": "409d9b9b51b84019e229fcfd79f3d6d315e9bac0b23bfac53da77800573f6122",
+      "bytes": 40094
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_INSTALLER_OID_AGG6_CONTRACT.json",
+      "sha256": "e8a708b2c6f7a2c93de9144617888d3fede7c2b7880534dbb68266bbd33da064",
+      "bytes": 15392
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_INSTALLER_OID_AGG6_STATIC.json",
+      "sha256": "6e22c6b18184789b1c5695615c48a7208aff72eab52450e6714c275d2e08c55f",
+      "bytes": 5547
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/_precedenti/20261017_oid_cast_aggregate6/C1266_GENERATION_TIMEOUT_ASYNC_PLAN.json",
+      "sha256": "95946936b7367dde4d5fc0325bdb29a32d06605d06dc3f501b1ab3aedd320803",
+      "bytes": 6960
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/_precedenti/20261017_oid_cast_aggregate6/C1266_GENERATION_TIMEOUT_ASYNC_EDGE_BUNDLE_FILES.json",
+      "sha256": "1a71503c0ebdc8e0938342934f27bd14f8bcbc0b036ac1eab26b3ae71c61adc8",
+      "bytes": 376361
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/_precedenti/20261017_oid_cast_aggregate6/C1266_GENERATION_TIMEOUT_ASYNC_EDGE_DIFF.json",
+      "sha256": "e3050a2fa6dd3c7c040845780f42e797ced9e8b68b019b872e36174f6d26ceb6",
+      "bytes": 546
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/_precedenti/20261017_oid_cast_aggregate6/C1266_GENERATION_TIMEOUT_ASYNC_STATIC.json",
+      "sha256": "e6e2b26698f9fd73ff11d4279713038d1be5383dc917a7179c5d27eac34f4b6e",
+      "bytes": 5988
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/_precedenti/20261017_oid_cast_aggregate6/C1266_GENERATION_TIMEOUT_ASYNC_MANIFEST.json",
+      "sha256": "dc36a3effc25a9e473f1f8070c9b87708e2c8359b826d36f523a35a1ba29791e",
+      "bytes": 16569
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/_precedenti/20261017_oid_cast_aggregate6/C1266_GENERATION_TIMEOUT_ASYNC_FREEZE.json",
+      "sha256": "767dddbfe3951f89db76a151a5431f34ef12525e093f8bf22a389c939274f12e",
+      "bytes": 15657
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/PREINSTALL_EDGE_RAW.json",
+      "sha256": "bf7b66148ab5ea68b28e91283274ea28a66f2c70dcbde9e069de5146195040f9",
+      "bytes": 383619
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/PREINSTALL_DB_RAW.json",
+      "sha256": "9868c94de90ada27ddf1d5e63a391bffbaca53f1412bdf7be688338314032a4f",
+      "bytes": 270863
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/PREINSTALL_EXACT_CAS_RAW.json",
+      "sha256": "3e019f58e4ebc96df419cfc4420301883ccdc7b51e06b02c961fb4f1f9db06ad",
+      "bytes": 815
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/PREINSTALL_HUMAN_RAW.json",
+      "sha256": "4be3fee81a3f9b16fe923bc9c849152a4d3b949de353e199d19b8b8c9d82d366",
+      "bytes": 1214
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/PREINSTALL_HUMAN112_RAW.json",
+      "sha256": "3c713bceb82f5c98e7ca5a7633a01b3af2a9beadd4db8f3412b6fa1ef3f6b0d2",
+      "bytes": 103599
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/PREINSTALL_HUMAN112_PROOF.json",
+      "sha256": "e24b5a6d7a7b296267d73d854e851502b4afc181701c888676688a9f4f12e67b",
+      "bytes": 314
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/PREINSTALL_HUMAN112_ACTUAL.json",
+      "sha256": "70d73a3881ebd90626f51c8fddc7a04420684f2105386119654a78b9c5559154",
+      "bytes": 97609
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/PREINSTALL_PROTECTED_RAW.json",
+      "sha256": "ccb0097fdb44577e579228d03388edcd74b97394c4a8b63db04c5583b79dabec",
+      "bytes": 940
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/PREINSTALL_DB_ACTUAL.json",
+      "sha256": "24d85cfc26cc53f7d898eda02a92c2a182d57d0ba5f119e3c7b9f1494d249f43",
+      "bytes": 203450
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/EXACT_CORRECTED_CAS_READONLY.sql",
+      "sha256": "eaff51386a43a8b19eed8aa14cd00b4f1a79112e822aa9814eb85c9966177408",
+      "bytes": 36764
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate6-oid-20261017/review/INDEPENDENT_STATIC6.json",
+      "sha256": "79f95720201e61b624f6389f0dc0807592314e1e5bbd7a7f91ff6a2955bf4bae",
+      "bytes": 44511
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/INSTALL_CAS_DIAGNOSIS_RAW.json",
+      "sha256": "ce379729b6b80e69f44e857f96c90d945f3392d287eafb569c9b1576e5db3e8a",
+      "bytes": 1339
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/FAILED_INSTALL_POST_DB_RAW.json",
+      "sha256": "4b03582a744e1429d7efeecd043d75e5b6fcc9f7c5f2ba21d4b7ef45ef55d5d3",
+      "bytes": 270863
+    }
+  ],
+  "initial_and_final_hashes_equal": true
+}

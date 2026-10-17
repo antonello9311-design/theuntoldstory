@@ -1,0 +1,204 @@
+{
+  "schema_version": "c1266-installer-oid-aggregate6-contract/1",
+  "classification": "EXPLICIT_EXCEPTION1_ADDITIONAL_AGGREGATE6_SOURCE_ONLY",
+  "authority": {
+    "human_quote": "Autorizzo una sola correzione aggiuntiva",
+    "received_via": "Parent direct task authorization, 2026-10-17; exact exception requested for installation OID cast defect",
+    "additional_correction_limit": 1,
+    "additional_counterreview_limit": 1,
+    "no_extra_budget": true,
+    "scope": "Only3 metadata p.oid::bigint expressions; source5 producer/hash/ACL/predicate/expected113 unchanged",
+    "no_public_enable": true
+  },
+  "history": {
+    "async_aggregate": 6,
+    "async_counterreview_completed": 5,
+    "async_counterreview_pending": 6,
+    "last_permitted_aggregate": true,
+    "on_counter5_red": "STOP_NO_PATCH_NO_RESET_REPORT_PM",
+    "Root_aggregate": 2,
+    "Root_counterreview_completed": 2,
+    "composition_next": "PENDING_COUNTER6_FULL_COMPOSITION",
+    "OBS1_exception": 1,
+    "OBS1_finished": true,
+    "OBS1_HTTP": 4,
+    "OBS1_USD": "0.029749",
+    "cumulative_HTTP": 10,
+    "cumulative_USD": "0.0808097",
+    "history_reset": false,
+    "aggregate5_final": "RED_INSTALLATION_OID_JSON_TYPE_BEFORE_DDL",
+    "explicit_additional_exception": 1,
+    "exception_scope": "ONE_ADDITIONAL_CORRECTION_AND_COUNTERREVIEW_ONLY_THREE_OID_CASTS",
+    "on_counter6_red": "STOP_NO_AGGREGATE7_NO_RESET",
+    "cumulative_Count": 6,
+    "cumulative_Gen": 4,
+    "remaining_Count": 34,
+    "remaining_Gen": 36,
+    "remaining_HTTP": 70,
+    "remaining_USD": "0.9111903",
+    "future_Staff_minutes_max": 30
+  },
+  "cause": "p.oid has PostgreSQL oid type serialized as JSONstring; expected headers use bigint serialized as JSONnumber. Explicit bigint restores exact metadata representation.",
+  "changes": [
+    {
+      "file": "C1266_INSTALLER_OID_AGG6_INSTALL.sql",
+      "canonical": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_INSTALLER_OID_AGG6_INSTALL.sql",
+      "before": {
+        "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_INSTALL.sql",
+        "sha256": "597195f490ba6dc805b5cf1b8049f2738d6d14fc206714ab9b5ff6fe6baf9dc6",
+        "bytes": 88392
+      },
+      "after": {
+        "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_INSTALLER_OID_AGG6_INSTALL.sql",
+        "sha256": "b3b233f657a90c7071756e63f33eb84f7d9f6af71851a117e86c5f9e3a43fef4",
+        "bytes": 88408
+      },
+      "exact_occurrences": 2,
+      "reverse_cast_removal_byte_exact": true,
+      "diff": "--- C1266_WRITER_AGG5_INSTALL.sql\n+++ C1266_INSTALLER_OID_AGG6_INSTALL.sql\n@@ -10,7 +10,7 @@\n PERFORM pg_advisory_xact_lock(hashtextextended('C1266:GENERIC-AI:AVAILABILITY',0));\n LOCK TABLE mission_factory_owner.editor_release_readiness,mission_factory_owner.c464_control,mission_factory_owner.provider_authoring_runtime,mission_factory_owner.provider_authoring_admissions,mission_generic_owner.runtime_policy,mission_generic_owner.provider_policy,mission_generic_owner.flow_runtime_gate IN SHARE ROW EXCLUSIVE MODE;\n FOR item IN SELECT value FROM jsonb_array_elements(expected) LOOP\n- SELECT jsonb_build_object('oid',p.oid,'signature',item->>'signature','owner',pg_get_userbyid(p.proowner),'secdef',p.prosecdef,'volatility',p.provolatile::text,'config',p.proconfig,'language',l.lanname,'acl',p.proacl::text,'source_md5',md5(p.prosrc),'ddl_md5',md5(pg_get_functiondef(p.oid))) INTO actual FROM pg_proc p JOIN pg_language l ON l.oid=p.prolang WHERE p.oid=to_regprocedure(item->>'signature');\n+ SELECT jsonb_build_object('oid',p.oid::bigint,'signature',item->>'signature','owner',pg_get_userbyid(p.proowner),'secdef',p.prosecdef,'volatility',p.provolatile::text,'config',p.proconfig,'language',l.lanname,'acl',p.proacl::text,'source_md5',md5(p.prosrc),'ddl_md5',md5(pg_get_functiondef(p.oid))) INTO actual FROM pg_proc p JOIN pg_language l ON l.oid=p.prolang WHERE p.oid=to_regprocedure(item->>'signature');\n  IF actual IS DISTINCT FROM item THEN RAISE EXCEPTION 'C1266_AGG5_HEADER_CAS_DRIFT %',item->>'signature'; END IF;\n END LOOP;\n IF public.combat_v2_sha256((SELECT to_jsonb(x) FROM mission_factory_owner.editor_release_readiness x WHERE singleton)) IS DISTINCT FROM 'e3dda916e8610954273228ddfee250abda9d47d14c2f08cfa9268b45436b9da2' THEN RAISE EXCEPTION 'C1266_AGG5_CONFIG_CAS_DRIFT readiness'; END IF;\n@@ -145,7 +145,7 @@\n BEGIN\n IF current_user<>'postgres' THEN RAISE EXCEPTION 'C1266_AGG5_OWNER_REQUIRED'; END IF;\n FOR item IN SELECT value FROM jsonb_array_elements(expected) LOOP\n- SELECT jsonb_build_object('oid',p.oid,'signature',item->>'signature','owner',pg_get_userbyid(p.proowner),'secdef',p.prosecdef,'volatility',p.provolatile::text,'config',p.proconfig,'language',l.lanname,'acl',p.proacl::text,'source_md5',md5(p.prosrc),'ddl_md5',md5(pg_get_functiondef(p.oid))) INTO actual FROM pg_proc p JOIN pg_language l ON l.oid=p.prolang WHERE p.oid=to_regprocedure(item->>'signature');\n+ SELECT jsonb_build_object('oid',p.oid::bigint,'signature',item->>'signature','owner',pg_get_userbyid(p.proowner),'secdef',p.prosecdef,'volatility',p.provolatile::text,'config',p.proconfig,'language',l.lanname,'acl',p.proacl::text,'source_md5',md5(p.prosrc),'ddl_md5',md5(pg_get_functiondef(p.oid))) INTO actual FROM pg_proc p JOIN pg_language l ON l.oid=p.prolang WHERE p.oid=to_regprocedure(item->>'signature');\n  IF actual IS DISTINCT FROM item THEN RAISE EXCEPTION 'C1266_AGG5_HEADER_CAS_DRIFT %',item->>'signature'; END IF;\n END LOOP;\n IF public.combat_v2_sha256((SELECT to_jsonb(x) FROM mission_factory_owner.editor_release_readiness x WHERE singleton)) IS DISTINCT FROM 'e3dda916e8610954273228ddfee250abda9d47d14c2f08cfa9268b45436b9da2' THEN RAISE EXCEPTION 'C1266_AGG5_CONFIG_CAS_DRIFT readiness'; END IF;\n"
+    },
+    {
+      "file": "C1266_INSTALLER_OID_AGG6_RECOVERY.sql",
+      "canonical": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_INSTALLER_OID_AGG6_RECOVERY.sql",
+      "before": {
+        "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_RECOVERY.sql",
+        "sha256": "113e9448f79a4f2c6d1a09019039927e74bd8c4cdbab7154322b095476042166",
+        "bytes": 40086
+      },
+      "after": {
+        "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_INSTALLER_OID_AGG6_RECOVERY.sql",
+        "sha256": "409d9b9b51b84019e229fcfd79f3d6d315e9bac0b23bfac53da77800573f6122",
+        "bytes": 40094
+      },
+      "exact_occurrences": 1,
+      "reverse_cast_removal_byte_exact": true,
+      "diff": "--- C1266_WRITER_AGG5_RECOVERY.sql\n+++ C1266_INSTALLER_OID_AGG6_RECOVERY.sql\n@@ -11,7 +11,7 @@\n PERFORM pg_advisory_xact_lock(hashtextextended('C1266:GENERIC-AI:AVAILABILITY',0));\n LOCK TABLE mission_factory_owner.editor_release_readiness,mission_factory_owner.c464_control,mission_factory_owner.provider_authoring_runtime,mission_factory_owner.provider_authoring_admissions,mission_generic_owner.runtime_policy,mission_generic_owner.provider_policy,mission_generic_owner.flow_runtime_gate IN SHARE ROW EXCLUSIVE MODE;\n FOR item IN SELECT value FROM jsonb_array_elements(expected) LOOP\n- SELECT jsonb_build_object('oid',p.oid,'signature',item->>'signature','owner',pg_get_userbyid(p.proowner),'secdef',p.prosecdef,'volatility',p.provolatile::text,'config',p.proconfig,'language',l.lanname,'acl',p.proacl::text,'source_md5',md5(p.prosrc),'ddl_md5',md5(pg_get_functiondef(p.oid))) INTO actual FROM pg_proc p JOIN pg_language l ON l.oid=p.prolang WHERE p.oid=to_regprocedure(item->>'signature');\n+ SELECT jsonb_build_object('oid',p.oid::bigint,'signature',item->>'signature','owner',pg_get_userbyid(p.proowner),'secdef',p.prosecdef,'volatility',p.provolatile::text,'config',p.proconfig,'language',l.lanname,'acl',p.proacl::text,'source_md5',md5(p.prosrc),'ddl_md5',md5(pg_get_functiondef(p.oid))) INTO actual FROM pg_proc p JOIN pg_language l ON l.oid=p.prolang WHERE p.oid=to_regprocedure(item->>'signature');\n  IF actual IS DISTINCT FROM item THEN RAISE EXCEPTION 'C1266_AGG5_HEADER_CAS_DRIFT %',item->>'signature'; END IF;\n END LOOP;\n IF public.combat_v2_sha256((SELECT to_jsonb(x) FROM mission_factory_owner.editor_release_readiness x WHERE singleton)) IS DISTINCT FROM 'e3dda916e8610954273228ddfee250abda9d47d14c2f08cfa9268b45436b9da2' THEN RAISE EXCEPTION 'C1266_AGG5_CONFIG_CAS_DRIFT readiness'; END IF;\n"
+    }
+  ],
+  "producer_unchanged": {
+    "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_SOURCE.sql",
+    "sha256": "5fe3912c5fb96ee89d25989dca9d85f9d952d5648e2114f261e6bce77dff1dfa",
+    "bytes": 8871
+  },
+  "producer_after_md5": "b062fcf23872bbda58f9c3e5cec1d5f4",
+  "fifth_artifacts_unchanged": [
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_BASELINE.json",
+      "sha256": "9bff1b986b837e961961475a5195b4c05c653eebb30068ce795a831face9ed0e",
+      "bytes": 123948
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_CONTRACT.json",
+      "sha256": "17c79c0a007e92141f666145caee4a66ee775437e253287e01a4b8c836b32a99",
+      "bytes": 2856
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_COUNTER_REVIEW.json",
+      "sha256": "87aea5a90fac6a05f1c6e831a242aa59f56e9a1fc5098696142e3e66953e5bb7",
+      "bytes": 9679
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_HANDOFF.md",
+      "sha256": "e9c5de156044a8b4c331bea1f8aeafbdb70b0685301b3aaca2a644d51985b359",
+      "bytes": 2509
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_INSTALL.sql",
+      "sha256": "597195f490ba6dc805b5cf1b8049f2738d6d14fc206714ab9b5ff6fe6baf9dc6",
+      "bytes": 88392
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_INSTALL_ACTUAL.json",
+      "sha256": "e81a3861c1579aaa34321a90eb83f3b77525988763cbae2d88c3618ef6c1a1f1",
+      "bytes": 52123
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_OPERATIONS.json",
+      "sha256": "3885d87c67c5e8c30e55f55d6b2f7fe7d57c925172ecfe204f6c6df109d8b816",
+      "bytes": 3500
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_POSTFLIGHT.json",
+      "sha256": "62675061fff06f6313cc4d363d20dba14b49637c0e8028cb85ecfc48e1a3c753",
+      "bytes": 644
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_QA_RESULT.json",
+      "sha256": "6437cfbef700ce9faa62c3b0174ab0022824ee55ce2572cbb564a1673f7071b5",
+      "bytes": 354
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_RECOVERY.sql",
+      "sha256": "113e9448f79a4f2c6d1a09019039927e74bd8c4cdbab7154322b095476042166",
+      "bytes": 40086
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_SOURCE.sql",
+      "sha256": "5fe3912c5fb96ee89d25989dca9d85f9d952d5648e2114f261e6bce77dff1dfa",
+      "bytes": 8871
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_SOURCE_BEFORE.sql",
+      "sha256": "576688cd3b505446677ace9b9545d7eb0a48714bd43526393550cf1433258b67",
+      "bytes": 8493
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_STATIC.json",
+      "sha256": "49cc9610561490aa79312a8e109af8c0a26a2a1ce89e268272a1238a878ca68f",
+      "bytes": 2864
+    }
+  ],
+  "expected_values_and_predicates_unchanged": true,
+  "schema_ACL_owner_signature_changes": [],
+  "new_functions": 0,
+  "type_or_values_change_to_application_payload": false,
+  "historical_rejected_install": {
+    "path": "/private/tmp/c1266-aggregate5-writer-20261017/INSTALL_APPLY_RAW.json",
+    "sha256": "498f270b8c5dbfbc4322d2d401b5c714132da487a027217156203a6754219df0",
+    "bytes": 351
+  },
+  "failure_cause_proof": {
+    "path": "/private/tmp/c1266-aggregate5-writer-20261017/INSTALL_CAS_ALL113_DIAGNOSIS_RAW.json",
+    "sha256": "f567ca86f393a93f8b84d44b035a9dcc1ac2dd537992b7abdc7a7a3d90146e99",
+    "bytes": 805
+  },
+  "failed_postflight": {
+    "path": "/private/tmp/c1266-aggregate5-writer-20261017/FAILED_INSTALL_POSTFLIGHT.json",
+    "sha256": "62675061fff06f6313cc4d363d20dba14b49637c0e8028cb85ecfc48e1a3c753",
+    "bytes": 644
+  },
+  "counter5_final": {
+    "path": "/private/tmp/c1266-aggregate5-writer-20261017/review/AGGREGATE5_FINAL_REVIEW.json",
+    "sha256": "87aea5a90fac6a05f1c6e831a242aa59f56e9a1fc5098696142e3e66953e5bb7",
+    "bytes": 9679
+  },
+  "Human_static_inherited_refs": [
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/HUMAN_IDENTITY_CURRENT_RAW.json",
+      "sha256": "a198c1f622e3f484c75d129b72e127c0e427c633cb503751252abd82ac5d5524",
+      "bytes": 103131
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/HUMAN_IDENTITY_CURRENT_ACTUAL.json",
+      "sha256": "8c88c7a8272ddbcaf837ad807b5f162e8ddb15b710abe400cb4b746c69c8975b",
+      "bytes": 97113
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/HUMAN_IDENTITY_CURRENT_ANALYSIS.json",
+      "sha256": "000d525a5095683473eab9096dfb3d201446dd9061ee9cafbadb6e6ec2a3e007",
+      "bytes": 4103
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/review/HUMAN_SOURCE_IMPACT.json",
+      "sha256": "a150dbda5f696127d8ec3e97567f3849388c11cdcad825cfd3c37a8cc10d8d9a",
+      "bytes": 3316
+    }
+  ],
+  "fresh_preflight_required": [
+    "DB113 actual values/types and full schema7/rows7",
+    "Human live rows+headers/identity plus inherited closed112 dependency proof",
+    "protected48, activity0, Edge71 exact14, UI1478, Root2 identity",
+    "All expected113 values and13:57held7 configuration pins remain unchanged; drift stops, do not repin"
+  ],
+  "recovery": "Same forward-HOLD verification semantics as fifth. No old-body/history replay. If Root/configuration later changes, require fresh reviewed Root RECOVER_HOLD material."
+}

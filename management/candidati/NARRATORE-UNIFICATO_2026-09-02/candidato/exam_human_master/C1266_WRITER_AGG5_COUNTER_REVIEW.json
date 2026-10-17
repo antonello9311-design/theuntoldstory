@@ -1,0 +1,208 @@
+{
+  "schema_version": "c1266-aggregate5-final-independent-review/1",
+  "classification": "COUNTERREVIEW5_RED_INSTALLATION_BLOCKER_STOP_PM",
+  "review_completed_at": "2026-10-17T14:09:44.789896+00:00",
+  "finding_counts": {
+    "P0": 0,
+    "P1": 1,
+    "P2": 0
+  },
+  "findings": [
+    {
+      "id": "AGG5-F1",
+      "priority": "P1",
+      "title": "Il CAS dei113header serializza oid con tipo JSON incompatibile e blocca ogni installazione",
+      "file": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_INSTALL.sql",
+      "line": 13,
+      "additional_locations": [
+        {
+          "file": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_INSTALL.sql",
+          "line": 148
+        },
+        {
+          "file": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_RECOVERY.sql",
+          "line": 14
+        }
+      ],
+      "trigger": "Prima iterazione del guard DO, exam_human_private.execution_guard_v1(), prima della CREATE OR REPLACE alla linea26.",
+      "cause": "expected.oid è numeroJSON151693 derivato da p.oid::bigint. jsonb_build_object(oid,p.oid) nel CAS produce stringaJSON151693 dal tipo PostgreSQL oid. actual IS DISTINCT FROM item confronta anche il tipo e quindi fallisce pur con catalogo invariato.",
+      "evidence": {
+        "captured_at": "2026-10-17T14:08:38.146289+00:00",
+        "expected_oid": 151693,
+        "expected_json_type": "number",
+        "actual_oid": "151693",
+        "actual_json_type": "string",
+        "field_set_equal": true,
+        "all_other_fields_exact_equal": true,
+        "error": "P0001 C1266_AGG5_HEADER_CAS_DRIFT exam_human_private.execution_guard_v1()"
+      },
+      "impact": "Installer non installabile nello stato congelato; stessa causa nel postcheck e nel verificatore recovery. Nessuna modifica applicativa eseguita nel tentativo osservato.",
+      "minimal_correction_description_only": "Uniformare il tipo OID nel jsonb_build_object dei tre confronti usando p.oid::bigint, mantenendo identici elenco chiuso113, altri campi, hash attesi e confronto IS DISTINCT FROM. Riverificare confronto typed rispetto alla cattura genuina; non cambiare pin, non rimuovere guardie.",
+      "correction_written": false,
+      "correction_reviewed": false,
+      "authorization_status": "STOP_PM: quinta controverifica rossa; qualsiasi ulteriore correzione richiede eccezione esplicita, non una rinomina Root3 o un reset."
+    }
+  ],
+  "aggregate_correction": 5,
+  "counterreview": 5,
+  "counterreview_status": "FINAL_RED",
+  "previous_review": {
+    "ref": {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/review/AGGREGATE5_SOURCE_COMPOSITION_REVIEW.json",
+      "sha256": "8b2396785138f37f5e297c8675b20df504ae97f0b8745122ae6e3e68a47e0d28",
+      "bytes": 36976
+    },
+    "preserved_unchanged": true,
+    "status": "HISTORICAL_SOURCE_STATIC_REVIEW_SUPERSEDED_FOR_INSTALLATION_QUALIFICATION",
+    "correction": "La precedente qualifica0/0/0 dell’installer era errata: il parser statico non aveva verificato la serializzazione JSON del tipo catalogo oid. Il presente referto ritira la qualifica di installabilità. L’analisi della proiezione writer resta source-only e non prova runtime."
+  },
+  "attempt": {
+    "installer_ref": {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/C1266_WRITER_AGG5_INSTALL.sql",
+      "sha256": "597195f490ba6dc805b5cf1b8049f2738d6d14fc206714ab9b5ff6fe6baf9dc6",
+      "bytes": 88392
+    },
+    "apply_error_observed": true,
+    "first_CAS_before_CREATE": true,
+    "retry_count": 0,
+    "provider_calls": 0
+  },
+  "postflight": {
+    "captured_at": "2026-10-17T14:08:40.638435+00:00",
+    "all_DB_fields_except_timestamp_equal_preinstall": true,
+    "headers113_unchanged": true,
+    "configuration_schema7_unchanged": true,
+    "configuration_rows7_unchanged": true,
+    "producer_source_md5": "c6f708876c9487f1136a0870f3ce05a4",
+    "candidate_b062fc_installed": false,
+    "availability": "HOLD_ALL_OFF",
+    "activity": {
+      "active_ai": 0,
+      "active_provider": 0,
+      "staff_open": 0,
+      "combat_open": 0
+    },
+    "Root_sha256": "521b64978c84c544a49b81dd18cdcdef0cca0320fd1b1a94468a8be382fcdfb0",
+    "Root_bytes_and_clock_unchanged": true,
+    "protected48_sha256": "d72929c381929cd4ba05a777ba416a584bd9999a97cc4b10a9a65d5ad44d7383",
+    "Human_public_release": "d4cf89c9b77494833a159c2c911ca7c5768124e3fff4f155590c178fa8b057c8",
+    "Human_public_enabled": true,
+    "Human_release_row_md5": "e16c1c68a08abad2c017fbeff8ef5bbb",
+    "Human_fixed30_row_md5": "1d0da862a1f45bb6c8cb0449dbf212f8",
+    "Human_rows_unchanged": true
+  },
+  "remaining_matrix": {
+    "source_projection": "STATIC_ANALYSIS_ONLY_NO_RUNTIME_CLAIM",
+    "installation": "FAILED_BEFORE_SOURCE_CHANGE",
+    "REGISTER_new_composition": "NOT_RUN",
+    "ENABLE": "NOT_RUN",
+    "Staff_2PG_2PNG_3Fati_phases_Combat": "NOT_RUN_AGGREGATE5",
+    "normal_product_closure": "NOT_PASSED"
+  },
+  "history": {
+    "async_aggregate": 5,
+    "async_counterreview": 5,
+    "Root_aggregate": 2,
+    "Root_counterreview": 2,
+    "OBS1_exception": "finished_separate",
+    "cumulative_HTTP": 10,
+    "cumulative_USD": "0.0808097",
+    "reset": false,
+    "sixth_correction_written": false,
+    "Root3_escape": false
+  },
+  "decision_for_PM": {
+    "status": "STOP_WITH_VERIFIED_MINIMAL_CORRECTION_DESCRIPTION",
+    "authorized_next_runtime": false,
+    "further_patch_or_retry": false,
+    "user_exception_required_for_additional_aggregate": true
+  },
+  "limits": [
+    "Il confronto puntuale dei tipi è provato sul primo header che ha fallito; non si deduce che ulteriori errori non esistano.",
+    "PostflightDB/righeHuman/protected conferma preservazione; non è un nuovo collaudoHuman né una certificazione completa del prodotto.",
+    "Nessuna modifica a sorgenti, DB, browser o provider eseguita dal reviewer. Il solo nuovo output è questo referto e handoff."
+  ],
+  "reviewed_refs": [
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/review/AGGREGATE5_SOURCE_COMPOSITION_REVIEW.json",
+      "sha256": "8b2396785138f37f5e297c8675b20df504ae97f0b8745122ae6e3e68a47e0d28",
+      "bytes": 36976
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/C1266_WRITER_AGG5_INSTALL.sql",
+      "sha256": "597195f490ba6dc805b5cf1b8049f2738d6d14fc206714ab9b5ff6fe6baf9dc6",
+      "bytes": 88392
+    },
+    {
+      "path": "/Users/antonello/Desktop/theuntoldstory/management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/exam_human_master/C1266_WRITER_AGG5_INSTALL.sql",
+      "sha256": "597195f490ba6dc805b5cf1b8049f2738d6d14fc206714ab9b5ff6fe6baf9dc6",
+      "bytes": 88392
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/INSTALL_APPLY_RAW.json",
+      "sha256": "498f270b8c5dbfbc4322d2d401b5c714132da487a027217156203a6754219df0",
+      "bytes": 351
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/INSTALL_CAS_DIAGNOSIS_RAW.json",
+      "sha256": "ce379729b6b80e69f44e857f96c90d945f3392d287eafb569c9b1576e5db3e8a",
+      "bytes": 1339
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/FAILED_INSTALL_POST_DB_RAW.json",
+      "sha256": "4b03582a744e1429d7efeecd043d75e5b6fcc9f7c5f2ba21d4b7ef45ef55d5d3",
+      "bytes": 270863
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/FAILED_INSTALL_POST_PROTECTED_RAW.json",
+      "sha256": "9da49ab36073fc2b51b3a7d39ded2ac6a5b78596e1dc50683f407a455bd550d4",
+      "bytes": 940
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/FAILED_INSTALL_POST_HUMAN_RAW.json",
+      "sha256": "9e65572ba538c8634a90b300a854882a1ec2a2958b09598529d7c5128824dc23",
+      "bytes": 1214
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/PREINSTALL_DB_ACTUAL.json",
+      "sha256": "f5f987c5d83a9959d56ef4ffdf4804031dfc80a2d55919fe4b6b8d77c51ed5d7",
+      "bytes": 203450
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/PREINSTALL_PROTECTED_RAW.json",
+      "sha256": "cc7e1be6b648bc12c5cb5810b57ca80cf6d2737ebdbc1b4216055b4dfb524065",
+      "bytes": 940
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/PREINSTALL_HUMAN_RAW.json",
+      "sha256": "46663f8c975124986e40c92f8ac9d2c0d6fa9a91ae2f58ef7e006b90180700f2",
+      "bytes": 1213
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/C1266_WRITER_AGG5_BASELINE.json",
+      "sha256": "9bff1b986b837e961961475a5195b4c05c653eebb30068ce795a831face9ed0e",
+      "bytes": 123948
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/C1266_WRITER_AGG5_SOURCE.sql",
+      "sha256": "5fe3912c5fb96ee89d25989dca9d85f9d952d5648e2114f261e6bce77dff1dfa",
+      "bytes": 8871
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/C1266_WRITER_AGG5_RECOVERY.sql",
+      "sha256": "113e9448f79a4f2c6d1a09019039927e74bd8c4cdbab7154322b095476042166",
+      "bytes": 40086
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/C1266_GENERATION_TIMEOUT_ASYNC_FREEZE.json",
+      "sha256": "767dddbfe3951f89db76a151a5431f34ef12525e093f8bf22a389c939274f12e",
+      "bytes": 15657
+    },
+    {
+      "path": "/private/tmp/c1266-aggregate5-writer-20261017/REPLACEMENT_MAP.json",
+      "sha256": "38667fc0c5b6ad2c1efd296b7c938659c3011653f2a9d9d1ed027fb437a95bea",
+      "bytes": 9005
+    }
+  ],
+  "initial_and_final_hashes_equal": true
+}

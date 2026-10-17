@@ -1,0 +1,32 @@
+{
+  "schema_version": "c1266-writer-agg5-contract/1",
+  "cause": {
+    "path": "/private/tmp/c1266-observation1-20261017/OBS1_WRITER_DIAGNOSIS.json",
+    "sha256": "f0b6d3b1478532b37c17de9e09714f85f7ce46261e8793e53648781d45400ccb",
+    "bytes": 8470
+  },
+  "producer": "mission_generic_owner.unified_batch_payload(uuid)",
+  "consumer": "Edge71 mission-generic-runtime.mjs missionPrompts/unifiedNarrativeRequest",
+  "scope": "Only C1266 role temporal /4 writer with both contexts",
+  "removed_keys_from_mission_context": [
+    "public_destination_sources",
+    "role_progression_basis"
+  ],
+  "source_context_untouched": true,
+  "all_other_payload_fields_untouched": true,
+  "role_authority_remains": "source_context, public_context_path attested, roleContextNode strict identity; no consumer relaxation",
+  "destination_sources_preserved": true,
+  "constraints_added_or_relaxed": [],
+  "ACL_changes": [],
+  "new_functions": 0,
+  "function_signature_unchanged": true,
+  "recovery": "Install cannot enable anything. Preserve new body and already-held config; verify with RECOVERY. If later Root changed, fresh Root RECOVER_HOLD is required, never this historical snapshot or old function bodies.",
+  "historical_work_policy": "No rewrite/retry of failed d51659f5 or any historical work/receipt/payload; new work only after separately authorized fresh Root/Staff budget.",
+  "baseline_hashes": {
+    "before_md5": "c6f708876c9487f1136a0870f3ce05a4",
+    "after_md5": "b062fcf23872bbda58f9c3e5cec1d5f4",
+    "before_sha256": "576688cd3b505446677ace9b9545d7eb0a48714bd43526393550cf1433258b67",
+    "after_sha256": "5fe3912c5fb96ee89d25989dca9d85f9d952d5648e2114f261e6bce77dff1dfa"
+  },
+  "delta": "--- LIVE/unified_batch_payload.sql\n+++ AGG5/unified_batch_payload.sql\n@@ -53,6 +53,12 @@\n   ctx:=jsonb_set(ctx,'{sources}',(select coalesce(jsonb_agg(ss),'[]') from jsonb_array_elements(ctx->'sources') ss where ss->>'kind'<>'role'));\n  end if;\n  select jsonb_agg(distinct ri) into receipts from jsonb_array_elements(receipts) ri;\n+ -- C1266 temporal writer: role metadata belongs only to the attested source_context.\n+ -- Preserve all destination/current narrative sources, facts and continuity fields.\n+ IF c1266_roles AND ub.decision->>'schema_version'='mission-director-proposal/4'\n+   AND ctx IS NOT NULL AND srcctx IS NOT NULL THEN\n+  ctx:=ctx-'public_destination_sources'-'role_progression_basis';\n+ END IF;\n  result:=jsonb_build_object('schema_version','mission-generic-narration/3','mode','unified','batch_id',ub.id,\n  'composition_kind',ub.composition_kind,'director_proposal',ub.decision,'resolved_scenes',source,'mission_context',ctx,'source_context',srcctx,'pending_offensives',pending,\n  'preparation_receipt_id',ub.id,'publication_barrier',jsonb_build_object('closed',true,'required_receipt_ids',receipts,'receipt_ids',receipts),\n"
+}
