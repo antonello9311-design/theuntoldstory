@@ -1,19 +1,19 @@
-# HUMAN-CUSTOM-ORDINARY-PUBLIC-20261015
+# HUMAN-ACTOR-LABEL-PUBLIC-20261017 · Consegna finale
 
 ## Scope toccato
-Raccordo ordinario pubblico dei PNG custom approvati/certificati con quest Human, Combat e arena valida. Stessa Staff Test Room, stessi due account, WIP e storico conservati.
+Regia Human: nomi PG e PNG leggibili, checkbox locali corretti e Combat aperto soltanto dal comando esplicito nel pannello dedicato. Nessun Combat inline nella chat o nel workspace Human e nessuna apertura automatica entrando nella puntata. La conduzione narrativa inline resta disponibile.
 
 ## Contratti usati/modificati
-C9/full111, releasea65259745010e998aee598a7b85f23ac3e7e2645d4c8628eead2ee2767c33c21; install20261016212211, OPEN20261016212656. API/DTO/client39337/mediaEdgeV2 invariati. Fonte16/review/materiale0/0/0 nelle prove canoniche.
+Contratti `combat-panel/1` e `human-actor-label-mode/1` conservati. Versione C12/full112, release `d4cf89c9b77494833a159c2c911ca7c5768124e3fff4f155590c178fa8b057c8`, LAND SHA `8f89a7234ba40cfda902dc4dc507f2581540ee4f464f4beaa7f21ccc590c67a6`, commit `fdaa5759fdcb2b1342141fbc2efc2d5cd16d1837`. Prove canoniche QA, POST e PUBLICATION Human. Nessuna modifica a meccaniche, journal o risorse reali.
 
 ## Decisioni prese / OPEN
-Percorso custom aperto dopo PASS effettivo. Provider0, nessun premio reale, nessun reset. Candidata cosmetica nomi c39d6e verificata solo in sorgente: richiede raccordo tipizzato della presentazione prima della sua pubblicazione, conservato come miglioramento facoltativo source-only; analisi17 fermata senzaDDL o installazione. Non rigiocare Combat o chiusura acquisiti.
+Apertura LAND completata con OPEN24, migrazione `20261017083331`. Postflight verificato alle08:34:19.624645UTC: tutte17verifiche positive, identità corrente e full112 coerenti, pubblico attivo, riserva Staff disattivata. OPEN23 rosso non applicato;24 corregge solo la dichiarazioneNULL dell’operatore, senza nuovo CID o ripetizione del collaudo.
 
 ## Prove eseguite e risultato
-Fato, movimento/attacco Riuji, azione non offensiva Tamako, parata Iori, valutazione neutra, report5aeb80a8 con19danni simulati e unico Fato1fff4968; chiusura pacifica, transizione/due role, terminal535535b1 successo/pub7ca6ae7d. Post21:24:57:2PGfinalizzati, ownopen0, Combat+arenachiusi,48MD5d41adde267a202a8ff4c6c194eb0a09f invariato, rewards30simulati/effective0, valueswrittenfalse, tutti provider0. OPEN post21:27:13 pubblicoTRUE/positivo1/identityvalid/historicalfalsevalid, gateIAimmutati.
+QA23 PASS sulla stessa scena `27f18cba-26ae-55b3-9b72-3d59bb79b99d`: nomi PG/PNG osservati, selezionati e riletti, apertura Combat esplicita e assenza del pannello dalla chat. Due round non offensivi, un Fato per report, ritorno pacifico, transizione, due role e conclusione normale. Ricevuta terminale `ad233ecf-a3d7-45f7-bc8c-5ed5ce6095ac`; scene proprie aperte0, due partecipanti finalizzati, premi simulati con effetto reale0, protected48 invariati e provider IA0. WIP e richieste non inviate conservati. Migrazioni23 inerte `20261017080330` e attivazione `20261017080642`.
 
 ## Rischi o regressioni da verificare
-Seconda puntata PASS storico distinto, non nuova prova custom multipuntata. Premi reali e nuova geometria arena NOT_RUN. Correzione cosmetica non ancora pubblicata. Contatori1iniziale/16aggregate/16controverifiche e storici5/3/NPC1 conservati;14RED non installata.
+La nuova prova custom multipuntata e i premi reali restano NOT_RUN. C9 e la seconda puntata Staff conservano i rispettivi PASS storici distinti. Le schermate native Cua sono JPEG/JFIF con estensione PNG storica, conservate byte per byte senza conversione. Nessuna riapertura dei casi conclusi o modifica al lavoro C1266.
 
 ## Passaggio richiesto al PM
-Deposito Git selettivo f0365c11f0e83f3e4cc19300830d1b38d1224c8a completato:136file byte/SHA verificati, client invariato e dominio ricaricato. Schermate consegnate per approvazione visiva. Il cosmetico facoltativo resta source-only e non appartiene alla versione pubblicata. Il rilascio funzionale C9 è già verificato; non trasformare documentazione o sorgenteUI in ulteriore gameplayPASS.
+Collaudo e apertura completati; consegna delle schermate per approvazione estetica. Resta distinto il lavoro C1266; nuova prova custom multipuntata e premi reali NOT_RUN. Deposito selettivo in completamento.

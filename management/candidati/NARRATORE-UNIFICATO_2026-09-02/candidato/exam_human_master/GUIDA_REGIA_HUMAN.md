@@ -1,6 +1,8 @@
 # Regia con Master, PNG e mappe
 
-**Aggiornamento 16/10/2026: percorso custom Human aperto alla LAND dopo collaudo completo nella Staff Test Room.** Fato, Combat con PNG approvato e arena valida, ritorno narrativo e chiusura risultano PASS. Provider IA a zero, nessun premio reale e48campi protetti invariati.
+**Regia Human aperta alla LAND dopo QA23 PASS e OPEN24 verificato.** Il collaudo Staff del17/10 ha confermato nomi PG/PNG leggibili, selezione e rilettura, Combat soltanto nel pannello dedicato su comando esplicito, Fati, ritorno narrativo e conclusione. Provider IA0, premi soltanto simulati con effetto reale0,48campi protetti e WIP conservati. OPEN24 è stato applicato; il postflight Root delle08:33:37.194064UTC conferma disponibilità pubblica attiva, riserva Staff spenta e stessa identità C12.
+
+<!-- OPEN24 verificato08:33:37.194064UTC; migrazione20261017083331; postfinale08:34:19.624645UTC tutte17flagTRUE. -->
 
 La guida accompagna le normali schermate Admin e LAND. I nomi tecnici di versioni e richieste servono all’audit Staff; nell’uso normale contano stato, disponibilità dei comandi e ricevuta server. Il Master racconta e conduce i PNG, il server decide meccaniche, azioni lecite, costi e transizioni.
 
@@ -13,7 +15,7 @@ La guida accompagna le normali schermate Admin e LAND. I nomi tecnici di version
 5. Inserire il PNG nella bozza Native salvata e aprire **Quest con Master → Leggi la bozza Native salvata**. Per il binding pertinente usare **Certifica profilo Combat: …**. Il normale Builder esegue stage, validazione e compilazione e restituisce una ricevuta canonica. Se cambia il riferimento, selezionare quello restituito nell’editor e salvare di nuovo.
 6. Premere **Verifica PNG Combat nella bozza salvata**. Una certificazione adottata e una qualifica nella specifica bozza sono verifiche distinte. La dicitura «non ancora idoneo agli scontri» non va aggirata: leggere l’esito della verifica e correggere le dipendenze indicate.
 
-Il raccordo custom è generico per identità e versioni conformi al contratto; non richiede un cambio server per il nome di ogni nuovo PNG. **Il percorso è ora disponibile: un nuovo PNG compatibile, approvato e certificato Combat può essere associato a una quest Human con arena valida attraverso gli editor, senza un intervento server per ogni nuovo nome o contenuto.** Nuove tecniche, formule, effetti o tipi di azione non supportati richiedono sviluppo, review e collaudo propri. Un PNG narrativo non viene trasformato automaticamente in combattente.
+Il raccordo custom è generico per identità e versioni conformi al contratto; non richiede un cambio server per il nome di ogni nuovo PNG. **Il contratto supporta un nuovo PNG compatibile, approvato e certificato Combat, associato a una quest Human con arena valida attraverso gli editor, senza un intervento server per ogni nuovo nome o contenuto.** La disponibilità della revisione23 segue lo stato di apertura dichiarato in testa alla guida. Nuove tecniche, formule, effetti o tipi di azione non supportati richiedono sviluppo, review e collaudo propri. Un PNG narrativo non viene trasformato automaticamente in combattente.
 
 ## Scegliere arena e immagini
 
@@ -36,7 +38,7 @@ Nella prova completata, la bozza Native Iori è stata salvata a CV8 e Human v2 p
 
 ## Entrare nella scena
 
-1. Usare **Apri la quest in LAND**. La vista Quest/Regia resta inline nella pagina, con chat e testo conservati.
+1. Usare **Apri la quest in LAND**. La conduzione narrativa della puntata resta inline, con chat e testo conservati. Combat non appare nella chat o nel workspace Human e non si apre automaticamente entrando nella scena.
 2. Il Master apre la puntata e usa **Rileggi la puntata**. Preparare la scena nel luogo e con il gruppo ammessi; preparazione, iscrizione e avvio sono operazioni distinte.
 3. Ogni PG entra dal proprio accesso e conferma le opzioni offerte. La riserva Staff ammette soltanto i due account e la stanza autorizzati entro la lease effettiva.
 4. Quando disponibili usare **Conferma Regia umana**, **Avvia con Master** e **Apri conduzione e Fato**. Non forzare comandi mancanti o disabilitati.
@@ -45,7 +47,7 @@ Nella prova completata, la bozza Native Iori è stata salvata a CV8 e Human v2 p
 
 Il Master pubblica un unico Fato per passaggio, intrecciando i PNG pertinenti. I giocatori rispondono con le role; nessuna scelta o difesa dei PG va inventata dal Master o dal client. Solo i comandi offerti dal server avanzano la fase.
 
-Quando è disponibile l’apertura Combat, usare il comando della conduzione. Nella Regia ordinaria selezionare attore e azione, leggere la mappa e confermare i movimenti/bersagli consentiti. Una scelta locale non è acquisita finché manca la ricevuta server. Eventuali versioni obsolete richiedono rilettura, conservando la role e la richiesta originarie.
+Quando il server rende disponibile l’apertura Combat, usare il comando della conduzione per avviare lo scontro. Per vedere i controlli aprire esplicitamente il pannello Combat esistente; il Master usa **Regia scontri**. Il pannello è dedicato, separato dalla chat e dalla conduzione narrativa. Aprire o rileggere la puntata non lo apre automaticamente. Nel chooser PG/Fato-PNG i nomi restano leggibili e i checkbox selezionati si verificano rileggendo lo stato. Selezionare attore e azione, leggere la mappa e confermare i movimenti/bersagli consentiti. Una scelta locale non è acquisita finché manca la ricevuta server. Eventuali versioni obsolete richiedono rilettura, conservando la role e la richiesta originarie.
 
 Per i PNG il Master prepara intenzioni e difese tramite gli stessi controlli previsti. Il testo nel compositore passa al comando selezionato: non pubblicare mini-Fati separati per ciascun PNG. Le intenzioni private non sostituiscono la pubblicazione dell’esito comune.
 
@@ -75,11 +77,21 @@ Per quest strutturate usare il successore offerto dalla prima conclusione. La se
 | Nuovo PNG Iori da zero con media, approvazione e Combat | PASS storico Human Native Staff del 15/10; non è una prova del nuovo ordinario custom |
 | Base Human ordinaria S5 | Rilascio storico OwnerAccepted; nessun nuovo ordinary runtime PASS implicito |
 | Authoring corrente Iori Native CV8 → Human v2 | PASS tramite UI; due PG iscritti/pronti; sessione9845891c dalla stessa richiesta2b2394b0 e Regia confermata99cf6be8; avvio PASS |
-| Gameplay corrente custom ordinario e apertura | PASS giocato: Fato, Combat/report unico, chiusura pacifica, transizione, due role e conclusione terminale. APERTA alla LAND |
+| Gameplay custom C9 e apertura storica | PASS giocato e apertura16/10 conservati; vecchia scena chiusa, mai riaperta |
+| Ritocco23 e nuovo caso Staff | QA PASS: nomi PG/PNG leggibili e selezionabili/riletti, Combat mai inline né automatico, due round non offensivi con unico Fato per report, ritorno narrativo e conclusione; apertura pubblica OPEN24 verificata |
+| Nuova prova custom multipuntata | NOT_RUN; nessun nuovo PASS della seconda puntata implicito nel collaudo23 |
 | Premio reale | NOT_RUN |
 | Creazione di una nuova geometria arena | Non collaudata qui; uso di template valido esistente |
 
 ## Prove correnti e recupero
+
+**Versione23: QA PASS e apertura pubblica OPEN24 verificata.** Client commit `fdaa…`, LAND SHA `8f89a7234ba40cfda902dc4dc507f2581540ee4f464f4beaa7f21ccc590c67a6`; C12 release `d4cf89c9b77494833a159c2c911ca7c5768124e3fff4f155590c178fa8b057c8`, attivata alle08:06:44.112306UTC. I nomi PG e PNG sono stati osservati leggibili, selezionati e riletti nel pannello dedicato; chat senza Combat e nessuna autoapertura dalla puntata.
+
+Lo stesso nuovo caso Staff `27f18cba-26ae-55b3-9b72-3d59bb79b99d` (puntata con prefisso `9ea…`) è stato concluso tramite i normali comandi. Due round non offensivi, con PG e PNG, hanno prodotto i report con prefissi `1f8a95…` e `22eca6…`, ciascuno narrato con un solo Fato. Sono seguiti ritorno pacifico, Fato di transizione, due role e chiusura normale: ricevuta terminale con prefisso `ad233ecf…`, pubblicazione `df4a…`. Nessuna richiesta di questa prova va ripetuta o sostituita.
+
+Il postflight Root attesta scene proprie aperte0, due partecipanti finalizzati, premi simulati con effetto reale0,48MD5 `d41adde267a202a8ff4c6c194eb0a09f` invariato, provider IA0 e WIP originale intatto. Questi esiti non attestano premi reali o una nuova prova custom multipuntata. OPEN23 non è stato applicato dopo il finding; OPEN24 corregge soltanto la dichiarazioneNULL dell’operatore. Il postflight Root08:33:37.194064UTC e la verifica finale08:34:19.624645UTC (17flagTRUE) confermano pubblico attivo e Staff disattivata sullo stesso C12, migrazione20261017083331: nessun nuovoCID, replayQA o modifica del caso chiuso. L’apertura storica C9 resta una prova distinta.
+
+### Prova C9 precedente, conservata
 
 La prova custom ordinaria è conclusa: stessa sessione9845891c e puntata5046fb22, report5aeb80a8 narrato una volta con Fato1fff4968, Combat e arena chiusi, due partecipanti finalizzati. La conclusione ha ricevuta535535b1 di successo e pubblicazione7ca6ae7d, confermate alle21:24:57UTC. Non riaprire questa prova o ripetere le sue richieste.
 
