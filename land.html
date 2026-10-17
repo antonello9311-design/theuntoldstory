@@ -2221,7 +2221,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
           </section>
           <section id="human-inline-workspace" class="h33-workspace" hidden aria-labelledby="human-inline-title">
             <header class="h33-head"><div><p class="h33-kicker">Missioni e Quest</p><h2 id="human-inline-title">La tua avventura</h2></div><button class="tb-btn" type="button" id="human-inline-scene">Torna alla scena</button></header>
-            <nav class="h33-tabs" aria-label="Quest e conduzione"><button class="tb-btn" type="button" data-h33-view="registry" aria-pressed="false">Registro</button><button class="tb-btn" type="button" data-h33-view="quest" aria-pressed="false">Puntata attiva</button><button class="tb-btn" type="button" id="human-inline-regia">Regia della scena</button></nav>
+            <nav class="h33-tabs" aria-label="Quest e conduzione"><button class="tb-btn" type="button" data-h33-view="registry" aria-pressed="false">Registro</button><button class="tb-btn" type="button" data-h33-view="quest" aria-pressed="false">Puntata attiva</button></nav>
             <p id="human-inline-status" class="h33-status" role="status" aria-live="polite"></p>
             <section id="human-inline-registry" hidden aria-label="Registro missioni e quest"></section>
             <section id="human-inline-quest" hidden aria-label="Puntata"></section>
@@ -4707,7 +4707,7 @@ function attachCombatPanel(host){
     if(valid()){host.syncSendGate?.();renderRegiaControls();}
     })();
     regiaReading={binding:expected,promise};if(inlineBody)renderRegiaControls();
-    try{await promise;}finally{if(regiaReading?.promise===promise)regiaReading=null;}
+    try{await promise;}finally{if(regiaReading?.promise===promise){regiaReading=null;if(valid())renderRegiaControls();}}
   }
   function canPreparePrivatePng(e,session){
     const viewer=e?.viewer,actorId=viewer?.command_actor_id,prep=regiaState?.master;
@@ -4866,10 +4866,10 @@ function attachCombatPanel(host){
     if(surface!=='master'||!opened)return;
     const old=regiaControls.querySelector('textarea');if(old)regiaDraft=old.value;
     regiaControls.replaceChildren();const state=regiaState;
-    if(inlineBody&&!state&&regiaReading){const progress=doc.createElement('p');progress.setAttribute('role','status');progress.textContent='Lettura della Regia in corso. Le scelte e il testo restano conservati.';regiaControls.append(progress);return;}
     if(regiaReadError||state?.status==='blocked'){
       const p=doc.createElement('p');p.textContent='Pubblicazione non verificabile: i comandi del round restano sospesi.';regiaControls.append(p);return;
     }
+    if(inlineBody&&!state&&regiaReading){const progress=doc.createElement('p');progress.setAttribute('role','status');progress.textContent='Lettura della Regia in corso. Le scelte e il testo restano conservati.';regiaControls.append(progress);return;}
     if(state?.status!=='ready'||!state.master)return;
     const title=doc.createElement('h3');title.textContent='Round e Fato';regiaControls.append(title);
     const info=doc.createElement('p');info.textContent=state.master.source_report_id?'Il referto definitivo del round precedente resta nel pannello. Prepara le intenzioni legali e pubblica un solo Fato.':'Primo round: prepara il Fato iniziale prima delle risposte.';regiaControls.append(info);
@@ -6381,7 +6381,6 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(!factory||!cur){if(ORDINARY)ORDINARY.invalidate();return;}
         if(!ORDINARY) ORDINARY=(mode==='common'?function(host){return mapFigureAttach(factory,host);}:factory)({
           document:document,location:function(){return cur;},
-          inlineHost:function(){return humanInlineCombatHost();},showInline:function(){humanInlineShow('combat');},
           showMaster:function(){var ov=document.getElementById('mv2ov'),bk=document.getElementById('mv2ov-backdrop');if(ov)ov.hidden=false;if(bk)bk.hidden=false;},
           closeMaster:mv2OvChiudi,
           allowCommonMaster:commonMasterRoute,
@@ -14635,7 +14634,6 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
         var root=document.getElementById('human-inline-workspace');root.hidden=false;
         for(var pair of [['registry','human-inline-registry'],['quest','human-inline-quest'],['combat','human-inline-combat']])document.getElementById(pair[1]).hidden=pair[0]!==view;
         root.querySelectorAll('[data-h33-view]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-h33-view')===view));});
-        document.getElementById('human-inline-regia').setAttribute('aria-pressed',String(view==='combat'));
         return true;
       }
       function humanInlineCombatHost(){
@@ -14655,7 +14653,6 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       (function(){
         document.querySelectorAll('[data-h33-view]').forEach(function(b){b.addEventListener('click',function(){var v=b.getAttribute('data-h33-view');if(v==='registry')humanInlineRegistry();else if(humanInlineCurrent()&&HUMAN_INLINE.selected)humanInlineShow('quest');else{var q=questEpisodeLink();if(q?.human)void openHumanQuestEpisodePanel(q.episode,q.humanPg,q.humanSession);}});});
         document.getElementById('human-inline-scene')?.addEventListener('click',function(){if(!humanInlineCurrent())return;document.getElementById('human-inline-workspace').hidden=true;document.getElementById('msg-input')?.focus();});
-        document.getElementById('human-inline-regia')?.addEventListener('click',function(){if(!humanInlineCombatHost()){toast('Apri la scena dalla puntata per confermare la Regia corrente.');return;}mv2OvApri();});
       })();
       async function openHumanQuestEpisodePanel(episode,asPg,asSession){
         if(asSession){if(!humanInlineLegacyAllowed()){toast('Entra nella Staff Test Room per riaprire questa sessione conservata.');return;}return openLegacyHumanQuestEpisodePanel(episode,asPg,true);}
@@ -14682,7 +14679,7 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
               var a=await sb.auth.getUser();if(!same()||a.error||a.data?.user?.id!==actor)throw Error('Accesso alla scena cambiato.');
               var current=await sb.rpc('master_v2_ui_state',{p_location:room}),data=mv2Data(current);if(!same()||current.error||data?.master?.id!==v.session||(asPg?data?.viewer?.is_participant!==true:data?.viewer?.is_master!==true))throw Error('Autorità della scena non confermata.');
               frame.sceneSession=v.session;await loadMsgs();if(!same())return;await loadMasterV2(true);if(!same())return;ordinaryRefresh();
-              if(commonMasterCombat()&&ORDINARY&&ordinaryPanelMode==='common')await ORDINARY.open(asPg?'ordinary':'master');else humanInlineShow('quest');document.getElementById('msg-input')?.focus();
+              humanInlineShow('quest');document.getElementById('msg-input')?.focus();
             }});
           await frame.panel.open(episode);if(same()&&w.selected===frame)document.getElementById('human-inline-status').textContent='';
         }catch(e){if((frame?humanInlineCurrent()&&HUMAN_INLINE===w&&w.selected===frame&&!frame.closed:routeCurrent())&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===actor&&myId===actor&&cur?.id===room){var out=document.getElementById('human-inline-status');if(out&&!out.closest('[hidden]'))out.textContent=e.message||'Puntata non disponibile; richieste conservate.';else toast(e.message||'Puntata non disponibile.');}}
@@ -14707,7 +14704,7 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
               var a=await sb.auth.getUser();if(a.error||a.data?.user?.id!==actor||!same())throw Error('Accesso Staff non confermato.');
               var r=await sb.rpc('master_v2_ui_state',{p_location:cur.id});if(r.error||!same()||mv2Data(r)?.master?.id!==v.session||(!asPg&&mv2Data(r)?.viewer?.is_master!==true)||(asPg&&myCharId!==v.character))throw Error('Autorità della scena non confermata.');
               frame.sceneSession=v.session;loadMsgs();loadMasterV2(true);ordinaryRefresh();
-              if(commonMasterCombat()&&ORDINARY&&ordinaryPanelMode==='common')await ORDINARY.open(asPg?'ordinary':'master');else humanInlineShow('quest');
+              humanInlineShow('quest');
               document.getElementById('msg-input')?.focus();
             }});if(asSession){await frame.panel.openSession(episode);if(same())frame.sceneSession=episode;}else await frame.panel.openEpisode(episode);
           if(same()&&w.selected===frame)document.getElementById('human-inline-status').textContent='';
