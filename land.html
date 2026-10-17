@@ -4612,6 +4612,7 @@ function attachCombatPanel(host){
   let deactivateLayout=null,inlineBody=null;
   let panel=null,key=null,opened=false,surface='ordinary',generation=0,chatSubmitted=null,companionSubmitted=null,refreshing=null,disposed=false,confirmedDraft=null;
   let regiaState=null,regiaScope=null,regiaReadError=null,regiaReadToken=0,regiaReading=null,regiaObservedBinding=null,regiaOptedInScope=null;
+  let actorLabelMode={session_id:null,label_mode:'legacy'},actorLabelReadToken=0;
   let regiaDraft='',regiaDirection={turn_kind:'',actor_ids:[]};const regiaControls=doc.createElement('section');regiaControls.className='combat-panel-common';regiaControls.setAttribute('aria-live','polite');
   const badges=['msg-send','ed-send'].map(id=>{
     const send=doc.getElementById(id);if(!send)return null;
@@ -4667,14 +4668,27 @@ function attachCombatPanel(host){
     const identity=scope(),session=host.regiaSession?.(e);
     return identity&&isId(session)&&e?.context?.activity_kind==='master_v2'?JSON.stringify([identity,session]):null;
   }
+  function resetActorLabelMode(){actorLabelReadToken++;actorLabelMode={session_id:null,label_mode:'legacy'};}
+  async function readActorLabelMode(session,valid){
+    const gateToken=++actorLabelReadToken;actorLabelMode={session_id:session,label_mode:'legacy'};
+    try{
+      const response=await host.rpc('master_v2_human_actor_label_mode_v1',{p_session:session});
+      if(gateToken!==actorLabelReadToken||!valid()||!opened||surface!=='master')return;
+      const gate=response?.data;
+      if(response?.error||!gate||Object.keys(gate).sort().join(',')!=='label_mode,presentation_version,schema_version,session_id'
+        ||gate.schema_version!=='human-actor-label-mode/1'||gate.session_id!==session
+        ||!['legacy','display_name'].includes(gate.label_mode)||gate.presentation_version!=='human-actor-labels/1')return;
+      actorLabelMode={session_id:session,label_mode:gate.label_mode};renderRegiaControls();
+    }catch{if(gateToken===actorLabelReadToken&&valid()){actorLabelMode={session_id:session,label_mode:'legacy'};renderRegiaControls();}}
+  }
   async function readRegiaPublication(){
     const e=panel?.snapshot().envelope,session=host.regiaSession?.(e),stamp=generation,identity=scope();
     if(!identity||!isId(session)||e?.context?.activity_kind!=='master_v2'){
-      regiaState=null;regiaScope=null;regiaReadError=null;host.syncSendGate?.();return;
+      resetActorLabelMode();regiaState=null;regiaScope=null;regiaReadError=null;host.syncSendGate?.();return;
     }
     const expected=regiaBinding(e);regiaObservedBinding=expected;
     if(regiaReading?.binding===expected)return regiaReading.promise;
-    const token=++regiaReadToken;
+    const token=++regiaReadToken;resetActorLabelMode();
     regiaState=null;regiaScope=null;regiaReadError=null;host.syncSendGate?.();
     const valid=()=>token===regiaReadToken&&stamp===generation&&expected===regiaBinding(panel?.snapshot().envelope);
     const promise=(async()=>{try{
@@ -4688,6 +4702,7 @@ function attachCombatPanel(host){
         || value.status==='ready'&&(value.activity_id!==session||value.public?.schema_version!=='regia-round-public/1'))throw Error('Contratto pubblicazione non compatibile.');
       regiaState=value;regiaScope=expected;regiaReadError=null;
       regiaOptedInScope=value.status==='unavailable'?null:regiaSessionScope(e);
+      if(surface==='master'&&value.status==='ready'&&value.master)void readActorLabelMode(session,valid);
     }catch(error){if(valid()){regiaState=null;regiaScope=expected;regiaReadError=error.message;}}
     if(valid()){host.syncSendGate?.();renderRegiaControls();}
     })();
@@ -4878,7 +4893,7 @@ function attachCombatPanel(host){
         for(const actorId of direction.eligible[side]||[]){const label=doc.createElement('label');label.className='mv2-field';
           const check=doc.createElement('input');check.type='checkbox';check.checked=regiaDirection.actor_ids.includes(actorId);
           check.addEventListener('change',()=>{regiaDirection.actor_ids=check.checked?[...regiaDirection.actor_ids,actorId]:regiaDirection.actor_ids.filter(id=>id!==actorId);});
-          label.append(check,doc.createTextNode(' '+(panel?.snapshot().envelope?.actors?.find(a=>a.actor_id===actorId)?.label||'Attore '+actorId.slice(0,8))));roster.append(label);}
+          label.append(check,doc.createTextNode(' '+((actorLabelMode.session_id===host.regiaSession?.(panel?.snapshot().envelope)&&actorLabelMode.label_mode==='display_name'?(panel?.snapshot().envelope?.actors?.find(a=>a.actor_id===actorId)?.display_name||'Partecipante non disponibile'): (panel?.snapshot().envelope?.actors?.find(a=>a.actor_id===actorId)?.label||'Attore '+actorId.slice(0,8))))));roster.append(label);}
       };kind.addEventListener('change',()=>{regiaDirection.actor_ids=[];drawActors();});drawActors();chooser.append(roster);regiaControls.append(chooser);
       const button=doc.createElement('button');button.type='button';button.textContent=direction.source_round_id?'Avanza round':'Conferma conduzione iniziale';
       button.addEventListener('click',()=>regiaWrite('advance'));regiaControls.append(button);
@@ -4888,7 +4903,7 @@ function attachCombatPanel(host){
       const button=doc.createElement('button');button.type='button';button.textContent='Pubblica Fato e apri le risposte';button.addEventListener('click',()=>regiaWrite('publish'));regiaControls.append(button);}
   }
   function suspend(){panel?.suspend();}
-  function hide(){deactivateLayout?.();deactivateLayout=null;if(inlineBody){inlineBody.hidden=true;inlineBody=null;}dialog.hidden=true;dialog.style.display='none';if(opened&&surface==='master')host.closeMaster?.();opened=false;}
+  function hide(){resetActorLabelMode();deactivateLayout?.();deactivateLayout=null;if(inlineBody){inlineBody.hidden=true;inlineBody=null;}dialog.hidden=true;dialog.style.display='none';if(opened&&surface==='master')host.closeMaster?.();opened=false;}
   function invalidate(){generation++;key=null;chatSubmitted=null;companionSubmitted=null;confirmedDraft=null;refreshing=null;regiaState=null;regiaScope=null;regiaReadError=null;regiaReadToken++;regiaReading=null;regiaObservedBinding=null;regiaOptedInScope=null;regiaDirection={turn_kind:'',actor_ids:[]};panel?.dispose();panel=null;root.replaceChildren();hide();syncDraft(null);showEntry();}
   function showEntry(){const allowed=!!scope();card.hidden=!allowed;card.style.display=allowed?'':'none';entry.hidden=!allowed;entry.disabled=!allowed;const note=doc.getElementById('ordinary-entry-note');if(note){const m=panel?.snapshot(),pending=m?.envelope?.context?.phase==='waiting_join'&&m.envelope.context.activity_id!==null&&m.envelope.viewer?.can_command===true;note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent=pending?'Richiesta sfida in attesa':'Pannello comune: disponibilità e scelte sono verificate dal server.';}}
   function ensure(){
@@ -6335,7 +6350,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       var MISSION_HUMAN_CLOSE_LOCK=null,MISSION_HUMAN_CLOSE_WRITERS=new Map();
       function missionHumanCloseScope(){return JSON.stringify([commonMasterPrincipal(),cur&&cur.id,MV2?.data?.master?.id||MISSION_HUMAN_CLOSE_LOCK?.session||null]);}
       function missionHumanCloseBlocked(){var p=MISSION_HUMAN_CLOSE_LOCK;return !!(p&&p.blocked&&p.principal===commonMasterPrincipal()&&p.location===cur?.id&&(cur?.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test||cur?.is_test!==true)&&(!MV2?.data?.master?.id||!p.session||MV2.data.master.id===p.session));}
-      function missionHumanCloseWriter(name){return (/^(combat_v2_|combat_panel_(prepare|commit)|regia_round_(advance|publish)|mission_human_(phase_action|fato_publish|combat_close|rapid_terminal)|mission_staff_simulation_abort_v1$)/.test(name)||name==='regia_combat_entry_prepare_v1'||/^master_v2_/.test(name))&&!new Set(['master_v2_ui_state','master_v2_round_options','master_v2_action_options','master_v2_png_catalog','master_v2_formation_options','master_v2_encounter_options','combat_v2_round_state','combat_v2_actor_options']).has(name);}
+      function missionHumanCloseWriter(name){return (/^(combat_v2_|combat_panel_(prepare|commit)|regia_round_(advance|publish)|mission_human_(phase_action|fato_publish|combat_close|rapid_terminal)|mission_staff_simulation_abort_v1$)/.test(name)||name==='regia_combat_entry_prepare_v1'||/^master_v2_/.test(name))&&!new Set(['master_v2_ui_state','master_v2_round_options','master_v2_action_options','master_v2_png_catalog','master_v2_formation_options','master_v2_encounter_options','master_v2_human_actor_label_mode_v1','combat_v2_round_state','combat_v2_actor_options']).has(name);}
       function missionHumanCloseGuardClient(client){return new Proxy(client,{get:function(target,key){if(key!=='rpc'){var value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;}return function(name,args){
         var scoped=!!(commonMasterPrincipal()&&cur&&(cur.is_test&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'||cur.is_test!==true&&(MISSION_CREATION_HUMAN_STATUS==='ready'&&MISSION_CREATION_HUMAN_SESSION===MV2?.data?.master?.id||MISSION_HUMAN_CLOSE_LOCK?.location===cur.id))&&(MV2?.data?.master?.id||MISSION_HUMAN_CLOSE_LOCK?.session));
         var lock=MISSION_HUMAN_CLOSE_LOCK,entry=name==='regia_combat_entry_prepare_v1',entrySession=entry&&args?.p_master_session;
