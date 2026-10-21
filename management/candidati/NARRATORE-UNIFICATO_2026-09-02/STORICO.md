@@ -1066,3 +1066,5 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 2026-10-21 · correzioni18–19 · Incipit recuperato nella stessa scena alle 18:36:34: zero nuovi Count, una Generation e 48 campi protetti invariati. Correzione18 guard/recupero/observer qualificata e pubblicata; primo apply rollback esatto, secondo riuscito. Correzione19 della sola proiezione iniziale qualificata e applicata, Root af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433. Avviso ricevuta rimosso; scena aperta, nuovo turno/Director NOT_RUN; storico cumulativo conservato.
 
 2026-10-21 · C1266-CHAT-REENTRY-001 · Cache chat invalidata al rientro; sintassi e review 0/0/0, rientro Staff PASS, stessa scena/incipit/audit/quote invariati e zero provider · consegnato.
+
+2026-10-21 · C1266-FATO-PANEL-20261021 · Pubblicazione distinta da rigenerabilità; review0/0/0 e ChromeStaff PASS, prova/incipit/quote invariati e0provider · consegnato.

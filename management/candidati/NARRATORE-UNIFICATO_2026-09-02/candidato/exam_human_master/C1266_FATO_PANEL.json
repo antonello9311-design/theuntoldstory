@@ -1,0 +1,284 @@
+{
+  "task": "C1266-FATO-PANEL-20261021",
+  "commit": "738d64c4a858448b85ecc8546ff8d1393281a9d8",
+  "pages": 39676470822,
+  "static": {
+    "syntax": "PASS",
+    "files": [
+      {
+        "name": "land.html",
+        "before_git_blob": "d5ba3870514218d0c4898e72ba97e0ac369bcf89",
+        "after_sha256": "b666943a80109e14108251f6168e4668d600c7bc8e7102abeb1c75887f08d1fd",
+        "after_bytes": 2324621,
+        "after_git_blob": "121117c6581db1cb0c40f582d13f4f9c73b25b36"
+      },
+      {
+        "name": "mission-generic-ui.mjs",
+        "before_git_blob": "3656e73fa77b30b280dc0f4362d68bafe586486e",
+        "after_sha256": "ebb7e7ca7a6e93493e68e876d34c2eebb962908ebef6b4c974f5aa97183d394f",
+        "after_bytes": 153908,
+        "after_git_blob": "e44f66a972c5832364c92189ed879d1810798db0"
+      },
+      {
+        "name": "mission-staff-fato-regen.v1.mjs",
+        "before_git_blob": "d251a6ce459d8ab6d031da60efc084ddd093bcdc",
+        "after_sha256": "7897dcc449bd7b13afbec4c52d1598b491b836415305dd5f62d128c15e34896c",
+        "after_bytes": 9342,
+        "after_git_blob": "5f3a77a788ac39761a37278331f3c0a2dbab6971"
+      }
+    ],
+    "runtime": "NOT_RUN",
+    "new_provider_calls": 0
+  },
+  "review": {
+    "accepted": true,
+    "findings": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0
+    },
+    "sourceSHA": {
+      "land.html": {
+        "before_sha256": "8fda1931f4aa808d6a4690d56eb7b717def8e89c1d1e57c46052ce498366b53a",
+        "after_sha256": "b666943a80109e14108251f6168e4668d600c7bc8e7102abeb1c75887f08d1fd"
+      },
+      "mission-generic-ui.mjs": {
+        "before_sha256": "1c121a57c8857754354d73e4657dd403890fda4d55a3f294c428ff2e21402a69",
+        "after_sha256": "ebb7e7ca7a6e93493e68e876d34c2eebb962908ebef6b4c974f5aa97183d394f"
+      },
+      "mission-staff-fato-regen.v1.mjs": {
+        "before_sha256": "34c34184388cac056391ca2679aac0887d9a22f1e7ab3d543243d05b1009a8df",
+        "after_sha256": "7897dcc449bd7b13afbec4c52d1598b491b836415305dd5f62d128c15e34896c"
+      }
+    },
+    "rationale": [
+      "processingFor valida formato, timestamp, identificatori e associazione della richiesta alla sessione, evento, request_key e revisione prima di consegnare la proiezione al pannello.",
+      "publicationOutsideTarget accetta soltanto work completed con message_id e work_id validi, finalized_at valido e sessione identica alla proiezione rigenerazione. Richiede inoltre revision null, eligible false e assenza del target: non sostituisce un Fato rigenerabile o una rigenerazione pendente.",
+      "La nuova informazione modifica esclusivamente titolo, testo e dettaglio del pannello. La guardia del pulsante, send, RPC e invocazione provider sono invariati.",
+      "Il controllo sul testo esatto del reason e sugli altri campi è conservativo: se la proiezione cambia non inventa una pubblicazione, torna al comportamento esistente.",
+      "Entrambi i pin di import corrispondono ai prefissi SHA256 effettivi dei moduli; byte, SHA256 e Git blob delle fonti dichiarate verificati indipendentemente."
+    ],
+    "limits": [
+      "Review solo statica; leggibilità del pannello sul dominio pubblicato ancora NOT_RUN dal reviewer.",
+      "Il dettaglio attesta la pubblicazione dal work server validato, non l effettiva visualizzazione del messaggio nel DOM della chat.",
+      "Non vengono modificati backend o eleggibilità alla rigenerazione. Nessuna prova o chiamata provider eseguita."
+    ],
+    "runtime": "NOT_RUN"
+  },
+  "before": [
+    {
+      "postflight": {
+        "root": {
+          "state": "enabled",
+          "revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433",
+          "observed_revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433"
+        },
+        "work": {
+          "id": "245aea9b-ee14-4511-8223-fe1fdeda5ff3",
+          "state": "completed",
+          "event_id": "3ba1698a-648d-42d0-a0dd-f538e80c445f",
+          "lease_id": "086854a6-19d0-4eb1-8173-e15c4a0c22cc",
+          "revision": 1,
+          "message_id": "34c34697-768a-493a-b180-1045fcc4ea22",
+          "receipt_id": "4c8def38-0ea6-4b27-bcac-3c6e5d854798",
+          "dispatch_id": "0a30bdfc-0f33-4211-a95f-bb5b02d6942d",
+          "request_key": "feaea298-afe2-4123-b6cb-bead0777e26c",
+          "finalized_at": "2026-10-21T16:36:34.147772+00:00",
+          "result_sha256": "234ea41811b77381d6f5df22c2c18a182d7b37f55032e3686fccba836d2dcb87",
+          "payload_sha256": "a6171954f32a3cf1e221f6947a5355834972ebdec76a910702c8e7e30814d39f",
+          "authorization_id": "1ae2c84a-4877-4fc1-8711-4584da8c2094",
+          "lease_expires_at": "2026-10-21T16:42:17.22109+00:00"
+        },
+        "audit": [
+          {
+            "event_code": "c1266_async_owner_v1",
+            "details_md5": "4140d7714ccf792727369d4b00c92181"
+          },
+          {
+            "event_code": "c8_count_started",
+            "details_md5": "a660705bc4987d9030fe13f3c06b3fd6"
+          },
+          {
+            "event_code": "c8_count_success",
+            "details_md5": "cc70b1ed9b6b65610eeb8a88ff70f1b6"
+          },
+          {
+            "event_code": "generic_finalized",
+            "details_md5": "ef35f696c4acdef443107ce919b1bfed"
+          },
+          {
+            "event_code": "manual_counted_resume_v1",
+            "details_md5": "9854237bad027580290377d322194a62"
+          },
+          {
+            "event_code": "provider_started",
+            "details_md5": "99914b932bd37a50b983c5e7c90ae93b"
+          }
+        ],
+        "calls": [
+          {
+            "id": "b966cf30-50ed-434c-b647-706c31ff8ea1",
+            "state": "settled",
+            "call_no": 1,
+            "sent_at": "2026-10-21T16:36:20.389944+00:00",
+            "settled_at": "2026-10-21T16:36:34.145084+00:00",
+            "charged_usd": 0.0009667,
+            "reserved_usd": 0.0124
+          },
+          {
+            "id": "7ed9ae1d-e1fe-4c4a-be84-1bef7de875c3",
+            "state": "unknown_billable",
+            "call_no": 2,
+            "sent_at": "2026-10-21T15:58:58.546104+00:00",
+            "settled_at": null,
+            "charged_usd": null,
+            "reserved_usd": 0.0124
+          }
+        ],
+        "scene": {
+          "id": "44078c5f-7001-4129-9506-e2f34e68c8ac",
+          "stato": "in_corso",
+          "closed_at": null,
+          "control_version": 2
+        },
+        "attempts": 1,
+        "dispatch": {
+          "id": "0b5aa84c-7063-460e-b4f1-1169ce7cc1ab",
+          "status": "success",
+          "finalized_at": "2026-10-21T16:36:34.145829+00:00",
+          "dispatch_count": 1
+        },
+        "captured_at": "2026-10-21T21:08:48.720989+00:00",
+        "authorizations": 1,
+        "manual_admission": "e25a356c70fcb49e7e6261056b7d6ab54ed37caa277756addf2f7681a64fe728"
+      }
+    }
+  ],
+  "after": [
+    {
+      "postflight": {
+        "root": {
+          "state": "enabled",
+          "revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433",
+          "observed_revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433"
+        },
+        "work": {
+          "id": "245aea9b-ee14-4511-8223-fe1fdeda5ff3",
+          "state": "completed",
+          "event_id": "3ba1698a-648d-42d0-a0dd-f538e80c445f",
+          "lease_id": "086854a6-19d0-4eb1-8173-e15c4a0c22cc",
+          "revision": 1,
+          "message_id": "34c34697-768a-493a-b180-1045fcc4ea22",
+          "receipt_id": "4c8def38-0ea6-4b27-bcac-3c6e5d854798",
+          "dispatch_id": "0a30bdfc-0f33-4211-a95f-bb5b02d6942d",
+          "request_key": "feaea298-afe2-4123-b6cb-bead0777e26c",
+          "finalized_at": "2026-10-21T16:36:34.147772+00:00",
+          "result_sha256": "234ea41811b77381d6f5df22c2c18a182d7b37f55032e3686fccba836d2dcb87",
+          "payload_sha256": "a6171954f32a3cf1e221f6947a5355834972ebdec76a910702c8e7e30814d39f",
+          "authorization_id": "1ae2c84a-4877-4fc1-8711-4584da8c2094",
+          "lease_expires_at": "2026-10-21T16:42:17.22109+00:00"
+        },
+        "audit": [
+          {
+            "event_code": "c1266_async_owner_v1",
+            "details_md5": "4140d7714ccf792727369d4b00c92181"
+          },
+          {
+            "event_code": "c8_count_started",
+            "details_md5": "a660705bc4987d9030fe13f3c06b3fd6"
+          },
+          {
+            "event_code": "c8_count_success",
+            "details_md5": "cc70b1ed9b6b65610eeb8a88ff70f1b6"
+          },
+          {
+            "event_code": "generic_finalized",
+            "details_md5": "ef35f696c4acdef443107ce919b1bfed"
+          },
+          {
+            "event_code": "manual_counted_resume_v1",
+            "details_md5": "9854237bad027580290377d322194a62"
+          },
+          {
+            "event_code": "provider_started",
+            "details_md5": "99914b932bd37a50b983c5e7c90ae93b"
+          }
+        ],
+        "calls": [
+          {
+            "id": "b966cf30-50ed-434c-b647-706c31ff8ea1",
+            "state": "settled",
+            "call_no": 1,
+            "sent_at": "2026-10-21T16:36:20.389944+00:00",
+            "settled_at": "2026-10-21T16:36:34.145084+00:00",
+            "charged_usd": 0.0009667,
+            "reserved_usd": 0.0124
+          },
+          {
+            "id": "7ed9ae1d-e1fe-4c4a-be84-1bef7de875c3",
+            "state": "unknown_billable",
+            "call_no": 2,
+            "sent_at": "2026-10-21T15:58:58.546104+00:00",
+            "settled_at": null,
+            "charged_usd": null,
+            "reserved_usd": 0.0124
+          }
+        ],
+        "scene": {
+          "id": "44078c5f-7001-4129-9506-e2f34e68c8ac",
+          "stato": "in_corso",
+          "closed_at": null,
+          "control_version": 2
+        },
+        "attempts": 1,
+        "dispatch": {
+          "id": "0b5aa84c-7063-460e-b4f1-1169ce7cc1ab",
+          "status": "success",
+          "finalized_at": "2026-10-21T16:36:34.145829+00:00",
+          "dispatch_count": 1
+        },
+        "captured_at": "2026-10-21T21:11:36.944629+00:00",
+        "authorizations": 1,
+        "manual_admission": "e25a356c70fcb49e7e6261056b7d6ab54ed37caa277756addf2f7681a64fe728"
+      }
+    }
+  ],
+  "preservation": {
+    "identical": true,
+    "different_keys": [],
+    "new_provider_calls": 0,
+    "checked_keys": [
+      "root",
+      "work",
+      "audit",
+      "calls",
+      "scene",
+      "attempts",
+      "dispatch",
+      "authorizations",
+      "manual_admission"
+    ]
+  },
+  "qa": {
+    "passed": true,
+    "case": "reload existing Staff and inspect Fato information",
+    "panel_label": "Fato pubblicato in chat. Non è disponibile per la rigenerazione da questo pannello.",
+    "message_id": "34c34697-768a-493a-b180-1045fcc4ea22",
+    "original_time": "21/10/2026, 18:36:34",
+    "regenerate_disabled": true,
+    "chat_original_visible": true,
+    "details_opened_and_closed": true,
+    "new_provider_calls": 0,
+    "scene_left_open": true,
+    "screenshot": "FATO_PANEL.png",
+    "limits": [
+      "next Director NOT_RUN",
+      "separate abort warning unchanged",
+      "existing sidebar layout cramped at current viewport"
+    ]
+  },
+  "delta": "--- land.html.before\n+++ land.html.after\n@@ -14749,7 +14749,7 @@\n       var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null;\n       function missionGenericUI(){\n         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);\n-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=c1266-counted-resume-1c121a57c8857754').then(function(mod){\n+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=fato-publication-ebb7e7ca7a6e9349').then(function(mod){\n           MISSION_GENERIC_UI=mod.createMissionUI({client:sb,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},\n             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,\n             openCombat:function(){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')void ORDINARY.open('ordinary');else toast('Pannello Scontro non disponibile in questa scena.');},\n--- mission-generic-ui.mjs.before\n+++ mission-generic-ui.mjs.after\n@@ -1,5 +1,5 @@\n import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=staff-log-cleanup-9038617a3f67aa1d';\n-import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=mission-staff-fato-regen-1';\n+import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-publication-7897dcc449bd7b13';\n export const VERSION='mission-academy-flow-v4-staff-client/1-candidate';\n const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';\n const id=()=>crypto.randomUUID();\n@@ -1641,7 +1641,7 @@\n    if(pending&&!pending.inFlight&&['confirmed','rejected'].includes(pending.phase)&&t.readSequence>pending.settledAfterRead)choiceRequests.delete(key);\n    paintRoom(host,state);\n    await mountAborts(host,state,t);if(!roomCurrent(t)||!roomState)return;\n-   if(abortBlocked(state.session_id))return;await regen.update(host,state);\n+   if(abortBlocked(state.session_id))return;await regen.update(host,state,processingFor(state));\n    observeAsyncWork(state,t);\n    const projected=processingFor(state);\n    if(!verifyOnly&&(!manual||academyFlow(state)==='combat_started'||staffAcademyRole(state,t.loc)?.reason==='ready_to_evaluate'\n--- mission-staff-fato-regen.v1.mjs.before\n+++ mission-staff-fato-regen.v1.mjs.after\n@@ -33,17 +33,25 @@\n   const calls=Number(provider.calls||0),cost=Number(provider.cost_usd||0);\n   return calls+' chiamata/e · '+cost.toFixed(4)+' $';\n  }\n- function showDetails(s,returnTo){\n+ function showDetails(s,returnTo,publication=null){\n   const d=node('dialog',null);d.className='mg-regen-dialog';d.setAttribute('aria-label','Come è stato prodotto questo Fato');\n   const h=node('h3','Come è stato prodotto questo Fato'),close=node('button','Chiudi');\n   close.type='button';close.addEventListener('click',()=>d.close());\n-  const summary=node('p',s.revision?.work_state==='completed'\n+  const summary=node('p',publication\n+   ?'Il Fato è già pubblicato in chat. Questa pubblicazione non è rigenerabile da questo pannello.'\n+   :s.revision?.work_state==='completed'\n    ?'Il nuovo Fato è stato pubblicato usando le role e la decisione della scena, senza una nuova Regia o azione Combat.'\n    :s.revision?'La richiesta conserva le role e la decisione della scena; il nuovo Fato non è ancora pubblicato.'\n     :'Non è ancora registrata una rigenerazione per questo Fato.');\n   d.append(h,close,summary);\n   const list=node('dl',null);\n   const add=(label,value)=>{list.append(node('dt',label),node('dd',value??'Non registrato'));};\n+  if(publication){\n+   add('Fato pubblicato',publication.message_id);\n+   add('Pubblicato il',new Date(publication.published_at).toLocaleString('it-IT'));\n+   add('Stato','Pubblicato in chat');\n+   add('Work',publication.work_id);\n+  }else{\n   add('Fase',s.target?.step_key);\n   add('Role della finestra',String(s.revision?.role_count??s.target?.role_count??'Non registrato'));\n   add('Fato corrente',s.target?.message_id||'Non registrato');\n@@ -55,16 +63,18 @@\n     String(s.revision.provider.input_tokens||0)+' / '+String(s.revision.provider.output_tokens||0):'Non registrato');\n   add('Errore',s.revision?.failure_code||'Nessuno registrato');\n   add('Work',s.revision?.work_id);\n+  }\n   d.append(list);document.body.append(d);\n   d.addEventListener('close',()=>{d.remove();returnTo?.focus();},{once:true});d.showModal();close.focus();\n  }\n- function statusLabel(s){\n+ function statusLabel(s,publication=null){\n   const w=s.revision?.work_state;\n   if(inFlight)return 'Il Fato è in elaborazione. Il precedente resta visibile.';\n   if(w==='ready')return 'Richiesta pronta. Riprendi la stessa richiesta senza crearne un’altra.';\n   if(['claimed','authorized','provider_started','uncertain'].includes(w))return 'Rigenerazione in corso; verifica la stessa richiesta.';\n   if(w==='failed')return 'Rigenerazione fallita: il Fato precedente resta corrente. '+(s.revision?.failure_code||'Controlla i dettagli.');\n   if(w==='completed')return 'Nuovo Fato pubblicato; il precedente è conservato come esito superato.';\n+  if(publication)return 'Fato pubblicato in chat. Non è disponibile per la rigenerazione da questo pannello.';\n   return s.target?.eligible?'Il Fato corrente può essere rigenerato.':(s.target?.reason||'Rigenerazione non disponibile.');\n  }\n  async function send(s,host,existing=false){\n@@ -94,31 +104,42 @@\n    catch{/* Keep the local warning; never invent a final state. */}\n   }\n  }\n- async function paint(host,s){\n+ async function paint(host,s,publication=null){\n   if(!host?.isConnected||!enabled()||!s)return;\n   style();let wrap=host.querySelector('[data-mg-regen]');\n   if(!wrap){wrap=node('section',null);wrap.className='mg-regen';wrap.dataset.mgRegen='';\n    host.append(wrap);}\n   wrap.replaceChildren();\n-  const title=node('div','Ultimo Fato'+(s.target?.message_at?' · '+new Date(s.target.message_at).toLocaleString('it-IT'):''));title.className='mg-regen-title';\n+  const publishedAt=publication?.published_at||s.target?.message_at;\n+  const title=node('div',(publication?'Fato pubblicato':'Ultimo Fato')+(publishedAt?' · '+new Date(publishedAt).toLocaleString('it-IT'):''));title.className='mg-regen-title';\n   const actions=node('div',null);actions.className='mg-regen-actions';\n   const w=s.revision?.work_state,ongoing=['ready','claimed','authorized','provider_started','uncertain'].includes(w);\n   const primary=node('button',ongoing?'Verifica la stessa richiesta':'Rigenera ultimo Fato');\n   primary.type='button';primary.disabled=inFlight||(!ongoing&&!s.target?.eligible);\n   primary.addEventListener('click',()=>send(s,host,ongoing));\n-  const info=node('button','Come è stato prodotto?');info.type='button';\n-  info.addEventListener('click',()=>showDetails(s,info));\n+  const info=node('button',publication?'Informazioni sul Fato':'Come è stato prodotto?');info.type='button';\n+  info.addEventListener('click',()=>showDetails(s,info,publication));\n   actions.append(primary,info);\n-  const status=node('p',statusLabel(s));status.className='mg-regen-status';\n+  const status=node('p',statusLabel(s,publication));status.className='mg-regen-status';\n   status.dataset.mgRegenStatus='';status.setAttribute('role','status');status.setAttribute('aria-live','polite');\n   wrap.append(title,actions,status);\n  }\n- async function update(host,room){\n+ // A validated, completed server work attests publication independently of regeneration eligibility.\n+ function publicationOutsideTarget(s,room,processing){\n+  const p=processing?.valid===true?processing.value:null;\n+  if(s.session_id!==room.session_id||s.revision!==null||s.target?.eligible!==false\n+   ||s.target?.message_id!=null||s.target?.reason!=='Nessun Fato di missione pubblicato.'\n+   ||p?.state!=='completed'||!uuid(p.message_id)||!uuid(p.work_id)\n+   ||p.request?.master_session_id!==s.session_id\n+   ||typeof p.finalized_at!=='string'||!Number.isFinite(Date.parse(p.finalized_at)))return null;\n+  return {message_id:p.message_id,work_id:p.work_id,published_at:p.finalized_at};\n+ }\n+ async function update(host,room,processing=null){\n   if(!enabled()||!uuid(room?.session_id)){host?.querySelector('[data-mg-regen]')?.remove();return;}\n   const next=JSON.stringify([identity(),room.session_id]);\n   if(next!==scope){scope=next;epoch++;view=null;request=null;}\n   const current=epoch;\n-  try{const s=await read(room.session_id);if(current!==epoch||!host?.isConnected)return;view=s;await paint(host,s);}\n+  try{const s=await read(room.session_id);if(current!==epoch||!host?.isConnected)return;view=s;await paint(host,s,publicationOutsideTarget(s,room,processing));}\n   catch(error){if(current!==epoch)return;const label=host.querySelector('[data-mg-regen-status]');if(label)label.textContent='Rigenerazione non disponibile: '+error.message;}\n  }\n  return {update,dispose(){scope='';epoch++;view=null;request=null;inFlight=false;}};\n",
+  "previous_handoff": "# C1266 · Caricamento chat al rientro\n\n**TASK-ID** · C1266-CHAT-REENTRY-20261021.\n\n**Scope toccato** · LAND: invalidazione della sola cache di rendering al nuovo ingresso e marcatore di build.\n\n**Contratti usati/modificati** · Letture chat esistenti, nessuna firma RPC o shape modificata. Database, Edge, permessi, limiti e stato di prova invariati. Nessun vincolo aggiunto o allentato.\n\n**Decisioni prese / OPEN** · Conservare incipit e prova in corso; nessuna rigenerazione, role, retry o nuova scena. Il ciclo di uscita/rientro è stato richiesto espressamente dall’utente.\n\n**Prove eseguite e risultato** · C1266 · Chat al rientro · 21/10/2026: corretta la cache di rendering LAND. openRoom invalida lastMsgsSig quando ricrea il contenitore dei messaggi; la successiva lettura ridisegna anche gli stessi messaggi o il risultato vuoto. Polling e contratti invariati; nessun nuovo vincolo. Sintassi di sei script PASS e review indipendente 0/0/0. Client c787b108dd514ef40fcb66a3bfc9fd0992221d21, build C1266-CHAT-REENTRY-001, Pages39675631262 riuscito. Verifica reale Chrome: stesso incipit visibile dopo ricarica e dopo uscita alla mappa/rientro nella Staff Room. Postflight identico per scena in corso, work completato, ricevuta, audit, quote e due chiamate storiche; zero nuove chiamate provider, role o prove. Prova lasciata aperta. Questo collaudo riguarda il caricamento della chat, non il successivo turno della Regia.\n\n**Rischi o regressioni da verificare** · Il risultato non qualifica nuove role/Director né risolve gli avvisi separati del pannello rigenerazione. Il normale filtro chat di dodici ore resta invariato.\n\n**Passaggio richiesto al PM** · Correzione UI consegnata; scena lasciata aperta all’utente. Nessun nuovo collaudo o backlog avviato. Fonti e prove in candidato/exam_human_master/C1266_CHAT_REENTRY.json; recupero incipit precedente conservato in C1266_MANUAL_OPENING_RECOVERY.json.\n",
+  "new_constraints": [],
+  "removed_constraints": []
+}
