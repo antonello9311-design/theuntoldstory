@@ -1,4 +1,4 @@
-import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs';
+import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=c1266-opening-resume-agg5-71044700c580d919';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=mission-staff-fato-regen-1';
 export const VERSION='mission-academy-flow-v4-staff-client/1-candidate';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
@@ -265,6 +265,25 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    ||!(p.message_id===null||UUID.test(p.message_id||''))||q?.schema_version!=='mission-generic-request/1'||q.master_session_id!==state.session_id||q.event_id!==p.event_id||q.request_key!==p.request_key||q.expected_revision!==p.revision)return {valid:false,value:null};
   return {valid:true,value:p};
  }
+ // This optional proof permits asking the server for one guarded resume, never provider execution.
+ const openingResumeKeys=['schema_version','eligible_to_request','master_session_id','work_id','event_id','request_key','expected_revision','payload_sha256','binding_sha256','release_sha256','source_qualification_sha256','denial_audit_id','proof_sha256'];
+ const hasOpeningResume=state=>!!state&&Object.hasOwn(state,'opening_ready_resume');
+ function openingResumeProjection(state){
+  if(!hasOpeningResume(state))return null;
+  const x=state.opening_ready_resume,parsed=processingFor(state),w=parsed.value,q=w?.request;
+  if(!nativeExact(x,openingResumeKeys)||x.schema_version!=='mission-opening-ready-resume/1'||x.eligible_to_request!==true
+   ||!['master_session_id','work_id','event_id','request_key'].every(k=>UUID.test(x[k]||''))
+   ||!['payload_sha256','binding_sha256','release_sha256','source_qualification_sha256','proof_sha256'].every(k=>SHA.test(x[k]||''))
+   ||typeof x.denial_audit_id!=='string'||! /^[1-9][0-9]*$/.test(x.denial_audit_id)
+   ||!Number.isSafeInteger(x.expected_revision)||x.expected_revision<1||!parsed.valid||w?.state!=='ready'
+   ||w.finalized_at!==null||w.message_id!==null||!sameChainRequest(q,q)
+   ||x.master_session_id!==state.session_id||x.work_id!==w.work_id||x.event_id!==q.event_id
+   ||x.request_key!==q.request_key||x.expected_revision!==q.expected_revision)return null;
+  return x;
+ }
+ const openingResumeTuple=x=>JSON.stringify(openingResumeKeys.map(k=>x[k]));
+ function openingResumeAllowed(state,t){return !!(openingResumeProjection(state)&&isStaff()&&t.loc?.id===STAFF_TEST_ROOM
+  &&t.loc.is_test===true&&state.can_tick===true&&state.review_required!==true&&!hasCountProjection(state)&&!abortBlocked(state.session_id));}
  // Count reconciliation is a server-attested technical status action, never a work retry.
  const countProjectionKeys=['schema_version','work_id','master_session_id','event_id','request_key','revision','dispatch_receipt_id','measurement_id','generation_request_sha256','policy_snapshot_sha256','release_sha256','failure_code','operation'];
  const countStatusRequestKeys=['schema_version','work_id','master_session_id','event_id','request_key','expected_revision','dispatch_receipt_id','measurement_id','generation_request_sha256','policy_snapshot_sha256','release_sha256','failure_code'];
@@ -467,6 +486,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(choice?.phase==='rejected')return 'La scelta è stata respinta. Aggiorna lo stato prima di scegliere nuovamente.';
   const parsed=processingFor(state);if(!parsed.valid)return 'Stato di elaborazione non disponibile. Aggiorna; nessun nuovo invio automatico.';
    const p=parsed.value,a=currentAttempt(state);
+   if(hasOpeningResume(state)){if(!openingResumeProjection(state))return 'Ripresa dell’apertura non verificabile. Aggiorna la regia; nessun nuovo invio automatico.';if(openingResumeRecorded(state,cacheUser))return 'La ripresa della stessa apertura è già registrata. La verifica continua senza ripetere l’invio.';return 'Il server consente di verificare e riprendere la stessa apertura. Usa Riprendi apertura.';}
    const asyncMessage=asyncNotice(state);if(asyncMessage)return asyncMessage;
    const flow=academyFlow(state),role=roleProgress(state);
    if(unresolvedTickForSession(state))return 'Un invio precedente della valutazione non è confermato, anche dopo nuove role. Le role sono conservate; lo Staff può verificare l’invio. Se non compare un work, serve un recupero server, non un nuovo tick.';
@@ -510,7 +530,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1264-narration-recovery-4');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-opening-resume-agg5');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -535,13 +555,19 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }else countCheck?.remove();
   const countText=countReserved&&!countProof?'Ricevuta Count non verificabile: nessun nuovo tentativo è autorizzato. Aggiorna la regia.':state.session_id===countStatusSession?countStatusNotice:'';
   if(countText){if(!countNotice){countNotice=el('p','',{role:'status','data-mg-count-status-notice':''});host.append(countNotice);}countNotice.textContent=countText;}else countNotice?.remove();
+  let openingResume=host.querySelector('[data-mg-opening-resume]');
+  if(openingResumeAllowed(state,{loc:currentLocation(),user:cacheUser})){
+   if(!openingResume){openingResume=button('Riprendi apertura',()=>staffResumeOpening(host));openingResume.setAttribute('data-mg-opening-resume','');host.append(openingResume);}
+   const proof=openingResumeProjection(state),key=JSON.stringify([cacheUser,state.session_id,'opening-resume:'+proof.proof_sha256]);
+   openingResume.disabled=!!roomError||!!staffResumeRead||liveAttempt(state)||attempts.has(key)||openingResumeRecorded(state,cacheUser)||abortBlocked(state.session_id);
+  }else openingResume?.remove();
   const readyRecovery=claim?.state==='ready'&&claim.finalized_at===null
    &&(role?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,state.session_id,claim.work_id)));
   const uncertainRecovery=claim?.state==='uncertain'&&(!role||role.reason==='uncertain'||academyFlow(state)==='combat_started');
   const claimedRecovery=processing.valid&&staffClaimReconciliationAllowed(state,{loc:currentLocation(),user:cacheUser},claim);
   let resume=host.querySelector('[data-mg-claim-resume]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&processing.valid
-   &&!countReserved&&(claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
+   &&!hasOpeningResume(state)&&!countReserved&&(claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
    if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(p?.state==='claimed')void staffReconcileClaimed(host);else if(p?.state==='ready'&&(r?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,s.session_id,p.work_id))))void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
    resume.textContent=claimedRecovery?'Verifica la stessa ricevuta':readyRecovery?'Verifica e riprendi la stessa richiesta':'Verifica o riprendi la stessa richiesta';
    const suffix=claimedRecovery?':reconcile-claimed':readyRecovery?':reclaim-ready':':reclaim';
@@ -668,6 +694,53 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    maybeDispatch(fresh,t,true);
   }catch{if(roomCurrent(t)&&staffResumeRead===token){roomError='Verifica della stessa ricevuta non riuscita. Nessuna nuova richiesta: aggiorna la regia prima di ricontrollare.';paintRoom(host,roomState);}}
   finally{if(staffResumeRead===token){staffResumeRead=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
+ }
+ function openingResumeRecorded(state,user){
+  try{const q=processingFor(state).value?.request;if(!sameChainRequest(q,q))return true;
+   const j=readJournal(journalPrefix(user,state.session_id)+selectorKey(selectorFor(q)),user,state.session_id);
+   return j?.schema_version==='mission-async-journal/2'||j?.done===true;
+  }catch{return true;}
+ }
+ async function staffResumeOpening(host){
+  const t=syncRoom(host),old=roomState,x=old&&openingResumeProjection(old);
+  if(!roomCurrent(t)||staffResumeRead||!x||!openingResumeAllowed(old,t)||liveAttempt(old)||!navigator.locks?.request)return;
+  const request=Object.freeze(clone(processingFor(old).value.request)),proof=Object.freeze(clone(x));
+  const selector=selectorFor(request),key=journalPrefix(t.user,old.session_id)+selectorKey(selector);
+  const storeKey=JSON.stringify([t.user,old.session_id,'opening-resume:'+proof.proof_sha256]);
+  if(attempts.has(storeKey))return;
+  const token={session:old.session_id,proof:proof.proof_sha256};staffResumeRead=token;paintRoom(host,old);
+  let parent;
+  try{
+   await navigator.locks.request(key,{mode:'exclusive'},async()=>{
+    if(!roomCurrent(t)||staffResumeRead!==token||abortBlocked(token.session))throw Error('async_context_changed');
+    const fresh=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
+    if(!roomCurrent(t)||staffResumeRead!==token)throw Error('async_context_changed');
+    const current=fresh&&openingResumeProjection(fresh);
+    if(!current||!openingResumeAllowed(fresh,t)||fresh.session_id!==token.session
+     ||openingResumeTuple(current)!==openingResumeTuple(proof)||!sameChainRequest(processingFor(fresh).value.request,request))throw Error('opening_resume_changed');
+    roomState=fresh;roomError='';
+    const original=readJournal(key,t.user,token.session);
+    if(original?.schema_version==='mission-async-journal/2'||original?.done)throw Error('opening_resume_already_recorded');
+    // Preserve the exact original journal; null means this browser has no previous local record.
+    // This phase is created only by this click after fresh server proof, never restore/timer/none.
+    const document={schema_version:'mission-async-journal/2',original,resume:{user:t.user,session:token.session,selector,
+     proof_sha256:proof.proof_sha256,started:Date.now(),reads:0,lastRead:0,done:false}};
+    saveJournal(key,document);attachJournal(document,key,true);
+    const record=asyncWorks.get('journal:'+key);parent=record.parent;
+    parent.work=proof.work_id;record.work=proof.work_id;parent.inFlight=true;
+    attempts.set(storeKey,parent);paintRoom(host,fresh);
+    const {data,error}=await client.functions.invoke('mission_generic_ai',{body:{schema_version:'mission-opening-ready-resume-request/1',request:clone(request),proof:clone(proof)}});
+    if(error)throw error;
+    if(!asyncCurrent(t)||abortBlocked(token.session))return;
+    if(data?.status===202&&data.code==='MISSION_EVENT_PENDING'){
+     if(!acceptAsyncPending(data,parent,t,false))throw Error('opening_resume_ack_invalid');
+    }else if(data?.status===200&&['MISSION_EVENT_COMPLETE','MISSION_EVENT_FAILED'].includes(data.code)&&UUID.test(data.receipt_id||'')&&data.retry===false&&data.provider_retry_allowed===false){
+     document.resume.done=true;saveJournal(key,document);record.inactive=true;parent.outcome=data.code==='MISSION_EVENT_COMPLETE'?'confirmed':'failed';
+    }else parent.outcome='uncertain'; // Observe the same tuple; never send a second resume.
+   });
+  }catch{if(parent)parent.outcome='uncertain';if(roomCurrent(t))roomError='Ripresa non confermata. La stessa richiesta e lo storico sono conservati; aggiorna la regia per verificarli.';}
+  finally{if(parent)parent.inFlight=false;if(staffResumeRead===token)staffResumeRead=null;
+   if(roomCurrent(t)){paintRoom(host,roomState);await updateRoom(host,{manual:true,verifyOnly:true});refresh();}}
  }
  async function staffResumeReady(host){
   const t=syncRoom(host),old=roomState,oldClaim=old&&processingFor(old).value,oldRole=old&&roleProgress(old);
@@ -842,27 +915,40 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(nativeExact(body,['schema_version','master_session_id','source_revision'])&&body.schema_version==='mission-generic-staff-tick/1'&&UUID.test(body.master_session_id||'')&&SHA.test(body.source_revision||''))return {kind:'staff_tick',source_revision:body.source_revision};
   return null;
  }
- function readJournal(key,user,session){
-  const raw=localStorage.getItem(key);if(raw===null)return null;const j=JSON.parse(raw),s=j?.selector;
+ const journalPhase=j=>j?.schema_version==='mission-async-journal/2'?j.resume:j;
+ function journalPhaseValid(j,key,user,session,fields){
+  const s=j?.selector;
   const selectorValid=nativeExact(s,['kind','source_revision'])&&s.kind==='staff_tick'&&SHA.test(s.source_revision||'')
    ||nativeExact(s,['kind','request'])&&s.kind==='request'&&sameChainRequest(s.request,s.request)&&s.request.master_session_id===session;
-  if(!nativeExact(j,['schema_version','user','session','selector','started','reads','lastRead','done'])||j.schema_version!==asyncJournalSchema||j.user!==user||j.session!==session
-   ||!selectorValid||key!==journalPrefix(user,session)+selectorKey(s)||!Number.isSafeInteger(j.started)||j.started<=0||j.started>Date.now()
-   ||!Number.isSafeInteger(j.reads)||j.reads<0||j.reads>asyncBudget.maxReads||!Number.isSafeInteger(j.lastRead)||j.lastRead<0||typeof j.done!=='boolean')throw Error('async_journal_invalid');
+  return nativeExact(j,fields)&&j.user===user&&j.session===session&&selectorValid
+   &&key===journalPrefix(user,session)+selectorKey(s)&&Number.isSafeInteger(j.started)&&j.started>0&&j.started<=Date.now()
+   &&Number.isSafeInteger(j.reads)&&j.reads>=0&&j.reads<=asyncBudget.maxReads&&Number.isSafeInteger(j.lastRead)&&j.lastRead>=0&&typeof j.done==='boolean';
+ }
+ function readJournal(key,user,session){
+  const raw=localStorage.getItem(key);if(raw===null)return null;const j=JSON.parse(raw);
+  const legacyFields=['schema_version','user','session','selector','started','reads','lastRead','done'];
+  const legacyValid=x=>journalPhaseValid(x,key,user,session,legacyFields)&&x.schema_version===asyncJournalSchema;
+  if(j?.schema_version==='mission-async-journal/2'){
+   if(!nativeExact(j,['schema_version','original','resume'])||!(j.original===null||legacyValid(j.original))
+    ||!journalPhaseValid(j.resume,key,user,session,['user','session','selector','proof_sha256','started','reads','lastRead','done'])
+    ||j.resume.selector.kind!=='request'||!SHA.test(j.resume.proof_sha256||''))throw Error('async_journal_invalid');
+  }else if(!legacyValid(j))throw Error('async_journal_invalid');
   return j;
  }
  function saveJournal(key,j){localStorage.setItem(key,JSON.stringify(j));}
- function attachJournal(j,key){
-  if([...asyncWorks.values()].some(r=>r.journalKey===key))return;
+ function attachJournal(document,key,explicitResume=false){
+  const j=journalPhase(document),existing=[...asyncWorks.values()].find(r=>r.journalKey===key);
+  if(!explicitResume&&existing&&(existing.resumeProof??null)===(j.proof_sha256??null))return;
+  // A phase recorded by another tab is adopted for observation only, never invocation.
   const body=j.selector.kind==='request'?clone(j.selector.request):{schema_version:'mission-generic-staff-tick/1',master_session_id:j.session,source_revision:j.selector.source_revision};
   const parent={user:j.user,session:j.session,key,kind:j.selector.kind==='staff_tick'?'tick':'work',work:null,body:Object.freeze(body),inFlight:false,outcome:'waiting',journalKey:key};
   const k='journal:'+key;parent.asyncKey=k;
-  asyncWorks.set(k,{user:j.user,session:j.session,work:null,request:null,parent,selector:clone(j.selector),journalKey:key,started:performance.now(),lastRead:-Infinity,reads:0,busy:false,state:'waiting',failure:null,proof:null,allowChain:false,accepted:false,chainDone:false});
+  asyncWorks.set(k,{user:j.user,session:j.session,work:null,request:null,parent,selector:clone(j.selector),journalKey:key,resumeProof:j.proof_sha256??null,started:performance.now(),lastRead:-Infinity,reads:0,busy:false,state:'waiting',failure:null,proof:null,allowChain:false,accepted:false,chainDone:false});
  }
  function restoreJournals(state,t){
   if(!asyncCurrent(t))return;const prefix=journalPrefix(t.user,state.session_id);let count=0;
   for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key?.startsWith(prefix))continue;
-   if(++count>128)throw Error('async_journal_limit');const j=readJournal(key,t.user,state.session_id);if(j&&!j.done)attachJournal(j,key);
+   if(++count>128)throw Error('async_journal_limit');const j=readJournal(key,t.user,state.session_id);if(j&&!journalPhase(j).done)attachJournal(j,key);
   }
  }
  function staffNoWork(data,parent){
@@ -882,7 +968,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const key=journalPrefix(t.user,parent.session)+selectorKey(selector);parent.journalKey=key;
   return navigator.locks.request(key,{mode:'exclusive'},async()=>{
    if(!asyncCurrent(t)||abortBlocked(parent.session))throw Error('async_context_changed');
-   const old=readJournal(key,t.user,parent.session);if(old){if(!old.done)attachJournal(old,key);throw Error('async_already_submitted');}
+   const old=readJournal(key,t.user,parent.session);if(old){if(!journalPhase(old).done)attachJournal(old,key);throw Error('async_already_submitted');}
    const j={schema_version:asyncJournalSchema,user:t.user,session:parent.session,selector,started:Date.now(),reads:0,lastRead:0,done:false};
    saveJournal(key,j);attachJournal(j,key); // Persist before HTTP; an uncertain send is never repeated.
    const response=await client.functions.invoke('mission_generic_ai',{body:clone(parent.body)});
@@ -894,9 +980,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   });
  }
  function spendAsyncRead(r){
-  if(r.journalKey){const j=readJournal(r.journalKey,r.user,r.session);
+  if(r.journalKey){const document=readJournal(r.journalKey,r.user,r.session),j=journalPhase(document);
    if(!j||j.done||j.reads>=asyncBudget.maxReads||Date.now()-j.started>=asyncBudget.maxMs)throw Error('async_budget');
-   j.reads++;j.lastRead=Date.now();saveJournal(r.journalKey,j);r.reads=j.reads;
+   if((j.proof_sha256??null)!==(r.resumeProof??null))throw Error('async_phase_changed');
+   j.reads++;j.lastRead=Date.now();saveJournal(r.journalKey,document);r.reads=j.reads;
   }else if(r.reads>=asyncBudget.maxReads||performance.now()-r.started>=asyncBudget.maxMs)throw Error('async_budget');else r.reads++;
  }
  const transientReadCodes=new Set(['08000','08001','08003','08006','08007','40001','40P01','55P03','57014','53300','57P01','57P02','57P03']);
@@ -907,7 +994,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  async function boundedAsyncRead(r,read){
   spendAsyncRead(r);
-  const remaining=r.journalKey?asyncBudget.maxMs-(Date.now()-readJournal(r.journalKey,r.user,r.session).started):asyncBudget.maxMs-(performance.now()-r.started);
+  const remaining=r.journalKey?asyncBudget.maxMs-(Date.now()-journalPhase(readJournal(r.journalKey,r.user,r.session)).started):asyncBudget.maxMs-(performance.now()-r.started);
   if(remaining<=0)throw Error('async_budget');
   let timer;const controller=new AbortController();
   try{return await Promise.race([read(controller.signal),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Object.assign(Error('async_read_timeout'),{asyncRetryable:true}));},Math.min(10000,remaining));})]);}
@@ -941,7 +1028,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!nativeExact(v,recoveryKeys)||v.schema_version!=='mission-generic-async-recovery/1'||!['owned','none','no_work'].includes(v.status)||v.retry!==false||v.provider_retry_allowed!==false)throw Error('async_recovery_invalid');
   if(v.status==='none'||v.status==='no_work'){
    if(['request','work_id','state','receipt_id','result_sha256','kind'].some(k=>v[k]!==null)||v.status==='no_work'&&r.selector.kind!=='staff_tick')throw Error('async_recovery_invalid');
-   if(v.status==='no_work'){const j=readJournal(r.journalKey,r.user,r.session);if(!j)throw Error('async_journal_invalid');j.done=true;saveJournal(r.journalKey,j);r.inactive=true;r.transportNotice=false;}
+   if(v.status==='no_work'){const j=readJournal(r.journalKey,r.user,r.session);if(!j)throw Error('async_journal_invalid');journalPhase(j).done=true;saveJournal(r.journalKey,j);r.inactive=true;r.transportNotice=false;}
    return null;
   }
   if(!sameChainRequest(v.request,v.request)||v.request.master_session_id!==r.session||!UUID.test(v.work_id||'')||!['director','narration','choice'].includes(v.kind)
@@ -950,7 +1037,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   r.work=v.work_id;r.request=Object.freeze(clone(q));r.accepted=true;r.allowChain=v.kind==='director';r.parent.work=v.work_id;r.parent.asyncRequest=r.request;
   return proof; // Server-owned recovery projection; never a synthetic EVENT_COMPLETE ACK.
  }
- function finishJournal(r){if(r.journalKey&&r.state==='completed'&&(!r.allowChain||r.chainDone)){const j=readJournal(r.journalKey,r.user,r.session);if(j){j.done=true;saveJournal(r.journalKey,j);}}}
+ function finishJournal(r){if(r.journalKey&&r.state==='completed'&&(!r.allowChain||r.chainDone)){const j=readJournal(r.journalKey,r.user,r.session);if(j){journalPhase(j).done=true;saveJournal(r.journalKey,j);}}}
  function observeAsyncWork(state,t){
   if(!asyncCurrent(t)||hasCountProjection(state)||abortBlocked(state.session_id)||!processingFor(state).valid)return;
   const r=[...asyncWorks.values()].find(r=>(r.accepted||r.journalKey)&&r.user===t.user&&r.session===state.session_id&&!r.inactive&&!r.busy&&!r.failure&&!['uncertain','failed'].includes(r.state)&&(r.state!=='completed'||r.allowChain&&!r.chainDone));
@@ -960,7 +1047,9 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    parent=r.parent;parent.inFlight=true;
    try{
     if(!asyncCurrent(t)||abortBlocked(r.session))return;
-    if(r.journalKey){const j=readJournal(r.journalKey,r.user,r.session);if(j?.done){r.inactive=true;return;} // Local closure ends observation only; public completion still needs room/server proof.
+    if(r.journalKey){const j=journalPhase(readJournal(r.journalKey,r.user,r.session));
+     if((j?.proof_sha256??null)!==(r.resumeProof??null)){r.inactive=true;return;}
+     if(j?.done){r.inactive=true;return;} // Local closure ends observation only; public completion still needs room/server proof.
      if(j&&Date.now()-j.lastRead<asyncBudget.minReadMs)return;}
     let proof=r.proof;
     if(r.state!=='completed'){
@@ -1068,6 +1157,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return a.outcome==='confirmed'?'child_confirmed':a.outcome==='failed'?'child_failed':'child_unconfirmed';
  }
  function maybeDispatch(state,t,reclaim=false){
+  if(hasOpeningResume(state))return; // A proof, even malformed, cannot become an automatic resend.
   if(asyncBlocked(state))return; // An accepted async request is observed, never re-dispatched.
   if(hasCountProjection(state))return; // Only the explicit technical status consumer may handle this proof.
   const parsed=processingFor(state),p=parsed.value;
