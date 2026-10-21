@@ -1,5 +1,5 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=staff-log-cleanup-9038617a3f67aa1d';
-import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=mission-staff-fato-regen-1';
+import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-publication-7897dcc449bd7b13';
 export const VERSION='mission-academy-flow-v4-staff-client/1-candidate';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
@@ -1641,7 +1641,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(pending&&!pending.inFlight&&['confirmed','rejected'].includes(pending.phase)&&t.readSequence>pending.settledAfterRead)choiceRequests.delete(key);
    paintRoom(host,state);
    await mountAborts(host,state,t);if(!roomCurrent(t)||!roomState)return;
-   if(abortBlocked(state.session_id))return;await regen.update(host,state);
+   if(abortBlocked(state.session_id))return;await regen.update(host,state,processingFor(state));
    observeAsyncWork(state,t);
    const projected=processingFor(state);
    if(!verifyOnly&&(!manual||academyFlow(state)==='combat_started'||staffAcademyRole(state,t.loc)?.reason==='ready_to_evaluate'

@@ -33,17 +33,25 @@ export function createStaffFatoRegen({client,identity,isStaff,currentLocation,re
   const calls=Number(provider.calls||0),cost=Number(provider.cost_usd||0);
   return calls+' chiamata/e · '+cost.toFixed(4)+' $';
  }
- function showDetails(s,returnTo){
+ function showDetails(s,returnTo,publication=null){
   const d=node('dialog',null);d.className='mg-regen-dialog';d.setAttribute('aria-label','Come è stato prodotto questo Fato');
   const h=node('h3','Come è stato prodotto questo Fato'),close=node('button','Chiudi');
   close.type='button';close.addEventListener('click',()=>d.close());
-  const summary=node('p',s.revision?.work_state==='completed'
+  const summary=node('p',publication
+   ?'Il Fato è già pubblicato in chat. Questa pubblicazione non è rigenerabile da questo pannello.'
+   :s.revision?.work_state==='completed'
    ?'Il nuovo Fato è stato pubblicato usando le role e la decisione della scena, senza una nuova Regia o azione Combat.'
    :s.revision?'La richiesta conserva le role e la decisione della scena; il nuovo Fato non è ancora pubblicato.'
     :'Non è ancora registrata una rigenerazione per questo Fato.');
   d.append(h,close,summary);
   const list=node('dl',null);
   const add=(label,value)=>{list.append(node('dt',label),node('dd',value??'Non registrato'));};
+  if(publication){
+   add('Fato pubblicato',publication.message_id);
+   add('Pubblicato il',new Date(publication.published_at).toLocaleString('it-IT'));
+   add('Stato','Pubblicato in chat');
+   add('Work',publication.work_id);
+  }else{
   add('Fase',s.target?.step_key);
   add('Role della finestra',String(s.revision?.role_count??s.target?.role_count??'Non registrato'));
   add('Fato corrente',s.target?.message_id||'Non registrato');
@@ -55,16 +63,18 @@ export function createStaffFatoRegen({client,identity,isStaff,currentLocation,re
     String(s.revision.provider.input_tokens||0)+' / '+String(s.revision.provider.output_tokens||0):'Non registrato');
   add('Errore',s.revision?.failure_code||'Nessuno registrato');
   add('Work',s.revision?.work_id);
+  }
   d.append(list);document.body.append(d);
   d.addEventListener('close',()=>{d.remove();returnTo?.focus();},{once:true});d.showModal();close.focus();
  }
- function statusLabel(s){
+ function statusLabel(s,publication=null){
   const w=s.revision?.work_state;
   if(inFlight)return 'Il Fato è in elaborazione. Il precedente resta visibile.';
   if(w==='ready')return 'Richiesta pronta. Riprendi la stessa richiesta senza crearne un’altra.';
   if(['claimed','authorized','provider_started','uncertain'].includes(w))return 'Rigenerazione in corso; verifica la stessa richiesta.';
   if(w==='failed')return 'Rigenerazione fallita: il Fato precedente resta corrente. '+(s.revision?.failure_code||'Controlla i dettagli.');
   if(w==='completed')return 'Nuovo Fato pubblicato; il precedente è conservato come esito superato.';
+  if(publication)return 'Fato pubblicato in chat. Non è disponibile per la rigenerazione da questo pannello.';
   return s.target?.eligible?'Il Fato corrente può essere rigenerato.':(s.target?.reason||'Rigenerazione non disponibile.');
  }
  async function send(s,host,existing=false){
@@ -94,31 +104,42 @@ export function createStaffFatoRegen({client,identity,isStaff,currentLocation,re
    catch{/* Keep the local warning; never invent a final state. */}
   }
  }
- async function paint(host,s){
+ async function paint(host,s,publication=null){
   if(!host?.isConnected||!enabled()||!s)return;
   style();let wrap=host.querySelector('[data-mg-regen]');
   if(!wrap){wrap=node('section',null);wrap.className='mg-regen';wrap.dataset.mgRegen='';
    host.append(wrap);}
   wrap.replaceChildren();
-  const title=node('div','Ultimo Fato'+(s.target?.message_at?' · '+new Date(s.target.message_at).toLocaleString('it-IT'):''));title.className='mg-regen-title';
+  const publishedAt=publication?.published_at||s.target?.message_at;
+  const title=node('div',(publication?'Fato pubblicato':'Ultimo Fato')+(publishedAt?' · '+new Date(publishedAt).toLocaleString('it-IT'):''));title.className='mg-regen-title';
   const actions=node('div',null);actions.className='mg-regen-actions';
   const w=s.revision?.work_state,ongoing=['ready','claimed','authorized','provider_started','uncertain'].includes(w);
   const primary=node('button',ongoing?'Verifica la stessa richiesta':'Rigenera ultimo Fato');
   primary.type='button';primary.disabled=inFlight||(!ongoing&&!s.target?.eligible);
   primary.addEventListener('click',()=>send(s,host,ongoing));
-  const info=node('button','Come è stato prodotto?');info.type='button';
-  info.addEventListener('click',()=>showDetails(s,info));
+  const info=node('button',publication?'Informazioni sul Fato':'Come è stato prodotto?');info.type='button';
+  info.addEventListener('click',()=>showDetails(s,info,publication));
   actions.append(primary,info);
-  const status=node('p',statusLabel(s));status.className='mg-regen-status';
+  const status=node('p',statusLabel(s,publication));status.className='mg-regen-status';
   status.dataset.mgRegenStatus='';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   wrap.append(title,actions,status);
  }
- async function update(host,room){
+ // A validated, completed server work attests publication independently of regeneration eligibility.
+ function publicationOutsideTarget(s,room,processing){
+  const p=processing?.valid===true?processing.value:null;
+  if(s.session_id!==room.session_id||s.revision!==null||s.target?.eligible!==false
+   ||s.target?.message_id!=null||s.target?.reason!=='Nessun Fato di missione pubblicato.'
+   ||p?.state!=='completed'||!uuid(p.message_id)||!uuid(p.work_id)
+   ||p.request?.master_session_id!==s.session_id
+   ||typeof p.finalized_at!=='string'||!Number.isFinite(Date.parse(p.finalized_at)))return null;
+  return {message_id:p.message_id,work_id:p.work_id,published_at:p.finalized_at};
+ }
+ async function update(host,room,processing=null){
   if(!enabled()||!uuid(room?.session_id)){host?.querySelector('[data-mg-regen]')?.remove();return;}
   const next=JSON.stringify([identity(),room.session_id]);
   if(next!==scope){scope=next;epoch++;view=null;request=null;}
   const current=epoch;
-  try{const s=await read(room.session_id);if(current!==epoch||!host?.isConnected)return;view=s;await paint(host,s);}
+  try{const s=await read(room.session_id);if(current!==epoch||!host?.isConnected)return;view=s;await paint(host,s,publicationOutsideTarget(s,room,processing));}
   catch(error){if(current!==epoch)return;const label=host.querySelector('[data-mg-regen-status]');if(label)label.textContent='Rigenerazione non disponibile: '+error.message;}
  }
  return {update,dispose(){scope='';epoch++;view=null;request=null;inFlight=false;}};
