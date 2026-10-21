@@ -1,4 +1,4 @@
-# C1266 · Staff manuale libera in lavorazione
+# C1266 · Staff manuale disponibile · consegna
 
 **TASK-ID** · C1266-STRUCTURE49-CONTINUE6-20261021 · PM-DB-REGIA49.
 
@@ -16,4 +16,4 @@
 
 **Prossimo passo** · Antonello sceglie e prova direttamente dal catalogo Staff quando vuole; nessuna nuova campagna o conferma di procedura. Se emerge un difetto concreto, usare richiesta/ricevuta esistente e correggere la causa preservando storico, senza retry esplorativi o occupazione automatica della stanza.
 
-**Fonti** · candidato/exam_human_master/C1266_MANUAL_STAFF_RELEASE.json conserva sorgenti, review e ricevute16–17; C1266_STRUCTURE49_ACTUAL_REVIEW.json conserva15 e precedenti. Nessuna riscrittura dei freeze storici.
+**Fonti** · Consegna documentale: commit f14819a7bd89ce0ba5c053573e1e5217d8dda4d7, sei documenti selezionati; sorgenti UI già pubblicate in a1040e95909b7a14bceba090a900fb0d3bc98c1e. Archivio completo C1266_MANUAL_STAFF_RELEASE.json conservato in locale (28454584 byte, SHA256 1db2b12d48228983f61a631e5a7d20072517ea4b1683f3222a2f1b6c408c8381); deposito GitHub del solo archivio non riuscito: HTTP 500, blob assente confermato da 422. Nessun effetto sulla versione installata. candidato/exam_human_master/C1266_MANUAL_STAFF_RELEASE.json conserva sorgenti, review e ricevute16–17; C1266_STRUCTURE49_ACTUAL_REVIEW.json conserva15 e precedenti. Nessuna riscrittura dei freeze storici.
