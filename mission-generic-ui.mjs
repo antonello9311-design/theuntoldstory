@@ -1,4 +1,4 @@
-import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=c1266-claim-resume-agg6-e49262fa33266447';
+import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=staff-log-cleanup-9038617a3f67aa1d';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=mission-staff-fato-regen-1';
 export const VERSION='mission-academy-flow-v4-staff-client/1-candidate';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
@@ -27,11 +27,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   host.querySelector('[data-staff-abort-recovery]')?.remove();
   const recovery=el('div',null,{'data-staff-abort-recovery':''});host.append(recovery);
   for(const id of ids){if(!roomCurrent(t))return;const ah=el('div',null,{'data-staff-abort':''});recovery.append(ah);
-   let c=aborts.get(id);if(!c){c=createStaffAbortController({client,identity,isCurrent:()=>roomCurrent(t),onCommitted:r=>{if(roomCurrent(t)&&roomState?.session_id===r.master_session_id){roomState=null;roomSignature='';const recoveryHost=roomHost?.querySelector('[data-staff-abort-recovery]');if(recoveryHost){roomHost.replaceChildren(recoveryHost);roomHost.hidden=false;}notice('Prova annullata. Fato e storico conservati.');}}});aborts.set(id,c);}
+   let c=aborts.get(id);if(!c){c=createStaffAbortController({client,identity,hideCommitted:true,isCurrent:()=>roomCurrent(t),onCommitted:r=>{if(roomCurrent(t)&&roomState?.session_id===r.master_session_id){roomState=null;roomSignature='';const recoveryHost=roomHost?.querySelector('[data-staff-abort-recovery]');if(recoveryHost){roomHost.replaceChildren(recoveryHost);roomHost.hidden=false;}notice('Prova annullata. Fato e storico conservati.');}}});aborts.set(id,c);}
    // Controller contesto catturato: ricrea a ogni epoch stanza, mai riattivare il precedente utente.
    await c.mount(ah,id);if(!roomCurrent(t))return;
   }
-  if(!roomState){host.replaceChildren(recovery);host.hidden=!ids.length;}
+  if(!roomState){host.replaceChildren(recovery);host.hidden=!recovery.querySelector('[data-staff-abort]:not([hidden])');}
  }
  const regen=createStaffFatoRegen({client,identity,isStaff,currentLocation,refresh});
  const valid=(user)=>!!user&&identity()===user;
