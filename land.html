@@ -10020,10 +10020,13 @@ function mountExamEntry(document,container,controller,{onError=()=>{},presentati
  const body=document.createElement('div');body.className='esm-human-entry';container.append(body);
  const text=(parent,copy,cls='esm-hint')=>{const p=document.createElement('p');p.className=cls;p.textContent=copy;parent.append(p);};
  function button(parent,label,action,{disabled=false,ghost=false}={}){const b=document.createElement('button');b.type='button';b.className='esm-btn'+(ghost?' ghost':'');b.textContent=label;b.disabled=disabled;b.addEventListener('click',()=>Promise.resolve().then(action).catch(onError));parent.append(b);return b;}
+ let paintedEntry=null;
  function render(){
-  const s=controller.snapshot();body.replaceChildren();
+  const s=controller.snapshot();
   if(s.receipt||s.pending){presentation.expanded=false;presentation.basis=null;}
   else if(s.entryBasis!==null){if(presentation.basis!==null&&presentation.basis!==s.entryBasis)presentation.expanded=false;presentation.basis=s.entryBasis;}
+  const paint=JSON.stringify(s.receipt||s.pending?['receipt',s.pending,s.receipt?.state,s.error,s.busy,s.canRetryHuman]:presentation.expanded?['expanded',s.canChooseAI,s.canRequestHuman,s.loaded,s.humanReason,s.error,s.busy]:['collapsed']);
+  if(paint===paintedEntry)return;paintedEntry=paint;body.replaceChildren();
   if(s.receipt||s.pending){
    text(body,s.pending?'Richiesta da verificare':LABELS[s.receipt.state]);
    text(body,s.pending?'Rileggi lo stato: non viene inviata una seconda richiesta.':'La conduzione resta affidata al Master fino alla chiusura.');
@@ -11381,12 +11384,20 @@ function mountExamHumanHost(container, { client, context, getContext, subscribeC
   }
   function renderNav() {
     if (disposed) return;
-    nav.replaceChildren(); let pending;
-    try { pending = pendingMode(); } catch(e) { status.textContent=e.message; verify.disabled=false; return; }
+    let pending;
+    try { pending = pendingMode(); } catch(e) { nav.replaceChildren();status.textContent=e.message; verify.disabled=false; return; }
     const modes = new Set(availableModes()); if (pending && !state?.terminal && state?.available !== false) modes.add(pending);
-    for (const m of modes) { if (m==='entry' && mode==='entry') continue; const b=node('button',MODES[m]); b.type='button'; b.className='esm-btn'; b.disabled=!!inflight||refreshing||m===mode||!!pending&&pending!==m;
-      b.setAttribute('aria-pressed',String(m===mode)); b.addEventListener('click',()=>switchMode(m)); nav.append(b); }
-    verify.disabled=!!inflight||refreshing;
+    const visible=[...modes].filter(m=>!(m==='entry'&&mode==='entry'));
+    for(const b of [...nav.children])if(!visible.includes(b.dataset.examMode))b.remove();
+    for (const [index,m] of visible.entries()) {
+      let b=[...nav.children].find(n=>n.dataset.examMode===m);
+      if(!b){b=node('button',MODES[m]);b.type='button';b.className='esm-btn';b.dataset.examMode=m;b.addEventListener('click',()=>switchMode(m));}
+      if(nav.children[index]!==b)nav.insertBefore(b,nav.children[index]||null);
+      const disabled=!!inflight||refreshing||m===mode||!!pending&&pending!==m;
+      if(b.disabled!==disabled)b.disabled=disabled;
+      const pressed=String(m===mode);if(b.getAttribute('aria-pressed')!==pressed)b.setAttribute('aria-pressed',pressed);
+    }
+    const verifyDisabled=!!inflight||refreshing;if(verify.disabled!==verifyDisabled)verify.disabled=verifyDisabled;
   }
   function selectExam(id) { if (disposed) return; if(examId!==id){stopChild();examId=id;executionMode=null;} queueRefresh(); }
   async function switchMode(next) {
