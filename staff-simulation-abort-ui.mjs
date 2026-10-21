@@ -33,13 +33,32 @@ function openingResumeSession(p){
   ||v.master_session_id!==q.master_session_id||v.event_id!==q.event_id||v.request_key!==q.request_key||v.expected_revision!==q.expected_revision)return null;
  return q.master_session_id;
 }
+// Named resume envelope only. This identifies a writer; it never grants server authority.
+function openingClaimResumeSession(p){
+ const exact=(x,keys)=>!!x&&typeof x==='object'&&!Array.isArray(x)&&Object.keys(x).length===keys.length&&keys.every(k=>Object.hasOwn(x,k));
+ const uuid=x=>typeof x==='string'&&ID.test(x),sha=x=>typeof x==='string'&&/^[0-9a-f]{64}$/.test(x);
+ const q=p?.request,v=p?.proof;
+ if(!exact(p,['schema_version','request','proof'])||p.schema_version!=='mission-opening-claim-resume-request/1'
+  ||!exact(q,['schema_version','master_session_id','event_id','request_key','expected_revision'])||q.schema_version!=='mission-generic-request/1'
+  ||!['master_session_id','event_id','request_key'].every(k=>uuid(q[k]))||!positive(q.expected_revision)
+  ||!exact(v,['schema_version','eligible_to_request','master_session_id','work_id','event_id','request_key','expected_revision','payload_sha256','binding_sha256','release_sha256','source_qualification_sha256','previous_lease_id','dispatch_receipt_id','contract_sha256','contract_release_sha256','resume_audit_id','proof_sha256'])
+  ||v.schema_version!=='mission-opening-claim-resume/1'||v.eligible_to_request!==true
+  ||!['master_session_id','work_id','event_id','request_key','previous_lease_id','dispatch_receipt_id'].every(k=>uuid(v[k]))||!positive(v.expected_revision)
+  ||!['payload_sha256','binding_sha256','release_sha256','source_qualification_sha256','contract_sha256','contract_release_sha256','proof_sha256'].every(k=>sha(v[k]))
+  ||typeof v.resume_audit_id!=='string'||! /^[1-9][0-9]*$/.test(v.resume_audit_id)
+  ||v.master_session_id!==q.master_session_id||v.event_id!==q.event_id||v.request_key!==q.request_key||v.expected_revision!==q.expected_revision)return null;
+ return q.master_session_id;
+}
 export function guardStaffAbortClient(client,{identity,session,location}={}){
  if(client?.[guarded])client=client[guarded];
  function wrap(fn,name,p){
   const actor=identity?.();let scope=null;
   if(directWriters.has(name))scope=p?.p_session||p?.p_master_session||p?.master_session_id;
   else if(name==='provider:mission_generic_ai'){
-   if(p?.schema_version==='mission-opening-ready-resume-request/1'){
+   if(p?.schema_version==='mission-opening-claim-resume-request/1'){
+    scope=openingClaimResumeSession(p);
+    if(!scope||!ID.test(actor||'')||scope!==session?.())return Promise.resolve({data:null,error:{message:'Ripresa della lavorazione non coerente con la scena corrente. Nessun invio eseguito.'}});
+   }else if(p?.schema_version==='mission-opening-ready-resume-request/1'){
     scope=openingResumeSession(p);
     if(!scope||!ID.test(actor||'')||scope!==session?.())return Promise.resolve({data:null,error:{message:'Ripresa della prova non coerente con la scena corrente. Nessun invio eseguito.'}});
    }else scope=p?.master_session_id;

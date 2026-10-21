@@ -1,4 +1,4 @@
-import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=c1266-opening-resume-agg5-71044700c580d919';
+import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=c1266-claim-resume-agg6-e49262fa33266447';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=mission-staff-fato-regen-1';
 export const VERSION='mission-academy-flow-v4-staff-client/1-candidate';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
@@ -284,6 +284,26 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  const openingResumeTuple=x=>JSON.stringify(openingResumeKeys.map(k=>x[k]));
  function openingResumeAllowed(state,t){return !!(openingResumeProjection(state)&&isStaff()&&t.loc?.id===STAFF_TEST_ROOM
   &&t.loc.is_test===true&&state.can_tick===true&&state.review_required!==true&&!hasCountProjection(state)&&!abortBlocked(state.session_id));}
+ // Claimed recovery requires fresh server proof; can_tick and role progress grant nothing.
+ // This optional proof permits asking the server for one guarded resume, never provider execution.
+ const openingClaimResumeKeys=['schema_version','eligible_to_request','master_session_id','work_id','event_id','request_key','expected_revision','payload_sha256','binding_sha256','release_sha256','source_qualification_sha256','previous_lease_id','dispatch_receipt_id','contract_sha256','contract_release_sha256','resume_audit_id','proof_sha256'];
+ const hasOpeningClaimResume=state=>!!state&&Object.hasOwn(state,'opening_claim_resume');
+ function openingClaimResumeProjection(state){
+  if(!hasOpeningClaimResume(state))return null;
+  const x=state.opening_claim_resume,parsed=processingFor(state),w=parsed.value,q=w?.request;
+  if(!nativeExact(x,openingClaimResumeKeys)||x.schema_version!=='mission-opening-claim-resume/1'||x.eligible_to_request!==true
+   ||!['master_session_id','work_id','event_id','request_key','previous_lease_id','dispatch_receipt_id'].every(k=>typeof x[k]==='string'&&UUID.test(x[k]))
+   ||!['payload_sha256','binding_sha256','release_sha256','source_qualification_sha256','contract_sha256','contract_release_sha256','proof_sha256'].every(k=>typeof x[k]==='string'&&SHA.test(x[k]))
+   ||typeof x.resume_audit_id!=='string'||! /^[1-9][0-9]*$/.test(x.resume_audit_id)
+   ||!Number.isSafeInteger(x.expected_revision)||x.expected_revision<1||!parsed.valid||w?.state!=='claimed'
+   ||w.finalized_at!==null||w.message_id!==null||!sameChainRequest(q,q)
+   ||x.master_session_id!==state.session_id||x.work_id!==w.work_id||x.event_id!==q.event_id
+   ||x.request_key!==q.request_key||x.expected_revision!==q.expected_revision)return null;
+  return x;
+ }
+ const openingClaimResumeTuple=x=>JSON.stringify(openingClaimResumeKeys.map(k=>x[k]));
+ function openingClaimResumeAllowed(state,t){return !!(openingClaimResumeProjection(state)&&isStaff()&&t.loc?.id===STAFF_TEST_ROOM
+  &&t.loc.is_test===true&&state.review_required!==true&&!hasCountProjection(state)&&!abortBlocked(state.session_id));}
  // Count reconciliation is a server-attested technical status action, never a work retry.
  const countProjectionKeys=['schema_version','work_id','master_session_id','event_id','request_key','revision','dispatch_receipt_id','measurement_id','generation_request_sha256','policy_snapshot_sha256','release_sha256','failure_code','operation'];
  const countStatusRequestKeys=['schema_version','work_id','master_session_id','event_id','request_key','expected_revision','dispatch_receipt_id','measurement_id','generation_request_sha256','policy_snapshot_sha256','release_sha256','failure_code'];
@@ -486,6 +506,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(choice?.phase==='rejected')return 'La scelta è stata respinta. Aggiorna lo stato prima di scegliere nuovamente.';
   const parsed=processingFor(state);if(!parsed.valid)return 'Stato di elaborazione non disponibile. Aggiorna; nessun nuovo invio automatico.';
    const p=parsed.value,a=currentAttempt(state);
+   if(hasOpeningClaimResume(state)){if(!openingClaimResumeProjection(state))return 'Ripresa della lavorazione non verificabile. Aggiorna la regia.';if(openingClaimResumeRecorded(state,cacheUser))return 'La ripresa della stessa lavorazione è registrata. La verifica continua senza ripetere l’invio.';return 'Il server consente di riprendere la stessa lavorazione interrotta prima del provider. Usa Riprendi lavorazione.';}
    if(hasOpeningResume(state)){if(!openingResumeProjection(state))return 'Ripresa dell’apertura non verificabile. Aggiorna la regia; nessun nuovo invio automatico.';if(openingResumeRecorded(state,cacheUser))return 'La ripresa della stessa apertura è già registrata. La verifica continua senza ripetere l’invio.';return 'Il server consente di verificare e riprendere la stessa apertura. Usa Riprendi apertura.';}
    const asyncMessage=asyncNotice(state);if(asyncMessage)return asyncMessage;
    const flow=academyFlow(state),role=roleProgress(state);
@@ -561,13 +582,19 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const proof=openingResumeProjection(state),key=JSON.stringify([cacheUser,state.session_id,'opening-resume:'+proof.proof_sha256]);
    openingResume.disabled=!!roomError||!!staffResumeRead||liveAttempt(state)||attempts.has(key)||openingResumeRecorded(state,cacheUser)||abortBlocked(state.session_id);
   }else openingResume?.remove();
+  let openingClaimResume=host.querySelector('[data-mg-opening-claim-resume]');
+  if(openingClaimResumeAllowed(state,{loc:currentLocation(),user:cacheUser})){
+   if(!openingClaimResume){openingClaimResume=button('Riprendi lavorazione',()=>staffResumeClaimedOpening(host));openingClaimResume.setAttribute('data-mg-opening-claim-resume','');host.append(openingClaimResume);}
+   const proof=openingClaimResumeProjection(state),key=JSON.stringify([cacheUser,state.session_id,'opening-claim-resume:'+proof.proof_sha256]);
+   openingClaimResume.disabled=!!roomError||!!staffResumeRead||liveAttempt(state)||attempts.has(key)||openingClaimResumeRecorded(state,cacheUser)||abortBlocked(state.session_id);
+  }else openingClaimResume?.remove();
   const readyRecovery=claim?.state==='ready'&&claim.finalized_at===null
    &&(role?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,state.session_id,claim.work_id)));
   const uncertainRecovery=claim?.state==='uncertain'&&(!role||role.reason==='uncertain'||academyFlow(state)==='combat_started');
   const claimedRecovery=processing.valid&&staffClaimReconciliationAllowed(state,{loc:currentLocation(),user:cacheUser},claim);
   let resume=host.querySelector('[data-mg-claim-resume]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&processing.valid
-   &&!hasOpeningResume(state)&&!countReserved&&(claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
+   &&!hasOpeningResume(state)&&!hasOpeningClaimResume(state)&&!countReserved&&(claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
    if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(p?.state==='claimed')void staffReconcileClaimed(host);else if(p?.state==='ready'&&(r?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,s.session_id,p.work_id))))void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
    resume.textContent=claimedRecovery?'Verifica la stessa ricevuta':readyRecovery?'Verifica e riprendi la stessa richiesta':'Verifica o riprendi la stessa richiesta';
    const suffix=claimedRecovery?':reconcile-claimed':readyRecovery?':reclaim-ready':':reclaim';
@@ -698,7 +725,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function openingResumeRecorded(state,user){
   try{const q=processingFor(state).value?.request;if(!sameChainRequest(q,q))return true;
    const j=readJournal(journalPrefix(user,state.session_id)+selectorKey(selectorFor(q)),user,state.session_id);
-   return j?.schema_version==='mission-async-journal/2'||j?.done===true;
+   return ['mission-async-journal/2','mission-async-journal/3'].includes(j?.schema_version)||j?.done===true;
   }catch{return true;}
  }
  async function staffResumeOpening(host){
@@ -736,6 +763,53 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
      if(!acceptAsyncPending(data,parent,t,false))throw Error('opening_resume_ack_invalid');
     }else if(data?.status===200&&['MISSION_EVENT_COMPLETE','MISSION_EVENT_FAILED'].includes(data.code)&&UUID.test(data.receipt_id||'')&&data.retry===false&&data.provider_retry_allowed===false){
      document.resume.done=true;saveJournal(key,document);record.inactive=true;parent.outcome=data.code==='MISSION_EVENT_COMPLETE'?'confirmed':'failed';
+    }else parent.outcome='uncertain'; // Observe the same tuple; never send a second resume.
+   });
+  }catch{if(parent)parent.outcome='uncertain';if(roomCurrent(t))roomError='Ripresa non confermata. La stessa richiesta e lo storico sono conservati; aggiorna la regia per verificarli.';}
+  finally{if(parent)parent.inFlight=false;if(staffResumeRead===token)staffResumeRead=null;
+   if(roomCurrent(t)){paintRoom(host,roomState);await updateRoom(host,{manual:true,verifyOnly:true});refresh();}}
+ }
+ function openingClaimResumeRecorded(state,user){
+  try{const q=processingFor(state).value?.request;if(!sameChainRequest(q,q))return true;
+   const j=readJournal(journalPrefix(user,state.session_id)+selectorKey(selectorFor(q)),user,state.session_id);
+   return j?.schema_version==='mission-async-journal/3';
+  }catch{return true;}
+ }
+ async function staffResumeClaimedOpening(host){
+  const t=syncRoom(host),old=roomState,x=old&&openingClaimResumeProjection(old);
+  if(!roomCurrent(t)||staffResumeRead||!x||!openingClaimResumeAllowed(old,t)||liveAttempt(old)||!navigator.locks?.request)return;
+  const request=Object.freeze(clone(processingFor(old).value.request)),proof=Object.freeze(clone(x));
+  const selector=selectorFor(request),key=journalPrefix(t.user,old.session_id)+selectorKey(selector);
+  const storeKey=JSON.stringify([t.user,old.session_id,'opening-claim-resume:'+proof.proof_sha256]);
+  if(attempts.has(storeKey))return;
+  const token={session:old.session_id,proof:proof.proof_sha256};staffResumeRead=token;paintRoom(host,old);
+  let parent;
+  try{
+   await navigator.locks.request(key,{mode:'exclusive'},async()=>{
+    if(!roomCurrent(t)||staffResumeRead!==token||abortBlocked(token.session))throw Error('async_context_changed');
+    const fresh=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
+    if(!roomCurrent(t)||staffResumeRead!==token)throw Error('async_context_changed');
+    const current=fresh&&openingClaimResumeProjection(fresh);
+    if(!current||!openingClaimResumeAllowed(fresh,t)||fresh.session_id!==token.session
+     ||openingClaimResumeTuple(current)!==openingClaimResumeTuple(proof)||!sameChainRequest(processingFor(fresh).value.request,request))throw Error('opening_claim_resume_changed');
+    roomState=fresh;roomError='';
+    const original=readJournal(key,t.user,token.session);
+    if(original?.schema_version==='mission-async-journal/3')throw Error('opening_claim_resume_already_recorded');
+    // Embed the prior journal/2 (including its journal/1) unchanged. A missing local record remains null.
+    // This phase is created only by this click after fresh server proof, never restore/timer/none.
+    const document={schema_version:'mission-async-journal/3',original,recovery:{user:t.user,session:token.session,selector,
+     proof_sha256:proof.proof_sha256,previous_lease_id:proof.previous_lease_id,dispatch_receipt_id:proof.dispatch_receipt_id,contract_sha256:proof.contract_sha256,started:Date.now(),reads:0,lastRead:0,done:false}};
+    saveJournal(key,document);attachJournal(document,key,true);
+    const record=asyncWorks.get('journal:'+key);parent=record.parent;
+    parent.work=proof.work_id;record.work=proof.work_id;parent.inFlight=true;
+    attempts.set(storeKey,parent);paintRoom(host,fresh);
+    const {data,error}=await client.functions.invoke('mission_generic_ai',{body:{schema_version:'mission-opening-claim-resume-request/1',request:clone(request),proof:clone(proof)}});
+    if(error)throw error;
+    if(!asyncCurrent(t)||abortBlocked(token.session))return;
+    if(data?.status===202&&data.code==='MISSION_EVENT_PENDING'){
+     if(!acceptAsyncPending(data,parent,t,false))throw Error('opening_claim_resume_ack_invalid');
+    }else if(data?.status===200&&['MISSION_EVENT_COMPLETE','MISSION_EVENT_FAILED'].includes(data.code)&&UUID.test(data.receipt_id||'')&&data.retry===false&&data.provider_retry_allowed===false){
+     document.recovery.done=true;saveJournal(key,document);record.inactive=true;parent.outcome=data.code==='MISSION_EVENT_COMPLETE'?'confirmed':'failed';
     }else parent.outcome='uncertain'; // Observe the same tuple; never send a second resume.
    });
   }catch{if(parent)parent.outcome='uncertain';if(roomCurrent(t))roomError='Ripresa non confermata. La stessa richiesta e lo storico sono conservati; aggiorna la regia per verificarli.';}
@@ -915,7 +989,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(nativeExact(body,['schema_version','master_session_id','source_revision'])&&body.schema_version==='mission-generic-staff-tick/1'&&UUID.test(body.master_session_id||'')&&SHA.test(body.source_revision||''))return {kind:'staff_tick',source_revision:body.source_revision};
   return null;
  }
- const journalPhase=j=>j?.schema_version==='mission-async-journal/2'?j.resume:j;
+ const journalPhase=j=>j?.schema_version==='mission-async-journal/3'?j.recovery:j?.schema_version==='mission-async-journal/2'?j.resume:j;
  function journalPhaseValid(j,key,user,session,fields){
   const s=j?.selector;
   const selectorValid=nativeExact(s,['kind','source_revision'])&&s.kind==='staff_tick'&&SHA.test(s.source_revision||'')
@@ -928,7 +1002,17 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const raw=localStorage.getItem(key);if(raw===null)return null;const j=JSON.parse(raw);
   const legacyFields=['schema_version','user','session','selector','started','reads','lastRead','done'];
   const legacyValid=x=>journalPhaseValid(x,key,user,session,legacyFields)&&x.schema_version===asyncJournalSchema;
-  if(j?.schema_version==='mission-async-journal/2'){
+  if(j?.schema_version==='mission-async-journal/3'){
+   const prior=j.original;
+   const priorValid=prior===null||legacyValid(prior)||(nativeExact(prior,['schema_version','original','resume'])
+    &&prior.schema_version==='mission-async-journal/2'&&(prior.original===null||legacyValid(prior.original))
+    &&journalPhaseValid(prior.resume,key,user,session,['user','session','selector','proof_sha256','started','reads','lastRead','done'])
+    &&prior.resume.selector.kind==='request'&&SHA.test(prior.resume.proof_sha256||''));
+   if(!nativeExact(j,['schema_version','original','recovery'])||!priorValid
+    ||!journalPhaseValid(j.recovery,key,user,session,['user','session','selector','proof_sha256','previous_lease_id','dispatch_receipt_id','contract_sha256','started','reads','lastRead','done'])
+    ||j.recovery.selector.kind!=='request'||!['proof_sha256','contract_sha256'].every(k=>typeof j.recovery[k]==='string'&&SHA.test(j.recovery[k]))
+    ||!['previous_lease_id','dispatch_receipt_id'].every(k=>typeof j.recovery[k]==='string'&&UUID.test(j.recovery[k])))throw Error('async_journal_invalid');
+  }else if(j?.schema_version==='mission-async-journal/2'){
    if(!nativeExact(j,['schema_version','original','resume'])||!(j.original===null||legacyValid(j.original))
     ||!journalPhaseValid(j.resume,key,user,session,['user','session','selector','proof_sha256','started','reads','lastRead','done'])
     ||j.resume.selector.kind!=='request'||!SHA.test(j.resume.proof_sha256||''))throw Error('async_journal_invalid');
@@ -1157,7 +1241,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return a.outcome==='confirmed'?'child_confirmed':a.outcome==='failed'?'child_failed':'child_unconfirmed';
  }
  function maybeDispatch(state,t,reclaim=false){
-  if(hasOpeningResume(state))return; // A proof, even malformed, cannot become an automatic resend.
+  if(hasOpeningResume(state)||hasOpeningClaimResume(state))return; // A proof, even malformed, cannot become an automatic resend.
   if(asyncBlocked(state))return; // An accepted async request is observed, never re-dispatched.
   if(hasCountProjection(state))return; // Only the explicit technical status consumer may handle this proof.
   const parsed=processingFor(state),p=parsed.value;
