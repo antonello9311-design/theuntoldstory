@@ -14,4 +14,4 @@
 
 **Prossimo passo** · Lasciare la scena aperta all'utente. Verificare il percorso role/Director sulle sue role reali nel mandato pertinente; allineare separatamente il pannello di rigenerazione senza duplicare l'incipit o azzerare lo storico.
 
-**Fonti** · candidato/exam_human_master/C1266_MANUAL_OPENING_RECOVERY.json conserva sorgenti, review, installer e ricevute della correzione. Il precedente C1266_MANUAL_STAFF_RELEASE.json e i freeze storici restano intatti. Client pubblicato3a399f2447c3b38a7d42f59b8a04b2f91eb98573; sorgenti/referti della correzione in consegna documentale selettiva.
+**Fonti** · candidato/exam_human_master/C1266_MANUAL_OPENING_RECOVERY.json conserva sorgenti, review, installer e ricevute della correzione. Il precedente C1266_MANUAL_STAFF_RELEASE.json e i freeze storici restano intatti. Client pubblicato3a399f2447c3b38a7d42f59b8a04b2f91eb98573; Consegna sorgenti/referti: commit d173a265ce94e940fd9faa85ec82b6ef3e7c152a, sette blob riletti identici; archivio C1266_MANUAL_OPENING_RECOVERY.json SHA256 13a47b473457c3034e8cbba898d42c80ddc31c7656933950942c55b47605b110.
