@@ -295,7 +295,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    ||!['master_session_id','work_id','event_id','request_key','previous_lease_id','dispatch_receipt_id'].every(k=>typeof x[k]==='string'&&UUID.test(x[k]))
    ||!['payload_sha256','binding_sha256','release_sha256','source_qualification_sha256','contract_sha256','contract_release_sha256','proof_sha256'].every(k=>typeof x[k]==='string'&&SHA.test(x[k]))
    ||typeof x.resume_audit_id!=='string'||! /^[1-9][0-9]*$/.test(x.resume_audit_id)
-   ||!Number.isSafeInteger(x.expected_revision)||x.expected_revision<1||!parsed.valid||w?.state!=='claimed'
+   ||!Number.isSafeInteger(x.expected_revision)||x.expected_revision<1||!parsed.valid||w?.state!=='uncertain'
    ||w.finalized_at!==null||w.message_id!==null||!sameChainRequest(q,q)
    ||x.master_session_id!==state.session_id||x.work_id!==w.work_id||x.event_id!==q.event_id
    ||x.request_key!==q.request_key||x.expected_revision!==q.expected_revision)return null;
