@@ -1,14 +1,29 @@
 # Avvio e coordinamento del lavoro
 
-Versione 1.2 · punto 2: costruzione del nuovo processo, autorizzata da Antonello il 09/09/2026 · verificata e installata localmente. Punto 1: documenti riordinati e decisioni consolidate, completato localmente. Antonello ha autorizzato la ripresa dei caricamenti: il deposito GitHub è selettivo e autonomo quando i file sono pronti, secondo i controlli e i gate distinti di AGENTS. La prima consegna tecnica TASK-PM-AVVIO-001 conserva l’etichetta storica «blocco1»; la numerazione corrente distingue documenti e processo. AGENTS mantiene i gate; questo file descrive l’esecuzione.
+Versione 1.5 · Staff unica e integrazione permanente dal 23/09/2026; checkpoint di continuità aggiunto il 15/09/2026; metodo tecniche aggiornato il 10/09/2026; punto 2: costruzione del nuovo processo, autorizzata da Antonello il 09/09/2026 · verificata e installata localmente. Punto 1: documenti riordinati e decisioni consolidate, completato localmente. Antonello ha autorizzato la ripresa dei caricamenti: il deposito GitHub è selettivo e autonomo quando i file sono pronti, secondo i controlli e i gate distinti di AGENTS. La prima consegna tecnica TASK-PM-AVVIO-001 conserva l’etichetta storica «blocco1»; la numerazione corrente distingue documenti e processo. AGENTS mantiene i gate; questo file descrive l’esecuzione.
 
 ## Cosa deve fare Antonello
 
 Aprire una task nella cartella del progetto e descrivere il risultato desiderato, anche soltanto come idea. L'assistente organizza il lavoro tecnico. Per esempio: «Voglio che il giocatore capisca perché non può usare una tecnica». Non servono comandi, nomi di file o scelta degli specialisti.
 
-La prima risposta spiega risultato atteso, cosa è già disponibile, cosa manca e il primo passo concreto. Si chiedono soltanto decisioni di prodotto realmente mancanti o autorizzazioni non già concesse. Una richiesta di analisi rimane analisi; l'avvio non autorizza da solo modifiche applicative, spese, apply, deploy o apertura agli utenti.
+La prima risposta spiega risultato atteso, cosa è già disponibile, cosa manca e il primo passo concreto. Si chiedono soltanto decisioni di prodotto realmente mancanti o autorizzazioni non già concesse. Una richiesta di analisi rimane analisi; l'avvio non autorizza da solo modifiche applicative o spese. Per le tecniche già nel mandato, la ratifica permanente del 10/09 copre pubblicazione riservata nella Staff Test Room, correzioni e apertura al collaudo positivo, con i controlli di AGENTS e senza nuove conferme di procedura. Per gli altri lavori valgono i gate specifici.
+
+## Uso manuale della Staff — decisione Antonello 21/10/2026
+
+Antonello usa liberamente la Staff Test Room tramite i normali comandi del sito: seleziona e prova le funzioni disponibili come e quando vuole. Il suo uso manuale non richiede una task dell’assistente, una prenotazione `staff:room`, una review ripetuta, controlli manuali prima di ogni gesto, conferme procedurali o rinnovi di finestre temporali. Questi passaggi non devono diventare condizioni per accedere alla stanza, scegliere una prova o proseguirla. La procedura di coordinamento degli assistenti non attribuisce loro un’esclusiva nei confronti di Antonello.
+
+Autenticazione e autorizzazioni Staff, isolamento server delle risorse reali, limiti automatici di chiamate/token/spesa, idempotenza e audit restano attivi. I limiti economici non vengono aumentati o azzerati da questa decisione; un limite raggiunto viene gestito dal sistema. Le finestre operative delle campagne dell’assistente non si applicano come scadenze da rinnovare per l’uso manuale di Antonello. Eventuali blocchi tecnici vanno corretti nel loro scope senza trasferire all’utente checklist o richieste ripetute.
+
+L’assistente coordina soltanto il proprio lavoro: non occupa il browser o la Staff mentre Antonello li usa, non avvia prove o retry autonomi per suo conto e interrompe la propria automazione quando viene richiesta la stanza libera. Eventuali lavorazioni proprie pendenti si risolvono con un esito autorevole e audit conservato, senza cancellare lo storico, resettare i contatori o modificare scene altrui. Il metodo non attesta che la liberazione tecnica sia già avvenuta.
+
+Questa decisione prevale sulle prescrizioni di prenotazione, finestre e verifiche preliminari riferite all’uso manuale della Staff. Restano distinti lo sviluppo dell’assistente, le modifiche DB/Edge/client, i deploy e l’apertura pubblica: continuano a seguire i mandati e i controlli pertinenti. L’uso manuale non è una dichiarazione automatica di collaudo positivo o di prodotto aperto agli utenti.
 
 ## 1. Ingresso unico
+
+**Decisione permanente Antonello · 23/09/2026:** per tutti i nuovi incarichi e le riprese, sviluppo funzionale e collaudo esclusivamente nella **Staff Test Room**, riusando la simulazione e i percorsi reali. Docker, PostgreSQL locali, fixture ricreate, banchi alternativi e branch QA escono dal percorso di sviluppo/verifica; non sostituire Docker con un altro banco locale. La preparazione dei sorgenti e i controlli statici/sintattici senza esecuzione di gameplay o DB restano consentiti e precedono la review. La Test Room utenti non è una seconda tappa obbligatoria e non viene cancellata o disattivata da questa decisione. Questa regola sostituisce le precedenti procedure Docker/branch del 09/09 e l'obbligo di collaudo/allineamento di entrambe le stanze del 06/09.
+
+Il metodo vale anche per tutte le nuove chat nella root condivisa. I mandati di prodotto restano nominati e circoscritti: `MANDATO_COMBAT_REGIA_STAFF.md` assegna il lavoro corrente alle due chat indicate. Una sessione già aperta deve rileggere AGENTS e questo file dopo la notifica; copie esterne non sono aggiornate dal solo salvataggio locale.
+
 
 1. Verificare la cartella effettiva; leggere `AGENTS.md` e `dossier/00_LEGGIMI.md`.
 2. Leggere contesto, fotografia e tabellone indicati lì. Per il solo metodo non ripetere una lettura DB; se si dichiara lo stato backend attuale servono interrogazioni pertinenti. Le fotografie conservano la propria data.
@@ -18,6 +33,27 @@ La prima risposta spiega risultato atteso, cosa è già disponibile, cosa manca 
 6. Il pianificatore propone gli incarichi pronti e prepara i briefing. L’assistente verifica gli esiti e assegna gli specialisti interni; ogni owner registra e acquisisce il proprio scope con il guard prima di scrivere. Il piano da solo non avvia agenti o operazioni.
 
 Se la cartella canonica o il registro condiviso non sono raggiungibili, procedere con letture e proposte; il PM risolve l'accesso prima delle scritture concorrenti. Nessuna copia privata del registro che pretenda di assegnare gli stessi file.
+
+### Checkpoint obbligatorio per continuare, integrare o ribasare
+
+Quando Antonello chiede di continuare, riprendere, integrare o ribasare un lavoro, la nuova chat non assume che il nome, l’handoff o il candidato indichino lo stato corrente. Prima di qualunque modifica, test mutante eseguito dall’assistente o rilascio il PM produce nel proprio aggiornamento un checkpoint breve con:
+
+1. task, cantiere, candidato e contratto identificati con percorso o ID completo; sigle come «008» non bastano se esistono omonimi;
+2. risultato richiesto e perimetro ancora autorizzato, separando analisi, preparazione, apply, deploy, enable, collaudo e apertura;
+3. ultima versione realmente pubblicata di client, DB/RPC, Edge e configurazione, con fonte e data; un documento storico non vale come verifica viva;
+4. baseline usata dal candidato e confronto con lo stato vivo/pubblicato, includendo corpi condivisi, firme, pin, permessi, sigilli e dipendenze;
+5. owner e prenotazioni correnti dei file e delle risorse, sessioni o prove aperte da preservare e cambi concorrenti da comporre;
+6. casi già riusciti sulla stessa versione e casi ancora mancanti, senza trasformare un PASS circoscritto in una qualifica generale.
+
+Il checkpoint porta a uno solo di questi esiti:
+
+- **continuità confermata:** baseline e contratto coincidono; si prosegue sulla stessa candidata;
+- **drift componibile:** si conserva la provenienza, si rigenera un delta minimo dalla baseline corrente e si aggiorna la recovery sulla stessa baseline;
+- **identità o baseline non verificata:** si resta in sola lettura finché il punto incerto non è risolto.
+
+Non si supera il drift aggiornando soltanto hash o pin, rimuovendo stop e guardie, ricreando oggetti già presenti o applicando in sequenza pacchetti che ridefiniscono le stesse funzioni. I contributi concorrenti vengono composti una volta sulla baseline corrente e il risultato integrato riceve un’identità unica: migrazione e hash DB, versione Edge, commit/build client, versione del contratto, gate e scenario QA.
+
+Backend, Edge, client, configurazione e recovery devono formare questa candidata integrata prima della review finale. Il collaudo live usa esattamente tale identità e serve a confermare il percorso reale. Se durante la prova emerge un difetto di aggancio, si conserva l’evidenza, si chiude o sospende soltanto la prova propria e si torna alla composizione; niente patch estemporanee mentre la scena resta attiva. La diagnosi diretta di una funzione già pubblicata nella Staff Test Room rimane ammessa nei mandati vigenti, ma non certifica componenti o versioni differenti.
 
 ## 2. Competenze e parallelismo
 
@@ -43,7 +79,7 @@ Resta il massimo di tre cantieri «in lavoro». Si riusano quelli esistenti; il 
 
 Il piano è un elenco di incarichi con lo stesso formato del registro, un obiettivo e il numero massimo di specialisti contemporanei. `task_plan.py` lo legge senza modificarlo e senza creare un registro. Segnala dipendenze mancanti/circolari, collisioni, risorse occupate e incarichi che possono avanzare insieme. La proposta di parallelismo non è una prenotazione: claim resta l’autorità locale per gli scrittori cooperativi.
 
-Per un lavoro trasversale l’ordine ordinario è contratto condiviso → backend e frontend sui file distinti → integrazione → review indipendente → correzione aggregata → controverifica, fino a cinque passaggi cumulativi e arresto al verde → collaudo e gate pertinenti. Il QA può preparare i criteri durante l’implementazione; la review della candidata attende il congelamento. I riepiloghi comuni restano all’integratore. Per un lavoro piccolo non si creano artificialmente tutti questi ruoli.
+Per un lavoro trasversale si concorda il contratto, poi backend e frontend avanzano sui file distinti fino al candidato integrato e alla review pertinente. Per le tecniche segue pubblicazione riservata nella Staff Test Room → collaudo sul sito → correzioni verificate sul sito → apertura all'utenza al successo. Per gli altri lavori rimane il ciclo di review/aggregate/controverifiche, fino a cinque passaggi cumulativi, e i gate pertinenti. Il QA può preparare i criteri durante l’implementazione; la review della candidata attende il congelamento. I riepiloghi comuni restano all’integratore. Per un lavoro piccolo non si creano artificialmente tutti questi ruoli.
 
 Quando termina un incarico, il PM legge esito, prove e contratto consegnato, poi riesegue l’analisi del piano. Le dipendenze pronte vengono registrate soltanto ora, contro i file effettivamente prodotti. Se uno specialista si blocca, i rami indipendenti continuano; il PM registra il blocco e non usa una consegna rossa come prerequisito valido. I gruppi suggeriti sono una scelta pratica, non una promessa matematica del tempo minimo assoluto.
 
@@ -58,10 +94,10 @@ Si dichiarano **file esatti**, anche quelli nuovi; i contratti stabili entrano i
 - `browser:chrome`, `browser:safari`, `browser:iab` per le rispettive superfici condivise;
 - `github:main` per il deposito su main;
 - `db:produzione` per una mutazione nominativamente autorizzata;
-- `staff:room` per una prova nella Staff; `utenti:test-room` per quella utenti;
+- `staff:room` per coordinare le sole esecuzioni degli assistenti nella Staff Test Room; la prenotazione non limita l’uso manuale di Antonello e l’assistente lascia libera la stanza quando richiesta;
 - `schema:contratto:<nome>` per modificare un contratto esterno non rappresentato da un file condiviso.
 
-Le letture ordinarie non richiedono un'esclusiva del DB. Il browser, invece, può condividere selezione e stato: due esecutori non lo manovrano insieme. Gli ambienti Docker distinti hanno nomi di risorsa distinti; due banchi sullo stesso database locale condividono una risorsa.
+Le letture ordinarie non richiedono un'esclusiva del DB. Il browser, invece, può condividere selezione e stato: due esecutori non lo manovrano insieme. Nessuna risorsa Docker o database locale di prova viene avviata nel nuovo percorso.
 
 La registrazione fotografa le impronte. L'acquisizione è atomica: rifiuta dipendenze non consegnate, file/risorse già occupati, contratti letti mentre un altro li scrive e variazioni rispetto alla baseline. Nessuna scadenza riassegna da sola una prenotazione: prima si verifica il vecchio owner.
 
@@ -101,15 +137,31 @@ Le directory di destinazione devono già esistere e gli input devono essere disp
 
 ## 4. Dal candidato alla prova
 
-Il percorso completo è: esigenza del giocatore → contratto → backend / UI / narrazione pertinenti → candidato integrato → review → collaudo → gate di rilascio → riscontro reale → consegna. Non si chiude un requisito perché è pronta soltanto la sua metà frontend o backend.
+Il percorso delle tecniche, ratificato da Antonello il 10/09/2026, è: esigenza e contratto → codice, UI e narrazione integrati → controlli statici e review pertinente → pubblicazione riservata nella Staff Test Room → collaudo sul sito → correzioni dei difetti osservati → apertura all'utenza appena il collaudo è positivo → consegna. Non si chiude un requisito perché è pronta soltanto la sua metà frontend o backend.
 
-Si fissano prima casi, tempo, chiamate e token della campagna; i valori del modello JSON sono un esempio, non un budget di produzione. Il registro conserva minuti/casi/chiamate dichiarati; non misura né interrompe automaticamente processi o fatturazione. Owner e PM tengono il consumo reale nelle evidenze del cantiere, inclusi token quando pertinenti. A limite raggiunto si consegna quanto raccolto, senza espandere il banco.
+Il PM assegna la versione e le operazioni di rilascio entro il mandato già dato, senza chiedere nuove conferme di procedura. Prima della pubblicazione riservata verifica baseline pubblicata, pin, composizione dei file condivisi, permessi e recovery conservativa. La Test Room riusa la simulazione esistente, che non sottrae risorse ai PG: non si costruiscono banchi locali, ambienti fittizi o un nuovo sistema protettivo come prerequisito, né si ripete una qualifica locale per provarla. Il gate iniziale deve limitare realmente l'accesso al perimetro di prova; `is_test` non dimostra da solo l'isolamento.
 
-Per ogni candidata: un passaggio indipendente iniziale, fino a cinque correzioni aggregate e cinque controverifiche, contando i passaggi già eseguiti. Il rosso intermedio consente il seguito autonomo nel mandato e nel limite; il verde termina il ciclo, il quinto rosso torna al PM. Matrice completa e budget fissato prima di ciascuna campagna; niente micro-patch, nuovi esempi esplorativi, rinomine o riprese che azzerino il conteggio. Errori del banco e difetti del prodotto restano distinti; le evidenze precedenti sono conservate. Regola canonica in AGENTS.md §Budget di revisione vincolante, ratificata il09/09 da Antonello.
+Per ogni sessione di collaudo eseguita dall’assistente fissare scope, casi necessari, chiamate, token e tempo. L’uso manuale di Antonello segue la decisione del 21/10/2026: nessuna prenotazione, checklist o finestra da rinnovare; restano i limiti automatici del sistema. Le prove delle funzioni ordinarie includono il percorso con e senza Master e le interazioni realmente previste; non si restringe globalmente la qualifica alla sola 1vs1 né si nasconde un errore escludendo il supervisore. Si collauda con i normali accessi e comandi del sito, senza impersonazione SQL, mutazioni delle risorse reali o provider illimitati. Raggiunto il budget si conservano esiti e stato; un rischio concreto per dati o sicurezza ferma la prova interessata.
 
-Per sviluppo DB vale Docker/PostgreSQL reale e la valutazione dei rischi d'integrazione di AGENTS. Per il solo collaudo di funzioni già pubblicate si usa direttamente il percorso protetto autorizzato. Autorizzazione a una prova non autorizza rilascio, enable o apertura generale. Un contesto di test non protegge automaticamente risorse reali: verificare isolamento e postflight, conservare storico e chiudere soltanto la prova propria salvo mandato contrario.
+Le correzioni delle tecniche partono dai difetti reali osservati sul sito. Si verifica il percorso corretto e le sole regressioni pertinenti, terminando al successo; nessun obbligo di rifare matrici locali complete o fermarsi sui contatori 5+5 dei vecchi banchi. Evidenze e conteggi precedenti restano conservati. Il mandato del 10/09 autorizza l'apertura all'utenza al collaudo positivo nel perimetro concordato; un nuovo scope effettivo richiede una decisione, non un'altra conferma della stessa procedura.
+
+Per le candidate fuori da questo flusso restano la review indipendente iniziale, fino a cinque correzioni aggregate e cinque controverifiche cumulative, la matrice e i budget dei rispettivi incarichi. Non si azzerano i conteggi con rinomine o riprese. Anche per sviluppo DB ed Esame il collaudo funzionale si svolge soltanto nella Staff; controlli statici, review, valutazione dei rischi e autorizzazioni restano quelli di AGENTS. Nessun Docker, PostgreSQL locale o branch QA.
+
+Per le funzioni già pubblicate il collaudo protetto autorizzato è diretto. Conservare storico e postflight; chiudere soltanto la prova propria, salvo mandato di mantenerla aperta. Un difetto concreto di isolamento o installazione va corretto senza aggirare la guardia e senza presumere che ripristinare dopo equivalga a proteggere prima.
 
 UI: verificare l'intero gesto dell'utente, esito visibile, persistenza/errore e superficie prevista; conservare screenshot pertinenti. Backend: ricevute, autorità e invarianti. Narrazione: i fatti derivano dal server, il testo non inventa esiti né parla al posto del PG. Il Fato deve far capire la scena in italiano naturale; meccanismi e dati tecnici rimangono nelle evidenze interne.
+
+### Integrazione della scena e compatibilità
+
+Per Combat/Regia/PNG applicare AGENTS §Integrazione permanente. Prima di modificare uno schema, elencare tutti i consumer interessati, la loro versione e il delta da comporre; verificare anche i validatori stretti e le copie dei moduli comuni. Congelare un manifest della versione effettivamente integrata e provare il ciclo della scena, non solo i componenti separati. Fato unico, barriera prima delle azioni, stato persistente e recupero idempotente sono criteri osservabili. Le prove già verdi si riusano soltanto se il delta non ne cambia il contratto.
+
+### Riutilizzare le prove dei componenti comuni
+
+Precisazione di Antonello del 10/09/2026: un nuovo clan non richiede di ripetere l’intera campagna di un componente comune già qualificato. L’owner identifica versione e contratto effettivamente riusati, conserva il riferimento alle prove e verifica che il ramo interessato sia coperto. Per il singolo clan esegue soltanto un breve controllo del collegamento, dei parametri e dei costi propri, oltre ai casi delle capacità nuove. Attivare o disattivare l’Innata per preparare una scena è un passaggio della fixture, non una nuova campagna di qualifica del motore.
+
+Se cambia il componente condiviso, la verifica riguarda il delta e le regressioni pertinenti sui percorsi interessati; dopo il verde quella qualifica si riusa per i consumer successivi. Le prove Sabaku non certificano automaticamente una generalizzazione Common ancora da implementare. Non ripetere bootstrap, installazioni, recovery o matrici verdi senza un cambiamento o un rischio concreto da verificare. Per le tecniche si riusano le evidenze già raccolte e si verifica il collegamento sul sito, senza ricostruire il banco del componente. Restano distinti sorgente pronta, configurazione del clan e funzionamento osservato nella Staff Test Room: nessuna etichetta di riuso sostituisce una copertura mancante.
+
+Precisazione Antonello10/09: Esame escluso dalle matrici e dai confronti di collaudo delle tecniche di clan, poiché ammette soltanto Moltiplicazione e Sostituzione. Non aggiungere casi Esame né usarne la qualifica come prerequisito dei clan. Le modifiche già presenti nei file/funzioni condivisi vanno conservate nella composizione; questo controllo contro sovrascritture non comporta una nuova campagna Esame. Per ogni tecnica si verificano funzione propria, collegamenti effettivi e interazioni previste; nessun confronto combinatorio con tutte le meccaniche del gioco.
 
 ## 5. Consegna, arresto e ripresa
 
