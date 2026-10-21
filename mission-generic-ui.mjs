@@ -302,6 +302,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return x;
  }
  const openingClaimResumePrior13=Object.freeze({"binding_sha256":"d05519cf9ff8fbf845bee6b89006630d4be75661e5846b0d929fe9f1b0c49fb6","contract_release_sha256":"dc602c9eb3e8b6329b0576060f31231c0e942636f2266503c6fffe2a8ec50787","contract_sha256":"11ec71bca76e3be8e9365e435e104a23863b3454b8b98aeb4f62657e21e51533","dispatch_receipt_id":"c9f60059-c2d5-491c-84eb-2a2add3f8431","eligible_to_request":true,"event_id":"7d34505e-35ce-435d-bcef-35532019da7b","expected_revision":1,"master_session_id":"101e5e0a-539d-4173-9b09-ee39003db6a6","payload_sha256":"a8d3b553ed31fdd8b1336fc2e334a23741ce30ff581f4e1aaa45914504a29a8e","previous_lease_id":"b55f8363-6bfd-4907-9059-941eacb7a3b4","proof_sha256":"576dde02b991beaf267eb67526f76dd32c31d631a4fbce1b5f5d0d8c06288579","release_sha256":"6ffb544f8a673da0c13abf815e65910877c3e57ef38a3cf0fcc5d7c199d9c2ac","request_key":"44f24162-a83d-4bbe-ab75-3071f42ce262","resume_audit_id":"23","schema_version":"mission-opening-claim-resume/1","source_qualification_sha256":"050a73ac8536035124c9b8ea53a58f984eb6aef8d7dcf7ac89d57b52f36af935","work_id":"ba93bb63-3d57-4da4-b3d6-3401101ab6af"});
+ const openingClaimResumePrior15=Object.freeze({"binding_sha256":"d05519cf9ff8fbf845bee6b89006630d4be75661e5846b0d929fe9f1b0c49fb6","contract_release_sha256":"dc602c9eb3e8b6329b0576060f31231c0e942636f2266503c6fffe2a8ec50787","contract_sha256":"11ec71bca76e3be8e9365e435e104a23863b3454b8b98aeb4f62657e21e51533","dispatch_receipt_id":"c9f60059-c2d5-491c-84eb-2a2add3f8431","eligible_to_request":true,"event_id":"7d34505e-35ce-435d-bcef-35532019da7b","expected_revision":1,"master_session_id":"101e5e0a-539d-4173-9b09-ee39003db6a6","payload_sha256":"a8d3b553ed31fdd8b1336fc2e334a23741ce30ff581f4e1aaa45914504a29a8e","previous_lease_id":"b55f8363-6bfd-4907-9059-941eacb7a3b4","proof_sha256":"4c0e08b891f6f8ca24ed2bb9b794d243518faf0538d722fae8d6e37c48c3115f","release_sha256":"fedcaa039d34a69c39d9b07196e90496eb046fd0228102c1d88d2b5cd6a3b6ee","request_key":"44f24162-a83d-4bbe-ab75-3071f42ce262","resume_audit_id":"23","schema_version":"mission-opening-claim-resume/1","source_qualification_sha256":"050a73ac8536035124c9b8ea53a58f984eb6aef8d7dcf7ac89d57b52f36af935","work_id":"ba93bb63-3d57-4da4-b3d6-3401101ab6af"});
  const openingClaimResumeTuple=x=>JSON.stringify(openingClaimResumeKeys.map(k=>x[k]));
  function openingClaimResumeAllowed(state,t){return !!(openingClaimResumeProjection(state)&&isStaff()&&t.loc?.id===STAFF_TEST_ROOM
   &&t.loc.is_test===true&&state.review_required!==true&&!hasCountProjection(state)&&!abortBlocked(state.session_id));}
@@ -726,7 +727,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function openingResumeRecorded(state,user){
   try{const q=processingFor(state).value?.request;if(!sameChainRequest(q,q))return true;
    const j=readJournal(journalPrefix(user,state.session_id)+selectorKey(selectorFor(q)),user,state.session_id);
-   return ['mission-async-journal/2','mission-async-journal/3','mission-async-journal/4'].includes(j?.schema_version)||j?.done===true;
+   return ['mission-async-journal/2','mission-async-journal/3','mission-async-journal/4','mission-async-journal/5'].includes(j?.schema_version)||j?.done===true;
   }catch{return true;}
  }
  async function staffResumeOpening(host){
@@ -778,9 +779,17 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&r.session===p.master_session_id&&q?.master_session_id===p.master_session_id
    &&q?.event_id===p.event_id&&q?.request_key===p.request_key&&q?.expected_revision===p.expected_revision;
  }
+ function openingClaimResumePriorJournal15(j){
+  const p=openingClaimResumePrior15,r=j?.recovery,q=r?.selector?.request;
+  return j?.schema_version==='mission-async-journal/4'&&r?.done===false&&r.selector.kind==='request'
+   &&r.proof_sha256===p.proof_sha256&&r.release_sha256===p.release_sha256
+   &&r.previous_lease_id===p.previous_lease_id&&r.dispatch_receipt_id===p.dispatch_receipt_id&&r.contract_sha256===p.contract_sha256
+   &&r.session===p.master_session_id&&q?.master_session_id===p.master_session_id
+   &&q?.event_id===p.event_id&&q?.request_key===p.request_key&&q?.expected_revision===p.expected_revision;
+ }
  function openingClaimResumeRepairEligible(original,proof){
-  const p=openingClaimResumePrior13;
-  return openingClaimResumePriorJournal13(original)&&!!proof
+  const p=openingClaimResumePrior15;
+  return openingClaimResumePriorJournal15(original)&&!!proof
    &&proof.release_sha256!==p.release_sha256&&proof.proof_sha256!==p.proof_sha256
    &&openingClaimResumeKeys.filter(k=>k!=='release_sha256'&&k!=='proof_sha256').every(k=>proof[k]===p[k]);
  }
@@ -810,9 +819,9 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     roomState=fresh;roomError='';
     const original=readJournal(key,t.user,token.session);
     if(!openingClaimResumeRepairEligible(original,current))throw Error('opening_claim_resume_prior_mismatch');
-    // Preserve the complete validated journal/3 without mutating its original phase or history.
-    // Only this explicit click can record journal/4; restore and timers only observe it.
-    const document={schema_version:'mission-async-journal/4',original,recovery:{user:t.user,session:token.session,selector,
+    // Preserve the complete validated journal/4, including its unchanged journal/3 history.
+    // Only this explicit click can record journal/5; restore and timers only observe it.
+    const document={schema_version:'mission-async-journal/5',original,recovery:{user:t.user,session:token.session,selector,
      proof_sha256:proof.proof_sha256,release_sha256:proof.release_sha256,previous_lease_id:proof.previous_lease_id,dispatch_receipt_id:proof.dispatch_receipt_id,contract_sha256:proof.contract_sha256,started:Date.now(),reads:0,lastRead:0,done:false}};
     saveJournal(key,document);attachJournal(document,key,true);
     const record=asyncWorks.get('journal:'+key);parent=record.parent;
@@ -1004,7 +1013,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(nativeExact(body,['schema_version','master_session_id','source_revision'])&&body.schema_version==='mission-generic-staff-tick/1'&&UUID.test(body.master_session_id||'')&&SHA.test(body.source_revision||''))return {kind:'staff_tick',source_revision:body.source_revision};
   return null;
  }
- const journalPhase=j=>['mission-async-journal/3','mission-async-journal/4'].includes(j?.schema_version)?j.recovery:j?.schema_version==='mission-async-journal/2'?j.resume:j;
+ const journalPhase=j=>['mission-async-journal/3','mission-async-journal/4','mission-async-journal/5'].includes(j?.schema_version)?j.recovery:j?.schema_version==='mission-async-journal/2'?j.resume:j;
  function journalPhaseValid(j,key,user,session,fields){
   const s=j?.selector;
   const selectorValid=nativeExact(s,['kind','source_revision'])&&s.kind==='staff_tick'&&SHA.test(s.source_revision||'')
@@ -1031,14 +1040,28 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
 
    return true;
   };
-  if(j?.schema_version==='mission-async-journal/4'){
+  const journal4Valid=j=>{
+   if(j?.schema_version!=='mission-async-journal/4')return false;
    const r=j.recovery,p=openingClaimResumePrior13;
    if(!nativeExact(j,['schema_version','original','recovery'])||!journal3Valid(j.original)||!openingClaimResumePriorJournal13(j.original)
     ||!journalPhaseValid(r,key,user,session,['user','session','selector','proof_sha256','release_sha256','previous_lease_id','dispatch_receipt_id','contract_sha256','started','reads','lastRead','done'])
     ||r.selector.kind!=='request'||!sameChainRequest(r.selector.request,j.original.recovery.selector.request)
     ||!['proof_sha256','release_sha256','contract_sha256'].every(k=>typeof r[k]==='string'&&SHA.test(r[k]))
     ||r.proof_sha256===p.proof_sha256||r.release_sha256===p.release_sha256
+    ||r.previous_lease_id!==p.previous_lease_id||r.dispatch_receipt_id!==p.dispatch_receipt_id||r.contract_sha256!==p.contract_sha256)return false;
+
+   return true;
+  };
+  if(j?.schema_version==='mission-async-journal/5'){
+   const r=j.recovery,p=openingClaimResumePrior15;
+   if(!nativeExact(j,['schema_version','original','recovery'])||!journal4Valid(j.original)||!openingClaimResumePriorJournal15(j.original)
+    ||!journalPhaseValid(r,key,user,session,['user','session','selector','proof_sha256','release_sha256','previous_lease_id','dispatch_receipt_id','contract_sha256','started','reads','lastRead','done'])
+    ||r.selector.kind!=='request'||!sameChainRequest(r.selector.request,j.original.recovery.selector.request)
+    ||!['proof_sha256','release_sha256','contract_sha256'].every(k=>typeof r[k]==='string'&&SHA.test(r[k]))
+    ||r.proof_sha256===p.proof_sha256||r.release_sha256===p.release_sha256
     ||r.previous_lease_id!==p.previous_lease_id||r.dispatch_receipt_id!==p.dispatch_receipt_id||r.contract_sha256!==p.contract_sha256)throw Error('async_journal_invalid');
+  }else if(j?.schema_version==='mission-async-journal/4'){
+   if(!journal4Valid(j))throw Error('async_journal_invalid');
   }else if(j?.schema_version==='mission-async-journal/3'){
    if(!journal3Valid(j))throw Error('async_journal_invalid');
   }else if(j?.schema_version==='mission-async-journal/2'){
