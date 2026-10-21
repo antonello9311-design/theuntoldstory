@@ -301,6 +301,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    ||x.request_key!==q.request_key||x.expected_revision!==q.expected_revision)return null;
   return x;
  }
+ const openingClaimResumePrior13=Object.freeze({"binding_sha256":"d05519cf9ff8fbf845bee6b89006630d4be75661e5846b0d929fe9f1b0c49fb6","contract_release_sha256":"dc602c9eb3e8b6329b0576060f31231c0e942636f2266503c6fffe2a8ec50787","contract_sha256":"11ec71bca76e3be8e9365e435e104a23863b3454b8b98aeb4f62657e21e51533","dispatch_receipt_id":"c9f60059-c2d5-491c-84eb-2a2add3f8431","eligible_to_request":true,"event_id":"7d34505e-35ce-435d-bcef-35532019da7b","expected_revision":1,"master_session_id":"101e5e0a-539d-4173-9b09-ee39003db6a6","payload_sha256":"a8d3b553ed31fdd8b1336fc2e334a23741ce30ff581f4e1aaa45914504a29a8e","previous_lease_id":"b55f8363-6bfd-4907-9059-941eacb7a3b4","proof_sha256":"576dde02b991beaf267eb67526f76dd32c31d631a4fbce1b5f5d0d8c06288579","release_sha256":"6ffb544f8a673da0c13abf815e65910877c3e57ef38a3cf0fcc5d7c199d9c2ac","request_key":"44f24162-a83d-4bbe-ab75-3071f42ce262","resume_audit_id":"23","schema_version":"mission-opening-claim-resume/1","source_qualification_sha256":"050a73ac8536035124c9b8ea53a58f984eb6aef8d7dcf7ac89d57b52f36af935","work_id":"ba93bb63-3d57-4da4-b3d6-3401101ab6af"});
  const openingClaimResumeTuple=x=>JSON.stringify(openingClaimResumeKeys.map(k=>x[k]));
  function openingClaimResumeAllowed(state,t){return !!(openingClaimResumeProjection(state)&&isStaff()&&t.loc?.id===STAFF_TEST_ROOM
   &&t.loc.is_test===true&&state.review_required!==true&&!hasCountProjection(state)&&!abortBlocked(state.session_id));}
@@ -506,7 +507,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(choice?.phase==='rejected')return 'La scelta è stata respinta. Aggiorna lo stato prima di scegliere nuovamente.';
   const parsed=processingFor(state);if(!parsed.valid)return 'Stato di elaborazione non disponibile. Aggiorna; nessun nuovo invio automatico.';
    const p=parsed.value,a=currentAttempt(state);
-   if(hasOpeningClaimResume(state)){if(!openingClaimResumeProjection(state))return 'Ripresa della lavorazione non verificabile. Aggiorna la regia.';if(openingClaimResumeRecorded(state,cacheUser))return 'La ripresa della stessa lavorazione è registrata. La verifica continua senza ripetere l’invio.';return 'Il server consente di riprendere la stessa lavorazione interrotta prima del provider. Usa Riprendi lavorazione.';}
+   if(hasOpeningClaimResume(state)){if(!openingClaimResumeProjection(state))return 'Ripresa della lavorazione non verificabile. Aggiorna la regia.';if(openingClaimResumeRecorded(state,cacheUser))return 'Ripresa non disponibile o già registrata in questo browser. Nessun invio viene ripetuto.';return 'Il server consente di riprendere la stessa lavorazione interrotta prima del provider. Usa Riprendi lavorazione.';}
    if(hasOpeningResume(state)){if(!openingResumeProjection(state))return 'Ripresa dell’apertura non verificabile. Aggiorna la regia; nessun nuovo invio automatico.';if(openingResumeRecorded(state,cacheUser))return 'La ripresa della stessa apertura è già registrata. La verifica continua senza ripetere l’invio.';return 'Il server consente di verificare e riprendere la stessa apertura. Usa Riprendi apertura.';}
    const asyncMessage=asyncNotice(state);if(asyncMessage)return asyncMessage;
    const flow=academyFlow(state),role=roleProgress(state);
@@ -725,7 +726,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function openingResumeRecorded(state,user){
   try{const q=processingFor(state).value?.request;if(!sameChainRequest(q,q))return true;
    const j=readJournal(journalPrefix(user,state.session_id)+selectorKey(selectorFor(q)),user,state.session_id);
-   return ['mission-async-journal/2','mission-async-journal/3'].includes(j?.schema_version)||j?.done===true;
+   return ['mission-async-journal/2','mission-async-journal/3','mission-async-journal/4'].includes(j?.schema_version)||j?.done===true;
   }catch{return true;}
  }
  async function staffResumeOpening(host){
@@ -769,10 +770,24 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   finally{if(parent)parent.inFlight=false;if(staffResumeRead===token)staffResumeRead=null;
    if(roomCurrent(t)){paintRoom(host,roomState);await updateRoom(host,{manual:true,verifyOnly:true});refresh();}}
  }
+ function openingClaimResumePriorJournal13(j){
+  const p=openingClaimResumePrior13,r=j?.recovery,q=r?.selector?.request;
+  return j?.schema_version==='mission-async-journal/3'&&r?.done===false&&r.selector.kind==='request'
+   &&r.proof_sha256===p.proof_sha256&&r.previous_lease_id===p.previous_lease_id
+   &&r.dispatch_receipt_id===p.dispatch_receipt_id&&r.contract_sha256===p.contract_sha256
+   &&r.session===p.master_session_id&&q?.master_session_id===p.master_session_id
+   &&q?.event_id===p.event_id&&q?.request_key===p.request_key&&q?.expected_revision===p.expected_revision;
+ }
+ function openingClaimResumeRepairEligible(original,proof){
+  const p=openingClaimResumePrior13;
+  return openingClaimResumePriorJournal13(original)&&!!proof
+   &&proof.release_sha256!==p.release_sha256&&proof.proof_sha256!==p.proof_sha256
+   &&openingClaimResumeKeys.filter(k=>k!=='release_sha256'&&k!=='proof_sha256').every(k=>proof[k]===p[k]);
+ }
  function openingClaimResumeRecorded(state,user){
   try{const q=processingFor(state).value?.request;if(!sameChainRequest(q,q))return true;
    const j=readJournal(journalPrefix(user,state.session_id)+selectorKey(selectorFor(q)),user,state.session_id);
-   return j?.schema_version==='mission-async-journal/3';
+   return !openingClaimResumeRepairEligible(j,openingClaimResumeProjection(state));
   }catch{return true;}
  }
  async function staffResumeClaimedOpening(host){
@@ -794,11 +809,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
      ||openingClaimResumeTuple(current)!==openingClaimResumeTuple(proof)||!sameChainRequest(processingFor(fresh).value.request,request))throw Error('opening_claim_resume_changed');
     roomState=fresh;roomError='';
     const original=readJournal(key,t.user,token.session);
-    if(original?.schema_version==='mission-async-journal/3')throw Error('opening_claim_resume_already_recorded');
-    // Embed the prior journal/2 (including its journal/1) unchanged. A missing local record remains null.
-    // This phase is created only by this click after fresh server proof, never restore/timer/none.
-    const document={schema_version:'mission-async-journal/3',original,recovery:{user:t.user,session:token.session,selector,
-     proof_sha256:proof.proof_sha256,previous_lease_id:proof.previous_lease_id,dispatch_receipt_id:proof.dispatch_receipt_id,contract_sha256:proof.contract_sha256,started:Date.now(),reads:0,lastRead:0,done:false}};
+    if(!openingClaimResumeRepairEligible(original,current))throw Error('opening_claim_resume_prior_mismatch');
+    // Preserve the complete validated journal/3 without mutating its original phase or history.
+    // Only this explicit click can record journal/4; restore and timers only observe it.
+    const document={schema_version:'mission-async-journal/4',original,recovery:{user:t.user,session:token.session,selector,
+     proof_sha256:proof.proof_sha256,release_sha256:proof.release_sha256,previous_lease_id:proof.previous_lease_id,dispatch_receipt_id:proof.dispatch_receipt_id,contract_sha256:proof.contract_sha256,started:Date.now(),reads:0,lastRead:0,done:false}};
     saveJournal(key,document);attachJournal(document,key,true);
     const record=asyncWorks.get('journal:'+key);parent=record.parent;
     parent.work=proof.work_id;record.work=proof.work_id;parent.inFlight=true;
@@ -989,7 +1004,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(nativeExact(body,['schema_version','master_session_id','source_revision'])&&body.schema_version==='mission-generic-staff-tick/1'&&UUID.test(body.master_session_id||'')&&SHA.test(body.source_revision||''))return {kind:'staff_tick',source_revision:body.source_revision};
   return null;
  }
- const journalPhase=j=>j?.schema_version==='mission-async-journal/3'?j.recovery:j?.schema_version==='mission-async-journal/2'?j.resume:j;
+ const journalPhase=j=>['mission-async-journal/3','mission-async-journal/4'].includes(j?.schema_version)?j.recovery:j?.schema_version==='mission-async-journal/2'?j.resume:j;
  function journalPhaseValid(j,key,user,session,fields){
   const s=j?.selector;
   const selectorValid=nativeExact(s,['kind','source_revision'])&&s.kind==='staff_tick'&&SHA.test(s.source_revision||'')
@@ -1002,7 +1017,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const raw=localStorage.getItem(key);if(raw===null)return null;const j=JSON.parse(raw);
   const legacyFields=['schema_version','user','session','selector','started','reads','lastRead','done'];
   const legacyValid=x=>journalPhaseValid(x,key,user,session,legacyFields)&&x.schema_version===asyncJournalSchema;
-  if(j?.schema_version==='mission-async-journal/3'){
+  const journal3Valid=j=>{
+   if(j?.schema_version!=='mission-async-journal/3')return false;
    const prior=j.original;
    const priorValid=prior===null||legacyValid(prior)||(nativeExact(prior,['schema_version','original','resume'])
     &&prior.schema_version==='mission-async-journal/2'&&(prior.original===null||legacyValid(prior.original))
@@ -1011,7 +1027,20 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(!nativeExact(j,['schema_version','original','recovery'])||!priorValid
     ||!journalPhaseValid(j.recovery,key,user,session,['user','session','selector','proof_sha256','previous_lease_id','dispatch_receipt_id','contract_sha256','started','reads','lastRead','done'])
     ||j.recovery.selector.kind!=='request'||!['proof_sha256','contract_sha256'].every(k=>typeof j.recovery[k]==='string'&&SHA.test(j.recovery[k]))
-    ||!['previous_lease_id','dispatch_receipt_id'].every(k=>typeof j.recovery[k]==='string'&&UUID.test(j.recovery[k])))throw Error('async_journal_invalid');
+    ||!['previous_lease_id','dispatch_receipt_id'].every(k=>typeof j.recovery[k]==='string'&&UUID.test(j.recovery[k])))return false;
+
+   return true;
+  };
+  if(j?.schema_version==='mission-async-journal/4'){
+   const r=j.recovery,p=openingClaimResumePrior13;
+   if(!nativeExact(j,['schema_version','original','recovery'])||!journal3Valid(j.original)||!openingClaimResumePriorJournal13(j.original)
+    ||!journalPhaseValid(r,key,user,session,['user','session','selector','proof_sha256','release_sha256','previous_lease_id','dispatch_receipt_id','contract_sha256','started','reads','lastRead','done'])
+    ||r.selector.kind!=='request'||!sameChainRequest(r.selector.request,j.original.recovery.selector.request)
+    ||!['proof_sha256','release_sha256','contract_sha256'].every(k=>typeof r[k]==='string'&&SHA.test(r[k]))
+    ||r.proof_sha256===p.proof_sha256||r.release_sha256===p.release_sha256
+    ||r.previous_lease_id!==p.previous_lease_id||r.dispatch_receipt_id!==p.dispatch_receipt_id||r.contract_sha256!==p.contract_sha256)throw Error('async_journal_invalid');
+  }else if(j?.schema_version==='mission-async-journal/3'){
+   if(!journal3Valid(j))throw Error('async_journal_invalid');
   }else if(j?.schema_version==='mission-async-journal/2'){
    if(!nativeExact(j,['schema_version','original','resume'])||!(j.original===null||legacyValid(j.original))
     ||!journalPhaseValid(j.resume,key,user,session,['user','session','selector','proof_sha256','started','reads','lastRead','done'])
