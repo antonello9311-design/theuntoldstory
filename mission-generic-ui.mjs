@@ -48,6 +48,152 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!isStaff())return;if(typeof creationEditor!=='function')throw Error('Editor completo della missione non disponibile.');
   return creationEditor(mission,title,requestedRevision);
  }
+ // A Staff start has one persisted request identity until server-confirmed closure.
+ // This journal is separate from narrative journals1..5 and never clears them.
+ const staffStartSchema='mission-staff-start-journal/1';
+ const staffStartKey=(user,location)=>`${staffStartSchema}:${user}:${location}`;
+ const staffStartReceiptKeys=['schema_version','mission_id','master_session_id','start_receipt_id','event_id','context_fingerprint','step','master_control_version','run_control_version','opening_pending','simulation','source_mission_id','replay'];
+ function staffStartReceipt(value,source){
+  if(!nativeExact(value,staffStartReceiptKeys)||value.schema_version!=='mission-generic-start/1'
+   ||!['mission_id','master_session_id','start_receipt_id','event_id','source_mission_id'].every(k=>UUID.test(value[k]||''))
+   ||value.source_mission_id!==source||!SHA.test(value.context_fingerprint||'')||typeof value.step!=='string'||!value.step
+   ||!Number.isSafeInteger(value.master_control_version)||value.master_control_version<1
+   ||!Number.isSafeInteger(value.run_control_version)||value.run_control_version<1
+   ||value.opening_pending!==true||value.simulation!==true||typeof value.replay!=='boolean')throw Error('Ricevuta di avvio non riconosciuta. La richiesta resta conservata.');
+  return value;
+ }
+ function staffStartTerminal(value,session){
+  if(!nativeExact(value,['schema','master_session_id','status','can_abort','reason_code','master_control_version','run_control_version','receipt'])
+   ||value.schema!=='staff-simulation-abort-state/1'||value.master_session_id!==session
+   ||!['active','terminal','annullata'].includes(value.status)||typeof value.can_abort!=='boolean'
+   ||!(value.reason_code===null||typeof value.reason_code==='string'))throw Error('Stato della prova non riconosciuto.');
+  if(value.status==='annullata'){
+   if(value.can_abort!==false||value.receipt?.status!=='annullata'||value.receipt.master_session_id!==session
+    ||!UUID.test(value.receipt.request_key||''))throw Error('Chiusura della prova non confermata.');
+   return true;
+  }
+  if(value.receipt!==null||!Number.isSafeInteger(value.master_control_version)||value.master_control_version<1
+   ||!Number.isSafeInteger(value.run_control_version)||value.run_control_version<1
+   ||value.status==='terminal'&&value.can_abort!==false)throw Error('Stato della prova non riconosciuto.');
+  return value.status==='terminal';
+ }
+ function staffStartResolution(value,attempt){
+  if(!nativeExact(value,['schema_version','request_key','request_fingerprint','state','master_session_id','result'])
+   ||value.schema_version!=='mission-staff-start-resolution/1'||value.request_key!==attempt.request_key
+   ||!SHA.test(value.request_fingerprint||'')||!['committed','rejected_no_commit'].includes(value.state))throw Error('Esito dell’avvio non riconosciuto. La richiesta resta conservata.');
+  if(value.state==='rejected_no_commit'){
+   if(value.master_session_id!==null||value.result!==null||attempt.receipt!==null)throw Error('Esito dell’avvio incoerente.');
+  }else{
+   staffStartReceipt(value.result,attempt.source_mission_id);
+   if(value.master_session_id!==value.result.master_session_id||attempt.receipt&&staffStartReceiptKeys.some(k=>k!=='replay'&&attempt.receipt[k]!==value.result[k]))throw Error('Sessione dell’avvio incoerente.');
+  }
+  return value;
+ }
+ function readStaffStart(user,location){
+  let value;try{const raw=localStorage.getItem(staffStartKey(user,location));value=raw?JSON.parse(raw):{schema_version:staffStartSchema,user,location,attempts:[]};}
+  catch{throw Error('Recupero locale dell’avvio non disponibile. Nessuna nuova richiesta inviata.');}
+  if(!nativeExact(value,['schema_version','user','location','attempts'])||value.schema_version!==staffStartSchema
+   ||value.user!==user||value.location!==location||!Array.isArray(value.attempts))throw Error('Richiesta di avvio conservata non riconosciuta.');
+  const seen=new Set();
+  for(let i=0;i<value.attempts.length;i++){
+   const a=value.attempts[i];
+   if(!nativeExact(a,['source_mission_id','roster','request_key','receipt','terminal','resolution'])||!UUID.test(a.source_mission_id||'')
+    ||!UUID.test(a.request_key||'')||seen.has(a.request_key)||!Array.isArray(a.roster)||a.roster.length<1||a.roster.length>4
+    ||a.roster.some(x=>!UUID.test(x||''))||new Set(a.roster).size!==a.roster.length
+    ||JSON.stringify(a.roster)!==JSON.stringify([...a.roster].sort()))throw Error('Richiesta di avvio conservata non riconosciuta.');
+   seen.add(a.request_key);if(a.receipt!==null)staffStartReceipt(a.receipt,a.source_mission_id);
+   if(a.resolution!==null)staffStartResolution(a.resolution,a);
+   if(a.terminal!==null&&(!a.receipt||!staffStartTerminal(a.terminal,a.receipt.master_session_id)))throw Error('Chiusura conservata non riconosciuta.');
+   if(i<value.attempts.length-1&&a.terminal===null&&a.resolution?.state!=='rejected_no_commit')throw Error('Avvio precedente ancora da completare.');
+  }
+  return value;
+ }
+ function writeStaffStart(value){
+  const key=staffStartKey(value.user,value.location),text=JSON.stringify(value);localStorage.setItem(key,text);
+  if(localStorage.getItem(key)!==text)throw Error('Impossibile conservare la richiesta di avvio. Nessun nuovo invio.');
+ }
+ async function staffStartLock(user,location,fn){
+  if(typeof navigator.locks?.request!=='function')throw Error('Il browser non consente di conservare un avvio unico tra le schede.');
+  return navigator.locks.request(staffStartKey(user,location),{mode:'exclusive'},fn);
+ }
+ async function mountStaffStart(area,status,d,mission,user,loc){
+  const same=()=>d.isConnected&&box.isConnected&&valid(user)&&isStaff()&&currentLocation()?.id===loc.id&&currentLocation()?.is_test===true;
+  const box=el('section',null),row=el('fieldset',null),actions=el('div',null),abortHost=el('div',null);
+  box.append(el('h4','Scegli i presenti e prova'),row,actions,abortHost);area.append(box);
+  const picks=new Set();let journal,run=null,busy=false,abortController=null;
+  const dispose=()=>{abortController?.dispose();abortController=null;};d.addEventListener('close',dispose,{once:true});
+  const latest=j=>{const a=j.attempts.at(-1);return a?.terminal===null&&a.resolution?.state!=='rejected_no_commit'?a:null;};
+  const start=button('Avvia prova',()=>void send());
+  const change=button('Cambia selezione',()=>void resolveStart());
+  const open=button('Apri prova',()=>{if(same()&&run?.receipt){refresh();d.close();}});
+  actions.append(start,change,open);
+  function sync(){
+   row.disabled=busy||!!run;
+   start.textContent=run?'Riprendi lo stesso avvio':'Avvia prova';
+   start.disabled=busy||!!run?.receipt||(!run&&(picks.size<1||picks.size>4));change.hidden=!run||!!run.receipt;change.disabled=busy;open.hidden=!run?.receipt;open.disabled=busy;
+  }
+  async function readPrevious(){
+   await staffStartLock(user,loc.id,async()=>{
+    if(!same())return;journal=readStaffStart(user,loc.id);run=latest(journal);
+    if(run?.receipt){
+     const state=await rpc('mission_staff_simulation_abort_state_v1',{p_session:run.receipt.master_session_id},user);if(!same())return;
+     if(staffStartTerminal(state,run.receipt.master_session_id)){run.terminal=clone(state);writeStaffStart(journal);run=null;}
+    }
+   });
+  }
+  async function showRun(){
+   dispose();abortHost.replaceChildren();if(!same())return;
+   if(run?.receipt){
+    status.textContent='Prova aperta nella stanza. Puoi giocare oppure terminarla conservando lo storico.';
+    abortHost.append(el('h4','Termina prova'));
+    abortController=createStaffAbortController({client,identity,isCurrent:same,onCommitted:async r=>{
+     if(!same()||r.master_session_id!==run?.receipt?.master_session_id)return;
+     try{await readPrevious();if(same()){if(!run){picks.clear();row.querySelectorAll('input').forEach(n=>n.checked=false);}sync();await showRun();refresh();}}catch(e){if(same())status.textContent=e.message;}
+    }});
+    await abortController.mount(abortHost,run.receipt.master_session_id);
+   }else status.textContent=run?(run.source_mission_id===mission?'Avvio in attesa di conferma.':'C’è un avvio in attesa per un’altra missione nella stanza.')+' Puoi riprenderlo o cambiare selezione; il server conserva l’esito della richiesta precedente.':'Scegli da 1 a 4 personaggi presenti e avvia la prova.';
+  }
+  async function resolveStart(){
+   if(!same()||busy||!run||run.receipt)return;busy=true;sync();
+   try{
+    await staffStartLock(user,loc.id,async()=>{
+     if(!same())return;journal=readStaffStart(user,loc.id);run=latest(journal);if(!run||run.receipt)return;
+     const resolution=await rpc('mission_generic_staff_start_resolve_v1',{p_source_mission:run.source_mission_id,p_location:loc.id,p_roster:[...run.roster],p_request:run.request_key},user);
+     staffStartResolution(resolution,run);run.resolution=clone(resolution);
+     if(resolution.state==='committed')run.receipt=clone(resolution.result);
+     writeStaffStart(journal);run=latest(journal);
+    });
+    if(same()){if(!run){picks.clear();row.querySelectorAll('input').forEach(n=>n.checked=false);}sync();await showRun();}
+   }catch(e){if(same())status.textContent='La selezione precedente resta conservata. '+e.message;}
+   finally{busy=false;if(same())sync();}
+  }
+  async function send(){
+   if(!same()||busy)return;busy=true;sync();
+   try{
+    await staffStartLock(user,loc.id,async()=>{
+     if(!same())return;journal=readStaffStart(user,loc.id);run=latest(journal);
+     if(run?.receipt)return;
+     if(!run){
+      const roster=[...picks].sort();if(roster.length<1||roster.length>4)return;
+      run={source_mission_id:mission,roster,request_key:id(),receipt:null,terminal:null,resolution:null};journal.attempts.push(run);writeStaffStart(journal);
+     }
+     // Persisted tuple and request are the only input to the mutating RPC.
+     const result=await rpc('mission_generic_staff_test_start_v1',{p_source_mission:run.source_mission_id,p_location:loc.id,p_roster:[...run.roster],p_request:run.request_key},user);
+     staffStartReceipt(result,run.source_mission_id);run.receipt=clone(result);writeStaffStart(journal);
+    });
+    if(same()){sync();await showRun();refresh();}
+   }catch(e){if(same())status.textContent='Avvio non confermato. La stessa richiesta è conservata. '+e.message;}
+   finally{busy=false;if(same()){try{journal=readStaffStart(user,loc.id);run=latest(journal);sync();}catch(e){start.disabled=true;row.disabled=true;status.textContent=e.message;}}}
+  }
+  try{
+   await readPrevious();if(!same())return;
+   const roster=await presentCharacters();if(!same())return;
+   for(const c of roster){if(!UUID.test(c.id||''))continue;const label=el('label',c.name,{class:'mg-inline-check'}),check=el('input',null,{type:'checkbox'});
+    check.checked=!!run?.roster.includes(c.id);check.addEventListener('change',()=>{if(run||busy)return;if(check.checked)picks.add(c.id);else picks.delete(c.id);sync();});label.prepend(check);row.append(label);}
+   if(!roster.length)row.textContent='Nessun personaggio presente nella stanza.';
+   sync();await showRun();
+  }catch(e){if(same()){start.disabled=true;status.textContent=e.message;}}
+ }
  async function board(mission,title){
   if(isStaff()&&typeof creationBoard==='function'&&await creationBoard(mission,title))return;
   const user=identity(),d=dialog('Missione IA · '+title),status=el('p','Caricamento…',{role:'status'}),area=el('div',null);d.append(status,area);
@@ -65,7 +211,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(isStaff()){
     const loc=currentLocation();
     if(loc&&!loc.is_test&&!state?.master_session_id)area.append(button('Apri iscrizioni in questa stanza',async e=>{e.currentTarget.disabled=true;try{await rpc('mission_generic_board_open_v1',{p_mission:mission,p_location:loc.id,p_request:id()},user);await load();}catch(err){status.textContent=err.message;}}));
-    if(loc?.is_test){const details=el('details',null);details.append(el('summary','Prova protetta dello staff in questa stanza'));const picks=new Set(),row=el('div',null);
+    if(loc?.is_test&&loc.id===STAFF_TEST_ROOM)await mountStaffStart(area,status,d,mission,user,loc);
+    else if(loc?.is_test){const details=el('details',null);details.append(el('summary','Prova protetta dello staff in questa stanza'));const picks=new Set(),row=el('div',null);
      details.append(row);area.append(details);const start=button('Avvia prova protetta',async e=>{if(!picks.size)return;e.currentTarget.disabled=true;try{
        await rpc('mission_generic_staff_test_start_v1',{p_source_mission:mission,p_location:loc.id,p_roster:[...picks],p_request:id()},user);
        status.textContent='Prova creata. La regia prepara l’apertura nella chat.';refresh();d.close();
