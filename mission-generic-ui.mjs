@@ -740,14 +740,15 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&(role?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,state.session_id,claim.work_id)));
   const uncertainRecovery=claim?.state==='uncertain'&&(!role||role.reason==='uncertain'||academyFlow(state)==='combat_started');
   const claimedRecovery=processing.valid&&staffClaimReconciliationAllowed(state,{loc:currentLocation(),user:cacheUser},claim);
+  const countedRecovery=countedResumeAllowed(state,{loc:currentLocation(),user:cacheUser});
   let resume=host.querySelector('[data-mg-claim-resume]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&processing.valid
    &&!hasOpeningResume(state)&&!hasOpeningClaimResume(state)&&!countReserved&&(claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
-   if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(p?.state==='claimed')void staffReconcileClaimed(host);else if(p?.state==='ready'&&(r?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,s.session_id,p.work_id))))void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
+   if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(countedResumeAllowed(s,{loc:currentLocation(),user:cacheUser}))void staffResumeCounted(host);else if(p?.state==='claimed')void staffReconcileClaimed(host);else if(p?.state==='ready'&&(r?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,s.session_id,p.work_id))))void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
    resume.textContent=claimedRecovery?'Verifica la stessa ricevuta':readyRecovery?'Verifica e riprendi la stessa richiesta':'Verifica o riprendi la stessa richiesta';
-   const suffix=claimedRecovery?':reconcile-claimed':readyRecovery?':reclaim-ready':':reclaim';
+   const suffix=countedRecovery?':counted-resume':claimedRecovery?':reconcile-claimed':readyRecovery?':reclaim-ready':':reclaim';
    const key=JSON.stringify([cacheUser,state.session_id,'work:'+claim.work_id+':'+claim.revision+suffix]);
-   resume.disabled=!!roomError||!!staffResumeRead||liveAttempt(state)||attempts.has(key)||abortBlocked(state.session_id);
+   resume.disabled=!!roomError||!!staffResumeRead||liveAttempt(state)||attempts.has(key)||abortBlocked(state.session_id)||(countedRecovery&&countedResumeRecorded(cacheUser,state,claim));
   }else if(resume)resume.remove();
   let roleRecovery=host.querySelector('[data-mg-role-recovery]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test
@@ -835,6 +836,103 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }catch{
    if(roomCurrent(t)&&staffChoiceRecovery===token){roomError='Lavorazione non recuperata automaticamente. La role e l’esito IA restano conservati; lo Staff deve verificare il work prima di nuove azioni.';paintRoom(host,roomState);}
   }finally{if(staffChoiceRecovery===token){staffChoiceRecovery=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
+ }
+ // This is the existing explicit resume button, not an automatic observer retry.
+ function countedResumeAllowed(state,t){
+  const p=processingFor(state),driver=driverFor(state);
+  return !!(isStaff()&&t?.loc?.id===STAFF_TEST_ROOM&&t.loc.is_test===true
+   &&state?.can_tick===true&&state.review_required!==true&&p.valid&&p.value?.state==='uncertain'
+   &&p.value.finalized_at===null&&sameChainRequest(p.value.request,p.value.request)
+   &&driver.optedIn&&driver.valid&&!hasCountProjection(state)
+   &&!hasOpeningResume(state)&&!hasOpeningClaimResume(state)&&!abortBlocked(state.session_id));
+ }
+ const countedResumeKey=(user,state,work)=>`mission-counted-resume/1:${user}:${state.session_id}:${work.work_id}:${work.revision}`;
+ function countedResumeRecorded(user,state,work){
+  try{return localStorage.getItem(countedResumeKey(user,state,work))!==null;}catch{return true;}
+ }
+ function readCountedMarker(key,user,session){
+  const raw=localStorage.getItem(key);if(raw===null)return null;const m=JSON.parse(raw);
+  if(!nativeExact(m,['schema_version','user','session','work_id','request','started','reads','lastRead','done','original_journal_key','original_journal_raw'])
+   ||m.schema_version!=='mission-counted-resume-journal/1'||m.user!==user||m.session!==session||!UUID.test(m.work_id||'')
+   ||!sameChainRequest(m.request,m.request)||m.request.master_session_id!==session
+   ||key!==countedResumeKey(user,{session_id:session},{work_id:m.work_id,revision:m.request.expected_revision})
+   ||!Number.isSafeInteger(m.started)||m.started<=0||!Number.isSafeInteger(m.reads)||m.reads<0||m.reads>asyncBudget.maxReads
+   ||!Number.isSafeInteger(m.lastRead)||m.lastRead<0||typeof m.done!=='boolean'
+   ||m.original_journal_key!==journalPrefix(user,session)+selectorKey(selectorFor(m.request))
+   ||!(m.original_journal_raw===null||typeof m.original_journal_raw==='string'))throw Error('counted_marker_invalid');
+  return m;
+ }
+ function attachCountedMarker(m,key){
+  const k='counted:'+key,existing=asyncWorks.get(k);if(existing)return existing.parent;
+  const parent={user:m.user,session:m.session,key,kind:'work',work:m.work_id,body:Object.freeze(clone(m.request)),
+   inFlight:false,outcome:'waiting',countedObservationKey:k,countedJournalKey:m.original_journal_raw===null?null:m.original_journal_key};
+  // accepted selects the status-only read of this known tuple; it does not
+  // assert that the handoff POST committed or permit any provider operation.
+  const r=asyncRecord(parent,m.request,m.work_id,false,true);r.countedMarkerKey=key;
+  r.started=performance.now()-Math.max(0,Date.now()-m.started);r.reads=m.reads;
+  r.lastRead=m.lastRead===0?-Infinity:performance.now()-Math.max(0,Date.now()-m.lastRead);
+  r.inactive=m.done;
+  for(const old of asyncWorks.values())if(old!==r&&old.journalKey===m.original_journal_key)old.inactive=true;
+  return parent;
+ }
+ function restoreCountedMarkers(state,t){
+  if(!asyncCurrent(t))return;const prefix=`mission-counted-resume/1:${t.user}:${state.session_id}:`;let count=0;
+  for(let i=0;i<localStorage.length;i++){
+   const key=localStorage.key(i);if(!key?.startsWith(prefix))continue;
+   if(++count>128)throw Error('counted_marker_limit');const m=readCountedMarker(key,t.user,state.session_id);
+   if(m)attachCountedMarker(m,key); // Observation only, including uncertain/no ACK.
+  }
+ }
+ async function staffResumeCounted(host){
+  const t=syncRoom(host),old=roomState,work=old&&processingFor(old).value;
+  if(!roomCurrent(t)||staffResumeRead||!countedResumeAllowed(old,t)||liveAttempt(old)||!navigator.locks?.request)return;
+  const token={session:old.session_id,work:work.work_id,request:clone(work.request)};
+  staffResumeRead=token;paintRoom(host,old);
+  try{
+   const fresh=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
+   if(!roomCurrent(t)||staffResumeRead!==token)return;
+   const current=processingFor(fresh).value;
+   if(!countedResumeAllowed(fresh,t)||fresh.session_id!==token.session||current.work_id!==token.work
+    ||!sameChainRequest(current.request,token.request))throw Error('counted_resume_changed');
+   roomState=fresh;roomError='';paintRoom(host,fresh);
+   const key=countedResumeKey(t.user,fresh,current);
+   await navigator.locks.request(key,{mode:'exclusive'},async()=>{
+    if(!roomCurrent(t)||staffResumeRead!==token||abortBlocked(token.session)
+     ||!countedResumeAllowed(roomState,t)||processingFor(roomState).value.work_id!==token.work
+     ||!sameChainRequest(processingFor(roomState).value.request,token.request))throw Error('counted_resume_changed');
+    if(localStorage.getItem(key)!==null)throw Error('counted_resume_recorded');
+    const originalKey=journalPrefix(t.user,token.session)+selectorKey(selectorFor(token.request));
+    const originalRaw=localStorage.getItem(originalKey);
+    if(originalRaw!==null){
+     const prior=readJournal(originalKey,t.user,token.session),phase=journalPhase(prior);
+     if(!prior||phase.done||phase.selector.kind!=='request'||!sameChainRequest(phase.selector.request,token.request))throw Error('counted_resume_journal_mismatch');
+    }
+    // Preserve the original journal byte-for-byte; this distinct marker records
+    // only the explicit gesture and prevents another submission from this browser.
+    const marker={schema_version:'mission-counted-resume-journal/1',user:t.user,
+     session:token.session,work_id:token.work,request:clone(token.request),started:Date.now(),reads:0,lastRead:0,done:false,
+     original_journal_key:originalKey,original_journal_raw:originalRaw};
+    localStorage.setItem(key,JSON.stringify(marker));
+    const parent=attachCountedMarker(marker,key);parent.inFlight=true;parent.outcome='pending';
+    try{
+     const response=await client.functions.invoke('mission_generic_ai',{body:{schema_version:'mission-generic-counted-resume-request/1',request:clone(token.request)}});
+     if(!roomCurrent(t)||staffResumeRead!==token)return;
+     if(response.error)throw Error('counted_resume_unconfirmed');
+     if(acceptAsyncPending(response.data,parent,t,false))return;
+     const result=response.data;
+     if(result?.status===200&&['MISSION_EVENT_COMPLETE','MISSION_EVENT_FAILED'].includes(result.code)
+      &&UUID.test(result.receipt_id||'')&&result.retry===false&&result.provider_retry_allowed===false){
+      asyncRecord(parent,token.request,token.work,false,true); // Read the exact terminal proof before closing any original journal.
+      parent.outcome=result.code==='MISSION_EVENT_COMPLETE'?'confirmed':'failed';return;
+     }
+     throw Error('counted_resume_unconfirmed');
+    }finally{parent.inFlight=false;}
+   });
+  }catch{
+   if(roomCurrent(t)&&staffResumeRead===token)roomError='Ripresa non confermata. La stessa richiesta e il Count già eseguito restano conservati. Aggiorna regia per verificarne lo stato.';
+  }finally{
+   if(staffResumeRead===token){staffResumeRead=null;if(roomCurrent(t)){await updateRoom(host,{manual:true,verifyOnly:true});refresh();}}
+  }
  }
  function scopedFailedNarrationRecovery(state,work){
   return state?.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'
@@ -1116,7 +1214,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function asyncRecord(parent,request,work,allowChain=false,accepted=false){
   if(!sameChainRequest(request,request)||request.master_session_id!==parent.session||!UUID.test(work||'')
    ||parent.work!==null&&parent.work!==work)throw Error('async_request_unconfirmed');
-  const k=parent.journalKey?'journal:'+parent.journalKey:asyncKey(parent.user,work,request);let record=asyncWorks.get(k);
+  const k=parent.countedObservationKey??(parent.journalKey?'journal:'+parent.journalKey:asyncKey(parent.user,work,request));let record=asyncWorks.get(k);
   if(!record){record={user:parent.user,session:parent.session,work,request:Object.freeze(clone(request)),parent,
    started:performance.now(),lastRead:-Infinity,reads:0,busy:false,state:'waiting',failure:null,proof:null,
    allowChain,accepted,chainStarted:false,chainDone:false};asyncWorks.set(k,record);}
@@ -1262,7 +1360,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   });
  }
  function spendAsyncRead(r){
-  if(r.journalKey){const document=readJournal(r.journalKey,r.user,r.session),j=journalPhase(document);
+  if(r.countedMarkerKey){const m=readCountedMarker(r.countedMarkerKey,r.user,r.session);
+   if(!m||m.done||m.work_id!==r.work||!sameChainRequest(m.request,r.request)
+    ||m.reads>=asyncBudget.maxReads||Date.now()-m.started>=asyncBudget.maxMs)throw Error('async_budget');
+   m.reads++;m.lastRead=Date.now();localStorage.setItem(r.countedMarkerKey,JSON.stringify(m));r.reads=m.reads;
+  }else if(r.journalKey){const document=readJournal(r.journalKey,r.user,r.session),j=journalPhase(document);
    if(!j||j.done||j.reads>=asyncBudget.maxReads||Date.now()-j.started>=asyncBudget.maxMs)throw Error('async_budget');
    if((j.proof_sha256??null)!==(r.resumeProof??null))throw Error('async_phase_changed');
    j.reads++;j.lastRead=Date.now();saveJournal(r.journalKey,document);r.reads=j.reads;
@@ -1276,7 +1378,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  async function boundedAsyncRead(r,read){
   spendAsyncRead(r);
-  const remaining=r.journalKey?asyncBudget.maxMs-(Date.now()-journalPhase(readJournal(r.journalKey,r.user,r.session)).started):asyncBudget.maxMs-(performance.now()-r.started);
+  const remaining=r.countedMarkerKey?asyncBudget.maxMs-(Date.now()-readCountedMarker(r.countedMarkerKey,r.user,r.session).started):r.journalKey?asyncBudget.maxMs-(Date.now()-journalPhase(readJournal(r.journalKey,r.user,r.session)).started):asyncBudget.maxMs-(performance.now()-r.started);
   if(remaining<=0)throw Error('async_budget');
   let timer;const controller=new AbortController();
   try{return await Promise.race([read(controller.signal),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Object.assign(Error('async_read_timeout'),{asyncRetryable:true}));},Math.min(10000,remaining));})]);}
@@ -1319,16 +1421,34 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   r.work=v.work_id;r.request=Object.freeze(clone(q));r.accepted=true;r.allowChain=v.kind==='director';r.parent.work=v.work_id;r.parent.asyncRequest=r.request;
   return proof; // Server-owned recovery projection; never a synthetic EVENT_COMPLETE ACK.
  }
- function finishJournal(r){if(r.journalKey&&r.state==='completed'&&(!r.allowChain||r.chainDone)){const j=readJournal(r.journalKey,r.user,r.session);if(j){journalPhase(j).done=true;saveJournal(r.journalKey,j);}}}
+ function finishJournal(r){
+  if(r.countedMarkerKey&&['completed','failed'].includes(r.state)&&UUID.test(r.proof?.receipt_id||'')){
+   const marker=readCountedMarker(r.countedMarkerKey,r.user,r.session);
+   if(!marker||marker.work_id!==r.work||!sameChainRequest(marker.request,r.request))throw Error('counted_marker_changed');
+   marker.done=true;localStorage.setItem(r.countedMarkerKey,JSON.stringify(marker));r.inactive=true;
+  }
+  if(['completed','failed'].includes(r.state)&&UUID.test(r.proof?.receipt_id||'')&&r.parent.countedJournalKey){
+   const key=r.parent.countedJournalKey,j=readJournal(key,r.user,r.session),phase=j&&journalPhase(j);
+   if(phase?.selector.kind==='request'&&sameChainRequest(phase.selector.request,r.request)){
+    phase.done=true;saveJournal(key,j); // Normal terminal completion, only after the exact server receipt.
+    for(const previous of asyncWorks.values())if(previous!==r&&previous.journalKey===key)previous.inactive=true;
+   }
+  }
+  if(r.journalKey&&r.state==='completed'&&(!r.allowChain||r.chainDone)){const j=readJournal(r.journalKey,r.user,r.session);if(j){journalPhase(j).done=true;saveJournal(r.journalKey,j);}}}
  function observeAsyncWork(state,t){
   if(!asyncCurrent(t)||hasCountProjection(state)||abortBlocked(state.session_id)||!processingFor(state).valid)return;
-  const r=[...asyncWorks.values()].find(r=>(r.accepted||r.journalKey)&&r.user===t.user&&r.session===state.session_id&&!r.inactive&&!r.busy&&!r.failure&&!['uncertain','failed'].includes(r.state)&&(r.state!=='completed'||r.allowChain&&!r.chainDone));
+  const r=[...asyncWorks.values()].find(r=>(r.accepted||r.journalKey)&&r.user===t.user&&r.session===state.session_id&&!r.inactive&&!r.busy&&!r.failure&&(!['uncertain','failed'].includes(r.state)||(r.countedMarkerKey&&r.state==='uncertain'))&&(r.state!=='completed'||r.allowChain&&!r.chainDone));
   if(!r||performance.now()-r.lastRead<asyncBudget.minReadMs)return;
   r.busy=true;r.lastRead=performance.now();let parent=null;
   const observe=async()=>{
    parent=r.parent;parent.inFlight=true;
    try{
     if(!asyncCurrent(t)||abortBlocked(r.session))return;
+    if(r.countedMarkerKey){const m=readCountedMarker(r.countedMarkerKey,r.user,r.session);
+     if(!m||m.work_id!==r.work||!sameChainRequest(m.request,r.request))throw Error('counted_marker_changed');
+     if(m.done){r.inactive=true;return;}
+     if(Date.now()-m.lastRead<asyncBudget.minReadMs)return;
+    }
     if(r.journalKey){const j=journalPhase(readJournal(r.journalKey,r.user,r.session));
      if((j?.proof_sha256??null)!==(r.resumeProof??null)){r.inactive=true;return;}
      if(j?.done){r.inactive=true;return;} // Local closure ends observation only; public completion still needs room/server proof.
@@ -1351,7 +1471,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    }catch(e){if(asyncCurrent(t)){if(e.asyncRetryable)r.transportNotice=true;else{r.failure=e.message==='async_budget'?'budget':'status_unconfirmed';parent.outcome='uncertain';}}}
    finally{r.busy=false;if(parent)parent.inFlight=false;if(asyncCurrent(t)&&roomState?.session_id===r.session){paintRoom(roomHost,roomState);refresh();}}
   };
-  const run=r.journalKey&&navigator.locks?.request?navigator.locks.request(r.journalKey,{mode:'exclusive'},observe):observe();
+  const readLock=r.countedMarkerKey??r.journalKey;
+  const run=readLock&&navigator.locks?.request?navigator.locks.request(readLock,{mode:'exclusive'},observe):observe();
   void run.catch(()=>{r.busy=false;if(parent)parent.inFlight=false;r.failure='status_unconfirmed';});
  }
  // A work completion alone does not attest a public Fato. Match the exact request and writer.
@@ -1512,6 +1633,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     roleProgress(state); // A partial reason/remedy projection cannot authorize a dispatch.
    roomState=state;roomError='';
    restoreJournals(state,t);
+   restoreCountedMarkers(state,t);
    reconcileTickAttempts(state,t);
    await readEntry(state,t.user);if(!roomCurrent(t))return;
    const key=choiceKey(state),pending=choiceRequests.get(key);
