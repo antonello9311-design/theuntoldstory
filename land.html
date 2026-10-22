@@ -11311,6 +11311,7 @@ function mountExamHumanHost(container, { client, context, getContext, subscribeC
   let disposed = false, generation = 0, inflight = 0, refreshing = false, queued = false, child = null, mode = null, examId = null, state = null;
   let executionMode = null;
   let entryReadRemount = false;
+  let quietRefresh = false, hasRefreshed = false, queuedMode = null;
   const validReceiptContext = r => ['staff_test','ordinary'].includes(r?.execution_mode) && r.resources_protected === true
     && r.simulated === (r.execution_mode === 'staff_test') && (!executionMode || r.execution_mode === executionMode);
   const drafts = new Map();
@@ -11388,21 +11389,24 @@ function mountExamHumanHost(container, { client, context, getContext, subscribeC
     let pending;
     try { pending = pendingMode(); } catch(e) { nav.replaceChildren();status.textContent=e.message; verify.disabled=false; return; }
     const modes = new Set(availableModes()); if (pending && !state?.terminal && state?.available !== false) modes.add(pending);
+    const quiet=quietRefresh&&!examId&&mode==='entry'&&!entryPresentation.expanded&&!pending;
     const visible=[...modes].filter(m=>!(m==='entry'&&mode==='entry'));
     for(const b of [...nav.children])if(!visible.includes(b.dataset.examMode))b.remove();
     for (const [index,m] of visible.entries()) {
       let b=[...nav.children].find(n=>n.dataset.examMode===m);
       if(!b){b=node('button',MODES[m]);b.type='button';b.className='esm-btn';b.dataset.examMode=m;b.addEventListener('click',()=>switchMode(m));}
       if(nav.children[index]!==b)nav.insertBefore(b,nav.children[index]||null);
-      const disabled=!!inflight||refreshing||m===mode||!!pending&&pending!==m;
+      const disabled=(!quiet&&(!!inflight||refreshing))||m===mode||!!pending&&pending!==m;
       if(b.disabled!==disabled)b.disabled=disabled;
       const pressed=String(m===mode);if(b.getAttribute('aria-pressed')!==pressed)b.setAttribute('aria-pressed',pressed);
     }
-    const verifyDisabled=!!inflight||refreshing;if(verify.disabled!==verifyDisabled)verify.disabled=verifyDisabled;
+    const verifyDisabled=!quiet&&(!!inflight||refreshing);if(verify.disabled!==verifyDisabled)verify.disabled=verifyDisabled;
   }
   function selectExam(id) { if (disposed) return; if(examId!==id){stopChild();examId=id;executionMode=null;} queueRefresh(); }
   async function switchMode(next) {
-    assertContext(); if (inflight) return;
+    assertContext();
+    if(refreshing&&quietRefresh&&next!==mode){queuedMode=next;return;}
+    if (inflight) return;
     if (state?.terminal || state?.available === false) { if (state.terminal || OWN_RECEIPT_RECOVERY.has(pendingMode())) await showReadback(); return; }
     const pending=pendingMode(); if (pending&&pending!==next) return;
     if (!availableModes().includes(next)&&pending!==next) return;
@@ -11521,8 +11525,11 @@ function mountExamHumanHost(container, { client, context, getContext, subscribeC
       } else result.textContent='Esito della richiesta non confermato. Dati conservati: puoi aggiornare la lettura, senza reinviare.';
     } catch(e) { if(!disposed&&ticket===generation)result.textContent=e.message; }
   }
-  async function refresh() {
-    if (disposed||inflight||refreshing) return;refreshing=true;renderNav();
+  async function refresh(options={}) {
+    if (disposed||inflight||refreshing) return;
+    quietRefresh=false;
+    try{quietRefresh=options.background===true&&hasRefreshed&&!examId&&mode==='entry'&&!entryPresentation.expanded&&!pendingMode();}catch{/* The normal refresh reports unreadable recovery state. */}
+    refreshing=true;renderNav();
     try {
       assertContext(); pendingMode();
       if (!examId) {
@@ -11542,8 +11549,12 @@ function mountExamHumanHost(container, { client, context, getContext, subscribeC
       const next=pending||(modes.includes(mode)?mode:modes[0]);
       status.textContent=state?.terminal?(state.state==='cancelled'?'Prova annullata senza valutazione. Nessuna promozione o premio.':'Prova conclusa e valutata: promozione e premi sono separati.'):pending?'Verifica la richiesta precedente prima di altre operazioni.':examId? 'Esame con Master · '+({waiting:'in attesa di presa in carico',prepared:'preparazione',narrative:'narrazione',combat:'combattimento'}[state.state]||'stato aggiornato') : '';
       if(next) await switchMode(next); else stopChild();
-    }catch(e){stopChild(false,!examId&&(mode==='entry'||entryReadRemount));status.textContent=e.message;}
-    finally{refreshing=false;renderNav();}
+      hasRefreshed=true;
+    }catch(e){hasRefreshed=false;stopChild(false,!examId&&(mode==='entry'||entryReadRemount));status.textContent=e.message;}
+    finally{refreshing=false;quietRefresh=false;renderNav();
+      const next=queuedMode;queuedMode=null;
+      if(next&&!disposed)void switchMode(next).catch(e=>{if(!disposed)status.textContent=e.message;});
+    }
   }
   verify.addEventListener('click',refresh);
   unsubscribe=subscribeContext(()=>{if(identity(getContext())!==initial)invalidate();})||(()=>{});
@@ -11633,7 +11644,7 @@ function examHumanLoad(){
     await ai?.refresh();
     if(generation!==EHM_LAND.version||!examHumanContext())return;
     if(ai?.snapshot()?.prova){examHumanInvalidate();renderEsame();return;}
-    await EHM_LAND.instance?.refresh();
+    await EHM_LAND.instance?.refresh({background:true});
   })();
   EHM_LAND.loading=task;
   task.catch(()=>{if(ticket===EHM_LAND.version)examHumanInvalidate(true);}).finally(()=>{if(EHM_LAND.loading===task)EHM_LAND.loading=null;});
