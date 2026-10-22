@@ -1076,3 +1076,5 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 2026-10-22 · C1266-INCIPIT-HISTORY · Chat recupera il Fato originale attestato oltre12h e dopo rientro; review0/0/0, StaffPASS,0provider, missione invariata · consegnato.
 
 2026-10-22 · C1266-REGIA-OBSERVABLE · Master/2: scena osservabile, vincoli interni, nessun commento interpretativo; Edge87, review0/0/0 e14/14readback,0provider, prova invariata · consegnato; qualità futura NOT_RUN.
+
+2026-10-22 · C1266-ROLE-OPENING · Firefox recuperato con bozza preservata; apertura cursore manuale corretta e recupero puntuale dello stesso incipit, Root composta, review0/0/0, zero provider/invii/riavvii · applicato; nuovo turno NOT_RUN.

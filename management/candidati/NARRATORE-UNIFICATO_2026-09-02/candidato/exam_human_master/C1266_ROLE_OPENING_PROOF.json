@@ -1,0 +1,480 @@
+{
+  "task": "C1266-ROLE-OPENING-20261022",
+  "installed": true,
+  "recovered": true,
+  "root_before": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433",
+  "root_after": "b87b58fdc7fd015f5ea2d5f6bbfa69293855327b13098429796c71eb6a123bfe",
+  "migration": [
+    {
+      "version": "20261022074853",
+      "name": "c1266_manual_staff_opening_role_cursor"
+    }
+  ],
+  "source_review": {
+    "schema_version": "c1266-role-opening-source-review/1",
+    "reviewer": "/root/review_role_opening_final",
+    "independent_of_source_author": true,
+    "verdict": "GO_SOURCE_AND_RECOVERY",
+    "findings": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0
+    },
+    "reviewed": [
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/SOURCE.sql",
+        "sha256": "6e64ae55a9fd650db3c1303498f9c419bbaba64ef75980c6ad36157e6ee2ed98",
+        "bytes": 4523
+      },
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/RECOVERY.sql",
+        "sha256": "bbaadd03d317332aea73c71cea893c2fc7629c2c0a6026cf6639085d22072c80",
+        "bytes": 7705
+      },
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/ROOT_BASELINE.json",
+        "sha256": "12ce6047ba8e715fb4e20ceb4668178798459a59538b11a01aa59fdb9f1a0708",
+        "bytes": 193681
+      },
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/RECOVERY_BASELINE.json",
+        "sha256": "636302774f78f2c72bbbdd8c2ccb531851d599b799007cbab8d548515a141c6e",
+        "bytes": 2010
+      },
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/COMPOSITION_PROPOSAL.json",
+        "sha256": "95014bd8088e91b8a69084769a04e6f055168b4f70bb6ce99c2bf81dae136f6f",
+        "bytes": 1959
+      },
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/ROOT_PROPOSAL.json",
+        "sha256": "18a033c3976ced596fa1014ef713bf247a87e62f53975ba76c25bac287be1500",
+        "bytes": 225144
+      }
+    ],
+    "checks": [
+      "Source is exact live function plus one OR branch restricted to simulation, named Staff location, ai_service, open master, enabled flow and valid immutable manual admission.",
+      "Existing source branches, publication invariants, state transitions, authority, ACL and API signature unchanged.",
+      "Recovery inserts one missing cursor epoch1/revision0 referencing existing authoritative opening. No UPDATE/DELETE of scene, publication, work or audit.",
+      "Recovery locks scope, master/run/board/work/outbox and shares publication/message/flow/admission rows; exact baseline hashes and zero cursor/roles/batches/encounters and one work/outbox/publication fail closed before insertion.",
+      "Readonly live work_receipt_matches=true and publication_chain_matches=true confirmed schema and original linkage.",
+      "Readonly live cursor triggers: only AFTER UPDATE OF role_revision; INSERT has no application trigger side effects.",
+      "manual_staff_scope_v1 has no current Root dependency, and immutable admission hash stays pinned.",
+      "Recovery rerun rejects existing cursor; no upsert, reset or repeat insert.",
+      "Root proposal preserves previous config values and adds composition metadata; previous recovery history nested intact; new opening header added while old headers retained."
+    ],
+    "limits": [
+      "INSTALLER NOT REVIEWED YET; proposal explicitly not installable and still contains placeholders.",
+      "No local DB, SQL execution, provider call, role send or gameplay; PostgreSQL grammar/parser execution NOT_RUN.",
+      "Final integrated installer must independently bind live headers, recompute config/DB/code/Root hashes, verify live UI/Edge identities and pin baseline before atomic apply."
+    ]
+  },
+  "installer_review": {
+    "schema_version": "c1266-role-opening-installer-review/1",
+    "reviewer": "/root/review_role_opening_final",
+    "independent_of_source_and_installer_author": true,
+    "verdict": "GO",
+    "findings": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0
+    },
+    "reviewed": [
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/INSTALL.sql",
+        "sha256": "24d830761c2ead2c254e28e6157c61f53ffd8c6b445abeb188b0ac32118f1ade",
+        "bytes": 431407
+      },
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/RECOVERY_INSTALL.sql",
+        "sha256": "481a0f4e6e615a12c8d3e6b330f13b43f40792fcab2696e8060a3b78d96abbc3",
+        "bytes": 7840
+      },
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/BUILD_INSTALLER.py",
+        "sha256": "01fc48f0084166d46339ba521805fcf3f729a336f616cdb986ee1e90e16b70dc",
+        "bytes": 10902
+      },
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/ROOT_FINAL_TEMPLATE.json",
+        "sha256": "a7257de961e692aa2d787773b59754c77cf08d603ea44f3d383e157bba28951a",
+        "bytes": 224916
+      },
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/INSTALLER_MANIFEST.json",
+        "sha256": "aa82d922451b9ced9967d11873e9fcf2b292cb183896f1dee3d5e1714f839373",
+        "bytes": 2624
+      },
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/INSTALL_BASELINE.sql",
+        "sha256": "2df3d96632fce8b3dfbb247fd3958b2dc3232cdba2a466fc3bc985c4afdca0d1",
+        "bytes": 8074
+      },
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/INSTALL_BASELINE.json",
+        "sha256": "c32e04da453a4514a85e83023d2adc5b922074e7b79767d03e7235ac6c785ce8",
+        "bytes": 254832
+      },
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/SOURCE_REVIEW.json",
+        "sha256": "7282e9bba0c659de7296a3aa158576bb968357ea297fa0cafa0866c0021fa6d5",
+        "bytes": 3214
+      },
+      {
+        "path": "/private/tmp/tus-role-opening-20261022/reviewer/STATIC_INSTALLER.json",
+        "sha256": "54c5e7e008c05ec00d5c5f25bb7060a3cf7e294a2e8509116ec7200db9ef1924",
+        "bytes": 1276
+      }
+    ],
+    "checks": [
+      "Frozen hashes independently verified against manifest.",
+      "Exact live source plus qualified manual Staff branch; source function execution embedded byte-for-byte in DDL installer.",
+      "Installer lock ordering and 5s lock timeout; baseline exact under availability/scope/row locks; current Root, 141 live headers, controls/admissions, scene/work/audit/quota and protected resource hash all checked.",
+      "Existing OID/owner/ACL/search_path/volatility preserved by CREATE OR REPLACE and asserted in full installed header.",
+      "142 headers include new dependency; all previous entries unchanged in core/full/additional collections.",
+      "Config, DB and code identity hashes independently recomputed from component material; Root SHA computed from PostgreSQL jsonb::text in same transaction.",
+      "UI five blobs and Edge87/14-file proof bind actual known deployed identities; no client or Edge deployment in installer.",
+      "Only reviewed composition metadata changes; operational config, budgets, permissions and historical recovery conserved.",
+      "Root/G2/admission CAS checks and exact postflight allow only DDL/Root bookkeeping; cursor remains null after INSTALL.",
+      "RECOVERY_INSTALL wraps source-reviewed one-row cursor recovery in separate transaction with timeout; failure preserves scene and leaves missing cursor blocked.",
+      "No role send, provider call, publication, restart, reset or scene closure; original incipit and resources preserved."
+    ],
+    "release_conditions": [
+      "Run current readonly preflight; abort on baseline drift.",
+      "Apply exactly the frozen DDL installer, verify result, then exactly the frozen recovery transaction; no gameplay in between.",
+      "Postflight must confirm original scene/incpit/work/audit/quota/protected hash preserved plus cursor epoch1/revision0 and original Fato IDs."
+    ],
+    "limits": [
+      "Static review and syntax checks only: runtime gameplay NOT_RUN.",
+      "PL/pgSQL source/recovery parser used record projections for composite declarations; outer SQL AST and installer DO exact.",
+      "If recovery fails after DDL commit, report partial installation and keep existing scene untouched; no reset or assumed PASS."
+    ]
+  },
+  "static": {
+    "runtime": "NOT_RUN",
+    "db_mutations": 0,
+    "provider_calls": 0,
+    "checks": [
+      {
+        "file": "SOURCE.sql",
+        "sha256": "6e64ae55a9fd650db3c1303498f9c419bbaba64ef75980c6ad36157e6ee2ed98",
+        "sql_statements": 1,
+        "plpgsql_units": 1,
+        "syntax": "PASS",
+        "row_type_projection": true
+      },
+      {
+        "file": "RECOVERY.sql",
+        "sha256": "bbaadd03d317332aea73c71cea893c2fc7629c2c0a6026cf6639085d22072c80",
+        "sql_statements": 1,
+        "plpgsql_units": 1,
+        "syntax": "PASS",
+        "row_type_projection": true
+      },
+      {
+        "file": "INSTALL.sql",
+        "sha256": "24d830761c2ead2c254e28e6157c61f53ffd8c6b445abeb188b0ac32118f1ade",
+        "sql_statements": 6,
+        "plpgsql_units": 1,
+        "syntax": "PASS",
+        "row_type_projection": false
+      },
+      {
+        "file": "RECOVERY_INSTALL.sql",
+        "sha256": "481a0f4e6e615a12c8d3e6b330f13b43f40792fcab2696e8060a3b78d96abbc3",
+        "sql_statements": 6,
+        "plpgsql_units": 1,
+        "syntax": "PASS",
+        "row_type_projection": true
+      }
+    ],
+    "limitation": "SQL AST esatto; PL/pgSQL source e recovery con sole dichiarazioni composite proiettate a record. La DDL dinamica nel DO installer è verificata separatamente come SOURCE.sql. Non è una prova di esecuzione DB."
+  },
+  "installer_manifest": {
+    "status": "AWAITING_INDEPENDENT_INSTALLER_REVIEW",
+    "installer": {
+      "path": "/private/tmp/tus-role-opening-20261022/reviewer/INSTALL.sql",
+      "bytes": 431407,
+      "sha256": "24d830761c2ead2c254e28e6157c61f53ffd8c6b445abeb188b0ac32118f1ade"
+    },
+    "recovery_transaction": {
+      "path": "/private/tmp/tus-role-opening-20261022/reviewer/RECOVERY_INSTALL.sql",
+      "bytes": 7840,
+      "sha256": "481a0f4e6e615a12c8d3e6b330f13b43f40792fcab2696e8060a3b78d96abbc3"
+    },
+    "builder": {
+      "path": "/private/tmp/tus-role-opening-20261022/reviewer/BUILD_INSTALLER.py",
+      "bytes": 10902,
+      "sha256": "01fc48f0084166d46339ba521805fcf3f729a336f616cdb986ee1e90e16b70dc"
+    },
+    "root_template": {
+      "path": "/private/tmp/tus-role-opening-20261022/reviewer/ROOT_FINAL_TEMPLATE.json",
+      "bytes": 224916,
+      "sha256": "a7257de961e692aa2d787773b59754c77cf08d603ea44f3d383e157bba28951a"
+    },
+    "source_review": {
+      "path": "/private/tmp/tus-role-opening-20261022/reviewer/SOURCE_REVIEW.json",
+      "bytes": 3214,
+      "sha256": "7282e9bba0c659de7296a3aa158576bb968357ea297fa0cafa0866c0021fa6d5"
+    },
+    "baseline": {
+      "path": "/private/tmp/tus-role-opening-20261022/reviewer/INSTALL_BASELINE.json",
+      "bytes": 254832,
+      "sha256": "c32e04da453a4514a85e83023d2adc5b922074e7b79767d03e7235ac6c785ce8"
+    },
+    "ui_proof": {
+      "path": "/private/tmp/tus-role-opening-20261022/UI_PROOF.json",
+      "bytes": 3094,
+      "sha256": "501196835ad4aa8b7e683a102ceb91049c030f796f5a350b1b5e1bb470a2ae04"
+    },
+    "edge_proof": {
+      "path": "/private/tmp/tus-regia-observable-20261022/C1266_OBSERVABLE_PROMPT_PROOF.json.after",
+      "bytes": 22385,
+      "sha256": "5d59a591d4f5bdee9927ac9e91cd8d4583cf32d5bc59ec5894b6781e459c7134"
+    },
+    "previous_root": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433",
+    "root_canonicalization": "PostgreSQL jsonb::text; SHA256 UTF8 computed inside atomic DDL transaction",
+    "new_headers": 142,
+    "db_sha": "451b54c961252c9e463234932572a3f13e10228b3185edfba2b921d379065ebb",
+    "config_sha": "252feb266767e3cbf7f3099651e620c62abb792c3b7bae75643127dd5e210a51",
+    "code_sha": "52368587890bd49d68c8464f0dd9897c6044d4c60c90420507a4ee28b1d95644",
+    "source_sql": {
+      "path": "/private/tmp/tus-role-opening-20261022/reviewer/SOURCE.sql",
+      "bytes": 4523,
+      "sha256": "6e64ae55a9fd650db3c1303498f9c419bbaba64ef75980c6ad36157e6ee2ed98"
+    },
+    "recovery_sql": {
+      "path": "/private/tmp/tus-role-opening-20261022/reviewer/RECOVERY.sql",
+      "bytes": 7705,
+      "sha256": "bbaadd03d317332aea73c71cea893c2fc7629c2c0a6026cf6639085d22072c80"
+    },
+    "provider_calls": 0,
+    "runtime": "NOT_RUN"
+  },
+  "firefox": {
+    "incipitVisible": true,
+    "publishedTimeVisible": true,
+    "loadingVisible": false,
+    "draftPreserved": true,
+    "draftCharacters": 673,
+    "actionSent": false
+  },
+  "preservation": {
+    "history_unchanged": true,
+    "protected_unchanged": true,
+    "character_rows_identical": true,
+    "unchanged_sections": [
+      "work",
+      "audit",
+      "calls",
+      "session",
+      "flow_gate",
+      "preserved",
+      "protected",
+      "runtime_policy",
+      "cursor_triggers",
+      "provider_policy",
+      "manual_admission",
+      "authoring_runtime"
+    ],
+    "added_cursor": {
+      "updated_at": "2026-10-22T07:49:08.245991+00:00",
+      "window_epoch": 1,
+      "role_revision": 0,
+      "opening_fato_id": "34c34697-768a-493a-b180-1045fcc4ea22",
+      "master_session_id": "44078c5f-7001-4129-9506-e2f34e68c8ac",
+      "last_published_fato_id": "34c34697-768a-493a-b180-1045fcc4ea22"
+    },
+    "provider_calls": 0,
+    "roles_sent": 0,
+    "regenerations": 0,
+    "restarts": 0,
+    "abort_operations_added": 0
+  },
+  "scene_before": {
+    "root": {
+      "state": "enabled",
+      "revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433",
+      "observed_revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433"
+    },
+    "work": {
+      "id": "245aea9b-ee14-4511-8223-fe1fdeda5ff3",
+      "state": "completed",
+      "event_id": "3ba1698a-648d-42d0-a0dd-f538e80c445f",
+      "lease_id": "086854a6-19d0-4eb1-8173-e15c4a0c22cc",
+      "revision": 1,
+      "message_id": "34c34697-768a-493a-b180-1045fcc4ea22",
+      "receipt_id": "4c8def38-0ea6-4b27-bcac-3c6e5d854798",
+      "dispatch_id": "0a30bdfc-0f33-4211-a95f-bb5b02d6942d",
+      "request_key": "feaea298-afe2-4123-b6cb-bead0777e26c",
+      "finalized_at": "2026-10-21T16:36:34.147772+00:00",
+      "result_sha256": "234ea41811b77381d6f5df22c2c18a182d7b37f55032e3686fccba836d2dcb87",
+      "payload_sha256": "a6171954f32a3cf1e221f6947a5355834972ebdec76a910702c8e7e30814d39f",
+      "authorization_id": "1ae2c84a-4877-4fc1-8711-4584da8c2094",
+      "lease_expires_at": "2026-10-21T16:42:17.22109+00:00"
+    },
+    "audit": [
+      {
+        "event_code": "c1266_async_owner_v1",
+        "details_md5": "4140d7714ccf792727369d4b00c92181"
+      },
+      {
+        "event_code": "c8_count_started",
+        "details_md5": "a660705bc4987d9030fe13f3c06b3fd6"
+      },
+      {
+        "event_code": "c8_count_success",
+        "details_md5": "cc70b1ed9b6b65610eeb8a88ff70f1b6"
+      },
+      {
+        "event_code": "generic_finalized",
+        "details_md5": "ef35f696c4acdef443107ce919b1bfed"
+      },
+      {
+        "event_code": "manual_counted_resume_v1",
+        "details_md5": "9854237bad027580290377d322194a62"
+      },
+      {
+        "event_code": "provider_started",
+        "details_md5": "99914b932bd37a50b983c5e7c90ae93b"
+      }
+    ],
+    "calls": [
+      {
+        "id": "b966cf30-50ed-434c-b647-706c31ff8ea1",
+        "state": "settled",
+        "call_no": 1,
+        "sent_at": "2026-10-21T16:36:20.389944+00:00",
+        "settled_at": "2026-10-21T16:36:34.145084+00:00",
+        "charged_usd": 0.0009667,
+        "reserved_usd": 0.0124
+      },
+      {
+        "id": "7ed9ae1d-e1fe-4c4a-be84-1bef7de875c3",
+        "state": "unknown_billable",
+        "call_no": 2,
+        "sent_at": "2026-10-21T15:58:58.546104+00:00",
+        "settled_at": null,
+        "charged_usd": null,
+        "reserved_usd": 0.0124
+      }
+    ],
+    "scene": {
+      "id": "44078c5f-7001-4129-9506-e2f34e68c8ac",
+      "stato": "in_corso",
+      "closed_at": null,
+      "control_version": 2
+    },
+    "attempts": 1,
+    "dispatch": {
+      "id": "0b5aa84c-7063-460e-b4f1-1169ce7cc1ab",
+      "status": "success",
+      "finalized_at": "2026-10-21T16:36:34.145829+00:00",
+      "dispatch_count": 1
+    },
+    "captured_at": "2026-10-22T07:35:43.223241+00:00",
+    "authorizations": 1,
+    "abort_operations": 0,
+    "manual_admission": "e25a356c70fcb49e7e6261056b7d6ab54ed37caa277756addf2f7681a64fe728",
+    "original_message": {
+      "id": "34c34697-768a-493a-b180-1045fcc4ea22",
+      "row_md5": "f57155d9297a110a5c8495c854d02cdc"
+    }
+  },
+  "scene_after": {
+    "root": {
+      "state": "enabled",
+      "revision_sha256": "b87b58fdc7fd015f5ea2d5f6bbfa69293855327b13098429796c71eb6a123bfe",
+      "observed_revision_sha256": "b87b58fdc7fd015f5ea2d5f6bbfa69293855327b13098429796c71eb6a123bfe"
+    },
+    "work": {
+      "id": "245aea9b-ee14-4511-8223-fe1fdeda5ff3",
+      "state": "completed",
+      "event_id": "3ba1698a-648d-42d0-a0dd-f538e80c445f",
+      "lease_id": "086854a6-19d0-4eb1-8173-e15c4a0c22cc",
+      "revision": 1,
+      "message_id": "34c34697-768a-493a-b180-1045fcc4ea22",
+      "receipt_id": "4c8def38-0ea6-4b27-bcac-3c6e5d854798",
+      "dispatch_id": "0a30bdfc-0f33-4211-a95f-bb5b02d6942d",
+      "request_key": "feaea298-afe2-4123-b6cb-bead0777e26c",
+      "finalized_at": "2026-10-21T16:36:34.147772+00:00",
+      "result_sha256": "234ea41811b77381d6f5df22c2c18a182d7b37f55032e3686fccba836d2dcb87",
+      "payload_sha256": "a6171954f32a3cf1e221f6947a5355834972ebdec76a910702c8e7e30814d39f",
+      "authorization_id": "1ae2c84a-4877-4fc1-8711-4584da8c2094",
+      "lease_expires_at": "2026-10-21T16:42:17.22109+00:00"
+    },
+    "audit": [
+      {
+        "event_code": "c1266_async_owner_v1",
+        "details_md5": "4140d7714ccf792727369d4b00c92181"
+      },
+      {
+        "event_code": "c8_count_started",
+        "details_md5": "a660705bc4987d9030fe13f3c06b3fd6"
+      },
+      {
+        "event_code": "c8_count_success",
+        "details_md5": "cc70b1ed9b6b65610eeb8a88ff70f1b6"
+      },
+      {
+        "event_code": "generic_finalized",
+        "details_md5": "ef35f696c4acdef443107ce919b1bfed"
+      },
+      {
+        "event_code": "manual_counted_resume_v1",
+        "details_md5": "9854237bad027580290377d322194a62"
+      },
+      {
+        "event_code": "provider_started",
+        "details_md5": "99914b932bd37a50b983c5e7c90ae93b"
+      }
+    ],
+    "calls": [
+      {
+        "id": "b966cf30-50ed-434c-b647-706c31ff8ea1",
+        "state": "settled",
+        "call_no": 1,
+        "sent_at": "2026-10-21T16:36:20.389944+00:00",
+        "settled_at": "2026-10-21T16:36:34.145084+00:00",
+        "charged_usd": 0.0009667,
+        "reserved_usd": 0.0124
+      },
+      {
+        "id": "7ed9ae1d-e1fe-4c4a-be84-1bef7de875c3",
+        "state": "unknown_billable",
+        "call_no": 2,
+        "sent_at": "2026-10-21T15:58:58.546104+00:00",
+        "settled_at": null,
+        "charged_usd": null,
+        "reserved_usd": 0.0124
+      }
+    ],
+    "scene": {
+      "id": "44078c5f-7001-4129-9506-e2f34e68c8ac",
+      "stato": "in_corso",
+      "closed_at": null,
+      "control_version": 2
+    },
+    "attempts": 1,
+    "dispatch": {
+      "id": "0b5aa84c-7063-460e-b4f1-1169ce7cc1ab",
+      "status": "success",
+      "finalized_at": "2026-10-21T16:36:34.145829+00:00",
+      "dispatch_count": 1
+    },
+    "captured_at": "2026-10-22T07:49:18.535906+00:00",
+    "authorizations": 1,
+    "abort_operations": 0,
+    "manual_admission": "e25a356c70fcb49e7e6261056b7d6ab54ed37caa277756addf2f7681a64fe728",
+    "original_message": {
+      "id": "34c34697-768a-493a-b180-1045fcc4ea22",
+      "row_md5": "f57155d9297a110a5c8495c854d02cdc"
+    }
+  },
+  "source_diff": "--- opening_published.live\n+++ opening_published.candidate\n@@ -55,6 +55,12 @@\n         and master_session.owner_kind='ai_service'\n         and master_session.closed_at is null\n         and staff_location.is_test))\n+    OR (s.simulation\n+      AND m.location_id='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid\n+      AND m.owner_kind='ai_service' AND m.closed_at IS NULL\n+      AND EXISTS(SELECT 1 FROM mission_generic_owner.flow_staff_sessions fs\n+        WHERE fs.master_session_id=p_session AND fs.enabled)\n+      AND mission_generic_owner.manual_staff_scope_v1(p_session) IS NOT NULL)\n     OR mission_public_owner.staff_role_session_v2(p_session)\n     OR mission_public_owner.role_session_allowed_v1(p_session) then\n    insert into mission_generic_owner.role_window_cursors\n",
+  "future_role_and_fato": "NOT_RUN",
+  "constraints_added": [],
+  "constraints_removed": [],
+  "qualified_manual_initialization_aligned": true,
+  "previous_handoff": "# C1266 · Istruzioni della Regia: scena osservabile\n\n**TASK-ID** · C1266-REGIA-OBSERVABLE-20261022.\n\n**Scope toccato** · Master canonico, copia nel bundle mission_generic_ai e documentazione. Nessun file LAND.\n\n**Contratti usati/modificati** · narrative-master/2-observable, sola direttiva editoriale. Contratti RPC/provider invariati; nessun nuovo filtro, giudice o retry. Count precedente non riutilizzabile con prompt cambiato: guardia hash conservata.\n\n**Decisioni prese / OPEN** · Applicare la direttiva alle generazioni future senza modificare il testo pubblicato, riavviare la scena o eseguire una prova. Le intenzioni guidano privatamente i PNG; nel Fato compaiono soltanto manifestazioni autorizzate osservabili.\n\n**Prove eseguite e risultato** · C1266 · Regia osservabile · 22/10/2026: narrative-master/2-observable attivo nel solo bundle mission_generic_ai v87. Il racconto mostra parole e comportamenti percepibili; vincoli di conoscenza/riservatezza/autorità restano interni. Il narratore non spiega strategia retorica, attendibilità del PNG o conclusioni per i giocatori. Dubbio e risposte pertinenti del PNG restano ammessi entro le conoscenze; una frase metanarrativa superflua si omette senza imporre nuovi gesti. Delta solo editoriale:1/14file cambiato,13 invariati, authority, adapter, schema, validator, quote, Count/Generation e idempotenza invariati. SintassiPASS, review0/0/0, readback14/14. Bundle integrato SHA256 6023ce5f6d907790e8879e2d91b6a911444086c17c5ba7be6b83e77ff7c6c6b7. Nessun nuovo vincolo di gioco/accesso; precisata solo la direttiva stilistica. Scena corrente, incipit, work, audit e quote identici prima/dopo;0provider e nessun gameplay/browser. Qualità delle future generazioni NOT_RUN. Altri producer non distribuiti; nessuna apertura generale.\n\n**Rischi o regressioni da verificare** · Qualità narrativa futura NOT_RUN: nessuna generazione avviata per non toccare la prova in corso. Canonico aggiornato; gli altri producer incorporano ancora la versione precedentemente distribuita e non sono dichiarati aggiornati.\n\n**Passaggio richiesto al PM** · Consegna tecnica completata; nessun backlog riaperto. Evidenze e handoff precedente in candidato/exam_human_master/C1266_OBSERVABLE_PROMPT_PROOF.json.\n"
+}
