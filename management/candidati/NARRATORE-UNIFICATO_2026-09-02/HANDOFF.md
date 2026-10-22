@@ -1,15 +1,15 @@
-# C1266 · Stabilità Esame Genin inattivo
+# C1266 · Incipit della prova in corso leggibile
 
-**TASK-ID** · C1266-EXAM-IDLE-POLL-20261022.
+**TASK-ID** · C1266-INCIPIT-HISTORY-20261022.
 
-**Scope toccato** · LAND host Esame Human e invocazione periodica.
+**Scope toccato** · LAND loadMsgs, getter readonly mission-generic-ui e pin del modulo.
 
-**Contratti usati/modificati** · Nessuna firma RPC o shape modificata. Flag interno background distingue presentazione delle letture; tutte le guardie e i lock operativi restano. Nessuna modifica DB/Edge o quote.
+**Contratti usati/modificati** · Nessuna firma RPC, RLS o shape server modificata. Nuovo getter interno chatPublication (principal/location/session/work/publication/epoch), da processingFor validato. Integrazione chat dopo lettura Generic.
 
-**Decisioni prese / OPEN** · Nessuna nuova prova, annullamento o generazione; missione aperta conservata.
+**Decisioni prese / OPEN** · Recuperare il messaggio originale attraverso le RLS esistenti; nessuna nuova prova, annullamento o generazione.
 
-**Prove eseguite e risultato** · C1266 · Esame Genin inattivo · 22/10/2026: eliminato il lampeggio dei pulsanti causato da refreshing/inflight durante le letture periodiche. Dopo il bootstrap, solo con ingresso chiuso, nessun esame e nessun pending, il refresh in background mantiene stabile la disponibilità visiva; i gesti di navigazione durante la lettura sono accodati e ricontrollati. Tutte le letture, i controlli Auth, le ricevute e le guardie server restano attivi. Bootstrap, errore, scelta aperta, board, prova attiva e pending mantengono il comportamento ordinario. Nessun vincolo aggiunto o allentato. Sintassi6script PASS, review0/0/0; client bdab987c66782f13075ba03d97fdfe6d2131ff81, Pages39738199777 riuscito. Osservazione reale Chrome Staff su più cicli9s: pulsanti stabili e nessun aggiornamento visibile del riquadro invariato. Missione in corso, incipit nel DB, audit, quote e zero annullamenti identici prima/dopo; zero nuove chiamate provider. Esame giocato e avvio di nuove prove NOT_RUN.
+**Prove eseguite e risultato** · C1266 · Incipit oltre finestra chat · 22/10/2026: chat_messages_live limita la lettura alle ultime12h; il messaggio originale della prova resta in messages. LAND ora usa la pubblicazione attestata dal work Generic completato della Staff corrente e recupera il medesimo messaggio tramite RLS e filtri id/luogo/tipo. Getter readonly circoscritto a identità, stanza, sessione, work ed epoch; controllo ripetuto dopo le attese, priorità delle pubblicazioni Human/esplicite invariata. Nessuna modifica DB/Edge/dati, nessuna rigenerazione o riapertura della missione; nessun vincolo aggiunto o allentato. Sintassi8script+modulo PASS, review0/0/0; commit f698e6a9f081628247ab6f089783c592bddc3467, Pages39739328668 riuscito. Chrome Staff: incipit originale leggibile dopo ricaricamento, polling e uscita/rientro. Scena, messaggio, audit e contatori identici prima/dopo; zero nuove chiamate provider. Limite: recupero della pubblicazione attestata dal work corrente, non storico completo della missione; nuovi turni/gameplay NOT_RUN.
 
-**Rischi o regressioni da verificare** · Race, pending e contesti verificati staticamente; nessuna fault injection live. Collaudo limitato al pannello inattivo già rilasciato; non qualifica gameplay Esame.
+**Rischi o regressioni da verificare** · Sessione/Auth, pending, race e duplicati verificati staticamente; nessuna fault injection live. Il work successivo può non attestare più il Fato precedente: storico completo non coperto.
 
-**Passaggio richiesto al PM** · Correzione consegnata, nessun backlog avviato. Prove e handoff precedente in candidato/exam_human_master/C1266_EXAM_IDLE_POLL.json.
+**Passaggio richiesto al PM** · Correzione consegnata, nessun backlog avviato. Prove e handoff precedente in candidato/exam_human_master/C1266_INCIPIT_HISTORY.json.

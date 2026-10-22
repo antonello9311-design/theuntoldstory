@@ -1,0 +1,286 @@
+{
+  "task": "C1266-INCIPIT-HISTORY-20261022",
+  "publication": {
+    "commit": "f698e6a9f081628247ab6f089783c592bddc3467",
+    "pages": 39739328668,
+    "conclusion": "success"
+  },
+  "static": {
+    "files": [
+      {
+        "name": "land.html",
+        "before_sha256": "4507cd7f04f9ca2614c1368dafe79692607cc8184555805cadac5d8bf9259b96",
+        "after_sha256": "252ef34ff7a64dd87ad0b72c386fe22fbe1a673ed62fbff64a7a006ffcae4979",
+        "after_bytes": 2326156,
+        "after_git_blob": "c41327ebdefba954e06fad615d85475a94f588bc"
+      },
+      {
+        "name": "mission-generic-ui.mjs",
+        "before_sha256": "d347929b770f6f2a1b024a9066a5ebc0b1adacaedc05a4edec0b079b986cb541",
+        "after_sha256": "7d825ebdad07ce4b7ca160a37db06b47097a03a2ba13b515fb37d7faaab76f0c",
+        "after_bytes": 154630,
+        "after_git_blob": "5da67ba51a2ef096741d0dfdd2986f7f6b4ba3b7"
+      }
+    ],
+    "syntax": "PASS",
+    "inline_scripts": 8,
+    "module": "PASS",
+    "new_provider_calls": 0,
+    "db_changes": false
+  },
+  "review": {
+    "accepted": true,
+    "findings": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0
+    },
+    "sourceSHA": {
+      "land.html": {
+        "before_sha256": "4507cd7f04f9ca2614c1368dafe79692607cc8184555805cadac5d8bf9259b96",
+        "after_sha256": "252ef34ff7a64dd87ad0b72c386fe22fbe1a673ed62fbff64a7a006ffcae4979"
+      },
+      "mission-generic-ui.mjs": {
+        "before_sha256": "d347929b770f6f2a1b024a9066a5ebc0b1adacaedc05a4edec0b079b986cb541",
+        "after_sha256": "7d825ebdad07ce4b7ca160a37db06b47097a03a2ba13b515fb37d7faaab76f0c"
+      }
+    },
+    "rationale": [
+      "Getter readonly circoscritto a Staff Test Room, is_test, identità corrente, roomScope e host connesso; roomError impedisce di attestare una proiezione non verificabile. processingFor lega la ricevuta a sessione/evento/request/revisione; servono completed, message_id e finalized_at validi.",
+      "LAND conserva priorità della publication esplicita e del retained Human. Solo in loro assenza usa il getter Generic; non sostituisce né amplia i percorsi precedenti.",
+      "Il fallback riusa messages con i filtri esatti id/location/kind e le RLS esistenti. Non modifica chat_messages_live, policy, dati o provider.",
+      "Dopo le attese vengono ricontrollati stanza, identità, msgReadGeneration e auth/epoch Staff esistenti; prima di renderizzare sono ricontrollati principal, location, session, work, publication ed epoch Generic. Una risposta riferita a un altra sessione o a un vecchio ingresso non viene inserita.",
+      "Reload e rientro acquisiscono la proiezione con updateRoom e avviano una nuova lettura chat quando cambia la chiave; il normale polling già esistente continua a leggere usando la pubblicazione corrente. msgReadGeneration seleziona la lettura più recente se i due percorsi coincidono.",
+      "pending, null, errore o completed invalido producono getter null. Nessun esito pubblicato viene inventato.",
+      "Il fallback è eseguito solo se quel Fato non è già nelle righe live; il messaggio recuperato mantiene ordinamento per created_at e id.",
+      "Pin del modulo e impronte/byte/Git blob verificati indipendentemente. Nessun writer aggiunto al delta."
+    ],
+    "cases_static": {
+      "reload_reentry": "PASS",
+      "coincident_poll": "PASS",
+      "session_change": "PASS",
+      "logout": "PASS",
+      "invalid_completed": "PASS",
+      "pending_null": "PASS",
+      "explicit_publication_priority": "PASS",
+      "duplicate_rows": "PASS",
+      "chronological_sort": "PASS"
+    },
+    "limits": [
+      "Review soltanto statica; presenza e leggibilità dell incipit dopo 12 ore da verificare nel sito pubblicato.",
+      "Il recupero riguarda l ultimo Fato attestato dal work corrente, non l intero storico. Se il work corrente diventa pending/null il getter non conserva artificialmente la precedente attestazione.",
+      "Prima della proiezione Generic il primo caricamento può risultare vuoto; la successiva lettura collegata alla proiezione recupera il Fato.",
+      "Nessuna operazione browser/DB o chiamata provider eseguita dal reviewer. Il referto non azzera i conteggi storici C1266."
+    ],
+    "runtime": "NOT_RUN"
+  },
+  "before": [
+    {
+      "postflight": {
+        "root": {
+          "state": "enabled",
+          "revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433",
+          "observed_revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433"
+        },
+        "work": {
+          "id": "245aea9b-ee14-4511-8223-fe1fdeda5ff3",
+          "state": "completed",
+          "event_id": "3ba1698a-648d-42d0-a0dd-f538e80c445f",
+          "lease_id": "086854a6-19d0-4eb1-8173-e15c4a0c22cc",
+          "revision": 1,
+          "message_id": "34c34697-768a-493a-b180-1045fcc4ea22",
+          "receipt_id": "4c8def38-0ea6-4b27-bcac-3c6e5d854798",
+          "dispatch_id": "0a30bdfc-0f33-4211-a95f-bb5b02d6942d",
+          "request_key": "feaea298-afe2-4123-b6cb-bead0777e26c",
+          "finalized_at": "2026-10-21T16:36:34.147772+00:00",
+          "result_sha256": "234ea41811b77381d6f5df22c2c18a182d7b37f55032e3686fccba836d2dcb87",
+          "payload_sha256": "a6171954f32a3cf1e221f6947a5355834972ebdec76a910702c8e7e30814d39f",
+          "authorization_id": "1ae2c84a-4877-4fc1-8711-4584da8c2094",
+          "lease_expires_at": "2026-10-21T16:42:17.22109+00:00"
+        },
+        "audit": [
+          {
+            "event_code": "c1266_async_owner_v1",
+            "details_md5": "4140d7714ccf792727369d4b00c92181"
+          },
+          {
+            "event_code": "c8_count_started",
+            "details_md5": "a660705bc4987d9030fe13f3c06b3fd6"
+          },
+          {
+            "event_code": "c8_count_success",
+            "details_md5": "cc70b1ed9b6b65610eeb8a88ff70f1b6"
+          },
+          {
+            "event_code": "generic_finalized",
+            "details_md5": "ef35f696c4acdef443107ce919b1bfed"
+          },
+          {
+            "event_code": "manual_counted_resume_v1",
+            "details_md5": "9854237bad027580290377d322194a62"
+          },
+          {
+            "event_code": "provider_started",
+            "details_md5": "99914b932bd37a50b983c5e7c90ae93b"
+          }
+        ],
+        "calls": [
+          {
+            "id": "b966cf30-50ed-434c-b647-706c31ff8ea1",
+            "state": "settled",
+            "call_no": 1,
+            "sent_at": "2026-10-21T16:36:20.389944+00:00",
+            "settled_at": "2026-10-21T16:36:34.145084+00:00",
+            "charged_usd": 0.0009667,
+            "reserved_usd": 0.0124
+          },
+          {
+            "id": "7ed9ae1d-e1fe-4c4a-be84-1bef7de875c3",
+            "state": "unknown_billable",
+            "call_no": 2,
+            "sent_at": "2026-10-21T15:58:58.546104+00:00",
+            "settled_at": null,
+            "charged_usd": null,
+            "reserved_usd": 0.0124
+          }
+        ],
+        "scene": {
+          "id": "44078c5f-7001-4129-9506-e2f34e68c8ac",
+          "stato": "in_corso",
+          "closed_at": null,
+          "control_version": 2
+        },
+        "attempts": 1,
+        "dispatch": {
+          "id": "0b5aa84c-7063-460e-b4f1-1169ce7cc1ab",
+          "status": "success",
+          "finalized_at": "2026-10-21T16:36:34.145829+00:00",
+          "dispatch_count": 1
+        },
+        "captured_at": "2026-10-22T07:15:09.463524+00:00",
+        "authorizations": 1,
+        "abort_operations": 0,
+        "manual_admission": "e25a356c70fcb49e7e6261056b7d6ab54ed37caa277756addf2f7681a64fe728",
+        "original_message": {
+          "id": "34c34697-768a-493a-b180-1045fcc4ea22",
+          "row_md5": "f57155d9297a110a5c8495c854d02cdc"
+        }
+      }
+    }
+  ],
+  "after": [
+    {
+      "postflight": {
+        "root": {
+          "state": "enabled",
+          "revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433",
+          "observed_revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433"
+        },
+        "work": {
+          "id": "245aea9b-ee14-4511-8223-fe1fdeda5ff3",
+          "state": "completed",
+          "event_id": "3ba1698a-648d-42d0-a0dd-f538e80c445f",
+          "lease_id": "086854a6-19d0-4eb1-8173-e15c4a0c22cc",
+          "revision": 1,
+          "message_id": "34c34697-768a-493a-b180-1045fcc4ea22",
+          "receipt_id": "4c8def38-0ea6-4b27-bcac-3c6e5d854798",
+          "dispatch_id": "0a30bdfc-0f33-4211-a95f-bb5b02d6942d",
+          "request_key": "feaea298-afe2-4123-b6cb-bead0777e26c",
+          "finalized_at": "2026-10-21T16:36:34.147772+00:00",
+          "result_sha256": "234ea41811b77381d6f5df22c2c18a182d7b37f55032e3686fccba836d2dcb87",
+          "payload_sha256": "a6171954f32a3cf1e221f6947a5355834972ebdec76a910702c8e7e30814d39f",
+          "authorization_id": "1ae2c84a-4877-4fc1-8711-4584da8c2094",
+          "lease_expires_at": "2026-10-21T16:42:17.22109+00:00"
+        },
+        "audit": [
+          {
+            "event_code": "c1266_async_owner_v1",
+            "details_md5": "4140d7714ccf792727369d4b00c92181"
+          },
+          {
+            "event_code": "c8_count_started",
+            "details_md5": "a660705bc4987d9030fe13f3c06b3fd6"
+          },
+          {
+            "event_code": "c8_count_success",
+            "details_md5": "cc70b1ed9b6b65610eeb8a88ff70f1b6"
+          },
+          {
+            "event_code": "generic_finalized",
+            "details_md5": "ef35f696c4acdef443107ce919b1bfed"
+          },
+          {
+            "event_code": "manual_counted_resume_v1",
+            "details_md5": "9854237bad027580290377d322194a62"
+          },
+          {
+            "event_code": "provider_started",
+            "details_md5": "99914b932bd37a50b983c5e7c90ae93b"
+          }
+        ],
+        "calls": [
+          {
+            "id": "b966cf30-50ed-434c-b647-706c31ff8ea1",
+            "state": "settled",
+            "call_no": 1,
+            "sent_at": "2026-10-21T16:36:20.389944+00:00",
+            "settled_at": "2026-10-21T16:36:34.145084+00:00",
+            "charged_usd": 0.0009667,
+            "reserved_usd": 0.0124
+          },
+          {
+            "id": "7ed9ae1d-e1fe-4c4a-be84-1bef7de875c3",
+            "state": "unknown_billable",
+            "call_no": 2,
+            "sent_at": "2026-10-21T15:58:58.546104+00:00",
+            "settled_at": null,
+            "charged_usd": null,
+            "reserved_usd": 0.0124
+          }
+        ],
+        "scene": {
+          "id": "44078c5f-7001-4129-9506-e2f34e68c8ac",
+          "stato": "in_corso",
+          "closed_at": null,
+          "control_version": 2
+        },
+        "attempts": 1,
+        "dispatch": {
+          "id": "0b5aa84c-7063-460e-b4f1-1169ce7cc1ab",
+          "status": "success",
+          "finalized_at": "2026-10-21T16:36:34.145829+00:00",
+          "dispatch_count": 1
+        },
+        "captured_at": "2026-10-22T07:19:07.54264+00:00",
+        "authorizations": 1,
+        "abort_operations": 0,
+        "manual_admission": "e25a356c70fcb49e7e6261056b7d6ab54ed37caa277756addf2f7681a64fe728",
+        "original_message": {
+          "id": "34c34697-768a-493a-b180-1045fcc4ea22",
+          "row_md5": "f57155d9297a110a5c8495c854d02cdc"
+        }
+      }
+    }
+  ],
+  "preservation": {
+    "identical": true,
+    "new_provider_calls": 0,
+    "new_abort_operations": 0,
+    "original_message_unchanged": true,
+    "comparison": "Scena, messaggio, work, audit, quote, ricevute; escluso captured_at"
+  },
+  "qa": {
+    "reload": true,
+    "originalTime": "21/10/2026 18:36:34",
+    "providerCalls": 0,
+    "reentry": true,
+    "checkedAt": "2026-10-22T07:19:16.482Z",
+    "afterPoll": true,
+    "passed": true,
+    "scope": "Messaggio originale oltre12h, reload e uscita/rientro Staff; sola lettura, nessuna role o avvio"
+  },
+  "delta": "--- land.html.before\n+++ land.html.after\n@@ -6120,12 +6120,18 @@\n         msgReadGeneration++;\n         msgFatoHistory={location:cur.id,principal:myId,epoch:UI_POSTREVIEW_STAFF_EPOCH,authEpoch:MV2.authEpoch||0,session:session,publication:pub,row:null};\n       }\n+      function msgGenericPublicationCurrent(snapshot){\n+        var next=MISSION_GENERIC_UI&&MISSION_GENERIC_UI.chatPublication();\n+        return !!(snapshot&&next&&['principal','location','session','work','publication','epoch'].every(function(k){return next[k]===snapshot[k];}));\n+      }\n       function loadMsgs(expectedPublication){\n         if(!sb||!cur) return Promise.resolve(false);\n         if(expectedPublication!=null&&(typeof expectedPublication!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(expectedPublication)))return Promise.resolve(false);\n         var msgLocation=cur.id,msgPrincipal=myId,msgGeneration=++msgReadGeneration;\n         var retained=msgFatoHistoryCurrent()?msgFatoHistory:null;\n         if(!expectedPublication&&retained)expectedPublication=retained.publication;\n+        var genericPublication=!expectedPublication&&MISSION_GENERIC_UI&&MISSION_GENERIC_UI.chatPublication();\n+        if(genericPublication)expectedPublication=genericPublication.publication;\n         var msgProjection='id,author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user,companion_body,character:characters(id,name,cognome,avatar_url,sex,rank,clan,clan_role,epithet),companion:character_companions(name,avatar_url,kind,grado)';\n         var msgRequest=sb.from('chat_messages_live').select(msgProjection).eq('location_id',msgLocation).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(300);\n         var fateRequest=msgLocation==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&iAmStaff?sb.rpc('mission_staff_fato_supersessions_v1',{p_location:msgLocation}):Promise.resolve({data:[]});\n@@ -6148,6 +6154,7 @@\n             rows.push(history.data);\n             rows.sort(function(a,b){var d=new Date(a.created_at)-new Date(b.created_at);return d||String(a.id).localeCompare(String(b.id));});\n           }\n+          if(genericPublication&&!msgGenericPublicationCurrent(genericPublication))return false;\n           var fateStatuses={};\n           if(fr&&!fr.error&&Array.isArray(fr.data))fr.data.forEach(function(f){if(f&&f.message_id&&(f.status==='superseded'||f.status==='reissuing'))fateStatuses[f.message_id]=f.status;});\n           renderMsgs(rows,fateStatuses);return true;\n@@ -14757,10 +14764,10 @@\n           close();closeMiss();loadMsgs();loadMasterV2();ordinaryRefresh();\n         }});await panel.open(target.episode);if(!same())close();}catch(e){if(same())host.textContent='Quest non disponibile per questo accesso. Riapri il pannello per rileggere lo stato.';else close();}\n       }\n-      var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null;\n+      var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null,missionGenericChatKey=null;\n       function missionGenericUI(){\n         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);\n-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=abort-availability-d347929b770f6f2a').then(function(mod){\n+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=chat-history-7d825ebdad07ce4b').then(function(mod){\n           MISSION_GENERIC_UI=mod.createMissionUI({client:sb,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},\n             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,\n             openCombat:function(){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')void ORDINARY.open('ordinary');else toast('Pannello Scontro non disponibile in questa scena.');},\n@@ -14771,7 +14778,11 @@\n       }\n       function missionGenericRoomRefresh(){if(!loggedIn||!sb||!cur||(cur.is_exam_room&&!cur.is_test))return;\n         var host=document.getElementById('mission-generic-room');\n-        missionGenericUI().then(function(ui){return ui.updateRoom(host);}).catch(function(){});\n+        missionGenericUI().then(async function(ui){\n+          await ui.updateRoom(host);\n+          var publication=ui.chatPublication(),key=publication?JSON.stringify(publication):null;\n+          if(key!==missionGenericChatKey){missionGenericChatKey=key;loadMsgs();}\n+        }).catch(function(){});\n       }\n       var MISSION_ARENA_EDITOR=null;\n       function missionArenaEditor(){\n--- mission-generic-ui.mjs.before\n+++ mission-generic-ui.mjs.after\n@@ -410,6 +410,16 @@\n    ||typeof p.created_at!=='string'||!Number.isFinite(Date.parse(p.created_at))||!(p.finalized_at===null||typeof p.finalized_at==='string'&&Number.isFinite(Date.parse(p.finalized_at)))\n    ||!(p.message_id===null||UUID.test(p.message_id||''))||q?.schema_version!=='mission-generic-request/1'||q.master_session_id!==state.session_id||q.event_id!==p.event_id||q.request_key!==p.request_key||q.expected_revision!==p.revision)return {valid:false,value:null};\n   return {valid:true,value:p};\n+ }\n+ // Read-only receipt for the room chat: it never starts or resumes narrative work.\n+ function chatPublication(){\n+  const user=identity(),loc=currentLocation();\n+  if(!user||!isStaff()||loc?.id!==STAFF_TEST_ROOM||loc.is_test!==true||roomError\n+   ||scopeFor(user,loc)!==roomScope||!roomHost?.isConnected)return null;\n+  const parsed=processingFor(roomState),p=parsed.value;\n+  if(!parsed.valid||p?.state!=='completed'||!UUID.test(p.message_id||'')\n+   ||typeof p.finalized_at!=='string'||!Number.isFinite(Date.parse(p.finalized_at)))return null;\n+  return {principal:user,location:loc.id,session:roomState.session_id,work:p.work_id,publication:p.message_id,epoch:roomEpoch};\n  }\n  // This optional proof permits asking the server for one guarded resume, never provider execution.\n  const openingResumeKeys=['schema_version','eligible_to_request','master_session_id','work_id','event_id','request_key','expected_revision','payload_sha256','binding_sha256','release_sha256','source_qualification_sha256','denial_audit_id','proof_sha256'];\n@@ -1687,5 +1697,5 @@\n   if(roomHost)void updateRoom(roomHost,{manual:true});\n   return {handled:true,receipt};\n  }\n- return {editor,board,decorateBoard,updateRoom,submitRole,sessionId:()=>roomState?.session_id,dispose(){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};\n+ return {editor,board,decorateBoard,updateRoom,submitRole,chatPublication,sessionId:()=>roomState?.session_id,dispose(){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};\n }\n",
+  "previous_handoff": "# C1266 · Stabilità Esame Genin inattivo\n\n**TASK-ID** · C1266-EXAM-IDLE-POLL-20261022.\n\n**Scope toccato** · LAND host Esame Human e invocazione periodica.\n\n**Contratti usati/modificati** · Nessuna firma RPC o shape modificata. Flag interno background distingue presentazione delle letture; tutte le guardie e i lock operativi restano. Nessuna modifica DB/Edge o quote.\n\n**Decisioni prese / OPEN** · Nessuna nuova prova, annullamento o generazione; missione aperta conservata.\n\n**Prove eseguite e risultato** · C1266 · Esame Genin inattivo · 22/10/2026: eliminato il lampeggio dei pulsanti causato da refreshing/inflight durante le letture periodiche. Dopo il bootstrap, solo con ingresso chiuso, nessun esame e nessun pending, il refresh in background mantiene stabile la disponibilità visiva; i gesti di navigazione durante la lettura sono accodati e ricontrollati. Tutte le letture, i controlli Auth, le ricevute e le guardie server restano attivi. Bootstrap, errore, scelta aperta, board, prova attiva e pending mantengono il comportamento ordinario. Nessun vincolo aggiunto o allentato. Sintassi6script PASS, review0/0/0; client bdab987c66782f13075ba03d97fdfe6d2131ff81, Pages39738199777 riuscito. Osservazione reale Chrome Staff su più cicli9s: pulsanti stabili e nessun aggiornamento visibile del riquadro invariato. Missione in corso, incipit nel DB, audit, quote e zero annullamenti identici prima/dopo; zero nuove chiamate provider. Esame giocato e avvio di nuove prove NOT_RUN.\n\n**Rischi o regressioni da verificare** · Race, pending e contesti verificati staticamente; nessuna fault injection live. Collaudo limitato al pannello inattivo già rilasciato; non qualifica gameplay Esame.\n\n**Passaggio richiesto al PM** · Correzione consegnata, nessun backlog avviato. Prove e handoff precedente in candidato/exam_human_master/C1266_EXAM_IDLE_POLL.json.\n",
+  "constraints_added": [],
+  "constraints_removed": []
+}

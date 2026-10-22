@@ -1072,3 +1072,5 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 2026-10-22 · C1266-ABORT-NOTICE · Falso avviso di annullamento corretto, review0/0/0 e StaffPASS; prova/incipit/audit/quote invariati,0provider e0abort · consegnato.
 
 2026-10-22 · C1266-EXAM-IDLE-POLL · Lettura periodica silenziosa dell’ingresso chiuso, comandi accodati e riconvalidati; review0/0/0 e StaffPASS,0provider, missione invariata · consegnato.
+
+2026-10-22 · C1266-INCIPIT-HISTORY · Chat recupera il Fato originale attestato oltre12h e dopo rientro; review0/0/0, StaffPASS,0provider, missione invariata · consegnato.
