@@ -411,6 +411,16 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    ||!(p.message_id===null||UUID.test(p.message_id||''))||q?.schema_version!=='mission-generic-request/1'||q.master_session_id!==state.session_id||q.event_id!==p.event_id||q.request_key!==p.request_key||q.expected_revision!==p.revision)return {valid:false,value:null};
   return {valid:true,value:p};
  }
+ // Read-only receipt for the room chat: it never starts or resumes narrative work.
+ function chatPublication(){
+  const user=identity(),loc=currentLocation();
+  if(!user||!isStaff()||loc?.id!==STAFF_TEST_ROOM||loc.is_test!==true||roomError
+   ||scopeFor(user,loc)!==roomScope||!roomHost?.isConnected)return null;
+  const parsed=processingFor(roomState),p=parsed.value;
+  if(!parsed.valid||p?.state!=='completed'||!UUID.test(p.message_id||'')
+   ||typeof p.finalized_at!=='string'||!Number.isFinite(Date.parse(p.finalized_at)))return null;
+  return {principal:user,location:loc.id,session:roomState.session_id,work:p.work_id,publication:p.message_id,epoch:roomEpoch};
+ }
  // This optional proof permits asking the server for one guarded resume, never provider execution.
  const openingResumeKeys=['schema_version','eligible_to_request','master_session_id','work_id','event_id','request_key','expected_revision','payload_sha256','binding_sha256','release_sha256','source_qualification_sha256','denial_audit_id','proof_sha256'];
  const hasOpeningResume=state=>!!state&&Object.hasOwn(state,'opening_ready_resume');
@@ -1687,5 +1697,5 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(roomHost)void updateRoom(roomHost,{manual:true});
   return {handled:true,receipt};
  }
- return {editor,board,decorateBoard,updateRoom,submitRole,sessionId:()=>roomState?.session_id,dispose(){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};
+ return {editor,board,decorateBoard,updateRoom,submitRole,chatPublication,sessionId:()=>roomState?.session_id,dispose(){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};
 }

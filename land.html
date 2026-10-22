@@ -6120,12 +6120,18 @@ window.TUSOrdinary={attachOrdinaryLand};
         msgReadGeneration++;
         msgFatoHistory={location:cur.id,principal:myId,epoch:UI_POSTREVIEW_STAFF_EPOCH,authEpoch:MV2.authEpoch||0,session:session,publication:pub,row:null};
       }
+      function msgGenericPublicationCurrent(snapshot){
+        var next=MISSION_GENERIC_UI&&MISSION_GENERIC_UI.chatPublication();
+        return !!(snapshot&&next&&['principal','location','session','work','publication','epoch'].every(function(k){return next[k]===snapshot[k];}));
+      }
       function loadMsgs(expectedPublication){
         if(!sb||!cur) return Promise.resolve(false);
         if(expectedPublication!=null&&(typeof expectedPublication!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(expectedPublication)))return Promise.resolve(false);
         var msgLocation=cur.id,msgPrincipal=myId,msgGeneration=++msgReadGeneration;
         var retained=msgFatoHistoryCurrent()?msgFatoHistory:null;
         if(!expectedPublication&&retained)expectedPublication=retained.publication;
+        var genericPublication=!expectedPublication&&MISSION_GENERIC_UI&&MISSION_GENERIC_UI.chatPublication();
+        if(genericPublication)expectedPublication=genericPublication.publication;
         var msgProjection='id,author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user,companion_body,character:characters(id,name,cognome,avatar_url,sex,rank,clan,clan_role,epithet),companion:character_companions(name,avatar_url,kind,grado)';
         var msgRequest=sb.from('chat_messages_live').select(msgProjection).eq('location_id',msgLocation).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(300);
         var fateRequest=msgLocation==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&iAmStaff?sb.rpc('mission_staff_fato_supersessions_v1',{p_location:msgLocation}):Promise.resolve({data:[]});
@@ -6148,6 +6154,7 @@ window.TUSOrdinary={attachOrdinaryLand};
             rows.push(history.data);
             rows.sort(function(a,b){var d=new Date(a.created_at)-new Date(b.created_at);return d||String(a.id).localeCompare(String(b.id));});
           }
+          if(genericPublication&&!msgGenericPublicationCurrent(genericPublication))return false;
           var fateStatuses={};
           if(fr&&!fr.error&&Array.isArray(fr.data))fr.data.forEach(function(f){if(f&&f.message_id&&(f.status==='superseded'||f.status==='reissuing'))fateStatuses[f.message_id]=f.status;});
           renderMsgs(rows,fateStatuses);return true;
@@ -14757,10 +14764,10 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
           close();closeMiss();loadMsgs();loadMasterV2();ordinaryRefresh();
         }});await panel.open(target.episode);if(!same())close();}catch(e){if(same())host.textContent='Quest non disponibile per questo accesso. Riapri il pannello per rileggere lo stato.';else close();}
       }
-      var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null;
+      var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null,missionGenericChatKey=null;
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=abort-availability-d347929b770f6f2a').then(function(mod){
+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=chat-history-7d825ebdad07ce4b').then(function(mod){
           MISSION_GENERIC_UI=mod.createMissionUI({client:sb,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             openCombat:function(){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')void ORDINARY.open('ordinary');else toast('Pannello Scontro non disponibile in questa scena.');},
@@ -14771,7 +14778,11 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       }
       function missionGenericRoomRefresh(){if(!loggedIn||!sb||!cur||(cur.is_exam_room&&!cur.is_test))return;
         var host=document.getElementById('mission-generic-room');
-        missionGenericUI().then(function(ui){return ui.updateRoom(host);}).catch(function(){});
+        missionGenericUI().then(async function(ui){
+          await ui.updateRoom(host);
+          var publication=ui.chatPublication(),key=publication?JSON.stringify(publication):null;
+          if(key!==missionGenericChatKey){missionGenericChatKey=key;loadMsgs();}
+        }).catch(function(){});
       }
       var MISSION_ARENA_EDITOR=null;
       function missionArenaEditor(){
