@@ -885,12 +885,16 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   for(const old of asyncWorks.values())if(old!==r&&old.journalKey===m.original_journal_key)old.inactive=true;
   return parent;
  }
- function restoreCountedMarkers(state,t){
+ function restoreCountedMarkers(state,t,settlements=[]){
   if(!asyncCurrent(t))return;const prefix=`mission-counted-resume/1:${t.user}:${state.session_id}:`;let count=0;
   for(let i=0;i<localStorage.length;i++){
    const key=localStorage.key(i);if(!key?.startsWith(prefix))continue;
    if(++count>128)throw Error('counted_marker_limit');const m=readCountedMarker(key,t.user,state.session_id);
-   if(m)attachCountedMarker(m,key); // Observation only, including uncertain/no ACK.
+   if(m){
+    const proof=settlementFor(settlements,selectorFor(m.request),m.work_id);
+    if(proof){recordSettlement(proof,t);continue;}
+    attachCountedMarker(m,key); // Observation only, including uncertain/no ACK.
+   }
   }
  }
  async function staffResumeCounted(host){
@@ -1247,9 +1251,17 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&!r.inactive&&(r.accepted||r.journalKey)&&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone));
  }
  function asyncNotice(state){
-  const r=[...asyncWorks.values()].reverse().find(r=>r.user===cacheUser&&r.session===state.session_id
-   &&(!state.processing||state.processing.work_id===r.work));
+  const records=[...asyncWorks.values()].reverse().filter(r=>r.user===cacheUser&&r.session===state.session_id);
+  // An older pending observation can suspend this session too; never hide its blocker behind the current publication.
+  const r=records.find(r=>!r.inactive&&(r.accepted||r.journalKey)
+   &&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone))
+   ||records.find(r=>!r.inactive&&(!state.processing||state.processing.work_id===r.work));
   if(!r)return null;
+  const previous=!!state.processing&&state.processing.work_id!==r.work;
+  if(previous&&r.failure==='budget')return 'La verifica automatica di una richiesta precedente ha raggiunto il limite. Le nuove role sono conservate; il prossimo Fato non è ancora stato avviato.';
+  if(previous&&r.failure)return 'Una richiesta precedente non è ancora riconciliata. Le nuove role sono conservate; il prossimo Fato non è ancora stato avviato.';
+  if(previous&&!r.inactive&&(r.accepted||r.journalKey)
+   &&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone))return 'È in corso la verifica di una richiesta precedente. Le nuove role sono conservate; il prossimo Fato non è ancora stato avviato.';
   if(r.failure==='budget')return 'La verifica automatica ha raggiunto il limite. La stessa richiesta resta conservata; serve verifica Staff, senza un nuovo invio.';
   if(r.transportNotice&&!r.failure)return 'Lettura temporaneamente non disponibile. La verifica della stessa richiesta continua entro il limite, senza ripetere la generazione.';
   if(r.failure)return 'Stato della stessa richiesta non confermato. Nessun nuovo invio: verifica la regia con lo Staff.';
@@ -1266,6 +1278,59 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(sameChainRequest(body,body))return {kind:'request',request:clone(body)};
   if(nativeExact(body,['schema_version','master_session_id','source_revision'])&&body.schema_version==='mission-generic-staff-tick/1'&&UUID.test(body.master_session_id||'')&&SHA.test(body.source_revision||''))return {kind:'staff_tick',source_revision:body.source_revision};
   return null;
+ }
+ const settlementSchema='mission-async-local-settlement/1';
+ function sameSelector(a,b){
+  return a?.kind===b?.kind&&(a.kind==='request'?sameChainRequest(a.request,b.request)
+   :a.kind==='staff_tick'&&SHA.test(a.source_revision||'')&&a.source_revision===b.source_revision);
+ }
+ function settlementItemValid(x,session){
+  const p=x?.publication,s=x?.selector,q=x?.request;
+  return nativeExact(x,['selector','request','work_id','receipt_id','result_sha256','publication'])
+   &&sameChainRequest(q,q)&&q.master_session_id===session
+   &&(nativeExact(s,['kind','request'])&&s.kind==='request'&&sameChainRequest(s.request,q)
+    ||nativeExact(s,['kind','source_revision'])&&s.kind==='staff_tick'&&SHA.test(s.source_revision||''))
+   &&UUID.test(x.work_id||'')&&UUID.test(x.receipt_id||'')&&SHA.test(x.result_sha256||'')
+   &&nativeExact(p,['writer_work_id','message_id','receipt_id','result_sha256'])
+   &&['writer_work_id','message_id','receipt_id'].every(k=>UUID.test(p[k]||''))&&SHA.test(p.result_sha256||'')
+   &&(p.writer_work_id!==x.work_id||p.receipt_id===x.receipt_id&&p.result_sha256===x.result_sha256);
+ }
+ function journalSettlements(state,t){
+  if(!Object.hasOwn(state,'journal_settlements'))return [];
+  const x=state.journal_settlements;
+  if(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||!asyncCurrent(t)
+   ||!nativeExact(x,['schema_version','master_session_id','items'])||x.schema_version!=='mission-journal-settlements/1'
+   ||x.master_session_id!==state.session_id||!Array.isArray(x.items)||x.items.length>128
+   ||!x.items.every(i=>settlementItemValid(i,state.session_id))
+   ||new Set(x.items.map(i=>selectorKey(i.selector))).size!==x.items.length)throw Error('async_settlements_invalid');
+  return x.items;
+ }
+ function settlementFor(items,selector,work=null){
+  return items.find(i=>sameSelector(i.selector,selector)&&(work===null||work===i.work_id))||null;
+ }
+ function recordSettlement(item,t){
+  // Evidence is supplied by this fresh authenticated room read. The sidecar is audit only.
+  // Original journals, resume phases and their observation budgets remain byte-identical.
+  const key=`${settlementSchema}:${t.user}:${item.request.master_session_id}:${selectorKey(item.selector)}`;
+  const proof={schema_version:settlementSchema,user:t.user,session:item.request.master_session_id,proof:clone(item)};
+  const raw=localStorage.getItem(key);
+  if(raw!==null){const old=JSON.parse(raw);
+   if(!nativeExact(old,['schema_version','user','session','proof'])||old.schema_version!==settlementSchema
+    ||old.user!==t.user||old.session!==proof.session||!settlementItemValid(old.proof,proof.session)
+    ||!sameSelector(old.proof.selector,item.selector)||!sameChainRequest(old.proof.request,item.request)
+    ||old.proof.work_id!==item.work_id||old.proof.receipt_id!==item.receipt_id||old.proof.result_sha256!==item.result_sha256
+    ||['writer_work_id','message_id','receipt_id','result_sha256'].some(k=>old.proof.publication[k]!==item.publication[k]))throw Error('async_settlement_conflict');
+   return;
+  }
+  localStorage.setItem(key,JSON.stringify(proof));
+ }
+ function settleAsyncRecords(items,t){
+  for(const r of asyncWorks.values()){
+   if(r.user!==t.user||r.session!==roomState?.session_id||r.inactive)continue;
+   const selector=r.selector??selectorFor(r.parent?.body)??(r.request?selectorFor(r.request):null);
+   const proof=settlementFor(items,selector,r.work??null);if(!proof)continue;
+   recordSettlement(proof,t);r.terminalSettlement=Object.freeze(clone(proof));r.chainDone=true;r.inactive=true;
+  }
  }
  const journalPhase=j=>['mission-async-journal/3','mission-async-journal/4','mission-async-journal/5'].includes(j?.schema_version)?j.recovery:j?.schema_version==='mission-async-journal/2'?j.resume:j;
  function journalPhaseValid(j,key,user,session,fields){
@@ -1335,10 +1400,15 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const k='journal:'+key;parent.asyncKey=k;
   asyncWorks.set(k,{user:j.user,session:j.session,work:null,request:null,parent,selector:clone(j.selector),journalKey:key,resumeProof:j.proof_sha256??null,started:performance.now(),lastRead:-Infinity,reads:0,busy:false,state:'waiting',failure:null,proof:null,allowChain:false,accepted:false,chainDone:false});
  }
- function restoreJournals(state,t){
+ function restoreJournals(state,t,settlements=[]){
   if(!asyncCurrent(t))return;const prefix=journalPrefix(t.user,state.session_id);let count=0;
   for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key?.startsWith(prefix))continue;
-   if(++count>128)throw Error('async_journal_limit');const j=readJournal(key,t.user,state.session_id);if(j&&!journalPhase(j).done)attachJournal(j,key);
+   if(++count>128)throw Error('async_journal_limit');const j=readJournal(key,t.user,state.session_id);
+   if(j&&!journalPhase(j).done){
+    const proof=settlementFor(settlements,journalPhase(j).selector);
+    if(proof){recordSettlement(proof,t);continue;}
+    attachJournal(j,key);
+   }
   }
  }
  function staffNoWork(data,parent){
@@ -1642,8 +1712,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     academyFlow(state); // The server owns both the phase and the Fato publication receipt.
     roleProgress(state); // A partial reason/remedy projection cannot authorize a dispatch.
    roomState=state;roomError='';
-   restoreJournals(state,t);
-   restoreCountedMarkers(state,t);
+   const settlements=journalSettlements(state,t);
+   settleAsyncRecords(settlements,t);
+   restoreJournals(state,t,settlements);
+   restoreCountedMarkers(state,t,settlements);
    reconcileTickAttempts(state,t);
    await readEntry(state,t.user);if(!roomCurrent(t))return;
    const key=choiceKey(state),pending=choiceRequests.get(key);
