@@ -1080,3 +1080,5 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 2026-10-22 · C1266-ROLE-OPENING · Firefox recuperato con bozza preservata; apertura cursore manuale corretta e recupero puntuale dello stesso incipit, Root composta, review0/0/0, zero provider/invii/riavvii · applicato; nuovo turno NOT_RUN.
 
 2026-10-22 · C1266-FATO-REPETITION · Frase ripetuta non blocca il turno Staff; recuperato Fato salvato con unico messaggio e cursor avanzato, incipit/role/audit/risorse preservati e zero nuove IA; primo recupero rollback42725 corretto senza reset · applicato e verificato nel caso corrente.
+
+2026-10-22 · C1266-SCENE-PROGRESS · Director e writer orientati a sviluppi causali dalle role, Edge88 e Root allineati; Fato/incipit/prova/quote invariati, zero provider · INSTALLATO_READBACK_PASS / QUALITA_FUTURI_FATI_NOT_RUN.
