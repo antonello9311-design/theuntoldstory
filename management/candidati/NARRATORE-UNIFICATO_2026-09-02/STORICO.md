@@ -1070,3 +1070,5 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 2026-10-21 · C1266-FATO-PANEL-20261021 · Pubblicazione distinta da rigenerabilità; review0/0/0 e ChromeStaff PASS, prova/incipit/quote invariati e0provider · consegnato.
 
 2026-10-22 · C1266-ABORT-NOTICE · Falso avviso di annullamento corretto, review0/0/0 e StaffPASS; prova/incipit/audit/quote invariati,0provider e0abort · consegnato.
+
+2026-10-22 · C1266-EXAM-IDLE-POLL · Lettura periodica silenziosa dell’ingresso chiuso, comandi accodati e riconvalidati; review0/0/0 e StaffPASS,0provider, missione invariata · consegnato.

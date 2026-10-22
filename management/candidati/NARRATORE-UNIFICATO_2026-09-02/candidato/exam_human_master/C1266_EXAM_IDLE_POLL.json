@@ -1,0 +1,1237 @@
+{
+  "task": "C1266-EXAM-IDLE-POLL-20261022",
+  "publication": {
+    "commit": "bdab987c66782f13075ba03d97fdfe6d2131ff81",
+    "pages": 39738199777,
+    "conclusion": "success"
+  },
+  "static": {
+    "syntax": "PASS",
+    "scripts": 6,
+    "files": [
+      {
+        "name": "land.html",
+        "after_bytes": 2325354,
+        "after_sha256": "4507cd7f04f9ca2614c1368dafe79692607cc8184555805cadac5d8bf9259b96",
+        "after_git_blob": "9f8dd5740e97c063414c5de325a21e6bc3e05a13"
+      }
+    ],
+    "runtime": "NOT_RUN",
+    "new_provider_calls": 0
+  },
+  "review": {
+    "accepted": true,
+    "findings": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0
+    },
+    "sourceSHA": {
+      "land.html.before": "0d3b094c63500f7b14f494f62807df2528142ff9ca654657525584f2df432863",
+      "land.html.after": "4507cd7f04f9ca2614c1368dafe79692607cc8184555805cadac5d8bf9259b96",
+      "DELTA.diff": "5d0e2ec790938db2281335fc8e899470c9907c6f022f63ee99914ebcb1a67bd2",
+      "STATIC.json": "63e94e32f366f9b9cbe8d7025d023ad92b56aaac7f0019cd34b0c1563ac1e9c9"
+    },
+    "rationale": [
+      "quietRefresh è consentito solo su refresh background dopo un bootstrap riuscito, in entry chiusa senza examId e senza pending. Un errore azzera hasRefreshed e la lettura successiva torna foreground.",
+      "La soppressione riguarda solo il disabled transitorio della navigazione. Tutte le letture host e child, autenticazione, controllo ruolo e recupero restano presenti. Non viene conservata una vecchia disponibilità al posto della lettura.",
+      "renderNav ricontrolla examId, modalità, espansione e pending: l emersione di un esame o di un pending rimuove il comportamento silenzioso. I limiti di disponibilità e del modo selezionato restano applicati.",
+      "Un cambio modalità durante il refresh silenzioso viene accodato; nel finally la coda viene svuotata e switchMode ripete assertContext e controlli su inflight, terminale, pending e availableModes. Nessun vecchio token o risultato di contesto viene riabilitato.",
+      "Il click Aggiorna prova durante la stessa lettura non aggiunge una richiesta concorrente: rimane valida la lettura già in corso. I gesti di scelta continuano a usare i controller esistenti.",
+      "Nessuna modifica ai writer o ai contratti server. Byte, SHA256 e Git blob dell output verificati indipendentemente."
+    ],
+    "limits": [
+      "Review statica: stabilità visiva nel browser e comportamento durante un ciclo reale di polling non verificati dal reviewer.",
+      "La coda conserva soltanto l ultima modalità richiesta durante il refresh; non accoda operazioni di gioco.",
+      "La modalità silenziosa è intenzionalmente limitata alla entry chiusa: polling nelle schede aperte o con esame attivo mantiene il comportamento precedente.",
+      "Nessuna modifica al candidato, accesso browser/DB o chiamata provider eseguita."
+    ],
+    "runtime": "NOT_RUN"
+  },
+  "before": [
+    {
+      "postflight": {
+        "root": {
+          "state": "enabled",
+          "revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433",
+          "observed_revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433"
+        },
+        "work": {
+          "id": "245aea9b-ee14-4511-8223-fe1fdeda5ff3",
+          "state": "completed",
+          "event_id": "3ba1698a-648d-42d0-a0dd-f538e80c445f",
+          "lease_id": "086854a6-19d0-4eb1-8173-e15c4a0c22cc",
+          "revision": 1,
+          "message_id": "34c34697-768a-493a-b180-1045fcc4ea22",
+          "receipt_id": "4c8def38-0ea6-4b27-bcac-3c6e5d854798",
+          "dispatch_id": "0a30bdfc-0f33-4211-a95f-bb5b02d6942d",
+          "request_key": "feaea298-afe2-4123-b6cb-bead0777e26c",
+          "finalized_at": "2026-10-21T16:36:34.147772+00:00",
+          "result_sha256": "234ea41811b77381d6f5df22c2c18a182d7b37f55032e3686fccba836d2dcb87",
+          "payload_sha256": "a6171954f32a3cf1e221f6947a5355834972ebdec76a910702c8e7e30814d39f",
+          "authorization_id": "1ae2c84a-4877-4fc1-8711-4584da8c2094",
+          "lease_expires_at": "2026-10-21T16:42:17.22109+00:00"
+        },
+        "audit": [
+          {
+            "event_code": "c1266_async_owner_v1",
+            "details_md5": "4140d7714ccf792727369d4b00c92181"
+          },
+          {
+            "event_code": "c8_count_started",
+            "details_md5": "a660705bc4987d9030fe13f3c06b3fd6"
+          },
+          {
+            "event_code": "c8_count_success",
+            "details_md5": "cc70b1ed9b6b65610eeb8a88ff70f1b6"
+          },
+          {
+            "event_code": "generic_finalized",
+            "details_md5": "ef35f696c4acdef443107ce919b1bfed"
+          },
+          {
+            "event_code": "manual_counted_resume_v1",
+            "details_md5": "9854237bad027580290377d322194a62"
+          },
+          {
+            "event_code": "provider_started",
+            "details_md5": "99914b932bd37a50b983c5e7c90ae93b"
+          }
+        ],
+        "calls": [
+          {
+            "id": "b966cf30-50ed-434c-b647-706c31ff8ea1",
+            "state": "settled",
+            "call_no": 1,
+            "sent_at": "2026-10-21T16:36:20.389944+00:00",
+            "settled_at": "2026-10-21T16:36:34.145084+00:00",
+            "charged_usd": 0.0009667,
+            "reserved_usd": 0.0124
+          },
+          {
+            "id": "7ed9ae1d-e1fe-4c4a-be84-1bef7de875c3",
+            "state": "unknown_billable",
+            "call_no": 2,
+            "sent_at": "2026-10-21T15:58:58.546104+00:00",
+            "settled_at": null,
+            "charged_usd": null,
+            "reserved_usd": 0.0124
+          }
+        ],
+        "scene": {
+          "id": "44078c5f-7001-4129-9506-e2f34e68c8ac",
+          "stato": "in_corso",
+          "closed_at": null,
+          "control_version": 2
+        },
+        "attempts": 1,
+        "dispatch": {
+          "id": "0b5aa84c-7063-460e-b4f1-1169ce7cc1ab",
+          "status": "success",
+          "finalized_at": "2026-10-21T16:36:34.145829+00:00",
+          "dispatch_count": 1
+        },
+        "captured_at": "2026-10-22T07:04:30.063364+00:00",
+        "authorizations": 1,
+        "abort_operations": 0,
+        "manual_admission": "e25a356c70fcb49e7e6261056b7d6ab54ed37caa277756addf2f7681a64fe728",
+        "original_message": {
+          "id": "34c34697-768a-493a-b180-1045fcc4ea22",
+          "row_md5": "f57155d9297a110a5c8495c854d02cdc"
+        }
+      }
+    }
+  ],
+  "after": [
+    {
+      "postflight": {
+        "root": {
+          "state": "enabled",
+          "revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433",
+          "observed_revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433"
+        },
+        "work": {
+          "id": "245aea9b-ee14-4511-8223-fe1fdeda5ff3",
+          "state": "completed",
+          "event_id": "3ba1698a-648d-42d0-a0dd-f538e80c445f",
+          "lease_id": "086854a6-19d0-4eb1-8173-e15c4a0c22cc",
+          "revision": 1,
+          "message_id": "34c34697-768a-493a-b180-1045fcc4ea22",
+          "receipt_id": "4c8def38-0ea6-4b27-bcac-3c6e5d854798",
+          "dispatch_id": "0a30bdfc-0f33-4211-a95f-bb5b02d6942d",
+          "request_key": "feaea298-afe2-4123-b6cb-bead0777e26c",
+          "finalized_at": "2026-10-21T16:36:34.147772+00:00",
+          "result_sha256": "234ea41811b77381d6f5df22c2c18a182d7b37f55032e3686fccba836d2dcb87",
+          "payload_sha256": "a6171954f32a3cf1e221f6947a5355834972ebdec76a910702c8e7e30814d39f",
+          "authorization_id": "1ae2c84a-4877-4fc1-8711-4584da8c2094",
+          "lease_expires_at": "2026-10-21T16:42:17.22109+00:00"
+        },
+        "audit": [
+          {
+            "event_code": "c1266_async_owner_v1",
+            "details_md5": "4140d7714ccf792727369d4b00c92181"
+          },
+          {
+            "event_code": "c8_count_started",
+            "details_md5": "a660705bc4987d9030fe13f3c06b3fd6"
+          },
+          {
+            "event_code": "c8_count_success",
+            "details_md5": "cc70b1ed9b6b65610eeb8a88ff70f1b6"
+          },
+          {
+            "event_code": "generic_finalized",
+            "details_md5": "ef35f696c4acdef443107ce919b1bfed"
+          },
+          {
+            "event_code": "manual_counted_resume_v1",
+            "details_md5": "9854237bad027580290377d322194a62"
+          },
+          {
+            "event_code": "provider_started",
+            "details_md5": "99914b932bd37a50b983c5e7c90ae93b"
+          }
+        ],
+        "calls": [
+          {
+            "id": "b966cf30-50ed-434c-b647-706c31ff8ea1",
+            "state": "settled",
+            "call_no": 1,
+            "sent_at": "2026-10-21T16:36:20.389944+00:00",
+            "settled_at": "2026-10-21T16:36:34.145084+00:00",
+            "charged_usd": 0.0009667,
+            "reserved_usd": 0.0124
+          },
+          {
+            "id": "7ed9ae1d-e1fe-4c4a-be84-1bef7de875c3",
+            "state": "unknown_billable",
+            "call_no": 2,
+            "sent_at": "2026-10-21T15:58:58.546104+00:00",
+            "settled_at": null,
+            "charged_usd": null,
+            "reserved_usd": 0.0124
+          }
+        ],
+        "scene": {
+          "id": "44078c5f-7001-4129-9506-e2f34e68c8ac",
+          "stato": "in_corso",
+          "closed_at": null,
+          "control_version": 2
+        },
+        "attempts": 1,
+        "dispatch": {
+          "id": "0b5aa84c-7063-460e-b4f1-1169ce7cc1ab",
+          "status": "success",
+          "finalized_at": "2026-10-21T16:36:34.145829+00:00",
+          "dispatch_count": 1
+        },
+        "captured_at": "2026-10-22T07:09:14.506388+00:00",
+        "authorizations": 1,
+        "abort_operations": 0,
+        "manual_admission": "e25a356c70fcb49e7e6261056b7d6ab54ed37caa277756addf2f7681a64fe728",
+        "original_message": {
+          "id": "34c34697-768a-493a-b180-1045fcc4ea22",
+          "row_md5": "f57155d9297a110a5c8495c854d02cdc"
+        }
+      }
+    }
+  ],
+  "preservation": {
+    "identical": true,
+    "new_provider_calls": 0,
+    "new_abort_operations": 0,
+    "compared": "Missione, incipit, audit, ricevute e contatori; escluso captured_at"
+  },
+  "qa": {
+    "passed": true,
+    "samples": [
+      {
+        "at": "2026-10-22T07:09:04.742Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:27.437Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:36.349Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:36.540Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:36.674Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:36.791Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:36.923Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:37.041Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:37.209Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:37.357Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:37.528Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:37.673Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:37.829Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:37.973Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:38.133Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:38.292Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:38.473Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:38.644Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:38.824Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:38.971Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:39.108Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:39.238Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:39.390Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:39.543Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:39.668Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:39.790Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:39.971Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:40.084Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:40.190Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:40.341Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:40.471Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:40.587Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:40.727Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:40.887Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:41.000Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:41.106Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:41.254Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:41.508Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:41.688Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:41.855Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:41.968Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:42.086Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:42.243Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:42.408Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:42.695Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:42.925Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:43.089Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:43.235Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:43.373Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:43.553Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:43.724Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:43.911Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:44.088Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:44.426Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:45.087Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:45.193Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:45.346Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:45.545Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:45.708Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:45.925Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:46.093Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:46.272Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:46.417Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:46.540Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:46.673Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:46.783Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:46.889Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:47.042Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:47.187Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:47.304Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:47.439Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:47.585Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:47.707Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:47.856Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:47.968Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:48.124Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:48.271Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:48.407Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:48.554Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:48.687Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:48.968Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:49.741Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:49.956Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:50.193Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:50.509Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:50.693Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:50.947Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:51.307Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:51.487Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:51.677Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:51.849Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:52.065Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:52.208Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:52.393Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:52.518Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:52.640Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:52.768Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:52.886Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:53.006Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:53.125Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:53.275Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:53.440Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:53.637Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:53.814Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:53.989Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:54.158Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:54.338Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:54.492Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:54.673Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:54.819Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:54.961Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:55.073Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:55.204Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:55.341Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:55.468Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:55.589Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:55.707Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:55.826Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:55.954Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:56.068Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:56.192Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      },
+      {
+        "at": "2026-10-22T07:09:56.324Z",
+        "buttons": [
+          "pulsante di attivazione o disattivazione RICHIESTE MASTER, Value: 0",
+          "pulsante SOSTIENI ESAME",
+          "pulsante AGGIORNA PROVA"
+        ]
+      }
+    ],
+    "continuous_observation_seconds": 20,
+    "interval_seconds": 9,
+    "scope": "Pannello Esame Genin inattivo, ingresso chiuso; verifica reale Chrome Staff dopo ricaricamento versione pubblicata. Nessuna prova avviata.",
+    "limitations": [
+      "Percorsi attivi, pending e click accodati verificati staticamente; non eseguiti in gameplay."
+    ],
+    "screenshot": "/private/tmp/tus-exam-poll-20261022/EXAM_PANEL.png"
+  },
+  "delta": "--- land.html.before\n+++ land.html.after\n@@ -11311,6 +11311,7 @@\n   let disposed = false, generation = 0, inflight = 0, refreshing = false, queued = false, child = null, mode = null, examId = null, state = null;\n   let executionMode = null;\n   let entryReadRemount = false;\n+  let quietRefresh = false, hasRefreshed = false, queuedMode = null;\n   const validReceiptContext = r => ['staff_test','ordinary'].includes(r?.execution_mode) && r.resources_protected === true\n     && r.simulated === (r.execution_mode === 'staff_test') && (!executionMode || r.execution_mode === executionMode);\n   const drafts = new Map();\n@@ -11388,21 +11389,24 @@\n     let pending;\n     try { pending = pendingMode(); } catch(e) { nav.replaceChildren();status.textContent=e.message; verify.disabled=false; return; }\n     const modes = new Set(availableModes()); if (pending && !state?.terminal && state?.available !== false) modes.add(pending);\n+    const quiet=quietRefresh&&!examId&&mode==='entry'&&!entryPresentation.expanded&&!pending;\n     const visible=[...modes].filter(m=>!(m==='entry'&&mode==='entry'));\n     for(const b of [...nav.children])if(!visible.includes(b.dataset.examMode))b.remove();\n     for (const [index,m] of visible.entries()) {\n       let b=[...nav.children].find(n=>n.dataset.examMode===m);\n       if(!b){b=node('button',MODES[m]);b.type='button';b.className='esm-btn';b.dataset.examMode=m;b.addEventListener('click',()=>switchMode(m));}\n       if(nav.children[index]!==b)nav.insertBefore(b,nav.children[index]||null);\n-      const disabled=!!inflight||refreshing||m===mode||!!pending&&pending!==m;\n+      const disabled=(!quiet&&(!!inflight||refreshing))||m===mode||!!pending&&pending!==m;\n       if(b.disabled!==disabled)b.disabled=disabled;\n       const pressed=String(m===mode);if(b.getAttribute('aria-pressed')!==pressed)b.setAttribute('aria-pressed',pressed);\n     }\n-    const verifyDisabled=!!inflight||refreshing;if(verify.disabled!==verifyDisabled)verify.disabled=verifyDisabled;\n+    const verifyDisabled=!quiet&&(!!inflight||refreshing);if(verify.disabled!==verifyDisabled)verify.disabled=verifyDisabled;\n   }\n   function selectExam(id) { if (disposed) return; if(examId!==id){stopChild();examId=id;executionMode=null;} queueRefresh(); }\n   async function switchMode(next) {\n-    assertContext(); if (inflight) return;\n+    assertContext();\n+    if(refreshing&&quietRefresh&&next!==mode){queuedMode=next;return;}\n+    if (inflight) return;\n     if (state?.terminal || state?.available === false) { if (state.terminal || OWN_RECEIPT_RECOVERY.has(pendingMode())) await showReadback(); return; }\n     const pending=pendingMode(); if (pending&&pending!==next) return;\n     if (!availableModes().includes(next)&&pending!==next) return;\n@@ -11521,8 +11525,11 @@\n       } else result.textContent='Esito della richiesta non confermato. Dati conservati: puoi aggiornare la lettura, senza reinviare.';\n     } catch(e) { if(!disposed&&ticket===generation)result.textContent=e.message; }\n   }\n-  async function refresh() {\n-    if (disposed||inflight||refreshing) return;refreshing=true;renderNav();\n+  async function refresh(options={}) {\n+    if (disposed||inflight||refreshing) return;\n+    quietRefresh=false;\n+    try{quietRefresh=options.background===true&&hasRefreshed&&!examId&&mode==='entry'&&!entryPresentation.expanded&&!pendingMode();}catch{/* The normal refresh reports unreadable recovery state. */}\n+    refreshing=true;renderNav();\n     try {\n       assertContext(); pendingMode();\n       if (!examId) {\n@@ -11542,8 +11549,12 @@\n       const next=pending||(modes.includes(mode)?mode:modes[0]);\n       status.textContent=state?.terminal?(state.state==='cancelled'?'Prova annullata senza valutazione. Nessuna promozione o premio.':'Prova conclusa e valutata: promozione e premi sono separati.'):pending?'Verifica la richiesta precedente prima di altre operazioni.':examId? 'Esame con Master · '+({waiting:'in attesa di presa in carico',prepared:'preparazione',narrative:'narrazione',combat:'combattimento'}[state.state]||'stato aggiornato') : '';\n       if(next) await switchMode(next); else stopChild();\n-    }catch(e){stopChild(false,!examId&&(mode==='entry'||entryReadRemount));status.textContent=e.message;}\n-    finally{refreshing=false;renderNav();}\n+      hasRefreshed=true;\n+    }catch(e){hasRefreshed=false;stopChild(false,!examId&&(mode==='entry'||entryReadRemount));status.textContent=e.message;}\n+    finally{refreshing=false;quietRefresh=false;renderNav();\n+      const next=queuedMode;queuedMode=null;\n+      if(next&&!disposed)void switchMode(next).catch(e=>{if(!disposed)status.textContent=e.message;});\n+    }\n   }\n   verify.addEventListener('click',refresh);\n   unsubscribe=subscribeContext(()=>{if(identity(getContext())!==initial)invalidate();})||(()=>{});\n@@ -11633,7 +11644,7 @@\n     await ai?.refresh();\n     if(generation!==EHM_LAND.version||!examHumanContext())return;\n     if(ai?.snapshot()?.prova){examHumanInvalidate();renderEsame();return;}\n-    await EHM_LAND.instance?.refresh();\n+    await EHM_LAND.instance?.refresh({background:true});\n   })();\n   EHM_LAND.loading=task;\n   task.catch(()=>{if(ticket===EHM_LAND.version)examHumanInvalidate(true);}).finally(()=>{if(EHM_LAND.loading===task)EHM_LAND.loading=null;});\n",
+  "previous_handoff": "# C1266 · Avviso annullamento Staff\n\n**TASK-ID** · C1266-ABORT-NOTICE-20261022.\n\n**Scope toccato** · Pannello abort Generic e pin LAND; sola presentazione.\n\n**Contratti usati/modificati** · staff-simulation-abort-state/1, recovery/1 e journal/1 invariati; opzione client hideUnauthorizedAvailability solo Generic. Nessuna modifica DB/Edge o autorizzazioni.\n\n**Decisioni prese / OPEN** · Conservare prova e incipit, zero annullamenti/provider.\n\n**Prove eseguite e risultato** · C1266 · Avviso annullamento · 22/10/2026: lettura della disponibilità distinta dal recupero di un annullamento pendente. La prova è avviata da Riuji; Tamako non è lo start_actor autorizzato dalla porta abort. Nessuna operazione abort presente. Il consumer Generic nasconde soltanto il diniego esatto 42501/STAFF_ABORT_NOT_AUTHORIZED dopo recupero riuscito e journal senza pending, committed o rejected. Altri errori restano visibili; guardie, permessi, journal, invio e ricevute invariati. Nessun vincolo aggiunto o allentato. Sintassi PASS e review indipendente 0/0/0; client f0c75e5c170abfedd7bc186cfddcef3d47fa2f10, Pages39737422685 riuscito, Chrome Staff senza falso avviso dopo ricarica. Confronto readonly prima/dopo identico: scena in corso, incipit originale conservato nel DB, work, audit, quote e zero annullamenti; zero nuove chiamate provider. La chat era già vuota prima dell’intervento per la finestra di lettura di dodici ore; nessuna rigenerazione o intervento su quel filtro. Nuove role/Director non collaudati.\n\n**Rischi o regressioni da verificare** · Pending/errori qualificati staticamente; nessuna fault injection live. Chat fuori finestra12h osservata prima della correzione; filtro non modificato.\n\n**Passaggio richiesto al PM** · Correzione UI consegnata, prova lasciata aperta. Prove e handoff precedente in candidato/exam_human_master/C1266_ABORT_NOTICE.json.\n",
+  "constraints_added": [],
+  "constraints_removed": []
+}
