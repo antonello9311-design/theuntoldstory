@@ -1,15 +1,15 @@
-# C1266 · Pannello Fato pubblicato
+# C1266 · Avviso annullamento Staff
 
-**TASK-ID** · C1266-FATO-PANEL-20261021.
+**TASK-ID** · C1266-ABORT-NOTICE-20261022.
 
-**Scope toccato** · LAND, consumer Generic e pannello Fato; solo presentazione.
+**Scope toccato** · Pannello abort Generic e pin LAND; sola presentazione.
 
-**Contratti usati/modificati** · processing mission-generic-processing/1 già validato; mission-staff-fato-regen/1 invariato. Nessun DB/Edge, permesso o vincolo modificato.
+**Contratti usati/modificati** · staff-simulation-abort-state/1, recovery/1 e journal/1 invariati; opzione client hideUnauthorizedAvailability solo Generic. Nessuna modifica DB/Edge o autorizzazioni.
 
-**Decisioni prese / OPEN** · Nessuna rigenerazione; prova umana lasciata aperta.
+**Decisioni prese / OPEN** · Conservare prova e incipit, zero annullamenti/provider.
 
-**Prove eseguite e risultato** · C1266 · Pannello Fato · 21/10/2026: il pannello distingue la pubblicazione dell’incipit dall’assenza di un target rigenerabile. Usa esclusivamente il work completed già validato e associato alla stessa sessione, con message_id e finalized_at. Ora mostra «Fato pubblicato in chat» e le informazioni della pubblicazione. Eleggibilità, comandi, contratti server e limiti invariati; nessun vincolo aggiunto o allentato. Sintassi PASS, review indipendente 0/0/0; client 738d64c4a858448b85ecc8546ff8d1393281a9d8, Pages39676470822 riuscito, resa Chrome Staff verificata. Incipit originale, scena in corso, work, audit, ricevute e quote identici prima/dopo; zero nuove chiamate provider, role o prove. Avviso separato di annullamento e prossimo turno Regia fuori scope.
+**Prove eseguite e risultato** · C1266 · Avviso annullamento · 22/10/2026: lettura della disponibilità distinta dal recupero di un annullamento pendente. La prova è avviata da Riuji; Tamako non è lo start_actor autorizzato dalla porta abort. Nessuna operazione abort presente. Il consumer Generic nasconde soltanto il diniego esatto 42501/STAFF_ABORT_NOT_AUTHORIZED dopo recupero riuscito e journal senza pending, committed o rejected. Altri errori restano visibili; guardie, permessi, journal, invio e ricevute invariati. Nessun vincolo aggiunto o allentato. Sintassi PASS e review indipendente 0/0/0; client f0c75e5c170abfedd7bc186cfddcef3d47fa2f10, Pages39737422685 riuscito, Chrome Staff senza falso avviso dopo ricarica. Confronto readonly prima/dopo identico: scena in corso, incipit originale conservato nel DB, work, audit, quote e zero annullamenti; zero nuove chiamate provider. La chat era già vuota prima dell’intervento per la finestra di lettura di dodici ore; nessuna rigenerazione o intervento su quel filtro. Nuove role/Director non collaudati.
 
-**Rischi o regressioni da verificare** · Nessuna qualifica delle nuove role/Director o del diverso avviso annullamento.
+**Rischi o regressioni da verificare** · Pending/errori qualificati staticamente; nessuna fault injection live. Chat fuori finestra12h osservata prima della correzione; filtro non modificato.
 
-**Passaggio richiesto al PM** · Correzione UI consegnata. Fonti, review, prove e precedente handoff conservati in candidato/exam_human_master/C1266_FATO_PANEL.json.
+**Passaggio richiesto al PM** · Correzione UI consegnata, prova lasciata aperta. Prove e handoff precedente in candidato/exam_human_master/C1266_ABORT_NOTICE.json.

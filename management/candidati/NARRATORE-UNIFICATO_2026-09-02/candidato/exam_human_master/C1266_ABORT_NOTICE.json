@@ -1,0 +1,295 @@
+{
+  "task": "C1266-ABORT-NOTICE-20261022",
+  "publication": {
+    "commit": "f0c75e5c170abfedd7bc186cfddcef3d47fa2f10",
+    "pages": 39737422685,
+    "conclusion": "success"
+  },
+  "static": {
+    "syntax": "PASS",
+    "files": [
+      {
+        "name": "staff-simulation-abort-ui.mjs",
+        "after_bytes": 17512,
+        "after_sha256": "7ae3073ad9c3aaaa8052ed20b0987a62749d462f1592f3c97cb12ca685911a57",
+        "after_git_blob": "e3292bc961f540ae562eb9797c3d4146acdec544"
+      },
+      {
+        "name": "mission-generic-ui.mjs",
+        "after_bytes": 153943,
+        "after_sha256": "d347929b770f6f2a1b024a9066a5ebc0b1adacaedc05a4edec0b079b986cb541",
+        "after_git_blob": "4d72e62511e61a3cf75b03ef4b7a1ecf946e518f"
+      },
+      {
+        "name": "land.html",
+        "after_bytes": 2324623,
+        "after_sha256": "0d3b094c63500f7b14f494f62807df2528142ff9ca654657525584f2df432863",
+        "after_git_blob": "ba4b6ee60b42d2edd71c095169b7f9d1deffb963"
+      }
+    ],
+    "new_provider_calls": 0,
+    "runtime": "NOT_RUN"
+  },
+  "review": {
+    "accepted": true,
+    "findings": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0
+    },
+    "sourceSHA": {
+      "staff-simulation-abort-ui.mjs": {
+        "before_sha256": "9038617a3f67aa1d2e3223cb45da158213e26d4cac7ee1bd6afde1dac0680d80",
+        "after_sha256": "7ae3073ad9c3aaaa8052ed20b0987a62749d462f1592f3c97cb12ca685911a57"
+      },
+      "mission-generic-ui.mjs": {
+        "before_sha256": "ebb7e7ca7a6e93493e68e876d34c2eebb962908ebef6b4c974f5aa97183d394f",
+        "after_sha256": "d347929b770f6f2a1b024a9066a5ebc0b1adacaedc05a4edec0b079b986cb541"
+      },
+      "land.html": {
+        "before_sha256": "b666943a80109e14108251f6168e4668d600c7bc8e7102abeb1c75887f08d1fd",
+        "after_sha256": "0d3b094c63500f7b14f494f62807df2528142ff9ca654657525584f2df432863"
+      }
+    },
+    "rationale": [
+      "availabilityOnly nasce false e diventa true solo dopo autenticazione e recover riusciti con journal privo di pending, committed e rejected. Un errore di recupero o storage non abilita la soppressione.",
+      "Il diniego viene nascosto solo con opzione attiva e corrispondenza esatta code 42501 / message STAFF_ABORT_NOT_AUTHORIZED. Altri errori di lettura restano visibili come disponibilità non verificabile.",
+      "Un pending mantiene messaggio e pulsanti di riconciliazione; rejected resta visibile; committed segue il percorso già esistente. Nessun esito di annullamento viene creato dalla modifica.",
+      "Autenticazione, load/store/recover, guard dei writer, send e receipt invariati nel confronto esatto. La validità del contesto è ricontrollata nel catch e nel finally.",
+      "hideUnauthorizedAvailability è false per default e viene attivata soltanto dal consumer Generic; gli altri consumer conservano gli avvisi.",
+      "I pin di import corrispondono ai prefissi SHA256 effettivi. Byte, SHA256 e Git blob degli output verificati indipendentemente."
+    ],
+    "limits": [
+      "Review statica: causa backend riportata dal PM, non verificata dal reviewer.",
+      "Runtime e rendering sul dominio restano NOT_RUN da questo reviewer.",
+      "Nessuna modifica al candidato, operazione browser, accesso DB o chiamata provider eseguita."
+    ],
+    "runtime": "NOT_RUN"
+  },
+  "before": [
+    {
+      "postflight": {
+        "root": {
+          "state": "enabled",
+          "revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433",
+          "observed_revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433"
+        },
+        "work": {
+          "id": "245aea9b-ee14-4511-8223-fe1fdeda5ff3",
+          "state": "completed",
+          "event_id": "3ba1698a-648d-42d0-a0dd-f538e80c445f",
+          "lease_id": "086854a6-19d0-4eb1-8173-e15c4a0c22cc",
+          "revision": 1,
+          "message_id": "34c34697-768a-493a-b180-1045fcc4ea22",
+          "receipt_id": "4c8def38-0ea6-4b27-bcac-3c6e5d854798",
+          "dispatch_id": "0a30bdfc-0f33-4211-a95f-bb5b02d6942d",
+          "request_key": "feaea298-afe2-4123-b6cb-bead0777e26c",
+          "finalized_at": "2026-10-21T16:36:34.147772+00:00",
+          "result_sha256": "234ea41811b77381d6f5df22c2c18a182d7b37f55032e3686fccba836d2dcb87",
+          "payload_sha256": "a6171954f32a3cf1e221f6947a5355834972ebdec76a910702c8e7e30814d39f",
+          "authorization_id": "1ae2c84a-4877-4fc1-8711-4584da8c2094",
+          "lease_expires_at": "2026-10-21T16:42:17.22109+00:00"
+        },
+        "audit": [
+          {
+            "event_code": "c1266_async_owner_v1",
+            "details_md5": "4140d7714ccf792727369d4b00c92181"
+          },
+          {
+            "event_code": "c8_count_started",
+            "details_md5": "a660705bc4987d9030fe13f3c06b3fd6"
+          },
+          {
+            "event_code": "c8_count_success",
+            "details_md5": "cc70b1ed9b6b65610eeb8a88ff70f1b6"
+          },
+          {
+            "event_code": "generic_finalized",
+            "details_md5": "ef35f696c4acdef443107ce919b1bfed"
+          },
+          {
+            "event_code": "manual_counted_resume_v1",
+            "details_md5": "9854237bad027580290377d322194a62"
+          },
+          {
+            "event_code": "provider_started",
+            "details_md5": "99914b932bd37a50b983c5e7c90ae93b"
+          }
+        ],
+        "calls": [
+          {
+            "id": "b966cf30-50ed-434c-b647-706c31ff8ea1",
+            "state": "settled",
+            "call_no": 1,
+            "sent_at": "2026-10-21T16:36:20.389944+00:00",
+            "settled_at": "2026-10-21T16:36:34.145084+00:00",
+            "charged_usd": 0.0009667,
+            "reserved_usd": 0.0124
+          },
+          {
+            "id": "7ed9ae1d-e1fe-4c4a-be84-1bef7de875c3",
+            "state": "unknown_billable",
+            "call_no": 2,
+            "sent_at": "2026-10-21T15:58:58.546104+00:00",
+            "settled_at": null,
+            "charged_usd": null,
+            "reserved_usd": 0.0124
+          }
+        ],
+        "scene": {
+          "id": "44078c5f-7001-4129-9506-e2f34e68c8ac",
+          "stato": "in_corso",
+          "closed_at": null,
+          "control_version": 2
+        },
+        "attempts": 1,
+        "dispatch": {
+          "id": "0b5aa84c-7063-460e-b4f1-1169ce7cc1ab",
+          "status": "success",
+          "finalized_at": "2026-10-21T16:36:34.145829+00:00",
+          "dispatch_count": 1
+        },
+        "captured_at": "2026-10-22T06:58:31.472789+00:00",
+        "authorizations": 1,
+        "abort_operations": 0,
+        "manual_admission": "e25a356c70fcb49e7e6261056b7d6ab54ed37caa277756addf2f7681a64fe728",
+        "original_message": {
+          "id": "34c34697-768a-493a-b180-1045fcc4ea22",
+          "row_md5": "f57155d9297a110a5c8495c854d02cdc"
+        }
+      }
+    }
+  ],
+  "after": [
+    {
+      "postflight": {
+        "root": {
+          "state": "enabled",
+          "revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433",
+          "observed_revision_sha256": "af8a910486b42813e0121b71dfb5291ccc5f8da793ded641aec824367a4b8433"
+        },
+        "work": {
+          "id": "245aea9b-ee14-4511-8223-fe1fdeda5ff3",
+          "state": "completed",
+          "event_id": "3ba1698a-648d-42d0-a0dd-f538e80c445f",
+          "lease_id": "086854a6-19d0-4eb1-8173-e15c4a0c22cc",
+          "revision": 1,
+          "message_id": "34c34697-768a-493a-b180-1045fcc4ea22",
+          "receipt_id": "4c8def38-0ea6-4b27-bcac-3c6e5d854798",
+          "dispatch_id": "0a30bdfc-0f33-4211-a95f-bb5b02d6942d",
+          "request_key": "feaea298-afe2-4123-b6cb-bead0777e26c",
+          "finalized_at": "2026-10-21T16:36:34.147772+00:00",
+          "result_sha256": "234ea41811b77381d6f5df22c2c18a182d7b37f55032e3686fccba836d2dcb87",
+          "payload_sha256": "a6171954f32a3cf1e221f6947a5355834972ebdec76a910702c8e7e30814d39f",
+          "authorization_id": "1ae2c84a-4877-4fc1-8711-4584da8c2094",
+          "lease_expires_at": "2026-10-21T16:42:17.22109+00:00"
+        },
+        "audit": [
+          {
+            "event_code": "c1266_async_owner_v1",
+            "details_md5": "4140d7714ccf792727369d4b00c92181"
+          },
+          {
+            "event_code": "c8_count_started",
+            "details_md5": "a660705bc4987d9030fe13f3c06b3fd6"
+          },
+          {
+            "event_code": "c8_count_success",
+            "details_md5": "cc70b1ed9b6b65610eeb8a88ff70f1b6"
+          },
+          {
+            "event_code": "generic_finalized",
+            "details_md5": "ef35f696c4acdef443107ce919b1bfed"
+          },
+          {
+            "event_code": "manual_counted_resume_v1",
+            "details_md5": "9854237bad027580290377d322194a62"
+          },
+          {
+            "event_code": "provider_started",
+            "details_md5": "99914b932bd37a50b983c5e7c90ae93b"
+          }
+        ],
+        "calls": [
+          {
+            "id": "b966cf30-50ed-434c-b647-706c31ff8ea1",
+            "state": "settled",
+            "call_no": 1,
+            "sent_at": "2026-10-21T16:36:20.389944+00:00",
+            "settled_at": "2026-10-21T16:36:34.145084+00:00",
+            "charged_usd": 0.0009667,
+            "reserved_usd": 0.0124
+          },
+          {
+            "id": "7ed9ae1d-e1fe-4c4a-be84-1bef7de875c3",
+            "state": "unknown_billable",
+            "call_no": 2,
+            "sent_at": "2026-10-21T15:58:58.546104+00:00",
+            "settled_at": null,
+            "charged_usd": null,
+            "reserved_usd": 0.0124
+          }
+        ],
+        "scene": {
+          "id": "44078c5f-7001-4129-9506-e2f34e68c8ac",
+          "stato": "in_corso",
+          "closed_at": null,
+          "control_version": 2
+        },
+        "attempts": 1,
+        "dispatch": {
+          "id": "0b5aa84c-7063-460e-b4f1-1169ce7cc1ab",
+          "status": "success",
+          "finalized_at": "2026-10-21T16:36:34.145829+00:00",
+          "dispatch_count": 1
+        },
+        "captured_at": "2026-10-22T07:01:17.629624+00:00",
+        "authorizations": 1,
+        "abort_operations": 0,
+        "manual_admission": "e25a356c70fcb49e7e6261056b7d6ab54ed37caa277756addf2f7681a64fe728",
+        "original_message": {
+          "id": "34c34697-768a-493a-b180-1045fcc4ea22",
+          "row_md5": "f57155d9297a110a5c8495c854d02cdc"
+        }
+      }
+    }
+  ],
+  "preservation": {
+    "identical": true,
+    "different_keys": [],
+    "checked_keys": [
+      "root",
+      "work",
+      "audit",
+      "calls",
+      "scene",
+      "attempts",
+      "dispatch",
+      "authorizations",
+      "abort_operations",
+      "manual_admission",
+      "original_message"
+    ],
+    "new_provider_calls": 0,
+    "abort_operations": 0
+  },
+  "qa": {
+    "passed": true,
+    "case": "Chrome Tamako reload existing Staff",
+    "false_abort_notice_absent": true,
+    "refresh_availability_absent": true,
+    "fato_published_status_present": true,
+    "scene_left_open": true,
+    "original_message_unchanged": true,
+    "no_game_commands": true,
+    "screenshot": "STAFF_PANEL.png",
+    "limitations": [
+      "Only presentation exercised live; pending and corruption paths static review",
+      "Chat already empty before task due existing 12h live view; original message preserved"
+    ]
+  },
+  "delta": "--- staff-simulation-abort-ui.mjs.before\n+++ staff-simulation-abort-ui.mjs.after\n@@ -75,7 +75,7 @@\n  const functions=client.functions?new Proxy(client.functions,{get(t,p){if(p==='invoke')return (name,options)=>wrap(()=>t.invoke(name,options),'provider:'+name,options?.body);const v=Reflect.get(t,p);return typeof v==='function'?v.bind(t):v;}}):null;\n  return new Proxy(client,{get(t,p){if(p===guarded)return t;if(p==='rpc')return (name,payload,...rest)=>wrap(()=>t.rpc(name,payload,...rest),name,payload);if(p==='functions')return functions;const v=Reflect.get(t,p);return typeof v==='function'?v.bind(t):v;}});\n }\n-export function createStaffAbortController({client,identity,isCurrent=()=>true,storage=globalThis.sessionStorage,onCommitted=()=>{},hideCommitted=false}={}){\n+export function createStaffAbortController({client,identity,isCurrent=()=>true,storage=globalThis.sessionStorage,onCommitted=()=>{},hideCommitted=false,hideUnauthorizedAvailability=false}={}){\n  const actor=identity();if(!ID.test(actor||''))throw Error('Accesso Staff non valido.');\n  let session=null,current=null,host=null,busy=false,disposed=false,epoch=0,ui=null,lastMessage='',notified=null;\n  const valid=t=>!disposed&&identity()===actor&&isCurrent()&&epoch===t;\n@@ -94,8 +94,11 @@\n  if(j?.committed)return;if(j?.pending){button('Verifica la stessa richiesta',()=>void refresh());button('Ripeti lo stesso annullamento',()=>void send(true));return;}if(current?.can_abort)button('Annulla prova',()=>void send(false));else if(unavailable)button('Annulla prova',()=>void send(false),true);if(unavailable||j?.rejected||message)button('Aggiorna disponibilità',()=>void refresh());\n  }\n  async function committed(j,t){if(j.committed&&valid(t)&&notified!==j.committed.request_key){notified=j.committed.request_key;await onCommitted(j.committed);}}\n- async function refresh(){if(busy||!session||!valid(epoch))return;const t=epoch;busy=true;lastMessage='';draw();try{await authenticate(t);const j=await recover(t);if(!valid(t))return;if(j.committed){current=null;draw();await committed(j,t);return;}const v=await rpc('mission_staff_simulation_abort_state_v1',{p_session:session},t);if(v?.schema!=='staff-simulation-abort-state/1'||v.master_session_id!==session||!['active','terminal','annullata'].includes(v.status)||typeof v.can_abort!=='boolean'||v.reason_code!==null&&!reasons.has(v.reason_code))bad();if(v.status==='annullata'&&v.receipt){const r=v.receipt,p={p_session:session,p_request:r.request_key,p_expected_master_version:r.expected_master_version,p_expected_run_version:r.expected_run_version};if(r.status!=='annullata')bad();settle(r,p);current=null;await committed(load(session),t);}else{if(!positive(v.master_control_version)||!positive(v.run_control_version)||v.can_abort&&(v.status!=='active'||v.reason_code!==null)||v.receipt!==null)bad();current=v;}\n- draw();}catch{if(valid(t)){current=null;draw('Annullamento non verificabile. Nessun esito confermato; aggiorna la stessa richiesta.');}}finally{if(valid(t)){busy=false;draw();}}}\n+ async function refresh(){if(busy||!session||!valid(epoch))return;const t=epoch;let availabilityOnly=false;busy=true;lastMessage='';draw();try{await authenticate(t);const j=await recover(t);if(!valid(t))return;if(j.committed){current=null;draw();await committed(j,t);return;}availabilityOnly=!j.pending&&!j.committed&&!j.rejected;const v=await rpc('mission_staff_simulation_abort_state_v1',{p_session:session},t);if(v?.schema!=='staff-simulation-abort-state/1'||v.master_session_id!==session||!['active','terminal','annullata'].includes(v.status)||typeof v.can_abort!=='boolean'||v.reason_code!==null&&!reasons.has(v.reason_code))bad();if(v.status==='annullata'&&v.receipt){const r=v.receipt,p={p_session:session,p_request:r.request_key,p_expected_master_version:r.expected_master_version,p_expected_run_version:r.expected_run_version};if(r.status!=='annullata')bad();settle(r,p);current=null;await committed(load(session),t);}else{if(!positive(v.master_control_version)||!positive(v.run_control_version)||v.can_abort&&(v.status!=='active'||v.reason_code!==null)||v.receipt!==null)bad();current=v;}\n+ draw();}catch(error){if(valid(t)){current=null;\n+ // A denied availability read is not an uncertain cancellation. Never hide recovery failures.\n+ const unavailable=hideUnauthorizedAvailability&&availabilityOnly&&error?.code==='42501'&&error?.message==='STAFF_ABORT_NOT_AUTHORIZED';\n+ draw(unavailable?'':availabilityOnly?'Disponibilità dell’annullamento non verificabile. Aggiorna disponibilità.':'Annullamento non verificabile. Nessun esito confermato; aggiorna la stessa richiesta.');}}finally{if(valid(t)){busy=false;draw();}}}\n  async function send(replay){if(busy||!session||!valid(epoch))return;const t=epoch;let j=load(session),p;if(replay){if(!j.pending)return;p=j.pending;}else{if(j.pending||j.committed||!current?.can_abort)return;if((shared.writers.get(key(actor,session))||0)>0){draw('Un comando della prova è ancora in corso. Attendi e aggiorna disponibilità.');return;}p=Object.freeze({p_session:session,p_expected_master_version:current.master_control_version,p_expected_run_version:current.run_control_version,p_request:crypto.randomUUID()});j.pending=p;try{store(j);}catch{draw('Recupero locale non disponibile: nessun annullamento inviato, comandi sospesi.');return;}}\n  busy=true;draw();try{settle(await rpc('mission_staff_simulation_abort_v1',p,t),p);}catch{if(valid(t)){try{await recover(t);}catch{/* Pending remains; no automatic mutation replay. */}}}finally{if(valid(t)){busy=false;current=null;draw();await committed(load(session),t);if(!load(session).pending&&!load(session).committed)await refresh();}}}\n  return {mount:async (element,id)=>{if(!ID.test(id||'')||!element?.isConnected)return;if(host!==element)ui=null;host=element;if(session!==id){epoch++;session=id;current=null;ui=null;lastMessage='';load(id);}await refresh();},blocked:id=>staffAbortBlocked(actor,id),invalidate:()=>{epoch++;session=null;host=null;ui=null;current=null;busy=false;lastMessage='';notified=null;},dispose:()=>{disposed=true;epoch++;session=null;host=null;ui=null;current=null;busy=false;}};\n--- mission-generic-ui.mjs.before\n+++ mission-generic-ui.mjs.after\n@@ -1,4 +1,4 @@\n-import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=staff-log-cleanup-9038617a3f67aa1d';\n+import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-7ae3073ad9c3aaaa';\n import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-publication-7897dcc449bd7b13';\n export const VERSION='mission-academy-flow-v4-staff-client/1-candidate';\n const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';\n@@ -27,7 +27,7 @@\n   host.querySelector('[data-staff-abort-recovery]')?.remove();\n   const recovery=el('div',null,{'data-staff-abort-recovery':''});host.append(recovery);\n   for(const id of ids){if(!roomCurrent(t))return;const ah=el('div',null,{'data-staff-abort':''});recovery.append(ah);\n-   let c=aborts.get(id);if(!c){c=createStaffAbortController({client,identity,hideCommitted:true,isCurrent:()=>roomCurrent(t),onCommitted:r=>{if(roomCurrent(t)&&roomState?.session_id===r.master_session_id){roomState=null;roomSignature='';const recoveryHost=roomHost?.querySelector('[data-staff-abort-recovery]');if(recoveryHost){roomHost.replaceChildren(recoveryHost);roomHost.hidden=false;}notice('Prova annullata. Fato e storico conservati.');}}});aborts.set(id,c);}\n+   let c=aborts.get(id);if(!c){c=createStaffAbortController({client,identity,hideCommitted:true,hideUnauthorizedAvailability:true,isCurrent:()=>roomCurrent(t),onCommitted:r=>{if(roomCurrent(t)&&roomState?.session_id===r.master_session_id){roomState=null;roomSignature='';const recoveryHost=roomHost?.querySelector('[data-staff-abort-recovery]');if(recoveryHost){roomHost.replaceChildren(recoveryHost);roomHost.hidden=false;}notice('Prova annullata. Fato e storico conservati.');}}});aborts.set(id,c);}\n    // Controller contesto catturato: ricrea a ogni epoch stanza, mai riattivare il precedente utente.\n    await c.mount(ah,id);if(!roomCurrent(t))return;\n   }\n--- land.html.before\n+++ land.html.after\n@@ -14749,7 +14749,7 @@\n       var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null;\n       function missionGenericUI(){\n         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);\n-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=fato-publication-ebb7e7ca7a6e9349').then(function(mod){\n+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=abort-availability-d347929b770f6f2a').then(function(mod){\n           MISSION_GENERIC_UI=mod.createMissionUI({client:sb,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},\n             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,\n             openCombat:function(){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')void ORDINARY.open('ordinary');else toast('Pannello Scontro non disponibile in questa scena.');},\n",
+  "previous_handoff": "# C1266 · Pannello Fato pubblicato\n\n**TASK-ID** · C1266-FATO-PANEL-20261021.\n\n**Scope toccato** · LAND, consumer Generic e pannello Fato; solo presentazione.\n\n**Contratti usati/modificati** · processing mission-generic-processing/1 già validato; mission-staff-fato-regen/1 invariato. Nessun DB/Edge, permesso o vincolo modificato.\n\n**Decisioni prese / OPEN** · Nessuna rigenerazione; prova umana lasciata aperta.\n\n**Prove eseguite e risultato** · C1266 · Pannello Fato · 21/10/2026: il pannello distingue la pubblicazione dell’incipit dall’assenza di un target rigenerabile. Usa esclusivamente il work completed già validato e associato alla stessa sessione, con message_id e finalized_at. Ora mostra «Fato pubblicato in chat» e le informazioni della pubblicazione. Eleggibilità, comandi, contratti server e limiti invariati; nessun vincolo aggiunto o allentato. Sintassi PASS, review indipendente 0/0/0; client 738d64c4a858448b85ecc8546ff8d1393281a9d8, Pages39676470822 riuscito, resa Chrome Staff verificata. Incipit originale, scena in corso, work, audit, ricevute e quote identici prima/dopo; zero nuove chiamate provider, role o prove. Avviso separato di annullamento e prossimo turno Regia fuori scope.\n\n**Rischi o regressioni da verificare** · Nessuna qualifica delle nuove role/Director o del diverso avviso annullamento.\n\n**Passaggio richiesto al PM** · Correzione UI consegnata. Fonti, review, prove e precedente handoff conservati in candidato/exam_human_master/C1266_FATO_PANEL.json.\n",
+  "constraints_added": [],
+  "constraints_removed": []
+}
