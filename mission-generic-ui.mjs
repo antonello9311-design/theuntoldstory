@@ -1,4 +1,4 @@
-import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=staff-log-cleanup-9038617a3f67aa1d';
+import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-7ae3073ad9c3aaaa';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-publication-7897dcc449bd7b13';
 export const VERSION='mission-academy-flow-v4-staff-client/1-candidate';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
@@ -27,7 +27,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   host.querySelector('[data-staff-abort-recovery]')?.remove();
   const recovery=el('div',null,{'data-staff-abort-recovery':''});host.append(recovery);
   for(const id of ids){if(!roomCurrent(t))return;const ah=el('div',null,{'data-staff-abort':''});recovery.append(ah);
-   let c=aborts.get(id);if(!c){c=createStaffAbortController({client,identity,hideCommitted:true,isCurrent:()=>roomCurrent(t),onCommitted:r=>{if(roomCurrent(t)&&roomState?.session_id===r.master_session_id){roomState=null;roomSignature='';const recoveryHost=roomHost?.querySelector('[data-staff-abort-recovery]');if(recoveryHost){roomHost.replaceChildren(recoveryHost);roomHost.hidden=false;}notice('Prova annullata. Fato e storico conservati.');}}});aborts.set(id,c);}
+   let c=aborts.get(id);if(!c){c=createStaffAbortController({client,identity,hideCommitted:true,hideUnauthorizedAvailability:true,isCurrent:()=>roomCurrent(t),onCommitted:r=>{if(roomCurrent(t)&&roomState?.session_id===r.master_session_id){roomState=null;roomSignature='';const recoveryHost=roomHost?.querySelector('[data-staff-abort-recovery]');if(recoveryHost){roomHost.replaceChildren(recoveryHost);roomHost.hidden=false;}notice('Prova annullata. Fato e storico conservati.');}}});aborts.set(id,c);}
    // Controller contesto catturato: ricrea a ogni epoch stanza, mai riattivare il precedente utente.
    await c.mount(ah,id);if(!roomCurrent(t))return;
   }
