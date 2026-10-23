@@ -1,6 +1,6 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-7ae3073ad9c3aaaa';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-publication-7897dcc449bd7b13';
-export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-request-recovery3';
+export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-no-work-recovery1';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -594,15 +594,23 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const x=driver.optedIn?driver.value.tick_status:state.staff_tick_status;
    const fields=['schema_version','master_session_id','source_revision','request_key','owned_by_me','state',
     'work_id','work_state','retry_request_key','can_resume','recovery_key','acknowledged_retry_from_work_id'];
+   const noWorkV3=x?.schema_version==='mission-generic-staff-tick-status/3';
+   if(noWorkV3)fields.push('recovery_kind','original_result_sha256','acknowledged_recovery_key');
    const uuidOrNull=x=>x===null||UUID.test(x||'');
    if(!x||Array.isArray(x)||Object.keys(x).length!==fields.length||!fields.every(k=>Object.hasOwn(x,k))
-    ||x.schema_version!=='mission-generic-staff-tick-status/2'||x.master_session_id!==state.session_id
+    ||!['mission-generic-staff-tick-status/2','mission-generic-staff-tick-status/3'].includes(x.schema_version)||x.master_session_id!==state.session_id
     ||!SHA.test(x.source_revision||'')||x.source_revision!==state.source_revision
-    ||!['absent','attested','released','blocked'].includes(x.state)
+    ||!['absent','attested','released','blocked',...(noWorkV3?['no_work_released']:[])].includes(x.state)
     ||typeof x.owned_by_me!=='boolean'||typeof x.can_resume!=='boolean'
     ||!['request_key','work_id','retry_request_key','recovery_key','acknowledged_retry_from_work_id'].every(k=>uuidOrNull(x[k]))
     ||!(x.work_state===null||workStates.has(x.work_state)))return {applicable:true,valid:false,value:null};
-   if(x.state==='absent'){
+   if(noWorkV3&&!(x.recovery_kind==='no_work_progress_receipt'&&SHA.test(x.original_result_sha256||'')
+    &&UUID.test(x.recovery_key||'')&&x.recovery_key===x.request_key&&UUID.test(x.retry_request_key||'')&&x.retry_request_key!==x.request_key
+    &&(x.acknowledged_recovery_key===null||x.acknowledged_recovery_key===x.recovery_key)
+    &&x.acknowledged_retry_from_work_id===null&&['no_work_released','attested'].includes(x.state)))return {applicable:true,valid:false,value:null};
+   if(x.state==='no_work_released'){
+    if(!noWorkV3||x.work_id!==null||x.work_state!==null||x.acknowledged_recovery_key!==null||x.can_resume&&!x.owned_by_me)return {applicable:true,valid:false,value:null};
+   }else if(x.state==='absent'){
     if(x.owned_by_me||x.can_resume||['request_key','work_id','work_state','retry_request_key','recovery_key','acknowledged_retry_from_work_id'].some(k=>x[k]!==null))
      return {applicable:true,valid:false,value:null};
    }else if(x.state==='blocked'){
@@ -612,7 +620,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     if(!UUID.test(x.request_key||'')||!UUID.test(x.work_id||'')||!workStates.has(x.work_state))
      return {applicable:true,valid:false,value:null};
     if(x.acknowledged_retry_from_work_id===x.work_id)return {applicable:true,valid:false,value:null};
-    if(x.state==='attested'&&(x.can_resume||x.retry_request_key!==null||x.recovery_key!==null))
+    if(x.state==='attested'&&(x.can_resume||(!noWorkV3&&(x.retry_request_key!==null||x.recovery_key!==null))||noWorkV3&&x.acknowledged_recovery_key!==x.recovery_key))
      return {applicable:true,valid:false,value:null};
     if(x.state==='released'&&(x.work_state!=='failed'||x.recovery_key!==x.work_id
      ||x.can_resume&&(!x.owned_by_me||!UUID.test(x.retry_request_key||'')||x.retry_request_key===x.request_key)))
@@ -623,27 +631,28 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   function reconcileTickAttempts(state,t,projection=tickStatusFor(state,t)){
    if(!projection.applicable||!projection.valid||!roomCurrent(t))return;
    const receipt=projection.value;
-   if(!['attested','released'].includes(receipt.state)||!UUID.test(receipt.request_key||''))return;
+   if(!['attested','released','no_work_released'].includes(receipt.state)||!UUID.test(receipt.request_key||''))return;
    for(const a of attempts.values()){
     if(a.user!==t.user||a.session!==state.session_id||a.kind!=='tick'||a.inFlight||a.outcome!=='uncertain'
      ||a.staffTickSource!==receipt.source_revision||a.body?.schema_version!=='mission-generic-staff-tick/1'
      ||Object.keys(a.body).length!==3||a.body.master_session_id!==state.session_id
      ||a.body.source_revision!==receipt.source_revision)continue;
     // Own retry needs its exact successor ACK; a released predecessor with no successor proves no retry delivery.
-    if(receipt.owned_by_me&&a.tickRecoveryKey&&receipt.acknowledged_retry_from_work_id!==a.tickRecoveryKey)continue;
+    if(receipt.owned_by_me&&a.tickRecoveryKey&&(a.noWorkRecovery?receipt.acknowledged_recovery_key:receipt.acknowledged_retry_from_work_id)!==a.tickRecoveryKey)continue;
     // Unique immutable tick ownership is authoritative; no record/nonce is removed or replaced.
     a.outcome=receipt.owned_by_me?'confirmed':'delegated';
     a.staffTickReceiptKey=receipt.request_key;
     a.staffTickState=receipt.owned_by_me?'replayed':null;
    }
   }
-  function mayCreateStaffTick(projection){
+  function mayCreateStaffTick(projection,explicitNoWork=false){
    if(projection.driver?.optedIn&&(!projection.driver.valid||projection.driver.value.kind!=='tick'))return false;
    if(!projection.applicable)return true;
    if(!projection.valid)return false;
    const x=projection.value;
    // Absent is the first-tick case, not evidence of another Staff owner. Existing normal gates still apply.
-   return x.state==='absent'||x.state==='released'&&x.owned_by_me&&x.can_resume;
+   return x.state==='absent'||x.state==='released'&&x.owned_by_me&&x.can_resume
+    ||explicitNoWork&&x.state==='no_work_released'&&x.owned_by_me&&x.can_resume;
   }
   function unresolvedTickForSession(state){
    if(staffAcademyRole(state)===null)return null;
@@ -709,7 +718,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-opening-resume-agg5');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NO-WORK-RECOVERY-001');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -774,6 +783,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(!combatRecovery){combatRecovery=button('Verifica e recupera la lavorazione dello scontro',()=>staffRecoverCachedChoice(host));combatRecovery.setAttribute('data-mg-combat-recovery','');host.append(combatRecovery);}
    combatRecovery.disabled=!!roomError||!!staffChoiceRecovery||liveAttempt(state)||cachedChoiceRecoveries.has(claim.work_id);
   }else if(combatRecovery)combatRecovery.remove();
+  const noWorkTick=tickStatusFor(state);
+  let noWorkResume=host.querySelector('[data-mg-no-work-resume]');
+  if(noWorkTick.valid&&noWorkTick.value?.state==='no_work_released'&&noWorkTick.value.owned_by_me&&noWorkTick.value.can_resume){
+   if(!noWorkResume){noWorkResume=button('Riprendi la valutazione delle role',()=>{const s=roomState;if(s)maybeDispatch(s,syncRoom(host),false,true);});noWorkResume.setAttribute('data-mg-no-work-resume','');host.append(noWorkResume);}
+   const proof=noWorkTick.value,journalKey=journalPrefix(cacheUser,state.session_id)+selectorKey({kind:'staff_tick',source_revision:proof.source_revision})+':no-work:'+proof.recovery_key+':'+proof.retry_request_key;
+   noWorkResume.disabled=!!roomError||liveAttempt(state)||abortBlocked(state.session_id)||readJournal(journalKey,cacheUser,state.session_id)!==null;
+  }else noWorkResume?.remove();
   let tickCheck=host.querySelector('[data-mg-tick-check]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&unresolvedTickForSession(state)){
    if(!tickCheck){tickCheck=button('Verifica invio',()=>updateRoom(host,{manual:true,verifyOnly:true}));tickCheck.setAttribute('data-mg-tick-check','');host.append(tickCheck);}
@@ -792,7 +808,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const tickText=tickProjection.applicable&&!tickProjection.valid
    ?'Ricevuta della valutazione non verificabile. Le role restano conservate: usa Verifica invio o Aggiorna regia.'
    :receipt?.state==='blocked'?'Ricevuta della valutazione in attesa di verifica Staff. Nessun nuovo invio automatico.'
-   :receipt&&['attested','released'].includes(receipt.state)&&!receipt.owned_by_me
+   :receipt&&['attested','released','no_work_released'].includes(receipt.state)&&!receipt.owned_by_me
     ?'La valutazione è affidata a un altro Staff. Le tue role e le azioni consentite dal server restano disponibili.'
    :receipt?.state==='released'&&!receipt.can_resume?'La ricevuta precedente è conservata. La ripresa non è ancora autorizzata dal server.':'';
   if(tickText){if(!tickOwnerNotice){tickOwnerNotice=el('p','',{role:'status','data-mg-tick-owner-status':''});host.append(tickOwnerNotice);}tickOwnerNotice.textContent=tickText;}
@@ -1346,13 +1362,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    recordSettlement(proof,t);r.terminalSettlement=Object.freeze(clone(proof));r.chainDone=true;r.inactive=true;
   }
  }
- const journalPhase=j=>['mission-async-journal/3','mission-async-journal/4','mission-async-journal/5','mission-async-journal/6'].includes(j?.schema_version)?j.recovery:j?.schema_version==='mission-async-journal/2'?j.resume:j;
+ const journalPhase=j=>['mission-async-journal/3','mission-async-journal/4','mission-async-journal/5','mission-async-journal/6','mission-async-journal/7'].includes(j?.schema_version)?j.recovery:j?.schema_version==='mission-async-journal/2'?j.resume:j;
  function journalPhaseValid(j,key,user,session,fields){
   const s=j?.selector;
   const selectorValid=nativeExact(s,['kind','source_revision'])&&s.kind==='staff_tick'&&SHA.test(s.source_revision||'')
    ||nativeExact(s,['kind','request'])&&s.kind==='request'&&sameChainRequest(s.request,s.request)&&s.request.master_session_id===session;
   return nativeExact(j,fields)&&j.user===user&&j.session===session&&selectorValid
-   &&key===journalPrefix(user,session)+selectorKey(s)+(Object.hasOwn(j,'released_work_id')?':released:'+j.released_work_id:'')&&Number.isSafeInteger(j.started)&&j.started>0&&j.started<=Date.now()
+   &&key===journalPrefix(user,session)+selectorKey(s)+(Object.hasOwn(j,'no_work_recovery_key')?':no-work:'+j.no_work_recovery_key+':'+j.retry_request_key:Object.hasOwn(j,'released_work_id')?':released:'+j.released_work_id:'')&&Number.isSafeInteger(j.started)&&j.started>0&&j.started<=Date.now()
    &&Number.isSafeInteger(j.reads)&&j.reads>=0&&j.reads<=asyncBudget.maxReads&&Number.isSafeInteger(j.lastRead)&&j.lastRead>=0&&typeof j.done==='boolean';
  }
  function readJournal(key,user,session){
@@ -1385,7 +1401,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
 
    return true;
   };
-  if(j?.schema_version==='mission-async-journal/6'){
+  if(j?.schema_version==='mission-async-journal/7'){
+   const r=j.recovery,baseKey=journalPrefix(user,session)+selectorKey(r?.selector);
+   if(!nativeExact(j,['schema_version','original','recovery'])
+    ||!journalPhaseValid(r,key,user,session,['user','session','selector','no_work_recovery_key','retry_request_key','original_result_sha256','started','reads','lastRead','done'])
+    ||r.selector.kind!=='staff_tick'||!UUID.test(r.no_work_recovery_key||'')||!UUID.test(r.retry_request_key||'')
+    ||r.no_work_recovery_key===r.retry_request_key||!SHA.test(r.original_result_sha256||'')
+    ||!(j.original===null||j.original?.schema_version===asyncJournalSchema&&journalPhaseValid(j.original,baseKey,user,session,legacyFields)&&sameSelector(j.original.selector,r.selector)))throw Error('async_journal_invalid');
+  }else if(j?.schema_version==='mission-async-journal/6'){
    const r=j.recovery,baseKey=journalPrefix(user,session)+selectorKey(r?.selector);
    if(!nativeExact(j,['schema_version','original','recovery'])
     ||!journalPhaseValid(r,key,user,session,['user','session','selector','released_work_id','source_request_key','started','reads','lastRead','done'])
@@ -1459,13 +1482,27 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     throw Error('async_release_retry_unconfirmed');
    release=proof;
   }
-  const key=baseKey+(release?':released:'+release.work_id:'');parent.journalKey=key;
+  let noWorkRelease=null;
+  if(parent.noWorkRecovery){
+   const projection=tickStatusFor(roomState,t),proof=projection.value;
+   if(!projection.applicable||!projection.valid||selector.kind!=='staff_tick'||proof.state!=='no_work_released'
+    ||!proof.owned_by_me||!proof.can_resume||proof.recovery_key!==parent.tickRecoveryKey
+    ||proof.retry_request_key!==parent.noWorkRecovery.retry_request_key||proof.original_result_sha256!==parent.noWorkRecovery.original_result_sha256
+    ||proof.source_revision!==selector.source_revision)throw Error('async_no_work_retry_unconfirmed');
+   noWorkRelease=proof;
+  }
+  const key=baseKey+(noWorkRelease?':no-work:'+noWorkRelease.recovery_key+':'+noWorkRelease.retry_request_key:release?':released:'+release.work_id:'');parent.journalKey=key;
   return navigator.locks.request(key,{mode:'exclusive'},async()=>{
    if(!asyncCurrent(t)||abortBlocked(parent.session))throw Error('async_context_changed');
    const old=readJournal(key,t.user,parent.session);if(old){if(!journalPhase(old).done)attachJournal(old,key);throw Error('async_already_submitted');}
    const phase={user:t.user,session:parent.session,selector,started:Date.now(),reads:0,lastRead:0,done:false};
    let j;
-   if(release){
+   if(noWorkRelease){
+    const original=readJournal(baseKey,t.user,parent.session);
+    if(original&&original.schema_version!==asyncJournalSchema)throw Error('async_no_work_original_invalid');
+    j={schema_version:'mission-async-journal/7',original:original===null?null:clone(original),recovery:{...phase,
+     no_work_recovery_key:noWorkRelease.recovery_key,retry_request_key:noWorkRelease.retry_request_key,original_result_sha256:noWorkRelease.original_result_sha256}};
+   }else if(release){
     const original=readJournal(baseKey,t.user,parent.session);
     if(original&&original.schema_version!==asyncJournalSchema)throw Error('async_release_original_invalid');
     j={schema_version:'mission-async-journal/6',original:original===null?null:clone(original),
@@ -1474,7 +1511,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    saveJournal(key,j);attachJournal(j,key); // Persist before HTTP; an uncertain send is never repeated.
    const response=await client.functions.invoke('mission_generic_ai',{body:clone(parent.body)});
    const delivery=response.data?.delivery??response.data;
-   if(!response.error&&(staffNoWork(response.data,parent)||delivery?.status===200&&['MISSION_EVENT_COMPLETE','MISSION_EVENT_FAILED'].includes(delivery.code)&&UUID.test(delivery.receipt_id||''))){
+   if(!response.error&&((staffNoWork(response.data,parent)&&!noWorkRelease)||delivery?.status===200&&['MISSION_EVENT_COMPLETE','MISSION_EVENT_FAILED'].includes(delivery.code)&&UUID.test(delivery.receipt_id||''))){
     journalPhase(j).done=true;saveJournal(key,j);const r=asyncWorks.get('journal:'+key);if(r)r.inactive=true;
    } // A confirmed synchronous terminal reply needs no new async observer.
    return response;
@@ -1533,7 +1570,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!nativeExact(v,recoveryKeys)||v.schema_version!=='mission-generic-async-recovery/1'||!['owned','none','no_work'].includes(v.status)||v.retry!==false||v.provider_retry_allowed!==false)throw Error('async_recovery_invalid');
   if(v.status==='none'||v.status==='no_work'){
    if(['request','work_id','state','receipt_id','result_sha256','kind'].some(k=>v[k]!==null)||v.status==='no_work'&&r.selector.kind!=='staff_tick')throw Error('async_recovery_invalid');
-   if(v.status==='no_work'){const j=readJournal(r.journalKey,r.user,r.session);if(!j)throw Error('async_journal_invalid');journalPhase(j).done=true;saveJournal(r.journalKey,j);r.inactive=true;r.transportNotice=false;}
+   if(v.status==='no_work'){const j=readJournal(r.journalKey,r.user,r.session);if(!j)throw Error('async_journal_invalid');if(j.schema_version==='mission-async-journal/7')return null; journalPhase(j).done=true;saveJournal(r.journalKey,j);r.inactive=true;r.transportNotice=false;}
    return null;
   }
   if(!sameChainRequest(v.request,v.request)||v.request.master_session_id!==r.session||!UUID.test(v.work_id||'')||!['director','narration','choice'].includes(v.kind)
@@ -1680,7 +1717,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   // No recursion, retry or third work. The caller's normal readback displays the child's authoritative result.
   return a.outcome==='confirmed'?'child_confirmed':a.outcome==='failed'?'child_failed':'child_unconfirmed';
  }
- function maybeDispatch(state,t,reclaim=false){
+ function maybeDispatch(state,t,reclaim=false,explicitNoWork=false){
   if(hasOpeningResume(state)||hasOpeningClaimResume(state))return; // A proof, even malformed, cannot become an automatic resend.
   if(asyncBlocked(state))return; // An accepted async request is observed, never re-dispatched.
   if(hasCountProjection(state))return; // Only the explicit technical status consumer may handle this proof.
@@ -1701,18 +1738,19 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    ||p&&['claimed','uncertain'].includes(p.state)&&!reclaim)return;
   const staffRole=staffAcademyRole(state,t.loc),staffTick=!reclaim&&!staffCombat&&staffRole?.reason==='ready_to_evaluate'&&(!p||['completed','failed'].includes(p.state));
   const tickProjection=tickStatusFor(state,t);
-  if(staffTick&&!mayCreateStaffTick(tickProjection))return;
+  if(staffTick&&!mayCreateStaffTick(tickProjection,explicitNoWork))return;
   const recoveryKey=staffTick&&tickProjection.applicable&&tickProjection.valid&&tickProjection.value.can_resume
    ?tickProjection.value.recovery_key:null;
+  const noWorkRecovery=staffTick&&explicitNoWork&&tickProjection.valid&&tickProjection.value?.state==='no_work_released'?tickProjection.value:null;
   const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?(claimedVerification?':reconcile-claimed':p.state==='ready'?':reclaim-ready':':reclaim'):'')
-   :'tick:'+state.progress_key+(recoveryKey?':recovery:'+recoveryKey:'');
+   :'tick:'+state.progress_key+(recoveryKey?':recovery:'+recoveryKey+(noWorkRecovery?':'+noWorkRecovery.retry_request_key:''):'');
   const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey))return;
   const body=p&&(p.state==='ready'||reclaim)?clone(p.request):staffTick
    ?{schema_version:'mission-generic-staff-tick/1',master_session_id:state.session_id,source_revision:staffRole.revision}
    :{schema_version:'mission-generic-tick/1',master_session_id:state.session_id,request_key:id()};
   const a={user:t.user,session:state.session_id,key,kind:key.startsWith('tick:')?'tick':'work',work:p&&(p.state==='ready'||reclaim)?p.work_id:null,
    prior_work_id:p?.work_id??null,prior_publication_id:state.flow_publication_id??null,staffTickSource:staffTick?staffRole.revision:null,
-   staffTickState:null,tickRecoveryKey:recoveryKey,body:Object.freeze(body),inFlight:true,outcome:'pending'};attempts.set(storeKey,a);paintRoom(roomHost,state);
+   staffTickState:null,tickRecoveryKey:recoveryKey,noWorkRecovery:noWorkRecovery?clone(noWorkRecovery):null,body:Object.freeze(body),inFlight:true,outcome:'pending'};attempts.set(storeKey,a);paintRoom(roomHost,state);
   // Detached from the read lock: polling continues while the provider works.
   void (async()=>{
    try{
