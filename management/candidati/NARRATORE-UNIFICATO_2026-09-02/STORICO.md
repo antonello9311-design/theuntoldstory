@@ -1092,3 +1092,5 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 23/10/2026 · C1266-NPC-DIALOGUE-20261023 · installata e verificata nella composizione indicata; principi generali nel solo mission_generic_ai, provider0, dati/Fati/prova invariati · futura narrativa NOT_RUN.
 
 23/10/2026 · C1266-REQUEST-10X-20261023 · installata e verificata nella composizione indicata; solo request bytes ×10, input/token/spesa invariati, provider0 · funzionale NOT_RUN.
+
+23/10/2026 · C1266-TURN-RECOVERY-20261023 · supplemento integrato installato e verificato staticamente; recupero Writer NOT_RUN, nuova finestra in attesa di conferma; stesse due role/stessa prova, budget e storico conservati · PUBBLICAZIONE_NON_VERIFICATA.
