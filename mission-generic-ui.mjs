@@ -1,6 +1,6 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-7ae3073ad9c3aaaa';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-publication-7897dcc449bd7b13';
-export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-free-narrative1';
+export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-free-narrative2';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -718,7 +718,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-FREE-NARRATIVE-001');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-FREE-NARRATIVE-002');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -1315,7 +1315,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&(nativeExact(s,['kind','request'])&&s.kind==='request'&&sameChainRequest(s.request,q)
     ||nativeExact(s,['kind','source_revision'])&&s.kind==='staff_tick'&&s.source_revision===r.source_revision)
    &&session==='44078c5f-7001-4129-9506-e2f34e68c8ac'&&(releasedDirectorWork(x.work_id)&&r.reason==='staff_preprovider_request_retry'
-    ||x.work_id==='e366b9fa-54dc-4abd-8ba6-9ceee83be9a4'&&r.reason==='staff_saved_director_application'
+    ||(x.work_id==='e366b9fa-54dc-4abd-8ba6-9ceee83be9a4'
+      ||x.work_id==='e76f31f2-eded-495e-9c5f-f03461c5cc3a'&&r.source_revision==='ac9aedbd59dcb835d717f4ddb6ce195e3c2a9d640df576667290fa38b7e6cbbb')&&r.reason==='staff_saved_director_application'
     ||unpublishedReinterpretationRelease(x,r,session))
    &&UUID.test(x.receipt_id||'')&&SHA.test(x.result_sha256||'')
    &&nativeExact(r,['source_window_id','source_revision','reason','audit_sha256'])
