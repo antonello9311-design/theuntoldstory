@@ -1279,6 +1279,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(nativeExact(body,['schema_version','master_session_id','source_revision'])&&body.schema_version==='mission-generic-staff-tick/1'&&UUID.test(body.master_session_id||'')&&SHA.test(body.source_revision||''))return {kind:'staff_tick',source_revision:body.source_revision};
   return null;
  }
+ const releasedDirectorWork=id=>['d460a7be-a3a2-4ad8-9d3b-d2e929f2947e','f4f7185e-4aae-4edd-ac24-65f8dcfa36f5'].includes(id);
  const settlementSchema='mission-async-local-settlement/1';
  function sameSelector(a,b){
   return a?.kind===b?.kind&&(a.kind==='request'?sameChainRequest(a.request,b.request)
@@ -1290,7 +1291,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&sameChainRequest(q,q)&&q.master_session_id===session
    &&(nativeExact(s,['kind','request'])&&s.kind==='request'&&sameChainRequest(s.request,q)
     ||nativeExact(s,['kind','source_revision'])&&s.kind==='staff_tick'&&s.source_revision===r.source_revision)
-   &&session==='44078c5f-7001-4129-9506-e2f34e68c8ac'&&x.work_id==='d460a7be-a3a2-4ad8-9d3b-d2e929f2947e'
+   &&session==='44078c5f-7001-4129-9506-e2f34e68c8ac'&&releasedDirectorWork(x.work_id)
    &&UUID.test(x.receipt_id||'')&&SHA.test(x.result_sha256||'')
    &&nativeExact(r,['source_window_id','source_revision','reason','audit_sha256'])
    &&r.source_window_id===x.work_id&&SHA.test(r.source_revision||'')&&SHA.test(r.audit_sha256||'')
@@ -1388,7 +1389,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(!nativeExact(j,['schema_version','original','recovery'])
     ||!journalPhaseValid(r,key,user,session,['user','session','selector','released_work_id','source_request_key','started','reads','lastRead','done'])
     ||r.selector.kind!=='staff_tick'||session!=='44078c5f-7001-4129-9506-e2f34e68c8ac'
-    ||r.released_work_id!=='d460a7be-a3a2-4ad8-9d3b-d2e929f2947e'||!UUID.test(r.source_request_key||'')
+    ||!releasedDirectorWork(r.released_work_id)||!UUID.test(r.source_request_key||'')
     ||!(j.original===null||j.original?.schema_version===asyncJournalSchema
       &&journalPhaseValid(j.original,baseKey,user,session,legacyFields)&&sameSelector(j.original.selector,r.selector)))throw Error('async_journal_invalid');
   }else if(j?.schema_version==='mission-async-journal/5'){
@@ -1447,11 +1448,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!navigator.locks?.request)throw Error('async_journal_lock_unavailable');
   const baseKey=journalPrefix(t.user,parent.session)+selectorKey(selector);
   let release=null;
-  if(parent.tickRecoveryKey==='d460a7be-a3a2-4ad8-9d3b-d2e929f2947e'&&parent.session==='44078c5f-7001-4129-9506-e2f34e68c8ac'){
+  if(releasedDirectorWork(parent.tickRecoveryKey)&&parent.session==='44078c5f-7001-4129-9506-e2f34e68c8ac'){
    const projection=tickStatusFor(roomState,t),proof=projection.value;
    if(!projection.applicable||!projection.valid||selector.kind!=='staff_tick'
     ||parent.session!=='44078c5f-7001-4129-9506-e2f34e68c8ac'
-    ||parent.tickRecoveryKey!=='d460a7be-a3a2-4ad8-9d3b-d2e929f2947e'
+    ||!releasedDirectorWork(parent.tickRecoveryKey)
     ||proof.state!=='released'||!proof.owned_by_me||!proof.can_resume
     ||proof.recovery_key!==parent.tickRecoveryKey||proof.source_revision!==selector.source_revision)
     throw Error('async_release_retry_unconfirmed');
