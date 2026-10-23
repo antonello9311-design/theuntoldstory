@@ -1100,3 +1100,5 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 
 23/10/2026 · C1266-NO-WORK-RECOVERY-20261023/aggregata1 · Ripristino attested no-work e successore append-only installatoRoot2dd/UI16ae/Edge93; review iniziale0/1/0 conservata, correzione/controverifica e materiale0/0/0,9/9install · RECUPERO_AVVIO_VERIFICATO / PRODOTTO_NON_QUALIFICATO.
 23/10/2026 · C1266-NPC-DIALOGUE-TURN-20261023 · Stesse2role ricevute, Director433 completato e Writer310 avviato automaticamente; WriterfallitoSLOT_COVERAGE, rawnonconservato, nessunFato oCombat;5Fati/10role/48risorse/storiaintatti,2Count2Gen4HTTP/.0372327prudente entro.0496,stopprovider · NON_PUBBLICATO / QA_RUNTIME_RED.
+
+23/10/2026 · C1266-FREE-NARRATIVE-20261023 aggregata1+aggregata2 · Prosalibera/outputprivato installati; Director e76 valido ma unique23505, recuperato salvato dopo retirementattestato0adc; Writerf0a9 pubblica e6dd8357 alle21:06:59Italia dalle stesserole.5Fati10role48risorse e storico preservati,4HTTP/.0340883 prudente,30/30 e rientroStaffPASS · PUBBLICATO_CON_RECUPERO / QUALIFICA_GENERALE_NON_ATTESTATA.
