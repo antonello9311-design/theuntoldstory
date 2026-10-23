@@ -1,0 +1,298 @@
+{
+  "schema_version": "c1266-no-work-recovery-proof/1",
+  "task": "C1266-NO-WORK-RECOVERY-20261023",
+  "status": "INSTALLED_READBACK_VERIFIED_RECOVERY_TECHNICAL_CASE_PASSED_SUBSEQUENT_WRITER_FAILED",
+  "root": "2ddc24d76083e680ecc988cbebbae849b7b0d6a0108c906a4a6b174ade7f42eb",
+  "migration": {
+    "version": "20261023175951",
+    "name": "c1266_attested_no_work_same_source_recovery"
+  },
+  "client": {
+    "commit": "16ae6ccdf343ae62f3732388b6150f2d31e68aa3",
+    "previous_head": "a08a53bdd309aaba4688ed6fce2899c8e1bf680e",
+    "domain_verified": true,
+    "build": "C1266-NO-WORK-RECOVERY-001",
+    "pages_run": 39999135916,
+    "pages_conclusion": "success",
+    "files": [
+      {
+        "name": "mission-generic-ui.mjs",
+        "bytes": 167731,
+        "sha256": "efe07a24f179db7f600663ee9163915ffe623c4d20be026319692e6e028fa1d6",
+        "blob": "63f524ae1dba9c84b35d3aa5d7176303af3a43b5"
+      },
+      {
+        "name": "land.html",
+        "bytes": 2326307,
+        "sha256": "3f4197469cb539a8b0a986dcb3f2824a3820e340045c139925d6547365c66667",
+        "blob": "6eddac330f8f692c514be70aee8619e9dc2a19f1"
+      }
+    ]
+  },
+  "edge_unchanged": 93,
+  "source_review": {
+    "schema_version": "c1266-independent-integrated-review/1",
+    "reviewed_at": "2026-10-23T17:54:30.838781+00:00",
+    "status": "PASS_STATIC_INTEGRATED",
+    "findings_count": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0
+    },
+    "recipe_sha256": "b1cf21ff44a59bd47d318296414340784c7ee4ab387cb332d20a794bb7e30c2f",
+    "builder_sha256": "447a2a772255215d111539d9490755bf5d7bc2642e033b521908d04a1af6e886",
+    "material_sha256": {
+      "RECIPE.json": "b1cf21ff44a59bd47d318296414340784c7ee4ab387cb332d20a794bb7e30c2f",
+      "BUILD_INTEGRATED.py": "447a2a772255215d111539d9490755bf5d7bc2642e033b521908d04a1af6e886",
+      "BUILD_SQL.py": "0014b1a40973c84256dab90509623732ca75627511155217ba7a10d221b05919",
+      "CLIENT_READY.json": "cbe933b1b42c233d262d8f5f900988abaa8e26cedb3adcf807a5690a03aeb265",
+      "CLIENT_STATIC.json": "5b7b1248d3e2e9ec8a04fb3de8253a3c57c342fc17a61d25272c9cd87c591e62",
+      "CONTRACT.json": "65720cd641e81c5e416030a5a42ed3f19fc7b1f05652d5559dde4d93891fe3c2",
+      "SQL_STATIC.json": "067f7a0dd9ece8c72a4679c58b3c8b68ceefbdec74da953a6af7c77a9acb3630",
+      "SQL_DELTA.json": "cae97235a803cabb314196d9213f6d856e9b7f79340664e33ff4ef29177546f2",
+      "candidate_client/mission-generic-ui.mjs": "efe07a24f179db7f600663ee9163915ffe623c4d20be026319692e6e028fa1d6",
+      "candidate_client/land.html": "3f4197469cb539a8b0a986dcb3f2824a3820e340045c139925d6547365c66667",
+      "candidate_sql/mission_generic_owner__progress_step.sql": "dbbdd1cb101ca7c9ca6bf94b584b89721a50d28b39654b75a9f5c4f8de8e0aad",
+      "candidate_sql/mission_generic_owner__staff_journal_settlements_v1.sql": "0c46eba50780fe010db0c26e58e6dbca5236c0cd12c4f47a3bf38b8b9cd4fbd4",
+      "candidate_sql/public__mission_generic_dispatch_async_status_v1.sql": "4c4494c842b954cfe94a381ce3a8fce49c00f5827e11eb9a215c6d357af16ef5",
+      "candidate_sql/public__mission_generic_room_state_v1.sql": "610b0c937a448f7105af984a7f76e68e0fd045631b07b62421b95967ac811978",
+      "candidate_sql/public__mission_generic_staff_tick_v1.sql": "953bf5df5f20a2c8b4ab8d8a7a72ab520b472c78a0252d363345d91b72edc09d"
+    },
+    "findings": [],
+    "coverage": {
+      "DB": "Cinque delta esistenti: predicate pubblicazione qualificata, append-only deterministico sotto lock, actor/source/CAS, lettura successore senza creazione, settlement storico reale; firme/ACL e risorse protette preservati. SELECT eligibility freeze tutte vere.",
+      "UI": "Controverifica aggregata: status3 exact15; work/tick identity, owned fresh proof, deterministic journal7 persisted before HTTP, exclusive lock and no resend. Synchronous no-work now leaves journal7 open, asynchronous no-work already leaves it open; real successor acknowledgement and historical publication settlement remain authoritative. Existing journals1–6 unchanged.",
+      "builder": "BaselineRootf4ac/Edge93 e Git corrente separati dal pin UI; client latebind exact2+dominio, cinque corpi e sei array header, baseline dati/Root/ACL, configurazioni precedenti e budget preservati. Materializzazione SQL non ancora esaminata.",
+      "matrix": [
+        "originale no-work immutabile",
+        "failed Director guarito solo con pubblicazione autorevole",
+        "attore/source correnti e isolamento",
+        "successore append-once/concorrenza",
+        "lettura senza successore nessuna mutazione",
+        "ACK reale dopo successore",
+        "rientro prima e dopo pubblicazione",
+        "compatibilità journal/contratti legacy e Root composto"
+      ],
+      "countercheck": "Five SQL, builder, contract and SQL proofs byte-identical to initial reviewed freeze. Recipe references and actual file hashes match; LAND exactly single module-import pin replacement. Supplied 8 syntax/static checks PASS. Entire original eight-case static matrix rechecked; no runtime inferred."
+    },
+    "executed": {
+      "gameplay": false,
+      "provider": false,
+      "DB_mutation": false,
+      "deploy": false
+    },
+    "limits": [
+      "Controlli statici e SELECT fornita; nessuna qualifica funzionale o narrativa live.",
+      "Installer bound richiede successiva material review."
+    ],
+    "history_preserved": true,
+    "aggregate_corrections": 1,
+    "counterchecks": 1,
+    "previous_review_sha256": "352d3827d8eaa23071f7ceb9a6a27bdf30e449b1f6bdf6bc951da14a6c81fcae",
+    "resolved_findings": [
+      {
+        "id": "NW-R1",
+        "proof": "Exact single module line change adds !noWorkRelease to synchronous staffNoWork closure. Journal7 remains observed on dispatch:null; legacy path and authoritative terminal receipt path unchanged."
+      }
+    ]
+  },
+  "material_review": {
+    "schema_version": "c1266-independent-material-review/1",
+    "reviewed_at": "2026-10-23T17:59:19.282766+00:00",
+    "status": "PASS_STATIC_MATERIAL",
+    "findings_count": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0
+    },
+    "material_sha256": {
+      "INSTALL.sql": "7e1e21980238ab7707f67f0eba410ca54aed384d2c9c1e9b5b94497cf7788b38",
+      "BOUND_MANIFEST.json": "18bfade93a44c0d7f35a688bfeb1a6b75268ba5aa182f6e3b22e86543310b968",
+      "EXPECTED_ROOT_BEFORE_HEADER_BIND.json": "ef0c9329a2269c6e8e50c7e44d85fc41460f34e1b6389eb9041018416230ce71",
+      "EDGE_BEFORE.json": "d41c41d812d2dfc25cf42b0b2ccbd0caeb750c1edb0f0c45bc3228d81c43a319",
+      "CLIENT_PUBLICATION.json": "aa9ec5e176a038a9b5285fb8abefb8446d1f899c8d9c4aed1367362740dd1803",
+      "INTEGRATED_REVIEW.json": "a86ea1c79011830ee7e4e71a1b513405838374c134e507e9bd3e7cca8f443807",
+      "RECIPE.json": "b1cf21ff44a59bd47d318296414340784c7ee4ab387cb332d20a794bb7e30c2f",
+      "BUILD_INTEGRATED.py": "447a2a772255215d111539d9490755bf5d7bc2642e033b521908d04a1af6e886"
+    },
+    "installer_sha256": "7e1e21980238ab7707f67f0eba410ca54aed384d2c9c1e9b5b94497cf7788b38",
+    "installer_bytes": 666663,
+    "checks": {
+      "builder_reproduction": "INSTALL, BOUND_MANIFEST and EXPECTED_ROOT reproduced byte-identically with all write_text intercepted; no installer executed",
+      "parser": "Full installer SQL AST and PLpgSQL PASS; five embedded SQL functions byte-identical and SQLAST/PL PASS (composite declaration projection only for inner functions)",
+      "composition": "Five existing function bodies only, unchanged ACL/OID/attributes checked by installer; actual headers rebound in all six arrays with146 total and112 core; no new functions or grants",
+      "release_binding": "Published client commit16ae6ccdf343ae62f3732388b6150f2d31e68aa3 exact SHA/bytes/Gitblob tuples; Pages success and Staff DOM build proof supplied in CLIENT_PUBLICATION; Edge93 unchanged",
+      "preservation": "Root old config except derived hash/new isolated key, recovery and Edge exactly preserved; locked baseline/CAS and exact postflight preserve5Fati/10role/original ticks/failed work/ledger and zero pending work; historical qualifications/budgets unchanged",
+      "recovery": "Source0/0/0 review bound, explicit gesture and journal7 correction retained; no runtime invoked in installer"
+    },
+    "executed": {
+      "SQL_mutation": false,
+      "provider": false,
+      "browser": false,
+      "gameplay": false
+    },
+    "qualification": "Static/material approval only; runtime and actual publication of next Fato NOT_RUN by reviewer",
+    "history": {
+      "aggregate_corrections": 1,
+      "counterchecks": 1,
+      "prior_red_review_preserved": true
+    }
+  },
+  "historical_red_review": {
+    "schema_version": "c1266-independent-integrated-review/1",
+    "reviewed_at": "2026-10-23T17:51:56.859379+00:00",
+    "status": "CHANGES_REQUIRED",
+    "findings_count": {
+      "P0": 0,
+      "P1": 1,
+      "P2": 0
+    },
+    "recipe_sha256": "89ed9143f2d0e4a1e06b65cce1d3f6f210ae00554d26a2b85ec29ce9ff2da144",
+    "builder_sha256": "447a2a772255215d111539d9490755bf5d7bc2642e033b521908d04a1af6e886",
+    "material_sha256": {
+      "RECIPE.json": "89ed9143f2d0e4a1e06b65cce1d3f6f210ae00554d26a2b85ec29ce9ff2da144",
+      "BUILD_INTEGRATED.py": "447a2a772255215d111539d9490755bf5d7bc2642e033b521908d04a1af6e886",
+      "BUILD_SQL.py": "0014b1a40973c84256dab90509623732ca75627511155217ba7a10d221b05919",
+      "CLIENT_READY.json": "4fe712c21cbb99cdac09c73cc24c2de327111695e42e718041fa5ccfab917ca7",
+      "CLIENT_STATIC.json": "332157d244e57a5ae55b1e47c6adfa818cc9212d2b08cf0177688f2ee08e5e89",
+      "CONTRACT.json": "65720cd641e81c5e416030a5a42ed3f19fc7b1f05652d5559dde4d93891fe3c2",
+      "SQL_STATIC.json": "067f7a0dd9ece8c72a4679c58b3c8b68ceefbdec74da953a6af7c77a9acb3630",
+      "SQL_DELTA.json": "cae97235a803cabb314196d9213f6d856e9b7f79340664e33ff4ef29177546f2",
+      "candidate_client/mission-generic-ui.mjs": "1c5381b46d8bd4b60e736ae0d2f739f0fb34bde10d25c9271b7d485bdc466410",
+      "candidate_client/land.html": "9eeb5eec6c86bcb72090ea73c9f199f010f276b76a8cb172f875fd8f713fdb1c",
+      "candidate_sql/mission_generic_owner__progress_step.sql": "dbbdd1cb101ca7c9ca6bf94b584b89721a50d28b39654b75a9f5c4f8de8e0aad",
+      "candidate_sql/mission_generic_owner__staff_journal_settlements_v1.sql": "0c46eba50780fe010db0c26e58e6dbca5236c0cd12c4f47a3bf38b8b9cd4fbd4",
+      "candidate_sql/public__mission_generic_dispatch_async_status_v1.sql": "4c4494c842b954cfe94a381ce3a8fce49c00f5827e11eb9a215c6d357af16ef5",
+      "candidate_sql/public__mission_generic_room_state_v1.sql": "610b0c937a448f7105af984a7f76e68e0fd045631b07b62421b95967ac811978",
+      "candidate_sql/public__mission_generic_staff_tick_v1.sql": "953bf5df5f20a2c8b4ab8d8a7a72ab520b472c78a0252d363345d91b72edc09d"
+    },
+    "findings": [
+      {
+        "id": "NW-R1",
+        "priority": "P1",
+        "file": "candidate_client/mission-generic-ui.mjs",
+        "line_start": 1514,
+        "line_end": 1516,
+        "title": "Non chiudere il journal7 su una risposta sincrona senza successore",
+        "description": "Il nuovo journal7 è protetto nel recoveryProof asincrono, ma invokeAsyncOnce mantiene la chiusura sincrona generica staffNoWork(response.data,parent). staffNoWork accetta dispatch:null, qualsiasi state valido, e staff_tick.request_key anche null; non attesta il successore deterministico né un vero work. Perciò una risposta no-work/existing_work della nuova recovery marca recovery.done=true e inattiva il solo observer prima che un successore sia attestato. Il namespace resta presente e il pulsante viene disabilitato: il percorso può restare senza osservazione né prosecuzione pur non avendo riconosciuto un nuovo work. Questo contraddice CONTRACT.async_read.no_work_without_successor.",
+        "required_change": "Per journal7 non considerare staffNoWork un ACK terminale. Conservare il journal/observer finché è attestato un successore reale o una pubblicazione autorevole; lasciare invariata la semantica dei vecchi journal. Integrare il caso sincrono no-work nella stessa matrice, senza nuove chiamate provider."
+      }
+    ],
+    "coverage": {
+      "DB": "Cinque delta esistenti: predicate pubblicazione qualificata, append-only deterministico sotto lock, actor/source/CAS, lettura successore senza creazione, settlement storico reale; firme/ACL e risorse protette preservati. SELECT eligibility freeze tutte vere.",
+      "UI": "Contratto3 exact15, identità work/tick separate, namespace7 deterministico, persistenza prima HTTP e lock, gesto esplicito; rilevato unico gap sincrono NW-R1.",
+      "builder": "BaselineRootf4ac/Edge93 e Git corrente separati dal pin UI; client latebind exact2+dominio, cinque corpi e sei array header, baseline dati/Root/ACL, configurazioni precedenti e budget preservati. Materializzazione SQL non ancora esaminata.",
+      "matrix": [
+        "originale no-work immutabile",
+        "failed Director guarito solo con pubblicazione autorevole",
+        "attore/source correnti e isolamento",
+        "successore append-once/concorrenza",
+        "lettura senza successore nessuna mutazione",
+        "ACK reale dopo successore",
+        "rientro prima e dopo pubblicazione",
+        "compatibilità journal/contratti legacy e Root composto"
+      ]
+    },
+    "executed": {
+      "gameplay": false,
+      "provider": false,
+      "DB_mutation": false,
+      "deploy": false
+    },
+    "limits": [
+      "Controlli statici e SELECT fornita; nessuna qualifica funzionale o narrativa live.",
+      "Installer bound richiede successiva material review."
+    ],
+    "history_preserved": true
+  },
+  "postflight": {
+    "status": "PASS",
+    "checks": {
+      "exact_integrated_root": true,
+      "root_sha": true,
+      "146_headers": true,
+      "only_five_reviewed_function_bodies_changed": true,
+      "five_fati_and_scene_unchanged": true,
+      "protected48_unchanged": true,
+      "edge93_and_recovery_unchanged": true,
+      "all_old_config_and_budgets_unchanged": true,
+      "only_declared_install_changes": true
+    },
+    "provider_calls": 0,
+    "narrative_quality": "NOT_RUN"
+  },
+  "live_eligibility": [
+    {
+      "eligibility": {
+        "role_flow": {
+          "work_id": null,
+          "next_actor": "system",
+          "flow_detail": null,
+          "flow_reason": "ready_to_evaluate",
+          "request_key": null,
+          "roles_received": 2,
+          "roles_required": 2,
+          "source_revision": "ac9aedbd59dcb835d717f4ddb6ce195e3c2a9d640df576667290fa38b7e6cbbb"
+        },
+        "actor_matches": true,
+        "retry_request_key": "210e8749-540c-8552-8321-6dd33afd48c7",
+        "no_unresolved_failed": true,
+        "original_no_work_proof": true,
+        "source_revision_current": true,
+        "healed_publication_proof": true,
+        "original_tick_receipt_hash": true
+      }
+    }
+  ],
+  "receipt_recovery": {
+    "combat": null,
+    "original_tick": {
+      "created_at": "2026-10-23T17:34:51.737758+00:00",
+      "request_key": "15aca996-0eec-45d1-8492-173623088f33",
+      "actor_user_id": "b4952ed5-5ce0-49c0-9f2b-8fd5dcd89b4b",
+      "result_sha256": "496cda10a3402ac65adba5199245d5b231cba559373e4c45154f00fd56c68b4f",
+      "staff_user_id": "b4952ed5-5ce0-49c0-9f2b-8fd5dcd89b4b",
+      "source_revision": "ac9aedbd59dcb835d717f4ddb6ce195e3c2a9d640df576667290fa38b7e6cbbb",
+      "master_session_id": "44078c5f-7001-4129-9506-e2f34e68c8ac"
+    },
+    "original_progress": {
+      "sha": "496cda10a3402ac65adba5199245d5b231cba559373e4c45154f00fd56c68b4f",
+      "actor": "b4952ed5-5ce0-49c0-9f2b-8fd5dcd89b4b",
+      "result": {
+        "state": "needs_attention",
+        "dispatch": null,
+        "schema_version": "mission-generic-progress/1",
+        "master_session_id": "44078c5f-7001-4129-9506-e2f34e68c8ac"
+      }
+    },
+    "successor_progress": {
+      "sha": "07c97a3a6c56715975defa6da6bc62263271c0252b90da9e3ede385559264817",
+      "actor": "b4952ed5-5ce0-49c0-9f2b-8fd5dcd89b4b",
+      "result": {
+        "state": "director_ready",
+        "dispatch": {
+          "event_id": "433ace05-5265-4aad-96a3-5567b6e3480a",
+          "request_key": "b8344b8d-b7fa-4247-b07f-a88ff9f3bda4",
+          "schema_version": "mission-generic-request/1",
+          "expected_revision": 2,
+          "master_session_id": "44078c5f-7001-4129-9506-e2f34e68c8ac"
+        },
+        "schema_version": "mission-generic-progress/1",
+        "master_session_id": "44078c5f-7001-4129-9506-e2f34e68c8ac"
+      },
+      "request_key": "210e8749-540c-8552-8321-6dd33afd48c7"
+    }
+  },
+  "provider_calls_during_installation": 0,
+  "runtime_case": "NOT_PUBLISHED_WRITER_VALIDATION_FAILED",
+  "qualified_product": false,
+  "added_contract_constraints": [
+    "Exact status/3 no-work predecessor/retry identity and hash; real work tuple required for successor ACK",
+    "Separate journal7 namespace retains original receipt and does not settle without authoritative successor/publication",
+    "Failed historical Director ignored only with attested real published Writer, canonical receipt and settled provider charge"
+  ],
+  "game_rules_or_knowledge_changed": false,
+  "functions_added": 0,
+  "existing_functions_changed": 5,
+  "ACL_changed": false
+}
