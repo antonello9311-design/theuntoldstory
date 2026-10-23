@@ -1,6 +1,6 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-7ae3073ad9c3aaaa';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-publication-7897dcc449bd7b13';
-export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-no-work-recovery1';
+export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-free-narrative1';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -718,7 +718,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NO-WORK-RECOVERY-001');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-FREE-NARRATIVE-001');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -1301,6 +1301,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return a?.kind===b?.kind&&(a.kind==='request'?sameChainRequest(a.request,b.request)
    :a.kind==='staff_tick'&&SHA.test(a.source_revision||'')&&a.source_revision===b.source_revision);
  }
+ function unpublishedReinterpretationRelease(x,r,session){
+  return session==='44078c5f-7001-4129-9506-e2f34e68c8ac'
+   &&['433ace05-5265-4aad-96a3-5567b6e3480a','310493d3-92d2-4645-ba85-ab42f57dbf9d'].includes(x.work_id)
+   &&r.reason==='staff_unpublished_reinterpretation'
+   &&r.source_window_id==='433ace05-5265-4aad-96a3-5567b6e3480a'
+   &&r.source_revision==='ac9aedbd59dcb835d717f4ddb6ce195e3c2a9d640df576667290fa38b7e6cbbb';
+ }
  function settlementItemValid(x,session){
   const p=x?.publication,r=x?.release,s=x?.selector,q=x?.request;
   if(r)return nativeExact(x,['selector','request','work_id','receipt_id','result_sha256','release'])
@@ -1308,10 +1315,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&(nativeExact(s,['kind','request'])&&s.kind==='request'&&sameChainRequest(s.request,q)
     ||nativeExact(s,['kind','source_revision'])&&s.kind==='staff_tick'&&s.source_revision===r.source_revision)
    &&session==='44078c5f-7001-4129-9506-e2f34e68c8ac'&&(releasedDirectorWork(x.work_id)&&r.reason==='staff_preprovider_request_retry'
-    ||x.work_id==='e366b9fa-54dc-4abd-8ba6-9ceee83be9a4'&&r.reason==='staff_saved_director_application')
+    ||x.work_id==='e366b9fa-54dc-4abd-8ba6-9ceee83be9a4'&&r.reason==='staff_saved_director_application'
+    ||unpublishedReinterpretationRelease(x,r,session))
    &&UUID.test(x.receipt_id||'')&&SHA.test(x.result_sha256||'')
    &&nativeExact(r,['source_window_id','source_revision','reason','audit_sha256'])
-   &&r.source_window_id===x.work_id&&SHA.test(r.source_revision||'')&&SHA.test(r.audit_sha256||'')
+   &&(r.source_window_id===x.work_id||unpublishedReinterpretationRelease(x,r,session))&&SHA.test(r.source_revision||'')&&SHA.test(r.audit_sha256||'')
    ;
   return nativeExact(x,['selector','request','work_id','receipt_id','result_sha256','publication'])
    &&sameChainRequest(q,q)&&q.master_session_id===session
