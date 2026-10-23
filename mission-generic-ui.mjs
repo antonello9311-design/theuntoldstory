@@ -1291,11 +1291,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&sameChainRequest(q,q)&&q.master_session_id===session
    &&(nativeExact(s,['kind','request'])&&s.kind==='request'&&sameChainRequest(s.request,q)
     ||nativeExact(s,['kind','source_revision'])&&s.kind==='staff_tick'&&s.source_revision===r.source_revision)
-   &&session==='44078c5f-7001-4129-9506-e2f34e68c8ac'&&releasedDirectorWork(x.work_id)
+   &&session==='44078c5f-7001-4129-9506-e2f34e68c8ac'&&(releasedDirectorWork(x.work_id)&&r.reason==='staff_preprovider_request_retry'
+    ||x.work_id==='e366b9fa-54dc-4abd-8ba6-9ceee83be9a4'&&r.reason==='staff_saved_director_application')
    &&UUID.test(x.receipt_id||'')&&SHA.test(x.result_sha256||'')
    &&nativeExact(r,['source_window_id','source_revision','reason','audit_sha256'])
    &&r.source_window_id===x.work_id&&SHA.test(r.source_revision||'')&&SHA.test(r.audit_sha256||'')
-   &&r.reason==='staff_preprovider_request_retry';
+   ;
   return nativeExact(x,['selector','request','work_id','receipt_id','result_sha256','publication'])
    &&sameChainRequest(q,q)&&q.master_session_id===session
    &&(nativeExact(s,['kind','request'])&&s.kind==='request'&&sameChainRequest(s.request,q)
