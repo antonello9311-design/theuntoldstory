@@ -1095,3 +1095,5 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 
 23/10/2026 · C1266-TURN-RECOVERY-20261023 · supplemento integrato installato e verificato staticamente; recupero Writer NOT_RUN, nuova finestra in attesa di conferma; stesse due role/stessa prova, budget e storico conservati · PUBBLICAZIONE_NON_VERIFICATA.
 23/10/2026 · C1266-TURN-RECOVERY-20261023/aggregata5 · recupero tecnico e pubblicazione unica verificati; qualità narrativa non qualificata; stesse due role/stessa prova, budget e storico conservati · PUBBLICAZIONE_VERIFICATA · EDITORIALE_FAILED_OBSERVED.
+
+23/10/2026 · C1266-NPC-DIALOGUE-CONTINUATION-20261023 · Criteri generali risposta/progresso Director e Writer installati, review0/0/0, cinque Fati/prova e storia preservati,0provider · INSTALLATO_VERIFICATO / QUALITA_FUTURA_NOT_RUN.
