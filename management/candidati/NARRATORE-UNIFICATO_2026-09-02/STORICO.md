@@ -1088,3 +1088,5 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 23/10/2026 · C1266-PHASE-LINK · Raccordo player_choice e4fasi PNG installati;3Fati/prova/consumi invariati, provider0 · READONLY_VERIFIED, prossimo turno NOT_RUN.
 
 23/10/2026 · C1266-REQUEST-SIZE-20261023 · Pubblicato una sola volta il nuovo Fato7350d790-f581-431b-90a0-c7b9db29b05d il23/10/2026 alle09:18:11UTC(11:18Italia), dalle stesse due role cb3e0cb1/0df4a6cd e source_revision0f3feca5. Director1cb859aa e Writer0b907ece completati; batche6325a97 published e fonte consumata sullo stesso messaggio. Nessun riavvio, reinvio delle azioni o modifica ai tre Fati precedenti. Cursor epoch4/revision0, stessa prova aperta e attesa nuove role;0work attivi. · PUBBLICATO_STAFF_PERCORSO_TECNICO_VERIFICATO_QUALITA_NARRATIVA_PARZIALE.
+
+23/10/2026 · C1266-NPC-DIALOGUE-20261023 · installata e verificata nella composizione indicata; principi generali nel solo mission_generic_ai, provider0, dati/Fati/prova invariati · futura narrativa NOT_RUN.
