@@ -1084,3 +1084,5 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 2026-10-22 · C1266-SCENE-PROGRESS · Director e writer orientati a sviluppi causali dalle role, Edge88 e Root allineati; Fato/incipit/prova/quote invariati, zero provider · INSTALLATO_READBACK_PASS / QUALITA_FUTURI_FATI_NOT_RUN.
 
 2026-10-22 · C1266-START-RECOVERY aggregata1 · Riconciliazione delle osservazioni terminali e nuovo unico Fato dalle role esistenti, stessa prova/Fati precedenti/risorse conservati · AVVIO_RIPRESO_FATO_PUBBLICATO / QUALITA_EDITORIALE_PARZIALE.
+
+23/10/2026 · C1266-PHASE-LINK · Raccordo player_choice e4fasi PNG installati;3Fati/prova/consumi invariati, provider0 · READONLY_VERIFIED, prossimo turno NOT_RUN.
