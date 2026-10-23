@@ -1,6 +1,6 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-7ae3073ad9c3aaaa';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-publication-7897dcc449bd7b13';
-export const VERSION='mission-academy-flow-v4-staff-client/1-candidate';
+export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-request-recovery3';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -1285,7 +1285,16 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    :a.kind==='staff_tick'&&SHA.test(a.source_revision||'')&&a.source_revision===b.source_revision);
  }
  function settlementItemValid(x,session){
-  const p=x?.publication,s=x?.selector,q=x?.request;
+  const p=x?.publication,r=x?.release,s=x?.selector,q=x?.request;
+  if(r)return nativeExact(x,['selector','request','work_id','receipt_id','result_sha256','release'])
+   &&sameChainRequest(q,q)&&q.master_session_id===session
+   &&(nativeExact(s,['kind','request'])&&s.kind==='request'&&sameChainRequest(s.request,q)
+    ||nativeExact(s,['kind','source_revision'])&&s.kind==='staff_tick'&&s.source_revision===r.source_revision)
+   &&session==='44078c5f-7001-4129-9506-e2f34e68c8ac'&&x.work_id==='d460a7be-a3a2-4ad8-9d3b-d2e929f2947e'
+   &&UUID.test(x.receipt_id||'')&&SHA.test(x.result_sha256||'')
+   &&nativeExact(r,['source_window_id','source_revision','reason','audit_sha256'])
+   &&r.source_window_id===x.work_id&&SHA.test(r.source_revision||'')&&SHA.test(r.audit_sha256||'')
+   &&r.reason==='staff_preprovider_request_retry';
   return nativeExact(x,['selector','request','work_id','receipt_id','result_sha256','publication'])
    &&sameChainRequest(q,q)&&q.master_session_id===session
    &&(nativeExact(s,['kind','request'])&&s.kind==='request'&&sameChainRequest(s.request,q)
@@ -1299,19 +1308,20 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!Object.hasOwn(state,'journal_settlements'))return [];
   const x=state.journal_settlements;
   if(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||!asyncCurrent(t)
-   ||!nativeExact(x,['schema_version','master_session_id','items'])||x.schema_version!=='mission-journal-settlements/1'
+   ||!nativeExact(x,['schema_version','master_session_id','items'])||!['mission-journal-settlements/1','mission-journal-settlements/2'].includes(x.schema_version)
    ||x.master_session_id!==state.session_id||!Array.isArray(x.items)||x.items.length>128
-   ||!x.items.every(i=>settlementItemValid(i,state.session_id))
-   ||new Set(x.items.map(i=>selectorKey(i.selector))).size!==x.items.length)throw Error('async_settlements_invalid');
+   ||!x.items.every(i=>settlementItemValid(i,state.session_id)&&(x.schema_version==='mission-journal-settlements/2'||!i.release))
+   ||new Set(x.items.map(i=>selectorKey(i.selector)+':'+i.work_id)).size!==x.items.length)throw Error('async_settlements_invalid');
   return x.items;
  }
- function settlementFor(items,selector,work=null){
-  return items.find(i=>sameSelector(i.selector,selector)&&(work===null||work===i.work_id))||null;
+ function settlementFor(items,selector,work=null,excludeWork=null){
+  const matches=items.filter(i=>sameSelector(i.selector,selector)&&(work===null||work===i.work_id)&&i.work_id!==excludeWork);
+  return matches.find(i=>i.release)||matches[0]||null;
  }
  function recordSettlement(item,t){
   // Evidence is supplied by this fresh authenticated room read. The sidecar is audit only.
   // Original journals, resume phases and their observation budgets remain byte-identical.
-  const key=`${settlementSchema}:${t.user}:${item.request.master_session_id}:${selectorKey(item.selector)}`;
+  const key=`${settlementSchema}:${t.user}:${item.request.master_session_id}:${selectorKey(item.selector)}${item.release?':released:'+item.work_id:''}`;
   const proof={schema_version:settlementSchema,user:t.user,session:item.request.master_session_id,proof:clone(item)};
   const raw=localStorage.getItem(key);
   if(raw!==null){const old=JSON.parse(raw);
@@ -1319,7 +1329,9 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     ||old.user!==t.user||old.session!==proof.session||!settlementItemValid(old.proof,proof.session)
     ||!sameSelector(old.proof.selector,item.selector)||!sameChainRequest(old.proof.request,item.request)
     ||old.proof.work_id!==item.work_id||old.proof.receipt_id!==item.receipt_id||old.proof.result_sha256!==item.result_sha256
-    ||['writer_work_id','message_id','receipt_id','result_sha256'].some(k=>old.proof.publication[k]!==item.publication[k]))throw Error('async_settlement_conflict');
+    ||(!!old.proof.release!==!!item.release)||(item.release
+     ?['source_window_id','source_revision','reason','audit_sha256'].some(k=>old.proof.release[k]!==item.release[k])
+     :['writer_work_id','message_id','receipt_id','result_sha256'].some(k=>old.proof.publication[k]!==item.publication[k])))throw Error('async_settlement_conflict');
    return;
   }
   localStorage.setItem(key,JSON.stringify(proof));
@@ -1328,17 +1340,17 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   for(const r of asyncWorks.values()){
    if(r.user!==t.user||r.session!==roomState?.session_id||r.inactive)continue;
    const selector=r.selector??selectorFor(r.parent?.body)??(r.request?selectorFor(r.request):null);
-   const proof=settlementFor(items,selector,r.work??null);if(!proof)continue;
+   const proof=settlementFor(items,selector,r.work??null,r.releasedPredecessor??null);if(!proof)continue;
    recordSettlement(proof,t);r.terminalSettlement=Object.freeze(clone(proof));r.chainDone=true;r.inactive=true;
   }
  }
- const journalPhase=j=>['mission-async-journal/3','mission-async-journal/4','mission-async-journal/5'].includes(j?.schema_version)?j.recovery:j?.schema_version==='mission-async-journal/2'?j.resume:j;
+ const journalPhase=j=>['mission-async-journal/3','mission-async-journal/4','mission-async-journal/5','mission-async-journal/6'].includes(j?.schema_version)?j.recovery:j?.schema_version==='mission-async-journal/2'?j.resume:j;
  function journalPhaseValid(j,key,user,session,fields){
   const s=j?.selector;
   const selectorValid=nativeExact(s,['kind','source_revision'])&&s.kind==='staff_tick'&&SHA.test(s.source_revision||'')
    ||nativeExact(s,['kind','request'])&&s.kind==='request'&&sameChainRequest(s.request,s.request)&&s.request.master_session_id===session;
   return nativeExact(j,fields)&&j.user===user&&j.session===session&&selectorValid
-   &&key===journalPrefix(user,session)+selectorKey(s)&&Number.isSafeInteger(j.started)&&j.started>0&&j.started<=Date.now()
+   &&key===journalPrefix(user,session)+selectorKey(s)+(Object.hasOwn(j,'released_work_id')?':released:'+j.released_work_id:'')&&Number.isSafeInteger(j.started)&&j.started>0&&j.started<=Date.now()
    &&Number.isSafeInteger(j.reads)&&j.reads>=0&&j.reads<=asyncBudget.maxReads&&Number.isSafeInteger(j.lastRead)&&j.lastRead>=0&&typeof j.done==='boolean';
  }
  function readJournal(key,user,session){
@@ -1371,7 +1383,15 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
 
    return true;
   };
-  if(j?.schema_version==='mission-async-journal/5'){
+  if(j?.schema_version==='mission-async-journal/6'){
+   const r=j.recovery,baseKey=journalPrefix(user,session)+selectorKey(r?.selector);
+   if(!nativeExact(j,['schema_version','original','recovery'])
+    ||!journalPhaseValid(r,key,user,session,['user','session','selector','released_work_id','source_request_key','started','reads','lastRead','done'])
+    ||r.selector.kind!=='staff_tick'||session!=='44078c5f-7001-4129-9506-e2f34e68c8ac'
+    ||r.released_work_id!=='d460a7be-a3a2-4ad8-9d3b-d2e929f2947e'||!UUID.test(r.source_request_key||'')
+    ||!(j.original===null||j.original?.schema_version===asyncJournalSchema
+      &&journalPhaseValid(j.original,baseKey,user,session,legacyFields)&&sameSelector(j.original.selector,r.selector)))throw Error('async_journal_invalid');
+  }else if(j?.schema_version==='mission-async-journal/5'){
    const r=j.recovery,p=openingClaimResumePrior15;
    if(!nativeExact(j,['schema_version','original','recovery'])||!journal4Valid(j.original)||!openingClaimResumePriorJournal15(j.original)
     ||!journalPhaseValid(r,key,user,session,['user','session','selector','proof_sha256','release_sha256','previous_lease_id','dispatch_receipt_id','contract_sha256','started','reads','lastRead','done'])
@@ -1398,14 +1418,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const body=j.selector.kind==='request'?clone(j.selector.request):{schema_version:'mission-generic-staff-tick/1',master_session_id:j.session,source_revision:j.selector.source_revision};
   const parent={user:j.user,session:j.session,key,kind:j.selector.kind==='staff_tick'?'tick':'work',work:null,body:Object.freeze(body),inFlight:false,outcome:'waiting',journalKey:key};
   const k='journal:'+key;parent.asyncKey=k;
-  asyncWorks.set(k,{user:j.user,session:j.session,work:null,request:null,parent,selector:clone(j.selector),journalKey:key,resumeProof:j.proof_sha256??null,started:performance.now(),lastRead:-Infinity,reads:0,busy:false,state:'waiting',failure:null,proof:null,allowChain:false,accepted:false,chainDone:false});
+  asyncWorks.set(k,{user:j.user,session:j.session,work:null,request:null,parent,selector:clone(j.selector),journalKey:key,releasedPredecessor:j.released_work_id??null,resumeProof:j.proof_sha256??null,started:performance.now(),lastRead:-Infinity,reads:0,busy:false,state:'waiting',failure:null,proof:null,allowChain:false,accepted:false,chainDone:false});
  }
  function restoreJournals(state,t,settlements=[]){
   if(!asyncCurrent(t))return;const prefix=journalPrefix(t.user,state.session_id);let count=0;
   for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key?.startsWith(prefix))continue;
    if(++count>128)throw Error('async_journal_limit');const j=readJournal(key,t.user,state.session_id);
    if(j&&!journalPhase(j).done){
-    const proof=settlementFor(settlements,journalPhase(j).selector);
+    const proof=settlementFor(settlements,journalPhase(j).selector,null,journalPhase(j).released_work_id??null);
     if(proof){recordSettlement(proof,t);continue;}
     attachJournal(j,key);
    }
@@ -1425,16 +1445,35 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   // This source delta targets the opted-in Staff driver, not unrelated synchronous consumers.
   if(!(selector&&isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc.is_test===true&&driver.optedIn&&driver.valid))return client.functions.invoke('mission_generic_ai',{body:clone(parent.body)});
   if(!navigator.locks?.request)throw Error('async_journal_lock_unavailable');
-  const key=journalPrefix(t.user,parent.session)+selectorKey(selector);parent.journalKey=key;
+  const baseKey=journalPrefix(t.user,parent.session)+selectorKey(selector);
+  let release=null;
+  if(parent.tickRecoveryKey==='d460a7be-a3a2-4ad8-9d3b-d2e929f2947e'&&parent.session==='44078c5f-7001-4129-9506-e2f34e68c8ac'){
+   const projection=tickStatusFor(roomState,t),proof=projection.value;
+   if(!projection.applicable||!projection.valid||selector.kind!=='staff_tick'
+    ||parent.session!=='44078c5f-7001-4129-9506-e2f34e68c8ac'
+    ||parent.tickRecoveryKey!=='d460a7be-a3a2-4ad8-9d3b-d2e929f2947e'
+    ||proof.state!=='released'||!proof.owned_by_me||!proof.can_resume
+    ||proof.recovery_key!==parent.tickRecoveryKey||proof.source_revision!==selector.source_revision)
+    throw Error('async_release_retry_unconfirmed');
+   release=proof;
+  }
+  const key=baseKey+(release?':released:'+release.work_id:'');parent.journalKey=key;
   return navigator.locks.request(key,{mode:'exclusive'},async()=>{
    if(!asyncCurrent(t)||abortBlocked(parent.session))throw Error('async_context_changed');
    const old=readJournal(key,t.user,parent.session);if(old){if(!journalPhase(old).done)attachJournal(old,key);throw Error('async_already_submitted');}
-   const j={schema_version:asyncJournalSchema,user:t.user,session:parent.session,selector,started:Date.now(),reads:0,lastRead:0,done:false};
+   const phase={user:t.user,session:parent.session,selector,started:Date.now(),reads:0,lastRead:0,done:false};
+   let j;
+   if(release){
+    const original=readJournal(baseKey,t.user,parent.session);
+    if(original&&original.schema_version!==asyncJournalSchema)throw Error('async_release_original_invalid');
+    j={schema_version:'mission-async-journal/6',original:original===null?null:clone(original),
+     recovery:{...phase,released_work_id:release.work_id,source_request_key:release.request_key}};
+   }else j={schema_version:asyncJournalSchema,...phase};
    saveJournal(key,j);attachJournal(j,key); // Persist before HTTP; an uncertain send is never repeated.
    const response=await client.functions.invoke('mission_generic_ai',{body:clone(parent.body)});
    const delivery=response.data?.delivery??response.data;
    if(!response.error&&(staffNoWork(response.data,parent)||delivery?.status===200&&['MISSION_EVENT_COMPLETE','MISSION_EVENT_FAILED'].includes(delivery.code)&&UUID.test(delivery.receipt_id||''))){
-    j.done=true;saveJournal(key,j);const r=asyncWorks.get('journal:'+key);if(r)r.inactive=true;
+    journalPhase(j).done=true;saveJournal(key,j);const r=asyncWorks.get('journal:'+key);if(r)r.inactive=true;
    } // A confirmed synchronous terminal reply needs no new async observer.
    return response;
   });
