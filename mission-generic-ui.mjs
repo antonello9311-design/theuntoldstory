@@ -401,7 +401,48 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  const roomCurrent=t=>t.scope===roomScope&&t.epoch===roomEpoch&&valid(t.user)&&scopeFor(identity(),currentLocation())===t.scope&&roomHost?.isConnected;
  const chainFeedback=new Map(),recoveredWriters=new Set();
  let manualObserverVerification=null;
+ let manualRoomLane=null;
  const manualObserverReadTokens=new WeakSet();
+ const manualLaneCurrent=lane=>!!(lane&&manualRoomLane===lane&&roomCurrent(lane.t)
+  &&roomHost===lane.host&&roomState?.session_id===lane.session);
+ const manualLaneBlocks=token=>!!(manualRoomLane&&roomCurrent(manualRoomLane.t)
+  &&(token!==manualRoomLane||!manualLaneCurrent(manualRoomLane)));
+ function manualLaneReading(lane){
+  return roomRead!==null||manualObserverVerification!==null||[...asyncWorks.values()].some(r=>r.user===lane.t.user&&r.session===lane.session&&r.busy);
+ }
+ function queueManualRoomAction(host,kind,run){
+  const t=syncRoom(host),session=roomState?.session_id;
+  if(!asyncCurrent(t)||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||!UUID.test(session||''))return Promise.resolve({status:'context_changed'});
+  if(manualRoomLane&&manualLaneCurrent(manualRoomLane))return manualRoomLane.promise??Promise.resolve({status:'already_queued'});
+  const lane={host,t,session,kind,stage:'waiting',deadline:performance.now()+10000,promise:null};manualRoomLane=lane;
+  lane.promise=(async()=>{
+   try{
+    paintRoom(host,roomState);
+    while(manualLaneReading(lane)){
+     if(!manualLaneCurrent(lane))return {status:'context_changed'};
+     if(performance.now()>=lane.deadline)throw Error('manual_read_wait_timeout');
+     await new Promise(resolve=>setTimeout(resolve,100)); // Local wait only; no server polling or provider retry.
+    }
+    if(!manualLaneCurrent(lane)||abortBlocked(lane.session))return {status:'context_changed'};
+    lane.stage='executing';paintRoom(host,roomState);
+    return await run(lane);
+   }catch(error){
+    if(manualLaneCurrent(lane))roomError=error?.message==='manual_read_wait_timeout'
+     ?'La lettura in corso non è terminata entro 10 secondi. Questo comando non è stato inviato; richieste e storico restano conservati.'
+     :'Comando manuale non confermato. Richieste e storico restano conservati; aggiorna la regia.';
+    return {status:'unconfirmed',code:error?.message==='manual_read_wait_timeout'?'manual_read_wait_timeout':'manual_command_unconfirmed'};
+   }finally{
+    if(manualRoomLane===lane)manualRoomLane=null;
+    if(roomCurrent(t)&&roomState){try{paintRoom(host,roomState);}catch{const status=host.querySelector('[data-mg-room-status]');if(status)status.textContent=roomError||'Comando manuale non confermato; richieste conservate.';}}
+   }
+  })();
+  return lane.promise;
+ }
+ function refreshRoomManually(host){
+  if(!isStaff()||currentLocation()?.id!==STAFF_TEST_ROOM||currentLocation()?.is_test!==true)return updateRoom(host,{manual:true});
+  return queueManualRoomAction(host,'refresh',lane=>updateRoom(host,{manual:true,manualLane:lane}));
+ }
+
  const recoveredWriterKey=(user,session,work)=>JSON.stringify([user,session,work]);
  const choiceKey=s=>JSON.stringify([cacheUser,s.session_id]);
  function processingFor(state){
@@ -666,6 +707,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     &&!(publication&&publication!==a.prior_publication_id))||null;
   }
   function statusText(state){
+  if(manualRoomLane&&manualLaneCurrent(manualRoomLane))return manualRoomLane.stage==='waiting'?'Comando manuale in attesa della lettura in corso…':'Comando manuale in esecuzione…';
   if(roomError)return roomError;
   const tickStop=staffTickAutoStop(state,{user:cacheUser,loc:currentLocation()});if(tickStop)return tickStop.code==='MISSION_STAFF_TICK_ACTOR_CONFLICT'?'La valutazione appartiene a un altro attore. Invii automatici sospesi; aggiorna la regia per leggere la ricevuta server, senza reinviare le role.':'Invio della valutazione non confermato. Invii automatici sospesi; verifica la ricevuta server senza ripetere le role.';
   if(state.review_required===true&&roleProgress(state)===null)return 'La scena richiede una valutazione dello staff prima di continuare.';
@@ -782,11 +824,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-RECOVERY-004');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-RECOVERY-005');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
-  if(!title||!status||!actions){host.replaceChildren();host.className='mg-room';title=el('strong','',{'data-mg-room-title':''});status=el('p','',{'data-mg-room-status':'',role:'status','aria-live':'polite','aria-atomic':'true'});actions=el('div',null,{'data-mg-room-actions':''});host.append(title,status,actions,button('Aggiorna regia',()=>updateRoom(host,{manual:true})));roomSignature='';}
+  if(!title||!status||!actions){host.replaceChildren();host.className='mg-room';title=el('strong','',{'data-mg-room-title':''});status=el('p','',{'data-mg-room-status':'',role:'status','aria-live':'polite','aria-atomic':'true'});actions=el('div',null,{'data-mg-room-actions':''});host.append(title,status,actions,button('Aggiorna regia',()=>refreshRoomManually(host)));roomSignature='';}
   host.hidden=false;const heading='Missione · '+(state.objective||state.step_key||'');if(title.textContent!==heading)title.textContent=heading;
    const flow=academyFlow(state),choices=flow===null?(Array.isArray(state.choices)?state.choices:state.choices?.choices||[]):[];
    const sig=JSON.stringify([state.session_id,state.step_key,state.objective,flow,state.flow_publication_id,choices,state.choice_context?.master_control_version,state.choice_context?.run_control_version]);
@@ -859,22 +901,24 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(noWorkTick.valid&&noWorkTick.value?.state==='no_work_released'&&noWorkTick.value.owned_by_me&&noWorkTick.value.can_resume){
    if(!noWorkResume){noWorkResume=button('Riprendi la valutazione delle role',()=>verifyPendingObservers(host,true));noWorkResume.setAttribute('data-mg-no-work-resume','');host.append(noWorkResume);}
    const proof=noWorkTick.value,journalKey=journalPrefix(cacheUser,state.session_id)+selectorKey({kind:'staff_tick',source_revision:proof.source_revision})+':no-work:'+proof.recovery_key+':'+proof.retry_request_key;
-   noWorkResume.disabled=!!roomError||!!manualObserverVerification||!!staffTickAutoStop(state,{user:cacheUser,loc:currentLocation()})||liveAttempt(state)||abortBlocked(state.session_id)||(readJournal(journalKey,cacheUser,state.session_id)!==null&&!sameNoWorkReplay(state,{user:cacheUser,loc:currentLocation()},journalKey));
+   noWorkResume.disabled=!!roomError||!!manualObserverVerification||!!(manualRoomLane&&manualLaneCurrent(manualRoomLane))||!!staffTickAutoStop(state,{user:cacheUser,loc:currentLocation()})||liveAttempt(state)||abortBlocked(state.session_id)||(readJournal(journalKey,cacheUser,state.session_id)!==null&&!sameNoWorkReplay(state,{user:cacheUser,loc:currentLocation()},journalKey));
   }else noWorkResume?.remove();
   let tickCheck=host.querySelector('[data-mg-tick-check]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&(unresolvedTickForSession(state)||asyncBlocked(state)||staffTickAutoStop(state,{user:cacheUser,loc:currentLocation()}))){
    if(!tickCheck){tickCheck=button('Verifica invio',()=>verifyPendingObservers(host));tickCheck.setAttribute('data-mg-tick-check','');host.append(tickCheck);}
-   tickCheck.disabled=!!roomError||!!manualObserverVerification;
+   tickCheck.disabled=!!roomError||!!manualObserverVerification||!!(manualRoomLane&&manualLaneCurrent(manualRoomLane));
   }else if(tickCheck)tickCheck.remove();
   let nativeReplay=host.querySelector('[data-mg-native-replay]');
   const nativeReplayRecord=[...asyncWorks.values()].find(r=>nativeReplayBinding(state,{user:cacheUser,loc:currentLocation(),scope:roomScope,epoch:roomEpoch},r));
-  if(nativeReplayRecord){if(!nativeReplay){nativeReplay=button('Riprendi lo stesso invio nativo',()=>replayNativeTick(host));nativeReplay.setAttribute('data-mg-native-replay','');host.append(nativeReplay);}nativeReplay.disabled=!!roomError||!!manualObserverVerification;}else nativeReplay?.remove();
+  if(nativeReplayRecord){if(!nativeReplay){nativeReplay=button('Riprendi lo stesso invio nativo',()=>replayNativeTick(host));nativeReplay.setAttribute('data-mg-native-replay','');host.append(nativeReplay);}nativeReplay.disabled=!!roomError||!!manualObserverVerification||!!(manualRoomLane&&manualLaneCurrent(manualRoomLane));}else nativeReplay?.remove();
   let entryButton=host.querySelector('[data-mg-combat-entry]'),panelButton=host.querySelector('[data-mg-combat-panel]'),entryNotice=host.querySelector('[data-mg-combat-notice]'),entryRetry=host.querySelector('[data-mg-combat-entry-retry]');
   if(entryState?.can_prepare&&!entryPending){if(!entryButton){entryButton=button('Apri scontro',()=>prepareEntry(host,roomState));entryButton.setAttribute('data-mg-combat-entry','');host.append(entryButton);}entryButton.disabled=!!roomError;}else entryButton?.remove();
   if(entryState?.can_open_panel){if(!panelButton){panelButton=button('Scegli l’azione nel pannello Scontro',()=>openCombat());panelButton.setAttribute('data-mg-combat-panel','');host.append(panelButton);}panelButton.disabled=!!roomError||!!entryPending;}else panelButton?.remove();
   if(entryPending&&entryReplayReady){if(!entryRetry){entryRetry=button('Ripeti la stessa apertura',()=>retryEntry(host,roomState));entryRetry.setAttribute('data-mg-combat-entry-retry','');host.append(entryRetry);}entryRetry.disabled=!!roomError;}else entryRetry?.remove();
   const entryText=entryError|| (entryPending?'Ingresso incerto: verifica la stessa richiesta prima di agire.':entryState?.reason_code==='REGIA_FATO_PENDING'?'Il Fato deve essere pubblicato prima della scelta meccanica.':entryState?.reason_code==='REGIA_NOT_YOUR_TURN'?'Pannello consultabile: attendi il tuo turno.':'');
   if(entryText){if(!entryNotice){entryNotice=el('p','',{role:'status','data-mg-combat-notice':''});host.append(entryNotice);}entryNotice.textContent=entryText;}else entryNotice?.remove();
+  const manualBusy=!!(manualRoomLane&&manualLaneCurrent(manualRoomLane));host.setAttribute('aria-busy',manualBusy?'true':'false');
+  for(const b of host.querySelectorAll('button'))if(b.textContent==='Aggiorna regia')b.disabled=manualBusy;
   const text=statusText(state);if(status.textContent!==text)status.textContent=text;
   const tickProjection=tickStatusFor(state);
   let tickOwnerNotice=host.querySelector('[data-mg-tick-owner-status]');
@@ -1948,19 +1992,20 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }
   const old=asyncWorks.get('journal:'+oldKey);if(old){old.inactive=true;old.handedOffTo=work;} // Handoff only after the actual-work observer is attached.
  }
- async function replayNoWorkJournal(state,t,key){
-  const binding=sameNoWorkReplay(state,t,key);if(!binding||!asyncCurrent(t)||abortBlocked(state.session_id)||staffTickAutoStop(state,t))return;
+ async function replayNoWorkJournal(state,t,key,manualLane=null){
+  const binding=sameNoWorkReplay(state,t,key);if(!binding||((manualLane!==null&&!manualLaneCurrent(manualLane))||!asyncCurrent(t))||abortBlocked(state.session_id)||staffTickAutoStop(state,t))return;
   const phase=journalPhase(binding.document),storeKey=JSON.stringify([t.user,state.session_id,'same-transport:'+key]);
   const old=attempts.get(storeKey);if(old?.inFlight)return;
   const parent={user:t.user,session:state.session_id,key:'same-transport:'+key,kind:'tick',work:null,body:Object.freeze({schema_version:'mission-generic-staff-tick/1',master_session_id:state.session_id,source_revision:phase.selector.source_revision}),
    staffTickSource:phase.selector.source_revision,tickRecoveryKey:phase.no_work_recovery_key,noWorkRecovery:clone(binding.proof),sameJournalReplay:true,journalKey:key,inFlight:true,outcome:'pending'};
   attempts.set(storeKey,parent);paintRoom(roomHost,state);
   try{
+   if(manualLane!==null&&!manualLaneCurrent(manualLane))return;
    const {data,error}=await invokeAsyncOnce(parent,t);if(error)throw error;
-   if(!asyncCurrent(t))return;
+   if(((manualLane!==null&&!manualLaneCurrent(manualLane))||!asyncCurrent(t)))return;
    const pending=acceptAsyncPending(data,parent,t,true);
    parent.outcome=pending?'waiting':'uncertain'; // A no-work/uncertain transport reply never fabricates success.
-  }catch(error){await preserveStaffTickStop(error,parent,t);parent.outcome='uncertain';}finally{parent.inFlight=false;if(asyncCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true,verifyOnly:true,readOnlyObservers:true});}}
+  }catch(error){await preserveStaffTickStop(error,parent,t);parent.outcome='uncertain';}finally{parent.inFlight=false;if((manualLane===null||manualLaneCurrent(manualLane))&&asyncCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane});}}
  }
  function pausedNoWorkProof(state,t,r){
   const projection=tickStatusFor(state,t),p=projection.value;
@@ -2000,23 +2045,24 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&(other.busy||other.state!=='completed'||other.allowChain&&!other.chainDone))return null;
   return r.parent;
  }
- async function replayNativeTick(host){
-  const t=syncRoom(host);if(!asyncCurrent(t)||roomRead||manualObserverVerification)return;
-  await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});if(!asyncCurrent(t)||roomError)return;
+ async function replayNativeTick(host,manualLane=null){
+  if(manualLane===null)return queueManualRoomAction(host,'native_replay',lane=>replayNativeTick(host,lane));
+  const t=syncRoom(host);if(!manualLaneCurrent(manualLane)||!asyncCurrent(t)||manualObserverVerification)return;
+  await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane});if((!manualLaneCurrent(manualLane)||!asyncCurrent(t))||roomError)return;
   const r=[...asyncWorks.values()].find(r=>nativeReplayBinding(roomState,t,r));if(!r)return;
   const token={record:r,scope:t,spent:false};manualObserverReadTokens.add(token);
   r.busy=true;let response;
   try{response=await asyncRead({schema_version:'mission-generic-async-recover/1',master_session_id:r.session,selector:clone(r.selector)},r,token);}
-  catch{if(asyncCurrent(t))roomError='Verifica dell’invio nativo non disponibile. La stessa richiesta resta conservata.';return;}
+  catch{if(manualLaneCurrent(manualLane)&&asyncCurrent(t))roomError='Verifica dell’invio nativo non disponibile. La stessa richiesta resta conservata.';return;}
   finally{r.busy=false;}
-  if(!asyncCurrent(t))return;
+  if((!manualLaneCurrent(manualLane)||!asyncCurrent(t)))return;
   if(response.status==='owned'){const proof=recoveryProof(response,r);if(proof)adoptAsyncProof(r,proof);rememberNativeReplayRead(r,response,t);if(response.state!=='ready'){paintRoom(host,roomState);return;}}
   else{if(!nativeExact(response,recoveryKeys)||response.schema_version!=='mission-generic-async-recovery/1'||response.status!=='none'||response.retry!==false||response.provider_retry_allowed!==false
    ||['request','work_id','state','receipt_id','result_sha256','kind'].some(k=>response[k]!==null))return;rememberNativeReplayRead(r,response,t);}
-  if(nativeReplayBinding(roomState,t,r)!==r.parent)return;
+  if(!manualLaneCurrent(manualLane)||nativeReplayBinding(roomState,t,r)!==r.parent)return;
   const parent=r.parent;parent.nativeReplay=r;parent.inFlight=true;
   try{
-   paintRoom(host,roomState);const result=await invokeAsyncOnce(parent,t);if(result.error)throw result.error;
+   paintRoom(host,roomState);if(!manualLaneCurrent(manualLane))return;const result=await invokeAsyncOnce(parent,t);if(!manualLaneCurrent(manualLane))return;if(result.error)throw result.error;
    if(!acceptAsyncPending(result.data,parent,t,true)&&!nativeNoWorkAck(result.data,parent)){
     const delivery=result.data?.delivery;
     if(!sameChainRequest(result.data?.dispatch,result.data?.dispatch)||result.data.dispatch.master_session_id!==r.session
@@ -2024,11 +2070,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
      ||!UUID.test(delivery.receipt_id||'')||delivery.retry!==false||delivery.provider_retry_allowed!==false)throw Error('async_native_replay_unconfirmed');
     const terminalToken={record:r,scope:t,spent:false};manualObserverReadTokens.add(terminalToken);
     const terminal=await asyncRead({schema_version:'mission-generic-async-recover/1',master_session_id:r.session,selector:clone(r.selector)},r,terminalToken);
-    if(!asyncCurrent(t)||terminal.status!=='owned')throw Error('async_native_terminal_unconfirmed');
+    if((!manualLaneCurrent(manualLane)||!asyncCurrent(t))||terminal.status!=='owned')throw Error('async_native_terminal_unconfirmed');
     const proof=recoveryProof(terminal,r);if(!proof||proof.receipt_id!==delivery.receipt_id)throw Error('async_native_terminal_unconfirmed');adoptAsyncProof(r,proof);
    }
-  }catch{parent.outcome='uncertain';if(asyncCurrent(t))roomError='Ripresa dello stesso invio nativo non confermata; richiesta e storico conservati.';}
-  finally{parent.inFlight=false;parent.nativeReplay=null;if(asyncCurrent(t)){paintRoom(host,roomState);await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});}}
+  }catch{parent.outcome='uncertain';if(manualLaneCurrent(manualLane)&&asyncCurrent(t))roomError='Ripresa dello stesso invio nativo non confermata; richiesta e storico conservati.';}
+  finally{parent.inFlight=false;parent.nativeReplay=null;if(manualLaneCurrent(manualLane)&&asyncCurrent(t)){paintRoom(host,roomState);await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane});}}
  }
  function nativeNoWorkAck(data,parent){
   if(parent.body.schema_version!=='mission-generic-tick/1'||data?.dispatch!==null)return false;
@@ -2040,7 +2086,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function manualObserverDiagnostic(stage,r,error=null,response=null){
   const selector=r.selector??selectorFor(r.request)??selectorFor(r.parent?.body),q=selector?.kind==='request'?selector.request:null;
-  const knownStage=['read_started','read_result','read_error','native_no_work_settled','terminal_settlement'];
+  const knownStage=['verification_started','verification_finished','read_started','read_result','read_error','native_no_work_settled','terminal_settlement'];
   if(!knownStage.includes(stage))return;
   const codes=new Set(['async_read_timeout','async_read_transport','async_read_unconfirmed','async_status_unconfirmed','async_recovery_invalid','async_owned_recovery_missing','async_native_no_work_unconfirmed','async_native_no_work_journal_invalid','async_native_no_work_settlement_conflict','async_journal_invalid','async_journal_lock_unavailable','async_journal_limit','async_native_journal_invalid','manual_no_work_proof_invalid','manual_observer_proof_invalid','manual_observer_read_invalid','async_context_changed','async_budget','async_phase_changed']);
   const code=error?(codes.has(error.message)?error.message:'observer_read_unconfirmed'):null;
@@ -2053,17 +2099,18 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    response_kind:['director','narration','choice'].includes(response?.kind)?response.kind:null,
    error_class:error?['Error','TypeError','RangeError','AbortError','TimeoutError'].includes(error.name)?error.name:'Error':null,code});
  }
- async function verifyPendingObservers(host,resumeNoWork=false){
+ async function verifyPendingObservers(host,resumeNoWork=false,manualLane=null){
+  if(manualLane===null)return queueManualRoomAction(host,resumeNoWork?'verify_resume':'verify',lane=>verifyPendingObservers(host,resumeNoWork,lane));
   const t=syncRoom(host);
-  if(!asyncCurrent(t)||roomRead||manualObserverVerification||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||abortBlocked(roomState?.session_id))return;
-  const verification={scope:t};let canResumeAfterVerification=false;manualObserverVerification=verification;
+  if(!manualLaneCurrent(manualLane)||!asyncCurrent(t)||manualObserverVerification||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||abortBlocked(roomState?.session_id))return;
+  const verification={scope:t};let canResumeAfterVerification=false;manualObserverVerification=verification;manualObserverDiagnostic('verification_started',{});
   try{
-   await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});
-   if(!asyncCurrent(t)||manualObserverVerification!==verification||!roomState||roomError)return;
+   await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane});
+   if((!manualLaneCurrent(manualLane)||!asyncCurrent(t))||manualObserverVerification!==verification||!roomState||roomError)return;
    let items=journalSettlements(roomState,t);settleAsyncRecords(items,t);
    const records=[...asyncWorks.values()].filter(r=>r.user===t.user&&r.session===roomState.session_id&&!r.inactive&&!r.busy&&(r.accepted||r.journalKey));
    for(const record of records){
-    if(!asyncCurrent(t)||abortBlocked(record.session))return;
+    if((!manualLaneCurrent(manualLane)||!asyncCurrent(t))||abortBlocked(record.session))return;
     // Fresh matching publication/release can resolve a failed observer without another network read.
     const terminal=settlementForRecord(items,record);
     if(terminal){recordSettlement(terminal,t);reconcileSettlementParents(terminal,record,t);record.terminalSettlement=Object.freeze(clone(terminal));record.chainDone=true;record.inactive=true;manualObserverDiagnostic('terminal_settlement',record);continue;}
@@ -2076,7 +2123,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
      manualObserverDiagnostic('read_started',record);
      const response=await asyncRead(body,record,token);
      manualObserverDiagnostic('read_result',record,null,response);
-     if(!asyncCurrent(t)||abortBlocked(record.session))return;
+     if((!manualLaneCurrent(manualLane)||!asyncCurrent(t))||abortBlocked(record.session))return;
      if(body.schema_version==='mission-generic-async-status/1'){
       // A failed or completed work status alone does not attest publication or authorize a new generation.
       adoptAsyncProof(record,asyncStatusProof(response,record));
@@ -2107,17 +2154,19 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
      if(matched){recordSettlement(matched,t);reconcileSettlementParents(matched,record,t);record.terminalSettlement=Object.freeze(clone(matched));record.chainDone=true;record.inactive=true;}
     }catch(error){record.manualVerificationUnconfirmed=true;manualObserverDiagnostic('read_error',record,error);}finally{record.busy=false;}
    }
-   if(!asyncCurrent(t))return;
-   await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});
+   if((!manualLaneCurrent(manualLane)||!asyncCurrent(t)))return;
+   await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane});
+   if(!manualLaneCurrent(manualLane)||!asyncCurrent(t)||roomError)return;
    const p=tickStatusFor(roomState,t).value;
    const key=p?.state==='no_work_released'?journalPrefix(t.user,roomState.session_id)+selectorKey({kind:'staff_tick',source_revision:p.source_revision})+':no-work:'+p.recovery_key+':'+p.retry_request_key:null;
-   canResumeAfterVerification=asyncCurrent(t)&&!roomError&&(!asyncBlocked(roomState)||key&&sameNoWorkReplay(roomState,t,key));
+   canResumeAfterVerification=manualLaneCurrent(manualLane)&&asyncCurrent(t)&&!roomError&&(!asyncBlocked(roomState)||key&&sameNoWorkReplay(roomState,t,key));
   }finally{
    if(manualObserverVerification===verification)manualObserverVerification=null;
-   if(asyncCurrent(t)&&roomState){paintRoom(host,roomState);
+   if(manualLaneCurrent(manualLane)&&asyncCurrent(t))manualObserverDiagnostic('verification_finished',{});
+   if(manualLaneCurrent(manualLane)&&asyncCurrent(t)&&roomState){paintRoom(host,roomState);
     if(resumeNoWork&&canResumeAfterVerification){
      const p=tickStatusFor(roomState,t).value,key=p?.state==='no_work_released'?journalPrefix(t.user,roomState.session_id)+selectorKey({kind:'staff_tick',source_revision:p.source_revision})+':no-work:'+p.recovery_key+':'+p.retry_request_key:null;
-     if(key&&sameNoWorkReplay(roomState,t,key))void replayNoWorkJournal(roomState,t,key);else maybeDispatch(roomState,t,false,true);
+     if(key&&sameNoWorkReplay(roomState,t,key))await replayNoWorkJournal(roomState,t,key,manualLane);else maybeDispatch(roomState,t,false,true,null,manualLane);
     }}
   }
  }
@@ -2135,8 +2184,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    }
   }
   if(r.journalKey&&r.state==='completed'&&UUID.test(r.proof?.receipt_id||'')&&SHA.test(r.proof?.result_sha256||'')&&(!r.allowChain||r.chainDone)){const j=readJournal(r.journalKey,r.user,r.session);if(j){journalPhase(j).done=true;saveJournal(r.journalKey,j);}}}
- function observeAsyncWork(state,t){
-  if(manualObserverVerification||!asyncCurrent(t)||hasCountProjection(state)||abortBlocked(state.session_id)||!processingFor(state).valid)return;
+ function observeAsyncWork(state,t,manualLane=null){
+  if(manualLaneBlocks(manualLane)||manualObserverVerification||!asyncCurrent(t)||hasCountProjection(state)||abortBlocked(state.session_id)||!processingFor(state).valid)return;
   const r=[...asyncWorks.values()].find(r=>(r.accepted||r.journalKey)&&r.user===t.user&&r.session===state.session_id&&!r.inactive&&!r.busy&&!r.failure&&(!['uncertain','failed'].includes(r.state)||(r.countedMarkerKey&&r.state==='uncertain'))&&(r.state!=='completed'||r.allowChain&&!r.chainDone));
   if(!r||performance.now()-r.lastRead<asyncBudget.minReadMs)return;
   r.busy=true;r.lastRead=performance.now();let parent=null;
@@ -2161,7 +2210,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
      }else{const data=await asyncRead({schema_version:'mission-generic-async-status/1',request:clone(r.request)},r);if(!asyncCurrent(t)||abortBlocked(r.session))return;proof=asyncStatusProof(data,r);}
      proof=adoptAsyncProof(r,proof);
     }
-    if(r.state==='completed'&&r.allowChain&&!r.chainDone&&!manualObserverVerification){
+    if(r.state==='completed'&&r.allowChain&&!r.chainDone&&!manualObserverVerification&&!manualLaneBlocks(manualLane)){
      const reason=await continueDirectorNarration(null,parent,t,proof);if(!asyncCurrent(t))return;
      r.chainDone=['server_proof_none','child_confirmed','child_failed','child_unconfirmed','child_already_attempted'].includes(reason);
      if(!r.chainDone&&!['server_proof_unconfirmed','context_changed','room_state_changed','child_other_inflight','child_tick_suspended','abort_pending'].includes(reason))r.failure='status_unconfirmed';
@@ -2259,8 +2308,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   // No recursion, retry or third work. The caller's normal readback displays the child's authoritative result.
   return a.outcome==='confirmed'?'child_confirmed':a.outcome==='failed'?'child_failed':'child_unconfirmed';
  }
- function maybeDispatch(state,t,reclaim=false,explicitNoWork=false,combatResume=null){
-  if(manualObserverVerification)return;
+ function maybeDispatch(state,t,reclaim=false,explicitNoWork=false,combatResume=null,manualLane=null){
+  if(manualLaneBlocks(manualLane)||manualObserverVerification)return;
   if(staffTickAutoStop(state,t))return;
   if(hasOpeningResume(state)||hasOpeningClaimResume(state))return; // A proof, even malformed, cannot become an automatic resend.
   const sameCombat=combatResume&&combatResumeBinding(state,t);
@@ -2329,10 +2378,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    finally{a.inFlight=false;if(roomCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true,verifyOnly:true,readOnlyObservers:true});}}
   })().catch(()=>{});
  }
- async function updateRoom(host,{manual=false,verifyOnly=false,readOnlyObservers=false}={}){
+ async function updateRoom(host,{manual=false,verifyOnly=false,readOnlyObservers=false,manualLane=null}={}){
   if(!host)return;const t=syncRoom(host);
   if(!t.user||!t.loc){host.replaceChildren();host.hidden=true;return;}
-  if(roomRead)return;t.readSequence=++readSequence;roomRead=t;
+  if(manualLaneBlocks(manualLane)||roomRead)return;t.readSequence=++readSequence;roomRead=t;
   try{
    const state=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
    if(!roomCurrent(t))return;
@@ -2354,10 +2403,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    paintRoom(host,state);
    await mountAborts(host,state,t);if(!roomCurrent(t)||!roomState)return;
    if(abortBlocked(state.session_id))return;await regen.update(host,state,processingFor(state));
-   if(!readOnlyObservers&&!staffTickAutoStop(state,t))observeAsyncWork(state,t);
+   if(!readOnlyObservers&&!staffTickAutoStop(state,t))observeAsyncWork(state,t,manualLane);
    const projected=processingFor(state);
    if(!verifyOnly&&(!manual||academyFlow(state)==='combat_started'||staffAcademyRole(state,t.loc)?.reason==='ready_to_evaluate'
-    &&projected.valid&&(!projected.value||['completed','failed'].includes(projected.value.state))))maybeDispatch(state,t);
+    &&projected.valid&&(!projected.value||['completed','failed'].includes(projected.value.state))))maybeDispatch(state,t,false,false,null,manualLane);
   }catch(error){if(roomCurrent(t)){roomError='Aggiornamento non disponibile. I comandi restano sospesi; premi Aggiorna regia.';if(roomState)paintRoom(host,roomState);else{host.replaceChildren(el('p','Recupero della prova non verificabile. Nessun esito confermato.'));host.hidden=false;}}}
   finally{if(roomRead===t)roomRead=null;}
  }
