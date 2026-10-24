@@ -1,5 +1,5 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-7ae3073ad9c3aaaa';
-import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-publication-7897dcc449bd7b13';
+import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-display-62b8352d6a2b18af';
 export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-staff-finish1';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
@@ -394,7 +394,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function scopeFor(user,loc){return user&&loc?.id?JSON.stringify([user,loc.id]):null;}
  function syncRoom(host){
   const user=identity(),loc=currentLocation(),scope=scopeFor(user,loc);
-  if(cacheUser!==user){cacheUser=user;staffFinishNotice='';attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();chainFeedback.clear();recoveredWriters.clear();asyncWorks.clear();}
+  if(cacheUser!==user){cacheUser=user;staffFinishNotice=null;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();chainFeedback.clear();recoveredWriters.clear();asyncWorks.clear();}
   if(scope!==roomScope||host!==roomHost){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';entryReplayReady=false;countStatusRead=null;countStatusNotice='';countStatusSession=null;staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
   return {user,loc,scope,epoch:roomEpoch};
  }
@@ -706,10 +706,22 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     &&!(work?.work_id&&work.work_id!==a.prior_work_id)
     &&!(publication&&publication!==a.prior_publication_id))||null;
   }
+  // Display evidence only: never changes an attempt, journal, ownership or dispatch guard.
+  function currentTickDisplayWork(state){
+   const parsed=processingFor(state),tick=tickStatusFor(state),p=parsed.value,x=tick.value;
+   return parsed.valid&&tick.applicable&&tick.valid&&x?.state==='attested'
+    &&p&&['ready','claimed','authorized','provider_started'].includes(p.state)
+    &&x.work_id===p.work_id&&x.work_state===p.state&&x.source_revision===state.source_revision
+    &&p.request.master_session_id===state.session_id?p:null;
+  }
+  const tickDisplayText=p=>p?.state==='provider_started'
+   ?'La Regia sta elaborando la scena. Le role restano conservate; non reinviarle.'
+   :'La valutazione è registrata dal server e la lavorazione è in preparazione. Non reinviare le role.';
   function statusText(state){
   if(manualRoomLane&&manualLaneCurrent(manualRoomLane))return manualRoomLane.stage==='waiting'?'Comando manuale in attesa della lettura in corso…':'Comando manuale in esecuzione…';
   if(roomError)return roomError;
-  const tickStop=staffTickAutoStop(state,{user:cacheUser,loc:currentLocation()});if(tickStop)return tickStop.code==='MISSION_STAFF_TICK_ACTOR_CONFLICT'?'La valutazione appartiene a un altro attore. Invii automatici sospesi; aggiorna la regia per leggere la ricevuta server, senza reinviare le role.':'Invio della valutazione non confermato. Invii automatici sospesi; verifica la ricevuta server senza ripetere le role.';
+  const displayWork=currentTickDisplayWork(state);
+  const tickStop=staffTickAutoStop(state,{user:cacheUser,loc:currentLocation()});if(tickStop){const stopped=tickStop.code==='MISSION_STAFF_TICK_ACTOR_CONFLICT'?'La valutazione appartiene a un altro attore. Invii automatici sospesi; aggiorna la regia per leggere la ricevuta server, senza reinviare le role.':'Invio della valutazione non confermato. Invii automatici sospesi; verifica la ricevuta server senza ripetere le role.';return displayWork?tickDisplayText(displayWork)+' '+stopped:stopped;}
   if(state.review_required===true&&roleProgress(state)===null)return 'La scena richiede una valutazione dello staff prima di continuare.';
   const choice=choiceRequests.get(choiceKey(state));
   if(choice?.inFlight)return 'Invio della scelta in corso. La lettura della stanza continua.';
@@ -720,9 +732,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const p=parsed.value,a=currentAttempt(state);
    if(hasOpeningClaimResume(state)){if(!openingClaimResumeProjection(state))return 'Ripresa della lavorazione non verificabile. Aggiorna la regia.';if(openingClaimResumeRecorded(state,cacheUser))return 'Ripresa non disponibile o già registrata in questo browser. Nessun invio viene ripetuto.';return 'Il server consente di riprendere la stessa lavorazione interrotta prima del provider. Usa Riprendi lavorazione.';}
    if(hasOpeningResume(state)){if(!openingResumeProjection(state))return 'Ripresa dell’apertura non verificabile. Aggiorna la regia; nessun nuovo invio automatico.';if(openingResumeRecorded(state,cacheUser))return 'La ripresa della stessa apertura è già registrata. La verifica continua senza ripetere l’invio.';return 'Il server consente di verificare e riprendere la stessa apertura. Usa Riprendi apertura.';}
-   const asyncMessage=asyncNotice(state);if(asyncMessage)return asyncMessage;
+   const asyncMessage=asyncNotice(state);if(asyncMessage)return displayWork?tickDisplayText(displayWork)+' '+asyncMessage:asyncMessage;
    const flow=academyFlow(state),role=roleProgress(state);
-   if(unresolvedTickForSession(state))return 'Un invio precedente della valutazione non è confermato, anche dopo nuove role. Le role sono conservate; lo Staff può verificare l’invio. Se non compare un work, serve un recupero server, non un nuovo tick.';
+   if(unresolvedTickForSession(state))return displayWork?tickDisplayText(displayWork)+' La conferma del tuo invio resta da verificare. La richiesta è conservata; non ripetere l’invio.':'Un invio precedente della valutazione non è confermato, anche dopo nuove role. Le role sono conservate; lo Staff può verificare l’invio. Se non compare un work, serve un recupero server, non un nuovo tick.';
+   if(displayWork&&role?.reason!=='own_role_invalid'&&role?.detail!=='role_gate_mismatch'&&state.review_required!==true)return tickDisplayText(displayWork)+(a?.outcome==='uncertain'?' La conferma del tuo invio resta da verificare; non ripetere la richiesta.':'');
    if(a?.staffTickState&&['confirmed','waiting'].includes(a.outcome)&&role?.revision===a.staffTickSource&&role.reason!=='published'){
     if(a.staffTickState==='existing_work')return 'Il server ha trovato una lavorazione già aperta. Nessun nuovo tick è stato creato; verifica lo stato della stessa richiesta.';
     if(a.staffTickState==='replayed')return 'Il server ha riconosciuto la ricevuta della valutazione precedente. Attendi la pubblicazione o verifica il work; non inviare un nuovo tick.';
@@ -761,7 +774,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return state.review_required!==true&&parsed.valid&&!unresolved&&Number.isSafeInteger(state.choice_context?.master_control_version)&&Number.isSafeInteger(state.choice_context?.run_control_version)&&!roomError&&!choiceRequests.has(choiceKey(state))&&!liveAttempt(state)&&state.state==='in_corso'
    &&state.choice_context?.narration_pending!==true&&(!p||p.state==='completed');
  }
- let staffFinishBusy=false,staffFinishNotice='';
+ let staffFinishBusy=false,staffFinishNotice=null;
  const finishRequestKeys=['schema_version','master_session_id','source_revision','expected_publication_id','request_key'];
  function validFinishRequest(q){return nativeExact(q,finishRequestKeys)&&q.schema_version==='mission-generic-staff-finish/1'&&UUID.test(q.master_session_id||'')&&SHA.test(q.source_revision||'')&&UUID.test(q.expected_publication_id||'')&&UUID.test(q.request_key||'');}
  function finishProjection(state){
@@ -792,7 +805,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const box=el('div',null,{'data-mg-staff-finish':''});let saved,projection;
   try{saved=finishCommands(identity());projection=finishProjection(state);}catch{box.append(el('p','Conclusione non verificabile: nessuna nuova richiesta inviata.'));host.append(box);host.hidden=false;return;}
   const pending=saved.filter(x=>!x.receipt),closed=saved.filter(x=>x.receipt);
-  if(staffFinishNotice)box.append(el('p',staffFinishNotice,{role:'status'}));
+  if(staffFinishNotice?.user===identity()&&(state?.session_id===staffFinishNotice.session||!state&&staffFinishNotice.epoch===roomEpoch))box.append(el('p',staffFinishNotice.text,{role:'status'}));
   if(closed.some(x=>!state||x.request.master_session_id===state.session_id))box.append(el('p','Prova conclusa: ricevuta server conservata, senza premi alle schede.',{role:'status'}));
   for(const item of pending){const b=button('Verifica la stessa conclusione',()=>submitStaffFinish(host,item.request,true));b.disabled=staffFinishBusy||abortBlocked(item.request.master_session_id);box.append(b);}
   if(projection?.can_finish&&!pending.length&&!saved.some(x=>x.request.request_key===projection.request_key)){
@@ -803,7 +816,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  async function submitStaffFinish(host,q,replay){
   const t=syncRoom(host);if(!roomCurrent(t)||staffFinishBusy||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||!validFinishRequest(q)||abortBlocked(q.master_session_id))return;
-  staffFinishBusy=true;staffFinishNotice='Conclusione in verifica…';
+  staffFinishBusy=true;staffFinishNotice={user:t.user,session:q.master_session_id,epoch:t.epoch,text:'Conclusione in verifica…'};
   try{
    const key=finishPrefix(t.user)+q.request_key;
    if(!replay){
@@ -818,13 +831,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(error||!validFinishReceipt(data,q))throw Error('finish_unconfirmed');
    const previous=localStorage.getItem(key+':receipt');if(previous!==null){const old=JSON.parse(previous);if(!validFinishReceipt(old,q)||old.receipt_sha256!==data.receipt_sha256)throw Error('finish_receipt_conflict');}
    else localStorage.setItem(key+':receipt',JSON.stringify(data));
-   if(roomCurrent(t))staffFinishNotice='Prova conclusa dal server. Fati, role e costi conservati; nessun premio reale.';
-  }catch{if(roomCurrent(t))staffFinishNotice='Conclusione non confermata. Usa Verifica la stessa conclusione: la richiesta resta conservata, senza creare una nuova prova.';}
+   if(roomCurrent(t))staffFinishNotice={user:t.user,session:q.master_session_id,epoch:t.epoch,text:'Prova conclusa dal server. Fati, role e costi conservati; nessun premio reale.'};
+  }catch{if(roomCurrent(t))staffFinishNotice={user:t.user,session:q.master_session_id,epoch:t.epoch,text:'Conclusione non confermata. Usa Verifica la stessa conclusione: la richiesta resta conservata, senza creare una nuova prova.'};}
   finally{staffFinishBusy=false;if(roomCurrent(t)){await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});paintStaffFinish(host,roomState);}}
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-RECOVERY-007');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-008');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -940,7 +953,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(feedback&&chainPublicationConfirmed(state,feedback))chainFeedback.delete(feedbackKey);
   const activeFeedback=staffScene?chainFeedback.get(feedbackKey):null;
   if(activeFeedback){
-   const reasons={child_confirmed:'pubblicazione della stessa richiesta da verificare',parent_unconfirmed:'conferma della valutazione ancora assente',parent_request_unavailable:'ricevuta della richiesta non disponibile',
+   const reasons={child_confirmed:'pubblicazione della stessa richiesta da verificare',parent_unconfirmed:'conferma del tuo invio ancora da verificare',parent_request_unavailable:'ricevuta della richiesta non disponibile',
     server_proof_unconfirmed:'verifica server non confermata',server_proof_invalid:'ricevuta server non riconosciuta',
     server_proof_none:'nessuna prosecuzione attestata dal server',child_request_invalid:'ricevuta del racconto non riconosciuta',
     context_changed:'stanza o accesso cambiati',room_state_changed:'stato della scena cambiato',abort_pending:'annullamento ancora da riconciliare',
@@ -1389,6 +1402,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     ||!['released','not_applicable'].includes(retry.status))
     throw Error('staff_director_retry_unconfirmed');
    if(retry.status==='released'){
+   if(!directorRetryAckShape(retry))throw Error('staff_director_retry_unconfirmed');
+   directorRetryAcks.set(directorAckKey(t.user,token.session,token.work),Object.freeze({source_revision:state.source_revision,reply:clone(retry)}));
    await updateRoom(host,{manual:false});
    return;
  }
@@ -1474,11 +1489,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   asyncRecord(parent,request,delivery.work_id,allowChain,true);parent.outcome='waiting';return true;
  }
  function asyncBlocked(state){
+  const h=directorHandoffFor(state);
   return [...asyncWorks.values()].some(r=>r.user===cacheUser&&r.session===state.session_id
-   &&!r.inactive&&(r.accepted||r.journalKey)&&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone));
+   &&!r.inactive&&!directorHandoffRecord(r,h)&&(r.accepted||r.journalKey)&&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone));
  }
  function asyncNotice(state){
-  const records=[...asyncWorks.values()].reverse().filter(r=>r.user===cacheUser&&r.session===state.session_id);
+  const h=directorHandoffFor(state);
+  const records=[...asyncWorks.values()].reverse().filter(r=>r.user===cacheUser&&r.session===state.session_id&&!directorHandoffRecord(r,h));
   // An older pending observation can suspend this session too; never hide its blocker behind the current publication.
   const r=records.find(r=>!r.inactive&&(r.accepted||r.journalKey)
    &&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone))
@@ -1508,7 +1525,60 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(nativeExact(body,['schema_version','master_session_id','source_revision'])&&body.schema_version==='mission-generic-staff-tick/1'&&UUID.test(body.master_session_id||'')&&SHA.test(body.source_revision||''))return {kind:'staff_tick',source_revision:body.source_revision};
   return null;
  }
+ const directorRetryAcks=new Map();
  const releasedDirectorWork=id=>['d460a7be-a3a2-4ad8-9d3b-d2e929f2947e','f4f7185e-4aae-4edd-ac24-65f8dcfa36f5'].includes(id);
+
+ function directorHandoffShape(h,session){
+  const q=h?.request,r=h?.release;
+  return nativeExact(h,['selector','request','work_id','receipt_id','result_sha256','release'])
+   &&sameChainRequest(q,q)&&q.master_session_id===session
+   &&nativeExact(h.selector,['kind','request'])&&h.selector.kind==='request'&&sameChainRequest(h.selector.request,q)
+   &&UUID.test(h.work_id||'')&&UUID.test(h.receipt_id||'')&&SHA.test(h.result_sha256||'')
+   &&nativeExact(r,['source_window_id','source_revision','reason','audit_sha256','successor_progress_key','payload_sha256','contract_sha256'])
+   &&r.source_window_id===h.work_id&&r.reason==='staff_director_continuity_preprovider_reissued'
+   &&['source_revision','audit_sha256','payload_sha256','contract_sha256'].every(k=>SHA.test(r[k]||''))
+   &&UUID.test(r.successor_progress_key||'');
+ }
+ const directorAckKey=(user,session,work)=>JSON.stringify([user,session,work]);
+ const directorHandoffKey=(user,session,h)=>journalPrefix(user,session)+'tick:'+h.release.source_revision+':director-reissued:'+h.work_id+':'+h.release.successor_progress_key;
+ function sameDirectorHandoff(a,b){
+  return !!a&&!!b&&a.work_id===b.work_id&&a.receipt_id===b.receipt_id&&a.result_sha256===b.result_sha256
+   &&sameChainRequest(a.request,b.request)&&Object.keys(a.release).every(k=>a.release[k]===b.release[k]);
+ }
+ function directorRetryAckShape(x){
+  return nativeExact(x,['schema_version','status','replayed'])&&x.schema_version==='mission-staff-director-retry/1'
+   &&x.status==='released'&&typeof x.replayed==='boolean';
+ }
+ function directorHandoffFor(state,t={user:cacheUser,loc:currentLocation()}){
+  if(!state||state!==roomState||!isStaff()||t.user!==cacheUser||t.loc?.id!==STAFF_TEST_ROOM||t.loc?.is_test!==true)return null;
+  const x=state.journal_settlements,tick=tickStatusFor(state,t);
+  if(!nativeExact(x,['schema_version','master_session_id','items','handoffs'])||x.schema_version!=='mission-journal-settlements/4'
+   ||x.master_session_id!==state.session_id||!Array.isArray(x.handoffs)||x.handoffs.length>128
+   ||x.handoffs.some(h=>!directorHandoffShape(h,state.session_id))||new Set(x.handoffs.map(h=>h.work_id)).size!==x.handoffs.length
+   ||!Array.isArray(x.items)||x.items.length>128||x.items.some(i=>!settlementItemValid(i,state.session_id))||!tick.applicable||!tick.valid||!tick.value.owned_by_me)return null;
+  const v=tick.value,parsed=processingFor(state),p=parsed.value;
+  if(!parsed.valid)return null;
+  for(const h of x.handoffs){
+   if(h.release.source_revision!==state.source_revision||v.source_revision!==h.release.source_revision)continue;
+   const predecessor=v.state==='released'&&v.can_resume&&v.work_id===h.work_id&&v.work_state==='failed'
+    &&p?.work_id===h.work_id&&p.state==='failed'&&sameChainRequest(p.request,h.request)
+    &&v.recovery_key===h.work_id&&v.retry_request_key===h.release.successor_progress_key;
+   const successor=v.state==='attested'&&v.request_key===h.release.successor_progress_key
+    &&v.acknowledged_retry_from_work_id===h.work_id&&v.work_id!==h.work_id;
+   if(!predecessor&&!successor)continue;
+   const ack=directorRetryAcks.get(directorAckKey(t.user,state.session_id,h.work_id));
+   if(ack&&ack.source_revision===h.release.source_revision&&directorRetryAckShape(ack.reply))return h;
+   const j=readJournal(directorHandoffKey(t.user,state.session_id,h),t.user,state.session_id);
+   if(j?.schema_version==='mission-async-journal/9'&&sameDirectorHandoff(j.handoff,h)&&directorRetryAckShape(j.rpc_ack))return h;
+  }
+  return null;
+ }
+ function directorHandoffRecord(r,h){
+  if(!h||r.busy||r.journalKey===directorHandoffKey(r.user,r.session,h))return false;
+  return r.work===h.work_id&&sameChainRequest(r.request,h.request)
+   ||r.work===null&&!r.accepted&&r.request===null&&r.selector?.kind==='staff_tick'
+    &&r.selector.source_revision===h.release.source_revision;
+ }
  const settlementSchema='mission-async-local-settlement/1';
  function sameSelector(a,b){
   return a?.kind===b?.kind&&(a.kind==='request'?sameChainRequest(a.request,b.request)
@@ -1558,9 +1628,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!Object.hasOwn(state,'journal_settlements'))return [];
   const x=state.journal_settlements;
   if(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||!asyncCurrent(t)
-   ||!nativeExact(x,['schema_version','master_session_id','items'])||!['mission-journal-settlements/1','mission-journal-settlements/2','mission-journal-settlements/3'].includes(x.schema_version)
+   ||!(nativeExact(x,['schema_version','master_session_id','items'])&&['mission-journal-settlements/1','mission-journal-settlements/2','mission-journal-settlements/3'].includes(x.schema_version)
+    ||nativeExact(x,['schema_version','master_session_id','items','handoffs'])&&x.schema_version==='mission-journal-settlements/4'&&Array.isArray(x.handoffs)&&x.handoffs.length<=128&&x.handoffs.every(h=>directorHandoffShape(h,state.session_id)))
    ||x.master_session_id!==state.session_id||!Array.isArray(x.items)||x.items.length>128
-   ||!x.items.every(i=>settlementItemValid(i,state.session_id)&&(x.schema_version==='mission-journal-settlements/3'||x.schema_version==='mission-journal-settlements/2'&&!combatNarrationReleaseValid(i,i.release,state.session_id)||!i.release))
+   ||!x.items.every(i=>settlementItemValid(i,state.session_id)&&(['mission-journal-settlements/3','mission-journal-settlements/4'].includes(x.schema_version)||x.schema_version==='mission-journal-settlements/2'&&!combatNarrationReleaseValid(i,i.release,state.session_id)||!i.release))
    ||new Set(x.items.map(i=>selectorKey(i.selector)+':'+i.work_id)).size!==x.items.length)throw Error('async_settlements_invalid');
   return x.items;
  }
@@ -1619,14 +1690,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    recordSettlement(proof,t);reconcileSettlementParents(proof,r,t);r.terminalSettlement=Object.freeze(clone(proof));r.chainDone=true;r.inactive=true;
   }
  }
- const journalPhase=j=>['mission-async-journal/3','mission-async-journal/4','mission-async-journal/5','mission-async-journal/6','mission-async-journal/7','mission-async-journal/8'].includes(j?.schema_version)?j.recovery:j?.schema_version==='mission-async-journal/2'?j.resume:j;
+ const journalPhase=j=>['mission-async-journal/3','mission-async-journal/4','mission-async-journal/5','mission-async-journal/6','mission-async-journal/7','mission-async-journal/8','mission-async-journal/9'].includes(j?.schema_version)?j.recovery:j?.schema_version==='mission-async-journal/2'?j.resume:j;
  function journalPhaseValid(j,key,user,session,fields,allowNative=false){
   const s=j?.selector;
   const selectorValid=nativeExact(s,['kind','source_revision'])&&s.kind==='staff_tick'&&SHA.test(s.source_revision||'')
    ||nativeExact(s,['kind','request'])&&s.kind==='request'&&sameChainRequest(s.request,s.request)&&s.request.master_session_id===session
    ||allowNative&&nativeExact(s,['kind','request_key'])&&s.kind==='native_tick'&&UUID.test(s.request_key||'');
   return nativeExact(j,fields)&&j.user===user&&j.session===session&&selectorValid
-   &&key===journalPrefix(user,session)+selectorKey(s)+(Object.hasOwn(j,'no_work_recovery_key')?':no-work:'+j.no_work_recovery_key+':'+j.retry_request_key:Object.hasOwn(j,'released_work_id')?':released:'+j.released_work_id:'')&&Number.isSafeInteger(j.started)&&j.started>0&&j.started<=Date.now()
+   &&key===journalPrefix(user,session)+selectorKey(s)+(Object.hasOwn(j,'director_reissued_work_id')?':director-reissued:'+j.director_reissued_work_id+':'+j.successor_progress_key:Object.hasOwn(j,'no_work_recovery_key')?':no-work:'+j.no_work_recovery_key+':'+j.retry_request_key:Object.hasOwn(j,'released_work_id')?':released:'+j.released_work_id:'')&&Number.isSafeInteger(j.started)&&j.started>0&&j.started<=Date.now()
    &&Number.isSafeInteger(j.reads)&&j.reads>=0&&j.reads<=asyncBudget.maxReads&&Number.isSafeInteger(j.lastRead)&&j.lastRead>=0&&typeof j.done==='boolean';
  }
  function readJournal(key,user,session){
@@ -1659,7 +1730,15 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
 
    return true;
   };
-  if(j?.schema_version==='mission-async-journal/8'){
+  if(j?.schema_version==='mission-async-journal/9'){
+   const h=j.handoff,r=j.recovery,baseKey=journalPrefix(user,session)+'tick:'+h?.release?.source_revision;
+   if(!nativeExact(j,['schema_version','original','handoff','rpc_ack','recovery'])||!directorHandoffShape(h,session)||!directorRetryAckShape(j.rpc_ack)
+    ||!journalPhaseValid(r,key,user,session,['user','session','selector','director_reissued_work_id','successor_progress_key','started','reads','lastRead','done'])
+    ||r.selector.kind!=='staff_tick'||r.selector.source_revision!==h.release.source_revision||r.director_reissued_work_id!==h.work_id
+    ||r.successor_progress_key!==h.release.successor_progress_key||key!==directorHandoffKey(user,session,h)
+    ||!(j.original===null||j.original.schema_version===asyncJournalSchema&&journalPhaseValid(j.original,baseKey,user,session,legacyFields)))
+    throw Error('async_director_handoff_journal_invalid');
+  }else if(j?.schema_version==='mission-async-journal/8'){
    if(!nativeExact(j,['schema_version','original','recovery'])||j.original!==null
     ||!journalPhaseValid(j.recovery,key,user,session,['user','session','selector','started','reads','lastRead','done'],true)
     ||j.recovery.selector.kind!=='native_tick')throw Error('async_native_journal_invalid');
@@ -1755,6 +1834,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&(selector.kind!=='native_tick'||driver.value.kind==='native')))return client.functions.invoke('mission_generic_ai',{body:clone(parent.body)});
   if(!navigator.locks?.request)throw Error('async_journal_lock_unavailable');
   const baseKey=journalPrefix(t.user,parent.session)+selectorKey(selector);
+  let directorRelease=null;
+  if(parent.directorRecoveryHandoff){
+   const h=directorHandoffFor(roomState,t);
+   if(selector.kind!=='staff_tick'||!h||!sameDirectorHandoff(h,parent.directorRecoveryHandoff)||h.release.source_revision!==selector.source_revision)throw Error('async_director_handoff_unconfirmed');
+   directorRelease=h;
+  }
   let release=null;
   if(releasedDirectorWork(parent.tickRecoveryKey)&&parent.session==='44078c5f-7001-4129-9506-e2f34e68c8ac'){
    const projection=tickStatusFor(roomState,t),proof=projection.value;
@@ -1775,7 +1860,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     ||proof.source_revision!==selector.source_revision)throw Error('async_no_work_retry_unconfirmed');
    noWorkRelease=proof;
   }
-  const key=baseKey+(noWorkRelease?':no-work:'+noWorkRelease.recovery_key+':'+noWorkRelease.retry_request_key:release?':released:'+release.work_id:'');parent.journalKey=key;
+  const key=directorRelease?directorHandoffKey(t.user,parent.session,directorRelease):baseKey+(noWorkRelease?':no-work:'+noWorkRelease.recovery_key+':'+noWorkRelease.retry_request_key:release?':released:'+release.work_id:'');parent.journalKey=key;
   return navigator.locks.request(key,{mode:'exclusive'},async()=>{
    if(!asyncCurrent(t)||abortBlocked(parent.session))throw Error('async_context_changed');
    const old=readJournal(key,t.user,parent.session);
@@ -1795,7 +1880,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     j=old;if(noWorkRelease)appendNoWorkTransportAudit(parent,key,noWorkRelease);
    }else{
    const phase={user:t.user,session:parent.session,selector,started:Date.now(),reads:0,lastRead:0,done:false};
-   if(noWorkRelease){
+   if(directorRelease){
+    const original=readJournal(baseKey,t.user,parent.session);
+    if(original&&original.schema_version!==asyncJournalSchema)throw Error('async_director_handoff_original_invalid');
+    const prior=directorRetryAcks.get(directorAckKey(t.user,parent.session,directorRelease.work_id));
+    if(!prior||prior.source_revision!==directorRelease.release.source_revision||!directorRetryAckShape(prior.reply))throw Error('async_director_handoff_ack_missing');
+    j={schema_version:'mission-async-journal/9',original:original===null?null:clone(original),handoff:clone(directorRelease),rpc_ack:clone(prior.reply),
+     recovery:{...phase,director_reissued_work_id:directorRelease.work_id,successor_progress_key:directorRelease.release.successor_progress_key}};
+   }else if(noWorkRelease){
     const original=readJournal(baseKey,t.user,parent.session);
     if(original&&original.schema_version!==asyncJournalSchema)throw Error('async_no_work_original_invalid');
     j={schema_version:'mission-async-journal/7',original:original===null?null:clone(original),recovery:{...phase,
@@ -1812,6 +1904,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(selector.kind==='native_tick'){const r=asyncWorks.get('journal:'+key);if(!r)throw Error('async_native_journal_missing');r.parent=parent;parent.asyncKey='journal:'+key;}
    const response=await client.functions.invoke('mission_generic_ai',{body:clone(parent.body)});
    const delivery=response.data?.delivery??response.data;
+   if(!response.error&&directorRelease&&(response.data?.staff_tick?.source_revision!==directorRelease.release.source_revision
+    ||response.data?.staff_tick?.request_key!==directorRelease.release.successor_progress_key))throw Error('async_director_handoff_successor_ack_unconfirmed');
    if(!response.error&&combatReplay&&(!nativeExact(delivery,asyncPendingKeys)||delivery.schema_version!=='mission-generic-pending/1'
     ||delivery.status!==202||delivery.code!=='MISSION_EVENT_PENDING'||delivery.work_id!==parent.combatResume.work
     ||delivery.master_session_id!==parent.session||delivery.event_id!==parent.body.event_id||delivery.request_key!==parent.body.request_key
@@ -2241,7 +2335,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(r.journalKey&&r.state==='completed'&&UUID.test(r.proof?.receipt_id||'')&&SHA.test(r.proof?.result_sha256||'')&&(!r.allowChain||r.chainDone)){const j=readJournal(r.journalKey,r.user,r.session);if(j){journalPhase(j).done=true;saveJournal(r.journalKey,j);}}}
  function observeAsyncWork(state,t,manualLane=null){
   if(manualLaneBlocks(manualLane)||manualObserverVerification||!asyncCurrent(t)||hasCountProjection(state)||abortBlocked(state.session_id)||!processingFor(state).valid)return;
-  const r=[...asyncWorks.values()].find(r=>(r.accepted||r.journalKey)&&r.user===t.user&&r.session===state.session_id&&!r.inactive&&!r.busy&&!r.failure&&(!['uncertain','failed'].includes(r.state)||(r.countedMarkerKey&&r.state==='uncertain'))&&(r.state!=='completed'||r.allowChain&&!r.chainDone));
+  const h=directorHandoffFor(state,t);
+  const r=[...asyncWorks.values()].find(r=>!directorHandoffRecord(r,h)&&(r.accepted||r.journalKey)&&r.user===t.user&&r.session===state.session_id&&!r.inactive&&!r.busy&&!r.failure&&(!['uncertain','failed'].includes(r.state)||(r.countedMarkerKey&&r.state==='uncertain'))&&(r.state!=='completed'||r.allowChain&&!r.chainDone));
   if(!r||performance.now()-r.lastRead<asyncBudget.minReadMs)return;
   r.busy=true;r.lastRead=performance.now();let parent=null;
   const observe=async()=>{
@@ -2393,6 +2488,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(staffTick&&!mayCreateStaffTick(tickProjection,explicitNoWork))return;
   const recoveryKey=staffTick&&tickProjection.applicable&&tickProjection.valid&&tickProjection.value.can_resume
    ?tickProjection.value.recovery_key:null;
+  const directorRecoveryHandoff=staffTick?directorHandoffFor(state,t):null;
   const noWorkRecovery=staffTick&&explicitNoWork&&tickProjection.valid&&tickProjection.value?.state==='no_work_released'?tickProjection.value:null;
   const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?(claimedVerification?':reconcile-claimed':p.state==='ready'?':reclaim-ready':':reclaim'):'')
    :'tick:'+state.progress_key+(recoveryKey?':recovery:'+recoveryKey+(noWorkRecovery?':'+noWorkRecovery.retry_request_key:''):'');
@@ -2402,7 +2498,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    :{schema_version:'mission-generic-tick/1',master_session_id:state.session_id,request_key:id()};
   const a={user:t.user,session:state.session_id,key,kind:key.startsWith('tick:')?'tick':'work',work:p&&(p.state==='ready'||reclaim)?p.work_id:null,
    prior_work_id:p?.work_id??null,prior_publication_id:state.flow_publication_id??null,staffTickSource:staffTick?staffRole.revision:null,
-   staffTickState:null,tickRecoveryKey:recoveryKey,noWorkRecovery:noWorkRecovery?clone(noWorkRecovery):null,body:Object.freeze(body),inFlight:true,outcome:'pending'};
+   directorRecoveryHandoff:directorRecoveryHandoff?clone(directorRecoveryHandoff):null,staffTickState:null,tickRecoveryKey:recoveryKey,noWorkRecovery:noWorkRecovery?clone(noWorkRecovery):null,body:Object.freeze(body),inFlight:true,outcome:'pending'};
   if(sameCombat){a.combatResume=Object.freeze(clone(sameCombat));a.priorAttempt=attempts.get(storeKey)??null;}
   attempts.set(storeKey,a);paintRoom(roomHost,state);
   // Detached from the read lock: polling continues while the provider works.

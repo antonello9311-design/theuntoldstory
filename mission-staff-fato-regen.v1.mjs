@@ -5,7 +5,7 @@ const uuid=x=>typeof x==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}
 const node=(tag,text)=>{const n=document.createElement(tag);if(text!==null)n.textContent=text;return n;};
 
 export function createStaffFatoRegen({client,identity,isStaff,currentLocation,refresh}){
- let scope='',epoch=0,view=null,request=null,inFlight=false,styleReady=false;
+ let scope='',epoch=0,view=null,request=null,inFlight=false,styleReady=false,lastPublication=null,sceneWorkState=null;
  function enabled(){const loc=currentLocation();return !!identity()&&isStaff()&&loc?.id===STAFF_ROOM&&loc?.is_test===true;}
  function style(){
   if(styleReady)return;styleReady=true;
@@ -68,6 +68,8 @@ export function createStaffFatoRegen({client,identity,isStaff,currentLocation,re
   d.addEventListener('close',()=>{d.remove();returnTo?.focus();},{once:true});d.showModal();close.focus();
  }
  function statusLabel(s,publication=null){
+  if(sceneWorkState==='uncertain')return 'La lavorazione corrente richiede verifica. I Fati precedenti restano nella chat.';
+  if(sceneWorkState)return publication?'La Regia sta preparando la scena. L’ultimo Fato confermato resta nella chat.':'La Regia sta preparando la scena. Lo storico dei Fati resta nella chat.';
   const w=s.revision?.work_state;
   if(inFlight)return 'Il Fato è in elaborazione. Il precedente resta visibile.';
   if(w==='ready')return 'Richiesta pronta. Riprendi la stessa richiesta senza crearne un’altra.';
@@ -75,6 +77,7 @@ export function createStaffFatoRegen({client,identity,isStaff,currentLocation,re
   if(w==='failed')return 'Rigenerazione fallita: il Fato precedente resta corrente. '+(s.revision?.failure_code||'Controlla i dettagli.');
   if(w==='completed')return 'Nuovo Fato pubblicato; il precedente è conservato come esito superato.';
   if(publication)return 'Fato pubblicato in chat. Non è disponibile per la rigenerazione da questo pannello.';
+  if(s.target?.reason==='Nessun Fato di missione pubblicato.')return 'Questo pannello non ha una pubblicazione rigenerabile. Consulta lo storico dei Fati nella chat.';
   return s.target?.eligible?'Il Fato corrente può essere rigenerato.':(s.target?.reason||'Rigenerazione non disponibile.');
  }
  async function send(s,host,existing=false){
@@ -111,11 +114,11 @@ export function createStaffFatoRegen({client,identity,isStaff,currentLocation,re
    host.append(wrap);}
   wrap.replaceChildren();
   const publishedAt=publication?.published_at||s.target?.message_at;
-  const title=node('div',(publication?'Fato pubblicato':'Ultimo Fato')+(publishedAt?' · '+new Date(publishedAt).toLocaleString('it-IT'):''));title.className='mg-regen-title';
+  const title=node('div',(publication?(sceneWorkState?'Ultimo Fato confermato':'Fato pubblicato'):s.target?.message_id?'Ultimo Fato':'Fati della missione')+(publishedAt?' · '+new Date(publishedAt).toLocaleString('it-IT'):''));title.className='mg-regen-title';
   const actions=node('div',null);actions.className='mg-regen-actions';
   const w=s.revision?.work_state,ongoing=['ready','claimed','authorized','provider_started','uncertain'].includes(w);
   const primary=node('button',ongoing?'Verifica la stessa richiesta':'Rigenera ultimo Fato');
-  primary.type='button';primary.disabled=inFlight||(!ongoing&&!s.target?.eligible);
+  primary.type='button';primary.disabled=inFlight||!!sceneWorkState||(!ongoing&&!s.target?.eligible);
   primary.addEventListener('click',()=>send(s,host,ongoing));
   const info=node('button',publication?'Informazioni sul Fato':'Come è stato prodotto?');info.type='button';
   info.addEventListener('click',()=>showDetails(s,info,publication));
@@ -137,10 +140,16 @@ export function createStaffFatoRegen({client,identity,isStaff,currentLocation,re
  async function update(host,room,processing=null){
   if(!enabled()||!uuid(room?.session_id)){host?.querySelector('[data-mg-regen]')?.remove();return;}
   const next=JSON.stringify([identity(),room.session_id]);
-  if(next!==scope){scope=next;epoch++;view=null;request=null;}
-  const current=epoch;
-  try{const s=await read(room.session_id);if(current!==epoch||!host?.isConnected)return;view=s;await paint(host,s,publicationOutsideTarget(s,room,processing));}
+  if(next!==scope){scope=next;epoch++;view=null;request=null;lastPublication=null;sceneWorkState=null;}
+  const current=epoch,p=processing?.valid===true?processing.value:null;
+  sceneWorkState=p?.request?.master_session_id===room.session_id&&['ready','claimed','authorized','provider_started','uncertain'].includes(p.state)?p.state:null;
+  try{const s=await read(room.session_id);if(current!==epoch||!host?.isConnected)return;view=s;
+   const publication=publicationOutsideTarget(s,room,processing);
+   if(publication)lastPublication=Object.freeze({...publication,session_id:room.session_id,principal:identity()});
+   const confirmed=publication||(!s.revision&&!s.target?.message_id&&lastPublication?.session_id===room.session_id&&lastPublication.principal===identity()?lastPublication:null);
+   await paint(host,s,confirmed);
+  }
   catch(error){if(current!==epoch)return;const label=host.querySelector('[data-mg-regen-status]');if(label)label.textContent='Rigenerazione non disponibile: '+error.message;}
  }
- return {update,dispose(){scope='';epoch++;view=null;request=null;inFlight=false;}};
+ return {update,dispose(){scope='';epoch++;view=null;request=null;inFlight=false;lastPublication=null;sceneWorkState=null;}};
 }
