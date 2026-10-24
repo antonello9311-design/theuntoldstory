@@ -824,7 +824,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-RECOVERY-006');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-RECOVERY-007');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -965,6 +965,33 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const token={session:state.session_id,work:work.work_id,request:JSON.stringify(work.request)};
   staffChoiceRecovery=token;cachedChoiceRecoveries.add(work.work_id);paintRoom(host,state);
   try{
+   // Explicit Staff recovery publishes a saved result before the legacy choice replay.
+   // This endpoint cannot dispatch Count/Generation; unknown or failed receipts stop here.
+   const cached=await client.functions.invoke('mission_generic_ai',{body:{
+    schema_version:'mission-generic-staff-cached-publication/1',master_session_id:token.session,work_id:token.work}});
+   if(!roomCurrent(t)||staffChoiceRecovery!==token)return;
+   if(cached.error||cached.data?.schema_version!=='mission-generic-staff-cached-publication/1'
+    ||!['published','not_applicable','recovered'].includes(cached.data.status))
+    throw Error('cached_native_publication_unconfirmed');
+   if(cached.data.status==='published'){
+    if(!UUID.test(cached.data.message_id||'')||typeof cached.data.replayed!=='boolean')
+     throw Error('cached_native_publication_invalid');
+    const readback=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
+    if(!roomCurrent(t)||staffChoiceRecovery!==token)return;
+    const fresh=processingFor(readback);
+    if(!fresh.valid||readback.session_id!==token.session
+     ||fresh.value?.work_id===token.work&&fresh.value.state==='failed')
+     throw Error('cached_native_publication_readback_unconfirmed');
+    roomState=readback;roomError='';paintRoom(host,readback);
+    await updateRoom(host,{manual:true,verifyOnly:true});refresh();return;
+   }
+   if(cached.data.status==='recovered'){
+    if(!nativeExact(cached.data,['schema_version','status','master_session_id','work_id','replayed'])
+     ||cached.data.master_session_id!==token.session||!UUID.test(cached.data.work_id||'')
+     ||cached.data.work_id===token.work||typeof cached.data.replayed!=='boolean')
+     throw Error('cached_native_recovery_invalid');
+    await updateRoom(host,{manual:true,verifyOnly:true});refresh();return;
+   }
    const {data,error}=await client.functions.invoke('mission_generic_ai',{body:JSON.parse(token.request)});
    const delivery=data?.delivery??data;
    if(error||delivery?.code!=='MISSION_EVENT_COMPLETE'||!UUID.test(delivery.receipt_id||''))
