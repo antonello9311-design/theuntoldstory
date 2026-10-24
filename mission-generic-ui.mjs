@@ -824,7 +824,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-RECOVERY-005');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-RECOVERY-006');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -2045,24 +2045,52 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&(other.busy||other.state!=='completed'||other.allowChain&&!other.chainDone))return null;
   return r.parent;
  }
+ function nativeReplayReadCandidate(state,t,r){
+  // This identity-only selector authorizes one read, never a dispatch.
+  const q=r?.nativeReplayReadProof,v=q?.response;
+  if(!asyncCurrent(t)||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true
+   ||r?.user!==t.user||r.session!==state?.session_id||r.selector?.kind!=='native_tick'||!UUID.test(r.selector.request_key||'')
+   ||q?.user!==t.user||q?.session!==r.session||!sameSelector(q?.selector,r.selector)
+   ||!r.journalKey||r.inactive||r.busy||r.parent?.inFlight||r.parent?.user!==t.user||r.parent.session!==r.session)return null;
+  const eligible=v?.status==='none'&&!r.accepted
+   ||v?.status==='owned'&&v.state==='ready'&&r.accepted&&r.state==='ready'&&r.proof?.state==='ready'
+    &&v.work_id===r.work&&sameChainRequest(v.request,r.request);
+  const j=readJournal(r.journalKey,r.user,r.session),phase=j&&journalPhase(j);
+  if(!eligible||j?.schema_version!=='mission-async-journal/8'||phase.done||!sameSelector(phase.selector,r.selector)
+   ||!nativeExact(r.parent.body,['schema_version','master_session_id','request_key'])||r.parent.body.schema_version!=='mission-generic-tick/1'
+   ||r.parent.body.master_session_id!==r.session||r.parent.body.request_key!==r.selector.request_key)return null;
+  return r.parent;
+ }
+ function nativeReplayStop(lane,code){
+  const codes=['context_changed','room_unavailable','original_journal_unavailable','read_unconfirmed','proof_not_ready','proof_invalid','committed_no_work','fresh_binding_denied','proof_stale','other_observer','invoke_unconfirmed'];
+  const gate=codes.includes(code)?code:'invoke_unconfirmed';
+  console.info('regia_native_replay_gate',{gate}); // No identifiers, source text or transport payload.
+  if(manualLaneCurrent(lane))roomError='Ripresa dello stesso invio sospesa ('+gate+'). Richiesta e storico conservati; nessun esito inventato.';
+  return {status:'blocked',gate};
+ }
  async function replayNativeTick(host,manualLane=null){
   if(manualLane===null)return queueManualRoomAction(host,'native_replay',lane=>replayNativeTick(host,lane));
-  const t=syncRoom(host);if(!manualLaneCurrent(manualLane)||!asyncCurrent(t)||manualObserverVerification)return;
-  await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane});if((!manualLaneCurrent(manualLane)||!asyncCurrent(t))||roomError)return;
-  const r=[...asyncWorks.values()].find(r=>nativeReplayBinding(roomState,t,r));if(!r)return;
+  const t=syncRoom(host);if(!manualLaneCurrent(manualLane)||!asyncCurrent(t)||manualObserverVerification)return nativeReplayStop(manualLane,'context_changed');
+  const r=[...asyncWorks.values()].find(r=>nativeReplayReadCandidate(roomState,t,r));if(!r)return nativeReplayStop(manualLane,'original_journal_unavailable');
+  await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane});
+  if(!manualLaneCurrent(manualLane)||!asyncCurrent(t))return nativeReplayStop(manualLane,'context_changed');
+  if(roomError)return nativeReplayStop(manualLane,'room_unavailable');
+  if(!nativeReplayReadCandidate(roomState,t,r))return nativeReplayStop(manualLane,'original_journal_unavailable');
   const token={record:r,scope:t,spent:false};manualObserverReadTokens.add(token);
   r.busy=true;let response;
   try{response=await asyncRead({schema_version:'mission-generic-async-recover/1',master_session_id:r.session,selector:clone(r.selector)},r,token);}
-  catch{if(manualLaneCurrent(manualLane)&&asyncCurrent(t))roomError='Verifica dell’invio nativo non disponibile. La stessa richiesta resta conservata.';return;}
+  catch{return nativeReplayStop(manualLane,'read_unconfirmed');}
   finally{r.busy=false;}
-  if((!manualLaneCurrent(manualLane)||!asyncCurrent(t)))return;
-  if(response.status==='owned'){const proof=recoveryProof(response,r);if(proof)adoptAsyncProof(r,proof);rememberNativeReplayRead(r,response,t);if(response.state!=='ready'){paintRoom(host,roomState);return;}}
+  if(!manualLaneCurrent(manualLane)||!asyncCurrent(t))return nativeReplayStop(manualLane,'context_changed');
+  if(response?.status==='no_work'){try{recoveryProof(response,r);}catch{return nativeReplayStop(manualLane,'proof_invalid');}return nativeReplayStop(manualLane,'committed_no_work');}
+  if(response?.status==='owned'){const proof=recoveryProof(response,r);if(proof)adoptAsyncProof(r,proof);rememberNativeReplayRead(r,response,t);if(response.state!=='ready')return nativeReplayStop(manualLane,'proof_not_ready');}
   else{if(!nativeExact(response,recoveryKeys)||response.schema_version!=='mission-generic-async-recovery/1'||response.status!=='none'||response.retry!==false||response.provider_retry_allowed!==false
-   ||['request','work_id','state','receipt_id','result_sha256','kind'].some(k=>response[k]!==null))return;rememberNativeReplayRead(r,response,t);}
-  if(!manualLaneCurrent(manualLane)||nativeReplayBinding(roomState,t,r)!==r.parent)return;
+   ||['request','work_id','state','receipt_id','result_sha256','kind'].some(k=>response[k]!==null))return nativeReplayStop(manualLane,'proof_invalid');rememberNativeReplayRead(r,response,t);}
+  if(!manualLaneCurrent(manualLane))return nativeReplayStop(manualLane,'context_changed');
+  if(nativeReplayBinding(roomState,t,r)!==r.parent){const q=r.nativeReplayReadProof;const other=[...asyncWorks.values()].some(o=>o!==r&&o.user===t.user&&o.session===r.session&&!o.inactive&&(o.accepted||o.journalKey)&&(o.busy||o.state!=='completed'||o.allowChain&&!o.chainDone));return nativeReplayStop(manualLane,q?.progress_key!==roomState.progress_key||q?.source_revision!==roomState.source_revision?'proof_stale':other?'other_observer':'fresh_binding_denied');}
   const parent=r.parent;parent.nativeReplay=r;parent.inFlight=true;
   try{
-   paintRoom(host,roomState);if(!manualLaneCurrent(manualLane))return;const result=await invokeAsyncOnce(parent,t);if(!manualLaneCurrent(manualLane))return;if(result.error)throw result.error;
+   paintRoom(host,roomState);if(!manualLaneCurrent(manualLane))return nativeReplayStop(manualLane,'context_changed');const result=await invokeAsyncOnce(parent,t);if(!manualLaneCurrent(manualLane))return nativeReplayStop(manualLane,'context_changed');if(result.error)throw result.error;
    if(!acceptAsyncPending(result.data,parent,t,true)&&!nativeNoWorkAck(result.data,parent)){
     const delivery=result.data?.delivery;
     if(!sameChainRequest(result.data?.dispatch,result.data?.dispatch)||result.data.dispatch.master_session_id!==r.session
@@ -2073,8 +2101,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     if((!manualLaneCurrent(manualLane)||!asyncCurrent(t))||terminal.status!=='owned')throw Error('async_native_terminal_unconfirmed');
     const proof=recoveryProof(terminal,r);if(!proof||proof.receipt_id!==delivery.receipt_id)throw Error('async_native_terminal_unconfirmed');adoptAsyncProof(r,proof);
    }
-  }catch{parent.outcome='uncertain';if(manualLaneCurrent(manualLane)&&asyncCurrent(t))roomError='Ripresa dello stesso invio nativo non confermata; richiesta e storico conservati.';}
-  finally{parent.inFlight=false;parent.nativeReplay=null;if(manualLaneCurrent(manualLane)&&asyncCurrent(t)){paintRoom(host,roomState);await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane});}}
+  }catch{parent.outcome='uncertain';nativeReplayStop(manualLane,'invoke_unconfirmed');}
+  finally{parent.inFlight=false;parent.nativeReplay=null;if(manualLaneCurrent(manualLane)&&asyncCurrent(t)){if(!roomError)await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane});paintRoom(host,roomState);}}
  }
  function nativeNoWorkAck(data,parent){
   if(parent.body.schema_version!=='mission-generic-tick/1'||data?.dispatch!==null)return false;
