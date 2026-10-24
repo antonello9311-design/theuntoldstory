@@ -782,7 +782,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-RECOVERY-003');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-RECOVERY-004');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -1814,13 +1814,34 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    return result.data;
   });
  }
+ function settleNativeNoWork(v,r){
+  // Server attests an own committed progress receipt with null dispatch, never an absent request.
+  if(!nativeExact(v,recoveryKeys)||v.schema_version!=='mission-generic-async-recovery/1'||v.status!=='no_work'
+   ||v.retry!==false||v.provider_retry_allowed!==false||['request','work_id','state','receipt_id','result_sha256','kind'].some(k=>v[k]!==null)
+   ||r.user!==cacheUser||!valid(r.user)||roomState?.session_id!==r.session||!isStaff()||currentLocation()?.id!==STAFF_TEST_ROOM||currentLocation()?.is_test!==true
+   ||scopeFor(r.user,currentLocation())!==roomScope||!roomHost?.isConnected||r.accepted||r.work!==null||r.request!==null
+   ||r.selector?.kind!=='native_tick'||!UUID.test(r.selector.request_key||'')||!r.journalKey)throw Error('async_native_no_work_unconfirmed');
+  const j=readJournal(r.journalKey,r.user,r.session),phase=j&&journalPhase(j);
+  if(j?.schema_version!=='mission-async-journal/8'||!sameSelector(phase.selector,r.selector)
+   ||!nativeExact(r.parent.body,['schema_version','master_session_id','request_key'])||r.parent.body.schema_version!=='mission-generic-tick/1'
+   ||r.parent.body.master_session_id!==r.session||r.parent.body.request_key!==r.selector.request_key||r.parent.work!==null)throw Error('async_native_no_work_journal_invalid');
+  const evidence={schema_version:'mission-native-progress-no-work-settlement/1',user:r.user,session:r.session,selector:{kind:'native_tick',request_key:r.selector.request_key},recovery:Object.fromEntries(recoveryKeys.map(k=>[k,v[k]]))};
+  const key='mission-native-progress-no-work-settlement/1:'+r.user+':'+r.session+':'+r.selector.request_key;
+  const previous=localStorage.getItem(key),serialized=JSON.stringify(evidence);
+  if(previous!==null&&previous!==serialized)throw Error('async_native_no_work_settlement_conflict');
+  if(previous===null)localStorage.setItem(key,serialized);
+  if(!phase.done){phase.done=true;saveJournal(r.journalKey,j);} // All identities, original history and read counters remain unchanged.
+  r.terminalNoWorkSettlement=Object.freeze(evidence);r.chainDone=true;r.inactive=true;r.transportNotice=false;
+  r.parent.outcome='confirmed';r.parent.terminalSettlementKind='native_progress_no_work';
+ }
  function recoveryProof(v,r){
   const selector=r.selector??selectorFor(r.request)??selectorFor(r.parent?.body);
   if(!selector)throw Error('async_recovery_selector_missing');
   if(!nativeExact(v,recoveryKeys)||v.schema_version!=='mission-generic-async-recovery/1'||!['owned','none','no_work'].includes(v.status)||v.retry!==false||v.provider_retry_allowed!==false)throw Error('async_recovery_invalid');
   if(v.status==='none'||v.status==='no_work'){
    if(r.accepted)throw Error('async_owned_recovery_missing');
-   if(['request','work_id','state','receipt_id','result_sha256','kind'].some(k=>v[k]!==null)||v.status==='no_work'&&selector.kind!=='staff_tick')throw Error('async_recovery_invalid');
+   if(['request','work_id','state','receipt_id','result_sha256','kind'].some(k=>v[k]!==null)||v.status==='no_work'&&!['staff_tick','native_tick'].includes(selector.kind))throw Error('async_recovery_invalid');
+   if(v.status==='no_work'&&selector.kind==='native_tick'){settleNativeNoWork(v,r);return null;}
    if(v.status==='no_work'){const j=readJournal(r.journalKey,r.user,r.session);if(!j)throw Error('async_journal_invalid');if(j.schema_version==='mission-async-journal/7')return null; journalPhase(j).done=true;saveJournal(r.journalKey,j);r.inactive=true;r.transportNotice=false;}
    return null;
   }
@@ -2017,6 +2038,21 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   journalPhase(j).done=true;saveJournal(parent.journalKey,j);const r=asyncWorks.get(parent.asyncKey??'journal:'+parent.journalKey);if(r)r.inactive=true;
   parent.outcome='confirmed';return true; // Only the transport receipt; no generated Fato is implied.
  }
+ function manualObserverDiagnostic(stage,r,error=null,response=null){
+  const selector=r.selector??selectorFor(r.request)??selectorFor(r.parent?.body),q=selector?.kind==='request'?selector.request:null;
+  const knownStage=['read_started','read_result','read_error','native_no_work_settled','terminal_settlement'];
+  if(!knownStage.includes(stage))return;
+  const codes=new Set(['async_read_timeout','async_read_transport','async_read_unconfirmed','async_status_unconfirmed','async_recovery_invalid','async_owned_recovery_missing','async_native_no_work_unconfirmed','async_native_no_work_journal_invalid','async_native_no_work_settlement_conflict','async_journal_invalid','async_journal_lock_unavailable','async_journal_limit','async_native_journal_invalid','manual_no_work_proof_invalid','manual_observer_proof_invalid','manual_observer_read_invalid','async_context_changed','async_budget','async_phase_changed']);
+  const code=error?(codes.has(error.message)?error.message:'observer_read_unconfirmed'):null;
+  console.info('regia_manual_observer_diagnostic',{stage,selector_kind:['request','staff_tick','native_tick'].includes(selector?.kind)?selector.kind:null,
+   selector_request_key:UUID.test((q?.request_key??selector?.request_key)||'')?(q?.request_key??selector.request_key):null,
+   selector_source_revision:SHA.test(selector?.source_revision||'')?selector.source_revision:null,
+   work_id:UUID.test(r.work||'')?r.work:null,state:['waiting',...asyncStates].includes(r.state)?r.state:null,
+   response_status:['owned','none','no_work'].includes(response?.status)?response.status:null,
+   response_state:asyncStates.has(response?.state)?response.state:null,
+   response_kind:['director','narration','choice'].includes(response?.kind)?response.kind:null,
+   error_class:error?['Error','TypeError','RangeError','AbortError','TimeoutError'].includes(error.name)?error.name:'Error':null,code});
+ }
  async function verifyPendingObservers(host,resumeNoWork=false){
   const t=syncRoom(host);
   if(!asyncCurrent(t)||roomRead||manualObserverVerification||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||abortBlocked(roomState?.session_id))return;
@@ -2030,14 +2066,16 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     if(!asyncCurrent(t)||abortBlocked(record.session))return;
     // Fresh matching publication/release can resolve a failed observer without another network read.
     const terminal=settlementForRecord(items,record);
-    if(terminal){recordSettlement(terminal,t);reconcileSettlementParents(terminal,record,t);record.terminalSettlement=Object.freeze(clone(terminal));record.chainDone=true;record.inactive=true;continue;}
+    if(terminal){recordSettlement(terminal,t);reconcileSettlementParents(terminal,record,t);record.terminalSettlement=Object.freeze(clone(terminal));record.chainDone=true;record.inactive=true;manualObserverDiagnostic('terminal_settlement',record);continue;}
     record.busy=true;
     const token={record,scope:t,spent:false};manualObserverReadTokens.add(token);
     try{
      const body=record.accepted&&record.workKind&&sameChainRequest(record.request,record.request)
       ?{schema_version:'mission-generic-async-status/1',request:clone(record.request)}
       :{schema_version:'mission-generic-async-recover/1',master_session_id:record.session,selector:clone(record.selector??selectorFor(record.request)??selectorFor(record.parent?.body))};
+     manualObserverDiagnostic('read_started',record);
      const response=await asyncRead(body,record,token);
+     manualObserverDiagnostic('read_result',record,null,response);
      if(!asyncCurrent(t)||abortBlocked(record.session))return;
      if(body.schema_version==='mission-generic-async-status/1'){
       // A failed or completed work status alone does not attest publication or authorize a new generation.
@@ -2046,6 +2084,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
       if(!nativeExact(response,recoveryKeys)||response.schema_version!=='mission-generic-async-recovery/1'
        ||response.retry!==false||response.provider_retry_allowed!==false
        ||['request','work_id','state','receipt_id','result_sha256','kind'].some(k=>response[k]!==null))throw Error('manual_no_work_proof_invalid');
+      if(record.selector?.kind==='native_tick'){recoveryProof(response,record);manualObserverDiagnostic('native_no_work_settled',record,null,response);continue;}
       const paused=pausedNoWorkProof(roomState,t,record);
       if(paused){
        const proof={schema_version:'mission-async-paused-no-work-settlement/1',user:t.user,session:record.session,
@@ -2066,7 +2105,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
      }
      const matched=settlementForRecord(items,record);
      if(matched){recordSettlement(matched,t);reconcileSettlementParents(matched,record,t);record.terminalSettlement=Object.freeze(clone(matched));record.chainDone=true;record.inactive=true;}
-    }catch{record.manualVerificationUnconfirmed=true;}finally{record.busy=false;}
+    }catch(error){record.manualVerificationUnconfirmed=true;manualObserverDiagnostic('read_error',record,error);}finally{record.busy=false;}
    }
    if(!asyncCurrent(t))return;
    await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});
