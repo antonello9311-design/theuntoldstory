@@ -1,6 +1,6 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-7ae3073ad9c3aaaa';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-publication-7897dcc449bd7b13';
-export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-free-narrative3';
+export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-free-narrative4';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -720,7 +720,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-FREE-NARRATIVE-003');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-FREE-NARRATIVE-004');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -790,10 +790,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(noWorkTick.valid&&noWorkTick.value?.state==='no_work_released'&&noWorkTick.value.owned_by_me&&noWorkTick.value.can_resume){
    if(!noWorkResume){noWorkResume=button('Riprendi la valutazione delle role',()=>verifyPendingObservers(host,true));noWorkResume.setAttribute('data-mg-no-work-resume','');host.append(noWorkResume);}
    const proof=noWorkTick.value,journalKey=journalPrefix(cacheUser,state.session_id)+selectorKey({kind:'staff_tick',source_revision:proof.source_revision})+':no-work:'+proof.recovery_key+':'+proof.retry_request_key;
-   noWorkResume.disabled=!!roomError||!!manualObserverVerification||liveAttempt(state)||abortBlocked(state.session_id)||readJournal(journalKey,cacheUser,state.session_id)!==null;
+   noWorkResume.disabled=!!roomError||!!manualObserverVerification||liveAttempt(state)||abortBlocked(state.session_id)||(readJournal(journalKey,cacheUser,state.session_id)!==null&&!sameNoWorkReplay(state,{user:cacheUser,loc:currentLocation()},journalKey));
   }else noWorkResume?.remove();
   let tickCheck=host.querySelector('[data-mg-tick-check]');
-  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&unresolvedTickForSession(state)){
+  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&(unresolvedTickForSession(state)||asyncBlocked(state))){
    if(!tickCheck){tickCheck=button('Verifica invio',()=>verifyPendingObservers(host));tickCheck.setAttribute('data-mg-tick-check','');host.append(tickCheck);}
    tickCheck.disabled=!!roomError||!!manualObserverVerification;
   }else if(tickCheck)tickCheck.remove();
@@ -1467,6 +1467,25 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key?.startsWith(prefix))continue;
    if(++count>128)throw Error('async_journal_limit');const j=readJournal(key,t.user,state.session_id);
    if(j&&!journalPhase(j).done){
+    if(j.schema_version==='mission-async-journal/7'){
+     const raw=localStorage.getItem('mission-async-observation-handoff/1:'+key);
+     if(raw!==null){
+      const h=JSON.parse(raw),phase=journalPhase(j);
+      if(nativeExact(h,['schema_version','user','session','original_journal_key','target_journal_key','work_id','request','recovery_key','retry_request_key','source_revision','original_result_sha256'])
+       &&h.schema_version==='mission-async-observation-handoff/1'&&h.user===t.user&&h.session===state.session_id&&h.original_journal_key===key
+       &&UUID.test(h.work_id||'')&&sameChainRequest(h.request,h.request)&&h.request.master_session_id===state.session_id
+       &&h.recovery_key===phase.no_work_recovery_key&&h.retry_request_key===phase.retry_request_key&&h.source_revision===phase.selector.source_revision
+       &&h.original_result_sha256===phase.original_result_sha256
+       &&h.target_journal_key===journalPrefix(t.user,state.session_id)+selectorKey({kind:'request',request:h.request})){
+       const target=readJournal(h.target_journal_key,t.user,state.session_id);
+       if(target?.schema_version===asyncJournalSchema&&sameSelector(target.selector,{kind:'request',request:h.request})){
+        const terminal=settlementFor(settlements,target.selector,h.work_id);
+        if(terminal){recordSettlement(terminal,t);continue;}
+        if(!journalPhase(target).done){attachJournal(target,h.target_journal_key);continue;}
+       }
+      }
+     }
+    }
     const proof=settlementFor(settlements,journalPhase(j).selector,null,journalPhase(j).released_work_id??null);
     if(proof){recordSettlement(proof,t);continue;}
     attachJournal(j,key);
@@ -1511,9 +1530,15 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const key=baseKey+(noWorkRelease?':no-work:'+noWorkRelease.recovery_key+':'+noWorkRelease.retry_request_key:release?':released:'+release.work_id:'');parent.journalKey=key;
   return navigator.locks.request(key,{mode:'exclusive'},async()=>{
    if(!asyncCurrent(t)||abortBlocked(parent.session))throw Error('async_context_changed');
-   const old=readJournal(key,t.user,parent.session);if(old){if(!journalPhase(old).done)attachJournal(old,key);throw Error('async_already_submitted');}
-   const phase={user:t.user,session:parent.session,selector,started:Date.now(),reads:0,lastRead:0,done:false};
+   const old=readJournal(key,t.user,parent.session);
    let j;
+   if(old){
+    if(!parent.sameJournalReplay||!noWorkRelease||!sameNoWorkReplay(roomState,t,key)){
+     if(!journalPhase(old).done)attachJournal(old,key);throw Error('async_already_submitted');
+    }
+    j=old;appendNoWorkTransportAudit(parent,key,noWorkRelease);
+   }else{
+   const phase={user:t.user,session:parent.session,selector,started:Date.now(),reads:0,lastRead:0,done:false};
    if(noWorkRelease){
     const original=readJournal(baseKey,t.user,parent.session);
     if(original&&original.schema_version!==asyncJournalSchema)throw Error('async_no_work_original_invalid');
@@ -1525,12 +1550,15 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     j={schema_version:'mission-async-journal/6',original:original===null?null:clone(original),
      recovery:{...phase,released_work_id:release.work_id,source_request_key:release.request_key}};
    }else j={schema_version:asyncJournalSchema,...phase};
-   saveJournal(key,j);attachJournal(j,key); // Persist before HTTP; an uncertain send is never repeated.
+   saveJournal(key,j);
+   }
+   attachJournal(j,key); // Replay preserves the same journal and server-deduplicated transport identity.
    const response=await client.functions.invoke('mission_generic_ai',{body:clone(parent.body)});
    const delivery=response.data?.delivery??response.data;
-   if(!response.error&&((staffNoWork(response.data,parent)&&!noWorkRelease)||delivery?.status===200&&['MISSION_EVENT_COMPLETE','MISSION_EVENT_FAILED'].includes(delivery.code)&&UUID.test(delivery.receipt_id||''))){
+   if(!response.error&&!noWorkRelease&&(staffNoWork(response.data,parent)||delivery?.status===200&&['MISSION_EVENT_COMPLETE','MISSION_EVENT_FAILED'].includes(delivery.code)&&UUID.test(delivery.receipt_id||''))){
     journalPhase(j).done=true;saveJournal(key,j);const r=asyncWorks.get('journal:'+key);if(r)r.inactive=true;
    } // A confirmed synchronous terminal reply needs no new async observer.
+   if(!response.error&&noWorkRelease&&delivery?.status===202&&response.data?.dispatch)handoffNoWorkObservation(parent,t,key,response.data);
    return response;
   });
  }
@@ -1609,6 +1637,89 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   r.work=v.work_id;r.request=Object.freeze(clone(q));r.accepted=true;r.allowChain=v.kind==='director';r.parent.work=v.work_id;r.parent.asyncRequest=r.request;
   return proof; // Server-owned recovery projection; never a synthetic EVENT_COMPLETE ACK.
  }
+ function noWorkJournalBinding(state,t,key,absentOnly=false){
+  const projection=tickStatusFor(state,t),p=projection.value;
+  if(!projection.applicable||!projection.valid||p?.schema_version!=='mission-generic-staff-tick-status/3'||!p.owned_by_me
+   ||p.recovery_kind!=='no_work_progress_receipt'||(absentOnly?!(p.state==='no_work_released'&&p.can_resume):!['no_work_released','attested'].includes(p.state)))return null;
+  const expected=journalPrefix(t.user,state.session_id)+selectorKey({kind:'staff_tick',source_revision:p.source_revision})+':no-work:'+p.recovery_key+':'+p.retry_request_key;
+  if(key!==expected)return null;
+  const document=readJournal(key,t.user,state.session_id),j=journalPhase(document);
+  if(document?.schema_version!=='mission-async-journal/7'||j.done||j.user!==t.user||j.session!==state.session_id
+   ||j.selector.kind!=='staff_tick'||j.selector.source_revision!==p.source_revision
+   ||j.no_work_recovery_key!==p.recovery_key||j.retry_request_key!==p.retry_request_key||j.original_result_sha256!==p.original_result_sha256)return null;
+  return {proof:p,document};
+ }
+ function sameNoWorkReplay(state,t,key){
+  const binding=noWorkJournalBinding(state,t,key,true);if(!binding)return null;
+  const blockers=[...asyncWorks.values()].filter(r=>r.user===t.user&&r.session===state.session_id&&!r.inactive&&(r.accepted||r.journalKey)&&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone));
+  if(blockers.some(r=>r.journalKey!==key||r.busy||r.accepted||r.work!==null))return null;
+  const pending=unresolvedTickForSession(state);
+  if(pending&&pending.journalKey!==key)return null;
+  return binding;
+ }
+ function appendNoWorkTransportAudit(parent,key,binding){
+  const prefix='mission-async-same-transport/1:'+key+':'+Date.now()+':';let n=0;while(localStorage.getItem(prefix+n)!==null)n++;
+  localStorage.setItem(prefix+n,JSON.stringify({schema_version:'mission-async-same-transport/1',user:parent.user,session:parent.session,
+   original_journal_key:key,source_revision:binding.source_revision,recovery_key:binding.recovery_key,retry_request_key:binding.retry_request_key,
+   original_result_sha256:binding.original_result_sha256,started:Date.now(),transport_attempts:1,new_request_ids:0}));
+ }
+ function handoffNoWorkObservation(parent,t,oldKey,evidence){
+  const document=readJournal(oldKey,t.user,parent.session),oldPhase=journalPhase(document);
+  if(document?.schema_version!=='mission-async-journal/7'||oldPhase.done)throw Error('async_no_work_handoff_original');
+  let work,request,allowChain=true;
+  if(evidence.delivery){
+   const frame=evidence,delivery=frame.delivery;
+   if(!nativeExact(delivery,asyncPendingKeys)||delivery.schema_version!=='mission-generic-pending/1'||delivery.status!==202
+    ||delivery.code!=='MISSION_EVENT_PENDING'||delivery.retry!==false||delivery.provider_retry_allowed!==false
+    ||frame.master_session_id!==parent.session||frame.staff_tick?.source_revision!==oldPhase.selector.source_revision
+    ||frame.staff_tick.request_key!==oldPhase.retry_request_key||!['issued','replayed','existing_work'].includes(frame.staff_tick.state)
+    ||!sameChainRequest(frame.dispatch,frame.dispatch)||frame.dispatch.master_session_id!==parent.session||delivery.master_session_id!==parent.session
+    ||delivery.event_id!==frame.dispatch.event_id||delivery.request_key!==frame.dispatch.request_key||delivery.revision!==frame.dispatch.expected_revision||!UUID.test(delivery.work_id||''))throw Error('async_no_work_handoff_ack');
+   work=delivery.work_id;request=frame.dispatch;
+  }else{
+   const binding=noWorkJournalBinding(roomState,t,oldKey),v=evidence;
+   if(!binding||binding.proof.state!=='attested'||binding.proof.acknowledged_recovery_key!==oldPhase.no_work_recovery_key
+    ||!nativeExact(v,recoveryKeys)||v.schema_version!=='mission-generic-async-recovery/1'||v.status!=='owned'
+    ||v.retry!==false||v.provider_retry_allowed!==false||!sameChainRequest(v.request,v.request)||v.request.master_session_id!==parent.session
+    ||v.work_id!==binding.proof.work_id||!UUID.test(v.work_id||'')||!['director','narration','choice'].includes(v.kind))throw Error('async_no_work_handoff_owned');
+   work=v.work_id;request=v.request;allowChain=v.kind==='director';
+  }
+  const selector={kind:'request',request:clone(request)},key=journalPrefix(t.user,parent.session)+selectorKey(selector);
+  let target=readJournal(key,t.user,parent.session);
+  if(target===null){target={schema_version:asyncJournalSchema,user:t.user,session:parent.session,selector,started:Date.now(),reads:0,lastRead:0,done:false};saveJournal(key,target);}
+  if(target.schema_version!==asyncJournalSchema||!sameSelector(target.selector,selector))throw Error('async_no_work_handoff_target');
+  // A fresh budget belongs to a genuinely new server work; an existing work journal is adopted byte-for-byte.
+  const handoffKey='mission-async-observation-handoff/1:'+oldKey,oldHandoff=localStorage.getItem(handoffKey);
+  const handoff={schema_version:'mission-async-observation-handoff/1',user:t.user,session:parent.session,original_journal_key:oldKey,
+   target_journal_key:key,work_id:work,request:clone(request),recovery_key:oldPhase.no_work_recovery_key,retry_request_key:oldPhase.retry_request_key,source_revision:oldPhase.selector.source_revision,original_result_sha256:oldPhase.original_result_sha256};
+  if(oldHandoff!==null&&JSON.stringify(JSON.parse(oldHandoff))!==JSON.stringify(handoff))throw Error('async_no_work_handoff_conflict');
+  if(oldHandoff===null)localStorage.setItem(handoffKey,JSON.stringify(handoff));
+  if(journalPhase(target).done)throw Error('async_no_work_handoff_target_done');
+  if(!journalPhase(target).done){
+   attachJournal(target,key);
+   const record=asyncWorks.get('journal:'+key);if(!record)throw Error('async_no_work_handoff_observer');
+   parent.journalKey=key;parent.asyncKey='journal:'+key;parent.work=work;parent.asyncRequest=Object.freeze(clone(request));
+   asyncRecord(parent,request,work,allowChain,true);
+   if(!evidence.delivery){record.proof=asyncStatusProof({schema_version:'mission-generic-async-status-response/1',work_id:work,master_session_id:request.master_session_id,
+    event_id:request.event_id,request_key:request.request_key,revision:request.expected_revision,state:evidence.state,receipt_id:evidence.receipt_id,
+    result_sha256:evidence.result_sha256,retry:false,provider_retry_allowed:false},record);record.state=record.proof.state;}
+  }
+  const old=asyncWorks.get('journal:'+oldKey);if(old){old.inactive=true;old.handedOffTo=work;} // Handoff only after the actual-work observer is attached.
+ }
+ async function replayNoWorkJournal(state,t,key){
+  const binding=sameNoWorkReplay(state,t,key);if(!binding||!asyncCurrent(t)||abortBlocked(state.session_id))return;
+  const phase=journalPhase(binding.document),storeKey=JSON.stringify([t.user,state.session_id,'same-transport:'+key]);
+  const old=attempts.get(storeKey);if(old?.inFlight)return;
+  const parent={user:t.user,session:state.session_id,key:'same-transport:'+key,kind:'tick',work:null,body:Object.freeze({schema_version:'mission-generic-staff-tick/1',master_session_id:state.session_id,source_revision:phase.selector.source_revision}),
+   staffTickSource:phase.selector.source_revision,tickRecoveryKey:phase.no_work_recovery_key,noWorkRecovery:clone(binding.proof),sameJournalReplay:true,journalKey:key,inFlight:true,outcome:'pending'};
+  attempts.set(storeKey,parent);paintRoom(roomHost,state);
+  try{
+   const {data,error}=await invokeAsyncOnce(parent,t);if(error)throw error;
+   if(!asyncCurrent(t))return;
+   const pending=acceptAsyncPending(data,parent,t,true);
+   parent.outcome=pending?'waiting':'uncertain'; // A no-work/uncertain transport reply never fabricates success.
+  }catch{parent.outcome='uncertain';}finally{parent.inFlight=false;if(asyncCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true,verifyOnly:true});}}
+ }
  function pausedNoWorkProof(state,t,r){
   const projection=tickStatusFor(state,t),p=projection.value;
   if(!projection.applicable||!projection.valid||p?.schema_version!=='mission-generic-staff-tick-status/3'
@@ -1659,7 +1770,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
        record.terminalNoWorkSettlement=Object.freeze(proof);record.chainDone=true;record.inactive=true;
       }
      }else if(response?.status==='owned'){
-      recoveryProof(response,record); // Resolve the exact server tuple; preserve any prior failure and all read budgets.
+      const document=record.journalKey&&readJournal(record.journalKey,record.user,record.session);
+      if(document?.schema_version==='mission-async-journal/7'){
+       recoveryProof(response,record);
+       if(!settlementForRecord(items,record))handoffNoWorkObservation(record.parent,t,record.journalKey,response);
+      }else recoveryProof(response,record); // Existing server tuple and original budgets remain unchanged.
      }else{
       if(!nativeExact(response,recoveryKeys)||response.schema_version!=='mission-generic-async-recovery/1'||response.status!=='none'
        ||response.retry!==false||response.provider_retry_allowed!==false||['request','work_id','state','receipt_id','result_sha256','kind'].some(k=>response[k]!==null))throw Error('manual_observer_proof_invalid');
@@ -1670,11 +1785,16 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    }
    if(!asyncCurrent(t))return;
    await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});
-   canResumeAfterVerification=asyncCurrent(t)&&!roomError&&!asyncBlocked(roomState);
+   const p=tickStatusFor(roomState,t).value;
+   const key=p?.state==='no_work_released'?journalPrefix(t.user,roomState.session_id)+selectorKey({kind:'staff_tick',source_revision:p.source_revision})+':no-work:'+p.recovery_key+':'+p.retry_request_key:null;
+   canResumeAfterVerification=asyncCurrent(t)&&!roomError&&(!asyncBlocked(roomState)||key&&sameNoWorkReplay(roomState,t,key));
   }finally{
    if(manualObserverVerification===verification)manualObserverVerification=null;
    if(asyncCurrent(t)&&roomState){paintRoom(host,roomState);
-    if(resumeNoWork&&canResumeAfterVerification)maybeDispatch(roomState,t,false,true);}
+    if(resumeNoWork&&canResumeAfterVerification){
+     const p=tickStatusFor(roomState,t).value,key=p?.state==='no_work_released'?journalPrefix(t.user,roomState.session_id)+selectorKey({kind:'staff_tick',source_revision:p.source_revision})+':no-work:'+p.recovery_key+':'+p.retry_request_key:null;
+     if(key&&sameNoWorkReplay(roomState,t,key))void replayNoWorkJournal(roomState,t,key);else maybeDispatch(roomState,t,false,true);
+    }}
   }
  }
  function finishJournal(r){
