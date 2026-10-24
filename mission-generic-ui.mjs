@@ -782,7 +782,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-STAFF-FINISH-001');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-COMBAT-WRITER-RECOVERY-001');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -799,6 +799,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   else if(retry)retry.remove();
   const processing=processingFor(state),claim=processing.value;
   const role=roleProgress(state);
+  const combatProof=combatNarrationRecovery(state);
+  let combatNarrationButton=host.querySelector('[data-mg-combat-narration-recovery]');
+  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&combatProof?.owned_by_me&&(combatProof.can_reissue||combatProof.can_resume)){
+   if(!combatNarrationButton){combatNarrationButton=button('',()=>staffRecoverCombatNarration(host,combatNarrationReady(roomState)));combatNarrationButton.setAttribute('data-mg-combat-narration-recovery','');host.append(combatNarrationButton);}
+   combatNarrationButton.textContent=combatProof.can_resume?'Riprendi lo stesso Fato dello scontro':'Recupera lo stesso Fato dello scontro';
+   combatNarrationButton.disabled=!!roomError||!!staffRoleRecovery||!!staffResumeRead||liveAttempt(state)||abortBlocked(state.session_id);
+  }else combatNarrationButton?.remove();
   const countProof=countStatusProjection(state),countReserved=hasCountProjection(state);
   let countCheck=host.querySelector('[data-mg-count-status]'),countNotice=host.querySelector('[data-mg-count-status-notice]');
   if(countProof){
@@ -826,7 +833,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const countedRecovery=countedResumeAllowed(state,{loc:currentLocation(),user:cacheUser});
   let resume=host.querySelector('[data-mg-claim-resume]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&processing.valid
-   &&!hasOpeningResume(state)&&!hasOpeningClaimResume(state)&&!countReserved&&(claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
+   &&!combatProof&&!hasOpeningResume(state)&&!hasOpeningClaimResume(state)&&!countReserved&&(claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
    if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(countedResumeAllowed(s,{loc:currentLocation(),user:cacheUser}))void staffResumeCounted(host);else if(p?.state==='claimed')void staffReconcileClaimed(host);else if(p?.state==='ready'&&(r?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,s.session_id,p.work_id))))void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
    resume.textContent=claimedRecovery?'Verifica la stessa ricevuta':readyRecovery?'Verifica e riprendi la stessa richiesta':'Verifica o riprendi la stessa richiesta';
    const suffix=countedRecovery?':counted-resume':claimedRecovery?':reconcile-claimed':readyRecovery?':reclaim-ready':':reclaim';
@@ -836,13 +843,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   let roleRecovery=host.querySelector('[data-mg-role-recovery]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test
    &&processing.valid&&claim?.state==='failed'
-   &&(scopedFailedNarrationRecovery(state,claim)||state.can_tick&&role?.reason==='failed')){
+   &&!combatProof&&(scopedFailedNarrationRecovery(state,claim)||state.can_tick&&role?.reason==='failed')){
    if(!roleRecovery){roleRecovery=button('Verifica recupero del Fato o della Regia',()=>staffRecoverIdenticalRole(host));roleRecovery.setAttribute('data-mg-role-recovery','');host.append(roleRecovery);}
    roleRecovery.disabled=!!roomError||!!staffRoleRecovery||liveAttempt(state)||abortBlocked(state.session_id);
   }else if(roleRecovery)roleRecovery.remove();
   let combatRecovery=host.querySelector('[data-mg-combat-recovery]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test
-   &&flow==='combat_started'&&state.can_tick&&state.review_required!==true
+   &&!combatProof&&flow==='combat_started'&&state.can_tick&&state.review_required!==true
    &&processing.valid&&claim?.state==='failed'&&claim.finalized_at!==null){
    if(!combatRecovery){combatRecovery=button('Verifica e recupera la lavorazione dello scontro',()=>staffRecoverCachedChoice(host));combatRecovery.setAttribute('data-mg-combat-recovery','');host.append(combatRecovery);}
    combatRecovery.disabled=!!roomError||!!staffChoiceRecovery||liveAttempt(state)||cachedChoiceRecoveries.has(claim.work_id);
@@ -1028,6 +1035,46 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }finally{
    if(staffResumeRead===token){staffResumeRead=null;if(roomCurrent(t)){await updateRoom(host,{manual:true,verifyOnly:true});refresh();}}
   }
+ }
+ const combatNarrationRecoveryKeys=['schema_version','master_session_id','failed_work_id','batch_id','report_id','payload_sha256','owned_by_me','can_reissue','successor_work_id','successor_request','can_resume'];
+ function combatNarrationRecovery(state){
+  if(!state||!Object.hasOwn(state,'combat_narration_recovery')||state.combat_narration_recovery===null)return null;
+  const x=state.combat_narration_recovery,p=processingFor(state);
+  if(!nativeExact(x,combatNarrationRecoveryKeys)||x.schema_version!=='mission-combat-narration-recovery/1'
+   ||x.master_session_id!==state.session_id||!['master_session_id','failed_work_id','batch_id','report_id'].every(k=>UUID.test(x[k]||''))
+   ||!SHA.test(x.payload_sha256||'')||!['owned_by_me','can_reissue','can_resume'].every(k=>typeof x[k]==='boolean')
+   ||!(x.successor_work_id===null||UUID.test(x.successor_work_id||''))
+   ||(x.successor_work_id===null?x.successor_request!==null||x.can_resume:x.successor_work_id===x.failed_work_id||!sameChainRequest(x.successor_request,x.successor_request)||x.successor_request.master_session_id!==state.session_id)
+   ||x.can_reissue&&(!x.owned_by_me||x.successor_work_id!==null)
+   ||x.can_resume&&(!x.owned_by_me||x.can_reissue||!p.valid||p.value?.state!=='ready'||p.value.finalized_at!==null||p.value.work_id!==x.successor_work_id||!sameChainRequest(p.value.request,x.successor_request)))throw Error('combat_narration_recovery_invalid');
+  return x;
+ }
+ const combatNarrationTuple=x=>JSON.stringify(combatNarrationRecoveryKeys.filter(k=>!['can_reissue','can_resume','successor_work_id','successor_request'].includes(k)).map(k=>x[k]));
+ const combatNarrationReady=state=>{const x=combatNarrationRecovery(state);return !!(x?.owned_by_me&&x.can_resume);};
+ async function staffRecoverCombatNarration(host,resume=false){
+  const t=syncRoom(host),old=roomState,x=combatNarrationRecovery(old);
+  if(!roomCurrent(t)||staffRoleRecovery||staffResumeRead||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||abortBlocked(old?.session_id)||liveAttempt(old)||!x?.owned_by_me||!(resume?x.can_resume:x.can_reissue))return;
+  const token={session:old.session_id,failed:x.failed_work_id,tuple:combatNarrationTuple(x),successor:x.successor_work_id,request:x.successor_request?clone(x.successor_request):null};staffRoleRecovery=token;paintRoom(host,old);
+  try{
+   const fresh=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
+   if(!roomCurrent(t)||staffRoleRecovery!==token)return;
+   const proof=combatNarrationRecovery(fresh);roomState=fresh;roomError='';
+   if(fresh?.session_id!==token.session||!proof?.owned_by_me||combatNarrationTuple(proof)!==token.tuple||abortBlocked(token.session))throw Error('combat_narration_proof_changed');
+   if(resume){
+    if(!proof.can_resume||proof.successor_work_id!==token.successor||!sameChainRequest(proof.successor_request,token.request))throw Error('combat_narration_successor_changed');
+    maybeDispatch(fresh,t,true);return; // Explicit gesture, canonical successor request only.
+   }
+   if(!proof.can_reissue||proof.successor_work_id!==null)throw Error('combat_narration_reissue_changed');
+   const result=await client.functions.invoke('mission_generic_ai',{body:{schema_version:'mission-generic-staff-cached-publication/1',master_session_id:token.session,work_id:token.failed}});
+   if(!roomCurrent(t)||staffRoleRecovery!==token)return;
+   const data=result.data;
+   if(result.error||!nativeExact(data,['schema_version','status','master_session_id','work_id','replayed'])||data.schema_version!=='mission-generic-staff-cached-publication/1'||data.status!=='recovered'||data.master_session_id!==token.session||!UUID.test(data.work_id||'')||data.work_id===token.failed||typeof data.replayed!=='boolean')throw Error('combat_narration_reissue_unconfirmed');
+   await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});
+   if(!roomCurrent(t)||staffRoleRecovery!==token)return;
+   const confirmed=combatNarrationRecovery(roomState);
+   if(!confirmed||combatNarrationTuple(confirmed)!==token.tuple||confirmed.successor_work_id!==data.work_id)throw Error('combat_narration_reissue_readback_unconfirmed');
+  }catch(error){if(roomCurrent(t)&&staffRoleRecovery===token){roomError='Recupero dello stesso esito non confermato. Risultati, role e ricevute restano conservati; aggiorna la regia per verificarli.';paintRoom(host,roomState);}}
+  finally{if(staffRoleRecovery===token){staffRoleRecovery=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
  }
  function scopedFailedNarrationRecovery(state,work){
   return state?.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'
@@ -1373,8 +1420,17 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&r.source_window_id==='433ace05-5265-4aad-96a3-5567b6e3480a'
    &&r.source_revision==='ac9aedbd59dcb835d717f4ddb6ce195e3c2a9d640df576667290fa38b7e6cbbb';
  }
+ function combatNarrationReleaseValid(x,r,session){
+  return nativeExact(x,['selector','request','work_id','receipt_id','result_sha256','release'])
+   &&sameChainRequest(x.request,x.request)&&x.request.master_session_id===session
+   &&nativeExact(x.selector,['kind','request'])&&x.selector.kind==='request'&&sameChainRequest(x.selector.request,x.request)
+   &&UUID.test(x.work_id||'')&&UUID.test(x.receipt_id||'')&&SHA.test(x.result_sha256||'')
+   &&nativeExact(r,['source_work_id','payload_sha256','reason','audit_sha256'])&&r.source_work_id===x.work_id
+   &&r.reason==='staff_combat_narration_preprovider_reissued'&&SHA.test(r.payload_sha256||'')&&SHA.test(r.audit_sha256||'');
+ }
  function settlementItemValid(x,session){
   const p=x?.publication,r=x?.release,s=x?.selector,q=x?.request;
+  if(r&&combatNarrationReleaseValid(x,r,session))return true;
   if(r)return nativeExact(x,['selector','request','work_id','receipt_id','result_sha256','release'])
    &&sameChainRequest(q,q)&&q.master_session_id===session
    &&(nativeExact(s,['kind','request'])&&s.kind==='request'&&sameChainRequest(s.request,q)
@@ -1400,9 +1456,9 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!Object.hasOwn(state,'journal_settlements'))return [];
   const x=state.journal_settlements;
   if(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||!asyncCurrent(t)
-   ||!nativeExact(x,['schema_version','master_session_id','items'])||!['mission-journal-settlements/1','mission-journal-settlements/2'].includes(x.schema_version)
+   ||!nativeExact(x,['schema_version','master_session_id','items'])||!['mission-journal-settlements/1','mission-journal-settlements/2','mission-journal-settlements/3'].includes(x.schema_version)
    ||x.master_session_id!==state.session_id||!Array.isArray(x.items)||x.items.length>128
-   ||!x.items.every(i=>settlementItemValid(i,state.session_id)&&(x.schema_version==='mission-journal-settlements/2'||!i.release))
+   ||!x.items.every(i=>settlementItemValid(i,state.session_id)&&(x.schema_version==='mission-journal-settlements/3'||x.schema_version==='mission-journal-settlements/2'&&!combatNarrationReleaseValid(i,i.release,state.session_id)||!i.release))
    ||new Set(x.items.map(i=>selectorKey(i.selector)+':'+i.work_id)).size!==x.items.length)throw Error('async_settlements_invalid');
   return x.items;
  }
@@ -1429,7 +1485,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     ||!sameSelector(old.proof.selector,item.selector)||!sameChainRequest(old.proof.request,item.request)
     ||old.proof.work_id!==item.work_id||old.proof.receipt_id!==item.receipt_id||old.proof.result_sha256!==item.result_sha256
     ||(!!old.proof.release!==!!item.release)||(item.release
-     ?['source_window_id','source_revision','reason','audit_sha256'].some(k=>old.proof.release[k]!==item.release[k])
+     ?(combatNarrationReleaseValid(item,item.release,proof.session)?['source_work_id','payload_sha256','reason','audit_sha256']:['source_window_id','source_revision','reason','audit_sha256']).some(k=>old.proof.release[k]!==item.release[k])
      :['writer_work_id','message_id','receipt_id','result_sha256'].some(k=>old.proof.publication[k]!==item.publication[k])))throw Error('async_settlement_conflict');
    return;
   }
@@ -2032,18 +2088,20 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(asyncBlocked(state))return; // An accepted async request is observed, never re-dispatched.
   if(hasCountProjection(state))return; // Only the explicit technical status consumer may handle this proof.
   const parsed=processingFor(state),p=parsed.value;
+  const combatRecovery=combatNarrationRecovery(state),combatReady=!!(combatRecovery?.owned_by_me&&combatRecovery.can_resume);
+  if(combatRecovery&&combatRecovery.successor_work_id!==null&&combatRecovery.successor_work_id===p?.work_id&&(!reclaim||!combatReady))return;
   const claimedVerification=reclaim&&parsed.valid&&staffClaimReconciliationAllowed(state,t,p);
   const recoveredReady=p?.state==='ready'&&recoveredWriters.has(recoveredWriterKey(t.user,state.session_id,p.work_id));
   if(recoveredReady&&!reclaim)return;
   if(!roomCurrent(t)||!parsed.valid||state.review_required===true&&!claimedVerification
-   ||!state.can_tick&&!claimedVerification||choiceRequests.has(choiceKey(state))||liveAttempt(state)||abortBlocked(state.session_id))return;
+   ||!state.can_tick&&!claimedVerification&&!(reclaim&&combatReady)||choiceRequests.has(choiceKey(state))||liveAttempt(state)||abortBlocked(state.session_id))return;
   if(unresolvedTickForSession(state)&&!claimedVerification)return; // A known claimed request may be reconciled; no new tick is permitted.
   const role=roleProgress(state);
   const staffAcademy=isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc?.is_test===true&&academyFlow(state)!==null;
   const staffCombat=staffAcademy&&academyFlow(state)==='combat_started'&&UUID.test(state.flow_publication_id||'');
-  if(staffAcademy&&!role)return; // Never fall back to a browser UUID when the Staff projection is missing.
-  if(role&&!staffCombat&&!claimedVerification&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started'||recoveredReady:role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
-  if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(claimedVerification||p?.state==='uncertain'||p?.state==='ready'&&(role?.reason==='recoverable_not_started'||recoveredReady)&&p.finalized_at===null)))return;
+  if(staffAcademy&&!role&&!combatReady)return; // Never fall back to a browser UUID when the Staff projection is missing.
+  if(role&&!staffCombat&&!claimedVerification&&!combatReady&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started'||recoveredReady:role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
+  if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(claimedVerification||p?.state==='uncertain'||p?.state==='ready'&&(role?.reason==='recoverable_not_started'||recoveredReady||combatReady)&&p.finalized_at===null)))return;
   if(p&&['authorized','provider_started'].includes(p.state)||p?.state==='failed'&&!(staffAcademy&&role?.reason==='ready_to_evaluate')
    ||p&&['claimed','uncertain'].includes(p.state)&&!reclaim)return;
   const staffRole=staffAcademyRole(state,t.loc),staffTick=!reclaim&&!staffCombat&&staffRole?.reason==='ready_to_evaluate'&&(!p||['completed','failed'].includes(p.state));
@@ -2100,6 +2158,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     if(!UUID.test(state.session_id||'')||typeof state.step_key!=='string')throw Error('room_state_invalid');
     academyFlow(state); // The server owns both the phase and the Fato publication receipt.
     roleProgress(state); // A partial reason/remedy projection cannot authorize a dispatch.
+    combatNarrationRecovery(state); // Typed server proof only; read/reload never resumes it.
    roomState=state;roomError='';
    const settlements=journalSettlements(state,t);
    settleAsyncRecords(settlements,t);
