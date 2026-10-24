@@ -1,6 +1,6 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-7ae3073ad9c3aaaa';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-publication-7897dcc449bd7b13';
-export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-free-narrative4';
+export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-staff-finish1';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -394,7 +394,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function scopeFor(user,loc){return user&&loc?.id?JSON.stringify([user,loc.id]):null;}
  function syncRoom(host){
   const user=identity(),loc=currentLocation(),scope=scopeFor(user,loc);
-  if(cacheUser!==user){cacheUser=user;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();chainFeedback.clear();recoveredWriters.clear();asyncWorks.clear();}
+  if(cacheUser!==user){cacheUser=user;staffFinishNotice='';attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();chainFeedback.clear();recoveredWriters.clear();asyncWorks.clear();}
   if(scope!==roomScope||host!==roomHost){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';entryReplayReady=false;countStatusRead=null;countStatusNotice='';countStatusSession=null;staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
   return {user,loc,scope,epoch:roomEpoch};
  }
@@ -667,6 +667,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }
   function statusText(state){
   if(roomError)return roomError;
+  const tickStop=staffTickAutoStop(state,{user:cacheUser,loc:currentLocation()});if(tickStop)return tickStop.code==='MISSION_STAFF_TICK_ACTOR_CONFLICT'?'La valutazione appartiene a un altro attore. Invii automatici sospesi; aggiorna la regia per leggere la ricevuta server, senza reinviare le role.':'Invio della valutazione non confermato. Invii automatici sospesi; verifica la ricevuta server senza ripetere le role.';
   if(state.review_required===true&&roleProgress(state)===null)return 'La scena richiede una valutazione dello staff prima di continuare.';
   const choice=choiceRequests.get(choiceKey(state));
   if(choice?.inFlight)return 'Invio della scelta in corso. La lettura della stanza continua.';
@@ -718,9 +719,70 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return state.review_required!==true&&parsed.valid&&!unresolved&&Number.isSafeInteger(state.choice_context?.master_control_version)&&Number.isSafeInteger(state.choice_context?.run_control_version)&&!roomError&&!choiceRequests.has(choiceKey(state))&&!liveAttempt(state)&&state.state==='in_corso'
    &&state.choice_context?.narration_pending!==true&&(!p||p.state==='completed');
  }
+ let staffFinishBusy=false,staffFinishNotice='';
+ const finishRequestKeys=['schema_version','master_session_id','source_revision','expected_publication_id','request_key'];
+ function validFinishRequest(q){return nativeExact(q,finishRequestKeys)&&q.schema_version==='mission-generic-staff-finish/1'&&UUID.test(q.master_session_id||'')&&SHA.test(q.source_revision||'')&&UUID.test(q.expected_publication_id||'')&&UUID.test(q.request_key||'');}
+ function finishProjection(state){
+  if(!state||!Object.hasOwn(state,'staff_finish'))return null;
+  const p=state.staff_finish;if(p===null)return null;
+  if(!nativeExact(p,['schema_version','master_session_id','state','can_finish','source_revision','expected_publication_id','request_key','outcome','reason'])
+   ||p.schema_version!=='mission-generic-staff-finish-status/1'||p.master_session_id!==state.session_id||!['ready','blocked'].includes(p.state)||typeof p.can_finish!=='boolean'
+   ||!(p.source_revision===null||SHA.test(p.source_revision||''))||!(p.expected_publication_id===null||UUID.test(p.expected_publication_id||''))
+   ||!(p.request_key===null||UUID.test(p.request_key||''))||![null,'success'].includes(p.outcome)
+   ||!['ready','scope_closed','waiting_final_publication','work_pending','history_unreconciled','roles_pending','combat_pending'].includes(p.reason)
+   ||(p.can_finish?(p.state!=='ready'||p.reason!=='ready'||p.outcome!=='success'||!SHA.test(p.source_revision||'')||!UUID.test(p.expected_publication_id||'')||!UUID.test(p.request_key||'')):(p.state!=='blocked'||p.reason==='ready')))throw Error('staff_finish_projection_invalid');
+  return p;
+ }
+ function validFinishReceipt(v,q){return nativeExact(v,['schema_version','master_session_id','state','source_revision','publication_id','request_key','outcome','receipt_sha256','replayed'])&&v.schema_version==='mission-generic-staff-finish-result/1'&&v.master_session_id===q.master_session_id&&v.state==='closed'&&v.source_revision===q.source_revision&&v.publication_id===q.expected_publication_id&&v.request_key===q.request_key&&v.outcome==='success'&&SHA.test(v.receipt_sha256||'')&&typeof v.replayed==='boolean';}
+ const finishPrefix=user=>'mission-staff-finish-command/1:'+user+':'+STAFF_TEST_ROOM+':';
+ function finishCommands(user){
+  const result=[],prefix=finishPrefix(user);
+  for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key?.startsWith(prefix)||key.endsWith(':receipt'))continue;
+   if(result.length>=32)throw Error('staff_finish_local_limit');const stored=JSON.parse(localStorage.getItem(key));
+   if(!nativeExact(stored,['schema_version','user','location','request'])||stored.schema_version!=='mission-staff-finish-command/1'||stored.user!==user||stored.location!==STAFF_TEST_ROOM||!validFinishRequest(stored.request)||key!==prefix+stored.request.request_key)throw Error('staff_finish_saved_invalid');
+   const raw=localStorage.getItem(key+':receipt'),receipt=raw===null?null:JSON.parse(raw);if(receipt!==null&&!validFinishReceipt(receipt,stored.request))throw Error('staff_finish_saved_receipt_invalid');
+   result.push({key,request:stored.request,receipt});
+  }return result;
+ }
+ function paintStaffFinish(host,state){
+  host.querySelector('[data-mg-staff-finish]')?.remove();
+  if(!isStaff()||currentLocation()?.id!==STAFF_TEST_ROOM||currentLocation()?.is_test!==true||!identity())return;
+  const box=el('div',null,{'data-mg-staff-finish':''});let saved,projection;
+  try{saved=finishCommands(identity());projection=finishProjection(state);}catch{box.append(el('p','Conclusione non verificabile: nessuna nuova richiesta inviata.'));host.append(box);host.hidden=false;return;}
+  const pending=saved.filter(x=>!x.receipt),closed=saved.filter(x=>x.receipt);
+  if(staffFinishNotice)box.append(el('p',staffFinishNotice,{role:'status'}));
+  if(closed.some(x=>!state||x.request.master_session_id===state.session_id))box.append(el('p','Prova conclusa: ricevuta server conservata, senza premi alle schede.',{role:'status'}));
+  for(const item of pending){const b=button('Verifica la stessa conclusione',()=>submitStaffFinish(host,item.request,true));b.disabled=staffFinishBusy||abortBlocked(item.request.master_session_id);box.append(b);}
+  if(projection?.can_finish&&!pending.length&&!saved.some(x=>x.request.request_key===projection.request_key)){
+   const q={schema_version:'mission-generic-staff-finish/1',master_session_id:state.session_id,source_revision:projection.source_revision,expected_publication_id:projection.expected_publication_id,request_key:projection.request_key};
+   const b=button('Concludi la prova',()=>submitStaffFinish(host,q,false));b.disabled=staffFinishBusy||!!roomError||abortBlocked(state.session_id);box.append(b);
+  }
+  if(box.childNodes.length){host.append(box);host.hidden=false;}
+ }
+ async function submitStaffFinish(host,q,replay){
+  const t=syncRoom(host);if(!roomCurrent(t)||staffFinishBusy||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||!validFinishRequest(q)||abortBlocked(q.master_session_id))return;
+  staffFinishBusy=true;staffFinishNotice='Conclusione in verifica…';
+  try{
+   const key=finishPrefix(t.user)+q.request_key;
+   if(!replay){
+    await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});if(!roomCurrent(t)||roomError)throw Error('projection_read');
+    const p=finishProjection(roomState);if(!p?.can_finish||p.master_session_id!==q.master_session_id||p.source_revision!==q.source_revision||p.expected_publication_id!==q.expected_publication_id||p.request_key!==q.request_key)throw Error('projection_changed');
+    if(finishCommands(t.user).some(x=>!x.receipt))throw Error('finish_pending');
+    const stored={schema_version:'mission-staff-finish-command/1',user:t.user,location:STAFF_TEST_ROOM,request:clone(q)};
+    if(localStorage.getItem(key)!==null)throw Error('finish_already_saved');localStorage.setItem(key,JSON.stringify(stored));
+   }else{const stored=finishCommands(t.user).find(x=>x.key===key);if(!stored||JSON.stringify(stored.request)!==JSON.stringify(q))throw Error('finish_saved_mismatch');}
+   paintStaffFinish(host,roomState);
+   const {data,error}=await client.functions.invoke('mission_generic_ai',{body:clone(q)});
+   if(error||!validFinishReceipt(data,q))throw Error('finish_unconfirmed');
+   const previous=localStorage.getItem(key+':receipt');if(previous!==null){const old=JSON.parse(previous);if(!validFinishReceipt(old,q)||old.receipt_sha256!==data.receipt_sha256)throw Error('finish_receipt_conflict');}
+   else localStorage.setItem(key+':receipt',JSON.stringify(data));
+   if(roomCurrent(t))staffFinishNotice='Prova conclusa dal server. Fati, role e costi conservati; nessun premio reale.';
+  }catch{if(roomCurrent(t))staffFinishNotice='Conclusione non confermata. Usa Verifica la stessa conclusione: la richiesta resta conservata, senza creare una nuova prova.';}
+  finally{staffFinishBusy=false;if(roomCurrent(t)){await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});paintStaffFinish(host,roomState);}}
+ }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-FREE-NARRATIVE-004');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-STAFF-FINISH-001');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -790,10 +852,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(noWorkTick.valid&&noWorkTick.value?.state==='no_work_released'&&noWorkTick.value.owned_by_me&&noWorkTick.value.can_resume){
    if(!noWorkResume){noWorkResume=button('Riprendi la valutazione delle role',()=>verifyPendingObservers(host,true));noWorkResume.setAttribute('data-mg-no-work-resume','');host.append(noWorkResume);}
    const proof=noWorkTick.value,journalKey=journalPrefix(cacheUser,state.session_id)+selectorKey({kind:'staff_tick',source_revision:proof.source_revision})+':no-work:'+proof.recovery_key+':'+proof.retry_request_key;
-   noWorkResume.disabled=!!roomError||!!manualObserverVerification||liveAttempt(state)||abortBlocked(state.session_id)||(readJournal(journalKey,cacheUser,state.session_id)!==null&&!sameNoWorkReplay(state,{user:cacheUser,loc:currentLocation()},journalKey));
+   noWorkResume.disabled=!!roomError||!!manualObserverVerification||!!staffTickAutoStop(state,{user:cacheUser,loc:currentLocation()})||liveAttempt(state)||abortBlocked(state.session_id)||(readJournal(journalKey,cacheUser,state.session_id)!==null&&!sameNoWorkReplay(state,{user:cacheUser,loc:currentLocation()},journalKey));
   }else noWorkResume?.remove();
   let tickCheck=host.querySelector('[data-mg-tick-check]');
-  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&(unresolvedTickForSession(state)||asyncBlocked(state))){
+  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&(unresolvedTickForSession(state)||asyncBlocked(state)||staffTickAutoStop(state,{user:cacheUser,loc:currentLocation()}))){
    if(!tickCheck){tickCheck=button('Verifica invio',()=>verifyPendingObservers(host));tickCheck.setAttribute('data-mg-tick-check','');host.append(tickCheck);}
    tickCheck.disabled=!!roomError||!!manualObserverVerification;
   }else if(tickCheck)tickCheck.remove();
@@ -837,6 +899,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    chainNotice.setAttribute('data-mg-chain-reason',activeFeedback.reason);
    chainNotice.textContent='Raccordo del racconto: '+(reasons[activeFeedback.reason]||'verifica richiesta')+'. Le role restano conservate; non reinviarle.';
   }else chainNotice?.remove();
+  paintStaffFinish(host,state);
  }
  function definitiveChoiceError(error){const code=error?.code;return typeof code==='string'&&(/^(22|23)/.test(code)||['42501','40001','55000','P0001'].includes(code));}
  async function staffRecoverCachedChoice(host){
@@ -1649,6 +1712,33 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    ||j.no_work_recovery_key!==p.recovery_key||j.retry_request_key!==p.retry_request_key||j.original_result_sha256!==p.original_result_sha256)return null;
   return {proof:p,document};
  }
+ const staffTickStops=new Map();
+ const tickStopPrefix=user=>'mission-staff-tick-auto-stop/1:'+user+':';
+ function staffTickAutoStop(state,t){
+  if(!state||!t?.user||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true)return null;
+  const source=roleProgress(state)?.revision??state.source_revision;if(!SHA.test(source||''))return null;
+  const key=tickStopPrefix(t.user)+state.session_id+':'+source;let raw=null;try{raw=localStorage.getItem(key);}catch{}
+  const h=raw===null?staffTickStops.get(key):JSON.parse(raw);if(!h)return null;
+  if(!nativeExact(h,['schema_version','user','session','source_revision','code','prior_tick_request_key'])||h.schema_version!=='mission-staff-tick-auto-stop/1'||h.user!==t.user||h.session!==state.session_id||h.source_revision!==source||!['MISSION_STAFF_TICK_ACTOR_CONFLICT','MISSION_STAFF_TICK_UNCONFIRMED'].includes(h.code)||!(h.prior_tick_request_key===null||UUID.test(h.prior_tick_request_key||'')))throw Error('staff_tick_auto_stop_invalid');
+  const projection=tickStatusFor(state,t),proof=projection.value;
+  // Only this authenticated actor's exact fresh successor ACK can release the automatic stop.
+  // A failed work, absent tick, other owner or mere no-work state is never sufficient.
+  if(projection.applicable&&projection.valid&&proof?.state==='attested'&&proof.owned_by_me&&proof.source_revision===source
+   &&UUID.test(proof.request_key||'')&&UUID.test(proof.work_id||'')
+   &&(h.prior_tick_request_key===null||h.prior_tick_request_key===proof.request_key))return null;
+  return h;
+ }
+ async function preserveStaffTickStop(error,parent,t){
+  if(parent.body?.schema_version!=='mission-generic-staff-tick/1')return false;
+  let code='MISSION_STAFF_TICK_UNCONFIRMED';
+  try{const body=await error?.context?.json();if(nativeExact(body,['code'])&&body.code==='MISSION_STAFF_TICK_ACTOR_CONFLICT')code=body.code;}catch{}
+  const source=parent.body.source_revision,key=tickStopPrefix(parent.user)+parent.session+':'+source;
+  const projection=tickStatusFor(roomState,t),p=projection.value;
+  const previous=p?.source_revision===source&&p.owned_by_me&&UUID.test(p.request_key||'')?p.request_key:null;
+  const hold={schema_version:'mission-staff-tick-auto-stop/1',user:parent.user,session:parent.session,source_revision:source,code,prior_tick_request_key:previous};staffTickStops.set(key,hold);
+  try{if(localStorage.getItem(key)===null)localStorage.setItem(key,JSON.stringify(hold));}catch{} // Memory still blocks this page if persistence is unavailable.
+  parent.outcome='uncertain';parent.tickAutomaticStopped=true;return true;
+ }
  function sameNoWorkReplay(state,t,key){
   const binding=noWorkJournalBinding(state,t,key,true);if(!binding)return null;
   const blockers=[...asyncWorks.values()].filter(r=>r.user===t.user&&r.session===state.session_id&&!r.inactive&&(r.accepted||r.journalKey)&&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone));
@@ -1707,7 +1797,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const old=asyncWorks.get('journal:'+oldKey);if(old){old.inactive=true;old.handedOffTo=work;} // Handoff only after the actual-work observer is attached.
  }
  async function replayNoWorkJournal(state,t,key){
-  const binding=sameNoWorkReplay(state,t,key);if(!binding||!asyncCurrent(t)||abortBlocked(state.session_id))return;
+  const binding=sameNoWorkReplay(state,t,key);if(!binding||!asyncCurrent(t)||abortBlocked(state.session_id)||staffTickAutoStop(state,t))return;
   const phase=journalPhase(binding.document),storeKey=JSON.stringify([t.user,state.session_id,'same-transport:'+key]);
   const old=attempts.get(storeKey);if(old?.inFlight)return;
   const parent={user:t.user,session:state.session_id,key:'same-transport:'+key,kind:'tick',work:null,body:Object.freeze({schema_version:'mission-generic-staff-tick/1',master_session_id:state.session_id,source_revision:phase.selector.source_revision}),
@@ -1718,7 +1808,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(!asyncCurrent(t))return;
    const pending=acceptAsyncPending(data,parent,t,true);
    parent.outcome=pending?'waiting':'uncertain'; // A no-work/uncertain transport reply never fabricates success.
-  }catch{parent.outcome='uncertain';}finally{parent.inFlight=false;if(asyncCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true,verifyOnly:true});}}
+  }catch(error){await preserveStaffTickStop(error,parent,t);parent.outcome='uncertain';}finally{parent.inFlight=false;if(asyncCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true,verifyOnly:true,readOnlyObservers:true});}}
  }
  function pausedNoWorkProof(state,t,r){
   const projection=tickStatusFor(state,t),p=projection.value;
@@ -1937,6 +2027,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function maybeDispatch(state,t,reclaim=false,explicitNoWork=false){
   if(manualObserverVerification)return;
+  if(staffTickAutoStop(state,t))return;
   if(hasOpeningResume(state)||hasOpeningClaimResume(state))return; // A proof, even malformed, cannot become an automatic resend.
   if(asyncBlocked(state))return; // An accepted async request is observed, never re-dispatched.
   if(hasCountProjection(state))return; // Only the explicit technical status consumer may handle this proof.
@@ -1994,8 +2085,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
      &&(state.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'||driverFor(state).optedIn&&driverFor(state).valid))
      {chainFeedback.set(JSON.stringify([t.user,state.session_id]),{reason:chainReason,target:a.chainTarget??chainTarget(a,data?.dispatch??a.body)});
      console.info('regia_chain_diagnostic',chainReason);}
-   }catch{a.outcome='uncertain';}
-   finally{a.inFlight=false;if(roomCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true});refresh();}}
+   }catch(error){await preserveStaffTickStop(error,a,t);a.outcome='uncertain';}
+   finally{a.inFlight=false;if(roomCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true,verifyOnly:true,readOnlyObservers:true});}}
   })().catch(()=>{});
  }
  async function updateRoom(host,{manual=false,verifyOnly=false,readOnlyObservers=false}={}){
@@ -2005,7 +2096,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   try{
    const state=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
    if(!roomCurrent(t))return;
-   if(!state){roomState=null;roomSignature='';roomError='';host.replaceChildren();host.hidden=true;await mountAborts(host,null,t);return;}
+   if(!state){roomState=null;roomSignature='';roomError='';host.replaceChildren();host.hidden=true;await mountAborts(host,null,t);paintStaffFinish(host,null);return;}
     if(!UUID.test(state.session_id||'')||typeof state.step_key!=='string')throw Error('room_state_invalid');
     academyFlow(state); // The server owns both the phase and the Fato publication receipt.
     roleProgress(state); // A partial reason/remedy projection cannot authorize a dispatch.
@@ -2022,7 +2113,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    paintRoom(host,state);
    await mountAborts(host,state,t);if(!roomCurrent(t)||!roomState)return;
    if(abortBlocked(state.session_id))return;await regen.update(host,state,processingFor(state));
-   if(!readOnlyObservers)observeAsyncWork(state,t);
+   if(!readOnlyObservers&&!staffTickAutoStop(state,t))observeAsyncWork(state,t);
    const projected=processingFor(state);
    if(!verifyOnly&&(!manual||academyFlow(state)==='combat_started'||staffAcademyRole(state,t.loc)?.reason==='ready_to_evaluate'
     &&projected.valid&&(!projected.value||['completed','failed'].includes(projected.value.state))))maybeDispatch(state,t);
