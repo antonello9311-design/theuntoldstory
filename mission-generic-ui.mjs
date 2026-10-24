@@ -782,7 +782,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-COMBAT-READY-HANDOFF-001');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-COMBAT-READY-HANDOFF-002');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -1052,7 +1052,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  const combatNarrationTuple=x=>JSON.stringify(combatNarrationRecoveryKeys.filter(k=>!['can_reissue','can_resume','successor_work_id','successor_request'].includes(k)).map(k=>x[k]));
  const combatNarrationReady=state=>{const x=combatNarrationRecovery(state);return !!(x?.owned_by_me&&x.can_resume);};
  // Only an explicit gesture may replay an unacknowledged transport for this exact ready Writer.
- function combatResumeBinding(state,t){
+ function combatResumeBinding(state,t,activeAttempt=null){
   const x=combatNarrationRecovery(state),parsed=processingFor(state),p=parsed.value;
   if(!isStaff()||t.user!==cacheUser||t.loc?.id!==STAFF_TEST_ROOM||t.loc?.is_test!==true
    ||!x?.owned_by_me||!x.can_resume||!parsed.valid||p?.state!=='ready'||p.finalized_at!==null
@@ -1069,7 +1069,9 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(document&&(document.schema_version!==asyncJournalSchema||document.done||!sameSelector(document.selector,selector)))return null;
   const attemptKey=JSON.stringify([t.user,state.session_id,'work:'+p.work_id+':'+p.revision+':reclaim-ready']);
   const prior=attempts.get(attemptKey);
-  if(prior&&(prior.inFlight||prior.work!==p.work_id||!sameChainRequest(prior.body,p.request)))return null;
+  if(activeAttempt!==null&&prior!==activeAttempt)return null;
+  const checkedPrior=prior===activeAttempt&&activeAttempt!==null?activeAttempt.priorAttempt:prior;
+  if(checkedPrior&&(checkedPrior.inFlight||checkedPrior.work!==p.work_id||!sameChainRequest(checkedPrior.body,p.request)))return null;
   return {work:p.work_id,request:clone(p.request),tuple:combatNarrationTuple(x),journalKey:key,attemptKey};
  }
  async function staffRecoverCombatNarration(host,resume=false){
@@ -1676,10 +1678,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const old=readJournal(key,t.user,parent.session);
    let combatReplay=false;
    if(parent.combatResume){
-    const prior=attempts.get(parent.combatResume.attemptKey);
-    if(prior!==parent)throw Error('combat_narration_attempt_changed');
-    attempts.set(parent.combatResume.attemptKey,parent.priorAttempt);
-    let proof;try{proof=combatResumeBinding(roomState,t);}finally{attempts.set(parent.combatResume.attemptKey,parent);}
+    if(attempts.get(parent.combatResume.attemptKey)!==parent)throw Error('combat_narration_attempt_changed');
+    const proof=combatResumeBinding(roomState,t,parent);
     if(!proof||proof.journalKey!==key||proof.work!==parent.work||proof.tuple!==parent.combatResume.tuple
      ||!sameChainRequest(proof.request,parent.body))throw Error('combat_narration_transport_changed');
     combatReplay=true;
