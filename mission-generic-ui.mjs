@@ -1,6 +1,6 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-7ae3073ad9c3aaaa';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-publication-7897dcc449bd7b13';
-export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-free-narrative2';
+export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-free-narrative3';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -400,6 +400,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  const roomCurrent=t=>t.scope===roomScope&&t.epoch===roomEpoch&&valid(t.user)&&scopeFor(identity(),currentLocation())===t.scope&&roomHost?.isConnected;
  const chainFeedback=new Map(),recoveredWriters=new Set();
+ let manualObserverVerification=null;
+ const manualObserverReadTokens=new WeakSet();
  const recoveredWriterKey=(user,session,work)=>JSON.stringify([user,session,work]);
  const choiceKey=s=>JSON.stringify([cacheUser,s.session_id]);
  function processingFor(state){
@@ -718,7 +720,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-FREE-NARRATIVE-002');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-FREE-NARRATIVE-003');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -786,14 +788,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const noWorkTick=tickStatusFor(state);
   let noWorkResume=host.querySelector('[data-mg-no-work-resume]');
   if(noWorkTick.valid&&noWorkTick.value?.state==='no_work_released'&&noWorkTick.value.owned_by_me&&noWorkTick.value.can_resume){
-   if(!noWorkResume){noWorkResume=button('Riprendi la valutazione delle role',()=>{const s=roomState;if(s)maybeDispatch(s,syncRoom(host),false,true);});noWorkResume.setAttribute('data-mg-no-work-resume','');host.append(noWorkResume);}
+   if(!noWorkResume){noWorkResume=button('Riprendi la valutazione delle role',()=>verifyPendingObservers(host,true));noWorkResume.setAttribute('data-mg-no-work-resume','');host.append(noWorkResume);}
    const proof=noWorkTick.value,journalKey=journalPrefix(cacheUser,state.session_id)+selectorKey({kind:'staff_tick',source_revision:proof.source_revision})+':no-work:'+proof.recovery_key+':'+proof.retry_request_key;
-   noWorkResume.disabled=!!roomError||liveAttempt(state)||abortBlocked(state.session_id)||readJournal(journalKey,cacheUser,state.session_id)!==null;
+   noWorkResume.disabled=!!roomError||!!manualObserverVerification||liveAttempt(state)||abortBlocked(state.session_id)||readJournal(journalKey,cacheUser,state.session_id)!==null;
   }else noWorkResume?.remove();
   let tickCheck=host.querySelector('[data-mg-tick-check]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&unresolvedTickForSession(state)){
-   if(!tickCheck){tickCheck=button('Verifica invio',()=>updateRoom(host,{manual:true,verifyOnly:true}));tickCheck.setAttribute('data-mg-tick-check','');host.append(tickCheck);}
-   tickCheck.disabled=!!roomError;
+   if(!tickCheck){tickCheck=button('Verifica invio',()=>verifyPendingObservers(host));tickCheck.setAttribute('data-mg-tick-check','');host.append(tickCheck);}
+   tickCheck.disabled=!!roomError||!!manualObserverVerification;
   }else if(tickCheck)tickCheck.remove();
   let entryButton=host.querySelector('[data-mg-combat-entry]'),panelButton=host.querySelector('[data-mg-combat-panel]'),entryNotice=host.querySelector('[data-mg-combat-notice]'),entryRetry=host.querySelector('[data-mg-combat-entry-retry]');
   if(entryState?.can_prepare&&!entryPending){if(!entryButton){entryButton=button('Apri scontro',()=>prepareEntry(host,roomState));entryButton.setAttribute('data-mg-combat-entry','');host.append(entryButton);}entryButton.disabled=!!roomError;}else entryButton?.remove();
@@ -1345,6 +1347,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const matches=items.filter(i=>sameSelector(i.selector,selector)&&(work===null||work===i.work_id)&&i.work_id!==excludeWork);
   return matches.find(i=>i.release)||matches[0]||null;
  }
+ function settlementForRecord(items,r){
+  const selector=r.selector??selectorFor(r.parent?.body)??(r.request?selectorFor(r.request):null);
+  const direct=settlementFor(items,selector,r.work??null,r.releasedPredecessor??null);
+  if(direct)return direct;
+  if(!r.accepted||!UUID.test(r.work||'')||!sameChainRequest(r.request,r.request)||r.request.master_session_id!==r.session)return null;
+  return settlementFor(items,{kind:'request',request:r.request},r.work,r.releasedPredecessor??null);
+ }
  function recordSettlement(item,t){
   // Evidence is supplied by this fresh authenticated room read. The sidecar is audit only.
   // Original journals, resume phases and their observation budgets remain byte-identical.
@@ -1366,8 +1375,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function settleAsyncRecords(items,t){
   for(const r of asyncWorks.values()){
    if(r.user!==t.user||r.session!==roomState?.session_id||r.inactive)continue;
-   const selector=r.selector??selectorFor(r.parent?.body)??(r.request?selectorFor(r.request):null);
-   const proof=settlementFor(items,selector,r.work??null,r.releasedPredecessor??null);if(!proof)continue;
+   const proof=settlementForRecord(items,r);if(!proof)continue;
    recordSettlement(proof,t);r.terminalSettlement=Object.freeze(clone(proof));r.chainDone=true;r.inactive=true;
   }
  }
@@ -1543,7 +1551,19 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(code)return transientReadCodes.has(code);
   return status===0||['AbortError','TimeoutError','FunctionsFetchError'].includes(e?.name)||e?.name==='TypeError'&&/fetch|network/i.test(e.message||'');
  }
- async function boundedAsyncRead(r,read){
+ async function boundedAsyncRead(r,read,manualToken=null){
+  if(manualToken!==null){
+   if(!manualObserverReadTokens.has(manualToken)||manualToken.record!==r||manualToken.spent||!asyncCurrent(manualToken.scope))throw Error('manual_observer_read_invalid');
+   manualToken.spent=true;
+   const key='mission-async-manual-read/1:'+r.user+':'+r.session+':'+id();
+   const stored=r.countedMarkerKey?readCountedMarker(r.countedMarkerKey,r.user,r.session):r.journalKey?journalPhase(readJournal(r.journalKey,r.user,r.session)):r;
+   localStorage.setItem(key,JSON.stringify({schema_version:'mission-async-manual-read/1',user:r.user,session:r.session,
+    selector:clone(r.selector??selectorFor(r.parent?.body)),work_id:r.work??null,journal_key:r.journalKey??null,
+    automatic_reads:stored?.reads??null,automatic_started:stored?.started??null,started:Date.now(),read_attempts:1,provider_calls:0}));
+   const controller=new AbortController();let timer;
+   try{return await Promise.race([read(controller.signal),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Object.assign(Error('async_read_timeout'),{asyncRetryable:true}));},10000);})]);}
+   finally{clearTimeout(timer);}
+  }
   spendAsyncRead(r);
   const remaining=r.countedMarkerKey?asyncBudget.maxMs-(Date.now()-readCountedMarker(r.countedMarkerKey,r.user,r.session).started):r.journalKey?asyncBudget.maxMs-(Date.now()-journalPhase(readJournal(r.journalKey,r.user,r.session)).started):asyncBudget.maxMs-(performance.now()-r.started);
   if(remaining<=0)throw Error('async_budget');
@@ -1551,7 +1571,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   try{return await Promise.race([read(controller.signal),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Object.assign(Error('async_read_timeout'),{asyncRetryable:true}));},Math.min(10000,remaining));})]);}
   finally{clearTimeout(timer);}
  }
- async function asyncRead(body,r){
+ async function asyncRead(body,r,manualToken=null){
+  if(manualToken!==null&&!['mission-generic-async-recover/1','mission-generic-async-status/1'].includes(body.schema_version))throw Error('manual_observer_read_schema');
   return boundedAsyncRead(r,async signal=>{
    let response;try{response=await client.functions.invoke('mission_generic_ai',{body,signal});}
    catch(e){throw Object.assign(Error('async_read_transport'),{asyncRetryable:transientReadCause(e)});}
@@ -1563,7 +1584,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     throw Object.assign(Error('async_read_unconfirmed'),{asyncRetryable:retryable||status===undefined&&transientReadCause(response.error)});
    }
    return response.data;
-  });
+  },manualToken);
  }
  async function asyncRoomRead(r,t){
   return boundedAsyncRead(r,async signal=>{
@@ -1588,6 +1609,74 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   r.work=v.work_id;r.request=Object.freeze(clone(q));r.accepted=true;r.allowChain=v.kind==='director';r.parent.work=v.work_id;r.parent.asyncRequest=r.request;
   return proof; // Server-owned recovery projection; never a synthetic EVENT_COMPLETE ACK.
  }
+ function pausedNoWorkProof(state,t,r){
+  const projection=tickStatusFor(state,t),p=projection.value;
+  if(!projection.applicable||!projection.valid||p?.schema_version!=='mission-generic-staff-tick-status/3'
+   ||p.state!=='no_work_released'||!p.owned_by_me||p.request_key!=='9e48a416-9261-4399-9e4e-a82b8a3d3a48'
+   ||p.recovery_key!==p.request_key||p.source_revision!=='24db5db8da7ede254e6d719b587c4fa04dce6b9d1c920396251adb85d0f6294c'
+   ||p.original_result_sha256!=='b27ed0db18a45d371931f015be0cd0fa060ed3f99b8d5843e8cbef45ecfbb2f8'
+   ||r.user!==t.user||r.session!==state.session_id||r.work!==null||r.accepted
+   ||r.selector?.kind!=='staff_tick'||r.selector.source_revision!==p.source_revision||!r.journalKey)return null;
+  const original=readJournal(r.journalKey,r.user,r.session);
+  // The successor journal is never closed by the predecessor's no-work proof.
+  if(original?.schema_version!==asyncJournalSchema||!sameSelector(original.selector,r.selector))return null;
+  return p;
+ }
+ async function verifyPendingObservers(host,resumeNoWork=false){
+  const t=syncRoom(host);
+  if(!asyncCurrent(t)||roomRead||manualObserverVerification||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||abortBlocked(roomState?.session_id))return;
+  const verification={scope:t};let canResumeAfterVerification=false;manualObserverVerification=verification;
+  try{
+   await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});
+   if(!asyncCurrent(t)||manualObserverVerification!==verification||!roomState||roomError)return;
+   let items=journalSettlements(roomState,t);settleAsyncRecords(items,t);
+   const records=[...asyncWorks.values()].filter(r=>r.user===t.user&&r.session===roomState.session_id&&!r.inactive&&!r.busy&&(r.accepted||r.journalKey));
+   for(const record of records){
+    if(!asyncCurrent(t)||abortBlocked(record.session))return;
+    // Fresh matching publication/release can resolve a failed observer without another network read.
+    const terminal=settlementForRecord(items,record);
+    if(terminal){recordSettlement(terminal,t);record.terminalSettlement=Object.freeze(clone(terminal));record.chainDone=true;record.inactive=true;continue;}
+    record.busy=true;
+    const token={record,scope:t,spent:false};manualObserverReadTokens.add(token);
+    try{
+     const body=record.accepted&&sameChainRequest(record.request,record.request)
+      ?{schema_version:'mission-generic-async-status/1',request:clone(record.request)}
+      :{schema_version:'mission-generic-async-recover/1',master_session_id:record.session,selector:clone(record.selector??selectorFor(record.parent?.body))};
+     const response=await asyncRead(body,record,token);
+     if(!asyncCurrent(t)||abortBlocked(record.session))return;
+     if(body.schema_version==='mission-generic-async-status/1'){
+      // A failed or completed work status alone does not attest publication or authorize a new generation.
+      asyncStatusProof(response,record);
+     }else if(response?.status==='no_work'){
+      if(!nativeExact(response,recoveryKeys)||response.schema_version!=='mission-generic-async-recovery/1'
+       ||response.retry!==false||response.provider_retry_allowed!==false
+       ||['request','work_id','state','receipt_id','result_sha256','kind'].some(k=>response[k]!==null))throw Error('manual_no_work_proof_invalid');
+      const paused=pausedNoWorkProof(roomState,t,record);
+      if(paused){
+       const proof={schema_version:'mission-async-paused-no-work-settlement/1',user:t.user,session:record.session,
+        selector:clone(record.selector),tick:clone(paused),async_recovery:clone(response)};
+       localStorage.setItem('mission-async-paused-no-work-settlement/1:'+t.user+':'+record.session+':'+paused.request_key,JSON.stringify(proof));
+       record.terminalNoWorkSettlement=Object.freeze(proof);record.chainDone=true;record.inactive=true;
+      }
+     }else if(response?.status==='owned'){
+      recoveryProof(response,record); // Resolve the exact server tuple; preserve any prior failure and all read budgets.
+     }else{
+      if(!nativeExact(response,recoveryKeys)||response.schema_version!=='mission-generic-async-recovery/1'||response.status!=='none'
+       ||response.retry!==false||response.provider_retry_allowed!==false||['request','work_id','state','receipt_id','result_sha256','kind'].some(k=>response[k]!==null))throw Error('manual_observer_proof_invalid');
+     }
+     const matched=settlementForRecord(items,record);
+     if(matched){recordSettlement(matched,t);record.terminalSettlement=Object.freeze(clone(matched));record.chainDone=true;record.inactive=true;}
+    }catch{record.manualVerificationUnconfirmed=true;}finally{record.busy=false;}
+   }
+   if(!asyncCurrent(t))return;
+   await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});
+   canResumeAfterVerification=asyncCurrent(t)&&!roomError&&!asyncBlocked(roomState);
+  }finally{
+   if(manualObserverVerification===verification)manualObserverVerification=null;
+   if(asyncCurrent(t)&&roomState){paintRoom(host,roomState);
+    if(resumeNoWork&&canResumeAfterVerification)maybeDispatch(roomState,t,false,true);}
+  }
+ }
  function finishJournal(r){
   if(r.countedMarkerKey&&['completed','failed'].includes(r.state)&&UUID.test(r.proof?.receipt_id||'')){
    const marker=readCountedMarker(r.countedMarkerKey,r.user,r.session);
@@ -1603,7 +1692,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }
   if(r.journalKey&&r.state==='completed'&&(!r.allowChain||r.chainDone)){const j=readJournal(r.journalKey,r.user,r.session);if(j){journalPhase(j).done=true;saveJournal(r.journalKey,j);}}}
  function observeAsyncWork(state,t){
-  if(!asyncCurrent(t)||hasCountProjection(state)||abortBlocked(state.session_id)||!processingFor(state).valid)return;
+  if(manualObserverVerification||!asyncCurrent(t)||hasCountProjection(state)||abortBlocked(state.session_id)||!processingFor(state).valid)return;
   const r=[...asyncWorks.values()].find(r=>(r.accepted||r.journalKey)&&r.user===t.user&&r.session===state.session_id&&!r.inactive&&!r.busy&&!r.failure&&(!['uncertain','failed'].includes(r.state)||(r.countedMarkerKey&&r.state==='uncertain'))&&(r.state!=='completed'||r.allowChain&&!r.chainDone));
   if(!r||performance.now()-r.lastRead<asyncBudget.minReadMs)return;
   r.busy=true;r.lastRead=performance.now();let parent=null;
@@ -1628,7 +1717,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
      }else{const data=await asyncRead({schema_version:'mission-generic-async-status/1',request:clone(r.request)},r);if(!asyncCurrent(t)||abortBlocked(r.session))return;proof=asyncStatusProof(data,r);}
      r.proof=proof;r.state=proof.state;r.transportNotice=false;parent.outcome=proof.state==='completed'?'confirmed':['failed','uncertain'].includes(proof.state)?proof.state:'waiting';
     }
-    if(r.state==='completed'&&r.allowChain&&!r.chainDone){
+    if(r.state==='completed'&&r.allowChain&&!r.chainDone&&!manualObserverVerification){
      const reason=await continueDirectorNarration(null,parent,t,proof);if(!asyncCurrent(t))return;
      r.chainDone=['server_proof_none','child_confirmed','child_failed','child_unconfirmed','child_already_attempted'].includes(reason);
      if(!r.chainDone&&!['server_proof_unconfirmed','context_changed','room_state_changed','child_other_inflight','child_tick_suspended','abort_pending'].includes(reason))r.failure='status_unconfirmed';
@@ -1727,6 +1816,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return a.outcome==='confirmed'?'child_confirmed':a.outcome==='failed'?'child_failed':'child_unconfirmed';
  }
  function maybeDispatch(state,t,reclaim=false,explicitNoWork=false){
+  if(manualObserverVerification)return;
   if(hasOpeningResume(state)||hasOpeningClaimResume(state))return; // A proof, even malformed, cannot become an automatic resend.
   if(asyncBlocked(state))return; // An accepted async request is observed, never re-dispatched.
   if(hasCountProjection(state))return; // Only the explicit technical status consumer may handle this proof.
@@ -1788,7 +1878,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    finally{a.inFlight=false;if(roomCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true});refresh();}}
   })().catch(()=>{});
  }
- async function updateRoom(host,{manual=false,verifyOnly=false}={}){
+ async function updateRoom(host,{manual=false,verifyOnly=false,readOnlyObservers=false}={}){
   if(!host)return;const t=syncRoom(host);
   if(!t.user||!t.loc){host.replaceChildren();host.hidden=true;return;}
   if(roomRead)return;t.readSequence=++readSequence;roomRead=t;
@@ -1812,7 +1902,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    paintRoom(host,state);
    await mountAborts(host,state,t);if(!roomCurrent(t)||!roomState)return;
    if(abortBlocked(state.session_id))return;await regen.update(host,state,processingFor(state));
-   observeAsyncWork(state,t);
+   if(!readOnlyObservers)observeAsyncWork(state,t);
    const projected=processingFor(state);
    if(!verifyOnly&&(!manual||academyFlow(state)==='combat_started'||staffAcademyRole(state,t.loc)?.reason==='ready_to_evaluate'
     &&projected.valid&&(!projected.value||['completed','failed'].includes(projected.value.state))))maybeDispatch(state,t);
