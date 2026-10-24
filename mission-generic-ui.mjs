@@ -35,10 +35,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  const regen=createStaffFatoRegen({client,identity,isStaff,currentLocation,refresh});
  const valid=(user)=>!!user&&identity()===user;
- async function rpc(name,args,user=identity()){
+ async function rpc(name,args,user=identity(),diagnosticCode=false){
   if(!valid(user))throw Error('Accedi nuovamente per continuare.');
   const r=await client.rpc(name,args);if(!valid(user))throw Error('Sessione cambiata.');
-  if(r.error)throw Error(r.error.message||'Operazione non confermata.');return r.data;
+  if(r.error){const failure=Error(r.error.message||'Operazione non confermata.');
+   if(diagnosticCode&&typeof r.error.code==='string'&&/^[0-9A-Z]{5}$/.test(r.error.code))failure.manualRecoveryCode=r.error.code;
+   throw failure;}return r.data;
  }
  function dialog(title){style();if(currentDialog){currentDialog.close();currentDialog.remove();}
   const d=el('dialog',null,{class:'mg-dialog','aria-label':title});const top=el('div',null,{class:'mg-row'});
@@ -328,6 +330,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const academyStates=new Set(['waiting_roles','evaluating','new_scene','combat_started']);
   const roleReasons=new Set(['own_role_missing','own_role_invalid','waiting_other_roles','ready_to_evaluate','provider_processing','recoverable_not_started','uncertain','failed','review_required','published']);
   const nextActors=new Set(['player','other_players','system','staff','none']);
+ let manualRecoveryError=null;
  let roomScope=null,roomRead=null,roomHost=null,roomError='',cacheUser=null,readSequence=0,staffResumeRead=null,staffRoleRecovery=null,staffChoiceRecovery=null;
  let entryState=null,entryPending=null,entryError='',entryReplayReady=false,countStatusRead=null,countStatusNotice='',countStatusSession=null;
  const entryKey=(user,session)=>`regia-combat-entry/1:${user}:${session}`;
@@ -394,7 +397,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function scopeFor(user,loc){return user&&loc?.id?JSON.stringify([user,loc.id]):null;}
  function syncRoom(host){
   const user=identity(),loc=currentLocation(),scope=scopeFor(user,loc);
-  if(cacheUser!==user){cacheUser=user;staffFinishNotice=null;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();chainFeedback.clear();recoveredWriters.clear();asyncWorks.clear();}
+  if(cacheUser!==user){cacheUser=user;staffFinishNotice=null;manualRecoveryError=null;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();chainFeedback.clear();recoveredWriters.clear();asyncWorks.clear();}
   if(scope!==roomScope||host!==roomHost){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';entryReplayReady=false;countStatusRead=null;countStatusNotice='';countStatusSession=null;staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
   return {user,loc,scope,epoch:roomEpoch};
  }
@@ -835,9 +838,19 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }catch{if(roomCurrent(t))staffFinishNotice={user:t.user,session:q.master_session_id,epoch:t.epoch,text:'Conclusione non confermata. Usa Verifica la stessa conclusione: la richiesta resta conservata, senza creare una nuova prova.'};}
   finally{staffFinishBusy=false;if(roomCurrent(t)){await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});paintStaffFinish(host,roomState);}}
  }
+ function paintManualRecoveryError(host,state,processing){
+  let notice=host.querySelector('[data-mg-manual-recovery-error]');const e=manualRecoveryError;
+  if(e&&(e.user!==identity()||e.session!==state.session_id||processing.valid&&(processing.value?.work_id!==e.work||processing.value?.state!=='failed')))manualRecoveryError=null;
+  const current=manualRecoveryError;
+  if(!current||current.user!==identity()||current.session!==state.session_id){notice?.remove();return;}
+  const message='Il recupero della Regia non è confermato (codice '+current.code+'). Role, risultati e ricevute restano conservati.';
+  if(!notice)notice=el('p','',{'data-mg-manual-recovery-error':'',role:'alert','aria-live':'assertive','aria-atomic':'true',class:'mg-status'});
+  if(notice.textContent!==message)notice.textContent=message;
+  const status=host.querySelector('[data-mg-room-status]');if(status)host.insertBefore(notice,status);
+ }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-008');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-009');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -853,6 +866,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(pending?.phase==='uncertain'){if(!retry){retry=button('Verifica la stessa scelta',()=>submitChoice(host,null,true));retry.setAttribute('data-mg-choice-retry','');host.append(retry);}retry.disabled=state.review_required===true||pending.inFlight;}
   else if(retry)retry.remove();
   const processing=processingFor(state),claim=processing.value;
+  paintManualRecoveryError(host,state,processing);
   const role=roleProgress(state);
   const combatProof=combatNarrationRecovery(state);
   let combatNarrationButton=host.querySelector('[data-mg-combat-narration-recovery]');
@@ -1365,6 +1379,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!roomCurrent(t)||staffRoleRecovery||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||abortBlocked(state?.session_id)
    ||!parsed.valid||work?.state!=='failed'
    ||!(scopedFailedNarrationRecovery(state,work)||state?.can_tick&&role?.reason==='failed'))return;
+  manualRecoveryError=null;
   const token={session:state.session_id,work:work.work_id};staffRoleRecovery=token;paintRoom(host,state);
   try{
    const cached=await client.functions.invoke('mission_generic_ai',{body:{
@@ -1396,7 +1411,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     await updateRoom(host,{manual:true});refresh();return;
    }
    const retry=await rpc('mission_staff_retry_failed_director_v1',
-    {p_session:token.session,p_failed_director:token.work},t.user);
+    {p_session:token.session,p_failed_director:token.work},t.user,true);
    if(!roomCurrent(t)||staffRoleRecovery!==token)return;
    if(retry?.schema_version!=='mission-staff-director-retry/1'
     ||!['released','not_applicable'].includes(retry.status))
@@ -1409,14 +1424,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
 
    const result=await rpc('mission_staff_resume_identical_role_v1',
-    {p_session:token.session,p_failed_director:token.work},t.user);
+    {p_session:token.session,p_failed_director:token.work},t.user,true);
    if(!roomCurrent(t)||staffRoleRecovery!==token)return;
    if(result?.schema_version!=='mission-staff-role-resume/1'||result.work?.state!=='ready')
     throw Error('staff_role_recovery_unconfirmed');
    await updateRoom(host,{manual:true});
   }catch(error){
-   if(roomCurrent(t)&&staffRoleRecovery===token){roomError=String(error?.message||'').startsWith('Pubblicazione protetta da ')
-    ?error.message:'Questa scena non soddisfa i requisiti del recupero sicuro. Le role restano conservate; lo Staff deve verificare il work.';paintRoom(host,roomState);}
+   if(roomCurrent(t)&&staffRoleRecovery===token){manualRecoveryError=Object.freeze({user:t.user,session:token.session,work:token.work,code:typeof error?.manualRecoveryCode==='string'&&/^[0-9A-Z]{5}$/.test(error.manualRecoveryCode)?error.manualRecoveryCode:'NON_CONFERMATO'});
+    roomError=String(error?.message||'').startsWith('Pubblicazione protetta da ')?error.message:'Esito del recupero non confermato. Role, risultati e ricevute restano conservati.';paintRoom(host,roomState);}
   }finally{if(staffRoleRecovery===token){staffRoleRecovery=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
  }
   async function submitChoice(host,trigger,retry=false){
@@ -2536,7 +2551,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   try{
    const state=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
    if(!roomCurrent(t))return;
-   if(!state){roomState=null;roomSignature='';roomError='';host.replaceChildren();host.hidden=true;await mountAborts(host,null,t);paintStaffFinish(host,null);return;}
+   if(!state){manualRecoveryError=null;roomState=null;roomSignature='';roomError='';host.replaceChildren();host.hidden=true;await mountAborts(host,null,t);paintStaffFinish(host,null);return;}
     if(!UUID.test(state.session_id||'')||typeof state.step_key!=='string')throw Error('room_state_invalid');
     academyFlow(state); // The server owns both the phase and the Fato publication receipt.
     roleProgress(state); // A partial reason/remedy projection cannot authorize a dispatch.
