@@ -782,7 +782,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-COMBAT-WRITER-RECOVERY-001');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-COMBAT-READY-HANDOFF-001');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -804,7 +804,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&combatProof?.owned_by_me&&(combatProof.can_reissue||combatProof.can_resume)){
    if(!combatNarrationButton){combatNarrationButton=button('',()=>staffRecoverCombatNarration(host,combatNarrationReady(roomState)));combatNarrationButton.setAttribute('data-mg-combat-narration-recovery','');host.append(combatNarrationButton);}
    combatNarrationButton.textContent=combatProof.can_resume?'Riprendi lo stesso Fato dello scontro':'Recupera lo stesso Fato dello scontro';
-   combatNarrationButton.disabled=!!roomError||!!staffRoleRecovery||!!staffResumeRead||liveAttempt(state)||abortBlocked(state.session_id);
+   combatNarrationButton.disabled=!!roomError||!!staffRoleRecovery||!!staffResumeRead||liveAttempt(state)||abortBlocked(state.session_id)||(combatProof.can_resume&&!combatResumeBinding(state,{user:cacheUser,loc:currentLocation()}));
   }else combatNarrationButton?.remove();
   const countProof=countStatusProjection(state),countReserved=hasCountProjection(state);
   let countCheck=host.querySelector('[data-mg-count-status]'),countNotice=host.querySelector('[data-mg-count-status-notice]');
@@ -1051,6 +1051,27 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  const combatNarrationTuple=x=>JSON.stringify(combatNarrationRecoveryKeys.filter(k=>!['can_reissue','can_resume','successor_work_id','successor_request'].includes(k)).map(k=>x[k]));
  const combatNarrationReady=state=>{const x=combatNarrationRecovery(state);return !!(x?.owned_by_me&&x.can_resume);};
+ // Only an explicit gesture may replay an unacknowledged transport for this exact ready Writer.
+ function combatResumeBinding(state,t){
+  const x=combatNarrationRecovery(state),parsed=processingFor(state),p=parsed.value;
+  if(!isStaff()||t.user!==cacheUser||t.loc?.id!==STAFF_TEST_ROOM||t.loc?.is_test!==true
+   ||!x?.owned_by_me||!x.can_resume||!parsed.valid||p?.state!=='ready'||p.finalized_at!==null
+   ||p.work_id!==x.successor_work_id||!sameChainRequest(p.request,x.successor_request)
+   ||manualObserverVerification||staffTickAutoStop(state,t)||hasOpeningResume(state)||hasOpeningClaimResume(state)
+   ||hasCountProjection(state)||state.review_required===true||abortBlocked(state.session_id))return null;
+  const selector=selectorFor(p.request),key=journalPrefix(t.user,state.session_id)+selectorKey(selector);
+  const unknown=r=>r.user===t.user&&r.session===state.session_id&&!r.busy&&!r.accepted&&r.work===null
+   &&r.journalKey===key&&sameSelector(r.selector,selector);
+  if([...asyncWorks.values()].some(r=>r.user===t.user&&r.session===state.session_id&&!r.inactive
+   &&(r.accepted||r.journalKey)&&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone)&&!unknown(r)))return null;
+  const pending=unresolvedTickForSession(state);if(pending)return null;
+  const document=readJournal(key,t.user,state.session_id);
+  if(document&&(document.schema_version!==asyncJournalSchema||document.done||!sameSelector(document.selector,selector)))return null;
+  const attemptKey=JSON.stringify([t.user,state.session_id,'work:'+p.work_id+':'+p.revision+':reclaim-ready']);
+  const prior=attempts.get(attemptKey);
+  if(prior&&(prior.inFlight||prior.work!==p.work_id||!sameChainRequest(prior.body,p.request)))return null;
+  return {work:p.work_id,request:clone(p.request),tuple:combatNarrationTuple(x),journalKey:key,attemptKey};
+ }
  async function staffRecoverCombatNarration(host,resume=false){
   const t=syncRoom(host),old=roomState,x=combatNarrationRecovery(old);
   if(!roomCurrent(t)||staffRoleRecovery||staffResumeRead||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||abortBlocked(old?.session_id)||liveAttempt(old)||!x?.owned_by_me||!(resume?x.can_resume:x.can_reissue))return;
@@ -1060,9 +1081,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(!roomCurrent(t)||staffRoleRecovery!==token)return;
    const proof=combatNarrationRecovery(fresh);roomState=fresh;roomError='';
    if(fresh?.session_id!==token.session||!proof?.owned_by_me||combatNarrationTuple(proof)!==token.tuple||abortBlocked(token.session))throw Error('combat_narration_proof_changed');
+   const settlements=journalSettlements(fresh,t);settleAsyncRecords(settlements,t);restoreJournals(fresh,t,settlements);reconcileTickAttempts(fresh,t);
    if(resume){
     if(!proof.can_resume||proof.successor_work_id!==token.successor||!sameChainRequest(proof.successor_request,token.request))throw Error('combat_narration_successor_changed');
-    maybeDispatch(fresh,t,true);return; // Explicit gesture, canonical successor request only.
+    const binding=combatResumeBinding(fresh,t);if(!binding)throw Error('combat_narration_transport_blocked');
+    maybeDispatch(fresh,t,true,false,binding);return; // Explicit gesture, canonical successor request only.
    }
    if(!proof.can_reissue||proof.successor_work_id!==null)throw Error('combat_narration_reissue_changed');
    const result=await client.functions.invoke('mission_generic_ai',{body:{schema_version:'mission-generic-staff-cached-publication/1',master_session_id:token.session,work_id:token.failed}});
@@ -1385,7 +1408,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone))
    ||records.find(r=>!r.inactive&&(!state.processing||state.processing.work_id===r.work));
   if(!r)return null;
-  const previous=!!state.processing&&state.processing.work_id!==r.work;
+  const current=state.processing,knownRequest=r.request??(r.selector?.kind==='request'?r.selector.request:null);
+  const previous=!!current&&current.work_id!==r.work&&!sameChainRequest(current.request,knownRequest);
   if(previous&&r.failure==='budget')return 'La verifica automatica di una richiesta precedente ha raggiunto il limite. Le nuove role sono conservate; il prossimo Fato non è ancora stato avviato.';
   if(previous&&r.failure)return 'Una richiesta precedente non è ancora riconciliata. Le nuove role sono conservate; il prossimo Fato non è ancora stato avviato.';
   if(previous&&!r.inactive&&(r.accepted||r.journalKey)
@@ -1650,12 +1674,22 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return navigator.locks.request(key,{mode:'exclusive'},async()=>{
    if(!asyncCurrent(t)||abortBlocked(parent.session))throw Error('async_context_changed');
    const old=readJournal(key,t.user,parent.session);
+   let combatReplay=false;
+   if(parent.combatResume){
+    const prior=attempts.get(parent.combatResume.attemptKey);
+    if(prior!==parent)throw Error('combat_narration_attempt_changed');
+    attempts.set(parent.combatResume.attemptKey,parent.priorAttempt);
+    let proof;try{proof=combatResumeBinding(roomState,t);}finally{attempts.set(parent.combatResume.attemptKey,parent);}
+    if(!proof||proof.journalKey!==key||proof.work!==parent.work||proof.tuple!==parent.combatResume.tuple
+     ||!sameChainRequest(proof.request,parent.body))throw Error('combat_narration_transport_changed');
+    combatReplay=true;
+   }
    let j;
    if(old){
-    if(!parent.sameJournalReplay||!noWorkRelease||!sameNoWorkReplay(roomState,t,key)){
+    if(!combatReplay&&(!parent.sameJournalReplay||!noWorkRelease||!sameNoWorkReplay(roomState,t,key))){
      if(!journalPhase(old).done)attachJournal(old,key);throw Error('async_already_submitted');
     }
-    j=old;appendNoWorkTransportAudit(parent,key,noWorkRelease);
+    j=old;if(noWorkRelease)appendNoWorkTransportAudit(parent,key,noWorkRelease);
    }else{
    const phase={user:t.user,session:parent.session,selector,started:Date.now(),reads:0,lastRead:0,done:false};
    if(noWorkRelease){
@@ -1674,6 +1708,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    attachJournal(j,key); // Replay preserves the same journal and server-deduplicated transport identity.
    const response=await client.functions.invoke('mission_generic_ai',{body:clone(parent.body)});
    const delivery=response.data?.delivery??response.data;
+   if(!response.error&&combatReplay&&(!nativeExact(delivery,asyncPendingKeys)||delivery.schema_version!=='mission-generic-pending/1'
+    ||delivery.status!==202||delivery.code!=='MISSION_EVENT_PENDING'||delivery.work_id!==parent.combatResume.work
+    ||delivery.master_session_id!==parent.session||delivery.event_id!==parent.body.event_id||delivery.request_key!==parent.body.request_key
+    ||delivery.revision!==parent.body.expected_revision||delivery.retry!==false||delivery.provider_retry_allowed!==false))throw Error('combat_narration_ack_unconfirmed');
    if(!response.error&&!noWorkRelease&&(staffNoWork(response.data,parent)||delivery?.status===200&&['MISSION_EVENT_COMPLETE','MISSION_EVENT_FAILED'].includes(delivery.code)&&UUID.test(delivery.receipt_id||''))){
     journalPhase(j).done=true;saveJournal(key,j);const r=asyncWorks.get('journal:'+key);if(r)r.inactive=true;
    } // A confirmed synchronous terminal reply needs no new async observer.
@@ -2081,11 +2119,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   // No recursion, retry or third work. The caller's normal readback displays the child's authoritative result.
   return a.outcome==='confirmed'?'child_confirmed':a.outcome==='failed'?'child_failed':'child_unconfirmed';
  }
- function maybeDispatch(state,t,reclaim=false,explicitNoWork=false){
+ function maybeDispatch(state,t,reclaim=false,explicitNoWork=false,combatResume=null){
   if(manualObserverVerification)return;
   if(staffTickAutoStop(state,t))return;
   if(hasOpeningResume(state)||hasOpeningClaimResume(state))return; // A proof, even malformed, cannot become an automatic resend.
-  if(asyncBlocked(state))return; // An accepted async request is observed, never re-dispatched.
+  const sameCombat=combatResume&&combatResumeBinding(state,t);
+  if(combatResume&&(!sameCombat||sameCombat.work!==combatResume.work||!sameChainRequest(sameCombat.request,combatResume.request)||sameCombat.tuple!==combatResume.tuple))return;
+  if(asyncBlocked(state)&&!sameCombat)return; // Unrelated observers always block; only the exact unknown transport may be replayed explicitly.
   if(hasCountProjection(state))return; // Only the explicit technical status consumer may handle this proof.
   const parsed=processingFor(state),p=parsed.value;
   const combatRecovery=combatNarrationRecovery(state),combatReady=!!(combatRecovery?.owned_by_me&&combatRecovery.can_resume);
@@ -2112,13 +2152,15 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const noWorkRecovery=staffTick&&explicitNoWork&&tickProjection.valid&&tickProjection.value?.state==='no_work_released'?tickProjection.value:null;
   const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?(claimedVerification?':reconcile-claimed':p.state==='ready'?':reclaim-ready':':reclaim'):'')
    :'tick:'+state.progress_key+(recoveryKey?':recovery:'+recoveryKey+(noWorkRecovery?':'+noWorkRecovery.retry_request_key:''):'');
-  const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey))return;
+  const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey)&&!sameCombat)return;
   const body=p&&(p.state==='ready'||reclaim)?clone(p.request):staffTick
    ?{schema_version:'mission-generic-staff-tick/1',master_session_id:state.session_id,source_revision:staffRole.revision}
    :{schema_version:'mission-generic-tick/1',master_session_id:state.session_id,request_key:id()};
   const a={user:t.user,session:state.session_id,key,kind:key.startsWith('tick:')?'tick':'work',work:p&&(p.state==='ready'||reclaim)?p.work_id:null,
    prior_work_id:p?.work_id??null,prior_publication_id:state.flow_publication_id??null,staffTickSource:staffTick?staffRole.revision:null,
-   staffTickState:null,tickRecoveryKey:recoveryKey,noWorkRecovery:noWorkRecovery?clone(noWorkRecovery):null,body:Object.freeze(body),inFlight:true,outcome:'pending'};attempts.set(storeKey,a);paintRoom(roomHost,state);
+   staffTickState:null,tickRecoveryKey:recoveryKey,noWorkRecovery:noWorkRecovery?clone(noWorkRecovery):null,body:Object.freeze(body),inFlight:true,outcome:'pending'};
+  if(sameCombat){a.combatResume=Object.freeze(clone(sameCombat));a.priorAttempt=attempts.get(storeKey)??null;}
+  attempts.set(storeKey,a);paintRoom(roomHost,state);
   // Detached from the read lock: polling continues while the provider works.
   void (async()=>{
    try{
