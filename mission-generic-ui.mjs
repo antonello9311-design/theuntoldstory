@@ -854,7 +854,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-017');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-018');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -2905,26 +2905,89 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }catch(error){if(roomCurrent(t)){roomError='Aggiornamento non disponibile. I comandi restano sospesi; premi Aggiorna regia.';if(roomState)paintRoom(host,roomState);else{host.replaceChildren(el('p','Recupero della prova non verificabile. Nessun esito confermato.'));host.hidden=false;}}}
   finally{if(roomRead===t)roomRead=null;}
  }
+ const roleCommandBusy=new Set();
+ const roleCommandKeys=['schema_version','request_key','window_epoch','expected_own_latest','body'];
+ const roleReceipt2Keys=['schema_version','master_session_id','message_id','accepted','mission_valid','invalid_reason','source_revision','request_key','replayed','status'];
+ function roleCapability(state,character){
+  if(!Object.prototype.hasOwnProperty.call(state,'role_submit_capability'))return null;
+  const v=state.role_submit_capability;
+  if(!nativeExact(v,['schema_version','enabled','contexts'])||v.schema_version!=='mission-role-submit-capability/2'||typeof v.enabled!=='boolean'||!Array.isArray(v.contexts)
+   ||v.contexts.some(x=>!nativeExact(x,['character_id','window_epoch','own_latest_message_id'])||!UUID.test(x.character_id||'')||!Number.isSafeInteger(x.window_epoch)||x.window_epoch<0||!(x.own_latest_message_id===null||UUID.test(x.own_latest_message_id||'')))
+   ||new Set(v.contexts.map(x=>x.character_id)).size!==v.contexts.length)throw Error('Contesto di invio non verificabile. Nessuna nuova role inviata.');
+  const context=v.contexts.find(x=>x.character_id===character);
+  if(v.enabled&&!context)throw Error('Personaggio non abilitato nel contesto di invio corrente. Aggiorna la regia.');
+  return {enabled:v.enabled,context};
+ }
+ function roleCommandValid(c){return nativeExact(c,roleCommandKeys)&&c.schema_version==='mission-role-command/2'&&UUID.test(c.request_key||'')&&Number.isSafeInteger(c.window_epoch)&&c.window_epoch>=0&&(c.expected_own_latest===null||UUID.test(c.expected_own_latest||''))&&typeof c.body==='string'&&!!c.body.trim();}
+ function roleReceipt2Valid(r,session,c){return nativeExact(r,roleReceipt2Keys)&&r.schema_version==='mission-role-submit/2'&&r.master_session_id===session&&UUID.test(r.message_id||'')&&r.accepted===true&&typeof r.mission_valid==='boolean'&&(r.invalid_reason===null||typeof r.invalid_reason==='string')&&SHA.test(r.source_revision||'')&&r.request_key===c.request_key&&typeof r.replayed==='boolean'&&r.status==='accepted';}
+ function roleCommandKey(user,session,character){return 'tus:mission-role-command:2:'+user+':'+session+':'+character;}
+ function roleLegacyFallback(user,character){
+  const prefix='tus:mission-role-command:2:'+user+':';let total=0;
+  try{for(let i=0;i<localStorage.length;i++){
+   const key=localStorage.key(i);if(!key?.startsWith(prefix))continue;
+   const parts=key.slice(prefix.length).split(':');
+   if(parts.length!==2||!UUID.test(parts[0])||!UUID.test(parts[1])||++total>128)throw Error();
+   if(UUID.test(character||'')&&parts[1]!==character)continue;
+   const journal=readRoleCommands(key,user,parts[0],parts[1]);
+   if(journal.commands.some(x=>x.state!=='accepted'))throw Error();
+  }}catch{throw Error('Una richiesta originale resta da verificare. Nessun invio legacy, reinvio automatico o nuovo identificatore.');}
+  return {handled:false};
+ }
+ function readRoleCommands(key,user,session,character){
+  let raw;try{raw=localStorage.getItem(key);}catch{throw Error('Recupero locale della role non disponibile. Nessun nuovo invio.');}
+  if(raw===null)return {schema_version:'mission-role-journal/2',user,session,character,commands:[]};
+  let j;try{j=JSON.parse(raw);}catch{throw Error('Registro di invio non verificabile. Nessun nuovo invio.');}
+  if(!nativeExact(j,['schema_version','user','session','character','commands'])||j.schema_version!=='mission-role-journal/2'||j.user!==user||j.session!==session||j.character!==character||!Array.isArray(j.commands)
+   ||j.commands.some(x=>!nativeExact(x,['command','state','receipt'])||!roleCommandValid(x.command)||!['pending','unknown','accepted'].includes(x.state)||(x.state==='accepted'?!roleReceipt2Valid(x.receipt,session,x.command):x.receipt!==null))
+   ||new Set(j.commands.map(x=>x.command.request_key)).size!==j.commands.length||j.commands.filter(x=>x.state!=='accepted').length>1)throw Error('Registro di invio non verificabile. Nessun nuovo invio.');
+  return j;
+ }
+ function saveRoleCommands(key,j){const encoded=JSON.stringify(j);try{localStorage.setItem(key,encoded);if(localStorage.getItem(key)!==encoded)throw Error();}catch{throw Error('Registro della role non conservato. Nessun nuovo invio automatico; verifica la chat.');}}
+ async function submitRoleCommand(state,user,loc,character,body,capability){
+  const key=roleCommandKey(user,state.session_id,character);
+  if(!capability?.enabled){const old=readRoleCommands(key,user,state.session_id,character);if(old.commands.some(x=>x.state!=='accepted'))throw Error('La richiesta originale resta conservata; il protocollo non è abilitato. Nessun invio legacy.');return null;}
+  if(roleCommandBusy.has(key))throw Error('La stessa role è già in verifica. Attendi l’esito.');
+  if(!globalThis.navigator?.locks?.request)throw Error('Protezione dell’invio simultaneo non disponibile. Nessun nuovo invio.');
+  roleCommandBusy.add(key);let disposition=null;
+  try{return await navigator.locks.request(key,{mode:'exclusive'},async()=>{
+   if(!valid(user)||currentLocation()?.id!==loc.id||currentLocation()?.is_test!==true||!isStaff()||(roomState&&roomState.session_id!==state.session_id))throw Error('Contesto di invio cambiato. Nessun nuovo invio.');
+   const j=readRoleCommands(key,user,state.session_id,character),pending=j.commands.find(x=>x.state!=='accepted');
+   if(!capability?.enabled){if(pending)throw Error('La richiesta originale resta conservata; il protocollo non è abilitato. Nessun invio legacy.');return null;}
+   let record=pending;
+   if(record){if(record.command.body!==body)throw Error('Una richiesta precedente resta da verificare: usa lo stesso testo originale, senza inviare una nuova role.');}
+   else{record={command:{schema_version:'mission-role-command/2',request_key:crypto.randomUUID(),window_epoch:capability.context.window_epoch,expected_own_latest:capability.context.own_latest_message_id,body},state:'pending',receipt:null};j.commands.push(record);saveRoleCommands(key,j);}
+   const encoded=JSON.stringify(j);if(localStorage.getItem(key)!==encoded)throw Error('Registro di invio cambiato. Richiesta conservata, nessun nuovo invio.');
+   disposition='unknown';let response;try{response=await client.rpc('mission_role_submit_v1',{p_session:state.session_id,p_character:character,p_body:JSON.stringify(record.command)});}catch{record.state='unknown';saveRoleCommands(key,j);throw Error('Esito sconosciuto: la stessa richiesta originale è conservata. Nessun nuovo identificatore; verifica con lo stesso testo.');}
+   if(response.error){record.state='unknown';saveRoleCommands(key,j);const raw=String(response.error.message||'');const labels={ROLE_COMMAND_DISABLED:'Protocollo di invio non abilitato: richiesta originale conservata.',ROLE_COMMAND_CONTEXT_CHANGED:'Contesto della richiesta cambiato: nessuna nuova role è confermata. La richiesta originale resta conservata.',ROLE_COMMAND_NONCE_CONFLICT:'Richiesta originale non corrispondente: invio sospeso, verifica con lo Staff.',ROLE_COMMAND_SHAPE_INVALID:'Formato della richiesta non accettato. Originale conservato, invio sospeso.',ROLE_COMMAND_RECEIPT_INVALID:'Ricevuta non verificabile: originale conservato, nessun nuovo invio.',ROLE_COMMAND_CAPTURE_INVALID:'Acquisizione non confermata: originale conservato, nessun nuovo invio.'};const code=Object.keys(labels).find(x=>raw.includes(x));throw Error(code?labels[code]:'Invio non confermato: richiesta originale conservata. Nessun nuovo identificatore o reinvio automatico.');}
+   if(!roleReceipt2Valid(response.data,state.session_id,record.command)){record.state='unknown';saveRoleCommands(key,j);throw Error('Ricevuta della role non confermata. Richiesta originale conservata, nessun nuovo identificatore.');}
+   record.state='accepted';record.receipt=clone(response.data);saveRoleCommands(key,j);disposition='accepted';
+   if(!valid(user)||currentLocation()?.id!==loc.id)throw Error('Role accettata dal server; stanza cambiata. Verifica la chat prima di continuare.');
+   return response.data;
+  });}catch(error){if(error&&disposition)error.roleCommandState=disposition;throw error;}finally{roleCommandBusy.delete(key);}
+ }
  async function submitRole({characterId,body,hasCompanion=false,hasTechnique=false}){
   const user=identity(),loc=currentLocation();
   if(loc?.id!==STAFF_TEST_ROOM||loc?.is_test!==true)return {handled:false};
   if(!user)throw Error('Accedi nuovamente prima di inviare la role.');
   const state=await rpc('mission_generic_room_state_v1',{p_location:loc.id},user);
   if(!valid(user)||currentLocation()?.id!==loc.id)throw Error('Invio non confermato: stanza o sessione cambiata. Verifica la chat prima di riprovare.');
-  if(!state)return {handled:false};
+  if(!state)return roleLegacyFallback(user,characterId);
   if(!UUID.test(state.session_id||''))throw Error('Sessione missione non confermata. Nessun invio: aggiorna la regia.');
   const flow=academyFlow(state);
-  if(flow===null)return {handled:false};
+  if(flow===null)return roleLegacyFallback(user,characterId);
   // Durante Combat la role meccanica passa soltanto dal pannello nativo.
   // Una prosa libera resta una chat ordinaria e non avanza il round.
   if(flow==='combat_started'){
    if(hasCompanion||hasTechnique)throw Error('Il Master sta preparando l’esito: usa il pannello dello scontro per la risposta meccanica. La selezione non sarà inviata come chat.');
-   return {handled:false};
+   return roleLegacyFallback(user,characterId);
   }
   if(roleProgress(state)===null)throw Error('Stato delle role non disponibile. Nessun invio: aggiorna la regia.');
   if(hasCompanion||hasTechnique)throw Error('La role della missione non può includere un’azione di compagno o tecnica tramite la chat. Togli la selezione e usa il pannello previsto.');
   if(!UUID.test(characterId||''))throw Error('Seleziona il personaggio partecipante prima di inviare la role.');
   if(typeof body!=='string'||!body.trim())throw Error('Scrivi la role prima di inviarla.');
+  const capability=roleCapability(state,characterId);
+  const commandReceipt=await submitRoleCommand(state,user,loc,characterId,body,capability);
+  if(commandReceipt){if(roomHost)void updateRoom(roomHost,{manual:true});return {handled:true,receipt:commandReceipt};}
   const response=await client.rpc('mission_role_submit_v1',{p_session:state.session_id,p_character:characterId,p_body:body});
   if(response.error){
    const raw=String(response.error.message||'');
