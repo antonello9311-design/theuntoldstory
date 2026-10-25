@@ -854,7 +854,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-019');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-020');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -1069,6 +1069,16 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  const existingDeliveryTokens=new WeakSet();let existingDeliveryNotice=null;
  const existingDeliveryCodes=new Set(['context_changed','owner_unconfirmed','work_changed','journal_missing','journal_changed','other_observer','other_attempt','busy','mutex_changed','ack_unconfirmed','transport_unknown']);
  const existingDeliveryError=code=>Error('existing_delivery_'+(existingDeliveryCodes.has(code)?code:'transport_unknown'));
+ const existingDeliveryPhases=new Set(['ownership_read','state_recheck','journal_recheck','delivery','acknowledgement']);
+ function existingDeliveryDiagnostic(error,phase){
+  const message=typeof error?.message==='string'?error.message:'';
+  const suffix=message.startsWith('existing_delivery_')?message.slice('existing_delivery_'.length):'';
+  const code=existingDeliveryCodes.has(suffix)?suffix:['async_read_unconfirmed','async_read_transport','async_read_timeout'].includes(message)?'read_unconfirmed':'unclassified';
+  if(!existingDeliveryPhases.has(phase))phase='state_recheck';
+  const labels={ownership_read:'verifica della proprietà',state_recheck:'verifica dello stato',journal_recheck:'verifica dello storico',delivery:'consegna',acknowledgement:'conferma del server'};
+  const sent=['delivery','acknowledgement'].includes(phase);
+  return {phase,code,text:'Ripresa non confermata ('+labels[phase]+' · '+code+'). '+(sent?'La consegna non è confermata.':'Nessuna consegna avviata.')+' Richiesta e contatori conservati; nessun invio automatico.'};
+ }
  function existingDeliveryCandidate(state,t){
   const p=processingFor(state);
   return !!(isStaff()&&t?.loc?.id===STAFF_TEST_ROOM&&t.loc.is_test===true&&asyncCurrent(t)&&p.valid
@@ -1102,6 +1112,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return Object.freeze(clone(v)); // Ownership only; retry:false stays false. Atomic claim is the only grant.
  }
  async function invokeExistingDelivery(parent,t){
+  parent.deliveryDiagnosticPhase='journal_recheck';
   const h=existingDeliveryCurrent(roomState,t,parent.existingDelivery);if(!h||h.attempt!==parent)throw existingDeliveryError('context_changed');
   if(!navigator.locks?.request)throw existingDeliveryError('mutex_changed');
   return navigator.locks.request(h.lockKey,{mode:'exclusive'},async()=>{
@@ -1117,7 +1128,9 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const phase={at:Date.now(),state:'submitted'};history.attempts.push(phase);
    const store=()=>{const text=JSON.stringify(history);localStorage.setItem(key,text);if(localStorage.getItem(key)!==text)throw existingDeliveryError('journal_changed');};
    store(); // Separate delivery history; original journals/counters are never overwritten or reopened.
+   parent.deliveryDiagnosticPhase='delivery';
    let response;try{response=await client.functions.invoke('mission_generic_ai',{body:clone(parent.body)});}catch(e){phase.state='unconfirmed';store();throw existingDeliveryError('transport_unknown');}
+   parent.deliveryDiagnosticPhase='acknowledgement';
    if(!asyncCurrent(t)||!manualLaneCurrent(h.lane)||roomState?.session_id!==h.session){phase.state='unconfirmed';store();throw existingDeliveryError('context_changed');}
    const v=response.data?.delivery??response.data;
    if(response.error){phase.state='unconfirmed';store();throw existingDeliveryError('transport_unknown');}
@@ -1135,7 +1148,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const captured={session:roomState.session_id,work:p.work_id,request:clone(p.request)};
    return queueManualRoomAction(host,'existing_delivery',l=>staffDeliverExisting(host,l,captured));}
   const t=lane.t;if(!manualLaneCurrent(lane)||lane.session!==target.session||staffResumeRead)throw existingDeliveryError('context_changed');
-  const token={session:target.session,work:target.work};staffResumeRead=token;let parent;
+  const token={session:target.session,work:target.work};staffResumeRead=token;let parent,diagnosticPhase='state_recheck';
   try{
    await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane:lane});
    if(!manualLaneCurrent(lane)||staffResumeRead!==token||roomError||!existingDeliveryCandidate(roomState,t))throw existingDeliveryError('context_changed');
@@ -1144,11 +1157,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const records=[...asyncWorks.values()].filter(r=>existingDeliveryRecord(r,stub)&&!r.inactive);
    const record=records.find(r=>r.countedMarkerKey)||records.find(r=>r.journalKey);
    if(!record)throw existingDeliveryError('journal_missing');
+   diagnosticPhase='ownership_read';
    const owned=existingDeliveryOwned(await normalManualRead({schema_version:'mission-generic-async-recover/1',master_session_id:target.session,
     selector:{kind:'request',request:clone(target.request)}},record,t),target.session,target.work,target.request);
+   diagnosticPhase='state_recheck';
    if(!manualLaneCurrent(lane)||staffResumeRead!==token)throw existingDeliveryError('context_changed');
    await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane:lane});
    if(!manualLaneCurrent(lane)||staffResumeRead!==token||roomError)throw existingDeliveryError('context_changed');
+   diagnosticPhase='journal_recheck';
    const keys=new Set();for(const r of records){if(r.journalKey)keys.add(r.journalKey);if(r.countedMarkerKey){keys.add(r.countedMarkerKey);const m=readCountedMarker(r.countedMarkerKey,t.user,target.session);if(!m||m.work_id!==target.work||!sameChainRequest(m.request,target.request))throw existingDeliveryError('journal_changed');keys.add(m.original_journal_key);}if(r.parent.countedJournalKey)keys.add(r.parent.countedJournalKey);}
    const lockKey=record.countedMarkerKey??record.journalKey;if(!lockKey)throw existingDeliveryError('journal_missing');
    const h={user:t.user,scope:t.scope,epoch:t.epoch,session:target.session,work:target.work,request:Object.freeze(clone(target.request)),owned,record,records,lane,room:roomState,lockKey,
@@ -1162,7 +1178,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const mapKey=[...asyncWorks.entries()].find(([,r])=>r===record)?.[0];if(!mapKey)throw existingDeliveryError('journal_changed');
    parent.asyncKey=mapKey;parent.asyncRequest=record.request;for(const key of ['journalKey','countedObservationKey','countedJournalKey'])if(Object.prototype.hasOwnProperty.call(record.parent,key))parent[key]=record.parent[key];record.parent=parent;record.accepted=true;record.workKind=owned.kind;record.chainRequested=owned.kind==='director';record.allowChain=owned.kind==='director';
    existingDeliveryNotice={user:t.user,session:target.session,work:target.work,text:v.status===202?'Il server ha confermato la consegna dello stesso lavoro. Completamento e Fato restano da verificare.':'Ricevuta terminale conservata. Rileggi lo stato autorevole della stessa richiesta.'};
-  }catch(error){if(parent)parent.outcome='uncertain';if(manualLaneCurrent(lane)&&staffResumeRead===token)existingDeliveryNotice={user:t.user,session:target.session,work:target.work,text:'Consegna non confermata. Richiesta originale e contatori restano conservati; nessun nuovo tick o invio automatico.'};}
+  }catch(error){if(parent)parent.outcome='uncertain';if(manualLaneCurrent(lane)&&staffResumeRead===token){const diagnostic=existingDeliveryDiagnostic(error,parent?.deliveryDiagnosticPhase??diagnosticPhase);existingDeliveryNotice={user:t.user,session:target.session,work:target.work,...diagnostic};}}
   finally{if(parent)parent.inFlight=false;if(staffResumeRead===token)staffResumeRead=null;if(manualLaneCurrent(lane)&&asyncCurrent(t))await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane:lane});}
  }
  const countedResumeKey=(user,state,work)=>`mission-counted-resume/1:${user}:${state.session_id}:${work.work_id}:${work.revision}`;
