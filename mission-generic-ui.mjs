@@ -854,7 +854,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-014');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-015');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -1606,7 +1606,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    ||!SHA.test(h.adoption_sha256||'')||typeof h.owned_by_me!=='boolean'||typeof h.can_resume!=='boolean')throw Error('retained_handoff_invalid');
   return h;
  }
- function retainedWriterHandoff(state,t={user:cacheUser,loc:currentLocation()}){
+ function retainedWriterHandoff(state,t={user:cacheUser,loc:currentLocation(),scope:roomScope,epoch:roomEpoch}){
   const h=retainedWriterHandoffShapeOnly(state);if(!h)return null;
   if(state!==roomState||!asyncCurrent(t)||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc?.is_test!==true
    ||!h.owned_by_me||!h.can_resume||state.review_required===true)return null;
