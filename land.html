@@ -6127,6 +6127,17 @@ window.TUSOrdinary={attachOrdinaryLand};
         return !!(snapshot&&next&&['principal','location','session','work','publication','epoch'].every(function(k){return next[k]===snapshot[k];}));
       }
       function loadMsgs(expectedPublication){
+        if(!roomEntryStaffScope())return loadMsgsLegacy(expectedPublication);
+        if(!sb||!cur||!roomEntryConfirmed())return Promise.resolve(false);
+        if(expectedPublication!=null&&(typeof expectedPublication!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(expectedPublication)))return Promise.resolve(false);
+        var retained=msgFatoHistoryCurrent()?msgFatoHistory:null;
+        var generic=!expectedPublication&&!retained&&MISSION_GENERIC_UI&&MISSION_GENERIC_UI.chatPublication();
+        var target=expectedPublication||(retained&&retained.publication)||(generic&&generic.publication)||null;
+        return backgroundRead('staff_messages',{publication:target},function(){
+          return staffMsgsRead(expectedPublication).then(function(ok){if(ok!==true)throw Error('Messaggi non confermati.');return {data:true};});
+        },function(){});
+      }
+      function loadMsgsLegacy(expectedPublication){
         if(!sb||!cur) return Promise.resolve(false);
         if(expectedPublication!=null&&(typeof expectedPublication!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(expectedPublication)))return Promise.resolve(false);
         var msgLocation=cur.id,msgPrincipal=myId,msgGeneration=++msgReadGeneration;
@@ -6159,6 +6170,45 @@ window.TUSOrdinary={attachOrdinaryLand};
           if(genericPublication&&!msgGenericPublicationCurrent(genericPublication))return false;
           var fateStatuses={};
           if(fr&&!fr.error&&Array.isArray(fr.data))fr.data.forEach(function(f){if(f&&f.message_id&&(f.status==='superseded'||f.status==='reissuing'))fateStatuses[f.message_id]=f.status;});
+          renderMsgs(rows,fateStatuses);return true;
+        },function(){return false;});
+      }
+      function staffMsgsRead(expectedPublication){
+        if(!sb||!cur) return Promise.resolve(false);
+        if(expectedPublication!=null&&(typeof expectedPublication!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(expectedPublication)))return Promise.resolve(false);
+        var staffReadScope=backgroundReadScope({});
+        var msgLocation=cur.id,msgPrincipal=myId,msgGeneration=++msgReadGeneration;
+        var retained=msgFatoHistoryCurrent()?msgFatoHistory:null;
+        if(!expectedPublication&&retained)expectedPublication=retained.publication;
+        var genericPublication=!expectedPublication&&MISSION_GENERIC_UI&&MISSION_GENERIC_UI.chatPublication();
+        if(genericPublication)expectedPublication=genericPublication.publication;
+        var msgProjection='id,author_name,body,created_at,kind,recipient_name,dice_sides,dice_result,sender_user,recipient_user,companion_body,character:characters(id,name,cognome,avatar_url,sex,rank,clan,clan_role,epithet),companion:character_companions(name,avatar_url,kind,grado)';
+        var msgRequest=sb.from('chat_messages_live').select(msgProjection).eq('location_id',msgLocation).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(300);
+        var fateRequest=msgLocation==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&iAmStaff?sb.rpc('mission_staff_fato_supersessions_v1',{p_location:msgLocation}):Promise.resolve({data:[]});
+        return Promise.all([msgRequest,fateRequest]).then(async function(result){
+          var r=result[0],fr=result[1];
+          if(!fr||fr.error||!Array.isArray(fr.data))return false;
+          if(!r||r.error||!cur||cur.id!==msgLocation||myId!==msgPrincipal||(msgGeneration!==msgReadGeneration||backgroundReadScope({})!==staffReadScope))return false;
+          var rows=(r.data||[]).slice().reverse();
+          if(expectedPublication&&!rows.some(function(m){return m.id===expectedPublication&&m.kind==='fato';})){
+            // Recupera solo il Fato richiesto dalla proiezione Regia autorizzata, attraverso le RLS esistenti.
+            var historyStaff=msgLocation===UI_POSTREVIEW_STAFF_ROOM&&uiPostreviewStaff(),historyEpoch=UI_POSTREVIEW_STAFF_EPOCH,historyAuthEpoch=MV2.authEpoch||0;
+            if(!historyStaff&&(!retained||!msgFatoHistoryCurrent()||retained.publication!==expectedPublication))return false;
+            var history;
+            if(retained&&retained.publication===expectedPublication&&retained.row)history={data:retained.row};
+            else try{
+              history=await sb.from('messages').select(msgProjection).eq('id',expectedPublication).eq('location_id',msgLocation).eq('kind','fato').maybeSingle();
+            }catch(_historyRead){return false;}
+            if(!cur||cur.id!==msgLocation||myId!==msgPrincipal||(msgGeneration!==msgReadGeneration||backgroundReadScope({})!==staffReadScope)||(historyStaff?(!uiPostreviewStaff()||historyEpoch!==UI_POSTREVIEW_STAFF_EPOCH||historyAuthEpoch!==(MV2.authEpoch||0)):(!msgFatoHistoryCurrent()||msgFatoHistory!==retained)))return false;
+            if(!history||history.error||!history.data||history.data.id!==expectedPublication||history.data.kind!=='fato'||typeof history.data.body!=='string')return false;
+            if(retained&&msgFatoHistory===retained&&retained.publication===expectedPublication)retained.row=history.data;
+            rows.push(history.data);
+            rows.sort(function(a,b){var d=new Date(a.created_at)-new Date(b.created_at);return d||String(a.id).localeCompare(String(b.id));});
+          }
+          if(genericPublication&&!msgGenericPublicationCurrent(genericPublication))return false;
+          var fateStatuses={};
+          if(fr&&!fr.error&&Array.isArray(fr.data))fr.data.forEach(function(f){if(f&&f.message_id&&(f.status==='superseded'||f.status==='reissuing'))fateStatuses[f.message_id]=f.status;});
+          if(backgroundReadScope({})!==staffReadScope)return false;
           renderMsgs(rows,fateStatuses);return true;
         },function(){return false;});
       }
@@ -7142,7 +7192,21 @@ window.TUSOrdinary={attachOrdinaryLand};
          se la pagina arriva prima della migrazione la chiave manca, l'attesa resta
          nascosta e il comportamento e' quello di oggi. */
       function syncNarrAttesa(on){ var el=document.getElementById('narr-attesa'); if(el) el.hidden = !on; }
-      function loadCombat(){ if(examHumanOwnsScene()){syncNarrAttesa(false);return;} if(!sb||!cur){ syncNarrAttesa(false); return; }
+      function loadCombat(){
+        if(!roomEntryStaffScope())return loadCombatLegacy();
+        if(examHumanOwnsScene()){syncNarrAttesa(false);return;}
+        if(!sb||!cur||!roomEntryConfirmed())return Promise.resolve(false);
+        var location=cur.id,principal=commonMasterPrincipal();
+        return backgroundRead('staff_combat',{location:location,principal:principal},function(){return sb.rpc('combat_state',{p_location:location});},function(r){
+          if(!cur||cur.id!==location||commonMasterPrincipal()!==principal)throw Error('Contesto scontro cambiato.');
+          var next=r.data||null,same=mv2ServerSig(CMB)===mv2ServerSig(next);
+          CMB=next;
+          if(!(CMB&&CMB.aperto&&CMB.puo_comporre)) CMB_AZ=null;
+          syncNarrAttesa(!!(CMB&&CMB.narrazione_attesa===true));
+          if(!same){CMB_APRI=false;renderCombat();} syncAzPill(); try{TRV2.sig=null;renderTraining();}catch(e){}
+        });
+      }
+      function loadCombatLegacy(){ if(examHumanOwnsScene()){syncNarrAttesa(false);return;} if(!sb||!cur){ syncNarrAttesa(false); return; }
         var location=cur.id,principal=commonMasterPrincipal();
         sb.rpc('combat_state',{p_location:location}).then(function(r){
           if(!cur||cur.id!==location||commonMasterPrincipal()!==principal)return;
@@ -8597,6 +8661,36 @@ window.TUSOrdinary={attachOrdinaryLand};
         b=acadEl('acad-cancel'); if(b) b.addEventListener('click', doAcadCancel);
       }
       function loadAcadClass(){
+        if(!roomEntryStaffScope())return loadAcadClassLegacy();
+        if(!cur||!cur.is_academy||!sb){var c=acadEl('acad-card');if(c)c.hidden=true;lastAcadSig=null;return;}
+        if(!roomEntryConfirmed())return Promise.resolve(false);
+        var location=cur.id;
+        return backgroundRead('staff_academy',{location:location},function(){return sb.rpc('academy_class_state',{p_location:location});},function(r){
+          if(!cur||cur.id!==location||!cur.is_academy)throw Error('Contesto classe cambiato.');
+          classState=r.data||null;
+          var np=(classState&&classState.sensei_portrait)||''; var needMsg=(np && np!==senseiPortrait); if(np) senseiPortrait=np;
+          renderAcadClass();
+          /* [14/08/2026 · EXAM-GENIN-UI-005] La sessione d'esame e' una classe:
+             quando lo stato della classe cambia, il riquadro dell'Esame va
+             aggiornato subito. Fuori da un'arena d'esame e' un giro a vuoto. */
+          esClasseCambiata();
+          if(needMsg) loadMsgs();
+          /* [069-R2 · ADDENDUM PM §3] Questo giro fa avanzare la classe da
+             solo quando tutti hanno scritto. Per una lezione e' giusto. Per
+             l'Esame era l'orologio sbagliato: faceva parlare il Sensei a
+             ogni passo dopo l'apertura, che e' esattamente cio' che
+             Antonello ha respinto. Nelle arene d'esame non gira, e non
+             viene sostituito da nessun altro orologio del client. */
+          if(classState && classState.active && classState.started_by===myId && !acadAdvancing && !(cur&&cur.is_exam_room)){
+            var s=classState;
+            if((s.state==='entry' && s.all_entered) || (s.state==='teaching' && s.ready)){
+              acadAdvancing=true;
+              sb.rpc('academy_class_advance',{p_session:s.session,p_force:false}).then(function(rr){ acadAdvancing=false; if(rr&&!rr.error){ loadMsgs(); loadAcadClass(); } }, function(){ acadAdvancing=false; });
+            }
+          }
+        });
+      }
+      function loadAcadClassLegacy(){
         if(!cur||!cur.is_academy||!sb){ var c=acadEl('acad-card'); if(c) c.hidden=true; lastAcadSig=null; return; }
         sb.rpc('academy_class_state',{p_location:cur.id}).then(function(r){ classState=(r&&r.data)||null;
           var np=(classState&&classState.sensei_portrait)||''; var needMsg=(np && np!==senseiPortrait); if(np) senseiPortrait=np;
@@ -14836,7 +14930,7 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null,missionGenericChatKey=null;
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=native-continuity-29103b8424a636ce').then(function(mod){
+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=native-continuity-f8b6fbed7fd40e35').then(function(mod){
           MISSION_GENERIC_UI=mod.createMissionUI({client:sb,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             openCombat:function(){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')void ORDINARY.open('ordinary');else toast('Pannello Scontro non disponibile in questa scena.');},
