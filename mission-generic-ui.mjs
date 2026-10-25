@@ -854,7 +854,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-013');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-014');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -871,6 +871,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   else if(retry)retry.remove();
   const processing=processingFor(state),claim=processing.value;
   paintManualRecoveryError(host,state,processing);
+  paintRetainedResumeError(host,state);
   const role=roleProgress(state);
   const combatProof=combatNarrationRecovery(state);
   let combatNarrationButton=host.querySelector('[data-mg-combat-narration-recovery]');
@@ -899,15 +900,17 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const proof=openingClaimResumeProjection(state),key=JSON.stringify([cacheUser,state.session_id,'opening-claim-resume:'+proof.proof_sha256]);
    openingClaimResume.disabled=!!roomError||!!staffResumeRead||liveAttempt(state)||attempts.has(key)||openingClaimResumeRecorded(state,cacheUser)||abortBlocked(state.session_id);
   }else openingClaimResume?.remove();
-  const readyRecovery=claim?.state==='ready'&&claim.finalized_at===null
+  const retainedCandidate=state.retained_director_handoff?.child_work_id===claim?.work_id;
+  const retainedReady=retainedWriterHandoff(state);
+  const readyRecovery=!!retainedReady||!retainedCandidate&&claim?.state==='ready'&&claim.finalized_at===null
    &&(role?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,state.session_id,claim.work_id)));
   const uncertainRecovery=claim?.state==='uncertain'&&(!role||role.reason==='uncertain'||academyFlow(state)==='combat_started');
   const claimedRecovery=processing.valid&&staffClaimReconciliationAllowed(state,{loc:currentLocation(),user:cacheUser},claim);
   const countedRecovery=countedResumeAllowed(state,{loc:currentLocation(),user:cacheUser});
   let resume=host.querySelector('[data-mg-claim-resume]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&processing.valid
-   &&!combatProof&&!hasOpeningResume(state)&&!hasOpeningClaimResume(state)&&!countReserved&&(countedRecovery||claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
-   if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(countedResumeAllowed(s,{loc:currentLocation(),user:cacheUser}))void staffResumeCounted(host);else if(p?.state==='claimed')void staffReconcileClaimed(host);else if(p?.state==='ready'&&(r?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,s.session_id,p.work_id))))void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
+   &&!combatProof&&!hasOpeningResume(state)&&!hasOpeningClaimResume(state)&&!countReserved&&(retainedReady||countedRecovery||claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
+   if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(countedResumeAllowed(s,{loc:currentLocation(),user:cacheUser}))void staffResumeCounted(host);else if(p?.state==='claimed')void staffReconcileClaimed(host);else if(retainedWriterHandoff(s)||p?.state==='ready'&&(r?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,s.session_id,p.work_id))))void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
    resume.textContent=countedRecovery?'Riprendi la richiesta salvata':claimedRecovery?'Verifica la stessa ricevuta':readyRecovery?'Verifica e riprendi la stessa richiesta':'Verifica o riprendi la stessa richiesta';
    const suffix=countedRecovery?':counted-resume':claimedRecovery?':reconcile-claimed':readyRecovery?':reclaim-ready':':reclaim';
    const key=JSON.stringify([cacheUser,state.session_id,'work:'+claim.work_id+':'+claim.revision+suffix]);
@@ -1367,6 +1370,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(roomCurrent(t)){paintRoom(host,roomState);await updateRoom(host,{manual:true,verifyOnly:true});refresh();}}
  }
  async function staffResumeReady(host){
+  if(roomState?.retained_director_handoff?.child_work_id===processingFor(roomState).value?.work_id)return staffResumeRetainedWriter(host);
   const t=syncRoom(host),old=roomState,oldClaim=old&&processingFor(old).value,oldRole=old&&roleProgress(old);
   if(!roomCurrent(t)||staffResumeRead||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!old?.can_tick||old?.review_required===true
    ||oldClaim?.state!=='ready'||oldClaim.finalized_at!==null||!oldRole
@@ -1450,7 +1454,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const fresh=processingFor(roomState);
    if(!fresh.valid||roomState.session_id!==target.session)throw Error('retained_room_invalid');
    if(v.status!=='published'&&(fresh.value?.work_id!==v.child_work_id||!sameChainRequest(fresh.value.request,v.child_request)))throw Error('retained_child_readback_unconfirmed');
-   if(fresh.value?.work_id===v.child_work_id&&fresh.value.state==='ready')recoveredWriters.add(recoveredWriterKey(t.user,target.session,v.child_work_id));
+   // Retained adoption is authorized for resume only by the fresh server handoff; never seed the legacy cached-Writer Set.
    roomError='';manualRecoveryError=null;paintRoom(host,roomState); // Read only: existing normal ready command owns any future Writer dispatch.
   }catch(error){
    if(manualLaneCurrent(lane)&&staffRoleRecovery===token){
@@ -1589,14 +1593,78 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    throw Error('async_pending_unconfirmed');
   asyncRecord(parent,request,delivery.work_id,allowChain,true);parent.outcome='waiting';return true;
  }
+ let retainedResumeError=null;
+ // Nonterminal adoption proof: only the exact failed parent delegates to this canonical child.
+ function retainedWriterHandoffShapeOnly(state){
+  const h=state?.retained_director_handoff;
+  if(h===null||h===undefined)return null;
+  if(!nativeExact(h,['schema_version','master_session_id','parent_work_id','parent_request','child_work_id','child_request','adoption_sha256','owned_by_me','can_resume'])
+   ||h.schema_version!=='mission-retained-director-handoff/1'||h.master_session_id!==state.session_id
+   ||!UUID.test(h.parent_work_id||'')||!UUID.test(h.child_work_id||'')||h.parent_work_id===h.child_work_id
+   ||!sameChainRequest(h.parent_request,h.parent_request)||!sameChainRequest(h.child_request,h.child_request)
+   ||h.parent_request.master_session_id!==state.session_id||h.child_request.master_session_id!==state.session_id
+   ||!SHA.test(h.adoption_sha256||'')||typeof h.owned_by_me!=='boolean'||typeof h.can_resume!=='boolean')throw Error('retained_handoff_invalid');
+  return h;
+ }
+ function retainedWriterHandoff(state,t={user:cacheUser,loc:currentLocation()}){
+  const h=retainedWriterHandoffShapeOnly(state);if(!h)return null;
+  if(state!==roomState||!asyncCurrent(t)||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc?.is_test!==true
+   ||!h.owned_by_me||!h.can_resume||state.review_required===true)return null;
+  const p=processingFor(state);
+  if(!p.valid||p.value?.work_id!==h.child_work_id||p.value.state!=='ready'||p.value.finalized_at!==null
+   ||!sameChainRequest(p.value.request,h.child_request))return null;
+  return h;
+ }
+ function sameRetainedHandoff(a,b){
+  return !!a&&!!b&&a.master_session_id===b.master_session_id&&a.parent_work_id===b.parent_work_id
+   &&a.child_work_id===b.child_work_id&&a.adoption_sha256===b.adoption_sha256
+   &&sameChainRequest(a.parent_request,b.parent_request)&&sameChainRequest(a.child_request,b.child_request);
+ }
+ function retainedHandoffRecord(r,h){
+  return !!h&&!r.busy&&r.work===h.parent_work_id&&sameChainRequest(r.request,h.parent_request);
+ }
+ function paintRetainedResumeError(host,state){
+  const e=retainedResumeError,p=processingFor(state);let n=host.querySelector('[data-mg-retained-resume-error]');
+  if(e&&(e.user!==cacheUser||e.session!==state.session_id||!p.valid||p.value?.work_id!==e.work||p.value.state!=='ready'))retainedResumeError=null;
+  if(!retainedResumeError){n?.remove();return;}
+  if(!n){n=el('p','',{'data-mg-retained-resume-error':'',role:'alert','aria-live':'assertive',class:'mg-status'});host.append(n);}
+  n.textContent='Ripresa della stessa richiesta non confermata ('+retainedResumeError.code+'). Richieste, ricevute e contatori sono conservati.';
+ }
+ function retainedResumeReject(code){
+  const known=new Set(['context_changed','readback_failed','handoff_changed','other_observer','other_attempt','existing_child_journal','mutex_changed','ack_unconfirmed','invoke_unconfirmed']);
+  return Error('retained_writer_resume_'+(known.has(code)?code:'invoke_unconfirmed'));
+ }
+ async function staffResumeRetainedWriter(host,lane=null,original=null){
+  if(lane===null){
+   const h=retainedWriterHandoff(roomState);if(!h){roomError='Ripresa non autorizzata dalla ricevuta server corrente.';paintRoom(host,roomState);return;}
+   return queueManualRoomAction(host,'retained_writer',l=>staffResumeRetainedWriter(host,l,Object.freeze(clone(h))));
+  }
+  const t=lane.t,token={session:original.master_session_id,work:original.child_work_id};
+  if(!manualLaneCurrent(lane)||lane.session!==token.session||staffResumeRead)throw retainedResumeReject('context_changed');
+  staffResumeRead=token;retainedResumeError=null;
+  try{
+   await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane:lane});
+   if(!manualLaneCurrent(lane)||staffResumeRead!==token||roomError)throw retainedResumeReject('readback_failed');
+   const h=retainedWriterHandoff(roomState,t);
+   if(!sameRetainedHandoff(h,original))throw retainedResumeReject('handoff_changed');
+   await maybeDispatch(roomState,t,true,false,null,lane,h);
+   retainedResumeError=null;
+  }catch(error){
+   if(manualLaneCurrent(lane)&&staffResumeRead===token){
+    const code=new Set(['context_changed','readback_failed','handoff_changed','other_observer','other_attempt','existing_child_journal','mutex_changed','ack_unconfirmed','invoke_unconfirmed'].map(x=>'retained_writer_resume_'+x)).has(error?.message)?error.message:'retained_writer_resume_invoke_unconfirmed';
+    retainedResumeError=Object.freeze({user:t.user,session:token.session,work:token.work,code});
+    roomError='Ripresa della stessa richiesta non confermata ('+code+'). Richieste, ricevute e contatori sono conservati.';paintRoom(host,roomState);
+   }
+  }finally{if(staffResumeRead===token)staffResumeRead=null;if(manualLaneCurrent(lane)&&roomState)paintRoom(host,roomState);}
+ }
  function asyncBlocked(state){
-  const h=directorHandoffFor(state);
+  const h=directorHandoffFor(state),retained=retainedWriterHandoff(state);
   return [...asyncWorks.values()].some(r=>r.user===cacheUser&&r.session===state.session_id
-   &&!r.inactive&&!directorHandoffRecord(r,h)&&(r.accepted||r.journalKey)&&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone));
+   &&!r.inactive&&!directorHandoffRecord(r,h)&&!retainedHandoffRecord(r,retained)&&(r.accepted||r.journalKey)&&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone));
  }
  function asyncNotice(state){
-  const h=directorHandoffFor(state);
-  const records=[...asyncWorks.values()].reverse().filter(r=>r.user===cacheUser&&r.session===state.session_id&&!directorHandoffRecord(r,h));
+  const h=directorHandoffFor(state),retained=retainedWriterHandoff(state);
+  const records=[...asyncWorks.values()].reverse().filter(r=>r.user===cacheUser&&r.session===state.session_id&&!directorHandoffRecord(r,h)&&!retainedHandoffRecord(r,retained));
   // An older pending observation can suspend this session too; never hide its blocker behind the current publication.
   const r=records.find(r=>!r.inactive&&(r.accepted||r.journalKey)
    &&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone))
@@ -1931,7 +1999,9 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return true; // Authenticated synchronous acknowledgement, no public completion or generated Fato.
  }
  async function invokeAsyncOnce(parent,t){
+  if(parent.retainedResume&&!sameRetainedHandoff(retainedWriterHandoff(roomState,t),parent.retainedResume))throw retainedResumeReject('handoff_changed');
   const selector=selectorFor(parent.body),driver=driverFor(roomState);
+  if(parent.retainedResume&&(!selector||selector.kind!=='request'||!driver.optedIn||!driver.valid))throw retainedResumeReject('context_changed');
   // This source delta targets the opted-in Staff driver, not unrelated synchronous consumers.
   if(!(selector&&isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc.is_test===true&&driver.optedIn&&driver.valid
    &&(selector.kind!=='native_tick'||driver.value.kind==='native')))return client.functions.invoke('mission_generic_ai',{body:clone(parent.body)});
@@ -1966,7 +2036,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const key=directorRelease?directorHandoffKey(t.user,parent.session,directorRelease):baseKey+(noWorkRelease?':no-work:'+noWorkRelease.recovery_key+':'+noWorkRelease.retry_request_key:release?':released:'+release.work_id:'');parent.journalKey=key;
   return navigator.locks.request(key,{mode:'exclusive'},async()=>{
    if(!asyncCurrent(t)||abortBlocked(parent.session))throw Error('async_context_changed');
+   if(parent.retainedResume){
+    if(attempts.get(parent.retainedAttemptKey)!==parent||!manualLaneCurrent(parent.retainedLane)
+     ||!sameRetainedHandoff(retainedWriterHandoff(roomState,t),parent.retainedResume)||asyncBlocked(roomState))throw retainedResumeReject('mutex_changed');
+    if(!sameChainRequest(parent.body,parent.retainedResume.child_request)||parent.work!==parent.retainedResume.child_work_id)throw retainedResumeReject('handoff_changed');
+   }
    const old=readJournal(key,t.user,parent.session);
+   if(parent.retainedResume&&old){if(!journalPhase(old).done)attachJournal(old,key);throw retainedResumeReject('existing_child_journal');}
    let combatReplay=false;
    if(parent.combatResume){
     if(attempts.get(parent.combatResume.attemptKey)!==parent)throw Error('combat_narration_attempt_changed');
@@ -2007,6 +2083,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(selector.kind==='native_tick'){const r=asyncWorks.get('journal:'+key);if(!r)throw Error('async_native_journal_missing');r.parent=parent;parent.asyncKey='journal:'+key;}
    const response=await client.functions.invoke('mission_generic_ai',{body:clone(parent.body)});
    const delivery=response.data?.delivery??response.data;
+   if(parent.retainedResume&&!response.error&&(!nativeExact(delivery,asyncPendingKeys)||delivery.schema_version!=='mission-generic-pending/1'
+    ||delivery.status!==202||delivery.code!=='MISSION_EVENT_PENDING'||delivery.work_id!==parent.retainedResume.child_work_id
+    ||delivery.master_session_id!==parent.session||delivery.event_id!==parent.body.event_id||delivery.request_key!==parent.body.request_key
+    ||delivery.revision!==parent.body.expected_revision||delivery.retry!==false||delivery.provider_retry_allowed!==false))throw retainedResumeReject('ack_unconfirmed');
    if(!response.error&&directorRelease&&(response.data?.staff_tick?.source_revision!==directorRelease.release.source_revision
     ||response.data?.staff_tick?.request_key!==directorRelease.release.successor_progress_key))throw Error('async_director_handoff_successor_ack_unconfirmed');
    if(!response.error&&combatReplay&&(!nativeExact(delivery,asyncPendingKeys)||delivery.schema_version!=='mission-generic-pending/1'
@@ -2365,7 +2445,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane});
    if((!manualLaneCurrent(manualLane)||!asyncCurrent(t))||manualObserverVerification!==verification||!roomState||roomError)return;
    let items=journalSettlements(roomState,t);settleAsyncRecords(items,t);
-   const records=[...asyncWorks.values()].filter(r=>r.user===t.user&&r.session===roomState.session_id&&!r.inactive&&!r.busy&&(r.accepted||r.journalKey));
+   const handoff=retainedWriterHandoff(roomState,t);
+   const records=[...asyncWorks.values()].filter(r=>r.user===t.user&&r.session===roomState.session_id&&!r.inactive&&!r.busy&&!retainedHandoffRecord(r,handoff)&&(r.accepted||r.journalKey));
    for(const record of records){
     if((!manualLaneCurrent(manualLane)||!asyncCurrent(t))||abortBlocked(record.session))return;
     // Fresh matching publication/release can resolve a failed observer without another network read.
@@ -2443,8 +2524,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(r.journalKey&&r.state==='completed'&&UUID.test(r.proof?.receipt_id||'')&&SHA.test(r.proof?.result_sha256||'')&&(!r.allowChain||r.chainDone)){const j=readJournal(r.journalKey,r.user,r.session);if(j){journalPhase(j).done=true;saveJournal(r.journalKey,j);}}}
  function observeAsyncWork(state,t,manualLane=null){
   if(manualLaneBlocks(manualLane)||manualObserverVerification||!asyncCurrent(t)||hasCountProjection(state)||abortBlocked(state.session_id)||!processingFor(state).valid)return;
-  const h=directorHandoffFor(state,t);
-  const r=[...asyncWorks.values()].find(r=>!directorHandoffRecord(r,h)&&(r.accepted||r.journalKey)&&r.user===t.user&&r.session===state.session_id&&!r.inactive&&!r.busy&&!r.failure&&(!['uncertain','failed'].includes(r.state)||(r.countedMarkerKey&&r.state==='uncertain'))&&(r.state!=='completed'||r.allowChain&&!r.chainDone));
+  const h=directorHandoffFor(state,t),retained=retainedWriterHandoff(state,t);
+  const r=[...asyncWorks.values()].find(r=>!directorHandoffRecord(r,h)&&!retainedHandoffRecord(r,retained)&&(r.accepted||r.journalKey)&&r.user===t.user&&r.session===state.session_id&&!r.inactive&&!r.busy&&!r.failure&&(!['uncertain','failed'].includes(r.state)||(r.countedMarkerKey&&r.state==='uncertain'))&&(r.state!=='completed'||r.allowChain&&!r.chainDone));
   if(!r||performance.now()-r.lastRead<asyncBudget.minReadMs)return;
   r.busy=true;r.lastRead=performance.now();let parent=null;
   const observe=async()=>{
@@ -2566,29 +2647,33 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   // No recursion, retry or third work. The caller's normal readback displays the child's authoritative result.
   return a.outcome==='confirmed'?'child_confirmed':a.outcome==='failed'?'child_failed':'child_unconfirmed';
  }
- function maybeDispatch(state,t,reclaim=false,explicitNoWork=false,combatResume=null,manualLane=null){
-  if(manualLaneBlocks(manualLane)||manualObserverVerification)return;
-  if(staffTickAutoStop(state,t))return;
-  if(hasOpeningResume(state)||hasOpeningClaimResume(state))return; // A proof, even malformed, cannot become an automatic resend.
+ function maybeDispatch(state,t,reclaim=false,explicitNoWork=false,combatResume=null,manualLane=null,retainedResume=null){
+  const retainedProjection=retainedWriterHandoffShapeOnly(state),retained=retainedWriterHandoff(state,t),retainedExplicit=!!retainedResume;
+  const refuse=code=>{if(retainedExplicit)throw retainedResumeReject(code);};
+  if(retainedExplicit&&(!manualLaneCurrent(manualLane)||!sameRetainedHandoff(retained,retainedResume))){refuse('handoff_changed');return;}
+  if(manualLaneBlocks(manualLane)||manualObserverVerification){refuse('context_changed');return;}
+  if(retainedProjection?.child_work_id===processingFor(state).value?.work_id&&!retainedExplicit)return; // Read/reload cannot dispatch an adopted Writer.
+  if(staffTickAutoStop(state,t)&&!retainedExplicit)return;
+  if(hasOpeningResume(state)||hasOpeningClaimResume(state)){refuse('other_observer');return;} // A proof, even malformed, cannot become an automatic resend.
   const sameCombat=combatResume&&combatResumeBinding(state,t);
   if(combatResume&&(!sameCombat||sameCombat.work!==combatResume.work||!sameChainRequest(sameCombat.request,combatResume.request)||sameCombat.tuple!==combatResume.tuple))return;
-  if(asyncBlocked(state)&&!sameCombat)return; // Unrelated observers always block; only the exact unknown transport may be replayed explicitly.
-  if(hasCountProjection(state))return; // Only the explicit technical status consumer may handle this proof.
+  if(asyncBlocked(state)&&!sameCombat){refuse('other_observer');return;} // Unrelated observers always block; only the exact unknown transport may be replayed explicitly.
+  if(hasCountProjection(state)){refuse('other_observer');return;} // Only the explicit technical status consumer may handle this proof.
   const parsed=processingFor(state),p=parsed.value;
   const combatRecovery=combatNarrationRecovery(state),combatReady=!!(combatRecovery?.owned_by_me&&combatRecovery.can_resume);
-  if(combatRecovery&&combatRecovery.successor_work_id!==null&&combatRecovery.successor_work_id===p?.work_id&&(!reclaim||!combatReady))return;
+  if(combatRecovery&&combatRecovery.successor_work_id!==null&&combatRecovery.successor_work_id===p?.work_id&&(!reclaim||!combatReady)){refuse('other_observer');return;}
   const claimedVerification=reclaim&&parsed.valid&&staffClaimReconciliationAllowed(state,t,p);
   const recoveredReady=p?.state==='ready'&&recoveredWriters.has(recoveredWriterKey(t.user,state.session_id,p.work_id));
   if(recoveredReady&&!reclaim)return;
   if(!roomCurrent(t)||!parsed.valid||state.review_required===true&&!claimedVerification
-   ||!state.can_tick&&!claimedVerification&&!(reclaim&&combatReady)||choiceRequests.has(choiceKey(state))||liveAttempt(state)||abortBlocked(state.session_id))return;
-  if(unresolvedTickForSession(state)&&!claimedVerification)return; // A known claimed request may be reconciled; no new tick is permitted.
+   ||!state.can_tick&&!claimedVerification&&!(reclaim&&combatReady)&&!retainedExplicit||choiceRequests.has(choiceKey(state))||liveAttempt(state)||abortBlocked(state.session_id)){refuse('context_changed');return;}
+  if(unresolvedTickForSession(state)&&!claimedVerification){refuse('other_observer');return;} // A known claimed request may be reconciled; no new tick is permitted.
   const role=roleProgress(state);
   const staffAcademy=isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc?.is_test===true&&academyFlow(state)!==null;
   const staffCombat=staffAcademy&&academyFlow(state)==='combat_started'&&UUID.test(state.flow_publication_id||'');
-  if(staffAcademy&&!role&&!combatReady)return; // Never fall back to a browser UUID when the Staff projection is missing.
-  if(role&&!staffCombat&&!claimedVerification&&!combatReady&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started'||recoveredReady:role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
-  if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(claimedVerification||p?.state==='uncertain'||p?.state==='ready'&&(role?.reason==='recoverable_not_started'||recoveredReady||combatReady)&&p.finalized_at===null)))return;
+  if(staffAcademy&&!role&&!combatReady&&!retainedExplicit)return; // Never fall back to a browser UUID when the Staff projection is missing.
+  if(role&&!staffCombat&&!claimedVerification&&!combatReady&&!retainedExplicit&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started'||recoveredReady:role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
+  if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(claimedVerification||p?.state==='uncertain'||p?.state==='ready'&&(role?.reason==='recoverable_not_started'||recoveredReady||combatReady||retainedExplicit)&&p.finalized_at===null))){refuse('context_changed');return;}
   if(p&&['authorized','provider_started'].includes(p.state)||p?.state==='failed'&&!(staffAcademy&&role?.reason==='ready_to_evaluate')
    ||p&&['claimed','uncertain'].includes(p.state)&&!reclaim)return;
   const staffRole=staffAcademyRole(state,t.loc),staffTick=!reclaim&&!staffCombat&&staffRole?.reason==='ready_to_evaluate'&&(!p||['completed','failed'].includes(p.state));
@@ -2600,7 +2685,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const noWorkRecovery=staffTick&&explicitNoWork&&tickProjection.valid&&tickProjection.value?.state==='no_work_released'?tickProjection.value:null;
   const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?(claimedVerification?':reconcile-claimed':p.state==='ready'?':reclaim-ready':':reclaim'):'')
    :'tick:'+state.progress_key+(recoveryKey?':recovery:'+recoveryKey+(noWorkRecovery?':'+noWorkRecovery.retry_request_key:''):'');
-  const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey)&&!sameCombat)return;
+  const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey)&&!sameCombat){refuse('other_attempt');return;}
   const body=p&&(p.state==='ready'||reclaim)?clone(p.request):staffTick
    ?{schema_version:'mission-generic-staff-tick/1',master_session_id:state.session_id,source_revision:staffRole.revision}
    :{schema_version:'mission-generic-tick/1',master_session_id:state.session_id,request_key:id()};
@@ -2608,10 +2693,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    prior_work_id:p?.work_id??null,prior_publication_id:state.flow_publication_id??null,staffTickSource:staffTick?staffRole.revision:null,
    directorRecoveryHandoff:directorRecoveryHandoff?clone(directorRecoveryHandoff):null,staffTickState:null,tickRecoveryKey:recoveryKey,noWorkRecovery:noWorkRecovery?clone(noWorkRecovery):null,body:Object.freeze(body),inFlight:true,outcome:'pending'};
   if(sameCombat){a.combatResume=Object.freeze(clone(sameCombat));a.priorAttempt=attempts.get(storeKey)??null;}
-  attempts.set(storeKey,a);paintRoom(roomHost,state);
+  if(retainedExplicit){a.retainedResume=Object.freeze(clone(retained));a.retainedLane=manualLane;a.retainedAttemptKey=storeKey;}
+  attempts.set(storeKey,a);
+  if(!retainedExplicit)paintRoom(roomHost,state);
   // Detached from the read lock: polling continues while the provider works.
-  void (async()=>{
+  const dispatched=(async()=>{
    try{
+    if(retainedExplicit)paintRoom(roomHost,state);
     const {data,error}=await invokeAsyncOnce(a,t);
     if(error)throw error;
     if(staffTick){
@@ -2633,9 +2721,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
      &&(state.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'||driverFor(state).optedIn&&driverFor(state).valid))
      {chainFeedback.set(JSON.stringify([t.user,state.session_id]),{reason:chainReason,target:a.chainTarget??chainTarget(a,data?.dispatch??a.body)});
      console.info('regia_chain_diagnostic',chainReason);}
-   }catch(error){await preserveStaffTickStop(error,a,t);a.outcome='uncertain';}
-   finally{a.inFlight=false;if(roomCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true,verifyOnly:true,readOnlyObservers:true});}}
-  })().catch(()=>{});
+   }catch(error){await preserveStaffTickStop(error,a,t);a.outcome='uncertain';if(retainedExplicit)throw error;}
+   finally{a.inFlight=false;if(roomCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane});}}
+  })();
+  if(retainedExplicit)return dispatched;
+  void dispatched.catch(()=>{});
  }
  async function updateRoom(host,{manual=false,verifyOnly=false,readOnlyObservers=false,manualLane=null}={}){
   if(!host)return;const t=syncRoom(host);
@@ -2649,6 +2739,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     academyFlow(state); // The server owns both the phase and the Fato publication receipt.
     roleProgress(state); // A partial reason/remedy projection cannot authorize a dispatch.
     combatNarrationRecovery(state); // Typed server proof only; read/reload never resumes it.
+    // Validate the optional adopted-child projection before ordinary rendering or observation.
+    retainedWriterHandoffShapeOnly(state);
    roomState=state;roomError='';
    const settlements=journalSettlements(state,t);
    settleAsyncRecords(settlements,t);
