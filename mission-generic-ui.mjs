@@ -840,7 +840,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintManualRecoveryError(host,state,processing){
   let notice=host.querySelector('[data-mg-manual-recovery-error]');const e=manualRecoveryError;
-  if(e&&(e.user!==identity()||e.session!==state.session_id||processing.valid&&(processing.value?.work_id!==e.work||processing.value?.state!=='failed')))manualRecoveryError=null;
+  if(e&&(e.user!==identity()||e.session!==state.session_id||processing.valid&&(processing.value?.work_id!==e.work||processing.value?.state!=='failed')
+   &&directorHandoffFor(state,{user:cacheUser,loc:currentLocation()},false)?.work_id!==e.work))manualRecoveryError=null;
   const current=manualRecoveryError;
   if(!current||current.user!==identity()||current.session!==state.session_id){notice?.remove();return;}
   const message='Il recupero della Regia non è confermato (codice '+current.code+'). Role, risultati e ricevute restano conservati.';
@@ -850,7 +851,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-009');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-010');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -909,11 +910,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const key=JSON.stringify([cacheUser,state.session_id,'work:'+claim.work_id+':'+claim.revision+suffix]);
    resume.disabled=!!roomError||!!staffResumeRead||liveAttempt(state)||attempts.has(key)||abortBlocked(state.session_id)||(countedRecovery&&countedResumeRecorded(cacheUser,state,claim));
   }else if(resume)resume.remove();
+  const releasedDirectorRecovery=directorHandoffFor(state,{user:cacheUser,loc:currentLocation()},false);
   let roleRecovery=host.querySelector('[data-mg-role-recovery]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test
-   &&processing.valid&&claim?.state==='failed'
-   &&!combatProof&&(scopedFailedNarrationRecovery(state,claim)||state.can_tick&&role?.reason==='failed')){
-   if(!roleRecovery){roleRecovery=button('Verifica recupero del Fato o della Regia',()=>staffRecoverIdenticalRole(host));roleRecovery.setAttribute('data-mg-role-recovery','');host.append(roleRecovery);}
+   &&processing.valid&&(releasedDirectorRecovery||claim?.state==='failed'
+   &&!combatProof&&(scopedFailedNarrationRecovery(state,claim)||state.can_tick&&role?.reason==='failed'))){
+   if(!roleRecovery){roleRecovery=button('Verifica recupero del Fato o della Regia',()=>directorHandoffFor(roomState,{user:cacheUser,loc:currentLocation()},false)?staffRecoverDirectorHandoff(host):staffRecoverIdenticalRole(host));roleRecovery.setAttribute('data-mg-role-recovery','');host.append(roleRecovery);}
    roleRecovery.disabled=!!roomError||!!staffRoleRecovery||liveAttempt(state)||abortBlocked(state.session_id);
   }else if(roleRecovery)roleRecovery.remove();
   let combatRecovery=host.querySelector('[data-mg-combat-recovery]');
@@ -1374,6 +1376,31 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }catch{if(roomCurrent(t)&&staffResumeRead===token){roomError='Verifica della richiesta non riuscita. Nessun nuovo invio: aggiorna la regia e ricontrolla la stessa richiesta.';paintRoom(host,roomState);}}
   finally{if(staffResumeRead===token){staffResumeRead=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
  }
+ async function staffRecoverDirectorHandoff(host){
+  const t=syncRoom(host),state=roomState,h=directorHandoffFor(state,t,false);
+  if(!h||!roomCurrent(t)||staffRoleRecovery||liveAttempt(state)||abortBlocked(state.session_id))return;
+  const blocked=[...asyncWorks.values()].some(r=>r.user===t.user&&r.session===state.session_id&&!r.inactive
+   &&!directorHandoffRecord(r,h)&&(r.accepted||r.journalKey)&&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone));
+  if(blocked)return;
+  const token={session:state.session_id,work:h.work_id};staffRoleRecovery=token;manualRecoveryError=null;paintRoom(host,state);
+  try{
+   await updateRoom(host,{manual:true,verifyOnly:true});
+   if(!roomCurrent(t)||staffRoleRecovery!==token)return;
+   const fresh=roomState,next=directorHandoffFor(fresh,t,false);
+   if(fresh?.session_id!==token.session||!sameDirectorHandoff(h,next)||liveAttempt(fresh)||abortBlocked(token.session))return;
+   if([...asyncWorks.values()].some(r=>r.user===t.user&&r.session===token.session&&!r.inactive
+    &&!directorHandoffRecord(r,next)&&(r.accepted||r.journalKey)&&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone)))return;
+   const retry=await rpc('mission_staff_retry_failed_director_v1',
+    {p_session:token.session,p_failed_director:token.work},t.user,true);
+   if(!roomCurrent(t)||staffRoleRecovery!==token)return;
+   if(!directorRetryAckShape(retry))throw Error('staff_director_retry_unconfirmed');
+   directorRetryAcks.set(directorAckKey(t.user,token.session,token.work),Object.freeze({source_revision:h.release.source_revision,reply:clone(retry)}));
+   await updateRoom(host,{manual:false});
+  }catch(error){if(roomCurrent(t)&&staffRoleRecovery===token){
+   manualRecoveryError=Object.freeze({user:t.user,session:token.session,work:token.work,code:typeof error?.manualRecoveryCode==='string'&&/^[0-9A-Z]{5}$/.test(error.manualRecoveryCode)?error.manualRecoveryCode:'NON_CONFERMATO'});
+   roomError='Esito del recupero non confermato. Role, risultati e ricevute restano conservati.';paintRoom(host,roomState);
+  }}finally{if(staffRoleRecovery===token){staffRoleRecovery=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
+ }
  async function staffRecoverIdenticalRole(host){
   const t=syncRoom(host),state=roomState,parsed=processingFor(state),work=parsed.value,role=state&&roleProgress(state);
   if(!roomCurrent(t)||staffRoleRecovery||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||abortBlocked(state?.session_id)
@@ -1564,7 +1591,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return nativeExact(x,['schema_version','status','replayed'])&&x.schema_version==='mission-staff-director-retry/1'
    &&x.status==='released'&&typeof x.replayed==='boolean';
  }
- function directorHandoffFor(state,t={user:cacheUser,loc:currentLocation()}){
+ function directorHandoffFor(state,t={user:cacheUser,loc:currentLocation()},requireAck=true){
   if(!state||state!==roomState||!isStaff()||t.user!==cacheUser||t.loc?.id!==STAFF_TEST_ROOM||t.loc?.is_test!==true)return null;
   const x=state.journal_settlements,tick=tickStatusFor(state,t);
   if(!nativeExact(x,['schema_version','master_session_id','items','handoffs'])||x.schema_version!=='mission-journal-settlements/4'
@@ -1575,12 +1602,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!parsed.valid)return null;
   for(const h of x.handoffs){
    if(h.release.source_revision!==state.source_revision||v.source_revision!==h.release.source_revision)continue;
-   const predecessor=v.state==='released'&&v.can_resume&&v.work_id===h.work_id&&v.work_state==='failed'
-    &&p?.work_id===h.work_id&&p.state==='failed'&&sameChainRequest(p.request,h.request)
+   const predecessor=state.review_required!==true&&state.can_tick&&v.state==='released'&&v.can_resume&&v.work_id===h.work_id&&v.work_state==='failed'
+    &&(!p||p.state==='completed'&&p.finalized_at!==null&&UUID.test(p.message_id||'')
+     ||p.work_id===h.work_id&&p.state==='failed'&&sameChainRequest(p.request,h.request))
     &&v.recovery_key===h.work_id&&v.retry_request_key===h.release.successor_progress_key;
    const successor=v.state==='attested'&&v.request_key===h.release.successor_progress_key
     &&v.acknowledged_retry_from_work_id===h.work_id&&v.work_id!==h.work_id;
    if(!predecessor&&!successor)continue;
+   if(!requireAck&&predecessor)return h;
    const ack=directorRetryAcks.get(directorAckKey(t.user,state.session_id,h.work_id));
    if(ack&&ack.source_revision===h.release.source_revision&&directorRetryAckShape(ack.reply))return h;
    const j=readJournal(directorHandoffKey(t.user,state.session_id,h),t.user,state.session_id);
