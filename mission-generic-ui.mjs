@@ -854,7 +854,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-024');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-025');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -2100,7 +2100,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&nativeExact(h.selector,['kind','request'])&&h.selector.kind==='request'&&sameChainRequest(h.selector.request,q)
    &&UUID.test(h.work_id||'')&&UUID.test(h.receipt_id||'')&&SHA.test(h.result_sha256||'')
    &&nativeExact(r,['source_window_id','source_revision','reason','audit_sha256','successor_progress_key','payload_sha256','contract_sha256'])
-   &&r.source_window_id===h.work_id&&r.reason==='staff_director_continuity_preprovider_reissued'
+   &&r.source_window_id===h.work_id&&['staff_director_continuity_preprovider_reissued','staff_director_count_overflow_reissued'].includes(r.reason)
    &&['source_revision','audit_sha256','payload_sha256','contract_sha256'].every(k=>SHA.test(r[k]||''))
    &&UUID.test(r.successor_progress_key||'');
  }
