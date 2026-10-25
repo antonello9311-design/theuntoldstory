@@ -854,7 +854,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-021');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-022');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -1072,7 +1072,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  const existingDeliveryError=(code,diagnostic=null)=>Object.assign(Error('existing_delivery_'+(existingDeliveryCodes.has(code)?code:'transport_unknown')),{deliveryDiagnostic:diagnostic});
  function existingDeliveryShape(x,h,entity){
   const selector=x.selector??selectorFor(x.body),kind=['request','staff_tick','native_tick'].includes(selector?.kind)?selector.kind:'other';
-  return {entity,selector_kind:kind,accepted:x.accepted===true,work_same:x.work===h.work,work_absent:x.work===null||x.work===undefined,
+  const source=entity==='record'&&kind==='staff_tick'&&SHA.test(selector.source_revision||'')?selector.source_revision:null;
+  const tick=source!==null?tickStatusFor(h.room,h.lane.t):null;
+  const matches=source!==null?journalSettlements(h.room,h.lane.t).filter(item=>sameSelector(item.selector,{kind:'staff_tick',source_revision:source})).length:null;
+  return {entity,selector_kind:kind,source_revision:source,
+   source_matches_currentRoom:source!==null?source===h.room.source_revision:null,
+   source_matches_currentTick:source!==null?tick.valid===true&&tick.value?.source_revision===source:null,
+   has_matching_selector:source!==null?matches>0:null,settlement_matching_selector_count:matches,
+   accepted:x.accepted===true,work_same:x.work===h.work,work_absent:x.work===null||x.work===undefined,
    request_same:sameChainRequest(x.request??x.asyncRequest??x.parent?.asyncRequest??x.body,h.request)===true,
    completed:x.state==='completed',inactive:x.inactive===true,busy:x.busy===true,inFlight:x.inFlight===true||x.parent?.inFlight===true,
    parent_linked:h.records.some(r=>r.parent===x||r===x&&r.parent===h.record.parent),
@@ -1094,8 +1101,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const diagnostic=error?.deliveryDiagnostic,gate=existingDeliveryGates.has(diagnostic?.gate)?diagnostic.gate:null;
   let shape=null;
   if(diagnostic?.shape){const x=diagnostic.shape,fields=['accepted','work_same','work_absent','request_same','completed','inactive','busy','inFlight','parent_linked','journal_linked','async_key_linked'];
-   if(['record','attempt'].includes(x.entity)&&['request','staff_tick','native_tick','other'].includes(x.selector_kind)&&fields.every(k=>typeof x[k]==='boolean')&&nativeExact(x,['entity','selector_kind',...fields]))shape={entity:x.entity,selector_kind:x.selector_kind,...Object.fromEntries(fields.map(k=>[k,x[k]]))};}
-  const details=gate?' · '+gate+(shape?' · '+shape.entity+'/'+shape.selector_kind+' '+Object.entries(shape).filter(([k])=>!['entity','selector_kind'].includes(k)).map(([k,v])=>k+'='+(v?'1':'0')).join(' '):''):'';
+   const sourceKeys=['source_revision','source_matches_currentRoom','source_matches_currentTick','has_matching_selector','settlement_matching_selector_count'];
+   const sourceValid=x.entity==='record'&&x.selector_kind==='staff_tick'&&SHA.test(x.source_revision||'')
+    ?['source_matches_currentRoom','source_matches_currentTick','has_matching_selector'].every(k=>typeof x[k]==='boolean')&&Number.isSafeInteger(x.settlement_matching_selector_count)&&x.settlement_matching_selector_count>=0&&x.settlement_matching_selector_count<=128&&x.has_matching_selector===(x.settlement_matching_selector_count>0)
+    :sourceKeys.every(k=>x[k]===null);
+   if(['record','attempt'].includes(x.entity)&&['request','staff_tick','native_tick','other'].includes(x.selector_kind)&&fields.every(k=>typeof x[k]==='boolean')&&sourceValid&&nativeExact(x,['entity','selector_kind',...sourceKeys,...fields]))shape={entity:x.entity,selector_kind:x.selector_kind,...Object.fromEntries([...sourceKeys,...fields].map(k=>[k,x[k]]))};}
+  const details=gate?' · '+gate+(shape?' · '+shape.entity+'/'+shape.selector_kind+' '+Object.entries(shape).filter(([k])=>!['entity','selector_kind'].includes(k)).map(([k,v])=>k+'='+(v===null?'null':typeof v==='boolean'?(v?'1':'0'):String(v))).join(' '):''):'';
   return {phase,code,gate,shape,text:'Ripresa non confermata ('+labels[phase]+' · '+code+details+'). '+(sent?'La consegna non è confermata.':'Nessuna consegna avviata.')+' Richiesta e contatori conservati; nessun invio automatico.'};
  }
  function existingDeliveryCandidate(state,t){
