@@ -1,38 +1,63 @@
-# Collaudo notturno della Regia — rapporto in corso
+# Regia — diagnosi e correzione integrata
 
-**Goal attivo. Tre percorsi puliti ancora da attestare. Nessuna approvazione editoriale.**
+Goal notturno sospeso per decisione di Antonello. Il mandato resta solo diagnosi e soluzioni; dopo le soluzioni si concluderà R1 tramite il percorso normale e si ripartirà dall’inizio conservando lo storico. Nuova partenza NOT_RUN. Small è mantenuto, nessun altro upgrade a pagamento.
 
-La missione originale è conclusa dal server alle 22:23:35 del 24 ottobre. I 17 Fati, le azioni, lo storico e i costi sono conservati. Il risultato è un completamento con recuperi, non un percorso pulito al primo tentativo.
+La41.1 è installata: Root66f61a68425420eebbab9de35091f81a08f89518cd47f121db7552b162cd7695/181, migrazione20261025213837/c1266_staff_abort_phase_memory_diagnostics_v1, UI026 ed Edge109 invariati. Fonte4f8c/materiale69527 verdi0/0/0, installer c8c96e0c; postflight11/11. Un solo chiamante abort riceve25LOG di fase chiusi e aggregati numerici memoria, senza cambiare guardie, ordine, transazione, eccezioni o permessi. La40 precedente aveva post12/12 e quiescent reale TRUE: questo non costituisce una ricevuta di chiusura.
 
-La prima nuova partita, R1, usa ascolto e de-escalation. L’incipit delle 22:56:33 e il secondo Fato delle 23:01:48 sono usciti al primo tentativo. Dopo il secondo scambio di azioni, il Director è stato rifiutato prima del provider: zero chiamate e zero addebito per quel tentativo. Le quattro role totali restano acquisite; il recupero riguarda l’ultima coppia ancora da risolvere, senza rielaborare la prima.
+Il normale percorso UI ha verificato la stessa richiesta e ritentato una volta lo stesso nonce abort. RispostaHTTP520, richiesta01a17501-bf61-71a7-b7ea-26ba5bc11193 alle21:40:11.233UTC, durata27995ms. Tutte le cinque parti dopo il retry sono identiche al post41: B0/R1, F7/14role/27quota/0work attivi,48campi protetti, ledger e watermark intatti. Alla lettura21:44:0operazioni abort e closed_atNULL. R1 resta aperta, non è attestato Fato8 e non esiste una nuova missione.
 
-| Caso | Stato verificato | Primo tentativo completo | Consumo verificato |
-|---|---|---|---|
-| B0 — originale | Conclusa con ricevuta e sei passi server | No: recuperi documentati | 98 righe quota; 0,7788344 USD prudenziali cumulativi |
-| R1 — ascolto/de-escalation, sviluppo | Due Fati; secondo Director in recupero | No: `MISSION_CONTINUITY_INVALID` | Opening: 1 Count + 1 Generation, 0,0134827 USD; totale R1 da consolidare |
-| Q1 — ascolto/de-escalation, versione corretta | Da giocare | NON_ATTESTATO | Da misurare |
-| Q2 — indagine sulle testimonianze | Da giocare | NON_ATTESTATO | Da misurare |
-| Q3 — confronto assertivo e tutela dei presenti | Da giocare | NON_ATTESTATO | Da misurare |
+I riavvii21:39:47/21:40:34/21:41:54/21:42:42/21:43:40 sono osservati. ZeroLOG di fase, un controlloLOG positivo alle21:48 prova il canale di raccolta: l’assenza dei LOG non è una prova rigorosa di mancato ingresso nella funzione. PGRST aveva caricato la cache in0,5s alle21:38:39; alle21:39:46 rifiutava la connessione localhost5432. JIT spento, timeout ruolo8s e nessun override di prerequisito trovato. La causa dei crash o un OOM non sono dimostrati; la funzione non è dichiarata corretta end-to-end.
 
-Q1 è la regressione completa resa necessaria dal difetto reale emerso in R1. R1 sarà completata e conservata separatamente; i suoi errori e costi non vengono azzerati o rinominati come un successo al primo tentativo.
+Nessun altro ingresso o retry live mentre persiste il rischio di crash. La bozza di supporto esterno è UNSENT e attende autorizzazione umana. Nessun nuovo Count/Gen, reinvio role, modifica ai Fati, azzeramento o nuova scena da questa diagnosi. Q1–Q3 NOT_RUN, qualità editoriale e missione completa non attestate. Export41, sei documenti locali e due report sono stati verificati e applicati localmente da Root. I quattro export restano esclusi da questo caricamento: i grandi Source non hanno deposito Git attestato. Gli otto documenti remoti sono riconciliati con blob attuali e restano candidati da review prima dell’upload.
 
-## Differenze narrative già osservate
+## Storia tecnica e narrativa conservata
 
-B0 ha attraversato molte revisioni, quindi non è un campione omogeneo della versione finale. Alcuni Fati iniziali aggiungono poco al dialogo; nel Fato17 le risposte diventano concrete su compenso, busta e provenienza del racconto. Nel corpus originale tornano brusio in 14 Fati su 17 e banchi in 15 su 17: sono segnali da valutare nel contesto del mercato, non criteri automatici di bocciatura.
+## Recupero del quarto Fato e stato attuale
 
-In R1 il secondo Fato risponde alla prima domanda: Daichi distingue il presunto racconto altrui dalla presenza personale; Keita indica Daichi come propria fonte. Le voci restano riconoscibili, ma riappaiono la mascella serrata di Daichi, l’esitazione e la posizione arretrata di Keita. Il confronto fra i tre approcci puliti resta da eseguire.
+Il quarto Fato è pubblicato davvero il25/10/2026 alle09:18:19.251045UTC (10:18:19 Europe/Rome), ID4c021d6d-9e36-4552-a4c4-48bf6758ba91, testoSHA36c5b67626e8a29c8dd59a359a3a65fad975b990c1fdcdcc29e62aa28f289da5. Il recupero usa gli stessi segmenti salvati: hash originale del risultato90a512…, ricevutacf4a…, segmento8f2f… invariati. Nessuna Count o Generation aggiuntiva. Il work completato ha ora un result_sha256 diverso,3a13…, perché include il testo e la ricevuta di pubblicazione; non è una nuova ricevuta di output del provider. Chrome e Firefox leggono il Fato, anche dopo il rientro.
 
-## Cause strutturali accertate
+La correzione34 riconosce la decisione adottata del Director nel controllo delle battute PNG e la ricevuta cached nei consumer di avanzamento e giornale. Il fallimento originale rimane nel registro. Review0/0/0 e postflight23/23; recupero reale attestato, distinto dalla qualità editoriale e dal completamento dell’intera missione.
 
-- Alcune funzioni riconoscevano soltanto la vecchia sessione. La correzione22 le collega al template canonico e alla nuova sessione Staff sigillata; questo non qualifica automaticamente altre missioni.
-- Il Writer libero non produce un nuovo riassunto strutturato. Un carry conservativo veniva invece promosso a memoria aggiornata: vuoto, veniva rifiutato dalla richiesta successiva; non vuoto, poteva nascondere i Fati successivi al vero riassunto. La correzione23 è in preparazione, non ancora installata.
-- Il client mantiene una notifica di conclusione della sessione precedente e, durante una nuova elaborazione, può confondere l’ineligibilità alla rigenerazione con l’assenza di un Fato. Questi avvisi non hanno fermato il primo scambio di R1, ma sono fuorvianti.
-- I profili ripropongono gli stessi segnali espressivi in ogni fase. Questo è un fattore plausibile dei tic ripetuti; i tre nuovi percorsi serviranno a confrontarlo con gli esiti reali.
+La coppia successiva è stata acquisita una sola volta. Il Directordc428447… e il Writer4f3aadef… sono conclusi. Il quinto Fato è pubblicato davvero alle10:42:42.088844UTC, ID79c21ee8-9574-4496-ab8c-25b7cdd5a42c,558caratteri, SHA945067c09fe8205a6d0770fc1f908ce2015f5a49a6ae72695be93f019846b906. Il primo contratto del Writer usa Root35; una sola Generation. Le righe quota sono18:9Generation liquidate per0,0357689USD e9Count con stato unknown_billable, riserva0,1116USD. Il totale prudenziale è0,1473689USD, non fatturazione finale (lettura12:35UTC). Lo stato unknown_billable delle Count non prova un fallimento del provider.
 
-## Criteri della review finale e proposte
+La35 mantiene la Staff già autorizzata durante errori temporanei di presenza. Entrambe le viste hanno conservato stanza, Fato e bozza durante un’interruzione reale. I rifiuti espliciti restano vincolanti. Non cambia l’autorità del server.
 
-Il confronto valuterà risposte alle domande, conseguenze delle azioni, avanzamento della scena, voci dei PNG, ambiente e toni, ripetizioni, libertà dei PG e coerenza con i fatti server. Ogni esito sarà associato a versione, pubblicazione, ricevuta di chiusura, chiamate e costo prudenziale. Errori, recuperi e qualità editoriale rimarranno distinti.
+L’azione successiva di Riuji aveva una risposta incerta. Prima del recupero è stata installata e verificata positivamente una barriera server contro i vecchi invii ritardati; il watermark delle quattro azioni già acquisite di Riuji era invariato e non risultava una sua nuova azione nella finestra5. Solo dopo questa prova è stata recuperata una volta la stessa bozza da732caratteri. Il server l’ha accettata alle14:06:46UTC con ricevuta v2, valid=true e replayed=false. Tamako ha inviato per la prima volta la bozza già preparata da766caratteri, accettata alle14:07:24UTC con le stesse garanzie. Il totale è ora10azioni; nessun testo pubblicato è stato modificato.
 
-Le proposte sono generali: separare fatti canonici, vero riassunto e storia successiva; dare a ogni risposta uno scopo e una conseguenza coerenti con le domande; esprimere la personalità attraverso la situazione senza imporre sempre lo stesso gesto; mantenere l’ambiente legato a ciò che cambia nella scena. La review editoriale deve restare fuori dalla catena dei blocchi del turno. Autorizzazioni, isolamento Staff, fatti meccanici server, audit e idempotenza restano necessari.
+La nuova lavorazione Director a1161421… è stata creata alle14:07:30UTC. Il worker ha segnalato input_count_start/MISSION_EVENT_UNCERTAIN alle14:07:53: nessuna nuova Count o Generation risulta avviata, la quota resta18righe. La lease è scaduta alle14:13:37. Il normale comando di ripresa delle14:16 ha riconosciuto la vecchia ricevuta, ma non ha rilanciato la lavorazione, ancora claimed senza autorizzazione o dispatch alle14:21:58.
 
-Nessun Fato pubblicato è stato modificato. Questo rapporto sarà riscritto in posto con i risultati effettivi delle prove.
+Il sesto Fato è pubblicato alle17:16:43.288768UTC: messaggio77f8184e-6a3d-4219-9f3e-4b871f8a2185,484caratteri,SHA34b559861aaf3d1619efd7825971944e22653890c9457f083c9963934f269078. Risulta una sola pubblicazione, uguale al risultato del Writer944e…. Il Director a116 conserva risultato25af192c… e ricevuta78754c02…; una CountSUCCESS e una Generation hanno completato la valutazione. Il solo Writer è stato ripreso con un gesto dopo cold reload, senza rigenerare il Director. Il testo resta leggibile dopo rientro in Firefox e Chrome; la fase successiva è aperta. Role10,active0,22righe quota.
+
+La causa del blocco era l’identità degli osservatori: il journal staff_tick corrente e il riferimento canonico erano due alias dello stesso lavoro. Prima il client considerava il primo un observer estraneo; poi il consumer Writer contava i due alias come parent diversi. UI024 risolve i selector UNKNOWN tramite letture OWNED coerenti prima di collegare gli stessi oggetti, li raggruppa per identità canonica e mantiene tutte le prove del figlio. Journal, clock e budget restano conservati; nessuna eccezione per lavori estranei. La prima review limitata al percorso in memoria è stata trattenuta prima della pubblicazione; il verde finale7c5135d9 comprende il rientro a freddo. Cronologia completa, ipotesi escluse e controverifiche restano nel JSON e negli artefatti precedenti.
+
+I cinque Fati precedenti, le otto role anteriori alla coppia recuperata e lo snapshot completo B0 risultano invariati. I48campi protetti conservano hashd729…. Questa è una prova tecnica del recupero della stessa catena, non un collaudo pulito dell’intera missione. Questa fotografia precede il consolidamento38, poi applicato preservando i contratti storici.
+
+La36 limita sovrapposizioni delle letture Staff di chat, Combat e Accademia; gli altri percorsi non sono dichiarati qualificati. La37 aggiunge identità persistente e ricevuta del comando, provate dalle due accettazioni reali. Il produttore delle verifiche metadata è stato ottimizzato materializzando nove strati interni senza togliere campi o guardie. Primo preflight2,3s, apply3,0s e postflight2,0s osservati: sono singole misure, non una prova della causa dei precedenti riavvii. Timeout e riavvii del database restano documentati separatamente. Nuovo riavvio attestato16:11:59UTC, con loginterrupted/notproperlyshut down. La dashboard dell’ultima ora mostra memoria1,77GB, commitment2,83GB in statoSEVERE e swap consistente; alcune altre metriche non caricano. È pressione di memoria osservata, non prova della causa di ogni riavvio. L’audit statico CountStart trova snapshotC8 e verifiche di autorità/fonti ripetuti sotto lock, senza profiling o attribuzione causale. Nessun aumento del compute o modifica di configurazione eseguiti.
+
+Il totale R1 letto alle17:28 è0,18317040USD prudenziali:11Generation liquidate per0,04677040USD e11Count unknown_billable con riserva0,13640000USD,22righe. Non è fatturazione finale.
+
+## Differenze narrative già osservabili
+
+Il primo Fato presenta le accuse e distingue i modi dei due Genin. Il secondo risponde alle domande: nessuno dei due era presente e Keita dipende dal racconto di Daichi. Il terzo, di181 caratteri, ripete ambiente e domande in attesa: il Director aveva previsto due interventi, ma una salvaguardia sugli spostamenti dei PG li aveva eliminati dal payload Writer. La correzione27 ha separato quel dialogo dalla risoluzione meccanica degli spostamenti. Il quarto Fato risponde: Daichi dice di non aver incontrato il presunto testimone; Keita ribadisce che la sola fonte è Daichi. Include pause, mascella tesa, sguardi e brusio del mercato. Risolve le domande pendenti, ma parte dell’informazione ripete il secondo Fato e l’origine del racconto resta da chiarire.
+
+Il quinto Fato fa dichiarare pubblicamente a Keita l’assenza di una conferma personale; è un comportamento nuovo. Daichi resta vago sulla fonte. Mascella contratta e brusio ricorrono ancora. Il testo resta quello generato.
+
+B0 e R1 attraversano versioni diverse: non costituiscono un confronto controllato fra approcci. Q1–Q3 useranno la medesima versione finale e conserveranno i testi come generati. Il confronto valuterà risposte alle domande, avanzamento causale, voci e conoscenze dei PNG, ambiente, gesti, toni, ripetizioni, autonomia dei PG, funzionamento tecnico e costi.
+
+Il sesto Fato introduce una decisione nuova: Daichi accetta di accompagnare i PG a far verificare l’accusa, senza ritirarla. Keita reagisce con silenzio e sguardo basso; la domanda diretta della coppia era rivolta soprattutto a Daichi. Restano ripetizioni descrittive di mento alto, mascella e brusio già presenti nei Fati precedenti. Nessun testo viene ritoccato per questa analisi.
+
+Il settimo Fato distingue di nuovo le due fonti: Keita ammette che non ha una versione indipendente, mentre Daichi rifiuta la ritrattazione. La richiesta dei PG di passare dalla discussione alla verifica non produce ancora uno spostamento o un altro passo concreto: la scena resta nel capannello. Mascella, sguardo basso e brusio ricorrono anche qui. È un’indicazione editoriale da confrontare con le tre prove stabili, senza alterare il testo pubblicato.
+
+## Cambiamenti generali proposti
+
+- Unificare la prova di compatibilità dei contratti nei consumer, invece di mantenere elenchi e condizioni che divergono.
+- Separare gli stati di generazione, salvataggio, conferma della ricevuta, normalizzazione, applicazione e pubblicazione: una conferma incerta non deve cancellare un risultato già conservato.
+- Rendere persistenti i passaggi di consegne tra Director e Writer e riconoscere la stessa ricevuta nel publisher, nell’avanzamento e nel giornale.
+- Spostare l’orchestrazione Director→Writer in una macchina a stati persistente sul server. Presenza, chiusura del browser e limite delle letture del giornale non devono impedire l’avvio di un successore già accettato. Conservare autorizzazioni per fase, idempotenza e contabilità.
+- Separare la canonicalizzazione dei valori meccanici interi dal confronto dei metadati economici con decimali.
+- Usare ambiente, toni e gesti per accompagnare risposte e conseguenze; evitare quote rigide di parole o veti editoriali automatici sull’intero turno.
+- Misurare latenza e peso del contesto dopo le prove comparabili, prima di cambiare modello o istruzioni.
+
+Le correzioni storiche, i referti rossi e le ricevute restano nel JSON e negli export. Nessun PASS editoriale o di percorso completo viene dedotto dalla sola installazione. La39 del peso della richiesta e la40/41 sono installazioni storiche, non attestano chiusura o soluzione dei riavvii. Restano diagnosi e soluzioni, poi chiusura R1 e nuova partenza; le tre partite sono sospese. Il percorso completo e la qualità editoriale restano non attestati.
+
+Le letture ampie e anche un preflight dall’editor SQL sono scaduti; letture brevi hanno continuato a rispondere. È stata fermata la ripetizione delle operazioni pesanti. Si analizza staticamente il produttore delle query annidate per ridurre lavoro ripetuto mantenendo tutti i campi, gli ordinamenti e i confronti del CAS completo. Il nesso fra queste query e i riavvii non è attestato. La pagina ufficiale Supabase riporta ancora Management API degradate in monitoraggio; nemmeno questo prova la causa dei riavvii del progetto.
