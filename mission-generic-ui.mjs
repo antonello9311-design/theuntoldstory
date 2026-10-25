@@ -854,7 +854,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-015');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-016');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -1369,8 +1369,133 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   finally{if(parent)parent.inFlight=false;if(staffResumeRead===token)staffResumeRead=null;
    if(roomCurrent(t)){paintRoom(host,roomState);await updateRoom(host,{manual:true,verifyOnly:true});refresh();}}
  }
+ // A normal Director handoff is fresh server evidence for ONE existing child, never a new tick.
+ const normalReadyProofs=new WeakSet();
+ const normalResumeCodes=new Set(['context_changed','parent_missing','parent_ambiguous','parent_unconfirmed','next_none','next_invalid','child_changed','child_observed_active','other_observer','other_attempt','mutex_changed','ack_unconfirmed','invoke_unconfirmed']);
+ const normalResumeError=code=>Error('normal_writer_resume_'+(normalResumeCodes.has(code)?code:'invoke_unconfirmed'));
+ function directorNextProof(v,q,receipt,work=null){
+  if(!nativeExact(v,['schema_version','status','parent_request','parent_receipt_id','parent_work_id','child_work_id','child_kind','source_window_id','child_request'])
+   ||v.schema_version!=='mission-director-narration-chain/1'||!['none','ready'].includes(v.status)
+   ||!sameChainRequest(v.parent_request,q)||v.parent_receipt_id!==receipt)throw normalResumeError('next_invalid');
+  if(v.status==='none'){
+   if(['parent_work_id','child_work_id','child_kind','source_window_id','child_request'].some(k=>v[k]!==null))throw normalResumeError('next_invalid');
+  }else if(!UUID.test(v.parent_work_id||'')||work!==null&&v.parent_work_id!==work
+   ||!UUID.test(v.child_work_id||'')||v.child_work_id===v.parent_work_id||v.child_kind!=='narration'||!UUID.test(v.source_window_id||'')
+   ||!sameChainRequest(v.child_request,v.child_request)||v.child_request.master_session_id!==q.master_session_id
+   ||v.child_request.event_id===q.event_id||v.child_request.request_key===q.request_key)throw normalResumeError('next_invalid');
+  return Object.freeze(clone(v));
+ }
+ function normalChildRecord(r,h){
+  const q=r.request??(r.selector?.kind==='request'?r.selector.request:null)??(r.parent?.body?.schema_version==='mission-generic-request/1'?r.parent.body:null);
+  return !r.busy&&r.user===h.user&&r.session===h.session&&(r.work===null||r.work===h.next.child_work_id)
+   &&sameChainRequest(q,h.next.child_request)&&(!r.workKind||r.workKind==='narration')
+   &&(!r.proof||r.proof.state==='ready'); // Known claimed/authorized/provider/uncertain/terminal proof is observation only.
+ }
+ function normalHandoffCurrent(state,t,h){
+  if(!h||!normalReadyProofs.has(h)||!manualLaneCurrent(h.lane)||!asyncCurrent(t)||state!==roomState||state!==h.room
+   ||h.user!==t.user||h.scope!==t.scope||h.epoch!==t.epoch||h.session!==state.session_id
+   ||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||state.review_required===true||abortBlocked(h.session))return null;
+  const p=processingFor(state),r=h.record;
+  if(!p.valid||p.value?.state!=='ready'||p.value.finalized_at!==null||p.value.work_id!==h.next.child_work_id
+   ||!sameChainRequest(p.value.request,h.next.child_request)||!(Array.from(asyncWorks.values()).includes(r)
+    ||h.hint&&r.journalKey===h.hint.key&&JSON.stringify(readJournal(h.hint.key,t.user,h.session))===h.hint.snapshot)
+   ||r.busy||r.user!==t.user||r.session!==h.session||r.work!==h.next.parent_work_id
+   ||!sameChainRequest(r.request,h.next.parent_request)||h.owned.status!=='owned'||h.owned.kind!=='director'||h.owned.state!=='completed'
+   ||h.owned.receipt_id!==h.next.parent_receipt_id||!SHA.test(h.owned.result_sha256||''))return null;
+  return h;
+ }
+ function normalParentRecord(r,h){return !!h&&!r.busy&&r.user===h.user&&r.session===h.session&&r.work===h.next.parent_work_id&&sameChainRequest(r.request,h.next.parent_request);}
+ function normalAttempt(a,h){
+  return !!h&&!a.inFlight&&a.user===h.user&&a.session===h.session
+   &&(a===h.record.parent||a.work===h.next.child_work_id&&sameChainRequest(a.body,h.next.child_request)&&['pending','waiting','uncertain'].includes(a.outcome));
+ }
+ function normalCandidates(state,t){
+  const p=processingFor(state);if(!p.valid||p.value?.state!=='ready')return [];
+  const child={user:t.user,session:state.session_id,next:{child_work_id:p.value.work_id,child_request:p.value.request}};
+  const active=[...asyncWorks.values()].filter(r=>r.user===t.user&&r.session===state.session_id&&!r.inactive&&!r.busy&&!r.parent?.inFlight
+   &&(r.accepted||r.journalKey)&&!normalChildRecord(r,child)&&(!r.workKind||r.workKind==='director')
+   &&(r.selector??selectorFor(r.request)??selectorFor(r.parent?.body)));
+  if(active.length)return active;
+  // A completed transport journal is a read selector only. Never reopen it or infer parenthood from time.
+  const prefix=journalPrefix(t.user,state.session_id),hints=[];let count=0,childStarted=Infinity;
+  for(let i=0;i<localStorage.length;i++){
+   const key=localStorage.key(i);if(!key?.startsWith(prefix))continue;if(++count>128)throw normalResumeError('parent_ambiguous');
+   const document=readJournal(key,t.user,state.session_id),phase=journalPhase(document);if(!phase)continue;
+   if(phase.selector.kind==='request'&&sameChainRequest(phase.selector.request,p.value.request)){childStarted=Math.min(childStarted,phase.started);continue;}
+   if(phase.done)hints.push({key,document,phase});
+  }
+  const prior=hints.filter(h=>h.phase.started<=childStarted).sort((a,b)=>b.phase.started-a.phase.started);
+  if(!prior.length)return [];if(prior.length>1&&prior[0].phase.started===prior[1].phase.started)throw normalResumeError('parent_ambiguous');
+  const h=prior[0],selector=clone(h.phase.selector),body=selector.kind==='request'?clone(selector.request):selector.kind==='native_tick'
+   ?{schema_version:'mission-generic-tick/1',master_session_id:state.session_id,request_key:selector.request_key}
+   :{schema_version:'mission-generic-staff-tick/1',master_session_id:state.session_id,source_revision:selector.source_revision};
+  return [{user:t.user,session:state.session_id,work:null,request:null,parent:{user:t.user,session:state.session_id,work:null,body,inFlight:false},
+   selector,journalKey:h.key,busy:false,accepted:false,workKind:null,historicalHint:{key:h.key,snapshot:JSON.stringify(h.document)}}];
+ }
+ function ownedNormalChild(v,work,q){
+  if(!nativeExact(v,recoveryKeys)||v.schema_version!=='mission-generic-async-recovery/1'||!['owned','none'].includes(v.status)
+   ||v.retry!==false||v.provider_retry_allowed!==false)throw normalResumeError('child_changed');
+  if(v.status==='none'){
+   if(['request','work_id','state','receipt_id','result_sha256','kind'].some(k=>v[k]!==null))throw normalResumeError('child_changed');
+   return Object.freeze(clone(v)); // UNKNOWN, not NOT_SENT; only the independent next READY proof can authorize same-identity delivery.
+  }
+  if(v.work_id!==work||!sameChainRequest(v.request,q)||v.kind!=='narration'||v.state!=='ready')throw normalResumeError('child_observed_active');
+  asyncStatusProof({schema_version:'mission-generic-async-status-response/1',work_id:v.work_id,master_session_id:q.master_session_id,
+   event_id:q.event_id,request_key:q.request_key,revision:q.expected_revision,state:v.state,receipt_id:v.receipt_id,result_sha256:v.result_sha256,
+   retry:false,provider_retry_allowed:false},{work,request:q});
+  return Object.freeze(clone(v));
+ }
+ async function normalManualRead(body,r,t){
+  const token={record:r,scope:t,spent:false};manualObserverReadTokens.add(token);return asyncRead(body,r,token);
+ }
+ async function staffResumeNormalWriter(host,lane=null,target=null){
+  if(lane===null){
+   const p=processingFor(roomState),t=syncRoom(host);
+   if(!p.valid||p.value?.state!=='ready'||p.value.finalized_at!==null||!sameChainRequest(p.value.request,p.value.request))return;
+   const capture=Object.freeze({session:roomState.session_id,work:p.value.work_id,request:Object.freeze(clone(p.value.request))});
+   return queueManualRoomAction(host,'normal_writer',l=>staffResumeNormalWriter(host,l,capture));
+  }
+  const t=lane.t,token={session:target.session,work:target.work};let record=null;
+  if(!manualLaneCurrent(lane)||lane.session!==target.session||staffResumeRead)throw normalResumeError('context_changed');
+  staffResumeRead=token;retainedResumeError=null;
+  try{
+   await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane:lane});
+   if(!manualLaneCurrent(lane)||staffResumeRead!==token||roomError)throw normalResumeError('context_changed');
+   let p=processingFor(roomState);
+   if(!p.valid||p.value?.work_id!==target.work||p.value.state!=='ready'||p.value.finalized_at!==null||!sameChainRequest(p.value.request,target.request))throw normalResumeError('child_changed');
+   const candidates=normalCandidates(roomState,t);if(candidates.length!==1)throw normalResumeError(candidates.length?'parent_ambiguous':'parent_missing');
+   record=candidates[0];record.busy=true;
+   const selector=record.selector??selectorFor(record.request)??selectorFor(record.parent?.body);
+   const owned=await normalManualRead({schema_version:'mission-generic-async-recover/1',master_session_id:target.session,selector:clone(selector)},record,t);
+   if(!manualLaneCurrent(lane)||staffResumeRead!==token)throw normalResumeError('context_changed');
+   if(!nativeExact(owned,recoveryKeys)||owned.schema_version!=='mission-generic-async-recovery/1'||owned.status!=='owned'
+    ||owned.kind!=='director'||owned.state!=='completed'||owned.retry!==false||owned.provider_retry_allowed!==false
+    ||!UUID.test(owned.receipt_id||'')||!SHA.test(owned.result_sha256||''))throw normalResumeError('parent_unconfirmed');
+   recoveryProof(owned,record); // Bind the owned canonical parent; never mark its journal, chainDone or publication complete.
+   const next=directorNextProof(await normalManualRead({schema_version:'mission-director-narration-read/1',parent_request:clone(owned.request),parent_receipt_id:owned.receipt_id},record,t),owned.request,owned.receipt_id,owned.work_id);
+   if(!manualLaneCurrent(lane)||staffResumeRead!==token)throw normalResumeError('context_changed');
+   if(next.status!=='ready')throw normalResumeError('next_none');
+   if(next.child_work_id!==target.work||!sameChainRequest(next.child_request,target.request))throw normalResumeError('child_changed');
+   const childRead={user:t.user,session:target.session,work:target.work,request:target.request,selector:{kind:'request',request:target.request}};
+   const child=ownedNormalChild(await normalManualRead({schema_version:'mission-generic-async-recover/1',master_session_id:target.session,selector:clone(childRead.selector)},childRead,t),target.work,target.request);
+   if(!manualLaneCurrent(lane)||staffResumeRead!==token)throw normalResumeError('context_changed');
+   await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane:lane});
+   if(!manualLaneCurrent(lane)||staffResumeRead!==token||roomError)throw normalResumeError('context_changed');
+   record.busy=false;
+   const h={user:t.user,scope:t.scope,epoch:t.epoch,session:target.session,lane,room:roomState,record,hint:record.historicalHint??null,owned:Object.freeze(clone(owned)),next,child};normalReadyProofs.add(h);
+   if(!normalHandoffCurrent(roomState,t,h))throw normalResumeError('child_changed');
+   await maybeDispatch(roomState,t,true,false,null,lane,null,h);
+   retainedResumeError=null;
+  }catch(error){
+   if(manualLaneCurrent(lane)&&staffResumeRead===token){
+    const raw=typeof error?.message==='string'?error.message:'',code=raw.startsWith('normal_writer_resume_')&&normalResumeCodes.has(raw.slice(21))?raw:'normal_writer_resume_invoke_unconfirmed';
+    retainedResumeError=Object.freeze({user:t.user,session:target.session,work:target.work,code});roomError='Ripresa della stessa richiesta non confermata ('+code+'). Journal, ricevute e contatori restano conservati.';paintRoom(host,roomState);
+   }
+  }finally{if(record)record.busy=false;if(staffResumeRead===token)staffResumeRead=null;if(manualLaneCurrent(lane)&&roomState)paintRoom(host,roomState);}
+ }
  async function staffResumeReady(host){
   if(roomState?.retained_director_handoff?.child_work_id===processingFor(roomState).value?.work_id)return staffResumeRetainedWriter(host);
+  const normalScope=syncRoom(host);if(normalCandidates(roomState,normalScope).length)return staffResumeNormalWriter(host);
   const t=syncRoom(host),old=roomState,oldClaim=old&&processingFor(old).value,oldRole=old&&roleProgress(old);
   if(!roomCurrent(t)||staffResumeRead||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!old?.can_tick||old?.review_required===true
    ||oldClaim?.state!=='ready'||oldClaim.finalized_at!==null||!oldRole
@@ -1657,15 +1782,21 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    }
   }finally{if(staffResumeRead===token)staffResumeRead=null;if(manualLaneCurrent(lane)&&roomState)paintRoom(host,roomState);}
  }
- function asyncBlocked(state){
+ function asyncBlocked(state,normal=null){
   const h=directorHandoffFor(state),retained=retainedWriterHandoff(state);
+  const normalProof=normalHandoffCurrent(state,normal?.lane?.t??{},normal);
   return [...asyncWorks.values()].some(r=>r.user===cacheUser&&r.session===state.session_id
-   &&!r.inactive&&!directorHandoffRecord(r,h)&&!retainedHandoffRecord(r,retained)&&(r.accepted||r.journalKey)&&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone));
+   &&!r.inactive&&!directorHandoffRecord(r,h)&&!retainedHandoffRecord(r,retained)&&!normalParentRecord(r,normalProof)&&!(normalProof&&normalChildRecord(r,normalProof))&&(r.accepted||r.journalKey)&&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone));
  }
  function asyncNotice(state){
   const h=directorHandoffFor(state),retained=retainedWriterHandoff(state);
   const records=[...asyncWorks.values()].reverse().filter(r=>r.user===cacheUser&&r.session===state.session_id&&!directorHandoffRecord(r,h)&&!retainedHandoffRecord(r,retained));
   // An older pending observation can suspend this session too; never hide its blocker behind the current publication.
+  const server=processingFor(state);
+  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true
+   &&server.valid&&['claimed','authorized','provider_started'].includes(server.value?.state)&&records.some(r=>!r.inactive&&r.accepted
+   &&r.work===server.value.work_id&&sameChainRequest(r.request,server.value.request)))
+   return server.value.state==='provider_started'?'Il server attesta la generazione in corso della stessa richiesta. Le verifiche locali precedenti restano conservate; pubblicazione ed esito devono ancora essere confermati.':'Il server attesta la preparazione della stessa richiesta. Le verifiche locali precedenti restano conservate; pubblicazione ed esito devono ancora essere confermati.';
   const r=records.find(r=>!r.inactive&&(r.accepted||r.journalKey)
    &&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone))
    ||records.find(r=>!r.inactive&&(!state.processing||state.processing.work_id===r.work));
@@ -1999,8 +2130,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   return true; // Authenticated synchronous acknowledgement, no public completion or generated Fato.
  }
  async function invokeAsyncOnce(parent,t){
+  if(parent.normalResume&&!normalHandoffCurrent(roomState,t,parent.normalResume))throw normalResumeError('context_changed');
   if(parent.retainedResume&&!sameRetainedHandoff(retainedWriterHandoff(roomState,t),parent.retainedResume))throw retainedResumeReject('handoff_changed');
   const selector=selectorFor(parent.body),driver=driverFor(roomState);
+  if(parent.normalResume&&(!selector||selector.kind!=='request'||!driver.optedIn||!driver.valid))throw normalResumeError('context_changed');
   if(parent.retainedResume&&(!selector||selector.kind!=='request'||!driver.optedIn||!driver.valid))throw retainedResumeReject('context_changed');
   // This source delta targets the opted-in Staff driver, not unrelated synchronous consumers.
   if(!(selector&&isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc.is_test===true&&driver.optedIn&&driver.valid
@@ -2041,6 +2174,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
      ||!sameRetainedHandoff(retainedWriterHandoff(roomState,t),parent.retainedResume)||asyncBlocked(roomState))throw retainedResumeReject('mutex_changed');
     if(!sameChainRequest(parent.body,parent.retainedResume.child_request)||parent.work!==parent.retainedResume.child_work_id)throw retainedResumeReject('handoff_changed');
    }
+   let normalReplay=false;
+   if(parent.normalResume){
+    const h=normalHandoffCurrent(roomState,t,parent.normalResume);
+    if(!h||attempts.get(parent.normalAttemptKey)!==parent||asyncBlocked(roomState,h)
+     ||!sameChainRequest(parent.body,h.next.child_request)||parent.work!==h.next.child_work_id)throw normalResumeError('mutex_changed');
+    normalReplay=true;
+   }
    const old=readJournal(key,t.user,parent.session);
    if(parent.retainedResume&&old){if(!journalPhase(old).done)attachJournal(old,key);throw retainedResumeReject('existing_child_journal');}
    let combatReplay=false;
@@ -2053,7 +2193,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    }
    let j;
    if(old){
-    if(!combatReplay&&!(parent.nativeReplay&&nativeReplayBinding(roomState,t,parent.nativeReplay,parent)===parent)&&(!parent.sameJournalReplay||!noWorkRelease||!sameNoWorkReplay(roomState,t,key))){
+    if(!normalReplay&&!combatReplay&&!(parent.nativeReplay&&nativeReplayBinding(roomState,t,parent.nativeReplay,parent)===parent)&&(!parent.sameJournalReplay||!noWorkRelease||!sameNoWorkReplay(roomState,t,key))){
      if(!journalPhase(old).done)attachJournal(old,key);throw Error('async_already_submitted');
     }
     j=old;if(noWorkRelease)appendNoWorkTransportAudit(parent,key,noWorkRelease);
@@ -2083,6 +2223,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(selector.kind==='native_tick'){const r=asyncWorks.get('journal:'+key);if(!r)throw Error('async_native_journal_missing');r.parent=parent;parent.asyncKey='journal:'+key;}
    const response=await client.functions.invoke('mission_generic_ai',{body:clone(parent.body)});
    const delivery=response.data?.delivery??response.data;
+   if(parent.normalResume&&!response.error&&(!nativeExact(delivery,asyncPendingKeys)||delivery.schema_version!=='mission-generic-pending/1'
+    ||delivery.status!==202||delivery.code!=='MISSION_EVENT_PENDING'||delivery.work_id!==parent.normalResume.next.child_work_id
+    ||delivery.master_session_id!==parent.session||delivery.event_id!==parent.body.event_id||delivery.request_key!==parent.body.request_key
+    ||delivery.revision!==parent.body.expected_revision||delivery.retry!==false||delivery.provider_retry_allowed!==false))throw normalResumeError('ack_unconfirmed');
    if(parent.retainedResume&&!response.error&&(!nativeExact(delivery,asyncPendingKeys)||delivery.schema_version!=='mission-generic-pending/1'
     ||delivery.status!==202||delivery.code!=='MISSION_EVENT_PENDING'||delivery.work_id!==parent.retainedResume.child_work_id
     ||delivery.master_session_id!==parent.session||delivery.event_id!==parent.body.event_id||delivery.request_key!==parent.body.request_key
@@ -2138,7 +2282,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   finally{clearTimeout(timer);}
  }
  async function asyncRead(body,r,manualToken=null){
-  if(manualToken!==null&&!['mission-generic-async-recover/1','mission-generic-async-status/1'].includes(body.schema_version))throw Error('manual_observer_read_schema');
+  if(manualToken!==null&&!['mission-generic-async-recover/1','mission-generic-async-status/1','mission-director-narration-read/1'].includes(body.schema_version))throw Error('manual_observer_read_schema');
   return boundedAsyncRead(r,async signal=>{
    let response;try{response=await client.functions.invoke('mission_generic_ai',{body,signal});}
    catch(e){throw Object.assign(Error('async_read_transport'),{asyncRetryable:transientReadCause(e)});}
@@ -2598,10 +2742,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!roomCurrent(t))return 'context_changed';
   if(abortBlocked(parent.session))return 'abort_pending';
   if(read.error)return 'server_proof_unconfirmed';
-  const proof=read.data,fields=['schema_version','status','parent_request','parent_receipt_id','parent_work_id','child_work_id','child_kind','source_window_id','child_request'];
-  if(!proof||Object.keys(proof).length!==fields.length||!fields.every(k=>Object.hasOwn(proof,k))
-   ||proof.schema_version!=='mission-director-narration-chain/1'||!['none','ready'].includes(proof.status)
-   ||!sameChainRequest(proof.parent_request,parentRequest)||proof.parent_receipt_id!==parentReceipt)return 'server_proof_invalid';
+  let proof;try{proof=directorNextProof(read.data,parentRequest,parentReceipt,completedProof?record.work:null);}catch{return 'server_proof_invalid';}
   if(proof.status==='none'){
    if(['parent_work_id','child_work_id','child_kind','source_window_id','child_request'].some(k=>proof[k]!==null))return 'server_proof_invalid';
    return 'server_proof_none';
@@ -2647,17 +2788,19 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   // No recursion, retry or third work. The caller's normal readback displays the child's authoritative result.
   return a.outcome==='confirmed'?'child_confirmed':a.outcome==='failed'?'child_failed':'child_unconfirmed';
  }
- function maybeDispatch(state,t,reclaim=false,explicitNoWork=false,combatResume=null,manualLane=null,retainedResume=null){
+ function maybeDispatch(state,t,reclaim=false,explicitNoWork=false,combatResume=null,manualLane=null,retainedResume=null,normalResume=null){
+  const normalProof=normalHandoffCurrent(state,t,normalResume),normalExplicit=!!normalResume;
+  if(normalExplicit&&!normalProof)throw normalResumeError('context_changed');
   const retainedProjection=retainedWriterHandoffShapeOnly(state),retained=retainedWriterHandoff(state,t),retainedExplicit=!!retainedResume;
-  const refuse=code=>{if(retainedExplicit)throw retainedResumeReject(code);};
+  const refuse=code=>{if(normalExplicit)throw normalResumeError(code);if(retainedExplicit)throw retainedResumeReject(code);};
   if(retainedExplicit&&(!manualLaneCurrent(manualLane)||!sameRetainedHandoff(retained,retainedResume))){refuse('handoff_changed');return;}
   if(manualLaneBlocks(manualLane)||manualObserverVerification){refuse('context_changed');return;}
   if(retainedProjection?.child_work_id===processingFor(state).value?.work_id&&!retainedExplicit)return; // Read/reload cannot dispatch an adopted Writer.
-  if(staffTickAutoStop(state,t)&&!retainedExplicit)return;
+  if(staffTickAutoStop(state,t)&&!retainedExplicit&&!normalExplicit)return; // Fresh tick stop remains; this path only delivers the already-proved child.
   if(hasOpeningResume(state)||hasOpeningClaimResume(state)){refuse('other_observer');return;} // A proof, even malformed, cannot become an automatic resend.
   const sameCombat=combatResume&&combatResumeBinding(state,t);
   if(combatResume&&(!sameCombat||sameCombat.work!==combatResume.work||!sameChainRequest(sameCombat.request,combatResume.request)||sameCombat.tuple!==combatResume.tuple))return;
-  if(asyncBlocked(state)&&!sameCombat){refuse('other_observer');return;} // Unrelated observers always block; only the exact unknown transport may be replayed explicitly.
+  if(asyncBlocked(state,normalProof)&&!sameCombat){refuse('other_observer');return;} // Unrelated observers always block; only the exact unknown transport may be replayed explicitly.
   if(hasCountProjection(state)){refuse('other_observer');return;} // Only the explicit technical status consumer may handle this proof.
   const parsed=processingFor(state),p=parsed.value;
   const combatRecovery=combatNarrationRecovery(state),combatReady=!!(combatRecovery?.owned_by_me&&combatRecovery.can_resume);
@@ -2666,14 +2809,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const recoveredReady=p?.state==='ready'&&recoveredWriters.has(recoveredWriterKey(t.user,state.session_id,p.work_id));
   if(recoveredReady&&!reclaim)return;
   if(!roomCurrent(t)||!parsed.valid||state.review_required===true&&!claimedVerification
-   ||!state.can_tick&&!claimedVerification&&!(reclaim&&combatReady)&&!retainedExplicit||choiceRequests.has(choiceKey(state))||liveAttempt(state)||abortBlocked(state.session_id)){refuse('context_changed');return;}
-  if(unresolvedTickForSession(state)&&!claimedVerification){refuse('other_observer');return;} // A known claimed request may be reconciled; no new tick is permitted.
+   ||!state.can_tick&&!claimedVerification&&!(reclaim&&combatReady)&&!retainedExplicit&&!normalExplicit||choiceRequests.has(choiceKey(state))||liveAttempt(state)||abortBlocked(state.session_id)){refuse('context_changed');return;}
+  if(unresolvedTickForSession(state)&&!claimedVerification&&!(normalProof&&normalAttempt(unresolvedTickForSession(state),normalProof))){refuse('other_observer');return;} // A known claimed request may be reconciled; no new tick is permitted.
   const role=roleProgress(state);
   const staffAcademy=isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc?.is_test===true&&academyFlow(state)!==null;
   const staffCombat=staffAcademy&&academyFlow(state)==='combat_started'&&UUID.test(state.flow_publication_id||'');
-  if(staffAcademy&&!role&&!combatReady&&!retainedExplicit)return; // Never fall back to a browser UUID when the Staff projection is missing.
-  if(role&&!staffCombat&&!claimedVerification&&!combatReady&&!retainedExplicit&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started'||recoveredReady:role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
-  if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(claimedVerification||p?.state==='uncertain'||p?.state==='ready'&&(role?.reason==='recoverable_not_started'||recoveredReady||combatReady||retainedExplicit)&&p.finalized_at===null))){refuse('context_changed');return;}
+  if(staffAcademy&&!role&&!combatReady&&!retainedExplicit&&!normalExplicit)return; // Never fall back to a browser UUID when the Staff projection is missing.
+  if(role&&!staffCombat&&!claimedVerification&&!combatReady&&!retainedExplicit&&!normalExplicit&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started'||recoveredReady:role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
+  if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(claimedVerification||p?.state==='uncertain'||p?.state==='ready'&&(role?.reason==='recoverable_not_started'||recoveredReady||combatReady||retainedExplicit||normalExplicit)&&p.finalized_at===null))){refuse('context_changed');return;}
   if(p&&['authorized','provider_started'].includes(p.state)||p?.state==='failed'&&!(staffAcademy&&role?.reason==='ready_to_evaluate')
    ||p&&['claimed','uncertain'].includes(p.state)&&!reclaim)return;
   const staffRole=staffAcademyRole(state,t.loc),staffTick=!reclaim&&!staffCombat&&staffRole?.reason==='ready_to_evaluate'&&(!p||['completed','failed'].includes(p.state));
@@ -2685,7 +2828,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const noWorkRecovery=staffTick&&explicitNoWork&&tickProjection.valid&&tickProjection.value?.state==='no_work_released'?tickProjection.value:null;
   const key=p&&(p.state==='ready'||reclaim)?'work:'+p.work_id+':'+p.revision+(reclaim?(claimedVerification?':reconcile-claimed':p.state==='ready'?':reclaim-ready':':reclaim'):'')
    :'tick:'+state.progress_key+(recoveryKey?':recovery:'+recoveryKey+(noWorkRecovery?':'+noWorkRecovery.retry_request_key:''):'');
-  const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey)&&!sameCombat){refuse('other_attempt');return;}
+  const storeKey=JSON.stringify([t.user,state.session_id,key]);if(attempts.has(storeKey)&&!sameCombat&&!(normalProof&&normalAttempt(attempts.get(storeKey),normalProof))){refuse('other_attempt');return;}
   const body=p&&(p.state==='ready'||reclaim)?clone(p.request):staffTick
    ?{schema_version:'mission-generic-staff-tick/1',master_session_id:state.session_id,source_revision:staffRole.revision}
    :{schema_version:'mission-generic-tick/1',master_session_id:state.session_id,request_key:id()};
@@ -2694,12 +2837,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    directorRecoveryHandoff:directorRecoveryHandoff?clone(directorRecoveryHandoff):null,staffTickState:null,tickRecoveryKey:recoveryKey,noWorkRecovery:noWorkRecovery?clone(noWorkRecovery):null,body:Object.freeze(body),inFlight:true,outcome:'pending'};
   if(sameCombat){a.combatResume=Object.freeze(clone(sameCombat));a.priorAttempt=attempts.get(storeKey)??null;}
   if(retainedExplicit){a.retainedResume=Object.freeze(clone(retained));a.retainedLane=manualLane;a.retainedAttemptKey=storeKey;}
+  if(normalExplicit){a.normalResume=normalProof;a.normalAttemptKey=storeKey;a.priorAttempt=attempts.get(storeKey)??null;}
   attempts.set(storeKey,a);
-  if(!retainedExplicit)paintRoom(roomHost,state);
+  if(!retainedExplicit&&!normalExplicit)paintRoom(roomHost,state);
   // Detached from the read lock: polling continues while the provider works.
   const dispatched=(async()=>{
    try{
-    if(retainedExplicit)paintRoom(roomHost,state);
+    if(retainedExplicit||normalExplicit)paintRoom(roomHost,state);
     const {data,error}=await invokeAsyncOnce(a,t);
     if(error)throw error;
     if(staffTick){
@@ -2721,10 +2865,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
      &&(state.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'||driverFor(state).optedIn&&driverFor(state).valid))
      {chainFeedback.set(JSON.stringify([t.user,state.session_id]),{reason:chainReason,target:a.chainTarget??chainTarget(a,data?.dispatch??a.body)});
      console.info('regia_chain_diagnostic',chainReason);}
-   }catch(error){await preserveStaffTickStop(error,a,t);a.outcome='uncertain';if(retainedExplicit)throw error;}
+   }catch(error){await preserveStaffTickStop(error,a,t);a.outcome='uncertain';if(retainedExplicit||normalExplicit)throw error;}
    finally{a.inFlight=false;if(roomCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane});}}
   })();
-  if(retainedExplicit)return dispatched;
+  if(retainedExplicit||normalExplicit)return dispatched;
   void dispatched.catch(()=>{});
  }
  async function updateRoom(host,{manual=false,verifyOnly=false,readOnlyObservers=false,manualLane=null}={}){

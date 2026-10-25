@@ -6234,7 +6234,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         slot.pending=token.promise;return token.promise;
       }
       function loadWho(){
-        if(!sb||!cur) return;
+        if(!sb||!cur||!roomEntryConfirmed()) return;
         var locationId=cur.id;
         return backgroundRead('who',{location:locationId,minutes:8},function(){return sb.rpc('who_here',{p_location:locationId,p_minutes:8});},function(r){
           if(!Array.isArray(r.data))throw Error('Presenze non disponibili.');
@@ -6268,7 +6268,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         toast(msg||'Non puoi entrare in questo luogo');
         leaveRoom();
       }
-      function entraLuogo(ok){
+      function entraLuogoLegacy(ok){
         if(!sb||!cur) return;
         var room=cur.id,principal=myId,epoch=UI_POSTREVIEW_STAFF_EPOCH;
         sb.rpc('enter_location',{p_location:room}).then(function(r){
@@ -6277,6 +6277,70 @@ window.TUSOrdinary={attachOrdinaryLand};
           uiPostreviewStaffAccept(room,principal,epoch);
           if(typeof ok==='function') ok();
         }, function(e){ if(epoch!==UI_POSTREVIEW_STAFF_EPOCH||!cur||cur.id!==room||myId!==principal||ordinaryAuthId!==principal)return;stanzaNegata(e&&e.message); });
+      }
+      // Entry ACK is scoped to this view only; it is never server gameplay authority.
+      var ROOM_ENTRY_ACK=null,ROOM_ENTRY_PENDING=null,ROOM_ENTRY_RETRY=null;
+      function roomEntryStaffScope(){return !!(cur&&cur.id===UI_POSTREVIEW_STAFF_ROOM&&cur.is_test===true);}
+      function roomEntryCurrent(scope){return !!(roomEntryStaffScope()&&scope&&cur&&cur.id===scope.room&&myId===scope.principal&&ordinaryAuthId===scope.principal&&UI_POSTREVIEW_STAFF_EPOCH===scope.epoch&&!ordinarySigningOut);}
+      function roomEntryConfirmed(){return !roomEntryStaffScope()||!!(ROOM_ENTRY_ACK&&roomEntryCurrent(ROOM_ENTRY_ACK));}
+      function roomEntryGate(waiting){
+        if(!roomView)return;
+        Array.prototype.forEach.call(roomView.children,function(node){
+          if(node.id==='room-entry-status'||node.classList.contains('room-top'))return;
+          if(waiting){if(!node.hasAttribute('data-room-entry-inert')){node.setAttribute('data-room-entry-inert',node.inert?'1':'0');node.inert=true;}}
+          else if(node.hasAttribute('data-room-entry-inert')){node.inert=node.getAttribute('data-room-entry-inert')==='1';node.removeAttribute('data-room-entry-inert');}
+        });
+      }
+      function roomEntryNotice(record){
+        if(!roomView||!record||!roomEntryCurrent(record.scope))return;
+        var row=document.getElementById('room-entry-status');
+        if(!row){row=document.createElement('section');row.id='room-entry-status';row.setAttribute('role','status');row.setAttribute('aria-live','polite');row.style.cssText='margin:8px 0;padding:12px;border:1px solid currentColor;border-radius:8px';roomView.insertBefore(row,roomView.children[1]||null);}
+        row.replaceChildren();var text=document.createElement('p');text.textContent=record.initial?'Ingresso non confermato. Verifica di nuovo questo stesso luogo.':'L’ultimo aggiornamento della presenza non è confermato. La scena e le richieste precedenti restano conservate.';row.appendChild(text);
+        var button=document.createElement('button');button.id='room-entry-retry';button.type='button';button.className='tb-btn';button.textContent=ROOM_ENTRY_PENDING?'Verifica in corso…':record.initial?'Riprova ingresso':'Riconferma presenza';button.disabled=!!ROOM_ENTRY_PENDING;
+        button.addEventListener('click',function(){if(ROOM_ENTRY_RETRY!==record||!roomEntryCurrent(record.scope)||ROOM_ENTRY_PENDING)return;entraLuogo(record.ok);});row.appendChild(button);
+      }
+      function roomEntryReset(){ROOM_ENTRY_ACK=null;ROOM_ENTRY_RETRY=null;roomEntryGate(false);var row=document.getElementById('room-entry-status');if(row)row.remove();}
+      function roomEntryDenied(error,status){
+        var code=String(error&&error.code||''),message=String(error&&error.message||'').trim();
+        if(code==='57014')return false;
+        if(code==='42501'||status===401||status===403)return true;
+        return code==='P0001'&&['Sala riservata al collaudo Esame Genin di Riuji','Devi prima creare il tuo personaggio.','La Test Room è riservata allo staff.'].indexOf(message)!==-1;
+      }
+      if(roomView)roomView.addEventListener('click',function(event){
+        if(!roomEntryStaffScope()||roomEntryConfirmed())return;
+        var target=event.target;if(target&&target.closest&&target.closest('#room-back,#room-entry-retry'))return;
+        event.preventDefault();event.stopImmediatePropagation();toast('Attendi la conferma dell’ingresso o usa Riprova ingresso.');
+      },true);
+      function entraLuogo(ok){
+        if(!roomEntryStaffScope())return entraLuogoLegacy(ok);
+        if(!sb||!cur)return;
+        var scope={room:cur.id,principal:myId,epoch:UI_POSTREVIEW_STAFF_EPOCH},initial=!roomEntryConfirmed();
+        if(ROOM_ENTRY_PENDING&&roomEntryCurrent(ROOM_ENTRY_PENDING.scope))return ROOM_ENTRY_PENDING.promise;
+        var operation={scope:scope,promise:null};ROOM_ENTRY_PENDING=operation;
+        if(initial){ROOM_ENTRY_RETRY={scope:scope,ok:ok,initial:true};roomEntryGate(true);roomEntryNotice(ROOM_ENTRY_RETRY);syncSendBtn();}
+        else if(ROOM_ENTRY_RETRY)roomEntryNotice(ROOM_ENTRY_RETRY);
+        function failed(error,status){
+          if(ROOM_ENTRY_PENDING!==operation||!roomEntryCurrent(scope))return;
+          if(roomEntryDenied(error,status)){ROOM_ENTRY_ACK=null;ROOM_ENTRY_RETRY=null;roomEntryGate(false);stanzaNegata(error&&error.message);return;}
+          ROOM_ENTRY_RETRY={scope:scope,ok:ok,initial:initial};
+          if(initial)roomEntryGate(true);
+          roomEntryNotice(ROOM_ENTRY_RETRY);
+        }
+        operation.promise=Promise.resolve().then(function(){
+          if(ROOM_ENTRY_PENDING!==operation||!roomEntryCurrent(scope))return null;
+          return sb.rpc('enter_location',{p_location:scope.room});
+        }).then(function(r){
+          if(ROOM_ENTRY_PENDING!==operation||!roomEntryCurrent(scope))return;
+          if(!r||typeof r!=='object'||r.error||!Object.prototype.hasOwnProperty.call(r,'data')||(typeof r.status==='number'&&(r.status<200||r.status>=300))){failed(r&&r.error,r&&r.status);return;}
+          ROOM_ENTRY_ACK=scope;ROOM_ENTRY_RETRY=null;roomEntryGate(false);
+          var row=document.getElementById('room-entry-status');if(row)row.remove();
+          uiPostreviewStaffAccept(scope.room,scope.principal,scope.epoch);syncSendBtn();
+          if(typeof ok==='function')ok();
+        },function(e){failed(e,e&&e.status);}).finally(function(){
+          if(ROOM_ENTRY_PENDING!==operation)return;ROOM_ENTRY_PENDING=null;
+          if(ROOM_ENTRY_RETRY&&roomEntryCurrent(ROOM_ENTRY_RETRY.scope))roomEntryNotice(ROOM_ENTRY_RETRY);
+        });
+        return operation.promise;
       }
       /* ORDINARY-CONSUMER-001: innesto offline, ingresso non disponibile finché manca eligibility server. */
 
@@ -6420,7 +6484,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         });
         ORDINARY.refresh();
       }
-      function refreshRoom(){ if(!cur) return; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); ordinaryRefresh(); }
+      function refreshRoom(){ if(!cur||!roomEntryConfirmed()) return; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); ordinaryRefresh(); }
 
       /* ---- MASTER-COMBAT-V2-LAND-UI-021: regia multi-attore ---- */
       var MV2={data:null,loading:false,setup:null,setupOpen:false,pngDraft:[],options:{},busy:false,missingRpc:false,setupKind:null,serverSig:null,defenseDrafts:{},encounterDraft:null,scortaContext:false,scortaRoom:null,scortaScope:null,regia:null,regiaSignature:null,regiaDraft:'',regiaDirection:{turn_kind:'',actor_ids:[]}};
@@ -12394,6 +12458,7 @@ var nb028iTeardown=function(){};
         if(ov)ov.hidden=true;if(bk)bk.hidden=true;
       }
       function openRoom(l){
+        if(l&&l.id===UI_POSTREVIEW_STAFF_ROOM&&l.is_test===true){if(presencePoll){clearInterval(presencePoll);presencePoll=null;}roomEntryReset();}else if(roomEntryStaffScope())roomEntryReset();
         missionD100Reset();truReleaseInvalidate();
         closeRoomObjectBinding();
         if(ORDINARY)ORDINARY.invalidate();uiPostreviewStaffReset();MV2.readRequested=false;MV2.scortaContext=false;MV2.scortaRoom=null;MV2.scortaScope=null;mv2OvChiudi();cur=l; examHumanEnter(); showView('room');  restorePlace(l.id);
@@ -12415,7 +12480,7 @@ var nb028iTeardown=function(){};
           if(poll) clearInterval(poll); poll=setInterval(refreshRoom, 9000);
         });
       }
-      function leaveRoom(){ humanInlineReset();missionD100Reset();examHumanLeave(); truReleaseInvalidate(); closeRoomObjectBinding(); MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; uiPostreviewStaffReset();WHO=[];PRESENTI_IDS={};cur=null; CMB=null; mv2ClearPrepInputs();MV2.data=null; MV2.serverSig=null; MV2.regia=null; MV2.regiaSignature=null; MV2.regiaDraft=''; MV2.regiaDirection={turn_kind:'',actor_ids:[]}; MV2.scortaContext=false; MV2.scortaRoom=null; MV2.scortaScope=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
+      function leaveRoom(){ if(roomEntryStaffScope())roomEntryReset();humanInlineReset();missionD100Reset();examHumanLeave(); truReleaseInvalidate(); closeRoomObjectBinding(); MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; uiPostreviewStaffReset();WHO=[];PRESENTI_IDS={};cur=null; CMB=null; mv2ClearPrepInputs();MV2.data=null; MV2.serverSig=null; MV2.regia=null; MV2.regiaSignature=null; MV2.regiaDraft=''; MV2.regiaDirection={turn_kind:'',actor_ids:[]}; MV2.scortaContext=false; MV2.scortaRoom=null; MV2.scortaScope=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -12423,6 +12488,7 @@ var nb028iTeardown=function(){};
       window.addEventListener('pagehide', saveResume);
       var brandMap=document.getElementById('brand-map'); if(brandMap){ brandMap.addEventListener('click', function(){ leaveRoom(); }); }
       function send(after){
+        if(!roomEntryConfirmed()){toast('Ingresso non confermato: verifica prima lo stesso luogo.');return;}
         if(examHumanOwnsScene()&&!(toSel&&toSel.value)){toast('Usa il pannello Esame per le azioni della prova.');return;}
         var t=(input.value||'').replace(/\s+$/,'');
         var pIn=document.getElementById('png-input'); var pTxt=(myComp&&pIn)?(pIn.value||'').trim():'';
@@ -12938,6 +13004,7 @@ var nb028iTeardown=function(){};
         return turnoLen()>=500;
       }
       function syncSendBtn(){
+        if(cur&&!roomEntryConfirmed()){for(var entryButtonId of ['msg-send','ed-send']){var entryButton=document.getElementById(entryButtonId);if(entryButton){entryButton.disabled=true;entryButton.title='Attendi la conferma dell’ingresso';}}return;}
         esLegacyDisposeStale();
         if(window.TRU_RELEASE002?.ownsCurrent()){
           var text=input?.value||'',gate=window.TRU_RELEASE002.companionGate?.()||{required:false,mechanicsReady:false},pi=document.getElementById('png-input'),dogReady=!gate.required||!!(myComp&&myComp.kind==='cane_ninja'&&pi&&(pi.value||'').trim()),ready=window.TRU_RELEASE002.canSend()&&dogReady&&!!text.trim()&&[...text].length<=2500,tip=ready?'Invia descrizione e scelta nella prova privata':(gate.required&&!dogReady?'Scrivi anche l’azione del ninken':'Completa e conferma la scelta della prova; descrizione da 1 a 2500 caratteri');
@@ -14769,7 +14836,7 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null,missionGenericChatKey=null;
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=native-continuity-acd0e8d0bd8e2c64').then(function(mod){
+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=native-continuity-29103b8424a636ce').then(function(mod){
           MISSION_GENERIC_UI=mod.createMissionUI({client:sb,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             openCombat:function(){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')void ORDINARY.open('ordinary');else toast('Pannello Scontro non disponibile in questa scena.');},
@@ -14778,7 +14845,7 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
         }).catch(function(e){MISSION_GENERIC_LOAD=null;throw e;});
         return MISSION_GENERIC_LOAD;
       }
-      function missionGenericRoomRefresh(){if(!loggedIn||!sb||!cur||(cur.is_exam_room&&!cur.is_test))return;
+      function missionGenericRoomRefresh(){if(!loggedIn||!sb||!cur||!roomEntryConfirmed()||(cur.is_exam_room&&!cur.is_test))return;
         var host=document.getElementById('mission-generic-room');
         missionGenericUI().then(async function(ui){
           await ui.updateRoom(host);
