@@ -854,7 +854,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-022');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-023');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -1142,11 +1142,50 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    ||v.receipt_id!==null||v.result_sha256!==null)throw existingDeliveryError('owner_unconfirmed');
   return Object.freeze(clone(v)); // Ownership only; retry:false stays false. Atomic claim is the only grant.
  }
+ function existingDeliveryAliasCandidate(r,state,t,target){
+  const p=processingFor(state),tick=tickStatusFor(state,t);
+  return !!(manualLaneCurrent(manualRoomLane)&&asyncCurrent(t)&&existingDeliveryCandidate(state,t)&&state.session_id===target.session
+   &&p.valid&&p.value.work_id===target.work&&sameChainRequest(p.value.request,target.request)
+   &&tick.applicable&&tick.valid&&tick.value?.state==='attested'&&tick.value.owned_by_me===true
+   &&tick.value.work_id===target.work&&tick.value.work_state===p.value.state&&tick.value.source_revision===state.source_revision
+   &&r.user===t.user&&r.session===target.session&&!r.inactive&&!r.busy&&!r.parent?.inFlight&&!r.accepted&&r.work===null&&r.request===null
+   &&nativeExact(r.selector,['kind','source_revision'])&&r.selector.kind==='staff_tick'&&r.selector.source_revision===state.source_revision
+   &&typeof r.journalKey==='string'&&sameSelector(selectorFor(r.parent?.body),r.selector));
+ }
+ async function reconcileExistingDeliveryAlias(t,lane,token,target,owned){
+  const candidates=[...asyncWorks.entries()].filter(([,r])=>r.user===t.user&&r.session===target.session&&!r.inactive&&!r.accepted&&r.work===null&&r.request===null
+   &&r.selector?.kind==='staff_tick'&&r.selector.source_revision===roomState?.source_revision);
+  if(candidates.length===0)return [];
+  if(candidates.length!==1||!navigator.locks?.request)throw existingDeliveryError('other_observer');
+  const [mapKey,r]=candidates[0];
+  if(!existingDeliveryAliasCandidate(r,roomState,t,target))throw existingDeliveryError('other_observer');
+  return navigator.locks.request(r.journalKey,{mode:'exclusive'},async()=>{
+   if(!manualLaneCurrent(lane)||staffResumeRead!==token||asyncWorks.get(mapKey)!==r||!existingDeliveryAliasCandidate(r,roomState,t,target))throw existingDeliveryError('context_changed');
+   const key=r.journalKey,raw=localStorage.getItem(key),document=readJournal(key,r.user,r.session),phase=journalPhase(document);
+   if(!document||!phase||phase.done||!sameSelector(phase.selector,r.selector))throw existingDeliveryError('journal_changed');
+   const counters=JSON.stringify({started:r.started,reads:r.reads,lastRead:r.lastRead,done:phase.done});
+   const proof=existingDeliveryOwned(await normalManualRead({schema_version:'mission-generic-async-recover/1',master_session_id:target.session,
+    selector:clone(r.selector)},r,t),target.session,target.work,target.request);
+   if(!manualLaneCurrent(lane)||staffResumeRead!==token||asyncWorks.get(mapKey)!==r||!existingDeliveryAliasCandidate(r,roomState,t,target)
+    ||proof.kind!==owned.kind||proof.state!==owned.state||localStorage.getItem(key)!==raw
+    ||JSON.stringify({started:r.started,reads:r.reads,lastRead:r.lastRead,done:journalPhase(readJournal(key,r.user,r.session))?.done})!==counters)throw existingDeliveryError('journal_changed');
+   const status=recoveryProof(proof,r);if(!status)throw existingDeliveryError('owner_unconfirmed');
+   adoptAsyncProof(r,status); // Same observer, server-owned canonical tuple; no DONE/inactive or read-budget reset.
+   if(localStorage.getItem(key)!==raw||JSON.stringify({started:r.started,reads:r.reads,lastRead:r.lastRead,done:journalPhase(readJournal(key,r.user,r.session))?.done})!==counters)throw existingDeliveryError('journal_changed');
+   return [{record:r,mapKey,key,raw}];
+  });
+ }
+ function existingDeliveryLocks(h,run){
+  const keys=[...new Set([h.lockKey,...(h.aliases??[]).map(a=>a.key)])].sort();
+  if(keys.length>2)throw existingDeliveryError('mutex_changed');
+  const lock=i=>i===keys.length?run():navigator.locks.request(keys[i],{mode:'exclusive'},()=>lock(i+1));
+  return lock(0);
+ }
  async function invokeExistingDelivery(parent,t){
   parent.deliveryDiagnosticPhase='journal_recheck';
   const h=existingDeliveryCurrent(roomState,t,parent.existingDelivery);if(!h||h.attempt!==parent)throw existingDeliveryError('context_changed',parent.existingDelivery?.currentDiagnostic);
   if(!navigator.locks?.request)throw existingDeliveryError('mutex_changed');
-  return navigator.locks.request(h.lockKey,{mode:'exclusive'},async()=>{
+  return existingDeliveryLocks(h,async()=>{
    if(!existingDeliveryCurrent(roomState,t,h)||attempts.get(h.attemptKey)!==parent
     ||!sameChainRequest(parent.body,h.request)||parent.work!==h.work)throw existingDeliveryError('mutex_changed',h.currentDiagnostic);
    const key='mission-existing-work-delivery/1:'+h.user+':'+h.session+':'+h.work+':'+h.request.expected_revision;let history;
@@ -1185,20 +1224,23 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(!manualLaneCurrent(lane)||staffResumeRead!==token||roomError||!existingDeliveryCandidate(roomState,t))throw existingDeliveryError('context_changed');
    const p=processingFor(roomState).value;if(p.work_id!==target.work||!sameChainRequest(p.request,target.request))throw existingDeliveryError('work_changed');
    const stub={user:t.user,session:target.session,work:target.work,request:target.request};
-   const records=[...asyncWorks.values()].filter(r=>existingDeliveryRecord(r,stub)&&!r.inactive);
+   let records=[...asyncWorks.values()].filter(r=>existingDeliveryRecord(r,stub)&&!r.inactive);
    const record=records.find(r=>r.countedMarkerKey)||records.find(r=>r.journalKey);
    if(!record)throw existingDeliveryError('journal_missing');
    diagnosticPhase='ownership_read';
    const owned=existingDeliveryOwned(await normalManualRead({schema_version:'mission-generic-async-recover/1',master_session_id:target.session,
     selector:{kind:'request',request:clone(target.request)}},record,t),target.session,target.work,target.request);
+   const aliases=await reconcileExistingDeliveryAlias(t,lane,token,target,owned);
    diagnosticPhase='state_recheck';
    if(!manualLaneCurrent(lane)||staffResumeRead!==token)throw existingDeliveryError('context_changed');
    await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane:lane});
    if(!manualLaneCurrent(lane)||staffResumeRead!==token||roomError)throw existingDeliveryError('context_changed');
    diagnosticPhase='journal_recheck';
+   records=[...asyncWorks.values()].filter(r=>existingDeliveryRecord(r,stub)&&!r.inactive);
+   if(aliases.some(a=>asyncWorks.get(a.mapKey)!==a.record||!records.includes(a.record)||localStorage.getItem(a.key)!==a.raw))throw existingDeliveryError('journal_changed');
    const keys=new Set();for(const r of records){if(r.journalKey)keys.add(r.journalKey);if(r.countedMarkerKey){keys.add(r.countedMarkerKey);const m=readCountedMarker(r.countedMarkerKey,t.user,target.session);if(!m||m.work_id!==target.work||!sameChainRequest(m.request,target.request))throw existingDeliveryError('journal_changed');keys.add(m.original_journal_key);}if(r.parent.countedJournalKey)keys.add(r.parent.countedJournalKey);}
    const lockKey=record.countedMarkerKey??record.journalKey;if(!lockKey)throw existingDeliveryError('journal_missing');
-   const h={user:t.user,scope:t.scope,epoch:t.epoch,session:target.session,work:target.work,request:Object.freeze(clone(target.request)),owned,record,records,lane,room:roomState,lockKey,
+   const h={user:t.user,scope:t.scope,epoch:t.epoch,session:target.session,work:target.work,request:Object.freeze(clone(target.request)),owned,record,records,aliases,lane,room:roomState,lockKey,
     originals:[...keys].map(key=>({key,raw:localStorage.getItem(key)})),attempt:null,attemptKey:JSON.stringify([t.user,target.session,'existing-delivery:'+target.work+':'+target.request.expected_revision])};existingDeliveryTokens.add(h);
    if(!existingDeliveryCurrent(roomState,t,h))throw existingDeliveryError('other_observer',h.currentDiagnostic);
    parent={user:t.user,session:target.session,key:h.attemptKey,kind:'work',work:target.work,body:Object.freeze(clone(target.request)),inFlight:true,outcome:'pending',existingDelivery:h};h.attempt=parent;attempts.set(h.attemptKey,parent);
