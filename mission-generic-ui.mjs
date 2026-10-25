@@ -851,7 +851,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-010');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-011');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -903,9 +903,9 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const countedRecovery=countedResumeAllowed(state,{loc:currentLocation(),user:cacheUser});
   let resume=host.querySelector('[data-mg-claim-resume]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&processing.valid
-   &&!combatProof&&!hasOpeningResume(state)&&!hasOpeningClaimResume(state)&&!countReserved&&(claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
+   &&!combatProof&&!hasOpeningResume(state)&&!hasOpeningClaimResume(state)&&!countReserved&&(countedRecovery||claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
    if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(countedResumeAllowed(s,{loc:currentLocation(),user:cacheUser}))void staffResumeCounted(host);else if(p?.state==='claimed')void staffReconcileClaimed(host);else if(p?.state==='ready'&&(r?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,s.session_id,p.work_id))))void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
-   resume.textContent=claimedRecovery?'Verifica la stessa ricevuta':readyRecovery?'Verifica e riprendi la stessa richiesta':'Verifica o riprendi la stessa richiesta';
+   resume.textContent=countedRecovery?'Riprendi la richiesta salvata':claimedRecovery?'Verifica la stessa ricevuta':readyRecovery?'Verifica e riprendi la stessa richiesta':'Verifica o riprendi la stessa richiesta';
    const suffix=countedRecovery?':counted-resume':claimedRecovery?':reconcile-claimed':readyRecovery?':reclaim-ready':':reclaim';
    const key=JSON.stringify([cacheUser,state.session_id,'work:'+claim.work_id+':'+claim.revision+suffix]);
    resume.disabled=!!roomError||!!staffResumeRead||liveAttempt(state)||attempts.has(key)||abortBlocked(state.session_id)||(countedRecovery&&countedResumeRecorded(cacheUser,state,claim));
@@ -1040,11 +1040,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  // This is the existing explicit resume button, not an automatic observer retry.
  function countedResumeAllowed(state,t){
-  const p=processingFor(state),driver=driverFor(state);
+  const p=processingFor(state);
   return !!(isStaff()&&t?.loc?.id===STAFF_TEST_ROOM&&t.loc.is_test===true
-   &&state?.can_tick===true&&state.review_required!==true&&p.valid&&p.value?.state==='uncertain'
+   &&state?.review_required!==true&&p.valid&&p.value?.state==='uncertain'
    &&p.value.finalized_at===null&&sameChainRequest(p.value.request,p.value.request)
-   &&driver.optedIn&&driver.valid&&!hasCountProjection(state)
+   &&p.value.message_id===null&&!hasCountProjection(state)
    &&!hasOpeningResume(state)&&!hasOpeningClaimResume(state)&&!abortBlocked(state.session_id));
  }
  const countedResumeKey=(user,state,work)=>`mission-counted-resume/1:${user}:${state.session_id}:${work.work_id}:${work.revision}`;
@@ -1119,15 +1119,16 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
      original_journal_key:originalKey,original_journal_raw:originalRaw};
     localStorage.setItem(key,JSON.stringify(marker));
     const parent=attachCountedMarker(marker,key);parent.inFlight=true;parent.outcome='pending';
+    const countedDirectorChain=()=>{const r=asyncWorks.get(parent.countedObservationKey);return !!(r&&r.countedMarkerKey===key&&r.user===t.user&&r.session===token.session&&r.work===token.work&&sameChainRequest(r.request,token.request)&&r.workKind==='director'&&r.chainRequested===true);};
     try{
      const response=await client.functions.invoke('mission_generic_ai',{body:{schema_version:'mission-generic-counted-resume-request/1',request:clone(token.request)}});
      if(!roomCurrent(t)||staffResumeRead!==token)return;
      if(response.error)throw Error('counted_resume_unconfirmed');
-     if(acceptAsyncPending(response.data,parent,t,false))return;
+     if(acceptAsyncPending(response.data,parent,t,countedDirectorChain()))return;
      const result=response.data;
      if(result?.status===200&&['MISSION_EVENT_COMPLETE','MISSION_EVENT_FAILED'].includes(result.code)
       &&UUID.test(result.receipt_id||'')&&result.retry===false&&result.provider_retry_allowed===false){
-      asyncRecord(parent,token.request,token.work,false,true); // Read the exact terminal proof before closing any original journal.
+      asyncRecord(parent,token.request,token.work,countedDirectorChain(),true); // Read the exact owned kind/terminal proof before chaining or closing any journal.
       parent.outcome=result.code==='MISSION_EVENT_COMPLETE'?'confirmed':'failed';return;
      }
      throw Error('counted_resume_unconfirmed');
@@ -2058,6 +2059,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    ||selector.kind==='request'&&!sameChainRequest(v.request,selector.request)
    ||r.accepted&&(r.work!==v.work_id||!sameChainRequest(r.request,v.request)))throw Error('async_recovery_invalid');
   const q=v.request,proof=asyncStatusProof({schema_version:'mission-generic-async-status-response/1',work_id:v.work_id,master_session_id:q.master_session_id,event_id:q.event_id,request_key:q.request_key,revision:q.expected_revision,state:v.state,receipt_id:v.receipt_id,result_sha256:v.result_sha256,retry:false,provider_retry_allowed:false},{...r,work:v.work_id,request:q});
+  if(r.countedMarkerKey&&v.kind==='director'){
+   const marker=readCountedMarker(r.countedMarkerKey,r.user,r.session);
+   if(!marker||marker.work_id!==v.work_id||!sameChainRequest(marker.request,q))throw Error('counted_marker_changed');
+   if(!marker.done)r.chainRequested=true;
+  }
   r.work=v.work_id;r.request=Object.freeze(clone(q));r.accepted=true;r.workKind=v.kind;r.allowChain=v.kind==='director'&&r.chainRequested!==false;r.parent.work=v.work_id;r.parent.asyncRequest=r.request;
   return proof; // Server-owned recovery projection; never a synthetic EVENT_COMPLETE ACK.
  }
@@ -2364,12 +2370,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }
  }
  function finishJournal(r){
-  if(r.countedMarkerKey&&['completed','failed'].includes(r.state)&&UUID.test(r.proof?.receipt_id||'')){
+  if(r.countedMarkerKey&&(r.state==='failed'||r.state==='completed'&&(!r.allowChain||r.chainDone))&&UUID.test(r.proof?.receipt_id||'')){
    const marker=readCountedMarker(r.countedMarkerKey,r.user,r.session);
    if(!marker||marker.work_id!==r.work||!sameChainRequest(marker.request,r.request))throw Error('counted_marker_changed');
    marker.done=true;localStorage.setItem(r.countedMarkerKey,JSON.stringify(marker));r.inactive=true;
   }
-  if(['completed','failed'].includes(r.state)&&UUID.test(r.proof?.receipt_id||'')&&r.parent.countedJournalKey){
+  if((r.state==='failed'||r.state==='completed'&&(!r.allowChain||r.chainDone))&&UUID.test(r.proof?.receipt_id||'')&&r.parent.countedJournalKey){
    const key=r.parent.countedJournalKey,j=readJournal(key,r.user,r.session),phase=j&&journalPhase(j);
    if(phase?.selector.kind==='request'&&sameChainRequest(phase.selector.request,r.request)){
     phase.done=true;saveJournal(key,j); // Normal terminal completion, only after the exact server receipt.
