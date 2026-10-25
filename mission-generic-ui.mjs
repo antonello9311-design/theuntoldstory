@@ -854,7 +854,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-023');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-024');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -1584,6 +1584,70 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    &&sameChainRequest(q,h.next.child_request)&&(!r.workKind||r.workKind==='narration')
    &&(!r.proof||r.proof.state==='ready'); // Known claimed/authorized/provider/uncertain/terminal proof is observation only.
  }
+ async function resolveNormalParentSelectors(candidates,t,lane,token,target){
+  if(!candidates.length)return [];
+  if(candidates.length>128||!navigator.locks?.request)throw normalResumeError('parent_ambiguous');
+  const snapshot=normalParentSnapshots(candidates,t,target.session),resolved=[],room=roomState;
+  for(const r of candidates){
+   if(r.accepted===true&&r.workKind==='director'&&UUID.test(r.work||'')&&sameChainRequest(r.request,r.request))continue;
+   if(!manualLaneCurrent(lane)||staffResumeRead!==token||!asyncCurrent(t)||roomState!==room||r.user!==t.user||r.session!==target.session
+    ||r.inactive||r.busy||r.parent?.inFlight||!normalParentSnapshotCurrent(snapshot))throw normalResumeError('parent_unconfirmed');
+   const selector=r.selector??selectorFor(r.request)??selectorFor(r.parent?.body),key=r.countedMarkerKey??r.journalKey;
+   if(!(nativeExact(selector,['kind','request'])&&selector.kind==='request'&&sameChainRequest(selector.request,selector.request)
+    ||nativeExact(selector,['kind','source_revision'])&&selector.kind==='staff_tick'&&SHA.test(selector.source_revision||'')
+    ||nativeExact(selector,['kind','request_key'])&&selector.kind==='native_tick'&&UUID.test(selector.request_key||''))||typeof key!=='string')throw normalResumeError('parent_unconfirmed');
+   await navigator.locks.request(key,{mode:'exclusive'},async()=>{
+    const registered=Array.from(asyncWorks.values()).includes(r)||r.historicalHint&&r.journalKey===r.historicalHint.key&&JSON.stringify(readJournal(r.historicalHint.key,t.user,target.session))===r.historicalHint.snapshot;
+    if(!registered||!manualLaneCurrent(lane)||staffResumeRead!==token||roomState!==room||r.busy||r.parent?.inFlight||!normalParentSnapshotCurrent(snapshot))throw normalResumeError('parent_unconfirmed');
+    if(r.journalKey){const document=readJournal(r.journalKey,t.user,target.session);if(!document||!sameSelector(journalPhase(document)?.selector,selector))throw normalResumeError('parent_unconfirmed');}
+    else{const marker=readCountedMarker(r.countedMarkerKey,t.user,target.session);if(!marker||marker.work_id!==r.work||!sameChainRequest(marker.request,r.request)||selector.kind!=='request'||!sameChainRequest(selector.request,marker.request))throw normalResumeError('parent_unconfirmed');}
+    r.busy=true;
+    try{
+     const v=await normalManualRead({schema_version:'mission-generic-async-recover/1',master_session_id:target.session,selector:clone(selector)},r,t);
+     if(!manualLaneCurrent(lane)||staffResumeRead!==token||!asyncCurrent(t)||roomState!==room||r.parent?.inFlight||!normalParentSnapshotCurrent(snapshot))throw normalResumeError('parent_unconfirmed');
+     if(!nativeExact(v,recoveryKeys)||v.schema_version!=='mission-generic-async-recovery/1'||v.status!=='owned'||v.kind!=='director'||v.state!=='completed'
+      ||v.retry!==false||v.provider_retry_allowed!==false||!UUID.test(v.work_id||'')||!UUID.test(v.receipt_id||'')||!SHA.test(v.result_sha256||'')
+      ||!sameChainRequest(v.request,v.request)||v.request.master_session_id!==target.session)throw normalResumeError('parent_unconfirmed');
+     if(selector.kind==='request'&&!sameChainRequest(v.request,selector.request)||r.accepted&&(r.work!==v.work_id||!sameChainRequest(r.request,v.request)))throw normalResumeError('parent_unconfirmed');
+     resolved.push({record:r,proof:Object.freeze(clone(v))}); // Read every original selector before changing any observer.
+    }finally{r.busy=false;}
+   });
+  }
+  if(!manualLaneCurrent(lane)||staffResumeRead!==token||roomState!==room||!normalParentSnapshotCurrent(snapshot))throw normalResumeError('parent_unconfirmed');
+  const first=resolved[0]?.proof;
+  if(first&&(resolved.some(x=>x.proof.work_id!==first.work_id||!sameChainRequest(x.proof.request,first.request)||x.proof.receipt_id!==first.receipt_id||x.proof.result_sha256!==first.result_sha256)
+   ||candidates.some(r=>r.accepted===true&&r.workKind==='director'&&(r.work!==first.work_id||!sameChainRequest(r.request,first.request)))))throw normalResumeError('parent_ambiguous');
+  for(const x of resolved){const proof=recoveryProof(x.proof,x.record);if(!proof)throw normalResumeError('parent_unconfirmed');adoptAsyncProof(x.record,proof);} // Same objects; completed Director is not child publication.
+  if(!normalParentSnapshotCurrent(snapshot))throw normalResumeError('parent_unconfirmed');
+  return resolved.map(x=>x.proof);
+ }
+ function normalParentGroups(records,t,session){
+  const groups=new Map();
+  for(const r of records){
+   const positive=r.user===t.user&&r.session===session&&r.accepted===true&&r.workKind==='director'&&!r.busy&&!r.parent?.inFlight
+    &&UUID.test(r.work||'')&&sameChainRequest(r.request,r.request)&&r.request.master_session_id===session;
+   const key=positive?JSON.stringify([r.user,r.session,r.work,r.request.event_id,r.request.request_key,r.request.expected_revision]):r;
+   if(!groups.has(key))groups.set(key,{positive,work:positive?r.work:null,request:positive?r.request:null,aliases:[]});
+   groups.get(key).aliases.push(r);
+  }
+  return [...groups.values()].map(g=>{
+   // The canonical request is the read selector; the representative only lends its existing bounded manual observer.
+   const canonical=g.aliases.filter(r=>(r.selector??selectorFor(r.parent?.body))?.kind==='request');
+   g.record=canonical[0]??g.aliases[0];return g;
+  });
+ }
+ function normalParentSnapshots(aliases,t,session){
+  if(!aliases.length||aliases.length>128)throw normalResumeError('parent_ambiguous');
+  const keys=new Set();
+  for(const r of aliases){if(r.journalKey)keys.add(r.journalKey);if(r.countedMarkerKey){keys.add(r.countedMarkerKey);const m=readCountedMarker(r.countedMarkerKey,t.user,session);if(!m)throw normalResumeError('parent_unconfirmed');keys.add(m.original_journal_key);}if(r.parent?.countedJournalKey)keys.add(r.parent.countedJournalKey);}
+  return {journals:[...keys].map(key=>({key,raw:localStorage.getItem(key)})),observers:aliases.map(r=>({record:r,parent:r.parent,started:r.started,reads:r.reads,lastRead:r.lastRead}))};
+ }
+ function normalParentSnapshotCurrent(snapshot){
+  return !!snapshot&&snapshot.journals.every(x=>localStorage.getItem(x.key)===x.raw)
+   &&snapshot.observers.every(x=>x.record.parent===x.parent&&Object.is(x.record.started,x.started)&&Object.is(x.record.reads,x.reads)&&Object.is(x.record.lastRead,x.lastRead));
+ }
+ function normalParentAlias(r,h){return !!h&&Array.isArray(h.parentAliases)&&h.parentAliases.includes(r)&&!r.busy&&!r.parent?.inFlight
+  &&r.accepted===true&&r.workKind==='director'&&r.user===h.user&&r.session===h.session&&r.work===h.next.parent_work_id&&sameChainRequest(r.request,h.next.parent_request);}
  function normalHandoffCurrent(state,t,h){
   if(!h||!normalReadyProofs.has(h)||!manualLaneCurrent(h.lane)||!asyncCurrent(t)||state!==roomState||state!==h.room
    ||h.user!==t.user||h.scope!==t.scope||h.epoch!==t.epoch||h.session!==state.session_id
@@ -1594,13 +1658,16 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     ||h.hint&&r.journalKey===h.hint.key&&JSON.stringify(readJournal(h.hint.key,t.user,h.session))===h.hint.snapshot)
    ||r.busy||r.user!==t.user||r.session!==h.session||r.work!==h.next.parent_work_id
    ||!sameChainRequest(r.request,h.next.parent_request)||h.owned.status!=='owned'||h.owned.kind!=='director'||h.owned.state!=='completed'
-   ||h.owned.receipt_id!==h.next.parent_receipt_id||!SHA.test(h.owned.result_sha256||''))return null;
+   ||h.owned.receipt_id!==h.next.parent_receipt_id||!SHA.test(h.owned.result_sha256||'')
+   ||!Array.isArray(h.parentAliases)||!h.parentAliases.includes(r)||h.parentAliases.length===0
+   ||!h.parentAliases.every(alias=>normalParentAlias(alias,h))||!normalParentSnapshotCurrent(h.parentSnapshots))return null;
   return h;
  }
- function normalParentRecord(r,h){return !!h&&!r.busy&&r.user===h.user&&r.session===h.session&&r.work===h.next.parent_work_id&&sameChainRequest(r.request,h.next.parent_request);}
+ function normalParentRecord(r,h){return normalParentAlias(r,h);}
  function normalAttempt(a,h){
   return !!h&&!a.inFlight&&a.user===h.user&&a.session===h.session
-   &&(a===h.record.parent||a.work===h.next.child_work_id&&sameChainRequest(a.body,h.next.child_request)&&['pending','waiting','uncertain'].includes(a.outcome));
+   &&(h.parentAliases.some(r=>r.parent===a&&normalParentAlias(r,h)&&a.work===h.next.parent_work_id&&sameChainRequest(a.asyncRequest??a.body,h.next.parent_request))
+    ||a.work===h.next.child_work_id&&sameChainRequest(a.body,h.next.child_request)&&['pending','waiting','uncertain'].includes(a.outcome));
  }
  function normalCandidates(state,t){
   const p=processingFor(state);if(!p.valid||p.value?.state!=='ready')return [];
@@ -1656,15 +1723,20 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(!manualLaneCurrent(lane)||staffResumeRead!==token||roomError)throw normalResumeError('context_changed');
    let p=processingFor(roomState);
    if(!p.valid||p.value?.work_id!==target.work||p.value.state!=='ready'||p.value.finalized_at!==null||!sameChainRequest(p.value.request,target.request))throw normalResumeError('child_changed');
-   const candidates=normalCandidates(roomState,t);if(candidates.length!==1)throw normalResumeError(candidates.length?'parent_ambiguous':'parent_missing');
-   record=candidates[0];record.busy=true;
-   const selector=record.selector??selectorFor(record.request)??selectorFor(record.parent?.body);
+   const parentCandidates=normalCandidates(roomState,t);
+   const resolvedParents=await resolveNormalParentSelectors(parentCandidates,t,lane,token,target);
+   const groups=normalParentGroups(parentCandidates,t,target.session);if(groups.length!==1)throw normalResumeError(groups.length?'parent_ambiguous':'parent_missing');
+   const group=groups[0],parentAliases=group.aliases,parentSnapshots=normalParentSnapshots(parentAliases,t,target.session);
+   record=group.record;record.busy=true;
+   const selector=group.positive?{kind:'request',request:clone(group.request)}:record.selector??selectorFor(record.request)??selectorFor(record.parent?.body);
    const owned=await normalManualRead({schema_version:'mission-generic-async-recover/1',master_session_id:target.session,selector:clone(selector)},record,t);
    if(!manualLaneCurrent(lane)||staffResumeRead!==token)throw normalResumeError('context_changed');
    if(!nativeExact(owned,recoveryKeys)||owned.schema_version!=='mission-generic-async-recovery/1'||owned.status!=='owned'
     ||owned.kind!=='director'||owned.state!=='completed'||owned.retry!==false||owned.provider_retry_allowed!==false
     ||!UUID.test(owned.receipt_id||'')||!SHA.test(owned.result_sha256||''))throw normalResumeError('parent_unconfirmed');
-   recoveryProof(owned,record); // Bind the owned canonical parent; never mark its journal, chainDone or publication complete.
+   if(group.positive&&(owned.work_id!==group.work||!sameChainRequest(owned.request,group.request))||!normalParentSnapshotCurrent(parentSnapshots)
+    ||resolvedParents.some(v=>v.work_id!==owned.work_id||!sameChainRequest(v.request,owned.request)||v.kind!==owned.kind||v.state!==owned.state||v.receipt_id!==owned.receipt_id||v.result_sha256!==owned.result_sha256))throw normalResumeError('parent_unconfirmed');
+   for(const alias of parentAliases)recoveryProof(owned,alias); // Same positive canonical group; never mark any journal, chainDone or publication complete.
    const next=directorNextProof(await normalManualRead({schema_version:'mission-director-narration-read/1',parent_request:clone(owned.request),parent_receipt_id:owned.receipt_id},record,t),owned.request,owned.receipt_id,owned.work_id);
    if(!manualLaneCurrent(lane)||staffResumeRead!==token)throw normalResumeError('context_changed');
    if(next.status!=='ready')throw normalResumeError('next_none');
@@ -1675,7 +1747,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane:lane});
    if(!manualLaneCurrent(lane)||staffResumeRead!==token||roomError)throw normalResumeError('context_changed');
    record.busy=false;
-   const h={user:t.user,scope:t.scope,epoch:t.epoch,session:target.session,lane,room:roomState,record,hint:record.historicalHint??null,owned:Object.freeze(clone(owned)),next,child};normalReadyProofs.add(h);
+   const h={user:t.user,scope:t.scope,epoch:t.epoch,session:target.session,lane,room:roomState,record,parentAliases,parentSnapshots,hint:record.historicalHint??null,owned:Object.freeze(clone(owned)),next,child};normalReadyProofs.add(h);
    if(!normalHandoffCurrent(roomState,t,h))throw normalResumeError('child_changed');
    await maybeDispatch(roomState,t,true,false,null,lane,null,h);
    retainedResumeError=null;
