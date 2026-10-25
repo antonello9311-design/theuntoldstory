@@ -854,7 +854,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-020');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-021');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -1068,7 +1068,21 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  const existingDeliveryTokens=new WeakSet();let existingDeliveryNotice=null;
  const existingDeliveryCodes=new Set(['context_changed','owner_unconfirmed','work_changed','journal_missing','journal_changed','other_observer','other_attempt','busy','mutex_changed','ack_unconfirmed','transport_unknown']);
- const existingDeliveryError=code=>Error('existing_delivery_'+(existingDeliveryCodes.has(code)?code:'transport_unknown'));
+ const existingDeliveryGates=new Set(['context_binding','processing_tuple','record_relation','unrelated_record','unrelated_attempt','journal_bytes']);
+ const existingDeliveryError=(code,diagnostic=null)=>Object.assign(Error('existing_delivery_'+(existingDeliveryCodes.has(code)?code:'transport_unknown')),{deliveryDiagnostic:diagnostic});
+ function existingDeliveryShape(x,h,entity){
+  const selector=x.selector??selectorFor(x.body),kind=['request','staff_tick','native_tick'].includes(selector?.kind)?selector.kind:'other';
+  return {entity,selector_kind:kind,accepted:x.accepted===true,work_same:x.work===h.work,work_absent:x.work===null||x.work===undefined,
+   request_same:sameChainRequest(x.request??x.asyncRequest??x.parent?.asyncRequest??x.body,h.request)===true,
+   completed:x.state==='completed',inactive:x.inactive===true,busy:x.busy===true,inFlight:x.inFlight===true||x.parent?.inFlight===true,
+   parent_linked:h.records.some(r=>r.parent===x||r===x&&r.parent===h.record.parent),
+   journal_linked:typeof x.journalKey==='string'&&h.records.some(r=>r.journalKey===x.journalKey),
+   async_key_linked:typeof x.asyncKey==='string'&&h.records.includes(asyncWorks.get(x.asyncKey))};
+ }
+ function existingDeliveryGate(h,gate,x=null,entity=null){
+  if(h&&existingDeliveryTokens.has(h))h.currentDiagnostic={gate,shape:x?existingDeliveryShape(x,h,entity):null};
+  return null;
+ }
  const existingDeliveryPhases=new Set(['ownership_read','state_recheck','journal_recheck','delivery','acknowledgement']);
  function existingDeliveryDiagnostic(error,phase){
   const message=typeof error?.message==='string'?error.message:'';
@@ -1077,7 +1091,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!existingDeliveryPhases.has(phase))phase='state_recheck';
   const labels={ownership_read:'verifica della proprietà',state_recheck:'verifica dello stato',journal_recheck:'verifica dello storico',delivery:'consegna',acknowledgement:'conferma del server'};
   const sent=['delivery','acknowledgement'].includes(phase);
-  return {phase,code,text:'Ripresa non confermata ('+labels[phase]+' · '+code+'). '+(sent?'La consegna non è confermata.':'Nessuna consegna avviata.')+' Richiesta e contatori conservati; nessun invio automatico.'};
+  const diagnostic=error?.deliveryDiagnostic,gate=existingDeliveryGates.has(diagnostic?.gate)?diagnostic.gate:null;
+  let shape=null;
+  if(diagnostic?.shape){const x=diagnostic.shape,fields=['accepted','work_same','work_absent','request_same','completed','inactive','busy','inFlight','parent_linked','journal_linked','async_key_linked'];
+   if(['record','attempt'].includes(x.entity)&&['request','staff_tick','native_tick','other'].includes(x.selector_kind)&&fields.every(k=>typeof x[k]==='boolean')&&nativeExact(x,['entity','selector_kind',...fields]))shape={entity:x.entity,selector_kind:x.selector_kind,...Object.fromEntries(fields.map(k=>[k,x[k]]))};}
+  const details=gate?' · '+gate+(shape?' · '+shape.entity+'/'+shape.selector_kind+' '+Object.entries(shape).filter(([k])=>!['entity','selector_kind'].includes(k)).map(([k,v])=>k+'='+(v?'1':'0')).join(' '):''):'';
+  return {phase,code,gate,shape,text:'Ripresa non confermata ('+labels[phase]+' · '+code+details+'). '+(sent?'La consegna non è confermata.':'Nessuna consegna avviata.')+' Richiesta e contatori conservati; nessun invio automatico.'};
  }
  function existingDeliveryCandidate(state,t){
   const p=processingFor(state);
@@ -1094,13 +1113,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   &&sameChainRequest(a.asyncRequest??a.body,h.request)&&(!a.inFlight||a===h.attempt);}
  function existingDeliveryCurrent(state,t,h){
   if(!h||!existingDeliveryTokens.has(h)||!manualLaneCurrent(h.lane)||!asyncCurrent(t)||state!==roomState||state!==h.room
-   ||t.user!==h.user||t.scope!==h.scope||t.epoch!==h.epoch||state.session_id!==h.session||!existingDeliveryCandidate(state,t))return null;
-  const p=processingFor(state).value;if(p.work_id!==h.work||!sameChainRequest(p.request,h.request))return null;
-  if(!h.records.includes(h.record)||h.records.some(r=>!existingDeliveryRecord(r,h)))return null;
-  if([...asyncWorks.values()].some(r=>r.user===h.user&&r.session===h.session&&!r.inactive&&(r.accepted||r.journalKey)
-   &&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone)&&!existingDeliveryRecord(r,h)))return null;
-  if([...attempts.values()].some(a=>a.user===h.user&&a.session===h.session&&(a.inFlight||['pending','waiting','uncertain'].includes(a.outcome))&&!existingDeliveryAttempt(a,h)))return null;
-  if(h.originals.some(x=>localStorage.getItem(x.key)!==x.raw))return null;
+   ||t.user!==h.user||t.scope!==h.scope||t.epoch!==h.epoch||state.session_id!==h.session||!existingDeliveryCandidate(state,t))return existingDeliveryGate(h,'context_binding');
+  const p=processingFor(state).value;if(p.work_id!==h.work||!sameChainRequest(p.request,h.request))return existingDeliveryGate(h,'processing_tuple');
+  if(!h.records.includes(h.record))return existingDeliveryGate(h,'record_relation');
+  const invalidRecord=h.records.find(r=>!existingDeliveryRecord(r,h));if(invalidRecord)return existingDeliveryGate(h,'record_relation',invalidRecord,'record');
+  const unrelatedRecord=[...asyncWorks.values()].find(r=>r.user===h.user&&r.session===h.session&&!r.inactive&&(r.accepted||r.journalKey)
+   &&(r.busy||r.state!=='completed'||r.allowChain&&!r.chainDone)&&!existingDeliveryRecord(r,h));if(unrelatedRecord)return existingDeliveryGate(h,'unrelated_record',unrelatedRecord,'record');
+  const unrelatedAttempt=[...attempts.values()].find(a=>a.user===h.user&&a.session===h.session&&(a.inFlight||['pending','waiting','uncertain'].includes(a.outcome))&&!existingDeliveryAttempt(a,h));if(unrelatedAttempt)return existingDeliveryGate(h,'unrelated_attempt',unrelatedAttempt,'attempt');
+  if(h.originals.some(x=>localStorage.getItem(x.key)!==x.raw))return existingDeliveryGate(h,'journal_bytes');
   return h;
  }
  function existingDeliveryOwned(v,session,work,request){
@@ -1113,11 +1133,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  async function invokeExistingDelivery(parent,t){
   parent.deliveryDiagnosticPhase='journal_recheck';
-  const h=existingDeliveryCurrent(roomState,t,parent.existingDelivery);if(!h||h.attempt!==parent)throw existingDeliveryError('context_changed');
+  const h=existingDeliveryCurrent(roomState,t,parent.existingDelivery);if(!h||h.attempt!==parent)throw existingDeliveryError('context_changed',parent.existingDelivery?.currentDiagnostic);
   if(!navigator.locks?.request)throw existingDeliveryError('mutex_changed');
   return navigator.locks.request(h.lockKey,{mode:'exclusive'},async()=>{
    if(!existingDeliveryCurrent(roomState,t,h)||attempts.get(h.attemptKey)!==parent
-    ||!sameChainRequest(parent.body,h.request)||parent.work!==h.work)throw existingDeliveryError('mutex_changed');
+    ||!sameChainRequest(parent.body,h.request)||parent.work!==h.work)throw existingDeliveryError('mutex_changed',h.currentDiagnostic);
    const key='mission-existing-work-delivery/1:'+h.user+':'+h.session+':'+h.work+':'+h.request.expected_revision;let history;
    const raw=localStorage.getItem(key);
    if(raw!==null){try{history=JSON.parse(raw);}catch{throw existingDeliveryError('journal_changed');}
@@ -1169,7 +1189,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const lockKey=record.countedMarkerKey??record.journalKey;if(!lockKey)throw existingDeliveryError('journal_missing');
    const h={user:t.user,scope:t.scope,epoch:t.epoch,session:target.session,work:target.work,request:Object.freeze(clone(target.request)),owned,record,records,lane,room:roomState,lockKey,
     originals:[...keys].map(key=>({key,raw:localStorage.getItem(key)})),attempt:null,attemptKey:JSON.stringify([t.user,target.session,'existing-delivery:'+target.work+':'+target.request.expected_revision])};existingDeliveryTokens.add(h);
-   if(!existingDeliveryCurrent(roomState,t,h))throw existingDeliveryError('other_observer');
+   if(!existingDeliveryCurrent(roomState,t,h))throw existingDeliveryError('other_observer',h.currentDiagnostic);
    parent={user:t.user,session:target.session,key:h.attemptKey,kind:'work',work:target.work,body:Object.freeze(clone(target.request)),inFlight:true,outcome:'pending',existingDelivery:h};h.attempt=parent;attempts.set(h.attemptKey,parent);
    const response=await invokeAsyncOnce(parent,t),v=response.data?.delivery??response.data;
    if(!manualLaneCurrent(lane)||staffResumeRead!==token)throw existingDeliveryError('context_changed');
