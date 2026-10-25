@@ -851,7 +851,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
-  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-011');
+  if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-012');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
   let title=host.querySelector('[data-mg-room-title]'),status=host.querySelector('[data-mg-room-status]'),actions=host.querySelector('[data-mg-room-actions]');
@@ -910,6 +910,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const key=JSON.stringify([cacheUser,state.session_id,'work:'+claim.work_id+':'+claim.revision+suffix]);
    resume.disabled=!!roomError||!!staffResumeRead||liveAttempt(state)||attempts.has(key)||abortBlocked(state.session_id)||(countedRecovery&&countedResumeRecorded(cacheUser,state,claim));
   }else if(resume)resume.remove();
+  // This explicit command asks the server to prove a paid retained Director response.
+  // Candidate visibility is not a claim that raw exists or belongs to this actor.
+  let retainedRecovery=host.querySelector('[data-mg-retained-director]');
+  if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true
+   &&processing.valid&&claim?.state==='failed'&&claim.finalized_at!==null&&!combatProof){
+   if(!retainedRecovery){retainedRecovery=button('Recupera risposta salvata',()=>staffRecoverRetainedDirector(host));retainedRecovery.setAttribute('data-mg-retained-director','');host.append(retainedRecovery);}
+   retainedRecovery.disabled=!!staffRoleRecovery||!!(manualRoomLane&&manualLaneCurrent(manualRoomLane))||liveAttempt(state)||abortBlocked(state.session_id);
+  }else retainedRecovery?.remove();
   const releasedDirectorRecovery=directorHandoffFor(state,{user:cacheUser,loc:currentLocation()},false);
   let roleRecovery=host.querySelector('[data-mg-role-recovery]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test
@@ -1401,6 +1409,45 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    manualRecoveryError=Object.freeze({user:t.user,session:token.session,work:token.work,code:typeof error?.manualRecoveryCode==='string'&&/^[0-9A-Z]{5}$/.test(error.manualRecoveryCode)?error.manualRecoveryCode:'NON_CONFERMATO'});
    roomError='Esito del recupero non confermato. Role, risultati e ricevute restano conservati.';paintRoom(host,roomState);
   }}finally{if(staffRoleRecovery===token){staffRoleRecovery=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
+ }
+ async function staffRecoverRetainedDirector(host,lane=null,target=null){
+  if(lane===null){
+   const p=processingFor(roomState);if(!p.valid||p.value?.state!=='failed'||!sameChainRequest(p.value.request,p.value.request))return;
+   const original=Object.freeze({session:roomState.session_id,work:p.value.work_id,request:Object.freeze(clone(p.value.request))});
+   return queueManualRoomAction(host,'retained_director',l=>staffRecoverRetainedDirector(host,l,original));
+  }
+  const t=lane.t;
+  if(!manualLaneCurrent(lane)||!target||lane.session!==target.session||staffRoleRecovery||abortBlocked(target.session))return;
+  const token={session:target.session,work:target.work};staffRoleRecovery=token;manualRecoveryError=null;
+  try{
+   await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane:lane});
+   if(!manualLaneCurrent(lane)||roomError||staffRoleRecovery!==token)throw Error('retained_context_changed');
+   const current=processingFor(roomState);if(!current.valid)throw Error('retained_room_invalid');
+   const sameFailed=current.value?.work_id===target.work&&current.value.state==='failed'&&sameChainRequest(current.value.request,target.request);
+   const reply=await client.functions.invoke('mission_generic_ai',{body:{schema_version:'mission-retained-director-recovery/1',
+    mode:sameFailed?'prepare':'read',master_session_id:target.session,work_id:target.work}});
+   if(!manualLaneCurrent(lane)||staffRoleRecovery!==token)throw Error('retained_context_changed');
+   const v=reply.data;
+   if(reply.error||!nativeExact(v,['schema_version','status','master_session_id','work_id','child_request','child_work_id','replayed'])
+    ||v.schema_version!=='mission-retained-director-recovery/1'||!['ready','observing','published','failed'].includes(v.status)
+    ||v.master_session_id!==target.session||v.work_id!==target.work||typeof v.replayed!=='boolean')throw Error('retained_receipt_unconfirmed');
+   if(v.status==='failed')throw Error('retained_not_adopted'); // No legacy retry, Count or Generation fallback.
+   if(!UUID.test(v.child_work_id||'')||v.child_work_id===target.work||!sameChainRequest(v.child_request,v.child_request)
+    ||v.child_request.master_session_id!==target.session)throw Error('retained_child_invalid');
+   await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane:lane});
+   if(!manualLaneCurrent(lane)||roomError||staffRoleRecovery!==token)throw Error('retained_context_changed');
+   const fresh=processingFor(roomState);
+   if(!fresh.valid||roomState.session_id!==target.session)throw Error('retained_room_invalid');
+   if(v.status!=='published'&&(fresh.value?.work_id!==v.child_work_id||!sameChainRequest(fresh.value.request,v.child_request)))throw Error('retained_child_readback_unconfirmed');
+   if(fresh.value?.work_id===v.child_work_id&&fresh.value.state==='ready')recoveredWriters.add(recoveredWriterKey(t.user,target.session,v.child_work_id));
+   roomError='';manualRecoveryError=null;paintRoom(host,roomState); // Read only: existing normal ready command owns any future Writer dispatch.
+  }catch(error){
+   if(manualLaneCurrent(lane)&&staffRoleRecovery===token){
+    manualRecoveryError=Object.freeze({user:t.user,session:target.session,work:target.work,code:'NON_CONFERMATO'});
+    roomError='Recupero della risposta salvata non confermato. Output, role e ricevute restano conservati; nessuna nuova Count o Generation è stata richiesta da questo comando.';
+    paintRoom(host,roomState);
+   }
+  }finally{if(staffRoleRecovery===token)staffRoleRecovery=null;if(manualLaneCurrent(lane)&&roomState)paintRoom(host,roomState);}
  }
  async function staffRecoverIdenticalRole(host){
   const t=syncRoom(host),state=roomState,parsed=processingFor(state),work=parsed.value,role=state&&roleProgress(state);
