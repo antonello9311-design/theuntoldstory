@@ -28,9 +28,9 @@ export function bindingPayload({scope_kind, scope_id, step_key='', parent, items
   return {p_scope_kind:scope_kind, p_scope_id:scope_id, p_step_key:step_key, p_parent:{template_key:parent.template_key, template_version:parent.template_version, zone_key:parent.zone_key}, p_items:clean, p_pg_count:roster.pg_count, p_png_count:roster.png_count, p_expected_revision:expected_revision};
 }
 
-export function createMapBindingEditor({client, identity, isStaff, document:doc=globalThis.document, crypto:random=globalThis.crypto, onSaved=()=>{}, onActivated=()=>{}}) {
+export function createMapBindingEditor({client, identity, isStaff, document:doc=globalThis.document, crypto:random=globalThis.crypto, onSaved=()=>{}, onActivated=()=>{}, isEventReadMode=()=>false}) {
   if (!client?.rpc || !client?.auth?.getSession || !doc?.createElement || !random?.randomUUID) throw Error('Editor non configurato.');
-  let epoch=0, root=null, principal=null, state=null;
+  let epoch=0, root=null, principal=null, state=null,eventKey=null,eventAsked=false,eventFlight=null;
   const el=(tag, text, cls) => {const node=doc.createElement(tag);if(text!==undefined && text!==null)node.textContent=text;if(cls)node.className=cls;return node;};
   const button=(label, action) => {const b=el('button',label);b.type='button';b.addEventListener('click',action);return b;};
   const valid=stamp => epoch===stamp && principal && identity?.()===principal && isStaff?.()===true && root?.isConnected;
@@ -124,7 +124,24 @@ export function createMapBindingEditor({client, identity, isStaff, document:doc=
     }catch(e){if(valid(stamp)){state.uncertain=true;note(`Attivazione non confermata. Riapri l’associazione per leggere lo stato server prima di riprovare. ${e.message||''}`);}}
     finally{if(valid(stamp)){state.busy=false;state.previewButton.disabled=false;state.activate.disabled=state.ready||state.uncertain;state.connect.disabled=!state.ready||state.connected;}}
   }
-  async function mount(host,{scope_kind,scope_id,step_key='',parent,roster}) {
+  async function mount(host,options) {
+    if(isEventReadMode()!==true)return mountRequested(host,options);
+    const actor=identity?.(),key=JSON.stringify([actor,options?.scope_kind,options?.scope_id,options?.step_key||'',options?.parent,options?.roster]);
+    if(!host?.isConnected||!actor||!UUID.test(actor)||isStaff?.()!==true)throw Error('Accesso staff richiesto.');
+    if(eventKey!==key||root!==host||principal!==actor){dispose();root=host;principal=actor;eventKey=key;eventAsked=false;eventFlight=null;}
+    if(eventFlight)return eventFlight;
+    if(state){
+      if(options.hintRead===true&&eventAsked){state.preview=null;state.save.disabled=true;state.activate.disabled=true;state.connect.disabled=true;note('La fonte è cambiata: bozze conservate. Riapri esplicitamente l’editor per rileggere prima di salvare.');}
+      return {dispose};
+    }
+    if(options.readRequested!==true&&!(options.hintRead===true&&eventAsked)){
+      const stamp=epoch,args=structuredClone(options),status=el('p','Oggetti e catalogo da leggere su richiesta.');status.setAttribute('role','status');
+      const open=button('Apri editor oggetti',()=>{if(!valid(stamp)||eventKey!==key)return;open.disabled=true;mount(host,{...args,readRequested:true}).catch(()=>{if(root===host&&identity?.()===actor&&eventKey===key){root.replaceChildren(el('p','Lettura non confermata: riapri l’editor per riprovare.'));}});});
+      root.replaceChildren(status,open);return {dispose};
+    }
+    eventAsked=true;const flight=mountRequested(host,options).finally(()=>{if(eventFlight===flight)eventFlight=null;});eventFlight=flight;return flight;
+  }
+  async function mountRequested(host,{scope_kind,scope_id,step_key='',parent,roster}) {
     dispose();const stamp=epoch;root=host;principal=identity?.();
     if(!principal||!UUID.test(principal)||isStaff?.()!==true)throw Error('Accesso staff richiesto.');
     state={scope_kind,scope_id,step_key,parent,roster,items:[],types:[],revision:0,preview:null,busy:false,uncertain:false,ready:false,connected:false,variant:null,editSeq:0,parentChanged:false,migrationChoice:null};

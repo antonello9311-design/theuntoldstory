@@ -4,8 +4,8 @@ const STAFF_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const uuid=x=>typeof x==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(x);
 const node=(tag,text)=>{const n=document.createElement(tag);if(text!==null)n.textContent=text;return n;};
 
-export function createStaffFatoRegen({client,identity,isStaff,currentLocation,refresh}){
- let scope='',epoch=0,view=null,request=null,inFlight=false,styleReady=false,lastPublication=null,sceneWorkState=null;
+export function createStaffFatoRegen({client,identity,isStaff,currentLocation,refresh,isEventReadMode=()=>false}){
+ let scope='',epoch=0,view=null,request=null,inFlight=false,styleReady=false,lastPublication=null,sceneWorkState=null,readFlight=null,statusFlight=null,detailAsked=false,sendToken=null,detailsDialog=null;
  function enabled(){const loc=currentLocation();return !!identity()&&isStaff()&&loc?.id===STAFF_ROOM&&loc?.is_test===true;}
  function style(){
   if(styleReady)return;styleReady=true;
@@ -23,6 +23,15 @@ export function createStaffFatoRegen({client,identity,isStaff,currentLocation,re
   `;document.head.append(css);
  }
  async function read(session){
+  if(isEventReadMode()===true)return eventStatusRead(session);
+  return readStatus(session);
+ }
+ function eventStatusRead(session){
+  const t=epoch,key=scope;if(statusFlight&&statusFlight.epoch===t&&statusFlight.scope===key&&statusFlight.session===session)return statusFlight.promise;
+  const flight={epoch:t,scope:key,session,promise:null};statusFlight=flight;
+  flight.promise=readStatus(session).then(value=>{if(t!==epoch||key!==scope||scope!==JSON.stringify([identity(),session])||!enabled())throw Error('Contesto cambiato: dati non adottati.');return value;}).finally(()=>{if(statusFlight===flight)statusFlight=null;});return flight.promise;
+ }
+ async function readStatus(session){
   const r=await client.rpc('mission_staff_fato_regen_status_v1',{p_session:session});
   if(r.error)throw Error(r.error.message||'Stato rigenerazione non disponibile.');
   if(r.data?.schema_version!==VERSION||r.data.session_id!==session)throw Error('Stato rigenerazione non valido.');
@@ -34,6 +43,8 @@ export function createStaffFatoRegen({client,identity,isStaff,currentLocation,re
   return calls+' chiamata/e · '+cost.toFixed(4)+' $';
  }
  function showDetails(s,returnTo,publication=null){
+  if(isEventReadMode()===true&&(!enabled()||scope!==JSON.stringify([identity(),s.session_id])))return;
+  if(detailsDialog){detailsDialog.close();detailsDialog=null;}
   const d=node('dialog',null);d.className='mg-regen-dialog';d.setAttribute('aria-label','Come è stato prodotto questo Fato');
   const h=node('h3','Come è stato prodotto questo Fato'),close=node('button','Chiudi');
   close.type='button';close.addEventListener('click',()=>d.close());
@@ -65,7 +76,7 @@ export function createStaffFatoRegen({client,identity,isStaff,currentLocation,re
   add('Work',s.revision?.work_id);
   }
   d.append(list);document.body.append(d);
-  d.addEventListener('close',()=>{d.remove();returnTo?.focus();},{once:true});d.showModal();close.focus();
+  d.addEventListener('close',()=>{d.remove();returnTo?.focus();},{once:true});detailsDialog=d;d.addEventListener('close',()=>{if(detailsDialog===d)detailsDialog=null;},{once:true});d.showModal();close.focus();
  }
  function statusLabel(s,publication=null){
   if(sceneWorkState==='uncertain')return 'La lavorazione corrente richiede verifica. I Fati precedenti restano nella chat.';
@@ -82,6 +93,7 @@ export function createStaffFatoRegen({client,identity,isStaff,currentLocation,re
  }
  async function send(s,host,existing=false){
   if(inFlight||!enabled()||!uuid(s?.session_id))return;
+  const guardedSend=isEventReadMode()===true,token={epoch,scope,session:s.session_id};if(guardedSend)sendToken=token;const sameSend=()=>!guardedSend||sendToken===token&&token.epoch===epoch&&token.scope===scope&&scope===JSON.stringify([identity(),token.session])&&enabled()&&host?.isConnected;
   inFlight=true;await paint(host,s);
   const previous=s.target?.message_id;
   try{
@@ -91,18 +103,18 @@ export function createStaffFatoRegen({client,identity,isStaff,currentLocation,re
     const r=await client.rpc('mission_staff_fato_regenerate_v1',
       {p_session:s.session_id,p_target_message:previous,p_request:key});
     if(r.error)throw Error(r.error.message||'Richiesta non confermata.');
-    s=r.data;
+    if(!sameSend())return;s=r.data;
    }
-   const q=s.revision?.request;
+   if(!sameSend())return;const q=s.revision?.request;
    if(!q||q.schema_version!=='mission-generic-request/1'||q.master_session_id!==s.session_id)
      throw Error('Richiesta non confermata: verifica lo stato.');
    const r=await client.functions.invoke('mission_generic_ai',{body:structuredClone(q)});
    if(r.error)throw Error('Esito di rete incerto: verifica la stessa richiesta.');
   }catch(error){
-   const label=host.querySelector('[data-mg-regen-status]');
+   if(!sameSend())return;const label=host.querySelector('[data-mg-regen-status]');
    if(label)label.textContent=error.message||'Invio non confermato.';
   }finally{
-   inFlight=false;
+   if(!sameSend())return;if(guardedSend)sendToken=null;inFlight=false;
    try{const fresh=await read(s.session_id);if(scope===JSON.stringify([identity(),s.session_id])){view=fresh;await paint(host,fresh);refresh();}}
    catch{/* Keep the local warning; never invent a final state. */}
   }
@@ -119,9 +131,17 @@ export function createStaffFatoRegen({client,identity,isStaff,currentLocation,re
   const w=s.revision?.work_state,ongoing=['ready','claimed','authorized','provider_started','uncertain'].includes(w);
   const primary=node('button',ongoing?'Verifica la stessa richiesta':'Rigenera ultimo Fato');
   primary.type='button';primary.disabled=inFlight||!!sceneWorkState||(!ongoing&&!s.target?.eligible);
-  primary.addEventListener('click',()=>send(s,host,ongoing));
+  primary.addEventListener('click',()=>{
+   if(isEventReadMode()!==true)return send(s,host,ongoing);
+   const t=epoch,key=scope;primary.disabled=true;
+   read(s.session_id).then(async fresh=>{if(t!==epoch||key!==scope||scope!==JSON.stringify([identity(),s.session_id])||!enabled()||!host.isConnected)return;view=fresh;const currentWork=fresh.revision?.work_state;await send(fresh,host,['ready','claimed','authorized','provider_started','uncertain'].includes(currentWork));}).catch(()=>{if(t===epoch&&key===scope&&host.isConnected){primary.disabled=false;const label=host.querySelector('[data-mg-regen-status]');if(label)label.textContent='Stato non verificato: nessun comando inviato. Rileggi le informazioni.';}});
+  });
   const info=node('button',publication?'Informazioni sul Fato':'Come è stato prodotto?');info.type='button';
-  info.addEventListener('click',()=>showDetails(s,info,publication));
+  info.addEventListener('click',()=>{
+   if(isEventReadMode()!==true)return showDetails(s,info,publication);
+   const t=epoch,key=scope;info.disabled=true;
+   read(s.session_id).then(fresh=>{if(t!==epoch||key!==scope||scope!==JSON.stringify([identity(),s.session_id])||!enabled()||!host.isConnected)return;view=fresh;showDetails(fresh,info,publication);}).catch(()=>{if(t===epoch&&key===scope&&host.isConnected){const label=host.querySelector('[data-mg-regen-status]');if(label)label.textContent='Informazioni non disponibili: riprova esplicitamente.';}}).finally(()=>{if(t===epoch&&key===scope&&host.isConnected)info.disabled=false;});
+  });
   actions.append(primary,info);
   const status=node('p',statusLabel(s,publication));status.className='mg-regen-status';
   status.dataset.mgRegenStatus='';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
@@ -137,19 +157,29 @@ export function createStaffFatoRegen({client,identity,isStaff,currentLocation,re
    ||typeof p.finalized_at!=='string'||!Number.isFinite(Date.parse(p.finalized_at)))return null;
   return {message_id:p.message_id,work_id:p.work_id,published_at:p.finalized_at};
  }
- async function update(host,room,processing=null){
+ async function update(host,room,processing=null,{readRequested=false,hintRead=false}={}){
   if(!enabled()||!uuid(room?.session_id)){host?.querySelector('[data-mg-regen]')?.remove();return;}
   const next=JSON.stringify([identity(),room.session_id]);
-  if(next!==scope){scope=next;epoch++;view=null;request=null;lastPublication=null;sceneWorkState=null;}
-  const current=epoch,p=processing?.valid===true?processing.value:null;
+  if(next!==scope){if(detailsDialog){detailsDialog.close();detailsDialog=null;}scope=next;epoch++;if(isEventReadMode()===true){sendToken=null;inFlight=false;}detailAsked=false;statusFlight=null;readFlight=null;view=null;request=null;lastPublication=null;sceneWorkState=null;}
+  const current=epoch,capturedScope=scope,p=processing?.valid===true?processing.value:null;
+  const same=()=>current===epoch&&capturedScope===scope&&scope===JSON.stringify([identity(),room.session_id])&&enabled()&&host?.isConnected;
+  if(readRequested===true)detailAsked=true;
+  if(isEventReadMode()===true&&readRequested!==true&&!(hintRead===true&&detailAsked)){
+   if(view){await paint(host,view,lastPublication);return;}
+   style();let wrap=host.querySelector('[data-mg-regen]');if(!wrap){wrap=node('section',null);wrap.dataset.mgRegen='';host.append(wrap);}wrap.replaceChildren();
+   const status=node('p','Informazioni e strumenti Fato da leggere su richiesta.'),open=node('button','Apri informazioni e strumenti Fato');status.dataset.mgRegenStatus='';status.setAttribute('role','status');open.type='button';
+   open.addEventListener('click',()=>{if(!same())return;void update(host,room,processing,{readRequested:true});});wrap.append(status,open);return;
+  }
+  if(readFlight&&readFlight.scope===scope&&readFlight.epoch===current)return readFlight.promise;
+  const flight={scope,epoch:current,promise:null};readFlight=flight;
   sceneWorkState=p?.request?.master_session_id===room.session_id&&['ready','claimed','authorized','provider_started','uncertain'].includes(p.state)?p.state:null;
-  try{const s=await read(room.session_id);if(current!==epoch||!host?.isConnected)return;view=s;
+  flight.promise=(async()=>{try{const s=await read(room.session_id);if(!same())return;view=s;
    const publication=publicationOutsideTarget(s,room,processing);
    if(publication)lastPublication=Object.freeze({...publication,session_id:room.session_id,principal:identity()});
    const confirmed=publication||(!s.revision&&!s.target?.message_id&&lastPublication?.session_id===room.session_id&&lastPublication.principal===identity()?lastPublication:null);
    await paint(host,s,confirmed);
   }
-  catch(error){if(current!==epoch)return;const label=host.querySelector('[data-mg-regen-status]');if(label)label.textContent='Rigenerazione non disponibile: '+error.message;}
+  catch(error){if(!same())return;const label=host.querySelector('[data-mg-regen-status]');if(label)label.textContent='Rigenerazione non disponibile: '+error.message;}finally{if(readFlight===flight)readFlight=null;}})();return flight.promise;
  }
- return {update,dispose(){scope='';epoch++;view=null;request=null;inFlight=false;lastPublication=null;sceneWorkState=null;}};
+ return {update,dispose(){if(detailsDialog){detailsDialog.close();detailsDialog=null;}readFlight=null;statusFlight=null;detailAsked=false;scope='';epoch++;view=null;request=null;inFlight=false;lastPublication=null;sceneWorkState=null;}};
 }
