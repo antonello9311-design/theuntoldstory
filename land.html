@@ -2138,7 +2138,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
           <a class="tb-btn" href="storia.html">Storia</a>
           <a class="tb-btn" href="regole.html">Regole</a>
           <span class="tb-sep"></span>
-          <button class="tb-btn online" id="online-btn" type="button"><span class="ob-dot"></span>Ultima lettura · <b id="online-n">0</b></button>
+          <button class="tb-btn online" id="online-btn" type="button"><span class="ob-dot"></span>ONLINE · <b id="online-n">0</b></button>
           <span class="tsz-wrap"><button class="tb-btn" id="tsz-btn" type="button" title="Grandezza per area: cambi solo quello che preferisci" aria-haspopup="true" aria-expanded="false">Aa</button><div id="tsz-pop" hidden role="group" aria-label="Grandezza per area"><div class="tsz-k">Testo della chat</div><div class="tsz-row" data-tsz="testo"><button class="tsz-opt" type="button" data-v="">Normale</button><button class="tsz-opt" type="button" data-v="grande">Grande</button><button class="tsz-opt" type="button" data-v="molto">Molto</button></div><div class="tsz-k">Pannello laterale e Scontro</div><div class="tsz-row" data-tsz="lato"><button class="tsz-opt" type="button" data-v="">Normale</button><button class="tsz-opt" type="button" data-v="grande">Grande</button><button class="tsz-opt" type="button" data-v="molto">Molto</button></div><div class="tsz-k">Tasti sotto la chat</div><div class="tsz-row" data-tsz="tasti"><button class="tsz-opt" type="button" data-v="">Normali</button><button class="tsz-opt" type="button" data-v="grande">Grandi</button><button class="tsz-opt" type="button" data-v="molto">Molto</button></div><div class="tsz-k">Barra in alto e menu</div><div class="tsz-row" data-tsz="alto"><button class="tsz-opt" type="button" data-v="">Normale</button><button class="tsz-opt" type="button" data-v="grande">Grande</button><button class="tsz-opt" type="button" data-v="molto">Molto</button></div></div></span><button class="tb-btn music" id="music-btn" type="button">Musica: off</button>
           <a class="tb-btn staff" href="admin.html" id="admin-nav" style="display:none">Staff</a>
           <a class="tb-btn logout" href="index.html" id="logout">Esci</a>
@@ -2197,7 +2197,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
             
           </div>
           <div class="luoghi">
-            <div class="lg-head">Luoghi — scegli dove giocare <span class="lg-count">· <b id="map-count">0</b> presenze all’ultima lettura</span></div>
+            <div class="lg-head">Luoghi — scegli dove giocare <span class="lg-count">· <b id="map-count">0</b> presenti nella land</span></div>
             <div class="lg-list" id="lg-list"><span class="who-empty">Caricamento…</span></div>
           </div>
         </div>
@@ -6016,8 +6016,15 @@ window.TUSOrdinary={attachOrdinaryLand};
       function avatarHTML(c,name,cid){ var inner=(c&&c.avatar_url)?('<img loading="lazy" src="'+esc(c.avatar_url)+'" alt="">'):('<span class="ava-ph">'+esc((name||'?').charAt(0).toUpperCase())+'</span>'); return cid?('<a class="m-ava" href="scheda.html?id='+esc(cid)+'" title="Apri la scheda di '+esc(name)+'">'+inner+'</a>'):('<span class="m-ava">'+inner+'</span>'); }
       function clanEmbSpan(clan,isCapo,size){ if(!clan||clan==='Nessuno')return ''; var u=EMB['clan:'+clan]; if(!u)return ''; return '<span class="cl-emb'+(isCapo?' shine':'')+'" style="width:'+size+'px;height:'+size+'px'+(isCapo?(';--e:url(&quot;'+u+'&quot;)'):'')+'"><img src="'+esc(u)+'" alt=""><span class="shn"></span></span>'; }
       function identityHTML(c,name,cid,created){ var sx=c&&c.sex; var sexIc=(sx==='Maschio')?SEX_M:((sx==='Femmina')?SEX_F:''); var wo=cid?('<a class="m-who" href="scheda.html?id='+esc(cid)+'">'):'<span class="m-who">'; var wc=cid?'</a>':'</span>'; var rk=c&&c.rank; var rimg=(rk&&EMB['rank:'+rk]); var rbadge=rimg?('<span class="rb"><img src="'+esc(rimg)+'" alt=""></span>'):rankBadge(rk); var rankH=rk?('<span class="m-rank">'+rbadge+esc(rk)+'</span>'):''; var cl=(c&&c.clan&&c.clan!=='Nessuno')?c.clan:''; var clanImg=clanEmbSpan(cl,(c&&c.clan_role==='Capo clan'),14); var _clEred=clanUsatoComeCognome(c); var _clMostra=!!cl&&!(_clEred&&!clanImg); var clanH=_clMostra?('<a class="m-clan" href="clan.html?c='+encodeURIComponent(cl)+'" title="'+(_clEred?(esc(cl)+' · apri il clan'):'Apri il clan')+'">'+clanImg+(_clEred?'':esc(cl))+'</a>'):''; var ep=c&&c.epithet; var epiH=ep?('<span class="m-epi">«'+esc(ep)+'»</span>'):''; return '<div class="m-head">'+wo+esc(name)+wc+sexIc+rankH+clanH+epiH+'<span class="m-time">'+fmt(created)+'</span></div>'; }
-      var EMBLEMS_LOADED=false,NOMI_LOADED=false;
-      function loadEmblems(){if(!sb)return;var key=landReadKey();if(EMBLEMS_LOADED===key)return Promise.resolve(true);return sb.from('emblems').select('kind,name,image_url').in('kind',['clan','rank','village','corp','corpspec','corpgrade','bijuu','evofam']).then(function(r){ if(key!==landReadKey())return;if(r&&!r.error){EMBLEMS_LOADED=key; (r.data||[]).forEach(function(e){ if(e.image_url) EMB[e.kind+':'+e.name]=e.image_url; }); } }, function(){}); }
+      var EMBLEMS_LOADED=false,EMBLEMS_FLIGHT=null,NOMI_LOADED=false;
+      function loadEmblems(){
+        var key=landReadKey();if(!sb||!key)return Promise.resolve(false);if(EMBLEMS_LOADED===key)return Promise.resolve(true);if(EMBLEMS_FLIGHT&&EMBLEMS_FLIGHT.key===key)return EMBLEMS_FLIGHT.promise;
+        var slot={key:key,promise:null};EMBLEMS_FLIGHT=slot;
+        slot.promise=Promise.resolve().then(function(){if(key!==landReadKey()||EMBLEMS_FLIGHT!==slot)return false;return sb.from('emblems').select('kind,name,image_url').in('kind',['clan','rank','village','corp','corpspec','corpgrade','bijuu','evofam']);}).then(function(r){
+          if(key!==landReadKey()||EMBLEMS_FLIGHT!==slot||!r||r.error||!Array.isArray(r.data))return false;
+          EMBLEMS_LOADED=key;r.data.forEach(function(e){if(e.image_url)EMB[e.kind+':'+e.name]=e.image_url;});if(panelOpen)renderPanel();return true;
+        }).catch(function(){return false;}).finally(function(){if(EMBLEMS_FLIGHT===slot)EMBLEMS_FLIGHT=null;});return slot.promise;
+      }
       function caricaNomiEvidenza(){
       if(!sb)return;var key=landReadKey();if(NOMI_LOADED===key)return Promise.resolve(true);
       return Promise.all([
@@ -6278,12 +6285,13 @@ window.TUSOrdinary={attachOrdinaryLand};
       function landReadNote(message){var host=cur?roomView:mapView;if(!host)return;var row=document.getElementById('land-read-status');if(!message){if(row)row.remove();return;}if(!row){row=document.createElement('p');row.id='land-read-status';row.setAttribute('role','status');host.append(row);}row.textContent=message;}
       function landConfigureTimers(){
         if(landPresenceTimer){clearInterval(landPresenceTimer);landPresenceTimer=null;}if(rosterPoll){clearInterval(rosterPoll);rosterPoll=null;}if(presencePoll){clearInterval(presencePoll);presencePoll=null;}if(poll){clearInterval(poll);poll=null;}
+        if(landEventReadMode()){rosterPoll=setInterval(function(){if(!landEventReadMode()||!landReadKey())return;updateOnlineCount();if(panelOpen)renderPanel();if(!document.hidden)void loadRoster(true);},12000);return;}
         if(!landLegacyPollingAllowed())return;
         landPresenceTimer=setInterval(function(){if(landLegacyPollingAllowed())ping();},60000);
         rosterPoll=setInterval(function(){if(!landLegacyPollingAllowed())return;loadRoster();loadActivity();loadFlash();loadUnread();loadConversations();},12000);
         if(cur&&roomEntryConfirmed()){presencePoll=setInterval(function(){if(landLegacyPollingAllowed())loadWho();},1000);poll=setInterval(function(){if(landLegacyPollingAllowed())refreshRoom();},9000);}
       }
-      function landEventDispose(){var s=LAND_EVENTS;LAND_EVENTS=null;if(s&&s.channel)sb.removeChannel(s.channel);LAND_POLICY={key:null,value:null,flight:null};LAND_PROFILE_KNOWN=false;landConfigureTimers();landReadNote('');}
+      function landEventDispose(){var s=LAND_EVENTS;LAND_EVENTS=null;if(s&&s.channel)sb.removeChannel(s.channel);LAND_POLICY={key:null,value:null,flight:null};LAND_PROFILE_KNOWN=false;landConfigureTimers();updateOnlineCount();if(panelOpen)renderPanel();landReadNote('');}
       function staffEventDispose(){landEventDispose();}
       function staffEventSync(){landEventSync();}
       function staffEventIdleScope(){return landEventReadMode();}
@@ -13281,7 +13289,7 @@ var nb028iTeardown=function(){};
         myCharId=cr.data.id;myClan=cr.data.clan||'';myClanRole=cr.data.clan_role||'';myVita=cr.data.vita;myVitaMax=cr.data.vita_max;myChakra=cr.data.chakra;myChakraMax=cr.data.chakra_max;myCorp=cr.data.corporation;showPtsReminder(cr.data.unspent_points||0);updateVitals();updateKOState();
         landApplyStaffRole(pr.data.role);landEventSync();await landPolicyRead();
         if(myId!==actor||!loggedIn||(MV2&&MV2.authEpoch||0)!==authStamp)return;renderLuoghi();
-        sb.rpc('enter_land').then(function(){loadLuoghi(function(resumed){if(!resumed)sb.rpc('enter_location',{p_location:null});});loadRoster();loadFlash();if(landLegacyPollingAllowed()){loadActivity();calInit();}},function(){loadLuoghi();loadRoster();});startRosterPoll();
+        sb.rpc('enter_land').then(function(){loadLuoghi(function(resumed){if(!resumed)sb.rpc('enter_location',{p_location:null});});loadEmblems();loadRoster();loadFlash();if(landLegacyPollingAllowed()){loadActivity();calInit();}},function(){loadLuoghi();loadEmblems();loadRoster();});startRosterPoll();
         sb.rpc('ensure_welcome').then(function(){loadUnread();if(landLegacyPollingAllowed())loadConversations();},function(){loadUnread();if(landLegacyPollingAllowed())loadConversations();});
         if(dmTarget){var target=dmTarget;dmTarget=null;sb.from('characters').select('name').eq('user_id',target).maybeSingle().then(function(r){openCompose(target,r.data?.name||'utente');},function(){openCompose(target,'utente');});}
       }).catch(function(){landReadNote('Ingresso non verificabile: nessun aggiornamento automatico avviato.');});}else renderLuoghi();
@@ -13292,13 +13300,17 @@ var nb028iTeardown=function(){};
       var SCROLL='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h9a1.6 1.6 0 0 1 0 3.2h-1.6"/><path d="M15.4 4v14.4A1.6 1.6 0 0 1 13.8 20H6.6A1.6 1.6 0 0 1 5 18.4c0-.88.72-1.6 1.6-1.6H8"/><path d="M8 4v13"/><path d="M10.5 8.5h4M10.5 11.5h4"/></svg>';
       function statusColor(s){ return ({online:'#3c8a3c',looking:'#d9a521',busy:'#c0392b',unavailable:'#8a8a8a'})[s]||'#3c8a3c'; }
       function statusLabel(s){ return ({online:'Online',looking:'In cerca di gioco',busy:'Occupato',unavailable:'Non disponibile'})[s]||'Online'; }
-      function myRosterRow(){ for(var i=0;i<ROSTER.length;i++){ if(ROSTER[i].user_id===myId) return ROSTER[i]; } return null; }
-      function updateMyStatusDot(){ var meRow=myRosterRow(), dot=document.querySelector('#online-btn .ob-dot'); if(!dot||!meRow) return; dot.style.background=statusColor(meRow.status); dot.title=statusLabel(meRow.status); }
+      function myRosterRow(){var rows=rosterVisibleRows();for(var i=0;i<rows.length;i++){if(rows[i].user_id===myId)return rows[i];}return null;}
+      function updateMyStatusDot(){ var meRow=myRosterRow(), dot=document.querySelector('#online-btn .ob-dot'); if(!dot)return;if(!meRow){dot.style.background='#888';dot.title='Presenza non confermata';return;}dot.style.background=statusColor(meRow.status); dot.title=statusLabel(meRow.status); }
       function roleBadge(r){ var m={admin:['A','Admin'],staff:['S','Staff'],master:['M','Master']}; var v=m[r]; return v?'<span class="rl-badge rl-'+r+'" title="'+v[1]+'">'+v[0]+'</span>':''; }
-      var ROSTER_READ_AT=null;
-      function rosterReadLabel(){return ROSTER_READ_AT?'Presenze all’ultima lettura ('+new Date(ROSTER_READ_AT).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'), finestra 8 minuti':'Presenze non ancora lette';}
-      function updateOnlineCount(){var label=rosterReadLabel();['online-n','map-count'].forEach(function(id){var node=document.getElementById(id);if(node){node.title=label;node.setAttribute('aria-label',label+': '+ROSTER.length);}});var n=ROSTER.length; var a=document.getElementById('online-n'); if(a) a.textContent=n; var m=document.getElementById('map-count'); if(m) m.textContent=n; updateMyStatusDot(); }
-      function loadRoster(periodic){ return backgroundRead('roster',{minutes:8},function(){return sb.rpc('online_roster',{p_minutes:8});},function(r){if(!Array.isArray(r.data))throw Error('Elenco non disponibile.');ROSTER=r.data;ROSTER_READ_AT=Date.now();rosterLoaded=true;updateOnlineCount();if(panelOpen)renderPanel();},periodic===true); }
+      var ROSTER_READ_AT=null,ROSTER_AUTH=null;
+      function rosterSnapshotFresh(){return ROSTER_AUTH===landReadKey()&&!!landReadKey()&&ROSTER_READ_AT!==null&&Date.now()-ROSTER_READ_AT>=0&&Date.now()-ROSTER_READ_AT<480000;}
+      function rosterVisibleRows(){if(!rosterSnapshotFresh())return [];var cutoff=Date.now()-480000;return ROSTER.filter(function(row){var seen=Date.parse(row.last_seen);return Number.isFinite(seen)&&seen>cutoff;});}
+      function rosterReadLabel(){return rosterSnapshotFresh()?'Presenze negli ultimi 8 minuti; apri elenco per aggiornare':'Elenco da aggiornare: apri Online';}
+      function updateOnlineCount(){var label=rosterReadLabel(),rows=rosterVisibleRows(),n=rosterSnapshotFresh()?rows.length:'—';['online-n','map-count'].forEach(function(id){var node=document.getElementById(id);if(node){node.title=label;node.setAttribute('aria-label',label+': '+n);node.textContent=n;}});updateMyStatusDot();}
+      function loadRoster(periodic){
+        return backgroundRead('roster',{minutes:8},function(){return sb.rpc('online_roster',{p_minutes:8});},function(r){if(!Array.isArray(r.data))throw Error('Elenco non disponibile.');ROSTER=r.data;ROSTER_AUTH=landReadKey();ROSTER_READ_AT=Date.now();rosterLoaded=true;updateOnlineCount();if(panelOpen)renderPanel();},periodic===true);
+      }
       function startRosterPoll(){landConfigureTimers();}
       function acTimeAgo(iso){ var t=new Date(iso).getTime(); if(!t) return ''; var sec=Math.max(0,(Date.now()-t)/1000); var m=Math.floor(sec/60); if(m<1) return 'adesso'; if(m<60) return m+' min fa'; var h=Math.floor(m/60); if(h<24) return h+' h fa'; return Math.floor(h/24)+' g fa'; }
       function acLine(e){ var nm='<b>'+esc(e.name||'—')+'</b>'; if(e.event_type==='enter'){ return e.location_name ? ('<span class="ac-in">▸</span> '+nm+' è entrato in <i>'+esc(e.location_name)+'</i>') : ('<span class="ac-in">▸</span> '+nm+' è entrato nella Land'); } return e.location_name ? ('<span class="ac-out">◂</span> '+nm+' ha lasciato <i>'+esc(e.location_name)+'</i>') : ('<span class="ac-out">◂</span> '+nm+' ha lasciato la Land'); }
@@ -13408,14 +13420,14 @@ var nb028iTeardown=function(){};
         var bk=document.getElementById('bd-back'); if(bk) bk.addEventListener('click', showBoardList);
       })();
       function renderPanel(){
-        var host=document.getElementById('ovp-list'); if(!host) return;
+        var host=document.getElementById('ovp-list');if(!host)return;var onlineRows=rosterVisibleRows();if(!rosterSnapshotFresh()){host.innerHTML='<div class="ovp-empty">Elenco da aggiornare: apri Online per rileggerlo.</div>';var staleCount=document.getElementById('ovp-count');if(staleCount)staleCount.textContent='—';return;}
         var meRow=myRosterRow();
         var ms=document.getElementById('my-status'); if(ms&&meRow) ms.value=meRow.status;
         var mo=document.getElementById('my-off'); if(mo&&meRow&&document.activeElement!==mo) mo.value=meRow.off_notes||'';
-        var cc=document.getElementById('ovp-count'); if(cc) cc.textContent=ROSTER.length;
-        if(!ROSTER.length){ host.innerHTML='<div class="ovp-empty">Nessuna presenza all’ultima lettura.</div>'; return; }
+        var cc=document.getElementById('ovp-count'); if(cc) cc.textContent=onlineRows.length;
+        if(!onlineRows.length){ host.innerHTML='<div class="ovp-empty">Nessuna presenza nell’elenco.</div>'; return; }
         var groups={}, order=[];
-        ROSTER.forEach(function(u){ var key=u.location_id||'__map__'; if(!groups[key]){ groups[key]={loc:u.location_id,name:u.location_name||'Mappa generale',users:[]}; order.push(key); } groups[key].users.push(u); });
+        onlineRows.forEach(function(u){ var key=u.location_id||'__map__'; if(!groups[key]){ groups[key]={loc:u.location_id,name:u.location_name||'Mappa generale',users:[]}; order.push(key); } groups[key].users.push(u); });
         order.sort(function(a,b){ return (a==='__map__'?1:0)-(b==='__map__'?1:0); });
         host.innerHTML='<p>'+esc(rosterReadLabel())+'</p>'+order.map(function(key){ var g=groups[key];
           var head='<button class="ovp-loc" data-loc="'+(g.loc||'')+'">'+esc(g.name)+'<span class="ovp-locn">'+g.users.length+'</span></button>';
