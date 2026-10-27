@@ -1,64 +1,43 @@
-# Prima simulazione e proposta per una seconda prova più aperta
+# Prima prova: review dei Fati e correzioni prima della seconda
 
-27 ottobre 2026 · fotografia delle 13:23 Europe/Rome · modifiche approvate; attuazione parziale.
+27 ottobre 2026 · istruzioni e contenuti editoriale44 applicati; registry esatto della nuova fonte installato e riletto. Prima prova conclusa, seconda e terza non avviate per decisione di Antonello. Nessuna rigenerazione o correzione dei dodici Fati pubblicati.
 
-La simulazione A riusa la prova `1fb789a2-0319-435f-9f6d-dd517cac7cd3` e l’incipit originale. Quattro turni narrativi hanno prodotto quattro Fati al primo tentativo; sono seguiti due Fati Combat. L’ultimo pubblicato, `9d60c065-d5cf-4a19-8472-016a3e0c5d27`, risale alle 12:24 italiane ed è stato letto anche dopo uscita e rientro. Il round4 è ora risolto ma non narrato: non dichiariamo il prossimo Fato pubblicato né la missione conclusa.
+La simulazione A `1fb789a2-0319-435f-9f6d-dd517cac7cd3` è conclusa dal server alle15:00:58.240054UTC tramite il normale comando Staff. Lo scontro `e5093751-416c-4618-b8e5-79f21e9c4f55` è terminato pacificamente alle14:49:52UTC con ricevuta nativa; il Fato finale `f96478fe-2f4f-4716-89b0-1e7e842afbbf` è pubblicato14:53:26UTC. È un percorso completato con recuperi, non una missione senza problemi né un PASS editoriale.
 
-Sono installate le correzioni di ingresso Combat, continuità dei profili congelati, eventi causali, riduzione delle letture ripetute, successione dei binding e timeout mirato (DB20s/Edge25s). Le nuove versioni di Daichi e Keita sono approvate; il primo salvataggio delle fasi B è stato respinto dal controllo meccanica/media. Installata la correzione con review materiale0/0/0 e preservazione7+3snapshot, il sito ha salvato la revisione2 con i nuovi profili e fasi. B e C non sono ancora avviate. Small mantenuto; causa OS dei riavvii ancora sconosciuta.
+## Review del corpus A
 
-Spesa prudenziale aggiuntiva: 0,2968524 USD dei 4 USD autorizzati, 38 chiamate HTTP (19 Count +19 Generation), senza azzerare lo storico. La durata approvata termina alle13:32:49 italiane; l’estensione richiesta non risulta ancora approvata. Referto JSON associato con sorgenti, review, installer e prove effettive; nessuna qualifica di percorso completo.
-
-## Risultati della prima prova
-
-| Turno | Cosa produce il Fato | Qualità e limite osservato |
+| Difetto osservato | Evidenza | Correzione autorizzata |
 |---|---|---|
-| A1 | Nessuno ha visto gli attacchi; Daichi cita una fonte e Keita cita Daichi. | Risposta pertinente ma minima. Il narratore dichiara una contraddizione senza mostrarla: le due affermazioni possono coesistere. Le domande sull'incontro restano inevase. |
-| A2 | Daichi rifiuta dettagli sulla fonte; Keita conferma di non averla incontrata. | Più parlato, gesti e toni; nuove informazioni limitate. Restano mascella, sguardi e brusio già usati. |
-| A3 | Daichi rifiuta di ritirare le accuse; Keita chiarisce pubblicamente di non essere un testimone. | Keita compie un gesto sociale nuovo. La proposta di accompagnarli a riferire non riceve una risposta; la scena resta ferma. |
-| A4 | Keita ammette che dovevano ripetere quelle parole; i due attaccano e il server apre Combat. | Avanzamento reale, ma brusco: si passa da una breve ammissione allo scontro. Poco spazio alla reazione e alle alternative dei PNG. |
+| Copia delle azioni PG | Nel Fato di uscita86be3b8e, tre battute PG606/1276caratteri,47,5%, oltre a gesti ripresi dalle azioni. | Il Fato comincia dalle risposte nuove del mondo/PNG; non cita né parafrasa parole, gesti o intenzioni PG. Solo minimo raccordo necessario a un nuovo esito certificato. |
+| Risposte minime e richieste senza seguito | Domande sulla fonte e accompagnamento ricevono rifiuti generici o restano senza risposta; anche la conclusione ribadisce ammissioni note. | Distinguere richieste inevase, risposte date e accordi; sviluppare precisazioni, obiezioni, domande di ritorno e proposte coerenti con il singolo PNG. |
+| Descrizione ripetitiva | “Brusio” in10dei primi11Fati e “mascella” in7; entrambi tornano nel finale. | Ambiente e modi di parlare pertinenti alla nuova interazione, senza gesto seriale o descrizione statica obbligata. |
+| Contraddizione dichiarata senza prova | Daichi cita una fonte, Keita cita Daichi: affermazioni compatibili, ma il primo Fato le dichiara divergenti. | Distinguere ignoranza, reticenza e menzogna; mostrare incompatibilità effettive senza interpretarle per i PG. |
+| Percorso rigido | Schede V1 prescrivevano brevità, attacco sotto pressione e confessione dopo sconfitta. | Motivazioni e limiti rimangono, ma non impongono battute, aggressioni o confessioni; via pacifica e dialogo durante Combat conservati. |
 
-Lunghezze dei quattro testi pubblicati: 563, 813, 669 e 449 caratteri. La lunghezza da sola non misura completezza. Tutti i testi originali, gli ID e gli SHA sono conservati; nessun Fato è stato corretto per migliorarne il giudizio.
+Il divieto di riprendere le role esisteva già nelle istruzioni. La ripetizione non si risolve aggiungendo l’ennesima raccomandazione: il ramo di prosa libera deve ricevere la stessa regola editoriale e i raccordi pertinenti alla composizione. Non si introduce un nuovo filtro che blocchi il turno per una frase ripetuta.
 
-Nel contesto effettivamente ricevuto dal Director, Daichi ha «frasi brevi» ed «evita dettagli verificabili»; Keita ha «risposte brevi». La trama colloca la confessione dopo la sconfitta, mentre le note ammettono l'emersione del motivo economico attraverso le domande. Le informazioni sulla consegna anonima esistono: non si tratta soltanto di schede vuote. Queste istruzioni possono spingere verso evasione e sequenza obbligata; non dimostrano da sole la causa esclusiva di ogni difetto del testo.
+## Correzioni a istruzioni, fasi e schede
 
-## Modifiche approvate sulle fasi
+Edge113 installata e riletta: bundle4584c2470b38cc990fea19e5431479c3464aa165c1d7278d756fd2eecca9760a; unico delta `mission-generic-runtime.mjs`,422436B/SHA29dc54aeb58adc165d1bfa6fd23e59940328c77a299ec070a07228df572705bf; altri13file invariati. Sintassi e review pertinente0/0/0. La regola comune Writer vieta copia/parafrasi PG e il Director distingue interazioni inevase e risposte già date; il ramo libero conserva le istruzioni pertinenti a narrazione, Combat e uscita. Nessun nuovo schema, validatore bloccante, retry, quota di parole o iniziativa meccanica del modello.
 
-Conservare l'apertura, i fatti della missione e gli obiettivi, ma rappresentare le fasi come situazioni con più sbocchi. Il confronto può portare a una verifica concreta, a una presa di distanza fra i due Genin, a una ritrattazione, a una collaborazione, a un tentativo di sottrarsi o a uno scontro. Il combattimento resta disponibile e risolto dal server; non diventa il requisito universale per ottenere una confessione o una conclusione.
+Nuove schede V3 approvate normalmente: Daichi87880162-a636-4da7-878f-345254f4201f e Keita62c82d9b-7786-4006-aaba-6556cb7f5780,control13. Rimossi automatismi di contraddizione, dettagli inventati, posture/battute fisse e resa legata alla neutralizzazione del compagno. Conoscenze, identità e meccanica restano quelle autorizzate. Campi UI riletti conformi alla candidata, inclusi limiti di trasporto dell’editor. L’ignoranza sul mandante resta; importo, testo letterale delle istruzioni e attuale collocazione della busta non sono inventati per allungare il parlato.
 
-Le conseguenze dipendono da ciò che i personaggi fanno e da ciò che i PNG hanno effettivamente detto o tentato. Una domanda non prova automaticamente una menzogna. Una testimonianza indiretta non è da sola una contraddizione. Una proposta di accompagnamento deve ricevere una risposta o una reazione concreta, anche negativa: non può essere ignorata per mantenere la scena nel capannello.
+Le fasi preparate mantengono il piano e la via pacifica, aggiungono ambientazione coerente con piazza/banchi/botteghe e risposte causali alle richieste. Le conseguenze conclusionali devono provenire da fatti, ammissioni e accordi effettivi. Revisione3 salvata normalmente15:17:05.481317UTC e riletta: piano f44192bc-6a83-4def-9086-bbf4089c8fe5/SHA documento1808bbdb655d0531991fbf8c5c2479016d0c6e7dda7bf64e7eab2e965c8cefe9; testi delle quattro fasi e8presenze più incontro V3 conformi alla candidata. Non è iniziata alcuna seconda prova.
 
-Per ogni situazione, definire fatti stabili, questioni ancora aperte, obiettivi dei presenti, possibili conseguenze e condizioni di conclusione. Evitare un ordine obbligato di battute o un numero fisso di domande prima di avanzare. La conclusione deve distinguere risultati ottenuti, informazioni non verificate e questioni irrisolte, anche senza scoprire il mandante.
+## Integrazione, errore conservato e limiti
 
-## Modifiche approvate sulle schede PNG
+Root9b3fd636871fa9854f1ebcd8b737db0dca343397e2b354ae30b5755748ac4ebb applicata e riletta,259025B/194header. Il primo installer è fallito42703 per x.id su encounter: rollback atomico provato, zero effetti di quell’apply. Aggregata1 corregge soltanto la lettura di preservazione con encounter_id, review0/0/0, catalogo di tutte15le referenze verificato e10snapshot readonly preservati. Il registry esatto della fonte revisione3 è installato e riletto: Root d2b1ee8491078b254a26b104786a0b8612d99f9edfd9d5f5f21b55f435d9b648/259028B/194header, review sorgente/materiale0/0/0. Nessun avvio B eseguito. L’errore e il precedente restano nella stessa storia, senza azzerare correzioni o contatori.
 
-Separare la voce del personaggio dai limiti di lunghezza e dalla sua conoscenza. Daichi può essere spavaldo e provocatorio anche in una risposta articolata; Keita può essere esitante senza rispondere sempre con una frase. Eliminare le prescrizioni universali di brevità ed evasione. Conservare paura, orgoglio, bisogno di approvazione, interesse e rapporti fra i due come motivazioni, senza trasformarli in azioni obbligatorie.
+Nuovo riavvio del database osservato14:55:05UTC, causa UNKNOWN. Small invariato, nessun supporto esterno. I salvataggi e i readback statici non provano l’efficacia narrativa: nessuna nuova generazione eseguita in questo intervento; risultato editoriale NOT_RUN.
 
-Distinguere ciò che ciascuno sa, crede, ha concordato di mentire e non conosce. Conservare l'ignoranza sul mandante e sui veri responsabili degli attacchi. Rendere utilizzabili i ricordi dell'episodio vissuto — consegna, luogo, momento e istruzioni — attraverso il dialogo o comportamenti pertinenti. La rivelazione può dipendere dalla fiducia, dalla pressione, da una via d'uscita credibile o dalla rottura fra i complici; non soltanto dalla sconfitta. Nessuna scoperta automatica attribuita ai PG.
+## Contabilità e prossimo passo
 
-I dettagli di scena compatibili possono arricchire il racconto senza diventare nuove prove o indizi sul mandante. Un gesto, una pausa o il rumore del mercato non devono rimpiazzare la risposta alla domanda. Il PNG può rifiutare, mentire o sviare, ma la scelta deve avere una conseguenza nello scambio, invece di riproporre indefinitamente lo stesso rifiuto.
+Cumulativi A62HTTP/0,4760017USD; campagna aggiuntiva60HTTP/30Count30Generation/0,4621011USD dei4USD, baseline2HTTP/0,0139006USD separata. Limiti storici160Count160Generation/320HTTP/7,04Mtoken e termine16:32:49UTC conservati. Nessuna nuova chiamata provider per queste correzioni.
 
-## Proposta per Director e Writer
-
-Il Director deve collegare le domande e i tentativi delle role alle decisioni dei PNG e agli sviluppi della scena, distinguendo risposta, rifiuto, menzogna e punto rimasto aperto. Queste informazioni servono alla continuità interna, senza introdurre nuovi controlli editoriali che blocchino il turno. I fatti meccanici e le azioni legali restano del server.
-
-Il Writer deve trasformare quelle decisioni in un unico Fato: parlato pertinente, reazioni reciproche, ambiente legato a ciò che sta accadendo e spazio giocabile per il turno seguente. Nessuna quota minima di parole, battute o descrizioni; nessun obbligo di ripetere un gesto caratteristico a ogni turno. Mostrare una contraddizione con parole o fatti incompatibili, senza dichiararne l'esistenza al posto delle prove. Non spiegare vincoli o intenzioni del prompt e non inventare decisioni dei PG.
-
-## Blocco tecnico distinto dalla proposta narrativa
-
-I log delle 07:50:19 e 07:51:10 Europe/Rome attestano SQLSTATE `42702` nella funzione `public.regia_combat_entry_prepare_v1(uuid,bigint,uuid)`: la variabile locale `state` collide con la colonna non qualificata `exam_human_private.requests.state`. Due tentativi della stessa apertura, nessuna ricevuta di ingresso e nessuna nuova chiamata IA da quel recupero. Non è un timeout del provider né un errore delle schede PNG.
-
-Lo scontro `e5093751-416c-4618-b8e5-79f21e9c4f55` esiste: quattro attori, un round, `lesiva=false`, risorse simulate e nessuna scrittura di valori reali. I 48 campi protetti dei PG conservano lo SHA `d72929c381929cd4ba05a777ba416a584bd9999a97cc4b10a9a65d5ad44d7383`. Nessuna correzione SQL installata in questa campagna. La correzione proposta è circoscritta alla qualificazione dei riferimenti ambigui, mantenendo permessi, isolamento, nonce e storico; richiede composizione e review della versione corrente prima dell'apply.
-
-## Seconda prova e contabilità
-
-Budget aggiuntivo autorizzato: 4 USD per le tre prove complessive, non per ciascuna. Al checkpoint A: 16 nuove chiamate HTTP, 8 Count e 8 Generation; 0,139897 USD prudenziali, comprensivi delle riserve non ancora liquidate. Il consumo pregresso resta separato; nessun contatore azzerato. Nessuna chiamata illimitata, upgrade o supporto esterno.
-
-Prima si decide questa proposta, si corregge il blocco tecnico e si conserva un esito autorevole della prova A. La nuova configurazione deve essere una versione distinta e riservata alla Staff per B; niente modifica retroattiva al binding di A o ai suoi Fati. La seconda prova può seguire l'approccio di domande incrociate; la terza quello di confronto deciso e gestione del conflitto. Se cambia la configurazione fra A e B, il confronto è esplorativo prima/dopo, non una misura controllata del solo approccio dei PG.
-
-Criteri comuni: domande trattate in modo pertinente, informazioni e conseguenze nuove, conoscenze rispettate, possibilità di avanzare e concludere, tono e ambiente osservabili, autonomia dei PG, assenza di duplicazioni o blocchi. Una prova termina positivamente solo con la conclusione prevista attestata dal server; abort e recuperi restano separati dal successo al primo tentativo. Nessuna modifica narrativa o tecnica di questa proposta è già applicata.
-
+Completare registry esatto nuova fonte e preservazione dei dodici Fati e aggiornamento della consegna. B/C restano ferme: il residuo economico non autorizza a superare lo stop dell’utente. Una futura seconda prova dovrà confrontare risposte nuove, copertura delle domande, autonomia dei PNG, ambiente pertinente e conseguenze, senza rigenerare testi per migliorare il giudizio. Il confronto A/B con contenuti differenti rimane esplorativo prima/dopo.
 
 ## Fotografia tecnica precedente e storico conservato
+
 
 # Regia — baseline tecnica ed editoriale provvisoria
 
