@@ -8,6 +8,6 @@ Decisioni prese / OPEN · La stessa missione B è conclusa normalmente tramite U
 
 Prove eseguite e risultato · Nuovo Fato af92e1cf-0a32-45e0-94bb-9771730e3715 pubblicato alle 2026-10-27T20:29:17.557415+00:00, SHA256 cc3216fff59d0ecd53bbd4812e5bac66595b08397e731f66b2c216bd431ebef1. Postflight: PASS.
 
-Rischi o regressioni da verificare · La missione B è conclusa, ma il percorso non è stato privo di blocchi: riparazioni46–53 documentate. Riavvio DB con causa UNKNOWN e query finale pesante NOT_PASSED; verifica nativa di chiusura e postflight protetto finale PASS. Qualità editoriale NON_QUALIFICATA, terza prova NON_AVVIATA; deposito Git PENDING.
+Rischi o regressioni da verificare · La missione B è conclusa, ma il percorso non è stato privo di blocchi: riparazioni46–53 documentate. Riavvio DB con causa UNKNOWN e query finale pesante NOT_PASSED; verifica nativa di chiusura e postflight protetto finale PASS. Qualità editoriale NON_QUALIFICATA, terza prova NON_AVVIATA; deposito selettivo 5c89be0f9c522d4a99728277c1a2be72dfa4000d verificato per SHA8/8, con limite di rilettura integrale della custodiaJSON documentato in PUBBLICAZIONE.md.
 
-Passaggio richiesto al PM · Review editoriale comparata dei Fati A/B e diagnosi del costo dei reader; mantenere la terza prova non avviata in questa consegna. Deposito Git dei soli otto documenti dopo verifica e integrazione del coordinatore.
+Passaggio richiesto al PM · Review editoriale comparata dei Fati A/B e diagnosi del costo dei reader; mantenere la terza prova non avviata in questa consegna. Sorgenti e ricevute depositati in 5c89be0f9c522d4a99728277c1a2be72dfa4000d; nessun altro collaudo avviato.
