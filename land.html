@@ -4571,8 +4571,12 @@ function attachPanelLand(host){
     task.finally(()=>{if(refreshing===task)refreshing=null;});
     return task;
   }
-  async function open(which='ordinary'){
+  async function open(which='ordinary',options={}){
     if(disposed)return false;const scope=routingScope(),revoked=revocation;
+    const explicit=options?.explicit!==false;
+    try{if(explicit&&typeof host.beforeOpen==='function')await host.beforeOpen();}
+    catch{if(!disposed&&revoked===revocation&&scope===routingScope())host.routingUnknown?.({explicit:true});return false;}
+    if(disposed||revoked!==revocation||scope!==routingScope())return false;
     await refresh();if(disposed||revoked!==revocation||scope!==routingScope())return false;
     if(routingWarning!==null){host.routingUnknown?.({explicit:true});return false;}
     if(mode==='native'||mode==='unknown')return false;
@@ -5583,7 +5587,7 @@ window.TUSOrdinary={attachOrdinaryLand};
   (function(){
     var SB_URL='https://tyhyxkslteigibktluml.supabase.co';
     var SB_KEY='sb_publishable_jG9_Pb0L4PWuutcutyVc8w_UP6WY41g';
-    var sb=(window.supabase&&SB_KEY)?window.supabase.createClient(SB_URL,SB_KEY,{global:{headers:{'x-client-info':'tus-land/C1266-NATIVE-DISPLAY-027'}}}):null;
+    var sb=(window.supabase&&SB_KEY)?window.supabase.createClient(SB_URL,SB_KEY,{global:{headers:{'x-client-info':'tus-land/C1266-NATIVE-DISPLAY-028'}}}):null;
 
     /* ---- MUSICA di sottofondo ----
        AUDIO_SRC punta a un file DEL REPO: carica TU il tuo brano come  audio/tema.mp3
@@ -6611,6 +6615,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           regiaPublished:function(){loadMsgs();loadMasterV2(true);},
           regiaOptedIn:function(e){return e?.context?.activity_kind==='master_v2'&&e.context.activity_id===MV2?.data?.encounter?.id&&mv2RegiaOptedIn();},
           isFatoComposer:function(){return fatoMode===true;},
+          beforeOpen:landUserPresence,
           routingUnknown:function(event){if(event?.explicit)toast('Non riesco a verificare il pannello. Riprova ad aprirlo.');},
           nativeMasterFallback:function(wasVisible){
             if(commonMasterCombat())return;
@@ -6881,7 +6886,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           syncSendBtn();mv2TopSync();missionHumanPhaseRefresh(next);missionD100Refresh(next);mv2PruneDefenseDrafts(next);if(!same)renderCombat();if(!commonMasterCombat())mv2EnsureOptions();
           if(commonMasterCombat()&&!previouslyCommon){
             var masterDialog=document.getElementById('mv2ov'),masterVisible=masterDialog&&!masterDialog.hidden;
-            ordinaryRefresh();if(masterVisible&&ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');
+            ordinaryRefresh();if(masterVisible&&ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master',{explicit:false});
           }
           if(previouslyCommon&&!commonMasterCombat()&&ORDINARY){ORDINARY.invalidate();ordinaryRefresh();}
           if(same&&previouslyCommon===commonMasterCombat()&&previouslyScortaGate===mv2ScortaGate())return;
@@ -6932,7 +6937,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           syncSendBtn();mv2TopSync();missionHumanPhaseRefresh(next,options);missionD100Refresh(next,options);mv2PruneDefenseDrafts(next);if(!same)renderCombat();if(!commonMasterCombat())mv2EnsureOptions();
           if(commonMasterCombat()&&!previouslyCommon){
             var masterDialog=document.getElementById('mv2ov'),masterVisible=masterDialog&&!masterDialog.hidden;
-            ordinaryRefresh();if(masterVisible&&ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');
+            ordinaryRefresh();if(masterVisible&&ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master',{explicit:false});
           }
           if(previouslyCommon&&!commonMasterCombat()&&ORDINARY){ORDINARY.invalidate();ordinaryRefresh();}
           if(same&&previouslyCommon===commonMasterCombat()&&previouslyScortaGate===mv2ScortaGate())return;
