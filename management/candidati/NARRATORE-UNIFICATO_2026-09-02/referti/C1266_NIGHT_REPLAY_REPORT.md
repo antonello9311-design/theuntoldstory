@@ -1,10 +1,51 @@
-# Prima prova: review dei Fati e correzioni prima della seconda
+# Seconda prova: consumer delle fasi corretto, confronto editoriale parziale
 
-27 ottobre 2026 · istruzioni e contenuti editoriale44 applicati; registry esatto della nuova fonte installato e riletto. Prima prova conclusa, seconda e terza non avviate per decisione di Antonello. Nessuna rigenerazione o correzione dei dodici Fati pubblicati.
+27 ottobre 2026 · checkpoint B4 dopo consumer45; B5 pubblicato, B6 Writer incerto; nessuna chiusura della missione attestata. Prima prova A conclusa con dodici Fati immutati; C non avviata. Non è un report di missione B completa.
 
-La simulazione A `1fb789a2-0319-435f-9f6d-dd517cac7cd3` è conclusa dal server alle15:00:58.240054UTC tramite il normale comando Staff. Lo scontro `e5093751-416c-4618-b8e5-79f21e9c4f55` è terminato pacificamente alle14:49:52UTC con ricevuta nativa; il Fato finale `f96478fe-2f4f-4716-89b0-1e7e842afbbf` è pubblicato14:53:26UTC. È un percorso completato con recuperi, non una missione senza problemi né un PASS editoriale.
+## Stato effettivo
 
-## Review del corpus A
+B `4c7b05e0-b5b7-4586-9aa9-2a77ae03deb4` è avviata normalmente15:35:37UTC sulla revisione3 con i due profili V3. Incipit `419a8eb8` pubblicato15:36:12UTC; seguono B1 `69b4dab3`, B2 `cbfe395c` e B3 `24638b14`. Le versioni PNG sono corrette, ma la diagnosi del contesto effettivo ha provato che le note di fase storiche hardcoded rientravano nella nuova prova. I Fati precedenti sono conservati esattamente, non rigenerati.
+
+Dopo correzione della fonte editoriale il Fato B4 `acfa083c-f8fd-47c1-9dd9-7efe31c039dd` è pubblicato17:04:22UTC,903caratteri. La role di Riuji già accettata prima della patch è stata riutilizzata senza reinvio; è stata aggiunta soltanto Tamako come previsto. Le note nuove sono effettivamente nel contesto e non compaiono campi dello script storico. Checkpoint finale: B5 67fc94b1 pubblicato/908caratteri; B6 Director614f7120 completato con action_kind=context, Writer e4e29c55-0f26-42a7-a1cd-cc28733f09b5 claimed, Count11411eff unknown_billable, nessun sesto Fato pubblicato. B25HTTP/0,21761USD prudenziali, campagna A+B0,6797111USD entro4USD. Dodici role B accettate una volta. Prima prova12Fati/hash54538166675e6e42a926f435eb13cb7e6f2be5993c4612bf28e26cba30927779 e charactersSHA285284f287db75e42ed22a9284c2d4909c00f5f664afc4562270fd9ce3f2014f invariati al17:20UTC. Stop nuovi provider17:20 rispettato; soltanto letture di chiusura entro17:26:27UTC.
+
+## Differenze rispetto ad A
+
+| Aspetto | Osservazione sui Fati pubblicati | Limite del risultato |
+|---|---|---|
+| Copia/parafrasi PG | B1–B5 non ripubblicano battute né gesti delle azioni; zero citazioni PG complete duplicate nei cinque Fati di risposta. È un miglioramento rispetto ai606/1276caratteri di citazioni PG nel Fato di uscita A. | Non qualifica da solo ogni composizione Combat/uscita/chiusura. |
+| Risposta alle richieste | B1 chiarisce la catena del sentito dire; B2 risponde negativamente a luogo/momento/contatto. | Colloquio meno esposto, possibilità di verifica e soluzione senza scontro ricevono ancora seguito limitato; non è dialogo ricco già ottenuto. |
+| Evoluzione | B3 Keita ammette il denaro; Daichi rifiuta l’accompagnamento e distingue la propria posizione da quella del compagno. | Il pagamento non impone una confessione totale o lo scontro. |
+| Dopo consumer45 | B4 Keita racconta sera, busta sotto banco vuoto dietro botteghe, monete e istruzioni. Daichi ammette il compenso, ma non ritratta ancora. | Progresso reale e risposta più concreta; nessun nuovo mandante o fatto sugli attacchi inventato. La conclusione è ancora da giocare. |
+| Ambiente e modi | Voce, pause, sguardi e contesto sono leggibili. | Brusio, mascella e sguardo al compagno restano ricorrenti. In B1 il narratore spiega “la distinzione resta netta”; non è ancora una resa interamente osservabile senza commento. |
+
+La maggiore lunghezza non basta: B1 è823caratteri contro563diA1, ma parte dell’aumento deriva dal riepilogo interpretativo e da ambiente ripetuto. Il miglioramento utile è dedicare testo alle risposte nuove e alle conseguenze, non allungare il contorno. Il confronto è esplorativo prima/dopo: cambiano profili, note e approccio, e B riceve una correzione tecnica durante la missione.
+
+## Causa strutturale provata e correzione
+
+`mission_generic_owner.staff_phase_context_v1(uuid,text)` restituiva un JSON storico hardcoded a tutte le sessioni con policy manuale riconosciuta. Il controllo sulla vecchia sessione/binding era nel solo ramo policyNULL: la nuova B ereditava quindi note non sue, inclusa la mascella come comportamento e la sola via verso Combat. Nei payload Director B1/B2 figuravano profili V3 e vecchie note di fase contemporaneamente.
+
+Il passaggio Director→Writer conservava gli intenti: il Writer non perdeva risposte ricche già autorizzate. In B2 riceveva invece l’indicazione di non rivelare il pagamento e di negare dettagli della fonte. Un PNG può essere reticente; il difetto provato è la doppia autorità tra revisione salvata e script storico, non l’obbligo di confessare alla prima domanda.
+
+Migrazione `c1266_frozen_editorial_phase_consumer_45` applicata17:01UTC dopo source/materiale0/0/0. Due soli consumer leggono ora le fasi frozen della singola sessione: `staff_phase_context_v1` MD5 `12187bce5ff28f1d3150393391ac3e3b` e `manual_staff_effect_v1` MD5 `37b7db129ca50487971fb3501a16ff9b`. Root `9efacbc4160c657e884d5e86896cada9dc7a0f132fe9f2fb279149b67590c83a`,259028B/194header. Edge113 e UI028 invariati;17snapshot A+B, intake e stati delle azioni accettate preservati. Nessun nuovo validatore, retry esplorativo, rilassamento di grant o cambiamento meccanico.
+
+## Versioni conservate e contabilità
+
+V1/V2 dei due PNG sono verificate INACTIVE, soloV3 APPROVED. La richiesta di eliminare le vecchie versioni è soddisfatta nella selezione operativa senza cancellarle fisicamente: restano disponibili per provenienza dei Fati e piani storici, inclusa A. Il vecchio override non è più consumato da B; non si riscrive il passato per nasconderlo.
+
+ScopeB14coppie/28HTTP/0,3136USD. Alcheckpoint finale B25HTTP/0,21761USD prudenziali; campagna A+B0,6797111USD entro4USD, inclusi0,4621011USD della campagna A. Aalltime62HTTP/0,4760017USD, baseline precedente separata. Nessun azzeramento di chiamate, costi, recuperi o revisioni. Estensione45min approvata16:41:27UTC fino17:26:27UTC inclusa chiusura; stop nuovi provider17:20UTC. Small invariato, causa del riavvio14:55UNKNOWN; nessun upgrade o supporto esterno.
+
+## Risultato della verifica finale
+
+Checkpoint finale: B5 67fc94b1 pubblicato/908caratteri; B6 Director614f7120 completato con action_kind=context, Writer e4e29c55-0f26-42a7-a1cd-cc28733f09b5 claimed, Count11411eff unknown_billable, nessun sesto Fato pubblicato. B25HTTP/0,21761USD prudenziali, campagna A+B0,6797111USD entro4USD. Dodici role B accettate una volta. Prima prova12Fati/hash54538166675e6e42a926f435eb13cb7e6f2be5993c4612bf28e26cba30927779 e charactersSHA285284f287db75e42ed22a9284c2d4909c00f5f664afc4562270fd9ce3f2014f invariati al17:20UTC. Stop nuovi provider17:20 rispettato; soltanto letture di chiusura entro17:26:27UTC.
+
+Anti-copia osservata in5/5risposte pubblicate, ma ricchezza e avanzamento restano parziali. Brusio presente in6/6Fati compreso incipit; mascella in2. B1–B3 non qualificano le nuove fasi, B4–B5 sì ma non l’intera missione. Ultimo Count con esito incerto: non è un percorso senza blocchi. Nessun rilascio pubblico e nessun fullPASS.
+
+## Residuo pertinente
+
+B6 resta una richiesta Writer incerta dopo il Director completato. La missione è ancora nella fase confronto: la Regia ha scelto context anche davanti al congedo effettivo dei PG. Non si attesta una transizione pacifica né una conclusione completa. Conservare la stessa richiesta e le azioni già accettate, senza nuovi tentativi oltre il limite operativo. Registrare Fato finale, ricevuta di chiusura, risorse protette e contabilità effettiva; nessun successo completo dichiarato prima delle ricevute. Non reinviare azioni, non rigenerare Fati e non avviare C automaticamente. Ricchezza dialogica e varietà ambientale rimangono oggetto di review, separatamente dalla correzione del consumer e dall’assenza di copia PG.
+
+## Prima prova A — review del corpus conservata
+
 
 | Difetto osservato | Evidenza | Correzione autorizzata |
 |---|---|---|
@@ -16,27 +57,13 @@ La simulazione A `1fb789a2-0319-435f-9f6d-dd517cac7cd3` è conclusa dal server a
 
 Il divieto di riprendere le role esisteva già nelle istruzioni. La ripetizione non si risolve aggiungendo l’ennesima raccomandazione: il ramo di prosa libera deve ricevere la stessa regola editoriale e i raccordi pertinenti alla composizione. Non si introduce un nuovo filtro che blocchi il turno per una frase ripetuta.
 
-## Correzioni a istruzioni, fasi e schede
 
-Edge113 installata e riletta: bundle4584c2470b38cc990fea19e5431479c3464aa165c1d7278d756fd2eecca9760a; unico delta `mission-generic-runtime.mjs`,422436B/SHA29dc54aeb58adc165d1bfa6fd23e59940328c77a299ec070a07228df572705bf; altri13file invariati. Sintassi e review pertinente0/0/0. La regola comune Writer vieta copia/parafrasi PG e il Director distingue interazioni inevase e risposte già date; il ramo libero conserva le istruzioni pertinenti a narrazione, Combat e uscita. Nessun nuovo schema, validatore bloccante, retry, quota di parole o iniziativa meccanica del modello.
+## Provenienza Editoriale44
 
-Nuove schede V3 approvate normalmente: Daichi87880162-a636-4da7-878f-345254f4201f e Keita62c82d9b-7786-4006-aaba-6556cb7f5780,control13. Rimossi automatismi di contraddizione, dettagli inventati, posture/battute fisse e resa legata alla neutralizzazione del compagno. Conoscenze, identità e meccanica restano quelle autorizzate. Campi UI riletti conformi alla candidata, inclusi limiti di trasporto dell’editor. L’ignoranza sul mandante resta; importo, testo letterale delle istruzioni e attuale collocazione della busta non sono inventati per allungare il parlato.
-
-Le fasi preparate mantengono il piano e la via pacifica, aggiungono ambientazione coerente con piazza/banchi/botteghe e risposte causali alle richieste. Le conseguenze conclusionali devono provenire da fatti, ammissioni e accordi effettivi. Revisione3 salvata normalmente15:17:05.481317UTC e riletta: piano f44192bc-6a83-4def-9086-bbf4089c8fe5/SHA documento1808bbdb655d0531991fbf8c5c2479016d0c6e7dda7bf64e7eab2e965c8cefe9; testi delle quattro fasi e8presenze più incontro V3 conformi alla candidata. Non è iniziata alcuna seconda prova.
-
-## Integrazione, errore conservato e limiti
-
-Root9b3fd636871fa9854f1ebcd8b737db0dca343397e2b354ae30b5755748ac4ebb applicata e riletta,259025B/194header. Il primo installer è fallito42703 per x.id su encounter: rollback atomico provato, zero effetti di quell’apply. Aggregata1 corregge soltanto la lettura di preservazione con encounter_id, review0/0/0, catalogo di tutte15le referenze verificato e10snapshot readonly preservati. Il registry esatto della fonte revisione3 è installato e riletto: Root d2b1ee8491078b254a26b104786a0b8612d99f9edfd9d5f5f21b55f435d9b648/259028B/194header, review sorgente/materiale0/0/0. Nessun avvio B eseguito. L’errore e il precedente restano nella stessa storia, senza azzerare correzioni o contatori.
-
-Nuovo riavvio del database osservato14:55:05UTC, causa UNKNOWN. Small invariato, nessun supporto esterno. I salvataggi e i readback statici non provano l’efficacia narrativa: nessuna nuova generazione eseguita in questo intervento; risultato editoriale NOT_RUN.
-
-## Contabilità e prossimo passo
-
-Cumulativi A62HTTP/0,4760017USD; campagna aggiuntiva60HTTP/30Count30Generation/0,4621011USD dei4USD, baseline2HTTP/0,0139006USD separata. Limiti storici160Count160Generation/320HTTP/7,04Mtoken e termine16:32:49UTC conservati. Nessuna nuova chiamata provider per queste correzioni.
-
-Completare registry esatto nuova fonte e preservazione dei dodici Fati e aggiornamento della consegna. B/C restano ferme: il residuo economico non autorizza a superare lo stop dell’utente. Una futura seconda prova dovrà confrontare risposte nuove, copertura delle domande, autonomia dei PNG, ambiente pertinente e conseguenze, senza rigenerare testi per migliorare il giudizio. Il confronto A/B con contenuti differenti rimane esplorativo prima/dopo.
+A chiusa normalmente15:00:58.240054UTC con dodici Fati; hash pubblicazioni54538166... conservato nella custodia JSON. L’intervento44 ha modificato soltanto il runtime Director/Writer (SHA29dc54ae), approvato le due schede V3 e salvato fasi revisione3 piano f44192bc/SHA1808bbdb. Source/materiale0/0/0, errore42703 del primo installer Root completamente rollback e aggregata1 conservati. Edge113 bundle4584c247 e UI028 restano le versioni della prova B. Deposito44 commit0a1358af e precedente6753718 verificati; nessuna riscrittura dei Fati A.
 
 ## Fotografia tecnica precedente e storico conservato
+
 
 
 # Regia — baseline tecnica ed editoriale provvisoria
