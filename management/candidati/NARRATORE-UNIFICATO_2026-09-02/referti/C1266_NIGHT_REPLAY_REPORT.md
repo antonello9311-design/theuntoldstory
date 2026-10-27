@@ -1,3 +1,53 @@
+# Recupero della seconda prova — stato verificato
+
+2026-10-27 20:49:31.711937+00 · La stessa missione B è conclusa normalmente tramite UI Concludi, con Fato finale pubblicato e risorse protette/storico verificati invariati. La qualità editoriale resta non qualificata e la terza prova non è avviata.
+
+## Stato effettivo
+
+B conclusa dal server alle 2026-10-27T20:47:35.264401+00:00, ricevuta mission-generic-staff-finish-result/1: request_key1ce6f5b6-c06b-1b69-4bd0-1a021cfbdb7d, statecompleted/resultclosed/outcomesuccess, publicationaf92e1cf-0a32-45e0-94bb-9771730e3715, completed_at2026-10-27T20:47:35.301622Z, receiptSHA256514194b52f8ba13e26fff180fcf8d585f5e85412e422febaa496ae59752704b3. Nuovo Fato af92e1cf-0a32-45e0-94bb-9771730e3715 pubblicato alle 2026-10-27T20:29:17.557415+00:00, SHA256 cc3216fff59d0ecd53bbd4812e5bac66595b08397e731f66b2c216bd431ebef1. Prima prova A e Fati precedenti A/B conservati; nessun riavvio o reinvio di azioni. Small mantenuto, nessun upgrade o supporto esterno.
+
+## Diagnosi e correzioni
+
+Count originale: 30.746 input token su 24.000; Generation non autorizzata. La proiezione tipizzata era obsoleta; la richiesta libera conteneva duplicati. Proiezione reversibile, Countproof aggiornato e recupero con Director salvato e Writer successore conservano decisione, coorte, ledger e Fati. Il lavoro comprende Status47 (visibilità), Event48 (claim) e Progress49 (riconoscimento dello storico recuperato e ripresa esplicita della coorte già accettata). I risultati realmente attestati sono elencati di seguito.
+
+- Missione B conclusa mediante il normale comando UI Concludi alle20:47:35.264401UTC; close_reason=completata, runconclusa e sessionechiusa.
+- B conserva9Fati e16role, A conserva12Fati; nessuna role reinviata e nessun Fato precedente modificato.
+- Fato finaleaf92e1cf pubblicato alle20:29:17.557415UTC, sigillo e SHA del testo coincidono.
+- Il solo successore Director32k autorizzato ha completato, seguito dal Writer: un tentativo aggiuntivo consumato, nessun ulteriore autoplay.
+- Il Director originale B8 resta FAILED per risposta incompleta20k, raw e costo originario conservati separatamente.
+- Root53 applicata e198headerABI esatti; Edge115ACTIVE, UI028 invariata.
+- Verifica finale leggera: zero work in volo, missione B chiusa normalmente e ultimo Writer completato.
+- Campagna:97HTTP,49Count e48Generation,0,8007126USD prudenziali cumulativi entro4USD; nessun contatore azzerato.
+- Totale comprensivo del pregresso estraneo alla campagna:99HTTP e0,8146132USD prudenziali.
+- Small ha registrato un riavvio alle20:37:40UTC; causa UNKNOWN, nessuna OOM dimostrata.
+- Il postflight finale completo pesante ha superato il timeout: NOT_PASSED, distinto dalla verifica nativa di chiusura PASS.
+- La qualità editoriale dei9Fati B non è qualificata; la terza simulazione C non è stata avviata.
+- Risorse protette finali PASS alle20:49:31UTC: hash schede e12role originarie identici, B16role e0work in volo.
+- Preservazione Fati PASS: A12 immutati e primi6FatiB corrispondenti alle ricevute precedenti; oldDirectorFAILED e payload invariati.
+- L’ultimo Fato B8 conta339caratteri; qualità editoriale non qualificata e nessuna rigenerazione editoriale eseguita.
+- OUTPUT50 ha corretto il costo e il limite32k del solo successore; il primo installer42601 è stato annullato integralmente, con fonte/referti conservati e successiva verifica parser PostgreSQL17/18.
+- Proof51 ha corretto il contratto del raw: array response.output distinto dalla diagnostica della risposta, senza modificare raw o risultati precedenti.
+- Journal52 ha corretto SQLSTATE42702, separando la variabile PL result dall’omonima colonna work_items.result tramite una fotografia locale degli items.
+- Proof53 ha spostato i getter dell’autorità attuale nel solo ramo prima del recupero, preservando le prove immutabili del ramo storico; il riavvio DB non è attribuito causalmente a questo difetto.
+- Ricevuta autorevole di chiusura: mission-generic-staff-finish-result/1, risultato closed/outcomesuccess, request_key1ce6f5b6; completata20:47:35.301622UTC, hash514194b5…52704b3.
+- Cutoff operativo della Staff alle20:54:16UTC: nessun ulteriore collaudo, getter o provider è previsto da questa consegna; sola documentazione e deposito Git possono proseguire dopo.
+
+## Versione e contabilità
+
+Root 1c96f0ff7ad03aa74d2b16a15f0f9dd5e777f8ef704c2201cc932e24debc2647, 261942 byte/198 header; Edge 115 ACTIVE, bundle 18c684d9e01e1f706548c0ee4841e2dfadc23e77eca2fc85efa7abeb8516905a; UI028 invariata. Installazione confermata.
+
+Campagna cumulativa: 97 HTTP, 0.8007126 USD entro 4 USD; nessun azzeramento.
+
+## Limiti e prossimo passo
+
+Postflight: PASS. La missione B è conclusa, ma il percorso non è stato privo di blocchi: riparazioni46–53 documentate. Riavvio DB con causa UNKNOWN e query finale pesante NOT_PASSED; verifica nativa di chiusura e postflight protetto finale PASS. Qualità editoriale NON_QUALIFICATA, terza prova NON_AVVIATA; deposito Git PENDING.
+
+Review editoriale comparata dei Fati A/B e diagnosi del costo dei reader; mantenere la terza prova non avviata in questa consegna. Deposito Git dei soli otto documenti dopo verifica e integrazione del coordinatore.
+
+## Report precedente integralmente conservato
+
+<!-- Previous report SHA256 12f595f8307e80d263934b371fbff30d9d3e426b4c3ccada29e4f3d4c172f7ed -->
+
 # Seconda prova: consumer delle fasi corretto, confronto editoriale parziale
 
 27 ottobre 2026 · checkpoint B4 dopo consumer45; B5 pubblicato, B6 Writer incerto; nessuna chiusura della missione attestata. Prima prova A conclusa con dodici Fati immutati; C non avviata. Non è un report di missione B completa.
