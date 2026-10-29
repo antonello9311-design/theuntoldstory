@@ -2116,7 +2116,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
 @media(max-width:860px){#room-view .h33-workspace{flex:0 0 auto;min-height:320px;max-height:50vh;}}
 @media(max-width:720px){.h33-workspace{padding:10px;margin:8px 0;max-height:180px;}.h33-head{align-items:flex-start;gap:6px;}.h33-tabs button{flex:1 1 auto;}.h33-workspace button{min-height:40px;}.h33-workspace textarea{font-size:16px;}}
 </style>
-<meta name="tus-mission-runtime" content="C1266-EDITORIAL57-UI1">
+<meta name="tus-mission-runtime" content="C1266-EDITORIAL62-UI1">
 </head>
 <body>
   <div class="stage" id="stage">
@@ -5597,8 +5597,8 @@ window.TUSOrdinary={attachOrdinaryLand};
     var AUDIO_SRC = 'audio/tema.mp3';
     var audio=document.getElementById('bgm');
     var mbtn=document.getElementById('music-btn');
-    var toastEl=document.getElementById('toast'), toastT;
-    function toast(msg){ toastEl.textContent=msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(function(){toastEl.classList.remove('show');},2600); }
+    var toastEl=document.getElementById('toast'), toastT,toastRevision=0;
+    function toast(msg){ toastRevision++;toastEl.textContent=msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(function(){toastEl.classList.remove('show');},2600); }
     function prefGet(){ try{ return localStorage.getItem('tus_music'); }catch(e){ return null; } }
     function prefSet(v){ try{ localStorage.setItem('tus_music', v); }catch(e){} }
     function setOn(on){ mbtn.classList.toggle('on',on); mbtn.textContent='Musica: '+(on?'on':'off'); }
@@ -15119,9 +15119,21 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       }
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=editorial57-1e284aba66ce9560').then(function(mod){
+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=editorial62-e9b9f235a48cbd0f').then(function(mod){
           MISSION_GENERIC_UI=mod.createMissionUI({client:sb,isEventReadMode:landPureReadMode,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
+            createRecoveryFeedback:function(){var revision=toastRevision;return function(message){if(revision!==toastRevision)return;toast(message);revision=toastRevision;};},
+            publicationChanged:function(publication){
+              var ui=MISSION_GENERIC_UI;if(!ui||!msgGenericPublicationCurrent(publication))return Promise.resolve(false);
+              var key=JSON.stringify(publication),read=key===missionGenericChatKey?Promise.resolve(true):missionNarrativePublicationRead(ui,publication,key);
+              function display(ok){
+                if(!msgGenericPublicationCurrent(publication))return false;
+                var host=document.getElementById('mission-generic-room'),row=host&&host.querySelector('[data-mg-chat-read-feedback]');
+                if(ok===true){if(row)row.remove();return true;}
+                if(host){if(!row){row=document.createElement('p');row.setAttribute('data-mg-chat-read-feedback','');row.setAttribute('role','status');host.append(row);}row.textContent='Il Fato è pubblicato. Lettura della chat non confermata: premi Aggiorna regia per rileggere.';}return false;
+              }
+              return Promise.resolve(read).then(display,function(){return display(false);});
+            },
             openCombat:async function(){var room=cur&&cur.id,principal=commonMasterPrincipal();await loadMasterV2(true);if(!cur||cur.id!==room||commonMasterPrincipal()!==principal)return;ordinaryRefresh(true);if(ORDINARY&&ordinaryPanelMode==='common')return ORDINARY.open('ordinary');else toast('Pannello Scontro non disponibile in questa scena.');},
             presentCharacters:async function(){var ids=(WHO||[]).map(function(w){return w.user_id;}).filter(Boolean);if(!ids.length)return [];var r=await sb.from('characters').select('id,name').in('user_id',ids);if(r.error)throw r.error;return r.data||[];},
             refresh:function(){loadMsgs();void missionAutomaticSceneRefresh();if(missOpenNow())loadMissBacheca();}});return MISSION_GENERIC_UI;
