@@ -10,4 +10,6 @@ Prove eseguite e risultato · C1266 Editorial62 · 30/10/2026: correzioni del re
 
 Rischi o regressioni da verificare · Il rientro sui Fati esistenti non collauda la nuova pubblicazione o il recupero concorrente; restano NOT_RUN senza sesta. Nuova qualità narrativa NOT_RUN. Il ramo Combat è presente e raggiungibile nel grafo ma non giocato sulla versione finale.
 
+Deposito Editorial62 verificato · [07c81d41](https://github.com/antonello9311-design/theuntoldstory/commit/07c81d41b96eae5427bd1694ec3a312c955ff8f2), tree 029eadd583dd905caf4a438add31ec956cc199f1;16/16blob sorgenti/documenti interi esatti, oltre ai2asset UI pubblicati in f2748911 e verificati sul dominio. Corpus, role e schede integrali escluse dal deposito.
+
 Passaggio richiesto al PM · Consegnare correzioni e limiti. Nessuna sesta automatica; il prossimo collaudo dovrebbe includere esplicitamente il ramo Combat e la lettura del nuovo Fato, senza forzarlo nelle missioni pacifiche. Conservare35Fati e tutti i contatori.
