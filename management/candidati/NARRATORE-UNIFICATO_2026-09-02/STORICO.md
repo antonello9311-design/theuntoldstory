@@ -1,3 +1,5 @@
+29/10/2026 · C1266/55 · Terzaavviata,4Fati/8role eC4numericFAILED;101Fativecchieliminati,25ABCconservati; fonteCunicaRoota9applicata dopo rollbackcanonico, C4nonrecuperato · PARZIALE,QAcompletoNON_PASSED,0.9433573/4USD.
+
 29/10/2026 · C1266 /55 · Collegata fonte esattaV4 con registry55 e conservati A/B; review0/0/0/apply/readbackPASS, campagna0.8007126/4USD invariata; accessoTamako mancante · C NON_AVVIATA, QA/reportC NOT_RUN.
 
 29/10/2026 · C1266 /54 · Director/Writer Staff, fasi/revisione4 e schedeV4 installati; ambiente vivo e niente riprese PG; review0/0/0 e postflight21Fati+2sessioni identici/0provider; errore deploy116 corretto117 conservato · applicato, qualità NOT_RUN, C non avviata.

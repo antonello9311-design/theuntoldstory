@@ -1,25 +1,48 @@
-# Review comparata A/B e correzioni editoriali54
+# Review comparata A/B/C della Regia IA
 
-29/10/2026 · Correzioni installate nella Regia Staff; terza prova non avviata. Resa narrativa non ancora collaudata.
+29/10/2026 · C parziale: incipit e tre esiti pubblicati, quarta coppia di azioni accettata ma senza Fato. Missione non conclusa. Nessun Fato pubblicato è stato riscritto.
 
-## Terza prova: preparata, non avviata
+## Confronto dei testi
 
-Il29/10 è stato installato il collegamento esatto alla revisione4 e alle schedeV4, con Edge117 invariata. Il selettore normale Staff mostra soltantoRiuji: manca la sessione diTamako. Non è stata creata C, non ci sono suoi Fati o nuovi consumi. Il confronto A/B resta valido; non si attribuiscono alla terza miglioramenti ancora non osservati. La stessa campagna conserva97HTTP e0.8007126USDdei4autorizzati. PianoC:40Count+40Generation,2MtokenGeneration,90minuti dall’avvio effettivo inclusa chiusura, riserva0.0496USDprima di ciascuna catena narrativa standard e stop davanti a lavori incerti. Counttoken separati, nessuna falsa attestazione della loro usage. La review misurerà riprese letterali/parafrasiPG, risposte, iniziative, ambiente e avanzamento sui testi pubblicati, senza rigenerarli per migliorarli.
+| Aspetto | Prima prova A | Seconda prova B | Terza prova C, parziale |
+|---|---|---|---|
+| Fati conservati per il confronto | 12 | 9 | 4: incipit + 3 risposte |
+| Riprese letterali PG | Nel Fato di uscita tre battute PG:606/1276 caratteri,47,5%; roleCombat non tutte nel corpus narrativo | Nessuna battuta PG completa nelle8risposte | Nessuna battuta completa o sequenza comune di5parole nelle3risposte allineate |
+| Riprese semantiche | Gesti e parlato dei PG ripubblicati | Finale riassume quanto detto dai PG | C1 riformula una domanda; C3 ribadisce il non incontro prima del nuovo contenuto |
+| «brusio» | 11/12 | 9/9 | 0/4 |
+| «mascella» | 8/12 | 2/9 | 3/4 |
+| Ambiente | Prevalente sfondo sonoro ripetuto | Ripetizione del brusio e poca attività autonoma | Venditori, passaggio e botteghe in4/4: varia la parola, rimane seriale la funzione |
+| Avanzamento | Dialogo, Combat, uscita e conclusione | B3/B4 portano informazioni; B5/B6 reiterano; finale riepilogativo | C3 fa emergere pagamento, foglio e motivo della falsa fonte; Keita sceglie autonomamente di smettere |
 
-## Evidenze delle due prove
+Il confronto è esplorativo: approcci diversi e modifiche durante B. C0–C3 hanno contesto misto: Edge117 e ambiente aggiornato, ma attori e note di fase provenienti ancora da un blocco legacy. Non sono una prova valida dell’intero nuovo impianto V4. Dopo la correzione del collegamento non è ancora stato pubblicato un nuovo Fato.
 
-Prima prova:12Fati, brusio in11/12 e mascella in8/12. Nel Fato di uscita86be3b8e tre battute PG606/1276caratteri (47,5%), oltre a gesti ripresi; esempio di copia già presente nella review conservata. Seconda:9Fati, brusio in9/9 e mascella in2/9; nessuna battuta PG completa copiata nelle8risposte, ma il finale af92e1cf ripete semanticamente il resoconto dei PG. B4acfa083c sviluppa pagamento e circostanze della consegna; B5/B6 reiterano disponibilità a riferire, B7 riconosce il congedo ma ripete la posizione di Daichi. Il finale sostituisce reazioni osservabili con un riepilogo e attribuisce un quadro condiviso ai curiosi. Il confronto è esplorativo: approcci differenti e correzione del consumer delle fasi durante B.
+In C2 il vincolo entra ancora nella voce del PNG: «Se provo a riempire questo spazio con un dettaglio, me lo invento». La risposta è più lunga, ma spiega una precauzione di scrittura invece di sviluppare interamente il personaggio. C3 migliora: le ammissioni hanno motivazioni e una scelta distinta di Keita; rimane il repertorio di mascella/sguardo/pausa e un caporale finale in più (5aperture/6chiusure).
 
-## Intervento effettuato
+## Cause individuate
 
-Director Staff: distinguere acquisito, ancora aperto e cambiamento attuale; sviluppare le iniziative comunicative e dare seguito a impegni già espressi. Il mondo continua anche durante il colloquio. Writer Staff: niente ripubblicazione o parafrasi delle role, né resoconto PG passato alla voce del narratore; risposte articolate e nuovo stato percepibile. Ambiente spaziale, sensoriale e sociale non ridotto a rumore di fondo o a dettagli sempre strumentali al dialogo. Attività ordinarie, distanze, materiali e presenze mantengono continuità senza inventare indizi, meteo, oggetti di gioco, consenso o risultati meccanici. Nessuna lunghezza o numero di battute prescritti.
+Il problema non deriva principalmente dalle regole di gioco. Il limite di conoscenza rimane corretto; è errata la sua trasformazione in battute o spiegazioni del narratore. Sono emersi anche difetti d’integrazione dimostrati: il precedente helper riconosceva il frozen solo per la fonte B e applicava a C un JSON fisso, comprese mascella e gesti. Il nuovo ambiente passava perché quel blocco non lo sovrascriveva. Il solo aggiornamento delle schede non poteva eliminare questa istruzione concorrente.
 
-Fasi: ambientazione generale e locale sviluppata, continuità degli impegni, esiti parziali e congedi senza unanimismo; restano le condizioni server. SchedeV4: ritmo, gesti e recupero mantengono memoria e interazione con il luogo; knowledge_boundary, fallback e profili meccanici invariati. Nuove binding collegano le V4 agli stessi mechanical_version_id. Le versioni precedenti restano conservate; le due sessioni concluse non sono state riconfigurate.
+Il quarto turno incontra un errore diverso: il producer ammette interpretazioni PG vuote che il consumer rifiuta. Il risultato salvato include inoltre un movimento sostenuto da un frammento che non prova movimento. Non è lecito inventare una nuova interpretazione meccanica per far passare il turno. La prima candidata producer è stata respinta dalla review: guida aggiunta a una variabile sovrascritta e alternative anyOf non compatibili con il provider. Nessuna sua installazione o nuova chiamata.
 
-## Verifica e limiti
+## Correzioni effettivamente applicate
 
-Review indipendente sorgenti/materiale0/0/0, Node/SQL AST/PLpgSQL AST PASS. Edge117 riletta14/14, Root sigillata; revisione4 salvata dal normale editor e contenuto editoriale esattamente candidato. Confronto postflight:21Fati e2sessioni identici. Ledger:0chiamate nuove, ultima chiamata27/10/2026 20:28:54.97817UTC. Nessuna terza prova, nuovo turno, riavvio o rigenerazione.
+Tre helper e Root unica a9e35776c3c35cfbbab884e5b5cd01355370bbf8c716e7faf2af79ac85adb8b7: fonte primaria C esatta, fasi e routes dalla revisione immutabile selezionata. Rimossi i rami attivi A/B, le registry43/55 e un metadato source non consumato. Edge117 e client invariati. Review indipendente materiale0/0/0, parsing integrale e postflight corpi/Root esatti. Nessun effetto su budget o dati PG. Il recupero C4 resta aperto: questa installazione non lo certifica.
 
-Errore operativo conservato: il primo invio ha distribuito Edge116 da una baseline incompleta anziché dalla candidata recensita. È stata sostituita da117 dopo29s; nessuna chiamata provider nell’intervallo. Non è una consegna senza errori e non viene cancellata dal conteggio storico.
+Sono stati eliminati fisicamente i101messaggi Fato di altre sessioni missione Staff, con i collegamenti di pubblicazione necessari. I25Fati A/B/C sono identici e restano conservati fino al termine effettivo del collaudo, poi Antonello ne ha autorizzato l’eliminazione. Meccaniche, dichiarazioni native, quota e copie tecniche provider/audit/request restano; non si dichiara cancellazione di ogni copia tecnica dei testi. Gli altri254messaggi Fato Staff fuori da quelle missioni non appartenevano ai101autorizzati e sono intatti.
 
-La revisione4 è pronta come contenuto selezionato per nuovi avvii. L’ammissione e il tuple esatto della futura campagna C non sono stati aperti o modificati: si comporranno nel mandato di avvio, preservando registry43 della B. Nessuna efficacia narrativa o percorso completo qualificati dalla sola installazione.
+Errori operativi conservati: una transazione cleanup è stata annullata per l’indice parziale di preparazione; corretta usando retired_at, senza togliere l’indice. Una migrazione helper è stata annullata per un hash DDL calcolato sulla forma del file invece che sulla forma canonica PostgreSQL; builder e review corretti, poi installazione verificata. I rollback non vengono qualificati come installazioni riuscite e i conteggi non sono azzerati.
+
+## Cambiamenti per il risultato desiderato
+
+- Una sola fonte di istruzioni effettivamente consegnata a Director e Writer; verificarla sulla richiesta composta, non dal nome di una costante modificata.
+- Separare fatti noti e ignoti dalle indicazioni di recitazione. L’ignoranza può produrre un dubbio, un rifiuto o una scelta, senza spiegare il vincolo di scrittura.
+- Far decidere al Director risposte, iniziative e conseguenze attuali; il Writer le rende osservabili senza riassumere le role o ripubblicare gesti e parole dei PG.
+- Dare continuità alle attività del luogo, alle distanze e alle presenze. L’ambiente può vivere anche senza fornire un indizio o reagire unanimemente al dialogo; evitare un repertorio fisso sostituito a ogni turno da sinonimi.
+- Tenere distinti ciò che è già acquisito e ciò che cambia adesso. Accordi, ritrattazioni e congedi devono avere seguito concreto, senza riproporre la medesima disponibilità a ogni risposta.
+- Un unico contratto producer/consumer per il formato. Un errore di trasporto si recupera tecnicamente dalle azioni accettate, senza mascherarlo come problema editoriale o autorizzare meccaniche inesistenti.
+
+Non sono proposti numeri fissi di battute, paragrafi o dettagli. I prossimi esiti dovranno dimostrare questi comportamenti sul percorso effettivo, senza rigenerazioni per cercare un testo migliore.
+
+## Contabilità e stato
+
+A+B:97HTTP/0,8007126USD prudenti. C:16HTTP,8Count+8Generation,0,1426447USD prudenti. Totale0,9433573dei4USD. La usage Count sconosciuta rimane riservata economicamente; non viene contata come costo zero. Nessuna chiamata provider in corso. Otto azioni C accettate una volta, quarta coppia senza risposta. QA completo e conclusione C: NON_PASSED. Nuovo impianto frozen dopo a9: NOT_RUN. Nessuna terza missione completa senza blocchi è dichiarata.
