@@ -2116,6 +2116,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
 @media(max-width:860px){#room-view .h33-workspace{flex:0 0 auto;min-height:320px;max-height:50vh;}}
 @media(max-width:720px){.h33-workspace{padding:10px;margin:8px 0;max-height:180px;}.h33-head{align-items:flex-start;gap:6px;}.h33-tabs button{flex:1 1 auto;}.h33-workspace button{min-height:40px;}.h33-workspace textarea{font-size:16px;}}
 </style>
+<meta name="tus-mission-runtime" content="C1266-NARRATIVE56-UI2">
 </head>
 <body>
   <div class="stage" id="stage">
@@ -6293,7 +6294,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(!landLegacyPollingAllowed())return;
         landPresenceTimer=setInterval(function(){if(landLegacyPollingAllowed())ping();},60000);
         rosterPoll=setInterval(function(){if(!landLegacyPollingAllowed())return;loadRoster();loadActivity();loadFlash();loadUnread();loadConversations();},12000);
-        if(cur&&roomEntryConfirmed()){presencePoll=setInterval(function(){if(landLegacyPollingAllowed())loadWho();},1000);poll=setInterval(function(){if(landLegacyPollingAllowed())refreshRoom();},9000);}
+        if(cur&&roomEntryConfirmed()){presencePoll=setInterval(function(){if(landLegacyPollingAllowed())loadWho();},1000);if(missionLegacyScenePollingAllowed())poll=setInterval(function(){if(landLegacyPollingAllowed()&&missionLegacyScenePollingAllowed())refreshRoom();},9000);}
       }
       function landEventDispose(){var s=LAND_EVENTS;LAND_EVENTS=null;if(s&&s.channel)sb.removeChannel(s.channel);LAND_POLICY={key:null,value:null,flight:null};LAND_PROFILE_KNOWN=false;landConfigureTimers();updateOnlineCount();if(panelOpen)renderPanel();landReadNote('');}
       function staffEventDispose(){landEventDispose();}
@@ -6309,7 +6310,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       }
       function landVisible(id){var n=document.getElementById(id);return !!(n&&!n.hidden&&n.getClientRects().length);}
       function landDomainRequested(d,hint){
-        if(document.hidden)return false;if(d==='catalog')return true;if(!landEventReadMode())return false;
+        if(document.hidden)return false;if(d==='catalog')return true;if(roomEntryStaffScope()&&['chat','scene'].includes(d))return !!(cur&&roomEntryConfirmed()&&(hint.location_id===null||hint.location_id===cur.id));if(!landEventReadMode())return false;
         if(hint.location_id!==null&&(!cur||cur.id!==hint.location_id)&&['chat','scene','academy','exam'].includes(d))return false;
         if(d==='mail'||d==='news'||d==='presence')return true;
         if(d==='calendar')return landVisible('cal-overlay');if(d==='role_archive')return !!cur||recOvAperto();
@@ -6319,9 +6320,9 @@ window.TUSOrdinary={attachOrdinaryLand};
       }
       async function landReadDomain(d){
         if(d==='catalog'){var actor=myId,key=landReadKey();LAND_PROFILE_KNOWN=false;landConfigureTimers();await landPolicyRead();if(key!==landReadKey()||document.hidden)return false;var own=await sb.from('profiles').select('role').eq('id',actor).maybeSingle();if(key!==landReadKey()||document.hidden)return false;if(own.error||!own.data)throw Error('profile_read');landApplyStaffRole(own.data.role);landConfigureTimers();if(!landEventReadMode())return;NOMI_LOADED=false;EMBLEMS_LOADED=false;dmCharsLoaded=false;MV2.setup=null;if(!cur)await loadLuoghi();if(key!==landReadKey()||document.hidden)return false;if(ROOM_OBJECT_BINDING_HINT)await ROOM_OBJECT_BINDING_HINT();return;}
-        if(d==='chat'){await Promise.all([loadMsgs(),loadWho()]);if(cur&&!cur.is_test)await loadRoleState();return;}
+        if(d==='chat'){if(roomEntryStaffScope()&&!missionLegacyScenePollingAllowed())await missionGenericRoomRefresh({hintRead:true});await Promise.all([loadMsgs(),loadWho()]);if(cur&&!cur.is_test)await loadRoleState();return;}
         if(d==='presence'){await loadWho();if(!cur||panelOpen)await loadRoster();if(panelOpen&&document.getElementById('ovp-act')?.open)await loadActivity();return;}
-        if(d==='scene'){var roomRead=missionGenericRoomRefresh({hintRead:true});await roomRead;await Promise.all([loadMasterV2Staff(false,roomRead,{hintRead:true}),loadCombat()]);ordinaryRefresh();if(ORDINARY)await ORDINARY.refresh();return;}
+        if(d==='scene'){var roomRead=missionGenericRoomRefresh({hintRead:true});await roomRead;if(!missionAutomaticCombatAllowed())return;await Promise.all([loadMasterV2Staff(false,roomRead,{hintRead:true}),loadCombat()]);ordinaryRefresh();if(ORDINARY)await ORDINARY.refresh();return;}
         if(d==='mail'){await loadUnread();if(mailPanelOpen){await loadConversations();if(MAIL_THREAD_OPEN)return loadThread({hintRead:true});}return;}
         if(d==='news'){await loadFlash();return;}if(d==='calendar')return calLoad({hintRead:true});
         if(d==='role_archive'){if(cur)await loadRoleState();if(recOvAperto())await loadRoleDaSalvare(true);return;}if(d==='character'){var result=await refreshMyVita(false,{hintRead:true});if(result===false)return false;await loadMyCompanion();return;}
@@ -6595,7 +6596,8 @@ window.TUSOrdinary={attachOrdinaryLand};
         }
         return result;
       }
-      function ordinaryRefresh(){
+      function ordinaryRefresh(explicit){
+        if(explicit!==true&&!missionAutomaticCombatAllowed())return;
         if(examHumanOwnsScene())return;
         if(examRegia()?.ownsCombat()){if(ORDINARY){ORDINARY.dispose();ORDINARY=null;ordinaryPanelMode=null;}examRegia().refreshPanel();return;}
         esameHoldRefresh();
@@ -6635,7 +6637,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         });
         ORDINARY.refresh();
       }
-      function refreshStaffPassiveRoom(){ if(!cur||!roomEntryConfirmed()) return; updateMeteo(); entraLuogo(undefined,true); loadMsgs(); loadWho(true); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); ordinaryRefresh(); }
+      function refreshStaffPassiveRoom(){ if(!cur||!roomEntryConfirmed()) return; updateMeteo(); entraLuogo(undefined,true); loadMsgs(); loadWho(true); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadEsame(); void missionAutomaticSceneRefresh(); }
       function refreshRoom(){if(!LAND_POLICY.value||LAND_POLICY.key!==landReadKey()){var key=landReadKey();return landPolicyRead().then(function(){if(key===landReadKey())return refreshStaffPassiveRoom();});} if(landEventReadMode()){landPolicyRead();return refreshStaffPassiveRoom();} if(roomEntryStaffScope())return refreshStaffPassiveRoom(); if(!cur||!roomEntryConfirmed()) return; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); ordinaryRefresh(); }
 
       /* ---- MASTER-COMBAT-V2-LAND-UI-021: regia multi-attore ---- */
@@ -6840,7 +6842,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         body.__mv2PrepRefs.forEach(function(ref,i){var saved=draft.png[ref];if(!saved)return;var name=body.querySelector('[data-mv2-png-name="'+i+'"]'),team=body.querySelector('[data-mv2-png-team="'+i+'"]'),pos=body.querySelector('[data-mv2-pngpos="'+i+'"]');if(name)name.value=saved.name;if(team&&Array.from(team.options).some(function(o){return o.value===saved.team;}))team.value=saved.team;if(pos)pos.value=saved.pos;});
       }
       function mv2SetBody(body,html){mv2CapturePrepInputs(body);body.innerHTML=html;mv2RestoreDefenseDrafts();mv2RestorePrepInputs(body);}
-      function loadMasterV2(explicit){if(landEventReadMode()||roomEntryStaffScope()&&iAmStaff)return loadMasterV2Staff(explicit);return loadMasterV2Legacy(explicit); }
+      function loadMasterV2(explicit){if(explicit!==true&&!missionAutomaticCombatAllowed())return Promise.resolve(false);if(landEventReadMode()||roomEntryStaffScope()&&iAmStaff)return loadMasterV2Staff(explicit);return loadMasterV2Legacy(explicit); }
       function loadMasterV2Legacy(explicit){
         if(examHumanOwnsScene())return;
         missionGenericRoomRefresh();
@@ -6894,6 +6896,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         },function(){ MV2.loading=false;if(!cur||cur.id!==masterLocation||commonMasterPrincipal()!==masterPrincipal||(MV2.authEpoch||0)!==masterEpoch)return;var requested=MV2.readRequested===true;MV2.readRequested=false;if(MV2.scortaContext){MV2.scortaRoom=null;mv2Slim();mv2TopSync();}else mv2Card(false);if(requested)toast('Lettura della Regia non riuscita. Premi Aggiorna per riprovare.'); });
       }
       function loadMasterV2Staff(explicit,roomRead,options){options=options||{};
+        if(explicit!==true&&!missionAutomaticCombatAllowed())return Promise.resolve(false);
         if(examHumanOwnsScene())return;
         if(examRegia()?.ownsCombat()){mv2Card(false);return;}
         if(!sb||!cur)return;
@@ -7346,7 +7349,8 @@ window.TUSOrdinary={attachOrdinaryLand};
          se la pagina arriva prima della migrazione la chiave manca, l'attesa resta
          nascosta e il comportamento e' quello di oggi. */
       function syncNarrAttesa(on){ var el=document.getElementById('narr-attesa'); if(el) el.hidden = !on; }
-      function loadCombat(){
+      function loadCombat(explicit){
+        if(explicit!==true&&!missionAutomaticCombatAllowed())return Promise.resolve(false);
         if(!landEventReadMode()&&!roomEntryStaffScope())return loadCombatLegacy();
         if(examHumanOwnsScene()){syncNarrAttesa(false);return;}
         if(!sb||!cur||!roomEntryConfirmed())return Promise.resolve(false);
@@ -7455,7 +7459,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         body.innerHTML=h;
       }
       function cmbErr(e){ toast((e&&(e.message||e.hint))||'Non si pu\u00f2 fare adesso'); }
-      function cmbCall(fn,args){ if(!sb) return; sb.rpc(fn,args).then(function(r){ if(r&&r.error){ cmbErr(r.error); return; } loadCombat(); loadMsgs(); refreshMyVita(); }, cmbErr); }
+      function cmbCall(fn,args){ if(!sb) return; sb.rpc(fn,args).then(function(r){ if(r&&r.error){ cmbErr(r.error); return; } loadCombat(true); loadMsgs(); refreshMyVita(); }, cmbErr); }
       /* ============================================================
          La finestra dell'azione: l'unica porta per comporre.
          Non tocca il server finche' non si preme Invia: quello che sceglie
@@ -8706,7 +8710,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           finally{if(same())TRV2.loading=false;}
         },readOptions);
       }
-      function trv2Done(msg){TRV2.busy=false;TRV2.abandonConfirm=false;TRV2.openStep=false;TRV2.sig=null;if(msg)toast(msg);loadTrainingState();loadCombat();refreshMyVita();}
+      function trv2Done(msg){TRV2.busy=false;TRV2.abandonConfirm=false;TRV2.openStep=false;TRV2.sig=null;if(msg)toast(msg);loadTrainingState();loadCombat(true);refreshMyVita();}
       function trv2Call(fn,args,okText){
         if(!sb||TRV2.busy)return;TRV2.busy=true;TRV2.sig=null;renderTraining();
         sb.rpc(fn,args).then(function(r){
@@ -12722,8 +12726,11 @@ var nb028iTeardown=function(){};
         saveResume();
         if(poll){ clearInterval(poll); poll=null; }
         /* il poll parte solo se il server ci fa entrare davvero */
-        entraLuogo(function(){
-          updateMeteo();loadEmblems();caricaNomiEvidenza();loadMyCompanion();loadMsgs();loadWho();loadRoleState();loadTrainingState();loadAcadClass();refreshMyVita();loadCombat();loadEsame();loadMasterV2();if(!landEventReadMode())nb028iRefresh();
+        entraLuogo(async function(){
+          var enteredRoom=cur&&cur.id,enteredPrincipal=commonMasterPrincipal(),enteredEpoch=UI_POSTREVIEW_STAFF_EPOCH;
+          updateMeteo();loadEmblems();caricaNomiEvidenza();loadMyCompanion();loadMsgs();loadWho();loadRoleState();loadTrainingState();loadAcadClass();refreshMyVita();loadEsame();
+          await missionAutomaticSceneRefresh();if(!cur||cur.id!==enteredRoom||commonMasterPrincipal()!==enteredPrincipal||UI_POSTREVIEW_STAFF_EPOCH!==enteredEpoch)return;
+          if(!landEventReadMode())nb028iRefresh();
           if(presencePoll) clearInterval(presencePoll);presencePoll=null;
           if(poll) clearInterval(poll);poll=null;landConfigureTimers();staffEventSync();
         });
@@ -12831,11 +12838,12 @@ var nb028iTeardown=function(){};
           }
           esInvia(ES_AZ, t, t); return;
         }
-        if(!to && MV2.data?.encounter&&!commonMasterCombat()){var nativeRegiaBlock=mv2RegiaReason(!!SUG_SCELTA||!!pTxt||!!CMB_AZ);if(nativeRegiaBlock){toast(nativeRegiaBlock);return;}}
-        if(!to && ORDINARY?.blockingReason){var regiaBlock=ORDINARY.blockingReason({hasTechnique:!!SUG_SCELTA,companionText:pTxt});if(regiaBlock){toast(regiaBlock);return;}}
+        var narrativeSend=!to&&!fatoMode&&missionNarrativeRoomKnown()&&!missionAutomaticCombatAllowed();
+        if(!narrativeSend&&!to && MV2.data?.encounter&&!commonMasterCombat()){var nativeRegiaBlock=mv2RegiaReason(!!SUG_SCELTA||!!pTxt||!!CMB_AZ);if(nativeRegiaBlock){toast(nativeRegiaBlock);return;}}
+        if(!narrativeSend&&!to && ORDINARY?.blockingReason){var regiaBlock=ORDINARY.blockingReason({hasTechnique:!!SUG_SCELTA,companionText:pTxt});if(regiaBlock){toast(regiaBlock);return;}}
         var abortSendSession=MV2?.data?.master?.id||MISSION_GENERIC_UI?.sessionId?.();
         if(!to&&abortSendSession&&STAFF_ABORT.staffAbortBlocked(myId,abortSendSession)){toast('Annullamento da riconciliare: la role resta in composizione.');return;}
-        if(!to && ORDINARY && ORDINARY.handleSend(t,pbody,pTxt,myComp)) return;
+        if(!narrativeSend&&!to && ORDINARY && ORDINARY.handleSend(t,pbody,pTxt,myComp)) return;
         sendBtn.disabled=true;
         var prm={p_location:cur.id,p_body:pbody};
         if(!to && pTxt && myComp){ prm.p_companion=myComp.id; prm.p_companion_body=pTxt; }
@@ -12843,8 +12851,8 @@ var nb028iTeardown=function(){};
         /* [04/08/2026] Quando c'e' un'azione composta, testo e azione partono insieme:
            una sola chiamata, una sola transazione. Se il server rifiuta l'azione,
            il messaggio non viene nemmeno scritto. */
-        var guidata = !to && !!CMB_AZ && !!(CMB&&CMB.aperto&&CMB.puo_comporre);
-        var missionRoleReceipt=null;
+        var guidata = !narrativeSend&&!to && !!CMB_AZ && !!(CMB&&CMB.aperto&&CMB.puo_comporre);
+        var missionRoleReceipt=null,missionNarrativeReceipt=false;
         var academySubmitCandidate=!to&&!guidata&&!fatoMode&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test===true;
         function missionRoleFeedback(message,kind){
           var box=document.getElementById('mission-role-submit-feedback');
@@ -12857,7 +12865,7 @@ var nb028iTeardown=function(){};
                                                           p_companion_body:(prm.p_companion_body||null)})
                                 : academySubmitCandidate
                                   ? missionGenericUI().then(function(ui){return ui.submitRole({characterId:myCharId,body:pbody,hasCompanion:!!pTxt,hasTechnique:!!SUG_SCELTA});})
-                                    .then(function(result){if(!result.handled)return sb.rpc('post_message',prm);missionRoleReceipt=result.receipt;return {data:result.receipt,error:null};})
+                                    .then(function(result){if(!result.handled)return sb.rpc('post_message',prm);missionRoleReceipt=result.receipt;missionNarrativeReceipt=result.narrative===true;return {data:result.receipt,error:null};})
                                   : sb.rpc('post_message', prm));
         req.then(function(r){
           syncSendBtn();
@@ -12873,7 +12881,7 @@ var nb028iTeardown=function(){};
                     : ((raw && !tecnico && raw.length<=200) ? raw : 'Impossibile inviare')));
             toast(msg); return; }
           if(missionRoleReceipt){
-            missionRoleFeedback(missionRoleReceipt.mission_valid
+            missionRoleFeedback(missionNarrativeReceipt?'Role acquisita.':missionRoleReceipt.mission_valid
               ?'Role acquisita per questa missione. Il Fato valuterà le azioni dei partecipanti.'
               :'Role pubblicata, ma non idonea alla fase della missione. Non conta per la valutazione: controlla il pannello e correggi.',
               missionRoleReceipt.mission_valid?'accepted':'invalid');
@@ -15093,14 +15101,30 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
         }});await panel.open(target.episode);if(!same())close();}catch(e){if(same())host.textContent='Quest non disponibile per questo accesso. Riapri il pannello per rileggere lo stato.';else close();}
       }
       var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null,missionGenericChatKey=null;
+      function missionNarrativeRoomKnown(){try{return !!(MISSION_GENERIC_UI&&MISSION_GENERIC_UI.isNarrativeRoom());}catch(e){return false;}}
+      function missionAutomaticCombatAllowed(){
+        if(!roomEntryStaffScope())return true;
+        try{return !!(MISSION_GENERIC_UI&&MISSION_GENERIC_UI.automaticCombatReadAllowed());}catch(e){return false;}
+      }
+      function missionLegacyScenePollingAllowed(){
+        if(!roomEntryStaffScope())return true;
+        try{return !!(MISSION_GENERIC_UI&&MISSION_GENERIC_UI.legacyScenePollingAllowed());}catch(e){return false;}
+      }
+      async function missionAutomaticSceneRefresh(){
+        if(!cur||!roomEntryConfirmed())return;
+        var room=cur.id,principal=commonMasterPrincipal(),epoch=UI_POSTREVIEW_STAFF_EPOCH;
+        await missionGenericRoomRefresh();
+        if(!cur||cur.id!==room||commonMasterPrincipal()!==principal||UI_POSTREVIEW_STAFF_EPOCH!==epoch||!missionAutomaticCombatAllowed())return false;
+        await Promise.all([loadCombat(),loadMasterV2()]);ordinaryRefresh();
+      }
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=native-continuity-bad6ff5ea23bd098').then(function(mod){
+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=narrative56-b65355054712acf6').then(function(mod){
           MISSION_GENERIC_UI=mod.createMissionUI({client:sb,isEventReadMode:landPureReadMode,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
-            openCombat:function(){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')void ORDINARY.open('ordinary');else toast('Pannello Scontro non disponibile in questa scena.');},
+            openCombat:async function(){var room=cur&&cur.id,principal=commonMasterPrincipal();await loadMasterV2(true);if(!cur||cur.id!==room||commonMasterPrincipal()!==principal)return;ordinaryRefresh(true);if(ORDINARY&&ordinaryPanelMode==='common')return ORDINARY.open('ordinary');else toast('Pannello Scontro non disponibile in questa scena.');},
             presentCharacters:async function(){var ids=(WHO||[]).map(function(w){return w.user_id;}).filter(Boolean);if(!ids.length)return [];var r=await sb.from('characters').select('id,name').in('user_id',ids);if(r.error)throw r.error;return r.data||[];},
-            refresh:function(){loadMsgs();loadMasterV2();if(missOpenNow())loadMissBacheca();}});return MISSION_GENERIC_UI;
+            refresh:function(){loadMsgs();void missionAutomaticSceneRefresh();if(missOpenNow())loadMissBacheca();}});return MISSION_GENERIC_UI;
         }).catch(function(e){MISSION_GENERIC_LOAD=null;throw e;});
         return MISSION_GENERIC_LOAD;
       }
@@ -15108,6 +15132,7 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
         var host=document.getElementById('mission-generic-room');
         return missionGenericUI().then(async function(ui){
           await ui.updateRoom(host,{hintRead:options.hintRead===true});
+          if(!ui.legacyScenePollingAllowed()&&poll){clearInterval(poll);poll=null;}
           var publication=ui.chatPublication(),key=publication?JSON.stringify(publication):null;
           if(key!==missionGenericChatKey){missionGenericChatKey=key;loadMsgs();}
         }).catch(function(){});

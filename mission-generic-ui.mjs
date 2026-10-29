@@ -1,6 +1,6 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-d092961883b6fe3e';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-display-8cdf2250a8562d83';
-export const VERSION='mission-academy-flow-v4-staff-client/1-c1266-staff-finish1';
+export const VERSION='mission-narrative56-ui/1-aggregate2';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -330,7 +330,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const academyStates=new Set(['waiting_roles','evaluating','new_scene','combat_started']);
   const roleReasons=new Set(['own_role_missing','own_role_invalid','waiting_other_roles','ready_to_evaluate','provider_processing','recoverable_not_started','uncertain','failed','review_required','published']);
   const nextActors=new Set(['player','other_players','system','staff','none']);
- let manualRecoveryError=null;
+ let manualRecoveryError=null,roomReadReady=null;
  let roomScope=null,roomRead=null,roomHost=null,roomError='',cacheUser=null,readSequence=0,staffResumeRead=null,staffRoleRecovery=null,staffChoiceRecovery=null;
  let entryState=null,entryPending=null,entryError='',entryReplayReady=false,countStatusRead=null,countStatusNotice='',countStatusSession=null;
  const entryKey=(user,session)=>`regia-combat-entry/1:${user}:${session}`;
@@ -398,7 +398,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function syncRoom(host){
   const user=identity(),loc=currentLocation(),scope=scopeFor(user,loc);
   if(cacheUser!==user){cacheUser=user;staffFinishNotice=null;manualRecoveryError=null;attempts.clear();choiceRequests.clear();cachedChoiceRecoveries.clear();chainFeedback.clear();recoveredWriters.clear();asyncWorks.clear();}
-  if(scope!==roomScope||host!==roomHost){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;roomEpoch++;roomRead=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';entryReplayReady=false;countStatusRead=null;countStatusNotice='';countStatusSession=null;staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
+  if(scope!==roomScope||host!==roomHost){for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;roomEpoch++;roomRead=null;roomState=null;roomReadReady=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';entryReplayReady=false;countStatusRead=null;countStatusNotice='';countStatusSession=null;staffResumeRead=null;staffRoleRecovery=null;staffChoiceRecovery=null;roomScope=scope;roomHost=host;if(host){host.replaceChildren();host.hidden=true;}}
   return {user,loc,scope,epoch:roomEpoch};
  }
  const roomCurrent=t=>t.scope===roomScope&&t.epoch===roomEpoch&&valid(t.user)&&scopeFor(identity(),currentLocation())===t.scope&&roomHost?.isConnected;
@@ -463,6 +463,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const user=identity(),loc=currentLocation();
   if(!user||!isStaff()||loc?.id!==STAFF_TEST_ROOM||loc.is_test!==true||roomError
    ||scopeFor(user,loc)!==roomScope||!roomHost?.isConnected)return null;
+  const narrative=narrativeSection(roomState);
+  if(narrative&&narrative.mode!=='combat')return narrative.last_publication_id?{principal:user,location:loc.id,session:roomState.session_id,work:null,publication:narrative.last_publication_id,epoch:roomEpoch}:null;
   const parsed=processingFor(roomState),p=parsed.value;
   if(!parsed.valid||p?.state!=='completed'||!UUID.test(p.message_id||'')
    ||typeof p.finalized_at!=='string'||!Number.isFinite(Date.parse(p.finalized_at)))return null;
@@ -796,10 +798,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function validFinishReceipt(v,q){return nativeExact(v,['schema_version','master_session_id','state','source_revision','publication_id','request_key','outcome','receipt_sha256','replayed'])&&v.schema_version==='mission-generic-staff-finish-result/1'&&v.master_session_id===q.master_session_id&&v.state==='closed'&&v.source_revision===q.source_revision&&v.publication_id===q.expected_publication_id&&v.request_key===q.request_key&&v.outcome==='success'&&SHA.test(v.receipt_sha256||'')&&typeof v.replayed==='boolean';}
  const finishPrefix=user=>'mission-staff-finish-command/1:'+user+':'+STAFF_TEST_ROOM+':';
- function finishCommands(user){
+ function finishCommands(user,session=null){
   const result=[],prefix=finishPrefix(user);
   for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key?.startsWith(prefix)||key.endsWith(':receipt'))continue;
-   if(result.length>=32)throw Error('staff_finish_local_limit');const stored=JSON.parse(localStorage.getItem(key));
+   const stored=JSON.parse(localStorage.getItem(key));if(session!==null&&stored?.request?.master_session_id!==session)continue;
+   if(result.length>=32)throw Error('staff_finish_local_limit');
    if(!nativeExact(stored,['schema_version','user','location','request'])||stored.schema_version!=='mission-staff-finish-command/1'||stored.user!==user||stored.location!==STAFF_TEST_ROOM||!validFinishRequest(stored.request)||key!==prefix+stored.request.request_key)throw Error('staff_finish_saved_invalid');
    const raw=localStorage.getItem(key+':receipt'),receipt=raw===null?null:JSON.parse(raw);if(receipt!==null&&!validFinishReceipt(receipt,stored.request))throw Error('staff_finish_saved_receipt_invalid');
    result.push({key,request:stored.request,receipt});
@@ -809,7 +812,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   host.querySelector('[data-mg-staff-finish]')?.remove();
   if(!isStaff()||currentLocation()?.id!==STAFF_TEST_ROOM||currentLocation()?.is_test!==true||!identity())return;
   const box=el('div',null,{'data-mg-staff-finish':''});let saved,projection;
-  try{saved=finishCommands(identity());projection=finishProjection(state);}catch{box.append(el('p','Conclusione non verificabile: nessuna nuova richiesta inviata.'));host.append(box);host.hidden=false;return;}
+  try{saved=finishCommands(identity(),finishHistorySession(state));projection=finishProjection(state);}catch{box.append(el('p','Conclusione non verificabile: nessuna nuova richiesta inviata.'));host.append(box);host.hidden=false;return;}
   const pending=saved.filter(x=>!x.receipt),closed=saved.filter(x=>x.receipt);
   if(staffFinishNotice?.user===identity()&&(state?.session_id===staffFinishNotice.session||!state&&staffFinishNotice.epoch===roomEpoch))box.append(el('p',staffFinishNotice.text,{role:'status'}));
   if(closed.some(x=>!state||x.request.master_session_id===state.session_id))box.append(el('p','Prova conclusa: ricevuta server conservata, senza premi alle schede.',{role:'status'}));
@@ -828,10 +831,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(!replay){
     await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});if(!roomCurrent(t)||roomError)throw Error('projection_read');
     const p=finishProjection(roomState);if(!p?.can_finish||p.master_session_id!==q.master_session_id||p.source_revision!==q.source_revision||p.expected_publication_id!==q.expected_publication_id||p.request_key!==q.request_key)throw Error('projection_changed');
-    if(finishCommands(t.user).some(x=>!x.receipt))throw Error('finish_pending');
+    if(finishCommands(t.user,narrativeSection(roomState)?q.master_session_id:null).some(x=>!x.receipt))throw Error('finish_pending');
     const stored={schema_version:'mission-staff-finish-command/1',user:t.user,location:STAFF_TEST_ROOM,request:clone(q)};
     if(localStorage.getItem(key)!==null)throw Error('finish_already_saved');localStorage.setItem(key,JSON.stringify(stored));
-   }else{const stored=finishCommands(t.user).find(x=>x.key===key);if(!stored||JSON.stringify(stored.request)!==JSON.stringify(q))throw Error('finish_saved_mismatch');}
+   }else{const stored=finishCommands(t.user,narrativeSection(roomState)?q.master_session_id:null).find(x=>x.key===key);if(!stored||JSON.stringify(stored.request)!==JSON.stringify(q))throw Error('finish_saved_mismatch');}
    paintStaffFinish(host,roomState);
    const {data,error}=await client.functions.invoke('mission_generic_ai',{body:clone(q)});
    if(error||!validFinishReceipt(data,q))throw Error('finish_unconfirmed');
@@ -857,6 +860,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintRoom(host,state){
   if(!host||!state)return;
+  const narrative=narrativeSection(state);if(narrative&&narrative.mode!=='combat'){paintNarrativeRoom(host,state);return;}
   if(currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test===true)host.setAttribute('data-mg-build','C1266-NATIVE-DISPLAY-027');
   else host.removeAttribute('data-mg-build');
   if(abortBlocked(state.session_id)){host.querySelectorAll('button').forEach(b=>b.disabled=true);}style();
@@ -3189,10 +3193,138 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   let pending=false;try{pending=eventRecoveryJournal(cacheUser,state.session_id,s.event_key).j.attempts.at(-1)?.status==='unknown';}catch{row.append(el('p','Richiesta locale non verificabile: storico conservato.'));return;}
   if(s.can_recover||pending){const b=button('Riprendi la stessa richiesta',()=>void recoverServerEvent(host));b.disabled=eventRecoveryBusy.has(state.session_id)||!!roomError||abortBlocked(state.session_id);row.append(b);}
  }
+ function narrativeSection(state){
+  if(!state||!Object.prototype.hasOwnProperty.call(state,'narrative_scene'))return null;
+  const v=state.narrative_scene;
+  if(!nativeExact(v,['schema_version','scene_id','state_version','mode','last_publication_id'])||v.schema_version!=='mission-narrative-scene-public/1'
+   ||!UUID.test(v.scene_id||'')||!Number.isSafeInteger(v.state_version)||v.state_version<0
+   ||!['narrative','combat_pending','combat','closed'].includes(v.mode)||!(v.last_publication_id===null||UUID.test(v.last_publication_id||'')))throw Error('narrative_scene_public_invalid');
+  if(!UUID.test(state.session_id||'')||typeof state.step_key!=='string'||typeof state.objective!=='string')throw Error('narrative_room_invalid');
+  if(v.mode!=='combat'&&!nativeExact(state,['session_id','step_key','objective','narrative_scene','role_submit_capability','server_event_mode','server_event_status','combat_surface','staff_finish']))throw Error('narrative_room_fields_invalid');
+  const c=state.combat_surface;
+  if(!nativeExact(c,['schema_version','map_operational','can_open','can_prepare','entry_revision'])||c.schema_version!=='mission-narrative-combat-surface/1'
+   ||typeof c.map_operational!=='boolean'||typeof c.can_open!=='boolean'||typeof c.can_prepare!=='boolean'||!(c.entry_revision===null||Number.isSafeInteger(c.entry_revision)&&c.entry_revision>=0)
+   ||c.can_open&&!c.map_operational||c.can_prepare&&(!c.map_operational||c.entry_revision===null))throw Error('narrative_combat_surface_invalid');
+  finishProjection(state);
+  return v;
+ }
+ function isNarrativeRoom(){
+  const user=identity(),loc=currentLocation();
+  return !!(user&&loc&&scopeFor(user,loc)===roomScope&&narrativeSection(roomState));
+ }
+ function automaticCombatReadAllowed(){
+  const user=identity(),loc=currentLocation();
+  if(!roomReadReady||!user||!loc||scopeFor(user,loc)!==roomScope||roomError||roomReadReady.scope!==roomScope||roomReadReady.epoch!==roomEpoch)return false;
+  const n=narrativeSection(roomState);return !n||n.mode==='combat';
+ }
+ function legacyScenePollingAllowed(){
+  const user=identity(),loc=currentLocation();
+  return !!(roomReadReady&&user&&loc&&scopeFor(user,loc)===roomScope&&!roomError&&roomReadReady.scope===roomScope&&roomReadReady.epoch===roomEpoch&&!narrativeSection(roomState));
+ }
+ let narrativeFinishHistoryScope=null;
+ function finishHistorySession(state){
+  if(state){const n=narrativeSection(state);if(n){narrativeFinishHistoryScope={scope:roomScope,epoch:roomEpoch,session:state.session_id};return state.session_id;}narrativeFinishHistoryScope=null;return null;}
+  return narrativeFinishHistoryScope?.scope===roomScope&&narrativeFinishHistoryScope.epoch===roomEpoch?narrativeFinishHistoryScope.session:null;
+ }
+ const narrativeCombatBusy=new Set();
+ function narrativeEntrySaved(user,session){
+  const raw=sessionStorage.getItem(entryKey(user,session));if(raw===null)return null;
+  let v;try{v=JSON.parse(raw);}catch{throw Error('Richiesta di apertura da verificare.');}
+  if(!nativeExact(v,['session','request_key','revision'])||v.session!==session||!UUID.test(v.request_key||'')||!Number.isSafeInteger(v.revision)||v.revision<0)throw Error('Richiesta di apertura da verificare.');
+  return v;
+ }
+ const narrativePanelIntents=new Map();
+ function validNarrativeEntry(value,session,request){
+  if(validEntry(value,session,request))return true;
+  if(!value||!['preparing','unavailable'].includes(value.status))return false;
+  const proxy={...value,status:'prepared',reason_code:null};
+  return validEntry(proxy,session,request)&&value.can_prepare===false
+   &&(value.status==='preparing'?value.can_open_panel===false&&value.reason_code===null:['fato_turn','not_player_turn'].includes(value.reason_code));
+ }
+ function saveNarrativeEntryRejection(user,session,saved,receipt){
+  const key=entryKey(user,session)+':rejections';let rows=[];
+  const raw=sessionStorage.getItem(key);if(raw!==null){rows=JSON.parse(raw);if(!Array.isArray(rows))throw Error('Ricevuta locale non verificabile.');}
+  rows.push({request_key:saved.request_key,revision:saved.revision,receipt});sessionStorage.setItem(key,JSON.stringify(rows));
+  sessionStorage.removeItem(entryKey(user,session));narrativePanelIntents.delete(session);
+ }
+ async function reconcileNarrativePanelIntent(host){
+  const t=syncRoom(host),state=roomState;if(!roomCurrent(t)||!state||roomError||narrativeCombatBusy.has(state.session_id))return;
+  const n=narrativeSection(state);if(!n)return;
+  let saved;try{saved=narrativeEntrySaved(t.user,state.session_id);}catch{return;}
+  const intent=narrativePanelIntents.get(state.session_id);
+  if(intent&&intent!==t.scope)return;
+  if(!saved){if(intent===t.scope&&n.mode==='combat'&&state.combat_surface?.can_open&&entryState?.can_open_panel&&['prepared','open'].includes(entryState.status)&&UUID.test(entryState.encounter_id||'')){narrativePanelIntents.delete(state.session_id);void openCombat();}return;}
+  narrativePanelIntents.set(state.session_id,t.scope);
+  narrativeCombatBusy.add(state.session_id);
+  try{
+   const receipt=await rpc('regia_combat_entry_receipt_v1',{p_master_session:state.session_id,p_request_key:saved.request_key},t.user);
+   if(!roomCurrent(t)||roomState?.session_id!==state.session_id||!validNarrativeEntry(receipt,state.session_id,saved.request_key))return;
+   if(receipt.status==='unavailable'&&['fato_turn','not_player_turn'].includes(receipt.reason_code)){saveNarrativeEntryRejection(t.user,state.session_id,saved,receipt);return;}
+   if(!['prepared','open'].includes(receipt.status)||!receipt.can_open_panel||!UUID.test(receipt.encounter_id||'')||!roomState.combat_surface?.can_open)return;
+   sessionStorage.removeItem(entryKey(t.user,state.session_id));narrativePanelIntents.delete(state.session_id);
+   await openCombat();
+  }catch{ /* The original nonce remains available for explicit recovery. */ }
+  finally{narrativeCombatBusy.delete(state.session_id);}
+ }
+ async function openNarrativeCombat(host,state){
+  const t=syncRoom(host),session=state.session_id;if(!roomCurrent(t)||narrativeCombatBusy.has(session))return;
+  narrativeCombatBusy.add(session);
+  try{
+   await updateRoom(host,{manual:true});if(!roomCurrent(t)||roomState?.session_id!==session||roomError)throw Error('Stanza cambiata: rileggi la scena.');
+   const n=narrativeSection(roomState);if(!n)throw Error('Scena non confermata.');
+   const surface=roomState.combat_surface;
+   if(!surface.map_operational||!(surface.can_open||surface.can_prepare))throw Error('La mappa dello scontro non è ancora operativa in questa fase.');
+   if(n.mode==='combat'){await openCombat();return;}
+   let saved=narrativeEntrySaved(t.user,session);
+   if(saved){
+    const receipt=await rpc('regia_combat_entry_receipt_v1',{p_master_session:session,p_request_key:saved.request_key},t.user);
+    if(!roomCurrent(t)||!validNarrativeEntry(receipt,session,saved.request_key))throw Error('Apertura non confermata: richiesta conservata.');
+    if(receipt.status==='unavailable'&&['fato_turn','not_player_turn'].includes(receipt.reason_code)){saveNarrativeEntryRejection(t.user,session,saved,receipt);notice('Non è il tuo turno per dichiarare un’azione.');return;}
+    if(['prepared','open'].includes(receipt.status)&&receipt.can_open_panel&&UUID.test(receipt.encounter_id||'')){sessionStorage.removeItem(entryKey(t.user,session));narrativePanelIntents.delete(session);await openCombat();return;}
+    if(receipt.status==='preparing'){narrativePanelIntents.set(session,t.scope);notice('Apertura dello scontro in preparazione.');return;}
+    if(receipt.status!=='not_found')throw Error('Apertura ancora da confermare.');
+   }
+   if(!surface.can_prepare){if(surface.can_open)await openCombat();return;}
+   if(surface.entry_revision===null)throw Error('Ingresso non confermato. Rileggi il pannello.');
+   if(!saved){saved={session,request_key:id(),revision:surface.entry_revision};sessionStorage.setItem(entryKey(t.user,session),JSON.stringify(saved));}
+   narrativePanelIntents.set(session,t.scope);
+   const receipt=await rpc('regia_combat_entry_prepare_v1',{p_master_session:session,p_expected_revision:saved.revision,p_request_key:saved.request_key},t.user);
+   if(!roomCurrent(t)||!validNarrativeEntry(receipt,session,saved.request_key))throw Error('Apertura non confermata: richiesta conservata.');
+   if(receipt.status==='unavailable'&&['fato_turn','not_player_turn'].includes(receipt.reason_code)){saveNarrativeEntryRejection(t.user,session,saved,receipt);notice('Non è il tuo turno per dichiarare un’azione.');return;}
+   if(receipt.status==='preparing'){notice('Apertura dello scontro in preparazione.');await updateRoom(host,{manual:true});return;}
+   if(!['prepared','open'].includes(receipt.status)||!receipt.can_open_panel||!UUID.test(receipt.encounter_id||''))throw Error('Apertura non confermata: richiesta conservata.');
+   sessionStorage.removeItem(entryKey(t.user,session));narrativePanelIntents.delete(session);await updateRoom(host,{manual:true});if(roomCurrent(t))await openCombat();
+  }catch(error){if(roomCurrent(t))notice(error?.message||'Apertura non confermata: verifica la stessa richiesta.');}
+  finally{narrativeCombatBusy.delete(session);if(roomCurrent(t)&&roomState){paintRoom(host,roomState);paintServerEvent(host,roomState);}}
+ }
+ function paintNarrativeRoom(host,state){
+  const n=narrativeSection(state),event=eventStatus(state),surface=state.combat_surface;style();host.hidden=false;host.className='mg-room';host.setAttribute('data-mg-build','C1266-NARRATIVE56-001');
+  const status=n.mode==='closed'?'Missione conclusa.':n.mode==='combat_pending'?'Passaggio allo scontro in preparazione.':event&&['pending','running','waiting'].includes(event.state)?'Il Fato è in preparazione.':'In attesa delle azioni dei personaggi.';
+  host.replaceChildren(el('strong','Missione · '+state.objective),el('p',status,{role:'status','aria-live':'polite'}));
+  if(n.last_publication_id)host.append(el('p','Il Fato pubblicato è disponibile nella chat.'));
+  host.append(button('Aggiorna regia',()=>refreshRoomManually(host)));
+  let saved=null;try{saved=narrativeEntrySaved(identity(),state.session_id);}catch{}
+  const combat=button('Scontro',()=>void openNarrativeCombat(host,state));combat.disabled=narrativeCombatBusy.has(state.session_id)||!surface.map_operational||!(surface.can_open||surface.can_prepare);
+  if(!surface.map_operational)combat.title='La mappa dello scontro non è ancora operativa in questa fase.';host.append(combat);
+  if(isStaff())host.append(button('Gestisci prova',()=>void mountAborts(host,state,syncRoom(host),{manual:true})));
+  paintStaffFinish(host,state);
+ }
+ async function submitNarrativeRole(state,user,loc,character,body){
+  const n=narrativeSection(state);if(!n||n.mode==='combat')return null;
+  if(!UUID.test(character||'')||typeof body!=='string'||!body.trim())throw Error('Seleziona il personaggio e scrivi la role.');
+  const capability=roleCapability(state,character);
+  if(!capability?.enabled)throw Error(n.mode==='closed'?'La missione è conclusa.':'Attendi la pubblicazione del Fato prima della prossima azione.');
+  const receipt=await submitRoleCommand(state,user,loc,character,body,capability);
+  if(!receipt)throw Error('Invio non confermato: originale conservato.');
+  if(roomHost){await updateRoom(roomHost,{manual:true});if(valid(user)&&currentLocation()?.id===loc.id&&roomState?.session_id===state.session_id){const status=eventStatus(roomState);if(status?.state==='pending'&&status.can_recover)void recoverServerEvent(roomHost);}}
+  return {handled:true,narrative:true,receipt};
+ }
+
  function updateRoom(host,options={}){
   if(roomReadFlight){if(options.hintRead===true)roomDirtyHint=true;return roomReadFlight;}
   const task=readRoomOnce(host,options),user=identity(),location=currentLocation()?.id,epoch=roomEpoch;
   const flight=Promise.resolve(task).finally(()=>{if(roomReadFlight!==flight)return;roomReadFlight=null;
+   if(roomHost===host&&identity()===user&&currentLocation()?.id===location&&roomEpoch===epoch)void reconcileNarrativePanelIntent(host);
    if(roomDirtyHint&&roomHost===host&&identity()===user&&currentLocation()?.id===location&&roomEpoch===epoch){roomDirtyHint=false;return updateRoom(host,{...options,hintRead:true});}
   });roomReadFlight=flight;return flight;
  }
@@ -3203,20 +3335,24 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   try{
    const state=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
    if(!roomCurrent(t))return;
-   if(!state){manualRecoveryError=null;roomState=null;roomSignature='';roomError='';host.replaceChildren();host.hidden=true;await mountAborts(host,null,t,{manual,hintRead});paintStaffFinish(host,null);return;}
+   if(!state){manualRecoveryError=null;roomState=null;roomReadReady={scope:t.scope,epoch:t.epoch};roomSignature='';roomError='';host.replaceChildren();host.hidden=true;await mountAborts(host,null,t,{manual,hintRead});paintStaffFinish(host,null);return;}
     if(!UUID.test(state.session_id||'')||typeof state.step_key!=='string')throw Error('room_state_invalid');
+    const narrative=narrativeSection(state);
+    if(narrative&&narrative.mode!=='combat'){eventStatus(state);roomState=state;roomReadReady={scope:t.scope,epoch:t.epoch};roomError='';paintRoom(host,state);paintServerEvent(host,state);return;}
     eventStatus(state);
     academyFlow(state); // The server owns both the phase and the Fato publication receipt.
     roleProgress(state); // A partial reason/remedy projection cannot authorize a dispatch.
     combatNarrationRecovery(state); // Typed server proof only; read/reload never resumes it.
     // Validate the optional adopted-child projection before ordinary rendering or observation.
     retainedWriterHandoffShapeOnly(state);
-   roomState=state;roomError='';
+   roomState=state;roomReadReady={scope:t.scope,epoch:t.epoch};roomError='';
    const settlements=journalSettlements(state,t);
    settleAsyncRecords(settlements,t);
    restoreJournals(state,t,settlements);
    restoreCountedMarkers(state,t,settlements);
    reconcileTickAttempts(state,t);
+   const narrativeEntryIntent=narrativeSection(state)&&narrativeEntrySaved(t.user,state.session_id);
+   if(narrativeEntryIntent)narrativePanelIntents.set(state.session_id,t.scope);
    await readEntry(state,t.user);if(!roomCurrent(t))return;
    const key=choiceKey(state),pending=choiceRequests.get(key);
    // Only a confirmed RPC/rejection followed by an authoritative read unlocks choices.
@@ -3228,7 +3364,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    const projected=processingFor(state);
    if(!isEventReadMode()&&!(isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc.is_test===true)&&!verifyOnly&&(!manual||academyFlow(state)==='combat_started'||staffAcademyRole(state,t.loc)?.reason==='ready_to_evaluate'
     &&projected.valid&&(!projected.value||['completed','failed'].includes(projected.value.state))))maybeDispatch(state,t,false,false,null,manualLane);
-  }catch(error){if(roomCurrent(t)){roomError='Aggiornamento non disponibile. I comandi restano sospesi; premi Aggiorna regia.';if(roomState)paintRoom(host,roomState);else{host.replaceChildren(el('p','Recupero della prova non verificabile. Nessun esito confermato.'));host.hidden=false;}}}
+  }catch(error){if(roomCurrent(t)){roomReadReady=null;roomError='Aggiornamento non disponibile. I comandi restano sospesi; premi Aggiorna regia.';if(roomState)paintRoom(host,roomState);else{host.replaceChildren(el('p','Recupero della prova non verificabile. Nessun esito confermato.'));host.hidden=false;}}}
   finally{if(roomRead===t)roomRead=null;}
  }
  const roleCommandBusy=new Set();
@@ -3299,6 +3435,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!valid(user)||currentLocation()?.id!==loc.id)throw Error('Invio non confermato: stanza o sessione cambiata. Verifica la chat prima di riprovare.');
   if(!state)return roleLegacyFallback(user,characterId);
   if(!UUID.test(state.session_id||''))throw Error('Sessione missione non confermata. Nessun invio: aggiorna la regia.');
+  const narrative=narrativeSection(state);if(narrative&&narrative.mode!=='combat')return submitNarrativeRole(state,user,loc,characterId,body);
   const flow=academyFlow(state);
   if(flow===null)return roleLegacyFallback(user,characterId);
   // Durante Combat la role meccanica passa soltanto dal pannello nativo.
@@ -3332,5 +3469,5 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(roomHost)void updateRoom(roomHost,{manual:true});
   return {handled:true,receipt};
  }
- return {editor,board,decorateBoard,updateRoom,submitRole,chatPublication,sessionId:()=>roomState?.session_id,dispose(){roomReadFlight=null;roomDirtyHint=false;for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};
+ return {editor,board,decorateBoard,updateRoom,submitRole,chatPublication,isNarrativeRoom,automaticCombatReadAllowed,legacyScenePollingAllowed,sessionId:()=>roomState?.session_id,dispose(){roomReadReady=null;roomReadFlight=null;roomDirtyHint=false;for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};
 }
