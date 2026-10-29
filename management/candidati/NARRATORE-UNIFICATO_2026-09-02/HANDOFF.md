@@ -10,4 +10,6 @@ Prove eseguite e risultato · C1266 Editorial60 · 29/10/2026: istruzioni genera
 
 Rischi o regressioni da verificare · Qualità del nuovo testo NOT_RUN; Combat non collaudato in questa consegna. Nessuna certificazione generale.
 
+Deposito Editorial60 verificato · [866bd39b](https://github.com/antonello9311-design/theuntoldstory/commit/866bd39ba2dfc19e875e80f7f994bc1db50e9f20), tree35b0c06eee6f37e9af78cfd42f7536151219c84e;16/16blob riletti integralmente esatti, nessun asset sito cambiato. Sorgenti private di schede e trama escluse dal deposito.
+
 Passaggio richiesto al PM · Review umana delle correzioni; quinta solo dopo nuovo mandato, conservando tutti i Fati e contatori.
