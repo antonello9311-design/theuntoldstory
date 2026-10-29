@@ -2,6 +2,8 @@
 
 29/10/2026 · La terza scena ha pubblicato il Fato conclusivo C5 alle 18:17:53 UTC. Chiusura amministrativa Staff confermata dal comando ordinario, con ricevuta server conservata. Nessuna quarta prova avviata. I Fati pubblicati non sono stati riscritti.
 
+Editorial57 installata dopo la review: istruzioni composte coerenti, schedeV5 e revisione5 selezionate per i prossimi avvii, pannello aggiornato. Nessun nuovo Fato generato: la qualità della nuova versione resta da verificare nella quarta, non avviata.
+
 ## Evidenze e limiti del confronto
 
 | Aspetto | Prima prova A | Seconda prova B | Terza prova C |
@@ -34,9 +36,9 @@ Dopo l’aggregata 6, C4 e C5 hanno prodotto ciascuno un Fato con una sola Count
 
 La chiusura amministrativa ha evidenziato un’altra confusione: le Count con costo prudenzialmente riservato sono trattate come richieste ancora in corso anche quando il relativo lavoro è terminato. La correzione finale, review indipendente 0/0/0 e delta di due funzioni, distingue la Count completata con prova autorevole da una generazione realmente incerta; riconosce inoltre il doppio audit della vecchia apertura. Costi e stati della quota rimangono intatti. La review ha individuato anche il tentativo di terminalizzare nuovamente un run già concluso: aggregata7 respinta prima dell’installazione, aggregata8 corretta e verificata 0/0/0. Nessun costo ignoto viene trasformato in zero o dichiarato esatto.
 
-## Cambiamenti proposti prima della quarta
+## Correzioni installate prima della quarta
 
-1. **Un’unica composizione del pannello.** Corpo della scena, stato evento, recupero e conclusione devono essere renderizzati insieme. Oggi l’aggiornamento manuale può cancellare il riquadro di recupero; un rientro lo ripristina. Anche lo stato di attesa della seconda role deve dirlo chiaramente, senza annunciare una generazione già in corso. Nessun polling aggiuntivo.
+1. **Un’unica composizione del pannello.** Il renderer N56 compone ora corpo della scena, stato evento, recupero e conclusione a ogni ridisegno. Il precedente aggiornamento manuale cancellava il riquadro di recupero; la correzione è verificata nel sorgente, mentre il turno attivo sulla nuova versione resta da collaudare nella quarta. Anche lo stato di attesa della seconda role deve dirlo chiaramente, senza annunciare una generazione già in corso. Nessun polling aggiuntivo.
 2. **Una sola versione completa e congelata.** Producer, lettore, dispatcher, Count, Generation, salvataggio, pubblicazione e chiusura devono condividere lo stesso contratto. Verificare le forme realmente prodotte dal sito, non assumere che una review statica sostituisca il percorso giocato. Contabilità incerta e lavoro pendente devono avere significati distinti.
 3. **Istruzioni generali di conseguenza.** Considerare parole e gesti PG già acquisiti. Iniziare dalla risposta o dalla conseguenza nuova, senza citarli, riformularli o certificarli. La memoria privata conserva il riepilogo; il racconto mostra quello che accade adesso.
 4. **Schede con spazio positivo di gioco.** Esplicitare fatti conosciuti, obiettivi, interessi, timori, rapporti e iniziative possibili. Distinguere ignoranza, reticenza e menzogna. Conservare i limiti di conoscenza senza accumulare divieti che diventano battute. Differenziare le voci attraverso atteggiamento e scelte, non imponendo tic o gesti fissi.
@@ -44,7 +46,7 @@ La chiusura amministrativa ha evidenziato un’altra confusione: le Count con co
 6. **Ambiente con continuità.** Attività, ostacoli, distanze, presenze e reazioni locali possono cambiare il ritmo e le possibilità della scena. Evitare il paragrafo fisso di rumori e passanti sostituiti con sinonimi. Non ogni elemento ambientale deve diventare un indizio.
 7. **Conclusioni osservabili.** Mostrare un congedo, uno spostamento o una conseguenza consentita dalle azioni, invece di chiudere con una lista di conoscenze e incognite. Non inventare decisioni ulteriori dei PG. Le questioni investigative aperte possono restare nella memoria senza essere recitate dal narratore a ogni turno.
 
-Nessun minimo obbligatorio di battute, paragrafi o dettagli; nessun nuovo filtro lessicale che blocchi il turno. Le modifiche editoriali proposte non sono state applicate retroattivamente ai sei Fati C.
+Nessun minimo obbligatorio di battute, paragrafi o dettagli; nessun nuovo filtro lessicale che blocchi il turno. Le nuove istruzioni e fonti sono attive per i prossimi avvii; i sei Fati C restano integralmente immutati. La coerenza dei prompt è verificata staticamente, la resa generata non è ancora collaudata.
 
 ## Quarta prova: criterio di verifica
 
@@ -54,7 +56,7 @@ Separatamente va giocato il percorso di ingresso Combat sulla mappa operativa ne
 
 ## Contabilità e conservazione
 
-A: 62 HTTP, 0,47600170 USD. B: 37 HTTP, 0,33861150 USD. C: 20 HTTP, 10 Count e 10 Generation, 0,17132990 USD. Totale prudenziale: **119 HTTP e 0,98594310 USD su 4 USD autorizzati**. I valori includono le riserve quando il costo non è liquidato; non sono una fattura definitiva. Il precedente totale 0,9433573 ometteva due chiamate storiche A/B: riconciliate verso l’alto senza nuovi invii né reset.
+A: 62 HTTP, 0,47600170 USD. B: 37 HTTP, 0,33861150 USD. C: 20 HTTP, 10 Count e 10 Generation, 0,17132990 USD. Totale prudenziale: **119 HTTP e 0,98594310 USD su 4 USD autorizzati**. I valori includono le riserve quando il costo non è liquidato; non sono una fattura definitiva. Questo intervento non aggiunge Count o Generation. Il precedente totale 0,9433573 ometteva due chiamate storiche A/B: riconciliate verso l’alto senza nuovi invii né reset.
 
 I campi di gameplay delle due schede protette hanno hash identico al preflight. Il loro hash integrale cambia nei campi esclusi di metadati/presentazione; non viene dichiarata identità integrale delle righe. Nessun premio reale è autorizzato.
 

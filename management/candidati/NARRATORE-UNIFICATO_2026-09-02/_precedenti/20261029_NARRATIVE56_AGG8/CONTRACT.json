@@ -1,0 +1,477 @@
+{
+  "schema_version": "mission-narrative-scene-contract/1",
+  "status": "THIRD_C_COMPLETED_NORMAL_STAFF_FINISH_WITH_RECOVERY_FOURTH_NOT_STARTED",
+  "mandate": "Server game rules and engine ONLY in Combat. Ordinary outcomes use one direct narration generation from frozenNPC/phases/setting,scene memory and accepted roles. Technical auth,budget,transport,persistence reads admitted.",
+  "baseline": {
+    "Root": "a9e35776c3c35cfbbab884e5b5cd01355370bbf8c716e7faf2af79ac85adb8b7",
+    "Edge": 117,
+    "UI": "C1266-NATIVE-DISPLAY-028",
+    "C_session": "7c301c10-5a0e-42d8-92b3-cee6fc4171e6",
+    "preserve_C": {
+      "published_fati": 4,
+      "accepted_roles": 8,
+      "pending_roles": "latest2alreadyacceptedmessageIDs; no resubmit",
+      "failed_paid_Director": "5a7a10d9-7ed6-4e82-9ff9-960c786f6ea6 unchanged; not adopted or reinterpreted"
+    },
+    "campaign_budget_total_usd": 4,
+    "prudent_spent_usd": 0.9433573,
+    "old_generation_receipts_used": 8,
+    "old_generation_limit": 14,
+    "assistant_window": "QA90min maximum including closure, max6Count+6Generation/12HTTP from existing remaining6; starts only after installation and evidence freeze"
+  },
+  "work": {
+    "kind": "narration",
+    "mode": "narrative_scene",
+    "payload_schema": "mission-narrative-scene/1",
+    "admission_schema": "mission-narrative-admission/3",
+    "scope": "staff_mission",
+    "features": [
+      "execution_authority_v1",
+      "provider_output_retention_v1",
+      "direct_scene_narration_v1"
+    ],
+    "forbidden_features": [
+      "role_intents_v1",
+      "role_intents_v2",
+      "director_progression",
+      "numeric_peer3_wire_v1",
+      "numeric_peer4_wire_v1",
+      "free_narrative_v1"
+    ],
+    "opening": "Typed initial_opening with genuine board-start receipt, zero accepted roles, stay-only effective next_step in payload/schema/normalizer/server. C4 recovery is narration with two already accepted roles."
+  },
+  "payload": {
+    "exact_fields": [
+      "schema_version",
+      "mode",
+      "scene_id",
+      "source_window_id",
+      "source_revision",
+      "state_version",
+      "snapshot_sha256",
+      "snapshot",
+      "current_phase_key",
+      "scene_memory",
+      "accepted_roles",
+      "last_publication",
+      "last_fati"
+    ],
+    "schema_version": "mission-narrative-scene/1",
+    "mode": "narrative_scene",
+    "scene_id": "persistent private technical scene UUID bound to session",
+    "source_window_id": "prepared technical requestID =authority_receipt_id; not legacy mechanical intent window",
+    "source_revision": "serverhash(snapshotSHA,stateVersion,currentPhase,memorySHA,lastPublicationID/SHA,orderedacceptedmessageIDs/bodySHA)",
+    "accepted_roles": {
+      "exact_fields": [
+        "message_id",
+        "user_id",
+        "character_id",
+        "sequence",
+        "body",
+        "body_sha256"
+      ],
+      "order": "accepted submissionorder; exactserverstoredtext, no extraction orquotecatalog"
+    },
+    "last_publication": "null or {message_id,body_sha256}",
+    "last_fati": "[{message_id,sequence,body,body_sha256}], immutable publicprose; currenthandoff4 preserved",
+    "scene_memory": "null initially or existing117memory {state,known,open,used}"
+  },
+  "snapshot": {
+    "schema_version": "mission-narrative-scene-snapshot/1",
+    "exact_fields": [
+      "schema_version",
+      "mission",
+      "setting",
+      "phases",
+      "npcs",
+      "players"
+    ],
+    "mission": "{mission_id,title,premise}",
+    "setting": "{name,description}",
+    "phases": "[{phase_key,kind:narrative|combat,objective,entry_public,plot_private,notes,next_steps:[token...]}]",
+    "npcs": "[{actor_key,name,narrative_version_id,profile,knowledge}]",
+    "players": "[{user_id,character_id,name}]",
+    "excluded": "PV,chakra,stats,techniques,legalactions,mechanicalbinding,ruletext,roleinterpretation,quoteindices",
+    "ownership": "Serverprivate and provideronly; browser sees publicFato/status only, never privateplot/profileknowledge. Frozen at sceneinitialization/cachemiss from approved narrative source, then reused. A changed character sheet cannot silently mutate an ongoing snapshot.",
+    "cache": "Existing Small; persisted privatecache +optionalwarmEdge memory keyed session/snapshotSHA. No newinfra,cron,idleDBread or backgroundrefresh.",
+    "next_steps": "Generated once from frozen narrative graph/terminal metadata. Tokens stay,scene:<nextnarrativephase>,combat:<nextmechanicalphase>,complete only where source permitsclosure; no runtime GameRulelookup."
+  },
+  "source_attestation": {
+    "schema_version": "mission-narrative-scene-attestation/1",
+    "exact_fields": [
+      "schema_version",
+      "work_id",
+      "authority_receipt_id",
+      "payload_sha256",
+      "master_session_id",
+      "definition_sha256",
+      "release_sha256",
+      "execution_authority",
+      "scene"
+    ],
+    "execution_authority": "Existing puretransport c1266-work-execution-attestation/3 may be reused forauth/finitefinancial/start/binding; DBproducer must derive it via technical rows only, never oldmechanical builder.",
+    "scene": {
+      "schema_version": "mission-narrative-scene-source/1",
+      "exact_fields": [
+        "schema_version",
+        "scene_id",
+        "snapshot_sha256",
+        "state_version",
+        "source_revision",
+        "accepted_role_ids",
+        "accepted_roles_sha256",
+        "last_publication_id",
+        "last_publication_sha256",
+        "current_phase_key",
+        "scene_memory_sha256"
+      ]
+    },
+    "not_present": [
+      "role_intents",
+      "director_progression_sources",
+      "peaceful_exit",
+      "legalactions"
+    ]
+  },
+  "generation_output": {
+    "exact_fields": [
+      "text",
+      "scene_memory",
+      "next_step"
+    ],
+    "text": "publicFato; no duplicatephrase/word/paragraph gates",
+    "scene_memory": {
+      "shape": "{state,known,open,used}",
+      "existing117bounds": {
+        "state_chars": 600,
+        "known": "16items×180chars",
+        "open": "10items×180chars",
+        "used": "20items×90chars"
+      },
+      "purpose": "continuity summary, not duplicateFato or gameauthority"
+    },
+    "next_step": "One flat enum from current frozenphase.next_steps: stay|scene:<nextnarrativephase>|combat:<nextmechanicalphase>|complete whereclosureallowed. Choice means story/lifecycle proposal, not attacksuccess/PGmechanicaldecision.",
+    "complete": "Explicit storyclosure request inside same publicFato+receipt transaction. Never infercomplete from phaseentry, freeprosememory or phrase matching; no reward/progressionupdate.",
+    "combat": "Single token transfers to existingauthoritativeCombatengine with publication/nextstate barrier. No actor/target/technique/damage selectedbyordinaryNarration.",
+    "membership": "Cachedstaticgraphreference is transporttechnicalbinding; do notquery engine, stats orlegality to validate narrative movement/scenechanges."
+  },
+  "technical_state_model": {
+    "proposed_private_tables": [
+      "mission_narrative_internal.scene_runtime_v1",
+      "mission_narrative_internal.scene_requests_v1",
+      "mission_narrative_internal.scene_publications_v1"
+    ],
+    "scene_runtime": "session/sceneUUID, frozen snapshot+SHA, memory,stateversion, technicalmode,lastpublication; currentphase/control may reuse existingmission_run_state cursor, updated atomically with publicFato. No gamevalues.",
+    "scene_request": "idempotent prepared immutableinput pluspayloadSHA, author/rolecohort/stateversion/budgetreservation, Nativework/receipt linkage, providerstatus andretainedoutput; oneactive per scene/stateversion/cohort.",
+    "publication": "unique requestID receipt binds onepublicmessage andphase/memory/status/nexttechnicalstate atomically. Do not introduce parallelproviderledger; use existing receipts/quota.",
+    "minimal_preference": "Reuse existing Nativework/receipt/audit for publicationreceipt and billing. Prefer2privatecache/source tables, not separate parallelledger or publicationengine; exactexistingstore reuse to decide after7technicalRPCsource classification."
+  },
+  "normal_flow": [
+    "Existing immutable source setup; typed initial opening with zero roles and stay-only enum",
+    "Ordinary user roles technically authenticated and accepted; no gameplay parser outside actual Combat",
+    "One Count plus one direct narration Generation; retained raw, atomic Fato/memory/phase/receipt",
+    "Native entry from actual operative map on legal player turn, mechanics before justificatory prose; no mutation during Fato",
+    "Existing Native engine decides all mechanics and returns authoritative publication/continuity",
+    "Complete step publishes final Fato; normal Staff finish closes own simulation with no awards"
+  ],
+  "non_combat_query_budget": {
+    "game_rule_or_engine_reads": 0,
+    "technical_reads": "Auth/session/sourcecache/singlepreparedrequest/quotareceipt/publication transaction onactualuser/turn activity only. No pollingidle.",
+    "narrative_source_reads": "NPCnarrativeprofiles andphases once at cacheinitialization/miss, then snapshot reuse; no technicalmove/stat query disguised as contextload."
+  },
+  "open_source_work": [
+    "Locate and reuse puretechnical Nativeclaim/authorize/consume/Count/retain/finalize; retain actualwork_assert/auth/runtime invariants, earlytypedscene branch bypasses only proven intent/legality/enginepaths. No fakeopening orblanket guard bypass.",
+    "Compose exact newmode readiness/event/roleSubmit/UI union with otheragents. No workready generation beforeauthorizedwindow.",
+    "Define minimal Staff-only modebootstrap/handoff audit source andreview candidate end-to-end beforeDBapply.",
+    "Fit Root with legitimate headers andrealOIDs; no inventedOID or removedsafetychecks.",
+    "Close narrative lifecyclewithoutrealreward; normal testclosure andpostflight remain separate technicaloperations."
+  ],
+  "security_reuse": {
+    "reuse_unchanged_or_extract_exact": [
+      "mission_generic_owner.work_assert genericnonquestcase: sessionstate,step/control,snapshot/payloadhash freshness; no gamelegality",
+      "mission_generic_owner.assert_runtime: runtime enabled/testlocation authscope",
+      "mission_generic_owner.dispatch_user under servicecontext: actor/session entitlement"
+    ],
+    "do_not_reuse_for_noncombat": [
+      "roleinterpretation/projection/legalactions",
+      "Combatprepare/resolve/technique/stat orrules queries",
+      "legacydirector_bodyquotecatalog/gatednarrativequality"
+    ],
+    "warning": "Do not skip opaque RPC/guards by name; classify actualbody. work_assert is explicitly technical and retained. Snapshot/fullsourcehash may be read as identity without inspecting gamevalues."
+  },
+  "normalized_result": {
+    "base": "existing117 worker adds work/usage/provider metadata to genericresult",
+    "scene_branch_exact": {
+      "ok": true,
+      "text": "modeltext",
+      "command": null,
+      "profile_audit": null,
+      "scene_update": {
+        "schema_version": "mission-narrative-scene-update/1",
+        "scene_id": "payload.scene_id",
+        "source_window_id": "payload.source_window_id",
+        "source_revision": "payload.source_revision",
+        "state_version": "payload.state_version",
+        "snapshot_sha256": "payload.snapshot_sha256",
+        "next_step": "modelnext_step",
+        "scene_memory": "modelmemory"
+      },
+      "failure_codes": [],
+      "advisories": []
+    },
+    "not_emitted": [
+      "intent_atom",
+      "role_interpretation",
+      "role_disposition",
+      "current_projection",
+      "profile_audit content",
+      "command gamevalues"
+    ]
+  },
+  "snapshot_source_mapping": {
+    "plan": "frozenCreation document from REVISION4 (steps/transitions/terminal, editorialscenes/setting/plot)",
+    "NPCprofiles": "Whitelisted skeleton,fallback_profile,knowledge_boundary from exactapproved narrativeVersionIDs referenced by frozenCreation; names fromapprovedNarrative source. Nomechanicalversion/template/binding fields in projection.",
+    "warning": "Do not bootstrap from obsolete C4 director_context overlays; oldpaidpayload immutableforhistory, newcache from currentapprovedfrozen narrative source.",
+    "c_current_phase_tokens_source": [
+      "stay",
+      "combat:fase_3",
+      "scene:fase_4"
+    ],
+    "c_phase4_tokens_source": [
+      "stay",
+      "complete"
+    ],
+    "examples_are_data_not_globalrules": true
+  },
+  "player_combat_entry": {
+    "available": "Consultation with operational current map; mutating entry and attacks only when native authority grants legal player turn. Pending Fato owns turn and cannot be interrupted.",
+    "readiness": "Public combat_surface exact5 fields including separate can_open consultation and can_prepare mutation. Read from current private cached phase/map/turn ownership; no background game query.",
+    "C_source_constraint": "frozen document.arenas maps onlyfase_3. Ccurrentconclusione cannotreportmapready justbecausecombatsuccessor exists.",
+    "API": "Existingregia_combat_entry_prepare/receipt/state, AIpreparebranchmustopenprotectedencounterinsteadonlyfindingone.",
+    "race": "No pending Fato retirement. Same scene/master/run lock serializes publication and legal explicit entry. Direct RPC must reject entry or attack during Fato; retain and publish that Fato normally.",
+    "no_text_attack_parser": "Narrativeprose isnotmechanicallyparsed asattack. Playerselects attack throughnormalnativepanel."
+  },
+  "Root_dependency": "Frozen integrated source and Root release composition in root_release/SEMANTIC_MANIFEST.json; staged false -> actual verified assets -> active true+private named cache seed. Full independent review required, no runtime claim from syntax.",
+  "public_ui_contract": {
+    "schema_version": "mission-narrative-scene-ui-contract/1",
+    "status": "SOURCE_CONTRACT_FROZEN_NO_APPLY_NO_PROVIDER",
+    "room_rpc": {
+      "signature": "public.mission_generic_room_state_v1(p_location uuid)",
+      "noncombat_exact_fields": [
+        "session_id",
+        "step_key",
+        "objective",
+        "narrative_scene",
+        "role_submit_capability",
+        "server_event_mode",
+        "server_event_status",
+        "combat_surface",
+        "staff_finish"
+      ],
+      "narrative_scene": {
+        "exact_fields": [
+          "schema_version",
+          "scene_id",
+          "state_version",
+          "mode",
+          "last_publication_id"
+        ],
+        "schema_version": "mission-narrative-scene-public/1",
+        "scene_id": "uuid",
+        "state_version": "safeinteger>=0",
+        "mode": "narrative|combat_pending|combat|closed",
+        "last_publication_id": "uuid|null"
+      },
+      "step_key": "public technicalphasekey",
+      "objective": "cached publicobjective only",
+      "server_event_mode": "server_event_v1",
+      "server_event_status": "existingexact{event_key,event_version,state,can_recover}|null; no newformat",
+      "role_submit_capability": "existingmission-role-submit-capability/2 exact{schema_version,enabled,contexts:[{character_id,window_epoch,own_latest_message_id}]}",
+      "combat": "Full existingroomDTO andnativeCombatcontrols, withsame narrative_scene section appended. Outsideactualmodecombat no engine/status/offer/Intentqueries bythisreader.",
+      "combat_surface": {
+        "exact_fields": [
+          "schema_version",
+          "map_operational",
+          "can_open",
+          "can_prepare",
+          "entry_revision"
+        ],
+        "schema_version": "mission-narrative-combat-surface/1",
+        "map_operational": "boolean: currentphase frozenmap association AND validcurrentarena receipt, not existenceoffuturecombat successor",
+        "can_open": "boolean: operational current map AND actual existing Native encounter/panel available (mode combat). No constructor for consultation; before Native exists false even if map_operational true.",
+        "entry_revision": "existing entryrevision safeinteger|null, derived from technical cachedmap+currentstate; noengine/rulesconsultinreader",
+        "C_current": "conclusione has no map: map_operational=false, can_open=false, can_prepare=false, entry_revision=null; only fase_3 is mapped in current frozen source.",
+        "can_prepare": "boolean: operational current map AND authenticated actor AND current legal player turn, false while Fato owns turn; authoritative server recheck on prepare and declare"
+      },
+      "staff_finish": {
+        "schema_version": "mission-generic-staff-finish-status/1",
+        "exact_fields": [
+          "schema_version",
+          "master_session_id",
+          "state",
+          "can_finish",
+          "source_revision",
+          "expected_publication_id",
+          "request_key",
+          "outcome",
+          "reason"
+        ],
+        "state": "ready|blocked",
+        "can_finish": "boolean",
+        "source_revision": "sha256|null",
+        "expected_publication_id": "uuid|null",
+        "request_key": "uuid|null",
+        "outcome": "success|null",
+        "reason": [
+          "ready",
+          "scope_closed",
+          "waiting_final_publication",
+          "work_pending",
+          "history_unreconciled",
+          "roles_pending",
+          "combat_pending"
+        ],
+        "projection": "Existing exact DTO; no NPC/plot/memory/history items projected. Ready only after Scene complete Fato and terminal Native costs; actual session closes through existing Staff finish command."
+      }
+    },
+    "submit_rpc": {
+      "signature": "public.mission_role_submit_v1(p_session uuid,p_character uuid,p_body text)",
+      "request": "existingJSONstringmission-role-command/2 exact{schema_version,request_key,window_epoch,expected_own_latest,body}",
+      "receipt": "existingmission-role-submit/2 exact{schema_version,master_session_id,message_id,accepted,mission_valid,invalid_reason,source_revision,request_key,replayed,status}",
+      "narrative_semantics": "accepted=true/mission_valid=true/invalid_reason=null means technicalacceptance ofauthenticated currentepochtext; no legalaction/parser/intentgrammar/gamevalidity inference. Normalcallercharacterownership retained.",
+      "client_order": "Detecttyped narrative_scene before academyFlow/roleProgress/legacygrammar. Combat delegates existingnativepanel; narrative prose does not invoke engine."
+    },
+    "wake": {
+      "endpoint": "existingfunctions.invoke mission_generic_ai",
+      "body": "existingmission-event-recovery/1 exact{schema_version,event_key,event_version,request_key}",
+      "ack": "existingmission-event-wake-ack/1 exact{schema_version,status:accepted,retry:false}",
+      "identity": "EdgegetUser ->trustedserviceproofprincipal, browsercannot supplyp_user/sceneprivateauthority",
+      "no_new_client_RPC": true
+    },
+    "publication": "Existingpublicmessages/chatreader holds Fati. last_publication_id is only a publicpointer; oneFato+nextstate+receipt transaction. NoNPCprofiles/plot/memory/snapshotprivateJSON projected tobrowser.",
+    "Combat_boundary": {
+      "outbound": "AI next_step combat publishes narrative receipt and mapped-phase handoff atomically. An explicit player may enter through normal Combat panel only with current operational map and legal player turn; never interrupt Fato.",
+      "inbound": "ExistingCombatcommands/panel remainauthoritative. OnCombatexit serverfacts+publicationreceipt updatecachedcontinuity, phase andnarrativemode; no rules consultedbyordinarynarrativecallbacks.",
+      "read_trigger": "No automatic engine/Master reads outside actual Combat. Consultation may use can_open; any call to mutating entry prepare must require can_prepare. Attack always follows authoritative native turn permissions.",
+      "manual_entry_RPC": {
+        "prepare": "public.regia_combat_entry_prepare_v1(p_master_session uuid,p_expected_revision bigint,p_request_key uuid)",
+        "receipt": "public.regia_combat_entry_receipt_v1(p_master_session uuid,p_request_key uuid)",
+        "state": "public.regia_combat_entry_state_v1(p_master_session uuid), explicitCombat interactiononly, notbackgroundNarrativestatus",
+        "AI_branch_delta": "CurrentAIpreparemerelyfindsexistingCombat; must gain protectedopeningfromcurrentmappedphase/arena and keep existingABI/revisions/receipt/idempotency, not a newendpoint.",
+        "technical_pending": {
+          "schema_version": "regia-combat-entry/1",
+          "status": "preparing",
+          "can_prepare": false,
+          "can_open_panel": false,
+          "request_key": "same submitted request_key",
+          "flow": "actor-bound command persisted by authenticated prepare; existing event wake/worker executes real constructor as service with zero Count/Generation; existing receipt and Realtime open panel for original single click"
+        },
+        "nonmutating_refusal": {
+          "schema_version": "regia-combat-entry/1",
+          "status": "unavailable",
+          "can_prepare": false,
+          "can_open_panel": "true only actual existing consultable Native panel; false before constructor, even if map_operational",
+          "request_key": "same submitted request_key",
+          "reason_code": [
+            "fato_turn",
+            "not_player_turn"
+          ],
+          "semantics": "authoritative definitive rejection before command/wake; keep nonce evidence. No response/timeout is unknown: retain same key and recover receipt; never reset or retry with a new key merely for network uncertainty."
+        },
+        "mechanics_first": "Normal single Scontro action prepares engine only on operational current map and legal player turn; player chooses mechanics first, then writes justification role, Fato follows authoritative facts. No pair of previous roles or AI permission needed, including an arena mission from its first published opening."
+      },
+      "inflight_race": "Fato ownership forbids mutating player entry or attack, including direct RPC calls. No retirement of pending Fato. Same scene/control lock serializes handoff; Fato finishes and publishes normally, then legal player turn may allow explicit native entry."
+    },
+    "scope": "Generalforenabledmissions usingchosenfrozenNPC/phases, noDaichi/Keita/C hardcode. OnlytheoneCbootstrap maynamecurrentSID/oldwork/acceptedroleIDs.",
+    "dependencies": [
+      "IntegratedDBscene branches not yet complete; do not labelUIflowruntimepassed",
+      "Rootcurrent261261B/883headroom; newheader/cacheflags mustfitcap262144 via reviewedactualobsolete retirement, no pin/capincrease",
+      "Providerwindowexpired; nonecreatedbythiscontract"
+    ],
+    "realtime": "Reuse existingmission_land_events_v1 publishedscene/chat hints emitted by atomicfinalization. No idleSQL/9secondpoll.",
+    "staff_finish_command": {
+      "existing_edge_schema": "mission-generic-staff-finish/1",
+      "request_exact_fields": [
+        "schema_version",
+        "master_session_id",
+        "source_revision",
+        "expected_publication_id",
+        "request_key"
+      ],
+      "rpc": "public.mission_generic_staff_finish_v1(uuid,uuid,text,uuid,uuid)",
+      "result_schema": "mission-generic-staff-finish-result/1",
+      "result_exact_fields": [
+        "schema_version",
+        "master_session_id",
+        "state",
+        "source_revision",
+        "publication_id",
+        "request_key",
+        "outcome",
+        "receipt_sha256",
+        "replayed"
+      ],
+      "UI": "Reuse paintStaffFinish/submitStaffFinish inside N56 typed branch. No new endpoint. Preserve original failed paid C4 records, close only simulation without awards."
+    }
+  },
+  "fourth_trial": "NOT_STARTED; finish same C first, extract comparative data, propose changes and freeze fourth candidate only after review.",
+  "runtime_outcome": {
+    "master_session_id": "7c301c10-5a0e-42d8-92b3-cee6fc4171e6",
+    "root_sha256": "8f29e4dee0edf936380f42f855f109aa7819daa99ab505adffa013aeb3761568",
+    "semantic_identity_sha256": "fccbea9066207931e47e0ad4d771c8844156dbfddc61cf11cb6525053b4cac30",
+    "final_message_id": "a84115ca-9ea8-4a47-b2e9-fc22c4f55411",
+    "normal_Staff_finish": {
+      "receipt": {
+        "state": "completed",
+        "result": {
+          "state": "closed",
+          "outcome": "success",
+          "replayed": false,
+          "request_key": "86896001-73dc-d321-e68f-5126af48a0f7",
+          "publication_id": "a84115ca-9ea8-4a47-b2e9-fc22c4f55411",
+          "receipt_sha256": "ec3bb1b6d6027a0567f82c460b57b8fbdc52500b0ffeb3da6c128c2fbe0ca7ed",
+          "schema_version": "mission-generic-staff-finish-result/1",
+          "source_revision": "af0b30c388841d6485120649682827e33424cbd662908a73257c001aff96b0ec",
+          "master_session_id": "7c301c10-5a0e-42d8-92b3-cee6fc4171e6"
+        },
+        "completed_at": "2026-10-29T18:30:55.255563+00:00",
+        "result_sha256": "ecae252a261d65f9604dfa783ceb4853bbfd91de279621a0c38c52c1924feb69"
+      },
+      "closed_at": "2026-10-29T18:30:55.239134+00:00",
+      "run_phase": "conclusa",
+      "capability": [
+        {
+          "state": "terminal",
+          "terminal_mode": "normal"
+        }
+      ],
+      "root_sha256": "8f29e4dee0edf936380f42f855f109aa7819daa99ab505adffa013aeb3761568",
+      "active_works": 0,
+      "close_reason": "completata",
+      "master_stato": "chiusa",
+      "pending_outbox": 0,
+      "gameplay_fields_sha256": "b31f2dbe8823e023ae07cf7a9adacd6dca0b2327736e5097cc1334a74ec2217e",
+      "closure_steps_completed": 6,
+      "active_dispatch": 0,
+      "unpublished_sources": 0,
+      "HTTP_ABC": 119,
+      "prudent_USD_ABC": "0.98594310",
+      "prior25_Fati_SHA_identical": true,
+      "UI_finish_receipt_visible": true,
+      "final_Fato_readable_after_reentry": true
+    },
+    "aggregate": 8,
+    "counterreviews": 8,
+    "new_N56_HTTP": 4,
+    "campaign_prudent_USD": "0.98594310",
+    "fourth_started": false,
+    "clean_frozen_full_run": "NOT_RUN",
+    "Combat_on_final_version": "NOT_RUN"
+  },
+  "finish_accounting_contract": {
+    "Count_unknown_billable": "only completed Count success audited + exact settled Generation same receipt + finalized work; reservation retained",
+    "legacy_opening": "only original opening with authoritative generic_finalized double audit/hash and published body",
+    "uncertain_generation": "still blocks",
+    "mutations_to_quota": "none"
+  }
+}
