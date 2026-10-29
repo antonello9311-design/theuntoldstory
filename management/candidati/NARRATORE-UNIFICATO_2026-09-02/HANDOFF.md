@@ -8,6 +8,6 @@ Decisioni prese / OPEN · Terza con approccio distinto, resa ricca/ambiente vivo
 
 Prove eseguite e risultato · Reviewindipendente0/0/0; SQL/PLpgSQLPASS, apply e postflightRoot/policy esatti. Campagna97HTTP/0.8007126USD invariata,0nuovi provider/sessioni. Budget40Count+40Gen,2MGenerationtoken,90min daeffettivoavvio incl.chiusura e margine0.0496/catena prima trigger. Counttoken separati; cateneCombatdiverse da qualificare prima trigger.
 
-Rischi o regressioni da verificare · C e reportcomparato suC NOT_RUN. Prima avvio verificare accessi ordinari reali/presenza e contrattoC; incertezza provider si conserva e sospende la finestra seguente. Nessuna sostituzione di accessi tramiteSQL. DepositoGit PENDING.
+Rischi o regressioni da verificare · C e reportcomparato suC NOT_RUN. Prima avvio verificare accessi ordinari reali/presenza e contrattoC; incertezza provider si conserva e sospende la finestra seguente. Nessuna sostituzione di accessi tramiteSQL. DepositoGit verificato: commite94b936933157155a7bbc26899a146d47a39fac3;11/11blobSHA uguali agli artefatti locali, nessun asset sito modificato.
 
 Passaggio richiesto al PM · Riprendere stessaC55 quando Tamako è disponibile in Chrome; avviare una sola prova normaleStaff conV4, giocare e chiudere, confrontareA/B/C. Le90min iniziano all’avvio effettivo, non sono una nuova scadenza per l’uso manuale. Non dichiarare C partita dal solo collegamento installato.
