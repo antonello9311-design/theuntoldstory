@@ -1,0 +1,3 @@
+Editorial60 · Recupero conservativo
+
+Nessun vecchio Fato o snapshot viene riscritto. Le versioni precedenti restano conservate; la normale approvazione può renderle inactive. Al fallimento della pubblicazione si conserva la ricevuta e si legge lo stato della stessa richiesta, senza creare altre versioni o duplicare il salvataggio. Root aggiornata atomicamente dopo readback, con CAS e confronto dei226header e31Fati. Un deploy Edge non qualificato non autorizza avvii: in assenza di Root coerente il percorso Staff conserva le guardie esistenti. In caso di mancata composizione fermare solo il rilascio dipendente e completare il delta dalla baseline viva; niente rollback di corpi arretrati, reset, nuovo provider o avvio della quinta.

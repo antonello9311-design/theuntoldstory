@@ -48,6 +48,12 @@ La chiusura amministrativa ha evidenziato un’altra confusione: le Count con co
 
 Nessun minimo obbligatorio di battute, paragrafi o dettagli; nessun nuovo filtro lessicale che blocchi il turno. Le nuove istruzioni e fonti sono attive per i prossimi avvii; i sei Fati C restano integralmente immutati. La coerenza dei prompt è verificata staticamente, la quarta ne ha verificato il percorso pacifico, con i limiti editoriali del refertoD.
 
+## Correzioni installate dopo la quarta · Editorial60
+
+C1266 Editorial60 · 29/10/2026: istruzioni generali response5/direction5 e contesto apertura/continuazione installati, Edge120; schedeV6 approvate e revisione6 salvata tramite accessi normali, rilettura integrale esatta. Root56308f4d3b817e8fc5a2c64da794c93595ba6592e59f2ed6cfee14d17e80dd70/semantic99a1b113e73888346f8e31ceb96ea63fd988d7e4f1ed0a5fec222b03152c0181. UI1 invariata;226header DB preservati,0nuove funzioni/validatori/vincoli. Apertura coerente col primo incontro; custodia narrativa di foglio e monete esplicita e persistente; ambiente utilizzabile e continuo, senza coda o gesto ripetuto obbligatorio; conclusioni osservabili. Review13 e materiale0/0/0.31FatiABCD e8SHA256+conteggio identici;0Staffaperte,0chiamateIA,0nuovi Fati, quinta NON AVVIATA. Totale prudente invariato127HTTP/1,04496530USD su4, riserve unknown conservate. Small invariato. Qualità futura NOT_RUN; nessuna apertura pubblica.
+
+L’apertura usa il contesto già disponibile per distinguere un primo incontro da una continuazione, senza interrogazioni aggiuntive. La memoria conserva lo stato degli oggetti narrativi e i loro passaggi di mano; non conoscere il mandante non impedisce di conoscere i propri oggetti e gesti. Fasi e schede esplicitano lo stato iniziale, senza riscrivere le scene già giocate. L’ambiente offre attività che proseguono, materiali, distanze e spazi che incidono sulle possibilità dei presenti, evitando un fondale ripetuto. Queste sono istruzioni generali: nessun numero obbligatorio di dettagli o battute, nessun controllo bloccante aggiunto.
+
 ## Quarta prova: criterio di verifica
 
 Eseguita: il primo avvio fallito42702 è conservato. Dopo SQL59, una sola scenaD ha prodotto4Fati da6role accettate, senza retry, rigenerazioni o patch durante il gioco. Terminale e chiusura normale verificati. Il risultato vale per la rotta pacifica osservata, non per ogni possibile percorso.
