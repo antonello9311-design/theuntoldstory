@@ -251,7 +251,7 @@ Le seguenti righe conservano la fotografia precedente: **non descrivono il datab
 
 HUMAN-LAND-INTEGRATION: recovery e CFG5 GREEN source non installate; media RED0/1/0 HUMAN-MEDIA-F1 (riserva runtime Staff assente). Budget14/10 terminato; campagna nuova NOT_STARTED. Correggere media, ricomporre/review, preflight e installazione prima di upload/approve/recovery e nuova prova Fato/Combat/seconda puntata; stessa bozza/key e conteggi conservati.
 
-C1266: Editorial57 installata, schedeV5 e revisione5 selezionate per i futuri avvii;27FatiABC conservati. Quarta non avviata: attendere mandato per il nuovo collaudo su versione congelata. Nessun avvio, retry o riapertura del vecchio backlog da questo aggiornamento.
+C1266: quarta congelata autorizzata e tentata, avvio ROSSO42702 prima del provider; richiesta risolta rejected_no_commit e nessuna sessione aperta. Prossimo passo: delta minimo per l’alias step in scene_initialize_v1, review e nuova verifica dell’avvio. Prompt/fasi/schede Editorial57 e27FatiABC conservati; qualità NOT_RUN.
 
 Completare delta C11 Quest pubblica e grantSensei coerente nello scope completo; acquisire source/QA solo dopoREADY e comporre UNA identitàDB/Edge/client/CFG/recovery/R/trasporto, poi reviewindipendente pertinente. ConservareCounter1–10 e proseguire cicli giàautorizzati fino soluzione; nessunask/reset o consumerlimit. SourceOpsC10 èproposta135calls/60min nonavviata, da riallineare alla candidata finale e budgetROOT prima esecuzione. Dopo gateverdi ebaselinefresh: installazione riservataStaff, presenzaUI normale,13case/fullconsumer protetti e rilascio perimetroeffettivamentevalidato. Q2accessi4PG/fee/A0 mancanti restanoOPEN, nessunQA/inuso implicito.
 

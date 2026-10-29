@@ -257,7 +257,7 @@ Antonello ha concluso la role e confermato Riuji connesso in Chrome: Riuji e tes
 
 ## Lavori aperti — in ordine
 
-C1266: Editorial57 installata, schedeV5 e revisione5 selezionate per i futuri avvii;27FatiABC conservati. Quarta non avviata: attendere mandato per il nuovo collaudo su versione congelata. Nessun avvio, retry o riapertura del vecchio backlog da questo aggiornamento.
+C1266: quarta congelata autorizzata e tentata, avvio ROSSO42702 prima del provider; richiesta risolta rejected_no_commit e nessuna sessione aperta. Prossimo passo: delta minimo per l’alias step in scene_initialize_v1, review e nuova verifica dell’avvio. Prompt/fasi/schede Editorial57 e27FatiABC conservati; qualità NOT_RUN.
 2. Dieci revisioni PNG senza vincoli di brevità: COMPOSITION_PENDING, non live; integrare versioni/media/binding e consumer, poi review pertinente. Fonte candidato/mission_factory_unified/NPC_NO_BREVITY_NATIVE_HANDOFF.md.
 3. Source74/Editor generale separati dal Human concluso; nessun PASS editoriale certifica integrazione o apertura.
 
@@ -310,6 +310,6 @@ Sharingan: ratifica esplicita Antonello ricevuta — osservazione automatica nel
 
 ## Prossimo passo
 
-C1266: Editorial57 installata, schedeV5 e revisione5 selezionate per i futuri avvii;27FatiABC conservati. Quarta non avviata: attendere mandato per il nuovo collaudo su versione congelata. Nessun avvio, retry o riapertura del vecchio backlog da questo aggiornamento.
+C1266: quarta congelata autorizzata e tentata, avvio ROSSO42702 prima del provider; richiesta risolta rejected_no_commit e nessuna sessione aperta. Prossimo passo: delta minimo per l’alias step in scene_initialize_v1, review e nuova verifica dell’avvio. Prompt/fasi/schede Editorial57 e27FatiABC conservati; qualità NOT_RUN.
 
 La qualità narrativa si valuta sui casi completi realmente osservati. Note Centro e revisioni PNG sono delta editoriali separati, senza nuovi giudici stilistici o rigenerazioni esplorative. I casi Master Katon rimasti vanno nella Staff unica; Human concluso, Source74 e nuove missioni mantengono perimetri distinti.
