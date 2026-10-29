@@ -1,8 +1,8 @@
 # Review comparata A/B/C della Regia IA
 
-29/10/2026 · La terza scena ha pubblicato il Fato conclusivo C5 alle 18:17:53 UTC. Chiusura amministrativa Staff confermata dal comando ordinario, con ricevuta server conservata. Nessuna quarta prova avviata. I Fati pubblicati non sono stati riscritti.
+29/10/2026 · La terza scena ha pubblicato il Fato conclusivo C5 alle 18:17:53 UTC. Chiusura amministrativa Staff confermata dal comando ordinario, con ricevuta server conservata. Quarta tentata successivamente: avvio bloccato da42702 prima di creare sessione. I Fati pubblicati non sono stati riscritti.
 
-Editorial57 installata dopo la review: istruzioni composte coerenti, schedeV5 e revisione5 selezionate per i prossimi avvii, pannello aggiornato. Nessun nuovo Fato generato: la qualità della nuova versione resta da verificare nella quarta, non avviata.
+Editorial57 installata dopo la review: istruzioni composte coerenti, schedeV5 e revisione5 selezionate per i prossimi avvii, pannello aggiornato. Nessun nuovo Fato generato: la quarta ha fallito l’avvio per42702 e non ha generato Fati; la qualità dei nuovi testi resta NOT_RUN. [Referto quarta](C1266_FOURTH58_REPORT.md).
 
 ## Evidenze e limiti del confronto
 
