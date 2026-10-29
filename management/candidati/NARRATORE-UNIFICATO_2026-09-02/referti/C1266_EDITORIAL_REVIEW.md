@@ -2,6 +2,10 @@
 
 29/10/2026 · Correzioni installate nella Regia Staff; terza prova non avviata. Resa narrativa non ancora collaudata.
 
+## Terza prova: preparata, non avviata
+
+Il29/10 è stato installato il collegamento esatto alla revisione4 e alle schedeV4, con Edge117 invariata. Il selettore normale Staff mostra soltantoRiuji: manca la sessione diTamako. Non è stata creata C, non ci sono suoi Fati o nuovi consumi. Il confronto A/B resta valido; non si attribuiscono alla terza miglioramenti ancora non osservati. La stessa campagna conserva97HTTP e0.8007126USDdei4autorizzati. PianoC:40Count+40Generation,2MtokenGeneration,90minuti dall’avvio effettivo inclusa chiusura, riserva0.0496USDprima di ciascuna catena narrativa standard e stop davanti a lavori incerti. Counttoken separati, nessuna falsa attestazione della loro usage. La review misurerà riprese letterali/parafrasiPG, risposte, iniziative, ambiente e avanzamento sui testi pubblicati, senza rigenerarli per migliorarli.
+
 ## Evidenze delle due prove
 
 Prima prova:12Fati, brusio in11/12 e mascella in8/12. Nel Fato di uscita86be3b8e tre battute PG606/1276caratteri (47,5%), oltre a gesti ripresi; esempio di copia già presente nella review conservata. Seconda:9Fati, brusio in9/9 e mascella in2/9; nessuna battuta PG completa copiata nelle8risposte, ma il finale af92e1cf ripete semanticamente il resoconto dei PG. B4acfa083c sviluppa pagamento e circostanze della consegna; B5/B6 reiterano disponibilità a riferire, B7 riconosce il congedo ma ripete la posizione di Daichi. Il finale sostituisce reazioni osservabili con un riepilogo e attribuisce un quadro condiviso ai curiosi. Il confronto è esplorativo: approcci differenti e correzione del consumer delle fasi durante B.
