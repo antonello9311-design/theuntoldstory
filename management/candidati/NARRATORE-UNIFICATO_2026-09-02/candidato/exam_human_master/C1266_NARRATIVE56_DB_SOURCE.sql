@@ -1,7 +1,5 @@
--- Complete source composition, not an authorization to apply or open publicly.
--- Code/tables only; C4 administrative data seed and QA/provider activation are separate.
 BEGIN;
-DO $preflight56$
+DO $$
 BEGIN
  IF (SELECT revision_sha256 FROM mission_factory_owner.editor_release_readiness WHERE singleton) IS DISTINCT FROM
   'a9e35776c3c35cfbbab884e5b5cd01355370bbf8c716e7faf2af79ac85adb8b7' THEN RAISE EXCEPTION 'N56_ROOT_BASELINE_DRIFT';END IF;
@@ -27,76 +25,14 @@ BEGIN
  IF (SELECT md5(prosrc) FROM pg_proc WHERE oid=to_regprocedure('public.mission_generic_staff_finish_v1(uuid,uuid,text,uuid,uuid)')) IS DISTINCT FROM '35c8a9509c2ab85d9180461b791da6f0' THEN RAISE EXCEPTION 'N56_SOURCE_DRIFT: public.mission_generic_staff_finish_v1(uuid,uuid,text,uuid,uuid)';END IF;
  IF (SELECT md5(prosrc) FROM pg_proc WHERE oid=to_regprocedure('mission_generic_owner.finish_scope(uuid,uuid,text)')) IS DISTINCT FROM 'd1504d8571091ab195d849d7603aded6' THEN RAISE EXCEPTION 'N56_SOURCE_DRIFT: mission_generic_owner.finish_scope(uuid,uuid,text)';END IF;
  IF (SELECT md5(prosrc) FROM pg_proc WHERE oid=to_regprocedure('mission_generic_owner.combat_publish(uuid,text,uuid)')) IS DISTINCT FROM '7c81e1badee7486352ea879b2086ac06' THEN RAISE EXCEPTION 'N56_SOURCE_DRIFT: mission_generic_owner.combat_publish(uuid,text,uuid)';END IF;
-END $preflight56$;
--- Source candidate only: no application, activation or provider window.
--- Existing Native work/receipt/provider/quota tables remain the single payment/publication journal.
-CREATE TABLE mission_narrative_internal.scene_runtime_v1 (
- id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
- master_session_id uuid NOT NULL UNIQUE REFERENCES public.master_v2_sessions(id),
- is_active boolean NOT NULL DEFAULT true,
- snapshot jsonb NOT NULL CHECK(jsonb_typeof(snapshot)='object'),
- snapshot_sha256 text NOT NULL CHECK(snapshot_sha256~'^[a-f0-9]{64}$'),
- state_version bigint NOT NULL DEFAULT 0 CHECK(state_version>=0),
- current_phase_key text NOT NULL,
- mode text NOT NULL DEFAULT 'narrative' CHECK(mode IN('narrative','combat_pending','combat','closed')),
- arena_by_phase jsonb NOT NULL DEFAULT '{}'::jsonb CHECK(jsonb_typeof(arena_by_phase)='object'),
- arena_receipt jsonb,
- arena_phase_key text,
- arena_receipt_sha256 text CHECK(arena_receipt_sha256~'^[a-f0-9]{64}$'),
- encounter_key text,
- turn_owner text NOT NULL DEFAULT 'players' CHECK(turn_owner IN('players','fato','combat','closed')),
- scene_memory jsonb CHECK(scene_memory IS NULL OR jsonb_typeof(scene_memory)='object'),
- last_publication_id uuid REFERENCES public.messages(id) ON DELETE SET NULL,
- last_publication_sha256 text CHECK(last_publication_sha256~'^[a-f0-9]{64}$'),
- last_fati jsonb NOT NULL DEFAULT '[]'::jsonb CHECK(jsonb_typeof(last_fati)='array'),
- origin_failed_director_id uuid REFERENCES mission_generic_owner.work_items(id),
- created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
- updated_at timestamptz NOT NULL DEFAULT clock_timestamp()
-);
-CREATE TABLE mission_narrative_internal.scene_sources_v1 (
- id uuid PRIMARY KEY,
- scene_id uuid NOT NULL REFERENCES mission_narrative_internal.scene_runtime_v1(id),
- request_kind text NOT NULL DEFAULT 'narration' CHECK(request_kind IN('narration','initial_opening','combat_entry')),
- board_start_receipt_id uuid REFERENCES mission_generic_owner.board_starts(id),
- work_id uuid UNIQUE REFERENCES mission_generic_owner.work_items(id) DEFERRABLE INITIALLY DEFERRED,
- actor_user_id uuid NOT NULL REFERENCES public.profiles(id),
- state_version bigint NOT NULL CHECK(state_version>=0),
- source_revision text NOT NULL CHECK(source_revision~'^[a-f0-9]{64}$'),
- snapshot_sha256 text NOT NULL CHECK(snapshot_sha256~'^[a-f0-9]{64}$'),
- accepted_role_ids uuid[] NOT NULL,
- accepted_roles_sha256 text NOT NULL CHECK(accepted_roles_sha256~'^[a-f0-9]{64}$'),
- last_publication_id uuid,
- last_publication_sha256 text CHECK(last_publication_sha256~'^[a-f0-9]{64}$'),
- current_phase_key text NOT NULL,
- scene_memory_sha256 text NOT NULL CHECK(scene_memory_sha256~'^[a-f0-9]{64}$'),
- payload_sha256 text NOT NULL CHECK(payload_sha256~'^[a-f0-9]{64}$'),
- published_message_id uuid,
- publication_next_step text,
- technical_request jsonb,
- technical_receipt jsonb,
- message_permit_id uuid,
- message_permit_sha256 text CHECK(message_permit_sha256~'^[a-f0-9]{64}$'),
- message_permit_txid bigint,
- message_permit_backend integer,
- CHECK((request_kind='narration' AND work_id IS NOT NULL AND cardinality(accepted_role_ids)>0 AND technical_request IS NULL AND board_start_receipt_id IS NULL)
-  OR(request_kind='initial_opening' AND work_id IS NOT NULL AND cardinality(accepted_role_ids)=0 AND technical_request IS NULL AND board_start_receipt_id IS NOT NULL)
-  OR(request_kind='combat_entry' AND work_id IS NULL AND cardinality(accepted_role_ids)=0 AND jsonb_typeof(technical_request)='object')),
- retired_at timestamptz,
- retired_reason text,
- created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
- UNIQUE(scene_id,state_version,source_revision)
-);
-CREATE UNIQUE INDEX scene56_one_pending_source ON mission_narrative_internal.scene_sources_v1(scene_id)
- WHERE published_message_id IS NULL AND technical_receipt IS NULL AND retired_at IS NULL;
-ALTER TABLE mission_narrative_internal.scene_runtime_v1 ENABLE ROW LEVEL SECURITY;
-ALTER TABLE mission_narrative_internal.scene_sources_v1 ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON mission_narrative_internal.scene_runtime_v1,mission_narrative_internal.scene_sources_v1 FROM PUBLIC,anon,authenticated,service_role;
--- Access is through reviewed SECURITY DEFINER ports only. No direct privateplot/profilecache grants.;
-
--- N56 source fragment. NOT an installer: composition ports/initializer still required.
--- No activation, no provider dispatch, no new ledger, no game-rule query.
-CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_source_assert_v1(p_work uuid)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $scene56$
+END $$;
+CREATE TABLE mission_narrative_internal.scene_runtime_v1 (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), master_session_id uuid NOT NULL UNIQUE REFERENCES public.master_v2_sessions (id), is_active boolean NOT NULL DEFAULT TRUE, snapshot jsonb NOT NULL CHECK (jsonb_typeof(snapshot) = 'object'), snapshot_sha256 text NOT NULL CHECK (snapshot_sha256 ~ '^[a-f0-9]{64}$'), state_version bigint NOT NULL DEFAULT 0 CHECK (state_version >= 0), current_phase_key text NOT NULL, mode text NOT NULL DEFAULT 'narrative' CHECK (mode IN ('narrative', 'combat_pending', 'combat', 'closed')), arena_by_phase jsonb NOT NULL DEFAULT CAST('{}' AS jsonb) CHECK (jsonb_typeof(arena_by_phase) = 'object'), arena_receipt jsonb, arena_phase_key text, arena_receipt_sha256 text CHECK (arena_receipt_sha256 ~ '^[a-f0-9]{64}$'), encounter_key text, turn_owner text NOT NULL DEFAULT 'players' CHECK (turn_owner IN ('players', 'fato', 'combat', 'closed')), scene_memory jsonb CHECK (scene_memory IS NULL OR jsonb_typeof(scene_memory) = 'object'), last_publication_id uuid REFERENCES public.messages (id) ON DELETE SET NULL, last_publication_sha256 text CHECK (last_publication_sha256 ~ '^[a-f0-9]{64}$'), last_fati jsonb NOT NULL DEFAULT CAST('[]' AS jsonb) CHECK (jsonb_typeof(last_fati) = 'array'), origin_failed_director_id uuid REFERENCES mission_generic_owner.work_items (id), created_at timestamptz NOT NULL DEFAULT clock_timestamp(), updated_at timestamptz NOT NULL DEFAULT clock_timestamp());
+CREATE TABLE mission_narrative_internal.scene_sources_v1 (id uuid PRIMARY KEY, scene_id uuid NOT NULL REFERENCES mission_narrative_internal.scene_runtime_v1 (id), request_kind text NOT NULL DEFAULT 'narration' CHECK (request_kind IN ('narration', 'initial_opening', 'combat_entry')), board_start_receipt_id uuid REFERENCES mission_generic_owner.board_starts (id), work_id uuid UNIQUE REFERENCES mission_generic_owner.work_items (id) DEFERRABLE INITIALLY DEFERRED, actor_user_id uuid NOT NULL REFERENCES public.profiles (id), state_version bigint NOT NULL CHECK (state_version >= 0), source_revision text NOT NULL CHECK (source_revision ~ '^[a-f0-9]{64}$'), snapshot_sha256 text NOT NULL CHECK (snapshot_sha256 ~ '^[a-f0-9]{64}$'), accepted_role_ids uuid[] NOT NULL, accepted_roles_sha256 text NOT NULL CHECK (accepted_roles_sha256 ~ '^[a-f0-9]{64}$'), last_publication_id uuid, last_publication_sha256 text CHECK (last_publication_sha256 ~ '^[a-f0-9]{64}$'), current_phase_key text NOT NULL, scene_memory_sha256 text NOT NULL CHECK (scene_memory_sha256 ~ '^[a-f0-9]{64}$'), payload_sha256 text NOT NULL CHECK (payload_sha256 ~ '^[a-f0-9]{64}$'), published_message_id uuid, publication_next_step text, technical_request jsonb, technical_receipt jsonb, message_permit_id uuid, message_permit_sha256 text CHECK (message_permit_sha256 ~ '^[a-f0-9]{64}$'), message_permit_txid bigint, message_permit_backend integer, CHECK ((request_kind = 'narration' AND work_id IS NOT NULL AND cardinality(accepted_role_ids) > 0 AND technical_request IS NULL AND board_start_receipt_id IS NULL) OR (request_kind = 'initial_opening' AND work_id IS NOT NULL AND cardinality(accepted_role_ids) = 0 AND technical_request IS NULL AND board_start_receipt_id IS NOT NULL) OR (request_kind = 'combat_entry' AND work_id IS NULL AND cardinality(accepted_role_ids) = 0 AND jsonb_typeof(technical_request) = 'object')), retired_at timestamptz, retired_reason text, created_at timestamptz NOT NULL DEFAULT clock_timestamp(), UNIQUE (scene_id, state_version, source_revision));
+CREATE UNIQUE INDEX scene56_one_pending_source ON mission_narrative_internal.scene_sources_v1 (scene_id) WHERE published_message_id IS NULL AND technical_receipt IS NULL AND retired_at IS NULL;
+ALTER TABLE mission_narrative_internal.scene_runtime_v1 ENABLE ROW LEVEL SECURITY ;
+ALTER TABLE mission_narrative_internal.scene_sources_v1 ENABLE ROW LEVEL SECURITY ;
+REVOKE ALL PRIVILEGES ON TABLE mission_narrative_internal.scene_runtime_v1, mission_narrative_internal.scene_sources_v1 FROM PUBLIC, anon, authenticated, service_role;
+CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_source_assert_v1(p_work uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE w mission_generic_owner.work_items; s mission_narrative_internal.scene_sources_v1;
  r mission_narrative_internal.scene_runtime_v1; role_body jsonb; src jsonb;
 BEGIN
@@ -149,12 +85,10 @@ BEGIN
   'last_publication_id',s.last_publication_id,'last_publication_sha256',s.last_publication_sha256,
   'current_phase_key',s.current_phase_key,'scene_memory_sha256',s.scene_memory_sha256);
  RETURN src;
-END $scene56$;
-REVOKE ALL ON FUNCTION mission_narrative_internal.scene_source_assert_v1(uuid) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION mission_narrative_internal.scene_source_assert_v1(uuid) TO service_role;
-
-CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_prepare_v1(p_session uuid,p_user uuid,p_request uuid)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $scene56$
+END $$;
+REVOKE ALL PRIVILEGES ON FUNCTION mission_narrative_internal.scene_source_assert_v1 (uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mission_narrative_internal.scene_source_assert_v1 (uuid) TO service_role;
+CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_prepare_v1(p_session uuid, p_user uuid, p_request uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE r mission_narrative_internal.scene_runtime_v1; s mission_narrative_internal.scene_sources_v1;
  m public.master_v2_sessions; run public.mission_run_state; b mission_generic_owner.run_bindings;
  cursor_row mission_generic_owner.role_window_cursors; ids uuid[]; roles jsonb; payload jsonb;
@@ -230,13 +164,10 @@ BEGIN
  UPDATE mission_narrative_internal.scene_runtime_v1 SET turn_owner='fato',updated_at=clock_timestamp() WHERE id=r.id;
  PERFORM mission_narrative_internal.scene_source_assert_v1(wid);
  RETURN jsonb_build_object('work_id',wid,'state','narration_ready','replayed',false);
-END $scene56$;
-REVOKE ALL ON FUNCTION mission_narrative_internal.scene_prepare_v1(uuid,uuid,uuid) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION mission_narrative_internal.scene_prepare_v1(uuid,uuid,uuid) TO service_role;
-
--- Technical same-transaction message authority, no game engine or client grant.
-CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_message_permitted_v1(p_message public.messages)
-RETURNS boolean LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $scene56$
+END $$;
+REVOKE ALL PRIVILEGES ON FUNCTION mission_narrative_internal.scene_prepare_v1 (uuid, uuid, uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mission_narrative_internal.scene_prepare_v1 (uuid, uuid, uuid) TO service_role;
+CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_message_permitted_v1(p_message public.messages) RETURNS boolean LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE sid uuid;nonce text:=current_setting('app.mission_role_command_v2',true);
 BEGIN
  IF p_message.recipient_user IS NOT NULL THEN RETURN false;END IF;
@@ -274,14 +205,9 @@ BEGIN
     AND ms.owner_kind='ai_service' AND ms.closed_at IS NULL);
  END IF;
  RETURN false;
-END $scene56$;
-REVOKE ALL ON FUNCTION mission_narrative_internal.scene_message_permitted_v1(public.messages) FROM PUBLIC,anon,authenticated,service_role;
--- Trigger owners invoke this internal helper; no client/service direct capability is introduced.;
-
--- General frozen Creation source adapter. No selected mission/actor names or session IDs.
--- Source-only: unsupported source families are not silently routed through legacy narrative rules.
-CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_initialize_v1(p_session uuid,p_actor uuid)
-RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $scene56$
+END $$;
+REVOKE ALL PRIVILEGES ON FUNCTION mission_narrative_internal.scene_message_permitted_v1 (public.messages) FROM PUBLIC, anon, authenticated, service_role;
+CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_initialize_v1(p_session uuid, p_actor uuid) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE m public.master_v2_sessions;run public.mission_run_state;b mission_generic_owner.run_bindings;
  r mission_narrative_internal.scene_runtime_v1;root mission_factory_owner.editor_release_readiness;
  c jsonb;doc jsonb;ed jsonb;step jsonb;phase jsonb;scene jsonb;item jsonb;setting jsonb;
@@ -394,12 +320,9 @@ BEGIN
   CASE WHEN receipt->>'status'='ready' THEN public.combat_v2_sha256(receipt) ELSE NULL END,
   CASE WHEN receipt->>'status'='ready' THEN arena_map#>>ARRAY[run.current_step_key,'encounter_key'] ELSE NULL END);
  RETURN sid;
-END $scene56$;
-REVOKE ALL ON FUNCTION mission_narrative_internal.scene_initialize_v1(uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
--- Called only by reviewed existing start/event owners; no direct client capability.
-
-CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_initial_opening_v1(p_session uuid,p_start uuid,p_actor uuid)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $scene56$
+END $$;
+REVOKE ALL PRIVILEGES ON FUNCTION mission_narrative_internal.scene_initialize_v1 (uuid, uuid) FROM PUBLIC, anon, authenticated, service_role;
+CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_initial_opening_v1(p_session uuid, p_start uuid, p_actor uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE r mission_narrative_internal.scene_runtime_v1;s mission_generic_owner.board_starts;
  run public.mission_run_state;b mission_generic_owner.run_bindings;w mission_generic_owner.work_items;
  sid uuid;sw uuid;wid uuid;rev text;payload jsonb;
@@ -429,12 +352,9 @@ BEGIN
   'narration',run.control_version,payload,public.combat_v2_sha256(payload)) RETURNING * INTO w;
  UPDATE mission_narrative_internal.scene_runtime_v1 SET turn_owner='fato',updated_at=clock_timestamp() WHERE id=sid;
  RETURN mission_generic_owner.work_status(w);
-END $scene56$;
-REVOKE ALL ON FUNCTION mission_narrative_internal.scene_initial_opening_v1(uuid,uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
-
--- Source only. Calls the shared reviewed service Combat opener at that boundary alone.
-CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_publish_v1(p_work uuid,p_result jsonb)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $scene56$
+END $$;
+REVOKE ALL PRIVILEGES ON FUNCTION mission_narrative_internal.scene_initial_opening_v1 (uuid, uuid, uuid) FROM PUBLIC, anon, authenticated, service_role;
+CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_publish_v1(p_work uuid, p_result jsonb) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE w mission_generic_owner.work_items;s mission_narrative_internal.scene_sources_v1;
  r mission_narrative_internal.scene_runtime_v1;m public.master_v2_sessions;run public.mission_run_state;
  bs mission_generic_owner.board_starts;ev public.mission_run_events;ob public.mission_run_outbox;
@@ -538,13 +458,10 @@ BEGIN
  END IF;
  IF s.request_kind<>'initial_opening' THEN PERFORM mission_generic_owner.role_window_advance_v1(w.master_session_id,mid);END IF;
  RETURN jsonb_build_object('message_id',mid,'replayed',false,'next_step',step,'combat_open',opened);
-END $scene56$;
-REVOKE ALL ON FUNCTION mission_narrative_internal.scene_publish_v1(uuid,jsonb) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION mission_narrative_internal.scene_publish_v1(uuid,jsonb) TO service_role;
-
--- Actual Combat only. Imports the existing Native publication, never reruns mechanics.
-CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_combat_publication_sync_v1(p_work uuid,p_message uuid,p_publication jsonb)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $scene56$
+END $$;
+REVOKE ALL PRIVILEGES ON FUNCTION mission_narrative_internal.scene_publish_v1 (uuid, jsonb) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mission_narrative_internal.scene_publish_v1 (uuid, jsonb) TO service_role;
+CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_combat_publication_sync_v1(p_work uuid, p_message uuid, p_publication jsonb) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE w mission_generic_owner.work_items;r mission_narrative_internal.scene_runtime_v1;run public.mission_run_state;
  msg public.messages;history jsonb;memory jsonb;leaving boolean;
 BEGIN
@@ -582,13 +499,10 @@ BEGIN
   arena_receipt_sha256=CASE WHEN leaving THEN arena_by_phase#>>ARRAY[run.current_step_key,'receipt_sha256'] ELSE arena_receipt_sha256 END,
   encounter_key=CASE WHEN leaving THEN arena_by_phase#>>ARRAY[run.current_step_key,'encounter_key'] ELSE encounter_key END
  WHERE id=r.id;
-END $scene56$;
-REVOKE ALL ON FUNCTION mission_narrative_internal.scene_combat_publication_sync_v1(uuid,uuid,jsonb) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION mission_narrative_internal.scene_combat_publication_sync_v1(uuid,uuid,jsonb) TO service_role;
-
--- Technical close proof: paid failures remain failures, with their original cost/raw/audit.
-CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_finish_proof_v1(p_session uuid,p_user uuid)
-RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $scene56$
+END $$;
+REVOKE ALL PRIVILEGES ON FUNCTION mission_narrative_internal.scene_combat_publication_sync_v1 (uuid, uuid, jsonb) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mission_narrative_internal.scene_combat_publication_sync_v1 (uuid, uuid, jsonb) TO service_role;
+CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_finish_proof_v1(p_session uuid, p_user uuid) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE r mission_narrative_internal.scene_runtime_v1;s mission_narrative_internal.scene_sources_v1;
  w mission_generic_owner.work_items;m public.master_v2_sessions;run public.mission_run_state;
  items jsonb;rev text;k uuid;reason text:='scope_closed';
@@ -609,7 +523,20 @@ BEGIN
  ELSIF EXISTS(SELECT 1 FROM mission_generic_owner.work_items x WHERE x.master_session_id=m.id AND x.state NOT IN('completed','failed'))
   OR EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_attempts attempt JOIN mission_generic_owner.work_items x ON x.dispatch_receipt_id=attempt.receipt_id
    WHERE x.master_session_id=m.id AND attempt.status IN('reserved','authorized','provider_started','unknown_billable'))
-  OR EXISTS(SELECT 1 FROM staff_ai_quota_private.calls call WHERE call.scope_id=m.id AND call.state IN('reserved','sent','unknown_billable'))
+  OR EXISTS(SELECT 1 FROM staff_ai_quota_private.calls call WHERE call.scope_id=m.id AND call.state IN('reserved','sent','unknown_billable')
+   AND NOT (call.producer='mission_generic_ai' AND call.call_no=2 AND call.state='unknown_billable'
+    AND call.sent_at IS NOT NULL AND call.reserved_usd>0 AND call.charged_usd IS NULL
+    AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_receipts counted_dr
+     JOIN mission_generic_owner.work_items counted_work ON counted_work.dispatch_receipt_id=counted_dr.id AND counted_work.master_session_id=call.scope_id
+     JOIN staff_ai_quota_private.calls counted_gen ON counted_gen.producer=call.producer AND counted_gen.source_id=call.source_id AND counted_gen.scope_id=call.scope_id AND counted_gen.call_no=1
+     JOIN mission_narrative_internal.dispatch_audit counted_audit ON counted_audit.receipt_id=counted_dr.id AND counted_audit.event_code='c8_count_success'
+     WHERE counted_dr.id=call.source_id AND counted_dr.master_session_id=call.scope_id AND counted_dr.status='success'
+      AND counted_dr.dispatch_count=1 AND counted_dr.finalized_at IS NOT NULL
+      AND counted_work.state IN('completed','failed') AND counted_work.finalized_at IS NOT NULL
+      AND counted_gen.state='settled' AND counted_gen.settled_at IS NOT NULL AND counted_gen.charged_usd=counted_dr.charged_cost_usd
+      AND counted_audit.details->>'work_id'=counted_work.id::text AND counted_audit.details->>'state'='success'
+      AND counted_audit.details->'generation_allowed'='true'::jsonb AND counted_audit.details->>'count_http_calls'='1'
+      AND counted_audit.details->>'generation_http_calls'='0')))
   OR EXISTS(SELECT 1 FROM public.mission_run_outbox WHERE master_session_id=m.id AND state IN('pending','human_directed'))
   OR EXISTS(SELECT 1 FROM mission_narrative_internal.scene_sources_v1 WHERE scene_id=r.id AND published_message_id IS NULL AND technical_receipt IS NULL AND retired_at IS NULL)
  THEN reason:='work_pending';
@@ -630,10 +557,26 @@ BEGIN
     OR (coalesce(x.result->>'provider_calls','0')='1' AND NOT EXISTS(
      SELECT 1 FROM mission_narrative_internal.dispatch_receipts receipt
      JOIN mission_narrative_internal.dispatch_attempts attempt ON attempt.receipt_id=receipt.id
-     JOIN mission_narrative_internal.provider_outputs_v1 output ON output.work_id=x.id
-     WHERE receipt.id=x.dispatch_receipt_id AND receipt.status='success' AND receipt.finalized_at IS NOT NULL
+     WHERE receipt.id=x.dispatch_receipt_id AND receipt.master_session_id=m.id AND receipt.status='success' AND receipt.finalized_at IS NOT NULL
       AND attempt.status='success' AND attempt.cost_basis='exact' AND attempt.finalized_at IS NOT NULL
-      AND output.raw_sha256=x.result->>'raw_sha256'))))
+      AND (EXISTS(SELECT 1 FROM mission_narrative_internal.provider_outputs_v1 output
+        WHERE output.work_id=x.id AND output.dispatch_receipt_id=receipt.id AND output.raw_sha256=x.result->>'raw_sha256')
+       OR (x.kind='narration' AND x.state='completed' AND x.step_key='inizio' AND x.dedupe_key='opening:'||x.event_id::text
+        AND x.result->>'schema_version'='mission-generic-result/1' AND x.result->>'provider_status'='completed'
+        AND x.result->'outcome_uncertain'='false'::jsonb AND x.result->>'raw_sha256'~'^[a-f0-9]{64}$'
+        AND x.payload_sha256=public.combat_v2_sha256(x.payload)
+        AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_audit opening_audit
+         JOIN public.messages opening_msg ON opening_msg.id=x.message_id AND opening_msg.location_id=m.location_id
+          AND opening_msg.kind='fato' AND opening_msg.recipient_user IS NULL AND opening_msg.body=x.result->>'text'
+         JOIN staff_ai_quota_private.calls opening_gen ON opening_gen.producer='mission_generic_ai' AND opening_gen.source_id=receipt.id
+          AND opening_gen.scope_id=m.id AND opening_gen.call_no=1 AND opening_gen.state='settled'
+          AND opening_gen.settled_at IS NOT NULL AND opening_gen.charged_usd=receipt.charged_cost_usd
+         WHERE opening_audit.receipt_id=receipt.id AND opening_audit.event_code='generic_finalized'
+          AND opening_audit.details->>'work_id'=x.id::text AND opening_audit.details->>'receipt_id'=x.receipt_id::text
+          AND opening_audit.details->>'message_id'=x.message_id::text AND opening_audit.details->>'state'='completed'
+          AND opening_audit.details->'stale'='false'::jsonb AND opening_audit.details->'outcome_uncertain'='false'::jsonb
+          AND opening_audit.details->>'cost_basis'='exact' AND opening_audit.details->>'result_sha256'=x.result_sha256
+          AND opening_audit.details->>'result_jsonb_sha256'=public.combat_v2_sha256(x.result))))))))
   THEN reason:='history_unreconciled';
   ELSE
    SELECT coalesce(jsonb_agg(jsonb_build_object('work_id',x.id,'kind',x.kind,'state',x.state,'receipt_id',x.receipt_id,
@@ -650,15 +593,9 @@ BEGIN
  RETURN jsonb_build_object('schema_version','mission-narrative-scene-finish-proof/1','master_session_id',m.id,
   'can_finish',reason='ready','reason',reason,'source_revision',rev,'publication_id',r.last_publication_id,
   'request_key',k,'history_items',items);
-END $scene56$;
-REVOKE ALL ON FUNCTION mission_narrative_internal.scene_finish_proof_v1(uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
-
-CREATE OR REPLACE FUNCTION mission_generic_owner.combat_narrative_source(p_session uuid, p_event uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+END $$;
+REVOKE ALL PRIVILEGES ON FUNCTION mission_narrative_internal.scene_finish_proof_v1 (uuid, uuid) FROM PUBLIC, anon, authenticated, service_role;
+CREATE OR REPLACE FUNCTION mission_generic_owner.combat_narrative_source(p_session uuid, p_event uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 declare scene56_runtime mission_narrative_internal.scene_runtime_v1;scene56_npc jsonb;scene56_last public.messages;
  e mission_generic_owner.encounters%rowtype; b mission_generic_owner.run_bindings%rowtype;
  run public.mission_run_state%rowtype; s public.combat_v2_sessions%rowtype;
@@ -907,14 +844,8 @@ begin
  if jsonb_array_length(roleless)>0 then payload:=payload||jsonb_build_object('roleless_declarations',roleless);end if;
  return jsonb_build_object('master_session_id',p_session,'step_key',run.current_step_key,'run_control_version',run.control_version,
   'encounter_id',s.id,'authority_receipt_id',rep.id,'payload',payload);
-end $function$;
-
-CREATE OR REPLACE FUNCTION mission_generic_owner.combat_publish(p_work uuid, p_text text, p_request uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+end $$;
+CREATE OR REPLACE FUNCTION mission_generic_owner.combat_publish(p_work uuid, p_text text, p_request uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 declare w mission_generic_owner.work_items%rowtype; source jsonb; result jsonb;route56 jsonb;tr56 mission_generic_owner.trigger_receipts;ev56 public.mission_run_events;ob56 public.mission_run_outbox;pub56 uuid;sha56 text;
 begin
  if auth.uid() is not null or not public.combat_v2_is_service() then raise exception 'MG_SERVICE_REQUIRED' using errcode='42501';end if;
@@ -946,15 +877,8 @@ begin
   PERFORM set_config('app.mission_outbox_publish','off',true);
  END IF;
  return (result->'data')||CASE WHEN route56 IS NULL THEN '{}'::jsonb ELSE jsonb_build_object('transition',route56) END;
-end $function$;
-
-CREATE OR REPLACE FUNCTION public.mission_generic_dispatch_finalize_v1(p_work uuid, p_finalize_token text, p_result_text text, p_result_sha text)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
- SET statement_timeout TO '30s'
-AS $function$
+end $$;
+CREATE OR REPLACE FUNCTION public.mission_generic_dispatch_finalize_v1(p_work uuid, p_finalize_token text, p_result_text text, p_result_sha text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' SET statement_timeout TO '30s' AS $$
 declare w mission_generic_owner.work_items;d mission_narrative_internal.dispatch_receipts;z mission_narrative_internal.provider_authorizations;
  pol mission_narrative_internal.runtime_policy;a mission_narrative_internal.dispatch_attempts;
  ok boolean;stale boolean:=false;metrics jsonb;actual numeric;basis text;receipt uuid:=gen_random_uuid();msg uuid;cr jsonb;
@@ -1284,14 +1208,8 @@ end if;
   'application_error_code',application_error_code));
  return mission_generic_owner.work_status(w);
 end;
-$function$;
-
-CREATE OR REPLACE FUNCTION mission_public_owner.enqueue_combat_unified_v1(p_session uuid, p_report uuid, p_user uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+$$;
+CREATE OR REPLACE FUNCTION mission_public_owner.enqueue_combat_unified_v1(p_session uuid, p_report uuid, p_user uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE source jsonb;rep public.combat_v2_round_reports;rw mission_generic_owner.unified_round_windows;batch uuid;
 BEGIN
  PERFORM mission_ai_board_owner.service_only();
@@ -1325,14 +1243,8 @@ BEGIN
  -- Native preparation gathers all legal PNG commands and writes one /3 batch.
  -- The /4 narrative entry producer remains separate; no synthetic role is added.
  RETURN mission_generic_owner.unified_advance(p_session,p_user,mission_ai_service_owner.uuid5(batch,'roleless-native-progress'));
-END $function$;
-
-CREATE OR REPLACE FUNCTION mission_generic_owner.enqueue_opening(p_session uuid, p_start uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+END $$;
+CREATE OR REPLACE FUNCTION mission_generic_owner.enqueue_opening(p_session uuid, p_start uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 declare s mission_generic_owner.board_starts%rowtype;m public.master_v2_sessions%rowtype;r public.mission_run_state%rowtype;
  b mission_generic_owner.run_bindings%rowtype;e public.mission_run_events%rowtype;ob public.mission_run_outbox%rowtype;
  w mission_generic_owner.work_items%rowtype;obj text;ctx jsonb;payload jsonb;briefing text;title text;
@@ -1380,14 +1292,8 @@ begin
   payload,public.combat_v2_sha256(payload)) returning * into w;
  return mission_generic_owner.work_status(w);
 end;
-$function$;
-
-CREATE OR REPLACE FUNCTION mission_generic_owner.event_capture_v1()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+$$;
+CREATE OR REPLACE FUNCTION mission_generic_owner.event_capture_v1() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE src jsonb;oldsrc jsonb;tab text:=TG_TABLE_SCHEMA||'.'||TG_TABLE_NAME;
  sid uuid;loc uuid;source_id uuid;source_sha text;ai_domain text;ek uuid;ev bigint;cfg jsonb;
  hash_work mission_generic_owner.work_items;hash_old_work mission_generic_owner.work_items;rootrow mission_generic_owner.event_outbox_v1;request_id bigint;affected integer;
@@ -1701,15 +1607,8 @@ BEGIN
  END IF;
  IF affected=1 THEN NULL; /* Display hint deferred; no public slot lock in source/worker body. */END IF;
  RETURN NEW;
-END $function$;
-
-CREATE OR REPLACE FUNCTION public.mission_generic_event_next_v1(p_event_key uuid, p_event_version bigint, p_claim_id uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
- SET statement_timeout TO '20s'
-AS $function$
+END $$;
+CREATE OR REPLACE FUNCTION public.mission_generic_event_next_v1(p_event_key uuid, p_event_version bigint, p_claim_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' SET statement_timeout TO '20s' AS $$
 DECLARE scene56_entry_progress jsonb;scene56_runtime mission_narrative_internal.scene_runtime_v1;scene56_prepared jsonb;
  e mission_generic_owner.event_outbox_v1;cfg jsonb;progress jsonb;candidate jsonb;flow jsonb;writer46 jsonb;
  event43_observed_work uuid:=NULL;event43_observed_request jsonb:=NULL;
@@ -2059,14 +1958,8 @@ BEGIN
  WHEN event43_observed_work IS NOT NULL AND work_id IS NULL AND canonical_request IS NULL THEN event43_observed_request ELSE canonical_request END,updated_at=clock_timestamp()
  WHERE event_key=e.event_key AND event_version=e.event_version;
  RETURN progress;
-END $function$;
-
-CREATE OR REPLACE FUNCTION mission_generic_owner.finish_scope(p_session uuid, p_cap uuid, p_outcome text)
- RETURNS boolean
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+END $$;
+CREATE OR REPLACE FUNCTION mission_generic_owner.finish_scope(p_session uuid, p_cap uuid, p_outcome text) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 declare m public.master_v2_sessions;r public.mission_run_state;b mission_generic_owner.board_starts;
  settings jsonb;sim boolean;principals uuid[];permit56 boolean:=false;receipt56 mission_generic_owner.staff_finish_receipts_v1;proof56 jsonb;
 begin
@@ -2163,14 +2056,8 @@ begin
   then raise exception 'MGP_FINISH_BOOKING_ROSTER_DRIFT';end if;
  end if;
  return sim;
-end $function$;
-
-CREATE OR REPLACE FUNCTION exam_human_private.narrative_message_guard_v1()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+end $$;
+CREATE OR REPLACE FUNCTION exam_human_private.narrative_message_guard_v1() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 declare r exam_human_private.requests%rowtype; p exam_human_private.narrative_permits%rowtype;
  ns exam_human_private.narrative_state%rowtype;
  op exam_human_private.round_opening_publication_permits_v1%ROWTYPE;
@@ -2282,14 +2169,8 @@ begin
   case when p.operation in('esito','finale') then ns.pending_role else null end);
  update exam_human_private.narrative_permits set message_id=new.id where exam_id=r.id and request_key=p.request_key;
  return new;
-end $function$;
-
-CREATE OR REPLACE FUNCTION mission_generic_owner.opening_published(p_session uuid, p_publication uuid)
- RETURNS void
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+end $$;
+CREATE OR REPLACE FUNCTION mission_generic_owner.opening_published(p_session uuid, p_publication uuid) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 declare s mission_generic_owner.board_starts;r public.mission_run_state;m public.master_v2_sessions;
 begin
  select * into strict m from public.master_v2_sessions where id=p_session for update;
@@ -2371,14 +2252,8 @@ begin
    if not found then raise exception 'MRS_V4_OPENING_MESSAGE_MISSING';end if;
  end if;
 end;
-$function$;
-
-CREATE OR REPLACE FUNCTION mission_generic_owner.progress_step(p_session uuid, p_user uuid, p_request uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+$$;
+CREATE OR REPLACE FUNCTION mission_generic_owner.progress_step(p_session uuid, p_user uuid, p_request uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 declare m public.master_v2_sessions;r public.mission_run_state;e mission_generic_owner.encounters;
  s public.combat_v2_sessions;roundrow public.combat_v2_rounds;rep public.combat_v2_round_reports;
  sc jsonb;spec jsonb;settings jsonb;term jsonb;cap uuid;actor uuid;res jsonb;n integer;pending jsonb;c7_budget jsonb;c21_owned boolean;
@@ -2758,14 +2633,8 @@ begin
  res:=public.combat_v2_round_resolve(roundrow.id,mission_ai_service_owner.uuid5(roundrow.id,'generic-resolve'));
  select * into strict rep from public.combat_v2_round_reports where id=(res#>>'{data,report_id}')::uuid and round_id=roundrow.id;
  return mission_public_owner.enqueue_combat_unified_v1(p_session,rep.id,p_user);
-end $function$;
-
-CREATE OR REPLACE FUNCTION public.trg_role_autojoin()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
+end $$;
+CREATE OR REPLACE FUNCTION public.trg_role_autojoin() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $$
 declare
   v_sess uuid; v_uid uuid; v_cname text;
   v_gettone text; v_len int := -1;
@@ -2865,28 +2734,16 @@ begin
          character_id     = coalesce(role_session_participants.character_id, NEW.character_id),
          character_name   = coalesce(role_session_participants.character_name, v_cname);
   return NEW;
-end; $function$;
-
-CREATE OR REPLACE FUNCTION mission_public_owner.role_capture_scope_v1(p_session uuid)
- RETURNS boolean
- LANGUAGE sql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+end; $$;
+CREATE OR REPLACE FUNCTION mission_public_owner.role_capture_scope_v1(p_session uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO '' AS $$
  select CASE WHEN EXISTS(SELECT 1 FROM mission_narrative_internal.scene_runtime_v1 s JOIN public.master_v2_sessions m ON m.id=s.master_session_id JOIN public.locations l ON l.id=m.location_id WHERE s.master_session_id=p_session AND s.is_active AND m.owner_kind='ai_service' AND m.closed_at IS NULL AND l.is_test) THEN true ELSE exists(select 1 from mission_generic_owner.flow_staff_sessions fs
  join public.master_v2_sessions m on m.id=fs.master_session_id
  join public.locations l on l.id=m.location_id
  where fs.master_session_id=p_session and fs.enabled and m.owner_kind='ai_service'
  and m.closed_at is null and l.is_test)
  or mission_public_owner.role_session_allowed_v1(p_session) END;
-$function$;
-
-CREATE OR REPLACE FUNCTION mission_generic_owner.role_dispatch_assert_v4(p_work uuid)
- RETURNS void
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+$$;
+CREATE OR REPLACE FUNCTION mission_generic_owner.role_dispatch_assert_v4(p_work uuid) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE w mission_generic_owner.work_items; rev text;
 BEGIN
   PERFORM mission_ai_board_owner.service_only();
@@ -2936,14 +2793,8 @@ BEGIN
     RAISE EXCEPTION 'MRS_V4_DISPATCH_LEGACY_KIND' USING ERRCODE='P0001';
   END IF;
 END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.mission_role_submit_v1(p_session uuid, p_character uuid, p_body text)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+$$;
+CREATE OR REPLACE FUNCTION public.mission_role_submit_v1(p_session uuid, p_character uuid, p_body text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE u uuid := auth.uid(); m public.master_v2_sessions%ROWTYPE;
         l public.locations%ROWTYPE; mid uuid; ch uuid;
         submission mission_generic_owner.role_submissions%ROWTYPE;
@@ -3118,14 +2969,8 @@ BEGIN
     'invalid_reason',submission.invalid_reason,
     'source_revision',mission_generic_owner.role_source_revision_v1(p_session));
 END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.mission_generic_room_state_v1(p_location uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+$$;
+CREATE OR REPLACE FUNCTION public.mission_generic_room_state_v1(p_location uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 declare scene56 mission_narrative_internal.scene_runtime_v1;surface56 jsonb;public56 jsonb;event56 jsonb;caps56 jsonb;
  uid uuid:=auth.uid();m public.master_v2_sessions;r public.mission_run_state;vchoices jsonb;
  staff boolean;participant boolean;objective text;active boolean; uf_work mission_generic_owner.work_items;uf_processing jsonb;uf_rounds jsonb;uf_progress_key text;uf_state text;uf_marker jsonb;uf_review boolean;
@@ -3903,14 +3748,8 @@ END IF;
     select 1 from mission_generic_owner.role_window_cursors c where c.master_session_id=m.id)
     then jsonb_build_object('schema_version','mission-generic-tick/1','master_session_id',m.id) else null end)||coalesce(role_diag,'{}'::jsonb)||CASE WHEN staff_tick_view IS NOT NULL THEN jsonb_build_object('staff_tick_status',staff_tick_view) ELSE '{}'::jsonb END||CASE WHEN c26_driver IS NOT NULL THEN jsonb_build_object('driver_state',c26_driver) ELSE '{}'::jsonb END||CASE WHEN c26_count_view IS NOT NULL THEN jsonb_build_object('count_reconciliation',c26_count_view) ELSE '{}'::jsonb END||CASE WHEN opening_resume49 IS NOT NULL THEN jsonb_build_object('opening_ready_resume',opening_resume49) ELSE '{}'::jsonb END||CASE WHEN opening_claim_resume6 IS NOT NULL THEN jsonb_build_object('opening_claim_resume',opening_claim_resume6) ELSE '{}'::jsonb END||CASE WHEN journal_settlements IS NOT NULL THEN jsonb_build_object('journal_settlements',journal_settlements) ELSE '{}'::jsonb END||CASE WHEN role_command_capability IS NOT NULL THEN jsonb_build_object('role_submit_capability',role_command_capability) ELSE '{}'::jsonb END||CASE WHEN public56 IS NOT NULL THEN jsonb_build_object('narrative_scene',public56,'combat_surface',surface56) ELSE '{}'::jsonb END;
 end;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.mission_generic_staff_finish_v1(p_session uuid, p_user uuid, p_source_revision text, p_expected_publication uuid, p_request uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+$$;
+CREATE OR REPLACE FUNCTION public.mission_generic_staff_finish_v1(p_session uuid, p_user uuid, p_source_revision text, p_expected_publication uuid, p_request uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE old mission_generic_owner.staff_finish_receipts_v1;v jsonb;j jsonb;h text;root_sha text;res jsonb;receipt_sha text;native_result jsonb;
 BEGIN
  PERFORM mission_ai_board_owner.service_only();
@@ -3954,14 +3793,8 @@ BEGIN
  UPDATE mission_generic_owner.staff_finish_receipts_v1 SET state='completed',result=res,result_sha256=public.combat_v2_sha256(res),completed_at=clock_timestamp() WHERE request_key=p_request AND state='preparing' AND transaction_id=txid_current();
  IF NOT FOUND THEN RAISE EXCEPTION 'MGS_FINISH_RECEIPT_CAS' USING ERRCODE='40001';END IF;
  RETURN res;
-END $function$;
-
-CREATE OR REPLACE FUNCTION mission_generic_owner.staff_finish_status_v1(p_session uuid, p_user uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+END $$;
+CREATE OR REPLACE FUNCTION mission_generic_owner.staff_finish_status_v1(p_session uuid, p_user uuid) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE m public.master_v2_sessions;r public.mission_run_state;c mission_generic_owner.role_window_cursors;
  b mission_generic_owner.unified_batches;w mission_generic_owner.work_items;sw mission_generic_owner.unified_source_windows;
  pp mission_generic_owner.unified_segment_publications_v4;j jsonb;q jsonb;k uuid;reason text:='scope_closed';
@@ -4036,14 +3869,8 @@ BEGIN
  'state',CASE WHEN reason='ready' THEN 'ready' ELSE 'blocked' END,'can_finish',reason='ready',
  'source_revision',CASE WHEN reason='ready' THEN rev ELSE NULL END,'expected_publication_id',CASE WHEN reason='ready' THEN b.message_id ELSE NULL END,
  'request_key',k,'outcome',CASE WHEN reason='ready' THEN 'success' ELSE NULL END,'reason',reason);
-END $function$;
-
-CREATE OR REPLACE FUNCTION mission_generic_owner.work_assert(w mission_generic_owner.work_items)
- RETURNS void
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+END $$;
+CREATE OR REPLACE FUNCTION mission_generic_owner.work_assert(w mission_generic_owner.work_items) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 declare r public.mission_run_state;b mission_generic_owner.run_bindings;m public.master_v2_sessions;q mission_factory_owner.quest_run_sources;
 begin
  perform mission_generic_owner.assert_runtime(w.master_session_id);
@@ -4096,14 +3923,8 @@ begin
  or w.payload_sha256<>public.combat_v2_sha256(w.payload)
  then raise exception 'MGD_WORK_STALE' using errcode='40001';end if;
 end;
-$function$;
-
-CREATE OR REPLACE FUNCTION mission_public_owner.work_contract_issue_v1(p_work uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+$$;
+CREATE OR REPLACE FUNCTION mission_public_owner.work_contract_issue_v1(p_work uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 declare w mission_generic_owner.work_items;b mission_generic_owner.run_bindings;
  a mission_public_owner.session_admissions_v1;q mission_factory_owner.quest_run_sources;
  pub mission_factory_owner.publications;source_scope text;release_sha text;profile text;
@@ -4337,11 +4158,8 @@ begin
  definition_sha256,payload_sha256,contract,contract_sha256)
  values(w.id,w.master_session_id,source_scope,release_sha,w.definition_sha256,w.payload_sha256,doc,public.combat_v2_sha256(doc));
  return doc;
-end $function$;
-
--- N56 actor-bound entry source; no install, provider calls or fabricated Director batch.
-CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_entry_surface_v1(p_session uuid,p_user uuid)
-RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $entry56$
+end $$;
+CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_entry_surface_v1(p_session uuid, p_user uuid) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE r mission_narrative_internal.scene_runtime_v1%ROWTYPE; m public.master_v2_sessions;
  operative boolean:=false; entitled boolean:=false; legal boolean:=false; rev bigint;
 BEGIN
@@ -4371,12 +4189,10 @@ BEGIN
    WHERE src.scene_id=r.id AND src.published_message_id IS NULL AND src.technical_receipt IS NULL AND src.retired_at IS NULL);
  RETURN jsonb_build_object('schema_version','mission-narrative-combat-surface/1',
   'map_operational',operative,'can_open',operative AND r.mode='combat','can_prepare',coalesce(legal,false),'entry_revision',rev);
-END $entry56$;
-REVOKE ALL ON FUNCTION mission_narrative_internal.scene_entry_surface_v1(uuid,uuid) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION mission_narrative_internal.scene_entry_surface_v1(uuid,uuid) TO service_role;
-
-CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_entry_state_v1(p_session uuid,p_user uuid,p_request uuid DEFAULT NULL)
-RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $entry56$
+END $$;
+REVOKE ALL PRIVILEGES ON FUNCTION mission_narrative_internal.scene_entry_surface_v1 (uuid, uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mission_narrative_internal.scene_entry_surface_v1 (uuid, uuid) TO service_role;
+CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_entry_state_v1(p_session uuid, p_user uuid, p_request uuid = NULL) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE r mission_narrative_internal.scene_runtime_v1%ROWTYPE; src mission_narrative_internal.scene_sources_v1%ROWTYPE;
  surface jsonb; state text; why text; ready boolean:=false; receipt jsonb; run public.mission_run_state;
 BEGIN
@@ -4407,11 +4223,9 @@ BEGIN
   'request_key',CASE WHEN state='not_found' THEN NULL ELSE p_request END,'can_prepare',state='ready','can_open_panel',false,'reason_code',why,
   'encounter_id',NULL,'opening_round_id',NULL,'public_round_id',NULL,'publication_id',NULL,
   'permissions',jsonb_build_object('main',false,'defense',false,'reaction',false));
-END $entry56$;
-REVOKE ALL ON FUNCTION mission_narrative_internal.scene_entry_state_v1(uuid,uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
-
-CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_player_entry_prepare_v1(p_session uuid,p_expected bigint,p_request uuid)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $entry56$
+END $$;
+REVOKE ALL PRIVILEGES ON FUNCTION mission_narrative_internal.scene_entry_state_v1 (uuid, uuid, uuid) FROM PUBLIC, anon, authenticated, service_role;
+CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_player_entry_prepare_v1(p_session uuid, p_expected bigint, p_request uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE r mission_narrative_internal.scene_runtime_v1%ROWTYPE; src mission_narrative_internal.scene_sources_v1%ROWTYPE;
  rootrow mission_generic_owner.event_outbox_v1%ROWTYPE; run public.mission_run_state; m public.master_v2_sessions;
  surface jsonb; command jsonb; source_sha text; sid uuid; ek uuid; cfg jsonb; request_id bigint;
@@ -4463,11 +4277,9 @@ BEGIN
   '{}'::jsonb,jsonb_build_object('Content-Type','application/json','x-tus-server-event','event42'),5000);
  UPDATE mission_generic_owner.event_outbox_v1 SET wake_request_id=request_id WHERE event_key=ek AND event_version=1;
  RETURN mission_narrative_internal.scene_entry_state_v1(p_session,auth.uid(),p_request);
-END $entry56$;
-REVOKE ALL ON FUNCTION mission_narrative_internal.scene_player_entry_prepare_v1(uuid,bigint,uuid) FROM PUBLIC,anon,authenticated,service_role;
-
-CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_open_current_v1(p_source uuid,p_request uuid)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $entry56$
+END $$;
+REVOKE ALL PRIVILEGES ON FUNCTION mission_narrative_internal.scene_player_entry_prepare_v1 (uuid, bigint, uuid) FROM PUBLIC, anon, authenticated, service_role;
+CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_open_current_v1(p_source uuid, p_request uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE r mission_narrative_internal.scene_runtime_v1%ROWTYPE; src mission_narrative_internal.scene_sources_v1%ROWTYPE;
  run public.mission_run_state; m public.master_v2_sessions; native jsonb; receipt jsonb; enc uuid; rid uuid; expected_schema text;
 BEGIN
@@ -4543,12 +4355,10 @@ BEGIN
  UPDATE mission_narrative_internal.scene_runtime_v1 SET mode='combat',turn_owner='combat',state_version=state_version+1,
   updated_at=clock_timestamp() WHERE id=r.id;
  RETURN receipt;
-END $entry56$;
-REVOKE ALL ON FUNCTION mission_narrative_internal.scene_open_current_v1(uuid,uuid) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION mission_narrative_internal.scene_open_current_v1(uuid,uuid) TO service_role;
-
-CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_player_entry_event_v1(p_event_key uuid,p_event_version bigint,p_claim_id uuid)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $entry56$
+END $$;
+REVOKE ALL PRIVILEGES ON FUNCTION mission_narrative_internal.scene_open_current_v1 (uuid, uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mission_narrative_internal.scene_open_current_v1 (uuid, uuid) TO service_role;
+CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_player_entry_event_v1(p_event_key uuid, p_event_version bigint, p_claim_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE e mission_generic_owner.event_outbox_v1%ROWTYPE; src mission_narrative_internal.scene_sources_v1%ROWTYPE; receipt jsonb;
 BEGIN
  PERFORM mission_ai_board_owner.service_only();
@@ -4566,12 +4376,10 @@ BEGIN
  -- Existing deferred event_outbox hint/settle publishes receipt readiness after commit.
  RETURN jsonb_build_object('schema_version','mission-event-next/1','event_key',e.event_key,'event_version',e.event_version,
   'claim_id',e.claim_id,'master_session_id',e.master_session_id,'state','terminal','request',NULL,'native_claim',NULL);
-END $entry56$;
-REVOKE ALL ON FUNCTION mission_narrative_internal.scene_player_entry_event_v1(uuid,bigint,uuid) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION mission_narrative_internal.scene_player_entry_event_v1(uuid,bigint,uuid) TO service_role;
-
-CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_opening_receipt_v1(p_round uuid)
-RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $entry56$
+END $$;
+REVOKE ALL PRIVILEGES ON FUNCTION mission_narrative_internal.scene_player_entry_event_v1 (uuid, bigint, uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mission_narrative_internal.scene_player_entry_event_v1 (uuid, bigint, uuid) TO service_role;
+CREATE OR REPLACE FUNCTION mission_narrative_internal.scene_opening_receipt_v1(p_round uuid) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE r mission_narrative_internal.scene_runtime_v1%ROWTYPE; src mission_narrative_internal.scene_sources_v1%ROWTYPE; proof jsonb;
 BEGIN
  SELECT cache.* INTO r FROM public.combat_v2_rounds rr JOIN public.combat_v2_sessions cs ON cs.id=rr.session_id
@@ -4612,15 +4420,9 @@ BEGIN
   OR public.combat_v2_values_written((proof->>'encounter_id')::uuid)
  THEN RAISE EXCEPTION 'SCENE56_OPENING_RECEIPT_OR_TURN_INVALID' USING ERRCODE='42501';END IF;
  RETURN proof;
-END $entry56$;
-REVOKE ALL ON FUNCTION mission_narrative_internal.scene_opening_receipt_v1(uuid) FROM PUBLIC,anon,authenticated,service_role;
-
-CREATE OR REPLACE FUNCTION public.regia_combat_entry_prepare_v1(p_master_session uuid, p_expected_revision bigint, p_request_key uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+END $$;
+REVOKE ALL PRIVILEGES ON FUNCTION mission_narrative_internal.scene_opening_receipt_v1 (uuid) FROM PUBLIC, anon, authenticated, service_role;
+CREATE OR REPLACE FUNCTION public.regia_combat_entry_prepare_v1(p_master_session uuid, p_expected_revision bigint, p_request_key uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE m public.master_v2_sessions%ROWTYPE; run public.mission_run_state%ROWTYPE;
  he mission_creation_owner.human_encounters%ROWTYPE;
  e exam_human_private.requests%ROWTYPE; exam_open exam_human_private.combat_openings%ROWTYPE;
@@ -4702,15 +4504,8 @@ BEGIN
    (state->>'run_control_version')::bigint,enc,rid);
  state:=public.regia_combat_entry_state_v1(m.id);
  RETURN jsonb_set(state,'{request_key}',to_jsonb(p_request_key),true);
-END $function$
-;
-
-CREATE OR REPLACE FUNCTION public.regia_combat_entry_state_v1(p_master_session uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+END $$;
+CREATE OR REPLACE FUNCTION public.regia_combat_entry_state_v1(p_master_session uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE m public.master_v2_sessions%ROWTYPE; run public.mission_run_state%ROWTYPE;
  e exam_human_private.requests%ROWTYPE; opening exam_human_private.combat_openings%ROWTYPE;
  he mission_creation_owner.human_encounters%ROWTYPE; cs public.combat_v2_sessions%ROWTYPE;
@@ -4823,15 +4618,8 @@ BEGIN
   'public_round_id',CASE WHEN can_open THEN (public_part->>'public_round_id')::uuid ELSE NULL END,
   'publication_id',CASE WHEN can_open THEN (public_part->>'publication_id')::uuid ELSE NULL END,
   'permissions',perms);
-END $function$
-;
-
-CREATE OR REPLACE FUNCTION public.regia_combat_entry_receipt_v1(p_master_session uuid, p_request_key uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+END $$;
+CREATE OR REPLACE FUNCTION public.regia_combat_entry_receipt_v1(p_master_session uuid, p_request_key uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE prior mission_generic_owner.regia_entry_requests_v1%ROWTYPE; state jsonb;
 BEGIN
  IF EXISTS(SELECT 1 FROM mission_narrative_internal.scene_runtime_v1 cache JOIN public.master_v2_sessions cm ON cm.id=cache.master_session_id WHERE cache.master_session_id=p_master_session AND cache.is_active AND cm.owner_kind='ai_service') THEN IF p_request_key IS NULL THEN RAISE EXCEPTION 'REGIA_ENTRY_INPUT_INVALID' USING ERRCODE='22023';END IF;RETURN mission_narrative_internal.scene_entry_state_v1(p_master_session,auth.uid(),p_request_key);END IF;
@@ -4850,15 +4638,8 @@ BEGIN
  THEN RAISE EXCEPTION 'REGIA_ENTRY_STALE' USING ERRCODE='40001';
  END IF;
  RETURN jsonb_set(state,'{request_key}',to_jsonb(p_request_key),true);
-END $function$
-;
-
-CREATE OR REPLACE FUNCTION public.regia_round_publication_state_v1(p_master_session uuid, p_actor uuid DEFAULT NULL::uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+END $$;
+CREATE OR REPLACE FUNCTION public.regia_round_publication_state_v1(p_master_session uuid, p_actor uuid = CAST(NULL AS uuid)) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE m public.master_v2_sessions%ROWTYPE;
  s public.combat_v2_sessions%ROWTYPE;
  r public.combat_v2_rounds%ROWTYPE;
@@ -5111,15 +4892,8 @@ BEGIN
          WHERE NOT EXISTS(SELECT 1 FROM combat_panel_private.actor_turns turn_row
           WHERE turn_row.round_id=r.id AND turn_row.actor_id=actor.id
             AND turn_row.main_declaration_id IS NOT NULL)))) END);
-END $function$
-;
-
-CREATE OR REPLACE FUNCTION mission_generic_owner.unified_assert_command(p_round uuid, p_operation text)
- RETURNS void
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+END $$;
+CREATE OR REPLACE FUNCTION mission_generic_owner.unified_assert_command(p_round uuid, p_operation text) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE w mission_generic_owner.unified_round_windows%ROWTYPE; staging boolean; actor uuid; human_stage boolean;
  scene56_receipt jsonb;
 BEGIN
@@ -5236,15 +5010,8 @@ BEGIN
  END IF;
  IF p_operation='declare' AND NOT actor=ANY(w.expected_actor_ids) THEN RAISE EXCEPTION 'MUF_COHORT_NOT_ACTIVE' USING ERRCODE='42501'; END IF;
  IF w.publication_id IS NULL AND (w.side<>'png' OR p_operation<>'declare') THEN RAISE EXCEPTION 'MUF_STAGING_OPERATION_INVALID' USING ERRCODE='42501'; END IF;
-END $function$
-;
-
-CREATE OR REPLACE FUNCTION combat_consumer_private.expected_main_count(p_round uuid)
- RETURNS integer
- LANGUAGE sql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+END $$;
+CREATE OR REPLACE FUNCTION combat_consumer_private.expected_main_count(p_round uuid) RETURNS integer LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO '' AS $$
  select case when EXISTS(SELECT 1 FROM mission_narrative_internal.scene_sources_v1 src
  WHERE src.technical_receipt->>'schema_version'='mission-narrative-combat-opening/1'
   AND src.technical_receipt->>'opening_round_id'=p_round::text AND src.retired_at IS NULL)
@@ -5260,24 +5027,16 @@ AS $function$
  when exam_regia_private.is_bound((select session_id from public.combat_v2_rounds where id=p_round)) OR combat_consumer_private.owns_round(p_round) then 1 else
    (select count(*)::integer from public.combat_v2_actors a join public.combat_v2_rounds r
      on r.session_id=a.session_id where r.id=p_round and a.state='attivo' and clan_marionettisti_private.can_declare(a.id)) end
-$function$
-;
-
-REVOKE ALL ON FUNCTION public.regia_combat_entry_prepare_v1(uuid,bigint,uuid) FROM PUBLIC,anon;
-GRANT EXECUTE ON FUNCTION public.regia_combat_entry_prepare_v1(uuid,bigint,uuid) TO authenticated;
-REVOKE ALL ON FUNCTION public.regia_combat_entry_state_v1(uuid) FROM PUBLIC,anon;
-GRANT EXECUTE ON FUNCTION public.regia_combat_entry_state_v1(uuid) TO authenticated;
-REVOKE ALL ON FUNCTION public.regia_combat_entry_receipt_v1(uuid,uuid) FROM PUBLIC,anon;
-GRANT EXECUTE ON FUNCTION public.regia_combat_entry_receipt_v1(uuid,uuid) TO authenticated;
-REVOKE ALL ON FUNCTION public.regia_round_publication_state_v1(uuid,uuid) FROM PUBLIC,anon;
-GRANT EXECUTE ON FUNCTION public.regia_round_publication_state_v1(uuid,uuid) TO authenticated;
-
-CREATE OR REPLACE FUNCTION mission_public_owner.work_contract_v1(p_work uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
+$$;
+REVOKE ALL PRIVILEGES ON FUNCTION public.regia_combat_entry_prepare_v1 (uuid, bigint, uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.regia_combat_entry_prepare_v1 (uuid, bigint, uuid) TO authenticated;
+REVOKE ALL PRIVILEGES ON FUNCTION public.regia_combat_entry_state_v1 (uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.regia_combat_entry_state_v1 (uuid) TO authenticated;
+REVOKE ALL PRIVILEGES ON FUNCTION public.regia_combat_entry_receipt_v1 (uuid, uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.regia_combat_entry_receipt_v1 (uuid, uuid) TO authenticated;
+REVOKE ALL PRIVILEGES ON FUNCTION public.regia_round_publication_state_v1 (uuid, uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.regia_round_publication_state_v1 (uuid, uuid) TO authenticated;
+CREATE OR REPLACE FUNCTION mission_public_owner.work_contract_v1(p_work uuid) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE wc mission_public_owner.work_contracts_v1;w mission_generic_owner.work_items;
  scene56_source mission_narrative_internal.scene_sources_v1;scene56_doc jsonb;scene56_history jsonb;scene56_descriptor jsonb;scene56_ids jsonb;
  a jsonb;descriptor jsonb;path text[];actual jsonb;node jsonb;seen text[]:='{}'::text[];
@@ -5411,5 +5170,93 @@ BEGIN
   RAISE EXCEPTION 'C1266_ROLE_FEATURE_REQUIRED' USING ERRCODE='42501';
  END IF;
  RETURN wc.contract;
-END $function$;
+END $$;
 COMMIT;
+
+CREATE OR REPLACE FUNCTION mission_generic_owner.close_core(p_session uuid, p_mission_outcome text, p_mission_note text, p_close_role boolean, p_expected_control_version bigint, p_request_key uuid, p_capability uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare v_uid uuid:=null::uuid; v_cap uuid:=p_capability; v_m public.master_v2_sessions%rowtype; v_step public.master_v2_closure_steps%rowtype;
+  v_event jsonb; v_event_id uuid; v_result jsonb; v_role uuid; v_done int; v_sim boolean;
+  scene56 mission_narrative_internal.scene_runtime_v1; finish56 mission_generic_owner.staff_finish_receipts_v1; proof56 jsonb; run56 public.mission_run_state;
+begin
+  perform public.master_v2_lock_scope(p_session);
+  v_sim:=mission_generic_owner.finish_scope(p_session,p_capability,case when p_mission_outcome='successo' then 'success' else 'failure' end);
+  select * into v_m from public.master_v2_sessions where id=p_session for update;
+  if v_m.id is null then perform public.combat_v2_fail('sessione_inesistente','Sessione inesistente.',404,p_request_key,'{}'); end if;
+  if (v_m.owner_kind<>'ai_service' or v_m.master_user is not null or v_cap is null) then perform public.combat_v2_fail('master_non_proprietario','Chiusura non consentita.',403,p_request_key,'{}'); end if;
+  if v_m.control_version<>p_expected_control_version then perform public.combat_v2_fail('versione_controllo_obsoleta','Versione controllo obsoleta.',409,p_request_key,'{}'); end if;
+  if v_m.tipo='quest' and v_m.mission_id is not null and p_mission_outcome not in ('successo','fallimento') then perform public.combat_v2_fail('missione_non_finalizzabile','Esito missione non valido.',422,p_request_key,'{}'); end if;
+  v_event:=public.combat_v2_event_begin_ai_service(p_session,p_request_key,'mission_generic_close',jsonb_build_object('outcome',p_mission_outcome,'note',p_mission_note,'close_role',p_close_role,'expected',p_expected_control_version),p_expected_control_version,v_cap);
+  if (v_event->>'replay')::boolean then return v_event->'result'; end if; v_event_id:=(v_event->>'event_id')::uuid;
+  if v_m.stato not in ('chiusura','chiusa') then update public.master_v2_sessions set stato='chiusura' where id=p_session; end if;
+  select * into v_step from public.master_v2_closure_steps where session_id=p_session and state<>'completato' order by position limit 1 for update;
+  if v_step.id is null then
+    v_result:=public.combat_v2_envelope(p_request_key,jsonb_build_object('state','chiusa','completed_steps',(select count(*) from public.master_v2_closure_steps where session_id=p_session)));
+    return public.combat_v2_event_complete(v_event_id,v_result);
+  end if;
+  update public.master_v2_closure_steps set state='in_corso',attempts=attempts+1,started_at=coalesce(started_at,clock_timestamp()),request_key=p_request_key where id=v_step.id;
+  if v_step.step_name='encounter_resolved' then
+    if exists(select 1 from public.combat_v2_sessions where master_session_id=p_session and state not in ('risolto','chiuso','annullato')) then perform public.combat_v2_fail('referto_non_completo','Encounter non terminale.',409,p_request_key,'{}'); end if;
+  elsif v_step.step_name='final_report_published' then
+    if exists(select 1 from public.combat_v2_sessions s join public.combat_v2_rounds r on r.session_id=s.id where s.master_session_id=p_session and r.state<>'narrato') then perform public.combat_v2_fail('referto_non_completo','Esiste un round non narrato.',409,p_request_key,'{}'); end if;
+  elsif v_step.step_name='mission_run_terminalized' then
+    IF EXISTS(SELECT 1 FROM mission_narrative_internal.scene_runtime_v1 WHERE master_session_id=p_session AND is_active) THEN
+      SELECT * INTO STRICT scene56 FROM mission_narrative_internal.scene_runtime_v1 WHERE master_session_id=p_session AND is_active FOR UPDATE;
+      SELECT * INTO STRICT run56 FROM public.mission_run_state WHERE master_session_id=p_session FOR UPDATE;
+      SELECT * INTO STRICT finish56 FROM mission_generic_owner.staff_finish_receipts_v1 WHERE master_session_id=p_session AND state='preparing' AND transaction_id=txid_current() FOR UPDATE;
+      proof56:=mission_narrative_internal.scene_finish_proof_v1(p_session,finish56.actor_user_id);
+      IF v_sim IS DISTINCT FROM true OR p_mission_outcome IS DISTINCT FROM 'successo'
+       OR run56.run_phase IS DISTINCT FROM 'conclusa' OR scene56.mode IS DISTINCT FROM 'closed' OR scene56.turn_owner IS DISTINCT FROM 'closed'
+       OR scene56.current_phase_key IS DISTINCT FROM run56.current_step_key OR scene56.state_version<1
+       OR proof56->'can_finish' IS DISTINCT FROM 'true'::jsonb
+       OR finish56.source_revision IS DISTINCT FROM proof56->>'source_revision'
+       OR finish56.publication_id::text IS DISTINCT FROM proof56->>'publication_id'
+       OR finish56.request_key::text IS DISTINCT FROM proof56->>'request_key'
+       OR finish56.history_proof IS DISTINCT FROM proof56->'history_items'
+       OR finish56.history_proof_sha256 IS DISTINCT FROM public.combat_v2_sha256(proof56->'history_items')
+       OR finish56.release_sha256 IS DISTINCT FROM (SELECT revision_sha256 FROM mission_factory_owner.editor_release_readiness WHERE singleton)
+       OR finish56.work_snapshot_sha256 IS DISTINCT FROM (SELECT public.combat_v2_sha256(coalesce(jsonb_agg(to_jsonb(work56) ORDER BY work56.id),'[]'::jsonb)) FROM mission_generic_owner.work_items work56 WHERE work56.master_session_id=p_session)
+      THEN RAISE EXCEPTION 'N56_FINISH_TERMINAL_PROOF_CONFLICT' USING ERRCODE='PT409';END IF;
+      -- The published Scene already terminalized this run. The normal closure step below records completion without a second run event.
+    ELSE
+    perform mission_internal.close_from_master(
+      p_session,p_request_key,p_expected_control_version,
+      case when p_mission_outcome='successo' then 'success' else 'failure' end,
+      encode(extensions.digest(coalesce(p_mission_note,''),'sha256'),'hex')
+    );
+    END IF;
+  elsif v_step.step_name='mission_finalized' then
+    if not v_sim and v_m.tipo='quest' and v_m.mission_id is not null then
+      if exists(select 1 from public.missions x where x.id=v_m.mission_id and x.status in ('aperta','programmata')) then
+        perform mission_generic_owner.mission_result(p_session,p_capability,v_m.mission_id,p_mission_outcome='successo',p_mission_note);
+      elsif not exists(select 1 from public.missions x where x.id=v_m.mission_id and x.status=case when p_mission_outcome='successo' then 'completata' else 'fallita' end) then
+        perform public.combat_v2_fail('missione_non_finalizzabile','Missione terminale con esito diverso.',409,p_request_key,'{}');
+      end if;
+    end if;
+  elsif v_step.step_name='role_segment_finalized' then
+    if p_close_role and not v_sim then
+      for v_role in select role_session_id from public.master_v2_mechanical_role_segments where master_session_id=p_session and closed_at is null order by segment_no loop
+        perform public._role_finalize(v_role,'master_v2');
+        update public.master_v2_mechanical_role_segments set closed_at=(select closed_at from public.role_sessions where id=v_role) where role_session_id=v_role;
+      end loop;
+    end if;
+  elsif v_step.step_name='master_session_closed' then
+    update public.combat_v2_sessions set state='chiuso',closed_at=coalesce(closed_at,clock_timestamp()) where master_session_id=p_session and state in ('risolto','annullato');
+    PERFORM combat_effects_private.lifecycle_session_end(s.id) FROM public.combat_v2_sessions s WHERE s.master_session_id=p_session AND s.closed_at IS NOT NULL;
+    update public.master_v2_participants set engagement_state='concluso',left_at=coalesce(left_at,clock_timestamp()) where session_id=p_session;
+    update public.master_v2_sessions set stato='chiusa',closed_at=clock_timestamp(),close_reason='completata' where id=p_session;
+  end if;
+  update public.master_v2_closure_steps set state='completato',completed_at=clock_timestamp(),result=jsonb_build_object('ok',true) where id=v_step.id;
+  select count(*) into v_done from public.master_v2_closure_steps where session_id=p_session and state='completato';
+  if v_done=(select count(*) from public.master_v2_closure_steps where session_id=p_session) then
+    v_result:=public.combat_v2_envelope(p_request_key,jsonb_build_object('state','chiusa','completed_steps',(select count(*) from public.master_v2_closure_steps where session_id=p_session)));
+    return public.combat_v2_event_complete(v_event_id,v_result);
+  end if;
+  -- Evento volutamente in_corso: il retry con la stessa chiave avanza un solo passo atomico.
+  return public.combat_v2_envelope(p_request_key,jsonb_build_object('state','chiusura','completed_steps',v_done,'next_retry_same_key',true));
+end $function$
+;

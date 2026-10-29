@@ -1,3 +1,5 @@
+29/10/2026 · C1266/NARRATIVE56 · Separazione approvata: narrazione diretta senza Director/regole, motore solo Combat; Edge candidata statica pronta, DB/UI in composizione, stessa C e costi conservati · SOURCE_ONLY / NON_INSTALLATA / STAFF_NOT_RUN.
+
 29/10/2026 · C1266/55 · Terzaavviata,4Fati/8role eC4numericFAILED;101Fativecchieliminati,25ABCconservati; fonteCunicaRoota9applicata dopo rollbackcanonico, C4nonrecuperato · PARZIALE,QAcompletoNON_PASSED,0.9433573/4USD.
 
 29/10/2026 · C1266 /55 · Collegata fonte esattaV4 con registry55 e conservati A/B; review0/0/0/apply/readbackPASS, campagna0.8007126/4USD invariata; accessoTamako mancante · C NON_AVVIATA, QA/reportC NOT_RUN.
@@ -1152,3 +1154,5 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 
 2026-10-27 · C1266/43 continuità · Frozen/event/perf/legacy e timeout mirato installati con review0/0/0; Fato9d60 pubblicato e leggibile al rientro; round4risolto non narrato, salvataggioB respinto MOR media; storico conservato · PARZIALE, nuova spesa prudenziale0,2968524USD/4, B/C NOT_RUN.
 2026-10-27 20:49:31.711937+00 · C1266 Recupero46/Status47/Event48/Progress49 · La stessa missione B è conclusa normalmente tramite UI Concludi, con Fato finale pubblicato e risorse protette/storico verificati invariati. La qualità editoriale resta non qualificata e la terza prova non è avviata. · B_COMPLETED_NORMAL_UI_PROTECTED_POSTFLIGHT_PASS_EDITORIAL_UNQUALIFIED_C_NOT_STARTED
+
+2026-10-29 · C1266/NARRATIVE56 aggregata8 · TerzaC conclusa con Fato finale e comando Staff ordinario, costi/storia preservati; confronto27Fati e proposta quarta, nessuna quarta avviata · COMPLETED_WITH_RECOVERY_FROZEN_END_TO_END_NOT_RUN.
