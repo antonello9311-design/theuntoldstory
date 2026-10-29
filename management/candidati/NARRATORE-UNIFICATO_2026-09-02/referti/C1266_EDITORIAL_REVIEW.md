@@ -1,4 +1,6 @@
-# Review comparata A/B/C/D della Regia IA
+# Review comparata A/B/C/D/E della Regia IA
+
+QuintaE conclusa e chiusa normalmente il29/10/2026 alle22:44:44UTC sulla versione congelata Editorial60.4nuoviFati,35totali conservati; apertura e oggetti migliorati, qualità ancora parziale. [Referto quinta](C1266_FIFTH61_REPORT.md).
 
 29/10/2026 · Quarta D conclusa normalmente22:12:33UTC dopo la correzione SQL59.4FatiD e27ABC conservati. Prima occorrenza42702 mantenuta; nessuna correzione durante la scenaD effettivamente avviata.
 
@@ -6,17 +8,17 @@ Editorial57 (istruzioni,schedeV5,revisione5,UI1/Edge119) collaudata nella quarta
 
 ## Evidenze e limiti del confronto
 
-| Aspetto | Prima prova A | Seconda prova B | Terza prova C | Quarta D |
-|---|---|---|---| --- |
-| Fati pubblicati | 12 | 9 | 6: incipit e cinque risposte | 4:incipit+3risposte |
-| Riprese letterali dei PG | Tre battute nel Fato di uscita: 606/1276 caratteri, 47,5%; corpus Combat non completo | Nessuna battuta PG completa nelle otto risposte | Nessuna battuta PG completa nelle risposte esaminate; nessuna sequenza comune di cinque parole nelle cinque risposte allineate | Nessuna battutaPGcompleta né5grammi condivisi nelle3risposte |
-| Riprese semantiche | Ripubblicazione di gesti e parlato PG | Finale riepilogativo | C1 riprende una domanda; C3 ripete il non incontro; C4 ricapitola l’ammissione prima di renderla pubblica; C5 ripete la disponibilità, ma accetta l’accompagnamento | Nessun riassunto della role; restano ricapitolazioni di ammissioniPNG |
-| «brusio» | 11/12 | 9/9 | 0/6 | 0/4 |
-| «mascella» | 8/12 | 2/9 | 3/6, tutte nel segmento precedente C0–C3 | 1/4 |
-| Ambiente | Sfondo sonoro ripetuto | Poco autonomo, spesso ridotto al brusio | C0–C3: venditori/passaggio/botteghe seriali. C4: il capannello si allenta e una venditrice riprende a servire. C5: riprendono contrattazioni e attraversamenti, ma il gruppo resta ancora pronto a partire | Continuità pubblico/varco e botteghe,ma ancora banco/cliente/venditore ricorrenti |
-| Avanzamento | Dialogo, Combat e conclusione | Informazioni nuove B3/B4, stasi B5/B6, conclusione | C3: pagamento e foglio; C4: ritrattazione pubblica; C5: consenso ad accompagnare i PG e fase conclusa | D1confessione,D2rettifica,D3puntoindicato echiusura normale |
+| Aspetto | Prima prova A | Seconda prova B | Terza prova C | Quarta D | Quinta E |
+|---|---|---|---| --- | --- |
+| Fati pubblicati | 12 | 9 | 6: incipit e cinque risposte | 4:incipit+3risposte | 4:incipit+3risposte |
+| Riprese letterali dei PG | Tre battute nel Fato di uscita: 606/1276 caratteri, 47,5%; corpus Combat non completo | Nessuna battuta PG completa nelle otto risposte | Nessuna battuta PG completa nelle risposte esaminate; nessuna sequenza comune di cinque parole nelle cinque risposte allineate | Nessuna battutaPGcompleta né5grammi condivisi nelle3risposte | 0battutePGcomplete e0sequenze condivise di5parole nelle3risposte |
+| Riprese semantiche | Ripubblicazione di gesti e parlato PG | Finale riepilogativo | C1 riprende una domanda; C3 ripete il non incontro; C4 ricapitola l’ammissione prima di renderla pubblica; C5 ripete la disponibilità, ma accetta l’accompagnamento | Nessun riassunto della role; restano ricapitolazioni di ammissioniPNG | Nessuna parafrasi sostanzialePG; restano autoripetizioniPNG |
+| «brusio» | 11/12 | 9/9 | 0/6 | 0/4 | 1/4 |
+| «mascella» | 8/12 | 2/9 | 3/6, tutte nel segmento precedente C0–C3 | 1/4 | 0/4 |
+| Ambiente | Sfondo sonoro ripetuto | Poco autonomo, spesso ridotto al brusio | C0–C3: venditori/passaggio/botteghe seriali. C4: il capannello si allenta e una venditrice riprende a servire. C5: riprendono contrattazioni e attraversamenti, ma il gruppo resta ancora pronto a partire | Continuità pubblico/varco e botteghe,ma ancora banco/cliente/venditore ricorrenti | E1nuove domande delpubblico;E2/E3 di nuovo passaggio/lavoro mercato generici |
+| Avanzamento | Dialogo, Combat e conclusione | Informazioni nuove B3/B4, stasi B5/B6, conclusione | C3: pagamento e foglio; C4: ritrattazione pubblica; C5: consenso ad accompagnare i PG e fase conclusa | D1confessione,D2rettifica,D3puntoindicato echiusura normale | E1ammissione/rettifica,E2consegnaoggetti,E3luogoindicato epartenza |
 
-Le misure testuali servono alla review, non sono nuovi filtri bloccanti. Approcci e versioni differiscono; il confronto non è un esperimento controllato. C0–C3 sono stati prodotti con un contesto legacy concorrente; C4–C5 usano il nuovo percorso narrativo diretto N56. Non è lecito attribuire al nuovo impianto una missione intera senza interruzioni: su questa missione sono state necessarie correzioni e l’apertura sulla versione finale non è stata provata.
+Le misure testuali servono alla review, non sono nuovi filtri bloccanti. Approcci e versioni differiscono; il confronto non è un esperimento controllato. C0–C3 sono stati prodotti con un contesto legacy concorrente; C4–C5 usano il nuovo percorso narrativo diretto N56. Per C non è lecito attribuire al nuovo impianto una missione intera senza interruzioni: sono state necessarie correzioni e l’apertura sulla versione finale non era stata provata. E verifica ora un’intera rotta pacifica congelata, con i due limiti di visualizzazione documentati.
 
 ## Lettura della terza prova
 
@@ -60,6 +62,12 @@ Eseguita: il primo avvio fallito42702 è conservato. Dopo SQL59, una sola scenaD
 
 Separatamente va giocato il percorso di ingresso Combat sulla mappa operativa nel turno legale del PG: meccaniche prima, role dopo, Regia coerente con i fatti server; nessuna azione Combat mutante durante il Fato. Il segmento finale pacifico C4–C5 non prova questa funzionalità. La chiusura ordinaria Staff è confermata alle 18:30:55 UTC: sei passi completati, capacità terminale normale e nessun lavoro, dispatch, fonte o outbox pendente. Nessuna apertura pubblica implicita.
 
+## Quinta prova · risultato e residui
+
+C1266 Quinta61 · 29/10/2026: quinta E avviata22:40:54UTC e chiusa normalmente22:44:44.531386UTC, sessione8281f278-c198-424f-a2b2-63b76812c1f3. Versione congelata Editorial60: Root56308f4d/semantic99a1b113,Edge120/UI1,schedeV6/revisione6.4Fati pubblicati da6role valide accettate una sola volta,4Count+4Generation/8HTTP,0retryprovider/0rigenerazioni/0patch durante la missione. E0apertura→E1ammissione/rettifica→E2consegnaoggetti→E3luogoindicato/partenza/complete.31Fati precedenti e8SHA256+conteggio,compresi datiPGprotetti, identici;35Fati complessivi conservati.0Staffaperte/0workpendenti,cacheEclosed/turnclosed attiva conservata,nessuna arenaCombat creata. Costo prudente nuovo0,05754220USD,totale135HTTP/1,10250750USD su4;4CountE unknown_billable con riserve conservate. Apertura/custodia migliorate;0battutePGcomplete e0sequenze condivise di5parole nelle3risposte,nessuna parafrasi sostanziale osservata. Qualità editoriale PARZIALE:autoripetizioniPNG e ambiente ancora poco sviluppato; due difettiUI di ridisegno/toast,nessun blocco di generazione osservato. CombatNOT_RUN,nessuna apertura pubblica o sesta prova.
+
+Apertura e custodia sono miglioramenti dimostrati; la memoria conserva il passaggio degli oggetti aiPG. L’ambiente reagisce alla confessione inE1, ma ritorna a fondale generico inE2/E3. Il finale ripete ancora dichiarazioniPNG già acquisite; non si tratta di eco delle rolePG. Correzioni proposte e limiti sono nel [referto quinta](C1266_FIFTH61_REPORT.md). Nessuna nuova modifica o prova avviata dal report.
+
 ## Contabilità e conservazione
 
 A: 62 HTTP, 0,47600170 USD. B: 37 HTTP, 0,33861150 USD. C: 20 HTTP, 10 Count e 10 Generation, 0,17132990 USD. D:8HTTP,4Count+4Generation,0,05902220USD. Totale prudenziale: **127HTTP e1,04496530USD su4USD autorizzati**. I valori includono le riserve quando il costo non è liquidato; non sono una fattura definitiva. La quarta aggiunge4Count+4Generation, con4Count a riserva conservata. Il precedente totale 0,9433573 ometteva due chiamate storiche A/B: riconciliate verso l’alto senza nuovi invii né reset.
@@ -67,3 +75,5 @@ A: 62 HTTP, 0,47600170 USD. B: 37 HTTP, 0,33861150 USD. C: 20 HTTP, 10 Count e 1
 I campi di gameplay delle due schede protette hanno hash identico al preflight. Il loro hash integrale cambia nei campi esclusi di metadati/presentazione; non viene dichiarata identità integrale delle righe. Nessun premio reale è autorizzato.
 
 Sono conservati31FatiABCD (27ABC e4D), le azioni accettate e le ricevute tecniche. I 101 vecchi Fati di altre missioni erano già stati eliminati nel precedente mandato; nessun’altra cancellazione eseguita durante questa chiusura. L’analisi è sanitizzata: nessuna role PG integrale o contenuto privato delle schede PNG nel report pubblico.
+
+QuintaE:8HTTP/0,05754220USD; totaleA–E **135HTTP/1,10250750USD su4USD**, riserveCount conservate.35Fati conservati.

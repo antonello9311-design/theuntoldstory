@@ -23,6 +23,8 @@ Aggiornamento11/09/2026 · Allineamento otto schede e proiezione ordinaria verif
 
 ## Stato vivo
 
+C1266 Quinta61 · 29/10/2026: quinta E avviata22:40:54UTC e chiusa normalmente22:44:44.531386UTC, sessione8281f278-c198-424f-a2b2-63b76812c1f3. Versione congelata Editorial60: Root56308f4d/semantic99a1b113,Edge120/UI1,schedeV6/revisione6.4Fati pubblicati da6role valide accettate una sola volta,4Count+4Generation/8HTTP,0retryprovider/0rigenerazioni/0patch durante la missione. E0apertura→E1ammissione/rettifica→E2consegnaoggetti→E3luogoindicato/partenza/complete.31Fati precedenti e8SHA256+conteggio,compresi datiPGprotetti, identici;35Fati complessivi conservati.0Staffaperte/0workpendenti,cacheEclosed/turnclosed attiva conservata,nessuna arenaCombat creata. Costo prudente nuovo0,05754220USD,totale135HTTP/1,10250750USD su4;4CountE unknown_billable con riserve conservate. Apertura/custodia migliorate;0battutePGcomplete e0sequenze condivise di5parole nelle3risposte,nessuna parafrasi sostanziale osservata. Qualità editoriale PARZIALE:autoripetizioniPNG e ambiente ancora poco sviluppato; due difettiUI di ridisegno/toast,nessun blocco di generazione osservato. CombatNOT_RUN,nessuna apertura pubblica o sesta prova.
+
 C1266 Editorial60 · 29/10/2026: istruzioni generali response5/direction5 e contesto apertura/continuazione installati, Edge120; schedeV6 approvate e revisione6 salvata tramite accessi normali, rilettura integrale esatta. Root56308f4d3b817e8fc5a2c64da794c93595ba6592e59f2ed6cfee14d17e80dd70/semantic99a1b113e73888346f8e31ceb96ea63fd988d7e4f1ed0a5fec222b03152c0181. UI1 invariata;226header DB preservati,0nuove funzioni/validatori/vincoli. Apertura coerente col primo incontro; custodia narrativa di foglio e monete esplicita e persistente; ambiente utilizzabile e continuo, senza coda o gesto ripetuto obbligatorio; conclusioni osservabili. Review13 e materiale0/0/0.31FatiABCD e8SHA256+conteggio identici;0Staffaperte,0chiamateIA,0nuovi Fati, quinta NON AVVIATA. Totale prudente invariato127HTTP/1,04496530USD su4, riserve unknown conservate. Small invariato. Qualità futura NOT_RUN; nessuna apertura pubblica.
 
 C1266 SQL59 · Quarta D conclusa normalmente il29/10/2026 alle22:12:33.862817UTC, sessione93053f1e-7a4e-4ed9-b73c-df8bae2c361e. Dopo fix42702:4Fati pubblicati,6role accettate una sola volta,4Count+4Generation/8HTTP,0retry e0nuovi blocchi osservati nel percorso pacifico. D0–D3 nextstay→scene:conclusione→scene:fase_4→complete; finale2727ded3/d67ff6f9. Lettura IABRiuji/ChromeTamako e uscita/rientroTamako PASS. Costo prudente nuovo0,05902220USD, totale127HTTP/1,04496530USD su4;4Count restano unknown_billable con riserve conservate, non zero. Root93faf010/semanticeb9a3c73,Edge119/UI1/NPCV5/revisione5 immutati duranteD. Review12 e materiale0/0/0,225altriheader e9hashABC/27Fati invariati;31FatiABCD conservati.0Staffaperte/0workpendenti/0Combatpropri,cacheDclosed/turnclosed attivaconservata. Nessuna apertura pubblica. Qualità:nessuna battutaPGricopiata o5grammi condivisi nelle3risposte; risposte e avanzamento presenti, ambiente ancora poco vario. Incipitmediasres, ricapitolazioniPNG e custodiafoglio/monete restano rilievi. CombatNOT_RUN. Errorepre-fix42702 conservato: non è PASSglobale al primotentativo.
@@ -261,7 +263,7 @@ Antonello ha concluso la role e confermato Riuji connesso in Chrome: Riuji e tes
 
 ## Lavori aperti — in ordine
 
-C1266: Editorial60 installata per i futuri avvii, schedeV6/revisione6,31Fati conservati; quinta non avviata. Qualità nuova NOT_RUN. Attendere mandato prima del prossimo collaudo.
+C1266: quintaEconclusa echiusa,35Fati conservati,1,10250750USDsu4;reviewparziale. Proposte per autoripetizioniPNG/ambiente e due difettiUI non ancora applicate. Nessuna sesta automatica.
 2. Dieci revisioni PNG senza vincoli di brevità: COMPOSITION_PENDING, non live; integrare versioni/media/binding e consumer, poi review pertinente. Fonte candidato/mission_factory_unified/NPC_NO_BREVITY_NATIVE_HANDOFF.md.
 3. Source74/Editor generale separati dal Human concluso; nessun PASS editoriale certifica integrazione o apertura.
 
@@ -314,6 +316,6 @@ Sharingan: ratifica esplicita Antonello ricevuta — osservazione automatica nel
 
 ## Prossimo passo
 
-C1266: Editorial60 installata per i futuri avvii, schedeV6/revisione6,31Fati conservati; quinta non avviata. Qualità nuova NOT_RUN. Attendere mandato prima del prossimo collaudo.
+C1266: quintaEconclusa echiusa,35Fati conservati,1,10250750USDsu4;reviewparziale. Proposte per autoripetizioniPNG/ambiente e due difettiUI non ancora applicate. Nessuna sesta automatica.
 
 La qualità narrativa si valuta sui casi completi realmente osservati. Note Centro e revisioni PNG sono delta editoriali separati, senza nuovi giudici stilistici o rigenerazioni esplorative. I casi Master Katon rimasti vanno nella Staff unica; Human concluso, Source74 e nuove missioni mantengono perimetri distinti.
