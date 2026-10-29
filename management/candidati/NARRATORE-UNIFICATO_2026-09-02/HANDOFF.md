@@ -10,4 +10,6 @@ Prove eseguite e risultato · C1266 Quinta61 · 29/10/2026: quinta E avviata22:4
 
 Rischi o regressioni da verificare · Lettura inizialeIAB aggiornata solo dopo rientro; toastRipresa nonconfermata stantio. Qualità parziale:autoripetizioniPNG,bilanci narratore,ambiente generico nei turni finali. CombatNOT_RUN.
 
+Deposito Quinta61 verificato · [a00077aa](https://github.com/antonello9311-design/theuntoldstory/commit/a00077aac4eaee976cc841e963cbf3f9350c7ab6), tree d23a0bdf61ef7141834ce56a161084a650fc7078; 11/11 blob riletti integralmente esatti. Nessun asset sito cambiato; corpus e role integrali conservati soltanto in locale.
+
 Passaggio richiesto al PM · Reviewumana del refertoC1266_FIFTH61_REPORT.md; proposte non applicate, nessuna sesta automatica.35Fati,costi,ricevute conservati.
