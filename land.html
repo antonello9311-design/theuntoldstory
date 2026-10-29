@@ -2116,7 +2116,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
 @media(max-width:860px){#room-view .h33-workspace{flex:0 0 auto;min-height:320px;max-height:50vh;}}
 @media(max-width:720px){.h33-workspace{padding:10px;margin:8px 0;max-height:180px;}.h33-head{align-items:flex-start;gap:6px;}.h33-tabs button{flex:1 1 auto;}.h33-workspace button{min-height:40px;}.h33-workspace textarea{font-size:16px;}}
 </style>
-<meta name="tus-mission-runtime" content="C1266-NARRATIVE56-UI2">
+<meta name="tus-mission-runtime" content="C1266-EDITORIAL57-UI1">
 </head>
 <body>
   <div class="stage" id="stage">
@@ -6320,9 +6320,9 @@ window.TUSOrdinary={attachOrdinaryLand};
       }
       async function landReadDomain(d){
         if(d==='catalog'){var actor=myId,key=landReadKey();LAND_PROFILE_KNOWN=false;landConfigureTimers();await landPolicyRead();if(key!==landReadKey()||document.hidden)return false;var own=await sb.from('profiles').select('role').eq('id',actor).maybeSingle();if(key!==landReadKey()||document.hidden)return false;if(own.error||!own.data)throw Error('profile_read');landApplyStaffRole(own.data.role);landConfigureTimers();if(!landEventReadMode())return;NOMI_LOADED=false;EMBLEMS_LOADED=false;dmCharsLoaded=false;MV2.setup=null;if(!cur)await loadLuoghi();if(key!==landReadKey()||document.hidden)return false;if(ROOM_OBJECT_BINDING_HINT)await ROOM_OBJECT_BINDING_HINT();return;}
-        if(d==='chat'){if(roomEntryStaffScope()&&!missionLegacyScenePollingAllowed())await missionGenericRoomRefresh({hintRead:true});await Promise.all([loadMsgs(),loadWho()]);if(cur&&!cur.is_test)await loadRoleState();return;}
+        if(d==='chat'){var narrativeRead;if(roomEntryStaffScope()&&!missionLegacyScenePollingAllowed()){narrativeRead=await missionGenericRoomRefresh({hintRead:true,readChat:true});if(missionNarrativeRoomKnown()&&!missionAutomaticCombatAllowed()){await loadWho();return narrativeRead;}}await Promise.all([loadMsgs(),loadWho()]);if(cur&&!cur.is_test)await loadRoleState();return;}
         if(d==='presence'){await loadWho();if(!cur||panelOpen)await loadRoster();if(panelOpen&&document.getElementById('ovp-act')?.open)await loadActivity();return;}
-        if(d==='scene'){var roomRead=missionGenericRoomRefresh({hintRead:true});await roomRead;if(!missionAutomaticCombatAllowed())return;await Promise.all([loadMasterV2Staff(false,roomRead,{hintRead:true}),loadCombat()]);ordinaryRefresh();if(ORDINARY)await ORDINARY.refresh();return;}
+        if(d==='scene'){var roomRead=missionGenericRoomRefresh({hintRead:true}),roomReadResult=await roomRead;if(!missionAutomaticCombatAllowed())return roomReadResult;await Promise.all([loadMasterV2Staff(false,roomRead,{hintRead:true}),loadCombat()]);ordinaryRefresh();if(ORDINARY)await ORDINARY.refresh();return;}
         if(d==='mail'){await loadUnread();if(mailPanelOpen){await loadConversations();if(MAIL_THREAD_OPEN)return loadThread({hintRead:true});}return;}
         if(d==='news'){await loadFlash();return;}if(d==='calendar')return calLoad({hintRead:true});
         if(d==='role_archive'){if(cur)await loadRoleState();if(recOvAperto())await loadRoleDaSalvare(true);return;}if(d==='character'){var result=await refreshMyVita(false,{hintRead:true});if(result===false)return false;await loadMyCompanion();return;}
@@ -15100,7 +15100,7 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
           close();closeMiss();loadMsgs();loadMasterV2();ordinaryRefresh();
         }});await panel.open(target.episode);if(!same())close();}catch(e){if(same())host.textContent='Quest non disponibile per questo accesso. Riapri il pannello per rileggere lo stato.';else close();}
       }
-      var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null,missionGenericChatKey=null;
+      var MISSION_GENERIC_UI=null,MISSION_GENERIC_LOAD=null,missionGenericChatKey=null,MISSION_GENERIC_CHAT_READ=null;
       function missionNarrativeRoomKnown(){try{return !!(MISSION_GENERIC_UI&&MISSION_GENERIC_UI.isNarrativeRoom());}catch(e){return false;}}
       function missionAutomaticCombatAllowed(){
         if(!roomEntryStaffScope())return true;
@@ -15119,7 +15119,7 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       }
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=narrative56-b65355054712acf6').then(function(mod){
+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=editorial57-1e284aba66ce9560').then(function(mod){
           MISSION_GENERIC_UI=mod.createMissionUI({client:sb,isEventReadMode:landPureReadMode,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             openCombat:async function(){var room=cur&&cur.id,principal=commonMasterPrincipal();await loadMasterV2(true);if(!cur||cur.id!==room||commonMasterPrincipal()!==principal)return;ordinaryRefresh(true);if(ORDINARY&&ordinaryPanelMode==='common')return ORDINARY.open('ordinary');else toast('Pannello Scontro non disponibile in questa scena.');},
@@ -15128,14 +15128,40 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
         }).catch(function(e){MISSION_GENERIC_LOAD=null;throw e;});
         return MISSION_GENERIC_LOAD;
       }
+      // One requested Narrative publication read waits for an older chat read to settle.
+      // The cursor advances only after the requested publication has actually rendered.
+      function missionNarrativePublicationRead(ui,publication,key){
+        var scope=backgroundReadScope({}),ticketKey=JSON.stringify([scope,key]),prior=MISSION_GENERIC_CHAT_READ;
+        if(prior&&prior.key===ticketKey)return prior.promise;
+        var ticket={key:ticketKey,scope:scope,promise:null};
+        function current(){var next=ui.chatPublication();return backgroundReadScope({})===scope&&roomEntryConfirmed()&&(next?JSON.stringify(next):null)===key;}
+        ticket.promise=Promise.resolve(prior&&prior.scope===scope&&prior.promise).catch(function(){return false;}).then(async function(){
+          if(!current())return false;
+          var slot=BACKGROUND_READS&&BACKGROUND_READS.staff_messages;
+          if(slot&&slot.pending){
+            var pendingScope=JSON.parse(slot.key),requestedScope=JSON.parse(scope);pendingScope.pop();requestedScope.pop();
+            if(JSON.stringify(pendingScope)!==JSON.stringify(requestedScope))return false;
+            await slot.pending;
+          }
+          if(!current())return false;
+          var ok=await loadMsgs(publication&&publication.publication||undefined);
+          if(ok!==true||!current())return false;
+          missionGenericChatKey=key;return true;
+        }).finally(function(){if(MISSION_GENERIC_CHAT_READ===ticket)MISSION_GENERIC_CHAT_READ=null;});
+        MISSION_GENERIC_CHAT_READ=ticket;return ticket.promise;
+      }
       function missionGenericRoomRefresh(options){options=options||{};if(!loggedIn||!sb||!cur||!roomEntryConfirmed()||(cur.is_exam_room&&!cur.is_test))return;
         var host=document.getElementById('mission-generic-room');
         return missionGenericUI().then(async function(ui){
           await ui.updateRoom(host,{hintRead:options.hintRead===true});
           if(!ui.legacyScenePollingAllowed()&&poll){clearInterval(poll);poll=null;}
           var publication=ui.chatPublication(),key=publication?JSON.stringify(publication):null;
+          if(ui.isNarrativeRoom()&&!ui.automaticCombatReadAllowed()){
+            if(key!==missionGenericChatKey||options.readChat===true)return missionNarrativePublicationRead(ui,publication,key);
+            return true;
+          }
           if(key!==missionGenericChatKey){missionGenericChatKey=key;loadMsgs();}
-        }).catch(function(){});
+        }).catch(function(){return false;});
       }
       var MISSION_ARENA_EDITOR=null;
       function missionArenaEditor(){

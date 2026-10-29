@@ -1,6 +1,6 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-d092961883b6fe3e';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-display-8cdf2250a8562d83';
-export const VERSION='mission-narrative56-ui/1-aggregate2';
+export const VERSION='mission-editorial57-ui/1';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -3184,14 +3184,15 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(roomCurrent(t))await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});
    });
   }catch{if(roomCurrent(t))notice('Ripresa non confermata. La stessa richiesta resta conservata; nessuna role reinviata.');}
-  finally{eventRecoveryBusy.delete(session);if(roomCurrent(t)&&roomState){paintRoom(host,roomState);paintServerEvent(host,roomState);}}
+  finally{eventRecoveryBusy.delete(session);if(roomCurrent(t)&&roomState){paintRoom(host,roomState);const n=narrativeSection(roomState);if(!n||n.mode==='combat')paintServerEvent(host,roomState);}}
  }
  function paintServerEvent(host,state){
   let row=host.querySelector('[data-mg-server-event]');const s=eventStatus(state),loc=currentLocation();
   if(!isStaff()||loc?.id!==STAFF_TEST_ROOM||loc.is_test!==true||!s){row?.remove();return;}
-  host.querySelector('[data-mg-tick-owner-status]')?.remove();if(!row){row=el('div',null,{'data-mg-server-event':''});host.append(row);}row.replaceChildren(el('p',s.state==='terminal'?'Richiesta conclusa dal server; la pubblicazione è attestata separatamente.':'Elaborazione gestita dal server: '+s.state+'.'));
+  host.querySelector('[data-mg-tick-owner-status]')?.remove();if(!row){row=el('div',null,{'data-mg-server-event':''});host.append(row);}const n=narrativeSection(state);row.replaceChildren(...(n&&n.mode!=='combat'?[]:[el('p',s.state==='terminal'?'Richiesta conclusa dal server; la pubblicazione è attestata separatamente.':'Elaborazione gestita dal server: '+s.state+'.')]));
   let pending=false;try{pending=eventRecoveryJournal(cacheUser,state.session_id,s.event_key).j.attempts.at(-1)?.status==='unknown';}catch{row.append(el('p','Richiesta locale non verificabile: storico conservato.'));return;}
   if(s.can_recover||pending){const b=button('Riprendi la stessa richiesta',()=>void recoverServerEvent(host));b.disabled=eventRecoveryBusy.has(state.session_id)||!!roomError||abortBlocked(state.session_id);row.append(b);}
+  if(!row.childNodes.length)row.remove();
  }
  function narrativeSection(state){
   if(!state||!Object.prototype.hasOwnProperty.call(state,'narrative_scene'))return null;
@@ -3295,11 +3296,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(!['prepared','open'].includes(receipt.status)||!receipt.can_open_panel||!UUID.test(receipt.encounter_id||''))throw Error('Apertura non confermata: richiesta conservata.');
    sessionStorage.removeItem(entryKey(t.user,session));narrativePanelIntents.delete(session);await updateRoom(host,{manual:true});if(roomCurrent(t))await openCombat();
   }catch(error){if(roomCurrent(t))notice(error?.message||'Apertura non confermata: verifica la stessa richiesta.');}
-  finally{narrativeCombatBusy.delete(session);if(roomCurrent(t)&&roomState){paintRoom(host,roomState);paintServerEvent(host,roomState);}}
+  finally{narrativeCombatBusy.delete(session);if(roomCurrent(t)&&roomState){paintRoom(host,roomState);const n=narrativeSection(roomState);if(!n||n.mode==='combat')paintServerEvent(host,roomState);}}
  }
  function paintNarrativeRoom(host,state){
-  const n=narrativeSection(state),event=eventStatus(state),surface=state.combat_surface;style();host.hidden=false;host.className='mg-room';host.setAttribute('data-mg-build','C1266-NARRATIVE56-001');
-  const status=n.mode==='closed'?'Missione conclusa.':n.mode==='combat_pending'?'Passaggio allo scontro in preparazione.':event&&['pending','running','waiting'].includes(event.state)?'Il Fato è in preparazione.':'In attesa delle azioni dei personaggi.';
+  const n=narrativeSection(state),event=eventStatus(state),surface=state.combat_surface;style();host.hidden=false;host.className='mg-room';host.setAttribute('data-mg-build','C1266-EDITORIAL57-UI1');
+  const playersCanWrite=state.role_submit_capability?.enabled===true;
+  const status=roomError||(n.mode==='closed'?'Missione conclusa.':n.mode==='combat_pending'?'Passaggio allo scontro in preparazione.':event?.state==='running'?'Il Fato è in elaborazione.':event?.state==='pending'?'Richiesta acquisita: il Fato è in attesa di elaborazione.':event?.state==='uncertain'?'Esito della richiesta da verificare. L’originale è conservato.':event?.state==='waiting'&&!playersCanWrite?'Richiesta in attesa del server.':'In attesa delle azioni dei personaggi.');
   host.replaceChildren(el('strong','Missione · '+state.objective),el('p',status,{role:'status','aria-live':'polite'}));
   if(n.last_publication_id)host.append(el('p','Il Fato pubblicato è disponibile nella chat.'));
   host.append(button('Aggiorna regia',()=>refreshRoomManually(host)));
@@ -3307,6 +3309,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   const combat=button('Scontro',()=>void openNarrativeCombat(host,state));combat.disabled=narrativeCombatBusy.has(state.session_id)||!surface.map_operational||!(surface.can_open||surface.can_prepare);
   if(!surface.map_operational)combat.title='La mappa dello scontro non è ancora operativa in questa fase.';host.append(combat);
   if(isStaff())host.append(button('Gestisci prova',()=>void mountAborts(host,state,syncRoom(host),{manual:true})));
+  paintServerEvent(host,state);
   paintStaffFinish(host,state);
  }
  async function submitNarrativeRole(state,user,loc,character,body){
@@ -3338,7 +3341,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    if(!state){manualRecoveryError=null;roomState=null;roomReadReady={scope:t.scope,epoch:t.epoch};roomSignature='';roomError='';host.replaceChildren();host.hidden=true;await mountAborts(host,null,t,{manual,hintRead});paintStaffFinish(host,null);return;}
     if(!UUID.test(state.session_id||'')||typeof state.step_key!=='string')throw Error('room_state_invalid');
     const narrative=narrativeSection(state);
-    if(narrative&&narrative.mode!=='combat'){eventStatus(state);roomState=state;roomReadReady={scope:t.scope,epoch:t.epoch};roomError='';paintRoom(host,state);paintServerEvent(host,state);return;}
+    if(narrative&&narrative.mode!=='combat'){eventStatus(state);roomState=state;roomReadReady={scope:t.scope,epoch:t.epoch};roomError='';paintRoom(host,state);return;}
     eventStatus(state);
     academyFlow(state); // The server owns both the phase and the Fato publication receipt.
     roleProgress(state); // A partial reason/remedy projection cannot authorize a dispatch.
