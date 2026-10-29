@@ -10,4 +10,4 @@ Prove eseguite e risultato · Review indipendente sorgenti/materiale0/0/0; Node/
 
 Rischi o regressioni da verificare · Efficacia narrativa da giocare quando autorizzato. Errore di confezionamento Edge116 sostituito da117 dopo29s,0provider durante intervallo; storico conservato. Nessuna nuova prova qui.
 
-Passaggio richiesto al PM · Consegna correzioni installate; attendere mandato per C. Deposito selettivo Git PENDING. Fonti C1266_EDITORIAL54_* e referto C1266_EDITORIAL_REVIEW.md.
+Passaggio richiesto al PM · Consegna correzioni installate; attendere mandato per C. Deposito selettivo Git9f4ec2f17e02578957991bd9a7c5c72975ab2112 verificato13/13blobSHA; nessun asset sito modificato. Fonti C1266_EDITORIAL54_* e referto C1266_EDITORIAL_REVIEW.md.
