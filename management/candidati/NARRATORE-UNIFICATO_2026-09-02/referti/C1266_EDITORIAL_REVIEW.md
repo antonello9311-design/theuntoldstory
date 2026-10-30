@@ -1,4 +1,8 @@
-# Review comparata A/B/C/D/E/F e prove editoriali E65
+# Review comparata A/B/C/D/E/F e campioni editoriali E65/E66
+
+E66 · 30/10/2026: trecampioni della stessa finestraNative conDirectorNUOVO eWriterNUOVO collegati,6stagecomplete1shot/0blocchi/0retry. Non è unanuovamissione né3contesti. PGcease×2/PNGaccept×2 coerenti,nessunacopiaPGestesa,ambienteevociancoraparziali. E66chiusa0pending;totale182HTTP/1.55692060USDsu4,43Fati eE65interamenteconservati. [RefertoE66](C1266_EDITORIAL66_REPORT.md).
+
+ConfrontoE65precedente conservato:
 
 E65 · 30/10/2026: tre anteprime Writer Staff concluse su input storici congelati; non è una settima missione. Due baseline contemporanee riuscite, una failed preprovider senza testo, tre canary completed. Copie PG estese assenti nei cinque testi, ma ambiente e sviluppo restano deboli: EDITORIAL_PARTIAL_NOT_PASSED. Nessun Fato delle sei missioni modificato. Campagna anteprime chiusa,0pending; totale170HTTP/1,41130840USD su4, riserve comprese. Small invariato. [Referto e proposte E65](C1266_EDITORIAL65_REPORT.md).
 

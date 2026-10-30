@@ -23,7 +23,9 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
-C1266 Editorial65 · 30/10/2026: analisi input reali Director/Writer e proiezioni editoriali /7 installate nella sola Staff. Tre canary completati al primo tentativo di generazione, più due baseline riuscite; baseline1 failed preprovider conservato. Risposte PG non ricopiate estesamente nei campioni, ma qualità EDITORIAL_PARTIAL_NOT_PASSED: autoripetizioni PNG, ambiente marginale e avanzamento Native debole. Nessuna missione rigiocata o modifica ai43Fati precedenti, work/role/scene/sessioni/datiPG e vecchio ledger. Campagna editoriale chiusa enabled=false,0pending, risultati leggibili. Root380c0cc56f9e259a81c27bbd22f4140cbd70ca3a0d892b651edf265e1c59f645 / Edge130 / UIcommit3020835c1c07dcf00929716d79db25dbf0a34797 / Pages41120023887SUCCESS;245header/8ABI esatti, reviewsource/materiale8 e chiusura0/0/0. Nuovi10HTTP/0,12395200USD prudenti (Count0,11 di riserve conservate), totale170HTTP/1,41130840USD su4. Small invariato. Sesta narrativa e Combat già conclusi; finish amministrativo history_unreconciled resta OPEN e intatto. Nessuna apertura pubblica o qualifica di nuove decisioni Director/percorso missione completo. Referto: management/candidati/NARRATORE-UNIFICATO_2026-09-02/referti/C1266_EDITORIAL65_REPORT.md.
+C1266 Editorial66 · 30/10/2026: tre campioni indipendenti della STESSA finestraNativepeaceful, con3nuoviDirector→3nuoviWriter collegati ecompletati alprimotentativo;0blocchi/0retry. Qualifica tecnica PASS_THREE_PRIVATE_NATIVE_PAIRS_FIRST_ATTEMPT, editoriale PARTIAL_NOT_PASSED: zero copiePGestese nei campioni, consenso/custodia coerenti, ambiente e voci ancora poco profondi. Nessunmissionreplay oFato modificato;43Fati/6vecchiescope/E65seiRun eledger interamente preservati. E66chiusaenabledfalse/0pending, esiti Staffleggibili. Roote54fb7cf055ff0d5a41948218f52b3db5e4622314b037e9b001f8ef8fabdb176/246header/10ABI0drift, Edge131/16fileesatti, UI18796352e90b59a79e354001c9ed3cfa2475aba0/Pages41125227156SUCCESS; source/material9 echiusura0/0/0, nessunresetreview1–8. Nuovi12HTTP/0,14561220USD prudenti, totale182HTTP/1,55692060USDsu4 con riserveCount conservate. Small invariato; nessunpubblicoenable. Nonqualificati3contesti, nuove domande/Director4generale/missionecompleta; finishamministrativo history_unreconciled precedente restaOPEN. Referto: management/candidati/NARRATORE-UNIFICATO_2026-09-02/referti/C1266_EDITORIAL66_REPORT.md.
+
+Migrazione E66 c1266_editorial66_paired_director_writer_staff applicata:5corpi esistenti+1helper puro nuovo service-only/GRANTesplicito, nessunatabella ocolonna nuova, unCHECKvariant esteso director|writer sotto policy/2nominata. Fonti/DTOeditorialeWriter e chainreceipt private nuove, RPCstessefirme e/1E65 preservata; corefinanziari3/pubblicazione immutati. Chiusura: unicoUPDATEE66enabledfalse con preservazione totale;Rootrestae54. INSTALL eRELEASE_CHAIN sono audit dei rilasci, non nuovi permessi di apply.
 
 Migrazioni E65 applicate e attestate: c1266_editorial65_namespace_safe_staff_comparison (schema/8funzioni/245header), c1266_editorial65_safe_build_diagnostic_identity (soloRoot6), c1266_editorial65_decimal_safe_source_identity (soloRoot7), c1266_editorial65_canary_input_projection_identity (soloRoot8). Chiusura successiva: unicoUPDATEcampagna.enabled=false sotto lock/CAS con preservazione totale; nessun cambioRoot o meccaniche. Sorgenti e review integrali in C1266_EDITORIAL65_RELEASE_CHAIN.json; disponibilità pubblica non abilitata.
 
@@ -516,7 +518,7 @@ I checkpoint precedenti mantengono data, versione e limiti. Le loro istruzioni d
 
 ## Lavori aperti — in ordine
 
-C1266 Editorial65: consegna completata; prima di altre prove decidere il delta generale su nuove decisioni del producer, memoria come stato e continuità delle attività del luogo. Non avviare altre missioni, rigenerazioni o correzioni per selezionare un esito. Qualità editoriale parziale; finish amministrativo precedente resta separato.
+C1266 Editorial66: mandato delle3coppie completato, nessunaulterioregenerazione. Review su memoria come stato acquisito, realizzazione del seguito e relazione fra attività del luogo e dialogo; eventuale prossima prova deve riguardare una domanda nuova pertinente, non rigenerare questa cessazione. Qualità parziale, nienteapertura pubblica oqualifica globale.
 
 - HUMAN-LAND-INTEGRATION: media/backend eAdmin installati/pubblicati; recovery postflightcast inreview dopo rollback. Stessa bozzaCV4 conservata; coppie/QA FatoCombat2puntate NOT_RUN.
 
@@ -565,7 +567,7 @@ FingerprintconOID non portabile; arraySQL segmentato ≠ statementSHA; source_he
 
 ## Prossimo passo
 
-C1266 Editorial65: consegna completata; prima di altre prove decidere il delta generale su nuove decisioni del producer, memoria come stato e continuità delle attività del luogo. Non avviare altre missioni, rigenerazioni o correzioni per selezionare un esito. Qualità editoriale parziale; finish amministrativo precedente resta separato.
+C1266 Editorial66: mandato delle3coppie completato, nessunaulterioregenerazione. Review su memoria come stato acquisito, realizzazione del seguito e relazione fra attività del luogo e dialogo; eventuale prossima prova deve riguardare una domanda nuova pertinente, non rigenerare questa cessazione. Qualità parziale, nienteapertura pubblica oqualifica globale.
 
 HUMAN-LAND-INTEGRATION: completare media PNG canonici e contratto recovery; nuova campagna Staff pertinente dichiarata, stessa bozza/key senza reset; save/importHuman/C463optin/Fato/Combat/successore/secondapuntata restano da provare.
 
