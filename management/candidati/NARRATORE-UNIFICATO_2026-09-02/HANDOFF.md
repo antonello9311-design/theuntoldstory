@@ -10,4 +10,6 @@ Prove eseguite e risultato · C1266 Sesta63 · 30/10/2026: sesta F avviata07:23:
 
 Rischi o regressioni da verificare · Difesa PNG, risoluzione server, Fato Combat, ritorno alla narrazione e chiusura della stessa missione NOT_RUN. La buona lettura dei tre Fati nuovi non qualifica il recupero concorrente né l'ingresso Combat. Il campione editoriale è incompleto. Permessi, isolamento, budget e storico restano invarianti.
 
+Deposito verificato · C1266 Sesta63 · Deposito checkpoint: commit fe1a34547f469fa096a816dae8b7ed18c5b41ae1, tree 1dc395fc14f488efd2ae6a71e43819303136377a;10/10blob interi riletti esatti, soli documenti/referti/evidenze sanitizzate. Nessun asset sito, SQL o Edge modificato. Sesta aperta con3Fati e blocco Combat pre-provider,38Fati totali conservati,141HTTP/1,14547460USD su4; ritorno/conclusione NOT_RUN. Corpus e screenshot integrali restano privati.
+
 Passaggio richiesto al PM · Approvare il piano correttivo del referto C1266_SIXTH63_REPORT.md, poi candidata integrata e review indipendente pertinente 0/0/0 prima dell'installazione Staff; recuperare evento107 e completare la stessa missione nel budget monetario residuo, senza riavvio o rigenerazione. Conservare tutti38Fati. Finestra corrente: stop nuovi provider08:45UTC e chiusura08:51UTC del30/10; nessuna estensione implicita.
