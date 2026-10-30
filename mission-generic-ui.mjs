@@ -1,6 +1,6 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-d092961883b6fe3e';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-display-8cdf2250a8562d83';
-export const VERSION='mission-combat64-ui/2';
+export const VERSION='mission-combat64-ui/3';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -3248,11 +3248,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  function paintServerEvent(host,state){
   let row=host.querySelector('[data-mg-server-event]');const s=eventStatus(state),loc=currentLocation();
-  if(!isStaff()||loc?.id!==STAFF_TEST_ROOM||loc.is_test!==true||!s){row?.remove();return;}
-  host.querySelector('[data-mg-tick-owner-status]')?.remove();if(!row){row=el('div',null,{'data-mg-server-event':''});host.append(row);}const n=narrativeSection(state),recovery=combatNarrationRecovery(state);
+  if(!isStaff()||loc?.id!==STAFF_TEST_ROOM||loc.is_test!==true){row?.remove();return;}
+  const recovery=combatNarrationRecovery(state);
   const nativeReissue=recovery?.schema_version==='mission-combat-narration-recovery/2'&&recovery.owned_by_me&&recovery.can_reissue;
+  if(!s&&!nativeReissue){row?.remove();return;}
+  host.querySelector('[data-mg-tick-owner-status]')?.remove();if(!row){row=el('div',null,{'data-mg-server-event':''});host.append(row);}const n=narrativeSection(state);
   row.replaceChildren(...(nativeReissue?[el('p','Il Fato dello scontro richiede recupero; azioni ed esito meccanico sono conservati.')]:n&&n.mode!=='combat'?[]:[el('p',s.state==='terminal'?'Richiesta conclusa dal server; la pubblicazione è attestata separatamente.':'Elaborazione gestita dal server: '+s.state+'.')]));
   if(nativeReissue){const b=button('Recupera lo stesso Fato dello scontro',()=>staffRecoverCombatNarration(host,false));b.setAttribute('data-mg-native-combat-writer-recovery','');b.disabled=!!roomError||!!staffRoleRecovery||!!staffResumeRead||eventRecoveryBusy.has(state.session_id)||liveAttempt(state)||abortBlocked(state.session_id);row.append(b);}
+  if(!s)return; // Native reissue proof is authoritative even when no resumable event is projected.
   let pending=false;try{pending=eventRecoveryJournal(cacheUser,state.session_id,s.event_key).j.attempts.at(-1)?.status==='unknown';}catch{row.append(el('p','Richiesta locale non verificabile: storico conservato.'));return;}
   if(!nativeReissue&&(s.can_recover||pending)){const b=button('Riprendi la stessa richiesta',()=>void recoverServerEvent(host));b.disabled=eventRecoveryBusy.has(state.session_id)||staffRoleRecovery?.session===state.session_id||!!roomError||abortBlocked(state.session_id);row.append(b);}
   if(!row.childNodes.length)row.remove();
