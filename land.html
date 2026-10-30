@@ -2116,7 +2116,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
 @media(max-width:860px){#room-view .h33-workspace{flex:0 0 auto;min-height:320px;max-height:50vh;}}
 @media(max-width:720px){.h33-workspace{padding:10px;margin:8px 0;max-height:180px;}.h33-head{align-items:flex-start;gap:6px;}.h33-tabs button{flex:1 1 auto;}.h33-workspace button{min-height:40px;}.h33-workspace textarea{font-size:16px;}}
 </style>
-<meta name="tus-mission-runtime" content="C1266-COMBAT64-UI3">
+<meta name="tus-mission-runtime" content="C1266-COMBAT64-UI5">
 </head>
 <body>
   <div class="stage" id="stage">
@@ -3388,7 +3388,15 @@ function validatePanelEnvelope(raw,{state=false}={}){
   insist(e.schema_version==='combat-panel/1'&&['ready','blocked'].includes(e.status)&&nullable(e.reason_code,str)&&Array.isArray(e.actors)&&Array.isArray(e.offers));
   const v=e.viewer;shape(v,['command_actor_id','controlled_actors','is_master','is_admin','can_command']);insist(nullable(v.command_actor_id,isId)&&Array.isArray(v.controlled_actors)&&bool(v.is_master)&&bool(v.is_admin)&&bool(v.can_command));
   for(const a of v.controlled_actors){shape(a,['actor_id','label']);insist(isId(a.actor_id)&&name(a.label));}unique(v.controlled_actors,'actor_id');
-  if(e.status==='blocked'){insist(e.context===null&&!v.can_command&&v.command_actor_id===null&&v.controlled_actors.length===0&&e.actors.length===0&&e.offers.length===0&&['map','movement_explanations','companion','sabaku_transport','aburame_colony','multiplication','narrative','receipt','round_details'].every(k=>e[k]===null));return e;}
+  if(e.status==='blocked'){
+    insist(e.context===null&&!v.can_command&&v.command_actor_id===null&&v.controlled_actors.length===0&&e.actors.length===0&&e.offers.length===0&&['map','movement_explanations','companion','sabaku_transport','aburame_colony','multiplication','narrative','round_details'].every(k=>e[k]===null));
+    if(e.receipt!==null){
+      insist(!state&&e.reason_code==='REGIA_FATO_PENDING');receipt(e.receipt);const r=e.receipt;
+      insist(r.operation==='declare'&&isId(r.activity_id)&&isId(r.round_id)&&isId(r.declaration_id)&&r.report_id===null&&r.values_written===false
+        &&r.context_version_after>=r.context_version_before&&r.display_events.length===1&&r.display_events[0].event_kind==='action_declared');
+    }
+    return e;
+  }
   const c=e.context;shape(c,['activity_id','activity_kind','location_id','round_id','round_no','phase','phase_label','version','scene_version','policy_id','simulated']);
   insist(nullable(c.activity_id,isId)&&nullable(c.activity_kind,x=>['ordinary_v2','master_v2'].includes(x))&&isId(c.location_id)&&nullable(c.round_id,isId)&&nullable(c.round_no,int)&&['setup','action','defense','review','resolving','resolved','suspended','closed'].includes(c.phase)&&name(c.phase_label)&&int(c.version)&&nullable(c.scene_version,int)&&name(c.policy_id)&&bool(c.simulated));
   insist(c.phase==='setup'||isId(c.activity_id)&&c.activity_kind!==null);
@@ -3611,6 +3619,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
         return null;
       }
       const e=validatePanelEnvelope(raw),r=e.receipt;insist(r?.request_key===command.request_key,'receipt_mismatch');
+      if(e.status==='blocked')insist(e.reason_code==='REGIA_FATO_PENDING'&&r.activity_id===command.activity_id&&r.context_version_before===command.context_version,'receipt_scope_mismatch');
       apply(e,true);pending=null;rejection=null;lastCommand={status:'confirmed',request_key:command.request_key,message:'Richiesta confermata dal server.',receipt:structuredClone(r)};interactionError=null;refreshRequired=false;narrativeText='';narrativeContext=null;companionContext=null;resetChoices();return structuredClone(r);
     }catch(e){if(current(ticket,key)){lastCommand={status:'uncertain',request_key:command.request_key,message:'Esito incerto. Verifica lo stesso invio senza crearne un secondo.'};rejection=null;error=null;interactionError=null;optionsReady=false;}return null;}
     finally{if(current(ticket,key)){busy=false;notify();}}
@@ -3913,7 +3922,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
       note(root,'Stato del pannello non disponibile.');button(toolbar,'Aggiorna',handler(ticket,readState),model?.busy===true);if(model?.pending===true)button(toolbar,'Verifica lo stesso invio',handler(ticket,retry),model.busy===true);return;
     }
     if(e.status==='blocked'){
-      note(root,'Scontro non disponibile nel contesto corrente.');button(toolbar,'Aggiorna',handler(ticket,readState),model.busy===true);if(model.pending===true)button(toolbar,'Verifica lo stesso invio',handler(ticket,retry),model.busy===true);return;
+      note(root,e.reason_code==='REGIA_FATO_PENDING'?'Fato in elaborazione. Lo stato dello scontro sarà disponibile dopo la pubblicazione.':'Scontro non disponibile nel contesto corrente.');button(toolbar,'Aggiorna',handler(ticket,readState),model.busy===true);if(model.pending===true)button(toolbar,'Verifica lo stesso invio',handler(ticket,retry),model.busy===true);return;
     }
     const c=e.context,v=e.viewer;
     if(!c||!integer(c.version)||!v||!Array.isArray(v.controlled_actors)||!Array.isArray(e.actors)||!Array.isArray(e.offers)){
