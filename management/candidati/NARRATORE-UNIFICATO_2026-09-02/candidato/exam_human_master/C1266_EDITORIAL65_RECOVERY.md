@@ -1,0 +1,9 @@
+# E65 — recupero e confini della consegna
+
+Campagna editoriale 3b320588-6305-57b0-9f3d-5e42a813a803 chiusa con enabled=false. Sei slot conservati: baseline1 failed prima di qualunque HTTP; altri cinque completed. Nessun retry editoriale, reset, DELETE o riavvio missione. Le letture owner-bound di esiti e ricevute restano disponibili nella Staff tramite normali credenziali. Il gesto Leggi non genera output nuovo.
+
+La versione integrata attuale è Root380c0cc56f9e259a81c27bbd22f4140cbd70ca3a0d892b651edf265e1c59f645, Edge130/EZBR1c006cbc37e275d232784e0c39efde64e2a537f5ff74d50dc727d8681348a7b7, commitUI3020835c1c07dcf00929716d79db25dbf0a34797. C1266_EDITORIAL65_INSTALL.sql è il CAS Root-only finale8, non l'installer DDL iniziale. C1266_EDITORIAL65_RELEASE_CHAIN.json conserva SQL iniziale5, SQL finale8, identità/review intermedie e chiusura; è audit dei rilasci, non un comando da rigiocare sul database vivo. Ricomporre sempre un delta minimo dopo baseline e owner attuali; nessuna reinstallazione di vecchi corpi, pin-only o reset del failed.
+
+Count5 unknown_billable conserva riserve0.11000000USD. Generation5 settled0.01395200USD. Non azzerare le riserve per rendere verde la contabilità. Nessuna operazione pendente; chiusura e letture non richiedono altre chiamate provider. La vecchia sesta conserva missione narrativa conclusa e Combat chiuso; master amministrativo history_unreconciled è un limite precedente e non è stato toccato.
+
+Prompt e proiezioni E65 restano riservati ai rami Staff qualificati. Nessun enable pubblico, modifica alle meccaniche, schede o fasi frozen già pubblicate. Director esistente congelato nelle tre comparazioni Writer; nuova decisione Director, missione completa e stabilità statistica non qualificate da questi test. Un esito breve o debole resta conservato, senza rigenerazione per selezionare un verde.

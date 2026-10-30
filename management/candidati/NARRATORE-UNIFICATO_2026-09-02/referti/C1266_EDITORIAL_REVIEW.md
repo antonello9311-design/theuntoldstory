@@ -1,10 +1,8 @@
-# Review comparata A/B/C/D/E/F della Regia IA
+# Review comparata A/B/C/D/E/F e prove editoriali E65
 
-C1266 Combat64 · checkpoint28 del 30/10/2026: **narrazione della stessa missione conclusa**, Combat chiuso, scena closed/run conclusa/cache v7. F5 pubblicato18:36:08.553099UTC (`9822087d-ef6c-4a18-9271-2ad6e6762306`), con uscita pacifica e fase4; F6 finale pubblicato18:37:32.77421UTC (`ab810c37-d93e-4eaa-bc58-7ae74cea7a8a`), letto nei due browser dal Root. Root28 c629 / Edge126 / UI7, commit `284d492b99c4f92085df664128a21e70ce3d69c8`, Pages41107482065 SUCCESS. Small e riserva Staff conservati.
+E65 · 30/10/2026: tre anteprime Writer Staff concluse su input storici congelati; non è una settima missione. Due baseline contemporanee riuscite, una failed preprovider senza testo, tre canary completed. Copie PG estese assenti nei cinque testi, ma ambiente e sviluppo restano deboli: EDITORIAL_PARTIAL_NOT_PASSED. Nessun Fato delle sei missioni modificato. Campagna anteprime chiusa,0pending; totale170HTTP/1,41130840USD su4, riserve comprese. Small invariato. [Referto e proposte E65](C1266_EDITORIAL65_REPORT.md).
 
-La chiusura amministrativa è ancora **OPEN**: lavoro legacy34 e sei righe di history retention impediscono il finish; candidata29 DB in preparazione, non installata a questo checkpoint. Non confondere missione narrativa conclusa e liberazione amministrativa della Staff.
-
-Totale prudente: **160 HTTP / 1,28735640 USD su4 USD**. Fati, azioni accettate, work, audit e riserve sono conservati, senza azzeramenti. Qualità editoriale **NOT_PASSED**, percorso non pulito al primo tentativo: F3/F4 restano difettosi; F5/F6 migliorano risposta e avanzamento ma hanno autoripetizioni PNG, richiamo semantico PG e ambiente poco profondo. Nessuna rigenerazione editoriale o apertura pubblica.
+La sesta conserva narrativa conclusa e Combat chiuso; il finish amministrativo history_unreconciled resta OPEN e fuori scope E65. I checkpoint e confronti che seguono sono evidenze storiche delle sei missioni, non nuovi comandi di recupero.
 
 La sesta F conserva F0–F2, il primo ingresso Combat, le azioni accettate e i referti tecnici dei blocchi. F3 (`d623f7ef-4cf7-4f37-b370-dc7323746e29`) pubblica il report1; F4 (`600e281e-323e-4702-beaa-5daac5f273ac`, work `bbac2a58`, report2 `c40c2f8c`) risulta completato e apre automaticamente il round3 secondo il checkpoint del Root. Un nuovo round non equivale a un avanzamento narrativo o alla conclusione della quest. [Referto della sesta](C1266_SIXTH63_REPORT.md). F5 (`9822087d-ef6c-4a18-9271-2ad6e6762306`), pubblicato alle 18:36:08.553099 UTC, attesta ora encounter chiuso e passaggio a fase_4; il round3 aperto dopo F4 è un checkpoint precedente, non lo stato attuale.
 

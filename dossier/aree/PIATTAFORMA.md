@@ -23,11 +23,9 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
-C1266 Combat64 · checkpoint28 del 30/10/2026: **narrazione della stessa missione conclusa**, Combat chiuso, scena closed/run conclusa/cache v7. F5 pubblicato18:36:08.553099UTC (`9822087d-ef6c-4a18-9271-2ad6e6762306`), con uscita pacifica e fase4; F6 finale pubblicato18:37:32.77421UTC (`ab810c37-d93e-4eaa-bc58-7ae74cea7a8a`), letto nei due browser dal Root. Root30 86f9cc2af1d4c8b6cfb8fe3301dfa7b6f3bea30cafe29de187469b2578f730fb / Edge126 / UI7;240header esatti, source/material30 0/0/0.29 rollback23514audit,30 corregge due literal uppercase senza allentareCHECK. Preparazione34 ritirata failed con audit,0pendingwork. Missione e Combat conclusi, finish amministrativo ancora OPEN history_unreconciled.160HTTP/1,28735640USD su4., commit `284d492b99c4f92085df664128a21e70ce3d69c8`, Pages41107482065 SUCCESS. Small e riserva Staff conservati.
+C1266 Editorial65 · 30/10/2026: analisi input reali Director/Writer e proiezioni editoriali /7 installate nella sola Staff. Tre canary completati al primo tentativo di generazione, più due baseline riuscite; baseline1 failed preprovider conservato. Risposte PG non ricopiate estesamente nei campioni, ma qualità EDITORIAL_PARTIAL_NOT_PASSED: autoripetizioni PNG, ambiente marginale e avanzamento Native debole. Nessuna missione rigiocata o modifica ai43Fati precedenti, work/role/scene/sessioni/datiPG e vecchio ledger. Campagna editoriale chiusa enabled=false,0pending, risultati leggibili. Root380c0cc56f9e259a81c27bbd22f4140cbd70ca3a0d892b651edf265e1c59f645 / Edge130 / UIcommit3020835c1c07dcf00929716d79db25dbf0a34797 / Pages41120023887SUCCESS;245header/8ABI esatti, reviewsource/materiale8 e chiusura0/0/0. Nuovi10HTTP/0,12395200USD prudenti (Count0,11 di riserve conservate), totale170HTTP/1,41130840USD su4. Small invariato. Sesta narrativa e Combat già conclusi; finish amministrativo history_unreconciled resta OPEN e intatto. Nessuna apertura pubblica o qualifica di nuove decisioni Director/percorso missione completo. Referto: management/candidati/NARRATORE-UNIFICATO_2026-09-02/referti/C1266_EDITORIAL65_REPORT.md.
 
-La chiusura amministrativa è ancora **OPEN**: preparazione34 ritirata dalla30; il controllo storico impedisce ancora il finish (history_unreconciled). Non confondere missione narrativa conclusa e liberazione amministrativa della Staff.
-
-Totale prudente: **160 HTTP / 1,28735640 USD su4 USD**. Fati, azioni accettate, work, audit e riserve sono conservati, senza azzeramenti. Qualità editoriale **NOT_PASSED**, percorso non pulito al primo tentativo: F3/F4 restano difettosi; F5/F6 migliorano risposta e avanzamento ma hanno autoripetizioni PNG, richiamo semantico PG e ambiente poco profondo. Nessuna rigenerazione editoriale o apertura pubblica.
+Migrazioni E65 applicate e attestate: c1266_editorial65_namespace_safe_staff_comparison (schema/8funzioni/245header), c1266_editorial65_safe_build_diagnostic_identity (soloRoot6), c1266_editorial65_decimal_safe_source_identity (soloRoot7), c1266_editorial65_canary_input_projection_identity (soloRoot8). Chiusura successiva: unicoUPDATEcampagna.enabled=false sotto lock/CAS con preservazione totale; nessun cambioRoot o meccaniche. Sorgenti e review integrali in C1266_EDITORIAL65_RELEASE_CHAIN.json; disponibilità pubblica non abilitata.
 
 Checkpoint precedente conservato: C1266 Combat64 · 30/10/2026: aggregata28 installata Staff migrazione20261030183327. Rootc6293b85e1365c6eccdb6d3c78d4476db6292ef4bef6c5fcdca3dcac88c2a28a,239header/4ABI esatti; Edge126/EZBR64ce0738fa3b74d790f4fab4742918d83ac991a5d31e4846fffa548641065062/14fileesatti, UI7commit284d492b99c4f92085df664128a21e70ce3d69c8/Pages41107482065SUCCESS, dominiobuildChromeosservato. Source28/material0/0/0; schema27rifiutatoCount400TYPE_MISSING,Gen0,Countunknown.0124conservato.3tipistringa aggiunti,4deltaSQLCountNative/unicofigliotecnico;0helper/CHECK/ACL nuovi28. StessasestaF4eazioniconservate,recuperoattivo; finaleNONattestato,4USDtotali/60minscadono18:57:41UTC stopprovider18:47:41. Smallinvariato.
 
@@ -518,7 +516,7 @@ I checkpoint precedenti mantengono data, versione e limiti. Le loro istruzioni d
 
 ## Lavori aperti — in ordine
 
-- C1266: consegna tecnica Root94d0 qualificata nel perimetro verificato; nuova campagna di tre simulazioni complete IN_PREPARAZIONE. R3 è simulazioneA; altre due con approcci diversi, incluso Combat. Il PM verifica il budget prima delle chiamate. Questo report è baseline tecnica/editoriale provvisoria da completare con i tre esiti reali; task aperta, nessun replay futuro già qualificato.
+C1266 Editorial65: consegna completata; prima di altre prove decidere il delta generale su nuove decisioni del producer, memoria come stato e continuità delle attività del luogo. Non avviare altre missioni, rigenerazioni o correzioni per selezionare un esito. Qualità editoriale parziale; finish amministrativo precedente resta separato.
 
 - HUMAN-LAND-INTEGRATION: media/backend eAdmin installati/pubblicati; recovery postflightcast inreview dopo rollback. Stessa bozzaCV4 conservata; coppie/QA FatoCombat2puntate NOT_RUN.
 
@@ -567,7 +565,7 @@ FingerprintconOID non portabile; arraySQL segmentato ≠ statementSHA; source_he
 
 ## Prossimo passo
 
-C1266: aggregata18 installata/230header coerenti e39messaggi preservati. Recuperare Writer dallo stesso report1 risolto e completare Combat→narrazione→conclusione della sestaF entro4USD, senza reinviareazioni; nuova pubblicazione e conclusione ancora NOT_RUN.
+C1266 Editorial65: consegna completata; prima di altre prove decidere il delta generale su nuove decisioni del producer, memoria come stato e continuità delle attività del luogo. Non avviare altre missioni, rigenerazioni o correzioni per selezionare un esito. Qualità editoriale parziale; finish amministrativo precedente resta separato.
 
 HUMAN-LAND-INTEGRATION: completare media PNG canonici e contratto recovery; nuova campagna Staff pertinente dichiarata, stessa bozza/key senza reset; save/importHuman/C463optin/Fato/Combat/successore/secondapuntata restano da provare.
 
