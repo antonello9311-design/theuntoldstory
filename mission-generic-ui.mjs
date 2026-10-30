@@ -1,7 +1,7 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-d092961883b6fe3e';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-display-8cdf2250a8562d83';
-import {createStaffEditorial} from './mission-editorial-staff.mjs?v=editorial65-8ae37098a31b095e';
-export const VERSION='mission-combat64-ui/5-editorial65';
+import {createStaffEditorial,createStaffEditorialPair} from './mission-editorial-staff.mjs?v=editorial66-f3edb60bffefac91';
+export const VERSION='mission-combat64-ui/5-editorial66-pair';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -37,6 +37,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  const regen=createStaffFatoRegen({client,identity,isStaff,currentLocation,refresh,isEventReadMode});
  const editorial=createStaffEditorial({client,identity,isStaff,currentLocation,staffRoom:STAFF_TEST_ROOM});
+ const editorialPair=createStaffEditorialPair({client,identity,isStaff,currentLocation,staffRoom:STAFF_TEST_ROOM});
  const valid=(user)=>!!user&&identity()===user;
  async function rpc(name,args,user=identity(),diagnosticCode=false){
   if(!valid(user))throw Error('Accedi nuovamente per continuare.');
@@ -3423,6 +3424,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
 
  function updateRoom(host,options={}){
   editorial.mount(host);
+  editorialPair.mount(host);
   if(roomReadFlight){if(options.hintRead===true)roomDirtyHint=true;return roomReadFlight;}
   const task=readRoomOnce(host,options),user=identity(),location=currentLocation()?.id,epoch=roomEpoch;
   const flight=Promise.resolve(task).finally(()=>{if(roomReadFlight!==flight)return;roomReadFlight=null;
@@ -3576,5 +3578,5 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(roomHost)void updateRoom(roomHost,{manual:true});
   return {handled:true,receipt};
  }
- return {editor,board,decorateBoard,updateRoom,submitRole,chatPublication,isNarrativeRoom,automaticCombatReadAllowed,legacyScenePollingAllowed,sessionId:()=>roomState?.session_id,dispose(){editorial.dispose();eventRecoveryFeedback.clear();roomReadReady=null;roomReadFlight=null;roomDirtyHint=false;for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};
+ return {editor,board,decorateBoard,updateRoom,submitRole,chatPublication,isNarrativeRoom,automaticCombatReadAllowed,legacyScenePollingAllowed,sessionId:()=>roomState?.session_id,dispose(){editorialPair.dispose();editorial.dispose();eventRecoveryFeedback.clear();roomReadReady=null;roomReadFlight=null;roomDirtyHint=false;for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};
 }

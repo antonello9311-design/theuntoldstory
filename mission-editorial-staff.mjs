@@ -48,3 +48,70 @@ export function createStaffEditorial({client,identity,isStaff,currentLocation,st
  }
  return {mount(host){const next=eligible()?`${identity()}:${currentLocation().id}:${campaign}:${variant}`:null;if(next!==scope){epoch++;busy=false;scope=next;results.clear();opened=false;root?.remove();root=null;}if(!next||!host?.parentElement)return;if(!root||!root.isConnected){root=element('div');root.className='mg-room';root.dataset.staffEditorial=EDITORIAL_STAFF_BUILD;host.insertAdjacentElement('afterend',root);paint();}},dispose(){epoch++;scope=null;busy=false;results.clear();root?.remove();root=null;}};
 }
+
+// E66 is separate from the unchanged E65 history controller above.
+export const PAIR_BUILD='staff-editorial-pair-ui/1';
+export const PAIR_CAMPAIGN='23c83d81-3e37-5a7e-8056-45b009992a3f';
+const PAIR_SHA=/^[0-9a-f]{64}$/;
+const pairExact=(v,keys)=>v!==null&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).length===keys.length&&keys.every(k=>Object.hasOwn(v,k));
+const pairId=v=>v===null||UUID.test(v||'');
+const pairHash=v=>v===null||typeof v==='string'&&PAIR_SHA.test(v);
+export function createStaffEditorialPair({client,identity,isStaff,currentLocation,staffRoom,campaign=PAIR_CAMPAIGN}){
+ let root=null,scope=null,opened=false,busy=false,epoch=0;const values=new Map();
+ const eligible=()=>isStaff()===true&&UUID.test(identity()||'')&&currentLocation()?.id===staffRoom&&currentLocation()?.is_test===true&&UUID.test(campaign);
+ const journalKey=(user,no)=>`${PAIR_BUILD}:${user}:${campaign}:${no}`;
+ function journal(user,no){
+  const raw=sessionStorage.getItem(journalKey(user,no));if(raw===null)return null;let v;try{v=JSON.parse(raw);}catch{throw Error('Avvio locale non leggibile: nessuna nuova richiesta creata.');}
+  if(!pairExact(v,['request_key','run_id','writer_run_id'])||!UUID.test(v.request_key||'')||!pairId(v.run_id)||!pairId(v.writer_run_id)||v.run_id===null&&v.writer_run_id!==null)throw Error('Avvio locale non verificabile: richiesta conservata.');return v;
+ }
+ const save=(user,no,value)=>sessionStorage.setItem(journalKey(user,no),JSON.stringify(value));
+ function stage(value,writer=false){
+  if(!pairExact(value,['run_id','state','receipt_id','raw_sha256','result_sha256','cost','reason_code',...(writer?['result']:[])])||!UUID.test(value.run_id||'')||!STATES.has(value.state)||!pairId(value.receipt_id)||!pairHash(value.raw_sha256)||!pairHash(value.result_sha256)||!scalar(value.cost)||!(value.reason_code===null||typeof value.reason_code==='string'))throw Error('Stato della coppia non verificabile.');
+  if(value.state==='completed'&&(!UUID.test(value.receipt_id||'')||!PAIR_SHA.test(value.raw_sha256||'')||!PAIR_SHA.test(value.result_sha256||'')))throw Error('Ricevuta di completamento non verificabile.');
+  if(writer&&value.result!==null){const r=value.result;if(!pairExact(r,['text','ok','advisories','failure_codes'])||!(r.text===null||typeof r.text==='string')||typeof r.ok!=='boolean'||!Array.isArray(r.advisories)||!r.advisories.every(x=>typeof x==='string')||!Array.isArray(r.failure_codes)||!r.failure_codes.every(x=>typeof x==='string'))throw Error('Testo finale non verificabile.');}
+  return value;
+ }
+ function receipt(value,no,saved){
+  if(!pairExact(value,['schema_version','run_id','campaign_id','case_no','replayed','retry','provider_retry_allowed','director','writer','cost'])||value.schema_version!=='staff-editorial-pair-public/1'||!UUID.test(value.run_id||'')||value.campaign_id!==campaign||value.case_no!==no||typeof value.replayed!=='boolean'||value.retry!==false||value.provider_retry_allowed!==false||!scalar(value.cost))throw Error('Ricevuta della coppia non verificabile.');
+  stage(value.director);if(value.director.run_id!==value.run_id||saved.run_id!==null&&saved.run_id!==value.run_id)throw Error('Valutazione riferita a un altro avvio.');
+  if(value.writer!==null){stage(value.writer,true);if(value.writer.run_id===value.run_id||saved.writer_run_id!==null&&saved.writer_run_id!==value.writer.run_id)throw Error('Fato riferito a un’altra coppia.');}
+  else if(saved.writer_run_id!==null)throw Error('Il collegamento al Fato già ricevuto è cambiato.');
+  return value;
+ }
+ function canContinue(v){return v?.director.state==='completed'&&(v.writer===null||v.writer.state==='ready');}
+ async function send(no,operation){
+  if(busy||!eligible())return;const user=identity(),e=epoch;let saved;
+  try{
+   saved=journal(user,no);
+   if(operation!=='start'&&!saved?.run_id)throw Error('Avvio ancora da confermare: verifica la stessa richiesta.');
+   if(operation==='continue_writer'&&!canContinue(values.get(no)?.receipt))throw Error('Leggi prima lo stato: il seguito non è disponibile.');
+   if(operation==='start'&&saved?.run_id)throw Error('Campione già avviato: usa Aggiorna esito.');
+   if(!saved){saved={request_key:crypto.randomUUID(),run_id:null,writer_run_id:null};save(user,no,saved);}
+   busy=true;paint();const body=operation==='start'?{schema_version:'staff-editorial-pair-request/1',operation,campaign_id:campaign,case_no:no,request_key:saved.request_key}:{schema_version:'staff-editorial-pair-request/1',operation,run_id:saved.run_id};
+   const response=await client.functions.invoke('mission_generic_ai',{body});if(response.error)throw Error('Risposta non confermata. L’avvio originale è conservato; verifica la stessa richiesta o aggiorna il suo esito.');
+   const v=receipt(response.data,no,saved);save(user,no,{...saved,run_id:v.run_id,writer_run_id:v.writer?.run_id??saved.writer_run_id});
+   if(e===epoch&&eligible()&&identity()===user)values.set(no,{receipt:v});
+  }catch(error){if(e===epoch&&eligible()&&identity()===user)values.set(no,{error:error.message||'Operazione non confermata.'});}
+  finally{if(e===epoch){busy=false;if(eligible()&&identity()===user)paint();}}
+ }
+ function stageLine(label,value){const line=element('p',label+': '+(value?labels[value.state]:'non ancora preparato'));line.setAttribute('role','status');return line;}
+ function paint(){
+  if(!root||!eligible())return;root.replaceChildren();const toggle=action('Prove Director + Fato · Staff',()=>{opened=!opened;paint();});toggle.setAttribute('aria-expanded',String(opened));root.append(toggle);if(!opened)return;
+  root.append(element('p','Tre campioni indipendenti dello stesso turno. Ogni avvio produce una nuova valutazione dei PNG e poi un nuovo Fato privato, senza modificare la missione.'));
+  for(let no=1;no<=3;no++){
+   const row=element('section');row.className='mg-scene';row.append(element('strong','Campione '+no));let saved=null,error=null;try{saved=journal(identity(),no);}catch(e){error=e.message;}
+   const v=values.get(no),r=v?.receipt;
+   const start=action(saved?.run_id?'Avvio già accettato':saved?'Verifica lo stesso avvio':'Avvia questo campione',()=>void send(no,'start'));start.disabled=busy||!!saved?.run_id||!!error;
+   const read=action('Aggiorna esito',()=>void send(no,'read'));read.disabled=busy||!saved?.run_id||!!error;row.append(element('br'),start,read);
+   if(r){row.append(stageLine('Valutazione PNG',r.director),stageLine('Fato',r.writer));
+    if(canContinue(r)){const next=action('Prosegui con lo stesso Writer',()=>void send(no,'continue_writer'));next.disabled=busy;row.append(next);}
+    if(r.writer?.result?.text){const text=element('div',r.writer.result.text);text.style.whiteSpace='pre-wrap';row.append(text);}
+    row.append(element('p',`Costo prudente della coppia: ${r.cost} USD`));
+    for(const s of [r.director,r.writer])if(s?.reason_code)row.append(element('p','Motivo registrato: '+s.reason_code.slice(0,160)));
+    if(r.writer?.receipt_id)row.append(element('p','Ricevuta del Fato: '+r.writer.receipt_id));
+   }else{const status=element('p',error||v?.error||(saved?.run_id?'Avvio registrato. Aggiorna per leggere i due stati.':saved?'Avvio da verificare.':'Non avviato.'));status.setAttribute('role','status');row.append(status);}
+   root.append(row);
+  }
+ }
+ return {mount(host){const next=eligible()?`${identity()}:${currentLocation().id}:${campaign}`:null;if(next!==scope){epoch++;busy=false;scope=next;values.clear();opened=false;root?.remove();root=null;}if(!next||!host?.parentElement)return;if(!root||!root.isConnected){root=element('div');root.className='mg-room';root.dataset.staffEditorialPair=PAIR_BUILD;host.insertAdjacentElement('afterend',root);paint();}},dispose(){epoch++;scope=null;busy=false;values.clear();root?.remove();root=null;}};
+}
