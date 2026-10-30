@@ -1,6 +1,6 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-d092961883b6fe3e';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-display-8cdf2250a8562d83';
-import {createStaffEditorial} from './mission-editorial-staff.mjs?v=editorial65-cd9a3ac062cf9527';
+import {createStaffEditorial} from './mission-editorial-staff.mjs?v=editorial65-8ae37098a31b095e';
 export const VERSION='mission-combat64-ui/5-editorial65';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();

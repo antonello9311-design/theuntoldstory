@@ -1,6 +1,6 @@
 export const EDITORIAL_STAFF_BUILD='staff-editorial-ui/1';
 export const EDITORIAL_STAFF_CAMPAIGN='3b320588-6305-57b0-9f3d-5e42a813a803';
-export const EDITORIAL_STAFF_VARIANT='baseline';
+export const EDITORIAL_STAFF_VARIANT='canary';
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const STATES=new Set(['completed','failed','uncertain','ready','count_sent','counted','authorized','provider_started']);
 const labels={completed:'Esito disponibile',failed:'Prova non completata',uncertain:'Esito da verificare',ready:'Richiesta accettata',count_sent:'Verifica richiesta in corso',counted:'Richiesta verificata',authorized:'Generazione autorizzata',provider_started:'Scrittura in corso'};
