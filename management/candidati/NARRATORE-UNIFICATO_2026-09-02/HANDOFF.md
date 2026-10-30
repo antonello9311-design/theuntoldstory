@@ -12,4 +12,5 @@ Conservazione:43Fati/sei percorsi precedenti/azioni/scene/risorse protette ed E6
 
 Rischi o regressioni: qualità della nuova versione NOT_RUN; la correzione installata non dimostra ricchezza o assenza universale di ripetizioni. Le tre coppie E66 attestano il precedente percorso privato Nativepeaceful, non nuove situazioni o tutta la missione. Nessun nuovo banco, retry o validatore.
 
-Passaggio PM: consegna pronta, non avviare altre prove. Report C1266_EDITORIAL67_REPORT.md; dettagli installazione/review/postflight in C1266_EDITORIAL67_RELEASE_CHAIN.json. Il deposito Git dei soli sorgenti verificati viene completato e registrato in PUBBLICAZIONE; file privati, raw e materiale di lavoro restano locali in /private/tmp/tus-c1266-editorial67-20261030. Nessuna cancellazione o ripartenza.
+Passaggio PM: consegna pronta, non avviare altre prove. Report C1266_EDITORIAL67_REPORT.md; dettagli installazione/review/postflight in C1266_EDITORIAL67_RELEASE_CHAIN.json. Deposito Git completato con commit 68e9dd62ce8a5c89f55982f40200bd9180ff1ec0:25 file di scope,25/25blob riletti integralmente byte-esatti e refmain verificato; registrato in PUBBLICAZIONE; file privati, raw e materiale di lavoro restano locali in /private/tmp/tus-c1266-editorial67-20261030. Nessuna cancellazione o ripartenza.
+
