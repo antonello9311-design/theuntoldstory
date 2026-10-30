@@ -1,6 +1,6 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-d092961883b6fe3e';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-display-8cdf2250a8562d83';
-export const VERSION='mission-combat64-ui/1';
+export const VERSION='mission-combat64-ui/2';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -1368,11 +1368,16 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   }
  }
  const combatNarrationRecoveryKeys=['schema_version','master_session_id','failed_work_id','batch_id','report_id','payload_sha256','owned_by_me','can_reissue','successor_work_id','successor_request','can_resume'];
+ const nativeCombatNarrationRecoveryKeys=combatNarrationRecoveryKeys.filter(k=>k!=='batch_id').concat('authority_receipt_id','successor_publication_id');
+ const combatNarrationKeys=x=>x?.schema_version==='mission-combat-narration-recovery/2'?nativeCombatNarrationRecoveryKeys:combatNarrationRecoveryKeys;
  function combatNarrationRecovery(state){
   if(!state||!Object.hasOwn(state,'combat_narration_recovery')||state.combat_narration_recovery===null)return null;
-  const x=state.combat_narration_recovery,p=processingFor(state);
-  if(!nativeExact(x,combatNarrationRecoveryKeys)||x.schema_version!=='mission-combat-narration-recovery/1'
-   ||x.master_session_id!==state.session_id||!['master_session_id','failed_work_id','batch_id','report_id'].every(k=>UUID.test(x[k]||''))
+  const x=state.combat_narration_recovery,p=processingFor(state),native=x?.schema_version==='mission-combat-narration-recovery/2';
+  if(!nativeExact(x,combatNarrationKeys(x))||!['mission-combat-narration-recovery/1','mission-combat-narration-recovery/2'].includes(x.schema_version)
+   ||native&&(state.server_event_mode!=='server_event_v1'||x.authority_receipt_id!==x.report_id||x.can_resume!==false
+    ||!(x.successor_publication_id===null||UUID.test(x.successor_publication_id||''))
+    ||x.successor_publication_id!==null&&(x.successor_work_id===null||x.can_reissue))
+   ||x.master_session_id!==state.session_id||!['master_session_id','failed_work_id',native?'authority_receipt_id':'batch_id','report_id'].every(k=>UUID.test(x[k]||''))
    ||!SHA.test(x.payload_sha256||'')||!['owned_by_me','can_reissue','can_resume'].every(k=>typeof x[k]==='boolean')
    ||!(x.successor_work_id===null||UUID.test(x.successor_work_id||''))
    ||(x.successor_work_id===null?x.successor_request!==null||x.can_resume:x.successor_work_id===x.failed_work_id||!sameChainRequest(x.successor_request,x.successor_request)||x.successor_request.master_session_id!==state.session_id)
@@ -1380,7 +1385,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    ||x.can_resume&&(!x.owned_by_me||x.can_reissue||!p.valid||p.value?.state!=='ready'||p.value.finalized_at!==null||p.value.work_id!==x.successor_work_id||!sameChainRequest(p.value.request,x.successor_request)))throw Error('combat_narration_recovery_invalid');
   return x;
  }
- const combatNarrationTuple=x=>JSON.stringify(combatNarrationRecoveryKeys.filter(k=>!['can_reissue','can_resume','successor_work_id','successor_request'].includes(k)).map(k=>x[k]));
+ const combatNarrationTuple=x=>JSON.stringify(combatNarrationKeys(x).filter(k=>!['can_reissue','can_resume','successor_work_id','successor_request','successor_publication_id'].includes(k)).map(k=>x[k]));
  const combatNarrationReady=state=>{const x=combatNarrationRecovery(state);return !!(x?.owned_by_me&&x.can_resume);};
  // Only an explicit gesture may replay an unacknowledged transport for this exact ready Writer.
  function combatResumeBinding(state,t,activeAttempt=null){
@@ -1407,8 +1412,9 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  async function staffRecoverCombatNarration(host,resume=false){
   const t=syncRoom(host),old=roomState,x=combatNarrationRecovery(old);
+  if(old?.server_event_mode==='server_event_v1'&&(resume||eventRecoveryBusy.has(old.session_id)))return;
   if(!roomCurrent(t)||staffRoleRecovery||staffResumeRead||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||abortBlocked(old?.session_id)||liveAttempt(old)||!x?.owned_by_me||!(resume?x.can_resume:x.can_reissue))return;
-  const token={session:old.session_id,failed:x.failed_work_id,tuple:combatNarrationTuple(x),successor:x.successor_work_id,request:x.successor_request?clone(x.successor_request):null};staffRoleRecovery=token;paintRoom(host,old);
+  const token={session:old.session_id,failed:x.failed_work_id,tuple:combatNarrationTuple(x),successor:x.successor_work_id,request:x.successor_request?clone(x.successor_request):null};staffRoleRecovery=token;paintRoom(host,old);if(old.server_event_mode==='server_event_v1')paintServerEvent(host,old);
   try{
    const fresh=await rpc('mission_generic_room_state_v1',{p_location:t.loc.id},t.user);
    if(!roomCurrent(t)||staffRoleRecovery!==token)return;
@@ -1420,17 +1426,30 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
     const binding=combatResumeBinding(fresh,t);if(!binding)throw Error('combat_narration_transport_blocked');
     maybeDispatch(fresh,t,true,false,binding);return; // Explicit gesture, canonical successor request only.
    }
-   if(!proof.can_reissue||proof.successor_work_id!==null)throw Error('combat_narration_reissue_changed');
+   if(proof.successor_work_id!==null){
+    if(proof.can_reissue)throw Error('combat_narration_reissue_changed');
+    return; // Same failed/report/payload tuple already has its server-owned successor.
+   }
+   if(!proof.can_reissue)throw Error('combat_narration_reissue_changed');
    const result=await client.functions.invoke('mission_generic_ai',{body:{schema_version:'mission-generic-staff-cached-publication/1',master_session_id:token.session,work_id:token.failed}});
    if(!roomCurrent(t)||staffRoleRecovery!==token)return;
    const data=result.data;
-   if(result.error||!nativeExact(data,['schema_version','status','master_session_id','work_id','replayed'])||data.schema_version!=='mission-generic-staff-cached-publication/1'||data.status!=='recovered'||data.master_session_id!==token.session||!UUID.test(data.work_id||'')||data.work_id===token.failed||typeof data.replayed!=='boolean')throw Error('combat_narration_reissue_unconfirmed');
+   const recovered=nativeExact(data,['schema_version','status','master_session_id','work_id','replayed'])
+    &&data.schema_version==='mission-generic-staff-cached-publication/1'&&data.status==='recovered'
+    &&data.master_session_id===token.session&&UUID.test(data.work_id||'')&&data.work_id!==token.failed&&typeof data.replayed==='boolean';
+   const published=x.schema_version==='mission-combat-narration-recovery/2'
+    &&nativeExact(data,['schema_version','status','message_id','replayed'])
+    &&data.schema_version==='mission-generic-staff-cached-publication/1'&&data.status==='published'
+    &&UUID.test(data.message_id||'')&&typeof data.replayed==='boolean';
+   if(result.error||!recovered&&!published)throw Error('combat_narration_reissue_unconfirmed');
    await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true});
    if(!roomCurrent(t)||staffRoleRecovery!==token)return;
    const confirmed=combatNarrationRecovery(roomState);
-   if(!confirmed||combatNarrationTuple(confirmed)!==token.tuple||confirmed.successor_work_id!==data.work_id)throw Error('combat_narration_reissue_readback_unconfirmed');
+   if(!confirmed||combatNarrationTuple(confirmed)!==token.tuple||!UUID.test(confirmed.successor_work_id||'')
+    ||recovered&&confirmed.successor_work_id!==data.work_id
+    ||published&&(confirmed.schema_version!=='mission-combat-narration-recovery/2'||confirmed.successor_publication_id!==data.message_id))throw Error('combat_narration_reissue_readback_unconfirmed');
   }catch(error){if(roomCurrent(t)&&staffRoleRecovery===token){roomError='Recupero dello stesso esito non confermato. Risultati, role e ricevute restano conservati; aggiorna la regia per verificarli.';paintRoom(host,roomState);}}
-  finally{if(staffRoleRecovery===token){staffRoleRecovery=null;if(roomCurrent(t)&&roomState)paintRoom(host,roomState);}}
+  finally{if(staffRoleRecovery===token){staffRoleRecovery=null;if(roomCurrent(t)&&roomState){paintRoom(host,roomState);if(roomState.server_event_mode==='server_event_v1')paintServerEvent(host,roomState);}}}
  }
  function scopedFailedNarrationRecovery(state,work){
   return state?.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'
@@ -3189,7 +3208,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(message&&message!==record.lastMessage){record.emit(message);record.lastMessage=message;}
  }
  async function recoverServerEvent(host){
-  const t=syncRoom(host),session=roomState?.session_id;if(!roomCurrent(t)||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||!UUID.test(session||'')||eventRecoveryBusy.has(session))return;
+  const t=syncRoom(host),session=roomState?.session_id;if(!roomCurrent(t)||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||!UUID.test(session||'')||eventRecoveryBusy.has(session)||staffRoleRecovery?.session===session)return;
   const emit=createRecoveryFeedback();let feedback=null;
   eventRecoveryBusy.add(session);try{
    const initialEvent=eventStatus(roomState),initialScene=narrativeSection(roomState);
@@ -3230,9 +3249,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  function paintServerEvent(host,state){
   let row=host.querySelector('[data-mg-server-event]');const s=eventStatus(state),loc=currentLocation();
   if(!isStaff()||loc?.id!==STAFF_TEST_ROOM||loc.is_test!==true||!s){row?.remove();return;}
-  host.querySelector('[data-mg-tick-owner-status]')?.remove();if(!row){row=el('div',null,{'data-mg-server-event':''});host.append(row);}const n=narrativeSection(state);row.replaceChildren(...(n&&n.mode!=='combat'?[]:[el('p',s.state==='terminal'?'Richiesta conclusa dal server; la pubblicazione è attestata separatamente.':'Elaborazione gestita dal server: '+s.state+'.')]));
+  host.querySelector('[data-mg-tick-owner-status]')?.remove();if(!row){row=el('div',null,{'data-mg-server-event':''});host.append(row);}const n=narrativeSection(state),recovery=combatNarrationRecovery(state);
+  const nativeReissue=recovery?.schema_version==='mission-combat-narration-recovery/2'&&recovery.owned_by_me&&recovery.can_reissue;
+  row.replaceChildren(...(nativeReissue?[el('p','Il Fato dello scontro richiede recupero; azioni ed esito meccanico sono conservati.')]:n&&n.mode!=='combat'?[]:[el('p',s.state==='terminal'?'Richiesta conclusa dal server; la pubblicazione è attestata separatamente.':'Elaborazione gestita dal server: '+s.state+'.')]));
+  if(nativeReissue){const b=button('Recupera lo stesso Fato dello scontro',()=>staffRecoverCombatNarration(host,false));b.setAttribute('data-mg-native-combat-writer-recovery','');b.disabled=!!roomError||!!staffRoleRecovery||!!staffResumeRead||eventRecoveryBusy.has(state.session_id)||liveAttempt(state)||abortBlocked(state.session_id);row.append(b);}
   let pending=false;try{pending=eventRecoveryJournal(cacheUser,state.session_id,s.event_key).j.attempts.at(-1)?.status==='unknown';}catch{row.append(el('p','Richiesta locale non verificabile: storico conservato.'));return;}
-  if(s.can_recover||pending){const b=button('Riprendi la stessa richiesta',()=>void recoverServerEvent(host));b.disabled=eventRecoveryBusy.has(state.session_id)||!!roomError||abortBlocked(state.session_id);row.append(b);}
+  if(!nativeReissue&&(s.can_recover||pending)){const b=button('Riprendi la stessa richiesta',()=>void recoverServerEvent(host));b.disabled=eventRecoveryBusy.has(state.session_id)||staffRoleRecovery?.session===state.session_id||!!roomError||abortBlocked(state.session_id);row.append(b);}
   if(!row.childNodes.length)row.remove();
  }
  function narrativeSection(state){
@@ -3242,7 +3264,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
    ||!UUID.test(v.scene_id||'')||!Number.isSafeInteger(v.state_version)||v.state_version<0
    ||!['narrative','combat_pending','combat','closed'].includes(v.mode)||!(v.last_publication_id===null||UUID.test(v.last_publication_id||'')))throw Error('narrative_scene_public_invalid');
   if(!UUID.test(state.session_id||'')||typeof state.step_key!=='string'||typeof state.objective!=='string')throw Error('narrative_room_invalid');
-  if(v.mode!=='combat'&&!nativeExact(state,['session_id','step_key','objective','narrative_scene','role_submit_capability','server_event_mode','server_event_status','combat_surface','staff_finish']))throw Error('narrative_room_fields_invalid');
+  if(v.mode!=='combat'){
+   const recoveryPresent=Object.hasOwn(state,'combat_narration_recovery');
+   if(!nativeExact(state,['session_id','step_key','objective','narrative_scene','role_submit_capability','server_event_mode','server_event_status','combat_surface','staff_finish',...(recoveryPresent?['combat_narration_recovery']:[])]))throw Error('narrative_room_fields_invalid');
+   if(recoveryPresent){const recovery=combatNarrationRecovery(state);if(recovery?.schema_version!=='mission-combat-narration-recovery/2'||recovery.can_reissue||recovery.can_resume||!UUID.test(recovery.successor_work_id||''))throw Error('narrative_recovery_ack_invalid');}
+  }
   const c=state.combat_surface;
   if(!nativeExact(c,['schema_version','map_operational','can_open','can_prepare','entry_revision'])||c.schema_version!=='mission-narrative-combat-surface/1'
    ||typeof c.map_operational!=='boolean'||typeof c.can_open!=='boolean'||typeof c.can_prepare!=='boolean'||!(c.entry_revision===null||Number.isSafeInteger(c.entry_revision)&&c.entry_revision>=0)
