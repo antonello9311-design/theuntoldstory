@@ -1,6 +1,7 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-d092961883b6fe3e';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-display-8cdf2250a8562d83';
-export const VERSION='mission-combat64-ui/5';
+import {createStaffEditorial} from './mission-editorial-staff.mjs?v=editorial65-cd9a3ac062cf9527';
+export const VERSION='mission-combat64-ui/5-editorial65';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -35,6 +36,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(!roomState){host.replaceChildren(recovery);host.hidden=!recovery.querySelector('[data-staff-abort]:not([hidden])');}
  }
  const regen=createStaffFatoRegen({client,identity,isStaff,currentLocation,refresh,isEventReadMode});
+ const editorial=createStaffEditorial({client,identity,isStaff,currentLocation,staffRoom:STAFF_TEST_ROOM});
  const valid=(user)=>!!user&&identity()===user;
  async function rpc(name,args,user=identity(),diagnosticCode=false){
   if(!valid(user))throw Error('Accedi nuovamente per continuare.');
@@ -3420,6 +3422,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
 
  function updateRoom(host,options={}){
+  editorial.mount(host);
   if(roomReadFlight){if(options.hintRead===true)roomDirtyHint=true;return roomReadFlight;}
   const task=readRoomOnce(host,options),user=identity(),location=currentLocation()?.id,epoch=roomEpoch;
   const flight=Promise.resolve(task).finally(()=>{if(roomReadFlight!==flight)return;roomReadFlight=null;
@@ -3573,5 +3576,5 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(roomHost)void updateRoom(roomHost,{manual:true});
   return {handled:true,receipt};
  }
- return {editor,board,decorateBoard,updateRoom,submitRole,chatPublication,isNarrativeRoom,automaticCombatReadAllowed,legacyScenePollingAllowed,sessionId:()=>roomState?.session_id,dispose(){eventRecoveryFeedback.clear();roomReadReady=null;roomReadFlight=null;roomDirtyHint=false;for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};
+ return {editor,board,decorateBoard,updateRoom,submitRole,chatPublication,isNarrativeRoom,automaticCombatReadAllowed,legacyScenePollingAllowed,sessionId:()=>roomState?.session_id,dispose(){editorial.dispose();eventRecoveryFeedback.clear();roomReadReady=null;roomReadFlight=null;roomDirtyHint=false;for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};
 }
