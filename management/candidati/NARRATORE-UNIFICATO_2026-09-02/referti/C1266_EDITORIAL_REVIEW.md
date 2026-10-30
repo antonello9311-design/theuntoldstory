@@ -1,4 +1,6 @@
-# Review comparata A/B/C/D/E della Regia IA
+# Review comparata A/B/C/D/E/F della Regia IA
+
+SestaF avviata il30/10/2026 suEditorial62:3Fati, ingressoCombat reale e blocco dispatch PNG prima provider. Stessa missione aperta; conclusione NOT_RUN. Nessuna copia letteralePG nelle2risposte, maggiore autonomiaPNG; campione incompleto e autoripetizioni residue. [Referto sesta](C1266_SIXTH63_REPORT.md).
 
 QuintaE conclusa e chiusa normalmente il29/10/2026 alle22:44:44UTC sulla versione congelata Editorial60.4nuoviFati,35totali conservati; apertura e oggetti migliorati, qualità ancora parziale. [Referto quinta](C1266_FIFTH61_REPORT.md).
 
@@ -19,6 +21,14 @@ Editorial57 (istruzioni,schedeV5,revisione5,UI1/Edge119) collaudata nella quarta
 | Avanzamento | Dialogo, Combat e conclusione | Informazioni nuove B3/B4, stasi B5/B6, conclusione | C3: pagamento e foglio; C4: ritrattazione pubblica; C5: consenso ad accompagnare i PG e fase conclusa | D1confessione,D2rettifica,D3puntoindicato echiusura normale | E1ammissione/rettifica,E2consegnaoggetti,E3luogoindicato epartenza |
 
 Le misure testuali servono alla review, non sono nuovi filtri bloccanti. Approcci e versioni differiscono; il confronto non è un esperimento controllato. C0–C3 sono stati prodotti con un contesto legacy concorrente; C4–C5 usano il nuovo percorso narrativo diretto N56. Per C non è lecito attribuire al nuovo impianto una missione intera senza interruzioni: sono state necessarie correzioni e l’apertura sulla versione finale non era stata provata. E verifica ora un’intera rotta pacifica congelata, con i due limiti di visualizzazione documentati.
+
+## Sesta F: confronto provvisorio
+
+F0 apre correttamente il primo incontro, con attività materiali del mercato. F1 risponde con fatti e motivazioni, ma ripete già nello stesso turno ignoranza, pagamento e fonte inventata. F2 fa avanzare concretamente verso Combat: Daichi accetta e Keita si dissocia. L'ambiente reagisce alla tensione tramite persone che si scostano e un venditore che richiama un cliente; non è la consueta coda di passaggio lasciato libero.
+
+Nelle due risposte allineate:0battutePGcomplete e0sequenze comuni di5parole; nessuna parafrasi sostanziale osservata. Il richiamo iniziale alla richiesta di un nome può essere evitato entrando direttamente nella risposta. Rispetto aE migliora la distinzione fra le decisioniPNG, mentre ricapitolazioni e ricchezza ambientale sostenuta restano parziali. F non ha un finale confrontabile conE: Combat è bloccato nel dispatch prima del provider. Nessuna rigenerazione editoriale e nessun nuovo filtro bloccante.
+
+Le correzioniUI62 della nuova pubblicazione sono osservate suF0–F2: IAB eChrome ricevono lo stessoFato senza aggiornamento manuale/rientro. Restano un difetto separato nel pulsante Apri scontro e il messaggio incoerente dopoPassa. Non è un PASS generaleUI né una missione senza interruzioni. [Evidenza e piano](C1266_SIXTH63_REPORT.md).
 
 ## Lettura della terza prova
 
