@@ -23,7 +23,11 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
-C1266 Editorial66 · 30/10/2026: tre campioni indipendenti della STESSA finestraNativepeaceful, con3nuoviDirector→3nuoviWriter collegati ecompletati alprimotentativo;0blocchi/0retry. Qualifica tecnica PASS_THREE_PRIVATE_NATIVE_PAIRS_FIRST_ATTEMPT, editoriale PARTIAL_NOT_PASSED: zero copiePGestese nei campioni, consenso/custodia coerenti, ambiente e voci ancora poco profondi. Nessunmissionreplay oFato modificato;43Fati/6vecchiescope/E65seiRun eledger interamente preservati. E66chiusaenabledfalse/0pending, esiti Staffleggibili. Roote54fb7cf055ff0d5a41948218f52b3db5e4622314b037e9b001f8ef8fabdb176/246header/10ABI0drift, Edge131/16fileesatti, UI18796352e90b59a79e354001c9ed3cfa2475aba0/Pages41125227156SUCCESS; source/material9 echiusura0/0/0, nessunresetreview1–8. Nuovi12HTTP/0,14561220USD prudenti, totale182HTTP/1,55692060USDsu4 con riserveCount conservate. Small invariato; nessunpubblicoenable. Nonqualificati3contesti, nuove domande/Director4generale/missionecompleta; finishamministrativo history_unreconciled precedente restaOPEN. Referto: management/candidati/NARRATORE-UNIFICATO_2026-09-02/referti/C1266_EDITORIAL66_REPORT.md.
+C1266 Editorial67 · 30/10/2026: installate le correzioni generali a WriterScene5, quattro fasi del piano V8 e due schede PNG V7. I fatti acquisiti orientano il seguito senza richiedere nuove riaffermazioni; attività e interessi del luogo entrano nello scambio. Risolto il conflitto fra scelta narrativa diretta e decisioni già attestate nei raccordi. Nessun nuovo blocco stilistico, filtro, quota o retry. DirectorNative assessment/2 e i contratti legacy restano invariati.
+
+Root `c0b1efe31c134c4f8dced8dbf43b5283431151a811bd651c3ca657227b54de6f`, Edge132 / EZBR `e13acdbda94128234e3eedd4a25dbc4df75cebca6e602475529ade489c300b96`; review sorgente e materiale0/0/0,246header e10ABI senza drift,16file Edge riletti integralmente e coincidenti. PianoV8/schedeV7/pin futuri Staff verificati; meccaniche, conoscenze, media e disponibilità pubblica invariati. Conservati43Fati, sei percorsi precedenti e tutti gli esiti/ledger/audit E65/E66; V6 cambia solo nel lifecycle, contenuti e snapshot passati intatti. Zero nuovi test, azioni o provider; cumulativo182HTTP /1,55692060USD prudenti su4. Qualità nuova NOT_RUN, precedente finish amministrativo OPEN separato. Referto: `management/candidati/NARRATORE-UNIFICATO_2026-09-02/referti/C1266_EDITORIAL67_REPORT.md`.
+
+Migrazione E67 `c1266_editorial67_general_sources_staff` applicata al primo invio: append di due versioni PNG, relativi binding e ricevute media esistenti, pianoV8/definizione/revisioni con selezioneCAS e aggiornamento dei soli pin Root pertinenti. Nessuna funzione, tabella, colonna, ACL o vincolo aggiunto/allentato; i246header e10ABI restano identici. Le guardie di baseline riguardano l’installer, non nuovi controlli del prodotto. Nessuna chiamata IA o modifica alle prove storiche.
 
 Migrazione E66 c1266_editorial66_paired_director_writer_staff applicata:5corpi esistenti+1helper puro nuovo service-only/GRANTesplicito, nessunatabella ocolonna nuova, unCHECKvariant esteso director|writer sotto policy/2nominata. Fonti/DTOeditorialeWriter e chainreceipt private nuove, RPCstessefirme e/1E65 preservata; corefinanziari3/pubblicazione immutati. Chiusura: unicoUPDATEE66enabledfalse con preservazione totale;Rootrestae54. INSTALL eRELEASE_CHAIN sono audit dei rilasci, non nuovi permessi di apply.
 
@@ -518,7 +522,7 @@ I checkpoint precedenti mantengono data, versione e limiti. Le loro istruzioni d
 
 ## Lavori aperti — in ordine
 
-C1266 Editorial66: mandato delle3coppie completato, nessunaulterioregenerazione. Review su memoria come stato acquisito, realizzazione del seguito e relazione fra attività del luogo e dialogo; eventuale prossima prova deve riguardare una domanda nuova pertinente, non rigenerare questa cessazione. Qualità parziale, nienteapertura pubblica oqualifica globale.
+C1266 Editorial67 consegnata: correzioni installate e rilette, nessuna altra prova avviata. Conservare la versione integrata e tutti i risultati. La qualità nuova resta NOT_RUN: un eventuale prossimo mandato editoriale dovrà usare nuove azioni pertinenti e un punto ancora aperto, senza rigenerare gli esiti esistenti né riaprire E65/E66. Nessuna apertura pubblica o qualifica globale deriva da questa consegna.
 
 - HUMAN-LAND-INTEGRATION: media/backend eAdmin installati/pubblicati; recovery postflightcast inreview dopo rollback. Stessa bozzaCV4 conservata; coppie/QA FatoCombat2puntate NOT_RUN.
 
@@ -567,7 +571,7 @@ FingerprintconOID non portabile; arraySQL segmentato ≠ statementSHA; source_he
 
 ## Prossimo passo
 
-C1266 Editorial66: mandato delle3coppie completato, nessunaulterioregenerazione. Review su memoria come stato acquisito, realizzazione del seguito e relazione fra attività del luogo e dialogo; eventuale prossima prova deve riguardare una domanda nuova pertinente, non rigenerare questa cessazione. Qualità parziale, nienteapertura pubblica oqualifica globale.
+C1266 Editorial67 consegnata: correzioni installate e rilette, nessuna altra prova avviata. Conservare la versione integrata e tutti i risultati. La qualità nuova resta NOT_RUN: un eventuale prossimo mandato editoriale dovrà usare nuove azioni pertinenti e un punto ancora aperto, senza rigenerare gli esiti esistenti né riaprire E65/E66. Nessuna apertura pubblica o qualifica globale deriva da questa consegna.
 
 HUMAN-LAND-INTEGRATION: completare media PNG canonici e contratto recovery; nuova campagna Staff pertinente dichiarata, stessa bozza/key senza reset; save/importHuman/C463optin/Fato/Combat/successore/secondapuntata restano da provare.
 

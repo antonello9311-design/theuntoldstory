@@ -23,7 +23,9 @@ Aggiornamento11/09/2026 · Allineamento otto schede e proiezione ordinaria verif
 
 ## Stato vivo
 
-C1266 Editorial66 · 30/10/2026: tre campioni indipendenti della STESSA finestraNativepeaceful, con3nuoviDirector→3nuoviWriter collegati ecompletati alprimotentativo;0blocchi/0retry. Qualifica tecnica PASS_THREE_PRIVATE_NATIVE_PAIRS_FIRST_ATTEMPT, editoriale PARTIAL_NOT_PASSED: zero copiePGestese nei campioni, consenso/custodia coerenti, ambiente e voci ancora poco profondi. Nessunmissionreplay oFato modificato;43Fati/6vecchiescope/E65seiRun eledger interamente preservati. E66chiusaenabledfalse/0pending, esiti Staffleggibili. Roote54fb7cf055ff0d5a41948218f52b3db5e4622314b037e9b001f8ef8fabdb176/246header/10ABI0drift, Edge131/16fileesatti, UI18796352e90b59a79e354001c9ed3cfa2475aba0/Pages41125227156SUCCESS; source/material9 echiusura0/0/0, nessunresetreview1–8. Nuovi12HTTP/0,14561220USD prudenti, totale182HTTP/1,55692060USDsu4 con riserveCount conservate. Small invariato; nessunpubblicoenable. Nonqualificati3contesti, nuove domande/Director4generale/missionecompleta; finishamministrativo history_unreconciled precedente restaOPEN. Referto: management/candidati/NARRATORE-UNIFICATO_2026-09-02/referti/C1266_EDITORIAL66_REPORT.md.
+C1266 Editorial67 · 30/10/2026: installate le correzioni generali a WriterScene5, quattro fasi del piano V8 e due schede PNG V7. I fatti acquisiti orientano il seguito senza richiedere nuove riaffermazioni; attività e interessi del luogo entrano nello scambio. Risolto il conflitto fra scelta narrativa diretta e decisioni già attestate nei raccordi. Nessun nuovo blocco stilistico, filtro, quota o retry. DirectorNative assessment/2 e i contratti legacy restano invariati.
+
+Root `c0b1efe31c134c4f8dced8dbf43b5283431151a811bd651c3ca657227b54de6f`, Edge132 / EZBR `e13acdbda94128234e3eedd4a25dbc4df75cebca6e602475529ade489c300b96`; review sorgente e materiale0/0/0,246header e10ABI senza drift,16file Edge riletti integralmente e coincidenti. PianoV8/schedeV7/pin futuri Staff verificati; meccaniche, conoscenze, media e disponibilità pubblica invariati. Conservati43Fati, sei percorsi precedenti e tutti gli esiti/ledger/audit E65/E66; V6 cambia solo nel lifecycle, contenuti e snapshot passati intatti. Zero nuovi test, azioni o provider; cumulativo182HTTP /1,55692060USD prudenti su4. Qualità nuova NOT_RUN, precedente finish amministrativo OPEN separato. Referto: `management/candidati/NARRATORE-UNIFICATO_2026-09-02/referti/C1266_EDITORIAL67_REPORT.md`.
 
 Checkpoint precedente conservato: C1266 Combat64 · 30/10/2026: aggregata28 installata Staff migrazione20261030183327. Rootc6293b85e1365c6eccdb6d3c78d4476db6292ef4bef6c5fcdca3dcac88c2a28a,239header/4ABI esatti; Edge126/EZBR64ce0738fa3b74d790f4fab4742918d83ac991a5d31e4846fffa548641065062/14fileesatti, UI7commit284d492b99c4f92085df664128a21e70ce3d69c8/Pages41107482065SUCCESS, dominiobuildChromeosservato. Source28/material0/0/0; schema27rifiutatoCount400TYPE_MISSING,Gen0,Countunknown.0124conservato.3tipistringa aggiunti,4deltaSQLCountNative/unicofigliotecnico;0helper/CHECK/ACL nuovi28. StessasestaF4eazioniconservate,recuperoattivo; finaleNONattestato,4USDtotali/60minscadono18:57:41UTC stopprovider18:47:41. Smallinvariato.
 
@@ -269,9 +271,7 @@ Antonello ha concluso la role e confermato Riuji connesso in Chrome: Riuji e tes
 
 ## Lavori aperti — in ordine
 
-C1266 Editorial66: mandato delle3coppie completato, nessunaulterioregenerazione. Review su memoria come stato acquisito, realizzazione del seguito e relazione fra attività del luogo e dialogo; eventuale prossima prova deve riguardare una domanda nuova pertinente, non rigenerare questa cessazione. Qualità parziale, nienteapertura pubblica oqualifica globale.
-2. Dieci revisioni PNG senza vincoli di brevità: COMPOSITION_PENDING, non live; integrare versioni/media/binding e consumer, poi review pertinente. Fonte candidato/mission_factory_unified/NPC_NO_BREVITY_NATIVE_HANDOFF.md.
-3. Source74/Editor generale separati dal Human concluso; nessun PASS editoriale certifica integrazione o apertura.
+C1266 Editorial67 consegnata: correzioni installate e rilette, nessuna altra prova avviata. Conservare la versione integrata e tutti i risultati. La qualità nuova resta NOT_RUN: un eventuale prossimo mandato editoriale dovrà usare nuove azioni pertinenti e un punto ancora aperto, senza rigenerare gli esiti esistenti né riaprire E65/E66. Nessuna apertura pubblica o qualifica globale deriva da questa consegna.
 
 ### Residui delle campagne precedenti — da riconciliare prima di assegnare lavoro
 
@@ -322,6 +322,6 @@ Sharingan: ratifica esplicita Antonello ricevuta — osservazione automatica nel
 
 ## Prossimo passo
 
-C1266 Editorial66: mandato delle3coppie completato, nessunaulterioregenerazione. Review su memoria come stato acquisito, realizzazione del seguito e relazione fra attività del luogo e dialogo; eventuale prossima prova deve riguardare una domanda nuova pertinente, non rigenerare questa cessazione. Qualità parziale, nienteapertura pubblica oqualifica globale.
+C1266 Editorial67 consegnata: correzioni installate e rilette, nessuna altra prova avviata. Conservare la versione integrata e tutti i risultati. La qualità nuova resta NOT_RUN: un eventuale prossimo mandato editoriale dovrà usare nuove azioni pertinenti e un punto ancora aperto, senza rigenerare gli esiti esistenti né riaprire E65/E66. Nessuna apertura pubblica o qualifica globale deriva da questa consegna.
 
 La qualità narrativa si valuta sui casi completi realmente osservati. Note Centro e revisioni PNG sono delta editoriali separati, senza nuovi giudici stilistici o rigenerazioni esplorative. I casi Master Katon rimasti vanno nella Staff unica; Human concluso, Source74 e nuove missioni mantengono perimetri distinti.
