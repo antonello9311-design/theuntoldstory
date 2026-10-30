@@ -1,8 +1,8 @@
 # Review comparata A/B/C/D/E/F della Regia IA
 
-Checkpoint Combat64 del30/10/2026: correzione23 installata Staff, source/materiale0/0/0 e postflight tecnico positivo. Il report meccanico della sesta non ha ancora un Fato completo pubblicato; ritorno narrativo e finale NOT_RUN. Le valutazioni editoriali seguenti restano limitate ai testi già osservati, senza nuove rigenerazioni o modifiche ai Fati.39messaggi conservati,143HTTP/1,15878290USD prudenti su4. Finestra QA scaduta; rinnovo richiesto.
+Checkpoint della sesta F · 30/10/2026: F3 e F4 sono stati pubblicati dopo il recupero della stessa missione, senza riscrivere i Fati precedenti. La qualità editoriale è **NOT_PASSED**: F3 ripete una battuta PNG e parafrasa una postura PG; in F4 il Root ha osservato nel DOM ampie citazioni delle role PG e proposte ancora lasciate in attesa. Pubblicazione tecnica e qualità restano esiti distinti. Questa review non attesta la conclusione della missione né un percorso senza interruzioni.
 
-SestaF avviata il30/10/2026 suEditorial62:3Fati, ingressoCombat reale e blocco dispatch PNG prima provider. Stessa missione aperta; conclusione NOT_RUN. Nessuna copia letteralePG nelle2risposte, maggiore autonomiaPNG; campione incompleto e autoripetizioni residue. [Referto sesta](C1266_SIXTH63_REPORT.md).
+La sesta F conserva F0–F2, il primo ingresso Combat, le azioni accettate e i referti tecnici dei blocchi. F3 (`d623f7ef-4cf7-4f37-b370-dc7323746e29`) pubblica il report1; F4 (`600e281e-323e-4702-beaa-5daac5f273ac`, work `bbac2a58`, report2 `c40c2f8c`) risulta completato e apre automaticamente il round3 secondo il checkpoint del Root. Un nuovo round non equivale a un avanzamento narrativo o alla conclusione della quest. [Referto della sesta](C1266_SIXTH63_REPORT.md).
 
 QuintaE conclusa e chiusa normalmente il29/10/2026 alle22:44:44UTC sulla versione congelata Editorial60.4nuoviFati,35totali conservati; apertura e oggetti migliorati, qualità ancora parziale. [Referto quinta](C1266_FIFTH61_REPORT.md).
 
@@ -24,13 +24,45 @@ Editorial57 (istruzioni,schedeV5,revisione5,UI1/Edge119) collaudata nella quarta
 
 Le misure testuali servono alla review, non sono nuovi filtri bloccanti. Approcci e versioni differiscono; il confronto non è un esperimento controllato. C0–C3 sono stati prodotti con un contesto legacy concorrente; C4–C5 usano il nuovo percorso narrativo diretto N56. Per C non è lecito attribuire al nuovo impianto una missione intera senza interruzioni: sono state necessarie correzioni e l’apertura sulla versione finale non era stata provata. E verifica ora un’intera rotta pacifica congelata, con i due limiti di visualizzazione documentati.
 
-## Sesta F: confronto provvisorio
+## Sesta F: Combat pubblicato, qualità editoriale non superata
 
-F0 apre correttamente il primo incontro, con attività materiali del mercato. F1 risponde con fatti e motivazioni, ma ripete già nello stesso turno ignoranza, pagamento e fonte inventata. F2 fa avanzare concretamente verso Combat: Daichi accetta e Keita si dissocia. L'ambiente reagisce alla tensione tramite persone che si scostano e un venditore che richiama un cliente; non è la consueta coda di passaggio lasciato libero.
+F0 apre correttamente il primo incontro, con attività materiali del mercato. F1 risponde con fatti e motivazioni, ma ripete già nello stesso turno ignoranza, pagamento e fonte inventata. F2 fa avanzare verso Combat: Daichi accetta e Keita si dissocia; persone e attività del mercato reagiscono alla tensione.
 
-Nelle due risposte allineate:0battutePGcomplete e0sequenze comuni di5parole; nessuna parafrasi sostanziale osservata. Il richiamo iniziale alla richiesta di un nome può essere evitato entrando direttamente nella risposta. Rispetto aE migliora la distinzione fra le decisioniPNG, mentre ricapitolazioni e ricchezza ambientale sostenuta restano parziali. F non ha un finale confrontabile conE: Combat è bloccato nel dispatch prima del provider. Nessuna rigenerazione editoriale e nessun nuovo filtro bloccante.
+Il precedente riscontro di zero battute PG complete e zero sequenze comuni di cinque parole riguarda soltanto F1–F2 e non va esteso ai Fati Combat successivi. Le correzioni di raccordo hanno consentito di pubblicare F3 e F4, ma non hanno risolto la qualità del testo. I Fati e le azioni originali restano immutati.
 
-Le correzioniUI62 della nuova pubblicazione sono osservate suF0–F2: IAB eChrome ricevono lo stessoFato senza aggiornamento manuale/rientro. Restano un difetto separato nel pulsante Apri scontro e il messaggio incoerente dopoPassa. Non è un PASS generaleUI né una missione senza interruzioni. [Evidenza e piano](C1266_SIXTH63_REPORT.md).
+### F3 · esito meccanico leggibile, battuta PNG riciclata
+
+F3 è stato pubblicato il 30/10/2026 alle 17:17:38.961634 UTC e letto nei due browser dopo ricarica, secondo l’evidenza del Root. È composto da 470 caratteri Unicode e 79 parole. Il report1 immutabile, legato allo stesso messaggio e con values_written=false, conferma uno striscio con tre danni simulati e la difesa collegata risolta: la resa del colpo parziale è coerente con questi fatti.
+
+La battuta di Keita coincide integralmente con quella della riga a74 già pubblicata: otto parole, circa il 10,1% di F3. La verifica letterale usa l’estratto esplicito fornito dal Root; non pretende un confronto dell’intero corpo a74. Il gesto della mascella torna come elemento di repertorio, senza un nuovo intento riconoscibile.
+
+L’azione PG accettata non condivide sequenze di cinque parole con F3; la sequenza massima comune è di tre parole. Eppure il narratore ricostruisce semanticamente la guardia del braccio sinistro e il restare davanti all’avversario, dettagli già nella role. Sono riprese superflue: autore, bersaglio e natura del colpo servono a rendere leggibile l’esito, mentre la coreografia PG precedente non è una nuova conseguenza del report.
+
+Tamako aveva un Passa accettato con testo vuoto. La bozza precedente di 616 caratteri non è stata usata come azione inviata e non entra nel confronto. Non si deve inventare un suo intervento per bilanciare il testo.
+
+L’ambiente è ridotto a una coda di voci e richiami del mercato, vicina al repertorio dei turni precedenti; non produce una conseguenza locale del nuovo scambio. L’avanzamento meccanico è presente, quello sociale e dialogico è limitato. Questa azione era un attacco, quindi F3 non dimostra una mancata risposta a una nuova domanda. Il report sanitizzato F3 conserva misure e hash senza role integrali o dump meccanici.
+
+### F4 · pubblicazione distinta dalla risposta alle intenzioni PG
+
+F4 è stato pubblicato il 30/10/2026 alle 17:24:16.455474 UTC, messaggio `600e281e-323e-4702-beaa-5daac5f273ac`. Il corpo privato fornito dal Root misura 1.653 caratteri Unicode e 288 parole; SHA256 verificato `2ea512eea8a521b6bf9518ae46f1169f2516afc8e35de8e1d9181c3ed9f40725`. Il work è completato, il report2 pubblicato e il server apre il round3; ciò non equivale a concludere la missione, ancora in Combat nel checkpoint finale.
+
+Il Fato contiene quattro blocchi di parlato attribuiti ai PG: 501 caratteri, esclusi i delimitatori, e 78 parole. Sono circa il 30,3% dei caratteri e il 27,1% delle parole di F4. La corrispondenza con le role inviate è attestata dalla lettura DOM del Root; questo ramo non dispone dei due originali accettati e non presenta queste percentuali come un confronto lessicale indipendente con quelle role. È comunque verificabile nel corpo che il narratore torna a far parlare e a descrivere i PG. Non vengono riportate qui le citazioni.
+
+Keita riafferma la propria autonomia e ciò che non sa; Daichi torna a dichiararsi disponibile a mettere a disposizione foglio, monete e spiegazioni. Il testo termina però con oggetti ancora non consegnati e proposte rivolte ai due Genin, in attesa della risposta. C’è più materia visibile che in F3, ma gran parte dello spazio ritorna su parole già dei PG o su disponibilità non trasformate in un seguito. La qualità editoriale resta **NOT_PASSED**: una pubblicazione più lunga non risolve la ripresa delle role o il rinvio della scena.
+
+L’ambiente di F4 cita materiali e attività riconoscibili, ma resta una coda separata: il lavoro del mercato prosegue mentre il confronto rimane fermo. La sola apertura del round successivo prova la progressione del motore, non che la scena abbia risposto alle intenzioni narrative dei PG.
+
+Una proposta PG non deve essere accettata obbligatoriamente da un PNG; può ricevere un rifiuto, una condizione o un’altra reazione coerente con il profilo. Il difetto da evitare è ripubblicare la proposta e lasciarla nuovamente sospesa senza una conseguenza o una risposta osservabile. Se il seguito richiede un passaggio autorizzato dalla missione, va verificato il collegamento tra intenzione, scelta PNG, stato narrativo e percorso server: non basta chiedere al Writer di cambiare il tono. Il Root segnala inoltre un gap nel ritorno pacifico del percorso Native: la richiesta narrativa di cessare il confronto non deve essere confusa con il solo comando meccanico Passa. La prossima revisione deve raccordare interpretazione della proposta, decisione PNG autorizzata e ricevuta della transizione pertinente; il Writer non può inventare l’accordo o dichiarare da solo la missione conclusa.
+
+### Proposte generali per la prossima revisione
+
+- Separare nel contesto del Writer prosa già pubblicata, nuovi fatti risolti e intenzioni private. La continuità è memoria, non un repertorio da ricitare.
+- Raccontare il cambiamento prodotto dall’interazione. Le role servono a capire tentativi e causalità, senza essere citate, riassunte o ricostruite nei gesti e nelle posture PG.
+- Dare alle iniziative e alle proposte un seguito osservabile quando il PNG dispone di spazio narrativo autorizzato. Conservare autonomia e conoscenze individuali; non imporre assenso, confessioni o transizioni.
+- Usare ambiente e contesto quando incidono sullo scambio, intrecciando attività, spazio e dettagli pertinenti. Evitare una coda fissa di rumori, passanti o venditori.
+- Affiancare alle metriche lessicali una review semantica. La ricchezza non si ottiene imponendo minimi di caratteri, battute o dettagli; nessun nuovo filtro bloccante, retry o rigenerazione editoriale automatica.
+
+Queste sono proposte, non patch installate. Non si riscrivono F3/F4 né la riga a74. Prima di attribuire il difetto a un singolo prompt o alle schede, occorre leggere il contesto effettivamente consegnato al Writer e distinguere quello che era già pubblico da ciò che doveva cambiare. L’eventuale percorso ancora in corso e la conclusione della missione restano di competenza del collaudo del Root, non di questa review in sola lettura.
 
 ## Lettura della terza prova
 
@@ -95,6 +127,8 @@ C1266 Quinta61 · 29/10/2026: quinta E avviata22:40:54UTC e chiusa normalmente22
 Apertura e custodia sono miglioramenti dimostrati; la memoria conserva il passaggio degli oggetti aiPG. L’ambiente reagisce alla confessione inE1, ma ritorna a fondale generico inE2/E3. Il finale ripete ancora dichiarazioniPNG già acquisite; non si tratta di eco delle rolePG. Correzioni proposte e limiti sono nel [referto quinta](C1266_FIFTH61_REPORT.md). Nessuna nuova modifica o prova avviata dal report.
 
 ## Contabilità e conservazione
+
+I valori A–E sotto riportati sono tappe storiche. Il checkpoint finale della stessa campagna comunicato dal Root è **153 HTTP e 1,2319316 USD prudenti su 4 USD**, con storico e riserve conservati. La missione resta in Combat, round3: la pubblicazione di F3/F4 non è una conclusione. Questa review non modifica né ricostruisce il ledger dalle sole misure testuali.
 
 A: 62 HTTP, 0,47600170 USD. B: 37 HTTP, 0,33861150 USD. C: 20 HTTP, 10 Count e 10 Generation, 0,17132990 USD. D:8HTTP,4Count+4Generation,0,05902220USD. Totale prudenziale: **127HTTP e1,04496530USD su4USD autorizzati**. I valori includono le riserve quando il costo non è liquidato; non sono una fattura definitiva. La quarta aggiunge4Count+4Generation, con4Count a riserva conservata. Il precedente totale 0,9433573 ometteva due chiamate storiche A/B: riconciliate verso l’alto senza nuovi invii né reset.
 
