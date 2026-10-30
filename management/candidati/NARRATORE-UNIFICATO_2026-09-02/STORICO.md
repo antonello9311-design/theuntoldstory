@@ -1,3 +1,5 @@
+30/10/2026 · C1266 Combat64 /28 · F5 pubblica uscita pacifica, F6 finale narrativo verificato nei due browser; scena closed/run conclusa/Combat chiuso. Finish amministrativo OPEN per legacy34+6history;29 candidata non installata.160HTTP/1,28735640USD su4, storico e riserve conservati · NARRATIVE_COMPLETED / ADMIN_OPEN / EDITORIAL_NOT_PASSED / NON_FIRST_ATTEMPT_CLEAN.
+
 29/10/2026 · C1266/NARRATIVE56 · Separazione approvata: narrazione diretta senza Director/regole, motore solo Combat; Edge candidata statica pronta, DB/UI in composizione, stessa C e costi conservati · SOURCE_ONLY / NON_INSTALLATA / STAFF_NOT_RUN.
 
 29/10/2026 · C1266/55 · Terzaavviata,4Fati/8role eC4numericFAILED;101Fativecchieliminati,25ABCconservati; fonteCunicaRoota9applicata dopo rollbackcanonico, C4nonrecuperato · PARZIALE,QAcompletoNON_PASSED,0.9433573/4USD.
@@ -1169,3 +1171,5 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 30/10/2026 · C1266 Combat64 aggregata23 · Writer/profilo PNG, Fato unico e frame/receipt raccordati e installati Staff dopo review source/materiale0/0/0;236header e39messaggi preservati · Correzione installata, recupero e finale sesta NOT_RUN per finestra QA scaduta;143HTTP/1,15878290USD su4.
 
 30/10/2026 · C1266 Combat64 aggregata25 · Review0/0/0, Root25/Edge124 installati; F3 eF4 pubblicati nella stessa sesta, nessuna azione originale reinviata · Missione NON COMPLETATA: gap Native2/uscita pacifica, editoriale NOT_PASSED;153HTTP/1,23193160USD su4.
+
+30/10/2026 · Combat64 aggregata30 · Root30 86f9cc2af1d4c8b6cfb8fe3301dfa7b6f3bea30cafe29de187469b2578f730fb / Edge126 / UI7;240header esatti, source/material30 0/0/0.29 rollback23514audit,30 corregge due literal uppercase senza allentareCHECK. Preparazione34 ritirata failed con audit,0pendingwork. Missione e Combat conclusi, finish amministrativo ancora OPEN history_unreconciled.160HTTP/1,28735640USD su4. · installata Staff, finale pubblicato, archivio OPEN.

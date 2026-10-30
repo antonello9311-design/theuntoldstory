@@ -1,8 +1,16 @@
-# Sesta prova F — pubblicazione recuperata, chiusura ancora aperta
+# Sesta prova F — narrazione conclusa, finish amministrativo aperto
+
+C1266 Combat64 · checkpoint28 del 30/10/2026: **narrazione della stessa missione conclusa**, Combat chiuso, scena closed/run conclusa/cache v7. F5 pubblicato18:36:08.553099UTC (`9822087d-ef6c-4a18-9271-2ad6e6762306`), con uscita pacifica e fase4; F6 finale pubblicato18:37:32.77421UTC (`ab810c37-d93e-4eaa-bc58-7ae74cea7a8a`), letto nei due browser dal Root. Root30 86f9cc2af1d4c8b6cfb8fe3301dfa7b6f3bea30cafe29de187469b2578f730fb / Edge126 / UI7;240header esatti, source/material30 0/0/0.29 rollback23514audit,30 corregge due literal uppercase senza allentareCHECK. Preparazione34 ritirata failed con audit,0pendingwork. Missione e Combat conclusi, finish amministrativo ancora OPEN history_unreconciled.160HTTP/1,28735640USD su4., commit `284d492b99c4f92085df664128a21e70ce3d69c8`, Pages41107482065 SUCCESS. Small e riserva Staff conservati.
+
+La chiusura amministrativa è ancora **OPEN**: preparazione34 ritirata dalla30; il controllo storico impedisce ancora il finish (history_unreconciled). Non confondere missione narrativa conclusa e liberazione amministrativa della Staff.
+
+Totale prudente: **160 HTTP / 1,28735640 USD su4 USD**. Fati, azioni accettate, work, audit e riserve sono conservati, senza azzeramenti. Qualità editoriale **NOT_PASSED**, percorso non pulito al primo tentativo: F3/F4 restano difettosi; F5/F6 migliorano risposta e avanzamento ma hanno autoripetizioni PNG, richiamo semantico PG e ambiente poco profondo. Nessuna rigenerazione editoriale o apertura pubblica.
+
+## Cronologia fino al checkpoint precedente (conservata)
 
 C1266 Combat64 · 30/10/2026: aggregata25 installata nella sola Staff, migrazione20261030171547 c1266_combat64_minimum_advisory_recovery_staff. Root ef28bf451e507486f774e9347e7958d2c14a163211c82937670fec3554f9a8d2 / semantic69d6aa34def54bec75dd2440a7f5f022ccea06d6e4860fd16c6535e93b82babf;236header e2targetABI esatti, Edge124/EZBR47249c98906730f85a83ac84c243acae8cb1334f499c6c412b644b50b3ba764f,14file riletti esatti. UI5/49a90598 invariata. Review source25/materiale0/0/0;24rossa conservata. Brevità consultiva Native e recovery tecnico paid definitivo, nessun nuovo helper/CHECK/ACL nella25. F3 d623f7ef pubblicato17:17:38UTC e letto dai due PG; F4 600e281e pubblicato17:24:16UTC da due nuove role legali, senza reinviare le azioni originali.39testi precedenti UTF8,3failed, report1meccanico ePG protetti conservati. Sesta NON COMPLETATA: Native2 privo del raccordo peaceful_exit, round3 raccolta e scena combat/fase_3/v5. Editoriale NOT_PASSED: F3 ripete PNG/parafrasiPG, F4 ricopia ampie battutePG e lascia proposta inattesa.153HTTP/1,23193160USD prudenti cumulativi su4, incluse riserve unknown_billable; nessun reset. Small invariato, nessuna apertura pubblica. Stop nuovi provider per gap confermato; finestra autorizzata stopprovider17:34:19UTC/chiusura17:44:19UTC.
 
-## Esito attuale verificato
+## Esito verificato al checkpoint25 (storico)
 
 F3 risolve il report1: striscio a Keita,3PV esclusivamente simulati; meccaniche SHA37aba24839765b4588ccb778678225e060c53999d75ceb48ca182301fff9cdc5 invariate. Message d623f7ef-4cf7-4f37-b370-dc7323746e29 SHA711e7d021d0bc45ce3dec1c0e317d234e9199d650b1426c1b88c69a8353cb1ae; pubblicato17:17:38.961634UTC,470caratteri/79parole, letto in entrambi i browser.
 
@@ -124,3 +132,21 @@ Checkpoint:143HTTP e1,15878290USD prudenti su4USD; sesta8HTTP/0,05627540USD. Due
 39messaggi preesistenti (35A–E, F0–F2 e dichiarazioneKeita) verificati invariati al preflight22. Failedwork/receipt storici conservati, report meccanico immutato. PG protetti confrontati nel perimetro dichiarato, non sull’intera riga volatile. Combat lesiva=false, simulated_pools=true, values_written=false; Small invariato, nessun supporto esterno o apertura pubblica.
 
 Le prove statiche non qualificano la nuova generazione, il ritorno narrativo, il finale o la nuova barriera durante un turno reale: esiti da registrare dopo pubblicazione. Corpus integrali e role solo in /private/tmp, mai nel referto pubblicato.
+
+
+## F5/F6 · esito corrente28
+
+C1266 Combat64 · checkpoint28 del 30/10/2026: **narrazione della stessa missione conclusa**, Combat chiuso, scena closed/run conclusa/cache v7. F5 pubblicato18:36:08.553099UTC (`9822087d-ef6c-4a18-9271-2ad6e6762306`), con uscita pacifica e fase4; F6 finale pubblicato18:37:32.77421UTC (`ab810c37-d93e-4eaa-bc58-7ae74cea7a8a`), letto nei due browser dal Root. Root30 86f9cc2af1d4c8b6cfb8fe3301dfa7b6f3bea30cafe29de187469b2578f730fb / Edge126 / UI7;240header esatti, source/material30 0/0/0.29 rollback23514audit,30 corregge due literal uppercase senza allentareCHECK. Preparazione34 ritirata failed con audit,0pendingwork. Missione e Combat conclusi, finish amministrativo ancora OPEN history_unreconciled.160HTTP/1,28735640USD su4., commit `284d492b99c4f92085df664128a21e70ce3d69c8`, Pages41107482065 SUCCESS. Small e riserva Staff conservati.
+
+La chiusura amministrativa è ancora **OPEN**: preparazione34 ritirata dalla30; il controllo storico impedisce ancora il finish (history_unreconciled). Non confondere missione narrativa conclusa e liberazione amministrativa della Staff.
+
+Totale prudente: **160 HTTP / 1,28735640 USD su4 USD**. Fati, azioni accettate, work, audit e riserve sono conservati, senza azzeramenti. Qualità editoriale **NOT_PASSED**, percorso non pulito al primo tentativo: F3/F4 restano difettosi; F5/F6 migliorano risposta e avanzamento ma hanno autoripetizioni PNG, richiamo semantico PG e ambiente poco profondo. Nessuna rigenerazione editoriale o apertura pubblica.
+
+### F6 · finale narrativo pubblicato, residui non cancellati
+
+F6 finale `ab810c37-d93e-4eaa-bc58-7ae74cea7a8a` è pubblicato alle18:37:32.77421UTC, SHA256 `6302b43d9ac4e2c9f1d7ce6d84a70a4120677bd1c93c2f90cb56992b391d9079`, con 479 caratteri e 81 parole. Il Root verifica lettura nei due browser, Combat chiuso e narrazione conclusa/run conclusa/cache v7. Il finish amministrativo resta un’operazione distinta, ancora in verifica.
+
+Le due nuove role PG effettivamente accettate sono state confrontate senza pubblicarne i corpi: massimi tratti lessicali condivisi 4, 3 parole; sequenze comuni di cinque parole 0, 0. Queste misure non autorizzano un’assenza assoluta di echo. Il procedere insieme e il lasciare libero il tratto riprendono semanticamente il movimento già proposto dai PG: il seguito dei PNG e la destinazione concordata fanno avanzare, ma la coreografia PG non va ricostruita inutilmente.
+
+Keita torna sul motivo della propria parte e del non parlare per l’altro: non è necessariamente una battuta identica, ma è autoripetizione semantica dello stesso repertorio F3–F5. Custodia di foglio e denaro coerente; mercato/passaggio/richiami rimangono lo sfondo ricorrente, con varietà e profondità parziali. Il finale è osservabile e tecnicamente conclusivo per la narrazione; non è per questo un PASS editoriale o un collaudo senza correzioni. F3/F4 e tutti gli errori precedenti restano nel giudizio complessivo.
+

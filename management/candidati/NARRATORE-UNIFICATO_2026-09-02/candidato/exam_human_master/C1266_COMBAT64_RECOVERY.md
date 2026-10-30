@@ -1,17 +1,13 @@
-# Combat64 · stessa sesta · aggregata25 — checkpoint dopo pubblicazione
+# Combat64 · stessa sesta · chiusura dopo pubblicazione
 
-Finestra autorizzata16:59:19–17:44:19UTC, stop nuovi provider17:34:19. Nessuna nuova chiamata dopo la diagnosi del gap.153HTTP/1,23193160USD prudenti su4, senza reset;12HTTP dal taskstart141,10HTTP dal rinnovo143. Count unknown_billable e tutte le spese conservati.
+Finestra autorizzata 30/10/2026 17:57:41–18:57:41 UTC, stop nuovi provider 18:47:41. Nessuna ulteriore generazione necessaria dopo F6. Totale prudente 160 HTTP / 1,28735640 USD su 4, senza reset. Vecchio Count HTTP400 unknown_billable mantiene riserva 0,0124 USD e nessuna Generation.
 
-## Operazioni già concluse: NON ripetere
+## Operazioni concluse: non ripetere
 
-Recovery da854d eseguita una volta: figlio98082b00-d928-e6ac-5275-31d838d2bd43 completed, F3d623f7ef-4cf7-4f37-b370-dc7323746e29 pubblicato17:17:38UTC. Non è raw recuperato: il fallimento paid precedente aveva rawNOT_RETAINED ed è servito un nuovo tentativo tecnico contabilizzato. Non cliccare nuovamente recovery dei vecchi failed. F3 e report1 sono narrati/pubblicati.
+Le azioni originali, le successive Passa e le due azioni narrative finali sono accettate una sola volta. Non reinviarle. F3 e F4 precedenti restano identici. Il figlio tecnico Native6d73 dopo il Count schema corretto ha acquisito valutazioni PNG reali, non consensi inventati. Writerb657 pubblica F5 9822087d-ef6c-4a18-9271-2ad6e6762306 alle18:36:08 UTC; Combat chiuso dal server e scena narrativa/fase4/v6. Writerfa8 pubblica F6 ab810c37-d93e-4eaa-bc58-7ae74cea7a8a alle18:37:32 UTC; scena closed/fase4/v7, run conclusa. F5 e F6 letti nei due accessi normali; nessun Fato precedente modificato.
 
-Due NUOVE Passa+role nel round2 sono state accettate una volta dai normali accessi Riuji eTamako. Due choice430ca/a6d e Writerbbac completed; F4message600e281e-323e-4702-beaa-5daac5f273ac pubblicato17:24:16UTC e letto daentrambi. Non reinviare né queste role né attacco/Passa originali; vecchia bozzaTamako616 maiaccettata resta esclusa.
+## Stato amministrativo distinto
 
-## Stato attuale e recupero consentito
+Correzione30 installata nella sola Staff dopo review sorgente/materiale0/0/0: Root86f9cc2af1d4c8b6cfb8fe3301dfa7b6f3bea30cafe29de187469b2578f730fb,240header esatti, Edge126/UI7 invariati.29 fallita con23514 sul codice audit, transazione interamente annullata;30 corregge due literal uppercase senza allentareCHECK. Duplicato34 mai inviato ritirato failed con audit e prova F5, zero provider; ogni altro work immutato.0work pendenti. Il comando Staff finish resta history_unreconciled: tre choice confrontate prima della normalizzazione; sei output conservati non riconosciuti dal predicato storico completo, causa residua UNKNOWN. Non installata una31 incompleta. Non avviare nuove generazioni o reinviare azioni; nessuna nuova prova.
 
-Stessa sessionec2faf883-5264-44e3-b1a2-bd9a39876942 eencounterb3135a23-78c5-4c45-a730-b1de8257367b aperti, scena combat/fase_3/v5. Round3 44c69ed5-c6be-46cd-ba6a-bd9f4f001e30 inraccolta e senza dichiarazioni alcheckpoint. Non usare Sospendi, subentroMaster oSQLartificiale per dichiararlo concluso.
-
-Uscita pacificaNative2 OPEN: capability/route esistenti richiedono finestreUnified/utilita e non sono applicabili alla Nativecorrente. Passa non prova un accordo e i risultatiPNG non contengono peaceful_exit. Il recupero deve attestare le fontiPG giàaccettate e acquisire le nuove valutazioniPNG mancanti attraverso contrattoNative versionato; non retrofittare consensi inesistenti. Il round3 vuoto va gestito esplicitamente dalmotore senza cancellazione o falsa narrazione. Pubblicazione completa e stato successivo devono condividere unaricevuta autorevole.
-
-Root25ef28bf451e507486f774e9347e7958d2c14a163211c82937670fec3554f9a8d2,Edge124,UI5;236headeresatti,2targetABIesatti, source/materialreview0/0/0.25nonintroduce helper/CHECK/ACL;3helper e2CHECK della23restano.39testiUTF8 precedenti,3failed, reportmeccanico ePGprotetti conservati. F3/F4 editorialiNOT_PASSED. Prima di ogni ulterioreinstallazione ricomporre dallaRootviva e completare review indipendente; preparazioni26 non sono installabili né autorizzano provider oltre lafinestra. Sesta NON COMPLETATA.
+Missione realmente conclusa e Combat chiuso; chiusura amministrativa NON completata. Qualità editoriale NOT_PASSED, nessun successo al primo tentativo dichiarato. Finestra termina18:57:41UTC; provider già arrestati. Conservare riserva Countunknown0,0124USD e tutte le ricevute.
