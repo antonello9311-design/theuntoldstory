@@ -1,6 +1,6 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-d092961883b6fe3e';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-display-8cdf2250a8562d83';
-export const VERSION='mission-combat64-ui/4';
+export const VERSION='mission-combat64-ui/5';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -3251,7 +3251,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  async function requestNativePeaceful(host){
   const t=syncRoom(host),state=roomState,n=narrativeSection(state),session=state?.session_id;
   if(!roomCurrent(t)||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||!n||n.mode!=='combat'||roomError||nativePeacefulBusy.has(session)||abortBlocked(session))return;
-  const key=JSON.stringify(['mission-native-peaceful-command/1',t.user,session,n.scene_id,n.state_version,n.last_publication_id]);
+  const key=JSON.stringify(['mission-native-peaceful-command/2',t.user,session,n.scene_id,n.state_version,n.last_publication_id]);
   nativePeacefulBusy.add(session);
   try{
    const raw=localStorage.getItem(key);let journal=raw===null?null:JSON.parse(raw);
