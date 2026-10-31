@@ -21,6 +21,14 @@ Allineamento documentale del 09/09/2026 · decisioni e prove narrative recuperat
 
 ## Stato vivo
 
+C1266 Editorial73 ·31/10/2026: istruzioni editoriali semplificate e installate nella composizione Staff, aggregata21 in continuità1–20. Il Director usa le fonti ricevute per proporre contenuto e intenzioni; il Writer realizza parole, comportamenti e sviluppo coerente. L’ambiente deriva dai dati della missione/mappa/fase disponibili, senza dettagli specifici o ricette ambientali nel prompt. Memoria aggiornata dall’acquisito e dal nuovo esito, mantenendo solo pendenze effettive. Sovrapposizioni editoriali e indicazioni di battute pronte rimosse nei percorsi interessati; nessun nuovo filtro, quota, retry o blocco stilistico.
+
+Root `2cb99826fadbefcbcdfd6aceab521ebe2c675bc4d716f1feedd4743bea25addf`, semantic `3075cbd130ff1b03ca5c2a55fbfa3d5eae5ddcf077edc01ebb0abd8cd944c0d2`, Edge138/EZBR `cb1d6207f028b733fa72256273632d4285e0a52ff8096987c5fe10db5c03e155`. Sorgente21 e materiale effettivo recensiti0/0/0,16file Edge riletti integralmente esatti; una sola riga readiness aggiornata e nessunDDL. Postflight246header/10ABI/5tabelle/68vincoli senza mismatch e preservazione nativa positiva per43Fati/sei scope/E65/E66/E68/E70/E72, risultati, raw, memorie, ledger e audit. Schema, bounds, normalizzatori, autorità, costi, UI959/buildUI7, fasiV8 e schedeV7 conservati. Tutte le provenienze recovery precedenti mantenute; non aggiunta una nuova voce annidata alla Root a capacità quasi esaurita. Infrastruttura invariata.
+
+Zero nuove prove o chiamate provider, nessun enable/replay o Fato modificato. E72 resta chiusa6completed/0pending.218HTTP e1,98784240USD prudenti su4 conservati, riserve unknown_billable incluse. Efficacia editoriale e memoria della nuova versione NOT_RUN: installazione non è una qualifica della prosa né della missione completa. Fonte: referti/C1266_EDITORIAL73_REPORT.md.
+
+Checkpoint E72 conservato:
+
 C1266 Editorial72 · 31/10/2026: tre nuove prove private Director → Writer completate in Staff con prompt E71 invariati. Sei stage completati al primo tentativo IA, 6 Count + 6 Generation / 12 HTTP, nessun retry editoriale. Campagna ff79949a-06cb-5749-a33f-3d632d78f3a5 chiusa enabled=false, 0 pending; risultati e memoria privati conservati. Nuovo costo prudente 0,14576220 USD (Count riservato 0,13200000 + Generation esatto 0,01376220), cumulativo 218 HTTP / 1,98784240 USD su 4. Le riserve unknown_billable non sono azzerate.
 
 E71 Director dialogico/3, Writer response/10 e memoriaScene/2 sono presenti integralmente nelle richieste reali; tutte le tre catene legano il piano Director nuovo al Writer tramite ricevuta e hash di richiesta/raw/risultato. Input narrativi identici E70: confronto controllato di tre rami indipendenti dopo F2, non replay della missione né verifica longitudinale della memoria. Nessuna battuta PG ricopiata osservata, nessuna sequenza di cinque parole condivisa con le domande. Qualità PARZIALE: nel caso3 Keita sceglie una strada autonoma e la rettifica è riconosciuta già acquisita; restano ricapitolazioni PNG, ambiente soprattutto in coda e gesti di custodia ripetuti. Director caso3 anticipa battute complete poi riprese dal Writer: problema di ripartizione editoriale, distinto dal PG echo. Memorie normalizzate complete nei tre campioni, senza frammenti osservati; non dimostra affidabilità generale o memoria su turni successivi.
@@ -249,7 +257,7 @@ Le seguenti righe conservano la fotografia precedente: **non descrivono il datab
 
 ## Lavori aperti — in ordine
 
-E72 consegnata e chiusa: review del confronto E70/E72. Proposte soltanto: Director pianifica decisioni e conseguenze senza copione; Writer sviluppa risposte nuove e ambiente che partecipa allo scambio; memoria distingue acquisito e seguito con unità autonome. Nessuna nuova correzione o prova avviata, nessuna apertura pubblica o qualifica completa missione/Combat.
+E73 consegnata: istruzioni generiche installate e conservazione verificata. Nessuna ulteriore correzione o prova avviata. Efficacia dei nuovi testi e memoria su più turni NOT_RUN; tutti risultati E72 e precedenti restano originali per la review.
 
 - HUMAN-LAND-INTEGRATION: media/backend eAdmin installati/pubblicati; recovery postflightcast inreview dopo rollback. Stessa bozzaCV4 conservata; coppie/QA FatoCombat2puntate NOT_RUN.
 
@@ -302,7 +310,7 @@ E72 consegnata e chiusa: review del confronto E70/E72. Proposte soltanto: Direct
 
 ## Prossimo passo
 
-E72 consegnata e chiusa: review del confronto E70/E72. Proposte soltanto: Director pianifica decisioni e conseguenze senza copione; Writer sviluppa risposte nuove e ambiente che partecipa allo scambio; memoria distingue acquisito e seguito con unità autonome. Nessuna nuova correzione o prova avviata, nessuna apertura pubblica o qualifica completa missione/Combat.
+E73 consegnata: istruzioni generiche installate e conservazione verificata. Nessuna ulteriore correzione o prova avviata. Efficacia dei nuovi testi e memoria su più turni NOT_RUN; tutti risultati E72 e precedenti restano originali per la review.
 
 HUMAN-LAND-INTEGRATION: recovery e CFG5 GREEN source non installate; media RED0/1/0 HUMAN-MEDIA-F1 (riserva runtime Staff assente). Budget14/10 terminato; campagna nuova NOT_STARTED. Correggere media, ricomporre/review, preflight e installazione prima di upload/approve/recovery e nuova prova Fato/Combat/seconda puntata; stessa bozza/key e conteggi conservati.
 

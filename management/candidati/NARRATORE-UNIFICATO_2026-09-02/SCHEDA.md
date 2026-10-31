@@ -1,4 +1,12 @@
-in lavoro · E72 consegnata: tre prove private concluse e chiuse; qualità PARZIALE, nessuna altra prova.
+in lavoro · E73 consegnata: istruzioni generiche installate, efficacia NOT_RUN; nessuna nuova prova.
+
+C1266 Editorial73 ·31/10/2026: istruzioni editoriali semplificate e installate nella composizione Staff, aggregata21 in continuità1–20. Il Director usa le fonti ricevute per proporre contenuto e intenzioni; il Writer realizza parole, comportamenti e sviluppo coerente. L’ambiente deriva dai dati della missione/mappa/fase disponibili, senza dettagli specifici o ricette ambientali nel prompt. Memoria aggiornata dall’acquisito e dal nuovo esito, mantenendo solo pendenze effettive. Sovrapposizioni editoriali e indicazioni di battute pronte rimosse nei percorsi interessati; nessun nuovo filtro, quota, retry o blocco stilistico.
+
+Root `2cb99826fadbefcbcdfd6aceab521ebe2c675bc4d716f1feedd4743bea25addf`, semantic `3075cbd130ff1b03ca5c2a55fbfa3d5eae5ddcf077edc01ebb0abd8cd944c0d2`, Edge138/EZBR `cb1d6207f028b733fa72256273632d4285e0a52ff8096987c5fe10db5c03e155`. Sorgente21 e materiale effettivo recensiti0/0/0,16file Edge riletti integralmente esatti; una sola riga readiness aggiornata e nessunDDL. Postflight246header/10ABI/5tabelle/68vincoli senza mismatch e preservazione nativa positiva per43Fati/sei scope/E65/E66/E68/E70/E72, risultati, raw, memorie, ledger e audit. Schema, bounds, normalizzatori, autorità, costi, UI959/buildUI7, fasiV8 e schedeV7 conservati. Tutte le provenienze recovery precedenti mantenute; non aggiunta una nuova voce annidata alla Root a capacità quasi esaurita. Infrastruttura invariata.
+
+Zero nuove prove o chiamate provider, nessun enable/replay o Fato modificato. E72 resta chiusa6completed/0pending.218HTTP e1,98784240USD prudenti su4 conservati, riserve unknown_billable incluse. Efficacia editoriale e memoria della nuova versione NOT_RUN: installazione non è una qualifica della prosa né della missione completa. Fonte: referti/C1266_EDITORIAL73_REPORT.md.
+
+Checkpoint E72 conservato:
 
 C1266 Editorial72 · 31/10/2026: tre nuove prove private Director → Writer completate in Staff con prompt E71 invariati. Sei stage completati al primo tentativo IA, 6 Count + 6 Generation / 12 HTTP, nessun retry editoriale. Campagna ff79949a-06cb-5749-a33f-3d632d78f3a5 chiusa enabled=false, 0 pending; risultati e memoria privati conservati. Nuovo costo prudente 0,14576220 USD (Count riservato 0,13200000 + Generation esatto 0,01376220), cumulativo 218 HTTP / 1,98784240 USD su 4. Le riserve unknown_billable non sono azzerate.
 
@@ -380,7 +388,7 @@ Singola prova successiva richiesta daAntonello:54b5e63c-e3cb-4025-980f-b24038851
 
 ## Prossimo passo
 
-E72 consegnata e chiusa: review del confronto E70/E72. Proposte soltanto: Director pianifica decisioni e conseguenze senza copione; Writer sviluppa risposte nuove e ambiente che partecipa allo scambio; memoria distingue acquisito e seguito con unità autonome. Nessuna nuova correzione o prova avviata, nessuna apertura pubblica o qualifica completa missione/Combat.
+E73 consegnata: istruzioni generiche installate e conservazione verificata. Nessuna ulteriore correzione o prova avviata. Efficacia dei nuovi testi e memoria su più turni NOT_RUN; tutti risultati E72 e precedenti restano originali per la review.
 
 C1266 Editorial71 consegnata: correzioni installate e verifica di conservazione positiva. Review del delta e delle evidenze; nessuna altra prova avviata o autorizzata da questa consegna. La resa futura di testo e memoria rimane NOT_RUN; risultati E70 e Fati precedenti restano originali. Nessun enable, replay o apertura pubblica.
 
