@@ -136,7 +136,7 @@ Asset UI E70 pubblicati in69adf4ca19c66b8a354804f9ba81094041f56c97; fullreadback
 | mission-generic-ui.mjs | 355895 | c29a5709ec6d271bca585e346df3cb88183df4471d87cb1a36708bb464bc91e2 | caricato/verificato |
 | mission-editorial-staff.mjs | 14975 | c3168a3664c231f24be407104429788bdf5689cded30e44c357e1d901998ff76 | caricato/verificato |
 
-VERSIONmission-combat64-ui/5-editorial70-review69,LANDbuildC1266-COMBAT64-UI7 invariata. Sorgenti/reportE70 pronti per deposito selettivo; materiali completi INSTALL/ENABLE/MANIFEST/DB_PACKET restano locali conbyte/SHA nelRELEASE_CHAIN. Nessunraw o testo integrale delle role neldeposito.
+VERSIONmission-combat64-ui/5-editorial70-review69,LANDbuildC1266-COMBAT64-UI7 invariata. Deposito selettivo completato: commit 6f9ac788902f9ea51189ce8347db1a328e356234 (parent69adf4ca19c66b8a354804f9ba81094041f56c97),32percorsi/32blob riletti integralmente byte-esatti, refmain verificatoCAS/noForce/zero rimozioni. UI3giàpubblicata69ad e invariata neldeposito; Root.ui.git_head restaquelcommit di codice. Materiali completi INSTALL/ENABLE/MANIFEST/DB_PACKET conservati locali conbyte/SHA nelRELEASE_CHAIN, nessunraw o corpo integrale dei Fati neldeposito. Nessun nuovoapply/deploy/provider dalcaricamento. Nessunraw o testo integrale delle role neldeposito.
 
 CheckpointE69 precedente conservato:
 
