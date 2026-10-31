@@ -129,6 +129,8 @@ Integrazione22: Root `5c948df36e4410eed1b5d0af62e91326a5739aded211b558cd92e96493
 ENABLE reale18:16:29.844157UTC,stopprovider19:31:29 eclose19:46:29UTC; tutte le generazioni concluse entro18:19:45.800622UTC e chiusura verificata nella stessa finestra. Testi E73/V8/V7 invariati; nessuna role inviata o missione rigiocata. Tre rami indipendenti dopoF2 non qualificano una missione completa,Combat,memoria longitudinale o altri percorsi Staff. Fonte: referti/C1266_EDITORIAL74_REPORT.md.
 
 
+Deposito E74 verificato: commit `0f90a535d6f1746cb2d447e8b591afe7c19beab4` ([GitHub](https://github.com/antonello9311-design/theuntoldstory/commit/0f90a535d6f1746cb2d447e8b591afe7c19beab4)),29file sorgenti/evidenze con readback UTF-8 integrale esatto,0rimozioni/0deltaestranei. Ref main aggiornato con confronto atteso e riletto. UI già pubblicata separatamente ina6c9aa5/Pages41228255501SUCCESS, tre asset byte/SHA in tabella; Root.ui.git_head resta quel commit del codice. INSTALL/ENABLE/MANIFEST/DB_PACKET/CASES restano locali per Root/fonti private, con byte/SHA nelRELEASE_CHAIN. Nessun ulteriore apply/deploy/enable/provider deriva dal deposito.
+
 Asset E74 pubblicati (build LAND UI7 invariato):
 
 | File | Byte | SHA256 | Commit |
