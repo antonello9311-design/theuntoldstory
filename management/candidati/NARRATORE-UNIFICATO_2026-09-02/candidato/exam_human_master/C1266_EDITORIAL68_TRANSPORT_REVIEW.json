@@ -1,0 +1,43 @@
+{
+  "schema_version": "editorial68-independent-transport-review/12",
+  "aggregate": 12,
+  "verdict": "PASS_TRANSPORT_EQUIVALENCE",
+  "counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "findings": [],
+  "previous_aggregates_1_to_11_and_failed_preSQL_transport_preserved": true,
+  "semantic": "17ec4b2bc2295d59bfdfb324882232661c570f1882ac575bedff67de834532ef",
+  "source_material11_sha256": "fc8cfddf11c48ba4cb37adcf0b10fdc0ddc52c685eac256916debbd8d2ba4eea",
+  "frozen_transport_files": {
+    "INSTALL.sql": "d9dd619a67258223b4e49e7e3bc75cf5ad1aeae425a305276452e87d40e8917f",
+    "PROOF.json": "bd312362d7b5aa764aa8bbe3257132e3087ec070284cf7986781bed280266a84",
+    "TRANSPORT_BUILD.py": "bfae4c16009cfd0587f596c4de706355efd8565c1cb3593355195061d2453942"
+  },
+  "checks": {
+    "raw_bytes": 762140,
+    "ascii_JSON_wire_bytes": 825949,
+    "outer_SQL_AST": [
+      "BEGIN",
+      "DO",
+      "COMMIT",
+      "NOTIFY"
+    ],
+    "pre_post_independent_reconstruction": "Exact original nested declarations/statements except one proven source_refs projection; original pre/post mutable locals remain separate initialized scopes",
+    "shared_constants": "Eleven outer CONSTANT text literals only; initialization contains no DB access or functional evaluation; e68_transport names do not collide with original e68_ locals",
+    "packet_projection": "Only consumer of full packet was config.source_refs; extracted JSON deeply equal to original subvalue, no hash of changed packet consumed",
+    "DDL": "All4 CREATE OR REPLACE FUNCTION dynamic EXECUTE bodies byte-identical and AST-identical to original reviewed statements, sameorder/role/transaction; no DDL behavior change",
+    "seed": "Same insert columns/values; JSON constants reconstructed using deep-equal original JSON literal, formatting/Unicodeescaping only, no source content/hash/identity mutation",
+    "Root_and_guards": "Root/baseline/material params/constraints/tables/ABIs/history literal values exact, orderpreflight→4DDL→disabledseed→postflight unchanged; advisory/rowlocks transaction lifetime preserved",
+    "parsing": "Independent complete outer SQL4nodes; PL parse after sole parser-only catalogcomposite→record substitution; not falsely claimed rawcatalogtype PL execution",
+    "ENABLE": "Original material11 ENABLE is unchanged and remains separately reviewed; not executed by reviewer"
+  },
+  "limits": [
+    "Transport/source equivalence only, no DB invocation/provider/gameplay and no local functional fixture.",
+    "Original material11 preSQL RequestbodytooLarge remains an observed failure, not firstapplyPASS.",
+    "No assumption of transport acceptance or SQL runtime success until parent apply/postflight; seeddisabled and clockunset remain current preapply state.",
+    "No new generation, quality qualification, budget expansion, reset or retry introduced by this transport correction."
+  ]
+}

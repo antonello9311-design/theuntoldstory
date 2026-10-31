@@ -1,4 +1,7 @@
-# Review comparata A/B/C/D/E/F e campioni editoriali E65/E66
+# Review comparata A/B/C/D/E/F e campioni editoriali E65/E66/E68
+
+E68 · 31/10/2026: tre nuove domande indipendenti dopoF2, Director dialogico/2 e WriterScene5 collegati;6stage completi senza retryIA dopo correzione409preprovider. Nessuna ripresa estesa delle domande osservata; ambiente in coda, autoripetizioni e promesse di seguito persistono. Memoria privata NOT_PASSED per frammenti/commento modellistico. Campagna chiusa6completed/0pending;43Fati/E65/E66 conservati,194HTTP/1,69885550USD su4. Confronto nonA/Bcontrollato per input/tipologiaDdiversi. [Report comparato E68](C1266_EDITORIAL68_REPORT.md).
+
 
 E66 · 30/10/2026: trecampioni della stessa finestraNative conDirectorNUOVO eWriterNUOVO collegati,6stagecomplete1shot/0blocchi/0retry. Non è unanuovamissione né3contesti. PGcease×2/PNGaccept×2 coerenti,nessunacopiaPGestesa,ambienteevociancoraparziali. E66chiusa0pending;totale182HTTP/1.55692060USDsu4,43Fati eE65interamenteconservati. [RefertoE66](C1266_EDITORIAL66_REPORT.md).
 

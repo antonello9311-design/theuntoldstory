@@ -1,0 +1,516 @@
+{
+  "schema": "editorial68-recovery13/1",
+  "baseline_root": "7787d8d453cdadb2b2dfe8d921db4059b13be66bdd1526fac61f558ba67acbce",
+  "function": {
+    "signature": "public.mission_staff_editorial_prepare_v1(uuid,uuid,integer,text,uuid)",
+    "before_header": {
+      "owner": "postgres",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "config": [
+        "search_path=\"\""
+      ],
+      "secdef": true,
+      "language": "plpgsql",
+      "volatility": "v",
+      "signature": "public.mission_staff_editorial_prepare_v1(uuid,uuid,integer,text,uuid)",
+      "source_md5": "db6d9ea02e1caa918e72875a38680916",
+      "ddl_md5": "cff6b80f5f17941da3cc1475f2e0b4de",
+      "oid": 662673
+    },
+    "before_abi": {
+      "cost": 100,
+      "kind": "f",
+      "rows": 0,
+      "retset": false,
+      "strict": false,
+      "parallel": "u",
+      "leakproof": false,
+      "return_type": "jsonb",
+      "support_oid": 0,
+      "variadic_type": 0,
+      "argument_count": 5,
+      "argument_modes": [
+        "i",
+        "i",
+        "i",
+        "i",
+        "i"
+      ],
+      "argument_names": [
+        "p_user",
+        "p_campaign",
+        "p_case",
+        "p_variant",
+        "p_request"
+      ],
+      "argument_defaults_sql": null,
+      "argument_defaults_count": 0
+    },
+    "before_source_sha256": "e5791a8d5af200b76992a4203e4786cc06e7747a614d8375f098a6c9713608f7",
+    "source": "CREATE OR REPLACE FUNCTION public.mission_staff_editorial_prepare_v1(p_user uuid, p_campaign uuid, p_case integer, p_variant text, p_request uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE c mission_narrative_internal.editorial_campaigns_v1;r mission_narrative_internal.editorial_runs_v1;w mission_generic_owner.work_items;wc mission_public_owner.work_contracts_v1;\n ref jsonb;src jsonb;pol jsonb;rid uuid;active_variant text;replayed boolean:=false;paired boolean;parent_run mission_narrative_internal.editorial_runs_v1;guide jsonb;chain jsonb;e68_src jsonb;e68_doc jsonb;e68_dec jsonb;e68_x jsonb;e68_anchor mission_generic_owner.work_items;\nBEGIN\n IF EXISTS(SELECT 1 FROM mission_narrative_internal.editorial_campaigns_v1 WHERE id=p_campaign AND policy->>'schema_version'='staff-editorial-policy/3')THEN\n pol:=mission_narrative_internal.editorial_authority_v1(p_user,p_campaign,NULL);\n SELECT * INTO STRICT c FROM mission_narrative_internal.editorial_campaigns_v1 WHERE id=p_campaign FOR UPDATE;\n IF clock_timestamp()>(pol->>'provider_deadline')::timestamptz OR p_request IS NULL OR p_case NOT BETWEEN 1 AND 3 OR p_variant NOT IN('director','writer')THEN RAISE EXCEPTION 'E68_START_INPUT_OR_DEADLINE';END IF;\n SELECT value INTO STRICT ref FROM jsonb_array_elements(c.source_refs)WHERE(value->>'case_no')::integer=p_case;\n e68_src:=ref->'source';\n IF NOT mission_factory_owner.keys_exact_v2(e68_src,ARRAY['schema_version','campaign_id','case_no','author_user_id','historical_anchor_work_id','case_source_id','plan_version_id','plan_sha256','npc_refs','phase_key','snapshot','scene_memory','last_fati','questions'])OR e68_src->>'schema_version'<>'staff-editorial-dialogue-source/1'OR e68_src->>'campaign_id'<>c.id::text OR e68_src->>'case_no'<>p_case::text OR e68_src->>'author_user_id'<>p_user::text THEN RAISE EXCEPTION 'E68_CASE_SOURCE_INVALID';END IF;\n SELECT * INTO STRICT e68_anchor FROM mission_generic_owner.work_items WHERE id=(ref->>'source_work_id')::uuid;\n IF e68_anchor.kind<>'narration'OR e68_anchor.state<>'completed'OR e68_anchor.finalized_at IS NULL OR e68_anchor.message_id IS NULL OR e68_anchor.payload_sha256<>ref#>>'{anchor,payload_sha256}'OR e68_anchor.payload_sha256<>public.combat_v2_sha256(e68_anchor.payload)OR e68_anchor.master_session_id::text<>ref#>>'{anchor,master_session_id}'OR e68_src->>'historical_anchor_work_id'<>e68_anchor.id::text OR NOT EXISTS(SELECT 1 FROM mission_public_owner.work_contracts_v1 e68_anchor_contract WHERE e68_anchor_contract.work_id=e68_anchor.id AND e68_anchor_contract.contract_sha256=ref#>>'{anchor,contract_sha256}'AND e68_anchor_contract.contract_sha256=public.combat_v2_sha256(e68_anchor_contract.contract))OR NOT EXISTS(SELECT 1 FROM public.master_v2_sessions m JOIN public.locations l ON l.id=m.location_id WHERE m.id=e68_anchor.master_session_id AND m.owner_kind='ai_service'AND l.id='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'AND l.is_test AND l.is_active)THEN RAISE EXCEPTION 'E68_HISTORICAL_ANCHOR_DRIFT';END IF;\n src:=e68_src;\n IF p_variant='writer'THEN\n SELECT * INTO STRICT parent_run FROM mission_narrative_internal.editorial_runs_v1 WHERE campaign_id=c.id AND case_no=p_case AND variant='director'AND actor_user=p_user FOR SHARE;\n IF p_request IS DISTINCT FROM parent_run.id OR parent_run.state<>'completed'OR parent_run.finalized_at IS NULL OR parent_run.retained_at IS NULL OR parent_run.raw_sha256 IS DISTINCT FROM encode(extensions.digest(convert_to(parent_run.raw_text,'UTF8'),'sha256'),'hex')OR parent_run.result_sha256 IS DISTINCT FROM public.combat_v2_sha256(parent_run.result)OR parent_run.source IS DISTINCT FROM e68_src OR parent_run.source_sha256<>public.combat_v2_sha256(e68_src)OR parent_run.policy_sha256<>c.policy_sha256\n OR NOT EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_receipts dr JOIN mission_narrative_internal.dispatch_attempts a ON a.receipt_id=dr.id JOIN staff_ai_quota_private.calls g ON g.id=parent_run.generation_call_id JOIN staff_ai_quota_private.calls cq ON cq.id=parent_run.count_call_id JOIN mission_narrative_internal.dispatch_audit au ON au.receipt_id=dr.id AND au.event_code='editorial_finalized' WHERE dr.id=parent_run.receipt_id AND dr.authority_receipt_id=parent_run.id AND dr.status='success'AND dr.dispatch_count=1 AND dr.finalized_at IS NOT NULL AND a.status='success'AND a.cost_basis='exact'AND a.finalized_at IS NOT NULL AND g.state IN('settled','over_cap')AND g.source_id=dr.id AND g.scope_id=c.id AND g.charged_usd=a.actual_cost_usd AND g.charged_usd=dr.charged_cost_usd AND cq.source_id=dr.id AND cq.scope_id=c.id AND cq.state='unknown_billable'AND cq.sent_at IS NOT NULL AND cq.reserved_usd>0 AND au.details->>'run_id'=parent_run.id::text AND au.details->>'request_sha256'=parent_run.request_sha256 AND au.details->>'raw_sha256'=parent_run.raw_sha256 AND au.details->>'result_sha256'=parent_run.result_sha256 AND au.details->>'outcome'='success')THEN RAISE EXCEPTION 'E68_PARENT_NOT_AUTHORITATIVE';END IF;\n e68_doc:=parent_run.result;\n IF NOT mission_factory_owner.keys_exact_v2(e68_doc,ARRAY['ok','origin','decision','profile_audit','text','command','failure_codes','advisories']) OR e68_doc->'ok' IS DISTINCT FROM 'true'::jsonb OR e68_doc->>'origin'IS DISTINCT FROM'editorial_question' OR e68_doc->'text' IS DISTINCT FROM 'null'::jsonb OR e68_doc->'command' IS DISTINCT FROM 'null'::jsonb OR e68_doc->'failure_codes'IS DISTINCT FROM'[]'::jsonb OR jsonb_typeof(e68_doc->'advisories')<>'array' THEN RAISE EXCEPTION 'E68_DIRECTOR_WRAPPER_INVALID';END IF;\n e68_dec:=e68_doc->'decision';\n IF NOT mission_factory_owner.keys_exact_v2(e68_dec,ARRAY['schema_version','source_window_id','source_role_ids','source_evidence','opportunity_id','action_kind','entry_side','world_reaction_intent','npc_intents']) OR e68_dec->>'schema_version'IS DISTINCT FROM'mission-director-proposal/2' OR e68_dec->>'source_window_id'IS DISTINCT FROM e68_src->>'case_source_id' OR e68_dec->>'action_kind'IS DISTINCT FROM'context' OR e68_dec->'opportunity_id' IS DISTINCT FROM 'null'::jsonb OR e68_dec->'entry_side' IS DISTINCT FROM 'null'::jsonb OR jsonb_typeof(e68_dec->'world_reaction_intent')<>'string' OR length(e68_dec->>'world_reaction_intent')NOT BETWEEN 1 AND 2500 OR jsonb_typeof(e68_dec->'source_role_ids')<>'array' OR jsonb_array_length(e68_dec->'source_role_ids')NOT BETWEEN 1 AND 2 OR jsonb_typeof(e68_dec->'source_evidence')<>'array' OR jsonb_array_length(e68_dec->'source_evidence')NOT BETWEEN 1 AND 8 OR jsonb_typeof(e68_dec->'npc_intents')<>'array' OR jsonb_array_length(e68_dec->'npc_intents')>2 THEN RAISE EXCEPTION 'E68_DIALOGUE_PLAN_INVALID';END IF;\n IF EXISTS(SELECT 1 FROM jsonb_array_elements_text(e68_dec->'source_role_ids')q GROUP BY q HAVING count(*)>1) OR EXISTS(SELECT 1 FROM jsonb_array_elements_text(e68_dec->'source_role_ids')q WHERE NOT EXISTS(SELECT 1 FROM jsonb_array_elements(e68_src->'questions')s WHERE s->>'question_id'=q))THEN RAISE EXCEPTION 'E68_QUESTION_REFERENCE_INVALID';END IF;\n FOR e68_x IN SELECT value FROM jsonb_array_elements(e68_dec->'source_evidence')LOOP\n IF NOT mission_factory_owner.keys_exact_v2(e68_x,ARRAY['role_id','quote']) OR jsonb_typeof(e68_x->'quote')<>'string' OR length(e68_x->>'quote')NOT BETWEEN 1 AND 300 OR NOT(e68_dec->'source_role_ids' ? (e68_x->>'role_id')) OR NOT EXISTS(SELECT 1 FROM jsonb_array_elements(e68_src->'questions')q WHERE q->>'question_id'=e68_x->>'role_id'AND position(e68_x->>'quote'IN q->>'body')>0)THEN RAISE EXCEPTION 'E68_EDITORIAL_QUOTE_INVALID';END IF;END LOOP;\n IF EXISTS(SELECT 1 FROM jsonb_array_elements(e68_dec->'npc_intents')n GROUP BY n->>'actor_key'HAVING count(*)>1)THEN RAISE EXCEPTION 'E68_DUPLICATE_PNG';END IF;\n FOR e68_x IN SELECT value FROM jsonb_array_elements(e68_dec->'npc_intents')LOOP\n IF NOT mission_factory_owner.keys_exact_v2(e68_x,ARRAY['actor_key','intent','entry_kind','speech_intent']) OR NOT EXISTS(SELECT 1 FROM jsonb_array_elements(e68_src->'npc_refs')n WHERE n->>'actor_key'=e68_x->>'actor_key') OR (e68_x->>'entry_kind'IS NULL OR e68_x->>'entry_kind'NOT IN('speak','gesture')) OR jsonb_typeof(e68_x->'intent')<>'string' OR length(e68_x->>'intent')NOT BETWEEN 1 AND 1500 OR(e68_x->'speech_intent'<>'null'::jsonb AND jsonb_typeof(e68_x->'speech_intent')<>'string')THEN RAISE EXCEPTION 'E68_PNG_CAPABILITY_INVALID';END IF;END LOOP;\n IF jsonb_typeof(e68_doc->'profile_audit')<>'array' OR jsonb_array_length(e68_doc->'profile_audit')<>jsonb_array_length(e68_src->'npc_refs') OR EXISTS(SELECT 1 FROM jsonb_array_elements(e68_doc->'profile_audit')a GROUP BY a->>'actor_key'HAVING count(*)>1)THEN RAISE EXCEPTION 'E68_PROFILE_AUDIT_INVALID';END IF;\n FOR e68_x IN SELECT value FROM jsonb_array_elements(e68_doc->'profile_audit')LOOP\n IF NOT mission_factory_owner.keys_exact_v2(e68_x,ARRAY['actor_key','sections']) OR NOT EXISTS(SELECT 1 FROM jsonb_array_elements(e68_src->'npc_refs')n WHERE n->>'actor_key'=e68_x->>'actor_key') OR jsonb_typeof(e68_x->'sections')<>'array' OR NOT(e68_x->'sections' ? 'life_core') OR EXISTS(SELECT 1 FROM jsonb_array_elements_text(e68_x->'sections')s WHERE s NOT IN('life_core','voice','gestures','knowledge_limits','phase_context')) OR EXISTS(SELECT 1 FROM jsonb_array_elements_text(e68_x->'sections')s GROUP BY s HAVING count(*)>1)THEN RAISE EXCEPTION 'E68_PROFILE_AUDIT_INVALID';END IF;END LOOP;\n chain:=jsonb_build_object('schema_version','staff-editorial-dialogue-chain/1','campaign_id',c.id,'case_no',p_case,'parent_editorial_run_id',parent_run.id,'parent_dispatch_receipt_id',parent_run.receipt_id,'parent_request_sha256',parent_run.request_sha256,'parent_raw_sha256',parent_run.raw_sha256,'parent_result_sha256',parent_run.result_sha256,'source_sha256',parent_run.source_sha256,'decision',parent_run.result->'decision');\n src:=jsonb_build_object('schema_version','staff-editorial-dialogue-writer-source/1','source',e68_src,'chain_receipt',chain);\n END IF;\n rid:=mission_ai_service_owner.uuid5(c.id,p_case::text||':'||p_variant);\n SELECT * INTO r FROM mission_narrative_internal.editorial_runs_v1 WHERE id=rid FOR UPDATE;\n IF FOUND THEN IF r.actor_user<>p_user OR r.source_sha256<>public.combat_v2_sha256(src)OR r.policy_sha256<>c.policy_sha256 THEN RAISE EXCEPTION 'E68_REQUEST_CONFLICT';END IF;replayed:=true;\n ELSE INSERT INTO mission_narrative_internal.editorial_runs_v1(id,campaign_id,actor_user,case_no,variant,request_key,source_work_id,source,policy_snapshot,source_sha256,policy_sha256)VALUES(rid,c.id,p_user,p_case,p_variant,p_request,e68_anchor.id,src,jsonb_build_object('policy',c.policy,'source_refs',c.source_refs),public.combat_v2_sha256(src),c.policy_sha256)RETURNING * INTO r;END IF;\n RETURN jsonb_build_object('schema_version','staff-editorial-work/3','run_id',r.id,'campaign_id',r.campaign_id,'case_no',r.case_no,'variant',r.variant,'stage',CASE WHEN r.variant='director'THEN'director'ELSE'narration'END,'state',r.state,'request_key',r.request_key,'source',r.source,'source_sha256',r.source_sha256,'policy',jsonb_build_object('model',pol->'model','reasoning_effort',pol->'reasoning_effort','store',pol->'store','max_input_tokens',pol->'max_input_tokens','max_output_tokens',pol->'max_output_tokens','max_request_bytes',pol->'max_request_bytes','input_usd_million',pol->'input_usd_million','output_usd_million',pol->'output_usd_million','upper_call_usd',pol->'upper_call_usd','provider_deadline',pol->'provider_deadline','close_deadline',pol->'close_deadline'),'prompt_revision',pol#>>ARRAY['prompt_revisions',p_variant],'replayed',replayed);\n END IF;\n pol:=mission_narrative_internal.editorial_authority_v1(p_user,p_campaign,NULL);\n SELECT * INTO STRICT c FROM mission_narrative_internal.editorial_campaigns_v1 WHERE id=p_campaign FOR UPDATE;\n paired:=pol->>'schema_version'='staff-editorial-policy/2';\n SELECT canonical_preimage::jsonb#>>'{config,c1266_editorial65,active_variant}' INTO active_variant FROM mission_factory_owner.editor_release_readiness WHERE singleton;\n IF clock_timestamp()>(pol->>'provider_deadline')::timestamptz OR p_request IS NULL OR p_case NOT BETWEEN 1 AND 3 OR (NOT paired AND (p_variant NOT IN('baseline','canary') OR p_variant IS DISTINCT FROM active_variant)) OR (paired AND (p_variant NOT IN('director','writer') OR NOT EXISTS(SELECT 1 FROM mission_factory_owner.editor_release_readiness er WHERE er.singleton AND er.canonical_preimage::jsonb#>'{config,c1266_editorial66,active_variants}' @> to_jsonb(ARRAY[p_variant])))) THEN RAISE EXCEPTION 'E65_CASE_VARIANT_INVALID';END IF;\n SELECT value INTO STRICT ref FROM jsonb_array_elements(c.source_refs) WHERE (value->>'case_no')::integer=p_case;\n IF paired THEN ref:=ref->p_variant;END IF;\n SELECT * INTO STRICT w FROM mission_generic_owner.work_items WHERE id=(ref->>'source_work_id')::uuid;\n SELECT * INTO STRICT wc FROM mission_public_owner.work_contracts_v1 WHERE work_id=w.id;\n IF w.kind<>(CASE WHEN paired AND p_variant='director' THEN 'director' ELSE 'narration' END) OR w.state<>'completed' OR w.finalized_at IS NULL\n  OR (w.kind='narration' AND w.message_id IS NULL)\n  OR (w.kind='director' AND w.payload->>'schema_version'<>'mission-native-peaceful-assessment/1')\n  OR (w.kind='narration' AND w.payload->>'schema_version' NOT IN('mission-generic-narration/2','mission-narrative-scene/1'))\n  OR w.payload_sha256<>public.combat_v2_sha256(w.payload) OR w.payload_sha256<>ref->>'payload_sha256'\n  OR wc.contract_sha256<>public.combat_v2_sha256(wc.contract) OR wc.contract_sha256<>ref->>'contract_sha256'\n  OR wc.payload_sha256<>w.payload_sha256 OR wc.master_session_id<>w.master_session_id\n  OR NOT EXISTS(SELECT 1 FROM public.master_v2_sessions m JOIN public.locations l ON l.id=m.location_id\n   WHERE m.id=w.master_session_id AND m.owner_kind='ai_service' AND l.id='0b85f354-9cdb-47e1-baf9-3d266bb7e06b' AND l.is_test AND l.is_active)\n  OR (w.kind='narration' AND NOT EXISTS(SELECT 1 FROM public.messages WHERE id=w.message_id AND kind='fato'))\n THEN RAISE EXCEPTION 'E65_HISTORICAL_SOURCE_DRIFT' USING ERRCODE='40001';END IF;\n src:=jsonb_build_object('schema_version','staff-editorial-source/1','source_work_id',w.id,'master_session_id',w.master_session_id,\n  'source_payload',w.payload,'source_payload_sha256',w.payload_sha256,'source_contract',wc.contract,'source_contract_sha256',wc.contract_sha256,\n  'source_header',jsonb_build_object('event_id',w.event_id,'request_key',w.request_key,'revision',w.revision,'encounter_id',w.encounter_id,'authority_receipt_id',w.authority_receipt_id),'source_scope',mission_generic_owner.c1266_historical_work_v1(w.id),\n  'definition_sha256',w.definition_sha256,'source_kind',w.kind,'source_step_key',w.step_key,'source_run_control_version',w.run_control_version);\n IF paired AND p_variant='writer' THEN\n  SELECT * INTO STRICT parent_run FROM mission_narrative_internal.editorial_runs_v1 WHERE campaign_id=c.id AND case_no=p_case AND variant='director' AND actor_user=p_user FOR SHARE;\n  IF p_request IS DISTINCT FROM parent_run.id OR parent_run.state<>'completed' OR parent_run.finalized_at IS NULL\n   OR parent_run.raw_sha256 IS NULL OR parent_run.retained_at IS NULL OR parent_run.raw_sha256<>encode(extensions.digest(convert_to(parent_run.raw_text,'UTF8'),'sha256'),'hex')\n   OR parent_run.result_sha256 IS DISTINCT FROM public.combat_v2_sha256(parent_run.result) OR parent_run.result->'ok' IS DISTINCT FROM 'true'::jsonb\n   OR parent_run.source_sha256<>public.combat_v2_sha256(parent_run.source) OR parent_run.policy_sha256<>c.policy_sha256\n   OR w.payload#>>'{combat_peaceful,assessment_work_id}'<>parent_run.source->>'source_work_id'\n   OR w.payload#>'{combat_peaceful,source}' IS DISTINCT FROM parent_run.source#>'{source_payload,source}'\n   OR NOT EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_receipts dr JOIN mission_narrative_internal.dispatch_attempts at ON at.receipt_id=dr.id\n    JOIN staff_ai_quota_private.calls q ON q.id=parent_run.generation_call_id\n    JOIN mission_narrative_internal.dispatch_audit au ON au.receipt_id=dr.id AND au.event_code='editorial_finalized'\n    WHERE dr.id=parent_run.receipt_id AND dr.authority_receipt_id=parent_run.id AND dr.status='success' AND dr.dispatch_count=1 AND dr.finalized_at IS NOT NULL\n     AND at.status='success' AND at.cost_basis='exact' AND at.finalized_at IS NOT NULL AND at.actual_cost_usd=q.charged_usd\n     AND q.source_id=dr.id AND q.scope_id=c.id AND q.producer='mission_editorial_preview' AND q.state IN('settled','over_cap') AND q.charged_usd=dr.charged_cost_usd\n     AND EXISTS(SELECT 1 FROM staff_ai_quota_private.calls cq JOIN mission_narrative_internal.dispatch_audit ca ON ca.receipt_id=dr.id AND ca.event_code='editorial_count_result'\n      WHERE cq.id=parent_run.count_call_id AND cq.source_id=dr.id AND cq.scope_id=c.id AND cq.producer='mission_editorial_preview' AND cq.call_no=2 AND cq.state='unknown_billable' AND cq.sent_at IS NOT NULL AND cq.reserved_usd>0\n       AND ca.details->>'run_id'=parent_run.id::text AND ca.details->>'request_sha256'=parent_run.request_sha256 AND ca.details->>'outcome'='success' AND ca.details->>'http_status'='200' AND (ca.details->>'input_tokens')::integer=parent_run.count_input_tokens)\n     AND au.details->>'run_id'=parent_run.id::text AND au.details->>'outcome'='success'\n     AND au.details->>'request_sha256'=parent_run.request_sha256 AND au.details->>'raw_sha256'=parent_run.raw_sha256 AND au.details->>'result_sha256'=parent_run.result_sha256)\n  THEN RAISE EXCEPTION 'E66_PARENT_NOT_AUTHORITATIVE';END IF;\n  guide:=mission_narrative_internal.native_peaceful_decision_v1(parent_run.source#>'{source_payload,source}',parent_run.source#>>'{source_payload,source_sha256}',parent_run.result->'decision');\n  chain:=jsonb_build_object('schema_version','staff-editorial-native-peaceful-chain/1','campaign_id',c.id,'case_no',p_case,\n   'parent_editorial_run_id',parent_run.id,'parent_dispatch_receipt_id',parent_run.receipt_id,'parent_request_sha256',parent_run.request_sha256,\n   'parent_raw_sha256',parent_run.raw_sha256,'parent_result_sha256',parent_run.result_sha256,'original_assessment_work_id',parent_run.source_work_id,\n   'original_writer_work_id',w.id,'source',parent_run.source#>'{source_payload,source}','source_sha256',parent_run.source#>>'{source_payload,source_sha256}',\n   'assessment',guide->'assessment','close_eligible',guide->'close_eligible','writer_next_step',guide->>'writer_next_step');\n  src:=src||jsonb_build_object('schema_version','staff-editorial-paired-writer-source/1','chain_receipt',chain);\n END IF;\n IF p_variant='canary' AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.editorial_runs_v1 old\n  WHERE old.campaign_id=c.id AND old.case_no=p_case AND old.variant='baseline' AND old.actor_user=p_user\n   AND old.source_sha256=public.combat_v2_sha256(src) AND old.state IN('completed','failed') AND old.finalized_at IS NOT NULL\n   AND old.result_sha256=public.combat_v2_sha256(old.result)\n   AND ((old.state='failed' AND old.receipt_id IS NULL AND old.count_call_id IS NULL AND old.generation_call_id IS NULL\n     AND old.result->>'schema_version'='staff-editorial-preprovider-failure/1' AND old.result->>'provider_calls'='0'\n     AND EXISTS(SELECT 1 FROM mission_narrative_internal.editorial_audit_v1 a WHERE a.run_id=old.id AND a.event_code='preprovider_rejected' AND a.details->>'result_sha256'=old.result_sha256))\n    OR (old.state='failed' AND old.result->>'outcome_uncertain'='false' AND old.result->>'generation_http_calls'='0'\n     AND old.result->>'count_http_calls'='1' AND old.result->>'request_sha256'=old.request_sha256\n     AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_receipts d\n      JOIN staff_ai_quota_private.calls q ON q.id=old.count_call_id AND q.source_id=d.id AND q.scope_id=old.campaign_id AND q.producer='mission_editorial_preview' AND q.call_no=2\n      JOIN mission_narrative_internal.dispatch_audit a ON a.receipt_id=d.id AND a.event_code IN('editorial_count_result','editorial_reconciled')\n      WHERE d.id=old.receipt_id AND d.authority_receipt_id=old.id AND d.status='failed' AND d.dispatch_count=0 AND d.finalized_at IS NOT NULL\n       AND q.state='unknown_billable' AND q.sent_at IS NOT NULL AND q.charged_usd IS NULL AND q.reserved_usd>0\n       AND a.details->>'run_id'=old.id::text AND a.details->>'request_sha256'=old.request_sha256 AND a.details->>'result_sha256'=old.result_sha256\n       AND ((old.generation_call_id IS NULL AND old.authorization_id IS NULL\n         AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_attempts WHERE receipt_id=d.id)\n         AND NOT EXISTS(SELECT 1 FROM mission_narrative_internal.provider_authorizations WHERE receipt_id=d.id)\n         AND ((old.result->>'schema_version'='staff-editorial-count-failure/1' AND ((old.result->>'count_outcome'='failed' AND (old.result->>'http_status')::integer BETWEEN 100 AND 599 AND old.result->>'http_status'<>'200') OR (old.result->>'count_outcome'='success' AND old.result->>'http_status'='200' AND old.result->>'reason_code'='COUNT_INPUT_LIMIT' AND (old.result->>'input_tokens')::integer=old.count_input_tokens AND old.count_input_tokens>(old.policy_snapshot#>>'{policy,max_input_tokens}')::integer)))\n          OR(old.result->>'schema_version'='staff-editorial-reconciliation/1' AND old.result->>'reason_code'='COUNTED_NOT_DISPATCHED')))\n        OR(old.result->>'schema_version'='staff-editorial-reconciliation/1' AND old.result->>'reason_code'='GENERATION_AUTHORIZATION_EXPIRED_NO_HTTP'\n         AND EXISTS(SELECT 1 FROM staff_ai_quota_private.calls g JOIN mission_narrative_internal.provider_authorizations z ON z.id=old.authorization_id AND z.receipt_id=d.id\n          JOIN mission_narrative_internal.dispatch_attempts at ON at.id=z.attempt_id AND at.receipt_id=d.id\n          WHERE g.id=old.generation_call_id AND g.state='no_http' AND g.sent_at IS NULL AND z.consumed_at IS NULL AND z.expires_at<=old.finalized_at AND at.status='expired' AND at.actual_cost_usd=0)))))\n    OR (old.raw_sha256 IS NOT NULL AND old.retained_at IS NOT NULL AND old.raw_sha256=encode(extensions.digest(convert_to(old.raw_text,'UTF8'),'sha256'),'hex')\n     AND EXISTS(SELECT 1 FROM mission_narrative_internal.dispatch_receipts d JOIN mission_narrative_internal.dispatch_attempts a ON a.receipt_id=d.id\n      JOIN staff_ai_quota_private.calls q ON q.id=old.generation_call_id\n      JOIN mission_narrative_internal.dispatch_audit audit ON audit.receipt_id=d.id AND audit.event_code='editorial_finalized'\n      WHERE d.id=old.receipt_id AND d.status='success' AND d.dispatch_count=1 AND d.finalized_at IS NOT NULL AND a.status='success' AND a.cost_basis='exact'\n       AND a.finalized_at IS NOT NULL AND q.state IN('settled','over_cap') AND q.charged_usd=d.charged_cost_usd AND a.actual_cost_usd=q.charged_usd\n       AND audit.details->>'run_id'=old.id::text AND audit.details->>'raw_sha256'=old.raw_sha256 AND audit.details->>'result_sha256'=old.result_sha256))))\n THEN RAISE EXCEPTION 'E65_BASELINE_SOURCE_NOT_DEFINITIVE';END IF;\n rid:=mission_ai_service_owner.uuid5(c.id,p_case::text||':'||p_variant);\n SELECT * INTO r FROM mission_narrative_internal.editorial_runs_v1 WHERE id=rid FOR UPDATE;\n IF FOUND THEN\n  IF r.actor_user<>p_user OR r.source_sha256<>public.combat_v2_sha256(src) OR r.policy_sha256<>c.policy_sha256 THEN RAISE EXCEPTION 'E65_REQUEST_CONFLICT';END IF;replayed:=true;\n ELSE\n  INSERT INTO mission_narrative_internal.editorial_runs_v1(id,campaign_id,actor_user,case_no,variant,request_key,source_work_id,source,policy_snapshot,source_sha256,policy_sha256)\n   VALUES(rid,c.id,p_user,p_case,p_variant,p_request,w.id,src,jsonb_build_object('policy',c.policy,'source_refs',c.source_refs),public.combat_v2_sha256(src),c.policy_sha256) RETURNING * INTO r;\n END IF;\n RETURN jsonb_build_object('schema_version',CASE WHEN paired THEN 'staff-editorial-work/2' ELSE 'staff-editorial-work/1' END,'run_id',r.id,'campaign_id',r.campaign_id,'case_no',r.case_no,'variant',r.variant,\n  'stage',CASE WHEN paired AND r.variant='director' THEN 'director' ELSE 'narration' END,'state',r.state,'request_key',r.request_key,'source',r.source,'source_sha256',r.source_sha256,\n  'policy',jsonb_build_object('model',pol->'model','reasoning_effort',pol->'reasoning_effort','store',pol->'store','max_input_tokens',pol->'max_input_tokens','max_output_tokens',pol->'max_output_tokens','max_request_bytes',pol->'max_request_bytes','input_usd_million',pol->'input_usd_million','output_usd_million',pol->'output_usd_million','upper_call_usd',pol->'upper_call_usd','provider_deadline',pol->'provider_deadline','close_deadline',pol->'close_deadline'),'prompt_revision',pol#>>ARRAY['prompt_revisions',p_variant],'replayed',replayed);\nEND $function$\n",
+    "source_md5": "dc76392894d9124e433d16e28fffbae4"
+  },
+  "all_abis": [
+    {
+      "signature": "mission_narrative_internal.editorial_authority_v1(uuid,uuid,uuid,boolean)",
+      "abi": {
+        "cost": 100,
+        "kind": "f",
+        "rows": 0,
+        "retset": false,
+        "strict": false,
+        "parallel": "u",
+        "leakproof": false,
+        "return_type": "jsonb",
+        "support_oid": 0,
+        "variadic_type": 0,
+        "argument_count": 4,
+        "argument_modes": [
+          "i",
+          "i",
+          "i",
+          "i"
+        ],
+        "argument_names": [
+          "p_user",
+          "p_campaign",
+          "p_receipt",
+          "p_closing"
+        ],
+        "argument_defaults_sql": "NULL::uuid, false",
+        "argument_defaults_count": 2
+      }
+    },
+    {
+      "signature": "public.mission_staff_editorial_prepare_v1(uuid,uuid,integer,text,uuid)",
+      "abi": {
+        "cost": 100,
+        "kind": "f",
+        "rows": 0,
+        "retset": false,
+        "strict": false,
+        "parallel": "u",
+        "leakproof": false,
+        "return_type": "jsonb",
+        "support_oid": 0,
+        "variadic_type": 0,
+        "argument_count": 5,
+        "argument_modes": [
+          "i",
+          "i",
+          "i",
+          "i",
+          "i"
+        ],
+        "argument_names": [
+          "p_user",
+          "p_campaign",
+          "p_case",
+          "p_variant",
+          "p_request"
+        ],
+        "argument_defaults_sql": null,
+        "argument_defaults_count": 0
+      }
+    },
+    {
+      "signature": "public.mission_staff_editorial_read_v1(uuid,uuid)",
+      "abi": {
+        "cost": 100,
+        "kind": "f",
+        "rows": 0,
+        "retset": false,
+        "strict": false,
+        "parallel": "u",
+        "leakproof": false,
+        "return_type": "jsonb",
+        "support_oid": 0,
+        "variadic_type": 0,
+        "argument_count": 2,
+        "argument_modes": [
+          "i",
+          "i"
+        ],
+        "argument_names": [
+          "p_user",
+          "p_run"
+        ],
+        "argument_defaults_sql": null,
+        "argument_defaults_count": 0
+      }
+    },
+    {
+      "signature": "public.mission_staff_editorial_step_v1(uuid,uuid,text,jsonb)",
+      "abi": {
+        "cost": 100,
+        "kind": "f",
+        "rows": 0,
+        "retset": false,
+        "strict": false,
+        "parallel": "u",
+        "leakproof": false,
+        "return_type": "jsonb",
+        "support_oid": 0,
+        "variadic_type": 0,
+        "argument_count": 4,
+        "argument_modes": [
+          "i",
+          "i",
+          "i",
+          "i"
+        ],
+        "argument_names": [
+          "p_user",
+          "p_run",
+          "p_worker_token",
+          "p_command"
+        ],
+        "argument_defaults_sql": null,
+        "argument_defaults_count": 0
+      }
+    },
+    {
+      "signature": "mission_narrative_internal.native_peaceful_decision_v1(jsonb,text,jsonb)",
+      "abi": {
+        "return_type": "jsonb",
+        "retset": false,
+        "kind": "f",
+        "strict": false,
+        "parallel": "u",
+        "leakproof": false,
+        "argument_names": [
+          "p_source",
+          "p_source_sha256",
+          "p_assessment"
+        ],
+        "argument_defaults_count": 0,
+        "argument_defaults_sql": null,
+        "argument_modes": [
+          "i",
+          "i",
+          "i"
+        ],
+        "argument_count": 3,
+        "variadic_type": 0,
+        "cost": 100,
+        "rows": 0,
+        "support_oid": 0
+      }
+    },
+    {
+      "signature": "mission_narrative_internal.native_peaceful_commit_v1(uuid,jsonb,uuid)",
+      "abi": {
+        "cost": 100,
+        "kind": "f",
+        "rows": 0,
+        "retset": false,
+        "strict": false,
+        "parallel": "u",
+        "leakproof": false,
+        "return_type": "jsonb",
+        "support_oid": 0,
+        "variadic_type": 0,
+        "argument_count": 3,
+        "argument_modes": [
+          "i",
+          "i",
+          "i"
+        ],
+        "argument_names": [
+          "p_work",
+          "p_result",
+          "p_message"
+        ],
+        "argument_defaults_sql": "NULL::uuid",
+        "argument_defaults_count": 1
+      }
+    },
+    {
+      "signature": "public.mission_narrative_attempt_reserve_internal(text,uuid,integer,jsonb,text)",
+      "abi": {
+        "cost": 100,
+        "kind": "f",
+        "rows": 0,
+        "retset": false,
+        "strict": false,
+        "parallel": "u",
+        "leakproof": false,
+        "return_type": "jsonb",
+        "support_oid": 0,
+        "variadic_type": 0,
+        "argument_count": 5,
+        "argument_modes": [
+          "i",
+          "i",
+          "i",
+          "i",
+          "i"
+        ],
+        "argument_names": [
+          "p_worker_token",
+          "p_receipt",
+          "p_lease_seconds",
+          "p_fallback_result",
+          "p_fallback_sha"
+        ],
+        "argument_defaults_sql": null,
+        "argument_defaults_count": 0
+      }
+    },
+    {
+      "signature": "public.mission_narrative_provider_authorize_internal(text,uuid,uuid,text)",
+      "abi": {
+        "cost": 100,
+        "kind": "f",
+        "rows": 0,
+        "retset": false,
+        "strict": false,
+        "parallel": "u",
+        "leakproof": false,
+        "return_type": "jsonb",
+        "support_oid": 0,
+        "variadic_type": 0,
+        "argument_count": 4,
+        "argument_modes": [
+          "i",
+          "i",
+          "i",
+          "i"
+        ],
+        "argument_names": [
+          "p_worker_token",
+          "p_receipt",
+          "p_attempt",
+          "p_lease_token"
+        ],
+        "argument_defaults_sql": null,
+        "argument_defaults_count": 0
+      }
+    },
+    {
+      "signature": "public.mission_narrative_provider_consume_internal(text,uuid,text)",
+      "abi": {
+        "cost": 100,
+        "kind": "f",
+        "rows": 0,
+        "retset": false,
+        "strict": false,
+        "parallel": "u",
+        "leakproof": false,
+        "return_type": "jsonb",
+        "support_oid": 0,
+        "variadic_type": 0,
+        "argument_count": 3,
+        "argument_modes": [
+          "i",
+          "i",
+          "i"
+        ],
+        "argument_names": [
+          "p_worker_token",
+          "p_authorization",
+          "p_dispatch_token"
+        ],
+        "argument_defaults_sql": null,
+        "argument_defaults_count": 0
+      }
+    },
+    {
+      "signature": "mission_narrative_internal.publish(mission_narrative_internal.dispatch_receipts,text,jsonb,text)",
+      "abi": {
+        "cost": 100,
+        "kind": "f",
+        "rows": 0,
+        "retset": false,
+        "strict": false,
+        "parallel": "u",
+        "leakproof": false,
+        "return_type": "uuid",
+        "support_oid": 0,
+        "variadic_type": 0,
+        "argument_count": 4,
+        "argument_modes": [
+          "i",
+          "i",
+          "i",
+          "i"
+        ],
+        "argument_names": [
+          "p_receipt",
+          "p_source",
+          "p_result",
+          "p_result_sha"
+        ],
+        "argument_defaults_sql": null,
+        "argument_defaults_count": 0
+      }
+    }
+  ],
+  "alias_sweep": {
+    "scope": "four complete existing source bodies; only new alias changed",
+    "functions": [
+      {
+        "signature": "mission_narrative_internal.editorial_authority_v1(uuid,uuid,uuid,boolean)",
+        "declared": [
+          "c",
+          "r",
+          "dr",
+          "e68_ref",
+          "e68_src",
+          "e68_expected",
+          "e68_anchor",
+          "e68_parent"
+        ],
+        "aliases": [
+          "OR",
+          "WHERE",
+          "er",
+          "n",
+          "native",
+          "q",
+          "root"
+        ],
+        "collision": []
+      },
+      {
+        "signature": "public.mission_staff_editorial_prepare_v1(uuid,uuid,integer,text,uuid)",
+        "declared": [
+          "c",
+          "r",
+          "w",
+          "wc",
+          "ref",
+          "src",
+          "pol",
+          "rid",
+          "active_variant",
+          "replayed",
+          "paired",
+          "parent_run",
+          "guide",
+          "chain",
+          "e68_src",
+          "e68_doc",
+          "e68_dec",
+          "e68_x",
+          "e68_anchor"
+        ],
+        "aliases": [
+          "OR",
+          "WHERE",
+          "a",
+          "at",
+          "au",
+          "audit",
+          "ca",
+          "cq",
+          "d",
+          "dr",
+          "e68_anchor_contract",
+          "er",
+          "g",
+          "l",
+          "m",
+          "old",
+          "q",
+          "z"
+        ],
+        "collision": []
+      },
+      {
+        "signature": "public.mission_staff_editorial_read_v1(uuid,uuid)",
+        "declared": [
+          "r",
+          "child",
+          "cost",
+          "child_cost",
+          "djson",
+          "wjson"
+        ],
+        "aliases": [
+          "WHERE"
+        ],
+        "collision": []
+      },
+      {
+        "signature": "public.mission_staff_editorial_step_v1(uuid,uuid,text,jsonb)",
+        "declared": [
+          "r",
+          "c",
+          "pol",
+          "op",
+          "cost",
+          "base_cost",
+          "http_used",
+          "env",
+          "fp",
+          "authsha",
+          "qr",
+          "core",
+          "cnt",
+          "aid",
+          "dr",
+          "z",
+          "att",
+          "it",
+          "ot",
+          "rt",
+          "outcome",
+          "doc",
+          "rs",
+          "changed",
+          "overflow",
+          "ch",
+          "gh",
+          "why",
+          "count_q",
+          "gen_q",
+          "e68_src",
+          "e68_doc",
+          "e68_dec",
+          "e68_x"
+        ],
+        "aliases": [
+          "OR",
+          "THEN",
+          "WHERE",
+          "er",
+          "q"
+        ],
+        "collision": []
+      }
+    ],
+    "diff_exact_old": "FROM mission_public_owner.work_contracts_v1 wc WHERE wc.work_id=e68_anchor.id AND wc.contract_sha256=ref#>>'{anchor,contract_sha256}'AND wc.contract_sha256=public.combat_v2_sha256(wc.contract)",
+    "diff_exact_new": "FROM mission_public_owner.work_contracts_v1 e68_anchor_contract WHERE e68_anchor_contract.work_id=e68_anchor.id AND e68_anchor_contract.contract_sha256=ref#>>'{anchor,contract_sha256}'AND e68_anchor_contract.contract_sha256=public.combat_v2_sha256(e68_anchor_contract.contract)",
+    "live_sha256": "e5791a8d5af200b76992a4203e4786cc06e7747a614d8375f098a6c9713608f7",
+    "candidate_sha256": "53218b733349389e515caec9c3308714e641e59fba802b32fadd1ecdbb6e425f"
+  },
+  "constraint_changes": [],
+  "campaign_mutation": false,
+  "deadline_mutation": false,
+  "no_run_created": true,
+  "static": {
+    "all_four_current_source_md5_bound_to_live_Root": [
+      {
+        "signature": "mission_narrative_internal.editorial_authority_v1(uuid,uuid,uuid,boolean)",
+        "current_source_md5_equal": true
+      },
+      {
+        "signature": "public.mission_staff_editorial_prepare_v1(uuid,uuid,integer,text,uuid)",
+        "current_source_md5_equal": true
+      },
+      {
+        "signature": "public.mission_staff_editorial_read_v1(uuid,uuid)",
+        "current_source_md5_equal": true
+      },
+      {
+        "signature": "public.mission_staff_editorial_step_v1(uuid,uuid,text,jsonb)",
+        "current_source_md5_equal": true
+      }
+    ],
+    "parser_SQL_PL": "PASS",
+    "alias_delta_exact_occurrences": 1,
+    "old_new_alias": "wc -> e68_anchor_contract",
+    "no_variable_conflict_setting": true
+  }
+}
