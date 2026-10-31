@@ -129,6 +129,8 @@ Integrazione effettiva: Root97efed9df1085f0919b3fa26c9aa2f80aac000eb95062aa70b46
 Preparazione non pulita al primo tentativo: INSTALL18 respinta prima DDL da E72_PROTECTED_HISTORY_DRIFT, zero mutazioni applicative. Causa provata:100 differenze di sola rappresentazione numerica nel roundtrip JSON client; source19 usa cattura testuale/hash nativi e uguaglianza semantica Decimal, conservando le guardie. INSTALL19 e ENABLE riuscite; vecchi referti e conteggi18 conservati. Nessuna nuova funzione/tabella/colonna/ACL/GRANT o vincolo DB; cambia un solo corpo authority esistente per tre predicati e il collegamento della nuova preview. Root262095B/262144,49B residui; campo import_graph esplicitamente storico, non attestazione del nuovo grafo. Report: referti/C1266_EDITORIAL72_REPORT.md.
 
 
+Deposito E72 verificato: commit `b1c7d58f10a3c466b997bddc2dbf379d84c5ce27` ([GitHub](https://github.com/antonello9311-design/theuntoldstory/commit/b1c7d58f10a3c466b997bddc2dbf379d84c5ce27)), 34 file di sorgenti/evidenze con readback UTF-8 integrale esatto, 0 rimozioni e 0 delta estranei. Ref main aggiornato con confronto atteso e riletto. UI già pubblicata separatamente in9590640c, build LAND UI7 invariata; nessun altro asset o deploy. INSTALL/ENABLE/MANIFEST, entrambi DB_PACKET e CASES restano locali per Root/fonti private, elenco esatto con byte/SHA nel RELEASE_CHAIN. La pubblicazione dei sorgenti non è un nuovo apply/enable o una qualifica editoriale.
+
 Asset attuali E72 (caricati e verificati, LANDbuildUI7 invariato):
 
 | File | Byte | SHA256 |
