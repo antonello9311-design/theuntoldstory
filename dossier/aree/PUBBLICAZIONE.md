@@ -126,7 +126,7 @@ Review indipendenti della composizione sorgente e del materiale finale **0/0/0**
 
 Confronto postflight positivo:43Fati e sei scope precedenti, tutti gli esiti privati, memoria salvata, ledger e audit E65/E66/E68 sono identici. Tutte le tre campagne restano disabilitate; E68 conserva6stagecompleted/0pending e le scadenze originali. Nessuna riscrittura del Fato o della memoria già salvata. Zero nuoveprove/Count/Generation;194HTTP e1,69885550USD prudenti su4 invariati, riserveCount conservate. UI38674/buildUI7, fasiV8/schedeV7 e Small invariati; nessuna apertura pubblica. Efficacia editoriale nuova NOT_RUN; precedenteE68PARTIAL e memoriaNOT_PASSED conservate. Report: management/candidati/NARRATORE-UNIFICATO_2026-09-02/referti/C1266_EDITORIAL69_REPORT.md.
 
-Nessun nuovoasset del sito: UIcommit38674cdc4f7ed9ea3aeca88fb437f89e74ab599a invariato. Sorgenti e reportE69 pronti per deposito selettivo; SQL/MANIFEST/ROOT_PACKET completi restano locali, SHA/byte e motivo nelRELEASE_CHAIN. Nessunraw o testo integrale delle role neldeposito.
+Nessun nuovoasset del sito: UIcommit38674cdc4f7ed9ea3aeca88fb437f89e74ab599a invariato. Deposito selettivo completato nel commit 409a6191b5090c242b6f55a68f6f233910579c8d (parent7b99f9fdfaaf7facfdc418055f41e8b3dd62ef56):21percorsi/21blob riletti integralmente byte-esatti, refmain verificato conCAS/noForce e zero rimozioni. NessunassetUI modificato o nuovoapply/deploy/provider dal deposito. Root.ui.git_head resta38674, non ilcommit documentale. Materiali completi INSTALL.sql/MANIFEST.json/ROOT_PACKET.json restano locali conbyte/SHA nelRELEASE_CHAIN; raw privati esclusi. Nessunraw o testo integrale delle role neldeposito.
 
 CheckpointE68 precedente conservato:
 
