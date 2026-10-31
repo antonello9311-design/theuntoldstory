@@ -136,7 +136,7 @@ Asset pubblicati nel commit38674cdc4f7ed9ea3aeca88fb437f89e74ab599a (3/3blob ril
 | mission-generic-ui.mjs | 355354 | 74000407048f109bbd36528233f807322303ae7b7bf54836cd100c17e1a00c61 | caricato/verificato |
 | mission-editorial-staff.mjs | 14847 | 003770c9b5d6fcf387bc97c9f3a90650430092f0026010dbd8e4d2bafe8f2e22 | caricato/verificato |
 
-mission-combat64-ui/5-editorial68-dialogue e staff-editorial-dialogue-ui/1; LANDbuildUI7 invariata. Sorgenti e report E68 pronti per deposito selettivo; nessun raw, testo integrale role o esito privato nel deposito.
+mission-combat64-ui/5-editorial68-dialogue e staff-editorial-dialogue-ui/1; LANDbuildUI7 invariata. Deposito selettivo E68 completato: commit 071ae6641c4f29fcfc556dacd1d8188e878ffff4 (parent38674cdc4f7ed9ea3aeca88fb437f89e74ab599a),41percorsi/41blob riletti integralmente byte-esatti, refmain verificato conCAS/noForce e zero rimozioni. Sorgenti+report+analisi e aree incluse,3assetUI già nelcommit38674 nonripubblicati. Materiali con cronaca/snapshot integrali restano locali: C1266_EDITORIAL68_INSTALL.sql,ENABLE.sql,MANIFEST.json,DB_PACKET.json,RECOVERY13_INSTALL.sql; SHA/byte e motivo in RELEASE_CHAIN. Nessun nuovoapply/deploy/provider dal deposito. Root.ui.git_head resta38674 (identità UI), non ilcommit documentale.
 
 C1266 Editorial67 · 30/10/2026: installate le correzioni generali a WriterScene5, quattro fasi del piano V8 e due schede PNG V7. I fatti acquisiti orientano il seguito senza richiedere nuove riaffermazioni; attività e interessi del luogo entrano nello scambio. Risolto il conflitto fra scelta narrativa diretta e decisioni già attestate nei raccordi. Nessun nuovo blocco stilistico, filtro, quota o retry. DirectorNative assessment/2 e i contratti legacy restano invariati.
 
