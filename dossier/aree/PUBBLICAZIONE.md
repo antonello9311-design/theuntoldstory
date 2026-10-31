@@ -126,6 +126,8 @@ Root `2cb99826fadbefcbcdfd6aceab521ebe2c675bc4d716f1feedd4743bea25addf`, semanti
 
 Zero nuove prove o chiamate provider, nessun enable/replay o Fato modificato. E72 resta chiusa6completed/0pending.218HTTP e1,98784240USD prudenti su4 conservati, riserve unknown_billable incluse. Efficacia editoriale e memoria della nuova versione NOT_RUN: installazione non è una qualifica della prosa né della missione completa. Fonte: referti/C1266_EDITORIAL73_REPORT.md.
 
+Deposito E73 verificato: commit `2c9a3eb693e0d10e0bc55bec8b39ec7238a850f6` ([GitHub](https://github.com/antonello9311-design/theuntoldstory/commit/2c9a3eb693e0d10e0bc55bec8b39ec7238a850f6)),29file sorgenti/evidenze riletti integralmente UTF-8 esatti,0rimozioni/0deltaestranei. Main aggiornato con confronto atteso e riletto. Nessun asset sito cambiato: UI959/buildUI7 restano quelli già verificati. INSTALL/MANIFEST e i due ROOT_PACKET corrente/archivio20 restano locali per provenienze private, con byte/SHA nel RELEASE_CHAIN. Nessun nuovo apply/enable deriva dal deposito.
+
 Checkpoint E72 conservato:
 
 C1266 Editorial72 · 31/10/2026: tre nuove prove private Director → Writer completate in Staff con prompt E71 invariati. Sei stage completati al primo tentativo IA, 6 Count + 6 Generation / 12 HTTP, nessun retry editoriale. Campagna ff79949a-06cb-5749-a33f-3d632d78f3a5 chiusa enabled=false, 0 pending; risultati e memoria privati conservati. Nuovo costo prudente 0,14576220 USD (Count riservato 0,13200000 + Generation esatto 0,01376220), cumulativo 218 HTTP / 1,98784240 USD su 4. Le riserve unknown_billable non sono azzerate.

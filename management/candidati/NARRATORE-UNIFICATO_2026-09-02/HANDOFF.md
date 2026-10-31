@@ -17,4 +17,6 @@ Recovery: baseline137/Root97ef conservate integralmente in /private/tmp/tus-c126
 
 Passaggio PM: E73 consegnata: istruzioni generiche installate e conservazione verificata. Nessuna ulteriore correzione o prova avviata. Efficacia dei nuovi testi e memoria su più turni NOT_RUN; tutti risultati E72 e precedenti restano originali per la review.
 
-Deposito selettivo da registrare nel RELEASE_CHAIN e PUBBLICAZIONE; Root/INSTALL/MANIFEST restano locali per provenienze private. Rilasciare solo le prenotazioni proprie dopo la verifica del deposito.
+Deposito E73 verificato: commit `2c9a3eb693e0d10e0bc55bec8b39ec7238a850f6` ([GitHub](https://github.com/antonello9311-design/theuntoldstory/commit/2c9a3eb693e0d10e0bc55bec8b39ec7238a850f6)),29file sorgenti/evidenze riletti integralmente UTF-8 esatti,0rimozioni/0deltaestranei. Main aggiornato con confronto atteso e riletto. Nessun asset sito cambiato: UI959/buildUI7 restano quelli già verificati. INSTALL/MANIFEST e i due ROOT_PACKET corrente/archivio20 restano locali per provenienze private, con byte/SHA nel RELEASE_CHAIN. Nessun nuovo apply/enable deriva dal deposito.
+
+Rilascio delle sole prenotazioni proprie dopo il check conclusivo; nessuna task o scena altrui modificata.
