@@ -1,7 +1,7 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-d092961883b6fe3e';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-display-8cdf2250a8562d83';
-import {createStaffEditorial,createStaffEditorialPair,DIALOGUE_CAMPAIGN,DIALOGUE_BUILD,REVIEW_CAMPAIGN,REVIEW_BUILD,LATEST_CAMPAIGN,LATEST_BUILD,E73_CAMPAIGN,E73_BUILD} from './mission-editorial-staff.mjs?v=editorial74-01d796d7e5cd3968';
-export const VERSION='mission-combat64-ui/5-editorial74-review73';
+import {createStaffEditorial,createStaffEditorialPair,DIALOGUE_CAMPAIGN,DIALOGUE_BUILD,REVIEW_CAMPAIGN,REVIEW_BUILD,LATEST_CAMPAIGN,LATEST_BUILD,E73_CAMPAIGN,E73_BUILD} from './mission-editorial-staff.mjs?v=narratore75-34fa4e6596cf18d3';
+export const VERSION='mission-combat64-ui/5-narratore75-report01';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -37,6 +37,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  const regen=createStaffFatoRegen({client,identity,isStaff,currentLocation,refresh,isEventReadMode});
  const editorial=createStaffEditorial({client,identity,isStaff,currentLocation,staffRoom:STAFF_TEST_ROOM});
+ const combatReportPreview=createStaffEditorial({client,identity,isStaff,currentLocation,staffRoom:STAFF_TEST_ROOM,campaign:'07640a7d-73fe-5f9b-b78b-f65199596a2f',variant:'canary',requestSchema:'staff-combat-report-request/1',publicSchema:'staff-combat-report-public/1',build:'staff-combat-report-ui/1',title:'Narratore · esito Combat',description:'Un Fato dal report completo di uno scontro Staff già concluso. Nessuna missione rigiocata o pubblicazione precedente modificata.',caseLabels:['Esito dello scambio completo'],caseCount:1,monoReport:true});
  const editorialPair=createStaffEditorialPair({client,identity,isStaff,currentLocation,staffRoom:STAFF_TEST_ROOM});
  const editorialDialogue=createStaffEditorialPair({client,identity,isStaff,currentLocation,staffRoom:STAFF_TEST_ROOM,campaign:DIALOGUE_CAMPAIGN,build:DIALOGUE_BUILD,title:'Nuove domande ai PNG · Staff',description:'Tre situazioni editoriali con domande diverse: nuova proposta Director e nuovo Fato privato, senza inviare role o modificare la missione.',caseLabels:['Fatti e aggiunte personali','Motivazioni e dissenso','Rettifica nel mercato']});
  const editorialReview=createStaffEditorialPair({client,identity,isStaff,currentLocation,staffRoom:STAFF_TEST_ROOM,campaign:REVIEW_CAMPAIGN,build:REVIEW_BUILD,title:'Verifica E69 · Staff',description:'Tre nuove prove private sulle stesse situazioni e domande del confronto precedente, con le istruzioni aggiornate. Gli esiti della missione restano invariati.',caseLabels:['Fatti e aggiunte personali','Motivazioni e dissenso','Rettifica nel mercato']});
@@ -3428,6 +3429,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
 
  function updateRoom(host,options={}){
   editorial.mount(host);
+  combatReportPreview.mount(host);
   editorialPair.mount(host);
   editorialDialogue.mount(host);
   editorialReview.mount(host);
@@ -3586,5 +3588,5 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
   if(roomHost)void updateRoom(roomHost,{manual:true});
   return {handled:true,receipt};
  }
- return {editor,board,decorateBoard,updateRoom,submitRole,chatPublication,isNarrativeRoom,automaticCombatReadAllowed,legacyScenePollingAllowed,sessionId:()=>roomState?.session_id,dispose(){editorialE73.dispose();editorialLatest.dispose();editorialReview.dispose();editorialDialogue.dispose();editorialPair.dispose();editorial.dispose();eventRecoveryFeedback.clear();roomReadReady=null;roomReadFlight=null;roomDirtyHint=false;for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};
+ return {editor,board,decorateBoard,updateRoom,submitRole,chatPublication,isNarrativeRoom,automaticCombatReadAllowed,legacyScenePollingAllowed,sessionId:()=>roomState?.session_id,dispose(){combatReportPreview.dispose();editorialE73.dispose();editorialLatest.dispose();editorialReview.dispose();editorialDialogue.dispose();editorialPair.dispose();editorial.dispose();eventRecoveryFeedback.clear();roomReadReady=null;roomReadFlight=null;roomDirtyHint=false;for(const c of aborts.values())c.dispose();aborts.clear();abortActor=null;regen.dispose();roomEpoch++;roomRead=null;roomScope=null;roomHost=null;roomState=null;roomSignature='';roomError='';entryState=null;entryPending=null;entryError='';if(currentDialog)currentDialog.close();},version:VERSION};
 }
