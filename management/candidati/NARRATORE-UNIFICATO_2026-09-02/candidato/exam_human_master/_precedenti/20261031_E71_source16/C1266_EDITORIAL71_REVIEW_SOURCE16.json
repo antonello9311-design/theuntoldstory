@@ -1,0 +1,117 @@
+{
+  "schema": "editorial71-independent-source-review/1",
+  "aggregate": 16,
+  "prior_aggregates_preserved": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "status": "RED_SOURCE_NOT_INSTALLABLE",
+  "findings_count": {
+    "P0": 0,
+    "P1": 1,
+    "P2": 0
+  },
+  "findings": [
+    {
+      "id": "E71-R16-01",
+      "severity": "P1",
+      "file": "db/DB_BUILD.py",
+      "lines": [
+        14,
+        16,
+        43,
+        53
+      ],
+      "title": "Identità della review E71 incompatibile con il gate SQL E69",
+      "cause": "Il compiler materiale ammette soltanto review_ref=C1266_EDITORIAL71_REVIEW.json, ma il DO prodotto richiede C1266_EDITORIAL69_REVIEW.json e UPDATE deposita quel riferimento storico. La condizione è incompatibile anche con un Edge verificato e un hash review valido.",
+      "effect": "Ogni materiale conforme E71 fallirebbe E71_MATERIAL_UNQUALIFIED prima della sola UPDATE; usare E69 per superare il gate viola il contratto del compiler e accredita una review obsoleta.",
+      "required_fix": "Un’unica correzione aggregata del binding review E71 nei default, nel gate e nel riferimento scritto, rigenerando installer/postflight/manifest e ricontrollando materiale e cap. Non cambiare guardie né hash per accettare E69.",
+      "verification": "Contraddizione dimostrata staticamente sui letterali e sul builder; nessuna esecuzione SQL o provider."
+    }
+  ],
+  "scope": "Matrice statica integrata CODE+Root metadata compiler/installer, prima di deploy/apply. Nessun gameplay o provider.",
+  "source_freeze_sha256": "ff96c61826f861de9227e53b6e18c88856250400ef713ec3362bcd56ae2141fb",
+  "reviewed_artifacts": [
+    {
+      "path": "/private/tmp/tus-c1266-editorial71-20261031/PLAN.json",
+      "bytes": 1901,
+      "sha256": "341bd71302164f645cee43267a2ac431e331e36a5bea8e19f757907c210a80ab"
+    },
+    {
+      "path": "/private/tmp/tus-c1266-editorial71-20261031/code/build/C1266_EDITORIAL71_EDGE_PACKAGE.json",
+      "bytes": 719151,
+      "sha256": "363264548c2b2d601e8fd8d6ed82732b660c5a96b7f451a3001284bb677613a5"
+    },
+    {
+      "path": "/private/tmp/tus-c1266-editorial71-20261031/code/build/C1266_EDITORIAL71_EDGE_STATIC.json",
+      "bytes": 8504,
+      "sha256": "70e62f4b4e05a4bfdf830c5c377751cb8d82b24cb9cf7ba0ea2a0dfc69447306"
+    },
+    {
+      "path": "/private/tmp/tus-c1266-editorial71-20261031/db/DB_BUILD.py",
+      "bytes": 15329,
+      "sha256": "4555f679591a050196bb77b3666f81da7f8f66712ba36780c97dc22d9e353c5c"
+    },
+    {
+      "path": "/private/tmp/tus-c1266-editorial71-20261031/db/ROOT_PACKET.json",
+      "bytes": 434864,
+      "sha256": "5aaf5187349546c2c1932ba436b7e989ce6b20046ce2bed9587c84e43c9c20be"
+    },
+    {
+      "path": "/private/tmp/tus-c1266-editorial71-20261031/db/source/INSTALL.sql",
+      "bytes": 658878,
+      "sha256": "3bdc64f4126166afd3977be79017c611f770810ae1c1473aca3ff6ae0e774196"
+    },
+    {
+      "path": "/private/tmp/tus-c1266-editorial71-20261031/db/source/ROOT_TEMPLATE.json",
+      "bytes": 262114,
+      "sha256": "ab268b2f5c158f81443282f71ba33a0648eac6af7a1340b40017ec7f3e577461"
+    },
+    {
+      "path": "/private/tmp/tus-c1266-editorial71-20261031/db/source/MANIFEST.json",
+      "bytes": 292220,
+      "sha256": "d4b89cb381f508f547db3547073f4d84f67e5c89c68656b9c21c203974344b9d"
+    }
+  ],
+  "independent_proof": {
+    "code": {
+      "path": "/private/tmp/tus-c1266-editorial71-20261031/review/CODE_PROOF.json",
+      "sha256": "eaab06a3bd06e2bec4bc12f12b92438c4fc744867d1674c59ac7af8ea0ed53ee"
+    },
+    "db": {
+      "path": "/private/tmp/tus-c1266-editorial71-20261031/review/DB_PROOF16.json",
+      "sha256": "263099fbc662cfd1562353f4d0c69d1477d5ad6549b1690ed89e7d50d0948ea4"
+    },
+    "matrix": {
+      "path": "/private/tmp/tus-c1266-editorial71-20261031/review/MATRIX16.json",
+      "sha256": "ee3689855a7eb162959cec77e2c07963db1367677e5e84693fcb67cc5057a28a"
+    }
+  },
+  "positive_checks": [
+    "Un solo runtime modificato; neutralizzando tre paragrafi editoriali e otto descrizioni gli altri byte coincidono, inclusi selettori, validator, normalizzatori, schema/bounds e topologia.",
+    "15MJS sintassi/import statici PASS; rebuild indipendente package/static/diff e cinque artefattiDB byte-identici.",
+    "Prosa pianificata per differenza; ambientazione coinvolta quando pertinente; nessuna quota o blocco stilistico nuovo.",
+    "Memoria aggiornata per unità autonome/categorie e conservazione del pertinente; bounds600/180/90 e16/10/20 intatti.",
+    "Rootconfig/UI/dbcore e recovery65..70 esatti;246header per signature/10ABI/5tables/68constraints e preservazione sourcebaseline esatti.",
+    "SQL/PL parse statico PASS; unica tabella mutata readiness, sourceRoot262114 e wire720188 sotto cap."
+  ],
+  "limitations": [
+    "Non è una qualifica funzionale o editoriale; efficacia futura NOT_RUN e causa interna provider non dimostrata.",
+    "Materiale con Edge/EZBR/review reali richiede review finale distinta; recovery operativa conservativa da includere in quel pacchetto.",
+    "Preservazione runtime futura richiede postflight readonly dopo apply; nessuna prova nuova richiesta o eseguita."
+  ],
+  "release_decision": "HOLD: niente deploy/apply fino aggregata corretta e controverifica indipendente pertinente; preservare16 come rosso, niente reset."
+}

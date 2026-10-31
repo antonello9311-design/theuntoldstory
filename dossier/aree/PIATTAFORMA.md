@@ -23,15 +23,13 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
-C1266 Editorial70 ·31/10/2026: tre nuove coppie Director→Writer concluse dai normali comandi Staff;6stage completed al primo tentativo,6Count+6Generation/12HTTP,0retryIA/0blocchi durantegenerazione. Input narrativi identici aE68 dopo inversioneID, prompt/schemaE69byteidentici; nessunreplaymissione o modificaFati. Root71bd2e9cd39ee9ba7e65ca8aef545d4e5e1618eac6beee49ee393d4af377daa1/semantic26aa13ce373c05b26da6626a3b294ddf962adb7d3fb3efb97fdae6e615d98a78,Edge135/EZBR84c38cd005a150918800dbb2f6d0d63b1c567be79fd90484c0a4a35f59bed437,16filefullreadbackexact; UIcommit69adf4ca19c66b8a354804f9ba81094041f56c97/Pages41209202265SUCCESS/3blobexact e dominio osservato. Source15/materialreview0/0/0,246header1deltaauthority e10ABIzero drift,other3RPCimmutate. Nuovacampagna2bd901b7-6ba6-5319-a55a-2d2e2cfcf03b oraenabled=false,6completed/0pending; stessaRoot/fullrow,old43/seiscope/E65E66E68+new6run/finanza/audit identici prima/dopochiusura.
+C1266 Editorial71 ·31/10/2026: correzioni del report E70 installate in Staff. Director dialogico/3 distingue acquisito e seguito nuovo; Writer response/10 intreccia ambiente e interazione senza ripetizioni di rassicurazione; memoriaScene/2 aggiorna per differenza con fatti autonomi attribuiti, questioni irrisolte ed etichette brevi dei motivi. Cambiano solo tre paragrafi e descrizioni provider in un file Edge; altri15file, shape, bounds600/180/90, cardinalità, selettori, validatori, autorità, retry e topologia invariati. Nessun nuovo Director nella narrazione ordinaria, nessun nuovo blocco stilistico.
 
-Qualità PARTIAL_NOT_PASSED:0cinquegrammi delle domandePG, maautoripetizioni e ambiente soprattutto in coda persistono;C2piùarticolato,C3compie rettifica giàpubblica inF2, seguitopratico debole. Memoria NOT_PASSED:4unitàmonche in3casi, nessun draftnote analogoE68. Nuovaestrazionemirata della sola scene_memory delJSONfinaleprovider:3/3ugualiintegralmente alnormalizzato,4frammenti/U00ADgiàpresenti primaadapternormalization/storage. Nessuntaglio diquestipassaggiosservato; causa interna provider/decoder non dimostrata. Tutti originali conservati, niente patch o rigenerazioni editoriali.
+Root `7e3abc1074a332676c89cccb0a254a17ec0abd89a590fa36c79f0b53494811f1`, semantic `ce53cd3b1f5d096788d8daffcb11d59b96d669511481e3a315e7fa2d7c611e91`, Edge136/EZBR `0a264c743543aeb9b7731323d86dc90eaba17e9e6dacc01182946e2f3a8e3b59`. Review sorgente17 e materiale effettivo0/0/0; readback completo16/16file esatto. Una sola UPDATE della readiness, zeroDDL:246header/10ABI/5tabelle/68vincoli senza mismatch e set vincoli esatto; config/UI/dbcore invariati. Postflight Root canonico e materiale identici, preservazione completa PASS per43Fati, sei scope storici, E65/E66/E68/E70, risultati privati/raw/memorie e tutta finanza/audit. Campagne conservate disabilitate. Nessuna prova, enable, replay, provider o modifica a infrastruttura;206HTTP e1,84208020USD prudenti su4 invariati. UI69ad/buildUI7,V8/V7 conservati.
 
-Costo prudente nuovo0,14322470USD su0,264 autorizzati:0,13200000riservaCountunknown+0,01122470Generationliquidate. Cumulativo206HTTP/1,84208020USD su4, nessunreset/rimborso. Finestra reale14:20:48.055366UTC→stopHTTP15:35:48.055366/chiusura15:50:48.055366, non rinnovata; ultimo stage14:26:27.464593UTC. Chiusa anticipatamente cononlyenabledfalse dopo review0/0/0. Fonte e report: management/candidati/NARRATORE-UNIFICATO_2026-09-02/referti/C1266_EDITORIAL70_REPORT.md. V8/V7/Small e disponibilitàpubblica invariati,nessunamissionecompleta/Combat/aperturautenza qualificatidaE70.
+La16 è rimasta rossa0/1/0 per un riferimento E69 nel compiler: intercettato prima deploy/apply, archiviato e risolto dalla17 con unica costante E71; nessuna guardia rimossa e nessun tuning aggiuntivo ai prompt. Contatori1–16 e referti originali conservati. Root262095B entro262144,49B residui da considerare per future modifiche; wire massimo720145B. Efficacia editoriale e memoria della nuova versione NOT_RUN; diagnosi E70 (frammenti già nel JSON finale provider, causa interna non dimostrata) conservata. Fonte: referti/C1266_EDITORIAL71_REPORT.md.
 
-Anomalia preparatoria conservata: primo confrontoRootfalse perché laqueryreadonly sostituivaSTAGEanchein6percorsistorici delletteraleatteso. Rootinstallatoesatto; generatorecorretto stage-prima-dati e reviewasserzione1a305db7 0/0/0, poiassertverde. Nessunrollback/nuovoapplyRoot o modificaE69 necessaria; distinto dalpercorso6stage pulito. OldE68case1 ecase3E70dopo chiusura riletti con ricevuteidentiche.
-
-Migrazione c1266_editorial70_review69_staff_campaign applicata alprimoinvio: unicaauthority aggiornata per9scope storici e budgetE70.264/oldE68closing1. Rootconfigporta nomelegacy c1266_editorial68 repinE70, nuova campaignrow/sourceRefs. ENABLE eCLOSE con execute_sql distinti e qualificati;nessunnewDDLschema/firma/ACL/GRANT/cron.
+Checkpoint E70 conservato: campagna chiusa e tutte tre coppie originali; reportE70 resta fonte della diagnosi e delle differenze.
 
 CheckpointE69 precedente conservato:
 
@@ -556,7 +554,7 @@ I checkpoint precedenti mantengono data, versione e limiti. Le loro istruzioni d
 
 ## Lavori aperti — in ordine
 
-C1266 Editorial70 consegnata: campagna chiusa e tre coppie conservate; review utente del confronto e delle memorie. Nessuna ulteriore prova o correzione avviata. Proposte generali: stato acquisito distinto dal seguito, attività del luogo con funzione nello scambio, Writer meno ridondante e contratto memoria con unità complete/attribuite. Difetto già nelJSONfinaleprovider; causa interna non dimostrata. Nessun nuovo blocco stilistico, replay o apertura pubblica.
+C1266 Editorial71 consegnata: correzioni installate e verifica di conservazione positiva. Review del delta e delle evidenze; nessuna altra prova avviata o autorizzata da questa consegna. La resa futura di testo e memoria rimane NOT_RUN; risultati E70 e Fati precedenti restano originali. Nessun enable, replay o apertura pubblica.
 
 - HUMAN-LAND-INTEGRATION: media/backend eAdmin installati/pubblicati; recovery postflightcast inreview dopo rollback. Stessa bozzaCV4 conservata; coppie/QA FatoCombat2puntate NOT_RUN.
 
@@ -605,7 +603,7 @@ FingerprintconOID non portabile; arraySQL segmentato ≠ statementSHA; source_he
 
 ## Prossimo passo
 
-C1266 Editorial70 consegnata: campagna chiusa e tre coppie conservate; review utente del confronto e delle memorie. Nessuna ulteriore prova o correzione avviata. Proposte generali: stato acquisito distinto dal seguito, attività del luogo con funzione nello scambio, Writer meno ridondante e contratto memoria con unità complete/attribuite. Difetto già nelJSONfinaleprovider; causa interna non dimostrata. Nessun nuovo blocco stilistico, replay o apertura pubblica.
+C1266 Editorial71 consegnata: correzioni installate e verifica di conservazione positiva. Review del delta e delle evidenze; nessuna altra prova avviata o autorizzata da questa consegna. La resa futura di testo e memoria rimane NOT_RUN; risultati E70 e Fati precedenti restano originali. Nessun enable, replay o apertura pubblica.
 
 HUMAN-LAND-INTEGRATION: completare media PNG canonici e contratto recovery; nuova campagna Staff pertinente dichiarata, stessa bozza/key senza reset; save/importHuman/C463optin/Fato/Combat/successore/secondapuntata restano da provare.
 
