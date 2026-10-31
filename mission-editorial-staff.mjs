@@ -52,14 +52,16 @@ export function createStaffEditorial({client,identity,isStaff,currentLocation,st
 // E66 is separate from the unchanged E65 history controller above.
 export const PAIR_BUILD='staff-editorial-pair-ui/1';
 export const PAIR_CAMPAIGN='23c83d81-3e37-5a7e-8056-45b009992a3f';
+export const DIALOGUE_BUILD='staff-editorial-dialogue-ui/1';
+export const DIALOGUE_CAMPAIGN='a8c3c6f9-949d-5b64-8a02-80667c7b4da8';
 const PAIR_SHA=/^[0-9a-f]{64}$/;
 const pairExact=(v,keys)=>v!==null&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).length===keys.length&&keys.every(k=>Object.hasOwn(v,k));
 const pairId=v=>v===null||UUID.test(v||'');
 const pairHash=v=>v===null||typeof v==='string'&&PAIR_SHA.test(v);
-export function createStaffEditorialPair({client,identity,isStaff,currentLocation,staffRoom,campaign=PAIR_CAMPAIGN}){
+export function createStaffEditorialPair({client,identity,isStaff,currentLocation,staffRoom,campaign=PAIR_CAMPAIGN,build=PAIR_BUILD,title='Prove Director + Fato · Staff',description='Tre campioni indipendenti dello stesso turno. Ogni avvio produce una nuova valutazione dei PNG e poi un nuovo Fato privato, senza modificare la missione.',caseLabels=null}){
  let root=null,scope=null,opened=false,busy=false,epoch=0;const values=new Map();
  const eligible=()=>isStaff()===true&&UUID.test(identity()||'')&&currentLocation()?.id===staffRoom&&currentLocation()?.is_test===true&&UUID.test(campaign);
- const journalKey=(user,no)=>`${PAIR_BUILD}:${user}:${campaign}:${no}`;
+ const journalKey=(user,no)=>`${build}:${user}:${campaign}:${no}`;
  function journal(user,no){
   const raw=sessionStorage.getItem(journalKey(user,no));if(raw===null)return null;let v;try{v=JSON.parse(raw);}catch{throw Error('Avvio locale non leggibile: nessuna nuova richiesta creata.');}
   if(!pairExact(v,['request_key','run_id','writer_run_id'])||!UUID.test(v.request_key||'')||!pairId(v.run_id)||!pairId(v.writer_run_id)||v.run_id===null&&v.writer_run_id!==null)throw Error('Avvio locale non verificabile: richiesta conservata.');return v;
@@ -96,10 +98,10 @@ export function createStaffEditorialPair({client,identity,isStaff,currentLocatio
  }
  function stageLine(label,value){const line=element('p',label+': '+(value?labels[value.state]:'non ancora preparato'));line.setAttribute('role','status');return line;}
  function paint(){
-  if(!root||!eligible())return;root.replaceChildren();const toggle=action('Prove Director + Fato · Staff',()=>{opened=!opened;paint();});toggle.setAttribute('aria-expanded',String(opened));root.append(toggle);if(!opened)return;
-  root.append(element('p','Tre campioni indipendenti dello stesso turno. Ogni avvio produce una nuova valutazione dei PNG e poi un nuovo Fato privato, senza modificare la missione.'));
+  if(!root||!eligible())return;root.replaceChildren();const toggle=action(title,()=>{opened=!opened;paint();});toggle.setAttribute('aria-expanded',String(opened));root.append(toggle);if(!opened)return;
+  root.append(element('p',description));
   for(let no=1;no<=3;no++){
-   const row=element('section');row.className='mg-scene';row.append(element('strong','Campione '+no));let saved=null,error=null;try{saved=journal(identity(),no);}catch(e){error=e.message;}
+   const row=element('section');row.className='mg-scene';row.append(element('strong',Array.isArray(caseLabels)&&caseLabels.length===3?'Caso '+no+' · '+caseLabels[no-1]:'Campione '+no));let saved=null,error=null;try{saved=journal(identity(),no);}catch(e){error=e.message;}
    const v=values.get(no),r=v?.receipt;
    const start=action(saved?.run_id?'Avvio già accettato':saved?'Verifica lo stesso avvio':'Avvia questo campione',()=>void send(no,'start'));start.disabled=busy||!!saved?.run_id||!!error;
    const read=action('Aggiorna esito',()=>void send(no,'read'));read.disabled=busy||!saved?.run_id||!!error;row.append(element('br'),start,read);
@@ -113,5 +115,5 @@ export function createStaffEditorialPair({client,identity,isStaff,currentLocatio
    root.append(row);
   }
  }
- return {mount(host){const next=eligible()?`${identity()}:${currentLocation().id}:${campaign}`:null;if(next!==scope){epoch++;busy=false;scope=next;values.clear();opened=false;root?.remove();root=null;}if(!next||!host?.parentElement)return;if(!root||!root.isConnected){root=element('div');root.className='mg-room';root.dataset.staffEditorialPair=PAIR_BUILD;host.insertAdjacentElement('afterend',root);paint();}},dispose(){epoch++;scope=null;busy=false;values.clear();root?.remove();root=null;}};
+ return {mount(host){const next=eligible()?`${identity()}:${currentLocation().id}:${campaign}`:null;if(next!==scope){epoch++;busy=false;scope=next;values.clear();opened=false;root?.remove();root=null;}if(!next||!host?.parentElement)return;if(!root||!root.isConnected){root=element('div');root.className='mg-room';root.dataset.staffEditorialPair=build;host.insertAdjacentElement('afterend',root);paint();}},dispose(){epoch++;scope=null;busy=false;values.clear();root?.remove();root=null;}};
 }
