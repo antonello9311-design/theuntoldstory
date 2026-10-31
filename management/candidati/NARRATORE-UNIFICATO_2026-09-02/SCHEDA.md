@@ -1,4 +1,8 @@
-in lavoro · E74 consegnata: tre prove chiuse, editoriale PARTIAL_NOT_PASSED e memoria NOT_PASSED.
+in lavoro · P75 preview chiusa e conservata,PARTIAL_USER_REVIEW;fullflow26 in preparazione privata,non installato.
+
+C1266 Narratore75 · 31/10/2026: una preview privata reportCombat→Fato del solo narratore completata e chiusa enabled=false,1completed/0pending. Stesso avvio recuperato prima del provider,1Count+1Generation/2HTTP,0Director; costo prudente0,02312880USD e cumulativo232HTTP/2,15238950USD su4,riservaCount0,022conservata. Root757f310d/Edge141EZBR49288801riletta16/16;UI6301c1e/Pages41245835468SUCCESS. Testo506caratteri invariato,leggibile anche dopo reload a prova chiusa. Source23CHECKe24proiezionePNGfallite conservate con audit;25installata,reviewsource/material/close0/0/0 eCLOSED_PRESERVED. Old43Fati,E65–E74,nuovoresult/raw/request/ledger,audit47feprotetti conservati. QualitàPARTIAL_USER_REVIEW:reazionePNG e continuitàspaziale da migliorare. Fullflow26senzaDirector/WAITrimane candidato privato,NOT_INSTALLED/NOT_RUN;0altreIA. Fonte:C1266_NARRATORE75_REPORT/POSTFLIGHT.
+
+C1266 Narratore75 ·31/10/2026: mandato eliminaDirector e mostraFato direttamente dagli esiti. Baseline139/34 eRoot5c948;230HTTP/2,12926070USD su4 conservati. Diagnosi: alcune difese oggi dipendono dalFato intermedio;serve contratto esplicito e non semplice rimozione nominale. Un’anteprima privata da reportStaff concluso verra distinta dalla verifica completa del nuovo flusso.
 
 C1266 Editorial74 ·31/10/2026: tre nuove coppie Director→Writer con E73 invariata completate e campagna beabfc88-ae45-53b1-b081-d137cd8eac41 chiusa,6completed/0pending.6Count+6Generation/12HTTP al primo tentativo IA,senza retry editoriale. Nuovo costo prudente0,14141830USD (Count riservate0,13200000+Generation esatte0,00941830),cumulativo230HTTP/2,12926070USD su4; riserve unknown_billable mantenute.
 

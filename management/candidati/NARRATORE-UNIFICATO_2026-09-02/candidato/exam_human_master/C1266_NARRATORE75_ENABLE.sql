@@ -1,0 +1,3 @@
+-- Source25: nessuna operazione ENABLE.
+-- Il clock della source24 è stato conservato; campagna ora chiusa.
+-- Storico privato: /private/tmp/tus-c1266-narratore75-20261031/material24_enable/ENABLE.sql

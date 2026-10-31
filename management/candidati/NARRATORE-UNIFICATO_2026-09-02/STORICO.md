@@ -1194,3 +1194,7 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 31/10/2026 · E68/trasporto12/recovery13 · preview nuove domande installata; tre Director→Writer reali completati e campagna chiusa,43Fati/E65/E66 conservati,1,69885550USD/4 · tecnico recuperato dopo409, editorialePARTIAL, memoriaNOT_PASSED.
 31/10/2026 · Editorial69/aggregata14 · corretti Director dialogico, WriterScene5 e memoria privata; Edge134/Root56a9583b, conservati43Fati/E65/E66/E68 e costi · reviewsource/material0/0/0 e postflightPASS; efficaciaNOT_RUN,0nuoveprove.
 31/10/2026 · Editorial70/aggregata15 · tre coppieE69 suinputE68 concluse/chiuse con12HTTP e0retryIA,oldFati preservati,cumulativo1,84208020USD/4 · pipelinePASS,editorialePARTIAL,memoriaNOT_PASSED giànelproviderfinalJSON.
+2026-10-31 · C1266 Narratore75 piano · attuazione narratore unico secondo1vs1 e preview diretta reportStaff;diagnosi dipendenzaFato/difesa · PREPARATION,0provider,0appmutation;E74eFaticonservati.
+2026-10-31 · C1266 Narratore75 source23 · Edge140/UI6301installati;DBinstallerrespinto23514perCHECK3vs1,rollbackverificato · 0provider,Root/historyinvariati;aggregata24stessomandato.
+2026-10-31 · C1266 Narratore75 source24 · CHECKinstallato/qualificato,unicoavviofermoprimaHTTPpermancataproiezioneNativePNG · FAILEDpreproviderconservato,0calls;aggregata25stessorun/clock/budget.
+2026-10-31 · C1266 Narratore75 source25 · stesso avvio recuperato,1Fato privato senzaDirector e chiusura verificata · 2HTTP/0,02312880USD nuovi,cum2,15238950su4;PARTIAL_USER_REVIEW,fullflow26privato0IA.

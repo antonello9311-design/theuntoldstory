@@ -120,6 +120,14 @@ Allineamento 19/09/2026 · Soffio di brace live nel database e nel regolamento; 
 
 ## Registro dei file — stato e data di verifica in ciascuna riga
 
+C1266 Narratore75 · 31/10/2026: una preview privata reportCombat→Fato del solo narratore completata e chiusa enabled=false,1completed/0pending. Stesso avvio recuperato prima del provider,1Count+1Generation/2HTTP,0Director; costo prudente0,02312880USD e cumulativo232HTTP/2,15238950USD su4,riservaCount0,022conservata. Root757f310d/Edge141EZBR49288801riletta16/16;UI6301c1e/Pages41245835468SUCCESS. Testo506caratteri invariato,leggibile anche dopo reload a prova chiusa. Source23CHECKe24proiezionePNGfallite conservate con audit;25installata,reviewsource/material/close0/0/0 eCLOSED_PRESERVED. Old43Fati,E65–E74,nuovoresult/raw/request/ledger,audit47feprotetti conservati. QualitàPARTIAL_USER_REVIEW:reazionePNG e continuitàspaziale da migliorare. Fullflow26senzaDirector/WAITrimane candidato privato,NOT_INSTALLED/NOT_RUN;0altreIA. Fonte:C1266_NARRATORE75_REPORT/POSTFLIGHT.
+
+| File attuale P75 | Byte | SHA-256 | Commit / esito |
+|---|---:|---|---|
+| land.html |2374142|d2b66813cb8da31dcd4fdfc6585498ea64f9b8349cdbd951b6259137f1a2aee5|6301c1e · caricato/verificato · buildC1266-COMBAT64-UI7invariata |
+| mission-generic-ui.mjs |357603|9d6c4bd8e726116c2d9819e2f22476e8a60149e175fc8d3d55978943806bd6b4|6301c1e · caricato/verificato |
+| mission-editorial-staff.mjs |15487|34fa4e6596cf18d3eb56130e487c8a0f6e0af7f152e06aebbeeca1859567255f|6301c1e · caricato/verificato |
+
 C1266 Editorial74 ·31/10/2026: tre nuove coppie Director→Writer con E73 invariata completate e campagna beabfc88-ae45-53b1-b081-d137cd8eac41 chiusa,6completed/0pending.6Count+6Generation/12HTTP al primo tentativo IA,senza retry editoriale. Nuovo costo prudente0,14141830USD (Count riservate0,13200000+Generation esatte0,00941830),cumulativo230HTTP/2,12926070USD su4; riserve unknown_billable mantenute.
 
 Catena reale verificata3/3: domande nuove come identità tecniche,stessi input narrativi E70/E72,richieste con istruzioni E73 e nuovo piano Director legato al Writer tramite ricevute/hash. Nessun PGecho esteso osservato; Director non fornisce più battute finite come E72C3. Esito editoriale PARTIAL_NOT_PASSED: autoripetizioni, ambiente soprattutto in coda e rettifica già acquisita riproposta nei piani C2/C3, poi attese/riepiloghi del Writer. Memoria NOT_PASSED: sei unità incomplete in tre campioni, già identiche nel JSON finale provider.scene_memory; nessun taglio successivo osservato, causa interna non determinata. Nessun filtro o correzione applicato ai testi.
