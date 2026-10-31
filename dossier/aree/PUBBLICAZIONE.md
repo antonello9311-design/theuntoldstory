@@ -126,7 +126,7 @@ Root `7e3abc1074a332676c89cccb0a254a17ec0abd89a590fa36c79f0b53494811f1`, semanti
 
 La16 è rimasta rossa0/1/0 per un riferimento E69 nel compiler: intercettato prima deploy/apply, archiviato e risolto dalla17 con unica costante E71; nessuna guardia rimossa e nessun tuning aggiuntivo ai prompt. Contatori1–16 e referti originali conservati. Root262095B entro262144,49B residui da considerare per future modifiche; wire massimo720145B. Efficacia editoriale e memoria della nuova versione NOT_RUN; diagnosi E70 (frammenti già nel JSON finale provider, causa interna non dimostrata) conservata. Fonte: referti/C1266_EDITORIAL71_REPORT.md.
 
-E71: nessun asset sito modificato; deposito selettivo sorgenti/evidenze da completare. La baseline Gitmainc71ccd87 e i tre blob UI sono stati riconciliati; Root.ui.git_head conserva69ad.
+E71: deposito selettivo completato al commit `802bbd70c15cbda01d74429292b0fd64c4cb4fe3` (parentc71ccd87),25percorsi/25blob riletti integralmente byte-esatti, refmain verificatoCAS senza force e nessuna rimozione. Treeverificato: soli25delta autorizzati, UI3invariata. BaselineGitriconciliata e Root.ui.git_head conservato69ad. Nessun asset sito modificato: nessun nuovo collaudo o attestazione visiva dal deposito. INSTALL/MANIFEST/ROOT_PACKET corrente+archiviato rimangono locali con byte/SHA nel RELEASE_CHAIN perché contengono Root/fonti private; nessun raw o testo integrale di Fati nel deposito.
 
 Asset UI E70 pubblicati in69adf4ca19c66b8a354804f9ba81094041f56c97; fullreadback3/3Gitblob ePagesSUCCESS, dominio conpannello osservato(nonhashgrezzodomino):
 
