@@ -56,6 +56,8 @@ export const DIALOGUE_BUILD='staff-editorial-dialogue-ui/1';
 export const DIALOGUE_CAMPAIGN='a8c3c6f9-949d-5b64-8a02-80667c7b4da8';
 export const REVIEW_BUILD='staff-editorial-review69-ui/1';
 export const REVIEW_CAMPAIGN='2bd901b7-6ba6-5319-a55a-2d2e2cfcf03b';
+export const LATEST_BUILD='staff-editorial-review71-ui/1';
+export const LATEST_CAMPAIGN='ff79949a-06cb-5749-a33f-3d632d78f3a5';
 const PAIR_SHA=/^[0-9a-f]{64}$/;
 const pairExact=(v,keys)=>v!==null&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).length===keys.length&&keys.every(k=>Object.hasOwn(v,k));
 const pairId=v=>v===null||UUID.test(v||'');
