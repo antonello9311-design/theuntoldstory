@@ -1,4 +1,7 @@
-# Review comparata A/B/C/D/E/F e campioni editoriali E65/E66/E68
+# Review comparata A/B/C/D/E/F e campioni editoriali E65/E66/E68/E70
+
+E70 ·31/10/2026: tre nuove coppie Director/Writer su stessiinputnarrativiE68 conpromptE69 invariati,6stage1shot/0runtimeblocchi/0qualityretry. Campagnachiusa6completed0pending,43Fati/E65E66E68 eledgerpreservati;206HTTP/1,84208020USD su4.0PG5grams,maautorepeatPNG/ambientesoprattuttoincoda eavanzamentosostantialedebole;memoriaNOT_PASSED4frammentigiàidentici nelJSONfinaleprovider primaadapternormalization/storage (causa interna nonprovata).Confrontoadeguato3campioni,noncertificazioneinteramissione. [Report comparato E70](C1266_EDITORIAL70_REPORT.md).
+
 
 E68 · 31/10/2026: tre nuove domande indipendenti dopoF2, Director dialogico/2 e WriterScene5 collegati;6stage completi senza retryIA dopo correzione409preprovider. Nessuna ripresa estesa delle domande osservata; ambiente in coda, autoripetizioni e promesse di seguito persistono. Memoria privata NOT_PASSED per frammenti/commento modellistico. Campagna chiusa6completed/0pending;43Fati/E65/E66 conservati,194HTTP/1,69885550USD su4. Confronto nonA/Bcontrollato per input/tipologiaDdiversi. [Report comparato E68](C1266_EDITORIAL68_REPORT.md).
 
