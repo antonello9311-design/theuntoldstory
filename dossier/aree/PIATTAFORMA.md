@@ -23,6 +23,15 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
+C1266 Editorial72 · 31/10/2026: tre nuove prove private Director → Writer completate in Staff con prompt E71 invariati. Sei stage completati al primo tentativo IA, 6 Count + 6 Generation / 12 HTTP, nessun retry editoriale. Campagna ff79949a-06cb-5749-a33f-3d632d78f3a5 chiusa enabled=false, 0 pending; risultati e memoria privati conservati. Nuovo costo prudente 0,14576220 USD (Count riservato 0,13200000 + Generation esatto 0,01376220), cumulativo 218 HTTP / 1,98784240 USD su 4. Le riserve unknown_billable non sono azzerate.
+
+E71 Director dialogico/3, Writer response/10 e memoriaScene/2 sono presenti integralmente nelle richieste reali; tutte le tre catene legano il piano Director nuovo al Writer tramite ricevuta e hash di richiesta/raw/risultato. Input narrativi identici E70: confronto controllato di tre rami indipendenti dopo F2, non replay della missione né verifica longitudinale della memoria. Nessuna battuta PG ricopiata osservata, nessuna sequenza di cinque parole condivisa con le domande. Qualità PARZIALE: nel caso3 Keita sceglie una strada autonoma e la rettifica è riconosciuta già acquisita; restano ricapitolazioni PNG, ambiente soprattutto in coda e gesti di custodia ripetuti. Director caso3 anticipa battute complete poi riprese dal Writer: problema di ripartizione editoriale, distinto dal PG echo. Memorie normalizzate complete nei tre campioni, senza frammenti osservati; non dimostra affidabilità generale o memoria su turni successivi.
+
+Integrazione effettiva: Root97efed9df1085f0919b3fa26c9aa2f80aac000eb95062aa70b4630feafcc2d99, Edge137/EZBR64b2f84cbe4222a50ba607681cace3e862f6219c84aa464f59e266661dbd42fa, UI9590640cd8c02b58466ec5f60001d1abe7a2a483/Pages41215762544SUCCESS. Readback16file Edge e3blob UI esatti. Review sorgente19, materiale19 e chiusura0/0/0; postflight246header/10ABI/5tabelle/68vincoli senza mismatch. Vecchi43Fati, sei scope e campagneE65/E66/E68/E70, ledger/audit/raw/memorie e risorse protette conservati; nessun nuovo Fato pubblico, ruolo reinviato o scena riavviata. Small invariato.
+
+Preparazione non pulita al primo tentativo: INSTALL18 respinta prima DDL da E72_PROTECTED_HISTORY_DRIFT, zero mutazioni applicative. Causa provata:100 differenze di sola rappresentazione numerica nel roundtrip JSON client; source19 usa cattura testuale/hash nativi e uguaglianza semantica Decimal, conservando le guardie. INSTALL19 e ENABLE riuscite; vecchi referti e conteggi18 conservati. Nessuna nuova funzione/tabella/colonna/ACL/GRANT o vincolo DB; cambia un solo corpo authority esistente per tre predicati e il collegamento della nuova preview. Root262095B/262144,49B residui; campo import_graph esplicitamente storico, non attestazione del nuovo grafo. Report: referti/C1266_EDITORIAL72_REPORT.md.
+
+
 C1266 Editorial71 ·31/10/2026: correzioni del report E70 installate in Staff. Director dialogico/3 distingue acquisito e seguito nuovo; Writer response/10 intreccia ambiente e interazione senza ripetizioni di rassicurazione; memoriaScene/2 aggiorna per differenza con fatti autonomi attribuiti, questioni irrisolte ed etichette brevi dei motivi. Cambiano solo tre paragrafi e descrizioni provider in un file Edge; altri15file, shape, bounds600/180/90, cardinalità, selettori, validatori, autorità, retry e topologia invariati. Nessun nuovo Director nella narrazione ordinaria, nessun nuovo blocco stilistico.
 
 Root `7e3abc1074a332676c89cccb0a254a17ec0abd89a590fa36c79f0b53494811f1`, semantic `ce53cd3b1f5d096788d8daffcb11d59b96d669511481e3a315e7fa2d7c611e91`, Edge136/EZBR `0a264c743543aeb9b7731323d86dc90eaba17e9e6dacc01182946e2f3a8e3b59`. Review sorgente17 e materiale effettivo0/0/0; readback completo16/16file esatto. Una sola UPDATE della readiness, zeroDDL:246header/10ABI/5tabelle/68vincoli senza mismatch e set vincoli esatto; config/UI/dbcore invariati. Postflight Root canonico e materiale identici, preservazione completa PASS per43Fati, sei scope storici, E65/E66/E68/E70, risultati privati/raw/memorie e tutta finanza/audit. Campagne conservate disabilitate. Nessuna prova, enable, replay, provider o modifica a infrastruttura;206HTTP e1,84208020USD prudenti su4 invariati. UI69ad/buildUI7,V8/V7 conservati.
@@ -554,6 +563,8 @@ I checkpoint precedenti mantengono data, versione e limiti. Le loro istruzioni d
 
 ## Lavori aperti — in ordine
 
+E72 consegnata e chiusa: review del confronto E70/E72. Proposte soltanto: Director pianifica decisioni e conseguenze senza copione; Writer sviluppa risposte nuove e ambiente che partecipa allo scambio; memoria distingue acquisito e seguito con unità autonome. Nessuna nuova correzione o prova avviata, nessuna apertura pubblica o qualifica completa missione/Combat.
+
 C1266 Editorial71 consegnata: correzioni installate e verifica di conservazione positiva. Review del delta e delle evidenze; nessuna altra prova avviata o autorizzata da questa consegna. La resa futura di testo e memoria rimane NOT_RUN; risultati E70 e Fati precedenti restano originali. Nessun enable, replay o apertura pubblica.
 
 - HUMAN-LAND-INTEGRATION: media/backend eAdmin installati/pubblicati; recovery postflightcast inreview dopo rollback. Stessa bozzaCV4 conservata; coppie/QA FatoCombat2puntate NOT_RUN.
@@ -602,6 +613,8 @@ C1266 Editorial71 consegnata: correzioni installate e verifica di conservazione 
 FingerprintconOID non portabile; arraySQL segmentato ≠ statementSHA; source_headbaseline ≠ maxversionesecuzioni; datiseed esclusi da schema-only; statuscontrol-plane ≠ salutedeiservizi.
 
 ## Prossimo passo
+
+E72 consegnata e chiusa: review del confronto E70/E72. Proposte soltanto: Director pianifica decisioni e conseguenze senza copione; Writer sviluppa risposte nuove e ambiente che partecipa allo scambio; memoria distingue acquisito e seguito con unità autonome. Nessuna nuova correzione o prova avviata, nessuna apertura pubblica o qualifica completa missione/Combat.
 
 C1266 Editorial71 consegnata: correzioni installate e verifica di conservazione positiva. Review del delta e delle evidenze; nessuna altra prova avviata o autorizzata da questa consegna. La resa futura di testo e memoria rimane NOT_RUN; risultati E70 e Fati precedenti restano originali. Nessun enable, replay o apertura pubblica.
 

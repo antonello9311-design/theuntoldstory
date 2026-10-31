@@ -1,4 +1,8 @@
 
+
+31/10/2026 · C1266 Editorial72 aggregata19 · preview E71 con3D→W completata/chiusa,12HTTP/0,14576220USD nuovi; conservazionePASS, editorialePARZIALE e memoria campionata completa; INSTALL18 preDDL respinta e19corretta, referti conservati.
+31/10/2026 · C1266 Editorial72 proposta · Diagnosi preview chiusa e piano3coppieE71, adattamento da approvare;0provider0DBmutation · NOT_RUN.
+
 31/10/2026 · C1266 Editorial71 aggregata17 · Director/Writer/memoria per differenza installati Staff, Fati e finanza invariati;16rossaarchiviata→17e materiale0/0/0 · INSTALL_PRESERVATION_PASS; efficacia NOT_RUN;0provider.
 30/10/2026 · C1266 Editorial68 preparazione · Porta D→W attuale limitata a Nativepeaceful; tre nuovi casi e proposta di fonte editoriale V8/V7 pronti, nessuna modifica app/DB o chiamata · PREPARATA / TEST_NOT_RUN / ESTENSIONE_DA_AUTORIZZARE.
 
