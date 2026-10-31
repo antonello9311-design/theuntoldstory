@@ -23,6 +23,15 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
+C1266 Editorial74 ·31/10/2026: tre nuove coppie Director→Writer con E73 invariata completate e campagna beabfc88-ae45-53b1-b081-d137cd8eac41 chiusa,6completed/0pending.6Count+6Generation/12HTTP al primo tentativo IA,senza retry editoriale. Nuovo costo prudente0,14141830USD (Count riservate0,13200000+Generation esatte0,00941830),cumulativo230HTTP/2,12926070USD su4; riserve unknown_billable mantenute.
+
+Catena reale verificata3/3: domande nuove come identità tecniche,stessi input narrativi E70/E72,richieste con istruzioni E73 e nuovo piano Director legato al Writer tramite ricevute/hash. Nessun PGecho esteso osservato; Director non fornisce più battute finite come E72C3. Esito editoriale PARTIAL_NOT_PASSED: autoripetizioni, ambiente soprattutto in coda e rettifica già acquisita riproposta nei piani C2/C3, poi attese/riepiloghi del Writer. Memoria NOT_PASSED: sei unità incomplete in tre campioni, già identiche nel JSON finale provider.scene_memory; nessun taglio successivo osservato, causa interna non determinata. Nessun filtro o correzione applicato ai testi.
+
+Integrazione22: Root `5c948df36e4410eed1b5d0af62e91326a5739aded211b558cd92e96493c8cf39`,policy `2da0647a0abcd65bb8662973dfef80244c99e5cf3bbc877a93548d735847358e`,Edge139/EZBRd51e71bf16c85acf7195c23c09b4f7c88929c55c5a2c913402956c102034797a,UIa6c9aa50797dbb1d9af2e63aca72151a47f933ea/Pages41228255501SUCCESS. Review sorgente/materiale/chiusura0/0/0,16fileEdge e3blobUIriletti esatti. INSTALL/ENABLE riusciti,postflight246header/10ABI/5tabelle/68vincoli senza mismatch;vecchi43Fati,sei scope,E65/E66/E68/E70/E72 e tutti risultati/raw/memorie/ledger/audit/protetti conservati,oltre ai nuovi E74. Root262096B/margine48,tutte recovery precedenti mantenute;nessun nuovo vincolo/schema/funzione/GRANT o apertura pubblica. Infrastruttura invariata.
+
+ENABLE reale18:16:29.844157UTC,stopprovider19:31:29 eclose19:46:29UTC; tutte le generazioni concluse entro18:19:45.800622UTC e chiusura verificata nella stessa finestra. Testi E73/V8/V7 invariati; nessuna role inviata o missione rigiocata. Tre rami indipendenti dopoF2 non qualificano una missione completa,Combat,memoria longitudinale o altri percorsi Staff. Fonte: referti/C1266_EDITORIAL74_REPORT.md.
+
+
 C1266 Editorial73 ·31/10/2026: istruzioni editoriali semplificate e installate nella composizione Staff, aggregata21 in continuità1–20. Il Director usa le fonti ricevute per proporre contenuto e intenzioni; il Writer realizza parole, comportamenti e sviluppo coerente. L’ambiente deriva dai dati della missione/mappa/fase disponibili, senza dettagli specifici o ricette ambientali nel prompt. Memoria aggiornata dall’acquisito e dal nuovo esito, mantenendo solo pendenze effettive. Sovrapposizioni editoriali e indicazioni di battute pronte rimosse nei percorsi interessati; nessun nuovo filtro, quota, retry o blocco stilistico.
 
 Root `2cb99826fadbefcbcdfd6aceab521ebe2c675bc4d716f1feedd4743bea25addf`, semantic `3075cbd130ff1b03ca5c2a55fbfa3d5eae5ddcf077edc01ebb0abd8cd944c0d2`, Edge138/EZBR `cb1d6207f028b733fa72256273632d4285e0a52ff8096987c5fe10db5c03e155`. Sorgente21 e materiale effettivo recensiti0/0/0,16file Edge riletti integralmente esatti; una sola riga readiness aggiornata e nessunDDL. Postflight246header/10ABI/5tabelle/68vincoli senza mismatch e preservazione nativa positiva per43Fati/sei scope/E65/E66/E68/E70/E72, risultati, raw, memorie, ledger e audit. Schema, bounds, normalizzatori, autorità, costi, UI959/buildUI7, fasiV8 e schedeV7 conservati. Tutte le provenienze recovery precedenti mantenute; non aggiunta una nuova voce annidata alla Root a capacità quasi esaurita. Infrastruttura invariata.
@@ -621,6 +630,8 @@ C1266 Editorial71 consegnata: correzioni installate e verifica di conservazione 
 FingerprintconOID non portabile; arraySQL segmentato ≠ statementSHA; source_headbaseline ≠ maxversionesecuzioni; datiseed esclusi da schema-only; statuscontrol-plane ≠ salutedeiservizi.
 
 ## Prossimo passo
+
+E74 consegnata e chiusa: review del confronto E72/E74 e delle memorie originali. Nessuna altra prova o patch avviata. Le proposte riguardano rappresentazione dello stato acquisito, contenuti del piano e contratto della memoria, senza nuove ricette di scena o filtri bloccanti.
 
 E73 consegnata: istruzioni generiche installate e conservazione verificata. Nessuna ulteriore correzione o prova avviata. Efficacia dei nuovi testi e memoria su più turni NOT_RUN; tutti risultati E72 e precedenti restano originali per la review.
 

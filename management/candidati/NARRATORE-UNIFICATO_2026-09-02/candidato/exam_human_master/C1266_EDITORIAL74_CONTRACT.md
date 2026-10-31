@@ -1,0 +1,13 @@
+# E74 — contratto congelato
+
+Mandato esplicito31/10: adattamento minimo DB/Edge/pannello riservato Staff e tre nuove coppie Director→Writer con istruzioni E73 byteidentiche; massimo12HTTP e0,264USD aggiuntivi entro4USD complessivi.75minuti perprovider+15chiusura dal reale ENABLE. Nessun retry editoriale, replay o modifica ai Fati. Nuova campagna beabfc88-ae45-53b1-b081-d137cd8eac41; baseline Root2cb998/Edge138/EZBRcb1d e Gitmain5cbc4fe/UIcode959.
+
+Input narrativi medesimi E70/E72: tre rami indipendenti dopo F2 reale,V8/V7, stesse domande, memoria iniziale e cronaca. Non usare memorie alternative come nuovi input. Identità tecniche nuove non sono role o azioni PG. Una rettifica già acquisita in F2 non è avanzamento nuovo. I criteri di review non entrano come istruzioni supplementari nelle richieste.
+
+Cambia soltanto il delta necessario a una funzione esistente editorial_authority_v1 per conservare E72 nel cumulativo/storia e ammettere E74. Le altre tre RPC,246header salvo il corpo previsto,10ABI,5tabelle e68vincoli restano invariati. Nuova riga campagna/source_refs e puntatore Root. Due binding Edge e tre asset UI, con lo stesso controller autenticato/idempotente e vecchie letture conservate; nessun nuovo polling o autostart. Tutti i testi E73 nei tre moduli, schema, bounds, normalizzatori, modello e retry restano identici.
+
+Root cap262144 invariato, baseline262095. Conservare tutte le recovery precedenti, senza aggiungere una voce annidata se supera la capienza; nuova provenienza in manifest/review/readiness. Identità unica costruita con Edge/versione/EZBR/UIcommit/review effettivi. Capture nativa per preservazione, non hash da roundtrip numerico client. Review indipendente aggregata22 e materiale reale0/0/0 prima dell’operazione relativa; nessuna chiamata provider prima dell’installazione qualificata.
+
+Preparazione con campagna disabilitata; enable separato avvia una sola finestra75+15minuti. Non rinnova o riapre E72. Massimo6Count+6Generation/12HTTP,120000input e20000output per richiesta,1,44milioni input complessivi e120000output di generazione. Cumulativo vivo218HTTP/1,98784240USD prima; massimo2,25184240USD dopo entro4. Riserve unknown_billable e tutta contabilità conservate.
+
+43Fati,sei scope storici,E65/E66/E68/E70/E72 e tutti risultati, memorie, raw, ledger, audit e risorse PG preservati. I nuovi risultati restano privati, senza apertura pubblica o cambio infrastruttura. Dopo tre coppie: chiusura della sola E74,0pending e postflight; report comparato consultivo su ripetizioni, ambiente, avanzamento e memoria. Nessun filtro o retry di qualità. Tre rami indipendenti non qualificano memoria longitudinale né missione completa.

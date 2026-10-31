@@ -1,3 +1,17 @@
+E74 ·31/10/2026 · tre coppie private concluse e chiuse,reportcomparato disponibile.
+
+C1266 Editorial74 ·31/10/2026: tre nuove coppie Director→Writer con E73 invariata completate e campagna beabfc88-ae45-53b1-b081-d137cd8eac41 chiusa,6completed/0pending.6Count+6Generation/12HTTP al primo tentativo IA,senza retry editoriale. Nuovo costo prudente0,14141830USD (Count riservate0,13200000+Generation esatte0,00941830),cumulativo230HTTP/2,12926070USD su4; riserve unknown_billable mantenute.
+
+Catena reale verificata3/3: domande nuove come identità tecniche,stessi input narrativi E70/E72,richieste con istruzioni E73 e nuovo piano Director legato al Writer tramite ricevute/hash. Nessun PGecho esteso osservato; Director non fornisce più battute finite come E72C3. Esito editoriale PARTIAL_NOT_PASSED: autoripetizioni, ambiente soprattutto in coda e rettifica già acquisita riproposta nei piani C2/C3, poi attese/riepiloghi del Writer. Memoria NOT_PASSED: sei unità incomplete in tre campioni, già identiche nel JSON finale provider.scene_memory; nessun taglio successivo osservato, causa interna non determinata. Nessun filtro o correzione applicato ai testi.
+
+Integrazione22: Root `5c948df36e4410eed1b5d0af62e91326a5739aded211b558cd92e96493c8cf39`,policy `2da0647a0abcd65bb8662973dfef80244c99e5cf3bbc877a93548d735847358e`,Edge139/EZBRd51e71bf16c85acf7195c23c09b4f7c88929c55c5a2c913402956c102034797a,UIa6c9aa50797dbb1d9af2e63aca72151a47f933ea/Pages41228255501SUCCESS. Review sorgente/materiale/chiusura0/0/0,16fileEdge e3blobUIriletti esatti. INSTALL/ENABLE riusciti,postflight246header/10ABI/5tabelle/68vincoli senza mismatch;vecchi43Fati,sei scope,E65/E66/E68/E70/E72 e tutti risultati/raw/memorie/ledger/audit/protetti conservati,oltre ai nuovi E74. Root262096B/margine48,tutte recovery precedenti mantenute;nessun nuovo vincolo/schema/funzione/GRANT o apertura pubblica. Infrastruttura invariata.
+
+ENABLE reale18:16:29.844157UTC,stopprovider19:31:29 eclose19:46:29UTC; tutte le generazioni concluse entro18:19:45.800622UTC e chiusura verificata nella stessa finestra. Testi E73/V8/V7 invariati; nessuna role inviata o missione rigiocata. Tre rami indipendenti dopoF2 non qualificano una missione completa,Combat,memoria longitudinale o altri percorsi Staff. Fonte: referti/C1266_EDITORIAL74_REPORT.md.
+
+E74 consegnata e chiusa: review del confronto E72/E74 e delle memorie originali. Nessuna altra prova o patch avviata. Le proposte riguardano rappresentazione dello stato acquisito, contenuti del piano e contratto della memoria, senza nuove ricette di scena o filtri bloccanti.
+
+Checkpoint precedenti conservati:
+
 E72 · 31/10/2026 · tre prove private concluse e campagna chiusa.
 
 C1266 Editorial72 · 31/10/2026: tre nuove prove private Director → Writer completate in Staff con prompt E71 invariati. Sei stage completati al primo tentativo IA, 6 Count + 6 Generation / 12 HTTP, nessun retry editoriale. Campagna ff79949a-06cb-5749-a33f-3d632d78f3a5 chiusa enabled=false, 0 pending; risultati e memoria privati conservati. Nuovo costo prudente 0,14576220 USD (Count riservato 0,13200000 + Generation esatto 0,01376220), cumulativo 218 HTTP / 1,98784240 USD su 4. Le riserve unknown_billable non sono azzerate.

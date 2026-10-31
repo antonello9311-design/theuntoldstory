@@ -1,0 +1,11 @@
+# E74 — recupero conservativo
+
+Baseline: Root2cb99826fadbefcbcdfd6aceab521ebe2c675bc4d716f1feedd4743bea25addf,Edge138 eUI959/Git5cbc, conservati integralmente nei file privati ROOT_BASELINE/EDGE_BASELINE/UI_CONTENTS. E73prompt restano byteidentici per tutta la campagna. Source22continua1–21; nessunreset.
+
+Installazione ed enable sono operazioni distinte: campagna inizialmente disabilitata, poi sola E74 con clock75minprovider+15chiusura dal veroenable. Non riaprire E72 o azzerare quote e giornali. Max6Count+6Generation/12HTTP/.264USDnuovientro4; confronto sullo stesso F2 con tre rami indipendenti. Nessunretryeditoriale o replay. Una richiesta incerta resta legata alla ricevuta/idempotenza originali e alla riserva di costo: non creare un nuovo avvio per sostituirla.
+
+Prima di un apply confrontare baseline, corpi cataloghi e preservazione nativa, poi qualificare il materiale con Edge/UI/review reali. Nessun apply per scoprire difetti di installazione, nessuna guardia rimossa e nessun hash da roundtrip numerico client. Se una fase fallisce, conservare errore, versione effettiva e audit; non dichiarare integrato ciò che non lo è. Un eventuale delta futuro nasce dalla baseline corrente e dalla review pertinente, senza reinstallare corpi arretrati o ripristinare dati.
+
+Alla fine chiudere soltanto E74 mediante enabled=false dopo riscontro autorevole dei run e contabilità e review del materiale di chiusura. Se ci sono run incerti non inventare completamenti; conservare stati/quote/ricevute. Root, policy e deadline restano immutate nella chiusura; tutti risultati/raw/request/result/memorie/ledger/audit restano salvati. Postflight verifica vecchi43Fati/sei scope/E65/E66/E68/E70/E72 e nuove evidenze. Nessuna modifica aPGrealipremiprogressione o scene altrui.
+
+Ripetizioni, ambiente, avanzamento e memoria sono giudizi consultivi da lettura dei risultati originali, non nuovi filtri o motivi di rigenerazione. Nessun provider extra per migliorare un campione. Rootcap262144 e tutte le provenienze precedenti restano intatte; source22calcola margine48B, nessuna nuova voce recovery annidata. La release non apre il prodotto al pubblico né certifica una missione completa o una memoria longitudinale.
