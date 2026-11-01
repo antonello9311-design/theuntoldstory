@@ -1,0 +1,61 @@
+{
+  "schema": "mission-narrator-memory-total/1",
+  "input_projection": "mission-narrator-report-input/2 unchanged byte-for-byte from77",
+  "campaign_id": "6fc6dbce-82ce-5a70-b5ee-cd3333ada2cf",
+  "prompt_revision": "staff-combat-report-narrator/4",
+  "memory": {
+    "keys": [
+      "state",
+      "known",
+      "open",
+      "used"
+    ],
+    "state_type": "string",
+    "other_fields_type": "array of strings",
+    "capacity_total_codepoints": 7080,
+    "counted_content": "state plus every string in known/open/used; Unicode codepoints, JSON syntax excluded",
+    "JS_count": "Array.from(value).length summed across all content strings",
+    "DB_count": "PostgreSQL length(value) summed across all content strings",
+    "per_string_maxLength": null,
+    "per_bucket_maxItems": null,
+    "provider_schema": "shape only, global capacity described to model",
+    "provider_enforces_sum": false,
+    "runtime_and_DB_enforce_sum": true,
+    "versioned_constant": "NARRATOR_MEMORY_TOTAL_CAP=7080, no new Root/policy key"
+  },
+  "output": {
+    "required": [
+      "text",
+      "scene_memory"
+    ],
+    "normalized_keys": [
+      "ok",
+      "origin",
+      "text",
+      "scene_memory",
+      "advisories",
+      "failure_codes"
+    ],
+    "storage": "private editorial_runs.result.scene_memory; publicResult unchanged"
+  },
+  "unchanged": [
+    "projection77",
+    "narrative paragraph except prompt version",
+    "field order",
+    "legacy sceneMemorySchema/narrativeSceneMemoryShape/SCENE_MEMORY_RULE",
+    "source/report/history/receipts",
+    "ledger/accounting/worker"
+  ],
+  "not_allowed": [
+    "truncation",
+    "reassembly",
+    "fallback",
+    "retry",
+    "second model call",
+    "semantic validation",
+    "model choice of capacity",
+    "gameplay memory mutation"
+  ],
+  "risk": "JSON schema cannot express this aggregate sum. Runtime and DB enforce the technical capacity; raw is retained on failure. Existing provider output and transport limits bound JSON overhead; no hidden entry-count limit is added.",
+  "runtime_quality": "NOT_RUN"
+}
