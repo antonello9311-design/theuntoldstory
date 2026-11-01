@@ -12,6 +12,8 @@ Finanza: nuova84 8HTTP/4Countunknown riservati+4Generationsettled,0,05878460USD 
 
 AperturaLand separata NOT_READY: Scene5/Native/eventi/role/chiusura pubblici non equivalenti alla Staff; pianoP84/PUBLIC_EQUIVALENCE_PLAN.md,delta sostanziale nonflag/pin. Nessun tentativo di aprire percorso legacy al posto di quello collaudato.
 
+Deposito selettivo Git 1e79f48ad4ce12dab0c6f6de301d7fe1d584decc:16file/16blob integralmente riletti byteexact,CAS/testa verificati,0estranei/rimozioni. SQLfull/Root/role/Fati/raw privati esclusi;Edge/UIcodeheadrestaaa6cd,nessun asset sito caricato. Registro di pubblicazione aggiornato nella successiva registrazione audit. Risorse assistente da rilasciare dopo check finale,nessuna ulteriore prova autorizzata da questa consegna.
+
 Consegne precedenti conservate di seguito.
 
 C1266-FULL83-20261101 · COLLAUDO FALLITO ALL’AVVIO · LAND NON APERTA
