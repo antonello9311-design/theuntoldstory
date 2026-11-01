@@ -1,0 +1,59 @@
+{
+  "task": "EXAM-RESERVATION-LIFECYCLE-20261101",
+  "version": "EXAM-RESERVATION-LIFECYCLE-001",
+  "review": {
+    "initial": "0/0/1",
+    "aggregate": 1,
+    "countercheck": 1,
+    "final": "0/0/0",
+    "reviewer": "/root/review_reservation_lifecycle"
+  },
+  "installation": {
+    "trigger": {
+      "enabled": "O",
+      "definition": "CREATE TRIGGER esame_prenotazione_chiudi_su_terminale AFTER UPDATE OF stato ON public.esame_prove FOR EACH ROW EXECUTE FUNCTION _esame_prenotazione_chiudi_su_terminale()"
+    },
+    "function": {
+      "acl": "{postgres=X/postgres}",
+      "body": "\nBEGIN\n  -- EXAM-RESERVATION-LIFECYCLE-001: stato terminale autoritativo, nessuna cancellazione.\n  IF NEW.stato NOT IN ('conclusa','annullata') OR OLD.stato IS NOT DISTINCT FROM NEW.stato THEN\n    RETURN NEW;\n  END IF;\n  -- Disponibilita iniziale riservata alla Staff Test Room.\n  IF NOT EXISTS (SELECT 1 FROM public.academy_class_sessions s\n                 WHERE s.id=NEW.class_session_id\n                   AND s.location_id='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid) THEN\n    RETURN NEW;\n  END IF;\n  UPDATE public.esame_supervisione_prenotazioni\n     SET is_active=false\n   WHERE prova=NEW.id AND is_active;\n  RETURN NEW;\nEND\n",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "def_md5": "2535ef2f410e9e6d51d4d950613f0539",
+      "security_definer": true
+    },
+    "migration": {
+      "name": "exam_reservation_lifecycle_001_staff",
+      "version": "20261101203408"
+    }
+  },
+  "conservation": {
+    "before": {
+      "proof_hash": "8e8c16e742daeb17938899a1611e148d",
+      "open_proofs": 0,
+      "rewards_hash": "e8f9548df516a6a6dae9c0e16b020a3d",
+      "reservation_hash": "18b71f9fb487f7f3f7b4e880fb5afa0b",
+      "reservation_rows": 33
+    },
+    "after": {
+      "proof_hash": "8e8c16e742daeb17938899a1611e148d",
+      "open_proofs": 0,
+      "rewards_hash": "e8f9548df516a6a6dae9c0e16b020a3d",
+      "reservation_hash": "18b71f9fb487f7f3f7b4e880fb5afa0b",
+      "reservation_rows": 33
+    },
+    "unchanged": true
+  },
+  "qa": {
+    "status": "NOT_RUN",
+    "blocker": "Staff occupata e ammissioni Esame scadute, decisione utente richiesta",
+    "provider_calls": 0
+  },
+  "public_activation": "NOT_RUN",
+  "source_hashes": {
+    "STAFF": "c8d14114915cef55581ec05dff92afb60b2835e23a3e7ffca710686fd786a232",
+    "OPEN": "feb8fd2d45cccf329d29c7344cb660ff73e59d218048bcb64d6c12df7da7c3ae",
+    "RECOVERY": "c9bbd0e5fd178cef5b6b5a6659ce52aa78d117e5ebb5a5641924be822cc1f5cf"
+  }
+}

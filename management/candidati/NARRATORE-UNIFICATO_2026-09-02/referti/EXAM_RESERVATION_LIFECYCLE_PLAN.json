@@ -1,0 +1,33 @@
+{
+  "task": "EXAM-RESERVATION-LIFECYCLE-20261101",
+  "scope": "Prenotazione associata a prova che cambia stato in conclusa/annullata",
+  "cause": {
+    "historical_reason": "annullamento_staff",
+    "staff_close_omits_reservation": true,
+    "timeout_omits_reservation": true,
+    "historical_call_identity": "Motivo persistito coerente con comando Staff; log richiesta settembre non disponibile, nessuna attribuzione ad autore"
+  },
+  "contract": "EXAM-RESERVATION-LIFECYCLE-001",
+  "producer": [
+    "esame_supervisione_chiudi",
+    "esame_prova_tick",
+    "chiusura canonica esame_prove.stato"
+  ],
+  "consumer": "esame_supervisione_prenotazioni.prova UNIQUE/FK",
+  "change": "Trigger terminale, sola is_active=false, idempotente",
+  "preservation": [
+    "Nessun backfill o DELETE",
+    "Nessun risultato o XP modificato",
+    "Nessun cron, timer, client, Edge o porta pubblica nuovi"
+  ],
+  "initial_release": "Solo Staff Test Room, filtro server location classe",
+  "public_release": "Solo dopo review0/0/0 e QA protetto",
+  "recovery": "Disabilita esclusivamente nuovo trigger, non riattiva prenotazioni",
+  "qa": {
+    "status": "BLOCKED_BEFORE_RUN",
+    "reason": "Staff occupata Master c2faf883-5264-44e3-b1a2-bd9a39876942; admission Riuji/testperfunzioni scadute17set; UI avvio chiama drive provider",
+    "executed_cases": 0,
+    "provider_calls": 0
+  },
+  "out_of_scope": "Tre prenotazioni attive con parent terminale altrove; nessuna pulizia retroattiva eseguita"
+}
