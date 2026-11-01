@@ -1,3 +1,4 @@
+01/11/2026 · C1266 Narratore76 aggregata26 · revisione generica e1preview solo narratore completata/chiusa2HTTP,cum2,17615410su4;conservazionePASS,qualitàPARTIAL_NOT_PASSED;nessunreplay/altrotest.
 
 
 31/10/2026 · C1266 Editorial74 aggregata22 · 3D→Wcompletate/chiuse12HTTPsenza retryIA,0,14141830USDnuovi/cum2,12926070su4;conservazionePASS,editorialePARTIAL_NOT_PASSED,memoriaNOT_PASSEDcon6unitàgiàincompletefinalJSONprovider · nessunaltraprova/patch.
