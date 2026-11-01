@@ -1217,3 +1217,4 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 01/11/2026 · EXAM-ALL-CLOSE-20261101 · chiusi tre residui prenotazione, zero prove/prenotazioni/claim aperti; storico e Setsu invariati · PASS chiusura; QA interrotto, OPEN non eseguito. Scena Staff chiusa con27hash invariati dopo primo rollback SQL conservato.
 01/11/2026 · Narratore80 aggregata30 ripresa/correzioni1–3 · singola preview solo narratore completata e chiusa, Fati conservati, totale2,24927030USD · narrativa NON_SUPERATA;memoriaPASSsingolocaso.
 01/11/2026 · Narratore81 aggregata31 · dialogo reciproco Combat, unica regola generica installata e preservazioni verificate · installato Staff, qualitàNOT_RUN,0provider.
+01/11/2026 · Narratore82 aggregata32/correzioni1–2 ·2previewsoloNarratore concluse echiuse,dialogo reciprocoosservato,reader2recuperatosenzarigenerare · qualitàPARZIALE,total2,29691810USDsu4.

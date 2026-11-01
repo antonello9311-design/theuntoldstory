@@ -1,4 +1,4 @@
-in lavoro · Narratore81 dialogo reciproco Combat installato Staff; efficacia editoriale NOT_RUN. Nessuna nuova prova avviata.
+in lavoro · Narratore82 concluso e chiuso: dialogo osservato nei2casi, qualità complessiva parziale. Lettura Staff corretta, nessuna nuova prova attiva.
 
 Esame · chiusura totale residui ·01/11/2026 20:48UTC: richiesta Antonello eseguita. Zero prove aperte, binding aperti, policy attive, prenotazioni attive e claim Staff/Konoha. Tre prenotazioni residue di prove annullate disattivate, tutte33righe storiche conservate. Review0/0/0; nove confronti transazionali di conservazione PASS. Esito, ricompensa e storico Setsu invariati. Scena Staff c2faf883 chiusa con27confronti invariati. Collaudo interrotto su ordine utente: unico avvio precedente bloccato mission_session_spatial_required, zero nuove prove/provider/costi, ammissione temporanea ripristinata. Correzione automatica migrazione20261101203408 resta SOLO STAFF; apertura generale NON ESEGUITA. Nessuna ripresa automatica. Fonti referti/EXAM_ALL_CLOSE_PROOF.json e EXAM_RESERVATION_LIFECYCLE_HANDOFF.md.
 
