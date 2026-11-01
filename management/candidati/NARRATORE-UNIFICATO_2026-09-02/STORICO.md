@@ -1,5 +1,7 @@
 01/11/2026 · SHION-CLOSE aggregata1 · chiuso il residuo Esame Shion, arena Konoha libera, storico/risultati/15superfici protette e sessioni terminali invariati · COMMITTED/PASS;0nuoveIA,Setsu avvioNOT_RUN.
 
+01/11/2026 · Narratore80/aggregata30 · installazione146/Rootf756 eUIc294,prova nonavviata;pausa esplicita e rilascioDB all’altra chat senza altre query · SOSPESO/0provider/qualitàNOT_RUN;campagnaenabledultimo snapshot,chiusuraNONeseguita.
+
 01/11/2026 · Narratore79/aggregata29 · istruzioni missione+preview genericamente aperte alla resa espressiva;1runtime/Rootmetadata-only,0provider,storico conservato · tecnico installato/review0/0/0,qualitàNOT_RUN.
 
 01/11/2026 · C1266 Narratore77 aggregata27 · input distinti/memoria privata installati;1preview chiusa2HTTP,cum2,20067040su4;conservazionePASS,editoriale e memoria NOT_PASSED;nessunretry/replay.
@@ -1206,3 +1208,11 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 2026-10-31 · C1266 Narratore75 source23 · Edge140/UI6301installati;DBinstallerrespinto23514perCHECK3vs1,rollbackverificato · 0provider,Root/historyinvariati;aggregata24stessomandato.
 2026-10-31 · C1266 Narratore75 source24 · CHECKinstallato/qualificato,unicoavviofermoprimaHTTPpermancataproiezioneNativePNG · FAILEDpreproviderconservato,0calls;aggregata25stessorun/clock/budget.
 2026-10-31 · C1266 Narratore75 source25 · stesso avvio recuperato,1Fato privato senzaDirector e chiusura verificata · 2HTTP/0,02312880USD nuovi,cum2,15238950su4;PARTIAL_USER_REVIEW,fullflow26privato0IA.
+
+01/11/2026 · EXAM-PANEL-REGIA-BINDING-001 · collegato pannello Esame alla Regia, preservata Setsu e attivata vigilanza · pubblicato/domain PASS; review0/0/0; gameplay NOT_RUN.
+
+01/11/2026 · EXAM-SEPTEMBER-RESERVATION-001 · disattivata sola prenotazione settembre, storico e risultato Setsu invariati15/15 · COMMITTED, review0/0/0, postflightPASS.
+
+01/11/2026 · EXAM-RESERVATION-LIFECYCLE-001 · chiusura prenotazione al terminale, trigger solo Staff e nessun backfill · migrazione20261101203408,review0/0/0;QA/apertura NOT_RUN.
+01/11/2026 · EXAM-ALL-CLOSE-20261101 · chiusi tre residui prenotazione, zero prove/prenotazioni/claim aperti; storico e Setsu invariati · PASS chiusura; QA interrotto, OPEN non eseguito. Scena Staff chiusa con27hash invariati dopo primo rollback SQL conservato.
+01/11/2026 · Narratore80 aggregata30 ripresa/correzioni1–3 · singola preview solo narratore completata e chiusa, Fati conservati, totale2,24927030USD · narrativa NON_SUPERATA;memoriaPASSsingolocaso.
