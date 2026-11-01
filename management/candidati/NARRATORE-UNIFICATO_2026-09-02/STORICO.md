@@ -1,3 +1,4 @@
+01/11/2026 · C1266 Narratore77 aggregata27 · input distinti/memoria privata installati;1preview chiusa2HTTP,cum2,20067040su4;conservazionePASS,editoriale e memoria NOT_PASSED;nessunretry/replay.
 01/11/2026 · C1266 Narratore76 aggregata26 · revisione generica e1preview solo narratore completata/chiusa2HTTP,cum2,17615410su4;conservazionePASS,qualitàPARTIAL_NOT_PASSED;nessunreplay/altrotest.
 
 
