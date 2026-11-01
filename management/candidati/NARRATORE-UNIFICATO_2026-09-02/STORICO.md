@@ -1,3 +1,8 @@
+01/11/2026 · Full84/aggregata33 · rigenerata arena nativa inV9,16INSERT/3UPDATE, avvio e4Fati narrativi riusciti; ramo pacifico,CombatNOT_RUN,chiusura history_unreconciled · QAFAILED_FULL,LandNO.
+01/11/2026 · Full84/aggregata34 · CASE retained-first con audit invariato;1findingmetadataRoot corretto primaapply, reviewfinali0/0/0; chiusura normale22:56:16UTC e4Fati/storia/PG/costi intatti · cleanupPASS,QAFAILED_FULL;252HTTP/2,35570270USDsu4.
+
+01/11/2026 · Full83 · unico avvio Staff normale bloccato MG_ARENA_SOURCE_INVALID; nessun retry o correzione in corsa, Combat/ritorno/chiusura NOT_RUN, apertura Land non eseguita · FAILED_AT_START.
+
 01/11/2026 · SHION-CLOSE aggregata1 · chiuso il residuo Esame Shion, arena Konoha libera, storico/risultati/15superfici protette e sessioni terminali invariati · COMMITTED/PASS;0nuoveIA,Setsu avvioNOT_RUN.
 
 01/11/2026 · Narratore80/aggregata30 · installazione146/Rootf756 eUIc294,prova nonavviata;pausa esplicita e rilascioDB all’altra chat senza altre query · SOSPESO/0provider/qualitàNOT_RUN;campagnaenabledultimo snapshot,chiusuraNONeseguita.

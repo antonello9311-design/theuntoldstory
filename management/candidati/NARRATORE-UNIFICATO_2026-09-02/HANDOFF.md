@@ -1,3 +1,29 @@
+C1266-FULL84-20261101 · MAPPA CORRETTA · QA COMPLETA NON SUPERATA · CHIUSURA TECNICA RECUPERATA
+
+Scope: Discussioni in Centro6d6, correzione arena e collaudo completo entro4USD; apertura solo se passa senza correzioni in corsa. Aggregata33 installata migrazione20261101223944, nuovaV9 4da7191e/def11bd5367, planSHA285d6315/sourceSHAc7b73143; catalogo nativo82fe valido.16INSERT/3UPDATE,0code/schema/ACL/Edge/UI/gate. Source/material review0/0/0 e postflight255/10/13/1360,preservazioneexact. Root3d736201/full6d65694d, Edge148/UIaa6cd. OldV8/documenti/fasi/schede/Fati preservati.
+
+QA congelata: avvio normale della richiesta conservata riuscito, Masterefb45793-bc28-4f2a-9c43-03f83b175198.4Fati pubblicati e leggibili,3coppie role acquisite una volta. Le azioni di sfida condizionale scritte dall’assistente consentivano il rifiuto: Daichi declina, Regia percorre ramo pacifico alla fase4. Arena operativa solo fase3: nessun ingresso Combat legale in fase4. Combat/ritorno NOT_RUN; nessun bug meccanico dimostrato da quel rifiuto. Non è PASS del caso completo richiesto.
+
+Esito narrativo runconclusa/sceneclosed, ma Master inizialmenteaperto: scene_finish_proof blocca history_unreconciled.4outputretained completi,receipt/attempt success,costi exact; predicato originale rifiuta1–3,accetta4; ramo retained-only accetta tutti. AST non mostra differenze logiche: causa ultima della diversa valutazioneSQL NON PROVATA. QA84 FAILED_FULL,nessuna aperturaLand,0patchdurantegioco.
+
+Recupero terminale separato aggregata34 installato e verificato: CASE retained-first,7predicati e3condizionioutput e fallbackbyteidentici,senzaallentareaudit/fabbricareprove. Ha consentito la chiusura autorevole della scena già conclusa; non corregge retroattivamente il risultato del collaudo. Taskfilechild C1266-FULL84-CLOSURE34-FILES-20261101, PMdetieneDBparent; applicazione avvenuta dopoSource/material0/0/0 epreflightfresco. Nessuna nuovaGen/Count/campagna.
+
+Finanza: nuova84 8HTTP/4Countunknown riservati+4Generationsettled,0,05878460USD prudente. Totale252HTTP/2,35570270USDsu4,contatori/riserve/storia invariati. Oldcorpus/PG/vecchieversioniSHA647c9a identico.4Fati/custodyc947 guardati. P84=/private/tmp/tus-c1266-full84-20261101 conquery/prove/screenshots/source33/material33/correction34. Migrazione34 20261101225602 dopo reviewSource8b376/material6eae/post8c7 tuttefinali0/0/0; preliminary0/0/1 e unica correzionemetadataRoot preservati. Rootfinaleaa3b/full648462. NormalConcludiprova SINGLE chiude Master22:56:16UTC, receiptSHAe4673203…4historyitems e0pending. NuoviFati/work/raw/roles/calls/audit immutati, soloMaster/capability cambiano perchiusuranormale. Fonte FINAL_CLOSE_PROOF899c10ce. QA84FAILED_FULL rimane.
+
+AperturaLand separata NOT_READY: Scene5/Native/eventi/role/chiusura pubblici non equivalenti alla Staff; pianoP84/PUBLIC_EQUIVALENCE_PLAN.md,delta sostanziale nonflag/pin. Nessun tentativo di aprire percorso legacy al posto di quello collaudato.
+
+Consegne precedenti conservate di seguito.
+
+C1266-FULL83-20261101 · COLLAUDO FALLITO ALL’AVVIO · LAND NON APERTA
+
+Scope: unico collaudo completo Discussioni in Centro con avvio, Combat, ritorno narrazione e chiusura; apertura pubblica soltanto se riuscito senza correzioni in corsa. Versione Rootb13/Edge148/UIaa6cd congelata; missione6d6c216a/piano50f12. Questo è il runtime Regia effettivo, distinto dalla preview82 solo narratore; conserva passaggi Director/Writer.
+
+Prova: un solo AVVIA PROVA dal normale accesso Staff di Riuji con Riuji e Tamako selezionati e realmente presenti. Risposta MG_ARENA_SOURCE_INVALID; stessa richiesta conservata dal client. Zero retry, patch, role inviate o Fati modificati. Combat/ritorno/chiusura NOT_RUN. Non è soddisfatta la condizione di apertura richiesta da Antonello.
+
+Referto: referti/C1266_FULL83_REPORT.md; piano candidato/exam_human_master/C1266_FULL83_PLAN.json; prova visiva privata /private/tmp/tus-c1266-full83-20261101/START_FAILED.png. Causa confermata: quinto predicato di attach fallisce; hash catalogo dichiarato82fe32eb… diverso da hash effettivo48cac6be…; schema/missione/stanza/tipo corretti. Necessaria riconciliazione sorgente/revisione integrata, non sostituzione isolata del pin. Postflight22:19:09UTC:Root/fullrow invariati, ledger244HTTP/2,29691810USDsu4 eSHAtuttoidentico,delta0HTTP/0USD;0Masteraperti/nuovi,0carrier/start_claim/Fati nuovi. Nessuna sessione parziale da chiudere. Referto reviewindipendente0/0/0;prodottoFAILED_AT_START. Non riprendere automaticamente la richiesta; nessun apply/deploy eseguito. Budget economico e contatori storici non azzerati.
+
+Consegne precedenti conservate di seguito.
+
 C1266-NARRATORE82-INTEGRATION32-20261101 · DUE PREVIEW COMPLETATE/CHIUSE/LEGGIBILI · DIALOGO OSSERVATO, QUALITÀ PARZIALE
 
 Scope: due report storici immutabili, solo narratore81congelato. Caso1RiujiattaccaKeita/report3a734;caso2DaichioffensivaversoRiuji/reportfab2round5,nodo giàattestatodalcontrattodentroresolved_scenes[0].Nessunfixture,replay,roleoFato modificati. Nonqualifica una nuova meccanica di contrattacco o missionecompleta.
