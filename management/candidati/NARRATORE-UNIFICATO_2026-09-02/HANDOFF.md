@@ -1,3 +1,27 @@
+EXAM-PANEL-BINDING-20261101 · CONSEGNATO · vigilanza attiva
+
+Esame · 01/11/2026: collegamento pannello alla Regia pubblicato, build EXAM-PANEL-REGIA-BINDING-001, commit 289424b04b423e06cfc6cfb84a2e8b3700ebc8a4; Pages41326471402 SUCCESS e marcatore verificato sul dominio. Review indipendente iniziale 0/0/0; sintassi 6/6 PASS. Nessuna mutazione DB/Edge o chiamata provider; 11/11 impronte/contatori relativi a Setsu identici prima/dopo. Prova attiva conservata. Functional Staff NOT_RUN; bozza e scelta sul dispositivo non osservate, nessun refresh della tab utente. Vigilanza vigilanza-esame-setsu attiva ogni 5 minuti, silenziosa in assenza di eventi utili, senza invii o retry autonomi.
+
+Contratti, prove, rischi e passaggio PM: referti/EXAM_PANEL_BINDING_HANDOFF.md. Il seguente handoff Narratore80 resta conservato e sospeso, senza ripresa o nuova qualifica.
+
+C1266-NARRATORE80-INTEGRATION30-20261101 · SOSPESO SU RICHIESTA ESPLICITA DI ANTONELLO · DATABASE LASCIATO ALL’ALTRA CHAT
+
+Mandato interrotto: una sola prova editoriale privata con le istruzioni79 congelate, entro4USD, senza cambiareFati o rigiocaremissione. La preparazione/installazione è riuscita; NON è stato premuto AVVIA e non è partita alcuna Count/Generation. Nessun Fato80 generato, qualità NOT_RUN.
+
+Ultimo stato osservato, non riletto dopo la pausa: postEnabled80 alle16:24:45.245428UTC del01/11/2026. Root f75653a21eb983508bf6c350a73a6997da2093b888dacedda693cbf9464c092a/fullrow0557b925dd061a5305e4c973eec2ef7216570695d4d6aaa2c33d57362d6ddf46,262085B;Edge146/EZBRb620d625d255db35698d61379e1ff6b371702ad1b766a602e419d0e19d3f6760;UI c2944dcab3ddcb808fabe8213db1f2209b253042/Pages41325789607SUCCESS. Campagna712ac367-ae96-5360-aa9f-dedb32cd0c45 enabled=true,0runs/0pending. ENABLE ha fissato stopprovider16:54:45.245428UTC echiusura17:09:45.245428UTC. Flag non spento né campagna chiusa dopo lo stop, per non eseguire altre operazioniDB contro l’ordineutente. Nessunaautomazione/provider avviata:server aeventi,nessunclickdiAVVIO. Non equiparare l’expiry a una chiusura verificata.
+
+Prove già concluse: review30source68467db83e976029f1b0d9a4c7a7c43747a638f3a78ff72a68333fd7abf6be68 e materiale ebf0d02747884fd1f07bfe56773d4643209b1f2907dc28423b1b0a5773811b54 entrambe0/0/0;statiche/import/inverse/SQLPLPASS;16bodyEdge e2blobUIfullreadbackBYTEEXACT. Sourcefreeze c4a265597d217ee06e392cbfc5905c5ba9be05fc3eab241697b74a1855e7989b,materialfreeze0c7aa801d29da496ddeae2d7d10e5f9d12f28dc23d33e68c55f9f90754849653. INSTALL0fd548 edENABLE6b510 eseguiti;CLOSE561985 NONESGUITO. 1authoritybody modificato,245headerinclStepimmutati/246,10ABI/5tabelle/68vincoli0mismatch;43Fati/E65–78/preservazione verificate prima della pausa,nessunFato precedente toccato.
+
+Contatori ultimo snapshot:238HTTP/2,22508210USD prudenti su4;0nuovechiamate/0token/0spesaIA per80. Budget caso80 ancora inutilizzato:1Count+1Generation,2HTTP,0,044USD,120000input/20000output,nessunretryeditoriale;finestre sopra senza rinnovo automatico. Non inferire contatori correnti da questo snapshot se l’altra chat o Antonello opera nel frattempo.
+
+Risorse: interrotti gli agenti e fermata ogni nostra lettura/mutazioneSupabase;rilascio locale del guard come sospeso per lasciare db:produzione/edge/github/browser/Staff liberi. Nessuna nuova letturaDB di postflight dopo l’ordine. Il registro locale è soltanto coordinamento,non blocca l’uso manuale di Antonello.
+
+Ripresa eventuale: checkpoint vivo DB/Edge/UI/Git/owner/campagne/ledger;non azzerarecontatori,non riaprire78,non rigenerareFati e non usare pin arretrati. La campagna80 può essere ormai scaduta o modificata dall’owner successivo:non chiamareprovider dalla vecchia fotografia. Non avviare nulla senza nuova richiesta di ripresa.
+
+Consegna:P=/private/tmp/tus-c1266-narratore80-20261101 conserva PLAN/BASELINE/CONTRACT/RECOVERY,review,sorgenti,materiali,DEPLOY_UI_RECEIPT,EDGE_ACTUAL146,postInstalled80 epostEnabled80. OttoCODE+cinqueDBcanonici integrati;codiceUI giàpubblicato c294. Deposito documentale/sorgenti80 e collaudo NONcompletati;nessunulteriorepush durantepausa. Le consegne79,78 eShion sotto rimangono integrali.
+
+## Consegne precedenti conservate
+
 C1266-NARRATORE79-INTEGRATION29-20261101 · ISTRUZIONI INSTALLATE; QUALITÀ NUOVI FATI NOT_RUN
 
 Scope: regole editoriali missione e preview report/4. Una sola regola mission-narrative-space/1,23delta testuali in1runtimeEdge;15altri moduli intatti. Schede/mappe/mondo fonti creative,libertà per parole,toni,gesti,reazioniPNG eambiente;no confusione tra dettaglio espressivo e nuova azione meccanica. Conoscenze possedutePNG utilizzabili entro riservatezze esplicite,anche se archiviate come private.
