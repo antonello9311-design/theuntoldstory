@@ -17,6 +17,7 @@
   <meta name="tus-master-report-ui-build" content="C1236-MASTER-REPORT-UI-001" />
   <meta name="tus-human-close-recovery-build" content="C1236-HUMAN-CLOSE-RECOVERY-001" />
   <meta name="tus-regia-actor-receipt-build" content="C1244-REGIA-PG-PUBLICATION-GATE-004" />
+  <meta name="tus-exam-panel-binding-build" content="EXAM-PANEL-REGIA-BINDING-001" />
   <meta name="tus-staff-catalog-build" content="C1246-STAFF-CATALOG-001" />
 <title>The Untold Story</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -9881,9 +9882,19 @@ function createRegiaPanelRPC({client, scope, state, canCommand}) {
   const names = {combat_panel_state_v1:'esame_regia_panel_state',combat_panel_options_v1:'esame_regia_panel_options',combat_panel_commit_v1:'esame_regia_panel_commit'};
   return async function rpc(name, args) {
     const target = names[name], before = scope(), current = state();
-    assertRegia(target && before && current && !current.closed, 'panel_not_bound');
+    const publicationRead = name === 'regia_round_publication_state_v1';
+    assertRegia((target || publicationRead) && before && current && !current.closed, 'panel_not_bound');
     const binding = validateRegiaBinding(current.binding), proof = current.prova;
     const stamp = JSON.stringify([before, proof, binding]);
+    // Common rilegge la barriera pubblica della sola Regia attestata dall'Esame.
+    // La porta resta readonly: nessun comando Regia o attore estraneo passa qui.
+    if (publicationRead) {
+      assertRegia(args && Object.keys(args).sort().join(',') === 'p_actor,p_master_session' &&
+        args.p_master_session === binding.master_session_id && args.p_actor === binding.player_actor_id, 'publication_scope');
+      const response = await client.rpc(name, args);
+      assertRegia(stamp === JSON.stringify([scope(),state()?.prova,state()?.binding]), 'context_changed');
+      return response;
+    }
     if (name === 'combat_panel_commit_v1') {
       const command = args?.p_command;
       assertRegia(command?.schema_version === 'combat-panel-command/1' && regiaId(command.request_key) &&
@@ -10015,6 +10026,14 @@ function createExamRegiaHost(host) {
       panelRPC = createRegiaPanelRPC({client:host.client,scope,state:() => raw,canCommand});
       panel = host.attachCombatPanel({document:host.document,identity:host.identity,location:host.location,
         isExam:() => !ownsCombat(),rpc:(name,args) => panelRPC(name,args),
+        regiaSession(envelope) {
+          if (!ownsCombat()) return null;
+          try {
+            validateRegiaPanel(envelope, scope(), raw.binding);
+            return envelope.status === 'ready' ? raw.binding.master_session_id : null;
+          } catch { return null; }
+        },
+        syncSendGate:changed,
         visuals:envelope => resolveExamVisuals({envelope,scope:ownsCombat()?scope():null,readiness,state:raw,
           catalog:typeof host.visualCatalog==='function'?host.visualCatalog({scope:scope(),state:raw,readiness}):host.visualCatalog}),
         readChat:host.readChat,clearChat:host.clearChat,notice,
