@@ -1,3 +1,23 @@
+C1266-NARRATORE79-INTEGRATION29-20261101 · ISTRUZIONI INSTALLATE; QUALITÀ NUOVI FATI NOT_RUN
+
+Scope: regole editoriali missione e preview report/4. Una sola regola mission-narrative-space/1,23delta testuali in1runtimeEdge;15altri moduli intatti. Schede/mappe/mondo fonti creative,libertà per parole,toni,gesti,reazioniPNG eambiente;no confusione tra dettaglio espressivo e nuova azione meccanica. Conoscenze possedutePNG utilizzabili entro riservatezze esplicite,anche se archiviate come private.
+
+Contratti: trasporto/output/memoria7080/proiezioni/normalizzatori/Director/WAIT invariati;nessun cambio regole di gioco. Zero funzioniSQL/ABI/ACL/CHECK/schema nuove o modificate. Solo una rigaRoot di identità/review/bundle. UI/config/policy/campagne immutate. Nessuna nuova campagna/enable/prova/provider.
+
+Decisioni: allineare tutti i consumer missione pertinenti anziché solo preview;singola istruzione generica senza dettagli della quest,minimi o filtri. Le iniziative meccaniche restano autorizzate dal server,le sceltePG dai giocatori. Fallback non crea nuovi fatti di trama. Consumo futuro memoria e fullflow restano fuori scope.
+
+Prove: audit preliminare0/0/2 conservato de729ba…,unica aggregata batch1 duefinding(export/blanketprivacy),finale source843313d6 e materiale dc7f1983 entrambi0/0/0. Statiche sintassi/import/exportset16moduli/inverse eSQL/PLPASS;246funzioni/10ABI/5tabelle/68vincoli immutati. Deploy145/full16bodyreadbackBYTEEXACT;RootpostflightPASS e conservazione completa.
+
+Versione:Edge145/EZBR86f0fb9829d4556411504c5d2fcebbaefd35c15c776eb9555e8e39230524eafb;Root5af2d7faf14563ef726853358ef4f806b8f29e4362d09089aa75f692b78ca4ad/fullrow81b5009caf2cffa30d676763730517598c615b97d4a2679d27ff5e64e7962b49/262085B. UI d5e296 invariata.13sourcefreeze9d37999f/7materialfreeze9d0d5d93. Recoveryfailclosed senzaDML,nessunblindrollback.
+
+Finanza/conservazione:0HTTP/0token/0USD nuovi,238HTTP/2,22508210su4 invariati,riserve e contatori intatti.43Fati/E65–78/fullcustody e dati protetti conservati;E78resta chiusa. Nessun Fato modificato né missione rigiocata. Small invariato. ConsegnaShion conservata integralmente sotto,nessun suo stato modificato.
+
+Rischi/prossimo passoPM: resa dei nuovi testi NOT_RUN senza una prova successiva autorizzata;nessuna prova avviata da questa consegna. Non qualificare fullflow,Directorremoval o memoria longitudinale;nessuna apertura pubblica nuova.
+
+Consegna:referti/C1266_NARRATORE79_REPORT.md,candidato/exam_human_master/C1266_NARRATORE79_{WRITER_RULES,RESULTS,POSTFLIGHT,RELEASE_CHAIN}. P=/private/tmp/tus-c1266-narratore79-20261101 conserva capture,freeze,revieworiginali eproof;SQL/Root/snapshot/testi privati esclusi daGit. Deposito selettivo sorgenti/report79 da completare.
+
+## Consegne precedenti conservate integralmente
+
 # SHION-CLOSE-20261101 · CHIUSURA COMPLETATA E VERIFICATA
 
 Scope: sola prova Shion 7d338c7e-1dcf-4d7a-95bf-08e2a3cde3ed e collegamenti residui, arena Konoha. Mandato esplicito Antonello 01/11/2026.
