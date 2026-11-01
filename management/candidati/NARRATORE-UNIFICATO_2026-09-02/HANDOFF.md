@@ -1,3 +1,19 @@
+C1266-NARRATORE81-INTEGRATION31-20261101 · CORREZIONE INSTALLATA · QUALITÀ EDITORIALE NOT_RUN
+
+Scope: regola comune mission-narrative-space/2 per dialogo reciprocoCombat. PNG rispondea parolePG secondo personalità/momento/motivi e interagiscebersaglioattaccando/contrattaccando giàautorizzato. AzioniRiuji future scrittedall’assistente includerannoparlato;Writer noninventabattutePG.1constant/1runtimechanged,15moduliesatti;nostorydetails/quote/nuovivalidator/retry. Nofati/role/replay,nessunanuovaprovagenerazione.
+
+Contratti:report4/projection2/memoria7080/schemaJSON/normalizzatore/Director/WAITimmutati. Rootsoloidentitàbundle/composizione;0corpiSQL/ABI/ACL/CHECK/schema modificati. UI/policy/campagne incl80false echiusureprecedenticonservate.
+
+Prove:reviewsourceff58e4125c0898e9f02a94e39db84a55c1714a817e341d4e729d80b1fde710a1/material304918c4e2565ba9e0cf9c32782e5d1f7f79aa02a65040fc9ecf91afca80523b0/0/0. Statiche/import/export/inverse/SQLPL+ASTaliasPASS,16actualEdgefullreadbackBYTEEXACT. Postflight246/10/5/68all0,preservazioneFULL57e5exact,UI/configDBcoreimmutati. Edge147/EZBRc0578ef0766ecd51fefc6c3987db5b193adbf1b90d71c88151f4ef2ee3c5cb72;Root85217b6f4908fed69c9543cd078a72ce05725719bba56ad689a8628ed85ab162/fullrow7eb7e31cd10dbb7f094a31bd9aedc1d08a7910612afc8d7cff360268ee8a33ba/262085B. UIcode5592unchanged.
+
+Costi:0provider/0token/0USD/0nuovecampagne/0enable/0prove. Totale240HTTP/2,24927030su4immutato,riserveintatte. QualitàNOT_RUN;nessungaranziaeditorialedallasolainstallazione.
+
+Consegna:C1266_NARRATORE81_REPORT/WRITER_RULES/PROMPT_DIFF/RESULTS/POSTFLIGHT;P81privateoriginali/root/SQL/fullEdge. Sorgenti/report selettiviGit inpreparazione,SQLRootsnapshotesclusi. PMconsegnarecorrezione erilasciareriserve;nessunaltraprovasenzaesplicitamandato. Nessunprodottoinusoapertodalpresentehandoff. Sottoconsegneprecedenticonservateintegralmente.
+
+C1266-NARRATORE81-INTEGRATION31-20261101 · IN PREPARAZIONE · DIALOGO RECIPROCO COMBAT
+
+Mandato, scope e prove in P81/PLAN.json e CONTRACT.md. Una regola generica /2 su baselineviva146/f99e/e4ffee;0provider0nuovetest,nessunFato o missionemodificati. Code/DBpreparazioneprivata,reviewprima installazioneStaff;nessunPASSeditoriale. PrenotazioniPMDBEdgeGitacquisite. RisultatiNarratore80ealtrechatconservatiintegralmente di seguito.
+
 C1266-NARRATORE80-RESUME30-20261101 · PREVIEW COMPLETATA E CHIUSA · NARRATIVA NON SUPERATA
 
 Scope:stessa80privata,unico narratore,stessoreportstorico. Istruzioni79/transport4/projection2/memoria7080 congelati e verificati nella richiesta reale. Nessun Fato modificato,replaymissione,reinvioazioni o rigenerazioneeditoriale. Chiusureautorizzatealtrachatconservate.
