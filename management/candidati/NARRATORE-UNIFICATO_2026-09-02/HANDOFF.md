@@ -14,7 +14,7 @@ Finanza/conservazione:0HTTP/0token/0USD nuovi,238HTTP/2,22508210su4 invariati,ri
 
 Rischi/prossimo passoPM: resa dei nuovi testi NOT_RUN senza una prova successiva autorizzata;nessuna prova avviata da questa consegna. Non qualificare fullflow,Directorremoval o memoria longitudinale;nessuna apertura pubblica nuova.
 
-Consegna:referti/C1266_NARRATORE79_REPORT.md,candidato/exam_human_master/C1266_NARRATORE79_{WRITER_RULES,RESULTS,POSTFLIGHT,RELEASE_CHAIN}. P=/private/tmp/tus-c1266-narratore79-20261101 conserva capture,freeze,revieworiginali eproof;SQL/Root/snapshot/testi privati esclusi daGit. Deposito selettivo sorgenti/report79 da completare.
+Consegna:referti/C1266_NARRATORE79_REPORT.md,candidato/exam_human_master/C1266_NARRATORE79_{WRITER_RULES,RESULTS,POSTFLIGHT,RELEASE_CHAIN}. P=/private/tmp/tus-c1266-narratore79-20261101 conserva capture,freeze,revieworiginali eproof;SQL/Root/snapshot/testi privati esclusi daGit. Deposito selettivo sorgenti/report79 848f09fa7b096465b82573882886ccbc10339f79:26file/26blob riletti integralmente byteexact,0rimozioni/0estranei,CAS e testa remota verificati. UI d5e296 invariata.
 
 ## Consegne precedenti conservate integralmente
 
