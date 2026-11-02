@@ -12893,7 +12893,7 @@ var nb028iTeardown=function(){};
                                                           p_companion:(prm.p_companion||null),
                                                           p_companion_body:(prm.p_companion_body||null)})
                                 : academySubmitCandidate
-                                  ? missionGenericUI().then(function(ui){return ui.submitRole({characterId:myCharId,body:pbody,hasCompanion:!!pTxt,hasTechnique:!!SUG_SCELTA});})
+                                  ? missionGenericUI().then(function(ui){return ui.submitRole({characterId:myCharId,body:pbody,hasCompanion:!!prm.p_companion,hasTechnique:!!prm.p_technique,techniqueId:prm.p_technique||null});})
                                     .then(function(result){if(!result.handled)return sb.rpc('post_message',prm);missionRoleReceipt=result.receipt;missionNarrativeReceipt=result.narrative===true;return {data:result.receipt,error:null};})
                                   : sb.rpc('post_message', prm));
         req.then(function(r){
@@ -15148,7 +15148,7 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       }
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=public87-a5aa534b84c285af').then(function(mod){
+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=innata-command-e7f32894f96f304a').then(function(mod){
           MISSION_GENERIC_UI=mod.createMissionUI({client:sb,isEventReadMode:landPureReadMode,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             createRecoveryFeedback:function(){var revision=toastRevision;return function(message){if(revision!==toastRevision)return;toast(message);revision=toastRevision;};},
