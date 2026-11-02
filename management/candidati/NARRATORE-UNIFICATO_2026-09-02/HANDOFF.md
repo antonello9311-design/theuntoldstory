@@ -10,7 +10,7 @@ Spesa:6HTTP/.04349390USD nuovi, cumulativi258HTTP/2.39919660USDsu4; riserveunkno
 
 Rischi/OPEN: attaccoRiuji dalpannello, FatoCombat, ritorno e conclusione ordinaria NOT_RUN. Land non aperta: caso completo fallito; equivalenza consumer pubblici Scene5 giàNOT_READY, nessun legacy sostitutivo. Prossimo intervento da autorizzare e preparare: audit privato sanitizzato delle eccezioni del commit corrente, diagnosi causale e correzione mirata; niente modifica ai Fati o nuovi controlli editoriali. Nessuna nuova prova avviata.
 
-Prove: C1266_FULL85_REPORT/RESULTS/POSTFLIGHT/REVIEW; originali privati /private/tmp/tus-c1266-full85-20261102, inclusi DIAGNOSIS.md e QA_ARCHIVED.png. Consegna documentale in verifica per deposito selettivo; risorse assistente da rilasciare dopo check. Stato task non equivale a qualifica prodotto.
+Prove: C1266_FULL85_REPORT/RESULTS/POSTFLIGHT/REVIEW; originali privati /private/tmp/tus-c1266-full85-20261102, inclusi DIAGNOSIS.md e QA_ARCHIVED.png. Deposito documentale d8c541578259da6111dbd312b9eb3861cc8d5898:12/12blob integralmente riletti esatti, CAS/testa verificati e soli percorsi autorizzati; nessun asset sito. Nuovo mandato successivo autorizza audit/diagnosi/correzione e nuovo full<=4USD: prosegue nello stesso cantiere conservando tutti i conteggi, dopo chiusura registrazione85 e checkpoint86. Risorse assistente da passare al nuovo scope dopo check. Stato task non equivale a qualifica prodotto.
 
 Consegne precedenti conservate di seguito.
 
