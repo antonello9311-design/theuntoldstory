@@ -1,4 +1,4 @@
-export const VERSION='mission-creation-ui/1.0';
+export const VERSION='mission-creation-ui/1.1-ai-authoring';
 const copy=value=>structuredClone(value);
 const uuid=()=>crypto.randomUUID();
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -34,28 +34,29 @@ function applyEditorial(model,data){
  model.mission={...model.mission,...copy(data.mission||{})};model.editorial={plot_private:data.editorial?.plot_private||'',setting:{...setting(),...copy(data.editorial?.setting||{})}};
  for(const s of model.scenes){const e=data.editorial?.scenes?.find(x=>x.step_key===s.step_key);s.editorial=e?{...phaseEditorial(s.step_key),...copy(e),setting:{...setting(),...copy(e.setting||{})}}:phaseEditorial(s.step_key);s.arena=copy(data.arenas?.find(x=>x.step_key===s.step_key)||null);}
 }
-function value(model,catalog){
+function value(model,catalog,{validate=true}={}){
+ const fail=message=>{if(validate)throw Error(message);};
  const m=model.mission,scenes=model.scenes;
- if(!m.title.trim()||!m.briefing.trim())throw Error('Completa titolo e briefing pubblico.');
- if(!model.editorial.setting.description.trim())throw Error('Descrivi l’ambientazione narrativa della missione, separata dalla chat di ritrovo.');
- if(!catalog.locations.some(l=>l.id===m.gathering_location_id))throw Error('Scegli la chat di ritrovo dall’elenco.');
- if(!catalog.modes.includes(m.direction_mode))throw Error('Scegli il tipo di regia disponibile.');
- if(!Number.isInteger(m.team_min)||!Number.isInteger(m.team_max)||m.team_min<catalog.team_min||m.team_max>catalog.team_max||m.team_min>m.team_max)throw Error('Controlla il numero minimo e massimo dei PG.');
- if(model.actors.some(a=>(!a.mechanical_binding_id&&!a.narrative_version_id)||!a.team?.trim()))throw Error('Completa i profili del Ninja Book e gli schieramenti iniziali dei PNG.');
- if(!scenes.length||!scenes.some(s=>s.step_key===model.initial)||!scenes.some(s=>s.terminal))throw Error('Indica una fase iniziale e almeno una conclusione.');
+ if(!m.title.trim()||!m.briefing.trim())fail('Completa titolo e briefing pubblico.');
+ if(!model.editorial.setting.description.trim())fail('Descrivi l’ambientazione narrativa della missione, separata dalla chat di ritrovo.');
+ if(!catalog.locations.some(l=>l.id===m.gathering_location_id))fail('Scegli la chat di ritrovo dall’elenco.');
+ if(!catalog.modes.includes(m.direction_mode))fail('Scegli il tipo di regia disponibile.');
+ if(!Number.isInteger(m.team_min)||!Number.isInteger(m.team_max)||m.team_min<catalog.team_min||m.team_max>catalog.team_max||m.team_min>m.team_max)fail('Controlla il numero minimo e massimo dei PG.');
+ if(model.actors.some(a=>(!a.mechanical_binding_id&&!a.narrative_version_id)||!a.team?.trim()))fail('Completa i profili del Ninja Book e gli schieramenti iniziali dei PNG.');
+ if(!scenes.length||!scenes.some(s=>s.step_key===model.initial)||!scenes.some(s=>s.terminal))fail('Indica una fase iniziale e almeno una conclusione.');
  const transitions=[],definition={schema_version:'mission-generic-definition/1',scenes:[]},editorial={...copy(model.editorial),scenes:[]},arenas=[];
  for(const s of scenes){
-  if(!s.public_objective.trim()||s.actors.some(k=>!s.actor_specs[k]?.team?.trim()))throw Error('Completa gli obiettivi e gli schieramenti di ogni fase.');
+  if(!s.public_objective.trim()||s.actors.some(k=>!s.actor_specs[k]?.team?.trim()))fail('Completa gli obiettivi e gli schieramenti di ogni fase.');
   const assigned=s.actors.map(k=>copy(s.actor_specs[k])),key=s.encounter_key||'enc_'+s.step_key;
   const fighters=assigned.filter(a=>s.fighters.includes(a.actor_key));
   if(s.kind==='mechanical'){
-   if(!s.pg_team?.trim()||fighters.length<1||fighters.length>12||fighters.some(a=>!a.mechanical_binding_id)||!fighters.some(a=>a.team!==s.pg_team))throw Error('Ogni scontro richiede da 1 a 12 PNG combattenti e almeno un avversario dei PG.');
-   if(!s.arena?.template_key||!Number.isInteger(s.arena.template_version)||!s.arena.zone_key)throw Error('Scegli la mappa e la zona di ogni fase di scontro.');
-   arenas.push({step_key:s.step_key,template_key:s.arena.template_key,template_version:s.arena.template_version,zone_key:s.arena.zone_key});
+   if(!s.pg_team?.trim()||fighters.length<1||fighters.length>12||fighters.some(a=>!a.mechanical_binding_id)||!fighters.some(a=>a.team!==s.pg_team))fail('Ogni scontro richiede da 1 a 12 PNG combattenti e almeno un avversario dei PG.');
+   if(!s.arena?.template_key||!Number.isInteger(s.arena.template_version)||!s.arena.zone_key)fail('Scegli la mappa e la zona di ogni fase di scontro.');
+   if(s.arena)arenas.push({step_key:s.step_key,template_key:s.arena.template_key,template_version:s.arena.template_version,zone_key:s.arena.zone_key});
   }
-  const activeTriggers=s.terminal?[]:s.triggers;if(!s.terminal&&!activeTriggers.length)throw Error('Aggiungi un passaggio alle fasi che non concludono la missione.');
-  if(s.kind==='mechanical'){const outcomes=activeTriggers.map(t=>t.combat_outcome||'any');const complete=outcomes.length===1&&outcomes[0]==='any'||outcomes.length===3&&['pg_win','pg_loss','draw'].every(k=>outcomes.includes(k));if(!complete)throw Error('Dopo ogni scontro prevedi un solo passaggio per qualsiasi esito oppure tutti e tre i passaggi: vittoria dei PG, sconfitta dei PG e pareggio. Completa anche le loro destinazioni.');}
-  const triggers=activeTriggers.map(t=>{if(!t.to||!scenes.some(x=>x.step_key===t.to)||!t.label?.trim())throw Error('Completa la destinazione e il testo di ogni passaggio.');const tk=t.transition_key||s.step_key+'_'+t.trigger_key;
+  const activeTriggers=s.terminal?[]:s.triggers;if(!s.terminal&&!activeTriggers.length)fail('Aggiungi un passaggio alle fasi che non concludono la missione.');
+  if(s.kind==='mechanical'){const outcomes=activeTriggers.map(t=>t.combat_outcome||'any');const complete=outcomes.length===1&&outcomes[0]==='any'||outcomes.length===3&&['pg_win','pg_loss','draw'].every(k=>outcomes.includes(k));if(!complete)fail('Dopo ogni scontro prevedi un solo passaggio per qualsiasi esito oppure tutti e tre i passaggi: vittoria dei PG, sconfitta dei PG e pareggio. Completa anche le loro destinazioni.');}
+  const triggers=activeTriggers.map(t=>{if(!t.to||!scenes.some(x=>x.step_key===t.to)||!t.label?.trim())fail('Completa la destinazione e il testo di ogni passaggio.');const tk=t.transition_key||s.step_key+'_'+t.trigger_key;
    transitions.push({transition_key:tk,from_step_key:s.step_key,to_step_key:t.to,event_kind:t.transition?.event_kind||tk,priority:t.transition?.priority??0});
    const x={trigger_key:t.trigger_key,transition_key:tk,source_kind:s.kind==='mechanical'?'combat_terminal':'player_choice',fact_code:t.fact_code||(s.kind==='mechanical'?'combat_terminal_confirmed':'player_choice_confirmed'),label:t.label};
    if(s.kind==='mechanical'){x.encounter_key=key;if(t.combat_outcome!==undefined)x.combat_outcome=t.combat_outcome;}return x;
@@ -65,9 +66,9 @@ function value(model,catalog){
   const e=copy(s.editorial);e.step_key=s.step_key;e.actors=(e.actors||[]).filter(a=>s.actors.includes(a.actor_key));e.consequences=activeTriggers.map(t=>({transition_key:t.transition_key||s.step_key+'_'+t.trigger_key,public_fact:t.editorial?.public_fact??e.consequences?.find(c=>c.transition_key===(t.transition_key||s.step_key+'_'+t.trigger_key))?.public_fact??'',private_note:t.editorial?.private_note??e.consequences?.find(c=>c.transition_key===(t.transition_key||s.step_key+'_'+t.trigger_key))?.private_note??''}));editorial.scenes.push(e);
  }
  const reachable=new Set([model.initial]);let grew=true;while(grew){grew=false;for(const t of transitions)if(reachable.has(t.from_step_key)&&!reachable.has(t.to_step_key)){reachable.add(t.to_step_key);grew=true;}}
- if(scenes.some(s=>!reachable.has(s.step_key)))throw Error('Collega tutte le fasi a partire dalla fase iniziale.');
+ if(scenes.some(s=>!reachable.has(s.step_key)))fail('Collega tutte le fasi a partire dalla fase iniziale.');
  const exits=new Set(scenes.filter(s=>s.terminal).map(s=>s.step_key));grew=true;while(grew){grew=false;for(const t of transitions)if(exits.has(t.to_step_key)&&!exits.has(t.from_step_key)){exits.add(t.from_step_key);grew=true;}}
- if(scenes.some(s=>!exits.has(s.step_key)))throw Error('Ogni fase deve poter raggiungere una conclusione.');
+ if(scenes.some(s=>!exits.has(s.step_key)))fail('Ogni fase deve poter raggiungere una conclusione.');
  return {schema_version:'mission-creation-document/1',mission:{title:m.title.trim(),grado:m.grado,briefing:m.briefing.trim(),village:m.village||'',tag_trama:m.tag_trama||'',team_min:m.team_min,team_max:m.team_max,direction_mode:m.direction_mode,gathering_location_id:m.gathering_location_id},plan:{schema_version:'mission-generic-plan-document/1',base_plan_version_id:model.base,initial_step_key:model.initial,steps:scenes.map(s=>({step_key:s.step_key,kind:s.kind,public_objective:s.public_objective})),transitions,definition,terminal_steps:scenes.filter(s=>s.terminal).map(s=>({step_key:s.step_key,outcome:s.terminal}))},editorial,arenas};
 }
 
@@ -85,7 +86,7 @@ export function createMissionCreationUI({client,identity,isStaff,mapPicker,curre
  }
  const record=model=>({model,catalog:null,profiles:null,request:null,payload:null,mutation:null,busy:false,uncertain:false,saved:null,message:'',expanded:new Set(['inizio'])});
  function active(view){return views.get(view.host)===view&&view.host.isConnected&&valid(view.user,view.epoch)&&isStaff();}
- function lock(view){if(view.revisionPicker)view.revisionPicker.disabled=!!view.record.payload;view.form.disabled=!!view.record.payload;view.save.disabled=view.record.busy||!!view.record.saved||!!view.record.stale;view.save.textContent=view.record.uncertain?'Verifica lo stesso salvataggio':view.mission?'Salva e usa nuova revisione':'Pubblica missione';}
+ function lock(view){if(view.external){view.form.disabled=!!view.externalBusy;return;}if(view.revisionPicker)view.revisionPicker.disabled=!!view.record.payload;view.form.disabled=!!view.record.payload;view.save.disabled=view.record.busy||!!view.record.saved||!!view.record.stale;view.save.textContent=view.record.uncertain?'Verifica lo stesso salvataggio':view.mission?'Salva e usa nuova revisione':'Pubblica missione';}
  function updateRecord(rec){for(const view of views.values())if(view.record===rec&&active(view)){view.status.textContent=rec.message;lock(view);}}
  function freshKey(model,prefix){let key;do{key=prefix+'_'+model.counter++;}while(model.actors.some(a=>a.actor_key===key)||model.scenes.some(s=>s.step_key===key||s.triggers.some(t=>t.trigger_key===key)));return key;}
  function rememberOpen(view){view.host.querySelectorAll('details[data-phase]').forEach(d=>{if(d.open)view.record.expanded.add(d.dataset.phase);else view.record.expanded.delete(d.dataset.phase);});}
@@ -114,7 +115,7 @@ export function createMissionCreationUI({client,identity,isStaff,mapPicker,curre
      let ed=s.editorial.actors.find(x=>x.actor_key===a.actor_key);if(!ed){ed={actor_key:a.actor_key,role_in_phase:'',goal_private:'',known_facts_private:'',public_portrayal:''};s.editorial.actors.push(ed);}const notes=node('details',null);notes.append(node('summary','Ruolo e conoscenze di questa unità'),field('Ruolo nella fase',text(ed.role_in_phase,v=>ed.role_in_phase=v)),field('Intenzione e obiettivo · riservati',text(ed.goal_private,v=>ed.goal_private=v)),field('Fatti conosciuti dal PNG · riservati',text(ed.known_facts_private,v=>ed.known_facts_private=v)),field('Descrizione e comportamento visibili ai PG',text(ed.public_portrayal,v=>ed.public_portrayal=v)));line.append(notes);
     }roster.append(line);
    }body.append(roster);
-   if(s.kind==='mechanical'){const arena=card('Scontro e mappa');arena.append(field('Schieramento dei PG',input(s.pg_team,v=>s.pg_team=v)),node('p','Partecipano tutti i PG attivi. Seleziona sopra da 1 a 12 PNG combattenti, con almeno un avversario.',{class:'mc-help'}));const note=node('p',s.arena?.label||s.arena?.template_key&&('Mappa scelta · zona '+s.arena.zone_key)||'Mappa non ancora scelta.',{class:'mc-help',role:'status'}),pick=button(s.arena?'Cambia mappa e zona':'Scegli mappa e zona',async()=>{if(rec.payload||!active(view))return;pick.disabled=true;try{if(typeof mapPicker!=='function')throw Error('Selettore mappe non disponibile.');const selected=await mapPicker(copy(s.arena),phaseName(s,m.scenes.indexOf(s)));if(!active(view)||rec.payload)return;if(selected){s.arena={step_key:s.step_key,...selected};note.textContent=selected.label||'Mappa scelta · zona '+selected.zone_key;pick.textContent='Cambia mappa e zona';}}catch(e){if(active(view))note.textContent=e.message;}finally{if(active(view)&&!rec.payload)pick.disabled=false;}});arena.append(note,pick);body.append(arena);}
+   if(s.kind==='mechanical'){const arena=card('Scontro e mappa');arena.append(field('Schieramento dei PG',input(s.pg_team,v=>s.pg_team=v)),node('p','Partecipano tutti i PG attivi. Seleziona sopra da 1 a 12 PNG combattenti, con almeno un avversario.',{class:'mc-help'}));const note=node('p',s.arena?.label||s.arena?.template_key&&('Mappa scelta · zona '+s.arena.zone_key)||'Mappa non ancora scelta.',{class:'mc-help',role:'status'}),pick=button(s.arena?'Cambia mappa e zona':'Scegli mappa e zona',async()=>{if(rec.payload||!active(view))return;pick.disabled=true;try{if(typeof mapPicker!=='function')throw Error('Selettore mappe non disponibile.');const selected=await mapPicker(copy(s.arena),phaseName(s,m.scenes.indexOf(s)),{pg_count:m.mission.team_max,png_count:s.fighters.length});if(!active(view)||rec.payload)return;if(selected){s.arena={step_key:s.step_key,...selected};note.textContent=selected.label||'Mappa scelta · zona '+selected.zone_key;pick.textContent='Cambia mappa e zona';}}catch(e){if(active(view))note.textContent=e.message;}finally{if(active(view)&&!rec.payload)pick.disabled=false;}});arena.append(note,pick);body.append(arena);}
    if(!s.terminal){const flows=card('Passaggi e conseguenze');
     for(const t of s.triggers){const line=node('section',null,{class:'mc-card'});const choices=s.kind==='mechanical'?[{value:'any',label:'Scontro terminato · qualsiasi esito'},{value:'pg_win',label:'Vittoria dei PG'},{value:'pg_loss',label:'Sconfitta dei PG'},{value:'draw',label:'Nessuna squadra vincitrice'}]:[{value:'player_choice',label:'Scelta del giocatore / passaggio del Master'}];
      line.append(row(field('Quando si attiva',select(choices,s.kind==='mechanical'?(t.combat_outcome||'any'):'player_choice',v=>{if(s.kind==='mechanical')t.combat_outcome=v;})),field('Etichetta del passaggio',input(t.label,v=>t.label=v))),field('Fase di destinazione',select([{value:'',label:'Scegli una fase'},...m.scenes.map(x=>({value:x.step_key,label:phaseName(x,m.scenes.indexOf(x))+(x===s?' · questa fase':'')}))],t.to,v=>t.to=v)));
@@ -241,5 +242,29 @@ export function createMissionCreationUI({client,identity,isStaff,mapPicker,curre
   try{const characters=await presentCharacters();if(!same())return;for(const c of characters){if(!UUID.test(c.id||''))continue;roster.append(check(c.name,run.picks.has(c.id),on=>{if(run.request)return;if(on)run.picks.add(c.id);else run.picks.delete(c.id);start.disabled=run.picks.size<1||run.picks.size>4;}));}if(!characters.length)roster.append(node('p','Nessun PG presente nella stanza.'));roster.disabled=!!run.request;start.disabled=run.busy||!!run.result||(!run.request&&(run.picks.size<1||run.picks.size>4));if(run.result){status.textContent='Questa prova è già stata aperta. Puoi riprenderla dalla Regia Master.';area.append(button('Apri Regia Master',()=>{if(same()){d.close();openNativeMaster(mission);}}));}}
   catch(e){if(same())status.textContent='Elenco dei presenti non disponibile. '+e.message;}return true;
  }
- return {mountCreate,editor,mountHuman,routeBoard,dispose:()=>clear(),version:VERSION};
+
+ // Native form shared by the versioned AI authoring adapter; this method never publishes.
+ async function mountDocumentForm(host,{document:initial=null,mission:initialMission=null}={}){
+  syncIdentity();if(!host?.isConnected||!isStaff()||!identity())throw Error('Accesso Staff richiesto.');styles();
+  const user=identity(),stamp=epoch,view={host,user,epoch:stamp,mission:null,record:null,form:null,save:null,status:null,external:true,externalBusy:false};
+  views.set(host,view);host.replaceChildren();host.classList.add('mc-editor');view.status=node('p','Caricamento delle opzioni...',{class:'mc-status',role:'status'});host.append(view.status);
+  const [catalog,profiles]=await Promise.all([rpc('mission_creation_catalog_v1',{},user,stamp),rpc('mission_generic_editor_v1',{p_plan_version:null},user,stamp)]);
+  if(!active(view))throw Error('Contesto editor cambiato.');
+  if(catalog?.schema_version!=='mission-creation-catalog/1'||!Array.isArray(catalog.locations)||!Array.isArray(catalog.modes)||!catalog.modes.includes('ai')||!Number.isInteger(catalog.team_min)||!Number.isInteger(catalog.team_max)||profiles?.schema_version!=='mission-generic-editor/1'||!Array.isArray(profiles.mechanical_profiles)||!Array.isArray(profiles.narrative_profiles))throw Error('Opzioni della missione non disponibili.');
+  const model=blank();if(initialMission&&initial===null)model.mission={...model.mission,...copy(initialMission),direction_mode:'ai'};
+  if(initial!==null){
+   if(initial?.schema_version!=='mission-creation-document/1'||!initial.mission||!initial.plan||!Array.isArray(initial.plan.steps)||!Array.isArray(initial.plan.definition?.scenes)||!Array.isArray(initial.plan.transitions)||!Array.isArray(initial.plan.terminal_steps)||!initial.editorial||!Array.isArray(initial.arenas))throw Error('Bozza narrativa non leggibile.');
+   const doc=copy(initial),defs=doc.plan.definition.scenes,actors=new Map();
+   for(const phase of defs)for(const actor of phase.actors||[])if(!actors.has(actor.actor_key))actors.set(actor.actor_key,copy(actor));
+   model.actors=[...actors.values()];model.mission={...model.mission,...doc.mission,direction_mode:'ai'};model.initial=doc.plan.initial_step_key;model.base=doc.plan.base_plan_version_id??null;
+   model.scenes=doc.plan.steps.map(step=>{const cfg=defs.find(x=>x.step_key===step.step_key)||{actors:[],encounters:[],triggers:[]},phase=newPhase(step.step_key),encounter=cfg.encounters?.[0]||null;
+    Object.assign(phase,{kind:step.kind,public_objective:step.public_objective||'',actors:(cfg.actors||[]).map(a=>a.actor_key),actor_specs:Object.fromEntries((cfg.actors||[]).map(a=>[a.actor_key,copy(a)])),fighters:(encounter?.actors||[]).map(a=>a.actor_key),encounter:copy(encounter),encounter_key:encounter?.encounter_key||'enc_'+step.step_key,pg_team:encounter?.pg_team||'squadra',terminal:doc.plan.terminal_steps.find(t=>t.step_key===step.step_key)?.outcome||'',triggers:(cfg.triggers||[]).map(t=>{const tr=doc.plan.transitions.find(x=>x.transition_key===t.transition_key);return {...copy(t),transition:copy(tr||{}),to:tr?.to_step_key||''};})});return phase;});
+   applyEditorial(model,doc);
+  }
+  model.mission.direction_mode='ai';const rec=record(model);rec.catalog={...catalog,modes:['ai']};rec.profiles=profiles;view.record=rec;view.form=node('fieldset',null);view.save=button('Salva bozza',()=>{});view.save.hidden=true;
+  host.append(view.form);render(view);view.status.textContent='Compila la missione. Salvataggio, anteprima e pubblicazione sono comandi separati.';
+  return {getDocument({validate=false}={}){if(!active(view))throw Error('Accesso editor cambiato.');return value(rec.model,rec.catalog,{validate});},setBusy(busy){if(active(view)){view.externalBusy=busy===true;lock(view);}},dispose(){if(views.get(host)===view){views.delete(host);host.replaceChildren();}},version:VERSION};
+ }
+
+ return {mountCreate,mountDocumentForm,editor,mountHuman,routeBoard,dispose:()=>clear(),version:VERSION};
 }

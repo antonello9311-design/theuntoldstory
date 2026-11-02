@@ -800,6 +800,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
             <button type="button" data-go="ia">IA</button>
             <button type="button" data-go="ninja-editoriale">Ninja Book narrativo</button>
             <button type="button" data-go="mission-editor" id="mission-editor-nav" hidden>Editor missioni</button>
+            <button type="button" data-go="mission-ai-editor" id="mission-ai-editor-nav" hidden>Missioni IA</button>
             <button type="button" data-go="mission-rapid" id="mission-rapid-nav" hidden>Nuova missione rapida</button>
             <button type="button" data-go="media-scorta" id="scorta-media-nav" hidden>Media Scorta</button>
             <button type="button" data-go="media-academy" id="academy-media-nav" hidden>Media Accademia</button>
@@ -1142,6 +1143,10 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
           <section class="adm-page" data-page="mission-editor" id="mission-editor-page" hidden aria-labelledby="mission-editor-title">
             <div class="grp-title" id="mission-editor-title" style="margin-top:0">Editor missioni</div>
             <div id="mission-editor-host"></div>
+          </section>
+          <section class="adm-page" data-page="mission-ai-editor" id="mission-ai-editor-page" hidden aria-labelledby="mission-ai-editor-title">
+            <div class="grp-title" id="mission-ai-editor-title" style="margin-top:0">Missioni con Regia IA</div>
+            <div id="mission-ai-editor-host"></div>
           </section>
           <section class="adm-page" data-page="mission-rapid" id="mission-rapid-page" hidden aria-labelledby="mission-rapid-title">
             <div class="grp-title" id="mission-rapid-title" style="margin-top:0">Nuova missione · trama e immagini</div>
@@ -4673,6 +4678,32 @@ return {mount:mountStaffExamDecisions};})();
       window.__scortaMediaAdminTest={assets:SCORTA_MEDIA,release:SCORTA_MEDIA_RELEASE,good:scortaMediaGoodRegistration,sha:scortaMediaSha,run:scortaMediaRun};
     }
     /* SCORTA-MEDIA-ADMIN JS FINE */
+
+    // Versioned AI authoring: read only when the author opens this section.
+    var missionAIEditorController=null,missionAIEditorPrincipal=null,missionAIEditorLoading=null;
+    function bindMissionAIEntry(){
+      var nav=$('mission-ai-editor-nav'),page=$('mission-ai-editor-page');if(!nav||!page)return;
+      var allowed=!!me&&(nbeRole==='admin'||nbeRole==='master');nav.hidden=!allowed;page.hidden=!allowed;
+      if(!allowed){if(missionAIEditorController)missionAIEditorController.dispose();missionAIEditorController=null;missionAIEditorPrincipal=null;return;}
+      if(nav.getAttribute('data-ai-bound')==='1')return;nav.setAttribute('data-ai-bound','1');
+      nav.addEventListener('click',function(){void openMissionAIEditor();});
+    }
+    async function openMissionAIEditor(){
+      var host=$('mission-ai-editor-host'),actor=me&&me.id;if(!host||!actor||!['admin','master'].includes(nbeRole)||missionAIEditorLoading)return;
+      var operation=(async function(){
+        try{
+          if(!missionAIEditorController||missionAIEditorPrincipal!==actor){
+            if(missionAIEditorController)missionAIEditorController.dispose();
+            var modules=await Promise.all([import('./mission-ai-editor-ui.mjs?v=ai-authoring-9128593d0fcd378e'),import('./MAPPE_UI_PICKER.asset.v3.mjs?v=20260920-preview-fallback-1')]);
+            if(!me||me.id!==actor||!['admin','master'].includes(nbeRole))return;
+            var picker=modules[1].createMissionMapPicker({client:sb,identity:function(){return me&&me.id;},isStaff:function(){return !!me&&me.id===actor&&['admin','master'].includes(nbeRole);}});
+            missionAIEditorController=modules[0].createMissionAIEditor({client:sb,identity:function(){return me&&me.id;},isStaff:function(){return !!me&&me.id===actor&&['admin','master'].includes(nbeRole);},mapPicker:function(current,title,roster){return picker.pick(current,title,roster);},notice:toast});missionAIEditorPrincipal=actor;
+          }
+          await missionAIEditorController.mount(host);
+        }catch(error){if(me&&me.id===actor)host.textContent='Editor IA non disponibile. Riapri questa sezione per verificare la disponibilita.';}
+      })();missionAIEditorLoading=operation;try{await operation;}finally{if(missionAIEditorLoading===operation)missionAIEditorLoading=null;}
+    }
+
     async function init(){
       if(!sb){show('st-guest');return;}
       var s=await sb.auth.getSession();me=s.data.session?s.data.session.user:null;
@@ -4683,14 +4714,14 @@ return {mount:mountStaffExamDecisions};})();
       nbeRole=role;
       if(role==='master'){
         document.querySelectorAll('#adm-nav button[data-go]').forEach(function(b){b.hidden=true;});
-        await bindMissionFactory();show('st-mgr');
+        await bindMissionFactory();bindMissionAIEntry();show('st-mgr');
         var masterPage=$('mission-editor-page'),masterHost=$('mission-editor-host');
         if(masterPage)masterPage.hidden=false;
         if($('mission-editor-nav')?.hidden&&masterHost)masterHost.textContent='Editor missioni non ancora disponibile per questa versione. Nessun ingresso Admin aggiuntivo è abilitato.';
         admGo('mission-editor');return;
       }
       bindScortaMedia();
-      try{var academyMedia=await import('./ACADEMY_MEDIA_ADMIN.mjs?v=20260923-3');academyMedia.bindAcademyMediaPanel({client:sb,role:role,principalId:me.id});}catch(e){console.warn('[academy-media] modulo non disponibile',e);}await bindMissionRapid();await bindMissionFactory();
+      try{var academyMedia=await import('./ACADEMY_MEDIA_ADMIN.mjs?v=20260923-3');academyMedia.bindAcademyMediaPanel({client:sb,role:role,principalId:me.id});}catch(e){console.warn('[academy-media] modulo non disponibile',e);}await bindMissionRapid();await bindMissionFactory();bindMissionAIEntry();
       if(window.__TRAINING138A_MOCK__){show('st-mgr');admGo('allenamenti');bindTrainings();await loadTrainings();return;}
       if(window.__NB027B_MOCK__){show('st-mgr');admGo('ninja-editoriale');nbeWire();return;}
       show('st-mgr');
