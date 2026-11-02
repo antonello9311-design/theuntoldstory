@@ -1,3 +1,19 @@
+C1266-FULL85-20261102 · FAILED_FULL · PROVA ANNULLATA E ARCHIVIATA · LAND NON APERTA
+
+Scope toccato: un solo collaudo protetto Discussioni in Centro con Riuji e Tamako e consegna documentale. Nessuna modifica applicativa, DB/Edge/UI/configurazione, nessuna correzione in corsa. Contratti usati: versione34 Rootaa3b/full648462, Edge148/EZBR5efe/UIaa6cd, pianoV9 4da7191e; pannello normale Combat, barriera role, abort normale. Versione confermata viva prima e dopo;246header senza drift.
+
+Decisioni/esiti: avvio e3Fati narrativi pubblicati; quattro role narrative una volta. Iniziativa PG inequivoca porta alla fase3 con arena operativa. Riuji prepara tecniche nella simulazione, si muove2m e invia Passa con role: acquisita una volta, non attacco. Tamako sceglie Nessun movimento/Passa e invia la role: commitRPC risponde operation_rejected; nessuna sua dichiarazione o ricevuta salvata. Nessun secondo invio, replay o patch. SQLSTATE originale UNKNOWN perché catch generico e audit dettagliato vincolato a una scena storica diversa; non attribuire causa a staleness o Writer.
+
+Chiusura: normale Annulla prova sul soloMasterd4fe44b6-7d08-4af1-8571-ea33900ae3f0/carrierdc0b5c2a-67b7-48be-bfa2-0d19210bf3fe alle08:44:17UTC. Masterannullata/runannullata/Combatannullato, receipt887f67bd…committed/resourcesprotected.3Fati e dichiarazione Riuji identici, nessun provider pendente. Archivio normale visibile. Cache scena conserva combat/turncombat e round storico raccolta_azioni: nessun PASS di riconciliazione completa della cache o ritorno narrativo.
+
+Spesa:6HTTP/.04349390USD nuovi, cumulativi258HTTP/2.39919660USDsu4; riserveunknownpreservate, residuo1.60080340. Oldcorpus/PG/vecchieversioniSHA647c9a… eALLcustody84 invariati; V9,Root, missione sorgente, booking e schedaSetsu identici. Nessun premio reale.
+
+Rischi/OPEN: attaccoRiuji dalpannello, FatoCombat, ritorno e conclusione ordinaria NOT_RUN. Land non aperta: caso completo fallito; equivalenza consumer pubblici Scene5 giàNOT_READY, nessun legacy sostitutivo. Prossimo intervento da autorizzare e preparare: audit privato sanitizzato delle eccezioni del commit corrente, diagnosi causale e correzione mirata; niente modifica ai Fati o nuovi controlli editoriali. Nessuna nuova prova avviata.
+
+Prove: C1266_FULL85_REPORT/RESULTS/POSTFLIGHT/REVIEW; originali privati /private/tmp/tus-c1266-full85-20261102, inclusi DIAGNOSIS.md e QA_ARCHIVED.png. Consegna documentale in verifica per deposito selettivo; risorse assistente da rilasciare dopo check. Stato task non equivale a qualifica prodotto.
+
+Consegne precedenti conservate di seguito.
+
 C1266-FULL84-20261101 · MAPPA CORRETTA · QA COMPLETA NON SUPERATA · CHIUSURA TECNICA RECUPERATA
 
 Scope: Discussioni in Centro6d6, correzione arena e collaudo completo entro4USD; apertura solo se passa senza correzioni in corsa. Aggregata33 installata migrazione20261101223944, nuovaV9 4da7191e/def11bd5367, planSHA285d6315/sourceSHAc7b73143; catalogo nativo82fe valido.16INSERT/3UPDATE,0code/schema/ACL/Edge/UI/gate. Source/material review0/0/0 e postflight255/10/13/1360,preservazioneexact. Root3d736201/full6d65694d, Edge148/UIaa6cd. OldV8/documenti/fasi/schede/Fati preservati.
