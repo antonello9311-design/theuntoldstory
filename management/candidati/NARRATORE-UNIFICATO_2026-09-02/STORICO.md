@@ -1,3 +1,10 @@
+02/11/2026 · Public87 metadata43 · Su ordine utente stop nuovaQA; due corpi metadata installati Rootf7 e AI-onlyv1 predisposta,0provider/Fati,storico86BFAILED_NONCLEAN+SCOPED_RECOVERY_PASS conservato · PUBLICATION_CONFIRMED,WorldruntimeNOT_RUN
+02/11/2026 · Public87 installazione completa · Root9de3/Edge149/main95d14 installati e verificati,0provider,QA conclusiva stessa versione ancora da avviare · STAFF_INSTALLED_WORLD_NOT_OPEN
+02/11/2026 · Public87 materiale42/A · Dopo23514e rollbackesatto,A42installatainerteprepared;54funzioni/schema/custodiaPASS,Edge149/main95d14assetinverifica;0provider/QA · APPLIED_INERT_B_PENDING
+02/11/2026 · Public87 sorgenti41 · Review 0/0/0; fonti54funzioni/Edge/UI congelate, materiali in review separata,0provider/0installazioni · PASSED_SOURCE_ONLY
+02/11/2026 · Public87 correzione 40 · Review39 rossa 0/6/1; DB42 corpi statici pronti, host e configurazione in composizione; 0 provider/installazioni · SOURCE_ONLY
+02/11/2026 · Public87 sorgenti · Contratti congelati e ramiEdge/UI/CFG preparati staticamente;DBfinanza/chiusura in parallelo,0provider/0installazioni · SOURCE_COMPOSITION_IN_PROGRESS
+02/11/2026 · Public87 preparazione · Collegamenti autorizzati;baseline271b9/Edge148/main9ea23493 e gapcapability/AI-only identificati,0provider/0mutazioni · IN_LAVORO_NON_APERTO
 02/11/2026 · Full86 / aggregate35–36 · Causa42702 diagnosticata e rinomina19token installata;86A preservata e86B7Fati/attaccoRiuji/inviiTamako/cessazione/ritorno verificati senza patch; finisherhistory_unreconciled blocca Masterin_corso · FAILED_FULL, ramoACKspecificoNOT_EXERCISED,noabort/LandNO;286HTTP/ledger2,60121540USD/highwater2,61085390su4.
 02/11/2026 · Full85 ·3Fati, fase3 e arena operative; PassaRiuji acquisito, commitTamako rifiutato senza causa originale osservabile; abort normale08:44:17UTC con Fati/storia/PG/bookingSetsu conservati · FAILED_FULL, attacco/ritorno/chiusuraNOT_RUN, LandNO;258HTTP/2,39919660USDsu4.
 01/11/2026 · Full84/aggregata33 · rigenerata arena nativa inV9,16INSERT/3UPDATE, avvio e4Fati narrativi riusciti; ramo pacifico,CombatNOT_RUN,chiusura history_unreconciled · QAFAILED_FULL,LandNO.
