@@ -1,4 +1,4 @@
-C1266-FULL86-20261102 · CAUSA36 INSTALLATA · COLLAUDO FINALE86B IN CORSO
+C1266-FULL86-20261102 · CAUSA36 INSTALLATA · COLLAUDO FINALE86B SOSPESO SUL CONTROLLO CHROME
 
 Audit35 ha catturato il42702 reale nel conflitto result/action_event.result. Causale36 installata migrazione20261102103005 dopo source65090/materialc737 entrambi0/0/0;19rinomine locali,2pinRoot composti, nessun controllo allentato. Root8604/fullrow093796/262085B, corpo69b963/source d8d7, Audit35a91/Edge148/UIaa6cd/V9 invariati. Postflight254header0drift e custodia b1b823 esatta; recovery forward-only, non ripristina il corpo ambiguo.
 
@@ -7,6 +7,8 @@ Diagnostica86A chiusa normalmente10:07UTC con3Fati e storico conservati. Finale8
 Ultimoledger10:48:38UTC270HTTP/2,48421930USDsu4; quota86incldiagnosi12HTTP/.08502270. Tetti48HTTP/1,50USDadditional/termine11:57UTC invariati. Nessunapatchinrun. Attacco/ACKTamako/FatoCombat/ritorno/chiusuraNOT_RUN; Landnonaperta, consumerpubbliciNOT_READY. Setsuesclusoattori/accessi.
 
 Prossimo passo: recuperare ChromeTamako e proseguire stessa86B. Tamako deve prima muoversi lateralmente mediante pannello normale per liberare la lineaRiuji(1,1)→Keita(5,1), essendoTamako(3,1). Nessun movimento è stato ancora impegnato: l’offertaRiuji mostrava solo diagonale↘/↓ e non va confermata se non raggiunge il bersaglio. Tenere ultimo submitCombatTamako per verificare ACK36 dopoattaccoRiuji. Nessuna SQLgameplay/providerretry o patchinrun. Fonte refertoFull86/RESULTS/POSTFLIGHT e depositoP86. Sorgenti pubblicabili solo estratti verificati, installerRoot/rawprivati esclusi.
+
+Postflight pausa11:01:53UTC:3Fati/4role/work/scene/run/round identici a ingressoCombat;0dichiarazioni/0panelcommit/0pending IA. Root/full093796 e254header esatti; custodiab1b823protetta immutata. Nessunabort/restart, prova ancoraaperta in attesa del normale accessoTamako.18Count+18Generation/36HTTP residui entro11:57UTC,4USDtotalenonazzerato. Errorireadonly42703metadata registrati, nessuna modificaapplicativa inrun. Deposito sorgenti/referti sanitizzati a808165702b1646f134af01a2cad258c16fcfaa1,16/16blobfullreadexact/CAS/head verificati,0assets otestiprivati. Riprendere dalle azioni effettivamente accettate, non da vecchi draft; guardia/versione/owner prima nuovi gesti.
 
 Consegne precedenti conservate di seguito.
 
