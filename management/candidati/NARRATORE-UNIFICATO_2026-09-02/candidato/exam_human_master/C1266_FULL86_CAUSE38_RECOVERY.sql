@@ -1,0 +1,2 @@
+-- Fonte verificata Full86; NON installer autonomo. Non eseguire senza composizione Root, guardie e review del materiale integrato.
+DO $cause38_recovery$ BEGIN RAISE EXCEPTION 'CAUSE38_FORWARD_ONLY: preserve the same trial, all Fati, rounds, declarations, receipts, history and costs. Do not mark the empty successor round narrated or force closure. Capture current Root/function/custody and review a forward delta; no provider retry.';END;$cause38_recovery$;

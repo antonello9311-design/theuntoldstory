@@ -1,0 +1,2 @@
+-- Fonte verificata Full86; NON installer autonomo. Non eseguire senza composizione Root, guardie e review del materiale integrato.
+DO $cause37_recovery$ BEGIN RAISE EXCEPTION 'CAUSE37_FORWARD_ONLY: do not restore the known raw-command fingerprint mismatch. Stop only the own trial via normal authenticated Staff UI when authorized; preserve all Fati, declarations, receipts, history and costs. Capture current Root/function/custody and review a forward delta. No SQL forced closure, no data rewrite, no provider retry.';END;$cause37_recovery$;

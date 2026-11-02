@@ -1227,3 +1227,5 @@ C1266 · Stabilità pulsanti Staff 21/10/2026: il refresh ogni9secondi conserva 
 01/11/2026 · Narratore82 aggregata32/correzioni1–2 ·2previewsoloNarratore concluse echiuse,dialogo reciprocoosservato,reader2recuperatosenzarigenerare · qualitàPARZIALE,total2,29691810USDsu4.
 
 2026-11-02 ·37aggregata1preparata · normalizzazione autorevole nel chiuditore, sorgente/materiale0/0/0 e recupero20min/0IA proposto; full86FAILED e Fati conservati · NON_INSTALLATO_NON_RUN
+
+2026-11-02 ·37–38installate/recupero · hash dei comandi canonici e chiusura pacifica con round vuoto allineati; stessa86B chiusa normalmente con6passi/7Fati preservati/0IA aggiuntiva · SCOPED_RECOVERY_PASS, fulloriginarioFAILED_NONCLEAN,LandNO
