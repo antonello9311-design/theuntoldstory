@@ -16,7 +16,7 @@ function style(){if(styled)return;styled=true;const n=el('style',null);n.textCon
 .mg-dialog::backdrop{background:#0009}.mg-dialog button,.mg-dialog input,.mg-dialog select,.mg-dialog textarea{font:inherit;padding:8px;border-radius:6px;border:1px solid #8e8669;max-width:100%;box-sizing:border-box}.mg-dialog button{cursor:pointer}.mg-dialog button:disabled{opacity:.55;cursor:wait}.mg-dialog textarea{width:100%;min-height:80px}.mg-field{display:flex;flex-direction:column;gap:5px;margin:8px 0}.mg-row{display:flex;flex-wrap:wrap;align-items:end;gap:10px}.mg-row>.mg-field{flex:1;min-width:160px}.mg-scene{border:1px solid #b8b09c;border-radius:8px;padding:14px;margin:12px 0;background:#fff9}.mg-status{min-height:1.4em}.mg-dialog h3,.mg-dialog h4{margin:8px 0}.mg-room{padding:10px 14px;border:1px solid #a89a75;border-radius:8px;margin:8px 0}.mg-room [role=status]{margin:4px 0}.mg-room button{margin:4px}.mg-dialog summary{cursor:pointer;font-weight:bold}.mg-inline-check{display:inline-flex;align-items:center;gap:5px;margin:5px 12px 5px 0}
 `;document.head.append(n);}
 
-export function createMissionUI({client,identity,isStaff,currentLocation,presentCharacters=async()=>[],creationEditor=null,creationBoard=null,isEventReadMode=()=>false,notice=()=>{},refresh=()=>{},publicationChanged=()=>{},createRecoveryFeedback=()=>notice,openCombat=()=>{}}){
+export function createMissionUI({client,identity,isStaff,currentLocation,beforeUserCommand=null,presentCharacters=async()=>[],creationEditor=null,creationBoard=null,isEventReadMode=()=>false,notice=()=>{},refresh=()=>{},publicationChanged=()=>{},createRecoveryFeedback=()=>notice,openCombat=()=>{}}){
  let currentDialog=null,roomEpoch=0,roomSignature='',roomState=null,roomReadFlight=null,roomDirtyHint=false;
  const eventRecoveryFeedback=new Map();
  client=guardStaffAbortClient(client,{identity,session:()=>roomState?.session_id,location:()=>currentLocation()?.id});
@@ -257,6 +257,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,present
  }
  async function invokeHostCommand(command){
   assertMissionHost();
+  if(command.operation==='role'){
+   const user=identity(),location=currentLocation()?.id,epoch=roomEpoch,scope=roomScope,session=roomState?.session_id;
+   if(!valid(user)||!UUID.test(location||'')||!UUID.test(session||'')||command.master_session_id!==session||typeof scope!=='string'||typeof beforeUserCommand!=='function')throw Error('Contesto di invio non confermato: nessun comando inviato.');
+   await beforeUserCommand();
+   if(!valid(user)||currentLocation()?.id!==location||roomEpoch!==epoch||roomScope!==scope||roomState?.session_id!==session)throw Error('Contesto cambiato: nessun comando inviato.');
+  }
   const response=await client.functions.invoke('mission_generic_ai',{body:clone(command)});
   if(response.error)return response;
   const v=response.data;

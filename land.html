@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="tus-mission-host-contract" content="mission-narrative-host/1" />
+<meta name="tus-innata-presence-build" content="innata-presence-20261103-1" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="tus-chat-reentry-build" content="C1266-CHAT-REENTRY-001" />
 <meta name="tus-regia-start-build" content="C1266-START-RECOVERY-001" />
@@ -6598,7 +6599,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       };}});}
       var commonPanelUiUnavailable=false;
       function landApplyStaffRole(role){iAmStaff=['master','admin'].includes(role);LAND_PROFILE_KNOWN=true;for(var it of [['test-btn',true],['regia-btn',iAmStaff],['mv2-open-btn',iAmStaff&&fatoMode],['fato-toggle-row',iAmStaff],['admin-nav',iAmStaff],['test-staff-btn',iAmStaff]]){var btn=document.getElementById(it[0]);if(btn)btn.style.display=it[1]?'':'none';}if(!iAmStaff)setFatoMode(false);esameHoldRefresh();syncSendBtn();}
-      function landCommandNeedsPresence(name){return /^(?:combat_v2_(?:action_declare|defense_declare|rating_save|round_resolve|round_narrate_human)|combat_panel_(?:prepare|commit)_v1|regia_round_(?:advance|publish)_v1|master_v2_(?:session_open|encounter_open|scene_close|suspend|resume|admin_override|close)|training_role_(?:dichiara|registra|abbandona)|training_sparring_resa|regia_combat_entry_prepare_v1|mission_native_source_prepare_v1|mission_generic_(?:choose|staff_test_start|board_start)_v1|mission_staff_(?:resume_identical_role|retry_failed_director)_v1)$/.test(name); }
+      function landCommandNeedsPresence(name){return /^(?:post_message|mission_role_submit_v1|combat_v2_(?:action_declare|defense_declare|rating_save|round_resolve|round_narrate_human)|combat_panel_(?:prepare|commit)_v1|regia_round_(?:advance|publish)_v1|master_v2_(?:session_open|encounter_open|scene_close|suspend|resume|admin_override|close)|training_role_(?:dichiara|registra|abbandona)|training_sparring_resa|regia_combat_entry_prepare_v1|mission_native_source_prepare_v1|mission_generic_(?:choose|staff_test_start|board_start)_v1|mission_staff_(?:resume_identical_role|retry_failed_director)_v1)$/.test(name); }
       async function commonPanelUiRpc(name,args){
         if(name!=='combat_panel_options_v1'||commonPanelUiUnavailable)return sb.rpc(name,args);
         var result=await sb.rpc('combat_panel_options_ui_v1',args),error=result&&result.error;
@@ -15148,8 +15149,8 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       }
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=innata-command-e7f32894f96f304a').then(function(mod){
-          MISSION_GENERIC_UI=mod.createMissionUI({client:sb,isEventReadMode:landPureReadMode,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=innata-presence-02d5e50dd127d9c5').then(function(mod){
+          MISSION_GENERIC_UI=mod.createMissionUI({client:sb,isEventReadMode:landPureReadMode,beforeUserCommand:landUserPresence,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             createRecoveryFeedback:function(){var revision=toastRevision;return function(message){if(revision!==toastRevision)return;toast(message);revision=toastRevision;};},
             publicationChanged:function(publication){
