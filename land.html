@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="tus-mission-host-contract" content="mission-narrative-host/1" />
 <meta name="tus-innata-presence-build" content="innata-presence-20261103-1" />
+<meta name="tus-innata-staff-profile-build" content="innata-staff-profile-20261103-agg1" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="tus-chat-reentry-build" content="C1266-CHAT-REENTRY-001" />
 <meta name="tus-regia-start-build" content="C1266-START-RECOVERY-001" />
@@ -2277,6 +2278,16 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
                 <div class="side-k">Duello fra due PG</div>
                 <button class="mv2-btn" id="ordinary-open" type="button">Apri scontro</button><p class="mv2-note" id="ordinary-entry-note" role="status"></p>
               </div>
+              <details class="side-card mv2" id="innata-staff-profile-card" hidden style="display:none">
+                <summary class="side-k">Abilità simulate · Staff</summary>
+                <p class="mv2-note">Scegli l’abilità da provare con il tuo personaggio. La scheda reale resta invariata; l’attivazione si dichiara nella role.</p>
+                <button class="mv2-btn ghost" id="innata-profile-read" type="button">Mostra profili</button>
+                <label class="mv2-field">Profilo di prova<select id="innata-profile-select" disabled><option value="">Leggi prima i profili disponibili</option></select></label>
+                <button class="mv2-btn" id="innata-profile-apply" type="button" disabled>Applica profilo</button>
+                <button class="mv2-btn ghost" id="innata-profile-remove" type="button" disabled>Usa abilità della scheda</button>
+                <button class="mv2-btn ghost" id="innata-profile-retry" type="button" hidden>Verifica lo stesso comando</button>
+                <p class="mv2-note" id="innata-profile-note" role="status" aria-live="polite"></p>
+              </details>
               <div class="side-card cmb" id="cmb-card" hidden>
                 <div class="side-k">Scontro</div>
                 <div id="cmb-body"></div>
@@ -6609,6 +6620,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         return result;
       }
       function ordinaryRefresh(explicit){
+        innataStaffProfileVisibility();
         if(explicit!==true&&!missionAutomaticCombatAllowed())return;
         if(examHumanOwnsScene())return;
         if(examRegia()?.ownsCombat()){if(ORDINARY){ORDINARY.dispose();ORDINARY=null;ordinaryPanelMode=null;}examRegia().refreshPanel();return;}
@@ -6649,7 +6661,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         });
         ORDINARY.refresh();
       }
-      function refreshStaffPassiveRoom(){ if(!cur||!roomEntryConfirmed()) return; updateMeteo(); entraLuogo(undefined,true); loadMsgs(); loadWho(true); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadEsame(); void missionAutomaticSceneRefresh(); }
+      function refreshStaffPassiveRoom(){ if(!cur||!roomEntryConfirmed()) return;innataStaffProfileVisibility(); updateMeteo(); entraLuogo(undefined,true); loadMsgs(); loadWho(true); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadEsame(); void missionAutomaticSceneRefresh(); }
       function refreshRoom(){if(!LAND_POLICY.value||LAND_POLICY.key!==landReadKey()){var key=landReadKey();return landPolicyRead().then(function(){if(key===landReadKey())return refreshStaffPassiveRoom();});} if(landEventReadMode()){landPolicyRead();return refreshStaffPassiveRoom();} if(roomEntryStaffScope())return refreshStaffPassiveRoom(); if(!cur||!roomEntryConfirmed()) return; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); ordinaryRefresh(); }
 
       /* ---- MASTER-COMBAT-V2-LAND-UI-021: regia multi-attore ---- */
@@ -12743,7 +12755,7 @@ var nb028iTeardown=function(){};
         if(l&&l.id===UI_POSTREVIEW_STAFF_ROOM&&l.is_test===true){if(presencePoll){clearInterval(presencePoll);presencePoll=null;}roomEntryReset();}else if(roomEntryStaffScope())roomEntryReset();
         missionD100Reset();truReleaseInvalidate();
         closeRoomObjectBinding();
-        if(ORDINARY)ORDINARY.invalidate();uiPostreviewStaffReset();MV2.readRequested=false;MV2.scortaContext=false;MV2.scortaRoom=null;MV2.scortaScope=null;mv2OvChiudi();cur=l; examHumanEnter(); showView('room');  restorePlace(l.id);
+        if(ORDINARY)ORDINARY.invalidate();uiPostreviewStaffReset();MV2.readRequested=false;MV2.scortaContext=false;MV2.scortaRoom=null;MV2.scortaScope=null;mv2OvChiudi();cur=l; innataStaffProfileInvalidate();examHumanEnter(); showView('room');  restorePlace(l.id);
         nameEl.textContent=l.name; kindEl.textContent=l.kind||''; descEl.textContent=l.description||'';
         var im=document.getElementById('room-img'), nt=document.getElementById('room-note');
         if(im){ if(l.image_url){ im.src=l.image_url; im.style.display='block'; } else { im.removeAttribute('src'); im.style.display='none'; } }
@@ -12758,14 +12770,14 @@ var nb028iTeardown=function(){};
         /* il poll parte solo se il server ci fa entrare davvero */
         entraLuogo(async function(){
           var enteredRoom=cur&&cur.id,enteredPrincipal=commonMasterPrincipal(),enteredEpoch=UI_POSTREVIEW_STAFF_EPOCH;
-          updateMeteo();loadEmblems();caricaNomiEvidenza();loadMyCompanion();loadMsgs();loadWho();loadRoleState();loadTrainingState();loadAcadClass();refreshMyVita();loadEsame();
+          innataStaffProfileVisibility();loadAbilities();updateMeteo();loadEmblems();caricaNomiEvidenza();loadMyCompanion();loadMsgs();loadWho();loadRoleState();loadTrainingState();loadAcadClass();refreshMyVita();loadEsame();
           await missionAutomaticSceneRefresh();if(!cur||cur.id!==enteredRoom||commonMasterPrincipal()!==enteredPrincipal||UI_POSTREVIEW_STAFF_EPOCH!==enteredEpoch)return;
           if(!landEventReadMode())nb028iRefresh();
           if(presencePoll) clearInterval(presencePoll);presencePoll=null;
           if(poll) clearInterval(poll);poll=null;landConfigureTimers();staffEventSync();
         });
       }
-      function leaveRoom(){ if(roomEntryStaffScope())roomEntryReset();humanInlineReset();missionD100Reset();examHumanLeave(); truReleaseInvalidate(); closeRoomObjectBinding(); MV2.staffLoading=null;commonMasterReadGeneration++;MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; uiPostreviewStaffReset();WHO=[];PRESENTI_IDS={};cur=null; CMB=null; mv2ClearPrepInputs();MV2.data=null; MV2.serverSig=null; MV2.regia=null; MV2.regiaSignature=null; MV2.regiaDraft=''; MV2.regiaDirection={turn_kind:'',actor_ids:[]}; MV2.scortaContext=false; MV2.scortaRoom=null; MV2.scortaScope=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi();staffEventSync(); }
+      function leaveRoom(){ if(roomEntryStaffScope())roomEntryReset();humanInlineReset();missionD100Reset();examHumanLeave(); truReleaseInvalidate(); closeRoomObjectBinding(); MV2.staffLoading=null;commonMasterReadGeneration++;MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; uiPostreviewStaffReset();WHO=[];PRESENTI_IDS={};cur=null;innataStaffProfileInvalidate();loadAbilities(); CMB=null; mv2ClearPrepInputs();MV2.data=null; MV2.serverSig=null; MV2.regia=null; MV2.regiaSignature=null; MV2.regiaDraft=''; MV2.regiaDirection={turn_kind:'',actor_ids:[]}; MV2.scortaContext=false; MV2.scortaRoom=null; MV2.scortaScope=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi();staffEventSync(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -12936,12 +12948,86 @@ var nb028iTeardown=function(){};
          al massimo una tecnica per messaggio. In scontro non si apre:
          li' le quadre sono testo libero e l'azione passa dalla finestra.
          ============================================================ */
-      var SUG=[], SUG_SCELTA=null, SUG_NOME='', SUG_I=0, SUG_VIS=[], SUG_AP=-1, SUG_C=0;
+      // Profili di abilita nella simulazione Staff esistente. Nessuna scrittura alla scheda.
+      var INNATA_PROFILE={scope:null,data:null,busy:false,pending:null,readSeq:0};
+      function innataProfileScope(){
+        if(!sb||!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||!myId||!myCharId||!iAmStaff||!cur||cur.id!=='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'||cur.is_test!==true||!roomEntryConfirmed())return null;
+        var master=MV2&&MV2.locationId===cur.id&&MV2.principalId===commonMasterPrincipal()&&MV2.data&&MV2.data.master?MV2.data.master.id:null;
+        return JSON.stringify([myId,myCharId,cur.id,master,UI_POSTREVIEW_STAFF_EPOCH]);
+      }
+      function innataProfileSameBinding(a,b){if(!a||!b)return false;try{return JSON.stringify(JSON.parse(a).slice(0,4))===JSON.stringify(JSON.parse(b).slice(0,4));}catch(e){return false;}}
+      function innataProfileNote(text){var e=document.getElementById('innata-profile-note');if(e)e.textContent=text;}
+      function innataProfileRender(){
+        var s=innataProfileScope(),p=INNATA_PROFILE,d=p.scope===s?p.data:null,card=document.getElementById('innata-staff-profile-card');if(!card)return;
+        card.hidden=!s;card.style.display=s?'':'none';
+        var read=document.getElementById('innata-profile-read'),sel=document.getElementById('innata-profile-select'),apply=document.getElementById('innata-profile-apply'),remove=document.getElementById('innata-profile-remove'),retry=document.getElementById('innata-profile-retry');
+        read.disabled=p.busy||!s;sel.disabled=p.busy||!!p.pending||!d;
+        apply.disabled=p.busy||!!p.pending||!d||(!d.can_change&&sel.value!==d.selected_profile)||!d.profiles.some(function(x){return x.profile_key===sel.value;});
+        remove.disabled=p.busy||!!p.pending||!d||!d.can_change||!d.selected_profile;
+        retry.hidden=!p.pending;retry.disabled=p.busy||!p.pending||!innataProfileSameBinding(p.pending.scope,s);
+      }
+      function innataStaffProfileInvalidate(){
+        if(!INNATA_PROFILE)return;INNATA_PROFILE.readSeq++;INNATA_PROFILE.scope=null;INNATA_PROFILE.data=null;
+        if(typeof sugScegli==='function')sugScegli(null);if(typeof sugChiudi==='function')sugChiudi();SUG=[];innataProfileRender();
+      }
+      function innataStaffProfileVisibility(){if(!INNATA_PROFILE)return;var s=innataProfileScope();if(INNATA_PROFILE.scope!==s){INNATA_PROFILE.scope=s;INNATA_PROFILE.data=null;INNATA_PROFILE.readSeq++;}innataProfileRender();}
+      function innataProfileValidate(d,s,receipt,key){
+        var b=JSON.parse(s),base=['schema_version','location_id','master_session_id','character_id','context_id','profile_version','selected_profile','selected_ability','innata_active','can_change','reason','profiles'],keys=receipt?base.concat(['request_key','replayed']):base;
+        if(!d||Array.isArray(d)||Object.keys(d).sort().join('|')!==keys.sort().join('|')||d.schema_version!==(receipt?'innata-staff-profile-receipt/1':'innata-staff-profile-state/1')||d.character_id!==b[1]||d.location_id!==b[2]||d.master_session_id!==b[3]||!(d.context_id===null||typeof d.context_id==='string'&&/^[a-f0-9-]{36}$/i.test(d.context_id))||!Number.isSafeInteger(d.profile_version)||d.profile_version<0||typeof d.innata_active!=='boolean'||typeof d.can_change!=='boolean'||!(d.reason===null||typeof d.reason==='string')||!Array.isArray(d.profiles)||d.profiles.length!==6)throw Error('Profilo di prova non verificato: rileggi lo stato.');
+        var names=['sabaku-l1','sharingan-l1','byakugan-l1','byakugan-l2','byakugan-l3','byakugan-l4'];
+        if(new Set(d.profiles.map(function(x){return x.profile_key;})).size!==6||d.profiles.some(function(x){return !x||Object.keys(x).sort().join('|')!==['profile_key','label','technique_id','level','activation_cost','upkeep_cost','required_grade','required_kg'].sort().join('|')||!names.includes(x.profile_key)||typeof x.label!=='string'||!x.label||!(/^[a-f0-9-]{36}$/i.test(x.technique_id))||!Number.isSafeInteger(x.level)||x.level<1||x.level>4||!Number.isSafeInteger(x.activation_cost)||x.activation_cost<0||!Number.isSafeInteger(x.upkeep_cost)||x.upkeep_cost<0||typeof x.required_grade!=='string'||!Number.isSafeInteger(x.required_kg)||x.required_kg<0;}))throw Error('Profili di prova non riconosciuti.');
+        if(!(d.selected_profile===null||names.includes(d.selected_profile))||(d.selected_profile===null)!==(d.selected_ability===null))throw Error('Selezione di prova incoerente.');
+        if(d.selected_ability){var a=d.selected_ability,q=d.profiles.find(function(x){return x.profile_key===d.selected_profile;});if(!a||Object.keys(a).sort().join('|')!==['technique_id','name','level','clan','chakra_cost','consumption_type','state','is_simulated','suppressed_innata_ids'].sort().join('|')||a.technique_id!==q.technique_id||a.level!==q.level||a.chakra_cost!==q.activation_cost||typeof a.name!=='string'||!a.name||typeof a.clan!=='string'||a.consumption_type!=='per_turno'||a.state!=='attiva'||a.is_simulated!==true||!Array.isArray(a.suppressed_innata_ids)||a.suppressed_innata_ids.some(function(id){return typeof id!=='string'||!/^[a-f0-9-]{36}$/i.test(id)||id===a.technique_id;}))throw Error('Abilità simulata non verificata.');}
+        if(receipt&&(d.request_key!==key||typeof d.replayed!=='boolean'))throw Error('Ricevuta del profilo non verificata.');return d;
+      }
+      function innataProfileAccept(d,s){
+        if(s!==innataProfileScope())throw Error('Contesto cambiato: rileggi il profilo nella stanza corretta.');
+        INNATA_PROFILE.scope=s;INNATA_PROFILE.data=d;
+        var sel=document.getElementById('innata-profile-select');sel.replaceChildren();var initial=document.createElement('option');initial.value='';initial.textContent='Scegli un profilo di prova';sel.append(initial);
+        d.profiles.forEach(function(q){var o=document.createElement('option');o.value=q.profile_key;o.textContent=q.label+' · Livello '+q.level;sel.append(o);});sel.value=d.selected_profile||'';
+        innataProfileNote(d.selected_ability?('Prova: '+d.profiles.find(function(x){return x.profile_key===d.selected_profile;}).label+' · Livello '+d.selected_ability.level+' · '+(d.innata_active?'Innata attiva':'da attivare nella role')+'. Nessuna modifica alla scheda.'):'Usi le abilità della scheda. Scegliere un profilo non attiva l’Innata.');
+        innataProfileRender();return d;
+      }
+      async function innataProfileRead(explicit){
+        var s=innataProfileScope();if(!s)return null;var b=JSON.parse(s),seq=++INNATA_PROFILE.readSeq;
+        if(explicit){await landUserPresence();if(s!==innataProfileScope())throw Error('Contesto cambiato: nessuna lettura inviata.');}
+        var r=await sb.rpc('clan_innata_staff_profile_state_v1',{p_location:b[2],p_master_session:b[3]});
+        if(seq!==INNATA_PROFILE.readSeq||s!==innataProfileScope())throw Error('Contesto cambiato: rileggi i profili.');if(!r||r.error)throw Error('Profili di prova non disponibili. Rileggi dalla Staff.');
+        return innataProfileAccept(innataProfileValidate(r.data,s,false),s);
+      }
+      function innataProfileSuggestions(rows,s,d){
+        if(!s)return rows;if(s!==innataProfileScope()||!d)return [];
+        if(!d.selected_ability)return rows;var a=d.selected_ability;
+        return rows.filter(function(t){return t.technique_id!==a.technique_id&&!a.suppressed_innata_ids.includes(t.technique_id);}).concat([a]);
+      }
+      async function innataProfileSend(retry){
+        var p=INNATA_PROFILE,s=innataProfileScope();if(p.busy||!s)return;
+        if(!retry){var d=p.scope===s?p.data:null,sel=document.getElementById('innata-profile-select');if(p.pending||!d)return;var value=retry===null?null:sel.value;if(value!==null&&!d.profiles.some(function(x){return x.profile_key===value;}))return;
+          var b=JSON.parse(s);p.pending={scope:s,args:{p_location:b[2],p_master_session:b[3],p_profile_key:value,p_request_key:mv2Key(),p_expected_version:d.profile_version}};}
+        var pending=p.pending;if(!pending||!innataProfileSameBinding(pending.scope,s))return;var accepted=false;p.busy=true;innataProfileRender();
+        try{await landUserPresence();if(s!==innataProfileScope())throw Error('Contesto cambiato: comando conservato senza nuovo invio.');var r=await sb.rpc('clan_innata_staff_profile_set_v1',pending.args);
+          if(s!==innataProfileScope())throw Error('Contesto cambiato: verifica lo stesso comando nella stanza originale.');
+          if(!r||r.error){var m=String(r&&r.error&&r.error.message||'');if(/INNATA_(?:PROFILE_(?:INVALID|STATE_CHANGED|REQUEST_CONFLICT|ACTIVE|COMBAT_ACTIVE)|STAFF_ONLY)/.test(m)){p.pending=null;p.data=null;throw Error('Profilo non cambiato: disattiva prima l’Innata o chiudi lo Scontro, poi rileggi.');}throw Error('Invio non confermato: verifica lo stesso comando.');}
+          var receipt=innataProfileValidate(r.data,pending.scope,true,pending.args.p_request_key);p.pending=null;accepted=true;p.data=null;sugScegli(null);sugChiudi();SUG=[];await innataProfileRead(false);loadAbilities();
+        }catch(e){innataProfileNote(accepted?'Comando acquisito. Rileggi lo stato corrente del profilo.':(e.message||'Invio non confermato: verifica lo stesso comando.'));}finally{p.busy=false;innataProfileRender();}
+      }
+      (function(){
+        document.getElementById('innata-profile-read').addEventListener('click',async function(){if(INNATA_PROFILE.busy)return;INNATA_PROFILE.busy=true;innataProfileRender();try{await innataProfileRead(true);loadAbilities();}catch(e){INNATA_PROFILE.data=null;SUG=[];innataProfileNote(e.message);}finally{INNATA_PROFILE.busy=false;innataProfileRender();}});
+        document.getElementById('innata-profile-select').addEventListener('change',innataProfileRender);
+        document.getElementById('innata-profile-apply').addEventListener('click',function(){innataProfileSend(false);});
+        document.getElementById('innata-profile-remove').addEventListener('click',function(){innataProfileSend(null);});
+        document.getElementById('innata-profile-retry').addEventListener('click',function(){innataProfileSend(true);});
+      })();
+
+      var SUG=[], SUG_SCELTA=null, SUG_NOME='', SUG_I=0, SUG_VIS=[], SUG_AP=-1, SUG_C=0, SUG_LOAD_SEQ=0;
       function loadAbilities(){
-        if(!sb) return;
-        sb.rpc('my_abilities',{}).then(function(r){
-          SUG=((r&&!r.error&&r.data)||[]).filter(function(x){ return x.state==='attiva'; });
-        }, function(){ SUG=[]; });
+        if(!sb)return;var seq=++SUG_LOAD_SEQ,s=innataProfileScope(),identity=JSON.stringify([myId,myCharId,ordinaryAuthId,cur&&cur.id]);
+        var profile=s?(INNATA_PROFILE.scope===s&&INNATA_PROFILE.data?Promise.resolve(INNATA_PROFILE.data):innataProfileRead(false)):Promise.resolve(null);
+        Promise.all([sb.rpc('my_abilities',{}),profile]).then(function(results){
+          if(seq!==SUG_LOAD_SEQ||identity!==JSON.stringify([myId,myCharId,ordinaryAuthId,cur&&cur.id])||s!==innataProfileScope())return;
+          var r=results[0];if(!r||r.error)throw Error('Tecniche non disponibili.');
+          SUG=innataProfileSuggestions((r.data||[]).filter(function(x){return x.state==='attiva';}),s,results[1]);
+        },function(){if(seq===SUG_LOAD_SEQ)SUG=[];}).catch(function(){if(seq===SUG_LOAD_SEQ)SUG=[];});
       }
       function sugChiudi(){ var p=document.getElementById('sug-pop'); if(p){ p.hidden=true; p.innerHTML=''; } SUG_VIS=[]; SUG_AP=-1; }
       function sugScegli(t){
@@ -12952,6 +13038,7 @@ var nb028iTeardown=function(){};
       function sugAttivo(){
         /* in scontro le quadre sono narrativa: il suggeritore resta zitto */
         if(!cur||!input) return false;
+        if(SUG.some(function(t){return t.is_simulated===true;})&&INNATA_PROFILE.scope!==innataProfileScope()){SUG=SUG.filter(function(t){return t.is_simulated!==true;});sugScegli(null);}
         if(toSel&&toSel.value) return false;
         if(CMB&&CMB.aperto&&(CMB.ruolo!=='osserva')) return false;
         return true;
