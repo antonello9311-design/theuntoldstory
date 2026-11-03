@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="tus-mission-host-contract" content="mission-narrative-host/1" />
 <meta name="tus-innata-presence-build" content="innata-presence-20261103-1" />
-<meta name="tus-innata-staff-profile-build" content="innata-staff-profile-20261103-agg2" />
+<meta name="tus-innata-staff-profile-build" content="innata-staff-profile-20261103-agg3" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="tus-chat-reentry-build" content="C1266-CHAT-REENTRY-001" />
 <meta name="tus-regia-start-build" content="C1266-START-RECOVERY-001" />
@@ -5576,7 +5576,11 @@ function attachOrdinaryLand(host){
   async function open(){
     syncScope();if(!eligible()||opening)return;
     opening=true;const c=controller,stamp=epoch;visible(true);
-    try{await c.poll();if(current(c,stamp)&&eligible()&&c.envelope?.status==='ready'&&c.envelope.viewer.can_command&&!c.pending&&c.needsOptions)await c.openOptions();}
+    try{
+      if(typeof host.beforeOpen==='function')await host.beforeOpen();
+      if(!current(c,stamp)||!eligible())return;
+      await c.poll();if(current(c,stamp)&&eligible()&&c.envelope?.status==='ready'&&c.envelope.viewer.can_command&&!c.pending&&c.needsOptions)await c.openOptions();
+    }catch(error){if(current(c,stamp)){suspend();host.notice('Presenza o contesto non confermati: nessun nuovo comando inviato. Riapri il pannello.');}}
     finally{if(stamp===epoch)opening=false;}
   }
   async function refresh(){
@@ -6613,8 +6617,13 @@ window.TUSOrdinary={attachOrdinaryLand};
       };}});}
       var commonPanelUiUnavailable=false;
       function landApplyStaffRole(role){iAmStaff=['master','admin'].includes(role);LAND_PROFILE_KNOWN=true;for(var it of [['test-btn',true],['regia-btn',iAmStaff],['mv2-open-btn',iAmStaff&&fatoMode],['fato-toggle-row',iAmStaff],['admin-nav',iAmStaff],['test-staff-btn',iAmStaff]]){var btn=document.getElementById(it[0]);if(btn)btn.style.display=it[1]?'':'none';}if(!iAmStaff)setFatoMode(false);esameHoldRefresh();syncSendBtn();}
-      function landCommandNeedsPresence(name){return /^(?:post_message|mission_role_submit_v1|combat_v2_(?:action_declare|defense_declare|rating_save|round_resolve|round_narrate_human)|combat_panel_(?:prepare|commit)_v1|regia_round_(?:advance|publish)_v1|master_v2_(?:session_open|encounter_open|scene_close|suspend|resume|admin_override|close)|training_role_(?:dichiara|registra|abbandona)|training_sparring_resa|regia_combat_entry_prepare_v1|mission_native_source_prepare_v1|mission_generic_(?:choose|staff_test_start|board_start)_v1|mission_staff_(?:resume_identical_role|retry_failed_director)_v1)$/.test(name); }
+      function landCommandNeedsPresence(name){return /^(?:post_message|mission_role_submit_v1|combat_consumer_commit_v1|combat_v2_(?:action_declare|defense_declare|rating_save|round_resolve|round_narrate_human)|combat_panel_(?:prepare|commit)_v1|regia_round_(?:advance|publish)_v1|master_v2_(?:session_open|encounter_open|scene_close|suspend|resume|admin_override|close)|training_role_(?:dichiara|registra|abbandona)|training_sparring_resa|regia_combat_entry_prepare_v1|mission_native_source_prepare_v1|mission_generic_(?:choose|staff_test_start|board_start)_v1|mission_staff_(?:resume_identical_role|retry_failed_director)_v1)$/.test(name); }
       async function commonPanelUiRpc(name,args){
+        if(['combat_consumer_commit_v1','combat_panel_prepare_v1','combat_panel_commit_v1'].includes(name)){
+          var commandBinding=JSON.stringify([commonMasterPrincipal(),myCharId,cur&&cur.id||null,MV2&&MV2.authEpoch||0]);
+          await landUserPresence();
+          if(commandBinding!==JSON.stringify([commonMasterPrincipal(),myCharId,cur&&cur.id||null,MV2&&MV2.authEpoch||0]))throw Error('Contesto cambiato: nessun comando inviato.');
+        }
         if(name!=='combat_panel_options_v1'||commonPanelUiUnavailable)return sb.rpc(name,args);
         var result=await sb.rpc('combat_panel_options_ui_v1',args),error=result&&result.error;
         if(error&&['PGRST202','42883'].includes(error.code)&&String(error.message||'').includes('combat_panel_options_ui_v1')){
