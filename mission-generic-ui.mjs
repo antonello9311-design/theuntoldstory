@@ -3663,7 +3663,16 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
  }
  function paintServerEvent(host,state){
   let row=host.querySelector('[data-mg-server-event]');const s=eventStatus(state),loc=currentLocation();
-  if(publicNarrativeSection(state)){paintPublicNarrativeEvent(host,state);return;}
+  const publicScene=publicNarrativeSection(state);
+  if(publicScene){
+   paintPublicNarrativeEvent(host,state);
+   if(valid(cacheUser)&&isStaff()&&loc?.id===STAFF_TEST_ROOM&&loc.is_test===true&&publicScene.execution_context==='staff_simulation'&&!['combat','closed'].includes(publicScene.mode)&&s){
+    row=host.querySelector('[data-mg-server-event]');if(!row)return;
+    let pending=false;try{pending=eventRecoveryJournal(cacheUser,state.session_id,s.event_key).j.attempts.at(-1)?.status==='unknown';}catch{row.append(el('p','Richiesta locale non verificabile: storico conservato.'));return;}
+    if(s.can_recover===true||pending){const b=button('Riprendi la stessa richiesta',()=>void recoverServerEvent(host));b.setAttribute('data-mg-staff-public-event-recovery','');b.disabled=eventRecoveryBusy.has(state.session_id)||staffRoleRecovery?.session===state.session_id||!!roomError||abortBlocked(state.session_id);row.append(b);}
+   }
+   return;
+  }
   if(!isStaff()||loc?.id!==STAFF_TEST_ROOM||loc.is_test!==true){row?.remove();return;}
   const recovery=combatNarrationRecovery(state);
   const nativeReissue=recovery?.schema_version==='mission-combat-narration-recovery/2'&&recovery.owned_by_me&&recovery.can_reissue;
