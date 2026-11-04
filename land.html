@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="tus-mission-host-contract" content="mission-narrative-host/1" />
 <meta name="tus-innata-presence-build" content="innata-presence-20261103-1" />
-<meta name="tus-innata-staff-profile-build" content="innata-staff-profile-20261103-agg3" />
+<meta name="tus-innata-staff-profile-build" content="innata-all-clan-20261104-1" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="tus-chat-reentry-build" content="C1266-CHAT-REENTRY-001" />
 <meta name="tus-regia-start-build" content="C1266-START-RECOVERY-001" />
@@ -2283,7 +2283,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
               </div>
               <details class="side-card mv2" id="innata-staff-profile-card" hidden style="display:none">
                 <summary class="side-k">Abilità simulate · Staff</summary>
-                <p class="mv2-note">Scegli l’abilità da provare con il tuo personaggio. La scheda reale resta invariata; l’attivazione si dichiara nella role.</p>
+                <p class="mv2-note">Scegli l’abilità da provare con il tuo personaggio. Le innate mantenute si attivano nella role; le maestrie passive non richiedono attivazione. La scheda reale resta invariata.</p>
                 <button class="mv2-btn ghost" id="innata-profile-read" type="button">Mostra profili</button>
                 <label class="mv2-field">Profilo di prova<select id="innata-profile-select" disabled><option value="">Leggi prima i profili disponibili</option></select></label>
                 <button class="mv2-btn" id="innata-profile-apply" type="button" disabled>Applica profilo</button>
@@ -12893,6 +12893,7 @@ var nb028iTeardown=function(){};
           esInvia(ES_AZ, t, t); return;
         }
         var narrativeSend=!to&&!fatoMode&&missionNarrativeRoomKnown()&&!missionAutomaticCombatAllowed();
+        if(!to&&SUG_SCELTA&&!innataProfileRoleTechniqueReady(SUG_SCELTA)){sugScegli(null);sugChiudi();toast('Rileggi le abilità prima di scegliere una tecnica per la role.');return;}
         if(!narrativeSend&&!to && MV2.data?.encounter&&!commonMasterCombat()){var nativeRegiaBlock=mv2RegiaReason(!!SUG_SCELTA||!!pTxt||!!CMB_AZ);if(nativeRegiaBlock){toast(nativeRegiaBlock);return;}}
         if(!narrativeSend&&!to && ORDINARY?.blockingReason){var regiaBlock=ORDINARY.blockingReason({hasTechnique:!!SUG_SCELTA,companionText:pTxt});if(regiaBlock){toast(regiaBlock);return;}}
         var abortSendSession=MV2?.data?.master?.id||MISSION_GENERIC_UI?.sessionId?.();
@@ -12962,6 +12963,8 @@ var nb028iTeardown=function(){};
          ============================================================ */
       // Profili di abilita nella simulazione Staff esistente. Nessuna scrittura alla scheda.
       var INNATA_PROFILE={scope:null,data:null,busy:false,pending:null,readSeq:0};
+      // Identità e semantica dal catalogo contrattuale2; disponibilità e stato restano autorità server.
+      var INNATA_ALL_PROFILES=Object.freeze([{"profile_key":"aburame-l1","technique_id":"94c45ec9-78c7-423e-9045-4b4cf2104b15","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Genin","required_kg":30,"level":1,"clan":"Aburame"},{"profile_key":"aburame-l2","technique_id":"d2d98dad-fb9f-4ff1-b6b2-3d3f2d222fae","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Chunin","required_kg":50,"level":2,"clan":"Aburame"},{"profile_key":"aburame-l3","technique_id":"6d264e00-1db3-4daa-b7cc-e5f011e1dab1","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Jonin","required_kg":70,"level":3,"clan":"Aburame"},{"profile_key":"aburame-l4","technique_id":"2fb3e027-a4ff-4058-9d5d-0212facb3f68","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Jonin Speciale","required_kg":80,"level":4,"clan":"Aburame"},{"profile_key":"akimichi-l1","technique_id":"bc2569b5-eab4-44b4-9843-c199724caff4","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Genin","required_kg":30,"level":1,"clan":"Akimichi"},{"profile_key":"akimichi-l2","technique_id":"09097efd-e162-4cae-a644-5e643fe94f8c","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Chunin","required_kg":50,"level":2,"clan":"Akimichi"},{"profile_key":"akimichi-l3","technique_id":"dd2026b4-bffc-490e-8646-be411d4746b3","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Jonin","required_kg":70,"level":3,"clan":"Akimichi"},{"profile_key":"akimichi-l4","technique_id":"fdf79ce1-1c5b-44c4-aaa1-789be08e01de","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Jonin Speciale","required_kg":80,"level":4,"clan":"Akimichi"},{"profile_key":"hoki-l1","technique_id":"ed808bc6-57f6-4853-80bf-9e6985ca0cc3","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Genin","required_kg":30,"level":1,"clan":"Hoki"},{"profile_key":"hoki-l2","technique_id":"41254b82-5b5e-46e9-9820-b3d604bbe38f","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Chunin","required_kg":50,"level":2,"clan":"Hoki"},{"profile_key":"hoki-l3","technique_id":"2fb9e210-225d-460a-a9f9-39ee64f8fce1","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Jonin","required_kg":70,"level":3,"clan":"Hoki"},{"profile_key":"hoki-l4","technique_id":"ab64415a-cca3-472f-9203-84ad60c09405","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Jonin Speciale","required_kg":80,"level":4,"clan":"Hoki"},{"profile_key":"byakugan-l1","technique_id":"4a527ff2-0420-4da9-bc1f-5489c753b285","lifecycle_kind":"maintained","activation_cost":5,"upkeep_cost":5,"required_grade":"Genin","required_kg":30,"level":1,"clan":"Hyuga"},{"profile_key":"byakugan-l2","technique_id":"8e20bafe-cb3c-4967-b9c7-2a4bca694996","lifecycle_kind":"maintained","activation_cost":10,"upkeep_cost":10,"required_grade":"Chunin","required_kg":50,"level":2,"clan":"Hyuga"},{"profile_key":"byakugan-l3","technique_id":"9b384de3-35f0-43c0-b145-94f985fa758a","lifecycle_kind":"maintained","activation_cost":15,"upkeep_cost":15,"required_grade":"Jonin","required_kg":70,"level":3,"clan":"Hyuga"},{"profile_key":"byakugan-l4","technique_id":"a50808fa-e7cd-45ee-b4d4-33ad8c65d472","lifecycle_kind":"maintained","activation_cost":20,"upkeep_cost":20,"required_grade":"Jonin Speciale","required_kg":80,"level":4,"clan":"Hyuga"},{"profile_key":"inuzuka-l1","technique_id":"b0748ef4-bea8-4d85-95a1-7d9db1b4381c","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Genin","required_kg":30,"level":1,"clan":"Inuzuka"},{"profile_key":"inuzuka-l2","technique_id":"843031ac-521a-4c5b-832e-37a0398a9862","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Chunin","required_kg":50,"level":2,"clan":"Inuzuka"},{"profile_key":"inuzuka-l3","technique_id":"537945fc-b7a3-4661-8144-e3fbcd6b24d0","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Jonin","required_kg":70,"level":3,"clan":"Inuzuka"},{"profile_key":"inuzuka-l4","technique_id":"d48b7246-44bf-4ecc-a4dc-a9bb705c331a","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Jonin Speciale","required_kg":80,"level":4,"clan":"Inuzuka"},{"profile_key":"marionettisti-l1","technique_id":"4d742b75-2592-4379-81c0-07ddf436f32b","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Genin","required_kg":30,"level":1,"clan":"Marionettisti"},{"profile_key":"marionettisti-l2","technique_id":"6e4b8efc-e324-404a-a8c7-b4c39b8070b8","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Chunin","required_kg":50,"level":2,"clan":"Marionettisti"},{"profile_key":"marionettisti-l3","technique_id":"559606f3-f3a0-401d-9e8c-7685624bb880","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Jonin","required_kg":70,"level":3,"clan":"Marionettisti"},{"profile_key":"marionettisti-l4","technique_id":"7fef3cc6-ec43-49a2-a740-cd9f4ee1c31a","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Jonin Speciale","required_kg":80,"level":4,"clan":"Marionettisti"},{"profile_key":"nara-l1","technique_id":"20341270-6241-45cd-9633-437d3ce80447","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Genin","required_kg":30,"level":1,"clan":"Nara"},{"profile_key":"nara-l2","technique_id":"32d0749c-6167-45da-8880-bb3f60dd401f","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Chunin","required_kg":50,"level":2,"clan":"Nara"},{"profile_key":"nara-l3","technique_id":"a4704025-1ef8-43c9-9e5b-113582a7e621","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Jonin","required_kg":70,"level":3,"clan":"Nara"},{"profile_key":"nara-l4","technique_id":"6c56bb2f-4936-4c43-873e-dde65fe42d2b","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Jonin Speciale","required_kg":80,"level":4,"clan":"Nara"},{"profile_key":"sabaku-l1","technique_id":"001f907c-8f32-4758-8a16-ad1730e72c59","lifecycle_kind":"maintained","activation_cost":5,"upkeep_cost":5,"required_grade":"Genin","required_kg":30,"level":1,"clan":"Sabaku"},{"profile_key":"sabaku-l2","technique_id":"e6cc70fa-7ef3-4eaf-afb7-4ca6f588c2b4","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Chunin","required_kg":50,"level":2,"clan":"Sabaku"},{"profile_key":"sabaku-l3","technique_id":"efd15ad1-c1ae-4495-aaa5-0f9415f4be0a","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Jonin","required_kg":70,"level":3,"clan":"Sabaku"},{"profile_key":"sabaku-l4","technique_id":"e0456437-21d5-4a04-9d8a-9bffbf87c26d","lifecycle_kind":"passive_permission","activation_cost":null,"upkeep_cost":null,"required_grade":"Jonin Speciale","required_kg":80,"level":4,"clan":"Sabaku"},{"profile_key":"sharingan-l1","technique_id":"4056f62d-77f3-47f9-8ecb-9a7799682a9d","lifecycle_kind":"maintained","activation_cost":5,"upkeep_cost":5,"required_grade":"Genin","required_kg":30,"level":1,"clan":"Uchiha"},{"profile_key":"sharingan-l2","technique_id":"65b30dec-6f9f-459e-b78c-49173d74f251","lifecycle_kind":"maintained","activation_cost":10,"upkeep_cost":10,"required_grade":"Chunin","required_kg":50,"level":2,"clan":"Uchiha"},{"profile_key":"sharingan-l3","technique_id":"f3673da7-42c9-497e-abe1-1c0982429f35","lifecycle_kind":"maintained","activation_cost":15,"upkeep_cost":15,"required_grade":"Jonin","required_kg":70,"level":3,"clan":"Uchiha"},{"profile_key":"sharingan-l4","technique_id":"1ab6d359-f337-45ed-839c-4e626d2e2819","lifecycle_kind":"maintained","activation_cost":20,"upkeep_cost":20,"required_grade":"Jonin Speciale","required_kg":80,"level":4,"clan":"Uchiha"}]);
       function innataProfileScope(){
         if(!sb||!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||!myId||!myCharId||!iAmStaff||!cur||cur.id!=='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'||cur.is_test!==true||!roomEntryConfirmed())return null;
         var master=MV2&&MV2.locationId===cur.id&&MV2.principalId===commonMasterPrincipal()&&MV2.data&&MV2.data.master?MV2.data.master.id:null;
@@ -12974,7 +12977,7 @@ var nb028iTeardown=function(){};
         card.hidden=!s;card.style.display=s?'':'none';
         var read=document.getElementById('innata-profile-read'),sel=document.getElementById('innata-profile-select'),apply=document.getElementById('innata-profile-apply'),remove=document.getElementById('innata-profile-remove'),retry=document.getElementById('innata-profile-retry');
         read.disabled=p.busy||!s;sel.disabled=p.busy||!!p.pending||!d;
-        apply.disabled=p.busy||!!p.pending||!d||(!d.can_change&&sel.value!==d.selected_profile)||!d.profiles.some(function(x){return x.profile_key===sel.value;});
+        apply.disabled=p.busy||!!p.pending||!d||(!d.can_change&&sel.value!==d.selected_profile)||!d.profiles.some(function(x){return x.profile_key===sel.value&&innataProfileAvailable(x);});
         remove.disabled=p.busy||!!p.pending||!d||!d.can_change||!d.selected_profile;
         retry.hidden=!p.pending;retry.disabled=p.busy||!p.pending||!innataProfileSameBinding(p.pending.scope,s);
       }
@@ -12983,7 +12986,7 @@ var nb028iTeardown=function(){};
         if(typeof sugScegli==='function')sugScegli(null);if(typeof sugChiudi==='function')sugChiudi();SUG=[];innataProfileRender();
       }
       function innataStaffProfileVisibility(){if(!INNATA_PROFILE)return;var s=innataProfileScope();if(INNATA_PROFILE.scope!==s){INNATA_PROFILE.scope=s;INNATA_PROFILE.data=null;INNATA_PROFILE.readSeq++;}innataProfileRender();}
-      function innataProfileValidate(d,s,receipt,key){
+      function innataProfileValidateV1(d,s,receipt,key){
         var b=JSON.parse(s),base=['schema_version','location_id','master_session_id','character_id','context_id','profile_version','selected_profile','selected_ability','innata_active','can_change','reason','profiles'],keys=receipt?base.concat(['request_key','replayed']):base;
         if(!d||Array.isArray(d)||Object.keys(d).sort().join('|')!==keys.sort().join('|')||d.schema_version!==(receipt?'innata-staff-profile-receipt/1':'innata-staff-profile-state/1')||d.character_id!==b[1]||d.location_id!==b[2]||d.master_session_id!==b[3]||!(d.context_id===null||typeof d.context_id==='string'&&/^[a-f0-9-]{36}$/i.test(d.context_id))||!Number.isSafeInteger(d.profile_version)||d.profile_version<0||typeof d.innata_active!=='boolean'||typeof d.can_change!=='boolean'||!(d.reason===null||typeof d.reason==='string')||!Array.isArray(d.profiles)||d.profiles.length!==6)throw Error('Profilo di prova non verificato: rileggi lo stato.');
         var names=['sabaku-l1','sharingan-l1','byakugan-l1','byakugan-l2','byakugan-l3','byakugan-l4'];
@@ -12992,39 +12995,91 @@ var nb028iTeardown=function(){};
         if(d.selected_ability){var a=d.selected_ability,q=d.profiles.find(function(x){return x.profile_key===d.selected_profile;});if(!a||Object.keys(a).sort().join('|')!==['technique_id','name','level','clan','chakra_cost','consumption_type','state','is_simulated','suppressed_innata_ids'].sort().join('|')||a.technique_id!==q.technique_id||a.level!==q.level||a.chakra_cost!==q.activation_cost||typeof a.name!=='string'||!a.name||typeof a.clan!=='string'||a.consumption_type!=='per_turno'||a.state!=='attiva'||a.is_simulated!==true||!Array.isArray(a.suppressed_innata_ids)||a.suppressed_innata_ids.some(function(id){return typeof id!=='string'||!/^[a-f0-9-]{36}$/i.test(id)||id===a.technique_id;}))throw Error('Abilità simulata non verificata.');}
         if(receipt&&(d.request_key!==key||typeof d.replayed!=='boolean'))throw Error('Ricevuta del profilo non verificata.');return d;
       }
+      function innataProfileExact(value,keys){return !!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join('|')===keys.slice().sort().join('|');}
+      function innataProfileUuid(value){return typeof value==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(value);}
+      function innataProfileReason(value){return value===null||typeof value==='string'&&value.trim().length>0;}
+      function innataProfileDefinition(key){return INNATA_ALL_PROFILES.find(function(row){return row.profile_key===key;});}
+      function innataProfileValidateV2(d,s,receipt,key){
+        var b=JSON.parse(s),base=['schema_version','location_id','master_session_id','character_id','context_id','profile_version','selected_profile','selected_ability','innata_active','can_change','reason','profiles','selected_lifecycle'],keys=receipt?base.concat(['request_key','replayed']):base;
+        if(!innataProfileExact(d,keys)||d.schema_version!==(receipt?'innata-staff-profile-receipt/2':'innata-staff-profile-state/2')||d.character_id!==b[1]||d.location_id!==b[2]||d.master_session_id!==b[3]||!(d.context_id===null||innataProfileUuid(d.context_id))||!Number.isSafeInteger(d.profile_version)||d.profile_version<0||typeof d.innata_active!=='boolean'||typeof d.can_change!=='boolean'||!innataProfileReason(d.reason)||!Array.isArray(d.profiles)||d.profiles.length!==INNATA_ALL_PROFILES.length)throw Error('Profilo di prova non verificato: rileggi lo stato.');
+        var profileKeys=['profile_key','label','technique_id','level','activation_cost','upkeep_cost','required_grade','required_kg','lifecycle_kind','availability','reason_code'];
+        if(d.profiles.some(function(row,index){var expected=INNATA_ALL_PROFILES[index];return !innataProfileExact(row,profileKeys)||row.profile_key!==expected.profile_key||row.technique_id!==expected.technique_id||row.level!==expected.level||row.lifecycle_kind!==expected.lifecycle_kind||row.activation_cost!==expected.activation_cost||row.upkeep_cost!==expected.upkeep_cost||row.required_grade!==expected.required_grade||row.required_kg!==expected.required_kg||typeof row.label!=='string'||!row.label.trim()||!['ready','unavailable'].includes(row.availability)||!innataProfileReason(row.reason_code)||(row.availability==='ready')!==(row.reason_code===null);}))throw Error('Profili di prova non riconosciuti.');
+        if(d.selected_profile===null){
+          if(d.selected_ability!==null||d.selected_lifecycle!==null||d.innata_active!==false)throw Error('Selezione di prova incoerente.');
+        }else{
+          var expected=innataProfileDefinition(d.selected_profile),row=d.profiles.find(function(value){return value.profile_key===d.selected_profile;}),ability=d.selected_ability,life=d.selected_lifecycle;
+          if(!expected||!row||!innataProfileExact(ability,['technique_id','name','level','clan','chakra_cost','consumption_type','state','is_simulated','suppressed_innata_ids'])||ability.technique_id!==expected.technique_id||ability.level!==expected.level||ability.clan!==expected.clan||ability.chakra_cost!==expected.activation_cost||typeof ability.name!=='string'||!ability.name.trim()||ability.consumption_type!==(expected.lifecycle_kind==='maintained'?'per_turno':'passiva')||ability.state!=='attiva'||ability.is_simulated!==true||!Array.isArray(ability.suppressed_innata_ids)||new Set(ability.suppressed_innata_ids).size!==ability.suppressed_innata_ids.length||ability.suppressed_innata_ids.some(function(id){return !innataProfileUuid(id)||id===ability.technique_id;})||INNATA_ALL_PROFILES.some(function(value){return value.technique_id!==ability.technique_id&&!ability.suppressed_innata_ids.includes(value.technique_id);}))throw Error('Abilità simulata non verificata.');
+          if(!innataProfileExact(life,['kind','phase','reason_code'])||life.kind!==expected.lifecycle_kind||!innataProfileReason(life.reason_code)||life.reason_code!==row.reason_code||(row.availability==='unavailable'?life.phase!=='unavailable':expected.lifecycle_kind==='maintained'?!['off','on'].includes(life.phase):life.phase!=='eligible')||d.innata_active!==(life.kind==='maintained'&&life.phase==='on'))throw Error('Stato dell’abilità simulata non verificato.');
+        }
+        if(receipt&&(d.request_key!==key||!innataProfileUuid(d.request_key)||typeof d.replayed!=='boolean'))throw Error('Ricevuta del profilo non verificata.');return d;
+      }
+      function innataProfileValidate(d,s,receipt,key,version){
+        if(version===1)return innataProfileValidateV1(d,s,receipt,key);
+        if(version===2)return innataProfileValidateV2(d,s,receipt,key);
+        throw Error('Versione del profilo non riconosciuta.');
+      }
+      function innataProfilePendingVersion(pending){
+        var legacy=innataProfileExact(pending,['scope','args']),version;
+        if(legacy)version=1;
+        else if(innataProfileExact(pending,['scope','rpc','receipt_schema','args'])){
+          if(pending.rpc==='clan_innata_staff_profile_set_v1'&&pending.receipt_schema==='innata-staff-profile-receipt/1')version=1;
+          else if(pending.rpc==='clan_innata_staff_profile_set_v2'&&pending.receipt_schema==='innata-staff-profile-receipt/2')version=2;
+        }
+        if(!version||typeof pending.scope!=='string')throw Error('Richiesta conservata non riconosciuta: nessun invio eseguito.');
+        var scope=JSON.parse(pending.scope),args=pending.args,legacyKeys=['sabaku-l1','sharingan-l1','byakugan-l1','byakugan-l2','byakugan-l3','byakugan-l4'];
+        if(!Array.isArray(scope)||scope.length!==5||!innataProfileExact(args,['p_location','p_master_session','p_profile_key','p_request_key','p_expected_version'])||args.p_location!==scope[2]||args.p_master_session!==scope[3]||!innataProfileUuid(args.p_request_key)||!Number.isSafeInteger(args.p_expected_version)||args.p_expected_version<0||!(args.p_profile_key===null||(version===1?legacyKeys.includes(args.p_profile_key):!!innataProfileDefinition(args.p_profile_key))))throw Error('Richiesta conservata non verificata: nessun invio eseguito.');
+        return version;
+      }
+      function innataProfileAvailable(row){return !!row&&row.availability==='ready';}
+      function innataProfileLifecycleNote(d){
+        if(!d.selected_ability)return 'Usi le abilità della scheda. Scegliere un profilo non attiva l’Innata.';
+        var row=d.profiles.find(function(value){return value.profile_key===d.selected_profile;}),life=d.selected_lifecycle,prefix='Prova: '+row.label+' · Livello '+d.selected_ability.level+' · ';
+        if(life&&life.kind==='passive_permission')return prefix+(life.phase==='eligible'?'permesso passivo disponibile.':'permesso passivo non disponibile in questa scena.')+' Non attiva tecniche o risorse. Nessuna modifica alla scheda.';
+        if(life&&life.phase==='unavailable')return prefix+'Innata non disponibile in questa scena. Nessuna modifica alla scheda.';
+        return prefix+(d.innata_active?'Innata attiva':'da attivare nella role')+'. Nessuna modifica alla scheda.';
+      }
       function innataProfileAccept(d,s){
         if(s!==innataProfileScope())throw Error('Contesto cambiato: rileggi il profilo nella stanza corretta.');
         INNATA_PROFILE.scope=s;INNATA_PROFILE.data=d;
         var sel=document.getElementById('innata-profile-select');sel.replaceChildren();var initial=document.createElement('option');initial.value='';initial.textContent='Scegli un profilo di prova';sel.append(initial);
-        d.profiles.forEach(function(q){var o=document.createElement('option');o.value=q.profile_key;o.textContent=q.label+' · Livello '+q.level;sel.append(o);});sel.value=d.selected_profile||'';
-        innataProfileNote(d.selected_ability?('Prova: '+d.profiles.find(function(x){return x.profile_key===d.selected_profile;}).label+' · Livello '+d.selected_ability.level+' · '+(d.innata_active?'Innata attiva':'da attivare nella role')+'. Nessuna modifica alla scheda.'):'Usi le abilità della scheda. Scegliere un profilo non attiva l’Innata.');
+        d.profiles.forEach(function(q){var o=document.createElement('option');o.value=q.profile_key;o.textContent=q.label+' · Livello '+q.level+(q.lifecycle_kind==='passive_permission'?' · permesso passivo':'')+(innataProfileAvailable(q)?'':' · non disponibile');o.disabled=!innataProfileAvailable(q);sel.append(o);});sel.value=d.selected_profile||'';
+        innataProfileNote(innataProfileLifecycleNote(d));
         innataProfileRender();return d;
       }
       async function innataProfileRead(explicit){
         var s=innataProfileScope();if(!s)return null;var b=JSON.parse(s),seq=++INNATA_PROFILE.readSeq;
         if(explicit){await landUserPresence();if(s!==innataProfileScope())throw Error('Contesto cambiato: nessuna lettura inviata.');}
-        var r=await sb.rpc('clan_innata_staff_profile_state_v1',{p_location:b[2],p_master_session:b[3]});
+        var r=await sb.rpc('clan_innata_staff_profile_state_v2',{p_location:b[2],p_master_session:b[3]});
         if(seq!==INNATA_PROFILE.readSeq||s!==innataProfileScope())throw Error('Contesto cambiato: rileggi i profili.');if(!r||r.error)throw Error('Profili di prova non disponibili. Rileggi dalla Staff.');
-        return innataProfileAccept(innataProfileValidate(r.data,s,false),s);
+        return innataProfileAccept(innataProfileValidate(r.data,s,false,null,2),s);
       }
       function innataProfileSuggestions(rows,s,d){
         if(!s)return rows;if(s!==innataProfileScope()||!d)return [];
-        if(!d.selected_ability)return rows;var a=d.selected_ability;
-        return rows.filter(function(t){return t.technique_id!==a.technique_id&&!a.suppressed_innata_ids.includes(t.technique_id);}).concat([a]);
+        // Le maestrie passive non diventano mai p_technique di una richiesta di attivazione.
+        var choices=rows.filter(function(t){var q=INNATA_ALL_PROFILES.find(function(value){return value.technique_id===t.technique_id;});return !q||q.lifecycle_kind==='maintained';});
+        if(!d.selected_ability)return choices;var a=d.selected_ability,row=d.profiles.find(function(value){return value.profile_key===d.selected_profile;});
+        choices=choices.filter(function(t){return t.technique_id!==a.technique_id&&!a.suppressed_innata_ids.includes(t.technique_id);});
+        return d.selected_lifecycle.kind==='maintained'&&d.selected_lifecycle.phase!=='unavailable'&&innataProfileAvailable(row)?choices.concat([a]):choices;
+      }
+      function innataProfileRoleTechniqueReady(id){
+        var scope=innataProfileScope();if(!scope)return true;
+        var data=INNATA_PROFILE.scope===scope?INNATA_PROFILE.data:null,choice=SUG.find(function(row){return row.technique_id===id;});
+        if(!data||!choice)return false;
+        return innataProfileSuggestions([choice],scope,data).some(function(row){return row.technique_id===id;});
       }
       async function innataProfileSend(retry){
         var p=INNATA_PROFILE,s=innataProfileScope();if(p.busy||!s)return;
-        if(!retry){var d=p.scope===s?p.data:null,sel=document.getElementById('innata-profile-select');if(p.pending||!d)return;var value=retry===null?null:sel.value;if(value!==null&&!d.profiles.some(function(x){return x.profile_key===value;}))return;
-          var b=JSON.parse(s);p.pending={scope:s,args:{p_location:b[2],p_master_session:b[3],p_profile_key:value,p_request_key:mv2Key(),p_expected_version:d.profile_version}};}
+        if(!retry){var d=p.scope===s?p.data:null,sel=document.getElementById('innata-profile-select');if(p.pending||!d)return;var value=retry===null?null:sel.value;if(value!==null&&!d.profiles.some(function(x){return x.profile_key===value&&innataProfileAvailable(x);}))return;
+          var b=JSON.parse(s);p.pending={scope:s,rpc:'clan_innata_staff_profile_set_v2',receipt_schema:'innata-staff-profile-receipt/2',args:{p_location:b[2],p_master_session:b[3],p_profile_key:value,p_request_key:mv2Key(),p_expected_version:d.profile_version}};}
         var pending=p.pending;if(!pending||!innataProfileSameBinding(pending.scope,s))return;var accepted=false;p.busy=true;innataProfileRender();
-        try{await landUserPresence();if(s!==innataProfileScope())throw Error('Contesto cambiato: comando conservato senza nuovo invio.');var r=await sb.rpc('clan_innata_staff_profile_set_v1',pending.args);
+        try{var version=innataProfilePendingVersion(pending),rpc=version===1?'clan_innata_staff_profile_set_v1':'clan_innata_staff_profile_set_v2';await landUserPresence();if(s!==innataProfileScope())throw Error('Contesto cambiato: comando conservato senza nuovo invio.');var r=await sb.rpc(rpc,pending.args);
           if(s!==innataProfileScope())throw Error('Contesto cambiato: verifica lo stesso comando nella stanza originale.');
-          if(!r||r.error){var m=String(r&&r.error&&r.error.message||'');if(/INNATA_(?:PROFILE_(?:INVALID|STATE_CHANGED|REQUEST_CONFLICT|ACTIVE|COMBAT_ACTIVE)|STAFF_ONLY)/.test(m)){p.pending=null;p.data=null;throw Error('Profilo non cambiato: disattiva prima l’Innata o chiudi lo Scontro, poi rileggi.');}throw Error('Invio non confermato: verifica lo stesso comando.');}
-          var receipt=innataProfileValidate(r.data,pending.scope,true,pending.args.p_request_key);p.pending=null;accepted=true;p.data=null;sugScegli(null);sugChiudi();SUG=[];await innataProfileRead(false);loadAbilities();
+          if(!r||r.error){var m=String(r&&r.error&&r.error.message||'');if(/INNATA_PROFILE_CONSUMER_UPGRADE_REQUIRED/.test(m)){p.pending=null;p.data=null;sugScegli(null);sugChiudi();SUG=[];throw Error('Richiesta storica non applicata: rileggi il profilo corrente.');}if(/INNATA_(?:PROFILE_(?:INVALID|STATE_CHANGED|REQUEST_CONFLICT|ACTIVE|COMBAT_ACTIVE|UNAVAILABLE)|STAFF_ONLY)/.test(m)){p.pending=null;p.data=null;sugScegli(null);sugChiudi();SUG=[];throw Error('Profilo non cambiato: rileggi lo stato e verifica se un’Innata o uno Scontro sono ancora attivi.');}throw Error('Invio non confermato: verifica lo stesso comando.');}
+          var receipt=innataProfileValidate(r.data,pending.scope,true,pending.args.p_request_key,version);p.pending=null;accepted=true;p.data=null;sugScegli(null);sugChiudi();SUG=[];await innataProfileRead(false);loadAbilities();
         }catch(e){innataProfileNote(accepted?'Comando acquisito. Rileggi lo stato corrente del profilo.':(e.message||'Invio non confermato: verifica lo stesso comando.'));}finally{p.busy=false;innataProfileRender();}
       }
       (function(){
-        document.getElementById('innata-profile-read').addEventListener('click',async function(){if(INNATA_PROFILE.busy)return;INNATA_PROFILE.busy=true;innataProfileRender();try{await innataProfileRead(true);loadAbilities();}catch(e){INNATA_PROFILE.data=null;SUG=[];innataProfileNote(e.message);}finally{INNATA_PROFILE.busy=false;innataProfileRender();}});
+        document.getElementById('innata-profile-read').addEventListener('click',async function(){if(INNATA_PROFILE.busy)return;INNATA_PROFILE.busy=true;innataProfileRender();try{await innataProfileRead(true);loadAbilities();}catch(e){INNATA_PROFILE.data=null;SUG=[];sugScegli(null);sugChiudi();innataProfileNote(e.message);}finally{INNATA_PROFILE.busy=false;innataProfileRender();}});
         document.getElementById('innata-profile-select').addEventListener('change',innataProfileRender);
         document.getElementById('innata-profile-apply').addEventListener('click',function(){innataProfileSend(false);});
         document.getElementById('innata-profile-remove').addEventListener('click',function(){innataProfileSend(null);});
@@ -13039,7 +13094,8 @@ var nb028iTeardown=function(){};
           if(seq!==SUG_LOAD_SEQ||identity!==JSON.stringify([myId,myCharId,ordinaryAuthId,cur&&cur.id])||s!==innataProfileScope())return;
           var r=results[0];if(!r||r.error)throw Error('Tecniche non disponibili.');
           SUG=innataProfileSuggestions((r.data||[]).filter(function(x){return x.state==='attiva';}),s,results[1]);
-        },function(){if(seq===SUG_LOAD_SEQ)SUG=[];}).catch(function(){if(seq===SUG_LOAD_SEQ)SUG=[];});
+          if(s&&SUG_SCELTA&&!SUG.some(function(row){return row.technique_id===SUG_SCELTA;})){sugScegli(null);sugChiudi();}
+        },function(){if(seq===SUG_LOAD_SEQ){SUG=[];if(s){sugScegli(null);sugChiudi();}}}).catch(function(){if(seq===SUG_LOAD_SEQ){SUG=[];if(s){sugScegli(null);sugChiudi();}}});
       }
       function sugChiudi(){ var p=document.getElementById('sug-pop'); if(p){ p.hidden=true; p.innerHTML=''; } SUG_VIS=[]; SUG_AP=-1; }
       function sugScegli(t){
