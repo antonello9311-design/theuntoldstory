@@ -1,0 +1,143 @@
+{
+  "schema_version": "sp07-root-material-review/1",
+  "task_id": "INNATA-SP07-ROOT-MATERIAL-COUNTERREVIEW2-20261104",
+  "result": "PASS_MATERIAL_ONLY",
+  "P0": 0,
+  "P1": 0,
+  "P2": 0,
+  "source_sha256": "53de16dc03906b376983b187ec1f08f2fe6d8400d6ddd85fab3d55442ed29998",
+  "compiler_sha256": "8899b2440875cebbbcdeca59cf6f6cf725c2fd2f5a4b654795ed296603962cc7",
+  "install_sha256": "322299c4c68ec906d8f207dd392e6db3a1cbb1cf160417340305fd2d88e223be",
+  "preflight_sha256": "8de09967de5a86277abf7b66e4500034e7aa71687f6dd7eec4d0d5b66655bc6a",
+  "reviewed_assets": {
+    "SP07_ROOT_COMPOSE.py": {
+      "sha256": "8899b2440875cebbbcdeca59cf6f6cf725c2fd2f5a4b654795ed296603962cc7",
+      "bytes": 18691
+    },
+    "SP07_ROOT_CAPTURE.sql": {
+      "sha256": "d3415256c42a9374a26f219b9118622e48f4490e7597bc1e07621757aee7db05",
+      "bytes": 6719
+    },
+    "SP07_ROOT_ACTUAL.json": {
+      "sha256": "d47227a8af89a749e765be4c19158d8f184ff14082a885f36e1afd6d56fd2f8f",
+      "bytes": 562837
+    },
+    "SP07_ROOT_TARGET_CAPTURE.sql": {
+      "sha256": "ca3033bd2fa9b44ff9475e889cbc8c3effceffbb99d6cd3ee05cbd95ae102923",
+      "bytes": 3250
+    },
+    "SP07_ROOT_TARGET_ACTUAL.json": {
+      "sha256": "1035b00936e8cb4d06403b3cdf13ffa7e724ba6f5576072ce78d161f8bdc7f28",
+      "bytes": 13573
+    },
+    "SP07_ROOT_INSTALL.sql": {
+      "sha256": "322299c4c68ec906d8f207dd392e6db3a1cbb1cf160417340305fd2d88e223be",
+      "bytes": 669381
+    },
+    "SP07_ROOT_PREFLIGHT.sql": {
+      "sha256": "8de09967de5a86277abf7b66e4500034e7aa71687f6dd7eec4d0d5b66655bc6a",
+      "bytes": 1055448
+    },
+    "SP07_ROOT_MANIFEST.json": {
+      "sha256": "e18df4605ec888e75f768a2c20e75938033d067851e48848acd655db256571ae",
+      "bytes": 9615
+    },
+    "SP07_ROOT_PLAN.md": {
+      "sha256": "33b5f8829c4d56b3a49b4af622ba345d3a4de0f7aa2f2fe486e5353fb0eebdaa",
+      "bytes": 4594
+    },
+    "SP07_ROOT_RECOVERY_SOURCE.sql": {
+      "sha256": "d66a7b1261af10a2ea9a2d4da4b7e208917d49b61e512d26310b88ce041f7cd5",
+      "bytes": 2492
+    },
+    "SP07_ROOT_RECOVERY.md": {
+      "sha256": "c4e17f371acf54c4db42bf05f81514fbee46e37424b3ec5d3a99fc9e234b3737",
+      "bytes": 2488
+    },
+    "SP07_SOURCE.sql": {
+      "sha256": "53de16dc03906b376983b187ec1f08f2fe6d8400d6ddd85fab3d55442ed29998",
+      "bytes": 3388
+    },
+    "SP07_REVIEW.json": {
+      "sha256": "6866c7f00906c78132f55808b6baa453c7315596bdc6589884c61ffd60b3940a",
+      "bytes": 4878
+    },
+    "SP07_ROOT_SEMANTIC_PREFLIGHT.sql": {
+      "sha256": "1099e9eb8df07b399ab02ebaa6be09b306802891fcad6d1c5a49331f8007763c",
+      "bytes": 2679
+    },
+    "SP07_ROOT_AGG2.json": {
+      "sha256": "de4cb6ab64037e46fa88ebc7bf4958ee35f4e233c2a7c67fe23f803a7c63e785",
+      "bytes": 7350
+    },
+    "SP07_ROOT_NAMESPACE_AUDIT.json": {
+      "sha256": "86a10c774b0a987c145fdbd767bfb5e85ea1eb5a92db49bb3617ebf9de2163c3",
+      "bytes": 4395
+    }
+  },
+  "findings": [],
+  "completed_checks": [
+    "Full compiler delta read: namespace_sql masks dollar capsules, SQL string literals and quoted identifiers; audit covers Alias, RangeVar, CTE and structured PL references. Whole old algorithm covered by previous integrated reviews, current output checked independently.",
+    "Independent static emission exactly reproduces INSTALL322299/669381B, PF8de099/1055448B, semantic1099 and namespaceaudit86a10. SQL/PL parsers PASS without DB execution.",
+    "Independent PostgreSQL lexer reversal, not compiler replacement reused: reverse22PLidentifiers+2recipealiases only in executable outer body gives entire old INSTALLc69d byteexact. Reverse2recipealiases gives entire old PFdde0 byteexact. No logic, pins, baseline or source-body changes.",
+    "Independent AST parse of all113 embedded SQL expressions:18statement/70scalar/25assignmentRHS. PL variable and SQL Alias/RangeVar/CTE sets disjoint; sole structured PL field root_before.canonical_preimage valid against captured Root row.",
+    "Both authoritative recipe guards preserved with exact values and distinct explicit aliases; no variable_conflict policy, guard deletion or baseline repin used.",
+    "All31 opaque capsule tag groups equal old c69d exactly, including one executable sourceDDL. Rootfullrow and all90 original header capsules compared directly to capture; target4,recipe4,relation2 likewise unchanged from complete previous review.",
+    "OneDDL guard48745/source53de/prosrc79f4;91fullheader metadata,17group,2profileschema and2costrelationfingerprint logic all byteidentical after identifier normalization. ABI/ACL/UI/Git/Pages/DOM/gates preserved.",
+    "SP07M01 boolean postcustody and exact semanticSQL1099 unchanged; previous producer readonly boolean/true receipt preserved, no query by reviewer. PF remains111guards; full live preflight required from owner.",
+    "Recovery source d66a and doc c4e1 byteexact, own10expressions clean; sourcefunction17expressions clean in separate scope. Future --suspend passes same namespace+audit pipeline but futureRoot91capture/boundinstaller not fabricated or qualified.",
+    "APP1 abort42703, materialgreen3f81 and bindingred27eae327 archived intact. No retry or gameplay as part of this review."
+  ],
+  "limitations": [
+    "PASS_MATERIAL_ONLY pertains to exact322299 candidate and reviewed method; not apply, full PostgreSQL compile proof, runtime, adoption or public opening. Static parsing/name scan cannot substitute for catalog-aware engine behavior.",
+    "Previous observed APP1abort42703 preserved; old green3f81 remains historical, not success. New live preflight111 and ordinary authorization checks required before apply.",
+    "No new gameplay, deadline08:43:30 closed;46commands5scenes,2native economic rollbacks and L2ON65 audit remain intact.",
+    "Future recovery requires fresh actual91capture, specificreview and boundmaterial; no future installer qualified."
+  ],
+  "runtime": "NOT_RUN",
+  "apply": "NOT_RUN",
+  "readonly_DB_queries": 0,
+  "browser_operations": 0,
+  "provider_calls": 0,
+  "aggregation": 2,
+  "parent_root": "0edcea68a4315c4bd6ebe77957173e42be8e5ce93ea8106ae351db0111bc449b",
+  "previous_review_sha256": "3f814519d8c6cbad6bed174e18222c314e0ca231aca20b1bfa70b77cf2bc31cf",
+  "resolved_findings": [
+    {
+      "id": "SP07M-01",
+      "resolution": "Boolean custody_condition preserved byteexact, semantic SQL1099 unchanged."
+    },
+    {
+      "id": "SP07M-02",
+      "resolution": "All22 explicit PL variables nominal sp07_pl_ namespace; recipe aliases sp07_byakugan_catalog and sp07_byakugan_quote disjoint in both pre/post guards and future suspend emitter. Independent113query AST scan found zero intersections; only structured PLref root_before.canonical_preimage exists in real captured Rootfields."
+    }
+  ],
+  "verified": {
+    "execution_envelope": {
+      "method": "two_transaction_local_settings_after_BEGIN",
+      "canonical_review_ref": "management/candidati/COMBAT-COMPOSITE_2026-09-01/candidato/SP07_ROOT_MATERIAL_REVIEW.json",
+      "ref_setting": "app.sp07_root_material_review_ref",
+      "sha256_setting": "app.sp07_root_material_review_sha256",
+      "values": "Exact canonical review path and final SHA256 of this JSON after freeze. No concrete envelope hash inside report.",
+      "allowed_changes": "Insert exactly two SELECT pg_catalog.set_config(setting,value,true) immediately after original BEGIN, before original DO, same atomic request. No false prefix or other settings. Removing exactly the two SELECT statements must recover original INSTALL bytes SHA 322299c4c68ec906d8f207dd392e6db3a1cbb1cf160417340305fd2d88e223be.",
+      "live_preflight": "Owner must recheck current baseline and111guards immediately before authorized apply.",
+      "qualification": "Parametric execution binding reviewed; actual envelope bytes/hash recorded separately by apply owner; no transport/apply proof from this report."
+    },
+    "namespace_independent": {
+      "all_queries": 113,
+      "explicit_PL_variables": 22,
+      "SQL_alias_intersections": [],
+      "structured_PL_references": [
+        [
+          "sp07_pl_root_before",
+          "canonical_preimage"
+        ]
+      ],
+      "token_reverse_material_exact": true,
+      "all_capsules_exact": true,
+      "source_scope_queries": 17,
+      "recovery_scope_queries": 10
+    }
+  },
+  "binding_failure_review_sha256": "27eae3272c5494a1f7a7ddf34d2d706e1a546afd625d8d7310896785eb906f72"
+}
