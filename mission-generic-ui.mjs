@@ -1,7 +1,7 @@
 import {createStaffAbortController,guardStaffAbortClient,staffAbortJournalSessions,staffAbortBlocked} from './staff-simulation-abort-ui.mjs?v=abort-availability-d092961883b6fe3e';
 import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-display-8cdf2250a8562d83';
 import {createStaffEditorial,createStaffEditorialPair,DIALOGUE_CAMPAIGN,DIALOGUE_BUILD,REVIEW_CAMPAIGN,REVIEW_BUILD,LATEST_CAMPAIGN,LATEST_BUILD,E73_CAMPAIGN,E73_BUILD} from './mission-editorial-staff.mjs?v=narratore75-34fa4e6596cf18d3';
-export const VERSION='mission-public87-ui/2';
+export const VERSION='mission-party-panel/1';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
@@ -12,6 +12,7 @@ const select=(items,value,onchange)=>{const n=el('select',null);for(const x of i
 const field=(label,n)=>{const l=el('label',label,{class:'mg-field'});l.append(n);return l;};
 let styled=false;
 function style(){if(styled)return;styled=true;const n=el('style',null);n.textContent=`
+.mg-party-panel{flex-basis:100%;width:100%;box-sizing:border-box;border-top:1px solid #b8b09c;padding-top:12px;margin-top:8px}.mg-party-panel h4{margin:0 0 8px}.mg-party-panel [role=status]{margin:6px 0}.mg-party-roster{padding-left:20px;margin:8px 0}.mg-party-actions{display:flex;flex-wrap:wrap;gap:8px}.mg-party-actions button:disabled{opacity:.55;cursor:not-allowed}
 .mg-dialog{width:min(1060px,94vw);max-height:90dvh;box-sizing:border-box;border:1px solid #8e8669;border-radius:12px;padding:20px;background:#f2eee1;color:#252923;overflow:auto}
 .mg-dialog::backdrop{background:#0009}.mg-dialog button,.mg-dialog input,.mg-dialog select,.mg-dialog textarea{font:inherit;padding:8px;border-radius:6px;border:1px solid #8e8669;max-width:100%;box-sizing:border-box}.mg-dialog button{cursor:pointer}.mg-dialog button:disabled{opacity:.55;cursor:wait}.mg-dialog textarea{width:100%;min-height:80px}.mg-field{display:flex;flex-direction:column;gap:5px;margin:8px 0}.mg-row{display:flex;flex-wrap:wrap;align-items:end;gap:10px}.mg-row>.mg-field{flex:1;min-width:160px}.mg-scene{border:1px solid #b8b09c;border-radius:8px;padding:14px;margin:12px 0;background:#fff9}.mg-status{min-height:1.4em}.mg-dialog h3,.mg-dialog h4{margin:8px 0}.mg-room{padding:10px 14px;border:1px solid #a89a75;border-radius:8px;margin:8px 0}.mg-room [role=status]{margin:4px 0}.mg-room button{margin:4px}.mg-dialog summary{cursor:pointer;font-weight:bold}.mg-inline-check{display:inline-flex;align-items:center;gap:5px;margin:5px 12px 5px 0}
 `;document.head.append(n);}
@@ -210,6 +211,79 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
    sync();await showRun();
   }catch(e){if(same()){start.disabled=true;status.textContent=e.message;}}
  }
+ async function mountStaffPartyPrepare(area,user,location,source){
+  const box=el('section',null,{class:'mg-scene','aria-label':'Prova del party in Staff'}),status=el('p','Scegli i partecipanti per preparare la squadra di prova.',{role:'status'}),picksHost=el('div',null),partyHost=el('div',null);
+  const key='tus:mission-party-staff-prepare:1:'+user+':'+source+':'+location,selected=new Set();let busy=false,pending=null,existingParty=false,bounds=null;
+  const current=()=>valid(user)&&box.isConnected&&currentLocation()?.id===location&&currentLocation()?.is_test===true;
+  function receiptValid(r,j=pending){return !!j&&nativeExact(r,['schema_version','request_key','source_mission_id','mission_id','control_version','execution_context','simulation','started','replay'])&&r.schema_version==='mission-party-staff-prepare/1'
+   &&r.request_key===j.request&&r.source_mission_id===source&&UUID.test(r.mission_id||'')&&r.mission_id!==source&&r.control_version===0
+   &&partyExecutionContextValid(r.execution_context,r.mission_id,location)&&r.execution_context.mode==='staff_simulation'&&r.execution_context.scope_id===j.request
+   &&r.execution_context.source_mission_id===source&&r.simulation===true&&r.started===false&&typeof r.replay==='boolean';}
+  function journalValid(j){return nativeExact(j,['schema_version','user','source','location','request','roster','receipt'])&&j.schema_version==='mission-party-staff-prepare-journal/1'&&j.user===user&&j.source===source&&j.location===location&&UUID.test(j.request||'')&&Array.isArray(j.roster)&&j.roster.length>=1&&j.roster.length<=4&&j.roster.every(v=>UUID.test(v||''))&&new Set(j.roster).size===j.roster.length&&(j.receipt===null||receiptValid(j.receipt,j));}
+  function resolutionValid(r,j){
+   if(!nativeExact(r,['schema_version','request_key','request_fingerprint','state','mission_id','result'])||r.schema_version!=='mission-party-staff-prepare-resolution/1'||r.request_key!==j.request||!SHA.test(r.request_fingerprint||''))return false;
+   return r.state==='committed'?UUID.test(r.mission_id||'')&&receiptValid(r.result,j)&&r.result.replay===true&&r.result.mission_id===r.mission_id:r.state==='rejected_no_commit'&&r.mission_id===null&&r.result===null;
+  }
+  function readPending(){
+   const raw=localStorage.getItem(key);if(raw===null)return {entry:null,raw:null};
+   const j=JSON.parse(raw);if(!journalValid(j))throw Error('Richiesta precedente non verificabile.');
+   const archiveRaw=localStorage.getItem(key+':fenced:'+j.request);if(archiveRaw===null)return {entry:j,raw};
+   const archived=JSON.parse(archiveRaw);
+   if(!nativeExact(archived,['schema_version','journal_raw','resolution'])||archived.schema_version!=='mission-party-staff-prepare-fenced/1'||archived.journal_raw!==raw||j.receipt!==null||!resolutionValid(archived.resolution,j)||archived.resolution.state!=='rejected_no_commit')throw Error('Storico della richiesta non verificabile.');
+   return {entry:null,raw};
+  }
+  function save(){const encoded=JSON.stringify(pending);localStorage.setItem(key,encoded);if(localStorage.getItem(key)!==encoded)throw Error('Richiesta non conservata. Nessun invio.');}
+  function resetSelection(){selected.clear();picksHost.querySelectorAll('input').forEach(n=>n.checked=false);}
+  const prepare=button('Prepara prova di squadra',async()=>{
+   if(!current()||busy||pending?.receipt)return;
+   const intent=pending?'resolve':'prepare',expected=pending?.request;
+   busy=true;sync();
+   try{
+    if(!navigator.locks?.request)throw Error('Controllo della richiesta non disponibile.');
+    await navigator.locks.request(key,{mode:'exclusive'},async()=>{
+     if(!current())return;const loaded=readPending();pending=loaded.entry;
+     if(pending?.receipt){await showParty();return;}
+     if(intent==='resolve'&&(!pending||pending.request!==expected)){if(!pending)resetSelection();status.textContent=pending?'È presente una richiesta diversa: verifica quella conservata.':'La richiesta precedente è già stata risolta. Ricomponi la squadra prima di una nuova preparazione.';return;}
+     if(intent==='prepare'&&pending){status.textContent='È già presente una richiesta: usa Verifica e ricomponi squadra.';return;}
+     if(intent==='resolve'){
+      const r=await rpc('mission_party_staff_prepare_resolve_v1',{p_source_mission:source,p_location:location,p_roster:pending.roster,p_request:pending.request},user);
+      if(!current())return;if(!resolutionValid(r,pending))throw Error('Recupero non confermato.');
+      if(r.state==='committed'){pending.receipt=clone(r.result);save();await showParty();return;}
+      const archiveKey=key+':fenced:'+pending.request,encoded=JSON.stringify({schema_version:'mission-party-staff-prepare-fenced/1',journal_raw:loaded.raw,resolution:clone(r)}),previous=localStorage.getItem(archiveKey);
+      if(previous!==null&&previous!==encoded)throw Error('Storico della richiesta da verificare.');localStorage.setItem(archiveKey,encoded);if(localStorage.getItem(archiveKey)!==encoded)throw Error('Storico non conservato.');
+      pending=null;resetSelection();await showParty();if(!existingParty)status.textContent='Richiesta precedente risolta senza preparare la prova. Puoi ricomporre la squadra e inviare una nuova preparazione.';return;
+     }
+     if(!bounds||selected.size<bounds.min||selected.size>bounds.max){status.textContent='Completa la squadra nei limiti della missione prima di preparare la prova.';return;}
+     pending={schema_version:'mission-party-staff-prepare-journal/1',user,source,location,request:id(),roster:[...selected].sort(),receipt:null};save();
+     const r=await rpc('mission_party_staff_prepare_v1',{p_source_mission:source,p_location:location,p_roster:pending.roster,p_request:pending.request},user);
+     if(!current())return;if(!receiptValid(r))throw Error('Preparazione non confermata.');pending.receipt=clone(r);save();await showParty();
+    });
+   }catch{if(current())status.textContent='Operazione non confermata. La richiesta originale è conservata: usa Verifica e ricomponi squadra.';}
+   finally{busy=false;if(current())sync();}
+  });
+  function sync(){prepare.textContent=pending?.receipt?'Squadra preparata':existingParty&&!pending?'Squadra disponibile':pending?'Verifica e ricomponi squadra':'Prepara prova di squadra';prepare.disabled=busy||!!pending?.receipt||existingParty&&!pending||!pending&&(!bounds||selected.size<bounds.min||selected.size>bounds.max);picksHost.querySelectorAll('input').forEach(n=>n.disabled=busy||!!pending);}
+  async function showParty(){
+   if(!current())return;bounds=null;
+   try{const catalog=await rpc('bacheca_missioni',{},user);if(!current())return;if(!Array.isArray(catalog))throw Error('Sorgente non confermata.');const s=catalog.find(m=>m?.id===source);if(s&&Number.isSafeInteger(s.team_min)&&Number.isSafeInteger(s.team_max)&&s.team_min>0&&s.team_max>=s.team_min)bounds={min:s.team_min,max:s.team_max};}catch{/* Recovery of an existing request does not depend on current source availability. */}
+   if(!current())return;const response=await rpc('mission_generic_board_state_v1',{p_mission:pending?.receipt?.mission_id||null},user);if(!current())return;
+   if(response?.schema_version!=='mission-generic-board-state/1'||!Array.isArray(response.missions))throw Error('Stato della squadra non confermato.');
+   const rows=response.missions.filter(m=>partyProjectionValid(m)&&m.execution_context.mode==='staff_simulation'&&m.execution_context.source_mission_id===source&&m.location_id===location&&(pending?.receipt?m.mission_id===pending.receipt.mission_id:m.joined&&(m.state==='enrollment_open'||UUID.test(m.master_session_id||''))));
+   partyHost.replaceChildren();existingParty=rows.length>0;
+   for(const m of rows){const card=el('div',null,{class:'mcard','data-mid':m.mission_id}),actions=el('div',null,{class:'mact'});card.append(el('h4','Squadra della prova'),actions);partyHost.append(card);mountPartyPanel(partyHost,card,m,user);}
+   if(rows.length)status.textContent='Squadra disponibile. Ogni partecipante conferma la propria prontezza; il lancio usa gli stessi comandi della missione.';
+   else if(pending?.receipt)status.textContent='Squadra preparata: aggiorna la vista per verificarne lo stato.';
+   else if(pending)status.textContent='Richiesta conservata. Usa Verifica e ricomponi squadra per recuperarne l’esito.';
+   else if(!bounds)status.textContent='Limiti della missione non disponibili. Nessuna nuova preparazione.';sync();
+  }
+  box.append(el('h4','Prova del party'),status,picksHost,prepare,partyHost);area.append(box);
+  try{
+   pending=readPending().entry;
+   const roster=await presentCharacters();if(!current())return;
+   for(const c of roster){if(!UUID.test(c.id||''))continue;const check=el('input',null,{type:'checkbox'}),label=el('label',c.name,{class:'mg-inline-check'});check.checked=!!pending?.roster.includes(c.id);check.addEventListener('change',()=>{if(pending||busy)return;if(check.checked)selected.add(c.id);else selected.delete(c.id);sync();});label.prepend(check);picksHost.append(label);}
+   if(!roster.length)picksHost.textContent='Nessun personaggio presente nella stanza.';sync();await showParty();
+  }catch{if(current()){picksHost.querySelectorAll('input').forEach(n=>n.disabled=!!pending);if(pending&&!pending.receipt){status.textContent='Stato non aggiornato. La richiesta è conservata: usa Verifica e ricomponi squadra.';sync();}else{prepare.disabled=true;status.textContent='La preparazione richiede una verifica dello Staff.';}}}
+ }
+
  async function board(mission,title){
   if(isStaff()&&typeof creationBoard==='function'&&await creationBoard(mission,title))return;
   const user=identity(),d=dialog('Missione IA · '+title),status=el('p','Caricamento…',{role:'status'}),area=el('div',null);d.append(status,area);
@@ -227,7 +301,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
    if(isStaff()){
     const loc=currentLocation();
     if(loc&&!loc.is_test&&!state?.master_session_id)area.append(button('Apri iscrizioni in questa stanza',async e=>{e.currentTarget.disabled=true;try{await rpc('mission_generic_board_open_v1',{p_mission:mission,p_location:loc.id,p_request:id()},user);await load();}catch(err){status.textContent=err.message;}}));
-    if(loc?.is_test&&loc.id===STAFF_TEST_ROOM){await mountStaffStart(area,status,d,mission,user,loc);if(d.isConnected)await mountAIOnlyPrepare(area,mission,user,()=>d.isConnected&&valid(user));}
+    if(loc?.is_test&&loc.id===STAFF_TEST_ROOM){await mountStaffStart(area,status,d,mission,user,loc);if(d.isConnected)await mountStaffPartyPrepare(area,user,loc.id,mission);if(d.isConnected)await mountAIOnlyPrepare(area,mission,user,()=>d.isConnected&&valid(user));}
     else if(loc?.is_test){const details=el('details',null);details.append(el('summary','Prova protetta dello staff in questa stanza'));const picks=new Set(),row=el('div',null);
      details.append(row);area.append(details);const start=button('Avvia prova protetta',async e=>{if(!picks.size)return;e.currentTarget.disabled=true;try{
        await rpc('mission_generic_staff_test_start_v1',{p_source_mission:mission,p_location:loc.id,p_roster:[...picks],p_request:id()},user);
@@ -282,12 +356,40 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   return c.operation==='ready'?nativeExact(c,['schema_version','operation','mission_id','expected_activation_version','ready','request_key'])&&typeof c.ready==='boolean'
    :c.operation==='start'&&nativeExact(c,['schema_version','operation','mission_id','expected_activation_version','expected_capability_version','request_key'])&&Number.isSafeInteger(c.expected_capability_version)&&c.expected_capability_version>0;
  }
- function boardHostReceiptValid(r,c){
+ function partyExecutionContextValid(c,mission,location){
+  return nativeExact(c,['schema_version','mode','source_mission_id','location_id','scope_id'])&&c.schema_version==='mission-party-execution/1'
+   &&['world','staff_simulation'].includes(c.mode)&&UUID.test(c.source_mission_id||'')&&UUID.test(c.location_id||'')&&UUID.test(c.scope_id||'')
+   &&c.location_id===location&&(c.mode==='world'?c.source_mission_id===mission:c.location_id===STAFF_TEST_ROOM&&c.source_mission_id!==mission);
+ }
+ function boardHostReceiptValid(r,c,context=null){
   if(c.operation==='ready')return nativeExact(r,['schema_version','mission_id','ready','all_ready','control_version','replay'])&&r.schema_version==='mission-ai-board-ready/1.0'&&r.mission_id===c.mission_id&&r.ready===c.ready&&typeof r.all_ready==='boolean'&&r.control_version===c.expected_activation_version+1&&typeof r.replay==='boolean';
-  return nativeExact(r,['schema_version','request_key','mission_id','activation_id','cycle','mode','master_session_id','capability_version','activation_version','state','native_receipt','simulation','replay'])
-   &&r.schema_version==='mission-launch-start/1'&&r.request_key===c.request_key&&r.mission_id===c.mission_id&&UUID.test(r.activation_id||'')&&Number.isSafeInteger(r.cycle)&&r.cycle>=0
-   &&r.mode==='ai'&&UUID.test(r.master_session_id||'')&&r.capability_version===c.expected_capability_version&&Number.isSafeInteger(r.activation_version)&&r.activation_version>=c.expected_activation_version
-   &&r.state==='start_reserved'&&r.native_receipt!==null&&typeof r.native_receipt==='object'&&!Array.isArray(r.native_receipt)&&r.simulation===false&&typeof r.replay==='boolean';
+  const staff=context?.mode==='staff_simulation';
+  if(!nativeExact(r,['schema_version','request_key','mission_id','activation_id','cycle','mode','master_session_id','capability_version','activation_version','state','native_receipt','simulation','replay'])
+   ||r.schema_version!=='mission-launch-start/1'||r.request_key!==c.request_key||r.mission_id!==c.mission_id||!UUID.test(r.activation_id||'')||!Number.isSafeInteger(r.cycle)||r.cycle<0
+   ||r.mode!=='ai'||!UUID.test(r.master_session_id||'')||r.capability_version!==c.expected_capability_version||!Number.isSafeInteger(r.activation_version)||r.activation_version<c.expected_activation_version
+   ||r.state!=='start_reserved'||r.native_receipt===null||typeof r.native_receipt!=='object'||Array.isArray(r.native_receipt)||r.simulation!==staff||typeof r.replay!=='boolean')return false;
+  if(!staff)return true;
+  if(!partyExecutionContextValid(context,c.mission_id,STAFF_TEST_ROOM))return false;
+  try{staffStartReceipt(r.native_receipt,context.source_mission_id);}catch{return false;}
+  return r.native_receipt.mission_id===c.mission_id&&r.native_receipt.master_session_id===r.master_session_id;
+ }
+ function boardJournalRead(user,state){
+  const context=state.execution_context,mission=state.mission_id;
+  if(!partyExecutionContextValid(context,mission,state.location_id))throw Error('Contesto di avvio non confermato. Ricarica la pagina.');
+  const key='tus:mission-client-board:1:'+user+':'+mission,raw=localStorage.getItem(key);
+  if(raw===null)return {key,legacyRaw:null,journal:{schema_version:'mission-client-board-journal/2',user,mission,commands:[]}};
+  const j=JSON.parse(raw),legacy=j?.schema_version==='mission-client-board-journal/1';
+  if(!nativeExact(j,['schema_version','user','mission','commands'])||!['mission-client-board-journal/1','mission-client-board-journal/2'].includes(j.schema_version)||j.user!==user||j.mission!==mission||!Array.isArray(j.commands)
+   ||j.commands.some(x=>!nativeExact(x,legacy?['command','state','receipt']:['command','state','receipt','execution_context'])||!boardHostCommandValid(x.command)||x.command.mission_id!==mission||!['pending','accepted','rejected'].includes(x.state)
+    ||!legacy&&x.execution_context!==null&&!partyExecutionContextValid(x.execution_context,mission,x.execution_context?.location_id)
+    ||x.state==='pending'&&x.receipt!==null||x.state==='accepted'&&!boardHostReceiptValid(x.receipt,x.command,legacy?null:x.execution_context)
+    ||x.state==='rejected'&&(!nativeExact(x.receipt,['schema_version','operation','code'])||x.receipt.schema_version!=='mission-narrative-client-rejection/1'||x.receipt.operation!==x.command.operation))
+   ||j.commands.filter(x=>x.state==='pending').length>1||new Set(j.commands.map(x=>x.command.request_key)).size!==j.commands.length)throw Error('Richiesta precedente non verificabile. Nessun nuovo invio.');
+  if(legacy&&context.mode!=='world'&&j.commands.length)throw Error('Richiesta precedente fuori contesto. Nessun nuovo invio.');
+  const journal=legacy?{...j,schema_version:'mission-client-board-journal/2',commands:j.commands.map(x=>({...x,execution_context:null}))}:j;
+  const pending=journal.commands.find(x=>x.state==='pending');
+  if(pending&&(pending.execution_context===null?context.mode!=='world':['schema_version','mode','source_mission_id','location_id','scope_id'].some(k=>pending.execution_context[k]!==context[k])))throw Error('Il contesto della richiesta conservata è cambiato. Nessun nuovo invio.');
+  return {key,journal,legacyRaw:legacy?raw:null};
  }
  async function submitBoardHost(state,operation,ready){
   assertMissionHost(state.required_host_contract);
@@ -295,17 +397,16 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   if(!user||!navigator.locks?.request)throw Error('Richiesta non disponibile: nessun nuovo invio.');
   return navigator.locks.request(key,{mode:'exclusive'},async()=>{
    if(!valid(user))throw Error('Accesso cambiato. Richiesta conservata.');
-   const raw=localStorage.getItem(key);let journal=raw===null?{schema_version:'mission-client-board-journal/1',user,mission:state.mission_id,commands:[]}:JSON.parse(raw);
-   if(!nativeExact(journal,['schema_version','user','mission','commands'])||journal.schema_version!=='mission-client-board-journal/1'||journal.user!==user||journal.mission!==state.mission_id||!Array.isArray(journal.commands)
-    ||journal.commands.some(x=>!nativeExact(x,['command','state','receipt'])||!boardHostCommandValid(x.command)||x.command.mission_id!==state.mission_id||!['pending','accepted','rejected'].includes(x.state)
-      ||x.state==='pending'&&x.receipt!==null||x.state==='accepted'&&!boardHostReceiptValid(x.receipt,x.command)||x.state==='rejected'&&(!nativeExact(x.receipt,['schema_version','operation','code'])||x.receipt.schema_version!=='mission-narrative-client-rejection/1'||x.receipt.operation!==x.command.operation))
-    ||journal.commands.filter(x=>x.state==='pending').length>1||new Set(journal.commands.map(x=>x.command.request_key)).size!==journal.commands.length)throw Error('Richiesta precedente non verificabile. Nessun nuovo invio.');
+   const loaded=boardJournalRead(user,state),journal=loaded.journal;
    let row=journal.commands.find(x=>x.state==='pending');const resumed=!!row;
-   if(!row){const command={schema_version:'mission-narrative-client-command/1',operation,mission_id:state.mission_id,expected_activation_version:state.control_version,...(operation==='ready'?{ready}:{expected_capability_version:state.capability_version}),request_key:id()};if(!boardHostCommandValid(command))throw Error('Avvio non confermato: aggiorna la missione.');row={command,state:'pending',receipt:null};journal.commands.push(row);}
-   const save=()=>{const encoded=JSON.stringify(journal);localStorage.setItem(key,encoded);if(localStorage.getItem(key)!==encoded)throw Error('Richiesta non conservata. Nessun nuovo invio.');};save();
+   if(!row){const command={schema_version:'mission-narrative-client-command/1',operation,mission_id:state.mission_id,expected_activation_version:state.control_version,...(operation==='ready'?{ready}:{expected_capability_version:state.capability_version}),request_key:id()};if(!boardHostCommandValid(command))throw Error('Avvio non confermato: aggiorna la missione.');row={command,state:'pending',receipt:null,execution_context:clone(state.execution_context)};journal.commands.push(row);}
+   const save=()=>{
+    if(loaded.legacyRaw!==null){const archiveKey=key+':legacy-journal-1',old=localStorage.getItem(archiveKey);if(old!==null&&old!==loaded.legacyRaw)throw Error('Storico della richiesta da verificare. Nessun nuovo invio.');localStorage.setItem(archiveKey,loaded.legacyRaw);if(localStorage.getItem(archiveKey)!==loaded.legacyRaw)throw Error('Storico non conservato. Nessun nuovo invio.');}
+    const encoded=JSON.stringify(journal);localStorage.setItem(key,encoded);if(localStorage.getItem(key)!==encoded)throw Error('Richiesta non conservata. Nessun nuovo invio.');
+   };save();
    const result=await invokeHostCommand(row.command);
    if(result.error){if(result.error.definitive&&result.rejection){row.state='rejected';row.receipt=result.rejection;save();}const failure=Error(result.error.message==='MISSION_HOST_RELOAD_REQUIRED'?'Ricarica la pagina.':'Richiesta non confermata. L’originale è conservato.');if(result.error.message==='MISSION_HOST_RELOAD_REQUIRED')failure.missionHostReload=true;throw failure;}
-   if(!boardHostReceiptValid(result.data,row.command))throw Error('Ricevuta non verificabile. La stessa richiesta è conservata.');
+   if(!boardHostReceiptValid(result.data,row.command,row.execution_context))throw Error('Ricevuta non verificabile. La stessa richiesta è conservata.');
    row.state='accepted';row.receipt=clone(result.data);save();
    if(resumed&&valid(user))notice('Richiesta precedente verificata.');return result.data;
   });
@@ -547,15 +648,72 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
    controls.append(toggle,field('Missione sorgente',picker),configure,start);d.append(controls);render();
   }catch(e){status.textContent=e.message;}
  }
+ const partyPanelBusy=new Set(),partyPanelEpoch=new WeakMap();
+ function partyProjectionValid(s){
+  return UUID.test(s?.mission_id||'')&&Number.isSafeInteger(s.control_version)&&s.control_version>=0
+   &&Number.isSafeInteger(s.participants)&&s.participants>=0&&Number.isSafeInteger(s.team_min)&&Number.isSafeInteger(s.team_max)
+   &&s.team_min>0&&s.team_max>=s.team_min&&typeof s.joined==='boolean'&&typeof s.ready==='boolean'
+   &&typeof s.all_ready==='boolean'&&typeof s.party_complete==='boolean'&&typeof s.can_start==='boolean'&&typeof s.available==='boolean'
+   &&partyExecutionContextValid(s.execution_context,s.mission_id,s.location_id)&&Array.isArray(s.roster)&&s.roster.length===s.participants&&new Set(s.roster.map(p=>p.character_id)).size===s.roster.length
+   &&s.roster.every(p=>nativeExact(p,['character_id','name','ready'])&&UUID.test(p.character_id||'')&&typeof p.name==='string'&&typeof p.ready==='boolean');
+ }
+ function pendingPartyCommand(user,state){return boardJournalRead(user,state).journal.commands.find(r=>r.state==='pending')?.command||null;}
+ function mountPartyPanel(host,card,state,user){
+  const target=card.querySelector('.mact');if(!target)return;
+  card.querySelector('[data-mg-party-panel]')?.remove();
+  const panel=el('section',null,{'data-mg-party-panel':state.mission_id,'aria-label':'Squadra e avvio della missione',class:'mg-party-panel'});
+  const status=el('p','',{role:'status','aria-live':'polite'}),roster=el('ul',null,{class:'mg-party-roster'}),commands=el('div',null,{class:'mg-party-actions'});
+  panel.append(el('h4','Squadra e avvio'),status,roster,commands);target.append(panel);
+  const addRefresh=()=>{const b=button('Aggiorna stato',()=>void decorateBoard(host));b.setAttribute('data-mg-party-update','');commands.append(b);return b;};
+  if(!partyProjectionValid(state)){status.textContent='Stato della squadra da aggiornare.';addRefresh();return;}
+  for(const person of state.roster)roster.append(el('li',person.name+' · '+(person.ready?'Pronto':'Da confermare')));
+  if(!state.roster.length)roster.append(el('li','Nessun partecipante iscritto.'));
+  const current=()=>valid(user)&&host.isConnected&&card.isConnected&&host.contains(card)&&panel.isConnected;
+  const busy=partyPanelBusy.has(state.mission_id);let pending=null;
+  try{pending=pendingPartyCommand(user,state);}catch{status.textContent='La richiesta precedente richiede una verifica dello Staff.';addRefresh();return;}
+  const act=async fn=>{
+   if(!current()||partyPanelBusy.has(state.mission_id))return;partyPanelBusy.add(state.mission_id);
+   commands.querySelectorAll('button').forEach(b=>b.disabled=!b.hasAttribute('data-mg-party-update'));card.querySelectorAll('[data-mret]').forEach(b=>b.disabled=true);status.textContent='Operazione in corso…';
+   let failure=null;
+   try{await fn();}catch(e){failure=e;}
+   finally{partyPanelBusy.delete(state.mission_id);}
+   if(!valid(user)||!host.isConnected)return;await decorateBoard(host);
+   if(!valid(user)||!host.isConnected)return;
+   if(failure){const message=[...host.querySelectorAll('[data-mg-party-panel]')].find(n=>n.getAttribute('data-mg-party-panel')===state.mission_id)?.querySelector('[role=status]');if(message)message.textContent=failure.missionHostReload?'Ricarica la pagina.':'Operazione non confermata. Aggiorna lo stato o verifica la richiesta conservata.';}
+   else refresh();
+  };
+  const add=(label,fn,disabled=false)=>{const b=button(label,()=>void act(fn));b.disabled=busy||disabled;commands.append(b);return b;};
+  if(state.master_session_id){status.textContent='Missione avviata. La scena è disponibile nella chat.';}
+  else if(pending){status.textContent='Richiesta in attesa di conferma. La stessa richiesta verrà verificata.';add(pending.operation==='start'?'Verifica avvio':'Verifica prontezza',()=>submitBoardHost(state,pending.operation,pending.ready));}
+  else{
+   status.textContent=state.available?(state.party_complete?(state.all_ready?'Squadra completa: tutti pronti.':'Squadra completa: attendi la conferma di tutti.'):'Squadra da completare · '+state.participants+'/'+state.team_max+'.'):'Avvio non disponibile. Aggiorna lo stato per verificare la missione.';
+   if(state.can_join)add('Partecipa',()=>{assertMissionHost(state.required_host_contract);return rpc('mission_generic_board_join_v1',{p_mission:state.mission_id,p_request:id()},user);});
+   if(state.joined){
+    add(state.ready?'Non sono pronto':'Sono pronto',()=>submitBoardHost(state,'ready',!state.ready),!state.available);
+    add('Lancia missione',()=>submitBoardHost(state,'start'),!state.available||!state.can_start||!state.party_complete||!state.all_ready);
+    if(state.control_version>0)add('Ritira partecipazione',()=>rpc('mission_ai_board_withdraw',{p_mission:state.mission_id,p_expected_version:state.control_version,p_request_key:id()},user),!state.available);
+   }
+  }
+  addRefresh();
+ }
  async function decorateBoard(host){const user=identity();if(!user||!host)return;
+  const epoch=(partyPanelEpoch.get(host)||0)+1;partyPanelEpoch.set(host,epoch);
   if(isStaff()&&!host.querySelector('[data-mg-sources]')){const b=button('Archivio missioni e prove',sources);b.setAttribute('data-mg-sources','');host.prepend(b);}
-  try{const response=await rpc('mission_generic_board_state_v1',{p_mission:null},user);if(!host.isConnected||!valid(user))return;
+  try{const response=await rpc('mission_generic_board_state_v1',{p_mission:null},user);if(!host.isConnected||!valid(user)||partyPanelEpoch.get(host)!==epoch)return;
+   if(response?.schema_version!=='mission-generic-board-state/1'||!Array.isArray(response.missions))throw Error('Stato missioni non riconosciuto.');
+   host.querySelectorAll('[data-mg-party-panel]').forEach(n=>n.remove());
    for(const m of response.missions){
-    const aiOnly=aiOnlyModes(m.supported_modes);if(aiOnly){const card=[...host.querySelectorAll('[data-mid]')].find(n=>n.getAttribute('data-mid')===m.mission_id);if(card){card.querySelectorAll('[data-mjoin],[data-mret],[data-msend],[data-mprog],.mp-date,.mform').forEach(n=>{n.hidden=true;n.style.display='none';if('disabled'in n)n.disabled=true;});for(const note of card.querySelectorAll('.mnote'))if(note.textContent.includes('appuntamento col master')){note.hidden=true;note.style.display='none';}}}
-    if(isStaff())continue;const card=[...host.querySelectorAll('[data-mid]')].find(n=>n.getAttribute('data-mid')===m.mission_id);if(!card||card.querySelector('[data-mg-board]'))continue;
+    const card=[...host.querySelectorAll('[data-mid]')].find(n=>n.getAttribute('data-mid')===m.mission_id);if(!card)continue;
+    const aiOnly=aiOnlyModes(m.supported_modes);if(aiOnly){card.querySelectorAll('[data-mjoin],[data-msend],[data-mprog],.mp-date,.mform').forEach(n=>{n.hidden=true;n.style.display='none';if('disabled'in n)n.disabled=true;});card.querySelectorAll('[data-mret]').forEach(n=>{const initialized=m.control_version>0;n.hidden=initialized;n.style.display=initialized?'none':'';n.disabled=initialized||partyPanelBusy.has(m.mission_id);});for(const note of card.querySelectorAll('.mnote'))if(note.textContent.includes('appuntamento col master')){note.hidden=true;note.style.display='none';}}
+    if(aiOnly&&m.required_host_contract===MISSION_HOST_CONTRACT){style();
+     card.querySelector('[data-mg-board]')?.remove();
+     if(!currentLocation()?.is_test)card.querySelectorAll('[data-m-generic-board]').forEach(n=>{n.hidden=true;n.style.display='none';});
+     mountPartyPanel(host,card,m,user);continue;
+    }
+    if(isStaff()||card.querySelector('[data-mg-board]'))continue;
     const b=button('Missione IA',()=>board(m.mission_id,m.title));b.setAttribute('data-mg-board',m.mission_id);card.querySelector('.mact')?.append(b);
    }
-  }catch{/* Feature availability is not inferred from an absent RPC. */}
+  }catch{for(const panel of host.querySelectorAll('[data-mg-party-panel]')){panel.querySelectorAll('button').forEach(b=>b.disabled=!b.hasAttribute('data-mg-party-update'));const message=panel.querySelector('[role=status]');if(message)message.textContent='Stato non aggiornato. Usa Aggiorna stato prima di continuare.';}}
  }
  // Processing is a server projection. A read never retries a provider or a choice.
  const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
