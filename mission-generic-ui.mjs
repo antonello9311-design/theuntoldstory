@@ -214,7 +214,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
  async function mountStaffPartyPrepare(area,user,location,source){
   const box=el('section',null,{class:'mg-scene','aria-label':'Prova del party in Staff'}),status=el('p','Scegli i partecipanti per preparare la squadra di prova.',{role:'status'}),picksHost=el('div',null),partyHost=el('div',null);
   const key='tus:mission-party-staff-prepare:1:'+user+':'+source+':'+location,selected=new Set();let busy=false,pending=null,existingParty=false,bounds=null;
-  const current=()=>valid(user)&&box.isConnected&&currentLocation()?.id===location&&currentLocation()?.is_test===true;
+  const current=()=>valid(user)&&isStaff()&&location===STAFF_TEST_ROOM&&box.isConnected&&currentLocation()?.id===location&&currentLocation()?.is_test===true;
   function receiptValid(r,j=pending){return !!j&&nativeExact(r,['schema_version','request_key','source_mission_id','mission_id','control_version','execution_context','simulation','started','replay'])&&r.schema_version==='mission-party-staff-prepare/1'
    &&r.request_key===j.request&&r.source_mission_id===source&&UUID.test(r.mission_id||'')&&r.mission_id!==source&&r.control_version===0
    &&partyExecutionContextValid(r.execution_context,r.mission_id,location)&&r.execution_context.mode==='staff_simulation'&&r.execution_context.scope_id===j.request
@@ -227,7 +227,17 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   function readPending(){
    const raw=localStorage.getItem(key);if(raw===null)return {entry:null,raw:null};
    const j=JSON.parse(raw);if(!journalValid(j))throw Error('Richiesta precedente non verificabile.');
-   const archiveRaw=localStorage.getItem(key+':fenced:'+j.request);if(archiveRaw===null)return {entry:j,raw};
+   const closedRaw=localStorage.getItem(key+':closed:'+j.request);
+   const archiveRaw=localStorage.getItem(key+':fenced:'+j.request);
+   if(closedRaw!==null){
+    const closed=JSON.parse(closedRaw);
+    if(archiveRaw!==null||!j.receipt||!nativeExact(closed,['schema_version','journal_raw','mission_id','scope_id','master_session_id','state'])
+     ||closed.schema_version!=='mission-party-staff-prepare-closed/1'||closed.journal_raw!==raw
+     ||closed.mission_id!==j.receipt.mission_id||closed.scope_id!==j.request
+     ||!UUID.test(closed.master_session_id||'')||closed.state!=='disarmed')throw Error('Chiusura conservata non verificabile.');
+    return {entry:null,raw};
+   }
+   if(archiveRaw===null)return {entry:j,raw};
    const archived=JSON.parse(archiveRaw);
    if(!nativeExact(archived,['schema_version','journal_raw','resolution'])||archived.schema_version!=='mission-party-staff-prepare-fenced/1'||archived.journal_raw!==raw||j.receipt!==null||!resolutionValid(archived.resolution,j)||archived.resolution.state!=='rejected_no_commit')throw Error('Storico della richiesta non verificabile.');
    return {entry:null,raw};
@@ -265,9 +275,24 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   async function showParty(){
    if(!current())return;bounds=null;
    try{const catalog=await rpc('bacheca_missioni',{},user);if(!current())return;if(!Array.isArray(catalog))throw Error('Sorgente non confermata.');const s=catalog.find(m=>m?.id===source);if(s&&Number.isSafeInteger(s.team_min)&&Number.isSafeInteger(s.team_max)&&s.team_min>0&&s.team_max>=s.team_min)bounds={min:s.team_min,max:s.team_max};}catch{/* Recovery of an existing request does not depend on current source availability. */}
-   if(!current())return;const response=await rpc('mission_generic_board_state_v1',{p_mission:pending?.receipt?.mission_id||null},user);if(!current())return;
+   if(!current())return;const response=await rpc('mission_generic_board_state_v1',{p_mission:null},user);if(!current())return;
    if(response?.schema_version!=='mission-generic-board-state/1'||!Array.isArray(response.missions))throw Error('Stato della squadra non confermato.');
-   const rows=response.missions.filter(m=>partyProjectionValid(m)&&m.execution_context.mode==='staff_simulation'&&m.execution_context.source_mission_id===source&&m.location_id===location&&(pending?.receipt?m.mission_id===pending.receipt.mission_id:m.joined&&(m.state==='enrollment_open'||UUID.test(m.master_session_id||''))));
+   const staffRows=response.missions.filter(m=>partyProjectionValid(m)&&m.execution_context.mode==='staff_simulation'&&m.execution_context.source_mission_id===source&&m.location_id===location);
+   const ownRow=pending?.receipt?staffRows.find(m=>m.mission_id===pending.receipt.mission_id&&m.execution_context.scope_id===pending.request):null;
+   if(ownRow?.state==='disarmed'&&ownRow.can_start===false&&UUID.test(ownRow.master_session_id||'')){
+    // All callers hold the preparation lock. Keep the original journal bytes until a new explicit intent.
+    const saved=readPending();
+    if(!saved.entry?.receipt||JSON.stringify(saved.entry)!==JSON.stringify(pending))throw Error('Richiesta conservata cambiata.');
+    const archiveKey=key+':closed:'+saved.entry.request;
+    const encoded=JSON.stringify({schema_version:'mission-party-staff-prepare-closed/1',journal_raw:saved.raw,
+     mission_id:ownRow.mission_id,scope_id:ownRow.execution_context.scope_id,master_session_id:ownRow.master_session_id,state:ownRow.state});
+    const previous=localStorage.getItem(archiveKey);
+    if(previous!==null&&previous!==encoded)throw Error('Chiusura conservata da verificare.');
+    localStorage.setItem(archiveKey,encoded);
+    if(localStorage.getItem(archiveKey)!==encoded)throw Error('Chiusura non conservata.');
+    pending=null;resetSelection();
+   }
+   const rows=pending?.receipt?(ownRow?[ownRow]:[]):staffRows.filter(m=>m.state!=='disarmed'&&m.joined&&(m.state==='enrollment_open'||UUID.test(m.master_session_id||'')));
    partyHost.replaceChildren();existingParty=rows.length>0;
    for(const m of rows){const card=el('div',null,{class:'mcard','data-mid':m.mission_id}),actions=el('div',null,{class:'mact'});card.append(el('h4','Squadra della prova'),actions);partyHost.append(card);mountPartyPanel(partyHost,card,m,user);}
    if(rows.length)status.textContent='Squadra disponibile. Ogni partecipante conferma la propria prontezza; il lancio usa gli stessi comandi della missione.';
@@ -279,8 +304,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   try{
    pending=readPending().entry;
    const roster=await presentCharacters();if(!current())return;
+   if(!navigator.locks?.request)throw Error('Controllo della richiesta non disponibile.');
+   await navigator.locks.request(key,{mode:'exclusive'},async()=>{
+   if(!current())return;pending=readPending().entry;
    for(const c of roster){if(!UUID.test(c.id||''))continue;const check=el('input',null,{type:'checkbox'}),label=el('label',c.name,{class:'mg-inline-check'});check.checked=!!pending?.roster.includes(c.id);check.addEventListener('change',()=>{if(pending||busy)return;if(check.checked)selected.add(c.id);else selected.delete(c.id);sync();});label.prepend(check);picksHost.append(label);}
    if(!roster.length)picksHost.textContent='Nessun personaggio presente nella stanza.';sync();await showParty();
+   });
   }catch{if(current()){picksHost.querySelectorAll('input').forEach(n=>n.disabled=!!pending);if(pending&&!pending.receipt){status.textContent='Stato non aggiornato. La richiesta è conservata: usa Verifica e ricomponi squadra.';sync();}else{prepare.disabled=true;status.textContent='La preparazione richiede una verifica dello Staff.';}}}
  }
 
