@@ -827,6 +827,12 @@
   #mission-board-scene:not(:has(>div:not([hidden]))){display:none}
   #mission-board-scene,.mission-board-panel{margin:0 0 14px;padding:12px;border:1px solid var(--rule);border-radius:10px;background:rgba(255,250,235,.46)}
   #mission-board-scene h2,.mission-board-panel h3{margin:0 0 8px}
+  #missov:not(:has(#mtab-bacheca.on)) #mission-board-staff-tools,
+  #mission-board-staff-tools:not(:has(>[data-staff-editorial],>[data-staff-editorial-pair])){display:none}
+  #mission-board-staff-tools{margin:14px 0 0;padding:10px 12px;border:1px solid var(--rule);border-radius:10px}
+  #mission-board-staff-tools summary{cursor:pointer;font-weight:700}
+  #mission-board-scene .mg-narrative-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0}
+  #mission-board-scene .mg-narrative-actions button{margin:0}
   .mission-board-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
   #missov #mission-generic-room.mg-room,#missov .h33-workspace{max-height:none;overflow:visible}
   #mission-board-panel:empty{display:none}
@@ -2379,6 +2385,10 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
           <div id="mission-board-panel"></div>
         </div>
         <div id="miss-body"></div>
+        <details id="mission-board-staff-tools">
+          <summary>Strumenti di prova Staff</summary>
+          <div id="mission-board-editorial-anchor" hidden></div>
+        </details>
       </div>
     </div>
   </div>
@@ -15330,8 +15340,8 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       }
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=mission-bacheca-454c163bd7b21010').then(function(mod){
-          MISSION_GENERIC_UI=mod.createMissionUI({client:sb,createBoardPanel:createMissionBoardPanel,beginBoardPanel:beginMissionBoardPanel,isEventReadMode:landPureReadMode,beforeUserCommand:landUserPresence,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title,intent){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title,intent);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=mission-bacheca-58803095bf6ec40e').then(function(mod){
+          MISSION_GENERIC_UI=mod.createMissionUI({client:sb,createBoardPanel:createMissionBoardPanel,beginBoardPanel:beginMissionBoardPanel,staffEditorialHost:function(){return document.getElementById('mission-board-editorial-anchor');},isEventReadMode:landPureReadMode,beforeUserCommand:landUserPresence,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title,intent){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title,intent);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             createRecoveryFeedback:function(){var revision=toastRevision;return function(message){if(revision!==toastRevision)return;toast(message);revision=toastRevision;};},
             publicationChanged:function(publication){

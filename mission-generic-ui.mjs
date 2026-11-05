@@ -17,7 +17,7 @@ function style(){if(styled)return;styled=true;const n=el('style',null);n.textCon
 .mg-dialog::backdrop{background:#0009}.mg-dialog button,.mg-dialog input,.mg-dialog select,.mg-dialog textarea{font:inherit;padding:8px;border-radius:6px;border:1px solid #8e8669;max-width:100%;box-sizing:border-box}.mg-dialog button{cursor:pointer}.mg-dialog button:disabled{opacity:.55;cursor:wait}.mg-dialog textarea{width:100%;min-height:80px}.mg-field{display:flex;flex-direction:column;gap:5px;margin:8px 0}.mg-row{display:flex;flex-wrap:wrap;align-items:end;gap:10px}.mg-row>.mg-field{flex:1;min-width:160px}.mg-scene{border:1px solid #b8b09c;border-radius:8px;padding:14px;margin:12px 0;background:#fff9}.mg-status{min-height:1.4em}.mg-dialog h3,.mg-dialog h4{margin:8px 0}.mg-room{padding:10px 14px;border:1px solid #a89a75;border-radius:8px;margin:8px 0}.mg-room [role=status]{margin:4px 0}.mg-room button{margin:4px}.mg-dialog summary{cursor:pointer;font-weight:bold}.mg-inline-check{display:inline-flex;align-items:center;gap:5px;margin:5px 12px 5px 0}
 `;document.head.append(n);}
 
-export function createMissionUI({client,identity,isStaff,currentLocation,beforeUserCommand=null,presentCharacters=async()=>[],creationEditor=null,creationBoard=null,createBoardPanel=null,beginBoardPanel=null,isEventReadMode=()=>false,notice=()=>{},refresh=()=>{},publicationChanged=()=>{},createRecoveryFeedback=()=>notice,openCombat=()=>{}}){
+export function createMissionUI({client,identity,isStaff,currentLocation,beforeUserCommand=null,presentCharacters=async()=>[],creationEditor=null,creationBoard=null,createBoardPanel=null,beginBoardPanel=null,staffEditorialHost=null,isEventReadMode=()=>false,notice=()=>{},refresh=()=>{},publicationChanged=()=>{},createRecoveryFeedback=()=>notice,openCombat=()=>{}}){
  let currentDialog=null,roomEpoch=0,roomSignature='',roomState=null,roomReadFlight=null,roomDirtyHint=false;
  const eventRecoveryFeedback=new Map();
  client=guardStaffAbortClient(client,{identity,session:()=>roomState?.session_id,location:()=>currentLocation()?.id});
@@ -507,7 +507,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   if(!s&&!n.participant_commands.peaceful){row?.remove();return;}
   if(!row){row=el('div',null,{'data-mg-server-event':''});host.append(row);}
   row.replaceChildren();
-  if(s)row.append(el('p',s.state==='terminal'?'Elaborazione conclusa dal server.':'Elaborazione gestita dal server: '+s.state+'.'));
+  if(s)row.append(el('p',({
+   pending:'Richiesta acquisita.',
+   running:'Fato in elaborazione.',
+   waiting:'In attesa del server.',
+   terminal:'Elaborazione conclusa dal server.',
+   uncertain:'Esito della richiesta da verificare.'
+  })[s.state]));
   if(n.participant_commands.peaceful){const b=button('Valuta la cessazione dello scontro',()=>void requestNativePeaceful(host));b.disabled=!!roomError||nativePeacefulBusy.has(state.session_id)||s?.state==='running';row.append(b);}
   if(n.mode==='closed'&&s?.can_recover===true){const b=button('Riprendi conclusione',()=>void requestPublicNarrativeFinish(host));b.disabled=!!roomError||narrativeFinishBusy.has(state.session_id);row.append(b);}
   // Participant commands never expose Staff retry/reissue/finish capabilities.
@@ -3850,11 +3856,13 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   const status=roomError||(n.mode==='closed'?(n.schema_version==='mission-narrative-scene-public/2'?'Scena conclusa.':'Missione conclusa.'):n.mode==='combat_pending'?'Passaggio allo scontro in preparazione.':event?.state==='running'?'Il Fato è in elaborazione.':event?.state==='pending'?'Richiesta acquisita: il Fato è in attesa di elaborazione.':event?.state==='uncertain'?'Esito della richiesta da verificare. L’originale è conservato.':event?.state==='waiting'&&!playersCanWrite?'Richiesta in attesa del server.':'In attesa delle azioni dei personaggi.');
   host.replaceChildren(el('strong','Missione · '+state.objective),el('p',status,{role:'status','aria-live':'polite'}));
   if(n.last_publication_id)host.append(el('p','Il Fato pubblicato è disponibile nella chat.'));
-  host.append(button('Aggiorna regia',()=>refreshRoomManually(host)));
+  const actions=el('div',null,{class:'mg-narrative-actions'});
+  actions.append(button('Aggiorna regia',()=>refreshRoomManually(host)));
   let saved=null;try{saved=narrativeEntrySaved(identity(),state.session_id);}catch{}
   const combat=button('Scontro',()=>void openNarrativeCombat(host,state,beginBoardPanel?.()));combat.disabled=narrativeCombatBusy.has(state.session_id)||!surface.map_operational||!(surface.can_open||surface.can_prepare);
-  if(!surface.map_operational)combat.title='La mappa dello scontro non è ancora operativa in questa fase.';host.append(combat);
-  if(isStaff()&&n.execution_context!=='world')host.append(button('Gestisci prova',()=>void mountAborts(host,state,syncRoom(host),{manual:true})));
+  if(!surface.map_operational)combat.title='La mappa dello scontro non è ancora operativa in questa fase.';actions.append(combat);
+  if(isStaff()&&n.execution_context!=='world')actions.append(button('Gestisci prova',()=>void mountAborts(host,state,syncRoom(host),{manual:true})));
+  host.append(actions);
   paintServerEvent(host,state);
   if(n.schema_version!=='mission-narrative-scene-public/2')paintStaffFinish(host,state);
  }
@@ -3870,18 +3878,19 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
  }
 
  function updateRoom(host,options={}){
-  editorial.mount(host);
-  combatReportPreview.mount(host);
-  combatReportRevision.mount(host);
-  combatReportStructured.mount(host);
-  combatReportTotalMemory.mount(host);
-  combatReportEditorial80.mount(host);
-  combatReportDialogue82.mount(host);
-  editorialPair.mount(host);
-  editorialDialogue.mount(host);
-  editorialReview.mount(host);
-  editorialE73.mount(host);
-  editorialLatest.mount(host);
+  const editorialHost=staffEditorialHost?.()||host;
+  editorial.mount(editorialHost);
+  combatReportPreview.mount(editorialHost);
+  combatReportRevision.mount(editorialHost);
+  combatReportStructured.mount(editorialHost);
+  combatReportTotalMemory.mount(editorialHost);
+  combatReportEditorial80.mount(editorialHost);
+  combatReportDialogue82.mount(editorialHost);
+  editorialPair.mount(editorialHost);
+  editorialDialogue.mount(editorialHost);
+  editorialReview.mount(editorialHost);
+  editorialE73.mount(editorialHost);
+  editorialLatest.mount(editorialHost);
   if(roomReadFlight){if(options.hintRead===true)roomDirtyHint=true;return roomReadFlight;}
   const task=readRoomOnce(host,options),user=identity(),location=currentLocation()?.id,epoch=roomEpoch;
   const flight=Promise.resolve(task).finally(()=>{if(roomReadFlight!==flight)return;roomReadFlight=null;
