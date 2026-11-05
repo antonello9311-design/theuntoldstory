@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Pannello staff — The Untold Story</title>
+<meta name="tus-staff-startup" content="staff-startup-20261105" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preconnect" href="https://tyhyxkslteigibktluml.supabase.co" crossorigin />
@@ -4468,6 +4469,14 @@ return {mount:mountStaffExamDecisions};})();
         var mfRevision='37dac90525b249f53fc0404b50adb4ed92df0123649326c99260bf656119d806',mfManifestSha='58959dfec34dfe9aee1c2b2f39dc720774c661544c424c33b04a0f0e179568f4';
         if(!mfRevision||!mfManifestSha)return;
         var mfBuild='mission-factory-admin/2:'+mfRevision;
+        var mfReady=async function(){
+          var gate=await sb.rpc('mission_factory_editor_ready_v1',{p_client_build:mfBuild});
+          var ready=gate.data;
+          if(!me||me.id!==mfPrincipal||nbeRole!==mfRole)throw Error('Accesso editor cambiato.');
+          return !gate.error&&ready?.schema_version==='mission-factory-editor-ready/1'&&ready.state==='enabled'&&ready.scope==='staff'&&ready.client_build===mfBuild&&ready.revision_sha256===mfRevision;
+        };
+        var mfUnavailable=function(){toast('Editor missioni non disponibile per questo accesso o questa versione. Il percorso precedente resta disponibile.');};
+        if(!await mfReady()){mfUnavailable();return;}
         var mfManifestResponse=await fetch('./mission-factory-release-manifest.v2.json?sha='+mfManifestSha,{cache:'no-store'});
         if(!mfManifestResponse.ok)throw Error('Editor missioni non disponibile; usa il percorso precedente.');
         var mfManifestBytes=await mfManifestResponse.arrayBuffer();
@@ -4476,14 +4485,23 @@ return {mount:mountStaffExamDecisions};})();
         var mfManifest=JSON.parse(new TextDecoder().decode(mfManifestBytes));
         if(mfManifest.schema_version!=='mission-factory-ui-package/2'||!Array.isArray(mfManifest.files)||mfManifest.files.length!==30)throw Error('Pacchetto editor incompleto.');
         var mfSources=new Map(),mfLogical=new Map(),mfBlobUrls=new Map(),mfLoading=new Set();
+        var mfAssets=new Set();
         for(var mfFile of mfManifest.files){
-          if(!/^mf-[A-Za-z0-9_.-]+-[0-9a-f]{64}\.mjs$/.test(mfFile.asset)||mfFile.asset_sha256!==mfFile.asset.slice(-68,-4)||!Array.isArray(mfFile.dependencies)||mfSources.has(mfFile.asset)||mfLogical.has(mfFile.logical_name))throw Error('Grafo editor non valido.');
-          var mfResponse=await fetch('./'+mfFile.asset,{cache:'no-store'});
-          if(!mfResponse.ok)throw Error('Modulo editor non disponibile.');
-          var mfBytes=await mfResponse.arrayBuffer();
-          if(mfBytes.byteLength!==mfFile.bytes||await mfHex(mfBytes)!==mfFile.asset_sha256)throw Error('Modulo editor non verificato.');
-          mfSources.set(mfFile.asset,{file:mfFile,text:new TextDecoder('utf-8',{fatal:true}).decode(mfBytes)});
+          if(!/^mf-[A-Za-z0-9_.-]+-[0-9a-f]{64}\.mjs$/.test(mfFile.asset)||mfFile.asset_sha256!==mfFile.asset.slice(-68,-4)||!Array.isArray(mfFile.dependencies)||mfAssets.has(mfFile.asset)||mfLogical.has(mfFile.logical_name))throw Error('Grafo editor non valido.');
+          mfAssets.add(mfFile.asset);
           mfLogical.set(mfFile.logical_name,mfFile.asset);
+        }
+        var mfBatchSize=6;
+        for(var offset=0;offset<mfManifest.files.length;offset+=mfBatchSize){
+          var verified=await Promise.all(mfManifest.files.slice(offset,offset+mfBatchSize).map(async function(file){
+            var response=await fetch('./'+file.asset,{cache:'no-store'});
+            if(!response.ok)throw Error('Modulo editor non disponibile.');
+            var bytes=await response.arrayBuffer();
+            if(bytes.byteLength!==file.bytes||await mfHex(bytes)!==file.asset_sha256)throw Error('Modulo editor non verificato.');
+            return {file:file,text:new TextDecoder('utf-8',{fatal:true}).decode(bytes)};
+          }));
+          if(!me||me.id!==mfPrincipal||nbeRole!==mfRole)throw Error('Accesso editor cambiato.');
+          for(var source of verified)mfSources.set(source.file.asset,source);
         }
         var mfRevoke=function(){for(var url of mfBlobUrls.values())URL.revokeObjectURL(url);mfBlobUrls.clear();};
         var mfUrl=function(asset){
@@ -4503,10 +4521,7 @@ return {mount:mountStaffExamDecisions};})();
         // Tutte le dipendenze eseguite derivano dai byte appena verificati, senza secondo fetch/import URL.
         try{for(var asset of mfSources.keys())mfUrl(asset);}catch(error){mfRevoke();throw error;}
         window.addEventListener('pagehide',function(event){if(!event.persisted)mfRevoke();});
-        var gate=await sb.rpc('mission_factory_editor_ready_v1',{p_client_build:mfBuild});
-        var ready=gate.data;
-        if(gate.error||ready?.schema_version!=='mission-factory-editor-ready/1'||ready.state!=='enabled'||ready.scope!=='staff'||ready.client_build!==mfBuild||ready.revision_sha256!==mfRevision){mfRevoke();toast('Editor missioni non disponibile per questo accesso o questa versione. Il percorso precedente resta disponibile.');return;}
-        if(!me||me.id!==mfPrincipal||nbeRole!==mfRole)throw Error('Accesso editor cambiato.');
+        try{if(!await mfReady()){mfRevoke();mfUnavailable();return;}}catch(error){mfRevoke();throw error;}
         var modules=await Promise.all([mfImport('admin-entry.mjs'),mfImport('legacy-drafts.mjs'),mfImport('MAPPE_UI_PICKER.asset.v3.mjs'),mfImport('npc-combat-controller.mjs'),mfImport('npc-media-adapter.mjs'),mfImport('npc-media-panel.mjs')]);
         if(!me||me.id!==mfPrincipal||nbeRole!==mfRole)throw Error('Accesso editor cambiato.');
         nbeWire();
