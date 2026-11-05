@@ -822,6 +822,15 @@
   .miss-tab{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.09em;text-transform:uppercase;border:1px solid var(--edge);background:rgba(255,250,235,.5);color:var(--ink-soft);border-radius:7px;padding:6px 10px;cursor:pointer}
   .miss-tab.on{background:var(--red);border-color:var(--red-deep);color:#f6ead0}
   .miss-body{flex:1;min-height:0;overflow-y:auto;padding:12px 14px}
+  #missov>.missov-card{width:min(960px,100%);height:min(90dvh,900px)}
+  #mission-board-workspace[hidden],#mission-board-workspace [hidden]{display:none!important}
+  #mission-board-scene:not(:has(>div:not([hidden]))){display:none}
+  #mission-board-scene,.mission-board-panel{margin:0 0 14px;padding:12px;border:1px solid var(--rule);border-radius:10px;background:rgba(255,250,235,.46)}
+  #mission-board-scene h2,.mission-board-panel h3{margin:0 0 8px}
+  .mission-board-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  #missov #mission-generic-room.mg-room,#missov .h33-workspace{max-height:none;overflow:visible}
+  #mission-board-panel:empty{display:none}
+  #mission-board-human-combat{margin-top:8px}
   /* Codice delle Tecniche (database informativo) */
   .jdb-search{flex:0 0 auto;width:min(200px,42vw);font-family:'Cormorant Garamond',serif;font-size:14px;padding:6px 10px;border:1px solid var(--edge);border-radius:8px;background:rgba(255,255,255,.55);color:var(--ink)}
   .jdb-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid var(--rule);background:rgba(255,250,235,.35)}
@@ -2230,14 +2239,6 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
             </dl>
             <button class="nb028i-run" id="nb028i-run" type="button" disabled>Esegui mock + replay</button>
           </section>
-          <section id="human-inline-workspace" class="h33-workspace" hidden aria-labelledby="human-inline-title">
-            <header class="h33-head"><div><p class="h33-kicker">Missioni e Quest</p><h2 id="human-inline-title">La tua avventura</h2></div><button class="tb-btn" type="button" id="human-inline-scene">Torna alla scena</button></header>
-            <nav class="h33-tabs" aria-label="Quest e conduzione"><button class="tb-btn" type="button" data-h33-view="registry" aria-pressed="false">Registro</button><button class="tb-btn" type="button" data-h33-view="quest" aria-pressed="false">Puntata attiva</button></nav>
-            <p id="human-inline-status" class="h33-status" role="status" aria-live="polite"></p>
-            <section id="human-inline-registry" hidden aria-label="Registro missioni e quest"></section>
-            <section id="human-inline-quest" hidden aria-label="Puntata"></section>
-            <section id="human-inline-combat" hidden aria-label="Regia della scena Human"></section>
-          </section>
           <div class="room-grid">
             <section class="chat">
               <div class="msgs" id="msgs"></div><div class="scrollarrows" id="msgs-arrows" hidden><button type="button" data-scroll="msgs" data-dir="-1" title="Scorri su" aria-label="Scorri su">▲</button><button type="button" data-scroll="msgs" data-dir="1" title="Scorri giù" aria-label="Scorri giù">▼</button></div>
@@ -2271,8 +2272,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
                 <div class="side-k">Esame Genin</div>
                 <div id="esm-body"></div>
               </div>
-              <div id="mission-d100-room" class="side-card mc-human" hidden aria-label="Prova D100 della missione"></div>
-              <div id="mission-generic-room" hidden></div>
+              <template id="mv2-card-room-home"></template>
               <div class="side-card mv2" id="mv2-card" hidden>
                 <div class="mv2-head"><div class="side-k">Regia Master</div><span class="mv2-state" id="mv2-state">V2</span></div>
                 <div id="mv2-slim"></div>
@@ -2359,7 +2359,27 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
         <button class="miss-tab" id="mtab-quest-runtime" type="button" hidden>Quest assegnata</button>
         <button class="miss-tab" id="mtab-new" type="button" style="display:none">+ Nuova</button>
       </div>
-      <div class="miss-body" id="miss-body"></div>
+      <div class="miss-body" id="mission-board-scroll">
+        <div id="mission-board-workspace">
+          <section id="mission-board-scene" aria-labelledby="mission-board-scene-title">
+            <h2 id="mission-board-scene-title">Scena della missione</h2>
+            <div id="mission-board-master" hidden></div>
+            <div id="mission-generic-room" hidden></div>
+            <div id="mission-d100-room" class="side-card mc-human" hidden aria-label="Prova D100 della missione"></div>
+            <div id="mission-human-controls" hidden></div>
+            <button class="mbtn" type="button" id="mission-board-human-combat" hidden>Apri Regia scontri</button>
+          </section>
+          <section id="human-inline-workspace" class="h33-workspace" hidden aria-labelledby="human-inline-title">
+            <header class="h33-head"><div><p class="h33-kicker">Missioni e Quest</p><h2 id="human-inline-title">La tua avventura</h2></div><button class="tb-btn" type="button" id="human-inline-scene">Torna alla scena</button></header>
+            <nav class="h33-tabs" aria-label="Quest e conduzione"><button class="tb-btn" type="button" data-h33-view="registry" aria-pressed="false">Bacheca</button><button class="tb-btn" type="button" data-h33-view="quest" aria-pressed="false">Puntata attiva</button></nav>
+            <p id="human-inline-status" class="h33-status" role="status" aria-live="polite"></p>
+            <section id="human-inline-quest" hidden aria-label="Puntata"></section>
+            <section id="human-inline-combat" hidden aria-label="Regia della scena Human"></section>
+          </section>
+          <div id="mission-board-panel"></div>
+        </div>
+        <div id="miss-body"></div>
+      </div>
     </div>
   </div>
 
@@ -2371,7 +2391,6 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
         <span class="miss-title">Regia multi-attore — <span id="mv2-room">stanza</span></span>
         <button class="miss-tab" id="mv2-refresh" type="button">Aggiorna</button>
       </div>
-      <div id="mission-human-controls" hidden></div>
       <div class="miss-body" id="mv2-body"></div>
     </div>
   </div>
@@ -6595,7 +6614,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       window.addEventListener('tus:ordinary-logout',function(){esLegacyDisposeStale(true);missionD100Reset();ordinarySigningOut=true;if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();});
       if(sb&&sb.auth&&sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session){
         var id=session&&session.user?session.user.id:null;
-        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){staffEventDispose();humanInlineReset();esLegacyDisposeStale(true);uiPostreviewStaffReset();missionD100Reset();missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(window.TRU_RELEASE002){window.TRU_RELEASE002.invalidate();window.TRU_RELEASE002=null;}if(event==='SIGNED_OUT')closeTestRoomUser();if(MV2){MV2.staffLoading=null;commonMasterReadGeneration++;MV2.authEpoch=(MV2.authEpoch||0)+1;mv2ClearPrepInputs();MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.regia=null;MV2.regiaSignature=null;MV2.regiaDraft='';MV2.regiaDirection={turn_kind:'',actor_ids:[]};MV2.scortaContext=false;MV2.scortaRoom=null;MV2.scortaScope=null;MV2.options={};}}
+        if(id!==ordinaryAuthId||event==='SIGNED_OUT'){staffEventDispose();closeMissionBoardPanel();closeMiss();humanInlineReset();mv2Card(false);esLegacyDisposeStale(true);uiPostreviewStaffReset();missionD100Reset();missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();if(EXAM_REGIA)EXAM_REGIA.reset();if(ORDINARY)ORDINARY.invalidate();if(window.TRU_RELEASE002){window.TRU_RELEASE002.invalidate();window.TRU_RELEASE002=null;}if(event==='SIGNED_OUT')closeTestRoomUser();if(MV2){MV2.staffLoading=null;commonMasterReadGeneration++;MV2.authEpoch=(MV2.authEpoch||0)+1;mv2ClearPrepInputs();MV2.data=null;MV2.locationId=null;MV2.principalId=null;MV2.serverSig=null;MV2.regia=null;MV2.regiaSignature=null;MV2.regiaDraft='';MV2.regiaDirection={turn_kind:'',actor_ids:[]};MV2.scortaContext=false;MV2.scortaRoom=null;MV2.scortaScope=null;MV2.options={};}}
         if(MV2&&(id!==ordinaryAuthId||event==='SIGNED_OUT'))MV2.readRequested=false;
         ordinaryAuthId=id;staffEventSync();
         esLegacyDisposeStale();syncSendBtn();
@@ -6815,7 +6834,16 @@ window.TUSOrdinary={attachOrdinaryLand};
           mv2Busy(false);mv2Reload('Ricevuta Regia confermata.');
         }catch(error){mv2Busy(false);toast((error?.message||'Ricevuta non confermata.')+' Conserva la stessa richiesta.');renderMasterV2();}
       }
-      function mv2Card(show){ var c=document.getElementById('mv2-card'); if(c)c.hidden=!(show&&(!iAmStaff||fatoMode)); }
+      function mv2Card(show){
+        var c=document.getElementById('mv2-card'),dock=document.getElementById('mission-board-master'),home=document.getElementById('mv2-card-room-home');
+        if(!c)return;
+        var master=show&&MV2.data?.master;
+        var mission=master?.tipo==='quest'&&cur&&(!cur.is_exam_room||(commonPanelRoom()&&iAmStaff))&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===myId
+          &&MV2.locationId===cur.id&&MV2.principalId===myId&&(!!master.mission_id||!!humanInlineCombatHost());
+        if(mission){if(c.parentElement!==dock)dock.append(c);}else if(c.previousElementSibling!==home){home.after(c);}
+        c.hidden=!(show&&(!iAmStaff||fatoMode));
+        dock.hidden=!mission||c.hidden;
+      }
       /* [MV2-DRAFT-DEFENSE 01/09] Il poll della stanza continua a controllare il
          server, ma non ricostruisce il pannello quando lo stato autoritativo non
          cambia. Se cambia davvero, la bozza locale viene rimessa nel nuovo DOM. */
@@ -7237,7 +7265,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         host.innerHTML='<div class="mv2-phase"><b>'+esc(m.titolo||m.tipo)+'</b><br>'+esc(m.tipo)+' \u00b7 '+esc(String(m.stato||'').replace(/_/g,' '))+(r?(' \u00b7 round '+r.no):'')+'</div>'+avviso
           +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2-ov="apri">Apri la Regia</button></div>';
       }
-      function mv2OvApri(){ if(MV2.scortaContext&&!mv2ScortaGate()){mv2ScortaClose();return;} if(examRegia()?.ownsCombat()){examRegia().openPanel('master');return;} if(commonMasterCombat()){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');else toast('Pannello comune non disponibile.');return;} if(humanInlineCombatHost()){humanInlineShow('quest');return;} if(!cur){ toast('Entra in una stanza per aprire la Regia'); return; }
+      function mv2OvApri(missionDestination){ if(MV2.scortaContext&&!mv2ScortaGate()){mv2ScortaClose();return;} if(examRegia()?.ownsCombat()){examRegia().openPanel('master');return;} if(commonMasterCombat()){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');else toast('Pannello comune non disponibile.');return;} if(missionDestination!==true&&humanInlineCombatHost()){humanInlineShow('quest');return;} if(!cur){ toast('Entra in una stanza per aprire la Regia'); return; }
         var rr=document.getElementById('mv2-room'); if(rr) rr.textContent=cur.name||'stanza';
         var ov=document.getElementById('mv2ov'), bk=document.getElementById('mv2ov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false;
         renderMasterV2(); loadMasterV2(true); }
@@ -7256,7 +7284,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       }
       (function(){
         var body=document.getElementById('mv2-body'); if(!body)return;
-        var _sl=document.getElementById('mv2-slim'); if(_sl) _sl.addEventListener('click',function(e){ if(e.target.closest('[data-mv2-ov]')) mv2OvApri(); });
+        var _sl=document.getElementById('mv2-slim'); if(_sl) _sl.addEventListener('click',function(e){ if(!e.target.closest('[data-mv2-ov]'))return;var mission=!!_sl.closest('#mission-board-master');if(mission)closeMiss();mv2OvApri(mission); });
         var _ob=document.getElementById('mv2-open-btn'); if(_ob) _ob.addEventListener('click',mv2OvApri);
         var _ox=document.getElementById('mv2ov-x'); if(_ox) _ox.addEventListener('click',mv2OvChiudi);
         var _obk=document.getElementById('mv2ov-backdrop'); if(_obk) _obk.addEventListener('click',mv2OvChiudi);
@@ -12789,7 +12817,7 @@ var nb028iTeardown=function(){};
           if(poll) clearInterval(poll);poll=null;landConfigureTimers();staffEventSync();
         });
       }
-      function leaveRoom(){ if(roomEntryStaffScope())roomEntryReset();humanInlineReset();missionD100Reset();examHumanLeave(); truReleaseInvalidate(); closeRoomObjectBinding(); MV2.staffLoading=null;commonMasterReadGeneration++;MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; uiPostreviewStaffReset();WHO=[];PRESENTI_IDS={};cur=null;innataStaffProfileInvalidate();loadAbilities(); CMB=null; mv2ClearPrepInputs();MV2.data=null; MV2.serverSig=null; MV2.regia=null; MV2.regiaSignature=null; MV2.regiaDraft=''; MV2.regiaDirection={turn_kind:'',actor_ids:[]}; MV2.scortaContext=false; MV2.scortaRoom=null; MV2.scortaScope=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi();staffEventSync(); }
+      function leaveRoom(){ if(roomEntryStaffScope())roomEntryReset();closeMissionBoardPanel();closeMiss();humanInlineReset();mv2Card(false);missionD100Reset();examHumanLeave(); truReleaseInvalidate(); closeRoomObjectBinding(); MV2.staffLoading=null;commonMasterReadGeneration++;MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; uiPostreviewStaffReset();WHO=[];PRESENTI_IDS={};cur=null;innataStaffProfileInvalidate();loadAbilities(); CMB=null; mv2ClearPrepInputs();MV2.data=null; MV2.serverSig=null; MV2.regia=null; MV2.regiaSignature=null; MV2.regiaDraft=''; MV2.regiaDirection={turn_kind:'',actor_ids:[]}; MV2.scortaContext=false; MV2.scortaRoom=null; MV2.scortaScope=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi();staffEventSync(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
       function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
@@ -14660,12 +14688,14 @@ var nb028iTeardown=function(){};
       var MISSION_CREATION_HUMAN_SESSION=null,MISSION_CREATION_HUMAN_STATUS='unconfigured',MISSION_CREATION_HUMAN_EPOCH=0;
       function missionHumanPhaseReset(){
         MISSION_CREATION_HUMAN_EPOCH++;MISSION_CREATION_HUMAN_SESSION=null;MISSION_CREATION_HUMAN_STATUS='unconfigured';
+        var entry=document.getElementById('mission-board-human-combat');if(entry)entry.hidden=true;
         var host=document.getElementById('mission-human-controls');if(host){host.replaceChildren();host.hidden=true;if(MISSION_CREATION_UI)MISSION_CREATION_UI.mountHuman(host,null);}
       }
       function missionHumanPhaseRefresh(data,readOptions){readOptions=readOptions||{};
         var host=document.getElementById('mission-human-controls');if(!host)return;
         var master=data&&data.master,viewer=data&&data.viewer;
         var nativeSession=master&&master.tipo==='quest'&&viewer&&viewer.is_master&&master.controller_kind!=='ai_service'&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===myId?master.id:null;
+        var entry=document.getElementById('mission-board-human-combat');if(entry)entry.hidden=!nativeSession;
         var locationId=cur&&cur.id,user=myId,authEpoch=MV2?.authEpoch||0;
         var current=function(){return cur&&cur.id===locationId&&loggedIn&&!ordinarySigningOut&&myId===user&&ordinaryAuthId===user&&(MV2?.authEpoch||0)===authEpoch;};
         missionCreationUI().then(function(ui){
@@ -14692,12 +14722,12 @@ var nb028iTeardown=function(){};
       var MISSION_CREATION_UI=null,MISSION_CREATION_LOAD=null,MISSION_CREATION_NATIVE_MISSION=null;
       function missionCreationUI(){
         if(MISSION_CREATION_UI)return Promise.resolve(MISSION_CREATION_UI);
-        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mf-mission-human-roster-limits-1a181f47c854778e39777cc8b22e40847c0424dced5d29567c0fa729da2a839b.mjs').then(function(mod){
-          MISSION_CREATION_UI=mod.createMissionCreationUI({client:sb,isEventReadMode:landPureReadMode,identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
+        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mf-mission-human-roster-limits-dc3729628aad0ee93ef47845e654ac25510ef5a78040205db7da09bb296f3c36.mjs').then(function(mod){
+          MISSION_CREATION_UI=mod.createMissionCreationUI({client:sb,createBoardPanel:createMissionBoardPanel,beginBoardPanel:beginMissionBoardPanel,isEventReadMode:landPureReadMode,identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             mapPicker:function(initial,title){return missionArenaEditor().show({initial:initial,title:title});},
             presentCharacters:async function(){var ids=(WHO||[]).map(function(w){return w.user_id;}).filter(Boolean);if(!ids.length)return [];var r=await sb.from('characters').select('id,name').in('user_id',ids);if(r.error)throw r.error;return r.data||[];},
-            openNativeMaster:function(id){if(!cur){toast('Entra nella chat di ritrovo della missione.');return;}MISSION_CREATION_NATIVE_MISSION=id;if(!(MV2.data&&MV2.data.master)){MV2.setupKind='missione';MV2.setupOpen=true;}mv2OvApri();},
+            openNativeMaster:function(id){if(!cur){toast('Entra nella chat di ritrovo della missione.');return;}MISSION_CREATION_NATIVE_MISSION=id;if(!(MV2.data&&MV2.data.master)){MV2.setupKind='missione';MV2.setupOpen=true;}closeMiss();mv2OvApri(true);},
             refresh:function(){loadMsgs();loadMasterV2();var tab=document.getElementById('mtab-bacheca');if(missOpenNow()&&tab&&tab.classList.contains('on'))loadMissBacheca();},
             onCreated:function(){setMissTab('bacheca');}});return MISSION_CREATION_UI;
         }).catch(function(e){MISSION_CREATION_LOAD=null;throw e;});return MISSION_CREATION_LOAD;
@@ -15170,23 +15200,23 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       function humanInlineReset(){
         var w=HUMAN_INLINE;HUMAN_INLINE=null;HUMAN_ORDINARY_ACCESS=null;HUMAN_ROUTE_EPOCH++;if(!w)return;
         for(var frame of w.frames.values()){frame.closed=true;frame.panel?.dispose();}
-        if(w.registryCard&&w.registryHome)w.registryHome.append(w.registryCard);
         var root=document.getElementById('human-inline-workspace');if(root)root.hidden=true;
-        for(var id of ['human-inline-registry','human-inline-quest','human-inline-combat'])document.getElementById(id)?.replaceChildren();
+        for(var id of ['human-inline-quest','human-inline-combat'])document.getElementById(id)?.replaceChildren();
       }
       function humanInlineEnsure(){
         if(!humanInlineAllowed())return null;
         if(!humanInlineCurrent()){var priorAccess=HUMAN_ORDINARY_ACCESS;humanInlineReset();if(priorAccess&&priorAccess.actor===myId&&priorAccess.room===cur.id)HUMAN_ORDINARY_ACCESS=priorAccess;}
         if(!HUMAN_INLINE){
           var root=document.getElementById('human-inline-workspace');if(!root)return null;
-          HUMAN_INLINE={actor:myId,room:cur.id,frames:new Map(),selected:null,registryHome:null,registryCard:null};
+          HUMAN_INLINE={actor:myId,room:cur.id,frames:new Map(),selected:null};
         }
         return HUMAN_INLINE;
       }
       function humanInlineShow(view){
         var w=humanInlineEnsure();if(!w)return false;
+        showMissionBacheca();
         var root=document.getElementById('human-inline-workspace');root.hidden=false;
-        for(var pair of [['registry','human-inline-registry'],['quest','human-inline-quest'],['combat','human-inline-combat']])document.getElementById(pair[1]).hidden=pair[0]!==view;
+        for(var pair of [['quest','human-inline-quest'],['combat','human-inline-combat']])document.getElementById(pair[1]).hidden=pair[0]!==view;
         root.querySelectorAll('[data-h33-view]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-h33-view')===view));});
         return true;
       }
@@ -15195,24 +15225,20 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
         return f&&!f.closed&&f.sceneSession&&m?.id===f.sceneSession&&MV2.locationId===cur.id&&MV2.principalId===myId?document.getElementById('human-inline-combat'):null;
       }
       function humanInlineRegistry(){
-        var w=humanInlineEnsure();if(!w)return false;
-        var target=questEpisodeLink();if(!target?.human&&!w.selected)return false;
-        var ov=document.getElementById('missov'),card=w.registryCard||ov?.querySelector('.missov-card');
-        if(!card)return false;
-        if(!w.registryCard){w.registryHome=card.parentElement;w.registryCard=card;document.getElementById('human-inline-registry').append(card);}
-        if(ov)ov.hidden=true;var bk=document.getElementById('missov-backdrop');if(bk)bk.hidden=true;
-        if(!humanInlineShow('registry'))return false;
-        document.getElementById('mtab-new').style.display=iAmStaff?'':'none';setMissTab('bacheca');return true;
+        showMissionBacheca();
+        document.getElementById('miss-body')?.scrollIntoView({block:'start'});
       }
       (function(){
         document.querySelectorAll('[data-h33-view]').forEach(function(b){b.addEventListener('click',function(){var v=b.getAttribute('data-h33-view');if(v==='registry')humanInlineRegistry();else if(humanInlineCurrent()&&HUMAN_INLINE.selected)humanInlineShow('quest');else{var q=questEpisodeLink();if(q?.human)void openHumanQuestEpisodePanel(q.episode,q.humanPg,q.humanSession);}});});
-        document.getElementById('human-inline-scene')?.addEventListener('click',function(){if(!humanInlineCurrent())return;document.getElementById('human-inline-workspace').hidden=true;document.getElementById('msg-input')?.focus();});
+        document.getElementById('human-inline-scene')?.addEventListener('click',function(){if(!humanInlineCurrent())return;closeMiss();document.getElementById('msg-input')?.focus();});
       })();
       async function openHumanQuestEpisodePanel(episode,asPg,asSession){
-        if(asSession){if(!humanInlineLegacyAllowed()){toast('Entra nella Staff Test Room per riaprire questa sessione conservata.');return;}return openLegacyHumanQuestEpisodePanel(episode,asPg,true);}
         if(!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||!cur||(!asPg&&!iAmStaff))return;
+        if(asSession&&!humanInlineLegacyAllowed()){toast('Entra nella Staff Test Room per riaprire questa sessione conservata.');return;}
+        showMissionBacheca();var intent=beginMissionBoardPanel();
+        if(asSession)return openLegacyHumanQuestEpisodePanel(episode,asPg,true);
         var actor=myId,room=cur.id,readEpoch=++HUMAN_ROUTE_EPOCH;
-        function routeCurrent(){return loggedIn&&!ordinarySigningOut&&ordinaryAuthId===actor&&myId===actor&&cur?.id===room&&HUMAN_ROUTE_EPOCH===readEpoch;}
+        function routeCurrent(){return intent?.()&&HUMAN_ROUTE_EPOCH===readEpoch;}
         try{
           var mod=await import('./mf-human-ordinary-consumer-7d454eb508b68a795099a1d0c9db1e4a8accc6557745f74ca9a5d15e07bb4685.mjs');if(!routeCurrent())return;
           var auth=await sb.auth.getUser();if(!routeCurrent()||auth.error||auth.data?.user?.id!==actor)throw Error('Accesso normale non confermato.');
@@ -15229,11 +15255,12 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
           frame.panel=mod[asPg?'mountHumanOrdinaryParticipant':'mountHumanOrdinaryEpisode'](host,{client:sb,identity:function(){return same()?actor:null;},isCurrent:same,
             onPrepared:async function(v){if(!same()||v.schema_version!=='quest-human-episode-prepare/1'||v.quest_episode_id!==episode)throw Error('Preparazione della scena non confermata.');frame.preparedSession=v.native_session_id;},
             onScene:async function(v){
+              var sceneIntent=beginMissionBoardPanel();
               if(!same()||v.schema_version!=='human-ordinary-scene-link/1'||v.episode!==episode||v.location!==room||v.execution_context!==route.execution_context)throw Error('Apri il luogo della scena confermato dal server.');
               var a=await sb.auth.getUser();if(!same()||a.error||a.data?.user?.id!==actor)throw Error('Accesso alla scena cambiato.');
               var current=await sb.rpc('master_v2_ui_state',{p_location:room}),data=mv2Data(current);if(!same()||current.error||data?.master?.id!==v.session||(asPg?data?.viewer?.is_participant!==true:data?.viewer?.is_master!==true))throw Error('Autorità della scena non confermata.');
               frame.sceneSession=v.session;await loadMsgs();if(!same())return;await loadMasterV2(true);if(!same())return;ordinaryRefresh();
-              humanInlineShow('quest');document.getElementById('msg-input')?.focus();
+              if(sceneIntent?.()&&w.selected===frame){closeMiss();document.getElementById('msg-input')?.focus();}
             }});
           await frame.panel.open(episode);if(same()&&w.selected===frame)document.getElementById('human-inline-status').textContent='';
         }catch(e){if((frame?humanInlineCurrent()&&HUMAN_INLINE===w&&w.selected===frame&&!frame.closed:routeCurrent())&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===actor&&myId===actor&&cur?.id===room){var out=document.getElementById('human-inline-status');if(out&&!out.closest('[hidden]'))out.textContent=e.message||'Puntata non disponibile; richieste conservate.';else toast(e.message||'Puntata non disponibile.');}}
@@ -15254,12 +15281,12 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
               if(!same()||asPg)throw Error('Conduzione Master non disponibile.');var next=await api.episode(v.episode);if(!same()||next.quest_episode_id!==v.episode||next.source_sha256!==v.source_sha256||next.episode_ordinal!==v.ordinal)throw Error('Fonte della puntata successiva cambiata.');
               successorNotice.replaceChildren();var msg=document.createElement('p'),link=document.createElement('a');msg.textContent='Puntata '+v.ordinal+' identificata dal server. Seleziona la sua versione Master nell’Editor prima di prepararla; nessun avvio automatico.';link.href='./admin.html';link.textContent='Apri Editor unificato';successorNotice.append(msg,link);
             },onScene:async function(v){
+              var sceneIntent=beginMissionBoardPanel();
               if(!same())throw Error('Accesso cambiato.');if(!cur||cur.id!==v.location)throw Error('Entra nella Staff Test Room per la scena Human.');
               var a=await sb.auth.getUser();if(a.error||a.data?.user?.id!==actor||!same())throw Error('Accesso Staff non confermato.');
               var r=await sb.rpc('master_v2_ui_state',{p_location:cur.id});if(r.error||!same()||mv2Data(r)?.master?.id!==v.session||(!asPg&&mv2Data(r)?.viewer?.is_master!==true)||(asPg&&myCharId!==v.character))throw Error('Autorità della scena non confermata.');
               frame.sceneSession=v.session;loadMsgs();loadMasterV2(true);ordinaryRefresh();
-              humanInlineShow('quest');
-              document.getElementById('msg-input')?.focus();
+              if(sceneIntent?.()&&w.selected===frame){closeMiss();document.getElementById('msg-input')?.focus();}
             }});if(asSession){await frame.panel.openSession(episode);if(same())frame.sceneSession=episode;}else await frame.panel.openEpisode(episode);
           if(same()&&w.selected===frame)document.getElementById('human-inline-status').textContent='';
         }catch(e){if(same()&&w.selected===frame)document.getElementById('human-inline-status').textContent=e.message||'Regia Human non disponibile: richieste conservate.';}
@@ -15273,12 +15300,11 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
         if(target.human)return openHumanQuestEpisodePanel(target.episode,target.humanPg,target.humanSession);
         if(!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||target.staff&&!iAmStaff)return;
         var actor=myId,room=cur&&cur.id||null,closed=false,panel=null;
-        var d=document.createElement('dialog');d.setAttribute('aria-label','Quest');
-        d.style.cssText='width:min(760px,94vw);max-width:94vw;max-height:88vh;box-sizing:border-box;overflow:auto;background:#f6edda;border:1px solid #b69a65;border-radius:10px;padding:12px';
-        var x=document.createElement('button');x.type='button';x.textContent='Chiudi';x.style.cssText='min-height:44px;font-size:18px';var host=document.createElement('section');d.append(x,host);document.body.append(d);d.showModal();
+        showMissionBacheca();var intent=beginMissionBoardPanel();
+        var d=createMissionBoardPanel('Quest assegnata',intent),host=document.createElement('section');d.append(host);
         function same(){return !closed&&d.isConnected&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===actor&&myId===actor&&(cur&&cur.id||null)===room&&(!target.staff||iAmStaff);}
-        function close(){if(closed)return;closed=true;panel?.dispose();if(d.open)d.close();d.remove();}
-        x.onclick=close;d.addEventListener('close',close);
+        function close(){if(closed)return;closed=true;panel?.dispose();d.close();}
+        d.addEventListener('close',close,{once:true});
         var mount=target.staff?QUEST_RUNTIME_UI.mountQuestStaffRuntime:QUEST_RUNTIME_UI.mountQuestParticipant;
         try{panel=mount(host,{client:sb,identity:function(){return same()?actor:null;},isCurrent:same,onScene:async function(){
           if(!same())return;if(!cur||cur.id!==QUEST_RUNTIME_API.QUEST_STAFF_LOCATION){toast('Entra nella Staff Test Room per raggiungere questa scena riservata.');return;}
@@ -15304,8 +15330,8 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       }
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=party-ui17-89c5fe5d59928e60').then(function(mod){
-          MISSION_GENERIC_UI=mod.createMissionUI({client:sb,isEventReadMode:landPureReadMode,beforeUserCommand:landUserPresence,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=mission-bacheca-454c163bd7b21010').then(function(mod){
+          MISSION_GENERIC_UI=mod.createMissionUI({client:sb,createBoardPanel:createMissionBoardPanel,beginBoardPanel:beginMissionBoardPanel,isEventReadMode:landPureReadMode,beforeUserCommand:landUserPresence,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title,intent){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title,intent);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             createRecoveryFeedback:function(){var revision=toastRevision;return function(message){if(revision!==toastRevision)return;toast(message);revision=toastRevision;};},
             publicationChanged:function(publication){
@@ -15319,7 +15345,7 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
               }
               return Promise.resolve(read).then(display,function(){return display(false);});
             },
-            openCombat:async function(){var room=cur&&cur.id,principal=commonMasterPrincipal();await loadMasterV2(true);if(!cur||cur.id!==room||commonMasterPrincipal()!==principal)return;ordinaryRefresh(true);if(ORDINARY&&ordinaryPanelMode==='common')return ORDINARY.open('ordinary');else toast('Pannello Scontro non disponibile in questa scena.');},
+            openCombat:async function(intent=beginMissionBoardPanel()){if(!intent?.())return;await loadMasterV2(true);if(!intent())return;ordinaryRefresh(true);if(ORDINARY&&ordinaryPanelMode==='common'){closeMiss();return ORDINARY.open('ordinary');}else toast('Pannello Scontro non disponibile in questa scena.');},
             presentCharacters:async function(){var ids=(WHO||[]).map(function(w){return w.user_id;}).filter(Boolean);if(!ids.length)return [];var r=await sb.from('characters').select('id,name').in('user_id',ids);if(r.error)throw r.error;return r.data||[];},
             refresh:function(){loadMsgs();void missionAutomaticSceneRefresh();if(missOpenNow())loadMissBacheca();}});return MISSION_GENERIC_UI;
         }).catch(function(e){MISSION_GENERIC_LOAD=null;throw e;});
@@ -15398,16 +15424,54 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
         else {var s=document.getElementById('mv2-mission');openMissionArena('mission',s&&s.value,s&&s.selectedOptions[0]&&s.selectedOptions[0].textContent);}
       });
       /* ===== MISSIONI: bacheca + registro ===== */
-      function openMiss(){ if(!loggedIn){ toast('Accedi per vedere le missioni'); return; } if(humanInlineRegistry())return; var ov=document.getElementById('missov'), bk=document.getElementById('missov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false; var tn=document.getElementById('mtab-new'); if(tn) tn.style.display=iAmStaff?'':'none'; setMissTab('bacheca'); }
-      function closeMiss(){if(humanInlineCurrent())document.getElementById('human-inline-workspace').hidden=true; var ov=document.getElementById('missov'), bk=document.getElementById('missov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
+      function showMissionBacheca(){
+        var alreadyOpen=missOpenNow()&&document.getElementById('mtab-bacheca')?.classList.contains('on');
+        var ov=document.getElementById('missov'),bk=document.getElementById('missov-backdrop'),tn=document.getElementById('mtab-new');
+        if(ov)ov.hidden=false;if(bk)bk.hidden=false;if(tn)tn.style.display=iAmStaff?'':'none';
+        if(!alreadyOpen)setMissTab('bacheca');
+      }
+      function openMiss(){if(!loggedIn){toast('Accedi per vedere le missioni');return;}showMissionBacheca();}
+      var MISSION_BOARD_INTENT=0;
+      function missionBoardVisible(){return missOpenNow()&&document.getElementById('mtab-bacheca')?.classList.contains('on');}
+      function beginMissionBoardPanel(){
+        if(!missionBoardVisible())return null;
+        var epoch=++MISSION_BOARD_INTENT,actor=myId,room=cur?.id;
+        return function(){return MISSION_BOARD_INTENT===epoch&&missionBoardVisible()&&loggedIn&&!ordinarySigningOut&&ordinaryAuthId===actor&&myId===actor&&cur?.id===room;};
+      }
+      function closeMiss(){MISSION_BOARD_INTENT++;var ov=document.getElementById('missov'),bk=document.getElementById('missov-backdrop');if(ov)ov.hidden=true;if(bk)bk.hidden=true;}
+      function closeMissionBoardPanel(){document.getElementById('mission-board-panel')?.firstElementChild?.close();}
+      function createMissionBoardPanel(title,intent){
+        if(!intent?.())throw Error('Riapri il pannello dalla Bacheca missioni.');
+        closeMissionBoardPanel();
+        var panel=document.createElement('section'),head=document.createElement('header'),heading=document.createElement('h3'),close=document.createElement('button');
+        panel.className='mission-board-panel';panel.setAttribute('aria-label',title);
+        head.className='mission-board-panel-head';heading.textContent=title;
+        close.type='button';close.className='mbtn ghost';close.textContent='Chiudi pannello';
+        panel.close=function(){if(!panel.isConnected)return;panel.remove();panel.dispatchEvent(new Event('close'));};
+        close.addEventListener('click',function(){MISSION_BOARD_INTENT++;panel.close();});
+        head.append(heading,close);panel.append(head);document.getElementById('mission-board-panel').append(panel);
+        panel.scrollIntoView({block:'start'});
+        return panel;
+      }
       function missOpenNow(){ var ov=document.getElementById('missov'); return !!(ov && !ov.hidden); }
-      function setMissTab(t){ [['mtab-bacheca','bacheca'],['mtab-mie','mie'],['mtab-new','new']].forEach(function(p){ var el=document.getElementById(p[0]); if(el) el.classList.toggle('on', p[1]===t); });
+      function setMissTab(t){ MISSION_BOARD_INTENT++;[['mtab-bacheca','bacheca'],['mtab-mie','mie'],['mtab-new','new']].forEach(function(p){ var el=document.getElementById(p[0]); if(el) el.classList.toggle('on', p[1]===t); });
+        var workspace=document.getElementById('mission-board-workspace');if(workspace)workspace.hidden=t!=='bacheca';
         var host=document.getElementById('miss-body'); if(host) host.innerHTML='<p class="miss-empty">Caricamento…</p>';
         if(t==='bacheca') loadMissBacheca(); else if(t==='mie') loadMissMie(); else renderMissNew(); }
       function fmtMD(d){ if(!d) return '—'; var x=new Date(d+'T00:00:00'); return ('0'+x.getDate()).slice(-2)+'/'+('0'+(x.getMonth()+1)).slice(-2)+'/'+x.getFullYear(); }
-      function loadMissBacheca(){ if(!sb) return; sb.rpc('bacheca_missioni').then(function(r){ renderMissBacheca((r&&r.data)||[]); }, function(){ renderMissBacheca([]); }); }
-      function renderMissBacheca(rows){ var host=document.getElementById('miss-body'); if(!host) return;
-        if(!rows.length){ host.innerHTML='<p class="miss-empty">Nessuna richiesta in bacheca, per ora: i villaggi sono tranquilli. Torna presto.</p>'; missionGenericUI().then(function(ui){return ui.decorateBoard(host);}).catch(function(){}); return; }
+      var MISSION_BOARD_READ=0;
+      function readMissionTab(tab,rpc,render){
+        function active(){return missOpenNow()&&document.getElementById('mtab-'+tab)?.classList.contains('on');}
+        if(!sb||!active())return;
+        var epoch=++MISSION_BOARD_READ,actor=myId;
+        function show(rows){if(epoch===MISSION_BOARD_READ&&active()&&!ordinarySigningOut&&ordinaryAuthId===actor&&myId===actor)render(rows);}
+        sb.rpc(rpc).then(function(r){show(r?.data||[]);},function(){show([]);});
+      }
+      function loadMissBacheca(){readMissionTab('bacheca','bacheca_missioni',renderMissBacheca);}
+      function renderMissBacheca(rows){ var body=document.getElementById('miss-body'); if(!body) return;
+        var host=document.createElement('div');body.replaceChildren(host);
+        function decorate(){missionGenericUI().then(function(ui){if(host.isConnected&&missionBoardVisible())return ui.decorateBoard(host);}).catch(function(){});}
+        if(!rows.length){ host.innerHTML='<p class="miss-empty">Nessuna richiesta in bacheca, per ora: i villaggi sono tranquilli. Torna presto.</p>'; decorate(); return; }
         host.innerHTML=rows.map(function(m){
           var vil=m.village?('<span class="mvil">'+esc(m.village)+'</span>'):'<span class="mvil">Ogni villaggio</span>';
           var stato=(m.status==='programmata')?('<span class="mvil" style="color:var(--red-deep);border-color:var(--red-deep)">'+fmtMD(m.data_missione)+(m.master_name?(' · '+esc(m.master_name)):'')+'</span>'):'';
@@ -15432,9 +15496,9 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
             +iscr+prop+tag
             +'<div class="mact">'+act+'</div>'+joinForm+'</div>';
         }).join('');
-        missionGenericUI().then(function(ui){return ui.decorateBoard(host);}).catch(function(){});
+        decorate();
       }
-      function loadMissMie(){ if(!sb) return; sb.rpc('mie_missioni').then(function(r){ renderMissMie((r&&r.data)||[]); }, function(){ renderMissMie([]); }); }
+      function loadMissMie(){readMissionTab('mie','mie_missioni',renderMissMie);}
       function renderMissMie(rows){ var host=document.getElementById('miss-body'); if(!host) return;
         if(!rows.length){ host.innerHTML='<p class="miss-empty">Il tuo registro è vuoto: iscriviti a una missione dalla bacheca.</p>'; return; }
         host.innerHTML=rows.map(function(m){
@@ -15455,6 +15519,12 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       }
       (function(){
         var nb=document.getElementById('miss-nav'); if(nb) nb.addEventListener('click', openMiss);
+        document.getElementById('mission-board-human-combat')?.addEventListener('click',function(){
+          var master=MV2?.data?.master;
+          if(!cur||!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||MV2.locationId!==cur.id||MV2.principalId!==myId
+            ||!master||master.id!==MISSION_CREATION_HUMAN_SESSION||master.tipo!=='quest'||MV2.data.viewer?.is_master!==true||master.controller_kind==='ai_service')return;
+          closeMiss();mv2OvApri(true);
+        });
         var x=document.getElementById('missov-x'); if(x) x.addEventListener('click', closeMiss);
         var bk=document.getElementById('missov-backdrop'); if(bk) bk.addEventListener('click', closeMiss);
         document.addEventListener('keydown', function(e){ if(e.key==='Escape' && missOpenNow()) closeMiss(); });
@@ -15467,7 +15537,14 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
         body.addEventListener('click', function(e){
           var t=e.target.closest('button'); if(!t||!sb) return;
           var card=t.closest('.mcard');
-          if(t.hasAttribute('data-m-generic-board')){if(iAmStaff)missionGenericUI().then(function(ui){return ui.board(t.getAttribute('data-m-generic-board'),card&&card.querySelector('.mname')&&card.querySelector('.mname').textContent);}).catch(function(){toast('Avvio regia non disponibile.');});return;}
+          if(t.hasAttribute('data-m-generic-board')){
+            if(iAmStaff){
+              var intent=beginMissionBoardPanel();
+              if(intent)missionGenericUI().then(function(ui){if(intent())return ui.board(t.getAttribute('data-m-generic-board'),card?.querySelector('.mname')?.textContent,intent);})
+                .catch(function(){if(intent())toast('Avvio regia non disponibile.');});
+            }
+            return;
+          }
           if(t.hasAttribute('data-m-generic-editor')){if(iAmStaff)missionGenericUI().then(function(ui){return ui.editor(t.getAttribute('data-m-generic-editor'),card&&card.querySelector('.mname')&&card.querySelector('.mname').textContent);}).catch(function(){toast('Configurazione regia non disponibile.');});return;}
           if(t.hasAttribute('data-m-arena')){openMissionArena('mission',t.getAttribute('data-m-arena'),card&&card.querySelector('.mname')&&card.querySelector('.mname').textContent);return;}
           if(t.hasAttribute('data-mjoin')){ var f=document.getElementById('mjf-'+t.getAttribute('data-mjoin')); if(f) f.classList.toggle('on'); return; }

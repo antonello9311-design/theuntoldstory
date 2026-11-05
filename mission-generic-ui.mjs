@@ -17,7 +17,7 @@ function style(){if(styled)return;styled=true;const n=el('style',null);n.textCon
 .mg-dialog::backdrop{background:#0009}.mg-dialog button,.mg-dialog input,.mg-dialog select,.mg-dialog textarea{font:inherit;padding:8px;border-radius:6px;border:1px solid #8e8669;max-width:100%;box-sizing:border-box}.mg-dialog button{cursor:pointer}.mg-dialog button:disabled{opacity:.55;cursor:wait}.mg-dialog textarea{width:100%;min-height:80px}.mg-field{display:flex;flex-direction:column;gap:5px;margin:8px 0}.mg-row{display:flex;flex-wrap:wrap;align-items:end;gap:10px}.mg-row>.mg-field{flex:1;min-width:160px}.mg-scene{border:1px solid #b8b09c;border-radius:8px;padding:14px;margin:12px 0;background:#fff9}.mg-status{min-height:1.4em}.mg-dialog h3,.mg-dialog h4{margin:8px 0}.mg-room{padding:10px 14px;border:1px solid #a89a75;border-radius:8px;margin:8px 0}.mg-room [role=status]{margin:4px 0}.mg-room button{margin:4px}.mg-dialog summary{cursor:pointer;font-weight:bold}.mg-inline-check{display:inline-flex;align-items:center;gap:5px;margin:5px 12px 5px 0}
 `;document.head.append(n);}
 
-export function createMissionUI({client,identity,isStaff,currentLocation,beforeUserCommand=null,presentCharacters=async()=>[],creationEditor=null,creationBoard=null,isEventReadMode=()=>false,notice=()=>{},refresh=()=>{},publicationChanged=()=>{},createRecoveryFeedback=()=>notice,openCombat=()=>{}}){
+export function createMissionUI({client,identity,isStaff,currentLocation,beforeUserCommand=null,presentCharacters=async()=>[],creationEditor=null,creationBoard=null,createBoardPanel=null,beginBoardPanel=null,isEventReadMode=()=>false,notice=()=>{},refresh=()=>{},publicationChanged=()=>{},createRecoveryFeedback=()=>notice,openCombat=()=>{}}){
  let currentDialog=null,roomEpoch=0,roomSignature='',roomState=null,roomReadFlight=null,roomDirtyHint=false;
  const eventRecoveryFeedback=new Map();
  client=guardStaffAbortClient(client,{identity,session:()=>roomState?.session_id,location:()=>currentLocation()?.id});
@@ -57,9 +57,18 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
    if(diagnosticCode&&typeof r.error.code==='string'&&/^[0-9A-Z]{5}$/.test(r.error.code))failure.manualRecoveryCode=r.error.code;
    throw failure;}return r.data;
  }
- function dialog(title){style();if(currentDialog){currentDialog.close();currentDialog.remove();}
+ function dialog(title){style();if(currentDialog){const previous=currentDialog;previous.close();previous.remove();}
   const d=el('dialog',null,{class:'mg-dialog','aria-label':title});const top=el('div',null,{class:'mg-row'});
   top.append(el('h3',title),button('Chiudi',()=>d.close()));d.append(top);document.body.append(d);d.addEventListener('close',()=>{d.remove();if(currentDialog===d)currentDialog=null;});d.showModal();currentDialog=d;return d;
+ }
+ function boardDialog(title,intent){
+  if(typeof createBoardPanel!=='function')return dialog(title);
+  style();
+  if(currentDialog){const previous=currentDialog;previous.close();previous.remove();}
+  const panel=createBoardPanel(title,intent);
+  currentDialog=panel;
+  panel.addEventListener('close',()=>{if(currentDialog===panel)currentDialog=null;},{once:true});
+  return panel;
  }
  async function editor(mission,title,requestedRevision=null){
   if(!isStaff())return;if(typeof creationEditor!=='function')throw Error('Editor completo della missione non disponibile.');
@@ -313,9 +322,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   }catch{if(current()){picksHost.querySelectorAll('input').forEach(n=>n.disabled=!!pending);if(pending&&!pending.receipt){status.textContent='Stato non aggiornato. La richiesta è conservata: usa Verifica e ricomponi squadra.';sync();}else{prepare.disabled=true;status.textContent='La preparazione richiede una verifica dello Staff.';}}}
  }
 
- async function board(mission,title){
-  if(isStaff()&&typeof creationBoard==='function'&&await creationBoard(mission,title))return;
-  const user=identity(),d=dialog('Missione IA · '+title),status=el('p','Caricamento…',{role:'status'}),area=el('div',null);d.append(status,area);
+ async function board(mission,title,intent=beginBoardPanel?.()){
+  if(beginBoardPanel&&!intent?.())return;
+  if(isStaff()&&typeof creationBoard==='function'&&await creationBoard(mission,title,intent))return;
+  if(intent&&!intent())return;
+  const user=identity(),d=boardDialog('Missione IA · '+title,intent),status=el('p','Caricamento…',{role:'status'}),area=el('div',null);d.append(status,area);
   async function load(){const response=await rpc('mission_generic_board_state_v1',{p_mission:mission},user);if(!d.isConnected)return;
    const state=response.missions.find(x=>x.mission_id===mission);area.replaceChildren();
    if(!state){status.textContent='La regia IA non è configurata per questa missione.';}
@@ -664,7 +675,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   }catch(e){if(inScope())status.textContent='Predisposizione non disponibile. '+e.message;}
  }
  async function sources(){
-  if(!isStaff())return;const user=identity(),d=dialog('Archivio missioni'),status=el('p','Caricamento…',{role:'status'});d.append(status);
+  if(!isStaff())return;
+  const intent=beginBoardPanel?.();
+  if(beginBoardPanel&&!intent)return;
+  const user=identity(),d=boardDialog('Archivio missioni',intent),status=el('p','Caricamento…',{role:'status'});d.append(status);
   try{const r=await rpc('mission_staff_catalog_state_v1',{},user);if(!valid(user)||!d.isConnected)return;
    const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(v);
    if(!r||r.schema_version!=='mission-staff-catalog/1'||!Array.isArray(r.missions))throw Error('Catalogo missioni non riconosciuto.');
@@ -3764,6 +3778,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   return v;
  }
  const narrativePanelIntents=new Map();
+ function openNarrativeCombatPanel(gesture){
+  if(beginBoardPanel&&!gesture?.())return;
+  return openCombat(gesture);
+ }
  function validNarrativeEntry(value,session,request){
   if(validEntry(value,session,request))return true;
   if(!value||!['preparing','unavailable'].includes(value.status))return false;
@@ -3782,9 +3800,8 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   const n=narrativeSection(state);if(!n)return;
   let saved;try{saved=narrativeEntrySaved(t.user,state.session_id);}catch{return;}
   const intent=narrativePanelIntents.get(state.session_id);
-  if(intent&&intent!==t.scope)return;
-  if(!saved){if(intent===t.scope&&n.mode==='combat'&&state.combat_surface?.can_open&&entryState?.can_open_panel&&['prepared','open'].includes(entryState.status)&&UUID.test(entryState.encounter_id||'')){narrativePanelIntents.delete(state.session_id);void openCombat();}return;}
-  narrativePanelIntents.set(state.session_id,t.scope);
+  if(intent&&intent.scope!==t.scope)return;
+  if(!saved){if(intent&&n.mode==='combat'&&state.combat_surface?.can_open&&entryState?.can_open_panel&&['prepared','open'].includes(entryState.status)&&UUID.test(entryState.encounter_id||'')){narrativePanelIntents.delete(state.session_id);void openNarrativeCombatPanel(intent.gesture);}return;}
   narrativeCombatBusy.add(state.session_id);
   try{
    const receipt=await rpc('regia_combat_entry_receipt_v1',{p_master_session:state.session_id,p_request_key:saved.request_key},t.user);
@@ -3792,11 +3809,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
    if(receipt.status==='unavailable'&&['fato_turn','not_player_turn'].includes(receipt.reason_code)){saveNarrativeEntryRejection(t.user,state.session_id,saved,receipt);return;}
    if(!['prepared','open'].includes(receipt.status)||!receipt.can_open_panel||!UUID.test(receipt.encounter_id||'')||!roomState.combat_surface?.can_open)return;
    sessionStorage.removeItem(entryKey(t.user,state.session_id));narrativePanelIntents.delete(state.session_id);
-   await openCombat();
+   await openNarrativeCombatPanel(intent?.gesture);
   }catch{ /* The original nonce remains available for explicit recovery. */ }
   finally{narrativeCombatBusy.delete(state.session_id);}
  }
- async function openNarrativeCombat(host,state){
+ async function openNarrativeCombat(host,state,gesture){
   const t=syncRoom(host),session=state.session_id;if(!roomCurrent(t)||narrativeCombatBusy.has(session))return;
   narrativeCombatBusy.add(session);
   try{
@@ -3804,26 +3821,26 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
    const n=narrativeSection(roomState);if(!n)throw Error('Scena non confermata.');
    const surface=roomState.combat_surface;
    if(!surface.map_operational||!(surface.can_open||surface.can_prepare))throw Error('La mappa dello scontro non è ancora operativa in questa fase.');
-   if(n.mode==='combat'){await openCombat();return;}
+   if(n.mode==='combat'){await openNarrativeCombatPanel(gesture);return;}
    let saved=narrativeEntrySaved(t.user,session);
    if(saved){
     const receipt=await rpc('regia_combat_entry_receipt_v1',{p_master_session:session,p_request_key:saved.request_key},t.user);
     if(!roomCurrent(t)||!validNarrativeEntry(receipt,session,saved.request_key))throw Error('Apertura non confermata: richiesta conservata.');
     if(receipt.status==='unavailable'&&['fato_turn','not_player_turn'].includes(receipt.reason_code)){saveNarrativeEntryRejection(t.user,session,saved,receipt);notice('Non è il tuo turno per dichiarare un’azione.');return;}
-    if(['prepared','open'].includes(receipt.status)&&receipt.can_open_panel&&UUID.test(receipt.encounter_id||'')){sessionStorage.removeItem(entryKey(t.user,session));narrativePanelIntents.delete(session);await openCombat();return;}
-    if(receipt.status==='preparing'){narrativePanelIntents.set(session,t.scope);notice('Apertura dello scontro in preparazione.');return;}
+    if(['prepared','open'].includes(receipt.status)&&receipt.can_open_panel&&UUID.test(receipt.encounter_id||'')){sessionStorage.removeItem(entryKey(t.user,session));narrativePanelIntents.delete(session);await openNarrativeCombatPanel(gesture);return;}
+    if(receipt.status==='preparing'){narrativePanelIntents.set(session,{scope:t.scope,gesture});notice('Apertura dello scontro in preparazione.');return;}
     if(receipt.status!=='not_found')throw Error('Apertura ancora da confermare.');
    }
-   if(!surface.can_prepare||n.schema_version==='mission-narrative-scene-public/2'&&!n.participant_commands.combat){if(surface.can_open)await openCombat();return;}
+   if(!surface.can_prepare||n.schema_version==='mission-narrative-scene-public/2'&&!n.participant_commands.combat){if(surface.can_open)await openNarrativeCombatPanel(gesture);return;}
    if(surface.entry_revision===null)throw Error('Ingresso non confermato. Rileggi il pannello.');
    if(!saved){saved={session,request_key:id(),revision:surface.entry_revision};sessionStorage.setItem(entryKey(t.user,session),JSON.stringify(saved));}
-   narrativePanelIntents.set(session,t.scope);
+   narrativePanelIntents.set(session,{scope:t.scope,gesture});
    const receipt=await rpc('regia_combat_entry_prepare_v1',{p_master_session:session,p_expected_revision:saved.revision,p_request_key:saved.request_key},t.user);
    if(!roomCurrent(t)||!validNarrativeEntry(receipt,session,saved.request_key))throw Error('Apertura non confermata: richiesta conservata.');
    if(receipt.status==='unavailable'&&['fato_turn','not_player_turn'].includes(receipt.reason_code)){saveNarrativeEntryRejection(t.user,session,saved,receipt);notice('Non è il tuo turno per dichiarare un’azione.');return;}
    if(receipt.status==='preparing'){notice('Apertura dello scontro in preparazione.');await updateRoom(host,{manual:true});return;}
    if(!['prepared','open'].includes(receipt.status)||!receipt.can_open_panel||!UUID.test(receipt.encounter_id||''))throw Error('Apertura non confermata: richiesta conservata.');
-   sessionStorage.removeItem(entryKey(t.user,session));narrativePanelIntents.delete(session);await updateRoom(host,{manual:true});if(roomCurrent(t))await openCombat();
+   sessionStorage.removeItem(entryKey(t.user,session));narrativePanelIntents.delete(session);await updateRoom(host,{manual:true});if(roomCurrent(t))await openNarrativeCombatPanel(gesture);
   }catch(error){if(roomCurrent(t))notice(error?.message||'Apertura non confermata: verifica la stessa richiesta.');}
   finally{narrativeCombatBusy.delete(session);if(roomCurrent(t)&&roomState){paintRoom(host,roomState);const n=narrativeSection(roomState);if(!n||n.mode==='combat')paintServerEvent(host,roomState);}}
  }
@@ -3835,7 +3852,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   if(n.last_publication_id)host.append(el('p','Il Fato pubblicato è disponibile nella chat.'));
   host.append(button('Aggiorna regia',()=>refreshRoomManually(host)));
   let saved=null;try{saved=narrativeEntrySaved(identity(),state.session_id);}catch{}
-  const combat=button('Scontro',()=>void openNarrativeCombat(host,state));combat.disabled=narrativeCombatBusy.has(state.session_id)||!surface.map_operational||!(surface.can_open||surface.can_prepare);
+  const combat=button('Scontro',()=>void openNarrativeCombat(host,state,beginBoardPanel?.()));combat.disabled=narrativeCombatBusy.has(state.session_id)||!surface.map_operational||!(surface.can_open||surface.can_prepare);
   if(!surface.map_operational)combat.title='La mappa dello scontro non è ancora operativa in questa fase.';host.append(combat);
   if(isStaff()&&n.execution_context!=='world')host.append(button('Gestisci prova',()=>void mountAborts(host,state,syncRoom(host),{manual:true})));
   paintServerEvent(host,state);
@@ -3900,8 +3917,6 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
    restoreJournals(state,t,settlements);
    restoreCountedMarkers(state,t,settlements);
    reconcileTickAttempts(state,t);
-   const narrativeEntryIntent=narrativeSection(state)&&narrativeEntrySaved(t.user,state.session_id);
-   if(narrativeEntryIntent)narrativePanelIntents.set(state.session_id,t.scope);
    await readEntry(state,t);if(!roomCurrent(t))return;
    const key=choiceKey(state),pending=choiceRequests.get(key);
    // Only a confirmed RPC/rejection followed by an authoritative read unlocks choices.
