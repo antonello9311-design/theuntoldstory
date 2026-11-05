@@ -3758,14 +3758,24 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   finishProjection(state);
   return v;
  }
+ function nativeQuestRoleCurrent(state,user,loc){
+  if(!user||!loc||loc.is_test!==false||loc.is_exam_room===true||
+     !valid(user)||currentLocation()?.id!==loc.id||scopeFor(user,loc)!==roomScope||
+     roomError||!roomReadReady||roomReadReady.scope!==roomScope||roomReadReady.epoch!==roomEpoch||
+     !UUID.test(state?.session_id||'')||roomState?.session_id!==state.session_id||
+     state.quest_role_authority!=='quest-native-role/1'||roomState.quest_role_authority!=='quest-native-role/1'||
+     narrativeSection(state)||narrativeSection(roomState))return false;
+  return state.role_submit_capability?.schema_version==='mission-role-submit-capability/2'&&
+    state.role_submit_capability.enabled===true;
+ }
  function isNarrativeRoom(){
   const user=identity(),loc=currentLocation();
-  return !!(user&&loc&&scopeFor(user,loc)===roomScope&&narrativeSection(roomState));
+  return !!(user&&loc&&scopeFor(user,loc)===roomScope&&(narrativeSection(roomState)||nativeQuestRoleCurrent(roomState,user,loc)));
  }
  function automaticCombatReadAllowed(){
   const user=identity(),loc=currentLocation();
   if(!roomReadReady||!user||!loc||scopeFor(user,loc)!==roomScope||roomError||roomReadReady.scope!==roomScope||roomReadReady.epoch!==roomEpoch)return false;
-  const n=narrativeSection(roomState);return !n||n.mode==='combat';
+  const n=narrativeSection(roomState);return !nativeQuestRoleCurrent(roomState,user,loc)&&(!n||n.mode==='combat');
  }
  function legacyScenePollingAllowed(){
   const user=identity(),loc=currentLocation();
@@ -3994,7 +4004,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   if(!globalThis.navigator?.locks?.request)throw Error('Protezione dell’invio simultaneo non disponibile. Nessun nuovo invio.');
   roleCommandBusy.add(key);let disposition=null;
   try{return await navigator.locks.request(key,{mode:'exclusive'},async()=>{
-   if(!valid(user)||currentLocation()?.id!==loc.id||!(publicNarrativeCurrent(state,user,loc,'role')||!publicNarrativeSection(state)&&currentLocation()?.is_test===true&&isStaff())||(roomState&&roomState.session_id!==state.session_id))throw Error('Contesto di invio cambiato. Nessun nuovo invio.');
+   if(!valid(user)||currentLocation()?.id!==loc.id||!(publicNarrativeCurrent(state,user,loc,'role')||nativeQuestRoleCurrent(state,user,loc)||!publicNarrativeSection(state)&&currentLocation()?.is_test===true&&isStaff())||(roomState&&roomState.session_id!==state.session_id))throw Error('Contesto di invio cambiato. Nessun nuovo invio.');
    const worldHost=publicNarrativeSection(state)?.execution_context==='world';if(worldHost)assertMissionHost();
    const j=readRoleCommands(key,user,state.session_id,character),pending=j.commands.find(x=>['pending','unknown'].includes(x.state));
    if(!capability?.enabled){if(pending)throw Error('La richiesta originale resta conservata; il protocollo non è abilitato. Nessun invio legacy.');if(techniqueId!==null)throw Error('L’attivazione descrittiva non e disponibile in questa fase. Nessun invio.');return null;}
@@ -4020,7 +4030,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   if(!UUID.test(state.session_id||''))throw Error('Sessione missione non confermata. Nessun invio: aggiorna la regia.');
   if(techniqueId!==null&&!UUID.test(techniqueId)||hasTechnique!==(techniqueId!==null))throw Error('Seleziona di nuovo la tecnica prima di inviare.');
   // Client hint only: the server checks ownership, rank, cost and legal window.
-  const narrativeInnateIds=new Set(['001f907c-8f32-4758-8a16-ad1730e72c59','4a527ff2-0420-4da9-bc1f-5489c753b285','4056f62d-77f3-47f9-8ecb-9a7799682a9d','8e20bafe-cb3c-4967-b9c7-2a4bca694996','9b384de3-35f0-43c0-b145-94f985fa758a','a50808fa-e7cd-45ee-b4d4-33ad8c65d472']);
+  const narrativeInnateIds=new Set(['001f907c-8f32-4758-8a16-ad1730e72c59','4a527ff2-0420-4da9-bc1f-5489c753b285','4056f62d-77f3-47f9-8ecb-9a7799682a9d','8e20bafe-cb3c-4967-b9c7-2a4bca694996','9b384de3-35f0-43c0-b145-94f985fa758a','a50808fa-e7cd-45ee-b4d4-33ad8c65d472','65b30dec-6f9f-459e-b78c-49173d74f251','f3673da7-42c9-497e-abe1-1c0982429f35','1ab6d359-f337-45ed-839c-4e626d2e2819']);
   if(techniqueId!==null&&!narrativeInnateIds.has(techniqueId.toLowerCase()))throw Error('Questa tecnica richiede il pannello Scontro.');
   const narrative=narrativeSection(state);
   if(narrative?.schema_version==='mission-narrative-scene-public/2'){
@@ -4030,6 +4040,15 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
    return submitNarrativeRole(state,user,loc,characterId,body,techniqueId);
   }
   if(narrative&&narrative.mode!=='combat')return submitNarrativeRole(state,user,loc,characterId,body,techniqueId);
+  if(state.quest_role_authority!==undefined){
+   if(!nativeQuestRoleCurrent(state,user,loc))throw Error('Fase narrativa della quest non confermata. Aggiorna la regia.');
+   if(hasCompanion)throw Error('Usa il pannello Scontro per le azioni del compagno.');
+   if(!UUID.test(characterId||'')||typeof body!=='string'||!body.trim())throw Error('Seleziona il personaggio partecipante e scrivi la role.');
+   const receipt=await submitRoleCommand(state,user,loc,characterId,body.trim(),roleCapability(state,characterId),techniqueId);
+   if(!receipt)throw Error('Invio della quest non confermato. Nessuna role inviata dalla chat ordinaria.');
+   if(roomHost)void updateRoom(roomHost,{manual:true});
+   return {handled:true,receipt};
+  }
   const flow=academyFlow(state);
   if(flow===null)return roleLegacyFallback(user,characterId);
   // Durante Combat la role meccanica passa soltanto dal pannello nativo.
