@@ -1311,6 +1311,47 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   if(notice.textContent!==message)notice.textContent=message;
   const status=host.querySelector('[data-mg-room-status]');if(status)host.insertBefore(notice,status);
  }
+ const questStaffProgressActor='f0856d53-83a6-4de0-bc0c-12c87916e665';
+ const questStaffProgressKey=offer=>`quest-staff-v9-progress/1/${questStaffProgressActor}/${offer.session_id}/${offer.kind}/${offer.work_id??offer.source_revision}`;
+ function questStaffProgressOffer(state,t){
+  const offer=state?.quest_staff_v9_progress;
+  if(t.user!==questStaffProgressActor||!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||t.loc.is_test!==true||
+   !state?.can_tick||state.review_required===true||state.server_event_mode||roomError||abortBlocked(state.session_id)||
+   !nativeExact(offer,['schema_version','session_id','location_id','episode_id','source_revision','kind','work_id'])||
+   offer.schema_version!=='quest-staff-v9-progress/1'||offer.session_id!==state.session_id||
+   !UUID.test(offer.session_id||'')||offer.location_id!==STAFF_TEST_ROOM||!UUID.test(offer.episode_id||'')||
+   !SHA.test(offer.source_revision||''))return null;
+  const parsed=processingFor(state),p=parsed.value;
+  if(!parsed.valid)return null;
+  if(offer.kind==='initial_tick'){
+   const role=staffAcademyRole(state,t.loc);
+   if(offer.work_id!==null||role?.reason!=='ready_to_evaluate'||role.revision!==offer.source_revision||
+    role.received!==role.required||p&&p.state!=='completed')return null;
+  }else if(offer.kind==='ready_work'){
+   if(!UUID.test(offer.work_id||'')||p?.work_id!==offer.work_id||p.state!=='ready'||p.finalized_at!==null||
+    !sameChainRequest(p.request,p.request))return null;
+  }else return null;
+  return {...offer,request:offer.kind==='ready_work'?p.request:null};
+ }
+ function sameQuestStaffProgress(left,right){
+  return !!left&&!!right&&['session_id','location_id','episode_id','source_revision','kind','work_id']
+   .every(key=>left[key]===right[key])&&
+   (left.kind==='initial_tick'||sameChainRequest(left.request,right.request));
+ }
+ function questStaffProgressUnused(offer){
+  try{return localStorage.getItem(questStaffProgressKey(offer))===null;}catch{return false;}
+ }
+ function submitQuestStaffProgress(host,offer){
+  if(!navigator.locks?.request||!questStaffProgressUnused(offer))return;
+  return queueManualRoomAction(host,'quest_staff_v9_progress',lane=>
+   navigator.locks.request(questStaffProgressKey(offer),{ifAvailable:true},async lock=>{
+    if(!lock||!manualLaneCurrent(lane)||lane.session!==offer.session_id||!questStaffProgressUnused(offer))return;
+    await updateRoom(host,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane:lane});
+    if(!manualLaneCurrent(lane)||!sameQuestStaffProgress(offer,questStaffProgressOffer(roomState,lane.t))||
+     !questStaffProgressUnused(offer))return;
+    await maybeDispatch(roomState,lane.t,false,false,null,lane,null,null,offer);
+   }));
+ }
  function paintRoom(host,state){
   if(!host||!state)return;
   const narrative=narrativeSection(state);if(narrative&&(narrative.schema_version==='mission-narrative-scene-public/2'||narrative.mode!=='combat')){paintNarrativeRoom(host,state);return;}
@@ -1331,6 +1372,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   else if(retry)retry.remove();
   if(state.server_event_mode==='server_event_v1'){host.querySelectorAll('[data-mg-manual-recovery-error],[data-mg-retained-resume-error],[data-mg-combat-narration-recovery],[data-mg-count-status],[data-mg-count-status-notice],[data-mg-opening-resume],[data-mg-opening-claim-resume],[data-mg-existing-delivery],[data-mg-existing-delivery-notice],[data-mg-claim-resume],[data-mg-retained-director],[data-mg-role-recovery],[data-mg-combat-recovery],[data-mg-no-work-resume],[data-mg-tick-check],[data-mg-native-replay]').forEach(x=>x.remove());}else{
   const processing=processingFor(state),claim=processing.value;
+  const questProgress=questStaffProgressOffer(state,{user:cacheUser,loc:currentLocation()});
   paintManualRecoveryError(host,state,processing);
   paintRetainedResumeError(host,state);
   const role=roleProgress(state);
@@ -1378,7 +1420,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   const countedRecovery=countedResumeAllowed(state,{loc:currentLocation(),user:cacheUser});
   let resume=host.querySelector('[data-mg-claim-resume]');
   if(isStaff()&&currentLocation()?.id===STAFF_TEST_ROOM&&currentLocation()?.is_test&&processing.valid
-   &&!existingDeliveryCandidate(state,existingScope)&&!combatProof&&!hasOpeningResume(state)&&!hasOpeningClaimResume(state)&&!countReserved&&(retainedReady||countedRecovery||claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
+   &&!questProgress&&!existingDeliveryCandidate(state,existingScope)&&!combatProof&&!hasOpeningResume(state)&&!hasOpeningClaimResume(state)&&!countReserved&&(retainedReady||countedRecovery||claimedRecovery||state.can_tick&&state.review_required!==true&&(readyRecovery||uncertainRecovery))){
    if(!resume){resume=button('',()=>{const s=roomState;if(!s)return;const p=processingFor(s).value,r=roleProgress(s);if(countedResumeAllowed(s,{loc:currentLocation(),user:cacheUser}))void staffResumeCounted(host);else if(p?.state==='claimed')void staffReconcileClaimed(host);else if(retainedWriterHandoff(s)||p?.state==='ready'&&(r?.reason==='recoverable_not_started'||recoveredWriters.has(recoveredWriterKey(cacheUser,s.session_id,p.work_id))))void staffResumeReady(host);else maybeDispatch(s,syncRoom(host),true);});resume.setAttribute('data-mg-claim-resume','');host.append(resume);}
    resume.textContent=countedRecovery?'Riprendi la richiesta salvata':claimedRecovery?'Verifica la stessa ricevuta':readyRecovery?'Verifica e riprendi la stessa richiesta':'Verifica o riprendi la stessa richiesta';
    const suffix=countedRecovery?':counted-resume':claimedRecovery?':reconcile-claimed':readyRecovery?':reclaim-ready':':reclaim';
@@ -1408,6 +1450,19 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
    if(!combatRecovery){combatRecovery=button('Verifica e recupera la lavorazione dello scontro',()=>staffRecoverCachedChoice(host));combatRecovery.setAttribute('data-mg-combat-recovery','');host.append(combatRecovery);}
    combatRecovery.disabled=!!roomError||!!staffChoiceRecovery||liveAttempt(state)||cachedChoiceRecoveries.has(claim.work_id);
   }else if(combatRecovery)combatRecovery.remove();
+  let questProgressButton=host.querySelector('[data-mg-quest-v9-progress]');
+  if(questProgress&&questStaffProgressUnused(questProgress)){
+   if(!questProgressButton){
+    questProgressButton=button('',()=>{
+     const offer=questStaffProgressOffer(roomState,{user:cacheUser,loc:currentLocation()});
+     if(offer)void submitQuestStaffProgress(host,Object.freeze(clone(offer)));
+    });
+    questProgressButton.setAttribute('data-mg-quest-v9-progress','');host.append(questProgressButton);
+   }
+   questProgressButton.textContent=questProgress.kind==='initial_tick'?'Valuta le role della Quest Staff':'Invia il Fato della Quest Staff';
+   questProgressButton.disabled=!navigator.locks?.request||liveAttempt(state)||
+    !!(manualRoomLane&&manualLaneCurrent(manualRoomLane))||asyncBlocked(state);
+  }else questProgressButton?.remove();
   const noWorkTick=tickStatusFor(state);
   let noWorkResume=host.querySelector('[data-mg-no-work-resume]');
   if(noWorkTick.valid&&noWorkTick.value?.state==='no_work_released'&&noWorkTick.value.owned_by_me&&noWorkTick.value.can_resume){
@@ -3536,7 +3591,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   // No recursion, retry or third work. The caller's normal readback displays the child's authoritative result.
   return a.outcome==='confirmed'?'child_confirmed':a.outcome==='failed'?'child_failed':'child_unconfirmed';
  }
- function maybeDispatch(state,t,reclaim=false,explicitNoWork=false,combatResume=null,manualLane=null,retainedResume=null,normalResume=null){
+ function maybeDispatch(state,t,reclaim=false,explicitNoWork=false,combatResume=null,manualLane=null,retainedResume=null,normalResume=null,questProgress=null){
+  const questExplicit=questProgress!==null;
+  if(questExplicit&&(!manualLaneCurrent(manualLane)||manualLane.kind!=='quest_staff_v9_progress'||
+   !sameQuestStaffProgress(questProgress,questStaffProgressOffer(state,t))||!questStaffProgressUnused(questProgress)))return;
   const normalProof=normalHandoffCurrent(state,t,normalResume),normalExplicit=!!normalResume;
   if(normalExplicit&&!normalProof)throw normalResumeError('context_changed');
   const retainedProjection=retainedWriterHandoffShapeOnly(state),retained=retainedWriterHandoff(state,t),retainedExplicit=!!retainedResume;
@@ -3544,7 +3602,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   if(retainedExplicit&&(!manualLaneCurrent(manualLane)||!sameRetainedHandoff(retained,retainedResume))){refuse('handoff_changed');return;}
   if(manualLaneBlocks(manualLane)||manualObserverVerification){refuse('context_changed');return;}
   if(retainedProjection?.child_work_id===processingFor(state).value?.work_id&&!retainedExplicit)return; // Read/reload cannot dispatch an adopted Writer.
-  if(staffTickAutoStop(state,t)&&!retainedExplicit&&!normalExplicit)return; // Fresh tick stop remains; this path only delivers the already-proved child.
+  if(staffTickAutoStop(state,t)&&!retainedExplicit&&!normalExplicit&&!(questExplicit&&questProgress.kind==='ready_work'))return; // Fresh tick stop remains; this path only delivers the already-proved child.
   if(hasOpeningResume(state)||hasOpeningClaimResume(state)){refuse('other_observer');return;} // A proof, even malformed, cannot become an automatic resend.
   const sameCombat=combatResume&&combatResumeBinding(state,t);
   if(combatResume&&(!sameCombat||sameCombat.work!==combatResume.work||!sameChainRequest(sameCombat.request,combatResume.request)||sameCombat.tuple!==combatResume.tuple))return;
@@ -3563,13 +3621,15 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   const staffAcademy=isStaff()&&t.loc?.id===STAFF_TEST_ROOM&&t.loc?.is_test===true&&academyFlow(state)!==null;
   const staffCombat=staffAcademy&&academyFlow(state)==='combat_started'&&UUID.test(state.flow_publication_id||'');
   if(staffAcademy&&!role&&!combatReady&&!retainedExplicit&&!normalExplicit)return; // Never fall back to a browser UUID when the Staff projection is missing.
-  if(role&&!staffCombat&&!claimedVerification&&!combatReady&&!retainedExplicit&&!normalExplicit&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started'||recoveredReady:role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
+  if(role&&!staffCombat&&!claimedVerification&&!combatReady&&!retainedExplicit&&!normalExplicit&&!questExplicit&&!(reclaim?role.reason==='uncertain'||role.reason==='recoverable_not_started'||recoveredReady:role.reason==='ready_to_evaluate'))return; // Ready work needs an explicit Staff readback.
   if(reclaim&&(!isStaff()||t.loc?.id!==STAFF_TEST_ROOM||!t.loc?.is_test||!(claimedVerification||p?.state==='uncertain'||p?.state==='ready'&&(role?.reason==='recoverable_not_started'||recoveredReady||combatReady||retainedExplicit||normalExplicit)&&p.finalized_at===null))){refuse('context_changed');return;}
   if(p&&['authorized','provider_started'].includes(p.state)||p?.state==='failed'&&!(staffAcademy&&role?.reason==='ready_to_evaluate')
    ||p&&['claimed','uncertain'].includes(p.state)&&!reclaim)return;
   const staffRole=staffAcademyRole(state,t.loc),staffTick=!reclaim&&!staffCombat&&staffRole?.reason==='ready_to_evaluate'&&(!p||['completed','failed'].includes(p.state));
   const tickProjection=tickStatusFor(state,t);
   if(staffTick&&!mayCreateStaffTick(tickProjection,explicitNoWork))return;
+  if(questExplicit&&(questProgress.kind==='initial_tick'?!staffTick:
+   staffTick||p?.state!=='ready'||p.work_id!==questProgress.work_id))return;
   const recoveryKey=staffTick&&tickProjection.applicable&&tickProjection.valid&&tickProjection.value.can_resume
    ?tickProjection.value.recovery_key:null;
   const directorRecoveryHandoff=staffTick?directorHandoffFor(state,t):null;
@@ -3592,6 +3652,14 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   const dispatched=(async()=>{
    try{
     if(retainedExplicit||normalExplicit)paintRoom(roomHost,state);
+    if(questExplicit){
+     if(!manualLaneCurrent(manualLane)||!sameQuestStaffProgress(questProgress,questStaffProgressOffer(roomState,t))||
+      !questStaffProgressUnused(questProgress))throw Error('quest_staff_progress_scope_changed');
+     const journalKey=questStaffProgressKey(questProgress);
+     const record=JSON.stringify({schema_version:'quest-staff-v9-progress-attempt/1',offer:questProgress,request:a.body});
+     localStorage.setItem(journalKey,record);
+     if(localStorage.getItem(journalKey)!==record)throw Error('quest_staff_progress_journal_not_persisted');
+    }
     const {data,error}=await invokeAsyncOnce(a,t);
     if(error)throw error;
     if(staffTick){
@@ -3613,10 +3681,10 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
      &&(state.session_id==='ce7bc0e0-c8ed-48dd-a9ec-58c02022a7b9'||driverFor(state).optedIn&&driverFor(state).valid))
      {chainFeedback.set(JSON.stringify([t.user,state.session_id]),{reason:chainReason,target:a.chainTarget??chainTarget(a,data?.dispatch??a.body)});
      console.info('regia_chain_diagnostic',chainReason);}
-   }catch(error){await preserveStaffTickStop(error,a,t);a.outcome='uncertain';if(retainedExplicit||normalExplicit)throw error;}
+   }catch(error){await preserveStaffTickStop(error,a,t);a.outcome='uncertain';if(retainedExplicit||normalExplicit||questExplicit)throw error;}
    finally{a.inFlight=false;if(roomCurrent(t)){paintRoom(roomHost,roomState);await updateRoom(roomHost,{manual:true,verifyOnly:true,readOnlyObservers:true,manualLane});}}
   })();
-  if(retainedExplicit||normalExplicit)return dispatched;
+  if(retainedExplicit||normalExplicit||questExplicit)return dispatched;
   void dispatched.catch(()=>{});
  }
  const eventRecoveryBusy=new Set();
