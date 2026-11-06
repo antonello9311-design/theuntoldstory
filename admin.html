@@ -4466,7 +4466,10 @@ return {mount:mountStaffExamDecisions};})();
       var mfLegacyNav=$('mission-rapid-nav'),mfLegacyPage=$('mission-rapid-page'),mfBookNav=document.querySelector('#adm-nav button[data-go="ninja-editoriale"]');
       var mfLegacyVisibility=[mfLegacyNav?.hidden,mfLegacyPage?.hidden,mfBookNav?.hidden];
       try{
-        var mfRevision='37dac90525b249f53fc0404b50adb4ed92df0123649326c99260bf656119d806',mfManifestSha='58959dfec34dfe9aee1c2b2f39dc720774c661544c424c33b04a0f0e179568f4';
+        var mfRevision='4122da70e0d1015980183fe741c0c2527b78482bbf665d07b00aedb08caaf0ae',mfManifestSha='fc90c32f3175786626fa85f84e0551d3a7066d431e8ac0bd3b61bc270e6cc3d7';
+        var mfTrialActor=mfPrincipal==='f0856d53-83a6-4de0-bc0c-12c87916e665';
+        var mfManifestAsset='mission-factory-quest-staff-manifest.v2.json';
+        if(!mfTrialActor){mfRevision='37dac90525b249f53fc0404b50adb4ed92df0123649326c99260bf656119d806';mfManifestSha='58959dfec34dfe9aee1c2b2f39dc720774c661544c424c33b04a0f0e179568f4';mfManifestAsset='mission-factory-release-manifest.v2.json';}
         if(!mfRevision||!mfManifestSha)return;
         var mfBuild='mission-factory-admin/2:'+mfRevision;
         var mfReady=async function(){
@@ -4477,7 +4480,7 @@ return {mount:mountStaffExamDecisions};})();
         };
         var mfUnavailable=function(){toast('Editor missioni non disponibile per questo accesso o questa versione. Il percorso precedente resta disponibile.');};
         if(!await mfReady()){mfUnavailable();return;}
-        var mfManifestResponse=await fetch('./mission-factory-release-manifest.v2.json?sha='+mfManifestSha,{cache:'no-store'});
+        var mfManifestResponse=await fetch('./'+mfManifestAsset+'?sha='+mfManifestSha,{cache:'no-store'});
         if(!mfManifestResponse.ok)throw Error('Editor missioni non disponibile; usa il percorso precedente.');
         var mfManifestBytes=await mfManifestResponse.arrayBuffer();
         var mfHex=async function(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),function(x){return x.toString(16).padStart(2,'0');}).join('');};
@@ -4522,6 +4525,20 @@ return {mount:mountStaffExamDecisions};})();
         try{for(var asset of mfSources.keys())mfUrl(asset);}catch(error){mfRevoke();throw error;}
         window.addEventListener('pagehide',function(event){if(!event.persisted)mfRevoke();});
         try{if(!await mfReady()){mfRevoke();mfUnavailable();return;}}catch(error){mfRevoke();throw error;}
+        if(mfTrialActor){
+        var trialModule=await mfImport('admin-entry.mjs');
+        if(!me||me.id!==mfPrincipal||nbeRole!==mfRole)throw Error('Accesso editor cambiato.');
+        var trialMount=trialModule.mountQuestStaffTrial(host,{client:sb,role:nbeRole,
+          identity:function(){return me&&me.id;},trial:{author:'f0856d53-83a6-4de0-bc0c-12c87916e665',draftId:'b2aa11b4-5f8b-43c9-bbb8-1db7a85739f9',version:8},
+          notice:function(message){toast(message);}});
+        var mfDisposed=false,mfAuth=null;
+        var mfDispose=function(){if(mfDisposed)return;mfDisposed=true;trialMount.dispose();mfRevoke();mfAuth?.data?.subscription?.unsubscribe?.();};
+        mfAuth=sb.auth.onAuthStateChange(function(_event,session){if(session?.user?.id!==mfPrincipal){mfDispose();nav.hidden=true;page.hidden=true;}});
+        window.addEventListener('pagehide',mfDispose,{once:true});
+        window.addEventListener('pageshow',function(event){if(event.persisted)window.location.reload();});
+        nav.hidden=false;page.hidden=false;
+        return;
+        }
         var modules=await Promise.all([mfImport('admin-entry.mjs'),mfImport('legacy-drafts.mjs'),mfImport('MAPPE_UI_PICKER.asset.v3.mjs'),mfImport('npc-combat-controller.mjs'),mfImport('npc-media-adapter.mjs'),mfImport('npc-media-panel.mjs')]);
         if(!me||me.id!==mfPrincipal||nbeRole!==mfRole)throw Error('Accesso editor cambiato.');
         nbeWire();
