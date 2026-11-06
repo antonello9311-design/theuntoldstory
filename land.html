@@ -9,7 +9,7 @@
 <meta name="tus-chat-reentry-build" content="C1266-CHAT-REENTRY-001" />
 <meta name="tus-regia-start-build" content="C1266-START-RECOVERY-001" />
 <meta name="tus-turn-recovery-build" content="C1266-SAVED-DIRECTOR-HANDOFF-002" />
-  <meta name="tus-build" content="LAND-INUZUKA-GENIN-COMMON-009" />
+  <meta name="tus-build" content="LAND-INNATA-QUEST-STAFF-ROLE-002" />
   <meta name="tus-human-rapid-build" content="mission-creation-ui-human-rapid-6" />
   <meta name="tus-quest-runtime-build" content="completion7-binding/1" />
   <meta name="tus-human-quest-suspend-build" content="HUMAN22-OWN-STAFF-PRE-ENCOUNTER-001" />
@@ -6363,7 +6363,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         var _pl=document.getElementById('msg-place'); if(_pl){ _pl.disabled=w; _pl.title=w?'Il luogo non si applica ai sussurri':''; }
         var _pc=document.getElementById('png-chip'); if(_pc){ _pc.disabled=w; }
         var _pb=document.getElementById('png-box'); if(_pb&&w){ _pb.hidden=true; if(_pc) _pc.classList.remove('on'); var _eb2=document.getElementById('ed-png-box'); if(_eb2) _eb2.hidden=true; }
-        if(w) sugScegli(null);
+        if(w) sugInvalida();
       }
       function setFatoMode(on){
         fatoMode=!!on && !!iAmStaff;
@@ -6376,7 +6376,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           if(toSel) toSel.value='';
           var pb=document.getElementById('png-box'); if(pb) pb.hidden=true;
           var eb=document.getElementById('ed-overlay'); if(eb) eb.hidden=true;
-          sugScegli(null);
+          sugInvalida();
         }
         updateToStyle(); updCount();if(typeof missionHumanPhaseRefresh==='function')missionHumanPhaseRefresh(MV2?.data);if(typeof missionD100Refresh==='function')missionD100Refresh(MV2?.data);
       }
@@ -6676,20 +6676,25 @@ window.TUSOrdinary={attachOrdinaryLand};
       var MISSION_HUMAN_CLOSE_LOCK=null,MISSION_HUMAN_CLOSE_WRITERS=new Map();
       function missionHumanCloseScope(){return JSON.stringify([commonMasterPrincipal(),cur&&cur.id,MV2?.data?.master?.id||MISSION_HUMAN_CLOSE_LOCK?.session||null]);}
       function missionHumanCloseBlocked(){var p=MISSION_HUMAN_CLOSE_LOCK;return !!(p&&p.blocked&&p.principal===commonMasterPrincipal()&&p.location===cur?.id&&(cur?.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test||cur?.is_test!==true)&&(!MV2?.data?.master?.id||!p.session||MV2.data.master.id===p.session));}
-      function missionHumanCloseWriter(name){return (/^(combat_v2_|combat_panel_(prepare|commit)|regia_round_(advance|publish)|mission_human_(phase_action|fato_publish|combat_close|rapid_terminal)|mission_staff_simulation_abort_v1$)/.test(name)||name==='regia_combat_entry_prepare_v1'||/^master_v2_/.test(name))&&!new Set(['master_v2_ui_state','master_v2_round_options','master_v2_action_options','master_v2_png_catalog','master_v2_formation_options','master_v2_encounter_options','master_v2_human_actor_label_mode_v1','combat_v2_round_state','combat_v2_actor_options']).has(name);}
-      function missionHumanCloseGuardClient(client){return new Proxy(client,{get:function(target,key){if(key!=='rpc'){var value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;}return function(name,args){
+      function missionHumanCloseWriter(name){return (/^(combat_v2_|combat_panel_(prepare|commit)|regia_round_(advance|publish)|mission_human_(phase_action|fato_publish|combat_close|rapid_terminal)|mission_staff_simulation_abort_v1$|innata_staff_human_role_submit_v1$)/.test(name)||name==='regia_combat_entry_prepare_v1'||/^master_v2_/.test(name))&&!new Set(['master_v2_ui_state','master_v2_round_options','master_v2_action_options','master_v2_png_catalog','master_v2_formation_options','master_v2_encounter_options','master_v2_human_actor_label_mode_v1','combat_v2_round_state','combat_v2_actor_options']).has(name);}
+      function missionHumanCloseGuardClient(client){return new Proxy(client,{get:function(target,key){if(key!=='rpc'){var value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;}return function(name,args,beforeStaffRole){
         var scoped=!!(commonMasterPrincipal()&&cur&&(cur.is_test&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'||cur.is_test!==true&&(MISSION_CREATION_HUMAN_STATUS==='ready'&&MISSION_CREATION_HUMAN_SESSION===MV2?.data?.master?.id||MISSION_HUMAN_CLOSE_LOCK?.location===cur.id))&&(MV2?.data?.master?.id||MISSION_HUMAN_CLOSE_LOCK?.session));
         var lock=MISSION_HUMAN_CLOSE_LOCK,entry=name==='regia_combat_entry_prepare_v1',entrySession=entry&&args?.p_master_session;
         var ownEntry=entry&&!!entrySession&&(entrySession===MV2?.data?.master?.id||(entrySession===lock?.session&&lock.principal===commonMasterPrincipal()&&lock.location===cur?.id));
-        var write=scoped&&missionHumanCloseWriter(name)&&(!entry||ownEntry),scope=entry&&ownEntry?JSON.stringify([commonMasterPrincipal(),cur.id,entrySession]):missionHumanCloseScope();
+        var roleWrite=name==='innata_staff_human_role_submit_v1',roleSession=roleWrite?args?.p_command?.session_id:null;
+        var write=scoped&&missionHumanCloseWriter(name)&&(!entry||ownEntry)&&(!roleWrite||roleSession===MV2.data?.master?.id),
+          scope=entry&&ownEntry?JSON.stringify([commonMasterPrincipal(),cur.id,entrySession]):missionHumanCloseScope();
         var pendingEntry=ownEntry&&!!(lock?.blocked&&lock.session===entrySession&&lock.principal===commonMasterPrincipal()&&lock.location===cur?.id);
         if(write&&(entry?pendingEntry:missionHumanCloseBlocked())&&!(name==='master_v2_close'&&lock.args&&JSON.stringify(args)===JSON.stringify(lock.args)))return Promise.resolve({data:null,error:{code:'55000',message:'Chiusura della propria prova da riconciliare: comando sospeso.'}});
         if(write&&name!=='master_v2_close')MISSION_HUMAN_CLOSE_WRITERS.set(scope,(MISSION_HUMAN_CLOSE_WRITERS.get(scope)||0)+1);
-        var commandContext=JSON.stringify([commonMasterPrincipal(),cur&&cur.id||null,MV2&&MV2.authEpoch||0]);return Promise.resolve().then(async function(){if(landCommandNeedsPresence(name)){await landUserPresence();if(commandContext!==JSON.stringify([commonMasterPrincipal(),cur&&cur.id||null,MV2&&MV2.authEpoch||0]))throw Error('Contesto cambiato: nessun comando inviato.');}return target.rpc(name,args);}).finally(function(){if(write&&name!=='master_v2_close'){var n=(MISSION_HUMAN_CLOSE_WRITERS.get(scope)||1)-1;if(n)MISSION_HUMAN_CLOSE_WRITERS.set(scope,n);else MISSION_HUMAN_CLOSE_WRITERS.delete(scope);}});
+        var commandContext=JSON.stringify([commonMasterPrincipal(),cur&&cur.id||null,MV2&&MV2.authEpoch||0]);return Promise.resolve().then(async function(){if(landCommandNeedsPresence(name)){await landUserPresence();if(commandContext!==JSON.stringify([commonMasterPrincipal(),cur&&cur.id||null,MV2&&MV2.authEpoch||0]))throw Error('Contesto cambiato: nessun comando inviato.');}return target.rpc(name,args,beforeStaffRole?function(){
+          if(roleWrite&&(!write||missionHumanCloseScope()!==scope||missionHumanCloseBlocked()))throw Error('Chiusura della Quest da verificare. Nessun invio.');
+          beforeStaffRole();
+        }:undefined);}).finally(function(){if(write&&name!=='master_v2_close'){var n=(MISSION_HUMAN_CLOSE_WRITERS.get(scope)||1)-1;if(n)MISSION_HUMAN_CLOSE_WRITERS.set(scope,n);else MISSION_HUMAN_CLOSE_WRITERS.delete(scope);}});
       };}});}
       var commonPanelUiUnavailable=false;
       function landApplyStaffRole(role){iAmStaff=['master','admin'].includes(role);LAND_PROFILE_KNOWN=true;for(var it of [['test-btn',true],['regia-btn',iAmStaff],['mv2-open-btn',iAmStaff&&fatoMode],['fato-toggle-row',iAmStaff],['admin-nav',iAmStaff],['test-staff-btn',iAmStaff]]){var btn=document.getElementById(it[0]);if(btn)btn.style.display=it[1]?'':'none';}if(!iAmStaff)setFatoMode(false);esameHoldRefresh();syncSendBtn();}
-      function landCommandNeedsPresence(name){return /^(?:post_message|mission_role_submit_v1|combat_consumer_commit_v1|combat_v2_(?:action_declare|defense_declare|rating_save|round_resolve|round_narrate_human)|combat_panel_(?:prepare|commit)_v1|regia_round_(?:advance|publish)_v1|master_v2_(?:session_open|encounter_open|scene_close|suspend|resume|admin_override|close)|training_role_(?:dichiara|registra|abbandona)|training_sparring_resa|regia_combat_entry_prepare_v1|mission_native_source_prepare_v1|mission_generic_(?:choose|staff_test_start|board_start)_v1|mission_staff_(?:resume_identical_role|retry_failed_director)_v1)$/.test(name); }
+      function landCommandNeedsPresence(name){return /^(?:post_message|innata_staff_human_role_submit_v1|mission_role_submit_v1|combat_consumer_commit_v1|combat_v2_(?:action_declare|defense_declare|rating_save|round_resolve|round_narrate_human)|combat_panel_(?:prepare|commit)_v1|regia_round_(?:advance|publish)_v1|master_v2_(?:session_open|encounter_open|scene_close|suspend|resume|admin_override|close)|training_role_(?:dichiara|registra|abbandona)|training_sparring_resa|regia_combat_entry_prepare_v1|mission_native_source_prepare_v1|mission_generic_(?:choose|staff_test_start|board_start)_v1|mission_staff_(?:resume_identical_role|retry_failed_director)_v1)$/.test(name); }
       async function commonPanelUiRpc(name,args){
         if(['combat_consumer_commit_v1','combat_panel_prepare_v1','combat_panel_commit_v1'].includes(name)){
           var commandBinding=JSON.stringify([commonMasterPrincipal(),myCharId,cur&&cur.id||null,MV2&&MV2.authEpoch||0]);
@@ -7000,6 +7005,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           same=same&&MV2.regiaSignature===nextRegiaSignature;MV2.regia=nextRegia;MV2.regiaSignature=nextRegiaSignature;
           if(MV2.data?.master?.id!==next.master?.id)MV2.regiaDirection={turn_kind:'',actor_ids:[]};
           MV2.data=next;MV2.locationId=masterLocation;MV2.principalId=masterPrincipal;
+          if(innataStaffProfileVisibility())loadAbilities();
           if(nextRegia?.status==='ready'||nextRegia?.status==='blocked'&&nextRegia.reason_code==='regia_state_inconsistent')MV2.regiaOptedInScope=mv2RegiaScope();
           else if(nextRegia?.status==='unavailable'&&nextRegia.reason_code==='not_opted_in')MV2.regiaOptedInScope=null;
           syncSendBtn();mv2TopSync();missionHumanPhaseRefresh(next);missionD100Refresh(next);mv2PruneDefenseDrafts(next);if(!same)renderCombat();if(!commonMasterCombat())mv2EnsureOptions();
@@ -7052,6 +7058,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           same=same&&MV2.regiaSignature===nextRegiaSignature;MV2.regia=nextRegia;MV2.regiaSignature=nextRegiaSignature;
           if(MV2.data?.master?.id!==next.master?.id)MV2.regiaDirection={turn_kind:'',actor_ids:[]};
           MV2.data=next;MV2.locationId=masterLocation;MV2.principalId=masterPrincipal;
+          if(innataStaffProfileVisibility())loadAbilities();
           if(nextRegia?.status==='ready'||nextRegia?.status==='blocked'&&nextRegia.reason_code==='regia_state_inconsistent')MV2.regiaOptedInScope=mv2RegiaScope();
           else if(nextRegia?.status==='unavailable'&&nextRegia.reason_code==='not_opted_in')MV2.regiaOptedInScope=null;
           syncSendBtn();mv2TopSync();missionHumanPhaseRefresh(next,options);missionD100Refresh(next,options);mv2PruneDefenseDrafts(next);if(!same)renderCombat();if(!commonMasterCombat())mv2EnsureOptions();
@@ -12873,8 +12880,13 @@ var nb028iTeardown=function(){};
       function leaveRoom(){ if(roomEntryStaffScope())roomEntryReset();closeMissionBoardPanel();closeMiss();humanInlineReset();mv2Card(false);missionD100Reset();examHumanLeave(); truReleaseInvalidate(); closeRoomObjectBinding(); MV2.staffLoading=null;commonMasterReadGeneration++;MV2.readRequested=false;missionHumanPhaseReset();if(MISSION_CREATION_UI)MISSION_CREATION_UI.dispose();MISSION_CREATION_NATIVE_MISSION=null;if(MISSION_GENERIC_UI)MISSION_GENERIC_UI.dispose();var _mg=document.getElementById('mission-generic-room');if(_mg){_mg.replaceChildren();_mg.hidden=true;} if(ORDINARY)ORDINARY.invalidate(); nb028iTeardown(); setFatoMode(false); if(poll){ clearInterval(poll); poll=null; } if(presencePoll){ clearInterval(presencePoll); presencePoll=null; } lastWhoSig=null; uiPostreviewStaffReset();WHO=[];PRESENTI_IDS={};cur=null;innataStaffProfileInvalidate();loadAbilities(); CMB=null; mv2ClearPrepInputs();MV2.data=null; MV2.serverSig=null; MV2.regia=null; MV2.regiaSignature=null; MV2.regiaDraft=''; MV2.regiaDirection={turn_kind:'',actor_ids:[]}; MV2.scortaContext=false; MV2.scortaRoom=null; MV2.scortaScope=null; MV2.defenseDrafts={}; MV2.setup=null; MV2.setupOpen=false; MV2.setupKind=null; MV2.composeMode=null; mv2OvChiudi(); MV2.pngDraft=[]; MV2.options={}; MV2.missingRpc=false; var _mv=document.getElementById('mv2-card'); if(_mv)_mv.hidden=true; var _cc=document.getElementById('cmb-card'); if(_cc) _cc.hidden=true; try{ sessionStorage.removeItem('tus_land_resume'); }catch(e){} chiudiRecOv(); roleState=recVuoto(); recTest=false; recSig=null; recLSig=null; renderRec(); TRV2.state=null;TRV2.error=false;TRV2.sig=null;TRV2.abandonConfirm=false;trv2Card(false); var ac=document.getElementById('acad-card'); if(ac) ac.hidden=true; classState=null; senseiPortrait=''; esReset(); if(sb) sb.rpc('enter_location',{p_location:null}).then(function(){ loadRoster(); loadActivity(); },function(){}); showView('map'); loadLuoghi();staffEventSync(); }
       backBtn.addEventListener('click', leaveRoom);
       (function(){ var w=document.getElementById('test-wipe'); if(!w) return; w.addEventListener('click', function(){ if(!sb||!cur) return; w.disabled=true; sb.rpc('test_room_svuota').then(function(r){ w.disabled=false; if(r&&r.error){ toast('Non e\u0027 stato possibile svuotare la stanza'); return; } toast('Stanza svuotata: '+((r&&r.data!=null)?r.data:0)+' messaggi cancellati'); loadMsgs(); }, function(){ w.disabled=false; toast('Non e\u0027 stato possibile svuotare la stanza'); }); }); })();
-      function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id, text:input.value, ts:Date.now()})); } }catch(e){} }
-      function tryResume(){ try{ var raw=sessionStorage.getItem('tus_land_resume'); if(!raw) return false; var d=JSON.parse(raw); if(!d||!d.room){ sessionStorage.removeItem('tus_land_resume'); return false; } if(d.ts&&(Date.now()-d.ts)>1800000){ sessionStorage.removeItem('tus_land_resume'); return false; } var l=LOCS.filter(function(x){return x.id===d.room;})[0]; if(l){ openRoom(l); if(input){ input.value=d.text||''; updCount(); } return true; } }catch(e){} return false; }
+      function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id,text:input.value,ts:Date.now(),...(SUG_STAFF_CHOICE?{staffTechniqueOwner:JSON.stringify([myId,myCharId])}:{})})); } }catch(e){} }
+      function tryResume(){ try{ var raw=sessionStorage.getItem('tus_land_resume'); if(!raw) return false; var d=JSON.parse(raw); if(!d||!d.room){ sessionStorage.removeItem('tus_land_resume'); return false; } if(d.ts&&(Date.now()-d.ts)>1800000){ sessionStorage.removeItem('tus_land_resume'); return false; } var l=LOCS.filter(function(x){return x.id===d.room;})[0]; if(l){ openRoom(l); if(input){
+          if(d.staffTechniqueOwner&&d.staffTechniqueOwner!==JSON.stringify([myId,myCharId]))return true;
+          input.value=d.text||'';
+          if(d.staffTechniqueOwner)SUG_STAFF_CHOICE={expired:true};
+          updCount();saveResume();
+        } return true; } }catch(e){} return false; }
       window.addEventListener('pagehide', saveResume);
       var brandMap=document.getElementById('brand-map'); if(brandMap){ brandMap.addEventListener('click', function(){ leaveRoom(); }); }
       function send(after){
@@ -12884,6 +12896,15 @@ var nb028iTeardown=function(){};
         var pIn=document.getElementById('png-input'); var pTxt=(myComp&&pIn)?(pIn.value||'').trim():'';
         if((!t.trim()&&!pTxt)||!cur||!sb) return;
         var to=toSel?toSel.value:'';
+        if(!to&&!fatoMode&&SUG_STAFF_FLIGHT)return;
+        var humanRole=to||fatoMode?null:staffHumanRoleScope();
+        if(!to&&!fatoMode&&SUG_STAFF_CHOICE&&!t.trim()){
+          toast('Scrivi la role del personaggio prima di attivare l’Innata.');return;
+        }
+        if(humanRole&&!SUG_STAFF_CHOICE&&staffHumanRolePending(humanRole)){
+          toast('Verifica l’invio della role già registrata prima di inviarne un’altra.');return;
+        }
+        if(!to&&!fatoMode&&sugStaffScaduta()){syncSendBtn();toast(SUG_STAFF_EXPIRED);return;}
         if(!to&&!fatoMode&&MV2.data?.encounter){var pgPublicationBlock=mv2RegiaReason(false);if(pgPublicationBlock){toast(pgPublicationBlock);return;}}
         if(!to&&!fatoMode&&esLegacyFatoPending()){toast('Attendi l’incipit o l’esito pubblico del Fato prima di inviare.');return;}
         if(!to&&missionHumanCloseBlocked()){toast('Chiusura della propria prova da riconciliare: la role resta in composizione.');return;}
@@ -12974,7 +12995,7 @@ var nb028iTeardown=function(){};
           esInvia(ES_AZ, t, t); return;
         }
         var narrativeSend=!to&&!fatoMode&&missionNarrativeRoomKnown()&&!missionAutomaticCombatAllowed();
-        if(!to&&SUG_SCELTA&&!innataProfileRoleTechniqueReady(SUG_SCELTA)){sugScegli(null);sugChiudi();toast('Rileggi le abilità prima di scegliere una tecnica per la role.');return;}
+        if(!to&&SUG_SCELTA&&!innataProfileRoleTechniqueReady(SUG_SCELTA)){sugInvalida();sugChiudi();syncSendBtn();toast(SUG_STAFF_EXPIRED);return;}
         if(!narrativeSend&&!to && MV2.data?.encounter&&!commonMasterCombat()){var nativeRegiaBlock=mv2RegiaReason(!!SUG_SCELTA||!!pTxt||!!CMB_AZ);if(nativeRegiaBlock){toast(nativeRegiaBlock);return;}}
         if(!narrativeSend&&!to && ORDINARY?.blockingReason){var regiaBlock=ORDINARY.blockingReason({hasTechnique:!!SUG_SCELTA,companionText:pTxt});if(regiaBlock){toast(regiaBlock);return;}}
         var abortSendSession=MV2?.data?.master?.id||MISSION_GENERIC_UI?.sessionId?.();
@@ -12989,21 +13010,36 @@ var nb028iTeardown=function(){};
            il messaggio non viene nemmeno scritto. */
         var guidata = !narrativeSend&&!to && !!CMB_AZ && !!(CMB&&CMB.aperto&&CMB.puo_comporre);
         var missionRoleReceipt=null,missionNarrativeReceipt=false;
+        var staffChoice=prm.p_technique?SUG_STAFF_CHOICE:null;
+        function checkStaffRoleChoice(){
+          if(staffChoice&&(staffChoice!==SUG_STAFF_CHOICE||sugStaffScaduta()))throw Error(SUG_STAFF_EXPIRED);
+        }
         var academySubmitCandidate=!to&&!guidata&&!fatoMode&&(missionNarrativeRoomKnown()||cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test===true);
         function missionRoleFeedback(message,kind){
           var box=document.getElementById('mission-role-submit-feedback');
           if(!box){box=document.createElement('p');box.id='mission-role-submit-feedback';box.setAttribute('role','status');box.setAttribute('aria-live','polite');input.parentNode.append(box);}
           box.textContent=message;box.dataset.kind=kind;
         }
-        var req = to ? sb.rpc('post_whisper',{p_location:cur.id,p_recipient:to,p_body:t})
+        if(staffChoice){SUG_STAFF_FLIGHT=staffChoice;syncSendBtn();}
+        var master=MV2.data?.master;
+        var masterScopeConfirmed=MV2.locationId===cur.id&&MV2.principalId===commonMasterPrincipal();
+        var aiRoleRequired=!!(staffChoice&&(master?.tipo==='quest'&&master.controller_kind==='ai_service'||!masterScopeConfirmed));
+        function requestRole(){return to ? sb.rpc('post_whisper',{p_location:cur.id,p_recipient:to,p_body:t})
                      : (guidata ? sb.rpc('combat_azione',{p_location:cur.id, p_testo:pbody, p_azione:CMB_AZ,
                                                           p_companion:(prm.p_companion||null),
                                                           p_companion_body:(prm.p_companion_body||null)})
                                 : academySubmitCandidate
-                                  ? missionGenericUI().then(function(ui){return ui.submitRole({characterId:myCharId,body:pbody,hasCompanion:!!prm.p_companion,hasTechnique:!!prm.p_technique,techniqueId:prm.p_technique||null});})
-                                    .then(function(result){if(!result.handled)return sb.rpc('post_message',prm);missionRoleReceipt=result.receipt;missionNarrativeReceipt=result.narrative===true;return {data:result.receipt,error:null};})
-                                  : sb.rpc('post_message', prm));
+                                  ? missionGenericUI().then(function(ui){checkStaffRoleChoice();return ui.submitRole({characterId:myCharId,body:pbody,hasCompanion:!!prm.p_companion,hasTechnique:!!prm.p_technique,techniqueId:prm.p_technique||null,beforeStaffRole:staffChoice?checkStaffRoleChoice:null,allowStaffLegacy:!aiRoleRequired});})
+                                    .then(function(result){if(!result.handled){if(aiRoleRequired)throw Error('Quest IA non confermata. Nessuna role inviata.');checkStaffRoleChoice();return sb.rpc('post_message',prm,staffChoice?checkStaffRoleChoice:null);}missionRoleReceipt=result.receipt;missionNarrativeReceipt=result.narrative===true;return {data:result.receipt,error:null};})
+                                  : sb.rpc('post_message',prm,staffChoice?checkStaffRoleChoice:null));}
+        var req=humanRole&&staffChoice
+          ? submitStaffHumanRole(humanRole,staffChoice,prm,checkStaffRoleChoice).then(function(receipt){
+            if(receipt===null){checkStaffRoleChoice();return requestRole();}
+            missionRoleReceipt=receipt;missionNarrativeReceipt=true;return {data:receipt,error:null};
+          })
+          : requestRole();
         req.then(function(r){
+          if(staffChoice===SUG_STAFF_FLIGHT)SUG_STAFF_FLIGHT=null;
           syncSendBtn();
           if(r&&r.error){ var raw=(r.error.message||''); var m=raw.toLowerCase();
             /* [03/08/2026] Il server parla italiano ai giocatori: la gittata, il turno,
@@ -13020,9 +13056,12 @@ var nb028iTeardown=function(){};
             missionRoleFeedback(missionNarrativeReceipt?'Role acquisita.':missionRoleReceipt.mission_valid
               ?'Role acquisita per questa missione. Il Fato valuterà le azioni dei partecipanti.'
               :'Role pubblicata, ma non idonea alla fase della missione. Non conta per la valutazione: controlla il pannello e correggi.',
-              missionRoleReceipt.mission_valid?'accepted':'invalid');
+              (missionNarrativeReceipt||missionRoleReceipt.mission_valid)?'accepted':'invalid');
           }
-          input.value=''; updCount(); sugScegli(null);
+          if(staffChoice&&!staffRoleSameDraft(staffChoice,prm,pTxt)){
+            loadMsgs();return;
+          }
+          input.value=''; sugScegli(null); updCount();saveResume();
           if(guidata){ CMB_AZ=null; syncAzPill();
             var st=(r&&r.data&&r.data.stato)||null; if(st){ CMB=st; renderCombat(); } }
           var _pi=document.getElementById('png-input'); if(_pi) _pi.value=''; var _pe=document.getElementById('ed-png'); if(_pe) _pe.value='';
@@ -13032,8 +13071,8 @@ var nb028iTeardown=function(){};
              A dirlo resta role_open_here, non il conteggio dei caratteri. */
           loadMsgs(); loadWho(); loadRoleState(); loadTrainingState();
           if(typeof after==='function') after();
-        }, function(error){ syncSendBtn();
-          if(academySubmitCandidate){var message=error&&error.message||'Invio non confermato. Verifica la chat e lo stato della missione prima di riprovare.';missionRoleFeedback(message,error&&error.roleCommandState==='unknown'?'unknown':error&&error.roleCommandState==='accepted'?'accepted':'rejected');toast(message);}
+        }, function(error){ if(staffChoice===SUG_STAFF_FLIGHT)SUG_STAFF_FLIGHT=null;syncSendBtn();
+          if(academySubmitCandidate||humanRole&&staffChoice){var message=error&&error.message||'Invio non confermato. Verifica la chat e lo stato della missione prima di riprovare.';missionRoleFeedback(message,error&&error.roleCommandState==='unknown'?'unknown':error&&error.roleCommandState==='accepted'?'accepted':'rejected');toast(message);}
           else toast('Impossibile inviare');
         });
       }
@@ -13064,9 +13103,14 @@ var nb028iTeardown=function(){};
       }
       function innataStaffProfileInvalidate(){
         if(!INNATA_PROFILE)return;INNATA_PROFILE.readSeq++;INNATA_PROFILE.scope=null;INNATA_PROFILE.data=null;
-        if(typeof sugScegli==='function')sugScegli(null);if(typeof sugChiudi==='function')sugChiudi();SUG=[];innataProfileRender();
+        sugInvalida();sugChiudi();SUG=[];innataProfileRender();
       }
-      function innataStaffProfileVisibility(){if(!INNATA_PROFILE)return;var s=innataProfileScope();if(INNATA_PROFILE.scope!==s){INNATA_PROFILE.scope=s;INNATA_PROFILE.data=null;INNATA_PROFILE.readSeq++;}innataProfileRender();}
+      function innataStaffProfileVisibility(){
+        if(!INNATA_PROFILE)return false;
+        var s=innataProfileScope(),changed=INNATA_PROFILE.scope!==s;
+        if(changed){INNATA_PROFILE.scope=s;INNATA_PROFILE.data=null;INNATA_PROFILE.readSeq++;sugInvalida();sugChiudi();SUG=[];}
+        innataProfileRender();return changed&&!!s;
+      }
       function innataProfileValidateV1(d,s,receipt,key){
         var b=JSON.parse(s),base=['schema_version','location_id','master_session_id','character_id','context_id','profile_version','selected_profile','selected_ability','innata_active','can_change','reason','profiles'],keys=receipt?base.concat(['request_key','replayed']):base;
         if(!d||Array.isArray(d)||Object.keys(d).sort().join('|')!==keys.sort().join('|')||d.schema_version!==(receipt?'innata-staff-profile-receipt/1':'innata-staff-profile-state/1')||d.character_id!==b[1]||d.location_id!==b[2]||d.master_session_id!==b[3]||!(d.context_id===null||typeof d.context_id==='string'&&/^[a-f0-9-]{36}$/i.test(d.context_id))||!Number.isSafeInteger(d.profile_version)||d.profile_version<0||typeof d.innata_active!=='boolean'||typeof d.can_change!=='boolean'||!(d.reason===null||typeof d.reason==='string')||!Array.isArray(d.profiles)||d.profiles.length!==6)throw Error('Profilo di prova non verificato: rileggi lo stato.');
@@ -13121,7 +13165,7 @@ var nb028iTeardown=function(){};
       }
       function innataProfileAccept(d,s){
         if(s!==innataProfileScope())throw Error('Contesto cambiato: rileggi il profilo nella stanza corretta.');
-        INNATA_PROFILE.scope=s;INNATA_PROFILE.data=d;
+        INNATA_PROFILE.scope=s;INNATA_PROFILE.data=d;syncSendBtn();
         var sel=document.getElementById('innata-profile-select');sel.replaceChildren();var initial=document.createElement('option');initial.value='';initial.textContent='Scegli un profilo di prova';sel.append(initial);
         d.profiles.forEach(function(q){var o=document.createElement('option');o.value=q.profile_key;o.textContent=q.label+' · Livello '+q.level+(q.lifecycle_kind==='passive_permission'?' · permesso passivo':'')+(innataProfileAvailable(q)?'':' · non disponibile');o.disabled=!innataProfileAvailable(q);sel.append(o);});sel.value=d.selected_profile||'';
         innataProfileNote(innataProfileLifecycleNote(d));
@@ -13155,12 +13199,12 @@ var nb028iTeardown=function(){};
         var pending=p.pending;if(!pending||!innataProfileSameBinding(pending.scope,s))return;var accepted=false;p.busy=true;innataProfileRender();
         try{var version=innataProfilePendingVersion(pending),rpc=version===1?'clan_innata_staff_profile_set_v1':'clan_innata_staff_profile_set_v2';await landUserPresence();if(s!==innataProfileScope())throw Error('Contesto cambiato: comando conservato senza nuovo invio.');var r=await sb.rpc(rpc,pending.args);
           if(s!==innataProfileScope())throw Error('Contesto cambiato: verifica lo stesso comando nella stanza originale.');
-          if(!r||r.error){var m=String(r&&r.error&&r.error.message||'');if(/INNATA_PROFILE_CONSUMER_UPGRADE_REQUIRED/.test(m)){p.pending=null;p.data=null;sugScegli(null);sugChiudi();SUG=[];throw Error('Richiesta storica non applicata: rileggi il profilo corrente.');}if(/INNATA_(?:PROFILE_(?:INVALID|STATE_CHANGED|REQUEST_CONFLICT|ACTIVE|COMBAT_ACTIVE|UNAVAILABLE)|STAFF_ONLY)/.test(m)){p.pending=null;p.data=null;sugScegli(null);sugChiudi();SUG=[];throw Error('Profilo non cambiato: rileggi lo stato e verifica se un’Innata o uno Scontro sono ancora attivi.');}throw Error('Invio non confermato: verifica lo stesso comando.');}
-          var receipt=innataProfileValidate(r.data,pending.scope,true,pending.args.p_request_key,version);p.pending=null;accepted=true;p.data=null;sugScegli(null);sugChiudi();SUG=[];await innataProfileRead(false);loadAbilities();
+          if(!r||r.error){var m=String(r&&r.error&&r.error.message||'');if(/INNATA_PROFILE_CONSUMER_UPGRADE_REQUIRED/.test(m)){p.pending=null;p.data=null;sugInvalida();sugChiudi();SUG=[];throw Error('Richiesta storica non applicata: rileggi il profilo corrente.');}if(/INNATA_(?:PROFILE_(?:INVALID|STATE_CHANGED|REQUEST_CONFLICT|ACTIVE|COMBAT_ACTIVE|UNAVAILABLE)|STAFF_ONLY)/.test(m)){p.pending=null;p.data=null;sugInvalida();sugChiudi();SUG=[];throw Error('Profilo non cambiato: rileggi lo stato e verifica se un’Innata o uno Scontro sono ancora attivi.');}throw Error('Invio non confermato: verifica lo stesso comando.');}
+          var receipt=innataProfileValidate(r.data,pending.scope,true,pending.args.p_request_key,version);p.pending=null;accepted=true;p.data=null;sugInvalida();sugChiudi();SUG=[];await innataProfileRead(false);loadAbilities();
         }catch(e){innataProfileNote(accepted?'Comando acquisito. Rileggi lo stato corrente del profilo.':(e.message||'Invio non confermato: verifica lo stesso comando.'));}finally{p.busy=false;innataProfileRender();}
       }
       (function(){
-        document.getElementById('innata-profile-read').addEventListener('click',async function(){if(INNATA_PROFILE.busy)return;INNATA_PROFILE.busy=true;innataProfileRender();try{await innataProfileRead(true);loadAbilities();}catch(e){INNATA_PROFILE.data=null;SUG=[];sugScegli(null);sugChiudi();innataProfileNote(e.message);}finally{INNATA_PROFILE.busy=false;innataProfileRender();}});
+        document.getElementById('innata-profile-read').addEventListener('click',async function(){if(INNATA_PROFILE.busy)return;INNATA_PROFILE.busy=true;innataProfileRender();try{await innataProfileRead(true);loadAbilities();}catch(e){INNATA_PROFILE.data=null;SUG=[];sugInvalida();sugChiudi();syncSendBtn();innataProfileNote(e.message);}finally{INNATA_PROFILE.busy=false;innataProfileRender();}});
         document.getElementById('innata-profile-select').addEventListener('change',innataProfileRender);
         document.getElementById('innata-profile-apply').addEventListener('click',function(){innataProfileSend(false);});
         document.getElementById('innata-profile-remove').addEventListener('click',function(){innataProfileSend(null);});
@@ -13175,19 +13219,198 @@ var nb028iTeardown=function(){};
           if(seq!==SUG_LOAD_SEQ||identity!==JSON.stringify([myId,myCharId,ordinaryAuthId,cur&&cur.id])||s!==innataProfileScope())return;
           var r=results[0];if(!r||r.error)throw Error('Tecniche non disponibili.');
           SUG=innataProfileSuggestions((r.data||[]).filter(function(x){return x.state==='attiva';}),s,results[1]);
-          if(s&&SUG_SCELTA&&!SUG.some(function(row){return row.technique_id===SUG_SCELTA;})){sugScegli(null);sugChiudi();}
-        },function(){if(seq===SUG_LOAD_SEQ){SUG=[];if(s){sugScegli(null);sugChiudi();}}}).catch(function(){if(seq===SUG_LOAD_SEQ){SUG=[];if(s){sugScegli(null);sugChiudi();}}});
+          if(s&&SUG_SCELTA&&!SUG.some(function(row){return row.technique_id===SUG_SCELTA;})){sugInvalida();sugChiudi();}
+          if(s)syncSendBtn();
+        },function(){if(seq===SUG_LOAD_SEQ){SUG=[];if(s){sugInvalida();sugChiudi();syncSendBtn();}}}).catch(function(){if(seq===SUG_LOAD_SEQ){SUG=[];if(s){sugInvalida();sugChiudi();syncSendBtn();}}});
       }
       function sugChiudi(){ var p=document.getElementById('sug-pop'); if(p){ p.hidden=true; p.innerHTML=''; } SUG_VIS=[]; SUG_AP=-1; }
+      var SUG_STAFF_CHOICE=null,SUG_STAFF_FLIGHT=null;
+      var SUG_STAFF_EXPIRED='Tecnica da riconfermare. Riselezionala o scegli «Rimuovi tecnica».';
+      function sugStaffScaduta(){
+        var choice=SUG_STAFF_CHOICE;
+        if(!choice)return false;
+        var scope=innataProfileScope(),profile=INNATA_PROFILE.data;
+        if(MV2.data?.encounter||CMB?.aperto||esScontroVivo()||choice.scope!==scope||INNATA_PROFILE.scope!==scope||profile?.profile_version!==choice.version||profile?.context_id!==choice.context||choice.masterVersion!==(MV2.data?.master?.control_version??null)||!innataProfileRoleTechniqueReady(SUG_SCELTA))choice.expired=true;
+        return choice.expired;
+      }
+
+      function staffHumanRoleScope(){
+        var profileScope=innataProfileScope(),master=MV2.data?.master;
+        var named=(myId==='f0856d53-83a6-4de0-bc0c-12c87916e665'&&myCharId==='6bceee99-974f-426b-8d92-38b43b4a4267')||
+          (myId==='b4952ed5-5ce0-49c0-9f2b-8fd5dcd89b4b'&&myCharId==='f335b077-34a1-41c3-94aa-58ec674b649b');
+        if(!profileScope||!named||master?.tipo!=='quest'||master.controller_kind==='ai_service'||!innataProfileUuid(master.id))return null;
+        return {scope:profileScope,session:master.id,actor:myId,character:myCharId,location:cur.id};
+      }
+      function staffHumanRoleKey(binding){
+        return 'tus:innata-staff-human-role:1:'+binding.actor+':'+binding.character+':'+binding.session;
+      }
+      function staffHumanRoleCommand(binding,command){
+        var keys=['schema_version','request_key','session_id','character_id','location_id','scope_revision',
+          'profile_version','context_id','technique_id','body','companion_id','companion_body'];
+        return innataProfileExact(command,keys)&&command.schema_version==='innata-staff-human-role-command/1'&&
+          innataProfileUuid(command.request_key)&&command.session_id===binding.session&&command.character_id===binding.character&&
+          command.location_id===binding.location&&/^[a-f0-9]{64}$/.test(command.scope_revision)&&
+          Number.isSafeInteger(command.profile_version)&&command.profile_version>=0&&
+          (command.context_id===null||innataProfileUuid(command.context_id))&&innataProfileUuid(command.technique_id)&&
+          typeof command.body==='string'&&!!command.body.trim()&&
+          (command.companion_id===null&&command.companion_body===null||
+            innataProfileUuid(command.companion_id)&&typeof command.companion_body==='string');
+      }
+      function staffHumanRolePending(binding){
+        if(!binding)return null;
+        try{
+          var raw=localStorage.getItem(staffHumanRoleKey(binding));
+          if(raw===null)return null;
+          var command=JSON.parse(raw);if(staffHumanRoleCommand(binding,command))return command;
+        }catch(e){}
+        return {invalid:true};
+      }
+      function staffHumanRoleReceipt(binding,command,receipt){
+        var keys=['schema_version','request_key','session_id','character_id','location_id','technique_id','message_id','activation_receipt_sha256','replayed'];
+        return innataProfileExact(receipt,keys)&&receipt.schema_version==='innata-staff-human-role-receipt/1'&&
+          receipt.request_key===command.request_key&&receipt.session_id===binding.session&&
+          receipt.character_id===binding.character&&receipt.location_id===binding.location&&receipt.technique_id===command.technique_id&&
+          innataProfileUuid(receipt.message_id)&&/^[a-f0-9]{64}$/.test(receipt.activation_receipt_sha256)&&typeof receipt.replayed==='boolean';
+      }
+      function staffHumanRoleUncertain(){
+        var error=Error('Esito da verificare. La richiesta originale è conservata. Usa «Verifica invio».');
+        error.roleCommandState='unknown';return error;
+      }
+      async function readStaffHumanRoleReceipt(binding,command){
+        var r=await sb.rpc('innata_staff_human_role_receipt_v1',{p_session:binding.session,p_character:binding.character,p_request_key:command.request_key});
+        if(!r||r.error)throw staffHumanRoleUncertain();
+        if(r.data===null)return null;
+        if(!staffHumanRoleReceipt(binding,command,r.data))throw staffHumanRoleUncertain();
+        return r.data;
+      }
+      function staffHumanRoleClear(binding,command){
+        var key=staffHumanRoleKey(binding);
+        if(localStorage.getItem(key)===JSON.stringify(command))localStorage.removeItem(key);
+      }
+      function staffRoleDraftBody(value){
+        var place=(document.getElementById('msg-place')?.value||'').trim().replace(/[【】]/g,'').slice(0,60);
+        var text=(value||'').replace(/\s+$/,'');
+        return place?'【'+place+'】 '+text:text;
+      }
+      function staffRoleSameDraft(choice,prm,companionText){
+        var editor=document.getElementById('ed-text'),overlay=document.getElementById('editor-ov');
+        return choice.scope===innataProfileScope()&&choice===SUG_STAFF_CHOICE&&!(toSel?.value)&&!fatoMode&&
+          staffRoleDraftBody(input?.value)===prm.p_body&&
+          (!editor||!overlay||overlay.hidden||staffRoleDraftBody(editor.value)===prm.p_body)&&
+          (!myComp||((document.getElementById('png-input')?.value||'').trim()===companionText&&
+           (!companionText||myComp.id===prm.p_companion)))&&prm.p_technique===SUG_SCELTA;
+      }
+      async function submitStaffHumanRole(binding,choice,prm,checkChoice){
+        var key=staffHumanRoleKey(binding);
+        if(!navigator.locks?.request)throw Error('Protezione dell’invio simultaneo non disponibile.');
+        return navigator.locks.request(key,{mode:'exclusive'},async function(){
+          checkChoice();
+          var command=staffHumanRolePending(binding),encoded=command?JSON.stringify(command):null;
+          if(command?.invalid)throw staffHumanRoleUncertain();
+          if(command){
+            if(command.body!==prm.p_body||command.technique_id!==prm.p_technique||
+              command.companion_id!==(prm.p_companion??null)||command.companion_body!==(prm.p_companion_body??null))throw staffHumanRoleUncertain();
+            var previous=await readStaffHumanRoleReceipt(binding,command);
+            if(previous){staffHumanRoleClear(binding,command);return previous;}
+            checkChoice();
+          }else{
+            await landUserPresence();
+            checkChoice();
+            var stateResult=await sb.rpc('innata_staff_human_role_state_v1',{p_session:binding.session,p_character:binding.character});
+            checkChoice();
+            var state=stateResult?.data;
+            if(!stateResult?.error&&state===null){
+              var target=questEpisodeLink();
+              if(target?.human&&target.episode==='c8248aa7-c8cf-53c0-bb3a-c116b8505386')
+                throw Error('Autorità della Quest Master non confermata. Nessuna role inviata.');
+              return null;
+            }
+            if(stateResult?.error||state?.schema_version!=='innata-staff-human-role-state/1'||state.available!==true||
+              state.session_id!==binding.session||state.character_id!==binding.character||state.location_id!==binding.location||
+              state.technique_id!==prm.p_technique||state.profile_version!==choice.version||state.context_id!==choice.context||
+              !/^[a-f0-9]{64}$/.test(state.scope_revision))throw Error('Attivazione della Quest non confermata. Rileggi la regia e il profilo di prova.');
+            command={schema_version:'innata-staff-human-role-command/1',request_key:crypto.randomUUID(),
+              session_id:binding.session,character_id:binding.character,location_id:binding.location,
+              scope_revision:state.scope_revision,profile_version:state.profile_version,context_id:state.context_id,
+              technique_id:prm.p_technique,body:prm.p_body,companion_id:prm.p_companion??null,companion_body:prm.p_companion_body??null};
+          }
+          if(!staffHumanRoleCommand(binding,command))throw Error('Role e tecnica non coerenti. Nessun invio.');
+          var started=false,result;
+          try{
+            result=await sb.rpc('innata_staff_human_role_submit_v1',{p_command:command},function(){
+              checkChoice();
+              if(localStorage.getItem(key)!==encoded)throw staffHumanRoleUncertain();
+              if(encoded===null){localStorage.setItem(key,JSON.stringify(command));
+                if(localStorage.getItem(key)!==JSON.stringify(command))throw staffHumanRoleUncertain();}
+              started=true;
+            });
+          }catch(error){if(started)throw staffHumanRoleUncertain();throw error;}
+          if(!started)throw Error(result?.error?.message||'Invio interrotto prima della consegna.');
+          var rejected=result?.error;
+          var definitive={INNATA_HUMAN_ROLE_COMMAND_INVALID:'22023',INNATA_HUMAN_ROLE_NOT_AUTHORIZED:'42501',
+            INNATA_HUMAN_ROLE_CONTEXT_STALE:'55000',INNATA_HUMAN_ROLE_LINK_REQUIRED:'55000',INNATA_HUMAN_ROLE_NATIVE_REJECTED:'55000'};
+          if(rejected&&definitive[rejected.message]===rejected.code){
+            staffHumanRoleClear(binding,command);
+            sugInvalida();
+            throw Error('Role non acquisita. Rileggi la regia e riseleziona la tecnica.');
+          }
+          if(!staffHumanRoleReceipt(binding,command,result?.data))throw staffHumanRoleUncertain();
+          staffHumanRoleClear(binding,command);return result.data;
+        });
+      }
+      function staffHumanRoleForVerification(){
+        var binding=staffHumanRoleScope();
+        if(binding&&staffHumanRolePending(binding))return binding;
+        var scope=innataProfileScope();if(!scope)return null;
+        var prefix='tus:innata-staff-human-role:1:'+myId+':'+myCharId+':';
+        try{
+          var choices=Object.keys(localStorage).filter(function(key){return key.startsWith(prefix)&&innataProfileUuid(key.slice(prefix.length));});
+          if(choices.length===1)return {scope:scope,session:choices[0].slice(prefix.length),actor:myId,character:myCharId,location:cur.id};
+        }catch(e){}
+        return null;
+      }
+      async function verifyStaffHumanRole(){
+        var binding=staffHumanRoleForVerification(),command=staffHumanRolePending(binding);
+        if(!binding||!command||SUG_STAFF_FLIGHT)return;
+        if(command.invalid){toast('Registro dell’invio non verificabile.');return;}
+        SUG_STAFF_FLIGHT=command;syncSendBtn();
+        try{
+          var receipt=await readStaffHumanRoleReceipt(binding,command);
+          if(receipt){
+            staffHumanRoleClear(binding,command);
+            if(binding.scope===innataProfileScope()&&staffHumanRoleScope()?.session===binding.session){
+              var place=(document.getElementById('msg-place')?.value||'').trim().replace(/[【】]/g,'').slice(0,60);
+              var companionText=(document.getElementById('png-input')?.value||'').trim();
+              function matchesDraft(value){var text=(value||'').replace(/\s+$/,'');return (place?'【'+place+'】 '+text:text)===command.body;}
+              if(!fatoMode&&!(toSel?.value)&&SUG_SCELTA===command.technique_id&&matchesDraft(input.value)&&(companionText?myComp?.id??null:null)===command.companion_id&&(companionText||null)===command.companion_body){
+                input.value='';
+                var editor=document.getElementById('ed-text');if(editor&&matchesDraft(editor.value))editor.value='';
+                if(command.companion_id){var mainCompanion=document.getElementById('png-input'),editorCompanion=document.getElementById('ed-png');
+                  if(mainCompanion)mainCompanion.value='';if(editorCompanion?.value.trim()===companionText)editorCompanion.value='';}
+                sugScegli(null);updCount();saveResume();
+              }
+              loadMsgs();
+            }
+            toast('Role e attivazione confermate. Ricevuta conservata.');
+          }else toast('Ricevuta non ancora presente. Per riprovare usa lo stesso testo e la stessa tecnica.');
+        }catch(e){toast(e.message||'Esito da verificare.');}
+        finally{if(SUG_STAFF_FLIGHT===command)SUG_STAFF_FLIGHT=null;syncSendBtn();}
+      }
+      function sugInvalida(){
+        if(SUG_STAFF_CHOICE)SUG_STAFF_CHOICE.expired=true;
+        else sugScegli(null);
+      }
       function sugScegli(t){
         SUG_SCELTA=t?t.technique_id:null; SUG_NOME=t?t.name:'';
+        var scope=t?.is_simulated===true?innataProfileScope():null;
+        SUG_STAFF_CHOICE=scope?{scope:scope,version:INNATA_PROFILE.data?.profile_version,context:INNATA_PROFILE.data?.context_id,masterVersion:MV2.data?.master?.control_version??null,expired:false}:null;
         var b=document.getElementById('msg-send');
         if(b) b.title=SUG_SCELTA?('Con questo messaggio usi \u00ab'+SUG_NOME+'\u00bb'):(b.disabled?'Un turno di role vuole almeno 500 caratteri':'');
       }
       function sugAttivo(){
         /* in scontro le quadre sono narrativa: il suggeritore resta zitto */
         if(!cur||!input) return false;
-        if(SUG.some(function(t){return t.is_simulated===true;})&&INNATA_PROFILE.scope!==innataProfileScope()){SUG=SUG.filter(function(t){return t.is_simulated!==true;});sugScegli(null);}
+        if(SUG.some(function(t){return t.is_simulated===true;})&&INNATA_PROFILE.scope!==innataProfileScope()){SUG=SUG.filter(function(t){return t.is_simulated!==true;});sugInvalida();}
         if(toSel&&toSel.value) return false;
         if(CMB&&CMB.aperto&&(CMB.ruolo!=='osserva')) return false;
         return true;
@@ -13216,7 +13439,7 @@ var nb028iTeardown=function(){};
         SUG_AP=ap; SUG_C=c; SUG_I=0; sugRender();
       }
       function sugInserisci(i){
-        var t=SUG_VIS[i]; if(!t||!input) return;
+        var t=SUG_VIS[i]; if(!t||!input||SUG_STAFF_FLIGHT) return;
         var v=input.value||'', ap=SUG_AP, c=SUG_C;
         if(ap<0||ap>=v.length||v.charAt(ap)!=='[') return;
         if(SUG_SCELTA){ toast('Una sola tecnica per messaggio: questa sostituisce quella di prima'); }
@@ -13261,6 +13484,26 @@ var nb028iTeardown=function(){};
           pb.title=on?'Nascondi il riquadro del luogo':'Mostra il riquadro del luogo';
         });
       })();
+      for(var roleSendId of ['msg-send','ed-send']){
+        var roleSend=document.getElementById(roleSendId);
+        if(!roleSend)continue;
+        var clearTechnique=document.createElement('button');
+        clearTechnique.id=roleSendId+'-clear-technique';
+        clearTechnique.type='button';
+        clearTechnique.className='mv2-btn ghost';
+        clearTechnique.textContent='Rimuovi tecnica';
+        clearTechnique.hidden=true;
+        clearTechnique.addEventListener('click',function(){if(SUG_STAFF_FLIGHT)return;sugScegli(null);sugChiudi();syncSendBtn();saveResume();});
+        roleSend.before(clearTechnique);
+        var verifyRole=document.createElement('button');
+        verifyRole.id=roleSendId+'-verify-staff-role';
+        verifyRole.type='button';
+        verifyRole.className='mv2-btn ghost';
+        verifyRole.textContent='Verifica invio';
+        verifyRole.hidden=true;
+        verifyRole.addEventListener('click',verifyStaffHumanRole);
+        roleSend.before(verifyRole);
+      }
       loadAbilities();
       sendBtn.addEventListener('click', send);
       /* ---- Editor: finestra grande per scrivere e rileggere la propria role ---- */
@@ -13528,13 +13771,29 @@ var nb028iTeardown=function(){};
         return turnoLen()>=500;
       }
       function syncSendBtn(){
+        var pgRole=!fatoMode&&!(toSel&&toSel.value);
+        var pendingHuman=pgRole&&staffHumanRolePending(staffHumanRoleScope());
+        var receiptPending=pgRole&&staffHumanRoleForVerification();
+        for(var roleButtonId of ['msg-send','ed-send']){
+          var verifyRole=document.getElementById(roleButtonId+'-verify-staff-role');
+          if(verifyRole){verifyRole.hidden=!receiptPending;verifyRole.disabled=!!SUG_STAFF_FLIGHT;}
+          var clearChoice=document.getElementById(roleButtonId+'-clear-technique');
+          if(clearChoice){clearChoice.hidden=!(pgRole&&SUG_STAFF_CHOICE);clearChoice.disabled=!!(SUG_STAFF_FLIGHT||pendingHuman);}
+        }
+        if(pgRole&&(SUG_STAFF_FLIGHT||sugStaffScaduta()||pendingHuman&&(!SUG_STAFF_CHOICE||pendingHuman.invalid))){
+          for(var staleButtonId of ['msg-send','ed-send']){
+            var staleButton=document.getElementById(staleButtonId);
+            if(staleButton){staleButton.disabled=true;staleButton.title=SUG_STAFF_FLIGHT?'Invio in corso':pendingHuman?'Verifica l’invio precedente':SUG_STAFF_EXPIRED;}
+          }
+          return;
+        }
         if(cur&&!roomEntryConfirmed()){for(var entryButtonId of ['msg-send','ed-send']){var entryButton=document.getElementById(entryButtonId);if(entryButton){entryButton.disabled=true;entryButton.title='Attendi la conferma dell’ingresso';}}return;}
         esLegacyDisposeStale();
         if(window.TRU_RELEASE002?.ownsCurrent()){
           var text=input?.value||'',gate=window.TRU_RELEASE002.companionGate?.()||{required:false,mechanicsReady:false},pi=document.getElementById('png-input'),dogReady=!gate.required||!!(myComp&&myComp.kind==='cane_ninja'&&pi&&(pi.value||'').trim()),ready=window.TRU_RELEASE002.canSend()&&dogReady&&!!text.trim()&&[...text].length<=2500,tip=ready?'Invia descrizione e scelta nella prova privata':(gate.required&&!dogReady?'Scrivi anche l’azione del ninken':'Completa e conferma la scelta della prova; descrizione da 1 a 2500 caratteri');
           for(var id of ['msg-send','ed-send']){var button=document.getElementById(id);if(button){button.disabled=!ready;button.title=tip;}}return;
         }
-        var ok=sendGateOk(), ttl=ok?'':'Un turno di role vuole almeno 500 caratteri';
+        var ok=sendGateOk(), ttl=ok?(pgRole&&SUG_STAFF_CHOICE?'Tecnica selezionata: '+SUG_NOME:''):'Un turno di role vuole almeno 500 caratteri';
         if(!fatoMode&&!(toSel&&toSel.value)&&MV2.data?.encounter){var pgPublicationGate=mv2RegiaReason(false);if(pgPublicationGate){ok=false;ttl=pgPublicationGate;}}
         if(!fatoMode&&!(toSel&&toSel.value)&&esLegacyFatoPending()){ok=false;ttl='Attendi l’incipit o l’esito pubblico del Fato prima di inviare';}
         if(!(toSel&&toSel.value)&&missionHumanCloseBlocked()){ok=false;ttl='Chiusura della propria prova da riconciliare';}
@@ -14799,7 +15058,7 @@ function args(p){if(!p||Object.keys(p).sort().join()!==['p_session','p_expected_
 function receipt(v,p){args(p);if(v?.schema!=='staff-simulation-abort/1'||v.request_key!==p.p_request||v.master_session_id!==p.p_session||v.operation_id!==p.p_request||v.expected_master_version!==p.p_expected_master_version||v.expected_run_version!==p.p_expected_run_version)bad();if(v.status==='annullata'){if(v.resources_protected!==true||!ID.test(v.audit_event_id||'')||!positive(v.master_control_version)||!positive(v.run_control_version)||v.master_control_version<=p.p_expected_master_version||v.run_control_version<=p.p_expected_run_version)bad();}else if(v.status==='rejected'){if(!reasons.has(v.reason_code))bad();}else bad();return v;}
 // Solo writer nominati di questa scena. Reader, whisper e RPC estranee passano invariati.
 const directWriters=new Set(['mission_generic_choose_v1','mission_role_submit_v1','mission_staff_resume_identical_role_v1','mission_staff_retry_failed_director_v1','mission_staff_fato_regenerate_v1','regia_combat_entry_prepare_v1','master_v2_encounter_open','master_v2_scene_close','regia_round_advance_v1','regia_round_advance_v2','regia_round_publish_v1']);
-const contextWriters=new Set(['mission_factory_quest_start_v1','mission_factory_quest_prepare_v1','mission_factory_quest_episode_roster_assign_v1','mission_factory_quest_enrollment_v1','combat_panel_commit_v1','combat_v2_action_declare','combat_v2_defense_declare','combat_v2_rating_save','combat_v2_round_resolve','combat_v2_round_narrate_human','combat_v2_round_next','combat_v2_session_close','combat_azione','post_message','post_fato_manual','post_item_use','png_attacca_pg','png_attacco_combinato','png_evoca','png_ritira']);
+const contextWriters=new Set(['mission_factory_quest_start_v1','mission_factory_quest_prepare_v1','mission_factory_quest_episode_roster_assign_v1','mission_factory_quest_enrollment_v1','combat_panel_commit_v1','combat_v2_action_declare','combat_v2_defense_declare','combat_v2_rating_save','combat_v2_round_resolve','combat_v2_round_narrate_human','combat_v2_round_next','combat_v2_session_close','combat_azione','post_message','innata_staff_human_role_submit_v1','post_fato_manual','post_item_use','png_attacca_pg','png_attacco_combinato','png_evoca','png_ritira']);
 function staffAbortJournalSessions(actor,storage=globalThis.sessionStorage){
  if(!ID.test(actor||''))return [];const prefix=`staff-simulation-abort-journal/1/${actor}/`,sessions=[];
  try{for(let i=0;i<storage.length;i++){const k=storage.key(i);if(!k?.startsWith(prefix))continue;const id=k.slice(prefix.length);if(!ID.test(id))continue;const j=JSON.parse(storage.getItem(k));if(j?.schema!=='staff-abort-journal/1'||j.actor!==actor||j.session!==id)bad();if(j.pending){args(j.pending);if(j.pending.p_session!==id)bad();}if(j.committed){receipt(j.committed,{p_session:id,p_request:j.committed.request_key,p_expected_master_version:j.committed.expected_master_version,p_expected_run_version:j.committed.expected_run_version});if(j.committed.status!=='annullata')bad();}if(j.pending||j.committed)sessions.push(id);}}catch{throw Error('Recupero locale non verificabile. Nessun esito confermato.');}
@@ -14839,7 +15098,7 @@ function guardStaffAbortClient(client,{identity,session,location,rewardBinding}=
   else if(name==='provider:mission_generic_ai')scope=p?.master_session_id;
   else if(contextWriters.has(name)){
    if(p?.p_location&&p.p_location!==location?.())return fn();
-   scope=p?.p_command?.master_session_id||p?.p_master_session||session?.();
+   scope=(name==='innata_staff_human_role_submit_v1'?p?.p_command?.session_id:p?.p_command?.master_session_id)||p?.p_master_session||session?.();
   }else return fn();
   const k=ID.test(actor||'')&&ID.test(scope||'')?key(actor,scope):null;if(!k)return fn();
   if(staffAbortBlocked(actor,scope))return Promise.resolve({data:null,error:{message:'Annullamento da riconciliare: i comandi della prova sono sospesi.'}});
@@ -14847,7 +15106,12 @@ function guardStaffAbortClient(client,{identity,session,location,rewardBinding}=
   return Promise.resolve().then(fn).finally(()=>{const n=(shared.writers.get(k)||1)-1;if(n)shared.writers.set(k,n);else shared.writers.delete(k);});
  }
  const functions=client.functions?new Proxy(client.functions,{get(t,p){if(p==='invoke')return (name,options)=>wrap(()=>t.invoke(name,options),'provider:'+name,options?.body);const v=Reflect.get(t,p);return typeof v==='function'?v.bind(t):v;}}):null;
- return new Proxy(client,{get(t,p){if(p===guarded)return t;if(p==='rpc')return (name,payload,...rest)=>wrap(()=>t.rpc(name,payload,...rest),name,payload);if(p==='functions')return functions;const v=Reflect.get(t,p);return typeof v==='function'?v.bind(t):v;}});
+ return new Proxy(client,{get(t,p){if(p===guarded)return t;if(p==='rpc')return (name,payload,...rest)=>wrap(()=>{
+  if(['post_message','mission_role_submit_v1','innata_staff_human_role_submit_v1'].includes(name)&&typeof rest[0]==='function'){
+   const beforeDispatch=rest.shift();beforeDispatch();
+  }
+  return t.rpc(name,payload,...rest);
+ },name,payload);if(p==='functions')return functions;const v=Reflect.get(t,p);return typeof v==='function'?v.bind(t):v;}});
 }
 function createStaffAbortController({client,identity,isCurrent=()=>true,storage=globalThis.sessionStorage,onCommitted=()=>{}}={}){
  const actor=identity();if(!ID.test(actor||''))throw Error('Accesso Staff non valido.');
@@ -15383,7 +15647,7 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       }
       function missionGenericUI(){
         if(MISSION_GENERIC_UI)return Promise.resolve(MISSION_GENERIC_UI);
-    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=innata-quest-be2f32343b5ce376').then(function(mod){
+    if(!MISSION_GENERIC_LOAD)MISSION_GENERIC_LOAD=import('./mission-generic-ui.mjs?v=innata-quest-0591c9b281362350').then(function(mod){
           MISSION_GENERIC_UI=mod.createMissionUI({client:sb,createBoardPanel:createMissionBoardPanel,beginBoardPanel:beginMissionBoardPanel,staffEditorialHost:function(){return document.getElementById('mission-board-editorial-anchor');},isEventReadMode:landPureReadMode,beforeUserCommand:landUserPresence,creationEditor:function(mission,title,revision){return missionCreationUI().then(function(ui){return ui.editor(mission,title,revision);});},creationBoard:function(mission,title,intent){return missionCreationUI().then(function(ui){return ui.routeBoard(mission,title,intent);});},identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
             isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
             createRecoveryFeedback:function(){var revision=toastRevision;return function(message){if(revision!==toastRevision)return;toast(message);revision=toastRevision;};},
