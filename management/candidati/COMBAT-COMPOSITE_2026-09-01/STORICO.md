@@ -1,3 +1,7 @@
+- 07/11/2026 · DEFENSE-23505-AGGREGATA1 · Migrazione20261107214321/Root36f27609, review0/0/0 e pubblicazione verificata; S17 chiusa21:53:31, MAX2/primario e retroIII PASS nel perimetro giocato, costi unici e custodia invariata · 277comandi/17scene chiuse/15provider/0,0147286USD, residui45/4/6, pubblicoOFF.
+- 07/11/2026 · T3-RANGE10-SOURCE · S18 chiusa22:07:12 per correzione23514, T3NOTPASSED; Sourcea4362697 enum2/3/10+guardTactics pronta NONinstallata; cumulativi284comandi/18scene tuttechiuse/16provider/0,0153834USD, pubblicoOFF.
+- 07/11/2026 · T3-RANGE10-INSTALL-ATOMIC-FAIL · Review000d7e13c98; unica apply22:15 fallitaP0001 TACTICS_INTEGRATED_PROJECTED_ROOT, rollback12/12Root36f/CHECK45954/custodia invariati;0retry/gioco/provider/Restore, T3NONPASS e pubblicoOFF.
+
 - 07/09/2026 · PUBLIC-COMBAT-ENABLE-001 · autorizzazione direttaAntonello,unica config pubblica+providerON e16profili enabled,postflight22:42:51UTCverde · Staff invariata,nessun nuovo test/provider;070/Sostituzione/nuoveClan escluse,collaudo pubblico affidato utenti per sceltaPM.
 - 07/09/2026 · Chiusura task Staff/arena/LAND · DB e configStaff verificati,LANDpubblicata;Antonello rinvia070 come proposta nel cantiere · nessun nuovo tentativo,scopeconcluso,cantiere condiviso resta aperto.
 - 07/09/2026 · LAND-NARRATIVE-PARAGRAPH-001 · ownerLAND attesta commit59474003b7c26893504d1b6a1d4cce2dd2e04d00/domino749865B/SHA71c9f5…9d743 e review finale0/0/0 · nuova baseline,070 invariato,0nuoveprove/provider.
