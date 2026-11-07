@@ -1,0 +1,286 @@
+{
+  "schema_version": "t3-range10-source-baseline/1",
+  "catalog": [
+    {
+      "kind": "table",
+      "data": {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "oid": 45946,
+        "rls": true,
+        "owner": "postgres",
+        "force_rls": true
+      }
+    },
+    {
+      "kind": "range_constraint",
+      "data": {
+        "oid": 45954,
+        "name": "multiplication_ordinary_draw_plans_range_m_check",
+        "validated": true,
+        "definition": "CHECK ((range_m = ANY (ARRAY[(2)::numeric, (3)::numeric])))",
+        "no_inherit": false
+      }
+    },
+    {
+      "kind": "writer",
+      "data": {
+        "acl": "{postgres=X/postgres}",
+        "oid": 46000,
+        "args": "p_context uuid, p_expected bigint, p_candidates jsonb, p_request uuid",
+        "name": "multiplication_choose_ordinary_source",
+        "owner": "postgres",
+        "schema": "combat_panel_private",
+        "ddl_md5": "776dfaf3bee3ae21a62b217d6e18244c"
+      }
+    },
+    {
+      "kind": "trigger",
+      "data": {
+        "name": "multiplication_ordinary_draw_history_guard",
+        "definition": "CREATE TRIGGER multiplication_ordinary_draw_history_guard BEFORE DELETE OR UPDATE ON combat_panel_private.multiplication_ordinary_draw_plans FOR EACH ROW EXECUTE FUNCTION combat_panel_private.multiplication_ordinary_draw_immutable()"
+      }
+    }
+  ],
+  "constraints_and_columns": [
+    {
+      "item": "column",
+      "name": "actor_id",
+      "definition": "uuid NOT NULL"
+    },
+    {
+      "item": "column",
+      "name": "candidates",
+      "definition": "jsonb NOT NULL"
+    },
+    {
+      "item": "column",
+      "name": "created_at",
+      "definition": "timestamp with time zone NOT NULL"
+    },
+    {
+      "item": "column",
+      "name": "formation_id",
+      "definition": "uuid NOT NULL"
+    },
+    {
+      "item": "column",
+      "name": "formation_version",
+      "definition": "bigint NOT NULL"
+    },
+    {
+      "item": "column",
+      "name": "movement_offer_id",
+      "definition": "uuid"
+    },
+    {
+      "item": "column",
+      "name": "prepared_transaction",
+      "definition": "bigint NOT NULL"
+    },
+    {
+      "item": "column",
+      "name": "principal_user",
+      "definition": "uuid NOT NULL"
+    },
+    {
+      "item": "column",
+      "name": "random_indices",
+      "definition": "integer[] NOT NULL"
+    },
+    {
+      "item": "column",
+      "name": "random_seed",
+      "definition": "bytea NOT NULL"
+    },
+    {
+      "item": "column",
+      "name": "range_m",
+      "definition": "numeric NOT NULL"
+    },
+    {
+      "item": "column",
+      "name": "request_key",
+      "definition": "uuid NOT NULL"
+    },
+    {
+      "item": "column",
+      "name": "round_id",
+      "definition": "uuid NOT NULL"
+    },
+    {
+      "item": "column",
+      "name": "selected_index",
+      "definition": "integer NOT NULL"
+    },
+    {
+      "item": "column",
+      "name": "source_offer_id",
+      "definition": "uuid NOT NULL"
+    },
+    {
+      "item": "column",
+      "name": "target_actor_id",
+      "definition": "uuid NOT NULL"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw__round_id_actor_id_target_acto_key",
+      "definition": "UNIQUE (round_id, actor_id, target_actor_id)"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw_p_request_key_target_actor_id_fkey",
+      "definition": "FOREIGN KEY (request_key, target_actor_id) REFERENCES combat_panel_private.multiplication_attack_aims(request_key, target_actor_id) DEFERRABLE INITIALLY DEFERRED"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw_plans_actor_id_fkey",
+      "definition": "FOREIGN KEY (actor_id) REFERENCES combat_v2_actors(id)"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw_plans_candidates_check",
+      "definition": "CHECK ((jsonb_typeof(candidates) = 'array'::text))"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw_plans_check",
+      "definition": "CHECK ((selected_index = ANY (random_indices)))"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw_plans_formation_id_fkey",
+      "definition": "FOREIGN KEY (formation_id) REFERENCES combat_panel_private.multiplication_formations(id)"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw_plans_formation_version_check",
+      "definition": "CHECK ((formation_version > 0))"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw_plans_movement_offer_id_fkey",
+      "definition": "FOREIGN KEY (movement_offer_id) REFERENCES combat_consumer_private.offers(id)"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw_plans_pkey",
+      "definition": "PRIMARY KEY (request_key, target_actor_id)"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw_plans_random_indices_check",
+      "definition": "CHECK (((cardinality(random_indices) > 0) AND (array_ndims(random_indices) = 1) AND (array_lower(random_indices, 1) = 1) AND (array_position(random_indices, NULL::integer) IS NULL) AND (0 < ALL (random_indices))))"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw_plans_random_seed_check",
+      "definition": "CHECK ((octet_length(random_seed) = 32))"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw_plans_range_m_check",
+      "definition": "CHECK ((range_m = ANY (ARRAY[(2)::numeric, (3)::numeric])))"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw_plans_round_id_fkey",
+      "definition": "FOREIGN KEY (round_id) REFERENCES combat_v2_rounds(id)"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw_plans_source_offer_id_fkey",
+      "definition": "FOREIGN KEY (source_offer_id) REFERENCES combat_consumer_private.offers(id)"
+    },
+    {
+      "item": "constraint",
+      "name": "multiplication_ordinary_draw_plans_target_actor_id_fkey",
+      "definition": "FOREIGN KEY (target_actor_id) REFERENCES combat_v2_actors(id)"
+    }
+  ],
+  "producer_before": {
+    "schema": "combat_panel_private",
+    "proname": "multiplication_choose_ordinary_source",
+    "args": "p_context uuid, p_expected bigint, p_candidates jsonb, p_request uuid",
+    "ddl_md5": "776dfaf3bee3ae21a62b217d6e18244c",
+    "source": "\nDECLARE c combat_panel_private.contexts%ROWTYPE;ctx combat_consumer_private.activities%ROWTYPE;\n a public.combat_v2_actors%ROWTYPE;source combat_consumer_private.offers%ROWTYPE;move combat_consumer_private.offers%ROWTYPE;\n cap combat_spatial.movement_capabilities%ROWTYPE;body combat_spatial.actor_states%ROWTYPE;\n instance combat_spatial.arena_instances%ROWTYPE;ch combat_spatial.movement_semantic_choices%ROWTYPE;\n old combat_panel_private.multiplication_ordinary_draw_plans%ROWTYPE;\n candidate jsonb;selection jsonb;geometry jsonb;point jsonb;normalized jsonb:='[]'::jsonb;chosen jsonb;\n indices integer[]:=ARRAY[]::integer[];idx integer;seed bytea;target uuid;formation uuid;version bigint;\n target_current uuid;formation_current uuid;version_current bigint;is_companion boolean;range_m numeric;\n expected_origin boolean;expected_range numeric;distance_m numeric;expected_distance numeric; suiton_profile jsonb; expected_suiton uuid;\nBEGIN\n c:=combat_panel_private.owned_context(p_context,p_expected);\n IF p_request IS NULL OR c.activity_kind<>'ordinary_v2' OR c.round_id IS NULL OR c.command_actor_id IS NULL\n  OR jsonb_typeof(p_candidates) IS DISTINCT FROM 'array' OR jsonb_array_length(p_candidates)=0 THEN\n  RAISE EXCEPTION 'panel_multiplication_draw_invalid' USING ERRCODE='22023'; END IF;\n PERFORM public.combat_v2_lock_round(c.round_id);\n SELECT * INTO STRICT ctx FROM combat_consumer_private.activities WHERE session_id=c.activity_id\n  AND exchange_id=c.round_id AND phase='action' AND turn_actor_id=c.command_actor_id;\n SELECT * INTO STRICT a FROM public.combat_v2_actors WHERE id=c.command_actor_id AND session_id=c.activity_id\n  AND controller_user=auth.uid() AND state='attivo' AND companion_id IS NULL;\n SELECT * INTO STRICT instance FROM combat_spatial.arena_instances WHERE encounter_id=c.activity_id AND state='open' FOR UPDATE;\n FOR candidate IN SELECT value FROM jsonb_array_elements(p_candidates) LOOP\n  IF jsonb_typeof(candidate) IS DISTINCT FROM 'object'\n   OR candidate-ARRAY['source_offer_id','movement_offer_id']<>'{}'::jsonb\n   OR candidate->>'source_offer_id' IS NULL THEN\n   RAISE EXCEPTION 'panel_multiplication_draw_invalid' USING ERRCODE='22023'; END IF;\n  SELECT * INTO STRICT source FROM combat_consumer_private.offers WHERE id=(candidate->>'source_offer_id')::uuid\n   AND session_id=c.activity_id AND exchange_id=c.round_id AND location_id=c.location_id\n   AND principal_character_id=a.character_id AND context_version=ctx.context_version\n   AND scene_version=c.scene_version AND state='offered' AND operation='declare';\n  selection:=source.source_payload->'multiplication_attack_target';\n  IF selection IS NULL OR source.source_payload#>>'{intent,kind}' IS DISTINCT FROM 'attacco'\n   OR selection->>'target_actor_id' IS DISTINCT FROM source.source_payload#>>'{intent,target_actor}' THEN\n   RAISE EXCEPTION 'panel_multiplication_draw_invalid' USING ERRCODE='22023'; END IF;\n  is_companion:=coalesce(selection->>'attack_origin'='marionetta',false);\n  suiton_profile:=NULL;\n  IF NOT is_companion AND source.source_payload#>>'{intent,ability_source}'='clan' THEN\n   suiton_profile:=coalesce(combat_v2_elemental_internal.suiton_profile(a.id,(source.source_payload#>>'{intent,ability_id}')::uuid),combat_v2_elemental_internal.other_profile(a.id,(source.source_payload#>>'{intent,ability_id}')::uuid));\n  END IF;\n  IF NOT coalesce((is_companion AND source.source_payload#>>'{intent,ability_source}'='clan'\n   AND source.source_payload#>>'{intent,ability_id}'='e361f7c3-f90b-47ec-bfee-ccbda21257d9')\n   OR (NOT is_companion AND coalesce(selection->>'attack_origin','actor')='actor'\n   AND (source.source_payload#>>'{intent,ability_source}'='mano' OR suiton_profile IS NOT NULL)),false) THEN\n   RAISE EXCEPTION 'panel_attack_origin_invalid' USING ERRCODE='22023'; END IF;\n  range_m:=CASE WHEN suiton_profile->>'catalog_technique_id'='72cbe1fb-34c8-44c7-a053-0014b4894b3e' THEN combat_v2_elemental_internal.scarica_contact_range(a.id,(selection->>'target_actor_id')::uuid) WHEN suiton_profile IS NOT NULL THEN (suiton_profile->>'range_m')::numeric WHEN is_companion THEN 3 ELSE combat_panel_private.manual_contact_center_range(a.id,(selection->>'target_actor_id')::uuid) END;\n  target_current:=(selection->>'target_actor_id')::uuid;formation_current:=(selection->>'formation_id')::uuid;\n  version_current:=(selection->>'state_version')::bigint;idx:=(selection->>'figure_index')::integer;\n  IF target IS NULL THEN target:=target_current;formation:=formation_current;version:=version_current;\n   expected_origin:=is_companion;expected_range:=range_m;\n   expected_suiton:=CASE WHEN suiton_profile IS NOT NULL THEN (source.source_payload#>>'{intent,ability_id}')::uuid END;\n  ELSIF (target,formation,version,expected_origin) IS DISTINCT FROM (target_current,formation_current,version_current,is_companion)\n   OR expected_suiton IS DISTINCT FROM (CASE WHEN suiton_profile IS NOT NULL THEN (source.source_payload#>>'{intent,ability_id}')::uuid END) THEN\n   RAISE EXCEPTION 'panel_multiplication_draw_invalid' USING ERRCODE='22023'; END IF;\n  IF idx IS NULL OR idx=ANY(indices) THEN RAISE EXCEPTION 'panel_multiplication_draw_invalid' USING ERRCODE='22023'; END IF;\n  IF is_companion THEN\n   geometry:=combat_panel_private.multiplication_companion_target_figure(c.round_id,a.id,target,formation,version,idx);\n  ELSE geometry:=combat_panel_private.multiplication_target_figure(a.id,target,formation,version,idx); END IF;\n  point:=geometry->'figure';\n  IF geometry->>'instance_id' IS DISTINCT FROM instance.instance_id::text THEN\n   RAISE EXCEPTION 'panel_multiplication_draw_stale' USING ERRCODE='40001'; END IF;\n  IF candidate->>'movement_offer_id' IS NULL THEN\n   distance_m:=0;\n   IF (point->>'distance_m')::numeric>range_m OR NOT (point->>'path_clear')::boolean THEN\n    RAISE EXCEPTION 'panel_multiplication_draw_stale' USING ERRCODE='40001'; END IF;\n  ELSE\n   IF is_companion THEN RAISE EXCEPTION 'panel_attack_origin_invalid' USING ERRCODE='22023'; END IF;\n   SELECT * INTO STRICT move FROM combat_consumer_private.offers WHERE id=(candidate->>'movement_offer_id')::uuid\n    AND parent_offer_id=source.id AND session_id=c.activity_id AND exchange_id=c.round_id\n    AND location_id=c.location_id AND principal_character_id=a.character_id AND context_version=ctx.context_version\n    AND scene_version=c.scene_version AND state='offered' AND offer_kind='movement';\n   SELECT * INTO STRICT cap FROM combat_spatial.movement_capabilities WHERE capability_id=(move.source_payload->>'capability_id')::uuid\n    AND instance_id=instance.instance_id AND actor_id=a.id AND state='offered';\n   SELECT * INTO STRICT body FROM combat_spatial.actor_states WHERE instance_id=instance.instance_id AND actor_id=a.id\n    AND controller_principal_id=auth.uid() AND state='active';\n   SELECT * INTO STRICT ch FROM combat_spatial.movement_semantic_choices WHERE instance_id=instance.instance_id\n    AND actor_id=a.id AND choice_key=cap.choice_key AND enabled;\n   IF cap.map_version<>instance.map_version OR cap.actor_body_version<>body.body_version OR cap.choice_version<>ch.choice_version\n    OR (cap.start_x_m,cap.start_y_m) IS DISTINCT FROM (body.x_m,body.y_m)\n    OR combat_spatial.distance_m(cap.end_x_m,cap.end_y_m,(point->>'x_m')::numeric,(point->>'y_m')::numeric)>range_m\n    OR combat_spatial.path_first_block_t(instance.instance_id,a.id,cap.end_x_m,cap.end_y_m,\n      (point->>'x_m')::numeric,(point->>'y_m')::numeric,target)<1 THEN\n    RAISE EXCEPTION 'panel_multiplication_draw_stale' USING ERRCODE='40001'; END IF;\n   distance_m:=round(combat_spatial.distance_m(cap.start_x_m,cap.start_y_m,cap.end_x_m,cap.end_y_m),2);\n  END IF;\n  IF expected_distance IS NULL THEN expected_distance:=distance_m;\n  ELSIF expected_distance<>distance_m THEN RAISE EXCEPTION 'panel_multiplication_draw_distance_mismatch' USING ERRCODE='22023'; END IF;\n  indices:=array_append(indices,idx);\n  normalized:=normalized||jsonb_build_array(candidate||jsonb_build_object('figure_index',idx));\n END LOOP;\n SELECT array_agg((value->>'figure_index')::integer ORDER BY (value->>'figure_index')::integer),\n  jsonb_agg(value ORDER BY (value->>'figure_index')::integer) INTO indices,normalized FROM jsonb_array_elements(normalized);\n SELECT * INTO old FROM combat_panel_private.multiplication_ordinary_draw_plans WHERE request_key=p_request AND target_actor_id=target;\n IF old.request_key IS NOT NULL THEN\n  IF old.principal_user IS DISTINCT FROM auth.uid() OR old.prepared_transaction<>txid_current()\n   OR old.round_id<>c.round_id OR old.actor_id<>a.id OR old.candidates IS DISTINCT FROM normalized THEN\n   RAISE EXCEPTION 'panel_request_key_conflict' USING ERRCODE='22023'; END IF;\n  seed:=old.random_seed;\n ELSE seed:=extensions.gen_random_bytes(32); END IF;\n idx:=indices[combat_panel_private.multiplication_random_figure(cardinality(indices),seed)];\n SELECT value INTO STRICT chosen FROM jsonb_array_elements(normalized) WHERE (value->>'figure_index')::integer=idx;\n IF old.request_key IS NULL THEN\n  INSERT INTO combat_panel_private.multiplication_ordinary_draw_plans\n   (request_key,target_actor_id,round_id,actor_id,principal_user,prepared_transaction,source_offer_id,movement_offer_id,\n    formation_id,formation_version,random_seed,random_indices,selected_index,range_m,candidates)\n  VALUES(p_request,target,c.round_id,a.id,auth.uid(),txid_current(),(chosen->>'source_offer_id')::uuid,\n   (chosen->>'movement_offer_id')::uuid,formation,version,seed,indices,idx,expected_range,normalized);\n END IF;\n RETURN chosen- 'figure_index';\nEND ",
+    "ddl": "CREATE OR REPLACE FUNCTION combat_panel_private.multiplication_choose_ordinary_source(p_context uuid, p_expected bigint, p_candidates jsonb, p_request uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE c combat_panel_private.contexts%ROWTYPE;ctx combat_consumer_private.activities%ROWTYPE;\n a public.combat_v2_actors%ROWTYPE;source combat_consumer_private.offers%ROWTYPE;move combat_consumer_private.offers%ROWTYPE;\n cap combat_spatial.movement_capabilities%ROWTYPE;body combat_spatial.actor_states%ROWTYPE;\n instance combat_spatial.arena_instances%ROWTYPE;ch combat_spatial.movement_semantic_choices%ROWTYPE;\n old combat_panel_private.multiplication_ordinary_draw_plans%ROWTYPE;\n candidate jsonb;selection jsonb;geometry jsonb;point jsonb;normalized jsonb:='[]'::jsonb;chosen jsonb;\n indices integer[]:=ARRAY[]::integer[];idx integer;seed bytea;target uuid;formation uuid;version bigint;\n target_current uuid;formation_current uuid;version_current bigint;is_companion boolean;range_m numeric;\n expected_origin boolean;expected_range numeric;distance_m numeric;expected_distance numeric; suiton_profile jsonb; expected_suiton uuid;\nBEGIN\n c:=combat_panel_private.owned_context(p_context,p_expected);\n IF p_request IS NULL OR c.activity_kind<>'ordinary_v2' OR c.round_id IS NULL OR c.command_actor_id IS NULL\n  OR jsonb_typeof(p_candidates) IS DISTINCT FROM 'array' OR jsonb_array_length(p_candidates)=0 THEN\n  RAISE EXCEPTION 'panel_multiplication_draw_invalid' USING ERRCODE='22023'; END IF;\n PERFORM public.combat_v2_lock_round(c.round_id);\n SELECT * INTO STRICT ctx FROM combat_consumer_private.activities WHERE session_id=c.activity_id\n  AND exchange_id=c.round_id AND phase='action' AND turn_actor_id=c.command_actor_id;\n SELECT * INTO STRICT a FROM public.combat_v2_actors WHERE id=c.command_actor_id AND session_id=c.activity_id\n  AND controller_user=auth.uid() AND state='attivo' AND companion_id IS NULL;\n SELECT * INTO STRICT instance FROM combat_spatial.arena_instances WHERE encounter_id=c.activity_id AND state='open' FOR UPDATE;\n FOR candidate IN SELECT value FROM jsonb_array_elements(p_candidates) LOOP\n  IF jsonb_typeof(candidate) IS DISTINCT FROM 'object'\n   OR candidate-ARRAY['source_offer_id','movement_offer_id']<>'{}'::jsonb\n   OR candidate->>'source_offer_id' IS NULL THEN\n   RAISE EXCEPTION 'panel_multiplication_draw_invalid' USING ERRCODE='22023'; END IF;\n  SELECT * INTO STRICT source FROM combat_consumer_private.offers WHERE id=(candidate->>'source_offer_id')::uuid\n   AND session_id=c.activity_id AND exchange_id=c.round_id AND location_id=c.location_id\n   AND principal_character_id=a.character_id AND context_version=ctx.context_version\n   AND scene_version=c.scene_version AND state='offered' AND operation='declare';\n  selection:=source.source_payload->'multiplication_attack_target';\n  IF selection IS NULL OR source.source_payload#>>'{intent,kind}' IS DISTINCT FROM 'attacco'\n   OR selection->>'target_actor_id' IS DISTINCT FROM source.source_payload#>>'{intent,target_actor}' THEN\n   RAISE EXCEPTION 'panel_multiplication_draw_invalid' USING ERRCODE='22023'; END IF;\n  is_companion:=coalesce(selection->>'attack_origin'='marionetta',false);\n  suiton_profile:=NULL;\n  IF NOT is_companion AND source.source_payload#>>'{intent,ability_source}'='clan' THEN\n   suiton_profile:=coalesce(combat_v2_elemental_internal.suiton_profile(a.id,(source.source_payload#>>'{intent,ability_id}')::uuid),combat_v2_elemental_internal.other_profile(a.id,(source.source_payload#>>'{intent,ability_id}')::uuid));\n  END IF;\n  IF NOT coalesce((is_companion AND source.source_payload#>>'{intent,ability_source}'='clan'\n   AND source.source_payload#>>'{intent,ability_id}'='e361f7c3-f90b-47ec-bfee-ccbda21257d9')\n   OR (NOT is_companion AND coalesce(selection->>'attack_origin','actor')='actor'\n   AND (source.source_payload#>>'{intent,ability_source}'='mano' OR suiton_profile IS NOT NULL)),false) THEN\n   RAISE EXCEPTION 'panel_attack_origin_invalid' USING ERRCODE='22023'; END IF;\n  range_m:=CASE WHEN suiton_profile->>'catalog_technique_id'='72cbe1fb-34c8-44c7-a053-0014b4894b3e' THEN combat_v2_elemental_internal.scarica_contact_range(a.id,(selection->>'target_actor_id')::uuid) WHEN suiton_profile IS NOT NULL THEN (suiton_profile->>'range_m')::numeric WHEN is_companion THEN 3 ELSE combat_panel_private.manual_contact_center_range(a.id,(selection->>'target_actor_id')::uuid) END;\n  target_current:=(selection->>'target_actor_id')::uuid;formation_current:=(selection->>'formation_id')::uuid;\n  version_current:=(selection->>'state_version')::bigint;idx:=(selection->>'figure_index')::integer;\n  IF target IS NULL THEN target:=target_current;formation:=formation_current;version:=version_current;\n   expected_origin:=is_companion;expected_range:=range_m;\n   expected_suiton:=CASE WHEN suiton_profile IS NOT NULL THEN (source.source_payload#>>'{intent,ability_id}')::uuid END;\n  ELSIF (target,formation,version,expected_origin) IS DISTINCT FROM (target_current,formation_current,version_current,is_companion)\n   OR expected_suiton IS DISTINCT FROM (CASE WHEN suiton_profile IS NOT NULL THEN (source.source_payload#>>'{intent,ability_id}')::uuid END) THEN\n   RAISE EXCEPTION 'panel_multiplication_draw_invalid' USING ERRCODE='22023'; END IF;\n  IF idx IS NULL OR idx=ANY(indices) THEN RAISE EXCEPTION 'panel_multiplication_draw_invalid' USING ERRCODE='22023'; END IF;\n  IF is_companion THEN\n   geometry:=combat_panel_private.multiplication_companion_target_figure(c.round_id,a.id,target,formation,version,idx);\n  ELSE geometry:=combat_panel_private.multiplication_target_figure(a.id,target,formation,version,idx); END IF;\n  point:=geometry->'figure';\n  IF geometry->>'instance_id' IS DISTINCT FROM instance.instance_id::text THEN\n   RAISE EXCEPTION 'panel_multiplication_draw_stale' USING ERRCODE='40001'; END IF;\n  IF candidate->>'movement_offer_id' IS NULL THEN\n   distance_m:=0;\n   IF (point->>'distance_m')::numeric>range_m OR NOT (point->>'path_clear')::boolean THEN\n    RAISE EXCEPTION 'panel_multiplication_draw_stale' USING ERRCODE='40001'; END IF;\n  ELSE\n   IF is_companion THEN RAISE EXCEPTION 'panel_attack_origin_invalid' USING ERRCODE='22023'; END IF;\n   SELECT * INTO STRICT move FROM combat_consumer_private.offers WHERE id=(candidate->>'movement_offer_id')::uuid\n    AND parent_offer_id=source.id AND session_id=c.activity_id AND exchange_id=c.round_id\n    AND location_id=c.location_id AND principal_character_id=a.character_id AND context_version=ctx.context_version\n    AND scene_version=c.scene_version AND state='offered' AND offer_kind='movement';\n   SELECT * INTO STRICT cap FROM combat_spatial.movement_capabilities WHERE capability_id=(move.source_payload->>'capability_id')::uuid\n    AND instance_id=instance.instance_id AND actor_id=a.id AND state='offered';\n   SELECT * INTO STRICT body FROM combat_spatial.actor_states WHERE instance_id=instance.instance_id AND actor_id=a.id\n    AND controller_principal_id=auth.uid() AND state='active';\n   SELECT * INTO STRICT ch FROM combat_spatial.movement_semantic_choices WHERE instance_id=instance.instance_id\n    AND actor_id=a.id AND choice_key=cap.choice_key AND enabled;\n   IF cap.map_version<>instance.map_version OR cap.actor_body_version<>body.body_version OR cap.choice_version<>ch.choice_version\n    OR (cap.start_x_m,cap.start_y_m) IS DISTINCT FROM (body.x_m,body.y_m)\n    OR combat_spatial.distance_m(cap.end_x_m,cap.end_y_m,(point->>'x_m')::numeric,(point->>'y_m')::numeric)>range_m\n    OR combat_spatial.path_first_block_t(instance.instance_id,a.id,cap.end_x_m,cap.end_y_m,\n      (point->>'x_m')::numeric,(point->>'y_m')::numeric,target)<1 THEN\n    RAISE EXCEPTION 'panel_multiplication_draw_stale' USING ERRCODE='40001'; END IF;\n   distance_m:=round(combat_spatial.distance_m(cap.start_x_m,cap.start_y_m,cap.end_x_m,cap.end_y_m),2);\n  END IF;\n  IF expected_distance IS NULL THEN expected_distance:=distance_m;\n  ELSIF expected_distance<>distance_m THEN RAISE EXCEPTION 'panel_multiplication_draw_distance_mismatch' USING ERRCODE='22023'; END IF;\n  indices:=array_append(indices,idx);\n  normalized:=normalized||jsonb_build_array(candidate||jsonb_build_object('figure_index',idx));\n END LOOP;\n SELECT array_agg((value->>'figure_index')::integer ORDER BY (value->>'figure_index')::integer),\n  jsonb_agg(value ORDER BY (value->>'figure_index')::integer) INTO indices,normalized FROM jsonb_array_elements(normalized);\n SELECT * INTO old FROM combat_panel_private.multiplication_ordinary_draw_plans WHERE request_key=p_request AND target_actor_id=target;\n IF old.request_key IS NOT NULL THEN\n  IF old.principal_user IS DISTINCT FROM auth.uid() OR old.prepared_transaction<>txid_current()\n   OR old.round_id<>c.round_id OR old.actor_id<>a.id OR old.candidates IS DISTINCT FROM normalized THEN\n   RAISE EXCEPTION 'panel_request_key_conflict' USING ERRCODE='22023'; END IF;\n  seed:=old.random_seed;\n ELSE seed:=extensions.gen_random_bytes(32); END IF;\n idx:=indices[combat_panel_private.multiplication_random_figure(cardinality(indices),seed)];\n SELECT value INTO STRICT chosen FROM jsonb_array_elements(normalized) WHERE (value->>'figure_index')::integer=idx;\n IF old.request_key IS NULL THEN\n  INSERT INTO combat_panel_private.multiplication_ordinary_draw_plans\n   (request_key,target_actor_id,round_id,actor_id,principal_user,prepared_transaction,source_offer_id,movement_offer_id,\n    formation_id,formation_version,random_seed,random_indices,selected_index,range_m,candidates)\n  VALUES(p_request,target,c.round_id,a.id,auth.uid(),txid_current(),(chosen->>'source_offer_id')::uuid,\n   (chosen->>'movement_offer_id')::uuid,formation,version,seed,indices,idx,expected_range,normalized);\n END IF;\n RETURN chosen- 'figure_index';\nEND $function$\n"
+  },
+  "target_geometry_chain": [
+    {
+      "schema": "combat_panel_private",
+      "proname": "multiplication_target_figure",
+      "args": "p_actor uuid, p_target uuid, p_formation uuid, p_version bigint, p_index integer",
+      "ddl_md5": "05bdfab8c01966de7b16f5465bc6f010",
+      "source": "\nDECLARE geometry jsonb; figure jsonb;\nBEGIN\n geometry:=combat_panel_private.multiplication_target_geometry(p_actor,p_target);\n IF geometry IS NULL OR geometry->>'formation_id' IS DISTINCT FROM p_formation::text\n   OR geometry->>'state_version' IS DISTINCT FROM p_version::text THEN\n   RAISE EXCEPTION 'panel_multiplication_target_stale' USING ERRCODE='40001'; END IF;\n SELECT value INTO figure FROM jsonb_array_elements(geometry->'figures')\n   WHERE (value->>'figure_index')::integer=p_index;\n IF figure IS NULL THEN RAISE EXCEPTION 'panel_multiplication_target_figure_invalid' USING ERRCODE='22023'; END IF;\n -- Nessun ripiego sulla figura più vicina, su un sorteggio o sull'originale.\n RETURN (geometry-'figures')||jsonb_build_object('figure',figure);\nEND "
+    },
+    {
+      "schema": "combat_panel_private",
+      "proname": "multiplication_target_geometry",
+      "args": "p_actor uuid, p_target uuid",
+      "ddl_md5": "931416e56edb3af79537a8fd3d4b1be9",
+      "source": "\nBEGIN\n RETURN combat_panel_private.multiplication_target_geometry_for_body(p_actor,p_target,p_actor)\n  -ARRAY['source_actor_id','source_body_version'];\nEND "
+    },
+    {
+      "schema": "combat_panel_private",
+      "proname": "multiplication_target_geometry_for_body",
+      "args": "p_actor uuid, p_target uuid, p_source uuid",
+      "ddl_md5": "e73f7c394502436b0a315b5b0ecbd8c8",
+      "source": "\nDECLARE a public.combat_v2_actors%ROWTYPE; t public.combat_v2_actors%ROWTYPE;\n i combat_spatial.arena_instances%ROWTYPE; b combat_spatial.actor_states%ROWTYPE;\n formation record; figure jsonb; points jsonb:='[]'::jsonb; x numeric; y numeric; owner_body_version bigint;\nBEGIN\n IF exam_regia_private.current_principal() IS NULL THEN RAISE EXCEPTION 'panel_authentication_required' USING ERRCODE='28000'; END IF;\n SELECT * INTO STRICT a FROM public.combat_v2_actors WHERE id=p_actor\n   AND exam_regia_private.actor_principal(id,controller_user)=exam_regia_private.current_principal() AND state='attivo';\n SELECT * INTO t FROM public.combat_v2_actors WHERE id=p_target AND session_id=a.session_id\n   AND state='attivo' AND team_key<>a.team_key;\n IF t.id IS NULL THEN RETURN NULL; END IF;\n SELECT arena.* INTO i FROM combat_spatial.arena_instances arena\n   JOIN public.combat_v2_sessions s ON s.id=arena.encounter_id\n   WHERE arena.encounter_id=a.session_id AND arena.state='open'\n     AND s.closed_at IS NULL AND s.state NOT IN ('chiuso','annullato');\n IF i.instance_id IS NULL OR NOT combat_panel_private.shared_movement_scope(i.instance_id)\n   OR NOT combat_panel_private.body_visible_to_viewer(i.instance_id,t.id) THEN RETURN NULL; END IF;\n SELECT * INTO b FROM combat_spatial.actor_states WHERE instance_id=i.instance_id AND actor_id=p_source\n   AND state='active' AND controller_principal_id=exam_regia_private.current_principal();\n IF b.actor_id IS NULL THEN RETURN NULL; END IF;\n SELECT body_version INTO owner_body_version FROM combat_spatial.actor_states\n   WHERE instance_id=i.instance_id AND actor_id=a.id AND state='active' AND controller_principal_id=exam_regia_private.current_principal();\n IF owner_body_version IS NULL THEN RETURN NULL; END IF;\n -- Non si legge l'indice originale, né si usa la posizione del corpo nemico.\n SELECT f.id,f.state_version,f.figures INTO formation\n FROM combat_panel_private.multiplication_formations f\n WHERE f.actor_id=t.id AND f.session_id=a.session_id AND f.instance_id=i.instance_id AND f.state='active'\n   AND EXISTS(SELECT 1 FROM combat_spatial.actor_states tb WHERE tb.instance_id=i.instance_id\n     AND tb.actor_id=t.id AND tb.state='active' AND tb.body_version=f.source_body_version);\n IF NOT FOUND THEN RETURN NULL; END IF;\n FOR figure IN SELECT value FROM jsonb_array_elements(formation.figures)\n   ORDER BY (value->>'figure_index')::integer LOOP\n   x:=(figure->>'x_m')::numeric; y:=(figure->>'y_m')::numeric;\n   points:=points||jsonb_build_array(jsonb_build_object('figure_index',(figure->>'figure_index')::integer,\n     'x_m',x,'y_m',y,'distance_m',combat_spatial.distance_m(b.x_m,b.y_m,x,y),\n     'path_clear',combat_spatial.path_first_block_t(i.instance_id,b.actor_id,b.x_m,b.y_m,x,y,t.id)>=1));\n END LOOP;\n RETURN jsonb_build_object('schema_version','combat-multiplication-target-geometry/1',\n   'formation_id',formation.id,'state_version',formation.state_version,'target_actor_id',t.id,\n   'instance_id',i.instance_id,'map_version',i.map_version,'actor_body_version',owner_body_version,'source_actor_id',b.actor_id,'source_body_version',b.body_version,'figures',points);\nEND "
+    }
+  ],
+  "tactics_allowed": [
+    {
+      "oid": 51621,
+      "args": "p_actor uuid",
+      "ddl_md5": "86d93a7e6f27d8e7adf6f852f8ef3de3",
+      "source": "\n SELECT EXISTS(\n  SELECT 1 FROM public.combat_v2_actors ta\n  JOIN public.combat_v2_sessions ts ON ts.id=ta.session_id\n  JOIN public.locations tactics_location ON tactics_location.id=ts.location_id\n  JOIN combat_panel_private.multiplication_tactics_release_gate tactics_gate\n    ON tactics_gate.singleton AND tactics_gate.version>=1\n      AND tactics_gate.revision_reference='combat-multiplication-tactics/1'\n  WHERE ta.id=p_actor AND ta.actor_kind IN ('pg','png') AND ta.companion_id IS NULL\n    AND ta.state='attivo' AND ts.state='in_corso' AND ts.closed_at IS NULL\n    AND NOT EXISTS(SELECT 1 FROM exam_regia_private.bindings eb WHERE eb.combat_session_id=ts.id)\n    AND exam_regia_private.current_principal() IS NOT NULL\n    AND exam_regia_private.actor_principal(ta.id,ta.controller_user)=exam_regia_private.current_principal()\n    AND combat_panel_private.owner_turn_context(ta.id)->>'activity_kind' IN ('ordinary_v2','master_v2')\n    AND (\n     (\n      tactics_gate.staff_enabled AND (\n       combat_consumer_private.staff_test_allowed(ts.location_id,ARRAY[exam_regia_private.current_principal()],false)\n       OR (\n        ta.actor_kind='png' AND ta.controller_user IS NULL AND ta.character_id IS NULL\n        AND ta.companion_id IS NULL AND ts.source_kind='master'\n        AND ts.master_session_id IS NOT NULL AND ts.lesiva IS FALSE\n        AND auth.uid() IS NULL AND public.combat_v2_is_service()\n        AND mission_generic_owner.current_principal()=exam_regia_private.current_principal()\n        AND EXISTS(\n          SELECT 1 FROM mission_generic_owner.panel_permits tactics_permit\n          JOIN public.master_v2_sessions tactics_master ON tactics_master.id=tactics_permit.master_session_id\n          WHERE tactics_permit.actor_id=ta.id AND tactics_permit.encounter_id=ts.id\n            AND tactics_permit.master_session_id=ts.master_session_id\n            AND tactics_permit.principal_id=exam_regia_private.current_principal()\n            AND tactics_permit.transaction_id=txid_current() AND tactics_permit.backend_pid=pg_backend_pid()\n            AND tactics_permit.consumed_at IS NULL\n            AND tactics_permit.created_at>clock_timestamp()-interval '150 seconds'\n            AND tactics_master.owner_kind='ai_service' AND tactics_master.master_user IS NULL\n            AND tactics_master.closed_at IS NULL AND tactics_master.location_id=ts.location_id\n        )\n        AND EXISTS(\n          SELECT 1 FROM public.combat_v2_actors tactics_staff_actor\n          WHERE tactics_staff_actor.session_id=ts.id AND tactics_staff_actor.actor_kind='pg'\n            AND tactics_staff_actor.state='attivo'\n            AND combat_consumer_private.staff_test_allowed(ts.location_id,\n              ARRAY[exam_regia_private.actor_principal(tactics_staff_actor.id,tactics_staff_actor.controller_user)],false)\n        )\n       )\n      )\n      AND NOT EXISTS(SELECT 1 FROM public.combat_v2_actors other_actor\n        WHERE other_actor.session_id=ta.session_id AND other_actor.actor_kind='pg'\n          AND NOT combat_consumer_private.staff_test_allowed(ts.location_id,\n            ARRAY[exam_regia_private.actor_principal(other_actor.id,other_actor.controller_user)],false))\n     )\n     OR CASE WHEN tactics_location.is_active AND NOT tactics_location.is_test\n       AND NOT tactics_location.is_exam_room THEN (\n      (\n       auth.uid() IS NOT NULL AND (\n        (ta.actor_kind='pg' AND tactics_gate.ordinary_enabled\n          AND combat_panel_private.owner_turn_context(ta.id)->>'activity_kind'='ordinary_v2')\n        OR (tactics_gate.master_enabled\n          AND combat_panel_private.owner_turn_context(ta.id)->>'activity_kind'='master_v2'\n          AND EXISTS(\n            SELECT 1 FROM public.master_v2_sessions tactics_public_master\n            WHERE tactics_public_master.id=ts.master_session_id\n              AND tactics_public_master.location_id=ts.location_id\n              AND tactics_public_master.closed_at IS NULL\n              AND (\n                (tactics_public_master.owner_kind='human' AND tactics_public_master.master_user IS NOT NULL)\n                OR (tactics_public_master.owner_kind='ai_service' AND tactics_public_master.master_user IS NULL\n        AND EXISTS(\n          SELECT 1 FROM mission_public_owner.session_admissions_v1 tactics_admission\n          JOIN mission_public_owner.publications_v2 tactics_current_pub\n            ON tactics_current_pub.request_key=tactics_admission.publication_request\n            AND tactics_current_pub.mission_id=tactics_admission.mission_id\n            AND tactics_current_pub.source_mission_id=tactics_admission.mission_id\n            AND tactics_current_pub.config_version=tactics_admission.capability_version\n            AND tactics_current_pub.target='public' AND tactics_current_pub.visibility='open'\n            AND tactics_current_pub.state='open'\n          WHERE tactics_admission.master_session_id=ts.master_session_id\n            AND tactics_admission.location_id=ts.location_id AND tactics_admission.mode='ai'\n            AND tactics_admission.publication_request IS NOT NULL\n            AND mission_public_owner.role_session_allowed_v1(ts.master_session_id)\n            AND mission_public_owner.c1266_regia_public_scope_v1(\n              tactics_admission.mission_id,'ai',tactics_admission.publication_request,\n              tactics_current_pub.release_revision_sha256)\n        )\n                )\n              )\n          )\n        )\n       )\n      )\n      OR CASE WHEN tactics_gate.generic_enabled THEN (\n        ta.actor_kind='png' AND ta.controller_user IS NULL AND ta.character_id IS NULL\n        AND ta.companion_id IS NULL AND ts.source_kind='master'\n        AND ts.master_session_id IS NOT NULL AND ts.lesiva IS FALSE\n        AND auth.uid() IS NULL AND public.combat_v2_is_service()\n        AND mission_generic_owner.current_principal()=exam_regia_private.current_principal()\n        AND EXISTS(\n          SELECT 1 FROM mission_generic_owner.panel_permits tactics_permit\n          JOIN public.master_v2_sessions tactics_master ON tactics_master.id=tactics_permit.master_session_id\n          WHERE tactics_permit.actor_id=ta.id AND tactics_permit.encounter_id=ts.id\n            AND tactics_permit.master_session_id=ts.master_session_id\n            AND tactics_permit.principal_id=exam_regia_private.current_principal()\n            AND tactics_permit.transaction_id=txid_current() AND tactics_permit.backend_pid=pg_backend_pid()\n            AND tactics_permit.consumed_at IS NULL\n            AND tactics_permit.created_at>clock_timestamp()-interval '150 seconds'\n            AND tactics_master.owner_kind='ai_service' AND tactics_master.master_user IS NULL\n            AND tactics_master.closed_at IS NULL AND tactics_master.location_id=ts.location_id\n        )\n        AND EXISTS(\n          SELECT 1 FROM mission_public_owner.session_admissions_v1 tactics_admission\n          JOIN mission_public_owner.publications_v2 tactics_current_pub\n            ON tactics_current_pub.request_key=tactics_admission.publication_request\n            AND tactics_current_pub.mission_id=tactics_admission.mission_id\n            AND tactics_current_pub.source_mission_id=tactics_admission.mission_id\n            AND tactics_current_pub.config_version=tactics_admission.capability_version\n            AND tactics_current_pub.target='public' AND tactics_current_pub.visibility='open'\n            AND tactics_current_pub.state='open'\n          WHERE tactics_admission.master_session_id=ts.master_session_id\n            AND tactics_admission.location_id=ts.location_id AND tactics_admission.mode='ai'\n            AND tactics_admission.publication_request IS NOT NULL\n            AND mission_public_owner.role_session_allowed_v1(ts.master_session_id)\n            AND mission_public_owner.c1266_regia_public_scope_v1(\n              tactics_admission.mission_id,'ai',tactics_admission.publication_request,\n              tactics_current_pub.release_revision_sha256)\n        )\n      ) ELSE false END\n     ) ELSE false END\n    ))\n"
+    }
+  ],
+  "dependencies": [
+    {
+      "ddl_md5": "ed553ca3e6385b8210c52f0135c1022c",
+      "signature": "combat_panel_private.commit_ordinary(jsonb)"
+    },
+    {
+      "ddl_md5": "86d93a7e6f27d8e7adf6f852f8ef3de3",
+      "signature": "combat_panel_private.multiplication_tactics_allowed(uuid)"
+    },
+    {
+      "ddl_md5": "331b1e75169352488965eaf4d98d1126",
+      "signature": "combat_v2_elemental_internal.technique_profile_v1(uuid)"
+    },
+    {
+      "ddl_md5": "da218e02c45e77cd710aac382db4dc57",
+      "signature": "combat_v2_elemental_internal.other_profile(uuid,uuid)"
+    }
+  ],
+  "gate": {
+    "version": 2,
+    "singleton": true,
+    "staff_enabled": true,
+    "master_enabled": false,
+    "generic_enabled": false,
+    "ordinary_enabled": false,
+    "revision_reference": "combat-multiplication-tactics/1"
+  },
+  "elemental_gate": {
+    "enabled": true,
+    "public_enabled": true
+  },
+  "profile_native_value": [
+    {
+      "native_range_m": "10",
+      "persisted_attack_count": 0,
+      "persisted_draw_plan_count": 0,
+      "successful_panel_receipt_count": 0
+    }
+  ],
+  "source_selects": {
+    "attempted": 6,
+    "successful": 6,
+    "errors": 0
+  },
+  "seed_or_original_values_read": false,
+  "no_new_gate": true
+}

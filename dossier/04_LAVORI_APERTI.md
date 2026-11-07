@@ -1,5 +1,7 @@
 # 04 · LAVORI APERTI — cantieri, dipendenze e prossimi passi
 
+Aggregata1 T3 completata nei soli sorgenti e controreview0/0/0: componente `e163bd59baa530df14764ed361af658f312f171b88a4f1bdd6508c83d7b3de49`, integrata `8054ddb373d95fd4c8e20a82eb163744e660813f20e02765a565f57c0b0bb777`, installer inerte `4fd1312a936264f2463b12e01db421b93955612ce692e7154e70122a237c8d05`, referto `a84bc2b9570c5e9f679c9f5cee22eea0525f3f2a155b225d25d27f7ac1f92698`. Il CHECK usa IN(2,3,10) implicito, coerente con la serializzazione catalogo attesa; guardie, writer e gli altri corpi invariati. Il tentativo precedente resta fallito e atomico, senza retry. Root viva36f invariata; finestra22:17:48UTC scaduta, nessun binding eseguibile o nuova installazione/QA. Il deposito documentale selettivo `d20f082800c58fd3c8bc788e004b288d651c1a29` ha12/12blob verificati e Admin invariato; i WIP estranei locali sono esclusi.
+
 > Aggiornamento mirato Human del17/10/2026: QA23 PASS e OPEN24 verificato; gli altri blocchi conservano le rispettive date. Allineamento del 21/09/2026. Al massimo tre cantieri restano «in lavoro»; le task archiviate non vengono riaperte. Le versioni e le prove esatte restano nelle schede d’area e negli handoff dei singoli incarichi.
 
 ## I tre cantieri aperti
