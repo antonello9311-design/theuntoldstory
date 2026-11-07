@@ -1,0 +1,15 @@
+# Handoff · Combat Composite
+
+TASK-ID · COMBAT-COVERAGE-INTEGRATED-20261107; raccordo metadati COMBAT-COVERAGE-METADATA-20261107.
+
+Scope toccato · Fix displayGroupOptions coverage451B e metadati integrati UI/config. LAND dal pubblicato, stesso delta minimo nel WIP; altro WIP intatto, Admin locale diverso conservato. Nessun corpoDB/Edge, CHECK, GRANT o gate modificato.
+
+Contratti usati/modificati · Producer/projection/validator, option_id e cap1 invariati. Tre pin LAND e2bytecount, digest UI econfigParty derivati; adozione append-only di Root/admission/profile/qualification/content e puntatoreParty, nessuna nuova qualifica gameplay implicita. Pubblico Tactics/FacingOFF e noveInnatev3pubbliche intatte.
+
+Decisioni prese / OPEN · Review aggregata4 econversione0/0/0, Source409e6089/APPLY446aa9c1; Root e9d24578 installata una volta14:02UTC, commit6fed6dd0/Pages42379483826SUCCESS e marker dominio verificati. Nessun retry RNG/iniziativa, costo o Restore ripetuto. Installazione non significa collaudo completo.
+
+Prove eseguite e risultato · Copertura/Diversivo e punto cieco · 07/11, finestra4 chiusa14:37:55UTC entro14:03:08–15:33:08: fix difese omonime integrato e runtimePASS; retroIII dot−4/malus−1 verificato e due offensive Copertura risolte nel ramo prima-originale. Root e9d24578, LAND0ffbe20a/Admin62662a02 nel commit6fed6dd0, reviewaggregata4/conversione0/0/0 e preflight10/10. Nuovi45comandi/4scene tutte chiuse/1provider3841input+1509output/0,0011386USD; cumulativi232comandi/15scene/9provider/41743input+9662output/0,0090053USDsu0,10, nessunRestore o costo storico ripetuto. T1ordinarynonqualificato: S14premovimento2esclude correttamenteCopertura, S15iniziativaRiuji/geometriainizialenonlaoffre; nessuna tecnica addebitata nei due casi, nessunrerolldell’iniziativa. T2copia-esca/T3/copia-primaT5/F1residui e F3MAX2/ServiceT6–T8 restano aperti. Pubblici Tactics/FacingOFF, noveInnatev3pubbliche intatte. Custodiafinale14:38: PGcca57a1c, Scorta7a3b9f5f/2982dcb e6Party identici,0Combat/0MasterStaffaperti,0providerpendenti. Riuji20/OFF, testper0/OFF, Tamako5/OFF. Anti-sonno proprio già terminato; nessun monitor modificato.
+
+Rischi o regressioni da verificare · T1ordinary e ramiT2/T3/copia-primaT5/F1 restano aperti; F3MAX2 richiede capacità nativa disponibile nei profili ammessi; Service richiede sorgente e ammissione finanziaria prima di Event42. Il pianoS15 non è proseguibile entro3invii IA residui senza oltrepassare i limiti fissati, né con nuove estrazioni per preferire l’attore iniziale. Nessun PASS per analogia. Snapshot integrali, SQL operativi/Root e quote rimangono privati; referti sanitizzati pubblicabili.
+
+Passaggio richiesto al PM · Prodotto incompleto, nessuna apertura pubblica nuova. Preparare soltanto le dipendenze sopra e una nuova campagna finita esplicitamente autorizzata, conservando232/15/9 e0,0090053USD. Non riapplicare gli installerfencedROLLBACK o vecchi corpi. Tutte4prove proprie chiuse; postflight e costi conservati, browser eStaff rilasciabili. Il rilascio delle prenotazioni non attesta il prodotto finito.

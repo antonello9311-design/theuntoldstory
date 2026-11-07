@@ -1,3 +1,30 @@
+# Finestra 4 · esito del fix e limiti residui
+
+Il fix delle difese omonime è installato e verificato sulla Staff. Due opzioni server con la stessa etichetta restano entrambe selezionabili; passando dalla prima alla seconda resta una sola selezione. Un unico invio Schivata è stato acquisito e risolto. Il collaudo complessivo è **incompleto** e l’apertura pubblica di Copertura/Diversivo/Facing resta **OFF**.
+
+Versione integrata: Root `e9d24578201d8f0b086e9fc079fb657f5d41364145218d8385e878aa659769ce`; LAND `0ffbe20a9e1f038c85f6a2e7ef46e229d70b1b94d1b1dd51df07cce3d93c4942`, Admin `62662a0298167652944b6319991c17a1dc418554f32062a789388948c4d47d96`, commit `6fed6dd0d62d8d498f2d6be10794e156fde9dda0`. Edge35/157 e corpi DB invariati. Tre pin LAND e bindings UI/config/Party riallineati con adozione append-only. Review aggregata4 e conversione0/0/0, preflight10/10, Pages42379483826SUCCESS e marker dominio verificati; byte integrali dominio NOT_CAPTURED, blob Git2/2 esatti. Migrazione `combat_coverage_ui_metadata_staff_20261107` installata14:02UTC.
+
+| Caso | Esito osservato |
+|---|---|
+| S12 · UI difese | PASS: opzioni1di2/2di2 entrambe raggiungibili, selezioni(true,false)→(false,true), cap1 e unico invio |
+| S12 · retroIII | PASS circoscritto: ricevuta15410587-bc7c-4e7b-97a1-6707d473e74f, dot−4, rear=true, livello3, deduction1. MAX2 resta separatamente non rappresentato |
+| S13 · T4 | Due offensive nello stesso piano. Soffio trova l’originale e riceve difesa normale; formazionefc0758b9 consumed/first_attack. SuccessivoKeita: vanished_copy_out_of_range,0danni, nessuna difesa o protezione ripetuta. PASS nel ramo prima-originale; copia-prima non osservata |
+| S14 · T1 | NON qualificato. Dopo movimentoSud2, Copertura correttamente assente: spent_m nonzero impedisce un secondo movimento dell’originale; nessun costoMoltiplicazione |
+| S15 · T1 corretto | Nessuna azione/costo/provider. IniziativaRiuji, geometria iniziale senza ritirata legale. Nessuna nuova estrazione per ottenere il primo attore preferito |
+
+S12: un’attivazione III15, upkeep15 nei round2/3, spegnimento0 alla chiusura. Saldo testper50→5. S13: Copertura15 una volta, ritirata5m e Soffio5 una volta; saldiRiuji35→20/testper5→0. Due Fati umani S12 e un Fato umano S13 pubblicati una sola volta. S14 ha un solo Fato IA preliminare, quota dd884614-25bd-4767-9fb0-f35b640597c0 settled,3841input/1509output/0,0011386USD. Nessuna nuova Restore, riattivazione di statoON pagato, rimborso o reset.
+
+Finestra autorizzata14:03:08–15:33:08UTC; conclusa14:37:55. Nuovi45comandi/4scene, tutte proprie chiuse; cumulativi232comandi/15scene/9provider/41743input/9662output/0,0090053USDsu0,10. Tre chiamate residue rispetto al cap12 e10338output residui rispetto20k; ogni request resta vincolata al suo upper9992output. L’assettoS15 richiederebbe almeno quattro ulteriori Fati per cambiare geometria, passare i turni, creare e poi attaccare la Copertura: non ammesso dai tre invii residui. Non si espandono i limiti durante la campagna e non si ripete l’iniziativa per cercare un verde.
+
+Restano T1, ramo copia-escaT2, T3, copia-primaT5, confiniF1, F3MAX2 e ServiceT6–T8. MAX2: Fenice è l’unica tecnica multi pronta individuata ma non è disponibile nei tre PG/preset ammessi. Service: vecchia qualification20koutput/0,3136USD e sorgente specifica non ammettono questa campagna; nessun Event42 o provider Service avviato. Questi limiti non sono sostituiti dal PNG controllato da Master umano o da un PASS statico. Per proseguire servono un piano ordinario rappresentabile con budget finito e le dipendenze native Staff mancanti, prima di nuove prove. Nessun nuovo enable pubblico.
+
+Postflight14:38UTC: tutte4scene di questa finestra terminali, values_written=false;0Combat/0MasterStaffaperti,0providerpendenti. PG realicca57a1c, Scorta7a3b9f5f/2982dcb e tutti6digestParty invariati. Root/DB23dd/Edge35-157/gate e noveInnatev3pubbliche preservati. Finali simulati Riuji20/OFF, testper0/OFF, Tamako5/OFF. Un’offerta PassaPNG scaduta è stata respinta senza costo e riletta nativamente, nessun duplicato. Il reload dopoaccept ha recuperato Common senza nuova azione; non è stato attestato un bug del routing. Anti-sonno proprio già terminato, monitor invariati.
+
+
+## Storico delle campagne precedenti
+
+I passaggi seguenti conservano gli esiti e i limiti delle finestre1–3. Per coverage, retroIII e T4 vale lo stato corrente riportato sopra.
+
 # Copertura/Diversivo e punto cieco · QA Staff
 
 TASK-ID · COMBAT-TACTICS-FACING-QA-20261107 · incompleto, nessuna nuova apertura.
