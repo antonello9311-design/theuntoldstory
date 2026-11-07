@@ -3897,6 +3897,16 @@ function renderResourceBar(doc,parent,key,label,value,ownerName=''){
 }
 
 function displayGroupOptions(group,selected){
+  if(group.purpose==='coverage'){
+    const counts=new Map(),seen=new Map();
+    for(const option of group.options)counts.set(option.label,(counts.get(option.label)||0)+1);
+    return group.options.map(option=>{
+      const count=counts.get(option.label);
+      if(count===1)return option;
+      const index=(seen.get(option.label)||0)+1;seen.set(option.label,index);
+      return {...option,label:option.label+' · '+index+' di '+count};
+    });
+  }
   const byKey=new Map();
   for(const option of group.options){
     const key=[group.purpose,option.label,option.distance_m,option.direction].join('|'),prior=byKey.get(key);
