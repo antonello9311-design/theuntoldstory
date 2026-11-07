@@ -1,3 +1,11 @@
+# Finestra 5 · interruzione del browser e dipendenze residue
+
+Copertura/Diversivo e punto cieco · finestra5 del07/11,16:57:10–18:27:10UTC. Ripresa su Root e9d24578/client6fed6dd/documenti072e63/Edge35-157 confermata; nessun drift, nessuna installazione nuova. Due soli comandi nativi invito/accettazione: nuova ordinaryad065d00,Round1,in_corso,values_writtenfalse. Movimento di testperfunzioni soltanto in anteprima, non confermato; saldiRiuji20/testper0 invariati,nessunRestore/attivazione/attacco/provider nuovo. Cumulativi234comandi/16scene(15precedenti chiuse,1propria aperta)/9provider/41743input+9662output/0,0090053USDsu0,10. Il canale Browser risponde Local browser use is disabled in Work settings anche dopo confermautente: impossibile continuare o chiudere nativamente la propria prova, nessun bypassSQL. DipendenzeF3 eService acquisite readonly5+5SELECT: Fenicemulti pronta ma manca concessione simulata compatibileByakuganIII; sourceService2PNG ha abilitiesvuote, non rappresentaCopertura/Diversivo. Minimo risorse55CKcontro25 disponibili, deficit>=30 prima degli upkeep: noRestore richiesto né eseguito. Piani tecnici non implementati/non installabili; nuovi gate pubbliciOFF,Innatev3pubbliche intatte. CustodiaPGrealicca57a1c/Scorta7a3b9f5f-2982dcb confermata17:02UTC; seiParty invariati nella lettura16:54UTC, nessuna operazione suParty. Nessun nuovoPASS; finestra non prorogata automaticamente.
+
+Il solo duello proprio da riprendere o chiudere tramite il sito è `ad065d00-1753-429d-8e64-56fa1a9a50b9`; non ricrearlo e non reinviare invito o accettazione. Il movimento scelto in UI non è stato confermato. La precedente Copertura15 non va ripetuta per fingere credito; i nuovi costi restano quelli realmente previsti dalle prove future. Nessuna disponibilità pubblica nuova.
+
+[Dipendenze e piano corrente](TACTICS_DEPENDENCIES_PLAN.md). Gli esiti della finestra4 seguono come storia verificata e non descrivono la scena attuale.
+
 # Finestra 4 · esito del fix e limiti residui
 
 Il fix delle difese omonime è installato e verificato sulla Staff. Due opzioni server con la stessa etichetta restano entrambe selezionabili; passando dalla prima alla seconda resta una sola selezione. Un unico invio Schivata è stato acquisito e risolto. Il collaudo complessivo è **incompleto** e l’apertura pubblica di Copertura/Diversivo/Facing resta **OFF**.
