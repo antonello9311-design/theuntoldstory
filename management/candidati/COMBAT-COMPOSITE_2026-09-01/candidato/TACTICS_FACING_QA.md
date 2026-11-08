@@ -1,4 +1,8 @@
-# Copertura/Diversivo e punto cieco · QA W8
+# Copertura/Diversivo e punto cieco · QA W9
+
+W9 · 08/11/2026 · Finestra 12:42:09–14:12:09 UTC terminata senza proroga. Count/ammissione Ordinary S22 installati soltanto Staff: Root fb1bd826, migrazioni 20261108140056 e 20261108140507, Source56e178e0, review AGG2 0/0/0 (2/5 aggregate), preflight16/16 e readback12 funzioni/49 header esatti. Edge combat_narratore_ai v36, 18/18 file riletti; Admin484602B/SHAe88a1400/commit8bfa8d3a, Pages42487843271 SUCCESS e Root DOM esatta. Recupero nativo unico HTTP13 concluso503/context_or_budget prima di Count: zero Count/Generation e zero nuova spesa; cumulativo 0,0175484 USD su0,10. S22 resta aperta con report attesa, claim scaduta e autorizzazione temporale esaurita; il pannello mostra «Scontro non disponibile nel contesto corrente», senza comando normale di chiusura. Custodia PG/Scorta/sei insiemi Party e gate identica alla baseline; nessun Restore né attivazione/formazione duplicata. Testper65/155 e Riuji0/105 simulati conservati. F1 Ordinary e T6–T8 Service non passati; Source authoring nativa corretta e reviewata solo nei sorgenti, Service non installato né avviato. Tactics/Facing pubblici OFF; nove Innate pubbliche intatte. Dettagli e postflight in candidato/W9_ORDINARY_RELEASE.json e W9_ORDINARY_POSTFLIGHT.json. Non riusare una finestra scaduta o presentare installazione/review come PASS runtime.
+
+# Evidenze W8 conservate
 
 Stato: parziale; nessuna apertura pubblica.
 

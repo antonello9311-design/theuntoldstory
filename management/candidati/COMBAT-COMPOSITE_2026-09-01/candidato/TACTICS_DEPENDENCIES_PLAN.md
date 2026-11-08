@@ -1,23 +1,333 @@
-# Copertura/Diversivo e punto cieco · finestra 8 conclusa
+# Piano dipendenze W9
 
-T3 installato nella sola Staff e collaudato nel ramo copia a distanza; T5 misto con Master passato nel ramo copia-prima. Facing I ignoto 0 e retro −3 verificati nel solo percorso Master. Restano F1 Ordinary (ignoto, laterale, retro), laterale Master non eseguito e T6–T8 PNG di servizio; F3 due origini nello stesso round resta non rappresentabile nello scope. Pubblico Tactics/Facing OFF; nove Innate mantenute già pubbliche invariate.
+Stato: finestra terminata; runtime bloccato, pubblico OFF.
 
-W8: 08/11/2026 10:14:36–11:44:36 UTC, chiusura propria ultima prova 11:03:30 UTC. Usati 37/38 comandi conservativi, 3/3 scene, 2/5 invii IA, 8455 input + 2639 output, 0,002165 USD; nessun ripristino. Totale storico 321 comandi, 21 scene tutte chiuse, 18 invii IA, 79774 input + 19142 output, 0,0175484 USD su 0,10. Residui numerici 1 comando/0 scene/3 invii: non permettono un nuovo caso completo e non prorogano la finestra.
+W9 · 08/11/2026 · Finestra 12:42:09–14:12:09 UTC terminata senza proroga. Count/ammissione Ordinary S22 installati soltanto Staff: Root fb1bd826, migrazioni 20261108140056 e 20261108140507, Source56e178e0, review AGG2 0/0/0 (2/5 aggregate), preflight16/16 e readback12 funzioni/49 header esatti. Edge combat_narratore_ai v36, 18/18 file riletti; Admin484602B/SHAe88a1400/commit8bfa8d3a, Pages42487843271 SUCCESS e Root DOM esatta. Recupero nativo unico HTTP13 concluso503/context_or_budget prima di Count: zero Count/Generation e zero nuova spesa; cumulativo 0,0175484 USD su0,10. S22 resta aperta con report attesa, claim scaduta e autorizzazione temporale esaurita; il pannello mostra «Scontro non disponibile nel contesto corrente», senza comando normale di chiusura. Custodia PG/Scorta/sei insiemi Party e gate identica alla baseline; nessun Restore né attivazione/formazione duplicata. Testper65/155 e Riuji0/105 simulati conservati. F1 Ordinary e T6–T8 Service non passati; Source authoring nativa corretta e reviewata solo nei sorgenti, Service non installato né avviato. Tactics/Facing pubblici OFF; nove Innate pubbliche intatte. Dettagli e postflight in candidato/W9_ORDINARY_RELEASE.json e W9_ORDINARY_POSTFLIGHT.json. Non riusare una finestra scaduta o presentare installazione/review come PASS runtime.
 
-Mandato Antonello 08/11: installare fix T3 e riprendere i casi residui, apertura solo ALL_PASS. Finestra 2026-11-08T10:14:36Z–11:44:36Z (11:14:36–12:44:36 italiane). Nessuna proroga automatica.
-
-Baseline conservata: 284 comandi,18 scene proprie chiuse,16 provider,71319input+16503output,0,0153834USD. Nuovi massimi:38comandi/3scene/5provider; cumulativi322/21/21 e0,10USD. Ogni richiesta ordinary: massimo16384input/9992output/0,0066344USD; nuovi token finiti81920input/49960output. Nessun ripristino, rimborso, reset, doppia attivazione o reinvio di ricevute risolte.
-
-Continuità: ParentGuard COMBAT-TACTICS-DEPENDENCIES-20261107 ripreso; Root36f/hashok letta08/11 10:14:57Z, Gitf64326c3 invariato. Delta T3 A1 implicitCHECK IN(2,3,10)+guardStaffrange10, Source8054/installer4fd1 controreviewa84 SOURCE_ONLY scaduta. Integratore riconcilia header/schema/ACL/RLS/trigger/indice/CHECK/gate/custodia/admission/profiles/sessioni con nuova lettura; rinnova soltanto l'envelope operativo W8 e compone una versione unica prima di review/binding/apply. Fenice scaduta resta intatta e non necessaria; S17 eS18 chiuse non si riaprono.
-
-Assegnazione attoriT3 dopo le offerte native, prima del costo: Riuji inizia e possiede Moltiplicazione, ma nonSoffio; testperfunzioni conserva il Soffio lecito già attestato nel medesimo profiloIII. Pertanto Riuji prepara UNA formazione nuovaS19 e testper attacca; nessuna forzatura iniziativa, principale preliminare o letturaoriginale privata. Il costo15 della nuova esecuzioneS19 è distinto dalla ricevutaS18 conservata e non è addebitato due volte; nessuncredito/rimborso/ripristino o riaperturaS18. Un solo Soffio5 e dueFati al massimo per questo caso,38comandi invariati, chiusura riservata.
-
-Ordine dei casi, senza ampliamenti: T3 ordinario con attacco dalla portata canonica10m, senza movimento forzato, estrazione server e unica formazione nuova distinta da quella risoltaS18; T5 con Master e due attacchi, verificare ramo copia-prima solo se realmente osservato, nessuna estrazione privata o retryRNG; F1 confini orientamento ignoto/laterale/retroL1 nei limiti residui, creditofrontaleI0 conservato. Se un caso non è rappresentabile o il budget non basta, conservarloNOT_RUN/PARTIAL e tenere il pubblicoOFF. Massimo3scene, non un obbligo a ricrearle.
-
-Ogni invio mutante, valutazione/risoluzione/pubblicazione/chiusura e tentativo server respinto si registra; letture/selezioniUI senza commit non sono gameplay. Chiamate automaticheFato conteggiate una volta, ricevute e addebiti controllati nativamente. Nessuna role reale o testo completo nei referti. Solo PG/profili simulati: RiujiChrome e testperfunzioniIAB; TamakoFirefox soloMaster. Chiudere solo scene proprie e postflightPG/Scorta/Party/gate e provider.
-
-ServiceT6–T8 non parte: Count/ammissione4096 e piano compatibile con5invii/0,10USD ancora mancanti. NessunEvent42 o budget aumentato. Il sottocaso F3dueorigini/dueFacingreceipts nello stessoRound rimaneNOT_REPRESENTABLE_CURRENT_SCOPE. AperturaTactics/Facing subordinata a tutti i requisiti richiesti; le9Innate pubbliche restano intatte.
-
-Output: candidataW8+review000, preflight vivo/applyStaff+readbackproof3+bindingAdmin/Git/Pages/DOM, runtime solo entrobudget. AggiornareQA/HANDOFF/SCHEDA/STORICO e aree pertinenti senzaWIPestranei. Il precedente tentativo atomico fallito e tutti i contatori rimangono nello storico.
-
-Consegna W8: S19 PASS T3; S20 chiusa senza dichiarazioni per indisponibilità ranged Riuji; S21 ultima scena con Riuji proprietario, testperfunzioni Soffio e Keita Colpo. T5 copia-prima e Facing I Master ignoto/retro PASS. Solo la chiusura finale, nessun caso oltre i limiti.
+```json
+{
+  "schema": "tactics-window/9",
+  "start": "2026-11-08T12:42:09Z",
+  "deadline": "2026-11-08T14:12:09Z",
+  "status": "WINDOW_EXPIRED_RUNTIME_BLOCKED",
+  "baseline": {
+    "commands": 321,
+    "scenes": 21,
+    "http": 18,
+    "input": 79774,
+    "output": 19142,
+    "usd": 0.0175484
+  },
+  "maximum_new": {
+    "commands": 90,
+    "scenes": 2,
+    "http": 32,
+    "ordinary_generation": 6,
+    "service_work": 10,
+    "service_count": 10,
+    "service_generation": 10,
+    "input": 480000,
+    "output": 109648,
+    "usd_cumulative": 0.1,
+    "ordinary_count": 6
+  },
+  "reserve": {
+    "ordinary": 0.0398064,
+    "service_before_ordinary_settlement": 0.0426452,
+    "service_target_after_ordinary_settlement": 0.04448,
+    "cumulative_ceiling": 0.1
+  },
+  "scope": [
+    "F1 Ordinary orientation unknown/lateral/rear L1",
+    "Service T6 Copertura T7 Diversivo T8 anonymous formation in 2 rounds"
+  ],
+  "ordinary_plan": "NativeinitiativeTestperfirst, Passanotoffered. Beforefirstprovider/offense fixsequence: native nonoffensive utility ifoffered, Riujiunknown, TestperbasicfacesRiuji, Riuji legallateral, TestperbasicfacesRiuji, Riuji legalrear.6Fati maximum. No extra cases/retries. Source10workhardUSD authority derivedafterOrdinarysettlement.",
+  "service_plan": "Count tariff qualified from official OpenAI 4936856 line70; 10work20HTTP/input24000 output4096 generationupper.004448 Count0, nominative new authority only after integratedreview/admission. NativeSourceauthoring, opening+raccordo+2round; no attackretry/RNGfishing.",
+  "no_restore": true,
+  "no_duplicate_costs": true,
+  "no_historical_reprice": true,
+  "public_gate": "ALL_REQUIRED_CASES_PASS_ONLY",
+  "stop": [
+    "deadline",
+    "command/scene/http/token/cumulativeUSD cap",
+    "security or real-resource effect",
+    "unavailable legal offers",
+    "unexpected provider retry"
+  ],
+  "new": {
+    "commands": 14,
+    "scenes": 1,
+    "http": 0,
+    "input": 0,
+    "output": 0,
+    "usd": 0
+  },
+  "journal": [
+    {
+      "at": "2026-11-08T12:50:53.441Z",
+      "command": 1,
+      "actor": "testperfunzioni",
+      "action": "Applica profilo ByakuganI",
+      "state": "pending UI readback",
+      "resources_preserved": true
+    },
+    {
+      "command": 2,
+      "at": "2026-11-08T12:52:03.495Z",
+      "actor": "testperfunzioni",
+      "action": "role activation ByakuganI once",
+      "state": "pending readback",
+      "expected_cost": 5
+    },
+    {
+      "command": 3,
+      "at": "2026-11-08T12:52:39.256Z",
+      "actor": "Riuji",
+      "action": "send Ordinary invitation testperfunzioni",
+      "state": "pending UI"
+    },
+    {
+      "command": 4,
+      "at": "2026-11-08T12:53:42.397Z",
+      "actor": "testperfunzioni",
+      "action": "accept existing Ordinary invitation",
+      "state": "pending UI"
+    },
+    {
+      "command": 5,
+      "at": "2026-11-08T12:57:42.418Z",
+      "action": "TestpernonoffensiveDiversivo1copy15once",
+      "committed": true,
+      "round": "cfd45e3e-2ea1-494c-a1fd-f5c02102cc76",
+      "report": "977e5b96-72ff-4dd7-b7c7-64a6e6b219d2",
+      "balance65": true,
+      "provider_pending": true
+    },
+    {
+      "command": 6,
+      "at": "2026-11-08T12:57:01Z",
+      "action": "automatic narrator claim for first report",
+      "claim": "7828af22-05b3-4bc0-b697-cd3bec9eea25",
+      "state": "queued HTTP503 before quota; provider not sent; no retry",
+      "expires": "2026-11-08T13:02:01Z"
+    },
+    {
+      "command": 7,
+      "at": "2026-11-08T13:17:18.571Z",
+      "action": "normal Staff room presence reconfirmation via map",
+      "new_gameplay": false,
+      "restore": false,
+      "activation": false,
+      "state": "same S22 shows narration failed; utility and65chakra preserved"
+    }
+  ],
+  "activation": {
+    "actor": "testperfunzioni",
+    "context": "77a8d644",
+    "request": "87c63e88-4855-463a-a796-233644baf916",
+    "at": "2026-11-08T12:51:57.444471Z",
+    "level": 1,
+    "active": true,
+    "before": 90,
+    "after": 85,
+    "spent": 5,
+    "values_written": false,
+    "is_test": true
+  },
+  "plan_refined_before_first_case_provider_at": "2026-11-08T12:55:02.289Z",
+  "session_id": "0efaeff6-b310-4d37-81cd-f7bdb99ddddc",
+  "ordinary_count_reason": "Correct reserve from exact native Count before provider: fixed .20 legacy blocked on global quota; numerical UTF8/protocol margin not adopted as proof. New 6Count free +6Generation maximum, existing work scope only. No provider calls yet. Source plan pending integratedreview before any install.",
+  "count_tariff_source": "https://help.openai.com/en/articles/4936856-understanding-and-counting-tokens",
+  "transport_block": {
+    "claim": "7828af22-05b3-4bc0-b697-cd3bec9eea25",
+    "report": "977e5b96-72ff-4dd7-b7c7-64a6e6b219d2",
+    "reason": "STAFF_QUOTA_EXHAUSTED fixed reserve .20; global charged4.8001302+reserve.20>5",
+    "provider_http": 0,
+    "quota_rows": 0,
+    "formation_cost_preserved": 15,
+    "unsafe_retry": false
+  },
+  "geometry": {
+    "status": "PREDECLARED_CONDITIONAL_NATIVE_OFFERS_ONLY",
+    "obstacles_public": {
+      "Sasso": [
+        3,
+        5
+      ],
+      "Tronco": [
+        7,
+        5
+      ]
+    },
+    "first_attack": "Riuji west1m then native unarmed attack anonymous formation once; no selection based on private original identity or seed",
+    "after_public_original_defense_expected_positions": {
+      "D": [
+        4,
+        4
+      ],
+      "A": [
+        5,
+        4
+      ]
+    },
+    "original_branch": [
+      {
+        "step": 3,
+        "actor": "D",
+        "movement": "north1m",
+        "main": "unarmed A",
+        "expected_D": [
+          4,
+          5
+        ],
+        "expected_A": [
+          5,
+          4
+        ],
+        "facing": "SE(1,-1)"
+      },
+      {
+        "step": 4,
+        "actor": "A",
+        "movement": "north2m",
+        "main": "unarmed D",
+        "expected_A": [
+          5,
+          6
+        ],
+        "dot": 0,
+        "deduction": 0
+      },
+      {
+        "step": 5,
+        "actor": "D",
+        "movement": "east1m",
+        "main": "unarmed A",
+        "expected_D": [
+          5,
+          5
+        ],
+        "facing": "N(0,1)"
+      },
+      {
+        "step": 6,
+        "actor": "A",
+        "movement": "southwest2m",
+        "main": "unarmed D",
+        "expected_A_approx": [
+          3.586,
+          4.586
+        ],
+        "expected_dot_negative": true,
+        "deduction": 3
+      }
+    ],
+    "copy_branch": "Do not retry to force unknown. If native public copy result relocates A to(4,5) with D(4,4), mirrored fixed path D east1m attack; A south2m attack lateral; D west1m attack; A northeast2m attack rear. Verify actual public positions and legal collision/portata offers; otherwise stop that cell. No private original coordinates/indices read for targeting.",
+    "proof": "Only server receipts decide dot/level/deduction; route planning is not PASS. Attack/defense/pool already applied are never repeated."
+  },
+  "command_accounting": "Conservativo: 7 eventi nel journal +2 riallineamenti normali presenza +deployEdge +DBapply +pubblicazioneAdmin +enable +recuperoCron. Nessun nuovo comando di gameplay oltre i cinque iniziali.",
+  "release": {
+    "schema": "tactics-w9-release/1",
+    "status": "INSTALLED_STAFF_RUNTIME_BLOCKED_PUBLIC_OFF",
+    "window": {
+      "start": "2026-11-08T12:42:09Z",
+      "deadline": "2026-11-08T14:12:09Z"
+    },
+    "root": "fb1bd826cb1e343f2e847f6c3c4568c264e59b5e6ee72d5c0a8e6a8b161054d6",
+    "source_sha256": "56e178e0ad7c582388d3a1c7623ca0604aa2f444b5ca1704057109e8d200072e",
+    "apply_sha256": "a03c908e1a5399d60136224c82733f5737444a4ee71a5ccf6e17ac7490e67134",
+    "migrations": [
+      {
+        "version": "20261108140056",
+        "name": "combat_ordinary_s22_count_staff_w9_20261108"
+      },
+      {
+        "version": "20261108140507",
+        "name": "combat_ordinary_s22_count_enable_staff_w9_20261108"
+      }
+    ],
+    "edge": {
+      "name": "combat_narratore_ai",
+      "version": 36,
+      "source_set_sha256": "6d275299788701dd34339b6117ae702d7923e1457dbb10c3e62fa3766c2ac4cc",
+      "ezbr_sha256": "339b67a3793de2d8b71d335ae5ccb04e6b919779e7263fba46a3e9d3ca5629fa",
+      "readback_files": 18
+    },
+    "review": {
+      "reference": "W9-REPAIR-AGG2-INDEPENDENT-20261108",
+      "findings": [
+        0,
+        0,
+        0
+      ],
+      "sha256": "e93c29548a01676ed8797295668c27776ad2f37232d5723443fd785bbd15a0f3",
+      "aggregations_used": 2,
+      "maximum": 5,
+      "preflight": "16/16"
+    },
+    "publication": {
+      "commit": "8bfa8d3aa5ab263e1496ecee7709ce16e30b7600",
+      "admin_bytes": 484602,
+      "admin_sha256": "e88a1400034c478b810d8b192f2047708187607eee919fba3a8dd1010bebe794",
+      "admin_blob": "99d4903b6b1f4ede65188295ba5981bba290e2de",
+      "pages_run": 42487843271,
+      "pages_state": "SUCCESS",
+      "domain_admin_root_verified": true,
+      "land_changed": false
+    },
+    "runtime": {
+      "session": "0efaeff6-b310-4d37-81cd-f7bdb99ddddc",
+      "report": "977e5b96-72ff-4dd7-b7c7-64a6e6b219d2",
+      "recovery_requests": 1,
+      "recovery_http_status": 503,
+      "rejection_phase": "context_or_budget",
+      "count_http": 0,
+      "generation_http": 0,
+      "new_usd": 0,
+      "cumulative_usd": 0.0175484,
+      "ordinary": "BLOCKED_BEFORE_COUNT",
+      "service": "NOT_RUN_NOT_INSTALLED",
+      "ui": "Scontro non disponibile nel contesto corrente",
+      "closure": "BLOCKED_NO_NORMAL_UI_CONTROL"
+    },
+    "protections": {
+      "new_restore": 0,
+      "duplicate_activation": 0,
+      "duplicate_formation": 0,
+      "testper_simulated_chakra": 65,
+      "riuji_simulated_chakra": 0,
+      "new_constraints": [],
+      "new_tables": 0,
+      "new_columns": 0,
+      "public_tactics_facing_enabled": false,
+      "nine_innate_public_preserved": true
+    },
+    "service_source": {
+      "status": "SOURCE_ONLY_NOT_INSTALLABLE",
+      "native_doc_fingerprint": "8fd0f5ac69290da3f5b1a3697b9d7e9987a4668353725bfe7f4f26858d61baaa",
+      "source_review": [
+        0,
+        0,
+        0
+      ],
+      "count_composition": "PENDING_REAL_IDS_AND_CURRENT_ROOT",
+      "new_source_or_mission_created": false
+    },
+    "next": "Diagnosi circoscritta del rifiuto prima Count e del pannello bloccato; non ripetere ON, formazione o ripristino. Nuova prova solo in una finestra autorizzata, stesso storico e tetto cumulativo."
+  },
+  "scene_open": 1,
+  "closed_new_scenes": 0,
+  "count_http": 0,
+  "generation_http": 0,
+  "edge_transport_requests": 3,
+  "cumulative": {
+    "commands": 335,
+    "scenes": 22,
+    "scenes_closed": 21,
+    "provider_http": 18,
+    "input": 79774,
+    "output": 19142,
+    "usd": 0.0175484
+  }
+}
+```
