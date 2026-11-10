@@ -1,25 +1,17 @@
-# S24 PNG — prova fermata, chiusura nativa verificata
+# S24 audit Writer — E1 PASS, prova chiusa al blocco pannelloN2
 
-TASK-ID: COMBAT-S24-PNG-WRITER-QA-20261110 · owner PM-COMBAT-S24.
+TASK-ID COMBAT-S24-WRITER-AUDIT-PNG-20261110 · owner PM-COMBAT-S24.
 
-## Scope toccato
-S24 PNG nuova finestra · 10/11/2026 · E1 FERMATO, PROVA CHIUSA. Root2f56616e/Generic161,91header; cleanup paid audit-invalid installato dopo review0/0/0 e readback completo. Finestra15:05–16:35UTC/cutoff16:29 invariata; Start15:39:12, chiusura nativa15:54:42UTC. 4work/8HTTP nuovi, totale0,0481446USD settled=committed,0hold/pendenze/Staffaperte;160righe e5custody preservate. Writer providercompleted8304input/584output/199reasoning, respinto MISSION_PROFILE_AUDIT_INVALID, nessunFatoCombat. T6/T7/T8 NOT_RUN; F1PASS non ripetuto. Nessun retry,Restore o sceltaPNGforzata. Admin e referti pubblicati commita92fe3c7,5/5readback esatti,Pages42850109567SUCCESS; Root2f56616e e Editor verificati sul dominio.; pubblicoOFF.
+## Scope e versione
+Rootbfba2550c961ea7da4292be02110fcb261ee88d7b58d3e017e652ba199366e9c/Generic162, runtime6bc59fb852a1a5eb0c4f3d7cf75820909c23b4ce0845ec41e238fde698261b41. Audit Writer Staff TACTICS corretto con schema/normalizzazione coerenti, validatore e LifeCore preservati. Review0/0/0 SHA74f9415a6ba06dd8fc7aa6e137ff04fa1e015c553d1a44ba5f4bc9655297ddb9, apply/readback verificati. Nessun ulteriore deltaSQL/Edge/Admin in questa chiusura; riferimenti delle precedenti consegne conservati.
 
-## Contratti usati/modificati
-Un DDL temporale dalla Roota638 alla4f2b ha aperto la finestra finita; Generic161 e Writer low preesistenti preservati. Dopo il fallimento E1, un DDL di mission_staff_abort_private.quiescent_v1 ha aggiunto il solo esito completed/exactPROFILE_AUDIT_INVALID, certo, pagato, con hash valido e nessuna pubblicazione. Guardie comuni, ramo incomplete, OID/ACL/ABI e novanta altri header invariati. Nessun helper/grant/tabella/nuovo provider. Root2f56616e, installerSHAc83cccfa17f0e84a3514609fa9e90f03b43fb42cda6576de497d63121ba2644c, reviewSHA9cb76ad0b17faaf976515ebf0b2875dd423b5cc2d2cf52c7f7ee7f411962a6bc. Finestra e caps22/22/44/0,0636593USD invariati.
+## Risultato osservato
+E1PASS: Writer349c34cf completed/result_oktrue, audit canonicoarray2attori/2univoci/LifeCoreentrambi. Report9c499064, messaggioec6439a2, un soloFato, round2avviato. L'errore iniziale della query expected_main_count su round storico era dell'osservatore; query corretta per raccolta_azioni senza mutare il runtime.
+N2: rolePGacquisite, due principaliPNG e difesaPNG completate. Un bersaglioPG in attesa_difesa senza dichiarazione; pannello nativo non verificabile siaChrome siaFirefox. Causa precisa ignota: il toast copre più letture/guardie. NessunWriter/reportN2 e nessunN3. Stop al primo blocco, nessunretry/providerextra/Restore/forzatura. T6Copertura eT7Diversivo PARTIAL_NOT_PASSED, meccaniche pendenti non qualificate; T8NOT_RUN. F1precedentePASS non ripetuto.
 
-## Decisioni prese / OPEN
-Stop al primo blocco E1; N2 eN3 non avviati. Risposta provider completa ma audit respinto; la condizione precisa è sconosciuta perché l’output invalido non è stato conservato. La proposta di contratto audit a chiavi fisse resta solo diagnosi per una review separata, non è installata. Nessun Writer dichiarato qualificato.
-Admin mfRevision riguarda solo authoring: review documentale0/0/0 SHA f32a3fff612aba0ca43fd6ac418283abe5135a71b9da538ec80632ccbd6409e2 ha separato quel deploy dall’avvio nativo Land, senza toccare guardie. Land blob5e7af4ef/SHA d54b0780b404cea52661685fec913e209a988d9bb8fbc692367a64499ce6b45c e sei script DOM verificati. La candidata13:25 è scaduta mai applicata; nessuna estensione di una campagna attiva.
+## Budget e chiusura
+Finestra19:42–21:12UTC/cutoff21:06 immutata.7work/14HTTP dei massimi11/22. Totale settled=committed **0,0560018USD**, incremento0,0078572 dal baseline0,0481446; residuo0,0439982. Fonte21Count20Gen41HTTP+1no_http,0,0218079USD. Costi e storico conservati, nessuna riserva o pendenza secondo postflight.
+Annulla nativo committed receipt048b892f-8b2a-45a8-9dfa-7499c3d64313; tempo2026-11-10T20:02:32.676799+00:00. Master0515b35b eCombatab6934be annullati; cinque sezioni custody invariate. Postflight:work/writer-audit-fix-20261110/qa/FINAL_POSTFLIGHT_SUMMARY.json, SHAe2a551d691754f746369d21a3fcebb47e471191b656283abe9f4f565fd237f36. La ricevuta e le invarianti dettagliate sono nel release; nessun PASS dei casi mancanti dedotto dalla sola chiusura.
 
-## Prove eseguite e risultato
-Incipit e raccordo completati; round1 PG-only risolto e Choice difesa PNG completata. Writer8304input/584output/199reasoning, completed, usage noto, costo0,0011224USD; audit MISSION_PROFILE_AUDIT_INVALID, report attesa e nessun Fato. Quattro work e otto HTTP nuovi costano0,0036674USD; totale storico0,0481446USD, residuo0,0518554USD.
-Cleanup review0/0/0, parsing SQL+cinqueDO PASS, apply/readback tutti veri. Annulla nativo committed receipt96edab08-ba77-47a9-939a-8afe71eb1682, Master chiuso2026-11-10T15:54:42.271029+00:00, Combat annullato e values_written=false. Postflight2026-11-10T15:56:26.265229+00:00:0sceneStaff/0workpendenti/0hold,160righe esatte e cinque sezioni custody invariate. F1 precedente PASS non ripetuto; T6/T7/T8 NOT_RUN.
-
-## Rischi o regressioni da verificare
-Audit Writer ancora da correggere e collaudare; causa specifica non provata. Le precedenti sincronizzazioni Pages sono state superate. Admin e referti pubblicati commita92fe3c7,5/5readback esatti,Pages42850109567SUCCESS; Root2f56616e e Editor verificati sul dominio. Il solo fix cleanup non certifica il prodotto né apre il pubblico.
-
-## Passaggio richiesto al PM
-Prossimo passo: correggere e revisionare il contratto audit del Writer prima di una nuova prova finita. La condizione precisa dell’audit respinto non è ricostruibile: output non conservato. Nessuna nuova partenza o estensione da questa campagna; residuo economico0,0518554USD, storico conservato.
-
-Sorgenti/prove locali in work/png-writer-fix-20261110/audit-cleanup e qa/resume. Writer fix inerte originale e storico conservati. Deposito selettivo completato: Admin più quattro referti PNG, commita92fe3c7 e5/5readback esatti; SQL, Rootfull e raw privati restano locali.
+## Decisioni e prossima azione
+Diagnosi separata del pannello prima di ulteriori prove. Nessun nuovoStart o estensione automatica dalla presente campagna; disponibilità economica non autorizza retry. Admin pubblicato commit00082a9af4f4a0cec882329cff0b8ebd8727c147, Pages42888487955SUCCESS, dominioRootbfba ed editor verificati. La sua consegna resta distinta dal nativeStart della fonte originale già predisposta, con guardieDB preservate. PubblicoTactics/FacingOFF. Review finale esito/chiusura0/0/0 SHA4dde735db8e45d5dab543cc41577dfd817c6229dd7f7ddda2508a0c2a3cae17a, distinta dalla review installer. I due referti review restano quelli originali0/0/0 statici: il risultato runtime è documentato qui e inPLAN/RELEASE/WRITERPLAN/EDGE.
