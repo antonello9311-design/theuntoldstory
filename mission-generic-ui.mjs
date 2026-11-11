@@ -3,15 +3,6 @@ import {createStaffFatoRegen} from './mission-staff-fato-regen.v1.mjs?v=fato-dis
 import {createStaffEditorial,createStaffEditorialPair,DIALOGUE_CAMPAIGN,DIALOGUE_BUILD,REVIEW_CAMPAIGN,REVIEW_BUILD,LATEST_CAMPAIGN,LATEST_BUILD,E73_CAMPAIGN,E73_BUILD} from './mission-editorial-staff.mjs?v=narratore75-34fa4e6596cf18d3';
 export const VERSION='mission-party-panel/1';
 const STAFF_TEST_ROOM='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
-// Explicit Staff-only opt-in. The server remains authoritative for scope/window/quota.
-// Freeze must bind both placeholders; an unbound window keeps the new button disabled.
-const TARGETED_PNG_START=Object.freeze({
- source:'2e89fa26-de24-4dd2-b485-514b14d6a207',
- request:'46b9d640-8f11-4ddc-895d-02929cf681dc',
- users:Object.freeze(['15448f47-3b43-416f-a703-dbe7a74d36ce','f0856d53-83a6-4de0-bc0c-12c87916e665']),
- roster:Object.freeze(['2a877f02-4993-4e65-9172-7d29f08c5b86','6bceee99-974f-426b-8d92-38b43b4a4267']),
- notBefore:'2026-11-11T10:28:00Z',cutoff:'2026-11-11T11:52:00Z'
-});
 const id=()=>crypto.randomUUID();
 const clone=x=>structuredClone(x);
 const el=(tag,text,attrs={})=>{const n=document.createElement(tag);if(text!==null)n.textContent=text;for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;};
@@ -159,20 +150,11 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   const dispose=()=>{abortController?.dispose();abortController=null;};d.addEventListener('close',dispose,{once:true});
   const latest=j=>{const a=j.attempts.at(-1);return a?.terminal===null&&a.resolution?.state!=='rejected_no_commit'?a:null;};
   const start=button('Avvia prova',()=>void send());
-  const targetedScope=()=>same()&&loc.id===STAFF_TEST_ROOM&&mission===TARGETED_PNG_START.source&&TARGETED_PNG_START.users.includes(user);
-  const targetedWindowOpen=()=>{const from=Date.parse(TARGETED_PNG_START.notBefore),until=Date.parse(TARGETED_PNG_START.cutoff),now=Date.now();return Number.isFinite(from)&&Number.isFinite(until)&&from<until&&now>=from&&now<until;};
-  const targetedRoster=roster=>JSON.stringify([...roster].sort())===JSON.stringify(TARGETED_PNG_START.roster);
-  const targeted=button('Avvia prova mirata T6–T8',()=>void send(true));targeted.disabled=true;
-  targeted.setAttribute('data-staff-png-targeted-start','');
   const change=button('Cambia selezione',()=>void resolveStart());
   const open=button('Apri prova',()=>{if(same()&&run?.receipt){refresh();d.close();}});
-  actions.append(start);
-  if(targetedScope())actions.append(targeted);
-  actions.append(change,open);
+  actions.append(start,change,open);
   function sync(){
    row.disabled=busy||!!run;
-   targeted.hidden=!targetedScope();
-   targeted.disabled=busy||!!run||!targetedWindowOpen()||!targetedRoster([...picks])||!journal||journal.attempts.some(a=>a.request_key===TARGETED_PNG_START.request);
    start.textContent=run?'Riprendi lo stesso avvio':'Avvia prova';
    start.disabled=busy||!!run?.receipt||(!run&&(picks.size<1||picks.size>4));change.hidden=!run||!!run.receipt;change.disabled=busy;open.hidden=!run?.receipt;open.disabled=busy;
   }
@@ -211,21 +193,15 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
    }catch(e){if(same())status.textContent='La selezione precedente resta conservata. '+e.message;}
    finally{busy=false;if(same())sync();}
   }
-  async function send(targetedOptIn=false){
+  async function send(){
    if(!same()||busy)return;busy=true;sync();
    try{
     await staffStartLock(user,loc.id,async()=>{
      if(!same())return;journal=readStaffStart(user,loc.id);run=latest(journal);
      if(run?.receipt)return;
-     // Never replace a blocked/pending tuple. Normal resume/resolve retain that tuple.
-     if(targetedOptIn&&run)throw Error('Completa o verifica l’avvio precedente prima della prova mirata. La richiesta precedente resta conservata.');
-     if(targetedOptIn||run?.request_key===TARGETED_PNG_START.request){
-      if(!targetedScope()||!targetedWindowOpen()||!targetedRoster(run?.roster||[...picks]))throw Error('Prova mirata non disponibile: servono Riuji e testperfunzioni nella finestra Staff autorizzata.');
-      if(!run&&journal.attempts.some(a=>a.request_key===TARGETED_PNG_START.request))throw Error('La richiesta della prova mirata è già conservata. Nessun nuovo avvio.');
-     }
      if(!run){
       const roster=[...picks].sort();if(roster.length<1||roster.length>4)return;
-      run={source_mission_id:mission,roster,request_key:targetedOptIn?TARGETED_PNG_START.request:id(),receipt:null,terminal:null,resolution:null};journal.attempts.push(run);writeStaffStart(journal);
+      run={source_mission_id:mission,roster,request_key:id(),receipt:null,terminal:null,resolution:null};journal.attempts.push(run);writeStaffStart(journal);
      }
      // Persisted tuple and request are the only input to the mutating RPC.
      const result=await rpc('mission_generic_staff_test_start_v1',{p_source_mission:run.source_mission_id,p_location:loc.id,p_roster:[...run.roster],p_request:run.request_key},user);
@@ -233,7 +209,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
     });
     if(same()){sync();await showRun();refresh();}
    }catch(e){if(same())status.textContent='Avvio non confermato. La stessa richiesta è conservata. '+e.message;}
-   finally{busy=false;if(same()){try{journal=readStaffStart(user,loc.id);run=latest(journal);sync();}catch(e){start.disabled=true;targeted.disabled=true;row.disabled=true;status.textContent=e.message;}}}
+   finally{busy=false;if(same()){try{journal=readStaffStart(user,loc.id);run=latest(journal);sync();}catch(e){start.disabled=true;row.disabled=true;status.textContent=e.message;}}}
   }
   try{
    await readPrevious();if(!same())return;
@@ -242,7 +218,7 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
     check.checked=!!run?.roster.includes(c.id);check.addEventListener('change',()=>{if(run||busy)return;if(check.checked)picks.add(c.id);else picks.delete(c.id);sync();});label.prepend(check);row.append(label);}
    if(!roster.length)row.textContent='Nessun personaggio presente nella stanza.';
    sync();await showRun();
-  }catch(e){if(same()){start.disabled=true;targeted.disabled=true;status.textContent=e.message;}}
+  }catch(e){if(same()){start.disabled=true;status.textContent=e.message;}}
  }
  async function mountStaffPartyPrepare(area,user,location,source){
   const box=el('section',null,{class:'mg-scene','aria-label':'Prova del party in Staff'}),status=el('p','Scegli i partecipanti per preparare la squadra di prova.',{role:'status'}),picksHost=el('div',null),partyHost=el('div',null);
