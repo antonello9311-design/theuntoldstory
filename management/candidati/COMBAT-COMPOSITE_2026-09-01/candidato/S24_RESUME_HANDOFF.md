@@ -1,3 +1,13 @@
+<!-- S24-PNG-TARGETED-INSTALL-20261111 -->
+## S24 · Avvio Staff e selezione mirata T6–T8
+
+Root `62cbbd4238bf70a1976556c1923f80e5933e9a7863cc45e8de6f5dfd4e708504` con Generic 165. Installazione e readback di 95 contratti verificati. Il normale «Avvia prova» seleziona il primo avvio Riuji ammesso per fonte, piano e roster attesi. LAND e modulo missioni sul dominio corrispondono alla versione antecedente al pulsante sperimentale. Il resolver resta nativo. Cap 54 Count, 54 Generation e 108 HTTP. Tetto economico invariato.
+
+Collaudo mirato in attesa di entrambi i PG. Mac bloccato durante il controllo Firefox, Chrome vede solo Riuji. Prova non avviata, nessuna nuova chiamata o riserva. 0,0819279 USD cumulativi e F1 PASS preservato. T6–T8 conservano gli esiti parziali storici.
+
+Review indipendente 0/0/0 SHA-256 `ef18e08f1f9234ec4e90b6ade7cdbdf21a8e2f525af27ead29f854758283d88f`. Il relativo SQL canonico conserva il blocco SOURCE_ONLY. Admin è pubblicato nel commit `0efcb0954643b9cd2ba1bd53502b65899f89fdf5`.
+<!-- END S24-PNG-TARGETED-INSTALL-20261111 -->
+
 <!-- S24-PNG-RESUME-20261111 CURRENT CHECKPOINT -->
 ## S24 PNG11nov · QA_CLOSED · producer PASS_END_TO_END · T6 PARTIAL_NOT_PASSED, T7 PARTIAL_NOT_PASSED, T8 PARTIAL_NOT_PASSED
 
