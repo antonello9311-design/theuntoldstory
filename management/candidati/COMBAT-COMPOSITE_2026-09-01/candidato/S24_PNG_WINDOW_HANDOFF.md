@@ -1,3 +1,20 @@
+<!-- S24-PNG-OFFER-TIMEOUT-20261111 -->
+## Esito Staff · Timeout offerte PNG · 11 novembre
+
+La correzione è installata su Root `81d63417`, Generic 165. La preparazione ora limita il calcolo di Moltiplicazione agli attori, al round e alle offerte necessarie per la prova Staff ammessa. Review indipendente 0/0/0 e readback di 96 contratti. La pubblicazione cambia soltanto il pin Admin, commit `f57c1e09896efc219a63ce925fc33eb58f5dd672`; LAND, modulo missioni e pulsanti invariati.
+
+Una sola prova avviata dal normale **Avvia prova**. R1 completato come ponte. R2: azioni PG acquisite su Iori e Nao; il server ha superato il vecchio timeout `57014` ed è arrivato al selettore, che ha risposto `MG_S24_TARGETED_NATIVE_OFFER_UNAVAILABLE` (SQLSTATE `55000`). Nessun lavoro o chiamata provider per R2. Il primo PNG nel percorso di selezione era Iori; manca evidenza di un percorso Copertura nativo utilizzabile dal selettore. Le posizioni conservate mostrano Iori in (2,2), testperfunzioni in (2,4) e Riuji in (4,2). Il codice nativo ammette solo direzioni cardinali e un arretramento di 5 m in allontanamento dal riferimento: i due soli arrivi sono (2,-3) e (-3,2), fuori dall'arena 10 × 10. Le direzioni perpendicolari non sono valide.
+
+- **T6 Copertura:** non completato; nessuna formazione PNG.
+- **T7 Diversivo:** non completato; attacco PG acquisito, nessun Diversivo PNG.
+- **T8:** non eseguito; round 3 mai aperto.
+- **F1 punto cieco:** PASS storico preservato, non ripetuto.
+
+Spesa nuova **0,0034844 USD**; totale **0,0911004 USD** su 0,10, residuo **0,0088996 USD** (residuo effettivo della fonte **0,0067528 USD**). Quattro generazioni, quattro Count, otto richieste HTTP. Zero riserve e lavori non terminali. Prova chiusa dal normale **Annulla prova**, ricevuta `ff70ef10-4ddc-4689-a6ef-bf5364b523f1`, risorse protette e 533 righe pregresse intatte (578 totali). Nessun secondo avvio o reinvio.
+
+Prossimo passo: verificare in anticipo una sequenza legale con almeno un PG a nord o a ovest di Iori e una via libera da 5 m in direzione opposta. Se il pannello non offre il percorso, fermarsi; non alterare le regole della Copertura. Evidenze locali: `work/png-offer-timeout-20261111/{FINAL_RESULT.json,R2_FAILURE.json,TERMINAL_TRACE.json,CLOSURE.json}`.
+<!-- END S24-PNG-OFFER-TIMEOUT-20261111 -->
+
 <!-- S24-PNG-TARGETED-RUN-20261111 -->
 ## S24 · Esito runtime Staff T6–T8 dell’11 novembre
 
