@@ -1,3 +1,17 @@
+<!-- S24-PNG-TARGETED-RUN-20261111 -->
+## S24 · Esito runtime Staff T6–T8 dell’11 novembre
+
+Root `146013ce22b0aeaa28e778294cdc629399e83b7d7d70761a09e9a6813eb56be4`, Generic 165. Controlli sul dominio e 95 contratti verificati. Alias corretto e pubblicato con il solo pin Admin, LAND e modulo missioni corrispondono alla versione con Avvia prova esistente.
+
+Entrambe le prove sono state avviate dal normale «Avvia prova». La prima si è fermata prima della difesa del round 1 perché PostgreSQL trovava ambiguo `m.id`. La stessa richiesta è rimasta incerta. Ho chiuso la prova e installato la correzione di alias con review indipendente 0/0/0.
+
+La prova sostitutiva ha completato e pubblicato il round 1, necessario per raggiungere i casi mirati. Al round 2 il server ha acquisito il Colpo a mano di testperfunzioni verso Nao e il Passa di Riuji dopo il movimento consentito. Iori restava fuori dalla portata delle offerte verificate. Il worker ha raggiunto il timeout PostgreSQL (57014) nella costruzione delle offerte di Moltiplicazione, durante la rivalidazione del principal Service. Il recupero della stessa richiesta è rimasto incerto e non ha creato alcun lavoro IA aggiuntivo. Nessuna formazione PNG o scelta T6–T7 acquisita. Il round 3 di T8 non è stato aperto.
+
+Le due prove sono archiviate e la verifica conferma risorse protette, 488 righe pregresse preservate, 533 righe finali, zero scene aperte, zero lavori pendenti e zero riserve. F1 resta PASS. Spesa nuova 0,0056881 USD, totale 0,0876160 USD su 0,10 USD. Restano 0,0123840 USD sul tetto utente.
+
+Ricevute `4b084374-5a97-4c19-8053-3a419c2bc373` e `36f01516-c81d-49fb-b05d-e1ea7b468e02`. Handoff tecnico: misurare e ridurre il costo delle verifiche ripetute del principal Service durante la costruzione delle offerte di Moltiplicazione, preservando le guardie e la selezione mirata.
+<!-- END S24-PNG-TARGETED-RUN-20261111 -->
+
 <!-- S24-PNG-TARGETED-INSTALL-20261111 -->
 ## S24 · Avvio Staff e selezione mirata T6–T8
 
