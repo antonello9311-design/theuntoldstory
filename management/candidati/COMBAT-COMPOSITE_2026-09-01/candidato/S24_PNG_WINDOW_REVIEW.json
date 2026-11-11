@@ -1,61 +1,168 @@
 {
-  "schema": "s24-panel-cleanup-source-review-chain/2",
-  "task": "COMBAT-S24-DEFENSE-PANEL-PNG-20261110",
-  "state": "CLOSED_SOURCE_FIX_INSTALLED_RUNTIME_NOT_RUN_NO_REPLAY",
-  "qa_root": "dd9374c7ac59fa14a02fefff95689f628baa1c95866b51678c318500418e0ae1",
-  "cleanup_root": "6eecf049655f355ffb78ab3bb12f2333da4a692e034c1e06fe3bcbae12ea6a32",
-  "source_fix_candidate_root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
-  "installed_root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
-  "edge_version": 163,
-  "edge_unchanged": true,
-  "strict_js_unchanged": true,
-  "qa_state": "STOP_CLOSED_NO_REPLAY",
-  "runtime_block": "BLOCKED_TARGET_ACTOR_KEY_PG",
-  "source_fix_runtime": "NOT_RUN_NO_REPLAY",
-  "source_fix_installed": true,
-  "source_fix_review": "PASS_0_0_0",
-  "source_fix_scope": "Producer normalizes PG target_actor_key to NULL; target_character_id and PNG target binding preserved; strict JS unchanged",
+  "schema": "s24-png-runtime-review-chain/1",
+  "task": "COMBAT-S24-PNG-RESUME-20261111",
+  "owner": "PM-COMBAT-S24",
+  "state": "QA_CLOSED",
+  "root": "88a3402b132e3ef4df150a0e7f7dae9f93de8d3118bc0360b8a8a887b76ac07f",
+  "installed_root": "88a3402b132e3ef4df150a0e7f7dae9f93de8d3118bc0360b8a8a887b76ac07f",
+  "parent_root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
+  "edge_version": 164,
+  "window": [
+    "2026-11-11T07:48:00Z",
+    "2026-11-11T09:18:00Z"
+  ],
+  "cutoff": "2026-11-11T09:12:00Z",
+  "master_id": "d3e3d38c-92a2-4bfd-9360-03c045046d37",
+  "combat_id": "bd31add6-e1a6-47d7-8645-dc3e57ee00bb",
+  "scene_start_utc": "2026-11-11T07:48:44.448581Z",
+  "source_fix_runtime": "PASS_END_TO_END",
+  "producer_fix": {
+    "mapping_status": "PASS",
+    "native_flow_status": "PASS",
+    "checks": {
+      "actual_pg_target_published": true,
+      "same_scene_target_ids_conserved": true,
+      "pg_target_actor_key_json_null": true,
+      "strict_validator_accepted": true,
+      "single_visible_intent_fato": true,
+      "native_defense_offered": true,
+      "native_defense_acquired": true,
+      "resolved_report_published": true
+    },
+    "png_target_branch": "OBSERVED_PASS_TARGET_KEY_RETAINED",
+    "evidence": [
+      {
+        "path": "qa/PG_INTENT_VERIFIED.json",
+        "sha256": "e42e824f8577c134f145c135f8e299da8262e5fc3d59483d2fde202a538cf3e2"
+      },
+      {
+        "path": "qa/UI_EVIDENCE.json",
+        "sha256": "aed8cad1458039e4fd3d361f514e290c7280a47839488032a8477f2b55bd54b9"
+      },
+      {
+        "path": "qa/N2_VERIFIED.json",
+        "sha256": "d637b8ec2389cb5d6e05b5a18566c9308f90a29141a31fd227f9cf04876ff1ef"
+      }
+    ]
+  },
   "cases": {
-    "F1": "PRIOR_PASS_NOT_REPEATED",
-    "E1_WRITER": "PASS",
-    "T6": "PARTIAL_NOT_PASSED",
-    "T7": "PARTIAL_NOT_PASSED",
-    "T8": "NOT_RUN"
+    "T6": {
+      "status": "PARTIAL_NOT_PASSED",
+      "reason": "I PNG non hanno scelto Copertura: nessuna formazione CoperturaPNG osservata; ramo specifico non qualificato.",
+      "checks": {},
+      "observed_png_coverage_count": 0,
+      "evidence": [
+        {
+          "path": "qa/N3_TERMINAL.json",
+          "sha256": "915db4fa5862e3d37d8cd75e7a9cc862b1e4ec45fc73e2880253bb0de7831706"
+        },
+        {
+          "path": "qa/UI_EVIDENCE.json",
+          "sha256": "aed8cad1458039e4fd3d361f514e290c7280a47839488032a8477f2b55bd54b9"
+        }
+      ]
+    },
+    "T7": {
+      "status": "PARTIAL_NOT_PASSED",
+      "reason": "I PNG non hanno scelto Diversivo: il solo Diversivo osservato appartiene al PG testperfunzioni; ramoPNG non qualificato.",
+      "checks": {},
+      "observed_png_diversion_count": 0,
+      "evidence": [
+        {
+          "path": "qa/N3_TERMINAL.json",
+          "sha256": "915db4fa5862e3d37d8cd75e7a9cc862b1e4ec45fc73e2880253bb0de7831706"
+        },
+        {
+          "path": "qa/UI_EVIDENCE.json",
+          "sha256": "aed8cad1458039e4fd3d361f514e290c7280a47839488032a8477f2b55bd54b9"
+        }
+      ]
+    },
+    "T8": {
+      "status": "PARTIAL_NOT_PASSED",
+      "reason": "Testperfunzioni ha creato un DiversivoPG: una copia, una principale,15CK simulati una volta. Le due iniziativePNG distinte hanno preso di mira Riuji: zero attacchi sulla formazione, quindi consumo e seconda risoluzione sulla stessa formazione non verificati.",
+      "checks": {
+        "one_pg_copy_cost15_once": true,
+        "single_main_consumed": true,
+        "two_native_attacks_same_formation_same_round": false,
+        "first_consumption_observed": false,
+        "second_native_resolution_no_invented_draw": false
+      },
+      "observed_formation_attacks": 0,
+      "observed_distinct_png_attacks_on_riuji": 2,
+      "evidence": [
+        {
+          "path": "qa/N3_TERMINAL.json",
+          "sha256": "915db4fa5862e3d37d8cd75e7a9cc862b1e4ec45fc73e2880253bb0de7831706"
+        },
+        {
+          "path": "qa/UI_EVIDENCE.json",
+          "sha256": "aed8cad1458039e4fd3d361f514e290c7280a47839488032a8477f2b55bd54b9"
+        }
+      ]
+    }
   },
-  "maximum_new_provider_calls": 0,
-  "qa_resume_authorized": false,
-  "generation_after_stop": 0,
-  "campaign_settled_usd": "0.0641242",
-  "campaign_committed_usd": "0.0641242",
-  "campaign_remaining_usd": "0.0358758",
-  "campaign_hard_cap_usd": "0.10",
-  "new_work_count": 8,
-  "completed_work_count": 7,
-  "failed_never_sent_intent_count": 1,
-  "new_count_generation_pairs": 7,
-  "new_http_calls": 14,
+  "all_three_png_passed": false,
+  "F1": "PRIOR_PASS_NOT_REPEATED",
+  "E1_WRITER": "PRIOR_PASS_PRESERVED",
+  "new_work_count": 13,
+  "new_count": 13,
+  "new_generation": 13,
+  "new_http": 26,
+  "campaign_settled_usd": "0.0819279",
+  "campaign_committed_usd": "0.0819279",
+  "remaining_global_usd": "0.0180721",
+  "global_cap_usd": "0.10",
+  "source_cap_usd": "0.0636593",
+  "source_caps": [
+    41,
+    41,
+    82
+  ],
   "budget": {
-    "http_rows": 55,
-    "charged_usd": 0.0299303,
-    "count_calls": 28,
+    "http_rows": 81,
+    "charged_usd": 0.047734,
+    "count_calls": 41,
     "count_holds": 0,
-    "baseline_http": 41,
-    "new_http_rows": 14,
-    "baseline_count": 21,
-    "new_count_rows": 7,
+    "baseline_http": 55,
+    "new_http_rows": 26,
+    "baseline_count": 28,
+    "new_count_rows": 13,
     "unsettled_rows": 0,
-    "generation_calls": 27,
+    "generation_calls": 40,
     "generation_holds": 0,
-    "baseline_generation": 20,
-    "new_generation_rows": 7,
+    "baseline_generation": 27,
+    "new_generation_rows": 13,
     "unreserved_hold_usd": 0,
-    "campaign_settled_usd": 0.0641242,
-    "campaign_committed_usd": 0.0641242,
-    "charged_or_reserved_usd": 0.0299303
+    "campaign_settled_usd": 0.0819279,
+    "campaign_committed_usd": 0.0819279,
+    "charged_or_reserved_usd": 0.047734
   },
-  "no_http_rows": 1,
-  "source_rows_count": 320,
-  "historical238_preserved": true,
+  "closure_status": "CLOSED",
+  "cleanup_blocker": null,
+  "native_abort_receipts": [
+    {
+      "state": "committed",
+      "operation_id": "711be1b1-50d7-43aa-b71d-dc0bdf319576",
+      "resources_protected": true
+    }
+  ],
+  "master": {
+    "id": "d3e3d38c-92a2-4bfd-9360-03c045046d37",
+    "state": "annullata",
+    "closed_at": "2026-11-11T08:21:04.298847+00:00"
+  },
+  "combat": [
+    {
+      "id": "bd31add6-e1a6-47d7-8645-dc3e57ee00bb",
+      "state": "annullato",
+      "closed_at": "2026-11-11T08:21:04.218923+00:00",
+      "values_written": false
+    }
+  ],
+  "observed_at": "2026-11-11T08:21:39.674747+00:00",
+  "source_rows_count": 466,
+  "historical320_preserved": true,
   "custody_sections_unchanged": {
     "gates": true,
     "party": true,
@@ -63,293 +170,166 @@
     "scorta_masters": true,
     "scorta_mission": true
   },
-  "open_source_master": 0,
-  "open_source_combat": 0,
-  "nonterminal_source_work": 0,
-  "native_abort_receipt": [
-    {
-      "state": "committed",
-      "operation_id": "98cf3f39-ebb4-495f-80e0-181bb6320965",
-      "resources_protected": true
-    }
-  ],
-  "master": {
-    "id": "d9579b29-b1f6-426f-9041-2508f289f5e3",
-    "state": "annullata",
-    "closed_at": "2026-11-10T21:26:45.426682+00:00"
-  },
-  "combat": [
-    {
-      "id": "f2387fee-da68-4bc4-880d-7bc7cda6dd90",
-      "state": "annullato",
-      "closed_at": "2026-11-10T21:26:45.332277+00:00",
-      "values_written": false
-    }
-  ],
-  "closure_observed_at": "2026-11-10T21:27:18.395815+00:00",
-  "evidence": {
-    "panel_review_sha256": "41d255b418665ce4216499138994db1be8ba1571ae0c52be406b19110f724f4c",
-    "cleanup_review_sha256": "4f99295334a6515c16a76531b3c4b0156be80d1f8f3fbfce7eddf2f1e0a3e007",
-    "cleanup_readback_sha256": "f91194cc88e7236d37d6f510ccc74f108d5f4bf3d8564ad582fc5346b490bd67",
-    "closure_raw_sha256": "ab961a18b20412768746da30922a3a50ead1a30c4508c6aeb314937660c5309f",
-    "closure_compact_sha256": "027036c4eb242d3d12990aeed91f583bdd78474e5c8095eaa740a0b0fe5224de",
-    "e1_verified_sha256": "326ddbcf6b699aab6ad9bfdda69ed47daadfc22ac80135fb77226b75df780057",
-    "n2_dto_sha256": "2c42b5cd2fd074096cf2855d97a7c1225df50684ec0b9066515eb1096a9bdb89",
-    "source_manifest_sha256": "9d0a138f029da49dc96303725cf55424ac5aff73e02c23304ea89f65dba86bd9",
-    "source_review_sha256": "eb1813eac3b59985d5c7900657a88e8a9de92fb89ba5691220a72ace3a8e64f4",
-    "source_readback_sha256": "6e2a4927ca8cc6e705f28582d62cf1f20420ecf3711b9ba8f39836f061d469f4",
-    "final_postflight": {
-      "observed_at": "2026-11-10T21:32:33.393815+00:00",
-      "root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
-      "compact_sha256": "3d8398c41d87b23252734139d7dcd683592b73ed0f99d390bdbdde8166ed5a98",
-      "raw_sha256": "0146bdbd586eec7ccabbfa95fba4e14b34455b6cbce70dc3dfaee33825dc5f79",
-      "all320_rows_exact_after_source_fix": true
-    }
-  },
   "public_tactics_facing": "OFF",
-  "source_fix_installation_does_not_upgrade_qa": true,
-  "final_postflight": {
-    "observed_at": "2026-11-10T21:32:33.393815+00:00",
-    "root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
-    "compact_sha256": "3d8398c41d87b23252734139d7dcd683592b73ed0f99d390bdbdde8166ed5a98",
-    "raw_sha256": "0146bdbd586eec7ccabbfa95fba4e14b34455b6cbce70dc3dfaee33825dc5f79",
-    "all320_rows_exact_after_source_fix": true
+  "restore": false,
+  "maximum_further_provider_calls": 0,
+  "new_scene_or_replay_authorized": false,
+  "history": {
+    "qa_20261110_root": "dd9374c7ac59fa14a02fefff95689f628baa1c95866b51678c318500418e0ae1",
+    "cleanup_20261110_root": "6eecf049655f355ffb78ab3bb12f2333da4a692e034c1e06fe3bcbae12ea6a32",
+    "producer_fix_root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
+    "prior_outcome": "CLOSED_NO_REPLAY_T6_T7_PARTIAL_T8_NOT_RUN",
+    "baseline_campaign_usd": "0.0641242",
+    "baseline_source_counts": [
+      28,
+      27,
+      55
+    ],
+    "baseline_no_http": 1,
+    "baseline_rows": 320,
+    "baseline_scope_manifest_sha256": "72970b3e3394d53b2cd26e9da51beafe8720a4f0b8cd51ccf9863e602d7634bd",
+    "prior_closed_checkpoint": {
+      "state": "CLOSED_SOURCE_FIX_INSTALLED_RUNTIME_NOT_RUN_NO_REPLAY",
+      "installed_root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
+      "qa_root": "dd9374c7ac59fa14a02fefff95689f628baa1c95866b51678c318500418e0ae1",
+      "cleanup_root": "6eecf049655f355ffb78ab3bb12f2333da4a692e034c1e06fe3bcbae12ea6a32",
+      "source_fix_candidate_root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
+      "edge_version": 163,
+      "campaign_settled_usd": "0.0641242",
+      "campaign_committed_usd": "0.0641242",
+      "native_abort_receipt": [
+        {
+          "state": "committed",
+          "operation_id": "98cf3f39-ebb4-495f-80e0-181bb6320965",
+          "resources_protected": true
+        }
+      ],
+      "master": {
+        "id": "d9579b29-b1f6-426f-9041-2508f289f5e3",
+        "state": "annullata",
+        "closed_at": "2026-11-10T21:26:45.426682+00:00"
+      },
+      "combat": [
+        {
+          "id": "f2387fee-da68-4bc4-880d-7bc7cda6dd90",
+          "state": "annullato",
+          "closed_at": "2026-11-10T21:26:45.332277+00:00",
+          "values_written": false
+        }
+      ],
+      "cases": {
+        "F1": "PRIOR_PASS_NOT_REPEATED",
+        "E1_WRITER": "PASS",
+        "T6": "PARTIAL_NOT_PASSED",
+        "T7": "PARTIAL_NOT_PASSED",
+        "T8": "NOT_RUN"
+      },
+      "source_fix_runtime": "NOT_RUN_NO_REPLAY",
+      "closure_observed_at": "2026-11-10T21:27:18.395815+00:00"
+    }
   },
-  "original_panel_static_review": {
-    "schema": "defense-panel-final-independent-review/1",
-    "review_ref": "COMBAT-S24-DEFENSE-PANEL-FINAL-INDEPENDENT-20261110",
+  "evidence": {
+    "review_sha256": "df40d56fdaa5c4a271feffc33c65d2c182f7c9156ef5d5b03ebd5294a4e73858",
+    "readback_sha256": "8d17dd0c1e7ce5cf8c43839c305daaa79ddc2675dd09478ff4002a3e7915e32c",
+    "postflight_sha256": "c7a06746c3486b67adfbc10436b7441dcfd5fdba3085067645b58f989fcf6455",
+    "admin_publication_sha256": "c7f4bb47f1d81492c214b91bed3732c22c68f9a825849d5566a03a337ac9bde4",
+    "runtime_input_sha256": "97ff09f4cb13fe9fb0cf9411256cfb9530b42843647ab552dc0cfe0c4df12c80",
+    "additional": [
+      {
+        "path": "qa/POSTCLOSURE_VERIFIED.json",
+        "sha256": "c7a06746c3486b67adfbc10436b7441dcfd5fdba3085067645b58f989fcf6455"
+      },
+      {
+        "path": "qa/N3_TERMINAL.json",
+        "sha256": "915db4fa5862e3d37d8cd75e7a9cc862b1e4ec45fc73e2880253bb0de7831706"
+      }
+    ]
+  },
+  "admin_publication": {
+    "commit": "d9b54265d1a17abf2f082d7d03b039cf86042524",
+    "parent": "33806a4cc5d8bd7c265835bab0d134f752c4874e",
+    "tree": "fa78afbb2e81b9c36f2d52b91a1dba423338567d",
+    "blob": "f6dc16b9de3753eed563d8eaf47fef7aa4412427",
+    "root": "88a3402b132e3ef4df150a0e7f7dae9f93de8d3118bc0360b8a8a887b76ac07f",
+    "asset_sha256": "987d133b93cc68e8dc8e637fc484553c7ba90a94b4f468f1ffa5981a7942ee19",
+    "readback_exact": true,
+    "domain": "VERIFIED",
+    "domain_url": "https://theuntoldstory.it/admin.html",
+    "domain_root_exact": true,
+    "pages_run_id": 42982585226,
+    "pages_conclusion": "success"
+  },
+  "static_review": {
+    "schema": "png-resume-window-final-independent-review/1",
+    "review_ref": "COMBAT-S24-PNG-RESUME-WINDOW-FINAL-INDEPENDENT-20261111",
     "finding_counts": [
       0,
       0,
       0
     ],
     "status": "PASS_EXACT_FROZEN_SOURCE_RUNTIME_NOT_RUN",
-    "target_install_source_sha256": "33c23ea893514671e78fc62f72cb24053414827ded7a1b9cfaacc022552d5e1b",
-    "target_root_sha256": "dd9374c7ac59fa14a02fefff95689f628baa1c95866b51678c318500418e0ae1",
-    "target_manifest_sha256": "4e0530740c691a7705540886cebf0e556ef4977540f20fe9cac74269e653eb0b",
-    "parent_root": "bfba2550c961ea7da4292be02110fcb261ee88d7b58d3e017e652ba199366e9c",
-    "edge_version": 163,
-    "edge_ezbr_sha256": "98211e3d901fdc2c8f4a73cc8f3ab8b9d80c846ae1cf52e4130c31f2fb1ff716",
-    "runtime_sha256": "418e0acdfab9822b4edadbcd26486503a1656278dc124dd52bdb8a8f5a28946d",
-    "root_bytes": 524279,
-    "static_checks": {
-      "status": "INDEPENDENT_FINAL_FROZEN_STATIC_PASS",
-      "root": "dd9374c7ac59fa14a02fefff95689f628baa1c95866b51678c318500418e0ae1",
-      "installer_sha256": "33c23ea893514671e78fc62f72cb24053414827ded7a1b9cfaacc022552d5e1b",
-      "root_bytes": 524279,
-      "headers": 92,
-      "changed": 5,
-      "unchanged": 87,
-      "root_patches": 23,
-      "all_do_parse": 5,
-      "actual_edge163_files16_exact": true,
-      "admin_one_pin_exact": true,
-      "native_cleanup_unchanged": true,
-      "window_fixed90_cutoff84": true,
-      "ledger238_preservation_guard": true,
-      "runtime_qualification": "NOT_RUN"
-    },
-    "additional_checks": {
-      "fullproof91_prior_evidence_preserved_only4_header_updates_plus_new_evidence_record": true,
-      "extra_work_assert_header_guard_total92_not_added_to91_proof": true,
-      "root_global_index204_work_assert_header_rebound": true,
-      "active_5ddl_exact_reviewed_stage_bodies_except4dates": true,
-      "prior238_rows_match_actual_last_closure_snapshot": true,
-      "source_guard_exact21count20gen_0218079_usd_and_all5_prior_sessions_closed": true,
-      "five_function_abi_oid_acl_defaults_securitydefiner_searchpath_unchanged": true,
-      "writer162_fix_lifecore_and_cleanup_semantics_unchanged": true,
-      "no_new_helper_grant_constraint_or_public_gate": true,
-      "installer_stopped_until_exact000_binding_and_pm_t0": true
-    },
+    "target_install_source_sha256": "d0e8e8cd4f65d2e28be7882a2b48a2fd15b222ae4a75e50f27f4b4e03c2dfc85",
+    "target_root_sha256": "88a3402b132e3ef4df150a0e7f7dae9f93de8d3118bc0360b8a8a887b76ac07f",
+    "target_manifest_sha256": "109aba6b98c830b12dd888f76e9796d841f7b01a3d200a8f4f7ebbc801569a09",
+    "parent_root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
+    "edge_version": 164,
+    "edge_ezbr_sha256": "e468a9479ba2f3eb8ef4873544d573cce5487188fcf14608d0589f295ce7930d",
     "window": [
-      "2026-11-10T20:45:00Z",
-      "2026-11-10T22:15:00Z"
+      "2026-11-11T07:48:00Z",
+      "2026-11-11T09:18:00Z"
     ],
-    "start_cutoff": "2026-11-10T22:09:00Z",
+    "cutoff": "2026-11-11T09:12:00Z",
+    "checks": {
+      "installer_17_statements_sql_parse_and_do_bodies_pass": true,
+      "4_reviewed_stage_bodies_exact_except_4_active_dates": true,
+      "93_headers_89_byte_identical_abi_unchanged": true,
+      "91_tactics_proof_and_both_extra_producer_work_assert_headers_preserved": true,
+      "root_21_leaf_changes_inverse_exact_parent_524279_bytes": true,
+      "actual164_16_modules_exact_and_bound": true,
+      "admin_exact_one_pin_from_7554": true,
+      "baseline_320_hash_rows_exact_prior_postflight_and_five_custody_true": true,
+      "installer_pre_post_checks_320_custody_financial_quiescence": true,
+      "exact_review_binding_and_utc_window_required": true,
+      "strict_validator_writer_lifecore_producer_cleanup_and_public_gates_preserved": true
+    },
     "budget": {
-      "new_work_maximum_conditional": 13,
-      "new_http_maximum_conditional": 26,
-      "baseline_total_usd": "0.0560018",
+      "campaign_baseline_usd": "0.0641242",
+      "source_baseline_usd": "0.0299303",
+      "source_usd_cap": "0.0636593",
+      "hard_cumulative_upper_usd": "0.0978532",
+      "baseline_source_count_gen_http": [
+        28,
+        27,
+        55
+      ],
+      "source_caps_count_gen_http": [
+        41,
+        41,
+        82
+      ],
+      "maximum_new_work_conditional": 13,
+      "maximum_new_http_conditional": 26,
+      "source_remaining_usd": "0.0337290",
       "per_generation_upper_usd": "0.004448",
-      "source_usd_cap_unchanged": "0.0636593",
-      "source_count_gen_http_caps": [
-        34,
-        34,
-        68
-      ],
-      "input_output_limits": [
-        24000,
-        4096
-      ],
-      "hard_total_upper_usd": "0.0978532",
-      "all13_guaranteed": false,
-      "denied_admission_policy": "STOP_AND_NATIVE_CLOSE_NO_RETRY_OR_RECHARGE"
-    },
-    "review_boundary": [
-      "Source/static composition and provided actual Edge163 receipt verified; no live reviewer SQL/UI/provider calls or gameplay fixtures.",
-      "Full installer SQL and all5DO parse PASS; function PLpgSQL parser limitation equals baseline external namespace limitation, not a functional execution test.",
-      "Root application and final readback NOT_RUN by reviewer; PM sole applier at/after20:45UTC before22:09UTC.",
-      "New defense panel/T6/T7/T8 runtime qualification NOT_RUN; prior Writer E1 PASS and punto cieco PASS preserved without repeat."
-    ],
-    "evidence_sha256": {
-      "implementation/FROZEN/MANIFEST.json": "4e0530740c691a7705540886cebf0e556ef4977540f20fe9cac74269e653eb0b",
-      "implementation/FROZEN/INSTALL_SOURCE.sql": "33c23ea893514671e78fc62f72cb24053414827ded7a1b9cfaacc022552d5e1b",
-      "implementation/FROZEN/FUNCTIONS.sql": "4e224dc5703cb9962afa810eaee9500ff048fdafe99bfdce6e82727d03c25609",
-      "implementation/FROZEN/FULL_PROOF.json": "f0945c1a809a82c35d2b0faa9d8d82864d25f74a53e2c86ecf6319ff19c35fab",
-      "implementation/FROZEN/ROOT.canonical.json": "dd9374c7ac59fa14a02fefff95689f628baa1c95866b51678c318500418e0ae1",
-      "implementation/FROZEN/POST_READBACK.sql": "27d436efa4ac77d64401d67dcb287838b89942cda692973387f3a8b68235080b",
-      "implementation/FROZEN/ADMIN_AFTER.html": "eb9e8a19fd544e6add19c30d33b5bdb630dfd5b8279b0967955ab09e27949d4d",
-      "implementation/EDGE163_ACTUAL.json": "fd235af5ca488c38e84b7c6de7d925f1d47eefab0922dbf529ae2241d84ecca3",
-      "implementation/FROZEN_ROWS238.json": "e2cb413f8b6b684ec7630d69804205ba0c51161bad3ed13173ec6adbae644398",
-      "review/EDGE_STAGE_REVIEW.json": "90fd06a796bfea09f4661905031f9acdcc6e0218a4256024dbeb9fc5d1afa1cc"
-    }
-  },
-  "cleanup_static_review": {
-    "schema": "nominated-intent-cleanup-final-independent-review/1",
-    "review_ref": "COMBAT-S24-NOMINATED-INTENT-CLEANUP-FINAL-INDEPENDENT-20261110",
-    "finding_counts": [
-      0,
-      0,
-      0
-    ],
-    "status": "PASS_OPERATIONAL_CLEANUP_ONLY",
-    "target_install_source_sha256": "cecd048c793667f540102518f3153e12240af4a9992bd55bb64498df9cc26c97",
-    "target_root_sha256": "6eecf049655f355ffb78ab3bb12f2333da4a692e034c1e06fe3bcbae12ea6a32",
-    "target_manifest_sha256": "387a0cc83c09a001861b0612bdd89ff7a5c788720103639030bf27058cb346b4",
-    "parent_root": "dd9374c7ac59fa14a02fefff95689f628baa1c95866b51678c318500418e0ae1",
-    "static_checks": {
-      "status": "INDEPENDENT_CLEANUP_STATIC_PASS",
-      "root": "6eecf049655f355ffb78ab3bb12f2333da4a692e034c1e06fe3bcbae12ea6a32",
-      "installer_sha256": "cecd048c793667f540102518f3153e12240af4a9992bd55bb64498df9cc26c97",
-      "sql_statements": 14,
-      "prior3_branches_byte_exact": true,
-      "root_inverse_exact": true,
-      "root_only_db_core_changed": true,
-      "headers92_one_changed": true,
-      "new_provider_calls": 0,
-      "runtime_cleanup": "NOT_RUN"
-    },
-    "nominated_scope": {
-      "session": "d9579b29-b1f6-426f-9041-2508f289f5e3",
-      "work": "889e5323-294a-f08c-3b65-93ba7985e76a",
-      "receipt": "33f51622-b60d-4ddb-b43e-82047f9585b4",
-      "lease_expired": true,
-      "zero_authorization_attempt_quota": true,
-      "work_receipt_source_master_combat_exact_hashes": true,
-      "other_completed_work": 7,
-      "settled_quota_rows": 14,
-      "source_hash_rows_before_install": 319,
-      "historical238_preserved": true
-    },
-    "guard_review": [
-      "Fourth OR is restricted to exact session/work/receipt/lease/source and current captured row hashes, authenticated request, Staff active test location and untouched simulated combat.",
-      "All14 settled quota hashes and7 completed work hashes are exact, with terminal receipt/attempt checks and no nominated authorization/attempt/quota/Count/Gen audit/publication/permit lineage.",
-      "Previous three OR branches retained byte-for-byte; one function ABI/OID/owner/ACL/SECURITY DEFINER/search_path unchanged.",
-      "Preflight and postreadback compare all captured current data except time/root/function metadata; pending claimed row is intentionally allowed, not falsely represented as quiescent.",
-      "Existing native abort discovers helper match, locks/revalidates receipt then locks work+receipt and revalidates at line138 before mutations175–204. Claimed path emits staff_simulation_abort provider_calls0/charged0, fails receipt/work with hash CAS and appends audit; no quota or authorization invented.",
-      "Failed work ceases pending-generation hold; native consumer then disables admission and closes own scene. That transition remains runtime NOT_RUN until native receipt.",
-      "Root updates exactly3 existing aliases+proof/db digests, unchanged Edge163/config/window/budget/Writer/LifeCore/prompts/public gates."
-    ],
-    "financial": {
-      "settled_total_usd": "0.0641242",
-      "pending_hold_before_native_abort_usd": "0.004448",
-      "new_provider_calls_authorized": 0,
-      "new_generation_authorized": false,
-      "budget_or_window_extension": false
+      "all13_worstcase_guaranteed": false,
+      "stop_on_first_denial": true
     },
     "boundaries": [
-      "PM installation and native abort NOT_RUN by reviewer. Final receipt must prove resources_protected, zero pending hold/work, closure and protected custody; source installation alone proves neither.",
-      "No defense-panel PASS, T6/T7 remain PARTIAL_NOT_PASSED and T8 NOT_RUN. Separate producer fix excluded from this review.",
-      "No SQL gameplay, provider, UI, mutation or canonical document changes by reviewer.",
-      "Authenticated role check means helper truth is not asserted for a postgres readback; native authenticated own Staff abort retains existing permission checks."
+      "Apply/readback and Staff runtime remain separate PM evidence.",
+      "PLpgSQL external-catalog parse limitation is baseline-equivalent.",
+      "Point blind historical PASS remains preserved. No new runtime case result is asserted."
     ],
     "evidence_sha256": {
-      "implementation/CLEANUP_FROZEN/MANIFEST.json": "387a0cc83c09a001861b0612bdd89ff7a5c788720103639030bf27058cb346b4",
-      "implementation/CLEANUP_FROZEN/INSTALL_SOURCE.sql": "cecd048c793667f540102518f3153e12240af4a9992bd55bb64498df9cc26c97",
-      "implementation/CLEANUP_FROZEN/FUNCTION.sql": "f4d5cc2cc4ed3b2048418d2dea7d2c3313404fbe2ae78f9a1ee9327d7bd12f60",
-      "implementation/CLEANUP_FROZEN/NEW_BRANCH.sql": "e080381b09b81fb287ce98e8645f1030dd0799ac8307df288b103033837e8d36",
-      "implementation/CLEANUP_FROZEN/ROOT.canonical.json": "6eecf049655f355ffb78ab3bb12f2333da4a692e034c1e06fe3bcbae12ea6a32",
-      "implementation/CLEANUP_FROZEN/FULL_PROOF.json": "4cf81d4e84d9fcc2aacf87bc2f6d6a11118fb827662eb36d2daa98c4ff6a153d",
-      "implementation/CLEANUP_FROZEN/POST_READBACK.sql": "dfacd1f6d788bd3357ac32bf8cf8127f619b5b0e4809d7063ac2c4e9dc734518",
-      "implementation/NEVER_SENT_LIVE.sql": "602099f18c4dcf61fb4091e6e8463165567d3d029c13706caa025ca8375ffcbf",
-      "implementation/CLEANUP_CONSUMERS_LIVE.json": "e3ca9a458d71f48e04a768663afbb26833bdd44399d3fb1f9ddc82f337d39262",
-      "qa/cleanup-capture/LIVE_CAPTURE.json": "69a8dd1d89d9e54914b7458973d3940d4802deff7c322f94986f2de68d9ee287"
+      "implementation/FROZEN/MANIFEST.json": "109aba6b98c830b12dd888f76e9796d841f7b01a3d200a8f4f7ebbc801569a09",
+      "implementation/FROZEN/INSTALL_SOURCE.sql": "d0e8e8cd4f65d2e28be7882a2b48a2fd15b222ae4a75e50f27f4b4e03c2dfc85",
+      "implementation/FROZEN/ROOT.canonical.json": "88a3402b132e3ef4df150a0e7f7dae9f93de8d3118bc0360b8a8a887b76ac07f",
+      "implementation/FROZEN/POST_READBACK.sql": "11b19dcc9f64336990c3ebb2ef17319657c08b6011633081d410be350f185c5b",
+      "implementation/FROZEN/FUNCTIONS.sql": "c6af40b9910a386bb9725bc5f17b840f253e36e83aeb9f5a2436b15690acf58d",
+      "implementation/FROZEN/ADMIN_AFTER.html": "987d133b93cc68e8dc8e637fc484553c7ba90a94b4f468f1ffa5981a7942ee19",
+      "LIVE_BASELINE.json": "78c6f498069336841ab2b7f6b3be8b30cd2a2c29a296242946ce4a2fd211ce4f",
+      "EDGE164_ACTUAL.json": "887519a6d7a0734e74787d059a845347080059aef84e3df3f4556796638544a9",
+      "review/EDGE_STAGE_REVIEW.json": "2a2276e543cb08464acee80b5bde6b13a2e4b1528d8534d9183a47ca5a485533"
     }
   },
-  "source_fix_static_review": {
-    "schema": "intent-target-producer-final-independent-review/1",
-    "review_ref": "COMBAT-S24-INTENT-TARGET-PRODUCER-FINAL-INDEPENDENT-20261110",
-    "finding_counts": [
-      0,
-      0,
-      0
-    ],
-    "status": "PASS_EXACT_SOURCE_ONLY_RUNTIME_NOT_RUN",
-    "target_install_source_sha256": "cc47e2c1e79d8f55ce0007c5d5f6231d8bc705300f168fa8ef03fe7039c821ea",
-    "target_root_sha256": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
-    "target_manifest_sha256": "9d0a138f029da49dc96303725cf55424ac5aff73e02c23304ea89f65dba86bd9",
-    "parent_root": "6eecf049655f355ffb78ab3bb12f2333da4a692e034c1e06fe3bcbae12ea6a32",
-    "static_checks": {
-      "status": "INDEPENDENT_SOURCE_FIX_STATIC_PASS",
-      "root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
-      "installer_sha256": "cc47e2c1e79d8f55ce0007c5d5f6231d8bc705300f168fa8ef03fe7039c821ea",
-      "frozen_files_hashes_verified": 19,
-      "root_bytes": 524279,
-      "sql_statements": 14,
-      "header_observer": 93,
-      "unchanged_headers": 92,
-      "exact_one_case_expression": true,
-      "global_header_only_index231": true,
-      "all_prior_fullproof_preserved": true,
-      "parent_inverse_exact": true,
-      "edge_config_window_cleanup_unchanged": true,
-      "admin_one_pin_from_current_domain_dd9374": true,
-      "source_rows": 320,
-      "historical238_preserved": true,
-      "new_provider_calls": 0,
-      "runtime_qualification": "NOT_RUN"
-    },
-    "scope": "One producer expression aligns target_actor_key with already strict PG/NPC namespace contract. No client/Edge validator relaxation.",
-    "reasoning": [
-      "Observed PG target has one matching snapshot player and attested character_id, but its actor_map key is absent from NPC snapshot namespace; strict JS correctly rejects such nonnull target_actor_key.",
-      "CASE returns NULL only for target actor belonging to the same combat session, actor_kind pg, character_id nonnull. Target_actor_id and target_character_id stay unchanged.",
-      "ELSE is byte-identical old projection for PNG/null/unrepresentable cases. Existing snapshot player match, NPC actor-key validation, source/Choice/receipt hashes and authority checks remain enforced.",
-      "Producer SQL/PLpgSQL and all5 installer DO parse PASS; existing ABI/OID/owner/ACL/defaults/search_path/SECURITY DEFINER unchanged.",
-      "Root modifies existing global header231 and proof/db digests only;93 metadata guard includes92 unchanged inherited headers, existing91TACTICS proof and prior cleanup evidence untouched.",
-      "Pre/post exact closed baseline guards320source rows, historical238subset, all ownsource quiescence/noholds and absence of foreign pending intent works. Prior source data is preserved."
-    ],
-    "financial": {
-      "campaign_settled_usd": "0.0641242",
-      "committed_total_usd": "0.0641242",
-      "pending_reserved_usd": "0",
-      "maximum_new_provider_calls": 0,
-      "new_qa_authorized": false,
-      "budget_window_extension": false
-    },
-    "closure_evidence": {
-      "native_abort_request": "98cf3f39-ebb4-495f-80e0-181bb6320965",
-      "committed_resources_protected": true,
-      "no_open_source_master_combat_or_nonterminal_work": true,
-      "five_custody_sections_unchanged": true
-    },
-    "boundaries": [
-      "PM apply/readback NOT_RUN by reviewer. Source installation does not qualify the defense panel or PNG cases.",
-      "No new UI/provider calls, retry, Start, paid functional test, fixture or canonical document write by reviewer.",
-      "T6/T7 remain PARTIAL_NOT_PASSED; T8 NOT_RUN. F1 and prior WriterE1 PASS preserved without repeat.",
-      "The separate pre-provider failure leaving claimed work nonterminal is not changed by this producer fix; native cleanup is separately installed and proven.",
-      "Final Admin candidate directly replaces current published dd9374 pin with7554; no intermediate cleanup6eec publication is required for already completed native closure."
-    ],
-    "evidence_sha256": {
-      "implementation/INTENT_VALIDATOR_CANDIDATE/INTEGRATED_FROZEN/MANIFEST.json": "9d0a138f029da49dc96303725cf55424ac5aff73e02c23304ea89f65dba86bd9",
-      "implementation/INTENT_VALIDATOR_CANDIDATE/INTEGRATED_FROZEN/INSTALL_SOURCE.sql": "cc47e2c1e79d8f55ce0007c5d5f6231d8bc705300f168fa8ef03fe7039c821ea",
-      "implementation/INTENT_VALIDATOR_CANDIDATE/INTEGRATED_FROZEN/FUNCTION.sql": "1a223230dc837f4a447cfa3545a2729e0840aaa48e30ec5da4e80e8e62c651c8",
-      "implementation/INTENT_VALIDATOR_CANDIDATE/INTEGRATED_FROZEN/ROOT.canonical.json": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
-      "implementation/INTENT_VALIDATOR_CANDIDATE/INTEGRATED_FROZEN/POST_READBACK.sql": "94cba6196674ca430756009b214e5e04d6f23c92a815323698675747453bb380",
-      "implementation/INTENT_VALIDATOR_CANDIDATE/INTEGRATED_FROZEN/LIVE_AFTER_CLOSURE.json": "fd22e24ad2f46003ed53c2aa3d7f46dcd2427c0077408f43a5346c53536ea718",
-      "implementation/INTENT_VALIDATOR_CANDIDATE/INTEGRATED_FROZEN/ADMIN_AFTER.html": "fb1cd240c84400f6a7de87443092ae73e0e2942461dc8e485ff22ab9437c1adf",
-      "qa/INTENT_TARGET_CROSSREFERENCE_RESULT.json": "5749922814c5b7e6064bd573e0109f761ed1a28fefe2e0db095ed36242f3a22a",
-      "qa/POSTCLOSURE_VERIFIED.json": "ab961a18b20412768746da30922a3a50ead1a30c4508c6aeb314937660c5309f"
-    }
-  },
-  "qualification_boundary": "Independent static/source reviews and installation are distinct from QA runtime; no retrospective PASS"
+  "qualification": "Only evidence-backed runtime statuses above; static review is not case PASS"
 }

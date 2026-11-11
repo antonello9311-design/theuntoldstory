@@ -1,60 +1,168 @@
 {
-  "task": "COMBAT-S24-DEFENSE-PANEL-PNG-20261110",
-  "state": "CLOSED_SOURCE_FIX_INSTALLED_RUNTIME_NOT_RUN_NO_REPLAY",
-  "qa_root": "dd9374c7ac59fa14a02fefff95689f628baa1c95866b51678c318500418e0ae1",
-  "cleanup_root": "6eecf049655f355ffb78ab3bb12f2333da4a692e034c1e06fe3bcbae12ea6a32",
-  "source_fix_candidate_root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
-  "installed_root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
-  "edge_version": 163,
-  "edge_unchanged": true,
-  "strict_js_unchanged": true,
-  "qa_state": "STOP_CLOSED_NO_REPLAY",
-  "runtime_block": "BLOCKED_TARGET_ACTOR_KEY_PG",
-  "source_fix_runtime": "NOT_RUN_NO_REPLAY",
-  "source_fix_installed": true,
-  "source_fix_review": "PASS_0_0_0",
-  "source_fix_scope": "Producer normalizes PG target_actor_key to NULL; target_character_id and PNG target binding preserved; strict JS unchanged",
+  "schema": "s24-png-resume-final/1",
+  "task": "COMBAT-S24-PNG-RESUME-20261111",
+  "owner": "PM-COMBAT-S24",
+  "state": "QA_CLOSED",
+  "root": "88a3402b132e3ef4df150a0e7f7dae9f93de8d3118bc0360b8a8a887b76ac07f",
+  "installed_root": "88a3402b132e3ef4df150a0e7f7dae9f93de8d3118bc0360b8a8a887b76ac07f",
+  "parent_root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
+  "edge_version": 164,
+  "window": [
+    "2026-11-11T07:48:00Z",
+    "2026-11-11T09:18:00Z"
+  ],
+  "cutoff": "2026-11-11T09:12:00Z",
+  "master_id": "d3e3d38c-92a2-4bfd-9360-03c045046d37",
+  "combat_id": "bd31add6-e1a6-47d7-8645-dc3e57ee00bb",
+  "scene_start_utc": "2026-11-11T07:48:44.448581Z",
+  "source_fix_runtime": "PASS_END_TO_END",
+  "producer_fix": {
+    "mapping_status": "PASS",
+    "native_flow_status": "PASS",
+    "checks": {
+      "actual_pg_target_published": true,
+      "same_scene_target_ids_conserved": true,
+      "pg_target_actor_key_json_null": true,
+      "strict_validator_accepted": true,
+      "single_visible_intent_fato": true,
+      "native_defense_offered": true,
+      "native_defense_acquired": true,
+      "resolved_report_published": true
+    },
+    "png_target_branch": "OBSERVED_PASS_TARGET_KEY_RETAINED",
+    "evidence": [
+      {
+        "path": "qa/PG_INTENT_VERIFIED.json",
+        "sha256": "e42e824f8577c134f145c135f8e299da8262e5fc3d59483d2fde202a538cf3e2"
+      },
+      {
+        "path": "qa/UI_EVIDENCE.json",
+        "sha256": "aed8cad1458039e4fd3d361f514e290c7280a47839488032a8477f2b55bd54b9"
+      },
+      {
+        "path": "qa/N2_VERIFIED.json",
+        "sha256": "d637b8ec2389cb5d6e05b5a18566c9308f90a29141a31fd227f9cf04876ff1ef"
+      }
+    ]
+  },
   "cases": {
-    "F1": "PRIOR_PASS_NOT_REPEATED",
-    "E1_WRITER": "PASS",
-    "T6": "PARTIAL_NOT_PASSED",
-    "T7": "PARTIAL_NOT_PASSED",
-    "T8": "NOT_RUN"
+    "T6": {
+      "status": "PARTIAL_NOT_PASSED",
+      "reason": "I PNG non hanno scelto Copertura: nessuna formazione CoperturaPNG osservata; ramo specifico non qualificato.",
+      "checks": {},
+      "observed_png_coverage_count": 0,
+      "evidence": [
+        {
+          "path": "qa/N3_TERMINAL.json",
+          "sha256": "915db4fa5862e3d37d8cd75e7a9cc862b1e4ec45fc73e2880253bb0de7831706"
+        },
+        {
+          "path": "qa/UI_EVIDENCE.json",
+          "sha256": "aed8cad1458039e4fd3d361f514e290c7280a47839488032a8477f2b55bd54b9"
+        }
+      ]
+    },
+    "T7": {
+      "status": "PARTIAL_NOT_PASSED",
+      "reason": "I PNG non hanno scelto Diversivo: il solo Diversivo osservato appartiene al PG testperfunzioni; ramoPNG non qualificato.",
+      "checks": {},
+      "observed_png_diversion_count": 0,
+      "evidence": [
+        {
+          "path": "qa/N3_TERMINAL.json",
+          "sha256": "915db4fa5862e3d37d8cd75e7a9cc862b1e4ec45fc73e2880253bb0de7831706"
+        },
+        {
+          "path": "qa/UI_EVIDENCE.json",
+          "sha256": "aed8cad1458039e4fd3d361f514e290c7280a47839488032a8477f2b55bd54b9"
+        }
+      ]
+    },
+    "T8": {
+      "status": "PARTIAL_NOT_PASSED",
+      "reason": "Testperfunzioni ha creato un DiversivoPG: una copia, una principale,15CK simulati una volta. Le due iniziativePNG distinte hanno preso di mira Riuji: zero attacchi sulla formazione, quindi consumo e seconda risoluzione sulla stessa formazione non verificati.",
+      "checks": {
+        "one_pg_copy_cost15_once": true,
+        "single_main_consumed": true,
+        "two_native_attacks_same_formation_same_round": false,
+        "first_consumption_observed": false,
+        "second_native_resolution_no_invented_draw": false
+      },
+      "observed_formation_attacks": 0,
+      "observed_distinct_png_attacks_on_riuji": 2,
+      "evidence": [
+        {
+          "path": "qa/N3_TERMINAL.json",
+          "sha256": "915db4fa5862e3d37d8cd75e7a9cc862b1e4ec45fc73e2880253bb0de7831706"
+        },
+        {
+          "path": "qa/UI_EVIDENCE.json",
+          "sha256": "aed8cad1458039e4fd3d361f514e290c7280a47839488032a8477f2b55bd54b9"
+        }
+      ]
+    }
   },
-  "maximum_new_provider_calls": 0,
-  "qa_resume_authorized": false,
-  "generation_after_stop": 0,
-  "campaign_settled_usd": "0.0641242",
-  "campaign_committed_usd": "0.0641242",
-  "campaign_remaining_usd": "0.0358758",
-  "campaign_hard_cap_usd": "0.10",
-  "new_work_count": 8,
-  "completed_work_count": 7,
-  "failed_never_sent_intent_count": 1,
-  "new_count_generation_pairs": 7,
-  "new_http_calls": 14,
+  "all_three_png_passed": false,
+  "F1": "PRIOR_PASS_NOT_REPEATED",
+  "E1_WRITER": "PRIOR_PASS_PRESERVED",
+  "new_work_count": 13,
+  "new_count": 13,
+  "new_generation": 13,
+  "new_http": 26,
+  "campaign_settled_usd": "0.0819279",
+  "campaign_committed_usd": "0.0819279",
+  "remaining_global_usd": "0.0180721",
+  "global_cap_usd": "0.10",
+  "source_cap_usd": "0.0636593",
+  "source_caps": [
+    41,
+    41,
+    82
+  ],
   "budget": {
-    "http_rows": 55,
-    "charged_usd": 0.0299303,
-    "count_calls": 28,
+    "http_rows": 81,
+    "charged_usd": 0.047734,
+    "count_calls": 41,
     "count_holds": 0,
-    "baseline_http": 41,
-    "new_http_rows": 14,
-    "baseline_count": 21,
-    "new_count_rows": 7,
+    "baseline_http": 55,
+    "new_http_rows": 26,
+    "baseline_count": 28,
+    "new_count_rows": 13,
     "unsettled_rows": 0,
-    "generation_calls": 27,
+    "generation_calls": 40,
     "generation_holds": 0,
-    "baseline_generation": 20,
-    "new_generation_rows": 7,
+    "baseline_generation": 27,
+    "new_generation_rows": 13,
     "unreserved_hold_usd": 0,
-    "campaign_settled_usd": 0.0641242,
-    "campaign_committed_usd": 0.0641242,
-    "charged_or_reserved_usd": 0.0299303
+    "campaign_settled_usd": 0.0819279,
+    "campaign_committed_usd": 0.0819279,
+    "charged_or_reserved_usd": 0.047734
   },
-  "no_http_rows": 1,
-  "source_rows_count": 320,
-  "historical238_preserved": true,
+  "closure_status": "CLOSED",
+  "cleanup_blocker": null,
+  "native_abort_receipts": [
+    {
+      "state": "committed",
+      "operation_id": "711be1b1-50d7-43aa-b71d-dc0bdf319576",
+      "resources_protected": true
+    }
+  ],
+  "master": {
+    "id": "d3e3d38c-92a2-4bfd-9360-03c045046d37",
+    "state": "annullata",
+    "closed_at": "2026-11-11T08:21:04.298847+00:00"
+  },
+  "combat": [
+    {
+      "id": "bd31add6-e1a6-47d7-8645-dc3e57ee00bb",
+      "state": "annullato",
+      "closed_at": "2026-11-11T08:21:04.218923+00:00",
+      "values_written": false
+    }
+  ],
+  "observed_at": "2026-11-11T08:21:39.674747+00:00",
+  "source_rows_count": 466,
+  "historical320_preserved": true,
   "custody_sections_unchanged": {
     "gates": true,
     "party": true,
@@ -62,97 +170,96 @@
     "scorta_masters": true,
     "scorta_mission": true
   },
-  "open_source_master": 0,
-  "open_source_combat": 0,
-  "nonterminal_source_work": 0,
-  "native_abort_receipt": [
-    {
-      "state": "committed",
-      "operation_id": "98cf3f39-ebb4-495f-80e0-181bb6320965",
-      "resources_protected": true
-    }
-  ],
-  "master": {
-    "id": "d9579b29-b1f6-426f-9041-2508f289f5e3",
-    "state": "annullata",
-    "closed_at": "2026-11-10T21:26:45.426682+00:00"
-  },
-  "combat": [
-    {
-      "id": "f2387fee-da68-4bc4-880d-7bc7cda6dd90",
-      "state": "annullato",
-      "closed_at": "2026-11-10T21:26:45.332277+00:00",
-      "values_written": false
-    }
-  ],
-  "closure_observed_at": "2026-11-10T21:27:18.395815+00:00",
-  "evidence": {
-    "panel_review_sha256": "41d255b418665ce4216499138994db1be8ba1571ae0c52be406b19110f724f4c",
-    "cleanup_review_sha256": "4f99295334a6515c16a76531b3c4b0156be80d1f8f3fbfce7eddf2f1e0a3e007",
-    "cleanup_readback_sha256": "f91194cc88e7236d37d6f510ccc74f108d5f4bf3d8564ad582fc5346b490bd67",
-    "closure_raw_sha256": "ab961a18b20412768746da30922a3a50ead1a30c4508c6aeb314937660c5309f",
-    "closure_compact_sha256": "027036c4eb242d3d12990aeed91f583bdd78474e5c8095eaa740a0b0fe5224de",
-    "e1_verified_sha256": "326ddbcf6b699aab6ad9bfdda69ed47daadfc22ac80135fb77226b75df780057",
-    "n2_dto_sha256": "2c42b5cd2fd074096cf2855d97a7c1225df50684ec0b9066515eb1096a9bdb89",
-    "source_manifest_sha256": "9d0a138f029da49dc96303725cf55424ac5aff73e02c23304ea89f65dba86bd9",
-    "source_review_sha256": "eb1813eac3b59985d5c7900657a88e8a9de92fb89ba5691220a72ace3a8e64f4",
-    "source_readback_sha256": "6e2a4927ca8cc6e705f28582d62cf1f20420ecf3711b9ba8f39836f061d469f4",
-    "final_postflight": {
-      "observed_at": "2026-11-10T21:32:33.393815+00:00",
-      "root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
-      "compact_sha256": "3d8398c41d87b23252734139d7dcd683592b73ed0f99d390bdbdde8166ed5a98",
-      "raw_sha256": "0146bdbd586eec7ccabbfa95fba4e14b34455b6cbce70dc3dfaee33825dc5f79",
-      "all320_rows_exact_after_source_fix": true
-    }
-  },
   "public_tactics_facing": "OFF",
-  "source_fix_installation_does_not_upgrade_qa": true,
-  "final_postflight": {
-    "observed_at": "2026-11-10T21:32:33.393815+00:00",
-    "root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
-    "compact_sha256": "3d8398c41d87b23252734139d7dcd683592b73ed0f99d390bdbdde8166ed5a98",
-    "raw_sha256": "0146bdbd586eec7ccabbfa95fba4e14b34455b6cbce70dc3dfaee33825dc5f79",
-    "all320_rows_exact_after_source_fix": true
-  },
-  "historical_plan": {
-    "window": [
-      "2026-11-10T20:45:00Z",
-      "2026-11-10T22:15:00Z"
+  "restore": false,
+  "maximum_further_provider_calls": 0,
+  "new_scene_or_replay_authorized": false,
+  "history": {
+    "qa_20261110_root": "dd9374c7ac59fa14a02fefff95689f628baa1c95866b51678c318500418e0ae1",
+    "cleanup_20261110_root": "6eecf049655f355ffb78ab3bb12f2333da4a692e034c1e06fe3bcbae12ea6a32",
+    "producer_fix_root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
+    "prior_outcome": "CLOSED_NO_REPLAY_T6_T7_PARTIAL_T8_NOT_RUN",
+    "baseline_campaign_usd": "0.0641242",
+    "baseline_source_counts": [
+      28,
+      27,
+      55
     ],
-    "cutoff": "2026-11-10T22:09:00Z",
-    "conditional_max_work": 13,
-    "max_http": 26,
-    "state": "STOP_FIRST_BLOCK"
-  },
-  "next_action": "Document delivery only; no replay or new scene",
-  "historical_references": [
-    {
-      "name": "S24_PNG_WINDOW_PLAN.json",
-      "sha256": "882cf811544ee6f5857f435248e6d7669fec5815ced276bf7e1de4c8e96b042b"
-    },
-    {
-      "name": "S24_PNG_WINDOW_RELEASE.json",
-      "sha256": "355ab3f3e69204a4fbadf51eb37a0ab571c49786a5f3d1ec0b9be5f9aeaebe97"
-    },
-    {
-      "name": "S24_PNG_WINDOW_REVIEW.json",
-      "sha256": "41d255b418665ce4216499138994db1be8ba1571ae0c52be406b19110f724f4c"
-    },
-    {
-      "name": "S24_PNG_WINDOW_HANDOFF.md",
-      "sha256": "5e131c7c539bdf228b9548b02855e31d61406d5e48e266625ad4c0b9f8f6cffd"
-    },
-    {
-      "name": "S24_DEFENSE_PANEL_FIX_PLAN.json",
-      "sha256": "59f79df64ebd902183f7f2d456a1c0c47c1b73ce1acbf71c47ecb9fa2acf971d"
-    },
-    {
-      "name": "S24_DEFENSE_PANEL_FIX_INSTALL.sql",
-      "sha256": "33c23ea893514671e78fc62f72cb24053414827ded7a1b9cfaacc022552d5e1b"
-    },
-    {
-      "name": "S24_DEFENSE_PANEL_FIX_REVIEW.json",
-      "sha256": "41d255b418665ce4216499138994db1be8ba1571ae0c52be406b19110f724f4c"
+    "baseline_no_http": 1,
+    "baseline_rows": 320,
+    "baseline_scope_manifest_sha256": "72970b3e3394d53b2cd26e9da51beafe8720a4f0b8cd51ccf9863e602d7634bd",
+    "prior_closed_checkpoint": {
+      "state": "CLOSED_SOURCE_FIX_INSTALLED_RUNTIME_NOT_RUN_NO_REPLAY",
+      "installed_root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
+      "qa_root": "dd9374c7ac59fa14a02fefff95689f628baa1c95866b51678c318500418e0ae1",
+      "cleanup_root": "6eecf049655f355ffb78ab3bb12f2333da4a692e034c1e06fe3bcbae12ea6a32",
+      "source_fix_candidate_root": "7554d5ddd7e7cffa9cbc9ab9d2c2bcfacf4ac7519bb45a97e84fc08bf49a9b7a",
+      "edge_version": 163,
+      "campaign_settled_usd": "0.0641242",
+      "campaign_committed_usd": "0.0641242",
+      "native_abort_receipt": [
+        {
+          "state": "committed",
+          "operation_id": "98cf3f39-ebb4-495f-80e0-181bb6320965",
+          "resources_protected": true
+        }
+      ],
+      "master": {
+        "id": "d9579b29-b1f6-426f-9041-2508f289f5e3",
+        "state": "annullata",
+        "closed_at": "2026-11-10T21:26:45.426682+00:00"
+      },
+      "combat": [
+        {
+          "id": "f2387fee-da68-4bc4-880d-7bc7cda6dd90",
+          "state": "annullato",
+          "closed_at": "2026-11-10T21:26:45.332277+00:00",
+          "values_written": false
+        }
+      ],
+      "cases": {
+        "F1": "PRIOR_PASS_NOT_REPEATED",
+        "E1_WRITER": "PASS",
+        "T6": "PARTIAL_NOT_PASSED",
+        "T7": "PARTIAL_NOT_PASSED",
+        "T8": "NOT_RUN"
+      },
+      "source_fix_runtime": "NOT_RUN_NO_REPLAY",
+      "closure_observed_at": "2026-11-10T21:27:18.395815+00:00"
     }
-  ]
+  },
+  "evidence": {
+    "review_sha256": "df40d56fdaa5c4a271feffc33c65d2c182f7c9156ef5d5b03ebd5294a4e73858",
+    "readback_sha256": "8d17dd0c1e7ce5cf8c43839c305daaa79ddc2675dd09478ff4002a3e7915e32c",
+    "postflight_sha256": "c7a06746c3486b67adfbc10436b7441dcfd5fdba3085067645b58f989fcf6455",
+    "admin_publication_sha256": "c7f4bb47f1d81492c214b91bed3732c22c68f9a825849d5566a03a337ac9bde4",
+    "runtime_input_sha256": "97ff09f4cb13fe9fb0cf9411256cfb9530b42843647ab552dc0cfe0c4df12c80",
+    "additional": [
+      {
+        "path": "qa/POSTCLOSURE_VERIFIED.json",
+        "sha256": "c7a06746c3486b67adfbc10436b7441dcfd5fdba3085067645b58f989fcf6455"
+      },
+      {
+        "path": "qa/N3_TERMINAL.json",
+        "sha256": "915db4fa5862e3d37d8cd75e7a9cc862b1e4ec45fc73e2880253bb0de7831706"
+      }
+    ]
+  },
+  "admin_publication": {
+    "commit": "d9b54265d1a17abf2f082d7d03b039cf86042524",
+    "parent": "33806a4cc5d8bd7c265835bab0d134f752c4874e",
+    "tree": "fa78afbb2e81b9c36f2d52b91a1dba423338567d",
+    "blob": "f6dc16b9de3753eed563d8eaf47fef7aa4412427",
+    "root": "88a3402b132e3ef4df150a0e7f7dae9f93de8d3118bc0360b8a8a887b76ac07f",
+    "asset_sha256": "987d133b93cc68e8dc8e637fc484553c7ba90a94b4f468f1ffa5981a7942ee19",
+    "readback_exact": true,
+    "domain": "VERIFIED",
+    "domain_url": "https://theuntoldstory.it/admin.html",
+    "domain_root_exact": true,
+    "pages_run_id": 42982585226,
+    "pages_conclusion": "success"
+  },
+  "prior_document_sha256": "ed2928b4bddb02a8717e09c05af741cc9d6168fc694fd7c877087b21dd53ef90",
+  "source_installer_sha256": "d0e8e8cd4f65d2e28be7882a2b48a2fd15b222ae4a75e50f27f4b4e03c2dfc85",
+  "source_installer_state": "SOURCE_ONLY_GUARD_RETAINED"
 }
