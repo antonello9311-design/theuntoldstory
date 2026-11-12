@@ -94,7 +94,7 @@ export function mountPanelView(root,{readState,readOptions,selectActor,selectOff
         const block=section(details,declaration.display_name+' · '+declaration.label);
         const prose=note(block,declaration.text);prose.style.whiteSpace='pre-wrap';
         if(declaration.targets.length)note(block,'Bersagli: '+declaration.targets.map(a=>a.display_name).join(', '));
-        if(declaration.coverage.length)note(block,'Copertura: '+declaration.coverage.map(a=>a.display_name).join(', '));
+        if(declaration.coverage.length)note(block,'Risposta a: '+declaration.coverage.map(a=>a.display_name).join(', '));
         if(declaration.rating_label!==null)note(block,declaration.rating_label);
         if(declaration.rating_offer_id!==null)button(block,'Valuta questa dichiarazione',handler(ticket,selectOffer,declaration.rating_offer_id),!commandsReady);
       }
@@ -140,9 +140,10 @@ export function mountPanelView(root,{readState,readOptions,selectActor,selectOff
     for(const group of offer.choices){
       if(!purposes.has(group.purpose)||group.depends_on!==null&&!selected.has(group.depends_on))continue;
       const field=node('fieldset',undefined,area);field.disabled=disabled||!selectOption;
-      node('legend',group.label,field);
+      const groupLabel=group.purpose==='coverage'?'Attacchi a cui rispondere':group.label;
+      node('legend',groupLabel,field);
       if(group.selection_mode==='single'){
-        const select=node('select',undefined,field);select.className='mv2-select';select.setAttribute('aria-label',group.label);
+        const select=node('select',undefined,field);select.className='mv2-select';select.setAttribute('aria-label',groupLabel);
         const blank=node('option','Seleziona',select);blank.value='';
         for(const option of group.options){const item=node('option',option.label,select);item.value=option.option_id;item.selected=selected.has(option.option_id);}
         select.addEventListener('change',()=>{if(ticket!==generation||!selectOption)return;changeSingleChoice(group,select.value,selected,selectOption);});
