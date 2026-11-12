@@ -581,6 +581,25 @@ Quando un attacco diretto sta per raggiungerlo, l’Aburame addensa parte della 
 
 **Requisiti.** Insetti Parassiti Distruttivi L1, grado Genin, Kekkei Genkai 40 e possesso della tecnica.
 
+### 5.6 Tecniche Dokugan pubblicate
+
+#### Aghi Velenosi
+
+**Effetto.** Un lancio fisico contro un singolo bersaglio entro 15 metri, con traiettoria libera verificata alla risoluzione. Occupa l’azione principale, costa 5 chakra e consuma 2 unità della Riserva del Veleno. Danno base 10. Potenza base 20, più il contributo di Kekkei Genkai e Ninjutsu.
+
+**Veleno.** Un colpo pieno su un bersaglio ancora in piedi applica Veleno minore. Veleno minore sottrae fino a 5 PV per ciascuno dei due turni personali successivi del bersaglio. Un nuovo contatto lascia invariata la scadenza di un veleno già attivo.
+
+**Requisiti.** Clan Dokugan, grado Genin o superiore, Kekkei Genkai almeno 30, innata Dokugan acquisita e possesso della tecnica. Disponibile nei duelli ordinari e nei duelli con Master.
+
+
+#### Corpo Tossico
+
+**Effetto.** Si attiva dal pannello nel proprio turno senza consumare l’azione principale. Costa 5 chakra all’attivazione e a ogni turno di mantenimento. Impegna 5 unità della Riserva del Veleno e dura al massimo tre turni personali, compreso quello di attivazione.
+
+**Contatto.** Un colpo pieno a mani nude senza protezione interposta può applicare Veleno minore, sia quando il portatore colpisce sia quando viene colpito. Una nuova applicazione consuma una unità per round. Il contatto resta valido se il colpo manda KO il portatore. Al termine si liberano le unità ancora impegnate. Veleno minore sottrae fino a 5 PV per ciascuno dei due turni personali successivi del bersaglio. Un nuovo contatto lascia invariata la scadenza di un veleno già attivo.
+
+**Requisiti.** Clan Dokugan, grado Genin o superiore, Kekkei Genkai almeno 30, innata Dokugan acquisita e possesso della tecnica. Disponibile nei duelli ordinari e nei duelli con Master.
+
 ## 6. Sconfitta e allenamenti
 
 I **Punti Vita**, i danni e la loro riduzione sono nel **§4 · Combattimento**. Qui contano le conseguenze in gioco.
@@ -1057,3 +1076,4 @@ Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da q
 | 96 | Tecniche Aburame Genin | ✅ **Applicato** il 21/09/2026 (§5.5): Insetti Parassiti Distruttivi inizializza la Colonia senza azione o costo; Liberazione impegna 5 unità, assorbe chakra senza danni ai PV e offre interruzione e prova di liberazione; Clone d’Insetti difende da una fonte diretta compatibile e, sul pieno, può riposizionare di 0–3 metri. Nessun effetto riduce permanentemente le statistiche. |
 | 97 | Nove Innate mantenute dalla narrativa allo Scontro | ✅ **Applicato** il 07/11/2026 (§4.7, §5.2): Byakugan I–IV, Sharingan I–IV e Controllo della Sabbia I sono pubbliche e attivabili dal controllo Innata in fase descrittiva. Lo stato attivo passa allo Scontro senza una seconda attivazione; resta il normale mantenimento per turno legale. Raccordo qualificato in ordinario, Quest con Master e Quest IA Staff; accesso generale alle Quest IA ancora riservato alla Staff. |
 | 98 | Moltiplicazione: Assalto come unica modalità | Decisione del 12/11/2026 (§4.5, §5.2): Assalto è l’unica modalità della tecnica. Costi, numero di copie, movimento, bonus, difesa avversaria e conclusione dell’offensiva restano invariati. Le voci storiche visibili sono adeguate alla decisione; gli originali restano nello storico versionato. |
+| 99 | Tecniche Dokugan Genin | Aghi Velenosi e Corpo Tossico disponibili nei duelli ordinari e con Master dopo i casi Staff. Il veleno è risolto dal motore sui turni personali. |
