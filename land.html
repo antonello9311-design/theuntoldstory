@@ -2745,6 +2745,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
   <div class="toast" id="toast"></div>
   <audio id="bgm" loop preload="none"></audio>
 
+  <script src="hoki-catalog-v2.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- REGIA-READ-UI-001: controlli automatici senza toast; errori su richiesta esplicita. -->
   <!-- PANEL-POLL-STABLE-001: lettura periodica senza blocco delle scelte locali. -->
@@ -14282,6 +14283,7 @@ var nb028iTeardown=function(){};
         }
         function jdbRow(label,val){ return val?('<div class="jdb-drow"><span class="jdb-dl">'+label+'</span><span class="jdb-dv">'+val+'</span></div>'):''; }
         function jdbDetailBody(o){
+          o=window.TUSHokiCatalog(o);
           var name=esc(o.name||o.name_it||'—');
           var rom=o.name_romaji?(' <span class="jdb-rom">'+esc(o.name_romaji)+'</span>'):'';
           var rank=o.grado||o.rank||(o.level!=null?('Liv. '+o.level):'');
@@ -14302,7 +14304,7 @@ var nb028iTeardown=function(){};
           car+=jdbRow('Distanza', o.gittata?(esc(o.gittata)+(o.portata?(' · '+esc(o.portata)):'')):(o.portata?esc(o.portata):''));
           car+=jdbRow('Attivazione', o.attivazione?(o.attivazione==='sigilli'?'con sigilli (disturbabile a contatto)':'istantanea'):'');
           car+=jdbRow('Danno base', db!=null?esc(db):'');
-          car+=jdbRow('Potenza', power!=null?esc(power):'');
+          car+=jdbRow(o.riserva_veleno?'Potenza base':'Potenza', power!=null?esc(power):'');
           car+=jdbRow('Difesa', o.difesa!=null&&String(o.difesa).trim()!==''?esc(o.difesa):'');
           car+=jdbRow('Bersaglio', o.bersaglio?esc(o.bersaglio):'');
           car+=jdbRow('Azione', (o.tipo_azione||o.action_type)?esc(o.tipo_azione||o.action_type):'');
@@ -14310,6 +14312,7 @@ var nb028iTeardown=function(){};
           car+=jdbRow('Ricarica', o.ricarica?esc(o.ricarica):'');
           car+=jdbRow('Chakra', (o.chakra_cost!=null&&o.chakra_cost>0)?(o.chakra_cost+' chakra'):'');
           car+=jdbRow('Consumo', o.consumption_type?(({ad_utilizzo:'ad utilizzo',per_turno:'per turno',passiva:'passiva'})[o.consumption_type]||o.consumption_type):'');
+          car+=jdbRow('Riserva del Veleno', esc(o.riserva_veleno||''));
           var carH=car?('<div class="jdb-dsec"><div class="jdb-dh">Caratteristiche</div>'+car+'</div>'):'';
           var unl='';
           unl+=jdbRow('Grado minimo', o.req_grade?esc(o.req_grade):'');
@@ -15935,9 +15938,15 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
       function tkPosition(){var pn=document.getElementById('tk-panel'),chat=document.querySelector('#room-view .chat');if(!pn||!chat)return;var rect=chat.getBoundingClientRect();pn.style.setProperty('--tk-left',Math.round(rect.left+rect.width/2)+'px');}
       function tkSection(label,value){if(value===null||value===undefined||value==='')return '';return '<section class="tk-detail-section"><h4>'+esc(label)+'</h4><p>'+esc(String(value))+'</p></section>';}
       function tkDetail(t){
+        t=window.TUSHokiCatalog(t);
         var meta=[];[['Grado','grado'],['Disciplina','disciplina'],['Clan','clan'],['Gittata','gittata'],['Durata','durata'],['Bersaglio','bersaglio'],['Uso','uso'],['Portata','portata'],['Requisiti','requirements']].forEach(function(pair){if(t[pair[1]]!==null&&t[pair[1]]!==undefined&&t[pair[1]]!=='')meta.push('<p><b>'+esc(pair[0])+':</b> '+esc(String(t[pair[1]]))+'</p>');});
-        if(t.chakra_cost>0)meta.push('<p><b>Costo:</b> '+esc(String(t.chakra_cost))+' chakra'+(t.consumption_type==='per_turno'?' a round':'')+'</p>');
-        if(t.danno_base>0)meta.push('<p><b>Danno base:</b> '+esc(String(t.danno_base))+'</p>');
+        if(t.chakra_cost>0)meta.push('<p><b>Costo:</b> '+esc(String(t.chakra_cost))+' chakra'+(t.consumption_type==='per_turno'?(t.riserva_veleno?' per turno personale':' a round'):'')+'</p>');
+        if(t.riserva_veleno){
+          meta.push('<p><b>Azione:</b> '+esc(t.tipo_azione)+'</p>');
+          meta.push('<p><b>Riserva del Veleno:</b> '+esc(t.riserva_veleno)+'</p>');
+          if(t.potenza!=null)meta.push('<p><b>Potenza base:</b> '+esc(t.potenza)+'</p>');
+        }
+        if(t.danno_base>0||t.riserva_veleno)meta.push('<p><b>Danno base:</b> '+esc(String(t.danno_base))+'</p>');
         if(t.level!=null)meta.push('<p><b>Livello:</b> '+esc(String(t.level))+'</p>');
         if(t.consumption_type==='passiva')meta.push('<p><b>Tipo:</b> Passiva</p>');
         if(t.difensiva===true)meta.push('<p><b>Difesa:</b> Utilizzabile anche in difesa</p>');
@@ -15948,13 +15957,18 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
           (meta.length?'<section class="tk-detail-section"><h4>Dati della tecnica</h4><div class="tk-detail-meta">'+meta.join('')+'</div></section>':'');
       }
       function tkLegacyRow(t){
+        t=window.TUSHokiCatalog(t);
         var det=[];
         if(t.grado) det.push('grado '+t.grado);
         if(t.disciplina) det.push(t.disciplina);
         if(t.clan) det.push('clan '+t.clan);
         if(t.gittata) det.push(t.gittata);
-        if(t.chakra_cost>0) det.push(t.chakra_cost+' chakra'+(t.consumption_type==='per_turno'?' a round':''));
-        if(t.danno_base>0) det.push('danno '+t.danno_base);
+        if(t.chakra_cost>0) det.push(t.chakra_cost+' chakra'+(t.consumption_type==='per_turno'?(t.riserva_veleno?' per turno personale':' a round'):''));
+        if(t.danno_base>0||t.riserva_veleno) det.push((t.riserva_veleno?'danno base ':'danno ')+t.danno_base);
+        if(t.riserva_veleno){
+          if(t.potenza!=null)det.push('potenza base '+t.potenza);
+          det.push(t.tipo_azione,t.riserva_veleno+' di veleno');
+        }
         if(t.consumption_type==='passiva') det.push('passiva');
         var corso=(t.state==='in_addestramento');
         var extra=[];

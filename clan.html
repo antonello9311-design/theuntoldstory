@@ -203,6 +203,7 @@
     <div class="frame"><span class="corner tl">✦</span><span class="corner tr">✦</span><span class="corner bl">✦</span><span class="corner br">✦</span></div>
   </div>
 
+  <script src="hoki-catalog-v2.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
   (function(){
@@ -389,6 +390,7 @@
     function techGittataDefault(t){ var d=String(t&&t.disciplina||'').toLowerCase(); if(d==='taijutsu')return 'contatto'; if(d==='genjutsu')return 'corta'; if(d==='fuuinjutsu')return 'contatto'; if(d==='ninjutsu')return 'media'; return ''; }
     function techAttivDefault(t){ if(t&&t.is_innata) return 'istantanea'; var d=String(t&&t.disciplina||'').toLowerCase(); if(d==='taijutsu'||d==='abilità'||d==='abilita') return 'istantanea'; if(String(t&&t.macro||'').toLowerCase()==='abilita') return 'istantanea'; return 'sigilli'; }
     function techCard(t){
+      t=window.TUSHokiCatalog(t);
       var parts=[];
       if(t.category)parts.push(esc(t.category));
       if(t.portata)parts.push(esc(t.portata));
@@ -396,7 +398,7 @@
       var cons=techConsume(t.consumption_type); if(cons)parts.push(cons);
       if(t.chakra_cost!=null)parts.push(esc(t.chakra_cost)+' chakra');
       var det=[];
-      if(t.potenza!=null)det.push('<b>Potenza:</b> '+esc(t.potenza));
+      if(t.potenza!=null)det.push('<b>Potenza'+(t.riserva_veleno?' base':'')+':</b> '+esc(t.potenza));
       if(t.danno_base!=null)det.push('<b>Danno base:</b> '+esc(t.danno_base));
       if(t.difesa!=null&&String(t.difesa).trim()!=='')det.push('<b>Difesa:</b> '+esc(t.difesa));
       if(t.bersaglio)det.push('<b>Bersaglio:</b> '+esc(t.bersaglio));
@@ -404,6 +406,7 @@
       var _a=t.attivazione||techAttivDefault(t); if(_a)det.push('<b>Attivazione:</b> '+(_a==='sigilli'?'con sigilli':'istantanea'));
       if(t.durata)det.push('<b>Durata:</b> '+esc(t.durata));
       if(t.ricarica)det.push('<b>Ricarica:</b> '+esc(t.ricarica));
+      if(t.riserva_veleno)det.push('<b>Riserva del Veleno:</b> '+esc(t.riserva_veleno));
       var unl=[];
       if(t.xp_cost!=null)unl.push(esc(t.xp_cost)+' XP');
       if(t.trainings_required!=null)unl.push(esc(t.trainings_required)+' allenament'+(t.trainings_required===1?'o':'i'));

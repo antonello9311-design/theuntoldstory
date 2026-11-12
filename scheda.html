@@ -1111,6 +1111,7 @@
 })();
 
 </script>
+  <script src="hoki-catalog-v2.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
   (function(){
@@ -1458,6 +1459,7 @@
        Nessun campo è stato tolto: sono gli stessi otto di prima, più la categoria
        che prima stava nella riga chiusa. */
     function tkDetail(t){
+      t=window.TUSHokiCatalog(t);
       var b1=[],b2=[],b3=[];
       if(t.category) b1.push('<div class="tkd"><b>Categoria</b> · '+esc(t.category)+'</div>');
       if(t.description) b1.push('<div class="tkd"><b>Descrizione</b> · '+esc(t.description).replace(/\n/g,'<br>')+'</div>');
@@ -1465,7 +1467,7 @@
       if(eff) b1.push('<div class="tkd"><b>Effetto</b> · '+esc(eff)+'</div>');
       if(t.danno_base!=null) b1.push('<div class="tkd"><b>Danno base</b> · '+esc(t.danno_base)+'</div>');
       if(t.difesa!=null&&String(t.difesa).trim()!=='') b1.push('<div class="tkd"><b>Difesa</b> · '+esc(t.difesa)+'</div>');
-      if(t.potenza!=null) b1.push('<div class="tkd"><b>Potenza</b> · '+esc(t.potenza)+(String(t.disciplina||'').toLowerCase()==='genjutsu'?' <span class="hint">(Dispersione: serve Mente &ge; '+esc(t.potenza)+((t.grado==='A'||t.grado==='S')?' &mdash; grado '+esc(t.grado)+', immune al Kai base':'')+')</span>':'')+'</div>');
+      if(t.potenza!=null) b1.push('<div class="tkd"><b>Potenza'+(t.riserva_veleno?' base':'')+'</b> · '+esc(t.potenza)+(String(t.disciplina||'').toLowerCase()==='genjutsu'?' <span class="hint">(Dispersione: serve Mente &ge; '+esc(t.potenza)+((t.grado==='A'||t.grado==='S')?' &mdash; grado '+esc(t.grado)+', immune al Kai base':'')+')</span>':'')+'</div>');
       var tech=[]; if(t.portata)tech.push('portata '+esc(t.portata));
       var _g=t.gittata||techGittataDefault(t); if(_g)tech.push('gittata '+esc(_g)+(t.gittata?'':' <span class="hint">(def)</span>'));
       if(t.bersaglio)tech.push('bersaglio '+esc(t.bersaglio)); if(t.tipo_azione)tech.push('azione '+esc(t.tipo_azione));
@@ -1474,6 +1476,7 @@
       if(t.durata)tech.push('durata '+esc(t.durata)); if(t.ricarica)tech.push('ricarica '+esc(t.ricarica));
       if(tech.length) b1.push('<div class="tkd"><b>Tecnica</b> · '+tech.join(' · ')+'</div>');
       var cons=[]; if(t.chakra_cost!=null&&t.chakra_cost>=0)cons.push(t.chakra_cost+' chakra'); if(t.consumption_type)cons.push(t.consumption_type==='per_turno'?'per turno':(t.consumption_type==='passiva'?'passiva':'ad utilizzo'));
+      if(t.riserva_veleno) b2.push('<div class="tkd"><b>Riserva del Veleno</b> · '+esc(t.riserva_veleno)+'</div>');
       if(cons.length) b2.push('<div class="tkd"><b>Consumo</b> · '+cons.join(' · ')+'</div>');
       var acq=[]; if(t.xp_cost!=null)acq.push('<b style="color:var(--red-deep)">'+t.xp_cost+' XP</b>'); if(t.trainings_required!=null)acq.push(t.trainings_required+(t.trainings_required===1?' allenamento':' allenamenti'));
       if(acq.length) b2.push('<div class="tkd"><b>Acquisto</b> · '+acq.join(' · ')+'</div>');
