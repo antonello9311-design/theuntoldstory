@@ -15554,7 +15554,8 @@ return {mountQuestParticipant,mountQuestStaffRuntime};})();
         function decorate(){missionGenericUI().then(function(ui){if(host.isConnected&&missionBoardVisible())return ui.decorateBoard(host);}).catch(function(){});}
         if(!rows.length){ host.innerHTML='<p class="miss-empty">Nessuna richiesta in bacheca, per ora: i villaggi sono tranquilli. Torna presto.</p>'; decorate(); return; }
         host.innerHTML=rows.map(function(m){
-          var vil=m.village?('<span class="mvil">'+esc(m.village)+'</span>'):'<span class="mvil">Ogni villaggio</span>';
+          var villageLabel=m.id==='6d6c216a-222d-4cba-b2fc-f3e0c199c195'?'Ogni villaggio':(m.village||'Ogni villaggio');
+          var vil='<span class="mvil">'+esc(villageLabel)+'</span>';
           var stato=(m.status==='programmata')?('<span class="mvil" style="color:var(--red-deep);border-color:var(--red-deep)">'+fmtMD(m.data_missione)+(m.master_name?(' · '+esc(m.master_name)):'')+'</span>'):'';
           var iscr=(m.iscritti&&m.iscritti.length)?('<div class="mmeta">Squadra: <b>'+m.iscritti.map(esc).join(', ')+'</b> ('+m.n_iscritti+'/'+m.team_max+')</div>'):('<div class="mmeta">Squadra: ancora nessuno (max '+m.team_max+')</div>');
           var prop=(m.status==='aperta'&&m.prima_proposta)?('<div class="mmeta">Data proposta: <b>'+fmtMD(m.prima_proposta)+'</b></div>'):'';
