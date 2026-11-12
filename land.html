@@ -2675,7 +2675,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
           <h4>Quando c'è uno scontro</h4>
           <p>Il testo dell’azione si scrive nella <b>chat di gioco</b>. Il riquadro <b>Scontro</b> sta nella colonna a destra: <b>Apri scontro</b> chiede la distanza d’ingaggio — quattro fasce pronte, oppure <b>Lascia al fato</b> — e apre il duello. L’<b>allenamento</b> non si apre da qui: si dichiara dal riquadro verde <b>Addestramento</b>, a role aperta. A scontro aperto vedi PV e chakra in chiaro accanto alle barre, e da lì apri <b>Scegli mossa</b> per indicare soltanto la scelta meccanica da legare al testo.</p>
           <ul>
-            <li>Nella finestra scegli lo <b>spostamento</b> e la <b>mossa principale</b> (colpo, tecnica, arte innata o Moltiplicazione); non vi si scrive alcun testo. Moltiplicazione compare una volta sola e apre <b>Diversivo</b>, <b>Copertura</b> o <b>Assalto</b>, poi il numero di copie fra i soli valori offerti dal server. Il costo è <b>10 chakra di base + 5 per copia</b>. Le copie non attaccano da sole. L’elenco è quello che manda il server: le <b>tecniche di scena</b>, come la Trasformazione, non sono azioni offensive e non compaiono.</li>
+            <li>Nella finestra scegli lo <b>spostamento</b> e la <b>mossa principale</b> (colpo, tecnica, arte innata o Moltiplicazione); non vi si scrive alcun testo. Moltiplicazione compare una volta sola nella modalità <b>Assalto</b>; scegli il numero di copie fra i soli valori offerti dal server. Il costo è <b>10 chakra di base + 5 per copia</b>. Le copie non attaccano da sole. L’elenco è quello che manda il server: le <b>tecniche di scena</b>, come la Trasformazione, non sono azioni offensive e non compaiono.</li>
             <li>L'azione resta nel tuo browser finché non invii: <b>parte insieme al messaggio</b>, in un colpo solo. La pastiglia <b>&#9876; Azione pronta</b> ti avvisa che c'è un'azione agganciata.</li>
             <li><b>Durante uno scontro le parentesi quadre sono testo normale.</b> Non sono comandi e il server non le legge: scrivi la scena come la scriveresti sempre. Anche l'elenco che si apre con <b>[</b> resta zitto, perché la tecnica si sceglie dalla finestra dell'azione e non dal testo.</li>
             <li>Fuori dallo scontro, invece, <b>[</b> apre l'elenco delle tue tecniche: ne scegli una, il nome sparisce dal testo e la tecnica resta agganciata al messaggio.</li>
@@ -2769,7 +2769,7 @@ function validateMultiplication(envelope){
     check(exact(f,['formation_id','actor_id','mode','state_version','figures','original_index']));
     check(uuid(f.formation_id)&&!formations.has(f.formation_id)&&uuid(f.actor_id)&&!owners.has(f.actor_id));
     const owner=roster.find(a=>a.actor_id===f.actor_id);check(owner&&!owner.body_only);
-    check(['diversivo','copertura','assalto'].includes(f.mode)&&Number.isSafeInteger(f.state_version)&&f.state_version>0&&Array.isArray(f.figures)&&f.figures.length>=2);
+    check((f.mode==='assalto')&&Number.isSafeInteger(f.state_version)&&f.state_version>0&&Array.isArray(f.figures)&&f.figures.length>=2);
     owners.add(f.actor_id);formations.add(f.formation_id);
     const indices=new Set();
     for(const point of f.figures){
@@ -2917,7 +2917,7 @@ function validateReadonlyFormations(scene,byId){
   if(!exactVisual(value,['schema_version','formations'])||value.schema_version!=='map-figure-formations/1'||!Array.isArray(value.formations))throw Error('map_figure_visual_invalid');
   const bounds=scene.map.bounds,owners=new Set(),ids=new Set();
   for(const f of value.formations){
-    if(!exactVisual(f,['formation_id','actor_id','mode','state_version','figures'])||!id(f.formation_id)||ids.has(f.formation_id)||!id(f.actor_id)||owners.has(f.actor_id)||!byId.has(f.actor_id)||byId.get(f.actor_id).kind==='companion'||!['diversivo','copertura','assalto'].includes(f.mode)||!Number.isSafeInteger(f.state_version)||f.state_version<1||!Array.isArray(f.figures)||f.figures.length<2)throw Error('map_figure_visual_invalid');
+    if(!exactVisual(f,['formation_id','actor_id','mode','state_version','figures'])||!id(f.formation_id)||ids.has(f.formation_id)||!id(f.actor_id)||owners.has(f.actor_id)||!byId.has(f.actor_id)||byId.get(f.actor_id).kind==='companion'||!(f.mode==='assalto')||!Number.isSafeInteger(f.state_version)||f.state_version<1||!Array.isArray(f.figures)||f.figures.length<2)throw Error('map_figure_visual_invalid');
     ids.add(f.formation_id);owners.add(f.actor_id);const indices=new Set();
     for(const p of f.figures){
       if(!exactVisual(p,['figure_index','x_m','y_m'])||!Number.isSafeInteger(p.figure_index)||p.figure_index<1||p.figure_index>f.figures.length||indices.has(p.figure_index)||!finite(p.x_m)||!finite(p.y_m)||p.x_m<0||p.y_m<0||p.x_m>bounds.width_m||p.y_m>bounds.height_m)throw Error('map_figure_visual_invalid');
@@ -3525,6 +3525,7 @@ function selectionReady(offer,selected,inputs,narrativeText,requireNarrative=tru
   if(!offer||!Array.isArray(selected)||new Set(selected).size!==selected.length||!Array.isArray(inputs)||new Set(inputs.map(x=>x.input_id)).size!==inputs.length||!str(narrativeText))return false;
   const active=new Set(selected),ids=new Set(offer.choices.flatMap(g=>g.options.map(o=>o.option_id)));
   if(selected.some(id=>!ids.has(id)))return false;
+  if(offer.label==='Moltiplicazione del corpo'&&offer.choices.some(g=>g.purpose==='copies')&&offer.choices.some(g=>g.purpose==='mode'&&g.options.some(o=>active.has(o.option_id)&&o.label!=='Assalto')))return false;
   const automatic=new Set(automaticAssaultGroups(offer,selected)||[]);
   for(const g of offer.choices){const n=g.options.filter(o=>active.has(o.option_id)).length,enabled=g.depends_on===null||active.has(g.depends_on);if(automatic.has(g.group_id)){if(n!==0)return false;continue;}if(enabled?(n<g.min_selected||n>g.max_selected):n!==0)return false;}
   if(inputs.some(x=>!offer.input_fields.some(f=>f.input_id===x.input_id)))return false;
@@ -3868,16 +3869,8 @@ function renderMovementPreview(map,envelope,offer,selected){
   const line=doc.createElementNS(ns,'line');for(const[k,v]of Object.entries({x1:actor.x_m,y1:actor.y_m,x2:x,y2:y,stroke:'#f2bd61','stroke-width':Math.max(.08,Math.min(envelope.map.bounds.width_m,envelope.map.bounds.height_m)/100),'stroke-dasharray':'.32 .22'}))line.setAttribute(k,String(v));
   const end=doc.createElementNS(ns,'circle');for(const[k,v]of Object.entries({cx:x,cy:y,r:Math.max(.18,Math.min(envelope.map.bounds.width_m,envelope.map.bounds.height_m)/45),fill:'#f2bd61','fill-opacity':'.78',stroke:'#111b24','stroke-width':'.08'}))end.setAttribute(k,String(v));
   g.append(line,end);
-  const showFormation=/^(diversivo|copertura)$/i.test(modeLabel);
-  if(showFormation){
-    // Il contratto pubblico espone prima del commit soltanto le posizioni
-    // ammesse per l'originale. Le figure complete arrivano dalla mappa server.
-    const originals=offer.choices.find(g=>g.depends_on===distanceOption.option_id&&g.purpose==='generic');
-    const distances=[...new Set((originals?.options||[]).map(o=>o.distance_m).filter(finite))];
-    for(const d of distances){const step=(dir[2]!==0&&dir[3]!==0)?d/2:d,c=doc.createElementNS(ns,'circle');for(const[k,v]of Object.entries({cx:actor.x_m+dir[2]*step,cy:actor.y_m+dir[3]*step,r:Math.max(.14,Math.min(envelope.map.bounds.width_m,envelope.map.bounds.height_m)/58),fill:'#63b8e6','fill-opacity':'.48',stroke:'#f2bd61','stroke-width':'.06'}))c.setAttribute(k,String(v));g.append(c);}
-  }
   svg.append(g);
-  const label=doc.createElement('span');label.textContent=showFormation?`Posizioni possibili dell’originale · ${dir[0]} fino a ${metres} m`:`Arrivo: ${dir[0]} ${metres} m`;canvas.append(label);label.className='common-move-preview-label';label.setAttribute('data-common-move-preview','');
+  const label=doc.createElement('span');label.textContent=`Arrivo: ${dir[0]} ${metres} m`;canvas.append(label);label.className='common-move-preview-label';label.setAttribute('data-common-move-preview','');
   label.style.left=`clamp(58px, ${x/envelope.map.bounds.width_m*100}%, calc(100% - 58px))`;label.style.top=`clamp(22px, ${y/envelope.map.bounds.height_m*100}%, calc(100% - 22px))`;
 }
 
@@ -4263,7 +4256,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     const activeGroups=[];
     for(const group of offer.choices){
       if(!purposes.has(group.purpose)||group.depends_on!==null&&!selected.has(group.depends_on)||automatic.has(group.group_id))continue;
-      activeGroups.push(group);const options=displayGroupOptions(group,selected);
+      activeGroups.push(group);const options=displayGroupOptions(group,selected).filter(option=>offer.label!=='Moltiplicazione del corpo'||!sequence||group.purpose!=='mode'||option.label==='Assalto');
       const field=node('fieldset',undefined,groupHost);field.disabled=disabled||!selectOption;
       if(group.purpose==='movement_direction'||group.purpose==='movement_distance')field.classList.add('common-movement-group');
       const dependentDirection=group.purpose==='movement_distance'?offer.choices.flatMap(g=>g.options).find(o=>o.option_id===group.depends_on)?.direction:null;
@@ -6201,11 +6194,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           if(m.kind==='motore'){ if(!iAmStaff) return ''; return '<div class="msg-motore"><span class="mm-k">motore</span><span>'+esc(m.body)+'</span></div>'; }
           if(m.kind==='fato'){ var fb=m.body||'', fp='', fs=fatoSupersessions[m.id]||''; var fm=fb.match(/^【([^】]{1,60})】\s*([\s\S]*)$/); if(fm){ fp=fm[1]; fb=fm[2]; } return '<div class="msg-fato"><div class="mf-head"><span class="mf-k">Fato'+(fs==='superseded'?' · esito superato':(fs==='reissuing'?' · in revisione':''))+'</span><span class="m-time">'+fmt(m.created_at)+'</span></div>'+(fp?'<span class="m-place">'+PIN+esc(fp)+'</span>':'')+'<div class="mf-body">'+narrativeParagraphText(fmtBody(fb))+'</div></div>'; }
           if(m.kind==='sistema'&&m.author_name==='Il narratore'){ return '<div class="msg-narratore"><div class="mn-head"><span class="mn-k">Il narratore</span><span class="m-time">'+fmt(m.created_at)+'</span></div><div class="mn-body">'+fmtNarratore(m.body)+'</div></div>'; }
-          /* [COMBAT-040-042-R2] Le due righe pubbliche del Diversivo viaggiano
-             su kind='sistema' (decisione PM 2): la SCENICA ha per autore il nome
-             del personaggio, quella DI SERVIZIO ha per autore «Scontro». Senza
-             l'etichetta erano la stessa cosa a vedersi. Il corpo non si tocca: la
-             Land non scrive testo proprio in chat (contratto §5.3). */
+          
           if(m.kind==='sistema'){ return '<div class="msg-scontro">'+SWORD+'<span>'+(m.author_name?('<b>'+esc(m.author_name)+'</b> \u00b7 '):'')+esc(m.body)+'</span></div>'; }
           if(m.kind==='whisper'){
             var dir;
@@ -7175,8 +7164,8 @@ window.TUSOrdinary={attachOrdinaryLand};
       /* [MV2-MOLTIPLICAZIONE-PANEL-001 · 01/09/2026]
          Il compositore avanzato dell'Esame non può essere sostituito dal
          selettore generico V2: Moltiplicazione è una famiglia, non un attacco.
-         La LAND riconosce la tecnica per UUID (mai dal nome) e disegna le tre
-         modalità canoniche. I limiti di copie e il permesso di consegna restano
+         La LAND riconosce la tecnica per UUID (mai dal nome) e presenta
+         soltanto Assalto. I limiti di copie e il permesso di consegna restano
          server-side: finché round_options non pubblica il contratto indicato,
          il pannello è visibile ma fail-closed e non spedisce un attacco generico.
       */
@@ -7191,12 +7180,13 @@ window.TUSOrdinary={attachOrdinaryLand};
       }
       function mv2MultiplicationPanel(actor){
         if(!mv2MultiplicationAbility(actor))return '';
-        var offer=mv2MultiplicationOffer(actor),ready=!!offer;
-        var modes=offer&&Array.isArray(offer.modes)?offer.modes:['diversivo','copertura','assalto'];
+        var offer=mv2MultiplicationOffer(actor);
+        var modes=offer&&Array.isArray(offer.modes)?offer.modes.filter(function(m){return m==='assalto';}):[];
+        var ready=!!offer&&modes.length===1;
         var copies=offer&&Array.isArray(offer.copies)?offer.copies:[];
-        var labels={diversivo:'Diversivo',copertura:'Copertura',assalto:'Assalto'};
+        var labels={assalto:'Assalto'};
         return '<div class="mv2-phase" data-mv2-multiplication hidden><b>Moltiplicazione del corpo</b>'
-          +'<p class="mv2-note">Scegli la modalità e il numero di copie fra i valori autorizzati dal server. Le copie non sono attacchi autonomi.</p>'
+          +'<p class="mv2-note">Moltiplicazione si usa in Assalto. Scegli il numero di copie fra i valori autorizzati dal server. Le copie non sono attacchi autonomi.</p>'
           +'<div class="mv2-grid"><label class="mv2-field"><span>Modalità</span><select data-mv2-multiplication-mode'+(ready?'':' disabled')+'>'
           +modes.map(function(x){return '<option value="'+esc(x)+'">'+esc(labels[x]||x)+'</option>';}).join('')+'</select></label>'
           +'<label class="mv2-field"><span>Copie</span><select data-mv2-multiplication-copies'+(ready?'':' disabled')+'>'
@@ -7681,16 +7671,7 @@ window.TUSOrdinary={attachOrdinaryLand};
          vera dopo il movimento.
          ============================================================ */
       function azFascia(d){ return d<=2?'a contatto':(d<=10?'corta':(d<=30?'media':'lunga')); }
-      /* ===== [COMBAT-050-R3 · VIA-NUOVA INIZIO] =====
-         La fascia dopo il diversivo la dice il SERVER: `diversivi[].fascia_dopo`,
-         nato con la 047 e lasciato intatto dalla 048. La proiezione locale che
-         stava qui in R2 e' stata TOLTA: era l'ultimo punto in cui questo
-         consumer ricavava una fascia da un numero, ed e' esattamente cio' che
-         il contratto 050 vieta alle vie nuove (OPEN-L2 chiuso).
-         Se il server non manda `fascia_dopo`, o manda un token che non e'
-         nell'insieme chiuso, non si stampa nulla: restano i metri di
-         `distanza_dopo`, che il server manda comunque.
-         `distanza_fascia` resta compatibilita' deprecata e non si legge. */
+      
       function azFasciaDopoTxt(t){
         if(!t) return '';
         var f=fasciaTesto(t.fascia_dopo);
@@ -7780,26 +7761,6 @@ window.TUSOrdinary={attachOrdinaryLand};
         return f+'|'+(a.id||'')+'|'+(a.direzione||'');
       }
       function azTrova(k){ for(var i=0;i<azPri.length;i++){ if(azPri[i].k===k) return azPri[i]; } return null; }
-      function azPosMia(){ var p=(CMB&&CMB.partecipanti||[]).filter(function(x){return x.io;})[0]; return p&&Number.isFinite(+p.pos)?+p.pos:0; }
-      /* [090] Tiene allineato l'elenco delle figure al numero di copie scelto.
-         Girava solo per la fonte `formazione`, che non nasceva mai: era codice
-         che non veniva eseguito. Adesso e' del Diversivo.
-         La posizione di partenza la manda il SERVER (`figure.posizione_attuale_m`):
-         `azPosMia()` leggeva i partecipanti dello Scontro, che nella prova
-         d'Esame non esistono, e restituiva zero per tutti. */
-      function azFigureSync(){
-        if(!azBozza||!azBozza.principale) return;
-        if(azBozza.principale.fonte!=='moltiplicazione'||azBozza.principale.modalita!=='diversivo') return;
-        var mm0=azTrova(azIdent(azBozza.principale)), fg0=mm0&&mm0.figure;
-        if(!fg0) return;
-        var n=parseInt(azBozza.copie,10); if(!(n>0)) n=1;
-        var tot=n+1, base=+fg0.posizione_attuale_m, old=azBozza.figure||[], out=[];
-        for(var i=1;i<=tot;i++){ var q=old.filter(function(x){return +x.idx===i;})[0];
-          out.push({idx:i,etichetta:'Figura '+i,
-                    posizione_m:(q&&Number.isFinite(+q.posizione_m))?+q.posizione_m:base}); }
-        azBozza.figure=out;
-        var oi=parseInt(azBozza.originale_idx,10); if(!(oi>=1&&oi<=tot)) azBozza.originale_idx='1';
-      }
       function azSyncMov(){
         var o=CMB_OPZ; if(!o||o.fase==='difesa'||!azBozza) return;
         var fin=azEl('az-dist-fin'); if(fin) fin.textContent=azDistTxt();
@@ -7935,66 +7896,16 @@ window.TUSOrdinary={attachOrdinaryLand};
             det:(t.gittata||'')+' · '+(t.chakra?(t.chakra+' chakra'):'nessun costo')+(t.posseduta?'':' · non in scheda'),
             chakra:+(t.chakra||0), portata:(typeof t.portata_m==='number'?t.portata_m:null),
             ok:!!t.disponibile, no:t.motivo_no}); });
-          /* ===== [COMBAT-050-R3 · VIA-NUOVA INIZIO] =====
-             [GUARDIA-COPIE-024-R3] I diversivi sono azioni principali offerte dal
-             server in un elenco proprio. Il client ricopia id e direzione: non
-             calcola metri, danno, difesa o disponibilità.
-             [COMBAT-050-R3] I due numeri di distanza della voce vengono dal
-             payload e da nessun altro posto: `distanza_dopo` per i metri,
-             `fascia_dopo` per la fascia (via `azFasciaDopoTxt`). Nessuna soglia
-             locale, nessun ricalcolo, nessun ripiego su una tabella di questa
-             pagina. */
-          (o.diversivi||[]).forEach(function(t){
-            if(t.modalita_offerte&&t.modalita_offerte.length){
-              azPri.push({fonte:'moltiplicazione',id:t.id,nome:t.tecnica||t.nome||'Moltiplicazione del corpo',
-                det:'scegli poi Diversivo, Copertura o Assalto',chakra:+(t.costo_base||0),portata:null,
-                modalita_offerte:t.modalita_offerte,direzioni_offerte:t.direzioni_offerte||[],
-                /* [113-A1] Il server e' autoritativo anche sui metri consentiti
-                   da Assalto. Conservare [0] e' essenziale: significa che il
-                   contatto e' gia' raggiunto, non che l'opzione sia assente. */
-                assalto_avanzamenti:t.assalto_avanzamenti||[],
-                copie_offerte:t.copie_offerte||[],copie_max:t.copie_max,
-                costo_base:t.costo_base,costo_per_copia:t.costo_per_copia,
-                /* [090] I limiti delle figure viaggiano con la voce, e vengono
-                   SOLO da qui. Se il server non li manda la chiave resta nulla
-                   e il Diversivo posizionale non si offre: meglio niente che un
-                   comando che finge di sapere dove finisce il campo. */
-                figure:(t.figure&&typeof t.figure==='object')?t.figure:null,
-                ok:!!t.disponibile,no:t.motivo_no});
-            } else if(t.chiave){
-              azPri.push({fonte:'diversivo', id:t.id,direzione:t.chiave,
-                nome:(t.tecnica?String(t.tecnica)+' · ':'')+t.nome,
-                det:(t.chakra?(t.chakra+' chakra'):'nessun costo')+' · attiva le copie · distanza finale '+t.distanza_dopo+' m'+azFasciaDopoTxt(t),
-                chakra:+(t.chakra||0),portata:null,ok:!!t.disponibile,no:t.motivo_no});
-            } else {
-              /* [083-A1] Il payload non porta ne' `modalita_offerte` ne'
-                 `chiave`: non c'e' niente da giocare. Prima di questa riga
-                 la voce nasceva lo stesso, con direzione vuota, e finiva
-                 nell'elenco chiamandosi come la tecnica: il candidato la
-                 sceglieva, il server rifiutava, e in pannello «Diversivo»
-                 non compariva da nessuna parte. Adesso la voce c'e' ed e'
-                 spenta, con scritto il motivo: un pannello disallineato dal
-                 server lo deve DIRE. */
-              azPri.push({fonte:'diversivo', id:t.id,direzione:'',
-                nome:(t.tecnica?String(t.tecnica):'Moltiplicazione del corpo'),
-                det:'', chakra:0, portata:null, ok:false,
-                no:'questa pagina e\u2019 piu\u2019 vecchia del server: ricarica con Ctrl+F5 o chiedi il land.html aggiornato'});
-            }
+          
+          (o.moltiplicazione||[]).forEach(function(t){
+            if(!t||!Array.isArray(t.modalita_offerte)||t.modalita_offerte.indexOf('assalto')<0)return;
+            azPri.push({fonte:'moltiplicazione',id:t.id,nome:t.tecnica||t.nome||'Moltiplicazione del corpo',
+              det:'Assalto',chakra:+(t.costo_base||0),portata:null,modalita_offerte:['assalto'],
+              assalto_avanzamenti:t.assalto_avanzamenti||[],copie_offerte:t.copie_offerte||[],copie_max:t.copie_max,
+              costo_base:t.costo_base,costo_per_copia:t.costo_per_copia,ok:!!t.disponibile,no:t.motivo_no});
           });
-          /* [044-B1] Le modalita arrivano dal server. Il browser le presenta,
-             non ne calcola costo, bonus o risultato. Una sola voce tecnica e'
-             sufficiente: direzione e distanza del vecchio Diversivo non vengono
-             riciclate per la formazione strutturata. */
-          /* [090] LA FUSIONE CANONICA. Qui nasceva la fonte `formazione`,
-             secondo nome della stessa meccanica. Non e' mai nata davvero: la
-             prima riga del ciclo era
-                 if((t.modalita_offerte||[]).indexOf('diversivo')>=0) return;
-             e il server offre SEMPRE `diversivo`, quindi il `return` scattava
-             a ogni giro. Una quarta strada invisibile, con dentro l'unica
-             interfaccia posizionale del progetto, irraggiungibile.
-             La sua parte utile vive adesso sotto `moltiplicazione`, dentro la
-             modalita' `diversivo`. Due nomi per la stessa cosa erano il motivo
-             per cui meta' del codice era morta. */
+          
+          
           /* ===== [COMBAT-050-R3 · VIA-NUOVA FINE] ===== */
           (o.innate||[]).forEach(function(t){ azPri.push({fonte:'innata', id:t.id, nome:t.nome,
             det:'arte innata · si accende · '+(t.chakra?(t.chakra+' chakra a round'):'nessun costo')+(t.posseduta?'':' · non in scheda'),
@@ -8048,17 +7959,16 @@ window.TUSOrdinary={attachOrdinaryLand};
                   ?azTrova('moltiplicazione|'+(azBozza.principale.id||'')+'|'):null;
           if(mol){
             h+='<div class="az-sec"><div class="az-k">Come usi Moltiplicazione</div><div class="az-list">';
-            (mol.modalita_offerte||[]).forEach(function(m){
-              var lab=m==='diversivo'?'Diversivo':(m==='copertura'?'Copertura':'Assalto');
-              var det=m==='diversivo'?'le copie coprono uno spostamento e restano fino all’azione successiva':
-                      (m==='copertura'?'prepara le copie e passa l’iniziativa':'accompagna subito un colpo fisico, senza Slancio');
+            (mol.modalita_offerte||[]).filter(function(m){return m==='assalto';}).forEach(function(m){
+              var lab='Assalto';
+              var det='accompagna subito un colpo fisico, senza Slancio';
               h+=azOpz('azmodalita',m,lab,det+' · costo 10 chakra + 5 per copia',true,'',azBozza.principale.modalita===m);
             });
             h+='</div></div>';
             /* [095] Un solo spostamento effettivo. Quando si usa
                Moltiplicazione il selettore ordinario sparisce e questo ne
                prende il posto: il client non può sommare due movimenti. */
-            if(azBozza.principale.modalita){
+            if(azBozza.principale.modalita==='assalto'){
               var modoMol=azBozza.principale.modalita;
               var avMol=mv.avvicinamento||{}, riMol=mv.ritirata||{};
               var maxAvMol=avMol.disponibile?+(avMol.metri||0):0;
@@ -8081,48 +7991,6 @@ window.TUSOrdinary={attachOrdinaryLand};
                    '<span class="az-d">unico spostamento del turno · negativo allontana, positivo avvicina, 0 resta</span></div></div>';
               }
             }
-            if(false && azBozza.principale.modalita==='diversivo'){
-              h+='<div class="az-sec"><div class="az-k">Direzione del Diversivo</div><div class="az-list">';
-              (mol.direzioni_offerte||[]).forEach(function(d){
-                h+=azOpz('azdirezione',d.chiave,d.nome,'distanza finale '+d.distanza_dopo+' m',!!d.disponibile,d.motivo_no,azBozza.principale.direzione===d.chiave);
-              });
-              h+='</div></div>';
-              /* [090] LE FIGURE. Il mandato vuole che originale e copie
-                 prendano direzioni diverse: servono una posizione per ogni
-                 figura e la scelta di quale sia l'originale.
-                 ⚠️ I limiti NON stanno in questa pagina. Arrivano dal
-                 contratto, in `diversivi[].figure`. Il blocco `formazione` che
-                 questo sostituisce li aveva cablati (`min=0 max=60`, finestra
-                 di 5 metri scritta a mano): era il client a decidere il campo.
-                 Se il server non manda il blocco, non si offre meta' comando:
-                 si scrive perche' non c'e'. */
-              var fg=mol.figure||null;
-              if(!fg){
-                h+='<div class="az-sec"><div class="az-k">Posizioni delle figure</div>'+
-                   '<p class="az-d" style="margin:0">Questa pagina sa disporre le figure, il server ancora no: '+
-                   'il Diversivo parte con tutte le figure insieme. Chiedi il database aggiornato.</p></div>';
-              } else {
-                azFigureSync();
-                var totFig=(azBozza.figure||[]).length;
-                var oiFig=parseInt(azBozza.originale_idx,10);
-                if(!(oiFig>=1&&oiFig<=totFig)){ oiFig=1; azBozza.originale_idx='1'; }
-                var rg=+fg.raggio_m, cmin=+fg.campo_min_m, cmax=+fg.campo_max_m, ps=+fg.passo_m||1;
-                h+='<div class="az-sec"><div class="az-k">Dove va ogni figura</div><div class="az-list">';
-                (azBozza.figure||[]).forEach(function(x){
-                  h+='<label class="az-mv"><span class="az-d">Figura '+x.idx+'</span>'+
-                     '<input type="number" name="azfigpos" data-idx="'+x.idx+'" min="'+cmin+'" max="'+cmax+
-                     '" step="'+ps+'" value="'+esc(String(x.posizione_m))+'"></label>';
-                });
-                h+='</div><p class="az-d" style="margin:0">Ogni figura resta entro '+rg+
-                   ' m dalla tua posizione attuale ('+fg.posizione_attuale_m+' m) e non pu\u00f2 stare dove sta gi\u00e0 un\u2019altra figura. '+
-                   'Le distanze finali le decide il server.</p>'+
-                   '<label class="az-k" for="az-originale-mol-d" style="margin-top:10px;display:block">Seleziona quale \u00e8 l\u2019originale</label>'+
-                   '<select class="az-find" id="az-originale-mol-d" name="azoriginale">';
-                for(var od=1;od<=totFig;od++) h+='<option value="'+od+'"'+(od===oiFig?' selected':'')+'>Figura '+od+'</option>';
-                h+='</select><p class="az-d" style="margin:0">Scelta privata: il numero identifica il corpo reale. '+
-                   'Il server la sigilla e non la mostra all\u2019avversario finch\u00e9 lo scontro non la rende manifesta.</p></div>';
-              }
-            }
           }
           if(vis.length>300) h+='<p class="az-d">Mostrate le prime 300 di '+vis.length+': scrivi qualche lettera per restringere.</p>';
           h+='</div>';
@@ -8133,7 +8001,7 @@ window.TUSOrdinary={attachOrdinaryLand};
              fossero due prezzi alternativi della stessa tecnica. */
           /* [090] Stessa chiave, stessa risposta: prima questa riga cercava
              con `direzione||modalita` e le altre tre con `direzione` sola. */
-          var dv=(azBozza.principale&&(azBozza.principale.fonte==='diversivo'||azBozza.principale.fonte==='moltiplicazione'))
+          var dv=(azBozza.principale&&azBozza.principale.fonte==='moltiplicazione')
                  ? azTrova(azIdent(azBozza.principale)) : null;
           if(!dv&&azBozza.principale&&azBozza.principale.fonte==='moltiplicazione') dv=mol;
           var cof=(dv&&dv.copie_offerte&&dv.copie_offerte.length)?dv.copie_offerte:null;
@@ -8173,22 +8041,8 @@ window.TUSOrdinary={attachOrdinaryLand};
             for(var om=1;om<=totMol;om++) h+='<option value="'+om+'"'+(om===oriMol?' selected':'')+'>'+om+'</option>';
             h+='</select><p class="az-d" style="margin:0">Scelta privata: il numero identifica il corpo reale fra '+totMol+' figure complessive.</p></div>';
           }
-          /* [090] Qui stava il selettore dell'originale della fonte
-             `formazione`, con i limiti cablati nel browser. E' stato spostato
-             sotto Moltiplicazione · Diversivo, coi limiti letti dal server. */
-          var fc=(o.formazioni||[]).filter(function(f){return f&&f.modalita==='copertura'&&f.stato==='viva';})[0]||null;
-          if(fc&&fc.figure&&fc.figure.length&&azBozza.principale){
-            h+='<div class="az-sec"><div class="az-k">Quale figura attacchi</div><div class="az-list">';
-            h+=azOpz('azbersagliofigura','','Scelta casuale','la figura viene estratta dal server',true,'',azBozza.bersaglio_figura==null);
-            fc.figure.filter(function(x){return x&&x.viva;}).forEach(function(x){
-              h+=azOpz('azbersagliofigura',String(x.idx),(x.etichetta||('Figura '+x.idx))+' · '+x.posizione_m+' m','bersaglio dichiarato; l’originale resta segreto',true,'',String(azBozza.bersaglio_figura||'')===String(x.idx));
-            });
-            h+='</div></div>';
-          }
-          /* [CANDIDATE-MANOVRA-031] La manovra è una terza specie: non è un
-             attacco, un colpo mancato o un diversivo. Esiste soltanto nella
-             prova e soltanto quando il server la offre. `distanza_dopo` è
-             descrizione del risultato deciso dal server, mai un valore inviato. */
+          
+          
           var mans=(azSrc==='esame'&&o.manovre)?o.manovre.filter(function(x){
             return x&&x.chiave==='avvicinamento'; }).slice(0,1):[];
           if(mans.length){
@@ -8256,31 +8110,11 @@ window.TUSOrdinary={attachOrdinaryLand};
             if(!azBozza.principale.id){ azErr('Scegli quale tecnica.'); return; }
             a.principale.id=azBozza.principale.id;
           }
-          if(a.principale.fonte==='diversivo'){
-            if(!azBozza.principale.direzione){ azErr('Scegli la direzione del diversivo offerta dal server.'); return; }
-            a.principale.direzione=azBozza.principale.direzione;
-            /* [COMBAT-040-042-R2] Dal browser partono soltanto `direzione`, `id`
-               facoltativo e `copie` intero. Mai turno, round, bersaglio, distanza,
-               posizione risultante, autore, costo, bonus o esito: il server
-               ricalcola tutto (contratto §5.2). Un numero fuori dall'elenco offerto
-               non parte nemmeno: si dice perche' e ci si ferma. */
-            var dsel=azTrova('diversivo|'+(azBozza.principale.id||'')+'|'+azBozza.principale.direzione);
-            if(dsel&&dsel.copie_offerte&&dsel.copie_offerte.length){
-              /* La forma e' la stessa che pretende il server (^[0-9]{1,2}$): qui
-                 serve solo a dare un messaggio leggibile, non a decidere. Un valore
-                 non numerico NON viene ripiegato su 1: ripiegare nasconderebbe la
-                 manomissione invece di dirla. */
-              var nc=String(azBozza.copie==null?'1':azBozza.copie).trim();
-              if(!/^[0-9]{1,2}$/.test(nc)){ azErr('Il numero di copie non \u00e8 un numero: scegline uno dall\u2019elenco.'); return; }
-              var amm=dsel.copie_offerte.map(function(z){ return parseInt(z,10); });
-              if(amm.indexOf(parseInt(nc,10))<0){ azErr('Quel numero di copie non \u00e8 fra quelli offerti dal server.'); return; }
-              a.principale.copie=parseInt(nc,10);
-            }
-          }
+          if(!azTrova(azIdent(azBozza.principale))){ azErr('Questa scelta non è più disponibile. Riapri il pannello.'); return; }
           if(a.principale.fonte==='moltiplicazione'){
             var msel=azTrova('moltiplicazione|'+(azBozza.principale.id||'')+'|');
             var mm=azBozza.principale.modalita;
-            if(!msel||(msel.modalita_offerte||[]).indexOf(mm)<0){ azErr('Scegli Diversivo, Copertura oppure Assalto.'); return; }
+            if(mm!=='assalto'||!msel||(msel.modalita_offerte||[]).indexOf(mm)<0){ azErr('Scegli Assalto fra le opzioni offerte dal server.'); return; }
             var esAssalto=azSrc==='esame'&&mm==='assalto';
             var molSposta=esAssalto?Number(azBozza.spostamento):parseInt(azBozza.spostamento,10); if(!esAssalto&&isNaN(molSposta)) molSposta=0;
             if(!esAssalto&&!esSpostamentoValido(molSposta)&&molSposta!==0){ azErr('Scegli una distanza entro i limiti indicati.'); return; }
@@ -8299,38 +8133,7 @@ window.TUSOrdinary={attachOrdinaryLand};
               if(!(om>=1&&om<=tm)){ azErr('Seleziona quale numero identifica l’originale.'); return; }
               a.principale.originale_idx=om;
             }
-            /* [090] Il Diversivo posizionale. I controlli qui sotto sono una
-               ANTICIPAZIONE della risposta del server, non la sua copia: il
-               server rivalida tutto e ha l'ultima parola. Servono a non far
-               partire un turno che sara' rifiutato.
-               Ogni numero confrontato viene dal payload: raggio, campo e passo
-               non sono scritti in questa pagina. */
-            if(false && mm==='diversivo'&&msel.figure){
-              var fgc=msel.figure;
-              azFigureSync();
-              var ffd=(azBozza.figure||[]).map(function(x){ return {idx:+x.idx, posizione_m:+x.posizione_m}; });
-              if(ffd.length!==(+mn)+1){ azErr('Serve una posizione per ogni figura: l’originale e le sue copie.'); return; }
-              var pa=+fgc.posizione_attuale_m, rgg=+fgc.raggio_m,
-                  cmn=+fgc.campo_min_m, cmx=+fgc.campo_max_m, pss=+fgc.passo_m||1;
-              var visti={};
-              for(var q=0;q<ffd.length;q++){
-                var pz=ffd[q].posizione_m;
-                if(!Number.isInteger(pz)||pz<cmn||pz>cmx){
-                  azErr('Le posizioni devono stare fra '+cmn+' e '+cmx+' metri.'); return; }
-                if(Math.abs(pz-pa)>rgg){
-                  azErr('Ogni figura deve restare entro '+rgg+' m dalla tua posizione attuale ('+pa+' m).'); return; }
-                if((pz-cmn)%pss!==0){
-                  azErr('Le posizioni vanno a passi di '+pss+' m.'); return; }
-                /* Due figure nello stesso punto sarebbero una figura sola: il
-                   server le rifiuta, e non ha senso mandargliele. */
-                if(visti[pz]){ azErr('Due figure non possono stare nello stesso punto.'); return; }
-                visti[pz]=true;
-              }
-              var od2=parseInt(azBozza.originale_idx,10);
-              if(!(od2>=1&&od2<=ffd.length)){ azErr('Scegli quale figura è l’originale.'); return; }
-              a.principale.originale_idx=od2;
-              a.principale.figure=ffd;
-            }
+            
             azBozza.spostamento='0';
           }
           /* [090] Qui stava la validazione d'invio di `formazione`, che
@@ -8409,7 +8212,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           else if(t.name==='azspostamento'){ azBozza.spostamento=t.value||'0'; azErr(''); azSyncMov(); }
           else if(t.name==='azmodalita'){ azBozza.principale.modalita=t.value||null; azBozza.principale.direzione=null; azBozza.spostamento='0'; azErr(''); azRender(); }
           else if(t.name==='azdirezione'){ azBozza.principale.direzione=t.value||null; azErr(''); azRender(); }
-          else if(t.name==='azcopie'){ azBozza.copie=t.value||'1'; azFigureSync(); azErr(''); azRender(); }
+          else if(t.name==='azcopie'){ azBozza.copie=t.value||'1'; azErr(''); azRender(); }
           else if(t.name==='azoriginale'){ azBozza.originale_idx=t.value||'1'; azErr(''); }
           else if(t.name==='azfigura'){ azBozza.figura=t.value||null; azErr(''); }
           else if(t.name==='azbersagliofigura'){ azBozza.bersaglio_figura=t.value||null; azErr(''); }
@@ -9138,17 +8941,12 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(m) v.push((m>0?'+':'')+m+' m');
         if(azBozza&&azBozza.manovra) v.push('avvicinamento');
         else if(azBozza&&azBozza.principale){
-          /* [090] LA PILLOLA. Qui nasceva «AZIONE»: la chiave includeva la
-             direzione, la voce di Moltiplicazione non ce l'ha, `azTrova`
-             tornava nullo e si ripiegava sulla parola 'azione'.
-             Adesso la voce si trova, e il nome non basta: una Moltiplicazione
-             senza la sua modalita' e' meta' informazione. La pillola scrive
-             «Moltiplicazione del corpo · Diversivo». */
+          
           var x=azTrova(azIdent(azBozza.principale));
           var nm=(x&&x.nome)||'azione';
           if(azBozza.principale.fonte==='moltiplicazione'&&azBozza.principale.modalita){
             var mmm=azBozza.principale.modalita;
-            nm+=' \u00b7 '+(mmm==='diversivo'?'Diversivo':(mmm==='copertura'?'Copertura':'Assalto'));
+            nm+=' \u00b7 '+(mmm==='assalto'?'Assalto':'scelta non disponibile');
           }
           v.push(nm);
         } else if(azBozza&&azBozza.reazione){
@@ -9309,37 +9107,7 @@ window.TUSOrdinary={attachOrdinaryLand};
          arrivata dopo trova un numero diverso e viene lasciata cadere. Senza
          questo, una risposta tardiva rimetterebbe in pagina uno scambio già
          passato — e sarebbe il client a decidere a che punto è la prova. */
-      /* ═══ [093 · CICLO IA CANONICO] ═══════════════════════════════════
-         Quando il ripiego deterministico ha giocato al posto del modello, la
-         prova puo' restare ferma con il turno in mano al PNG e nessuno che
-         guidi la Edge: `esame_ai_tick()` la chiama, ma e' il driver del cron e
-         NON e' eseguibile da `authenticated` — verificato con
-         `has_function_privilege`. Dal browser l'unica via e' `functions.invoke`.
-
-         ⚠️ IL CONFINE E' `tuo_turno === false` INSIEME A
-            `narrazione_attesa === true`, NON «`opzioni_id` presente».
-            Il mandato chiedeva la seconda, ma `opzioni_id` della PROVA e' nullo
-            proprio nei casi che si vogliono sbloccare: `_esame_moltiplicazione_
-            candidato` lo azzera nel ramo Diversivo, e sulla prova viva
-            d44af4ba risultava nullo mentre l'unico `opzioni_id` esistente era
-            quello del CICLO di narrazione. Una spinta agganciata a quella
-            chiave non sarebbe partita mai. `tuo_turno === false` e' invece la
-            frase con cui il server dice «sto aspettando il PNG»;
-            `narrazione_attesa` distingue un ciclo realmente aperto da una resa
-            vecchia o da un passaggio che non richiede il modello.
-
-         ⚠️ UNA SOLA VOLTA per stato del server, ANCHE DOPO REFRESH. La firma e'
-            la quintupla
-            (prova, scambio, beat, meta, fase): finche' non cambia, la spinta
-            non si ripete — nemmeno se `esAccetta` viene chiamata dieci volte
-            dal giro dei nove secondi. La stessa firma resta in sessionStorage:
-            ricaricare la pagina non paga una seconda chiamata modello.
-            `inVolo` copre la finestra fra partenza e risposta; il contatore
-            serve al banco.
-
-         ⚠️ Il corpo pubblico della Edge e' `{prova_id}`. `{prova}` appartiene
-            al vecchio driver e riceve `missing_prova_id`: il difetto misurato
-            durante la prova reale. */
+      
       var ES_IA_KEY='tus_esame_ia_firma_v1';
       function esIALeggiFirma(){ try{return sessionStorage.getItem(ES_IA_KEY)||null;}catch(e){return null;} }
       function esIAScriviFirma(f){ try{sessionStorage.setItem(ES_IA_KEY,f);}catch(e){} }
@@ -10903,7 +10671,7 @@ const FACT_FIELDS = {
  movement:{movement_m:'Movimento (m)',reason_code:'Motivo movimento'},
  effect:{declared_reaction:'Reazione dichiarata',effective_reaction:'Reazione effettiva',defense_spent_on_copy:'Difesa consumata su copia',copy_intercepted:'Copia intercettata',assault_bonus:'Bonus assalto'},
  resolution:{mode:'Modalità',role:'Ruolo',outcome:'Esito'},
- diversivo:{movement_m:'Movimento (m)',movement_applied:'Movimento applicato',reason_code:'Motivo'},
+ historical_movement:{movement_m:'Movimento (m)',movement_applied:'Movimento applicato',reason_code:'Motivo'},
  formation:{mode:'Modalità',copy_count:'Numero copie',state:'Stato al referto',terminal_reason:'Motivo termine'},
  final:{family:'Famiglia',state:'Stato al referto',charges:'Cariche',end_reason:'Motivo termine'},
  lifecycle:{family:'Famiglia',retained:'Mantenuto',expired:'Terminato',reason:'Motivo'}
@@ -11185,7 +10953,7 @@ function mountExamHumanRound(container, { client, examId, authScope, storage = g
     const labels={copy_hit:'Copia colpita',original_found:'Originale individuato',attacking:'In attacco',targeted:'Bersaglio',pending:'In attesa',active:'Attivo',ended:'Terminato',expired:'Scaduto',consumed:'Consumato'};
     const readable=v=>typeof v==='boolean'?(v?'Sì':'No'):typeof v==='string'?(Object.hasOwn(labels,v)?labels[v]:v.replaceAll('_',' ')):String(v);
     const line=(box,label,value)=>{if(value!==undefined&&value!==null)element('p',`${label}: ${readable(value)}`,box);};
-    const details=(box,x,labels)=>{for(const[k,label]of Object.entries(labels))line(box,label,x?.[k]);};
+    const details=(box,x,labels)=>{for(const[k,label]of Object.entries(labels))line(box,label,k==='mode'&&x?.[k]!=null?(x[k]==='assalto'?'Assalto':'Modalità storica'):x?.[k]);};
     const section=title=>{const box=element('section',undefined,facts);box.style.marginBlock='10px';element('strong',title,box);return box;};
     const actorsBox=section('Attori al momento del referto');
     for(const a of f.actors)line(actorsBox,a.name,a.state);
@@ -11208,7 +10976,7 @@ function mountExamHumanRound(container, { client, examId, authScope, storage = g
     }
     if(f.multiplication.formations.length){const box=section('Copie · stato storico al referto');element('p','Include formazioni dei round precedenti già terminate; non indica nuove creazioni in questo round.',box);for(const x of f.multiplication.formations){element('strong',name(x.actor_id),box);details(box,x,FACT_FIELDS.formation);}}
     for(const x of f.multiplication.resolutions){const box=section(`Moltiplicazione · esito della dichiarazione di ${name(x.actor_id)}`);if(x.target_actor_id)line(box,'Bersaglio',name(x.target_actor_id));details(box,x,FACT_FIELDS.resolution);details(box,x.effect,FACT_FIELDS.effect);}
-    for(const x of f.multiplication.diversivo){const box=section('Diversivo · esito registrato');details(box,x,FACT_FIELDS.diversivo);}
+    for(const x of f.multiplication.diversivo){const box=section('Movimento · esito registrato');details(box,x,FACT_FIELDS.historical_movement);}
     if(f.effects.status==='reserved')element('p','I dettagli degli effetti sono riservati alla conduzione.',facts);
     else {
       const box=section('Effetti · stato storico al referto');element('p','Include effetti già terminati nella prova; non indica nuove applicazioni in questo round.',box);
@@ -12357,7 +12125,7 @@ if(sb?.auth?.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session)
                  round:d.prova.scambio, distanza:d.distanza, fascia:d.fascia,
                  chakra:{ora:io.ck, max:io.ck_max},
                  spostamento:o.spostamento||{disponibile:false, motivo_no:'Lo spostamento non è offerto in questo scambio.'},
-                 colpo:o.colpo||null, principali:o.principali||[], diversivi:o.diversivi||[], innate:o.innate||[],
+                 colpo:o.colpo||null, principali:o.principali||[], moltiplicazione:o.moltiplicazione||[], innate:o.innate||[],
                  manovre:o.manovre||[], rapide:[], reazioni:o.reazioni||[] };
       }
       function esComponi(){
@@ -12383,6 +12151,7 @@ if(sb?.auth?.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session)
          soglia, e nessun valore viene inventato in questa funzione. */
       function esNormalizza(az){
         var a=az||{}, out=null;
+        if(a.tipo==='attacco'&&a.principale&&(!['colpo','clan','jutsu','innata','moltiplicazione'].includes(a.principale.fonte)||(a.principale.fonte==='moltiplicazione'&&a.principale.modalita!=='assalto')))return null;
         if(a.tipo==='manovra'){
           /* Vocabolario chiuso: nessun numero e nessuna coordinata attraversano
              questa porta. Qualunque altra chiave viene rifiutata localmente. */
@@ -12405,7 +12174,6 @@ if(sb?.auth?.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session)
         } else if(a.tipo==='attacco'){
           out={tipo:'attacco', principale:{fonte:(a.principale&&a.principale.fonte)||null}};
           if(a.principale&&a.principale.id) out.principale.id=a.principale.id;
-          if(a.principale&&a.principale.fonte==='diversivo'&&a.principale.direzione) out.principale.direzione=a.principale.direzione;
           if(a.principale&&a.principale.fonte==='moltiplicazione'){
             out.principale.modalita=a.principale.modalita;
             out.principale.copie=a.principale.copie;
@@ -12416,21 +12184,6 @@ if(sb?.auth?.onAuthStateChange)sb.auth.onAuthStateChange(function(event,session)
                  della scelta. Senza questa riga il pannello mostrava 5 m ma
                  il server riceveva zero e rifiutava il contatto. */
               if(a.principale.direzione!=null) out.principale.direzione=a.principale.direzione;
-            }
-            if(a.principale.modalita==='diversivo'||a.principale.modalita==='copertura'){
-              out.principale.direzione=a.principale.direzione;
-              /* [R3 · 090] `figure` e `originale_idx` attraversano questa porta
-                 SOLO nel Diversivo, e solo se la bozza li ha davvero: niente
-                 zero di comodo, niente default del compositore. Ogni voce viene
-                 ricostruita a mano — `idx` e `posizione_m` e nient'altro —
-                 perche' quello che il compositore tiene per se' non deve
-                 attraversare la soglia. Il server rivalida tutto: questi non
-                 sono valori autorevoli, sono una PROPOSTA. */
-              if(a.principale.modalita==='diversivo'&&Array.isArray(a.principale.figure)&&a.principale.figure.length){
-                out.principale.figure=a.principale.figure.map(function(x){
-                  return {idx:+x.idx, posizione_m:+x.posizione_m}; });
-                if(a.principale.originale_idx!=null) out.principale.originale_idx=a.principale.originale_idx;
-              }
             }
           }
           if(a.spostamento!=null&&Number(a.spostamento)!==0) out.spostamento=a.spostamento;
