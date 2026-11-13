@@ -1,3 +1,9 @@
+# Combat · Stato del 13/11/2026
+
+**Decisione del 13/11/2026.** Copertura e Diversivo sono ritirati dalla Land e i relativi collaudi escono dal piano attivo. Referti e ricevute S24 restano nello storico. Il punto cieco Byakugan prosegue per i soli casi Staff residui, con F1 già acquisito.
+
+## Consegna precedente
+
 # Combat · W12 · collaudo bloccato dal controllo browser
 
 TASK-ID · COMBAT-TACTICS-W12-FINAL-20261109. Preparazione iniziale conservata senza reset.
