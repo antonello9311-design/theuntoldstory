@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="tus-mission-host-contract" content="mission-narrative-host/1" />
+<meta name="tus-staff-meal-receipt-build" content="staff-meal-receipt-20261113-1" />
 <meta name="tus-innata-presence-build" content="innata-presence-20261103-1" />
 <meta name="tus-innata-staff-profile-build" content="innata-all-clan-20261104-1" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13597,10 +13598,14 @@ var nb028iTeardown=function(){};
         button.type = 'button';
         button.className = 'ip-item';
         button.dataset.akimichiMeal = '1';
+        var confirmedStaffMeal = null;
+        var staffReceipt = room === UI_POSTREVIEW_STAFF_ROOM && cur?.is_test === true &&
+          iAmStaff === true && typeof offer.staff_session === 'string';
         button.textContent = pending ? 'Verifica consumo del Pasto completo' : 'Rifocillarsi · Pasto completo';
         button.addEventListener('click', async function () {
           if (myId !== principal || cur?.id !== room || pop.hidden || button.disabled) return;
-          var same = loadMealPending(key);
+          var verifyReceipt = confirmedStaffMeal !== null;
+          var same = confirmedStaffMeal || loadMealPending(key);
           var request = same?.request || crypto.randomUUID();
           var usedOffer = same?.offer || offer;
           saveMealPending(key, {request: request, offer: usedOffer});
@@ -13611,8 +13616,15 @@ var nb028iTeardown=function(){};
             });
             if (reply?.data?.accepted === true) {
               saveMealPending(key, null);
-              button.remove();
-              if (myId === principal && cur?.id === room) toast('Riserva calorica ripristinata.');
+              if (staffReceipt && !confirmedStaffMeal && myId === principal && cur?.id === room) {
+                confirmedStaffMeal = {request: request, offer: usedOffer};
+                button.textContent = 'Verifica ricevuta del Pasto completo';
+              } else {
+                button.remove();
+              }
+              if (myId === principal && cur?.id === room) {
+                toast(verifyReceipt ? 'Ricevuta del Pasto confermata.' : 'Riserva calorica ripristinata.');
+              }
             } else if (reply?.error && /^(22023|42501|55000)$/.test(reply.error.code || '')) {
               saveMealPending(key, null);
               button.remove();
