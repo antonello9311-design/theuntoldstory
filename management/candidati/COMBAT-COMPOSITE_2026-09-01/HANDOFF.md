@@ -1,5 +1,7 @@
 # Combat · Stato del 13/11/2026
 
+**Punto cieco Byakugan · Staff 13/11/2026.** Laterale esatto con Master PASS. Duello `34b39cc5-11b9-49a6-84c0-46e39f7c7fa8`, round 4, ricevuta `423cba67-2b49-43d6-994a-fa8a502275c6`: Byakugan I attivo, prodotto scalare 0, penalità 0. Scena chiusa, zero generazioni IA e risorse reali protette. F1 acquisito. Apertura sospesa: restano da attestare due origini con due difese nello stesso round e l’origine dal corpo della marionetta in un percorso Staff idoneo. Copertura e Diversivo restano fuori dal piano.
+
 **Decisione del 13/11/2026.** Copertura e Diversivo sono ritirati dalla Land e i relativi collaudi escono dal piano attivo. Referti e ricevute S24 restano nello storico. Il punto cieco Byakugan prosegue per i soli casi Staff residui, con F1 già acquisito.
 
 ## Consegna precedente
