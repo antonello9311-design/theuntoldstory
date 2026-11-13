@@ -1,3 +1,13 @@
+# COMBAT-UI-STAFF-ARCHIVE-20261113
+
+**Staff · archivio e selezione diretta · 13/11/2026.** Migrazioni `20261113161836` e `20261113161841`, review 0/0/0. Archivio di 1.088 messaggi collegati a sessioni chiuse; zero messaggi nella chat Staff dopo chiusura e archiviazione del nuovo collaudo. Conservati messaggi, report e ricevute, comprese le quattro ricevute B10, B3 e nuovo caso. L'RPC storico globale resta separato; il pulsante è nascosto nella Staff.
+
+**UI Staff.** Commit `043e7f5f10b79bd19db14b7e41b49005cf1e9c14`, Pages `43461842904` SUCCESS, SHA-256 `455babad8eb4e5dc5893ac3dfbcef0ab4dd8e3be2da8df894d09b58ce7e319af`. In Staff compaiono mete e bersagli legali sulla mappa, con lista accessibile, opzione unica preselezionata per bersaglio e copertura, un comando di conferma per scelta. Prova `ac74dc48-5e06-4b98-b59b-750d9c274b2e`, round `fc4f3c5b-01e3-4839-bd62-68f4000809bd`: un movimento di 1 m selezionato sulla mappa, bersaglio unico evidenziato, scelta d'arrivo dal controllo nativo, parata con attacco associato, risultato 30 danni simulati e Fato `c98c48b3-80dc-4080-b773-6a77e98ea190` pubblicato. Scena chiusa, zero scritture reali e zero chiamate IA. B10/B3 conservati.
+
+**Residui.** Da provare la selezione di un punto d'impatto, la lista da tastiera e il pannello stretto, la difesa multipla e il percorso Regia IA. Da completare esposizione degli effetti nel riepilogo Master e recupero bozza e vista. I contratti correnti mantengono la conferma delle meccaniche e l'invio separato della role. Nessuna estensione della UI fuori Staff.
+
+## Consegna precedente
+
 # COMBAT-FACING-ONE-REACTION-20261113
 
 **Punto cieco Byakugan attivo in Land · 13/11/2026.** Nel round Staff `e23a7764-f6b4-44dd-9358-2ee053a52682` sono arrivati due attacchi da origini diverse. L’unica reazione è stata la Parata contro Keita da dietro: Byakugan I, prodotto scalare −4, malus −3, ricevuta `7068f8af-e417-44c8-bf42-ac9c3688f3c9`. L’attacco di Riuji è stato risolto come «Nessuna difesa», senza seconda ricevuta Facing. Scena chiusa e narrata, nessuna scrittura di risorse reali o chiamata IA. F1, laterale esatto e origine marionetta acquisiti dalle prove precedenti. Migrazione `20261113114114`, revisione Facing 3, gate pubblico verificato attivo. Copertura e Diversivo restano spenti in Land.
