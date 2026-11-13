@@ -4036,6 +4036,11 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
         note(passive,`${technique.name} · livello ${technique.tier}`);
       }
     }
+    if(model.calorieReserve&&!model.error&&!model.refreshRequired&&!model.pending){
+      const reserve=section(sidebar,model.calorieReserve.simulated?'La tua riserva calorica di prova':'La tua riserva calorica');
+      note(reserve,`${model.calorieReserve.current} / ${model.calorieReserve.maximum} calorie`);
+      if(model.calorieReserve.form_active)note(reserve,'Espansione attiva');
+    }
     if(model.canRestoreTestResources===true)button(info,'Ripristina PV e chakra di prova',handler(ticket,restoreTestResources),locked);
     const pickerLabel=node('label','Personaggio controllato',info),picker=node('select',undefined,pickerLabel);
     pickerLabel.hidden=v.controlled_actors.length===1&&v.command_actor_id===v.controlled_actors[0].actor_id;
@@ -4544,16 +4549,57 @@ const {createPanelController}=module4;
 const {mountPanelView}=module6;
 // Host unico per le due superfici. Nessuna chiamata alla costruzione e nessun
 // fallback verso invii legacy: il testo viaggia soltanto nel commit atomico.
-function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{},onDraft=()=>{},confirmDraft=()=>{},renderers={},canRestoreTestResources=()=>false}){
+function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{},onDraft=()=>{},confirmDraft=()=>{},renderers={},canRestoreTestResources=()=>false,calorieRoom=()=>null,isCaloriePanelVisible=()=>false}){
   insist(root?.ownerDocument&&typeof client?.rpc==='function'&&typeof contextKey==='function','mount_configuration');
   let disposed=false,view,restoring=false,restoreMessage=null,restoreActivity=null,restoreEpoch=0;
-  let passiveStateUnavailable=false;
+  let passiveStateUnavailable=false,calorieReserve=null,calorieRead=0;
+  const staffCalorieRoom='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
+  function calorieBinding(m){
+    if(disposed||!isCaloriePanelVisible()||m.error||m.refreshRequired||m.pending)return null;
+    const owner=contextKey(),e=m.envelope,c=e?.context,actor=e?.viewer.command_actor_id,place=calorieRoom();
+    if(!owner||e?.status!=='ready'||place?.id!==locationId||c.location_id!==locationId||
+       !isId(c.activity_id)||!isId(actor)||!e.actors.some(a=>a.actor_id===actor&&a.mine&&a.kind==='pg')||
+       !['ordinary_v2','master_v2'].includes(c.activity_kind))return null;
+    const simulated=c.simulated===true;
+    if(simulated){
+      if(place.isTest!==true||locationId!==staffCalorieRoom||
+         c.policy_id!=='staff_test_no_persistent_resources_v1')return null;
+    }else{
+      const livePolicy=c.activity_kind==='ordinary_v2'?'free_duel_nonlethal_real_resources_v1':'master_game_resources_v1';
+      if(c.simulated!==false||place.isTest!==false||locationId===staffCalorieRoom||
+         !place.isAkimichi||c.policy_id!==livePolicy)return null;
+    }
+    return {key:JSON.stringify([owner,c.activity_id,c.activity_kind,actor,c.round_id,c.version,c.scene_version,c.phase,simulated]),
+      session:simulated?c.activity_id:null,simulated};
+  }
+  function clearCalorieReserve(){calorieRead++;calorieReserve=null;}
+  async function readCalorieReserve(){
+    const binding=calorieBinding(controller.snapshot());
+    if(!binding)return;
+    const ticket=++calorieRead;
+    let value=null;
+    try{
+      const result=await client.rpc('akimichi_calorie_state_v1',{p_session:binding.session});
+      const q=result?.data;
+      const fields=['schema_version','current','maximum','revision','simulated','form_active'];
+      if(!result?.error&&q&&typeof q==='object'&&!Array.isArray(q)&&
+         Object.keys(q).length===fields.length&&fields.every(key=>Object.hasOwn(q,key))&&
+         q.schema_version==='akimichi-calorie-owner/1'&&q.simulated===binding.simulated&&
+         typeof q.form_active==='boolean'&&[q.current,q.maximum,q.revision].every(Number.isSafeInteger)&&
+         q.current>=0&&q.maximum>=q.current&&q.revision>0)value=q;
+    }catch{/* Una lettura opzionale non blocca il pannello. */}
+    const m=controller.snapshot();
+    if(ticket!==calorieRead||calorieBinding(m)?.key!==binding.key)return;
+    calorieReserve=value?{key:binding.key,value}:null;
+    view?.render(presented(m));
+  }
   const allowed=m=>m.validated===true&&m.envelope?.status==='ready'&&
     m.envelope.context?.simulated===true&&m.envelope.context.activity_kind==='ordinary_v2'&&
     m.envelope.context.phase==='action'&&m.envelope.context.policy_id==='staff_test_no_persistent_resources_v1'&&
     m.envelope.context.location_id===locationId&&isId(m.envelope.context.activity_id)&&
     locationId==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&canRestoreTestResources()===true;
   const presented=m=>({...m,busy:m.busy||restoring,canPrepare:m.canPrepare&&!restoring,canConfirmMechanics:m.canConfirmMechanics&&!restoring,
+    calorieReserve:calorieReserve&&calorieReserve.key===calorieBinding(m)?.key?calorieReserve.value:null,
     canRestoreTestResources:allowed(m),restoreMessage:m.envelope?.context?.activity_id===restoreActivity?restoreMessage:null});
   const publish=model=>{if(!disposed){const m=presented(model);view?.render(m);onDraft(m);}};
   const controller=createPanelController({
@@ -4573,7 +4619,13 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
     onChange:publish
   });
   const invoke=fn=>async(...args)=>{if(disposed||restoring)return null;try{return await fn(...args);}catch(e){if(!disposed)controller.reportInteractionError(e);return null;}};
-  async function read(){if(!await controller.readState())return false;const m=controller.snapshot();if(m.envelope?.viewer.can_command&&!m.pending)return controller.readOptions();return true;}
+  async function read(){
+    if(!await controller.readState())return false;
+    const m=controller.snapshot();
+    void readCalorieReserve();
+    if(m.envelope?.viewer.can_command&&!m.pending)return controller.readOptions();
+    return true;
+  }
   async function restoreTestResources(){
     const before=controller.snapshot(),key=contextKey();
     if(disposed||restoring||before.busy||before.pending||!key||!allowed(before))return false;
@@ -4599,12 +4651,20 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   }
   async function send(retry=false){
     const key=contextKey(),before=controller.snapshot(),receipt=await(retry?controller.retry():controller.submit());
-    if(receipt&&!disposed&&contextKey()===key)await onConfirmed(receipt,before.narrativeText);
+    if(receipt&&!disposed&&contextKey()===key){
+      void readCalorieReserve();
+      await onConfirmed(receipt,before.narrativeText);
+    }
     return receipt;
   }
   view=mountPanelView(root,{
     readState:invoke(read),readOptions:invoke(()=>controller.readOptions()),restoreTestResources,
-    selectActor:invoke(async actor=>{if(await controller.selectActor(actor))return controller.readOptions();return false;}),
+    selectActor:invoke(async actor=>{
+      clearCalorieReserve();
+      if(!await controller.selectActor(actor))return false;
+      void readCalorieReserve();
+      return controller.readOptions();
+    }),
     selectOffer:invoke(id=>controller.selectOffer(id)),clearOffer:invoke(()=>controller.clearOffer()),selectOption:invoke((group,id,on)=>controller.selectOption(group,id,on)),
     setInput:invoke((id,value)=>controller.setInput(id,value)),setNarrative:invoke(value=>controller.setNarrative(value)),
     confirmDraft:invoke(()=>confirmDraft(controller.snapshot())),prepare:invoke(()=>send(false)),retry:invoke(()=>send(true))
@@ -4621,8 +4681,9 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
     setNarrative:invoke(value=>{controller.setNarrative(value);return true;}),
     setCompanionContext:invoke(value=>{controller.setCompanionContext(value);return true;}),
     submit:invoke(()=>send(false)),
-    invalidate:()=>{restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;if(!disposed)controller.invalidate();},
-    dispose:()=>{disposed=true;restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;controller.clear();view.clear();},
+    clearCalorieReserve:()=>{clearCalorieReserve();if(!disposed)view.render(presented(controller.snapshot()));},
+    invalidate:()=>{clearCalorieReserve();restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;if(!disposed)controller.invalidate();},
+    dispose:()=>{disposed=true;clearCalorieReserve();restoreEpoch++;restoring=false;restoreMessage=null;restoreActivity=null;controller.clear();view.clear();},
     snapshot:()=>presented(controller.snapshot())
   };
 }
@@ -5030,7 +5091,7 @@ function attachCombatPanel(host){
       const button=doc.createElement('button');button.type='button';button.textContent='Pubblica Fato e apri le risposte';button.addEventListener('click',()=>regiaWrite('publish'));regiaControls.append(button);}
   }
   function suspend(){panel?.suspend();}
-  function hide(){resetActorLabelMode();deactivateLayout?.();deactivateLayout=null;if(inlineBody){inlineBody.hidden=true;inlineBody=null;}dialog.hidden=true;dialog.style.display='none';if(opened&&surface==='master')host.closeMaster?.();opened=false;}
+  function hide(){resetActorLabelMode();deactivateLayout?.();deactivateLayout=null;if(inlineBody){inlineBody.hidden=true;inlineBody=null;}dialog.hidden=true;dialog.style.display='none';if(opened&&surface==='master')host.closeMaster?.();opened=false;panel?.clearCalorieReserve();}
   function invalidate(){generation++;key=null;chatSubmitted=null;companionSubmitted=null;confirmedDraft=null;refreshing=null;regiaState=null;regiaScope=null;regiaReadError=null;regiaReadToken++;regiaReading=null;regiaObservedBinding=null;regiaOptedInScope=null;regiaDirection={turn_kind:'',actor_ids:[]};panel?.dispose();panel=null;root.replaceChildren();hide();syncDraft(null);showEntry();}
   function showEntry(){const allowed=!!scope();card.hidden=!allowed;card.style.display=allowed?'':'none';entry.hidden=!allowed;entry.disabled=!allowed;const note=doc.getElementById('ordinary-entry-note');if(note){const m=panel?.snapshot(),pending=m?.envelope?.context?.phase==='waiting_join'&&m.envelope.context.activity_id!==null&&m.envelope.viewer?.can_command===true;note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent=pending?'Richiesta sfida in attesa':'Pannello comune: disponibilità e scelte sono verificate dal server.';}}
   function ensure(){
@@ -5038,6 +5099,7 @@ function attachCombatPanel(host){
     key=next;const stamp=generation;ordinary.append(root);
     panel=mountPanelSurface({root,locationId:host.location().id,contextKey:scope,
       canRestoreTestResources:()=>host.canRestoreTestResources?.()===true,
+      calorieRoom:()=>host.calorieRoom?.(),isCaloriePanelVisible:()=>opened,
       client:{rpc:(name,args)=>host.rpc(name,args)},renderers:host.renderers??(host.visuals?{map:createVisualMapRenderer(host.visuals)}:undefined),
       onDraft:m=>{
         const binding=regiaBinding(m?.envelope);
@@ -6755,6 +6817,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           attachOpening:window.TUSOrdinary&&window.TUSOrdinary.attachOrdinaryLand,
           principal:function(){return loggedIn&&myId&&myCharId?JSON.stringify([myId,myCharId]):null;},
           canRestoreTestResources:function(){return iAmStaff&&commonPanelRoom();},
+          calorieRoom:function(){return cur?{id:cur.id,isTest:cur.is_test,isAkimichi:myClan==='Akimichi'}:null;},
           identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId&&myId&&(commonCombatRoom()||myCharId)?{principal_id:myId,character_id:myCharId||null}:null;},
           isExam:function(){return (!!(cur&&cur.is_exam_room)&&!(cur&&cur.is_test&&iAmStaff))||esScontroVivo();},
           otherCombat:function(){return !!(CMB&&CMB.aperto)||!!(MV2&&MV2.data&&MV2.data.encounter);},
@@ -13498,13 +13561,94 @@ var nb028iTeardown=function(){};
         host.innerHTML=rows.map(function(r){ var nm=(r.item&&r.item.name)?r.item.name:'—'; return '<button class="ip-item" data-eq="'+r.id+'">'+esc(nm)+(r.quantity>1?' <span class="ip-q">×'+r.quantity+'</span>':'')+'</button>'; }).join('');
         Array.prototype.forEach.call(host.querySelectorAll('.ip-item'),function(b){ b.addEventListener('click',function(){ useItem(b.getAttribute('data-eq')); }); });
       }
+      var mealRequestPending = new Map();
+      function loadMealPending(key) {
+        if (mealRequestPending.has(key)) return mealRequestPending.get(key);
+        try {
+          var pending = JSON.parse(sessionStorage.getItem(key) || 'null');
+          if (pending && typeof pending.request === 'string' && pending.offer) return pending;
+        } catch (_) {}
+        return null;
+      }
+      function saveMealPending(key, value) {
+        if (value) mealRequestPending.set(key, value);
+        else mealRequestPending.delete(key);
+        try {
+          if (value) sessionStorage.setItem(key, JSON.stringify(value));
+          else sessionStorage.removeItem(key);
+        } catch (_) {}
+      }
+      async function addMealOffer(pop, principal, room) {
+        var key = ['tus-akimichi-meal', principal, room].join(':');
+        var pending = loadMealPending(key);
+        var offer = pending?.offer;
+        if (!offer) {
+          var result;
+          try { result = await sb.rpc('akimichi_meal_offer_v1'); }
+          catch (_) { return; }
+          if (!result || result.error || !result.data) return;
+          offer = result.data;
+        }
+        if (pop.hidden || myId !== principal || cur?.id !== room) return;
+        if (typeof offer.item_id !== 'string' || (offer.staff_session !== null && typeof offer.staff_session !== 'string')) return;
+        var host = document.getElementById('ip-list');
+        if (!host || host.querySelector('[data-akimichi-meal]')) return;
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'ip-item';
+        button.dataset.akimichiMeal = '1';
+        button.textContent = pending ? 'Verifica consumo del Pasto completo' : 'Rifocillarsi · Pasto completo';
+        button.addEventListener('click', async function () {
+          if (myId !== principal || cur?.id !== room || pop.hidden || button.disabled) return;
+          var same = loadMealPending(key);
+          var request = same?.request || crypto.randomUUID();
+          var usedOffer = same?.offer || offer;
+          saveMealPending(key, {request: request, offer: usedOffer});
+          button.disabled = true;
+          try {
+            var reply = await sb.rpc('akimichi_rifocillarsi_v1', {
+              p_item: usedOffer.item_id, p_request: request, p_staff_session: usedOffer.staff_session
+            });
+            if (reply?.data?.accepted === true) {
+              saveMealPending(key, null);
+              button.remove();
+              if (myId === principal && cur?.id === room) toast('Riserva calorica ripristinata.');
+            } else if (reply?.error && /^(22023|42501|55000)$/.test(reply.error.code || '')) {
+              saveMealPending(key, null);
+              button.remove();
+              if (myId === principal && cur?.id === room) toast('Pasto non consumato. Riapri Oggetto per aggiornare.');
+            } else if (myId === principal && cur?.id === room) {
+              button.textContent = 'Verifica consumo del Pasto completo';
+              toast('Esito da verificare. Riprova con lo stesso comando.');
+            }
+          } catch (_) {
+            if (myId === principal && cur?.id === room) {
+              button.textContent = 'Verifica consumo del Pasto completo';
+              toast('Esito da verificare. Riprova con lo stesso comando.');
+            }
+          } finally {
+            button.disabled = false;
+          }
+        });
+        host.querySelector('.ip-empty')?.remove();
+        host.appendChild(button);
+      }
       function openItemPop(){
         var pop=document.getElementById('item-pop'); if(!pop) return;
         if(!pop.hidden){ pop.hidden=true; return; }
         var host=document.getElementById('ip-list'); if(host) host.innerHTML='<div class="ip-empty">Caricamento…</div>';
         pop.hidden=false;
-        if(sb&&myCharId){ sb.from('character_equipment').select('id,quantity,item:items(name,category)').eq('character_id',myCharId).then(function(r){ renderItemPop((r&&!r.error)?r.data:[]); }, function(){ renderItemPop([]); }); }
-        else renderItemPop([]);
+        if (sb && myCharId && cur) {
+          var principal = myId;
+          var room = cur.id;
+          function showItems(rows) {
+            if (pop.hidden || myId !== principal || cur?.id !== room) return;
+            renderItemPop(rows);
+            void addMealOffer(pop, principal, room);
+          }
+          sb.from('character_equipment').select('id,quantity,item:items(name,category)').eq('character_id',myCharId)
+            .then(function(r) { showItems(r && !r.error ? r.data : []); }, function() { showItems([]); });
+        } else renderItemPop([]);
       }
       function useItem(eqId){
         var pop=document.getElementById('item-pop'); if(pop) pop.hidden=true;
