@@ -26,6 +26,8 @@ Storico 07/11 · T3 aggregata1 qualificata nei soli sorgenti dopo il tentativo a
 
 ## Funzioni già disponibili da non ricostruire
 
+**Staff Master · B10 e B3 completati il 13/11/2026.** Nello scontro protetto `c1b75166-f6d7-4d70-9a7c-56887d4841cb`, round 1, Rotazione Suprema a 3 m: valutazioni 0/0, danno 0, costo simulato 10 chakra una volta, Riuji da (6,6) a (8,6), Fato pubblicato. Round 2, Suprema concentrata su Riuji: 36 danni simulati. Round 3, Suprema esplosiva al punto (8,6): 24 danni simulati. Entrambi i Katon costano 10 chakra simulati e riportano Risonanza I, valutazione Master e Fato pubblicato. Scena chiusa, zero scritture sulle risorse reali e zero chiamate IA.
+
 - Movimento ortogonale e diagonale senza consumo della principale nei percorsi già collegati.
 - Marionettisti, Controllo/Flussi singolo/Trasporto/Clone Sabaku, Byakugan/Jūken/Sedici/Rotazione e Sharingan/Palle di Fuoco/Risonanza nei rispettivi perimetri pubblicati.
 - Moltiplicazione Assalto con +2/+3, difesa normale e consumo delle copie; Sostituzione nel percorso difensivo.
@@ -49,8 +51,8 @@ Cumulativi284comandi/18scene proprie tutte chiuse/16provider,71319input+16503out
 | 1 | Primo run giocato della Scorta già pubblicata | È distinto dall’editor rapido, che è concluso. Eseguirlo solo quando il roster previsto è libero e senza riaprire le task di sviluppo dell’editor. |
 | 1 | Punto cieco Byakugan | Solo casi Staff residui. F1 acquisito. |
 | 2 | Armatura di Sabbia | Pubblicata il 21/09 dopo review 0/0/0 e apertura del gate; nessun caso bloccante residuo. |
-| 2 | Punto cieco Byakugan | Regola decisa; mancano facing/origine attacco e geometria posteriore autorevoli. |
-| 2 | Casi Master pertinenti | Rotazione, Katon e interazioni indicate nelle checklist; non ripetere i casi ordinary già verdi. |
+| 2 | Punto cieco Byakugan | Collaudato in Staff e aperto in Land. |
+| 2 | Semplificazione pannello Combat | B10 e B3 completati in Staff. Piano nel cantiere COMBAT-COMPOSITE. |
 | 3 | Qualità Narratore | Osservare il prossimo Fato PNG v30 e casi completi di scontro/missione; registrare note editoriali specifiche. |
 | 3 | Immagini PNG sulla mappa | Trasformare i ritratti dell’annuario in ritagli coerenti con Tamako; requisito già annotato, implementazione non conclusa. |
 | 4 | Nuova utenza | Analisi mirata ad adulti italofoni, anche nuovi al play-by-chat e interessati a GDR/anime/manga; budget ancora da definire, nessuna spesa avviata. |

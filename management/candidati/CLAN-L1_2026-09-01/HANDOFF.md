@@ -1,3 +1,11 @@
+# CLAN-MASTER-B10-B3-20261113 · Staff con Master
+
+**Staff Master · B10 e B3 completati il 13/11/2026.** Nello scontro protetto `c1b75166-f6d7-4d70-9a7c-56887d4841cb`, round 1, Rotazione Suprema a 3 m: valutazioni 0/0, danno 0, costo simulato 10 chakra una volta, Riuji da (6,6) a (8,6), Fato pubblicato. Round 2, Suprema concentrata su Riuji: 36 danni simulati. Round 3, Suprema esplosiva al punto (8,6): 24 danni simulati. Entrambi i Katon costano 10 chakra simulati e riportano Risonanza I, valutazione Master e Fato pubblicato. Scena chiusa, zero scritture sulle risorse reali e zero chiamate IA.
+
+Il profilo Hyūga da 45 è stato preparato nel roster Staff a due PG, dopo due preparazioni chiuse senza qualifica. Sul colpo B10 un’offerta scaduta ha richiesto rilettura prima dell’unico invio accettato. Nel round esplosivo il Master ha dovuto ricaricare la vista dopo «Evento non riconosciuto» e ha recuperato la dichiarazione accettata senza reinviarla. La vista Master mostra nome e bersaglio della Suprema; modalità e punto vanno esposti come dati del pannello. In B10 il pannello ha mostrato alla difesa il testo precedente, benché la scelta meccanica e il risultato fossero corretti: riprendere il raccordo role/difesa nel piano UI.
+
+## Consegna precedente
+
 # SABAKU-ARMOR-PUBLIC-RULES-CLAN-UI-20260921
 
 TASK-ID · SABAKU-ARMOR-PUBLIC-RULES-CLAN-UI-20260921

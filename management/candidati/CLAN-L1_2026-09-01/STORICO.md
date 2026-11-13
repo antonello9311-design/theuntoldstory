@@ -1,3 +1,4 @@
+13/11/2026 · Staff Master B10 e B3 · Rotazione 3 m, Katon concentrata ed esplosiva con Risonanza I · PASS meccanico, tre Fati pubblicati.
 21/09/2026 · SABAKU-ARMOR-PUBLIC-ENABLE-20260921-004 · Armatura pubblica con gate Staff/pubblico ON, review 0/0/0 e postflight sicurezza PASS; cataloghi Regole/Clan online al commit ed2842a7 e Pages 764 verificata · esito: rilascio completato.
 
 21/09/2026 · SABAKU-ARMOR-PUBLIC-RULES-CLAN-UI-20260921 · cataloghi Regole/Clan convertiti a selezione singola e verificati; secondo tentativo sabbia insufficiente interrotto da errore rete su entrambi i browser, sessione chiusa e isolamento confermato · esito: UI pronta alla pubblicazione, Armatura pubblico OFF.
