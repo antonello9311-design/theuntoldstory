@@ -1,3 +1,4 @@
+- 13/11/2026 · Pannello marionetta corretto e origine PASS in Staff. Doppia reazione da qualificare, gate Land spento.
 - 13/11/2026 · Origine marionetta Staff: collegamento acquisito, attacco indisponibile nel pannello Master. Scena chiusa, gate Land spento.
 - 13/11/2026 · Punto cieco Byakugan: laterale esatto Master PASS in Staff. F1 conservato. Due origini e marionetta da attestare, gate Land chiuso.
 - 13/11/2026 · Copertura e Diversivo ritirati dalla Land. Referti e ricevute S24 conservati.
