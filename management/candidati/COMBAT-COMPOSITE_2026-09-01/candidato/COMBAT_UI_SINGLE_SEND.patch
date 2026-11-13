@@ -1,0 +1,134 @@
+--- a/land.html
++++ b/land.html
+@@ -3929,7 +3929,7 @@
+   }
+ }
+ 
+-function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,confirmDraft,prepare,retry,restoreTestResources}={},renderers={}){
++function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clearOffer,selectOption,setInput,setNarrative,confirmDraft,prepare,retry,restoreTestResources,singleRoleSend=false}={},renderers={}){
+   renderers={map:renderPanelMap,companion:renderPanelCompanion,sabaku_transport:renderPanelSabaku,aburame_colony:renderPanelAburame,...renderers};
+   const doc=root.ownerDocument;installPanelLayout(doc);root.classList.add('common-panel-view');
+   if(!doc.getElementById('common-panel-flow-style')){const style=doc.createElement('style');style.id='common-panel-flow-style';style.textContent='.common-panel-view [hidden]{display:none!important}.common-panel-view .common-panel-movement{order:-2!important}.common-panel-view .common-panel-innate{order:-1!important}';doc.head.append(style);}
+@@ -4386,7 +4386,7 @@
+       if(envelope.context.location_id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&
+         ['coverage','target','movement_distance'].includes(group.purpose)&&options.length===1&&
+         selected.has(options[0].option_id)){
+-        note(groupHost,group.label+' · '+options[0].label);
++        note(groupHost,(group.purpose==='coverage'?'Risposta a':group.label)+' · '+options[0].label);
+         continue;
+       }
+       const field=node('fieldset',undefined,fallback||groupHost);field.disabled=disabled||!selectOption;
+@@ -4426,8 +4426,13 @@
+     }
+     renderMovementReasons(area,envelope,offer,selected);
+     if(offer.requires_role||offer.companion_context_required===true){
+-      note(area,'Conferma la scelta, poi scrivi la role nella chat della scena. Il turno parte soltanto con Invia.');
+-      button(area,'Conferma scelta',handler(ticket,confirmDraft),disabled||model.canConfirmMechanics!==true);
++      if(singleRoleSend){
++        note(area,'Invia dalla chat per registrare insieme scelta e role.');
++        button(area,'Scrivi la role',handler(ticket,confirmDraft),disabled||model.canConfirmMechanics!==true);
++      }else{
++        note(area,'Conferma la scelta, poi scrivi la role nella chat della scena. Il turno parte soltanto con Invia.');
++        button(area,'Conferma scelta',handler(ticket,confirmDraft),disabled||model.canConfirmMechanics!==true);
++      }
+     }else button(area,'Conferma scelta',()=>{
+       if(ticket!==generation||!prepare)return;
+       const scope=movementStepScope;
+@@ -4660,7 +4665,7 @@
+ const {mountPanelView}=module6;
+ // Host unico per le due superfici. Nessuna chiamata alla costruzione e nessun
+ // fallback verso invii legacy: il testo viaggia soltanto nel commit atomico.
+-function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{},onDraft=()=>{},confirmDraft=()=>{},renderers={},canRestoreTestResources=()=>false,calorieRoom=()=>null,isCaloriePanelVisible=()=>false}){
++function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{},onDraft=()=>{},confirmDraft=()=>{},renderers={},canRestoreTestResources=()=>false,calorieRoom=()=>null,isCaloriePanelVisible=()=>false,singleRoleSend=false}){
+   insist(root?.ownerDocument&&typeof client?.rpc==='function'&&typeof contextKey==='function','mount_configuration');
+   let disposed=false,view,restoring=false,restoreMessage=null,restoreActivity=null,restoreEpoch=0;
+   let passiveStateUnavailable=false,calorieReserve=null,calorieRead=0;
+@@ -4769,7 +4774,7 @@
+     return receipt;
+   }
+   view=mountPanelView(root,{
+-    readState:invoke(read),readOptions:invoke(()=>controller.readOptions()),restoreTestResources,
++    readState:invoke(read),readOptions:invoke(()=>controller.readOptions()),restoreTestResources,singleRoleSend,
+     selectActor:invoke(async actor=>{
+       clearCalorieReserve();
+       if(!await controller.selectActor(actor))return false;
+@@ -4951,11 +4956,14 @@
+     }
+     return '⚔ '+parts.join(' · ');
+   }
++  const singleRoleSend=()=>host.location()?.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
++  let submittingRole=false;
+   function syncDraft(m){
+     syncSendFeedback(m);host.syncSendGate?.();
+     const signature=draftSignature(m),visible=!!confirmedDraft&&signature===confirmedDraft.signature&&!m.pending;
+     if(confirmedDraft&&!visible&&(!signature||signature!==confirmedDraft.signature||m.pending))confirmedDraft=null;
+-    for(const badge of badges){badge.hidden=!visible;if(visible)badge.textContent=confirmedDraft.label;}
++    const ready=singleRoleSend()?!!signature&&!m.pending:visible;
++    for(const badge of badges){badge.hidden=!ready;if(ready)badge.textContent=singleRoleSend()?draftLabel(m):confirmedDraft.label;}
+   }
+   function scope(){const who=host.identity?.(),place=host.location?.();return !disposed&&who&&isId(who.principal_id)&&(who.character_id===null||isId(who.character_id))&&isId(place?.id)&&!host.isExam?.()?JSON.stringify([who.principal_id,who.character_id,place.id]):null;}
+   function regiaBinding(e){
+@@ -5208,7 +5216,7 @@
+   function ensure(){
+     const next=scope();if(next!==key)invalidate();if(!next)return false;if(panel)return true;
+     key=next;const stamp=generation;ordinary.append(root);
+-    panel=mountPanelSurface({root,locationId:host.location().id,contextKey:scope,
++    panel=mountPanelSurface({root,locationId:host.location().id,contextKey:scope,singleRoleSend:singleRoleSend(),
+       canRestoreTestResources:()=>host.canRestoreTestResources?.()===true,
+       calorieRoom:()=>host.calorieRoom?.(),isCaloriePanelVisible:()=>opened,
+       client:{rpc:(name,args)=>host.rpc(name,args)},renderers:host.renderers??(host.visuals?{map:createVisualMapRenderer(host.visuals)}:undefined),
+@@ -5221,7 +5229,8 @@
+         syncDraft(m);showEntry();
+       },confirmDraft:m=>{
+         const signature=draftSignature(m);if(!m.canConfirmMechanics||!signature)return;
+-        confirmedDraft={signature,label:draftLabel(m)};syncDraft(m);if(!inlineBody)hide();doc.getElementById('msg-input')?.focus();
++        if(!singleRoleSend())confirmedDraft={signature,label:draftLabel(m)};
++        syncDraft(m);if(!inlineBody)hide();doc.getElementById('msg-input')?.focus();
+       },
+       onConfirmed:async(receipt,submitted)=>{
+         if(stamp!==generation||key!==scope())return;
+@@ -5263,26 +5272,40 @@
+   function ownsCurrent(){return routeAllowed()&&key===scope()&&!!panel?.snapshot().envelope?.context?.activity_id;}
+   function handleSend(raw,narrative,companionText='',companion=null){
+     if(!scope()||key!==scope()){invalidate();return false;}
++    if(singleRoleSend()&&submittingRole)return true;
+     const m=panel?.snapshot();if(!m||!ownsCurrent())return false;
+     if(m.pending||m.busy){host.notice('Invio in corso o incerto: verifica la stessa richiesta dal pannello.');return true;}
+     const reason=blockingReason({companionText});if(reason){host.notice(reason);return true;}
+     if(!m.envelope.viewer.can_command)return false;
+     const offer=m.envelope.offers.find(o=>o.offer_id===m.selectedOfferId);
+     if(!(offer?.requires_role||offer?.companion_context_required===true)){host.notice('Scegli prima l’azione da collegare alla role nel pannello.');return true;}
+-    if(!confirmedDraft||draftSignature(m)!==confirmedDraft.signature){host.notice('Conferma la scelta meccanica nel pannello prima di inviare la role.');return true;}
++    const signature=draftSignature(m);
++    if(!signature||!singleRoleSend()&&signature!==confirmedDraft?.signature){
++      host.notice(singleRoleSend()?'Completa la scelta nel pannello prima di inviare la role.':'Conferma la scelta meccanica nel pannello prima di inviare la role.');
++      return true;
++    }
++
+     const needsCompanion=offer.companion_context_required===true;
+     if(needsCompanion&&(!companion||companion.kind!=='cane_ninja'||!isId(companion.id)||!String(companionText||'').trim())){host.notice('Completa anche l’azione del ninken prima di inviare.');return true;}
+     // Un solo invio atomico, mai il successivo post_message della chat.
+-    const active=panel,stamp=generation;chatSubmitted=raw;companionSubmitted=needsCompanion?String(companionText).trim():null;
++    const active=panel,stamp=generation,single=singleRoleSend(),round=m.envelope.context.round_id;
++    const stillBound=()=>stamp===generation&&key===scope()&&active.snapshot().envelope?.context?.round_id===round&&draftSignature(active.snapshot())===signature;
++    submittingRole=single;chatSubmitted=raw;companionSubmitted=needsCompanion?String(companionText).trim():null;
+     Promise.resolve(needsCompanion?active.setCompanionContext({id:companion.id,body:String(companionText)}):active.setCompanionContext(null))
+-      .then(ok=>ok===true&&active.setNarrative(narrative)).then(ok=>{if(ok===true&&stamp===generation&&key===scope())return active.submit();});return true;
++      .then(ok=>{
++        if(ok!==true||single&& !stillBound())return false;
++        return active.setNarrative(narrative);
++      }).then(ok=>{
++        if(ok===true&&stamp===generation&&key===scope()&&(!single||stillBound()))return active.submit();
++        if(single&&stamp===generation&&key===scope()&&!stillBound())host.notice('Il turno è cambiato. La role è conservata.');
++      }).finally(()=>{if(single)submittingRole=false;});return true;
+   }
+   const entryClick=()=>open('ordinary');
+   entry.addEventListener('click',entryClick);close.addEventListener('click',hide);
+   function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',hide);invalidate();for(const badge of badges)badge.remove();blockingToast.remove();doc.body.classList.remove('combat-has-blocking-toast');root.remove();}
+   showEntry();
+   return {open,refresh,invalidate,suspend,dispose,handleSend,blockingReason,ownsCurrent,closeMasterSurface:()=>{if(surface==='master')hide();},
+-    companionGate:()=>{const m=panel?.snapshot(),offer=m?.envelope?.offers?.find(o=>o.offer_id===m.selectedOfferId);return {required:offer?.companion_context_required===true,mechanicsReady:!!confirmedDraft&&draftSignature(m)===confirmedDraft.signature};},
++    companionGate:()=>{const m=panel?.snapshot(),offer=m?.envelope?.offers?.find(o=>o.offer_id===m.selectedOfferId);return {required:offer?.companion_context_required===true,mechanicsReady:singleRoleSend()?!!draftSignature(m):!!confirmedDraft&&draftSignature(m)===confirmedDraft.signature};},
+     ownsSurface:()=>routeAllowed()&&opened&&key===scope(),
+     currentSurface:()=>surface,
+     clearPresentation:invalidate,
