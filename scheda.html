@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>La tua scheda — The Untold Story</title>
-<meta name="tus-build" content="TECH-FIELDS-UI001-SCHEDA">
+<meta name="tus-build" content="SHURIKEN-LAND-QA-20261114">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preconnect" href="https://tyhyxkslteigibktluml.supabase.co" crossorigin />
@@ -652,6 +652,11 @@
               </div>
               <div class="ie-right">
                 <div class="ie-rhead"><span class="ie-rtitle">Inventario personale</span><button class="btn btn-red btn-sm" id="inv-shop-btn">Apri il negozio</button></div>
+                <div id="shuriken-qa-controls" hidden>
+                  <button type="button" class="btn btn-sm" id="shuriken-qa-stock">Prepara due Shuriken di prova</button>
+                  <button type="button" class="btn btn-sm" id="shuriken-qa-replay">Ripeti lo stesso lancio di prova</button>
+                  <p id="shuriken-qa-result" role="status"></p>
+                </div>
                 <div id="inv-cats" class="inv-cats"></div>
                 <div class="shop" id="shop" style="display:none">
                   <h3 id="shop-title">Negozio</h3>
@@ -2681,6 +2686,31 @@
     }
     function bindIE(){
       var root=$('invequip'); if(!root)return;
+      const qaControls=$('shuriken-qa-controls');
+      function bindShurikenQaButton(buttonId, rpc, describe){
+        const button=$(buttonId);
+        button.addEventListener('click',async()=> {
+          if(qaControls.hidden||!sb)return;
+          button.disabled=true;
+          const result=$('shuriken-qa-result');
+          try {
+            const response=await sb.rpc(rpc);
+            if(response.error)throw Error(response.error.message);
+            result.textContent=describe(response.data);
+            refreshEquip();
+            refreshInventory();
+          }catch(error){
+            result.textContent='Prova non confermata. '+String(error.message||'');
+          }finally{
+            button.disabled=false;
+          }
+        });
+      }
+      bindShurikenQaButton('shuriken-qa-stock','shuriken_qa_prepare_stock_v1',
+        result=>'Inventario '+result.inventory+' · equipaggiati '+result.equipped);
+      bindShurikenQaButton('shuriken-qa-replay','shuriken_qa_replay_v1',
+        result=>'Stessa ricevuta '+result.receipt_id+' · inventario '+result.inventory_after_replay+
+          ' · equipaggiati '+result.equipped_after_replay);
       var shopBtn=$('inv-shop-btn'); if(shopBtn)shopBtn.addEventListener('click',function(){var s=$('shop');if(!s)return;var closed=(s.style.display==='none'||!s.style.display);if(closed){s.style.display='block';this.textContent='Chiudi il negozio';loadShop();}else{s.style.display='none';this.textContent='Apri il negozio';}});
       var logBtn=$('log-btn'); if(logBtn)logBtn.addEventListener('click',function(){var b=$('log-box');if(!b)return;var closed=(b.style.display==='none'||!b.style.display);if(closed){b.style.display='block';this.textContent='Nascondi registro';LOGSHOWN=true;loadLog();}else{b.style.display='none';this.textContent='Mostra registro movimenti';LOGSHOWN=false;}});
       root.addEventListener('click',async function(e){
@@ -2736,6 +2766,9 @@
         if(r.error){$('err-msg').textContent=r.error.message;show('st-error');return;}
         if(!r.data){show('st-create');return;}
         myChar=r.data;
+        const qaControls=$('shuriken-qa-controls');
+        qaControls.hidden=!(myChar.id==='2a877f02-4993-4e65-9172-7d29f08c5b86' && myChar.is_test===true
+          && new URLSearchParams(location.search).get('collaudo_shuriken')==='1');
         var p=await sb.from('character_private').select('*').eq('character_id',myChar.id).maybeSingle();
         curPriv=p.data||null; fillForm(myChar,curPriv); show('st-sheet'); refreshInventory(); refreshEquip();
       }catch(e){$('err-msg').textContent='Errore di connessione.';show('st-error');}
