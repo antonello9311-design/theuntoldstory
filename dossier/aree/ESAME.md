@@ -1,5 +1,8 @@
 # AREA · Esame Genin — scheda viva
-Aggiornamento documentale del 09/09/2026 · Campagna di 20 prove conclusa; riscontri utente successivi raccolti fino all’08/09 ore 19:00 UTC. Rilascio e verifiche operative alle date indicate; qualità narrativa ancora da migliorare.
+
+Il 12/11/2026 alle 19:06:53 italiane è stato annullato l’Esame Genin IA fermo dal 04/11. Il postflight ha confermato Combat, sessione Master, aula e Regia chiusi. L’unico round e lo storico sono conservati. La scheda del candidato è invariata. La chiusura mirata non ha cambiato la configurazione globale dell’Esame.
+
+Il collegamento del pannello alla Regia e le chiusure Setsu/Shion sono attestati il 01/11. La chiusura dell’Esame IA del 12/11 è il checkpoint successivo. L’abilitazione del Master ordinario resta nel perimetro C1235.
 
 ## Fonti fondamentali — in quest'ordine, solo il blocco che serve
 1. `sito_live/REGOLE.md` §8 Progressione (promozione a Genin) e §4 per il combattimento della prova — il regolamento vivo.

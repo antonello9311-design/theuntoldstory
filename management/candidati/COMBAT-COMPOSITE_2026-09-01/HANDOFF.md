@@ -1,3 +1,53 @@
+# COMBAT-STATUS-20261114 · Allineamento documentale
+
+**Combat V2 · rilascio del 14/11/2026.** Il pannello comune è pubblicato in Land con scelte sulla mappa, alternativa da tastiera e un solo «Invia» per scelta e role. Build `combat-land-20261114-1`, commit `f7762e8e`, Pages `43570483785`. In Staff risultano conclusi movimento, tastiera a 320 × 480, punto d’impatto, una reazione su due attacchi e invio unico con Fato del Master e della Regia IA nel duello nativo. Rotazione B10, Katon B3 e punto cieco Byakugan sono acquisiti. L’apertura in Land è verificata sul dominio.
+
+1. **Inuzuka Genin** è installato in Staff e chiuso in Land. Ripartire dal pannello delle offerte: l’ultimo referto documenta un 504 e nessuna scelta meccanica completata. Verificare il difetto sulla versione corrente, poi collaudare soltanto i casi ancora scoperti del ninken, Quattro Zampe e Zanna, secondo il contratto Inuzuka.
+2. **Pannello Combat.** Completare gli effetti e i costi nel riepilogo del Master. Verificare dopo ricarica o riconnessione il recupero della vista, della role in bozza e della ricevuta già acquisita, senza doppio invio.
+3. **Marionetta e innate passive.** Resta da osservare il riallaccio dei Fili. L’attacco dalla marionetta e il punto cieco sono già provati. Le 27 passive sono aperte nei percorsi documentati, ma manca un collaudo funzionale Staff dedicato.
+4. **Prossime integrazioni.** Tracciare le offerte server di armi equipaggiate e Guardia, il raccordo di Palmo Curativo e oggetti con turno e ricevute, poi Richiamo e combo delle evocazioni. Catalogo e pulsanti esistenti non attestano l’intero flusso. Le rapide aggiuntive e i Flussi multibersaglio restano rinviati.
+5. **Scorta.** Verificare «Apri regia», ritorno narrativo e chiusura soltanto quando è disponibile lo scenario Staff legittimo della stessa missione. Il duello IA e il caso Human H7 coprono percorsi distinti.
+
+Gate letti il 14/11: Akimichi, Aghi Velenosi, Corpo Tossico, Nara, Katon e punto cieco aperti in Land. Inuzuka disponibile in Staff. Copertura e Diversivo esclusi. Fonti: schede vive, referti e ricevute già acquisite.
+
+## Consegna precedente
+
+# COMBAT-LAND-UI-20261114
+
+**UI Combat aperta in Land · 14/11/2026.** Il pannello comune nelle stanze di gioco offre scelte sulla mappa, lista da tastiera e un solo «Invia» per scelta e role. Build `combat-land-20261114-1`, commit `f7762e8e10092a9be87492ce0739cf58ed577641`, Pages `43570483785` riuscito e marcatore verificato sul dominio. `land.html` 2.431.990 byte, SHA-256 `3f3109fcc97db556947dc47d2df07a512a8f7dca9f6763b9185b74aa4a3b4e74`. Sei script verificati, controreview 0/0/0. L'apertura riusa i collaudi Staff, incluso il Fato IA; nessun nuovo round o chiamata IA.
+
+## Consegna precedente
+
+# COMBAT-STAFF-IA-ONE-20261113
+
+**Collaudo Staff superato · 13/11/2026.** Duello nativo protetto fra testperfunzioni e Riuji, aperto direttamente in Combat con autorità `ai_auto` e Edge `combat_narratore_ai` v44. Client LAND `a88e34a`. Scena `31283aba-4f5d-4caa-b719-b7301e693037`, round `f583616b-e7ca-48be-ab32-518f0a871617`.
+
+**Prova.** In Firefox testperfunzioni ha selezionato il colpo a mani nude, poi ha consegnato scelta e role con un solo «Invia». In Chrome Riuji ha consegnato la parata con lo stesso flusso. Il server registra una dichiarazione e una ricevuta per ciascun invio, con role di 580 e 556 caratteri dopo normalizzazione. Un solo tentativo HTTP del narratore. Fato `4f9a9576-02ed-4706-9ae9-1b20751fa74e` pubblicato alle 20:49 italiane, verificato nella chat e collegato al referto del round.
+
+**Chiusura.** Scena chiusa dal pannello alle 20:49:35 italiane, risorse reali intatte, una sola pubblicazione Staff. Nessun secondo round giocato. Missione, B10 e B3 esclusi dalla prova. Il passaggio verifica il duello diretto con narratore IA. Le evidenze del punto d’impatto sono nella consegna precedente.
+
+## Consegna precedente
+
+# COMBAT-STAFF-IMPACT-20261113
+
+**Punto d’impatto Staff verificato · 13/11/2026.** Migrazione `20261113193757`, review 0/0/0. Il preset simulato Katon era confermato ma non cambiava la versione delle offerte. La proiezione Master ora incorpora la ricevuta del profilo Uchiha corrente soltanto in Staff simulata. Le offerte vengono ricalcolate al cambio di versione. Firma, permessi, proiezione pubblica e build client invariati. Installazione e recovery hanno pin sui corpi effettivi e richiedono transazione unica.
+
+**Prova.** LAND blob `781cc87c892733cf867f151be29b13862be2b2db`. Nella scena `36a96ee8-ff43-4002-a003-c9d6e94e282e` il server ha offerto la modalità esplosiva. In Firefox il clic su «Punto 6, 6» in mappa ha selezionato il marcatore, aggiornato il campo Punto d’impatto e abilitato «Scrivi la role». Scena chiusa alle 19:39:49 UTC, nessuna dichiarazione o scrittura reale. B10 e B3 acquisiti dai referti precedenti.
+
+**Regia IA da verificare.** L’avvio nativo Staff della Bacheca esiste, ma la sola sorgente attiva «Discussioni in Centro» parte dalla fase narrativa `inizio`. Le finestre dedicate Quest IA v8/v9 risultano scadute nel Root `f9ad89a82dfc1912f042907a6ad7a6b7196370abbf288f1fdd3e52f31de664f1`. Le preview editoriali non percorrono la consegna giocata. Nessuna sessione IA o richiesta a pagamento aperta da questo incarico. Serve uno scenario Staff che inizi direttamente in Combat, con un'ammissione circoscritta allo scenario e al relativo budget. Verifica prevista: un invio chat dal PG, una sola ricevuta di scelta collegata alla role, un solo Fato della Regia effettivamente pubblicato in chat.
+
+## Consegna precedente
+
+# COMBAT-STAFF-SINGLE-SEND-20261113
+
+**Invio unico Combat, solo Staff · 13/11/2026.** Commit `a88e34a75bef1db23a4209071099df63abd077b2`, Pages `43474906904` riuscito, SHA-256 `e671a21bf04c419d53e499b3025a222ea0f298c20b7e2e12d199ebd915b2be58`, review indipendente 0/0/0. Per le scelte che richiedono una role, «Invia» in chat trasmette scelta e testo nella stessa operazione server. «Pubblica esito» fa lo stesso per il Fato del Master. Le scelte senza role mantengono un solo comando di conferma. Nessun cambio DB o estensione fuori Staff.
+
+**Esiti.** Tastiera e schermo stretto: destinazione scelta dall'elenco nativo a 320 × 480, ricevuta server 6 m (build precedente, stessa UI mappa). Invio unico e difesa multipla: scena `1b0b66f9-4b66-4cc5-aca8-17e095fa2258`, round `03ffc7fc-c96c-49eb-a91d-7105214a6713`. Due attacchi consegnati ciascuno con una role e un solo invio; una parata e una difesa assente. Fato Master `2fc40804-5f3a-40df-94fc-bb8f479f605d` pubblicato con il comando chat. Scena chiusa, zero scritture reali.
+
+**Aperti.** Punto d'impatto BLOCCATO: nella scena `e707e844-99e0-49ce-9622-caf1d78a212e` il server calcola 110 opzioni legali per la modalità esplosiva, ma nessuna offerta corrispondente è stata emessa per il pannello. Scena chiusa, nessuna dichiarazione d'attacco o scrittura reale. Regia IA NOT_RUN: la scena Master verificata era manuale; il mandato di questa sessione non ha usato provider. Prossimo passo: isolare il raccordo delle offerte d'impatto e usare una scena Staff con la Regia IA disponibile e budget proprio. B10/B3 non ripetuti.
+
+## Consegna precedente
+
 # COMBAT-UI-STAFF-ARCHIVE-20261113
 
 **Staff · archivio e selezione diretta · 13/11/2026.** Migrazioni `20261113161836` e `20261113161841`, review 0/0/0. Archivio di 1.088 messaggi collegati a sessioni chiuse; zero messaggi nella chat Staff dopo chiusura e archiviazione del nuovo collaudo. Conservati messaggi, report e ricevute, comprese le quattro ricevute B10, B3 e nuovo caso. L'RPC storico globale resta separato; il pulsante è nascosto nella Staff.

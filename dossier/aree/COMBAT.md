@@ -23,7 +23,7 @@ Allineamento 18/09/2026 · Scudo di terra pubblico dopo QA ordinary e Master per
 
 **UI Staff.** Commit `043e7f5f10b79bd19db14b7e41b49005cf1e9c14`, Pages `43461842904` SUCCESS, SHA-256 `455babad8eb4e5dc5893ac3dfbcef0ab4dd8e3be2da8df894d09b58ce7e319af`. In Staff compaiono mete e bersagli legali sulla mappa, con lista accessibile, opzione unica preselezionata per bersaglio e copertura, un comando di conferma per scelta. Prova `ac74dc48-5e06-4b98-b59b-750d9c274b2e`, round `fc4f3c5b-01e3-4839-bd62-68f4000809bd`: un movimento di 1 m selezionato sulla mappa, bersaglio unico evidenziato, scelta d'arrivo dal controllo nativo, parata con attacco associato, risultato 30 danni simulati e Fato `c98c48b3-80dc-4080-b773-6a77e98ea190` pubblicato. Scena chiusa, zero scritture reali e zero chiamate IA. B10/B3 conservati.
 
-**Residui.** Da provare la selezione di un punto d'impatto, la lista da tastiera e il pannello stretto, la difesa multipla e il percorso Regia IA. Da completare esposizione degli effetti nel riepilogo Master e recupero bozza e vista. I contratti correnti mantengono la conferma delle meccaniche e l'invio separato della role. Nessuna estensione della UI fuori Staff.
+**Combat V2 · rilascio del 14/11/2026.** Il pannello comune è pubblicato in Land con scelte sulla mappa, alternativa da tastiera e un solo «Invia» per scelta e role. Build `combat-land-20261114-1`, commit `f7762e8e`, Pages `43570483785`. In Staff risultano conclusi movimento, tastiera a 320 × 480, punto d’impatto, una reazione su due attacchi e invio unico con Fato del Master e della Regia IA nel duello nativo. Rotazione B10, Katon B3 e punto cieco Byakugan sono acquisiti. L’apertura in Land è verificata sul dominio.
 
 **Punto cieco Byakugan attivo in Land · 13/11/2026.** Nel round Staff `e23a7764-f6b4-44dd-9358-2ee053a52682` sono arrivati due attacchi da origini diverse. L’unica reazione è stata la Parata contro Keita da dietro: Byakugan I, prodotto scalare −4, malus −3, ricevuta `7068f8af-e417-44c8-bf42-ac9c3688f3c9`. L’attacco di Riuji è stato risolto come «Nessuna difesa», senza seconda ricevuta Facing. Scena chiusa e narrata, nessuna scrittura di risorse reali o chiamata IA. F1, laterale esatto e origine marionetta acquisiti dalle prove precedenti. Migrazione `20261113114114`, revisione Facing 3, gate pubblico verificato attivo. Copertura e Diversivo restano spenti in Land.
 
@@ -310,20 +310,26 @@ Raccordo utility Clan09/09: unica aggregata CC-R1–CC-R3 scritta, INSTALL SHA9d
 
 ## Lavori aperti — priorità corrente e backlog
 
+1. **Inuzuka Genin** è installato in Staff e chiuso in Land. Ripartire dal pannello delle offerte: l’ultimo referto documenta un 504 e nessuna scelta meccanica completata. Verificare il difetto sulla versione corrente, poi collaudare soltanto i casi ancora scoperti del ninken, Quattro Zampe e Zanna, secondo il contratto Inuzuka.
+2. **Pannello Combat.** Completare gli effetti e i costi nel riepilogo del Master. Verificare dopo ricarica o riconnessione il recupero della vista, della role in bozza e della ricevuta già acquisita, senza doppio invio.
+3. **Marionetta e innate passive.** Resta da osservare il riallaccio dei Fili. L’attacco dalla marionetta e il punto cieco sono già provati. Le 27 passive sono aperte nei percorsi documentati, ma manca un collaudo funzionale Staff dedicato.
+4. **Prossime integrazioni.** Tracciare le offerte server di armi equipaggiate e Guardia, il raccordo di Palmo Curativo e oggetti con turno e ricevute, poi Richiamo e combo delle evocazioni. Catalogo e pulsanti esistenti non attestano l’intero flusso. Le rapide aggiuntive e i Flussi multibersaglio restano rinviati.
+5. **Scorta.** Verificare «Apri regia», ritorno narrativo e chiusura soltanto quando è disponibile lo scenario Staff legittimo della stessa missione. Il duello IA e il caso Human H7 coprono percorsi distinti.
+
+### Checkpoint precedenti
+
 C1266 Narratore79: istruzioni installate e conservazione verificata; effetto editoriale sui nuovi Fati ancora NOT_RUN. Nessuna ulteriore prova o chiamata da questa consegna.
 
 **[P1] «Apri regia» Scorta · UI Staff non qualificata:** serve uno scenario protetto legittimo della stessa mission_id per osservare apertura, ritorno alla narrazione e chiusura. Non manipolare la Scorta ordinaria o abbassare vincoli per crearne uno; in assenza, conservare il limite e non dichiarare il quarto punto PASS. L'apertura generale della UI è distinta dal commit Staff.
 
 **[P1] Innata narrativa → Scontro (decisione Antonello 22/09, aperto):** stato ON/OFF attivato con autorità server durante le role da conservare nell’ingresso Combat delle chat ordinarie e delle missioni IA multiattore; prima difesa anche prima del turno e prima azione già con effetti attivi, pannello coerente e nessun secondo costo/gesto. RPC narrativa live esistente, raccordo end-to-end non verificato. Fonte `COMBAT-COMPOSITE_2026-09-01/candidato/INNATA_NARRATIVE_COMBAT_BRIDGE.md`; nessuna modifica alla Scorta in corso.
 
-**ACTION-FLOW-APPLY-001:** DB applicato 14/09; resta la verifica reale movimento/innata/menu. Apertura, bind mappa e chiusura Staff riusciti, nessun nuovo test residuo. Non ripetere la migrazione; mappe generali attendono rebase e rilascio separato dell’owner.
 
 **Priorità incidente VISIBILITY13/09:** recovery conservativa della prova Esame paused e difetto attacco PNG di servizio contro copie ancora aperti. Codice difesa/mappa e validatore già rilasciati; non ripetere i casi verdi né confondere admission scaduta con causa originaria. Verifica CORE008 richiesta successivamente da Antonello: solo analisi prima del live, non apply implicito.
 
 
 - **COMBAT-PANEL-UI-OPEN-004 + COMBAT-MOVE-ATTACK-002 — backend e UI LIVE 12/09, collaudo reale aperto:** renderer Common pubblicato per duello, Regia multi-attore e Test Room con mappa centrale stabile, margini delle sagome, fallback a figura intera, location gialla centrata, un solo «Aggiorna», direzioni a freccia e anteprima dorata del punto d’arrivo; i tag meccanici finali come Byakugan restano uniti al testo della chat. «Attaccante» e «Difensore» derivano dai flag server e compaiono soltanto nel duello umano 1vs1 a iniziativa; il multi-attore conserva i doveri individuali. Backend live aggiunge il contratto atomico `combat-panel-movement-attack/1`: PG e PNG supervisionati possono scegliere arrivo server-issued e colpo a mano nella stessa azione; percorso, portata e ostacoli restano autorità server e un percorso diventato impraticabile non produce un colpo a distanza impossibile. Postflight backend verde, zero sessioni aperte e ACL preservate. `land.html` build `LAND-COMBAT-PANEL-OPEN-004`,1902992B,SHA256`c6922de36570f9c4395285a707b922ac18df7b3f14ff1bf32a5f7bcfd0b23754`, commit GitHub `6cafd3fbf13b00115b2b780823a2de8d87289254`; Pages build/deploy/report verdi e dominio autenticato ricaricato con la Test Room disponibile. OPEN: collaudare nel nuovo duello reale ruoli, offerte di difesa, movimento più colpo, resa della mappa e continuità Byakugan.
 
-- **Rotazione corrente:** installata con migrazione20260911155940 nel solo perimetro Staff; pubblico=false e catalogo inattivo. Collaudo reale ancora da completare, nessuna apertura implicita.
 
 - **Hyuga corrente:** presentazione approvata/apertura20260911134348 e UI clan Potenza/Danno base pubblicate. Ordinary e due Master pertinenti PASS; prova chiusa e risorse reali invariate. Difesa DB applicata20260911134800 e quattro UI pubblicate commitcc7964d/DOMreadonly4/4PASS; nessun nuovo gameplay/provider da questo checkpoint.
 
@@ -378,6 +384,8 @@ I record datati sotto conservano richieste, prove e proposte pregresse. Stati «
 
 ## Prossimo passo
 
+Prima verificare le offerte Inuzuka in Staff, poi il recupero della UI e il riepilogo Master. I checkpoint successivi in questa sezione sono storici. La lista corrente è in § Lavori aperti.
+
 Punto cieco Byakugan: collaudo Staff concluso e gate Land attivo.
 
 Per il solo mandato Narratore79: conservare la versione e le ricevute; valutare la resa in una prossima prova richiesta, senza rigenerare i Fati precedenti. Gli altri lavori elencati mantengono i propri owner e mandati.
@@ -386,12 +394,10 @@ C1245 / prossimo passo: nessunaripetizioneH7, Stafflibera. Depositarequalifica d
 
 Per il raccordo UI Scorta, verificare «Apri regia» solo quando sia disponibile uno scenario Staff della stessa mission_id; altrimenti registrare il limite senza nuovo gameplay, DB o simulazioni sostitutive. La versione #790 è una pubblicazione riservata, non la qualifica Combat.
 
-**ACTION-FLOW-APPLY-001:** DB applicato 14/09; resta la verifica reale movimento/innata/menu. Apertura, bind mappa e chiusura Staff riusciti, nessun nuovo test residuo. Non ripetere la migrazione; mappe generali attendono rebase e rilascio separato dell’owner.
 
 Per VISIBILITY/Esame, la recovery Tamako è stata applicata e verificata; osservare la ripresa manuale e distinguere l’eventuale nuovo provider dall’intervento dati. Per CORE008, candidata minima e review sono pronte ma non applicate: prima del rilascio servono preflight fresco, finestra senza sessioni e composizione nominata dello stop; poi collaudo reale ordinary, Regia umana e IA multi con PNG che usa la tecnica e PNG che attacca copie. Nessuna apertura generale implicita. Restano validi gli altri lavori e limiti sotto.
 
 
-Rotazione: completare il collaudo reale riservato nel piano ROTATION001_QA_PLAN, con e senza Master nei casi pertinenti, conservando i precedenti PASS e correggendo solo difetti osservati. Pubblico ancora chiuso: apertura dopo esito positivo nel mandato permanente, senza dichiarare riuscite prove non eseguite. Nessun nuovo banco locale, ricollaudo degli altri clan o apertura di Armatura deriva da questo checkpoint.
 
 Consegna Hyuga e valori pubblici completata nel perimetro verificato: non ripetere apply o prove già riuscite. Raccogliere soltanto segnalazioni o prove pubbliche pertinenti dalla checklist, conservando i limiti: pieno/applicazione/scadenza Master e generazione IA Master non osservati, CRUD Admin verificato nel codice ma senza salvataggi di QA, dati Difesa assenti non inventati. Rotazione, Armatura e altri lavori non si aprono per questo rilascio; nessun altro sviluppo avviato implicitamente. Sorgenti/referti/dossier locali da depositare selettivamente quando previsto; pubblicazione delle quattro pagine già attestata. Lo stato «in uso» resta una decisione dell’utente.
 

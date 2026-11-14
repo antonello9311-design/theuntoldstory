@@ -294,11 +294,11 @@ Banco tus_hyuga_review001_qa: installazione candidata locale e due race eseguite
 
 - **Elementali/Taijutsu:** rilascio concluso; nessun arretrato aperto. Conservare evidenze e PASS, senza riaprire le scene.
 
-- **Rotazione corrente:** pubblica dal 20260911171449, due ordinary PASS; prova con Master espressamente rinviata a B10 non spuntata. Tre provider totali, zero retry, scene di prova chiuse e risorse reali invariate. Nessuna qualifica Master implicita.
+- **Rotazione Suprema:** pubblica. B10 con Master concluso il 13/11, oltre ai due casi ordinari.
 
 1. Allineamento otto schede concluso nel perimetro verificato: migrazione20260911094905,5/5righe e7claim con8identitàPASS; UISharingan/Sabaku positiva. Riallaccio non osservato, punto cieco non implementato e mapping Master/Esame/Test Room utenti escluso.
-2. Katon: due Palle e Risonanza pubbliche; prova con Master differita alla sessione pubblica serale di Antonello. Conservare i PASS ordinari.
-3. Sabaku: Controllo, Flussi1–3 singolo, Trasporto e Clone pubblici. Armatura disponibile solo Staff: nucleo meccanico positivo, pubblico OFF; restano revisione editoriale, controprova narrativa, insufficienza sabbia/chakra e terminale KO/uscita. Flussi multibersaglio rinviati; nessuna riapertura dei banchi storici.
+2. Katon: due Palle e Risonanza pubbliche. B3 con Master concluso il 13/11 per concentrata ed esplosiva.
+3. Sabaku: Controllo, Flussi1–3 singolo, Trasporto, Clone e Armatura pubblici. Armatura: qualifica conclusa e gate pubblico dal 21/09, nessun caso bloccante; sabbia insufficiente coperta per equivalenza ratificata, senza inventare una nuova prova diretta. Fonti runtime/sabaku/candidato/armatura_passive002/HANDOFF.md e armatura_public003/RESULT.json. Flussi multibersaglio rinviati.
 4. Byakugan/Sharingan e Juken/Sedici pubblici; presentazione Hyuga approvata e applicata20260911134348. Ordinary e due Master pertinenti PASS, prova chiusa, risorse reali invariate e0provider; pieno/scadenza Master non osservati. Estensione Difesa e quattro UI pubblicate e verificate in lettura. Altri clan restano ai propri owner.
 5. Copertura e Diversivo restano inerti e affidati alla task di riprogettazione; Esame e Missioni restano agli owner specifici. I limiti storici delle due Test Room non vengono ricertificati da questa revisione editoriale.
 
@@ -344,7 +344,7 @@ Il pack storico PM-MOTORE §135 e Common §0.7 conservano il precedente drain Hy
 
 Pulizia catalogo conclusa: sette voci disattivate, Tecnica delle 16 chiusure attiva e invariata, storico e policy conservati. Non ripetere apply o modificare assegnazioni dei PG. Rotazione resta pubblica e il regolamento pubblicato nel commit 925d794; la sola prova con Master rimane in B10 non spuntata. Nessuna nuova tecnica o attività di collaudo avviata da questa pulizia.
 
-Rotazione è pubblica per mandato esplicito di Antonello. Completare quando concordato la sola prova con Master nella casella B10, annotando valutazione, danno, costo, spinta, mappa e narrazione; non trasformare il rinvio in un PASS né ripetere i due casi ordinary conclusi. Raccogliere le rifiniture narrative sui casi reali già disponibili. Apertura e chiusura delle prove sono concluse; non riaprire i vecchi duelli o scene Master e non riavviare banchi locali. Nessuna apertura di Armatura o nuovi incarichi deriva da questo rilascio.
+Rotazione B10 e Katon B3 sono conclusi. Restano Inuzuka in Staff e il riallaccio dei Fili da osservare. I Flussi multibersaglio rimangono rinviati.
 
 Consegna Hyuga e valori pubblici completata nel perimetro verificato: non ripetere apply o prove già riuscite. Raccogliere soltanto segnalazioni o prove pubbliche pertinenti dalla checklist, conservando i limiti: pieno/applicazione/scadenza Master e generazione IA Master non osservati, CRUD Admin verificato nel codice ma senza salvataggi di QA, dati Difesa assenti non inventati. Rotazione è ora oggetto del distinto mandato esplicito11/09 e procede nel pacchetto ROTATION001; Armatura e altri lavori non si aprono implicitamente. Sorgenti/referti/dossier locali da depositare selettivamente quando previsto; pubblicazione delle quattro pagine già attestata. Lo stato «in uso» resta una decisione dell’utente.
 

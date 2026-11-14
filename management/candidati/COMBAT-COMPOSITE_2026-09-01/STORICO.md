@@ -1,4 +1,5 @@
-13/11/2026 · Archivio Staff e UI diretta · Chat vuota, prova Master narrata, risorse protette · Matrice residua aperta.
+14/11/2026 · COMBAT-STATUS-20261114 · UI Land e prove acquisite riconciliate con dossier e gate · Residui distinti, allineamento documentale.
+13/11/2026 · Archivio Staff e UI diretta · Chat vuota, prova con Master narrata, risorse protette · Regia e matrice residua aperte.
 - 13/11/2026 · Due origini, una reazione: Staff PASS. Punto cieco aperto in Land (Facing 3), tattiche escluse.
 - 13/11/2026 · Pannello marionetta corretto e origine PASS in Staff. Doppia reazione da qualificare, gate Land spento.
 - 13/11/2026 · Origine marionetta Staff: collegamento acquisito, attacco indisponibile nel pannello Master. Scena chiusa, gate Land spento.

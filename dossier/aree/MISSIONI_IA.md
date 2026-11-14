@@ -286,6 +286,8 @@ Le seguenti righe conservano la fotografia precedente: **non descrivono il datab
 
 ## Lavori aperti — in ordine
 
+**Editor e missioni.** Editor UI3 a pagina unica online. Contenuti a cura di Antonello. Il precedente stop sull’Innata è storico: il raccordo delle nove mantenute è concluso e pubblico dal 07/11 nel perimetro attestato. Il caso Staff Sabbia I con Quest IA è distinto dall’apertura generale delle Quest IA. Per Discussioni in Centro restano da osservare il primo avvio degli iscritti e un party misto nel normale uso.
+
 C1266 Narratore79: istruzioni installate e conservazione verificata; effetto editoriale sui nuovi Fati ancora NOT_RUN. Nessuna ulteriore prova o chiamata da questa consegna.
 
 E73 consegnata: istruzioni generiche installate e conservazione verificata. Nessuna ulteriore correzione o prova avviata. Efficacia dei nuovi testi e memoria su più turni NOT_RUN; tutti risultati E72 e precedenti restano originali per la review.

@@ -20,11 +20,15 @@ Storico 07/11 · T3 aggregata1 qualificata nei soli sorgenti dopo il tentativo a
 
 | Cantiere | Stato reale | Prossimo passo |
 |---|---|---|
-| `management/candidati/CLAN-L1_2026-09-01/` | Sabaku, Hyūga e Uchiha hanno rilasci pubblici circoscritti. Nove elementali e cinque Taijutsu generici sono pubblici. Armatura di Sabbia è pubblica; cataloghi selettivi Regole/Clan online. | Implementare punto cieco e chiudere i casi Master pertinenti degli altri clan; osservare Armatura nel normale uso senza riaprire il collaudo concluso. |
-| `management/candidati/COMBAT-COMPOSITE_2026-09-01/` | W10 Rootcb/Edge37/Admin13ecaa installati Staff; Count/ripresa e fronte/laterale Ordinary PASS. S22 chiusa, custodia esatta,0Restore. Ignoto/retro e Service pendenti; Native soloPREPARE noninstallabile;0,0231071/0,10USD, pubblicoOFF. |
-| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/` | Editor rapido live e collaudato: compilatore, bozze PNG, contesto narrativo, arena separata, anteprima e pubblicazione unica. Missione a due mappe aperta con 2 PG + 3 PNG; `Adatta missioni` invariato. Le task sospese precedenti sono storico.  Human: QA23 PASS e apertura LAND verificata con OPEN24, migrazione20261017083331 e post17/10/2026 08:34:19.624645UTC: tutte17verifiche positive. C12/full112 release `d4cf89c9b77494833a159c2c911ca7c5768124e3fff4f155590c178fa8b057c8`, LAND `8f89a7234ba40cfda902dc4dc507f2581540ee4f464f4beaa7f21ccc590c67a6`, commit `fdaa5759fdcb2b1342141fbc2efc2d5cd16d1837`. Nomi PG/PNG leggibili, selezionabili e riletti; Combat solo dal comando esplicito nel pannello dedicato, mai inline o automatico dalla puntata. Stessa scena27f18 chiusa, due partecipanti finalizzati, risorse protette48 invariate, provider IA0 e WIP conservato; pubblico attivo e riserva Staff disattivata. C9 e prova Staff della seconda puntata restano storici distinti; nuova prova custom multipuntata e premi reali NOT_RUN. Conteggi e fallimenti storici conservati. | Nessun seguito per l’editor rapido. Restano separati soltanto i lavori già nominati su Scorta, qualità narrativa ed Esame; un nuovo requisito dell’editor richiede un nuovo mandato.  Collaudo e apertura Human completati; schermate approvate da Antonello il 17/10/2026; incarico Human/UI concluso. WIP e contatori preservati.|
+| `management/candidati/CLAN-L1_2026-09-01/` | Rilasci circoscritti Sabaku, Hyūga, Uchiha e Aburame; Elementali/Taijutsu e Armatura conclusi. Aburame: 12 casi Staff, review 0/0/0, pubblico dal 21/09. | Nove Innate mantenute e raccordo narrativa→Combat pubblici dal 07/11; casi Master Rotazione B10 e Katon B3 acquisiti; punto cieco attivo in Land, prove Staff documentate. Flussi multibersaglio rinviati. |
+| `management/candidati/COMBAT-COMPOSITE_2026-09-01/` | UI comune pubblica dal 14/11. Punto cieco, B10/B3, mappa e invio unico con Fato IA acquisiti. | Riepilogo Master e recupero UI, Inuzuka Staff, raccordi mirati in scheda Combat. |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/` | Bacheca integrata live. Discussioni in Centro attiva in Land, C18 Staff PASS con due Ready, un clic e incipit automatico in 39 s. | Primo avvio pubblico agli iscritti. Avvio come Master nella Bacheca e verifica completa dell’Editor restano perimetri distinti. |
 
 ## Funzioni già disponibili da non ricostruire
+
+**Combat V2 · rilascio del 14/11/2026.** Il pannello comune è pubblicato in Land con scelte sulla mappa, alternativa da tastiera e un solo «Invia» per scelta e role. Build `combat-land-20261114-1`, commit `f7762e8e`, Pages `43570483785`. In Staff risultano conclusi movimento, tastiera a 320 × 480, punto d’impatto, una reazione su due attacchi e invio unico con Fato del Master e della Regia IA nel duello nativo. Rotazione B10, Katon B3 e punto cieco Byakugan sono acquisiti. L’apertura in Land è verificata sul dominio.
+
+**Sei tecniche Genin pubbliche.** Controllo Calorico, Espansione, Espansione Parziale, Aghi Velenosi, Corpo Tossico e Possesso dell’Ombra. Conservati i casi KO Hoki, carenza e addebito del chakra Nara e reinvio del Pasto.
 
 **Staff Master · B10 e B3 completati il 13/11/2026.** Nello scontro protetto `c1b75166-f6d7-4d70-9a7c-56887d4841cb`, round 1, Rotazione Suprema a 3 m: valutazioni 0/0, danno 0, costo simulato 10 chakra una volta, Riuji da (6,6) a (8,6), Fato pubblicato. Round 2, Suprema concentrata su Riuji: 36 danni simulati. Round 3, Suprema esplosiva al punto (8,6): 24 danni simulati. Entrambi i Katon costano 10 chakra simulati e riportano Risonanza I, valutazione Master e Fato pubblicato. Scena chiusa, zero scritture sulle risorse reali e zero chiamate IA.
 
@@ -45,17 +49,25 @@ S18 chiusa il 07/11 alle22:07:12UTC, `values_written=false`: T3 non superato per
 Cumulativi284comandi/18scene proprie tutte chiuse/16provider,71319input+16503output e0,0153834USD su0,10. Finestra7 terminata22:17:48UTC;38comandi/3scene/5invii sono contatori conservati, non tempo autorizzato. Nessun ripristino o costo duplicato. Restano T3/T5/F1 e ServiceT6–T8; Service non avviato, Count/ammissione4096 da qualificare e42HTTP della proposta oltre i5residui. Copertura/Diversivo e Facing pubblici OFF; nove Innate mantenute già pubbliche intatte. Review, installazione e collaudo restano distinti.
 
 
-| Priorità | Lavoro | Dipendenza o limite |
+S18ordinary Combat83a44b53 è stata chiusa dal Main tramite ChiudiDuello alle22:07:12.32076UTC, per correggere il difetto osservato, NONcome PASS T3. R1RiujiDiversivo1copia/costo15 una sola volta e unico Fato pubblicato (quota2d82e6b5settled); originale fermo North1. R2testperfunzioni: unico invio Soffio/costo5 con EstrazioneServer, ruolo681caratteri conservato, server_rejected23514. Auditrequest6205f542 indica multiplication_choose_ordinary_sourceL102: il profilo canonico range10 confligge col CHECK2/3. Nessuna dichiarazione attacco/drawplan/receipt riusciti e nessun costo5 applicato; nessun retry,lettura seed/indiceprivato o Restore. values_writtenfalse e custodia identica; la formazione pagata resta nello storico e non viene ricreata.
+
+Correzione minima T3 SOURCE_ONLY SHAa43626975c55383c9e4eda058ed448774bfe6f9418d844ed26fb926fa945e495: enum2/3/10 più guardiawriter10 sul gateTacticsesistente. Review indipendente T3-RANGE10-ROOT-INDEPENDENT-20261107 0/0/0, refertoMDd7e13c98. Unico tentativo apply_migration combat_tactics_range10_staff_20261107 alle22:15UTC, variante esatta382d8492/182242byte, FALLITO atomicamente: P0001 TACTICS_INTEGRATED_PROJECTED_ROOT, adoptionDOline4. Nessunretry. Postflightreadonly22:15:34:12/12true, rollback dimostrato di Root36f27609/header/CHECK45954/gate/custodia/sessioni. La correzione NONèinstallata e T3restaNONPASS; review statica non equivale a apply o runtime. Zero nuovi comandi di gioco/provider/ripristini. Scadenza22:17:48UTC non estesa, nessunQA nuovo. DiagnosiRoot soltanto readonly; il passaggio successivo è una checklist di composizione, non una nuova apply automatica.
+
+Finestra 7: 20:47:48–22:17:48 UTC, tetto cumulativo 0,10 USD. Nuovi32comandi (28commit, incluso il Fato automatico, e4tentativi falliti conservativi),1nuovascena/1provider/0ripristini. Cumulativi284comandi,18scene TUTTEchiuse,16provider,71319input+16503output e0,0153834USD; residui38comandi/3nuovescene/5invii fino22:17:48UTC. Storico, ricevute e contatori non si azzerano; nessun rinnovo automatico.
+
+T3 resta NOT_PASSED23514; T5copia-prima, confini residuiF1 e ServiceT6–T8 restano aperti. T1/T2 e i soli sottocasi S17/MAX2-primario e retroIII conservano i PASS già attestati; nessun PASS esteso a dueorigini/due ricevute nello stesso round. La fonte pacifica Service ha review SOURCE_ONLY0/0/0 d2d01f435581086aa4d4930fa904376ca0b94242668db751286331e524846eaa e nuovoDocSHA86a91c23, ma resta NONinstallabile/fonteNONcreata; Count/Generation4096 e integrazioneRoot/DB/Edge pendenti. Il piano finito42HTTP supera i5invii residui e non è ammesso. Nessun Event42 o provider Service. Copertura/Diversivo e Facing restano chiusi al pubblico; noveInnatev3pubbliche, Scorta, Party, schede e audit intatti. Installazione/review non attestano successo runtime.
+
+
+
+| Ordine | Risultato utile | Condizione e criterio di completamento |
 |---|---|---|
-| 1 | Regia Human — conclusa e accettata | QA23 PASS e OPEN24 verificato; schermate approvate da Antonello il 17/10/2026; incarico concluso, WIP e prove conservati. C1266 resta un lavoro distinto; nuova prova custom multipuntata e premi reali NOT_RUN. |
-| 1 | Primo run giocato della Scorta già pubblicata | È distinto dall’editor rapido, che è concluso. Eseguirlo solo quando il roster previsto è libero e senza riaprire le task di sviluppo dell’editor. |
-| 1 | Punto cieco Byakugan | Solo casi Staff residui. F1 acquisito. |
-| 2 | Armatura di Sabbia | Pubblicata il 21/09 dopo review 0/0/0 e apertura del gate; nessun caso bloccante residuo. |
-| 2 | Punto cieco Byakugan | Collaudato in Staff e aperto in Land. |
-| 2 | Semplificazione pannello Combat | B10 e B3 completati in Staff. Piano nel cantiere COMBAT-COMPOSITE. |
-| 3 | Qualità Narratore | Osservare il prossimo Fato PNG v30 e casi completi di scontro/missione; registrare note editoriali specifiche. |
-| 3 | Immagini PNG sulla mappa | Trasformare i ritratti dell’annuario in ritagli coerenti con Tamako; requisito già annotato, implementazione non conclusa. |
-| 4 | Nuova utenza | Analisi mirata ad adulti italofoni, anche nuovi al play-by-chat e interessati a GDR/anime/manga; budget ancora da definire, nessuna spesa avviata. |
+| 1 | Raccogliere il primo avvio pubblico di Discussioni in Centro | Il lancio è disponibile agli iscritti. Usare il referto Staff C18 come riferimento per eventuali difetti osservati in Land. |
+| 2 | Completare i residui Combat V2 | Inuzuka: verificare le offerte nella Staff. Pannello: effetti nel riepilogo Master e recupero di vista, bozza e ricevuta. |
+| 4 | Migliorare contenuti e percorso dei nuovi giocatori | Source74/Editor generale con l’owner assegnato; dieci revisioni PNG con media/binding versionati. Accademia/Training: prima ricostruire prove e difetti ancora attuali, poi solo QA Staff rappresentabile senza progressione reale. |
+
+Il primo run completo della Scorta e i rilievi di progressione dalle role vanno riconciliati sul percorso specifico: gli smoke storici e il PASS Human non chiudono automaticamente la Scorta. Qualità narrativa da valutare su scene complete, senza riscritture preventive dei prompt o retry alla ricerca di un verde.
+
+## Backlog conservato, senza riapertura automatica
 
 ## Stato Esame e IA da preservare
 
