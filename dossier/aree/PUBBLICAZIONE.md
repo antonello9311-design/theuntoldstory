@@ -1,4 +1,4 @@
-**LAND · Comandi esclusivi Staff per Fili e passive.** Build `fili-passive-staff-1`, 2456878 byte, SHA-256 `d5f41a92abe9fcda107f19ccff1b6fe2ea9d96b8cfde6802ff6525e4cbb961d6`. Migrazione `20261114194849`.
+**LAND · Comandi esclusivi Staff per Fili e passive.** Build `fili-passive-staff-1`, 2456878 byte, SHA-256 `d5f41a92abe9fcda107f19ccff1b6fe2ea9d96b8cfde6802ff6525e4cbb961d6`. Migrazione `20261114194849`. Commit `5e72603ad592547321d08427f291c6b2fc1feba7`. Dominio verificato su `/land.html`, SHA-256 identico.
 
 ## S24 · Movimento ordinario di Iori per T7–T8
 
