@@ -652,6 +652,18 @@ Alcuni ninja combattono in coppia: il **marionettista** con la sua marionetta, l
 
 **Risoluzione comune.** Il pool usa Kekkei Genkai + Ninjutsu del controllore. La Potenza è 15 + floor((Kekkei Genkai + Ninjutsu) / 10); il danno base è 10, distinto dalla Potenza e dalla Difesa base 10. Il contributo al danno è floor(max(Kekkei Genkai, Ninjutsu) / 4). Esito, margine e riduzioni sono risolti dal motore comune: il giocatore e l’IA non scelgono il danno finale. La marionetta non aggiunge un secondo attacco autonomo.
 
+### 6.3.2 · Inuzuka — primo ciclo L1
+
+**Simbiosi e presenza del ninken.** Simbiosi Inuzuka è un’abilità passiva acquisita: rende disponibile il proprio cane ninja quando è presente nella scena. Il ninken è un PNG con identità, punti vita, statistiche, posizione e condizioni proprie. Agisce insieme al personaggio nel suo stesso turno e il personaggio resta libero di compiere la propria azione. Una tecnica combinata usa una sola scelta meccanica nel turno del PG.
+
+**Profilo baby.** Il primo profilo approvato ha 20 PV, movimento massimo 10 m e valore 10 in Forza, Resistenza, Velocità, Taijutsu, Mente, Ninjutsu, Genjutsu e Fuuinjutsu. Il ninken occupa un corpo sulla mappa, si muove dalla propria posizione con un budget separato dal PG e può essere bersagliato. La sincronia è attiva fino a 5 m tra i due, inclusi. A 0 PV non è operativo; non viene cancellato e i suoi dati restano distinti da quelli del personaggio.
+
+**Scelta e descrizione.** Quando la mossa coinvolge il ninken, il pannello raccoglie una sola scelta generale del compagno e poi le sole opzioni di posizionamento ammesse. La scelta meccanica e la descrizione contestuale nella chat PNG possono essere compilate in qualunque ordine. Il comando **Invia** diventa disponibile soltanto quando entrambe sono pronte. La descrizione non decide distanze, costi, bersagli, danni o altri effetti.
+
+**Quattro Zampe.** Tecnica di grado D per Genin: richiede Simbiosi, Kekkei Genkai almeno 30, 50 XP e un addestramento. È un controllo rapido: costa 5 chakra all’attivazione e 5 chakra a ogni mantenimento, non consuma l’azione principale, aumenta di 5 m il movimento massimo e concede +1 alla schivata semplice finché resta attivo; la parata non è disponibile. L’Impulso ferino contribuisce soltanto alla Potenza e non aumenta direttamente il danno. Spegnimento, interruzione e costi sono applicati dal server.
+
+**Zanna Perforante.** Tecnica di grado D per Genin: richiede Simbiosi, Quattro Zampe acquisita e attiva, Kekkei Genkai almeno 30, 50 XP e un addestramento. Costa 5 chakra, usa l’azione principale e colpisce un bersaglio a contatto. La tecnica muove e risolve il personaggio secondo il motore comune; il ninken resta libero di accompagnare l’azione con la propria descrizione e con il posizionamento autorizzato, senza generare un secondo attacco o un secondo danno.
+
 ### 6.4 · Evocazioni
 
 Le evocazioni sono **PNG animali** richiamati consumando una grande quantità di chakra. Non sono un secondo personaggio: sono un **extra in combattimento** — utili a rango basso, decisive quasi mai, molto forti solo ai livelli alti e per pochi turni. Valgono tutte le regole del §6.3 (1 slot, veri PNG, nessuna azione in più) più quelle che seguono.
@@ -1077,3 +1089,4 @@ Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da q
 | 97 | Nove Innate mantenute dalla narrativa allo Scontro | ✅ **Applicato** il 07/11/2026 (§4.7, §5.2): Byakugan I–IV, Sharingan I–IV e Controllo della Sabbia I sono pubbliche e attivabili dal controllo Innata in fase descrittiva. Lo stato attivo passa allo Scontro senza una seconda attivazione; resta il normale mantenimento per turno legale. Raccordo qualificato in ordinario, Quest con Master e Quest IA Staff; accesso generale alle Quest IA ancora riservato alla Staff. |
 | 98 | Moltiplicazione: Assalto come unica modalità | Decisione del 12/11/2026 (§4.5, §5.2): Assalto è l’unica modalità della tecnica. Costi, numero di copie, movimento, bonus, difesa avversaria e conclusione dell’offensiva restano invariati. Le voci storiche visibili sono adeguate alla decisione; gli originali restano nello storico versionato. |
 | 99 | Tecniche Dokugan Genin | Aghi Velenosi e Corpo Tossico disponibili nei duelli ordinari e con Master dopo i casi Staff. Il veleno è risolto dal motore sui turni personali. |
+| 100 | Tecniche Inuzuka Genin | Simbiosi coi Ninken, Quattro Zampe e Zanna Perforante disponibili in Combat V2 (§6.3.2). |
