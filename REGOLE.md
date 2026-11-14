@@ -275,6 +275,7 @@ Questa sezione descrive il **motore dei duelli** che gira dentro la land. Vale p
 L'azione principale è una di queste:
 
 - un **colpo a mani nude**, che arriva solo a contatto;
+- uno **Shuriken equipaggiato**, lanciato verso un bersaglio visibile entro 10 metri. Il lancio usa la stessa azione principale del colpo a mani nude e consuma un pezzo quando il server accetta l’attacco;
 - una **tecnica di clan** che hai in scheda;
 - una **tecnica o abilità dell'Accademia**.
 
@@ -1090,3 +1091,4 @@ Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da q
 | 98 | Moltiplicazione: Assalto come unica modalità | Decisione del 12/11/2026 (§4.5, §5.2): Assalto è l’unica modalità della tecnica. Costi, numero di copie, movimento, bonus, difesa avversaria e conclusione dell’offensiva restano invariati. Le voci storiche visibili sono adeguate alla decisione; gli originali restano nello storico versionato. |
 | 99 | Tecniche Dokugan Genin | Aghi Velenosi e Corpo Tossico disponibili nei duelli ordinari e con Master dopo i casi Staff. Il veleno è risolto dal motore sui turni personali. |
 | 100 | Tecniche Inuzuka Genin | Simbiosi coi Ninken, Quattro Zampe e Zanna Perforante disponibili in Combat V2 (§6.3.2). |
+| 101 | Lancio dello Shuriken | Combat V2: azione principale, bersaglio visibile entro 10 metri e un pezzo equipaggiato consumato alla conferma del server. |
