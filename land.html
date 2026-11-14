@@ -2140,7 +2140,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
 @media(max-width:720px){.h33-workspace{padding:10px;margin:8px 0;max-height:180px;}.h33-head{align-items:flex-start;gap:6px;}.h33-tabs button{flex:1 1 auto;}.h33-workspace button{min-height:40px;}.h33-workspace textarea{font-size:16px;}}
 </style>
 <meta name="tus-mission-runtime" content="C1266-COMBAT64-UI7">
-<meta name="tus-combat-ui-build" content="combat-land-20261114-1" />
+<meta name="tus-combat-ui-build" content="combat-land-20261114-2" />
 </head>
 <body>
   <div class="stage" id="stage">
@@ -3848,6 +3848,12 @@ const narrativeStates={idle:'Nessun esito in attesa',waiting:'Esito in attesa',r
 
 const movementDirections={up:['↑','Su',0,-1],up_right:['↗','Alto a destra',1,-1],right:['→','Destra',1,0],down_right:['↘','Basso a destra',1,1],down:['↓','Giù',0,1],down_left:['↙','Basso a sinistra',-1,1],left:['←','Sinistra',-1,0],up_left:['↖','Alto a sinistra',-1,-1],toward_target:['◎','Verso il bersaglio',0,0],stay:['•','Resta sul posto',0,0]};
 function movementOptionLabel(option){const d=movementDirections[option?.direction];return d?`${d[0]} ${option.label}`:option.label;}
+function panelMovementActorId(envelope,offer){
+  if(offer?.companion_context_required===true&&envelope.companion?.companion_kind==='cane_ninja'){
+    return envelope.companion.actor_id;
+  }
+  return offer?.actor_id||envelope.viewer.command_actor_id;
+}
 function renderMovementPreview(map,envelope,offer,selected){
   const canvas=map?.querySelector?.('.common-map-canvas'),svg=canvas?.querySelector?.('svg.ordinary-map');
   if(!canvas||!svg)return;
@@ -3875,7 +3881,7 @@ function renderMovementPreview(map,envelope,offer,selected){
   const distanceGroup=offer.choices.find(g=>g.purpose==='movement_distance'&&g.depends_on===directionOption?.option_id&&g.options.some(o=>selected.has(o.option_id)));
   const distanceOption=distanceGroup?.options.find(o=>selected.has(o.option_id));
   const dir=movementDirections[distanceOption?.direction||directionOption?.direction];
-  const actor=envelope.map?.actors?.find(a=>a.actor_id===envelope.viewer.command_actor_id);
+  const actor=envelope.map?.actors?.find(a=>a.actor_id===panelMovementActorId(envelope,offer));
   const metres=distanceOption?.distance_m;
   if(!dir||!actor||!finite(metres)||metres<=0||dir[2]===0&&dir[3]===0)return;
   const steps=(dir[2]!==0&&dir[3]!==0)?metres/2:metres;
@@ -4120,7 +4126,10 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     const available=e.offers.filter(o=>o.context_version===c.version&&o.scene_version===c.scene_version);
     const administrative=o=>o.kind==='administration'&&!isPlayerLifecycle(o,c,v);
     const selected=available.find(o=>o.offer_id===model.selectedOfferId);
-    const movementOffer=available.find(isMovementControl);
+    const movementOffers=available.filter(isMovementControl);
+    const ninkenMovement=movementOffers.find(o=>o.companion_context_required===true&&e.companion?.companion_kind==='cane_ninja');
+    const pgMovement=ninkenMovement?movementOffers.find(o=>o!==ninkenMovement&&!o.companion_context_required):movementOffers[0];
+    const movementOffer=movementOffers.includes(selected)?selected:(pgMovement||ninkenMovement);
     const actionStep=c.phase==='action'&&v.command_actor_id!==null&&!!(movementOffer||available.some(o=>o.kind==='action'&&o.operation==='declare'));
     const nextMovementScope=JSON.stringify([c.activity_id,c.round_id,v.command_actor_id,c.phase]);
     if(nextMovementScope!==movementStepScope){movementStepScope=nextMovementScope;movementStep=null;innateStep=null;techniqueMenuOpen=false;techniqueGroup=null;}
@@ -4135,19 +4144,30 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
       if(movementStep==='none'||movementStep==='done'){
         note(movementArea,movementStep==='done'?'Movimento confermato. Ora prosegui con la scelta successiva.':
           movementOffer?'Nessun movimento. Ora prosegui con la scelta successiva.':'Movimento non disponibile. Ora prosegui con la scelta successiva.');
+        if(movementStep==='done'&&ninkenMovement)button(movementArea,'Muovi il ninken',()=>{
+          if(ticket!==generation)return;
+          movementStep='move';selectOffer?.(ninkenMovement.offer_id);
+        },!commandsReady);
         if(movementStep==='none'&&movementOffer)button(movementArea,'Cambia movimento',()=>{
           if(ticket!==generation)return;movementStep=null;
           if(selected&&clearOffer)clearOffer();else{sceneKey=null;render(current);}
         },!commandsReady);
       }else{
         const choices=node('div',undefined,movementArea);choices.className='common-offer-choices';
-        const chooseMove=button(choices,'Movimento',()=>{
-          if(ticket!==generation||!movementOffer)return;
-          movementStep='move';
-          if(model.selectedOfferId!==movementOffer.offer_id)selectOffer?.(movementOffer.offer_id);
-          else{sceneKey=null;render(current);}
-        },!commandsReady||!movementOffer);
-        chooseMove.className+=' common-offer-choice';chooseMove.setAttribute('aria-pressed',String(movementStep==='move'));
+        const chooseMovement=(label,offer)=>{
+          const command=button(choices,label,()=>{
+            if(ticket!==generation||!offer)return;
+            movementStep='move';
+            if(model.selectedOfferId!==offer.offer_id)selectOffer?.(offer.offer_id);
+            else{sceneKey=null;render(current);}
+          },!commandsReady||!offer);
+          command.className+=' common-offer-choice';
+          command.setAttribute('aria-pressed',String(movementStep==='move'&&selected?.offer_id===offer?.offer_id));
+        };
+        if(ninkenMovement){
+          if(pgMovement)chooseMovement('Muovi il personaggio',pgMovement);
+          chooseMovement('Muovi il ninken',ninkenMovement);
+        }else chooseMovement('Movimento',movementOffer);
         const noMove=button(choices,'Nessun movimento',()=>{
           if(ticket!==generation)return;
           movementStep='none';
@@ -4282,7 +4302,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     map.querySelector('[data-direct-map-list]')?.remove();
     if(!offer||!selectOffer||!selectOption||!e.map?.bounds)return;
     const {width_m:width,height_m:height}=e.map.bounds;
-    const origin=e.map.actors.find(a=>a.actor_id===offer.actor_id);
+    const origin=e.map.actors.find(a=>a.actor_id===panelMovementActorId(e,offer));
     const selected=new Set(model.selectedOptionIds||[]);
     const points=[];
     const add=(x,y,label,pairs)=>{
@@ -4378,7 +4398,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     const automatic=new Set(automaticAssaultGroups(offer,model.selectedOptionIds||[])||[]);
     const activeGroups=[];
     const flatMovement=singleRoleSend&&
-      isMovementControl(offer)&&envelope.map?.actors.some(a=>a.actor_id===offer.actor_id);
+      isMovementControl(offer)&&envelope.map?.actors.some(a=>a.actor_id===panelMovementActorId(envelope,offer));
     const fallback=flatMovement?node('details',undefined,groupHost):null;
     if(fallback){fallback.dataset.movementFallback='';fallback.open=movementFallbackOpen;node('summary','Altre opzioni di movimento',fallback);}
     for(const group of offer.choices){
