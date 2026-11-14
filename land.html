@@ -2140,7 +2140,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
 @media(max-width:720px){.h33-workspace{padding:10px;margin:8px 0;max-height:180px;}.h33-head{align-items:flex-start;gap:6px;}.h33-tabs button{flex:1 1 auto;}.h33-workspace button{min-height:40px;}.h33-workspace textarea{font-size:16px;}}
 </style>
 <meta name="tus-mission-runtime" content="C1266-COMBAT64-UI7">
-<meta name="tus-combat-ui-build" content="combat-land-20261114-2" />
+<meta name="tus-combat-ui-build" content="combat-land-20261114-master-recovery" />
 </head>
 <body>
   <div class="stage" id="stage">
@@ -3547,7 +3547,7 @@ function selectionReady(offer,selected,inputs,narrativeText,requireNarrative=tru
 }
 
 
-return {isId,insist,classifyPanelRejection,isPlayerLifecycle,validatePanelEnvelope,flowSelectionTotal,flowOptionAllowed,automaticAssaultGroups,selectionReady};
+return {isId,insist,classifyPanelRejection,isPlayerLifecycle,validatePanelEnvelope,validateReceipt:receipt,flowSelectionTotal,flowOptionAllowed,automaticAssaultGroups,selectionReady};
 })();
 const module4=(()=>{
 const {validatePanelEnvelope,classifyPanelRejection,selectionReady,flowOptionAllowed,isId,insist}=module5;
@@ -3571,7 +3571,7 @@ function settleCopyChoices(offer,selected,direct=false){
   return [...next];
 }
 // rpc è una porta iniettata. Costruire il controller non effettua chiamate.
-function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.randomUUID(),classifyRejection=classifyPanelRejection,onChange=()=>{},directCombatUI=false}){
+function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.randomUUID(),classifyRejection=classifyPanelRejection,onChange=()=>{},directCombatUI=false,recovery=null}){
   insist(typeof rpc==='function'&&typeof contextKey==='function'&&isId(locationId)&&typeof requestKey==='function','controller_configuration');
   let epoch=0,owner=null,busy=false,pending=null,envelope=null,optionsReady=false,error=null;
   let selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='',narrativeContext=null,companionContext=null;
@@ -3585,7 +3585,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   const resetChoices=()=>{selectedOfferId=null;selectedOptionIds=[];inputs=[];optionsReady=false;};
   // The draft belongs to a verified identity/activity/actor, independently of presentation invalidation.
   const narrativeContextFor=e=>e?.status==='ready'?JSON.stringify([owner,e.context.activity_id,e.viewer.command_actor_id]):null;
-  function clear(){epoch++;owner=null;busy=false;pending=null;envelope=null;error=null;rejection=null;lastCommand=null;interactionError=null;refreshRequired=false;narrativeText='';narrativeContext=null;companionContext=null;resetChoices();notify();}
+  function clear(){epoch++;owner=null;busy=false;pending=null;envelope=null;error=null;rejection=null;lastCommand=null;boundJournal=null;interactionError=null;refreshRequired=false;narrativeText='';narrativeContext=null;companionContext=null;resetChoices();notify();}
   // Identità/luogo diversi cancellano la presentazione; una versione nuova invalida solo le scelte.
   function invalidate(){
     if(owner===null||owner!==contextKey()){clear();return;}
@@ -3608,6 +3608,31 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   function bind(){const key=contextKey();if(typeof key!=='string'||!key){clear();return false;}if(owner!==null&&owner!==key)clear();owner=key;return true;}
   const current=(ticket,key)=>ticket===epoch&&owner===key&&key===contextKey();
   function requireCurrent(){if(owner===null||owner!==contextKey()){clear();throw Error('context_changed');}}
+  const journalScope=e=>e?.status==='ready'&&isId(e.context.activity_id)&&!['setup','closed'].includes(e.context.phase)
+    ?JSON.stringify([owner,e.context.activity_id,e.context.policy_id,e.viewer.command_actor_id]):null;
+  let boundJournal=null;
+  function journalRead(k){
+    try{return recovery?.read(k)??null;}catch{return null;}
+  }
+  function journalWrite(k,value){
+    try{if(k)recovery?.write(k,value);}catch{/* Sessione privata o spazio non disponibile. */}
+  }
+  function recoverView(e){
+    if(!recovery)return;
+    if(e.status!=='ready'){boundJournal=null;if(!pending)lastCommand=null;return;}
+    const key=journalScope(e);
+    if(key===boundJournal)return;
+    boundJournal=key;
+    if(!pending)lastCommand=null;
+    if(!key)return;
+    const saved=journalRead(key);
+    if(!saved?.receipt)return;
+    try{
+      const r=saved.receipt;module5.validateReceipt(r);
+      if(r.activity_id!==e.context.activity_id||r.context_version_after>e.context.version)return;
+      lastCommand={status:'confirmed',request_key:r.request_key,message:'Richiesta confermata dal server.',receipt:r};
+    }catch{/* Nessuna conferma senza ricevuta valida. */}
+  }
   function apply(e,loaded){
     if(e.status==='ready')insist(e.context.location_id===locationId,'location_mismatch');
     const before=envelope?.context,oldActor=envelope?.viewer.command_actor_id;
@@ -3626,7 +3651,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
       if(narrativeText&&narrativeContext!==nextNarrativeContext)narrativeText='';
       narrativeContext=nextNarrativeContext;
     }
-    envelope=e;if(changed)resetChoices();
+    recoverView(e);envelope=e;if(changed)resetChoices();
     if(e.status==='blocked'){if(!pending){narrativeText='';narrativeContext=null;}return;}
     if(loaded){optionsReady=true;if(!chosen()){selectedOfferId=null;selectedOptionIds=[];inputs=[];}}
     else if(!keepOptions)optionsReady=false;
@@ -3694,7 +3719,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
     return {schema_version:'combat-panel-command/1',request_key:key,location_id:locationId,activity_id:c.activity_id,context_version:c.version,offer_id:o.offer_id,selected_option_ids:[...selectedOptionIds].sort(),inputs:structuredClone(inputs).sort((a,b)=>a.input_id.localeCompare(b.input_id)),narrative_text:(o.requires_role||o.companion_context_required)?narrativeText:'',companion_id:o.companion_context_required?companionContext.id:null,companion_body:o.companion_context_required?companionContext.body:''};
   }
   async function send(){
-    requireCurrent();insist(pending&&!busy,'no_pending_command');const ticket=++epoch,key=owner,command=pending;busy=true;error=null;notify();
+    requireCurrent();insist(pending&&!busy,'no_pending_command');const ticket=++epoch,key=owner,command=pending,commandJournal=boundJournal;busy=true;error=null;notify();
     try{
       const raw=await rpc('combat_panel_commit_v1',{p_command:structuredClone(command)});if(!current(ticket,key))return null;
       const rejected=classifyRejection(raw,command.request_key);
@@ -3707,6 +3732,8 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
       }
       const e=validatePanelEnvelope(raw),r=e.receipt;insist(r?.request_key===command.request_key,'receipt_mismatch');
       if(e.status==='blocked')insist(e.reason_code==='REGIA_FATO_PENDING'&&r.activity_id===command.activity_id&&r.context_version_before===command.context_version,'receipt_scope_mismatch');
+      const receiptScope=commandJournal;
+      if(receiptScope&&r.activity_id===command.activity_id&&JSON.parse(receiptScope)[1]===r.activity_id)journalWrite(receiptScope,{receipt:r});
       apply(e,true);pending=null;rejection=null;lastCommand={status:'confirmed',request_key:command.request_key,message:'Richiesta confermata dal server.',receipt:structuredClone(r)};interactionError=null;refreshRequired=false;narrativeText='';narrativeContext=null;companionContext=null;resetChoices();return structuredClone(r);
     }catch(e){if(current(ticket,key)){lastCommand={status:'uncertain',request_key:command.request_key,message:'Esito incerto. Verifica lo stesso invio senza crearne un secondo.'};rejection=null;error=null;interactionError=null;optionsReady=false;}return null;}
     finally{if(current(ticket,key)){busy=false;notify();}}
@@ -4686,7 +4713,7 @@ const {createPanelController}=module4;
 const {mountPanelView}=module6;
 // Host unico per le due superfici. Nessuna chiamata alla costruzione e nessun
 // fallback verso invii legacy: il testo viaggia soltanto nel commit atomico.
-function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{},onDraft=()=>{},confirmDraft=()=>{},renderers={},canRestoreTestResources=()=>false,calorieRoom=()=>null,isCaloriePanelVisible=()=>false,singleRoleSend=false}){
+function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{},onDraft=()=>{},confirmDraft=()=>{},renderers={},canRestoreTestResources=()=>false,calorieRoom=()=>null,isCaloriePanelVisible=()=>false,singleRoleSend=false,recovery=null}){
   insist(root?.ownerDocument&&typeof client?.rpc==='function'&&typeof contextKey==='function','mount_configuration');
   let disposed=false,view,restoring=false,restoreMessage=null,restoreActivity=null,restoreEpoch=0;
   let passiveStateUnavailable=false,calorieReserve=null,calorieRead=0;
@@ -4740,7 +4767,7 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
     canRestoreTestResources:allowed(m),restoreMessage:m.envelope?.context?.activity_id===restoreActivity?restoreMessage:null});
   const publish=model=>{if(!disposed){const m=presented(model);view?.render(m);onDraft(m);}};
   const controller=createPanelController({
-    locationId,contextKey:()=>disposed?null:contextKey(),directCombatUI:singleRoleSend,
+    locationId,contextKey:()=>disposed?null:contextKey(),directCombatUI:singleRoleSend,recovery,
     rpc:async(name,args)=>{
       const readPassives=name==='combat_panel_state_v1'&&!passiveStateUnavailable;
       let response=await client.rpc(readPassives?'combat_panel_state_v2':name,args);
@@ -4915,6 +4942,7 @@ function attachPanelLand(host){
     blockingReason:meta=>!disposed&&mode!=='native'?child?.blockingReason?.(meta)??null:null,
     ownsSurface:()=>!disposed&&mode!=='native'&&(child?.ownsSurface?.()??false),
     currentSurface:()=>child?.currentSurface?.()??'ordinary',
+    refreshMasterSummary:()=>child?.refreshMasterSummary?.(),
     clearPresentation:()=>child?.clearPresentation(),snapshot:()=>mode==='combat'?child?.snapshot():null,companionGate:()=>child?.companionGate?.()??{required:false,mechanicsReady:false}};
 }
 
@@ -4938,7 +4966,7 @@ function attachCombatPanel(host){
   let panel=null,key=null,opened=false,surface='ordinary',generation=0,chatSubmitted=null,companionSubmitted=null,refreshing=null,disposed=false,confirmedDraft=null;
   let regiaState=null,regiaScope=null,regiaReadError=null,regiaReadToken=0,regiaReading=null,regiaObservedBinding=null,regiaOptedInScope=null;
   let actorLabelMode={session_id:null,label_mode:'legacy'},actorLabelReadToken=0;
-  let regiaDraft='',regiaDirection={turn_kind:'',actor_ids:[]};const regiaControls=doc.createElement('section');regiaControls.className='combat-panel-common';regiaControls.setAttribute('aria-live','polite');
+  let regiaDraft='',regiaDraftBinding=null,regiaDirection={turn_kind:'',actor_ids:[]};const regiaControls=doc.createElement('section');regiaControls.className='combat-panel-common';regiaControls.setAttribute('aria-live','polite');
   const badges=['msg-send','ed-send'].map(id=>{
     const send=doc.getElementById(id);if(!send)return null;
     const badge=doc.createElement('button');badge.type='button';badge.className='azp common-choice-pill';badge.hidden=true;
@@ -5094,7 +5122,9 @@ function attachCombatPanel(host){
     if(!pending||pending.corrupt||receipt?.request_key!==pending.request_key)return false;
     if(pending.kind==='advance'&&(receipt.schema_version!=='regia-round-operation/1'||receipt.kind!=='advance'||!['prepared','terminal'].includes(receipt.status)))return false;
     if(pending.kind==='publish'&&(receipt.schema_version!=='regia-round-publication/1'||!isId(receipt.message_id)||!isId(receipt.publication_id)))return false;
-    const k=regiaPendingKey();if(!k)return false;globalThis.sessionStorage.removeItem(k);if(pending.kind==='advance')regiaDirection={turn_kind:'',actor_ids:[]};return true;
+    const k=regiaPendingKey();if(!k)return false;
+    host.storeMasterReceipt?.(panel?.snapshot().envelope?.context?.activity_id,receipt,pending.kind);
+    globalThis.sessionStorage.removeItem(k);if(pending.kind==='advance')regiaDirection={turn_kind:'',actor_ids:[]};return true;
   }
   let regiaWriteLock=null;
   async function regiaWrite(kind){
@@ -5137,7 +5167,7 @@ function attachCombatPanel(host){
       const response=await host.rpc(rpc_name,args);
       if(response?.error)throw Error('Richiesta rifiutata dal server.');
       if(!regiaSettle(response.data,pending))throw Error('Ricevuta non confermata.');
-      if(kind==='publish'){regiaDraft='';host.regiaPublished?.();}
+      if(kind==='publish'){saveMasterDraft('');host.regiaPublished?.();}
       await readRegiaPublication();
     }catch{host.notice('Esito Regia incerto: verifica la stessa richiesta.');renderRegiaControls();}
     }finally{if(regiaWriteLock===lock)regiaWriteLock=null;}
@@ -5164,7 +5194,7 @@ function attachCombatPanel(host){
     if(!authorizedRecovery())return false;
     globalThis.sessionStorage.setItem(k+':rejected:'+p.request_key,JSON.stringify({status:'rejected',reason:'REGIA_PREPARATION_STALE',pending:p}));
     globalThis.sessionStorage.removeItem(k);
-    regiaDraft=p.args.p_body;regiaState=state;
+    regiaState=state;saveMasterDraft(p.args.p_body);
     host.notice('La richiesta precedente è stata rifiutata e conservata. Rileggi il Fato e pubblicalo con la revisione aggiornata.');
     renderRegiaControls();return true;
   }
@@ -5186,14 +5216,41 @@ function attachCombatPanel(host){
         }
         receipt=retry.data;if(!regiaSettle(receipt,p))throw Error('Replay senza ricevuta finale.');
       }
-      if(p.kind==='publish'){regiaDraft='';host.regiaPublished?.();}
+      if(p.kind==='publish'){saveMasterDraft('');host.regiaPublished?.();}
       await readRegiaPublication();
     }catch(error){host.notice((error?.message||'Ricevuta ancora incerta.')+' Conserva la stessa richiesta.');renderRegiaControls();}
   }
+  function masterDraftKey(){
+    if(host.recovery?.()!==true)return null;
+    const e=panel?.snapshot().envelope,m=regiaState?.master,s=regiaSessionScope(e);
+    return s&&e?.viewer.is_master===true&&isId(m?.source_round_id)
+      ?'tus-combat-master-draft/1:'+JSON.stringify([s,m.source_round_id]):null;
+  }
+  function saveMasterDraft(value){
+    regiaDraft=value;
+    try{if(regiaDraftBinding){const storage=doc.defaultView.sessionStorage;
+      if(value)storage.setItem(regiaDraftBinding,value);else storage.removeItem(regiaDraftBinding);}}catch{}
+  }
   function renderRegiaControls(){
     if(surface!=='master'||!opened)return;
-    const old=regiaControls.querySelector('textarea');if(old)regiaDraft=old.value;
+    if(host.recovery?.()===true){
+      const bound=masterDraftKey();
+      if(bound!==regiaDraftBinding){
+        regiaDraftBinding=bound;regiaDraft='';
+        try{if(bound)regiaDraft=(doc.defaultView.sessionStorage.getItem(bound)||'').slice(0,5000);}catch{}
+      }
+    }else{
+      const old=regiaControls.querySelector('textarea');if(old)regiaDraft=old.value;
+    }
     regiaControls.replaceChildren();const state=regiaState;
+    const e=panel?.snapshot().envelope;
+    const summary=host.masterSummary?.(e);
+    const confirmed=host.masterReceipt?.(e?.context?.activity_id);
+    if(confirmed){const p=doc.createElement('p');p.textContent=confirmed;regiaControls.append(p);}
+    if(summary?.length){
+      const title=doc.createElement('h3');title.textContent='Effetti e costi del round';regiaControls.append(title);
+      for(const line of summary){const p=doc.createElement('p');p.textContent=line;regiaControls.append(p);}
+    }
     if(regiaReadError||state?.status==='blocked'){
       const p=doc.createElement('p');p.textContent='Pubblicazione non verificabile: i comandi del round restano sospesi.';regiaControls.append(p);return;
     }
@@ -5227,7 +5284,7 @@ function attachCombatPanel(host){
       button.addEventListener('click',()=>regiaWrite('advance'));regiaControls.append(button);
     }else if(direction?.reason_code==='REGIA_ENTRY_STAGING_REQUIRED'){const note=doc.createElement('p');note.textContent='Prepara lo scontro nella scheda della missione prima di scegliere il turno.';regiaControls.append(note);}
     if(m.can_publish){const label=doc.createElement('label');label.textContent='Un solo Fato: esito precedente e nuovi tentativi';
-      const body=doc.createElement('textarea');body.rows=5;body.maxLength=5000;body.value=regiaDraft;body.addEventListener('input',()=>{regiaDraft=body.value;});label.append(body);regiaControls.append(label);
+      const body=doc.createElement('textarea');body.rows=5;body.maxLength=5000;body.value=regiaDraft;body.addEventListener('input',()=>saveMasterDraft(body.value));label.append(body);regiaControls.append(label);
       const button=doc.createElement('button');button.type='button';button.textContent='Pubblica Fato e apri le risposte';button.addEventListener('click',()=>regiaWrite('publish'));regiaControls.append(button);}
   }
   function suspend(){panel?.suspend();}
@@ -5238,6 +5295,8 @@ function attachCombatPanel(host){
     const next=scope();if(next!==key)invalidate();if(!next)return false;if(panel)return true;
     key=next;const stamp=generation;ordinary.append(root);
     panel=mountPanelSurface({root,locationId:host.location().id,contextKey:scope,singleRoleSend:singleRoleSend(),
+      recovery:host.recovery?.()===true?{read:k=>JSON.parse(doc.defaultView.sessionStorage.getItem('tus-combat-receipt/1:'+k)||'null'),
+        write:(k,v)=>doc.defaultView.sessionStorage.setItem('tus-combat-receipt/1:'+k,JSON.stringify(v))}:null,
       canRestoreTestResources:()=>host.canRestoreTestResources?.()===true,
       calorieRoom:()=>host.calorieRoom?.(),isCaloriePanelVisible:()=>opened,
       client:{rpc:(name,args)=>host.rpc(name,args)},renderers:host.renderers??(host.visuals?{map:createVisualMapRenderer(host.visuals)}:undefined),
@@ -5247,6 +5306,7 @@ function attachCombatPanel(host){
           regiaObservedBinding=binding;regiaState=null;regiaScope=null;regiaReadError=null;
           void readRegiaPublication();
         }
+        if(panel)host.onCombatDraftScope?.();
         syncDraft(m);showEntry();
       },confirmDraft:m=>{
         const signature=draftSignature(m);if(!m.canConfirmMechanics||!signature)return;
@@ -5266,6 +5326,7 @@ function attachCombatPanel(host){
     if(!ensure()||!routeAllowed())return false;
     const stamp=generation;hide();surface=which;opened=true;host.closeMaster?.();
     inlineBody=host.inlineHost?.(which,panel?.snapshot().envelope)||null;
+    host.rememberCombatView?.(which,panel?.snapshot().envelope);
     (inlineBody||(which==='master'?master:ordinary)).replaceChildren(root,...(which==='master'?[regiaControls]:[]));renderRegiaControls();
     if(inlineBody){inlineBody.hidden=false;host.showInline?.();}
     else{
@@ -5322,13 +5383,14 @@ function attachCombatPanel(host){
       }).finally(()=>{if(single)submittingRole=false;});return true;
   }
   const entryClick=()=>open('ordinary');
-  entry.addEventListener('click',entryClick);close.addEventListener('click',hide);
-  function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',hide);invalidate();for(const badge of badges)badge.remove();blockingToast.remove();doc.body.classList.remove('combat-has-blocking-toast');root.remove();}
+  const userClose=()=>{if(opened)host.rememberCombatView?.(null);hide();};
+  entry.addEventListener('click',entryClick);close.addEventListener('click',userClose);
+  function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',userClose);invalidate();for(const badge of badges)badge.remove();blockingToast.remove();doc.body.classList.remove('combat-has-blocking-toast');root.remove();}
   showEntry();
   return {open,refresh,invalidate,suspend,dispose,handleSend,blockingReason,ownsCurrent,closeMasterSurface:()=>{if(surface==='master')hide();},
     companionGate:()=>{const m=panel?.snapshot(),offer=m?.envelope?.offers?.find(o=>o.offer_id===m.selectedOfferId);return {required:offer?.companion_context_required===true,mechanicsReady:singleRoleSend()?!!draftSignature(m):!!confirmedDraft&&draftSignature(m)===confirmedDraft.signature};},
     ownsSurface:()=>routeAllowed()&&opened&&key===scope(),
-    currentSurface:()=>surface,
+    currentSurface:()=>surface,refreshMasterSummary:renderRegiaControls,
     clearPresentation:invalidate,
     snapshot:()=>panel?.snapshot()??null};
 }
@@ -6615,7 +6677,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       }
       (function(){ var b=document.getElementById('fato-btn'); if(b) b.addEventListener('click',function(){ setFatoMode(!fatoMode); }); })();
       window.addEventListener('tus:fato-reset',function(){ setFatoMode(false); });
-      window.addEventListener('pagehide',function(){ setFatoMode(false); });
+      window.addEventListener('pagehide',function(){ if(combatRecoveryEnabled())saveResume();setFatoMode(false); });
       var LAND_EVENTS=null,LAND_POLICY={key:null,value:null,flight:null},LAND_PROFILE_KNOWN=false,LAND_PRESENCE_FLIGHT=null;
       var LAND_DOMAINS=['chat','presence','scene','role_archive','mail','news','calendar','character','training','academy','exam','catalog'];
       function landReadKey(){return loggedIn&&!ordinarySigningOut&&myId&&ordinaryAuthId===myId?JSON.stringify([myId,MV2&&MV2.authEpoch||0]):null;}
@@ -6849,6 +6911,82 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(holdAuthRevokes(event,myId,nextId,esameHoldKey!==null||!!missionOpeningPanel)){esameHoldRevoked=true;esameHoldStop();}
       });
       var ORDINARY=null,ordinaryAuthId=null,ordinarySigningOut=false,ordinaryPanelMode=null;
+      const MASTER_RECOVERY_LAND=false;
+      let combatViewRestore=null,combatOpeningView=null;
+      function combatRecoveryEnabled(){return commonPanelRoom()&&iAmStaff||MASTER_RECOVERY_LAND&&cur?.is_test===false&&!cur.is_exam_room;}
+      function combatRecoveryOwner(){return JSON.stringify([commonMasterPrincipal(),myCharId||null,cur?.id||null]);}
+      function combatRoleDraftKey(){
+        const e=ORDINARY?.snapshot()?.envelope,c=e?.context;
+        if(!combatRecoveryEnabled()||!roomEntryConfirmed()||!commonMasterPrincipal()||fatoMode||toSel?.value)return null;
+        if(e?.status!=='ready'||c.location_id!==cur?.id||!c.activity_id||!e.viewer.command_actor_id||
+           ['setup','closed'].includes(c.phase))return null;
+        return 'tus-combat-role-draft/1:'+JSON.stringify([combatRecoveryOwner(),c.activity_id,e.viewer.command_actor_id]);
+      }
+      let combatComposerBinding=null;
+      function combatStoreRole(){
+        const binding=combatRoleDraftKey();
+        if(!binding||!input||combatComposerBinding&&combatComposerBinding!==binding)return;
+        combatComposerBinding=binding;
+        try{if(input.value)sessionStorage.setItem(binding,input.value.slice(0,5000));else sessionStorage.removeItem(binding);}catch{}
+      }
+      function combatRestoreRole(){
+        const key=combatRoleDraftKey();
+        if(!key||key===combatComposerBinding||!input)return;
+        if(combatComposerBinding){
+          input.value='';const editor=document.getElementById('ed-text');if(editor)editor.value='';
+        }
+        combatComposerBinding=key;
+        if(input.value)return;
+        try{const value=sessionStorage.getItem(key);if(value)input.value=value;}catch{}
+        updCount();
+      }
+      function combatMasterReceiptKey(activity){
+        const d=MV2.data;
+        if(!combatRecoveryEnabled()||!commonMasterPrincipal()||!activity||d?.encounter?.id!==activity||!d.master?.id||
+           MV2.principalId!==commonMasterPrincipal()||MV2.locationId!==cur?.id||d.viewer?.is_master!==true)return null;
+        return 'tus-combat-master-receipt/1:'+JSON.stringify([combatRecoveryOwner(),d.master.id,activity]);
+      }
+      function combatStoreMasterReceipt(activity,r,kind){
+        const key=combatMasterReceiptKey(activity);
+        if(!key||!r?.request_key)return;
+        try{sessionStorage.setItem(key,JSON.stringify({request_key:r.request_key,kind,publication_id:r.publication_id||null}));}catch{}
+      }
+      function combatMasterReceipt(activity){
+        const key=combatMasterReceiptKey(activity);
+        if(!key)return null;
+        try{
+          const r=JSON.parse(sessionStorage.getItem(key)||'null'),uuid=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+          if(!uuid.test(r?.request_key))return null;
+          if(r.kind==='publish'&&uuid.test(r.publication_id))return 'Ultima conferma della Regia: Fato pubblicato.';
+          if(r.kind==='advance')return 'Ultima conferma della Regia: avanzamento registrato.';
+        }catch{}
+        return null;
+      }
+      function combatViewKey(){return 'tus-combat-view/1:'+combatRecoveryOwner();}
+      function combatRememberView(surface,envelope){
+        if(!combatRecoveryEnabled()||!commonMasterPrincipal())return;
+        try{
+          if(!surface){sessionStorage.removeItem(combatViewKey());return;}
+          const activity=envelope?.context?.activity_id|| (surface==='master'&&MV2.locationId===cur?.id&&MV2.principalId===commonMasterPrincipal()?MV2.data?.encounter?.id:null);
+          if(activity)sessionStorage.setItem(combatViewKey(),JSON.stringify({surface,activity}));
+        }catch(_e){}
+      }
+      function combatRestoreView(){
+        combatRestoreRole();
+        const saved=combatViewRestore;
+        if(!saved||combatOpeningView||!roomEntryConfirmed()||saved.owner!==combatRecoveryOwner()||!combatRecoveryEnabled())return;
+        const e=ORDINARY?.snapshot()?.envelope,d=MV2.data;
+        if(e?.status==='ready'&&e.context.activity_id===saved.activity&&(saved.surface==='ordinary'||commonMasterReady())){
+          combatOpeningView=saved;
+          Promise.resolve(ORDINARY.open(saved.surface,{explicit:false})).then(ok=>{
+            if(ok&&combatViewRestore===saved)combatViewRestore=null;
+          }).catch(()=>{}).finally(()=>{if(combatOpeningView===saved)combatOpeningView=null;});
+          return;
+        }
+        if(saved.surface==='master'&&d?.encounter?.id===saved.activity&&MV2.locationId===cur?.id&&MV2.principalId===commonMasterPrincipal()&&commonMasterRouteState()==='native'){
+          mv2OvApri(true);if(document.getElementById('mv2ov')?.hidden===false)combatViewRestore=null;
+        }
+      }
       function commonPanelRoom(){return !!(cur&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test);}
       function commonCombatRoom(){return commonPanelRoom()||!!(cur&&!cur.is_exam_room&&!cur.is_test);}
       function commonMasterPrincipal(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId&&myId?myId:null;}
@@ -6954,6 +7092,15 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(!factory||!cur){if(ORDINARY)ORDINARY.invalidate();return;}
         if(!ORDINARY) ORDINARY=(mode==='common'?function(host){return mapFigureAttach(factory,host);}:factory)({
           document:document,location:function(){return cur;},directCombatUI:commonCombatRoom,
+          recovery:combatRecoveryEnabled,rememberCombatView:combatRememberView,onCombatDraftScope:combatRestoreRole,
+          storeMasterReceipt:combatStoreMasterReceipt,masterReceipt:combatMasterReceipt,
+          masterSummary:function(e){
+            const d=MV2.data;
+            if(!combatRecoveryEnabled()||e?.status!=='ready'||e.viewer.is_master!==true&&e.viewer.is_admin!==true||
+                MV2.locationId!==cur?.id||MV2.principalId!==commonMasterPrincipal()||
+                d?.encounter?.id!==e.context.activity_id||d.report?.id!==e.round_details?.report?.report_id)return null;
+            return mv2ConfirmedSummary(d);
+          },
           showMaster:function(){var ov=document.getElementById('mv2ov'),bk=document.getElementById('mv2ov-backdrop');if(ov)ov.hidden=false;if(bk)bk.hidden=false;},
           closeMaster:mv2OvChiudi,
           allowCommonMaster:commonMasterRoute,
@@ -6979,10 +7126,10 @@ window.TUSOrdinary={attachOrdinaryLand};
           rpc:commonPanelUiRpc,requestKey:mv2Key,
           readChat:function(){return input.value||'';},
           readCompanion:function(){var pi=document.getElementById('png-input');return pi?pi.value.trim():'';},
-          clearChat:function(companionExpected){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';clearPngDraft(companionExpected);updCount();},
+          clearChat:function(companionExpected){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';clearPngDraft(companionExpected);if(combatRecoveryEnabled()&&combatComposerBinding)try{sessionStorage.removeItem(combatComposerBinding);}catch(_e){}updCount();},
           notice:toast,syncSendGate:syncSendBtn,accepted:function(){syncSendBtn();loadMsgs();loadWho();loadRoleState();loadTrainingState();}
         });
-        ORDINARY.refresh();
+        Promise.resolve(ORDINARY.refresh()).then(combatRestoreView);
       }
       function refreshStaffPassiveRoom(){ if(!cur||!roomEntryConfirmed()) return;innataStaffProfileVisibility(); updateMeteo(); entraLuogo(undefined,true); loadMsgs(); loadWho(true); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadEsame(); void missionAutomaticSceneRefresh(); }
       function refreshRoom(){if(!LAND_POLICY.value||LAND_POLICY.key!==landReadKey()){var key=landReadKey();return landPolicyRead().then(function(){if(key===landReadKey())return refreshStaffPassiveRoom();});} if(landEventReadMode()){landPolicyRead();return refreshStaffPassiveRoom();} if(roomEntryStaffScope())return refreshStaffPassiveRoom(); if(!cur||!roomEntryConfirmed()) return; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); ordinaryRefresh(); }
@@ -7002,6 +7149,19 @@ window.TUSOrdinary={attachOrdinaryLand};
 
       function mv2Error(r,alt){ var e=r&&r.error, m=e&&(e.message||e.details||e.hint); if(!m) return alt||'Operazione non riuscita'; try{ var j=JSON.parse(m); return j.message||j.error||alt||m; }catch(_e){ return m; } }
       function mv2Rpc(name,args){ return sb.rpc(name,args).then(function(r){ if(r&&r.error) throw new Error(mv2Error(r)); return mv2Data(r); }); }
+      function mv2DraftKey(kind){
+        const d=MV2.data,round=kind==='regia'?MV2.regia?.master?.window_id:d?.report?.id;
+        return combatRecoveryEnabled()&&commonMasterPrincipal()&&MV2.principalId===commonMasterPrincipal()&&MV2.locationId===cur?.id&&d?.viewer?.is_master===true&&d.master?.id&&d.encounter?.id&&round
+          ?'tus-combat-native-draft/1:'+JSON.stringify([combatRecoveryOwner(),d.master.id,d.encounter.id,kind,round]):null;
+      }
+      function mv2ReadDraft(kind){
+        const key=mv2DraftKey(kind);if(!key)return '';
+        try{return (sessionStorage.getItem(key)||'').slice(0,5000);}catch{return '';}
+      }
+      function mv2SaveDraft(kind,value){
+        const key=mv2DraftKey(kind);if(!key)return;
+        try{if(value)sessionStorage.setItem(key,value.slice(0,5000));else sessionStorage.removeItem(key);}catch{}
+      }
       function mv2RegiaPendingKey(){var m=MV2.data?.master;return m&&commonMasterPrincipal()?`tus-regia-round/1:${commonMasterPrincipal()}:${m.id}`:null;}
       function mv2RegiaPending(){var key=mv2RegiaPendingKey();if(!key)return null;try{return JSON.parse(sessionStorage.getItem(key)||'null');}catch{return {corrupt:true};}}
       function mv2RegiaSave(pending){var key=mv2RegiaPendingKey();if(!key)throw Error('Sessione Regia non disponibile.');sessionStorage.setItem(key,JSON.stringify(pending));}
@@ -7009,7 +7169,9 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(!pending||pending.corrupt||receipt?.request_key!==pending.request_key)return false;
         if(pending.kind==='advance'&&(receipt.schema_version!=='regia-round-operation/1'||receipt.kind!=='advance'||!['prepared','terminal'].includes(receipt.status)))return false;
         if(pending.kind==='publish'&&(receipt.schema_version!=='regia-round-publication/1'||!receipt.message_id||!receipt.publication_id))return false;
-        var key=mv2RegiaPendingKey();if(!key)return false;sessionStorage.removeItem(key);if(pending.kind==='advance')MV2.regiaDirection={turn_kind:'',actor_ids:[]};return true;
+        var key=mv2RegiaPendingKey();if(!key)return false;
+        combatStoreMasterReceipt(MV2.data?.encounter?.id,receipt,pending.kind);
+        sessionStorage.removeItem(key);if(pending.kind==='advance')MV2.regiaDirection={turn_kind:'',actor_ids:[]};return true;
       }
       async function mv2RegiaRead(next){
         if(!next?.master?.id||next.master.mission_id===SCORTA_MISSION_ID)return null;
@@ -7079,7 +7241,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         mv2Busy(true);
         try{var receipt=await mv2Rpc(rpc_name,args);
           if(!mv2RegiaSettle(receipt,pending))throw Error('Risposta non confermata: verifica la stessa UUID.');
-          if(kind==='publish')MV2.regiaDraft='';mv2Busy(false);mv2Reload(kind==='advance'?'Round successivo preparato in privato.':'Fato pubblicato e finestra aperta.');
+          if(kind==='publish'){MV2.regiaDraft='';mv2SaveDraft('regia','');}mv2Busy(false);mv2Reload(kind==='advance'?'Round successivo preparato in privato.':'Fato pubblicato e finestra aperta.');
         }catch(error){mv2Busy(false);toast('Esito incerto: verifica la stessa richiesta dal pannello.');renderMasterV2();}
       }
       async function mv2RegiaRecoverRejectedPublication(p,error){
@@ -7123,6 +7285,7 @@ window.TUSOrdinary={attachOrdinaryLand};
             }
             if(!mv2RegiaSettle(receipt,pending))throw Error('Replay senza ricevuta finale.');
           }
+          if(pending.kind==='publish')mv2SaveDraft('regia','');
           mv2Busy(false);mv2Reload('Ricevuta Regia confermata.');
         }catch(error){mv2Busy(false);toast((error?.message||'Ricevuta non confermata.')+' Conserva la stessa richiesta.');renderMasterV2();}
       }
@@ -7249,7 +7412,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           }
           if(previouslyCommon&&!commonMasterCombat()&&ORDINARY){ORDINARY.invalidate();ordinaryRefresh();}
           if(same&&previouslyCommon===commonMasterCombat()&&previouslyScortaGate===mv2ScortaGate())return;
-          MV2.serverSig=sig; renderMasterV2();
+          MV2.serverSig=sig; renderMasterV2(); combatRestoreView();
         },function(){ MV2.loading=false;if(!cur||cur.id!==masterLocation||commonMasterPrincipal()!==masterPrincipal||(MV2.authEpoch||0)!==masterEpoch)return;var requested=MV2.readRequested===true;MV2.readRequested=false;if(MV2.scortaContext){MV2.scortaRoom=null;mv2Slim();mv2TopSync();}else mv2Card(false);if(requested)toast('Lettura della Regia non riuscita. Premi Aggiorna per riprovare.'); });
       }
       function loadMasterV2Staff(explicit,roomRead,options){options=options||{};
@@ -7302,7 +7465,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           }
           if(previouslyCommon&&!commonMasterCombat()&&ORDINARY){ORDINARY.invalidate();ordinaryRefresh();}
           if(same&&previouslyCommon===commonMasterCombat()&&previouslyScortaGate===mv2ScortaGate())return;
-          MV2.serverSig=sig; renderMasterV2();
+          MV2.serverSig=sig; renderMasterV2(); combatRestoreView();
         }).catch(function(){if(MV2.staffLoading!==masterFlight||!cur||cur.id!==masterLocation||commonMasterPrincipal()!==masterPrincipal||(MV2.authEpoch||0)!==masterEpoch)return;var requested=MV2.readRequested===true;MV2.readRequested=false;if(MV2.scortaContext){MV2.scortaRoom=null;mv2Slim();mv2TopSync();}else mv2Card(false);if(requested)toast('Lettura della Regia non riuscita. Premi Aggiorna per riprovare.');}).finally(async function(){try{await genericRead;}finally{if(MV2.staffLoading===masterFlight){MV2.staffLoading=null;if(masterFlight.followUp&&cur&&cur.id===masterLocation&&commonMasterPrincipal()===masterPrincipal&&(MV2.authEpoch||0)===masterEpoch&&UI_POSTREVIEW_STAFF_EPOCH===masterFlight.viewEpoch&&landEventReadMode())return loadMasterV2Staff(false,null,{hintRead:true});}}});
       }
       function mv2Actor(id){ var a=((MV2.data||{}).actors||[]).filter(function(x){return x.id===id;}); return a[0]||null; }
@@ -7456,6 +7619,44 @@ window.TUSOrdinary={attachOrdinaryLand};
         return '<div class="mv2-row" data-mv2-rating-form="'+x.declaration_id+'"><div class="mv2-rowtop"><span class="mv2-name">'+esc(x.actor_name)+'</span><span class="mv2-team">'+esc(x.kind)+'</span></div><p class="mv2-note">'+esc(x.text||'Nessun testo')+'</p>'
           +'<div class="mv2-grid"><label class="mv2-field"><span>Valutazione</span><select data-mv2-score><option value="">Scegli da -3 a +3</option><option>-3</option><option>-2</option><option>-1</option><option>0</option><option>1</option><option>2</option><option>3</option></select></label><label class="mv2-field"><span>Motivazione / revisione</span><input maxlength="500" data-mv2-reason placeholder="Facoltativa, resta nel referto"></label></div><button class="mv2-btn" type="button" data-mv2-rating-send="'+x.declaration_id+'">Registra voto</button></div>';
       }
+      function mv2ConfirmedSummary(d){
+        const rep=d?.report,m=rep?.mechanics,scene=d?.encounter?.id;
+        if((d?.viewer?.is_master!==true&&d?.viewer?.is_admin!==true)||!scene||!rep?.id||!m)return [];
+        const names=new Map((d.actors||[]).map(a=>[a.id,a.name]));
+        const label={chakra:'chakra',azione_principale:'azione principale',reazione:'reazione',mantenimento:'chakra di mantenimento'};
+        const lines=[],seen=new Set(),totals=new Map();
+        for(const entry of Array.isArray(m.ledger)?m.ledger:[]){
+          if(!entry?.id||seen.has(entry.id)||entry.session_id!==scene||!Object.hasOwn(label,entry.resource_kind)||!names.get(entry.actor_id))continue;
+          if(typeof entry.is_simulated!=='boolean')continue;
+          const used=entry.is_simulated?entry.committed_amount:entry.applied_amount;
+          if(!Number.isSafeInteger(used)||used<=0)continue;
+          seen.add(entry.id);
+          const key=JSON.stringify([entry.actor_id,entry.is_simulated,entry.resource_kind]);
+          totals.set(key,(totals.get(key)||0)+used);
+        }
+        for(const [key,n] of totals){
+          const [id,simulated,resource]=JSON.parse(key);
+          lines.push(names.get(id)+' · '+(simulated?'Costo simulato: ':'Costo registrato: ')+n+' '+label[resource]);
+        }
+        for(const dec of Array.isArray(m.declarations)?m.declarations:[]){
+          if(!names.get(dec?.actor)||!dec.outcome)continue;
+          const actor=names.get(dec.actor);
+          const outcome=dec.outcome;
+          const children=Array.isArray(outcome.children)?outcome.children:[outcome];
+          for(const child of children){
+            const target=names.get(child?.target_actor_id||dec.target);
+            if(!target)continue;
+            if(child.ko===true)lines.push(actor+' → '+target+' · Fuori combattimento');
+          }
+          const suiton=dec.suiton_facts?.suiton_server;
+          const pulled=suiton?.forced_displacement,target=names.get(dec.suiton_facts?.target_actor_id||dec.target);
+          if(target&&pulled?.applied===true&&Number.isFinite(pulled.distance_m)&&pulled.distance_m>0)lines.push(actor+' → '+target+' · Trascinamento: '+pulled.distance_m+' m');
+          const elemental=dec.elemental_facts?.elemental_server;
+          const name=elemental?.technique_name==='Soffio di brace'?'Bruciatura lieve':elemental?.technique_name==='Scarica'?'Apertura difensiva':null;
+          if(name&&target&&Array.isArray(elemental.lifecycle)&&elemental.lifecycle.some(x=>x.event_kind==='application'&&x.applied===true))lines.push(actor+' → '+target+' · '+name+' applicata');
+        }
+        return [...new Set(lines)];
+      }
       function mv2ReportHtml(rep){
         if(!rep||!rep.mechanics) return '';
         var dec=rep.mechanics.declarations||[];
@@ -7469,11 +7670,14 @@ window.TUSOrdinary={attachOrdinaryLand};
       }
       function renderMasterV2(){
         mv2CapturePrepInputs(document.getElementById('mv2-body'));
+        ORDINARY?.refreshMasterSummary?.();
         if(examHumanOwnsScene()){mv2Card(false);return;}
         if(examRegia()?.ownsCombat()){mv2Card(false);return;}
         if(commonMasterCombat()){ordinaryRefresh();mv2Slim();return;}
         var body=document.getElementById('mv2-body'), tag=document.getElementById('mv2-state'); if(!body||!cur) return;
-        var previousRegiaText=body.querySelector('#mv2-regia-fato');if(previousRegiaText)MV2.regiaDraft=previousRegiaText.value;
+        var previousRegiaText=body.querySelector('#mv2-regia-fato');
+        if(combatRecoveryEnabled()){MV2.regiaDraft=mv2ReadDraft('regia');}
+        else if(previousRegiaText)MV2.regiaDraft=previousRegiaText.value;
         mv2CaptureDefenseDrafts();
         var d=MV2.data||{}, m=d.master, e=d.encounter, r=d.round, viewer=d.viewer||{};
         var masterDialog=document.getElementById('mv2ov');if(masterDialog)masterDialog.classList.toggle('mv2-compact',!m&&!MV2.setupKind);
@@ -7520,6 +7724,12 @@ window.TUSOrdinary={attachOrdinaryLand};
         if(viewer.is_master&&(d.ratings_pending||[]).length) h+='<div class="mv2-phase"><b>Valutazione qualitativa</b><br>Da −3 a +3: influenza la riuscita senza cambiare i numeri del motore.</div>'+d.ratings_pending.map(mv2RatingForm).join('');
         if(viewer.is_master&&r&&r.phase==='raccolta_difese'&&!(d.pending_defenses||[]).length&&!(d.ratings_pending||[]).length) h+='<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="resolve">Calcola attacchi e difese</button></div>';
         h+=mv2ReportHtml(d.report);
+        if(combatRecoveryEnabled()){
+          var lastMasterReceipt=combatMasterReceipt(e.id);
+          if(lastMasterReceipt)h+='<p class="mv2-note">'+esc(lastMasterReceipt)+'</p>';
+          var confirmed=mv2ConfirmedSummary(d);
+          if(confirmed.length)h+='<div class="mv2-report"><div class="mv2-phase"><b>Effetti e costi del round</b></div>'+confirmed.map(line=>'<div class="mv2-outcome">'+esc(line)+'</div>').join('')+'</div>';
+        }
         if(viewer.is_master&&MV2.regia?.status==='ready'&&MV2.regia.master){
           var prep=MV2.regia.master,regiaPending=mv2RegiaPending();
           if(regiaPending) h+='<p class="mv2-note">Comando Regia incerto: conserva la stessa richiesta.</p><button class="mv2-btn" type="button" data-mv2="regia-recover">Verifica o ripeti la stessa richiesta</button>';
@@ -7540,7 +7750,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           }
           if(!regiaPending&&prep.can_publish)h+='<label class="mv2-field"><span>Un solo Fato: referto precedente e nuovi tentativi</span><textarea id="mv2-regia-fato" maxlength="5000" placeholder="Intreccia tutti i PNG pertinenti nello stesso esito.">'+esc(MV2.regiaDraft||'')+'</textarea></label><button class="mv2-btn" type="button" data-mv2="regia-publish">Pubblica Fato e apri le risposte</button>';
         }else if(viewer.is_master&&MV2.regia?.status==='blocked')h+='<p class="mv2-note">Stato del round da verificare: pubblicazione sospesa.</p>';
-        else if(viewer.is_master&&d.report&&d.report.narration_state!=='pubblicata') h+='<label class="mv2-field"><span>Resoconto cinematografico del Fato</span><textarea id="mv2-narrative" maxlength="5000" placeholder="Raccogli la turnazione e racconta l’esito per tutti. I dialoghi tra virgolette saranno evidenziati in rosso."></textarea></label><button class="mv2-btn" type="button" data-mv2="narrate">Pubblica esito e avanza</button>';
+        else if(viewer.is_master&&d.report&&d.report.narration_state!=='pubblicata') h+='<label class="mv2-field"><span>Resoconto cinematografico del Fato</span><textarea id="mv2-narrative" maxlength="5000" placeholder="Raccogli la turnazione e racconta l’esito per tutti. I dialoghi tra virgolette saranno evidenziati in rosso.">'+esc(mv2ReadDraft('referto'))+'</textarea></label><button class="mv2-btn" type="button" data-mv2="narrate">Pubblica esito e avanza</button>';
         if(viewer.is_master&&e.state==='risolto'&&r&&r.state==='narrato'&&!(MISSION_CREATION_HUMAN_SESSION===m.id&&MISSION_CREATION_HUMAN_STATUS!=='unconfigured')) h+=(m.tipo==='quest'?'<div class="mv2-grid"><label class="mv2-field"><span>Esito quest</span><select id="mv2-close-outcome"><option value="successo">Successo</option><option value="fallimento">Fallimento</option></select></label><label class="mv2-field"><span>Nota finale</span><input id="mv2-close-note" maxlength="1000"></label></div>':'<label class="mv2-field"><span>Nota finale</span><input id="mv2-close-note" maxlength="1000"></label>')+'<label class="mv2-note"><input id="mv2-close-role" type="checkbox"> Chiudi anche le REC collegate alla giocata</label><button class="mv2-btn" type="button" data-mv2="close">Chiudi attività</button>';
         if(viewer.is_master&&e.state!=='risolto') h+='<label class="mv2-field"><span>Motivo della sospensione</span><input id="mv2-suspend-reason" maxlength="500" placeholder="Es. giocata da riprendere alla prossima sessione"></label><div class="mv2-actions"><button class="mv2-btn ghost" type="button" data-mv2="suspend">Congela e sospendi</button></div>'+mv2SceneCloseBlock(m);
         if(viewer.is_admin&&!viewer.is_master) h+='<label class="mv2-field"><span>Motivo subentro Admin</span><input data-mv2-override-reason maxlength="500"></label><button class="mv2-btn warn" type="button" data-mv2="admin-override">Rimuovi e subentra</button>';
@@ -7563,7 +7773,7 @@ window.TUSOrdinary={attachOrdinaryLand};
       function mv2OvApri(missionDestination){ if(MV2.scortaContext&&!mv2ScortaGate()){mv2ScortaClose();return;} if(examRegia()?.ownsCombat()){examRegia().openPanel('master');return;} if(commonMasterCombat()){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');else toast('Pannello comune non disponibile.');return;} if(missionDestination!==true&&humanInlineCombatHost()){humanInlineShow('quest');return;} if(!cur){ toast('Entra in una stanza per aprire la Regia'); return; }
         var rr=document.getElementById('mv2-room'); if(rr) rr.textContent=cur.name||'stanza';
         var ov=document.getElementById('mv2ov'), bk=document.getElementById('mv2ov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false;
-        renderMasterV2(); loadMasterV2(true); }
+        combatRememberView('master'); renderMasterV2(); loadMasterV2(true); }
       function mv2OvChiudi(){ var ov=document.getElementById('mv2ov'), bk=document.getElementById('mv2ov-backdrop'); if(ov)ov.hidden=true; if(bk)bk.hidden=true; }
       function mv2Busy(on){ MV2.busy=on; var b=document.getElementById('mv2-body'); if(b) Array.prototype.forEach.call(b.querySelectorAll('button'),function(x){x.disabled=on;}); }
       function mv2Reload(msg){ MV2.options={}; MV2.serverSig=null; if(msg)toast(msg); loadMasterV2(); }
@@ -7581,11 +7791,16 @@ window.TUSOrdinary={attachOrdinaryLand};
         var body=document.getElementById('mv2-body'); if(!body)return;
         var _sl=document.getElementById('mv2-slim'); if(_sl) _sl.addEventListener('click',function(e){ if(!e.target.closest('[data-mv2-ov]'))return;var mission=!!_sl.closest('#mission-board-master');if(mission)closeMiss();mv2OvApri(mission); });
         var _ob=document.getElementById('mv2-open-btn'); if(_ob) _ob.addEventListener('click',mv2OvApri);
-        var _ox=document.getElementById('mv2ov-x'); if(_ox) _ox.addEventListener('click',mv2OvChiudi);
-        var _obk=document.getElementById('mv2ov-backdrop'); if(_obk) _obk.addEventListener('click',mv2OvChiudi);
+        function userCloseMaster(){combatRememberView(null);ORDINARY?.closeMasterSurface?.();mv2OvChiudi();}
+        var _ox=document.getElementById('mv2ov-x'); if(_ox) _ox.addEventListener('click',userCloseMaster);
+        var _obk=document.getElementById('mv2ov-backdrop'); if(_obk) _obk.addEventListener('click',userCloseMaster);
         var _orf=document.getElementById('mv2-refresh'); if(_orf) _orf.addEventListener('click',function(){ MV2.setup=null; MV2.options={}; MV2.serverSig=null; loadMasterV2(true); });
-        document.addEventListener('keydown',function(e){ var _ov=document.getElementById('mv2ov'); if(e.key==='Escape'&&_ov&&!_ov.hidden) mv2OvChiudi(); });
-        body.addEventListener('input',function(){mv2CapturePrepInputs(body);});
+        document.addEventListener('keydown',function(e){ var _ov=document.getElementById('mv2ov'); if(e.key==='Escape'&&_ov&&!_ov.hidden) userCloseMaster(); });
+        body.addEventListener('input',function(e){
+          mv2CapturePrepInputs(body);
+          if(e.target.id==='mv2-regia-fato'){MV2.regiaDraft=e.target.value;mv2SaveDraft('regia',e.target.value);}
+          if(e.target.id==='mv2-narrative')mv2SaveDraft('referto',e.target.value);
+        });
         body.addEventListener('change',function(ev){
           if(commonMasterCombat())return;
           var t=ev.target;
@@ -7653,7 +7868,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           if(a==='regia-recover'){mv2RegiaRecover();return;}
           if(t.hasAttribute('data-mv2-rating-send')){var did=t.getAttribute('data-mv2-rating-send'),fr=t.closest('[data-mv2-rating-form]'),sv=fr.querySelector('[data-mv2-score]').value,reason=fr.querySelector('[data-mv2-reason]').value.trim();if(sv===''){toast('Scegli un voto da -3 a +3');return;}mv2Busy(true);mv2Rpc('combat_v2_rating_save',{p_declaration:did,p_value:parseInt(sv,10),p_reason:reason||null,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Valutazione registrata nel referto');},function(e){mv2Busy(false);toast(e.message);});return;}
           if(a==='resolve'){mv2Busy(true);mv2Rpc('combat_v2_round_resolve',{p_round:MV2.data.round.id,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Calcolo completato: prepara il resoconto');},function(e){mv2Busy(false);toast(e.message);});return;}
-          if(a==='narrate'){if(MV2.regia?.status!=='unavailable'){toast('Pubblicazione Regia da verificare.');return;}var tx=((document.getElementById('mv2-narrative')||{}).value||'').trim();if(!tx){toast('Scrivi il resoconto cinematografico');return;}mv2Busy(true);mv2Rpc('combat_v2_round_narrate_human',{p_round:MV2.data.round.id,p_text:tx,p_request_key:mv2Key()}).then(function(){mv2Busy(false);loadMsgs();mv2Reload('Esito pubblicato in chat come Fato');},function(e){mv2Busy(false);toast(e.message);});return;}
+          if(a==='narrate'){if(MV2.regia?.status!=='unavailable'){toast('Pubblicazione Regia da verificare.');return;}var tx=((document.getElementById('mv2-narrative')||{}).value||'').trim();if(!tx){toast('Scrivi il resoconto cinematografico');return;}mv2Busy(true);mv2Rpc('combat_v2_round_narrate_human',{p_round:MV2.data.round.id,p_text:tx,p_request_key:mv2Key()}).then(function(){mv2SaveDraft('referto','');mv2Busy(false);loadMsgs();mv2Reload('Esito pubblicato in chat come Fato');},function(e){mv2Busy(false);toast(e.message);});return;}
           if(a==='scene-close-ask'){var bx=body.querySelector('[data-mv2-scene-close]');if(bx){bx.hidden=false;var inp=document.getElementById('mv2-scene-close-reason');if(inp){try{inp.focus();}catch(e){}}}return;}
           if(a==='scene-close-cancel'){var bx2=body.querySelector('[data-mv2-scene-close]');if(bx2)bx2.hidden=true;return;}
           if(a==='scene-close'){var sreason=((document.getElementById('mv2-scene-close-reason')||{}).value||'').trim();if(sreason.length<3){toast('Indica perché la scena viene chiusa');return;}mv2Busy(true);mv2Rpc('master_v2_scene_close',{p_session:MV2.data.master.id,p_reason:sreason,p_expected_control_version:MV2.data.master.control_version,p_request_key:mv2Key()}).then(function(){mv2Busy(false);mv2Reload('Scena chiusa');},function(e){mv2Busy(false);toast(e.message);});return;}
@@ -12871,6 +13086,7 @@ var nb028iTeardown=function(){};
           innataStaffProfileVisibility();loadAbilities();updateMeteo();loadEmblems();caricaNomiEvidenza();loadMyCompanion();loadMsgs();loadWho();loadRoleState();loadTrainingState();loadAcadClass();refreshMyVita();loadEsame();
           await missionAutomaticSceneRefresh();if(!cur||cur.id!==enteredRoom||commonMasterPrincipal()!==enteredPrincipal||UI_POSTREVIEW_STAFF_EPOCH!==enteredEpoch)return;
           if(!landEventReadMode())nb028iRefresh();
+          combatRestoreView();
           if(presencePoll) clearInterval(presencePoll);presencePoll=null;
           if(poll) clearInterval(poll);poll=null;landConfigureTimers();staffEventSync();
         });
@@ -12882,14 +13098,29 @@ var nb028iTeardown=function(){};
         const button=document.getElementById('test-wipe');
         if(button)button.hidden=roomEntryStaffScope();
       }
-      function saveResume(){ try{ if(cur&&input){ sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id,text:input.value,ts:Date.now(),...(SUG_STAFF_CHOICE?{staffTechniqueOwner:JSON.stringify([myId,myCharId])}:{})})); } }catch(e){} }
-      function tryResume(){ try{ var raw=sessionStorage.getItem('tus_land_resume'); if(!raw) return false; var d=JSON.parse(raw); if(!d||!d.room){ sessionStorage.removeItem('tus_land_resume'); return false; } if(d.ts&&(Date.now()-d.ts)>1800000){ sessionStorage.removeItem('tus_land_resume'); return false; } var l=LOCS.filter(function(x){return x.id===d.room;})[0]; if(l){ openRoom(l); if(input){
+      function saveResume(){ try{ if(cur&&input){ combatStoreRole();sessionStorage.setItem('tus_land_resume', JSON.stringify({room:cur.id,text:combatRecoveryEnabled()&&(combatComposerBinding||combatRoleDraftKey())?'':input.value,ts:Date.now(),owner:combatRecoveryOwner(),mode:combatRecoveryEnabled()&&fatoMode?'fato':'pg',...(SUG_STAFF_CHOICE?{staffTechniqueOwner:JSON.stringify([myId,myCharId])}:{})})); } }catch(e){} }
+      function tryResume(){ try{ var raw=sessionStorage.getItem('tus_land_resume'); if(!raw) return false; var d=JSON.parse(raw); if(!d||!d.room){ sessionStorage.removeItem('tus_land_resume'); return false; } if(d.ts&&(Date.now()-d.ts)>1800000){ sessionStorage.removeItem('tus_land_resume'); return false; } var l=LOCS.filter(function(x){return x.id===d.room;})[0]; if(l){
+          if(d.owner&&d.owner!==JSON.stringify([commonMasterPrincipal(),myCharId||null,l.id])){sessionStorage.removeItem('tus_land_resume');return false;}
+          openRoom(l);
+          if(combatRecoveryEnabled()&&d.owner===combatRecoveryOwner()){
+            const v=JSON.parse(sessionStorage.getItem(combatViewKey())||'null');
+            if(v&&['ordinary','master'].includes(v.surface)&&typeof v.activity==='string')combatViewRestore={...v,owner:d.owner};
+          }
+          if(input){
+          if(combatRecoveryEnabled()&&combatViewRestore)return true;
           if(d.staffTechniqueOwner&&d.staffTechniqueOwner!==JSON.stringify([myId,myCharId]))return true;
-          input.value=d.text||'';
+          input.value=d.mode==='fato'&&!fatoMode?'':d.text||'';
           if(d.staffTechniqueOwner)SUG_STAFF_CHOICE={expired:true};
           updCount();saveResume();
         } return true; } }catch(e){} return false; }
-      window.addEventListener('pagehide', saveResume);
+      window.addEventListener('pagehide',function(){if(!combatRecoveryEnabled())saveResume();});
+      window.addEventListener('online',function(){
+        if(!combatRecoveryEnabled()||!roomEntryConfirmed())return;
+        const masterOpen=document.getElementById('mv2ov')?.hidden===false;
+        if(!masterOpen&&!ORDINARY?.ownsSurface?.()&&!combatViewRestore)return;
+        if(masterOpen||combatViewRestore?.surface==='master')void loadMasterV2(true);
+        ordinaryRefresh(true);
+      });
       var brandMap=document.getElementById('brand-map'); if(brandMap){ brandMap.addEventListener('click', function(){ leaveRoom(); }); }
       function send(after){
         if(!roomEntryConfirmed()){toast('Ingresso non confermato: verifica prima lo stesso luogo.');return;}
@@ -13904,7 +14135,7 @@ var nb028iTeardown=function(){};
       }
       function updCount(){ if(countEl&&input){ var n=turnoLen(); if(fatoMode){ countEl.textContent=n+' / 5000 · Fato'; countEl.classList.toggle('warn',n>5000); syncSendBtn(); return; } var senzaMin=(cur&&cur.is_test)||iAmStaff;
         if(!senzaMin && n<500){ countEl.textContent=n+' / 500 min'; countEl.classList.add('warn'); } else { countEl.textContent=n+' caratteri'; countEl.classList.remove('warn'); } } syncSendBtn(); }
-      if(input){ input.addEventListener('input', updCount); }
+      if(input){ input.addEventListener('input', updCount); input.addEventListener('input',combatStoreRole); }
       if(toSel){ toSel.addEventListener('change', updCount); }
       (function(){ var pI=document.getElementById('png-input'); if(pI) pI.addEventListener('input', updCount); })();
       updCount();
