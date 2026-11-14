@@ -2140,7 +2140,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
 @media(max-width:720px){.h33-workspace{padding:10px;margin:8px 0;max-height:180px;}.h33-head{align-items:flex-start;gap:6px;}.h33-tabs button{flex:1 1 auto;}.h33-workspace button{min-height:40px;}.h33-workspace textarea{font-size:16px;}}
 </style>
 <meta name="tus-mission-runtime" content="C1266-COMBAT64-UI7">
-<meta name="tus-combat-ui-build" content="combat-land-20261114-master-recovery-2" />
+<meta name="tus-combat-ui-build" content="combat-land-20261114-master-recovery-3" />
 </head>
 <body>
   <div class="stage" id="stage">
@@ -4835,7 +4835,7 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
   },renderers);
   view.render(presented(controller.snapshot()));
   return {
-    open:invoke(read),
+    open:invoke(read),selectActor:invoke(actor=>controller.selectActor(actor)),
     refresh:invoke(async(withOptions=true)=>{
       if(!await controller.pollState())return false;
       const m=controller.snapshot();
@@ -4924,8 +4924,10 @@ function attachPanelLand(host){
     await refresh();if(disposed||revoked!==revocation||scope!==routingScope())return false;
     if(routingWarning!==null){host.routingUnknown?.({explicit:true});return false;}
     if(mode==='native'||mode==='unknown')return false;
+    const expected=options?.expectedActivity;
+    if(expected&&(mode!=='combat'||child?.snapshot()?.envelope?.context?.activity_id!==expected))return false;
     if(mode==='opening')host.closeMaster?.();
-    const current=child,result=await child.open(mode==='combat'?which:undefined);
+    const current=child,result=await child.open(mode==='combat'?which:undefined,options);
     if(disposed||child!==current||revoked!==revocation||scope!==routingScope())return false;
     if(mode==='opening'&&host.document.getElementById('ordinary-overlay')?.hidden!==false){host.routingUnknown?.({explicit:true});return false;}
     return result;
@@ -5306,7 +5308,10 @@ function attachCombatPanel(host){
           regiaObservedBinding=binding;regiaState=null;regiaScope=null;regiaReadError=null;
           void readRegiaPublication();
         }
-        if(panel)host.onCombatDraftScope?.();
+        if(panel){
+          host.onCombatDraftScope?.();
+          if(opened&&m.envelope?.status==='ready'&&!m.busy&&routeAllowed())host.rememberCombatView?.(surface,m.envelope);
+        }
         syncDraft(m);showEntry();
       },confirmDraft:m=>{
         const signature=draftSignature(m);if(!m.canConfirmMechanics||!signature)return;
@@ -5322,8 +5327,15 @@ function attachCombatPanel(host){
       }});
     return true;
   }
-  async function open(which='ordinary'){
+  async function open(which='ordinary',options={}){
     if(!ensure()||!routeAllowed())return false;
+    if(options.expectedActivity&&panel.snapshot().envelope?.context?.activity_id!==options.expectedActivity)return false;
+    const actor=options.commandActor,pre=panel.snapshot().envelope;
+    if(isId(actor)&&pre?.viewer.command_actor_id!==actor){
+      if(!pre?.viewer.controlled_actors.some(x=>x.actor_id===actor)||!await panel.selectActor(actor))return false;
+      const selected=panel.snapshot().envelope;
+      if(selected?.context?.activity_id!==options.expectedActivity||selected.viewer.command_actor_id!==actor)return false;
+    }
     const stamp=generation;hide();surface=which;opened=true;host.closeMaster?.();
     inlineBody=host.inlineHost?.(which,panel?.snapshot().envelope)||null;
 
@@ -5336,7 +5348,9 @@ function attachCombatPanel(host){
     if(refreshing)await refreshing;if(stamp!==generation)return false;
     const before=panel.snapshot();if(before.pending||before.busy||before.refreshRequired&&before.lastCommand?.status==='rejected')return true;
     const ok=await panel.open();if(stamp!==generation)return false;await readRegiaPublication();if(stamp!==generation)return false;
-    if(opened)host.rememberCombatView?.(which,panel.snapshot().envelope);
+    const fresh=panel.snapshot().envelope;
+    if(options.expectedActivity&&(fresh?.context?.activity_id!==options.expectedActivity||isId(actor)&&fresh.viewer.command_actor_id!==actor)){hide();return false;}
+    if(ok&&opened&&routeAllowed())host.rememberCombatView?.(which,fresh);
     if(!routeAllowed()){invalidate();host.routingUnknown?.({explicit:true});return false;}
     // Il binding del controller nasce con la prima lettura, non nel costruttore.
     if(ok&&!panel.snapshot().narrativeText&&host.readChat()&&!panel.snapshot().pending)await panel.setNarrative(host.readChat());
@@ -6661,7 +6675,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         var _pb=document.getElementById('png-box'); if(_pb&&w){ _pb.hidden=true; if(_pc) _pc.classList.remove('on'); var _eb2=document.getElementById('ed-png-box'); if(_eb2) _eb2.hidden=true; }
         if(w) sugInvalida();
       }
-      function setFatoMode(on){
+      function setFatoMode(on,skipRecovery=false){
         fatoMode=!!on && !!iAmStaff;
         var comp=document.querySelector('.composer'), btn=document.getElementById('fato-btn'), masterBtn=document.getElementById('mv2-open-btn');
         if(comp) comp.classList.toggle('fato-on',fatoMode);
@@ -6674,11 +6688,11 @@ window.TUSOrdinary={attachOrdinaryLand};
           var eb=document.getElementById('ed-overlay'); if(eb) eb.hidden=true;
           sugInvalida();
         }
-        updateToStyle(); updCount();if(typeof missionHumanPhaseRefresh==='function')missionHumanPhaseRefresh(MV2?.data);if(typeof missionD100Refresh==='function')missionD100Refresh(MV2?.data);
+        updateToStyle(); updCount();if(!skipRecovery)combatRestoreRole();if(typeof missionHumanPhaseRefresh==='function')missionHumanPhaseRefresh(MV2?.data);if(typeof missionD100Refresh==='function')missionD100Refresh(MV2?.data);
       }
       (function(){ var b=document.getElementById('fato-btn'); if(b) b.addEventListener('click',function(){ setFatoMode(!fatoMode); }); })();
       window.addEventListener('tus:fato-reset',function(){ setFatoMode(false); });
-      window.addEventListener('pagehide',function(){ if(combatRecoveryEnabled())saveResume();setFatoMode(false); });
+      window.addEventListener('pagehide',function(){ if(combatRecoveryEnabled())saveResume();setFatoMode(false,true); });
       var LAND_EVENTS=null,LAND_POLICY={key:null,value:null,flight:null},LAND_PROFILE_KNOWN=false,LAND_PRESENCE_FLIGHT=null;
       var LAND_DOMAINS=['chat','presence','scene','role_archive','mail','news','calendar','character','training','academy','exam','catalog'];
       function landReadKey(){return loggedIn&&!ordinarySigningOut&&myId&&ordinaryAuthId===myId?JSON.stringify([myId,MV2&&MV2.authEpoch||0]):null;}
@@ -6918,9 +6932,13 @@ window.TUSOrdinary={attachOrdinaryLand};
       function combatRecoveryOwner(){return JSON.stringify([commonMasterPrincipal(),myCharId||null,cur?.id||null]);}
       function combatRoleDraftKey(){
         const e=ORDINARY?.snapshot()?.envelope,c=e?.context;
-        if(!combatRecoveryEnabled()||!roomEntryConfirmed()||!commonMasterPrincipal()||fatoMode||toSel?.value)return null;
-        if(e?.status!=='ready'||c.location_id!==cur?.id||!c.activity_id||!e.viewer.command_actor_id||
-           ['setup','closed'].includes(c.phase))return null;
+        if(!combatRecoveryEnabled()||!roomEntryConfirmed()||!commonMasterPrincipal()||toSel?.value)return null;
+        if(e?.status!=='ready'||c.location_id!==cur?.id||!c.activity_id||['setup','closed'].includes(c.phase))return null;
+        if(fatoMode){
+          if(e.viewer.is_master!==true||!c.round_id)return null;
+          return 'tus-combat-fato-draft/1:'+JSON.stringify([combatRecoveryOwner(),c.activity_id,c.round_id]);
+        }
+        if(!e.viewer.command_actor_id)return null;
         return 'tus-combat-role-draft/1:'+JSON.stringify([combatRecoveryOwner(),c.activity_id,e.viewer.command_actor_id]);
       }
       let combatComposerBinding=null;
@@ -6969,7 +6987,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         try{
           if(!surface){sessionStorage.removeItem(combatViewKey());return;}
           const activity=envelope?.context?.activity_id|| (surface==='master'&&MV2.locationId===cur?.id&&MV2.principalId===commonMasterPrincipal()?MV2.data?.encounter?.id:null);
-          if(activity)sessionStorage.setItem(combatViewKey(),JSON.stringify({surface,activity}));
+          if(activity)sessionStorage.setItem(combatViewKey(),JSON.stringify({surface,activity,actor:envelope?.viewer?.command_actor_id||null}));
         }catch(_e){}
       }
       function combatRestoreView(){
@@ -6979,8 +6997,12 @@ window.TUSOrdinary={attachOrdinaryLand};
         const e=ORDINARY?.snapshot()?.envelope,d=MV2.data;
         if(e?.status==='ready'&&e.context.activity_id===saved.activity&&(saved.surface==='ordinary'||commonMasterReady())){
           combatOpeningView=saved;
-          Promise.resolve(ORDINARY.open(saved.surface,{explicit:false})).then(ok=>{
-            if(ok&&combatViewRestore===saved)combatViewRestore=null;
+          Promise.resolve(ORDINARY.open(saved.surface,{explicit:false,expectedActivity:saved.activity,commandActor:saved.actor})).then(ok=>{
+            if(ok&&combatViewRestore===saved){
+              const checked=ORDINARY?.snapshot()?.envelope;
+              if(saved.fato&&checked?.context?.activity_id===saved.activity&&checked.viewer.is_master===true&&iAmStaff)setFatoMode(true);
+              combatRestoreRole();combatViewRestore=null;
+            }
           }).catch(()=>{}).finally(()=>{if(combatOpeningView===saved)combatOpeningView=null;});
           return;
         }
@@ -13086,10 +13108,11 @@ var nb028iTeardown=function(){};
           var enteredRoom=cur&&cur.id,enteredPrincipal=commonMasterPrincipal(),enteredEpoch=UI_POSTREVIEW_STAFF_EPOCH;
           innataStaffProfileVisibility();loadAbilities();updateMeteo();loadEmblems();caricaNomiEvidenza();loadMyCompanion();loadMsgs();loadWho();loadRoleState();loadTrainingState();loadAcadClass();refreshMyVita();loadEsame();
           const saved=combatViewRestore;
-          if(saved&&saved.owner===combatRecoveryOwner()){
-            if(saved.surface==='master')await loadMasterV2(true);
+          await missionAutomaticSceneRefresh();
+          if(saved&&saved.owner===combatRecoveryOwner()&&cur?.id===enteredRoom&&commonMasterPrincipal()===enteredPrincipal&&UI_POSTREVIEW_STAFF_EPOCH===enteredEpoch){
+            if(saved.surface==='master'&&MV2.locationId!==enteredRoom)await loadMasterV2(true);
             if(cur?.id===enteredRoom&&commonMasterPrincipal()===enteredPrincipal&&UI_POSTREVIEW_STAFF_EPOCH===enteredEpoch)ordinaryRefresh(true);
-          }else await missionAutomaticSceneRefresh();
+          }
           if(!cur||cur.id!==enteredRoom||commonMasterPrincipal()!==enteredPrincipal||UI_POSTREVIEW_STAFF_EPOCH!==enteredEpoch)return;
           if(!landEventReadMode())nb028iRefresh();
           combatRestoreView();
@@ -13110,7 +13133,7 @@ var nb028iTeardown=function(){};
           openRoom(l);
           if(combatRecoveryEnabled()&&d.owner===combatRecoveryOwner()){
             const v=JSON.parse(sessionStorage.getItem(combatViewKey())||'null');
-            if(v&&['ordinary','master'].includes(v.surface)&&typeof v.activity==='string')combatViewRestore={...v,owner:d.owner};
+            if(v&&['ordinary','master'].includes(v.surface)&&typeof v.activity==='string')combatViewRestore={...v,owner:d.owner,fato:d.mode==='fato'};
           }
           if(input){
           if(combatRecoveryEnabled()&&combatViewRestore)return true;
