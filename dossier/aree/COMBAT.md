@@ -19,7 +19,7 @@ Allineamento 18/09/2026 · Scudo di terra pubblico dopo QA ordinary e Master per
 
 ## Stato vivo
 
-**Fili e 27 passive · preparazione Staff.** Migrazione `20261114194849`, build `fili-passive-staff-1`, review 0/0/0. Recisione autorizzabile nel round da colpo nativo riuscito, sette profili temporanei per la role e Combat. Collaudi positivi da eseguire; casi già passati conservati.
+**Fili e 27 passive · collaudo Staff.** Recisione e riallaccio PASS (5 → 0 chakra simulato, una ricevuta, principale disponibile). Passive 27/27 in ordinario. Con Master, bloccate prima dello scontro: il profilo richiede il roster prima che il duello lo salvi. Una ricarica ha attivato il recupero ordinario di Riuji. Il registro Combat non ha scritture reali.
 
 **Staff · archivio e selezione diretta · 13/11/2026.** Migrazioni `20261113161836` e `20261113161841`, review 0/0/0. Archivio di 1.088 messaggi collegati a sessioni chiuse; zero messaggi nella chat Staff dopo chiusura e archiviazione del nuovo collaudo. Conservati messaggi, report e ricevute, comprese le quattro ricevute B10, B3 e nuovo caso. L'RPC storico globale resta separato; il pulsante è nascosto nella Staff.
 
@@ -319,7 +319,7 @@ Raccordo utility Clan09/09: unica aggregata CC-R1–CC-R3 scritta, INSTALL SHA9d
 ## Lavori aperti — priorità corrente e backlog
 
 1. **Pannello Combat.** Completare gli effetti e i costi nel riepilogo del Master. Verificare dopo ricarica o riconnessione il recupero della vista, della role in bozza e della ricevuta già acquisita, senza doppio invio.
-2. **Marionetta e innate passive.** Resta da osservare il riallaccio dei Fili. L’attacco dalla marionetta e il punto cieco sono già provati. Le 27 passive sono aperte nei percorsi documentati, ma manca un collaudo funzionale Staff dedicato.
+2. **Marionetta e innate passive.** Recisione, riallaccio e 27 livelli ordinari conclusi. Con Master resta da salvare il roster prima della role e dell’apertura Combat. Prima della ripresa usare accessi Staff già presenti e verificare l’effetto del recupero automatico su un eventuale rientro in Land. Conservare i PASS.
 3. **Prossime integrazioni.** Integrare Kunai, Shuriken e Guardia dopo definizione dello slot rapido. Restano il raccordo di Palmo Curativo e oggetti con turno e ricevute, poi Richiamo e combo delle evocazioni. Catalogo e pulsanti esistenti non attestano l’intero flusso. Le rapide aggiuntive e i Flussi multibersaglio restano rinviati.
 4. **Scorta.** Verificare «Apri regia», ritorno narrativo e chiusura soltanto quando è disponibile lo scenario Staff legittimo della stessa missione. Il duello IA e il caso Human H7 coprono percorsi distinti.
 

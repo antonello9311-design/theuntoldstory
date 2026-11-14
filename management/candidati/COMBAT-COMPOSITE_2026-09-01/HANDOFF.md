@@ -1,6 +1,6 @@
-# COMBAT-FILI-PASSIVE-PREP-20261114 · Comandi Staff
+# COMBAT-FILI-PASSIVE-RUNTIME-20261114 · Collaudo Staff
 
-**Fili e 27 passive · preparazione Staff.** Migrazione `20261114194849`, build `fili-passive-staff-1`, review 0/0/0. Recisione autorizzabile nel round da colpo nativo riuscito, sette profili temporanei per la role e Combat. Collaudi positivi da eseguire; casi già passati conservati. [Dettagli e consegna](candidato/INNATA_WORLD_STAFF_QA_HANDOFF.md).
+**Fili e 27 passive · collaudo Staff.** Recisione e riallaccio PASS (5 → 0 chakra simulato, una ricevuta, principale disponibile). Passive 27/27 in ordinario. Con Master, bloccate prima dello scontro: il profilo richiede il roster prima che il duello lo salvi. Una ricarica ha attivato il recupero ordinario di Riuji. Il registro Combat non ha scritture reali. [Evidenze e azione residua](candidato/INNATA_WORLD_STAFF_QA_HANDOFF.md).
 
 ## Consegna precedente
 
