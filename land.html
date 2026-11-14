@@ -2140,6 +2140,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
 @media(max-width:720px){.h33-workspace{padding:10px;margin:8px 0;max-height:180px;}.h33-head{align-items:flex-start;gap:6px;}.h33-tabs button{flex:1 1 auto;}.h33-workspace button{min-height:40px;}.h33-workspace textarea{font-size:16px;}}
 </style>
 <meta name="tus-mission-runtime" content="C1266-COMBAT64-UI7">
+<meta name="tus-combat-ui-build" content="combat-land-20261114-1" />
 </head>
 <body>
   <div class="stage" id="stage">
@@ -3570,7 +3571,7 @@ function settleCopyChoices(offer,selected,direct=false){
   return [...next];
 }
 // rpc è una porta iniettata. Costruire il controller non effettua chiamate.
-function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.randomUUID(),classifyRejection=classifyPanelRejection,onChange=()=>{}}){
+function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.randomUUID(),classifyRejection=classifyPanelRejection,onChange=()=>{},directCombatUI=false}){
   insist(typeof rpc==='function'&&typeof contextKey==='function'&&isId(locationId)&&typeof requestKey==='function','controller_configuration');
   let epoch=0,owner=null,busy=false,pending=null,envelope=null,optionsReady=false,error=null;
   let selectedOfferId=null,selectedOptionIds=[],inputs=[],narrativeText='',narrativeContext=null,companionContext=null;
@@ -3676,14 +3677,14 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   }
   function editable(){requireCurrent();insist(!refreshRequired&&!busy&&!pending&&optionsReady&&envelope?.status==='ready'&&envelope.viewer.can_command,'choices_unavailable');}
   async function selectActor(actor){requireCurrent();insist(!busy&&!pending&&envelope?.viewer.controlled_actors.some(a=>a.actor_id===actor),'actor_unavailable');narrativeText='';narrativeContext=null;resetChoices();return read(false,actor);}
-  function selectOffer(id){editable();insist(envelope.offers.some(o=>o.offer_id===id),'offer_unavailable');selectedOfferId=id;selectedOptionIds=settleCopyChoices(chosen(),[],envelope.context.location_id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b');inputs=[];error=null;interactionError=null;notify();}
+  function selectOffer(id){editable();insist(envelope.offers.some(o=>o.offer_id===id),'offer_unavailable');selectedOfferId=id;selectedOptionIds=settleCopyChoices(chosen(),[],directCombatUI);inputs=[];error=null;interactionError=null;notify();}
   function clearOffer(){editable();selectedOfferId=null;selectedOptionIds=[];inputs=[];error=null;interactionError=null;notify();}
   function selectOption(groupId,id,enabled){
     editable();const o=chosen(),g=o?.choices.find(g=>g.group_id===groupId);insist(g&&g.options.some(x=>x.option_id===id)&&typeof enabled==='boolean','option_unavailable');
     insist(g.depends_on===null||selectedOptionIds.includes(g.depends_on),'dependency_missing');
     insist(flowOptionAllowed(o,selectedOptionIds,groupId,id,enabled),'flow_budget_exceeded');
     const next=new Set(selectedOptionIds);if(g.selection_mode==='single')for(const x of g.options)next.delete(x.option_id);if(enabled)next.add(id);else next.delete(id);
-    selectedOptionIds=settleCopyChoices(o,next,envelope.context.location_id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b');error=null;interactionError=null;notify();
+    selectedOptionIds=settleCopyChoices(o,next,directCombatUI);error=null;interactionError=null;notify();
   }
   function setInput(id,value){editable();const f=chosen()?.input_fields.find(f=>f.input_id===id);insist(f&&(f.value_type==='text'?typeof value==='string':typeof value==='boolean'),'input_unavailable');inputs=inputs.filter(x=>x.input_id!==id);inputs.push({input_id:id,value});notify();}
   function setNarrative(value){requireCurrent();insist(!busy&&!pending&&typeof value==='string','narrative_unavailable');narrativeText=value;narrativeContext=narrativeContextFor(envelope)??narrativeContext;notify();}
@@ -4256,7 +4257,7 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
       renderOffer(area,selected,e,model,ticket,!commandsReady);
     }
     renderMovementPreview(map,e,selected,new Set(model.selectedOptionIds||[]));
-    if(c.location_id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'){
+    if(singleRoleSend){
       note(header,visiblePhase);
       renderDirectMap(map,e,selected||(!movementReady?movementOffer:null),model,ticket,!commandsReady);
     }
@@ -4376,14 +4377,14 @@ function mountPanelView(root,{readState,readOptions,selectActor,selectOffer,clea
     const groupHost=sequence?node('div',undefined,area):area;if(sequence)groupHost.className='common-option-sequence';
     const automatic=new Set(automaticAssaultGroups(offer,model.selectedOptionIds||[])||[]);
     const activeGroups=[];
-    const flatMovement=envelope.context.location_id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&
+    const flatMovement=singleRoleSend&&
       isMovementControl(offer)&&envelope.map?.actors.some(a=>a.actor_id===offer.actor_id);
     const fallback=flatMovement?node('details',undefined,groupHost):null;
     if(fallback){fallback.dataset.movementFallback='';fallback.open=movementFallbackOpen;node('summary','Altre opzioni di movimento',fallback);}
     for(const group of offer.choices){
       if(!purposes.has(group.purpose)||group.depends_on!==null&&!selected.has(group.depends_on)||automatic.has(group.group_id))continue;
       activeGroups.push(group);const options=displayGroupOptions(group,selected).filter(option=>offer.label!=='Moltiplicazione del corpo'||!sequence||group.purpose!=='mode'||option.label==='Assalto');
-      if(envelope.context.location_id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&
+      if(singleRoleSend&&
         ['coverage','target','movement_distance'].includes(group.purpose)&&options.length===1&&
         selected.has(options[0].option_id)){
         note(groupHost,(group.purpose==='coverage'?'Risposta a':group.label)+' · '+options[0].label);
@@ -4719,7 +4720,7 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
     canRestoreTestResources:allowed(m),restoreMessage:m.envelope?.context?.activity_id===restoreActivity?restoreMessage:null});
   const publish=model=>{if(!disposed){const m=presented(model);view?.render(m);onDraft(m);}};
   const controller=createPanelController({
-    locationId,contextKey:()=>disposed?null:contextKey(),
+    locationId,contextKey:()=>disposed?null:contextKey(),directCombatUI:singleRoleSend,
     rpc:async(name,args)=>{
       const readPassives=name==='combat_panel_state_v1'&&!passiveStateUnavailable;
       let response=await client.rpc(readPassives?'combat_panel_state_v2':name,args);
@@ -4956,7 +4957,7 @@ function attachCombatPanel(host){
     }
     return '⚔ '+parts.join(' · ');
   }
-  const singleRoleSend=()=>host.location()?.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b';
+  const singleRoleSend=()=>host.location()?.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'||host.directCombatUI?.()===true;
   let submittingRole=false;
   function syncDraft(m){
     syncSendFeedback(m);host.syncSendGate?.();
@@ -6932,7 +6933,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         var factory=mode==='common'?window.TUSCommonPanel&&window.TUSCommonPanel.attachPanelLand:window.TUSOrdinary&&window.TUSOrdinary.attachOrdinaryLand;
         if(!factory||!cur){if(ORDINARY)ORDINARY.invalidate();return;}
         if(!ORDINARY) ORDINARY=(mode==='common'?function(host){return mapFigureAttach(factory,host);}:factory)({
-          document:document,location:function(){return cur;},
+          document:document,location:function(){return cur;},directCombatUI:commonCombatRoom,
           showMaster:function(){var ov=document.getElementById('mv2ov'),bk=document.getElementById('mv2ov-backdrop');if(ov)ov.hidden=false;if(bk)bk.hidden=false;},
           closeMaster:mv2OvChiudi,
           allowCommonMaster:commonMasterRoute,
