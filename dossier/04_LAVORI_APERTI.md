@@ -21,12 +21,14 @@ Storico 07/11 · T3 aggregata1 qualificata nei soli sorgenti dopo il tentativo a
 | Cantiere | Stato reale | Prossimo passo |
 |---|---|---|
 | `management/candidati/CLAN-L1_2026-09-01/` | Rilasci circoscritti Sabaku, Hyūga, Uchiha e Aburame; Elementali/Taijutsu e Armatura conclusi. Aburame: 12 casi Staff, review 0/0/0, pubblico dal 21/09. | Nove Innate mantenute e raccordo narrativa→Combat pubblici dal 07/11; casi Master Rotazione B10 e Katon B3 acquisiti; punto cieco attivo in Land, prove Staff documentate. Flussi multibersaglio rinviati. |
-| `management/candidati/COMBAT-COMPOSITE_2026-09-01/` | UI comune pubblica dal 14/11. Punto cieco, B10/B3, mappa e invio unico con Fato IA acquisiti. | Riepilogo Master e recupero UI, Inuzuka Staff, raccordi mirati in scheda Combat. |
+| `management/candidati/COMBAT-COMPOSITE_2026-09-01/` | UI comune pubblica dal 14/11. Punto cieco, B10/B3, mappa e invio unico con Fato IA acquisiti. | Inuzuka attivo in Land; restano riepilogo Master, recupero generale della UI e i raccordi elencati nella scheda Combat. |
 | `management/candidati/NARRATORE-UNIFICATO_2026-09-02/` | Bacheca integrata live. Discussioni in Centro attiva in Land, C18 Staff PASS con due Ready, un clic e incipit automatico in 39 s. | Primo avvio pubblico agli iscritti. Avvio come Master nella Bacheca e verifica completa dell’Editor restano perimetri distinti. |
 
 ## Funzioni già disponibili da non ricostruire
 
 **Combat V2 · rilascio del 14/11/2026.** Il pannello comune è pubblicato in Land con scelte sulla mappa, alternativa da tastiera e un solo «Invia» per scelta e role. Build `combat-land-20261114-1`, commit `f7762e8e`, Pages `43570483785`. In Staff risultano conclusi movimento, tastiera a 320 × 480, punto d’impatto, una reazione su due attacchi e invio unico con Fato del Master e della Regia IA nel duello nativo. Rotazione B10, Katon B3 e punto cieco Byakugan sono acquisiti. L’apertura in Land è verificata sul dominio.
+
+**Inuzuka attivo in Land · 14/11/2026.** Simbiosi coi Ninken, Quattro Zampe e Zanna Perforante sono pubbliche sulla build `combat-land-20261114-2`. Il gate pubblico v2 è attivo (migrazione `20261114101313`). In Staff lo stesso invio, ripreso dopo lo scarto della risposta, ha conservato una sola attivazione, 5 chakra simulati e la stessa ricevuta. Prova chiusa; nessun caso concluso da ripetere.
 
 **Sei tecniche Genin pubbliche.** Controllo Calorico, Espansione, Espansione Parziale, Aghi Velenosi, Corpo Tossico e Possesso dell’Ombra. Conservati i casi KO Hoki, carenza e addebito del chakra Nara e reinvio del Pasto.
 
@@ -62,7 +64,7 @@ T3 resta NOT_PASSED23514; T5copia-prima, confini residuiF1 e ServiceT6–T8 rest
 | Ordine | Risultato utile | Condizione e criterio di completamento |
 |---|---|---|
 | 1 | Raccogliere il primo avvio pubblico di Discussioni in Centro | Il lancio è disponibile agli iscritti. Usare il referto Staff C18 come riferimento per eventuali difetti osservati in Land. |
-| 2 | Completare i residui Combat V2 | Inuzuka: verificare le offerte nella Staff. Pannello: effetti nel riepilogo Master e recupero di vista, bozza e ricevuta. |
+| 2 | Completare i residui Combat V2 | Pannello: effetti e costi nel riepilogo Master; recupero generale di vista, bozza e ricevuta dopo ricarica o riconnessione. Poi raccordi e verifiche della scheda Combat. |
 | 4 | Migliorare contenuti e percorso dei nuovi giocatori | Source74/Editor generale con l’owner assegnato; dieci revisioni PNG con media/binding versionati. Accademia/Training: prima ricostruire prove e difetti ancora attuali, poi solo QA Staff rappresentabile senza progressione reale. |
 
 Il primo run completo della Scorta e i rilievi di progressione dalle role vanno riconciliati sul percorso specifico: gli smoke storici e il PASS Human non chiudono automaticamente la Scorta. Qualità narrativa da valutare su scene complete, senza riscritture preventive dei prompt o retry alla ricerca di un verde.

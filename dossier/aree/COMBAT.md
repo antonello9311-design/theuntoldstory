@@ -25,6 +25,8 @@ Allineamento 18/09/2026 · Scudo di terra pubblico dopo QA ordinary e Master per
 
 **Combat V2 · rilascio del 14/11/2026.** Il pannello comune è pubblicato in Land con scelte sulla mappa, alternativa da tastiera e un solo «Invia» per scelta e role. Build `combat-land-20261114-1`, commit `f7762e8e`, Pages `43570483785`. In Staff risultano conclusi movimento, tastiera a 320 × 480, punto d’impatto, una reazione su due attacchi e invio unico con Fato del Master e della Regia IA nel duello nativo. Rotazione B10, Katon B3 e punto cieco Byakugan sono acquisiti. L’apertura in Land è verificata sul dominio.
 
+**Inuzuka attivo in Land · 14/11/2026.** Simbiosi coi Ninken, Quattro Zampe e Zanna Perforante sono pubbliche sulla build `combat-land-20261114-2`. Il gate pubblico v2 è attivo (migrazione `20261114101313`). In Staff lo stesso invio, ripreso dopo lo scarto della risposta, ha conservato una sola attivazione, 5 chakra simulati e la stessa ricevuta. Prova chiusa; nessun caso concluso da ripetere.
+
 **Punto cieco Byakugan attivo in Land · 13/11/2026.** Nel round Staff `e23a7764-f6b4-44dd-9358-2ee053a52682` sono arrivati due attacchi da origini diverse. L’unica reazione è stata la Parata contro Keita da dietro: Byakugan I, prodotto scalare −4, malus −3, ricevuta `7068f8af-e417-44c8-bf42-ac9c3688f3c9`. L’attacco di Riuji è stato risolto come «Nessuna difesa», senza seconda ricevuta Facing. Scena chiusa e narrata, nessuna scrittura di risorse reali o chiamata IA. F1, laterale esatto e origine marionetta acquisiti dalle prove precedenti. Migrazione `20261113114114`, revisione Facing 3, gate pubblico verificato attivo. Copertura e Diversivo restano spenti in Land.
 
 **Collaudo precedente · origine marionetta PASS in Staff.** Nel duello `59ab6e8d-54dd-42ff-b83f-6d9d5f46a319` il pannello mostra integrità e Fili collegati. La ricevuta `42fbfbc8-a3e4-4b96-9558-ca7e230d39ec` del round 6 identifica il corpo della marionetta, distinto dal controllore, con Byakugan I attivo. Scene chiuse, nessuna scrittura reale e nessuna chiamata IA. F1 e laterale Master acquisiti. Resta la doppia origine con due reazioni attive: il motore consente una sola reazione per attore e round, poi applica «Nessuna difesa» alle altre origini. Il gate pubblico resta spento. Copertura e Diversivo restano fuori dal piano.
@@ -310,11 +312,10 @@ Raccordo utility Clan09/09: unica aggregata CC-R1–CC-R3 scritta, INSTALL SHA9d
 
 ## Lavori aperti — priorità corrente e backlog
 
-1. **Inuzuka Genin** è installato in Staff e chiuso in Land. Ripartire dal pannello delle offerte: l’ultimo referto documenta un 504 e nessuna scelta meccanica completata. Verificare il difetto sulla versione corrente, poi collaudare soltanto i casi ancora scoperti del ninken, Quattro Zampe e Zanna, secondo il contratto Inuzuka.
-2. **Pannello Combat.** Completare gli effetti e i costi nel riepilogo del Master. Verificare dopo ricarica o riconnessione il recupero della vista, della role in bozza e della ricevuta già acquisita, senza doppio invio.
-3. **Marionetta e innate passive.** Resta da osservare il riallaccio dei Fili. L’attacco dalla marionetta e il punto cieco sono già provati. Le 27 passive sono aperte nei percorsi documentati, ma manca un collaudo funzionale Staff dedicato.
-4. **Prossime integrazioni.** Tracciare le offerte server di armi equipaggiate e Guardia, il raccordo di Palmo Curativo e oggetti con turno e ricevute, poi Richiamo e combo delle evocazioni. Catalogo e pulsanti esistenti non attestano l’intero flusso. Le rapide aggiuntive e i Flussi multibersaglio restano rinviati.
-5. **Scorta.** Verificare «Apri regia», ritorno narrativo e chiusura soltanto quando è disponibile lo scenario Staff legittimo della stessa missione. Il duello IA e il caso Human H7 coprono percorsi distinti.
+1. **Pannello Combat.** Completare gli effetti e i costi nel riepilogo del Master. Verificare dopo ricarica o riconnessione il recupero della vista, della role in bozza e della ricevuta già acquisita, senza doppio invio.
+2. **Marionetta e innate passive.** Resta da osservare il riallaccio dei Fili. L’attacco dalla marionetta e il punto cieco sono già provati. Le 27 passive sono aperte nei percorsi documentati, ma manca un collaudo funzionale Staff dedicato.
+3. **Prossime integrazioni.** Tracciare le offerte server di armi equipaggiate e Guardia, il raccordo di Palmo Curativo e oggetti con turno e ricevute, poi Richiamo e combo delle evocazioni. Catalogo e pulsanti esistenti non attestano l’intero flusso. Le rapide aggiuntive e i Flussi multibersaglio restano rinviati.
+4. **Scorta.** Verificare «Apri regia», ritorno narrativo e chiusura soltanto quando è disponibile lo scenario Staff legittimo della stessa missione. Il duello IA e il caso Human H7 coprono percorsi distinti.
 
 ### Checkpoint precedenti
 
@@ -384,7 +385,7 @@ I record datati sotto conservano richieste, prove e proposte pregresse. Stati «
 
 ## Prossimo passo
 
-Prima verificare le offerte Inuzuka in Staff, poi il recupero della UI e il riepilogo Master. I checkpoint successivi in questa sezione sono storici. La lista corrente è in § Lavori aperti.
+Prima completare il riepilogo Master e verificare il recupero generale della UI dopo ricarica o riconnessione; il recupero dello stesso invio Inuzuka è già acquisito. I checkpoint successivi in questa sezione sono storici. La lista corrente è in § Lavori aperti.
 
 Punto cieco Byakugan: collaudo Staff concluso e gate Land attivo.
 

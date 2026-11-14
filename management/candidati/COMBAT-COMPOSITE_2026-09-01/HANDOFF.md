@@ -1,14 +1,15 @@
-# COMBAT-STATUS-20261114 · Allineamento documentale
+# COMBAT-INUZUKA-STATUS-20261114 · Allineamento documentale
 
 **Combat V2 · rilascio del 14/11/2026.** Il pannello comune è pubblicato in Land con scelte sulla mappa, alternativa da tastiera e un solo «Invia» per scelta e role. Build `combat-land-20261114-1`, commit `f7762e8e`, Pages `43570483785`. In Staff risultano conclusi movimento, tastiera a 320 × 480, punto d’impatto, una reazione su due attacchi e invio unico con Fato del Master e della Regia IA nel duello nativo. Rotazione B10, Katon B3 e punto cieco Byakugan sono acquisiti. L’apertura in Land è verificata sul dominio.
 
-1. **Inuzuka Genin** è installato in Staff e chiuso in Land. Ripartire dal pannello delle offerte: l’ultimo referto documenta un 504 e nessuna scelta meccanica completata. Verificare il difetto sulla versione corrente, poi collaudare soltanto i casi ancora scoperti del ninken, Quattro Zampe e Zanna, secondo il contratto Inuzuka.
-2. **Pannello Combat.** Completare gli effetti e i costi nel riepilogo del Master. Verificare dopo ricarica o riconnessione il recupero della vista, della role in bozza e della ricevuta già acquisita, senza doppio invio.
-3. **Marionetta e innate passive.** Resta da osservare il riallaccio dei Fili. L’attacco dalla marionetta e il punto cieco sono già provati. Le 27 passive sono aperte nei percorsi documentati, ma manca un collaudo funzionale Staff dedicato.
-4. **Prossime integrazioni.** Tracciare le offerte server di armi equipaggiate e Guardia, il raccordo di Palmo Curativo e oggetti con turno e ricevute, poi Richiamo e combo delle evocazioni. Catalogo e pulsanti esistenti non attestano l’intero flusso. Le rapide aggiuntive e i Flussi multibersaglio restano rinviati.
-5. **Scorta.** Verificare «Apri regia», ritorno narrativo e chiusura soltanto quando è disponibile lo scenario Staff legittimo della stessa missione. Il duello IA e il caso Human H7 coprono percorsi distinti.
+**Inuzuka attivo in Land · 14/11/2026.** Simbiosi coi Ninken, Quattro Zampe e Zanna Perforante sono pubbliche sulla build `combat-land-20261114-2`. Il gate pubblico v2 è attivo (migrazione `20261114101313`). In Staff lo stesso invio, ripreso dopo lo scarto della risposta, ha conservato una sola attivazione, 5 chakra simulati e la stessa ricevuta. Prova chiusa; nessun caso concluso da ripetere.
 
-Gate letti il 14/11: Akimichi, Aghi Velenosi, Corpo Tossico, Nara, Katon e punto cieco aperti in Land. Inuzuka disponibile in Staff. Copertura e Diversivo esclusi. Fonti: schede vive, referti e ricevute già acquisite.
+1. **Pannello Combat.** Completare gli effetti e i costi nel riepilogo del Master. Verificare dopo ricarica o riconnessione il recupero della vista, della role in bozza e della ricevuta già acquisita, senza doppio invio.
+2. **Marionetta e innate passive.** Resta da osservare il riallaccio dei Fili. L’attacco dalla marionetta e il punto cieco sono già provati. Le 27 passive sono aperte nei percorsi documentati, ma manca un collaudo funzionale Staff dedicato.
+3. **Prossime integrazioni.** Tracciare le offerte server di armi equipaggiate e Guardia, il raccordo di Palmo Curativo e oggetti con turno e ricevute, poi Richiamo e combo delle evocazioni. Catalogo e pulsanti esistenti non attestano l’intero flusso. Le rapide aggiuntive e i Flussi multibersaglio restano rinviati.
+4. **Scorta.** Verificare «Apri regia», ritorno narrativo e chiusura soltanto quando è disponibile lo scenario Staff legittimo della stessa missione. Il duello IA e il caso Human H7 coprono percorsi distinti.
+
+Gate letti il 14/11: Akimichi, Aghi Velenosi, Corpo Tossico, Nara, Katon e punto cieco aperti in Land. Inuzuka aperto in Land, gate v2 riletto in sola lettura. Aggiornamento solo documentale, nessun nuovo collaudo o rilascio applicativo. Copertura e Diversivo esclusi. Fonti: schede vive, referti e ricevute già acquisite.
 
 ## Consegna precedente
 

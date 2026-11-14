@@ -1,3 +1,4 @@
+14/11/2026 · COMBAT-INUZUKA-STATUS-20261114 · Inuzuka Land v2 e recupero Staff registrati; residui Combat aggiornati · Consegna documentale.
 14/11/2026 · COMBAT-STATUS-20261114 · UI Land e prove acquisite riconciliate con dossier e gate · Residui distinti, allineamento documentale.
 13/11/2026 · Archivio Staff e UI diretta · Chat vuota, prova con Master narrata, risorse protette · Regia e matrice residua aperte.
 - 13/11/2026 · Due origini, una reazione: Staff PASS. Punto cieco aperto in Land (Facing 3), tattiche escluse.

@@ -18,7 +18,7 @@ Le verifiche mirate successive prevalgono per i sistemi modificati. Il readback 
 | Uchiha | Sharingan, Palle di Fuoco e Risonanza Katon pubblici. | B3 con Master concluso per concentrata ed esplosiva. Punto d’impatto selezionato sulla mappa in Staff. |
 | Aburame | Pubblici Insetti Parassiti Distruttivi con Colonia Kikaichū, Liberazione dei Kikaichū e Clone d’Insetti. Staff QA 12 casi, review `0/0/0`, build LAND/Regole pubblicate e gate pubblico `version=2`. | Monitoraggio nel normale uso; nessun blocco aperto. L’ultima correzione narrativa terminale è coperta dalla review statica sul corpo live senza superare il budget provider. |
 | Akimichi, Hoki e Nara | Sei tecniche Genin aperte nel perimetro Combat V2 documentato. | PASS Staff conservati. |
-| Inuzuka | Gate Staff attivo, pubblico spento. | Offerte e casi meccanici del ninken da qualificare. |
+| Inuzuka | Simbiosi coi Ninken, Quattro Zampe e Zanna Perforante attive in Land dal 14/11. Gate pubblico v2 verificato. | Casi Staff conclusi, incluso recupero dello stesso invio senza duplicare azione, costo o ricevuta. |
 | Moltiplicazione / Sostituzione | Assalto e Sostituzione seguono il resolver condiviso. | Copertura e Diversivo ritirati dalla Land, fuori dai lavori attivi. |
 | Esame Genin | Master umano ordinario Konoha/Suna attestato C1235 con H2. Esame IA fermo dal 04/11 annullato il 12/11, storico conservato. | I rilievi del ramo automatico e i premi restano distinti. |
 | Narratore IA / C1266 | Discussioni in Centro disponibile dalla Bacheca, con iscrizioni da Konoha e Suna e sede Konoha — Centro. C18 Staff conferma due Ready, un clic e incipit automatico. | Ultimo roster documentato il 12/11: Hime 1/2, Setsu ritirato. Il primo avvio pubblico e il party misto non sono attestati da C18. |
