@@ -2140,7 +2140,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
 @media(max-width:720px){.h33-workspace{padding:10px;margin:8px 0;max-height:180px;}.h33-head{align-items:flex-start;gap:6px;}.h33-tabs button{flex:1 1 auto;}.h33-workspace button{min-height:40px;}.h33-workspace textarea{font-size:16px;}}
 </style>
 <meta name="tus-mission-runtime" content="C1266-COMBAT64-UI7">
-<meta name="tus-combat-ui-build" content="combat-land-20261114-master-recovery" />
+<meta name="tus-combat-ui-build" content="combat-land-20261114-master-recovery-2" />
 </head>
 <body>
   <div class="stage" id="stage">
@@ -3608,7 +3608,7 @@ function createPanelController({rpc,contextKey,locationId,requestKey=()=>crypto.
   function bind(){const key=contextKey();if(typeof key!=='string'||!key){clear();return false;}if(owner!==null&&owner!==key)clear();owner=key;return true;}
   const current=(ticket,key)=>ticket===epoch&&owner===key&&key===contextKey();
   function requireCurrent(){if(owner===null||owner!==contextKey()){clear();throw Error('context_changed');}}
-  const journalScope=e=>e?.status==='ready'&&isId(e.context.activity_id)&&!['setup','closed'].includes(e.context.phase)
+  const journalScope=e=>e?.status==='ready'&&isId(e.context.activity_id)&&e.context.phase!=='closed'
     ?JSON.stringify([owner,e.context.activity_id,e.context.policy_id,e.viewer.command_actor_id]):null;
   let boundJournal=null;
   function journalRead(k){
@@ -5326,7 +5326,7 @@ function attachCombatPanel(host){
     if(!ensure()||!routeAllowed())return false;
     const stamp=generation;hide();surface=which;opened=true;host.closeMaster?.();
     inlineBody=host.inlineHost?.(which,panel?.snapshot().envelope)||null;
-    host.rememberCombatView?.(which,panel?.snapshot().envelope);
+
     (inlineBody||(which==='master'?master:ordinary)).replaceChildren(root,...(which==='master'?[regiaControls]:[]));renderRegiaControls();
     if(inlineBody){inlineBody.hidden=false;host.showInline?.();}
     else{
@@ -5336,6 +5336,7 @@ function attachCombatPanel(host){
     if(refreshing)await refreshing;if(stamp!==generation)return false;
     const before=panel.snapshot();if(before.pending||before.busy||before.refreshRequired&&before.lastCommand?.status==='rejected')return true;
     const ok=await panel.open();if(stamp!==generation)return false;await readRegiaPublication();if(stamp!==generation)return false;
+    if(opened)host.rememberCombatView?.(which,panel.snapshot().envelope);
     if(!routeAllowed()){invalidate();host.routingUnknown?.({explicit:true});return false;}
     // Il binding del controller nasce con la prima lettura, non nel costruttore.
     if(ok&&!panel.snapshot().narrativeText&&host.readChat()&&!panel.snapshot().pending)await panel.setNarrative(host.readChat());
@@ -13084,7 +13085,12 @@ var nb028iTeardown=function(){};
         entraLuogo(async function(){
           var enteredRoom=cur&&cur.id,enteredPrincipal=commonMasterPrincipal(),enteredEpoch=UI_POSTREVIEW_STAFF_EPOCH;
           innataStaffProfileVisibility();loadAbilities();updateMeteo();loadEmblems();caricaNomiEvidenza();loadMyCompanion();loadMsgs();loadWho();loadRoleState();loadTrainingState();loadAcadClass();refreshMyVita();loadEsame();
-          await missionAutomaticSceneRefresh();if(!cur||cur.id!==enteredRoom||commonMasterPrincipal()!==enteredPrincipal||UI_POSTREVIEW_STAFF_EPOCH!==enteredEpoch)return;
+          const saved=combatViewRestore;
+          if(saved&&saved.owner===combatRecoveryOwner()){
+            if(saved.surface==='master')await loadMasterV2(true);
+            if(cur?.id===enteredRoom&&commonMasterPrincipal()===enteredPrincipal&&UI_POSTREVIEW_STAFF_EPOCH===enteredEpoch)ordinaryRefresh(true);
+          }else await missionAutomaticSceneRefresh();
+          if(!cur||cur.id!==enteredRoom||commonMasterPrincipal()!==enteredPrincipal||UI_POSTREVIEW_STAFF_EPOCH!==enteredEpoch)return;
           if(!landEventReadMode())nb028iRefresh();
           combatRestoreView();
           if(presencePoll) clearInterval(presencePoll);presencePoll=null;
