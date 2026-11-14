@@ -12,7 +12,7 @@ Le verifiche mirate successive prevalgono per i sistemi modificati. Il readback 
 
 | Area | Stato corrente | Verifica o seguito necessario |
 |---|---|---|
-| Combat / Regia | UI comune in Land dal 14/11. Mappa e invio unico collaudati in Staff, anche con Fato IA nel duello nativo. Human H7 e OPEN24 acquisiti. | Riepilogo Master e recupero vista, bozza e ricevuta da completare. Scorta segue il proprio percorso. |
+| Combat / Regia | UI comune in Land dal 14/11. Mappa e invio unico collaudati in Staff, anche con Fato IA nel duello nativo. Human H7 e OPEN24 acquisiti. | Riepilogo Master e recupero di bozza Fato e ricevuta dopo ricarica attivi in Land. Prossimo ramo: Kunai, Shuriken e Guardia. Scorta segue il proprio percorso. |
 | Sabaku | Pubblici Controllo della Sabbia, Flussi 1–3 sul singolo bersaglio, Trasporto, Clone e Armatura di Sabbia. Armatura è una passiva gestita dal pannello, con consumo e ricomposizione server-side già collaudati. | Flussi multibersaglio restano rinviati. Armatura è pubblica dal 21/09: il ramo sabbia insufficiente usa la stessa autorità condivisa di consumo/interruzione del Controllo della Sabbia già validata; monitoraggio ordinario, nessun blocco aperto. |
 | Hyūga | Byakugan, Pugno Gentile, Sedici Chiusure e Rotazione Suprema pubblici. Punto cieco pubblico dal 13/11. | B10 con Master concluso. Una reazione su due origini, laterale e origine marionetta acquisiti. |
 | Uchiha | Sharingan, Palle di Fuoco e Risonanza Katon pubblici. | B3 con Master concluso per concentrata ed esplosiva. Punto d’impatto selezionato sulla mappa in Staff. |

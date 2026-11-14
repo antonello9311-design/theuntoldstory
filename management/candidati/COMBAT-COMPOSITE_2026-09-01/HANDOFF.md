@@ -1,3 +1,18 @@
+# COMBAT-ARMI-GUARDIA-20261114 · contratto in definizione
+
+Riepilogo Master e recupero di bozza Fato e ricevuta dopo ricarica attivi in Land. Prossimo ramo: Kunai, Shuriken e Guardia.
+
+**Kunai, Shuriken e Guardia · verifica del 14/11/2026.** Kunai e Shuriken sono attivi come armi consumabili nel catalogo. L’equipaggiamento da scheda è separato dalle fonti d’attacco di Combat V2. Le offerte Master e lo snapshot dei personaggi usano mano, clan e jutsu. La Guardia è stata ritirata il 17/08 e il riferimento a una rapida attiva nel regolamento è arretrato. Restano da definire il contratto dello slot rapido condiviso e il comportamento della Guardia. Staff e apertura in Land ancora da eseguire.
+
+## Raccordo proposto
+
+- Kunai e Shuriken equipaggiati come armi da lancio. Un attacco leggero a gittata Corta e base 10, precisione Taijutsu come nel piano armi. Il server verifica disponibilità, bersaglio e turno, poi registra un solo consumo di munizione insieme alla dichiarazione. In Staff usa la quantità simulata della scena. Il catalogo dell’oggetto non modifica i numeri del personaggio.
+- Guardia come azione rapida che occupa lo stesso slot del lancio. Proposta da ratificare: costo chakra zero, +3 al primo confronto difensivo valido prima del prossimo turno, poi scadenza. Il +3 è il valore storico provvisorio. La rapida lascia disponibili principale e reazione.
+- Offerta, dichiarazione e referto sul percorso ordinario del pannello, con autorità server, stessa chiave di richiesta per eventuale ripresa e riserva Staff prima dell’apertura. Dopo definizione e riscontro server, allineare regolamento markdown e sito.
+- Matrice Staff mirata: una ricevuta per lancio legale, diniego senza arma equipaggiata o fuori gittata, inventario reale protetto, una sola rapida a turno e Guardia applicata una volta e poi scaduta. Coprire i percorsi ordinario e Master riusando i PASS esistenti. Copertura e Diversivo fuori dal mandato.
+
+## Consegna precedente
+
 # COMBAT-INUZUKA-STATUS-20261114 · Allineamento documentale
 
 **Combat V2 · rilascio del 14/11/2026.** Il pannello comune è pubblicato in Land con scelte sulla mappa, alternativa da tastiera e un solo «Invia» per scelta e role. Build `combat-land-20261114-1`, commit `f7762e8e`, Pages `43570483785`. In Staff risultano conclusi movimento, tastiera a 320 × 480, punto d’impatto, una reazione su due attacchi e invio unico con Fato del Master e della Regia IA nel duello nativo. Rotazione B10, Katon B3 e punto cieco Byakugan sono acquisiti. L’apertura in Land è verificata sul dominio.

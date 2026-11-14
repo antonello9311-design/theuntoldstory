@@ -310,11 +310,15 @@ Raccordo utility Clan09/09: unica aggregata CC-R1–CC-R3 scritta, INSTALL SHA9d
 - Tabelle vuote dell'area: 8 `combat_*`, 5 `master_*` (fondazioni inerti).
 - Land: la build locale `LAND-MV2-MOLTIPLICAZIONE-PANEL-004` (01/09 20:47) **non è ancora caricata** (scheda `PUBBLICAZIONE.md`).
 
+**Riepilogo Master e recupero di bozza Fato e ricevuta dopo ricarica attivi in Land. Prossimo ramo: Kunai, Shuriken e Guardia.**
+
+**Kunai, Shuriken e Guardia · verifica del 14/11/2026.** Kunai e Shuriken sono attivi come armi consumabili nel catalogo. L’equipaggiamento da scheda è separato dalle fonti d’attacco di Combat V2. Le offerte Master e lo snapshot dei personaggi usano mano, clan e jutsu. La Guardia è stata ritirata il 17/08 e il riferimento a una rapida attiva nel regolamento è arretrato. Restano da definire il contratto dello slot rapido condiviso e il comportamento della Guardia. Staff e apertura in Land ancora da eseguire.
+
 ## Lavori aperti — priorità corrente e backlog
 
 1. **Pannello Combat.** Completare gli effetti e i costi nel riepilogo del Master. Verificare dopo ricarica o riconnessione il recupero della vista, della role in bozza e della ricevuta già acquisita, senza doppio invio.
 2. **Marionetta e innate passive.** Resta da osservare il riallaccio dei Fili. L’attacco dalla marionetta e il punto cieco sono già provati. Le 27 passive sono aperte nei percorsi documentati, ma manca un collaudo funzionale Staff dedicato.
-3. **Prossime integrazioni.** Tracciare le offerte server di armi equipaggiate e Guardia, il raccordo di Palmo Curativo e oggetti con turno e ricevute, poi Richiamo e combo delle evocazioni. Catalogo e pulsanti esistenti non attestano l’intero flusso. Le rapide aggiuntive e i Flussi multibersaglio restano rinviati.
+3. **Prossime integrazioni.** Integrare Kunai, Shuriken e Guardia dopo definizione dello slot rapido. Restano il raccordo di Palmo Curativo e oggetti con turno e ricevute, poi Richiamo e combo delle evocazioni. Catalogo e pulsanti esistenti non attestano l’intero flusso. Le rapide aggiuntive e i Flussi multibersaglio restano rinviati.
 4. **Scorta.** Verificare «Apri regia», ritorno narrativo e chiusura soltanto quando è disponibile lo scenario Staff legittimo della stessa missione. Il duello IA e il caso Human H7 coprono percorsi distinti.
 
 ### Checkpoint precedenti
