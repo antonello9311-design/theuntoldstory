@@ -2140,7 +2140,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
 @media(max-width:720px){.h33-workspace{padding:10px;margin:8px 0;max-height:180px;}.h33-head{align-items:flex-start;gap:6px;}.h33-tabs button{flex:1 1 auto;}.h33-workspace button{min-height:40px;}.h33-workspace textarea{font-size:16px;}}
 </style>
 <meta name="tus-mission-runtime" content="C1266-COMBAT64-UI7">
-<meta name="tus-combat-ui-build" content="combat-land-20261114-3" />
+<meta name="tus-combat-ui-build" content="combat-land-20261114-2" />
 </head>
 <body>
   <div class="stage" id="stage">
@@ -4739,38 +4739,11 @@ function mountPanelSurface({root,client,contextKey,locationId,onConfirmed=()=>{}
     calorieReserve:calorieReserve&&calorieReserve.key===calorieBinding(m)?.key?calorieReserve.value:null,
     canRestoreTestResources:allowed(m),restoreMessage:m.envelope?.context?.activity_id===restoreActivity?restoreMessage:null});
   const publish=model=>{if(!disposed){const m=presented(model);view?.render(m);onDraft(m);}};
-  // Collaudo Staff: una sola conferma di Quattro Zampe, per l'attore e lo scontro indicati.
-  // Il server riceve lo stesso comando del prodotto e completa la transazione normalmente.
-  const replayParams=new URLSearchParams(root.ownerDocument.defaultView.location.search);
-  const replayActivity=replayParams.get('staff_replay_activity');
-  const replayActor=replayParams.get('staff_replay_actor');
-  let replayProbeUsed=false;
   const controller=createPanelController({
     locationId,contextKey:()=>disposed?null:contextKey(),directCombatUI:singleRoleSend,
     rpc:async(name,args)=>{
-      let staffProbe=null;
-      if(name==='combat_panel_commit_v1'&&!replayProbeUsed&&isId(replayActivity)&&isId(replayActor)&&
-          locationId===staffCalorieRoom&&canRestoreTestResources()===true){
-        const state=controller.snapshot().envelope;
-        const command=args.p_command;
-        const offer=state?.offers.find(o=>o.offer_id===command.offer_id);
-        if(state?.status==='ready'&&state.context.simulated===true&&
-            state.context.policy_id==='staff_test_no_persistent_resources_v1'&&
-            state.context.activity_id===replayActivity&&command.activity_id===replayActivity&&
-            state.viewer.command_actor_id===replayActor&&offer?.kind==='control'&&
-            offer.label==='Attiva Quattro Zampe · 5 chakra'){
-          staffProbe={request:command.request_key,owner:contextKey()};
-        }
-      }
       const readPassives=name==='combat_panel_state_v1'&&!passiveStateUnavailable;
       let response=await client.rpc(readPassives?'combat_panel_state_v2':name,args);
-      if(staffProbe&&!disposed&&contextKey()===staffProbe.owner&&canRestoreTestResources()===true&&
-          !response.error&&response.data?.receipt?.request_key===staffProbe.request&&
-          response.data.receipt.activity_id===replayActivity&&response.data.receipt.replayed===false&&
-          response.data.receipt.values_written===false){
-        replayProbeUsed=true;
-        throw Error('transport_unconfirmed');
-      }
       const error=response.error;
       if(readPassives&&error&&['PGRST202','42883'].includes(error.code)&&
          String(error.message||'').includes('combat_panel_state_v2')){
