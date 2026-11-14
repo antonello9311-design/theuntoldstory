@@ -1,5 +1,7 @@
 Stato: **in lavoro** · punto cieco Byakugan aperto in Land, Copertura e Diversivo esclusi.
 
+**Fili e 27 passive · preparazione Staff.** Migrazione `20261114194849`, build `fili-passive-staff-1`, review 0/0/0. Recisione autorizzabile nel round da colpo nativo riuscito, sette profili temporanei per la role e Combat. Collaudi positivi da eseguire; casi già passati conservati. [Istruzioni e casi residui](candidato/INNATA_WORLD_STAFF_QA_HANDOFF.md).
+
 **Kunai, Shuriken e Guardia · verifica del 14/11/2026.** Kunai e Shuriken sono attivi come armi consumabili nel catalogo. L’equipaggiamento da scheda è separato dalle fonti d’attacco di Combat V2. Le offerte Master e lo snapshot dei personaggi usano mano, clan e jutsu. La Guardia è stata ritirata il 17/08 e il riferimento a una rapida attiva nel regolamento è arretrato. Restano da definire il contratto dello slot rapido condiviso e il comportamento della Guardia. Staff e apertura in Land ancora da eseguire.
 
 **Staff · archivio e selezione diretta · 13/11/2026.** Migrazioni `20261113161836` e `20261113161841`, review 0/0/0. Archivio di 1.088 messaggi collegati a sessioni chiuse; zero messaggi nella chat Staff dopo chiusura e archiviazione del nuovo collaudo. Conservati messaggi, report e ricevute, comprese le quattro ricevute B10, B3 e nuovo caso. L'RPC storico globale resta separato; il pulsante è nascosto nella Staff.

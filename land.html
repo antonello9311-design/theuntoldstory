@@ -5,6 +5,7 @@
 <meta name="tus-mission-host-contract" content="mission-narrative-host/1" />
 <meta name="tus-staff-meal-receipt-build" content="staff-meal-receipt-20261113-1" />
 <meta name="tus-innata-presence-build" content="innata-presence-20261103-1" />
+<meta name="tus-fili-passive-staff-build" content="fili-passive-staff-1" />
 <meta name="tus-innata-staff-profile-build" content="innata-all-clan-20261104-1" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="tus-chat-reentry-build" content="C1266-CHAT-REENTRY-001" />
@@ -2298,6 +2299,19 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
                 <button class="mv2-btn ghost" id="innata-profile-remove" type="button" disabled>Usa abilità della scheda</button>
                 <button class="mv2-btn ghost" id="innata-profile-retry" type="button" hidden>Verifica lo stesso comando</button>
                 <p class="mv2-note" id="innata-profile-note" role="status" aria-live="polite"></p>
+                <label class="mv2-field">Passive di prova<select id="staff-passive-family">
+                  <option value="">Nessun profilo temporaneo</option>
+                  <option value="aburame">Aburame</option>
+                  <option value="akimichi">Akimichi</option>
+                  <option value="hoki_dokugan">Hoki · Dokugan</option>
+                  <option value="inuzuka">Inuzuka</option>
+                  <option value="marionettisti">Marionettisti</option>
+                  <option value="nara">Nara</option>
+                  <option value="sabaku">Sabaku</option>
+                </select></label>
+                <button class="mv2-btn" id="staff-passive-set" type="button">Imposta passive di prova</button>
+                <button class="mv2-btn ghost" id="staff-fili-arm" type="button">Abilita recisione dei Fili nel round</button>
+                <p class="mv2-note" id="staff-fili-passive-note" role="status" aria-live="polite"></p>
               </details>
               <div class="side-card cmb" id="cmb-card" hidden>
                 <div class="side-k">Scontro</div>
@@ -13376,10 +13390,71 @@ var nb028iTeardown=function(){};
         return JSON.stringify([myId,myCharId,cur.id,master,UI_POSTREVIEW_STAFF_EPOCH]);
       }
       function innataProfileSameBinding(a,b){if(!a||!b)return false;try{return JSON.stringify(JSON.parse(a).slice(0,4))===JSON.stringify(JSON.parse(b).slice(0,4));}catch(e){return false;}}
+      function staffFiliPassiveStatus(message){
+        document.getElementById('staff-fili-passive-note').textContent=message;
+      }
+      var staffFiliPassiveBusy=false;
+      async function staffFiliPassiveCommand(action){
+        var scope=innataProfileScope();
+        if(!scope||staffFiliPassiveBusy)return;
+        var binding=JSON.parse(scope),isCut=action==='cut';
+        if(!['2a877f02-4993-4e65-9172-7d29f08c5b86','6bceee99-974f-426b-8d92-38b43b4a4267'].includes(binding[1]))return;
+        var buttons=[document.getElementById('staff-passive-set'),document.getElementById('staff-fili-arm')];
+        var args={p_location:binding[2],p_master:binding[3],p_character:binding[1]};
+        if(!isCut)args.p_family=document.getElementById('staff-passive-family').value||null;
+        staffFiliPassiveBusy=true;
+        buttons.forEach(function(button){button.disabled=true;});
+        staffFiliPassiveStatus('');
+        try{
+          await landUserPresence();
+          if(scope!==innataProfileScope())return;
+          var result=await sb.rpc(isCut?'marionetta_staff_sever_arm_v1':'innata_staff_passive_profile_v1',args);
+          if(scope!==innataProfileScope())return;
+          if(result.error){
+            var errors={
+              PGRST202:'Il comando Staff non è ancora disponibile sul server.',
+              INNATA_STAFF_ONLY:'Comando riservato ai personaggi autorizzati in Staff.',
+              INNATA_STAFF_PREPARE_BEFORE_COMBAT:'Scegli il profilo prima di aprire il Combat.',
+              INNATA_STAFF_HUMAN_DUEL_ONLY:'Usa il profilo in ordinario o in un duello Staff con Master.',
+              INNATA_STAFF_REMOVE_OTHER_PROFILE:'Rimuovi prima il profilo di Innata simulata.',
+              MARIONETTA_STAFF_OPEN_DUEL:'Apri un duello Staff con Master in fase di azione.',
+              MARIONETTA_STAFF_CONNECTED_TARGET_REQUIRED:'Serve una marionetta avversaria con i Fili collegati.',
+              MARIONETTA_STAFF_ARM_BEFORE_ATTACK:'Abilita la recisione prima di inviare l’attacco.',
+              MARIONETTA_STAFF_PERMIT_ALREADY_USED:'Il permesso di questo round è già stato usato.'
+            };
+            throw Error(errors[result.error.message]||errors[result.error.code]||'Comando Staff non confermato.');
+          }
+          var receipt=result.data;
+          if(isCut){
+            if(receipt?.armed!==true)throw Error('Recisione di prova non confermata.');
+            staffFiliPassiveStatus('Recisione abilitata per questo round. Scegli Colpo a mano e indica la marionetta sulla mappa.');
+          }else if(receipt&&receipt.family===args.p_family){
+            staffFiliPassiveStatus(receipt.family
+              ? receipt.techniques+' passive temporanee attive. Invia la role e apri Combat entro le '+new Date(receipt.expires_at).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'.'
+              : 'Profilo temporaneo rimosso.');
+          }else throw Error('Profilo di prova non confermato.');
+        }catch(error){
+          if(scope===innataProfileScope())staffFiliPassiveStatus(error.message||'Comando Staff non confermato.');
+        }finally{
+          staffFiliPassiveBusy=false;
+          innataProfileRender();
+        }
+      }
       function innataProfileNote(text){var e=document.getElementById('innata-profile-note');if(e)e.textContent=text;}
       function innataProfileRender(){
         var s=innataProfileScope(),p=INNATA_PROFILE,d=p.scope===s?p.data:null,card=document.getElementById('innata-staff-profile-card');if(!card)return;
         card.hidden=!s;card.style.display=s?'':'none';
+        var binding=s?JSON.parse(s):null;
+        var staffQaVisible=!!binding&&['2a877f02-4993-4e65-9172-7d29f08c5b86','6bceee99-974f-426b-8d92-38b43b4a4267'].includes(binding[1]);
+        var familyField=document.getElementById('staff-passive-family');
+        var setPassives=document.getElementById('staff-passive-set');
+        var armCut=document.getElementById('staff-fili-arm');
+        familyField.parentNode.hidden=!staffQaVisible;
+        setPassives.hidden=!staffQaVisible;
+        armCut.hidden=!staffQaVisible;
+        setPassives.disabled=staffFiliPassiveBusy||!staffQaVisible;
+        armCut.disabled=staffFiliPassiveBusy||!staffQaVisible||!binding[3];
+        document.getElementById('staff-fili-passive-note').hidden=!staffQaVisible;
         var read=document.getElementById('innata-profile-read'),sel=document.getElementById('innata-profile-select'),apply=document.getElementById('innata-profile-apply'),remove=document.getElementById('innata-profile-remove'),retry=document.getElementById('innata-profile-retry');
         read.disabled=p.busy||!s;sel.disabled=p.busy||!!p.pending||!d;
         apply.disabled=p.busy||!!p.pending||!d||(!d.can_change&&sel.value!==d.selected_profile)||!d.profiles.some(function(x){return x.profile_key===sel.value&&innataProfileAvailable(x);});
@@ -13494,6 +13569,8 @@ var nb028iTeardown=function(){};
         document.getElementById('innata-profile-apply').addEventListener('click',function(){innataProfileSend(false);});
         document.getElementById('innata-profile-remove').addEventListener('click',function(){innataProfileSend(null);});
         document.getElementById('innata-profile-retry').addEventListener('click',function(){innataProfileSend(true);});
+        document.getElementById('staff-passive-set').addEventListener('click',function(){staffFiliPassiveCommand('profile');});
+        document.getElementById('staff-fili-arm').addEventListener('click',function(){staffFiliPassiveCommand('cut');});
       })();
 
       var SUG=[], SUG_SCELTA=null, SUG_NOME='', SUG_I=0, SUG_VIS=[], SUG_AP=-1, SUG_C=0, SUG_LOAD_SEQ=0;

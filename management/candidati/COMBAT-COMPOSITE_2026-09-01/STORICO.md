@@ -1,3 +1,4 @@
+14/11/2026 · COMBAT-FILI-PASSIVE-PREP-20261114 · Recisione e sette profili da 27 passive predisposti · DB installato, collaudo positivo da eseguire.
 14/11/2026 · COMBAT-ARMI-GUARDIA-20261114 · Recupero ricarica in Land, Kunai e Shuriken selezionati, perimetro Guardia da ratificare · QA pendente.
 14/11/2026 · COMBAT-INUZUKA-STATUS-20261114 · Inuzuka Land v2 e recupero Staff registrati; residui Combat aggiornati · Consegna documentale.
 14/11/2026 · COMBAT-STATUS-20261114 · UI Land e prove acquisite riconciliate con dossier e gate · Residui distinti, allineamento documentale.

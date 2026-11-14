@@ -1,3 +1,5 @@
+**LAND · Comandi esclusivi Staff per Fili e passive.** Build `fili-passive-staff-1`, 2456878 byte, SHA-256 `d5f41a92abe9fcda107f19ccff1b6fe2ea9d96b8cfde6802ff6525e4cbb961d6`. Migrazione `20261114194849`.
+
 ## S24 · Movimento ordinario di Iori per T7–T8
 
 **Staff · archivio e selezione diretta · 13/11/2026.** Migrazioni `20261113161836` e `20261113161841`, review 0/0/0. Archivio di 1.088 messaggi collegati a sessioni chiuse; zero messaggi nella chat Staff dopo chiusura e archiviazione del nuovo collaudo. Conservati messaggi, report e ricevute, comprese le quattro ricevute B10, B3 e nuovo caso. L'RPC storico globale resta separato; il pulsante è nascosto nella Staff.

@@ -1,3 +1,9 @@
+# COMBAT-FILI-PASSIVE-PREP-20261114 · Comandi Staff
+
+**Fili e 27 passive · preparazione Staff.** Migrazione `20261114194849`, build `fili-passive-staff-1`, review 0/0/0. Recisione autorizzabile nel round da colpo nativo riuscito, sette profili temporanei per la role e Combat. Collaudi positivi da eseguire; casi già passati conservati. [Dettagli e consegna](candidato/INNATA_WORLD_STAFF_QA_HANDOFF.md).
+
+## Consegna precedente
+
 # COMBAT-ARMI-GUARDIA-20261114 · contratto in definizione
 
 Riepilogo Master e recupero di bozza Fato e ricevuta dopo ricarica attivi in Land. Prossimo ramo: Kunai, Shuriken e Guardia.

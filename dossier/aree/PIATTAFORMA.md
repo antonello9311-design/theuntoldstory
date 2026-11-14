@@ -25,6 +25,8 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
+**Fili e 27 passive · preparazione Staff.** Migrazione `20261114194849`, build `fili-passive-staff-1`, review 0/0/0. Recisione autorizzabile nel round da colpo nativo riuscito, sette profili temporanei per la role e Combat. Collaudi positivi da eseguire; casi già passati conservati.
+
 **Staff · archivio e selezione diretta · 13/11/2026.** Migrazioni `20261113161836` e `20261113161841`, review 0/0/0. Archivio di 1.088 messaggi collegati a sessioni chiuse; zero messaggi nella chat Staff dopo chiusura e archiviazione del nuovo collaudo. Conservati messaggi, report e ricevute, comprese le quattro ricevute B10, B3 e nuovo caso. L'RPC storico globale resta separato; il pulsante è nascosto nella Staff.
 
 **UI Staff.** Commit `043e7f5f10b79bd19db14b7e41b49005cf1e9c14`, Pages `43461842904` SUCCESS, SHA-256 `455babad8eb4e5dc5893ac3dfbcef0ab4dd8e3be2da8df894d09b58ce7e319af`. In Staff compaiono mete e bersagli legali sulla mappa, con lista accessibile, opzione unica preselezionata per bersaglio e copertura, un comando di conferma per scelta. Prova `ac74dc48-5e06-4b98-b59b-750d9c274b2e`, round `fc4f3c5b-01e3-4839-bd62-68f4000809bd`: un movimento di 1 m selezionato sulla mappa, bersaglio unico evidenziato, scelta d'arrivo dal controllo nativo, parata con attacco associato, risultato 30 danni simulati e Fato `c98c48b3-80dc-4080-b773-6a77e98ea190` pubblicato. Scena chiusa, zero scritture reali e zero chiamate IA. B10/B3 conservati.
