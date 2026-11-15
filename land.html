@@ -5,7 +5,7 @@
 <meta name="tus-mission-host-contract" content="mission-narrative-host/1" />
 <meta name="tus-staff-meal-receipt-build" content="staff-meal-receipt-20261113-1" />
 <meta name="tus-innata-presence-build" content="innata-presence-20261103-1" />
-<meta name="tus-fili-passive-staff-build" content="fili-passive-staff-1" />
+<meta name="tus-fili-passive-staff-build" content="fili-passive-staff-master-2" />
 <meta name="tus-innata-staff-profile-build" content="innata-all-clan-20261104-1" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="tus-chat-reentry-build" content="C1266-CHAT-REENTRY-001" />
@@ -7595,9 +7595,23 @@ window.TUSOrdinary={attachOrdinaryLand};
           +'<p class="mv2-note">Nel passaggio successivo scegli i personaggi che partecipano, le squadre e la posizione iniziale di ciascuno in metri.</p>'
           +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="session-open">Apri il duello</button>'+indietro+'</div>';
       }
+      function mv2StaffRosterPreparation(draft){
+        return commonPanelRoom()&&iAmStaff&&MV2.data?.master?.tipo==='duello'
+          &&MV2.data?.master?.stato==='preparazione'&&draft.specs.length===0&&draft.pg.length===2
+          &&['2a877f02-4993-4e65-9172-7d29f08c5b86','6bceee99-974f-426b-8d92-38b43b4a4267'].every(id=>draft.pg.includes(id));
+      }
       function mv2EncounterForm(){
         var s=MV2.setup,m=((MV2.data||{}).master||{}),draft=MV2.encounterDraft;
         if(draft&&draft.master_id===m.id){
+          if(mv2StaffRosterPreparation(draft)){
+            return '<div class="mv2-phase"><b>Scontro pronto</b><br>'+esc(draft.summary)+'</div>'
+              +(draft.rosterSaved
+                ? '<p class="mv2-note">Partecipanti salvati. Il PG può impostare il profilo passivo e inviare la role prima di avviare Combat.</p>'
+                  +'<button class="mv2-btn" type="button" data-mv2="encounter-start">Avvia Combat</button>'
+                : '<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="staff-roster-save">Salva partecipanti</button>'
+                  +'<button class="mv2-btn ghost" type="button" data-mv2="encounter-start">Avvia senza role</button>'
+                  +'<button class="mv2-btn ghost" type="button" data-mv2="encounter-edit">Modifica</button></div>');
+          }
           return '<div class="mv2-phase"><b>Scontro pronto</b><br>'+esc(draft.summary)+'</div>'
             +'<p class="mv2-note">Puoi introdurre la scena come Fato prima di aprire il Round 1. Finché non avvii, i partecipanti non ricevono azioni meccaniche.</p>'
             +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2="encounter-intro">Scrivi incipit in chat</button>'
@@ -7899,6 +7913,28 @@ window.TUSOrdinary={attachOrdinaryLand};
             if((mode==='pg_pg'&&pg.length<2)||(mode==='png_pg'&&(!pg.length||!specs.length))){toast(mode==='pg_pg'?'Seleziona almeno due PG':'Seleziona almeno un PG e un PNG');return;} if(Object.keys(uniq).length<2){toast('Servono almeno due squadre diverse');return;}
             var names=pg.map(function(id){var row=(MV2.setup.pgs||[]).filter(function(x){return x.id===id;})[0];return row?row.name:'PG';}).concat(specs.map(function(x){return x.nome||'PNG';}));
             MV2.encounterDraft={master_id:MV2.data.master.id,pg:pg,specs:specs,teams:teams,positions:poss,summary:names.join(' · '),introPlanned:false};renderMasterV2();return;
+          }
+          if(a==='staff-roster-save'){
+            var rosterDraft=MV2.encounterDraft, masterForRoster=MV2.data?.master;
+            if(!rosterDraft||!masterForRoster||rosterDraft.master_id!==masterForRoster.id||!mv2StaffRosterPreparation(rosterDraft))return;
+            mv2Busy(true);
+            (async function(){
+              try{
+                await landUserPresence();
+                if(!commonPanelRoom()||MV2.encounterDraft!==rosterDraft||MV2.data?.master?.id!==masterForRoster.id)return;
+                var saved=await mv2Rpc('master_v2_staff_prepare_roster_v1',{p_session:masterForRoster.id,p_pg_ids:rosterDraft.pg,p_expected:masterForRoster.control_version});
+                if(saved?.saved!==true||saved.session_id!==masterForRoster.id||!Array.isArray(saved.participants)
+                  ||saved.participants.length!==rosterDraft.pg.length||!rosterDraft.pg.every(id=>saved.participants.includes(id))){
+                  throw Error('Il server non ha confermato i partecipanti.');
+                }
+                if(MV2.encounterDraft===rosterDraft&&MV2.data?.master?.id===masterForRoster.id)rosterDraft.rosterSaved=true;
+              }catch(error){
+                if(MV2.encounterDraft===rosterDraft)toast(error.message);
+              }finally{
+                mv2Busy(false);renderMasterV2();
+              }
+            })();
+            return;
           }
           if(a==='encounter-edit'){MV2.encounterDraft=null;renderMasterV2();return;}
           if(a==='encounter-intro'){if(!MV2.encounterDraft)return;MV2.encounterDraft.introPlanned=true;mv2OvChiudi();setFatoMode(true);try{input.focus();}catch(e){}toast('Scrivi e pubblica l’inciso del Fato, poi riapri Regia scontri per avviare il Round 1.');return;}
