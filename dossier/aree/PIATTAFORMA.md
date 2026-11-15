@@ -25,6 +25,8 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
+**Roster Staff prima di Combat.** Migrazione `20261115090853`, review 0/0/0. Roster in preparazione riservato alla coppia di prova e policy Staff simulata. La ricarica dalla presenza Staff attiva protegge le schede dal recupero ordinario.
+
 **Fili e 27 passive · preparazione Staff.** Migrazione `20261114194849`, build `fili-passive-staff-1`, review 0/0/0. Recisione autorizzabile nel round da colpo nativo riuscito, sette profili temporanei per la role e Combat. Collaudi positivi da eseguire; casi già passati conservati.
 
 **Staff · archivio e selezione diretta · 13/11/2026.** Migrazioni `20261113161836` e `20261113161841`, review 0/0/0. Archivio di 1.088 messaggi collegati a sessioni chiuse; zero messaggi nella chat Staff dopo chiusura e archiviazione del nuovo collaudo. Conservati messaggi, report e ricevute, comprese le quattro ricevute B10, B3 e nuovo caso. L'RPC storico globale resta separato; il pulsante è nascosto nella Staff.

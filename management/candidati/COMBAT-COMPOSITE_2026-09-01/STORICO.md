@@ -1,3 +1,4 @@
+15/11/2026 · COMBAT-MASTER-PASSIVE-ROSTER-20261115 · Passaggio Master 27/27, sette scene Staff chiuse e schede intatte · PASS.
 14/11/2026 · COMBAT-FILI-PASSIVE-RUNTIME-20261114 · Riallaccio e 27 livelli ordinari PASS, Master bloccato sul roster pre-Combat · scene chiuse.
 14/11/2026 · COMBAT-FILI-PASSIVE-PREP-20261114 · Recisione e sette profili da 27 passive predisposti · DB installato, collaudo positivo da eseguire.
 14/11/2026 · COMBAT-ARMI-GUARDIA-20261114 · Recupero ricarica in Land, Kunai e Shuriken selezionati, perimetro Guardia da ratificare · QA pendente.

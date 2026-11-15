@@ -1,3 +1,5 @@
+**LAND · Roster anticipato per le passive Staff.** Migrazione `20261115090853`, build `fili-passive-staff-master-2`, commit `9dee2be4a6129dcd5bd47837a4f1d090c3b7d013`, 2459454 byte e SHA-256 `716c37d6e85f2a5e7c4ef0b5ac880f4f509c6f4ed77488b20a337ce67ef79a2f` verificati sul dominio.
+
 **LAND · Comandi esclusivi Staff per Fili e passive.** Build `fili-passive-staff-1`, 2456878 byte, SHA-256 `d5f41a92abe9fcda107f19ccff1b6fe2ea9d96b8cfde6802ff6525e4cbb961d6`. Migrazione `20261114194849`. Commit `5e72603ad592547321d08427f291c6b2fc1feba7`. Dominio verificato su `/land.html`, SHA-256 identico.
 
 ## S24 · Movimento ordinario di Iori per T7–T8

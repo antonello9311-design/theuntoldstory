@@ -6,6 +6,26 @@
 
 **Recisione.** In un duello Staff con Master umano tra i due PG ammessi, collegare la marionetta di prova. Dal PG avversario, in fase di raccolta e prima di dichiarare l'attacco, premere «Abilita recisione dei Fili nel round». Selezionare «Colpo a mano» sulla marionetta avversaria visibile e a portata. Il server vincola il permesso a round, attaccante, bersaglio e prima dichiarazione valida corrispondente. Il colpo riuscito attiva l'evento nativo di recisione. Nel seguito verificare attesa di un turno personale completo, comando di riallaccio, singola spesa di 5 chakra simulati e principale disponibile. Una recisione fallita richiede un nuovo round consentito dal gioco. Non cambia la fonte di recisione in Land.
 
+## Raccordo Master · collaudo del 15/11/2026
+
+**Passive con Master · 27/27 in Staff.** Il Master salva i partecipanti in preparazione; il PG invia la role con profilo temporaneo e apre Combat. Sette scene verificate e chiuse, ricevute di role e Combat corrispondenti. Impronte complete e timestamp di recupero delle schede di Riuji e testperfunzioni identici prima e dopo.
+
+**Sequenza.** Nella Staff, aprire un duello umano con Riuji e testperfunzioni, selezionare i due PG, scegliere «Apri scontro» e poi «Salva partecipanti». Dal PG, selezionare in «Abilità simulate · Staff» la famiglia, applicare il profilo e inviare una role normale. Dal Master scegliere «Avvia Combat» e selezionare il PG controllato nel pannello. In Staff, con la presenza ancora nella stanza di prova, la ricarica salta il recupero ordinario dei due PG autorizzati. Il roster salvato resta sul server. Squadre e posizioni sono parte della bozza del pannello e si riselezionano in caso di ricarica prima dell’avvio.
+
+| Famiglia | Ricevute role | Livelli in Combat | Duello Master | Sessione Combat |
+|---|---:|---:|---|---|
+| Aburame | 4 | 4 | `6b0a663c-5b54-47b0-8dbe-54e68772087e` | `c6b56256-5a47-4711-95f8-bd950ae19c02` |
+| Akimichi | 4 | 4 | `b3b833f2-9e0e-49a0-abe6-076a092ee0cf` | `0a107475-9f6b-4f6c-af14-8e0fe0261887` |
+| Hoki / Dokugan | 4 | 4 | `2a06a6d9-87b0-4caa-9dc1-e103f5ee9480` | `677d4b35-131b-421b-bd49-17d47873c94b` |
+| Inuzuka | 4 | 4 | `3c7ed9f9-e960-4e71-b305-5ef59f87d732` | `92777fa7-231e-49be-a017-925a5a6ab2c7` |
+| Marionettisti | 4 | 4 | `30e327b3-098d-4cb5-8b7d-11ec30ae46dc` | `2e462fe0-3672-4a25-b622-cc40e72ea3f8` |
+| Nara | 4 | 4 | `4ffae823-5fcb-4fc3-a5c5-93db8755a0b8` | `6a40ed79-3657-4ba8-b9f8-15ab5028f9fc` |
+| Sabaku | 3 | 3 | `7cfbd06b-637d-45cf-b028-cbdb9d658eaf` | `fbadba1c-505a-4693-950c-fbca4e8e6e70` |
+
+Il server ha conservato l’ordine roster → role → Combat e la stessa impronta della ricevuta passiva per ogni livello. I nomi e livelli sono stati osservati nel pannello del PG. Sabaku comprende II–IV. In alcune scene la conferma di apertura arrivava prima che il pannello si aggiornasse. La riapertura della Regia e, quando necessaria, la ricarica dalla Staff hanno mostrato lo stesso scontro già aperto, senza rinviare l’avvio. Sette Combat e sette regie chiusi, zero profili temporanei attivi, zero ledger reali, zero chiamate IA. Conservate le 27 associazioni ordinarie, le due ricevute World reali pregresse e l’unica ricevuta di riallaccio.
+
+**Versione.** Migrazione `20261115090853` e build `fili-passive-staff-master-2`, commit `9dee2be4a6129dcd5bd47837a4f1d090c3b7d013`, confronto integrale sul dominio con SHA-256 `716c37d6e85f2a5e7c4ef0b5ac880f4f509c6f4ed77488b20a337ce67ef79a2f`. Review indipendente 0/0/0, nove pin. [Migrazione](INNATA_WORLD_STAFF_MASTER_ROSTER.sql) e [ripristino](INNATA_WORLD_STAFF_MASTER_ROSTER_RECOVERY.sql).
+
 ## Collaudo giocato nella Staff · 14/11/2026
 
 **Fili · PASS.** Duello Master protetto `6e950006-1b7e-44a7-b99e-115cf5274d8a`. Il Colpo a mano di Riuji `18e6fbb5-8b13-4131-9141-fdfce56724f0`, mirato alla marionetta, ha risolto con successo e prodotto l’evento di recisione 79 al round 1. Round 2, completato il turno personale del controllore. Al round 3 il corpo di Riuji, a contatto dopo il colpo, ostacolava la traiettoria tra controllore e marionetta; un suo movimento legale ha liberato il passaggio. Al round 4 «Riallaccia i Fili · 5 chakra» ha riportato il link a connected, versione 3. Una ricevuta di controllo `399eebed-ed5e-4279-ac2e-b5787346fd0a`, una riga di registro `af0f5348-6d7d-41f0-9d6c-c10b191b0ebd`, simulata: 5 → 0, 5 impegnati e 0 applicati alla scheda. Stato del turno disponibile, senza dichiarazione principale. La scena è chiusa.

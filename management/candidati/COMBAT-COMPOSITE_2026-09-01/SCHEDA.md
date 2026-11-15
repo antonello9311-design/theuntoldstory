@@ -1,6 +1,6 @@
 Stato: **in lavoro** · punto cieco Byakugan aperto in Land, Copertura e Diversivo esclusi.
 
-**Fili e 27 passive · collaudo Staff.** Recisione e riallaccio PASS (5 → 0 chakra simulato, una ricevuta, principale disponibile). Passive 27/27 in ordinario. Con Master, bloccate prima dello scontro: il profilo richiede il roster prima che il duello lo salvi. Una ricarica ha attivato il recupero ordinario di Riuji. Il registro Combat non ha scritture reali. [Referto](candidato/INNATA_WORLD_STAFF_QA_HANDOFF.md).
+**Passive con Master · 27/27 in Staff.** Il Master salva i partecipanti in preparazione; il PG invia la role con profilo temporaneo e apre Combat. Sette scene verificate e chiuse, ricevute di role e Combat corrispondenti. Impronte complete e timestamp di recupero delle schede di Riuji e testperfunzioni identici prima e dopo. Fili e 27 passive ordinarie già qualificati. [Referto](candidato/INNATA_WORLD_STAFF_QA_HANDOFF.md).
 
 **Kunai, Shuriken e Guardia · verifica del 14/11/2026.** Kunai e Shuriken sono attivi come armi consumabili nel catalogo. L’equipaggiamento da scheda è separato dalle fonti d’attacco di Combat V2. Le offerte Master e lo snapshot dei personaggi usano mano, clan e jutsu. La Guardia è stata ritirata il 17/08 e il riferimento a una rapida attiva nel regolamento è arretrato. Restano da definire il contratto dello slot rapido condiviso e il comportamento della Guardia. Staff e apertura in Land ancora da eseguire.
 
