@@ -25,6 +25,8 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
+**Recisione dei Fili in duello ordinario · 16/11/2026.** Corretto il raccordo delle offerte raggruppate della marionetta nella migrazione Staff `20261116200659`. Apertura ordinaria `20261116201417`, `ordinary_enabled=true`, review indipendente 0/0/0 e sigillo verificato. Le scelte di distanza conservano l’autorità nativa. Il gate Land ammette duello ordinario e Master umano. La Regia IA di missione resta esclusa finché mancano il produttore del compagno del PNG e la proiezione narrativa del taglio.
+
 **Recisione dei Fili con Master umano · 16/11/2026.** Installazione Staff `20261116152200`, installer SHA-256 `f403eda87928e5c5e4e8cbcbd41e10149b45a085c9787f10baf6d0072fd49623`. Apertura Land `20261116192833`, gate letto attivo e riserva verificata sul Master umano. Review indipendente 0/0/0 per installazione, apertura e recovery. La candidata conserva la firma del motore elementale e attesta la recisione su una ricevuta privata dell’attacco. Resta il collaudo del nuovo bersaglio nei percorsi senza Master umano. Le ricevute esistenti di riallaccio e passive si conservano.
 
 **Roster Staff prima di Combat.** Migrazione `20261115090853`, review 0/0/0. Roster in preparazione riservato alla coppia di prova e policy Staff simulata. La ricarica dalla presenza Staff attiva protegge le schede dal recupero ordinario.

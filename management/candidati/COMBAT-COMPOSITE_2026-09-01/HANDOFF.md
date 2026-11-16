@@ -1,3 +1,17 @@
+# COMBAT-OCULAR-SEVER-RESIDUAL-20261116 · Recisione ordinaria e Regia IA
+
+**Scope.** Soli casi di recisione rimasti. Versione iniziale client `fili-ocular-1`, contratto `ocular-sever/1`, gate Land già attivo per Master umano. Le prove Master, riallaccio e 27 passive restano acquisite.
+
+**Difetto e correzione ordinaria.** Nella scena `3b073c69-50fc-402d-be96-ebc4d1e3a45a` il collegamento iniziale riusciva, poi `annotate_offer_categories` annullava tutte le opzioni con `panel_ui_source_not_available/40001`. Il movimento raggruppato conserva l’offerta nativa sulle singole distanze. Il pannello ora verifica tutte le fonti del gruppo nel contesto corretto. Il commit continua a risolvere la scelta effettiva. Scena diagnostica chiusa normalmente. Migrazione Staff `20261116200659`, review indipendente 0/0/0.
+
+**Staff ordinaria PASS.** Scena `9febacc0-cab8-4908-9daf-81eff7e844c9`, lancio `d74a2300-3f5c-472e-9876-2c72df14c4d2`, un solo evento `link_severed`, un pezzo simulato, una principale, zero danni e integrità 30/30. Il Fato del duello `30f5180e-ebb7-4d43-9afd-fdab54216279` pubblicato in chat racconta la recisione e l’integrità della marionetta. Entrambe le scene chiuse, zero addebiti reali, hash di entrambe le schede uguali. Tre chiamate IA del duello, 14.554 token, 0,002447 USD complessivi, inclusi due passaggi preparatori.
+
+**Rilascio ordinario.** Gate Land `20261116201417`, `ordinary_enabled=true`, review 0/0/0. Il gate esclude le missioni IA. Regolamento e sorgenti al commit `fe612d3df002df002a0b76e673d9e69ce3e62011`. Il ripristino conserva ricevute, Fati, gate Master e schede.
+
+**Regia IA di missione bloccata prima dell’avvio.** Il combattimento IA esige un PNG autorizzato dal Ninja Book, ma le autorità native di missione e quest respingono un PNG con `companion_id`. I preset Staff dei Fili supportano proprietari PG, mentre la Regia IA mette i PG nella stessa squadra. Il proiettore del Fato missione omette inoltre `fili_recisi`. Per rappresentare il caso serve il collegamento tra il PNG avversario e la sua marionetta nei contratti nativi di missione, seguito dalla proiezione del taglio distinto da un colpo al corpo. Il collaudo reale di questo ramo e l’apertura restano pendenti.
+
+## Consegna precedente
+
 # COMBAT-OCULAR-SEVER-20261116 · Recisione dei Fili
 
 **Scope.** Bersaglio «Fili» quando percepito da un’abilità oculare attiva. Il PG usa la propria offerta d’attacco, con azione, portata, percorso e consumo del server. Shuriken e tecniche compatibili condividono la risoluzione. Kunai resta nel lavoro di integrazione delle armi.
