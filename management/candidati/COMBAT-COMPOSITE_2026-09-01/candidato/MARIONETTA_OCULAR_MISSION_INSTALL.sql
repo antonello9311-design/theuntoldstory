@@ -673,10 +673,10 @@ BEGIN
     LEFT JOIN mission_generic_owner.plan_revisions source_revision
       ON source_revision.plan_version_id=simulation.source_plan_version_id
      AND source_revision.mission_id=simulation.source_mission_id
-    JOIN clan_marionettisti_private.mission_companion_entitlements_v1 entitlement
-      ON entitlement.definition_id=CASE WHEN room.is_test THEN source_revision.definition_id ELSE binding.definition_id END
-     AND entitlement.step_key=e.step_key AND entitlement.encounter_key=e.encounter_key
-     AND (CASE WHEN room.is_test THEN entitlement.staff_enabled ELSE entitlement.land_enabled END)
+    JOIN clan_marionettisti_private.mission_companion_entitlements_v1 candidate_entitlement
+      ON candidate_entitlement.definition_id=CASE WHEN room.is_test THEN source_revision.definition_id ELSE binding.definition_id END
+     AND candidate_entitlement.step_key=e.step_key AND candidate_entitlement.encounter_key=e.encounter_key
+     AND (CASE WHEN room.is_test THEN candidate_entitlement.staff_enabled ELSE candidate_entitlement.land_enabled END)
     WHERE e.master_session_id=p_master AND e.encounter_id=p_encounter
   ) THEN RETURN; END IF;
 

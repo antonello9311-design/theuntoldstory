@@ -1,3 +1,19 @@
+# COMBAT-OCULAR-SEVER-MISSION-IA-20261116 · Fili della marionetta del PNG
+
+**Scope.** Una sola prova nella Staff Test Room con Regia IA, Riuji, testperfunzioni e Iori Mizuhara. Master umano, duello ordinario, riallaccio e 27 passive conservano le rispettive prove.
+
+**Contratti.** La definizione Staff autorizza il PNG con il suo bundle certificato e la marionetta L1 passiva con ricevuta di collegamento. Il PNG conserva una sola scelta difensiva, condivisa con il corpo che controlla. Il Narratore riceve il fatto del tentativo distinto dal danno al corpo attraverso `facts.fili_chakra` del referto. Il Fato usa il flusso nativo Edge Generic v167. Il rilascio della Regia IA resta spento.
+
+**Installazione.** Review indipendenti 0/0/0 sul raccordo e sui delta applicati. Base `20261116211334`. Correzioni preparazione, avvio e mappa `20261116211941`, `20261116212057`, `20261116212329`. Client Staff `f50505da93d56d43a488c22f6c754c020fd852ac`. Recupero del risultato salvato `20261116214419`, dispatch e diagnostica `20261116214655` e `20261116214904`, risoluzione dell’alias SQL del binder `20261116215014`. Il [sorgente di recupero](candidato/MARIONETTA_OCULAR_MISSION_STAFF_REPLAY.sql) conserva la riproducibilità del recupero mirato eseguito su questa scena, già chiusa.
+
+**Staff.** Sessione `57a79d9b-6b70-4e4a-95dc-e1e14ec63aa2`, Combat `c6646adf-30ec-4e74-9de8-029d2922073c`. Incipit `7374a7aa-8472-4387-b8bf-66266236a431` e passaggio a Combat `be924edf-446c-4200-b85f-6958428dab29`. Il passaggio è stato pubblicato dal risultato conservato, con zero chiamate IA aggiuntive per il recupero. Riuji ha mantenuto il Byakugan I attivato in role e ha inviato «Lancia Shuriken · Recidi i Fili» contro la marionetta. testperfunzioni ha passato. La Regia ha scelto una Schivata di Iori. L’attacco si è risolto a 19 contro 20, margine −1, zero danni e integrità 30/30. Il referto `25eeba78-480b-4b32-be3e-814bd8ca153e` attesta `non_recisi`. Il Fato `32f38022-8a8c-4670-b573-30aa09c60219` lo racconta in chat. Impronte di input del Narratore e referto verificate.
+
+**Chiusura.** Prova e Combat chiusi alle 22:56 italiane. Nessun lavoro attivo, nessuna riserva o richiesta IA residua. Otto richieste HTTP, 24.626 token e 0,00487740 USD. Il referto è simulato e inventari e dotazioni coincidono prima e dopo. La scheda di Riuji ha aggiornato i timestamp di rigenerazione al rientro in Land alle 22:44, con riscontro `enter_land`; il digest integrale della scheda differisce. La scheda di testperfunzioni coincide. Fati e ricevute conservati.
+
+**Esito e passaggio.** Raccordo PNG, reazione e Fato del tentativo verificati. Recisione riuscita ancora da attestare sulla Regia IA prima dell’apertura. Nessuna attivazione per le missioni Land e nessuna ripetizione dei casi acquisiti.
+
+## Consegna precedente
+
 # COMBAT-OCULAR-SEVER-RESIDUAL-20261116 · Recisione ordinaria e Regia IA
 
 **Scope.** Soli casi di recisione rimasti. Versione iniziale client `fili-ocular-1`, contratto `ocular-sever/1`, gate Land già attivo per Master umano. Le prove Master, riallaccio e 27 passive restano acquisite.

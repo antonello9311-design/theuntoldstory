@@ -1,3 +1,4 @@
+16/11/2026 · COMBAT-OCULAR-SEVER-MISSION-IA-20261116 · Marionetta collegata a Iori, tentativo schivato e Fato pubblicato. Prova chiusa. · Staff parziale, Land Regia IA spenta.
 16/11/2026 · COMBAT-OCULAR-SEVER-RESIDUAL-20261116 · Shuriken e Byakugan nel duello ordinario, Fato IA e apertura Land verificati · ordinario PASS, Regia IA di missione bloccata sul compagno PNG.
 16/11/2026 · COMBAT-OCULAR-SEVER-20261116 · Shuriken/Byakugan e Soffio di brace/Sharingan, due recisioni Staff con Master umano, 0 danni e schede protette · PASS, apertura Land con Master umano `20261116192833`.
 16/11/2026 · COMBAT-FILI-PASSIVE-LAND-20261116 · Gate Land di Fili e 27 passive confermati, esiti Staff conservati · da collegare la fonte pubblica di recisione.
