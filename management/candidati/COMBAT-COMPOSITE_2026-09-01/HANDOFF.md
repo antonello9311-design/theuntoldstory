@@ -1,3 +1,17 @@
+# COMBAT-STAFF-MASTER-REFRESH-20261116 · Apertura Combat in Staff
+
+**Scope.** Regia Master già aperta nella Staff Test Room dopo «Avvia Combat».
+
+**Contratto.** Il client usa la ricevuta di apertura per rileggere lo scontro confermato, con controllo di stanza, identità e ID della sessione. La correzione usa il pannello comune e non dipende dall’aggiornamento automatico sospeso in Staff.
+
+**Versione.** Build `staff-master-start-1`, commit `01539fdf995d0e44cf99440adb26295c19d7e15b`. Sei script verificati e review indipendente 0/0/0. Marcatore verificato sul dominio.
+
+**Prova Staff.** Con Riuji e testperfunzioni, un clic ha mostrato «Scontro · Round 1» nella Regia già aperta, dopo circa due secondi. Nessuna seconda apertura, ricarica o pressione di «Aggiorna». Scena `b9c0c0f8-b250-483b-8224-73522b0263f7`, sessione Combat `d905950e-a543-42b8-ae86-c02cc999c60d`, ricevuta di avvio `82c6b00c-cbe4-46b3-b614-fe124b8fd6de`, chiusura `9e745f38-4785-44ca-a71d-ee3f31c71c27`. Un round in preparazione, zero dichiarazioni, righe di costo, Fati o chiamate IA. Entrambe le sessioni chiuse, nessuna residua in Staff. Impronte delle schede e delle tecniche e timestamp di recupero identici prima e dopo.
+
+**Perimetro e consegna.** Verificato il solo primo passaggio, senza preparare la mappa o giocare il round. Fili e passive già collaudati restano acquisiti. Nessuna operazione successiva richiesta per questa correzione Staff.
+
+## Consegna precedente
+
 # COMBAT-MASTER-PASSIVE-ROSTER-20261115 · Collaudo Staff
 
 **Passive con Master · 27/27 in Staff.** Il Master salva i partecipanti in preparazione; il PG invia la role con profilo temporaneo e apre Combat. Sette scene verificate e chiuse, ricevute di role e Combat corrispondenti. Impronte complete e timestamp di recupero delle schede di Riuji e testperfunzioni identici prima e dopo. [Referto](candidato/INNATA_WORLD_STAFF_QA_HANDOFF.md).

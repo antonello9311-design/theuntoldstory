@@ -19,6 +19,8 @@ Allineamento 18/09/2026 · Scudo di terra pubblico dopo QA ordinary e Master per
 
 ## Stato vivo
 
+**Regia Staff · avvio Combat verificato il 16/11/2026.** Un clic su «Avvia Combat» mostra «Scontro · Round 1» nel pannello già aperto, senza polling automatico, ricarica o riapertura. Duello simulato chiuso. Nessuna dichiarazione, scrittura di risorse o chiamata IA. Schede dei due PG identiche prima e dopo.
+
 **Passive con Master · 27/27 in Staff.** Il Master salva i partecipanti in preparazione; il PG invia la role con profilo temporaneo e apre Combat. Sette scene verificate e chiuse, ricevute di role e Combat corrispondenti. Impronte complete e timestamp di recupero delle schede di Riuji e testperfunzioni identici prima e dopo. Fili e 27 passive ordinarie già qualificati.
 
 **Staff · archivio e selezione diretta · 13/11/2026.** Migrazioni `20261113161836` e `20261113161841`, review 0/0/0. Archivio di 1.088 messaggi collegati a sessioni chiuse; zero messaggi nella chat Staff dopo chiusura e archiviazione del nuovo collaudo. Conservati messaggi, report e ricevute, comprese le quattro ricevute B10, B3 e nuovo caso. L'RPC storico globale resta separato; il pulsante è nascosto nella Staff.

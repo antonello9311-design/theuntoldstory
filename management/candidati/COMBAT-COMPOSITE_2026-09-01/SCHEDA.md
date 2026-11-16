@@ -1,5 +1,7 @@
 Stato: **in lavoro** · punto cieco Byakugan aperto in Land, Copertura e Diversivo esclusi.
 
+**Regia Staff · avvio Combat verificato il 16/11/2026.** Un clic su «Avvia Combat» mostra «Scontro · Round 1» nel pannello già aperto, senza polling automatico, ricarica o riapertura. Duello simulato chiuso. Nessuna dichiarazione, scrittura di risorse o chiamata IA. Schede dei due PG identiche prima e dopo.
+
 **Passive con Master · 27/27 in Staff.** Il Master salva i partecipanti in preparazione; il PG invia la role con profilo temporaneo e apre Combat. Sette scene verificate e chiuse, ricevute di role e Combat corrispondenti. Impronte complete e timestamp di recupero delle schede di Riuji e testperfunzioni identici prima e dopo. Fili e 27 passive ordinarie già qualificati. [Referto](candidato/INNATA_WORLD_STAFF_QA_HANDOFF.md).
 
 **Kunai, Shuriken e Guardia · verifica del 14/11/2026.** Kunai e Shuriken sono attivi come armi consumabili nel catalogo. L’equipaggiamento da scheda è separato dalle fonti d’attacco di Combat V2. Le offerte Master e lo snapshot dei personaggi usano mano, clan e jutsu. La Guardia è stata ritirata il 17/08 e il riferimento a una rapida attiva nel regolamento è arretrato. Restano da definire il contratto dello slot rapido condiviso e il comportamento della Guardia. Staff e apertura in Land ancora da eseguire.
