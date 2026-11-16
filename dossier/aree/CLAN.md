@@ -25,6 +25,8 @@ Precisazione Antonello10/09: Esame escluso dalle matrici e dai confronti di coll
 
 ## Stato vivo
 
+**Fili di Chakra e 27 passive · disponibilità Land verificata il 16/11/2026.** Il gate pubblico delle passive è attivo (v2, migrazione `20261105193943`) e tutti i 27 livelli sono attivi a catalogo. Il pannello mostra ai PG idonei i permessi portati dalla role al Combat ordinario o con Master umano. Il gate pubblico dei Marionettisti è attivo. Dopo una recisione valida e il turno completo previsto, il server può offrire il riallaccio. In Staff sono acquisiti 27/27 in ordinario, 27/27 con Master e un solo addebito simulato di 5 chakra per il riallaccio. L’innesco della recisione usato in Staff è riservato alla simulazione. Nel percorso pubblico resta da collegare una capacità autorizzata a recidere i Fili.
+
 **Armatura di Sabbia · qualifica conclusa:** nucleo meccanico, toggle, consumo, ripristino al turno, chakra insufficiente, chiusura, isolamento e narrazione sono PASS. Il Narratore descrive intercettazione e frattura senza spiegare né anticipare la ricomposizione. Il caso sabbia insufficiente condivide la stessa autorità server di consumo/interruzione già validata per il Controllo della Sabbia; apertura pubblica eseguita il 21/09.**
 
 **Elementali e Taijutsu · stato conclusivo 19/09/2026:** nove elementali e cinque Taijutsu generici sono collaudati nei percorsi pertinenti, approvati editorialmente e pubblici. Review batch `0/0/0`, migrazione `elementali_taijutsu_public_batch_20260919_070`, cataloghi/gate 9/9 e testi 9/9 verificati; sette Taijutsu precedenti inattivi e conservati, zero assegnazioni o addestramenti da migrare. Regolamento changelog 95 online, Pages 729 e dominio verificati. Checklist finali in `elementali/CHECKLIST_COLLAUDO.md` e `runtime/taijutsu/CHECKLIST_COLLAUDO.md`; nessun caso aperto nel perimetro.
@@ -344,7 +346,7 @@ Il pack storico PM-MOTORE §135 e Common §0.7 conservano il precedente drain Hy
 
 Pulizia catalogo conclusa: sette voci disattivate, Tecnica delle 16 chiusure attiva e invariata, storico e policy conservati. Non ripetere apply o modificare assegnazioni dei PG. Rotazione resta pubblica e il regolamento pubblicato nel commit 925d794; la sola prova con Master rimane in B10 non spuntata. Nessuna nuova tecnica o attività di collaudo avviata da questa pulizia.
 
-Rotazione B10 e Katon B3 sono conclusi. Restano Inuzuka in Staff e il riallaccio dei Fili da osservare. I Flussi multibersaglio rimangono rinviati.
+Rotazione B10 e Katon B3 sono conclusi. Per i Fili resta da collegare la capacità che provoca la recisione in Land. I Flussi multibersaglio rimangono rinviati.
 
 Consegna Hyuga e valori pubblici completata nel perimetro verificato: non ripetere apply o prove già riuscite. Raccogliere soltanto segnalazioni o prove pubbliche pertinenti dalla checklist, conservando i limiti: pieno/applicazione/scadenza Master e generazione IA Master non osservati, CRUD Admin verificato nel codice ma senza salvataggi di QA, dati Difesa assenti non inventati. Rotazione è ora oggetto del distinto mandato esplicito11/09 e procede nel pacchetto ROTATION001; Armatura e altri lavori non si aprono implicitamente. Sorgenti/referti/dossier locali da depositare selettivamente quando previsto; pubblicazione delle quattro pagine già attestata. Lo stato «in uso» resta una decisione dell’utente.
 

@@ -19,6 +19,8 @@ Allineamento 18/09/2026 · Scudo di terra pubblico dopo QA ordinary e Master per
 
 ## Stato vivo
 
+**Fili di Chakra e 27 passive · disponibilità Land verificata il 16/11/2026.** Il gate pubblico delle passive è attivo (v2, migrazione `20261105193943`) e tutti i 27 livelli sono attivi a catalogo. Il pannello mostra ai PG idonei i permessi portati dalla role al Combat ordinario o con Master umano. Il gate pubblico dei Marionettisti è attivo. Dopo una recisione valida e il turno completo previsto, il server può offrire il riallaccio. In Staff sono acquisiti 27/27 in ordinario, 27/27 con Master e un solo addebito simulato di 5 chakra per il riallaccio. L’innesco della recisione usato in Staff è riservato alla simulazione. Nel percorso pubblico resta da collegare una capacità autorizzata a recidere i Fili.
+
 **Regia Staff · avvio Combat verificato il 16/11/2026.** Un clic su «Avvia Combat» mostra «Scontro · Round 1» nel pannello già aperto, senza polling automatico, ricarica o riapertura. Duello simulato chiuso. Nessuna dichiarazione, scrittura di risorse o chiamata IA. Schede dei due PG identiche prima e dopo.
 
 **Passive con Master · 27/27 in Staff.** Il Master salva i partecipanti in preparazione; il PG invia la role con profilo temporaneo e apre Combat. Sette scene verificate e chiuse, ricevute di role e Combat corrispondenti. Impronte complete e timestamp di recupero delle schede di Riuji e testperfunzioni identici prima e dopo. Fili e 27 passive ordinarie già qualificati.
@@ -321,7 +323,7 @@ Raccordo utility Clan09/09: unica aggregata CC-R1–CC-R3 scritta, INSTALL SHA9d
 ## Lavori aperti — priorità corrente e backlog
 
 1. **Pannello Combat.** Completare gli effetti e i costi nel riepilogo del Master. Verificare dopo ricarica o riconnessione il recupero della vista, della role in bozza e della ricevuta già acquisita, senza doppio invio.
-2. **Marionetta e innate passive.** Recisione e riallaccio, 27 livelli ordinari e 27 con Master qualificati in Staff.
+2. **Recisione dei Fili in Land.** Collegare una capacità espressamente abilitata alla recisione. Il riallaccio e le 27 passive sono già disponibili nel perimetro verificato. Le prove Staff restano acquisite.
 3. **Prossime integrazioni.** Integrare Kunai, Shuriken e Guardia dopo definizione dello slot rapido. Restano il raccordo di Palmo Curativo e oggetti con turno e ricevute, poi Richiamo e combo delle evocazioni. Catalogo e pulsanti esistenti non attestano l’intero flusso. Le rapide aggiuntive e i Flussi multibersaglio restano rinviati.
 4. **Scorta.** Verificare «Apri regia», ritorno narrativo e chiusura soltanto quando è disponibile lo scenario Staff legittimo della stessa missione. Il duello IA e il caso Human H7 coprono percorsi distinti.
 

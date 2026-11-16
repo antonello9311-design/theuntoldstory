@@ -1,3 +1,15 @@
+# COMBAT-FILI-PASSIVE-LAND-20261116 · Disponibilità pubblica
+
+**Scope.** Fili di Chakra e 27 permessi passivi dalla role al Combat ordinario o con Master umano, per PG idonei. Esame e modalità guidate fuori dalla disponibilità documentata delle passive. Verifica di pubblicazione e aggiornamento documentale.
+
+**Versione viva.** Dominio `/land.html`, build `staff-master-start-1`, sorgente GitHub `01539fdf995d0e44cf99440adb26295c19d7e15b`, blob `859b07d5182549d2f22258ce1ec5cb523dbd306a`. Verificati sul dominio i consumer «Innate passive» e «Fili». A database `world_passive_gate_v1.public_enabled=true`, versione 2, catalogo 27/27 attivo. `clan_marionettisti_private.release_gate.public_enabled=true`; il percorso delle offerte usa `relink_options` e `relink_ready`, il commit passa dal controllo nativo. Nessuna riapertura o installazione necessaria.
+
+**Prove acquisite.** Restano 54 associazioni simulate role→Combat con impronta coerente e il ledger simulato del riallaccio `af0f5348-6d7d-41f0-9d6c-c10b191b0ebd`, 5 impegnati e 0 applicati. [Referto Staff](candidato/INNATA_WORLD_STAFF_QA_HANDOFF.md). Nessuna nuova scena, chiamata IA o scrittura su scheda.
+
+**Limite e passaggio al PM.** In Staff il Colpo a mano è stato autorizzato a recidere dal comando di prova. Il trigger nativo richiede i tratti server di percezione e recisione. Il solo produttore individuato è quello riservato in Staff e non risultano dichiarazioni con tratti di recisione fuori dalla simulazione. Il comando di riallaccio è disponibile a condizioni soddisfatte. Per chiudere la catena pubblica identificare e collegare una capacità ammessa dal regolamento a monte della recisione. I casi già positivi restano acquisiti.
+
+## Consegna precedente
+
 # COMBAT-STAFF-MASTER-REFRESH-20261116 · Apertura Combat in Staff
 
 **Scope.** Regia Master già aperta nella Staff Test Room dopo «Avvia Combat».
