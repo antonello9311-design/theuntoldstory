@@ -13481,6 +13481,10 @@ var nb028iTeardown=function(){};
       function innataProfileScope(){
         if(!sb||!loggedIn||ordinarySigningOut||ordinaryAuthId!==myId||!myId||!myCharId||!iAmStaff||!cur||cur.id!=='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'||cur.is_test!==true||!roomEntryConfirmed())return null;
         var master=MV2&&MV2.locationId===cur.id&&MV2.principalId===commonMasterPrincipal()&&MV2.data&&MV2.data.master?MV2.data.master.id:null;
+        if(!master&&missionNarrativeRoomKnown()){
+          var missionMaster=MISSION_GENERIC_UI.sessionId();
+          if(innataProfileUuid(missionMaster))master=missionMaster;
+        }
         return JSON.stringify([myId,myCharId,cur.id,master,UI_POSTREVIEW_STAFF_EPOCH]);
       }
       function innataProfileSameBinding(a,b){if(!a||!b)return false;try{return JSON.stringify(JSON.parse(a).slice(0,4))===JSON.stringify(JSON.parse(b).slice(0,4));}catch(e){return false;}}

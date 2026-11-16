@@ -44,6 +44,9 @@ BEGIN
   IF (SELECT md5(pg_get_functiondef(p.oid)) FROM pg_proc p WHERE p.oid=to_regprocedure('public.mission_human_staff_source_create_v1(uuid,jsonb,uuid)')) IS DISTINCT FROM '0a55e640f29e34221aa5cf26d64a5c84' THEN
     RAISE EXCEPTION 'Baseline diversa: public.mission_human_staff_source_create_v1(uuid,jsonb,uuid)' USING ERRCODE='40001';
   END IF;
+  IF (SELECT md5(pg_get_functiondef(p.oid)) FROM pg_proc p WHERE p.oid=to_regprocedure('public.mission_generic_staff_test_start_v1(uuid,uuid,uuid[],uuid)')) IS DISTINCT FROM 'e4e35c865abe20aa2556767a77c27d6c' THEN
+    RAISE EXCEPTION 'Baseline diversa: public.mission_generic_staff_test_start_v1(uuid,uuid,uuid[],uuid)' USING ERRCODE='40001';
+  END IF;
 END;
 $baseline$;
 
@@ -2312,7 +2315,7 @@ CREATE OR REPLACE FUNCTION public.mission_human_staff_source_create_v1(p_request
  SET search_path TO ''
 AS $function$
 DECLARE old record;pf jsonb;validation jsonb;m jsonb;
- mid uuid;doc_sha text;result jsonb;scene jsonb;enc jsonb;actor jsonb;enc_count integer:=0;
+ mid uuid;doc_sha text;source_result jsonb;scene jsonb;enc jsonb;actor jsonb;enc_count integer:=0;
  named_ai boolean:=false; fili_ai boolean:=false; expected_xp integer:=30;pin record;reference jsonb;
  staff_definition uuid;
 BEGIN
@@ -2328,11 +2331,11 @@ BEGIN
  IF fili_ai THEN
   IF p_request IS DISTINCT FROM '14136a56-0f58-41b2-ae24-8f7f3acbb4b2'::uuid OR auth.uid() IS DISTINCT FROM 'f0856d53-83a6-4de0-bc0c-12c87916e665'::uuid
   THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_FILI_SCOPE' USING ERRCODE='42501'; END IF;
-  p_document:=$fili_doc${"schema_version":"mission-creation-document/1","mission":{"title":"Recisione dei Fili · Prova Regia IA","grado":"D","briefing":"Nel campo simulato della Staff Test Room, Iori Mizuhara conduce una marionetta da esercitazione e affronta Riuji e testperfunzioni in un breve scontro controllato. I partecipanti decidono le proprie azioni. La presenza della marionetta e lo stato dei fili sono quelli attestati dal motore. La prova non assegna premi.","village":"","tag_trama":"Staff · Recisione dei Fili · Regia IA","team_min":2,"team_max":2,"direction_mode":"ai","gathering_location_id":"f91ba1a5-f839-426c-8f31-f159fbc88697"},"plan":{"schema_version":"mission-generic-plan-document/1","base_plan_version_id":null,"initial_step_key":"inizio","steps":[{"step_key":"inizio","kind":"mechanical","public_objective":"Affrontare il marionettista nel campo simulato e osservare gli effetti attestati delle azioni."},{"step_key":"conclusione","kind":"narrative","public_objective":"Registrare l'esito del confronto e chiudere il campo di prova."}],"transitions":[{"transition_key":"inizio_esito","from_step_key":"inizio","to_step_key":"conclusione","event_kind":"inizio_esito","priority":0}],"definition":{"schema_version":"mission-generic-definition/1","scenes":[{"step_key":"inizio","actors":[{"actor_key":"png_1","mechanical_binding_id":"dec31d7d-5314-4f41-b68b-8f7b1f8fb002","narrative_template_id":"656490d0-643f-4514-bcb3-3602856da755","narrative_version_id":"92782adb-d8d8-4701-9108-1b97c42d1e5d","team":"marionettista"}],"encounters":[{"encounter_key":"enc_inizio","pg_policy":"all_active","pg_team":"partecipanti","actors":[{"actor_key":"png_1","mechanical_binding_id":"dec31d7d-5314-4f41-b68b-8f7b1f8fb002","narrative_template_id":"656490d0-643f-4514-bcb3-3602856da755","narrative_version_id":"92782adb-d8d8-4701-9108-1b97c42d1e5d","team":"marionettista"}],"arena_ref":"mission"}],"triggers":[{"trigger_key":"esito","transition_key":"inizio_esito","source_kind":"combat_terminal","fact_code":"combat_terminal_confirmed","label":"Conclusione del confronto","encounter_key":"enc_inizio","combat_outcome":"any"}]},{"step_key":"conclusione","actors":[],"encounters":[],"triggers":[]}]},"terminal_steps":[{"step_key":"conclusione","outcome":"success"}]},"editorial":{"plot_private":"Esercitazione riservata alla Staff. Iori Mizuhara assume il ruolo di marionettista avversario in questa sola scena. Il costrutto e i fili risultano presenti soltanto quando il motore li lega al suo attore. Ogni azione e risultato viene determinato dal motore. Il Fato distingue il taglio dei fili da un colpo alla marionetta e racconta solo il fatto registrato. Riuji e testperfunzioni decidono liberamente cosa fare. La conclusione non certifica il collaudo.","setting":{"name":"Campo di addestramento simulato","description":"Su un terreno delimitato con un sasso e un tronco si svolge un confronto con un solo marionettista. Iori Mizuhara è presente come esercitatore. Posizioni, ingombri e ostacoli seguono la mappa nativa."},"scenes":[{"step_key":"inizio","setting":{"name":"","description":""},"director_notes":"Accogli le decisioni esplicite dei partecipanti e apri il confronto quando le loro role confermano che sono pronti. Puoi usare soltanto le azioni che il pannello rende disponibili. Le reazioni del marionettista e gli effetti sul collegamento sono quelli attestati. La marionetta resta distinta dai fili e dal manovratore.","entry_public":"Il campo simulato è delimitato da due riferimenti sul terreno, il sasso e il tronco. Iori Mizuhara aspetta come marionettista avversario della prova. I partecipanti scelgono se dichiararsi pronti e come affrontarlo. Si applicano le azioni e le conseguenze del combattimento nativo.","actors":[{"actor_key":"png_1","role_in_phase":"Iori Mizuhara interpreta il marionettista avversario in questa sola scena Staff.","goal_private":"Offrire un confronto controllato. Accetta l'attacco dichiarato dai partecipanti e scegli soltanto reazioni native effettivamente offerte. Il motore risolve il tentativo. Se la marionetta perde il collegamento, considera esclusivamente l'esito attestato.","known_facts_private":"Conosce i limiti dell'esercizio, la mappa percepibile e la propria marionetta quando il motore conferma il collegamento.","public_portrayal":"Un esercitatore avversario che assume il ruolo di marionettista nella Staff Test Room."}],"consequences":[{"transition_key":"inizio_esito","public_fact":"Il confronto ha raggiunto l'esito registrato dal motore.","private_note":"Conservare distinti attacchi, eventuale taglio dei fili e integrità del costrutto."}]},{"step_key":"conclusione","setting":{"name":"","description":""},"director_notes":"Racconta soltanto l'esito certificato dal motore, poi concludi l'esercitazione.","entry_public":"Il confronto si conclude. Il resoconto riprende l'esito attestato e il campo torna a disposizione della Staff.","actors":[],"consequences":[]}]},"arenas":[{"step_key":"inizio","template_key":"mission_map_bind_3ac00867783c8910b81a43b61015ce0b","template_version":1,"zone_key":"arena"}]}$fili_doc$::jsonb;
+  p_document:=$fili_doc${"schema_version":"mission-creation-document/1","mission":{"title":"Recisione dei Fili · Prova Regia IA","grado":"D","briefing":"Nel campo simulato della Staff Test Room, Iori Mizuhara conduce una marionetta da esercitazione e affronta Riuji e testperfunzioni in un breve scontro controllato. I partecipanti decidono le proprie azioni. La presenza della marionetta e lo stato dei fili sono quelli attestati dal motore. La prova non assegna premi.","village":"","tag_trama":"Staff · Recisione dei Fili · Regia IA","team_min":2,"team_max":2,"direction_mode":"ai","gathering_location_id":"f91ba1a5-f839-426c-8f31-f159fbc88697"},"plan":{"schema_version":"mission-generic-plan-document/1","base_plan_version_id":null,"initial_step_key":"inizio","steps":[{"step_key":"inizio","kind":"mechanical","public_objective":"Affrontare il marionettista nel campo simulato e osservare gli effetti attestati delle azioni."},{"step_key":"conclusione","kind":"narrative","public_objective":"Registrare l'esito del confronto e chiudere il campo di prova."}],"transitions":[{"transition_key":"inizio_esito","from_step_key":"inizio","to_step_key":"conclusione","event_kind":"inizio_esito","priority":0}],"definition":{"schema_version":"mission-generic-definition/1","scenes":[{"step_key":"inizio","actors":[{"actor_key":"png_1","mechanical_binding_id":"dec31d7d-5314-4f41-b68b-8f7b1f8fb002","narrative_template_id":"656490d0-643f-4514-bcb3-3602856da755","narrative_version_id":"92782adb-d8d8-4701-9108-1b97c42d1e5d","team":"marionettista"}],"encounters":[{"encounter_key":"enc_inizio","pg_policy":"all_active","pg_team":"partecipanti","actors":[{"actor_key":"png_1","mechanical_binding_id":"dec31d7d-5314-4f41-b68b-8f7b1f8fb002","narrative_template_id":"656490d0-643f-4514-bcb3-3602856da755","narrative_version_id":"92782adb-d8d8-4701-9108-1b97c42d1e5d","team":"marionettista"}],"arena_ref":"mission"}],"triggers":[{"trigger_key":"esito","transition_key":"inizio_esito","source_kind":"combat_terminal","fact_code":"combat_terminal_confirmed","label":"Conclusione del confronto","encounter_key":"enc_inizio","combat_outcome":"any"}]},{"step_key":"conclusione","actors":[],"encounters":[],"triggers":[]}]},"terminal_steps":[{"step_key":"conclusione","outcome":"success"}]},"editorial":{"plot_private":"Esercitazione riservata alla Staff. Iori Mizuhara assume il ruolo di marionettista avversario in questa sola scena. Il costrutto e i fili risultano presenti soltanto quando il motore li lega al suo attore. Ogni azione e risultato viene determinato dal motore. Il Fato distingue il taglio dei fili da un colpo alla marionetta e racconta solo il fatto registrato. Riuji e testperfunzioni decidono liberamente cosa fare. La conclusione non certifica il collaudo.","setting":{"name":"Campo di addestramento simulato","description":"Su un terreno delimitato con un sasso e un tronco si svolge un confronto con un solo marionettista. Iori Mizuhara è presente come esercitatore. Posizioni, ingombri e ostacoli seguono la mappa nativa."},"scenes":[{"step_key":"inizio","setting":{"name":"","description":""},"director_notes":"Accogli le decisioni esplicite dei partecipanti e apri il confronto quando le loro role confermano che sono pronti. Puoi usare soltanto le azioni che il pannello rende disponibili. Le reazioni del marionettista e gli effetti sul collegamento sono quelli attestati. La marionetta resta distinta dai fili e dal manovratore.","entry_public":"Il campo simulato è delimitato da due riferimenti sul terreno, il sasso e il tronco. Iori Mizuhara aspetta come marionettista avversario della prova. I partecipanti scelgono se dichiararsi pronti e come affrontarlo. Si applicano le azioni e le conseguenze del combattimento nativo.","actors":[{"actor_key":"png_1","role_in_phase":"Iori Mizuhara interpreta il marionettista avversario in questa sola scena Staff.","goal_private":"Offrire un confronto controllato. Accetta l'attacco dichiarato dai partecipanti e scegli soltanto reazioni native effettivamente offerte. Il motore risolve il tentativo. Se la marionetta perde il collegamento, considera esclusivamente l'esito attestato.","known_facts_private":"Conosce i limiti dell'esercizio, la mappa percepibile e la propria marionetta quando il motore conferma il collegamento.","public_portrayal":"Un esercitatore avversario che assume il ruolo di marionettista nella Staff Test Room."}],"consequences":[{"transition_key":"inizio_esito","public_fact":"Il confronto ha raggiunto l'esito registrato dal motore.","private_note":"Conservare distinti attacchi, eventuale taglio dei fili e integrità del costrutto."}]},{"step_key":"conclusione","setting":{"name":"","description":""},"director_notes":"Racconta soltanto l'esito certificato dal motore, poi concludi l'esercitazione.","entry_public":"Il confronto si conclude. Il resoconto riprende l'esito attestato e il campo torna a disposizione della Staff.","actors":[],"consequences":[]}]},"arenas":[]}$fili_doc$::jsonb;
  END IF;
  doc_sha:=mission_internal.fingerprint(p_document);
  -- Named authoring only. This creates neither an admission nor a Service session.
- IF fili_ai IS DISTINCT FROM (doc_sha='0eb2624da0b3964fe88a669cb37db7322b15171020bcab28a3987a18ba7156a9')
+ IF fili_ai IS DISTINCT FROM (doc_sha='6a1c785a06464fcc3310727bc700f767c77fbf411982ba87090e009ec470210f')
  THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_FILI_DOCUMENT_NOT_PINNED' USING ERRCODE='42501'; END IF;
  named_ai:=fili_ai OR doc_sha='e7c1cfc8ea3fdf59753fc8457718f34ca119dce0f24368c00d34ef8a5298b028';
  IF named_ai THEN
@@ -2434,16 +2437,16 @@ BEGIN
  -- La stessa transazione non espone mai la fonte aperta alla bacheca o alle iscrizioni.
  UPDATE public.missions SET status='annullata' WHERE id=mid AND status='aperta';
  IF NOT FOUND THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_RESERVATION_FAILED'; END IF;
- result:=mission_creation_owner.save_complete(mid,p_request,mission_internal.fingerprint(mission_generic_owner.mission_editor_snapshot(mid)),0,p_document);
- IF result->>'schema_version' IS DISTINCT FROM 'mission-creation-result/1'
- OR result->>'mission_id' IS DISTINCT FROM mid::text OR result->>'state' IS DISTINCT FROM 'configured'
+ source_result:=mission_creation_owner.save_complete(mid,p_request,mission_internal.fingerprint(mission_generic_owner.mission_editor_snapshot(mid)),0,p_document);
+ IF source_result->>'schema_version' IS DISTINCT FROM 'mission-creation-result/1'
+ OR source_result->>'mission_id' IS DISTINCT FROM mid::text OR source_result->>'state' IS DISTINCT FROM 'configured'
  OR NOT EXISTS(SELECT 1 FROM public.missions WHERE id=mid AND status='annullata' AND xp_reward=expected_xp AND ryo_reward=0
  AND team_min=(m->>'team_min')::integer AND team_max=(m->>'team_max')::integer)
  THEN RAISE EXCEPTION 'H3_STAFF_SOURCE_POSTCONDITION'; END IF;
  IF fili_ai THEN
   SELECT d.id INTO STRICT staff_definition FROM mission_generic_owner.plan_revisions rev
    JOIN mission_generic_owner.definitions d ON d.id=rev.definition_id
-   WHERE rev.plan_version_id=(result->>'plan_version_id')::uuid AND rev.mission_id=mid
+   WHERE rev.plan_version_id=(source_result->>'plan_version_id')::uuid AND rev.mission_id=mid
     AND d.definition_sha256=mission_internal.fingerprint(p_document#>'{plan,definition}')
     AND d.definition=p_document#>'{plan,definition}';
   INSERT INTO clan_marionettisti_private.mission_companion_entitlements_v1
@@ -2451,9 +2454,129 @@ BEGIN
   VALUES (staff_definition,'inizio','enc_inizio','png_1','dec31d7d-5314-4f41-b68b-8f7b1f8fb002'::uuid,true,false);
  END IF;
  INSERT INTO mission_creation_owner.h3_staff_source_requests(request_key,actor_user,document_sha256,mission_id,result)
- VALUES(p_request,auth.uid(),doc_sha,mid,result);
- RETURN result;
+ VALUES(p_request,auth.uid(),doc_sha,mid,source_result);
+ RETURN source_result;
 END $function$;
+
+CREATE OR REPLACE FUNCTION public.mission_generic_staff_test_start_v1(p_source_mission uuid, p_location uuid, p_roster uuid[], p_request uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare src public.missions;sel jsonb;arena jsonb;carrier_arena jsonb;doc jsonb;sealed jsonb;def jsonb;
+ carrier uuid:=gen_random_uuid();aid uuid;fp text;r jsonb;old mission_generic_owner.simulation_sources;sha text;
+begin
+ perform mission_ai_board_owner.staff_only();
+ -- C1266_AVAILABILITY_COORD: shared before mutation locks; xact lifetime.
+ PERFORM pg_catalog.pg_advisory_xact_lock_shared(pg_catalog.hashtextextended('C1266:GENERIC-AI:AVAILABILITY',0));
+ perform mission_ai_board_owner.lock_request(p_request);
+ fp:=mission_internal.fingerprint(jsonb_build_object('source_mission',p_source_mission,'location',p_location,'roster',to_jsonb(p_roster)));
+ IF EXISTS(SELECT 1 FROM mission_generic_owner.manual_staff_start_rejections_v1 denied WHERE denied.request_key=p_request) THEN RAISE EXCEPTION 'MANUAL_STAFF_START_REQUEST_REJECTED' USING ERRCODE='40001';END IF;
+ select * into old from mission_generic_owner.simulation_sources where request_key=p_request;
+ if found then
+  if old.request_fingerprint<>fp then raise exception 'MGB_TEST_REQUEST_CONFLICT' using errcode='40001';end if;
+  select s.result into strict r from mission_generic_owner.board_starts s join public.master_v2_sessions m on m.id=s.master_session_id
+   where m.mission_id=old.carrier_mission_id;
+  IF NOT EXISTS(SELECT 1 FROM mission_generic_owner.start_claims sc WHERE sc.request_key=p_request AND sc.actor_user_id=auth.uid()) THEN RAISE EXCEPTION 'MANUAL_STAFF_START_REPLAY_OWNER' USING ERRCODE='42501';END IF;
+  return r||jsonb_build_object('source_mission_id',old.source_mission_id,'replay',true);
+ end if;
+ perform mission_generic_owner.location_runtime(p_location,true);
+ select * into strict src from public.missions where id=p_source_mission for share;
+ if exists(select 1 from mission_generic_owner.simulation_sources where carrier_mission_id=src.id)
+ then raise exception 'MGB_TEST_SOURCE_MUST_BE_ORIGINAL' using errcode='22023';end if;
+ -- Validate all principals before creating even the carrier/pinned copy.
+ perform mission_generic_owner.staff_roster_assert(p_location,p_roster);
+ sel:=mission_generic_owner.historical_plan(src.id);
+ select definition into strict def from mission_generic_owner.definitions where id=(sel->>'definition_id')::uuid;
+ arena:=mission_generic_owner.arena_source(src.id,p_location);
+ insert into public.missions(id,title,village,grado,briefing,tag_trama,xp_reward,ryo_reward,team_min,team_max,location_hint,status,created_by)
+ values(carrier,'Prova · '||src.title,src.village,src.grado,src.briefing,src.tag_trama,0,0,src.team_min,src.team_max,src.location_hint,'annullata',auth.uid());
+ doc:=jsonb_build_object('schema_version','mission-generic-plan-document/1','base_plan_version_id',null,
+  'initial_step_key',(select initial_step_key from public.mission_plan_versions where id=(sel->>'plan_version_id')::uuid),
+  'steps',(select jsonb_agg(jsonb_build_object('step_key',step_key,'kind',kind,'public_objective',public_objective) order by ordinal)
+   from public.mission_plan_steps where plan_version_id=(sel->>'plan_version_id')::uuid),
+  'transitions',(select coalesce(jsonb_agg(jsonb_build_object('transition_key',transition_key,'from_step_key',from_step_key,'to_step_key',to_step_key,'event_kind',event_kind,'priority',priority) order by transition_key),'[]'::jsonb)
+   from public.mission_plan_transitions where plan_version_id=(sel->>'plan_version_id')::uuid),
+  'definition',def,'terminal_steps',sel#>'{settings,terminal_steps}');
+ sha:=mission_internal.fingerprint(mission_generic_owner.mission_editor_snapshot(carrier));
+ sealed:=public.mission_generic_plan_seal_v1(carrier,gen_random_uuid(),sha,doc);
+ perform mission_creation_owner.copy_revision((sel->>'plan_version_id')::uuid,(sealed->>'plan_version_id')::uuid,carrier);
+ perform public.mission_generic_plan_select_v1(carrier,(sealed->>'plan_version_id')::uuid,0,gen_random_uuid());
+ insert into mission_generic_owner.simulation_sources(carrier_mission_id,source_mission_id,source_plan_version_id,source_sha256,request_key,request_fingerprint)
+ values(carrier,src.id,(sel->>'plan_version_id')::uuid,mission_internal.fingerprint(sel),p_request,fp);
+
+ if mission_academy_owner.is_academy(src.id) then
+  insert into mission_academy_owner.policies
+   (mission_id,policy_key,display_grade,village,min_rank,max_rank,xp_reward,ryo_reward,always_complete,context_only,rescue_before_ko,active)
+  select carrier,policy_key||':staff:'||carrier::text,display_grade,village,min_rank,max_rank,xp_reward,ryo_reward,always_complete,context_only,rescue_before_ko,active
+   from mission_academy_owner.policies where mission_id=src.id and active;
+  if not found then raise exception 'ACADEMY_STAFF_SOURCE_POLICY_MISSING' using errcode='22023';end if;
+  insert into mission_academy_owner.roster_actor_rules(mission_id,actor_key,min_roster,active)
+   select carrier,actor_key,min_roster,active from mission_academy_owner.roster_actor_rules where mission_id=src.id;
+  insert into mission_academy_owner.d100_challenges
+   (mission_id,step_key,ordinal,challenge_key,threshold,support_threshold,success_fact,complication_fact,active)
+   select carrier,step_key,ordinal,challenge_key,threshold,support_threshold,success_fact,complication_fact,active
+   from mission_academy_owner.d100_challenges where mission_id=src.id;
+ end if;
+ if p_location='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid
+  and arena @> '{"origin":"default","config_revision":0,"zone_key":"arena"}'::jsonb
+  and exists(select 1 from clan_marionettisti_private.mission_companion_entitlements_v1 reserved
+    where reserved.definition_id=(sel->>'definition_id')::uuid and reserved.staff_enabled and not reserved.land_enabled)
+ then
+  -- The carrier can use the same server default. It cannot own that global binding.
+  select mission_generic_owner.arena_source(carrier,p_location) into carrier_arena;
+  if carrier_arena->>'origin' is distinct from 'default'
+   or carrier_arena->>'template_key' is distinct from arena->>'template_key'
+   or carrier_arena->>'template_version' is distinct from arena->>'template_version'
+   or carrier_arena->>'zone_key' is distinct from arena->>'zone_key'
+   or carrier_arena->>'catalog_sha256' is distinct from arena->>'catalog_sha256'
+  then raise exception 'MGB_STAFF_DEFAULT_ARENA_DRIFT' using errcode='40001';end if;
+ elsif arena->>'template_key' is not null then
+  perform public.universal_arena_configure_v1('mission',carrier,arena->>'template_key',(arena->>'template_version')::integer,arena->>'zone_key',0);
+ end if;
+ insert into mission_ai_board_owner.activations(mission_id,package_id,generic_plan_version_id,location_id,mission_seal_sha256,state)
+ values(carrier,null,(sealed->>'plan_version_id')::uuid,p_location,sha,'enrollment_open') returning id into aid;
+ r:=mission_generic_owner.prepare_start(aid,p_roster,p_request,fp,true);
+ -- Event42: only this newly accepted AI Staff start creates a server root. No replay/backfill.
+ DECLARE cfg jsonb;sid uuid;ek uuid;ev bigint:=1;domain text:='start';source_id uuid:=p_request;
+ source_sha text;rootrow mission_generic_owner.event_outbox_v1;request_id bigint;affected integer;
+ BEGIN
+ SELECT rr.canonical_preimage::jsonb#>'{config,c1266_server_events}' INTO cfg
+ FROM mission_factory_owner.editor_release_readiness rr WHERE rr.singleton AND rr.state='enabled' AND rr.scope='staff';
+ IF cfg->>'schema_version'='c1266-server-events/1' AND cfg->'enabled'='true'::jsonb THEN
+ sid:=(r->>'master_session_id')::uuid;
+ IF p_location IS DISTINCT FROM '0b85f354-9cdb-47e1-baf9-3d266bb7e06b'::uuid
+ OR sid IS NULL OR auth.uid() IS NULL OR NOT EXISTS(SELECT 1 FROM mission_generic_owner.start_claims sc
+ JOIN mission_generic_owner.board_starts bs ON bs.request_key=sc.request_key
+ WHERE sc.request_key=p_request AND sc.actor_user_id=auth.uid() AND sc.session_id=sid AND bs.master_session_id=sid
+ AND bs.result=r) THEN RAISE EXCEPTION 'EVENT42_START_PROOF' USING ERRCODE='42501';END IF;
+ ek:=mission_ai_service_owner.uuid5(sid,'server-event:start:'||p_request::text);source_sha:=public.combat_v2_sha256(r);
+ rootrow.root_event_key:=ek;rootrow.root_request_key:=p_request;rootrow.root_principal:=auth.uid();rootrow.root_receipt_sha256:=source_sha;
+ IF cfg->>'endpoint' IS DISTINCT FROM 'https://tyhyxkslteigibktluml.supabase.co/functions/v1/mission_generic_ai'
+ THEN RAISE EXCEPTION 'EVENT42_ENDPOINT_REJECTED' USING ERRCODE='42501'; END IF;
+ INSERT INTO mission_generic_owner.event_outbox_v1(event_key,event_version,master_session_id,event_domain,
+ source_id,source_sha256,root_event_key,root_request_key,root_principal,root_receipt_sha256)
+ VALUES(ek,ev,sid,domain,source_id,source_sha,rootrow.root_event_key,rootrow.root_request_key,
+ rootrow.root_principal,rootrow.root_receipt_sha256)
+ ON CONFLICT(event_key,event_version) DO NOTHING;
+ GET DIAGNOSTICS affected=ROW_COUNT;
+ IF affected=1 THEN
+ IF cfg->'enabled'='true'::jsonb THEN
+ request_id:=net.http_post(cfg->>'endpoint',jsonb_build_object('schema_version','mission-event-wake/2',
+ 'event_key',ek,'event_version',ev),'{}'::jsonb,
+ jsonb_build_object('Content-Type','application/json','x-tus-server-event','event42'),5000);
+ UPDATE mission_generic_owner.event_outbox_v1 SET wake_request_id=request_id
+ WHERE event_key=ek AND event_version=ev;
+ END IF;
+ END IF;
+ -- Public display hint is emitted only by deferred source/outbox hook.
+ END IF;
+ END;
+
+ return r||jsonb_build_object('source_mission_id',src.id,'replay',false);
+end;
+$function$;
 
 SELECT clan_innata_private.eligibility_release_assert();
 DO $initial_scope$
