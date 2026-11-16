@@ -15572,9 +15572,15 @@ var nb028iTeardown=function(){};
       var MISSION_CREATION_UI=null,MISSION_CREATION_LOAD=null,MISSION_CREATION_NATIVE_MISSION=null;
       function missionCreationUI(){
         if(MISSION_CREATION_UI)return Promise.resolve(MISSION_CREATION_UI);
-        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mf-mission-human-roster-limits-37a1ca3a8576e28cadd1d2028ab16ec03fcbacd7384d92f86b58c1209961587a.mjs').then(function(mod){
+        if(!MISSION_CREATION_LOAD)MISSION_CREATION_LOAD=import('./mf-mission-fili-ai-staff-12f8ebe8ca720d9f7aa92da188f11a541ea88cfa6d473099b1eab4368ec31768.mjs').then(function(mod){
           MISSION_CREATION_UI=mod.createMissionCreationUI({client:sb,createBoardPanel:createMissionBoardPanel,beginBoardPanel:beginMissionBoardPanel,isEventReadMode:landPureReadMode,identity:function(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId?myId:null;},
-            isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,
+            isStaff:function(){return !!iAmStaff;},currentLocation:function(){return cur;},notice:toast,beforeStaffAuthoring:landUserPresence,
+            openStaffAI:function(mission,title){
+              if(!missOpenNow()||!roomEntryConfirmed()||!iAmStaff)return;
+              setMissTab('bacheca');
+              var intent=beginMissionBoardPanel();
+              return missionGenericUI().then(function(ui){if(intent?.())return ui.board(mission,title,intent);});
+            },
             mapPicker:function(initial,title){return missionArenaEditor().show({initial:initial,title:title});},
             presentCharacters:async function(){var ids=(WHO||[]).map(function(w){return w.user_id;}).filter(Boolean);if(!ids.length)return [];var r=await sb.from('characters').select('id,name').in('user_id',ids);if(r.error)throw r.error;return r.data||[];},
             openNativeMaster:function(id){if(!cur){toast('Entra nella chat di ritrovo della missione.');return;}MISSION_CREATION_NATIVE_MISSION=id;if(!(MV2.data&&MV2.data.master)){MV2.setupKind='missione';MV2.setupOpen=true;}closeMiss();mv2OvApri(true);},
