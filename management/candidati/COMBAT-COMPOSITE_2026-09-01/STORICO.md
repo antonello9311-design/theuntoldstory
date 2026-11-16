@@ -1,3 +1,4 @@
+16/11/2026 · COMBAT-OCULAR-SEVER-20261116 · Shuriken/Byakugan e Soffio di brace/Sharingan, due recisioni Staff con Master umano, 0 danni e schede protette · PASS, apertura Land con Master umano `20261116192833`.
 16/11/2026 · COMBAT-FILI-PASSIVE-LAND-20261116 · Gate Land di Fili e 27 passive confermati, esiti Staff conservati · da collegare la fonte pubblica di recisione.
 16/11/2026 · COMBAT-STAFF-MASTER-REFRESH-20261116 · «Avvia Combat» mostra Round 1 con un clic nella Regia aperta · Staff PASS, scena chiusa, schede intatte.
 15/11/2026 · COMBAT-MASTER-PASSIVE-ROSTER-20261115 · Passaggio Master 27/27, sette scene Staff chiuse e schede intatte · PASS.

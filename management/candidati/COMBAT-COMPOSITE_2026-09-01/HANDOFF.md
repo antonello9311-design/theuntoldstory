@@ -1,3 +1,15 @@
+# COMBAT-OCULAR-SEVER-20261116 · Recisione dei Fili
+
+**Scope.** Bersaglio «Fili» quando percepito da un’abilità oculare attiva. Il PG usa la propria offerta d’attacco, con azione, portata, percorso e consumo del server. Shuriken e tecniche compatibili condividono la risoluzione. Kunai resta nel lavoro di integrazione delle armi.
+
+**Contratti e versione.** Il nuovo bersaglio trasporta una ricevuta privata vincolata a richiesta, attore, round, fonte e collegamento. Offerte, dichiarazione, risoluzione e proiezione del Fato conservano l’autorità server. La prima iterazione `20261116151000` ha toccato il binder elementale sigillato; ripristino esatto `20261116151802`, poi versione ricomposta `20261116152200`, client `fili-ocular-1` già verificato sul dominio. Review indipendente 0/0/0.
+
+**Prove Staff con Master umano.** Shuriken con Byakugan, dichiarazione `68196cba-d711-48bc-b7c0-ffea82b7e6e9`, uno Shuriken e una principale simulati. Soffio di brace con Sharingan, dichiarazione `61af868f-3db2-4a28-afe2-87e68bcf2ec5`, 5 chakra e una principale simulati. Due eventi `link_severed` con autorità `ocular-sever/1`, 0 danni e integrità 30/30 per entrambi. Verificata l’assenza dell’offerta con occhio spento o tratto occluso. Due Fati Master pubblicati in Staff, scene chiuse, zero addebiti reali, schede confrontate identiche, zero chiamate IA. Riallaccio e 27 passive mantengono le prove pregresse.
+
+**Land e residui.** Gate attivo dal rilascio `20261116192833`, circoscritto alle sessioni Combat V2 con Master umano. Regolamento sincronizzato e sorgenti pubblicati nel commit `43670e0f2e1aa95196659c659520a18d412b62b9`. Esito Staff acquisito. Recisione ordinaria e in Regia IA restano da collaudare prima dell’eventuale apertura di quei percorsi. La recovery richiede tutte le scene chiuse e conserva le ricevute. Nessun nuovo collaudo richiesto per i due casi acquisiti.
+
+## Consegna precedente
+
 # COMBAT-FILI-PASSIVE-LAND-20261116 · Disponibilità pubblica
 
 **Scope.** Fili di Chakra e 27 permessi passivi dalla role al Combat ordinario o con Master umano, per PG idonei. Esame e modalità guidate fuori dalla disponibilità documentata delle passive. Verifica di pubblicazione e aggiornamento documentale.
