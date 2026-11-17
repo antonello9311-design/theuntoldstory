@@ -23,7 +23,7 @@ Aggiornamento11/09/2026 · Allineamento otto schede e proiezione ordinaria verif
 
 ## Stato vivo
 
-**Una nuova alba · fonte e QA Staff · 17/11/2026.** Fonte nominativa `7e06ff5b-5fc6-446d-ba10-1b2ca2322cf6`, piano `4bf290b6-41c6-4573-88c3-47c7c4c10c3c`, bozza v3 canonica, quattro fasi e 0 PNG. Migrazioni `20261117191023` e `20261117191732`, RPC nuova con GRANT authenticated e guardie nominative. Due percorsi Staff riusciti, indizi alternativi fino a «Rapporto a Konoha» e rientro con prove parziali fino a «Rapporto incompleto». Sei Fati con ricevuta, dodici HTTP. Gen USD0.0086277, Count ancora unknown_billable con riserva USD0.0744. Output12868 contro tetto12000, scostamento868 dichiarato e nessuna ulteriore chiamata. Prove chiuse tramite Annulla prova, zero Staff aperte, PV/chakra/XP/pool/grado verificati invariati. Chiusura nativa finale fuori dalla copertura. Fonte annullata e premi zero, bozza ancora draft con MF_AI_CAPABILITY_ENVELOPE. Tappa B pubblica zero PNG pendente. Dettagli in `referti/UNA_NUOVA_ALBA_STAFF_QA.md`.
+**Una nuova alba · finale nativo Staff PASS e anteprima pubblicabile · 17/11/2026.** Due scene protette concluse con il normale comando «Concludi la prova». Rapporto completo success/conclusa e rientro parziale failure/fallita, sei passaggi di chiusura completati per ciascuna scena. Indizi alternativi e identità non inventata nel rapporto parziale. Otto Fati, otto Count e otto Gen, USD0.1087244 prudenziali entro0.20. Zero Staff aperte, PV/chakra/XP/pool/grado verificati invariati. Migrazioni `20261117200747` e `20261117202826`, Root `d12982a577a72429b61f6d974646bb5d17e0c66b3da9eba21b69077e1468ada6`, Edge168. Bozza v3 `a050c701-796a-4f6b-b129-42b2262e3303` previewed, zero PNG, anteprima valida e Pubblica attivo, zero pubblicazioni pubbliche. Fonte Staff annullata con premi zero. Referto `referti/UNA_NUOVA_ALBA_FINALIZZAZIONE_QA.md`. La precedente campagna da sei Fati e il suo scostamento output868 restano documentati in `UNA_NUOVA_ALBA_STAFF_QA.md`.
 
 C1266 Narratore82 ·01/11/2026:2preview private solo narratore81frozen completate/chiuse e leggibiliinStaff,dialogoPNG→Riujiosservatoinrisposta eoffensiva;qualitàcomplessivaPARZIALE. Case1USERidentico80,SYSentrambi81,680car/119parole/3paragrafi e390/69/1;residuiPGrecap/ambientegenerico/mascella. Memorie1723/1989su7080complete,raw→resultesatti.4HTTP2Count2Generation0Director0retryeditoriale;nuovo.04764780,total244HTTP/2,29691810su4conriserve.044conservate. Campagna54e46641false2completed0pending,custodyd24174a2invariata.3RPCinstallate,23514vincolofontirisolto coneccezionesolo82/2ref,67CHECKimmutati;reader4aRPCcorrettodopolagenerazione,LEGGI2effettivoPASSnessunrigenerazione. Edge1485efe/UIaa6cd invariati,Rootfinaleb13ead5c/fullrowd4c7721d262085B.246/10/5/68postflight0mismatch,preservazioneold+closed82true. NessunFato/role/replay/enableulteriore. Fonte:C1266_NARRATORE82_REPORT/RESULTS/POSTFLIGHT,refertiindipendentiP82/review. Infrastruttura/aperturaimmutate.
 
@@ -343,7 +343,7 @@ Antonello ha concluso la role e confermato Riuji connesso in Chrome: Riuji e tes
 
 ## Lavori aperti — in ordine
 
-- Una nuova alba, ammissione pubblica zero PNG e finalizzazione nativa ancora da qualificare. Due percorsi narrativi Staff già eseguiti, prove chiuse. Count ancora in attesa di consolidamento contabile, scostamento output868 conservato nel referto.
+- Una nuova alba pronta alla pubblicazione dalla bozza già aperta. Finale nativo qualificato in Staff e anteprima senza PNG valida. Count resta unknown_billable con riserva conservativa, senza nuove chiamate per questo mandato.
 
 C1266 Narratore79: istruzioni installate e conservazione verificata; effetto editoriale sui nuovi Fati ancora NOT_RUN. Nessuna ulteriore prova o chiamata da questa consegna.
 
@@ -400,7 +400,7 @@ Sharingan: ratifica esplicita Antonello ricevuta — osservazione automatica nel
 
 ## Prossimo passo
 
-Per il mandato Una nuova alba, fonte e percorsi Staff consegnati. Il successivo perimetro dipendente riguarda tappa B pubblica zero PNG e finale nativo, con baseline integrata corrente.
+Per Una nuova alba, pubblicare dalla bozza v3 previewed se si intende aprire la missione. Collaudo richiesto concluso, nessuna ulteriore campagna automatica. Count conservato come unknown_billable con riserva, storico e prove precedenti intatti.
 
 Per il solo mandato Narratore79: conservare la versione e le ricevute; valutare la resa in una prossima prova richiesta, senza rigenerare i Fati precedenti. Gli altri lavori elencati mantengono i propri owner e mandati.
 

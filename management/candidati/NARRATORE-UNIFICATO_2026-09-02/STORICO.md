@@ -1,3 +1,4 @@
+17/11/2026 · Una nuova alba · Finali success/failure chiusi nativamente in Staff e ammissione zero PNG corretta · PASS, anteprima pubblicabile, bozza previewed e zero pubblicazioni.
 17/11/2026 · Una nuova alba · Fonte nominativa Staff e due percorsi senza PNG collaudati con sei Fati · Avanzamento e rientro parziale riusciti, prove annullate protette, output +868 token, bozza pubblica ancora draft.
 02/11/2026 · Public87 metadata43 · Su ordine utente stop nuovaQA; due corpi metadata installati Rootf7 e AI-onlyv1 predisposta,0provider/Fati,storico86BFAILED_NONCLEAN+SCOPED_RECOVERY_PASS conservato · PUBLICATION_CONFIRMED,WorldruntimeNOT_RUN
 02/11/2026 · Public87 installazione completa · Root9de3/Edge149/main95d14 installati e verificati,0provider,QA conclusiva stessa versione ancora da avviare · STAFF_INSTALLED_WORLD_NOT_OPEN

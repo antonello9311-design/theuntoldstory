@@ -25,7 +25,7 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
-**17/11/2026 · Fonte Una nuova alba riservata Staff.** Migrazioni `20261117191023` e correttiva `20261117191732`. `public.mission_alba_staff_source_v1(uuid)` SECURITY DEFINER, owner postgres, search_path vuoto, ACL `{postgres=X/postgres,authenticated=X/postgres}`, corpo MD5 `39eac9b43254f859c9e8cb5cf30b8990`. GRANT authenticated esplicito e guardie su autore/richiesta/Staff/bozza v3/hash. Nessun CHECK o policy modificato. Creazione e replay UI riusciti sulla fonte `7e06ff5b-5fc6-446d-ba10-1b2ca2322cf6`, annullata e premi zero, piano selezionato `4bf290b6-41c6-4573-88c3-47c7c4c10c3c`. Sei Fati Staff su due scene protette, entrambe chiuse tramite Annulla prova. Zero sessioni Master Staff aperte e campi protetti verificati invariati. Delta correttivo SHA-256 `38d52ad310f66354b75e547cd3b922df0a32ce73a69a58c2537be1c54e26a8c5`. Preview pubblico ancora soggetto a MF_AI_CAPABILITY_ENVELOPE. Referto `UNA_NUOVA_ALBA_STAFF_QA.md`.
+**17/11/2026 · Una nuova alba, chiusura nativa e zero PNG applicati.** Migrazioni `20261117200747` e `20261117202826`. Sette funzioni di finalizzazione integrate con helper privato `mission_narrative_internal.scene_terminal_outcome_v1(uuid)`, SECURITY DEFINER STABLE, owner postgres, search_path vuoto, GRANT postgres e REVOKE PUBLIC/anon/authenticated/service_role espliciti. Esito terminale derivato dal contratto server, success/failure conservati fino alla ricevuta. Tre funzioni di preview/pubblicazione/ammissione accettano zero PNG solo per il contratto narrativo diretto a due PG senza mappe, arene o incontri. Ramo due PNG conservato. Nessun CHECK, RLS, formula, limite economico o risorsa reale modificato. Root `d12982a577a72429b61f6d974646bb5d17e0c66b3da9eba21b69077e1468ada6`, 503092 byte, engine qualified true; Edge168, EZBR `9a6889802cfa17c99a556538cccd4ad7ef75274d32adccbc192c23d257aa3e76`. Due finali Staff con ricevute native e dodici step chiusura completati; zero Staff aperte. Bozza v3 previewed e Pubblica attivo, pubblicazioni zero. Review indipendenti finali0/0/0 e pre/postflight vivi. Sorgenti/recovery e limiti nel referto `UNA_NUOVA_ALBA_FINALIZZAZIONE_QA.md`. Fonte precedente e migrazioni `20261117191023`/`20261117191732` conservate.
 
 **Catalogo Clan · 17/11/2026.** Migrazione `20261117143524`. Disattivate le sole due voci Scudo di Sabbia e Rilascio della Marionetta. Righe, UUID e progressione conservati.
 
@@ -639,7 +639,7 @@ I checkpoint precedenti mantengono data, versione e limiti. Le loro istruzioni d
 
 ## Lavori aperti — in ordine
 
-- Una nuova alba, ammissione pubblica zero PNG e finalizzazione nativa ancora da qualificare. Due percorsi narrativi Staff già eseguiti, prove chiuse. Count ancora in attesa di consolidamento contabile, scostamento output868 conservato nel referto.
+- Una nuova alba pronta alla pubblicazione dalla bozza già aperta. Finale nativo qualificato in Staff e anteprima senza PNG valida. Count resta unknown_billable con riserva conservativa, senza nuove chiamate per questo mandato.
 
 C1266 Narratore79: istruzioni installate e conservazione verificata; effetto editoriale sui nuovi Fati ancora NOT_RUN. Nessuna ulteriore prova o chiamata da questa consegna.
 
@@ -694,7 +694,7 @@ FingerprintconOID non portabile; arraySQL segmentato ≠ statementSHA; source_he
 
 ## Prossimo passo
 
-Per il mandato Una nuova alba, fonte e percorsi Staff consegnati. Il successivo perimetro dipendente riguarda tappa B pubblica zero PNG e finale nativo, con baseline integrata corrente.
+Per Una nuova alba, pubblicare dalla bozza v3 previewed se si intende aprire la missione. Collaudo richiesto concluso, nessuna ulteriore campagna automatica. Count conservato come unknown_billable con riserva, storico e prove precedenti intatti.
 
 Per il solo mandato Narratore79: conservare la versione e le ricevute; valutare la resa in una prossima prova richiesta, senza rigenerare i Fati precedenti. Gli altri lavori elencati mantengono i propri owner e mandati.
 
