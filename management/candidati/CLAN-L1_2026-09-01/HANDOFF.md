@@ -1,3 +1,15 @@
+# CLAN-CATALOG-LEGACY-20261117 · Catalogo allineato alle regole vigenti
+
+Scope · Solo Scudo di Sabbia e Rilascio della Marionetta, passati a inattivo con UUID conservati.
+
+Decisione · L’Armatura di Sabbia sostituisce lo Scudo. La marionetta è un compagno già in scena. Restano vigenti il Combat V2 e il regolamento pubblicato.
+
+Verifica · Migrazione `20261117143524`, review 0/0/0, due righe inattive e Armatura attiva. Zero progressioni o dipendenze attive sulle voci ritirate. Cataloghi pubblici verificati.
+
+Sorgente · [Ritiro voci legacy](runtime/RITIRO_VOCI_LEGACY.sql), SHA-256 `c484c0c24ec5142fd98fb806ec6318fa5a8ebc3cb679dc3a8f7bbd61877e241f`. I referti dei collaudi Combat restano precedenti.
+
+## Consegna precedente
+
 # CLAN-MASTER-B10-B3-20261113 · Staff con Master
 
 **Staff Master · B10 e B3 completati il 13/11/2026.** Nello scontro protetto `c1b75166-f6d7-4d70-9a7c-56887d4841cb`, round 1, Rotazione Suprema a 3 m: valutazioni 0/0, danno 0, costo simulato 10 chakra una volta, Riuji da (6,6) a (8,6), Fato pubblicato. Round 2, Suprema concentrata su Riuji: 36 danni simulati. Round 3, Suprema esplosiva al punto (8,6): 24 danni simulati. Entrambi i Katon costano 10 chakra simulati e riportano Risonanza I, valutazione Master e Fato pubblicato. Scena chiusa, zero scritture sulle risorse reali e zero chiamate IA.

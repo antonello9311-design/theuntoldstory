@@ -25,6 +25,8 @@ Precisazione Antonello10/09: Esame escluso dalle matrici e dai confronti di coll
 
 ## Stato vivo
 
+**Catalogo Sabaku e Marionettisti · 17/11/2026.** Scudo di Sabbia e Rilascio della Marionetta inattivi dopo la migrazione `20261117143524`. Le due righe storiche sono conservate. L’Armatura di Sabbia è attiva. La marionetta entra in scena come compagno e viene comandata attraverso i Fili.
+
 **Fili nella Regia IA di missione · Staff PASS e supporto Land attivo, 17/11/2026.** Con Byakugan I, testperfunzioni ha reciso i Fili della marionetta di Iori con uno Shuriken simulato. Il referto attesta 28 contro 25, zero danni e integrità 30/30 prima e dopo. Il Fato `3cc98305-682b-462a-a985-fe7136bbe3c9` racconta il taglio in chat. La prova è chiusa. In Land il supporto richiede un marionettista abilitato nella definizione della missione. Al rilascio nessuna missione pubblicata ha quella configurazione.
 
 **Recisione dei Fili · attiva in Land in duello ordinario e con Master umano.** Una capacità oculare attiva deve rendere il segmento visibile al PG. Il bersaglio usa l’offerta d’attacco compatibile, con portata, azione e consumo della fonte. Nel nuovo caso Staff, Shuriken con Byakugan ha reciso il collegamento con un pezzo simulato e integrità 30/30. Il Fato automatico del duello ha raccontato il taglio. I casi Master umano già acquisiti restano come evidenza.
@@ -299,8 +301,6 @@ Banco tus_hyuga_review001_qa: installazione candidata locale e due race eseguite
 ## Lavori aperti — stato al 17/11/2026
 
 **Palmo d’Aria.** Scheda Hyūga Genin attiva, esclusa dal ramo rilasciato. Integrazione e prova Combat V2 da definire.
-
-**Allineamento catalogo.** Scudo di Sabbia e Rilascio della Marionetta risultano ancora attivi. Lo Scudo è stato sostituito dall’Armatura e il Rilascio è escluso dal perimetro Genin. Correggere le rispettive schede, secondo le decisioni già registrate.
 
 **Gradi superiori.** Le 126 schede attive con uso principale, rapida o difesa delimitano il perimetro da verificare per famiglia. I livelli di Innate pubblici fanno parte del conteggio.
 

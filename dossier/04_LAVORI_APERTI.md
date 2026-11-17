@@ -20,12 +20,14 @@ Storico 07/11 · T3 aggregata1 qualificata nei soli sorgenti dopo il tentativo a
 
 | Cantiere | Stato reale | Prossimo passo |
 |---|---|---|
-| `management/candidati/CLAN-L1_2026-09-01/` | In uso. Rilasci Genin di clan, Innate mantenute, Elementali e Taijutsu acquisiti. | Palmo d’Aria fuori dal ramo rilasciato. Scudo di Sabbia e Rilascio della Marionetta da riallineare a catalogo. |
+| `management/candidati/CLAN-L1_2026-09-01/` | In uso. Rilasci Genin di clan, Innate mantenute, Elementali e Taijutsu acquisiti. | Palmo d’Aria fuori dal ramo rilasciato. |
 | `management/candidati/COMBAT-COMPOSITE_2026-09-01/` | In lavoro. UI Combat comune in Land. Inuzuka, recupero, Shuriken, 27 passive e Fili pubblici. Recisione Regia IA con Staff PASS e supporto Land attivo. | Kunai, cure e oggetti, Palmo d’Aria, Paralisi illusoria ed evocazioni. Flussi multibersaglio rinviati. Zero missioni pubbliche configurate con marionettista. |
 | `management/candidati/NARRATORE-UNIFICATO_2026-09-02/` | In uso. Discussioni in Centro in Bacheca con Konoha e Suna ammessi. C18 Staff PASS per due Ready, un clic e incipit automatico. | Primo avvio pubblico da osservare. Avvio come Master e verifica completa dell’Editor restano incarichi distinti. |
 | [ALLENAMENTO-INDIVIDUALE_2026-11-17](../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md) | Aperto in Land. Collaudo Staff completato, compresa la disponibilità in Combat dopo le 06:00. | Primo utilizzo pubblico da riscontrare al normale uso della funzione. |
 
 ## Funzioni già disponibili da non ricostruire
+
+**Scudo di Sabbia e Rilascio della Marionetta.** Voci disattivate a catalogo il 17/11/2026. Rimangono disponibili l’Armatura di Sabbia e il percorso della marionetta-compagno.
 
 **Fili di Chakra e 27 passive · Land.** I 27 livelli e il riallaccio restano acquisiti. La recisione è disponibile in ordinario e con Master umano. Il 17/11 Staff PASS anche per la Regia IA, con il taglio narrato in chat e la marionetta integra a 30/30. Supporto Land attivo per missioni configurate con un marionettista.
 

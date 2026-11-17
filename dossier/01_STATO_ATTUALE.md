@@ -29,7 +29,7 @@ Le verifiche mirate successive prevalgono per i sistemi modificati. Il readback 
 
 ## Percorsi ancora da qualificare
 
-**Combat di clan.** Palmo d’Aria fuori dal ramo Hyūga rilasciato. Flussi multibersaglio rinviati. Scudo di Sabbia e Rilascio della Marionetta da allineare a catalogo secondo le decisioni già prese. La verifica dei gradi superiori procede per famiglia.
+**Combat di clan.** Palmo d’Aria fuori dal ramo Hyūga rilasciato. Flussi multibersaglio rinviati. Catalogo allineato con il ritiro di Scudo di Sabbia e Rilascio della Marionetta. La verifica dei gradi superiori procede per famiglia.
 
 **Allenamento individuale.** Attivo in Land dopo collaudo protetto del 17/11/2026. Costo XP, requisiti, una sessione per giornata e acquisizione alle 06:00 anche in Combat aperto da un altro PG. [Evidenze del cantiere](../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/HANDOFF.md)
 

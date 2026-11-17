@@ -1,3 +1,4 @@
+17/11/2026 · CLAN-CATALOG-LEGACY-20261117 · Scudo di Sabbia e Rilascio della Marionetta disattivati con migrazione `20261117143524` · Catalogo e dossier verificati.
 13/11/2026 · Staff Master B10 e B3 · Rotazione 3 m, Katon concentrata ed esplosiva con Risonanza I · PASS meccanico, tre Fati pubblicati.
 21/09/2026 · SABAKU-ARMOR-PUBLIC-ENABLE-20260921-004 · Armatura pubblica con gate Staff/pubblico ON, review 0/0/0 e postflight sicurezza PASS; cataloghi Regole/Clan online al commit ed2842a7 e Pages 764 verificata · esito: rilascio completato.
 
