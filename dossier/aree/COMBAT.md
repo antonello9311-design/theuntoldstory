@@ -326,6 +326,8 @@ Raccordo utility Clan09/09: unica aggregata CC-R1–CC-R3 scritta, INSTALL SHA9d
 
 ## Lavori aperti — priorità corrente e backlog
 
+**Stato catalogo di clan al 17/11.** Palmo d’Aria fuori dal ramo rilasciato. Flussi multibersaglio rinviati. Scudo di Sabbia e Rilascio della Marionetta da allineare a catalogo. Le 126 schede attive dei gradi superiori includono livelli già integrati. Verificare per famiglia i percorsi e le ricevute.
+
 1. **Pannello Combat.** Completare gli effetti e i costi nel riepilogo del Master. Verificare dopo ricarica o riconnessione il recupero della vista, della role in bozza e della ricevuta già acquisita, senza doppio invio.
 2. **Missioni IA con marionettisti.** Il Combat è disponibile. La configurazione di un marionettista in una missione pubblica compete all’owner Missioni.
 3. **Prossime integrazioni.** Integrare Kunai, Shuriken e Guardia dopo definizione dello slot rapido. Restano il raccordo di Palmo Curativo e oggetti con turno e ricevute, poi Richiamo e combo delle evocazioni. Catalogo e pulsanti esistenti non attestano l’intero flusso. Le rapide aggiuntive e i Flussi multibersaglio restano rinviati.

@@ -296,13 +296,19 @@ Banco tus_hyuga_review001_qa: installazione candidata locale e due race eseguite
 
 **Verifiche indipendenti09/09:** Hyūga001: campagna unica conclusa09/09 con24/24 SQL,22,385s e0provider. Otto casi funzionali PASS, tre PARZIALI, uno NON VERIFICATO; due race reali PASS, REC FAIL per juken_recovery_catalog_drift. HYG-01 verificato su figura nativa, nessun nuovo cambio applicativo. Controverifica finale conclusa: codice0/0/0, HYG-01 risolto; readiness ROSSA per recovery fallita e coperture parziali. Ciclo terminale, referto REVIEW_HYUGA_FINAL.md. Fonti: candidato/FINAL_CAMPAIGN_REPORT.md e FINAL_CAMPAIGN_RESULT.json. Aburame: capienza e split matematico6gruppi/1760combinazioni PASS; ledger privato03 preparato, recupero atomico mancante. Ultima lettura Supabase di controllo ancora terminata per timeout, nessuna nuova attestazione live.
 
-## Lavori aperti — priorità066 e backlog preservato
+## Lavori aperti — stato al 17/11/2026
+
+**Palmo d’Aria.** Scheda Hyūga Genin attiva, esclusa dal ramo rilasciato. Integrazione e prova Combat V2 da definire.
+
+**Allineamento catalogo.** Scudo di Sabbia e Rilascio della Marionetta risultano ancora attivi. Lo Scudo è stato sostituito dall’Armatura e il Rilascio è escluso dal perimetro Genin. Correggere le rispettive schede, secondo le decisioni già registrate.
+
+**Gradi superiori.** Le 126 schede attive con uso principale, rapida o difesa delimitano il perimetro da verificare per famiglia. I livelli di Innate pubblici fanno parte del conteggio.
 
 - **Elementali/Taijutsu:** rilascio concluso; nessun arretrato aperto. Conservare evidenze e PASS, senza riaprire le scene.
 
 - **Rotazione Suprema:** pubblica. B10 con Master concluso il 13/11, oltre ai due casi ordinari.
 
-1. Allineamento otto schede concluso nel perimetro verificato: migrazione20260911094905,5/5righe e7claim con8identitàPASS; UISharingan/Sabaku positiva. Riallaccio non osservato, punto cieco non implementato e mapping Master/Esame/Test Room utenti escluso.
+1. Allineamento otto schede concluso nel perimetro verificato: migrazione20260911094905,5/5righe e7claim con8identitàPASS; UISharingan/Sabaku positiva. Il successivo collaudo ha attestato riallaccio e punto cieco. Esame e Test Room utenti mantengono i propri perimetri.
 2. Katon: due Palle e Risonanza pubbliche. B3 con Master concluso il 13/11 per concentrata ed esplosiva.
 3. Sabaku: Controllo, Flussi1–3 singolo, Trasporto, Clone e Armatura pubblici. Armatura: qualifica conclusa e gate pubblico dal 21/09, nessun caso bloccante; sabbia insufficiente coperta per equivalenza ratificata, senza inventare una nuova prova diretta. Fonti runtime/sabaku/candidato/armatura_passive002/HANDOFF.md e armatura_public003/RESULT.json. Flussi multibersaglio rinviati.
 4. Byakugan/Sharingan e Juken/Sedici pubblici; presentazione Hyuga approvata e applicata20260911134348. Ordinary e due Master pertinenti PASS, prova chiusa, risorse reali invariate e0provider; pieno/scadenza Master non osservati. Estensione Difesa e quattro UI pubblicate e verificate in lettura. Altri clan restano ai propri owner.
@@ -348,7 +354,7 @@ Il pack storico PM-MOTORE §135 e Common §0.7 conservano il precedente drain Hy
 2. Armatura: approvare il testo editoriale, correggere e controprovare il solo impatto parziale; completare insufficienza sabbia/chakra e KO/uscita prima dell’apertura pubblica. Proseguire separatamente punto cieco e casi Master pertinenti di Rotazione/Katon.
 3. Se un futuro delta modifica una tecnica generica, riaprire esclusivamente le regressioni interessate usando le checklist finali come baseline.
 
-Pulizia catalogo conclusa: sette voci disattivate, Tecnica delle 16 chiusure attiva e invariata, storico e policy conservati. Non ripetere apply o modificare assegnazioni dei PG. Rotazione resta pubblica e il regolamento pubblicato nel commit 925d794; la sola prova con Master rimane in B10 non spuntata. Nessuna nuova tecnica o attività di collaudo avviata da questa pulizia.
+Le sette voci del precedente intervento sono disattivate. Tecnica delle 16 Chiusure attiva. Le due voci di clan da allineare sono indicate nei lavori aperti.
 
 Rotazione B10 e Katon B3 sono conclusi. La recisione dei Fili è disponibile in Land nei duelli ordinari e con Master umano. Nelle missioni con Regia IA il supporto è attivo per i marionettisti abilitati. I Flussi multibersaglio rimangono rinviati.
 

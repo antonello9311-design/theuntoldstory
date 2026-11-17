@@ -1,6 +1,6 @@
-# 01 · STATO ATTUALE — allineamento del 14/11/2026
+# 01 · STATO ATTUALE — allineamento del 17/11/2026
 
-> Aggiornamento del 14/11/2026 da referti di area, registro pubblicazioni e lettura mirata dei gate Combat. Le fotografie tecniche senza nuove evidenze conservano le date originali.
+> Aggiornamento del 17/11/2026 da rilasci, referti e letture mirate del database. Le fotografie tecniche conservano la data della propria verifica.
 
 ## Fotografia generale del database
 
@@ -12,7 +12,7 @@ Le verifiche mirate successive prevalgono per i sistemi modificati. Il readback 
 
 | Area | Stato corrente | Verifica o seguito necessario |
 |---|---|---|
-| Combat / Regia | UI comune in Land dal 14/11. Mappa e invio unico collaudati in Staff, anche con Fato IA nel duello nativo. Human H7 e OPEN24 acquisiti. | Riepilogo Master e recupero di bozza Fato e ricevuta dopo ricarica attivi in Land. Prossimo ramo: Kunai, Shuriken e Guardia. Scorta segue il proprio percorso. |
+| Combat / Regia | UI comune, scelte sulla mappa e invio unico di scelta e role in Land. Riepilogo Master e recupero dopo ricarica attivi. Shuriken a 10 m con addebito unico reale verificato (2 → 1 → 1). | Punto cieco Byakugan, Rotazione B10, Katon B3 e Fato della Regia IA del duello già attestati. Residui di tecniche e oggetti nella scheda Combat. |
 | Sabaku | Pubblici Controllo della Sabbia, Flussi 1–3 sul singolo bersaglio, Trasporto, Clone e Armatura di Sabbia. Armatura è una passiva gestita dal pannello, con consumo e ricomposizione server-side già collaudati. | Flussi multibersaglio restano rinviati. Armatura è pubblica dal 21/09: il ramo sabbia insufficiente usa la stessa autorità condivisa di consumo/interruzione del Controllo della Sabbia già validata; monitoraggio ordinario, nessun blocco aperto. |
 | Hyūga | Byakugan, Pugno Gentile, Sedici Chiusure e Rotazione Suprema pubblici. Punto cieco pubblico dal 13/11. | B10 con Master concluso. Una reazione su due origini, laterale e origine marionetta acquisiti. |
 | Uchiha | Sharingan, Palle di Fuoco e Risonanza Katon pubblici. | B3 con Master concluso per concentrata ed esplosiva. Punto d’impatto selezionato sulla mappa in Staff. |
@@ -25,6 +25,15 @@ Le verifiche mirate successive prevalgono per i sistemi modificati. Il readback 
 | Innata → Combat | Dal 07/11/2026 sono pubbliche Byakugan I–IV, Sharingan I–IV e Controllo della Sabbia I. Il raccordo narrativa→Scontro è qualificato in ordinario e nelle Quest con Master; la prova Quest IA Staff conferma Sabbia I già attiva, attivazione in ingresso zero e mantenimento nativo regolare. Le Quest IA generali restano riservate alla Staff. | Mandato delle nove mantenute completato; gate pubblico v3, migrazione 20261107065056. Storico e costi precedenti conservati. Ramo passivo distinto; nessuna riapertura del collaudo. |
 | Missioni Human / PNG / mappe | Human/UI concluso e accettato il 17/10: QA23 PASS, OPEN24 `20261017083331`, postread 08:34:19 UTC con 17 verifiche positive. Nomi PG/PNG persistenti, Combat dal pannello esplicito, Fato, ritorno narrativo e chiusura; 48 campi protetti invariati, provider zero. Il 15/10 anche il percorso custom Iori in Staff è PASS. | Nessun rifacimento Human. Nuova campagna custom multipuntata, premi reali e nuove geometrie/azioni restano `NOT_RUN`. Editor generale/Source74 e dieci revisioni PNG senza vincoli di brevità restano separati, non qualificati da questi PASS. |
 | Elementali / Taijutsu generici | Nove elementali e cinque Taijutsu sono pubblici, con catalogo, motore e regolamento allineati. Le sette tecniche Taijutsu sostituite sono inattive e conservate. | Campagna conclusa nel perimetro osservato; nuovi delta richiederanno soltanto regressioni pertinenti. |
+| Marionettisti e passive | Fili, riallaccio e 27 livelli di passive in Land. Recisione attiva in ordinario e con Master umano. | Regia IA missione Staff PASS il 17/11 con Fato in chat e integrità 30/30. Supporto Land attivo per missioni con marionettista abilitato. Zero missioni configurate al riscontro. |
+
+## Percorsi ancora da qualificare
+
+**Combat di clan.** Palmo d’Aria fuori dal ramo Hyūga rilasciato. Flussi multibersaglio rinviati. Scudo di Sabbia e Rilascio della Marionetta da allineare a catalogo secondo le decisioni già prese. La verifica dei gradi superiori procede per famiglia.
+
+**Allenamento individuale.** Nuovo cantiere in lavoro dal 17/11. Il passaggio alla Scheda è in definizione. Riscontro mirato: dodici registrazioni storiche, due tecniche in addestramento e runtime Sensei IA spento. Durata, eccezioni e transizione sono nella [scheda del cantiere](../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md).
+
+**Accademia.** Ultimo checkpoint narrativo Sensei v43 del 14/09, con riscontro statico. Riconciliare eventuali prove successive prima di un nuovo collaudo Staff.
 
 ## Processo, pubblicazione e continuità
 

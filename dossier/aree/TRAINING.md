@@ -1,5 +1,5 @@
 # AREA · Allenamento V2 e Sensei IA dell'allenamento — scheda viva
-Allineamento documentale del 09/09/2026 · fotografia tecnica del 01/09 conservata e qualificata; recuperata una ratifica narrativa circoscritta. La ricognizione non certifica lo stato live odierno del Training o del Sensei IA.
+Allineamento del 17/11/2026 · aperto il cantiere [Allenamento individuale in Scheda](../../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md).
 
 ## Fonti fondamentali — in quest'ordine, solo il blocco che serve
 1. `sito_live/REGOLE.md` §6.1 «Training V2 — imparare una tecnica in una role» e la riga 72 del changelog — il regolamento vivo.
@@ -10,18 +10,20 @@ Allineamento documentale del 09/09/2026 · fotografia tecnica del 01/09 conserva
 6. Memoria di progetto: `training_v2_cooperativa`, `motore_lesivita_falsi_amici`, `xp_scale_non_scritte`.
 7. `dossier/02_INDICE_DOCUMENTI.md` §Cosa portare nel nuovo punto di partenza, «Allenamento e riservatezza dell'innata»; task archiviata `01a06cea-33ec-7ef1-a709-4d346062a24b`, «Valuta allenamento Ryutama e Kirei». Conservare il verdetto del caso senza copiarne la role privata.
 
-## Stato vivo — fotografia tecnica del 01/09/2026, non riverificata da questo allineamento
-- Core V2 a database dal 26/08; consumer Scheda/Land/Admin allineati in `sito_live/` il 26/08 (caricamento su GitHub: vedi `PUBBLICAZIONE.md`).
-- `training_sessions`, fotografia del 01/09: 6 righe — 26/08 valida, 26/08 annullata, 28/08 e 29/08 abbandonate, due `legacy_review` del 10/08. Questi pochi eventi storici non stabiliscono il tasso di abbandono o le cause dell'uso attuale.
-- `character_abilities`: 10 righe (tecniche apprese o in addestramento).
-- Edge `training_sensei_ai` **v5** ACTIVE (`verify_jwt=false`), runtime spento, budget null, nessun contenuto né persona; `training_ai_runtime` 1 riga, audit 1.
-- Guidance 146AD/146AL/146AO e unknown-billable 146AV-R4: a database, **inerti**. 24 tabelle `training_*` vuote.
+## Stato vivo — riscontro mirato del 17/11/2026
 
-## Lavori aperti — in ordine
-1. **[P1] Riconciliare gli eventi storici abbandonati/annullati con le eventuali prove successive** — sola lettura mirata, distinguendo stato della sessione, motivazione e difetti d'interfaccia osservati. Le date del 26–29/08 sono indizi da contestualizzare, non diagnosi automatica dell'uso corrente.
-2. **[P1] Un allenamento completo fatto da Antonello** con un PG di prova, nelle tre modalità (individuale, cooperativa, gruppo), fino alla tecnica attiva.
-3. **[P2] Contenuti e persona del Sensei IA** — approvati editorialmente prima di qualunque runtime; poi budget e canary. Parcheggiato finché il punto 2 non è verde.
-4. **[P3] Guidance e unknown-billable** — restano inerti finché il Sensei non ha contenuti.
+- La Scheda avvia la tecnica e il regolamento §6.1 vigente prevede ancora la role per registrare l’allenamento.
+- `training_sessions` contiene dodici registrazioni. Sei valide, tre abbandonate, una annullata e due legacy approvate.
+- `character_abilities` contiene tredici abilità attive, due in addestramento e una annullata. Il runtime Sensei IA risulta spento. Le vecchie verifiche di guidance restano nel contratto storico.
+- **Decisione di evoluzione.** Allenamento individuale in Scheda: scelta della tecnica, costo in XP, requisiti e una sessione a tempo per acquisirla. Massimo un allenamento per personaggio al giorno. Le tecniche speciali seguono il percorso approvato.
+
+## Lavori aperti
+
+1. Definire la durata del singolo allenamento, le tecniche speciali e il passaggio degli addestramenti con XP già spesi o crediti maturati.
+2. Preparare il percorso Scheda e la sua autorità server per idoneità, costo, timer, quota giornaliera e acquisizione unica.
+3. Collaudare in Staff con progressione protetta. Conservare le ricevute e aggiornare insieme il regolamento Markdown e HTML al rilascio.
+
+Cooperativa, gruppo e sparring conservano i propri percorsi. Le nuove prove del Sensei e della guidance restano parcheggiate.
 
 ## Parcheggiato — non riaprire senza mandato
 - `TRAINING-AI-SENSEI-001` come «maestro facoltativo per tecniche complesse» (P2 dell'08/08): assorbito dalla catena 146; non si riapre con quel nome.
@@ -37,4 +39,6 @@ Allineamento documentale del 09/09/2026 · fotografia tecnica del 01/09 conserva
 [[training_v2_cooperativa]] · [[motore_lesivita_falsi_amici]] · [[xp_scale_non_scritte]] · [[rpc_vive_senza_interfaccia]] · [[fixture_muta_verde_sbagliato]]
 
 ## Prossimo passo
-Riconciliare soltanto le evidenze tecniche e le prove recenti pertinenti prima di riprendere i lavori aperti. Conservare la ratifica narrativa del singolo caso con il suo perimetro; eventuali convalide, avanzamenti o prove live seguono le autorizzazioni e il funzionamento del Training, senza derivare automaticamente da questa nota.
+
+Chiudere durata, casi speciali e passaggio del progresso esistente nella [scheda del cantiere](../../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md).
+

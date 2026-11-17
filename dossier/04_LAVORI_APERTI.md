@@ -16,17 +16,18 @@ Storico 07/11 · T3 aggregata1 qualificata nei soli sorgenti dopo il tentativo a
 
 > Aggiornamento mirato Human del17/10/2026: QA23 PASS e OPEN24 verificato; gli altri blocchi conservano le rispettive date. Allineamento del 21/09/2026. Al massimo tre cantieri restano «in lavoro»; le task archiviate non vengono riaperte. Le versioni e le prove esatte restano nelle schede d’area e negli handoff dei singoli incarichi.
 
-## I tre cantieri aperti
+## Cantieri e stato di avanzamento
 
 | Cantiere | Stato reale | Prossimo passo |
 |---|---|---|
-| `management/candidati/CLAN-L1_2026-09-01/` | Rilasci circoscritti Sabaku, Hyūga, Uchiha e Aburame; Elementali/Taijutsu e Armatura conclusi. Aburame: 12 casi Staff, review 0/0/0, pubblico dal 21/09. | Nove Innate mantenute e raccordo narrativa→Combat pubblici dal 07/11; casi Master Rotazione B10 e Katon B3 acquisiti; punto cieco attivo in Land, prove Staff documentate. Flussi multibersaglio rinviati. |
-| `management/candidati/COMBAT-COMPOSITE_2026-09-01/` | UI comune pubblica dal 14/11. Punto cieco, B10/B3, mappa e invio unico con Fato IA acquisiti. Fili di Chakra e 27 passive disponibili in Land. | Inuzuka, riepilogo Master e recupero dopo ricarica attivi in Land. Ramo corrente: Kunai, Shuriken e Guardia. Recisione dei Fili attiva anche per le missioni IA con marionettista abilitato. |
-| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/` | Bacheca integrata live. Discussioni in Centro attiva in Land, C18 Staff PASS con due Ready, un clic e incipit automatico in 39 s. | Primo avvio pubblico agli iscritti. Avvio come Master nella Bacheca e verifica completa dell’Editor restano perimetri distinti. |
+| `management/candidati/CLAN-L1_2026-09-01/` | In uso. Rilasci Genin di clan, Innate mantenute, Elementali e Taijutsu acquisiti. | Palmo d’Aria fuori dal ramo rilasciato. Scudo di Sabbia e Rilascio della Marionetta da riallineare a catalogo. |
+| `management/candidati/COMBAT-COMPOSITE_2026-09-01/` | In lavoro. UI Combat comune in Land. Inuzuka, recupero, Shuriken, 27 passive e Fili pubblici. Recisione Regia IA con Staff PASS e supporto Land attivo. | Kunai, cure e oggetti, Palmo d’Aria, Paralisi illusoria ed evocazioni. Flussi multibersaglio rinviati. Zero missioni pubbliche configurate con marionettista. |
+| `management/candidati/NARRATORE-UNIFICATO_2026-09-02/` | In uso. Discussioni in Centro in Bacheca con Konoha e Suna ammessi. C18 Staff PASS per due Ready, un clic e incipit automatico. | Primo avvio pubblico da osservare. Avvio come Master e verifica completa dell’Editor restano incarichi distinti. |
+| [ALLENAMENTO-INDIVIDUALE_2026-11-17](../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md) | Cantiere in lavoro dal 17/11. Definito il passaggio dell’individuale ordinario dalla role alla Scheda. | Durata, casi speciali e trattamento delle due tecniche già in addestramento. Poi integrazione e prove Staff protette. |
 
 ## Funzioni già disponibili da non ricostruire
 
-**Fili di Chakra e 27 passive · disponibilità Land verificata il 16/11/2026.** Il gate pubblico delle passive è attivo (v2, migrazione `20261105193943`) e tutti i 27 livelli sono attivi a catalogo. Il pannello mostra ai PG idonei i permessi portati dalla role al Combat ordinario o con Master umano. Il gate pubblico dei Marionettisti è attivo. Dopo una recisione valida e il turno completo previsto, il server può offrire il riallaccio. In Staff sono acquisiti 27/27 in ordinario, 27/27 con Master e un solo addebito simulato di 5 chakra per il riallaccio. La recisione mirata con abilità oculare è attiva in Land in ordinario e con Master umano, dopo le relative prove Staff.
+**Fili di Chakra e 27 passive · Land.** I 27 livelli e il riallaccio restano acquisiti. La recisione è disponibile in ordinario e con Master umano. Il 17/11 Staff PASS anche per la Regia IA, con il taglio narrato in chat e la marionetta integra a 30/30. Supporto Land attivo per missioni configurate con un marionettista.
 
 **Combat V2 · rilascio del 14/11/2026.** Il pannello comune è pubblicato in Land con scelte sulla mappa, alternativa da tastiera e un solo «Invia» per scelta e role. Build `combat-land-20261114-1`, commit `f7762e8e`, Pages `43570483785`. In Staff risultano conclusi movimento, tastiera a 320 × 480, punto d’impatto, una reazione su due attacchi e invio unico con Fato del Master e della Regia IA nel duello nativo. Rotazione B10, Katon B3 e punto cieco Byakugan sono acquisiti. L’apertura in Land è verificata sul dominio.
 
@@ -66,8 +67,9 @@ T3 resta NOT_PASSED23514; T5copia-prima, confini residuiF1 e ServiceT6–T8 rest
 | Ordine | Risultato utile | Condizione e criterio di completamento |
 |---|---|---|
 | 1 | Raccogliere il primo avvio pubblico di Discussioni in Centro | Il lancio è disponibile agli iscritti. Usare il referto Staff C18 come riferimento per eventuali difetti osservati in Land. |
-| 2 | Completare i residui Combat V2 | Definire il contratto rapido di Kunai, Shuriken e Guardia. Poi integrare e qualificare i soli casi mancanti in Staff. |
-| 4 | Migliorare contenuti e percorso dei nuovi giocatori | Source74/Editor generale con l’owner assegnato; dieci revisioni PNG con media/binding versionati. Accademia/Training: prima ricostruire prove e difetti ancora attuali, poi solo QA Staff rappresentabile senza progressione reale. |
+| 2 | Completare i residui Combat V2 | Raccordare Kunai, cure, oggetti e tecniche Genin mancanti. Poi Richiamo ed evocazioni. Usare i casi scoperti nella [scheda Combat](aree/COMBAT.md). |
+| 3 | Allenamento individuale in Scheda | Definire tempo, eccezioni e transizione, poi implementare e collaudare il percorso Staff. |
+| 4 | Migliorare contenuti e percorso dei nuovi giocatori | Source74/Editor generale con l’owner assegnato e dieci revisioni PNG con media e binding versionati. Per Accademia, riconciliare prima le prove e i difetti ancora attuali. |
 
 Il primo run completo della Scorta e i rilievi di progressione dalle role vanno riconciliati sul percorso specifico: gli smoke storici e il PASS Human non chiudono automaticamente la Scorta. Qualità narrativa da valutare su scene complete, senza riscritture preventive dei prompt o retry alla ricerca di un verde.
 
