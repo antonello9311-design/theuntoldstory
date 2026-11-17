@@ -135,6 +135,44 @@
   .adm-nav button.on{background:var(--red);border-color:var(--red-deep);color:#f6ead0}
   .adm-page{display:none}
   .adm-page.on{display:block}
+  .adm-page[hidden],#adm-workspace [hidden]{display:none}
+  #adm-workspace{max-width:820px;margin:20px auto 14px}
+  #adm-workspace button{cursor:pointer}
+  #adm-workspace button:focus-visible,#adm-workspace summary:focus-visible,.adm-page:focus-visible{outline:2px solid var(--red-deep);outline-offset:3px}
+  .adm-intents{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:9px}
+  .adm-intents button,.adm-location button{font:600 13px/1.35 'Cinzel',Georgia,serif;color:var(--ink);background:var(--paper-hi);border:1px solid var(--edge);border-radius:6px;min-height:44px;padding:8px}
+  .adm-intents button[aria-pressed="true"]{color:#f6ead0;background:var(--red-deep);border-color:var(--red-deep)}
+  .adm-shortcuts{background:rgba(255,250,235,.35);border:1px solid var(--edge);border-radius:6px;overflow:hidden}
+  .adm-shortcuts button{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr) auto;align-items:center;gap:0 13px;min-height:46px;padding:9px 13px;text-align:left;background:transparent;color:var(--ink);font:600 18px/1.2 'Cormorant Garamond',Georgia,serif;border:0;border-bottom:1px solid var(--edge)}
+  .adm-shortcuts button:last-of-type{border-bottom:0}
+  .adm-shortcuts button:hover,.adm-shortcuts button:focus-visible{background:var(--paper-hi)}
+  .adm-shortcuts button:focus-visible{outline-offset:-3px}
+  .adm-shortcuts button::after{content:'→';color:var(--red-deep)}
+  .adm-shortcut-note{font-size:16px;color:var(--ink-soft)}
+  .adm-pending{margin-inline-start:.4em;color:var(--red-deep);font-weight:700}
+  .adm-location{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:7px;color:var(--ink-soft);font-size:17px}
+  .adm-location button{padding-inline:12px}
+  .adm-directory>summary{cursor:pointer;padding:12px 5px;min-height:44px;color:var(--red-deep);font:600 13px/1.4 'Cinzel',Georgia,serif}
+  .adm-directory #adm-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:0;max-width:none;justify-content:stretch}
+  .adm-tool-group{padding:8px 12px;background:rgba(255,250,235,.35);border:1px solid var(--edge);border-radius:6px}
+  .adm-tool-group h2{font:600 13px/1.35 'Cinzel',Georgia,serif;color:var(--red-deep);margin:2px 0 4px}
+  .adm-tool-row{display:flex;align-items:flex-start;flex-direction:column;gap:0;padding:3px 0;border-bottom:1px solid var(--edge)}
+  .adm-tool-row:last-child{border-bottom:0}
+  .adm-tool-row p{order:2;color:var(--ink-soft);font:600 16px/1.25 'Cormorant Garamond',Georgia,serif;padding:0 5px 5px}
+  .adm-directory .adm-tool-row button{font:600 17px/1.2 'Cormorant Garamond',Georgia,serif;min-height:36px;letter-spacing:normal;text-transform:none;text-align:left;padding:5px;background:transparent;border:1px solid transparent;border-radius:4px}
+  .adm-directory .adm-tool-row button.on{color:var(--red-deep);background:var(--paper-hi);border-color:var(--edge)}
+  #adm-workspace[data-role="master"] .adm-directory>summary,#adm-workspace[data-role="master"] .adm-tool-group h2,#adm-workspace[data-role="master"] .adm-tool-row p{display:none}
+  #adm-workspace[data-role="master"] #adm-nav{display:block}
+  #adm-workspace[data-role="master"] .adm-tool-group:not([hidden]){display:flex;flex-wrap:wrap;gap:7px;justify-content:center;padding:0;background:transparent;border:0}
+  #adm-workspace[data-role="master"] .adm-tool-row{border:0;padding:0}
+  #adm-workspace[data-role="master"] .adm-tool-row button{min-height:44px;padding-inline:12px;border-color:var(--edge)}
+  @media(max-width:660px){
+    .adm-directory #adm-nav{grid-template-columns:1fr}
+    .adm-shortcuts button{grid-template-columns:minmax(0,1fr) auto;padding-inline:9px}
+    .adm-shortcuts button::after{grid-column:2;grid-row:1/span 2}
+    .adm-shortcut-note{grid-row:2}
+  }
+  @media(pointer:coarse){.adm-directory .adm-tool-row button{min-height:44px}}
   /* Single-page AI authoring, isolated from the existing Human editor. */
   #mission-ai-editor-host .mai-dock{position:sticky;top:10px;z-index:5;padding:10px 14px;margin:16px 0;border:1px solid var(--edge,#b79d6c);border-radius:10px;background:var(--paper-hi,#f1e6ca);box-shadow:0 4px 12px rgba(60,35,10,.14)}
   #mission-ai-editor-host .mai-draft-state{margin:0 0 8px;color:var(--ink-soft,#6a5231);font-size:15px;font-weight:600}
@@ -765,7 +803,7 @@ return {createMapFigureHost};
 })();
 window.TUSMapFigures={...editor,...resolver,...host};})();
 </script>
-<meta name="tus-build" content="ADMIN-TRAINING-STAFF-20261117">
+<meta name="tus-build" content="ADMIN-INDICE-STAFF-20261117">
 <meta name="tus-scorta-media-admin-build" content="SCORTA-MEDIA-ADMIN-001" />
 
   <style id="mission-rapid-editor-style">
@@ -816,41 +854,93 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
       </nav>
       <main>
         <div id="st-loading" class="state on"><div class="msgcard"><p>Caricamento…</p></div></div>
-        <div id="st-guest" class="state"><div class="msgcard"><h2>Area staff</h2><p>Accedi con un account dello staff per gestire gli emblemi.</p><a class="btn btn-red" href="entra.html#accedi">Accedi</a></div></div>
+        <div id="st-guest" class="state"><div class="msgcard"><h2>Area staff</h2><p>Accedi con un account dello Staff per aprire il pannello.</p><a class="btn btn-red" href="entra.html#accedi">Accedi</a></div></div>
         <div id="st-denied" class="state"><div class="msgcard"><h2>Area riservata</h2><p>Questa pagina è riservata allo staff (master/admin).</p><a class="btn" href="scheda.html">Torna alla scheda</a></div></div>
         <div id="st-mgr" class="state">
           <div class="mgr-head">
             <div class="kicker">Area staff</div>
             <h1>Pannello di gestione</h1>
-            <p class="mgr-note">Scegli una <b>categoria</b> qui sotto: dentro ognuna trovi le celle da riempire con le immagini che crei e i moduli da compilare.</p>
           </div>
-          <div class="adm-nav" id="adm-nav">
-            <button type="button" data-go="emblemi" class="on">Emblemi</button>
-            <button type="button" data-go="personaggi">Personaggi</button>
-            <button type="button" data-go="clan">Clan</button>
-            <button type="button" data-go="tecniche">Tecniche</button>
-            <button type="button" data-go="basi">Basi Accademia</button>
-            <button type="button" data-go="allenamenti">Allenamenti</button>
-            <button type="button" data-go="premi">Premi</button>
-            <button type="button" data-go="oggetti">Oggetti</button>
-            <button type="button" data-go="luoghi">Luoghi</button>
-            <button type="button" data-go="mappa">Mappa</button>
-            <button type="button" data-go="bacheche">Bacheche</button>
-            <button type="button" data-go="ia">IA</button>
-            <button type="button" data-go="ninja-editoriale">Ninja Book narrativo</button>
-            <button type="button" data-go="mission-editor" id="mission-editor-nav" hidden>Missioni Master</button>
-            <button type="button" data-go="mission-ai-editor" id="mission-ai-editor-nav" hidden>Missioni IA</button>
-            <button type="button" data-go="mission-rapid" id="mission-rapid-nav" hidden>Nuova missione rapida</button>
-            <button type="button" data-go="media-scorta" id="scorta-media-nav" hidden>Media Scorta</button>
-            <button type="button" data-go="media-academy" id="academy-media-nav" hidden>Media Accademia</button>
-            <button type="button" data-go="aiuto">Aiuto</button>
-            <button type="button" data-go="compagni">Compagni</button>
-            <button type="button" data-go="notizie">Banda notizie</button>
-            <button type="button" data-go="registro">Registro</button>
-            <button type="button" data-go="segnalazioni">Segnalazioni</button>
-            <button type="button" data-go="messaggi">Messaggi</button>
-            <button type="button" data-go="archivio">Archivio</button>
-            <button type="button" data-go="pilot">Pilot scontri</button>
+          <div id="adm-workspace" aria-label="Navigazione Staff">
+            <div class="adm-location" id="adm-location" hidden>
+              <button type="button" id="adm-home-link">‹ Indice Staff</button>
+              <span id="adm-current-tool" aria-live="polite"></span>
+            </div>
+            <section class="adm-page on" data-page="home" aria-label="Indice Staff">
+              <div class="adm-intents" role="group" aria-label="Cosa vuoi fare?">
+                <button type="button" data-adm-intent="review" aria-controls="adm-intent-review" aria-pressed="true">Da rivedere</button>
+                <button type="button" data-adm-intent="edit" aria-controls="adm-intent-edit" aria-pressed="false">Correggi</button>
+                <button type="button" data-adm-intent="add" aria-controls="adm-intent-add" aria-pressed="false">Aggiungi</button>
+              </div>
+              <div class="adm-shortcuts" id="adm-intent-review" data-adm-panel="review" role="group" aria-label="Da rivedere">
+                <button type="button" data-adm-shortcut="segnalazioni"><strong>Rivedi segnalazioni<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Leggi le segnalazioni inviate allo Staff.</span></button>
+                <button type="button" data-adm-shortcut="allenamenti"><strong>Valuta allenamenti<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Apri le richieste da approvare o rifiutare.</span></button>
+                <button type="button" data-adm-shortcut="premi"><strong>Valuta richieste di premio<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Controlla le richieste in attesa.</span></button>
+                <button type="button" data-adm-shortcut="clan"><strong>Valuta richieste di clan<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Controlla le domande di ingresso.</span></button>
+                <button type="button" data-adm-shortcut="registro"><strong>Controlla movimenti<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Consulta acquisti, vendite e assegnazioni.</span></button>
+              </div>
+              <div class="adm-shortcuts" id="adm-intent-edit" data-adm-panel="edit" role="group" aria-label="Correggi" hidden>
+                <button type="button" data-adm-shortcut="personaggi"><strong>Correggi un personaggio<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Cerca il personaggio da aggiornare.</span></button>
+                <button type="button" data-adm-shortcut="tecniche"><strong>Modifica una tecnica<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Cerca la tecnica nel catalogo.</span></button>
+                <button type="button" data-adm-shortcut="oggetti"><strong>Modifica un oggetto<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Cerca l’oggetto nel catalogo.</span></button>
+                <button type="button" data-adm-shortcut="luoghi"><strong>Modifica un luogo<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Cerca la stanza da aggiornare.</span></button>
+                <button type="button" data-adm-shortcut="notizie"><strong>Aggiorna la banda notizie<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Modifica l’avviso sopra la mappa.</span></button>
+              </div>
+              <div class="adm-shortcuts" id="adm-intent-add" data-adm-panel="add" role="group" aria-label="Aggiungi" hidden>
+                <button type="button" data-adm-shortcut="mission-editor" hidden><strong>Prepara una missione Master<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Apri l’editor delle missioni condotte da un Master.</span></button>
+                <button type="button" data-adm-shortcut="mission-ai-editor" hidden><strong>Prepara una missione IA<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Apri l’editor delle missioni condotte dalla Regia IA.</span></button>
+                <button type="button" data-adm-shortcut="tecniche" data-adm-create><strong>Aggiungi una tecnica<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Apri il modulo di una nuova tecnica.</span></button>
+                <button type="button" data-adm-shortcut="oggetti" data-adm-create><strong>Aggiungi un oggetto<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Apri il modulo di un nuovo oggetto.</span></button>
+                <button type="button" data-adm-shortcut="luoghi" data-adm-create><strong>Aggiungi un luogo<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Apri il modulo di una nuova stanza.</span></button>
+                <button type="button" data-adm-shortcut="bacheche" data-adm-create><strong>Aggiungi una bacheca<span class="adm-pending" hidden></span></strong><span class="adm-shortcut-note">Apri il modulo di una nuova bacheca.</span></button>
+              </div>
+            </section>
+            <details class="adm-directory" id="adm-directory">
+              <summary>Tutti gli strumenti</summary>
+              <div class="adm-nav" id="adm-nav">
+                <section class="adm-tool-group" aria-labelledby="adm-group-players">
+                  <h2 id="adm-group-players">Giocatori e moderazione</h2>
+                  <div class="adm-tool-row"><p id="adm-tool-note-personaggi">Cerca e correggi le schede dei giocatori.</p><button type="button" data-go="personaggi" aria-describedby="adm-tool-note-personaggi">Personaggi</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-allenamenti">Valuta le richieste e consulta le sessioni.</p><button type="button" data-go="allenamenti" aria-describedby="adm-tool-note-allenamenti">Allenamenti</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-premi">Valuta le richieste di premio e consulta le assegnazioni.</p><button type="button" data-go="premi" aria-describedby="adm-tool-note-premi">Premi</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-compagni">Gestisci i compagni PNG dei giocatori.</p><button type="button" data-go="compagni" aria-describedby="adm-tool-note-compagni">Compagni</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-segnalazioni">Leggi le segnalazioni inviate allo Staff.</p><button type="button" data-go="segnalazioni" aria-describedby="adm-tool-note-segnalazioni">Segnalazioni</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-registro">Consulta acquisti, vendite e assegnazioni.</p><button type="button" data-go="registro" aria-describedby="adm-tool-note-registro">Registro</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-messaggi">Consulta il log dei messaggi privati in sola lettura.</p><button type="button" data-go="messaggi" aria-describedby="adm-tool-note-messaggi">Messaggi</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-archivio">Rileggi le role registrate e le chat archiviate.</p><button type="button" data-go="archivio" aria-describedby="adm-tool-note-archivio">Archivio</button></div>
+                </section>
+                <section class="adm-tool-group" aria-labelledby="adm-group-catalogs">
+                  <h2 id="adm-group-catalogs">Cataloghi e Accademia</h2>
+                  <div class="adm-tool-row"><p id="adm-tool-note-tecniche">Cerca, modifica o aggiungi una tecnica.</p><button type="button" data-go="tecniche" aria-describedby="adm-tool-note-tecniche">Tecniche</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-clan">Gestisci i clan e le richieste di ingresso.</p><button type="button" data-go="clan" aria-describedby="adm-tool-note-clan">Clan</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-oggetti">Aggiorna o aggiungi un oggetto al catalogo.</p><button type="button" data-go="oggetti" aria-describedby="adm-tool-note-oggetti">Oggetti</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-emblemi">Carica le immagini usate nelle schede.</p><button type="button" data-go="emblemi" aria-describedby="adm-tool-note-emblemi">Emblemi</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-basi">Gestisci le voci delle Basi Accademia.</p><button type="button" data-go="basi" aria-describedby="adm-tool-note-basi">Basi Accademia</button></div>
+                </section>
+                <section class="adm-tool-group" aria-labelledby="adm-group-world">
+                  <h2 id="adm-group-world">Mondo e comunicazioni</h2>
+                  <div class="adm-tool-row"><p id="adm-tool-note-luoghi">Modifica o aggiungi un luogo della Land.</p><button type="button" data-go="luoghi" aria-describedby="adm-tool-note-luoghi">Luoghi</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-mappa">Aggiorna i punti della mappa.</p><button type="button" data-go="mappa" aria-describedby="adm-tool-note-mappa">Mappa</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-bacheche">Configura le bacheche e la loro collocazione.</p><button type="button" data-go="bacheche" aria-describedby="adm-tool-note-bacheche">Bacheche</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-notizie">Aggiorna l’avviso sopra la mappa.</p><button type="button" data-go="notizie" aria-describedby="adm-tool-note-notizie">Banda notizie</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-aiuto">Gestisci le voci del centro aiuto.</p><button type="button" data-go="aiuto" aria-describedby="adm-tool-note-aiuto">Aiuto</button></div>
+                </section>
+                <section class="adm-tool-group" aria-labelledby="adm-group-missions">
+                  <h2 id="adm-group-missions">Missioni e PNG</h2>
+                  <div class="adm-tool-row"><p id="adm-tool-note-mission-editor">Prepara una missione a conduzione Master.</p><button type="button" data-go="mission-editor" id="mission-editor-nav" hidden aria-describedby="adm-tool-note-mission-editor">Missioni Master</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-mission-ai-editor">Prepara una missione a conduzione della Regia IA.</p><button type="button" data-go="mission-ai-editor" id="mission-ai-editor-nav" hidden aria-describedby="adm-tool-note-mission-ai-editor">Missioni IA</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-mission-rapid">Apri il modulo di creazione rapida.</p><button type="button" data-go="mission-rapid" id="mission-rapid-nav" hidden aria-describedby="adm-tool-note-mission-rapid">Nuova missione rapida</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-ia">Configura la Regia IA e i PNG.</p><button type="button" data-go="ia" aria-describedby="adm-tool-note-ia">IA</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-ninja-editoriale">Rivedi e prepara le schede narrative dei PNG.</p><button type="button" data-go="ninja-editoriale" aria-describedby="adm-tool-note-ninja-editoriale">Ninja Book narrativo</button></div>
+                </section>
+                <section class="adm-tool-group" aria-labelledby="adm-group-staff">
+                  <h2 id="adm-group-staff">Strumenti Staff</h2>
+                  <div class="adm-tool-row"><p id="adm-tool-note-media-scorta">Collega i ritratti previsti per la Scorta.</p><button type="button" data-go="media-scorta" id="scorta-media-nav" hidden aria-describedby="adm-tool-note-media-scorta">Media Scorta</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-media-academy">Gestisci gli allegati delle missioni Accademia.</p><button type="button" data-go="media-academy" id="academy-media-nav" hidden aria-describedby="adm-tool-note-media-academy">Media Accademia</button></div>
+                  <div class="adm-tool-row"><p id="adm-tool-note-pilot">Consulta i controlli del Pilot scontri.</p><button type="button" data-go="pilot" aria-describedby="adm-tool-note-pilot">Pilot scontri</button></div>
+                </section>
+              </div>
+            </details>
           </div>
           <section class="adm-page" data-page="personaggi">
           <div class="grp-title">Personaggi</div>
@@ -871,7 +961,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
           <div class="cat-actions"><button class="btn btn-red" id="flash-save">Salva banda</button><span id="flash-note" class="editing-note"></span></div>
           </section>
 
-          <section class="adm-page on" data-page="emblemi">
+          <section class="adm-page" data-page="emblemi">
           <p class="mgr-note" style="margin-top:0">Carica un’immagine per ogni villaggio, clan, grado ed elemento: comparirà in automatico su tutte le schede. Consigliato un <b>PNG quadrato con sfondo trasparente</b> (~256×256, sotto 2&nbsp;MB). Le immagini che carichi sono di tua scelta e responsabilità.</p>
           <div class="adm-subtabs" id="emb-subtabs">
             <button type="button" data-emb="village" class="on">Villaggi</button>
@@ -3868,17 +3958,85 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
     function admFormShow(page){var w=admFormWrap(page);if(!w)return;w.hidden=false;var rb=w.querySelector('.cat-actions .btn:not(.btn-red)');if(rb)rb.style.display='';try{window.scrollTo({top:Math.max(0,w.offsetTop-90),behavior:'smooth'});}catch(e){}}
     function admFormHide(page){var w=admFormWrap(page);if(w)w.hidden=true;}
     function admHideAllForms(){var ws=document.querySelectorAll('.cat-formwrap');for(var i=0;i<ws.length;i++)ws[i].hidden=true;}
+    var admWorkspace=$('adm-workspace'), admNav=$('adm-nav'), admDirectory=$('adm-directory');
+    var admHomeLink=$('adm-home-link'), admLocation=$('adm-location'), admCurrentTool=$('adm-current-tool');
+    var admTools=new Map(Array.from(admNav.querySelectorAll('button[data-go]'),function(button){
+      return [button.dataset.go,button];
+    }));
+    var admShortcuts=admWorkspace.querySelectorAll('[data-adm-shortcut]');
+    var admIntents=admWorkspace.querySelectorAll('[data-adm-intent]');
+    var admPanels=admWorkspace.querySelectorAll('[data-adm-panel]');
+
+    function admSyncNavigation(){
+      admNav.querySelectorAll('.adm-tool-row').forEach(function(row){
+        var hidden=row.querySelector('button[data-go]').hidden;
+        if(row.hidden!==hidden)row.hidden=hidden;
+      });
+      admNav.querySelectorAll('.adm-tool-group').forEach(function(group){
+        var hidden=!group.querySelector('.adm-tool-row:not([hidden])');
+        if(group.hidden!==hidden)group.hidden=hidden;
+      });
+      admDirectory.hidden=!admNav.querySelector('.adm-tool-group:not([hidden])');
+      admShortcuts.forEach(function(shortcut){
+        var tool=admTools.get(shortcut.dataset.admShortcut);
+        shortcut.hidden=tool.hidden;
+        var count=tool.textContent.match(/ [(]([0-9]+)[)]$/);
+        var badge=shortcut.querySelector('.adm-pending');
+        badge.textContent=count?'('+count[1]+')':'';
+        badge.hidden=!count;
+      });
+    }
     function admGo(page){
-      if(nbeRole==='master'&&!['mission-editor','mission-ai-editor'].includes(page))return;
+      if(nbeRole==='master'&&page!=='mission-editor'&&page!=='mission-ai-editor')return;
       var aiPage=$('mission-ai-editor-page'),aiWasOpen=!!aiPage&&aiPage.classList.contains('on');
       var pg=document.querySelectorAll('.adm-page'); for(var i=0;i<pg.length;i++){pg[i].classList.toggle('on',pg[i].getAttribute('data-page')===page);}
-      var bt=document.querySelectorAll('#adm-nav button'); for(var j=0;j<bt.length;j++){bt[j].classList.toggle('on',bt[j].getAttribute('data-go')===page);}
+      admTools.forEach(function(button,key){
+        button.classList.toggle('on',key===page);
+        if(key===page)button.setAttribute('aria-current','true');
+        else button.removeAttribute('aria-current');
+      });
+      admLocation.hidden=nbeRole!=='admin'||page==='home';
+      admCurrentTool.textContent=admTools.get(page)?.textContent.replace(/ [(][0-9]+[)]$/,'')||'';
+      admDirectory.open=nbeRole==='master';
       admHideAllForms();
-      try{localStorage.setItem('tus_adm_tab',page);}catch(e){}
+      if(page!=='home'){try{localStorage.setItem('tus_adm_tab',page);}catch(e){}}
       if(page==='mission-ai-editor'&&(!aiWasOpen||!missionAIEditorController))void openMissionAIEditor();
       try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){}
     }
-    (function(){var nav=document.getElementById('adm-nav'); if(!nav)return; nav.addEventListener('click',function(e){var b=e.target.closest('button[data-go]'); if(b)admGo(b.getAttribute('data-go'));}); var saved=null; try{saved=localStorage.getItem('tus_adm_tab');}catch(e){} if(saved)admGo(saved);})();
+    function admFocusPage(){
+      var active=document.querySelector('.adm-page.on');
+      if(!active||active.hidden)return;
+      active.setAttribute('tabindex','-1');
+      active.focus({preventScroll:true});
+    }
+    admNav.addEventListener('click',function(event){
+      var button=event.target.closest('button[data-go]');
+      if(!button||button.hidden)return;
+      admGo(button.dataset.go);
+      admFocusPage();
+    });
+    admHomeLink.addEventListener('click',function(){admGo('home');admFocusPage();});
+    admIntents.forEach(function(button){
+      button.addEventListener('click',function(){
+        admIntents.forEach(function(other){other.setAttribute('aria-pressed',String(other===button));});
+        admPanels.forEach(function(panel){panel.hidden=panel.dataset.admPanel!==button.dataset.admIntent;});
+      });
+    });
+    admShortcuts.forEach(function(button){
+      button.addEventListener('click',function(){
+        var key=button.dataset.admShortcut, tool=admTools.get(key);
+        if(nbeRole!=='admin'||tool.hidden)return;
+        tool.click();
+        if(button.hasAttribute('data-adm-create')){
+          var active=document.querySelector('.adm-page.on');
+          var create=active&&active.querySelector('[data-addnew="'+key+'"]');
+          if(create)create.click();
+        }
+      });
+    });
+    new MutationObserver(admSyncNavigation).observe(admNav,{
+      subtree:true,childList:true,attributes:true,attributeFilter:['hidden']
+    });
     /* ---- "+ Aggiungi nuovo": resetta il form della sezione, lo mostra e ci scrolla ---- */
     document.addEventListener('click',function(e){
       var b=e.target.closest('[data-addnew]'); if(!b)return;
@@ -4778,7 +4936,6 @@ return {mount:mountStaffExamDecisions};})();
       var nav=$('mission-ai-editor-nav'),page=$('mission-ai-editor-page');if(!nav||!page)return;
       var allowed=!!me&&(nbeRole==='admin'||nbeRole==='master');nav.hidden=!allowed;page.hidden=!allowed;
       if(!allowed){if(missionAIEditorController)missionAIEditorController.dispose();missionAIEditorController=null;missionAIEditorPrincipal=null;return;}
-      // A remembered selection is restored before auth; use the same entry loader after role verification.
       if(page.classList.contains('on'))void openMissionAIEditor();
     }
     async function openMissionAIEditor(){
@@ -4805,6 +4962,7 @@ return {mount:mountStaffExamDecisions};})();
       var role=pr.data?pr.data.role:'player';
       if(role!=='admin'&&role!=='master'){show('st-denied');return;}
       nbeRole=role;
+      admWorkspace.dataset.role=role;
       if(role==='master'){
         document.querySelectorAll('#adm-nav button[data-go]').forEach(function(b){b.hidden=true;});
         await bindMissionFactory();bindMissionAIEntry();show('st-mgr');
@@ -4812,13 +4970,13 @@ return {mount:mountStaffExamDecisions};})();
         if(masterPage)masterPage.hidden=false;
         if($('mission-editor-nav')?.hidden&&masterHost)masterHost.textContent='Editor missioni non ancora disponibile per questa versione. Nessun ingresso Admin aggiuntivo è abilitato.';
         var masterStartPage='mission-editor';try{if(localStorage.getItem('tus_adm_tab')==='mission-ai-editor')masterStartPage='mission-ai-editor';}catch(_e){}
-        admGo(masterStartPage);return;
+        admSyncNavigation();admGo(masterStartPage);return;
       }
       bindScortaMedia();
       try{var academyMedia=await import('./ACADEMY_MEDIA_ADMIN.mjs?v=20260923-3');academyMedia.bindAcademyMediaPanel({client:sb,role:role,principalId:me.id});}catch(e){console.warn('[academy-media] modulo non disponibile',e);}await bindMissionRapid();await bindMissionFactory();bindMissionAIEntry();
       if(window.__TRAINING138A_MOCK__){show('st-mgr');admGo('allenamenti');bindTrainings();await loadTrainings();return;}
       if(window.__NB027B_MOCK__){show('st-mgr');admGo('ninja-editoriale');nbeWire();return;}
-      show('st-mgr');
+      admSyncNavigation();admGo('home');show('st-mgr');
       function _q(pr){return Promise.resolve(pr).catch(function(e){try{console.warn('[init] caricamento fallito',e);}catch(_x){}});}
       bindClans();bindClanReq();bindCatalog();bindTechs();bindTrainings();bindBasi();bindLocs();bindBoards();bindHkb();bindIA();bindNB();bindReps();bindComps();bindPg();bindPrm();bindTlg();bindTau();bindFlash();bindArchivio();bindAcc();nbeWire();bindPilot();
       try{var _sm=localStorage.getItem('tus_tech_macro');if(_sm)techMacro=_sm;}catch(_e){}
