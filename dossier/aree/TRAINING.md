@@ -15,12 +15,12 @@ Allineamento del 17/11/2026 · aperto il cantiere [Allenamento individuale in Sc
 - La Scheda avvia la tecnica e il regolamento §6.1 vigente prevede ancora la role per registrare l’allenamento.
 - `training_sessions` contiene dodici registrazioni. Sei valide, tre abbandonate, una annullata e due legacy approvate.
 - `character_abilities` contiene tredici abilità attive, due in addestramento e una annullata. Il runtime Sensei IA risulta spento. Le vecchie verifiche di guidance restano nel contratto storico.
-- **Decisione di evoluzione.** Allenamento individuale in Scheda: scelta della tecnica, costo in XP, requisiti e una sessione a tempo per acquisirla. Massimo un allenamento per personaggio al giorno. Le tecniche speciali seguono il percorso approvato.
+- **Decisione di evoluzione.** Allenamento individuale in Scheda: scelta della tecnica, costo in XP, requisiti e una sessione nella giornata di gioco corrente. Acquisizione e nuova quota al cambio di giornata del server. Massimo un allenamento per personaggio al giorno. Le tecniche speciali seguono il percorso approvato.
 
 ## Lavori aperti
 
-1. Definire la durata del singolo allenamento, le tecniche speciali e il passaggio degli addestramenti con XP già spesi o crediti maturati.
-2. Preparare il percorso Scheda e la sua autorità server per idoneità, costo, timer, quota giornaliera e acquisizione unica.
+1. Chiudere i due addestramenti precedenti e delimitare le tecniche speciali.
+2. Preparare il percorso Scheda e la sua autorità server per idoneità, costo, quota giornaliera e acquisizione al cambio di giornata.
 3. Collaudare in Staff con progressione protetta. Conservare le ricevute e aggiornare insieme il regolamento Markdown e HTML al rilascio.
 
 Cooperativa, gruppo e sparring conservano i propri percorsi. Le nuove prove del Sensei e della guidance restano parcheggiate.
@@ -40,5 +40,5 @@ Cooperativa, gruppo e sparring conservano i propri percorsi. Le nuove prove del 
 
 ## Prossimo passo
 
-Chiudere durata, casi speciali e passaggio del progresso esistente nella [scheda del cantiere](../../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md).
+Chiudere i percorsi precedenti e delimitare i casi speciali nella [scheda del cantiere](../../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md).
 

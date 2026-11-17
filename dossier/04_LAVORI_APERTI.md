@@ -23,7 +23,7 @@ Storico 07/11 · T3 aggregata1 qualificata nei soli sorgenti dopo il tentativo a
 | `management/candidati/CLAN-L1_2026-09-01/` | In uso. Rilasci Genin di clan, Innate mantenute, Elementali e Taijutsu acquisiti. | Palmo d’Aria fuori dal ramo rilasciato. Scudo di Sabbia e Rilascio della Marionetta da riallineare a catalogo. |
 | `management/candidati/COMBAT-COMPOSITE_2026-09-01/` | In lavoro. UI Combat comune in Land. Inuzuka, recupero, Shuriken, 27 passive e Fili pubblici. Recisione Regia IA con Staff PASS e supporto Land attivo. | Kunai, cure e oggetti, Palmo d’Aria, Paralisi illusoria ed evocazioni. Flussi multibersaglio rinviati. Zero missioni pubbliche configurate con marionettista. |
 | `management/candidati/NARRATORE-UNIFICATO_2026-09-02/` | In uso. Discussioni in Centro in Bacheca con Konoha e Suna ammessi. C18 Staff PASS per due Ready, un clic e incipit automatico. | Primo avvio pubblico da osservare. Avvio come Master e verifica completa dell’Editor restano incarichi distinti. |
-| [ALLENAMENTO-INDIVIDUALE_2026-11-17](../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md) | Cantiere in lavoro dal 17/11. Definito il passaggio dell’individuale ordinario dalla role alla Scheda. | Durata, casi speciali e trattamento delle due tecniche già in addestramento. Poi integrazione e prove Staff protette. |
+| [ALLENAMENTO-INDIVIDUALE_2026-11-17](../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md) | Cantiere in lavoro dal 17/11. Allenamento dalla Scheda con una sessione per giornata, conclusa al cambio del server. | Casi speciali e chiusura delle due tecniche già in addestramento. Poi integrazione e prove Staff protette. |
 
 ## Funzioni già disponibili da non ricostruire
 
@@ -68,7 +68,7 @@ T3 resta NOT_PASSED23514; T5copia-prima, confini residuiF1 e ServiceT6–T8 rest
 |---|---|---|
 | 1 | Raccogliere il primo avvio pubblico di Discussioni in Centro | Il lancio è disponibile agli iscritti. Usare il referto Staff C18 come riferimento per eventuali difetti osservati in Land. |
 | 2 | Completare i residui Combat V2 | Raccordare Kunai, cure, oggetti e tecniche Genin mancanti. Poi Richiamo ed evocazioni. Usare i casi scoperti nella [scheda Combat](aree/COMBAT.md). |
-| 3 | Allenamento individuale in Scheda | Definire tempo, eccezioni e transizione, poi implementare e collaudare il percorso Staff. |
+| 3 | Allenamento individuale in Scheda | Chiudere i percorsi precedenti e delimitare le eccezioni, poi implementare e collaudare il percorso Staff. |
 | 4 | Migliorare contenuti e percorso dei nuovi giocatori | Source74/Editor generale con l’owner assegnato e dieci revisioni PNG con media e binding versionati. Per Accademia, riconciliare prima le prove e i difetti ancora attuali. |
 
 Il primo run completo della Scorta e i rilievi di progressione dalle role vanno riconciliati sul percorso specifico: gli smoke storici e il PASS Human non chiudono automaticamente la Scorta. Qualità narrativa da valutare su scene complete, senza riscritture preventive dei prompt o retry alla ricerca di un verde.

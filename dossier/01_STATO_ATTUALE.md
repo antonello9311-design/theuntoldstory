@@ -31,7 +31,7 @@ Le verifiche mirate successive prevalgono per i sistemi modificati. Il readback 
 
 **Combat di clan.** Palmo d’Aria fuori dal ramo Hyūga rilasciato. Flussi multibersaglio rinviati. Scudo di Sabbia e Rilascio della Marionetta da allineare a catalogo secondo le decisioni già prese. La verifica dei gradi superiori procede per famiglia.
 
-**Allenamento individuale.** Nuovo cantiere in lavoro dal 17/11. Il passaggio alla Scheda è in definizione. Riscontro mirato: dodici registrazioni storiche, due tecniche in addestramento e runtime Sensei IA spento. Durata, eccezioni e transizione sono nella [scheda del cantiere](../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md).
+**Allenamento individuale.** Nuovo cantiere in lavoro dal 17/11. Il passaggio alla Scheda è in definizione. Riscontro mirato: dodici registrazioni storiche, due tecniche in addestramento e runtime Sensei IA spento. Il cambio di giornata del server conclude la sessione e riapre la quota. Eccezioni e chiusura dei percorsi precedenti sono nella [scheda del cantiere](../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md).
 
 **Accademia.** Ultimo checkpoint narrativo Sensei v43 del 14/09, con riscontro statico. Riconciliare eventuali prove successive prima di un nuovo collaudo Staff.
 
