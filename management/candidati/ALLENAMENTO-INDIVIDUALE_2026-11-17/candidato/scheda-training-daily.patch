@@ -5,7 +5,7 @@
  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
  <title>La tua scheda — The Untold Story</title>
 -<meta name="tus-build" content="SHURIKEN-LAND-QA-20261114">
-+<meta name="tus-build" content="TRAINING-SCHEDA-DAILY-20261117">
++<meta name="tus-build" content="TRAINING-STAFF-20261117">
  <link rel="preconnect" href="https://fonts.googleapis.com" />
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
  <link rel="preconnect" href="https://tyhyxkslteigibktluml.supabase.co" crossorigin />
@@ -29,7 +29,7 @@
              <div class="ssec" id="sec-cat"><h3>Catalogo jutsu e abilità</h3>
                <div id="train-wrap"></div></div>
            </div>
-@@ -1199,14 +1201,219 @@
+@@ -1199,14 +1201,231 @@
          +'<div class="tv2-cell"><span>Prenotazione</span><b>'+(model.day_reserved?'Occupata':'Libera')+'</b></div></div>'
          +'<p class="tv2-note">'+esc(trainingV2CurrentCopy(model))+'</p></div>';
      }
@@ -98,10 +98,17 @@
 +      var identity=session?esc(trainingSheetName(session.technique_id)):'Allenamento giornaliero';
 +      var status=session?(session.status==='appresa'?'Appresa':'In corso'):'Disponibilità';
 +      var description=state.day_reserved?'Sessione di oggi utilizzata':'Allenamento di oggi disponibile';
++      var staffControls='';
++      if(state.simulated){
++        staffControls=state.staff_case
++          ? '<p class="tv2-note">XP simulati: '+esc(state.staff_xp)+' · Ora della prova '+esc(trainingSheetDate(state.staff_clock))+'</p>'
++            +'<button type="button" class="mini-btn tv2-retry" data-training-staff-case="close"'+(trainingSheet.pending?' disabled':'')+'>Chiudi prova giornaliera</button>'
++          : '<button type="button" class="mini-btn tv2-retry" data-training-staff-case="open"'+(trainingSheet.pending?' disabled':'')+'>Prepara prova cambio giornata</button>';
++      }
 +      var timing=session&&session.status==='in_corso'?'Apprendimento al cambio di giornata del '+trainingSheetDate(session.ends_at):'Prossimo cambio di giornata '+trainingSheetDate(state.next_reset_at);
 +      host.innerHTML='<div class="tv2-card"><div class="tv2-head"><div class="tv2-name">'+identity+'</div><span class="tr-badge '+(session&&session.status==='appresa'?'on':'tr-prog')+'">'+status+'</span></div>'
 +        +'<p class="tv2-note">'+esc(description)+' · '+esc(timing)+(state.simulated?' · Simulazione Staff':'')+'</p>'
-+        +'<button type="button" class="mini-btn tv2-retry" data-tv2-retry>Aggiorna</button></div>';
++        +'<button type="button" class="mini-btn tv2-retry" data-tv2-retry>Aggiorna</button>'+staffControls+'</div>';
 +      trainingSheetPaintChoice();
 +    }
 +    function trainingSheetPaintChoice(){
@@ -119,11 +126,16 @@
 +      var eligible=choice.eligibility.eligible===true;
 +      var reasons=Array.isArray(choice.eligibility.reasons)?choice.eligibility.reasons.filter(function(reason){return typeof reason==='string';}):[];
 +      var quota=!!(trainingSheet.state&&trainingSheet.state.day_reserved);
-+      var canConfirm=trainingSheet.state&&trainingSheet.state.enabled&&!quota&&eligible;
++      var state=trainingSheet.state;
++      var staffNotReady=!!(state&&state.simulated&&!state.staff_case);
++      var staffXpLow=!!(state&&state.simulated&&state.staff_case&&state.staff_xp<(choice.eligibility.xp_cost||0));
++      var canConfirm=state&&state.enabled&&!quota&&eligible&&!staffNotReady&&!staffXpLow;
 +      host.innerHTML='<div class="tv2-card"><div class="tv2-name">'+esc(trainingSheetName(choice.technique))+'</div>'
 +        +'<p class="tv2-note">Costo '+esc(choice.eligibility.xp_cost==null?0:choice.eligibility.xp_cost)+' XP · '+(eligible?'Requisiti verificati':'Requisiti mancanti')+'</p>'
 +        +(reasons.length?'<ul>'+reasons.map(function(reason){return '<li>'+esc(reason)+'</li>';}).join('')+'</ul>':'')
 +        +(quota?'<p class="tv2-note">La sessione di oggi è già utilizzata.</p>':'')
++        +(staffNotReady?'<p class="tv2-note">Prepara la prova giornaliera per iniziare.</p>':'')
++        +(staffXpLow?'<p class="tv2-note">XP simulati insufficienti.</p>':'')
 +        +(canConfirm?'<button type="button" class="mini-btn tv2-retry" data-training-sheet-confirm'+busy+'>Avvia allenamento</button> ':'')
 +        +'<button type="button" class="mini-btn tv2-retry" data-training-sheet-cancel'+busy+'>Chiudi</button></div>';
 +    }
@@ -251,16 +263,52 @@
          var sr=res[0]||{},ar=res[1]||{},abilities=Array.isArray(ar.data)?ar.data:[];
          if(ar.error) throw ar.error;
          if(sr.error){
-@@ -1220,7 +1427,7 @@
+@@ -1220,7 +1439,43 @@
          host.innerHTML='<div class="tv2-error">'+esc(trainingV2ErrorMessage(err))+'<div><button type="button" class="mini-btn tv2-retry" data-tv2-retry>Riprova</button></div></div>';
        }
      }
 -    (function(){var h=$('training-v2-state');if(h)h.addEventListener('click',function(e){if(e.target.closest('[data-tv2-retry]'))renderTrainingV2();});})();
-+    (function(){var h=$('training-v2-state');if(h)h.addEventListener('click',function(e){if(e.target.closest('[data-tv2-retry]'))renderTrainingV2(true);});})();
++    async function trainingSheetStaffCase(button){
++      var scope=trainingSheet, state=scope.state;
++      if(scope.busy||scope.pending||!state||!state.simulated||!trainingSheetCurrent(scope.character)) return;
++      var close=button.dataset.trainingStaffCase==='close';
++      var request=close?state.staff_case:crypto.randomUUID();
++      if(!trainingSheetUUID(request)) return;
++      scope.busy=true;
++      button.disabled=true;
++      try{
++        var result=await sb.rpc('training_sheet_staff_case_v1',{p_character:scope.character,p_close:close,p_request:request});
++        var response=trainingV2Unwrap(result.data);
++        if(response&&response.code==='CLOSE_COMBAT_FIRST'){toast('Chiudi prima lo scontro Staff.',true);return;}
++        if(result.error||!response||response.ok!==true) throw Error('TRAINING_STAFF_CASE');
++        if(scope===trainingSheet&&trainingSheetCurrent(scope.character)){
++          scope.choice=null;
++          await renderTrainingV2(true);
++        }
++      }catch(_e){
++        if(scope===trainingSheet&&trainingSheetCurrent(scope.character)){
++          await renderTrainingV2(true);
++          toast('Verifica lo stato della prova Staff.',true);
++        }
++      }finally{
++        scope.busy=false;
++        button.disabled=false;
++        if(scope===trainingSheet&&trainingSheetCurrent(scope.character)) trainingSheetPaintChoice();
++      }
++    }
++    (function(){
++      var host=$('training-v2-state');
++      if(!host) return;
++      host.addEventListener('click',function(e){
++        var staffCase=e.target.closest('[data-training-staff-case]');
++        if(staffCase) trainingSheetStaffCase(staffCase);
++        else if(e.target.closest('[data-tv2-retry]')) renderTrainingV2(true);
++      });
++    })();
  
      /* ---- emblemi (originali; elementi = kanji reali) ---- */
      var LEAF='<svg viewBox="0 0 24 24"><path d="M12 3 C6 8 5 15 12 21 C19 15 18 8 12 3 Z" fill="#3f7d55"/><path d="M12 6 L12 19" stroke="#2f5a3d" stroke-width="1.4"/></svg>';
-@@ -1484,6 +1691,7 @@
+@@ -1484,6 +1739,7 @@
        if(t.riserva_veleno) b2.push('<div class="tkd"><b>Riserva del Veleno</b> · '+esc(t.riserva_veleno)+'</div>');
        if(cons.length) b2.push('<div class="tkd"><b>Consumo</b> · '+cons.join(' · ')+'</div>');
        var acq=[]; if(t.xp_cost!=null)acq.push('<b style="color:var(--red-deep)">'+t.xp_cost+' XP</b>'); if(t.trainings_required!=null)acq.push(t.trainings_required+(t.trainings_required===1?' allenamento':' allenamenti'));
@@ -268,7 +316,7 @@
        if(acq.length) b2.push('<div class="tkd"><b>Acquisto</b> · '+acq.join(' · ')+'</div>');
        var req=[]; if(t.req_grade)req.push('grado '+esc(t.req_grade)); var _sgd=techSoglia(t); if(_sgd)req.push(esc(_sgd.disc)+' '+_sgd.soglia);
        if(t.req_stat)req.push(esc(t.req_stat)+(t.req_stat_value!=null?(' '+t.req_stat_value):''));
-@@ -1502,10 +1710,13 @@
+@@ -1502,10 +1758,13 @@
      function tkRow(t,a,canAct,pfx){
        pfx=pfx||'';   /* 'm' per la vista personale: nessuna collisione di id nel DOM */
        var right='';
@@ -284,7 +332,7 @@
        else { right='<span class="tr-badge">Da apprendere</span>'; }
        var num=(t.xp_cost!=null&&t.xp_cost>0)?(t.xp_cost+' XP'):((t.chakra_cost!=null&&t.chakra_cost>0)?(t.chakra_cost+' ck'):'');
        return '<div class="tr-row" data-texp="'+pfx+t.id+'"><div class="tr-main"><b>'+esc(t.name)+'</b>'+(t.grado?('<span class="tr-gr">'+esc(t.grado)+'</span>'):'')+(t.is_innata?'<span class="tr-cat">Innata</span>':'')+'</div>'+(num?('<span class="tr-meta">'+num+'</span>'):'')+right+'<span class="tr-ch">▸</span></div>'
-@@ -1622,6 +1833,7 @@
+@@ -1622,6 +1881,7 @@
      }
      function paintCatalog(){
        renderBasi();
@@ -292,7 +340,18 @@
        var list=$('train-list'); if(!list) return;
        var canAct=(viewMode!=='public'); var q=TK.q;
        var hasClan=!!(myChar&&myChar.clan&&myChar.clan!=='Nessuno');
-@@ -1671,7 +1883,7 @@
+@@ -1632,7 +1892,9 @@
+ 
+       var genOk=(TK.gen||[]).filter(function(t){ return (!t.req_corp||String(t.req_corp).toLowerCase()===myCorp2); });
+       (TK.techs||[]).concat(genOk).forEach(function(t){
+-        if(!tkMatch(t,q)||!techShow(t)) return;
++        var inspectStaffRequirement=q && trainingSheet.state && trainingSheet.state.simulated
++          && t.macro==='generica' && !abilPosseduta(TK.byId[t.id]) && trainingSheetIsDaily(t.id);
++        if(!tkMatch(t,q)||(!techShow(t)&&!inspectStaffRequirement)) return;
+         push(techTab(t),techOrig(t),tkRow(t,TK.byId[t.id],canAct));
+       });
+       /* [02/08/2026] Le Basi d'Accademia non stanno più qui dentro: hanno il loro
+@@ -1671,7 +1933,7 @@
        var host=$('train-wrap'); if(!host) return;
        if(viewMode==='public'||!sb||!myChar){ host.innerHTML=''; return; }
        var hasClan=!!(myChar.clan&&myChar.clan!=='Nessuno');
@@ -301,7 +360,7 @@
        /* [TASK-SCHEDA-JUTSU-VISIBILITA-002] Non più «if(hasClan)»: slot_tecniche
           conta ogni tecnica non innata e non leggendaria, generiche comprese, e un
           personaggio senza clan può averne. La barra si nasconde da sola se il
-@@ -1786,9 +1998,26 @@
+@@ -1786,9 +2048,26 @@
          renderTraining();
          return;
        }
@@ -330,7 +389,7 @@
        b.disabled=false;
        if(r.error){ toast(trainingV2ErrorMessage(r.error),true); return; }
        var d=r.data||{},sm=trainingV2StartMessage(d);
-@@ -2682,6 +2911,7 @@
+@@ -2682,6 +2961,7 @@
          var p=t.getAttribute('data-p');
          document.querySelectorAll('.spage').forEach(function(pg){pg.classList.remove('on');});
          var target=$('page-'+p); if(target)target.classList.add('on');
@@ -340,6 +399,15 @@
      function bindIE(){
 --- a/admin.html
 +++ b/admin.html
+@@ -765,7 +765,7 @@
+ })();
+ window.TUSMapFigures={...editor,...resolver,...host};})();
+ </script>
+-<meta name="tus-build" content="TECH-FIELDS-UI001-ADMIN" />
++<meta name="tus-build" content="ADMIN-TRAINING-STAFF-20261117">
+ <meta name="tus-scorta-media-admin-build" content="SCORTA-MEDIA-ADMIN-001" />
+ 
+   <style id="mission-rapid-editor-style">
 @@ -1506,8 +1506,8 @@
              </section>
  

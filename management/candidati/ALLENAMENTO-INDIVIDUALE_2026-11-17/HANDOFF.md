@@ -1,4 +1,10 @@
-# TRAINING-SCHEDA-DOCS-20261117 · Regolamento, guida e stato lavori
+# TRAINING-SCHEDA-STAFF-RELEASE-20261117 · Collaudo Staff
+
+**Installazione riservata.** Migrazione `20261117132938`, SQL `a328652e468bcf43096c68b4c585d07dd006d1b124b95a870ab30bd59de1ecbc`, patch client `95025cb3b3a66f6ef634033bb023544f8e5b442491036dbfc0e4fcc795672976`. Due review indipendenti 0/0/0. Saldo e orario simulati per il solo testperfunzioni, ricevuta legata allo scontro Staff. Verifica pubblica condizionata ai quattro casi del mandato.
+
+**Collaudo.** In preparazione. Gate pubblico spento.
+
+## Consegna precedente
 
 **Perimetro.** Allineamento documentale del 17/11/2026 sul precedente `TRAINING-SCHEDA-CUTOVER-20261117`. Regolamento Markdown e HTML sincronizzati al §6.1, changelog 105 nel Markdown, Guida collegata alla sezione. Il percorso vigente resta in role.
 

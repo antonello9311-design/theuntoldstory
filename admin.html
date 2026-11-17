@@ -765,7 +765,7 @@ return {createMapFigureHost};
 })();
 window.TUSMapFigures={...editor,...resolver,...host};})();
 </script>
-<meta name="tus-build" content="TECH-FIELDS-UI001-ADMIN" />
+<meta name="tus-build" content="ADMIN-TRAINING-STAFF-20261117">
 <meta name="tus-scorta-media-admin-build" content="SCORTA-MEDIA-ADMIN-001" />
 
   <style id="mission-rapid-editor-style">
@@ -1506,8 +1506,8 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
             </section>
 
             <section class="trv2-panel wide" aria-labelledby="atrain-active-title">
-              <div class="grp-sub" id="atrain-active-title">Sessioni annullabili</div>
-              <p class="trv2-meta">Dichiarazioni e registrazioni ancora attive. Scegli una riga per trasferirla all’anteprima firmata.</p>
+              <div class="grp-sub" id="atrain-active-title">Sessioni di allenamento</div>
+              <p class="trv2-meta">Le registrazioni in role possono essere annullate. Le sessioni in Scheda sono consultabili qui.</p>
               <div id="atrain-active-list"><p class="mgr-note">Caricamento…</p></div>
             </section>
 
@@ -1515,7 +1515,7 @@ window.TUSMapFigures={...editor,...resolver,...host};})();
               <div class="grp-sub" id="atrain-cancel-title">Annullamento con anteprima firmata</div>
               <p class="trv2-meta">Prima prepara l’anteprima; poi controlla righe e ambito e conferma. Se cambia qualcosa, l’impronta scade e serve una nuova anteprima.</p>
               <div class="cat-form">
-                <label>Sessione Training (UUID)<input id="atrain-cancel-session" autocomplete="off" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></label>
+                <label>Sessione in role (UUID)<input id="atrain-cancel-session" autocomplete="off" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></label>
                 <label>Ambito<select id="atrain-cancel-scope"><option value="registrazione">Solo registrazione</option><option value="scena">Intera scena</option></select></label>
                 <label class="full">Motivo <span class="opt">almeno 10 caratteri</span><textarea id="atrain-cancel-reason" maxlength="500" rows="2"></textarea></label>
               </div>
@@ -4007,25 +4007,46 @@ function verificaCambioStato(elencoDopo, findingId, statoAtteso) {
         '<div class="trv2-actions"><button class="mini-btn" type="button" data-training-decide="'+kind+'|'+sid+'|approva">Approva</button><button class="mini-btn" type="button" data-training-arm="'+kind+'|'+sid+'">Prepara rifiuto</button><button class="mini-btn" type="button" data-training-decide="'+kind+'|'+sid+'|respinge" hidden>Conferma rifiuto</button></div></article>';
     }
     function trainHistoryCard(row){return '<article class="trv2-card"><b>'+esc(trainChar(row.character_id))+'</b> · '+esc(trainTech(row.technique_id))+'<div class="trv2-meta">'+esc(row.ambito||'—')+' · stato precedente '+esc(row.stato_precedente||'—')+' · '+esc(trainDate(row.annullata_at))+' · progresso dopo '+esc(row.sessions_done_dopo==null?'—':row.sessions_done_dopo)+'</div><div>'+esc(row.motivo||'Motivo non disponibile')+'</div><div class="trv2-meta">Operazione '+esc(trainShort(row.operation_id))+'</div></article>';}
-    function trainActiveCard(row){return '<article class="trv2-card"><b>'+esc(trainChar(row.character_id))+'</b> · '+esc(trainTech(row.technique_id))+'<div class="trv2-meta">'+esc(row.stato||'—')+' · '+esc(row.modalita||'—')+' · giorno '+esc(row.giornata||'—')+' · sessione '+esc(trainShort(row.id))+'</div><div class="trv2-actions"><button class="mini-btn" type="button" data-training-usecancel="'+esc(row.id)+'">Prepara annullamento</button></div></article>';}
+    function trainActiveCard(row){
+      if(row.modalita==='scheda'){
+        var status=row.stato==='prenotata_scheda'?'Prenotata in Scheda':'Valida in Scheda';
+        return '<article class="trv2-card"><b>'+esc(trainChar(row.character_id))+'</b> · '+esc(trainTech(row.technique_id))+'<div class="trv2-meta">'+status+' · giorno '+esc(row.giornata||'—')+' · sessione '+esc(trainShort(row.id))+'</div></article>';
+      }
+      return '<article class="trv2-card"><b>'+esc(trainChar(row.character_id))+'</b> · '+esc(trainTech(row.technique_id))+'<div class="trv2-meta">'+esc(row.stato||'—')+' · '+esc(row.modalita||'—')+' · giorno '+esc(row.giornata||'—')+' · sessione '+esc(trainShort(row.id))+'</div><div class="trv2-actions"><button class="mini-btn" type="button" data-training-usecancel="'+esc(row.id)+'">Prepara annullamento</button></div></article>';}
     async function loadTrainings(){
       if(!sb||TRAINING_V2.busy)return;TRAINING_V2.busy=true;trainState('Aggiornamento delle code in corso…');
       var review=$('atrain-review-list'),legacy=$('atrain-legacy-list'),active=$('atrain-active-list'),history=$('atrain-history-list'),refund=$('atrain-refund-target');
       if(review)review.innerHTML='<p class="mgr-note">Caricamento…</p>';if(legacy)legacy.innerHTML='<p class="mgr-note">Caricamento…</p>';if(active)active.innerHTML='<p class="mgr-note">Caricamento…</p>';if(history)history.innerHTML='<p class="mgr-note">Caricamento…</p>';
+      refund.disabled=true;trainInvalidateRefund();
       var results=await Promise.all([
         sb.rpc('training_segnalate'),
         sb.from('training_sessions').select('id,character_id,technique_id,created_at').eq('modalita','legacy').eq('stato','legacy_review').order('created_at'),
         sb.from('training_sessions').select('id,character_id,technique_id,role_session_id,stato,modalita,giornata,created_at').in('stato',['dichiarata','sospetta','valida']).order('created_at',{ascending:false}).limit(100),
         sb.rpc('training_annullate',{p_limit:100}),
-        sb.from('character_abilities').select('character_id,technique_id,state').eq('state','in_addestramento')
+        sb.from('character_abilities').select('character_id,technique_id,state').eq('state','in_addestramento'),
+        sb.from('training_sessions').select('id,character_id,technique_id,stato,modalita,giornata',{count:'exact'}).eq('modalita','scheda').eq('stato','prenotata_scheda').order('created_at',{ascending:false})
       ]);
       var all=[];results.forEach(function(r){if(!r.error)all=all.concat(r.data||[]);});await trainNames(all);
-      var errors=0,r0=results[0],r1=results[1],r2=results[2],r3=results[3],r4=results[4];
+      var errors=0,r0=results[0],r1=results[1],r2=results[2],r3=results[3],r4=results[4],r5=results[5];
+      var pendingRows=r5.data||[],pendingIncomplete=!!r5.error||r5.count!==pendingRows.length;
+      var visibleSessions=pendingRows.concat(r2.data||[]);
       if(r0.error){errors++;review.innerHTML='<p class="trv2-state err">'+esc(trainErr(r0.error))+' <button class="mini-btn" data-training-retry="1" type="button">Riprova</button></p>';}else{review.innerHTML=(r0.data||[]).length?(r0.data||[]).map(function(x){return trainCard(x,'suspect');}).join(''):'<p class="mgr-note">Nessun caso segnalato.</p>';}
       if(r1.error){errors++;legacy.innerHTML='<p class="trv2-state err">'+esc(trainErr(r1.error))+' <button class="mini-btn" data-training-retry="1" type="button">Riprova</button></p>';}else{legacy.innerHTML=(r1.data||[]).length?(r1.data||[]).map(function(x){return trainCard(x,'legacy');}).join(''):'<p class="mgr-note">Nessuna riga legacy da decidere.</p>';}
-      if(r2.error){errors++;active.innerHTML='<p class="trv2-state err">'+esc(trainErr(r2.error))+' <button class="mini-btn" data-training-retry="1" type="button">Riprova</button></p>';}else{active.innerHTML=(r2.data||[]).length?(r2.data||[]).map(trainActiveCard).join(''):'<p class="mgr-note">Nessuna sessione attiva annullabile.</p>';}
+      var activeError='';
+      if(r2.error||pendingIncomplete){
+        errors++;
+        activeError='<p class="trv2-state err">Elenco sessioni incompleto. <button class="mini-btn" data-training-retry="1" type="button">Riprova</button></p>';
+      }
+      active.innerHTML=activeError+(visibleSessions.length?visibleSessions.map(trainActiveCard).join(''):(activeError?'':'<p class="mgr-note">Nessuna sessione registrata.</p>'));
       if(r3.error){errors++;history.innerHTML='<p class="trv2-state err">'+esc(trainErr(r3.error))+' <button class="mini-btn" data-training-retry="1" type="button">Riprova</button></p>';}else{history.innerHTML=(r3.data||[]).length?(r3.data||[]).map(trainHistoryCard).join(''):'<p class="mgr-note">Nessun annullamento registrato.</p>';}
-      TRAINING_V2.refundRows=r4.error?[]:(r4.data||[]);if(r4.error){errors++;refund.innerHTML='<option value="">Errore nel caricamento</option>';}else{refund.innerHTML='<option value="">— scegli un percorso —</option>'+TRAINING_V2.refundRows.map(function(x){return '<option value="'+esc(x.character_id)+'|'+esc(x.technique_id)+'">'+esc(trainChar(x.character_id))+' · '+esc(trainTech(x.technique_id))+'</option>';}).join('');}
+      var pendingPaths=new Set(pendingRows.map(function(x){return x.character_id+'|'+x.technique_id;}));
+      var refundUnavailable=!!r4.error||pendingIncomplete;
+      TRAINING_V2.refundRows=refundUnavailable?[]:(r4.data||[]).filter(function(x){
+        return !pendingPaths.has(x.character_id+'|'+x.technique_id);
+      });
+      refund.disabled=refundUnavailable;
+      if(refundUnavailable){errors++;refund.innerHTML='<option value="">Percorsi non disponibili. Usa Riprova.</option>';}
+      else{refund.innerHTML='<option value="">— scegli un percorso —</option>'+TRAINING_V2.refundRows.map(function(x){return '<option value="'+esc(x.character_id)+'|'+esc(x.technique_id)+'">'+esc(trainChar(x.character_id))+' · '+esc(trainTech(x.technique_id))+'</option>';}).join('');}
       TRAINING_V2.busy=false;trainInvalidateCancel();trainInvalidateRefund();trainState(errors?'Aggiornamento parziale: '+errors+' sezione/i non disponibili. Usa Riprova.':'Code aggiornate. Le decisioni definitive restano al server.',!!errors);
     }
     function trainInvalidateCancel(){TRAINING_V2.preview=null;var b=$('atrain-cancel-confirm'),box=$('atrain-preview-box');if(b)b.disabled=true;if(box)box.innerHTML='';}
