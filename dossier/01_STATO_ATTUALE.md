@@ -31,7 +31,7 @@ Le verifiche mirate successive prevalgono per i sistemi modificati. Il readback 
 
 **Combat di clan.** Palmo d’Aria fuori dal ramo Hyūga rilasciato. Flussi multibersaglio rinviati. Scudo di Sabbia e Rilascio della Marionetta da allineare a catalogo secondo le decisioni già prese. La verifica dei gradi superiori procede per famiglia.
 
-**Allenamento individuale.** Chiusura dei due addestramenti con assegnazione verificata a saldo XP invariato. Il cantiere contiene la candidata giornaliera per Staff. Il cambio del server conclude la sessione e riapre la quota. [Scheda del cantiere](../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md)
+**Allenamento individuale.** I due addestramenti precedenti sono stati chiusi con assegnazione e saldo XP invariato. Al riscontro DB del 17/11/2026 il percorso giornaliero in Scheda era depositato come sorgente e in attesa di installazione e collaudo Staff. Resta in vigore il percorso in role. [Scheda del cantiere](../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md)
 
 **Accademia.** Ultimo checkpoint narrativo Sensei v43 del 14/09, con riscontro statico. Riconciliare eventuali prove successive prima di un nuovo collaudo Staff.
 

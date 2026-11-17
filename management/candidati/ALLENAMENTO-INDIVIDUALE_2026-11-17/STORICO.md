@@ -1,3 +1,4 @@
+17/11/2026 · TRAINING-SCHEDA-DOCS-20261117 · Sezione Allenamento, Guida, dossier e stato lavori allineati al riscontro DB · Role in vigore, candidata giornaliera in attesa di installazione e collaudo Staff.
 17/11/2026 · TRAINING-SCHEDA-CUTOVER-20261117 · Due tecniche pagate assegnate con migrazione `20261117103709`, candidata giornaliera composta · Chiusura verificata, nuovo flusso pronto per Staff.
 17/11/2026 · TRAINING-SCHEDA-GIORNATA-20261117 · Una sessione occupa la giornata corrente e si conclude al cambio del server · Durata separata rimossa dalla specifica.
 17/11/2026 · TRAINING-SCHEDA-AVVIO-20261117 · Aperto l’allenamento individuale a tempo in Scheda e ricognizione dei prerequisiti · Decisione annotata e flusso preparato, implementazione da avviare.

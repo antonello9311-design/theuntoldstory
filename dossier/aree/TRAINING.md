@@ -2,7 +2,7 @@
 Allineamento del 17/11/2026 · aperto il cantiere [Allenamento individuale in Scheda](../../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md).
 
 ## Fonti fondamentali — in quest'ordine, solo il blocco che serve
-1. `sito_live/REGOLE.md` §6.1 «Training V2 — imparare una tecnica in una role» e la riga 72 del changelog — il regolamento vivo.
+1. `sito_live/REGOLE.md` §6.1 «Allenamento e apprendimento delle tecniche» e le righe 72 e 105 del changelog — il regolamento vivo.
 2. `management/coordination/HANDOFFS/DECISION-PACK-TRAINING-V2-20260819-FROZEN.md` — il contratto congelato; `TASK-TRAINING-V2-CORE-002-R3-CONSEGNA.md`, `TASK-TRAINING-V2-CORE-REBASE-004.md`, `QUEUE-TRAINING-V2-POST-DBCORE-047-20260819.md`.
 3. Tabelle `training_*` a database (33 funzioni con prefisso `training`): `training_sessions` è la verità sugli allenamenti; `training_guidance_policies` (347 righe) e `training_guidance_event_contracts` (5) per la guidance.
 4. Sensei IA: `TASK-TRAINING-SENSEI-AI-124A-OFFLINE.md` e la catena 146B…146AX (`HANDOFFS/TASK-TRAINING-SENSEI-AI-*`); Edge `training_sensei_ai` v5.
@@ -12,16 +12,16 @@ Allineamento del 17/11/2026 · aperto il cantiere [Allenamento individuale in Sc
 
 ## Stato vivo — riscontro mirato del 17/11/2026
 
-- La Scheda avvia la tecnica e il regolamento §6.1 vigente prevede ancora la role per registrare l’allenamento.
+- La Scheda avvia la tecnica. Il §6.1 indica la role per registrare l’allenamento in Land. Al riscontro del 17/11/2026 le RPC del percorso giornaliero e la sua configurazione di rilascio erano assenti dal database.
 - `training_sessions` contiene quattordici registrazioni dopo la chiusura amministrativa. Sei valide, tre abbandonate, una annullata e quattro legacy approvate.
 - `character_abilities` contiene quindici abilità attive, zero in addestramento e una annullata. Il runtime Sensei IA risulta spento. Le vecchie verifiche di guidance restano nel contratto storico.
 - **Decisione di evoluzione.** Allenamento individuale in Scheda: scelta della tecnica, costo in XP, requisiti e una sessione nella giornata di gioco corrente. Acquisizione e nuova quota al cambio di giornata del server. Massimo un allenamento per personaggio al giorno. Le tecniche speciali seguono il percorso approvato.
 
 ## Lavori aperti
 
-1. Due addestramenti precedenti chiusi con assegnazione verificata.
-2. Candidata pronta per il collaudo Staff con progressione protetta.
-3. Prima di un’apertura in Land va verificata la propagazione delle tecniche maturate ad avvio Combat per tutti gli attori, anche quando un partecipante non ha ancora aperto la Scheda. Aggiornare insieme il regolamento Markdown e HTML al rilascio.
+1. Installare e collaudare in Staff la candidata con progressione protetta. Verifiche statiche concluse.
+2. Verificare che una tecnica maturata sia disponibile all’apertura del Combat anche quando lo apre un altro PG prima che il partecipante riapra la Scheda.
+3. All’apertura in Land, rendere operativo il flusso giornaliero nel §6.1 Markdown e HTML e adeguare la Guida.
 
 Cooperativa, gruppo e sparring conservano i propri percorsi. Le nuove prove del Sensei e della guidance restano parcheggiate.
 

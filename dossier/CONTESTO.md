@@ -74,7 +74,9 @@ Solo un medico che ha **appreso** il Palmo Curativo (grado C, 100 XP): nessun pu
 Base per grado: Deshi/Genin **5** · Chunin **7** · Jonin **9** · Jonin Speciale **11**. Bonus `+⌊Mente/20⌋` (max +5). Acquistabili fino a **4** slot a **200 / 350 / 500 / 650** XP. **Innate di clan e leggendarie non occupano slot; una tecnica in addestramento riserva lo slot.**
 
 ### Allenamento (§6.1, Training V2 dal 26/08)
-Si impara una tecnica in una role: una riga per personaggio (mai di coppia); individuale, cooperativa, gruppo; giornata 06:00–05:59; l'abbandono non rimborsa; sparring non letale ma PV e chakra spesi restano; **l'IA non decide**.
+**In vigore.** Avvio in Scheda e registrazione in role. Una registrazione al giorno per personaggio, dalle 06:00 alle 05:59, ora di Roma. Lo sparring è non letale e conserva il consumo di PV e chakra. Il server decide la validità e la progressione.
+
+**In attesa di collaudo Staff.** L’individuale ordinario si svolgerà in Scheda, con addebito XP all’avvio e una sola sessione che matura al successivo cambio di giornata. Per percorsi speciali e stato di rilascio vedi [Allenamento](aree/TRAINING.md).
 
 ### Missioni
 XP: D **40** · C **60** · B **90** · A **130** · S **180**. Ryo: D **50** · C **100** · B **150** · A **250** · S **400**. **Il Ryo è l'unica valuta.**

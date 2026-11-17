@@ -609,17 +609,27 @@ I **Punti Vita**, i danni e la loro riduzione sono nel **§4 · Combattimento**.
 2. **Ferite.** Un personaggio ridotto male combatte peggio: il master può applicare un malus finché non si cura o si ritira. ⚠️ **È arbitrio del master, non una regola del motore:** il server non applica nessuna penalità per i Punti Vita bassi, e in **giocata libera** non scatta nessun malus automatico.
 3. **Recupero graduale.** Salire di statistiche o di grado alza i massimi ma **non cura**: PV e chakra correnti si riempiono col tempo — circa **1/3 dei PV** e **metà del chakra** al giorno, **mai il pieno in 24 ore**. Durante uno scontro il recupero è sospeso: il tempo trascorso combattendo non viene restituito alla chiusura; quello maturato prima dello scontro si conserva. Rigenerano in fretta solo le **giocate di cura** (medico-ninja) e gli **oggetti curativi**.
 
-### 6.1 Training V2 — imparare una tecnica in una role
+### 6.1 Allenamento e apprendimento delle tecniche
+
+**Percorso in vigore.** Avvia l’allenamento in Scheda → Jutsu e abilità, poi svolgilo e registralo in una role seguendo i passaggi qui sotto.
 
 1. **Avvio dalla Scheda.** Si sceglie una tecnica idonea e si paga subito il costo in XP. Si può avere **una sola tecnica alla volta** in addestramento. L'abbandono volontario interrompe il percorso ma **non restituisce l'XP**; un rimborso è possibile soltanto tramite intervento staff motivato e tracciato.
 2. **Dichiarazione dalla Land.** Con una role aperta, l'allievo dichiara l'allenamento nella chat del luogo. Il momento della dichiarazione è la **frontiera**: contano soltanto le azioni pubbliche successive. Privati, messaggi di sistema, motore e Sensei non contano. Servono **4 azioni pubbliche valide per ogni allievo**, senza minimo aggiuntivo di tempo o caratteri oltre alle normali regole della role.
 3. **Tre modalità.** Nell'**individuale** viene misurato soltanto l'allievo dichiarato. Nella **cooperativa** un compagno indicato può aiutare senza allenare una tecnica e senza ricevere progresso; il server ne verifica presenza e partecipazione. Nel **gruppo**, ogni allievo si dichiara e deve pubblicare autonomamente le proprie quattro azioni: il progresso resta individuale. Gli osservatori possono partecipare alla role, ma non producono progresso, requisiti o alternanza e sono esclusi dal contesto dell'eventuale Sensei IA.
 4. **Registrazione a role aperta.** Appena i requisiti sono raggiunti, l'allievo può registrare l'allenamento senza chiudere la role. Il server unisce scena viva e archivio per UUID, impedisce il doppio conteggio e consente **una sola registrazione valida complessiva per personaggio** nella giornata di gioco **06:00–05:59, ora di Roma**.
-5. **Controlli e sospetti.** Una registrazione sospetta resta in attesa: non dà progresso, ma prenota la giornata originale. Lo staff può approvarla, conservando quella giornata, oppure respingerla e liberarla. Le due righe precedenti a Training V2 restano in revisione legacy e possono essere decise soltanto dallo staff; non vengono convertite automaticamente. L'Admin gestisce inoltre anteprima e annullamento tracciato, storico e rimborsi motivati.
+5. **Controlli e sospetti.** Una registrazione sospetta resta in attesa: non dà progresso, ma prenota la giornata originale. Lo staff può approvarla, conservando quella giornata, oppure respingerla e liberarla. Le registrazioni precedenti a Training V2 sono valutate dallo staff caso per caso. L'Admin gestisce inoltre anteprima e annullamento tracciato, storico e rimborsi motivati.
 6. **Sparring non letale.** Se l'allenamento è collegato a uno scontro, l'alternanza viene verificata dal server. A **0 PV** si produce un K.O. non letale; a **0 chakra** la fatica chiude lo sparring; chi combatte può anche arrendersi. PV e chakra consumati sono però **reali e persistono**: non vengono ripristinati automaticamente alla chiusura. Un altro combattimento aperto blocca dichiarazione e registrazione, tranne lo sparring collegato alla stessa scena.
 7. **Il server decide.** Registrazione valida, incremento, eventuale attivazione della tecnica e notifica sono atomici: un retry non li duplica. Un eventuale Sensei IA può guidare e raccontare l'esperienza, ma **non decide validità, sospetto, progresso, risorse, autorizzazioni o attivazione**.
 
 Lo sparring va concordato nel contesto narrativo; attaccare un personaggio senza accordo o senza contesto resta **powerplay** ed è sanzionato.
+
+#### Allenamento individuale in Scheda · in attesa di collaudo Staff
+
+Nel nuovo percorso si sceglie una tecnica ordinaria in Scheda → Jutsu e abilità. Il server verifica grado, caratteristiche e prerequisiti della tecnica, oltre al saldo XP, e addebita il costo indicato nel catalogo al momento della conferma.
+
+Una sola sessione per personaggio occupa la giornata di gioco, dalle 06:00 alle 05:59, ora di Roma. Al successivo cambio di giornata, alle 06:00, la tecnica viene appresa e si apre una nuova quota. La sessione si completa anche a pagina chiusa e senza una role.
+
+L’allenamento cooperativo, quello di gruppo e lo sparring mantengono i rispettivi percorsi. Le tecniche speciali seguono le loro regole di apprendimento.
 
 ### 6.2 Cure attive — medici e oggetti
 
@@ -1095,3 +1105,4 @@ Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da q
 | 102 | Fili di Chakra come bersaglio | §6.3.1, Combat V2 con Master umano. Un’abilità oculare attiva deve rendere visibili i Fili al PG. Si usa un’arma o una tecnica d’attacco disponibile con le sue regole. Un successo pieno recide i Fili senza danneggiare la marionetta. |
 | 103 | Recisione dei Fili nei duelli ordinari | §6.3.1. Il bersaglio è disponibile anche nei duelli ordinari di Combat V2. La Regia IA di missione richiede ancora il raccordo alla marionetta del PNG. |
 | 104 | Recisione dei Fili nelle missioni con Regia IA | §6.3.1. La stessa recisione di Combat V2 è disponibile nelle missioni con un marionettista abilitato. |
+| 105 | Allenamento individuale in Scheda | Il §6.1 documenta il percorso in vigore in role e il futuro percorso individuale ordinario in Scheda con addebito XP all’avvio, una sessione per giornata e completamento alle 06:00 di Roma. Nuovo percorso in attesa di collaudo Staff. |
