@@ -5,7 +5,7 @@
  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
  <title>La tua scheda — The Untold Story</title>
 -<meta name="tus-build" content="SHURIKEN-LAND-QA-20261114">
-+<meta name="tus-build" content="TRAINING-STAFF-20261117">
++<meta name="tus-build" content="TRAINING-INDIVIDUALE-20261117">
  <link rel="preconnect" href="https://fonts.googleapis.com" />
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
  <link rel="preconnect" href="https://tyhyxkslteigibktluml.supabase.co" crossorigin />
@@ -29,7 +29,7 @@
              <div class="ssec" id="sec-cat"><h3>Catalogo jutsu e abilità</h3>
                <div id="train-wrap"></div></div>
            </div>
-@@ -1199,14 +1201,231 @@
+@@ -1199,14 +1201,266 @@
          +'<div class="tv2-cell"><span>Prenotazione</span><b>'+(model.day_reserved?'Occupata':'Libera')+'</b></div></div>'
          +'<p class="tv2-note">'+esc(trainingV2CurrentCopy(model))+'</p></div>';
      }
@@ -129,14 +129,18 @@
 +      var state=trainingSheet.state;
 +      var staffNotReady=!!(state&&state.simulated&&!state.staff_case);
 +      var staffXpLow=!!(state&&state.simulated&&state.staff_case&&state.staff_xp<(choice.eligibility.xp_cost||0));
-+      var canConfirm=state&&state.enabled&&!quota&&eligible&&!staffNotReady&&!staffXpLow;
++      var canConfirm=state&&state.enabled&&!state.role_active&&!quota&&eligible&&!staffNotReady&&!staffXpLow;
++      var canStartRole=state&&state.enabled&&!state.simulated&&!state.role_active&&eligible;
 +      host.innerHTML='<div class="tv2-card"><div class="tv2-name">'+esc(trainingSheetName(choice.technique))+'</div>'
 +        +'<p class="tv2-note">Costo '+esc(choice.eligibility.xp_cost==null?0:choice.eligibility.xp_cost)+' XP · '+(eligible?'Requisiti verificati':'Requisiti mancanti')+'</p>'
 +        +(reasons.length?'<ul>'+reasons.map(function(reason){return '<li>'+esc(reason)+'</li>';}).join('')+'</ul>':'')
 +        +(quota?'<p class="tv2-note">La sessione di oggi è già utilizzata.</p>':'')
 +        +(staffNotReady?'<p class="tv2-note">Prepara la prova giornaliera per iniziare.</p>':'')
 +        +(staffXpLow?'<p class="tv2-note">XP simulati insufficienti.</p>':'')
++        +(state&&state.role_active?'<p class="tv2-note">Hai già una tecnica in allenamento in role.</p>':'')
 +        +(canConfirm?'<button type="button" class="mini-btn tv2-retry" data-training-sheet-confirm'+busy+'>Avvia allenamento</button> ':'')
++        +(canStartRole?'<button type="button" class="mini-btn tv2-retry" data-training-sheet-role'+busy
++           +'>Allenati in role</button><p class="tv2-note">Per allenamento cooperativo, di gruppo o sparring.</p>':'')
 +        +'<button type="button" class="mini-btn tv2-retry" data-training-sheet-cancel'+busy+'>Chiudi</button></div>';
 +    }
 +    async function trainingSheetChoose(character,technique){
@@ -205,6 +209,36 @@
 +        if(trainingSheetCurrent(character)&&scope===trainingSheet) trainingSheetPaintChoice();
 +      }
 +    }
++    async function trainingSheetStartRole(){
++      var scope=trainingSheet, state=scope.state, choice=scope.choice;
++      if(!state||!state.enabled||state.simulated||state.role_active||!choice||!choice.eligibility
++          ||choice.eligibility.eligible!==true||scope.busy||scope.pending||!trainingSheetCurrent(scope.character)) return;
++      scope.busy=true;
++      trainingSheetPaintChoice();
++      try{
++        if(await trainingV2StartRole(scope.character,choice.technique)){
++          scope.choice=null;
++          await renderTrainingV2(true);
++        }
++      }finally{
++        scope.busy=false;
++        if(scope===trainingSheet&&trainingSheetCurrent(scope.character)) trainingSheetPaintChoice();
++      }
++    }
++    async function trainingV2StartRole(character,technique){
++      try{
++        var result=await sb.rpc('training_start',{p_technique:technique,p_character:character});
++        if(!myChar||myChar.id!==character||viewMode==='public') return false;
++        if(result.error){toast(trainingV2ErrorMessage(result.error),true);return false;}
++        var message=trainingV2StartMessage(result.data||{});
++        toast(message.text,!message.ok);
++        if(message.ok){refreshTrainingXp(character);renderTraining();}
++        return message.ok;
++      }catch(error){
++        toast(trainingV2ErrorMessage(error),true);
++        return false;
++      }
++    }
 +    function refreshTrainingXp(character){
 +      sb.from('characters').select('*').eq('id',character).maybeSingle().then(function(result){
 +        if(!myChar||myChar.id!==character||result.error||!result.data) return;
@@ -222,6 +256,7 @@
 +      if(!host) return;
 +      host.addEventListener('click',function(e){
 +        if(e.target.closest('[data-training-sheet-confirm]')) trainingSheetSubmit();
++        if(e.target.closest('[data-training-sheet-role]')) trainingSheetStartRole();
 +        if(e.target.closest('[data-training-sheet-cancel]')&&!trainingSheet.pending&&!trainingSheet.busy){trainingSheet.choice=null;trainingSheetPaintChoice();}
 +      });
 +    })();
@@ -236,7 +271,7 @@
 +        try{
 +          var daily=await trainingSheetRead(character);
 +          if(!trainingSheetCurrent(character)) return;
-+          if(daily.enabled){
++          if(daily.enabled&&!daily.role_active){
 +            trainingSheetPaint(daily);
 +            if(refreshCatalog===true) renderTraining();
 +            return;
@@ -263,7 +298,7 @@
          var sr=res[0]||{},ar=res[1]||{},abilities=Array.isArray(ar.data)?ar.data:[];
          if(ar.error) throw ar.error;
          if(sr.error){
-@@ -1220,7 +1439,43 @@
+@@ -1220,7 +1474,43 @@
          host.innerHTML='<div class="tv2-error">'+esc(trainingV2ErrorMessage(err))+'<div><button type="button" class="mini-btn tv2-retry" data-tv2-retry>Riprova</button></div></div>';
        }
      }
@@ -308,7 +343,7 @@
  
      /* ---- emblemi (originali; elementi = kanji reali) ---- */
      var LEAF='<svg viewBox="0 0 24 24"><path d="M12 3 C6 8 5 15 12 21 C19 15 18 8 12 3 Z" fill="#3f7d55"/><path d="M12 6 L12 19" stroke="#2f5a3d" stroke-width="1.4"/></svg>';
-@@ -1484,6 +1739,7 @@
+@@ -1484,6 +1774,7 @@
        if(t.riserva_veleno) b2.push('<div class="tkd"><b>Riserva del Veleno</b> · '+esc(t.riserva_veleno)+'</div>');
        if(cons.length) b2.push('<div class="tkd"><b>Consumo</b> · '+cons.join(' · ')+'</div>');
        var acq=[]; if(t.xp_cost!=null)acq.push('<b style="color:var(--red-deep)">'+t.xp_cost+' XP</b>'); if(t.trainings_required!=null)acq.push(t.trainings_required+(t.trainings_required===1?' allenamento':' allenamenti'));
@@ -316,7 +351,7 @@
        if(acq.length) b2.push('<div class="tkd"><b>Acquisto</b> · '+acq.join(' · ')+'</div>');
        var req=[]; if(t.req_grade)req.push('grado '+esc(t.req_grade)); var _sgd=techSoglia(t); if(_sgd)req.push(esc(_sgd.disc)+' '+_sgd.soglia);
        if(t.req_stat)req.push(esc(t.req_stat)+(t.req_stat_value!=null?(' '+t.req_stat_value):''));
-@@ -1502,10 +1758,13 @@
+@@ -1502,10 +1793,13 @@
      function tkRow(t,a,canAct,pfx){
        pfx=pfx||'';   /* 'm' per la vista personale: nessuna collisione di id nel DOM */
        var right='';
@@ -332,7 +367,7 @@
        else { right='<span class="tr-badge">Da apprendere</span>'; }
        var num=(t.xp_cost!=null&&t.xp_cost>0)?(t.xp_cost+' XP'):((t.chakra_cost!=null&&t.chakra_cost>0)?(t.chakra_cost+' ck'):'');
        return '<div class="tr-row" data-texp="'+pfx+t.id+'"><div class="tr-main"><b>'+esc(t.name)+'</b>'+(t.grado?('<span class="tr-gr">'+esc(t.grado)+'</span>'):'')+(t.is_innata?'<span class="tr-cat">Innata</span>':'')+'</div>'+(num?('<span class="tr-meta">'+num+'</span>'):'')+right+'<span class="tr-ch">▸</span></div>'
-@@ -1622,6 +1881,7 @@
+@@ -1622,6 +1916,7 @@
      }
      function paintCatalog(){
        renderBasi();
@@ -340,7 +375,7 @@
        var list=$('train-list'); if(!list) return;
        var canAct=(viewMode!=='public'); var q=TK.q;
        var hasClan=!!(myChar&&myChar.clan&&myChar.clan!=='Nessuno');
-@@ -1632,7 +1892,9 @@
+@@ -1632,7 +1927,9 @@
  
        var genOk=(TK.gen||[]).filter(function(t){ return (!t.req_corp||String(t.req_corp).toLowerCase()===myCorp2); });
        (TK.techs||[]).concat(genOk).forEach(function(t){
@@ -351,7 +386,7 @@
          push(techTab(t),techOrig(t),tkRow(t,TK.byId[t.id],canAct));
        });
        /* [02/08/2026] Le Basi d'Accademia non stanno più qui dentro: hanno il loro
-@@ -1671,7 +1933,7 @@
+@@ -1671,7 +1968,7 @@
        var host=$('train-wrap'); if(!host) return;
        if(viewMode==='public'||!sb||!myChar){ host.innerHTML=''; return; }
        var hasClan=!!(myChar.clan&&myChar.clan!=='Nessuno');
@@ -360,7 +395,7 @@
        /* [TASK-SCHEDA-JUTSU-VISIBILITA-002] Non più «if(hasClan)»: slot_tecniche
           conta ogni tecnica non innata e non leggendaria, generiche comprese, e un
           personaggio senza clan può averne. La barra si nasconde da sola se il
-@@ -1786,9 +2048,26 @@
+@@ -1786,14 +2083,28 @@
          renderTraining();
          return;
        }
@@ -385,11 +420,17 @@
 +          }
 +        }catch(_error){b.disabled=false;toast('Stato allenamento non disponibile. Riprova.',true);return;}
 +      }
-+      var r=await sb.rpc('training_start',{p_technique:technique,p_character:character});
++      var started=await trainingV2StartRole(character,technique);
        b.disabled=false;
-       if(r.error){ toast(trainingV2ErrorMessage(r.error),true); return; }
-       var d=r.data||{},sm=trainingV2StartMessage(d);
-@@ -2682,6 +2961,7 @@
+-      if(r.error){ toast(trainingV2ErrorMessage(r.error),true); return; }
+-      var d=r.data||{},sm=trainingV2StartMessage(d);
+-      if(sm.ok){ toast(sm.text); var ve2=$('v-exp'); renderTraining(); renderTrainingV2(); sb.from('characters').select('*').eq('id',myChar.id).maybeSingle().then(function(rr2){ if(rr2&&rr2.data){ myChar=rr2.data; if(ve2)ve2.textContent=(myChar.exp||0); renderProgress(myChar); } }); }
+-      else { toast(sm.text,true); }
++      if(started) await renderTrainingV2(true);
+     }); })();
+     function renderUnspent(c){var box=$('unspent-box');if(!c.unspent_points||c.unspent_points<=0){box.style.display='none';return;}box.style.display='block';addBuf={};$('u-pts').textContent=c.unspent_points;var host=$('u-rows');host.innerHTML='';STATS.forEach(function(s){addBuf[s[0]]=0;if(s[0]==='kekkei_genkai'&&!showInnata(c))return;var row=document.createElement('div');row.className='steprow';row.innerHTML='<span class="cn">'+statLbl(s)+'</span><button type="button" class="stbtn minus" data-k="'+s[0]+'" data-d="-1">−5</button><span class="stval" id="ua-'+s[0]+'">'+(c[s[0]]||BASE)+'</span><button type="button" class="stbtn" data-k="'+s[0]+'" data-d="1">+5</button>';host.appendChild(row);});}
+     $('u-rows').addEventListener('click',function(e){var b=e.target.closest('.stbtn');if(!b)return;var k=b.getAttribute('data-k'),d=parseInt(b.getAttribute('data-d')||'1',10),used=0,kk;for(kk in addBuf)used+=addBuf[kk];if(d>0){if(used+STEP>myChar.unspent_points)return;if((myChar[k]||BASE)+addBuf[k]+STEP>rankCap()){toast('Tetto del grado: max '+rankCap()+' a questo rango',true);return;}addBuf[k]+=STEP;}else{if(addBuf[k]<STEP)return;addBuf[k]-=STEP;}used=0;for(kk in addBuf)used+=addBuf[kk];$('ua-'+k).textContent=(myChar[k]||BASE)+addBuf[k];var up=$('u-pts');if(up)up.textContent=(myChar.unspent_points-used);});
+@@ -2682,6 +2993,7 @@
          var p=t.getAttribute('data-p');
          document.querySelectorAll('.spage').forEach(function(pg){pg.classList.remove('on');});
          var target=$('page-'+p); if(target)target.classList.add('on');

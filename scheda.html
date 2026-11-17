@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>La tua scheda — The Untold Story</title>
-<meta name="tus-build" content="TRAINING-STAFF-20261117">
+<meta name="tus-build" content="TRAINING-INDIVIDUALE-20261117">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preconnect" href="https://tyhyxkslteigibktluml.supabase.co" crossorigin />
@@ -1296,14 +1296,18 @@
       var state=trainingSheet.state;
       var staffNotReady=!!(state&&state.simulated&&!state.staff_case);
       var staffXpLow=!!(state&&state.simulated&&state.staff_case&&state.staff_xp<(choice.eligibility.xp_cost||0));
-      var canConfirm=state&&state.enabled&&!quota&&eligible&&!staffNotReady&&!staffXpLow;
+      var canConfirm=state&&state.enabled&&!state.role_active&&!quota&&eligible&&!staffNotReady&&!staffXpLow;
+      var canStartRole=state&&state.enabled&&!state.simulated&&!state.role_active&&eligible;
       host.innerHTML='<div class="tv2-card"><div class="tv2-name">'+esc(trainingSheetName(choice.technique))+'</div>'
         +'<p class="tv2-note">Costo '+esc(choice.eligibility.xp_cost==null?0:choice.eligibility.xp_cost)+' XP · '+(eligible?'Requisiti verificati':'Requisiti mancanti')+'</p>'
         +(reasons.length?'<ul>'+reasons.map(function(reason){return '<li>'+esc(reason)+'</li>';}).join('')+'</ul>':'')
         +(quota?'<p class="tv2-note">La sessione di oggi è già utilizzata.</p>':'')
         +(staffNotReady?'<p class="tv2-note">Prepara la prova giornaliera per iniziare.</p>':'')
         +(staffXpLow?'<p class="tv2-note">XP simulati insufficienti.</p>':'')
+        +(state&&state.role_active?'<p class="tv2-note">Hai già una tecnica in allenamento in role.</p>':'')
         +(canConfirm?'<button type="button" class="mini-btn tv2-retry" data-training-sheet-confirm'+busy+'>Avvia allenamento</button> ':'')
+        +(canStartRole?'<button type="button" class="mini-btn tv2-retry" data-training-sheet-role'+busy
+           +'>Allenati in role</button><p class="tv2-note">Per allenamento cooperativo, di gruppo o sparring.</p>':'')
         +'<button type="button" class="mini-btn tv2-retry" data-training-sheet-cancel'+busy+'>Chiudi</button></div>';
     }
     async function trainingSheetChoose(character,technique){
@@ -1372,6 +1376,36 @@
         if(trainingSheetCurrent(character)&&scope===trainingSheet) trainingSheetPaintChoice();
       }
     }
+    async function trainingSheetStartRole(){
+      var scope=trainingSheet, state=scope.state, choice=scope.choice;
+      if(!state||!state.enabled||state.simulated||state.role_active||!choice||!choice.eligibility
+          ||choice.eligibility.eligible!==true||scope.busy||scope.pending||!trainingSheetCurrent(scope.character)) return;
+      scope.busy=true;
+      trainingSheetPaintChoice();
+      try{
+        if(await trainingV2StartRole(scope.character,choice.technique)){
+          scope.choice=null;
+          await renderTrainingV2(true);
+        }
+      }finally{
+        scope.busy=false;
+        if(scope===trainingSheet&&trainingSheetCurrent(scope.character)) trainingSheetPaintChoice();
+      }
+    }
+    async function trainingV2StartRole(character,technique){
+      try{
+        var result=await sb.rpc('training_start',{p_technique:technique,p_character:character});
+        if(!myChar||myChar.id!==character||viewMode==='public') return false;
+        if(result.error){toast(trainingV2ErrorMessage(result.error),true);return false;}
+        var message=trainingV2StartMessage(result.data||{});
+        toast(message.text,!message.ok);
+        if(message.ok){refreshTrainingXp(character);renderTraining();}
+        return message.ok;
+      }catch(error){
+        toast(trainingV2ErrorMessage(error),true);
+        return false;
+      }
+    }
     function refreshTrainingXp(character){
       sb.from('characters').select('*').eq('id',character).maybeSingle().then(function(result){
         if(!myChar||myChar.id!==character||result.error||!result.data) return;
@@ -1389,6 +1423,7 @@
       if(!host) return;
       host.addEventListener('click',function(e){
         if(e.target.closest('[data-training-sheet-confirm]')) trainingSheetSubmit();
+        if(e.target.closest('[data-training-sheet-role]')) trainingSheetStartRole();
         if(e.target.closest('[data-training-sheet-cancel]')&&!trainingSheet.pending&&!trainingSheet.busy){trainingSheet.choice=null;trainingSheetPaintChoice();}
       });
     })();
@@ -1403,7 +1438,7 @@
         try{
           var daily=await trainingSheetRead(character);
           if(!trainingSheetCurrent(character)) return;
-          if(daily.enabled){
+          if(daily.enabled&&!daily.role_active){
             trainingSheetPaint(daily);
             if(refreshCatalog===true) renderTraining();
             return;
@@ -2067,12 +2102,9 @@
           }
         }catch(_error){b.disabled=false;toast('Stato allenamento non disponibile. Riprova.',true);return;}
       }
-      var r=await sb.rpc('training_start',{p_technique:technique,p_character:character});
+      var started=await trainingV2StartRole(character,technique);
       b.disabled=false;
-      if(r.error){ toast(trainingV2ErrorMessage(r.error),true); return; }
-      var d=r.data||{},sm=trainingV2StartMessage(d);
-      if(sm.ok){ toast(sm.text); var ve2=$('v-exp'); renderTraining(); renderTrainingV2(); sb.from('characters').select('*').eq('id',myChar.id).maybeSingle().then(function(rr2){ if(rr2&&rr2.data){ myChar=rr2.data; if(ve2)ve2.textContent=(myChar.exp||0); renderProgress(myChar); } }); }
-      else { toast(sm.text,true); }
+      if(started) await renderTrainingV2(true);
     }); })();
     function renderUnspent(c){var box=$('unspent-box');if(!c.unspent_points||c.unspent_points<=0){box.style.display='none';return;}box.style.display='block';addBuf={};$('u-pts').textContent=c.unspent_points;var host=$('u-rows');host.innerHTML='';STATS.forEach(function(s){addBuf[s[0]]=0;if(s[0]==='kekkei_genkai'&&!showInnata(c))return;var row=document.createElement('div');row.className='steprow';row.innerHTML='<span class="cn">'+statLbl(s)+'</span><button type="button" class="stbtn minus" data-k="'+s[0]+'" data-d="-1">−5</button><span class="stval" id="ua-'+s[0]+'">'+(c[s[0]]||BASE)+'</span><button type="button" class="stbtn" data-k="'+s[0]+'" data-d="1">+5</button>';host.appendChild(row);});}
     $('u-rows').addEventListener('click',function(e){var b=e.target.closest('.stbtn');if(!b)return;var k=b.getAttribute('data-k'),d=parseInt(b.getAttribute('data-d')||'1',10),used=0,kk;for(kk in addBuf)used+=addBuf[kk];if(d>0){if(used+STEP>myChar.unspent_points)return;if((myChar[k]||BASE)+addBuf[k]+STEP>rankCap()){toast('Tetto del grado: max '+rankCap()+' a questo rango',true);return;}addBuf[k]+=STEP;}else{if(addBuf[k]<STEP)return;addBuf[k]-=STEP;}used=0;for(kk in addBuf)used+=addBuf[kk];$('ua-'+k).textContent=(myChar[k]||BASE)+addBuf[k];var up=$('u-pts');if(up)up.textContent=(myChar.unspent_points-used);});
