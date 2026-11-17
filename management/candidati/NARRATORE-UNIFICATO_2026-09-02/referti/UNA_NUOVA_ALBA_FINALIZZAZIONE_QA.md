@@ -1,12 +1,53 @@
 # Una nuova alba — chiusura definitiva Staff e pubblicabilità senza PNG
 
-17/11/2026 · Esito PASS nel perimetro richiesto.
+17/11/2026 · Esito PASS. Chiusure Staff qualificate e pubblicazione effettiva senza PNG verificata.
+
+## Pubblicazione effettiva e bacheca — 17/11/2026, 20:49 UTC
+
+Mandato MISSION-UNA-NUOVA-ALBA-PUBBLICAZIONE-20261117. Prima della pubblicazione il server restituiva SQL42702 «column reference kind is ambiguous». Tre tentativi del medesimo comando conservavano la stessa request_key e lasciavano la transazione annullata, zero pubblicazioni e bozza v3/hash invariati. L’ultimo tentativo strumentato ha identificato l’errore. Correzione minima in materialize_ai_v3, una singola SELECT qualificata con alias em3_step per kind/plan_version_id/step_key, senza modificare contratti, guardie o permessi.
+
+Review indipendente0/0/0, installer/recovery completi pglast7statement/3blocchi PLpgSQL ciascuno PASS. Root d129 ricomposta senza perdita in fa7f5e2f14fad90a7bd306d022f8dd85b7f411042ad35083a7b28ba5b75a9f0c,504111byte, modifica dei soli7 percorsi previsti. Migrazione20261117204926 applicata e riletta, DDL MD5 f77a977b75b529748a32df66990d37b6, prosrc da7819f385462f30cdebc80705c4a0a9, qualifica true. Edge168 e client invariati. Unica funzione applicativa modificata, nessun CHECK/RLS/GRANT/formula/budget modificato. Recovery conserva inventario completo dei certificati, mutex e guardie senza sessioni; dopo nuove pubblicazioni richiede forward fix. Non eseguita.
+
+Con la stessa richiesta conservata1358279e-7d51-4c89-a34a-4d7ec540bb86 il normale comando pubblica è riuscito al primo tentativo successivo alla correzione. UI «Missione pubblicata con Regia IA. Nessuna partita e stata avviata». Ricevuta committed/public, una sola pubblicazione.
+
+Missione a3a8430f-6a3d-4d46-9a75-271d5458406d aperta, piano90d513ec-15e9-4a83-b9b9-c67052b77be9, configurazione1, quattro scene, actors0/encounters0. Bozza v3 published e MD5 cf825ecd8fe85c8f32d10e1a717623a3 invariato. Certificato content_admission e qualifica motore validi. Zero sessioni della nuova missione e zero Staff aperte.
+
+In Land → Missioni → Bacheca è visibile «D Una nuova alba KONOHA», briefing esatto, squadra ancora nessuno(max2), ritrovo Konoha - Altri Luoghi. Selezione normale «Avvio missione» riuscita, pannello «Missione IA · Una nuova alba» e «Configurazione IA pubblicata». Riuji è di Suna e vede correttamente «Missione di un altro villaggio»; non è stata forzata l’iscrizione. Il percorso è disponibile ai PG idonei di Konoha secondo la configurazione approvata. Nessuna iscrizione o partita avviata, nessun provider aggiuntivo.
+
+Le sezioni di qualifica Staff sotto descrivono la versione d129 prima della pubblicazione. Fonte Staff annullata e storico preservati. Screenshot della bacheca e selezione salvati negli artefatti della chat. I builder temporanei non sono depositati perché dipendono da snapshot locali; i tre nuovi sorgenti/piano congelati sono nel cantiere.
+
+Ricevuta autorevole completa, senza testi delle role:
+
+```json
+{
+  "status": "committed",
+  "draft_id": "a050c701-796a-4f6b-b129-42b2262e3303",
+  "mission_id": "a3a8430f-6a3d-4d46-9a75-271d5458406d",
+  "request_key": "1358279e-7d51-4c89-a34a-4d7ec540bb86",
+  "draft_version": 3,
+  "source_sha256": "ee5422664a7ec70c091339fe57e38539d49c637753148005194fbb80e78a440e",
+  "ai_plan_sha256": "a0a5509a4e0e91794545b15e898cfd1ac50c5a09f7e623e7d6b538f7669afa53",
+  "config_version": 1,
+  "schema_version": "mission-factory-publication/3",
+  "supported_modes": [
+    "ai"
+  ],
+  "capability_sha256": "be00bd21916a0d8f190ea2b7a8ee58ad1090ab869fbf68f0a65157e337fa7603",
+  "ai_plan_version_id": "90d513ec-15e9-4a83-b9b9-c67052b77be9",
+  "availability_scope": "public",
+  "engine_release_sha256": "fa7f5e2f14fad90a7bd306d022f8dd85b7f411042ad35083a7b28ba5b75a9f0c",
+  "gathering_location_id": "6c737082-8fc7-4fd8-b246-30297a1ed1af",
+  "content_admission_sha256": "e9a55faa85800cc58c84a8c6ac3a0444e69a8f0921b77567c964bf642118f362"
+}
+```
+
+
 
 ## Risultato e contenuto
 
 Bozza `a050c701-796a-4f6b-b129-42b2262e3303`, versione3, documento MD5 `cf825ecd8fe85c8f32d10e1a717623a3` invariato. SHA del documento IA `a96ec585eb572a592cdf973e68a26e959011ad916da28555de2993fda9d337ab`. Due PG, zero PNG, quattro fasi, quattro transizioni, due finali. Indagine nel bosco e nelle rovine, tracce alternative, registri/lotti/ordini di carico e collegamenti economici verso Kurose, minaccia al convoglio all'alba. Il rientro anticipato produce un rapporto utile ma incompleto senza inventare l'identità del responsabile. Fonte Staff `7e06ff5b-5fc6-446d-ba10-1b2ca2322cf6`, piano `4bf290b6-41c6-4573-88c3-47c7c4c10c3c`, annullata e premi0.
 
-Anteprima normale verificata nel pannello Missioni IA, messaggio «Anteprima pronta: la missione puo essere pubblicata», pulsante Pubblica attivo. Stato previewed, pubblicazioni pubbliche0. Nessun PNG aggiunto.
+Prima della pubblicazione era stata verificata l’anteprima nel pannello Missioni IA, messaggio «Anteprima pronta: la missione puo essere pubblicata», pulsante Pubblica attivo. A quel checkpoint lo stato era previewed e le pubblicazioni pubbliche0. Stato corrente published e pubblicazioni1, come ricevuta sopra. Nessun PNG aggiunto.
 
 ## Difetti corretti e versione integrata
 
@@ -14,7 +55,7 @@ Il publisher e i consumer imponevano success/conclusa anche per il finale parzia
 
 Preview, publish e content_admission hanno un ramo zero PNG limitato al contratto diretto narrativo a due PG senza mappe/arena/incontri. Il ramo esistente due PNG è preservato. Nessun allentamento generale dei validatori. Contratto zero PNG `ad6ede711c2ac7b72228a022e84591f58ffd9d94c4557f11b857daa22b16dd79`.
 
-Migrazione Staff `20261117200747`, migrazione ammissione `20261117202826`. Root finale `d12982a577a72429b61f6d974646bb5d17e0c66b3da9eba21b69077e1468ada6`, 503092 byte, engine qualified true. Root intermedio Staff `a1832dc33e8abf5c76a2df79fc08db118738967dd22e45f3417eb2d0d36e23b0`, baseline `f9ad89a82dfc1912f042907a6ad7a6b7196370abbf288f1fdd3e52f31de664f1`. Compattazione JSON lossless entro il CHECK esistente, storico/certificati/qualifiche riproiettati senza cancellazioni.
+Migrazione Staff `20261117200747`, migrazione ammissione `20261117202826`. Root della qualifica Staff `d12982a577a72429b61f6d974646bb5d17e0c66b3da9eba21b69077e1468ada6`, 503092 byte, engine qualified true. Root intermedio Staff `a1832dc33e8abf5c76a2df79fc08db118738967dd22e45f3417eb2d0d36e23b0`, baseline `f9ad89a82dfc1912f042907a6ad7a6b7196370abbf288f1fdd3e52f31de664f1`. Compattazione JSON lossless entro il CHECK esistente, storico/certificati/qualifiche riproiettati senza cancellazioni.
 
 Edge mission_generic_ai168, EZBR `9a6889802cfa17c99a556538cccd4ad7ef75274d32adccbc192c23d257aa3e76`, 16/16 file identici al readback, verify_jwt=false invariato. UI commit `5240891862e5e548dee57266725a1532474bb001`, SHA256 `1953f6d08e8c0be9bb210e1b3178c6ef677cd3488f22ed393dc57fef178881a6`. Land commit `e591df5b397e3a1870b54600310cea2f59659b3e`, SHA256 `47ecad08c9a2912d0e223792c171b7df897d3875635647e82497e7cf8e9ffe47`, build LAND-ALBA-FINALE-20261117. Admin invariato ADMIN-ALBA-STAFF-20261117. Nuovo helper ownerpostgres, SECURITY DEFINER STABLE, search_path vuoto, ACL `{postgres=X/postgres}`, REVOKE PUBLIC/anon/authenticated/service_role espliciti. Firme/ACL delle funzioni esistenti mantenute. Nessun CHECK, RLS, formula, budget server o account modificato.
 
@@ -56,7 +97,7 @@ La precedente campagna da sei Fati terminava con Annulla prova e aveva output128
 
 ## Copertura e recovery
 
-Runtime qualificato per la conclusione esplicita Staff legacy/3 dei due finali. Auto/4 e avvio pubblico non eseguiti; caller e consumer verificati staticamente. Anteprima e disponibilità Pubblica provati dal pannello normale, pubblicazione effettiva non eseguita. Nessuna attestazione globale di altre missioni o del backlog. Il vecchio ingresso legacy Factory ha un pin già arretrato prima di questa task, non è stato ripinnato per aggirarne le guardie; Missioni IA moderno funziona.
+Runtime qualificato per la conclusione esplicita Staff legacy/3 dei due finali. Auto/4 e avvio pubblico non eseguiti; caller e consumer verificati staticamente. Anteprima e disponibilità Pubblica provati dal pannello normale, pubblicazione effettiva verificata successivamente nella sezione iniziale di questo referto. Nessuna attestazione globale di altre missioni o del backlog. Il vecchio ingresso legacy Factory ha un pin già arretrato prima di questa task, non è stato ripinnato per aggirarne le guardie; Missioni IA moderno funziona.
 
 Recovery Staff utilizzabile solo prima di nuovi Start, altrimenti forward fix. Recovery ammissione utilizzabile solo senza nuovi certificati rispetto all'inventario clonato dal parent e senza sessioni attive. Mantengono storico, dati e dipendenze. Nessuna recovery eseguita. La precedente UNA_NUOVA_ALBA_RECOVERY_SOURCE.sql non appartiene a questa versione.
 

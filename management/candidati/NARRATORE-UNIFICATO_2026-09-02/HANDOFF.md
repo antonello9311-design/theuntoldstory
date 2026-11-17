@@ -1,25 +1,25 @@
-# MISSION-UNA-NUOVA-ALBA-FINALE-PUBBLICABILITA-20261117
+# MISSION-UNA-NUOVA-ALBA-PUBBLICAZIONE-20261117
 
 ## Scope toccato
 
-Chiusura definitiva delle due diramazioni narrative in Staff e rimozione del blocco di anteprima/pubblicazione senza PNG. Bozza v3 canonica conservata, pronta e non pubblicata.
+Pubblicazione normale della bozza v3 Una nuova alba senza PNG e verifica visibilità/selezione in bacheca. Corretto nel mandato il blocco SQL42702 del materializzatore con una sola query qualificata.
 
 ## Contratti usati/modificati
 
-Scene terminal outcome server success/failure, mission-generic-staff-finish-result/1 e relativi consumer DB/Edge/UI. Contratto narrativo diretto zero PNG, due PG, nessuna mappa/arena/incontro. Nessun CHECK/RLS o valore di gioco modificato. Helper nuovo privato con GRANT esplicito postgres.
+mission-factory-publication/3 invariato, materialize_ai_v3 stessa firma/ACL/owner/search_path. Nessun CHECK/RLS/GRANT/formula o budget modificato. Root fa7f5e2f derivata da d129, Edge168/client invariati. Recovery nominativa conservativa, dopo pubblicazione forward fix.
 
 ## Decisioni prese / OPEN
 
-Entrambi i finali chiusi nativamente, bozza previewed e Pubblica attivo. Nessuna pubblicazione pubblica eseguita. Nessun nuovo collaudo necessario nel mandato. Count resta unknown_billable, riserva conservata. Fonte Staff annullata e premi zero. Storico della precedente campagna e scostamento868 token preservati.
+Una nuova alba aperta/pubblica per due PG Konoha, gradoD, Konoha - Altri Luoghi, quattro fasi narrative, zero PNG/incontri. Nessuna iscrizione o partita avviata. Nessuna ulteriore chiamata IA. Count delle prove precedenti resta unknown_billable con riserva. Storico e fonte Staff annullata intatti.
 
 ## Prove eseguite e risultato
 
-Due scene, otto Fati, sedici HTTP provider, dodici step nativi di chiusura completati. Rapporto completo success e rapporto parziale failure, senza attribuzioni inventate. Zero Staff aperte, campi protetti verificati invariati. USD0.1087244 prudenziali su0.20, durata12m48s su45m. Review finali0/0/0, baseline/preflight/readback vivi. Versioni, ricevute, costi e scope statico nel referto [UNA_NUOVA_ALBA_FINALIZZAZIONE_QA.md](referti/UNA_NUOVA_ALBA_FINALIZZAZIONE_QA.md).
+Review indipendente0/0/0 e sintassi installer/recovery completa PASS. Migrazione20261117204926, pre/postflight veri, corpo/ACL/Root esatti. Pubblicazione20:49:37UTC committed, richiesta1358279e-7d51-4c89-a34a-4d7ec540bb86, missionea3a8430f-6a3d-4d46-9a75-271d5458406d, piano90d513ec-15e9-4a83-b9b9-c67052b77be9, configurazione1. Una sola pubblicazione, bozza published/hash invariato, qualifica e content_admission true, zero sessioni della missione e Staff aperte. Bacheca visibile e Avvio missione apre il pannello corretto, Configurazione IA pubblicata. Riuji Suna non iscritto alla missione Konoha. [Referto](referti/UNA_NUOVA_ALBA_FINALIZZAZIONE_QA.md).
 
 ## Rischi o regressioni da verificare
 
-Qualifica runtime copre la conclusione esplicita Staff legacy/3 dei due casi. Auto/4 e avvio pubblico non eseguiti, compatibilità dei consumer verificata staticamente. Nessuna attestazione di inventario/portafoglio completo, confrontati PV/chakra/XP/pool/grado. Recovery non eseguite e vincolate alle precondizioni indicate nei due sorgenti correnti. La recovery precedente UNA_NUOVA_ALBA_RECOVERY_SOURCE.sql non è la recovery di questa consegna.
+Nessun avvio pubblico o iscrizione usati come test. Il mandato richiesto riguarda pubblicazione e selezione, entrambi confermati. I due finali restano qualificati dalla precedente campagna Staff, senza nuove certificazioni generali. Recovery non eseguita e vietata dopo nuove pubblicazioni rispetto all’inventario previsto, usare correzione forward. Nessun file del sito modificato.
 
 ## Passaggio richiesto al PM
 
-Consegna completata. Pubblicazione disponibile dalla bozza già aperta in Missioni IA. Restano locali il builder preparatorio dipendente da snapshot temporanei e le copie duplicate UI/Land, i cui file effettivi sono già pubblicati in root ai commit indicati nel referto. Non riaprire backlog o altre scene.
+Consegna completata. La squadra idonea di Konoha può iscriversi dalla bacheca e procedere con i normali comandi. Nessuna riapertura automatica del backlog o altra prova. Builder preparatori e snapshot temporanei restano locali; installer/recovery/piano e referto sono il deposito verificabile.

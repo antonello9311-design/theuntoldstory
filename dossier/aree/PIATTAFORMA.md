@@ -25,7 +25,7 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
-**17/11/2026 · Una nuova alba, chiusura nativa e zero PNG applicati.** Migrazioni `20261117200747` e `20261117202826`. Sette funzioni di finalizzazione integrate con helper privato `mission_narrative_internal.scene_terminal_outcome_v1(uuid)`, SECURITY DEFINER STABLE, owner postgres, search_path vuoto, GRANT postgres e REVOKE PUBLIC/anon/authenticated/service_role espliciti. Esito terminale derivato dal contratto server, success/failure conservati fino alla ricevuta. Tre funzioni di preview/pubblicazione/ammissione accettano zero PNG solo per il contratto narrativo diretto a due PG senza mappe, arene o incontri. Ramo due PNG conservato. Nessun CHECK, RLS, formula, limite economico o risorsa reale modificato. Root `d12982a577a72429b61f6d974646bb5d17e0c66b3da9eba21b69077e1468ada6`, 503092 byte, engine qualified true; Edge168, EZBR `9a6889802cfa17c99a556538cccd4ad7ef75274d32adccbc192c23d257aa3e76`. Due finali Staff con ricevute native e dodici step chiusura completati; zero Staff aperte. Bozza v3 previewed e Pubblica attivo, pubblicazioni zero. Review indipendenti finali0/0/0 e pre/postflight vivi. Sorgenti/recovery e limiti nel referto `UNA_NUOVA_ALBA_FINALIZZAZIONE_QA.md`. Fonte precedente e migrazioni `20261117191023`/`20261117191732` conservate.
+**17/11/2026 · Una nuova alba pubblicata, migrazione `20261117204926`.** Risolto SQL42702 kind ambiguo in `mission_factory_owner.materialize_ai_v3(uuid,bigint,uuid,text,uuid)` qualificando una sola query con alias em3_step. Firma, owner postgres, ACL `{postgres=X/postgres}`, SECURITY DEFINER e search_path vuoto invariati; DDL MD5 `f77a977b75b529748a32df66990d37b6`, prosrc MD5 `da7819f385462f30cdebc80705c4a0a9`. Review indipendente0/0/0, sintassi installer/recovery completa PASS, pre/postflight vivi. Root `fa7f5e2f14fad90a7bd306d022f8dd85b7f411042ad35083a7b28ba5b75a9f0c`, 504111 byte, qualifica/admission true, derivata senza perdita da d12982a5. Edge168 e client invariati; finali Staff e migrazioni `20261117200747`/`20261117202826` conservati. Pubblicazione committed20:49:37UTC della bozza v3, missione `a3a8430f-6a3d-4d46-9a75-271d5458406d` aperta/pubblica, zero PNG/incontri e quattro scene. Una sola pubblicazione, zero sessioni della nuova missione, zero Staff aperte. Nessun CHECK/RLS/formula/GRANT aggiuntivo. Nessuna recovery eseguita, dopo pubblicazione richiesta correzione forward. Fonte Staff e storico immutati. Dettagli nel referto UNA_NUOVA_ALBA_FINALIZZAZIONE_QA.md.
 
 **Catalogo Clan · 17/11/2026.** Migrazione `20261117143524`. Disattivate le sole due voci Scudo di Sabbia e Rilascio della Marionetta. Righe, UUID e progressione conservati.
 
@@ -639,7 +639,7 @@ I checkpoint precedenti mantengono data, versione e limiti. Le loro istruzioni d
 
 ## Lavori aperti — in ordine
 
-- Una nuova alba pronta alla pubblicazione dalla bozza già aperta. Finale nativo qualificato in Staff e anteprima senza PNG valida. Count resta unknown_billable con riserva conservativa, senza nuove chiamate per questo mandato.
+- Una nuova alba pubblicata e verificata in bacheca. Attendere la formazione di una squadra idonea di due PG di Konoha. Nessuna partita avviata dall’assistente. Count delle prove precedenti conservato unknown_billable con riserva.
 
 C1266 Narratore79: istruzioni installate e conservazione verificata; effetto editoriale sui nuovi Fati ancora NOT_RUN. Nessuna ulteriore prova o chiamata da questa consegna.
 
@@ -694,7 +694,7 @@ FingerprintconOID non portabile; arraySQL segmentato ≠ statementSHA; source_he
 
 ## Prossimo passo
 
-Per Una nuova alba, pubblicare dalla bozza v3 previewed se si intende aprire la missione. Collaudo richiesto concluso, nessuna ulteriore campagna automatica. Count conservato come unknown_billable con riserva, storico e prove precedenti intatti.
+Per Una nuova alba, pubblicazione completata e bacheca verificata. I due PG idonei di Konoha possono iscriversi e completare la squadra; l’assistente non ha iscritto personaggi né avviato una partita. Nessuna ripresa automatica del collaudo o del backlog.
 
 Per il solo mandato Narratore79: conservare la versione e le ricevute; valutare la resa in una prossima prova richiesta, senza rigenerare i Fati precedenti. Gli altri lavori elencati mantengono i propri owner e mandati.
 

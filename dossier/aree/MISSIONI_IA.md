@@ -21,7 +21,7 @@ Allineamento documentale del 09/09/2026 · decisioni e prove narrative recuperat
 
 ## Stato vivo
 
-**Una nuova alba · finale nativo Staff PASS e anteprima pubblicabile · 17/11/2026.** Due scene protette concluse con il normale comando «Concludi la prova». Rapporto completo success/conclusa e rientro parziale failure/fallita, sei passaggi di chiusura completati per ciascuna scena. Indizi alternativi e identità non inventata nel rapporto parziale. Otto Fati, otto Count e otto Gen, USD0.1087244 prudenziali entro0.20. Zero Staff aperte, PV/chakra/XP/pool/grado verificati invariati. Migrazioni `20261117200747` e `20261117202826`, Root `d12982a577a72429b61f6d974646bb5d17e0c66b3da9eba21b69077e1468ada6`, Edge168. Bozza v3 `a050c701-796a-4f6b-b129-42b2262e3303` previewed, zero PNG, anteprima valida e Pubblica attivo, zero pubblicazioni pubbliche. Fonte Staff annullata con premi zero. Referto `referti/UNA_NUOVA_ALBA_FINALIZZAZIONE_QA.md`. La precedente campagna da sei Fati e il suo scostamento output868 restano documentati in `UNA_NUOVA_ALBA_STAFF_QA.md`.
+**Una nuova alba · pubblicata senza PNG · 17/11/2026, 20:49 UTC.** Missione `a3a8430f-6a3d-4d46-9a75-271d5458406d` aperta e pubblica, piano `90d513ec-15e9-4a83-b9b9-c67052b77be9`, configurazione1. Bozza v3 published, hash canonico conservato, una sola pubblicazione committed con richiesta `1358279e-7d51-4c89-a34a-4d7ec540bb86`. Quattro fasi narrative, zero PNG e zero incontri. Konoha, gradoD, due PG, ritrovo Konoha - Altri Luoghi. Visibilità in Missioni → Bacheca e selezione tramite Avvio missione verificate nel sito, pannello «Missione IA · Una nuova alba» e «Configurazione IA pubblicata». Riuji vede il corretto limite di villaggio Suna; nessuna iscrizione o partita avviata. Entrambi i finali nativi Staff già PASS, prove e costi conservati. Corretto il riferimento SQL kind ambiguo con una sola query qualificata, migrazione `20261117204926`, review0/0/0, Root `fa7f5e2f14fad90a7bd306d022f8dd85b7f411042ad35083a7b28ba5b75a9f0c`. Edge168 e client invariati. Zero provider aggiuntivi e zero Staff aperte. Referto `referti/UNA_NUOVA_ALBA_FINALIZZAZIONE_QA.md`.
 
 **Fili nella Regia IA di missione · Staff PASS e supporto Land attivo, 17/11/2026.** Con Byakugan I, testperfunzioni ha reciso i Fili della marionetta di Iori con uno Shuriken simulato. Il referto attesta 28 contro 25, zero danni e integrità 30/30 prima e dopo. Il Fato `3cc98305-682b-462a-a985-fe7136bbe3c9` racconta il taglio in chat. La prova è chiusa. In Land il supporto richiede un marionettista abilitato nella definizione della missione. Al rilascio nessuna missione pubblicata ha quella configurazione.
 
@@ -290,7 +290,7 @@ Le seguenti righe conservano la fotografia precedente: **non descrivono il datab
 
 ## Lavori aperti — in ordine
 
-- Una nuova alba pronta alla pubblicazione dalla bozza già aperta. Finale nativo qualificato in Staff e anteprima senza PNG valida. Count resta unknown_billable con riserva conservativa, senza nuove chiamate per questo mandato.
+- Una nuova alba pubblicata e verificata in bacheca. Attendere la formazione di una squadra idonea di due PG di Konoha. Nessuna partita avviata dall’assistente. Count delle prove precedenti conservato unknown_billable con riserva.
 
 **Editor e missioni.** Editor UI3 a pagina unica online. Contenuti a cura di Antonello. Il precedente stop sull’Innata è storico: il raccordo delle nove mantenute è concluso e pubblico dal 07/11 nel perimetro attestato. Il caso Staff Sabbia I con Quest IA è distinto dall’apertura generale delle Quest IA. Per Discussioni in Centro restano da osservare il primo avvio degli iscritti e un party misto nel normale uso.
 
@@ -349,7 +349,7 @@ E73 consegnata: istruzioni generiche installate e conservazione verificata. Ness
 
 ## Prossimo passo
 
-Per Una nuova alba, pubblicare dalla bozza v3 previewed se si intende aprire la missione. Collaudo richiesto concluso, nessuna ulteriore campagna automatica. Count conservato come unknown_billable con riserva, storico e prove precedenti intatti.
+Per Una nuova alba, pubblicazione completata e bacheca verificata. I due PG idonei di Konoha possono iscriversi e completare la squadra; l’assistente non ha iscritto personaggi né avviato una partita. Nessuna ripresa automatica del collaudo o del backlog.
 
 Per il solo mandato Narratore79: conservare la versione e le ricevute; valutare la resa in una prossima prova richiesta, senza rigenerare i Fati precedenti. Gli altri lavori elencati mantengono i propri owner e mandati.
 
