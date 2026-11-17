@@ -26,4 +26,4 @@ La finalizzazione nativa con risultato e il percorso pubblico zero PNG richiedon
 
 ## Passaggio richiesto al PM
 
-Mandato fonte e due verifiche narrative eseguito. Conservare ricevute e limiti. Riprendere la tappa B pubblica con baseline integrata corrente nel relativo mandato. Riepiloghi aggiornati nel workspace, sorgenti web già pubblicati. Deposito sorgente correttivo e referto da registrare in PUBBLICAZIONE.
+Mandato fonte e due verifiche narrative eseguito. Conservare ricevute e limiti. Riprendere la tappa B pubblica con baseline integrata corrente nel relativo mandato. Riepiloghi aggiornati nel workspace, sorgenti web già pubblicati. Sorgente correttivo depositato a443448c, referto 5589cceb e registro PUBBLICAZIONE 6cb4d0b5, tutti riletti esatti. I delta documentali remoti preservano i contenuti estranei. Le copie locali conservano anche aggiornamenti di altri mandati.
