@@ -21,7 +21,7 @@ Allineamento documentale del 09/09/2026 · decisioni e prove narrative recuperat
 
 ## Stato vivo
 
-**Una nuova alba · pubblicata senza PNG · 17/11/2026, 20:49 UTC.** Missione `a3a8430f-6a3d-4d46-9a75-271d5458406d` aperta e pubblica, piano `90d513ec-15e9-4a83-b9b9-c67052b77be9`, configurazione1. Bozza v3 published, hash canonico conservato, una sola pubblicazione committed con richiesta `1358279e-7d51-4c89-a34a-4d7ec540bb86`. Quattro fasi narrative, zero PNG e zero incontri. Konoha, gradoD, due PG, ritrovo Konoha - Altri Luoghi. Visibilità in Missioni → Bacheca e selezione tramite Avvio missione verificate nel sito, pannello «Missione IA · Una nuova alba» e «Configurazione IA pubblicata». Riuji vede il corretto limite di villaggio Suna; nessuna iscrizione o partita avviata. Entrambi i finali nativi Staff già PASS, prove e costi conservati. Corretto il riferimento SQL kind ambiguo con una sola query qualificata, migrazione `20261117204926`, review0/0/0, Root `fa7f5e2f14fad90a7bd306d022f8dd85b7f411042ad35083a7b28ba5b75a9f0c`. Edge168 e client invariati. Zero provider aggiuntivi e zero Staff aperte. Referto `referti/UNA_NUOVA_ALBA_FINALIZZAZIONE_QA.md`.
+**Una nuova alba · accesso Konoha e Suna attivo · 17/11/2026, 21:11 UTC.** Missione pubblica `a3a8430f-6a3d-4d46-9a75-271d5458406d`, due PG, quattro fasi narrative e zero PNG/incontri. I PG di Konoha e Suna possono comporre la stessa squadra. Ambientazione, briefing, indagine sulle scorte di Konoha e ritrovo Konoha - Altri Luoghi conservati byte per byte; mission.village resta Konoha. Migrazione `20261117210312` estende la sola missione al controllo Suna esistente, usato da iscrizione/bacheca/prepare_start, con proprietà PG e permessi precedenti intatti. Migrazione `20261117211123` completa il contesto squadra della sola pubblicazione Factory3 nominata e allinea runtime alla Root corrente senza cambiare i flag. Root `73712255c70f9560614d1e602bd770b3937138e3f383f636c1aa7f791ea6d335`, 505228 byte, qualifica e content_admission true, Edge168 e client invariati. Bacheca verificata con accesso naturale Riuji Suna, Partecipa disponibile dopo il decoratore e squadra0/2. Nessuna iscrizione/partita/provider. Zero sessioni della missione. Referto `referti/UNA_NUOVA_ALBA_FINALIZZAZIONE_QA.md`.
 
 **Fili nella Regia IA di missione · Staff PASS e supporto Land attivo, 17/11/2026.** Con Byakugan I, testperfunzioni ha reciso i Fili della marionetta di Iori con uno Shuriken simulato. Il referto attesta 28 contro 25, zero danni e integrità 30/30 prima e dopo. Il Fato `3cc98305-682b-462a-a985-fe7136bbe3c9` racconta il taglio in chat. La prova è chiusa. In Land il supporto richiede un marionettista abilitato nella definizione della missione. Al rilascio nessuna missione pubblicata ha quella configurazione.
 
@@ -290,7 +290,7 @@ Le seguenti righe conservano la fotografia precedente: **non descrivono il datab
 
 ## Lavori aperti — in ordine
 
-- Una nuova alba pubblicata e verificata in bacheca. Attendere la formazione di una squadra idonea di due PG di Konoha. Nessuna partita avviata dall’assistente. Count delle prove precedenti conservato unknown_billable con riserva.
+- Una nuova alba pubblica, accessibile a PG di Konoha e Suna tramite Partecipa. Squadra da formare, due posti, nessuna iscrizione o partita effettuata dall’assistente. Count storico conservato con riserva.
 
 **Editor e missioni.** Editor UI3 a pagina unica online. Contenuti a cura di Antonello. Il precedente stop sull’Innata è storico: il raccordo delle nove mantenute è concluso e pubblico dal 07/11 nel perimetro attestato. Il caso Staff Sabbia I con Quest IA è distinto dall’apertura generale delle Quest IA. Per Discussioni in Centro restano da osservare il primo avvio degli iscritti e un party misto nel normale uso.
 
@@ -349,7 +349,7 @@ E73 consegnata: istruzioni generiche installate e conservazione verificata. Ness
 
 ## Prossimo passo
 
-Per Una nuova alba, pubblicazione completata e bacheca verificata. I due PG idonei di Konoha possono iscriversi e completare la squadra; l’assistente non ha iscritto personaggi né avviato una partita. Nessuna ripresa automatica del collaudo o del backlog.
+Per Una nuova alba, i PG idonei di Konoha e Suna possono partecipare alla stessa squadra di due e usare i normali comandi di prontezza. Ritrovo e indagine restano Konoha. Accesso e pannello verificati; nessun nuovo collaudo o avvio automatico.
 
 Per il solo mandato Narratore79: conservare la versione e le ricevute; valutare la resa in una prossima prova richiesta, senza rigenerare i Fati precedenti. Gli altri lavori elencati mantengono i propri owner e mandati.
 

@@ -1,25 +1,25 @@
-# MISSION-UNA-NUOVA-ALBA-PUBBLICAZIONE-20261117
+# MISSION-UNA-NUOVA-ALBA-SUNA-20261117
 
 ## Scope toccato
 
-Pubblicazione normale della bozza v3 Una nuova alba senza PNG e verifica visibilità/selezione in bacheca. Corretto nel mandato il blocco SQL42702 del materializzatore con una sola query qualificata.
+Accesso a Una nuova alba per PG di Suna insieme ai PG di Konoha, preservando la missione e la sua ambientazione. Completato il contesto del pannello squadra che nascondeva Partecipa alla fonte appena pubblicata.
 
 ## Contratti usati/modificati
 
-mission-factory-publication/3 invariato, materialize_ai_v3 stessa firma/ACL/owner/search_path. Nessun CHECK/RLS/GRANT/formula o budget modificato. Root fa7f5e2f derivata da d129, Edge168/client invariati. Recovery nominativa conservativa, dopo pubblicazione forward fix.
+Controllo village_exception privato, consumer iscrizione/bacheca/prepare_start invariati. mission-party-execution/1 e shape pubblica invariati, lettore e proiezione composti per la sola fonte Factory3 Alba con attivazione presente. Nessun nuovo GRANT, CHECK/RLS/formula. Root737, Edge168/client invariati, runtime rebind con flagtrue/true invariati.
 
 ## Decisioni prese / OPEN
 
-Una nuova alba aperta/pubblica per due PG Konoha, gradoD, Konoha - Altri Luoghi, quattro fasi narrative, zero PNG/incontri. Nessuna iscrizione o partita avviata. Nessuna ulteriore chiamata IA. Count delle prove precedenti resta unknown_billable con riserva. Storico e fonte Staff annullata intatti.
+PG Konoha e Suna possono comporre la stessa squadra di due. Missione.village Konoha e ritrovo Konoha - Altri Luoghi, trama/indagine/fasi/premi/zeroPNG identici. Nessuna iscrizione o avvio eseguiti. Count storico conservato, zero provider aggiuntivi. Fonte Staff e pubblicazione unica precedenti preservate.
 
 ## Prove eseguite e risultato
 
-Review indipendente0/0/0 e sintassi installer/recovery completa PASS. Migrazione20261117204926, pre/postflight veri, corpo/ACL/Root esatti. Pubblicazione20:49:37UTC committed, richiesta1358279e-7d51-4c89-a34a-4d7ec540bb86, missionea3a8430f-6a3d-4d46-9a75-271d5458406d, piano90d513ec-15e9-4a83-b9b9-c67052b77be9, configurazione1. Una sola pubblicazione, bozza published/hash invariato, qualifica e content_admission true, zero sessioni della missione e Staff aperte. Bacheca visibile e Avvio missione apre il pannello corretto, Configurazione IA pubblicata. Riuji Suna non iscritto alla missione Konoha. [Referto](referti/UNA_NUOVA_ALBA_FINALIZZAZIONE_QA.md).
+Review indipendenti finali0/0/0, Party P2 race recovery corretto prima apply. Migrazioni20261117210312 e20261117211123, Root73712255c70f9560614d1e602bd770b3937138e3f383f636c1aa7f791ea6d335, qualifica/admission true, firme/ACL/corpi riletti. Missione/bozza/piano/definizione esatti prima/dopo. Bacheca naturale Riuji Suna con Partecipa dopo caricamento completo, squadra0/2, screenshot salvato. Zero prenotazioni/sessioni Alba,0provider. Dettagli [referto](referti/UNA_NUOVA_ALBA_FINALIZZAZIONE_QA.md).
 
 ## Rischi o regressioni da verificare
 
-Nessun avvio pubblico o iscrizione usati come test. Il mandato richiesto riguarda pubblicazione e selezione, entrambi confermati. I due finali restano qualificati dalla precedente campagna Staff, senza nuove certificazioni generali. Recovery non eseguita e vietata dopo nuove pubblicazioni rispetto all’inventario previsto, usare correzione forward. Nessun file del sito modificato.
+Iscrizione e avvio non eseguiti come test. La verifica copre accesso e comando effettivamente disponibile, compatibilità dei consumer controllata staticamente. Nessuna nuova qualifica gameplay o Factory3 generale. Parser compositi dichiarato nel referto. Recovery non eseguite, richiedono assenza uso e inventario esatto, altrimenti forward fix.
 
 ## Passaggio richiesto al PM
 
-Consegna completata. La squadra idonea di Konoha può iscriversi dalla bacheca e procedere con i normali comandi. Nessuna riapertura automatica del backlog o altra prova. Builder preparatori e snapshot temporanei restano locali; installer/recovery/piano e referto sono il deposito verificabile.
+Consegna completata. I PG idonei dei due villaggi possono premere Partecipa dalla bacheca. Nessun collaudo o backlog riaperto. Sei SQL/piani e documenti depositati selettivamente; builder/snapshot temporanei restano locali, sito/Edge invariati.

@@ -25,6 +25,8 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
+**17/11/2026 · Una nuova alba, accesso Suna e contesto party applicati.** Migrazione `20261117210312`, `mission_riuji_owner.village_exception(uuid,uuid,uuid)` aggiunge la sola missione Alba al ramo Suna già esistente per Discussioni. DDL MD5 `ca9ff46a083d2c375c4f6ab9d8742d3c`, prosrc `b708607351abd4395c5aead359652aad`, ACL postgres-only e proprietà PG/user preservate. Consumer iscrizione/bacheca/prepare_start invariati. Migrazione `20261117211123`, proiezione board riusa il contesto server; helper party_execution_context riconosce la sola fonte Factory3 Alba con attivazione esistente e ricevuta/capability/documento/certificato attuali. DDL MD5 board `0e412ff060a57e004519b7ea1dea40e3`, context `ab3ef7d86ee15d0784dec31d10957a40`. Root `73712255c70f9560614d1e602bd770b3937138e3f383f636c1aa7f791ea6d335`, runtime release riallineata da f9ad89a8, public_enabled/staff_enabled true invariati, certificati/qualifiche/storia conservati. Review finali0/0/0; Party P2 recovery race corretto con lock missione→attivazione prima del guard uso. Nessun CHECK/RLS/GRANT/formula modificato, nessun Edge/client/deploy. Missione, bozza v3 e piano/definizione esatti prima/dopo; qualifica/admission true, zero prenotazioni/sessioni Alba. In bacheca Partecipa disponibile al PG Suna naturale dopo decoratore. Nessuna recovery, iscrizione, partita o chiamata provider. Non è una qualifica runtime generale Factory3 o di un avvio pubblico.
+
 **17/11/2026 · Una nuova alba pubblicata, migrazione `20261117204926`.** Risolto SQL42702 kind ambiguo in `mission_factory_owner.materialize_ai_v3(uuid,bigint,uuid,text,uuid)` qualificando una sola query con alias em3_step. Firma, owner postgres, ACL `{postgres=X/postgres}`, SECURITY DEFINER e search_path vuoto invariati; DDL MD5 `f77a977b75b529748a32df66990d37b6`, prosrc MD5 `da7819f385462f30cdebc80705c4a0a9`. Review indipendente0/0/0, sintassi installer/recovery completa PASS, pre/postflight vivi. Root `fa7f5e2f14fad90a7bd306d022f8dd85b7f411042ad35083a7b28ba5b75a9f0c`, 504111 byte, qualifica/admission true, derivata senza perdita da d12982a5. Edge168 e client invariati; finali Staff e migrazioni `20261117200747`/`20261117202826` conservati. Pubblicazione committed20:49:37UTC della bozza v3, missione `a3a8430f-6a3d-4d46-9a75-271d5458406d` aperta/pubblica, zero PNG/incontri e quattro scene. Una sola pubblicazione, zero sessioni della nuova missione, zero Staff aperte. Nessun CHECK/RLS/formula/GRANT aggiuntivo. Nessuna recovery eseguita, dopo pubblicazione richiesta correzione forward. Fonte Staff e storico immutati. Dettagli nel referto UNA_NUOVA_ALBA_FINALIZZAZIONE_QA.md.
 
 **Catalogo Clan · 17/11/2026.** Migrazione `20261117143524`. Disattivate le sole due voci Scudo di Sabbia e Rilascio della Marionetta. Righe, UUID e progressione conservati.
@@ -639,7 +641,7 @@ I checkpoint precedenti mantengono data, versione e limiti. Le loro istruzioni d
 
 ## Lavori aperti — in ordine
 
-- Una nuova alba pubblicata e verificata in bacheca. Attendere la formazione di una squadra idonea di due PG di Konoha. Nessuna partita avviata dall’assistente. Count delle prove precedenti conservato unknown_billable con riserva.
+- Una nuova alba pubblica, accessibile a PG di Konoha e Suna tramite Partecipa. Squadra da formare, due posti, nessuna iscrizione o partita effettuata dall’assistente. Count storico conservato con riserva.
 
 C1266 Narratore79: istruzioni installate e conservazione verificata; effetto editoriale sui nuovi Fati ancora NOT_RUN. Nessuna ulteriore prova o chiamata da questa consegna.
 
@@ -694,7 +696,7 @@ FingerprintconOID non portabile; arraySQL segmentato ≠ statementSHA; source_he
 
 ## Prossimo passo
 
-Per Una nuova alba, pubblicazione completata e bacheca verificata. I due PG idonei di Konoha possono iscriversi e completare la squadra; l’assistente non ha iscritto personaggi né avviato una partita. Nessuna ripresa automatica del collaudo o del backlog.
+Per Una nuova alba, i PG idonei di Konoha e Suna possono partecipare alla stessa squadra di due e usare i normali comandi di prontezza. Ritrovo e indagine restano Konoha. Accesso e pannello verificati; nessun nuovo collaudo o avvio automatico.
 
 Per il solo mandato Narratore79: conservare la versione e le ricevute; valutare la resa in una prossima prova richiesta, senza rigenerare i Fati precedenti. Gli altri lavori elencati mantengono i propri owner e mandati.
 

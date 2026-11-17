@@ -1,6 +1,24 @@
 # Una nuova alba — chiusura definitiva Staff e pubblicabilità senza PNG
 
-17/11/2026 · Esito PASS. Chiusure Staff qualificate e pubblicazione effettiva senza PNG verificata.
+17/11/2026 · Esito PASS. Pubblicazione senza PNG e accesso effettivo Konoha/Suna verificati.
+
+## Accesso Suna e partecipazione effettiva — 17/11/2026, 21:11 UTC
+
+Mandato MISSION-UNA-NUOVA-ALBA-SUNA-20261117, dipendenza PARTY-CONTEXT. Accesso esteso a PG Suna senza spostare la missione. La regola generale Suna per la sola Discussioni è stata estesa alla sola Alba, nel controllo privato condiviso da missione_iscrivi, bacheca_missioni e prepare_start. Identità/proprietà del PG, permessi precedenti, rango, lealtà, capienza e disponibilità conservati. Migrazione20261117210312, DDL MD5 ca9ff46a083d2c375c4f6ab9d8742d3c, prosrc b708607351abd4395c5aead359652aad, ownerpostgres e ACL postgres-only invariati. Riuji Suna ammesso, user errato/null non ammesso, Discussioni ancora ammessa. Nessuna nuova RPC o GRANT.
+
+La prima proiezione legacy mostrava Iscriviti, ma il decoratore rimuoveva il comando e mostrava «Stato della squadra da aggiornare». Diagnosi con la risposta autenticata del normale browser: available=true/can_join=true, execution_context=null perché la proiezione e il lettore consideravano solo existing_publications. Inoltre runtime party era rimasta sulla Rootf9 dopo i delta Alba. Il pulsante iniziale non è stato assunto come prova sufficiente.
+
+Correzione pertinente2funzioni, senza allentare validatori UI. Board riusa party_execution_context_v1; questo aggiunge il lookup autorevole della sola pubblicazione diretta Factory3 Alba con ricevuta committed, capability/versione/source/plan/documento/certificato correnti e attivazione esistente. Legacy e Staff preservati. Ramo Factory3 generico o inizializzazione senza attivazione non dichiarati supportati. Il join di Alba non raggiunge party_enrollment_initialize perché l’attivazione esiste già ed è guardata. Join e booking_assert ricavano world dallo stesso contesto, ready conserva i controlli esistenti.
+
+Migrazione20261117211123, Root73712255c70f9560614d1e602bd770b3937138e3f383f636c1aa7f791ea6d335,505228byte. Undo9paths ricostruiscefa7 senza perdita. Runtime release aggiornata, public_enabled/staff_enabled true invariati; non è un nuovo enable. Edge168 e client invariati. Qualifica/admission effettive true, certificati/storico conservati. Nuovi MD5 board0e412ff060a57e004519b7ea1dea40e3 e contextab3ef7d86ee15d0784dec31d10957a40, ACL/owner/firme/search_path invariati.
+
+Review Suna0/0/0. Review Party iniziale0/0/1 per race nella recovery, corretta con lock FOR UPDATE missione→attivazione prima di controllare assenza utilizzo; controverifica finale0/0/0. Recovery entrambe non eseguite, vietano il ripristino dopo uso e conservano dati/storia. Sintassi SQL completa PASS. Il parser offline PLpgSQL non dispone del catalogo dei tipi compositi della funzione party, stesso limite della baseline viva; il parsing su copie con quei tipi dichiarati record è PASS, senza eseguire gameplay/DB locali. Review statica e pre/postflight vivi completano la verifica, nessun finto PASS di esecuzione semantica locale.
+
+Verifica normale in Missioni → Bacheca con Riuji Suna: «Squadra da completare · 0/2», «Nessun partecipante iscritto» e Partecipa attivo anche dopo caricamento completo del decoratore. Non premuto. Sede Konoha - Altri Luoghi e indagine sulle scorte di Konoha presenti. Screenshot alba-accesso-suna.jpg negli artefatti della chat. Nessuna iscrizione o avvio usati come test, zero provider. Il mondo di gioco e la fonte Staff restano intatti.
+
+Custodia DB prima/dopo — missione intera MD5 a5f0b8b08c7b5fe33c6f5336dec70661, bozza v3 cf825ecd8fe85c8f32d10e1a717623a3, definizione2592d20c17c2ea0dfe1204ee851fd58a, piano90d513ec-15e9-4a83-b9b9-c67052b77be9 e contenuto completo selected_plan invariati. Due PG, quattro fasi, zero PNG/incontri, premi40XP/50Ryo invariati. Zero prenotazioni/sessioni Alba nel postflight. Restano non eseguiti iscrizione e avvio pubblico, senza dedurne una qualifica generale del gameplay. I builder e gli snapshot temporanei restano locali perché dipendono da baseline transitorie; i sei SQL/piani congelati sono consegnati nel cantiere.
+
+
 
 ## Pubblicazione effettiva e bacheca — 17/11/2026, 20:49 UTC
 
