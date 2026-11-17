@@ -1,3 +1,17 @@
+# COMBAT-OCULAR-SEVER-MISSION-LAND-20261117 · Fili nella Regia IA
+
+**Scope.** Una sola recisione riuscita nella Staff Test Room, con Iori, testperfunzioni e Riuji. Il ripristino di preparazione (`16b3ea46-4b31-447b-9316-5f0acd6d042d`) ha usato il comando simulato esistente e la scena è stata chiusa senza dichiarazioni. I casi Master umano, duello ordinario, riallaccio e 27 passive restano acquisiti.
+
+**Contratti.** `ocular-sever/1` e `facts.fili_chakra` nel payload del Narratore. La migrazione `20261117084515` lega il nuovo avvio alla stessa fonte Staff, al documento sigillato e al certificato di Iori. Review indipendente 0/0/0. Client Combat e Narratore Generic v167 sono quelli già pubblicati.
+
+**Prova giocata.** Sessione `0aa11d25-f601-4590-a19c-24caa5803abc`, Combat `e3342ee5-1b7d-411a-802a-a4934d4b5921`, round `3f09f465-692e-4180-8704-0cd0602ed894`. testperfunzioni ha mantenuto Byakugan I e dichiarato un solo «Lancia Shuriken · Recidi i Fili». Riuji ha passato. Il server ha risolto 28 contro 25 e registrato il taglio `a1c12395-2c46-4829-8699-ffd1b716059e`. Il referto `6da943fe-7a78-4cef-a7de-3510d8af9385` attesta zero danni e integrità 30/30 sia prima sia dopo. Fato `3cc98305-682b-462a-a985-fe7136bbe3c9` pubblicato e letto in chat. SHA del referto `db4e4f3ec93fc88caed40547cf15ae23972b99a20b7877019346698076a78901`, SHA del Fato `76cef3eba5f0f7ec6240236df8e85853a38fc2c1ce6bd2e6d7590c5bdf0caa63`.
+
+**Chiusura e limiti.** Prova chiusa alle 09:55 italiane. Quattro Count e quattro Generation, 24.531 token tracciati, costo 0,00482790 USD e zero lavori in sospeso. Entrambi i contesti preparati hanno `values_written=false` e nessuna voce reale nel registro risorse. Firefox ha mostrato un avviso di invio interrotto durante il passaggio dalla bozza con Innata allo Scontro. Il round server ha acquisito una sola dichiarazione e il Fato è stato pubblicato automaticamente.
+
+**Land.** Migrazione `20261117085541`, review 0/0/0 e lettura del gate attivo. Il supporto si applica alle missioni IA con un marionettista autorizzato nella loro definizione. Verificate zero definizioni pubbliche abilitate al momento dell’apertura. Nessuna missione modificata. La configurazione di una missione resta dell’owner Missioni.
+
+## Consegna precedente
+
 # COMBAT-OCULAR-SEVER-MISSION-IA-20261116 · Fili della marionetta del PNG
 
 **Scope.** Una sola prova nella Staff Test Room con Regia IA, Riuji, testperfunzioni e Iori Mizuhara. Master umano, duello ordinario, riallaccio e 27 passive conservano le rispettive prove.

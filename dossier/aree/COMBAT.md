@@ -19,9 +19,9 @@ Allineamento 18/09/2026 · Scudo di terra pubblico dopo QA ordinary e Master per
 
 ## Stato vivo
 
-**Fili nella Regia IA di missione · esito parziale in Staff, 16/11/2026.** Il server ha legato la marionetta passiva a Iori e inviato il fatto meccanico al Narratore. Riuji aveva il Byakugan attivo e ha lanciato uno Shuriken simulato contro i Fili. Iori ha scelto Schivata. Margine −1, Fili collegati, integrità 30/30 e Fato coerente in chat. Master umano e duello ordinario conservano la disponibilità Land già verificata. L’apertura nella Regia IA attende la verifica di una recisione riuscita.
+**Fili nella Regia IA di missione · Staff PASS e supporto Land attivo, 17/11/2026.** Con Byakugan I, testperfunzioni ha reciso i Fili della marionetta di Iori con uno Shuriken simulato. Il referto attesta 28 contro 25, zero danni e integrità 30/30 prima e dopo. Il Fato `3cc98305-682b-462a-a985-fe7136bbe3c9` racconta il taglio in chat. La prova è chiusa. In Land il supporto richiede un marionettista abilitato nella definizione della missione. Al rilascio nessuna missione pubblicata ha quella configurazione.
 
-**Recisione dei Fili · attiva in Land in duello ordinario e con Master umano.** Una capacità oculare attiva deve rendere il segmento visibile al PG. Il bersaglio usa l’offerta d’attacco compatibile, con portata, azione e consumo della fonte. Nel nuovo caso Staff, Shuriken con Byakugan ha reciso il collegamento con un pezzo simulato e integrità 30/30. Il Fato automatico del duello ha raccontato il taglio. I casi Master umano già acquisiti restano come evidenza. In Regia IA il taglio riuscito resta da collaudare.
+**Recisione dei Fili · attiva in Land in duello ordinario e con Master umano.** Una capacità oculare attiva deve rendere il segmento visibile al PG. Il bersaglio usa l’offerta d’attacco compatibile, con portata, azione e consumo della fonte. Nel nuovo caso Staff, Shuriken con Byakugan ha reciso il collegamento con un pezzo simulato e integrità 30/30. Il Fato automatico del duello ha raccontato il taglio. I casi Master umano già acquisiti restano come evidenza.
 
 **Fili di Chakra e 27 passive · disponibilità Land verificata il 16/11/2026.** Il gate pubblico delle passive è attivo (v2, migrazione `20261105193943`) e tutti i 27 livelli sono attivi a catalogo. Il pannello mostra ai PG idonei i permessi portati dalla role al Combat ordinario o con Master umano. Il gate pubblico dei Marionettisti è attivo. Dopo una recisione valida e il turno completo previsto, il server può offrire il riallaccio. In Staff sono acquisiti 27/27 in ordinario, 27/27 con Master e un solo addebito simulato di 5 chakra per il riallaccio. La recisione mirata con abilità oculare è pubblica nei duelli ordinari e negli scontri con Master umano di Combat V2.
 
@@ -327,7 +327,7 @@ Raccordo utility Clan09/09: unica aggregata CC-R1–CC-R3 scritta, INSTALL SHA9d
 ## Lavori aperti — priorità corrente e backlog
 
 1. **Pannello Combat.** Completare gli effetti e i costi nel riepilogo del Master. Verificare dopo ricarica o riconnessione il recupero della vista, della role in bozza e della ricevuta già acquisita, senza doppio invio.
-2. **Recisione nella Regia IA di missione.** Collegare la marionetta al PNG avversario e proiettare la recisione nel Fato, quindi collaudare il solo nuovo percorso in Staff.
+2. **Missioni IA con marionettisti.** Il Combat è disponibile. La configurazione di un marionettista in una missione pubblica compete all’owner Missioni.
 3. **Prossime integrazioni.** Integrare Kunai, Shuriken e Guardia dopo definizione dello slot rapido. Restano il raccordo di Palmo Curativo e oggetti con turno e ricevute, poi Richiamo e combo delle evocazioni. Catalogo e pulsanti esistenti non attestano l’intero flusso. Le rapide aggiuntive e i Flussi multibersaglio restano rinviati.
 4. **Scorta.** Verificare «Apri regia», ritorno narrativo e chiusura soltanto quando è disponibile lo scenario Staff legittimo della stessa missione. Il duello IA e il caso Human H7 coprono percorsi distinti.
 

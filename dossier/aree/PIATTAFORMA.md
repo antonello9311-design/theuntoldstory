@@ -25,7 +25,7 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
-**Fili nella Regia IA · installazione Staff, 16/11/2026.** Migrazioni da `20261116211334` a `20261116215014` nel perimetro `marionetta_ocular_mission`. Edge Generic v167 invariata. Il recupero della pubblicazione conservata ha riusato quattro richieste già contabilizzate e ha aperto lo stesso Combat. Fato di round pubblicato. Gate pubblico di missione spento, sigillo delle funzioni Combat verificato, nessun lavoro attivo residuo.
+**Fili nella Regia IA · Staff PASS e supporto Land, 17/11/2026.** Raccordo del certificato Staff `20261117084515` e apertura `20261117085541`, review 0/0/0. `mission_companion_release_v1.land_enabled=true` letto dopo l’installazione. Zero abilitazioni Land per definizione al rilascio. Il Narratore Generic resta v167 e il client Combat usa il contratto `ocular-sever/1`.
 
 **Recisione dei Fili in duello ordinario · 16/11/2026.** Corretto il raccordo delle offerte raggruppate della marionetta nella migrazione Staff `20261116200659`. Apertura ordinaria `20261116201417`, `ordinary_enabled=true`, review indipendente 0/0/0 e sigillo verificato. Le scelte di distanza conservano l’autorità nativa. Il gate Land ammette duello ordinario e Master umano. La Regia IA di missione resta esclusa finché mancano il produttore del compagno del PNG e la proiezione narrativa del taglio.
 
