@@ -1244,12 +1244,12 @@ export function createMissionUI({client,identity,isStaff,currentLocation,beforeU
   if(!nativeExact(p,['schema_version','master_session_id','state','can_finish','source_revision','expected_publication_id','request_key','outcome','reason'])
    ||p.schema_version!=='mission-generic-staff-finish-status/1'||p.master_session_id!==state.session_id||!['ready','blocked'].includes(p.state)||typeof p.can_finish!=='boolean'
    ||!(p.source_revision===null||SHA.test(p.source_revision||''))||!(p.expected_publication_id===null||UUID.test(p.expected_publication_id||''))
-   ||!(p.request_key===null||UUID.test(p.request_key||''))||![null,'success'].includes(p.outcome)
+   ||!(p.request_key===null||UUID.test(p.request_key||''))||![null,'success','failure'].includes(p.outcome)
    ||!['ready','scope_closed','waiting_final_publication','work_pending','history_unreconciled','roles_pending','combat_pending'].includes(p.reason)
-   ||(p.can_finish?(p.state!=='ready'||p.reason!=='ready'||p.outcome!=='success'||!SHA.test(p.source_revision||'')||!UUID.test(p.expected_publication_id||'')||!UUID.test(p.request_key||'')):(p.state!=='blocked'||p.reason==='ready')))throw Error('staff_finish_projection_invalid');
+   ||(p.can_finish?(p.state!=='ready'||p.reason!=='ready'||!['success','failure'].includes(p.outcome)||!SHA.test(p.source_revision||'')||!UUID.test(p.expected_publication_id||'')||!UUID.test(p.request_key||'')):(p.state!=='blocked'||p.reason==='ready')))throw Error('staff_finish_projection_invalid');
   return p;
  }
- function validFinishReceipt(v,q){return nativeExact(v,['schema_version','master_session_id','state','source_revision','publication_id','request_key','outcome','receipt_sha256','replayed'])&&v.schema_version==='mission-generic-staff-finish-result/1'&&v.master_session_id===q.master_session_id&&v.state==='closed'&&v.source_revision===q.source_revision&&v.publication_id===q.expected_publication_id&&v.request_key===q.request_key&&v.outcome==='success'&&SHA.test(v.receipt_sha256||'')&&typeof v.replayed==='boolean';}
+ function validFinishReceipt(v,q){return nativeExact(v,['schema_version','master_session_id','state','source_revision','publication_id','request_key','outcome','receipt_sha256','replayed'])&&v.schema_version==='mission-generic-staff-finish-result/1'&&v.master_session_id===q.master_session_id&&v.state==='closed'&&v.source_revision===q.source_revision&&v.publication_id===q.expected_publication_id&&v.request_key===q.request_key&&['success','failure'].includes(v.outcome)&&SHA.test(v.receipt_sha256||'')&&typeof v.replayed==='boolean';}
  const finishPrefix=user=>'mission-staff-finish-command/1:'+user+':'+STAFF_TEST_ROOM+':';
  function finishCommands(user,session=null){
   const result=[],prefix=finishPrefix(user);
