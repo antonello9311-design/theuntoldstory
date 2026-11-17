@@ -25,6 +25,8 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
+**Allenamento individuale · 17/11/2026.** Migrazione Staff `20261117132938` e apertura Land `20261117134747`. Nuove sessioni dalla Scheda con registro privato e grant owner. In Staff orario e saldo separati, senza risorse reali. Il primo round Combat riconosce le tecniche maturate. Il percorso in role resta disponibile per cooperativa, gruppo, sparring e casi speciali. Nessun cron aggiunto.
+
 **Chiusura Training · 17/11/2026.** Migrazione `20261117103709`. Lama di vento di Riuji e Risonanza Katon di Kirei assegnate. Migrato il solo saldo di progresso a 1/1 su entrambe le schede. Gli XP disponibili e accumulati sono invariati. Le ricevute amministrative non occupano la giornata di gioco. Review indipendente 0/0/0.
 
 **Fili nella Regia IA · Staff PASS e supporto Land, 17/11/2026.** Raccordo del certificato Staff `20261117084515` e apertura `20261117085541`, review 0/0/0. `mission_companion_release_v1.land_enabled=true` letto dopo l’installazione. Zero abilitazioni Land per definizione al rilascio. Il Narratore Generic resta v167 e il client Combat usa il contratto `ocular-sever/1`.

@@ -1,4 +1,4 @@
-in lavoro · 17/11/2026 · candidata giornaliera pronta per il collaudo Staff
+in uso · 17/11/2026 · collaudato in Staff e aperto in Land
 
 # Allenamento individuale in Scheda
 
@@ -20,9 +20,8 @@ Resta il limite complessivo di **un allenamento al giorno per personaggio**, sec
 - **Percorsi speciali.** La candidata conserva quelli di Innate, leggendarie, evocazioni, Cercoteri e tecniche con guidance attiva. Eventuali eccezioni nominative vanno confermate prima dell’apertura. Cooperativa, gruppo e sparring conservano i propri percorsi.
 - **Addestramenti precedenti.** Lama di vento di Riuji e Risonanza Katon di Kirei assegnate. Registrato il completamento 1/1 su entrambe le schede. Gli XP disponibili e accumulati sono invariati. Le ricevute amministrative non occupano la giornata di gioco.
 
-## Integrazione e verifica
+## Collaudo e apertura
 
-- Riutilizzare l’eligibilità e i consumi del Training esistente. Stato, giornata e ricevuta appartengono al server. Verificare che il nuovo percorso e quello giocato non possano entrambi attribuire lo stesso progresso o superare la quota giornaliera.
-- Casi Staff da predisporre con risorse simulate e senza provider IA. Avvio idoneo, XP insufficienti e requisiti mancanti, secondo avvio nella stessa giornata anche su un’altra tecnica, doppio clic e riconnessione, avvio prima delle 06:00 e completamento al prossimo cambio anche a pagina chiusa, nuova quota giornaliera e acquisizione unica, eccezione speciale e transizione di un avanzamento preesistente.
-- Il §6.1 di `REGOLE.md` e `regole.html` descrive il percorso vigente in role e quello giornaliero in attesa di collaudo Staff. La Guida rimanda al §6.1. All’apertura della funzione allineare i tre documenti allo stato effettivo.
-- **Passaggio a Land.** Prima di un’apertura in Land va verificata la propagazione delle tecniche maturate ad avvio Combat per tutti gli attori, anche quando un partecipante non ha ancora aperto la Scheda.
+Requisito Terra mancante su Scudo di terra. Saldo simulato 70 → 20 per Turbine della Foglia, una sola ricevuta. Secondo avvio indisponibile nella stessa giornata. Alle 06:00 simulate Riuji ha aperto il duello con la Scheda di testperfunzioni chiusa. Tecnica nello snapshot e autorizzata dal profilo Combat. Alla riapertura la Scheda mostra tecnica appresa e nuova quota. Saldo 20 insufficiente per un’altra tecnica da 50 XP. Scontro e prova chiusi, ricevute conservate. Impronte di schede, tecniche e sessioni reali dei due PG invariate. Nessun attacco e nessuna chiamata IA.
+
+Staff `20261117132938`, apertura Land `20261117134747`. Regolamento Markdown e sito aggiornati al §6.1. Le analisi e le ricevute sono nella [consegna](HANDOFF.md).

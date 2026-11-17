@@ -611,25 +611,27 @@ I **Punti Vita**, i danni e la loro riduzione sono nel **§4 · Combattimento**.
 
 ### 6.1 Allenamento e apprendimento delle tecniche
 
-**Percorso in vigore.** Avvia l’allenamento in Scheda → Jutsu e abilità, poi svolgilo e registralo in una role seguendo i passaggi qui sotto.
+#### Allenamento individuale in Scheda
+
+In Scheda → Jutsu e abilità scegli una tecnica ordinaria e conferma l’allenamento. Il server controlla grado, caratteristiche, prerequisiti, posto disponibile tra le tecniche e saldo XP. Il costo indicato nel catalogo viene addebitato una sola volta all’avvio.
+
+Ogni personaggio può svolgere una sola sessione complessiva per giornata di gioco. La giornata va dalle 06:00 alle 05:59, ora di Roma. Alle 06:00 successive la tecnica è appresa e si apre la quota del nuovo giorno. La sessione si completa anche a pagina chiusa e senza una role.
+
+La quota giornaliera è condivisa con l’allenamento in role.
+
+#### Allenamento in role
+
+Per allenarti con altri o in sparring scegli «Allenati in role», poi dichiara e registra la sessione in chat. Le tecniche speciali seguono le regole di apprendimento del loro percorso.
 
 1. **Avvio dalla Scheda.** Si sceglie una tecnica idonea e si paga subito il costo in XP. Si può avere **una sola tecnica alla volta** in addestramento. L'abbandono volontario interrompe il percorso ma **non restituisce l'XP**; un rimborso è possibile soltanto tramite intervento staff motivato e tracciato.
 2. **Dichiarazione dalla Land.** Con una role aperta, l'allievo dichiara l'allenamento nella chat del luogo. Il momento della dichiarazione è la **frontiera**: contano soltanto le azioni pubbliche successive. Privati, messaggi di sistema, motore e Sensei non contano. Servono **4 azioni pubbliche valide per ogni allievo**, senza minimo aggiuntivo di tempo o caratteri oltre alle normali regole della role.
-3. **Tre modalità.** Nell'**individuale** viene misurato soltanto l'allievo dichiarato. Nella **cooperativa** un compagno indicato può aiutare senza allenare una tecnica e senza ricevere progresso; il server ne verifica presenza e partecipazione. Nel **gruppo**, ogni allievo si dichiara e deve pubblicare autonomamente le proprie quattro azioni: il progresso resta individuale. Gli osservatori possono partecipare alla role, ma non producono progresso, requisiti o alternanza e sono esclusi dal contesto dell'eventuale Sensei IA.
+3. **Tre modalità.** Nell’individuale in role, previsto dai percorsi speciali o dallo sparring, viene misurato soltanto l’allievo dichiarato. Nella **cooperativa** un compagno indicato può aiutare senza allenare una tecnica e senza ricevere progresso; il server ne verifica presenza e partecipazione. Nel **gruppo**, ogni allievo si dichiara e deve pubblicare autonomamente le proprie quattro azioni: il progresso resta individuale. Gli osservatori possono partecipare alla role, ma non producono progresso, requisiti o alternanza e sono esclusi dal contesto dell'eventuale Sensei IA.
 4. **Registrazione a role aperta.** Appena i requisiti sono raggiunti, l'allievo può registrare l'allenamento senza chiudere la role. Il server unisce scena viva e archivio per UUID, impedisce il doppio conteggio e consente **una sola registrazione valida complessiva per personaggio** nella giornata di gioco **06:00–05:59, ora di Roma**.
 5. **Controlli e sospetti.** Una registrazione sospetta resta in attesa: non dà progresso, ma prenota la giornata originale. Lo staff può approvarla, conservando quella giornata, oppure respingerla e liberarla. Le registrazioni precedenti a Training V2 sono valutate dallo staff caso per caso. L'Admin gestisce inoltre anteprima e annullamento tracciato, storico e rimborsi motivati.
 6. **Sparring non letale.** Se l'allenamento è collegato a uno scontro, l'alternanza viene verificata dal server. A **0 PV** si produce un K.O. non letale; a **0 chakra** la fatica chiude lo sparring; chi combatte può anche arrendersi. PV e chakra consumati sono però **reali e persistono**: non vengono ripristinati automaticamente alla chiusura. Un altro combattimento aperto blocca dichiarazione e registrazione, tranne lo sparring collegato alla stessa scena.
 7. **Il server decide.** Registrazione valida, incremento, eventuale attivazione della tecnica e notifica sono atomici: un retry non li duplica. Un eventuale Sensei IA può guidare e raccontare l'esperienza, ma **non decide validità, sospetto, progresso, risorse, autorizzazioni o attivazione**.
 
 Lo sparring va concordato nel contesto narrativo; attaccare un personaggio senza accordo o senza contesto resta **powerplay** ed è sanzionato.
-
-#### Allenamento individuale in Scheda · in attesa di collaudo Staff
-
-Nel nuovo percorso si sceglie una tecnica ordinaria in Scheda → Jutsu e abilità. Il server verifica grado, caratteristiche e prerequisiti della tecnica, oltre al saldo XP, e addebita il costo indicato nel catalogo al momento della conferma.
-
-Una sola sessione per personaggio occupa la giornata di gioco, dalle 06:00 alle 05:59, ora di Roma. Al successivo cambio di giornata, alle 06:00, la tecnica viene appresa e si apre una nuova quota. La sessione si completa anche a pagina chiusa e senza una role.
-
-L’allenamento cooperativo, quello di gruppo e lo sparring mantengono i rispettivi percorsi. Le tecniche speciali seguono le loro regole di apprendimento.
 
 ### 6.2 Cure attive — medici e oggetti
 
@@ -1106,3 +1108,4 @@ Tutti i punti aperti sono stati risolti. Il regolamento è **finalizzato**; da q
 | 103 | Recisione dei Fili nei duelli ordinari | §6.3.1. Il bersaglio è disponibile anche nei duelli ordinari di Combat V2. La Regia IA di missione richiede ancora il raccordo alla marionetta del PNG. |
 | 104 | Recisione dei Fili nelle missioni con Regia IA | §6.3.1. La stessa recisione di Combat V2 è disponibile nelle missioni con un marionettista abilitato. |
 | 105 | Allenamento individuale in Scheda | Il §6.1 documenta il percorso in vigore in role e il futuro percorso individuale ordinario in Scheda con addebito XP all’avvio, una sessione per giornata e completamento alle 06:00 di Roma. Nuovo percorso in attesa di collaudo Staff. |
+| 106 | Allenamento individuale in Scheda aperto | Dal 17/11/2026 il percorso ordinario usa una sessione giornaliera, con costo XP all’avvio e acquisizione al cambio giornata. Cooperativa, gruppo, sparring e percorsi speciali restano disponibili in §6.1. |

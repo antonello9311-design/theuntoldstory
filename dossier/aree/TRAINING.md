@@ -2,7 +2,7 @@
 Allineamento del 17/11/2026 · aperto il cantiere [Allenamento individuale in Scheda](../../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md).
 
 ## Fonti fondamentali — in quest'ordine, solo il blocco che serve
-1. `sito_live/REGOLE.md` §6.1 «Allenamento e apprendimento delle tecniche» e le righe 72 e 105 del changelog — il regolamento vivo.
+1. `sito_live/REGOLE.md` §6.1 «Allenamento e apprendimento delle tecniche» e le righe 72, 105 e 106 del changelog — il regolamento vivo.
 2. `management/coordination/HANDOFFS/DECISION-PACK-TRAINING-V2-20260819-FROZEN.md` — il contratto congelato; `TASK-TRAINING-V2-CORE-002-R3-CONSEGNA.md`, `TASK-TRAINING-V2-CORE-REBASE-004.md`, `QUEUE-TRAINING-V2-POST-DBCORE-047-20260819.md`.
 3. Tabelle `training_*` a database (33 funzioni con prefisso `training`): `training_sessions` è la verità sugli allenamenti; `training_guidance_policies` (347 righe) e `training_guidance_event_contracts` (5) per la guidance.
 4. Sensei IA: `TASK-TRAINING-SENSEI-AI-124A-OFFLINE.md` e la catena 146B…146AX (`HANDOFFS/TASK-TRAINING-SENSEI-AI-*`); Edge `training_sensei_ai` v5.
@@ -10,20 +10,16 @@ Allineamento del 17/11/2026 · aperto il cantiere [Allenamento individuale in Sc
 6. Memoria di progetto: `training_v2_cooperativa`, `motore_lesivita_falsi_amici`, `xp_scale_non_scritte`.
 7. `dossier/02_INDICE_DOCUMENTI.md` §Cosa portare nel nuovo punto di partenza, «Allenamento e riservatezza dell'innata»; task archiviata `01a06cea-33ec-7ef1-a709-4d346062a24b`, «Valuta allenamento Ryutama e Kirei». Conservare il verdetto del caso senza copiarne la role privata.
 
-## Stato vivo — riscontro mirato del 17/11/2026
+## Stato vivo — riscontro del 17/11/2026
 
-- La Scheda avvia la tecnica. Il §6.1 indica la role per registrare l’allenamento in Land. Al riscontro del 17/11/2026 le RPC del percorso giornaliero e la sua configurazione di rilascio erano assenti dal database.
-- `training_sessions` contiene quattordici registrazioni dopo la chiusura amministrativa. Sei valide, tre abbandonate, una annullata e quattro legacy approvate.
-- `character_abilities` contiene quindici abilità attive, zero in addestramento e una annullata. Il runtime Sensei IA risulta spento. Le vecchie verifiche di guidance restano nel contratto storico.
-- **Decisione di evoluzione.** Allenamento individuale in Scheda: scelta della tecnica, costo in XP, requisiti e una sessione nella giornata di gioco corrente. Acquisizione e nuova quota al cambio di giornata del server. Massimo un allenamento per personaggio al giorno. Le tecniche speciali seguono il percorso approvato.
+- Allenamento individuale ordinario attivo in Scheda, con costo XP all’avvio e una sessione per personaggio a giornata. Maturazione al cambio delle 06:00 di Roma.
+- Cooperativa, gruppo, sparring e percorsi speciali conservano la registrazione in role quando prevista. La quota è condivisa. Le dichiarazioni e gli avvii precedenti all’apertura restano validi secondo il proprio percorso.
+- Collaudo Staff completato su saldo simulato. L’apertura di Combat da un altro PG ha acquisito la tecnica maturata nel contesto protetto. Esito e ricevute nella consegna del cantiere.
+- Il runtime Sensei IA risulta spento al precedente riscontro. Le vecchie verifiche di guidance restano nel contratto storico.
 
 ## Lavori aperti
 
-1. Installare e collaudare in Staff la candidata con progressione protetta. Verifiche statiche concluse.
-2. Verificare che una tecnica maturata sia disponibile all’apertura del Combat anche quando lo apre un altro PG prima che il partecipante riapra la Scheda.
-3. All’apertura in Land, rendere operativo il flusso giornaliero nel §6.1 Markdown e HTML e adeguare la Guida.
-
-Cooperativa, gruppo e sparring conservano i propri percorsi. Le nuove prove del Sensei e della guidance restano parcheggiate.
+Il primo utilizzo pubblico sarà osservabile al normale uso della funzione. Le nuove prove del Sensei e della guidance restano parcheggiate.
 
 ## Parcheggiato — non riaprire senza mandato
 - `TRAINING-AI-SENSEI-001` come «maestro facoltativo per tecniche complesse» (P2 dell'08/08): assorbito dalla catena 146; non si riapre con quel nome.
@@ -40,5 +36,5 @@ Cooperativa, gruppo e sparring conservano i propri percorsi. Le nuove prove del 
 
 ## Prossimo passo
 
-Preparare il collaudo Staff e verificare i casi di maturazione nella [scheda del cantiere](../../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md).
+Conservare gli esiti del [collaudo Staff](../../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/HANDOFF.md).
 
