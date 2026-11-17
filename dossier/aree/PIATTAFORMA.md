@@ -25,6 +25,8 @@ Allineamento 18/09/2026 · migrazione20260918192301 applicata e verificata; solo
 
 ## Stato vivo
 
+**17/11/2026 · Fonte Una nuova alba riservata Staff.** Migrazioni `20261117191023` e correttiva `20261117191732`. `public.mission_alba_staff_source_v1(uuid)` SECURITY DEFINER, owner postgres, search_path vuoto, ACL `{postgres=X/postgres,authenticated=X/postgres}`, corpo MD5 `39eac9b43254f859c9e8cb5cf30b8990`. GRANT authenticated esplicito e guardie su autore/richiesta/Staff/bozza v3/hash. Nessun CHECK o policy modificato. Creazione e replay UI riusciti sulla fonte `7e06ff5b-5fc6-446d-ba10-1b2ca2322cf6`, annullata e premi zero, piano selezionato `4bf290b6-41c6-4573-88c3-47c7c4c10c3c`. Sei Fati Staff su due scene protette, entrambe chiuse tramite Annulla prova. Zero sessioni Master Staff aperte e campi protetti verificati invariati. Delta correttivo SHA-256 `38d52ad310f66354b75e547cd3b922df0a32ce73a69a58c2537be1c54e26a8c5`. Preview pubblico ancora soggetto a MF_AI_CAPABILITY_ENVELOPE. Referto `UNA_NUOVA_ALBA_STAFF_QA.md`.
+
 **Catalogo Clan · 17/11/2026.** Migrazione `20261117143524`. Disattivate le sole due voci Scudo di Sabbia e Rilascio della Marionetta. Righe, UUID e progressione conservati.
 
 **Allenamento individuale · 17/11/2026.** Migrazione Staff `20261117132938` e apertura Land `20261117134747`. Nuove sessioni dalla Scheda con registro privato e grant owner. In Staff orario e saldo separati, senza risorse reali. Il primo round Combat riconosce le tecniche maturate. Il percorso in role resta disponibile per cooperativa, gruppo, sparring e casi speciali. Nessun cron aggiunto.
@@ -637,6 +639,8 @@ I checkpoint precedenti mantengono data, versione e limiti. Le loro istruzioni d
 
 ## Lavori aperti — in ordine
 
+- Una nuova alba, ammissione pubblica zero PNG e finalizzazione nativa ancora da qualificare. Due percorsi narrativi Staff già eseguiti, prove chiuse. Count ancora in attesa di consolidamento contabile, scostamento output868 conservato nel referto.
+
 C1266 Narratore79: istruzioni installate e conservazione verificata; effetto editoriale sui nuovi Fati ancora NOT_RUN. Nessuna ulteriore prova o chiamata da questa consegna.
 
 E73 consegnata: istruzioni generiche installate e conservazione verificata. Nessuna ulteriore correzione o prova avviata. Efficacia dei nuovi testi e memoria su più turni NOT_RUN; tutti risultati E72 e precedenti restano originali per la review.
@@ -689,6 +693,8 @@ C1266 Editorial71 consegnata: correzioni installate e verifica di conservazione 
 FingerprintconOID non portabile; arraySQL segmentato ≠ statementSHA; source_headbaseline ≠ maxversionesecuzioni; datiseed esclusi da schema-only; statuscontrol-plane ≠ salutedeiservizi.
 
 ## Prossimo passo
+
+Per il mandato Una nuova alba, fonte e percorsi Staff consegnati. Il successivo perimetro dipendente riguarda tappa B pubblica zero PNG e finale nativo, con baseline integrata corrente.
 
 Per il solo mandato Narratore79: conservare la versione e le ricevute; valutare la resa in una prossima prova richiesta, senza rigenerare i Fati precedenti. Gli altri lavori elencati mantengono i propri owner e mandati.
 
