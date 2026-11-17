@@ -13,15 +13,15 @@ Allineamento del 17/11/2026 · aperto il cantiere [Allenamento individuale in Sc
 ## Stato vivo — riscontro mirato del 17/11/2026
 
 - La Scheda avvia la tecnica e il regolamento §6.1 vigente prevede ancora la role per registrare l’allenamento.
-- `training_sessions` contiene dodici registrazioni. Sei valide, tre abbandonate, una annullata e due legacy approvate.
-- `character_abilities` contiene tredici abilità attive, due in addestramento e una annullata. Il runtime Sensei IA risulta spento. Le vecchie verifiche di guidance restano nel contratto storico.
+- `training_sessions` contiene quattordici registrazioni dopo la chiusura amministrativa. Sei valide, tre abbandonate, una annullata e quattro legacy approvate.
+- `character_abilities` contiene quindici abilità attive, zero in addestramento e una annullata. Il runtime Sensei IA risulta spento. Le vecchie verifiche di guidance restano nel contratto storico.
 - **Decisione di evoluzione.** Allenamento individuale in Scheda: scelta della tecnica, costo in XP, requisiti e una sessione nella giornata di gioco corrente. Acquisizione e nuova quota al cambio di giornata del server. Massimo un allenamento per personaggio al giorno. Le tecniche speciali seguono il percorso approvato.
 
 ## Lavori aperti
 
-1. Chiudere i due addestramenti precedenti e delimitare le tecniche speciali.
-2. Preparare il percorso Scheda e la sua autorità server per idoneità, costo, quota giornaliera e acquisizione al cambio di giornata.
-3. Collaudare in Staff con progressione protetta. Conservare le ricevute e aggiornare insieme il regolamento Markdown e HTML al rilascio.
+1. Due addestramenti precedenti chiusi con assegnazione verificata.
+2. Candidata pronta per il collaudo Staff con progressione protetta.
+3. Prima di un’apertura in Land va verificata la propagazione delle tecniche maturate ad avvio Combat per tutti gli attori, anche quando un partecipante non ha ancora aperto la Scheda. Aggiornare insieme il regolamento Markdown e HTML al rilascio.
 
 Cooperativa, gruppo e sparring conservano i propri percorsi. Le nuove prove del Sensei e della guidance restano parcheggiate.
 
@@ -40,5 +40,5 @@ Cooperativa, gruppo e sparring conservano i propri percorsi. Le nuove prove del 
 
 ## Prossimo passo
 
-Chiudere i percorsi precedenti e delimitare i casi speciali nella [scheda del cantiere](../../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md).
+Preparare il collaudo Staff e verificare i casi di maturazione nella [scheda del cantiere](../../management/candidati/ALLENAMENTO-INDIVIDUALE_2026-11-17/SCHEDA.md).
 
