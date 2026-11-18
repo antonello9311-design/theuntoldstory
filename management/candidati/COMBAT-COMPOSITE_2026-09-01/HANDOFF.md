@@ -16,6 +16,8 @@ Fuori_scontro preservate. Non attribuire integrazione completa a una proiezione 
 
 Catalogo migrazione20261118080546, review indipendente0/0/0 e parser completoPASS. Digest intero atteso3137b892d25c4d4b20177dbee5529829d7cde7a31db3bc0d3f5ea220867899b0 esatto,362righe/337attive,25inattive+9jutsu invariati. Nessuna acquisizione/costo/requisito/uso modificati.0provider/0scene, non nuova qualifica engine. Stato e prove in [QA.md](candidato/catalogo_completo/QA.md), matrice [INVENTARIO.json](candidato/catalogo_completo/INVENTARIO.json), [EDITORIALE.json](candidato/catalogo_completo/EDITORIALE.json), [CONTRATTO.md](candidato/catalogo_completo/CONTRATTO.md).
 
+Seconda aggregata dati applicata: migrazione `20261118083406`, 14 tecniche / 24 campi (8 portate, 13 effetti, 3 durate), derivati dai profili server Elementali e Taijutsu già esistenti. Review indipendente 0/0/0 e postflight integrale esatto. Nessuna nuova formula, meccanica, assegnazione o qualifica di gioco. Digest attuale `2ee367eada52a19ed25c3653acfa67ea2a90c8bc89012d418410d94c34a5e1ce`; 362 righe, 337 attive, jutsu invariati, Combat aperti 0. Root737, client ed Edge invariati.
+
 ## Rischi o regressioni da verificare
 
 La restante integrazione NON è completata. Le tecniche non riconosciute possono oggi apparire come attacchi numerici generici senza il loro potere. Paralisi ha differenze dalla presa fisica e Dispersione richiede raccordo resolver; Palmo necessita turno intero/contatto/alleatoKO/ledger, non solo danno0. Le candidate dei due adapter sono in preparazione isolata e non installate. Nessuna certificazione del gameplay dedotta dal catalogo.

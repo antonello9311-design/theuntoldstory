@@ -1,3 +1,4 @@
+18/11/2026 · COMBAT-CATALOGO-METADATA-14 · Portata, effetti e durata di14tecniche allineati ai profili vivi · DatiPASS0/0/0, migrazione20261118083406; runtime nuovo ancora source-only.
 18/11/2026 · COMBAT-CATALOGO-COMPLETO-20261118 · Inventario337attive/6jutsu e prima aggregata64righe applicata · DatiPASS0/0/0, nuove meccaniche ancora in preparazione.
 17/11/2026 · COMBAT-OCULAR-SEVER-MISSION-LAND-20261117 · Staff: Fili recisi, marionetta 30/30, Fato pubblicato e prova chiusa · PASS, supporto Regia IA attivo in Land.
 16/11/2026 · COMBAT-OCULAR-SEVER-MISSION-IA-20261116 · Marionetta collegata a Iori, tentativo schivato e Fato pubblicato. Prova chiusa. · Staff parziale, Land Regia IA spenta.
