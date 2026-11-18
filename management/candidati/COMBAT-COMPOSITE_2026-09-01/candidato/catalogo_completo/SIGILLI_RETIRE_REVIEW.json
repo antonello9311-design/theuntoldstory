@@ -1,0 +1,208 @@
+{
+  "schema_version": "catalogo-retirement-review/1",
+  "task": "COMBAT-CATALOGO-SIGILLI-RETIRE-20261118",
+  "state": "APPLIED_DATA_POSTFLIGHT_PASS",
+  "source": {
+    "sha256": "07b6f9c62d1aa345a10461830ec2b65e7c692cd1141d2ece86a0c9dee07daa3e",
+    "raw_utf8": "-- Ritiro esplicito Antonello: soltanto il doppione Attivazione Sigilli.\nBEGIN;\nDO $sigilli_retire$\nDECLARE row_before jsonb;row_after jsonb;others_before text;others_after text;n integer;\nBEGIN\n IF current_user<>'postgres' OR session_user<>'postgres' OR auth.uid() IS NOT NULL THEN\n  RAISE EXCEPTION 'SIGILLI_RETIRE_OPERATOR_REQUIRED';END IF;\n LOCK TABLE public.clan_techniques IN SHARE ROW EXCLUSIVE MODE NOWAIT;\n SELECT to_jsonb(t) INTO STRICT row_before FROM public.clan_techniques t\n WHERE id='29ecdd97-c224-4bca-8bf9-efb17ebe70f3' FOR UPDATE;\n IF row_before->>'name' IS DISTINCT FROM 'Attivazione Sigilli'\n OR row_before->'is_active' IS DISTINCT FROM 'true'::jsonb\n OR public.combat_v2_sha256(row_before) IS DISTINCT FROM '6134750ccdbc5a31d9bd53145d38f11e21677fee2c999dfa4173f998f62400a6' THEN\n  RAISE EXCEPTION 'SIGILLI_RETIRE_TARGET_DRIFT';END IF;\n SELECT public.combat_v2_sha256(coalesce(jsonb_agg(to_jsonb(t)ORDER BY t.id),'[]'::jsonb))\n INTO others_before FROM public.clan_techniques t WHERE id<>'29ecdd97-c224-4bca-8bf9-efb17ebe70f3';\n UPDATE public.clan_techniques t SET is_active=false\n WHERE id='29ecdd97-c224-4bca-8bf9-efb17ebe70f3'\n AND public.combat_v2_sha256(to_jsonb(t))='6134750ccdbc5a31d9bd53145d38f11e21677fee2c999dfa4173f998f62400a6';\n GET DIAGNOSTICS n=ROW_COUNT;\n IF n<>1 THEN RAISE EXCEPTION 'SIGILLI_RETIRE_ROW_COUNT';END IF;\n SELECT to_jsonb(t) INTO STRICT row_after FROM public.clan_techniques t WHERE id='29ecdd97-c224-4bca-8bf9-efb17ebe70f3';\n IF row_after IS DISTINCT FROM jsonb_set(row_before,'{is_active}','false'::jsonb,false)\n OR public.combat_v2_sha256(row_after) IS DISTINCT FROM 'b3a9cab178fa9507d1c718bca95c0944c6f80ac9d102fd5de57f8931a1ab0b93' THEN\n  RAISE EXCEPTION 'SIGILLI_RETIRE_AFTER_IMAGE';END IF;\n SELECT public.combat_v2_sha256(coalesce(jsonb_agg(to_jsonb(t)ORDER BY t.id),'[]'::jsonb))\n INTO others_after FROM public.clan_techniques t WHERE id<>'29ecdd97-c224-4bca-8bf9-efb17ebe70f3';\n IF others_after IS DISTINCT FROM others_before THEN RAISE EXCEPTION 'SIGILLI_RETIRE_OTHER_ROWS_CHANGED';END IF;\nEND $sigilli_retire$;\nCOMMIT;\n"
+  },
+  "recovery": {
+    "sha256": "97c733b8d1d3ca135cdfdfc21a43b3b5fec5889481b736c5b04dbf7762bde0c5",
+    "raw_utf8": "-- RECOVERY SOURCE ONLY: riattivazione richiede un mandato successivo; non eseguire per collaudare.\nBEGIN;\nDO $sigilli_retire$\nDECLARE row_before jsonb;row_after jsonb;others_before text;others_after text;n integer;\nBEGIN\n IF current_user<>'postgres' OR session_user<>'postgres' OR auth.uid() IS NOT NULL THEN\n  RAISE EXCEPTION 'SIGILLI_RETIRE_OPERATOR_REQUIRED';END IF;\n LOCK TABLE public.clan_techniques IN SHARE ROW EXCLUSIVE MODE NOWAIT;\n SELECT to_jsonb(t) INTO STRICT row_before FROM public.clan_techniques t\n WHERE id='29ecdd97-c224-4bca-8bf9-efb17ebe70f3' FOR UPDATE;\n IF row_before->>'name' IS DISTINCT FROM 'Attivazione Sigilli'\n OR row_before->'is_active' IS DISTINCT FROM 'false'::jsonb\n OR public.combat_v2_sha256(row_before) IS DISTINCT FROM 'b3a9cab178fa9507d1c718bca95c0944c6f80ac9d102fd5de57f8931a1ab0b93' THEN\n  RAISE EXCEPTION 'SIGILLI_RETIRE_TARGET_DRIFT';END IF;\n SELECT public.combat_v2_sha256(coalesce(jsonb_agg(to_jsonb(t)ORDER BY t.id),'[]'::jsonb))\n INTO others_before FROM public.clan_techniques t WHERE id<>'29ecdd97-c224-4bca-8bf9-efb17ebe70f3';\n UPDATE public.clan_techniques t SET is_active=true\n WHERE id='29ecdd97-c224-4bca-8bf9-efb17ebe70f3'\n AND public.combat_v2_sha256(to_jsonb(t))='b3a9cab178fa9507d1c718bca95c0944c6f80ac9d102fd5de57f8931a1ab0b93';\n GET DIAGNOSTICS n=ROW_COUNT;\n IF n<>1 THEN RAISE EXCEPTION 'SIGILLI_RETIRE_ROW_COUNT';END IF;\n SELECT to_jsonb(t) INTO STRICT row_after FROM public.clan_techniques t WHERE id='29ecdd97-c224-4bca-8bf9-efb17ebe70f3';\n IF row_after IS DISTINCT FROM jsonb_set(row_before,'{is_active}','true'::jsonb,false)\n OR public.combat_v2_sha256(row_after) IS DISTINCT FROM '6134750ccdbc5a31d9bd53145d38f11e21677fee2c999dfa4173f998f62400a6' THEN\n  RAISE EXCEPTION 'SIGILLI_RETIRE_AFTER_IMAGE';END IF;\n SELECT public.combat_v2_sha256(coalesce(jsonb_agg(to_jsonb(t)ORDER BY t.id),'[]'::jsonb))\n INTO others_after FROM public.clan_techniques t WHERE id<>'29ecdd97-c224-4bca-8bf9-efb17ebe70f3';\n IF others_after IS DISTINCT FROM others_before THEN RAISE EXCEPTION 'SIGILLI_RETIRE_OTHER_ROWS_CHANGED';END IF;\nEND $sigilli_retire$;\nCOMMIT;\n",
+    "executed": false
+  },
+  "independent_review": {
+    "sha256": "0445ca5902f0dbd88474541c1f7c553f484911484f17c126d848114dddf68201",
+    "raw_utf8": "{\n  \"schema_version\": \"independent-data-review/1\",\n  \"role\": \"DB-CORE reviewer indipendente\",\n  \"reviewer\": \"/root/verifica\",\n  \"scope\": \"Ritiro del solo doppione Attivazione Sigilli\",\n  \"result\": \"0/0/0 SOURCE ONLY\",\n  \"counts\": {\n    \"P0\": 0,\n    \"P1\": 0,\n    \"P2\": 0\n  },\n  \"findings\": [],\n  \"created_at\": \"2026-11-18T15:18:46.332996+00:00\",\n  \"files\": {\n    \"sigilli_retire.source.sql\": \"07b6f9c62d1aa345a10461830ec2b65e7c692cd1141d2ece86a0c9dee07daa3e\",\n    \"sigilli_retire.recovery.sql\": \"97c733b8d1d3ca135cdfdfc21a43b3b5fec5889481b736c5b04dbf7762bde0c5\",\n    \"sigilli_retire.baseline.json\": \"355f88805a6da7740c9756ceafcecc98adc73f0a78ba2493a5a802b0ad748b9e\"\n  },\n  \"target_id\": \"29ecdd97-c224-4bca-8bf9-efb17ebe70f3\",\n  \"before_pg_sha256\": \"6134750ccdbc5a31d9bd53145d38f11e21677fee2c999dfa4173f998f62400a6\",\n  \"after_pg_sha256\": \"b3a9cab178fa9507d1c718bca95c0944c6f80ac9d102fd5de57f8931a1ab0b93\",\n  \"checks\": [\n    \"Identita ID e nome esatti, target before-image intero pinzato; after-image cambia soltanto is_active da true a false. Entrambi hash jsonb PostgreSQL ricostruiti indipendentemente e coincidenti.\",\n    \"Una transazione, operatore postgres/auth.uid null, LOCK SHARE ROW EXCLUSIVE NOWAIT e target FOR UPDATE prima del DML. UPDATE su ID con CAS hash, cardinalita esatta1.\",\n    \"Digest di tutte le altre righe prima/dopo sotto lock e confronto integrale target obbligatorio. Nessun DELETE, INSERT, altra colonna, funzione, ACL, gate o tabellaPG modificata nel codice.\",\n    \"Recovery simmetrica pinzata alla sola immagine after esatta: riattiva il solo flag e preserva tutte le altre righe. Non eseguita e non coperta da mandato di apply corrente.\",\n    \"Intero source e recovery:3statement ciascuno, singolo BEGIN/DO/COMMIT, grammatica SQL e PL/pgSQL superata. Baseline custodita dichiara zero riferimenti runtime esatti e identifica separatamente gli altri sigilli, lasciati invariati.\"\n  ],\n  \"limits\": [\n    \"Nessuna query DB/UI/provider o apply eseguiti dal reviewer. Il PM verifica postflight after-image reale e altre righe prima della consegna.\",\n    \"Il referto riguarda il ritiro dati esplicito, non una nuova funzione o qualifica engine. Recovery richiede successivo mandato esplicito.\"\n  ],\n  \"operations\": {\n    \"db\": 0,\n    \"ui\": 0,\n    \"provider\": 0,\n    \"source_mutations\": 0,\n    \"repository_writes\": 0\n  }\n}\n",
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "baseline": {
+    "target": {
+      "id": "29ecdd97-c224-4bca-8bf9-efb17ebe70f3",
+      "uso": "principale",
+      "clan": null,
+      "name": "Attivazione Sigilli",
+      "sort": 100,
+      "grado": "D",
+      "level": null,
+      "macro": "abilita",
+      "difesa": null,
+      "durata": null,
+      "gittata": "contatto",
+      "portata": null,
+      "potenza": null,
+      "xp_cost": 10,
+      "category": null,
+      "di_scena": false,
+      "req_corp": null,
+      "req_perk": null,
+      "req_ramo": null,
+      "req_stat": null,
+      "ricarica": null,
+      "bersaglio": null,
+      "difensiva": false,
+      "is_active": true,
+      "is_innata": false,
+      "req_grade": "Genin",
+      "req_stat2": null,
+      "created_at": "2026-07-21T19:02:21.93521+00:00",
+      "danno_base": 0,
+      "disciplina": "Abilità",
+      "req_taglia": null,
+      "attivazione": "istantanea",
+      "chakra_cost": null,
+      "description": null,
+      "req_tecnica": null,
+      "tipo_azione": null,
+      "req_elements": null,
+      "req_famiglia": null,
+      "requirements": null,
+      "danno_effetto": null,
+      "is_leggendaria": false,
+      "ramo_esclusivo": null,
+      "req_cercoterio": null,
+      "req_stat_value": null,
+      "req_stat2_value": null,
+      "consumption_type": "ad_utilizzo",
+      "gruppo_esclusivo": null,
+      "rivela_originale": false,
+      "req_elements_mode": null,
+      "trainings_required": 1,
+      "colpisce_formazione": false
+    },
+    "target_sha256": "6134750ccdbc5a31d9bd53145d38f11e21677fee2c999dfa4173f998f62400a6",
+    "other_seal_entries": [
+      {
+        "id": "67581395-c345-48ed-9409-107a000102c1",
+        "name": "Falsificazione dei sigilli",
+        "is_active": true
+      },
+      {
+        "id": "79985f2e-98f3-441c-a74e-a7b69696fbcf",
+        "name": "Sigillo anti-dolore",
+        "is_active": true
+      },
+      {
+        "id": "eef2d026-76e0-45c8-a2e8-9030b9b40c57",
+        "name": "Sigillo del segugio",
+        "is_active": true
+      },
+      {
+        "id": "0a1accd6-8c02-4602-af2d-1dfd41a49351",
+        "name": "Sigillo dell'identità vuota",
+        "is_active": true
+      },
+      {
+        "id": "7d4e57c0-34d7-48a1-88de-52d0dab6ed0d",
+        "name": "Sigillo di Accumulo",
+        "is_active": true
+      },
+      {
+        "id": "51e46507-24e3-43d1-8f39-310fae6c2908",
+        "name": "Sigillo di Contenimento",
+        "is_active": true
+      },
+      {
+        "id": "38ee3215-251e-4a10-b627-35fe21fc17ad",
+        "name": "Sigillo di trasmissione",
+        "is_active": true
+      },
+      {
+        "id": "f44a044d-e011-488f-a447-eb4c5fe6f246",
+        "name": "Sigillo serbatoio",
+        "is_active": true
+      },
+      {
+        "id": "d831089c-b526-40cd-bfbe-622601e29e56",
+        "name": "Sigillo tracciante",
+        "is_active": true
+      }
+    ],
+    "exact_runtime_references": []
+  },
+  "actual_installation": {
+    "task": "COMBAT-CATALOGO-SIGILLI-RETIRE-20261118",
+    "decision": "RETIRED_EXPLICITLY",
+    "user_request": "cancella attivazione sigilli che entra da un'altraparte",
+    "source_sha256": "07b6f9c62d1aa345a10461830ec2b65e7c692cd1141d2ece86a0c9dee07daa3e",
+    "recovery_sha256": "97c733b8d1d3ca135cdfdfc21a43b3b5fec5889481b736c5b04dbf7762bde0c5",
+    "review_sha256": "0445ca5902f0dbd88474541c1f7c553f484911484f17c126d848114dddf68201",
+    "apply_success": true,
+    "postflight": {
+      "root": "7de36fc81053902e6fbfa99c332ee75544f7a8acdb26ebfd9c6ab108045bcf7f",
+      "counts": {
+        "total": 362,
+        "active": 336,
+        "inactive": 26,
+        "active_missing_description": 0
+      },
+      "target": {
+        "id": "29ecdd97-c224-4bca-8bf9-efb17ebe70f3",
+        "name": "Attivazione Sigilli",
+        "is_active": false,
+        "row_sha256": "b3a9cab178fa9507d1c718bca95c0944c6f80ac9d102fd5de57f8931a1ab0b93"
+      },
+      "migration": {
+        "name": "catalogo_ritira_attivazione_sigilli_20261118",
+        "version": "20261118151920"
+      },
+      "catalog_sha256": "0f8c69c660ef41009156af9783787599de01aa09032d98dd3686ed28fa7cc59f",
+      "other_seal_entries": [
+        {
+          "id": "67581395-c345-48ed-9409-107a000102c1",
+          "name": "Falsificazione dei sigilli",
+          "is_active": true
+        },
+        {
+          "id": "79985f2e-98f3-441c-a74e-a7b69696fbcf",
+          "name": "Sigillo anti-dolore",
+          "is_active": true
+        },
+        {
+          "id": "eef2d026-76e0-45c8-a2e8-9030b9b40c57",
+          "name": "Sigillo del segugio",
+          "is_active": true
+        },
+        {
+          "id": "0a1accd6-8c02-4602-af2d-1dfd41a49351",
+          "name": "Sigillo dell'identità vuota",
+          "is_active": true
+        },
+        {
+          "id": "7d4e57c0-34d7-48a1-88de-52d0dab6ed0d",
+          "name": "Sigillo di Accumulo",
+          "is_active": true
+        },
+        {
+          "id": "51e46507-24e3-43d1-8f39-310fae6c2908",
+          "name": "Sigillo di Contenimento",
+          "is_active": true
+        },
+        {
+          "id": "38ee3215-251e-4a10-b627-35fe21fc17ad",
+          "name": "Sigillo di trasmissione",
+          "is_active": true
+        },
+        {
+          "id": "f44a044d-e011-488f-a447-eb4c5fe6f246",
+          "name": "Sigillo serbatoio",
+          "is_active": true
+        },
+        {
+          "id": "d831089c-b526-40cd-bfbe-622601e29e56",
+          "name": "Sigillo tracciante",
+          "is_active": true
+        }
+      ]
+    },
+    "recovery_executed": false,
+    "provider_calls": 0,
+    "gameplay_calls": 0,
+    "root_and_code_unchanged": true,
+    "other_rows_equality_guard_passed": true,
+    "catalog_visual_check": "NOT_OPENED_TO_PRESERVE_CURRENT_STAFF_PRESENCE; live active filter verified by DB",
+    "browser_observation": "testperfunzioni e Riuji elencati presenti; nessuna navigazione o mutazione UI eseguita"
+  }
+}
