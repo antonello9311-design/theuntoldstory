@@ -1,3 +1,5 @@
+18/11/2026 · COMBAT-CATALOGO-COMPAT-20261118 · Otto raccordi eligibility riconosciuti dalla Root7de, dopo R1/R2 0/0/0 e preflight100peer · INSTALLATO_STAFF, migrazione20261118145057,0gameplay/provider; apertura nuovaOFF.
+18/11/2026 · COMBAT-CATALOGO-STAFF-QA-20261118 · Setup Master protetto, offerte PG bloccate fullseal e chiusura nativa · BLOCKED_PRIMA_GAMEPLAY,0provider/4digestinvariati/0sessioniresidue.
 18/11/2026 · COMBAT-CATALOGO-STAFF-INSTALL · Rootf460/Edge45, Palmo eParalisi soloStaff dopo review/finalizzazione0/0/0; migrazione20261118122814 · INSTALLATO_STAFF,0QA/provider; finestresource240/120minsuperateecustodite.
 18/11/2026 · COMBAT-CATALOGO-METADATA-14 · Portata, effetti e durata di14tecniche allineati ai profili vivi · DatiPASS0/0/0, migrazione20261118083406; runtime nuovo ancora source-only.
 18/11/2026 · COMBAT-CATALOGO-COMPLETO-20261118 · Inventario337attive/6jutsu e prima aggregata64righe applicata · DatiPASS0/0/0, nuove meccaniche ancora in preparazione.
