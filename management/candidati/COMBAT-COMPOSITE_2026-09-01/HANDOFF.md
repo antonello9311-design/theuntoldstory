@@ -1,195 +1,25 @@
-# COMBAT-OCULAR-SEVER-MISSION-LAND-20261117 · Fili nella Regia IA
+# COMBAT-CATALOGO-COMPLETO-20261118 · in lavoro
 
-**Scope.** Una sola recisione riuscita nella Staff Test Room, con Iori, testperfunzioni e Riuji. Il ripristino di preparazione (`16b3ea46-4b31-447b-9316-5f0acd6d042d`) ha usato il comando simulato esistente e la scena è stata chiusa senza dichiarazioni. I casi Master umano, duello ordinario, riallaccio e 27 passive restano acquisiti.
+## Scope toccato
 
-**Contratti.** `ocular-sever/1` e `facts.fili_chakra` nel payload del Narratore. La migrazione `20261117084515` lega il nuovo avvio alla stessa fonte Staff, al documento sigillato e al certificato di Iori. Review indipendente 0/0/0. Client Combat e Narratore Generic v167 sono quelli già pubblicati.
+Integrare nel Combat Land tutte le tecniche residue del catalogo, completando descrizione e campi necessari. Ricognizione371record compresi inattivi e jutsu,337catalogo attive e6jutsu attivi. Voci fuori_scontro restano narrative per scelta esplicita Antonello18/11. Nessuna riattivazione di voci ritirate o rami Copertura/Diversivo.
 
-**Prova giocata.** Sessione `0aa11d25-f601-4590-a19c-24caa5803abc`, Combat `e3342ee5-1b7d-411a-802a-a4934d4b5921`, round `3f09f465-692e-4180-8704-0cd0602ed894`. testperfunzioni ha mantenuto Byakugan I e dichiarato un solo «Lancia Shuriken · Recidi i Fili». Riuji ha passato. Il server ha risolto 28 contro 25 e registrato il taglio `a1c12395-2c46-4829-8699-ffd1b716059e`. Il referto `6da943fe-7a78-4cef-a7de-3510d8af9385` attesta zero danni e integrità 30/30 sia prima sia dopo. Fato `3cc98305-682b-462a-a985-fe7136bbe3c9` pubblicato e letto in chat. SHA del referto `db4e4f3ec93fc88caed40547cf15ae23972b99a20b7877019346698076a78901`, SHA del Fato `76cef3eba5f0f7ec6240236df8e85853a38fc2c1ce6bd2e6d7590c5bdf0caa63`.
+## Contratti usati/modificati
 
-**Chiusura e limiti.** Prova chiusa alle 09:55 italiane. Quattro Count e quattro Generation, 24.531 token tracciati, costo 0,00482790 USD e zero lavori in sospeso. Entrambi i contesti preparati hanno `values_written=false` e nessuna voce reale nel registro risorse. Firefox ha mostrato un avviso di invio interrotto durante il passaggio dalla bozza con Innata allo Scontro. Il round server ha acquisito una sola dichiarazione e il Fato è stato pubblicato automaticamente.
+Prima aggregata solo dati:62description derivate dall’effetto già presente; Hōki allineato al contratto pubblico vivo, Aghi10/P20/15m e Corpo0danni diretti/3turni. Nessun valore nuovo inventato, nessuna funzione o schema mutato. I profili futuri useranno la stessa catena offerta/freeze/risoluzione/lifecycle/ledger/referto/Fato; preparazione mediante preset Staff nativo compatibile combat-panel/1, nessuna acquisizione sulle schede reali.
 
-**Land.** Migrazione `20261117085541`, review 0/0/0 e lettura del gate attivo. Il supporto si applica alle missioni IA con un marionettista autorizzato nella loro definizione. Verificate zero definizioni pubbliche abilitate al momento dell’apertura. Nessuna missione modificata. La configurazione di una missione resta dell’owner Missioni.
+## Decisioni prese / OPEN
 
-## Consegna precedente
+Fuori_scontro preservate. Non attribuire integrazione completa a una proiezione generica con danno/costo NULL→0. Descrizioni non interpretate dal runtime. AttivazioneSigilli senza contratto storico è in attesa di decisione; Capolavoro richiede chiarire la promessa di azione extra rispetto alla regola condivisa. Tutte le altre famiglie avanzano per contratti, senza attendere i soli rami dipendenti.
 
-# COMBAT-OCULAR-SEVER-MISSION-IA-20261116 · Fili della marionetta del PNG
+## Prove eseguite e risultato
 
-**Scope.** Una sola prova nella Staff Test Room con Regia IA, Riuji, testperfunzioni e Iori Mizuhara. Master umano, duello ordinario, riallaccio e 27 passive conservano le rispettive prove.
+Catalogo migrazione20261118080546, review indipendente0/0/0 e parser completoPASS. Digest intero atteso3137b892d25c4d4b20177dbee5529829d7cde7a31db3bc0d3f5ea220867899b0 esatto,362righe/337attive,25inattive+9jutsu invariati. Nessuna acquisizione/costo/requisito/uso modificati.0provider/0scene, non nuova qualifica engine. Stato e prove in [QA.md](candidato/catalogo_completo/QA.md), matrice [INVENTARIO.json](candidato/catalogo_completo/INVENTARIO.json), [EDITORIALE.json](candidato/catalogo_completo/EDITORIALE.json), [CONTRATTO.md](candidato/catalogo_completo/CONTRATTO.md).
 
-**Contratti.** La definizione Staff autorizza il PNG con il suo bundle certificato e la marionetta L1 passiva con ricevuta di collegamento. Il PNG conserva una sola scelta difensiva, condivisa con il corpo che controlla. Il Narratore riceve il fatto del tentativo distinto dal danno al corpo attraverso `facts.fili_chakra` del referto. Il Fato usa il flusso nativo Edge Generic v167. Il rilascio della Regia IA resta spento.
+## Rischi o regressioni da verificare
 
-**Installazione.** Review indipendenti 0/0/0 sul raccordo e sui delta applicati. Base `20261116211334`. Correzioni preparazione, avvio e mappa `20261116211941`, `20261116212057`, `20261116212329`. Client Staff `f50505da93d56d43a488c22f6c754c020fd852ac`. Recupero del risultato salvato `20261116214419`, dispatch e diagnostica `20261116214655` e `20261116214904`, risoluzione dell’alias SQL del binder `20261116215014`. Il [sorgente di recupero](candidato/MARIONETTA_OCULAR_MISSION_STAFF_REPLAY.sql) conserva la riproducibilità del recupero mirato eseguito su questa scena, già chiusa.
+La restante integrazione NON è completata. Le tecniche non riconosciute possono oggi apparire come attacchi numerici generici senza il loro potere. Paralisi ha differenze dalla presa fisica e Dispersione richiede raccordo resolver; Palmo necessita turno intero/contatto/alleatoKO/ledger, non solo danno0. Le candidate dei due adapter sono in preparazione isolata e non installate. Nessuna certificazione del gameplay dedotta dal catalogo.
 
-**Staff.** Sessione `57a79d9b-6b70-4e4a-95dc-e1e14ec63aa2`, Combat `c6646adf-30ec-4e74-9de8-029d2922073c`. Incipit `7374a7aa-8472-4387-b8bf-66266236a431` e passaggio a Combat `be924edf-446c-4200-b85f-6958428dab29`. Il passaggio è stato pubblicato dal risultato conservato, con zero chiamate IA aggiuntive per il recupero. Riuji ha mantenuto il Byakugan I attivato in role e ha inviato «Lancia Shuriken · Recidi i Fili» contro la marionetta. testperfunzioni ha passato. La Regia ha scelto una Schivata di Iori. L’attacco si è risolto a 19 contro 20, margine −1, zero danni e integrità 30/30. Il referto `25eeba78-480b-4b32-be3e-814bd8ca153e` attesta `non_recisi`. Il Fato `32f38022-8a8c-4670-b573-30aa09c60219` lo racconta in chat. Impronte di input del Narratore e referto verificate.
+## Passaggio richiesto al PM
 
-**Chiusura.** Prova e Combat chiusi alle 22:56 italiane. Nessun lavoro attivo, nessuna riserva o richiesta IA residua. Otto richieste HTTP, 24.626 token e 0,00487740 USD. Il referto è simulato e inventari e dotazioni coincidono prima e dopo. La scheda di Riuji ha aggiornato i timestamp di rigenerazione al rientro in Land alle 22:44, con riscontro `enter_land`; il digest integrale della scheda differisce. La scheda di testperfunzioni coincide. Fati e ricevute conservati.
-
-**Esito e passaggio.** Raccordo PNG, reazione e Fato del tentativo verificati. Recisione riuscita ancora da attestare sulla Regia IA prima dell’apertura. Nessuna attivazione per le missioni Land e nessuna ripetizione dei casi acquisiti.
-
-## Consegna precedente
-
-# COMBAT-OCULAR-SEVER-RESIDUAL-20261116 · Recisione ordinaria e Regia IA
-
-**Scope.** Soli casi di recisione rimasti. Versione iniziale client `fili-ocular-1`, contratto `ocular-sever/1`, gate Land già attivo per Master umano. Le prove Master, riallaccio e 27 passive restano acquisite.
-
-**Difetto e correzione ordinaria.** Nella scena `3b073c69-50fc-402d-be96-ebc4d1e3a45a` il collegamento iniziale riusciva, poi `annotate_offer_categories` annullava tutte le opzioni con `panel_ui_source_not_available/40001`. Il movimento raggruppato conserva l’offerta nativa sulle singole distanze. Il pannello ora verifica tutte le fonti del gruppo nel contesto corretto. Il commit continua a risolvere la scelta effettiva. Scena diagnostica chiusa normalmente. Migrazione Staff `20261116200659`, review indipendente 0/0/0.
-
-**Staff ordinaria PASS.** Scena `9febacc0-cab8-4908-9daf-81eff7e844c9`, lancio `d74a2300-3f5c-472e-9876-2c72df14c4d2`, un solo evento `link_severed`, un pezzo simulato, una principale, zero danni e integrità 30/30. Il Fato del duello `30f5180e-ebb7-4d43-9afd-fdab54216279` pubblicato in chat racconta la recisione e l’integrità della marionetta. Entrambe le scene chiuse, zero addebiti reali, hash di entrambe le schede uguali. Tre chiamate IA del duello, 14.554 token, 0,002447 USD complessivi, inclusi due passaggi preparatori.
-
-**Rilascio ordinario.** Gate Land `20261116201417`, `ordinary_enabled=true`, review 0/0/0. Il gate esclude le missioni IA. Regolamento e sorgenti al commit `fe612d3df002df002a0b76e673d9e69ce3e62011`. Il ripristino conserva ricevute, Fati, gate Master e schede.
-
-**Regia IA di missione bloccata prima dell’avvio.** Il combattimento IA esige un PNG autorizzato dal Ninja Book, ma le autorità native di missione e quest respingono un PNG con `companion_id`. I preset Staff dei Fili supportano proprietari PG, mentre la Regia IA mette i PG nella stessa squadra. Il proiettore del Fato missione omette inoltre `fili_recisi`. Per rappresentare il caso serve il collegamento tra il PNG avversario e la sua marionetta nei contratti nativi di missione, seguito dalla proiezione del taglio distinto da un colpo al corpo. Il collaudo reale di questo ramo e l’apertura restano pendenti.
-
-## Consegna precedente
-
-# COMBAT-OCULAR-SEVER-20261116 · Recisione dei Fili
-
-**Scope.** Bersaglio «Fili» quando percepito da un’abilità oculare attiva. Il PG usa la propria offerta d’attacco, con azione, portata, percorso e consumo del server. Shuriken e tecniche compatibili condividono la risoluzione. Kunai resta nel lavoro di integrazione delle armi.
-
-**Contratti e versione.** Il nuovo bersaglio trasporta una ricevuta privata vincolata a richiesta, attore, round, fonte e collegamento. Offerte, dichiarazione, risoluzione e proiezione del Fato conservano l’autorità server. La prima iterazione `20261116151000` ha toccato il binder elementale sigillato; ripristino esatto `20261116151802`, poi versione ricomposta `20261116152200`, client `fili-ocular-1` già verificato sul dominio. Review indipendente 0/0/0.
-
-**Prove Staff con Master umano.** Shuriken con Byakugan, dichiarazione `68196cba-d711-48bc-b7c0-ffea82b7e6e9`, uno Shuriken e una principale simulati. Soffio di brace con Sharingan, dichiarazione `61af868f-3db2-4a28-afe2-87e68bcf2ec5`, 5 chakra e una principale simulati. Due eventi `link_severed` con autorità `ocular-sever/1`, 0 danni e integrità 30/30 per entrambi. Verificata l’assenza dell’offerta con occhio spento o tratto occluso. Due Fati Master pubblicati in Staff, scene chiuse, zero addebiti reali, schede confrontate identiche, zero chiamate IA. Riallaccio e 27 passive mantengono le prove pregresse.
-
-**Land e residui.** Gate attivo dal rilascio `20261116192833`, circoscritto alle sessioni Combat V2 con Master umano. Regolamento sincronizzato e sorgenti pubblicati nel commit `43670e0f2e1aa95196659c659520a18d412b62b9`. Esito Staff acquisito. Recisione ordinaria e in Regia IA restano da collaudare prima dell’eventuale apertura di quei percorsi. La recovery richiede tutte le scene chiuse e conserva le ricevute. Nessun nuovo collaudo richiesto per i due casi acquisiti.
-
-## Consegna precedente
-
-# COMBAT-FILI-PASSIVE-LAND-20261116 · Disponibilità pubblica
-
-**Scope.** Fili di Chakra e 27 permessi passivi dalla role al Combat ordinario o con Master umano, per PG idonei. Esame e modalità guidate fuori dalla disponibilità documentata delle passive. Verifica di pubblicazione e aggiornamento documentale.
-
-**Versione viva.** Dominio `/land.html`, build `staff-master-start-1`, sorgente GitHub `01539fdf995d0e44cf99440adb26295c19d7e15b`, blob `859b07d5182549d2f22258ce1ec5cb523dbd306a`. Verificati sul dominio i consumer «Innate passive» e «Fili». A database `world_passive_gate_v1.public_enabled=true`, versione 2, catalogo 27/27 attivo. `clan_marionettisti_private.release_gate.public_enabled=true`; il percorso delle offerte usa `relink_options` e `relink_ready`, il commit passa dal controllo nativo. Nessuna riapertura o installazione necessaria.
-
-**Prove acquisite.** Restano 54 associazioni simulate role→Combat con impronta coerente e il ledger simulato del riallaccio `af0f5348-6d7d-41f0-9d6c-c10b191b0ebd`, 5 impegnati e 0 applicati. [Referto Staff](candidato/INNATA_WORLD_STAFF_QA_HANDOFF.md). Nessuna nuova scena, chiamata IA o scrittura su scheda.
-
-**Limite e passaggio al PM.** In Staff il Colpo a mano è stato autorizzato a recidere dal comando di prova. Il trigger nativo richiede i tratti server di percezione e recisione. Il solo produttore individuato è quello riservato in Staff e non risultano dichiarazioni con tratti di recisione fuori dalla simulazione. Il comando di riallaccio è disponibile a condizioni soddisfatte. Per chiudere la catena pubblica identificare e collegare una capacità ammessa dal regolamento a monte della recisione. I casi già positivi restano acquisiti.
-
-## Consegna precedente
-
-# COMBAT-STAFF-MASTER-REFRESH-20261116 · Apertura Combat in Staff
-
-**Scope.** Regia Master già aperta nella Staff Test Room dopo «Avvia Combat».
-
-**Contratto.** Il client usa la ricevuta di apertura per rileggere lo scontro confermato, con controllo di stanza, identità e ID della sessione. La correzione usa il pannello comune e non dipende dall’aggiornamento automatico sospeso in Staff.
-
-**Versione.** Build `staff-master-start-1`, commit `01539fdf995d0e44cf99440adb26295c19d7e15b`. Sei script verificati e review indipendente 0/0/0. Marcatore verificato sul dominio.
-
-**Prova Staff.** Con Riuji e testperfunzioni, un clic ha mostrato «Scontro · Round 1» nella Regia già aperta, dopo circa due secondi. Nessuna seconda apertura, ricarica o pressione di «Aggiorna». Scena `b9c0c0f8-b250-483b-8224-73522b0263f7`, sessione Combat `d905950e-a543-42b8-ae86-c02cc999c60d`, ricevuta di avvio `82c6b00c-cbe4-46b3-b614-fe124b8fd6de`, chiusura `9e745f38-4785-44ca-a71d-ee3f31c71c27`. Un round in preparazione, zero dichiarazioni, righe di costo, Fati o chiamate IA. Entrambe le sessioni chiuse, nessuna residua in Staff. Impronte delle schede e delle tecniche e timestamp di recupero identici prima e dopo.
-
-**Perimetro e consegna.** Verificato il solo primo passaggio, senza preparare la mappa o giocare il round. Fili e passive già collaudati restano acquisiti. Nessuna operazione successiva richiesta per questa correzione Staff.
-
-## Consegna precedente
-
-# COMBAT-MASTER-PASSIVE-ROSTER-20261115 · Collaudo Staff
-
-**Passive con Master · 27/27 in Staff.** Il Master salva i partecipanti in preparazione; il PG invia la role con profilo temporaneo e apre Combat. Sette scene verificate e chiuse, ricevute di role e Combat corrispondenti. Impronte complete e timestamp di recupero delle schede di Riuji e testperfunzioni identici prima e dopo. [Referto](candidato/INNATA_WORLD_STAFF_QA_HANDOFF.md).
-
-## Consegna precedente
-
-# COMBAT-ARMI-GUARDIA-20261114 · contratto in definizione
-
-Riepilogo Master e recupero di bozza Fato e ricevuta dopo ricarica attivi in Land. Prossimo ramo: Kunai, Shuriken e Guardia.
-
-**Kunai, Shuriken e Guardia · verifica del 14/11/2026.** Kunai e Shuriken sono attivi come armi consumabili nel catalogo. L’equipaggiamento da scheda è separato dalle fonti d’attacco di Combat V2. Le offerte Master e lo snapshot dei personaggi usano mano, clan e jutsu. La Guardia è stata ritirata il 17/08 e il riferimento a una rapida attiva nel regolamento è arretrato. Restano da definire il contratto dello slot rapido condiviso e il comportamento della Guardia. Staff e apertura in Land ancora da eseguire.
-
-## Raccordo proposto
-
-- Kunai e Shuriken equipaggiati come armi da lancio. Un attacco leggero a gittata Corta e base 10, precisione Taijutsu come nel piano armi. Il server verifica disponibilità, bersaglio e turno, poi registra un solo consumo di munizione insieme alla dichiarazione. In Staff usa la quantità simulata della scena. Il catalogo dell’oggetto non modifica i numeri del personaggio.
-- Guardia come azione rapida che occupa lo stesso slot del lancio. Proposta da ratificare: costo chakra zero, +3 al primo confronto difensivo valido prima del prossimo turno, poi scadenza. Il +3 è il valore storico provvisorio. La rapida lascia disponibili principale e reazione.
-- Offerta, dichiarazione e referto sul percorso ordinario del pannello, con autorità server, stessa chiave di richiesta per eventuale ripresa e riserva Staff prima dell’apertura. Dopo definizione e riscontro server, allineare regolamento markdown e sito.
-- Matrice Staff mirata: una ricevuta per lancio legale, diniego senza arma equipaggiata o fuori gittata, inventario reale protetto, una sola rapida a turno e Guardia applicata una volta e poi scaduta. Coprire i percorsi ordinario e Master riusando i PASS esistenti. Copertura e Diversivo fuori dal mandato.
-
-## Consegna precedente
-
-# COMBAT-INUZUKA-STATUS-20261114 · Allineamento documentale
-
-**Combat V2 · rilascio del 14/11/2026.** Il pannello comune è pubblicato in Land con scelte sulla mappa, alternativa da tastiera e un solo «Invia» per scelta e role. Build `combat-land-20261114-1`, commit `f7762e8e`, Pages `43570483785`. In Staff risultano conclusi movimento, tastiera a 320 × 480, punto d’impatto, una reazione su due attacchi e invio unico con Fato del Master e della Regia IA nel duello nativo. Rotazione B10, Katon B3 e punto cieco Byakugan sono acquisiti. L’apertura in Land è verificata sul dominio.
-
-**Inuzuka attivo in Land · 14/11/2026.** Simbiosi coi Ninken, Quattro Zampe e Zanna Perforante sono pubbliche sulla build `combat-land-20261114-2`. Il gate pubblico v2 è attivo (migrazione `20261114101313`). In Staff lo stesso invio, ripreso dopo lo scarto della risposta, ha conservato una sola attivazione, 5 chakra simulati e la stessa ricevuta. Prova chiusa; nessun caso concluso da ripetere.
-
-1. **Pannello Combat.** Completare gli effetti e i costi nel riepilogo del Master. Verificare dopo ricarica o riconnessione il recupero della vista, della role in bozza e della ricevuta già acquisita, senza doppio invio.
-2. **Marionetta e innate passive.** Resta da osservare il riallaccio dei Fili. L’attacco dalla marionetta e il punto cieco sono già provati. Le 27 passive sono aperte nei percorsi documentati, ma manca un collaudo funzionale Staff dedicato.
-3. **Prossime integrazioni.** Tracciare le offerte server di armi equipaggiate e Guardia, il raccordo di Palmo Curativo e oggetti con turno e ricevute, poi Richiamo e combo delle evocazioni. Catalogo e pulsanti esistenti non attestano l’intero flusso. Le rapide aggiuntive e i Flussi multibersaglio restano rinviati.
-4. **Scorta.** Verificare «Apri regia», ritorno narrativo e chiusura soltanto quando è disponibile lo scenario Staff legittimo della stessa missione. Il duello IA e il caso Human H7 coprono percorsi distinti.
-
-Gate letti il 14/11: Akimichi, Aghi Velenosi, Corpo Tossico, Nara, Katon e punto cieco aperti in Land. Inuzuka aperto in Land, gate v2 riletto in sola lettura. Aggiornamento solo documentale, nessun nuovo collaudo o rilascio applicativo. Copertura e Diversivo esclusi. Fonti: schede vive, referti e ricevute già acquisite.
-
-## Consegna precedente
-
-# COMBAT-LAND-UI-20261114
-
-**UI Combat aperta in Land · 14/11/2026.** Il pannello comune nelle stanze di gioco offre scelte sulla mappa, lista da tastiera e un solo «Invia» per scelta e role. Build `combat-land-20261114-1`, commit `f7762e8e10092a9be87492ce0739cf58ed577641`, Pages `43570483785` riuscito e marcatore verificato sul dominio. `land.html` 2.431.990 byte, SHA-256 `3f3109fcc97db556947dc47d2df07a512a8f7dca9f6763b9185b74aa4a3b4e74`. Sei script verificati, controreview 0/0/0. L'apertura riusa i collaudi Staff, incluso il Fato IA; nessun nuovo round o chiamata IA.
-
-## Consegna precedente
-
-# COMBAT-STAFF-IA-ONE-20261113
-
-**Collaudo Staff superato · 13/11/2026.** Duello nativo protetto fra testperfunzioni e Riuji, aperto direttamente in Combat con autorità `ai_auto` e Edge `combat_narratore_ai` v44. Client LAND `a88e34a`. Scena `31283aba-4f5d-4caa-b719-b7301e693037`, round `f583616b-e7ca-48be-ab32-518f0a871617`.
-
-**Prova.** In Firefox testperfunzioni ha selezionato il colpo a mani nude, poi ha consegnato scelta e role con un solo «Invia». In Chrome Riuji ha consegnato la parata con lo stesso flusso. Il server registra una dichiarazione e una ricevuta per ciascun invio, con role di 580 e 556 caratteri dopo normalizzazione. Un solo tentativo HTTP del narratore. Fato `4f9a9576-02ed-4706-9ae9-1b20751fa74e` pubblicato alle 20:49 italiane, verificato nella chat e collegato al referto del round.
-
-**Chiusura.** Scena chiusa dal pannello alle 20:49:35 italiane, risorse reali intatte, una sola pubblicazione Staff. Nessun secondo round giocato. Missione, B10 e B3 esclusi dalla prova. Il passaggio verifica il duello diretto con narratore IA. Le evidenze del punto d’impatto sono nella consegna precedente.
-
-## Consegna precedente
-
-# COMBAT-STAFF-IMPACT-20261113
-
-**Punto d’impatto Staff verificato · 13/11/2026.** Migrazione `20261113193757`, review 0/0/0. Il preset simulato Katon era confermato ma non cambiava la versione delle offerte. La proiezione Master ora incorpora la ricevuta del profilo Uchiha corrente soltanto in Staff simulata. Le offerte vengono ricalcolate al cambio di versione. Firma, permessi, proiezione pubblica e build client invariati. Installazione e recovery hanno pin sui corpi effettivi e richiedono transazione unica.
-
-**Prova.** LAND blob `781cc87c892733cf867f151be29b13862be2b2db`. Nella scena `36a96ee8-ff43-4002-a003-c9d6e94e282e` il server ha offerto la modalità esplosiva. In Firefox il clic su «Punto 6, 6» in mappa ha selezionato il marcatore, aggiornato il campo Punto d’impatto e abilitato «Scrivi la role». Scena chiusa alle 19:39:49 UTC, nessuna dichiarazione o scrittura reale. B10 e B3 acquisiti dai referti precedenti.
-
-**Regia IA da verificare.** L’avvio nativo Staff della Bacheca esiste, ma la sola sorgente attiva «Discussioni in Centro» parte dalla fase narrativa `inizio`. Le finestre dedicate Quest IA v8/v9 risultano scadute nel Root `f9ad89a82dfc1912f042907a6ad7a6b7196370abbf288f1fdd3e52f31de664f1`. Le preview editoriali non percorrono la consegna giocata. Nessuna sessione IA o richiesta a pagamento aperta da questo incarico. Serve uno scenario Staff che inizi direttamente in Combat, con un'ammissione circoscritta allo scenario e al relativo budget. Verifica prevista: un invio chat dal PG, una sola ricevuta di scelta collegata alla role, un solo Fato della Regia effettivamente pubblicato in chat.
-
-## Consegna precedente
-
-# COMBAT-STAFF-SINGLE-SEND-20261113
-
-**Invio unico Combat, solo Staff · 13/11/2026.** Commit `a88e34a75bef1db23a4209071099df63abd077b2`, Pages `43474906904` riuscito, SHA-256 `e671a21bf04c419d53e499b3025a222ea0f298c20b7e2e12d199ebd915b2be58`, review indipendente 0/0/0. Per le scelte che richiedono una role, «Invia» in chat trasmette scelta e testo nella stessa operazione server. «Pubblica esito» fa lo stesso per il Fato del Master. Le scelte senza role mantengono un solo comando di conferma. Nessun cambio DB o estensione fuori Staff.
-
-**Esiti.** Tastiera e schermo stretto: destinazione scelta dall'elenco nativo a 320 × 480, ricevuta server 6 m (build precedente, stessa UI mappa). Invio unico e difesa multipla: scena `1b0b66f9-4b66-4cc5-aca8-17e095fa2258`, round `03ffc7fc-c96c-49eb-a91d-7105214a6713`. Due attacchi consegnati ciascuno con una role e un solo invio; una parata e una difesa assente. Fato Master `2fc40804-5f3a-40df-94fc-bb8f479f605d` pubblicato con il comando chat. Scena chiusa, zero scritture reali.
-
-**Aperti.** Punto d'impatto BLOCCATO: nella scena `e707e844-99e0-49ce-9622-caf1d78a212e` il server calcola 110 opzioni legali per la modalità esplosiva, ma nessuna offerta corrispondente è stata emessa per il pannello. Scena chiusa, nessuna dichiarazione d'attacco o scrittura reale. Regia IA NOT_RUN: la scena Master verificata era manuale; il mandato di questa sessione non ha usato provider. Prossimo passo: isolare il raccordo delle offerte d'impatto e usare una scena Staff con la Regia IA disponibile e budget proprio. B10/B3 non ripetuti.
-
-## Consegna precedente
-
-# COMBAT-UI-STAFF-ARCHIVE-20261113
-
-**Staff · archivio e selezione diretta · 13/11/2026.** Migrazioni `20261113161836` e `20261113161841`, review 0/0/0. Archivio di 1.088 messaggi collegati a sessioni chiuse; zero messaggi nella chat Staff dopo chiusura e archiviazione del nuovo collaudo. Conservati messaggi, report e ricevute, comprese le quattro ricevute B10, B3 e nuovo caso. L'RPC storico globale resta separato; il pulsante è nascosto nella Staff.
-
-**UI Staff.** Commit `043e7f5f10b79bd19db14b7e41b49005cf1e9c14`, Pages `43461842904` SUCCESS, SHA-256 `455babad8eb4e5dc5893ac3dfbcef0ab4dd8e3be2da8df894d09b58ce7e319af`. In Staff compaiono mete e bersagli legali sulla mappa, con lista accessibile, opzione unica preselezionata per bersaglio e copertura, un comando di conferma per scelta. Prova `ac74dc48-5e06-4b98-b59b-750d9c274b2e`, round `fc4f3c5b-01e3-4839-bd62-68f4000809bd`: un movimento di 1 m selezionato sulla mappa, bersaglio unico evidenziato, scelta d'arrivo dal controllo nativo, parata con attacco associato, risultato 30 danni simulati e Fato `c98c48b3-80dc-4080-b773-6a77e98ea190` pubblicato. Scena chiusa, zero scritture reali e zero chiamate IA. B10/B3 conservati.
-
-**Residui.** Da provare la selezione di un punto d'impatto, la lista da tastiera e il pannello stretto, la difesa multipla e il percorso Regia IA. Da completare esposizione degli effetti nel riepilogo Master e recupero bozza e vista. I contratti correnti mantengono la conferma delle meccaniche e l'invio separato della role. Nessuna estensione della UI fuori Staff.
-
-## Consegna precedente
-
-# COMBAT-FACING-ONE-REACTION-20261113
-
-**Punto cieco Byakugan attivo in Land · 13/11/2026.** Nel round Staff `e23a7764-f6b4-44dd-9358-2ee053a52682` sono arrivati due attacchi da origini diverse. L’unica reazione è stata la Parata contro Keita da dietro: Byakugan I, prodotto scalare −4, malus −3, ricevuta `7068f8af-e417-44c8-bf42-ac9c3688f3c9`. L’attacco di Riuji è stato risolto come «Nessuna difesa», senza seconda ricevuta Facing. Scena chiusa e narrata, nessuna scrittura di risorse reali o chiamata IA. F1, laterale esatto e origine marionetta acquisiti dalle prove precedenti. Migrazione `20261113114114`, revisione Facing 3, gate pubblico verificato attivo. Copertura e Diversivo restano spenti in Land.
-
-Perimetro: gate `byakugan-facing/1`, una reazione nativa per round. Review indipendente 0/0/0. Recovery in `candidato/FACING_ONE_REACTION_STOP.sql`. Apertura verificata in sola lettura dopo la prova Staff.
-
-**Collaudo precedente · origine marionetta PASS in Staff.** Nel duello `59ab6e8d-54dd-42ff-b83f-6d9d5f46a319` il pannello mostra integrità e Fili collegati. La ricevuta `42fbfbc8-a3e4-4b96-9558-ca7e230d39ec` del round 6 identifica il corpo della marionetta, distinto dal controllore, con Byakugan I attivo. Scene chiuse, nessuna scrittura reale e nessuna chiamata IA. F1 e laterale Master acquisiti. Resta la doppia origine con due reazioni attive: il motore consente una sola reazione per attore e round, poi applica «Nessuna difesa» alle altre origini. Il gate pubblico resta spento. Copertura e Diversivo restano fuori dal piano.
-
-**Collaudo precedente · laterale esatto 13/11/2026.** Laterale esatto con Master PASS. Duello `34b39cc5-11b9-49a6-84c0-46e39f7c7fa8`, round 4, ricevuta `423cba67-2b49-43d6-994a-fa8a502275c6`: Byakugan I attivo, prodotto scalare 0, penalità 0. Scena chiusa, zero generazioni IA e risorse reali protette. F1 acquisito. Alla data del referto iniziale restavano da attestare la doppia origine e l’origine dalla marionetta. Copertura e Diversivo restano fuori dal piano.
-
-**Origine marionetta.** Duello Staff `819156e0-9394-422b-9047-b364118c87c3`. Ripristino solo simulato tramite il normale pannello, in un duello tecnico chiuso senza azioni. Nel duello Master il server ha collegato la marionetta e registrato i Fili attivi. Il pannello mostrava «Dati del compagno non disponibili dal server» e non offriva la tecnica. Nessuna dichiarazione acquisita. Scena chiusa, zero scontri o sessioni Master residue, gate Land spento.
-
-**Decisione del 13/11/2026.** Copertura e Diversivo sono ritirati dalla Land e i relativi collaudi escono dal piano attivo. Referti e ricevute S24 restano nello storico. Il punto cieco Byakugan prosegue per i soli casi Staff residui, con F1 già acquisito.
-
-## Consegna precedente
-
-# Combat · W12 · collaudo bloccato dal controllo browser
-
-TASK-ID · COMBAT-TACTICS-W12-FINAL-20261109. Preparazione iniziale conservata senza reset.
-
-Scope toccato · Correzione origine ignota e retro Ordinary; completamento PNG Service; apertura subordinata a tutti i cinque casi positivi.
-
-Contratti usati/modificati · Root12fed/Source8c1d3ded, NativeDocE7, exchange_options/narrative_declaration_supported/import_ordinary_offer, profilo PNG Native con resolver autorevole; Edge combat39 e Generic157. Installer634770B/SHA3dda72c31932977b3fbfbfd69cd06833343e8385f88b22a1481613785984417b. Nessun nuovo oggetto schema, grant o vincolo.
-
-Decisioni prese / OPEN · W12 · 09/11/2026 · Checkpoint DB 07:52:42 UTC: Root 12fed4fc824e532f8f12a83568e40b5845d79b1627a267ca75633b612ec45962 installata in Staff (migrazione combat_tactics_native_ordinary_w12_staff_20261109, 12 DDL, 71 header; review indipendente 0/0/0, preflight 14/14, readback integrale esatto). Native API DocE7, tre corpi Ordinary e profilo PNG integrati; Edge combat_narratore_ai 39 ACTIVE, 18/18 file esatti, cap S24 8192. Admin 484602B/SHA4d2e3e85 pubblicato commit6d14e307, Pages42580667325SUCCESS e Root DOM esatta; LAND/Native37a pubblicati in ef2c6d2a. S24 0e5b5163-b42d-4c07-b2cd-7278a0d79340 resta aperta al turno2: primo Passa di Riuji e unico Fato preparatorio riusciti, 1Count+1Generation assestati,3449input/494output/0.0005919USD; cumulativo0.0271635USD su0.10,40HTTP storiche incluse. Testper105PV/30CK, Riuji80PV/0CK; zero ricevute Innata S24, zeroRestore e values_written=false. Origine ignota/retro Ordinary e T6–T8 Service NON ancora collaudati. Fonte Native creata UNA volta (mission2e89fa26/planbef82bb0/definition1e11b62f), nessuno Start o provider Service; componente18DDL e formula RootB congelati PREPARE_ONLY, non installabili prima OrdinaryPOST/Genericactual/review. Blocco concreto07:51: controllo browser locale assente dagli strumenti della chat; richiesta riabilitazione inviata, nessun aggiramento SQL. Custodia PG/Scorta/Party/gate esatta; queue0, lease propria0, una sola scena Staff aperta S24. Finestra originale06:34:34–08:04:34Z invariata; nessun nuovo Service work dopo07:58:34Z per riserva360s. Pubblico Tactics/Facing OFF; nove Innate pubbliche intatte. Nessuna nuova regola, grant, tabella o vincolo. Riprendere S24, non ricreare scena o ripetere Passa/costi/ripristini; chiuderla dal sito prima della qualifica Service.
-
-Prove eseguite e risultato · Source/statici, review000, preflight14/14 e actual/readback/Pages/DOM verificati. Unico Fato preparatorio pubblicato, una narrazione e una coppia Count/Generation; nessun PASS esteso ai cinque casi ancora NOT_RUN. CK e precedenti ricevute conservati; custodia esatta in W12_POSTFLIGHT.json. Chiusura propria NON eseguita: browser non controllabile, S24 aperta. Nessun provider pendente o coda attiva osservato.
-
-Rischi o regressioni da verificare · Non attivare Innata offturno. Testper resta OFF e30CK; serve unica ON5 legittima al suo turno, poi Passa. Seguono origine ignota, orientamento e retro da destinazione scelta nativamente. Non riusare il primo Passa già riuscito. Service NONINSTALLABLE_ACTUAL_ORDINARY_POSTFLIGHT_REQUIRED: non sostituire actual con proiezione o credito0. Budget e review storici non azzerati. WIP locali LAND/Admin estranei intatti; non pubblicarli.
-
-Passaggio richiesto al PM · Riottenuto il controllo sito e nei limiti temporali, riprendere lo stesso S24. Altrimenti consegna sospesa con scena esplicitamente residua, senza apertura pubblica né proroga automatica. Dopo Ordinary conclusa, fotografia actual/costi e Genericactual, installerRootB/review/preflight prima StartService. Candidati privati Service conservati nei freeze f7ededac e205789ad; nessun apply autorizzato da questa consegna parziale.
+Comporre le candidate Paralisi e Palmo con la baseline viva e consumer, chiarire i soli punti di prodotto mancanti, review indipendente, disponibilità iniziale Staff e campagna finita fissata primaStart. Nessun banco parallelo o PGgrant. Dopo PASS aprire il perimetro nel mandato tecniche10/09 e proseguire le famiglie residue. Non archiviare il cantiere come concluso.
