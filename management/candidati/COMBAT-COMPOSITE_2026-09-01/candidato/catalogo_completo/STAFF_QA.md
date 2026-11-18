@@ -1,3 +1,15 @@
+# Collaudo catalogo · campagna2
+
+COMBAT-CATALOGO-STAFF-RETEST-20261118, Root7de/Edge45/B654f, 14:58:26–15:06:49UTC. Esito: offerte PG recuperate, preparazione Palmo bloccata; nessun PASS meccanico o apertura pubblica. Budget60min/10casi/6provider/24000input+6000output/USD0.10/180UI; effettivi circa8min,0provider/token/spesa/azioni, massimo85UI. Campagna precedente preservata byte-esatta in STAFF_QA.json.previous_campaigns, SHA50215936.
+
+Solo Riuji presente in Staff; ordinary e Para/allyKO non esercitati. Nuova scena propria Master723bfe6b-dd5f-4b96-88e6-ec78d10cb1ed, Combatb00f6798-0b2e-4123-9456-65de5ff3eabd con Riuji e Keita Uro, mappa10×10 nativa. Protetta: policyStaff, values_written=false, pools=true. Dopo scelte locali Nessun movimento/Mantieni innata, il pannello mostra Prepara prova: Palmo Curativo. Quindi il blocco fullseal della campagna1 è risolto sul sito.
+
+Un solo invio della preparazione: HTTP200/envelope rejected not_authorized, request02f054b1-d2b5-436c-8d37-1ffcfda1c630. Audit privato42501 a cure_commit_v1:25 e wrapper:40; presenza valida al rifiuto, nessun profilo/dichiarazione/costo. Il comando combat-panel-command/1 esclude operation; il validatore ne proibisce l'aggiunta. Il committer Cure lo confronta invece con l'operazione control dell'offerta, producendo il rifiuto. Correzione richiesta: derivare l'operazione soltanto dall'offerta server, conservando tutte le altre guardie. Nessuna modifica del validatore o campo autorevole aggiunto al client.
+
+Caso fermato senza retry o bypass. Il successivo rientro normale risolve la sola presenza scaduta durante la diagnosi e permette la chiusura. Master annullata15:06:49.287020UTC e Combat annullato15:06:49.249815UTC dai normali comandi, audit preservato. Postflight0sessioni Staff aperte,0profiliCure,0dichiarazioni;4digest dei2PG identici. Vista PG ripristinata. C01–C04/G01–G04 NOT_RUN, M01 parziale bloccato, X01 parziale per chiusura/risorse; idempotenza/Fato/cura non esercitati.
+
+## Campagna precedente conservata
+
 # Collaudo catalogo · Staff 18/11/2026
 
 TASK-ID: COMBAT-CATALOGO-STAFF-QA-20261118. Esito: bloccato prima del gameplay; nessuna qualifica delle tecniche e nessuna apertura pubblica.
