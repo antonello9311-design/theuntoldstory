@@ -1,3 +1,5 @@
+18/11/2026 · COMBAT-CATALOGO-CURE-NEUTRAL-20261118 · Neutral preset installato16:15:19UTC dopoR1/R2 0/0/0, Root79f17709 e100peer senza drift · INSTALLATO_STAFF,20261118161519,4digest invarianti/0scene/provider/gameplay, QA4NEXT; QA3rossa preservata.
+18/11/2026 · COMBAT-CATALOGO-STAFF-QA3-20261118 · Root07f5: p.operation superato, neutral preset abortisce42702; scena chiusa15:51:10UTC e4digest invarianti · ROSSO_PRIMA_GAMEPLAY,0profili/decl/provider/risorse,52UI; fixNeutral source aperto, non installato.
 18/11/2026 · COMBAT-CATALOGO-CURE-COMMAND-20261118 · Contratto comando Cure installato15:34:17UTC, sole2body eRoot07f5b2ea dopoR1/R2 0/0/0 · INSTALLATO_STAFF,20261118153417,StaffON/pubOFF,0scene/provider/casi; preparazionePalmo eQA3 pendenti.
 18/11/2026 · COMBAT-CATALOGO-SIGILLI-RETIRE-20261118 · Doppione AttivazioneSigilli disattivato su richiesta utente · APPLICATO_DATA,20261118151920,336attive/362righe,review0/0/0 e altre righe identiche.
 18/11/2026 · COMBAT-CATALOGO-STAFF-RETEST-20261118 · Offerte PG recuperate, unico profiloPalmo rifiutato per p.operation estraneo al contratto · PARZIALE_BLOCCATO,0effetti/provider, chiusura nativa e4digest invarianti.
