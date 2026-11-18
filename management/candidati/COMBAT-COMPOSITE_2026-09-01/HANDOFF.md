@@ -2,7 +2,7 @@
 
 ## Scope toccato
 
-Cure Neutral installato16:15:19UTC, migrazione20261118161519;4artefatti canonici consegnati/applicati, codiceNeutral non ancora pubblicato suGit. QA4 NEXT non avviata.336tecniche attive+6jutsu; Sigilli già ritirata, nessuna qualifica generale.
+Cure Neutral installato16:15:19UTC, migrazione20261118161519;4artefatti canonici consegnati/applicati, codiceNeutral pubblicato e verificato in [769380ac](https://github.com/antonello9311-design/theuntoldstory/commit/769380ac4b8afc1ca03155563ffbff6c47098471), tree1f8fcae331fe454860f67c29e9c8c47bf40d527d. QA4 NEXT non avviata.336tecniche attive+6jutsu; Sigilli già ritirata, nessuna qualifica generale.
 
 ## Contratti usati/modificati
 
@@ -26,4 +26,4 @@ QA4 sulla nuova identità79f17709/Edge45 è ancora da avviare con scope/budget d
 
 ## Passaggio richiesto al PM
 
-Integrare le9copie documentali, poi usare il compositore chirurgico remoto verificato prima del depositoGit selettivo. CodiceNeutral non ancora pubblicato, HEAD14247f11; non sovrascrivere le altre sezioni remote. FissareQA4 e verificare la normale preparazionePalmo prima di affermare PASS o aprire scope. Chiudere solo proprie prove e conservare storico/risorse. Catalogo completo ancora in lavoro.
+Le9copie documentali e4artefatti sono stati depositati selettivamente, preservando le sezioni remote estranee. codiceNeutral pubblicato e verificato in [769380ac](https://github.com/antonello9311-design/theuntoldstory/commit/769380ac4b8afc1ca03155563ffbff6c47098471), tree1f8fcae331fe454860f67c29e9c8c47bf40d527d; non sovrascrivere le altre sezioni remote. FissareQA4 e verificare la normale preparazionePalmo prima di affermare PASS o aprire scope. Chiudere solo proprie prove e conservare storico/risorse. Catalogo completo ancora in lavoro.

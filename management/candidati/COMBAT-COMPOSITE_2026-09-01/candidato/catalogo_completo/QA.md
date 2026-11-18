@@ -48,7 +48,7 @@ Cure Neutral installato16:15:19UTC con migrazione20261118161519, R1/R2 pertinent
 
 Root79f17709193ac47f564f18cde1114cceefe099cd2c646b6f0b2306b93d28ca0d/522857B, rawSHA identica; rowSHA4bd573ced56a7a55757d78281a091c4352b76717a29fb286971b747c008525ac; DBsha89285a340dc116c6f8cdfc25cbfee135c4ee5811f570f5b66f0dd29bc40ee54d. NativoNa2b626e845fe2353d3161b5020f3941bf0b59b3851fa73886b55bb0034135766 ePd2d0f92ddb33f40631cd9d0355267ba7a4ad2c12132b3ee95526c05e429a7810 corrispondono. R140692fcd8bc40e41933cec0df72461c978e789ee82ba0cea918c3c7c6039bb49 eR22790f376ed337a3a1df79cb3915271e8c907f7680a2b09c732d5c82e6875dc82,0/0/0 sorgenti. Ricevuta owning cure_neutral.install.receipt.json. Contratto041d immutabile. Nessun casoPalmo/Paralisi o Fato nuovo giocato: QA4NEXT non avviata, budget di campagna da fissare. QA3 resta rossa con chiusure/digest già registrati sopra.
 
-FonteNeutral consegnata e4artefatti canonici applicati; codiceNeutral non ancora pubblicato, HEAD14247f11. Source60min dalclaim15:53:45UTC, installazione16:15:19UTC entro la finestra fino16:53:45UTC; QA4 richiede budget di campagna dedicato. QA1/QA2/QA3 e relativi esiti/chiusure restano conservati, senza azzerare scostamenti o review.
+FonteNeutral consegnata e4artefatti canonici applicati; codiceNeutral pubblicato e verificato in [769380ac](https://github.com/antonello9311-design/theuntoldstory/commit/769380ac4b8afc1ca03155563ffbff6c47098471), tree1f8fcae331fe454860f67c29e9c8c47bf40d527d. Source60min dalclaim15:53:45UTC, installazione16:15:19UTC entro la finestra fino16:53:45UTC; QA4 richiede budget di campagna dedicato. QA1/QA2/QA3 e relativi esiti/chiusure restano conservati, senza azzerare scostamenti o review.
 
 ## Scostamento della preparazione e prossima campagna
 
