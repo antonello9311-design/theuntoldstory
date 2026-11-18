@@ -1,3 +1,15 @@
+# Collaudo Staff · terza campagna
+
+Root `07f5b2ea5fd3b16175d8f119c4fa7e66fbfb03b6cac07b93846b67e8b05ba5f1` · Edge45 · migrazione20261118153417.
+
+15:44:58–15:51:10UTC del18/11/2026. Budget60min/10casi/6provider/24kinput+6koutput/USD0,10/180UI; consumo0provider,0token,USD0,52UImassime,0azionimeccaniche.
+
+Il comando di preparazione Palmo supera il rifiuto precedente42501 ma fallisce nel trigger di ricevuta con SQLSTATE42702, `cure_neutral_preset_v1` linea7: collisione fra variabile e colonna `operation`. Request409a8363-6f81-42aa-b300-ebb39c615c06; diagnostic2fd54fc1-32b1-4bc4-8dd7-5d4002e9e144. Nessun profilo o dichiarazione creati. M01 bloccato; X01 parziale soltanto per isolamento e chiusura. C01-C04/G01-G04 non eseguiti. G05 escluso, raccordoNB non installato. Nessun retry.
+
+Scena propria Masterb68cd504-4cbe-424b-8702-8021c11cb772 / Combatea4f0090-4ff3-4353-bf7f-ddeba7b33f8b chiusa nativamente: annullata/annullato alle15:51:10UTC. Pool simulati=true e values_written=false dopo mappa. Quattro digest invariati;0sessioniStaffresidue. Testperfunzioni non confermato dal server durante setup; nessuna impersonazione o modifica presenza. StoricoQA1/QA2 conservato integralmente nelJSON. Nuove tecniche ancoraStaff-only; nessunPASSgameplay o apertura. AttivazioneSigilli ritirata,336tecnicheattive.
+
+## Evidenze precedenti preservate
+
 # Collaudo catalogo · campagna2
 
 COMBAT-CATALOGO-STAFF-RETEST-20261118, Root7de/Edge45/B654f, 14:58:26–15:06:49UTC. Esito: offerte PG recuperate, preparazione Palmo bloccata; nessun PASS meccanico o apertura pubblica. Budget60min/10casi/6provider/24000input+6000output/USD0.10/180UI; effettivi circa8min,0provider/token/spesa/azioni, massimo85UI. Campagna precedente preservata byte-esatta in STAFF_QA.json.previous_campaigns, SHA50215936.
