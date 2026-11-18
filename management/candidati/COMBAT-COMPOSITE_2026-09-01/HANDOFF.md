@@ -2,26 +2,24 @@
 
 ## Scope toccato
 
-Integrare nel Combat Land tutte le tecniche residue del catalogo, completando descrizione e campi necessari. Ricognizione371record compresi inattivi e jutsu,337catalogo attive e6jutsu attivi. Voci fuori_scontro restano narrative per scelta esplicita Antonello18/11. Nessuna riattivazione di voci ritirate o rami Copertura/Diversivo.
+Tutte337tecniche attive+6jutsu attivi censiti; inattivi e ritiri preservati. Dati62descrizioni/Hōki e14profili applicati. Prima integrazione Palmo/Paralisi installata soloStaff. Il catalogo completo resta aperto.
 
 ## Contratti usati/modificati
 
-Prima aggregata solo dati:62description derivate dall’effetto già presente; Hōki allineato al contratto pubblico vivo, Aghi10/P20/15m e Corpo0danni diretti/3turni. Nessun valore nuovo inventato, nessuna funzione o schema mutato. I profili futuri useranno la stessa catena offerta/freeze/risoluzione/lifecycle/ledger/referto/Fato; preparazione mediante preset Staff nativo compatibile combat-panel/1, nessuna acquisizione sulle schede reali.
+Offerta/freeze/resolver/lifecycle/ledger/report/Fato;34shared e66privati,12tabelle/10trigger. Nuove proiezioni healing,genjutsu/release/eventi e combat-facts/2 condizionale; Scene1 e client invariati. RUNTIME_BASELINE/SHARED/REVIEW custodiscono sorgenti e pin; COMBAT_SOURCE.sql è l’installer effettivo35ab, COMBAT_RECOVERY.sql templateforward8080 con parametri futuri obbligatori, non applicato. B825a e P881a legati a Edge45 reale, finalizzazione0/0/0.
 
 ## Decisioni prese / OPEN
 
-Fuori_scontro preservate. Non attribuire integrazione completa a una proiezione generica con danno/costo NULL→0. Descrizioni non interpretate dal runtime. AttivazioneSigilli senza contratto storico è in attesa di decisione; Capolavoro richiede chiarire la promessa di azione extra rispetto alla regola condivisa. Tutte le altre famiglie avanzano per contratti, senza attendere i soli rami dipendenti.
+Fuori_scontro narrative; Capolavoro principale condivisa senza attacco extra; AttivazioneSigilli rinviata con campi intatti. NinjaBook soloStaff approvato per vero Kai alleato: candidata4cae/recovery413b in review, non installata. Aburame7 ha contratto e richieste finite di baseline, nessuna implementazione/qualifica.
 
 ## Prove eseguite e risultato
 
-Catalogo migrazione20261118080546, review indipendente0/0/0 e parser completoPASS. Digest intero atteso3137b892d25c4d4b20177dbee5529829d7cde7a31db3bc0d3f5ea220867899b0 esatto,362righe/337attive,25inattive+9jutsu invariati. Nessuna acquisizione/costo/requisito/uso modificati.0provider/0scene, non nuova qualifica engine. Stato e prove in [QA.md](candidato/catalogo_completo/QA.md), matrice [INVENTARIO.json](candidato/catalogo_completo/INVENTARIO.json), [EDITORIALE.json](candidato/catalogo_completo/EDITORIALE.json), [CONTRATTO.md](candidato/catalogo_completo/CONTRATTO.md).
-
-Seconda aggregata dati applicata: migrazione `20261118083406`, 14 tecniche / 24 campi (8 portate, 13 effetti, 3 durate), derivati dai profili server Elementali e Taijutsu già esistenti. Review indipendente 0/0/0 e postflight integrale esatto. Nessuna nuova formula, meccanica, assegnazione o qualifica di gioco. Digest attuale `2ee367eada52a19ed25c3653acfa67ea2a90c8bc89012d418410d94c34a5e1ce`; 362 righe, 337 attive, jutsu invariati, Combat aperti 0. Root737, client ed Edge invariati.
+Migrazioni dati20261118080546/20261118083406, digest2ee367eada52a19ed25c3653acfa67ea2a90c8bc89012d418410d94c34a5e1ce,362/337 e9jutsu invariati. Apply runtime20261118122814 positivo; Rootf460be0a321e1640d7993a15285cf1b6352166cda41e991f0c644f29bd6a3658/509525byte, gateStaffON/pubblicoOFF per2nuove tecniche, Edge45/18fileesatti. Postflight qualifica missioni true/2contentadmissions,partyflagspreservati,0Combat/0Master,0provider/0gameplay. F1scope e2P2recovery corretti primaapply, tutte review/finalizzazione pertinenti0/0/0; nessun PASS giocato.
 
 ## Rischi o regressioni da verificare
 
-La restante integrazione NON è completata. Le tecniche non riconosciute possono oggi apparire come attacchi numerici generici senza il loro potere. Paralisi ha differenze dalla presa fisica e Dispersione richiede raccordo resolver; Palmo necessita turno intero/contatto/alleatoKO/ledger, non solo danno0. Le candidate dei due adapter sono in preparazione isolata e non installate. Nessuna certificazione del gameplay dedotta dal catalogo.
+QA sul sito ancora da iniziare: ordinary+Master umano, turno intero cura/KO, sola immobilità mentale/scadenza/liberazione eFato finale. Kai su vero alleato attendeNB. Errore readonly53100 iniziale ehealthsuccessiva documentati, query pesante non ripetuta; puro transporterrore nell’ultimo readonly risolto con una sola nuova lettura, nessun retrygameplay. Preparazione sorgente oltre le finestre240min main/120min artefatti: scostamenti registrati, nessuna chiamata provider/prova eseguita. Non azzerare conteggi storici o dichiarare pubblico/qualificato.
 
 ## Passaggio richiesto al PM
 
-Comporre le candidate Paralisi e Palmo con la baseline viva e consumer, chiarire i soli punti di prodotto mancanti, review indipendente, disponibilità iniziale Staff e campagna finita fissata primaStart. Nessun banco parallelo o PGgrant. Dopo PASS aprire il perimetro nel mandato tecniche10/09 e proseguire le famiglie residue. Non archiviare il cantiere come concluso.
+Consegna source artefatti completata; passaggio di owner operativo al QA finito COMBAT-CATALOGO-STAFF-QA-20261118 (pianoTEMP pronto, da registrare dopo rilascio slot). Taskmain da sospendere nel registro per coordinamento, non mandato prodotto interrotto né cantierechiuso. QA usa gli inputsource realmente consegnati, versionevivaRootf460 e normali porteStaff. Dopo QA chiudere sole scene proprie/postflight, riferire esiti e difetti; NB procede alla propria review/composizione dalla baseline applicata. Apertura soltanto perimetro qualificato nel mandato10/09, senza nuove conferme di procedura.

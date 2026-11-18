@@ -1,0 +1,718 @@
+{
+  "schema_version": "catalogo-runtime-matrix/1",
+  "status": "PROPOSED_NOT_EXECUTED",
+  "task": "COMBAT-CATALOGO-COMPLETO-20261118",
+  "scope": [
+    "Palmo Curativo",
+    "Paralisi illusoria"
+  ],
+  "outside_combat": "preserved_narrative",
+  "cases": [
+    {
+      "id": "C01",
+      "context": "ordinary_staff",
+      "scope": "Palmo:self",
+      "normal_path": "Preparazione snapshot autorizzata, danno simulato mediante normali azioni, Palmo su sé dal pannello comune.",
+      "expected": "Formula/costo/una principale/capPV/ledger simulato; nessun effetto su scheda reale; Fato unico coerente con recupero congelato.",
+      "status": "NOT_RUN",
+      "limit": null,
+      "provider_calls": 0
+    },
+    {
+      "id": "C02",
+      "context": "ordinary_staff",
+      "scope": "Palmo:whole_turn",
+      "normal_path": "Prima o dopo una cura, usare il normale menu movimento/rapida/altra tecnica e le difese fisiche offerte.",
+      "expected": "Le altre azioni volontarie non sono offerte o vengono rifiutate dalla porta nativa; Parata/Schivata fisiche consentite; preparazione Staff neutra non consuma il turno.",
+      "status": "NOT_RUN",
+      "limit": null,
+      "provider_calls": 0
+    },
+    {
+      "id": "C03",
+      "context": "human_master_staff",
+      "scope": "Palmo:ally_KO",
+      "normal_path": "Composer reale PG alleati +PNG legacy nemico; portare un PG a0PV con azioni normali, curarlo a contatto.",
+      "expected": "KO torna attivo con PV<=max; nessun turno aggiuntivo/riattivazione innata; controllo Master, report e Fato dopo ricevuta nativa.",
+      "status": "NOT_RUN",
+      "limit": "Non utilizzare il preset PG-only per rappresentare questo roster; nessun abbassamento PV tramite SQL o modifica reale.",
+      "provider_calls": 0
+    },
+    {
+      "id": "C04",
+      "context": "human_master_staff",
+      "scope": "Palmo:late_change",
+      "normal_path": "Nel normale ordine di risoluzione, verificare un cambiamento naturale di contatto o medico KO se rappresentabile senza forzature.",
+      "expected": "Cura non applicata con motivo server, costo congelato senza rimborso casuale; nessuna narrazione di guarigione inventata.",
+      "status": "NOT_RUN",
+      "limit": "Se il caso non si produce con azioni legali nella campagna, resta NON_VERIFICATO; niente fault injection o retry casuali.",
+      "provider_calls": 0
+    },
+    {
+      "id": "G01",
+      "context": "ordinary_staff",
+      "scope": "Paralisi:apply_expiry",
+      "normal_path": "Due PG autorizzati avversari, preparazione sul PG eleggibile, attacco e normale prossimo turno del bersaglio.",
+      "expected": "Confronto mentale,0PV; movimento bloccato, principale/reazioni preservate; scadenza personale nel report e Fato finale libero da questo effetto.",
+      "status": "NOT_RUN",
+      "limit": null,
+      "provider_calls": 0
+    },
+    {
+      "id": "G02",
+      "context": "ordinary_staff",
+      "scope": "Paralisi:mental_release",
+      "normal_path": "Bersaglio sceglie Spezza la paralisi con la propria principale.",
+      "expected": "Base0chakra, confronto server, parità libera; esito storico e ultimo evento finale distinti; se fallisce ed effetto scade nello stesso report il Fato non mantiene il blocco.",
+      "status": "NOT_RUN",
+      "limit": "L’esito casuale viene registrato così com’è, senza retry per ottenere un risultato desiderato.",
+      "provider_calls": 0
+    },
+    {
+      "id": "G03",
+      "context": "human_master_staff",
+      "scope": "Paralisi:self_Kai",
+      "normal_path": "Bersaglio che possiede davvero Kai sceglie la liberazione su sé dal normale pannello.",
+      "expected": "Principale0chakra, Mente>=20, nessun tiro o azione extra; report finale release e proiezione Master coerenti.",
+      "status": "NOT_RUN",
+      "limit": "Prima verificare l’offerta Kai da snapshot autentico; non assegnare il jutsu reale per creare il caso.",
+      "provider_calls": 0
+    },
+    {
+      "id": "G04",
+      "context": "human_master_staff",
+      "scope": "Paralisi:no_refresh_KO_close",
+      "normal_path": "Normali turni, tentativo della stessa tecnica mentre presente; KO fonte/bersaglio o chiusura nativa della sola prova propria.",
+      "expected": "Nessuno stack/proroga; eventi causali terminali prima reporthash; nessuna state_version duplicata o blocco residuo.",
+      "status": "NOT_RUN",
+      "limit": "Le varianti KO/chiusura non rappresentate restano limiti espliciti; nessuna scena altrui toccata.",
+      "provider_calls": 0
+    },
+    {
+      "id": "G05",
+      "context": "human_master_staff",
+      "scope": "Paralisi:ally_Kai",
+      "normal_path": "Un alleato diverso da fonte e bersaglio esegue Kai a contatto.",
+      "expected": "Fonte posseduta, contatto/team/controller server, principale0chakra e terminale released.",
+      "status": "NOT_REPRESENTABLE_CURRENT_SCOPE",
+      "limit": "NOT_REPRESENTABLE nel perimetro attuale2PG; raccordo NinjaBook Staff soltanto proposto, non incluso.",
+      "provider_calls": 0
+    },
+    {
+      "id": "X01",
+      "context": "all_staff",
+      "scope": "Cross_domain_and_replay",
+      "normal_path": "Riaprire il pannello/ricevuta già conclusa tramite normali navigazione e replay UI, postflight readonly protetto.",
+      "expected": "Nessun doppio costo/cura/Fato, report e stato successivo condividono ricevuta; solo proprie prove chiuse, storico custodito, risorse reali invariate.",
+      "status": "NOT_RUN",
+      "limit": null,
+      "provider_calls": 0
+    }
+  ],
+  "lifecycle_source_matrix": {
+    "status": "SOURCE_ONLY_MATRIX_NOT_EXECUTED",
+    "cases": [
+      {
+        "id": "LC01",
+        "scenario": "Applicazione semplice, bersaglio non ancora nel proprio turno",
+        "expected": "attack.applied storico, evento applied/pending/movementfalse; principale e difese preservate",
+        "source_anchor": "decorate_outcome -> record_event -> report_projection",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC02",
+        "scenario": "Ingresso prossimo turno personale target",
+        "expected": "start registra exact turn_id e state_version2; report della sua azione include started/active",
+        "source_anchor": "turn_start -> event_binding native clock",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC03",
+        "scenario": "Target usa Passa nel turno bloccato",
+        "expected": "Nessun movimento; scadenza presente nell’entry Passa primahash, ultimoevento expired/movementfalse",
+        "source_anchor": "personal_turn_end -> turn_end -> resolver report",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC04",
+        "scenario": "Target tenta contesa e fallisce, poi chiude lo stesso turno",
+        "expected": "mental_release.still_blocked storico true, eventexpired dopo; Fato termina con movimento liberato",
+        "source_anchor": "release result immutabile + turn_end",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC05",
+        "scenario": "Kai proprio riuscito",
+        "expected": "release source/result invariati, eventreleased/kai_released/ended/movementfalse",
+        "source_anchor": "resolve_release -> record_event",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC06",
+        "scenario": "Kai alleato a contatto riuscito",
+        "expected": "Event actors sono casterParalisi/targeteffetto nel roster, utility testimone è destinatario Kai",
+        "source_anchor": "ally_contact e consumer esistenti preservati",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC07",
+        "scenario": "Attacco Paralisi applicato, casterKO da altraazione nello stesso roundMaster",
+        "expected": "Prima entry applied, entry della fonte KO includeended/source_inoperative; aggregazione report prevalenza terminale",
+        "source_anchor": "resolution_enter(v_d.id) -> nativeKOtrigger -> end_context",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC08",
+        "scenario": "TargetKO durante lo stesso round",
+        "expected": "Ended/target_inoperative, nessun ulteriore blocco; nessuna cancellazione o riscrittura outcome",
+        "source_anchor": "nativeKOtrigger/event_public",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC09",
+        "scenario": "Turn end ordinario dopo movimento lecito mentre effetto era pending/escluso",
+        "expected": "Solo clock eleggibile applica start/end; niente anticipo del turno dovuto",
+        "source_anchor": "excluded_turn_id e turn lifecycle precedenti invariati",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC10",
+        "scenario": "Start registrato prima che esista la principale",
+        "expected": "Binding conserva native turn; report risolve unica principale dello stesso turno, non last created_at",
+        "source_anchor": "event_binding -> declaration_events",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC11",
+        "scenario": "Replay del resolver o della proiezione",
+        "expected": "Stesso event_key/result/bindinghash, stesso report; niente evento/costo/effetto aggiuntivo",
+        "source_anchor": "record_event replay; private effects unchanged",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC12",
+        "scenario": "Report modificato o collegato a rounddiverso",
+        "expected": "Reader rifiuta hash/roundreport/declaration mismatch prima della whitelist",
+        "source_anchor": "report_facts",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC13",
+        "scenario": "Entry Passa con events inventati senza ricevute",
+        "expected": "Uguaglianza report_projection fallisce; nessuna whitelist dalla presenza del solo campo",
+        "source_anchor": "report_facts/narrative_supported",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC14",
+        "scenario": "Partecipante fuori roster ocompanion nei facts",
+        "expected": "Producer ordinary members guard e Master sessionPG guard, Edge/formatter roster check",
+        "source_anchor": "declaration_events + PM Edge",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC15",
+        "scenario": "Due pubblicazioni dello stesso effetto/versione o più64eventi/entry",
+        "expected": "Rifiuto prima del report, niente troncamento silenzioso",
+        "source_anchor": "declaration_events bounds",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC16",
+        "scenario": "Due eventi stesso effetto con UUID/hash in ordine opposto alla causalità",
+        "expected": "Array ordinato per state_version hashata; ultimo per effetto vince",
+        "source_anchor": "events.binding.effect_version",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC17",
+        "scenario": "Fallimento di rilascio senza transizione",
+        "expected": "Ricevuta descrive tentativo; nessun evento released falso",
+        "source_anchor": "event_public skips released=false",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC18",
+        "scenario": "Chiusura manuale dopo Fato già congelato",
+        "expected": "Solo audit_only, nessun UPDATEreport o spostamentoevento nel futuro",
+        "source_anchor": "event_binding audit_only boundary",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC19",
+        "scenario": "Sessione legacy senza effetti/fonti/rilasci Paralisi",
+        "expected": "resolution_enter no-op; nessun nuovo requisito actor_turns o consumer",
+        "source_anchor": "resolution_enter scope short-circuit",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC20",
+        "scenario": "Flow ordinary con evento lifecycle nello stesso round",
+        "expected": "Ramo customFlow riceve genjutsu_events da stesso report_facts",
+        "source_anchor": "narrative_ordinary_context extra merge",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC21",
+        "scenario": "Master formatter legge dopo altri turni",
+        "expected": "Solo genjutsu_facts congelati; nessun lookup corrente e nessun cambio di vecchia prosa",
+        "source_anchor": "PM formatter source-only contract",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      },
+      {
+        "id": "LC22",
+        "scenario": "Recovery con scena aperta o effetto pending/active",
+        "expected": "STOP; soltanto chiusura nativa autorizza successivo gateOFF/CAS condivisi",
+        "source_anchor": "paralisi_lifecycle_recovery.sql identica alla precedente",
+        "runtime": "NOT_RUN_SOURCE_ONLY"
+      }
+    ],
+    "no_new_qa_bench": true,
+    "provider_calls": 0
+  },
+  "paralisi_source_matrix": {
+    "schema_version": "paralisi-matrix/1",
+    "status": "PROPOSED_NOT_EXECUTED",
+    "source_contract": "paralisi_contract.md",
+    "cases": [
+      {
+        "id": "S01",
+        "stage": "static",
+        "topic": "Isolamento",
+        "expected": "Grant/ACL/RLS privati, nessunaRPCnuova, niente INSERTcharacter_abilities/jutsu o UPDATEcharacters, Staffroom+2PGexact; gate pubblicoOFF.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "S02",
+        "stage": "static",
+        "topic": "Authority pubblica",
+        "expected": "Stessa actor_meta/meccanica; pubblicoOFF, nessunpossesso dalloStaff; quandoON richiedeacquisizioneattiva,owner,grado/statreali e snapshot.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "S03",
+        "stage": "static",
+        "topic": "Forgiatura/CAS",
+        "expected": "Payloadextra, requestreusedifferente, offerstale/controllerchanged, scopewrong negati dalleporte; nessunmutatingfuzz inproduzione.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "S04",
+        "stage": "static",
+        "topic": "Freeze",
+        "expected": "Costoquote/margine/ref/meta server/fingerprinttransazionale; preparationmissing rifiutata; nessunnumero dalclient.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "S05",
+        "stage": "static",
+        "topic": "ZeroPV",
+        "expected": "Entrambi resolverSource31d5 fanno0primaPV/Armatura/contatto; non correggere conripristino.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "S06",
+        "stage": "static",
+        "topic": "Clock",
+        "expected": "Open primaearlyreturn; stessi personalturnIDordinary/master; sessionKO/close terminastati e audit; nessunconteggiodipoll.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "S07",
+        "stage": "static",
+        "topic": "Recupero",
+        "expected": "Recovery conserva6tabelle/audit e altreabilities; in-flightstop; sharedcore unica recoveryPM pin esatti.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "S08",
+        "stage": "static",
+        "topic": "Completezza§4.3",
+        "expected": "Liberazione A tramite normale principale e intentutilita; contesa mentale, Kai sé/alleato contatto; nessuno slotaggiuntivo, outputmental_release e targetnarrativo coerenti.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "O01",
+        "stage": "staff_ordinary",
+        "topic": "Preparazione",
+        "expected": "Prepara prova31d5 nelpannello; solaabilities snapshot,0costo/azione,statimmutate. Replay stessarequest stessareceipt.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "O02",
+        "stage": "staff_ordinary",
+        "topic": "Offerta legale",
+        "expected": "10m presente/11m assente;targetPGsingolo,trailvisibile; nessunaformazione. Movementrestaindipendente.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "O03",
+        "stage": "staff_ordinary",
+        "topic": "Contesa",
+        "expected": "Una dichiarazione e10CKsimulati(salvosovraccostonativo),poolMente+Genjutsu/ratingordinario,0PVinqualsiasiesito. Nonretrypercolpire.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "O04",
+        "stage": "staff_ordinary",
+        "topic": "Solo movimento",
+        "expected": "Se successorealeosservato: pending→prossimoturnotargetactive,0m consentito,nessunpasso/corsa/Assalto/trasportovolontario; azioneedifeseancorapossibili.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "O05",
+        "stage": "staff_ordinary",
+        "topic": "Scadenza",
+        "expected": "Fineunicoturnopersonaletarget→expired; primoturnosuccessivomovimentoripristinato;poll/reingresso nonprolungano.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "O06",
+        "stage": "staff_ordinary",
+        "topic": "Idempotenza",
+        "expected": "Conferma/riletturanativarestituisconostessadichiarazione,costo/effetto/receipt; nessunafaultinjection o doppiocosto.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "M01",
+        "stage": "staff_master",
+        "topic": "Preparazione",
+        "expected": "StessocontrolloPrepara prova e azionenormale conMaster; stato/versioniaudit; nessungrantPG.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "M02",
+        "stage": "staff_master",
+        "topic": "Kai successo",
+        "expected": "ReazioneKaipossedutaservita dalpannello,Mente>=20→applicazionenegata/0PV,stessareazione/costovero. GuardtecnicaconsenteprecisamenteKai31d5.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "M03",
+        "stage": "staff_master",
+        "topic": "Kai insuccesso",
+        "expected": "Se ilrosterStaffnativoconsenteMente<20: Kaifallisceesattafascia,0PV,bloccovieneapplicato; altrimenticasononrappresentabile,noncambiarePGreali.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "M04",
+        "stage": "staff_master",
+        "topic": "Contesa senzaKai",
+        "expected": "Confrontomentale e qualitàumana autorizzata; riportocorretto0PV/movimento_only;Fatoscrittoamano,0provider.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "M05",
+        "stage": "staff_master",
+        "topic": "Fine/KO",
+        "expected": "Conclusione normale solapropriaprova→ended,0effettiresidui/risorserealiinvariate,storico/conteggiconservati.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "R01",
+        "stage": "static",
+        "topic": "Regressioni pertinenti",
+        "expected": "LealtrefamiglieHoki/cure/Elementali/innata/Sabaku/Fili conservate nelleancoreRoot/core;UUID31d5 non ricade in offensivegenerichefuoriStaffgate.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "R02",
+        "stage": "static",
+        "topic": "Fuori scontro",
+        "expected": "38voci fuori_scontro mantenute narrative, nessunanuovaoffertaCombat o mutazionedelcatalogo337.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "O07",
+        "stage": "staff_ordinary",
+        "topic": "Contesa di liberazione",
+        "expected": "Con blocco attivo, principaleutilita mentale; poolfonte originale congelato,0danni/basechakra; replayunica ricevuta e un soloRNGseal nativo.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "M06",
+        "stage": "staff_master",
+        "topic": "Kai su sé",
+        "expected": "Principaleutilita Kai, Mente>=20 libera, sotto20mantiene; principaleconsumata,0basechakra,nessunaazioneoffensivaaggiunta.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "M07",
+        "stage": "staff_master",
+        "topic": "Kai su alleato",
+        "expected": "Solo se nativamenterappresentabile: alleato a contatto, stessa squadra; liberazioneautore/target corretti e c.testimone=target; a3mnessunaofferta, contattopersodopoporta→esito contact_lostsenzaeffetto.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "S09",
+        "stage": "static",
+        "topic": "Fatti stretti",
+        "expected": "genjutsu_server e mental_release validati DB conchiavienumtipiesatti; no pool/dadi nei factsEdge, legacystrict invariato.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "S10",
+        "stage": "static",
+        "topic": "Composizione cure",
+        "expected": "Deltaafter/before25funzioni conMD5fullDef, metafieldgenjutsu_release_meta non azzeraPalmo; stessa Root integrata daPM.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "AG1-COST",
+        "stage": "static",
+        "topic": "Sedici snapshot",
+        "expected": "Sovraccosto5: basechakra10/quote15 restano coerenti nel freeze; solo il ledger nativo applica15 una volta.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "AG1-ALLY",
+        "stage": "static",
+        "topic": "Kai alleato",
+        "expected": "Contatto stesso team a2m, self distinto; nessun helper nemico STRICT; nessun gateCure usato.",
+        "result": "NOT_RUN"
+      },
+      {
+        "id": "AG1-RECOVERY",
+        "stage": "static",
+        "topic": "Chiusura nativa",
+        "expected": "Scene aperte o stati residui→STOP; dopo chiusura nativa recovery cambia solo gate, poiPMhookCAS; snapshot/receipts identici.",
+        "result": "NOT_RUN"
+      }
+    ],
+    "campaign_proposal": {
+      "not_authorization": true,
+      "max_new_scenes": 2,
+      "max_site_commands": 48,
+      "max_minutes": 40,
+      "max_provider_calls": 0,
+      "tokens": 0,
+      "usd": 0,
+      "stop": "Safety/resourceisolationdefect→stopaffectedcase;budgetexhausted→preserveevidenceanddeliver;noexploratoryretryorfavorable-rollsearch",
+      "native_profiles_only": true
+    },
+    "integration_hooks": [
+      {
+        "function": "combat_v2_elemental_internal.other_consumer_options",
+        "args": "p jsonb",
+        "baseline_md5": "67cd2c4c8d56e47ce7b6ecea0faaf9ae",
+        "anchor": "RETURN combat_v2_taijutsu_internal.consumer_options(jsonb_set(p,'{offers}',offers));",
+        "anchor_count": 1,
+        "requirement": "Passare il risultato preservato a genjutsu.consumer_options prima del ritorno; non riordinare o eliminare offerte esistenti.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "combat_v2_elemental_internal.other_master_options",
+        "args": "p_context uuid, p_expected bigint",
+        "baseline_md5": "4209b663856d85a50c3a2eb0715207ff",
+        "anchor": "PERFORM combat_v2_taijutsu_internal.master_options(c.id,c.context_version);",
+        "anchor_count": 1,
+        "requirement": "Aggiungere genjutsu.master_options(c.id,c.context_version), preservando le altre famiglie.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "combat_v2_elemental_internal.other_control_target",
+        "args": "p_adapter text, p_offer uuid, p_actor uuid",
+        "baseline_md5": "237b7d6474d1735f00810656d661eec4",
+        "anchor": "IF tid IN ('f1440a58-ee95-53dc-8ed5-a53543d970ce'",
+        "anchor_count": 1,
+        "requirement": "Aggiungere primo ramo exactUUID31d5 con genjutsu.preset_ready; conservare tutta la validazione payload/CAS/ownership precedente.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "combat_v2_elemental_internal.other_control_apply",
+        "args": "p_adapter text, p_offer uuid, p_actor uuid, p_request uuid",
+        "baseline_md5": "22d157b1c98db7d4bf3561339472018e",
+        "anchor": "IF tid IN ('f1440a58-ee95-53dc-8ed5-a53543d970ce'",
+        "anchor_count": 1,
+        "requirement": "Prima del ramoTaijutsu, exactUUID31d5→genjutsu.staff_bind(actor,request).",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "public.combat_v2_actor_ability",
+        "args": "p_actor uuid, p_source text, p_ability uuid, p_defense boolean",
+        "baseline_md5": "b23f45d4402ed43118fcbd709b3939f3",
+        "anchor": "SELECT CASE WHEN p_source='clan' AND p_ability='127f3854-4183-4354-a654-f59320d8807e'",
+        "anchor_count": 1,
+        "requirement": "Precedere la CASE con sourceclan/UUID31d5→actor_meta(actor) se nondefense, altrimentiNULL; nessun fallback31d5 fuori scope.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "combat_v2_elemental_internal.other_profile",
+        "args": "p_actor uuid, p_technique uuid",
+        "baseline_md5": "da218e02c45e77cd710aac382db4dc57",
+        "anchor": "IF p_technique IN ('f1440a58-ee95-53dc-8ed5-a53543d970ce'",
+        "anchor_count": 1,
+        "requirement": "ExactUUID31d5→genjutsu.actor_meta(actor). Nessuna modifica a other_gates o whitelistElementali.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "combat_v2_elemental_internal.other_prepare_native",
+        "args": "p_round uuid, p_actor uuid, p_request uuid, p_intent jsonb, p_push boolean, p_native_ref jsonb",
+        "baseline_md5": "d81d3fcfafebe5e45a89418f6fc3b8cc",
+        "anchor": "tid:=(p_intent->>'ability_id')::uuid;target:=(p_intent->>'target_actor')::uuid;",
+        "anchor_count": 1,
+        "requirement": "Dopo letturaUUID, exact31d5 e p_pushfalse→genjutsu.prepare; mantenere protezione del native_ref validata a monte dal consumer.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "public.combat_v2_action_declare",
+        "args": "p_round uuid, p_actor uuid, p_intent jsonb, p_text text, p_request_key uuid",
+        "baseline_md5": "d5a0d2536a90b3e75e776d5312c3129d",
+        "anchor": "ELSIF v_source='clan' AND combat_v2_elemental_internal.other_profile(p_actor,v_ability) IS NOT NULL THEN",
+        "anchor_count": 1,
+        "requirement": "RamoUUID31d5 precedente: genjutsu.declaration_meta obbligatorio/nonNULL; no meta dal client. Preparazione nella stessa transazione del commitCommon.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "public.combat_v2_action_declare",
+        "args": "p_round uuid, p_actor uuid, p_intent jsonb, p_text text, p_request_key uuid",
+        "baseline_md5": "d5a0d2536a90b3e75e776d5312c3129d",
+        "anchor": "PERFORM combat_v2_elemental_internal.other_bind_source(v_id);",
+        "anchor_count": 1,
+        "requirement": "Aggiungere genjutsu.bind_source(v_id), helper no-op per tutte le altre dichiarazioni.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "public.combat_v2_round_resolve",
+        "args": "p_round uuid, p_request_key uuid",
+        "baseline_md5": "d677231858895dbb83b2759f00667531",
+        "anchor": "v_calc:=clan_akimichi_private.form_impact(v_d.id,v_def.actor_id,v_tar.id,v_kind,v_reaction,",
+        "anchor_count": 1,
+        "requirement": "Prima del sealRNG e dopo il calcolo nativo, genjutsu.comparison(attack,defense,calc); non generare dadi o qualità aggiuntivi.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "public.combat_v2_round_resolve",
+        "args": "p_round uuid, p_request_key uuid",
+        "baseline_md5": "d677231858895dbb83b2759f00667531",
+        "anchor": "if (multiplication_effect->>'copy_intercepted')::boolean or v_reaction='sostituzione' or v_kind='genjutsu' and v_final<0",
+        "anchor_count": 1,
+        "requirement": "Per source_valid31d5:0danno in ogni esito, success dalla helper e nessun consumoArmatura/contatto; guardKai exact non genericamente tecnica.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "combat_v2_multitarget_internal.resolve_parent",
+        "args": "p_session uuid, p_round uuid, p_attack uuid, p_values boolean",
+        "baseline_md5": "1968d5ba7041bf1e47e958e40d40d250",
+        "anchor": "if (multiplication_effect->>'copy_intercepted')::boolean or (fireball_profile IS NOT NULL AND reaction='sostituzione') or kind='genjutsu'and final<0",
+        "anchor_count": 1,
+        "requirement": "Stessa semantica zeroPV/Kai/contesa, decorate_outcome una sola volta prima persistenzaChild; nessuna tecnica31d5 multibersaglio.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "combat_effects_private.lifecycle_open",
+        "args": "p_session uuid, p_actor uuid",
+        "baseline_md5": "3f76ecc79719b876d8bbd8362c7aa247",
+        "anchor": "pending_effect:=EXISTS(SELECT 1 FROM combat_effects_private.effect_applications",
+        "anchor_count": 1,
+        "requirement": "genjutsu.open_turn PRIMA dell’earlyreturn, non subordinare alla presenzaElementali.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "combat_effects_private.personal_turn_start",
+        "args": "p_session uuid, p_actor uuid, p_turn uuid, p_adapter text",
+        "baseline_md5": "954ed4de7f11f901056c49465f2ac765",
+        "anchor": "PERFORM clan_akimichi_private.begin_personal_turn(p_actor,p_turn);",
+        "anchor_count": 1,
+        "requirement": "Dopo convalida turno inserire genjutsu.turn_start con clocknativo.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "combat_effects_private.personal_turn_end",
+        "args": "p_session uuid, p_actor uuid, p_turn uuid, p_adapter text",
+        "baseline_md5": "0f7244f5b194a42286b238c31ba4063b",
+        "anchor": "turn_key:='turn-end:'",
+        "anchor_count": 1,
+        "requirement": "Integrare genjutsu.turn_end dentro lo stesso punto di saldo/replay del turno comune; non prima della validazione nativa e non dopo un returnche lo salta.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "combat_panel_private.movement_block_reason",
+        "args": "p_body uuid",
+        "baseline_md5": "67e186509cc0dc04022e355ce23a10b9",
+        "anchor": "IF combat_panel_private.immobilization_active(a.id) THEN RETURN 'immobilized'; END IF;",
+        "anchor_count": 1,
+        "requirement": "Aggiungere prima/dopo genjutsu.movement_blocked→genjutsu_movement_blocked; coprire movimento ordinario/incorporato senza bloccareazioni0m.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "combat_panel_private.immobilization_actor_lifecycle",
+        "args": "",
+        "baseline_md5": "783b5e05918acdb7dfb87eb9f2fe8e81",
+        "anchor": "IF NEW.state<>'attivo' THEN",
+        "anchor_count": 1,
+        "requirement": "Il PM aggancia genjutsu.end_context(session,actor) nel lifecycle generaleKO, senza creare immobilizzazione fisica.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      },
+      {
+        "function": "combat_panel_private.immobilization_session_lifecycle",
+        "args": "",
+        "baseline_md5": "5f57929b3028376f23388c30d6063fc8",
+        "anchor": "IF NEW.state IN ('risolto','chiuso','annullato') THEN",
+        "anchor_count": 1,
+        "requirement": "Nel lifecycle generalechiusura, genjutsu.end_context(session). Non chiudere scene altrui.",
+        "owner": "PM_SHARED_CORE",
+        "implemented_here": false
+      }
+    ],
+    "additional_hooks_requiring_owner_capture": [],
+    "release_blockers": [
+      "Composizione unicaPM conRoot/core/Cure/Edge/client e recovery integrata non eseguita",
+      "Review indipendente pertinente della composizione e preflightfresco richiesti",
+      "Tutti i casi Staff NOT_RUN; gates pubblicoOFF; nessuna attivazione da questo ramo"
+    ],
+    "artifacts": {
+      "paralisi_candidate.sql": "033b314c0895ff91eb2d551d3656484190344de98963ec745cfe929fa963b903",
+      "paralisi_recovery.sql": "5dc217969296b000ee52dae5ce17cf4d619f42db9befad6bd76cbdfe545a8f79",
+      "paralisi_contract.md": "e4e88e846ac5dfc6cc323f579959452e3e645f10ecc07f5d4373d8c3cf6724f3",
+      "paralisi_baseline.json": "0bd264891f1b72417a9d4346daed61f194c1bb0022f92c0ba3d7e84937900a66",
+      "paralisi_hooks.json": "69e831b83e0bcc3c3480e3f4a37785ba2d83a580cecb2b780d98f29a844d8e23",
+      "paralisi_shared_candidate.json": "c0d669418140a0964590fb5f4c241a2d4d1f04d97265dd9e86c6bb35e6b2f3e3",
+      "paralisi_facts_schema.json": "3371c3d76c8d9a409857e9bc2aa484d9571c40a920bc5ec08247bb1dc35e88a2",
+      "paralisi_static_checks.json": "ae98af0db8d09c6d1cac6625ae90578357be112a3db598da531def1c86d26769"
+    },
+    "release_contract": "A scelta PM implementata source-only; superficieutilita principale,0basechakra,nessunoslotextra.",
+    "exact_hooks_artifact": "paralisi_hooks.json",
+    "shared_candidate_artifact": "paralisi_shared_candidate.json",
+    "shared_function_count": 27,
+    "exact_replacement_count": 42,
+    "source_readonly_function_count": 51,
+    "integration_hooks_note": "Le18 descrizioni iniziali sono riferimenti di provenienza; autorità del delta finale sono42 sostituzioni esatte su27 corpi in paralisi_hooks.json/paralisi_shared_candidate.json. Comporre conCure prima della reviewfinale.",
+    "review_history": {
+      "initial": "0/0/3",
+      "aggregate": 1,
+      "counterreview": "PENDING"
+    }
+  },
+  "review": "Source review0/0/0 is separate from gameplay; no SQL mutating test/fault injection.",
+  "campaign": {
+    "status": "NOT_STARTED",
+    "provider_calls": 0,
+    "gameplay_cases": 0,
+    "budget_must_be_frozen_before_session": true,
+    "stop": [
+      "security_or_real_resource_effect",
+      "unauthorized_actor_or_scene",
+      "finite_budget_limit"
+    ],
+    "no_random_retry": true
+  },
+  "public_opening": false
+}

@@ -18,6 +18,16 @@ Apply20261118080546 riuscito e postflight digestafter3137b892d25c4d4b20177dbee55
 
 Seconda aggregata dati applicata: migrazione `20261118083406`, 14 tecniche / 24 campi (8 portate, 13 effetti, 3 durate), derivati dai profili server Elementali e Taijutsu già esistenti. Review indipendente 0/0/0 e postflight integrale esatto. Nessuna nuova formula, meccanica, assegnazione o qualifica di gioco. Digest attuale `2ee367eada52a19ed25c3653acfa67ea2a90c8bc89012d418410d94c34a5e1ce`; 362 righe, 337 attive, jutsu invariati, Combat aperti 0. Root737, client ed Edge invariati. Source `46cb94e5e59df4b16d919af5d495ea56472a658f275b150df43ebebd9ee76d12`, recovery `18d5b064785fe1fa843a35e01e37c09b2a609258974e432349c9a92f02197920`. Parsing completo SQL/DO PASS; pin dei due getter puri, whitelist dei tre campi, immagini prima/dopo e custodia integrale della tabella. Recovery non eseguita.
 
-## Integrazioni successive
+## Prima versione runtime installata
 
-Paralisi illusoria e Palmo Curativo in preparazione source-only nei rami tecnici isolati. Nessun apply/deploy/enable o prova. Prima della futura campagna fissare casi, scope, comandi/token/costi/durata e registrare versione integrata. Fuori_scontro restano narrative. AttivazioneSigilli e azioneCapolavoro hanno quesiti prodotto puntuali pendenti, non defaultsilenziosi.
+Migrazione20261118122814 riuscita dopo finalizzazione0/0/0 (7657c2ab). Rootf460be0a321e1640d7993a15285cf1b6352166cda41e991f0c644f29bd6a3658,509525B e rowSHA794d8d3c71c0e7a7e2a3f9a7bded6f1d03420095aa52fb4ceabb4970c7c92d4f. GatePalmo/Para StaffON/pubblicoOFF; Edge45/EZBR79bdb113f0203e5b0578a1211fb43f1c5cfb6b3bb5585714b4d9b5475ce27a11,18filebyte-esatti.34shared/66privati/12tabelle/10trigger e7alias verificati atomicamente. Source35ab/B825a/P881a, recovery8080non eseguita. Missionqualificationtrue,2contentadmissions,partyStaff/publictruepreservati;0Combat/0Master.
+
+Nessun caso giocato o provider. F1P1scope e2P2recovery superati primaapply; referti completi in RUNTIME_REVIEW.json. Scope attualeordinary/humanDuello, curePG+PNGnemici nel normalecomposer, ParaStaff2PG. NBStaff3attori approvato dall’utente, codice4cae in review separata e non installato. Fuori_scontro narrative, Capolavoro principale condivisa, AttivazioneSigilli rinviata.
+
+## Scostamento della preparazione e prossima campagna
+
+La preparazione source ha superato le finestre dichiarate240min(main) e120min(artefatti), senza gameplay o provider; tempi osservati e storico conservati. Il sottoscope artefatti è stato consegnato come source, non come prodotto completo. La prossima campagna è distinta e non ancora iniziata:60min/9casi/6provider/24000tokeninput+6000output/USD0.10(o residuoautorizzato inferiore)/180UI, nessuna espansione in esecuzione. PianoSTAFF_QA pronto conconsumer solo degli input consegnati.
+
+## Incidente readonly conservato
+
+Query dimensionaleRoot terminata con53100senza mutazioni; SELECT1,progettoACTIVE_HEALTHY,healthlints[],log10min1errore eRoot737immutata verificati. Nessuna pulizia/riavvio/ripetizionequery. Serializer lineare conroundtrip+cap524288 è passato nell’apply reale:509525B. Un successivo errore trasportoMCP sureadonly preflight è stato seguito da una sola lettura riuscita Root737/0scene primaapply; nessun retry di gameplay o reset.
