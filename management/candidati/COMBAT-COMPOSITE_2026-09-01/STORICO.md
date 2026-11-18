@@ -1,3 +1,6 @@
+18/11/2026 · COMBAT-CATALOGO-CURE-COMMAND-20261118 · Contratto comando Cure installato15:34:17UTC, sole2body eRoot07f5b2ea dopoR1/R2 0/0/0 · INSTALLATO_STAFF,20261118153417,StaffON/pubOFF,0scene/provider/casi; preparazionePalmo eQA3 pendenti.
+18/11/2026 · COMBAT-CATALOGO-SIGILLI-RETIRE-20261118 · Doppione AttivazioneSigilli disattivato su richiesta utente · APPLICATO_DATA,20261118151920,336attive/362righe,review0/0/0 e altre righe identiche.
+18/11/2026 · COMBAT-CATALOGO-STAFF-RETEST-20261118 · Offerte PG recuperate, unico profiloPalmo rifiutato per p.operation estraneo al contratto · PARZIALE_BLOCCATO,0effetti/provider, chiusura nativa e4digest invarianti.
 18/11/2026 · COMBAT-CATALOGO-COMPAT-20261118 · Otto raccordi eligibility riconosciuti dalla Root7de, dopo R1/R2 0/0/0 e preflight100peer · INSTALLATO_STAFF, migrazione20261118145057,0gameplay/provider; apertura nuovaOFF.
 18/11/2026 · COMBAT-CATALOGO-STAFF-QA-20261118 · Setup Master protetto, offerte PG bloccate fullseal e chiusura nativa · BLOCKED_PRIMA_GAMEPLAY,0provider/4digestinvariati/0sessioniresidue.
 18/11/2026 · COMBAT-CATALOGO-STAFF-INSTALL · Rootf460/Edge45, Palmo eParalisi soloStaff dopo review/finalizzazione0/0/0; migrazione20261118122814 · INSTALLATO_STAFF,0QA/provider; finestresource240/120minsuperateecustodite.

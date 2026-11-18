@@ -1,31 +1,27 @@
-# COMBAT-CATALOGO-COMPAT-20261118 · correzione applicata Staff, QA da svolgere
+# COMBAT-CATALOGO-CURE-COMMAND-20261118 · in lavoro
 
 ## Scope toccato
 
-Correzione del difetto delle offerte PG osservato nel primo collaudo Staff del catalogo. Il mandato complessivo resta tutte le tecniche attive residue; Palmo e Paralisi sono installati solo Staff, nessuna qualifica meccanica o apertura nuova. Dati già applicati e sorgenti della prima installazione restano custoditi.
+Cure Command installato in Staff15:34:17UTC, migrazione20261118153417; sorgente consegnata, codice non ancora pubblicato suGit. Mandato residuo336tecniche attive+6jutsu,26+3inattive preservate; nessuna qualifica generale.
 
 ## Contratti usati/modificati
 
-Base viva Root `f460be0a321e1640d7993a15285cf1b6352166cda41e991f0c644f29bd6a3658`, bundle `825a1c14a59281fb3168430a993e9f2dbbbc41042f5169638d2e9c1e8e9868a5`, migrazione20261118122814, Combat Edge45. La guardia `clan_innata_private.eligibility_release_assert()` non riconosce due corpi modificati semanticamente nell'integrazione: `round_options_authoritative` e `combat_v2_actor_ability`. Delta applicato20261118145057 dopo reviewR1/R2 0/0/0: installer002a2a697fdc7139bd1095dd0401fe90719f70c75e8f62ae343fe7209ad42fbf, B654f8fff2f42019ffc4b3ccc6c467fff443ba81f00c7aa020fbd6d7950e2445e. Rootcorrente7de36fc81053902e6fbfa99c332ee75544f7a8acdb26ebfd9c6ab108045bcf7f/514748B, Edge45 invariata. Guardia privata e helper chiuso sui100peer conservano tutte le verifiche storiche,8alternative825a e aliasguard aggiornati; nessun cambio cieco dei pin. Recovery composta2b968352 forwardinerte, non eseguita. Client e contenuti delle missioni restano fuori da questa correzione.
+Rootcorrente07f5b2ea5fd3b16175d8f119c4fa7e66fbfb03b6cac07b93846b67e8b05ba5f1/521454B, rowSHA340b3c89be9a6f70f4133b119c2b121f6666b71d73022c7e4d04cd02d45fd64c, parent7de36fc8. Sole2body modificati: cure_commit_v1 MD561532836e90ed32ae807b92ee6632b71 e catalogo_eligibility_release_v1 MD5cee515cbecd8f62d928c7e55926ab2bd. Operation dalla sola offerta server; command/1 e client invariati. Guardia250e/34shared/Para/Edge45 preservati. Installerf56077fd3e08b055def4c9d4e069cdc521a158afad436db40bf2a4017185f7f7; sourcebundlee14b2a7fd1bbe0d0dad34c12d2176bc1347e6860e205f142d9098f4ae3d559dc.
 
 ## Decisioni prese / OPEN
 
-Fuori_scontro narrative; Il Capolavoro usa l'azione principale condivisa; Attivazione Sigilli rinviata dall'utente con campi intatti. Raccordo NinjaBook solo Staff approvato, source-only: controverifica aggregata1 0/0/0 SHA82c7f743, risolti source_id e staging setup/readiness. Nessuna Root integrata, installazione o collaudo NB. Il futuro delta deve comporre anche il verificatore closed dei peer Para sulla baseline corrente, preservando la semantica della riparazione. Aburame7 ha soltanto contratto, nessuna qualifica o implementazione dichiarata.
+Fuori_scontro narrative, Capolavoro principale condivisa. AttivazioneSigilli RETIRED_EXPLICITLY, non DEFERRED:20261118151920, unica is_active=false,336attive/362,altre361righe identiche; deposito7d1214788bfa0390083fc0317dcc4fbb9675f6c0. NinjaBook soloStaff approvato e controreviewsource82c7f743 0/0/0; Root/installer/collaudo ancora da comporre con i peerPara, nessuna installazioneNB. Aburame7 resta contratto.
 
 ## Prove eseguite e risultato
 
-Campagna COMBAT-CATALOGO-STAFF-QA-20261118:14:00:29–14:27:14UTC, conclusa entro60min,0azioni gameplay,0provider/token/spesa, massimo95operazioni UI. Ordinary senza secondo PG presente. Master umano Riuji+Keita Uro e mappa10×10 confermati dal normale composer: simulazione protetta, values_written=false. Il rientro normale ha risolto la scadenza della presenza; le offerte PG restavano bloccate da HTTP400/P0001 `runtime_eligibility_full_seal_drift`. Nessuna cura o Paralisi eseguita; casi meccanici NOT_RUN.
+R1/R2 Cure Command pertinenti0/0/0; apply riuscito e postflight branchadmitted=true, Palmo/Paralisi StaffON/pubblicoOFF, qualificamissioni=true,2contentadmissions epartyflags preservati.0Combat/0Master,0provider/0casi e nessuna apertura pubblica. Ricevuta owning cure_command.install.receipt.json; recovery non eseguita.
 
-Prova propria chiusa nativamente tramite i comandi di gestione disponibili controllando il PNG: Mastere031a914-27c9-43ad-9ca6-b3f0a2195f1b annullata e Combat2114d8b7-7c9d-4232-85ad-cfd0a78f65bc annullato alle14:27:13UTC. Postflight0sessioni Staff residue; schede/inventario/abilità/jutsu dei due PG autorizzati identici ai digest iniziali. Audit preservato, vista PG ripristinata. Evidenze complete STAFF_QA.json/md.
-
-Postflight della correzione: branchadmitted=true e guardia metadata verificata; nuovaRoot osservata/hashraw esatti, rowSHA86056394b0a33c29c75f828d6fccd348ac4d6d9009cb95906d0a3b1b7c5a0e42. Qualifica missioni true,2ammissioni e partyStaff/publictruepreservati,0scene/0provider. Le nuove tecniche restano StaffON/pubblicoOFF; nessun PASS meccanico. COMPAT_REVIEW.json custodisceT/B/N/R1/P/F/entry/E/R2 e ricevuta reale.
+QA1 bloccata fullseal; QA2 offertePG recuperate ma unico submit profiloPalmo rifiutato42501 per p.operation. Audit08d8dd8d conferma unico accesso fuoriwhitelist. Propria scena chiusa15:06:49UTC,0profili/decl/scene residue e4digest reali invariati. Evidenze STAFF_QA.json/md conservano entrambe le campagne. La nuova preparazionePalmo non è ancora stata eseguita: nessun PASS meccanico implicito nell’installazione.
 
 ## Rischi o regressioni da verificare
 
-Il difetto delle offerte blocca il rilascio delle tecniche dipendenti; nessun PASS dedotto da setup o review. Composizione, review0/0/0 e apply riservato Staff completati; serve il nuovo collaudo finito della Root7de. Il costo della guardia resta da osservare nel sito; nessun timeout o benchmark inventato. Il percorso senza Master e i casi con due PG richiedono testperfunzioni presente in Staff. Nessuna richiesta di nuove autorizzazioni procedurali; soltanto disponibilità del secondo PG.
-
-Le finestre source precedenti240/120min sono state superate e restano registrate; questa correzione è il successore operativo del QA concluso, budget75min/0casi/0provider, senza azzerare storia o revisioni. Non estendere durante il collaudo budget o scope. RUNTIME_RULES.patch resta candidata, regolamento vivo non modificato.
+ProssimoQA3 sulla Root07f5b2ea/Edge45: normale preparazionePalmo e casi con/senzaMaster nel solo scope autorizzato. Budget source60min/0provider dal claim15:09:14UTC; nuova campagnaQA con budget dedicato prima delloStart. Storia review, QA e scostamenti240/120min preservata; precedente riparazione75min consegnata in circa28min. Osservare presenza viva dei2PG all’avvio senza nuove conferme procedurali.
 
 ## Passaggio richiesto al PM
 
-Consegnare gli input realmente installati al QA: Root7de/Edge45/B654f, Palmo e Paralisi solo Staff. Fissare casi/chiamate/token/spesa/tempo della nuova campagna e conservare la prima bloccata. Chiudere le sole scene proprie e verificare risorse/sessioni residue. NB resta da integrare sulla nuova baseline con review della composizione; nessuna installazione del vecchio pacchetto. Riportare gli esiti reali e aprire solo il perimetro qualificato nel mandato10/09. Il catalogo completo resta in lavoro.
+Integrare questa consegna documentale, pubblicare soltanto i sorgenti verificatiCure Command quando pronti e avviareQA3 con scope/budget finiti. UltimoGit7d121478; codiceCure non ancora pubblicato. Chiudere solo proprie prove, conservare storico/risorse e aprire soltanto il perimetro positivamente qualificato nel mandato10/09. Catalogo completo ancora in lavoro.
