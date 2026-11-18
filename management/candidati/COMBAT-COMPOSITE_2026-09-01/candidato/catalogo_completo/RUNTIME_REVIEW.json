@@ -1,0 +1,138 @@
+{
+  "schema_version": "catalogo-combat-reviews/1",
+  "task": "COMBAT-CATALOGO-COMPLETO-20261118",
+  "runtime_qualified": false,
+  "reviews": {
+    "metadata14": {
+      "schema_version": "independent-source-review/1",
+      "reviewer": "DB-CORE / QA indipendente (/root/verifica)",
+      "date": "2026-11-18",
+      "scope": "Metadata14: soli portata/durata/danno_effetto da profili runtime già esistenti",
+      "source_sha256": "46cb94e5e59df4b16d919af5d495ea56472a658f275b150df43ebebd9ee76d12",
+      "recovery_sha256": "18d5b064785fe1fa843a35e01e37c09b2a609258974e432349c9a92f02197920",
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "checks": [
+        "14 profili estratti indipendentemente dai 2 corpi SQL puri: corrispondenza esatta",
+        "14 righe attive /24campi: 8portata,13danno_effetto,3durata",
+        "before composto esattamente sulla precedente patch64; Soffio effetto preservato",
+        "Semantica Entrata/rincorsa e Scudo conforme ai profili",
+        "JSON incorporato esatto e recovery inversa completa",
+        "Lock tabella, digest intero catalogo+jutsu, pin2profili, whitelist3campi e postimage esatta"
+      ],
+      "limits": [
+        "Review sorgenti/dati; non nuova qualifica engine o dei futuri adapter Cure/Paralisi",
+        "Nessuna UI, mutazione DB, provider o gameplay eseguiti dal reviewer"
+      ]
+    },
+    "cure_private_agg1": {
+      "schema_version": "independent-private-source-review/1",
+      "reviewer": "DB-CORE / QA indipendente (/root/verifica)",
+      "date": "2026-11-18",
+      "scope": "Cure Palmo Curativo: freeze privato e hook proposti, non installer aggregato",
+      "source_sha256": "a145e7c3a5818b9420496b76d49799c48b048e4e789d5ae66ef71b3bf19b3a21",
+      "hooks_sha256": "ce1e7aac36950c563f8c5c6fb136e95d998f798fb104c58e59c55affbc15f0af",
+      "shared_candidate_sha256": "9ca278a82f152e56bd1d88c7c7f8cd1bb86568d86ef5a09db36c6aabfcae1167",
+      "P0": 0,
+      "P1": 1,
+      "P2": 1,
+      "findings": [
+        {
+          "priority": 1,
+          "function": "combat_panel_private.cure_note_voluntary_v1",
+          "lines": [
+            400,
+            414
+          ],
+          "problem": "Nuove audit per PG autorizzati o snapshot Palmo emesse anche fuori scope Staff e con gate pubblico OFF; la presenza di un ID/abilità non è autorizzazione dell'esecuzione.",
+          "correction": "Limitare nuove registrazioni a esecuzione Staff ammessa con gate Staff, oppure pubblica ammessa con gate pubblico; conservare il controllo di turni/fonti congelate valide anche dopo OFF."
+        },
+        {
+          "priority": 2,
+          "function": "cure_voluntary_receipt_guard_v1 + cure_turn_clear_v1",
+          "lines": [
+            209,
+            213,
+            441,
+            444
+          ],
+          "problem": "Gli altri Prepara prova Staff senza gameplay contano come azioni volontarie e bloccano cura nello stesso turno; il controllo raw request_receipts in turn_clear resta anche correggendo soltanto il trigger.",
+          "correction": "Riconoscere preparazioni neutrali attraverso offerta e binding/receipt server validati; riusare la stessa classificazione in trigger e turn_clear. Non fidarsi di un flag client né ignorare tutti i control."
+        }
+      ],
+      "checks": [
+        "Tabelle private RLS e REVOKE client espliciti; gate Staff/pubblico OFF",
+        "Preparazione congelata legata a richiesta, transazione, round, attore, target, controller/versione e hash",
+        "Contatto spaziale nativo e team server; self/alleato, KO a0 distinto da ritirato",
+        "MedicoKO non applica cura; recupero alleato non crea un nuovo turno nello stesso round",
+        "Guadagno divisione intera (Mente+Ninjutsu)/3 e capPVmassimi; ledger costo20/modificatori nativi e delta reale0 inStaff",
+        "Replay tramite receipt comune e source/ledger unici; esecuzione da resolver nativo con lock round",
+        "owner_turn_context.can_move è finestra-turno utile e non interroga immobilizzazione",
+        "Recovery privata conserva ledger/storico e richiede gateOFF e chiusura nativa delle sessioni"
+      ],
+      "limits": [
+        "Non è un 0/0/0 end-to-end: Root/shared/Edge/consumer finali da comporre dal PM",
+        "Nessuna esecuzione semantica DB, UI, provider o gameplay da parte del reviewer",
+        "Rischi runtime (Auth/RLS effettive, reazioni, contatto/KO/report/replay) da confermare nella Staff della versione integrata"
+      ]
+    },
+    "paralisi_private_agg1": {
+      "schema_version": "independent-private-source-review/1",
+      "reviewer": "DB-CORE / QA indipendente (/root/verifica)",
+      "date": "2026-11-18",
+      "scope": "Paralisi A: adapter privato + recovery e raccordi proposti; non installer integrato",
+      "source_sha256": "c06107053fdb3d3ac5290cc73f459fe146cfa99160d46201674fefc4a140b3ca",
+      "recovery_sha256": "20371680f806229d5048cf6922b86caa472c54194d8e7774f9bebc58f1a738e0",
+      "hooks_sha256": "69e831b83e0bcc3c3480e3f4a37785ba2d83a580cecb2b780d98f29a844d8e23",
+      "shared_functions": 27,
+      "hook_count": 42,
+      "P0": 0,
+      "P1": 0,
+      "P2": 3,
+      "findings": [
+        {
+          "priority": 2,
+          "function": "combat_v2_genjutsu_internal.bind_source",
+          "line": 208,
+          "problem": "Confronta costo base cost_snapshot.chakra con quote.total; Sedici conserva chakra=10 e aggiunge5 soltanto in technique_cost. Un lancio valido sotto Sedici viene rifiutato.",
+          "evidence": "sedici_cost_snapshot(uuid,jsonb) conserva p_snapshot.chakra e aggiunge technique_cost; sedici_frozen_cost valida base+sedici_delta e restituisce il totale.",
+          "correction": "Confrontare base10 e quote congelata/frozen_cost autorevole, senza rimuovere il vincolo né raddoppiare il sovraccosto."
+        },
+        {
+          "priority": 2,
+          "function": "release_intents / resolve_release",
+          "lines": [
+            411,
+            479
+          ],
+          "problem": "Il Kai su alleato chiama other_target_visible; other_geometry sottostante richiede con SELECT STRICT team_key diverso, perciò l'alleato genera NO_DATA_FOUND invece di un'offerta/contatto valido.",
+          "correction": "Contatto/visibilità alleati server dedicato e verifica al prepare/resolve; riusare pattern geometrico cure_contact senza dipendere da gate Cure. Self distinto; non allentare il filtro nemici del dominio Elementali."
+        },
+        {
+          "priority": 2,
+          "file": "paralisi_recovery.sql",
+          "problem": "Con dichiarazione risolta e scena ancora aperta, recovery riscrive abilities e termina pending/active con end_reason combat_end, rimuovendo un effetto senza chiusura nativa.",
+          "correction": "Recovery richiede prima sessioni coinvolte chiuse nativamente/esiti autorevoli; conserva snapshot e ricevute dei casi conclusi. GateOFF e ripristino hook CAS conservativo, senza terminazione amministrativa di effetti attivi."
+        }
+      ],
+      "checks": [
+        "Schema/tabelle/helper privati con RLS e revoche esplicite, nessuna RPC/acquisizione reale nuova",
+        "Staff limitata ai2PG e stanza protetta, pubblicaOFF e possesso reale controllato nel ramo futuro",
+        "Preparazione request/tx e source fingerprint/controller, stato pending→active→expired nei turni personali, no stack/no refresh",
+        "Semantica proposta sola mobilità: nessun main/reaction stun e nessuna liberazione Forza+Taijutsu",
+        "Hook previsti: danno0 prima mitigazioni, niente Armatura/Colonia/contatto veleno, Kai mentale e reazione alias, lifecycle e facts tipizzati",
+        "Liberazione dopo applicazione usa principale ordinaria; nessuno slot o costo nuovo aggiunto dal reviewer"
+      ],
+      "limits": [
+        "42hook/27shared sono proposta da comporre dal PM con Cure, Root e Edge/facts: nessun 0/0/0 end-to-end",
+        "SceltaPM A e limite movimento richiedono sync regole/catalogo come dichiarato dal contratto",
+        "Nessuna UI, provider, scena, mutazione DB o roll di test eseguiti dal reviewer",
+        "Rischi runtime di autorità, turni, geometria, reazioni, lifecycle e replay da verificare nella Staff della versione integrata"
+      ]
+    }
+  },
+  "integrated_review": "PENDING_SHARED_ROOT_EDGE_COMPOSITION",
+  "gameplay_cases": 0,
+  "provider_calls": 0
+}
