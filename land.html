@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
+<meta name="tus-combat-presence-entry-build" content="presence-entry-staff-20261119-2" />
 <meta name="tus-mission-host-contract" content="mission-narrative-host/1" />
 <meta name="tus-staff-meal-receipt-build" content="staff-meal-receipt-20261113-1" />
 <meta name="tus-innata-presence-build" content="innata-presence-20261103-1" />
@@ -4876,7 +4877,16 @@ const {isId,insist,validatePanelEnvelope}=module5;
 function attachPanelLand(host){
   if(typeof host.attachOpening!=='function')return attachCombatPanel(host);
   let child=null,mode='unknown',disposed=false,refreshing=null,generation=0,revocation=0,routingWarning=null;
-  const childHost={...host,requireManagedMaster:true,accepted(receipt){host.accepted(receipt);queueMicrotask(()=>{if(!disposed)refresh();});}};
+  const childHost={...host,requireManagedMaster:true,openEntry:()=>host.entryPresenceScope?.()?open('ordinary',{explicit:true}):false,accepted(receipt){host.accepted(receipt);queueMicrotask(()=>{if(!disposed)refresh();});}};
+  const recoveryEntry=host.document.getElementById('ordinary-open');let recoveryEntryOwned=false;
+  function syncEntryRecovery(){
+    if(mode!=='unknown'){recoveryEntryOwned=false;return;}
+    const allowed=!!host.entryPresenceScope?.();if(!allowed&&!recoveryEntryOwned)return;
+    const card=host.document.getElementById('ordinary-card');if(card){card.hidden=!allowed;card.style.display=allowed?'':'none';}
+    if(recoveryEntry){recoveryEntry.hidden=!allowed;recoveryEntry.disabled=!allowed;}recoveryEntryOwned=allowed;
+  }
+  const recoveryEntryClick=()=>{if(!child&&host.entryPresenceScope?.())void open('ordinary',{explicit:true});};
+  recoveryEntry?.addEventListener('click',recoveryEntryClick);
   const pending=()=>mode==='opening'?!!(child?.controller?.pending||child?.controller?.busy):!!(child?.snapshot()?.pending||child?.snapshot()?.busy);
   const routingScope=()=>JSON.stringify([host.identity?.(),host.location?.()?.id,host.isExam?.()]);
   function warnRouting(scope,reason){routingWarning=JSON.stringify([scope,reason]);}
@@ -4890,15 +4900,15 @@ function attachPanelLand(host){
       if(card){card.hidden=true;card.style.display='none';}if(entry){entry.hidden=true;entry.disabled=true;}
       if(next==='native')host.nativeMasterFallback?.(visible==='master');
     }
-    return visible;
+    syncEntryRecovery();return visible;
   }
   function refresh(){
     if(disposed)return Promise.resolve(false);if(refreshing)return refreshing;
-    const refreshScope=routingScope(),refreshRevocation=revocation;
+    const refreshScope=routingScope(),refreshRevocation=revocation,refreshPresenceScope=host.entryPresenceScope?.();
     const task=(async()=>{
       if(pending())return false;
       const current=child,stamp=generation,scope=routingScope(),revoked=revocation;
-      const valid=()=>!disposed&&child===current&&stamp===generation&&scope===routingScope()&&!pending();
+      const valid=()=>!disposed&&child===current&&stamp===generation&&scope===routingScope()&&!pending()&&(!refreshPresenceScope||refreshPresenceScope===host.entryPresenceScope?.());
       const location=host.location()?.id;
       if(!host.identity?.()||!isId(location)||host.isExam?.()){routingWarning=null;install('unknown');return false;}
       let e,route='ordinary';
@@ -4925,33 +4935,39 @@ function attachPanelLand(host){
       if(next!==mode){
         const wasVisible=install(next),newChild=child;
         await newChild.refresh();
-        if(!disposed&&child===newChild&&revoked===revocation&&scope===routingScope()&&wasVisible)await newChild.open(wasVisible);
+        if(refreshPresenceScope&&refreshPresenceScope!==host.entryPresenceScope?.())return false;
+        if(!disposed&&child===newChild&&revoked===revocation&&scope===routingScope()&&wasVisible){
+          await newChild.open(wasVisible,refreshPresenceScope?{explicit:false,entryPresenceScope:refreshPresenceScope}:undefined);
+          if(refreshPresenceScope&&refreshPresenceScope!==host.entryPresenceScope?.())return false;
+        }
       }else await current.refresh();
+      if(refreshPresenceScope&&refreshPresenceScope!==host.entryPresenceScope?.())return false;
       return true;
     })().catch(()=>{if(!disposed&&refreshScope===routingScope()&&refreshRevocation===revocation)warnRouting(refreshScope,'child_read_failed');return false;});
     refreshing=task;
-    task.finally(()=>{if(refreshing===task)refreshing=null;});
+    task.finally(()=>{if(refreshing===task)refreshing=null;if(!disposed)syncEntryRecovery();});
     return task;
   }
   async function open(which='ordinary',options={}){
-    if(disposed)return false;const scope=routingScope(),revoked=revocation;
+    if(disposed)return false;const scope=routingScope(),revoked=revocation,presenceScope=host.entryPresenceScope?.();
     const explicit=options?.explicit!==false;
     try{if(explicit&&typeof host.beforeOpen==='function')await host.beforeOpen();}
     catch{if(!disposed&&revoked===revocation&&scope===routingScope())host.routingUnknown?.({explicit:true});return false;}
-    if(disposed||revoked!==revocation||scope!==routingScope())return false;
-    await refresh();if(disposed||revoked!==revocation||scope!==routingScope())return false;
+    if(disposed||revoked!==revocation||scope!==routingScope()||(presenceScope&&presenceScope!==host.entryPresenceScope?.()))return false;
+    await refresh();if(disposed||revoked!==revocation||scope!==routingScope()||(presenceScope&&presenceScope!==host.entryPresenceScope?.()))return false;
     if(routingWarning!==null){host.routingUnknown?.({explicit:true});return false;}
     if(mode==='native'||mode==='unknown')return false;
     const expected=options?.expectedActivity;
     if(expected&&(mode!=='combat'||child?.snapshot()?.envelope?.context?.activity_id!==expected))return false;
     if(mode==='opening')host.closeMaster?.();
-    const current=child,result=await child.open(mode==='combat'?which:undefined,options);
-    if(disposed||child!==current||revoked!==revocation||scope!==routingScope())return false;
+    const current=child,result=await child.open(mode==='combat'?which:undefined,presenceScope?{...options,explicit:false,entryPresenceScope:presenceScope}:options);
+    if(disposed||child!==current||revoked!==revocation||scope!==routingScope()||(presenceScope&&presenceScope!==host.entryPresenceScope?.()))return false;
     if(mode==='opening'&&host.document.getElementById('ordinary-overlay')?.hidden!==false){host.routingUnknown?.({explicit:true});return false;}
     return result;
   }
   function invalidate(){generation++;revocation++;refreshing=null;child?.invalidate();}
-  function dispose(){if(disposed)return;disposed=true;generation++;revocation++;child?.dispose();child=null;}
+  function dispose(){if(disposed)return;disposed=true;generation++;revocation++;recoveryEntry?.removeEventListener('click',recoveryEntryClick);child?.dispose();child=null;}
+  syncEntryRecovery();
   return {open,refresh,invalidate,dispose,closeMasterSurface:()=>{if(child?.currentSurface?.()==='master')child.closeMasterSurface?.();},
     handleSend:(...args)=>{
       if(disposed)return false;
@@ -5346,11 +5362,12 @@ function attachCombatPanel(host){
     return true;
   }
   async function open(which='ordinary',options={}){
-    if(!ensure()||!routeAllowed())return false;
+    const entryScope=options.entryPresenceScope,entryCurrent=()=>!entryScope||entryScope===host.entryPresenceScope?.();
+    if(!entryCurrent()||!ensure()||!routeAllowed())return false;
     if(options.expectedActivity&&panel.snapshot().envelope?.context?.activity_id!==options.expectedActivity)return false;
     const actor=options.commandActor,pre=panel.snapshot().envelope;
     if(isId(actor)&&pre?.viewer.command_actor_id!==actor){
-      if(!pre?.viewer.controlled_actors.some(x=>x.actor_id===actor)||!await panel.selectActor(actor))return false;
+      if(!pre?.viewer.controlled_actors.some(x=>x.actor_id===actor)||!await panel.selectActor(actor)||!entryCurrent())return false;
       const selected=panel.snapshot().envelope;
       if(selected?.context?.activity_id!==options.expectedActivity||selected.viewer.command_actor_id!==actor)return false;
     }
@@ -5363,9 +5380,9 @@ function attachCombatPanel(host){
       if(which==='master')host.showMaster();else{dialog.hidden=false;dialog.style.display='flex';}
       deactivateLayout=activatePanelLayout({document:doc,root,body:which==='master'?master:ordinary,overlay:which==='master'?doc.getElementById('mv2ov'):dialog});
     }
-    if(refreshing)await refreshing;if(stamp!==generation)return false;
+    if(refreshing)await refreshing;if(stamp!==generation||!entryCurrent())return false;
     const before=panel.snapshot();if(before.pending||before.busy||before.refreshRequired&&before.lastCommand?.status==='rejected')return true;
-    const ok=await panel.open(!!options.expectedActivity);if(stamp!==generation)return false;await readRegiaPublication();if(stamp!==generation)return false;
+    const ok=await panel.open(!!options.expectedActivity);if(stamp!==generation||!entryCurrent())return false;await readRegiaPublication();if(stamp!==generation||!entryCurrent())return false;
     const fresh=panel.snapshot().envelope;
     if(options.expectedActivity&&(fresh?.context?.activity_id!==options.expectedActivity||isId(actor)&&fresh.viewer.command_actor_id!==actor)){hide();return false;}
     if(ok&&opened&&routeAllowed())host.rememberCombatView?.(which,fresh);
@@ -5415,7 +5432,7 @@ function attachCombatPanel(host){
         if(single&&stamp===generation&&key===scope()&&!stillBound())host.notice('Il turno è cambiato. La role è conservata.');
       }).finally(()=>{if(single)submittingRole=false;});return true;
   }
-  const entryClick=()=>open('ordinary');
+  const entryClick=()=>host.entryPresenceScope?.()&&typeof host.openEntry==='function'?host.openEntry():open('ordinary');
   const userClose=()=>{if(opened)host.rememberCombatView?.(null);hide();};
   entry.addEventListener('click',entryClick);close.addEventListener('click',userClose);
   function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',userClose);invalidate();for(const badge of badges)badge.remove();blockingToast.remove();doc.body.classList.remove('combat-has-blocking-toast');root.remove();}
@@ -5909,7 +5926,7 @@ function attachOrdinaryLand(host){
   function localAllowed(){return !disposed&&!!scope()&&!host.isExam()&&!host.otherCombat();}
   function eligible(){return entryAllowed&&localAllowed()&&originScope===scope();}
   function visible(on){dialog.hidden=!on;dialog.style.display=on?'flex':'none';}
-  function showEntry(){const on=eligible(),available=localAllowed();card.hidden=!available;card.style.display=available?'':'none';entry.hidden=!on;entry.disabled=!on;const note=host.document.getElementById('ordinary-entry-note');if(entryNarrativeErrorScope!==scope())entryNarrativeErrorScope=null;if(note){const pending=controller?.envelope?.context?.phase==='waiting_join'&&controller.envelope.context.activity_id!==null&&controller.envelope.viewer?.can_command===true;note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent=entryNarrativeErrorScope?combatNarrativePresentation(null,'invalid_narrative_projection').notice:(pending?'Richiesta sfida in attesa':on?'Duello gestito dal server. Le azioni si scrivono in chat.':'Scontro non disponibile in questo luogo o per questo personaggio.');}}
+  function showEntry(){const on=eligible(),available=localAllowed(),recoverable=available&&!!host.entryPresenceScope?.();card.hidden=!available;card.style.display=available?'':'none';entry.hidden=!(on||recoverable);entry.disabled=!(on||recoverable);const note=host.document.getElementById('ordinary-entry-note');if(entryNarrativeErrorScope!==scope())entryNarrativeErrorScope=null;if(note){const pending=controller?.envelope?.context?.phase==='waiting_join'&&controller.envelope.context.activity_id!==null&&controller.envelope.viewer?.can_command===true;note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent=entryNarrativeErrorScope?combatNarrativePresentation(null,'invalid_narrative_projection').notice:(pending?'Richiesta sfida in attesa':on?'Duello gestito dal server. Le azioni si scrivono in chat.':recoverable?'Apri scontro per verificare le scelte disponibili.':'Scontro non disponibile in questo luogo o per questo personaggio.');}}
   function invalidate(error=null){
     entryNarrativeErrorScope=error==='invalid_narrative_projection'&&localAllowed()?scope():null;
     epoch++;stateRequest++;entryAllowed=false;opening=false;prepared=null;rawSubmitted=null;companionSubmitted=null;
@@ -5977,13 +5994,14 @@ function attachOrdinaryLand(host){
       await submit();
     },onRetry:async c=>{if(!current(c,stamp)||!eligible())throw new ConsumerError('context_stale');const r=await c.retry();if(current(c,stamp))accepted(r);}});
   }
-  async function open(){
-    syncScope();if(!eligible()||opening)return;
+  async function open(_which,options={}){
+    const presenceScope=options.entryPresenceScope??host.entryPresenceScope?.();
+    syncScope();if((presenceScope&&presenceScope!==host.entryPresenceScope?.())||!eligible()||opening)return;
     opening=true;const c=controller,stamp=epoch;visible(true);
     try{
-      if(typeof host.beforeOpen==='function')await host.beforeOpen();
-      if(!current(c,stamp)||!eligible())return;
-      await c.poll();if(current(c,stamp)&&eligible()&&c.envelope?.status==='ready'&&c.envelope.viewer.can_command&&!c.pending&&c.needsOptions)await c.openOptions();
+      if(!(presenceScope&&options.explicit===false)&&typeof host.beforeOpen==='function')await host.beforeOpen();
+      if(!current(c,stamp)||!eligible()||(presenceScope&&presenceScope!==host.entryPresenceScope?.()))return;
+      await c.poll();if(current(c,stamp)&&eligible()&&(!presenceScope||presenceScope===host.entryPresenceScope?.())&&c.envelope?.status==='ready'&&c.envelope.viewer.can_command&&!c.pending&&c.needsOptions)await c.openOptions();
     }catch(error){if(current(c,stamp)){suspend();host.notice('Presenza o contesto non confermati: nessun nuovo comando inviato. Riapri il pannello.');}}
     finally{if(stamp===epoch)opening=false;}
   }
@@ -6008,9 +6026,9 @@ function attachOrdinaryLand(host){
     rawSubmitted=raw.trim();companionSubmitted=needsCompanion?String(companionText).trim():null;c.submit(narrative,needsCompanion?{id:companion.id,body:companionSubmitted}:null).then(r=>{if(current(c,stamp))accepted(r);}).catch(()=>{if(current(c,stamp)&&eligible())host.notice('Invio non confermato. Conserva la role e verifica lo stesso invio.');});
     return true;
   }
-  const closeClick=()=>visible(false);
-  entry.addEventListener('click',open);close.addEventListener('click',closeClick);
-  function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',open);close.removeEventListener('click',closeClick);invalidate();}
+  const closeClick=()=>visible(false),entryClick=()=>host.entryPresenceScope?.()&&typeof host.openEntry==='function'?host.openEntry():open();
+  entry.addEventListener('click',entryClick);close.addEventListener('click',closeClick);
+  function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',closeClick);invalidate();}
   showEntry();visible(false);
   return {open,refresh,handleSend,ownsCurrent,invalidate,suspend,dispose,clearPresentation(){presentation?.clearPresentation();},companionGate(){const c=controller,offer=c?.offers?.find(o=>o.offer_id===c.selected);return {required:offer?.companion_context_required===true,mechanicsReady:!!c&&prepared===selectionKey(c)};},get controller(){return controller;}};
 }
@@ -7172,6 +7190,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           regiaOptedIn:function(e){return e?.context?.activity_kind==='master_v2'&&e.context.activity_id===MV2?.data?.encounter?.id&&mv2RegiaOptedIn();},
           isFatoComposer:function(){return fatoMode===true;},
           beforeOpen:landUserPresence,
+          entryPresenceScope:function(){return iAmStaff&&LAND_PROFILE_KNOWN&&landEventReadMode()&&roomEntryStaffScope()&&roomEntryConfirmed()&&commonMasterPrincipal()&&myCharId?JSON.stringify([landReadKey(),myCharId,cur.id,UI_POSTREVIEW_STAFF_EPOCH]):null;},
           routingUnknown:function(event){if(event?.explicit)toast('Non riesco a verificare il pannello. Riprova ad aprirlo.');},
           nativeMasterFallback:function(wasVisible){
             if(commonMasterCombat())return;
