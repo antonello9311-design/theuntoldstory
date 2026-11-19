@@ -2,7 +2,7 @@
 
 ## Scope toccato
 
-FonteintegrataCureEntry Bc92d6b79e108e73d6194085bacf0bc6cddb4af74b1661e019ee5516ebc6ba0ce, Nffa4a6288dd8505115201f22e460e1c220d7b482d89058668bf27b4d45a1480d. CinquebodyCureReaction f92e piùUIPresence38f37/2466041B, buildpresence-entry-staff-20261119-2, blob6c52/commitc9286196 preparati e readbackesatti NONpubblicati. R1iniziale0/1/0d6d0conservata;AGG1unica,sourceR2c7fc0/0/0 eR3entry22c990/0/0effettive. P547d/nativeMATCH,Fd612/148831B,entrybe5c/149946B;B/N/P/F/entry/EconservatiinCURE_ENTRY_REVIEW.json,nessunapply oPASSStaffnuovaversione. Fonteconserva auth/replay/guardie eParata/Schivata, rimuoveofferteSostituzione inPalmo. Root/UIclientcd767/grafo3a92 ricalcolati, qualifiedmissioni/2admission/partycarryforward, capmodellato522207/522329 su524288. RecoveryforwardCureOFFmantienefix+UI. Nessunnuovoapply/deploy/browser/gameplay/provider/enablepubblico.
+FonteintegrataCureEntry Bc92d6b79e108e73d6194085bacf0bc6cddb4af74b1661e019ee5516ebc6ba0ce, Nffa4a6288dd8505115201f22e460e1c220d7b482d89058668bf27b4d45a1480d. CinquebodyCureReaction f92e piùUIPresence38f37/2466041B, buildpresence-entry-staff-20261119-2, blob6c52/commitc9286196 preparati e readbackesatti NONpubblicati. R1iniziale0/1/0d6d0conservata;AGG1unica,sourceR2c7fc0/0/0 eR3entry22c990/0/0effettive. P547d/nativeMATCH,Fd612/148831B,entrybe5c/149946B;B/N/P/F/entry/EconservatiinCURE_ENTRY_REVIEW.json,nessunapply oPASSStaffnuovaversione. Fonteconserva auth/replay/guardie eParata/Schivata, rimuoveofferteSostituzione inPalmo. Root/UIclientcd767/grafo3a92 ricalcolati, qualifiedmissioni/2admission/partycarryforward, capmodellato522207/522329 su524288. RecoveryforwardCureOFFmantienefix+UI. Nessunnuovoapply/deploy/browser/gameplay/provider/enablepubblico. CandidatoGitcompletoca52d4df379226fbcade9504590451622f9f9ed1 preparato senzaaggiornaremain;38fileinscope,0rimozioni,altriblobpreservati.
 
 ## Contratti usati/modificati
 
@@ -22,5 +22,5 @@ ProveStaff nuova versione mancanti: ingressoesplicito/passivo econtrollobinding,
 
 ## Passaggio richiesto al PM
 
-Completare reviewR1/finalizzazioneP-F-entry-E/R2 nei50min diquestaFonte, poi mandato installStaff/QAfinito nelperimetropermanente. ConservarereportQA,9c962eb0/5ecff769 giapubblicati, SourceCommitc928preparato. Lo stato della tecnica resta parziale finoverifichepertinenti eaperturapubblicaautorizzata alpositivo.
+Fonte e finalizzazione qualificate con revieweffettiveSourceR2c7fc eentryR322c0/0/0. Passaggiosuccessivo: incariconominato installazioneStaff constessaB/c928/entrybe5c, GitcandidateMainreconciliato, dominiobuild/hashverificati epreflightDBreadonlyprimaapply; QAStaffseparata conbudgetfinito. Nessunanuovaconfermaprocedurale: mandatopermanente10/09. PreservareQA1–4/Palmo19/archivioAGG0/R1rossa, nonripetereprovegiàpositive senza causa. Catalogo ancora inlavoro,ordinary/ally/KOeaperturarestanodaverificare.
 
