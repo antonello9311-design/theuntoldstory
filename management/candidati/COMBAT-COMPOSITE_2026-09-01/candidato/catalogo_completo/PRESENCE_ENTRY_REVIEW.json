@@ -1,0 +1,193 @@
+{
+  "schema_version": "presence-entry-independent-counterreview/1",
+  "task": "COMBAT-ENTRY-PRESENCE-SOURCE-20261119",
+  "reviewer": "/root/catalogo_editoriale",
+  "created_at": "2026-11-19T08:45:58.718221+00:00",
+  "review_round": "R2; unica controverifica pertinente di AGG1",
+  "scope": "Solo UI/source Presence Entry: singolo P2 iniziale e delta aggregato; tre casi statici, nessuna esecuzione gameplay.",
+  "candidate_build": "presence-entry-staff-20261119-2",
+  "result": "0/0/0 per P0/P1/P2 nella superficie pertinente; una osservazione documentale non bloccante.",
+  "counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "findings": [],
+  "history": {
+    "initial_review_path": "/private/tmp/tus-catalogo-combat-20261118.LqlZKf/presence_entry.review.independent.json",
+    "initial_review_sha256": "47636dc47bba3e62104c2c75e9a79eef6ef846e0f98d2b9810474683e8dd7ec0",
+    "initial_counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 1
+    },
+    "aggregate_corrections": 1,
+    "counterreviews_after_aggregate": 1
+  },
+  "closed_findings": [
+    {
+      "id": "PRESENCE-ENTRY-P2-001",
+      "status": "CLOSED_SOURCE_REVIEW",
+      "evidence": [
+        {
+          "file": "PRESENCE_ENTRY_CANDIDATE.html",
+          "line": 4907,
+          "detail": "refreshPresenceScope catturato prima della prima await; valid() lo confronta dopo STATE e allowCommonMaster."
+        },
+        {
+          "file": "PRESENCE_ENTRY_CANDIDATE.html",
+          "line": 4936,
+          "detail": "Dopo newChild.refresh si verifica il binding congelato; alla riapertura si passano explicit:false e quel medesimo entryPresenceScope, senza ricalcolo con fallback Ordinary."
+        },
+        {
+          "file": "PRESENCE_ENTRY_CANDIDATE.html",
+          "line": 4956,
+          "detail": "Router open conserva presenceScope attraverso beforeOpen, refresh e child.open; guard finale anche dopo il child."
+        },
+        {
+          "file": "PRESENCE_ENTRY_CANDIDATE.html",
+          "line": 5365,
+          "detail": "Child Common verifica entryCurrent prima dell’apertura e dopo selectActor, refresh, panel.open e readRegiaPublication."
+        },
+        {
+          "file": "PRESENCE_ENTRY_CANDIDATE.html",
+          "line": 5997,
+          "detail": "Child Ordinary riceve il binding originario, salta beforeOpen nel passivo explicit:false e ricontrolla binding/eligible dopo await prima di options."
+        }
+      ]
+    }
+  ],
+  "static_cases": [
+    {
+      "id": "R2-S1",
+      "result": "PASS",
+      "scope": "Pin e replay patch HTML",
+      "evidence": {
+        "artifacts": [
+          {
+            "name": "PRESENCE_ENTRY_BASELINE.html",
+            "bytes": 2463061,
+            "sha256": "47ecad08c9a2912d0e223792c171b7df897d3875635647e82497e7cf8e9ffe47"
+          },
+          {
+            "name": "PRESENCE_ENTRY_CANDIDATE.html",
+            "bytes": 2466041,
+            "sha256": "38f37e85d07bd0b12c10b0c2819dcfbd202c08b0097a0a61897be9ee1b82c570"
+          },
+          {
+            "name": "PRESENCE_ENTRY_SOURCE.patch",
+            "bytes": 16357,
+            "sha256": "f516791b637a958dc83d3588851dc85ac114adc770f758b07a84063afa10824e"
+          },
+          {
+            "name": "PRESENCE_ENTRY_CONTRATTO.md",
+            "bytes": 7771,
+            "sha256": "c4208aac4b9b89125307611ae8185fbf18eba16bf2ec4690f2319505a7d15757"
+          },
+          {
+            "name": "PRESENCE_ENTRY_MANIFEST.json",
+            "bytes": 4229,
+            "sha256": "6c449f425c57c1a8b2765bd7689948685f183f32da80582836f3af9d709e3a9a"
+          }
+        ],
+        "baseline_git_blob_computed_locally": "4525dd02527cc01e8708dc01670259a006311ff8",
+        "forward_inverse_exact": true,
+        "unified_hunks": 11,
+        "git_or_patch_process_used": false
+      }
+    },
+    {
+      "id": "R2-S2",
+      "result": "PASS",
+      "scope": "Sintassi e preservazione CSS/controlli",
+      "evidence": {
+        "method": "Compilazione sintattica con node:vm.Script per ogni script non vuoto; nessun run/eval o esecuzione del codice applicativo.",
+        "scripts": [
+          {
+            "block": 0,
+            "bytes": 13364,
+            "result": "PASS"
+          },
+          {
+            "block": 1,
+            "bytes": 33133,
+            "result": "PASS"
+          },
+          {
+            "block": 4,
+            "bytes": 240086,
+            "result": "PASS"
+          },
+          {
+            "block": 5,
+            "bytes": 47698,
+            "result": "PASS"
+          },
+          {
+            "block": 6,
+            "bytes": 1904609,
+            "result": "PASS"
+          },
+          {
+            "block": 7,
+            "bytes": 2527,
+            "result": "PASS"
+          }
+        ],
+        "css_blocks_identical": true,
+        "css_blocks": 5,
+        "unchanged_literal_counts": {
+          "setTimeout(": {
+            "baseline": 15,
+            "candidate": 15
+          },
+          "setInterval(": {
+            "baseline": 6,
+            "candidate": 6
+          },
+          "<button": {
+            "baseline": 264,
+            "candidate": 264
+          }
+        }
+      }
+    },
+    {
+      "id": "R2-S3",
+      "result": "PASS_SOURCE_ONLY",
+      "scope": "Binding Staff asincrono, percorso passivo/esplicito, pubblico e consumer esistenti",
+      "evidence": [
+        "Tracciati router refresh/open, child Common/Ordinary e hook entryPresenceScope.",
+        "La perdita del binding Staff prima valido interrompe il refresh/ritorno; non ricade in Ordinary.beforeOpen attraverso options undefined.",
+        "La riapertura passiva Staff conserva explicit:false e il binding originale; il click esplicito continua tramite il router e la funzione presenza nativa.",
+        "Il nuovo hook richiede iAmStaff, profilo noto, modalità evento, scope stanza confermata, principal e identità; non conferisce grant.",
+        "Il percorso pubblico mantiene i listener e i gate precedenti; nessun nuovo RPC, schema, timer, comando o valore di gioco introdotto.",
+        "STATE, grant/eligible, prepare/commit/submit e isolamento server non sono sostituiti dalla UI."
+      ]
+    }
+  ],
+  "nonblocking_observations": [
+    {
+      "id": "R2-META-001",
+      "priority": "P3/documentale",
+      "detail": "static_checks.case2.all_nonempty_scripts nel manifest conserva due conteggi byte della revisione precedente: block4 239321 invece di 240086; block5 47444 invece di 47698. Gli SHA/byte dei componenti esterni sono corretti. Sintassi dei sei blocchi ricontrollata indipendentemente sulla candidata congelata, tutta valida.",
+      "impact": "Non modifica il binding né impedisce la verifica sintattica indipendente; nessuna correzione al freeze richiesta da questo referto. I conteggi effettivi sono custoditi qui."
+    }
+  ],
+  "limitations": [
+    "Non certifica Root composita o installabilità globale; composizione e review Root restano al PM.",
+    "Nessun preflight DB o confronto con sito vivo eseguito; la baseline è quella custodita e pinned nel pacchetto.",
+    "Nessun PASS gameplay, isolamento empirico, apply, deploy o apertura pubblica."
+  ],
+  "operations": {
+    "DB_queries": 0,
+    "DB_mutations": 0,
+    "browser": 0,
+    "Git": 0,
+    "provider": 0,
+    "gameplay": 0,
+    "canonical_writes": 0,
+    "temporary_reports_only": true
+  },
+  "canonical_five_unchanged_at_delivery": true
+}

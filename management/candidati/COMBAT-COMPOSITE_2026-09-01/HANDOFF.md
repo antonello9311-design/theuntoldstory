@@ -1,26 +1,26 @@
-# COMBAT-CATALOGO-PALMO-20261119 · esito parziale con difetto
+# COMBAT-CATALOGO-CURE-ENTRY-20261119 · SOURCE_INTEGRATED_QUALIFIED_NOT_INSTALLED
 
 ## Scope toccato
 
-Palmo19/11: cura personale risolta in Staff con Master umano, formula16PV attesi, recupero2PV limitato dal cap78→80, costo20CK105→85; parata fisica accettata e risolta. Il successivo attacco infligge10PV: finale70/80PV,85/105CK. Al curatore nessuna ulteriore azione volontaria dopo la dichiarazione. Difetto osservato: Sostituzione5CK ancora offerta duranteCure; non eseguita, autoritàcommitter da diagnosticare. BarrieraFato verificata: reportattesa/messageNULL, poi pubblicata/messageUUID eRound3. Scena propria Master359f3e2d/Combat39de6c7b chiusa nativamente08:28:40UTC; postflight08:29:25,0residui propri,4digest reali identici.0provider/token/USD; gameplay epostflight entro45min. Esito parziale con difetto, nessuna apertura pubblica. Ordinary/alleatoKO/latecontact eNinjaBook non qualificati. PrecedentiQA1–4 e superamenti storici preservati.
+FonteintegrataCureEntry Bc92d6b79e108e73d6194085bacf0bc6cddb4af74b1661e019ee5516ebc6ba0ce, Nffa4a6288dd8505115201f22e460e1c220d7b482d89058668bf27b4d45a1480d. CinquebodyCureReaction f92e piùUIPresence38f37/2466041B, buildpresence-entry-staff-20261119-2, blob6c52/commitc9286196 preparati e readbackesatti NONpubblicati. R1iniziale0/1/0d6d0conservata;AGG1unica,sourceR2c7fc0/0/0 eR3entry22c990/0/0effettive. P547d/nativeMATCH,Fd612/148831B,entrybe5c/149946B;B/N/P/F/entry/EconservatiinCURE_ENTRY_REVIEW.json,nessunapply oPASSStaffnuovaversione. Fonteconserva auth/replay/guardie eParata/Schivata, rimuoveofferteSostituzione inPalmo. Root/UIclientcd767/grafo3a92 ricalcolati, qualifiedmissioni/2admission/partycarryforward, capmodellato522207/522329 su524288. RecoveryforwardCureOFFmantienefix+UI. Nessunnuovoapply/deploy/browser/gameplay/provider/enablepubblico.
 
 ## Contratti usati/modificati
 
-Root79f17709193ac47f564f18cde1114cceefe099cd2c646b6f0b2306b93d28ca0d, Neutral20261118161519; nessun nuovoapply/deploy/flag o HTML pubblicato. Palmo eParalisi StaffON/pubblicoOFF. Sigilli ritirata; fuori_scontro narrative eCapolavoro suazione condivisa. Contratto palmo-curativo/1 immutato. Client remoto609c2777/landblob4525, copia locale HTMLdiversa non pubblicata.
+RuntimeinvariatoRoot79f17709193ac47f564f18cde1114cceefe099cd2c646b6f0b2306b93d28ca0d, Neutral20261118161519; baselineEdge45/Generic168 eLand47ec/blob4525. Palmo/Paralisi StaffON/pubblicoOFF. Sigilliritirata,fuori_scontro narrative,Capolavoroazionecondivisa. CURE_ENTRY_CONTRATTO.md wholefile immutabile, due capsule recovery allineate. UISourceR1P2storica/AGG1/R2da1e0/0/0; ora review composizione intera, nessunpin-only.
 
 ## Decisioni prese / OPEN
 
-PrimaPalmo, poiParalisi, infine tecniche successive della coda. Correggere offertaSostituzione primaapertura; non dichiarare un bypassserver senza prova. PresenzaPRESENCE_ENTRY source-only in review, non installata.
+Una versioneRootUI+DB+config+recovery, non dueapply. Clientcommitc928 èoggettoGitnonmain. Primaapply: reviewintegrata, pubblicazionesitoesatto e dominiobuild/hash, preflightvivo/fontecorpi/gate/permessi/scene. NessunrollbackvecchiRoot/corpi.
 
 ## Prove eseguite e risultato
 
-Palmo19/11: cura personale risolta in Staff con Master umano, formula16PV attesi, recupero2PV limitato dal cap78→80, costo20CK105→85; parata fisica accettata e risolta. Il successivo attacco infligge10PV: finale70/80PV,85/105CK. Al curatore nessuna ulteriore azione volontaria dopo la dichiarazione. Difetto osservato: Sostituzione5CK ancora offerta duranteCure; non eseguita, autoritàcommitter da diagnosticare. BarrieraFato verificata: reportattesa/messageNULL, poi pubblicata/messageUUID eRound3. Scena propria Master359f3e2d/Combat39de6c7b chiusa nativamente08:28:40UTC; postflight08:29:25,0residui propri,4digest reali identici.0provider/token/USD; gameplay epostflight entro45min. Esito parziale con difetto, nessuna apertura pubblica. Ordinary/alleatoKO/latecontact eNinjaBook non qualificati. PrecedentiQA1–4 e superamenti storici preservati. EvidenzeSTAFF_QA.json: cureledger56618999, report8e58b97d/b685b2e3; no testi completi delle role. TrasportoChrome interrotto, recuperato con tab giàaperta ecomandi nativi.
+QA19Palmo conservata: expected16PV,cap78→80/recupero2,20CK105→85,Parataaccettata;attaccosuccessivo10PV/finale70/80. FatoeRound3/coerenzaricevuta verificati,chiusuranativa08:28:40,postflight4digestuguali0residuipropri. Sostituzione5CKofferta èdifettoproiezione noneseguita,commitgiàprotetto;fixnonancorainstallato. Ordinary/alleatoKO/latecontact/Kai/NinjaBooknonqualificati. NessunPASSglobale,precedentiQA1–4escostamenti preservati. Statici: cinqueCASbyteidenticiCure, interiSource/RecoverySQL+PLPGSQL parse, cap egraph/client/NpureSHA nativeMATCH. R1iniziale0/1/0d6d0conservata;AGG1unica,sourceR2c7fc0/0/0 eR3entry22c990/0/0effettive. P547d/nativeMATCH,Fd612/148831B,entrybe5c/149946B;B/N/P/F/entry/EconservatiinCURE_ENTRY_REVIEW.json,nessunapply oPASSStaffnuovaversione.
 
 ## Rischi o regressioni da verificare
 
-Sostituzione offerta durantecura; presenza/continuitàOrdinary; alleatoKO/latecontact/healerKO; replay non esercitato. P_SELF eX_CLOSURE positivi, P_PHYSICAL_REACTION parziale per offerta extra. Nessuna qualifica globale o pubblico.
+ProveStaff nuova versione mancanti: ingressoesplicito/passivo econtrollobinding, assenzaSostituzione e reazionifisiche, ally/ordinary/KOpertinenti. Auth/RLS/Realtime/provider coperti qui solosorgenti,nonPASSsito. Pubblicazioneclient/verificaDOMancoramancano.
 
 ## Passaggio richiesto al PM
 
-Comporre delta minimo della causaSostituzione dallaRootviva con recovery e review indipendente, quindi installazioneStaff e regressioni pertinenti. Chiusa la sola prova propria; stanza senza nostri residui. Deposito selettivo verificato9c962eb0eb3fb682b9083482da6dc984e670e1f6:12fileCatalogo,0rimozioni,2954blob invariati fuori scope. QA4 precedente ePalmo19 ora depositati; nessun sito/DB/Edge pubblicato. FonteMain tree5f01eb5a4d7af0b020ea9de90f10e8f73f31ca8a. La precedente QA4 resta storicamente parziale con20177s/3600 e consegna8259s/900, senza azzeramenti.
+Completare reviewR1/finalizzazioneP-F-entry-E/R2 nei50min diquestaFonte, poi mandato installStaff/QAfinito nelperimetropermanente. ConservarereportQA,9c962eb0/5ecff769 giapubblicati, SourceCommitc928preparato. Lo stato della tecnica resta parziale finoverifichepertinenti eaperturapubblicaautorizzata alpositivo.
 
