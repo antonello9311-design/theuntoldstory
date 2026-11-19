@@ -22,5 +22,5 @@ Sostituzione offerta durantecura; presenza/continuitàOrdinary; alleatoKO/lateco
 
 ## Passaggio richiesto al PM
 
-Comporre delta minimo della causaSostituzione dallaRootviva con recovery e review indipendente, quindi installazioneStaff e regressioni pertinenti. Chiusa la sola prova propria; stanza senza nostri residui. Deposito documentale QA4 precedente e questa consegna da riconciliare suGitmain609c; file12 dello scope elencati nel piano. La precedente QA4 resta storicamente parziale con20177s/3600 e consegna8259s/900, senza azzeramenti.
+Comporre delta minimo della causaSostituzione dallaRootviva con recovery e review indipendente, quindi installazioneStaff e regressioni pertinenti. Chiusa la sola prova propria; stanza senza nostri residui. Deposito selettivo verificato9c962eb0eb3fb682b9083482da6dc984e670e1f6:12fileCatalogo,0rimozioni,2954blob invariati fuori scope. QA4 precedente ePalmo19 ora depositati; nessun sito/DB/Edge pubblicato. FonteMain tree5f01eb5a4d7af0b020ea9de90f10e8f73f31ca8a. La precedente QA4 resta storicamente parziale con20177s/3600 e consegna8259s/900, senza azzeramenti.
 
