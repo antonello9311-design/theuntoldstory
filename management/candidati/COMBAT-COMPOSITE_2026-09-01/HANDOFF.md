@@ -26,4 +26,6 @@ Casi residui dopo installazione: ultima RinaPassa senza attacchi e contactloss; 
 
 ## Passaggio richiesto al PM
 
+Deposito selettivo verificato: [921a8f91781ecce699389c962076be479b9caa69](https://github.com/antonello9311-design/theuntoldstory/commit/921a8f91781ecce699389c962076be479b9caa69), treeeaf682606b291204b703863196a25fc5a083bbf2;17file,0rimozioni, altri blob e asset sito preservati. SourceB085482ab9fe948763eaf77e9bdd3f8580e2b86f95be108b3198c765828139278, SQLf557631e94a63d0f873608453d9d56708904d9703ae90678a31aa06bac42e1c8, installerfbef589b2a322d8ee8cf83bbf56f2225f252b5b420d75fb1e1eb12eca2ab4bdd, receiptInstall953052ee62cec76361be2f986a68ed0470195233df0de7f25e4167350446e69d. Nessun nuovo apply, gameplay o apertura da questo deposito.
+
 R1/R2 verdi, entrypoint e installazione Staff completati. Salvare receipt e recovery sui pin reali; eseguire il collaudo residuo solo con browser disponibile, chiusura nativa delle sole prove proprie e postflight; apertura esclusivamente sullo scope qualificato. Poi Paralisi, senza dichiarare PASS i percorsi non provati. Nessuna nuova conferma di procedura richiesta. Slot task_plan globali includono quattro vecchie task estranee attive senza risorse: nessun furto/rilascio; pianificazione PM basata sui reali slot agenti e claim del guard come autorità locale.
