@@ -22,5 +22,7 @@ Recovery mai eseguita: la qualifica è statica e include SQL/PLpgSQL, inversa es
 
 ## Passaggio richiesto al PM
 
+Deposito selettivo verificato: commit448d6fa179d54bd90d96ae6217676f083bfde7e0, tree5e8b90aa3579c41bc810d3712b3632f7d4820734;15 file nello scope,0rimozioni, asset del sito invariati. SQL/Edge sono soltanto sorgenti; recovery mai eseguita.
+
 Proseguire autonomamente nel mandato tecniche10/09 con campagna Staff finita per Palmo: due PG alleati+legacy nemico, ferite legali, niente cure PNG o setup SQL. Correggere la discrepanza dei destinatari prima del pubblico; poi qualificare ordinary con costo/budget finiti verificati. NinjaBook Staff resta autorizzato e non installato. Nessuna nuova richiesta di permesso ai due PG.
 
