@@ -22,5 +22,7 @@ P_CONTACT_LOSS interrotto e non risolto; P_REACTION/KO/ordinary non qualificati.
 
 ## Passaggio richiesto al PM
 
+Deposito verificato dei dodici documenti QA: commit0430a3f57031b731c253d9a0ed17f4cbe56da6a8, tree26ba64deb78655ddcdbf3ce9ea332da7ed34f5f0;0 rimozioni, asset sito e runtime invariati. Nessuna apertura pubblica.
+
 Comporre una candidata minima dalla baseline viva riconciliata per TargetPG e publisher NPC dopo auto-resolve, con recovery e consumer coerenti; review indipendente prima dell’installazione Staff. Riprendere soltanto i casi mancanti con nuovi limiti finiti, mantenendo questa storia e il PASS alleato. Browser tooling assente alla ripresa: fermare soltanto il collaudo live dipendente. Non chiedere nuove autorizzazioni ai due PG o per il mandato10/09 già ricevuto.
 
