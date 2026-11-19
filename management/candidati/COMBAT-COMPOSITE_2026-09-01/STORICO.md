@@ -1,3 +1,4 @@
+19/11/2026 · COMBAT-CATALOGO-PALMO-COMPLETION-PM-20261119 · Passa PNG e TargetPG installati Staff dopo R1/R2 indipendenti0/0/0, migrazione20261119145604 Rootb3e9; risorse/storico preservati · QA residua non avviata per browser assente, pubblico OFF
 19/11/2026 · COMBAT-CATALOGO-PALMO-ALLY-CONSEGNA-20261119 · Cura alleato30PV/20CK riuscita, scena chiusa e risorse intatte; contatto interrotto da rifiuto Passa PNG e consegna oltredeadline per interruzione conservati · parziale, pubblico OFF
 19/11/2026 · COMBAT-CATALOGO-CURE-SAFE-QUALIFY-20261119 · Safe Recovery Bbb081268 qualificata R1/R2 0/0/0; runtime21c3 immutato, nessuna recovery eseguita; discrepanza target PG aperta · pubblico OFF, QA residua
 19/11/2026 · COMBAT-CATALOGO-CURE-ENTRY-INSTALL-20261119 · Migrazione20261119092722+UI38f37 installateStaff,Root21c3e8e6;missioni/2admission/PGpreservati,recoverypreflightfermosuc707annullato · pubblicoOFF,nuovaQAnonavviata
