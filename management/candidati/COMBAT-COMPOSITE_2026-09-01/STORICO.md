@@ -1,3 +1,7 @@
+20/11/2026 · COMBAT-CATALOGO-PARALISI-BINDING-QA-20261120 · Due round pubblicati: cast, resistenza mentale, costo10CK/danno0 e movimento bloccato verificati; KaiSelf rifiutato, caso fermato e scena propria chiusa con risorse reali intatte · PARTIAL_NOT_PASSED.
+20/11/2026 · COMBAT-CATALOGO-ELEMENTAL-BINDING-INSTALL-20261120 · GuardiasigilloElemental allineata alformatterLabel,1corpoRoot9e0cea20/523082B;gates e4PGdigestidentici, runtimependente · APPLICATO.
+20/11/2026 · COMBAT-CATALOGO-PARALISI-LABEL-QA-20261120 · GuardiaElementallegacy bloccaofferteprimaProfile,0azioni/provider; propriachiusura e campiprotettiidentici salvo2timestampregen provati · FIX_SIGILLO_PRIORITARIO.
+20/11/2026 · COMBAT-CATALOGO-PARALISI-LABEL-INSTALL-20261120 · FormatterParalisi corretto Staff dopo review0/0/0, Root2aebd274/523105B e PGidentici; runtime successivo pendente · APPLICATO_RISERVATO.
 20/11/2026 · COMBAT-CATALOGO-PARALISI-POSTFIX-QA-20261120 · Profilo e refreshPASS, nuovo23502labelNULL conservato;0azioni/provider e scena chiusa; Sourcecorrettiva e nuovi rami catalogo inprogresso · PARZIALE_NON_QUALIFICATO.
 20/11/2026 · COMBAT-CATALOGO-STAFF-ENTRY-INSTALL-20261120 · Contact ordinary Palmo e refreshParalisi installati Staff, Rootf0c5981d/522241B e postflight coerente; runtime successivo pendente · APPLICATO_RISERVATO.
 20/11/2026 · COMBAT-CATALOGO-NIGHT-INTEGRATOR-20261119 · OrdinaryPalmo/Paralisi bloccati da contatto/fingerprint, provechiuse e digestuguali; dueSourcecorrettive pronte, aggregateAki/Abu dopo reviewrosse; 1gen/USD0.00066270 · IN_PROGRESS.

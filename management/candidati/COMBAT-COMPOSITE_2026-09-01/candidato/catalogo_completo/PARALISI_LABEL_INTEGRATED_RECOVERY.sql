@@ -1,0 +1,290 @@
+BEGIN;
+DO $label_recovery_pre$
+DECLARE rr mission_factory_owner.editor_release_readiness%ROWTYPE;p jsonb;r jsonb;f jsonb;
+BEGIN
+ IF current_user<>'postgres' OR session_user<>'postgres' OR auth.uid() IS NOT NULL THEN RAISE EXCEPTION 'PARALISI_LABEL_OPERATOR_REQUIRED';END IF;
+ IF NOT pg_try_advisory_xact_lock(hashtextextended('C1266:GENERIC-AI:AVAILABILITY',0)) THEN RAISE EXCEPTION 'PARALISI_LABEL_AVAILABILITY_BUSY';END IF;
+ PERFORM set_config('app.cure_reaction_paralisi_gate_before',(SELECT to_jsonb(g)::text FROM combat_v2_genjutsu_internal.gate g WHERE singleton),true);
+ PERFORM set_config('app.cure_reaction_cure_gate_before',(SELECT to_jsonb(g)::text FROM combat_panel_private.cure_gate_v1 g WHERE singleton),true);
+ p:=nullif(current_setting('app.paralisi_label_integrated_parameters',true),'')::jsonb;
+ SELECT * INTO STRICT rr FROM mission_factory_owner.editor_release_readiness WHERE singleton FOR UPDATE NOWAIT;
+ r:=rr.canonical_preimage::jsonb;
+ IF p->>'mode' IS DISTINCT FROM 'recovery' OR rr.revision_sha256 IS DISTINCT FROM p#>>'{expected_current,root_sha256}'
+ OR public.combat_v2_sha256(to_jsonb(rr)) IS DISTINCT FROM p#>>'{expected_current,root_row_sha256}'
+ OR r#>>'{db_core,paralisi_label,source_bundle_sha256}' IS DISTINCT FROM p->>'source_bundle_sha256'
+ OR (SELECT to_jsonb(g) FROM combat_panel_private.cure_gate_v1 g WHERE singleton) IS DISTINCT FROM $cure${"singleton":true,"staff_enabled":true,"public_enabled":false,"contract_version":"palmo-curativo/1"}$cure$::jsonb
+ THEN RAISE EXCEPTION 'PARALISI_LABEL_RECOVERY_ROOT_DRIFT';END IF;
+ IF EXISTS(SELECT 1 FROM public.combat_v2_sessions WHERE closed_at IS NULL AND state IN('preparazione','in_corso','sospeso'))
+ OR EXISTS(SELECT 1 FROM public.master_v2_sessions WHERE closed_at IS NULL AND suspended_at IS NULL)
+ THEN RAISE EXCEPTION 'PARALISI_LABEL_REQUIRES_QUIESCENCE';END IF;
+ FOR f IN SELECT value FROM jsonb_array_elements($label_expected$[{"signature":"combat_v2_elemental_internal.other_ability_meta(uuid,jsonb)","source_md5":"aa3d6fe2cb785a3a132a7b281bdab70a","ddl_sha256":"15fab8ec94575b4a0e163cfbdcc46272b02d47d772daa262de5483a43b18f5ac"},{"signature":"combat_panel_private.round_options_authoritative(uuid,uuid)","source_md5":"7cf9d8be18c9dab5f75b62c74a5e9e37","ddl_sha256":"22bd8c8faf60ba44a644bf9ccd0f69ab8a5715383c79ff6014509dfd02290554"},{"signature":"clan_innata_private.catalogo_eligibility_release_v1()","source_md5":"e52a8ac90fb15cad425cd0d17c9b4d4b","ddl_sha256":"72141f00f7b6c79aacf634334290e92debbcc3a5bd77365c55dc4ef3a82ea5f6"},{"signature":"combat_panel_private.cure_contact_v1(uuid,uuid)","source_md5":"21de7dd5e62b5403b50065d2635e20bf","ddl_sha256":"0d5ef7dfd803fadfc2ec38aa4285467cd95f83bb613e6c0b6a0dde650d571f00"},{"signature":"combat_panel_private.master_projection(uuid,uuid)","source_md5":"271ea56acb5f135ad6e3d24d8601e3b1","ddl_sha256":"da26a20b86b168b4769b851405794371ddbe54095c1e8c775859c0b1c155cd0b"}]$label_expected$::jsonb) LOOP
+  IF md5((SELECT prosrc FROM pg_proc WHERE oid=to_regprocedure(f->>'signature'))) IS DISTINCT FROM f->>'source_md5'
+   OR encode(extensions.digest(convert_to(pg_get_functiondef(to_regprocedure(f->>'signature')),'UTF8'),'sha256'),'hex') IS DISTINCT FROM f->>'ddl_sha256'
+  THEN RAISE EXCEPTION 'PARALISI_LABEL_OWNING_BODY_DRIFT:%',f->>'signature';END IF;
+ END LOOP;
+ UPDATE combat_v2_genjutsu_internal.gate SET enabled=false,staff_enabled=false,public_enabled=false WHERE singleton;
+END $label_recovery_pre$;
+DO $catalogo_root$
+DECLARE
+ expected_parameters_sha256 constant text:='__PARALISI_LABEL_INTEGRATED_PARAMETERS_SHA256__';
+ old_root_sha text;
+ old_row_sha text;
+ generic_ezbr constant text:='9a6889802cfa17c99a556538cccd4ad7ef75274d32adccbc192c23d257aa3e76';
+ baseline_combat_ezbr constant text:='79bdb113f0203e5b0578a1211fb43f1c5cfb6b3bb5585714b4d9b5475ce27a11';
+ rr mission_factory_owner.editor_release_readiness%ROWTYPE;
+ prior_release mission_public_owner.release_admissions_v1%ROWTYPE;
+ prior_qualification mission_public_owner.public_qualification_attestations_v1%ROWTYPE;
+ params jsonb;review jsonb;binding jsonb;before_root jsonb;root jsonb;core jsonb;cfg jsonb;identity jsonb;runtime_before jsonb;expected_ui jsonb;
+ shared_manifest jsonb:='[]';private_manifest jsonb:='[]';relation_manifest jsonb:='[]';trigger_manifest jsonb:='[]';
+ item jsonb;h jsonb;abi jsonb;cols jsonb;descriptor jsonb;next_descriptor jsonb;alias_row record;kv record;
+ relation_oid oid;function_oid oid;actual_count integer;affected integer;aliases integer:=0;
+ old_generic jsonb;old_combat jsonb;edge_receipt jsonb;edge_files jsonb;base_files jsonb;changed_files jsonb;
+ db_stored text;db_old_recomputed text;db_sha text;shared_sha text;private_sha text;relations_sha text;
+ config_sha text;identity_sha text;root_text text;new_root_sha text;bindings jsonb;qualification jsonb;
+ content_row mission_public_owner.mission_content_admissions_v1%ROWTYPE;content_request uuid;content_payload jsonb;
+ changed_headers jsonb;native_manifest jsonb;pending_paths text[]:=ARRAY['["db_core"]'];current_path text[];stack_size integer;
+ raw_bytes bytea;compact_bytes bytea:=''::bytea;byte_chunks bytea[]:='{}';byte_chunk bytea:=''::bytea;
+ byte_index integer;byte_value integer;inside_string boolean:=false;escaped boolean:=false;
+ profile_row record;profile_state jsonb;schema_name text;name_only text;
+ namespace_uuid constant uuid:='9ebf5297-66c5-5a19-b35a-589b626e4a4f';
+BEGIN
+ IF current_user<>'postgres' OR session_user<>'postgres' OR auth.uid() IS NOT NULL THEN
+  RAISE EXCEPTION 'CATALOGO_ROOT_OPERATOR_REQUIRED';END IF;
+ PERFORM set_config('search_path','',true);
+ IF NOT pg_try_advisory_xact_lock(hashtextextended('C1266:GENERIC-AI:AVAILABILITY',0)) THEN
+  RAISE EXCEPTION 'CATALOGO_ROOT_AVAILABILITY_BUSY';END IF;
+ params:=nullif(current_setting('app.paralisi_label_integrated_parameters',true),'')::jsonb;old_root_sha:=params#>>'{expected_current,root_sha256}';old_row_sha:=params#>>'{expected_current,root_row_sha256}';
+ SELECT * INTO STRICT rr FROM mission_factory_owner.editor_release_readiness WHERE singleton FOR UPDATE NOWAIT;
+ IF rr.revision_sha256<>old_root_sha OR rr.observed_revision_sha256 IS DISTINCT FROM old_root_sha
+ OR public.combat_v2_sha256(to_jsonb(rr))<>old_row_sha
+ OR encode(extensions.digest(convert_to(rr.canonical_preimage,'UTF8'),'sha256'),'hex')<>old_root_sha
+ OR octet_length(rr.canonical_preimage)<>(params#>>'{expected_current,root_bytes}')::integer THEN RAISE EXCEPTION 'CATALOGO_ROOT_BASELINE_DRIFT';END IF;
+ IF EXISTS(SELECT 1 FROM public.combat_v2_sessions WHERE state='in_corso' AND closed_at IS NULL)
+ OR EXISTS(SELECT 1 FROM public.master_v2_sessions WHERE stato NOT IN('chiusa','annullata') AND closed_at IS NULL) THEN
+  RAISE EXCEPTION 'CATALOGO_ROOT_REQUIRES_QUIESCENCE';END IF;
+ params:=nullif(current_setting('app.paralisi_label_integrated_parameters',true),'')::jsonb;
+ IF expected_parameters_sha256 !~ '^[0-9a-f]{64}$' OR params IS NULL
+ OR public.combat_v2_sha256(params)<>expected_parameters_sha256
+ OR params->>'schema_version' IS DISTINCT FROM 'paralisi-label-integrated-parameters/1' THEN
+  RAISE EXCEPTION 'CATALOGO_ROOT_REVIEWED_PARAMETERS_REQUIRED';END IF;
+ review:=params->'review';
+ IF NOT mission_factory_owner.keys_exact_v2(review,ARRAY['ref','sha256','P0','P1','P2']) THEN
+  RAISE EXCEPTION 'CATALOGO_ROOT_REVIEW_SHAPE';END IF;
+ IF nullif(review->>'ref','') IS NULL OR octet_length(to_jsonb(review->>'ref')::text)>258 OR coalesce(review->>'sha256','')!~'^[0-9a-f]{64}$'
+ OR review->'P0' IS DISTINCT FROM '0'::jsonb OR review->'P1' IS DISTINCT FROM '0'::jsonb OR review->'P2' IS DISTINCT FROM '0'::jsonb
+ OR coalesce(params->>'source_bundle_sha256','')!~'^[0-9a-f]{64}$'
+ OR params#>>'{baseline_custody,sha256}' IS DISTINCT FROM old_root_sha
+ OR nullif(params#>>'{baseline_custody,ref}','') IS NULL
+ OR params#>>'{compatibility,scope}' IS DISTINCT FROM 'existing_mission_capabilities_only'
+ OR params#>'{compatibility,new_techniques_staff_pass}' IS DISTINCT FROM 'false'::jsonb
+ OR coalesce(params#>>'{compatibility,sha256}','')!~'^[0-9a-f]{64}$'
+ OR nullif(params#>>'{compatibility,ref}','') IS NULL THEN RAISE EXCEPTION 'CATALOGO_ROOT_REVIEW_SCOPE_REQUIRED';END IF;
+ LOCK TABLE mission_public_owner.release_admissions_v1,mission_public_owner.public_qualification_attestations_v1,
+  mission_public_owner.engine_profile_events_v1,mission_public_owner.mission_content_admissions_v1,
+  mission_public_owner.party_launch_runtime_v1 IN SHARE ROW EXCLUSIVE MODE NOWAIT;
+ before_root:=rr.canonical_preimage::jsonb;root:=before_root;
+ -- Il JSON runtime è riletto esplicitamente per il CAS finale e conserva entrambi i booleani.
+ SELECT to_jsonb(x) INTO STRICT runtime_before FROM mission_public_owner.party_launch_runtime_v1 x WHERE singleton FOR UPDATE;
+ IF runtime_before IS DISTINCT FROM jsonb_build_object('singleton',true,'staff_enabled',true,'public_enabled',true,'release_sha256',old_root_sha) THEN
+  RAISE EXCEPTION 'CATALOGO_ROOT_PARTY_BASELINE';END IF;
+ SELECT value INTO STRICT old_generic FROM jsonb_array_elements(before_root->'edge_bundles') WHERE value->>'name'='mission_generic_ai';
+ SELECT value INTO STRICT old_combat FROM jsonb_array_elements(before_root->'edge_bundles') WHERE value->>'name'='combat_narratore_ai';
+ IF old_generic->>'ezbr_sha256'<>generic_ezbr OR old_generic->'version'<>'168'::jsonb
+ OR old_combat->'version'IS DISTINCT FROM '45'::jsonb OR old_combat->>'ezbr_sha256'IS DISTINCT FROM '79bdb113f0203e5b0578a1211fb43f1c5cfb6b3bb5585714b4d9b5475ce27a11'
+ OR public.combat_v2_sha256(root->'ui')<>'cd76714cb188ea3f69189ac5dd793304acdc2179da724aad852f961d12ab3014' THEN
+  RAISE EXCEPTION 'CATALOGO_ROOT_UNRELATED_SURFACE_DRIFT';END IF;
+ db_stored:=root#>>'{db_core,sha256}';db_old_recomputed:=public.combat_v2_sha256((root->'db_core')-'sha256');
+ IF db_stored IS DISTINCT FROM params#>>'{expected_current,db_sha256}' OR db_old_recomputed IS DISTINCT FROM db_stored
+ OR root#>>'{config,sha256}'<>public.combat_v2_sha256((root->'config')-'sha256') THEN
+  RAISE EXCEPTION 'CATALOGO_ROOT_HASH_RECONCILIATION_DRIFT';END IF;
+
+SELECT jsonb_agg(jsonb_build_object('oid',p.oid::text,'signature',p.oid::regprocedure::text,'source_md5',md5(p.prosrc),'ddl_md5',md5(pg_get_functiondef(p.oid)),
+ 'owner',pg_get_userbyid(p.proowner),'acl',p.proacl::text,'config',p.proconfig,'secdef',p.prosecdef,'volatility',p.provolatile::text,
+ 'language',l.lanname,'strict',p.proisstrict,'parallel',p.proparallel::text,'kind',p.prokind::text,'returns',pg_get_function_result(p.oid),
+ 'arg_names',p.proargnames,'arg_modes',p.proargmodes,'arg_types',p.proargtypes::text,'leakproof',p.proleakproof,'nspname',n.nspname,'proname',p.proname)
+ ORDER BY p.oid::regprocedure::text) INTO shared_manifest FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_language l ON l.oid=p.prolang
+ WHERE p.prokind='f'AND p.oid IN('combat_consumer_private.narrative_context(uuid)'::regprocedure,'combat_consumer_private.narrative_declaration_supported(uuid)'::regprocedure,'combat_consumer_private.validate_narrative_result(jsonb)'::regprocedure,'combat_effects_private.lifecycle_before_report(uuid)'::regprocedure,'combat_effects_private.lifecycle_main_end(uuid)'::regprocedure,'combat_effects_private.lifecycle_open(uuid,uuid)'::regprocedure,'combat_effects_private.personal_turn_end(uuid,uuid,uuid,text)'::regprocedure,'combat_effects_private.personal_turn_start(uuid,uuid,uuid,text)'::regprocedure,'combat_panel_private.commit_master_actor(jsonb)'::regprocedure,'combat_panel_private.immobilization_actor_lifecycle()'::regprocedure,'combat_panel_private.immobilization_session_lifecycle()'::regprocedure,'combat_panel_private.master_options(uuid,uuid,bigint)'::regprocedure,'combat_panel_private.movement_block_reason(uuid)'::regprocedure,'combat_panel_private.narrative_declaration_facts(uuid)'::regprocedure,'combat_panel_private.narrative_ordinary_context(uuid)'::regprocedure,'combat_panel_private.narrative_outcome_facts(jsonb)'::regprocedure,'combat_panel_private.ordinary_options(uuid,uuid,bigint)'::regprocedure,'combat_panel_private.round_details_from_source(jsonb,jsonb,jsonb)'::regprocedure,'combat_panel_private.round_options_authoritative(uuid,uuid)'::regprocedure,'combat_v2_elemental_internal.other_consumer_options(jsonb)'::regprocedure,'combat_v2_elemental_internal.other_control_apply(text,uuid,uuid,uuid)'::regprocedure,'combat_v2_elemental_internal.other_control_target(text,uuid,uuid)'::regprocedure,'combat_v2_elemental_internal.other_master_options(uuid,bigint)'::regprocedure,'combat_v2_elemental_internal.other_prepare_native(uuid,uuid,uuid,jsonb,boolean,jsonb)'::regprocedure,'combat_v2_elemental_internal.other_profile(uuid,uuid)'::regprocedure,'combat_v2_multitarget_internal.resolve_parent(uuid,uuid,uuid,boolean)'::regprocedure,'public.combat_consumer_narrative_claim_v1(uuid,text,uuid)'::regprocedure,'public.combat_consumer_narrative_complete_v1(uuid,jsonb,uuid)'::regprocedure,'public.combat_panel_commit_v1(jsonb)'::regprocedure,'public.combat_v2_action_declare(uuid,uuid,jsonb,text,uuid)'::regprocedure,'public.combat_v2_actor_ability(uuid,text,uuid,boolean)'::regprocedure,'public.combat_v2_defense_declare(uuid,uuid,uuid,jsonb,text,uuid)'::regprocedure,'public.combat_v2_round_resolve(uuid,uuid)'::regprocedure,'public.post_heal(uuid,uuid)'::regprocedure);
+SELECT coalesce(jsonb_agg(jsonb_build_object('signature',p.oid::regprocedure::text,'source_md5',md5(p.prosrc),'ddl_md5',md5(pg_get_functiondef(p.oid)),
+ 'owner',pg_get_userbyid(p.proowner),'acl',p.proacl::text,'config',p.proconfig,'secdef',p.prosecdef,'volatility',p.provolatile::text,'language',l.lanname,
+ 'strict',p.proisstrict,'parallel',p.proparallel::text,'returns',pg_get_function_result(p.oid),'arg_names',p.proargnames,'arg_modes',p.proargmodes,'arg_types',p.proargtypes::text)
+ ORDER BY p.oid::regprocedure::text),'[]'::jsonb) INTO private_manifest FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_language l ON l.oid=p.prolang
+ WHERE p.prokind='f'AND(n.nspname='combat_v2_genjutsu_internal'OR(n.nspname='combat_panel_private'AND(p.proname LIKE 'cure\_%'ESCAPE'\'OR p.proname IN('catalog_result_label_v1','catalog_lifecycle_lines_v1'))));
+SELECT jsonb_agg(jsonb_build_object('signature',p.oid::regprocedure::text,'source_md5',md5(p.prosrc),'ddl_md5',md5(pg_get_functiondef(p.oid)),
+ 'owner',pg_get_userbyid(p.proowner),'acl',p.proacl::text,'config',p.proconfig,'secdef',p.prosecdef,'volatility',p.provolatile::text,
+ 'language',l.lanname,'strict',p.proisstrict,'parallel',p.proparallel::text,'returns',pg_get_function_result(p.oid),
+ 'arg_names',p.proargnames,'arg_modes',p.proargmodes,'arg_types',p.proargtypes::text)ORDER BY p.oid::regprocedure::text)
+  INTO native_manifest FROM pg_proc p JOIN pg_language l ON l.oid=p.prolang WHERE p.prokind='f'AND p.oid IN('public.combat_v2_substitution_options_v1(uuid)'::regprocedure,'public.combat_v2_substitution_round_offers_v1(uuid,uuid)'::regprocedure,'public.combat_v2_substitution_select_v1(uuid,uuid)'::regprocedure);
+SELECT jsonb_agg(jsonb_build_object('signature',p.oid::regprocedure::text,'source_md5',md5(p.prosrc),'ddl_md5',md5(pg_get_functiondef(p.oid)),
+ 'owner',pg_get_userbyid(p.proowner),'secdef',p.prosecdef,'config',p.proconfig,'acl',p.proacl::text,'volatility',p.provolatile::text)ORDER BY p.oid::regprocedure::text)
+  INTO trigger_manifest FROM pg_proc p WHERE p.oid IN('combat_panel_private.round_options_authoritative(uuid,uuid)'::regprocedure,'public.combat_v2_substitution_options_v1(uuid)'::regprocedure,'public.combat_v2_substitution_round_offers_v1(uuid,uuid)'::regprocedure,'public.combat_v2_substitution_select_v1(uuid,uuid)'::regprocedure,'clan_innata_private.catalogo_eligibility_release_v1()'::regprocedure,'combat_panel_private.publish_master_declaration(uuid,text)'::regprocedure);
+SELECT jsonb_agg(jsonb_build_object('oid',p.oid::text,'signature',p.oid::regprocedure::text,'source_md5',md5(p.prosrc),'ddl_md5',md5(pg_get_functiondef(p.oid)),
+ 'owner',pg_get_userbyid(p.proowner),'acl',p.proacl::text,'config',p.proconfig,'secdef',p.prosecdef,'volatility',p.provolatile::text,
+ 'language',l.lanname,'strict',p.proisstrict,'parallel',p.proparallel::text,'kind',p.prokind::text,'returns',pg_get_function_result(p.oid),
+ 'arg_names',p.proargnames,'arg_modes',p.proargmodes,'arg_types',p.proargtypes::text,'leakproof',p.proleakproof,'nspname',n.nspname,'proname',p.proname)
+ ORDER BY p.oid::regprocedure::text) INTO changed_headers FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_language l ON l.oid=p.prolang
+ WHERE p.prokind='f'AND p.oid IN('combat_panel_private.round_options_authoritative(uuid,uuid)'::regprocedure,'combat_v2_elemental_internal.other_ability_meta(uuid,jsonb)'::regprocedure,'clan_innata_private.catalogo_eligibility_release_v1()'::regprocedure);
+SELECT jsonb_agg(jsonb_build_object('signature',p.oid::regprocedure::text,'source_md5',md5(p.prosrc),'ddl_md5',md5(pg_get_functiondef(p.oid)),
+ 'owner',pg_get_userbyid(p.proowner),'secdef',p.prosecdef,'config',p.proconfig,'acl',p.proacl::text,'volatility',p.provolatile::text)ORDER BY p.oid::regprocedure::text)
+  INTO relation_manifest FROM pg_proc p WHERE p.oid IN('clan_innata_private.eligibility_release_assert()'::regprocedure,'clan_innata_private.catalogo_eligibility_release_v1()'::regprocedure);
+ shared_sha:=public.combat_v2_sha256(shared_manifest);private_sha:=public.combat_v2_sha256(private_manifest);
+ IF jsonb_array_length(shared_manifest)<>34 OR jsonb_array_length(private_manifest)<>66 OR jsonb_array_length(native_manifest)<>3
+ OR jsonb_array_length(changed_headers)<>3 OR jsonb_array_length(relation_manifest)<>2 OR shared_sha<>'03f750c6bb386e6ef79db36673a0ec9382e9d131b6d4ad970dcb8690b3f5ed18'OR private_sha<>'738506bdca70d1a39219535f7aa12ffc8dc4c1807939b9b6d8f986c9890f0833'
+ OR public.combat_v2_sha256(native_manifest)<>'2d903f7977adb0086633ebe09f6e8b9994bdf2b17218a14ae3a2eac837b6581f'THEN RAISE EXCEPTION 'cure_reaction_post_manifest_drift';END IF;
+ IF jsonb_array_length(trigger_manifest)<>6 OR public.combat_v2_sha256(trigger_manifest)<>'21d366c4d5612fc1dbefba91a091c6c6538d63a6a0361d648aa235e322b6d7df'THEN RAISE EXCEPTION 'palmo_completion_peer6_drift';END IF;
+ -- Update every existing touched-OID alias; ABI remains byte-exact.
+ WHILE coalesce(cardinality(pending_paths),0)>0 LOOP
+  stack_size:=cardinality(pending_paths);SELECT ARRAY(SELECT jsonb_array_elements_text(pending_paths[stack_size]::jsonb))INTO current_path;
+  pending_paths:=pending_paths[1:stack_size-1];descriptor:=root#>current_path;
+  IF jsonb_typeof(descriptor)='object'THEN
+   SELECT value INTO h FROM jsonb_array_elements(changed_headers)WHERE value->>'oid'=descriptor->>'oid';
+   IF descriptor?'oid'AND h IS NOT NULL THEN
+    FOR kv IN SELECT key,value FROM jsonb_each(descriptor)WHERE key=ANY(ARRAY['owner','acl','config','secdef','strict','language','parallel','arg_modes','arg_names','arg_types','leakproof','returns','volatility','kind','signature','nspname','proname'])LOOP
+     IF kv.value IS DISTINCT FROM h->kv.key THEN RAISE EXCEPTION 'cure_reaction_alias_abi';END IF;
+    END LOOP;
+    next_descriptor:=descriptor;
+    IF descriptor?'source_md5'THEN next_descriptor:=jsonb_set(next_descriptor,'{source_md5}',h->'source_md5',false);END IF;
+    IF descriptor?'ddl_md5'THEN next_descriptor:=jsonb_set(next_descriptor,'{ddl_md5}',h->'ddl_md5',false);END IF;
+    root:=jsonb_set(root,current_path,next_descriptor,false);aliases:=aliases+1;
+   ELSE
+    FOR kv IN SELECT key,value FROM jsonb_each(descriptor)WHERE jsonb_typeof(value)IN('object','array')LOOP pending_paths:=array_append(pending_paths,to_jsonb(array_append(current_path,kv.key))::text);END LOOP;
+   END IF;
+  ELSIF jsonb_typeof(descriptor)='array'THEN
+   FOR kv IN SELECT(ord-1)::text AS key,value FROM jsonb_array_elements(descriptor)WITH ORDINALITY x(value,ord)WHERE jsonb_typeof(value)IN('object','array')LOOP pending_paths:=array_append(pending_paths,to_jsonb(array_append(current_path,kv.key))::text);END LOOP;
+  END IF;
+ END LOOP;
+ IF aliases<>2 THEN RAISE EXCEPTION 'staff_entry_repairs_alias_count';END IF;
+ binding:=$label_amendment${"state":"active_amendment","parent_root":"f0c5981d866b47d84b90842596f84796a49ff3f3e1e08bc59cd6ebc6a4aaffb9","schema_version":"cure-command-amendment/1","commit_source_md5":"61532836e90ed32ae807b92ee6632b71","helper_source_md5":"e52a8ac90fb15cad425cd0d17c9b4d4b","active_repair_kind":"paralisi-label-dispatch/1","neutral_source_md5":"0f48477bfc086b98e113e2dd70bba0de","source_bundle_sha256":"680f9d1d43250a7a62ad29537a6d0b2ac13abfdc06f510372c669794b15a403d","shared_manifest_sha256":"03f750c6bb386e6ef79db36673a0ec9382e9d131b6d4ad970dcb8690b3f5ed18","functions_manifest_sha256":"21d366c4d5612fc1dbefba91a091c6c6538d63a6a0361d648aa235e322b6d7df","normalized_source_identity":{"qa_state":"LABEL_NOT_RUN_CONTACT_PRESERVED","staff_pass":false,"parent_root":"f0c5981d866b47d84b90842596f84796a49ff3f3e1e08bc59cd6ebc6a4aaffb9","public_enabled":false,"schema_version":"paralisi-label-peer-amendment/1","publisher_source_md5":"5bc0eeaea3b3b64578105067b4b40c28","shared_manifest_sha256":"03f750c6bb386e6ef79db36673a0ec9382e9d131b6d4ad970dcb8690b3f5ed18","previous_source_bundle_sha256":"680f9d1d43250a7a62ad29537a6d0b2ac13abfdc06f510372c669794b15a403d","native_functions_manifest_sha256":"2d903f7977adb0086633ebe09f6e8b9994bdf2b17218a14ae3a2eac837b6581f","private_functions_manifest_sha256":"738506bdca70d1a39219535f7aa12ffc8dc4c1807939b9b6d8f986c9890f0833","previous_amendment_identity_sha256":"80ff4085fd32dde40d5ff008e54a95a2395f03f9767b5178c6ddb354cb882658","paralisi_label_source_sha256":"0705927fad1de34d8422b68fb4eda5c96fc7b000a77367a3a8ec0e9d15cfa02f"},"base_compat_source_bundle_sha256":"654f8fff2f42019ffc4b3ccc6c467fff443ba81f00c7aa020fbd6d7950e2445e","native_functions_manifest_sha256":"2d903f7977adb0086633ebe09f6e8b9994bdf2b17218a14ae3a2eac837b6581f","normalized_source_identity_sha256":"d546d804f62d30f01e50c12cffb2a4472dfc52e12f1e38e8a8e96e1e9af5ff62","private_functions_manifest_sha256":"738506bdca70d1a39219535f7aa12ffc8dc4c1807939b9b6d8f986c9890f0833","base_catalogo_source_bundle_sha256":"825a1c14a59281fb3168430a993e9f2dbbbc41042f5169638d2e9c1e8e9868a5","base_private_functions_manifest_sha256":"3eb9bba89fc99206710cd079207631f4949dec9893a38d97d7d46e07386b5cc0","previous_cure_command_source_bundle_sha256":"680f9d1d43250a7a62ad29537a6d0b2ac13abfdc06f510372c669794b15a403d"}$label_amendment$::jsonb;
+ binding:=binding||jsonb_build_object('state','active_amendment','source_bundle_sha256',params->'source_bundle_sha256','review',review,
+   'availability',(SELECT jsonb_build_object('cure_staff_enabled',c.staff_enabled,'cure_public_enabled',c.public_enabled,
+    'paralisi_staff_enabled',g.staff_enabled,'paralisi_public_enabled',g.public_enabled)
+    FROM combat_panel_private.cure_gate_v1 c CROSS JOIN combat_v2_genjutsu_internal.gate g WHERE c.singleton AND g.singleton));
+ root:=jsonb_set(root,'{db_core,cure_command_amendment}',binding,false);root:=jsonb_set(root,'{config,cure_command_amendment}',binding,false);
+ cfg:=root#>'{db_core,catalogo_eligibility_compat}';
+ cfg:=cfg||jsonb_build_object('shared_manifest_sha256',shared_sha,'private_functions_manifest_sha256',private_sha,'helper_source_md5','e52a8ac90fb15cad425cd0d17c9b4d4b',
+  'active_amendment_source_bundle_sha256',binding->'source_bundle_sha256','functions',relation_manifest,'functions_manifest_sha256',public.combat_v2_sha256(relation_manifest));
+ root:=jsonb_set(root,'{db_core,catalogo_eligibility_compat}',cfg,false);root:=jsonb_set(root,'{config,catalogo_eligibility_compat}',cfg,false);
+ descriptor:=jsonb_build_object('schema_version','paralisi-label/1','leaf_sha256','0705927fad1de34d8422b68fb4eda5c96fc7b000a77367a3a8ec0e9d15cfa02f',
+  'source_bundle_sha256',params->'source_bundle_sha256','state','inert_recovery','review',review);
+ root:=jsonb_set(root,'{db_core,paralisi_label}',descriptor,true);
+ root:=jsonb_set(root,'{config,paralisi_label}',descriptor,true);
+ core:=root->'db_core';db_sha:=public.combat_v2_sha256(core-'sha256');core:=jsonb_set(core,'{sha256}',to_jsonb(db_sha),false);root:=jsonb_set(root,'{db_core}',core,false);
+ cfg:=root->'config';config_sha:=public.combat_v2_sha256(cfg-'sha256');cfg:=jsonb_set(cfg,'{sha256}',to_jsonb(config_sha),false);root:=jsonb_set(root,'{config}',cfg,false);
+ expected_ui:=before_root->'ui';
+ IF public.combat_v2_sha256(expected_ui)IS DISTINCT FROM 'cd76714cb188ea3f69189ac5dd793304acdc2179da724aad852f961d12ab3014' THEN RAISE EXCEPTION 'cure_entry_recovery_ui_drift';END IF;
+ identity:=jsonb_build_object('schema_version','paralisi-label-integrated-code-identity/1','parent_root',old_root_sha,'parent_code_identity',before_root#>'{contract,code_identity_sha256}',
+  'normalized_amendment_identity_sha256',binding->'normalized_source_identity_sha256','active_shared_manifest_sha256',shared_sha,
+  'active_private_functions_manifest_sha256',private_sha,'native_functions_manifest_sha256',binding->'native_functions_manifest_sha256',
+  'source_bundle_sha256',params->'source_bundle_sha256','db_sha256',db_sha,'client_sha256',public.combat_v2_sha256(root->'ui'),'ui_graph_sha256',root#>>'{ui,import_graph_sha256}','amendment_state',binding->'state');
+ identity_sha:=public.combat_v2_sha256(identity);root:=jsonb_set(root,'{contract,code_identity_sha256}',to_jsonb(identity_sha),false);
+ root:=jsonb_set(root,'{recovery,semantic_identity_sha256}',to_jsonb(identity_sha),false);
+ root:=jsonb_set(root,'{recovery,cure_command_amendment}',jsonb_build_object('parent_root',old_root_sha,'state',binding->'state',
+  'previous_semantic_identity',before_root#>'{recovery,semantic_identity_sha256}','policy','forward_genjutsu_off_keep_label_contact_and_cure'),false);
+ IF root->'ui'IS DISTINCT FROM expected_ui OR root->'edge_bundles'IS DISTINCT FROM before_root->'edge_bundles'
+ OR(root->'config')-ARRAY['sha256','cure_command_amendment','catalogo_eligibility_compat','paralisi_label']IS DISTINCT FROM(before_root->'config')-ARRAY['sha256','cure_command_amendment','catalogo_eligibility_compat','paralisi_label']
+ OR root#>'{db_core,catalogo_completo}'IS DISTINCT FROM before_root#>'{db_core,catalogo_completo}'THEN RAISE EXCEPTION 'cure_reaction_unrelated_config_changed';END IF;
+ -- Lexer UTF8 a byte, memoria limitata: non usa token SQL, sort o aggregati.
+ -- Si scarta soltanto whitespace JSON ASCII esterno alle stringhe.
+ -- Gli escape e ogni byte interno alle stringhe restano identici; niente NFC.
+ raw_bytes:=convert_to(root::text,'UTF8');
+ IF octet_length(raw_bytes)>1048576 THEN RAISE EXCEPTION 'CATALOGO_ROOT_SERIALIZATION_INPUT_CAP';END IF;
+ FOR byte_index IN 0..octet_length(raw_bytes)-1 LOOP
+  byte_value:=get_byte(raw_bytes,byte_index);
+  IF inside_string THEN
+   IF escaped THEN escaped:=false;
+   ELSIF byte_value=92 THEN escaped:=true;
+   ELSIF byte_value=34 THEN inside_string:=false;END IF;
+  ELSE
+   IF byte_value=34 THEN inside_string:=true;
+   ELSIF byte_value IN(9,10,13,32) THEN CONTINUE;END IF;
+  END IF;
+  byte_chunk:=byte_chunk||substring(raw_bytes FROM byte_index+1 FOR 1);
+  IF octet_length(byte_chunk)>=4096 THEN
+   byte_chunks:=array_append(byte_chunks,byte_chunk);byte_chunk:=''::bytea;
+  END IF;
+ END LOOP;
+ IF inside_string OR escaped THEN RAISE EXCEPTION 'CATALOGO_ROOT_SERIALIZATION_STRING_STATE';END IF;
+ IF octet_length(byte_chunk)>0 THEN byte_chunks:=array_append(byte_chunks,byte_chunk);END IF;
+ FOREACH byte_chunk IN ARRAY byte_chunks LOOP compact_bytes:=compact_bytes||byte_chunk;END LOOP;
+ root_text:=convert_from(compact_bytes,'UTF8');
+ IF root_text IS NULL OR root_text::jsonb IS DISTINCT FROM root THEN RAISE EXCEPTION 'CATALOGO_ROOT_COMPACT_SERIALIZATION';END IF;
+ IF octet_length(root_text)>524288 THEN RAISE EXCEPTION 'CATALOGO_ROOT_BYTES_CAP:%',octet_length(root_text);END IF;
+ new_root_sha:=encode(extensions.digest(convert_to(root_text,'UTF8'),'sha256'),'hex');
+
+ -- Baseline missione validata prima del passaggio; niente nuove capability.
+ IF mission_public_owner.engine_qualification_v1(old_root_sha,true)IS NULL THEN RAISE EXCEPTION 'CATALOGO_ROOT_PREVIOUS_MISSION_UNQUALIFIED';END IF;
+ SELECT * INTO STRICT prior_release FROM mission_public_owner.release_admissions_v1 WHERE release_sha256=old_root_sha FOR SHARE;
+ SELECT * INTO STRICT prior_qualification FROM mission_public_owner.public_qualification_attestations_v1 WHERE release_sha256=old_root_sha FOR SHARE;
+ IF(SELECT count(*)FROM mission_public_owner.mission_content_admissions_v1 WHERE engine_release_sha256=old_root_sha)<>2
+ OR(SELECT public.combat_v2_sha256(jsonb_agg(to_jsonb(c)ORDER BY c.mission_id,c.request_key))FROM mission_public_owner.mission_content_admissions_v1 c WHERE engine_release_sha256=old_root_sha)
+ IS DISTINCT FROM params->>'expected_content_admission_rows_sha256'
+ THEN RAISE EXCEPTION 'FIX_ELIGIBILITY_CONTENT_BASELINE';END IF;
+ FOR content_row IN SELECT * FROM mission_public_owner.mission_content_admissions_v1 WHERE engine_release_sha256=old_root_sha FOR SHARE LOOP
+  IF mission_public_owner.content_admission_v1(content_row.mission_id,old_root_sha,content_row.publication_request,true)IS NULL THEN
+   RAISE EXCEPTION 'CATALOGO_ROOT_PREVIOUS_CONTENT_UNQUALIFIED';END IF;
+ END LOOP;
+ bindings:=jsonb_build_object('db_sha256',db_sha,'edge_sha256',generic_ezbr,'client_sha256',public.combat_v2_sha256(root->'ui'),'configuration_sha256',config_sha);
+ UPDATE mission_factory_owner.editor_release_readiness SET canonical_preimage=root_text,revision_sha256=new_root_sha,
+  observed_revision_sha256=new_root_sha,client_build='mission-factory-admin/2:'||new_root_sha,
+  independent_review_ref=review->>'ref',updated_at=clock_timestamp()
+  WHERE singleton AND revision_sha256=old_root_sha AND public.combat_v2_sha256(to_jsonb(editor_release_readiness))=old_row_sha;
+ GET DIAGNOSTICS affected=ROW_COUNT;IF affected<>1 THEN RAISE EXCEPTION 'CATALOGO_ROOT_ROW_CAS';END IF;
+ INSERT INTO mission_public_owner.release_admissions_v1(release_sha256,db_sha256,edge_sha256,client_sha256,configuration_sha256,
+  contract_version,independent_review_ref,staff_evidence_ref,qualified_at,public_enabled)
+ VALUES(new_root_sha,db_sha,generic_ezbr,bindings->>'client_sha256',config_sha,prior_release.contract_version,
+  review->>'ref',prior_release.staff_evidence_ref,prior_release.qualified_at,prior_release.public_enabled);
+ FOR profile_row IN SELECT DISTINCT ON(profile_key)* FROM mission_public_owner.engine_profile_events_v1
+  WHERE engine_release_sha256=old_root_sha ORDER BY profile_key,control_version DESC LOOP
+  IF profile_row.profile_key IS DISTINCT FROM prior_qualification.payload->>'authoring_profile' THEN
+   RAISE EXCEPTION 'CATALOGO_ROOT_UNQUALIFIED_PROFILE_CARRYFORWARD';END IF;
+  INSERT INTO mission_public_owner.engine_profile_events_v1(event_id,engine_release_sha256,profile_key,expected_control_version,
+   control_version,authoring_enabled,runtime_enabled,actor_user,reason)
+  VALUES(extensions.uuid_generate_v5(namespace_uuid,new_root_sha||':profile:'||profile_row.profile_key),new_root_sha,profile_row.profile_key,
+   0,1,profile_row.authoring_enabled,profile_row.runtime_enabled,profile_row.actor_user,
+   'Compatible carryforward of existing mission profile only; new catalog techniques have no Staff PASS');
+ END LOOP;
+ qualification:=prior_qualification.payload||jsonb_build_object('revision_sha256',new_root_sha,'bindings',bindings,'independent_review',review,
+  'reuse_evidence',(prior_qualification.payload->'reuse_evidence')||jsonb_build_object('new_mission_QA_claim',false,
+   'catalogo_compatibility',jsonb_build_object('parent_root',old_root_sha,'ref',params#>'{compatibility,ref}',
+    'sha256',params#>'{compatibility,sha256}','scope','existing_mission_capabilities_only','new_techniques_staff_pass',false)));
+ INSERT INTO mission_public_owner.public_qualification_attestations_v1(release_sha256,request_key,payload,payload_sha256,
+  positive_staff_evidence_ref,authorized_test_manifest_ref,created_by)
+ VALUES(new_root_sha,extensions.uuid_generate_v5(namespace_uuid,new_root_sha||':qualification'),qualification,mission_factory_owner.sha(qualification),
+  prior_qualification.positive_staff_evidence_ref,prior_qualification.authorized_test_manifest_ref,prior_qualification.created_by);
+ IF qualification->'capabilities' IS DISTINCT FROM prior_qualification.payload->'capabilities'
+ OR mission_public_owner.engine_qualification_v1(new_root_sha,true)IS NULL THEN RAISE EXCEPTION 'CATALOGO_ROOT_MISSION_CARRYFORWARD_INVALID';END IF;
+ FOR content_row IN SELECT * FROM mission_public_owner.mission_content_admissions_v1 WHERE engine_release_sha256=old_root_sha ORDER BY mission_id LOOP
+  content_request:=extensions.uuid_generate_v5(content_row.request_key,new_root_sha||':catalogo-compatible-adoption');
+  content_payload:=content_row.payload||jsonb_build_object('request_key',content_request,'engine_release_sha256',new_root_sha,'created_at',clock_timestamp());
+  INSERT INTO mission_public_owner.mission_content_admissions_v1(request_key,mission_id,config_version,engine_release_sha256,publication_request,payload,payload_sha256)
+  VALUES(content_request,content_row.mission_id,content_row.config_version,new_root_sha,content_row.publication_request,content_payload,mission_factory_owner.sha(content_payload));
+  IF mission_public_owner.content_admission_v1(content_row.mission_id,new_root_sha,content_row.publication_request,true)IS NULL THEN
+   RAISE EXCEPTION 'CATALOGO_ROOT_CONTENT_CARRYFORWARD_INVALID';END IF;
+ END LOOP;
+ UPDATE mission_public_owner.party_launch_runtime_v1 x SET release_sha256=new_root_sha WHERE singleton AND to_jsonb(x)=runtime_before;
+ GET DIAGNOSTICS affected=ROW_COUNT;IF affected<>1 THEN RAISE EXCEPTION 'CATALOGO_ROOT_PARTY_RUNTIME_CAS';END IF;
+ IF NOT EXISTS(SELECT 1 FROM mission_public_owner.party_launch_runtime_v1 x WHERE singleton
+  AND to_jsonb(x)=jsonb_set(runtime_before,'{release_sha256}',to_jsonb(new_root_sha),false))THEN RAISE EXCEPTION 'CATALOGO_ROOT_PARTY_FLAGS_CHANGED';END IF;
+ IF(SELECT to_jsonb(g)FROM combat_v2_genjutsu_internal.gate g WHERE singleton)IS DISTINCT FROM jsonb_set(jsonb_set(jsonb_set(current_setting('app.cure_reaction_paralisi_gate_before')::jsonb,'{enabled}','false'::jsonb,false),'{staff_enabled}','false'::jsonb,false),'{public_enabled}','false'::jsonb,false) THEN RAISE EXCEPTION 'cure_reaction_paralisi_gate_changed';END IF;
+ IF(SELECT to_jsonb(g)FROM combat_panel_private.cure_gate_v1 g WHERE singleton)IS DISTINCT FROM current_setting('app.cure_reaction_cure_gate_before')::jsonb THEN RAISE EXCEPTION 'palmo_completion_cure_gate_changed';END IF;
+ IF NOT clan_innata_private.catalogo_eligibility_release_v1()THEN RAISE EXCEPTION 'FIX_ELIGIBILITY_BRANCH_NOT_ADMITTED';END IF;
+ PERFORM set_config('app.paralisi_label_integrated_result',jsonb_build_object('root_sha256',new_root_sha,'root_bytes',octet_length(root_text),
+  'db_sha256',db_sha,'configuration_sha256',config_sha,'code_identity_sha256',identity_sha,'aliases_updated',aliases,
+  'amendment_identity_sha256',binding->'normalized_source_identity_sha256','active_shared_manifest_sha256',shared_sha,'active_private_functions_manifest_sha256',private_sha,
+  'new_techniques_staff_pass',false,'provider_calls',0)::text,true);
+END $catalogo_root$;
+DO $label_post$
+DECLARE f jsonb;r jsonb;
+BEGIN
+ FOR f IN SELECT value FROM jsonb_array_elements($label_expected$[{"signature":"combat_v2_elemental_internal.other_ability_meta(uuid,jsonb)","source_md5":"aa3d6fe2cb785a3a132a7b281bdab70a","ddl_sha256":"15fab8ec94575b4a0e163cfbdcc46272b02d47d772daa262de5483a43b18f5ac"},{"signature":"combat_panel_private.round_options_authoritative(uuid,uuid)","source_md5":"7cf9d8be18c9dab5f75b62c74a5e9e37","ddl_sha256":"22bd8c8faf60ba44a644bf9ccd0f69ab8a5715383c79ff6014509dfd02290554"},{"signature":"clan_innata_private.catalogo_eligibility_release_v1()","source_md5":"e52a8ac90fb15cad425cd0d17c9b4d4b","ddl_sha256":"72141f00f7b6c79aacf634334290e92debbcc3a5bd77365c55dc4ef3a82ea5f6"},{"signature":"combat_panel_private.cure_contact_v1(uuid,uuid)","source_md5":"21de7dd5e62b5403b50065d2635e20bf","ddl_sha256":"0d5ef7dfd803fadfc2ec38aa4285467cd95f83bb613e6c0b6a0dde650d571f00"},{"signature":"combat_panel_private.master_projection(uuid,uuid)","source_md5":"271ea56acb5f135ad6e3d24d8601e3b1","ddl_sha256":"da26a20b86b168b4769b851405794371ddbe54095c1e8c775859c0b1c155cd0b"}]$label_expected$::jsonb) LOOP
+  IF md5((SELECT prosrc FROM pg_proc WHERE oid=to_regprocedure(f->>'signature'))) IS DISTINCT FROM f->>'source_md5'
+   OR encode(extensions.digest(convert_to(pg_get_functiondef(to_regprocedure(f->>'signature')),'UTF8'),'sha256'),'hex') IS DISTINCT FROM f->>'ddl_sha256'
+  THEN RAISE EXCEPTION 'PARALISI_LABEL_OWNING_BODY_DRIFT:%',f->>'signature';END IF;
+ END LOOP;
+ SELECT canonical_preimage::jsonb INTO STRICT r FROM mission_factory_owner.editor_release_readiness WHERE singleton;
+ IF r#>'{db_core,paralisi_profile_refresh}' IS DISTINCT FROM $refresh${"review":{"P0":0,"P1":0,"P2":0,"ref":"management/candidati/COMBAT-COMPOSITE_2026-09-01/candidato/catalogo_completo/STAFF_ENTRY_REPAIRS_REVIEW.json#R1","sha256":"0654eafa48aa158bd7ab1b555cd7f2951396271ec8f57f1a4249e53f98b1c29e"},"schema_version":"paralisi-profile-refresh/1","source_bundle_sha256":"9c9c84ddb2fcc037b0b2164877d296c72a99529b86f3dfcaf59e5c62d4cb65c3","projection_source_md5":"271ea56acb5f135ad6e3d24d8601e3b1","integrated_source_bundle_sha256":"a835cc4c1e6c5bfa356ee53243efd2b6bcd62b8a513b230d3b7cd047e61674b8"}$refresh$::jsonb
+ OR r#>'{config,paralisi_profile_refresh}' IS DISTINCT FROM r#>'{db_core,paralisi_profile_refresh}'
+ OR clan_innata_private.catalogo_eligibility_release_v1() IS DISTINCT FROM true
+ THEN RAISE EXCEPTION 'PARALISI_LABEL_POSTSEAL_DRIFT';END IF;
+ IF EXISTS(SELECT 1 FROM combat_v2_genjutsu_internal.gate WHERE singleton AND(enabled OR staff_enabled OR public_enabled)) THEN RAISE EXCEPTION 'PARALISI_LABEL_RECOVERY_GATE_NOT_OFF';END IF;
+END $label_post$;
+COMMIT;
