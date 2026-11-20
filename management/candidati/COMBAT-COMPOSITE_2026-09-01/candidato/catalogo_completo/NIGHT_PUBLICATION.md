@@ -1,7 +1,7 @@
-# Deposito JOINT e QA parziale verificato
+# Deposito della candidata H1/H2 verificato
 
-Commit [a43c96ec](https://github.com/antonello9311-design/theuntoldstory/commit/a43c96ec7d7a8ce5deb82a9f8196b86878f0b6bc), parent85043,47file esatti. Refmain riletta e coincidente; tree4988cb77 con tutti i blob estranei preservati. Nove documenti composti chirurgicamente dal remoto, nessun asset sito o WIPland caricato.
+Commit [732e1a67](https://github.com/antonello9311-design/theuntoldstory/commit/732e1a671bd75b79a68781c99c4653538f2d094c), parenta43c96ec,19file verificati, treebc1e65c9; refmain riletta e coincidente. Tutti i blob estranei preservati, nove documenti composti dal remoto senza sovrascrivere WIP.
 
-Source/Entry recensite, installazione Staff Root3b20/Edge46 e QA parziale depositati. Insetto Verme Velenoso Human: una iniezione e due tick verificati, quattro Fati. H1/H2 bloccati e H4/O1 non eseguiti restano espliciti; nessuna apertura pubblica.
+SourceBe7673 e review indipendente composta0/0/0 depositate con audit7.16MB completo, inclusa UI6583 e baseline38f37. I template Source/Recovery restano fenced: nessun asset sito, DBapply o EdgeDeploy, nuova qualifica Staff o apertura pubblica eseguiti. Mancano la vera pubblicazione client verificata sul dominio, P/Entry e i collaudi: NodeREPL/ResetTransportclosed e dominio non accessibile via webtool.
 
-I tre audit integrali da30MB sono depositati come .json.gz reversibili, deterministici. Decompressione verificata byte per byte e tramite SHA256 degli originali: corrente2f2da3c1, R1 03d49adf, R0 cb88260f. Gli originali restano intatti sul disco; JSON della ricevuta associa ogni nome, SHA e gzip pubblicato e conserva integralmente le ricevute precedenti. Il trasferimento raw aveva chiuso la porta Node: nessun contenuto è stato troncato per il deposito.
+La versione viva resta Root3b20/Edge46/UI38f37; H3VermeHuman giàPASS circoscritto, altre prove restano nello stato documentato. JSON conserva integralmente la ricevutaa43 e tutte le precedenti, con hash/19path esatti. Questo commit contiene la ricevuta precedente; la presente conserva la verifica successiva del deposito.
