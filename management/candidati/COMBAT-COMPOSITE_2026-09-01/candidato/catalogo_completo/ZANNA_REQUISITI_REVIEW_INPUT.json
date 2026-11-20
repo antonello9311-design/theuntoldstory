@@ -1,0 +1,154 @@
+{
+  "status": "TEMP_ONLY_PENDING_REVIEW",
+  "changed_field": "requirements",
+  "before": "Quattro Zampe · grado Genin · Kekkei Genkai ≥ 40",
+  "after": "Quattro Zampe · grado Genin · Kekkei Genkai ≥ 30",
+  "live_projection": {
+    "id": "b076a976-c75b-4b5a-8813-b0e8e2c3af03",
+    "after": "d4d3dfad272c109ca83ea6fee380f8b6ffa453f332d04268514b13a579132da3",
+    "active": true,
+    "before": "158c6a3051c267eeb123dfc537560c5b1ae34962e4d556b7d55ef7b5ce6b6e90",
+    "trigger_count": 0,
+    "new_requirements": "Quattro Zampe · grado Genin · Kekkei Genkai ≥ 30"
+  },
+  "rules_section": "6.3.2 (REGOLE.md and regole.html)",
+  "natural_authority": "public.training_eligibility compares req_stat_value 30",
+  "consumer_pins": [
+    {
+      "nspname": "clan_inuzuka_private",
+      "signature": "clan_inuzuka_private.zanna_freeze(uuid)",
+      "md5": "80eacd4948aac1eb74af972c1a919f75",
+      "relevant": [
+        "profile:=clan_inuzuka_private.zanna_profile(a.id);",
+        "OR d.cost_snapshot->>'chakra'<>'5' OR d.cost_snapshot->>'damage_base'<>'10'"
+      ]
+    },
+    {
+      "nspname": "clan_inuzuka_private",
+      "signature": "clan_inuzuka_private.zanna_profile(uuid)",
+      "md5": "cf7005b3372e9c8e1cb9418321d3d3d1",
+      "relevant": [
+        "'power',15+(kg+tai)/10+impulse,'defense_base',10,'damage_base',10,'feral_impulse',impulse);"
+      ]
+    },
+    {
+      "nspname": "clan_inuzuka_private",
+      "signature": "clan_inuzuka_private.zanna_resolve_profile(uuid)",
+      "md5": "a138d81e05d1227722d4042500f5cfbb",
+      "relevant": [
+        "'defense_base',10,'damage_base',10,"
+      ]
+    },
+    {
+      "nspname": "public",
+      "signature": "combat_v2_character_snapshot(uuid)",
+      "md5": "46a5bc3b2febda3dc31eba2d43bdf381",
+      "relevant": [
+        "'damage_base',coalesce(t.danno_base,0),'element',case when cardinality(t.req_elements)>0 then t.req_elements[1] end,",
+        "'damage_base',coalesce(j.damage_base,0),'element',j.nature) x"
+      ]
+    },
+    {
+      "nspname": "public",
+      "signature": "my_abilities(uuid)",
+      "md5": "5e29cbc393d59b669b56d09817074834",
+      "relevant": [
+        "t.chakra_cost, t.consumption_type, t.grado, t.danno_base, t.disciplina,",
+        "case when j.kind='abilita' then 'passiva' else 'ad_utilizzo' end, j.rank, j.damage_base,",
+        "t.chakra_cost, t.consumption_type, t.grado, t.danno_base, t.disciplina,"
+      ]
+    },
+    {
+      "nspname": "public",
+      "signature": "test_room_user_techniques()",
+      "md5": "69f0f194f74087a78bd6fbc26e88b4df",
+      "relevant": [
+        "coalesce(t.danno_base,0) damage_base,",
+        "coalesce(j.chakra_cost,0), coalesce(j.damage_base,0),"
+      ]
+    },
+    {
+      "markers": [
+        "coalesce(j.chakra_cost,0),coalesce(j.damage_base,0),j.nature,"
+      ],
+      "signature": "test_room_user_action(text,uuid,text,text)",
+      "source_md5": "0adcd106de8cefc26983f98f5d340ea4",
+      "auth_execute": true
+    },
+    {
+      "markers": [
+        "select j.name_it, j.chakra_cost, j.damage_base, j.gittata, j.uso, j.nature, j.category,"
+      ],
+      "signature": "combat_dichiara_attacco(uuid,uuid,text,uuid,text,text,integer,boolean)",
+      "source_md5": "eacf4d2c04dbda3d8c3c37ec561a67f4",
+      "auth_execute": false
+    },
+    {
+      "markers": [
+        "tname text; v_kind text; v_cost int; v_state text; v_dmgbase int; v_ck int;",
+        "select t.danno_base, t.chakra_cost, t.name, ca.state into v_dmgbase, v_cost, tname, v_state",
+        "base := coalesce(v_dmgbase,0); v_cost := coalesce(v_cost,0);"
+      ],
+      "signature": "png_attacco_combinato(uuid,uuid,jsonb,text,integer)",
+      "source_md5": "c52a73f810a9a9287e34470e5f688226",
+      "auth_execute": true
+    },
+    {
+      "markers": [
+        "v_cost int; v_state text; v_dmgbase int; v_ck int := 0; v_kind text; v_def text;",
+        "select t.danno_base, t.chakra_cost, t.name, ca.state into v_dmgbase, v_cost, tname, v_state",
+        "base := coalesce(v_dmgbase,0); v_cost := coalesce(v_cost,0);"
+      ],
+      "signature": "pg_attacca_png(uuid,uuid,text,text,integer,integer,text,integer,uuid)",
+      "source_md5": "5366181c7553b108d2e71651d3546ff5",
+      "auth_execute": true
+    },
+    {
+      "markers": [
+        "v_cost int; v_state text; v_dmgbase int; v_ck int := 0; v_kind text; v_def text;",
+        "select t.danno_base, t.chakra_cost, t.name, ca.state into v_dmgbase, v_cost, tname, v_state",
+        "base := coalesce(v_dmgbase,0); v_cost := coalesce(v_cost,0);"
+      ],
+      "signature": "post_combat_png(uuid,boolean,text,integer,integer,integer,uuid,text,text,integer,integer,text,integer,uuid)",
+      "source_md5": "45421018ce07eac19d719656caabf568",
+      "auth_execute": true
+    },
+    {
+      "markers": [
+        "v_cost int; v_state text; v_dmgbase int; v_ck int := 0; v_test boolean;",
+        "select t.danno_base, t.chakra_cost, t.name, ca.state into v_dmgbase, v_cost, tname, v_state",
+        "base := coalesce(v_dmgbase,0); v_cost := coalesce(v_cost,0);"
+      ],
+      "signature": "post_combat(uuid,uuid,text,text,integer,integer,text,integer,uuid)",
+      "source_md5": "b55c23bf6bc4fd34bf6319e6f539ffcb",
+      "auth_execute": false
+    },
+    {
+      "markers": [
+        "and exists (select 1 from clan_akimichi_private.release_gate where singleton and public_enabled) then",
+        "and exists (select 1 from clan_akimichi_private.release_gate where singleton and public_enabled)",
+        "if t.req_stat is not null and t.req_stat_value is not null then",
+        "if v_stat is null or v_stat < t.req_stat_value then",
+        "reasons := array_append(reasons, t.req_stat||' minimo: '||t.req_stat_value||' (hai '||coalesce(v_stat,0)||')');"
+      ],
+      "signature": "training_eligibility(uuid,uuid)",
+      "source_md5": "fdc29cffebae65a0be398f4641fdca8e",
+      "auth_execute": true
+    }
+  ],
+  "numeric_followup_scope": "Combat V2 inuzuka=10. Catalogo=20 è letto da snapshot, Regia legacy, PNG, NinjaBook Ronda e Test Room utenti. Una modifica può cambiare esiti e richiede decisione di scope, conferma numerica e verifiche pertinenti.",
+  "artifacts": {
+    "ZANNA_REQUISITI_SOURCE.sql": {
+      "bytes": 1748,
+      "sha256": "d5ee1485f0863fb388e19d1cf77812584a7e87f9c45e24ff4a4e5d77e2cfc62b"
+    },
+    "ZANNA_REQUISITI_RECOVERY.sql": {
+      "bytes": 1748,
+      "sha256": "649cde2acb88e6beb7ec302e43b589f721c1ee354c357b1d047602830b3cfbf6"
+    }
+  },
+  "parser": "3 SQL statements and 1 PL/pgSQL block per file",
+  "database_apply": "NOT_RUN",
+  "source_effect": "EDITORIAL_ONLY",
+  "exact_dollar_quote_values_checked": true
+}

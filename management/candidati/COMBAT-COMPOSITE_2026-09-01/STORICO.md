@@ -1,3 +1,5 @@
+20/11/2026 · COMBAT-CATALOGO-DAY-H1-PAIR-20261120 · Conferma Iori rifiutata con le due presenze fresche, scena chiusa e risorse protette verificate · rosso.
+20/11/2026 · COMBAT-CATALOGO-DAY-ZANNA-REQUIREMENTS-20261120 · Requisito descrittivo allineato a KG 30, migrazione 20261120091440 · dato verificato.
 20/11/2026 · COMBAT-CATALOGO-DAY-H1H2-R2-ROSTER-IAB-20261120 · Pannello e PNG NinjaBook offerti, conferma negata prima di aprire Combat, scena chiusa · parziale.
 20/11/2026 · COMBAT-CATALOGO-DAY-H1H2-R2-INSTALL-20261120 · Ripristino controlli manifest, migrazione 20261120085624 e Root 8e6c57cb · riservato alla Staff.
 20/11/2026 · COMBAT-CATALOGO-DAY-ZANNA-PORTATA-20261120 · Contatto finale distinto dalla carica, sola portata descrittiva, migrazione 20261120090114 · dato verificato.
