@@ -1,3 +1,5 @@
+20/11/2026 · COMBAT-CATALOGO-DAY-EXISTING-COVERAGE-5-20261120 · Collegate otto voci con ricevute native già conservate, totale 38 su 44 · verificato sul corpus.
+20/11/2026 · COMBAT-CATALOGO-DAY-H4-VELO-DESIGN-20261120 · Depositate guida operativa Nara e analisi Velo su Root 0fb53873 · preparazione.
 20/11/2026 · COMBAT-CATALOGO-DAY-H1H4-STAFF-APPLY-20261120 · Correzioni NinjaBook e Nara installate in Staff con 2 ammissioni e gate preservati, migrazione 20261120094116 · da collaudare.
 20/11/2026 · COMBAT-CATALOGO-DAY-H2-CELLULARE-20261120 · Profilo simulato base esclude il preset avanzato, difesa non dichiarata, scena chiusa e profilo ripristinato · parziale.
 20/11/2026 · COMBAT-CATALOGO-DAY-H1-PAIR-20261120 · Conferma Iori rifiutata con le due presenze fresche, scena chiusa e risorse protette verificate · rosso.
