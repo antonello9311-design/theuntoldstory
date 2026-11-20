@@ -1,3 +1,5 @@
+20/11/2026 · COMBAT-CATALOGO-GENJUTSU-ROLE-QA-20261120 · KaiSelf, scadenza naturale e movimento reale1m verificati in4casiHuman/6Fati;0provider, scena propria chiusa e risorsePGintatte · PASS_SCOPE_HUMAN_NO_PUBLIC_OPENING.
+20/11/2026 · COMBAT-CATALOGO-GENJUTSU-ROLE-INSTALL-20261120 · PublisherKaiPG2 corretto in Staff dopo Source/Entry0/0/0, Rootdf85/523079B,0scene e5digestPGidentici; prova giocata pendente · APPLICATO_RISERVATO.
 20/11/2026 · COMBAT-CATALOGO-PARALISI-BINDING-QA-20261120 · Due round pubblicati: cast, resistenza mentale, costo10CK/danno0 e movimento bloccato verificati; KaiSelf rifiutato, caso fermato e scena propria chiusa con risorse reali intatte · PARTIAL_NOT_PASSED.
 20/11/2026 · COMBAT-CATALOGO-ELEMENTAL-BINDING-INSTALL-20261120 · GuardiasigilloElemental allineata alformatterLabel,1corpoRoot9e0cea20/523082B;gates e4PGdigestidentici, runtimependente · APPLICATO.
 20/11/2026 · COMBAT-CATALOGO-PARALISI-LABEL-QA-20261120 · GuardiaElementallegacy bloccaofferteprimaProfile,0azioni/provider; propriachiusura e campiprotettiidentici salvo2timestampregen provati · FIX_SIGILLO_PRIORITARIO.
