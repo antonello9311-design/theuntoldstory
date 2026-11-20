@@ -1,0 +1,478 @@
+{
+  "schema_version": "combat-day-existing-coverage/6",
+  "task": "COMBAT-CATALOGO-DAY-EXISTING-COVERAGE-6-20261120",
+  "state": "TWO_NATIVE_STAFF_CASES_AND_PASSIVE_ACQUISITION_LINKED",
+  "observation_readonly": {
+    "observed_at": "2026-11-20 09:57:16.235773+00",
+    "revision_sha256": "0fb538733f7010d36babf42f2ffa69432b16b8baa1e9bdea6d0b4ff6d447ae8d",
+    "observed_revision_sha256": "0fb538733f7010d36babf42f2ffa69432b16b8baa1e9bdea6d0b4ff6d447ae8d",
+    "canonical_bytes": 523748,
+    "root_hash_matches": true
+  },
+  "baseline_bucket_count": 44,
+  "prior_links_preserved": 38,
+  "new_links": 3,
+  "new_protected_staff_runtime_links": 2,
+  "new_passive_acquisition_links": 1,
+  "cumulative_links": 41,
+  "remaining_links": 3,
+  "links": [
+    {
+      "id": "67846562-a0da-414a-820c-4b576a0a2eb6",
+      "name": "Trasporto di Sabbia",
+      "disposition": "LINKED_EXISTING_PROTECTED_NATIVE_RECEIPTS",
+      "catalog_current": {
+        "uso": "rapida",
+        "clan": "Sabaku",
+        "name": "Trasporto di Sabbia",
+        "grado": "D",
+        "macro": "clan",
+        "category": "Arte segreta · Movimento",
+        "req_stat": "Kekkei Genkai",
+        "is_active": true,
+        "req_grade": "Genin",
+        "chakra_cost": 5,
+        "description": "Il Sabaku raccoglie la sabbia sotto i piedi e si lascia accompagnare nel movimento, scivolando sul terreno e superandone più agevolmente le asperità.",
+        "req_tecnica": "001f907c-8f32-4758-8a16-ad1730e72c59",
+        "requirements": "Clan Sabaku · grado Genin · Kekkei Genkai ≥30 · Controllo della Sabbia L1 posseduto e attivo · almeno 5 unità disponibili nella propria giara · utilizzatore non immobilizzato.",
+        "danno_effetto": "Con Controllo della Sabbia attivo, la sabbia accompagna i tuoi passi e ti permette di percorrere fino a 5 metri in più nel turno corrente, senza sommare questo vantaggio ad altri della stessa famiglia. Il terreno impervio non rallenta più il cammino, ma restano gli ostacoli: non puoi volare, trasportare altre persone o attraversare muri, acqua e vuoti.\n\nIl sostegno impegna 5 unità di sabbia fino al termine della tecnica. Devi essere libero di muoverti per utilizzarlo; se vieni immobilizzato, lo spostamento si interrompe. Il sostegno della sabbia termina alla fine del turno, quando essa non è più utilizzabile, se sei assente o fuori combattimento oppure quando lo scontro si conclude. La sabbia impegnata torna disponibile.",
+        "req_stat_value": 30
+      },
+      "result": "Ordinario Staff. +5 m, 5 chakra simulati, 5 sabbia impegnata, movimento di 1 m in zona impervia a costo effettivo 1. Azione principale intatta e rilascio della sabbia a fine turno.",
+      "remaining_boundary": "Offerta Master presente nella sorgente viva. Questo singolo caso ordinario non qualifica il percorso Master né il movimento dopo azione principale.",
+      "historical_sources": [
+        "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/STAFF_TRANSPORT_RESULT.json",
+        "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/public_release001/LIVE_RESULT.json"
+      ],
+      "historical_root": null,
+      "public_gate": {
+        "singleton": true,
+        "staff_enabled": true,
+        "public_enabled": true
+      },
+      "current_offers": [
+        {
+          "nspname": "clan_sabaku_private",
+          "proname": "consumer_options",
+          "pin": "38da00e07241064c3b53936b8e6ae5ac",
+          "matches": [
+            "     'Spegni Controllo della Sabbia · gratuito',",
+            " IF clan_sabaku_private.transport_ready(aid) THEN",
+            "     'Trasporto di Sabbia · '||(clan_hyuga_private.sedici_cost_quote(a.id,5)->>'total')||' chakra e 5 sabbia impegnata',"
+          ]
+        },
+        {
+          "nspname": "clan_sabaku_private",
+          "proname": "master_control_offers",
+          "pin": "3bc52b1986688cf9d36dfbba03358a73",
+          "matches": [
+            " IF s.active THEN operation:='deactivate'; label:='Spegni Controllo della Sabbia · gratuito';",
+            " IF clan_sabaku_private.transport_ready(a.id) THEN",
+            "     'Trasporto della Sabbia · '||(clan_hyuga_private.sedici_cost_quote(a.id,5)->>'total')||' chakra, 5 sabbia',false,jsonb_build_object('adapter','master_v2',"
+          ]
+        },
+        {
+          "nspname": "clan_sabaku_private",
+          "proname": "transport_ready",
+          "pin": "ce0c6d1e6ae4dc6225bb39b4a180b6b7",
+          "matches": []
+        },
+        {
+          "nspname": "clan_innata_narrative_private",
+          "proname": "staff_profile_definition_v1",
+          "pin": "9329ef606f4ba3a8dae43eecb9e35808",
+          "matches": [
+            " ('sabaku-l1','001f907c-8f32-4758-8a16-ad1730e72c59'::uuid),",
+            " IF (p_profile='sabaku-l1'AND NOT EXISTS(SELECT 1 FROM clan_sabaku_private.release_gate WHERE singleton AND staff_enabled))",
+            " OR(p_profile<>'sabaku-l1'AND NOT EXISTS(SELECT 1 FROM clan_hyuga_private.release_gate WHERE singleton AND staff_enabled))"
+          ]
+        }
+      ],
+      "current_catalogue_binding": [
+        {
+          "nspname": "clan_innata_private",
+          "proname": "combat_transition",
+          "pin": "590ec6b32fd3f4bc5fb62c46c058698a",
+          "matches": [
+            "       AND ca.technique_id='67846562-a0da-414a-820c-4b576a0a2eb6' AND ca.state='attiva') THEN",
+            "     CASE WHEN p_operation='transport' THEN '67846562-a0da-414a-820c-4b576a0a2eb6'::uuid ELSE t END,"
+          ]
+        },
+        {
+          "nspname": "clan_sabaku_private",
+          "proname": "transport_ready",
+          "pin": "ce0c6d1e6ae4dc6225bb39b4a180b6b7",
+          "matches": [
+            "    WHERE character_id=a.character_id AND technique_id='67846562-a0da-414a-820c-4b576a0a2eb6' AND state='attiva'))"
+          ]
+        }
+      ],
+      "closed_context": {
+        "id": "e4f36e1a-afaf-4d30-a06d-f2f17e6ac391",
+        "location_id": "0b85f354-9cdb-47e1-baf9-3d266bb7e06b",
+        "state": "chiuso",
+        "closed_at": "2026-09-11 12:32:35.412576+00",
+        "policy_id": "staff_test_no_persistent_resources_v1",
+        "consumer_closed_at": "2026-09-11 12:32:35.431224+00"
+      },
+      "control_receipt": {
+        "id": "dc72ce0c-7e2f-41f1-874e-c8afd69bda81",
+        "state": "released",
+        "amount": 5,
+        "result": {
+          "is_test": true,
+          "replayed": false,
+          "receipt_id": "9fcb6c22-d2fb-4a71-ae10-d7e3978d9e22",
+          "chakra_spent": 5,
+          "sand_committed": 5,
+          "values_written": false,
+          "contract_version": "sabaku-transport-use/1",
+          "main_action_consumed": false
+        },
+        "round_id": "b8d0c8db-b749-4a56-845c-abb06d1dcd13",
+        "created_at": "2026-09-09T21:55:07.21105+00:00",
+        "request_id": "7e236a1c-f648-4d4e-8dc1-5a58c7831138",
+        "session_id": "e4f36e1a-afaf-4d30-a06d-f2f17e6ac391",
+        "released_at": "2026-09-09T22:05:44.470703+00:00",
+        "release_reason": "turn_end",
+        "chakra_receipt_id": "9fcb6c22-d2fb-4a71-ae10-d7e3978d9e22",
+        "request_fingerprint": "3a7d7051f793fbafe005fb48b31c8b5e1b7386519f889a057f6793ee5c356433"
+      },
+      "movement_receipt": {
+        "cost_m": 1,
+        "event_id": "367a0e2a-cbf4-b42f-a303-54bac7eafbda",
+        "distance_m": 1,
+        "capability_id": "003197f4-fd1e-4f65-b0d4-b96caf043f3c"
+      },
+      "movement_event": {
+        "kind": "movement_settled",
+        "time": "2026-09-09T21:55:58.711138+00:00",
+        "event": "367a0e2a-cbf4-b42f-a303-54bac7eafbda",
+        "instance": "b81692ad-fcf7-4444-b3cd-52a95b9636b0"
+      },
+      "historical_budget": [
+        {
+          "base_m": 15,
+          "spent_m": 0,
+          "maximum_m": 20,
+          "remaining_m": 20,
+          "movement_max_flat_m": 5
+        },
+        {
+          "base_m": 15,
+          "spent_m": 1,
+          "maximum_m": 20,
+          "remaining_m": 19,
+          "movement_max_flat_m": 5
+        }
+      ],
+      "main_declarations_in_case": 0,
+      "historical_public_enable": [
+        {
+          "name": "sabaku_public_release_scope001",
+          "version": "20260910220551"
+        },
+        {
+          "name": "sabaku_public_clone_approved001",
+          "version": "20260910220908"
+        }
+      ]
+    },
+    {
+      "id": "c6e31b7b-38fe-4b4f-b3c7-05f3e922d193",
+      "name": "Moltiplicazione del corpo",
+      "disposition": "LINKED_EXISTING_PROTECTED_NATIVE_RECEIPTS",
+      "catalog_current": {
+        "uso": "principale",
+        "category": "Ninjutsu",
+        "is_active": true,
+        "chakra_cost": 10,
+        "requirements": "Tecnica base di accademia"
+      },
+      "result": "Assalto ordinario in Staff, una copia, 15 chakra simulati. Schivata con estrazione server: copy_hit. Formazione consumata per assault_resolved e Fato pubblicato.",
+      "remaining_boundary": "Singolo esito copy_hit del percorso Assalto. Probabilità, altre uscite del tiro, bonus, percorso Master e apertura al pubblico non qualificati da questo reperto.",
+      "historical_source": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/multiplication_assault_smoke013/RESULT.json",
+      "historical_root": null,
+      "tactics_gate": {
+        "version": 2,
+        "singleton": true,
+        "staff_enabled": true,
+        "master_enabled": false,
+        "generic_enabled": false,
+        "ordinary_enabled": false,
+        "revision_reference": "combat-multiplication-tactics/1"
+      },
+      "current_catalogue_binding": [
+        {
+          "nspname": "combat_consumer_private",
+          "proname": "narrative_tech_sources_v1",
+          "pin": "92f23d909ccd56c22128b6b4dcdef940",
+          "matches": [
+            "   native_id:='c6e31b7b-38fe-4b4f-b3c7-05f3e922d193';"
+          ]
+        },
+        {
+          "nspname": "combat_panel_private",
+          "proname": "multiplication_actor_profile",
+          "pin": "2467031fdd7e669eca62e7d6239f687e",
+          "matches": [
+            " ability:=public.combat_v2_actor_ability(a.id,'jutsu','c6e31b7b-38fe-4b4f-b3c7-05f3e922d193',false);",
+            "   PERFORM clan_marionettisti_private.assert_jutsu_source(a.id,'jutsu','c6e31b7b-38fe-4b4f-b3c7-05f3e922d193');",
+            "       WHERE ab->>'source'='jutsu'AND ab->>'id'='c6e31b7b-38fe-4b4f-b3c7-05f3e922d193';",
+            "   'ability_id','c6e31b7b-38fe-4b4f-b3c7-05f3e922d193','base_cost',10,'per_copy_cost',5,"
+          ]
+        },
+        {
+          "nspname": "combat_panel_private",
+          "proname": "multiplication_declaration_meta",
+          "pin": "a31ecc7e31cd6b4ed827ab18faf73cdc",
+          "matches": [
+            " PERFORM clan_marionettisti_private.assert_jutsu_source(a.id,'jutsu','c6e31b7b-38fe-4b4f-b3c7-05f3e922d193');"
+          ]
+        }
+      ],
+      "closed_context": {
+        "id": "e4f36e1a-afaf-4d30-a06d-f2f17e6ac391",
+        "location_id": "0b85f354-9cdb-47e1-baf9-3d266bb7e06b",
+        "state": "chiuso",
+        "closed_at": "2026-09-11 12:32:35.412576+00",
+        "policy_id": "staff_test_no_persistent_resources_v1",
+        "consumer_closed_at": "2026-09-11 12:32:35.431224+00"
+      },
+      "formation": {
+        "id": "364cf23f-8e57-406f-b3b7-6a2bc765a267",
+        "mode": "assalto",
+        "state": "consumed",
+        "copy_cap": 3,
+        "ended_at": "2026-09-10T06:59:30.406528+00:00",
+        "round_id": "d895bd2e-3511-4503-b050-4e052ac30822",
+        "copy_count": 1,
+        "created_at": "2026-09-10T06:57:24.615362+00:00",
+        "session_id": "e4f36e1a-afaf-4d30-a06d-f2f17e6ac391",
+        "instance_id": "b81692ad-fcf7-4444-b3cd-52a95b9636b0",
+        "state_version": 2,
+        "declaration_id": "a1fa6028-0b23-44e4-b341-0402d976180b",
+        "terminal_reason": "assault_resolved",
+        "source_body_version": 3
+      },
+      "resolution": {
+        "choice": "server_random",
+        "outcome": "copy_hit",
+        "formation": "364cf23f-8e57-406f-b3b7-6a2bc765a267",
+        "created_at": "2026-09-10T06:59:30.38283+00:00",
+        "receipt_sha256": "b6b96b5f34893b9a018e522e0337c92e666ea6804057b73ccd38d9ccc0a5a3dd",
+        "attack_target_id": "5caa08b4-5b46-4d7a-8a97-17d2923a4b8d"
+      },
+      "report": {
+        "id": "3389cb8f-bed6-4be4-842b-4739d5692bfc",
+        "sha": "35243d27d9366723159bb9ebac99d3592d40eb9f728b3700a01b20777c9ee86a",
+        "engine": "combat-v2/2.0.0",
+        "resolver": "v11-parity/1",
+        "message_id": "b8393182-595b-4302-85be-4d5fdbc4ea34",
+        "hash_matches": true,
+        "values_written": false,
+        "narration_state": "pubblicata"
+      },
+      "catalogue_id_occurrences_in_round_report": 4,
+      "fate_found_in_staff": true,
+      "native_plan": {
+        "mode": "assalto",
+        "copies": 1,
+        "chakra_cost": 15,
+        "fingerprint": "33666280beae316f315654d9d3e4ded28b98041da2e2c8f3b180bf610c5e4daa"
+      },
+      "source_attempt": {
+        "state": "published",
+        "message_id": "b8393182-595b-4302-85be-4d5fdbc4ea34",
+        "scene_sha256": "4e21e1afd178c98e7495df1834d93b5358ae7a7eb2bf45265b33a082a42d1076"
+      },
+      "historical_protection": {
+        "matching_surfaces": 12,
+        "exact_counts_and_hashes": true,
+        "real_ledger_writes": 0
+      }
+    },
+    {
+      "id": "5386f903-27a6-4028-bddf-ebc138a88a7e",
+      "name": "Controllo del chakra",
+      "disposition": "LINKED_PASSIVE_ACQUISITION_ONLY",
+      "result": "L3 attiva e collegata all’UUID esatto. 24 acquisizioni academy corrispondono a un completamento L3, 23 nello stesso intervallo di un secondo.",
+      "remaining_boundary": "Evidenza del dominio accademico, aggregata e senza dati dei PG. L’aderenza su superfici solide resta senza prova Staff. Nessun comando Combat autonomo riscontrato.",
+      "catalog_current": {
+        "uso": "passiva",
+        "category": "Abilità",
+        "is_active": true,
+        "chakra_cost": null,
+        "requirements": "Insegnata in accademia"
+      },
+      "academy_grant": {
+        "id": "346757f7-c452-4e16-910e-5a290addb530",
+        "code": "L3",
+        "jutsu_id": "5386f903-27a6-4028-bddf-ebc138a88a7e",
+        "name_it": "Controllo del chakra",
+        "effect": "Richiami il chakra e lo porti dove serve: è la base di ogni tecnica. La sua prima applicazione è l'aderenza — con il chakra raccolto sotto i piedi cammini sulle pareti e sui soffitti, su qualunque superficie solida.",
+        "limits": "Sulle superfici liquide non basta: là serve il Controllo del Chakra Avanzato, che si allena da Chunin. Il controllo fine cresce con la Mente e con il grado.",
+        "academy_holdings": 24,
+        "matched_completed_l3": 24,
+        "grants_same_second": 23,
+        "first_matched_at": "2026-08-04 12:20:07.571589+00",
+        "last_matched_at": "2026-10-29 15:45:39.263434+00"
+      },
+      "acquisition_sources": [
+        {
+          "source": "academy",
+          "holdings": 24
+        },
+        {
+          "source": "promozione",
+          "holdings": 2
+        }
+      ],
+      "current_grant_source": [
+        {
+          "nspname": "public",
+          "proname": "_academy_grant",
+          "pin": "9acd5458e306076350b843c296be8443",
+          "matches": [
+            "  if exists(select 1 from public.lesson_progress where user_id=p_user and lesson_id=l.id) then return 'done'; end if;",
+            "           count(*) filter (where not al.is_exam and pp.lesson_id is not null)",
+            "      left join public.lesson_progress pp on pp.lesson_id=al.id and pp.user_id=p_user",
+            "        and not exists(select 1 from public.lesson_progress pp where pp.user_id=p_user and pp.lesson_id=al.id);",
+            "  insert into public.lesson_progress(user_id, lesson_id) values (p_user, l.id);",
+            "  insert into public.character_jutsu(user_id, jutsu_id, source)",
+            "    select p_user, g.jutsu_id, 'academy'",
+            "      from public.lesson_grants g join public.jutsu j on j.id = g.jutsu_id and j.is_active",
+            "     where g.lesson_id = l.id",
+            "    on conflict (user_id, jutsu_id) do nothing;"
+          ]
+        }
+      ],
+      "historical_source": "sito_live/REGOLE.md",
+      "staff_minimum": "Se esiste o viene individuato un preset Staff che espone l’abilità, provare l’aderenza su parete solida attraverso il percorso narrativo nativo. Escludere la variante avanzata per liquidi. Fino al riscontro del consumer, l’azione resta narrativa e non dà diritto a modifiche di movimento in Combat."
+    }
+  ],
+  "unlinked": [
+    {
+      "id": "9bef2759-7652-4413-93d0-b74e8a066e54",
+      "name": "Disciplina della Maschera",
+      "req_corp": "anbu",
+      "req_ramo": null,
+      "req_stat": "Velocità",
+      "req_stat_value": 15,
+      "req_grade": "Chunin",
+      "uso": "passiva",
+      "active_holdings": 0,
+      "state": "NO_LINKED_RUNTIME_EVIDENCE",
+      "gate_eligibility": "Scheda → Tecniche, filtro corporazione/ramo più training_eligibility server per requisiti e grado.",
+      "combat_offer": "Nessuna offerta autonoma prevista dalla voce passiva.",
+      "protected_preset": "Nessun preset ANBU verificato fra i profili Staff osservati. Si può provare soltanto se un contesto già autorizzato rende disponibile un profilo protetto idoneo.",
+      "staff_minimum": "Verificare prima visibilità/permesso sul profilo protetto con requisiti sopra e assenza della passiva dalle azioni Combat. In una scena protetta, un PNG si rivolge al PG in servizio identificandolo dalla maschera secondo il contesto che conosce. Verificare che il Fato conservi l’anonimato nel racconto e non aggiunga stati o bonus a Combat."
+    },
+    {
+      "id": "6f5de78f-f3e6-40fe-b31f-8d02d68c3271",
+      "name": "Occhio del falco",
+      "req_corp": "anbu",
+      "req_ramo": "pedinamento",
+      "req_stat": "Velocità",
+      "req_stat_value": 15,
+      "req_grade": "Jonin",
+      "uso": "passiva",
+      "active_holdings": 0,
+      "state": "NO_LINKED_RUNTIME_EVIDENCE",
+      "gate_eligibility": "Scheda → Tecniche, filtro corporazione/ramo più training_eligibility server per requisiti e grado.",
+      "combat_offer": "Nessuna offerta autonoma prevista dalla voce passiva.",
+      "protected_preset": "Nessun preset ANBU verificato fra i profili Staff osservati. Si può provare soltanto se un contesto già autorizzato rende disponibile un profilo protetto idoneo.",
+      "staff_minimum": "Verificare prima visibilità/permesso sul profilo protetto con requisiti sopra e assenza della passiva dalle azioni Combat. In un segmento narrativo protetto da un punto con visuale, osservare un labiale o un sigillo lontano. Il PNG di test e il Fato usano solo evidenze visibili. Nessuna opzione di mira o bonus al tiro."
+    },
+    {
+      "id": "36382719-7cc1-43bf-b2e9-6af711e094ad",
+      "name": "Volto vuoto",
+      "req_corp": "anbu",
+      "req_ramo": "infiltrazione",
+      "req_stat": "Mente",
+      "req_stat_value": 15,
+      "req_grade": "Jonin",
+      "uso": "passiva",
+      "active_holdings": 0,
+      "state": "NO_LINKED_RUNTIME_EVIDENCE",
+      "gate_eligibility": "Scheda → Tecniche, filtro corporazione/ramo più training_eligibility server per requisiti e grado.",
+      "combat_offer": "Nessuna offerta autonoma prevista dalla voce passiva.",
+      "protected_preset": "Nessun preset ANBU verificato fra i profili Staff osservati. Si può provare soltanto se un contesto già autorizzato rende disponibile un profilo protetto idoneo.",
+      "staff_minimum": "Verificare prima visibilità/permesso sul profilo protetto con requisiti sopra e assenza della passiva dalle azioni Combat. In un segmento narrativo protetto usare voce, postura e andatura alterate davanti a un PNG. Il Fato deve mantenere i limiti delle conoscenze del PNG, senza rendere impossibile ogni riconoscimento o inventare un effetto a Combat."
+    }
+  ],
+  "anbu_eligibility_binding": [
+    {
+      "nspname": "public",
+      "proname": "training_eligibility",
+      "pin": "fdc29cffebae65a0be398f4641fdca8e",
+      "matches": [
+        "      where x.character_id=c.id and x.technique_id='bc2569b5-eab4-44b4-9843-c199724caff4'::uuid and x.state='attiva')",
+        "  if not t.is_active then reasons := array_append(reasons,'Tecnica non attiva'); end if;",
+        "  if t.req_corp is not null and lower(coalesce(c.corporation,'')) <> lower(t.req_corp) then",
+        "    reasons := array_append(reasons, 'Riservata al Corpo: '||initcap(t.req_corp));",
+        "  if t.req_ramo is not null and lower(coalesce(c.corp_spec,'')) <> lower(t.req_ramo) then",
+        "    reasons := array_append(reasons, 'Riservata al ramo '||t.req_ramo||': fatti assegnare la specializzazione');",
+        "  if t.req_grade is not null and public._grade_rank(c.rank) < public._grade_rank(t.req_grade) then",
+        "    reasons := array_append(reasons, 'Rango minimo: '||t.req_grade);",
+        "  elsif t.req_grade is null and public._grade_rank(coalesce(c.rank,'Deshi')) < 1 then",
+        "  if t.req_stat is not null and t.req_stat_value is not null then",
+        "    if v_stat is null or v_stat < t.req_stat_value then",
+        "      reasons := array_append(reasons, t.req_stat||' minimo: '||t.req_stat_value||' (hai '||coalesce(v_stat,0)||')');"
+      ]
+    }
+  ],
+  "followup_order": [
+    "Controllo del chakra, aderenza al solido se esiste il percorso Staff.",
+    "Tre passive ANBU, prima verificare disponibilità di profili Staff autorizzati. Chunin ANBU per Disciplina, Jonin con ramo per Occhio o Volto."
+  ],
+  "gameplay": 0,
+  "provider_calls": 0,
+  "catalogue_written": false,
+  "database_written": false,
+  "browser_used": false,
+  "git_written": false,
+  "public_opening_by_this_task": false,
+  "sources": [
+    {
+      "path": "management/candidati/COMBAT-COMPOSITE_2026-09-01/candidato/catalogo_completo/NIGHT_CATALOG_STATUS.json",
+      "sha256": "e8992312f09a6794e06e539399d36f9a5ac59af6f04e197fe5374e7c5645c04f"
+    },
+    {
+      "path": "management/candidati/COMBAT-COMPOSITE_2026-09-01/candidato/catalogo_completo/DAY_EXISTING_COVERAGE.json",
+      "sha256": "7b3260e354cc827b25f898629dc24dd59bf28dddc73ea82e3248fd72774905ba"
+    },
+    {
+      "path": "management/candidati/COMBAT-COMPOSITE_2026-09-01/candidato/catalogo_completo/DAY_EXISTING_COVERAGE_2.json",
+      "sha256": "803159fb2bc975f9b4cc40c3fded51f93bb429dfce76490630bb454140861b3b"
+    },
+    {
+      "path": "management/candidati/COMBAT-COMPOSITE_2026-09-01/candidato/catalogo_completo/DAY_EXISTING_COVERAGE_3.json",
+      "sha256": "0135ec08b05d099dadb7268c2c9dfd8dae40b9d8611f6d70a3f531f257a41a68"
+    },
+    {
+      "path": "management/candidati/COMBAT-COMPOSITE_2026-09-01/candidato/catalogo_completo/DAY_EXISTING_COVERAGE_4.json",
+      "sha256": "8c8537eaf3596a1947e98ae7d34abb551b014596649b7499b978a9088c33ed2c"
+    },
+    {
+      "path": "management/candidati/COMBAT-COMPOSITE_2026-09-01/candidato/catalogo_completo/DAY_EXISTING_COVERAGE_5.json",
+      "sha256": "222713404d9c04ea5c2b75d10724f7e0c813c1229c5e938138bec5116dd1c885"
+    },
+    {
+      "path": "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/STAFF_TRANSPORT_RESULT.json",
+      "sha256": "41f311865498c269e11ed4412d42f863ad768fc3785bd391829ad24a2a24346d"
+    },
+    {
+      "path": "management/candidati/CLAN-L1_2026-09-01/runtime/sabaku/candidato/public_release001/LIVE_RESULT.json",
+      "sha256": "362c2abe461b88283cbe1d61f2ed74d45abd6050859f5e02b9346ac35816a5b3"
+    },
+    {
+      "path": "management/candidati/NARRATORE-UNIFICATO_2026-09-02/candidato/multiplication_assault_smoke013/RESULT.json",
+      "sha256": "3ff20acffff532e407ecf5fecc6ac654732be53bd016ccce137c1f11d79dc1fe"
+    },
+    {
+      "path": "sito_live/REGOLE.md",
+      "sha256": "e7f1a366e6abcaa5bc1a22cb0f2f3cec327f7b4f3d14c5a4a89fbfd85347c162"
+    }
+  ]
+}
