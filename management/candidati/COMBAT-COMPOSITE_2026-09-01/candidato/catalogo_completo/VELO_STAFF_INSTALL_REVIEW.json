@@ -1,0 +1,74 @@
+{
+  "schema": "tus/combat-velo-staff-r2-counterreview/1",
+  "reviewed_at": "2026-11-20T11:23:44.246405+00:00",
+  "review_status": "PASS",
+  "severity": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "scope": "Controreview indipendente dei sorgenti esatti Velo R2, dei comparatori E52/Common e della recovery conservativa. Catalogo vivo in sola lettura.",
+  "covered_sources_sha256": {
+    "install": "133fbbfdb2ea44c4fbd996b568729aafb3bf121c46f7e8acd7b080bcfaff9738",
+    "recovery": "b9ec28777534443c1084d8d4351c7f33990e418741c9fa5f82b851b5fa4da975"
+  },
+  "reviewed_manifest_sha256": "b460e458b0f1aa388e955f43d90d66a224cf594f365aafa93b209740edb69995",
+  "prior": {
+    "preliminary_review_sha256": "3e2416d52d07b1410e14c228b55ac3f63fd877512ba25ab2e0c3292592e347a1",
+    "R1_integrated_source_review_sha256": "ea8a9312a68e30edb11ac676a31fbac31732a26c6bf786f8b39bd84add5b2a1b",
+    "R1_install_entry_sha256": "b1e9f482ee4c4f2cd7a92117eebb8e6367ef765458037a0e51781479388bc070",
+    "R1_install_outcome": "REJECTED_ROLLED_BACK/catalogo_eligibility_owning_port_drift"
+  },
+  "findings": [],
+  "prior_findings": [
+    {
+      "id": "VELO-ROSTER-BOUNDARY",
+      "status": "CLOSED_STATIC",
+      "evidence": "I corpi dei controlli di stanza, presenti, coppia esatta e provenienze escluse coincidono con R1 già revisionata."
+    },
+    {
+      "id": "VELO-TERMINATION-BINDING-LOST",
+      "status": "CLOSED_STATIC",
+      "evidence": "Mantenimento dopo verifica del profilo e passaggio al terminale nativo in assenza della stessa associazione. Trigger di revoca, KO e fine scena coincidono con R1 già revisionata."
+    },
+    {
+      "id": "VELO-EXCLUSIVE-SERVER-ROUTING",
+      "status": "CLOSED_STATIC",
+      "evidence": "Comandi ordinario/Master restano protetti tramite il pannello nativo. I quattro corpi di esclusione del solo UUID Velo coincidono con R1 e i due nuovi pin server ne attestano le DDL esatte."
+    },
+    {
+      "id": "VELO-OWNING-PORT-DRIFT",
+      "status": "CLOSED_IN_READONLY_PROJECTION",
+      "evidence": "Due SHA-256 DDL obsoleti sostituiti nei comparatori E52 e Common. Fallback Common verificato per identità dei byte escludendo il nuovo ramo Velo. In E52 tutti gli otto owning port mantengono firme, confronti ed ACL. I due corpi effettivi sono proiettati dalla baseline viva con entrambi i Root R2."
+    }
+  ],
+  "checks": {
+    "source_composition": {
+      "manifest_artifacts_verified": 28,
+      "before_after_matches": 23,
+      "inverse_matches": 23,
+      "r1_ddl_identical": 31,
+      "hyperspecific_ddl_changed": "clan_innata_private.catalogo_eligibility_release_v1()",
+      "baseline_ddl_newly_replaced": "clan_innata_private.eligibility_release_assert()"
+    },
+    "syntax": {
+      "install_sql": 100,
+      "install_function_parser_units": 39,
+      "recovery_sql": 6,
+      "recovery_function_parser_units": 1,
+      "normalization": "Due soli tipi %ROWTYPE sostituiti in memoria con record per il parser standalone. Le firme e i file conservano il tipo originale."
+    },
+    "owning_port": "Otto firme e ACL identici. Varia il solo SHA-256 DDL per combat_v2_actor_ability e combat_v2_character_snapshot, uguale al SHA-256 del CREATE effettivo. Common limita i due pin alla coppia di identità Velo dopo E52. Il ritorno ai rami storici è equivalente byte per byte.",
+    "relations_and_permissions": "Quattro relazioni e dieci funzioni nuove confrontate con AST finale, corpo, owner, search_path, revoche, grant e RLS forzata. Dopo il replace del delta statistiche conta il corpo definitivo. Restano la policy Staff nativa e la protezione delle risorse reali di R1.",
+    "full_seals": "Rieseguite ambedue le query complete in PostgreSQL READ ONLY. E52 e Common veri con proiezioni ACTIVE e INERT identiche a tutti i campi osservati dal compositore. 380 byte di margine sul vincolo Root. Le 10 funzioni e 4 relazioni ancora assenti sono modellate dai sorgenti e vengono attestate realmente dalla transazione di installazione.",
+    "recovery": "Stesso set di 23 pin post-install, predisposta solo dalla Root attiva esatta, in quiescenza e a zero stati Velo attivi. Chiude il gate Velo e cambia Root mediante CAS, preserva registri/comandi, filtri, schede, gate estranei, qualifiche e contenuti Missioni. Invoca realmente E52 e Common nella transazione, mentre le 23 DDL inverse sono soltanto il riferimento verificato."
+  },
+  "installation_executed": false,
+  "recovery_executed": false,
+  "staff_playtest": "NOT_RUN",
+  "provider_calls": 0,
+  "live_evidence_sha256": "4a8f1b7adf1ad7b15eb0955582094c17ec2547b10a79513c7af57e18b51a9239",
+  "ref": "VELO_STAFF_R2_INSTALL_REVIEW",
+  "mode": "install",
+  "covered_source_sha256": "133fbbfdb2ea44c4fbd996b568729aafb3bf121c46f7e8acd7b080bcfaff9738"
+}
