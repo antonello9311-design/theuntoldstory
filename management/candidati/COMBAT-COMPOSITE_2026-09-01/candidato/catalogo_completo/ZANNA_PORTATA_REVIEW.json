@@ -1,0 +1,115 @@
+{
+  "schema_version": "catalogo-zanna-portata-independent-review/1",
+  "state": "PASS_INDEPENDENT_SOURCE_REVIEW",
+  "reviewer": "QA-DAY-EXISTING-COVERAGE",
+  "scope": "Un solo campo descrittivo della Zanna Perforante",
+  "technique_id": "b076a976-c75b-4b5a-8813-b0e8e2c3af03",
+  "counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "findings": [],
+  "artifact_hashes": {
+    "ZANNA_PORTATA_MANIFEST.json": "7f79e0d652571666d1583756e065cc688291dad382727e218352d3a9e4a8c7ea",
+    "ZANNA_PORTATA_SOURCE.sql": "fd9b1cca17264472f77d43821ff7c67ccb4963f08a39d41aed10b6139db08a95",
+    "ZANNA_PORTATA_RECOVERY.sql": "f35b1c807e097f657a705756f9dc48735a2d5742fbfd158ae3540041d4ed83d8",
+    "ZANNA_PORTATA_REVIEW_INPUT.md": "6563499f577263cde655395910db7a6ae1c77811f6811b34593ece2afec70dfe"
+  },
+  "checks": [
+    {
+      "id": "Q1",
+      "state": "PASS",
+      "result": "La SELECT del reviewer in READ ONLY ricostruisce la proiezione da una sola riga attiva. Il diff completo cambia solo portata, l’inversa ricostruisce l’impronta viva. Nessun trigger applicativo abilitato e nessuna regola di riscrittura."
+    },
+    {
+      "id": "Q2",
+      "state": "PASS",
+      "result": "Dopo il commento, la recovery è l’inversa testuale esatta del source a valori e impronte scambiati. I due script sono composti da BEGIN, DO e COMMIT. Il parser PL/pgSQL accetta i due corpi. La transazione blocca e verifica la sola riga UUID, aggiorna solo portata e annulla in caso di variazioni estranee."
+    },
+    {
+      "id": "Q3",
+      "state": "PASS",
+      "result": "Il regolamento §6.3.2 e zanna_contact_valid confermano il contatto finale. Il motore ordinario usa melee_eligible. Master valida la posizione finale o l’endpoint della capacità di movimento, con il limite nativo di 2 metri. Il testo distingue il tratto di avvicinamento dal requisito finale. La gittata legacy corta resta presente, numericamente 10 metri, e mantiene il valore precedente della proiezione Test Room."
+    },
+    {
+      "id": "Q4",
+      "state": "PASS",
+      "result": "Admin pubblicato distingue portata descrittiva e gittata meccanica. 26 caratteri ASCII rientrano in maxlength 30. Scheda e Clan pubblicati mostrano entrambi i campi e trattano portata come testo. La proiezione tecnica legacy può continuare a mostrare corta. L’UUID è fuori dall’elenco chiuso del consumer narrativo di portata."
+    }
+  ],
+  "observation": {
+    "observed_at": "2026-11-20 08:56:00.555327+00",
+    "before_sha256": "a637815c68abe10648b9d6d0b076ae0c4523ff02141bbf83eb3fc1f5bb675c60",
+    "projected_sha256": "158c6a3051c267eeb123dfc537560c5b1ae34962e4d556b7d55ef7b5ce6b6e90",
+    "inverse_sha256": "a637815c68abe10648b9d6d0b076ae0c4523ff02141bbf83eb3fc1f5bb675c60",
+    "changes": [
+      "portata"
+    ],
+    "before_portata": "Corto",
+    "after_portata": "Contatto (carica separata)",
+    "after_len": 26,
+    "gittata": "corta",
+    "enabled_user_triggers": 0,
+    "policies": 4,
+    "portata_checks": null,
+    "db_max_len": null,
+    "root_sha256": "4987b6ec7f9de174a3e9e785e15cba1cf7d1238b9814ce2db2b38aea6634768a"
+  },
+  "projection": {
+    "legacy_room_range_before": "corta",
+    "legacy_room_range_after": "corta",
+    "legacy_short_m": 10,
+    "legacy_contact_m": 2,
+    "rewrite_rules": 0,
+    "narrative_readers": [
+      {
+        "signature": "combat_consumer_private.narrative_catalog_fields_v1(uuid,jsonb)",
+        "closed_list": true,
+        "reads_portata": true,
+        "mentions_zanna": false
+      },
+      {
+        "signature": "combat_consumer_private.narrative_tech_sources_v1(uuid)",
+        "closed_list": true,
+        "reads_portata": false,
+        "mentions_zanna": false
+      }
+    ]
+  },
+  "published_references": {
+    "admin": {
+      "blob_git": "7db0c168e9132722f018c9177805842f9512ad41",
+      "portata_line": 1543,
+      "gittata_line": 1544,
+      "portata_maxlength": 30
+    },
+    "scheda": {
+      "blob_git": "1b5c38cdf3555e5e19825a09c86b97f5622bdb08",
+      "portata_line": 1766,
+      "gittata_line": 1767
+    },
+    "clan": {
+      "blob_git": "4b49860abcc20de1659f05324cc7d114530e5893",
+      "portata_line": 396,
+      "gittata_line": 397
+    },
+    "rules": {
+      "blob_git": "3e2ec2f7a52d2a89cb1154aaffa17052b261c6da",
+      "zanna_line": 678
+    }
+  },
+  "separate_editorial_observations": {
+    "requirements_label_kg": 40,
+    "structured_kg": 30,
+    "rules_kg": 30,
+    "catalogue_damage_base": 20,
+    "native_frozen_damage_base": 10,
+    "scope": "Rilievi esclusi dalla modifica della portata"
+  },
+  "database_mutation": "NOT_RUN",
+  "browser": "NOT_RUN",
+  "gameplay": "NOT_RUN",
+  "public_opening": "NOT_RUN",
+  "provider_calls": 0
+}

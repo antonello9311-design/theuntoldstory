@@ -1,3 +1,11 @@
+20/11/2026 · COMBAT-CATALOGO-DAY-H1H2-R2-ROSTER-IAB-20261120 · Pannello e PNG NinjaBook offerti, conferma negata prima di aprire Combat, scena chiusa · parziale.
+20/11/2026 · COMBAT-CATALOGO-DAY-H1H2-R2-INSTALL-20261120 · Ripristino controlli manifest, migrazione 20261120085624 e Root 8e6c57cb · riservato alla Staff.
+20/11/2026 · COMBAT-CATALOGO-DAY-ZANNA-PORTATA-20261120 · Contatto finale distinto dalla carica, sola portata descrittiva, migrazione 20261120090114 · dato verificato.
+20/11/2026 · COMBAT-CATALOGO-DAY-3-PORTATE-20261120 · Tre portate e testo Scudo allineati, migrazione 20261120085205 · metadati verificati.
+20/11/2026 · COMBAT-CATALOGO-DAY-H1H2-R1-INSTALL-20261120 · Controllo manifest respinge Entry, Root 4987, gate e cinque impronte intatti · rollback confermato.
+20/11/2026 · COMBAT-CATALOGO-DAY-NARA-H4-MASTER-20261120 · Entrambi i PG in roster, avvio rifiutato per posizione di 2 m; scena annullata e profilo ripristinato · parziale.
+20/11/2026 · COMBAT-CATALOGO-DAY-H1H2-R1-CLIENT-20261120 · Nodo Staff/Esame corretto nel pannello NinjaBook, verifica dominio commit 6e5f283f · client pubblicato.
+20/11/2026 · COMBAT-CATALOGO-DAY-NARA-QA-R1-20261120 · Profilo simulato Nara L1 acquisito, preset avanzato pre-dichiarazione non esercitato, prova chiusa e profilo ripristinato · parziale.
 20/11/2026 · COMBAT-CATALOGO-DAY-VELO-METADATA-R1-20261120 · Solo tipo di azione Velo allineato a rapida dopo correzione 42702, migrazione 20261120082431 · dato verificato.
 20/11/2026 · COMBAT-CATALOGO-DAY-INTEGRATOR-20261120 · Client e migrazione Staff verificati, Super e Parziale riusciti, blocchi NinjaBook e Cellulare isolati e scene chiuse · parziale.
 20/11/2026 · COMBAT-NIGHT-CATALOG-STATUS-20261120-0523 · Copertura371UUID con classificazioni/evidencepin aggiornata,VermeHumanPASSscoped eSourcefixe767distinti;118SourceOPEN/90dati,nessunanuovaqualifica · CONSEGNA_DOCUMENTALE_PARZIALE.
