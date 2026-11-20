@@ -7,6 +7,7 @@
 <meta name="tus-staff-meal-receipt-build" content="staff-meal-receipt-20261113-1" />
 <meta name="tus-innata-presence-build" content="innata-presence-20261103-1" />
 <meta name="tus-staff-master-start-build" content="staff-master-start-1" />
+<meta name="tus-staff-ninjabook-preparation-build" content="staff-ninjabook-preparation-20261120-1" />
 <meta name="tus-fili-ocular-build" content="fili-ocular-1" />
 <meta name="tus-fili-passive-staff-build" content="fili-passive-staff-master-2" />
 <meta name="tus-innata-staff-profile-build" content="innata-all-clan-20261104-1" />
@@ -7069,16 +7070,47 @@ window.TUSOrdinary={attachOrdinaryLand};
       function commonPanelRoom(){return !!(cur&&cur.id==='0b85f354-9cdb-47e1-baf9-3d266bb7e06b'&&cur.is_test);}
       function commonCombatRoom(){return commonPanelRoom()||!!(cur&&!cur.is_exam_room&&!cur.is_test);}
       function commonMasterPrincipal(){return !ordinarySigningOut&&loggedIn&&ordinaryAuthId===myId&&myId?myId:null;}
-      var commonArenaAttestation=null,commonMasterReadGeneration=0;
+      var commonArenaAttestation=null,commonMasterReadGeneration=0,commonMasterPreparationRequest=null;
       function commonMasterScope(){return JSON.stringify([commonMasterPrincipal(),myCharId||null,cur&&cur.id,MV2&&MV2.authEpoch||0]);}
+      // Sola presentazione: offerta e roster NinjaBook restano autorizzati dal server.
+      function commonMasterPreparationKey(d){
+        var m=d&&d.master;
+        if(!commonPanelRoom()||cur.is_exam_room||!iAmStaff||!commonMasterPrincipal()||!m||
+          d.viewer?.is_master!==true||m.location_id!==cur.id||m.tipo!=='duello'||m.stato!=='preparazione'||
+          m.mission_id!==null||m.suspended_at!==null||d.encounter!==null||d.round!==null||
+          !Array.isArray(d.actors)||d.actors.length!==0||!Number.isSafeInteger(m.control_version)||m.control_version<1)return null;
+        return JSON.stringify([commonMasterScope(),m.id,m.control_version,UI_POSTREVIEW_STAFF_EPOCH]);
+      }
+      function commonMasterPreparationSelected(d){var key=commonMasterPreparationKey(d);return key!==null&&key===commonMasterPreparationRequest;}
+      function commonMasterPreparationPanel(d,e){
+        var c=e?.context,v=e?.viewer;
+        return commonMasterPreparationSelected(d)&&e?.schema_version==='combat-panel/1'&&e.status==='ready'&&
+          c?.activity_kind==='master_v2'&&c.activity_id===d.master.id&&c.location_id===cur.id&&c.phase==='setup'&&
+          c.round_id===null&&c.round_no===null&&c.policy_id==='staff_test_no_persistent_resources_v1'&&c.simulated===true&&
+          v?.is_master===true&&v.can_command===true&&v.command_actor_id===null&&
+          Array.isArray(v.controlled_actors)&&v.controlled_actors.length===0&&Array.isArray(e.actors)&&e.actors.length===0;
+      }
+      function commonMasterPreparationAccepted(){
+        if(!commonMasterPreparationSelected(MV2.data))return;
+        var scope=commonMasterScope(),mid=MV2.data.master.id,visible=document.getElementById('mv2ov')?.hidden===false;
+        var priorRead=MV2.staffLoading?.promise;
+        commonMasterPreparationRequest=null;
+        ORDINARY?.invalidate();
+        Promise.resolve(priorRead).catch(function(){}).then(function(){
+          if(commonMasterScope()===scope)return loadMasterV2(true);
+        }).then(function(){
+          if(commonMasterScope()===scope&&MV2.data?.master?.id===mid&&visible)mv2OvApri();
+        }).catch(function(){toast('Scelta acquisita. Premi Aggiorna per rileggere la scena.');});
+      }
       function commonMasterKey(d){return JSON.stringify([commonMasterScope(),d&&d.master&&d.master.id,d&&d.encounter&&d.encounter.id]);}
       function commonMasterRouteState(){
-        if(!commonCombatRoom()||!commonMasterPrincipal()||!MV2||MV2.locationId!==cur.id||MV2.principalId!==commonMasterPrincipal()||!MV2.data||!MV2.data.encounter)return 'not_combat';
+        if(!commonCombatRoom()||!commonMasterPrincipal()||!MV2||MV2.locationId!==cur.id||MV2.principalId!==commonMasterPrincipal()||!MV2.data)return 'not_combat';
+        if(!MV2.data.encounter)return commonMasterPreparationSelected(MV2.data)?'preparing':'not_combat';
         return commonArenaAttestation&&commonArenaAttestation.key===commonMasterKey(MV2.data)?commonArenaAttestation.state:'unknown';
       }
       // Reserve this route during initial uncertainty: do not activate legacy commands.
-      function commonMasterCombat(){var state=commonMasterRouteState();return state==='managed'||state==='unknown';}
-      function commonMasterReady(){return commonMasterRouteState()==='managed';}
+      function commonMasterCombat(){var state=commonMasterRouteState();return state==='managed'||state==='unknown'||state==='preparing';}
+      function commonMasterReady(){var state=commonMasterRouteState();return state==='managed'||state==='preparing';}
       async function commonMasterAuthorize(d){
         var scope=commonMasterScope(),mid=d&&d.master&&d.master.id,sid=d&&d.encounter&&d.encounter.id,location=cur&&cur.id;
         if(!commonMasterPrincipal()||!mid||!sid||!commonCombatRoom())return 'unknown';
@@ -7108,7 +7140,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           if(commonMasterScope()!==scope||r&&r.error)return 'unknown';
           var d=mv2Data(r)||{};
           if(!d.master)return 'unknown';
-          if(!d.encounter)return e.context.activity_id===d.master.id?'native':'unknown';
+          if(!d.encounter)return commonMasterPreparationPanel(d,e)?'managed':e.context.activity_id===d.master.id?'native':'unknown';
           if(e.context.activity_id!==d.encounter.id)return 'unknown';
           var allowed=await commonMasterAuthorize(d);
           return commonMasterScope()===scope?allowed:'unknown';
@@ -7183,7 +7215,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           showMaster:function(){var ov=document.getElementById('mv2ov'),bk=document.getElementById('mv2ov-backdrop');if(ov)ov.hidden=false;if(bk)bk.hidden=false;},
           closeMaster:mv2OvChiudi,
           allowCommonMaster:commonMasterRoute,
-          isCommonMaster:function(e){return commonMasterReady()&&e&&e.context&&e.context.activity_id===MV2.data.encounter.id;},
+          isCommonMaster:function(e){return commonMasterPreparationPanel(MV2.data,e)||commonMasterReady()&&e&&e.context&&e.context.activity_id===MV2.data?.encounter?.id;},
           masterRouteReserved:commonMasterCombat,
           regiaSession:function(e){return e?.context?.activity_kind==='master_v2'&&MV2?.data?.encounter?.id===e.context.activity_id?MV2.data.master?.id:null;},
           regiaPublished:function(){loadMsgs();loadMasterV2(true);},
@@ -7207,7 +7239,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           readChat:function(){return input.value||'';},
           readCompanion:function(){var pi=document.getElementById('png-input');return pi?pi.value.trim():'';},
           clearChat:function(companionExpected){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';clearPngDraft(companionExpected);if(combatRecoveryEnabled()&&combatComposerBinding)try{sessionStorage.removeItem(combatComposerBinding);}catch(_e){}updCount();},
-          notice:toast,syncSendGate:syncSendBtn,accepted:function(){syncSendBtn();loadMsgs();loadWho();loadRoleState();loadTrainingState();}
+          notice:toast,syncSendGate:syncSendBtn,accepted:function(){syncSendBtn();loadMsgs();loadWho();loadRoleState();loadTrainingState();commonMasterPreparationAccepted();}
         });
         Promise.resolve(ORDINARY.refresh()).then(combatRestoreView);
       }
@@ -7815,7 +7847,7 @@ window.TUSOrdinary={attachOrdinaryLand};
             }
             if(MISSION_CREATION_HUMAN_SESSION===m.id&&MISSION_CREATION_HUMAN_STATUS!=='unconfigured'){
               h+='<p class="mv2-note">'+(MISSION_CREATION_HUMAN_STATUS==='ready'?'La missione segue le fasi configurate. Apri «Fasi e note della missione» per leggere il contesto e usare i comandi disponibili.':MISSION_CREATION_HUMAN_STATUS==='error'?'Lettura delle fasi non disponibile. Usa Aggiorna per riprovare.':'Caricamento delle fasi della missione…')+'</p>'+mv2SceneCloseBlock(m);
-            }else{if(!MV2.setup)mv2SetupLoad();h+=mv2EncounterForm()+mv2SceneCloseBlock(m);}
+            }else{if(!MV2.setup)mv2SetupLoad();h+=mv2EncounterForm()+(commonMasterPreparationKey(d)?'<div class="mv2-actions"><button class="mv2-btn ghost" type="button" data-mv2="scene-operations">Operazioni della scena</button></div>':'')+mv2SceneCloseBlock(m);}
           }
           else h+='<p class="mv2-wait">Il Master sta preparando lo scontro.</p>';
           mv2SetBody(body,h); return;
@@ -7925,7 +7957,12 @@ window.TUSOrdinary={attachOrdinaryLand};
         var body=document.getElementById('mv2-body'); if(!body)return;
         var _sl=document.getElementById('mv2-slim'); if(_sl) _sl.addEventListener('click',function(e){ if(!e.target.closest('[data-mv2-ov]'))return;var mission=!!_sl.closest('#mission-board-master');if(mission)closeMiss();mv2OvApri(mission); });
         var _ob=document.getElementById('mv2-open-btn'); if(_ob) _ob.addEventListener('click',mv2OvApri);
-        function userCloseMaster(){combatRememberView(null);ORDINARY?.closeMasterSurface?.();mv2OvChiudi();}
+        function userCloseMaster(){
+          var preparing=commonMasterPreparationSelected(MV2.data),state=ORDINARY?.snapshot();
+          combatRememberView(null);ORDINARY?.closeMasterSurface?.();mv2OvChiudi();
+          // Un invio incerto conserva controller e identica richiesta.
+          if(preparing&&!state?.pending&&!state?.busy){commonMasterPreparationRequest=null;ORDINARY?.invalidate();renderMasterV2();}
+        }
         var _ox=document.getElementById('mv2ov-x'); if(_ox) _ox.addEventListener('click',userCloseMaster);
         var _obk=document.getElementById('mv2ov-backdrop'); if(_obk) _obk.addEventListener('click',userCloseMaster);
         var _orf=document.getElementById('mv2-refresh'); if(_orf) _orf.addEventListener('click',function(){
@@ -7954,6 +7991,15 @@ window.TUSOrdinary={attachOrdinaryLand};
         body.addEventListener('click',function(ev){
           var t=ev.target.closest('button'); if(!t||MV2.busy||!sb||!cur||commonMasterCombat())return;
           var a=t.getAttribute('data-mv2');
+          if(a==='scene-operations'){
+            var preparation=commonMasterPreparationKey(MV2.data),mid=MV2.data?.master?.id;
+            if(!preparation||MV2.locationId!==cur.id||MV2.principalId!==commonMasterPrincipal())return;
+            mv2CapturePrepInputs(body);commonMasterPreparationRequest=preparation;ordinaryRefresh(true);
+            if(ORDINARY&&ordinaryPanelMode==='common')Promise.resolve(ORDINARY.open('master',{expectedActivity:mid})).then(function(ok){
+              if(!ok&&commonMasterPreparationRequest===preparation)toast('Operazioni non disponibili. Premi Aggiorna o chiudi per tornare alla preparazione.');
+            }).catch(function(){if(commonMasterPreparationRequest===preparation)toast('Lettura delle operazioni non riuscita. Premi Aggiorna.');});
+            return;
+          }
           if(a==='kind-quest'||a==='kind-missione'||a==='kind-duello'){MV2.setupKind=a.slice(5);renderMasterV2();return;}
           if(a==='setup-cancel'){MV2.setupKind=null;renderMasterV2();return;}
           if(a==='session-open'){
