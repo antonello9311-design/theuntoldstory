@@ -1,3 +1,4 @@
+20/11/2026 · COMBAT-CATALOGO-JOINT-FIX-INDEPENDENT-REVIEW-20261120 · CandidataH1/H2SourceBe7673/3body+UI6583 recensita0/0/0; PclientGit/domain edEntry mancanti, browserTransportclosed; nessunapply/runtime · SOURCE_QUALIFIED_NOT_INSTALLED.
 20/11/2026 · COMBAT-CATALOGO-JOINT-STAFF-QA-20261120 · VermeHuman iniezione+2tick/4FatiPASS; H1UI/H2neutral bloccati,H4/O1NOT_RUN;5digestPGidentici/0residui/0provider · PARZIALE_PUBLIC_OFF.
 20/11/2026 · COMBAT-CATALOGO-JOINT-STAFF-INSTALL-20261120 · Entryrecensita applicata20261120041216,Root3b20/Edge46 coerenti,131metadataesatti/4StaffONpublicOFF/5PGdigestimmutati/0scene · INSTALLED_STAFF_QA_PENDING.
 20/11/2026 · COMBAT-CATALOGO-JOINT-EDGE-DEPLOY-R2-20261120 · SourceAGG3/R2 epreflightcanonico positivi; Edge46ufficiale18byte-esatti, Rootdf85e5digestPGimmutati; Entryfinalizzata perreview · EDGE_INSTALLED_DB_PENDING_NO_GAMEPLAY.
