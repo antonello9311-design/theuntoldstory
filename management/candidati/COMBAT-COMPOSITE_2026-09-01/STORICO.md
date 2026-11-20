@@ -1,3 +1,5 @@
+20/11/2026 · COMBAT-CATALOGO-DAY-H1H4-STAFF-APPLY-20261120 · Correzioni NinjaBook e Nara installate in Staff con 2 ammissioni e gate preservati, migrazione 20261120094116 · da collaudare.
+20/11/2026 · COMBAT-CATALOGO-DAY-H2-CELLULARE-20261120 · Profilo simulato base esclude il preset avanzato, difesa non dichiarata, scena chiusa e profilo ripristinato · parziale.
 20/11/2026 · COMBAT-CATALOGO-DAY-H1-PAIR-20261120 · Conferma Iori rifiutata con le due presenze fresche, scena chiusa e risorse protette verificate · rosso.
 20/11/2026 · COMBAT-CATALOGO-DAY-ZANNA-REQUIREMENTS-20261120 · Requisito descrittivo allineato a KG 30, migrazione 20261120091440 · dato verificato.
 20/11/2026 · COMBAT-CATALOGO-DAY-H1H2-R2-ROSTER-IAB-20261120 · Pannello e PNG NinjaBook offerti, conferma negata prima di aprire Combat, scena chiusa · parziale.
