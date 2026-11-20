@@ -1,0 +1,2586 @@
+{
+  "schema_version": "joint-catalog-independent-review/1",
+  "task_id": "COMBAT-CATALOGO-JOINT-INDEPENDENT-REVIEW-20261120",
+  "owner": "DB-CORE-JOINT-INDEPENDENT-REVIEW",
+  "revision": "R0",
+  "state": "RED_SOURCE_COMPOSITION_INSTALL_BLOCKED",
+  "started_at": "2026-11-20T03:30:19+00:00",
+  "completed_at": "2026-11-20T03:39:55.367694+00:00",
+  "budget": {
+    "minutes": 35,
+    "absolute_deadline": "2026-11-20T04:05:19+00:00",
+    "cases": 3,
+    "checks_actual": 137,
+    "provider_calls": 0,
+    "runtime": 0
+  },
+  "SourceB": "d877b5022708f433087c49f121776d8b552fd05166cfbb5b8091edabedef4fc1",
+  "counts": {
+    "P0": 0,
+    "P1": 1,
+    "P2": 0
+  },
+  "findings": [
+    {
+      "id": "JOINT-R0-01",
+      "priority": "P1",
+      "title": "Il nuovo sigillo E52 richiede SECURITY DEFINER anche ai due helper Aki legittimamente INVOKER",
+      "consumer": "clan_innata_private.catalogo_eligibility_release_v1()",
+      "source_location": "JOINT_CATALOG_SOURCE.sql:8043",
+      "cause": "La guardia collettiva $joint_expected$ contiene tutte75 nuove funzioni con sole signature/source_md5 e rifiuta qualsiasi p.prosecdef=false tramite OR NOT p.prosecdef. Il medesimo installer crea common_modifiers_v1 e common_result_label_v1 senza SECURITY DEFINER, dunque INVOKER per definizione. Questi attributi sono quelli approvati nel componente Aki AGG1/R1 e sono conservati correttamente nei DDL; la nuova guardia globale li contraddice.",
+      "functions": [
+        {
+          "signature": "clan_akimichi_private.common_modifiers_v1(text,integer,integer,integer)",
+          "source_md5": "5bb71bbae1cc67857e73daa0d790a6cd",
+          "security_definer": false
+        },
+        {
+          "signature": "clan_akimichi_private.common_result_label_v1(jsonb)",
+          "source_md5": "49598647a5f77b06747d266e8ae57f28",
+          "security_definer": false
+        }
+      ],
+      "deterministic_effect": "Quando il footer Source ha sigillato la nuova Root e abilitato le famiglie nella stessa transazione, richiama E52; la guardia genera JOINT_CATALOG_PRIVATE_BODY_OR_ACL_DRIFT e annulla la migrazione. La medesima contraddizione blocca il consumer runtime e la recovery che lo richiama, se questa versione fosse presente. Nessuna esecuzione in DB è stata tentata.",
+      "required_fix": "Vincolare il booleano SECURITY DEFINER atteso per ciascuna delle75 definizioni, rispettando73SD/2INVOKER, e confrontarlo con il valore esatto invece di imporre SD globalmente. Preservare owner/ACL/config/prosrc e tutti gli altri sigilli; non rendere SD i due helper per forzare il verde. Rigenerare realmente helper/peer/compat/alias/identità/B e artefatti coerenti, congelare unica aggregata per controreview.",
+      "history_relation": "Il precedente AKI-I-R0-01 è chiuso nel componente Aki AGG1. Qui i DDL sono corretti: il difetto è reintrodotto nel nuovo consumer comune. Counters e precedenti non azzerati.",
+      "evidence": "P1_PRIVATE_AUTHORITY_PROOF.json; due DDL esatti, elenco75 e ramoSQL completi;137 check indipendenti, nessuna fixture/gameplay",
+      "state": "OPEN_BLOCKS_SOURCE_EDGE_INSTALL"
+    }
+  ],
+  "frozen_inputs": [
+    {
+      "file": "JOINT_CATALOG_SOURCE.sql",
+      "sha256": "e71a885d9af165d6144fea3dbf319122f79fc7fea4ac235bda0cd25b5a8842df",
+      "bytes": 848452
+    },
+    {
+      "file": "JOINT_CATALOG_RECOVERY.sql",
+      "sha256": "e3b11038d72241980fbe7265426819e90e06abfdba3b74cbb41924754d57b1e4",
+      "bytes": 77587
+    },
+    {
+      "file": "JOINT_CATALOG_CONTRATTO.md",
+      "sha256": "27556fdc85f4dafd3d77c99daa292c41e7a7d196552eeaa6b5d96a78e7382aab",
+      "bytes": 10557
+    },
+    {
+      "file": "JOINT_CATALOG_MANIFEST.json",
+      "sha256": "5800bc2c8f15808cd64dd1cefa9f3f54e39bebe3cb6d8bf8b39252266edf99fd",
+      "bytes": 6225
+    },
+    {
+      "file": "JOINT_CATALOG_AUDIT.json",
+      "sha256": "cb88260f26d1366e34c7fe3bbdb68360db53b9bc1b9c84ae90121c318f248764",
+      "bytes": 30626432
+    }
+  ],
+  "cases": [
+    {
+      "id": "S1",
+      "scope": "Frozen5/B/N/custody32+scripts6/beforeafter56/ABI/75private/schema295/18tables9trigger/wholegrammar",
+      "state": "PASS_STATIC_NOT_RUNTIME"
+    },
+    {
+      "id": "S2",
+      "scope": "Native path composition/PG2 bytepreserved/PNG frozen ack/NaraVerme terminal/Aki sharedcosts/ordinary typed4+3/StaffAI/public boundaries",
+      "state": "PASS_STATIC_NOT_RUNTIME",
+      "risk": "Actual Staff cases pending; no new PASS from code review"
+    },
+    {
+      "id": "S3",
+      "scope": "E52/actorAbility/incoming/metadata manifest/peer6/compat2/7aliases/Rootcap/Edge actualP/recovery/admissions",
+      "state": "FAIL_STATIC_P1_JOINT_R0_01"
+    }
+  ],
+  "checks": [
+    {
+      "case": "S1",
+      "check": "frozen_SOURCE.sql",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "file": "JOINT_CATALOG_SOURCE.sql",
+        "sha256": "e71a885d9af165d6144fea3dbf319122f79fc7fea4ac235bda0cd25b5a8842df",
+        "bytes": 848452
+      }
+    },
+    {
+      "case": "S1",
+      "check": "frozen_RECOVERY.sql",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "file": "JOINT_CATALOG_RECOVERY.sql",
+        "sha256": "e3b11038d72241980fbe7265426819e90e06abfdba3b74cbb41924754d57b1e4",
+        "bytes": 77587
+      }
+    },
+    {
+      "case": "S1",
+      "check": "frozen_CONTRATTO.md",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "file": "JOINT_CATALOG_CONTRATTO.md",
+        "sha256": "27556fdc85f4dafd3d77c99daa292c41e7a7d196552eeaa6b5d96a78e7382aab",
+        "bytes": 10557
+      }
+    },
+    {
+      "case": "S1",
+      "check": "frozen_AUDIT.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "file": "JOINT_CATALOG_AUDIT.json",
+        "sha256": "cb88260f26d1366e34c7fe3bbdb68360db53b9bc1b9c84ae90121c318f248764",
+        "bytes": 30626432
+      }
+    },
+    {
+      "case": "S1",
+      "check": "SourceB_exact_sortedcompact_identity",
+      "state": "PASS_STATIC",
+      "evidence": "d877b5022708f433087c49f121776d8b552fd05166cfbb5b8091edabedef4fc1"
+    },
+    {
+      "case": "S1",
+      "check": "exact_templates_in_identity",
+      "state": "PASS_STATIC",
+      "evidence": "Both exact full UTF8 templates; future P/receipt not part of SourceB"
+    },
+    {
+      "case": "S1",
+      "check": "N_compatibility_precise_hash",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "N_PG_sha256": "b025b5bfcc8a23f4c1ba9cb810fafb18ece73573d93274cf256fd47c99eae1b0",
+        "compatibility_PG_sha256": "9d5879736d8a1e6187c74acdcf28fe786bb454579ef41ae7d1aaaef87b883550"
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_NB_INTEGRATED_SOURCE.sql",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "a4bc987ca2fa89f957b5de8ff133d25afc855f8bfbcb17a97dc08cdb0dc5723f",
+        "bytes": 248236
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_NB_INTEGRATED_RECOVERY.sql",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "6b675bc439d1be5fea2dbea1ed0b960e3fbcd3bbf3305be32e188113003e64e0",
+        "bytes": 43844
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_NB_INTEGRATED_CONTRATTO.md",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "6e6499ba40b2d54db9acd11b017c6af1cda6995418913c0a3238123cd3af6d03",
+        "bytes": 6324
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_NB_INTEGRATED_AUDIT.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "ee56d2290c1c3254595db6cd5332110bce9df10e452a372090fd8a933072a1ab",
+        "bytes": 2641364
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_NB_INTEGRATED_MANIFEST.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "fa9aaacef9a274ee453b5ebeed6d80af6d98696aeec52ecae5e07c8492963b93",
+        "bytes": 3020
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_NB_INTEGRATED_REVIEW.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "6297122d498fed07cf7374e061e76eaf38b5b8129eccd7a6e9a34bc80975b253",
+        "bytes": 51222
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_NB_INTEGRATED_REVIEW.md",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "23f67196508abd4db6c51b28aae3973118ccc9260dce22e676da7702afaf42a4",
+        "bytes": 2384
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_ABURAME_INTEGRATED_SOURCE.sql",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "c000f59b416c745baac9e3d97d1b80beb7037863e7da46ea4f670fa88ff91a54",
+        "bytes": 381743
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_ABURAME_INTEGRATED_RECOVERY.sql",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "7381a73df6ffe03e68ec8cf8e945dc9c86e90bdc415404565b8bc7177b1d4c77",
+        "bytes": 49223
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_ABURAME_INTEGRATED_CONTRATTO.md",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "22e280833fa234b195d5e2af47dae09497ba87cd2df3744e8b5f9e0f7f278c74",
+        "bytes": 5907
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_ABURAME_INTEGRATED_AUDIT.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "27179bbac6d783f10328e71b25b9e9f913d3aa724b6b1402cbb5a30be709c8bd",
+        "bytes": 5618579
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_ABURAME_INTEGRATED_MANIFEST.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "e79181a24d68f816aa238304e90f8e28f6750e67a55974ebf87bb2175e4287bc",
+        "bytes": 3138
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_ABURAME_INTEGRATED_REVIEW.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "18bc68d9d53ae57c8be592a6549d1dc04d39c43a3149d29aa48661df9b5c5d9a",
+        "bytes": 405306
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_ABURAME_INTEGRATED_REVIEW.md",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "4cbcacb05ce11ee72905c291f3bc88954b7d2cd36f4a43751c4b2ba9618b19c8",
+        "bytes": 3430
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_AKIMICHI_INTEGRATED_SOURCE.sql",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "b9d99809fc7a07cfbe1c143d1395eac6f08bfbd20d184e73731020e7c90ddcd5",
+        "bytes": 441180
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_AKIMICHI_INTEGRATED_RECOVERY.sql",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "f638c58e1f66cb707e65e1a3a6d2ccdc68f0c440108a839675a62c96f401f6fd",
+        "bytes": 60926
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_AKIMICHI_INTEGRATED_CONTRATTO.md",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "6ef4241dcea1f7e826bcb1d29470c2a10be54298468f21f66267b3cb14afbf11",
+        "bytes": 9176
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_AKIMICHI_INTEGRATED_AUDIT.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "8c14e517885368d13b6edf60e6c45860ddc3e55686849474acc1a3be4d4d8989",
+        "bytes": 7069500
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_AKIMICHI_INTEGRATED_MANIFEST.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "444f5fd005ebaae911d17446ee20108801981cca958274617105688055ff6b90",
+        "bytes": 3167
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_AKIMICHI_INTEGRATED_REVIEW.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "f5f26c1a9f1ec554bea4ea2399146adde8fbea0ff04db4001ae1fa1ad057169c",
+        "bytes": 402657
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_AKIMICHI_INTEGRATED_REVIEW.md",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "5c50fa0f9839760cf0c4e3d8965a11f79f996d372b50797fc32733051ffd6aff",
+        "bytes": 2108
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_NARA_ADV_SOURCE.sql",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "031e11002739a297ff95711d458cd2794cb5239cf40c28e98d2211c9d7407b59",
+        "bytes": 244542
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_NARA_ADV_RECOVERY.sql",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "94dcff51840f77fb223a70de3f6f28fedab3ce2da526054959a44d71adb850c6",
+        "bytes": 474
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_NARA_ADV_CONTRATTO.md",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "ed328ce71c27d048b41c9ef35033af00b0320ebc5c168e8b87e1d2b78febdb82",
+        "bytes": 8981
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_NARA_ADV_AUDIT.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "43a57fbf11caf923c677c6ea9a4e7eb86da3cc23a11d0663c536f96ee3a52ff7",
+        "bytes": 4427132
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_NARA_ADV_MANIFEST.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "0248ff0a3764a3e2bfeca8bf4b21d826c23cfef5cdf9012f7d67d7ad7884e9ae",
+        "bytes": 2514
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_NARA_ADV_REVIEW.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "7b6e90b8ef04551754c577b5cd9508999988145b2e680a7af519c5567d4c0b3e",
+        "bytes": 675535
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_NARA_ADV_REVIEW.md",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "f82067926b11a1a40f14eb69abb8907584c0a0ee8e345486f5c7cf2801a878c7",
+        "bytes": 2849
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_JOINT_EDGE_PROVISIONAL_REVIEW.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "05a302b383ddcd9dc931e997d46bc0aa015fe17d212623534ffe9b7846eeafad",
+        "bytes": 17725
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_JOINT_EDGE_PROVISIONAL_REVIEW.md",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "d8b2097426c015aa20764c3126494eaddc7b6d3b8a58371b57220a51781e5505",
+        "bytes": 1438
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_JOINT_EDGE_PROVISIONAL_REVIEW_R1.json",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "94c3b794576a2a3ff28a2a9edd4567da55635d2471e15a25c366e028a097149d",
+        "bytes": 23834
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_JOINT_EDGE_PROVISIONAL_REVIEW_R1.md",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "sha256": "102b68fa46889dbbea09a770df392fce2bede3fecefdf81c8ae06da16e4a2f3a",
+        "bytes": 754
+      }
+    },
+    {
+      "case": "S1",
+      "check": "custody_script_merge_pack.py",
+      "state": "PASS_STATIC",
+      "evidence": "9cfa995bb3362f7027f980dc9c7b075a6414ea82d14ec457a545c82c7027b668"
+    },
+    {
+      "case": "S1",
+      "check": "custody_script_features.py",
+      "state": "PASS_STATIC",
+      "evidence": "8137f15f31f7f02b575e03708de277903529e9b1a875bbc7d2f5426c29d83c4c"
+    },
+    {
+      "case": "S1",
+      "check": "custody_script_edge_joint.py",
+      "state": "PASS_STATIC",
+      "evidence": "e4b177096d33f5707626d83bc71687fce51fbab3907bba681d30dde62a564c70"
+    },
+    {
+      "case": "S1",
+      "check": "custody_script_common_root.py",
+      "state": "PASS_STATIC",
+      "evidence": "e75833a694b09a52cd99a9d10c46beeae13746f579876372c68ca1509f993b5d"
+    },
+    {
+      "case": "S1",
+      "check": "custody_script_assemble.py",
+      "state": "PASS_STATIC",
+      "evidence": "0de95152c6012573b903db070b093ef1e02ff02a5f1cd6deb5f979f70c0ee8df"
+    },
+    {
+      "case": "S1",
+      "check": "custody_script_static_check.py",
+      "state": "PASS_STATIC",
+      "evidence": "a9b0bedcf9e67422774125b6c6da78f44f6aaa15163bec7b572c9dd4da49be3e"
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_aburame_private.actor_ability(uuid,text,uuid,boolean,jsonb)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "b91a6f1e5a67456629593462061fad5e85a43a554987a9054b83ff971f10ee35",
+        "after_sha256": "94854bfbe28f545b3fd6c44ec7a4d9824d498902e40ef1c35320bd4f761b278b",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_aburame_private.attack_power_source(uuid,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "ca9630cba11af388c5020c51d74c691eaacad85b6d3551e14f2c91cf1046bef7",
+        "after_sha256": "ec80a3815e09b676e73a60aa84b04dc27fe75554808fb89a1c803069bc2f9a4a",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_aburame_private.commit_control(jsonb,jsonb,combat_consumer_private.activities,combat_consumer_private.offers,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "0f69641cdfeef55fa675df0ab3871ca318a16cd6d62bf63f133e6d7deaa7a8ec",
+        "after_sha256": "bcbb794033db3fd60aaebff8da1fc64150d7c7ab73827dc55401ab5a08f31bdd",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_aburame_private.commit_master_stop(jsonb)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "ebcd84dfc07b4f3086c26b8ec61bfc0344c4400f5ec188842b4b4188a4e688f5",
+        "after_sha256": "a5a028a71c84f4d4f4c580bd9bd7c45fdd6e1ce7476852e0dc8f56d4294e5b8d",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_aburame_private.consumer_options(jsonb)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "00eb8bda488b77d32c3a33c3e3b866d45c937e5cdec94d5592e5cedb8dde9446",
+        "after_sha256": "62b0530ebc84bd5c2f7153838dc75543197b9af0597c94c3e6c301f6d809ae01",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_aburame_private.master_offers(uuid,bigint,jsonb)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "112242e294eb4da95e93b359ddcccdbb1dfe5a8d9a56eed29a5e4cbca9f7a678",
+        "after_sha256": "ef51b49f88c07d95dd26c76027de262e67ed572244f4f96983354b2ff2ddd61a",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_akimichi_private.apply_calorie_event(uuid,uuid,boolean,uuid,text,integer,integer,uuid,timestamp with time zone)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "00bde30c5630480b3d385f6969c24873ce964b321b35def6a9a53e8b19efed92",
+        "after_sha256": "d97603fff2407bb58f045b91cb9f135ea11014a9dee618ee51f5736932d65378",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_akimichi_private.begin_personal_turn(uuid,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "96b3de12fcdcbddc277ef6e0032148629fd13a98117facda4e9eb12be6d7425a",
+        "after_sha256": "befc8fe826dac8b51e73f2284d569b38c287ff1dc9aaac0eb49aa207816ef702",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_akimichi_private.bind_partial(uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "3ba9ef8d6ea5d88339f069a6c66641b10f4ae41b54787797a582fa0bf5593ded",
+        "after_sha256": "dd899d462c3db3ce98057b84cf26c33f20eed258c92ba1a1cefa0020109b2666",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_akimichi_private.end_form(uuid,uuid,text)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "6637f368db7a9b816c37cfa1db7f473c43f6b825493910f540036e6df5a8060b",
+        "after_sha256": "fb19780255b88a3fe09268b9ecfecf5e89b812d37c5d014fe6e3d0a8a5a4e8bb",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_akimichi_private.form_change_offer(uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "aed7a68f7ddac16d8d397d5af36ff3dc082450b1f585be0cb7f86f31f7d25851",
+        "after_sha256": "11849f59feaa1142659d8e2437469cb8865336dc3a2c7d130795b404080d34bf",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_akimichi_private.form_impact(uuid,uuid,uuid,text,text,text,jsonb)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "7b9152ec1de73c1c97718265db058e57cd57c0f70e413dac2c5504053ecc5e3b",
+        "after_sha256": "489fa38ce47a4818a6f83ed47633759fafbb0ed101f3151a9aa44556930675b3",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_akimichi_private.movement_maximum(uuid,numeric)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "a33b903cfa79518e073a9fb4ea9926c83fa0138e67eddd8a81daab0043d588fb",
+        "after_sha256": "2086151b013d4d3059dacfdde626f3554a99ae554df343612b5112436679d37c",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_akimichi_private.partial_meta(uuid,jsonb)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "46463fa1af40099ee6a2d1ce92d27d5205ecb0abdbb57b1bf80ec992d85132f8",
+        "after_sha256": "bd7353c30af44f4ea36ed36f0de4d25f65d74d5bc542c8fe9a0051b0f6a4a523",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_akimichi_private.set_form(uuid,uuid,boolean)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "131f9ad17a7262959828dd8d5ae240632a8d49665da9bba9559bc1a758f0f3ee",
+        "after_sha256": "2513b62d1a2d6214a2436314ad3196e9bf6997126990c19679bff674e9447e9b",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_sabaku_private.armor_absorb(uuid,integer)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "e326603d6439578a01c4dbddee43f9c4bd7dfc861a67bfadae3188fee4f7238a",
+        "after_sha256": "147db3e5557fa46cb84bd48aedab35b3e24110a5faf54ae7bb8a08e2fe2dae00",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_sabaku_private.armor_narrative_round(uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "d4f68da65b1cbf8167394bf2320df0bf761038bb54d2e65c3677dd7503430734",
+        "after_sha256": "ec06a76f025fc65f60b49d8da04727f41973615c8c3b274f659bbbe1c1fb1f87",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_sabaku_private.armor_round_facts(uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "bb508501043b7d3d5663b4e7153050c8cdb7fb56e2a1618507ced7211fe23b69",
+        "after_sha256": "43e73c15ec66757d7870748a338d2e4e3a957a9dac8a846c760a9f4c19186694",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_consumer_private.after_publish(uuid,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "cc2f938ee212cc8da5f53561e98d68a0430e4a29178521f20fd8a91d71c28ec6",
+        "after_sha256": "87fa591f3d1de7f3147124f36cc52b42109ec7022165442f264cc76284cd0264",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_consumer_private.commit_exchange(jsonb,jsonb)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "ce4bda0359a709a96514eb14483a151269eb304322c3ed3e995d88437754676d",
+        "after_sha256": "95dd10e01634ecd83395897a43ca6543773a2fb7c798efe9f097ca6db4628b70",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_consumer_private.narrative_context(uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "23bed326056c73dbde6d5a46e3d3b962384493cfab0283a35f1649292bd78cbf",
+        "after_sha256": "ca63952619a2138b08a2d0470151109a2e43f34d54ce482698df3ccbbe0073b4",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_consumer_private.narrative_declaration_supported(uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "70689a25d0c08f7915d7405f88e733b334e19c689b0e094f8ef40b02e5d39843",
+        "after_sha256": "51ebf49d26e7a7590f9a5be23fe8569928cfaa6406238fadeb7fd7462cc1d29a",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_consumer_private.validate_narrative_result(jsonb)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "9ba51ad9979fbe88745d94981bd77df0ba2ce36e12f5591bc4df8b6f774413b7",
+        "after_sha256": "1e546094f4bc610f26d822796720e243a262e7c7453e0a0de79af12eaf33d932",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_effects_private.lifecycle_actor_end(uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "d7bbff1801a753f859d438166e7edd3fd2d260911d21af618335d740a5a46182",
+        "after_sha256": "7bfdb83bcdad2788c22af7a337503ad7ec1fd62e62f4f9ec7f9245772d2e1721",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_effects_private.lifecycle_open(uuid,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "26c16b32c97ca05507c47861c77096d4e6f0328339af6e257bfea3f4615dbaa1",
+        "after_sha256": "9d2b110d921df70000a70c8261cd9db036eee18dc82a710a13bbb1a0c3f49c7d",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_effects_private.lifecycle_session_end(uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "76844cf8ee832eddbf6f03cb3e1008c380dd6b576b328247945efd1e75416caa",
+        "after_sha256": "e6cfb20bb51fb64628a8a89ef02a89936913ee3c76a3d6659b6f893d188ada8e",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_effects_private.personal_turn_end(uuid,uuid,uuid,text)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "0a0d05ad60a0877f2ef48100f0154ee29c10a8e9ad8c57d291855077ce860b04",
+        "after_sha256": "19426ebc607f9c7d7de59c7f92fa5d3f58b271ae6f85f72cc92095c07c656d7e",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_panel_private.catalog_result_label_v1(jsonb)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "ddcad0f5d3fe3ba7d0a1502c56f2a006e684116478d49adc7a1eaa9cb6a696c7",
+        "after_sha256": "95fb735aa57ab700be98540c620d290961b7164e158f526ff638b480087a9286",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_panel_private.consumer_commit_authoritative(jsonb)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "b46f351b1527e73807ae51de1d686e0a95c1e4bb93bab9657f9d5e113f29ab7d",
+        "after_sha256": "2a09714b134f8618540191fd2d0ef6a67dfdf79f69981d1ba31ec64b53f4caad",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_panel_private.master_admin_offers(uuid,bigint,jsonb)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "74beed6a41d17f5308ce538d224a73635e879bd3f1784ac668a1cb7f03bdbbfd",
+        "after_sha256": "8ce45d6bea0a22dddbdcd6c401c6df2317e8e01fd18ebdfc3db355cc259c5ea4",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_panel_private.master_options(uuid,uuid,bigint)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "155b2a279cbef5f31ee7ee332f7844fe928ba3394cd43439906972f51129ca32",
+        "after_sha256": "fd36c031dc772ea40934238d3defabda351509ee7719056e7cc5bc0a8589f90f",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_panel_private.nara_shadow_level_v1(uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "3b85cc7e4d3f261d7dae9ab2a6deb82946209e82875049be241b9d02448f4e04",
+        "after_sha256": "955ccd21846361feabb43b073ccc5e757390b1cb4dedbab01f2b1002fec9c585",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_panel_private.narrative_declaration_facts(uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "8574c88360502e4a6e84541cb0da05af25fb5a1b5b907577de0840d303675bb1",
+        "after_sha256": "5cdbbb9870637b5dc0aa3cb7b9c8838cf51b7d53dc81ac6e7a5dad222640f40b",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_panel_private.narrative_ordinary_context(uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "bd9ba81d6af8995121dcdd651789bf08e87ffd87157ec525a8e789f615e9411e",
+        "after_sha256": "ece9899b4596a8b39e94dc4eba66a7b076d28c70b4396ca2858e6f32f803bc06",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_panel_private.ordinary_options(uuid,uuid,bigint)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "c814662051a0c6cdbeab0c020f4d2fb13cc124e66cdf2860130343a7b598f632",
+        "after_sha256": "48b17c87dd8af9ecb4d916f80e20d62e7d81f1eab0581cbb5872ee3ed2ea0289",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_spatial.movement_commit(uuid,uuid,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "4239bff5d0cfb4f1bedcd4fc4e7e18c1c38f81c53074c4776d7ab8c921f430e0",
+        "after_sha256": "85e4782fd48c819bb481b697c7df069eddaa0e04252b64d3481aaf1043192114",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_v2_genjutsu_internal.ally_contact(uuid,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "da243c808313512ad2d25cd3ca97f178fa898fbd4b0fc53e710dd77cce17ab65",
+        "after_sha256": "c399c22fe8d21973b3b91bae0f569955bdccce6c1dfd61851d15f178f5c6613d",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_v2_genjutsu_internal.master_options(uuid,bigint)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "7c6acdd5a1dea490a371b5041f82b9691c094fecaaec3018674bf416bce84e32",
+        "after_sha256": "d4cc78021c6f9e3ad22aed574b16f590227178f544d7fe0a80617747efabfdaf",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_v2_genjutsu_internal.release_intents(uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "f58c697b1b3d01f8d8c293fb0e6c2270e835e81001aa9258669124781856bed5",
+        "after_sha256": "ec295a1545dca4eeeb9b08bef1523f0a257ab7fe2ef99270f72ffee1e3171ee6",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_v2_genjutsu_internal.release_meta(uuid,uuid,uuid,jsonb)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "04abf68582e6d78325e86a171bea580ea9e7a569de85828fd113b2cb8980b5ba",
+        "after_sha256": "6e92e33b9af7689c67c68bbddbb77d106066d5e1d6f6f1d7ffa2c8e4c8800ce6",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_v2_genjutsu_internal.resolve_release(uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "99e3a874cbd2e19fb18f59100c391fb56c2908f055a23a1cabf061b73da60834",
+        "after_sha256": "bb49bdea1f53b34f31f980ee0979432c06d09b6f994533a03cac5c1a813e6f39",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_v2_genjutsu_internal.scope(uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "3be4b86aa07ec1344f84d9544e0a87d91141814a7b01e3137026cd8a696698b3",
+        "after_sha256": "b7bcd379b5013c33e33df5ba196bd5d786770b31eedb206d9d82e43d7f81680c",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_v2_multitarget_internal.resolve_parent(uuid,uuid,uuid,boolean)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "8cdb1857a2418dcd3e06006688642c2e7da90782593a52ddf0f0e093e62a9de2",
+        "after_sha256": "21b722a3f3287655a92afd9972b0f9e0bd19653d372c3dc4b0332c74e20c80ac",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_mission_factory_owner.quest_combat_offer_source_guard_v1()",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "a74dd515eba37a0c0f05cb090da13448772379135a7b826ae8c9d4c89ab5a793",
+        "after_sha256": "ff6df564d46925b52cd8bc06c32bafc630b3e0ace1d42622daeba71a69c4aa9a",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_public._combat_calcola(text,jsonb,jsonb,text,text,integer,text,integer,integer,integer,integer,boolean)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "79288dbc8ba3d3d2997a24f8439d96984d6ccd6c112a388d569d435642423545",
+        "after_sha256": "7db9cc7657d6b0478ccb6785259a2f4509ad3d6ea342151849ed973d9913836a",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_public.combat_consumer_narrative_claim_v1(uuid,text,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "59c76b57d6d92fed8e92894a0ff54d8aeadec995e213c04b7087804648b4cfeb",
+        "after_sha256": "59348972dc171e7fba4b1d9d1c89925ec22562ca98a13e312d294231fadd0244",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_public.combat_consumer_narrative_complete_v1(uuid,jsonb,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "c14523e95544182275336ca9c14a2bf88d0b048858a96fe8772bf8a0f00c905c",
+        "after_sha256": "a5fe27c4cb29439eef68eef237148d2d8930d1cbe8ec05c8cb72197457a156b8",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_public.combat_panel_commit_v1(jsonb)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "2b4660b431f9824cef1ed59b7f299998e8a7be06f66d18cb8c2e5b734c841fbe",
+        "after_sha256": "f38877f00bc244105753fa05c9b507f1ab67916c38a4db9df4badcff888afa08",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_public.combat_v2_action_declare(uuid,uuid,jsonb,text,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "a6031c7e390241dd7fad8e81be90ae8f3dc57e2283e742c19047d046c9e93f6d",
+        "after_sha256": "28dcc3e75ea86866d828137d53172bd38ad3404559d23215d2486022410fce78",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_public.combat_v2_actor_ability(uuid,text,uuid,boolean)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "3f86b9972ead72801b6a4c392d2b180d011ca2605075855cd21a59b848f665e4",
+        "after_sha256": "512afb87dcdaaae4c394ea5eff500bcbf12123dea43ee13588e84fb5c19563d8",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_public.combat_v2_defense_declare(uuid,uuid,uuid,jsonb,text,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "f92e4d4bf5e6e22d79b64204471083ed07be97404e2961f5a57ab2956a098265",
+        "after_sha256": "bc20decd5c62792e77d177a914667589c17548e71f70ef9e855bfee3f9ce8f74",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_public.combat_v2_round_resolve(uuid,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "c3242f7ef7d828b88e349996e08c52c73758be0a4848fad7329fa9e0be437daa",
+        "after_sha256": "394e7c89d81c88b059356d633011ba29fde9978b9fa3f5ba138986ff1e9b7c0a",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_public.master_v2_encounter_open_ninja_book_v1_human_ai_core(uuid,uuid[],jsonb,jsonb,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "d3d2122c5269ef35d8ae001acd1586cc05433ee0da859a3b3b62b991f579949a",
+        "after_sha256": "66fc1a70c6e25eb6a15414f0f9339b268244b4cee002920a5e7ceb2a8e02b8de",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_combat_panel_private.publish_master_declaration(uuid,text)",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "93726ac57b6b0a6b60602dac04da8e23afb276b6ae6c1b9658dd782b9a6ccda4",
+        "after_sha256": "a12efd0bdc90c42611d4b7ad078011d919d55d5c242cc5b4635e04dd5b6159b9",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_innata_private.eligibility_release_assert()",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "680a47c514ab2255937d259a2fb0ecc8fd1b098670089d595b531839a23e33f9",
+        "after_sha256": "45331155de0bcce8201993b0bc155194d331e35430690716f1fb6feb2d21464e",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "owning_clan_innata_private.catalogo_eligibility_release_v1()",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "before_sha256": "72141f00f7b6c79aacf634334290e92debbcc3a5bd77365c55dc4ef3a82ea5f6",
+        "after_sha256": "aad77ad2041a93b2e5d993455f9e29f10aa41914c333b8faa504726ac357da2a",
+        "fresh_at": "2026-11-20T03:27:16.027898+00:00",
+        "ABI_prefix_preserved": true
+      }
+    },
+    {
+      "case": "S1",
+      "check": "fresh_metadata_authority56",
+      "state": "PASS_STATIC",
+      "evidence": "03:27:16 readonly capture actual before56+owner/ACL/config/SECDEF; not gameplay proof"
+    },
+    {
+      "case": "S1",
+      "check": "new75_exact_bodies_headers",
+      "state": "PASS_STATIC",
+      "evidence": "75 exact frozen DDL/source hashes, no duplicate signatures"
+    },
+    {
+      "case": "S1",
+      "check": "new75_original_security_attributes",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "SECURITY_INVOKER": [
+          "clan_akimichi_private.common_modifiers_v1(text,integer,integer,integer)",
+          "clan_akimichi_private.common_result_label_v1(jsonb)"
+        ],
+        "SECURITY_DEFINER_count": 73
+      }
+    },
+    {
+      "case": "S1",
+      "check": "wholeSQL_PL_SQL_independent_grammar",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "Source359": {
+          "PL": 112,
+          "SQL": 21
+        },
+        "Recovery7": {
+          "PL": 2
+        },
+        "boundary": "pglast7.23 entire units, only ROWTYPE declaration normalization, no semantic DB compilation"
+      }
+    },
+    {
+      "case": "S1",
+      "check": "295schema_statements_character_offsets",
+      "state": "PASS_STATIC",
+      "evidence": "Every stored statement independently parses with declared AST kind; no UTF8 byte/character offset corruption"
+    },
+    {
+      "case": "S1",
+      "check": "18tables9triggers_exact",
+      "state": "PASS_STATIC",
+      "evidence": "18 new tables + native offers/forms bound separately;9 explicit triggers"
+    },
+    {
+      "case": "S1",
+      "check": "schema_RLS_ACL_grants",
+      "state": "PASS_STATIC",
+      "evidence": "Private grants/revokes from reviewed components preserved; no new public RPC"
+    },
+    {
+      "case": "S2",
+      "check": "publisher_full_inverse_preserves_PG2",
+      "state": "PASS_STATIC",
+      "evidence": "Exactly one declaration, one separate frozenNB branch and one final OR; all previously installed PG2/Native/Quest/Exame branches byte-preserved"
+    },
+    {
+      "case": "S2",
+      "check": "publisher_NB_exact_authority",
+      "state": "PASS_STATIC",
+      "evidence": "Same request/controller/version/text/intent/meta/source/result/plan/event/report; frozen approved roster proof; no generic resolved PNG admission"
+    },
+    {
+      "case": "S2",
+      "check": "approvedNB_functions_scope_preserved",
+      "state": "PASS_STATIC",
+      "evidence": "Exact tuple/owned receipt mapping and frozen contact; no public NB or offensive PNGParalisi"
+    },
+    {
+      "case": "S2",
+      "check": "terminal_Verme_no_oldHoki_reclose",
+      "state": "PASS_STATIC",
+      "evidence": "Ordinary p_next native tick feeds report barrier; oldHoki branch unchanged, Verme removed from oldp_round close"
+    },
+    {
+      "case": "S2",
+      "check": "native_terminal_report_both_domains",
+      "state": "PASS_STATIC",
+      "evidence": "Both event domains and native form termination/ledger/lifecycle captured; no fakePG main/roll"
+    },
+    {
+      "case": "S2",
+      "check": "terminal_publication_order",
+      "state": "PASS_STATIC",
+      "evidence": "Private mechanics frozen then native pending report; activityresolved prevents action before Fato; closure remains after_publish(p_next,NULL)"
+    },
+    {
+      "case": "S2",
+      "check": "terminal_ordinary_frozen_context",
+      "state": "PASS_STATIC",
+      "evidence": "Dedicated context comes from report, verifies actual current event projections, identities and no declarations; generic fabricated attacks absent"
+    },
+    {
+      "case": "S2",
+      "check": "Master_terminal_uses_same_native_report",
+      "state": "PASS_STATIC",
+      "evidence": "Master existing real declarations retain normal report; empty native KO report uses same report/Fato engine; no separate MasterAI producer"
+    },
+    {
+      "case": "S2",
+      "check": "scope_Staff2PG_no_AI_Generic",
+      "state": "PASS_STATIC",
+      "evidence": "ABU/Nara/AKI exact Staff ordinary/Human2PG; NB separate approved3actor; public/AI/quest/exam surfaces not broadened"
+    },
+    {
+      "case": "S2",
+      "check": "typedrevision_public.combat_consumer_narrative_claim_v1(uuid,text,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": "Order4→3→2→1 preserves legacy revision matching and claims/hash/controller/report/publication authority"
+    },
+    {
+      "case": "S2",
+      "check": "typedrevision_public.combat_consumer_narrative_complete_v1(uuid,jsonb,uuid)",
+      "state": "PASS_STATIC",
+      "evidence": "Order4→3→2→1 preserves legacy revision matching and claims/hash/controller/report/publication authority"
+    },
+    {
+      "case": "S2",
+      "check": "Aki_shared_action_deferred_upkeep_preserved",
+      "state": "PASS_STATIC",
+      "evidence": "Deferred initial upkeep, form switch and packet hooks remain component versions; full ledger semantics source-only, Staff cases not yet run"
+    },
+    {
+      "case": "S3",
+      "check": "E52_17shared7private_literalclosure",
+      "state": "PASS_STATIC",
+      "evidence": "41 metadata literals + actorAbility SHA outsidevector =42 inE52; ABI/closed sets unchanged"
+    },
+    {
+      "case": "S3",
+      "check": "actorAbility_fullseal_both_consumers",
+      "state": "PASS_STATIC",
+      "evidence": "Exact actual final port SHA appears under validated catalogo; native guard sole literaldelta; LabelCASEaa3d/all91preserved"
+    },
+    {
+      "case": "S3",
+      "check": "incoming_clan_innata_private.catalogo_eligibility_release_v1()",
+      "state": "PASS_STATIC",
+      "evidence": []
+    },
+    {
+      "case": "S3",
+      "check": "incoming_clan_innata_private.eligibility_release_assert()",
+      "state": "PASS_STATIC",
+      "evidence": []
+    },
+    {
+      "case": "S3",
+      "check": "PGjsonb_shared_manifest",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "count": 34,
+        "sha256": "3702b953c74cf10baa983027cfc04d38013b9384cc01a516cf89deed84f671f9"
+      }
+    },
+    {
+      "case": "S3",
+      "check": "PGjsonb_private_manifest",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "count": 66,
+        "sha256": "960a4eec86ad8890114b658f67bb46ce06bba486a3d90977d801165183e5cfde"
+      }
+    },
+    {
+      "case": "S3",
+      "check": "PGjsonb_native_manifest",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "count": 3,
+        "sha256": "2d903f7977adb0086633ebe09f6e8b9994bdf2b17218a14ae3a2eac837b6581f"
+      }
+    },
+    {
+      "case": "S3",
+      "check": "PGjsonb_trigger_manifest",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "count": 6,
+        "sha256": "2916be512991f001a039d438857777d4a1aeac54d0bb05881e738fcc0b6e5cd8"
+      }
+    },
+    {
+      "case": "S3",
+      "check": "normalized_amendment_identity",
+      "state": "PASS_STATIC",
+      "evidence": "Actual final publisher in normalized identity and peer6, Root mirrors rebind existing Label review envelope, no stale6c bodyrestore"
+    },
+    {
+      "case": "S3",
+      "check": "one_exact_closed_manifest_query",
+      "state": "PASS_STATIC",
+      "evidence": "One query used for descriptor and helper:75new/55owning excluding self/20tables+schema+catalog3+NBtuple4+triggers9, metadata-only no actor runtime rows"
+    },
+    {
+      "case": "S3",
+      "check": "private_authority_preserves_two_INVOKER",
+      "state": "FAIL_STATIC",
+      "evidence": {
+        "actual_INVOKER": [
+          "clan_akimichi_private.common_modifiers_v1(text,integer,integer,integer)",
+          "clan_akimichi_private.common_result_label_v1(jsonb)"
+        ],
+        "guard": "OR NOT p.prosecdef",
+        "failure": "JOINT_CATALOG_PRIVATE_BODY_OR_ACL_DRIFT",
+        "impact": "postseal Source calls E52 and aborts; same guard in retained runtime body also blocks recovery"
+      }
+    },
+    {
+      "case": "S3",
+      "check": "P_only_actual_receipt_parameter_pins",
+      "state": "PASS_STATIC",
+      "evidence": "N+actualreview+actualofficialreceipt laterP, onlytransactionlocalset_config+pin; Entry not finalized or approved"
+    },
+    {
+      "case": "S3",
+      "check": "recovery_forward_nobodyrestore",
+      "state": "PASS_STATIC",
+      "evidence": "No oldbody restore or data/history deletion; closure, quiescence/operator/locks/CAS before gatesOff; P must capture true installedRoot"
+    },
+    {
+      "case": "S3",
+      "check": "mission_existing_flags_immutable",
+      "state": "PASS_STATIC",
+      "evidence": "2existing mission admissions/qualification/partytrue preserved, Genin/Cure/Genjutsu flags untouched, Generic168/UI exact; no new mission claim"
+    },
+    {
+      "case": "S3",
+      "check": "independent_Rootcap_source",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "bytes": 523530,
+        "margin": 758,
+        "refJSONpayload_max": 40,
+        "Edge_version_int4max": 2147483647,
+        "identities": "capacity widths only, not future hashes"
+      }
+    },
+    {
+      "case": "S3",
+      "check": "independent_Rootcap_recovery",
+      "state": "PASS_STATIC",
+      "evidence": {
+        "bytes": 523530,
+        "margin": 758,
+        "refJSONpayload_max": 40,
+        "Edge_version_int4max": 2147483647,
+        "identities": "capacity widths only, not future hashes"
+      }
+    },
+    {
+      "case": "S3",
+      "check": "alias_count_7_exact",
+      "state": "PASS_STATIC",
+      "evidence": [
+        [
+          "db_core",
+          "all_function_headers",
+          "228"
+        ],
+        [
+          "db_core",
+          "all_function_headers",
+          "235"
+        ],
+        [
+          "db_core",
+          "combat_innata_functions",
+          "21220"
+        ],
+        [
+          "db_core",
+          "combat_innata_functions",
+          "31331"
+        ],
+        [
+          "db_core",
+          "combat_innata_functions",
+          "35323"
+        ],
+        [
+          "db_core",
+          "combat_innata_functions",
+          "39291"
+        ],
+        [
+          "db_core",
+          "combat_innata_functions",
+          "41419"
+        ]
+      ]
+    }
+  ],
+  "grammar": {
+    "schema_version": "genjutsu-resolved-role-independent-grammar/1",
+    "state": "PASS_STATIC_GRAMMAR_NOT_SERVER_COMPILATION",
+    "parser": "pglast7.23",
+    "boundary": "No PostgreSQL local/server gameplay, schema binding or mutation executed; all sources retain exact bytes. ROWTYPE substitution enables grammar only.",
+    "files": [
+      {
+        "file": "JOINT_CATALOG_SOURCE.sql",
+        "sha256": "e71a885d9af165d6144fea3dbf319122f79fc7fea4ac235bda0cd25b5a8842df",
+        "bytes": 848452,
+        "top_level_statements": 359,
+        "function_and_DO_units": 133,
+        "PLpgSQL_units": 112,
+        "SQL_body_units": 21,
+        "units": [
+          {
+            "name": "DO",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "dd77080740c7a73ad12ee69ce83d83533cdf9964137dd56311e6b1b3fcb315b9",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_staff_nb_internal.origin_guard",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "823da9ae14eedd9d31d085e3f082e72aa11e1774f7f176cb54088cf1ce8ad05b",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_staff_nb_internal.choice",
+            "language": "plpgsql",
+            "rowtype_substitutions": 5,
+            "whole_statement_sha256": "afa7d5c67efc93206963f985b607e5d8b81503718d58d7171651aa2fed843801",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_staff_nb_internal.roster_offers",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "11bb5da8dc554e7692c6c8da7d6b9b9586f8732db234e19105d02bcf7f89aa60",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_staff_nb_internal.native_construct",
+            "language": "plpgsql",
+            "rowtype_substitutions": 7,
+            "whole_statement_sha256": "6597ea392a1281f500e8b0f87a24f2d9d84ba668c7dc72d79a0ffb714fab0095",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_staff_nb_internal.mechanics_ready",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "18e807c6c02a9c3e759d825f3cec6e57f300fcc060c0ae2b6566d9d21e1f829f",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_staff_nb_internal.setup_protected",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "ab48919e2c26120b99650a83f8f78fc52881cf9a429bf4cbb2e78d91fef98da5",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_staff_nb_internal.commit_roster",
+            "language": "plpgsql",
+            "rowtype_substitutions": 6,
+            "whole_statement_sha256": "a50631e5f0f81e1f42482ea12711940ad312838fde46ea6003abff6bb554c852",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_staff_nb_internal.roster_receipt",
+            "language": "plpgsql",
+            "rowtype_substitutions": 4,
+            "whole_statement_sha256": "6ff98a2dbf1feec9787d7e503630610c3ba352a6430a533b4ff5b168a0312ef1",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_staff_nb_internal.kai_frozen_authority",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "05d110e887eb92878752f8eaaddb78db21d98961b5c608739ecf24f23ec76957",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_staff_nb_internal.kai_contact",
+            "language": "plpgsql",
+            "rowtype_substitutions": 5,
+            "whole_statement_sha256": "fe2a4479267b51a4b98f74b91d06b7e28845a51629bdf7234b191eec42498101",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.verme_manifest_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "1f4293121ffa0f6d7de4884082b25b29e84303e611c748cf032db8cd0fdebe6c",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.verme_release_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "864cb79d55ead8550f038d4e8cf71d8d9f3c34f0b6e8a54cb5b89c345f261997",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.verme_scope_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "47422b561de5c40c217851468f6ddd8a34aa3e5277b23b86090141c32e932d09",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.verme_event_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "5944cdaefac84d7f0b1a127510afefe68df04bb51fc327b387a3dc48884bf035",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.verme_staff_prepare_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "c2d11a1b69268ce9e166b9d533ce91f6a55cb8e1d1093c1b1d0463d977ca4641",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.verme_meta_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "4cddcef9a5aa8a2e7cfeaed58eb696b53189c566a23e6f9e60ffb18d840a6309",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.verme_bind_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "ffc26899a34f263e41106162d51eac2ca00892249510faf9387092c9d39ef894",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.verme_frozen_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "7852905f684f1ff4457fa976899d211647384305c9c36da3677d44624c1dbf7f",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.verme_finish_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "d8ce29d0253f69da87cf29574b5289bbde8d3811df4b50e036cab956dc2b6320",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.verme_tick_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "43c2f406122097bb2a69c8bf5cdee4562f1da903ecee19d3be909c8452146281",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.verme_end_context_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "3feea6ce4b274deb141130d4b71c10a02742a932231049d2d5977fa549b28d3e",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.verme_reserve_round_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "144c943ceebf0a7bb1d41a4ce7615c8c1f6e0ae34c2540d2612d2059c4317580",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.verme_settle_round_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "728a4b4d5d468ce124dacc29fb06b136fc7100e772fa0bb9dbd292b569ac4ccb",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.common_scope_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "8d41420832fc72899f6049321ba82dc256b5c26acb78c718ae4e73dbef9dc0a6",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.common_prepare_staff_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "b8668a25b3310f5c20cedfd6fb89c1fae0373e9b9f16b95a7b4d058e97d007fa",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.common_modifiers_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "c4c5c6d19e423e23ca30ba1acfcfadecf55f44ec2efa92e5a45c0a9795efabde",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.common_set_form_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "3a04f8e92f1ac2fd9b2d671cabc642b5a60c1b11a624e553bf2cd6995d57eb5a",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.common_defer_upkeep_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "39d925c79bff1a1eec69dd3dad0eadabe0971497896942c97e3ee0a94f27890e",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.common_flush_upkeep_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "e6e3c4a49bd83470d2965fdbe21610ff15fd225ac59e980027cfe44d446900db",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.cellular_meta_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "4fa63885893396522f3f1b5c88e3a7267232c28c89c3c58837cf5c8b790550a4",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.cellular_bind_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "262dbd7b93830ac802124f2d2ab8bae3298a877c092e92461f4e1f89353a47e7",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.cellular_pay_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "c514215e96d0074537636a9b5a8036ef3dc2e7bbeaa147566909c15ac986fe9d",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.cellular_snapshot_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "a3a3faa102a7d764c5dcdaafcb3164ce7589cf71d7eba977533b8473f18f3b88",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.cellular_calculate_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "3bd7678271b012c600e2901dfe292b4cbb730404abb64a5498c68c6644711a53",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.common_admit_calories_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "b77e018f18eed66aeec7098ad4976e7720a14a86f340847a90553a91cc07c670",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.common_preflight_calories_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "66b1d26a5df31171ebc793a26c1b69d79598cb64c4897fd9599b44d3cd34a91d",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.super_direct_visible_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 9,
+            "whole_statement_sha256": "bd4b249b6fc3130c919e50adfc153deb89529757640b9e3d94b291889d106e52",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.common_attack_power_freeze_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 8,
+            "whole_statement_sha256": "02998d9f35bce056fe3ce47f94b59f4f866ec65dff4ac8db02a2d1d3e9232036",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.common_panel_offers_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "ebae6c618eb22a2bee32f131442f906663ff1805ac47bbf80f1b5aad1b3e5c2f",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.common_panel_commit_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 6,
+            "whole_statement_sha256": "39fad885390fab1b881c88081a42598917389e58c71967ddaa69faf789f65d0f",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.common_result_label_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "29c9f60466d5b72bf6b612fe84d672ec7f8b45bbbbc20fbeb9c450fe0f313d24",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_sabaku_private.armor_absorb_packet_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 4,
+            "whole_statement_sha256": "1953d0b1f6c9e394fb668106c47e0f7ea1bda958c3bdc0b84aceeba1a138b19b",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_adv_prepare_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "fc9d99f90108ab8d0ba50e29a8e7529941bd9ad08800e7d59150fabb0bd0e136",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_strangle_meta_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "e8e223fbd6dfb42a9489824ea21a0a32716f511837978e9afc07d2ea0288aa31",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_strangle_action_meta_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "fed6e584f746ff03bb550f8a24f6b823534c6d53b5075288691b472cc9790a97",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_strangle_bind_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "ccd6e23862443a060542192978a72590517ea684ba6d73f7f9313d9c77bc7d85",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_strangle_lifecycle_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "e55ef1a188e9d274d48184e3cfef303560f28f0f036fc4d8aeb409f07bbeb93b",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_strangle_packet_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 4,
+            "whole_statement_sha256": "33d86b590dca82e46d65249f4a21e1e1f0b7aebcf8b62354ad1f4535dbbbe2e4",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_strangle_resolve_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "a0e7023d8c3673722636ec232699ab758561d5da4487c195fc8f7c5b3b999da8",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_strangle_turn_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "a3c3771ec4ac2dda666a36af62e78144d73c50132ea82a7cdd591e5a23167118",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_strangle_facts_revision_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "2be702d6b2a795592f291e0fc28285f4b227882134ddf1d4becd28066e247102",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_strangle_facts_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "7b736be873381a00206b6f51a6134f8716bd1a33fd391f3ae63ec3ca65ff6951",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_adv_history_guard_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "2d4a847b3a826de8296865667449b8ef748d8f50661b9d56a191755ebd0a15a1",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_strangle_end_event_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "49c934c1d94d1ba95341cc4e56328e20fb11ecb5f5bd0567e667e58e06ceb127",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_strangle_terminal_report_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "fa7e60db763d31be4d81df9e70cb083671b86b92aae9c45bdb96059c80d9766d",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_strangle_lifecycle_context_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 5,
+            "whole_statement_sha256": "ceb0aeaa594f6d3d5178236417f977d4700855b1e85d8fa6f63cc51e2592daa9",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_adv_offers_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "27ef61354b4c5eb2e00b46a7632e157ab41a2f4b371f1e1324ac66772c696329",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_adv_commit_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 5,
+            "whole_statement_sha256": "6e2593923947bdd1644017404573a8f9e641f17aa58a2f5f606d295282e37867",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_strangle_lifecycle_trigger_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "78153db5bf337395d5251b806997b42a0e9085b3271434f502795e1bfd524ee3",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_staff_nb_internal.preparation_allowed",
+            "language": "sql",
+            "whole_statement_sha256": "e4290db7bb117f31b60ed85512c35ea98aee9edd45ab2630bbaf80bf89a2cc41",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "combat_v2_staff_nb_internal.pg_scope",
+            "language": "sql",
+            "whole_statement_sha256": "535fadd86c876017876f91f7ff71b15d97678e5d77f0c4b5d1bacd48c9cd7b2a",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "combat_v2_staff_nb_internal.kai_authority",
+            "language": "sql",
+            "whole_statement_sha256": "f28b098e69efe3cf2b0dfc57cd8f2ecb7d38d9f14113938410e13811f6f08a3c",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "clan_aburame_private.verme_report_v1",
+            "language": "sql",
+            "whole_statement_sha256": "645b49b433fb41e2ed909add86bd363f04edd7a8be23b9038c1fc4e7c5ca9963",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "clan_aburame_private.verme_narrative_v1",
+            "language": "sql",
+            "whole_statement_sha256": "13a514f394363ec1b825e6092d72b777a779942334a1b2472162d08cb690e82a",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "clan_akimichi_private.common_staff_scope_v1",
+            "language": "sql",
+            "whole_statement_sha256": "4c7c88bb7c4eede69502836092a0fbb7a5beb6ce2d0f12b87021d7edb20e5ff5",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "clan_akimichi_private.cellular_attack_eligible_v1",
+            "language": "sql",
+            "whole_statement_sha256": "57ac5cb9c9d4fdcaab2d7ee4c70fdc3ffadb814c2381ebb05492c9b247eb264e",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "clan_akimichi_private.cellular_source_valid_v1",
+            "language": "sql",
+            "whole_statement_sha256": "40bd4c1b940e120a886d69b7e880da252081650f757b9c1358b8399ac79cd34b",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "clan_akimichi_private.common_calorie_balance_v1",
+            "language": "sql",
+            "whole_statement_sha256": "2470813a683ab7e55891cf0968defecc6a2c7df97286a75eda6a5969fcb69e56",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "combat_panel_private.nara_adv_pool_v1",
+            "language": "sql",
+            "whole_statement_sha256": "40c7c695d38fdd392f9d6e19415c524da8c89f4595e454832fa30d72f01bea1b",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "combat_panel_private.nara_strangle_parent_valid_v1",
+            "language": "sql",
+            "whole_statement_sha256": "9d290cf3847abfe7f63c989a26aae8861e634f996ee9639e1925e28e907f20ee",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "clan_aburame_private.verme_staff_scope_v1",
+            "language": "sql",
+            "whole_statement_sha256": "8397a9f56bcdef3dc8138b6f7a397fcf90c0ad0f522330d799cc6329cab8f270",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "clan_akimichi_private.cellular_mark_v1",
+            "language": "sql",
+            "whole_statement_sha256": "0f00c871bfd5a6346e6248082f91e8ae3e882031e5687e7409a08f61810d9787",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "combat_panel_private.nara_adv_protected_v1",
+            "language": "sql",
+            "whole_statement_sha256": "ee081936e822acf8654dec7bf53fcc2445b00b751b06279a8cf4da8d6ba35d05",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "clan_akimichi_private.common_source_root_v1",
+            "language": "sql",
+            "whole_statement_sha256": "f95ddb97af13b566a00dc82fbb1cc2dcc3d7096a6f8da18907d5585b61e42e3d",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "combat_panel_private.nara_adv_scope_v1",
+            "language": "sql",
+            "whole_statement_sha256": "907adfddd7128bdedeb34ee64ccac80664b15bc268d2092c9c713928bbc7db42",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "clan_aburame_private.actor_ability",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "9fceeb0ef3291acecf0e27e84fac809a23fe5cbd18ec7b5c7017fd1227b88ac7",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.attack_power_source",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "323fcc051955d86bb3a0c5c41a6939215cf72f25546764317a7fc7c25cc03438",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.commit_control",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "138717ac773289a5454433283795cc240c1661839528a697a9dc16d03dadf281",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.commit_master_stop",
+            "language": "plpgsql",
+            "rowtype_substitutions": 4,
+            "whole_statement_sha256": "b97a15e279c3e373644bd0676117fd9d633d4f36f2d4e33aa43e5d2490c9b388",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.consumer_options",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "81c784d607d486a96505ed315b7a55e76dbc231563f901212cff1b699f19eeeb",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_aburame_private.master_offers",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "e7990e182c1081b36d75fca459fd4eeb91ca3f72c47a0ad519931cb5ebd76fe6",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.apply_calorie_event",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "e604b2ad41c523cf759ed7094778df7f8ecc1382c3492b17d2433f5fdd8401a2",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.begin_personal_turn",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "736552db3ea0f6fed089f9b7c215cfe525d3708a2dc3e75f09abb8ac81f03fa1",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.bind_partial",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "275a21aac726cdf921095bb2159f952f6da1bc15479c0d1fad5ee5d7312f8246",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.end_form",
+            "language": "sql",
+            "whole_statement_sha256": "8ec9f6e7ce1a2867f97694b858f773e86f94ed19d217856ace363f09d990815a",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "clan_akimichi_private.form_change_offer",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "12ac471d649c45c19faa58c3b049a12bb7da60877be205969ac41cdcd234a0a1",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.form_impact",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "92f27fe8fbeb977544611e7b1008d1e018ae3279262bfbaceff45d46610bed25",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.movement_maximum",
+            "language": "sql",
+            "whole_statement_sha256": "63e7ef90427d08fb199b3a932c9df79d7e08ecd6cb6599340325321adab2f2b7",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "clan_akimichi_private.partial_meta",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "7476d1e84784da8ff3f900b0eca58a1a04a7ac4d24a3e1b58694d003c41a491d",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_akimichi_private.set_form",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "b6a55a9c8fa5fca34c9c7783e5b9812719f7f1ac111ee454390f66a9886de398",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_sabaku_private.armor_absorb",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "6ab8e2a6c278ae3dbc38916987a924d468b980c58eb4704d2d6b75176ac9bc16",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_sabaku_private.armor_narrative_round",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "c0bf2db030784efcc7b2d81de04bfc16117b953e1c726320327757783a0bc7e8",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_sabaku_private.armor_round_facts",
+            "language": "sql",
+            "whole_statement_sha256": "bb3b4b4f534b4a1a2e356f538dc4295035bac8ae63ac2d2471aef0244ba61d6a",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "combat_consumer_private.after_publish",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "08262dd88e7260a6fff34705653f0376abbe1e9b47d480ae580be4c5b8df4c8c",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_consumer_private.commit_exchange",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "ae9127a6d2a829275e13476a917a1c92bf8f010ea7cbacf02530816d0f96b4a6",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_consumer_private.narrative_context",
+            "language": "plpgsql",
+            "rowtype_substitutions": 9,
+            "whole_statement_sha256": "28b45ab3c35ac2f5755cb4d39ca842bcca3e4194c2b5af7f459e6204df10e90c",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_consumer_private.narrative_declaration_supported",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "d41056ea32dba648d02c4f59d90465b6edbb73b025267d7fb8c8926f2aed6e64",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_consumer_private.validate_narrative_result",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "eca60970c822df7d97d2b7eca5e7f92453f5ac5166645da0475f42c4018c561f",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_effects_private.lifecycle_actor_end",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "c9b55bf7334360ff3fd8fa612deb6b5c7717cc48a520f4feede79bf5b0622217",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_effects_private.lifecycle_open",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "833ced063a6363a51ceee714d8424b5aa83fa1d4532786d6e3e14fd5b442081e",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_effects_private.lifecycle_session_end",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "fd06bce0a68e6c9e750ab48b13a19cd5afed914a9bca6df837b9cf1edc6e5a3a",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_effects_private.personal_turn_end",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "9d823f22c858c87a6a90f2fb3d95cb8d5c33ceff3d893120cc18b8718ae0afc6",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.catalog_result_label_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "7643553e4181c2b66ae7e548d28fddbcdbd83b6d5e24823e55f5d0657e12f7fa",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.consumer_commit_authoritative",
+            "language": "plpgsql",
+            "rowtype_substitutions": 4,
+            "whole_statement_sha256": "5757f762303f1d2798cccf84e1d4adf1afd06d14bfece6333406c4ea0f3b73cd",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.master_admin_offers",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "e7b76d9f27677d5c9a21e94ed5452a1a23427eacbd912d2a88bab73e29042870",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.master_options",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "f31f420ccfed9be47e8fcb225636713e69ceae76b9114707c2d53878158f5919",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.nara_shadow_level_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "d19394493cb57c0f70fbc01ac7d6c42c5a6e34f2e05edf1fbd18fdefdff2d6f0",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.narrative_declaration_facts",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "069fb1b00b4ca98e162cda5a8869a46f63afa79621ec842d838f938e11fa73eb",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.narrative_ordinary_context",
+            "language": "plpgsql",
+            "rowtype_substitutions": 6,
+            "whole_statement_sha256": "9a5af0384c423cfeccfe038b914f0106f2e6956a36715645a4761c334bdffa19",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.ordinary_options",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "2b660ea7ed730d444d29a1f5ab707e4c0905bade63efffe3e9d1ddddc73677fd",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_spatial.movement_commit",
+            "language": "plpgsql",
+            "rowtype_substitutions": 5,
+            "whole_statement_sha256": "e2002382f3e8fbd5f44364870e813b461d8217282fd35274f2989a0af2cf4a0f",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_genjutsu_internal.ally_contact",
+            "language": "plpgsql",
+            "rowtype_substitutions": 5,
+            "whole_statement_sha256": "4995361ebc1c7ff9f2d77b5785daedbd47c2f622bbdfb6002521a0cbc3fdf815",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_genjutsu_internal.master_options",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "506f3c273f23e430cfc9b12f13f646613fb9c76c7f7d09ac33b7a2e71ef1edb1",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_genjutsu_internal.release_intents",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "cc59328166ba73ca6d4beae112eb721e5b20b9006c6f10509efd0e19cce76d75",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_genjutsu_internal.release_meta",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "229c7f60935c7e6a4e198921edf9c38b7e37498165a914ae54173feef2d160b4",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_genjutsu_internal.resolve_release",
+            "language": "plpgsql",
+            "rowtype_substitutions": 4,
+            "whole_statement_sha256": "5d6fd536ad7a9b19144967e5e5ec2a77f776239352bf9cf5143b0434b6e23e4d",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_v2_genjutsu_internal.scope",
+            "language": "sql",
+            "whole_statement_sha256": "d9e9d5436c82b33cd28c0f045204c4332ac593fde2405f45e5f7914ef1466c44",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "combat_v2_multitarget_internal.resolve_parent",
+            "language": "plpgsql",
+            "rowtype_substitutions": 8,
+            "whole_statement_sha256": "1f0b97f87b8f06100eeb6129fb3ca8cc8b99dad64419d01ce5490844bb14a61b",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "mission_factory_owner.quest_combat_offer_source_guard_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 8,
+            "whole_statement_sha256": "24824e1af160cdad70ac3bc3937def151004834f4cadf33af67deeb1f6d95e4c",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "public._combat_calcola",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "0d4258eeac88e36557f099d80dee6f2270cc5bc4352394902de52e7eee894172",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "public.combat_consumer_narrative_claim_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 4,
+            "whole_statement_sha256": "7998b4b25f1323a47fb7e139a8d71007b66e32c359ad59f53f7bdbc878109c85",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "public.combat_consumer_narrative_complete_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "27a0034059a19bcf700c9d3c7d0092b2f653c4a3646776104aed12e5c077a9b8",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "public.combat_panel_commit_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 3,
+            "whole_statement_sha256": "352547c9dd9cf86f4e4be2e73c603021dca5006ce44c5cb40dc5beb471de5d4d",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "public.combat_v2_action_declare",
+            "language": "plpgsql",
+            "rowtype_substitutions": 4,
+            "whole_statement_sha256": "d94d27ac88917da71082d4474eed70d4eea16fc58f21879cabd8ff67871ccb30",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "public.combat_v2_actor_ability",
+            "language": "sql",
+            "whole_statement_sha256": "365b4dceac9a50101c2f6db9cf8c2f9e1d3fc187d97e809c505655a36038c3ae",
+            "parsed": "entire SQL body separately"
+          },
+          {
+            "name": "public.combat_v2_defense_declare",
+            "language": "plpgsql",
+            "rowtype_substitutions": 4,
+            "whole_statement_sha256": "076964d4bf47d5c0ba3c9f73e214e3a6ce1efd84bbfd8e9cb006238b4e509e37",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "public.combat_v2_round_resolve",
+            "language": "plpgsql",
+            "rowtype_substitutions": 8,
+            "whole_statement_sha256": "efab68430f51003b82cb27f4b03b291d200258bfe2f18e9044ed489dee610a27",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "public.master_v2_encounter_open_ninja_book_v1_human_ai_core",
+            "language": "plpgsql",
+            "rowtype_substitutions": 7,
+            "whole_statement_sha256": "903195bb8934a56e9cd357638b62712113d906ca8b63a20eb8e1a911d780f37f",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "combat_panel_private.publish_master_declaration",
+            "language": "plpgsql",
+            "rowtype_substitutions": 2,
+            "whole_statement_sha256": "3b546fd915ced1aafe62964893553661a133705106223b47338c45e9d986e872",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_innata_private.eligibility_release_assert",
+            "language": "plpgsql",
+            "rowtype_substitutions": 0,
+            "whole_statement_sha256": "cca2181d5865c7b72f3c430d851de5ce2cfa4558a4e0121fc57ac06af55cd544",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "clan_innata_private.catalogo_eligibility_release_v1",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "715a48958a5bb7d1d8d14b13e97197d9a30cb4ee6cc9126a6197837cf112ad6a",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "DO",
+            "language": "plpgsql",
+            "rowtype_substitutions": 4,
+            "whole_statement_sha256": "039696436e2595288b15cde575232c1147b91e97b6dcc44411ed82dfc6aba262",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          }
+        ]
+      },
+      {
+        "file": "JOINT_CATALOG_RECOVERY.sql",
+        "sha256": "e3b11038d72241980fbe7265426819e90e06abfdba3b74cbb41924754d57b1e4",
+        "bytes": 77587,
+        "top_level_statements": 7,
+        "function_and_DO_units": 2,
+        "PLpgSQL_units": 2,
+        "SQL_body_units": 0,
+        "units": [
+          {
+            "name": "DO",
+            "language": "plpgsql",
+            "rowtype_substitutions": 1,
+            "whole_statement_sha256": "d40ec713875681016342194136630e5059386cc3fb69431bd1d41c45ee9ea7dc",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          },
+          {
+            "name": "DO",
+            "language": "plpgsql",
+            "rowtype_substitutions": 4,
+            "whole_statement_sha256": "41b1e36e588f3d5dbcbfbfece4bd2dc7ca4cc523d5c0741618ff50d3c1acf5bf",
+            "parsed": "entire PLpgSQL statement with ROWTYPE declaration normalization only"
+          }
+        ]
+      }
+    ]
+  },
+  "N_pg_sha256": "b025b5bfcc8a23f4c1ba9cb810fafb18ece73573d93274cf256fd47c99eae1b0",
+  "root_capacity": {
+    "independent_reproduction": {
+      "source": 523530,
+      "recovery": 523530
+    },
+    "cap": 524288,
+    "margin": 758,
+    "ref_JSON_payload_max_bytes": 40,
+    "Edge_version_max": 2147483647,
+    "aliases": [
+      [
+        "db_core",
+        "all_function_headers",
+        "228"
+      ],
+      [
+        "db_core",
+        "all_function_headers",
+        "235"
+      ],
+      [
+        "db_core",
+        "combat_innata_functions",
+        "21220"
+      ],
+      [
+        "db_core",
+        "combat_innata_functions",
+        "31331"
+      ],
+      [
+        "db_core",
+        "combat_innata_functions",
+        "35323"
+      ],
+      [
+        "db_core",
+        "combat_innata_functions",
+        "39291"
+      ],
+      [
+        "db_core",
+        "combat_innata_functions",
+        "41419"
+      ]
+    ],
+    "qualification": "Width-only capacity projection, not actual future Root/receipt/hash or install qualification"
+  },
+  "baseline_evidence": {
+    "capture_at": "2026-11-20T03:27:16.027898+00:00",
+    "root": {
+      "bytes": 523079,
+      "sha256": "df85a212a00f218f6ba8435a267b012d382584bd9e23afbe0abb21f911f2d53b",
+      "db_sha256": "fc94cfacc9c8b446f14ef441787fba8af731ba34df5bc932c153c0b8feee3c21",
+      "row_sha256": "18619d4dc2be7f0513e9376ff922566d57d4dd41dc2de643d0db63cff4a02ab7"
+    },
+    "functions_current56_with_attributes_compared": true,
+    "reviewer_new_DB_read": false,
+    "meaning": "Captured fresh authoritative metadata plus actual DDL before hashes, not mutation or postinstall proof; later preflight remains required."
+  },
+  "finding_dispositions_component": {
+    "NB-I-R0-01": "CLOSED_SOURCE_COMPOSITION_ONLY: exact separate PNGfrozen sameTX acknowledgment; fullpublisher inverse proves installedPG2 branch retained. Runtime NOT_RUN.",
+    "ABU-I-P1-001": "CLOSED_SOURCE_COMPOSITION_ONLY: p_next periodic terminal native report/ordinary barrier includes Verme+Nara and lifecycle/ledger/form endings; oldHoki Verme reclose removed. Runtime NOT_RUN.",
+    "JOINT-EDGE-R0-01": "CLOSED_STATIC as EdgeR1 94c3…; exact corrected files bound in Audit and Source. R0 preserved, no fixture or runtime.",
+    "AKI-I-R0-01": "Remains closed in component; new JOINT consumer contradicts correct73SD/2INVOKER again, captured as JOINT-R0-01, not alteration of component verdict.",
+    "Nara_historical_findings": "AGG2/R2 source evidence and full histories preserved; no reset or runtime attribution."
+  },
+  "history_custody": [
+    {
+      "name": "NB_INTEGRATED_REVIEW.json",
+      "sha256": "6297122d498fed07cf7374e061e76eaf38b5b8129eccd7a6e9a34bc80975b253",
+      "counts": {
+        "P0": 0,
+        "P1": 1,
+        "P2": 0
+      },
+      "revision": "R0",
+      "state": "BLOCKED_KNOWN_PUBLISHER_DEPENDENCY_STALE_FOR_ENTRY_SOURCE_ONLY",
+      "entire_raw_custody": "JOINT_CATALOG_AUDIT.json#raw_components",
+      "entire_custody_verified": true
+    },
+    {
+      "name": "ABURAME_INTEGRATED_REVIEW.json",
+      "sha256": "18bc68d9d53ae57c8be592a6549d1dc04d39c43a3149d29aa48661df9b5c5d9a",
+      "counts": {
+        "P0": 0,
+        "P1": 1,
+        "P2": 0
+      },
+      "revision": null,
+      "state": "FAIL_STATIC_COMPONENT_COMPOSITION",
+      "entire_raw_custody": "JOINT_CATALOG_AUDIT.json#raw_components",
+      "entire_custody_verified": true
+    },
+    {
+      "name": "AKIMICHI_INTEGRATED_REVIEW.json",
+      "sha256": "f5f26c1a9f1ec554bea4ea2399146adde8fbea0ff04db4001ae1fa1ad057169c",
+      "counts": {
+        "P0": 0,
+        "P1": 0,
+        "P2": 0
+      },
+      "revision": "R1",
+      "state": "GREEN_AGG1_STATIC_COMPONENT_ONLY_STALE_FOR_ENTRY_RECOMPOSITION_REQUIRED",
+      "entire_raw_custody": "JOINT_CATALOG_AUDIT.json#raw_components",
+      "entire_custody_verified": true
+    },
+    {
+      "name": "NARA_ADV_REVIEW.json",
+      "sha256": "7b6e90b8ef04551754c577b5cd9508999988145b2e680a7af519c5567d4c0b3e",
+      "counts": {
+        "P0": 0,
+        "P1": 0,
+        "P2": 0
+      },
+      "revision": {
+        "initial_independent_reviews": 1,
+        "aggregate_corrections": 2,
+        "counterreviews_after_aggregate": 2,
+        "current_counterreview": "R2_COMPLETED_STATIC",
+        "counts_reset": false
+      },
+      "state": "SOURCE_COMPONENT_REVIEWED_STATIC_0_0_0",
+      "entire_raw_custody": "JOINT_CATALOG_AUDIT.json#raw_components",
+      "entire_custody_verified": true
+    },
+    {
+      "name": "JOINT_EDGE_PROVISIONAL_REVIEW.json",
+      "sha256": "05a302b383ddcd9dc931e997d46bc0aa015fe17d212623534ffe9b7846eeafad",
+      "counts": {
+        "P0": 0,
+        "P1": 1,
+        "P2": 0
+      },
+      "revision": null,
+      "state": "R0_AGGREGATO_PROVVISORIO_EDGE_ONLY_BLOCKED",
+      "entire_raw_custody": "JOINT_CATALOG_AUDIT.json#raw_components",
+      "entire_custody_verified": true
+    },
+    {
+      "name": "JOINT_EDGE_PROVISIONAL_REVIEW_R1.json",
+      "sha256": "94c3b794576a2a3ff28a2a9edd4567da55635d2471e15a25c366e028a097149d",
+      "counts": {
+        "P0": 0,
+        "P1": 0,
+        "P2": 0
+      },
+      "revision": "R1_AGG1",
+      "state": "P1_CLOSED_STATIC_EDGE_ONLY_NOT_JOINT_FINAL",
+      "entire_raw_custody": "JOINT_CATALOG_AUDIT.json#raw_components",
+      "entire_custody_verified": true
+    }
+  ],
+  "custody_summary": {
+    "raw_components": 32,
+    "reproduction_scripts": 6,
+    "every_UTF8_SHA_and_byte_count_verified": true,
+    "no_history_overwritten": true
+  },
+  "Edge_boundary": {
+    "facts_sha256": "7c261e6fee5b1f608bb8bf4caccbf28e7f409eadd9e866165bbf65f27b9d411a",
+    "bundle_artifact_sha256": "f5efe5a198fa6bb6e23e63fbbc474ecb1eefab4a1b6261134a27956c2d98af6b",
+    "bundle_content_sha256": "5ced8545d74d3aee24de041f6664bc33940d30658095e38d4b4f613ba069b5c5",
+    "18files_17unchanged": true,
+    "provisional_Edge_R1_sha256": "94c3b794576a2a3ff28a2a9edd4567da55635d2471e15a25c366e028a097149d",
+    "future_EZBR": "UNKNOWN_NOT_DEPLOYED",
+    "actual_deployment_receipt": "NOT_RUN",
+    "PG2_and_oldfacts1_2": "Preserved statically; no replays of previously passed Staff cases required"
+  },
+  "Human_compatibility_limit": {
+    "state": "PREEXISTING_NOT_NEW_NB_REGRESSION",
+    "facts": "NB commit_roster routes the explicitly approved Staff receipt into private native_construct, with native event/tuple/currentpointer/provider/actor/policy checks. Existing public human_ai_core prefix/c395/c407 and Quest branch remain preserved. The closed112 Humancompat graph divergence was already present before NB; current StaffHuman Palmo/Paralisi succeeded through their actual ports. This review does not repin historical attestations, remove guards or qualify the broader public Human route.",
+    "proof": "NB componentR0 full custody plus final commit/nativeconstruct/offertrigger code, original metadata"
+  },
+  "qualification_boundaries": {
+    "current_JOINT_global_qualification": false,
+    "Entry_qualified": false,
+    "installable": false,
+    "runtime_qualified": false,
+    "public_open": false,
+    "scope": "Reserved Staff profiles only; remaining family techniques/weaponcollisionfall/cleanse/multiactor/public/AIzero-decl not newly qualified",
+    "P": "Only reviewed actual N+review+official Edge receipt; separate Entry inverse review required. RecoveryP captures actual installed Root/row/bytes/DB/admissions later.",
+    "QA": "Canonical five scenes/29main/45min plan and one residual generation remain unchanged. RNG/expiry/unrepresentable KO are NOT_RUN dependencies, no retry or HP/stock/initiative edits. Existing PG2/scadenza/movimento PASS preserved, new Contesa is baseline evidence only, not JOINT QA."
+  },
+  "operations": {
+    "DB_reads": 0,
+    "DB_mutations": 0,
+    "provider_calls": 0,
+    "gameplay": 0,
+    "browser": 0,
+    "Git": 0,
+    "local_DB": false,
+    "fixtures": false,
+    "source_changes": 0,
+    "only_canonical_outputs": "JOINT_CATALOG_REVIEW.json/md via task_guard"
+  },
+  "next": "Owner fixes JOINT-R0-01 in one aggregate, genuinely recomposes affected helper/peer/compat/aliases/SourceB/templates/Audit, freezes and requests pertinent counterreview. No apply or deployment of this red integrated Source; no pin-only or SD-attribute workaround.",
+  "TEMP_evidence": [
+    {
+      "path": "/private/tmp/tus-joint-independent-review-20261120.obtdpg6s/spec.json",
+      "sha256": "db89fc701f3373688a851201f6bb77564917fc5985c611af8d3f0f456171fe49",
+      "bytes": 1820
+    },
+    {
+      "path": "/private/tmp/tus-joint-independent-review-20261120.obtdpg6s/parse_independent.py",
+      "sha256": "bb07b67ff3a0ba4a89e522fcf1f566a077721d4db1f70366c66e60e562a72004",
+      "bytes": 2368
+    },
+    {
+      "path": "/private/tmp/tus-joint-independent-review-20261120.obtdpg6s/grammar.independent.json",
+      "sha256": "71e68aa28cfb39114a6f006046a2d5d257aaa92838c926ae96eed6ddce1b4c16",
+      "bytes": 46296
+    },
+    {
+      "path": "/private/tmp/tus-joint-independent-review-20261120.obtdpg6s/verify_independent.py",
+      "sha256": "8ee18cca5272e3c9fd9b064f300fe8bc98adb0c0ec0af2e30a846d31a0a97cbe",
+      "bytes": 20470
+    },
+    {
+      "path": "/private/tmp/tus-joint-independent-review-20261120.obtdpg6s/static.independent.json",
+      "sha256": "dcc9722bd873dfde952097b9a9448d42f3877aece43d35d622d30cdce6fd97ea",
+      "bytes": 96619
+    },
+    {
+      "path": "/private/tmp/tus-joint-independent-review-20261120.obtdpg6s/P1_PRIVATE_AUTHORITY_PROOF.json",
+      "sha256": "2ce5c710926d88e4a24b35f279725518b721a7bfb19f9e4d6f5a43fa6d1aea54",
+      "bytes": 12503
+    },
+    {
+      "path": "/private/tmp/tus-joint-independent-review-20261120.obtdpg6s/finalize_review.py",
+      "sha256": "dcbbef0cd7bdc5672b1a216a51cebca93a51e0dc00df013bee044a5ab9061840",
+      "bytes": 11330
+    }
+  ]
+}

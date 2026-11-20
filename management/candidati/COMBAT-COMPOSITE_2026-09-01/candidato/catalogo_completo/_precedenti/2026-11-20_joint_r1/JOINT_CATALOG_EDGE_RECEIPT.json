@@ -1,0 +1,2255 @@
+{
+  "schema_version": "joint-catalog-edge-receipt/1",
+  "state": "PREDEPLOY_BLOCKED_SCHEMA_DEPARSE_CONTEXT",
+  "task": "COMBAT-CATALOGO-JOINT-EDGE-DEPLOY-20261120",
+  "SourceB": "3825411b3c8ff13682d6efb1bcc9c7a41fb3463958673c89c73e2267e376414d",
+  "Source_review": "JOINT_CATALOG_REVIEW.json#R1",
+  "Source_review_sha256": "4857d4602b1f39c0a9ec690e54d0a87b5a1d6a2831cdf1aed054553849a9069f",
+  "finding": {
+    "id": "PF-JOINT-01",
+    "severity": "P1",
+    "problem": "Before schema captured under default public search_path, but Source installer runs with empty search_path; pg_get_constraintdef/pg_get_triggerdef add public qualifiers and generate a false baseline drift rejection before DDL.",
+    "default_sha256": "2fac9d7ca1f00805bfdc6ac24cd195e3894049d63dce5d9d6c8771c64c86a4bc",
+    "installer_context_sha256": "01bf2c232484ea66a05b7186b0a6ab17fd19d43df02f30b373d4d8b429a584a2",
+    "differences": [
+      {
+        "path": "/tables/1/triggers/0",
+        "default": "CREATE TRIGGER master_v2_nb_actor_offers_v1_no_delete BEFORE DELETE ON public.master_v2_nb_actor_offers_v1 FOR EACH ROW EXECUTE FUNCTION master_v2_nb_no_delete_v1()",
+        "installer": "CREATE TRIGGER master_v2_nb_actor_offers_v1_no_delete BEFORE DELETE ON public.master_v2_nb_actor_offers_v1 FOR EACH ROW EXECUTE FUNCTION public.master_v2_nb_no_delete_v1()"
+      },
+      {
+        "path": "/tables/1/constraints/2/definition",
+        "default": "FOREIGN KEY (consumed_event_id) REFERENCES combat_v2_events(id) ON DELETE RESTRICT",
+        "installer": "FOREIGN KEY (consumed_event_id) REFERENCES public.combat_v2_events(id) ON DELETE RESTRICT"
+      },
+      {
+        "path": "/tables/1/constraints/4/definition",
+        "default": "FOREIGN KEY (created_by) REFERENCES profiles(id) ON DELETE RESTRICT",
+        "installer": "FOREIGN KEY (created_by) REFERENCES public.profiles(id) ON DELETE RESTRICT"
+      },
+      {
+        "path": "/tables/1/constraints/15/definition",
+        "default": "FOREIGN KEY (master_session_id, mission_id) REFERENCES master_v2_sessions(id, mission_id) ON DELETE RESTRICT",
+        "installer": "FOREIGN KEY (master_session_id, mission_id) REFERENCES public.master_v2_sessions(id, mission_id) ON DELETE RESTRICT"
+      },
+      {
+        "path": "/tables/1/constraints/16/definition",
+        "default": "FOREIGN KEY (mechanical_version_id, mechanical_template_id) REFERENCES nb_mechanical_versions(id, template_id) ON DELETE RESTRICT",
+        "installer": "FOREIGN KEY (mechanical_version_id, mechanical_template_id) REFERENCES public.nb_mechanical_versions(id, template_id) ON DELETE RESTRICT"
+      },
+      {
+        "path": "/tables/1/constraints/17/definition",
+        "default": "FOREIGN KEY (narrative_version_id, narrative_template_id) REFERENCES nb_template_versions(id, template_id) ON DELETE RESTRICT",
+        "installer": "FOREIGN KEY (narrative_version_id, narrative_template_id) REFERENCES public.nb_template_versions(id, template_id) ON DELETE RESTRICT"
+      },
+      {
+        "path": "/tables/1/constraints/20/definition",
+        "default": "FOREIGN KEY (recipient_user) REFERENCES profiles(id) ON DELETE RESTRICT",
+        "installer": "FOREIGN KEY (recipient_user) REFERENCES public.profiles(id) ON DELETE RESTRICT"
+      }
+    ],
+    "objects_changed": false,
+    "expected_action": "Regenerate authoritative captures/producer/comparators with one explicit canonical deparse context, preserve all protections and exact semantic objects, review corrected composition."
+  },
+  "preflight_root": {
+    "observed_at": "2026-11-20 03:49:25.061541+00",
+    "revision_sha256": "df85a212a00f218f6ba8435a267b012d382584bd9e23afbe0abb21f911f2d53b",
+    "observed_revision_sha256": "df85a212a00f218f6ba8435a267b012d382584bd9e23afbe0abb21f911f2d53b",
+    "root_row_sha256": "18619d4dc2be7f0513e9376ff922566d57d4dd41dc2de643d0db63cff4a02ab7",
+    "root_bytes": 523079,
+    "db_sha256": "fc94cfacc9c8b446f14ef441787fba8af731ba34df5bc932c153c0b8feee3c21",
+    "config_sha256": "9636dbf9f3cfd17d32bbd3382bdcb7d98aa4d3f232e21fd81cf6cf2084ae2006",
+    "code_identity_sha256": "5a02b7316d9a2861bc73ae8c9c7c2b6cdb3db09667e700585ce3411778c272eb",
+    "peer6_sha256": "b0d8eb653120c5fca28c4de81bbce61b0275da88f78bddff0eec768a837a0d02",
+    "peer_valid": true,
+    "open_combat": 0,
+    "open_master": 0,
+    "cure_gate": {
+      "singleton": true,
+      "staff_enabled": true,
+      "public_enabled": false,
+      "contract_version": "palmo-curativo/1"
+    },
+    "genjutsu_gate": {
+      "enabled": true,
+      "version": 1,
+      "singleton": true,
+      "staff_enabled": true,
+      "public_enabled": false
+    },
+    "content_rows": 2,
+    "content_rows_sha256": "5bf0af54893c7f841f644d507931b8f09f3f101172eb872059ff59c202794242",
+    "mission_qualified": true,
+    "owning": [
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=pg_catalog, public, clan_innata_private"
+        ],
+        "secdef": true,
+        "signature": "clan_innata_private.eligibility_release_assert()",
+        "ddl_sha256": "680a47c514ab2255937d259a2fb0ecc8fd1b098670089d595b531839a23e33f9",
+        "source_md5": "ef199a674937b3bc4f9dbd49f35bf9b2"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "secdef": true,
+        "signature": "combat_panel_private.master_projection(uuid,uuid)",
+        "ddl_sha256": "da26a20b86b168b4769b851405794371ddbe54095c1e8c775859c0b1c155cd0b",
+        "source_md5": "271ea56acb5f135ad6e3d24d8601e3b1"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "secdef": true,
+        "signature": "combat_panel_private.publish_master_declaration(uuid,text)",
+        "ddl_sha256": "93726ac57b6b0a6b60602dac04da8e23afb276b6ae6c1b9658dd782b9a6ccda4",
+        "source_md5": "6c89288503ac54271d47e8f81b131393"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "secdef": true,
+        "signature": "combat_panel_private.round_options_authoritative(uuid,uuid)",
+        "ddl_sha256": "22bd8c8faf60ba44a644bf9ccd0f69ab8a5715383c79ff6014509dfd02290554",
+        "source_md5": "7cf9d8be18c9dab5f75b62c74a5e9e37"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "secdef": true,
+        "signature": "combat_v2_elemental_internal.other_ability_meta(uuid,jsonb)",
+        "ddl_sha256": "15fab8ec94575b4a0e163cfbdcc46272b02d47d772daa262de5483a43b18f5ac",
+        "source_md5": "aa3d6fe2cb785a3a132a7b281bdab70a"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "secdef": true,
+        "signature": "combat_panel_private.cure_contact_v1(uuid,uuid)",
+        "ddl_sha256": "0d5ef7dfd803fadfc2ec38aa4285467cd95f83bb613e6c0b6a0dde650d571f00",
+        "source_md5": "21de7dd5e62b5403b50065d2635e20bf"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "secdef": true,
+        "signature": "clan_innata_private.catalogo_eligibility_release_v1()",
+        "ddl_sha256": "72141f00f7b6c79aacf634334290e92debbcc3a5bd77365c55dc4ef3a82ea5f6",
+        "source_md5": "e52a8ac90fb15cad425cd0d17c9b4d4b"
+      }
+    ]
+  },
+  "preflight_functions": {
+    "at": "2026-11-20T03:49:24.486991+00:00",
+    "functions": [
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_aburame_private.actor_ability(uuid,text,uuid,boolean,jsonb)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_aburame_private.attack_power_source(uuid,uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_aburame_private.commit_control(jsonb,jsonb,combat_consumer_private.activities,combat_consumer_private.offers,uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_aburame_private.commit_master_stop(jsonb)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_aburame_private.consumer_options(jsonb)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_aburame_private.master_offers(uuid,bigint,jsonb)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_akimichi_private.apply_calorie_event(uuid,uuid,boolean,uuid,text,integer,integer,uuid,timestamp with time zone)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_akimichi_private.begin_personal_turn(uuid,uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_akimichi_private.bind_partial(uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_akimichi_private.end_form(uuid,uuid,text)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_akimichi_private.form_change_offer(uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_akimichi_private.form_impact(uuid,uuid,uuid,text,text,text,jsonb)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_akimichi_private.movement_maximum(uuid,numeric)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_akimichi_private.partial_meta(uuid,jsonb)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_akimichi_private.set_form(uuid,uuid,boolean)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_innata_private.catalogo_eligibility_release_v1()",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_innata_private.eligibility_release_assert()",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_sabaku_private.armor_absorb(uuid,integer)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_sabaku_private.armor_narrative_round(uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "clan_sabaku_private.armor_round_facts(uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_consumer_private.after_publish(uuid,uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_consumer_private.commit_exchange(jsonb,jsonb)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_consumer_private.narrative_context(uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_consumer_private.narrative_declaration_supported(uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_consumer_private.validate_narrative_result(jsonb)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_effects_private.lifecycle_actor_end(uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_effects_private.lifecycle_open(uuid,uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_effects_private.lifecycle_session_end(uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_effects_private.personal_turn_end(uuid,uuid,uuid,text)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_panel_private.catalog_result_label_v1(jsonb)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_panel_private.consumer_commit_authoritative(jsonb)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_panel_private.master_admin_offers(uuid,bigint,jsonb)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_panel_private.master_options(uuid,uuid,bigint)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_panel_private.nara_shadow_level_v1(uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_panel_private.narrative_declaration_facts(uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_panel_private.narrative_ordinary_context(uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_panel_private.ordinary_options(uuid,uuid,bigint)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_panel_private.publish_master_declaration(uuid,text)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_spatial.movement_commit(uuid,uuid,uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_v2_genjutsu_internal.ally_contact(uuid,uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_v2_genjutsu_internal.master_options(uuid,bigint)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_v2_genjutsu_internal.release_intents(uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_v2_genjutsu_internal.release_meta(uuid,uuid,uuid,jsonb)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_v2_genjutsu_internal.resolve_release(uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_v2_genjutsu_internal.scope(uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "combat_v2_multitarget_internal.resolve_parent(uuid,uuid,uuid,boolean)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "mission_factory_owner.quest_combat_offer_source_guard_v1()",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "public._combat_calcola(text,jsonb,jsonb,text,text,integer,text,integer,integer,integer,integer,boolean)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "public.combat_consumer_narrative_claim_v1(uuid,text,uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "public.combat_consumer_narrative_complete_v1(uuid,jsonb,uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "public.combat_panel_commit_v1(jsonb)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "public.combat_v2_action_declare(uuid,uuid,jsonb,text,uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "public.combat_v2_actor_ability(uuid,text,uuid,boolean)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "public.combat_v2_defense_declare(uuid,uuid,uuid,jsonb,text,uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "public.combat_v2_round_resolve(uuid,uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      },
+      {
+        "exists": true,
+        "acl_match": true,
+        "ddl_match": true,
+        "oid_match": true,
+        "signature": "public.master_v2_encounter_open_ninja_book_v1_human_ai_core(uuid,uuid[],jsonb,jsonb,uuid)",
+        "owner_match": true,
+        "config_match": true,
+        "secdef_match": true,
+        "source_match": true
+      }
+    ],
+    "new75_present": 0,
+    "schema_before_sha256": "01bf2c232484ea66a05b7186b0a6ab17fd19d43df02f30b373d4d8b429a584a2"
+  },
+  "schema_default": {
+    "tables": [
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "rls": true,
+        "name": "forms",
+        "owner": "postgres",
+        "schema": "clan_akimichi_private",
+        "columns": [
+          {
+            "name": "actor_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "session_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "activation_turn",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "last_paid_turn",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "activation_event",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "mass",
+            "type": "integer",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "resilience",
+            "type": "integer",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "active",
+            "type": "boolean",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "ended_reason",
+            "type": "text",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          }
+        ],
+        "indexes": [
+          {
+            "live": true,
+            "name": "akimichi_active_forms_by_session",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX akimichi_active_forms_by_session ON clan_akimichi_private.forms USING btree (session_id, actor_id) WHERE active"
+          },
+          {
+            "live": true,
+            "name": "forms_pkey",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE UNIQUE INDEX forms_pkey ON clan_akimichi_private.forms USING btree (actor_id)"
+          }
+        ],
+        "policies": [],
+        "triggers": [],
+        "force_rls": true,
+        "constraints": [
+          {
+            "name": "forms_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((active = (ended_reason IS NULL)))"
+          },
+          {
+            "name": "forms_mass_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((mass >= 0))"
+          },
+          {
+            "name": "forms_pkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "PRIMARY KEY (actor_id)"
+          },
+          {
+            "name": "forms_resilience_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((resilience >= 0))"
+          }
+        ]
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "rls": true,
+        "name": "master_v2_nb_actor_offers_v1",
+        "owner": "postgres",
+        "schema": "public",
+        "columns": [
+          {
+            "name": "offer_ref",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "schema_version",
+            "type": "text",
+            "default": "'master-v2-nb-offer/1.0'::text",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "master_session_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "mission_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "recipient_user",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "narrative_template_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "narrative_version_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "mechanical_template_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "mechanical_version_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_master_control_version",
+            "type": "bigint",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_narrative_template_control_version",
+            "type": "bigint",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_narrative_version_control_version",
+            "type": "bigint",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_binding_control_version",
+            "type": "bigint",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_mechanical_template_control_version",
+            "type": "bigint",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_mechanical_version_control_version",
+            "type": "bigint",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_narrative_sha256",
+            "type": "text",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_mechanical_sha256",
+            "type": "text",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "lifecycle_state",
+            "type": "text",
+            "default": "'offerta'::text",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "control_version",
+            "type": "bigint",
+            "default": "1",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expires_at",
+            "type": "timestamp with time zone",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "consumed_event_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "consumed_at",
+            "type": "timestamp with time zone",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "clock_timestamp()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "clock_timestamp()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "recipient_kind",
+            "type": "text",
+            "default": "'human'::text",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "recipient_service_capability",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "created_by_service_capability",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "source_kind",
+            "type": "text",
+            "default": "'mission'::text",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "quest_episode_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "quest_source_sha256",
+            "type": "text",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          }
+        ],
+        "indexes": [
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_consumed_event_idx",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX master_v2_nb_actor_offers_v1_consumed_event_idx ON public.master_v2_nb_actor_offers_v1 USING btree (consumed_event_id) WHERE (consumed_event_id IS NOT NULL)"
+          },
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_creator_idx",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX master_v2_nb_actor_offers_v1_creator_idx ON public.master_v2_nb_actor_offers_v1 USING btree (created_by)"
+          },
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_mechanical_idx",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX master_v2_nb_actor_offers_v1_mechanical_idx ON public.master_v2_nb_actor_offers_v1 USING btree (mechanical_version_id, mechanical_template_id)"
+          },
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_narrative_idx",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX master_v2_nb_actor_offers_v1_narrative_idx ON public.master_v2_nb_actor_offers_v1 USING btree (narrative_version_id, narrative_template_id)"
+          },
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_pkey",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE UNIQUE INDEX master_v2_nb_actor_offers_v1_pkey ON public.master_v2_nb_actor_offers_v1 USING btree (offer_ref)"
+          },
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_recipient_idx",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX master_v2_nb_actor_offers_v1_recipient_idx ON public.master_v2_nb_actor_offers_v1 USING btree (recipient_user)"
+          },
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_session_idx",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX master_v2_nb_actor_offers_v1_session_idx ON public.master_v2_nb_actor_offers_v1 USING btree (master_session_id, offer_ref)"
+          },
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_session_mission_idx",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX master_v2_nb_actor_offers_v1_session_mission_idx ON public.master_v2_nb_actor_offers_v1 USING btree (master_session_id, mission_id)"
+          }
+        ],
+        "policies": [],
+        "triggers": [
+          "CREATE TRIGGER master_v2_nb_actor_offers_v1_no_delete BEFORE DELETE ON public.master_v2_nb_actor_offers_v1 FOR EACH ROW EXECUTE FUNCTION master_v2_nb_no_delete_v1()",
+          "CREATE TRIGGER master_v2_nb_quest_offer_source_guard BEFORE INSERT OR UPDATE ON public.master_v2_nb_actor_offers_v1 FOR EACH ROW EXECUTE FUNCTION mission_factory_owner.quest_combat_offer_source_guard_v1()"
+        ],
+        "force_rls": true,
+        "constraints": [
+          {
+            "name": "master_v2_nb_actor_offers_authority_chk",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((((recipient_kind = 'human'::text) AND (recipient_user IS NOT NULL) AND (created_by IS NOT NULL) AND (recipient_service_capability IS NULL) AND (created_by_service_capability IS NULL)) OR ((recipient_kind = 'ai_service'::text) AND (recipient_user IS NULL) AND (created_by IS NULL) AND (recipient_service_capability IS NOT NULL) AND (created_by_service_capability = recipient_service_capability))))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK (((lifecycle_state = 'consumata'::text) = ((consumed_event_id IS NOT NULL) AND (consumed_at IS NOT NULL))))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_consumed_event_id_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (consumed_event_id) REFERENCES combat_v2_events(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_control_version_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((control_version > 0))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_created_by_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (created_by) REFERENCES profiles(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_created_by_service_capability_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (created_by_service_capability) REFERENCES mission_ai_service_owner.capabilities(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_binding_control_ver_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_binding_control_version > 0))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_master_control_vers_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_master_control_version > 0))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_mechanical_sha256_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_mechanical_sha256 ~ '^[0-9a-f]{64}$'::text))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_mechanical_template_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_mechanical_template_control_version > 0))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_mechanical_version__check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_mechanical_version_control_version > 0))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_narrative_sha256_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_narrative_sha256 ~ '^[0-9a-f]{64}$'::text))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_narrative_template__check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_narrative_template_control_version > 0))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_narrative_version_c_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_narrative_version_control_version > 0))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_lifecycle_state_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((lifecycle_state = ANY (ARRAY['offerta'::text, 'consumata'::text, 'inattiva'::text, 'scaduta'::text])))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_master_session_id_mission_id_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (master_session_id, mission_id) REFERENCES master_v2_sessions(id, mission_id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_mechanical_version_id_mechani_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (mechanical_version_id, mechanical_template_id) REFERENCES nb_mechanical_versions(id, template_id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_narrative_version_id_narrativ_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (narrative_version_id, narrative_template_id) REFERENCES nb_template_versions(id, template_id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_pkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "PRIMARY KEY (offer_ref)"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_recipient_service_capability_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (recipient_service_capability) REFERENCES mission_ai_service_owner.capabilities(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_recipient_user_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (recipient_user) REFERENCES profiles(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_schema_version_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((schema_version = 'master-v2-nb-offer/1.0'::text))"
+          },
+          {
+            "name": "master_v2_nb_offer_quest_run_source_fk",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (master_session_id, quest_episode_id) REFERENCES mission_factory_owner.quest_run_sources(session_id, episode_id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_offer_source_identity_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((((source_kind = 'mission'::text) AND (mission_id IS NOT NULL) AND (quest_episode_id IS NULL) AND (quest_source_sha256 IS NULL)) OR ((source_kind = 'quest'::text) AND (mission_id IS NULL) AND (quest_episode_id IS NOT NULL) AND (quest_source_sha256 ~ '^[0-9a-f]{64}$'::text))))"
+          },
+          {
+            "name": "master_v2_nb_offer_source_kind_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((source_kind = ANY (ARRAY['mission'::text, 'quest'::text])))"
+          }
+        ]
+      }
+    ],
+    "catalog": [
+      {
+        "id": "0a15282f-d6b5-4ee3-ad52-7fac2525444d",
+        "sha256": "daa15e90ec69c7e0edd0768a3d3d9d835469e28a0f69e0d35ff5f685b7b3501b"
+      },
+      {
+        "id": "687b058a-807d-4cf7-8bcf-21147931b0f6",
+        "sha256": "034572022439f0fdd6be8f1c4aa45f579e8bb2abdbc7080ced858cbf72cb39f6"
+      },
+      {
+        "id": "f5f26cb5-9b6f-44b3-94bc-c329a0a88b93",
+        "sha256": "06b46beca8f5d11edd9e1eb6b7f048d105aaa9d1771e5f00600ff6e6bdb4f1fe"
+      }
+    ],
+    "NBtuples": {
+      "narrative": [
+        {
+          "id": "31da0000-0000-4000-8000-000000000211",
+          "template_id": "31da0000-0000-4000-8000-000000000201",
+          "content_sha256": "bf380e4f4d8232edd7ca0d920ede8dda530dcf7925e047b398d293d31406d1c0"
+        },
+        {
+          "id": "31da0000-0000-4000-8000-000000000212",
+          "template_id": "31da0000-0000-4000-8000-000000000202",
+          "content_sha256": "6a0347b3a79efdc871006efc054e020b76f6ab7def04d7e7aea1385b98ee0984"
+        }
+      ],
+      "mechanical": [
+        {
+          "id": "31da0000-0000-4000-8000-000000000111",
+          "template_id": "31da0000-0000-4000-8000-000000000101",
+          "content_sha256": "5581b06099e588b27361cdf75e0e6265475c330802f61034c6ad67ca3d381ad2"
+        },
+        {
+          "id": "31da0000-0000-4000-8000-000000000112",
+          "template_id": "31da0000-0000-4000-8000-000000000102",
+          "content_sha256": "bbe92ed1b3dd171c6498f1a1541ad6b391c80e015956ae748c1eeece17f99fac"
+        }
+      ]
+    },
+    "NBnamespace": null,
+    "new_triggers": null
+  },
+  "schema_installer_context": {
+    "tables": [
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "rls": true,
+        "name": "forms",
+        "owner": "postgres",
+        "schema": "clan_akimichi_private",
+        "columns": [
+          {
+            "name": "actor_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "session_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "activation_turn",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "last_paid_turn",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "activation_event",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "mass",
+            "type": "integer",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "resilience",
+            "type": "integer",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "active",
+            "type": "boolean",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "ended_reason",
+            "type": "text",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          }
+        ],
+        "indexes": [
+          {
+            "live": true,
+            "name": "akimichi_active_forms_by_session",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX akimichi_active_forms_by_session ON clan_akimichi_private.forms USING btree (session_id, actor_id) WHERE active"
+          },
+          {
+            "live": true,
+            "name": "forms_pkey",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE UNIQUE INDEX forms_pkey ON clan_akimichi_private.forms USING btree (actor_id)"
+          }
+        ],
+        "policies": [],
+        "triggers": [],
+        "force_rls": true,
+        "constraints": [
+          {
+            "name": "forms_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((active = (ended_reason IS NULL)))"
+          },
+          {
+            "name": "forms_mass_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((mass >= 0))"
+          },
+          {
+            "name": "forms_pkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "PRIMARY KEY (actor_id)"
+          },
+          {
+            "name": "forms_resilience_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((resilience >= 0))"
+          }
+        ]
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "rls": true,
+        "name": "master_v2_nb_actor_offers_v1",
+        "owner": "postgres",
+        "schema": "public",
+        "columns": [
+          {
+            "name": "offer_ref",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "schema_version",
+            "type": "text",
+            "default": "'master-v2-nb-offer/1.0'::text",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "master_session_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "mission_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "recipient_user",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "narrative_template_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "narrative_version_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "mechanical_template_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "mechanical_version_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_master_control_version",
+            "type": "bigint",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_narrative_template_control_version",
+            "type": "bigint",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_narrative_version_control_version",
+            "type": "bigint",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_binding_control_version",
+            "type": "bigint",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_mechanical_template_control_version",
+            "type": "bigint",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_mechanical_version_control_version",
+            "type": "bigint",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_narrative_sha256",
+            "type": "text",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expected_mechanical_sha256",
+            "type": "text",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "lifecycle_state",
+            "type": "text",
+            "default": "'offerta'::text",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "control_version",
+            "type": "bigint",
+            "default": "1",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "expires_at",
+            "type": "timestamp with time zone",
+            "default": null,
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "consumed_event_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "consumed_at",
+            "type": "timestamp with time zone",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "created_by",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "clock_timestamp()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "clock_timestamp()",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "recipient_kind",
+            "type": "text",
+            "default": "'human'::text",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "recipient_service_capability",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "created_by_service_capability",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "source_kind",
+            "type": "text",
+            "default": "'mission'::text",
+            "notnull": true,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "quest_episode_id",
+            "type": "uuid",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          },
+          {
+            "name": "quest_source_sha256",
+            "type": "text",
+            "default": null,
+            "notnull": false,
+            "identity": "",
+            "generated": ""
+          }
+        ],
+        "indexes": [
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_consumed_event_idx",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX master_v2_nb_actor_offers_v1_consumed_event_idx ON public.master_v2_nb_actor_offers_v1 USING btree (consumed_event_id) WHERE (consumed_event_id IS NOT NULL)"
+          },
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_creator_idx",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX master_v2_nb_actor_offers_v1_creator_idx ON public.master_v2_nb_actor_offers_v1 USING btree (created_by)"
+          },
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_mechanical_idx",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX master_v2_nb_actor_offers_v1_mechanical_idx ON public.master_v2_nb_actor_offers_v1 USING btree (mechanical_version_id, mechanical_template_id)"
+          },
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_narrative_idx",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX master_v2_nb_actor_offers_v1_narrative_idx ON public.master_v2_nb_actor_offers_v1 USING btree (narrative_version_id, narrative_template_id)"
+          },
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_pkey",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE UNIQUE INDEX master_v2_nb_actor_offers_v1_pkey ON public.master_v2_nb_actor_offers_v1 USING btree (offer_ref)"
+          },
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_recipient_idx",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX master_v2_nb_actor_offers_v1_recipient_idx ON public.master_v2_nb_actor_offers_v1 USING btree (recipient_user)"
+          },
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_session_idx",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX master_v2_nb_actor_offers_v1_session_idx ON public.master_v2_nb_actor_offers_v1 USING btree (master_session_id, offer_ref)"
+          },
+          {
+            "live": true,
+            "name": "master_v2_nb_actor_offers_v1_session_mission_idx",
+            "ready": true,
+            "valid": true,
+            "definition": "CREATE INDEX master_v2_nb_actor_offers_v1_session_mission_idx ON public.master_v2_nb_actor_offers_v1 USING btree (master_session_id, mission_id)"
+          }
+        ],
+        "policies": [],
+        "triggers": [
+          "CREATE TRIGGER master_v2_nb_actor_offers_v1_no_delete BEFORE DELETE ON public.master_v2_nb_actor_offers_v1 FOR EACH ROW EXECUTE FUNCTION public.master_v2_nb_no_delete_v1()",
+          "CREATE TRIGGER master_v2_nb_quest_offer_source_guard BEFORE INSERT OR UPDATE ON public.master_v2_nb_actor_offers_v1 FOR EACH ROW EXECUTE FUNCTION mission_factory_owner.quest_combat_offer_source_guard_v1()"
+        ],
+        "force_rls": true,
+        "constraints": [
+          {
+            "name": "master_v2_nb_actor_offers_authority_chk",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((((recipient_kind = 'human'::text) AND (recipient_user IS NOT NULL) AND (created_by IS NOT NULL) AND (recipient_service_capability IS NULL) AND (created_by_service_capability IS NULL)) OR ((recipient_kind = 'ai_service'::text) AND (recipient_user IS NULL) AND (created_by IS NULL) AND (recipient_service_capability IS NOT NULL) AND (created_by_service_capability = recipient_service_capability))))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK (((lifecycle_state = 'consumata'::text) = ((consumed_event_id IS NOT NULL) AND (consumed_at IS NOT NULL))))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_consumed_event_id_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (consumed_event_id) REFERENCES public.combat_v2_events(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_control_version_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((control_version > 0))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_created_by_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (created_by) REFERENCES public.profiles(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_created_by_service_capability_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (created_by_service_capability) REFERENCES mission_ai_service_owner.capabilities(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_binding_control_ver_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_binding_control_version > 0))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_master_control_vers_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_master_control_version > 0))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_mechanical_sha256_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_mechanical_sha256 ~ '^[0-9a-f]{64}$'::text))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_mechanical_template_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_mechanical_template_control_version > 0))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_mechanical_version__check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_mechanical_version_control_version > 0))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_narrative_sha256_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_narrative_sha256 ~ '^[0-9a-f]{64}$'::text))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_narrative_template__check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_narrative_template_control_version > 0))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_expected_narrative_version_c_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((expected_narrative_version_control_version > 0))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_lifecycle_state_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((lifecycle_state = ANY (ARRAY['offerta'::text, 'consumata'::text, 'inattiva'::text, 'scaduta'::text])))"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_master_session_id_mission_id_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (master_session_id, mission_id) REFERENCES public.master_v2_sessions(id, mission_id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_mechanical_version_id_mechani_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (mechanical_version_id, mechanical_template_id) REFERENCES public.nb_mechanical_versions(id, template_id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_narrative_version_id_narrativ_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (narrative_version_id, narrative_template_id) REFERENCES public.nb_template_versions(id, template_id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_pkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "PRIMARY KEY (offer_ref)"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_recipient_service_capability_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (recipient_service_capability) REFERENCES mission_ai_service_owner.capabilities(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_recipient_user_fkey",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (recipient_user) REFERENCES public.profiles(id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_actor_offers_v1_schema_version_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((schema_version = 'master-v2-nb-offer/1.0'::text))"
+          },
+          {
+            "name": "master_v2_nb_offer_quest_run_source_fk",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "FOREIGN KEY (master_session_id, quest_episode_id) REFERENCES mission_factory_owner.quest_run_sources(session_id, episode_id) ON DELETE RESTRICT"
+          },
+          {
+            "name": "master_v2_nb_offer_source_identity_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((((source_kind = 'mission'::text) AND (mission_id IS NOT NULL) AND (quest_episode_id IS NULL) AND (quest_source_sha256 IS NULL)) OR ((source_kind = 'quest'::text) AND (mission_id IS NULL) AND (quest_episode_id IS NOT NULL) AND (quest_source_sha256 ~ '^[0-9a-f]{64}$'::text))))"
+          },
+          {
+            "name": "master_v2_nb_offer_source_kind_check",
+            "deferred": false,
+            "validated": true,
+            "deferrable": false,
+            "definition": "CHECK ((source_kind = ANY (ARRAY['mission'::text, 'quest'::text])))"
+          }
+        ]
+      }
+    ],
+    "catalog": [
+      {
+        "id": "0a15282f-d6b5-4ee3-ad52-7fac2525444d",
+        "sha256": "daa15e90ec69c7e0edd0768a3d3d9d835469e28a0f69e0d35ff5f685b7b3501b"
+      },
+      {
+        "id": "687b058a-807d-4cf7-8bcf-21147931b0f6",
+        "sha256": "034572022439f0fdd6be8f1c4aa45f579e8bb2abdbc7080ced858cbf72cb39f6"
+      },
+      {
+        "id": "f5f26cb5-9b6f-44b3-94bc-c329a0a88b93",
+        "sha256": "06b46beca8f5d11edd9e1eb6b7f048d105aaa9d1771e5f00600ff6e6bdb4f1fe"
+      }
+    ],
+    "NBtuples": {
+      "narrative": [
+        {
+          "id": "31da0000-0000-4000-8000-000000000211",
+          "template_id": "31da0000-0000-4000-8000-000000000201",
+          "content_sha256": "bf380e4f4d8232edd7ca0d920ede8dda530dcf7925e047b398d293d31406d1c0"
+        },
+        {
+          "id": "31da0000-0000-4000-8000-000000000212",
+          "template_id": "31da0000-0000-4000-8000-000000000202",
+          "content_sha256": "6a0347b3a79efdc871006efc054e020b76f6ab7def04d7e7aea1385b98ee0984"
+        }
+      ],
+      "mechanical": [
+        {
+          "id": "31da0000-0000-4000-8000-000000000111",
+          "template_id": "31da0000-0000-4000-8000-000000000101",
+          "content_sha256": "5581b06099e588b27361cdf75e0e6265475c330802f61034c6ad67ca3d381ad2"
+        },
+        {
+          "id": "31da0000-0000-4000-8000-000000000112",
+          "template_id": "31da0000-0000-4000-8000-000000000102",
+          "content_sha256": "bbe92ed1b3dd171c6498f1a1541ad6b391c80e015956ae748c1eeece17f99fac"
+        }
+      ]
+    },
+    "NBnamespace": null,
+    "new_triggers": null
+  },
+  "official_before": {
+    "id": "ea3439d8-d08e-49dc-a8f4-f7b0e3dde700",
+    "slug": "combat_narratore_ai",
+    "name": "combat_narratore_ai",
+    "status": "ACTIVE",
+    "version": 45,
+    "created_at": 1785962857049,
+    "updated_at": 1794997040848,
+    "verify_jwt": false,
+    "import_map": false,
+    "entrypoint_path": "/tmp/user_fn_tyhyxkslteigibktluml_ea3439d8-d08e-49dc-a8f4-f7b0e3dde700_45/source/combat_narratore_ai/index.ts",
+    "ezbr_sha256": "79bdb113f0203e5b0578a1211fb43f1c5cfb6b3bb5585714b4d9b5475ce27a11",
+    "files": [
+      {
+        "name": "combat_narratore_ai/index.ts"
+      },
+      {
+        "name": "combat_narratore_ai/common.mjs"
+      },
+      {
+        "name": "combat_narratore_ai/recovery.ts"
+      },
+      {
+        "name": "combat_narratore_ai/runtime.ts"
+      },
+      {
+        "name": "combat_narratore_ai/lifecycle.mjs"
+      },
+      {
+        "name": "combat_narratore_ai/editorial.mjs"
+      },
+      {
+        "name": "combat_narratore_ai/flow.mjs"
+      },
+      {
+        "name": "combat_narratore_ai/scene.mjs"
+      },
+      {
+        "name": "combat_narratore_ai/facts.ts"
+      },
+      {
+        "name": "combat_narratore_ai/count.mjs"
+      },
+      {
+        "name": "combat_narratore_ai/user_test.mjs"
+      },
+      {
+        "name": "combat_narratore_ai/adattatore.ts"
+      },
+      {
+        "name": "combat_narratore_ai/ordinary.ts"
+      },
+      {
+        "name": "combat_narratore_ai/transport.ts"
+      },
+      {
+        "name": "combat_narratore_ai/rinuncia.ts"
+      },
+      {
+        "name": "combat_narratore_ai/diagnostics.ts"
+      },
+      {
+        "name": "combat_narratore_ai/orchestra.ts"
+      },
+      {
+        "name": "combat_narratore_ai/repertorio.json"
+      }
+    ]
+  },
+  "official_deploy_raw_utf8": null,
+  "official_after": null,
+  "edge_receipt": null,
+  "protected_before": [
+    {
+      "surface": "characters",
+      "count": 2,
+      "sha256": "7290eb89e7204af787eb35e44c51e52c23365a618c5ac30943c858d6cd83707b"
+    },
+    {
+      "surface": "character_inventory",
+      "count": 1,
+      "sha256": "f66addc16314866118319089b6ee55b225e613ea36bb05433346000ca417ebfc"
+    },
+    {
+      "surface": "character_abilities",
+      "count": 4,
+      "sha256": "dff20d0d7606039b73b3fe66ee388ed1cd337bc62e001bfa2d6b9c6dcb3c7225"
+    },
+    {
+      "surface": "character_jutsu",
+      "count": 16,
+      "sha256": "31e37f8745556adb91712ae1668a8c188775852a89f7382d5d57475ebd8e0b85"
+    },
+    {
+      "surface": "characters_without_regen_timestamps",
+      "count": 2,
+      "sha256": "d12e3ebbeae35cc810333ec08717309555cdbf7c93bf3684e739baaafec87e6b"
+    }
+  ],
+  "cases": {
+    "S1": "BLOCKED_SCHEMA_CANONICALIZATION",
+    "S2_deploy": "NOT_RUN",
+    "S3_official_after": "NOT_RUN"
+  },
+  "Edge_deploys": 0,
+  "DB_applies": 0,
+  "provider_calls": 0,
+  "gameplay": 0,
+  "history_preserved": true,
+  "new_profiles_enabled": false,
+  "official_before_file_content_provenance": "Official get retrieved all18 source files; unchanged authoritative version45/EZBR79bdb. Full source45 is already preserved in JOINT_CATALOG_AUDIT.json#edge.official_baseline; blocked receipt stores names and official identity only.",
+  "actual": {
+    "started_UTC": "2026-11-20T03:48:23.692426+00:00",
+    "completed_UTC": "2026-11-20T03:52:21.641953+00:00",
+    "minutes": 3.96582545042038,
+    "budget_minutes": 20,
+    "provider_calls": 0,
+    "gameplay": 0,
+    "DB_applies": 0,
+    "Edge_deploys": 0
+  }
+}

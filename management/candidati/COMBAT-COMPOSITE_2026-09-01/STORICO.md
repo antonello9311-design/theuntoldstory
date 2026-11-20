@@ -1,3 +1,8 @@
+20/11/2026 · COMBAT-CATALOGO-JOINT-STAFF-QA-20261120 · VermeHuman iniezione+2tick/4FatiPASS; H1UI/H2neutral bloccati,H4/O1NOT_RUN;5digestPGidentici/0residui/0provider · PARZIALE_PUBLIC_OFF.
+20/11/2026 · COMBAT-CATALOGO-JOINT-STAFF-INSTALL-20261120 · Entryrecensita applicata20261120041216,Root3b20/Edge46 coerenti,131metadataesatti/4StaffONpublicOFF/5PGdigestimmutati/0scene · INSTALLED_STAFF_QA_PENDING.
+20/11/2026 · COMBAT-CATALOGO-JOINT-EDGE-DEPLOY-R2-20261120 · SourceAGG3/R2 epreflightcanonico positivi; Edge46ufficiale18byte-esatti, Rootdf85e5digestPGimmutati; Entryfinalizzata perreview · EDGE_INSTALLED_DB_PENDING_NO_GAMEPLAY.
+20/11/2026 · COMBAT-CATALOGO-JOINT-SOURCE-AGGREGATE1-20261120 · Composizione unica56corpi/75private daRootdf85, duecause+EdgeNaN corrette; Source congelata e reviewindipendente avviata · SOURCE_ONLY_NO_INSTALL_RUNTIME.
+20/11/2026 · COMBAT-CATALOGO-CONTESA-QA-20261120 · Contesa mentale Human unica fallita regolarmente, rolePG/report/2Fati e scadenza distinti verificati;0provider/0residui/risorsePGprotette · PASS_NEGATIVE_FLOW_POSITIVE_NOT_RUN.
 20/11/2026 · COMBAT-CATALOGO-GENJUTSU-ROLE-QA-20261120 · KaiSelf, scadenza naturale e movimento reale1m verificati in4casiHuman/6Fati;0provider, scena propria chiusa e risorsePGintatte · PASS_SCOPE_HUMAN_NO_PUBLIC_OPENING.
 20/11/2026 · COMBAT-CATALOGO-GENJUTSU-ROLE-INSTALL-20261120 · PublisherKaiPG2 corretto in Staff dopo Source/Entry0/0/0, Rootdf85/523079B,0scene e5digestPGidentici; prova giocata pendente · APPLICATO_RISERVATO.
 20/11/2026 · COMBAT-CATALOGO-PARALISI-BINDING-QA-20261120 · Due round pubblicati: cast, resistenza mentale, costo10CK/danno0 e movimento bloccato verificati; KaiSelf rifiutato, caso fermato e scena propria chiusa con risorse reali intatte · PARTIAL_NOT_PASSED.
