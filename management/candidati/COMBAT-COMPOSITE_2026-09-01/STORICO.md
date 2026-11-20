@@ -1,3 +1,5 @@
+20/11/2026 · COMBAT-CATALOGO-DAY-VELO-METADATA-R1-20261120 · Solo tipo di azione Velo allineato a rapida dopo correzione 42702, migrazione 20261120082431 · dato verificato.
+20/11/2026 · COMBAT-CATALOGO-DAY-INTEGRATOR-20261120 · Client e migrazione Staff verificati, Super e Parziale riusciti, blocchi NinjaBook e Cellulare isolati e scene chiuse · parziale.
 20/11/2026 · COMBAT-NIGHT-CATALOG-STATUS-20261120-0523 · Copertura371UUID con classificazioni/evidencepin aggiornata,VermeHumanPASSscoped eSourcefixe767distinti;118SourceOPEN/90dati,nessunanuovaqualifica · CONSEGNA_DOCUMENTALE_PARZIALE.
 20/11/2026 · COMBAT-CATALOGO-JOINT-FIX-INDEPENDENT-REVIEW-20261120 · CandidataH1/H2SourceBe7673/3body+UI6583 recensita0/0/0; PclientGit/domain edEntry mancanti, browserTransportclosed; nessunapply/runtime · SOURCE_QUALIFIED_NOT_INSTALLED.
 20/11/2026 · COMBAT-CATALOGO-JOINT-STAFF-QA-20261120 · VermeHuman iniezione+2tick/4FatiPASS; H1UI/H2neutral bloccati,H4/O1NOT_RUN;5digestPGidentici/0residui/0provider · PARZIALE_PUBLIC_OFF.
