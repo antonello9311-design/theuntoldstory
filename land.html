@@ -8,6 +8,7 @@
 <meta name="tus-innata-presence-build" content="innata-presence-20261103-1" />
 <meta name="tus-staff-master-start-build" content="staff-master-start-1" />
 <meta name="tus-staff-ninjabook-preparation-build" content="staff-ninjabook-preparation-20261120-2" />
+<meta name="tus-staff-common-presence-build" content="staff-common-presence-20261120-2" />
 <meta name="tus-fili-ocular-build" content="fili-ocular-1" />
 <meta name="tus-fili-passive-staff-build" content="fili-passive-staff-master-2" />
 <meta name="tus-innata-staff-profile-build" content="innata-all-clan-20261104-1" />
@@ -4877,8 +4878,16 @@ const {isId,insist,validatePanelEnvelope}=module5;
 // La selezione dipende solo dalla proiezione server, mai da un errore di commit.
 function attachPanelLand(host){
   if(typeof host.attachOpening!=='function')return attachCombatPanel(host);
-  let child=null,mode='unknown',disposed=false,refreshing=null,generation=0,revocation=0,routingWarning=null;
-  const childHost={...host,requireManagedMaster:true,openEntry:()=>host.entryPresenceScope?.()?open('ordinary',{explicit:true}):false,accepted(receipt){host.accepted(receipt);queueMicrotask(()=>{if(!disposed)refresh();});}};
+  let child=null,mode='unknown',disposed=false,refreshing=null,generation=0,revocation=0,routingWarning=null,staffOpening=false;
+  const inStaffRoom=()=>host.isStaffEntryRoom?.()===true;
+  const presenceScope=()=>inStaffRoom()?host.staffEntryScope?.():host.entryPresenceScope?.();
+  const staffRegiaReadScope=()=>{
+    if(!inStaffRoom())return undefined;
+    const entryScope=presenceScope();
+    return entryScope&&staffOpening!=='presence'?JSON.stringify([entryScope,revocation]):null;
+  };
+  const childHost={...host,entryPresenceScope:presenceScope,staffRegiaReadScope,requireManagedMaster:true,openEntry:()=>(inStaffRoom()||presenceScope())?open('ordinary',{explicit:true}):false,
+    openStaffPanel:(which,expectedActivity)=>open(which,{explicit:true,expectedActivity}),accepted(receipt){host.accepted(receipt);queueMicrotask(()=>{if(!disposed)refresh();});}};
   const recoveryEntry=host.document.getElementById('ordinary-open');let recoveryEntryOwned=false;
   function syncEntryRecovery(){
     if(mode!=='unknown'){recoveryEntryOwned=false;return;}
@@ -4903,13 +4912,18 @@ function attachPanelLand(host){
     }
     syncEntryRecovery();return visible;
   }
-  function refresh(){
-    if(disposed)return Promise.resolve(false);if(refreshing)return refreshing;
-    const refreshScope=routingScope(),refreshRevocation=revocation,refreshPresenceScope=host.entryPresenceScope?.();
+  function refresh(afterPresence=false){
+    if(disposed||staffOpening&&!afterPresence)return Promise.resolve(false);
+    const entryScope=presenceScope();
+    if(inStaffRoom()&&!entryScope)return Promise.resolve(false);
+    if(refreshing)return refreshing;
+    const refreshScope=routingScope(),refreshRevocation=revocation;
+    const readCurrent=()=>!disposed&&refreshScope===routingScope()&&refreshRevocation===revocation&&
+      (!entryScope||entryScope===presenceScope());
     const task=(async()=>{
       if(pending())return false;
-      const current=child,stamp=generation,scope=routingScope(),revoked=revocation;
-      const valid=()=>!disposed&&child===current&&stamp===generation&&scope===routingScope()&&!pending()&&(!refreshPresenceScope||refreshPresenceScope===host.entryPresenceScope?.());
+      const current=child,stamp=generation,scope=routingScope();
+      const valid=()=>readCurrent()&&child===current&&stamp===generation&&!pending();
       const location=host.location()?.id;
       if(!host.identity?.()||!isId(location)||host.isExam?.()){routingWarning=null;install('unknown');return false;}
       let e,route='ordinary';
@@ -4936,37 +4950,54 @@ function attachPanelLand(host){
       if(next!==mode){
         const wasVisible=install(next),newChild=child;
         await newChild.refresh();
-        if(refreshPresenceScope&&refreshPresenceScope!==host.entryPresenceScope?.())return false;
-        if(!disposed&&child===newChild&&revoked===revocation&&scope===routingScope()&&wasVisible){
-          await newChild.open(wasVisible,refreshPresenceScope?{explicit:false,entryPresenceScope:refreshPresenceScope}:undefined);
-          if(refreshPresenceScope&&refreshPresenceScope!==host.entryPresenceScope?.())return false;
+        if(!readCurrent())return false;
+        if(child===newChild&&wasVisible){
+          await newChild.open(wasVisible,entryScope?{explicit:false,entryPresenceScope:entryScope}:undefined);
+          if(!readCurrent())return false;
         }
       }else await current.refresh();
-      if(refreshPresenceScope&&refreshPresenceScope!==host.entryPresenceScope?.())return false;
-      return true;
-    })().catch(()=>{if(!disposed&&refreshScope===routingScope()&&refreshRevocation===revocation)warnRouting(refreshScope,'child_read_failed');return false;});
+      return readCurrent();
+    })().catch(()=>{if(readCurrent())warnRouting(refreshScope,'child_read_failed');return false;});
     refreshing=task;
-    task.finally(()=>{if(refreshing===task)refreshing=null;if(!disposed)syncEntryRecovery();});
+    task.finally(()=>{if(refreshing===task)refreshing=null;if(!disposed&&(!staffOpening||afterPresence))syncEntryRecovery();});
     return task;
   }
   async function open(which='ordinary',options={}){
-    if(disposed)return false;const scope=routingScope(),revoked=revocation,presenceScope=host.entryPresenceScope?.();
-    const explicit=options?.explicit!==false;
-    try{if(explicit&&typeof host.beforeOpen==='function')await host.beforeOpen();}
-    catch{if(!disposed&&revoked===revocation&&scope===routingScope())host.routingUnknown?.({explicit:true});return false;}
-    if(disposed||revoked!==revocation||scope!==routingScope()||(presenceScope&&presenceScope!==host.entryPresenceScope?.()))return false;
-    await refresh();if(disposed||revoked!==revocation||scope!==routingScope()||(presenceScope&&presenceScope!==host.entryPresenceScope?.()))return false;
-    if(routingWarning!==null){host.routingUnknown?.({explicit:true});return false;}
-    if(mode==='native'||mode==='unknown')return false;
-    const expected=options?.expectedActivity;
-    if(expected&&(mode!=='combat'||child?.snapshot()?.envelope?.context?.activity_id!==expected))return false;
-    if(mode==='opening')host.closeMaster?.();
-    const current=child,result=await child.open(mode==='combat'?which:undefined,presenceScope?{...options,explicit:false,entryPresenceScope:presenceScope}:options);
-    if(disposed||child!==current||revoked!==revocation||scope!==routingScope()||(presenceScope&&presenceScope!==host.entryPresenceScope?.()))return false;
-    if(mode==='opening'&&host.document.getElementById('ordinary-overlay')?.hidden!==false){host.routingUnknown?.({explicit:true});return false;}
-    return result;
+    if(disposed||staffOpening)return false;
+    const explicit=options?.explicit!==false,staff=explicit&&inStaffRoom();
+    const scope=routingScope(),entryScope=presenceScope(),priorRead=staff?refreshing:null;
+    if(staff){
+      staffOpening='presence';revocation++;routingWarning=null;
+    }
+    const revoked=revocation;
+    const currentView=()=>!disposed&&revoked===revocation&&scope===routingScope()&&
+      (staff?!!entryScope&&entryScope===presenceScope():!entryScope||entryScope===presenceScope());
+    try{
+      // Drena la lettura precedente prima di rinnovare la presenza.
+      if(priorRead){
+        await priorRead;
+        if(!currentView())return false;
+      }
+      try{if(explicit&&typeof host.beforeOpen==='function')await host.beforeOpen();}
+      catch{if(!disposed&&revoked===revocation&&scope===routingScope())host.routingUnknown?.({explicit:true});return false;}
+      if(!currentView())return false;
+      if(staff)staffOpening='routing';
+      await refresh(staff);
+      if(!currentView())return false;
+      if(routingWarning!==null){host.routingUnknown?.({explicit:true});return false;}
+      if(mode==='native'||mode==='unknown')return false;
+      const expected=options?.expectedActivity;
+      if(expected&&(mode!=='combat'||child?.snapshot()?.envelope?.context?.activity_id!==expected))return false;
+      if(mode==='opening')host.closeMaster?.();
+      const current=child,result=await child.open(mode==='combat'?which:undefined,entryScope?{...options,explicit:false,entryPresenceScope:entryScope}:options);
+      if(!currentView()||child!==current)return false;
+      if(mode==='opening'&&host.document.getElementById('ordinary-overlay')?.hidden!==false){host.routingUnknown?.({explicit:true});return false;}
+      return result;
+    }finally{
+      if(staff&&revoked===revocation)staffOpening=false;
+    }
   }
-  function invalidate(){generation++;revocation++;refreshing=null;child?.invalidate();}
+  function invalidate(){generation++;revocation++;refreshing=null;staffOpening=false;child?.invalidate();}
   function dispose(){if(disposed)return;disposed=true;generation++;revocation++;recoveryEntry?.removeEventListener('click',recoveryEntryClick);child?.dispose();child=null;}
   syncEntryRecovery();
   return {open,refresh,invalidate,dispose,closeMasterSurface:()=>{if(child?.currentSurface?.()==='master')child.closeMasterSurface?.();},
@@ -5004,18 +5035,23 @@ function attachCombatPanel(host){
   let regiaState=null,regiaScope=null,regiaReadError=null,regiaReadToken=0,regiaReading=null,regiaObservedBinding=null,regiaOptedInScope=null;
   let actorLabelMode={session_id:null,label_mode:'legacy'},actorLabelReadToken=0;
   let regiaDraft='',regiaDraftBinding=null,regiaDirection={turn_kind:'',actor_ids:[]};const regiaControls=doc.createElement('section');regiaControls.className='combat-panel-common';regiaControls.setAttribute('aria-live','polite');
+  function openFromControl(){
+    if(host.isStaffEntryRoom?.()!==true)return open(surface);
+    const activity=panel?.snapshot().envelope?.context?.activity_id;
+    return host.openStaffPanel?.(surface,isId(activity)?activity:undefined);
+  }
   const badges=['msg-send','ed-send'].map(id=>{
     const send=doc.getElementById(id);if(!send)return null;
     const badge=doc.createElement('button');badge.type='button';badge.className='azp common-choice-pill';badge.hidden=true;
     badge.title='Scelta meccanica pronta: parte con la role quando premi Invia. Clic per modificarla.';
-    send.before(badge);badge.addEventListener('click',()=>open(surface));return badge;
+    send.before(badge);badge.addEventListener('click',openFromControl);return badge;
   }).filter(Boolean);
   // Un blocco resta fuori dalla chat e dal composer finché la scelta non è risolta.
   const blockingToast=doc.createElement('div');blockingToast.className='toast combat-blocking';blockingToast.hidden=true;
   blockingToast.setAttribute('role','alert');blockingToast.setAttribute('aria-live','assertive');
   const blockingMessage=doc.createElement('span'),blockingAction=doc.createElement('button');blockingAction.type='button';
   blockingToast.append(blockingMessage,blockingAction);doc.body.append(blockingToast);
-  blockingAction.addEventListener('click',()=>open(surface));
+  blockingAction.addEventListener('click',openFromControl);
   function syncSendFeedback(m){
     const last=m?.lastCommand,active=last&&['uncertain','rejected'].includes(last.status);
     blockingToast.hidden=!active;blockingToast.classList.toggle('show',!!active);
@@ -5075,15 +5111,18 @@ function attachCombatPanel(host){
     }catch{if(gateToken===actorLabelReadToken&&valid()){actorLabelMode={session_id:session,label_mode:'legacy'};renderRegiaControls();}}
   }
   async function readRegiaPublication(){
+    const staffReadScope=host.staffRegiaReadScope?.();
+    if(staffReadScope===null)return;
     const e=panel?.snapshot().envelope,session=host.regiaSession?.(e),stamp=generation,identity=scope();
     if(!identity||!isId(session)||e?.context?.activity_kind!=='master_v2'){
       resetActorLabelMode();regiaState=null;regiaScope=null;regiaReadError=null;host.syncSendGate?.();return;
     }
     const expected=regiaBinding(e);regiaObservedBinding=expected;
-    if(regiaReading?.binding===expected)return regiaReading.promise;
+    if(regiaReading?.binding===expected&&regiaReading.staffReadScope===staffReadScope)return regiaReading.promise;
     const token=++regiaReadToken;resetActorLabelMode();
     regiaState=null;regiaScope=null;regiaReadError=null;host.syncSendGate?.();
-    const valid=()=>token===regiaReadToken&&stamp===generation&&expected===regiaBinding(panel?.snapshot().envelope);
+    const valid=()=>token===regiaReadToken&&stamp===generation&&expected===regiaBinding(panel?.snapshot().envelope)&&
+      staffReadScope===host.staffRegiaReadScope?.();
     const promise=(async()=>{try{
       const result=await host.rpc('regia_round_publication_state_v1',{p_master_session:session,p_actor:e.viewer?.command_actor_id||null});
       if(!valid())return;
@@ -5099,7 +5138,7 @@ function attachCombatPanel(host){
     }catch(error){if(valid()){regiaState=null;regiaScope=expected;regiaReadError=error.message;}}
     if(valid()){host.syncSendGate?.();renderRegiaControls();}
     })();
-    regiaReading={binding:expected,promise};if(inlineBody)renderRegiaControls();
+    regiaReading={binding:expected,staffReadScope,promise};if(inlineBody)renderRegiaControls();
     try{await promise;}finally{if(regiaReading?.promise===promise){regiaReading=null;if(valid())renderRegiaControls();}}
   }
   function canPreparePrivatePng(e,session){
@@ -5364,6 +5403,7 @@ function attachCombatPanel(host){
   }
   async function open(which='ordinary',options={}){
     const entryScope=options.entryPresenceScope,entryCurrent=()=>!entryScope||entryScope===host.entryPresenceScope?.();
+    if(host.isStaffEntryRoom?.()===true&&(!entryScope||!host.staffRegiaReadScope?.()))return false;
     if(!entryCurrent()||!ensure()||!routeAllowed())return false;
     if(options.expectedActivity&&panel.snapshot().envelope?.context?.activity_id!==options.expectedActivity)return false;
     const actor=options.commandActor,pre=panel.snapshot().envelope;
@@ -5433,7 +5473,7 @@ function attachCombatPanel(host){
         if(single&&stamp===generation&&key===scope()&&!stillBound())host.notice('Il turno è cambiato. La role è conservata.');
       }).finally(()=>{if(single)submittingRole=false;});return true;
   }
-  const entryClick=()=>host.entryPresenceScope?.()&&typeof host.openEntry==='function'?host.openEntry():open('ordinary');
+  const entryClick=()=>(host.isStaffEntryRoom?.()===true||host.entryPresenceScope?.())&&typeof host.openEntry==='function'?host.openEntry():open('ordinary');
   const userClose=()=>{if(opened)host.rememberCombatView?.(null);hide();};
   entry.addEventListener('click',entryClick);close.addEventListener('click',userClose);
   function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',userClose);invalidate();for(const badge of badges)badge.remove();blockingToast.remove();doc.body.classList.remove('combat-has-blocking-toast');root.remove();}
@@ -6027,7 +6067,7 @@ function attachOrdinaryLand(host){
     rawSubmitted=raw.trim();companionSubmitted=needsCompanion?String(companionText).trim():null;c.submit(narrative,needsCompanion?{id:companion.id,body:companionSubmitted}:null).then(r=>{if(current(c,stamp))accepted(r);}).catch(()=>{if(current(c,stamp)&&eligible())host.notice('Invio non confermato. Conserva la role e verifica lo stesso invio.');});
     return true;
   }
-  const closeClick=()=>visible(false),entryClick=()=>host.entryPresenceScope?.()&&typeof host.openEntry==='function'?host.openEntry():open();
+  const closeClick=()=>visible(false),entryClick=()=>(host.isStaffEntryRoom?.()===true||host.entryPresenceScope?.())&&typeof host.openEntry==='function'?host.openEntry():open();
   entry.addEventListener('click',entryClick);close.addEventListener('click',closeClick);
   function dispose(){if(disposed)return;disposed=true;entry.removeEventListener('click',entryClick);close.removeEventListener('click',closeClick);invalidate();}
   showEntry();visible(false);
@@ -6792,9 +6832,24 @@ window.TUSOrdinary={attachOrdinaryLand};
         s.channel=sb.channel('mission-land-events:'+myId).on('postgres_changes',{event:'INSERT',schema:'public',table:'mission_land_events_v1'},incoming).on('postgres_changes',{event:'UPDATE',schema:'public',table:'mission_land_events_v1'},incoming).subscribe(function(status){if(!current())return;if(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(status)){s.stale=true;landReadNote('Aggiornamenti non collegati. Rileggi la vista quando la richiami.');}else if(status==='SUBSCRIBED'&&s.stale)landReadNote('Collegamento ripristinato: dati da aggiornare alla prossima richiesta o evento.');});
       }
       document.addEventListener('visibilitychange',function(){if(!document.hidden&&LAND_EVENTS)LAND_EVENTS.drainPending();});
-      async function landUserPresence(){
-        if(!LAND_POLICY.value||LAND_POLICY.key!==landReadKey())await landPolicyRead();if(!landReadKey()||!LAND_POLICY.value)throw Error('Modalità non confermata: nessun comando inviato.');if(!landEventReadMode())return;if(!landReadKey()||cur&&!roomEntryConfirmed())throw Error('Contesto non confermato.');var key=JSON.stringify([landReadKey(),cur&&cur.id||null]);if(LAND_PRESENCE_FLIGHT&&LAND_PRESENCE_FLIGHT.key===key)return LAND_PRESENCE_FLIGHT.promise;
-        var ticket={key:key,promise:null};ticket.promise=Promise.resolve().then(function(){return sb.rpc('touch_presence');}).then(function(r){if(r.error||key!==JSON.stringify([landReadKey(),cur&&cur.id||null]))throw Error('Presenza non confermata: nessun comando inviato.');}).finally(function(){if(LAND_PRESENCE_FLIGHT===ticket)LAND_PRESENCE_FLIGHT=null;});LAND_PRESENCE_FLIGHT=ticket;return ticket.promise;
+      function landUserPresence(){return landPresenceForCommand();}
+      async function landPresenceForCommand(staffScope){
+        if(!LAND_POLICY.value||LAND_POLICY.key!==landReadKey())await landPolicyRead();
+        if(!landReadKey()||!LAND_POLICY.value)throw Error('Modalità non confermata: nessun comando inviato.');
+        if(!staffScope&&!landEventReadMode())return;
+        if(!landReadKey()||cur&&!roomEntryConfirmed()||staffScope&&staffScope!==staffCommonEntryScope())throw Error('Contesto non confermato.');
+        var currentKey=function(){return staffScope?staffCommonEntryScope():JSON.stringify([landReadKey(),cur&&cur.id||null]);};
+        var key=currentKey();
+        if(LAND_PRESENCE_FLIGHT&&LAND_PRESENCE_FLIGHT.key===key)return LAND_PRESENCE_FLIGHT.promise;
+        var ticket={key:key,promise:null};
+        ticket.promise=Promise.resolve().then(function(){
+          if(staffScope&&staffScope!==currentKey())throw Error('Contesto cambiato: nessun comando inviato.');
+          return sb.rpc('touch_presence');
+        }).then(function(r){
+          if(r.error||key!==currentKey())throw Error('Presenza non confermata: nessun comando inviato.');
+        }).finally(function(){if(LAND_PRESENCE_FLIGHT===ticket)LAND_PRESENCE_FLIGHT=null;});
+        LAND_PRESENCE_FLIGHT=ticket;
+        return ticket.promise;
       }
       window.TUS_LAND_READS={isEventReadMode:landPureReadMode,legacyPoll:landLegacyPollingAllowed,beforeUserCommand:landUserPresence};
       var BACKGROUND_READS=null;
@@ -7177,11 +7232,23 @@ window.TUSOrdinary={attachOrdinaryLand};
       var commonPanelUiUnavailable=false;
       function landApplyStaffRole(role){iAmStaff=['master','admin'].includes(role);LAND_PROFILE_KNOWN=true;for(var it of [['test-btn',true],['regia-btn',iAmStaff],['mv2-open-btn',iAmStaff&&fatoMode],['fato-toggle-row',iAmStaff],['admin-nav',iAmStaff],['test-staff-btn',iAmStaff]]){var btn=document.getElementById(it[0]);if(btn)btn.style.display=it[1]?'':'none';}if(!iAmStaff)setFatoMode(false);esameHoldRefresh();syncSendBtn();}
       function landCommandNeedsPresence(name){return /^(?:post_message|innata_staff_human_role_submit_v1|mission_role_submit_v1|combat_consumer_commit_v1|combat_v2_(?:action_declare|defense_declare|rating_save|round_resolve|round_narrate_human)|combat_panel_(?:prepare|commit)_v1|regia_round_(?:advance|publish)_v1|master_v2_(?:session_open|encounter_open|scene_close|suspend|resume|admin_override|close)|training_role_(?:dichiara|registra|abbandona)|training_sparring_resa|regia_combat_entry_prepare_v1|mission_native_source_prepare_v1|mission_generic_(?:choose|staff_test_start|board_start)_v1|mission_staff_(?:resume_identical_role|retry_failed_director)_v1)$/.test(name); }
+      function staffCommonEntryScope(){
+        return roomEntryStaffScope()&&roomEntryConfirmed()&&iAmStaff&&commonMasterPrincipal()&&myCharId
+          ?JSON.stringify([landReadKey(),myCharId,cur.id,UI_POSTREVIEW_STAFF_EPOCH]):null;
+      }
+      function commonPanelUserPresence(){
+        if(!roomEntryStaffScope())return landUserPresence();
+        var scope=staffCommonEntryScope();
+        if(!scope)throw Error('Contesto non confermato.');
+        return landPresenceForCommand(scope);
+      }
       async function commonPanelUiRpc(name,args){
         if(['combat_consumer_commit_v1','combat_panel_prepare_v1','combat_panel_commit_v1'].includes(name)){
           var commandBinding=JSON.stringify([commonMasterPrincipal(),myCharId,cur&&cur.id||null,MV2&&MV2.authEpoch||0]);
-          await landUserPresence();
-          if(commandBinding!==JSON.stringify([commonMasterPrincipal(),myCharId,cur&&cur.id||null,MV2&&MV2.authEpoch||0]))throw Error('Contesto cambiato: nessun comando inviato.');
+          var staffScope=staffCommonEntryScope();
+          await commonPanelUserPresence();
+          if(commandBinding!==JSON.stringify([commonMasterPrincipal(),myCharId,cur&&cur.id||null,MV2&&MV2.authEpoch||0])||
+             staffScope&&staffScope!==staffCommonEntryScope())throw Error('Contesto cambiato: nessun comando inviato.');
         }
         if(name!=='combat_panel_options_v1'||commonPanelUiUnavailable)return sb.rpc(name,args);
         var result=await sb.rpc('combat_panel_options_ui_v1',args),error=result&&result.error;
@@ -7190,7 +7257,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         }
         return result;
       }
-      function ordinaryRefresh(explicit){
+      function ordinaryRefresh(explicit,deferRouting){
         innataStaffProfileVisibility();
         if(explicit!==true&&!missionAutomaticCombatAllowed())return;
         if(examHumanOwnsScene())return;
@@ -7221,7 +7288,8 @@ window.TUSOrdinary={attachOrdinaryLand};
           regiaPublished:function(){loadMsgs();loadMasterV2(true);},
           regiaOptedIn:function(e){return e?.context?.activity_kind==='master_v2'&&e.context.activity_id===MV2?.data?.encounter?.id&&mv2RegiaOptedIn();},
           isFatoComposer:function(){return fatoMode===true;},
-          beforeOpen:landUserPresence,
+          beforeOpen:commonPanelUserPresence,
+          isStaffEntryRoom:roomEntryStaffScope,staffEntryScope:staffCommonEntryScope,
           entryPresenceScope:function(){return iAmStaff&&LAND_PROFILE_KNOWN&&landEventReadMode()&&roomEntryStaffScope()&&roomEntryConfirmed()&&commonMasterPrincipal()&&myCharId?JSON.stringify([landReadKey(),myCharId,cur.id,UI_POSTREVIEW_STAFF_EPOCH]):null;},
           routingUnknown:function(event){if(event?.explicit)toast('Non riesco a verificare il pannello. Riprova ad aprirlo.');},
           nativeMasterFallback:function(wasVisible){
@@ -7241,7 +7309,7 @@ window.TUSOrdinary={attachOrdinaryLand};
           clearChat:function(companionExpected){input.value='';var ed=document.getElementById('ed-text');if(ed)ed.value='';clearPngDraft(companionExpected);if(combatRecoveryEnabled()&&combatComposerBinding)try{sessionStorage.removeItem(combatComposerBinding);}catch(_e){}updCount();},
           notice:toast,syncSendGate:syncSendBtn,accepted:function(){syncSendBtn();loadMsgs();loadWho();loadRoleState();loadTrainingState();commonMasterPreparationAccepted();}
         });
-        Promise.resolve(ORDINARY.refresh()).then(combatRestoreView);
+        if(!deferRouting)Promise.resolve(ORDINARY.refresh()).then(combatRestoreView);
       }
       function refreshStaffPassiveRoom(){ if(!cur||!roomEntryConfirmed()) return;innataStaffProfileVisibility(); updateMeteo(); entraLuogo(undefined,true); loadMsgs(); loadWho(true); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadEsame(); void missionAutomaticSceneRefresh(); }
       function refreshRoom(){if(!LAND_POLICY.value||LAND_POLICY.key!==landReadKey()){var key=landReadKey();return landPolicyRead().then(function(){if(key===landReadKey())return refreshStaffPassiveRoom();});} if(landEventReadMode()){landPolicyRead();return refreshStaffPassiveRoom();} if(roomEntryStaffScope())return refreshStaffPassiveRoom(); if(!cur||!roomEntryConfirmed()) return; updateMeteo(); entraLuogo(); loadMsgs(); loadWho(); loadRoleState(); loadTrainingState(); loadAcadClass(); refreshMyVita(); loadCombat(); loadEsame(); loadMasterV2(); ordinaryRefresh(); }
@@ -7913,7 +7981,7 @@ window.TUSOrdinary={attachOrdinaryLand};
         host.innerHTML='<div class="mv2-phase"><b>'+esc(m.titolo||m.tipo)+'</b><br>'+esc(m.tipo)+' \u00b7 '+esc(String(m.stato||'').replace(/_/g,' '))+(r?(' \u00b7 round '+r.no):'')+'</div>'+avviso
           +'<div class="mv2-actions"><button class="mv2-btn" type="button" data-mv2-ov="apri">Apri la Regia</button></div>';
       }
-      function mv2OvApri(missionDestination){ if(MV2.scortaContext&&!mv2ScortaGate()){mv2ScortaClose();return;} if(examRegia()?.ownsCombat()){examRegia().openPanel('master');return;} if(commonMasterCombat()){ordinaryRefresh();if(ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');else toast('Pannello comune non disponibile.');return;} if(missionDestination!==true&&humanInlineCombatHost()){humanInlineShow('quest');return;} if(!cur){ toast('Entra in una stanza per aprire la Regia'); return; }
+      function mv2OvApri(missionDestination){ if(MV2.scortaContext&&!mv2ScortaGate()){mv2ScortaClose();return;} if(examRegia()?.ownsCombat()){examRegia().openPanel('master');return;} if(commonMasterCombat()){ordinaryRefresh(undefined,roomEntryStaffScope());if(ORDINARY&&ordinaryPanelMode==='common')ORDINARY.open('master');else toast('Pannello comune non disponibile.');return;} if(missionDestination!==true&&humanInlineCombatHost()){humanInlineShow('quest');return;} if(!cur){ toast('Entra in una stanza per aprire la Regia'); return; }
         var rr=document.getElementById('mv2-room'); if(rr) rr.textContent=cur.name||'stanza';
         var ov=document.getElementById('mv2ov'), bk=document.getElementById('mv2ov-backdrop'); if(ov)ov.hidden=false; if(bk)bk.hidden=false;
         combatRememberView('master'); renderMasterV2(); loadMasterV2(true); }
