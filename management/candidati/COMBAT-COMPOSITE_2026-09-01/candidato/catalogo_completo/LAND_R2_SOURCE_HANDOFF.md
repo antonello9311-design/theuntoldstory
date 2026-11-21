@@ -1,0 +1,23 @@
+# Land R2 · composizione dei tre percorsi
+
+Subject `8004c8a3b3d2b1faf9be3300d8b54d9c82bbf381cbf94be5fa561db651a05c69`. Il manifest identifica sei file nel pacchetto. La baseline riletta concorda con la Root `7fbaf848…`, row SHA `5b6fe3dd…`, GitHub main `64bfee…` e blob Land `ebbe0d60…`. Il freeze HTML R2 è `c90fceb7…`. Il canone e i byte R2 sono rimasti in custodia.
+
+| Percorso | Genitore DB | Asset da attestare | Foglie Root | Byte |
+|---|---|---|---|---:|
+| `install` | Root e readiness originarie esatte | R2 pubblicata, nuova identità Git | `build`, `bytes`, `sha256`, `git_head` | 524224 |
+| `recovery_forward` | R2 attiva e ricevuta del suo apply | Byte e build precedenti, pubblicati su un commit nuovo | `build`, `bytes`, `sha256`, `git_head` | 524230 |
+| `publication_abort` | Root e readiness originarie esatte, nessuna traccia DB della specifica R2 | R2 effettivamente servita prima del ripiego, poi byte e build precedenti su un commit successivo | solo `ui.git_head` | 524230 |
+
+Per publication abort il renderer richiede due set di ricevute Git/Pages/dominio/asset review, ciascuno con i propri byte. Il set originale R2 usa `--aborted-git-pages-receipt`, `--aborted-domain-evidence`, `--aborted-asset`, `--aborted-asset-review`. Il set target usa i normali parametri senza prefisso. Il Git compare di `--abort-git-compare` è l’oggetto `structuredContent` della richiesta autenticata del connettore GitHub, da salvare con `repository_full_name`, `base`, `head`, `status`, `ahead_by`, `behind_by`, `merge_base_commit.sha`. In caso di attestazione derivata dalla risposta API GitHub, `repository_full_name`, `base` e `head` vengono dai parametri della richiesta autenticata e i rimanenti valori dalla risposta. Conservarla con la prova primaria. Il bind ha SHA dei byte del file d’evidenza. L’ascendenza richiede `ahead`, ahead positivo, behind zero e merge-base uguale al commit R2. I commit e i run Pages sono distinti.
+
+Il ramo abort rifiuta la ricevuta di apply. La query ricalcola l’identità che l’install avrebbe prodotto dal commit R2 attestato. La transazione la ricalcola sotto gli stessi lock del CAS e ne verifica l’assenza in ammissione, qualificazione, profilo e adozioni. A quel punto può avanzare la Root del solo `git_head` e portare due adozioni Missioni e Party in un unico commit DB. Il postflight ripete il controllo delle quattro assenze. Se la Root è già quella R2 o un'altra versione, o ci sono scritture parziali della specifica R2, l'abort si ferma. Il ramo recovery forward richiede invece la ricevuta reale dell’install R2 e il suo CAS sulle righe attive.
+
+I metodi di prova del dominio restano quelli del pacchetto precedente. `response_body_sha256` significa byte e SHA integrali della risposta HTTP, con `body_verified=true`. `git_blob_pages_commit_domain_build` lega i byte del blob pubblicato al run Pages riuscito e al marcatore osservato sul dominio dopo Pages, con `body_verified=false` e byte/SHA HTTP null. Il renderer verifica byte, SHA, Git blob e marcatore del file dato. Il ramo abort usa questi stessi controlli per entrambe le pubblicazioni.
+
+## Evidenze
+
+- Tre modelli eseguiti su Supabase in sola lettura, con commit esplicitamente sintetici. Tutti rientrano nel cap 524288 e preservano i grafi storici. Due UUID distinti vengono proiettati per ciascun ramo. Party resta Staff e pubblico. E52, Common e Verme sono veri sulla Root viva. Il genitore post-apply del modello recovery è derivato come JSON dalla Root corrente.
+- SQL, PL/pgSQL, Python e AST delle tre query in sola lettura validati. Le sei istruzioni DML e i lock coincidono con l'AST del pacchetto precedente. I bind dei tre modelli si invertono esattamente e i digest omogenei sono rifiutati. I controlli negativi del renderer rifiutano le prove incrociate tra modalità, l’assenza delle ricevute, la divergenza Git e il riuso del run Pages.
+- Le tre proiezioni preflight reali, eseguite con soli parametri segnaposto, hanno restituito `projection_pass=false`. Il template postflight senza ricevuta ha restituito zero righe. Le proiezioni positive con ricevute reali e il postflight successore sono NOT_RUN.
+
+La review aggregata deve indicare lo stesso subject, schema `staff-land-r2-root-source-review/2`, modalità in ordine `install`, `recovery_forward`, `publication_abort` e findings interi 0/0/0. Prima dell'Entry, il renderer lega le ricevute reali alla proiezione in sola lettura e verifica che il corpo ripristinato coincida byte per byte con quello revisionato. La ricevuta dell’Entry finale conserva il suo SHA e la richiesta di review indipendente. Nessun bind finale, pubblicazione, apply o collaudo avviato.
